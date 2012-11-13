@@ -17,6 +17,26 @@ contacts.Settings = (function() {
       newOrderByLastName = null,
       ORDER_KEY = 'order.lastname';
 
+  var removeFacebookDataDialog = parent.document.getElementById(
+    'remove-facebook-data-dialog');
+  var removeFacebookDataDialogCancel = parent.document.getElementById(
+    'remove-facebook-data-dialog-cancel');
+  var removeFacebookDataDialogCancelHandler =
+    function removeFacebookDataDialogCancelHandler(ev) {
+      removeFacebookDataDialog.classList.remove('visible');
+    };
+  removeFacebookDataDialogCancel.addEventListener('click',
+    removeFacebookDataDialogCancelHandler);
+  var removeFacebookDataDialogConfirm = parent.document.getElementById(
+    'remove-facebook-data-dialog-confirm');
+  var removeFacebookDataDialogConfirmHandler =
+    function removeFacebookDataDialogConfirmHandler(ev) {
+      removeFacebookDataDialog.classList.remove('visible');
+      doFbUnlink();
+    };
+  removeFacebookDataDialogConfirm.addEventListener('click',
+    removeFacebookDataDialogConfirmHandler);
+
   // Initialise the settings screen (components, listeners ...)
   var init = function initialize() {
     initContainers();
@@ -39,7 +59,7 @@ contacts.Settings = (function() {
     var value = newOrderByLastName === null ? orderByLastName :
       newOrderByLastName;
     orderCheckbox.checked = value;
-  }
+  };
 
   var cleanMessage = function cleanMessage() {
     var msg = document.getElementById('taskResult');
@@ -102,11 +122,11 @@ contacts.Settings = (function() {
       };
 
       fb.utils.numFbFriendsData(callbackListener);
-    }
+    };
 
     req.onerror = function() {
       console.error('Could not get number of local contacts');
-    }
+    };
   };
 
   var fbUpdateTotals = function fbUpdateTotals(imported, total) {
@@ -159,7 +179,7 @@ contacts.Settings = (function() {
       document.querySelector('[name="fb.imported"]').addEventListener('click',
         onFbUnlink);
     }
-  }
+  };
 
   var onFbImport = function onFbImportClick(evt) {
     Contacts.extFb.importFB();
@@ -174,30 +194,13 @@ contacts.Settings = (function() {
       li.appendChild(span);
 
       after.parentNode.insertBefore(li, after.nextSibling);
-    }
+    };
 
   var onFbUnlink = function onFbUnlink(evt) {
     evt.preventDefault();
     evt.stopPropagation();
-
-    var msg = _('cleanFbConfirmMsg');
-    var yesObject = {
-      title: _('remove'),
-      callback: function() {
-        CustomDialog.hide();
-        doFbUnlink();
-      }
-    };
-
-    var noObject = {
-      title: _('cancel'),
-      callback: function onCancel() {
-        CustomDialog.hide();
-      }
-    };
-
-    CustomDialog.show(null, msg, noObject, yesObject);
-  }
+    removeFacebookDataDialog.classList.add('visible');
+  };
 
   function doFbUnlink() {
     Contacts.showOverlay(_('cleaningFbData'));
@@ -223,25 +226,25 @@ contacts.Settings = (function() {
           });
           contacts.List.load();
           Contacts.hideOverlay();
-        }
+        };
 
         logoutReq.onerror = function(e) {
           contacts.List.load();
           Contacts.hideOverlay();
           window.console.error('Contacts: Error while FB logout: ',
                               e.target.error);
-        }
-      }
+        };
+      };
 
       req.result.oncleaned = function(num) {
         // Nothing done here for the moment
-      }
+      };
 
       req.result.onerror = function(error) {
         window.console.error('Contacts: Error while FB cleaning');
         Contacts.hideOverlay();
-      }
-    }
+      };
+    };
   }
 
   // Listens for any change in the ordering preferences
@@ -299,13 +302,13 @@ contacts.Settings = (function() {
         disableElement.setAttribute('aria-disabled', 'true');
       }
     }
-  }
+  };
 
   var refresh = function refresh() {
     if (document.getElementById('fbTotalsResult')) {
       fbGetTotals();
     }
-  }
+  };
 
   return {
     'init': init,

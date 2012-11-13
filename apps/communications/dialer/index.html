@@ -241,7 +241,56 @@
         <button id="recents-deletion-confirm" class="danger" data-l10n-id="delete">Delete</button>
       </menu>
     </form>
+    
+    <form id="no-network-connection-dialog" class="appdialog" role="dialog" data-type="confirm">
+      <section>
+        <h1 id='no-network-connection-dialog-title' data-l10n-id="emergencyDialogTitle">No network connection</h1>
+        <p id='no-network-connection-dialog-message' data-l10n-id="emergencyDialogBodyBadNumber">To make a call, the phone must be connected to a network.</p>
+      </section>
+      <menu>
+        <button id="no-network-connection-dialog-close" class="full" data-l10n-id="emergencyDialogBtnOk">OK</button>
+      </menu>
+    </form>
 
+    <form id="no-required-type-of-data-dialog" class="appdialog" role="dialog" data-type="confirm">
+      <section>
+        <p id='no-required-type-of-data-dialog-message'>Message</p>
+      </section>
+      <menu>
+        <button id="no-required-type-of-data-dialog-close" class="full" data-l10n-id="ok">OK</button>
+      </menu>
+    </form>
+
+    <form id="contact-deletion-dialog" class="appdialog" role="dialog" data-type="confirm">
+      <section>
+        <p data-l10n-id="deleteConfirmMsg">Delete contact?</p>
+      </section>
+      <menu>
+        <button id="contact-deletion-dialog-cancel" data-l10n-id="cancel">Cancel</button>
+        <button id="contact-deletion-dialog-confirm" class="danger" data-l10n-id="remove">Remove</button>
+      </menu>
+    </form>
+    
+    <form id="remove-facebook-data-dialog" class="appdialog" role="dialog" data-type="confirm">
+      <section>
+        <p data-l10n-id="cleanFbConfirmMsg">Remove all Facebook data?</p>
+      </section>
+      <menu>
+        <button id="remove-facebook-data-dialog-cancel" data-l10n-id="cancel">Cancel</button>
+        <button id="remove-facebook-data-dialog-confirm" class="danger" data-l10n-id="remove">Remove</button>
+      </menu>
+    </form>
+    
+    <form id="friend-unlink-dialog" class="appdialog" role="dialog" data-type="confirm">
+      <section>
+        <p data-l10n-id="social-unlink-confirm-title">Do you want to unlink your friend?</p>
+      </section>
+      <menu>
+        <button id="friend-unlink-dialog-cancel" data-l10n-id="cancel">Cancel</button>
+        <button id="friend-unlink-dialog-confirm" class="danger" data-l10n-id="social-unlink-confirm-accept">Unlink</button>
+      </menu>
+    </form>
+    
   </body>
 </html>
 

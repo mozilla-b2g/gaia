@@ -8,6 +8,31 @@ var CallHandler = (function callHandler() {
   var callScreenWindow = null;
   var currentActivity = null;
 
+  var noNetworkConnectionDialog = document.getElementById(
+    'no-network-connection-dialog');
+  var noNetworkConnectionDialogTitle = document.getElementById(
+    'no-network-connection-dialog-title');
+  var noNetworkConnectionDialogMessage = document.getElementById(
+    'no-network-connection-dialog-message');
+  var noNetworkConnectionDialogClose = document.getElementById(
+    'no-network-connection-dialog-close');
+
+  var isFlightMode = false;
+
+  function ch_noNetworkConnectionDialogClose(ev) {
+    noNetworkConnectionDialog.classList.remove('visible');
+    if (isFlightMode) {
+      if (currentActivity) {
+        currentActivity.postError('canceled');
+        currentActivity = null;
+      }
+      isFlightMode = false;
+    }
+  }
+
+  noNetworkConnectionDialogClose.addEventListener('click',
+    ch_noNetworkConnectionDialogClose);
+
   /* === Settings === */
   var screenState = 'locked';
   SettingsListener.observe('lockscreen.locked', false, function(value) {
@@ -36,7 +61,7 @@ var CallHandler = (function callHandler() {
           window.location.hash = '#keyboard-view';
         }
       }
-    }
+    };
 
     if (document.readyState == 'complete') {
       fillNumber();
@@ -108,18 +133,12 @@ var CallHandler = (function callHandler() {
     if (isUSSD(number)) {
       if (conn.cardState === 'ready')
         UssdManager.send(number);
-      else
-        CustomDialog.show(
-          _('emergencyDialogTitle'),
-          _('emergencyDialogBodyBadNumber'),
-          {
-            title: _('emergencyDialogBtnOk'),
-            callback: function() {
-              CustomDialog.hide();
-            }
-          }
-        );
-
+      else {
+        noNetworkConnectionDialogTitle.textContent = _('emergencyDialogTitle');
+        noNetworkConnectionDialogMessage.textContent =
+          _('emergencyDialogBodyBadNumber');
+        noNetworkConnectionDialog.classList.add('visible');
+      }
     } else {
       var sanitizedNumber = number.replace(/-/g, '');
       if (telephony) {
@@ -153,21 +172,10 @@ var CallHandler = (function callHandler() {
   }
 
   function handleFlightMode() {
-    CustomDialog.show(
-      _('callAirplaneModeTitle'),
-      _('callAirplaneModeBody'),
-      {
-        title: _('callAirplaneModeBtnOk'),
-        callback: function() {
-          CustomDialog.hide();
-
-          if (currentActivity) {
-            currentActivity.postError('canceled');
-            currentActivity = null;
-          }
-        }
-      }
-    );
+    noNetworkConnectionDialogTitle.textContent = _('callAirplaneModeTitle');
+    noNetworkConnectionDialogMessage.textContent = _('callAirplaneModeBody');
+    isFlightMode = true;
+    noNetworkConnectionDialog.classList.add('visible');
   }
 
   function handleError(event) {
@@ -176,23 +184,17 @@ var CallHandler = (function callHandler() {
 
     if (erName === 'BadNumberError') {
       errorRecognized = true;
-      emgcyDialogBody = 'emergencyDialogBodyBadNumber';
+      noNetworkConnectionDialogMessage.textContent =
+        _('emergencyDialogBodyBadNumber');
     } else if (erName === 'DeviceNotAcceptedError') {
       errorRecognized = true;
-      emgcyDialogBody = 'emergencyDialogBodyDeviceNotAccepted';
+      noNetworkConnectionDialogMessage.textContent =
+        _('DeviceNotAcceptedError');
     }
 
     if (errorRecognized) {
-      CustomDialog.show(
-        _('emergencyDialogTitle'),
-        _(emgcyDialogBody),
-        {
-          title: _('emergencyDialogBtnOk'),
-          callback: function() {
-            CustomDialog.hide();
-          }
-        }
-      );
+      noNetworkConnectionDialogTitle.textContent = _('emergencyDialogTitle');
+      noNetworkConnectionDialog.classList.add('visible');
     }
   }
 
@@ -279,11 +281,9 @@ window.addEventListener('localized', function startup(evt) {
   window.removeEventListener('localized', startup);
   KeypadManager.init();
   NavbarManager.init();
-
   // Set the 'lang' and 'dir' attributes to <html> when the page is translated
   document.documentElement.lang = navigator.mozL10n.language.code;
   document.documentElement.dir = navigator.mozL10n.language.direction;
-
   // <body> children are hidden until the UI is translated
   document.body.classList.remove('hidden');
 });
