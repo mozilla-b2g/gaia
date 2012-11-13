@@ -57,6 +57,8 @@ settings = {
  "lockscreen.unlock-sound.enabled": False,
  "operatorvariant.mcc": 0,
  "operatorvariant.mnc": 0,
+ "ro.moz.iccInfo.mbdn": "",
+ "ril.sms.strict7BitEncoding.enabled": False,
  "phone.ring.keypad": True,
  "powersave.enabled": False,
  "powersave.threshold": 0,
