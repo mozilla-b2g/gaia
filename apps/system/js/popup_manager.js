@@ -43,13 +43,15 @@ var PopupManager = {
     this.errorBack.addEventListener('click', this);
   },
 
-  open: function pm_open(frame, origin, title) {
+  open: function pm_open(frame, origin) {
     // Only one popup per origin at a time.
     // If the popup is being shown, we swap frames.
     if (this._currentPopup[origin]) {
       this.container.removeChild(this._currentPopup[origin]);
       delete this._currentPopup[origin];
     }
+
+    this.title.textContent = this.getTitleFromUrl(frame.dataset.url);
 
     // Reset overlay height
     this.setHeight(window.innerHeight - StatusBar.height);
@@ -61,7 +63,6 @@ var PopupManager = {
     dataset.frameType = 'popup';
     dataset.frameName = name;
     dataset.frameOrigin = origin;
-    dataset.frameTitle = title;
 
     // this seems needed, or an override to origin in close()
     this._currentOrigin = origin;
@@ -143,6 +144,7 @@ var PopupManager = {
 
       case 'mozbrowserlocationchange':
         evt.target.dataset.url = evt.detail;
+        this.show();
         break;
 
       case 'mozbrowsererror':
@@ -168,14 +170,12 @@ var PopupManager = {
         }
 
         this.throbber.classList.remove('loading');
-        var popupTitle = this.getTitleFromUrl(detail.url, openerOrigin);
-        this.title.textContent = popupTitle;
 
         var frame = detail.frameElement;
         frame.dataset.url = detail.url;
 
         this.container.classList.remove('error');
-        this.open(frame, openerOrigin, popupTitle);
+        this.open(frame, openerOrigin);
 
         break;
 
@@ -240,12 +240,45 @@ var PopupManager = {
     this.container.classList.add('error');
   },
 
-  getTitleFromUrl: function pm_getTitleFromUrl(url, origin) {
-    if (url.indexOf(origin) === 0) {
-      return WindowManager.getCurrentDisplayedApp().manifest.name;
+  // This is for card view to request
+  // Return nothing if the content is the same origin as opener
+  // Return URL if the content is off-origin
+  getOpenedOriginFromOpener: function pm_getOpenedOriginOpener(origin) {
+    var opened = this._getOriginObject(this._currentPopup[origin].dataset.url);
+    var opener = this._getOriginObject(origin);
+    // Same origin means: Protocol, Domain, Port
+    if (opened.protocol == opener.protocol &&
+        opened.hostname == opener.hostname &&
+        opened.port == opener.port) {
+      return '';
     } else {
-      return url.split('//')[0] + '//' + url.split('//')[1].split('/')[0];
+      return opened.protocol + '//' + opened.hostname;
     }
+  },
+
+  getTitleFromUrl: function pm_getTitleFromUrl(url) {
+    var app = WindowManager.getCurrentDisplayedApp();
+    var opened = this._getOriginObject(url);
+    var opener = this._getOriginObject(app.frame.dataset.frameOrigin);
+    // Same origin means: Protocol, Domain, Port
+    if (opened.protocol == opener.protocol &&
+        opened.hostname == opener.hostname &&
+        opened.port == opener.port) {
+      return app.name;
+    } else {
+      return opened.protocol + '//' + opened.hostname;
+    }
+  },
+
+  _getOriginObject: function pm__getOriginObject(url) {
+    var parser = document.createElement('a');
+    parser.href = url;
+
+    return {
+      protocol: parser.protocol,
+      hostname: parser.hostname,
+      port: parser.port
+    };
   },
 
   getPopupFromOrigin: function pm_getPopupFromOrigin(origin) {
@@ -261,7 +294,7 @@ var PopupManager = {
     this.screen.classList.add('popup');
     
     var popup = this._currentPopup[this._currentOrigin];
-    this.title.textContent = popup.dataset.frameTitle;
+    this.title.textContent = this.getTitleFromUrl(popup.dataset.url);
     popup.hidden = false;
   },
 
