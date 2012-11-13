@@ -37,64 +37,7 @@ if (!utils.templates) {
     *
     */
     function getTemplate(target, data) {
-      var template;
-      var templates = target.querySelectorAll('*[data-template]');
-
-      var total = templates.length;
-
-      var multi = false;
-      if (total > 1) {
-        multi = true;
-      }
-
-      if (total > 0) {
-        var condition = templates.item(0).dataset.condition;
-
-        // If the first has no condition it will be selected by default
-        // The most frequent case will be that the first is the one that wins
-        if (!condition) {
-           template = templates.item(0);
-        }
-
-        var evaluation;
-        if (condition) {
-          // Condition is evaluated over the object in question
-          with (data) {
-            try {
-              evaluation = eval(condition);
-            }
-            catch (e) { evaluation = false; }
-          }
-          if (evaluation) {
-            // The rest will be ignored
-            total = 1;
-            template = templates.item(0);
-          }
-        }
-
-        for (var c = 1; c < total; c++) {
-          var condition = templates.item(c).dataset.condition;
-
-          if (condition) {
-            with (data) {
-              try {
-                 evaluation = eval(condition);
-              }
-              catch (e) { evaluation = false; }
-            }
-            if (evaluation) {
-              template = templates.item(c);
-              break;
-            }
-          } else if (!template) {
-            // Just to be sure that if there is no a condition
-            // something will be selected
-            template = templates.item(c);
-          }
-        } // Iteration trying to find a template
-      } // total templates > 0
-
-      return {template: template, isMulti: multi};
+      return target.querySelector('*[data-template]');
     }
 
     /**
@@ -157,20 +100,14 @@ if (!utils.templates) {
 
       // Optimization to avoid trying to find a template when
       // only one is needed
-      var multiTemplate = true;
-      var template;
+      var template = null;
       var idx = 0;
       theData.forEach(function(oneData) {
         // Pseudo-field with the index
         oneData._idx_ = idx++;
         // A suitable template for the data is firstly found
-         if (multiTemplate === true) {
-         var tresult = getTemplate(target, oneData);
-          template = tresult.template;
-          if (tresult.isMulti === false) {
-            multiTemplate = false;
-          }
-        }
+        if (!template)
+          template = getTemplate(target, oneData);
 
         if (template) {
           newElem = this.render(template, oneData);
