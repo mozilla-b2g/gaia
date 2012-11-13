@@ -93,6 +93,8 @@ suite('system/AppInstallManager', function() {
     fakeDialog.parentNode.removeChild(fakeDialog);
     lastDispatchedResponse = null;
     lastL10nParams = null;
+
+    MockStatusBar.mTearDown();
   });
 
   suite('init', function() {
@@ -378,7 +380,6 @@ suite('system/AppInstallManager', function() {
         assert.ok(MockStatusBar.wasMethodCalled['decSystemDownloads']);
       });
     });
-
   });
 
   suite('humanizeSize', function() {
