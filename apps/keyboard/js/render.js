@@ -306,45 +306,43 @@ const IMERender = (function() {
     menu.style.display = 'block';
   };
 
-  // Show char alternatives. The first element of altChars is ALWAYS the
-  // original char.
+  // Show char alternatives.
   var showAlternativesCharMenu = function(key, altChars) {
     var content = '';
 
-    var original = altChars[0];
-    altChars = altChars.slice(1);
-
-    var altCharsCurrent = [];
     var left = (window.innerWidth / 2 > key.offsetLeft);
 
-    // Place the menu to the left and adds the original key at the end
+    // Place the menu to the left
     if (left) {
       this.menu.classList.add('kbr-menu-left');
-      altCharsCurrent.push(original);
-      altCharsCurrent = altCharsCurrent.concat(altChars);
-
-    // Place menu on the right and adds the original key at the beginning
+    // Place menu on the right and reverse key order
     } else {
       this.menu.classList.add('kbr-menu-right');
-      altCharsCurrent = altChars.reverse();
-      altCharsCurrent.push(original);
+      altChars = altChars.reverse();
     }
 
+    // How wide (in characters) is the key that we're displaying
+    // these alternatives for?
+    var keycharwidth = key.dataset.compositeKey ?
+      key.dataset.compositeKey.length :
+      1;
+
     // Build a key for each alternative
-    altCharsCurrent.forEach(function(keyChar) {
-      var keyCode = keyChar.keyCode || keyChar.charCodeAt(0);
-      var dataset = [{'key': 'keycode', 'value': keyCode}];
-      var label = keyChar.label || keyChar;
+    altChars.forEach(function(alt) {
+      var dataset = alt.length == 1 ?
+        [{'key': 'keycode', 'value': alt.charCodeAt(0)}] :
+        [{'key': 'compositekey', 'value': alt}];
 
-      var cssWidth = key.offsetWidth;
-      if (altCharsCurrent.length != 1) {
-        cssWidth = key.offsetWidth *
-                   (0.9 + 0.5 * (label.length - original.length));
-      }
+      // Make each of these alternative keys 75% as wide as the key that
+      // it is an alternative for, but adjust for the relative number of
+      // characters in the original and the alternative
+      var width = 0.75 * key.offsetWidth / keycharwidth * alt.length;
+      // If there is only one alternative, then display it at least as
+      // wide as the original key.
+      if (altChars.length === 1)
+        width = Math.max(width, key.offsetWidth);
 
-      if (label.length > 1)
-        dataset.push({'key': 'compositekey', 'value': label});
-      content += buildKey(label, '', cssWidth + 'px', dataset);
+      content += buildKey(alt, '', width + 'px', dataset);
     });
     this.menu.innerHTML = content;
 
