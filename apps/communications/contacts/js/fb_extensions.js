@@ -38,7 +38,6 @@ if (typeof Contacts.extFb === 'undefined') {
     }
 
     function load(uri, from) {
-      extensionFrame.dataset.animFrom = 'left';
       window.addEventListener('message', messageHandler);
       oauthFrame.contentWindow.postMessage({
         type: 'start',
@@ -260,10 +259,6 @@ if (typeof Contacts.extFb === 'undefined') {
       switch (data.type) {
         case 'ready':
           open();
-        break;
-
-        case 'authenticating':
-          extensionFrame.dataset.animFrom = 'bottom';
         break;
 
         case 'authenticated':
