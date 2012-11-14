@@ -29741,7 +29741,8 @@ ImapAccount.prototype = {
     }
 
     // - build a map of known existing folders
-    var folderPubsByPath = {}, folderPub;
+    const folderPubsByPath = {};
+    var folderPub;
     for (var iFolder = 0; iFolder < this.folders.length; iFolder++) {
       folderPub = this.folders[iFolder];
       folderPubsByPath[folderPub.path] = folderPub;
@@ -29762,7 +29763,7 @@ ImapAccount.prototype = {
             meta.delim = box.delim;
 
           // mark it with true to show that we've seen it.
-          folderPubsByPath = true;
+          folderPubsByPath[path] = true;
         }
         // - new to us!
         else {
@@ -31006,8 +31007,9 @@ ActiveSyncFolderConn.prototype = {
       e.run(aResponse);
 
       if (folderConn.syncKey === '0') {
-        // XXX we should re-sync the entire folder list from scratch and compute
-        // the deltas.
+        // We should never actually hit this, since it would mean that the
+        // server is refusing to give us a sync key. On the off chance that we
+        // do hit it, just bail.
         console.error('Unable to get sync key for folder');
         callback('unknown');
       }
