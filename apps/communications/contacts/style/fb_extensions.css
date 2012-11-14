@@ -20,19 +20,6 @@
   -moz-transform: translateY(0);
 }
 
-#fb-extensions[data-anim-from = 'left'] {
-  top: 0;
-  left: 100%;
-}
-
-#fb-extensions[data-anim-from = 'left'].opening {
-  -moz-transform: translateX(-100%);
-}
-
-#fb-extensions[data-anim-from = 'left'].closing {
-  -moz-transform: translateX(0);
-}
-
 .facebook.removed dl,
 p.facebook.removed input {
   background-color: rgba(59, 82, 152, 0.2);
