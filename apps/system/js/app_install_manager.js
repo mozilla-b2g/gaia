@@ -27,10 +27,9 @@ var AppInstallManager = {
 
   handleAppInstallPrompt: function ai_handleInstallPrompt(detail) {
     var _ = navigator.mozL10n.get;
-
+    var app = detail.app;
     // updateManifest is used by packaged apps until they are installed
-    var manifest = detail.app.manifest ?
-      detail.app.manifest : detail.app.updateManifest;
+    var manifest = app.manifest ? app.manifest : app.updateManifest;
 
     if (!manifest)
       return;
@@ -98,7 +97,6 @@ var AppInstallManager = {
       // nothing more to do here, everything is already done
       return;
     }
-
     StatusBar.incSystemDownloads();
 
     app.ondownloadsuccess = this.handleDownloadSuccess.bind(this, app);
@@ -112,8 +110,12 @@ var AppInstallManager = {
   },
 
   handleDownloadError: function ai_handleDownloadError(app, evt) {
+    var _ = navigator.mozL10n.get;
     var manifest = app.manifest || app.updateManifest;
+    var name = manifest.name;
     StatusBar.decSystemDownloads();
+    var msg = name + ' ' + _('download-stopped');
+    SystemBanner.show(msg);
     this.cleanUp(app);
   },
 
