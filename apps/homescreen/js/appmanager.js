@@ -402,14 +402,9 @@ var Applications = (function() {
 
   function isDownloading(origin) {
     var app = installedApps[origin];
-    console.log('-------------> isDownloading ' + app + ' with origin ' + origin);
-
     if (!app) {
       return false;
     }
-
-    console.log('-------------> InstallState ' + app.installState);
-
     return app.installState === 'pending';
   }
 
