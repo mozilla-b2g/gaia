@@ -1,12 +1,12 @@
 const { 'classes': Cc, 'interfaces': Ci, 'results': Cr, 'utils': Cu,
         'Constructor': CC } = Components;
 
+Cu.import('resource://gre/modules/XPCOMUtils.jsm');
+Cu.import('resource://gre/modules/FileUtils.jsm');
 Cu.import('resource://gre/modules/Services.jsm');
 
 function getSubDirectories(directory) {
-  let appsDir = Cc['@mozilla.org/file/local;1']
-               .createInstance(Ci.nsILocalFile);
-  appsDir.initWithPath(GAIA_DIR);
+  let appsDir = new FileUtils.File(GAIA_DIR);
   appsDir.append(directory);
 
   let dirs = [];
@@ -42,9 +42,7 @@ function getFileContent(file) {
 }
 
 function writeContent(file, content) {
-  let stream = Cc['@mozilla.org/network/file-output-stream;1']
-                   .createInstance(Ci.nsIFileOutputStream);
-  stream.init(file, 0x02 | 0x08 | 0x20, 0666, 0);
+  let stream = FileUtils.openFileOutputStream(file);
   stream.write(content, content.length);
   stream.close();
 }
@@ -52,8 +50,7 @@ function writeContent(file, content) {
 // Return an nsIFile by joining paths given as arguments
 // First path has to be an absolute one
 function getFile() {
-  let file = Cc['@mozilla.org/file/local;1'].createInstance(Ci.nsILocalFile);
-  file.initWithPath(arguments[0]);
+  let file = new FileUtils.File(arguments[0]);
   if (arguments.length > 1) {
     for (let i = 1; i < arguments.length; i++) {
       file.append(arguments[i]);
@@ -126,19 +123,10 @@ function registerProfileDirectory() {
         throw Cr.NS_ERROR_FAILURE;
       }
 
-      let file = Cc["@mozilla.org/file/local;1"]
-                   .createInstance(Ci.nsILocalFile)
-      file.initWithPath(PROFILE_DIR);
-      return file;
+      return new FileUtils.File(PROFILE_DIR);
     },
 
-    QueryInterface: function provider_queryInterface(iid) {
-      if (iid.equals(Ci.nsIDirectoryServiceProvider) ||
-          iid.equals(Ci.nsISupports)) {
-        return this;
-      }
-      throw Cr.NS_ERROR_NO_INTERFACE;
-    }
+    QueryInterface: XPCOMUtils.generateQI([Ci.nsIDirectoryServiceProvider, Ci.nsISupports])
   };
 
   Cc["@mozilla.org/file/directory_service;1"]
@@ -151,3 +139,11 @@ if (Gaia.engine === "xpcshell") {
   registerProfileDirectory();
 }
 
+
+function gaiaOriginURL(name) {
+  return GAIA_SCHEME + name + '.' + GAIA_DOMAIN + (GAIA_PORT ? GAIA_PORT : '');
+}
+
+function gaiaManifestURL(name) {
+  return gaiaOriginURL(name) + "/manifest.webapp";
+}
