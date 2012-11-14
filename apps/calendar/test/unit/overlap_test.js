@@ -53,6 +53,18 @@ suite('overlap', function() {
     return element.dataset.conflicts;
   }
 
+  /**
+   * Check whether the given item has the given ID in its conflict set. Default
+   * to the item's own ID, if none given.
+   */
+  function inConflictIDs(item, otherID) {
+    var id = item.busytime._id;
+    if (!otherID) otherID = id;
+    var details = subject.getDetails(id);
+    if (!details) return false;
+    return (otherID in details.conflictIDs);
+  }
+
   function overlaps(element) {
     if (element.busytime)
       element = element.element;
@@ -169,15 +181,19 @@ suite('overlap', function() {
         ));
       }
 
+      var list3ID = list[3].busytime._id;
+
       // add
       list.forEach(function(item, idx) {
         assert.equal(item.element.dataset.conflicts, '4', 'hour #' + idx);
+        assert.ok(inConflictIDs(item, list3ID));
       });
 
       subject.remove(list[3].busytime);
 
       list.forEach(function(item, idx) {
         assert.equal(item.element.dataset.conflicts, '3', 'hour #' + idx);
+        assert.ok(!inConflictIDs(item, list3ID));
       });
     });
 
@@ -193,7 +209,20 @@ suite('overlap', function() {
       assert.equal(conflicts(a), '1');
       assert.equal(conflicts(b), '1');
 
+      assert.ok(inConflictIDs(a));
+      assert.ok(inConflictIDs(b));
+
+      assert.equal(a.element.style.left, '0%');
+      assert.equal(a.element.style.width, '50%');
+      assert.equal(b.element.style.left, '50%');
+      assert.equal(b.element.style.width, '50%');
+
       subject.remove(b.busytime);
+
+      assert.ok(!inConflictIDs(a));
+
+      assert.equal(a.element.style.left, '');
+      assert.equal(a.element.style.width, '');
 
       assert.ok(!conflicts(a), 'removes a conflicts');
       assert.ok(!conflicts(b), 'removes b conflicts');
@@ -206,7 +235,22 @@ suite('overlap', function() {
       assert.equal(conflicts(a), '1');
       assert.equal(conflicts(b), '1');
 
+      assert.ok(inConflictIDs(a));
+      assert.ok(inConflictIDs(b));
+      assert.ok(inConflictIDs(a, b.busytime._id));
+      assert.ok(inConflictIDs(b, a.busytime._id));
+
+      assert.equal(a.element.style.left, '0%');
+      assert.equal(a.element.style.width, '50%');
+      assert.equal(b.element.style.left, '50%');
+      assert.equal(b.element.style.width, '50%');
+
       subject.remove(b.busytime);
+
+      assert.ok(!inConflictIDs(a));
+
+      assert.equal(a.element.style.left, '');
+      assert.equal(a.element.style.width, '');
 
       assert.ok(!conflicts(a), 'removes a conflicts');
       assert.ok(!conflicts(b), 'removes b conflicts');
@@ -246,8 +290,25 @@ suite('overlap', function() {
       assert.ok(!conflicts(nestedOverlap), 'nested overlap conflcit');
       assert.equal(overlaps(nestedOverlap), '3', 'nested overlap depth');
 
+      // DOM seems to cut off repeating decimals early, plain math fails here
+      var expectedWidth = '33.';
+      var cases = [[con1, '0'], [con2, '33.'], [con3, '66.']];
+      cases.forEach(function(item, idx) {
+        var con = item[0];
+        var expectedLeft = item[1];
+        var cStyle = con.element.style;
+        assert.ok(inConflictIDs(con));
+        assert.include(cStyle.width, expectedWidth, 'expected width');
+        assert.include(cStyle.left, expectedLeft, 'expected left');
+      });
+
       subject.remove(con2.busytime);
       subject.remove(con3.busytime);
+
+      assert.ok(!inConflictIDs(con1));
+
+      assert.equal(con1.element.style.width, '');
+      assert.equal(con1.element.style.left, '');
 
       assert.equal(
         overlaps(nestedOverlap), '3',
