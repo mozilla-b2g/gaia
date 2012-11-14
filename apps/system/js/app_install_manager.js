@@ -18,7 +18,8 @@ var AppInstallManager = {
       }
     }).bind(this));
 
-    window.addEventListener('applicationinstall', this.handleApplicationInstall.bind(this));
+    window.addEventListener('applicationinstall',
+                            this.handleApplicationInstall.bind(this));
 
     this.installButton.onclick = this.handleInstall.bind(this);
     this.cancelButton.onclick = this.handleCancel.bind(this);

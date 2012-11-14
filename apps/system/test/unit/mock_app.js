@@ -56,6 +56,12 @@ MockApp.prototype.mTriggerDownloadError = function() {
   }
 };
 
+MockApp.prototype.mTriggerDownloadProgress = function(progress) {
+  if (this.onprogress) {
+    this.onprogress();
+  }
+};
+
 MockApp.prototype.mTriggerDownloadApplied = function() {
   this.downloadAvailable = false;
   if (this.ondownloadapplied) {

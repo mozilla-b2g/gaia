@@ -14,6 +14,7 @@
 var UpdateManager = {
   _mgmt: null,
   _downloading: false,
+  _downloadedBytes: 0,
   _errorTimeout: null,
   NOTIFICATION_BUFFERING_TIMEOUT: 30 * 1000,
   TOASTER_TIMEOUT: 1200,
@@ -81,6 +82,9 @@ var UpdateManager = {
     this.updatesQueue.forEach(function(updatableApp) {
       updatableApp.download();
     });
+
+    this._downloadedBytes = 0;
+    this.render();
   },
 
   cancelAllDownloads: function um_cancelAllDownloads() {
@@ -171,12 +175,22 @@ var UpdateManager = {
       this.downloadDialog.classList.remove('visible');
   },
 
+  downloadProgressed: function um_downloadProgress(bytes) {
+    if (bytes > 0) {
+      this._downloadedBytes += bytes;
+      this.render();
+    }
+  },
+
   render: function um_render() {
     var _ = navigator.mozL10n.get;
 
     if (this._downloading) {
       this.container.classList.add('downloading');
-      this.message.innerHTML = _('downloadingMessage');
+      var humanProgress = this._humanizeSize(this._downloadedBytes);
+      this.message.innerHTML = _('downloadingMessage', {
+                                  progress: humanProgress
+                                });
     } else {
       this.message.innerHTML = _('updatesAvailableMessage', {
                                  n: this.updatesQueue.length
@@ -280,6 +294,7 @@ var UpdateManager = {
 
     if (this.downloadsQueue.length === 1) {
       this._downloading = true;
+      StatusBar.incSystemDownloads();
       this.render();
     }
   },
@@ -293,6 +308,7 @@ var UpdateManager = {
 
     if (this.downloadsQueue.length === 0) {
       this._downloading = false;
+      StatusBar.decSystemDownloads();
       this.checkStatuses();
       this.render();
     }
@@ -374,6 +390,10 @@ var UpdateManager = {
   _humanizeSize: function um_humanizeSize(bytes) {
     var _ = navigator.mozL10n.get;
     var units = ['bytes', 'kB', 'MB', 'GB', 'TB', 'PB'];
+
+    if (!bytes)
+      return '0.00 ' + _(units[0]);
+
     var e = Math.floor(Math.log(bytes) / Math.log(1024));
     return (bytes / Math.pow(1024, Math.floor(e))).toFixed(2) + ' ' +
       _(units[e]);
