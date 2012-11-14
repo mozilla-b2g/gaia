@@ -357,6 +357,7 @@ Calendar.ns('Views').DayBased = (function() {
           break;
         }
       }
+      return hour;
     },
 
     /** public **/

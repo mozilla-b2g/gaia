@@ -213,4 +213,8 @@ suite('views/day', function() {
     assert.equal(subject.onfirstseen, subject.render);
   });
 
+	test('#_scrollToFirstEvent', function() {
+    
+	});
+
 });
