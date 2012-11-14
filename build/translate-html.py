@@ -10,7 +10,7 @@ import logging
 class FileNotFoundException(Exception): pass
 class InvalidMarkupException(Exception): pass
 
-property_line = re.compile('(?P<id>.*)=(?P<value>.*)')
+property_line = re.compile('(?P<id>.*)\s*[:=]\s*(?P<value>.*)')
 import_line = re.compile('@import url\((?P<filename>.*)\)')
 section_line = re.compile('\[(?P<section>.*)\]')
 find_locales_link = re.compile('<link .* type="application/l10n".*>', re.M)
