@@ -767,7 +767,7 @@ Evme.Brain = new function() {
         this.appRedirectExecute = function(data){
             var appIcon = Evme.Utils.formatImageData(data.icon);
             if (data.installed) {
-                Applications.launch(data.appUrl, '');
+                GridManager.getAppByOrigin(data.appUrl).launch();
             } else {
                 Evme.Utils.getRoundIcon(appIcon, 49, function(appIcon) {
                     Evme.Utils.sendToFFOS(Evme.Utils.FFOSMessages.APP_CLICK, {
