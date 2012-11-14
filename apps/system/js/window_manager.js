@@ -65,6 +65,11 @@ var WindowManager = (function() {
   var screenElement = document.getElementById('screen');
   var wrapperFooter = document.querySelector('#wrapper');
 
+  // XXX: Unless https://bugzilla.mozilla.org/show_bug.cgi?id=808231
+  // is fixed, wait for 100ms before starting the transition so
+  // we will not see opening apps/homescreen flash in.
+  var kTransitionWait = 100;
+
   //
   // The set of running apps.
   // This is a map from app origin to an object like this:
@@ -273,7 +278,6 @@ var WindowManager = (function() {
 
     if (classList.contains('inlineActivity')) {
       if (classList.contains('active')) {
-        openFrame.setVisible(true);
         openFrame.focus();
 
         setOpenFrame(null);
@@ -349,11 +353,18 @@ var WindowManager = (function() {
       app.frame.blur();
 
     // Give the focus to the frame
-    frame.setVisible(true);
     frame.focus();
+
+    // Set homescreen visibility to false
+    var homescreenFrame = ensureHomescreen();
+    if (homescreenFrame)
+      homescreenFrame.setVisible(false);
 
     // Set displayedApp to the new value
     displayedApp = frame.dataset.frameOrigin;
+
+    // Set orientation for the new app
+    setOrientationForApp(displayedApp);
 
     // Dispatch an 'appopen' event.
     var evt = document.createEvent('CustomEvent');
@@ -370,6 +381,10 @@ var WindowManager = (function() {
 
     frame.classList.remove('active');
     windows.classList.remove('active');
+
+    // set the closed frame visibility to false
+    if ('setVisible' in frame)
+      frame.setVisible(false);
 
     screenElement.classList.remove('fullscreen-app');
 
@@ -528,7 +543,7 @@ var WindowManager = (function() {
     store.delete(url);
   }
 
-  function getAppScreenshotFromFrame(frame, callback, longTimeout) {
+  function getAppScreenshotFromFrame(frame, callback) {
     if (!frame) {
       callback();
       return;
@@ -536,30 +551,12 @@ var WindowManager = (function() {
 
     var req = frame.getScreenshot(frame.offsetWidth, frame.offsetHeight);
 
-    // This serves as a workaround for
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=787519
-    var isTimeout = false;
-    var timer = setTimeout(function getScreenshotTimeout() {
-      console.warn('Window Manager: getScreenshot timeout.');
-      isTimeout = true;
-      callback();
-    }, longTimeout ? 10 * 1000 : 800);
-
-    req.onsuccess = function(evt) {
-      if (isTimeout)
-        return;
-
-      clearTimeout(timer);
+    req.onsuccess = function gotScreenshotFromFrame(evt) {
       var result = evt.target.result;
       callback(result, false);
     };
 
-    req.onerror = function(evt) {
-      if (isTimeout)
-        return;
-
-      clearTimeout(timer);
-
+    req.onerror = function gotScreenshotFromFrameError(evt) {
       console.warn('Window Manager: getScreenshot failed.');
       callback();
     };
@@ -577,31 +574,6 @@ var WindowManager = (function() {
 
       putAppScreenshotToDatabase(frame.src || frame.dataset.frameOrigin,
                                  screenshot);
-    }, true);
-  }
-
-  // Meta method for getting app screenshot from database, or
-  // get it from the app frame.
-  function getAppScreenshot(frame, callback) {
-    if (!callback || !frame)
-      return;
-
-    // If the frame is just being append and app content is just being loaded,
-    // let's get the screenshot from the database instead.
-    if ('unpainted' in frame.dataset) {
-      getAppScreenshotFromDatabase(frame.src || frame.dataset.frameOrigin,
-                                   callback);
-      return;
-    }
-
-    getAppScreenshotFromFrame(frame, function(screenshot, isCached) {
-      if (!screenshot) {
-        getAppScreenshotFromDatabase(frame.src || frame.dataset.frameOrigin,
-                                     callback);
-        return;
-      }
-
-      callback(screenshot, isCached);
     });
   }
 
@@ -617,6 +589,13 @@ var WindowManager = (function() {
     evt.initCustomEvent('appwillopen', true, false, { origin: origin });
     app.frame.dispatchEvent(evt);
 
+    // Set the frame to be visible.
+    if ('setVisible' in openFrame)
+      openFrame.setVisible(true);
+
+    // set the size of the opening app
+    setAppSize(origin);
+
     if (origin === homescreen) {
       // We cannot apply background screenshot to home screen app since
       // the screenshot is encoded in JPEG and the alpha channel is
@@ -629,7 +608,6 @@ var WindowManager = (function() {
       openCallback();
       windows.classList.add('active');
       openFrame.classList.add('homescreen');
-      openFrame.setVisible(true);
       openFrame.focus();
       setOpenFrame(null);
       displayedApp = origin;
@@ -642,11 +620,14 @@ var WindowManager = (function() {
 
     setFrameBackground(openFrame, function gotBackground() {
       // Start the transition when this async/sync callback is called.
-      if (!screenElement.classList.contains('switch-app')) {
-        openFrame.classList.add('opening');
-      } else {
-        openFrame.classList.add('opening-card');
-      }
+
+      setTimeout(function startOpeningTransition() {
+        if (!screenElement.classList.contains('switch-app')) {
+          openFrame.classList.add('opening');
+        } else {
+          openFrame.classList.add('opening-card');
+        }
+      }, kTransitionWait);
     });
   }
 
@@ -656,6 +637,22 @@ var WindowManager = (function() {
     setCloseFrame(app.frame);
     closeCallback = callback || function() {};
 
+    // Animate the window close.  Ensure the homescreen is in the
+    // foreground since it will be shown during the animation.
+    var homescreenFrame = ensureHomescreen();
+    homescreenFrame.setVisible(true);
+
+    // Take keyboard focus away from the closing window
+    closeFrame.blur();
+
+    // set orientation for homescreen app
+    setOrientationForApp(homescreen);
+
+    // Set the size of both homescreen app and the closing app
+    // since the orientation had changed.
+    setAppSize(homescreen);
+    setAppSize(origin);
+
     // Send a synthentic 'appwillclose' event.
     // The keyboard uses this and the appclose event to know when to close
     // See https://github.com/andreasgal/gaia/issues/832
@@ -663,13 +660,12 @@ var WindowManager = (function() {
     evt.initCustomEvent('appwillclose', true, false, { origin: origin });
     closeFrame.dispatchEvent(evt);
 
-    // Take keyboard focus away from the closing window
-    closeFrame.blur();
-    closeFrame.setVisible(false);
 
-    // Start the transition
-    closeFrame.classList.add('closing');
-    closeFrame.classList.remove('active');
+    setTimeout(function startClosingTransition() {
+      // Start the transition
+      closeFrame.classList.add('closing');
+      closeFrame.classList.remove('active');
+    }, kTransitionWait);
   }
 
   // Perform a "switching" animation for the closing frame and the opening frame
@@ -701,7 +697,6 @@ var WindowManager = (function() {
       var app = Applications.getByManifestURL(homescreenManifestURL);
       appendFrame(null, homescreen, homescreenURL,
                   app.manifest.name, app.manifest, app.manifestURL);
-      setAppSize(homescreen);
       openWindow(homescreen, null);
       addWrapperListener();
 
@@ -756,7 +751,17 @@ var WindowManager = (function() {
       var req = lock.get('ftu.manifestURL');
       req.onsuccess = function() {
         ftuManifestURL = this.result['ftu.manifestURL'];
+        if (!ftuManifestURL) {
+          dump('FTU manifest cannot be found skipping.\n');
+          ensureHomescreen();
+          return;
+        }
         ftu = Applications.getByManifestURL(ftuManifestURL);
+        if (!ftu) {
+          dump('Opps, bogus FTU manifest.\n');
+          ensureHomescreen();
+          return;
+        }
         ftuURL = ftu.origin + ftu.manifest.entry_points['ftu'].launch_path;
         ftu.launch('ftu');
       };
@@ -799,6 +804,13 @@ var WindowManager = (function() {
 
     // Before starting a new transition, let's make sure current transitions
     // are stopped and the state classes are cleaned up.
+    // visibility status should also be reset.
+    if (openFrame && 'setVisible' in openFrame)
+      openFrame.setVisible(false);
+    if (closeFrame && 'setVisible' in closeFrame)
+      closeFrame.setVisible(false);
+    if (homescreenFrame)
+      homescreenFrame.setVisible(true);
     setOpenFrame(null);
     setCloseFrame(null);
     screenElement.classList.remove('switch-app');
@@ -812,8 +824,6 @@ var WindowManager = (function() {
     }
     // Case 2: null --> app
     else if (!currentApp && newApp != homescreen) {
-      homescreenFrame.setVisible(false);
-      setAppSize(newApp);
       openWindow(newApp, function windowOpened() {
         // TODO Implement FTU stuff if necessary
       });
@@ -821,37 +831,15 @@ var WindowManager = (function() {
     // Case 3: null->homescreen || homescreen->app
     else if ((!currentApp && newApp == homescreen) ||
              (currentApp == homescreen && newApp)) {
-      if (!currentApp) {
-        homescreenFrame.setVisible(true);
-      }
-      setAppSize(newApp);
-
-      openWindow(newApp, function windowOpened() {
-        // Move the homescreen into the background only
-        // after the transition completes, since it's
-        // visible during the transition.
-        if (currentApp)
-          homescreenFrame.setVisible(false);
-
-        if (callback)
-          callback();
-      });
+      openWindow(newApp, callback);
     }
     // Case 4: app->homescreen
     else if (currentApp && currentApp != homescreen && newApp == homescreen) {
-      // Animate the window close.  Ensure the homescreen is in the
-      // foreground since it will be shown during the animation.
-      homescreenFrame.setVisible(true);
-
       // For screenshot to catch current window size
-      setAppSize(currentApp);
-
-      setAppSize(newApp);
       closeWindow(currentApp, callback);
     }
     // Case 5: app-to-app transition
     else {
-      setAppSize(newApp);
       switchWindow(newApp, callback);
     }
     // Set homescreen as active,
@@ -861,9 +849,6 @@ var WindowManager = (function() {
     } else {
       homescreenFrame.classList.remove('active');
     }
-
-    // Lock orientation as needed
-    setOrientationForApp(newApp);
 
     // Record the time when app was launched,
     // need this to display apps in proper order on CardsView.
@@ -886,6 +871,7 @@ var WindowManager = (function() {
     if (!app)
       return;
     var manifest = app.manifest;
+
     if (manifest.orientation) {
       var rv = screen.mozLockOrientation(manifest.orientation);
       if (rv === false) {
@@ -909,9 +895,6 @@ var WindowManager = (function() {
     frame.className = 'appWindow';
     frame.dataset.frameOrigin = origin;
 
-    // frames are began unpainted.
-    frame.dataset.unpainted = true;
-
     // Note that we don't set the frame size here.  That will happen
     // when we display the app in setDisplayedApp()
 
@@ -924,6 +907,9 @@ var WindowManager = (function() {
     // They also need to be marked as 'mozapp' to be recognized as apps by the
     // platform.
     frame.setAttribute('mozbrowser', 'true');
+
+    // frames are began unpainted.
+    frame.dataset.unpainted = true;
 
     // These apps currently have bugs preventing them from being
     // run out of process. All other apps will be run OOP.
@@ -960,7 +946,15 @@ var WindowManager = (function() {
 
     // And map the app origin to the info we need for the app
     runningApps[origin] = {
-      name: name,
+      get name() {
+        var name = getAppName(origin, this.manifest);
+        if (!name) {
+          return this._name;
+        } else {
+          return name;
+        }
+      },
+      _name: name,
       manifest: manifest,
       frame: frame,
       launchTime: 0
@@ -993,6 +987,9 @@ var WindowManager = (function() {
 
     // Open the frame, first, store the reference
     openFrame = frame;
+
+    // set the frame to visible state
+    openFrame.setVisible(true);
 
     setFrameBackground(openFrame, function gotBackground() {
       // Start the transition when this async/sync callback is called.
@@ -1044,7 +1041,6 @@ var WindowManager = (function() {
 
     // Take keyboard focus away from the closing window
     frame.blur();
-    frame.setVisible(false);
 
     // Give back focus to the displayed app
     var app = runningApps[displayedApp];
@@ -1068,6 +1064,11 @@ var WindowManager = (function() {
       return;
 
     var name = app.manifest.name;
+    if (app.manifest.locales &&
+        app.manifest.locales[document.documentElement.lang] &&
+        app.manifest.locales[document.documentElement.lang].name) {
+      name = app.manifest.locales[document.documentElement.lang].name;
+    }
     var origin = app.origin;
 
     // Check if it's a virtual app from a entry point.
@@ -1090,7 +1091,13 @@ var WindowManager = (function() {
         if (path.indexOf('/' + ep) == 0 &&
             (currentEp.launch_path == path)) {
           origin = origin + currentEp.launch_path;
-          name = currentEp.name;
+          var lang = document.documentElement.lang;
+          if (currentEp.locales && currentEp.locales[lang] &&
+              currentEp.locales[lang].name) {
+            name = currentEp.locales[lang].name;
+          } else {
+            name = currentEp.name;
+          }
         }
       }
     }
@@ -1204,9 +1211,37 @@ var WindowManager = (function() {
     deleteAppScreenshotFromDatabase(e.detail.application.origin);
   });
 
-  function handleAppCrash(manifestURL) {
-    var app = Applications.getByManifestURL(manifestURL);
-    CrashReporter.setAppName(app.manifest.name);
+  function handleAppCrash(origin, manifestURL) {
+    if (origin && manifestURL) {
+      // When inline activity frame crashes,
+      // query the localized name from manifest
+      var app = Applications.getByManifestURL(manifestURL);
+      CrashReporter.setAppName(getAppName(origin, app.manifest));
+    } else {
+      var app = runningApps[displayedApp];
+      CrashReporter.setAppName(app.name);
+    }
+  }
+
+  function getAppName(origin, manifest) {
+    if (!manifest)
+      return '';
+
+    var lang = document.documentElement.lang;
+    if (manifest.entry_points) {
+      var entryPoint = manifest.entry_points[origin.split('/')[3]];
+      if (entryPoint.locales && entryPoint.locales[lang] &&
+          entryPoint.locales[lang].name) {
+        return entryPoint.locales[lang].name;
+      } else {
+        return entryPoint.name;
+      }
+    } else if (manifest.locales && manifest.locales[lang] &&
+               manifest.locales[lang].name) {
+      return manifest.locales[lang].name;
+    } else {
+      return manifest.name;
+    }
   }
 
   // Deal with crashed apps
@@ -1219,7 +1254,7 @@ var WindowManager = (function() {
 
     if (e.target.dataset.frameType == 'inline-activity') {
       stopInlineActivity();
-      handleAppCrash(manifestURL);
+      handleAppCrash(origin, manifestURL);
       return;
     }
 
@@ -1236,7 +1271,7 @@ var WindowManager = (function() {
     // If the crashing app is currently displayed, we will present
     // the user with a banner notification.
     if (displayedApp == origin)
-      handleAppCrash(manifestURL);
+      handleAppCrash();
 
     // If the crashing app is the home screen app and it is the displaying app
     // we will need to relaunch it right away.

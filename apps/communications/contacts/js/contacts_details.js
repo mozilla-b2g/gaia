@@ -3,7 +3,7 @@
 var contacts = window.contacts || {};
 
 contacts.Details = (function() {
-  var photoPos = 8;
+  var photoPos = 7;
   var contactData,
       contactDetails,
       listContainer,
@@ -70,21 +70,21 @@ contacts.Details = (function() {
 
       var startPosition = event.clientY;
       var currentPosition;
-      var initMargin = '8rem';
+      var initMargin = '16rem';
       contactDetails.classList.add('up');
       cover.classList.add('up');
 
       var onMouseMove = function onMouseMove(event) {
         currentPosition = event.clientY;
         var newMargin = currentPosition - startPosition;
-        if (newMargin > 0 && newMargin < 200) {
+        if (newMargin > 0 && newMargin < 150) {
           contactDetails.classList.remove('up');
           cover.classList.remove('up');
           var calc = '-moz-calc(' + initMargin + ' + ' + newMargin + 'px)';
           // Divide by 40 (4 times slower and in rems)
           contactDetails.style.transform = 'translateY(' + calc + ')';
-          var newPos = 'center ' + (-photoPos + (newMargin / 40)) + 'rem';
-          cover.style.backgroundPosition = newPos;
+          var newPos = (-photoPos + (newMargin / 40)) + 'rem';
+          cover.style.transform = 'translateY(' + newPos + ')';
         }
       };
 
@@ -92,7 +92,7 @@ contacts.Details = (function() {
         contactDetails.classList.add('up');
         cover.classList.add('up');
         contactDetails.style.transform = 'translateY(' + initMargin + ')';
-        cover.style.backgroundPosition = 'center -' + photoPos + 'rem';
+        cover.style.transform = 'translateY(-' + photoPos + 'rem)';
         cover.removeEventListener('mousemove', onMouseMove);
         cover.removeEventListener('mouseup', onMouseUp);
       };
@@ -145,15 +145,15 @@ contacts.Details = (function() {
     renderOrg(contact);
     renderBday(contact);
 
-    if (fb.isEnabled) {
-      renderSocial(contact);
-    }
-
     renderPhones(contact);
     renderEmails(contact);
     renderAddresses(contact);
     renderNotes(contact);
     renderPhoto(contact);
+
+    if (fb.isEnabled) {
+      renderSocial(contact);
+    }
   };
 
   var renderFavorite = function cd_renderFavorite(contact) {
@@ -439,9 +439,8 @@ contacts.Details = (function() {
   var renderPhoto = function cd_renderPhoto(contact) {
     if (contact.photo && contact.photo.length > 0) {
       contactDetails.classList.add('up');
-      // Photo height + Header in rems
-      var photoOffset = (photoPos + 5) * 10;
-      if ((detailsInner.offsetHeight + photoOffset) < cover.clientHeight) {
+      var clientHeight = contactDetails.clientHeight;
+      if (detailsInner.offsetHeight < clientHeight) {
         cover.style.overflow = 'hidden';
       } else {
         cover.style.overflow = 'auto';

@@ -61,10 +61,9 @@ function audioPreview(element) {
   var audio = document.querySelector('#sound-selection audio');
   var source = audio.src;
   var playing = !audio.paused;
-  var newSource = element.querySelector('input').value;
 
-  audio.src = (newSource == 'disabled') ? null : 'resources/ringtones/' + newSource; 
-  if (source == audio.src && playing) {
+  audio.src = 'resources/ringtones/' + element.querySelector('input').value;
+  if (source === audio.src && playing) {
     audio.stop();
   } else {
     audio.play();

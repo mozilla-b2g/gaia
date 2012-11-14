@@ -575,17 +575,8 @@ form.bottom[role="search"].new-sms-form {
 }
 
 #message-to-send {
-  /* Fixing texteareas in BB */
-  background: url("../shared/input_areas/images/ui/shadow-search.png") repeat-x scroll left top #FFFFFF;
-  border: 0.1rem solid rgba(0, 0, 0, 0.33);
-  line-height: 1.8rem;
-  height: 3rem;
-  max-height: 10rem;
-  width: 100%;
-}
-
-#message-to-send:-moz-placeholder {
-  padding: 0.5rem 0 0 0.5rem;
+  padding: 0.4rem 0 0.4rem 0.4rem;
+  line-height: 2rem;
 }
 
 #send-message-container {

@@ -1253,10 +1253,12 @@ var Browser = {
     if (this.currentScreen === this.TABS_SCREEN) {
       this.screenSwipeMngr.gestureDetector.stopDetecting();
     }
-    document.body.classList.remove(this.currentScreen);
-    this.previousScreen = this.currentScreen;
-    this.currentScreen = screen;
-    document.body.classList.add(this.currentScreen);
+    if (this.currentScreen !== screen) {
+      document.body.classList.remove(this.currentScreen);
+      this.previousScreen = this.currentScreen;
+      this.currentScreen = screen;
+      document.body.classList.add(this.currentScreen);
+    }
   },
 
   showStartscreen: function browser_showStartscreen() {
@@ -1452,7 +1454,23 @@ var Browser = {
     var msg = navigator.mozL10n.get('confirm-clear-history');
     if (confirm(msg)) {
       Places.clearHistory((function() {
+
         this.clearHistoryButton.setAttribute('disabled', 'disabled');
+
+        Places.getTopSites(this.MAX_TOP_SITES, null,
+          this.showTopSiteThumbnails.bind(this));
+
+        var self = this;
+        for each(var tab in this.tabs) {
+          if (tab.dom.purgeHistory) {
+            tab.dom.purgeHistory().onsuccess = (function(e) {
+              if (self.tabs[tabId] == self.currentTab) {
+                self.refreshButtons();
+              }
+            });
+          }
+        }
+
       }).bind(this));
 
       this.history.innerHTML = '';
@@ -1651,9 +1669,7 @@ var Browser = {
       case 'url':
         var url = this.getUrlFromInput(activity.source.data.url);
         this.selectTab(this.createTab(url));
-        if (this.currentScreen !== this.PAGE_SCREEN) {
-          this.showPageScreen();
-        }
+        this.showPageScreen();
         break;
     }
   }
@@ -1664,13 +1680,13 @@ var Browser = {
 var Utils = {
   createHighlightHTML: function ut_createHighlightHTML(text, searchRegExp) {
     if (!searchRegExp) {
-      return text;
+      return Utils.escapeHTML(text);
     }
     searchRegExp = new RegExp(searchRegExp, 'gi');
     var sliceStrs = text.split(searchRegExp);
     var patterns = text.match(searchRegExp);
     if (!patterns) {
-      return text;
+      return Utils.escapeHTML(text);
     }
     var str = '';
     for (var i = 0; i < patterns.length; i++) {

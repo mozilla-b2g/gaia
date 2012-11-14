@@ -535,6 +535,27 @@ body[data-path="/month/"] #view-selector .month a {
   width: 34%;
 }
 
+@keyframes fade-status {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+section[role="status"] {
+  display: none;
+}
+
+section[role="status"].active {
+  display: block;
+  animation-name: fade-status;
+  animation-delay: 2.5s;
+  animation-duration: 1.5s;
+}
+
 @media screen and (min-width: 481px) {
   html, body {
     font-size: 12px;

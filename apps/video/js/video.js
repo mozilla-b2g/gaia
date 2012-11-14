@@ -174,7 +174,7 @@ function startStream() {
   urlToStream = null;
 }
 
-function metaDataParser(videofile, callback) {
+function metaDataParser(videofile, callback, metadataError) {
 
   var previewPlayer = document.createElement('video');
 
@@ -188,6 +188,9 @@ function metaDataParser(videofile, callback) {
     title: fileNameToVideoName(videofile.name)
   };
 
+  previewPlayer.onerror = function() {
+    metadataError(metadata.title);
+  }
   previewPlayer.preload = 'metadata';
   previewPlayer.style.width = THUMBNAIL_WIDTH + 'px';
   previewPlayer.style.height = THUMBNAIL_HEIGHT + 'px';
