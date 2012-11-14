@@ -297,6 +297,12 @@ Calendar.ns('Views').DayBased = (function() {
       var hoursDuration = (endHour - startHour) +
                           ((endMin - startMin) / MINUTES_IN_HOUR);
 
+      // If this event is less than a full hour, tweak the classname so that
+      // some alternate styles for a tiny event can apply (eg. hide details)
+      if (hoursDuration < 1) {
+        element.className += ' partial-hour';
+      }
+
       return this._assignHeight(element, hoursDuration);
     },
 
