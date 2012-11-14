@@ -28,6 +28,12 @@ Icon.prototype = {
   // or is being asked to render the default downloading icon.
   render: function icon_render(target, page) {
     if (Applications.isDownloading(this.descriptor.origin)) {
+      var self = this;
+      Applications.addEventListener('downloadfinished',
+        function onAppDownloaded(app) {
+          self.updateIconSrc(Applications.getIcon(app.origin));        
+        }
+      );
       this.renderDownloading(target, page);
     } else {
       this.renderNormal(target, page);
