@@ -93,19 +93,51 @@ var Applications = (function() {
 
     installedApps[app.origin] = app;
 
-    var fireCallbacks = function() {
-      callbacks.forEach(function(callback) {
-        if (callback.type == 'install') {
-          callback.callback(app);
-        }
-      });
+    if (!app.downloadAvailable) {
+      if (app.installState == 'installed') {
+        finishInstallation(app);
+        return;
+      } else {
+        // INSTALLATION ERROR
+        alert('Could not install the app');
+        return;
+      }
     }
 
+    fireCallback(app, 'install');
+
+    // When download is done, fire the finished callback after
+    // fetching the real icon
+    app.ondownloadsuccess = function() {
+      fetchIcon(app, function() {
+        fireCallback(app, 'downloadfinished');
+        }
+      );
+    };
+  };
+
+  function fireCallback(app, type) {
+    callbacks.forEach(function(callback) {
+      if (callback.type == type) {
+        callback.callback(app);
+      }
+    });
+  };
+
+  function finishInstallation(app) {
+    var myCallback = function() {
+      fireCallback(app, 'install');
+    }
+
+    fetchIcon(app, myCallback);
+  };
+
+  function fetchIcon(app, callback) {
     var icon = getIcon(app.origin);
 
     // No need to put data: URIs in the cache
     if (!icon || icon.indexOf('data:') != -1) {
-      fireCallbacks();
+      callback();
       return;
     }
 
@@ -126,19 +158,19 @@ var Applications = (function() {
         var fileReader = new FileReader();
         fileReader.onload = function fileReader_load(evt) {
           cacheIcon(app.origin, evt.target.result);
-          fireCallbacks();
+          callback();
         }
         fileReader.readAsDataURL(xhr.response);
       } else {
         // 404 is not an error is the xhr world, so let's make sure
         // the application is shown on the homescreen even if the icon
         // does not appears.
-        fireCallbacks();
+        callback();
       }
     }
 
     xhr.onerror = function saveIcon_onerror() {
-      fireCallbacks();
+      callback();
     }
   };
 
@@ -246,6 +278,14 @@ var Applications = (function() {
     return (result === Number.MAX_VALUE) ? max : result;
   }
 
+  function getDefaultIcon() {
+    return 'style/images/default.png';
+  };
+
+  function getDownloadingIcon() {
+    return 'style/images/app_downloading.png';
+  };
+
   /*
    *  Returns an icon given an origin
    *
@@ -253,6 +293,13 @@ var Applications = (function() {
    *
    */
   function getIcon(origin) {
+    // Depending on the APP status show app icon
+    // or a system one
+    var app = getByOrigin(origin);
+    if (app.installState == 'pending') {
+      return getDownloadingIcon();
+    }
+
     var manifest = getManifest(origin);
     if (!manifest) {
       return null;
@@ -265,7 +312,7 @@ var Applications = (function() {
     // Get all sizes orderer largest to smallest
     var icons = manifest.icons;
     if (!icons) {
-      return 'style/images/default.png';
+      return getDefaultIcon();
     }
 
     // If the icons is not fully-qualifed URL, add the origin of the
@@ -365,6 +412,7 @@ var Applications = (function() {
     getOrigin: getOrigin,
     getName: getName,
     getIcon: getIcon,
+    getDownloadingIcon: getDownloadingIcon,
     cacheIcon: cacheIcon,
     getManifest: getManifest,
     getInstalledApplications: getInstalledApplications,

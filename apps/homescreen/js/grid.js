@@ -668,6 +668,24 @@ const GridManager = (function() {
         pageHelper.push([app], true);
       }
 
+      // Listen for events when the app finish downloading, search
+      // for the page that contains the installed app and update
+      // the icon.
+      Applications.addEventListener('downloadfinished',
+        function onAppDownloaded(app) {
+        for (var i = 0; i < pages.length; i++) {
+          var page = pages[i];
+          var apps = page.getAppsList();
+          for (var j in apps) {
+            if (apps[j].origin == app.origin) {
+              var icon = page.getIconForOrigin(app.origin);
+              icon.updateIconSrc(Applications.getIcon(app.origin));
+              return;
+            }
+          }
+        }
+      });
+
       if (animation) {
         goToPage(index, function install_goToPage() {
           pageHelper.getCurrent().applyInstallingEffect(origin);
