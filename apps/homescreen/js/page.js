@@ -27,8 +27,7 @@ Icon.prototype = {
   // Renders the icon, but decides if use the traditional method
   // or is being asked to render the default downloading icon.
   render: function icon_render(target, page) {
-    var defaultIcon = Applications.getDownloadingIcon();
-    if (this.descriptor.icon.match(defaultIcon + '$') == defaultIcon) {
+    if (Applications.isDownloading(this.descriptor.origin)) {
       this.renderDownloading(target, page);
     } else {
       this.renderNormal(target, page);

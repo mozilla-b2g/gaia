@@ -400,6 +400,19 @@ var Applications = (function() {
     return installedApps[origin];
   }
 
+  function isDownloading(origin) {
+    var app = installedApps[origin];
+    console.log('-------------> isDownloading ' + app + ' with origin ' + origin);
+
+    if (!app) {
+      return false;
+    }
+
+    console.log('-------------> InstallState ' + app.installState);
+
+    return app.installState === 'pending';
+  }
+
   return {
     launch: launch,
     isCore: isCore,
@@ -409,7 +422,6 @@ var Applications = (function() {
     getOrigin: getOrigin,
     getName: getName,
     getIcon: getIcon,
-    getDownloadingIcon: getDownloadingIcon,
     cacheIcon: cacheIcon,
     getManifest: getManifest,
     getInstalledApplications: getInstalledApplications,
@@ -417,6 +429,7 @@ var Applications = (function() {
     addBookmark: addBookmark,
     deleteBookmark: deleteBookmark,
     installBookmark: installBookmark,
-    isInstalled: isInstalled
+    isInstalled: isInstalled,
+    isDownloading: isDownloading
   };
 })();
