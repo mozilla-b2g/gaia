@@ -41,6 +41,157 @@ body {
   visibility: hidden !important;
 }
 
+/*
+ *  Poweroff animation
+ */
+#screen > div#poweroff-splash {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #000;
+}
+
+#screen > div#poweroff-splash.step1 {
+  animation: poweroff-splash-fade-in 0.5s;
+}
+
+@keyframes poweroff-splash-fade-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 100%;
+  }
+}
+
+.poweroff-ring {
+  display: block;
+  position: absolute;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  margin-left: -30px;
+  margin-top: -30px;
+  left: 50%;
+  opacity: 0;
+}
+
+#poweroff-ring-1 {
+  top: 120px;
+  background-color: #e66600;
+}
+
+#poweroff-ring-2 {
+  top: 240px;
+  background-color: #dc4e00;
+}
+
+#poweroff-ring-3 {
+  top: 360px;
+  background-color: #d24500;
+}
+
+.poweroff-ring > span {
+  display: block;
+  position: absolute;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  margin: auto;
+  background-color: black;
+  width: 40px;
+  height: 40px;
+  margin-top: -20px;
+  margin-left: -20px;
+}
+
+#poweroff-ring-2 > span {
+  transform: scale(1.125);
+}
+
+#poweroff-ring-3 > span {
+  transform: scale(1.25);
+}
+
+/* Ring 1 : inner diameter scales from 40 pixel to 58 pixel */
+@keyframes ring1-scale {
+  0% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(1.45);
+  }
+}
+
+/* Ring 2 : inner diameter scales from 45 pixel to 59.5 pixel */
+@keyframes ring2-scale {
+  0% {
+    transform: scale(1.125);
+  }
+  100% {
+    transform: scale(1.4875);
+  }
+}
+
+/* Ring 3 : inner diameter scales from 50 pixel to 59 pixel */
+@keyframes ring3-scale {
+  0% {
+    transform: scale(1.25);
+  }
+  100% {
+    transform: scale(1.475);
+  }
+}
+
+@keyframes ring-fade-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes ring-fade-out {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+#screen > div#poweroff-splash.step2 > #poweroff-ring-1 {
+  animation: ring-fade-in  .4s ease-out  0s,
+             ring-fade-out .5s linear   .4s;
+}
+
+#screen > div#poweroff-splash.step2 > #poweroff-ring-2 {
+  animation: ring-fade-in  .4s ease-out .25s,
+             ring-fade-out .5s linear   .65s;
+}
+
+#screen > div#poweroff-splash.step2 > #poweroff-ring-3 {
+  animation: ring-fade-in  .4s ease-out .5s,
+             ring-fade-out .5s linear   .9s;
+}
+
+#screen > div#poweroff-splash.step2 > #poweroff-ring-1 > span {
+  animation: ring1-scale   .5s linear   .4s;
+}
+
+#screen > div#poweroff-splash.step2 > #poweroff-ring-2 > span {
+  animation: ring2-scale   .5s linear   .65s;
+}
+
+#screen > div#poweroff-splash.step2 > #poweroff-ring-3 > span {
+  animation: ring3-scale   .5s linear   .9s;
+}
+
+
+
 #system-overlay {
   width: 100%;
   height: 100%;

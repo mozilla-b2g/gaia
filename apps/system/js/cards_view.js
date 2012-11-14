@@ -216,7 +216,7 @@ var CardsView = (function() {
 
         var subtitle = document.createElement('p');
         subtitle.textContent =
-          PopupManager.getOriginFromUrl(popupFrame.dataset.url);
+          PopupManager.getOpenedOriginFromOpener(origin);
         card.appendChild(subtitle);
         card.classList.add('popup');
       }

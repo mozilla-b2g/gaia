@@ -188,7 +188,14 @@ var gWifiManager = (function(window) {
   };
 })(this);
 
-// TODO: create a fake mozBluetooth if required
+// create a fake mozWifiManager if required (e.g. desktop browser)
+var gBluetooth = (function(window) {
+  var navigator = window.navigator;
+  if ('mozBluetooth' in navigator)
+    return navigator.mozBluetooth;
+})(this);
+
+
 // TODO: handle hotspot status
 
 // display connectivity status on the main panel
@@ -206,8 +213,13 @@ var Connectivity = (function(window, document, undefined) {
     gMobileConnection.addEventListener('datachange', updateCarrier);
     updateCarrier();
 
-    // report bluetooth enabled/disabled state
-    addBluetoothObserver();
+    // this listener is replaced when bluetooth.js is loaded
+    gBluetooth.onadapteradded = updateBluetooth;
+    // these listeners are not cleared by bluetooth.js
+    gBluetooth.onenabled = updateBluetooth;
+    gBluetooth.ondisabled = updateBluetooth;
+    updateBluetooth();
+    initSystemMessageHandler();
   }
 
   function updateWifi() {
@@ -224,33 +236,61 @@ var Connectivity = (function(window, document, undefined) {
     document.getElementById('data-desc').textContent = name;
   }
 
-  // XXX this should be replaced by a real event handler ASAP
-  var lastBluetoothSettingValue = false;
-  function addBluetoothObserver() {
-    var settings = Settings.mozSettings;
-    if (!settings)
+  function updateBluetooth() {
+    var bluetoothDesc = document.getElementById('bluetooth-desc');
+    bluetoothDesc.textContent = gBluetooth.enabled ?
+      _('bt-status-nopaired') : _('bt-status-turnoff');
+    if (!gBluetooth.enabled) {
       return;
-
-    function updateBluetoothState(enabled) {
-      document.getElementById('bluetooth-desc').textContent =
-        enabled ? _('enabled') : _('disabled');
     }
-
-    // for now, we just display if bluetooth is enabled or disabled
-    // TODO: full bluetooth status (including paired devices)
-    settings.addObserver('bluetooth.enabled', function(event) {
-      var enabled = event.settingValue;
-      if (lastBluetoothSettingValue == enabled)
-        return;
-      updateBluetoothState(enabled);
-    });
-
-    // startup, update status
-    var req = settings.createLock().get('bluetooth.enabled');
-    req.onsuccess = function bt_getSettingsSuccess() {
-      lastBluetoothSettingValue = req.result['bluetooth.enabled'];
-      updateBluetoothState(lastBluetoothSettingValue);
+    var req = gBluetooth.getDefaultAdapter();
+    req.onsuccess = function bt_getAdapterSuccess() {
+      var defaultAdapter = req.result;
+      var reqPaired = defaultAdapter.getPairedDevices();
+      reqPaired.onsuccess = function bt_getPairedSuccess() {
+        // copy for sorting
+        var paired = reqPaired.result.slice();
+        var length = paired.length;
+        if (length == 0) {
+          return;
+        }
+        paired.sort(function(a, b) {
+          return a.name > b.name;
+        });
+        var text = _('bt-status-paired', {
+          name: paired[0].name,
+          n: length - 1
+        });
+        bluetoothDesc.textContent = text;
+      };
     };
+  }
+
+  function initSystemMessageHandler() {
+    function handlePairingRequest(message, method) {
+      window.location.hash = '#bluetooth';
+      setTimeout(function() {
+        gDeviceList.onRequestPairing(message, method);
+      }, 1500);
+    }
+    // Bind message handler for incoming pairing requests
+    navigator.mozSetMessageHandler('bluetooth-requestconfirmation',
+      function bt_gotConfirmationMessage(message) {
+        handlePairingRequest(message, 'confirmation');
+      }
+    );
+
+    navigator.mozSetMessageHandler('bluetooth-requestpincode',
+      function bt_gotPincodeMessage(message) {
+        handlePairingRequest(message, 'pincode');
+      }
+    );
+
+    navigator.mozSetMessageHandler('bluetooth-requestpasskey',
+      function bt_gotPasskeyMessage(message) {
+        handlePairingRequest(message, 'passkey');
+      }
+    );
   }
 
   return {
@@ -267,6 +307,7 @@ var Connectivity = (function(window, document, undefined) {
     }
   };
 })(this, document);
+
 
 // startup
 onLocalized(Connectivity.init.bind(Connectivity));

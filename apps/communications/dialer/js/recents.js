@@ -534,6 +534,7 @@ var Recents = {
         classes += 'icon-incoming';
       }
     }
+
     var entry =
       '<li class="log-item ' + highlight +
       '  " data-num="' + recent.number +
@@ -552,7 +553,7 @@ var Recents = {
       '    <div class="grid-cell grid-v-align">' +
       '      <section class="primary-info">' +
       '        <span class="primary-info-main ellipsis">' +
-                 recent.number +
+                 (recent.number || _('unknown')) +
       '        </span>' +
       '        <span class="entry-count">' +
       '        </span>' +

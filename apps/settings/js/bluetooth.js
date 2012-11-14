@@ -60,7 +60,7 @@ onLocalized(function bluetoothSettings() {
     req.onerror = function bt_getAdapterFailed() {
       // we can do nothing without DefaultAdapter, so set bluetooth disabled
       settings.createLock().set({'bluetooth.enabled': false});
-    }
+    };
   }
 
   // device information
@@ -301,6 +301,7 @@ onLocalized(function bluetoothSettings() {
           onRequestPairing(message, 'confirmation');
         }
       );
+
       navigator.mozSetMessageHandler('bluetooth-requestpincode',
         function bt_gotPincodeMessage(message) {
           onRequestPairing(message, 'pincode');
@@ -362,19 +363,20 @@ onLocalized(function bluetoothSettings() {
             // if the device need to be connected when it just paired
             // wait for a while so they can have time to communicate
             // their connect protocol
-            if (device.address === connectingAddress) {
+            if (device.address === connectingAddress
+              && device.icon === 'audio-card') {
+              aItem.querySelector('small').textContent =
+                _('device-status-connecting');
               setTimeout(function() {
                 setDeviceConnect(device);
               }, 5000);
             }
           })(paired[i]);
         }
-        var text = paired[0].name;
-        if (length > 1) {
-          // FIXME: don't concatenate localized strings
-          // XXX this 'bt-status-pairmore' entity should not exist
-          text += _('bt-status-pairmore', {n: length - 1});
-        }
+        var text = _('bt-status-paired', {
+          name: paired[0].name,
+          n: length - 1
+        });
         gBluetoothInfoBlock.textContent = text;
         pairList.show(true);
       };
@@ -406,47 +408,49 @@ onLocalized(function bluetoothSettings() {
     }
 
     function showDevicePaired(paired) {
-      // return if we don't expect there is a pairing request
-      if (!pairingAddress)
-        return;
-
-      if (paired) {
-        if (childWindow)
-          childWindow.close();
-
-        // if the device is on the list, remove it.
-        // it will show on paired list later.
-        if (openList.index[pairingAddress]) {
-          var device = openList.index[pairingAddress][0];
-          var item = openList.index[pairingAddress][1];
-          openList.list.removeChild(item);
-          connectingAddress = pairingAddress;
+      // if we are in a pairing process, update found device list
+      // or do error handling.
+      if (pairingAddress) {
+        if (paired) {
+          // if the device is on the list, remove it.
+          // it will show on paired list later.
+          if (openList.index[pairingAddress]) {
+            var device = openList.index[pairingAddress][0];
+            var item = openList.index[pairingAddress][1];
+            openList.list.removeChild(item);
+            connectingAddress = pairingAddress;
+          }
+        } else { 
+          // if the attention screen still open, close it
+          if (childWindow)
+            childWindow.close();
+          // show pair process fail.
+          var msg = _('error-pair-title') + '\n' + _('error-pair-pincode');
+          // display failure only when active request
+          if ( pairingMode === 'active') 
+            window.alert(msg);
+          // rollback device status
+          if (openList.index[pairingAddress]) {
+            var item = openList.index[pairingAddress][1];
+            item.querySelector('small').textContent =
+              _('device-status-tap-connect');
+          }
         }
-      } else {
-        if (childWindow)
-          childWindow.PairView.pairFailed();
-        if (openList.index[pairingAddress]) {
-          var item = openList.index[pairingAddress][1];
-          item.querySelector('small').textContent =
-            _('device-status-tap-connect');
-        }
+        pairingAddress = null;
       }
       // acquire a new paired list no matter paired or unpaired
       getPairedDevice();
-      pairingAddress = null;
     }
 
     function setDeviceUnpair(device) {
       if (device.address === connectedAddress) {
-        var ans = confirm(_('unpair-title') + '\n' + _('unpair-msg'));
-        if (!ans)
+        var msg = _('unpair-title') + '\n' + _('unpair-msg');
+        if (!window.confirm(msg)) 
           return;
         connectedAddress = null;
       }
       // backend takes responsibility to disconnect first.
       var req = defaultAdapter.unpair(device);
-      pairingAddress = device.address;
-
       req.onerror = function bt_pairError() {
         showDevicePaired(true);
       };
@@ -471,14 +475,16 @@ onLocalized(function bluetoothSettings() {
         return;
       }
 
+      // disconnect current connected device first
       if (connectedAddress && device.address !== connectedAddress) {
-        setDeviceDisconnect(device);
+        setDeviceDisconnect(pairList.index[connectedAddress][0]);
       }
 
       // '0x111E' is a service id to distigush connection type.
       // https://www.bluetooth.org/Technical/AssignedNumbers/service_discovery.htm
       var req = defaultAdapter.connect(device.address, 0x111E);
       req.onerror = function() {
+        window.alert(_('error-connect-msg'));
         showDeviceConnected(connectingAddress, false);
         connectingAddress = null;
       };
@@ -579,7 +585,8 @@ onLocalized(function bluetoothSettings() {
       onDeviceFound: onDeviceFound,
       setConfirmation: setConfirmation,
       setPinCode: setPinCode,
-      setPasskey: setPasskey
+      setPasskey: setPasskey,
+      onRequestPairing: onRequestPairing
     };
 
   })();

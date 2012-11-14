@@ -1,6 +1,6 @@
 {
   "facebookEnabled": true,
-  "operationsTimeout": 20000,
+  "operationsTimeout": 10000,
   "logLevel": "DEBUG",
   "facebookSyncPeriod": 24
 }

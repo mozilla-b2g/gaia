@@ -27,7 +27,7 @@
     "settings":{ "access": "readwrite" },
     "bluetooth":{},
     "mozBluetooth":{},
-    "device-storage:pictures":{},
-    "device-storage:music":{}
+    "device-storage:pictures":{ "access": "readwrite" },
+    "device-storage:music":{ "access": "readwrite" }
   }
 }
