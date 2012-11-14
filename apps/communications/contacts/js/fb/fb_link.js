@@ -506,7 +506,7 @@ if (!fb.link) {
       else {
         link.friendsReady(allFriends);
       }
-      
+
       return false;
     }
 
@@ -518,6 +518,8 @@ if (!fb.link) {
       clearList();
       utils.templates.append(friendsList, currentRecommendation);
       ImageLoader.reload();
+
+      return false;
     }
 
   })(document);
