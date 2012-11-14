@@ -27,26 +27,16 @@ Icon.prototype = {
   // Renders the icon, but decides if use the traditional method
   // or is being asked to render the default downloading icon.
   render: function icon_render(target, page) {
-    if (Applications.isDownloading(this.descriptor.origin)) {
+    var isDownloading = Applications.isDownloading(this.descriptor.origin);
+    if (isDownloading) {
       var self = this;
       Applications.addEventListener('downloadfinished',
         function onAppDownloaded(app) {
           self.updateIconSrc(Applications.getIcon(app.origin));        
         }
       );
-      this.renderDownloading(target, page);
-    } else {
-      this.renderNormal(target, page);
     }
-  },
-  /*
-   * Renders the icon into the page
-   *
-   * @param{Object} where the icon should be rendered
-   *
-   * @param{Object} where the draggable element should be appened
-   */
-  renderNormal: function icon_renderNormal(target, page) {
+
     /*
      * <li role="button" aria-label="label" class="icon" dataset-origin="zzz">
      *   <div>
@@ -71,27 +61,38 @@ Icon.prototype = {
 
     // Icon container
     var icon = this.icon = document.createElement('div');
+    if (isDownloading) {
+      icon.classList.add('loading');
+    }
 
     // Image
-    var canvas = document.createElement('canvas');
-    canvas.setAttribute('role', 'presentation');
-    canvas.width = 68;
-    canvas.height = 68;
-
-    icon.appendChild(canvas);
+    var canvas = null;
+    if (!isDownloading) {
+      canvas = document.createElement('canvas');
+      canvas.setAttribute('role', 'presentation');
+      canvas.width = 68;
+      canvas.height = 68;
+      icon.appendChild(canvas);
+    }
 
     var img = this.img = new Image();
     img.src = this.descriptor.icon;
 
     var self = this;
-    img.onload = function icon_loadSuccess() {
-      self.generateShadow(canvas, img);
+    if (!isDownloading) {
+      img.onload = function icon_loadSuccess() {
+        self.generateShadow(canvas, img);
+      }
+    } else {
+      icon.appendChild(img);
     }
 
     img.onerror = function icon_loadError() {
       img.src = '//' + window.location.host + '/resources/images/Unknown.png';
-      img.onload = function icon_errorIconLoadSucess() {
-        self.generateShadow(canvas, img);
+      if (!isDownloading) {
+        img.onload = function icon_errorIconLoadSucess() {
+          self.generateShadow(canvas, img);
+        }
       }
     };
 
@@ -118,66 +119,7 @@ Icon.prototype = {
     }
 
     target.appendChild(container);
-    this.descriptor.target = target;
-  },
-
-  /*
-    Render a default icon with an infinite animation while the
-    application download is in place.
-
-    Based on the renderNormal method
-    TODO: better refactoring of this.
-  */
-  renderDownloading: function icon_renderDownloading(target, page) {
-    /*
-     * <li role="button" aria-label="label" class="icon" dataset-origin="zzz">
-     *   <div>
-     *     <img role="presentation" src="the icon image path"></img>
-     *     <span class="label">label</span>
-     *   </div>
-     *   <span class="options"></span>
-     * </li>
-     */
-    var container = this.container = document.createElement('li');
-    container.className = 'icon';
-    container.dataset.origin = this.descriptor.origin;
-    container.setAttribute('role', 'button');
-    container.setAttribute('aria-label', this.descriptor.name);
-
-    // Icon container
-    var icon = this.icon = document.createElement('div');
-    icon.classList.add('loading');
-
-    var img = this.img = new Image();
-    img.setAttribute('role', 'presentation');
-    img.src = this.descriptor.icon;
-    img.width = 60;
-    img.height = 60;
-
-    var self = this;
-
-    img.onerror = function icon_loadError() {
-      img.src = '//' + window.location.host + '/resources/images/Unknown.png';
-    };
-
-    icon.appendChild(img);
-
-    // Label
-
-    // wrapper of the label -> overflow text should be centered
-    // in draggable mode
-    var wrapper = document.createElement('span');
-    wrapper.className = 'labelWrapper';
-    var label = this.label = document.createElement('span');
-    label.textContent = this.descriptor.name;
-    wrapper.appendChild(label);
-
-    icon.appendChild(wrapper);
-
-    container.appendChild(icon);
-
-    target.appendChild(container);
-    this.descriptor.target = target;
+    this.descriptor.target = target;    
   },
 
   updateIconSrc: function(iconSrc) {
