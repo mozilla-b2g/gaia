@@ -229,6 +229,9 @@
       case icc.STK_EVENT_TYPE_MT_CALL:
       case icc.STK_EVENT_TYPE_CALL_CONNECTED:
       case icc.STK_EVENT_TYPE_CALL_DISCONNECTED:
+        debug(' STK: Registering to communications changes event');
+        var comm = navigator.mozTelephony;
+        comm.addEventListener('callschanged', handleCallsChangedEvent);
         break;
       case icc.STK_EVENT_TYPE_LOCATION_STATUS:
         debug(' STK: Registering to location changes event');
@@ -256,7 +259,7 @@
   }
 
   /**
-   * Handle Events
+   * Handle Location change Events
    */
   function handleLocationStatusEvent(evt) {
     if (evt.type != 'voicechange') {
