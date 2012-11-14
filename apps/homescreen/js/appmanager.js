@@ -94,14 +94,10 @@ var Applications = (function() {
     installedApps[app.origin] = app;
 
     if (!app.downloadAvailable) {
-      if (app.installState == 'installed') {
+      if (app.installState === 'installed') {
         finishInstallation(app);
         return;
-      } else {
-        // INSTALLATION ERROR
-        alert('Could not install the app');
-        return;
-      }
+      } // Let the system manage any info message if error
     }
 
     fireCallback(app, 'install');
@@ -113,6 +109,7 @@ var Applications = (function() {
         fireCallback(app, 'downloadfinished');
         }
       );
+      app.ondownloadsuccess = null;
     };
   };
 
@@ -296,7 +293,7 @@ var Applications = (function() {
     // Depending on the APP status show app icon
     // or a system one
     var app = getByOrigin(origin);
-    if (app.installState == 'pending') {
+    if (app.installState === 'pending') {
       return getDownloadingIcon();
     }
 

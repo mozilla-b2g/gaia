@@ -112,19 +112,23 @@
   left: 0px;
   top: 0px;
   z-index: 30000;
-  width: 60px;
-  height: 60px;
+  width: 6rem;
+  height: 6rem;
   background: url('/style/images/loading_spinner.png');
   animation: rotate 2.25s linear infinite;
 }
 
+body[data-transitioning] .loading:after {
+  animation-name: none;
+}
+
 .loading img {
-  margin-top: 4px;
-  margin-left: -4px;
+  margin-top: 0.4rem;
+  margin-left: -0.4rem;
 }
 
 .loading span {
-  margin-top: 4px;
+  margin-top: 0.4rem;
 }
 
 @keyframes rotate {
@@ -134,9 +138,4 @@
   to {
     transform: rotate(360deg)
   }
-}
-
-@-moz-keyframes installingSpinner {
-    from { background-position: 0px;}
-    to { background-position: -1080px;}
 }
