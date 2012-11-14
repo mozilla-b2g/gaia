@@ -203,16 +203,13 @@ offline-cache: webapp-manifests install-xulrunner-sdk
 
 # Optimize L10N startup impact by inserting the L10N strings into the markup at build time
 translate-html:
-	@echo "Collating translations"
 	@set -e ; \
 	for d in $(addsuffix /*,$(GAIA_APP_SRCDIRS)) ; do \
 	(cd $$d && if [ -f index.html ] ; then \
-		echo $$(basename $$d) ; \
 		python $(CURDIR)/build/translate-html.py index.html \
 			--shared-path $(CURDIR)/shared \
 			--shared-path $(CURDIR) \
-			--app-root $(CURDIR)/$$d \
-			-o index.html.translated ; \
+			--app-root $(CURDIR)/$$d ;\
 	fi ) ; done
 
 # Create webapps
