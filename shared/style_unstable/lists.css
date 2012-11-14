@@ -22,7 +22,7 @@
 /* Title divisors */
 [data-type="list"] header {
   border-bottom: 0.1rem solid #ff4E00;
-  padding: 1.5rem 1rem 0.5rem;
+  padding: 0.5rem 1rem;
   margin: 0;
   font-size: 1.6rem;
   line-height: 1.8rem;
@@ -62,7 +62,6 @@
 
 [data-type="list"] li > a:after {
   content: "";
-  transition: opacity 0.2s ease;
   background-color: #b1f1ff;
   opacity: 0;
   pointer-events: none;
@@ -76,6 +75,8 @@
 
 [data-type="list"] li > a:active:after {
   opacity: 0.6;
+  /* Only transition on 'press', not on 'release' */
+  transition: opacity 0.2s ease;
 }
 
 /* Disabled */
@@ -106,7 +107,7 @@
 [data-type="list"] li > a aside,
 [data-type="list"] li > a aside.icon {
   background-color: transparent;
-  position: static;
+  z-index: -1;
 }
 
 [data-type="list"] aside.pack-end {

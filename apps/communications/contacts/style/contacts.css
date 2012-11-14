@@ -28,6 +28,10 @@ section[role="region"] > header:first-child sup {
   padding-right: 1rem;
 }
 
+.view-contacts-list .view-body-inner {
+  padding-left: 1.5rem;
+}
+
 #contact-name-title {
   max-width: 22rem;
   float: left;
@@ -268,7 +272,7 @@ fieldset legend.action:after {
   overflow: hidden;
   width: 1.5rem;
   height: 1.5rem;
-  margin-right: 1rem;
+  margin: -0.2rem 1rem 0 0;
 }
 
 .icon-social.icon-fb {
