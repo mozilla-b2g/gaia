@@ -527,8 +527,8 @@ var ListView = {
         var artistSpan = document.createElement('span');
         albumSpan.className = 'list-main-title';
         artistSpan.className = 'list-sub-title';
-        albumSpan.textContent = result.metadata.album;
-        artistSpan.textContent = result.metadata.artist;
+        albumSpan.textContent = result.metadata.album || unknownAlbum;
+        artistSpan.textContent = result.metadata.artist || unknownArtist;
         a.appendChild(albumSpan);
         a.appendChild(artistSpan);
 
@@ -539,7 +539,7 @@ var ListView = {
       case 'artist':
         var artistSpan = document.createElement('span');
         artistSpan.className = 'list-single-title';
-        artistSpan.textContent = result.metadata.artist;
+        artistSpan.textContent = result.metadata.artist || unknownArtist;
         a.appendChild(artistSpan);
 
         a.dataset.keyRange = result.metadata.artist;
@@ -549,7 +549,7 @@ var ListView = {
       case 'playlist':
         var titleSpan = document.createElement('span');
         titleSpan.className = 'list-single-title';
-        titleSpan.textContent = result.metadata.title;
+        titleSpan.textContent = result.metadata.title || unknownTitle;
         a.appendChild(titleSpan);
 
         a.dataset.keyRange = 'all';
@@ -588,11 +588,11 @@ var ListView = {
             SubListView.setAlbumSrc(data);
 
           if (option === 'artist') {
-            SubListView.setAlbumName(data.metadata.artist);
+            SubListView.setAlbumName(data.metadata.artist || unknownArtist);
           } else if (option === 'album') {
-            SubListView.setAlbumName(data.metadata.album);
+            SubListView.setAlbumName(data.metadata.album || unknownAlbum);
           } else {
-            SubListView.setAlbumName(data.metadata.title);
+            SubListView.setAlbumName(data.metadata.title || unknownTitle);
           }
 
           var targetOption =
@@ -981,12 +981,9 @@ var PlayerView = {
       var targetIndex = parseInt(target.dataset.index);
       var songData = this.dataSource[targetIndex];
 
-      TitleBar.changeTitleText((songData.metadata.title) ?
-        songData.metadata.title : unknownTitle);
-      this.artist.textContent = (songData.metadata.artist) ?
-        songData.metadata.artist : unknownArtist;
-      this.album.textContent = (songData.metadata.album) ?
-        songData.metadata.album : unknownAlbum;
+      TitleBar.changeTitleText(songData.metadata.title || unknownTitle);
+      this.artist.textContent = songData.metadata.artist || unknownArtist;
+      this.album.textContent = songData.metadata.album || unknownAlbum;
       this.currentIndex = targetIndex;
 
       // backgroundIndex is from the index of sublistView

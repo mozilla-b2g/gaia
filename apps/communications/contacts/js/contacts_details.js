@@ -145,15 +145,15 @@ contacts.Details = (function() {
     renderOrg(contact);
     renderBday(contact);
 
-    if (fb.isEnabled) {
-      renderSocial(contact);
-    }
-
     renderPhones(contact);
     renderEmails(contact);
     renderAddresses(contact);
     renderNotes(contact);
     renderPhoto(contact);
+
+    if (fb.isEnabled) {
+      renderSocial(contact);
+    }
   };
 
   var renderFavorite = function cd_renderFavorite(contact) {

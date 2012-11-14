@@ -194,21 +194,69 @@ var SleepMenu = {
         break;
 
       case 'restart':
-        var power = navigator.mozPower;
-        if (!power)
-          return;
+        this.startPowerOff(true);
 
-        power.reboot();
         break;
 
       case 'power':
-        var power = navigator.mozPower;
-        if (!power)
-          return;
+        this.startPowerOff(false);
 
-        power.powerOff();
         break;
     }
+  },
+
+  startPowerOff: function sm_startPowerOff(reboot) {
+    var power = navigator.mozPower;
+    if (!power)
+      return;
+
+    // Show shutdown animation before actually performing shutdown.
+    //  * step1: fade-in poweroff-splash.
+    //  * step2: The 3-rings animation is performed on the screen.
+    var div = document.createElement('div');
+    div.dataset.zIndexLevel = 'poweroff-splash';
+    div.id = 'poweroff-splash';
+
+    // The overall animation ends when the inner span of the bottom ring
+    // is animated, so we store it for detecting.
+    var inner;
+
+    for (var i = 1; i <= 3; i++) {
+      var outer = document.createElement('span');
+      outer.className = 'poweroff-ring';
+      outer.id = 'poweroff-ring-' + i;
+      div.appendChild(outer);
+
+      inner = document.createElement('span');
+      outer.appendChild(inner);
+    }
+
+    div.className = 'step1';
+
+    var nextAnimation = function nextAnimation(e) {
+      // Switch to next class
+      if (e.target == div)
+        div.className = 'step2';
+
+      if (e.target != inner)
+        return;
+
+      // Actual poweroff/reboot
+      setTimeout(function powerOffAnimated() {
+        if (reboot) {
+          power.reboot();
+        } else {
+          power.powerOff();
+        }
+      });
+
+      // Paint screen to black before reboot/poweroff
+      ScreenManager.turnScreenOff(true);
+    };
+
+    div.addEventListener('animationend', nextAnimation);
+
+    document.getElementById('screen').appendChild(div);
   }
 };
 

@@ -946,7 +946,15 @@ var WindowManager = (function() {
 
     // And map the app origin to the info we need for the app
     runningApps[origin] = {
-      name: name,
+      get name() {
+        var name = getAppName(origin, this.manifest);
+        if (!name) {
+          return this._name;
+        } else {
+          return name;
+        }
+      },
+      _name: name,
       manifest: manifest,
       frame: frame,
       launchTime: 0
@@ -1056,6 +1064,11 @@ var WindowManager = (function() {
       return;
 
     var name = app.manifest.name;
+    if (app.manifest.locales &&
+        app.manifest.locales[document.documentElement.lang] &&
+        app.manifest.locales[document.documentElement.lang].name) {
+      name = app.manifest.locales[document.documentElement.lang].name;
+    }
     var origin = app.origin;
 
     // Check if it's a virtual app from a entry point.
@@ -1078,7 +1091,13 @@ var WindowManager = (function() {
         if (path.indexOf('/' + ep) == 0 &&
             (currentEp.launch_path == path)) {
           origin = origin + currentEp.launch_path;
-          name = currentEp.name;
+          var lang = document.documentElement.lang;
+          if (currentEp.locales && currentEp.locales[lang] &&
+              currentEp.locales[lang].name) {
+            name = currentEp.locales[lang].name;
+          } else {
+            name = currentEp.name;
+          }
         }
       }
     }
@@ -1192,9 +1211,37 @@ var WindowManager = (function() {
     deleteAppScreenshotFromDatabase(e.detail.application.origin);
   });
 
-  function handleAppCrash(manifestURL) {
-    var app = Applications.getByManifestURL(manifestURL);
-    CrashReporter.setAppName(app.manifest.name);
+  function handleAppCrash(origin, manifestURL) {
+    if (origin && manifestURL) {
+      // When inline activity frame crashes,
+      // query the localized name from manifest
+      var app = Applications.getByManifestURL(manifestURL);
+      CrashReporter.setAppName(getAppName(origin, app.manifest));
+    } else {
+      var app = runningApps[displayedApp];
+      CrashReporter.setAppName(app.name);
+    }
+  }
+
+  function getAppName(origin, manifest) {
+    if (!manifest)
+      return '';
+
+    var lang = document.documentElement.lang;
+    if (manifest.entry_points) {
+      var entryPoint = manifest.entry_points[origin.split('/')[3]];
+      if (entryPoint.locales && entryPoint.locales[lang] &&
+          entryPoint.locales[lang].name) {
+        return entryPoint.locales[lang].name;
+      } else {
+        return entryPoint.name;
+      }
+    } else if (manifest.locales && manifest.locales[lang] &&
+               manifest.locales[lang].name) {
+      return manifest.locales[lang].name;
+    } else {
+      return manifest.name;
+    }
   }
 
   // Deal with crashed apps
@@ -1207,7 +1254,7 @@ var WindowManager = (function() {
 
     if (e.target.dataset.frameType == 'inline-activity') {
       stopInlineActivity();
-      handleAppCrash(manifestURL);
+      handleAppCrash(origin, manifestURL);
       return;
     }
 
@@ -1224,7 +1271,7 @@ var WindowManager = (function() {
     // If the crashing app is currently displayed, we will present
     // the user with a banner notification.
     if (displayedApp == origin)
-      handleAppCrash(manifestURL);
+      handleAppCrash();
 
     // If the crashing app is the home screen app and it is the displaying app
     // we will need to relaunch it right away.

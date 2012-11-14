@@ -23,11 +23,9 @@
   <body role="application">
     <form role="dialog" data-type="confirm" id="pair-view">
       <section>
-        <h1 id="pair-title"></h1>
         <hr>
         <div id="device-info">
           <strong id="label-name"></strong>
-          <small id="label-address"></small>
         </div>
         <hr>
 
@@ -46,19 +44,6 @@
       <menu>
         <button id="button-close" data-l10n-id="cancel">Cancel</button>
         <button id="button-pair" class="recommend" data-l10n-id="pair">Pair</button>
-      </menu>
-    </form>
-
-    <form role="dialog" data-type="confirm" id="alert-view" hidden>
-      <section>
-        <h1 data-l10n-id="error-pair-title">Unable to Pair Devices</h1>
-        <hr>
-        <div data-l10n-id="error-pair-pincode">
-          Unable to pair with the device. Check that the PIN is correct.
-        </div>
-      </section>
-      <menu>
-        <button class="danger" id="button-ok" data-l10n-id="ok">OK</button>
       </menu>
     </form>
   </body>

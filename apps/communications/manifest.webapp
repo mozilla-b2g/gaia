@@ -14,6 +14,24 @@
       "icons": {
         "120": "/style/icons/Dialer.png",
         "60": "/style/icons/60/Dialer.png"
+      },
+      "locales": {
+        "ar": {
+          "name": "هاتف",
+          "description": "Gaia هاتف"
+        },
+        "en-US": {
+          "name": "Phone",
+          "description": "Gaia Phone"
+        },
+        "fr": {
+          "name": "téléphone",
+          "description": "téléphone Gaia"
+        },
+        "zh-TW": {
+          "name": "電話",
+          "description": "Gaia 電話"
+        }
       }
     },
     "contacts": {
@@ -22,6 +40,24 @@
       "icons": {
         "120": "/style/icons/Contacts.png",
         "60": "/style/icons/60/Contacts.png"
+      },
+      "locales": {
+        "ar": {
+          "name": "اتصالات",
+          "description": "Gaia اتصالات"
+        },
+        "en-US": {
+          "name": "Contacts",
+          "description": "Gaia Contacts"
+        },
+        "fr": {
+          "name": "Contacts",
+          "description": "Contacts Gaia"
+        },
+        "zh-TW": {
+          "name": "聯絡人",
+          "description": "Gaia 聯絡人"
+        }
       }
     },
     "ftu": {

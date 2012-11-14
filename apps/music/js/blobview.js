@@ -95,22 +95,28 @@ var BlobView = (function() {
       return this.view.getInt8(offset);
     },
     getUint16: function(offset, le) {
-      return this.view.getUint16(offset, le || this.littleEndian);
+      return this.view.getUint16(offset,
+                                 le !== undefined ? le : this.littleEndian);
     },
     getInt16: function(offset, le) {
-      return this.view.getInt16(offset, le || this.littleEndian);
+      return this.view.getInt16(offset,
+                                le !== undefined ? le : this.littleEndian);
     },
     getUint32: function(offset, le) {
-      return this.view.getUint32(offset, le || this.littleEndian);
+      return this.view.getUint32(offset,
+                                 le !== undefined ? le : this.littleEndian);
     },
     getInt32: function(offset, le) {
-      return this.view.getInt32(offset, le || this.littleEndian);
+      return this.view.getInt32(offset,
+                                le !== undefined ? le : this.littleEndian);
     },
     getFloat32: function(offset, le) {
-      return this.view.getFloat32(offset, le || this.littleEndian);
+      return this.view.getFloat32(offset,
+                                  le !== undefined ? le : this.littleEndian);
     },
     getFloat64: function(offset, le) {
-      return this.view.getFloat64(offset, le || this.littleEndian);
+      return this.view.getFloat64(offset,
+                                  le !== undefined ? le : this.littleEndian);
     },
 
     // These "read" methods read from the current position in the view and
@@ -122,32 +128,38 @@ var BlobView = (function() {
       return this.view.getUint8(this.index++);
     },
     readShort: function(le) {
-      var val = this.view.getInt16(this.index, le || this.littleEndian);
+      var val = this.view.getInt16(this.index,
+                                   le !== undefined ? le : this.littleEndian);
       this.index += 2;
       return val;
     },
     readUnsignedShort: function(le) {
-      var val = this.view.getUint16(this.index, le || this.littleEndian);
+      var val = this.view.getUint16(this.index,
+                                    le !== undefined ? le : this.littleEndian);
       this.index += 2;
       return val;
     },
     readInt: function(le) {
-      var val = this.view.getInt32(this.index, le || this.littleEndian);
+      var val = this.view.getInt32(this.index,
+                                   le !== undefined ? le : this.littleEndian);
       this.index += 4;
       return val;
     },
     readUnsignedInt: function(le) {
-      var val = this.view.getUint32(this.index, le || this.littleEndian);
+      var val = this.view.getUint32(this.index,
+                                    le !== undefined ? le : this.littleEndian);
       this.index += 4;
       return val;
     },
     readFloat: function(le) {
-      var val = this.view.getFloat32(this.index, le || this.littleEndian);
+      var val = this.view.getFloat32(this.index,
+                                     le !== undefined ? le : this.littleEndian);
       this.index += 4;
       return val;
     },
     readDouble: function(le) {
-      var val = this.view.getFloat64(this.index, le || this.littleEndian);
+      var val = this.view.getFloat64(this.index,
+                                     le !== undefined ? le : this.littleEndian);
       this.index += 8;
       return val;
     },
@@ -191,12 +203,12 @@ var BlobView = (function() {
 
     getUint24: function(offset, le) {
       var b1, b2, b3;
-      if (le || this.littleEndian) { // little end comes first
+      if (le !== undefined ? le : this.littleEndian) {
         b1 = this.view.getUint8(offset);
         b2 = this.view.getUint8(offset + 1);
         b3 = this.view.getUint8(offset + 2);
       }
-      else {               // big end first
+      else {    // big end first
         b3 = this.view.getUint8(offset);
         b2 = this.view.getUint8(offset + 1);
         b1 = this.view.getUint8(offset + 2);
