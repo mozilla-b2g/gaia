@@ -1,4 +1,4 @@
-#app-install-dialog {
+#app-install-dialog, #app-install-cancel-dialog {
   display: none;
   position: absolute;
   top: 20px;
@@ -8,16 +8,16 @@
   pointer-events: none;
 }
 
-#app-install-dialog.visible {
+#app-install-dialog.visible, #app-install-cancel-dialog.visible {
   display: inline-block;
   pointer-events: auto;
 }
 
-#app-install-dialog section {
+#app-install-dialog section, #app-install-cancel-dialog section {
   height: auto;
 }
 
-#app-install-dialog h1 {
+#app-install-dialog h1, #app-install-cancel-dialog h1 {
   border-bottom: none;
   background: none;
 }
@@ -39,4 +39,8 @@
 #app-install-dialog table td {
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+#app-install-cancel-dialog small:first-child {
+  margin-bottom: 1rem;
 }
