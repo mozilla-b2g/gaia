@@ -8,9 +8,6 @@
     <domain>jazztel.es</domain>
     <displayName>Google Mail</displayName>
     <displayShortName>GMail</displayShortName>
-    <incomingServer type="activesync">
-      <server>https://m.google.com</server>
-    </incomingServer>
     <incomingServer type="imap">
       <hostname>imap.googlemail.com</hostname>
       <port>993</port>
