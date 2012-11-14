@@ -36,7 +36,7 @@ var CallHandler = (function callHandler() {
           window.location.hash = '#keyboard-view';
         }
       }
-    }
+    };
 
     if (document.readyState == 'complete') {
       fillNumber();
@@ -109,13 +109,13 @@ var CallHandler = (function callHandler() {
       if (conn.cardState === 'ready')
         UssdManager.send(number);
       else
-        CustomDialog.show(
+        ConfirmDialog.show(
           _('emergencyDialogTitle'),
           _('emergencyDialogBodyBadNumber'),
           {
             title: _('emergencyDialogBtnOk'),
             callback: function() {
-              CustomDialog.hide();
+              ConfirmDialog.hide();
             }
           }
         );
@@ -153,13 +153,13 @@ var CallHandler = (function callHandler() {
   }
 
   function handleFlightMode() {
-    CustomDialog.show(
+    ConfirmDialog.show(
       _('callAirplaneModeTitle'),
       _('callAirplaneModeBody'),
       {
         title: _('callAirplaneModeBtnOk'),
         callback: function() {
-          CustomDialog.hide();
+          ConfirmDialog.hide();
 
           if (currentActivity) {
             currentActivity.postError('canceled');
@@ -183,13 +183,13 @@ var CallHandler = (function callHandler() {
     }
 
     if (errorRecognized) {
-      CustomDialog.show(
+      ConfirmDialog.show(
         _('emergencyDialogTitle'),
         _(emgcyDialogBody),
         {
           title: _('emergencyDialogBtnOk'),
           callback: function() {
-            CustomDialog.hide();
+            ConfirmDialog.hide();
           }
         }
       );

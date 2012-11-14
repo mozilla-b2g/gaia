@@ -607,3 +607,7 @@ label.switch input:checked + span:after {
   -moz-transform: translateY(0);
   z-index: 1001;
 }
+
+.notDisplayed {
+  display: none !important;
+}
