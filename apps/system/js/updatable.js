@@ -27,9 +27,12 @@ AppUpdatable.prototype.download = function() {
   this.app.ondownloaderror = this.errorCallBack.bind(this);
   this.app.ondownloadsuccess = this.successCallBack.bind(this);
   this.app.ondownloadapplied = this.appliedCallBack.bind(this);
+  this.app.onprogress = this.progressCallBack.bind(this);
 
   this.app.download();
   UpdateManager.addToDownloadsQueue(this);
+
+  this.progress = 0;
 };
 
 AppUpdatable.prototype.cancelDownload = function() {
@@ -46,6 +49,7 @@ AppUpdatable.prototype.cleanCallbacks = function() {
   this.app.ondownloaderror = null;
   this.app.ondownloadsuccess = null;
   this.app.ondownloadapplied = null;
+  this.app.onprogress = null;
 };
 
 AppUpdatable.prototype.availableCallBack = function() {
@@ -86,6 +90,12 @@ AppUpdatable.prototype.errorCallBack = function() {
   this.cleanCallbacks();
 };
 
+AppUpdatable.prototype.progressCallBack = function() {
+  var delta = this.app.progress - this.progress;
+
+  this.progress = this.app.progress;
+  UpdateManager.downloadProgressed(delta);
+};
 
 /* === System Updates === */
 function SystemUpdatable(downloadSize) {
@@ -98,6 +108,7 @@ function SystemUpdatable(downloadSize) {
 SystemUpdatable.prototype.download = function() {
   this._dispatchEvent('update-available-result', 'download');
   UpdateManager.addToDownloadsQueue(this);
+  this.progress = 0;
 };
 
 SystemUpdatable.prototype.cancelDownload = function() {
@@ -119,6 +130,12 @@ SystemUpdatable.prototype.handleEvent = function(evt) {
   switch (detail.type) {
     case 'update-error':
       this.errorCallBack();
+      break;
+    case 'update-progress':
+      var delta = detail.progress - this.progress;
+
+      this.progress = detail.progress;
+      UpdateManager.downloadProgressed(delta);
       break;
     case 'update-downloaded':
     case 'update-prompt-apply':
@@ -145,6 +162,7 @@ SystemUpdatable.prototype.showApplyPrompt = function() {
     callback: this.acceptInstall.bind(this)
   };
 
+  UtilityTray.hide();
   CustomDialog.show(_('updateReady'), _('wantToInstall'),
                     cancel, confirm);
 };
