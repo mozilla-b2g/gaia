@@ -23,6 +23,8 @@ var ApplicationsList = {
 
   container: document.querySelector('#appPermissions > ul'),
   detailTitle: document.querySelector('#appPermissions-details > header > h1'),
+  developerHeader: document.getElementById('developer-header'),
+  developerInfos: document.getElementById('developer-infos'),
   developerName: document.querySelector('#developer-infos > a'),
   developerLink: document.querySelector('#developer-infos > small > a'),
   detailPermissionsList: document.querySelector('#permissionsListHeader + ul'),
@@ -120,13 +122,28 @@ var ApplicationsList = {
     this._displayedApp = app;
 
     var manifest = app.manifest;
+    var developer = manifest.developer;
     this.detailTitle.textContent = manifest.name;
-    this.developerName.textContent = manifest.developer.name;
-    this.developerName.dataset.href = manifest.developer.url;
-    this.developerLink.href = manifest.developer.url;
-    this.developerLink.dataset.href = manifest.developer.url;
-    this.developerLink.textContent = manifest.developer.url;
 
+    if (!developer || !('name' in developer)) {
+      this.developerInfos.hidden = true;
+      this.developerHeader.hidden = true;
+    } else {
+      this.developerName.textContent = developer.name;
+      this.developerInfos.hidden = false;
+      this.developerHeader.hidden = false;
+      if (!developer.url) {
+        delete this.developerName.dataset.href;
+        delete this.developerLink.href;
+        this.developerLink.hidden = true;
+      } else {
+        this.developerLink.hidden = false;
+        this.developerName.dataset.href = developer.url;
+        this.developerLink.href = developer.url;
+        this.developerLink.dataset.href = developer.url;
+        this.developerLink.textContent = developer.url;
+      }
+    }
     this.detailPermissionsList.innerHTML = '';
 
     var _ = navigator.mozL10n.get;

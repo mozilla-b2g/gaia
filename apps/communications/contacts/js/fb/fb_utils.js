@@ -296,11 +296,6 @@ if (!fb.utils) {
 
             window.addEventListener('message', m_listen);
 
-            window.open(logoutUrl);
-
-            /** XHR System seems not to follow redirects. Need to check with Moz
-             * and see wether we can rescue this code later
-             *
             var xhr = new XMLHttpRequest({
               mozSystem:true
             });
@@ -339,7 +334,7 @@ if (!fb.utils) {
               outReq.failed(e.name);
             }
 
-            xhr.send();  **/
+            xhr.send();
           } // if
           else {
             outReq.done();

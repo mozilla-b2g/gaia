@@ -15,6 +15,10 @@ var MockUpdateManager = {
     this.mLastDownloadsRemoval = updatable;
   },
 
+  downloadProgressed: function mum_downloadProgressed(bytes) {
+    this.mProgressCalledWith = bytes;
+  },
+
   requestErrorBanner: function mum_requestErrorBanner() {
     this.mErrorBannerRequested = true;
   },
@@ -24,11 +28,13 @@ var MockUpdateManager = {
   mLastUpdatesRemoval: null,
   mLastDownloadsAdd: null,
   mLastDownloadsRemoval: null,
+  mProgressCalledWith: null,
   mTeardown: function mum_mTeardown() {
     this.mErrorBannerRequested = false;
     this.mLastUpdatesAdd = null;
     this.mLastUpdatesRemoval = null;
     this.mLastDownloadsAdd = null;
     this.mLastDownloadsRemoval = null;
+    this.mProgressCalledWith = null;
   }
 };

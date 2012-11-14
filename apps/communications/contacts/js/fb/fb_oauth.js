@@ -63,11 +63,6 @@ if (typeof fb.oauth === 'undefined') {
      *
      */
     function startOAuth(state) {
-      parent.postMessage({
-        type: 'authenticating',
-        data: ''
-      }, fb.oauthflow.params.contactsAppOrigin);
-
       clearStorage();
 
       // This page will be in charge of handling authorization
