@@ -1222,7 +1222,6 @@ MailBody.prototype = {
       node.classList.remove('moz-external-image');
     }
   },
-
   /**
    * Call this method when you are done with a message body.  This is required
    * so that any File/Blob URL's can be revoked.
@@ -1713,6 +1712,91 @@ var unexpectedBridgeDataError = reportError,
     internalError = reportError,
     reportClientCodeError = reportError;
 
+var MailUtils = {
+
+  /**
+   * Linkify the given plaintext, producing an Array of HTML nodes as a result.
+   */
+  linkifyPlain: function(body, doc) {
+    var nodes = [];
+    var match = true;
+    while (true) {
+      var url =
+        body.match(/^([\s\S]*?)(^|\s)(https?:\/\/[^\/\s]+(\/[\S]*)?)($|\s)/m);
+      var email =
+        body.match(/^([\s\S]*?)(^|\s)([^@\s]+@[^.\s]+.[a-z]+)($|\s)/m);
+      // Pick the regexp with the earlier content; index will always be zero.
+      if (url &&
+          (!email || url[1].length < email[1].length)) {
+        var first = url[1] + url[2];
+        if (first.length > 0)
+          nodes.push(doc.createTextNode(first));
+
+        var link = doc.createElement('a');
+        link.className = 'moz-external-link';
+        link.setAttribute('ext-href', url[3]);
+        var text = doc.createTextNode(url[3]);
+        link.appendChild(text);
+        nodes.push(link);
+
+        body = body.substring(url[0].length - url[5].length);
+      }
+      else if (email) {
+        first = email[1] + email[2];
+        if (first.length > 0)
+          nodes.push(doc.createTextNode(first));
+
+        link = doc.createElement('a');
+        link.className = 'moz-external-link';
+        if (/^mailto:/.test(email[3]))
+          link.setAttribute('ext-href', email[3]);
+        else
+          link.setAttribute('ext-href', 'mailto:' + email[3]);
+        text = doc.createTextNode(email[3]);
+        link.appendChild(text);
+        nodes.push(link);
+
+        body = body.substring(email[0].length - email[4].length);
+      }
+      else {
+        break;
+      }
+    }
+
+    if (body.length > 0)
+      nodes.push(doc.createTextNode(body));
+
+    return nodes;
+  },
+
+  /**
+   * Process the document of an HTML iframe to linkify the text portions of the
+   * HTML document.  'A' tags and their descendants are not linkified, nor
+   * are the attributes of HTML nodes.
+   */
+  linkifyHTML: function(doc) {
+    function linkElem(elem) {
+      var children = elem.childNodes;
+      for (var i in children) {
+        var sub = children[i];
+        if (sub.nodeName == '#text') {
+          var nodes = MailUtils.linkifyPlain(sub.nodeValue, doc);
+
+          elem.replaceChild(nodes[nodes.length-1], sub);
+          for (var iNode = nodes.length-2; iNode >= 0; --iNode) {
+            elem.insertBefore(nodes[iNode], nodes[iNode+1]);
+          }
+        }
+        else if (sub.nodeName != 'A') {
+          linkElem(sub);
+        }
+      }
+    }
+
+    linkElem(doc.body);
+  },
+};
+
 /**
  * The public API exposed to the client via the MailAPI global.
  */
@@ -1761,6 +1845,8 @@ MailAPI.prototype = {
   toJSON: function() {
     return { type: 'MailAPI' };
   },
+
+  utils: MailUtils,
 
   /**
    * Send a message over/to the bridge.  The idea is that we (can) communicate
@@ -11198,6 +11284,7 @@ const RE_NODE_NEEDS_TRANSFORM = /^(?:a|area|img)$/;
 
 const RE_CID_URL = /^cid:/i;
 const RE_HTTP_URL = /^http(?:s)?/i;
+const RE_MAILTO_URL = /^mailto:/i;
 
 const RE_IMG_TAG = /^img$/;
 
@@ -11231,7 +11318,8 @@ function stashLinks(node, lowerTag) {
   // - a, area: href
   else {
     var link = node.getAttribute('href');
-    if (RE_HTTP_URL.test(link)) {
+    if (RE_HTTP_URL.test(link) ||
+        RE_MAILTO_URL.test(link)) {
       node.classList.add('moz-external-link');
       node.setAttribute('ext-href', link);
       // 'href' attribute will be removed by whitelist
