@@ -17,6 +17,10 @@
   padding: 0;
 }
 
+html {
+  pointer-events: none;
+}
+
 body {
   overflow: hidden;
 }
@@ -35,6 +39,7 @@ button::-moz-focus-inner {
   overflow: hidden;
   width: 0;
   height: 0;
+  display: none;
 }
 
 /* Keyboard */
@@ -46,6 +51,7 @@ button::-moz-focus-inner {
   background: #6a6f73;
   border-top: solid 1px #000;
   -moz-transition: -moz-transform 0.3s ease;
+  pointer-events: auto;
 }
 
 #keyboard.hide{
