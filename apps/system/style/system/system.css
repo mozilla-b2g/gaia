@@ -273,6 +273,10 @@ body {
   transition: transform 0.5s ease, opacity 0.3s ease;
 }
 
+#windows.slow-transition > iframe.appWindow.opening {
+  transition: transform 5s ease, opacity 3s ease;
+}
+
 #screen.cards-view > #windows > iframe.appWindow.opening,
 #screen.cards-view > #windows > iframe.appWindow.closing,
 #screen.switch-app > #windows > iframe.appWindow.opening,
@@ -280,6 +284,11 @@ body {
   transition: transform 0.5s ease;
   visibility: inherit;
   opacity: 1;
+}
+
+#screen.switch-app > #windows.slow-transition > iframe.appWindow.opening,
+#screen.switch-app > #windows.slow-transition > iframe.appWindow.closing {
+  transition: transform 5s ease;
 }
 
 #screen.switch-app > #windows > iframe.appWindow.opening-card {
@@ -295,6 +304,10 @@ body {
   opacity: 1;
 }
 
+#screen.switch-app > #windows.slow-transition > iframe.appWindow.opening-switching {
+  transition: transform 5s ease;
+}
+
 #screen.switch-app > #windows > iframe.appWindow.closing-card {
   transform: translateX(-70%) scale(0.6);
   transition: transform 0.5s ease;
@@ -302,15 +315,27 @@ body {
   opacity: 1;
 }
 
+#screen.switch-app > #windows.slow-transition > iframe.appWindow.closing-card {
+  transition: transform 5s ease;
+}
+
 #windows > iframe.appWindow.closing {
   transition: transform 0.5s ease, opacity 0.3s ease 0.2s;
 }
 
+#windows.slow-transition > iframe.appWindow.closing {
+  transition: transform 5s ease, opacity 3s ease 2s;
+}
 
 #windows > iframe.appWindow.inlineActivity,
 #windows > iframe.appWindow.hideBottom {
   transform: translateY(100%);
   transition: transform 0.5s ease, visibility 0.5s ease;
+}
+
+#windows.slow-transition > iframe.appWindow.inlineActivity,
+#windows.slow-transition > iframe.appWindow.hideBottom {
+  transition: transform 5s ease, visibility 5s ease;
 }
 
 #windows > iframe.appWindow.restored {

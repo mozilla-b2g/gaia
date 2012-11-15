@@ -70,6 +70,13 @@ var WindowManager = (function() {
   // we will not see opening apps/homescreen flash in.
   var kTransitionWait = 100;
 
+  // Set this to true to debugging the transitions and state change
+  var slowTransition = false;
+  if (slowTransition) {
+    kTransitionWait = 1000;
+    windows.classList.add('slow-transition');
+  }
+
   //
   // The set of running apps.
   // This is a map from app origin to an object like this:
