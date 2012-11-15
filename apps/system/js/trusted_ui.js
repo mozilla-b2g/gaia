@@ -126,17 +126,18 @@ var TrustedUIManager = {
   },
 
   _makeDialogVisible: function trui_makeDialogVisible(dialog) {
-    this.dialogTitle.textContent = dialog.name;
-    this.container.appendChild(dialog.frame);
-    // make sure the trusty ui is visible
-    this.show();
-
     // ensure the frame is visible
     dialog.frame.classList.add('selected');
+    this.dialogTitle.textContent = dialog.name;
+    if (!dialog.frame.parentNode) {
+      this.container.appendChild(dialog.frame);
+    }
+    // make sure the trusty ui is visible
+    this.show();
   },
 
   _makeDialogHidden: function trui_makeDialogHidden(dialog) {
-    this.container.removeChild(dialog.frame);
+    dialog.frame.classList.remove('selected');
   },
 
   _closeTopDialog: function trui_closeTopDialog() {
