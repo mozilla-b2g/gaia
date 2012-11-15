@@ -223,6 +223,19 @@ var CardsView = (function() {
         card.classList.add('popup');
       }
 
+      if (TrustedUIManager.hasTrustedUI(origin)) {
+        var popupFrame = TrustedUIManager.getDialogFromOrigin(origin);
+        frameForScreenshot = popupFrame.frame;
+        var header = document.createElement('section');
+        header.setAttribute('role', 'region');
+        header.classList.add('skin-organic');
+        header.innerHTML = '<header><button><span class="icon icon-close">';
+        header.innerHTML += '</span></button><h1>' + popupFrame.name;
+        header.innerHTML += '</h1></header>';
+        card.appendChild(header);
+        card.classList.add('trustedui');
+      }
+
       cardsList.appendChild(card);
       // rect is the final size (considering CSS transform) of the card.
       var rect = card.getBoundingClientRect();
