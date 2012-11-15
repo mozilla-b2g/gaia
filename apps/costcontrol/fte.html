@@ -37,7 +37,8 @@
   <script type="text/javascript" src="js/service/service_utils.js"></script>
 
   <script type="text/javascript" defer src="js/views/view_manager.js"></script>
-  <script type="text/javascript" defer src="js/views/autosettings.js"></script>
+  <script type="text/javascript" defer src="js/utils/autosettings.js"></script>
+  <script type="text/javascript" defer src="js/views/limit_dialog.js"></script>
   <script type="text/javascript" defer src="js/views/fte.js"></script>
 </head>
 
@@ -150,7 +151,7 @@
         </li>
         <li>
           <div class="end buttons-list">
-            <button class="localsetting icon icon-dialog" data-option="data_limit_value" data-inputdialog="data-limit-dialog" data-formatter="dataUnit" data-disable-on="data_limit=false" data-hide-on="data_limit=false">
+            <button class="localsetting icon icon-dialog set-data-limit" data-disable-on="data_limit=false" data-hide-on="data_limit=false">
               <span class="tag"></span>
             </button>
           </div>
@@ -227,7 +228,7 @@
         </li>
         <li>
           <div class="end buttons-list">
-            <button class="localsetting icon icon-dialog" data-option="data_limit_value" data-inputdialog="data-limit-dialog" data-formatter="dataUnit" data-disable-on="data_limit=false" data-hide-on="data_limit=false">
+            <button class="localsetting icon icon-dialog set-data-limit" data-disable-on="data_limit=false" data-hide-on="data_limit=false">
               <span class="tag"></span>
             </button>
           </div>
@@ -249,7 +250,7 @@
     <!-- Non VIVO step 1 -->
     <section role="region" class="view step" data-viewport="right" id="non-vivo-step-1">
       <header>
-        <h1>Set internet daata report</h1>
+        <h1>Set internet data report</h1>
       </header>
       <ul class="content settings">
         <li>
@@ -300,7 +301,7 @@
         </li>
         <li>
           <div class="end buttons-list">
-            <button class="localsetting icon icon-dialog" data-option="data_limit_value" data-inputdialog="data-limit-dialog" data-formatter="dataUnit" data-disable-on="data_limit=false" data-hide-on="data_limit=false">
+            <button class="localsetting icon icon-dialog set-data-limit" data-disable-on="data_limit=false" data-hide-on="data_limit=false">
               <span class="tag"></span>
             </button>
           </div>
@@ -334,14 +335,14 @@
       <div class="info">
         <h2 data-l10n-id="data-limit-dialog-title">Enter a mobile data usage limit</h2>
         <p data-l10n-id="data-limit-dialog-explanation">
-          Enter a mobile data limit alert. Connection speeds reduces after limit. It will be used as a reference to check against actual mobile data usage.
+          Connection speeds reduces after limit. It will be used as a reference to check against actual mobile data usage.
         </p>
       </div>
     </section>
     <form>
       <ul class="buttons-list">
         <li>
-          <button id="switch-unit-button" type="button" class="icon icon-dialog">
+          <button type="button" class="icon icon-dialog switch-unit-button">
             <span class="tag"></span>
           </button>
         </li>

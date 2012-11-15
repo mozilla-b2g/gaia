@@ -365,7 +365,7 @@ viewManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
     ctx.textAlign = 'start';
     for (var y = model.originY, value = 0;
          y > 0; y -= step, value += dataStep) {
-      ctx.fillText(padData(value).join(' '), marginLeft, y - marginBottom);
+      ctx.fillText(formatData(padData(value)), marginLeft, y - marginBottom);
     }
 
     // Now the X axis
@@ -542,7 +542,7 @@ viewManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
 
     // The left marker
     var semiHeight = fontsize / 2 + marginTop;
-    var tag = model.limits.value ? roundData(model.limits.value).join(' ') :
+    var tag = model.limits.value ? formatData(roundData(model.limits.value)) :
                                    _('not-set').toUpperCase();
 
     var tagWidth = ctx.measureText(tag).width;
@@ -786,8 +786,8 @@ viewManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
 
   function _updateUI() {
     // Update overview
-    _wifiOverview.textContent = padData(_model.data.wifi.total).join(' ');
-    _mobileOverview.textContent = padData(_model.data.mobile.total).join(' ');
+    _wifiOverview.textContent = formatData(padData(_model.data.wifi.total));
+    _mobileOverview.textContent = formatData(padData(_model.data.mobile.total));
 
     // Render the charts
     _drawBackgroundLayer(_model);
