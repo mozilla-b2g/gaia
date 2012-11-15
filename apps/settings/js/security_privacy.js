@@ -25,6 +25,24 @@ var Security = {
       phonelockDesc.textContent = enable ? _('enabled') : _('disabled'); 
       phonelockDesc.dataset.l10nId = enable ? 'enabled' : 'disabled';
     };
+
+    var mobileConnection = navigator.mozMobileConnection;
+    if (!mobileConnection)
+      return;
+
+    var simSecurityDesc = document.getElementById('simCardLock-desc');
+
+    if (mobileConnection.cardState === 'absent') {
+      simSecurityDesc.textContent = _('noSimCard');
+      return;
+    }
+    // with SIM card, query its status
+    var req = mobileConnection.getCardLock('pin');
+    req.onsuccess = function spl_checkSuccess() {
+      var enabled = req.result.enabled;
+      simSecurityDesc.textContent = (enabled) ?
+        _('enabled') : _('disabled');
+    };
   }
 };
 
