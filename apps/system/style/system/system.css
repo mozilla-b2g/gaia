@@ -389,6 +389,12 @@ iframe.backgroundWindow {
   visibility: hidden;
 }
 
+/* `.dialog` is set by system_dialog.js when a dialog is shown */
+#screen.dialog #dialog-overlay {
+  visibility: visible;
+  pointer-events: auto;
+}
+
 #screen.authentication-dialog #dialog-overlay,
 #screen.authentication-dialog #authentication-dialog,
 #screen.crash-dialog #dialog-overlay,

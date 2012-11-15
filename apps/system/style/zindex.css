@@ -99,7 +99,7 @@
   z-index: 2047;
 }
 
-#screen > [data-z-index-level="pinkeypadscreen"] {
+#screen > [data-z-index-level="simpin-dialog"] {
   z-index: 2046;
 }
 
