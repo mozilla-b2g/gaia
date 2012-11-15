@@ -2,8 +2,7 @@
 
 var WifiManager = {
 
-  init: function  wn_init() {
-
+  init: function wn_init() {
     if ('mozWifiManager' in window.navigator) {
       this.api = window.navigator.mozWifiManager;
       this.changeStatus();
@@ -61,10 +60,17 @@ var WifiManager = {
     settings.createLock().set({'wifi.enabled': true});
   },
   getNetwork: function wm_gn(ssid) {
-    return this.networks[ssid];
+    var network;
+    for (var i = 0; i < this.networks.length; i++) {
+      if (this.networks[i].ssid == ssid) {
+        network = this.networks[i];
+        break;
+      }
+    }
+    return network;
   },
   connect: function wn_connect(ssid, password, user, callback) {
-    var network = this.networks[ssid];
+    var network = this.getNetwork(ssid);
     this.ssid = ssid;
     var key = this.getSecurityType(network);
       if (key == 'WEP') {
@@ -125,10 +131,12 @@ var WifiManager = {
         return false;
   },
   isUserMandatory: function wn_ium(ssid) {
-    return (this.getSecurityType(this.networks[ssid]).indexOf('EAP') != -1);
+    var network = this.getNetwork(ssid);
+    return (this.getSecurityType(network).indexOf('EAP') != -1);
   },
   isPasswordMandatory: function wn_ipm(ssid) {
-    if (!this.getSecurityType(this.networks[ssid])) {
+    var network = this.getNetwork(ssid);
+    if (!this.getSecurityType(network)) {
       return false;
     }
     return true;
