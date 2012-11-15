@@ -238,7 +238,11 @@ var WindowManager = (function() {
   var closeFrame = null;
   var openCallback = null;
   var closeCallback = null;
+  var openTimer;
+  var closeTimer;
 
+  // Use setOpenFrame() to reset the CSS classes set
+  // to the current openFrame (before overwriting the reference)
   function setOpenFrame(frame) {
     if (openFrame) {
       removeFrameClasses(openFrame);
@@ -247,9 +251,13 @@ var WindowManager = (function() {
     openFrame = frame;
   }
 
+  // Use setCloseFrame() to reset the CSS classes set
+  // to the current closeFrame (before overwriting the reference)
   function setCloseFrame(frame) {
     if (closeFrame) {
       removeFrameClasses(closeFrame);
+      // closeFrame should not be set to active
+      closeFrame.classList.remove('active');
     }
 
     closeFrame = frame;
@@ -391,9 +399,6 @@ var WindowManager = (function() {
     if ('wrapper' in frame.dataset) {
       wrapperFooter.classList.remove('visible');
     }
-
-    // Set displayedApp state to homescreen
-    displayedApp = homescreen;
   }
 
   // The following things needs to happen when firstpaint happens.
@@ -445,14 +450,14 @@ var WindowManager = (function() {
 
       if (!screenshot) {
         // put a default background
-        openFrame.classList.add('default-background');
+        frame.classList.add('default-background');
         callback();
         return;
       }
 
       // set the screenshot as the background of the frame itself.
       // we are safe to do so since there is nothing on it yet.
-      setFrameBackgroundBlob(openFrame, screenshot, transparent);
+      setFrameBackgroundBlob(frame, screenshot, transparent);
 
       // start the transition
       callback();
@@ -620,8 +625,7 @@ var WindowManager = (function() {
 
     setFrameBackground(openFrame, function gotBackground() {
       // Start the transition when this async/sync callback is called.
-
-      setTimeout(function startOpeningTransition() {
+      openTimer = setTimeout(function startOpeningTransition() {
         if (!screenElement.classList.contains('switch-app')) {
           openFrame.classList.add('opening');
         } else {
@@ -660,8 +664,11 @@ var WindowManager = (function() {
     evt.initCustomEvent('appwillclose', true, false, { origin: origin });
     closeFrame.dispatchEvent(evt);
 
+    // If the closeWindow() transition is interrupted,
+    // this ensure the state being set to homescreen.
+    displayedApp = homescreen;
 
-    setTimeout(function startClosingTransition() {
+    closeTimer = setTimeout(function startClosingTransition() {
       // Start the transition
       closeFrame.classList.add('closing');
       closeFrame.classList.remove('active');
@@ -676,10 +683,6 @@ var WindowManager = (function() {
 
     // Ask closeWindow() to start closing the displayedApp
     closeWindow(displayedApp, callback);
-
-    // If the switchWindow() transition is interrupted,
-    // this ensure the state being set to homescreen.
-    displayedApp = homescreen;
 
     // Ask openWindow() to show a card on the right waiting to be opened
     openWindow(origin);
@@ -811,6 +814,8 @@ var WindowManager = (function() {
       closeFrame.setVisible(false);
     if (homescreenFrame)
       homescreenFrame.setVisible(true);
+    clearTimeout(openTimer);
+    clearTimeout(closeTimer);
     setOpenFrame(null);
     setCloseFrame(null);
     screenElement.classList.remove('switch-app');
@@ -1398,14 +1403,15 @@ var WindowManager = (function() {
     // be included in index.html before this one, so they can register their
     // event handlers before we do.
 
-    // openFrame check in the second |else if| for the current transition
-    // -- if there one, is the user would like to cancel it instead of
-    // toggling homescreen panels.
+    // If we are currently transitioning, the user would like to cancel
+    // it instead of toggling homescreen panels.
+    var inTransition = !!(openFrame || closeFrame);
+
     if (document.mozFullScreen) {
       document.mozCancelFullScreen();
     } else if (inlineActivityFrame) {
       stopInlineActivity();
-    } else if (displayedApp !== homescreen || openFrame) {
+    } else if (displayedApp !== homescreen || inTransition) {
       if (displayedApp != ftuURL) {
         setDisplayedApp(homescreen);
       } else {
