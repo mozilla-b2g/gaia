@@ -1,4 +1,10 @@
 /* FIRST TIME EXPERIENCE VIEW */
+
+/* Remove this rule when new BB are applied */
+body[role="application"] [role="dialog"] {
+  position: fixed;
+}
+
 #firsttime-view, #firsttime-view .view{
   bottom: 0;
 }

@@ -283,6 +283,11 @@
   right: 0rem;
 }
 
+.moz-external-link {
+  color: blue;
+  cursor: pointer;
+}
+
 .msg-body-content {
   color: black;
   margin: 4px 0px;

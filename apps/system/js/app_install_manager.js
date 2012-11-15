@@ -10,6 +10,10 @@ var AppInstallManager = {
     this.authorUrl = document.getElementById('app-install-author-url');
     this.installButton = document.getElementById('app-install-install-button');
     this.cancelButton = document.getElementById('app-install-cancel-button');
+    this.cancelDialog = document.getElementById('app-install-cancel-dialog');
+    this.confirmCancelButton =
+      document.getElementById('app-install-confirm-cancel-button');
+    this.resumeButton = document.getElementById('app-install-resume-button');
 
     window.addEventListener('mozChromeEvent',
       (function ai_handleChromeEvent(e) {
@@ -18,18 +22,21 @@ var AppInstallManager = {
       }
     }).bind(this));
 
-    window.addEventListener('applicationinstall', this.handleApplicationInstall.bind(this));
+    window.addEventListener('applicationinstall',
+      this.handleApplicationInstall.bind(this));
+
 
     this.installButton.onclick = this.handleInstall.bind(this);
-    this.cancelButton.onclick = this.handleCancel.bind(this);
+    this.cancelButton.onclick = this.showCancelDialog.bind(this);
+    this.confirmCancelButton.onclick = this.handleCancel.bind(this);
+    this.resumeButton.onclick = this.hideCancelDialog.bind(this);
   },
 
   handleAppInstallPrompt: function ai_handleInstallPrompt(detail) {
     var _ = navigator.mozL10n.get;
-
+    var app = detail.app;
     // updateManifest is used by packaged apps until they are installed
-    var manifest = detail.app.manifest ?
-      detail.app.manifest : detail.app.updateManifest;
+    var manifest = app.manifest ? app.manifest : app.updateManifest;
 
     if (!manifest)
       return;
@@ -72,18 +79,11 @@ var AppInstallManager = {
   },
 
   handleInstall: function ai_handleInstall(evt) {
+    if (evt)
+      evt.preventDefault();
     if (this.installCallback)
       this.installCallback();
     this.installCallback = null;
-    this.dialog.classList.remove('visible');
-
-    evt.preventDefault();
-  },
-
-  handleCancel: function ai_handleCancel() {
-    if (this.cancelCallback)
-      this.cancelCallback();
-    this.cancelCallback = null;
     this.dialog.classList.remove('visible');
   },
 
@@ -97,7 +97,6 @@ var AppInstallManager = {
       // nothing more to do here, everything is already done
       return;
     }
-
     StatusBar.incSystemDownloads();
 
     app.ondownloadsuccess = this.handleDownloadSuccess.bind(this, app);
@@ -111,8 +110,12 @@ var AppInstallManager = {
   },
 
   handleDownloadError: function ai_handleDownloadError(app, evt) {
+    var _ = navigator.mozL10n.get;
     var manifest = app.manifest || app.updateManifest;
+    var name = manifest.name;
     StatusBar.decSystemDownloads();
+    var msg = name + ' ' + _('download-stopped');
+    SystemBanner.show(msg);
     this.cleanUp(app);
   },
 
@@ -139,6 +142,27 @@ var AppInstallManager = {
     var e = Math.floor(Math.log(bytes) / Math.log(1024));
     return (bytes / Math.pow(1024, Math.floor(e))).toFixed(2) + ' ' +
       _(units[e]);
+  },
+
+  showCancelDialog: function ai_showCancelDialog(evt) {
+    if (evt)
+      evt.preventDefault();
+    this.cancelDialog.classList.add('visible');
+    this.dialog.classList.remove('visible');
+  },
+
+  hideCancelDialog: function ai_hideCancelDialog(evt) {
+    if (evt)
+      evt.preventDefault();
+    this.dialog.classList.add('visible');
+    this.cancelDialog.classList.remove('visible');
+  },
+
+  handleCancel: function ai_handleCancel() {
+    if (this.cancelCallback)
+      this.cancelCallback();
+    this.cancelCallback = null;
+    this.cancelDialog.classList.remove('visible');
   }
 
 };

@@ -131,7 +131,7 @@ contacts.Settings = (function() {
       span = document.querySelector('#fbTotalsResult span');
     }
 
-    span.textContent = _('facebook-stats', {
+    span.textContent = _('facebook-import-msg', {
       'imported': imported,
       'total': theTotal
     });
