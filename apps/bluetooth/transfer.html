@@ -33,8 +33,8 @@
         <p data-l10n-id="turn-bluetooth-on">Do you want to turn Bluetooth on?</p>
       </div>
       <menu data-items="2">
-        <button type="reset" id="enable-bluetooth-button-cancel" data-l10n-id="cancel" onsubmit="return false;">Cancel</button>
-        <button class="affirmative" type="submit" id="enable-bluetooth-button-turn-on" data-l10n-id="turn-on" onsubmit="return false;">Turn On</button>
+        <button type="reset" id="enable-bluetooth-button-cancel" data-l10n-id="cancel">Cancel</button>
+        <button class="affirmative" type="submit" id="enable-bluetooth-button-turn-on" data-l10n-id="turn-on">Turn On</button>
       </menu>
     </section>
     <section role="dialog" id="alert-view" hidden>
@@ -50,7 +50,7 @@
     </section>
     <!-- Overwrite Value Selector -->
     <div id="value-selector" hidden>
-      <form id="select-option-popup" role="dialog" onsubmit="return false;">
+      <form id="select-option-popup" role="dialog">
         <section id="value-selector-container">
           <h1 data-l10n-id="choose-option">Choose your option</h1>
           <ol role="listbox">
@@ -58,8 +58,8 @@
           </ol>
         </section>
         <menu id="select-options-buttons">
-          <button id="device-select-button-cancel" class="value-selector-cancel" data-type="cancel" data-l10n-id="cancel" onsubmit="return false;">Cancel</button>
-          <button id="device-select-button-ok" class="value-option-confirm affirmative" data-type="ok" data-l10n-id="ok" onsubmit="return false;">Ok</button>
+          <button id="device-select-button-cancel" class="value-selector-cancel" data-type="cancel" data-l10n-id="cancel">Cancel</button>
+          <button id="device-select-button-ok" class="value-option-confirm affirmative" data-type="ok" data-l10n-id="ok">Ok</button>
         </menu>
       </form>
     </div>
