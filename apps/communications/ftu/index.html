@@ -134,10 +134,10 @@
             GMT +00:00 Greenwich Mean Time
           </h2>
         </section>
-        <form data-type="list" onsubmit="return false;">
+        <form id="time-form" data-type="list">
           <ul>
             <li>
-              <button class="change icon icon-dialog" data-l10n-id="change">
+              <button class="change icon icon-dialog" data-l10n-id="change" type="button">
                 Change
               </button>
               <p id="timezone-configuration-label">GMT +00:00</p>
@@ -166,14 +166,14 @@
                </select>
             </li>
             <li>
-              <button class="change icon icon-dialog" data-l10n-id="change">
+              <button class="change icon icon-dialog" data-l10n-id="change" type="button">
                 Change
               </button>
               <p id="date-configuration-label"></p>
               <input id="date-configuration" class="invisible" type="date"></input>
             </li>
             <li>
-              <button class="change icon icon-dialog" data-l10n-id="change">
+              <button class="change icon icon-dialog" data-l10n-id="change" type="button">
                 Change
               </button>
               <p id="time-configuration-label">00:00</p>
