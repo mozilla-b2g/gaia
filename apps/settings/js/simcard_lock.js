@@ -4,7 +4,7 @@
 'use strict';
 
 var SimPinLock = {
-  simSecurityInfo: document.getElementById('simCardLock-desc'),
+  simSecurityDesc: document.getElementById('simCardLock-desc'),
   simPinCheckBox: document.querySelector('#simpin-enabled input'),
   changeSimPinItem: document.getElementById('simpin-change'),
   changeSimPinButton: document.querySelector('#simpin-change button'),
@@ -15,7 +15,7 @@ var SimPinLock = {
     var _ = navigator.mozL10n.get;
 
     if (this.mobileConnection.cardState === 'absent') {
-      this.simSecurityInfo.textContent = _('noSimCard');
+      this.simSecurityDesc.textContent = _('noSimCard');
       this.simPinCheckBox.disabled = true;
       this.changeSimPinItem.hidden = true;
       return;
@@ -25,7 +25,7 @@ var SimPinLock = {
     var req = this.mobileConnection.getCardLock('pin');
     req.onsuccess = function spl_checkSuccess() {
       var enabled = req.result.enabled;
-      self.simSecurityInfo.textContent = (enabled) ?
+      self.simSecurityDesc.textContent = (enabled) ?
         _('enabled') : _('disabled');
       self.simPinCheckBox.disabled = false;
       self.simPinCheckBox.checked = enabled;
