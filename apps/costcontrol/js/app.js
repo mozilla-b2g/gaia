@@ -101,7 +101,6 @@ function setupApp() {
   // Initializes the cost control module: basic parameters, automatic and manual
   // updates.
   function _init() {
-
     var status = Service.getServiceStatus();
     if (status.fte) {
       var fteIframe = document.getElementById('fte-view');
