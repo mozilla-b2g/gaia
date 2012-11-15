@@ -5,30 +5,16 @@
 
 var SimLock = {
   init: function sl_init() {
-    // Listen to the first appwillopen event, where homescreen launches
-    window.addEventListener('appwillopen', this);
-
-    // Listen to appopen event
-    window.addEventListener('appopen', this);
-
+    // Do not do anything if we can't have access to MobileConnection API
     var conn = window.navigator.mozMobileConnection;
     if (!conn)
       return;
-    conn.addEventListener('cardstatechange', this);
+
+    // Watch for apps that need a mobile connection
+    window.addEventListener('appopen', this);
   },
   handleEvent: function sl_handleEvent(evt) {
     switch (evt.type) {
-      case 'cardstatechange':
-        this.showIfLocked();
-
-        break;
-
-      case 'appwillopen':
-        window.removeEventListener('appwillopen', this);
-        this.showIfLocked();
-
-        break;
-
       case 'appopen':
         // if an app needs telephony or sms permission,
         // we will launch the unlock screen if needed.
@@ -39,14 +25,19 @@ var SimLock = {
         if (!app || !app.manifest.permissions)
           return;
 
+        // Ignore first time usage app which already ask for SIM code
+        if (evt.target.classList.contains('ftu'))
+          return;
+
         if (!('telephony' in app.manifest.permissions ||
-            'sms' in app.manifest.permissions))
+              'sms' in app.manifest.permissions))
           return;
 
         this.showIfLocked();
         break;
     }
   },
+
   showIfLocked: function sl_showIfLocked() {
     var conn = window.navigator.mozMobileConnection;
     if (!conn)
@@ -55,18 +46,7 @@ var SimLock = {
     switch (conn.cardState) {
       case 'pukRequired':
       case 'pinRequired':
-        var activity = new MozActivity({
-          name: 'unlock',
-          data: {
-            target: 'sim'
-          }
-        });
-        activity.onsuccess = function sl_unlockSuccess() {
-          // Go back to the current displayed app
-          // XXX: this should be removed when bug 798445 is fixed
-          // and bug 799039 actually works.
-          WindowManager.launch(WindowManager.getDisplayedApp());
-        };
+        SimPinDialog.show('unlock');
         break;
       case 'ready':
       default:
