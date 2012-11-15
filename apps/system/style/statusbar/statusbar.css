@@ -81,6 +81,10 @@ body, html {
   bottom: 2px;
 }
 
+#screen.locked #statusbar-time {
+  display: none;
+}
+
 .sb-icon {
   width: 16px;
   height: 16px;
