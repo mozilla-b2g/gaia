@@ -4,7 +4,6 @@ html, body {
   overflow: hidden;
   margin: 0;
   color: white;
-  background: url(images/home_texture.png) repeat scroll 2% 50% #666666;
 }
 
 @media all and (min-resolution: 200dpi) {
