@@ -649,7 +649,10 @@ var WindowManager = (function() {
 
     // Animate the window close.  Ensure the homescreen is in the
     // foreground since it will be shown during the animation.
-    toggleHomescreen(true);
+    var homescreenFrame = ensureHomescreen();
+
+    // invoke openWindow to show homescreen here
+    openWindow(homescreen, null);
 
     // Take keyboard focus away from the closing window
     closeFrame.blur();
@@ -668,10 +671,6 @@ var WindowManager = (function() {
     var evt = document.createEvent('CustomEvent');
     evt.initCustomEvent('appwillclose', true, false, { origin: origin });
     closeFrame.dispatchEvent(evt);
-
-    // If the closeWindow() transition is interrupted,
-    // this ensure the state being set to homescreen.
-    displayedApp = homescreen;
 
     closeTimer = setTimeout(function startClosingTransition() {
       // Start the transition
@@ -699,6 +698,8 @@ var WindowManager = (function() {
 
   // Ensure the homescreen is loaded and return its frame.  Restarts
   // the homescreen app if it was killed in the background.
+  // Note: this function would not invoke openWindow(homescreen),
+  // which should be handled in setDisplayedApp and in closeWindow()
   function ensureHomescreen(reset) {
     // If the url of the homescreen is not known at this point do nothing.
     if (!homescreen || !homescreenManifestURL) {
@@ -709,18 +710,17 @@ var WindowManager = (function() {
       var app = Applications.getByManifestURL(homescreenManifestURL);
       appendFrame(null, homescreen, homescreenURL,
                   app.manifest.name, app.manifest, app.manifestURL);
-      openWindow(homescreen, null);
+
       addWrapperListener();
 
     } else if (reset) {
       runningApps[homescreen].frame.src = homescreenURL;
     }
 
-    // Make sure the homescreen is considered as the current displayed
-    // app if there is none.
-    if (!displayedApp) {
-      displayedApp = homescreen;
-    }
+    // need to setAppSize or for the first time, or from FTU to homescreen
+    // the dock position would be incorrect.
+    setAppSize(homescreen);
+
     return runningApps[homescreen].frame;
   }
 
@@ -758,7 +758,7 @@ var WindowManager = (function() {
         // Eventually ask for SIM code, but only when we do not show FTU,
         // which already asks for it!
         SimLock.showIfLocked();
-        ensureHomescreen();
+        setDisplayedApp(homescreen);
         return;
       }
 
@@ -768,13 +768,13 @@ var WindowManager = (function() {
         ftuManifestURL = this.result['ftu.manifestURL'];
         if (!ftuManifestURL) {
           dump('FTU manifest cannot be found skipping.\n');
-          ensureHomescreen();
+          setDisplayedApp(homescreen);
           return;
         }
         ftu = Applications.getByManifestURL(ftuManifestURL);
         if (!ftu) {
           dump('Opps, bogus FTU manifest.\n');
-          ensureHomescreen();
+          setDisplayedApp(homescreen);
           return;
         }
         ftuURL = ftu.origin + ftu.manifest.entry_points['ftu'].launch_path;
@@ -846,9 +846,13 @@ var WindowManager = (function() {
 
     // Case 1: the app is already displayed
     if (currentApp && currentApp == newApp) {
-      // Just run the callback right away
-      if (callback)
+      if (newApp == homescreen) {
+        // relaunch homescreen
+        openWindow(homescreen, callback);
+      } else if (callback) {
+        // Just run the callback right away if it is not homescreen
         callback();
+      }
     }
     // Case 2: null --> app
     else if (!currentApp && newApp != homescreen) {
@@ -1307,7 +1311,9 @@ var WindowManager = (function() {
     // we will not relaunch it until the foreground app is closed.
     // (to be dealt in setDisplayedApp(), not here)
     if (displayedApp == homescreen) {
-      kill(origin, ensureHomescreen);
+      kill(origin, function relaunchHomescreen() {
+        setDisplayedApp(homescreen);
+      });
       return;
     }
 
