@@ -30919,18 +30919,40 @@ define('mailapi/activesync/folder',
 
 const DESIRED_SNIPPET_LENGTH = 100;
 
+/**
+ * This is minimum number of messages we'd like to get for a folder for a given
+ * sync range. It's not exact, since we estimate from the number of messages in
+ * the past two weeks, but it's close enough.
+ */
+const DESIRED_MESSAGE_COUNT = 50;
+
 const FILTER_TYPE = $ascp.AirSync.Enums.FilterType;
 
-// Map our built-in sync range values to their corresponding ActiveSync
-// FilterType values. We exclude 3 and 6 months, since they aren't valid for
-// email.
+/**
+ * Map our built-in sync range values to their corresponding ActiveSync
+ * FilterType values. We exclude 3 and 6 months, since they aren't valid for
+ * email.
+ */
 const SYNC_RANGE_TO_FILTER_TYPE = {
-   '1d': FILTER_TYPE.OneDayBack,
-   '3d': FILTER_TYPE.ThreeDaysBack,
-   '1w': FILTER_TYPE.OneWeekBack,
-   '2w': FILTER_TYPE.TwoWeeksBack,
-   '1m': FILTER_TYPE.OneMonthBack,
-  'all': FILTER_TYPE.NoFilter,
+  'auto': null,
+    '1d': FILTER_TYPE.OneDayBack,
+    '3d': FILTER_TYPE.ThreeDaysBack,
+    '1w': FILTER_TYPE.OneWeekBack,
+    '2w': FILTER_TYPE.TwoWeeksBack,
+    '1m': FILTER_TYPE.OneMonthBack,
+   'all': FILTER_TYPE.NoFilter,
+};
+
+/**
+ * This mapping is purely for logging purposes.
+ */
+const FILTER_TYPE_TO_STRING = {
+  0: 'all messages',
+  1: 'one day',
+  2: 'three days',
+  3: 'one week',
+  4: 'two weeks',
+  5: 'one month',
 };
 
 function ActiveSyncFolderConn(account, storage, _parentLog) {
@@ -30953,14 +30975,25 @@ ActiveSyncFolderConn.prototype = {
     return this.folderMeta.syncKey = value;
   },
 
+  /**
+   * Get the filter type for this folder. The account-level syncRange property
+   * takes precedence here, but if it's set to "auto", we'll look at the
+   * filterType on a per-folder basis. The per-folder filterType may be
+   * undefined, in which case, we will attempt to infer a good filter type
+   * elsewhere (see _inferFilterType()).
+   */
   get filterType() {
     let syncRange = this._account.accountDef.syncRange;
     if (SYNC_RANGE_TO_FILTER_TYPE.hasOwnProperty(syncRange)) {
-      return SYNC_RANGE_TO_FILTER_TYPE[syncRange];
+      let accountFilterType = SYNC_RANGE_TO_FILTER_TYPE[syncRange];
+      if (accountFilterType)
+        return accountFilterType;
+      else
+        return this.folderMeta.filterType;
     }
     else {
-      console.warn('Got an invalid syncRange: ' + syncRange +
-                   ': using three days back instead');
+      console.warn('Got an invalid syncRange (' + syncRange +
+                   ') using three days back instead');
       return $ascp.AirSync.Enums.FilterType.ThreeDaysBack;
     }
   },
@@ -30968,9 +31001,10 @@ ActiveSyncFolderConn.prototype = {
   /**
    * Get the initial sync key for the folder so we can start getting data
    *
+   * @param {string} filterType The filter type for our synchronization
    * @param {function} callback A callback to be run when the operation finishes
    */
-  _getSyncKey: function asfc__getSyncKey(callback) {
+  _getSyncKey: function asfc__getSyncKey(filterType, callback) {
     let folderConn = this;
     let account = this._account;
     const as = $ascp.AirSync.Tags;
@@ -30986,7 +31020,7 @@ ActiveSyncFolderConn.prototype = {
           w.tag(as.SyncKey, '0')
            .tag(as.CollectionId, this.serverId)
            .stag(as.Options)
-             .tag(as.FilterType, this.filterType)
+             .tag(as.FilterType, filterType)
            .etag()
          .etag()
        .etag()
@@ -31020,6 +31054,133 @@ ActiveSyncFolderConn.prototype = {
   },
 
   /**
+   * Get an estimate of the number of messages to be synced.
+   *
+   * @param {string} filterType The filter type for our estimate
+   * @param {function} callback A callback to be run when the operation finishes
+   */
+  _getItemEstimate: function asfc__getItemEstimate(filterType, callback) {
+    const ie = $ascp.ItemEstimate.Tags;
+    const as = $ascp.AirSync.Tags;
+
+    let w = new $wbxml.Writer('1.3', 1, 'UTF-8');
+    w.stag(ie.GetItemEstimate)
+       .stag(ie.Collections)
+         .stag(ie.Collection)
+           .tag(as.SyncKey, this.syncKey)
+           .tag(ie.CollectionId, this.serverId)
+           .stag(as.Options)
+             .tag(as.FilterType, filterType)
+           .etag()
+         .etag()
+       .etag()
+     .etag();
+
+    this._account.conn.postCommand(w, function(aError, aResponse) {
+      if (aError) {
+        console.error(aError);
+        callback('unknown');
+        return;
+      }
+
+      let e = new $wbxml.EventParser();
+      const base = [ie.GetItemEstimate, ie.Response];
+
+      let status, estimate;
+      e.addEventListener(base.concat(ie.Status), function(node) {
+        status = node.children[0].textContent;
+      });
+      e.addEventListener(base.concat(ie.Collection, ie.Estimate),
+                         function(node) {
+        estimate = parseInt(node.children[0].textContent);
+      });
+      e.run(aResponse);
+
+      if (status !== $ascp.ItemEstimate.Enums.Status.Success) {
+        console.log('Error getting item estimate:', status);
+        callback('unknown');
+      }
+      else {
+        callback(null, estimate);
+      }
+    });
+  },
+
+  /**
+   * Infer the filter type for this folder to get a sane number of messages.
+   *
+   * @param {function} callback A callback to be run when the operation
+   *  finishes, taking two arguments: an error (if any), and the filter type we
+   *  picked
+   */
+  _inferFilterType: function asfc__inferFilterType(callback) {
+    let folderConn = this;
+    const Type = $ascp.AirSync.Enums.FilterType;
+
+    let getEstimate = function(filterType, onSuccess) {
+      folderConn._getSyncKey(filterType, function(error) {
+        if (error) {
+          callback('unknown');
+          return;
+        }
+
+        folderConn._getItemEstimate(filterType, function(error, estimate) {
+          if (error) {
+            callback('unknown');
+            return;
+          }
+
+          onSuccess(estimate);
+        });
+      });
+    };
+
+    getEstimate(Type.TwoWeeksBack, function(estimate) {
+      let messagesPerDay = estimate / 14; // Two weeks. Twoooo weeeeeeks.
+      let filterType;
+
+      if (estimate < 0)
+        filterType = Type.ThreeDaysBack;
+      else if (messagesPerDay >= DESIRED_MESSAGE_COUNT)
+        filterType = Type.OneDayBack;
+      else if (messagesPerDay * 3 >= DESIRED_MESSAGE_COUNT)
+        filterType = Type.ThreeDaysBack;
+      else if (messagesPerDay * 7 >= DESIRED_MESSAGE_COUNT)
+        filterType = Type.OneWeekBack;
+      else if (messagesPerDay * 14 >= DESIRED_MESSAGE_COUNT)
+        filterType = Type.TwoWeeksBack;
+      else if (messagesPerDay * 30 >= DESIRED_MESSAGE_COUNT)
+        filterType = Type.OneMonthBack;
+      else {
+        getEstimate(Type.NoFilter, function(estimate) {
+          let filterType;
+          if (estimate > DESIRED_MESSAGE_COUNT) {
+            filterType = Type.OneMonthBack;
+            // Reset the sync key since we're changing filter types. This avoids
+            // a round-trip where we'd normally get a zero syncKey from the
+            // server.
+            folderConn.syncKey = '0';
+          }
+          else {
+            filterType = Type.NoFilter;
+          }
+          folderConn._LOG.inferFilterType(filterType);
+          callback(null, filterType);
+        });
+        return;
+      }
+
+      if (filterType !== Type.TwoWeeksBack) {
+        // Reset the sync key since we're changing filter types. This avoids a
+        // round-trip where we'd normally get a zero syncKey from the server.
+        folderConn.syncKey = '0';
+      }
+      folderConn._LOG.inferFilterType(filterType);
+      callback(null, filterType);
+    });
+  },
+
+  /**
    * Sync the folder with the server and enumerate all the changes since the
    * last sync.
    *
@@ -31032,15 +31193,35 @@ ActiveSyncFolderConn.prototype = {
 
     if (!account.conn.connected) {
       account.conn.connect(function(error, config) {
-        if (error)
+        if (error) {
+          callback('unknown');
           console.error('Error connecting to ActiveSync:', error);
-        else
+        }
+        else {
           folderConn._enumerateFolderChanges(callback);
+        }
+      });
+      return;
+    }
+    if (!this.filterType) {
+      this._inferFilterType(function(error, filterType) {
+        if (error)
+          callback('unknown');
+        else {
+          console.log('We want a filter of', FILTER_TYPE_TO_STRING[filterType]);
+          folderConn.folderMeta.filterType = filterType;
+          folderConn._enumerateFolderChanges(callback);
+        }
       });
       return;
     }
     if (this.syncKey === '0') {
-      this._getSyncKey(this._enumerateFolderChanges.bind(this, callback));
+      this._getSyncKey(this.filterType, function(error) {
+        if (error)
+          callback('unknown');
+        else
+          folderConn._enumerateFolderChanges(callback);
+      });
       return;
     }
 
@@ -31055,6 +31236,7 @@ ActiveSyncFolderConn.prototype = {
     // an empty request to repeat our request. This saves a little bandwidth.
     if (this._account._syncsInProgress++ === 0 &&
         this._account._lastSyncKey === this.syncKey &&
+        this._account._lastSyncFilterType === this.filterType &&
         this._account._lastSyncResponseWasEmpty) {
       w = as.Sync;
     }
@@ -31104,6 +31286,7 @@ ActiveSyncFolderConn.prototype = {
       }
 
       folderConn._account._lastSyncKey = folderConn.syncKey;
+      folderConn._account._lastSyncFilterType = folderConn.filterType;
 
       if (!aResponse) {
         console.log('Sync completed with empty response');
@@ -31467,6 +31650,10 @@ ActiveSyncFolderConn.prototype = {
         });
         return;
       }
+      else if (error) {
+        doneCallback(error);
+        return;
+      }
 
       for (let [,message] in Iterator(added)) {
         storage.addMessageHeader(message.header);
@@ -31489,7 +31676,8 @@ ActiveSyncFolderConn.prototype = {
       messagesSeen += added.length + changed.length + deleted.length;
 
       if (!moreAvailable) {
-        folderConn._LOG.syncDateRange_end(null, null, null, startTS, endTS);
+        folderConn._LOG.syncDateRange_end(added.length, changed.length,
+                                          deleted.length, startTS, endTS);
         storage.markSyncRange(startTS, endTS, 'XXX', accuracyStamp);
         doneCallback(null, messagesSeen);
       }
@@ -31733,6 +31921,7 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
     type: $log.CONNECTION,
     subtype: $log.CLIENT,
     events: {
+      inferFilterType: { filterType: false },
     },
     asyncJobs: {
       syncDateRange: {
@@ -33222,7 +33411,7 @@ Configurators['imap+smtp'] = {
       receiveType: 'imap',
       sendType: 'smtp',
 
-      syncRange: '3d',
+      syncRange: 'auto',
 
       credentials: credentials,
       receiveConnInfo: imapConnInfo,
@@ -33282,7 +33471,7 @@ Configurators['fake'] = {
       name: userDetails.accountName || userDetails.emailAddress,
 
       type: 'fake',
-      syncRange: '3d',
+      syncRange: 'auto',
 
       credentials: credentials,
       connInfo: {
@@ -33389,7 +33578,7 @@ Configurators['activesync'] = {
         name: userDetails.accountName || userDetails.emailAddress,
 
         type: 'activesync',
-        syncRange: '3d',
+        syncRange: 'auto',
 
         credentials: credentials,
         connInfo: {
