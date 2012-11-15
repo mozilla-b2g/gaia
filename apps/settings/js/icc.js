@@ -545,33 +545,33 @@
     var selectedPhoneSound;
     switch (options.tone) {
       case icc.STK_TONE_TYPE_DIAL_TONE:
-        selectedPhoneSound = 'resources/dtmf_tones/350Hz+440Hz_200ms_16bit_48kHz_-1dBFS_mono.ogg';
+        selectedPhoneSound = 'resources/dtmf_tones/350Hz+440Hz_200ms.ogg';
         break;
       case icc.STK_TONE_TYPE_CALLED_SUBSCRIBER_BUSY:
-        selectedPhoneSound = 'resources/dtmf_tones/480Hz+620Hz_200ms_16bit_48kHz_-1dBFS_mono.ogg';
+        selectedPhoneSound = 'resources/dtmf_tones/480Hz+620Hz_200ms.ogg';
         break;
       case icc.STK_TONE_TYPE_CONGESTION:
-        selectedPhoneSound = 'resources/dtmf_tones/425Hz_200ms_16bit_48kHz_-1dBFS_mono.ogg';
+        selectedPhoneSound = 'resources/dtmf_tones/425Hz_200ms.ogg';
         break;
       case icc.STK_TONE_TYPE_RADIO_PATH_ACK:
       case icc.STK_TONE_TYPE_RADIO_PATH_NOT_AVAILABLE:
-        selectedPhoneSound = 'resources/dtmf_tones/425Hz_200ms_16bit_48kHz_-1dBFS_mono.ogg';
+        selectedPhoneSound = 'resources/dtmf_tones/425Hz_200ms.ogg';
         break;
       case icc.STK_TONE_TYPE_ERROR:
-        selectedPhoneSound = 'resources/dtmf_tones/950Hz+1400Hz+1800Hz_200ms_16bit_48kHz_-1dBFS_mono.ogg';
+        selectedPhoneSound = 'resources/dtmf_tones/950Hz+1400Hz+1800Hz_200ms.ogg';
         break;
       case icc.STK_TONE_TYPE_CALL_WAITING_TONE:
       case icc.STK_TONE_TYPE_RINGING_TONE:
-        selectedPhoneSound = 'resources/dtmf_tones/425Hz_200ms_16bit_48kHz_-1dBFS_mono.ogg';
+        selectedPhoneSound = 'resources/dtmf_tones/425Hz_200ms.ogg';
         break;
       case icc.STK_TONE_TYPE_GENERAL_BEEP:
-        selectedPhoneSound = 'resources/dtmf_tones/400Hz_200ms_16bit_48kHz_-1dBFS_mono.ogg';
+        selectedPhoneSound = 'resources/dtmf_tones/400Hz_200ms.ogg';
         break;
       case icc.STK_TONE_TYPE_POSITIVE_ACK_TONE:
-        selectedPhoneSound = 'resources/dtmf_tones/425Hz_200ms_16bit_48kHz_-1dBFS_mono.ogg';
+        selectedPhoneSound = 'resources/dtmf_tones/425Hz_200ms.ogg';
         break;
       case icc.STK_TONE_TYPE_NEGATIVE_ACK_TONE:
-        selectedPhoneSound = 'resources/dtmf_tones/300Hz+400Hz+500Hz_400ms_16bit_48kHz_-1dBFS_mono.ogg';
+        selectedPhoneSound = 'resources/dtmf_tones/300Hz+400Hz+500Hz_400ms.ogg';
         break;
     }
     tonePlayer.src = selectedPhoneSound;
