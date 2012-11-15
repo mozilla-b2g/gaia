@@ -1012,7 +1012,9 @@ MessageReaderCard.prototype = {
     }
   },
 
-  onHyperlinkClick: function() {
+  onHyperlinkClick: function(event, linkNode, linkUrl, linkText) {
+    if(confirm(mozL10n.get('browse-to-url-prompt', { url: linkUrl })))
+      window.open(linkUrl, '_blank');
   },
 
   _populatePlaintextBodyNode: function(bodyNode, rep) {
@@ -1032,7 +1034,11 @@ MessageReaderCard.prototype = {
       }
       if (cname)
         node.setAttribute('class', cname);
-      node.textContent = rep[i + 1];
+
+      var subnodes = MailAPI.utils.linkifyPlain(rep[i + 1], document);
+      for(var i in subnodes)
+        node.appendChild(subnodes[i]);
+
       bodyNode.appendChild(node);
     }
   },
@@ -1084,6 +1090,10 @@ MessageReaderCard.prototype = {
         hasExternalImages = false,
         showEmbeddedImages = body.embeddedImageCount &&
                              body.embeddedImagesDownloaded;
+
+    bindSanitizedClickHandler(rootBodyNode, this.onHyperlinkClick.bind(this),
+                              rootBodyNode);
+
     for (var iRep = 0; iRep < reps.length; iRep += 2) {
       var repType = reps[iRep], rep = reps[iRep + 1];
       if (repType === 'plain') {
@@ -1094,6 +1104,7 @@ MessageReaderCard.prototype = {
           rep, rootBodyNode, null,
           'interactive', this.onHyperlinkClick.bind(this));
         var bodyNode = iframe.contentDocument.body;
+        MailAPI.utils.linkifyHTML(iframe.contentDocument);
         this.htmlBodyNodes.push(bodyNode);
         if (body.checkForExternalImages(bodyNode))
           hasExternalImages = true;
