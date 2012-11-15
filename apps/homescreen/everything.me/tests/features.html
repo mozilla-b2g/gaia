@@ -52,15 +52,15 @@
 
         </style>
         <script>
-            window.onload = function() {  
+            window.onload = function onLoad() {
                 
                 BlurTest.init();
                               
-                window.addEventListener("touchend", function(e){
+                window.addEventListener("touchend", function onTouchEnd(e){
                     exec({
                         "cond": e.pageX !== 0 && e.pageY !== -20,
                         "elId": "touchend",
-                        "onSuccess": function() {
+                        "onSuccess": function onSuccess() {
                             $("touchend").innerHTML = "["+e.pageX+","+e.pageY+"]";
                         }
                     });
@@ -71,11 +71,11 @@
                     "elId": "geo"
                 });
                     
-                navigator.geolocation.getCurrentPosition(function(pos){
+                navigator.geolocation.getCurrentPosition(function onLocationSuccess(pos){
                     exec({
                         "cond": true,
                         "elId": "geo",
-                        "onSuccess": function() {
+                        "onSuccess": function onExec() {
                             $("coords").innerHTML = coord(pos.coords.latitude)+","+ coord(pos.coords.longitude);
                         }
                     });
@@ -120,22 +120,22 @@
                 return document.getElementById(x);
             }
             
-            var BlurTest = new function() {
+            var BlurTest = new function BlurTest() {
                 var el, button, input, flag = false, blurred = false;
                 
-                this.init = function() {
+                this.init = function init() {
                     el = $("blur"),
                     input = el.querySelector("input"),
                     button = el.querySelector("button");
                     
                     button.addEventListener("mousedown", touchstart1);
                     
-                    input.addEventListener("focus", function() {
+                    input.addEventListener("focus", function onFocus() {
                         console.log("start");
                         start();
                     });
                     
-                    input.addEventListener("blur", function() {
+                    input.addEventListener("blur", function onBlur() {
                         console.log("blur");
                         end();
                     });

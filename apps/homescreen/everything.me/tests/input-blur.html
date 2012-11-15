@@ -24,17 +24,17 @@
         <script>
             var ul, timeout;
             
-            window.onload = function() {
+            window.onload = function onLoad() {
                 var button = document.querySelector("button"),
                     input = document.querySelector("input");
                     ul = document.querySelector("ul");
                     
-                button.addEventListener("mousedown", function(e) {
+                button.addEventListener("mousedown", function onMouseDown(e) {
                     e.preventDefault();
                     message("clicked!");
                 });
                 
-                input.addEventListener("blur", function(e) {
+                input.addEventListener("blur", function onBlur(e) {
                      message("blured!", false);
                 });
             }
@@ -49,7 +49,7 @@
                 }
                 ul.appendChild(li);
                 
-                timeout = setTimeout(function() {
+                timeout = setTimeout(function onTimeout() {
                     ul.innerHTML = "";
                 }, 3000);
             }

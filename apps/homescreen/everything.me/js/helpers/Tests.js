@@ -1,16 +1,17 @@
-Evme.Tests = new function() {
-    var _this = this, tests = {}, $body = null, $head = null, configData = {}, userGroups = {};
-    
-    var BASE_STYLES_URL = "/css/tests/",
+Evme.Tests = new function Evme_Tests() {
+    var self = this,
+        tests = {}, configData = {}, userGroups = {},
+        elContainer = null,
+        
+        BASE_STYLES_URL = "/css/tests/",
         STORAGE_KEY = "tests";
     
     this.NOT_IN_TEST = "main";
     
-    this.init = function(options) {
+    this.init = function init(options) {
         !options && (options = {});
         
-        $body = $(document.body);
-        $head = $("head");
+        elContainer = options.elContainer;
         
         configData = options.config;
         
@@ -25,10 +26,10 @@ Evme.Tests = new function() {
             tests[test.name] = test;
             activeTestsKeys[test.storageKey] = true;
             
-            var group = _this.divideIntoGroup(test);
+            var group = self.divideIntoGroup(test);
             
-            if (group != _this.NOT_IN_TEST) {
-                _this.applyTestChanges(test, group);
+            if (group != self.NOT_IN_TEST) {
+                self.applyTestChanges(test, group);
             }
         }
         
@@ -54,9 +55,9 @@ Evme.Tests = new function() {
         }
     }
     
-    this.divideIntoGroup = function(test) {
+    this.divideIntoGroup = function divideIntoGroup(test) {
         // if user is already in a group- return that group
-        var storedGroup = _this.getStoredGroup(test.name);
+        var storedGroup = self.getStoredGroup(test.name);
         if (storedGroup) {
             return storedGroup;
         }
@@ -68,10 +69,10 @@ Evme.Tests = new function() {
             }
             
             for (var i=0; i<filters.length; i++) {
-                var passedFilter = _this.Filters[filters[i]]();
+                var passedFilter = self.Filters[filters[i]]();
                 if (!passedFilter) {
-                    _this.storeGroup(test, _this.NOT_IN_TEST);
-                    return _this.NOT_IN_TEST;
+                    self.storeGroup(test, self.NOT_IN_TEST);
+                    return self.NOT_IN_TEST;
                 }
             }
         }
@@ -80,8 +81,8 @@ Evme.Tests = new function() {
         if (test.percent && test.percent < 100) {
             var isInTest = (Math.round(Math.random()*100) < test.percent);
             if (!isInTest) {
-                _this.storeGroup(test, _this.NOT_IN_TEST);
-                return _this.NOT_IN_TEST;
+                self.storeGroup(test, self.NOT_IN_TEST);
+                return self.NOT_IN_TEST;
             }
         }
         
@@ -91,29 +92,32 @@ Evme.Tests = new function() {
             }
             
             for (var i=0; i<test.excludeTests.length; i++) {
-                if (_this.getStoredGroup(tests[test.excludeTests].name) != _this.NOT_IN_TEST) {
-                    _this.storeGroup(test, _this.NOT_IN_TEST);
-                    return _this.NOT_IN_TEST;
+                if (self.getStoredGroup(tests[test.excludeTests].name) != self.NOT_IN_TEST) {
+                    self.storeGroup(test, self.NOT_IN_TEST);
+                    return self.NOT_IN_TEST;
                 }
             }
         }
         
         var div = Math.floor(Math.random()*test.groups.length);
-        var group = test.groups[div] || _this.NOT_IN_TEST;
+        var group = test.groups[div] || self.NOT_IN_TEST;
         
-        _this.storeGroup(test, group);
+        self.storeGroup(test, group);
         
         return group;
     };
     
-    this.applyTestChanges = function(test, group) {
+    this.applyTestChanges = function applyTestChanges(test, group) {
         if (test.bodyClass) {
-            $body.addClass(test.bodyClass + "-" + group);
+            elContainer.classList.add(test.bodyClass + "-" + group);
         }
         
         if (test.css) {
-            var $style = $('<link rel="Stylesheet" type="text/css" href="' + BASE_STYLES_URL + test.css + '" />');
-            $head.append($style);
+            var elStyle = document.createElement('link');
+            elStyle.setAttribute('rel', 'Stylesheet');
+            elStyle.setAttribute('href', BASE_STYLES_URL + test.css);
+            
+            elContainer.appendChild(elStyle);
         }
         
         if (test.config && test.config[group]) {
@@ -122,11 +126,11 @@ Evme.Tests = new function() {
         }
     };
     
-    this.storeGroup = function(test, group) {
+    this.storeGroup = function storeGroup(test, group) {
         userGroups[test.storageKey] = group;
     };
     
-    this.getStoredGroup = function(key) {
+    this.getStoredGroup = function getStoredGroup(key) {
         var test = tests[key],
             group = false;
             
@@ -140,14 +144,14 @@ Evme.Tests = new function() {
         return group;
     };
     
-    this.getAll = function() {
+    this.getAll = function getAll() {
         var groups = [];
         
         for (var key in tests) {
             var test = tests[key];
             groups.push({
                 "testName": test.name,
-                "testGroup": _this.getStoredGroup(test.name)
+                "testGroup": self.getStoredGroup(test.name)
             });
         }
         
@@ -156,10 +160,10 @@ Evme.Tests = new function() {
     
     // these functions are used as custom filters in the tests
     // should return "true" if user is OK to get into the test, "false" otherwise.
-    this.Filters = new function() {
-        this.noTests = function() {
+    this.Filters = new function Filters() {
+        this.noTests = function noTests() {
             for (var test in userGroups) {
-                if (userGroups[test] !== _this.NOT_IN_TEST) {
+                if (userGroups[test] !== self.NOT_IN_TEST) {
                     return false;
                 }
             }
