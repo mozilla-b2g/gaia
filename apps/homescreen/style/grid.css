@@ -103,3 +103,39 @@
   font-family: 'MozTT', sans-serif;
   font-weight: 500;
 }
+
+/* Alternative icons when an app is being installed */
+.loading:after {
+  margin: 8px;
+  content: "";
+  position: absolute;
+  left: 0px;
+  top: 0px;
+  z-index: 30000;
+  width: 6rem;
+  height: 6rem;
+  background: url('/style/images/loading_spinner.png');
+  animation: rotate 2.25s linear infinite;
+}
+
+body[data-transitioning] .loading:after {
+  animation-name: none;
+}
+
+.loading img {
+  margin-top: 0.4rem;
+  margin-left: -0.4rem;
+}
+
+.loading span {
+  margin-top: 0.4rem;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(1deg)
+  }
+  to {
+    transform: rotate(360deg)
+  }
+}
