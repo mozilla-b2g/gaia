@@ -603,6 +603,20 @@ var Contacts = (function() {
     contacts.Details.onLineChanged();
   };
 
+  var STATUS_TIME = 2000;
+  var statusMsg = document.querySelector('#statusMsg');
+
+  var showStatus = function(text) {
+    statusMsg.querySelector('p').textContent = text;
+    statusMsg.classList.add('visible');
+    statusMsg.addEventListener('transitionend', function tend() {
+      statusMsg.removeEventListener('transitionend', tend);
+      setTimeout(function hide() {
+        statusMsg.classList.remove('visible');
+      }, STATUS_TIME);
+    });
+  };
+
   return {
     'doneTag': doneTag,
     'goBack' : handleBack,
@@ -625,7 +639,8 @@ var Contacts = (function() {
     'hideOverlay': hideOverlay,
     'showContactDetail': contactListClickHandler,
     'updateContactDetail': updateContactDetail,
-    'onLineChanged': onLineChanged
+    'onLineChanged': onLineChanged,
+    'showStatus': showStatus
   };
 })();
 

@@ -591,3 +591,15 @@ label.switch input:checked + span:after {
   height: 5rem;
   padding-top: 3.5rem;
 }
+
+#statusMsg {
+  position: fixed;
+  -moz-transition: -moz-transform .5s ease;
+  -moz-transform: translateY(8rem);
+  pointer-events: none;
+}
+
+#statusMsg.visible {
+  -moz-transform: translateY(0);
+  z-index: 1001;
+}
