@@ -372,9 +372,7 @@ var WindowManager = (function() {
     frame.focus();
 
     // Set homescreen visibility to false
-    var homescreenFrame = ensureHomescreen();
-    if (homescreenFrame)
-      homescreenFrame.setVisible(false);
+    toggleHomescreen(false);
 
     // Set displayedApp to the new value
     displayedApp = frame.dataset.frameOrigin;
@@ -651,8 +649,7 @@ var WindowManager = (function() {
 
     // Animate the window close.  Ensure the homescreen is in the
     // foreground since it will be shown during the animation.
-    var homescreenFrame = ensureHomescreen();
-    homescreenFrame.setVisible(true);
+    toggleHomescreen(true);
 
     // Take keyboard focus away from the closing window
     closeFrame.blur();
@@ -790,11 +787,14 @@ var WindowManager = (function() {
   function hideCurrentApp(callback) {
     if (displayedApp == null || displayedApp == homescreen)
       return;
+
+    toggleHomescreen(true);
     var frame = getAppFrame(displayedApp);
-    frame.classList.add('hideBottom');
+    frame.classList.add('back');
     frame.classList.remove('restored');
     if (callback) {
       frame.addEventListener('transitionend', function execCallback() {
+        frame.style.visibility = 'hidden';
         frame.removeEventListener('transitionend', execCallback);
         callback();
       });
@@ -802,13 +802,21 @@ var WindowManager = (function() {
   }
 
   function restoreCurrentApp() {
+    toggleHomescreen(true);
     var frame = getAppFrame(displayedApp);
-    frame.classList.remove('hideBottom');
+    frame.style.visibility = 'visible';
+    frame.classList.remove('back');
     frame.classList.add('restored');
     frame.addEventListener('transitionend', function removeRestored() {
       frame.removeEventListener('transitionend', removeRestored);
       frame.classList.remove('restored');
     });
+  }
+
+  function toggleHomescreen(visible) {
+    var homescreenFrame = ensureHomescreen();
+    if (homescreenFrame)
+      homescreenFrame.setVisible(true);
   }
 
   // Switch to a different app
@@ -827,8 +835,8 @@ var WindowManager = (function() {
       openFrame.setVisible(false);
     if (closeFrame && 'setVisible' in closeFrame)
       closeFrame.setVisible(false);
-    if (homescreenFrame)
-      homescreenFrame.setVisible(true);
+
+    toggleHomescreen(true);
     clearTimeout(openTimer);
     clearTimeout(closeTimer);
     setOpenFrame(null);
