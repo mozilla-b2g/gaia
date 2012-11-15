@@ -400,4 +400,8 @@ var UpdateManager = {
   }
 };
 
-UpdateManager.init();
+window.addEventListener('localized', function startup(evt) {
+  window.removeEventListener('localized', startup);
+
+  UpdateManager.init();
+});
