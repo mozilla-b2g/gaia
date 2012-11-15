@@ -17,7 +17,7 @@ var Launcher = (function() {
   var BUTTONBAR_TIMEOUT = 5000;
   var BUTTONBAR_INITIAL_OPEN_TIMEOUT = 1500;
 
-  var footer = document.querySelector('#wrapper');
+  var footer = document.querySelector('#wrapper-footer');
   window.addEventListener('appopen', function onAppOpen(e) {
     if ('wrapper' in currentAppFrame().dataset) {
       window.addEventListener('mozbrowserlocationchange', onLocationChange);
