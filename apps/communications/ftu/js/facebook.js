@@ -50,7 +50,7 @@ var FacebookIntegration = {
       if (total == null) {
         self.fbImportFeedback.textContent = _('notImportedYet');
       } else {
-        self.fbImportFeedback.textContent = _('facebook-stats', {
+        self.fbImportFeedback.textContent = _('facebook-import-msg', {
           'imported': imported,
           'total': total
         });

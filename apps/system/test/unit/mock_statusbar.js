@@ -27,10 +27,10 @@ var MockStatusBar = {
     this.wasMethodCalled = {};
   },
   incSystemDownloads: function msb_incSystemDownloads() {
-    this.methodCalled("incSystemDownloads");
+    this.methodCalled('incSystemDownloads');
   },
 
   decSystemDownloads: function msb_decSystemDownloads() {
-    this.methodCalled("decSystemDownloads");
+    this.methodCalled('decSystemDownloads');
   }
 };

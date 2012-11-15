@@ -61,8 +61,9 @@ var ApplicationsList = {
   render: function al_render() {
     this.container.innerHTML = '';
 
+    var listFragment = document.createDocumentFragment();
     this._apps.forEach(function appIterator(app) {
-      var icon = '';
+      var icon = null;
       if (app.manifest.icons &&
           Object.keys(app.manifest.icons).length) {
 
@@ -74,15 +75,27 @@ var ApplicationsList = {
           iconURL = app.origin + '/' + iconURL;
         }
 
-        icon = '<img src="' + iconURL + '" />';
+        icon = document.createElement('img');
+        icon.src = iconURL;
       }
 
       var item = document.createElement('li');
-      item.innerHTML = '<a href="#appPermissions-details">' +
-                       icon + app.manifest.name + '</a>';
+
+      var link = document.createElement('a');
+      link.href = '#appPermissions-details';
+      if (icon) {
+        link.appendChild(icon);
+      }
+      var name = document.createTextNode(app.manifest.name);
+      link.appendChild(name);
+
+      item.appendChild(link);
       item.onclick = this.showAppDetails.bind(this, app);
-      this.container.appendChild(item);
+
+      listFragment.appendChild(item);
     }, this);
+
+    this.container.appendChild(listFragment);
   },
 
   oninstall: function al_oninstall(evt) {

@@ -42,6 +42,7 @@
 
 /* Promote the transitioning appWindow to this level as the entry and exiting transition
   of the cards view. */
+#screen.cards-view > [data-z-index-level="app"] > iframe.appWindow.active,
 #screen.cards-view > [data-z-index-level="app"] > iframe.appWindow.opening,
 #screen.cards-view > [data-z-index-level="app"] > iframe.appWindow.closing {
   z-index: 65536;
@@ -192,7 +193,8 @@
 #screen:-moz-full-screen-ancestor > [data-z-index-level="notification-toaster"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="cards-view"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="attention-screen"],
-#screen:-moz-full-screen-ancestor > [data-z-index-level="permission-screen"] {
+#screen:-moz-full-screen-ancestor > [data-z-index-level="permission-screen"],
+#screen:-moz-full-screen-ancestor > [data-z-index-level="app-install-dialog"] {
   z-index: 2147483647;
 }
 

@@ -1,0 +1,2 @@
+recursive-include gaiatest/atoms *.js
+exclude MANIFEST.in

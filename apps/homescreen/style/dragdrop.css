@@ -28,7 +28,7 @@
   margin-left: -106%;
 }
 
-.overDock > div > *:not(canvas) {
+.overDock > div > *:not(img) {
 	opacity: 0;
 }
 
@@ -43,7 +43,7 @@
 @-moz-keyframes none {}
 
 /* Image and label have shaking effect */
-body[data-mode = 'edit'] ol > li > div > canvas {
+body[data-mode = 'edit'] ol > li > div > img {
   -moz-animation-name: shake;
   -moz-animation-duration: .8s;
   -moz-transform-origin: 50% 50%;
@@ -51,8 +51,8 @@ body[data-mode = 'edit'] ol > li > div > canvas {
   -moz-animation-timing-function: ease-out;
 }
 
-body[data-transitioning] ol > li > div > canvas,
-body[data-dragging] ol > li > div > canvas {
+body[data-transitioning] ol > li > div > img,
+body[data-dragging] ol > li > div > img {
   -moz-animation-name: none;
 }
 
@@ -66,7 +66,7 @@ body[data-mode = 'edit'] ol > li[data-dragging] {
 
 body[data-dragging] ol > li > span,
 body[data-dragging] ol > li > div > span,
-body[data-dragging] ol > li > div > canvas {
+body[data-dragging] ol > li > div > img {
 	opacity: 0.7;
 }
 
