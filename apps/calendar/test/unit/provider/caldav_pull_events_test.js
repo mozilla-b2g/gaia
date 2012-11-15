@@ -61,7 +61,10 @@ suite('provider/caldav_pull_events', function() {
   ['singleEvent', 'dailyEvent', 'recurringEvent'].forEach(function(item) {
     setup(function(done) {
       service.parseEvent(ical[item], function(err, event) {
-        fixtures[item] = service._formatEvent('abc', '/foobar.ics', event);
+        fixtures[item] = service._formatEvent(
+          'abc', '/foobar.ics',
+          ical[item], event
+        );
         done();
       });
     });
@@ -609,6 +612,15 @@ suite('provider/caldav_pull_events', function() {
       stream.emit('event', event);
 
       assert.length(subject.eventQueue, 3);
+      assert.length(subject.icalQueue, 1);
+
+      assert.hasProperties(
+        subject.icalQueue[0],
+        {
+          eventId: control._id,
+          data: control.remote.icalComponent
+        }
+      );
 
       var order = [control].concat(exceptions);
 

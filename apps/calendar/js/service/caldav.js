@@ -166,10 +166,11 @@ Calendar.ns('Service').Caldav = (function() {
      *
      * @param {String} etag etag.
      * @param {String} url caldav url.
+     * @param {String} ical raw ical string.
      * @param {ICAL.Event} event ical event.
      * @param {Object} [component] parsed VCALENDAR component.
      */
-    _formatEvent: function(etag, url, event, component) {
+    _formatEvent: function(etag, url, ical, event, component) {
       var exceptions = null;
       var key;
 
@@ -183,6 +184,7 @@ Calendar.ns('Service').Caldav = (function() {
           exceptions.push(this._formatEvent(
             etag,
             url,
+            ical,
             event.exceptions[key],
             component
           ));
@@ -210,9 +212,14 @@ Calendar.ns('Service').Caldav = (function() {
         location: event.location,
         start: this.formatICALTime(event.startDate),
         end: this.formatICALTime(event.endDate),
-        exceptions: exceptions,
-        icalComponent: component
+        exceptions: exceptions
       };
+
+      // only send icalComponent for primary events
+      // exceptions use the same icalComponent data anyway.
+      if (!result.recurrenceId) {
+        result.icalComponent = ical;
+      }
 
       return result;
     },
@@ -552,7 +559,7 @@ Calendar.ns('Service').Caldav = (function() {
           return;
         }
 
-        var result = self._formatEvent(etag.value, url, event);
+        var result = self._formatEvent(etag.value, url, ical, event);
         stream.emit('event', result);
 
         var options = {
@@ -690,9 +697,9 @@ Calendar.ns('Service').Caldav = (function() {
 
       event.id = icalEvent.uid;
       event.url = url;
-      event.icalComponent = vcalendar.toJSON();
+      event.icalComponent = vcalendar.toString();
 
-      req.put({}, vcalendar.toString(), function(err, data, xhr) {
+      req.put({}, event.icalComponent, function(err, data, xhr) {
         var token = xhr.getResponseHeader('Etag');
         event.syncToken = token;
         // TODO: error handling

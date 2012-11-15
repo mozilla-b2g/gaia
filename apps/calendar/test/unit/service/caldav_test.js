@@ -28,7 +28,7 @@ suite('service/caldav', function() {
   });
 
   function caldavEventFactory(syncToken, name, status) {
-    var ical = ICAL.parse(fixtures[name || 'singleEvent'])[1];
+    var ical = fixtures[name || 'singleEvent'];
 
     return {
       'getetag': {
@@ -213,11 +213,11 @@ suite('service/caldav', function() {
           location: event.location,
           start: subject.formatICALTime(event.startDate),
           end: subject.formatICALTime(event.endDate),
-          icalComponent: event.component.parent.toJSON()
+          icalComponent: fixtures.singleEvent
         };
 
         assert.deepEqual(
-          subject._formatEvent(etag, url, event),
+          subject._formatEvent(etag, url, fixtures.singleEvent, event),
           expected
         );
       });
@@ -233,7 +233,10 @@ suite('service/caldav', function() {
       });
 
       test('output', function() {
-        var result = subject._formatEvent(etag, url, event);
+        var result = subject._formatEvent(
+          etag, url, fixtures.recurringEvent, event
+        );
+
         assert.ok(!result.recurrenceId);
         assert.length(result.exceptions, 2);
 
@@ -254,8 +257,17 @@ suite('service/caldav', function() {
                 'no exception check - exception: ' + key
               );
 
+              assert.ok(
+                !item.icalComponent,
+                'exceptions dont resend component'
+              );
+
               assert.deepEqual(
-                subject._formatEvent(etag, url, instance, result.icalComponent),
+                subject._formatEvent(
+                  etag, url,
+                  fixtures.recurringEvent, instance,
+                  result.icalComponent
+                ),
                 item,
                 'compare exception: ' + key
               );
@@ -412,10 +424,13 @@ suite('service/caldav', function() {
             assert.ok(iteratorEnds);
             assert.length(occurrences, 1);
             assert.length(events, 1);
-            assert.deepEqual(
-              events,
-              [subject._formatEvent('abcd', url, icalEvent)]
+            var formatted = subject._formatEvent(
+              'abcd', url,
+              fixtures.singleEvent,
+              icalEvent
             );
+
+            assert.deepEqual(events, [formatted]);
           });
         });
       });
@@ -431,10 +446,14 @@ suite('service/caldav', function() {
 
         subject._handleCaldavEvent(url, response, stream, function(err) {
           assert.ok(!err);
+          var formatted = subject._formatEvent(
+            'abc', url, fixtures.recurringEvent, icalEvent
+          );
+
           done(function() {
             assert.deepEqual(
               events,
-              [subject._formatEvent('abc', url, icalEvent)],
+              [formatted],
               'events'
             );
 
@@ -948,8 +967,8 @@ suite('service/caldav', function() {
       test('service response', function() {
         assert.equal(result.syncToken, 'Etag', 'etag');
         assert.deepEqual(
-          result.icalComponent,
-          ICAL.parse(putCall[1])[1],
+          result.icalComponent.trim(),
+          ICAL.stringify(ICAL.parse(putCall[1])).trim(),
           'ical'
         );
       });
@@ -988,7 +1007,7 @@ suite('service/caldav', function() {
 
         var eventDetails = {
           event: update,
-          icalComponent: ICAL.parse(fixtures.singleEvent)[1]
+          icalComponent: fixtures.singleEvent
         };
 
         mockAsset('put', function() {
