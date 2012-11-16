@@ -11,6 +11,13 @@
 function Icon(descriptor, app) {
   this.descriptor = descriptor;
   this.app = app;
+  if (app) {
+    this.downloading = app.installState === 'pending' && app.downloading;
+    this.cancelled = app.installState === 'pending' && !app.downloading;
+  } else {
+    this.downloading = false;
+    this.cancelled = false;
+  }
 };
 
 Icon.prototype = {
@@ -19,6 +26,10 @@ Icon.prototype = {
 
   DEFAULT_ICON_URL: window.location.protocol + '//' + window.location.host +
                     '/style/images/default.png',
+  DOWNLOAD_ICON_URL: window.location.protocol + '//' + window.location.host +
+                    '/style/images/app_downloading.png',
+  CANCELED_ICON_URL: window.location.protocol + '//' + window.location.host +
+                    '/style/images/app_paused.png',
 
   // These properties will be copied from the descriptor onto the icon's HTML element
   // dataset and allow us to uniquely look up the Icon object from the HTML element.
@@ -55,7 +66,7 @@ Icon.prototype = {
 
     var descriptor = this.descriptor;
     container.dataset.isIcon = true;
-    this._descriptorIdentifiers.forEach(function (prop) {
+    this._descriptorIdentifiers.forEach(function(prop) {
       var value = descriptor[prop];
       if (value)
         container.dataset[prop] = value;
@@ -67,18 +78,26 @@ Icon.prototype = {
 
     // Icon container
     var icon = this.icon = document.createElement('div');
+    if (this.downloading) {
+      icon.classList.add('loading');
+    }
 
     // Image
     var img = this.img = new Image();
-    img.setAttribute('role', 'presentation');
-    img.width = 68;
-    img.height = 68;
-    img.style.visibility = 'hidden';
     icon.appendChild(img);
-    if (descriptor.renderedIcon) {
-      this.displayRenderedIcon();
+    img.style.visibility = 'hidden';
+    if (this.downloading) {
+      img.src = descriptor.icon;
+      img.style.visibility = 'visible';
     } else {
-      this.fetchImageData();
+      img.setAttribute('role', 'presentation');
+      img.width = 68;
+      img.height = 68;
+      if (descriptor.renderedIcon) {
+        this.displayRenderedIcon();
+      } else {
+        this.fetchImageData();
+      }
     }
 
     // Label
@@ -150,6 +169,10 @@ Icon.prototype = {
     } else {
       img.src = this.descriptor.icon;
     }
+
+    if (this.icon && !this.downloading) {
+      this.icon.classList.remove('loading');
+    } 
 
     img.onload = function icon_loadSuccess() {
       if (blob)
@@ -234,6 +257,8 @@ Icon.prototype = {
 
   update: function icon_update(descriptor, app) {
     this.app = app;
+    this.downloading = app.installState === 'pending' && app.downloading;
+    this.cancelled = app.installState === 'pending' && !app.downloading;
     var oldDescriptor = this.descriptor;
     this.descriptor = descriptor;
 
@@ -311,9 +336,9 @@ Icon.prototype = {
 
     var icon = this.icon.cloneNode();
     var img = icon.querySelector('img');
-    img.style.visibility = "hidden";
+    img.style.visibility = 'hidden';
     img.onload = img.onerror = function unhide() {
-      img.style.visibility = "visible";
+      img.style.visibility = 'visible';
     };
     draggableElem.appendChild(icon);
 
