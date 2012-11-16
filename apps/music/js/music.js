@@ -47,6 +47,20 @@ window.addEventListener('localized', function onlocalized() {
     init();
 });
 
+// We get headphoneschange event when the headphones is plugged or unplugged
+// Note that mozAudioChannelManager is not ready yet
+// The name of the interfaces might change in future
+// A related Bug 809106 in Bugzilla
+var acm = navigator.mozAudioChannelManager;
+
+if (acm) {
+  acm.addEventListener('headphoneschange', function onheadphoneschange() {
+    if (!acm.headphones && PlayerView.isPlaying) {
+      PlayerView.pause();
+    }
+  });
+}
+
 function init() {
   // Here we use the mediadb.js which gallery is using (in shared/js/)
   // to index our music contents with metadata parsed.
@@ -652,7 +666,7 @@ var SubListView = {
     this.shuffleButton =
       document.getElementById('views-sublist-controls-shuffle');
 
-    this.view.addEventListener('mouseup', this);
+    this.view.addEventListener('click', this);
     this.view.addEventListener('contextmenu', this);
   },
 
@@ -755,7 +769,7 @@ var SubListView = {
     var target = evt.target;
 
     switch (evt.type) {
-      case 'mouseup':
+      case 'click':
         if (this.isContextmenu) {
           this.isContextmenu = false;
           return;
