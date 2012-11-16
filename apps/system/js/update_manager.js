@@ -16,6 +16,7 @@ var UpdateManager = {
   _downloading: false,
   _downloadedBytes: 0,
   _errorTimeout: null,
+  _wifiLock: null,
   NOTIFICATION_BUFFERING_TIMEOUT: 30 * 1000,
   TOASTER_TIMEOUT: 1200,
 
@@ -295,6 +296,8 @@ var UpdateManager = {
     if (this.downloadsQueue.length === 1) {
       this._downloading = true;
       StatusBar.incSystemDownloads();
+      this._wifiLock = navigator.requestWakeLock('wifi');
+
       this.render();
     }
   },
@@ -310,6 +313,11 @@ var UpdateManager = {
       this._downloading = false;
       StatusBar.decSystemDownloads();
       this.checkStatuses();
+
+      if (this._wifiLock) {
+        this._wifiLock.unlock();
+      }
+
       this.render();
     }
   },
