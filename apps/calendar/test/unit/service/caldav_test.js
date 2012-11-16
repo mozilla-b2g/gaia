@@ -83,8 +83,7 @@ suite('service/caldav', function() {
     var events = [
       'getAccount',
       'findCalendars',
-      'getCalendar',
-      'getEvents'
+      'getCalendar'
     ];
 
     events.forEach(function(event) {
