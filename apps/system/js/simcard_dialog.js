@@ -27,7 +27,6 @@ var SimPinDialog = {
 
   lockType: 'pin',
   action: 'unlock',
-  origin: null,
 
   // Now we don't have a number-password type for input field
   // mimic one by binding one number input and one text input
@@ -36,14 +35,6 @@ var SimPinDialog = {
     var inputField = document.querySelector('input[name="' + name + '"]');
     var displayField = document.querySelector('input[name="' + name + 'Vis"]');
     var self = this;
-
-    // Workaround bug 791920 until we found the root cause.
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=791920
-    // https://github.com/mozilla-b2g/gaia/issues/4500
-    inputField.addEventListener('click', function(evt) {
-      this.blur();
-      this.focus();
-    });
 
     inputField.addEventListener('keypress', function(evt) {
       if (evt.target !== inputField)
@@ -269,11 +260,11 @@ var SimPinDialog = {
 
   onsuccess: null,
   oncancel: null,
-  // the origin parameter records the dialog caller.
-  // when the dialog is closed, we can relocate back to the caller's div.
-  show: function spl_show(action, onsuccess, oncancel, origin) {
+  show: function spl_show(action, onsuccess, oncancel) {
     var _ = navigator.mozL10n.get;
 
+    this.systemDialog.show();
+    this.dialog.classList.add('visible');
     this.dialogDone.disabled = true;
     this.action = action;
     this.lockType = 'pin';
@@ -297,21 +288,13 @@ var SimPinDialog = {
       this.onsuccess = onsuccess;
     if (oncancel && typeof oncancel === 'function')
       this.oncancel = oncancel;
-
-    this.origin = origin;
-    document.location.hash = '#simpin-dialog';
-
-    if (action === 'unlock' && this.lockType === 'puk')
-      this.pukInput.focus();
-    else
-      this.pinInput.focus();
-
   },
 
   close: function spl_close() {
     this.clear();
-    if (this.origin)
-      document.location.hash = this.origin;
+    this.systemDialog.hide();
+    this.dialog.hidden = true;
+    this.dialog.classList.remove('visible');
   },
 
   skip: function spl_skip() {
@@ -323,6 +306,8 @@ var SimPinDialog = {
   },
 
   init: function spl_init() {
+    this.systemDialog = SystemDialog('simpin-dialog');
+
     this.mobileConnection = window.navigator.mozMobileConnection;
     if (!this.mobileConnection)
       return;

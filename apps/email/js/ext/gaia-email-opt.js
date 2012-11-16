@@ -21624,6 +21624,7 @@ SmtpProber.prototype = {
     this._password = aPassword;
     this._deviceId = aDeviceId || 'v140Device';
     this._deviceType = aDeviceType || 'SmartPhone';
+    this.timeout = 0;
 
     this._connection = 0;
     this._waitingForConnection = false;
@@ -21838,6 +21839,11 @@ SmtpProber.prototype = {
                true);
       xhr.setRequestHeader('Content-Type', 'text/xml');
       xhr.setRequestHeader('Authorization', this._getAuth());
+      xhr.timeout = this.timeout;
+
+      xhr.upload.onprogress = xhr.upload.onload = function() {
+        xhr.timeout = 0;
+      };
 
       xhr.onload = function() {
         if (xhr.status < 200 || xhr.status >= 300)
@@ -21908,7 +21914,7 @@ SmtpProber.prototype = {
         aCallback(null, config);
       };
 
-      xhr.onerror = function() {
+      xhr.ontimeout = xhr.onerror = function() {
         aCallback(new Error('Error getting Autodiscover URL'));
       };
 
@@ -21941,6 +21947,11 @@ SmtpProber.prototype = {
       let conn = this;
       let xhr = new XMLHttpRequest({mozSystem: true, mozAnon: true});
       xhr.open('OPTIONS', this.baseUrl, true);
+      xhr.timeout = this.timeout;
+
+      xhr.upload.onprogress = xhr.upload.onload = function() {
+        xhr.timeout = 0;
+      };
 
       xhr.onload = function() {
         if (xhr.status < 200 || xhr.status >= 300) {
@@ -21958,7 +21969,7 @@ SmtpProber.prototype = {
         aCallback(null, result);
       };
 
-      xhr.onerror = function() {
+      xhr.ontimeout = xhr.onerror = function() {
         aCallback(new Error('Error getting OPTIONS URL'));
       };
 
@@ -22006,8 +22017,13 @@ SmtpProber.prototype = {
      *        parameters that should be added to the end of the request URL
      * @param aExtraHeaders (optional) an object containing any extra HTTP
      *        headers to send in the request
+     * @param aProgressCallback (optional) a callback to invoke with progress
+     *        information, when available. Two arguments are provided: the
+     *        number of bytes received so far, and the total number of bytes
+     *        expected (when known, 0 if unknown).
      */
-    postCommand: function(aCommand, aCallback, aExtraParams, aExtraHeaders) {
+    postCommand: function(aCommand, aCallback, aExtraParams, aExtraHeaders,
+                          aProgressCallback) {
       const contentType = 'application/vnd.ms-sync.wbxml';
 
       if (typeof aCommand === 'string' || typeof aCommand === 'number') {
@@ -22018,7 +22034,7 @@ SmtpProber.prototype = {
         let r = new WBXML.Reader(aCommand, ASCP);
         let commandName = r.document.next().localTagName;
         this.postData(commandName, contentType, aCommand.buffer, aCallback,
-                      aExtraParams, aExtraHeaders);
+                      aExtraParams, aExtraHeaders, aProgressCallback);
       }
     },
 
@@ -22036,9 +22052,13 @@ SmtpProber.prototype = {
      *        parameters that should be added to the end of the request URL
      * @param aExtraHeaders (optional) an object containing any extra HTTP
      *        headers to send in the request
+     * @param aProgressCallback (optional) a callback to invoke with progress
+     *        information, when available. Two arguments are provided: the
+     *        number of bytes received so far, and the total number of bytes
+     *        expected (when known, 0 if unknown).
      */
     postData: function(aCommand, aContentType, aData, aCallback, aExtraParams,
-                       aExtraHeaders) {
+                       aExtraHeaders, aProgressCallback) {
       // Make sure our command name is a string.
       if (typeof aCommand === 'number')
         aCommand = ASCP.__tagnames__[aCommand];
@@ -22083,6 +22103,16 @@ SmtpProber.prototype = {
           xhr.setRequestHeader(key, value);
       }
 
+      xhr.timeout = this.timeout;
+
+      xhr.upload.onprogress = xhr.upload.onload = function() {
+        xhr.timeout = 0;
+      };
+      xhr.onprogress = function(event) {
+        if (aProgressCallback)
+          aProgressCallback(event.loaded, event.total);
+      };
+
       let conn = this;
       let parentArgs = arguments;
       xhr.onload = function() {
@@ -22109,7 +22139,7 @@ SmtpProber.prototype = {
         aCallback(null, response);
       };
 
-      xhr.onerror = function() {
+      xhr.ontimeout = xhr.onerror = function() {
         aCallback(new Error('Error getting command URL'));
       };
 
@@ -32433,6 +32463,8 @@ define('mailapi/activesync/account',
 
 const bsearchForInsert = $util.bsearchForInsert;
 
+const DEFAULT_TIMEOUT_MS = exports.DEFAULT_TIMEOUT_MS = 30 * 1000;
+
 function ActiveSyncAccount(universe, accountDef, folderInfos, dbConn,
                            receiveProtoConn, _parentLog) {
   this.universe = universe;
@@ -32445,6 +32477,7 @@ function ActiveSyncAccount(universe, accountDef, folderInfos, dbConn,
   else {
     this.conn = new $activesync.Connection(accountDef.credentials.username,
                                            accountDef.credentials.password);
+    this.conn.timeout = DEFAULT_TIMEOUT_MS;
 
     // XXX: We should check for errors during connection and alert the user.
     if (this.accountDef.connInfo) {
@@ -33109,6 +33142,12 @@ const PIECE_ACCOUNT_TYPE_TO_CLASS = {
 const DEFAULT_SIGNATURE = exports.DEFAULT_SIGNATURE =
   'Sent from my Firefox OS device.';
 
+// The number of milliseconds to wait for various (non-ActiveSync) XHRs to
+// complete during the autoconfiguration process. This value is intentionally
+// fairly large so that we don't abort an XHR just because the network is
+// spotty.
+const AUTOCONFIG_TIMEOUT_MS = 30 * 1000;
+
 /**
  * Composite account type to expose account piece types with individual
  * implementations (ex: imap, smtp) together as a single account.  This is
@@ -33643,6 +33682,7 @@ Configurators['activesync'] = {
     var conn = new $asproto.Connection(credentials.username,
                                        credentials.password);
     conn.setServer(domainInfo.incoming.server);
+    conn.timeout = $asacct.DEFAULT_TIMEOUT_MS;
 
     conn.connect(function(error, config, options) {
       // XXX: Think about what to do with this error handling, since it's
@@ -33798,6 +33838,7 @@ Configurators['activesync'] = {
  */
 function Autoconfigurator(_LOG) {
   this._LOG = _LOG;
+  this.timeout = AUTOCONFIG_TIMEOUT_MS;
 }
 exports.Autoconfigurator = Autoconfigurator;
 Autoconfigurator.prototype = {
@@ -33828,6 +33869,8 @@ Autoconfigurator.prototype = {
   _getXmlConfig: function getXmlConfig(url, callback) {
     let xhr = new XMLHttpRequest({mozSystem: true});
     xhr.open('GET', url, true);
+    xhr.timeout = this.timeout;
+
     xhr.onload = function() {
       if (xhr.status < 200 || xhr.status >= 300) {
         callback('unknown');
@@ -33873,7 +33916,8 @@ Autoconfigurator.prototype = {
         callback('unknown');
       }
     };
-    xhr.onerror = function() { callback('unknown'); };
+
+    xhr.ontimeout = xhr.onerror = function() { callback('unknown'); };
 
     xhr.send();
   },
@@ -33997,13 +34041,16 @@ Autoconfigurator.prototype = {
     let xhr = new XMLHttpRequest({mozSystem: true});
     xhr.open('GET', 'https://live.mozillamessaging.com/dns/mx/' +
              encodeURIComponent(domain), true);
+    xhr.timeout = this.timeout;
+
     xhr.onload = function() {
       if (xhr.status === 200)
         callback(null, xhr.responseText.split('\n')[0]);
       else
         callback('unknown');
     };
-    xhr.onerror = function() { callback('unknown'); };
+
+    xhr.ontimeout = xhr.onerror = function() { callback('unknown'); };
 
     xhr.send();
   },

@@ -99,7 +99,7 @@
   z-index: 2047;
 }
 
-#screen > [data-z-index-level="pinkeypadscreen"] {
+#screen > [data-z-index-level="simpin-dialog"] {
   z-index: 2046;
 }
 
@@ -150,7 +150,8 @@
  * - finally, everything else need to be on top of them (hence the lowest nums)
  *
  */
-#screen > [data-z-index-level="app"] > #wrapper {
+#screen > [data-z-index-level="app"] > #wrapper-footer,
+#screen > [data-z-index-level="app"] > #wrapper-activity-indicator {
   z-index: 5;
 }
 
@@ -197,4 +198,3 @@
 #screen:-moz-full-screen-ancestor > [data-z-index-level="app-install-dialog"] {
   z-index: 2147483647;
 }
-

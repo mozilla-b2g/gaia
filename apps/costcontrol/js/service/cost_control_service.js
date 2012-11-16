@@ -14,7 +14,7 @@ setService(function cc_setupCostControlService() {
   var WAITING_TIMEOUT = 5 * 60 * 1000; // 5 minutes
   var REQUEST_BALANCE_UPDATE_INTERVAL = 1 * 60 * 60 * 1000; // 1 hour
   var REQUEST_BALANCE_MAX_DELAY = 2 * 60 * 1000; // 2 minutes
-  var REQUEST_DATA_USAGE_UPDATE_INTERVAL = 5 * 60 * 1000; // 5 minutes
+  var REQUEST_DATA_USAGE_UPDATE_INTERVAL = 2 * 60 * 1000; // 2 minutes
   var REQUEST_DATA_USAGE_MAX_DELAY = 1 * 60 * 1000; // 1 minute
 
   // Data usage limits
@@ -397,7 +397,8 @@ setService(function cc_setupCostControlService() {
 
     // Recalculate with month period
     if (trackingPeriod === TRACKING_MONTHLY) {
-      var month, year, monthday = parseInt(_appSettings.option('reset_time'));
+      var month, year;
+      var monthday = parseInt(_appSettings.option('reset_time'), 10);
       month = today.getMonth();
       year = today.getFullYear();
       if (today.getDate() >= monthday) {
@@ -410,7 +411,7 @@ setService(function cc_setupCostControlService() {
     // Recalculate with week period
     } else if (trackingPeriod === TRACKING_WEEKLY) {
       var oneDay = 24 * 60 * 60 * 1000;
-      var weekday = parseInt(_appSettings.option('reset_time'));
+      var weekday = parseInt(_appSettings.option('reset_time'), 10);
       var daysToTarget = weekday - today.getDay();
       if (daysToTarget <= 0)
         daysToTarget = 7 + daysToTarget;

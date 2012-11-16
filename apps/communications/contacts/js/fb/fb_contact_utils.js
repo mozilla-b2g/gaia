@@ -186,15 +186,23 @@ fb.getBirthDate = function getBirthDate(sbday) {
 };
 
 fb.getAddress = function(fbdata) {
+
+  function fillAddress(fbAddress) {
+    var outAddr = {};
+
+    outAddr.type = ['home'];
+    outAddr.locality = fbAddress.city || '';
+    outAddr.region = fbAddress.state || '';
+    outAddr.countryName = fbAddress.country || '';
+
+    return outAddr;
+  }
+
   var out;
 
-  var hometownInfo = fbdata.hometown_location;
-  if (hometownInfo) {
-    out = {};
-    out.type = ['home'];
-    out.locality = hometownInfo.city || '';
-    out.region = hometownInfo.state || '';
-    out.countryName = hometownInfo.country || '';
+  var addressInfo = fbdata.current_location || fbdata.hometown_location;
+  if (addressInfo) {
+    out = fillAddress(addressInfo);
   }
 
   return out;

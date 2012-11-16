@@ -153,8 +153,8 @@ Gaia.webapps.forEach(function(webapp) {
   let files = ls(webapp.sourceDirectoryFile);
   files.forEach(function(file) {
       // Ignore files from /shared directory (these files were created by
-      // Makefile code)
-      if (file.leafName !== 'shared')
+      // Makefile code). Also ignore files in the /test directory.
+      if (file.leafName !== 'shared' && file.leafName !== 'test')
         addToZip(zip, '/' + file.leafName, file);
     });
 
