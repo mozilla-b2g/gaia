@@ -16,6 +16,7 @@ var UpdateManager = {
   _downloading: false,
   _downloadedBytes: 0,
   _errorTimeout: null,
+  _wifiLock: null,
   NOTIFICATION_BUFFERING_TIMEOUT: 30 * 1000,
   TOASTER_TIMEOUT: 1200,
 
@@ -188,7 +189,7 @@ var UpdateManager = {
     if (this._downloading) {
       this.container.classList.add('downloading');
       var humanProgress = this._humanizeSize(this._downloadedBytes);
-      this.message.innerHTML = _('downloadingMessage', {
+      this.message.innerHTML = _('downloadingUpdateMessage', {
                                   progress: humanProgress
                                 });
     } else {
@@ -249,9 +250,7 @@ var UpdateManager = {
             self.toaster.classList.remove('displayed');
           }, self.TOASTER_TIMEOUT);
 
-          var initialCount = StatusBar.notificationsCount;
-          StatusBar.updateNotification(initialCount + 1);
-          StatusBar.updateNotificationUnread(true);
+          NotificationScreen.incExternalNotifications();
         }
       }, this.NOTIFICATION_BUFFERING_TIMEOUT);
     }
@@ -268,10 +267,7 @@ var UpdateManager = {
     if (this.updatesQueue.length === 0) {
       this.container.classList.remove('displayed');
 
-      var initialCount = StatusBar.notificationsCount;
-      if (initialCount >= 1) {
-        StatusBar.updateNotification(initialCount - 1);
-      }
+      NotificationScreen.decExternalNotifications();
     }
 
     this.render();
@@ -295,6 +291,8 @@ var UpdateManager = {
     if (this.downloadsQueue.length === 1) {
       this._downloading = true;
       StatusBar.incSystemDownloads();
+      this._wifiLock = navigator.requestWakeLock('wifi');
+
       this.render();
     }
   },
@@ -310,6 +308,11 @@ var UpdateManager = {
       this._downloading = false;
       StatusBar.decSystemDownloads();
       this.checkStatuses();
+
+      if (this._wifiLock) {
+        this._wifiLock.unlock();
+      }
+
       this.render();
     }
   },

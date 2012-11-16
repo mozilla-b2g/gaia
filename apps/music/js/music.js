@@ -47,6 +47,23 @@ window.addEventListener('localized', function onlocalized() {
     init();
 });
 
+// We get headphoneschange event when the headphones is plugged or unplugged
+// Note that mozAudioChannelManager is not ready yet
+// The name of the interfaces might change in future
+// A related Bug 809106 in Bugzilla
+var acm = navigator.mozAudioChannelManager;
+
+if (acm) {
+  acm.addEventListener('headphoneschange', function onheadphoneschange() {
+    if (!acm.headphones && PlayerView.isPlaying) {
+      PlayerView.pause();
+    }
+  });
+}
+
+// We will use a wake lock later to prevent Music from sleeping
+var cpuLock = null;
+
 function init() {
   // Here we use the mediadb.js which gallery is using (in shared/js/)
   // to index our music contents with metadata parsed.
@@ -652,7 +669,7 @@ var SubListView = {
     this.shuffleButton =
       document.getElementById('views-sublist-controls-shuffle');
 
-    this.view.addEventListener('mouseup', this);
+    this.view.addEventListener('click', this);
     this.view.addEventListener('contextmenu', this);
   },
 
@@ -755,7 +772,7 @@ var SubListView = {
     var target = evt.target;
 
     switch (evt.type) {
-      case 'mouseup':
+      case 'click':
         if (this.isContextmenu) {
           this.isContextmenu = false;
           return;
@@ -970,6 +987,10 @@ var PlayerView = {
   play: function pv_play(target, backgroundIndex) {
     this.isPlaying = true;
 
+    // Hold a wake lock to prevent from sleeping
+    if (!cpuLock)
+      cpuLock = navigator.requestWakeLock('cpu');
+
     if (this.endedTimer) {
       clearTimeout(this.endedTimer);
       this.endedTimer = null;
@@ -1028,6 +1049,12 @@ var PlayerView = {
 
   pause: function pv_pause() {
     this.isPlaying = false;
+
+    // We can go to sleep if music pauses
+    if (cpuLock) {
+      cpuLock.unlock();
+      cpuLock = null;
+    }
 
     this.audio.pause();
 

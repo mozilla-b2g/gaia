@@ -563,6 +563,10 @@ onLocalized(function wifiSettings() {
         };
       }
 
+      if (dialogID === 'wifi-joinHidden') {
+        network.hidden = true;
+      }
+
       // disable the "OK" button if the password is too short
       if (password) {
         var checkPassword = function checkPassword() {
@@ -694,10 +698,16 @@ onLocalized(function wifiSettings() {
        */
       gWifiInfoBlock.textContent = _('fullStatus-initializing');
       gNetworkList.clear(true);
+
+      // record MAC address value
+      var macAddress = gWifiManager.macAddress;
+      settings.createLock().set({'deviceinfo.mac': macAddress});
+
       var mac = document.querySelectorAll('[data-l10n-id="macAddress"] span');
       for (var i = 0; i < mac.length; i++) {
-        mac[i].textContent = gWifiManager.macAddress;
-      } // XXX should be stored in a 'deviceinfo.mac' setting
+         mac[i].textContent = macAddress;
+      }
+
     } else {
       gWifiInfoBlock.textContent = _('disabled');
       if (gWpsInProgress) {
