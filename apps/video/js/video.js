@@ -20,6 +20,7 @@ var playerShowing = false;
 
 // keep the screen on when playing
 var screenLock;
+var endedTimer;
 
 // same thing for the controls
 var controlShowing = false;
@@ -36,7 +37,8 @@ var THUMBNAIL_HEIGHT = 160;
 // Enumerating the readyState for html5 video api
 var HAVE_NOTHING = 0;
 
-var urlToStream; // From an activity call
+var activityData; // From an activity call
+var pendingActivity;
 var appStarted = false;
 
 var storageState;
@@ -59,6 +61,9 @@ function init() {
     storageState = false;
     updateDialog();
     createThumbnailList();
+    if (activityData) {
+      startStream();
+    }
   };
 
   videodb.onscanstart = function() {
@@ -78,10 +83,6 @@ function init() {
   videodb.ondeleted = function(event) {
     event.detail.forEach(deleteVideo);
   };
-
-  if (urlToStream) {
-    startStream();
-  }
 
   appStarted = true;
 }
@@ -166,12 +167,8 @@ function updateDialog() {
 }
 
 function startStream() {
-  showPlayer({
-    remote: true,
-    url: urlToStream.url,
-    title: urlToStream.title
-  }, true);
-  urlToStream = null;
+  showPlayer(activityData, true);
+  activityData = null;
 }
 
 function metaDataParser(videofile, callback, metadataError) {
@@ -188,9 +185,6 @@ function metaDataParser(videofile, callback, metadataError) {
     title: fileNameToVideoName(videofile.name)
   };
 
-  previewPlayer.onerror = function() {
-    metadataError(metadata.title);
-  }
   previewPlayer.preload = 'metadata';
   previewPlayer.style.width = THUMBNAIL_WIDTH + 'px';
   previewPlayer.style.height = THUMBNAIL_HEIGHT + 'px';
@@ -240,7 +234,7 @@ function captureFrame(player, callback) {
   // If we are on the first frame, lets skip into the video since some
   // videos just start with a black screen
   if (player.currentTime === 0) {
-    player.currentTime = 20;
+    player.currentTime = Math.floor(player.duration / 4);
     skipped = true;
   }
 
@@ -288,6 +282,12 @@ function setVideoPlaying(playing) {
   }
 }
 
+function completeActivity(deleteVideo) {
+  pendingActivity.postResult({delete: deleteVideo});
+  pendingActivity = null;
+  dom.thumbnails.classList.remove('hidden');
+}
+
 function playerMousedown(event) {
   // If we interact with the controls before they fade away,
   // cancel the fade
@@ -326,15 +326,15 @@ function setPlayerSize(videoWidth, videoHeight) {
 }
 
 function setVideoUrl(player, video, callback) {
-  if (video.remote) {
-    player.onloadedmetadata = callback;
-    player.src = video.url;
-  } else {
+  if ('name' in video) {
     videodb.getFile(video.name, function(file) {
       var url = URL.createObjectURL(file);
       player.onloadedmetadata = callback;
       player.src = url;
     });
+  } else if ('url' in video) {
+    player.onloadedmetadata = callback;
+    player.src = video.url;
   }
 }
 
@@ -359,7 +359,7 @@ function showPlayer(data, autoPlay) {
         play();
       }
 
-      if (!currentVideo.remote) {
+      if ('metadata' in currentVideo) {
         currentVideo.metadata.watched = true;
         videodb.updateMetadata(currentVideo.name, currentVideo.metadata);
       }
@@ -376,15 +376,15 @@ function showPlayer(data, autoPlay) {
     playerShowing = true;
     setPlayerSize(dom.player.videoWidth, dom.player.videoHeight);
 
-    if (currentVideo.remote) {
-      dom.videoTitle.textContent = currentVideo.title || '';
-      dom.player.currentTime = 0;
-    } else {
+    if ('metadata' in currentVideo) {
       if (currentVideo.metadata.currentTime === dom.player.duration) {
         currentVideo.metadata.currentTime = 0;
       }
       dom.videoTitle.textContent = currentVideo.metadata.title;
       dom.player.currentTime = currentVideo.metadata.currentTime || 0;
+    } else {
+      dom.videoTitle.textContent = currentVideo.title || '';
+      dom.player.currentTime = 0;
     }
 
     if (dom.player.seeking) {
@@ -409,7 +409,7 @@ function hidePlayer() {
     updateDialog();
   }
 
-  if (currentVideo.remote) {
+  if (!('metadata' in currentVideo)) {
     completeHidingPlayer();
     return;
   }
@@ -447,8 +447,18 @@ function playerEnded() {
   if (dragging) {
     return;
   }
-  dom.player.currentTime = 0;
-  document.mozCancelFullScreen();
+  if (endedTimer) {
+    clearTimeout(endedTimer);
+    endedTimer = null;
+  }
+  if (pendingActivity) {
+    pause();
+    dom.player.currentTime = 0;
+    setControlsVisibility(true);
+  } else {
+    dom.player.currentTime = 0;
+    document.mozCancelFullScreen();
+  }
 }
 
 function play() {
@@ -481,25 +491,38 @@ function pause() {
 
 // Update the progress bar and play head as the video plays
 function timeUpdated() {
-  if (!controlShowing)
-    return;
+  if (controlShowing) {
+    // We can't update a progress bar if we don't know how long
+    // the video is. It is kind of a bug that the <video> element
+    // can't figure this out for ogv videos.
+    if (dom.player.duration === Infinity || dom.player.duration === 0) {
+      return;
+    }
 
-  // We can't update a progress bar if we don't know how long
-  // the video is. It is kind of a bug that the <video> element
-  // can't figure this out for ogv videos.
-  if (dom.player.duration === Infinity)
-    return;
+    var percent = (dom.player.currentTime / dom.player.duration) * 100 + '%';
 
-  if (dom.player.duration === 0)
-    return;
+    dom.elapsedText.textContent = formatDuration(dom.player.currentTime);
+    dom.elapsedTime.style.width = percent;
+    // Don't move the play head if the user is dragging it.
+    if (!dragging)
+      dom.playHead.style.left = percent;
+  }
 
-  var percent = (dom.player.currentTime / dom.player.duration) * 100 + '%';
-
-  dom.elapsedText.textContent = formatDuration(dom.player.currentTime);
-  dom.elapsedTime.style.width = percent;
-  // Don't move the play head if the user is dragging it.
-  if (!dragging)
-    dom.playHead.style.left = percent;
+  // Since we don't always get reliable 'ended' events, see if
+  // we've reached the end this way.
+  // See: https://bugzilla.mozilla.org/show_bug.cgi?id=783512
+  // If we're within 1 second of the end of the video, register
+  // a timeout a half a second after we'd expect an ended event.
+  if (!endedTimer) {
+    if (!dragging && dom.player.currentTime >= dom.player.duration - 1) {
+      var timeUntilEnd = (dom.player.duration - dom.player.currentTime + .5);
+      endedTimer = setTimeout(playerEnded, timeUntilEnd * 1000);
+    }
+  } else if (dragging && dom.player.currentTime < dom.player.duration - 1) {
+    // If there is a timer set and we drag away from the end, cancel the timer
+    clearTimeout(endedTimer);
+    endedTimer = null;
+  }
 }
 
 // handle drags on the time slider
@@ -588,20 +611,49 @@ function formatDuration(duration) {
 function actHandle(activity) {
   var data = activity.source.data;
   var title = 'extras' in data ? (data.extras.title || '') : '';
-  urlToStream = {
-    url: data.url,
-    title: title
-  };
+  switch (activity.source.name) {
+  case 'open':
+    // Activities are required to specify whether they are inline in the manifest
+    // so we know we are inline, dont bother showing thumbnails
+    dom.thumbnails.classList.add('hidden');
+    pendingActivity = activity;
+    var filename = data.src.replace(/^ds\:videos:\/\//, '');
+    activityData = {
+      fromMediaDB: false,
+      name: filename,
+      title: title
+    }
+    break;
+  case 'view':
+    activityData = {
+      url: data.url,
+      title: title
+    };
+    break;
+  }
   if (appStarted) {
     startStream();
   }
 }
 
 // The mozRequestFullScreen can fail silently, so we keep asking
-// for full screen until we detect that it happens
+// for full screen until we detect that it happens, We limit the
+// number of requests as this can be a permanent failure due to
+// https://bugzilla.mozilla.org/show_bug.cgi?id=812850
+var MAX_FULLSCREEN_REQUESTS = 5;
 function requestFullScreen(callback) {
   fullscreenCallback = callback;
+  var requests = 0;
   fullscreenTimer = setInterval(function() {
+    if (++requests > MAX_FULLSCREEN_REQUESTS) {
+      window.clearInterval(fullscreenTimer);
+      fullscreenTimer = null;
+      if (pendingActivity) {
+        pendingActivity.postError('Could not play video');
+        pendingActivity = null;
+      }
+      return;
+    }
     dom.videoFrame.mozRequestFullScreen();
   }, 500);
 }
@@ -618,7 +670,11 @@ if (window.navigator.mozSetMessageHandler) {
 document.addEventListener('mozfullscreenchange', function() {
   // We have exited fullscreen
   if (document.mozFullScreenElement === null) {
-    hidePlayer();
+    if (pendingActivity) {
+      completeActivity(false);
+    } else {
+      hidePlayer();
+    }
     return;
   }
 
