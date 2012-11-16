@@ -640,7 +640,7 @@ const GridManager = (function() {
 
     appsByOrigin[app.origin] = app;
 
-    var manifest = app.manifest;
+    var manifest = app.manifest ? app.manifest : app.updateManifest;
     if (!manifest)
       return;
 
@@ -670,7 +670,7 @@ const GridManager = (function() {
       };
     }
 
-    var manifest = app.manifest;
+    var manifest = app.manifest ? app.manifest : app.updateManifest;
     var iconsAndNameHolder = manifest;
     if (entryPoint)
       iconsAndNameHolder = manifest.entry_points[entryPoint];
@@ -765,7 +765,7 @@ const GridManager = (function() {
         url.indexOf('https://') == 0)
       return url;
 
-    return app.origin + url;
+    return app.origin + '/' + url;
   }
 
 
