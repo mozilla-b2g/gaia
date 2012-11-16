@@ -1,7 +1,6 @@
 'use strict';
 
 (function(document) {
-  var isContactsMode = window.location.search.indexOf('contacts') !== -1;
   var allowedOrigin = fb.oauthflow.params.contactsAppOrigin;
 
   function cancelCb() {
@@ -14,13 +13,6 @@
   }
 
   function tokenReady(access_token) {
-    // The curtain is only shown when we are launched from contacts
-    if (!isContactsMode) {
-      Curtain.show('wait', 'friends', {
-        oncancel: cancelCb
-      });
-    }
-
     if (document.readyState === 'complete') {
       onLoad(access_token);
     }
@@ -69,20 +61,16 @@
     document.documentElement.dir = navigator.mozL10n.language.direction;
   });
 
-  if (isContactsMode) {
-    window.addEventListener('message', function getAccessToken(e) {
-      window.removeEventListener('message', getAccessToken);
-      if (e.data.type === 'token') {
-        tokenReady(e.data.data);
-      }
-    });
+  window.addEventListener('message', function getAccessToken(e) {
+    window.removeEventListener('message', getAccessToken);
+    if (e.data.type === 'token') {
+      tokenReady(e.data.data);
+    }
+  });
 
-    parent.postMessage({
-      type: 'messaging_ready',
-      data: ''
-    }, allowedOrigin);
-  } else {
-    fb.oauth.getAccessToken(tokenReady, 'friends');
-  }
+  parent.postMessage({
+    type: 'messaging_ready',
+    data: ''
+  }, allowedOrigin);
 
 })(document);

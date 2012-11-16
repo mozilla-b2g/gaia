@@ -63,12 +63,20 @@ var WindowManager = (function() {
   // Some document elements we use
   var windows = document.getElementById('windows');
   var screenElement = document.getElementById('screen');
-  var wrapperFooter = document.querySelector('#wrapper');
+  var wrapperHeader = document.querySelector('#wrapper-activity-indicator');
+  var wrapperFooter = document.querySelector('#wrapper-footer');
 
   // XXX: Unless https://bugzilla.mozilla.org/show_bug.cgi?id=808231
   // is fixed, wait for 100ms before starting the transition so
   // we will not see opening apps/homescreen flash in.
   var kTransitionWait = 100;
+
+  // Set this to true to debugging the transitions and state change
+  var slowTransition = false;
+  if (slowTransition) {
+    kTransitionWait = 1000;
+    windows.classList.add('slow-transition');
+  }
 
   //
   // The set of running apps.
@@ -238,7 +246,11 @@ var WindowManager = (function() {
   var closeFrame = null;
   var openCallback = null;
   var closeCallback = null;
+  var openTimer;
+  var closeTimer;
 
+  // Use setOpenFrame() to reset the CSS classes set
+  // to the current openFrame (before overwriting the reference)
   function setOpenFrame(frame) {
     if (openFrame) {
       removeFrameClasses(openFrame);
@@ -247,9 +259,13 @@ var WindowManager = (function() {
     openFrame = frame;
   }
 
+  // Use setCloseFrame() to reset the CSS classes set
+  // to the current closeFrame (before overwriting the reference)
   function setCloseFrame(frame) {
     if (closeFrame) {
       removeFrameClasses(closeFrame);
+      // closeFrame should not be set to active
+      closeFrame.classList.remove('active');
     }
 
     closeFrame = frame;
@@ -356,9 +372,7 @@ var WindowManager = (function() {
     frame.focus();
 
     // Set homescreen visibility to false
-    var homescreenFrame = ensureHomescreen();
-    if (homescreenFrame)
-      homescreenFrame.setVisible(false);
+    toggleHomescreen(false);
 
     // Set displayedApp to the new value
     displayedApp = frame.dataset.frameOrigin;
@@ -387,13 +401,6 @@ var WindowManager = (function() {
       frame.setVisible(false);
 
     screenElement.classList.remove('fullscreen-app');
-
-    if ('wrapper' in frame.dataset) {
-      wrapperFooter.classList.remove('visible');
-    }
-
-    // Set displayedApp state to homescreen
-    displayedApp = homescreen;
   }
 
   // The following things needs to happen when firstpaint happens.
@@ -445,14 +452,14 @@ var WindowManager = (function() {
 
       if (!screenshot) {
         // put a default background
-        openFrame.classList.add('default-background');
+        frame.classList.add('default-background');
         callback();
         return;
       }
 
       // set the screenshot as the background of the frame itself.
       // we are safe to do so since there is nothing on it yet.
-      setFrameBackgroundBlob(openFrame, screenshot, transparent);
+      setFrameBackgroundBlob(frame, screenshot, transparent);
 
       // start the transition
       callback();
@@ -613,6 +620,10 @@ var WindowManager = (function() {
       displayedApp = origin;
 
       return;
+    } else if (origin === ftuURL) {
+      // Add a way to identify ftu app
+      // (Used by SimLock)
+      openFrame.classList.add('ftu');
     }
 
     if (requireFullscreen(origin))
@@ -620,8 +631,7 @@ var WindowManager = (function() {
 
     setFrameBackground(openFrame, function gotBackground() {
       // Start the transition when this async/sync callback is called.
-
-      setTimeout(function startOpeningTransition() {
+      openTimer = setTimeout(function startOpeningTransition() {
         if (!screenElement.classList.contains('switch-app')) {
           openFrame.classList.add('opening');
         } else {
@@ -639,8 +649,7 @@ var WindowManager = (function() {
 
     // Animate the window close.  Ensure the homescreen is in the
     // foreground since it will be shown during the animation.
-    var homescreenFrame = ensureHomescreen();
-    homescreenFrame.setVisible(true);
+    toggleHomescreen(true);
 
     // Take keyboard focus away from the closing window
     closeFrame.blur();
@@ -660,11 +669,18 @@ var WindowManager = (function() {
     evt.initCustomEvent('appwillclose', true, false, { origin: origin });
     closeFrame.dispatchEvent(evt);
 
+    // If the closeWindow() transition is interrupted,
+    // this ensure the state being set to homescreen.
+    displayedApp = homescreen;
 
-    setTimeout(function startClosingTransition() {
+    closeTimer = setTimeout(function startClosingTransition() {
       // Start the transition
       closeFrame.classList.add('closing');
       closeFrame.classList.remove('active');
+      if ('wrapper' in closeFrame.dataset) {
+        wrapperHeader.classList.remove('visible');
+        wrapperFooter.classList.remove('visible');
+      }
     }, kTransitionWait);
   }
 
@@ -676,10 +692,6 @@ var WindowManager = (function() {
 
     // Ask closeWindow() to start closing the displayedApp
     closeWindow(displayedApp, callback);
-
-    // If the switchWindow() transition is interrupted,
-    // this ensure the state being set to homescreen.
-    displayedApp = homescreen;
 
     // Ask openWindow() to show a card on the right waiting to be opened
     openWindow(origin);
@@ -743,6 +755,9 @@ var WindowManager = (function() {
   function retrieveFTU() {
     window.asyncStorage.getItem('ftu.enabled', function getItem(launchFTU) {
       if (launchFTU === false) {
+        // Eventually ask for SIM code, but only when we do not show FTU,
+        // which already asks for it!
+        SimLock.showIfLocked();
         ensureHomescreen();
         return;
       }
@@ -772,11 +787,14 @@ var WindowManager = (function() {
   function hideCurrentApp(callback) {
     if (displayedApp == null || displayedApp == homescreen)
       return;
+
+    toggleHomescreen(true);
     var frame = getAppFrame(displayedApp);
-    frame.classList.add('hideBottom');
+    frame.classList.add('back');
     frame.classList.remove('restored');
     if (callback) {
       frame.addEventListener('transitionend', function execCallback() {
+        frame.style.visibility = 'hidden';
         frame.removeEventListener('transitionend', execCallback);
         callback();
       });
@@ -784,13 +802,21 @@ var WindowManager = (function() {
   }
 
   function restoreCurrentApp() {
+    toggleHomescreen(true);
     var frame = getAppFrame(displayedApp);
-    frame.classList.remove('hideBottom');
+    frame.style.visibility = 'visible';
+    frame.classList.remove('back');
     frame.classList.add('restored');
     frame.addEventListener('transitionend', function removeRestored() {
       frame.removeEventListener('transitionend', removeRestored);
       frame.classList.remove('restored');
     });
+  }
+
+  function toggleHomescreen(visible) {
+    var homescreenFrame = ensureHomescreen();
+    if (homescreenFrame)
+      homescreenFrame.setVisible(true);
   }
 
   // Switch to a different app
@@ -809,8 +835,10 @@ var WindowManager = (function() {
       openFrame.setVisible(false);
     if (closeFrame && 'setVisible' in closeFrame)
       closeFrame.setVisible(false);
-    if (homescreenFrame)
-      homescreenFrame.setVisible(true);
+
+    toggleHomescreen(true);
+    clearTimeout(openTimer);
+    clearTimeout(closeTimer);
     setOpenFrame(null);
     setCloseFrame(null);
     screenElement.classList.remove('switch-app');
@@ -1303,6 +1331,9 @@ var WindowManager = (function() {
       }
 
       if (isRunning(url)) {
+        if ('loading' in runningApps[url].frame.dataset) {
+          wrapperHeader.classList.add('visible');
+        }
         setDisplayedApp(url);
         return;
       }
@@ -1329,6 +1360,16 @@ var WindowManager = (function() {
                                   decodeURIComponent(features.search.url);
         }
       } catch (ex) { }
+
+      frameElement.addEventListener('mozbrowserloadstart', function start() {
+        frameElement.dataset.loading = true;
+        wrapperHeader.classList.add('visible');
+      });
+
+      frameElement.addEventListener('mozbrowserloadend', function end() {
+        delete frameElement.dataset.loading;
+        wrapperHeader.classList.remove('visible');
+      });
 
       appendFrame(frameElement, url, url, frameElement.dataset.name, {
         'name': frameElement.dataset.name
@@ -1398,14 +1439,15 @@ var WindowManager = (function() {
     // be included in index.html before this one, so they can register their
     // event handlers before we do.
 
-    // openFrame check in the second |else if| for the current transition
-    // -- if there one, is the user would like to cancel it instead of
-    // toggling homescreen panels.
+    // If we are currently transitioning, the user would like to cancel
+    // it instead of toggling homescreen panels.
+    var inTransition = !!(openFrame || closeFrame);
+
     if (document.mozFullScreen) {
       document.mozCancelFullScreen();
     } else if (inlineActivityFrame) {
       stopInlineActivity();
-    } else if (displayedApp !== homescreen || openFrame) {
+    } else if (displayedApp !== homescreen || inTransition) {
       if (displayedApp != ftuURL) {
         setDisplayedApp(homescreen);
       } else {

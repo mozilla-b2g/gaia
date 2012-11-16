@@ -42,6 +42,7 @@
     <script defer src="js/storage.js"></script>
     <script defer src="js/hardware_buttons.js"></script>
     <script defer src="js/system_banner.js"></script>
+    <script defer src="js/system_dialog.js"></script>
 
     <!-- Battery Manager -->
     <link rel="stylesheet" type="text/css" href="style/battery_manager/battery_manager.css">
@@ -96,6 +97,8 @@
 
     <!-- PIN Unlocking -->
     <script defer src="js/sim_lock.js"></script>
+    <link rel="stylesheet" type="text/css" href="style/simcard.css">
+    <script defer src="js/simcard_dialog.js"></script>
 
     <!-- Airplane Mode -->
     <script defer src="js/airplane_mode.js"></script>
@@ -316,8 +319,8 @@
 
       <div id="windows" data-z-index-level="app">
         <!-- application windows are added here -->
-
-        <footer id="wrapper">
+        <header id="wrapper-activity-indicator"></header>
+        <footer id="wrapper-footer">
           <div id="handler"></div>
           <menu type="buttonbar">
             <button type="button" id="back-button" alt="Back" data-disabled="disabled"></button>
@@ -330,6 +333,63 @@
       </div>
 
       <div id="dialog-overlay" data-z-index-level="dialog-overlay">
+        <!-- Unlock SIM Pin dialog -->
+        <div id="simpin-dialog" role="dialog" data-z-index-level="simpin-dialog" hidden>
+          <section role="region">
+            <header>
+              <button type="reset">
+                <span data-l10n-id="close" class="icon icon-close">Close</span>
+              </button>
+              <menu type="toolbar">
+                <button data-l10n-id="ok" type="submit">Done</button>
+              </menu>
+              <h1></h1>
+            </header>
+
+            <div class="container">
+              <div id="errorMsg" class="error" hidden>
+                <div id="messageHeader">The PIN was incorrect.</div>
+                <span id="messageBody">3 tries left.</span>
+              </div>
+
+              <!-- sim pin input field -->
+              <div id="pinArea" hidden>
+                <div data-l10n-id="simPin">SIM PIN</div>
+                <div class="input-wrapper">
+                  <input name="simpin" type="number" size="8" maxlength="8" />
+                  <input name="simpinVis" type="text" size="8" maxlength="8" />
+                </div>
+              </div>
+              <!-- sim puk input field -->
+              <div id="pukArea" hidden>
+                <div data-l10n-id="pukCode">PUK Code</div>
+                <div class="input-wrapper">
+                  <input name="simpuk" type="number" size="8" maxlength="8" />
+                  <input name="simpukVis" type="text" size="8" maxlength="8" />
+                </div>
+              </div>
+              <!-- new sim pin input field -->
+              <div id="newPinArea" hidden>
+                <div data-l10n-id="newSimPinMsg">
+                  Create PIN (must contain 4 to 8 digits)
+                </div>
+                <div class="input-wrapper">
+                  <input name="newSimpin" type="number" size="8" maxlength="8" />
+                  <input name="newSimpinVis" type="text" size="8" maxlength="8" />
+                </div>
+              </div>
+              <!-- confirm new sim pin input field -->
+              <div id="confirmPinArea" hidden>
+                <div>Confirm New PIN</div>
+                <div class="input-wrapper">
+                  <input name="confirmNewSimpin" type="number" size="8" maxlength="8" />
+                  <input name="confirmNewSimpinVis" type="text" size="8" maxlength="8" />
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+
         <!-- Crash reporter -->
         <form id="crash-dialog" role="dialog" data-type="confirm">
           <section>
@@ -346,8 +406,9 @@
             <button id="send-report" class="recommend" data-l10n-id="crash-send">Send Report</button>
           </menu>
         </form>
+
         <div id="popup-container">
-          <section role="region" class="title-container skin-dark">
+          <section role="region" class="title-container skin-organic">
             <header>
               <button id="popup-close"><span class="icon icon-close">close</span></button>
               <h1 id="popup-title"></h1>
@@ -370,15 +431,17 @@
           </div>
         </div>
 
-        <div id="trustedui-container">
-          <section role="region" class="title-container skin-dark">
-            <header>
-              <button id="trustedui-close"><span class="icon icon-close">close</span></button>
-              <h1 id="trustedui-title"></h1>
-              <div id="trustedui-throbber"></div>
-            </header>
-          </section>
-          <div id="trustedui-frame-container"></div>
+        <div id="trustedui-container" class="up">
+          <div id="trustedui-inner">
+            <section role="region" class="title-container skin-organic">
+              <header>
+                <button id="trustedui-close"><span class="icon icon-close">close</span></button>
+                <h1 id="trustedui-title"></h1>
+                <div id="trustedui-throbber"></div>
+              </header>
+            </section>
+            <div id="trustedui-frame-container"></div>
+          </div>
         </div>
 
         <div id="authentication-dialog">
@@ -403,6 +466,7 @@
             </menu>
           </div>
         </div>
+
         <div id="modal-dialog">
           <div id="modal-dialog-alert" role="dialog">
             <div class="modal-dialog-message-container inner">
@@ -465,8 +529,9 @@
               <button id="modal-dialog-select-one-cancel" data-l10n-id="cancel">Cancel</button>
             </menu>
           </div>
-        </div>
-      </div>
+        </div> <!-- end of #modal-dialog -->
+
+      </div> <!-- end of #overlay-dialog -->
 
       <!-- value selector -->
       <div id="value-selector" hidden data-z-index-level="value-selector">
@@ -540,7 +605,6 @@
             <button class="value-option-confirm affirmative" data-type="ok" data-l10n-id="ok">Ok</button>
           </menu>
         </section>
-
       </div>
 
       <div id="permission-screen" data-z-index-level="permission-screen">
@@ -665,31 +729,6 @@
         </div>
       </div>
 
-      <div id="pinkeypadscreen" data-z-index-level="pinkeypadscreen" hidden>
-        <div id="pinkeypadscreen-container">
-          <p id="pinkeypadscreen-desc"><span data-l10n-id="enterPIN">Enter PIN</span></p>
-          <p id="pinkeypadscreen-code">
-            <span id="pinkeypadscreen-display"></span>
-          </p>
-          <div id="pinkeypadscreen-pad">
-            <a href="#" data-key="1">1</a>
-            <a href="#" data-key="2">2</a>
-            <a href="#" data-key="3">3</a>
-            <a href="#" data-key="4">4</a>
-            <a href="#" data-key="5">5</a>
-            <a href="#" data-key="6">6</a>
-            <a href="#" data-key="7">7</a>
-            <a href="#" data-key="8">8</a>
-            <a href="#" data-key="9">9</a>
-            <a href="#" data-key="o" class="pinkeypadscreen-pad-func" data-l10n-id="ok">OK</a>
-            <a href="#" data-key="0">0</a>
-            <a href="#" data-key="b" class="pinkeypadscreen-pad-func" data-l10n-id="back">Back</a>
-            <a href="#" data-key="e" class="pinkeypadscreen-pad-func-full"
-                data-l10n-id="emergency-call-button">Emergency Call</a>
-          </div>
-        </div>
-      </div>
-
       <div id="attention-screen" data-z-index-level="attention-screen">
         <div id="attention-bar"></div>
       </div>
@@ -763,6 +802,7 @@
           <span class="volume"></span>
         </div>
       </div>
-    </div>
+
+    </div> <!-- end of #screen -->
   </body>
 </html>

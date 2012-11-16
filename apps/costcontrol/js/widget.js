@@ -118,11 +118,13 @@ function setupWidget() {
       }
     );
 
-    // ...when the utility tray shows.
-    window.addEventListener('message', function ccwidget_utilityTray(evt) {
-      if (evt.data.type === 'utilitytrayshow')
-        _updateDataUsageUI();
-    });
+    document.addEventListener('mozvisibilitychange',
+      function ccwidget_visibility(evt) {
+        if (!document.mozHidden)
+          Service.requestDataUsage();
+      }
+    );
+
   }
 
   // Attach event listeners for manual updates

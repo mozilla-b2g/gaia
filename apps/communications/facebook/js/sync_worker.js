@@ -17,7 +17,7 @@ importScripts('/contacts/js/fb/fb_query.js',
   // Query to know what friends need to be updated
   var UPDATED_QUERY = [
       'SELECT uid, name, first_name, last_name, ' ,
-      'middle_name, birthday_date, email, ' ,
+      'middle_name, birthday_date, email, current_location, ' ,
       'work, cell, other_phone, hometown_location, pic_big ' ,
       ' FROM user' ,
       ' WHERE uid ',
