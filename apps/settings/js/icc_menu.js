@@ -27,13 +27,16 @@
     window.asyncStorage.getItem('stkMainAppMenu', function(menu) {
       var iccMenuItem = document.getElementById('menuItem-icc');
       if (!menu) {
-        debug('No STK available - hidding');
-        iccMenuItem.classList.add('hidden');
+        debug('No STK available - exit');
         return;
       }
 
       debug('STK Main App Menu title: ' + menu.title);
       iccMenuItem.textContent = menu.title;
+
+      // Show the entry in settings
+      document.getElementById("icc-mainheader").classList.remove('hidden');
+      document.getElementById("icc-mainentry").classList.remove('hidden');
     });
   });
 })();
