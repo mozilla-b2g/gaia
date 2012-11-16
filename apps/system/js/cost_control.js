@@ -11,12 +11,13 @@
 
   var widgetContainer = document.getElementById('cost-control-widget');
 
+  var widgetFrame;
   function _ensureWidget() {
 
     if (Applications.ready) {
 
       // Check widget is there
-      var widgetFrame = widgetContainer.querySelector('iframe');
+      widgetFrame = widgetContainer.querySelector('iframe');
       if (widgetFrame && !widgetFrame.dataset.killed)
         return;
 
@@ -50,7 +51,19 @@
     }
   }
 
+  function _showWidget() {
+    if (widgetFrame)
+      widgetFrame.setVisible(true);
+  }
+
+  function _hideWidget() {
+    if (widgetFrame)
+      widgetFrame.setVisible(false);
+  }
+
   // Listen to utilitytray show
   window.addEventListener('utilitytrayshow', _ensureWidget);
+  window.addEventListener('utilitytrayshow', _showWidget);
+  window.addEventListener('utilitytrayhide', _hideWidget);
   window.addEventListener('applicationready', _ensureWidget);
 }());

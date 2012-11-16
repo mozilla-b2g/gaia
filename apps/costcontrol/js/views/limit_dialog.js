@@ -13,7 +13,7 @@ function dataLimitConfigurer(guiWidget, settings, viewManager) {
   var dialog = document.getElementById('data-limit-dialog');
   var switchUnitButton = document.getElementById('switch-unit-button');
   var dataLimitInput = dialog.querySelector('input');
-  var format = function ccas_formatterDataUnit(value) {
+  var format = function ccal_formatterDataUnit(value) {
     var unit = settings.option('data_limit_unit');
     return formatData([value, unit]);
   };

@@ -100,6 +100,7 @@ function setupApp() {
 
   // Initializes the cost control module: basic parameters, automatic and manual
   // updates.
+  var _initialized = false;
   function _init() {
     var status = Service.getServiceStatus();
     if (status.fte) {
@@ -131,12 +132,6 @@ function setupApp() {
     // Keep the left tab synchronized with the plantype
     Service.settings.observe('plantype', _setLeftTab);
 
-    // Update UI when localized
-    window.addEventListener('localized', function ccapp_onLocalized() {
-      for (var viewid in Views) if (Views.hasOwnProperty(viewid))
-        Views[viewid].localize();
-    });
-
     // Adapt tab visibility according to available functionality
     if (!status.enabledFunctionalities.balance &&
         !status.enabledFunctionalities.telephony) {
@@ -150,7 +145,17 @@ function setupApp() {
       viewManager.changeViewTo(TAB_DATA_USAGE);
       dataUsageTab.classList.add('standalone');
     }
+
+    _initialized = true;
   }
 
-  _init();
+  // Update UI when localized
+  window.addEventListener('localized', function ccapp_onLocalized() {
+    if (!_initialized)
+      _init();
+
+    for (var viewid in Views) if (Views.hasOwnProperty(viewid))
+      Views[viewid].localize();
+  });
+
 }
