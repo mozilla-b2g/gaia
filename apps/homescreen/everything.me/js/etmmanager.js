@@ -3,6 +3,7 @@
 
 var EvmeManager = (function() {
     var currentWindow = null;
+    var currentURL = null;
 
     function openApp(params) {
         var evmeApp = new EvmeApp({
@@ -11,10 +12,11 @@ var EvmeManager = (function() {
             icon: params.icon
         });
 
-        if (currentWindow) {
+        if (currentWindow && currentURL !== params.url) {
             currentWindow.close();
         }
         currentWindow = evmeApp.launch(params.url, params.urlTitle);
+        currentURL = params.url;
     }
 
     function addBookmark(params) {
@@ -34,22 +36,22 @@ var EvmeManager = (function() {
             }
         });
     }
-    
+
     function menuShow() {
         footerStyle.MozTransform = "translateY(0)";
     }
-    
+
     function menuHide() {
         footerStyle.MozTransform = "translateY(75px)";
     }
 
     var footerStyle = document.getElementById("footer").style;
     footerStyle.MozTransition = "-moz-transform .3s ease";
-    
+
     function getMenuHeight() {
         return document.getElementById("footer").offsetHeight;
     }
-    
+
     function getApps() {
         return GridManager.getApps();
     }
@@ -89,7 +91,7 @@ var EvmeManager = (function() {
         getAppName: getAppName,
 
         openUrl: openUrl,
-        
+
         menuShow: menuShow,
         menuHide: menuHide,
         getMenuHeight: getMenuHeight

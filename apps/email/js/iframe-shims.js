@@ -20,6 +20,7 @@ const DEFAULT_STYLE_TAG =
   // padding-start isn't a thing yet, somehow.
   'padding: 0; -moz-padding-start: 5px; ' +
   '}\n' +
+  '.moz-external-link { color: blue; cursor: pointer; }\n' +
   '</style>';
 
 /**
@@ -209,7 +210,7 @@ function createAndInsertIframeForContent(htmlStr, parentNode, beforeNode,
 
   // we want this fully synchronous so we can know the size of the document
   iframe.contentDocument.open();
-  iframe.contentDocument.write('<html><head>');
+  iframe.contentDocument.write('<!doctype html><html><head>');
   iframe.contentDocument.write(DEFAULT_STYLE_TAG);
   iframe.contentDocument.write('</head><body>');
   // (currently our sanitization only generates a body payload...)
@@ -314,13 +315,35 @@ function createAndInsertIframeForContent(htmlStr, parentNode, beforeNode,
     iframe.setAttribute(
       'style',
       'border-width: 0px; ' +
-      'pointer-events: none; ' +
       '-moz-user-select: none; ' +
       'width: ' + viewportWidth + 'px; ' +
       'height: ' + scrollHeight + 'px;');
   }
 
+  if (clickHandler)
+    bindSanitizedClickHandler(iframe.contentDocument.body, clickHandler, null);
+
   return iframe;
+}
+
+function bindSanitizedClickHandler(node, clickHandler, topNode) {
+  node.addEventListener(
+    'click',
+    function clicked(event) {
+      var node = event.originalTarget;
+      while (node !== topNode) {
+        if (node.nodeName === 'A') {
+          if (node.hasAttribute('ext-href')) {
+            clickHandler(event, node, node.getAttribute('ext-href'),
+                         node.textContent);
+            event.preventDefault();
+            event.stopPropagation();
+            return;
+          }
+        }
+        node = node.parentNode;
+      }
+    });
 }
 
 // figure out the size and position of an image based on its size

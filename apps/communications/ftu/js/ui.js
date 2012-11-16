@@ -85,8 +85,9 @@ var UIManager = {
   init: function ui_init() {
     // TODO Use l10n for dates
     var currentDate = new Date();
-    this.timeConfigurationLabel.innerHTML = currentDate.
-      toLocaleFormat('%H:%M');
+    var f = new navigator.mozL10n.DateTimeFormat();
+    var format = _('shortTimeFormat');
+    this.timeConfigurationLabel.innerHTML = f.localeFormat(currentDate, format);
     this.dateConfigurationLabel.innerHTML = currentDate.
       toLocaleFormat('%Y-%m-%d');
     // Add events to DOM
@@ -126,7 +127,7 @@ var UIManager = {
         this.setTimeZone();
         break;
       default:
-        if(event.target.parentNode.parentNode.id == 'networks') {
+        if (event.target.parentNode.parentNode.id == 'networks') {
           this.chooseNetwork(event);
         }
         break;
@@ -196,7 +197,9 @@ var UIManager = {
     // Set date through API
     TimeManager.set(timeToSet);
     // Set DATE properly
-    timeLabel.innerHTML = timeToSet.toLocaleFormat('%H:%M');
+    var f = new navigator.mozL10n.DateTimeFormat();
+    var format = _('shortTimeFormat');
+    timeLabel.innerHTML = f.localeFormat(timeToSet, format);
   },
   setTimeZone: function ui_stz() {
     var tzConfiguration = document.getElementById('timezone-configuration');
@@ -284,17 +287,22 @@ var UIManager = {
   renderNetworks: function ui_rn(networks) {
     var networksDOM = document.getElementById('networks');
     networksDOM.innerHTML = '';
+    var networksShown = [];
     var ssids = Object.getOwnPropertyNames(networks);
-        ssids.sort(function(a, b) {
-          return networks[b].relSignalStrength - networks[a].relSignalStrength;
-        });
+    ssids.sort(function(a, b) {
+      return networks[b].relSignalStrength - networks[a].relSignalStrength;
+    });
 
-        // add detected networks
-        for (var i = 0; i < ssids.length; i++) {
-          var network = networks[ssids[i]];
 
-        // ssid
-        var ssid = document.createElement('a');
+    // add detected networks
+    for (var i = 0; i < ssids.length; i++) {
+      var network = networks[ssids[i]];
+
+      // ssid
+      var ssid = document.createElement('a');
+
+      // Check if is shown
+      if (networksShown.indexOf(network.ssid) == -1) {
         ssid.textContent = network.ssid;
         ssid.dataset.ssid = network.ssid;
         // supported authentication methods
@@ -306,15 +314,15 @@ var UIManager = {
         } else {
           small.textContent = 'open';
         }
-
+        networksShown.push(network.ssid);
         // create list item
         var li = document.createElement('li');
         li.setAttribute('id', network.ssid);
         li.appendChild(small);
         li.appendChild(ssid);
-
         networksDOM.appendChild(li);
-        }
+      }
+    }
   },
   renderNetworkConfiguration: function uim_rnc(ssid, callback) {
     if (callback) {

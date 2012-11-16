@@ -60,8 +60,14 @@ function getFile() {
 }
 
 function ensureFolderExists(file) {
-  if (!file.exists())
-    file.create(Ci.nsIFile.DIRECTORY_TYPE, parseInt('0755', 8));
+  if (!file.exists()) {
+    try {
+      file.create(Ci.nsIFile.DIRECTORY_TYPE, parseInt('0755', 8));
+    } catch(e if e.result == Cr.NS_ERROR_FILE_ALREADY_EXISTS) {
+      // Bug 808513: Ignore races between `if exists() then create()`.
+      return;
+    }
+  }
 }
 
 function getJSON(file) {

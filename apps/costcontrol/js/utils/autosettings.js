@@ -209,8 +209,16 @@ function AutoSettings(settings, viewManager) {
   };
 
   function _configureGUIWidgets() {
+    var that = this;
 
     function getWidgetType(widget) {
+      var customType = that.customRecognizer;
+      if (typeof customType === 'function')
+        customType = customType(widget, settings, viewManager);
+
+      if (customType)
+        return customType;
+
       if (typeof widget.dataset.inputdialog !== 'undefined')
         return 'complexinput';
 
@@ -250,7 +258,7 @@ function AutoSettings(settings, viewManager) {
 
       var type = getWidgetType(guiWidget);
       var entry = _getEntryParent(guiWidget);
-      CONFIGURE_WIDGET[type](guiWidget);
+      CONFIGURE_WIDGET[type](guiWidget, settings, viewManager);
 
       // Simple dependency resolution:
 
@@ -278,6 +286,10 @@ function AutoSettings(settings, viewManager) {
   }
 
   return {
+    customRecognizer: undefined,
+    addType: function as_addType(name, configFunction) {
+      CONFIGURE_WIDGET[name] = configFunction;
+    },
     configure: _configureGUIWidgets
   };
 

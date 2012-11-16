@@ -729,6 +729,11 @@ const GridManager = (function() {
   }
 
   function bestMatchingIcon(app, manifest) {
+    if (app.installState === 'pending') {
+      return app.downloading ?
+        Icon.prototype.DOWNLOAD_ICON_URL :
+        Icon.prototype.CANCELED_ICON_URL;
+    }
     var icons = manifest.icons;
     if (!icons)
       return Icon.prototype.DEFAULT_ICON_URL;
