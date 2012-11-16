@@ -25,7 +25,7 @@ Calendar.ns('Service').Caldav = (function() {
      * Default number of occurrences to find
      * when expanding a recurring event.
      */
-    _defaultOccurrenceLimit: 1000,
+    _defaultOccurrenceLimit: 500,
 
     _initEvents: function() {
       var events = [
@@ -395,7 +395,7 @@ Calendar.ns('Service').Caldav = (function() {
         year: now.getFullYear(),
         // three months in advance
         // +1 because js months are zero based
-        month: now.getMonth() + 12,
+        month: now.getMonth() + 6,
         day: now.getDate()
       });
     },
