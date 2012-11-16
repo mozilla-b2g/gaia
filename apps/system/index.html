@@ -27,6 +27,7 @@
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/switches.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
+    <link rel="stylesheet" type="text/css" href="style/fake-notification.css"/>
 
     <!-- applications.js must not be deferred
          in order to catch webapps-registry-ready mozChromeEvent -->
@@ -285,13 +286,16 @@
 
         <div id="notifications-container">
           <!-- Update Manager -->
-          <div id="update-manager-container">
+          <div id="update-manager-container" class='fake-notification'>
             <div class="icon">
             </div>
             <div class="activity">
             </div>
             <div class="message">
             </div>
+          </div>
+          <!-- App Install Manager -->
+          <div id="install-manager-notification-container">
           </div>
           <!-- bluetooth transfer -->
           <div id="bluetooth-transfer-status-list">
