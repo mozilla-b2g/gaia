@@ -556,4 +556,11 @@ window.addEventListener('localized', function callSetup(evt) {
   CallScreen.init();
   CallScreen.syncSpeakerEnabled();
   OnCallHandler.setup();
+  if (navigator.mozSettings) {
+    var req = navigator.mozSettings.createLock().get('wallpaper.image');
+    req.onsuccess = function cs_wi_onsuccess() {
+      CallScreen.mainContainer.style.backgroundImage =
+        'url(' + req.result['wallpaper.image'] + ')';
+    };
+  }
 });
