@@ -727,7 +727,7 @@ function SettingsAccountCredentialsCard(domNode, mode, args) {
     .addEventListener('click', this.onBack.bind(this), false);
 
   domNode.getElementsByClassName('tng-account-save')[0]
-    .addEventListener('click', this.onBack.bind(this), false);
+    .addEventListener('click', this.onClickSave.bind(this), false);
 
   var usernameNodeInput =
     this.domNode.getElementsByClassName('tng-server-username-input')[0];
@@ -736,10 +736,9 @@ function SettingsAccountCredentialsCard(domNode, mode, args) {
   this.passwordNodeInput =
     this.domNode.getElementsByClassName('tng-server-password-input')[0];
   this.passwordNodeInput.setAttribute('placeholder',
-                                      mozL10n.get('settings-password'));
+                                      mozL10n.get('settings-new-password'));
 
   usernameNodeInput.value = this.account.username;
-  this.passwordNodeInput.value = '********';
 }
 SettingsAccountCredentialsCard.prototype = {
   onBack: function() {

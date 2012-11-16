@@ -126,7 +126,7 @@ function setupSettings() {
     if (dataUsage)
       mobileData = dataUsage.mobile.total;
     document.getElementById('mobile-data-usage').textContent =
-      roundData(mobileData).join(' ');
+      formatData(roundData(mobileData));
   }
 
   // Attach listener to keep data usage information updated
@@ -140,38 +140,15 @@ function setupSettings() {
     );
   }
 
-  // Configures the switch button
-  function _configureDataLimitDialog() {
-    var switchUnitButton = document.getElementById('switch-unit-button');
-    var input = document.getElementById('data-limit-input');
-    var unit = Service.settings.option('data_limit_unit');
-    switchUnitButton.querySelector('span.tag').textContent = unit;
-
-    switchUnitButton.addEventListener('click',
-      function ccapp_switchUnit() {
-        var unit = Service.settings.option('data_limit_unit');
-        if (unit === 'MB')
-          unit = 'GB';
-        else
-          unit = 'MB';
-        var value = input.value ? parseFloat(input.value) : null;
-        Service.settings.option('data_limit_unit', unit);
-        Service.settings.option('data_limit_value', value);
-        switchUnitButton.querySelector('span.tag').textContent = unit;
-      }
-    );
-  }
-
   function _configureUI() {
     var autoSettings = new AutoSettings(Service.settings, viewManager);
+    autoSettings.customRecognizer = dataLimitRecognizer;
+    autoSettings.addType('data-limit', dataLimitConfigurer);
     autoSettings.configure();
 
     _configureBalanceView();
     _configureTelephonyView();
     _configureDataUsageView();
-
-    // Extra setup for this component
-    _configureDataLimitDialog();
   }
 
   // Adapt the layout depending plantype
@@ -233,6 +210,7 @@ function setupSettings() {
   }
 
   // Configure each settings' control and paint the interface
+  var _initialized = false;
   function _init() {
     _configureUI();
 
@@ -245,8 +223,7 @@ function setupSettings() {
       parent.settingsVManager.closeCurrentView();
     });
 
-    // Localize interface
-    window.addEventListener('localized', _localize);
+    _initialized = true;
   }
 
   // Repaint settings interface reading from local settings and localizing
@@ -256,10 +233,15 @@ function setupSettings() {
   }
 
   // Updates the UI to match the localization
+  // First time the application runs, it also initializes the settings module
   function _localize() {
+    if (!_initialized)
+      _init();
+
     _updateUI();
   }
 
-  _init();
+  // Delay the initialization until `localized` event is triggered
+  window.addEventListener('localized', _localize);
 
 }
