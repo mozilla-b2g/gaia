@@ -61,6 +61,9 @@ if (acm) {
   });
 }
 
+// We will use a wake lock later to prevent Music from sleeping
+var cpuLock = null;
+
 function init() {
   // Here we use the mediadb.js which gallery is using (in shared/js/)
   // to index our music contents with metadata parsed.
@@ -984,6 +987,10 @@ var PlayerView = {
   play: function pv_play(target, backgroundIndex) {
     this.isPlaying = true;
 
+    // Hold a wake lock to prevent from sleeping
+    if (!cpuLock)
+      cpuLock = navigator.requestWakeLock('cpu');
+
     if (this.endedTimer) {
       clearTimeout(this.endedTimer);
       this.endedTimer = null;
@@ -1042,6 +1049,12 @@ var PlayerView = {
 
   pause: function pv_pause() {
     this.isPlaying = false;
+
+    // We can go to sleep if music pauses
+    if (cpuLock) {
+      cpuLock.unlock();
+      cpuLock = null;
+    }
 
     this.audio.pause();
 
