@@ -61,7 +61,8 @@ viewManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
     });
   }
 
-  // Show the dialog for setting data limit (this reuses the )
+  // Show the dialog for setting data limit
+  // (this reuses the dialog from settings)
   function _showSetDataLimit() {
     var settingsWindow = document.getElementById('settings-view').contentWindow;
     var dialog = settingsWindow.document.getElementById('data-limit-dialog');
@@ -233,10 +234,6 @@ viewManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
         }
       );
 
-      debug('Installing observers 1');
-      // XXX: here is a trick. In settings, when unit is changed, the
-      // option data_limit_value is "touched" so it suffices to observe
-      // data_limit_value to be aware about both changes in value or unit
       Service.settings.observe('data_limit_value',
         function ccapp_onDataLimitValueChanged(value) {
           _model.limits.value = Service.dataLimitInBytes;
@@ -245,7 +242,6 @@ viewManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
         }
       );
 
-      debug('Installing observers 2');
       // X axis
       Service.settings.observe('lastdatareset',
         function ccapp_onLastResetValueChanged(value) {
@@ -256,7 +252,6 @@ viewManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
         }
       );
 
-      debug('Installing observers 3');
       Service.settings.observe('next_reset',
         function ccapp_onNextResetChanged(value) {
           _model.axis.X.upper = value ? new Date(value) :
