@@ -2065,7 +2065,7 @@ ICAL.Property = (function() {
 
       if (len < 1) {
         // its possible for a property to have no value.
-        return;
+        return null;
       }
 
       var i = 0;
