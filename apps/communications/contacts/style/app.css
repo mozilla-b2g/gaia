@@ -681,6 +681,27 @@ span[role="button"].icon-arrow.icon-arrow-right {
   margin-top: 1rem;
 }
 
+.fillflow-media .edit-photo {
+  background: rgba(255, 255, 255, 0.4);
+  top: 0;
+  right: 5rem;
+  z-index: 1;
+  margin: 0;
+  display: none;
+  pointer-events: none;
+}
+
+.fillflow-media .edit-photo em {
+  color: #fff;
+  text-shadow: 0 0 2px rgba(0, 0, 0, 0.9);
+  margin-top: 6rem;
+}
+
+.with-photo .edit-photo {
+  display: block;
+}
+
+
 .fillflow-media img {
   width: 100%;
   height: 100%;
