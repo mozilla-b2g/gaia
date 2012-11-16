@@ -518,10 +518,10 @@ var KeypadManager = {
       return;
      }
      var transaction = settings.createLock();
-     var request = transaction.get('ro.moz.ril.iccmbdn');
+     var request = transaction.get('ro.moz.iccInfo.mbdn');
      request.onsuccess = function() {
-       if (request.result['ro.moz.ril.iccmbdn']) {
-         CallHandler.call(request.result['ro.moz.ril.iccmbdn']);
+       if (request.result['ro.moz.iccInfo.mbdn']) {
+         CallHandler.call(request.result['ro.moz.iccInfo.mbdn']);
        }
      };
      request.onerror = function() {};
