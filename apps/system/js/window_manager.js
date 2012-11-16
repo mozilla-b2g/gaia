@@ -802,7 +802,7 @@ var WindowManager = (function() {
   }
 
   function restoreCurrentApp() {
-    toggleHomescreen(true);
+    toggleHomescreen(false);
     var frame = getAppFrame(displayedApp);
     frame.style.visibility = 'visible';
     frame.classList.remove('back');
@@ -816,7 +816,7 @@ var WindowManager = (function() {
   function toggleHomescreen(visible) {
     var homescreenFrame = ensureHomescreen();
     if (homescreenFrame)
-      homescreenFrame.setVisible(true);
+      homescreenFrame.setVisible(visible);
   }
 
   // Switch to a different app
