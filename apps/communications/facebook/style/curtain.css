@@ -51,3 +51,12 @@ form[role="dialog"][data-type="confirm"][data-state="timeout"] #timeout {
 p[role="status"] {
   text-align: center;
 }
+
+#progress p[role="status"] {
+  text-align: left;
+}
+
+#progressMsg {
+  font-size: 1.8rem;
+  padding: 1.5rem 0 1rem 0;
+}

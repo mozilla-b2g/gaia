@@ -646,7 +646,7 @@ if (typeof fb.importer === 'undefined') {
 
       function updateProgress() {
         if (mprogress) {
-          mprogress.update(Math.ceil((++counter * 100) / total));
+          mprogress.update(++counter,total);
         }
       }
 
