@@ -1129,7 +1129,15 @@ ICAL.parse = (function() {
   var helpers = ICAL.helpers;
 
   function ParserError(message) {
-    Error.apply(this, arguments);
+    this.message = message;
+
+    try {
+      throw new Error();
+    } catch (e) {
+      var split = e.stack.split('\n');
+      split.shift();
+      this.stack = split.join('\n');
+    }
   }
 
   ParserError.prototype = {
@@ -1154,7 +1162,7 @@ ICAL.parse = (function() {
     // correctly in that case.
     if (state.stack.length > 1) {
       throw new ParserError(
-        'invalid ical body, a began started but did not end'
+        'invalid ical body. component began but did not end'
       );
     }
 
@@ -4820,6 +4828,7 @@ ICAL.RecurIterator = (function() {
         var dow = parts[1];
 
         dow -= this.rule.wkst;
+
         if (dow < 0) {
           dow += 7;
         }
@@ -4840,9 +4849,17 @@ ICAL.RecurIterator = (function() {
         var next = ICAL.Time.fromDayOfYear(startOfWeek + dow,
                                                   this.last.year);
 
-        this.last.day = next.day;
-        this.last.month = next.month;
+        /**
+         * The normalization horrors below are due to
+         * the fact that when the year/month/day changes
+         * it can effect the other operations that come after.
+         */
+        this.last.auto_normalize = false;
         this.last.year = next.year;
+        this.last.month = next.month;
+        this.last.day = next.day;
+        this.last.auto_normalize = true;
+        this.last.normalize();
 
         return end_of_data;
       }
