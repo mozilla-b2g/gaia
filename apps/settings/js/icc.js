@@ -300,7 +300,7 @@
     }
     debug(' STK Communication changed - ' + evt.type);
     navigator.mozTelephony.calls.forEach(function callIterator(call) {
-      debug( ' STK:CALLS State change: ' + call.state);
+      debug(' STK:CALLS State change: ' + call.state);
       var outgoing = call.state == 'incoming';
       if (call.state == 'incoming') {
         // MozStkCallEvent
@@ -311,7 +311,7 @@
           error: null
         });
       }
-      call.addEventListener('error',function callError(err) {
+      call.addEventListener('error', function callError(err) {
         // MozStkCallEvent
         icc.sendStkEventDownload({
           eventType: icc.STK_EVENT_TYPE_CALL_DISCONNECTED,
@@ -319,7 +319,7 @@
           error: err
         });
       });
-      call.addEventListener('statechange',function callStateChange() {
+      call.addEventListener('statechange', function callStateChange() {
         debug(' STK:CALL State Change: ' + call.state);
         switch (call.state) {
           case 'connected':
@@ -341,7 +341,7 @@
             });
             break;
         }
-      })
+      });
     });
   }
 

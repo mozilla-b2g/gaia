@@ -578,7 +578,7 @@ window.addEventListener('localized', function showLanguages() {
   document.documentElement.dir = navigator.mozL10n.language.direction;
 
   // display the current locale in the main panel
-  var LANGUAGES = 'resources/languages.json';
+  var LANGUAGES = 'shared/resources/languages.json';
   if (Settings.languages) {
     document.getElementById('language-desc').textContent =
         Settings.languages[navigator.mozL10n.language.code];

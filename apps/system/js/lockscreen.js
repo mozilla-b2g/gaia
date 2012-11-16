@@ -327,8 +327,10 @@ var LockScreen = {
 
   setRailWidth: function ls_setRailWidth(left, right) {
     var touch = this._touch;
-    this.railLeft.style.transform = 'scaleX(' + (left / touch.railLeftWidth) + ')';
-    this.railRight.style.transform = 'scaleX(' + (right / touch.railRightWidth) + ')';
+    this.railLeft.style.transform =
+      'scaleX(' + (left / touch.railLeftWidth) + ')';
+    this.railRight.style.transform =
+      'scaleX(' + (right / touch.railRightWidth) + ')';
   },
 
   handleMove: function ls_handleMove(pageX, pageY) {
@@ -920,3 +922,4 @@ var LockScreen = {
 };
 
 LockScreen.init();
+
