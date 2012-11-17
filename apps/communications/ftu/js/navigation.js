@@ -45,7 +45,6 @@ var Navigation = {
     var currentStep = steps[this.currentStep];
     if (window.location.hash != currentStep.hash) {
       UIManager.navBar.classList.remove('back-only');
-      UIManager.navBar.classList.remove('secondary-menu');
       window.history.back();
     } else {
       this.currentStep--;
@@ -64,26 +63,30 @@ var Navigation = {
   handleEvent: function n_handleEvent(event) {
     switch (window.location.hash) {
       case '#languages':
-        UIManager.progressBar.value = 20;
+        UIManager.progressBar.className = 'step-state step-1';
         UIManager.mainTitle.innerHTML = _('language');
         UIManager.activationScreen.classList.add('no-options');
         break;
       case '#wifi':
-        UIManager.progressBar.value = 40;
+        UIManager.progressBar.className = 'step-state step-2';
         UIManager.mainTitle.innerHTML = _('wifi');
         UIManager.activationScreen.classList.remove('no-options');
-        UIManager.navBar.classList.remove('secondary-menu');
+        if (UIManager.navBar.classList.contains('secondary-menu')) {
+          UIManager.navBar.classList.remove('secondary-menu');
+          return;
+        }
+        // Avoid refresh when connecting
         WifiManager.scan(UIManager.renderNetworks);
         break;
       case '#date_and_time':
-        UIManager.progressBar.value = 60;
+        UIManager.progressBar.className = 'step-state step-3';
         UIManager.mainTitle.innerHTML = _('dateAndTime');
         UIManager.activationScreen.classList.add('no-options');
         break;
       case '#import_contacts':
-        UIManager.progressBar.value = 80;
+        UIManager.progressBar.className = 'step-state step-4';
         UIManager.mainTitle.innerHTML = _('importContacts');
-        var fbOption = document.getElementById('fb_import').parentNode;
+        var fbOption = document.getElementById('fb_import');
         if (WifiManager.isConnected) {
           fbOption.classList.remove('disabled');
         } else {
@@ -91,15 +94,15 @@ var Navigation = {
         }
         break;
       case '#welcome_firefox':
-        UIManager.progressBar.value = 90;
+        UIManager.progressBar.className = 'step-state step-5';
         UIManager.mainTitle.innerHTML = _('firefoxPrivacyChoices');
         break;
       case '#about-your-rights':
-        UIManager.progressBar.value = 90;
+        UIManager.progressBar.className = 'step-state step-5';
         UIManager.navBar.classList.add('back-only');
         break;
       case '#about-your-privacy':
-        UIManager.progressBar.value = 90;
+        UIManager.progressBar.className = 'step-state step-5';
         UIManager.navBar.classList.add('back-only');
         break;
       default:
