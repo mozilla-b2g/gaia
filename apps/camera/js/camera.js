@@ -894,7 +894,7 @@ var Camera = {
       this.showOverlay('pluggedin');
       break;
     case this.STORAGE_CAPACITY:
-      this.showOverlay('nospace');
+      this.showOverlay('nospace2');
       break;
     }
     if (this._previewActive) {
