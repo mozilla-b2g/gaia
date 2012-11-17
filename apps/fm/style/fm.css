@@ -100,7 +100,7 @@ a:active {
 }
 
 #bookmark-button {
-  background: url("images/toggle-fav-star-off.png") no-repeat scroll center center transparent;
+  background: url("images/toggle-fav-star.png") no-repeat scroll center center transparent;
 }
 
 #bookmark-button:focus {
