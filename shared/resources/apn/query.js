@@ -169,9 +169,13 @@ document.addEventListener('DOMContentLoaded', function onload() {
         output.textContent = DEBUG ?
           JSON.stringify(gAPN, true, 2) :
           JSON.stringify(gAPN, true, 0)
-              .replace(/("[0-9]+":{)/g, '\n$1')
-              .replace(/("[0-9]+":\[)/g, '\n  $1')
-              .replace(/(}.\n|}$)/g, '\n$1');
+              .replace(/("[0-9]+"):{/g, '\n$1: {')
+              .replace(/("[0-9]+"):\[/g, '\n  $1: [')
+              .replace(/},\n/g, '\n},\n')
+              .replace(/\[{/g, '[\n    {')
+              .replace(/},{/g, '},\n    {')
+              .replace(/}(],?)/g, '}\n  $1')
+              .replace(/]}}$/, ']\n}\n}');
         callback();
       }
     };
