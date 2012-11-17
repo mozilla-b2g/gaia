@@ -949,7 +949,7 @@ var WindowManager = (function() {
     // run out of process. All other apps will be run OOP.
     //
     var outOfProcessBlackList = [
-      'Browser',
+      'Browser'
       // Requires nested content processes (bug 761935).  This is not
       // on the schedule for v1.
     ];

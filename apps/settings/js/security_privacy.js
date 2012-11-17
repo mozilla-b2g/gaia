@@ -22,7 +22,7 @@ var Security = {
     var reqLockscreenEnable = lock.get('lockscreen.enabled');
     reqLockscreenEnable.onsuccess = function onLockscreenEnableSuccess() {
       var enable = reqLockscreenEnable.result['lockscreen.enabled'];
-      phonelockDesc.textContent = enable ? _('enabled') : _('disabled'); 
+      phonelockDesc.textContent = enable ? _('enabled') : _('disabled');
       phonelockDesc.dataset.l10nId = enable ? 'enabled' : 'disabled';
     };
 

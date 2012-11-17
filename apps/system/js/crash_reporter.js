@@ -19,7 +19,8 @@ var CrashReporter = (function() {
 
   // Only show the "Report" button if the user hasn't set a preference to
   // always/never report crashes.
-  SettingsListener.observe('app.reportCrashes', 'ask', function handleCrashSetting(value) {
+  SettingsListener.observe('app.reportCrashes', 'ask',
+      function handleCrashSetting(value) {
     showReportButton = (value != 'always' && value != 'never');
   });
 
@@ -96,7 +97,8 @@ var CrashReporter = (function() {
   }
 
   // - Show a dialog only the first time there's a crash to report.
-  // - On subsequent crashes, show a banner letting the user know there was a crash.
+  // - On subsequent crashes, show a banner letting the user know there was a
+  //   crash.
   // - If the user hasn't set a pref, add a "Report" button to the banner.
   function handleCrash(crashID, isChrome) {
     // Check to see if we should show a dialog.
@@ -127,6 +129,6 @@ var CrashReporter = (function() {
 
   return {
     setAppName: setAppName
-  }
-
+  };
 })();
+

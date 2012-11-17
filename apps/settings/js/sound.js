@@ -21,14 +21,15 @@ var SoundSettings = {
     var lock = window.navigator.mozSettings.createLock();
     var req = lock.get(this.callSettings.key);
     req.onsuccess = function ss_getDialerTone() {
-      self.callSettings.value = req.result[self.callSettings.key] || 'classic.ogg';
+      self.callSettings.value = req.result[self.callSettings.key] ||
+          'classic.ogg';
       self.updateButton(self.callSettings);
     };
     // Listen to touch on tones
     var labels = this.dialog.querySelectorAll('label');
     for (var i = 0; i < labels.length; i++) {
       var label = labels[i];
-      label.onmouseup = function() { 
+      label.onmouseup = function() {
         audioPreview(this);
       };
     }

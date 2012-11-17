@@ -158,7 +158,6 @@ Gaia.webapps.forEach(function(webapp) {
         addToZip(zip, '/' + file.leafName, file);
     });
 
-
   // Put shared files, but copy only files actually used by the webapp.
   // We search for shared file usage by parsing webapp source code.
   let EXTENSIONS_WHITELIST = ['js', 'htm', 'html', 'css'];
@@ -167,8 +166,9 @@ Gaia.webapps.forEach(function(webapp) {
   let used = {
     js: [],              // List of JS file paths to copy
     locales: [],         // List of locale names to copy
+    resources: [],       // List of resources to copy
     styles: [],          // List of stable style names to copy
-    unstable_styles: [], // List of unstable style names to copy
+    unstable_styles: []  // List of unstable style names to copy
   };
 
   let files = ls(webapp.sourceDirectoryFile, true);
@@ -183,7 +183,7 @@ Gaia.webapps.forEach(function(webapp) {
       // Grep files to find shared/* usages
       let content = getFileContent(file);
       while ((matches = SHARED_USAGE.exec(content)) !== null) {
-        let kind = matches[1]; // either `js`, `locales` or `style`
+        let kind = matches[1]; // js | locales | resources | style
         let path = matches[2];
         switch (kind) {
           case 'js':
@@ -194,6 +194,10 @@ Gaia.webapps.forEach(function(webapp) {
             let localeName = path.substr(0, path.lastIndexOf('.'));
             if (used.locales.indexOf(localeName) == -1)
               used.locales.push(localeName);
+            break;
+          case 'resources':
+            if (used.resources.indexOf(path) == -1)
+              used.resources.push(path);
             break;
           case 'style':
             let styleName = path.substr(0, path.lastIndexOf('.'));
@@ -241,6 +245,20 @@ Gaia.webapps.forEach(function(webapp) {
     addToZip(zip, '/shared/locales/' + name + '.ini', ini);
     // And the locale folder itself
     addToZip(zip, '/shared/locales/' + name, localeFolder);
+  });
+
+  used.resources.forEach(function(path) {
+    // Compute the nsIFile for this shared resource file
+    let file = Gaia.sharedFolder.clone();
+    file.append('resources');
+    path.split('/').forEach(function(segment) {
+      file.append(segment);
+    });
+    if (!file.exists()) {
+      throw new Error('Using inexistent shared resource: ' + path + ' from: ' +
+                      webapp.domain);
+    }
+    addToZip(zip, '/shared/resources/' + path, file);
   });
 
   used.styles.forEach(function(name) {

@@ -63,7 +63,7 @@ var PhoneLock = {
       var enable = reqLockscreenEnable.result['lockscreen.enabled'];
       self.phonelockPanel.dataset.lockscreenEnabled = enable;
       self.lockscreenEnable.checked = enable;
-      self.phonelockDesc.textContent = enable ? _('enabled') : _('disabled'); 
+      self.phonelockDesc.textContent = enable ? _('enabled') : _('disabled');
       self.phonelockDesc.dataset.l10nId = enable ? 'enabled' : 'disabled';
     };
 
@@ -85,7 +85,7 @@ var PhoneLock = {
       function onLockscreenEnabledChange(event) {
         var enable = event.settingValue;
         self.phonelockPanel.dataset.lockscreenEnabled = enable;
-        self.phonelockDesc.textContent = enable ? _('enabled') : _('disabled'); 
+        self.phonelockDesc.textContent = enable ? _('enabled') : _('disabled');
         self.phonelockDesc.dataset.l10nId = enable ? 'enabled' : 'disabled';
     });
 
