@@ -177,7 +177,7 @@ onLocalized(function SettingsDateAndTime() {
   var _updateDateTimeout = null;
   var _updateClockTimeout = null;
   var _timezone = null;
-  var _jsonUrl = 'resources/timezones.json';
+  var _jsonUrl = 'shared/resources/timezones.json';
   var _jsonData = [];
 
 

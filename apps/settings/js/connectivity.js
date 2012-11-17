@@ -193,6 +193,7 @@ var gBluetooth = (function(window) {
   var navigator = window.navigator;
   if ('mozBluetooth' in navigator)
     return navigator.mozBluetooth;
+  return null;
 })(this);
 
 

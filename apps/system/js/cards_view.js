@@ -179,7 +179,7 @@ var CardsView = (function() {
       runningApps[displayedApp].frame.blur();
 
     function addCard(origin, app, displayedAppCallback) {
-      // Display card switcher background first to make user focus on the 
+      // Display card switcher background first to make user focus on the
       // frame closing animation without disturbing by homescreen display.
       if (displayedApp == origin && displayedAppCallback) {
         setTimeout(displayedAppCallback);
