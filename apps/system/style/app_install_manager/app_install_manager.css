@@ -1,3 +1,4 @@
+/* dialog */
 #app-install-dialog, #app-install-cancel-dialog {
   display: none;
   position: absolute;
@@ -44,3 +45,40 @@
 #app-install-cancel-dialog small:first-child {
   margin-bottom: 1rem;
 }
+/* ... end of dialog */
+
+/* notification */
+#install-manager-notification-container > .fake-notification {
+  padding: 10px 10px 10px 60px;
+  -moz-box-sizing: border-box;
+
+  background-repeat: no-repeat;
+  background-position: 15px center;
+  background-image: url(images/downloads.png);
+}
+
+#install-manager-notification-container progress {
+  width: 100%;
+  height: 4px;
+
+  border: none;
+}
+
+#install-manager-notification-container progress::-moz-progress-bar {
+  background: #ec860f;
+  border-bottom: 1px solid #b96100;
+  border-top: 2px solid #e67200;
+}
+
+#install-manager-notification-container progress:indeterminate::-moz-progress-bar {
+  background: url(../shared/progress.gif) #f2aa56;
+  border: none;
+}
+
+#install-manager-notification-container .message {
+  line-height: 20px;
+  font-weight: 700;
+  font-size: 1.6rem;
+}
+
+/* ... end of notification */

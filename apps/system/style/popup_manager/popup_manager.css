@@ -38,7 +38,7 @@
 
 #popup-throbber.loading {
   height: 4px;
-  background-image: url('images/progress.gif');
+  background-image: url('../images/progress.gif');
 }
 
 .popup #popup-container > #frame-container,

@@ -189,7 +189,7 @@ var UpdateManager = {
     if (this._downloading) {
       this.container.classList.add('downloading');
       var humanProgress = this._humanizeSize(this._downloadedBytes);
-      this.message.innerHTML = _('downloadingMessage', {
+      this.message.innerHTML = _('downloadingUpdateMessage', {
                                   progress: humanProgress
                                 });
     } else {
@@ -250,9 +250,7 @@ var UpdateManager = {
             self.toaster.classList.remove('displayed');
           }, self.TOASTER_TIMEOUT);
 
-          var initialCount = StatusBar.notificationsCount;
-          StatusBar.updateNotification(initialCount + 1);
-          StatusBar.updateNotificationUnread(true);
+          NotificationScreen.incExternalNotifications();
         }
       }, this.NOTIFICATION_BUFFERING_TIMEOUT);
     }
@@ -269,10 +267,7 @@ var UpdateManager = {
     if (this.updatesQueue.length === 0) {
       this.container.classList.remove('displayed');
 
-      var initialCount = StatusBar.notificationsCount;
-      if (initialCount >= 1) {
-        StatusBar.updateNotification(initialCount - 1);
-      }
+      NotificationScreen.decExternalNotifications();
     }
 
     this.render();
