@@ -66,16 +66,110 @@
       <article id="main-container" class="grid-row">
         <div id="actions-container" class="grid-wrapper grid">
           <div id="swiper-wrapper">
+            <svg id="swiper-curve" xmlns="http://www.w3.org/2000/svg" version="1.1">
+              <defs>
+                <linearGradient id="swiper-curve-gradient">
+                  <stop style="stop-color:#FFFFFF;stop-opacity:1;" offset="0.00" />
+                  <stop style="stop-color:#FFFFFF;stop-opacity:1;" offset="0.07" />
+                  <stop style="stop-color:#ff0000;stop-opacity:1;" offset="0.07" />
+                  <stop style="stop-color:#ff0000;stop-opacity:1;" offset="0.35" />
+                  <stop style="stop-color:#FFFFFF;stop-opacity:1;" offset="0.35" />
+                  <stop style="stop-color:#FFFFFF;stop-opacity:1;" offset="0.65" />
+                  <stop style="stop-color:#00ff00;stop-opacity:1;" offset="0.65" />
+                  <stop style="stop-color:#00ff00;stop-opacity:1;" offset="0.93" />
+                  <stop style="stop-color:#FFFFFF;stop-opacity:1;" offset="0.93" />
+                  <stop style="stop-color:#FFFFFF;stop-opacity:1;" offset="1.00" />
+                </linearGradient>
+                <linearGradient id="gradient-green" y2="0" x2="0" y1="150" x1="0" gradientUnits="userSpaceOnUse" >
+                  <stop style="stop-color:#00ff00;stop-opacity:0" offset="0.2" />
+                  <stop style="stop-color:#00ff1c;stop-opacity:0.5" offset="1" />
+                </linearGradient>
+                <linearGradient id="gradient-red" y2="0" x2="0" y1="150" x1="0" gradientUnits="userSpaceOnUse" >
+                  <stop offset="0.2" style="stop-color:#ff0000;stop-opacity:0" />
+                  <stop offset="1" style="stop-color:#ff0000;stop-opacity:0.5" />
+                </linearGradient>
+                <clipPath clipPathUnits="userSpaceOnUse" id="clip-pickup">
+                  <rect style="fill:#000000;fill-opacity:1;stroke:none" width="89" height="130" x="207" y="0" />
+                </clipPath>
+                <clipPath clipPathUnits="userSpaceOnUse" id="clip-hangup">
+                  <rect style="fill:#000000;fill-opacity:1;stroke:none" width="89" height="130" x="23" y="0" />
+                </clipPath>
+
+                <animate id="swiper-curve-prompt-animation" class="swiper-prompt-animation" attributeType="XML" attributeName="d" dur="2s" calcMode="spline"
+                  begin="indefinite" keySplines="0 .50 .50 1; .50 0 1 .50;0 .50 .50 1; .50 0 1 .50;"
+                  values="M0,80 C100,150 220,150 320,80;
+                          M0,80 C100,40 220,40 320,80; M0,80 C100,150 220,150 320,80;
+                          M0,80 C100,100 220,100 320,80; M0,80 C100,150 220,150 320,80" />
+                <animate id="swiper-spotlight-prompt-animation" class="swiper-prompt-animation"
+                  attributeType="XML" attributeName="d" dur="2s" calcMode="spline"
+                  begin="indefinite" keySplines="0 .50 .50 1; .50 0 1 .50;0 .50 .50 1; .50 0 1 .50;"
+                  values="M0,80 C100,150 220,150 320,80 V 150 H 0 Z;
+                          M0,80 C100,40 220,40 320,80 V 150 H 0 Z; M0,80 C100,150 220,150 320,80 V 150 H 0 Z;
+                          M0,80 C100,100 220,100 320,80 V 150 H 0 Z; M0,80 C100,150 220,150 320,80 V 150 H 0 Z" />
+              </defs>
+              <image id="swiper-area-handle" x="150" y="100" width="20" height="9"
+                xlink:href="style/images/handle.png">
+                <animate class="swiper-start-animation" attributeType="XML" attributeName="y" begin="indefinite" dur="0.2s" to="100" />
+                <animate class="swiper-start-animation" attributeType="XML" attributeName="opacity" begin="indefinite" dur="0.5s" to="1" />
+                <animate class="swiper-end-animation" attributeType="XML" attributeName="y" begin="indefinite" dur="0.2s" to="0" />
+                <animate class="swiper-end-animation" attributeType="XML" attributeName="opacity" begin="indefinite" dur="0.5s" to="0" />
+                <animate class="swiper-prompt-animation" attributeType="XML" attributeName="y" dur="2s" calcMode="spline"
+                    begin="indefinite" keySplines="0 .50 .50 1; .50 0 1 .50; 0 .50 .50 1; .50 0 1 .50"
+                    values="100; 0; 120; 80; 100" />
+              </image>
+              <path fill="none" id="swiper-curvepath" stroke-width="1" stroke="url(#swiper-curve-gradient)"
+                d="M0,80 C100,150 220,150 320,80">
+                <animate class="swiper-start-animation" attributeType="XML" attributeName="d" begin="indefinite" dur="0.2s" to="M0,80 C100,150 220,150 320,80" />
+                <animate class="swiper-start-animation" attributeType="XML" attributeName="stroke-opacity" begin="indefinite" dur="0.2s" to="1.0" />
+                <animate class="swiper-end-animation" attributeType="XML" attributeName="d" begin="indefinite" dur="0.5s" to="M0,80 C100,-20 220,-20 320,80" />
+                <animate class="swiper-end-animation" attributeType="XML" attributeName="stroke-opacity" begin="indefinite" dur="0.5s" to="0" />
+                <animate id="swiper-curve-prompt-animation" class="swiper-prompt-animation"
+                  attributeType="XML" attributeName="d" dur="2s" calcMode="spline"
+                  begin="indefinite" keySplines="0 .50 .50 1; .50 0 1 .50;0 .50 .50 1; .50 0 1 .50;"
+                  values="M0,80 C100,150 220,150 320,80;
+                          M0,80 C100,40 220,40 320,80; M0,80 C100,150 220,150 320,80;
+                          M0,80 C100,100 220,100 320,80; M0,80 C100,150 220,150 320,80" />
+              </path>
+              <path id="swiper-hangup-mask" style="fill: url(#gradient-red);" id="swiper-curvepath-red" stroke="none"
+                clip-path="url(#clip-hangup)"
+                d="M0,80 C100,150 220,150 320,80 V 150 H 0 Z">
+                <animate class="swiper-start-animation" attributeType="XML" attributeName="d" begin="indefinite" dur="0.2s" to="M0,80 C100,150 220,150 320,80  V 150 H 0 Z" />
+                <animate class="swiper-start-animation" attributeType="XML" attributeName="fill-opacity" begin="indefinite" dur="0.2s" to="1.0" />
+                <animate class="swiper-end-animation" attributeType="XML" attributeName="d" begin="indefinite" dur="0.5s" to="M0,80 C100,-20 220,-20 320,80 V 150 H 0 Z" />
+                <animate class="swiper-end-animation" attributeType="XML" attributeName="fill-opacity" begin="indefinite" dur="0.5s" to="0" />
+                <animate id="swiper-spotlight-prompt-animation" class="swiper-prompt-animation"
+                  attributeType="XML" attributeName="d" dur="2s" calcMode="spline"
+                  begin="indefinite" keySplines="0 .50 .50 1; .50 0 1 .50;0 .50 .50 1; .50 0 1 .50;"
+                  values="M0,80 C100,150 220,150 320,80 V 150 H 0 Z;
+                          M0,80 C100,40 220,40 320,80 V 150 H 0 Z; M0,80 C100,150 220,150 320,80 V 150 H 0 Z;
+                          M0,80 C100,100 220,100 320,80 V 150 H 0 Z; M0,80 C100,150 220,150 320,80 V 150 H 0 Z" />
+              </path>
+              <path id="swiper-pickup-mask" style="fill: url(#gradient-green);" id="swiper-curvepath-green" stroke="none"
+                clip-path="url(#clip-pickup)"
+                d="M0,80 C100,150 220,150 320,80 V 150 H 0 Z">
+                <!-- <use> tag in SVG doesn't support <animate> for reuse
+                     so we need to copy animations from swiper-hangup-mask. -->
+                <animate class="swiper-start-animation" attributeType="XML" attributeName="d" begin="indefinite" dur="0.2s" to="M0,80 C100,150 220,150 320,80  V 150 H 0 Z" />
+                <animate class="swiper-start-animation" attributeType="XML" attributeName="fill-opacity" begin="indefinite" dur="0.2s" to="1.0" />
+                <animate class="swiper-end-animation" attributeType="XML" attributeName="d" begin="indefinite" dur="0.5s" to="M0,80 C100,-20 220,-20 320,80 V 150 H 0 Z" />
+                <animate class="swiper-end-animation" attributeType="XML" attributeName="fill-opacity" begin="indefinite" dur="0.5s" to="0" />
+                <animate id="swiper-spotlight-prompt-animation" class="swiper-prompt-animation"
+                  attributeType="XML" attributeName="d" dur="2s" calcMode="spline"
+                  begin="indefinite" keySplines="0 .50 .50 1; .50 0 1 .50;0 .50 .50 1; .50 0 1 .50;"
+                  values="M0,80 C100,150 220,150 320,80 V 150 H 0 Z;
+                          M0,80 C100,40 220,40 320,80 V 150 H 0 Z; M0,80 C100,150 220,150 320,80 V 150 H 0 Z;
+                                          M0,80 C100,100 220,100 320,80 V 150 H 0 Z; M0,80 C100,150 220,150 320,80 V 150 H 0 Z" />
+              </path>
+            </svg>
             <div id="swiper-area"></div>
-            <div id="swiper-area-hangup" class="swiper-icon swiper-icon-left">
-              <div id="swiper-accessibility-hangup" role="button" class="swiper-icon-a11y-button" data-l10n-id="camera-a11y-button" aria-label="Hangup"></div>
+            <div id="swiper-icon-container">
+              <button id="swiper-area-hangup" class="swiper-icon swiper-icon-left">
+                <div id="swiper-accessibility-hangup" role="button" class="swiper-icon-a11y-button" data-l10n-id="camera-a11y-button" aria-label="Hangup"></div>
+              </button>
+              <button id="swiper-area-pickup" class="swiper-icon swiper-icon-right">
+                <div id="swiper-accessibility-pickup" role="button" class="swiper-icon-a11y-button" data-l10n-id="unlock-a11y-button" aria-label="Pickup"></div>
+              </button>
             </div>
-            <div id="swiper-area-pickup" class="swiper-icon swiper-icon-right">
-              <div id="swiper-accessibility-pickup" role="button" class="swiper-icon-a11y-button" data-l10n-id="unlock-a11y-button" aria-label="Pickup"></div>
-            </div>
-            <div id="swiper-rail-left" class="swiper-rail"></div>
-            <div id="swiper-rail-right" class="swiper-rail"></div>
-            <div id="swiper-area-handle"></div>
           </div>
           <footer id="call-options" class="grid-row">
             <div class="grid-wrapper grid">
