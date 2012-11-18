@@ -10,7 +10,7 @@
 //    exif:      /* for jpeg images an object of additional EXIF data */
 // }
 //
-var metadataParser = (function() {
+var metadataParsers = (function() {
   // If we generate our own thumbnails, aim for this size
   var THUMBNAIL_WIDTH = 120;
   var THUMBNAIL_HEIGHT = 120;
@@ -19,52 +19,81 @@ var metadataParser = (function() {
   // it if its compressed size is larger than this.
   var MAX_EXIF_THUMBNAIL_SIZE = 16 * 1024;
 
-  // To save memory (because of gecko bugs) we want to create only one
-  // offscreen image and reuse it.
+  // <img> and <video> elements for loading images and videos
   var offscreenImage = new Image();
+  var offscreenVideo = document.createElement('video');
 
-  // Parsing metadata is memory-intensive.  Make sure we only do
-  // one at a time
-  var queue = [];     // Store
-  var busy = false;
+  // Create a thumbnail size canvas, copy the <img> or <video> into it
+  // cropping the edges as needed to make it fit, and then extract the
+  // thumbnail image as a blob and pass it to the callback.
+  // This utility function is used by both the image and video metadata parsers
+  function createThumbnailFromElement(elt, video, callback) {
+    // Create a thumbnail image
+    var canvas = document.createElement('canvas');
+    var context = canvas.getContext('2d');
+    canvas.width = THUMBNAIL_WIDTH;
+    canvas.height = THUMBNAIL_HEIGHT;
+    var eltwidth = video ? elt.videoWidth : elt.width;
+    var eltheight = video ? elt.videoHeight : elt.height;
+    var scalex = canvas.width / eltwidth;
+    var scaley = canvas.height / eltheight;
 
-  // This is the main entry point function that we return below
-  function metadataParser(file, callback, errback) {
-    queue.push({file: file, callback: callback, errback: errback});
-    if (!busy)
-      processQueue();
+    // Take the larger of the two scales: we crop the image to the thumbnail
+    var scale = Math.max(scalex, scaley);
+
+    // Calculate the region of the image that will be copied to the
+    // canvas to create the thumbnail
+    var w = Math.round(THUMBNAIL_WIDTH / scale);
+    var h = Math.round(THUMBNAIL_HEIGHT / scale);
+    var x = Math.round((eltwidth - w) / 2);
+    var y = Math.round((eltheight - h) / 2);
+
+    // Draw that region of the image into the canvas, scaling it down
+    context.drawImage(elt, x, y, w, h,
+                      0, 0, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
+
+    // If this is a video, superimpose a translucent play button over
+    // the captured video frame to distinguish it from a still photo thumbnail
+    if (video) {
+      // First draw a transparent gray circle
+      context.fillStyle = 'rgba(0, 0, 0, .2)';
+      context.beginPath();
+      context.arc(THUMBNAIL_WIDTH / 2, THUMBNAIL_HEIGHT / 2,
+                  THUMBNAIL_HEIGHT / 5, 0, 2 * Math.PI, false);
+      context.fill();
+
+      // Now outline the circle in white
+      context.strokeStyle = 'rgba(255,255,255,.6)';
+      context.lineWidth = 2;
+      context.stroke();
+
+      // And add a white play arrow.
+      context.beginPath();
+      context.fillStyle = 'rgba(255,255,255,.6)';
+      // The height of an equilateral triangle is sqrt(3)/2 times the side
+      var side = THUMBNAIL_HEIGHT / 5;
+      var triangle_height = side * Math.sqrt(3) / 2;
+      context.moveTo(THUMBNAIL_WIDTH / 2 + triangle_height * 2 / 3,
+                     THUMBNAIL_HEIGHT / 2);
+      context.lineTo(THUMBNAIL_WIDTH / 2 - triangle_height / 3,
+                     THUMBNAIL_HEIGHT / 2 - side / 2);
+      context.lineTo(THUMBNAIL_WIDTH / 2 - triangle_height / 3,
+                     THUMBNAIL_HEIGHT / 2 + side / 2);
+      context.closePath();
+      context.fill();
+    }
+
+    canvas.toBlob(function(blob) {
+      // This setTimeout is here in the hopes that it gives gecko a bit
+      // of time to release the memory that holds the decoded image before
+      // we start creating the next thumbnail.
+      setTimeout(function() {
+        callback(blob);
+      });
+    }, 'image/jpeg');
   }
 
-  // If we're not currently running, get the first entry in the queue
-  // and parse metadata for it
-  function processQueue() {
-    if (queue.length === 0) {
-      busy = false;
-      return;
-    }
-
-    busy = true;
-    var entry = queue.shift();  // get first element off queue
-    try {
-      parseMetadata(entry.file,
-                    function(m) {
-                      entry.callback(m);
-                      processQueue();
-                    },
-                    function(s) {
-                      if (entry.errback)
-                        entry.errback(s);
-                      processQueue();
-                    });
-    }
-    catch (e) {
-      // Don't allow unhandled exceptions to mess up our queue handling
-      entry.errback(e.toString());
-      processQueue();
-    }
-  }
-
-  function parseMetadata(file, callback, errback) {
+  function imageMetadataParser(file, callback, errback) {
     if (file.type === 'image/jpeg') {
       // For jpeg images, we can read metadata right out of the file
       parseJPEGMetadata(file, function(data) {
@@ -102,7 +131,6 @@ var metadataParser = (function() {
   // the metadata object if they are not already there, and then pass
   // the complete metadata object to the callback function
   function parseImageMetadata(file, metadata, callback, errback) {
-    console.log('fallback parsing metadata for', file.name);
     if (!errback) {
       errback = function(e) {
         console.error('ImageMetadata ', String(e));
@@ -135,19 +163,9 @@ var metadataParser = (function() {
         return;
       }
 
-      // Create a thumbnail image
-      var canvas = document.createElement('canvas');
-      var context = canvas.getContext('2d');
-      canvas.width = THUMBNAIL_WIDTH;
-      canvas.height = THUMBNAIL_HEIGHT;
-      var scalex = canvas.width / offscreenImage.width;
-      var scaley = canvas.height / offscreenImage.height;
-
-      // Take the larger of the two scales: we crop the image to the thumbnail
-      var scale = Math.max(scalex, scaley);
-
       // If the image was already thumbnail size, it is its own thumbnail
-      if (scale >= 1) {
+      if (metadata.width <= THUMBNAIL_WIDTH &&
+          metadata.height <= THUMBNAIL_HEIGHT) {
         offscreenImage.src = null;
         //
         // XXX
@@ -161,39 +179,21 @@ var metadataParser = (function() {
         return;
       }
 
-      // Calculate the region of the image that will be copied to the
-      // canvas to create the thumbnail
-      var w = Math.round(THUMBNAIL_WIDTH / scale);
-      var h = Math.round(THUMBNAIL_HEIGHT / scale);
-      var x = Math.round((offscreenImage.width - w) / 2);
-      var y = Math.round((offscreenImage.height - h) / 2);
-
-      // Draw that region of the image into the canvas, scaling it down
-      context.drawImage(offscreenImage, x, y, w, h,
-                        0, 0, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
-
-      canvas.toBlob(function(blob) {
-        // We're done with the image now
-        offscreenImage.src = null;
-
-        // This setTimeout is here in the hopes that it gives gecko a bit
-        // of time to release the memory that holds the decoded image before
-        // we start creating the next thumbnail.
-        setTimeout(function() {
-          metadata.thumbnail = blob;
-          callback(metadata);
-        });
-      }, 'image/jpeg');
-    };
+      createThumbnailFromElement(offscreenImage, false,
+                                 function(thumbnail) {
+                                   metadata.thumbnail = thumbnail;
+                                   offscreenImage.src = null;
+                                   callback(metadata);
+                                 });
+    }
   }
+
 
 
   // Asynchronously read a JPEG Blob (or File), extract its metadata,
   // and pass an object containing selected portions of that metadata
   // to the specified callback function.
   function parseJPEGMetadata(file, callback, errback) {
-    console.log('parsing jpeg metadata for', file.name);
-
     var currentSegmentOffset = 0;
     var currentSegmentLength = 0;
     var nextSegmentOffset = 0; // First JPEG segment is SOI
@@ -317,8 +317,6 @@ var metadataParser = (function() {
           var start = currentSegmentOffset + 10 + metadata.exif.THUMBNAIL;
           var end = start + metadata.exif.THUMBNAILLENGTH;
           metadata.thumbnail = file.slice(start, end, 'image/jpeg');
-          console.log('Found thumbnail in metadata for', file.name,
-                      metadata.thumbnail.size);
           delete metadata.exif.THUMBNAIL;
           delete metadata.exif.THUMBNAILLENGTH;
         }
@@ -501,5 +499,57 @@ var metadataParser = (function() {
     }
   }
 
-  return metadataParser;
+  function videoMetadataParser(file, metadataCallback, errorCallback) {
+    try {
+      if (file.type && !offscreenVideo.canPlayType(file.type)) {
+        errorCallback("can't play video file type: " + file.type);
+        return;
+      }
+
+      var url = URL.createObjectURL(file);
+
+      offscreenVideo.preload = 'metadata';
+      offscreenVideo.style.width = THUMBNAIL_WIDTH + 'px';
+      offscreenVideo.style.height = THUMBNAIL_HEIGHT + 'px';
+      offscreenVideo.src = url;
+
+      offscreenVideo.onerror = function() {
+        URL.revokeObjectURL(url);
+        offscreenVideo.onerror = null;
+        offscreenVideo.src = null;
+        errorCallback('not a video file');
+      }
+
+      offscreenVideo.onloadedmetadata = function() {
+        var metadata = {};
+        metadata.video = true;
+        metadata.duration = offscreenVideo.duration;
+        metadata.width = offscreenVideo.videoWidth;
+        metadata.height = offscreenVideo.videoHeight;
+
+        offscreenVideo.currentTime = 1; // read 1 second into video
+        offscreenVideo.onseeked = function() {
+          createThumbnailFromElement(offscreenVideo, true,
+                                     function(thumbnail) {
+                                       URL.revokeObjectURL(url);
+                                       offscreenVideo.onerror = null;
+                                       offscreenVideo.onseeked = null;
+                                       offscreenVideo.src = null;
+                                       metadata.thumbnail = thumbnail;
+                                       metadataCallback(metadata);
+                                     });
+        };
+      };
+    }
+    catch (e) {
+      console.error('Exception in videoMetadataParser', e, e.stack);
+      errorCallback('Exception in videoMetadataParser');
+    }
+  }
+
+  return {
+    imageMetadataParser: imageMetadataParser,
+    videoMetadataParser: videoMetadataParser
+  };
 }());
+
