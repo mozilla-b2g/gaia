@@ -322,7 +322,9 @@ var Camera = {
     var captureButton = this.captureButton;
     var switchButton = this.switchButton;
 
-    var onerror = function() handleError('error-recording');
+    var onerror = function() {
+      handleError('error-recording');
+    }
     var onsuccess = (function onsuccess() {
       document.body.classList.add('capturing');
       captureButton.removeAttribute('disabled');
@@ -336,7 +338,8 @@ var Camera = {
 
     var handleError = (function handleError(id) {
       this.enableButtons();
-      this.showOverlay(id);
+      alert(navigator.mozL10n.get(id + '-title') + '. ' +
+            navigator.mozL10n.get(id + '-text'));
     }).bind(this);
 
     this.disableButtons();
@@ -369,7 +372,9 @@ var Camera = {
         // Determine the number of bytes available on disk.
         var stat = this._videoStorage.stat();
         stat.onerror = onerror;
-        stat.onsuccess = function() startRecording(stat.result.freeBytes);
+        stat.onsuccess = function() {
+          startRecording(stat.result.freeBytes);
+        }
       }).bind(this);
     }).bind(this));
   },
@@ -800,7 +805,8 @@ var Camera = {
       }).bind(this);
 
       addreq.onerror = function() {
-        alert(navigator.mozL10n.get('error-saving-text'));
+        alert(navigator.mozL10n.get('error-saving-title') + '. ' +
+              navigator.mozL10n.get('error-saving-text'));
       };
     }).bind(this));
   },
