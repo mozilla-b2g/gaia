@@ -12,8 +12,13 @@
 
     <div id="throbber"><div></div></div>
 
+    <menu type="context" id="thumbnail-menu">
+      <menuitem label="Delete Video" data-l10n-id="delete-video"
+                onClick="deleteSelectedVideoFile()"></menuitem>
+    </menu>
+
     <!-- title bar + thumbnail list -->
-    <ul id="thumbnails"></ul>
+    <ul id="thumbnails" contextmenu="thumbnail-menu"></ul>
 
     <!-- 'fullscreen' (maximized) video player -->
     <div id="videoFrame" class="hidden">
@@ -25,6 +30,11 @@
 
           <header>
             <a href="#" id="close"><span class="icon icon-back">back</span></a>
+            <menu type="toolbar">
+              <button id="delete-video-button" class="hidden">
+                <span class="icon icon-delete"></span>
+              </button>
+            </menu>
             <h1 id="video-title"></h1>
           </header>
 
