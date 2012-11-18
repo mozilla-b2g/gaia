@@ -6,7 +6,7 @@ var ids = ['player', 'thumbnails', 'overlay', 'overlay-title',
            'overlay-text', 'videoControls', 'videoFrame', 'videoBar',
            'close', 'play', 'playHead', 'timeSlider', 'elapsedTime',
            'video-title', 'duration-text', 'elapsed-text', 'bufferedTime',
-           'slider-wrapper', 'throbber'];
+           'slider-wrapper', 'throbber', 'delete-video-button'];
 
 ids.forEach(function createElementRef(name) {
   dom[toCamelCase(name)] = document.getElementById(name);
@@ -17,6 +17,8 @@ var playing = false;
 // if this is true then the video tag is showing
 // if false, then the gallery is showing
 var playerShowing = false;
+var ctxTriggered = false;
+var selectedVideo;
 
 // keep the screen on when playing
 var screenLock;
@@ -27,7 +29,7 @@ var controlShowing = false;
 var controlFadeTimeout = null;
 
 var videodb;
-var currentVideo;  // The data for the current video
+var currentVideo;  // The data for the currently playing video
 var videoCount = 0;
 var firstScanEnded = false;
 
@@ -78,16 +80,16 @@ function init() {
   };
 
   videodb.oncreated = function(event) {
-    event.detail.forEach(addVideo);
+    event.detail.forEach(videoAdded);
   };
   videodb.ondeleted = function(event) {
-    event.detail.forEach(deleteVideo);
+    event.detail.forEach(videoDeleted);
   };
 
   appStarted = true;
 }
 
-function addVideo(videodata) {
+function videoAdded(videodata) {
   var poster;
 
   if (!videodata || !videodata.metadata.isVideo) {
@@ -131,25 +133,52 @@ function addVideo(videodata) {
   thumbnail.appendChild(hr);
 
   thumbnail.addEventListener('click', function(e) {
-    showPlayer(videodata, true);
+    selectedVideo = videodata.name;
+  });
+
+  thumbnail.addEventListener('click', function(e) {
+    if (!ctxTriggered) {
+      showPlayer(videodata, true);
+    } else {
+      ctxTriggered = false;
+    }
   });
 
   dom.thumbnails.appendChild(thumbnail);
 }
 
-function deleteVideo(filename) {
+dom.thumbnails.addEventListener('contextmenu', function() {
+  ctxTriggered = true;
+});
+
+function deleteSelectedVideoFile() {
+  if (selectedVideo) {
+    deleteFile(selectedVideo);
+    selectedVideo = null;
+  }
+}
+
+function deleteFile(file) {
+  var msg = navigator.mozL10n.get('confirm-delete');
+  if (confirm(msg + ' ' + file)) {
+    videodb.deleteFile(file);
+    selectedVideo = null;
+  }
+}
+
+function videoDeleted(filename) {
   videoCount -= 1;
   dom.thumbnails.removeChild(getThumbnailDom(filename));
 }
 
 // Only called on startup to generate initial list of already
-// scanned media, once this is build add/deleteVideo are used
+// scanned media, once this is build videoDeleted/Added are used
 // to keep it up to date
 function createThumbnailList() {
   if (dom.thumbnails.firstChild !== null) {
     dom.thumbnails.textContent = '';
   }
-  videodb.enumerate('date', null, 'prev', addVideo);
+  videodb.enumerate('date', null, 'prev', videoAdded);
 }
 
 function updateDialog() {
@@ -305,6 +334,9 @@ function playerMousedown(event) {
     document.mozCancelFullScreen();
   } else if (event.target == dom.sliderWrapper) {
     dragSlider(event);
+  } else if (event.target == dom.deleteVideoButton) {
+    document.mozCancelFullScreen();
+    deleteFile(currentVideo.name);
   } else {
     setControlsVisibility(false);
   }
@@ -376,6 +408,10 @@ function showPlayer(data, autoPlay) {
     playerShowing = true;
     setPlayerSize(dom.player.videoWidth, dom.player.videoHeight);
 
+    if ('name' in currentVideo && /^DCIM/.test(currentVideo.name)) {
+      dom.deleteVideoButton.classList.remove('hidden');
+    }
+
     if ('metadata' in currentVideo) {
       if (currentVideo.metadata.currentTime === dom.player.duration) {
         currentVideo.metadata.currentTime = 0;
@@ -400,6 +436,7 @@ function hidePlayer() {
     return;
 
   dom.player.pause();
+  dom.deleteVideoButton.classList.add('hidden');
 
   function completeHidingPlayer() {
     // switch to the video gallery view
