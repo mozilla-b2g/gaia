@@ -5,27 +5,38 @@
 var steps = {
   1: {
     onlyForward: true,
-    hash: '#languages'
+    hash: '#languages',
+    requireSIM: false
   },
   2: {
     onlyForward: false,
-    hash: '#wifi'
+    hash: '#data_3g',
+    requireSIM: true
   },
   3: {
     onlyForward: false,
-    hash: '#date_and_time'
+    hash: '#wifi',
+    requireSIM: false
   },
   4: {
     onlyForward: false,
-    hash: '#import_contacts'
+    hash: '#date_and_time',
+    requireSIM: false
   },
   5: {
     onlyForward: false,
-    hash: '#welcome_firefox'
+    hash: '#import_contacts',
+    requireSIM: false
   },
   6: {
     onlyForward: false,
-    hash: '#firefox_privacy'
+    hash: '#welcome_firefox',
+    requireSIM: false
+  },
+  7: {
+    onlyForward: false,
+    hash: '#firefox_privacy',
+    requireSIM: false
   }
 };
 
@@ -47,28 +58,55 @@ var Navigation = {
       UIManager.navBar.classList.remove('back-only');
       window.history.back();
     } else {
-      this.currentStep--;
-      this.manageStep();
+      var self = this;
+      var goToStep = function() {
+        self.currentStep--;
+        if (self.currentStep > 0) {
+          var followingStep = steps[self.currentStep];
+          if (followingStep.requireSIM && !AppManager.thereIsSIM) {
+            goToStep();
+          } else {
+            self.manageStep();
+          }
+        }
+      };
+      goToStep();
     }
   },
   forward: function n_forward(event) {
-    this.currentStep++;
-    if (this.currentStep > numSteps) {
-      UIManager.activationScreen.classList.remove('show');
-      UIManager.finishScreen.classList.add('show');
-      return;
-    }
-    this.manageStep();
+    var self = this;
+    var goToStepForward = function() {
+      self.currentStep++;
+      if (self.currentStep > numSteps) {
+        UIManager.activationScreen.classList.remove('show');
+        UIManager.finishScreen.classList.add('show');
+        return;
+      }
+      var followingStep = steps[self.currentStep];
+      if (followingStep.requireSIM && !AppManager.thereIsSIM) {
+        goToStepForward();
+      } else {
+        self.manageStep();
+      }
+    };
+    goToStepForward();
+
   },
   handleEvent: function n_handleEvent(event) {
     switch (window.location.hash) {
       case '#languages':
         UIManager.progressBar.className = 'step-state step-1';
         UIManager.mainTitle.innerHTML = _('language');
+        break;
+      case '#data_3g':
+        UIManager.progressBar.className = 'step-state step-2';
+        UIManager.mainTitle.innerHTML = _('3g');
+        DataMobile.
+          getStatus(UIManager.updateDataConnectionStatus.bind(UIManager));
         UIManager.activationScreen.classList.add('no-options');
         break;
       case '#wifi':
-        UIManager.progressBar.className = 'step-state step-2';
+        UIManager.progressBar.className = 'step-state step-3';
         UIManager.mainTitle.innerHTML = _('wifi');
         UIManager.activationScreen.classList.remove('no-options');
         if (UIManager.navBar.classList.contains('secondary-menu')) {
@@ -79,30 +117,38 @@ var Navigation = {
         WifiManager.scan(UIManager.renderNetworks);
         break;
       case '#date_and_time':
-        UIManager.progressBar.className = 'step-state step-3';
+        UIManager.progressBar.className = 'step-state step-4';
         UIManager.mainTitle.innerHTML = _('dateAndTime');
         UIManager.activationScreen.classList.add('no-options');
         break;
       case '#import_contacts':
-        UIManager.progressBar.className = 'step-state step-4';
+        UIManager.progressBar.className = 'step-state step-5';
         UIManager.mainTitle.innerHTML = _('importContacts');
         var fbOption = document.getElementById('fb_import');
-        if (WifiManager.isConnected) {
+        var simOption = document.getElementById('sim_import');
+        // If there is SIM we activate import from SIM
+        if (AppManager.thereIsSIM) {
+          simOption.classList.remove('disabled');
+        } else {
+          simOption.classList.add('disabled');
+        }
+        // If we have 3G or Wifi activate FB import
+        if (WifiManager.isConnected || DataMobile.isDataAvailable) {
           fbOption.classList.remove('disabled');
         } else {
           fbOption.classList.add('disabled');
         }
         break;
       case '#welcome_firefox':
-        UIManager.progressBar.className = 'step-state step-5';
+        UIManager.progressBar.className = 'step-state step-6';
         UIManager.mainTitle.innerHTML = _('firefoxPrivacyChoices');
         break;
       case '#about-your-rights':
-        UIManager.progressBar.className = 'step-state step-5';
+        UIManager.progressBar.className = 'step-state step-6';
         UIManager.navBar.classList.add('back-only');
         break;
       case '#about-your-privacy':
-        UIManager.progressBar.className = 'step-state step-5';
+        UIManager.progressBar.className = 'step-state step-6';
         UIManager.navBar.classList.add('back-only');
         break;
       default:
