@@ -89,15 +89,6 @@ var ScreenManager = {
       self.setIdleTimeout(self._idleTimeout);
 
       if (!self._firstOn) {
-        (function handleInitlogo() {
-          var initlogo = document.getElementById('initlogo');
-          initlogo.classList.add('hide');
-          initlogo.addEventListener('transitionend', function delInitlogo() {
-            initlogo.removeEventListener('transitionend', delInitlogo);
-            initlogo.parentNode.removeChild(initlogo);
-          });
-        })();
-
         self._firstOn = true;
 
         // During boot up, the brightness was set by bootloader as 0.5,
