@@ -825,6 +825,7 @@ function MailFolder(api, wireRep) {
    *   @case['archive']
    *   @case['junk']
    *   @case['starred']
+   *   @case['important']
    *   @case['normal']{
    *     A traditional mail folder with nothing special about it.
    *   }
@@ -11801,6 +11802,7 @@ const FOLDER_TYPE_TO_SORT_PRIORITY = {
   account: 'a',
   inbox: 'c',
   starred: 'e',
+  important: 'f',
   drafts: 'g',
   queue: 'h',
   sent: 'i',
@@ -13428,9 +13430,9 @@ else {
  *
  * Explanation of most recent bump:
  *
- * Bumping to 14 because we now support (require, really) HTML in ActiveSync
+ * Bumping to 15 because IMAP folder names were not properly mutf-7 decoded.
  */
-const CUR_VERSION = exports.CUR_VERSION = 14;
+const CUR_VERSION = exports.CUR_VERSION = 15;
 
 /**
  * What is the lowest database version that we are capable of performing a
@@ -16111,6 +16113,41 @@ function parseImapDate(dstr) {
 }
 
 /**
+ * Modified utf-7 detecting regexp for use by `decodeModifiedUtf7`.
+ */
+const RE_MUTF7 = /&([^-]*)-/g,
+      RE_COMMA = /,/g;
+/**
+ * Decode the modified utf-7 representation used to encode mailbox names to
+ * lovely unicode.
+ *
+ * Notes:
+ * - '&' enters mutf-7 mode, '-' exits it (and exiting is required!), but '&-'
+ *    encodes a '&' rather than * a zero-length string.
+ * - ',' is used instead of '/' for the base64 encoding
+ *
+ * Learn all about it at:
+ * https://tools.ietf.org/html/rfc3501#section-5.1.3
+ */
+function decodeModifiedUtf7(encoded) {
+  return encoded.replace(
+    RE_MUTF7,
+    function replacer(fullMatch, b64data) {
+      // &- encodes &
+      if (!b64data.length)
+        return '&';
+      // we use a funky base64 where ',' is used instead of '/'...
+      b64data = b64data.replace(RE_COMMA, '/');
+      // The base-64 encoded utf-16 gets converted into a buffer holding the
+      // utf-16 encoded bits.
+      var u16data = new Buffer(b64data, 'base64');
+      // and this actually decodes the utf-16 into a JS string.
+      return u16data.toString('utf-16be');
+    });
+}
+exports.decodeModifiedUtf7 = decodeModifiedUtf7;
+
+/**
  * Parses IMAP date-times into UTC timestamps.  IMAP date-times are
  * "DD-Mon-YYYY HH:MM:SS +ZZZZ"
  */
@@ -16548,7 +16585,9 @@ ImapConnection.prototype.connect = function(loginCb) {
             if (self._state.requests[0].args.length === 0)
               self._state.requests[0].args.push({});
             result = /^\((.*)\) (.+?) "?([^"]+)"?$/.exec(data[2]);
+
             var box = {
+                  displayName: null,
                   attribs: result[1].split(' ').map(function(attrib) {
                              return attrib.substr(1).toUpperCase();
                            }),
@@ -16556,7 +16595,9 @@ ImapConnection.prototype.connect = function(loginCb) {
                           ? false : result[2].substring(1, result[2].length-1)),
                   children: null,
                   parent: null
-                }, name = result[3], curChildren = self._state.requests[0].args[0];
+                },
+                name = result[3],
+                curChildren = self._state.requests[0].args[0];
             if (name[0] === '"' && name[name.length-1] === '"')
               name = name.substring(1, name.length - 1);
 
@@ -16572,8 +16613,10 @@ ImapConnection.prototype.connect = function(loginCb) {
                 parent = curChildren[path[i]];
                 curChildren = curChildren[path[i]].children;
               }
+
               box.parent = parent;
             }
+            box.displayName = decodeModifiedUtf7(name);
             if (!curChildren[name])
               curChildren[name] = box;
           }
@@ -26283,7 +26326,7 @@ exports.chewHeaderAndBodyStructure = function chewStructure(msg) {
    * Sizes are the size of the encoded string, not the decoded value.
    */
   function estimatePartSizeInBytes(partInfo) {
-    var encoding = partInfo.encoding;
+    var encoding = partInfo.encoding.toLowerCase();
     // Base64 encodes 3 bytes in 4 characters with padding that always
     // causes the encoding to take 4 characters.  The max encoded line length
     // (ignoring CRLF) is 76 bytes, with 72 bytes also fairly common.
@@ -26318,7 +26361,7 @@ exports.chewHeaderAndBodyStructure = function chewStructure(msg) {
 
     // - Start from explicit disposition, make attachment if non-displayable
     if (partInfo.disposition)
-      disposition = partInfo.disposition.type;
+      disposition = partInfo.disposition.type.toLowerCase();
     // UNTUNED-HEURISTIC (need test cases)
     // Parts with content ID's explicitly want to be referenced by the message
     // and so are inline.  (Although we might do well to check if they actually
@@ -29311,6 +29354,10 @@ ImapAccount.prototype = {
     return '[ImapAccount: ' + this.id + ']';
   },
 
+  get isGmail() {
+    return this.meta.capability.indexOf('X-GM-EXT-1') !== -1;
+  },
+
   /**
    * Make a given folder known to us, creating state tracking instances, etc.
    */
@@ -29805,6 +29852,9 @@ ImapAccount.prototype = {
           case 'FLAGGED': // special-use
             type = 'starred';
             break;
+          case 'IMPORTANT': // (undocumented) xlist
+            type = 'important';
+            break;
           case 'INBOX': // xlist
             type = 'inbox';
             break;
@@ -29892,24 +29942,31 @@ ImapAccount.prototype = {
     // - walk the boxes
     function walkBoxes(boxLevel, pathSoFar, pathDepth) {
       for (var boxName in boxLevel) {
-        var box = boxLevel[boxName],
+        var box = boxLevel[boxName], meta,
             path = pathSoFar ? (pathSoFar + boxName) : boxName;
+
+        // - normalize jerk-moves
+        var type = self._determineFolderType(box, path);
+        // gmail finds it amusing to give us the localized name/path of its
+        // inbox, but still expects us to ask for it as INBOX.
+        if (type === 'inbox')
+          path = 'INBOX';
 
         // - already known folder
         if (folderPubsByPath.hasOwnProperty(path)) {
-          // Make sure the delimiter is up-to-date (for INBOX we initially make
-          // a guess which we must update here.)
-          var meta = folderPubsByPath[path];
-          if (meta.delim !== box.delim)
-            meta.delim = box.delim;
+          // Because we speculatively create the Inbox, both its display name
+          // and delimiter may be incorrect and need to be updated.
+          meta = folderPubsByPath[path];
+          meta.name = box.displayName;
+          meta.delim = box.delim;
 
           // mark it with true to show that we've seen it.
           folderPubsByPath[path] = true;
         }
         // - new to us!
         else {
-          var type = self._determineFolderType(box, path);
-          self._learnAboutFolder(boxName, path, type, box.delim, pathDepth);
+          self._learnAboutFolder(box.displayName, path, type, box.delim,
+                                 pathDepth);
         }
 
         if (box.children)
@@ -33279,8 +33336,10 @@ CompositeAccount.prototype = {
       composedMessage,
       function(err, errDetails) {
         // We need to append the message to the sent folder if we think we sent
-        // the message okay.
-        if (!err) {
+        // the message okay and this is not gmail.  gmail automatically crams
+        // the message in the sent folder for us, so if we do it, we're just
+        // going to create duplicates.
+        if (!err && !this._receivePiece.isGmail) {
           var message = {
             messageText: composedMessage._outputBuffer,
             // do not specify date; let the server use its own timestamping
