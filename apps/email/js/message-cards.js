@@ -309,6 +309,8 @@ MessageListCard.prototype = {
 
   showSearch: function(folder, phrase, filter) {
     console.log('sf: showSearch. phrase:', phrase, phrase.length);
+    var tab = this.domNode.getElementsByClassName('filter')[0];
+    var nodes = tab.getElementsByClassName('msg-search-filter');
     if (this.messagesSlice) {
       this.messagesSlice.die();
       this.messagesSlice = null;
@@ -318,6 +320,13 @@ MessageListCard.prototype = {
     this.curPhrase = phrase;
     this.curFilter = filter;
 
+    for (var i = 0; i < nodes.length; i++) {
+      if (nodes[i].dataset.filter != this.curFilter) {
+        nodes[i].setAttribute('aria-selected', 'false');
+        continue;
+      }
+      nodes[i].setAttribute('aria-selected', 'true');
+    }
     if (phrase.length < 1)
       return false;
 
