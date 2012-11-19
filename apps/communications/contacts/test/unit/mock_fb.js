@@ -101,7 +101,14 @@ MockFb.Contact = function(devContact, mozCid) {
     return {
       set onsuccess(callback) {
         // Fetch FB data, that is returning a contact info
-        this.result = deviceContact;
+        this.result = new MockContactAllFields();
+        deviceContact = this.result;
+        setFacebookUid('220439');
+        this.result.id = '567';
+        this.result.familyName = ['Taylor'];
+        this.result.givenName = ['Bret'];
+        this.result.name = [this.result.givenName + ' ' +
+                              this.result.familyName];
         this.result.org[0] = 'FB';
         this.result.adr[0] = MockFb.getAddress();
 
@@ -134,7 +141,7 @@ MockFb.Contact = function(devContact, mozCid) {
       set onsuccess(callback) {
         // Fetch FB data, that is returning a contact info
         this.result = [];
-        this.result[0] = deviceContact;
+        this.result[0] = new MockContactAllFields();
         this.result[0].adr[0] = MockFb.getAddress();
         this.result[1] = {
           '+346578888888': true,

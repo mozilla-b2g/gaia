@@ -22,9 +22,8 @@
   vertical-align: middle;
 }
 
-#modal-dialog-alert,
-#modal-dialog-confirm,
-#modal-dialog-prompt {
+/* Style all dialogs */
+#modal-dialog-tablecell > * {
   width: 100%;
   background: rgba(0, 0, 0, 0.6);
   color: white;
@@ -37,6 +36,11 @@
   vertical-align: middle;
   white-space: normal;
   display: none;
+}
+
+#screen.modal-dialog #modal-dialog,
+#modal-dialog-tablecell > *.visible {
+  display: block;
 }
 
 #modal-dialog-prompt input {
@@ -72,6 +76,17 @@
   font-size: 20px;
   border-radius: 4px 4px 4px 4px;
   margin: 2px;
+}
+
+#modal-dialog-custom-prompt-buttons {
+  text-align: center;
+}
+
+#modal-dialog-custom-prompt label {
+  color: white;
+  padding: 1em;
+  min-height: 20px;
+  font-size: 15px;
 }
 
 /* 480x800 phones */
@@ -114,9 +129,3 @@
   border: 0;
 }
 
-#screen.modal-dialog #modal-dialog,
-#modal-dialog-alert.visible,
-#modal-dialog-confirm.visible,
-#modal-dialog-prompt.visible {
-  display: block;
-}

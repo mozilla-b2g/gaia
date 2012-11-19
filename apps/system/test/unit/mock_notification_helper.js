@@ -12,7 +12,7 @@ var MockNotificationHelper = {
   mIcon: null,
   mClickCB: null,
   mCloseCB: null,
-  mTearDown: function tearDown() {
+  mTeardown: function teardown() {
     this.mTitle = null;
     this.mBody = null;
     this.mIcon = null;

@@ -524,16 +524,16 @@ suite('Render contacts list', function() {
       subject.init(list);
     });
 
-    test('adding one FB Contact to an empty list', function() {
-      var deviceContact = new MockContactAllFields();
+    teardown(function() {
+      window.fb.setIsFbContact(false);
+      window.fb.setIsFbLinked(false);
+    });
 
-      deviceContact.id = '567';
-      deviceContact.familyName = ['Taylor'];
-      deviceContact.givenName = ['Bret'];
-      deviceContact.name = [deviceContact.givenName + ' ' +
-                            deviceContact.familyName];
+    test('adding one FB Contact to an empty list', function() {
+      window.fb.setIsFbContact(true);
+
+      var deviceContact = new MockContactAllFields();
       var newContact = new MockFb.Contact(deviceContact);
-      newContact.uid = '220439';
 
       newContact.getData().onsuccess = function cb() {
         var newList = [this.result];

@@ -9,7 +9,7 @@ var MockWindowManager = {
 
   mDisplayedApp: '',
   mLastKilledOrigin: '',
-  mTearDown: function() {
+  mTeardown: function() {
     this.mDisplayedApp = '';
     this.mLastKilledOrigin = '';
   }

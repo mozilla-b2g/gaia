@@ -84,9 +84,9 @@ suite('system/Updatable', function() {
   teardown(function() {
     MockUpdateManager.mTeardown();
     MockAppsMgmt.mTeardown();
-    MockCustomDialog.mTearDown();
-    MockWindowManager.mTearDown();
-    MockUtilityTray.mTearDown();
+    MockCustomDialog.mTeardown();
+    MockWindowManager.mTeardown();
+    MockUtilityTray.mTeardown();
 
     subject._dispatchEvent = realDispatchEvent;
     lastDispatchedEvent = null;

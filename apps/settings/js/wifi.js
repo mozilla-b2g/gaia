@@ -295,7 +295,7 @@ onLocalized(function wifiSettings() {
           if (!networks[key] || network.connected) {
             networks[key] = network;
           } else {
-            if (!networks[key].connected && 
+            if (!networks[key].connected &&
                 network.relSignalStrength > networks[key].relSignalStrength)
               networks[key] = network;
           }
@@ -469,8 +469,8 @@ onLocalized(function wifiSettings() {
     if (!currentNetwork)
       return false;
     var key = network.ssid + '+' + network.capabilities.join('+');
-    var curkey = currentNetwork.ssid + '+' 
-      + currentNetwork.capabilities.join('+');
+    var curkey = currentNetwork.ssid + '+' +
+        currentNetwork.capabilities.join('+');
     return (key == curkey);
   }
 

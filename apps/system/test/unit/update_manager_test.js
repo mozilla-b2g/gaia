@@ -209,12 +209,12 @@ suite('system/UpdateManager', function() {
     UpdateManager.downloadDialogList = null;
 
     MockAppsMgmt.mTeardown();
-    MockCustomDialog.mTearDown();
-    MockUtilityTray.mTearDown();
-    MockSystemBanner.mTearDown();
-    MockSettingsListener.mTearDown();
-    MockStatusBar.mTearDown();
-    MockNotificationScreen.mTearDown();
+    MockCustomDialog.mTeardown();
+    MockUtilityTray.mTeardown();
+    MockSystemBanner.mTeardown();
+    MockSettingsListener.mTeardown();
+    MockStatusBar.mTeardown();
+    MockNotificationScreen.mTeardown();
 
     fakeNode.parentNode.removeChild(fakeNode);
     fakeToaster.parentNode.removeChild(fakeToaster);

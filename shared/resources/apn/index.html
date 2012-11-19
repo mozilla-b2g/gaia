@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <title> APN Database </title>
+    <script type="application/javascript" src="query.js"></script>
+    <style type="text/css">
+      html, body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+      }
+      textarea {
+        margin: 2px;
+      }
+      body > textarea {
+        position: absolute;
+        width: 50%;
+        height:    -moz-calc(100% - 10px);
+        height: -webkit-calc(100% - 10px);
+      }
+      form {
+        position: absolute;
+        right: 2px;
+        width:    -moz-calc(50% - 10px);
+        width: -webkit-calc(50% - 10px);
+        height: 90%;
+      }
+      form label {
+        display: block;
+        text-align: center;
+        height: 25px;
+        margin: 0;
+      }
+      form textarea {
+        width: 100%;
+        height:    -moz-calc(50% - 2px);
+        height: -webkit-calc(50% - 2px);
+      }
+    </style>
+  </head>
+  <body>
+    <textarea readonly></textarea>
+    <form>
+      <label> MCC: <input name="mcc" value="208"/> </label>
+      <label> MNC: <input name="mnc" value="15" /> </label>
+      <textarea readonly id="selection"></textarea>
+      <textarea readonly id="preferences"></textarea>
+    </form>
+  </body>
+</html>
+

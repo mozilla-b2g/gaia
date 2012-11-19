@@ -9,6 +9,7 @@
   },
   "permissions": {
     "device-storage:pictures":{ "access": "readwrite" },
+    "device-storage:videos":{ "access": "readwrite" },
     "settings":{ "access": "readonly" }
   },
   "activities": {
