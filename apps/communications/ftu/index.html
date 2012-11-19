@@ -32,6 +32,7 @@
 	<script defer type="text/javascript" src="/ftu/js/wifi.js"></script>
 	<script defer type="text/javascript" src="/ftu/js/facebook.js"></script>
 	<script defer type="text/javascript" src="/ftu/js/navigation.js"></script>
+	<script defer type="text/javascript" src="/ftu/js/dataMobile.js"></script>
 	<script defer type="text/javascript" src="/ftu/js/time.js"></script>
 	<script defer type="text/javascript" src="/ftu/js/ui.js"></script>
 	<script defer type="text/javascript" src="/ftu/js/language.js"></script>
@@ -68,6 +69,7 @@
 	  </header>
     <ol id="activation_progress" class="step-state">
       <li>languages</li>
+      <li>3g</li>
       <li>wifi</li>
       <li>configure network</li>
       <li>date and time</li>
@@ -122,6 +124,25 @@
           </ul>
         </article>
 			</section>
+			<section role="region" id="data_3g">
+        <article data-type="list">
+          <ul>
+            <li>
+              <aside class="pack-end">
+                <label>
+                  <input type="checkbox" data-type="switch" id="dataSwitch">
+                  <span></span>
+                </label>
+              </aside>
+              <p id="dataSwitchLabel" data-l10n-id="dataConnection"></p>
+            </li>
+          </ul>
+        </article>
+        <header><h2 id="dataCaution" data-l10n-id="caution"></h2></header>
+        <section class="content">
+          <p id="dataExplanation" data-l10n-id="dataConnectionInfo">Some text here</p>
+        </section>
+    	</section>
 			<section role="region" id="wifi">
         <article data-type="list">
   				<ul id="networks">
