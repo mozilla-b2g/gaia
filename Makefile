@@ -273,19 +273,24 @@ define run-js-command
 	$(XULRUNNERSDK) $(XPCSHELLSDK) -e "$$JS_CONSTS" -f build/utils.js "build/$(strip $1).js"
 endef
 
+# Optional files that may be provided to extend the set of default
+# preferences installed for gaia.  If the preferences in these files
+# conflict, the result is undefined.
+EXTENDED_PREF_FILES = \
+  custom-prefs.js \
+  payment-prefs.js \
+  ua-override-prefs.js \
+
 # Generate profile/prefs.js
 preferences: install-xulrunner-sdk
 	@echo "Generating prefs.js..."
 	test -d profile || mkdir -p profile
 	@$(call run-js-command, preferences)
-	if [ -f custom-prefs.js ]; \
-	  then \
-	    cat custom-prefs.js >> profile/user.js; \
-	  fi
-	if [ -f build/payment-prefs.js ]; \
-		then \
-			cat build/payment-prefs.js >> profile/user.js; \
-		fi
+	@$(foreach prefs_file,$(addprefix build/,$(EXTENDED_PREF_FILES)),\
+	  if [ -f $(prefs_file) ]; then \
+	    cat $(prefs_file) >> profile/user.js; \
+	  fi; \
+	)
 	@echo "Done"
 
 # Generate profile/

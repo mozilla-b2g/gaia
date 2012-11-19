@@ -35,37 +35,41 @@ function formatBalance(balance) {
   return formattedBalance;
 }
 
-// Return a fixed point data value in MG/GB
-function roundData(value) {
-  if (value < 1000000000)
-    return [(value / 1000000).toFixed(2), 'MB'];
+// Format data using magnitude localization
+// It exepcts a pair with the value and the unit
+function formatData(dataArray) {
+  return _('magnitude', { value: dataArray[0], unit: dataArray[1] });
+}
 
-  return [(value / 1000000000).toFixed(2), 'GB'];
+// Return a fixed point data value in MG/GB
+function roundData(value, positions) {
+  positions = (typeof positions === 'undefined') ? 2 : positions;
+  if (value < 1000)
+    return [value.toFixed(positions), 'B'];
+
+  if (value < 1000000)
+    return [(value / 1000).toFixed(positions), 'KB'];
+
+  if (value < 1000000000)
+    return [(value / 1000000).toFixed(positions), 'MB'];
+
+  return [(value / 1000000000).toFixed(positions), 'GB'];
 }
 
 // Return a padded data value in MG/GB
 function padData(value) {
-  if (value === 0)
-    return ['0', 'MB'];
-
-  value = value / 1000000;
-
-  var unit = 'GB';
-  if (value < 1000) {
-    var floorValue = value < 10 ? Math.floor(value) :
-                                  Math.floor(10 * value) / 10;
-    unit = 'MB';
-    var str = floorValue.toFixed() + '';
-    switch (str.length + 1 + unit.length) {
-      case 2:
-        return ['00' + str, unit];
-      case 3:
-        return ['0' + str, unit];
-      default:
-        return [str, unit];
-    }
+  var rounded = roundData(value, 0);
+  var value = rounded[0];
+  var len = value.length;
+  switch (len) {
+    case 1:
+      value = '00' + value;
+      break;
+    case 2:
+      value = '0' + value;
+      break;
   }
-
-  return [(value / 1000).toFixed(1), unit];
+  rounded[0] = parseInt(value, 10) ? value : '0';
+  return rounded;
 }
 

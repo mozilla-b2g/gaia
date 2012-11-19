@@ -25,7 +25,7 @@ var videoElement;
 //
 // Called when the canvas is created to get the ball rolling.
 //
-function start() {
+window.onload = function start() {
   canvas = document.getElementById("glcanvas");
   
   videoElement = document.getElementById("video");
@@ -64,7 +64,7 @@ function start() {
     
     videoElement.addEventListener("ended", videoDone, true);
   }
-}
+};
 
 //
 // initWebGL

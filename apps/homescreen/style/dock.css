@@ -48,6 +48,6 @@
   background: url(../resources/images/menu.png) no-repeat center top;
 }
 
-#footer li > div > *:not(canvas) {
+#footer li > div > *:not(img) {
   display: none;
 }

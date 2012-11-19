@@ -295,7 +295,7 @@ onLocalized(function wifiSettings() {
           if (!networks[key] || network.connected) {
             networks[key] = network;
           } else {
-            if (!networks[key].connected && 
+            if (!networks[key].connected &&
                 network.relSignalStrength > networks[key].relSignalStrength)
               networks[key] = network;
           }
@@ -469,8 +469,8 @@ onLocalized(function wifiSettings() {
     if (!currentNetwork)
       return false;
     var key = network.ssid + '+' + network.capabilities.join('+');
-    var curkey = currentNetwork.ssid + '+' 
-      + currentNetwork.capabilities.join('+');
+    var curkey = currentNetwork.ssid + '+' +
+        currentNetwork.capabilities.join('+');
     return (key == curkey);
   }
 
@@ -561,6 +561,10 @@ onLocalized(function wifiSettings() {
         showPassword.onchange = function() {
           password.type = this.checked ? 'text' : 'password';
         };
+      }
+
+      if (dialogID === 'wifi-joinHidden') {
+        network.hidden = true;
       }
 
       // disable the "OK" button if the password is too short
@@ -694,10 +698,16 @@ onLocalized(function wifiSettings() {
        */
       gWifiInfoBlock.textContent = _('fullStatus-initializing');
       gNetworkList.clear(true);
+
+      // record MAC address value
+      var macAddress = gWifiManager.macAddress;
+      settings.createLock().set({'deviceinfo.mac': macAddress});
+
       var mac = document.querySelectorAll('[data-l10n-id="macAddress"] span');
       for (var i = 0; i < mac.length; i++) {
-        mac[i].textContent = gWifiManager.macAddress;
-      } // XXX should be stored in a 'deviceinfo.mac' setting
+         mac[i].textContent = macAddress;
+      }
+
     } else {
       gWifiInfoBlock.textContent = _('disabled');
       if (gWpsInProgress) {

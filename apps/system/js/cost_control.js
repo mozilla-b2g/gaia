@@ -11,12 +11,13 @@
 
   var widgetContainer = document.getElementById('cost-control-widget');
 
+  var widgetFrame;
   function _ensureWidget() {
 
     if (Applications.ready) {
 
       // Check widget is there
-      var widgetFrame = widgetContainer.querySelector('iframe');
+      widgetFrame = widgetContainer.querySelector('iframe');
       if (widgetFrame && !widgetFrame.dataset.killed)
         return;
 
@@ -44,13 +45,25 @@
       // TODO: Remove this when weird bug #809031 (Bugzilla) is solved
       // See cost_control.css as well to remove the last rule
       var offsetY = document.getElementById('notification-bar').clientHeight;
-      offsetY += 
+      offsetY +=
         document.getElementById('notifications-container').clientHeight;
       widgetFrame.style.transform = 'translate(0, ' + offsetY + 'px)';
     }
   }
 
+  function _showWidget() {
+    if (widgetFrame)
+      widgetFrame.setVisible(true);
+  }
+
+  function _hideWidget() {
+    if (widgetFrame)
+      widgetFrame.setVisible(false);
+  }
+
   // Listen to utilitytray show
   window.addEventListener('utilitytrayshow', _ensureWidget);
+  window.addEventListener('utilitytrayshow', _showWidget);
+  window.addEventListener('utilitytrayhide', _hideWidget);
   window.addEventListener('applicationready', _ensureWidget);
 }());

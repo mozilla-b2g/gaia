@@ -210,6 +210,13 @@
         responseSTKCommand({ resultCode: icc.STK_RESULT_OK });
         break;
 
+      case icc.STK_CMD_PLAY_TONE:
+        debug(' STK:Play Tone: ',otions);
+        playTone(options);
+        iccLastCommandProcessed = true;
+        responseSTKCommand({ resultCode: icc.STK_RESULT_OK });
+        break;
+
       default:
         debug('STK Message not managed... response OK');
         iccLastCommandProcessed = true;
@@ -300,7 +307,7 @@
     }
     debug(' STK Communication changed - ' + evt.type);
     navigator.mozTelephony.calls.forEach(function callIterator(call) {
-      debug( ' STK:CALLS State change: ' + call.state);
+      debug(' STK:CALLS State change: ' + call.state);
       var outgoing = call.state == 'incoming';
       if (call.state == 'incoming') {
         // MozStkCallEvent
@@ -311,7 +318,7 @@
           error: null
         });
       }
-      call.addEventListener('error',function callError(err) {
+      call.addEventListener('error', function callError(err) {
         // MozStkCallEvent
         icc.sendStkEventDownload({
           eventType: icc.STK_EVENT_TYPE_CALL_DISCONNECTED,
@@ -319,7 +326,7 @@
           error: err
         });
       });
-      call.addEventListener('statechange',function callStateChange() {
+      call.addEventListener('statechange', function callStateChange() {
         debug(' STK:CALL State Change: ' + call.state);
         switch (call.state) {
           case 'connected':
@@ -341,7 +348,7 @@
             });
             break;
         }
-      })
+      });
     });
   }
 
@@ -532,6 +539,78 @@
   }
 
   /**
+   * Play tones
+   */
+  function playTone(options) {
+    debug("playTone: ", options);
+
+    var tonePlayer = new Audio();
+    var selectedPhoneSound;
+    switch (options.tone) {
+      case icc.STK_TONE_TYPE_DIAL_TONE:
+        selectedPhoneSound = 'resources/dtmf_tones/350Hz+440Hz_200ms.ogg';
+        break;
+      case icc.STK_TONE_TYPE_CALLED_SUBSCRIBER_BUSY:
+        selectedPhoneSound = 'resources/dtmf_tones/480Hz+620Hz_200ms.ogg';
+        break;
+      case icc.STK_TONE_TYPE_CONGESTION:
+        selectedPhoneSound = 'resources/dtmf_tones/425Hz_200ms.ogg';
+        break;
+      case icc.STK_TONE_TYPE_RADIO_PATH_ACK:
+      case icc.STK_TONE_TYPE_RADIO_PATH_NOT_AVAILABLE:
+        selectedPhoneSound = 'resources/dtmf_tones/425Hz_200ms.ogg';
+        break;
+      case icc.STK_TONE_TYPE_ERROR:
+        selectedPhoneSound = 'resources/dtmf_tones/950Hz+1400Hz+1800Hz_200ms.ogg';
+        break;
+      case icc.STK_TONE_TYPE_CALL_WAITING_TONE:
+      case icc.STK_TONE_TYPE_RINGING_TONE:
+        selectedPhoneSound = 'resources/dtmf_tones/425Hz_200ms.ogg';
+        break;
+      case icc.STK_TONE_TYPE_GENERAL_BEEP:
+        selectedPhoneSound = 'resources/dtmf_tones/400Hz_200ms.ogg';
+        break;
+      case icc.STK_TONE_TYPE_POSITIVE_ACK_TONE:
+        selectedPhoneSound = 'resources/dtmf_tones/425Hz_200ms.ogg';
+        break;
+      case icc.STK_TONE_TYPE_NEGATIVE_ACK_TONE:
+        selectedPhoneSound = 'resources/dtmf_tones/300Hz+400Hz+500Hz_400ms.ogg';
+        break;
+    }
+    tonePlayer.src = selectedPhoneSound;
+    tonePlayer.loop = true;
+    tonePlayer.play();
+
+    var timeout = options.duration.timeInterval;
+    switch (options.duration.timeUnit) {
+      case icc.STK_TIME_UNIT_MINUTE:
+        timeout *= 3600000;
+        break;
+      case icc.STK_TIME_UNIT_SECOND:
+        timeout *= 1000;
+        break;
+      case icc.STK_TIME_UNIT_TENTH_SECOND:
+        timeout *= 100;
+        break;
+    }
+    setTimeout(function() {
+      tonePlayer.pause();
+    },timeout);
+
+    if (options.isVibrate == true) {
+      navigator.vibrate([200]);
+    }
+
+    if (options.text) {
+      alertbox_btn.onclick = function() {
+        alertbox.classList.add('hidden');
+      };
+      alertbox_msg.textContent = options.text;
+      alertbox.classList.remove('hidden');
+    }
+  }
+
+  /**
    * Display text on the notifications bar and Idle screen
    */
   function displayNotification(command) {
@@ -596,4 +675,3 @@
     };
   };
 })();
-
