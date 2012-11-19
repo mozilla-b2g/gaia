@@ -502,6 +502,9 @@ function play() {
   // Switch the button icon
   dom.play.classList.remove('paused');
 
+  // Set mozAudioChannelType to the player
+  dom.player.mozAudioChannelType = 'content';
+  
   // Start playing
   dom.player.play();
   playing = true;

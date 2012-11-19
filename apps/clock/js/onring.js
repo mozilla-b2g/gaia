@@ -74,6 +74,7 @@ var RingView = {
   ring: function rv_ring() {
     this._ringtonePlayer = new Audio();
     var ringtonePlayer = this._ringtonePlayer;
+    ringtonePlayer.mozAudioChannelType = 'alarm';
     ringtonePlayer.loop = true;
     var selectedAlarmSound = 'style/ringtones/' +
                              window.opener.AlarmManager.getAlarmSound();
