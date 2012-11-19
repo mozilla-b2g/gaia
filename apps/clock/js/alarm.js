@@ -567,6 +567,13 @@ var AlarmManager = {
     };
   },
 
+  getAlarmTime: function am_getAlarmTime() {
+    var d = new Date();
+    d.setHours(this._onFireAlarm.hour);
+    d.setMinutes(this._onFireAlarm.minute);
+    return d;
+  },
+
   getAlarmLabel: function am_getAlarmLabel() {
     return this._onFireAlarm.label;
   },

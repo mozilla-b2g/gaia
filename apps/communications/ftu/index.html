@@ -9,10 +9,10 @@
 	<link rel="stylesheet" type="text/css" href="/shared/style/switches.css">
 	<link rel="stylesheet" type="text/css" href="/shared/style/input_areas.css">
 	<link rel="stylesheet" type="text/css" href="/shared/style/buttons.css">
+  <link rel="stylesheet" type="text/css" href="/shared/style_unstable/lists.css">
 
 	<link rel="stylesheet" type="text/css" href="/ftu/css/style.css">
 	<!-- TODO Use BB of list when ready -->
-	<link rel="stylesheet" type="text/css" href="/ftu/css/lists.css">
 	<link rel="stylesheet" type="text/css" href="/ftu/css/fb_extensions.css">
   <link href="/facebook/style/curtain_frame.css" rel="stylesheet">
 
@@ -32,6 +32,7 @@
 	<script defer type="text/javascript" src="/ftu/js/wifi.js"></script>
 	<script defer type="text/javascript" src="/ftu/js/facebook.js"></script>
 	<script defer type="text/javascript" src="/ftu/js/navigation.js"></script>
+	<script defer type="text/javascript" src="/ftu/js/dataMobile.js"></script>
 	<script defer type="text/javascript" src="/ftu/js/time.js"></script>
 	<script defer type="text/javascript" src="/ftu/js/ui.js"></script>
 	<script defer type="text/javascript" src="/ftu/js/language.js"></script>
@@ -66,59 +67,88 @@
       </menu>
     	<h1 id="main_title"></h1>
 	  </header>
-    <progress id="activation_progress" value="20" max="100">
-    </progress>
+    <ol id="activation_progress" class="step-state">
+      <li>languages</li>
+      <li>3g</li>
+      <li>wifi</li>
+      <li>configure network</li>
+      <li>date and time</li>
+      <li>firefox privacy</li>
+    </ol>
 		<article role="main">
 			<section role="region" id="languages">
-				<ul>
-					<li>
-            <label>
-              <input type="radio" name="language.current" value="en-US" checked />
-              <span></span>
-            </label>
-            <a dir="ltr" data-l10n-id="english">English (US)</a>
-          </li>
-          <li>
-            <label>
-              <input type="radio" name="language.current" value="es"/>
-              <span></span>
-            </label>
-            <a dir="ltr" data-l10n-id="spanish">Español</a>
-          </li>
-          <li class="disabled">
-            <label>
-              <input disabled="disabled" type="radio" name="language.current" value="fr"/>
-              <span></span>
-            </label>
-            <a dir="ltr" data-l10n-id="french">Français</a>
-          </li>
-          <li class="disabled">
-            <label>
-              <input disabled="disabled" type="radio" name="language.current" value="it"/>
-              <span></span>
-            </label>
-            <a dir="ltr" data-l10n-id="italian">Italiano</a>
-          </li>
-          <li class="disabled">
-            <label>
-              <input disabled="disabled" type="radio" name="language.current" value="pt-BR"/>
-              <span></span>
-            </label>
-            <a dir="ltr" data-l10n-id="portuguese">Português (do Brasil)</a>
-          </li>
-          <li class="disabled">
-            <label>
-              <input disabled="disabled" type="radio" name="language.current" value="zh-TW"/>
-              <span></span>
-            </label>
-            <a dir="ltr" data-l10n-id="traditionalChinese">正體中文</a>
-          </li>
-        </ul>
+        <article data-type="list" class="pack-value-selector">
+  				<ul>
+  					<li>
+              <label>
+                <input type="radio" name="language.current" value="en-US" checked />
+                <span></span>
+                <p dir="ltr" data-l10n-id="english">English (US)</p>
+              </label>
+            </li>
+            <li aria-disabled="true">
+              <label>
+                <input disabled="disabled" type="radio" name="language.current" value="es"/>
+                <span></span>
+                <p dir="ltr" data-l10n-id="spanish">Español</p>
+              </label>
+            </li>
+            <li aria-disabled="true">
+              <label>
+                <input disabled="disabled" type="radio" name="language.current" value="fr"/>
+                <span></span>
+              <p dir="ltr" data-l10n-id="french">Français</p>
+              </label>
+            </li>
+            <li aria-disabled="true">
+              <label>
+                <input disabled="disabled" type="radio" name="language.current" value="it"/>
+                <span></span>
+              <p dir="ltr" data-l10n-id="italian">Italiano</p>
+              </label>
+            </li>
+            <li aria-disabled="true">
+              <label>
+                <input disabled="disabled" type="radio" name="language.current" value="pt-BR"/>
+                <span></span>
+              <p dir="ltr" data-l10n-id="portuguese">Português (do Brasil)</p>
+              </label>
+            </li>
+            <li aria-disabled="true">
+              <label>
+                <input disabled="disabled" type="radio" name="language.current" value="zh-TW"/>
+                <span></span>
+              <p dir="ltr" data-l10n-id="traditionalChinese">正體中文</p>
+              </label>
+            </li>
+          </ul>
+        </article>
 			</section>
+			<section role="region" id="data_3g">
+        <article data-type="list">
+          <ul>
+            <li>
+              <aside class="pack-end">
+                <label>
+                  <input type="checkbox" data-type="switch" id="dataSwitch">
+                  <span></span>
+                </label>
+              </aside>
+              <p id="dataSwitchLabel" data-l10n-id="dataConnection"></p>
+            </li>
+          </ul>
+        </article>
+        <header><h2 id="dataCaution" data-l10n-id="caution"></h2></header>
+        <section class="content">
+          <p id="dataExplanation" data-l10n-id="dataConnectionInfo">Some text here</p>
+        </section>
+    	</section>
 			<section role="region" id="wifi">
-				<ul id="networks">
-				</ul>
-			</section>
+        <article data-type="list">
+  				<ul id="networks">
+	   			</ul>
+		    </article>
+    	</section>
 			<section role="region" id="configure_network">
 				<section id="configure_network_params">
 					<form>
@@ -126,7 +156,7 @@
 						<label id="label_wifi_user" for="wifi_user" data-l10n-id="identity">User (optional):</label>
 						<input type="text" id="wifi_user" placeholder="User (optional)"></input>
 						<label for="wifi_password" data-l10n-id="password">Password</label>
-						<input type="text" id="wifi_password" placeholder="Password" value=""></input>
+						<input type="password" id="wifi_password" placeholder="Password" value=""></input>
 					</form>
 				</section>
 			</section>
@@ -141,11 +171,10 @@
 						GMT +00:00 Greenwich Mean Time
 					</h2>
 				</section>
-				<form onsubmit="return false;">
+				<form data-type="list" onsubmit="return false;">
 					<ul>
 						<li>
-							<button class="change" data-l10n-id="change">
-								<span class="icon-dialog"></span>
+							<button class="change icon icon-dialog" data-l10n-id="change">
 								Change
 							</button>
 							<p id="timezone-configuration-label">GMT +00:00</p>
@@ -174,40 +203,42 @@
 			         </select>
 						</li>
 						<li>
-							<button class="change" data-l10n-id="change">
-								<span class="icon-dialog"></span>
+							<button class="change icon icon-dialog" data-l10n-id="change">
 								Change
 							</button>
 							<p id="date-configuration-label"></p>
 							<input id="date-configuration" class="invisible" type="date"></input>
 						</li>
 						<li>
-							<button class="change" data-l10n-id="change">
-								<span class="icon-dialog"></span>
+							<button class="change icon icon-dialog" data-l10n-id="change">
 								Change
 							</button>
 							<p id="time-configuration-label">00:00</p>
-								<input id="time-configuration" class="invisible" type="time"></input>
+							<input id="time-configuration" class="invisible" type="time"></input>
 						</li>
 					</ul>
 				</form>
 			</section>
 			<section role="region" id="import_contacts">
-				<ul>
-					<li>
-						<small id="sim_import_feedback" data-l10n-id="notImportedYet">Not imported yet</small>
-            <a id="sim_import" data-l10n-id="importSim">SIM card</a>
-          </li>
-				</ul>
+        <article data-type="list">  
+  				<ul>
+  					<li id="sim_import">
+              <p data-l10n-id="importSim">SIM card</p>
+              <p id="sim_import_feedback" data-l10n-id="notImportedYet">Not imported yet</p>
+            </li>
+  				</ul>
+        </article>
 				<header>
 					<h2 data-l10n-id="otherAccount">Other accounts</h2>
 			  </header>
-			  <ul>
-					<li class="disabled">
-						<small id="fb_import_feedback" data-l10n-id="notImportedYet">Not imported yet</small>
-            <a id="fb_import" data-l10n-id="importFb">Facebook</a>
-          </li>
-        </ul>
+        <article data-type="list">  
+  			  <ul>
+  					<li id="fb_import" class="disabled">
+              <p data-l10n-id="importFb">Facebook</p>
+  						<p id="fb_import_feedback" data-l10n-id="notImportedYet">Not imported yet</p>
+            </li>
+          </ul>
+        </article>
 			</section>
 			<section role="region" id="about-your-rights">
 				<p data-l10n-id="about-your-rights-0">
@@ -240,7 +271,7 @@
 			</section>
 			<section role="region" id="firefox_privacy">
 				<section class="logo_container">
-					<img src="css/images/firefox64.png">
+          <img src="css/images/firefox64.png">
 					<span class="logo_title">De todos. Para Todos.</span>
 				</section>
         <p data-l10n-id="mozillaCommunity">
@@ -280,15 +311,16 @@
             <input type="checkbox" name="enable_statistic" />
             <span></span>
 	        </label>
-	        <a data-l10n-id="collaborate">
+	        <p data-l10n-id="collaborate">
 	        	I want to help make Firefox OS faster and
 	        	easier to use by sharing information about
 	        	my phone's performance. Learn more
-	        </a>
+	        </p>
 				</section>
 			</section>
 		</article>
-		<nav role="navigation" id="nav-bar" class="forward-only">
+
+		<menu role="navigation" id="nav-bar" class="forward-only">
 			<button id="back" class="button-left" data-l10n-id="back">
 				back
 				<span></span>
@@ -314,11 +346,12 @@
         You can alter the language, Date / Time, Wi-Fi connection in the settings area.
       </p>
 	    </section>
-    	<nav role="navigation" class="forward-only">
-			<button class="recommend fullsize" id="end" data-l10n-id="letsGo">
-				Let's go!
-			</button>
-		</nav>
+    	<menu role="navigation" class="forward-only">
+			  <button class="recommend fullsize" id="end" data-l10n-id="letsGo">
+				  Let's go!
+			  </button>
+		  </menu>
+    </section>
 	</section>
 
   <iframe id="fb-curtain" src="/facebook/curtain.html"></iframe>

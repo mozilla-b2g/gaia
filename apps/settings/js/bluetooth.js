@@ -360,11 +360,11 @@ onLocalized(function bluetoothSettings() {
             };
             pairList.list.appendChild(aItem);
             pairList.index[device.address] = [device, aItem];
-            // if the device need to be connected when it just paired
+            // if the device has to be connected when it just paired
             // wait for a while so they can have time to communicate
-            // their connect protocol
-            if (device.address === connectingAddress
-              && device.icon === 'audio-card') {
+            // their connection protocol
+            if (device.address === connectingAddress &&
+                device.icon === 'audio-card') {
               aItem.querySelector('small').textContent =
                 _('device-status-connecting');
               setTimeout(function() {
@@ -420,14 +420,14 @@ onLocalized(function bluetoothSettings() {
             openList.list.removeChild(item);
             connectingAddress = pairingAddress;
           }
-        } else { 
+        } else {
           // if the attention screen still open, close it
           if (childWindow)
             childWindow.close();
           // show pair process fail.
           var msg = _('error-pair-title') + '\n' + _('error-pair-pincode');
           // display failure only when active request
-          if ( pairingMode === 'active') 
+          if (pairingMode === 'active')
             window.alert(msg);
           // rollback device status
           if (openList.index[pairingAddress]) {
@@ -445,7 +445,7 @@ onLocalized(function bluetoothSettings() {
     function setDeviceUnpair(device) {
       if (device.address === connectedAddress) {
         var msg = _('unpair-title') + '\n' + _('unpair-msg');
-        if (!window.confirm(msg)) 
+        if (!window.confirm(msg))
           return;
         connectedAddress = null;
       }

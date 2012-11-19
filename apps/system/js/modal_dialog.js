@@ -164,7 +164,7 @@ var ModalDialog = {
   show: function md_show(origin) {
     if (!(origin in this.currentEvents))
       return;
-    
+
     var _ = navigator.mozL10n.get;
     var evt = this.currentEvents[origin];
     this.currentOrigin = origin;
@@ -200,7 +200,8 @@ var ModalDialog = {
         elements.promptMessage.innerHTML = message;
         this.setTitle('prompt', '');
         elements.promptOk.textContent = evt.yesText ? evt.yesText : _('ok');
-        elements.promptCancel.textContent = evt.noText ? evt.noText : _('cancel');
+        elements.promptCancel.textContent = evt.noText ?
+          evt.noText : _('cancel');
         break;
 
       case 'confirm':
@@ -208,7 +209,8 @@ var ModalDialog = {
         elements.confirmMessage.innerHTML = message;
         this.setTitle('confirm', '');
         elements.confirmOk.textContent = evt.yesText ? evt.yesText : _('ok');
-        elements.confirmCancel.textContent = evt.noText ? evt.noText : _('cancel');
+        elements.confirmCancel.textContent = evt.noText ?
+          evt.noText : _('cancel');
         break;
 
       case 'selectone':
@@ -231,7 +233,8 @@ var ModalDialog = {
     var appName = WindowManager.getCurrentDisplayedApp().name;
     if (AirplaneMode.enabled) {
       elements.errorTitle.textContent = _('airplane-is-on');
-      elements.errorMessage.textContent = _('airplane-is-turned-on', {name: appName});
+      elements.errorMessage.textContent = _('airplane-is-turned-on',
+          {name: appName});
     } else if (!navigator.onLine) {
       elements.errorTitle.textContent = _('network-connection-unavailable');
       elements.errorMessage.textContent = _('network-error', {name: appName});
@@ -252,7 +255,7 @@ var ModalDialog = {
     this.screen.classList.remove('modal-dialog');
     this.elements[type].classList.remove('visible');
   },
-  
+
   setTitle: function md_setTitle(type, title) {
     this.elements[type + 'Title'].textContent = title;
   },
@@ -481,3 +484,4 @@ var ModalDialog = {
 };
 
 ModalDialog.init();
+

@@ -8,6 +8,6 @@ var MockL10n = {
 
 MockL10n.DateTimeFormat.prototype = {
   localeFormat: function mockLocaleFormat(time, strFormat) {
-    return "" + time;
+    return '' + time;
   }
 };

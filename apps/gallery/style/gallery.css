@@ -30,7 +30,7 @@ section {
 }
 
 /* All of the main views fill the screen */
-#thumbnail-list-view, #thumbnail-select-view, #photo-view, #pick-view, #edit-view, #crop-view {
+#thumbnail-list-view, #thumbnail-select-view, #fullscreen-view, #pick-view, #edit-view, #crop-view {
   position: absolute;
   top: 0px;
   left: 0px;
@@ -177,26 +177,22 @@ section {
   bottom: 0;
 }
 
-/* since photo-view can go fullscreen, it needs its own background color */
-#photo-view {
+/* since fullscreen-view is fullscreen, it needs its own background color */
+#fullscreen-view {
   background-color: #444;
 }
 
-#photo-frames {
+#frames {
   position: absolute;
   top: 0px;
-  bottom: 40px;
   left: 0px;
   width: 100%;
+  height: 100%;
   padding: 0px;
   margin: 0px;
 }
 
-#photo-view.toolbarhidden #photo-frames {
-  bottom: 0;
-}
-
-.photoFrame {
+.frame {
   position: absolute;
   top: 0px;
   left: 0px;
@@ -208,16 +204,20 @@ section {
   -moz-user-select: none;
 }
 
-.photoFrame > img {
+.frame > img {
   top: 0px;  /* javascript modifies this position with a transform */
   left: 0px;
-  position: relative;
+  position: absolute;
   border-width: 0px;
   padding: 0px;
   margin: 0px;
   transform-origin: 0px 0px;
   pointer-events: none;
   -moz-user-select: none;
+}
+
+.frame > video {
+  transform-origin: 0px 0px;
 }
 
 .hidden {
@@ -283,6 +283,7 @@ a.button:active, a.button:focus {
 
 a.button.disabled {
   opacity: 0.4;
+  pointer-events: none;
 }
 
 footer {
@@ -334,20 +335,20 @@ footer {
   background-image: url('images/share.png');
 }
 
-#photos-toolbar {
+#fullscreen-toolbar {
   height: 40px;
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  transition: transform 200ms linear;
+  transition: transform 100ms linear;
 }
 
-#photo-view.toolbarhidden #photos-toolbar {
+#fullscreen-view.toolbarhidden #fullscreen-toolbar {
   transform: translate(0, 40px);
 }
 
-#photos-back-button {
+#fullscreen-back-button {
   position: absolute;
   width: 20%;
   height: 100%;
@@ -355,7 +356,7 @@ footer {
   background-image: url('images/actionicon_grid_view.png');
 }
 
-#photos-camera-button {
+#fullscreen-camera-button {
   position: absolute;
   width: 20%;
   height: 100%;
@@ -363,7 +364,7 @@ footer {
   background-image: url('images/camera.png');
 }
 
-#photos-edit-button {
+#fullscreen-edit-button {
   position: absolute;
   width: 20%;
   height: 100%;
@@ -371,7 +372,7 @@ footer {
   background-image: url('images/edit.png');
 }
 
-#photos-share-button {
+#fullscreen-share-button {
   position: absolute;
   width: 20%;
   height: 100%;
@@ -379,7 +380,7 @@ footer {
   background-image: url('images/share.png');
 }
 
-#photos-delete-button {
+#fullscreen-delete-button {
   position: absolute;
   width: 20%;
   height: 100%;
@@ -396,7 +397,7 @@ footer {
   z-index: 2;
 }
 
-/* like .photoFrame */
+/* like .frame */
 #crop-frame {
   position: absolute;
   top: 50px;
@@ -410,7 +411,7 @@ footer {
 }
 
 
-/* copied from .photoFrame > img */
+/* copied from .frame > img */
 #crop-image {
   top: 0px;  /* javascript modifies this position with a transform */
   left: 0px;

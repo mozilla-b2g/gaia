@@ -378,6 +378,10 @@ MessageListCard.prototype = {
   },
 
   showEmptyLayout: function() {
+    var text = this.domNode.
+      getElementsByClassName('msg-list-empty-message-text')[0];
+    text.textContent = this.mode == 'search' ?
+      mozL10n.get('messages-search-empty'):mozL10n.get('messages-folder-empty');
     this.messageEmptyContainer.classList.remove('collapsed');
     this.toolbar.editBtn.classList.add('disabled');
     this.toolbar.searchBtn.classList.add('disabled');

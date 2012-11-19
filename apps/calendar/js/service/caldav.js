@@ -33,7 +33,6 @@ Calendar.ns('Service').Caldav = (function() {
         'getAccount',
         'findCalendars',
         'getCalendar',
-        'getEvents',
         'streamEvents',
         'expandRecurringEvent',
         'deleteEvent',
@@ -613,7 +612,6 @@ Calendar.ns('Service').Caldav = (function() {
 
       function handleResponse(url, data) {
         var etag = data.getetag.value;
-
         if (url in cache) {
           // don't need to track this for missing events.
           if (etag !== cache[url].syncToken) {

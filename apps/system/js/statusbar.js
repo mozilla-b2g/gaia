@@ -61,10 +61,6 @@ var StatusBar = {
     }
   },
 
-  get notificationsCount() {
-    return this.icons.notification.dataset.num;
-  },
-
   init: function sb_init() {
     this.getAllElements();
 

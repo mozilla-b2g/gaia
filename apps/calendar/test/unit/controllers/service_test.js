@@ -25,12 +25,7 @@ suite('controllers/service', function() {
   test('#start', function() {
     subject.start();
 
-    var workers = Object.keys(subject.workers);
-    assert.equal(workers.length, 1);
-    var worker = subject.workers[workers[0]];
-
-    assert.ok(subject.roles.caldav, 'should have caldav role');
-    assert.instanceOf(worker, Worker);
+    assert.ok(subject._ensureActiveWorker('caldav'));
   });
 
   test('caldav worker', function(done) {
@@ -44,14 +39,9 @@ suite('controllers/service', function() {
   });
 
   teardown(function() {
-    var workers = subject.workers;
-    var keys = Object.keys(workers);
-
-    keys.forEach(function(key) {
-      var worker = workers[key];
-      if (worker instanceof Worker) {
-        worker.terminate();
-      }
+    subject.workers.forEach(function(worker) {
+      worker.instance.terminate();
+      worker.instance = null;
     });
   });
 

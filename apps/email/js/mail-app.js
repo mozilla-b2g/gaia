@@ -28,6 +28,15 @@ var App = {
         replyTo: mozL10n.get('forward-header-reply-to'),
         to: mozL10n.get('forward-header-to'),
         cc: mozL10n.get('forward-header-cc')
+      },
+      folderNames: {
+        inbox: mozL10n.get('folder-inbox'),
+        sent: mozL10n.get('folder-sent'),
+        drafts: mozL10n.get('folder-drafts'),
+        trash: mozL10n.get('folder-trash'),
+        queue: mozL10n.get('folder-unsent'),
+        junk: mozL10n.get('folder-junk'),
+        archives: mozL10n.get('archives')
       }
     });
   },
