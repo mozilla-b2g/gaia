@@ -188,6 +188,11 @@ suite('Render contact', function() {
   });
 
   suite('Render social', function() {
+     teardown(function() {
+      window.fb.setIsFbContact(false);
+      window.fb.setIsFbLinked(false);
+    });
+
     function assertFbButtons(buttons, mode, state) {
       buttons.forEach(function(buttonid) {
         var selector = buttonid;
