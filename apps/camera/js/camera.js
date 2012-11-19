@@ -380,10 +380,11 @@ var Camera = {
     }).bind(this));
   },
 
-  addToFilmStrip: function camera_addToFilmStrip(name, thumbnail, type) {
+  addToFilmStrip: function camera_addToFilmStrip(name, thumbnail, type, originalBlob) {
     this._photosTaken.push({
       name: name,
       blob: thumbnail,
+      originalBlob: originalBlob,
       type: type
     });
     if (this._photosTaken.length > this.THUMBNAIL_LIMIT) {
@@ -552,61 +553,53 @@ var Camera = {
       return;
     }
 
-    var isVideo = /video/.test(filetype);
-
     // Launch the gallery with an open activity to view this specific photo
     var storage =  isVideo ? this._videoStorage : this._pictureStorage;
-    var getreq = storage.get(filename);
+    var isVideo = /video/.test(filetype);
+    var activity;
 
-    getreq.onerror = function() {
-      console.warn('failed to get file:', filename, getreq.error.name);
-    };
-
-    getreq.onsuccess = function() {
-      // This wont currently work for videos due to a bug with cross activity
-      // blobs - https://bugzilla.mozilla.org/show_bug.cgi?id=812098
-      var file = getreq.result;
-      var activity;
-      if (!isVideo) {
-        activity = new MozActivity({
-          name: 'open',
-          data: {
-            type: filetype,
-            blob: file,
-            show_delete_button: true
+    if (isVideo) {
+      activity = new MozActivity({
+        name: 'open',
+        data: {
+          type: filetype,
+          src: 'ds:videos://' + filename,
+          extras: {
+            title: filename.split('/').pop()
           }
-        });
-      } else {
-        activity = new MozActivity({
-          name: 'open',
-          data: {
-            type: filetype,
-            src: 'ds:videos://' + filename,
-            extras: {
-              title: filename.split('/').pop()
-            }
-          }
-        });
-      }
-
-      // We don't seem to get a mozvisiblitychange event when the
-      // inline open activity opens up, so we explicitly stop the
-      // and restart the preview stream
-      camera.stopPreview();
-
-      activity.onerror = function(e) {
-        console.warn('open activity error:', activity.error.name);
-        camera.startPreview();
-      };
-      activity.onsuccess = function(e) {
-        camera.startPreview();
-        if (activity.result.delete) {
-          storage.delete(filename).onerror = function(e) {
-            console.warn('Failed to delete', filename,
-                         'from DeviceStorage:', e.target.error);
-          };
         }
-      };
+      });
+    } else {
+      var photo = this._photosTaken.filter(function(file) {
+        return file.name === filename;
+      })[0];
+      activity = new MozActivity({
+        name: 'open',
+        data: {
+          type: filetype,
+          blob: photo.originalBlob,
+          show_delete_button: true
+        }
+      });
+    }
+
+    // We don't seem to get a mozvisiblitychange event when the
+    // inline open activity opens up, so we explicitly stop the
+    // and restart the preview stream
+    camera.stopPreview();
+
+    activity.onerror = function(e) {
+      console.warn('open activity error:', activity.error.name);
+      camera.startPreview();
+    };
+    activity.onsuccess = function(e) {
+      camera.startPreview();
+      if (activity.result.delete) {
+        storage.delete(filename).onerror = function(e) {
+          console.warn('Failed to delete', filename,
+                       'from DeviceStorage:', e.target.error);
+          };
+      }
     };
   },
 
@@ -819,7 +812,7 @@ var Camera = {
         }
 
         this.generateImageThumbnail(blob, (function(thumbBlob) {
-          this.addToFilmStrip(name, thumbBlob, 'image/jpeg');
+          this.addToFilmStrip(name, thumbBlob, 'image/jpeg', blob);
           this.checkStorageSpace();
         }).bind(this));
 
