@@ -56,7 +56,7 @@ var Applications = {
       delete self.installedApps[deletedapp.manifestURL];
 
       self.fireApplicationUninstallEvent(deletedapp);
-    }
+    };
   },
 
   getByManifestURL: function a_getByManifestURL(manifestURL) {

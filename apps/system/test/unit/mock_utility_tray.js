@@ -8,7 +8,7 @@ var MockUtilityTray = {
   },
 
   mShown: false,
-  mTearDown: function tearDown() {
+  mTeardown: function teardown() {
     this.mShown = false;
   }
 };
