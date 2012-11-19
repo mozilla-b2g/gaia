@@ -49,7 +49,7 @@
     cset['operatorvariant.mcc'] = gNetwork.mcc;
     cset['operatorvariant.mnc'] = gNetwork.mnc;
     retrieveOperatorVariantSettings(function onsuccess(result) {
-      var aPNPrefNames = {
+      var apnPrefNames = {
         'default': {
           'ril.data.carrier': 'carrier',
           'ril.data.apn': 'apn',
@@ -89,7 +89,7 @@
 
       var transaction = settings.createLock();
       transaction.set(cset);
-      for (var type in aPNPrefNames) {
+      for (var type in apnPrefNames) {
         var apn = {};
         for (var i = 0; i < result.length; i++) {
           if (result[i].type.indexOf(type) != -1) {
@@ -97,9 +97,9 @@
             break;
           }
         }
-        var prefNames = aPNPrefNames[type];
+        var prefNames = apnPrefNames[type];
         for (var key in prefNames) {
-          var name = aPNPrefNames[type][key];
+          var name = apnPrefNames[type][key];
           var item = {};
           item[key] = apn[name] || '';
           transaction.set(item);

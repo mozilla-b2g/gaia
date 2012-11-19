@@ -157,7 +157,7 @@ document.addEventListener('DOMContentLoaded', function onload() {
    */
 
   var gAPN;
-  var aPNPrefNames = {
+  var apnPrefNames = {
     'default': {
       'ril.data.carrier': 'carrier',
       'ril.data.apn': 'apn',
@@ -238,7 +238,7 @@ document.addEventListener('DOMContentLoaded', function onload() {
 
     var preferences = document.getElementById('preferences');
     var prefs = {};
-    for (var type in aPNPrefNames) {
+    for (var type in apnPrefNames) {
       var apn = {};
       for (var i = 0; i < res.length; i++) {
         if (res[i].type.indexOf(type) != -1) {
@@ -246,9 +246,9 @@ document.addEventListener('DOMContentLoaded', function onload() {
           break;
         }
       }
-      var prefNames = aPNPrefNames[type];
+      var prefNames = apnPrefNames[type];
       for (var key in prefNames) {
-        var name = aPNPrefNames[type][key];
+        var name = apnPrefNames[type][key];
         prefs[key] = apn[name] || '';
       }
       if (type == 'default') {
