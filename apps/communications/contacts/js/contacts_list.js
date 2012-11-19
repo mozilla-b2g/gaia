@@ -116,7 +116,13 @@ contacts.List = (function() {
     figure.className = 'item-media pull-right block-media';
     var img = document.createElement('img');
     if (contact.photo && contact.photo.length > 0) {
-      Contacts.updatePhoto(contact.photo[0], img);
+      setTimeout(function doSquare() {
+        Contacts.squareImage(contact.photo[0],
+          function square(newImage) {
+            Contacts.updatePhoto(newImage, img);
+          }
+        );
+      }, 0);
     }
     figure.appendChild(img);
     link.appendChild(figure);
