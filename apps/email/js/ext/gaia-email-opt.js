@@ -1882,7 +1882,7 @@ MailAPI.prototype = {
 
   _recv_badLogin: function ma__recv_badLogin(msg) {
     if (this.onbadlogin)
-      this.onbadlogin(new MailAccount(this, msg.account));
+      this.onbadlogin(new MailAccount(this, msg.account), msg.problem);
   },
 
   _recv_sliceSplice: function ma__recv_sliceSplice(msg) {
@@ -2149,6 +2149,13 @@ MailAPI.prototype = {
    *   @case['bad-user-or-pass']{
    *     The username and password didn't check out.  We don't know which one
    *     is wrong, just that one of them is wrong.
+   *   }
+   *   @case['imap-disabled']{
+   *     IMAP support is not enabled for the Gmail account in use.
+   *   }
+   *   @case['needs-app-pass']{
+   *     The Gmail account has two-factor authentication enabled, so the user
+   *     must provide an application-specific password.
    *   }
    *   @case['not-authorized']{
    *     The username and password are correct, but the user isn't allowed to
@@ -7852,6 +7859,7 @@ module.exports = function(address){
     });
 };
 });
+
 define('crypto',['require','exports','module'],function(require, exports, module) {
 
 exports.createHash = function(algorithm) {
@@ -8477,6 +8485,7 @@ function hasUTFChars(str){
     return !!rforeign.test(str);
 }
 });
+
 define('http',['require','exports','module'],function(require, exports, module) {
 });
 
@@ -8559,6 +8568,7 @@ function openUrlStream(url, options){
     return stream; 
 }
 });
+
 define('fs',['require','exports','module'],function(require, exports, module) {
 });
 
@@ -9804,6 +9814,7 @@ MailComposer.prototype._getMimeType = function(filename){
     return extension && mimelib.contentTypes[extension] || defaultMime;
 };
 });
+
 define('mailcomposer',['./mailcomposer/lib/mailcomposer'], function (main) {
     return main;
 });
@@ -11948,7 +11959,11 @@ console.log('done proc modifyConfig');
     account.checkAccount(function(err) {
       // If we succeeded or the problem was not an authentication, assume
       // everything went fine and clear the problems.
-      if (!err || err !== 'bad-user-or-pass') {
+      if (!err || (
+          err !== 'bad-user-or-pass' && 
+          err !== 'needs-app-pass' && 
+          err !== 'imap-disabled'
+        )) {
         self.universe.clearAccountProblems(account);
       }
       // The login information is still bad; re-send the bad login notification.
@@ -12004,10 +12019,11 @@ console.log('done proc modifyConfig');
     this.universe.deleteAccount(msg.accountId);
   },
 
-  notifyBadLogin: function mb_notifyBadLogin(account) {
+  notifyBadLogin: function mb_notifyBadLogin(account, problem) {
     this.__sendMessage({
       type: 'badLogin',
       account: account.toBridgeWire(),
+      problem: problem
     });
   },
 
@@ -18302,7 +18318,7 @@ function ImapProber(credentials, connInfo, _LOG) {
   this._conn.on('error', this.onError.bind(this));
 
   this.onresult = null;
-  this.accountGood = null;
+  this.error = null;
 }
 exports.ImapProber = ImapProber;
 ImapProber.prototype = {
@@ -18322,14 +18338,14 @@ ImapProber.prototype = {
     }
 
     console.log('PROBE:IMAP happy, TZ offset:', tzOffset / (60 * 60 * 1000));
-    this.accountGood = true;
+    this.error = null;
 
     var conn = this._conn;
     this._conn = null;
 
     if (!this.onresult)
       return;
-    this.onresult(this.accountGood, conn, tzOffset);
+    this.onresult(this.error, conn, tzOffset);
     this.onresult = false;
   },
 
@@ -18337,7 +18353,12 @@ ImapProber.prototype = {
     if (!this.onresult)
       return;
     console.warn('PROBE:IMAP sad', err);
-    this.accountGood = false;
+    if (err.serverResponse.indexOf('[ALERT] Application-specific password required') != -1)
+      this.error = 'needs-app-pass';
+    else if(err.serverResponse.indexOf('[ALERT] Your account is not enabled for IMAP use.') != -1)
+      this.error = 'imap-disabled';
+    else
+      this.error = 'bad-user-or-pass';
     // we really want to make sure we clean up after this dude.
     try {
       this._conn.die();
@@ -18346,7 +18367,7 @@ ImapProber.prototype = {
     }
     this._conn = null;
 
-    this.onresult(this.accountGood, null);
+    this.onresult(this.error, null);
     // we could potentially see many errors...
     this.onresult = false;
   },
@@ -21683,7 +21704,6 @@ SmtpProber.prototype = {
     this._password = aPassword;
     this._deviceId = aDeviceId || 'v140Device';
     this._deviceType = aDeviceType || 'SmartPhone';
-    this.timeout = 0;
 
     this._connection = 0;
     this._waitingForConnection = false;
@@ -21898,11 +21918,6 @@ SmtpProber.prototype = {
                true);
       xhr.setRequestHeader('Content-Type', 'text/xml');
       xhr.setRequestHeader('Authorization', this._getAuth());
-      xhr.timeout = this.timeout;
-
-      xhr.upload.onprogress = xhr.upload.onload = function() {
-        xhr.timeout = 0;
-      };
 
       xhr.onload = function() {
         if (xhr.status < 200 || xhr.status >= 300)
@@ -21973,7 +21988,7 @@ SmtpProber.prototype = {
         aCallback(null, config);
       };
 
-      xhr.ontimeout = xhr.onerror = function() {
+      xhr.onerror = function() {
         aCallback(new Error('Error getting Autodiscover URL'));
       };
 
@@ -22006,11 +22021,6 @@ SmtpProber.prototype = {
       let conn = this;
       let xhr = new XMLHttpRequest({mozSystem: true, mozAnon: true});
       xhr.open('OPTIONS', this.baseUrl, true);
-      xhr.timeout = this.timeout;
-
-      xhr.upload.onprogress = xhr.upload.onload = function() {
-        xhr.timeout = 0;
-      };
 
       xhr.onload = function() {
         if (xhr.status < 200 || xhr.status >= 300) {
@@ -22028,7 +22038,7 @@ SmtpProber.prototype = {
         aCallback(null, result);
       };
 
-      xhr.ontimeout = xhr.onerror = function() {
+      xhr.onerror = function() {
         aCallback(new Error('Error getting OPTIONS URL'));
       };
 
@@ -22076,13 +22086,8 @@ SmtpProber.prototype = {
      *        parameters that should be added to the end of the request URL
      * @param aExtraHeaders (optional) an object containing any extra HTTP
      *        headers to send in the request
-     * @param aProgressCallback (optional) a callback to invoke with progress
-     *        information, when available. Two arguments are provided: the
-     *        number of bytes received so far, and the total number of bytes
-     *        expected (when known, 0 if unknown).
      */
-    postCommand: function(aCommand, aCallback, aExtraParams, aExtraHeaders,
-                          aProgressCallback) {
+    postCommand: function(aCommand, aCallback, aExtraParams, aExtraHeaders) {
       const contentType = 'application/vnd.ms-sync.wbxml';
 
       if (typeof aCommand === 'string' || typeof aCommand === 'number') {
@@ -22093,7 +22098,7 @@ SmtpProber.prototype = {
         let r = new WBXML.Reader(aCommand, ASCP);
         let commandName = r.document.next().localTagName;
         this.postData(commandName, contentType, aCommand.buffer, aCallback,
-                      aExtraParams, aExtraHeaders, aProgressCallback);
+                      aExtraParams, aExtraHeaders);
       }
     },
 
@@ -22111,13 +22116,9 @@ SmtpProber.prototype = {
      *        parameters that should be added to the end of the request URL
      * @param aExtraHeaders (optional) an object containing any extra HTTP
      *        headers to send in the request
-     * @param aProgressCallback (optional) a callback to invoke with progress
-     *        information, when available. Two arguments are provided: the
-     *        number of bytes received so far, and the total number of bytes
-     *        expected (when known, 0 if unknown).
      */
     postData: function(aCommand, aContentType, aData, aCallback, aExtraParams,
-                       aExtraHeaders, aProgressCallback) {
+                       aExtraHeaders) {
       // Make sure our command name is a string.
       if (typeof aCommand === 'number')
         aCommand = ASCP.__tagnames__[aCommand];
@@ -22162,16 +22163,6 @@ SmtpProber.prototype = {
           xhr.setRequestHeader(key, value);
       }
 
-      xhr.timeout = this.timeout;
-
-      xhr.upload.onprogress = xhr.upload.onload = function() {
-        xhr.timeout = 0;
-      };
-      xhr.onprogress = function(event) {
-        if (aProgressCallback)
-          aProgressCallback(event.loaded, event.total);
-      };
-
       let conn = this;
       let parentArgs = arguments;
       xhr.onload = function() {
@@ -22198,7 +22189,7 @@ SmtpProber.prototype = {
         aCallback(null, response);
       };
 
-      xhr.ontimeout = xhr.onerror = function() {
+      xhr.onerror = function() {
         aCallback(new Error('Error getting command URL'));
       };
 
@@ -29702,7 +29693,13 @@ ImapAccount.prototype = {
           //   NO [AUTHENTICATIONFAILED] Incorrect username or password.
           case 'NO':
           case 'no':
-            errName = 'bad-user-or-pass';
+            // XXX: Should we check if it's GMail first?
+            if (err.serverResponse.indexOf('[ALERT] Application-specific password required') !== -1)
+              errName = 'needs-app-pass';
+            else if(err.serverResponse.indexOf('[ALERT] Your account is not enabled for IMAP use.') !== -1)
+              errName = 'imap-disabled';
+            else
+              errName = 'bad-user-or-pass';
             reachable = true;
             // go directly to the broken state; no retries
             maybeRetry = false;
@@ -33492,7 +33489,7 @@ Configurators['imap+smtp'] = {
       ['imap', 'smtp'],
       function probesDone(results) {
         // -- both good?
-        if (results.imap[0] && results.smtp) {
+        if (!results.imap[0] && results.smtp) {
           var account = self._defineImapAccount(
             universe,
             userDetails, credentials,
@@ -33503,9 +33500,12 @@ Configurators['imap+smtp'] = {
         // -- either/both bad
         else {
           // clean up the imap connection if it was okay but smtp failed
-          if (results.imap[0])
+          if (!results.imap[0]) {
             results.imap[1].close();
-          callback('unknown', null);
+            callback('smtp-unknown', null); // Failure was caused by SMTP, but who knows why
+          } else {
+            callback(results.imap[0], null); // Pass imap error type back
+          }
           return;
         }
       });
@@ -35027,8 +35027,13 @@ MailUniverse.prototype = {
     account.problems.push(problem);
     account.enabled = false;
 
-    if (problem === 'bad-user-or-pass')
-      this.__notifyBadLogin(account);
+    switch (problem) {
+      case 'bad-user-or-pass':
+      case 'imap-disabled':
+      case 'needs-app-pass':
+        this.__notifyBadLogin(account, problem);
+        break;
+    }
   },
 
   clearAccountProblems: function(account) {
@@ -35039,10 +35044,10 @@ MailUniverse.prototype = {
     this._resumeOpProcessingForAccount(account);
   },
 
-  __notifyBadLogin: function(account) {
+  __notifyBadLogin: function(account, problem) {
     for (var iBridge = 0; iBridge < this._bridges.length; iBridge++) {
       var bridge = this._bridges[iBridge];
-      bridge.notifyBadLogin(account);
+      bridge.notifyBadLogin(account, problem);
     }
   },
 
