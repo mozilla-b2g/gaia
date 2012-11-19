@@ -407,6 +407,12 @@ var WindowManager = (function() {
     if (frame.src == ftuURL) {
       window.asyncStorage.setItem('ftu.enabled', false);
       document.getElementById('screen').classList.remove('ftu');
+
+      // Done with FTU, letting everyone know
+      var evt = document.createEvent('CustomEvent');
+      evt.initCustomEvent('ftudone',
+        /* canBubble */ true, /* cancelable */ false, {});
+      window.dispatchEvent(evt);
     }
 
     frame.classList.remove('active');
