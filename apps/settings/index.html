@@ -781,8 +781,37 @@
       </header>
       <ul>
         <li>
+          <p data-l10n-id="normal-sound">Normal</p>
           <label>
-            <input type="range" name="audio.volume.master" min="0.1" value="0.5" max="1">
+            <input type="range" name="audio.volume.system" min="0" value="5" max="10">
+            <span class="range-icons volume"></span>
+          </label>
+        </li>
+        <li>
+          <p data-l10n-id="alarm-sound">Alarm</p>
+          <label>
+            <input type="range" name="audio.volume.alarm" min="0" value="5" max="10">
+            <span class="range-icons volume"></span>
+          </label>
+        </li>
+        <li>
+          <p data-l10n-id="notification-sound">Notification</p>
+          <label>
+            <input type="range" name="audio.volume.notification" min="0" value="5" max="10">
+            <span class="range-icons volume"></span>
+          </label>
+        </li>
+        <li>
+          <p data-l10n-id="content-sound">Content</p>
+          <label>
+            <input type="range" name="audio.volume.music" min="0" value="5" max="10">
+            <span class="range-icons volume"></span>
+          </label>
+        </li>
+        <li>
+          <p data-l10n-id="voice-sound">Voice</p>
+          <label>
+            <input type="range" name="audio.volume.voice_call" min="0" value="5" max="10">
             <span class="range-icons volume"></span>
           </label>
         </li>

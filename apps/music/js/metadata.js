@@ -149,6 +149,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
         // This is some kind of file that we don't know about.
         // Let's see if we can play it.
         var player = new Audio();
+        player.mozAudioChannelType = 'content';
         var canplay = blob.type && player.canPlayType(blob.type);
         if (canplay === 'probably') {
           metadataCallback(metadata);
