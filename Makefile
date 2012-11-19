@@ -525,7 +525,7 @@ ifeq ($(ADB_REMOUNT),1)
 endif
 
 ifeq ($(BUILD_APP_NAME),*)
-	python build/install-gaia.py "$(ADB)" "$(MSYS_FIX)$(GAIA_INSTALL_PARENT)"
+	$(PYTHON_27) build/install-gaia.py "$(ADB)" "$(MSYS_FIX)$(GAIA_INSTALL_PARENT)"
 else
 	$(ADB) push profile/$(TARGET_FOLDER)/manifest.webapp $(MSYS_FIX)$(GAIA_INSTALL_PARENT)/$(TARGET_FOLDER)/manifest.webapp
 	$(ADB) push profile/$(TARGET_FOLDER)/application.zip $(MSYS_FIX)$(GAIA_INSTALL_PARENT)/$(TARGET_FOLDER)/application.zip
@@ -575,7 +575,7 @@ purge:
 
 # Build the settings.json file from settings.py
 profile/settings.json: build/settings.py build/wallpaper.jpg
-	python build/settings.py --console --homescreen $(SCHEME)homescreen.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --ftu $(SCHEME)communications.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --wallpaper build/wallpaper.jpg --output $@
+	$(PYTHON_27) build/settings.py --console --homescreen $(SCHEME)homescreen.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --ftu $(SCHEME)communications.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --wallpaper build/wallpaper.jpg --output $@
 
 # push profile/settings.json to the phone
 install-settings-defaults: profile/settings.json
