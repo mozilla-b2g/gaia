@@ -543,6 +543,7 @@ var MediaDB = (function() {
     getFile: function getFile(filename, callback, errback) {
       if (this.state !== MediaDB.READY)
         throw Error('MediaDB is not ready. State: ' + this.state);
+
       var getRequest = this.storage.get(this.directory + filename);
       getRequest.onsuccess = function() {
         callback(getRequest.result);
@@ -809,7 +810,7 @@ var MediaDB = (function() {
   MediaDB.UNMOUNTED = 'unmounted'; // Unavailable because card unmounted
   MediaDB.CLOSED = 'closed';       // Unavailalbe because MediaDB has closed
 
-  /* Details helper functions follow */
+  /* Details of helper functions follow */
 
   // Tell the db to start a manual scan. I think we don't do
   // this automatically from the constructor, but most apps will start
@@ -1228,7 +1229,8 @@ var MediaDB = (function() {
       var request = store.add(fileinfo);
       request.onsuccess = function() {
         // Remember to send an event about this new file
-        queueCreateNotification(media, fileinfo);
+        if (!fileinfo.fail)
+          queueCreateNotification(media, fileinfo);
         // And go on to the next
         next();
       };
@@ -1247,7 +1249,8 @@ var MediaDB = (function() {
           var putrequest = store.put(fileinfo);
           putrequest.onsuccess = function() {
             queueDeleteNotification(media, fileinfo.name);
-            queueCreateNotification(media, fileinfo);
+            if (!fileinfo.fail)
+              queueCreateNotification(media, fileinfo);
             next();
           };
           putrequest.onerror = function() {
@@ -1331,14 +1334,13 @@ var MediaDB = (function() {
       detail: detail
     };
 
-
     // Call the 'on' handler property if there is one
     if (typeof handler === 'function') {
       try {
         handler.call(media, event);
       }
       catch (e) {
-        console.log('MediaDB: ', 'on' + type, 'event handler threw', e);
+        console.warn('MediaDB: ', 'on' + type, 'event handler threw', e);
       }
     }
 
@@ -1356,7 +1358,7 @@ var MediaDB = (function() {
         }
       }
       catch (e) {
-        console.log('MediaDB: ', type, 'event listener threw', e);
+        console.warn('MediaDB: ', type, 'event listener threw', e);
       }
     }
   }

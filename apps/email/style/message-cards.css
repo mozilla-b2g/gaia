@@ -419,10 +419,10 @@
   background-image: url('images/mail_watermark.png');
   background-repeat:no-repeat;
   background-position: 50% 40%;
-  height: 100%;
+  height: 20rem;
   width: 100%;
   position: absolute;
-  top: 0;
+  top: 10rem;
   left: 0;
 }
 
@@ -430,7 +430,7 @@
   text-align: center;
   line-height: 3rem;
   position: relative;
-  top: 50%;
+  top: 12rem;
   border-top: .1rem solid rgba(96,96,96,.5);
   width: 27rem;
   margin: -7rem auto;

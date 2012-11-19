@@ -1031,6 +1031,10 @@ var PlayerView = {
         // An object URL must be released by calling URL.revokeObjectURL()
         // when we no longer need them
         var url = URL.createObjectURL(file);
+
+        // Add mozAudioChannelType to the player
+        this.audio.mozAudioChannelType = 'content';
+
         this.audio.src = url;
         this.audio.onloadeddata = function(evt) { URL.revokeObjectURL(url); };
 

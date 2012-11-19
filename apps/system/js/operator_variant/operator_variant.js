@@ -45,50 +45,73 @@
       return;
     }
 
-    cset['operatorvariant.mnc'] = gNetwork.mnc;
+    // new SIM card
     cset['operatorvariant.mcc'] = gNetwork.mcc;
-    retrieveOperatorVariantSettings();
-    storeSettings();
+    cset['operatorvariant.mnc'] = gNetwork.mnc;
+    retrieveOperatorVariantSettings(function onsuccess(result) {
+      var prefNames = {
+        'default': {
+          'ril.data.carrier': 'carrier',
+          'ril.data.apn': 'apn',
+          'ril.data.user': 'user',
+          'ril.data.passwd': 'password',
+          'ril.data.httpProxyHost': 'proxy',
+          'ril.data.httpProxyPort': 'port',
+          'ro.moz.ril.iccmbdn': 'voicemail'
+        },
+        'supl': {
+          'ril.supl.carrier': 'carrier',
+          'ril.supl.apn': 'apn',
+          'ril.supl.user': 'user',
+          'ril.supl.passwd': 'password',
+          'ril.supl.httpProxyHost': 'proxy',
+          'ril.supl.httpProxyPort': 'port',
+        },
+        'mms': {
+          'ril.data.mmsc': 'mmsc',
+          'ril.data.mmsproxy': 'mmsproxy',
+          'ril.data.mmsport': 'mmsport'
+        }
+      };
+
+      for (var type in prefNames) {
+        var apn = {};
+        for (var i = 0; i < result.length; i++) {
+          if (result[i].type.indexOf(type) != -1) {
+            apn = result[i];
+            break;
+          }
+        }
+        var settings = prefNames[type];
+        for (var key in settings) {
+          var name = prefNames[type][key];
+          cset[key] = apn[name] || '';
+        }
+      }
+
+      storeSettings();
+    });
   };
 
-  function retrieveOperatorVariantSettings() {
-    var OPERATOR_VARIANT_FILE = 'serviceproviders.xml';
+  function retrieveOperatorVariantSettings(callback) {
+    var OPERATOR_VARIANT_FILE = 'shared/resources/apn.json';
 
+    // load and query APN database, then trigger callback on results
     var xhr = new XMLHttpRequest();
-    xhr.open('GET', OPERATOR_VARIANT_FILE, false);
+    xhr.open('GET', OPERATOR_VARIANT_FILE, true);
+    xhr.responseType = 'json';
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState == 4 && (xhr.status == 200 || xhr.status === 0)) {
+        var apn = xhr.response;
+        var mcc = parseInt(cset['operatorvariant.mcc'], 10);
+        var mnc = parseInt(cset['operatorvariant.mnc'], 10);
+        // get a list of matching APNs
+        var compatibleAPN = apn[mcc] ? (apn[mcc][mnc] || []) : [];
+        callback(compatibleAPN);
+      }
+    };
     xhr.send();
-
-    // Set specific operator settings. Add them here.
-
-    // At the moment we set voicemail number to be used for the dialer app
-    // if it's not in the ICC card.
-    var voicemailResult = querySettings(xhr.responseXML,
-                                        cset['operatorvariant.mcc'],
-                                        cset['operatorvariant.mnc'],
-                                        'voicemail');
-    var voicemailNode = voicemailResult.iterateNext();
-    if (!voicemailNode) {
-      return;
-    }
-    cset['ro.moz.ril.iccmbdn'] = voicemailNode.textContent;
-  };
-
-  function querySettings(document, mcc, mnc, setting) {
-    var query = '//gsm[network-id' +
-        '[@mcc=' + mcc + '][@mnc=' + mnc + ']' +
-        ']/' + setting;
-    var xpe = new XPathEvaluator();
-    var nsResolver = xpe.createNSResolver(document);
-    return xpe.evaluate(query, document, nsResolver, 0, null);
-  };
-
-  function storeSettings() {
-    var transaction = settings.createLock();
-    transaction.set(cset);
-  };
-
-  function onerrorRequest() {
-  };
+  }
 
   var settings = window.navigator.mozSettings;
   if (!settings) {
@@ -98,6 +121,14 @@
   if (!mobileConnection) {
     return;
   }
+
+  function storeSettings() {
+    var transaction = settings.createLock();
+    transaction.set(cset);
+  };
+
+  function onerrorRequest() {
+  };
 
   cset = {};
   var transaction = settings.createLock();
@@ -124,3 +155,4 @@
 
   mobileConnection.addEventListener('iccinfochange', ensureHNI);
 })();
+
