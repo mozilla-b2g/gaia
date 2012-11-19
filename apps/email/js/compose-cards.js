@@ -15,8 +15,8 @@ function ComposeCard(domNode, mode, args) {
 
   domNode.getElementsByClassName('cmp-back-btn')[0]
     .addEventListener('click', this.onBack.bind(this), false);
-  domNode.getElementsByClassName('cmp-send-btn')[0]
-    .addEventListener('click', this.onSend.bind(this), false);
+  this.sendButton = domNode.getElementsByClassName('cmp-send-btn')[0];
+  this.sendButton.addEventListener('click', this.onSend.bind(this), false);
 
   this.toNode = domNode.getElementsByClassName('cmp-to-text')[0];
   this.ccNode = domNode.getElementsByClassName('cmp-cc-text')[0];
@@ -184,6 +184,9 @@ ComposeCard.prototype = {
    * deleteBubble: Delete the bubble from the parent container.
    */
   deleteBubble: function(node) {
+    if (!node) {
+      return;
+    }
     var dot = node.nextSibling;
     var container = node.parentNode;
     if (dot.classList.contains('cmp-dot-text')) {
@@ -192,6 +195,22 @@ ComposeCard.prototype = {
     if (node.classList.contains('cmp-peep-bubble')) {
       container.removeChild(node);
     }
+    if (this.isEmptyAddress()) {
+      this.sendButton.setAttribute('aria-disabled', 'true');
+    }
+  },
+
+  /**
+   * Check if envelope-bar is empty or contains any string or bubble.
+   */
+  isEmptyAddress: function() {
+    var inputSet = this.toNode.value + this.ccNode.value + this.bccNode.value;
+    var addrBar = this.domNode.getElementsByClassName('cmp-envelope-bar')[0];
+    var bubbles = addrBar.querySelectorAll('.cmp-peep-bubble');
+    if (!inputSet.replace(/\s/g, '') && bubbles.length == 0) {
+      return true;
+    }
+    return false;
   },
 
   /**
@@ -205,6 +224,9 @@ ComposeCard.prototype = {
       //delete bubble
       var previousBubble = node.previousSibling.previousSibling;
       this.deleteBubble(previousBubble);
+      if (this.isEmptyAddress()) {
+        this.sendButton.setAttribute('aria-disabled', 'true');
+      }
     }
   },
 
@@ -214,6 +236,11 @@ ComposeCard.prototype = {
   onAddressInput: function(evt) {
     var node = evt.target;
     var container = evt.target.parentNode;
+    if (this.isEmptyAddress()) {
+      this.sendButton.setAttribute('aria-disabled', 'true');
+      return;
+    }
+    this.sendButton.setAttribute('aria-disabled', 'false');
     if (node.value.slice(-1) == ',') {
       // TODO: Need to match the email with contact name.
       node.style.width = '0.5rem';
@@ -342,22 +369,41 @@ ComposeCard.prototype = {
     // XXX well-formedness-check (ideally just handle by not letting you send
     // if you haven't added anyone...)
 
-    this.composer.finishCompositionSendMessage();
-    if (this.activity) {
-      // We need more testing here to make sure the behavior that back
-      // to originated activity works perfectly without any crash or
-      // unable to switch back.
+    var activity = this.activity;
+    var domNode = this.domNode;
+    var sendingTemplate = cmpNodes['sending-container'];
+    domNode.appendChild(sendingTemplate);
 
-      // Define activity postResult return value here:
-      if (this.activity.source.name == 'share') {
-        this.activity.postResult('shared');
+    this.composer.finishCompositionSendMessage(
+      function callback(error , badAddress, sentDate) {
+        var activityHandler = function() {
+          if (activity) {
+            // Define activity postResult return value here:
+            if (activity.source.name == 'share') {
+              activity.postResult('shared');
+            }
+            activity = null;
+          }
+        }
+
+        domNode.removeChild(sendingTemplate);
+        if (error) {
+          CustomDialog.show(
+            null,
+            mozL10n.get('compose-send-message-failed'),
+            {
+              title: mozL10n.get('dialog-button-ok'),
+              callback: function() {
+                CustomDialog.hide();
+              }
+            }
+          );
+          return;
+        }
+        activityHandler();
+        Cards.removeCardAndSuccessors(domNode, 'animate');
       }
-      this.activity = null;
-
-      Cards.removeCardAndSuccessors(this.domNode, 'animate');
-    } else {
-      Cards.removeCardAndSuccessors(this.domNode, 'animate');
-    }
+    );
   },
 
   onContactAdd: function(event) {
@@ -372,6 +418,7 @@ ComposeCard.prototype = {
           if (obj.email) {
             var emt = contactBtn.parentElement.querySelector('.cmp-addr-text');
             self.insertBubble(emt, obj.name, obj.email);
+            self.sendButton.setAttribute('aria-disabled', 'false');
           }
         };
       };

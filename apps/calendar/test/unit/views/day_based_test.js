@@ -103,11 +103,11 @@ suite('views/day_based', function() {
 
       subject.add = function() {
         addCalledWith.push(arguments);
-      }
+      };
 
       controller.findAssociated = function() {
         requestCalledWith.push(arguments);
-      }
+      };
     });
 
     test('when given an object', function() {
@@ -172,7 +172,7 @@ suite('views/day_based', function() {
 
       subject._loadRecords = function() {
         calledLoadWith = arguments;
-      }
+      };
 
       subject.events.innerHTML = 'foobar';
     });
@@ -249,6 +249,7 @@ suite('views/day_based', function() {
 
       assert.equal(el.style.top, '83.3333%', 'top');
       assert.equal(el.style.height, '50%', 'height');
+      assert.match(el.className, /\bpartial-hour\b/, 'partial-hour found');
     });
 
     test('top of hour 1.5 hours', function() {
@@ -661,7 +662,7 @@ suite('views/day_based', function() {
         this,
         arguments
       );
-    }
+    };
 
     var el = subject.create();
     assert.equal(subject.id, date.valueOf(), 'id');

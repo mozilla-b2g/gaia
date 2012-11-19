@@ -3,27 +3,22 @@
 
 const Homescreen = (function() {
   var mode = 'normal';
+
   var _ = navigator.mozL10n.get;
-
-  // Initialize the pagination scroller
-  PaginationBar.init('.paginationScroller');
-
-  function initUI() {
+  setLocale();
+  window.addEventListener('localized', function localize() {
     setLocale();
-    GridManager.init('.apps', function gm_init() {
-      DockManager.init(document.querySelector('#footer .dockWrapper'));
-      PaginationBar.show();
-      GridManager.goToPage(1);
-      DragDropManager.init();
-      Wallpaper.init();
+    GridManager.localize();
+  });
 
-      window.addEventListener('localized', function localize() {
-        setLocale();
-        GridManager.localize();
-        DockManager.localize();
-      });
-    });
-  }
+  // Initialize the various components.
+  PaginationBar.init('.paginationScroller');
+  GridManager.init('.apps', '.dockWrapper', function gm_init() {
+    PaginationBar.show();
+    GridManager.goToPage(1);
+    DragDropManager.init();
+    Wallpaper.init();
+  });
 
   window.addEventListener('hashchange', function() {
     if (document.location.hash != '#root')
@@ -31,9 +26,8 @@ const Homescreen = (function() {
 
     if (Homescreen.isInEditMode()) {
       Homescreen.setMode('normal');
-      GridManager.saveState();
-      DockManager.saveState();
-      Permissions.hide();
+      GridManager.markDirtyState();
+      UninstallDialog.hide();
       GridManager.goToPage(GridManager.pageHelper.getCurrentPageNumber());
     } else {
       GridManager.goToPage(1);
@@ -45,41 +39,6 @@ const Homescreen = (function() {
     document.documentElement.lang = navigator.mozL10n.language.code;
     document.documentElement.dir = navigator.mozL10n.language.direction;
   }
-
-  function start() {
-    if (Applications.isReady()) {
-      initUI();
-      return;
-    }
-    Applications.addEventListener('ready', initUI);
-  }
-
-  function loadBookmarks() {
-    HomeState.getBookmarks(function(bookmarks) {
-      bookmarks.forEach(function(bookmark) {
-        Applications.addBookmark(bookmark);
-      });
-      start();
-    }, start);
-  }
-
-  HomeState.init(function success(onUpgradeNeeded) {
-    loadBookmarks();
-  }, start);
-
-  // Listening for installed apps
-  Applications.addEventListener('install', function oninstall(app) {
-    GridManager.install(app, true);
-  });
-
-  // Listening for uninstalled apps
-  Applications.addEventListener('uninstall', function onuninstall(app) {
-    if (DockManager.contains(app)) {
-      DockManager.uninstall(app);
-    } else {
-      GridManager.uninstall(app);
-    }
-  });
 
   if (navigator.mozSetMessageHandler) {
     navigator.mozSetMessageHandler('activity', function onActivity(activity) {
@@ -96,28 +55,38 @@ const Homescreen = (function() {
 
   return {
     /*
-     * Displays the contextual menu given an origin
+     * Displays the contextual menu given an app.
      *
-     * @param {String} the app origin
+     * @param {Application} app
+     *                      The application object.
      */
-    showAppDialog: function h_showAppDialog(origin) {
-      var app = Applications.getByOrigin(origin);
-      var title, body, yesLabel;
+    showAppDialog: function h_showAppDialog(app) {
+      var title, body;
+      var cancel = {
+        title: _('cancel'),
+        callback: UninstallDialog.hide
+      };
+
+      var confirm = {
+        callback: function onAccept() {
+          UninstallDialog.hide();
+          app.uninstall();
+        }
+      };
+
       // Show a different prompt if the user is trying to remove
       // a bookmark shortcut instead of an app.
       if (app.isBookmark) {
-        title = _('remove-title', { name: app.manifest.name });
-        body = '';
-        yesLabel = _('remove');
+        title = _('remove-title-2', { name: app.manifest.name });
+        body = _('remove-body', { name: app.manifest.name });
+        confirm.title = _('remove');
       } else {
         title = _('delete-title', { name: app.manifest.name });
         body = _('delete-body', { name: app.manifest.name });
-        yesLabel = _('delete');
+        confirm.title = _('delete');
       }
 
-      Permissions.show(title, body, yesLabel, _('cancel'),
-                       function onAccept() { app.uninstall() },
-                       function onCancel() {});
+      UninstallDialog.show(title, body, cancel, confirm);
     },
 
     isInEditMode: function() {

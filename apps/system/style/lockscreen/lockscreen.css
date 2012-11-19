@@ -222,124 +222,26 @@
   bottom: 0;
 }
 
-#lockscreen-area-handle {
-  position: absolute;
-  width: 5rem;
-  height: 5rem;
-  left: 50%;
-  bottom: 5rem;
-  margin-bottom: -2.5rem;
-  margin-left: -2.5rem;
-
-  transition: transform 0.1s linear;
-}
-
-.touched #lockscreen-area-handle {
-  transition: none;
-}
-
-@keyframes lockscreen-handleshake-right {
-	0%, 60%, 100% {
-	  transform: translateX(0);
-	}
-	20%, 40% {
-	  transform: translateX(1.5rem);
-	}
-}
-
-.touched-right #lockscreen-area-handle {
-  animation: lockscreen-handleshake-right 1s 2;
-}
-
-@keyframes lockscreen-handleshake-left {
-	0%, 60%, 100% {
-	  transform: translateX(0);
-	}
-	20%, 40% {
-	  transform: translateX(-1.5rem);
-	}
-}
-
-.touched-left #lockscreen-area-handle {
-  animation: lockscreen-handleshake-left 1s 2;
-}
-
-#lockscreen-area-handle > span:last-child {
-  position: absolute;
-  display: block;
-  pointer-events: none;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-
-  background-image: url('./images/handle.png');
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: 50% 50%;
-
-  transition: opacity 0.1s linear;
-}
-
-.touched-left #lockscreen-area-handle > span:last-child {
-  background-image: url('./images/handle-arrow-left.png');
-}
-
-.touched-right #lockscreen-area-handle > span:last-child {
-  background-image: url('./images/handle-arrow-right.png');
-}
-
-#lockscreen-area-handle.triggered > span:last-child {
-  opacity: 0;
-}
-
-#lockscreen-area-handle > span:first-child {
-  position: absolute;
-  display: block;
-  pointer-events: none;
-  width: 6.8rem;
-  height: 6.8rem;
-  top: -0.9rem;
-  left: -0.9rem;
-
-  background-image: url('./images/handle-grow.png');
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: 50% 50%;
-
-  opacity: 0;
-}
-
-@keyframes lockscreen-handlegrow {
-  from, to {
-    opacity: 0;
-  }
-
-  50% {
-    opacity: 1;
-  }
-}
-
-.touched #lockscreen-area-handle > span:first-child {
-  animation: lockscreen-handlegrow 1s 1;
-  opacity: 1;
-}
-
-#lockscreen-area-handle.triggered > span:first-child {
-  opacity: 1;
-}
-
 .lockscreen-icon {
   position: absolute;
-  border-radius: 2.7rem;
-  width: 4.2rem;
-  height: 4.2rem;
-  bottom: 5rem;
+  border-radius: 3rem;
+  width: 6rem;
+  height: 6rem;
+  bottom: 1rem;
   margin-bottom: -2.1rem;
+  background-color: rgba(0, 0, 0, 0.3);
+  outline: none;
 
   -moz-box-sizing: border-box;
   border: 2px solid rgba(255, 255, 255, 0.8);
-  transition: opacity 0.1s linear;
+}
+
+.lockscreen-icon:active {
+  background-color: rgb(0, 138, 170);
+}
+
+.touched .lockscreen-icon {
+  transition: none;
 }
 
 .lockscreen-icon-a11y-button {
@@ -363,117 +265,15 @@
 }
 
 .lockscreen-icon-right {
-  right: 1.5rem;
+  right: 4rem;
 }
 
 .lockscreen-icon-left {
-  left: 1.5rem;
+  left: 4rem;
 }
 
-@keyframes lockscreen-arrow-left {
-  from {
-    transform: none;
-    opacity: 1;
-  }
-
-  to {
-    transform: translateX(-7rem);
-    opacity: 0;
-  }
-}
-
-@keyframes lockscreen-arrow-right {
-  from {
-    transform: none;
-    opacity: 1;
-  }
-
-  to {
-    transform: translateX(7rem);
-    opacity: 0;
-  }
-}
-
-/*
-  We need to duplicate the animation keyframes so
-  animation can start over when .touched-left or .touched-right happens
-*/
-
-@keyframes lockscreen-arrow-left2 {
-  from { transform: none; opacity: 1; }
-  to { transform: translateX(-7rem); opacity: 0; }
-}
-
-@keyframes lockscreen-arrow-right2 {
-  from { transform: none; opacity: 1; }
-  to { transform: translateX(7rem); opacity: 0; }
-}
-
-#lockscreen-right-arrow {
-  left: -7.5rem;
-  background: transparent url('./images/arrow-right.png') center center no-repeat;
-  animation: lockscreen-arrow-right 2s infinite;
-}
-
-.touched-left #lockscreen-right-arrow {
-  animation: none;
-  display: none;
-}
-
-.touched-right #lockscreen-right-arrow {
-  animation: lockscreen-arrow-right2 2s infinite;
-}
-
-#lockscreen-left-arrow {
-  right: -7.5rem;
-  background: transparent url('./images/arrow-left.png') center center no-repeat;
-  animation: lockscreen-arrow-left 2s infinite;
-}
-
-.touched-right #lockscreen-left-arrow {
-  animation: none;
-  display: none;
-}
-
-.touched-left #lockscreen-left-arrow {
-  animation: lockscreen-arrow-left2 2s infinite;
-}
-
-.lockscreen-rail {
-  position: absolute;
-  bottom: 5rem;
-  margin: -1px;
-  width: -moz-calc(50% - 5rem - 0.7rem);
-  height: 0.2rem;
-  background-color: rgba(255, 255, 255, 0.8);
-  opacity: 0;
-  transition: opacity 0.1s linear;
-}
-
-.touched .lockscreen-rail {
-  opacity: 1;
-}
-
-#lockscreen-rail-left {
-  left: 5.8rem;
-  transform-origin: 0% 0%;
-}
-
-#lockscreen-rail-right {
-  right: 5.8rem;
-  transform-origin: 100% 0%;
-}
-
-/* the arrow animation for idle */
-.lockscreen-arrow {
-  position: absolute;
-  display: block;
-  content: '';
-  top: 1.9rem;
-
-  width: 1.2rem;
-  height: 2.2rem;
-  margin: -1.1rem;
+button::-moz-focus-inner {
+  border: 0;
 }
 
 :-moz-any(.touched, .triggered, #screen:not(.locked), #screen.attention, #lockscreen:not([data-panel="main"]))
@@ -483,11 +283,15 @@
 }
 
 #lockscreen-area-unlock {
-  background: rgba(0, 0, 0, 0.3) url('./images/icon-unlock.png') center center no-repeat;
+  background-image: url('./images/icon-unlock.png');
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 #lockscreen-area-camera {
-  background: rgba(0, 0, 0, 0.3) url('./images/icon-camera.png') center center no-repeat;
+  background: url('./images/icon-camera.png');
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 [data-panel="emergency-call"] #lockscreen-panel-passcode {
@@ -677,4 +481,45 @@
 
 [data-panel="emergency-call"] #lockscreen-panel-emergency-call {
   transform: translateX(0);
+}
+
+#lockscreen-curve {
+  width: 100%;
+  bottom: 0;
+  position: absolute;
+}
+
+#lockscreen-icon-container {
+  position: absolute;
+  width: 100%;
+  bottom: -5rem;
+  height: 5rem;
+  opacity: 0.4;
+  transition:
+    transform 0.5s ease,
+    opacity 0.5s ease;
+}
+
+.touched #lockscreen-icon-container {
+  transition: none;
+}
+
+.triggered #lockscreen-icon-container {
+  transform: translateY(-8.5rem);
+  opacity: 1;
+}
+
+@keyframes lockscreen-prompt {
+  0%, 100% {
+    transform: translateY(0);
+    animation-timing-function: ease-out;
+  }
+  50% {
+    transform: translateY(-5rem);
+    animation-timing-function: ease-in;
+  }
+}
+
+.prompt #lockscreen-icon-container {
+  animation: lockscreen-prompt 1s 1;
 }

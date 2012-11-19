@@ -24,7 +24,7 @@ var SetTime = (function SetTime() {
   };
 })();
 
-window.addEventListener('localized', function SettingsDateAndTime(evt) {
+onLocalized(function SettingsDateAndTime() {
   var _ = navigator.mozL10n.get;
 
   function updateDate() {
@@ -136,7 +136,7 @@ window.addEventListener('localized', function SettingsDateAndTime(evt) {
     var continentsID = 'timezone-continents-';
     for (var i = 0; i < _jsonData.length; i++) {
       content += '<li id="timezone-continents-' + continentsID + i + '">' +
-                 '  <a href="#timezone-zones" id="continent-item"' +
+                 '  <a href="#dateTime-timezone" id="continent-item"' +
                       'data-id="' + i + '">' + _jsonData[i].group +
                  '  </a>' +
                  '</li>';
@@ -177,9 +177,8 @@ window.addEventListener('localized', function SettingsDateAndTime(evt) {
   var _updateDateTimeout = null;
   var _updateClockTimeout = null;
   var _timezone = null;
-  var _jsonUrl = 'resources/timezones.json';
+  var _jsonUrl = 'shared/resources/timezones.json';
   var _jsonData = [];
-  var _isReceivedInputEventInOneSecond = false;
 
 
   // issue #5276: PERSONALIZATION SETTINGS ->
@@ -229,39 +228,17 @@ window.addEventListener('localized', function SettingsDateAndTime(evt) {
   });
 
   gDatePicker.addEventListener('input', function datePickerChange() {
-    //XXX: Workaround: Bug 802073 -
-    //Receive input event twice from input tag type:time and type:date
-    if (_isReceivedInputEventInOneSecond) {
-      gDatePicker.value = '';
-      return;
-    }
-
-    _isReceivedInputEventInOneSecond = true;
     setTime('date');
     // Clean up the value of picker once we get date set by the user.
     // It will get new date according system time when pop out again.
     gDatePicker.value = '';
-    window.setTimeout(function cleanFlag() {
-      _isReceivedInputEventInOneSecond = false;
-    }, 1000);
   });
 
   gTimePicker.addEventListener('input', function timePickerChange() {
-    //XXX: Workaround: Bug 802073 -
-    //Receive input event twice from input tag type:time and type:date
-    if (_isReceivedInputEventInOneSecond) {
-      gTimePicker.value = '';
-      return;
-    }
-
-    _isReceivedInputEventInOneSecond = true;
     setTime('time');
     // Clean up the value of picker once we get time set by the user.
     // It will get new time according system time when pop out again.
     gTimePicker.value = '';
-    window.setTimeout(function cleanFlag() {
-      _isReceivedInputEventInOneSecond = false;
-    }, 1000);
   });
 
   window.addEventListener('moztimechange', function moztimechange() {

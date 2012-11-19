@@ -10,6 +10,8 @@
     <link rel="stylesheet" type="text/css" href="shared/style/edit_mode.css">
     <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css">
     <link rel="stylesheet" type="text/css" href="shared/style/switches.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/confirm.css">
+    <link rel="stylesheet" type="text/css" href="shared/style_unstable/progress_activity.css">
 
     <!-- App styles -->
     <link rel="stylesheet" type="text/css" href="style/root.css">
@@ -20,10 +22,16 @@
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
     <link rel="resource" type="application/l10n" href="shared/locales/date.ini">
     <!-- Shared code -->
+    <script type="text/javascript" src="shared/js/async_storage.js"></script>
     <script type="text/javascript" src="shared/js/l10n.js"></script>
     <script type="text/javascript" src="shared/js/l10n_date.js"></script>
     <script type="text/javascript" src="shared/js/custom_dialog.js"></script>
     <script type="text/javascript" src="shared/js/desktop.js"></script>
+    <!-- Phone number library -->
+    <script type="text/javascript" src="shared/js/phoneNumberJS/PhoneNumberMetaData.js"></script>
+    <script type="text/javascript" src="shared/js/phoneNumberJS/PhoneNumber.js"></script>
+    <script type="text/javascript" src="shared/js/phoneNumberJS/mcc_iso3166_table.js"></script>
+    <script type="text/javascript" src="js/phoneNumberUtils.js"></script>
     <!-- Specific code -->
     <script type="text/javascript" src="js/contacts.js"></script>
     <script type="text/javascript" src="js/pendingDBUtils.js"></script>
@@ -32,17 +40,6 @@
     <script type="text/javascript" src="js/searchUtils.js"></script>
     <script type="text/javascript" src="js/fixed_header.js"></script>
     <script type="text/javascript" src="js/desktopTesting.js"></script>
-
-    <!-- phone number utils -->
-    <script type="text/javascript" src="js/phoneNumberUtils.js"></script>
-    <script type="text/javascript" src="js/ext/closure-library/base.js"></script>
-    <script type="text/javascript" src="js/ext/googRequire.js"></script>
-    <script type="text/javascript" src="js/ext/libphonenumber/phonemetadata.pb.js"></script>
-    <script type="text/javascript" src="js/ext/libphonenumber/phonenumber.pb.js"></script>
-    <script type="text/javascript" src="js/ext/libphonenumber/metadata.js"></script>
-    <script type="text/javascript" src="js/ext/libphonenumber/phonenumberutil.js"></script>
-    <script type="text/javascript" src="js/ext/libphonenumber/asyoutypeformatter.js"></script>
-    <script type="text/javascript" src="js/ext/mcc_iso3166_table.js"></script>
   </head>
 
   <body role="application">
@@ -136,19 +133,19 @@
             </button>
           </menu>
         </form>
-      </section>
+      </section>  
     </article>
     <article id="snapshot" class="wrapper">
     </article>
     <article id="loading">
-      <section class="loading-container">
-        <header class="loading-header" data-l10n-id="deleting-messages">
-          Deleting messages...
-        </header>
-        <article class="loading-icon">
-          <img src="style/images/spinner.gif">
-        </article>
-      </section>
+      <form role="dialog" data-type="confirm" class="loading-container">
+        <section>
+          <p class="loading-header" data-l10n-id="deleting-messages">Deleting messages...</p>
+          <div role="status">
+            <progress class="small"></progress>
+          </div>
+        </section>
+      </form>
     </article>
   </body>
 </html>

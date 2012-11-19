@@ -460,13 +460,61 @@ suite('Render contacts list', function() {
       assertTotal(0, 0);
     });
 
-    test('checking no contacts when coming fron activity', function() {
+    test('checking no contacts when coming from activity', function() {
       MockActivities.currentlyHandling = true;
       subject.load([]);
       assert.isTrue(noContacts.classList.contains('hide'));
       assertNoGroup(groupFav, containerFav);
       assertTotal(0, 0);
       MockActivities.currentlyHandling = false;
+    });
+
+    test('updating photo for a contact already rendered', function() {
+      mockContacts = new MockContactsList();
+      subject.load(mockContacts);
+      assertTotal(3, 3);
+
+      var selectorContact1 = 'li[data-uuid = "1"]';
+      var contact = container.querySelector(selectorContact1);
+
+      var img = contact.querySelector('img');
+      assert.isTrue(img.getAttribute('backgroundImage') === 'test.png',
+                    'At the begining contact 1 img === "test.png"');
+      var prevUpdated = contact.dataset.updated;
+
+      mockContacts[0].updated = new Date(); // This is the key!
+      mockContacts[0].photo = ['one.png'];
+      subject.load(mockContacts);
+      assertTotal(3, 3);
+
+      contact = container.querySelector(selectorContact1);
+      img = contact.querySelector('img');
+      assert.isTrue(img.getAttribute('backgroundImage') === 'one.png',
+                    'After updating contact 1 img === "one.png"');
+
+      assert.isTrue(prevUpdated < contact.dataset.updated,
+                    'Updated date is wrong. It should be changed!');
+    });
+
+    test('reloading list of contacts without updating', function() {
+      mockContacts = new MockContactsList();
+      subject.load(mockContacts);
+      assertTotal(3, 3);
+
+      var selectorContact1 = 'li[data-uuid = "1"]';
+      var contact = container.querySelector(selectorContact1);
+
+      var img = contact.querySelector('img');
+      assert.isTrue(img.getAttribute('backgroundImage') === 'test.png',
+                    'At the begining contact 1 img === "test.png"');
+
+      subject.load(mockContacts);
+      assertTotal(3, 3);
+
+      contact = container.querySelector(selectorContact1);
+      img = contact.querySelector('img');
+      assert.isTrue(img.getAttribute('backgroundImage') === 'test.png',
+                    'At the begining contact 1 img === "test.png"');
     });
   });  // suite ends
 

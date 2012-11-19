@@ -497,6 +497,7 @@ console.log('  CONFIG CURRENTLY:', JSON.stringify(MailAPI.config));//HACK
 
   this._secretButtonClickCount = 0;
   this._secretButtonTimer = null;
+  // TODO: Need to remove the secret debug entry before shipping.
   domNode.getElementsByClassName('tng-email-lib-version')[0]
     .addEventListener('click', this.onClickSecretButton.bind(this), false);
 }
@@ -678,9 +679,26 @@ SettingsAccountCard.prototype = {
   },
 
   onDelete: function() {
-    this.account.deleteAccount();
-    Cards.removeCardAndSuccessors(null, 'none');
-    App.showMessageViewOrSetup();
+    var account = this.account;
+    CustomDialog.show(
+      null,
+      mozL10n.get('settings-account-delete-prompt', { account: account.name }),
+      {
+        title: mozL10n.get('settings-account-delete-cancel'),
+        callback: function() {
+          CustomDialog.hide();
+        }
+      },
+      {
+        title: mozL10n.get('settings-account-delete-confirm'),
+        callback: function() {
+          account.deleteAccount();
+          CustomDialog.hide();
+          Cards.removeCardAndSuccessors(null, 'none');
+          App.showMessageViewOrSetup();
+        }
+      }
+    );
   },
 
   die: function() {
@@ -709,7 +727,7 @@ function SettingsAccountCredentialsCard(domNode, mode, args) {
     .addEventListener('click', this.onBack.bind(this), false);
 
   domNode.getElementsByClassName('tng-account-save')[0]
-    .addEventListener('click', this.onBack.bind(this), false);
+    .addEventListener('click', this.onClickSave.bind(this), false);
 
   var usernameNodeInput =
     this.domNode.getElementsByClassName('tng-server-username-input')[0];
@@ -718,10 +736,9 @@ function SettingsAccountCredentialsCard(domNode, mode, args) {
   this.passwordNodeInput =
     this.domNode.getElementsByClassName('tng-server-password-input')[0];
   this.passwordNodeInput.setAttribute('placeholder',
-                                      mozL10n.get('settings-password'));
+                                      mozL10n.get('settings-new-password'));
 
   usernameNodeInput.value = this.account.username;
-  this.passwordNodeInput.value = '********';
 }
 SettingsAccountCredentialsCard.prototype = {
   onBack: function() {

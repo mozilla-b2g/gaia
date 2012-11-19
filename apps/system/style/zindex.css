@@ -19,6 +19,10 @@
 }
 */
 
+#screen > *[data-z-index-level="poweroff-splash"] {
+  z-index: 65536;
+}
+
 #screen > [data-z-index-level="debug-grid"],
 #screen > [data-z-index-level="debug-ttl"] {
   z-index: 65536;
@@ -36,9 +40,9 @@
   z-index: 65536;
 }
 
-/* Promote window-sprite and appWindow to this level as the entry and exiting transition
+/* Promote the transitioning appWindow to this level as the entry and exiting transition
   of the cards view. */
-#screen.cards-view > [data-z-index-level="window-sprite"]:not(.before-open),
+#screen.cards-view > [data-z-index-level="app"] > iframe.appWindow.active,
 #screen.cards-view > [data-z-index-level="app"] > iframe.appWindow.opening,
 #screen.cards-view > [data-z-index-level="app"] > iframe.appWindow.closing {
   z-index: 65536;
@@ -95,7 +99,7 @@
   z-index: 2047;
 }
 
-#screen > [data-z-index-level="pinkeypadscreen"] {
+#screen > [data-z-index-level="simpin-dialog"] {
   z-index: 2046;
 }
 
@@ -108,6 +112,8 @@
 #screen > [data-z-index-level="dialog-overlay"],
 #screen > [data-z-index-level="value-selector"],
 #screen > [data-z-index-level="permission-screen"],
+#screen > [data-z-index-level="app-install-dialog"],
+#screen > [data-z-index-level="updates-download-dialog"],
 #screen > [data-z-index-level="app"] > iframe.appWindow.inlineActivity {
   z-index: 1024;
 }
@@ -125,9 +131,6 @@
 #screen.switch-app [data-z-index-level="app"] > iframe.appWindow.closing,
 #screen.switch-app [data-z-index-level="app"] > iframe.appWindow:not(.homescreen).active {
   z-index: 6;
-}
-#screen > [data-z-index-level="window-sprite"] {
-  z-index: 5;
 }
 
 #screen > [data-z-index-level="app"] {
@@ -147,7 +150,8 @@
  * - finally, everything else need to be on top of them (hence the lowest nums)
  *
  */
-#screen > [data-z-index-level="app"] > #wrapper {
+#screen > [data-z-index-level="app"] > #wrapper-footer,
+#screen > [data-z-index-level="app"] > #wrapper-activity-indicator {
   z-index: 5;
 }
 
@@ -188,10 +192,9 @@
 #screen:-moz-full-screen-ancestor > [data-z-index-level="keyboard-frame"].visible,
 
 #screen:-moz-full-screen-ancestor > [data-z-index-level="notification-toaster"],
-#screen.cards-view:-moz-full-screen-ancestor > [data-z-index-level="window-sprite"]:not(.before-open),
 #screen:-moz-full-screen-ancestor > [data-z-index-level="cards-view"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="attention-screen"],
-#screen:-moz-full-screen-ancestor > [data-z-index-level="permission-screen"] {
+#screen:-moz-full-screen-ancestor > [data-z-index-level="permission-screen"],
+#screen:-moz-full-screen-ancestor > [data-z-index-level="app-install-dialog"] {
   z-index: 2147483647;
 }
-

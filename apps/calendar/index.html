@@ -45,7 +45,6 @@
   <script defer src="/js/presets.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/ordered_map.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/calc.js" type="text/javascript" charset="utf-8"></script>
-  <script defer src="/js/set.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/template.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/responder.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/view.js" type="text/javascript" charset="utf-8"></script>
@@ -229,6 +228,7 @@
 
   <ol id="create-account-presets" class="link-list">
   </ol>
+
 </section>
 
 <section
@@ -297,11 +297,11 @@
   <form>
     <ol>
       <li class="title">
-        <input name="title" data-l10n-id="event-title" placeholder="Title" />
+        <input name="title" data-l10n-id="event-title" x-inputmode="latin-prose" placeholder="Title" />
       </li>
 
       <li class="location">
-        <input name="location" data-l10n-id="event-location" placeholder="Where?" />
+        <input name="location" data-l10n-id="event-location" x-inputmode="latin-prose" placeholder="Where?" />
       </li>
 
       <li class="allday">
@@ -338,7 +338,7 @@
       </li>
 
       <li class="notes">
-        <textarea class="fieldbox" name="description" data-l10n-id="event-description" placeholder="Notes"></textarea>
+        <textarea class="fieldbox" name="description" data-l10n-id="event-description" x-inputmode="latin-prose" placeholder="Notes"></textarea>
       </li>
 
       <li class="delete">
@@ -369,7 +369,6 @@
 
     <h1 data-l10n-id="account-header">Account</h1>
   </header>
-  <div class="errors"></div>
   <form>
     <fieldset>
       <ol>
@@ -389,6 +388,11 @@
       </ol>
     </fieldset>
   </form>
+	
+	<section role="status">
+ 	  <p class="errors"></p>
+	</section>
+	
   <div class="during-progress">
   </div>
 
@@ -404,8 +408,8 @@
       </p>
     </section>
     <menu>
-      <button type="reset" class="delete-cancel" data-l10n-id="cancel">Cancel</button>
-      <button type="submit" class="delete-confirm" data-l10n-id="confirm">Confirm</button>
+      <button class="delete-cancel" data-l10n-id="cancel">Cancel</button>
+      <button class="recommend delete-confirm" data-l10n-id="confirm">Confirm</button>
     </menu>
   </form>
 

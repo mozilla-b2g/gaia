@@ -4,7 +4,7 @@
 'use strict';
 
 /**
- * This library should help debuggin Gaia on a desktop browser, where APIs like
+ * This library should help debugging Gaia on a desktop browser, where APIs like
  * mozTelephony or mozApps are not supported.
  */
 
@@ -15,7 +15,7 @@
     return;
 
   var TelephonyCalls = [];
-  if (RecentsDBManager) {
+  if (typeof(RecentsDBManager) != 'undefined' && RecentsDBManager) {
     RecentsDBManager.init(function() {
       RecentsDBManager.prepopulateDB(function() {
         RecentsDBManager.close();
@@ -50,32 +50,6 @@
   };
 })(this);
 
-
-// If mozApps permission is denied, create a fake list of applications.
-(function(window) {
-  if (navigator.mozApps.mgmt.oninstall)
-    return;
-
-  try {
-    navigator.mozApps.mgmt.oninstall = function() {};
-    navigator.mozApps.mgmt.oninstall = null;
-  } catch (e) {
-    if (document.location.protocol === 'file:') {
-      var paths = document.location.pathname.split('/');
-      paths.pop();
-      paths.pop();
-      paths.pop();
-      var src = 'file://' + paths.join('/') + '/webapps.js';
-    } else {
-      var host = document.location.host;
-      var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-      var src = 'http://' + domain + '/webapps.js';
-    }
-    document.write('<script src="' + src + '"><\/script>');
-  }
-})(this);
-
-
 // Emulate device buttons. This is groteskly unsafe and should be removed soon.
 (function(window) {
   var supportedEvents = { keydown: true, keyup: true };
@@ -101,7 +75,7 @@
       listeners = newListeners;
     }
     originalRemoveEventListener.call(this, type, listener);
-  }
+  };
 
   var KeyEventProto = {
     DOM_VK_HOME: 36

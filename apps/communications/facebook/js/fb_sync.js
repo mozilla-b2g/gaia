@@ -29,6 +29,10 @@ if (!fb.sync) {
     var alarmFrame = null,
         currentAlarmRequest = null;
 
+    // Delay in closing the iframe that schedules the alarm.
+    // Avoiding console.log issues in the logcat
+    var DELAY_ALARM_SCHED = 5000;
+
     function debug() {
       if (isDebug) {
         var theArgs = ['<<FBSync>>'];
@@ -47,13 +51,43 @@ if (!fb.sync) {
       }
       theWorker.onerror = function(e) {
         window.console.error('Worker Error', e.message, e.lineno, e.column);
+        if (typeof errorCallback === 'function') {
+          errorCallback({
+            type: 'default_error'
+          });
+        }
       }
     }
 
     function workerMessage(m) {
       switch (m.type) {
-        case 'error':
-           window.console.error('FB: Error reported by the worker', m.data);
+        case 'query_error':
+          var error = m.data || {};
+          window.console.error('FB: Error reported by the worker',
+                                JSON.stringify(error));
+          if (typeof errorCallback === 'function') {
+            errorCallback({
+              name: 'defaultError'
+            });
+          }
+        break;
+
+        case 'token_error':
+          debug('FB: Token error reported by the worker');
+          if (typeof errorCallback === 'function') {
+            errorCallback({
+              name: 'invalidToken'
+            });
+          }
+        break;
+
+        case 'timeout_error':
+          debug('Timeout error reported by the worker');
+          if (typeof errorCallback === 'function') {
+            errorCallback({
+              name: 'timeout'
+            });
+          }
         break;
 
         case 'trace':
@@ -186,6 +220,8 @@ if (!fb.sync) {
           window.setTimeout(window.contacts.List.load, 0);
         }
 
+        // Once sync has finished the last update date is set
+        // Thus we ensure next will happen in the next <period> hours
         fb.utils.setLastUpdate(nextTimestamp, completionCallback);
 
         if (theWorker) {
@@ -197,16 +233,14 @@ if (!fb.sync) {
 
 
     // Starts a synchronization
-    Sync.start = function(callbacks) {
-      if (callbacks) {
-        completionCallback = callbacks.success;
-        errorCallback = callbacks.error;
+    Sync.start = function(params) {
+      if (params) {
+        completionCallback = params.success;
+        errorCallback = params.error;
       }
 
       totalToChange = 0;
       changed = 0;
-
-      startWorker();
 
       // First only take into account those Friends already on the device
       // This work has to be done here and not by the worker as it has no
@@ -218,8 +252,11 @@ if (!fb.sync) {
         var fbContacts = req.result;
 
         if (fbContacts.length === 0) {
+          debug('Nothing to be synchronized. No FB Contacts present');
           return;
         }
+
+        startWorker();
 
         // Contacts by id are cached for later update
         fbContactsById = {};
@@ -253,7 +290,8 @@ if (!fb.sync) {
                 uids: uids,
                 imgNeedsUpdate: forceUpdate,
                 timestamp: ts,
-                access_token: access_token
+                access_token: access_token,
+                operationsTimeout: fb.operationsTimeout
               }
             });
           });
@@ -261,9 +299,12 @@ if (!fb.sync) {
       }
 
       req.onerror = function() {
-        window.console.error('FB: Error while getting friends on the device');
+        window.console.error('FB: Error while getting friends on the device',
+                             req.error.name);
         if (typeof errorCallback === 'function') {
-          errorCallback(req.error);
+          errorCallback({
+            name: 'defaultError'
+          });
         }
       }
     }
@@ -287,22 +328,24 @@ if (!fb.sync) {
       return currentAlarmRequest;
     }
 
+    function cleanAlarmSchedFrame() {
+      alarmFrame.src = null;
+      document.body.removeChild(alarmFrame);
+      alarmFrame = null;
+    }
 
     Sync.onAlarmScheduled = function(date) {
       debug('Next synch scheduled at: ', date);
       if (alarmFrame) {
-        document.body.removeChild(alarmFrame);
-        alarmFrame = null;
+        window.setTimeout(cleanAlarmSchedFrame, DELAY_ALARM_SCHED);
       }
-
       currentAlarmRequest.done(date);
     }
 
 
     Sync.onAlarmError = function(e) {
       if (alarmFrame) {
-        document.body.removeChild(alarmFrame);
-        alarmFrame = null;
+         window.setTimeout(cleanAlarmSchedFrame, DELAY_ALARM_SCHED);
       }
 
       window.console.error('<<FB Sync>> Error while scheduling a new sync: ',
@@ -392,7 +435,8 @@ if (!fb.sync) {
               type: 'startWithData',
               data: {
                 access_token: access_token,
-                uids: toBeUpdated
+                uids: toBeUpdated,
+                operationsTimeout: fb.operationsTimeout
               }
             });
           });

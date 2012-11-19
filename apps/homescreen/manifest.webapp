@@ -10,7 +10,7 @@
   "permissions": {
     "webapps-manage":{},
     "systemXHR":{},
-    "settings":{ "access": "readonly" },
+    "settings":{ "access": "readwrite" },
     "device-storage:pictures":{ "access": "readonly" }
   },
   "locales": {

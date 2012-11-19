@@ -132,3 +132,19 @@ button.affirmative.active {
   width:  100%;
   height: 100%;
 }
+
+/* The following rules is to override the styles defined in building blocks of value selector */
+#value-selector li {
+  height: auto;
+  padding-bottom: 0px;
+  line-height: 3.9rem;
+}
+
+#value-selector li span {
+  padding: 1rem 2rem 1rem 1.5rem;
+}
+
+#value-selector li input:checked + span,
+#value-selector li[aria-checked="true"] span {
+  background: url("../bb/value_selector/images/icons/checked.png") no-repeat scroll right center border-box transparent;
+}

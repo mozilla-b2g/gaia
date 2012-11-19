@@ -31,7 +31,7 @@ Calendar.Thread.prototype = {
     return {
       emit: function emitRemote() {
         var args = Array.prototype.slice.call(arguments);
-        self.worker.postMessage([id + ' stream', args]);
+        self.worker.postMessage([id + ' stream'].concat(args));
       }
     };
   },
@@ -87,6 +87,10 @@ Calendar.Thread.prototype = {
     errorObject.message = err.message || err.toString();
     errorObject.type = err.type || 'Error';
     errorObject.constructorName = err.constructor.name || 'Error';
+
+    if ('code' in err) {
+      errorObject.code = err.code;
+    }
 
     return errorObject;
   },

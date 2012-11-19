@@ -9,6 +9,7 @@
   },
   "permissions": {
     "device-storage:pictures":{ "access": "readwrite" },
+    "device-storage:videos":{ "access": "readwrite" },
     "settings":{ "access": "readonly" }
   },
   "activities": {
@@ -32,7 +33,7 @@
        },
       "disposition": "inline",
       "returnValue": true,
-      "href": "/index.html#open"
+      "href": "/open.html"
     }
   },
   "locales": {

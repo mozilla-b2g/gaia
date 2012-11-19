@@ -37,7 +37,7 @@ iframe {
 
 /* WINDOW & VIEWS */
 .window, .view {
-  position: absolute;
+  position: fixed;
   left: 0;
   top: 0;
   right: 0;
@@ -240,7 +240,7 @@ section.content .error-messages {
 .settings li > .end button {
   display: inline-block;
   vertical-align: middle;
-  width: 8.5rem;
+  width: 10.0rem;
   margin: 0;
   padding-left: 0.5rem;
 }

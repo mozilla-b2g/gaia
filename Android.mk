@@ -45,6 +45,6 @@ $(LOCAL_PATH)/profile.tar.gz:
 ifeq ($(CLEAN_PROFILE), 1)
 	rm -rf $(GAIA_PATH)/profile $(GAIA_PATH)/profile.tar.gz
 endif
-	$(MAKE) $(GAIA_MAKE_FLAGS) profile
+	$(MAKE) -j1 $(GAIA_MAKE_FLAGS) profile
 	cd $(GAIA_PATH)/profile && tar cfz $(abspath $@) webapps
 

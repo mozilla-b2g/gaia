@@ -70,6 +70,10 @@ form[role="dialog"][data-type="confirm"] menu {
   bottom: 0;
 }
 
+form[role="dialog"][data-type="confirm"] menu button::-moz-focus-inner {
+  border: none;
+  outline: none;
+}
 form[role="dialog"][data-type="confirm"] menu button {
   width: 100%;
   height: 3.8rem;
@@ -81,70 +85,67 @@ form[role="dialog"][data-type="confirm"] menu button {
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
-  background: #b70404 url(confirm/images/ui/button.png) repeat-x left bottom;
+  background: #fafafa url(buttons/images/ui/default.png) repeat-x left bottom;
+  border: 0.1rem solid #9f9f9f;
   border-radius: 0.3rem;
-  outline: none;
-  border: none;
-  font-size: 1.6rem;
-  font-family: 'MozTT', Sans-serif;
-  font-weight: 600;
-  line-height: 3.8rem;
-  color: #fff;
-  text-shadow: -1px -1px 0 #830b0b;
-  text-align: center;
-  text-decoration: none;
-}
-
-/* Press */
-form[role="dialog"][data-type="confirm"] menu button:active {
-  background-image: url(confirm/images/ui/button_press.png);
-  background-color: #890707;
-}
-
-/* Disabled */
-form[role="dialog"][data-type="confirm"] menu button[disabled] {
-  background-image: url(confirm/images/ui/button_disabled.png);
-  text-shadow: none;
-}
-
-/* Reset & submit defaults */
-form[role="dialog"][data-type="confirm"] menu button[type="reset"],
-form[role="dialog"][data-type="confirm"] menu button[type="submit"] {
-  text-shadow: 1px 1px 0 rgba(255,255,255,0.3);
+  font: 600 1.6rem/3.8rem 'MozTT', Sans-serif;
   color: #333;
+  text-align: center;
+  text-shadow: 0.1rem 0.1rem 0 rgba(255,255,255,0.3);
+  text-decoration: none;
+  outline: none;
 }
 
-/* Reset */
-form[role="dialog"][data-type="confirm"] menu button[type="reset"] {
-  background-image: url(confirm/images/ui/button_reset.png);
-  background-color: #fafafa;
-  border: solid 1px #9f9f9f;
-}
-
-/* Submit */
-form[role="dialog"][data-type="confirm"] menu button[type="submit"] {
-  background-image: url(confirm/images/ui/button_submit.png) ;
-  background-color: #00caf2;
-  border: 1px solid #00acce;
-}
-
-/* Pressed state, reset & submit */
-form[role="dialog"][data-type="confirm"] menu button[type="reset"]:active,
-form[role="dialog"][data-type="confirm"] menu button[type="submit"]:active {
-  border: solid 1px #008aaa;
+/* Press (default & recommend) */
+form[role="dialog"][data-type="confirm"] menu button:active,
+form[role="dialog"][data-type="confirm"] menu button.recommend:active,
+a.recommend[role="button"]:active  {
+  border-color: #008aaa;
   background: #008aaa;
   color: #333;
 }
 
-/* Disabled, reset & submit) */
-form[role="dialog"][data-type="confirm"] menu button[type="reset"][disabled],
-form[role="dialog"][data-type="confirm"] menu button[type="submit"][disabled] {
-  background-image: url(confirm/images/ui/button_special_disabled.png);
-  background-color: transparent;
-  border: none;
-  color: #4a4a4a;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.2);
+/* Recommend */
+form[role="dialog"][data-type="confirm"] menu button.recommend {
+  background-image: url(buttons/images/ui/recommend.png);
+  background-color: #00caf2;
+  border-color: #00acce;
 }
+
+/* Danger */
+form[role="dialog"][data-type="confirm"] menu button.danger,
+a.danger[role="button"] {
+  background-image: url(buttons/images/ui/danger.png);
+  background-color: #b70404;
+  color: #fff;
+  text-shadow: -0.1rem -0.1rem 0 #830b0b;
+  border: none;
+}
+
+/* Danger Press */
+form[role="dialog"][data-type="confirm"] menu button.danger:active {
+  background-image: url(buttons/images/ui/danger-press.png);
+  background-color: #890707;
+}
+
+/* Disabled (default & recommend) */
+form[role="dialog"][data-type="confirm"] menu button[disabled],
+form[role="dialog"][data-type="confirm"] menu button[disabled].recommend {
+  background-image: url(buttons/images/ui/disabled.png);
+  background-color: transparent;
+  border-color: #dadada;
+  color: #bcbcbc;
+  pointer-events: none;
+}
+
+/* Danger disabled */
+form[role="dialog"][data-type="confirm"] menu button[disabled].danger {
+  background-image: url(buttons/images/ui/danger-disabled.png);
+  color: #fff;
+  text-shadow: none;
+  pointer-events: none;
+}
+
 
 form[role="dialog"][data-type="confirm"] menu button:last-child {
   margin-left: 1rem;

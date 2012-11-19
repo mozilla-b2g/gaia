@@ -761,7 +761,7 @@
     if (!data) {
       //consoleWarn('#' + key + ' missing for [' + gLanguage + ']');
       // XXX temporary log, to be removed after the string freeze
-      console.warn('[l10n] #' + key + ' is undefined.');
+      consoleWarn('[l10n] #' + key + ' is undefined.');
     }
 
     /** This is where l10n expressions should be processed.
@@ -842,7 +842,7 @@
     if (!data) {
       //consoleWarn('#' + l10n.id + ' missing for [' + gLanguage + ']');
       // XXX temporary log, to be removed after the string freeze
-      console.warn('[l10n] #' + l10n.id + ' is undefined.');
+      consoleWarn('[l10n] #' + l10n.id + ' is undefined.');
       return;
     }
 

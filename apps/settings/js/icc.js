@@ -26,7 +26,7 @@
   /**
    * Init
    */
-  var iccMenuItem = document.getElementById('iccMenuItem');
+  var iccMenuItem = document.getElementById('menuItem-icc');
   var iccStkList = document.getElementById('icc-stk-list');
   var iccStkHeader = document.getElementById('icc-stk-header');
   var iccStkSubheader = document.getElementById('icc-stk-subheader');
@@ -210,6 +210,13 @@
         responseSTKCommand({ resultCode: icc.STK_RESULT_OK });
         break;
 
+      case icc.STK_CMD_PLAY_TONE:
+        debug(' STK:Play Tone: ',otions);
+        playTone(options);
+        iccLastCommandProcessed = true;
+        responseSTKCommand({ resultCode: icc.STK_RESULT_OK });
+        break;
+
       default:
         debug('STK Message not managed... response OK');
         iccLastCommandProcessed = true;
@@ -229,7 +236,16 @@
       case icc.STK_EVENT_TYPE_MT_CALL:
       case icc.STK_EVENT_TYPE_CALL_CONNECTED:
       case icc.STK_EVENT_TYPE_CALL_DISCONNECTED:
+        debug(' STK: Registering to communications changes event');
+        var comm = navigator.mozTelephony;
+        comm.addEventListener('callschanged', handleCallsChangedEvent);
+        break;
       case icc.STK_EVENT_TYPE_LOCATION_STATUS:
+        debug(' STK: Registering to location changes event');
+        var conn = window.navigator.mozMobileConnection;
+        conn.addEventListener('voicechange', handleLocationStatusEvent);
+        conn.addEventListener('datachange', handleLocationStatusEvent);
+        break;
       case icc.STK_EVENT_TYPE_USER_ACTIVITY:
       case icc.STK_EVENT_TYPE_IDLE_SCREEN_AVAILABLE:
       case icc.STK_EVENT_TYPE_CARD_READER_STATUS:
@@ -247,6 +263,93 @@
         break;
       }
     }
+  }
+
+  /**
+   * Handle Location change Events
+   */
+  function handleLocationStatusEvent(evt) {
+    if (evt.type != 'voicechange') {
+      return;
+    }
+    var conn = window.navigator.mozMobileConnection;
+    debug(' STK Location changed to MCC=' + conn.iccInfo.mcc +
+      ' MNC=' + conn.iccInfo.mnc +
+      ' LAC=' + conn.voice.cell.gsmLocationAreaCode +
+      ' CellId=' + conn.voice.cell.gsmCellId +
+      ' Status/Connected=' + conn.voice.connected +
+      ' Status/Emergency=' + conn.voice.emergencyCallsOnly);
+    var status = icc.STK_SERVICE_STATE_UNAVAILABLE;
+    if (conn.voice.connected) {
+      status = icc.STK_SERVICE_STATE_NORMAL;
+    } else if (conn.voice.emergencyCallsOnly) {
+      status = icc.STK_SERVICE_STATE_LIMITED;
+    }
+    // MozStkLocationEvent
+    icc.sendStkEventDownload({
+      eventType: STK_EVENT_TYPE_LOCATION_STATUS,
+      locationStatus: status,
+      locationInfo: {
+        mcc: conn.iccInfo.mcc,
+        mnc: conn.iccInfo.mnc,
+        gsmLocationAreaCode: conn.voice.cell.gsmLocationAreaCode,
+        gsmCellId: conn.voice.cell.gsmCellId
+      }
+    });
+  }
+
+  /**
+   * Handle Call Events
+   */
+  function handleCallsChangedEvent(evt) {
+    if (evt.type != 'callschanged') {
+      return;
+    }
+    debug(' STK Communication changed - ' + evt.type);
+    navigator.mozTelephony.calls.forEach(function callIterator(call) {
+      debug(' STK:CALLS State change: ' + call.state);
+      var outgoing = call.state == 'incoming';
+      if (call.state == 'incoming') {
+        // MozStkCallEvent
+        icc.sendStkEventDownload({
+          eventType: icc.STK_EVENT_TYPE_MT_CALL,
+          number: call.number,
+          isIssuedByRemote: outgoing,
+          error: null
+        });
+      }
+      call.addEventListener('error', function callError(err) {
+        // MozStkCallEvent
+        icc.sendStkEventDownload({
+          eventType: icc.STK_EVENT_TYPE_CALL_DISCONNECTED,
+          number: call.number,
+          error: err
+        });
+      });
+      call.addEventListener('statechange', function callStateChange() {
+        debug(' STK:CALL State Change: ' + call.state);
+        switch (call.state) {
+          case 'connected':
+            // MozStkCallEvent
+            icc.sendStkEventDownload({
+              eventType: icc.STK_EVENT_TYPE_CALL_CONNECTED,
+              number: call.number,
+              isIssuedByRemote: outgoing
+            });
+            break;
+          case 'disconnected':
+            call.removeEventListener('statechange', callStateChange);
+            // MozStkCallEvent
+            icc.sendStkEventDownload({
+              eventType: icc.STK_EVENT_TYPE_CALL_DISCONNECTED,
+              number: call.number,
+              isIssuedByRemote: outgoing,
+              error: null
+            });
+            break;
+        }
+      });
+    });
   }
 
   /**
@@ -368,7 +471,7 @@
     if (options.isAlphabet) {
       input.type = 'text';
     } else {
-      input.type = 'number';
+      input.type = 'tel';
     }
     if (options.defaultText) {
       input.value = options.defaultText;
@@ -436,6 +539,78 @@
   }
 
   /**
+   * Play tones
+   */
+  function playTone(options) {
+    debug("playTone: ", options);
+
+    var tonePlayer = new Audio();
+    var selectedPhoneSound;
+    switch (options.tone) {
+      case icc.STK_TONE_TYPE_DIAL_TONE:
+        selectedPhoneSound = 'resources/dtmf_tones/350Hz+440Hz_200ms.ogg';
+        break;
+      case icc.STK_TONE_TYPE_CALLED_SUBSCRIBER_BUSY:
+        selectedPhoneSound = 'resources/dtmf_tones/480Hz+620Hz_200ms.ogg';
+        break;
+      case icc.STK_TONE_TYPE_CONGESTION:
+        selectedPhoneSound = 'resources/dtmf_tones/425Hz_200ms.ogg';
+        break;
+      case icc.STK_TONE_TYPE_RADIO_PATH_ACK:
+      case icc.STK_TONE_TYPE_RADIO_PATH_NOT_AVAILABLE:
+        selectedPhoneSound = 'resources/dtmf_tones/425Hz_200ms.ogg';
+        break;
+      case icc.STK_TONE_TYPE_ERROR:
+        selectedPhoneSound = 'resources/dtmf_tones/950Hz+1400Hz+1800Hz_200ms.ogg';
+        break;
+      case icc.STK_TONE_TYPE_CALL_WAITING_TONE:
+      case icc.STK_TONE_TYPE_RINGING_TONE:
+        selectedPhoneSound = 'resources/dtmf_tones/425Hz_200ms.ogg';
+        break;
+      case icc.STK_TONE_TYPE_GENERAL_BEEP:
+        selectedPhoneSound = 'resources/dtmf_tones/400Hz_200ms.ogg';
+        break;
+      case icc.STK_TONE_TYPE_POSITIVE_ACK_TONE:
+        selectedPhoneSound = 'resources/dtmf_tones/425Hz_200ms.ogg';
+        break;
+      case icc.STK_TONE_TYPE_NEGATIVE_ACK_TONE:
+        selectedPhoneSound = 'resources/dtmf_tones/300Hz+400Hz+500Hz_400ms.ogg';
+        break;
+    }
+    tonePlayer.src = selectedPhoneSound;
+    tonePlayer.loop = true;
+    tonePlayer.play();
+
+    var timeout = options.duration.timeInterval;
+    switch (options.duration.timeUnit) {
+      case icc.STK_TIME_UNIT_MINUTE:
+        timeout *= 3600000;
+        break;
+      case icc.STK_TIME_UNIT_SECOND:
+        timeout *= 1000;
+        break;
+      case icc.STK_TIME_UNIT_TENTH_SECOND:
+        timeout *= 100;
+        break;
+    }
+    setTimeout(function() {
+      tonePlayer.pause();
+    },timeout);
+
+    if (options.isVibrate == true) {
+      navigator.vibrate([200]);
+    }
+
+    if (options.text) {
+      alertbox_btn.onclick = function() {
+        alertbox.classList.add('hidden');
+      };
+      alertbox_msg.textContent = options.text;
+      alertbox.classList.remove('hidden');
+    }
+  }
+
+  /**
    * Display text on the notifications bar and Idle screen
    */
   function displayNotification(command) {
@@ -499,6 +674,4 @@
       app.launch('settings');
     };
   };
-
 })();
-

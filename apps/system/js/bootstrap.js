@@ -4,12 +4,15 @@
 'use strict';
 
 window.addEventListener('load', function startup() {
+  function firstAppManager(homescreenApp) {
+    WindowManager.retrieveFTU();
+  }
   if (Applications.ready) {
-    WindowManager.launchHomescreen();
+    WindowManager.retrieveHomescreen(firstAppManager);
   } else {
     window.addEventListener('applicationready', function appListReady(event) {
       window.removeEventListener('applicationready', appListReady);
-      WindowManager.launchHomescreen();
+      WindowManager.retrieveHomescreen(firstAppManager);
     });
   }
 

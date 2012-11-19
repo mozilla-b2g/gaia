@@ -3,7 +3,7 @@
 var contacts = window.contacts || {};
 
 contacts.Details = (function() {
-  var photoPos = 8;
+  var photoPos = 7;
   var contactData,
       contactDetails,
       listContainer,
@@ -17,13 +17,21 @@ contacts.Details = (function() {
       socialTemplate,
       notesTemplate,
       isFbContact,
+      isFbLinked,
       editContactButton,
       cover,
       favoriteMessage,
       detailsInner,
       TAG_OPTIONS,
       dom,
+      currentSocial,
       _;
+
+  var socialButtonIds = [
+    '#profile_button',
+    '#wall_button',
+    '#msg_button'
+  ];
 
   var init = function cd_init(currentDom) {
     _ = navigator.mozL10n.get;
@@ -43,6 +51,7 @@ contacts.Details = (function() {
     detailsInner = dom.querySelector('#contact-detail-inner');
     favoriteMessage = dom.querySelector('#toggle-favorite');
     notesTemplate = dom.querySelector('#note-details-template-\\#i\\#');
+
     initPullEffect(cover);
   };
 
@@ -61,21 +70,21 @@ contacts.Details = (function() {
 
       var startPosition = event.clientY;
       var currentPosition;
-      var initMargin = '8rem';
+      var initMargin = '16rem';
       contactDetails.classList.add('up');
       cover.classList.add('up');
 
       var onMouseMove = function onMouseMove(event) {
         currentPosition = event.clientY;
         var newMargin = currentPosition - startPosition;
-        if (newMargin > 0 && newMargin < 200) {
+        if (newMargin > 0 && newMargin < 150) {
           contactDetails.classList.remove('up');
           cover.classList.remove('up');
           var calc = '-moz-calc(' + initMargin + ' + ' + newMargin + 'px)';
           // Divide by 40 (4 times slower and in rems)
           contactDetails.style.transform = 'translateY(' + calc + ')';
-          var newPos = 'center ' + (-photoPos + (newMargin / 40)) + 'rem';
-          cover.style.backgroundPosition = newPos;
+          var newPos = (-photoPos + (newMargin / 40)) + 'rem';
+          cover.style.transform = 'translateY(' + newPos + ')';
         }
       };
 
@@ -83,7 +92,7 @@ contacts.Details = (function() {
         contactDetails.classList.add('up');
         cover.classList.add('up');
         contactDetails.style.transform = 'translateY(' + initMargin + ')';
-        cover.style.backgroundPosition = 'center -' + photoPos + 'rem';
+        cover.style.transform = 'translateY(-' + photoPos + 'rem)';
         cover.removeEventListener('mousemove', onMouseMove);
         cover.removeEventListener('mouseup', onMouseUp);
       };
@@ -98,6 +107,7 @@ contacts.Details = (function() {
 
     TAG_OPTIONS = tags || TAG_OPTIONS;
     isFbContact = fb.isFbContact(contactData);
+    isFbLinked = fb.isFbLinked(contactData);
 
     // Initially enabled and only disabled if necessary
     editContactButton.removeAttribute('disabled');
@@ -135,15 +145,15 @@ contacts.Details = (function() {
     renderOrg(contact);
     renderBday(contact);
 
-    if (fb.isEnabled) {
-      renderSocial(contact);
-    }
-
     renderPhones(contact);
     renderEmails(contact);
     renderAddresses(contact);
     renderNotes(contact);
     renderPhoto(contact);
+
+    if (fb.isEnabled) {
+      renderSocial(contact);
+    }
   };
 
   var renderFavorite = function cd_renderFavorite(contact) {
@@ -242,8 +252,7 @@ contacts.Details = (function() {
   };
 
   var renderSocial = function cd_renderSocial(contact) {
-    var linked = fb.isFbLinked(contact);
-    var isFbContact = fb.isFbContact(contact);
+    var linked = isFbLinked;
 
     var action = linked ? _('social-unlink') : _('social-link');
     var slinked = linked ? 'false' : 'true';
@@ -253,35 +262,66 @@ contacts.Details = (function() {
       action: action,
       linked: slinked
     });
+    currentSocial = social;
+    var linkButton = social.querySelector('#link_button');
 
     if (!isFbContact) {
-      var buttonsToHide = [
-        '#profile_button',
-        '#wall_button',
-        '#msg_button'
-      ];
-
-      buttonsToHide.forEach(function check(selid) {
-        var button = social.querySelector(selid);
+      socialButtonIds.forEach(function check(id) {
+        var button = social.querySelector(id);
         if (button) {
           button.classList.add('hide');
         }
       });
+      // Checking whether link should be enabled or not
+      doDisableButton(linkButton);
     } else {
         var socialLabel = social.querySelector('#social-label');
         if (socialLabel)
           socialLabel.textContent = _('facebook');
+          // Check whether the social buttons that require to be online
+          // should be there
+        disableButtons(social, socialButtonIds);
     }
 
+    // If it is a FB Contact but not linked unlink must be hidden
     if (isFbContact && !linked) {
-      var linkButton = social.querySelector('#link_button');
-      if (linkButton)
-        linkButton.classList.add('hide');
+      linkButton.classList.add('hide');
     }
 
     Contacts.extFb.initEventHandlers(social, contact, linked);
 
     listContainer.appendChild(social);
+  }
+
+  var checkOnline = function(social) {
+    var socialTemplate = social || currentSocial;
+
+    if (socialTemplate) {
+      if (isFbContact) {
+         disableButtons(socialTemplate, socialButtonIds);
+      }
+      else {
+        disableButtons(socialTemplate, ['#link_button']);
+      }
+    }
+  }
+
+  function disableButtons(tree, buttonIds) {
+    buttonIds.forEach(function enable(id) {
+      var button = tree.querySelector(id);
+      if (button) {
+        doDisableButton(button);
+      }
+    });
+  }
+
+  function doDisableButton(buttonElement) {
+    if (navigator.onLine === true) {
+      buttonElement.removeAttribute('disabled');
+    }
+    else {
+      buttonElement.setAttribute('disabled', 'disabled');
+    }
   }
 
   var renderPhones = function cd_renderPhones(contact) {
@@ -399,9 +439,8 @@ contacts.Details = (function() {
   var renderPhoto = function cd_renderPhoto(contact) {
     if (contact.photo && contact.photo.length > 0) {
       contactDetails.classList.add('up');
-      // Photo height + Header in rems
-      var photoOffset = (photoPos + 5) * 10;
-      if ((detailsInner.offsetHeight + photoOffset) < cover.clientHeight) {
+      var clientHeight = contactDetails.clientHeight;
+      if (detailsInner.offsetHeight < clientHeight) {
         cover.style.overflow = 'hidden';
       } else {
         cover.style.overflow = 'auto';
@@ -419,6 +458,7 @@ contacts.Details = (function() {
     'init': init,
     'setContact': setContact,
     'toggleFavorite': toggleFavorite,
-    'render': render
+    'render': render,
+    'onLineChanged': checkOnline
   };
 })();

@@ -22,6 +22,8 @@ contacts.Settings = (function() {
     initContainers();
 
     getData();
+
+    checkOnline();
   };
 
   // Get the different values that we will show in the app
@@ -129,7 +131,7 @@ contacts.Settings = (function() {
       span = document.querySelector('#fbTotalsResult span');
     }
 
-    span.textContent = _('facebook-stats', {
+    span.textContent = _('facebook-import-msg', {
       'imported': imported,
       'total': theTotal
     });
@@ -209,32 +211,26 @@ contacts.Settings = (function() {
         var logoutReq = fb.utils.logout();
 
         logoutReq.onsuccess = function() {
-          Contacts.hideOverlay();
           checkFbImported(false);
           // And it is needed to clear any previously set alarm
           window.asyncStorage.getItem(fb.utils.ALARM_ID_KEY, function(data) {
             if (data) {
-              var req = navigator.mozAlarms.remove(data.id);
-              req.onsuccess = function() {
-                window.asyncStorage.removeItem(fb.utils.ALARM_ID_KEY);
-                window.asyncStorage.removeItem(fb.utils.LAST_UPDATE_KEY);
-                window.asyncStorage.removeItem(fb.utils.CACHE_FRIENDS_KEY);
-              }
-              req.onerror = function() {
-                window.console.error('Error while removing a setted alarm',
-                                     req.error);
-              }
+              navigator.mozAlarms.remove(Number(data));
+              window.asyncStorage.removeItem(fb.utils.ALARM_ID_KEY);
+              window.asyncStorage.removeItem(fb.utils.LAST_UPDATED_KEY);
+              window.asyncStorage.removeItem(fb.utils.CACHE_FRIENDS_KEY);
             }
           });
+          contacts.List.load();
+          Contacts.hideOverlay();
         }
 
         logoutReq.onerror = function(e) {
+          contacts.List.load();
           Contacts.hideOverlay();
           window.console.error('Contacts: Error while FB logout: ',
                               e.target.error);
         }
-
-        contacts.List.load();
       }
 
       req.result.oncleaned = function(num) {
@@ -269,6 +265,7 @@ contacts.Settings = (function() {
       },
       function onimport(num) {
         addMessage(_('simContacts-imported', {n: num}), after);
+        contacts.List.load();
         Contacts.hideOverlay();
       },
       function onerror() {
@@ -286,9 +283,24 @@ contacts.Settings = (function() {
 
     // Clean possible messages
     cleanMessage();
-
     Contacts.goBack();
   };
+
+  var checkOnline = function() {
+    var disableElement = document.querySelector('#fbTotalsResult');
+    if (navigator.onLine === true) {
+      fbImportLink.parentNode.removeAttribute('aria-disabled');
+      if (disableElement) {
+        disableElement.removeAttribute('aria-disabled');
+      }
+    }
+    else {
+      fbImportLink.parentNode.setAttribute('aria-disabled', 'true');
+      if (disableElement) {
+        disableElement.setAttribute('aria-disabled', 'true');
+      }
+    }
+  }
 
   var refresh = function refresh() {
     if (document.getElementById('fbTotalsResult')) {
@@ -299,6 +311,7 @@ contacts.Settings = (function() {
   return {
     'init': init,
     'close': close,
-    'refresh': refresh
+    'refresh': refresh,
+    'onLineChanged': checkOnline
   };
 })();

@@ -7,10 +7,12 @@
     <!-- Shared code -->
     <script src="shared/js/l10n.js"></script>
     <script src="shared/js/l10n_date.js"></script>
+    <script src="shared/js/idletimer.js"></script>
     <script defer src="shared/js/gesture_detector.js"></script>
     <script defer src="shared/js/settings_listener.js"></script>
     <script defer src="shared/js/custom_dialog.js"></script>
     <script defer src="shared/js/notification_helper.js"></script>
+    <script defer src="shared/js/async_storage.js"></script>
 
     <!-- Wrapper -->
     <link rel="stylesheet" type="text/css" href="style/wrapper/wrapper.css">
@@ -24,6 +26,11 @@
     <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/switches.css"/>
+    <link rel="stylesheet" type="text/css" href="style/fake-notification.css"/>
+
+    <!-- Include shared resources
+    <link rel="resource" type="application/json" href="shared/resources/apn.json"/>
+    -->
 
     <!-- applications.js must not be deferred
          in order to catch webapps-registry-ready mozChromeEvent -->
@@ -39,6 +46,7 @@
     <script defer src="js/storage.js"></script>
     <script defer src="js/hardware_buttons.js"></script>
     <script defer src="js/system_banner.js"></script>
+    <script defer src="js/system_dialog.js"></script>
 
     <!-- Battery Manager -->
     <link rel="stylesheet" type="text/css" href="style/battery_manager/battery_manager.css">
@@ -93,6 +101,8 @@
 
     <!-- PIN Unlocking -->
     <script defer src="js/sim_lock.js"></script>
+    <link rel="stylesheet" type="text/css" href="style/simcard.css">
+    <script defer src="js/simcard_dialog.js"></script>
 
     <!-- Airplane Mode -->
     <script defer src="js/airplane_mode.js"></script>
@@ -125,6 +135,10 @@
     <!-- Permission Manager -->
     <link rel="stylesheet" type="text/css" href="style/permission_manager/permission_manager.css">
     <script defer src="js/permission_manager.js"></script>
+
+    <!-- App Install -->
+    <link rel="stylesheet" type="text/css" href="style/app_install_manager/app_install_manager.css">
+    <script defer src="js/app_install_manager.js"></script>
 
     <!-- Cost Control -->
     <link rel="stylesheet" type="text/css" href="style/cost_control/cost_control.css">
@@ -251,6 +265,9 @@
           data-level="5" hidden></div>
         <div id="statusbar-network-activity" class="sb-icon sb-icon-network-activity" hidden></div>
         <div id="statusbar-headphones" class="sb-icon sb-icon-headphones" hidden></div>
+        <div id="statusbar-system-downloads"
+             class="sb-icon sb-icon-system-downloads"
+             hidden></div>
 
         <!-- Permissions -->
         <div id="statusbar-tethering" class="sb-icon sb-icon-tethering" hidden></div>
@@ -272,13 +289,16 @@
 
         <div id="notifications-container">
           <!-- Update Manager -->
-          <div id="update-manager-container">
-            <div class="count">
+          <div id="update-manager-container" class='fake-notification'>
+            <div class="icon">
             </div>
             <div class="activity">
             </div>
             <div class="message">
             </div>
+          </div>
+          <!-- App Install Manager -->
+          <div id="install-manager-notification-container">
           </div>
           <!-- bluetooth transfer -->
           <div id="bluetooth-transfer-status-list">
@@ -306,8 +326,8 @@
 
       <div id="windows" data-z-index-level="app">
         <!-- application windows are added here -->
-
-        <footer id="wrapper">
+        <header id="wrapper-activity-indicator"></header>
+        <footer id="wrapper-footer">
           <div id="handler"></div>
           <menu type="buttonbar">
             <button type="button" id="back-button" alt="Back" data-disabled="disabled"></button>
@@ -320,6 +340,63 @@
       </div>
 
       <div id="dialog-overlay" data-z-index-level="dialog-overlay">
+        <!-- Unlock SIM Pin dialog -->
+        <div id="simpin-dialog" role="dialog" data-z-index-level="simpin-dialog" hidden>
+          <section role="region">
+            <header>
+              <button type="reset">
+                <span data-l10n-id="close" class="icon icon-close">Close</span>
+              </button>
+              <menu type="toolbar">
+                <button data-l10n-id="ok" type="submit">Done</button>
+              </menu>
+              <h1></h1>
+            </header>
+
+            <div class="container">
+              <div id="errorMsg" class="error" hidden>
+                <div id="messageHeader">The PIN was incorrect.</div>
+                <span id="messageBody">3 tries left.</span>
+              </div>
+
+              <!-- sim pin input field -->
+              <div id="pinArea" hidden>
+                <div data-l10n-id="simPin">SIM PIN</div>
+                <div class="input-wrapper">
+                  <input name="simpin" type="number" size="8" maxlength="8" />
+                  <input name="simpinVis" type="text" size="8" maxlength="8" />
+                </div>
+              </div>
+              <!-- sim puk input field -->
+              <div id="pukArea" hidden>
+                <div data-l10n-id="pukCode">PUK Code</div>
+                <div class="input-wrapper">
+                  <input name="simpuk" type="number" size="8" maxlength="8" />
+                  <input name="simpukVis" type="text" size="8" maxlength="8" />
+                </div>
+              </div>
+              <!-- new sim pin input field -->
+              <div id="newPinArea" hidden>
+                <div data-l10n-id="newSimPinMsg">
+                  Create PIN (must contain 4 to 8 digits)
+                </div>
+                <div class="input-wrapper">
+                  <input name="newSimpin" type="number" size="8" maxlength="8" />
+                  <input name="newSimpinVis" type="text" size="8" maxlength="8" />
+                </div>
+              </div>
+              <!-- confirm new sim pin input field -->
+              <div id="confirmPinArea" hidden>
+                <div>Confirm New PIN</div>
+                <div class="input-wrapper">
+                  <input name="confirmNewSimpin" type="number" size="8" maxlength="8" />
+                  <input name="confirmNewSimpinVis" type="text" size="8" maxlength="8" />
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+
         <!-- Crash reporter -->
         <form id="crash-dialog" role="dialog" data-type="confirm">
           <section>
@@ -333,29 +410,45 @@
           </section>
           <menu>
             <button id="dont-send-report" disabled="true" data-l10n-id="crash-dont-send">Don't Send</button>
-            <button id="send-report" data-l10n-id="crash-send">Send Report</button>
+            <button id="send-report" class="recommend" data-l10n-id="crash-send">Send Report</button>
           </menu>
         </form>
+
         <div id="popup-container">
-          <section role="region" class="title-container skin-dark">
+          <section role="region" class="title-container skin-organic">
             <header>
               <button id="popup-close"><span class="icon icon-close">close</span></button>
               <h1 id="popup-title"></h1>
               <div id="popup-throbber"></div>
             </header>
           </section>
-          <div id="frame-container"></div>
+          <div id="frame-container">
+            <div id="popup-error-dialog" role="dialog">
+              <div class="inner">
+                <h3 data-l10n-id="error-title" id="popup-error-title">Hmm, the app is having problems.</h3>
+                <p>
+                <span data-l10n-id="error-message" id="popup-error-message">The app has encountered an error and is not loading properly.</span>
+                </p>
+              </div>
+              <menu data-items="2">
+                <button id="popup-error-back" data-l10n-id="close">Close</button>
+                <button id="popup-error-reload" data-l10n-id="try-again">Try again</button>
+              </menu>
+            </div>
+          </div>
         </div>
 
-        <div id="trustedui-container">
-          <section role="region" class="title-container skin-dark">
-            <header>
-              <button id="trustedui-close"><span class="icon icon-close">close</span></button>
-              <h1 id="trustedui-title"></h1>
-              <div id="trustedui-throbber"></div>
-            </header>
-          </section>
-          <div id="trustedui-frame-container"></div>
+        <div id="trustedui-container" class="up">
+          <div id="trustedui-inner">
+            <section role="region" class="title-container skin-organic">
+              <header>
+                <button id="trustedui-close"><span class="icon icon-close">close</span></button>
+                <h1 id="trustedui-title"></h1>
+                <div id="trustedui-throbber"></div>
+              </header>
+            </section>
+            <div id="trustedui-frame-container"></div>
+          </div>
         </div>
 
         <div id="authentication-dialog">
@@ -380,10 +473,11 @@
             </menu>
           </div>
         </div>
+
         <div id="modal-dialog">
           <div id="modal-dialog-alert" role="dialog">
             <div class="modal-dialog-message-container inner">
-              <h3></h3>
+              <h3 id="modal-dialog-alert-title"></h3>
               <p>
                 <span id="modal-dialog-alert-message"></span>
               </p>
@@ -395,7 +489,7 @@
 
           <div id="modal-dialog-confirm" role="dialog">
             <div class="modal-dialog-message-container inner">
-              <h3></h3>
+              <h3 id="modal-dialog-confirm-title"></h3>
               <p>
                 <span id="modal-dialog-confirm-message"></span>
               </p>
@@ -408,7 +502,7 @@
 
           <div id="modal-dialog-prompt" role="dialog">
             <div class="modal-dialog-message-container inner">
-              <h3></h3>
+              <h3 id="modal-dialog-prompt-title"></h3>
               <p>
                 <span id="modal-dialog-prompt-message"></span>
                 <input id="modal-dialog-prompt-input" />
@@ -422,15 +516,14 @@
 
           <div id="modal-dialog-error" role="dialog">
             <div class="modal-dialog-message-container inner">
-              <h3 data-l10n-id="error-title">Hmm, the app is having problems.</h3>
+              <h3 data-l10n-id="error-title" id="modal-dialog-error-title">Hmm, the app is having problems.</h3>
               <p>
-                <span id="modal-dialog-sad-face">:(</span>
-                <span data-l10n-id="error-message">The app has encountered an error and is not loading properly.</span>
+              <span data-l10n-id="error-message" id="modal-dialog-error-message">The app has encountered an error and is not loading properly.</span>
               </p>
             </div>
             <menu data-items="2">
-              <button id="modal-dialog-error-back" data-l10n-id="back">Back</button>
-              <button id="modal-dialog-error-reload" data-l10n-id="reload">Try Reloading</button>
+              <button id="modal-dialog-error-back" data-l10n-id="close">Close</button>
+              <button id="modal-dialog-error-reload" data-l10n-id="try-again">Try again</button>
             </menu>
           </div>
 
@@ -443,8 +536,9 @@
               <button id="modal-dialog-select-one-cancel" data-l10n-id="cancel">Cancel</button>
             </menu>
           </div>
-        </div>
-      </div>
+        </div> <!-- end of #modal-dialog -->
+
+      </div> <!-- end of #overlay-dialog -->
 
       <!-- value selector -->
       <div id="value-selector" hidden data-z-index-level="value-selector">
@@ -518,7 +612,6 @@
             <button class="value-option-confirm affirmative" data-type="ok" data-l10n-id="ok">Ok</button>
           </menu>
         </section>
-
       </div>
 
       <div id="permission-screen" data-z-index-level="permission-screen">
@@ -540,6 +633,58 @@
         </div>
       </div>
 
+      <form id="app-install-dialog" data-type="confirm" role="dialog" data-z-index-level="app-install-dialog">
+        <section>
+          <h1 id="app-install-message"></h1>
+          <table>
+            <tr>
+              <th data-l10n-id="size">Size</th>
+              <td id="app-install-size"></td>
+            </tr>
+            <tr>
+              <th data-l10n-id="author">Author</th>
+              <td>
+                <span id="app-install-author-name"></span>
+                <br /><span id="app-install-author-url"></span>
+              </td>
+            </tr>
+          </table>
+          <menu>
+            <button id="app-install-cancel-button" data-l10n-id="cancel">Cancel</button>
+            <button id="app-install-install-button" class="recommend" data-l10n-id="install">Install</button>
+          </menu>
+        </section>
+      </form>
+
+      <form id="updates-download-dialog" data-type="confirm" role="dialog" data-z-index-level="updates-download-dialog">
+        <section>
+          <h1>
+            Updates
+          </h1>
+          <ul>
+          </ul>
+          <menu>
+            <button id="updates-later-button" type="reset" data-l10n-id="later">Later</button>
+            <button id="updates-download-button" type="submit" data-l10n-id="download">Download</button>
+          </menu>
+        </section>
+      </form>
+
+      <form id="app-install-cancel-dialog" data-type="confirm" role="dialog" data-z-index-level="app-install-dialog">
+        <section>
+          <h1 data-l10n-id="cancel-install">Cancel Install</h1>
+          <p>
+            <small data-l10n-id="cancelling-will-not-refund">Cancelling will not refund a purchase. Refunds for paid content are provided by the original seller.</small>
+            <small data-l10n-id="apps-can-be-installed-later">Apps can be installed later from the original installation source.</small>
+          </p>
+          <p data-l10n-id="are-you-sure-you-want-to-cancel">Are you sure you want to cancel this install?</p>
+          <menu>
+            <button id="app-install-confirm-cancel-button" type="reset" data-l10n-id="cancel-install">Cancel Install</button>
+            <button id="app-install-resume-button" type="submit" data-l10n-id="resume">Resume</button>
+          </menu>
+        </section>
+      </form>
+
       <div id="lockscreen-camera" data-z-index-level="lockscreen-camera"></div>
 
       <div id="lockscreen" class="uninit" data-panel="main" data-z-index-level="lockscreen">
@@ -553,18 +698,39 @@
             </div>
             <div id="notifications-lockscreen-container">
             </div>
+            <svg id="lockscreen-curve" xmlns="http://www.w3.org/2000/svg" version="1.1">
+              <image id="lockscreen-area-handle" x="150" y="100" width="20" height="9"
+                xlink:href="style/lockscreen/images/handle.png">
+                <animate class="lockscreen-start-animation" attributeType="XML" attributeName="y" begin="indefinite" dur="0.2s" to="100" />
+                <animate class="lockscreen-start-animation" attributeType="XML" attributeName="opacity" begin="indefinite" dur="0.5s" to="1" />
+                <animate class="lockscreen-end-animation" attributeType="XML" attributeName="y" begin="indefinite" dur="0.2s" to="0" />
+                <animate class="lockscreen-end-animation" attributeType="XML" attributeName="opacity" begin="indefinite" dur="0.5s" to="0" />
+                <animate class="lockscreen-prompt-animation" attributeType="XML" attributeName="y" dur="2s" calcMode="spline"
+                    begin="indefinite" keySplines="0 .50 .50 1; .50 0 1 .50; 0 .50 .50 1; .50 0 1 .50"
+                    values="100; 0; 120; 80; 100" />
+              </image>
+              <path fill="none" id="lockscreen-curvepath" stroke-width="1" stroke="white"
+                d="M0,80 C100,150 220,150 320,80">
+                  <animate class="lockscreen-start-animation" attributeType="XML" attributeName="d" begin="indefinite" dur="0.2s" to="M0,80 C100,150 220,150 320,80" />
+                  <animate class="lockscreen-start-animation" attributeType="XML" attributeName="stroke-opacity" begin="indefinite" dur="0.2s" to="1.0" />
+                  <animate class="lockscreen-end-animation" attributeType="XML" attributeName="d" begin="indefinite" dur="0.5s" to="M0,80 C100,-20 220,-20 320,80" />
+                  <animate class="lockscreen-end-animation" attributeType="XML" attributeName="stroke-opacity" begin="indefinite" dur="0.5s" to="0" />
+                  <animate class="lockscreen-prompt-animation" attributeType="XML" attributeName="d" dur="2s" calcMode="spline"
+                    begin="indefinite" keySplines="0 .50 .50 1; .50 0 1 .50;0 .50 .50 1; .50 0 1 .50;"
+                    values="M0,80 C100,150 220,150 320,80;
+                            M0,80 C100,40 220,40 320,80; M0,80 C100,150 220,150 320,80;
+                            M0,80 C100,100 220,100 320,80; M0,80 C100,150 220,150 320,80" />
+              </path>
+            </svg>
             <div id="lockscreen-area"></div>
-            <div id="lockscreen-area-camera" class="lockscreen-icon lockscreen-icon-left">
-              <div id="lockscreen-left-arrow" class="lockscreen-arrow"></div>
-              <div id="lockscreen-accessibility-camera" role="button" class="lockscreen-icon-a11y-button" data-l10n-id="camera-a11y-button" aria-label="Camera"></div>
+            <div id="lockscreen-icon-container">
+              <button id="lockscreen-area-camera" class="lockscreen-icon lockscreen-icon-left">
+                <div id="lockscreen-accessibility-camera" role="button" class="lockscreen-icon-a11y-button" data-l10n-id="camera-a11y-button" aria-label="Camera"></div>
+              </button>
+              <button id="lockscreen-area-unlock" class="lockscreen-icon lockscreen-icon-right">
+                <div id="lockscreen-accessibility-unlock" role="button" class="lockscreen-icon-a11y-button" data-l10n-id="unlock-a11y-button" aria-label="Unlock"></div>
+              </button>
             </div>
-            <div id="lockscreen-area-unlock" class="lockscreen-icon lockscreen-icon-right">
-              <div id="lockscreen-right-arrow" class="lockscreen-arrow"></div>
-              <div id="lockscreen-accessibility-unlock" role="button" class="lockscreen-icon-a11y-button" data-l10n-id="unlock-a11y-button" aria-label="Unlock"></div>
-            </div>
-            <div id="lockscreen-rail-left" class="lockscreen-rail"></div>
-            <div id="lockscreen-rail-right" class="lockscreen-rail"></div>
-            <div id="lockscreen-area-handle"><span></span><span></span></div>
           </div>
 
           <div id="lockscreen-panel-passcode" class="lockscreen-panel">
@@ -591,37 +757,12 @@
         </div>
       </div>
 
-      <div id="pinkeypadscreen" data-z-index-level="pinkeypadscreen" hidden>
-        <div id="pinkeypadscreen-container">
-          <p id="pinkeypadscreen-desc"><span data-l10n-id="enterPIN">Enter PIN</span></p>
-          <p id="pinkeypadscreen-code">
-            <span id="pinkeypadscreen-display"></span>
-          </p>
-          <div id="pinkeypadscreen-pad">
-            <a href="#" data-key="1">1</a>
-            <a href="#" data-key="2">2</a>
-            <a href="#" data-key="3">3</a>
-            <a href="#" data-key="4">4</a>
-            <a href="#" data-key="5">5</a>
-            <a href="#" data-key="6">6</a>
-            <a href="#" data-key="7">7</a>
-            <a href="#" data-key="8">8</a>
-            <a href="#" data-key="9">9</a>
-            <a href="#" data-key="o" class="pinkeypadscreen-pad-func" data-l10n-id="ok">OK</a>
-            <a href="#" data-key="0">0</a>
-            <a href="#" data-key="b" class="pinkeypadscreen-pad-func" data-l10n-id="back">Back</a>
-            <a href="#" data-key="e" class="pinkeypadscreen-pad-func-full"
-                data-l10n-id="emergency-call-button">Emergency Call</a>
-          </div>
-        </div>
-      </div>
-
       <div id="attention-screen" data-z-index-level="attention-screen">
         <div id="attention-bar"></div>
       </div>
 
       <div id="update-manager-toaster" data-z-index-level="notification-toaster">
-        <div class="count">
+        <div class="icon">
         </div>
         <div class="message">
         </div>
@@ -686,9 +827,15 @@
           <div></div>
           <div></div>
           <div></div>
+          <div></div>
+          <div></div>
+          <div></div>
+          <div></div>
+          <div></div>
           <span class="volume"></span>
         </div>
       </div>
-    </div>
+
+    </div> <!-- end of #screen -->
   </body>
 </html>

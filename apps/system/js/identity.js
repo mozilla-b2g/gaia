@@ -6,7 +6,8 @@
 'use strict';
 
 const kIdentityScreen = 'https://notoriousb2g.personatest.org/sign_in#NATIVE';
-const kIdentityFrame = 'https://notoriousb2g.personatest.org/communication_iframe';
+const kIdentityFrame =
+    'https://notoriousb2g.personatest.org/communication_iframe';
 
 var Identity = (function() {
   var iframe;
@@ -19,8 +20,8 @@ var Identity = (function() {
     },
 
     handleEvent: function onMozChromeEvent(e) {
-      // We save the mozChromeEvent identifiers to send replies back from content
-      // with this exact value.
+      // We save the mozChromeEvent identifiers to send replies back from
+      // content with this exact value.
       this.chromeEventId = e.detail.id;
       if (!this.chromeEventId)
         return;
@@ -37,12 +38,13 @@ var Identity = (function() {
           }
           var frame = document.createElement('iframe');
           frame.setAttribute('mozbrowser', 'true');
+          frame.setAttribute('remote', true);
           frame.classList.add('screen');
           frame.src = e.detail.showUI ? kIdentityScreen : kIdentityFrame;
-          frame.addEventListener('mozbrowserloadstart', function loadStart(evt) {
-            // After creating the new frame containing the identity
-            // flow, we send it back to chrome so the identity callbacks can be
-            // injected.
+          frame.addEventListener('mozbrowserloadstart',
+              function loadStart(evt) {
+            // After creating the new frame containing the identity flow, we
+            // send it back to chrome so the identity callbacks can be injected.
             this._dispatchEvent({
               id: this.chromeEventId,
               frame: evt.target
@@ -52,7 +54,7 @@ var Identity = (function() {
 
           if (e.detail.showUI) {
             // The identity flow is shown within the trusted UI.
-            TrustedUIManager.open('IdentityFlow', frame, kIdentityScreen, this.chromeEventId);
+            TrustedUIManager.open('IdentityFlow', frame, this.chromeEventId);
           } else {
             var container = document.getElementById('screen');
             container.appendChild(frame);
@@ -78,3 +80,4 @@ var Identity = (function() {
 })();
 
 Identity.init();
+

@@ -25,16 +25,22 @@ if (typeof fb.importer === 'undefined') {
     var contactsLoaded = false, friendsLoaded = false;
 
     var currentRequest;
+    // Current network request to enable canceling
+    var currentNetworkRequest = null;
 
     var _ = navigator.mozL10n.get;
 
     var syncOngoing = false;
     var nextUpdateTime;
+    // Indicates whether some friends have been imported or not
     var friendsImported;
+
+    var STATUS_TIME = 2000;
+    var statusMsg = document.querySelector('#statusMsg');
 
     // Query that retrieves the information about friends
     var FRIENDS_QUERY = [
-      'SELECT uid, name, first_name, last_name, pic_big, ' ,
+      'SELECT uid, name, first_name, last_name, pic_big, current_location, ' ,
       'middle_name, birthday_date, email, profile_update_time, ' ,
       ' work, education, cell, other_phone, hometown_location' ,
       ' FROM user' ,
@@ -77,7 +83,6 @@ if (typeof fb.importer === 'undefined') {
     UI.end = function(event) {
       var msg = {
         type: 'window_close',
-        from: 'import',
         data: ''
       };
 
@@ -90,19 +95,23 @@ if (typeof fb.importer === 'undefined') {
       scrollableElement.scrollTop = groupContainer.offsetTop;
     }
 
-    UI.getFriends = function() {
-      clearList();
-
-      fb.oauth.getAccessToken(tokenReady, 'friends');
-    }
-
     /**
      *  This function is invoked when a token is ready to be used
      *
      */
-    function tokenReady(at) {
-      access_token = at;
-      Importer.getFriends(at);
+    Importer.start = function(acc_tk) {
+      setCurtainHandlers();
+
+      if (acc_tk) {
+        access_token = acc_tk;
+        Importer.getFriends(acc_tk);
+      }
+      else {
+        fb.oauth.getAccessToken(function(new_acc_tk) {
+          access_token = new_acc_tk;
+          Importer.getFriends(new_acc_tk);
+        }, 'friends');
+      }
     }
 
     /**
@@ -125,7 +134,13 @@ if (typeof fb.importer === 'undefined') {
     function syncSuccess() {
       window.console.log('Synchronization ended!!!');
       syncOngoing = false;
+
       fb.sync.scheduleNextSync();
+      var msg = {
+        type: 'sync_finished',
+        data: ''
+      };
+      parent.postMessage(msg, fb.CONTACTS_APP_ORIGIN);
     }
 
     function startSync() {
@@ -144,6 +159,8 @@ if (typeof fb.importer === 'undefined') {
      *
      */
     function friendsAvailable() {
+      Curtain.hide(sendReadyEvent);
+
       friendsLoaded = true;
 
       if (contactsLoaded) {
@@ -151,6 +168,23 @@ if (typeof fb.importer === 'undefined') {
 
         disableExisting(existingFbContacts);
       }
+    }
+
+    function sendReadyEvent() {
+      parent.postMessage({
+        type: 'ready', data: ''
+      }, fb.CONTACTS_APP_ORIGIN);
+    }
+
+    function showStatus(text) {
+      statusMsg.querySelector('p').textContent = text;
+      statusMsg.classList.add('visible');
+      statusMsg.addEventListener('transitionend', function tend() {
+        statusMsg.removeEventListener('transitionend', tend);
+        setTimeout(function hide() {
+          statusMsg.classList.remove('visible');
+        }, STATUS_TIME);
+      });
     }
 
     /**
@@ -194,18 +228,20 @@ if (typeof fb.importer === 'undefined') {
       selectedContacts = friends;
     }
 
+    function setCurtainHandlers() {
+      Curtain.oncancel = cancelCb;
+    }
+
     /**
-     *  Gets the Facebook friends by invoking Graph API using JSONP mechanism
+     *  Gets the Facebook friends by invoking Graph API
      *
      */
-    Importer.getFriends = function(access_token) {
-      document.body.dataset.state = 'waiting';
-
-      fb.utils.runQuery(friendsQueryStr, {
+    Importer.getFriends = function(acc_tk) {
+      currentNetworkRequest = fb.utils.runQuery(friendsQueryStr, {
           success: fb.importer.friendsReady,
           error: fb.importer.errorHandler,
           timeout: fb.importer.timeoutHandler
-      },access_token);
+      },acc_tk);
 
       // In the meantime we obtain the FB friends already on the Address Book
       if (!navigator.mozContacts) {
@@ -221,28 +257,39 @@ if (typeof fb.importer === 'undefined') {
                                   e.target.error.name); }
     }
 
-    Importer.importFriend = function(uid, acc_token) {
-      access_token = acc_token;
+    function friendImportTimeout() {
+      if (currentRequest) {
+        window.setTimeout(currentRequest.ontimeout, 0);
+      }
+    }
+
+    function friendImportError(e) {
+      currentRequest.failed(e);
+    }
+
+    Importer.importFriend = function(uid, acc_tk) {
+      access_token = acc_tk;
 
       currentRequest = new fb.utils.Request();
 
       window.setTimeout(function do_importFriend() {
         var oneFriendQuery = buildFriendQuery(uid);
-
-        fb.utils.runQuery(oneFriendQuery, {
-                            success: fb.importer.importDataReady,
-                            error: fb.importer.errorHandler,
-                            timeout: fb.importer.timeoutHandler
+        currentNetworkRequest = fb.utils.runQuery(oneFriendQuery, {
+                            success: Importer.importDataReady,
+                            error: friendImportError,
+                            timeout: friendImportTimeout
         }, access_token);
       },0);
 
       return currentRequest;
     }
 
+    // Invoked when friend data to be imported is ready
     Importer.importDataReady = function(response) {
       if (typeof response.error === 'undefined') {
         // Just in case this is the first contact imported
         nextUpdateTime = Date.now();
+        var photoTimeout = false;
 
         var friend = response.data[0];
         if (friend) {
@@ -251,9 +298,15 @@ if (typeof fb.importer === 'undefined') {
           var cimp = new ContactsImporter([friend]);
           cimp.start();
           cimp.onsuccess = function() {
+            var theUrl = friend.pic_big;
+            // If timeout happened then the Url must be set to null to enable
+            // later reconciliation through the sync process
+            if (photoTimeout === true) {
+              theUrl = null;
+            }
             currentRequest.done({
               uid: friend.uid,
-              url: friend.pic_big
+              url: theUrl
             });
 
             // If there is no an alarm set it has to be set
@@ -265,6 +318,9 @@ if (typeof fb.importer === 'undefined') {
               }
             });
           } // onsuccess
+          cimp.onPhotoTimeout = function() {
+            photoTimeout = true;
+          }
         } // if friend
         else {
           window.console.error('FB: No Friend data found');
@@ -272,6 +328,7 @@ if (typeof fb.importer === 'undefined') {
         }
       }
       else {
+        // Post error to link we don't need to check here
         currentRequest.failed(response.error);
       }
     }
@@ -330,28 +387,68 @@ if (typeof fb.importer === 'undefined') {
         });
 
         fbFriends.List.load(myFriends, friendsAvailable);
-
-        document.body.dataset.state = '';
       }
       else {
         window.console.error('FB: Error, while retrieving friends',
                                                     response.error.message);
-        if (response.error.code === 190) {
-          startOAuth();
+        if (response.error.code !== 190) {
+          // General Facebook problem
+          setCurtainHandlersErrorFriends();
+          Curtain.show('error', 'friends');
+        }
+        else {
+          // There was a problem with the access token
+          Curtain.hide();
+          window.asyncStorage.removeItem(fb.utils.TOKEN_DATA_KEY,
+                                         Importer.start);
         }
       }
     }
 
+    function cancelCb() {
+      if (currentNetworkRequest) {
+         currentNetworkRequest.cancel();
+         currentNetworkRequest = null;
+      }
+
+      Curtain.hide();
+
+      parent.postMessage({
+            type: 'abort',
+            data: ''
+      }, fb.CONTACTS_APP_ORIGIN);
+    }
+
+    function setCurtainHandlersErrorFriends() {
+      Curtain.oncancel = function friends_cancel() {
+          Curtain.hide();
+
+          parent.postMessage({
+            type: 'abort',
+            data: ''
+          }, fb.CONTACTS_APP_ORIGIN);
+        }
+
+      Curtain.onretry = function get_friends() {
+        Curtain.oncancel = cancelCb;
+        Curtain.show('wait', 'friends');
+
+        Importer.getFriends(access_token);
+      }
+    }
+
+    // Error / timeout handler
+    Importer.baseHandler = function(type) {
+      setCurtainHandlersErrorFriends();
+      Curtain.show(type, 'friends');
+    }
+
     Importer.timeoutHandler = function() {
-      // TODO: figure out with UX what to do in that case
-      window.alert('Timeout!!');
-      document.body.dataset.state = '';
+      Importer.baseHandler('timeout');
     }
 
     Importer.errorHandler = function() {
-      // TODO: figure out with UX what to do in that case
-      window.alert('Error!');
-      document.body.dataset.state = '';
+      Importer.baseHandler('error');
     }
 
     function fillData(f) {
@@ -373,7 +470,6 @@ if (typeof fb.importer === 'undefined') {
             friendsImported = true;
           });
 
-          document.body.dataset.state = '';
           var list = [];
           // Once all contacts have been imported, they are unselected
           Object.keys(selectedContacts).forEach(function(c) {
@@ -401,6 +497,8 @@ if (typeof fb.importer === 'undefined') {
 
       selButton.textContent = 'Unselect All';
       selButton.onclick = UI.unSelectAll;
+
+      return false;
     }
 
     UI.back = function(e) {
@@ -418,6 +516,8 @@ if (typeof fb.importer === 'undefined') {
       selButton.onclick = UI.selectAll;
 
       selectedContacts = {};
+
+      return false;
     }
 
     /**
@@ -491,7 +591,7 @@ if (typeof fb.importer === 'undefined') {
      *
      *
      */
-    var ContactsImporter = function(pcontacts) {
+    var ContactsImporter = function(pcontacts, progress) {
       // The selected contacts
       var mcontacts = pcontacts;
       // The uids of the selected contacts
@@ -499,7 +599,10 @@ if (typeof fb.importer === 'undefined') {
 
       var chunkSize = 10;
       var pointer = 0;
-      this.pending = mcontacts.length;
+      var total = this.pending = kcontacts.length;
+      var mprogress = progress;
+      var counter = 0;
+      var self = this;
 
       /**
        *  Imports a slice
@@ -541,6 +644,11 @@ if (typeof fb.importer === 'undefined') {
         (importSlice.bind(this))();
       }
 
+      function updateProgress() {
+        if (mprogress) {
+          mprogress.update(Math.ceil((++counter * 100) / total));
+        }
+      }
 
     /**
      *  Persists a group of contacts
@@ -588,6 +696,9 @@ if (typeof fb.importer === 'undefined') {
               fb.setFriendPictureUrl(fbInfo, cfdata.pic_big);
             }
           }
+          else if (typeof self.onPhotoTimeout === 'function') {
+            self.onPhotoTimeout(cfdata.uid);
+          }
 
           // Facebook info is set and then contact is saved
           cfdata.fbInfo = fbInfo;
@@ -598,6 +709,7 @@ if (typeof fb.importer === 'undefined') {
 
           request.onsuccess = function() {
             numResponses++;
+            updateProgress();
 
             if (numResponses === totalContacts) {
               if (typeof doneCB === 'function') {
@@ -608,6 +720,8 @@ if (typeof fb.importer === 'undefined') {
 
           request.onerror = function() {
             numResponses++;
+            updateProgress();
+
             window.console.error('FB: Contact Add error: ', request.error,
                                                             cfdata.uid);
 
@@ -622,29 +736,71 @@ if (typeof fb.importer === 'undefined') {
     } // persistContactGroup
   } //contactsImporter
 
+    Importer.getContext = function() {
+      var out = 'contacts';
+
+      if(window.location.search.indexOf('ftu') !== -1) {
+        out = 'ftu';
+      }
+
+      return out;
+    }
 
     /**
      *  Imports all the selected contacts on the address book
      *
      */
     Importer.importAll = function(importedCB) {
-      document.body.dataset.state = 'waiting';
+      var progress = Curtain.show('progress', 'import');
 
-      var cImporter = new ContactsImporter(selectedContacts);
+      var numFriends = Object.keys(selectedContacts).length;
+      var cImporter = new ContactsImporter(selectedContacts, progress);
+
       cImporter.onsuccess = function() {
         if (cImporter.pending > 0) {
           window.setTimeout(function() {
             cImporter.continue();
           },0);
-        }
-        else {
-          importedCB();
+        } else if (Importer.getContext() === 'ftu') {
+          // .6 seconds delay in order to show the progress 100% to users
+          window.setTimeout(function() {
+            Curtain.hide(function onhide() {
+              showStatus(_('friendsImported', {
+                numFriends: numFriends
+              }));
+            });
+          }, 600);
+
+          window.setTimeout(importedCB, 0);
+        } else {
+          parent.postMessage({
+            type: 'fb_imported',
+            data: ''
+          }, fb.CONTACTS_APP_ORIGIN);
+
+          window.addEventListener('message', function finished(e) {
+            if (e.data.type === 'contacts_loaded') {
+              // When the list of contacts is loaded and it's the current view
+              Curtain.hide(function onhide() {
+                // Please close me and display the number of friends imported
+                parent.postMessage({
+                  type: 'window_close',
+                  data: '',
+                  message: _('friendsImported', {
+                    numFriends: numFriends
+                  })
+                }, fb.CONTACTS_APP_ORIGIN);
+              });
+              window.removeEventListener('message', finished);
+            }
+          });
+
+          window.setTimeout(importedCB, 0);
         }
       };
 
       cImporter.start();
     }
 
-  }
-  )(document);
+  })(document);
 }

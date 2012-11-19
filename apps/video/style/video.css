@@ -79,7 +79,16 @@ li hr {
   height: 100%;
 }
 
-#videoFrame.hidden, #novideos.hidden, #overlay.hidden, #thumbnails.hidden {
+#delete-video-button {
+  background: transparent url(images/delete.png) no-repeat center center;
+}
+
+#delete-video-button:active {
+  background-color: #21a6b9;
+}
+
+#videoFrame.hidden, #novideos.hidden, #overlay.hidden,
+#thumbnails.hidden, #delete-video-button.hidden {
   display: none;
 }
 

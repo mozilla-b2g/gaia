@@ -159,9 +159,8 @@ MARIONETTE_PORT ?= 2828
 TEST_DIRS ?= $(CURDIR)/tests
 
 # Generate profile/
-profile: applications-data preferences app-makefiles test-agent-config offline extensions install-xulrunner-sdk
-	cp build/settings.json profile/settings.json
-	$(SED_INPLACE_NO_SUFFIX) -e 's|-homescreenURL-|$(SCHEME)homescreen.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp|g' profile/settings.json
+
+profile: applications-data preferences app-makefiles test-agent-config offline extensions install-xulrunner-sdk profile/settings.json
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)profile"
 
 LANG=POSIX # Avoiding sort order differences between OSes
@@ -274,19 +273,24 @@ define run-js-command
 	$(XULRUNNERSDK) $(XPCSHELLSDK) -e "$$JS_CONSTS" -f build/utils.js "build/$(strip $1).js"
 endef
 
+# Optional files that may be provided to extend the set of default
+# preferences installed for gaia.  If the preferences in these files
+# conflict, the result is undefined.
+EXTENDED_PREF_FILES = \
+  custom-prefs.js \
+  payment-prefs.js \
+  ua-override-prefs.js \
+
 # Generate profile/prefs.js
 preferences: install-xulrunner-sdk
 	@echo "Generating prefs.js..."
 	test -d profile || mkdir -p profile
 	@$(call run-js-command, preferences)
-	if [ -f custom-prefs.js ]; \
-	  then \
-	    cat custom-prefs.js >> profile/user.js; \
-	  fi
-	if [ -f build/payment-prefs.js ]; \
-		then \
-			cat build/payment-prefs.js >> profile/user.js; \
-		fi
+	@$(foreach prefs_file,$(addprefix build/,$(EXTENDED_PREF_FILES)),\
+	  if [ -f $(prefs_file) ]; then \
+	    cat $(prefs_file) >> profile/user.js; \
+	  fi; \
+	)
 	@echo "Done"
 
 # Generate profile/
@@ -558,7 +562,7 @@ demo: install-media-samples install-gaia
 production: reset-gaia
 
 # Remove everything and install a clean profile
-reset-gaia: purge install-gaia
+reset-gaia: purge install-gaia install-settings-defaults
 
 # remove the memories and apps on the phone
 purge:
@@ -568,6 +572,18 @@ purge:
 	$(ADB) shell rm -r $(MSYS_FIX)/cache/*
 	$(ADB) shell rm -r $(MSYS_FIX)/data/b2g/*
 	$(ADB) shell rm -r $(MSYS_FIX)$(GAIA_INSTALL_PARENT)/webapps
+
+# Build the settings.json file from settings.py
+profile/settings.json: build/settings.py build/wallpaper.jpg
+	python build/settings.py --console --homescreen $(SCHEME)homescreen.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --ftu $(SCHEME)communications.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --wallpaper build/wallpaper.jpg --output $@
+
+# push profile/settings.json to the phone
+install-settings-defaults: profile/settings.json
+	$(ADB) shell stop b2g
+	$(ADB) remount
+	$(ADB) push profile/settings.json /system/b2g/defaults/settings.json
+	$(ADB) shell start b2g
+
 
 # clean out build products
 clean:

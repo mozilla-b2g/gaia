@@ -70,14 +70,24 @@ if (typeof fb.oauth === 'undefined') {
     }
 
     function tokenDataReady(e) {
-      var tokenData = e.data;
+      var parameters = e.data;
+      if (!parameters || !parameters.access_token) {
+        return;
+      }
 
-      // The content of window.postMessage is parsed
-      var parameters = JSON.parse(tokenData);
+      Curtain.show('wait', accessTokenCbData.state);
 
-      if (parameters.access_token) {
-        var end = parameters.expires_in;
+      window.setTimeout(function do_token_ready() {
         var access_token = parameters.access_token;
+        if (parameters.state === accessTokenCbData.state) {
+          accessTokenCbData.callback(access_token);
+        } else {
+          window.console.error('FB: Error in state', parameters.state,
+                                    accessTokenCbData.state);
+          return;
+        }
+
+        var end = parameters.expires_in;
 
         // Don't wait for callback because it's not necessary
         window.asyncStorage.setItem(STORAGE_KEY, {
@@ -85,15 +95,8 @@ if (typeof fb.oauth === 'undefined') {
           expires: end * 1000,
           token_ts: Date.now()
         });
-      }
-
-      if (parameters.state === accessTokenCbData.state) {
-        accessTokenCbData.callback(access_token);
-      } else {
-        window.console.error('FB: Error in state', parameters.state,
-                                  accessTokenCbData.state);
-      }
-    }
+      },0);
+    } // tokenReady
 
     window.addEventListener('message', tokenDataReady);
 

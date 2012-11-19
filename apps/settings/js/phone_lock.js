@@ -4,16 +4,18 @@
 'use strict';
 
 var PhoneLock = {
-  // create:  When the user turns on passcode settings
-  // edit:    When the user presses edit passcode button
-  // confirm: When the user turns off passcode settings
-  // new:     When the user is editing passcode and enterer old
-  //          passcode successfully
+  /**
+   * create  : when the user turns on passcode settings
+   * edit    : when the user presses edit passcode button
+   * confirm : when the user turns off passcode settings
+   * new     : when the user is editing passcode
+   *                and has entered old passcode successfully
+   */
   MODE: 'create',
 
   settings: {
     passcode: '0000',
-    enable: false
+    passcodeEnable: false
   },
 
   checkingLength: {
@@ -26,11 +28,13 @@ var PhoneLock = {
   _passcodeBuffer: '',
 
   getAllElements: function pl_getAllElements() {
+    this.phonelockDesc = document.getElementById('phoneLock-desc');
+    this.lockscreenEnable = document.getElementById('lockscreen-enable');
     this.passcodeInput = document.getElementById('passcode-input');
     this.passcodeDigits = document.querySelectorAll('.passcode-digit');
     this.passcodeEnable = document.getElementById('passcode-enable');
     this.passcodeEditButton = document.getElementById('passcode-edit');
-    this.passcodePanel = document.getElementById('passcode-panel');
+    this.passcodePanel = document.getElementById('phoneLock-passcode');
     this.phonelockPanel = document.getElementById('phoneLock');
     this.createPasscodeButton = document.getElementById('passcode-create');
     this.changePasscodeButton = document.getElementById('passcode-change');
@@ -48,30 +52,52 @@ var PhoneLock = {
   },
 
   fetchSettings: function pl_fetchSettings() {
+    var _ = navigator.mozL10n.get;
     var settings = navigator.mozSettings;
 
     var lock = settings.createLock();
-    var reqCode = lock.get('lockscreen.passcode-lock.code');
     var self = this;
+
+    var reqLockscreenEnable = lock.get('lockscreen.enabled');
+    reqLockscreenEnable.onsuccess = function onLockscreenEnableSuccess() {
+      var enable = reqLockscreenEnable.result['lockscreen.enabled'];
+      self.phonelockPanel.dataset.lockscreenEnabled = enable;
+      self.lockscreenEnable.checked = enable;
+      self.phonelockDesc.textContent = enable ? _('enabled') : _('disabled');
+      self.phonelockDesc.dataset.l10nId = enable ? 'enabled' : 'disabled';
+    };
+
+    var reqCode = lock.get('lockscreen.passcode-lock.code');
     reqCode.onsuccess = function onPasscodeSuccess() {
       var passcode = reqCode.result['lockscreen.passcode-lock.code'];
       self.settings.passcode = passcode;
     };
-    var reqEnable = lock.get('lockscreen.passcode-lock.enabled');
-    reqEnable.onsuccess = function onPasscodeEnableSuccess() {
-      var enable = reqEnable.result['lockscreen.passcode-lock.enabled'];
-      self.settings.enable = enable;
-      self.phonelockPanel.dataset.enabled = enable;
+
+    var reqPasscodeEnable = lock.get('lockscreen.passcode-lock.enabled');
+    reqPasscodeEnable.onsuccess = function onPasscodeEnableSuccess() {
+      var enable = reqPasscodeEnable.result['lockscreen.passcode-lock.enabled'];
+      self.settings.passcodeEnable = enable;
+      self.phonelockPanel.dataset.passcodeEnabled = enable;
+      self.passcodeEnable.checked = enable;
     };
 
+    settings.addObserver('lockscreen.enabled',
+      function onLockscreenEnabledChange(event) {
+        var enable = event.settingValue;
+        self.phonelockPanel.dataset.lockscreenEnabled = enable;
+        self.phonelockDesc.textContent = enable ? _('enabled') : _('disabled');
+        self.phonelockDesc.dataset.l10nId = enable ? 'enabled' : 'disabled';
+    });
+
     settings.addObserver('lockscreen.passcode-lock.enabled',
-      function onLockscreenEnableChange(event) {
-        self.settings.enable = event.settingValue;
-        self.phonelockPanel.dataset.enabled = event.settingValue;
+      function onPasscodeLockEnableChange(event) {
+        self.settings.passcodeEnable = event.settingValue;
+        self.phonelockPanel.dataset.passcodeEnabled = event.settingValue;
+        self.passcodeEnable.checked = event.settingValue;
     });
 
     settings.addObserver('lockscreen.passcode-lock.code',
-      function onLockscreenCodeChange(event) {
+      function onPasscodeLockCodeChange(event) {
         self.settings.passcode = event.settingValue;
     });
   },
@@ -92,7 +118,7 @@ var PhoneLock = {
     this.hideErrorMessage();
     this.MODE = mode;
     this.passcodePanel.dataset.mode = mode;
-    document.location.hash = 'passcode-panel'; // show dialog box
+    document.location.hash = 'phoneLock-passcode'; // show dialog box
     this.passcodeInput.focus();
     this.updatePassCodeUI();
   },
@@ -107,7 +133,7 @@ var PhoneLock = {
     switch (evt.target) {
       case this.passcodeEnable:
         evt.preventDefault();
-        if (this.settings.enable) {
+        if (this.settings.passcodeEnable) {
           this.changeMode('confirm');
         } else {
           this.changeMode('create');
@@ -220,5 +246,8 @@ var PhoneLock = {
   }
 };
 
-PhoneLock.init();
+// startup
+onLocalized(function() {
+  PhoneLock.init();
+});
 

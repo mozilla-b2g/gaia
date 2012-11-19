@@ -179,11 +179,13 @@ var CardsView = (function() {
       runningApps[displayedApp].frame.blur();
 
     function addCard(origin, app, displayedAppCallback) {
+      // Display card switcher background first to make user focus on the
+      // frame closing animation without disturbing by homescreen display.
+      if (displayedApp == origin && displayedAppCallback) {
+        setTimeout(displayedAppCallback);
+      }
       // Not showing homescreen
       if (app.frame.classList.contains('homescreen')) {
-        if (displayedApp == origin && displayedAppCallback)
-          setTimeout(displayedAppCallback);
-
         return;
       }
 
@@ -216,9 +218,22 @@ var CardsView = (function() {
 
         var subtitle = document.createElement('p');
         subtitle.textContent =
-          PopupManager.getOriginFromUrl(popupFrame.dataset.url);
+          PopupManager.getOpenedOriginFromOpener(origin);
         card.appendChild(subtitle);
         card.classList.add('popup');
+      }
+
+      if (TrustedUIManager.hasTrustedUI(origin)) {
+        var popupFrame = TrustedUIManager.getDialogFromOrigin(origin);
+        frameForScreenshot = popupFrame.frame;
+        var header = document.createElement('section');
+        header.setAttribute('role', 'region');
+        header.classList.add('skin-organic');
+        header.innerHTML = '<header><button><span class="icon icon-close">';
+        header.innerHTML += '</span></button><h1>' + popupFrame.name;
+        header.innerHTML += '</h1></header>';
+        card.appendChild(header);
+        card.classList.add('trustedui');
       }
 
       cardsList.appendChild(card);
@@ -234,9 +249,6 @@ var CardsView = (function() {
             screenshotObjectURLs.push(objectURL);
             card.style.backgroundImage = 'url(' + objectURL + ')';
           }
-
-          if (displayedApp == origin && displayedAppCallback)
-            setTimeout(displayedAppCallback);
         };
 
       // Set up event handling

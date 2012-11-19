@@ -1,25 +1,22 @@
 Evme.Apps = new function() {
     var _name = "Apps", _this = this, $el = null, $list = null,
         appsArray = {}, appsDataArray = [], numberOfApps = 0,
-        scroll = null, defaultIconToUse = 0;
-    var reportedScrollMove = false, shouldFadeBG = false,
+        scroll = null, defaultIconToUse = 0,
+        reportedScrollMove = false, shouldFadeBG = false,
         isSwiping = false,
-        showingFullScreen = false,
+    
+        fadeBy = 0, showingFullScreen = false,
         timeoutAppsToDrawLater = null;
     
     var MORE_BUTTON_ID = "more-apps",
         APP_HEIGHT = "FROM CONFIG",
         DEFAULT_SCREEN_WIDTH = "FROM CONFIG",
-        SCROLL_BEFORE_CALLING_SCROLLTOP = "FROM CONFIG",
-        SCROLL_BEFORE_CALLING_SCROLLBOTTOM = "FROM CONFIG",
-        MAX_SCROLL_AREA = "CALCULATED",
         SCROLL_TO_BOTTOM = "CALCULATED",
+        MAX_SCROLL_FADE = 200,
+        FULLSCREEN_THRESHOLD = 0.8,
         MAX_APPS_CLASSES = 150,
         APPS_PER_ROW = 4,
-        MIN_WIDTH_FOR_FIVE_APPS = "FROM CONFIG",
-        HEIGHT_TO_ADD_INCASE_OF_EXTERNAL_RESULTS = 80,
         ICONS_STYLE_ID = "apps-icons",
-        TIMEOUT_BEFORE_DRAWING_REST_OF_APPS = 100,
         MIN_HEIGHT_FOR_MORE_BUTTON = "FROM CONFIG",
         DEFAULT_ICON_URL = "FROM CONFIG",
         TIMEOUT_BEFORE_REPORTING_APP_HOLD = 800,
@@ -32,9 +29,6 @@ Evme.Apps = new function() {
         for (var k in options.features) { ftr[k] = options.features[k] }
         
         APP_HEIGHT = options.appHeight;
-        SCROLL_BEFORE_CALLING_SCROLLTOP = options.scrollThresholdTop;
-        SCROLL_BEFORE_CALLING_SCROLLBOTTOM = options.scrollThresholdBottom;
-        MIN_WIDTH_FOR_FIVE_APPS = options.widthForFiveApps;
         MIN_HEIGHT_FOR_MORE_BUTTON = options.minHeightForMoreButton;
         DEFAULT_SCREEN_WIDTH = options.defaultScreenWidth;
         
@@ -98,23 +92,31 @@ Evme.Apps = new function() {
     this.getAppTapAndHoldTime = function() {
         return TIMEOUT_BEFORE_REPORTING_APP_HOLD;
     };
-
-    this.load = function(apps, appOffset, iconsFormat) {
-        var isMore = appOffset > 0;
+    
+    this.load = function(options) {
+        var apps = options.apps,
+            offset = options.offset,
+            iconsFormat = options.iconsFormat,
+            onDone = options.onDone,
+            isMore = offset > 0,
+            hasMore = options.hasMore;
         
-        if (!isMore) {
+        if (options.clear) {
             _this.clear();
         }
         
-        var missingIcons = drawApps(apps, isMore, iconsFormat);
+        var missingIcons = drawApps(apps, isMore, iconsFormat, onDone);
+        if (offset === 0) {
+            _this.scrollToStart();
+        }
         
         cbLoadComplete(apps, missingIcons);
         
         return missingIcons;
     };
     
-    this.updateApps = function(apps, appOffset, iconsFormat) {
-        updateApps(apps, iconsFormat);
+    this.updateApps = function(options) {
+        updateApps(options.apps, options.iconsFormat);
         
         return null;
     };
@@ -129,26 +131,34 @@ Evme.Apps = new function() {
         defaultIconToUse = 0;
         numberOfApps = 0;
         $list[0].innerHTML = "";
+        _this.hasInstalled(false);
         _this.More.hide();
         _this.More.hideButton();
-        scroll.scrollTo(0, 0);
+        _this.scrollToStart();
     };
-
-    this.refreshScroll = function(iRowsToAdd) {
-        !iRowsToAdd && (iRowsToAdd = 0);
-        
-        setAppsPerRow();
-        
-        var numRows = Math.ceil(numberOfApps/APPS_PER_ROW) + iRowsToAdd;
-        var height = numRows * APP_HEIGHT,
-            elHeight = $el.height();
-        
-        $list.css("height", height + "px");
-        
-        MAX_SCROLL_AREA = elHeight / APPS_PER_ROW;
-        SCROLL_TO_BOTTOM = height - elHeight;
+    
+    this.refreshScroll = function() {
+        SCROLL_TO_BOTTOM = $el.height() - $list.height();
         
         scroll.refresh();
+    };
+    
+    this.scrollToStart = function() {
+        scroll.scrollTo(0, 0);
+    };
+    
+    this.hasInstalled = function(isTrue) {
+        if (typeof isTrue !== 'boolean') {
+            return $el.hasClass("has-installed");
+        }
+        
+        if (isTrue) {
+            $el.addClass("has-installed");
+        } else {
+            $el.removeClass("has-installed");
+        }
+        
+        return isTrue;
     };
     
     this.disableScroll = function() {
@@ -189,6 +199,10 @@ Evme.Apps = new function() {
         return key;
     };
     
+    this.getElement = function() {
+        return $el;
+    };
+    
     this.getList = function() {
         return $list;
     };
@@ -222,19 +236,10 @@ Evme.Apps = new function() {
     this.calcAppsPositions = function() {
         var width = 320;
         
-        setAppsPerRow(width);
-        
         var prefix = Evme.Utils.cssPrefix(),
-            rules = "#evmeApps ul li { width: " + 100/APPS_PER_ROW + "%; }\n";
-            /*
-        for (var i=0; i<MAX_APPS_CLASSES; i++) {
-            var posX = i%APPS_PER_ROW*width/APPS_PER_ROW;
-            var posY = Math.floor(i/APPS_PER_ROW)*APP_HEIGHT;
-            rules += '#evmeApps ul li.pos' + i + ' { ' + prefix + 'transform: translate(' + posX + 'px, ' + posY + 'px); }\n';
-        }
-        */
-        
-        var $currStyle = $('<style type="text/css">' + rules + '</style>');
+            rules = "#evmeApps ul li { width: " + 100/APPS_PER_ROW + "%; }\n",
+            $currStyle = $('<style type="text/css">' + rules + '</style>');
+            
         $("head").append($currStyle);
         
         _this.refreshScroll();
@@ -266,12 +271,6 @@ Evme.Apps = new function() {
         return appsDataArray;
     };
     
-    function setAppsPerRow(width) {
-        !width && (width = $("#" + Evme.Utils.getID()).width());
-        
-        APPS_PER_ROW = (width>MIN_WIDTH_FOR_FIVE_APPS)? 5 : 4;
-    }
-    
     function getAppIndex($app) {
         var $apps = $list.children();
         for (var i=0; i<$apps.length; i++) {
@@ -283,24 +282,35 @@ Evme.Apps = new function() {
         return 0;
     }
     
-    function scrollStart(data) {
-        shouldFadeBG = (scroll.y == 0 && numberOfApps > 0);
+    function scrollStart(e) {
+        shouldFadeBG = (scroll.y === 0 && numberOfApps > 0);
+        fadeBy = 0;
         reportedScrollMove = false;
     }
-
-    function scrollMove(data) {
+    
+    function scrollMove(e) {
         var y = scroll.y;
         
-        if (!reportedScrollMove && SCROLL_TO_BOTTOM + y < -40) {
+        if (!reportedScrollMove && y == SCROLL_TO_BOTTOM) {
             reportedScrollMove = true;
             cbScrolledToEnd();
-        } else if (shouldFadeBG && y > SCROLL_BEFORE_CALLING_SCROLLTOP && y < SCROLL_BEFORE_CALLING_SCROLLTOP+MAX_SCROLL_AREA) {
-            Evme.BackgroundImage.fadeFullScreen((y-SCROLL_BEFORE_CALLING_SCROLLTOP)/MAX_SCROLL_AREA);
+        } else if (shouldFadeBG) {
+            var _fadeBy = scroll.distY/MAX_SCROLL_FADE;
+            
+            if (_fadeBy < fadeBy) {
+                _fadeBy = 0;
+                shouldFadeBG = false;
+            }
+            
+            fadeBy = _fadeBy;
+            Evme.BackgroundImage.fadeFullScreen(fadeBy);
+        } else {
+            Evme.BackgroundImage.fadeFullScreen(0);
         }
     }
     
     function scrollEnd(data) {
-        if (shouldFadeBG && scroll.y > (SCROLL_BEFORE_CALLING_SCROLLTOP+MAX_SCROLL_AREA)) {
+        if (shouldFadeBG && scroll.distY >= FULLSCREEN_THRESHOLD*MAX_SCROLL_FADE) {
             showingFullScreen = true;
             cbScrolledToTop();
             window.setTimeout(function(){
@@ -311,71 +321,34 @@ Evme.Apps = new function() {
         }
     }
     
-    function drawApps(apps, isMore, iconsFormat) {
-        var iconsResult = {
-            "cached": [],
-            "missing": []
-        };
-        var doLater = [];
-        
-        window.clearTimeout(timeoutAppsToDrawLater);
-        
+    function drawApps(apps, isMore, iconsFormat, cb) {
         var numOfApps = 0; for (var i in appsArray){ numOfApps++; }
         
+        numberOfApps += apps.length;
         for (var i=0; i<apps.length; i++) {
-            var app = new Evme.App(apps[i], numOfApps+i, isMore, _this);
-            var id = apps[i].id;
-            var icon = app.getIcon();
-            
-            icon = Evme.IconManager.parse(id, icon, iconsFormat);
-            app.setIcon(icon);
-            
-            if (Evme.Utils.isKeyboardVisible() && (isMore || i<Math.max(apps.length/2, 8))) {
-                var $app = app.draw();
-                $list.append($app);
-            } else {
-                doLater.push(app);
-            }
-            
-            if (app.missingIcon()) {
-                if (!icon) {
-                    icon = id;
-                }
-                iconsResult["missing"].push(icon);
-            } else {
-                iconsResult["cached"].push(icon);
-            }
-
-            appsArray[id] = app;
             appsDataArray.push(apps[i]);
-            numberOfApps++;
         }
         
-        if (doLater.length > 0) {
-            timeoutAppsToDrawLater = window.setTimeout(function(){
-                for (var i=0; i<doLater.length; i++) {
-                    var $app = doLater[i].draw();
-                    $list.append($app);
-                }
-                
+        var iconsResult = Evme.Utils.Apps.print({
+            "obj": _this,
+            "apps": apps,
+            "numAppsOffset": numOfApps,
+            "isMore": isMore,
+            "iconsFormat": iconsFormat,
+            "$list": $list,
+            "onDone": function(appsList) {
                 _this.setAppsClasses();
+                
                 _this.refreshScroll();
                 
-                window.setTimeout(function(){
-                    $list.find(".new").removeClass("new");
-                }, 10);
-            }, TIMEOUT_BEFORE_DRAWING_REST_OF_APPS);
-        }
+                for (var i=0; i<appsList.length; i++) {
+                    appsArray[appsList[i].getId()] = appsList[i];
+                }
+                
+                cb && cb();
+            }
+        });
         
-        _this.setAppsClasses();
-        
-        window.setTimeout(function(){
-            $list.find(".new").removeClass("new");
-        }, 10);
-        
-        if (!isMore) {
-            _this.refreshScroll();
-        }
         return iconsResult;
     }
     
@@ -456,10 +429,11 @@ Evme.Apps = new function() {
             if (!$el) {
                 visible = true;
                 var $to = Evme.Apps.getList();
-                $el = $('<li id="' + id + '" style="top: ' + $to.css("height") + '"><span></span>' + TEXT_LOADING + '</li>');
+                
+                $el = $('<li id="' + id + '" ><span></span>' + TEXT_LOADING + '</li>');
                 $to.append($el);
                 loading.spin($el.find("span")[0]);
-                Evme.Apps.refreshScroll(1);
+                Evme.Apps.refreshScroll();
                 _this.hideButton();
                 Evme.EventHandler.trigger(_name, "show");
             }
@@ -702,8 +676,8 @@ Evme.IconGroup = new function() {
 Evme.App = function(__cfg, __index, __isMore, parent) {
     var _name = "App", _this = this,
         cfg = {}, $el = null, index = __index, isMore = __isMore, hadID = true,
-        timeTouchStart = 0, touchStartPos = null, firedHold = false,
-        DISTANCE_TO_IGNORE_AS_MOVE = 5;
+        timeTouchStart = 0, touchStartPos = null, firedHold = false, tapIgnored = false,
+        DISTANCE_TO_IGNORE_AS_MOVE = 3;
         
     this.init = function(_cfg) {
         cfg = normalize(_cfg);
@@ -733,9 +707,20 @@ Evme.App = function(__cfg, __index, __isMore, parent) {
         $el = $('<li class="new" id="app_' + cfg.id + '"></li>');
         _this.update();
         
-        $el.bind("touchstart", touchstart)
-           .bind("touchmove", touchmove)
-           .bind("touchend", touchend);
+        if (cfg.installed) {
+            $el.addClass("installed");
+        }
+        
+        if ("ontouchstart" in window) {
+            $el.bind("touchstart", touchstart)
+               .bind("touchmove", touchmove)
+               .bind("touchend", touchend);
+        } else {
+            $el.bind("click", function(e) {
+                firedHold = tapIgnored = false;
+                touchend(e);
+            });
+        }
        
         return $el;
     };
@@ -778,6 +763,10 @@ Evme.App = function(__cfg, __index, __isMore, parent) {
 
     this.getElement = function() {
         return $el;
+    };
+    
+    this.getId = function() {
+        return cfg.id;
     };
     
     this.getLink = function() {
@@ -862,7 +851,7 @@ Evme.App = function(__cfg, __index, __isMore, parent) {
         e.preventDefault();
         e.stopPropagation();
         
-        cbClick();
+        cbClick(e);
     }
             
     function getEventPoint(e) {
@@ -884,14 +873,15 @@ Evme.App = function(__cfg, __index, __isMore, parent) {
         return cfg;
     }
 
-    function cbClick() {
+    function cbClick(e) {
         Evme.EventHandler.trigger(_name, "click", {
             "app": _this,
             "appId": hadID ? cfg.id : 0,
             "$el": $el,
             "data": cfg,
             "index": index,
-            "isMore": isMore
+            "isMore": isMore,
+            "e": e
         });
     }
 

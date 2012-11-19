@@ -27,29 +27,7 @@
   <script type="text/javascript" src="shared/js/gesture_detector.js"></script>
   <script defer type="text/javascript" src="/shared/js/custom_dialog.js"></script>
   <!-- Specific code -->
-  <script type="text/javascript">
-    // when running in B2G, send output to the console, ANSI-style
-    if ('mozTCPSocket' in window.navigator) {
-      function consoleHelper() {
-        var msg = arguments[0] + ":";
-        for (var i = 1; i < arguments.length; i++) {
-          msg += " " + arguments[i];
-        }
-        msg += "\x1b[0m\n";
-        dump(msg);
-      }
-      window.console = {
-        log:   consoleHelper.bind(null, '\x1b[32mLOG'),
-        error: consoleHelper.bind(null, '\x1b[31mERR'),
-        info:  consoleHelper.bind(null, '\x1b[36mINF'),
-        warn:  consoleHelper.bind(null, '\x1b[33mWAR')
-      };
-    }
-    window.onerror = function errHandler(msg, url, line) {
-      console.error("onerror reporting:", msg, "@", url, ":", line);
-      return false;
-    };
-  </script>
+  <script type="text/javascript" src="js/console-hook.js"></script>
   <script type="text/javascript" src="js/mail-common.js"></script>
   <script type="text/javascript" src="js/iframe-shims.js"></script>
   <script type="text/javascript" src="js/message-cards.js"></script>
@@ -227,9 +205,11 @@
           <button class="msg-mark-read-btn bottom-btn"></button>
           <button class="msg-move-btn bottom-btn"></button>
         </div>
-        <p role="status" class="msg-list-empty collapsed">
-          <span data-l10n-id="messages-folder-empty">No messagE</span>
-        </p>
+        <div class="msg-list-empty-container collapsed">
+          <div class="msg-list-empty-message">
+            <p class="msg-list-empty-message-text" data-l10n-id="messages-folder-empty">No messagE</p>
+          </div>
+        </div>
       </div>
 
       <!-- Message Reader -->
@@ -259,7 +239,7 @@
                      data-l10n-id="envelope-from">FroM</span>
             </div>
             <!-- the details starts out collapsed, but can be toggled -->
-            <div class="msg-envelope-details collapsed">
+            <div class="msg-envelope-details">
               <div class="msg-envelope-to-line msg-envelope-line">
                 <span class="msg-envelope-key"
                        data-l10n-id="envelope-to">tO</span>
@@ -298,7 +278,7 @@
               <span class="icon icon-back">BacK</span>
             </a>
             <menu type="toolbar">
-              <a href="#" class="cmp-send-btn header-right-btn">
+              <a href="#" class="cmp-send-btn header-right-btn" aria-disabled="true">
                 <span class="icon icon-send">SenD</span>
               </a>
             </menu>
@@ -356,7 +336,7 @@
       </div>
 
       <!-- === Setup === -->
-      <!-- From hyperlink, ask the user if they want to setup now or bail. -->
+      <!-- From hyperlink, ask the user if they want to set up now or bail. -->
       <div class="card-setup-needed card">
       </div>
       <!-- Pick your service provider from popular options to save yourself
@@ -375,7 +355,7 @@
         </section>
         <h2 class="sup-pick-service-label sup-form-label"
             data-l10n-id="setup-pick-service">
-          To SenD and ReceivE email, you will need to setup an account.
+          To SenD and ReceivE email, you will need to set up an account.
         </h2>
         <div class="sup-services-container">
         </div>
@@ -397,7 +377,7 @@
         </h2>
         <div class="sup-form">
           <input class="sup-info-name sup-form-text" type="text"
-                 inputmode="titlecase" placeholder="NamE" required />
+                 x-inputmode="latin-name" placeholder="NamE" required />
           <input class="sup-info-email sup-form-text" type="email"
                  placeholder="EmaiL AddresS" required />
           <input class="sup-info-password sup-form-text" type="password"
@@ -419,7 +399,7 @@
         </section>
         <div class="sup-progress-region">
           <span class="sup-progress-label" data-l10n-id="setup-progress-wait">
-            PleasE WaiT WhilE I SetuP YouR AccounT
+            PleasE WaiT WhilE I SeT UP YouR AccounT
           </span>
           <span class="sup-progress-spinner"></span>
         </div>
@@ -427,7 +407,7 @@
           <span class="sup-error-message"></span>
           <button class="sup-manual-config-btn sup-form-btn recommend"
                   data-l10n-id="setup-manual-config">
-            ManuallY SetuP AccounT
+            ManuallY SeT UP AccounT
           </button>
         </div>
       </div>
@@ -545,10 +525,11 @@
               <button href="#" data-l10n-id="settings-account-add"
                 class="tng-account-add">AdD AccounT</button>
             </li>
-          <header class="tng-main-about-label">
+          <!-- Hide for v1: Hide general setting section to reduce effort-->
+          <header class="tng-main-about-label collapsed">
             <h2 data-l10n-id="settings-general-section">GeneraL SettingS</h2>
           </header>
-            <li>
+            <li class="collapsed">
               <span data-l10n-id="settings-check-mail" class="list-text">
                 ChecK MaiL</span>
               <em class="aside end">
@@ -570,7 +551,7 @@
                 </select>
               </em>
             </li>
-            <li>
+            <li class="collapsed">
               <span data-l10n-id="settings-show-images" class="list-text">
                 AlwayS ShoW ImageS</span>
               <em class="aside end">
@@ -580,7 +561,7 @@
                 </label>
               </em>
             </li>
-            <li>
+            <li class="collapsed">
               <span data-l10n-id="settings-download-attachments"
                 class="list-text">DownloaD AttachmentS</span>
               <em class="aside end">
@@ -590,7 +571,7 @@
                 </label>
               </em>
             </li>
-            <li>
+            <li class="collapsed">
               <span data-l10n-id="settings-notify-mail" class="list-text">
                 NotifY ME OF NeW MaiL</span>
               <em class="aside end">
@@ -640,6 +621,8 @@
               SynchronizE</span>
             <em class="aside end">
               <select class="mail-select tng-account-synchronize">
+                <option value="auto" data-l10n-id="settings-synchronize-auto">
+                  AutomatiC</option>
                 <option value="1d" data-l10n-id="settings-synchronize-one-day">
                   1 DaY</option>
                 <option value="3d" data-l10n-id="settings-synchronize-three-days">
@@ -699,7 +682,7 @@
                  the UI state will become wrong after _showCard() is called
                  so disable the input first to prevent the wrong state
               -->
-            <input disabled class="tng-server-password-input sup-form-text"
+            <input class="tng-server-password-input sup-form-text"
               type="password" placeholder="PassworD">
           </li>
           <button data-l10n-id="settings-save"
@@ -800,7 +783,7 @@
       </div>
 
       <li class="msg-attachment-item">
-        <span class="msg-attachment-icon">&amp;</span>
+        <span class="msg-attachment-icon"></span>
         <span class="msg-attachment-filename"></span>
         <span class="msg-attachment-filesize"></span>
         <button class="msg-attachment-download">
@@ -832,11 +815,18 @@
             data-l10n-id="message-edit-menu-delete">DeletE</li>
       </ul>
       <li class="cmp-attachment-item">
-        <span class="cmp-attachment-icon">&amp;</span>
+        <span class="cmp-attachment-icon"></span>
         <span class="cmp-attachment-filename"></span>
         <span class="cmp-attachment-filesize"></span>
         <button class="cmp-attachment-remove">X</span>
       </li>
+      <div class="cmp-sending-container">
+        <p role="status" class="cmp-messages-sending">
+          <progress></progress>
+          <span class="cmp-sending-text" data-l10n-id="compose-sending-message">Sending messagE
+          </span>
+        </p>        
+      </div>
     </div>
     <!-- Widget nodes for the setup cards; styles use the sup prefix -->
     <div id="templ-sup">

@@ -43,7 +43,9 @@ suite('views/modify_account', function() {
         '<button class="save">save</button>',
         '<button class="cancel">cancel</button>',
         '<button class="delete-cancel">cancel</button>',
-        '<div class="errors"></div>',
+        '<section role="status">',
+          '<div class="errors"></div>',
+        '</section>',
         '<form>',
           '<input name="user" />',
           '<input name="password" />',
@@ -242,8 +244,13 @@ suite('views/modify_account', function() {
 
   test('#_displayError', function() {
     subject.errors.textContent = '';
-    subject._displayError(new Error('foo'));
-    assert.equal(subject.errors.textContent, 'foo');
+    var error = new Error();
+    error.name = 'default';
+    subject._displayError(error);
+    // mozL10n library has it's own tests,
+    // we only check if the field has the error
+    // identifier added
+    assert.equal(subject.errors.textContent, 'default');
   });
 
   test('#_createModel', function() {

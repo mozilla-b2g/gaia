@@ -1,8 +1,4 @@
-#pair-view h1, #alert-view h1 {
-  font-size: 1.8rem;
-}
-
-#pair-view div, #alert-view div {
+#pair-view div {
   font-size: 1.6rem;
 }
 
@@ -28,18 +24,14 @@
   font-size: 1.8rem;
 }
 
-#pair-view menu, #alert-view menu {
+#pair-view menu {
   padding: 0.7rem;
   bottom: 0px;
 }
 
-#pair-view menu button, #alert-view menu button {
+#pair-view menu button {
   height: 2.8rem;
   line-height: 2.8rem;
-}
-
-#alert-view menu button {
-  width: 100%;
 }
 
 #device-info {
@@ -49,5 +41,5 @@
 }
 
 .bluetooth-default { 
-  background-image: url(images/settings/bluetooth.png);
+  background-image: -moz-image-rect(url(images/icons_sprite.png), 0, 150, 30, 120);
 }

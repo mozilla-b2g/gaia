@@ -41,6 +41,157 @@ body {
   visibility: hidden !important;
 }
 
+/*
+ *  Poweroff animation
+ */
+#screen > div#poweroff-splash {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #000;
+}
+
+#screen > div#poweroff-splash.step1 {
+  animation: poweroff-splash-fade-in 0.5s;
+}
+
+@keyframes poweroff-splash-fade-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 100%;
+  }
+}
+
+.poweroff-ring {
+  display: block;
+  position: absolute;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  margin-left: -30px;
+  margin-top: -30px;
+  left: 50%;
+  opacity: 0;
+}
+
+#poweroff-ring-1 {
+  top: 120px;
+  background-color: #e66600;
+}
+
+#poweroff-ring-2 {
+  top: 240px;
+  background-color: #dc4e00;
+}
+
+#poweroff-ring-3 {
+  top: 360px;
+  background-color: #d24500;
+}
+
+.poweroff-ring > span {
+  display: block;
+  position: absolute;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  margin: auto;
+  background-color: black;
+  width: 40px;
+  height: 40px;
+  margin-top: -20px;
+  margin-left: -20px;
+}
+
+#poweroff-ring-2 > span {
+  transform: scale(1.125);
+}
+
+#poweroff-ring-3 > span {
+  transform: scale(1.25);
+}
+
+/* Ring 1 : inner diameter scales from 40 pixel to 58 pixel */
+@keyframes ring1-scale {
+  0% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(1.45);
+  }
+}
+
+/* Ring 2 : inner diameter scales from 45 pixel to 59.5 pixel */
+@keyframes ring2-scale {
+  0% {
+    transform: scale(1.125);
+  }
+  100% {
+    transform: scale(1.4875);
+  }
+}
+
+/* Ring 3 : inner diameter scales from 50 pixel to 59 pixel */
+@keyframes ring3-scale {
+  0% {
+    transform: scale(1.25);
+  }
+  100% {
+    transform: scale(1.475);
+  }
+}
+
+@keyframes ring-fade-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes ring-fade-out {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+#screen > div#poweroff-splash.step2 > #poweroff-ring-1 {
+  animation: ring-fade-in  .4s ease-out  0s,
+             ring-fade-out .5s linear   .4s;
+}
+
+#screen > div#poweroff-splash.step2 > #poweroff-ring-2 {
+  animation: ring-fade-in  .4s ease-out .25s,
+             ring-fade-out .5s linear   .65s;
+}
+
+#screen > div#poweroff-splash.step2 > #poweroff-ring-3 {
+  animation: ring-fade-in  .4s ease-out .5s,
+             ring-fade-out .5s linear   .9s;
+}
+
+#screen > div#poweroff-splash.step2 > #poweroff-ring-1 > span {
+  animation: ring1-scale   .5s linear   .4s;
+}
+
+#screen > div#poweroff-splash.step2 > #poweroff-ring-2 > span {
+  animation: ring2-scale   .5s linear   .65s;
+}
+
+#screen > div#poweroff-splash.step2 > #poweroff-ring-3 > span {
+  animation: ring3-scale   .5s linear   .9s;
+}
+
+
+
 #system-overlay {
   width: 100%;
   height: 100%;
@@ -105,6 +256,10 @@ body {
   background-color: #fff;
 }
 
+#windows > iframe.appWindow:not(.homescreen).default-background {
+  background: url('./images/splash_screen_generic.png') center center no-repeat #fff;
+}
+
 #windows > iframe.appWindow:not(.active):not(.homescreen):not(.opening):not(.closing) {
   visibility: hidden;
 }
@@ -118,32 +273,74 @@ body {
   transition: transform 0.5s ease, opacity 0.3s ease;
 }
 
+#windows.slow-transition > iframe.appWindow.opening {
+  transition: transform 5s ease, opacity 3s ease;
+}
+
 #screen.cards-view > #windows > iframe.appWindow.opening,
-#screen.cards-view > #windows > iframe.appWindow.closing {
+#screen.cards-view > #windows > iframe.appWindow.closing,
+#screen.switch-app > #windows > iframe.appWindow.opening,
+#screen.switch-app > #windows > iframe.appWindow.closing {
   transition: transform 0.5s ease;
+  visibility: inherit;
   opacity: 1;
+}
+
+#screen.switch-app > #windows.slow-transition > iframe.appWindow.opening,
+#screen.switch-app > #windows.slow-transition > iframe.appWindow.closing {
+  transition: transform 5s ease;
+}
+
+#screen.switch-app > #windows > iframe.appWindow.opening-card {
+  transform: translateX(70%) scale(0.6);
+  visibility: inherit;
+  opacity: 1;
+}
+
+#screen.switch-app > #windows > iframe.appWindow.opening-switching {
+  transform: scale(0.6);
+  transition: transform 0.5s ease;
+  visibility: inherit;
+  opacity: 1;
+}
+
+#screen.switch-app > #windows.slow-transition > iframe.appWindow.opening-switching {
+  transition: transform 5s ease;
+}
+
+#screen.switch-app > #windows > iframe.appWindow.closing-card {
+  transform: translateX(-70%) scale(0.6);
+  transition: transform 0.5s ease;
+  visibility: inherit;
+  opacity: 1;
+}
+
+#screen.switch-app > #windows.slow-transition > iframe.appWindow.closing-card {
+  transition: transform 5s ease;
 }
 
 #windows > iframe.appWindow.closing {
   transition: transform 0.5s ease, opacity 0.3s ease 0.2s;
 }
 
-/* Workaround OOP window issue
- * https://bugzilla.mozilla.org/show_bug.cgi?id=792351 */
-#windows > iframe.appWindow.opening {
-  top: 0 !important;
-  transform: translateY(20px) scale(1);
+#windows.slow-transition > iframe.appWindow.closing {
+  transition: transform 5s ease, opacity 3s ease 2s;
 }
-#windows > iframe.appWindow.closing {
-  top: 0 !important;
-  transform: translateY(20px) scale(0.6);
-}
-/* /Workaround */
 
 #windows > iframe.appWindow.inlineActivity,
 #windows > iframe.appWindow.hideBottom {
   transform: translateY(100%);
   transition: transform 0.5s ease, visibility 0.5s ease;
+}
+
+#windows.slow-transition > iframe.appWindow.inlineActivity,
+#windows.slow-transition > iframe.appWindow.hideBottom {
+  transition: transform 5s ease, visibility 5s ease;
+}
+
+#windows > iframe.appWindow.back {
+  transition: transform 0.5s ease, visibility 0.5s ease;
+  transform: scale(0.86);
 }
 
 #windows > iframe.appWindow.restored {
@@ -153,85 +350,26 @@ body {
 
 #windows > iframe.appWindow.inlineActivity.active {
   transform: none;
-  transition: none;
 }
 
-#screen.fullscreen-app > #windows > iframe.appWindow.active:not(.homescreen) {
-  top: 0;
-}
-
-#windowSprite,
-.windowSprite {
-  position: absolute;
-  top: 20px;
-  left: 0;
-  width: 100%;
-  height: -moz-calc(100% - 20px);
-  background-color: #373a3d;
-  background-size: cover;
-  pointer-events: none;
-
-  visibility: hidden;
-}
-
-.windowSprite {
-  transition: transform 0.5s ease;
-  transform: scale(0.6);
-  visibility: inherit;
-}
-
-.windowSprite.right {
-  transform: translateX(70%) scale(0.6);
-}
-
-.windowSprite.left {
-  transform: translateX(-70%) scale(0.6);
-}
-
-#screen.switch-app #windowSprite.before-close {
-  opacity: 0.99;
-}
-
-#screen.switch-app #windowSprite:not(.before-close):not(.opened) {
-  opacity: 1;
-}
-
-#screen.active-statusbar #windowSprite {
-  top: 40px;
-  height: -moz-calc(100% - 40px);
-}
-
-#screen.cards-view > div#windowSprite:not(.before-close) {
-  opacity: 1;
-}
-
-/* a dark mask on top of cached screenshot */
-#windowSprite > div {
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-}
-
-#screen.fullscreen-app > #windowSprite {
-  height: 100%;
+#screen > #windows > iframe.appWindow.fullscreen-app {
   top: 0;
 }
 
 #screen.attention > #windowSprite,
 #screen.fullscreen-app.attention > #windowSprite {
-  height: -moz-calc(100% - 40px);
+  height: calc(100% - 40px);
   top: 40px;
-} 
+}
 
 #windowSprite.before-inline-activity {
-  transform: translateY(-moz-calc(100% - 1px));
+  transform: translateY(calc(100% - 1px));
   opacity: 1;
   visibility: visible;
 }
 
 #windowSprite.inline-activity-opening {
   transition: transform 0.5s ease;
-
   transform: translateY(0);
   opacity: 1;
   visibility: visible;
@@ -259,6 +397,10 @@ body {
   transform: scale(1);
   opacity: 1;
   visibility: visible;
+}
+
+#screen.trustedui #windowSprite.opening {
+  opacity: 0;
 }
 
 #windowSprite.opened {
@@ -311,14 +453,14 @@ iframe.backgroundWindow {
   top: 20px;
   left: 0;
   width: 100%;
-  height: -moz-calc(100% - 20px);
+  height: calc(100% - 20px);
   visibility: hidden;
   pointer-events: none;
 }
 
 #screen.active-statusbar #dialog-overlay {
   top: 40px;
-  height: -moz-calc(100% - 40px);
+  height: calc(100% - 40px);
 }
 
 #screen:-moz-full-screen-ancestor #dialog-overlay,
@@ -331,6 +473,12 @@ iframe.backgroundWindow {
   visibility: hidden;
 }
 
+/* `.dialog` is set by system_dialog.js when a dialog is shown */
+#screen.dialog #dialog-overlay {
+  visibility: visible;
+  pointer-events: auto;
+}
+
 #screen.authentication-dialog #dialog-overlay,
 #screen.authentication-dialog #authentication-dialog,
 #screen.crash-dialog #dialog-overlay,
@@ -338,7 +486,6 @@ iframe.backgroundWindow {
 #screen.modal-dialog #dialog-overlay,
 #screen.modal-dialog #modal-dialog,
 #screen.popup #popup-container,
-#screen.popup #dialog-overlay,
 #screen.trustedui #trustedui-container,
 #screen.trustedui #dialog-overlay {
   visibility: visible;

@@ -47,6 +47,23 @@ window.addEventListener('localized', function onlocalized() {
     init();
 });
 
+// We get headphoneschange event when the headphones is plugged or unplugged
+// Note that mozAudioChannelManager is not ready yet
+// The name of the interfaces might change in future
+// A related Bug 809106 in Bugzilla
+var acm = navigator.mozAudioChannelManager;
+
+if (acm) {
+  acm.addEventListener('headphoneschange', function onheadphoneschange() {
+    if (!acm.headphones && PlayerView.isPlaying) {
+      PlayerView.pause();
+    }
+  });
+}
+
+// We will use a wake lock later to prevent Music from sleeping
+var cpuLock = null;
+
 function init() {
   // Here we use the mediadb.js which gallery is using (in shared/js/)
   // to index our music contents with metadata parsed.
@@ -118,6 +135,29 @@ function showScanProgress() {
 function hideScanProgress() {
   document.getElementById('progress').classList.add('hidden');
   document.getElementById('throbber').classList.remove('throb');
+}
+
+//
+// Web Activities
+//
+
+// Use Web Activities to share files
+function shareFile(filename) {
+  musicdb.getFile(filename, function(file) {
+    var a = new MozActivity({
+      name: 'share',
+      data: {
+        type: file.type,
+        number: 1,
+        blobs: [file],
+        filenames: [filename]
+      }
+    });
+
+    a.onerror = function(e) {
+      console.warn('share activity error:', a.error.name);
+    };
+  });
 }
 
 //
@@ -504,8 +544,8 @@ var ListView = {
         var artistSpan = document.createElement('span');
         albumSpan.className = 'list-main-title';
         artistSpan.className = 'list-sub-title';
-        albumSpan.textContent = result.metadata.album;
-        artistSpan.textContent = result.metadata.artist;
+        albumSpan.textContent = result.metadata.album || unknownAlbum;
+        artistSpan.textContent = result.metadata.artist || unknownArtist;
         a.appendChild(albumSpan);
         a.appendChild(artistSpan);
 
@@ -516,7 +556,7 @@ var ListView = {
       case 'artist':
         var artistSpan = document.createElement('span');
         artistSpan.className = 'list-single-title';
-        artistSpan.textContent = result.metadata.artist;
+        artistSpan.textContent = result.metadata.artist || unknownArtist;
         a.appendChild(artistSpan);
 
         a.dataset.keyRange = result.metadata.artist;
@@ -526,7 +566,7 @@ var ListView = {
       case 'playlist':
         var titleSpan = document.createElement('span');
         titleSpan.className = 'list-single-title';
-        titleSpan.textContent = result.metadata.title;
+        titleSpan.textContent = result.metadata.title || unknownTitle;
         a.appendChild(titleSpan);
 
         a.dataset.keyRange = 'all';
@@ -565,11 +605,11 @@ var ListView = {
             SubListView.setAlbumSrc(data);
 
           if (option === 'artist') {
-            SubListView.setAlbumName(data.metadata.artist);
+            SubListView.setAlbumName(data.metadata.artist || unknownArtist);
           } else if (option === 'album') {
-            SubListView.setAlbumName(data.metadata.album);
+            SubListView.setAlbumName(data.metadata.album || unknownAlbum);
           } else {
-            SubListView.setAlbumName(data.metadata.title);
+            SubListView.setAlbumName(data.metadata.title || unknownTitle);
           }
 
           var targetOption =
@@ -620,6 +660,7 @@ var SubListView = {
     this.dataSource = [];
     this.index = 0;
     this.backgroundIndex = 0;
+    this.isContextmenu = false;
 
     this.albumDefault = document.getElementById('views-sublist-header-default');
     this.albumImage = document.getElementById('views-sublist-header-image');
@@ -629,6 +670,7 @@ var SubListView = {
       document.getElementById('views-sublist-controls-shuffle');
 
     this.view.addEventListener('click', this);
+    this.view.addEventListener('contextmenu', this);
   },
 
   clean: function slv_clean() {
@@ -727,9 +769,14 @@ var SubListView = {
   },
 
   handleEvent: function slv_handleEvent(evt) {
+    var target = evt.target;
+
     switch (evt.type) {
       case 'click':
-        var target = evt.target;
+        if (this.isContextmenu) {
+          this.isContextmenu = false;
+          return;
+        }
 
         if (target === this.shuffleButton) {
           this.shuffle();
@@ -750,6 +797,15 @@ var SubListView = {
           changeMode(MODE_PLAYER);
         }
 
+        break;
+
+      case 'contextmenu':
+        this.isContextmenu = true;
+
+        var targetIndex = parseInt(target.dataset.index);
+        var songData = this.dataSource[targetIndex];
+
+        shareFile(songData.name);
         break;
 
       default:
@@ -931,6 +987,10 @@ var PlayerView = {
   play: function pv_play(target, backgroundIndex) {
     this.isPlaying = true;
 
+    // Hold a wake lock to prevent from sleeping
+    if (!cpuLock)
+      cpuLock = navigator.requestWakeLock('cpu');
+
     if (this.endedTimer) {
       clearTimeout(this.endedTimer);
       this.endedTimer = null;
@@ -942,12 +1002,9 @@ var PlayerView = {
       var targetIndex = parseInt(target.dataset.index);
       var songData = this.dataSource[targetIndex];
 
-      TitleBar.changeTitleText((songData.metadata.title) ?
-        songData.metadata.title : unknownTitle);
-      this.artist.textContent = (songData.metadata.artist) ?
-        songData.metadata.artist : unknownArtist;
-      this.album.textContent = (songData.metadata.album) ?
-        songData.metadata.album : unknownAlbum;
+      TitleBar.changeTitleText(songData.metadata.title || unknownTitle);
+      this.artist.textContent = songData.metadata.artist || unknownArtist;
+      this.album.textContent = songData.metadata.album || unknownAlbum;
       this.currentIndex = targetIndex;
 
       // backgroundIndex is from the index of sublistView
@@ -974,6 +1031,10 @@ var PlayerView = {
         // An object URL must be released by calling URL.revokeObjectURL()
         // when we no longer need them
         var url = URL.createObjectURL(file);
+
+        // Add mozAudioChannelType to the player
+        this.audio.mozAudioChannelType = 'content';
+
         this.audio.src = url;
         this.audio.onloadeddata = function(evt) { URL.revokeObjectURL(url); };
 
@@ -992,6 +1053,12 @@ var PlayerView = {
 
   pause: function pv_pause() {
     this.isPlaying = false;
+
+    // We can go to sleep if music pauses
+    if (cpuLock) {
+      cpuLock.unlock();
+      cpuLock = null;
+    }
 
     this.audio.pause();
 

@@ -4,7 +4,8 @@ Calendar.ns('Service').Caldav = (function() {
 
   /* TODO: ugly hack to enable system XHR fix upstream in Caldav lib */
   var xhrOpts = {
-    mozSystem: true
+    mozSystem: true,
+    mozAnon: true
   };
 
   Caldav.Xhr.prototype.globalXhrOptions = xhrOpts;
@@ -32,7 +33,6 @@ Calendar.ns('Service').Caldav = (function() {
         'getAccount',
         'findCalendars',
         'getCalendar',
-        'getEvents',
         'streamEvents',
         'expandRecurringEvent',
         'deleteEvent',
@@ -612,7 +612,6 @@ Calendar.ns('Service').Caldav = (function() {
 
       function handleResponse(url, data) {
         var etag = data.getetag.value;
-
         if (url in cache) {
           // don't need to track this for missing events.
           if (etag !== cache[url].syncToken) {

@@ -3,7 +3,6 @@
 
 'use strict';
 
-var _ = navigator.mozL10n.get;
 
 var PairView = {
   /**
@@ -21,16 +20,12 @@ var PairView = {
   _passkey: '',
 
   pairView: document.getElementById('pair-view'),
-  alertView: document.getElementById('alert-view'),
 
-  title: document.getElementById('pair-title'),
   deviceInfo: document.getElementById('device-info'),
   nameLabel: document.getElementById('label-name'),
-  addressLabel: document.getElementById('label-address'),
   pairDescription: document.getElementById('pair-description'),
   pairButton: document.getElementById('button-pair'),
   closeButton: document.getElementById('button-close'),
-  okButton: document.getElementById('button-ok'),
 
   comfirmationItem: document.getElementById('confirmation-method'),
   pinInputItem: document.getElementById('pin-input-method'),
@@ -41,16 +36,13 @@ var PairView = {
   passkeyInput: document.getElementById('passkey-input'),
 
   init: function pv_init() {
+    var _ = navigator.mozL10n.get;
     this.pairButton.addEventListener('click', this);
     this.closeButton.addEventListener('click', this);
-    this.okButton.addEventListener('click', this);
 
-    this.title.textContent = _(this._pairMode + '-pair');
     this.nameLabel.textContent = this._device.name;
-    this.addressLabel.textContent = this._device.address;
     this.deviceInfo.className = this._device.icon;
     this.pairView.hidden = false;
-    this.alertView.hidden = true;
 
     var stringName = this._pairMode + '-pair-' + this._pairMethod;
     this.pairDescription.textContent =
@@ -92,6 +84,7 @@ var PairView = {
   },
 
   handleEvent: function pv_handleEvent(evt) {
+    var _ = navigator.mozL10n.get;
     if (evt.type !== 'click' || !evt.target)
       return;
 
@@ -114,22 +107,29 @@ var PairView = {
             window.opener.gDeviceList.setPasskey(this._device.address, value);
             break;
         }
+        window.close();
         break;
 
       case 'button-close':
-      case 'button-ok':
         window.close();
         break;
     }
-  },
-
-  pairFailed: function pv_showFailed() {
-    this.pairView.hidden = true;
-    this.alertView.hidden = false;
   }
 };
 
-window.addEventListener('localized', function bluetoothSettings(evt) {
-  PairView.init();
-});
+/**
+ * Fire a callback when as soon as all l10n resources are ready and the UI has
+ * been translated.
+ * Note: this could be exposed as `navigator.mozL10n.onload'...
+ */
+
+function onLocalized(callback) {
+  if (navigator.mozL10n.readyState == 'complete') {
+    callback();
+  } else {
+    window.addEventListener('localized', callback);
+  }
+}
+
+onLocalized(PairView.init.bind(PairView));
 
