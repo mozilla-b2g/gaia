@@ -29,17 +29,22 @@
 
 #cards-view .card {
   display: inline-block;
+  visibility: hidden;
   width: 100%;
   height: -moz-calc(100% - 20px);
   margin: 0;
   margin-top: 20px;
-  margin-left: -25%;
-  position: relative;
+  position: absolute;
+  left: 0;
   background-size: contain;
   background-position: center center;
   background-repeat: no-repeat;
   transform: scale(0.6);
 }
+
+#cards-view .active{
+  visibility: inherit;
+} 
 
 #cards-view .card h1 {
   position: absolute;
@@ -58,19 +63,6 @@
   position: relative;
   opacity: 0.8;
   z-index: 99999;
-}
-
-#cards-view .card:first-child {
-  position: absolute;
-  margin-left: 0;
-}
-
-#cards-view .card:only-child {
-  margin-left: -50%;
-}
-
-#cards-view .card:nth-child(2) {
-  margin-left: 75%;
 }
 
 #cards-view .card > * {
