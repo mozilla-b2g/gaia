@@ -11361,6 +11361,17 @@ function stashLinks(node, lowerTag) {
   }
 }
 
+var BLEACH_SETTINGS = {
+  tags: LEGAL_TAGS,
+  strip: true,
+  prune: PRUNE_TAGS,
+  attributes: LEGAL_ATTR_MAP,
+  styles: LEGAL_STYLES,
+  asNode: true,
+  callbackRegexp: RE_NODE_NEEDS_TRANSFORM,
+  callback: stashLinks
+};
+
 /**
  * @args[
  *   @param[htmlString String]{
@@ -11372,39 +11383,13 @@ function stashLinks(node, lowerTag) {
  *     now we don't.  This is consistent with many webmail clients who ignore
  *     style tags in the head, etc.
  *   }
- *   @param[callback @func[
- *     @args[
- *       @param[node DomNode]
- *       @param[lowerTag String]
- *     ]
- *     An optional callback function to be called before stashLinks.  Return
- *     true to skip stashLinks for this node, or false to call stashLinks.
- *   }
  * ]
  * @return[HtmlElement]{
  *   The sanitized HTML content wrapped in a div container.
  * }
  */
-exports.sanitizeAndNormalizeHtml = function sanitizeAndNormalize(htmlString,
-                                                                 callback) {
-  var settings = {
-    tags: LEGAL_TAGS,
-    strip: true,
-    prune: PRUNE_TAGS,
-    attributes: LEGAL_ATTR_MAP,
-    styles: LEGAL_STYLES,
-    asNode: true,
-    callbackRegexp: RE_NODE_NEEDS_TRANSFORM,
-    callback: stashLinks
-  };
-  if (callback) {
-    settings.callback = function(node, lowerTag) {
-      if (!callback(node, lowerTag))
-        stashLinks(node, lowerTag);
-    }
-  }
-
-  var sanitizedNode = $bleach.clean(htmlString, settings);
+exports.sanitizeAndNormalizeHtml = function sanitizeAndNormalize(htmlString) {
+  var sanitizedNode = $bleach.clean(htmlString, BLEACH_SETTINGS);
   return sanitizedNode;
 };
 
@@ -31744,45 +31729,7 @@ ActiveSyncFolderConn.prototype = {
       body.bodyReps = ['plain', bodyRep];
     }
     else if (bodyType === asbEnum.Type.HTML) {
-      // For some reason, Gmail converts cid: URLs into a URL relative to the
-      // Gmail web site, which isn't very useful for us. Detect this sort of
-      // tomfoolery and de-munge the URLs into a proper CID reference. These
-      // URLs usually look like the following:
-      //
-      //   ?ui=pb&view=att&th=13ab448f53725ee6m&attid=0.1.1&disp=emb&zw&atsh=1
-      //
-      // |th| is the message's ServerId, and |attid| is the part number for the
-      // attachment. Conveniently, the part number is also listed at the end of
-      // the FileReference in the WBXML response, like so:
-      //
-      //   1417301890109169382/5e21a1963d098bad_0.1.1
-      //
-      // What we want to do is grab the |attid| and then iterate through all our
-      // related parts and compare to the FileReference (stored in the |part|
-      // attribute) to find our attachment info. Then set the CID on our node
-      // from said info.
-      let demungeGmailUrls = function(node, lowerTag) {
-        if (lowerTag === 'img') {
-          let m, src = node.getAttribute('src');
-          // Find the magic Gmail URLs and grab the |attid| parameter.
-          if ((m = /^\?ui=pb&view=att&.*attid=([^&]*)/.exec(src))) {
-            for (let [,part] in Iterator(body.relatedParts)) {
-              // Check if the current related part's FileReference ends in the
-              // part number we're looking for.
-              if (part.part.lastIndexOf('_' + m[1]) ===
-                  part.part.length - m[1].length - 1) {
-                node.classList.add('moz-embedded-image');
-                node.setAttribute('cid-src', part.contentId);
-                return true;
-              }
-            }
-          }
-        }
-        return false;
-      };
-
-      let htmlNode = $htmlchew.sanitizeAndNormalizeHtml(bodyText,
-                                                        demungeGmailUrls);
+      let htmlNode = $htmlchew.sanitizeAndNormalizeHtml(bodyText);
       header.snippet = $htmlchew.generateSnippet(htmlNode,
                                                  DESIRED_SNIPPET_LENGTH);
       body.bodyReps = ['html', htmlNode.innerHTML];
