@@ -9,9 +9,11 @@ document.addEventListener('DOMContentLoaded', function onload() {
   var OPERATOR_VARIANT_FILE = '../apn.json';
   var GNOME_DB_FILE = 'serviceproviders.xml';
   var ANDROID_DB_FILE = 'apns_conf.xml';
+  var OPERATOR_VARIANT_DB_FILE = 'operator-variant.xml';
 
   var gGnomeDB = null;
   var gAndroidDB = null;
+  var gOperatorVariantDB = null;
 
 
   /**
@@ -33,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function onload() {
 
 
   /**
-   * Merge the Android and Gnome APN databases
+   * Merge the Android and Gnome APN and the Operator Variant databases
    */
 
   function queryAndroidDB(mcc, mnc) {
@@ -75,7 +77,27 @@ document.addEventListener('DOMContentLoaded', function onload() {
     return node ? node.textContent : '';
   }
 
-  function mergeBothDB() {
+  function queryOperatorVariantDB(mcc, mnc) {
+    var query = '//operator' + '[@mcc=' + mcc + '][@mnc=' + mnc + ']';
+    var result = queryXML(gOperatorVariantDB, query);
+    var res = result.iterateNext();
+    var found = [];
+
+    while (res) { // turn each resulting XML element into a JS object
+      var operatorSettings = {};
+      for (var i = 0; i < res.attributes.length; i++) {
+        var name = res.attributes[i].name;
+        var value = res.attributes[i].value;
+        operatorSettings[name] = value;
+      }
+      found.push(operatorSettings);
+      res = result.iterateNext();
+    }
+
+    return found.length ? found[0] : null;
+  }
+
+  function mergeDBs() {
     var apn = {};
 
     for (var mcc = 1; mcc < 999; mcc++) {
@@ -93,6 +115,17 @@ document.addEventListener('DOMContentLoaded', function onload() {
             result[i].voicemail = voicemail;
             if (DEBUG) {
               console.log(result[i].carrier + ': ' + voicemail);
+            }
+          }
+
+          var operatorSettings = queryOperatorVariantDB(mcc, mnc);
+          if (operatorSettings) {
+            console.log("Operator settings: " + JSON.stringify(operatorSettings));
+            var enableStrict7BitEncodingForSms =
+              operatorSettings['enableStrict7BitEncodingForSms'];
+            if (enableStrict7BitEncodingForSms) {
+              result[i].enableStrict7BitEncodingForSms =
+                enableStrict7BitEncodingForSms == 'true';
             }
           }
 
@@ -124,15 +157,14 @@ document.addEventListener('DOMContentLoaded', function onload() {
    */
 
   var gAPN;
-  var prefNames = {
+  var aPNPrefNames = {
     'default': {
       'ril.data.carrier': 'carrier',
       'ril.data.apn': 'apn',
       'ril.data.user': 'user',
       'ril.data.passwd': 'password',
       'ril.data.httpProxyHost': 'proxy',
-      'ril.data.httpProxyPort': 'port',
-      'ro.moz.ril.iccmbdn': 'voicemail'
+      'ril.data.httpProxyPort': 'port'
     },
     'supl': {
       'ril.supl.carrier': 'carrier',
@@ -140,13 +172,27 @@ document.addEventListener('DOMContentLoaded', function onload() {
       'ril.supl.user': 'user',
       'ril.supl.passwd': 'password',
       'ril.supl.httpProxyHost': 'proxy',
-      'ril.supl.httpProxyPort': 'port',
+      'ril.supl.httpProxyPort': 'port'
     },
     'mms': {
-      'ril.data.mmsc': 'mmsc',
-      'ril.data.mmsproxy': 'mmsproxy',
-      'ril.data.mmsport': 'mmsport'
+      'ril.mms.carrier': 'carrier',
+      'ril.mms.apn': 'apn',
+      'ril.mms.user': 'user',
+      'ril.mms.passwd': 'password',
+      'ril.mms.httpProxyHost': 'proxy',
+      'ril.mms.httpProxyPort': 'port',
+      'ril.mms.mmsc': 'mmsc',
+      'ril.mms.mmsproxy': 'mmsproxy',
+      'ril.mms.mmsport': 'mmsport'
     }
+  };
+
+  var operatorVariantPrefNames = {
+    'ril.iccInfo.mbdn': 'voicemail'
+  };
+
+  var operatorVariantBooleanPrefNames = {
+    'ril.sms.strict7BitEncoding.enabled': 'enableStrict7BitEncodingForSms'
   };
 
   function loadDB(output, callback) {
@@ -164,7 +210,8 @@ document.addEventListener('DOMContentLoaded', function onload() {
           output.textContent = '\n merging databases, this takes a while...';
           gAndroidDB = loadXML(ANDROID_DB_FILE);
           gGnomeDB = loadXML(GNOME_DB_FILE);
-          gAPN = mergeBothDB();
+          gOperatorVariantDB = loadXML(OPERATOR_VARIANT_DB_FILE);
+          gAPN = mergeDBs();
         }
         output.textContent = DEBUG ?
           JSON.stringify(gAPN, true, 2) :
@@ -191,7 +238,7 @@ document.addEventListener('DOMContentLoaded', function onload() {
 
     var preferences = document.getElementById('preferences');
     var prefs = {};
-    for (var type in prefNames) {
+    for (var type in aPNPrefNames) {
       var apn = {};
       for (var i = 0; i < res.length; i++) {
         if (res[i].type.indexOf(type) != -1) {
@@ -199,10 +246,20 @@ document.addEventListener('DOMContentLoaded', function onload() {
           break;
         }
       }
-      var settings = prefNames[type];
-      for (var key in settings) {
-        var name = prefNames[type][key];
+      var prefNames = aPNPrefNames[type];
+      for (var key in prefNames) {
+        var name = aPNPrefNames[type][key];
         prefs[key] = apn[name] || '';
+      }
+      if (type == 'default') {
+        for (var key in operatorVariantPrefNames) {
+          var name = operatorVariantPrefNames[key];
+          prefs[key] = apn[name] || '';
+        }
+        for (var key in operatorVariantBooleanPrefNames) {
+          var name = operatorVariantBooleanPrefNames[key];
+          prefs[key] = apn[name] || false;
+        }
       }
     }
     preferences.textContent = JSON.stringify(prefs, true, 2);

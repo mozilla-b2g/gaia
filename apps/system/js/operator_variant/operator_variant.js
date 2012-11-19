@@ -49,15 +49,14 @@
     cset['operatorvariant.mcc'] = gNetwork.mcc;
     cset['operatorvariant.mnc'] = gNetwork.mnc;
     retrieveOperatorVariantSettings(function onsuccess(result) {
-      var prefNames = {
+      var aPNPrefNames = {
         'default': {
           'ril.data.carrier': 'carrier',
           'ril.data.apn': 'apn',
           'ril.data.user': 'user',
           'ril.data.passwd': 'password',
           'ril.data.httpProxyHost': 'proxy',
-          'ril.data.httpProxyPort': 'port',
-          'ro.moz.ril.iccmbdn': 'voicemail'
+          'ril.data.httpProxyPort': 'port'
         },
         'supl': {
           'ril.supl.carrier': 'carrier',
@@ -65,16 +64,32 @@
           'ril.supl.user': 'user',
           'ril.supl.passwd': 'password',
           'ril.supl.httpProxyHost': 'proxy',
-          'ril.supl.httpProxyPort': 'port',
+          'ril.supl.httpProxyPort': 'port'
         },
         'mms': {
-          'ril.data.mmsc': 'mmsc',
-          'ril.data.mmsproxy': 'mmsproxy',
-          'ril.data.mmsport': 'mmsport'
+          'ril.mms.carrier': 'carrier',
+          'ril.mms.apn': 'apn',
+          'ril.mms.user': 'user',
+          'ril.mms.passwd': 'password',
+          'ril.mms.httpProxyHost': 'proxy',
+          'ril.mms.httpProxyPort': 'port',
+          'ril.mms.mmsc': 'mmsc',
+          'ril.mms.mmsproxy': 'mmsproxy',
+          'ril.mms.mmsport': 'mmsport'
         }
       };
 
-      for (var type in prefNames) {
+      var operatorVariantPrefNames = {
+        'ril.iccInfo.mbdn': 'voicemail'
+      };
+
+      var operatorVariantBooleanPrefNames = {
+        'ril.sms.strict7BitEncoding.enabled': 'enableStrict7BitEncodingForSms'
+      };
+
+      var transaction = settings.createLock();
+      transaction.set(cset);
+      for (var type in aPNPrefNames) {
         var apn = {};
         for (var i = 0; i < result.length; i++) {
           if (result[i].type.indexOf(type) != -1) {
@@ -82,14 +97,28 @@
             break;
           }
         }
-        var settings = prefNames[type];
-        for (var key in settings) {
-          var name = prefNames[type][key];
-          cset[key] = apn[name] || '';
+        var prefNames = aPNPrefNames[type];
+        for (var key in prefNames) {
+          var name = aPNPrefNames[type][key];
+          var item = {};
+          item[key] = apn[name] || '';
+          transaction.set(item);
+        }
+        if (type == 'default') {
+          for (var key in operatorVariantPrefNames) {
+            var name = operatorVariantPrefNames[key];
+            var item = {};
+            item[key] = apn[name] || '';
+            transaction.set(item);
+          }
+          for (var key in operatorVariantBooleanPrefNames) {
+            var name = operatorVariantBooleanPrefNames[key];
+            var item = {};
+            item[key] = apn[name] || false;
+            transaction.set(item);
+          }
         }
       }
-
-      storeSettings();
     });
   };
 
@@ -121,11 +150,6 @@
   if (!mobileConnection) {
     return;
   }
-
-  function storeSettings() {
-    var transaction = settings.createLock();
-    transaction.set(cset);
-  };
 
   function onerrorRequest() {
   };
