@@ -192,6 +192,11 @@ body {
   height: 100%;
 }
 
+/*Disabled a tag style extend*/
+section[role="region"] > header:first-child menu[type="toolbar"] a[aria-disabled="true"] {
+  pointer-events: none;
+}
+
 /* Toaset banner extend class */
 section[role="status"].customized {
   bottom: 4.8rem;

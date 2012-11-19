@@ -7,7 +7,7 @@ var KeyboardManager = (function() {
     var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
     var protocol = document.location.protocol;
 
-    return protocol + '//keyboard.' + domain + '/';;
+    return protocol + '//keyboard.' + domain + '/';
   }
 
   function generateKeyboard(container, keyboardURL, manifestURL) {

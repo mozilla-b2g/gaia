@@ -74,7 +74,7 @@
         top: 55px;
         left: 0;
         right: 0;
-        bottom: 15px;
+        bottom: 0;
         z-index: 10;
         background-position: 50% 0;
         background-size: cover;
@@ -113,7 +113,7 @@
         top: 55px;
         left: 5px;
         right: 5px;
-        bottom: 15px;
+        bottom: 0;
         z-index: 50;
         width: auto;
         height: auto;

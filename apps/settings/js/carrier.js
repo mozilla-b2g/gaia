@@ -5,35 +5,14 @@
 
 // handle carrier settings
 var Carrier = (function newCarrier(window, document, undefined) {
-  var APN_FILE = 'resources/apns_conf.xml';
+  var APN_FILE = 'shared/resources/apn.json';
   var gAPNPanel = document.getElementById('carrier-apnSettings');
 
   /**
    * gCompatibleAPN holds all compatible APNs matching the current iccInfo
-   * (mcc,mnc) for every usage filter -- e.g. for (208,15) we get:
-   *
-   * {
-   *   "default": [
-   *     {
-   *       "carrier": "Free",
-   *       "apn": "free"
-   *     }
-   *   ],
-   *   "supl": [
-   *     {
-   *       "carrier": "Free",
-   *       "apn": "free"
-   *     }
-   *   ],
-   *   "mms": [
-   *     {
-   *       "carrier": "Free MMS",
-   *       "mmsc": "http://mms.free.fr",
-   *       "apn": "mmsfree"
-   *     }
-   *   ]
-   * }
+   * (mcc,mnc) for every usage filter
    */
+
   var gCompatibleAPN = null;
   var gUserChosenAPN = false;
 
@@ -43,56 +22,35 @@ var Carrier = (function newCarrier(window, document, undefined) {
     if (!callback)
       return;
 
+    // filter APNs by usage
+    var filter = function(apnList) {
+      var found = [];
+      for (var i = 0; i < apnList.length; i++) {
+        if (apnList[i].type.indexOf(usageFilter) != -1) {
+          found.push(apnList[i]);
+        }
+      }
+      return found;
+    };
+
     // early way out if the query has already been performed
     if (gCompatibleAPN) {
-      callback(gCompatibleAPN[usageFilter]);
+      callback(filter(gCompatibleAPN));
       return;
-    }
-
-    // get a list of matching APNs
-    function query(apnDocument) {
-      var query = '//apn' +
-        '[@mcc=' + gMobileConnection.iccInfo.mcc + ']' + // Mobile Country Code
-        '[@mnc=' + gMobileConnection.iccInfo.mnc + ']';  // Mobile Network Code
-
-      var xpe = new XPathEvaluator();
-      var nsResolver = xpe.createNSResolver(apnDocument);
-      var result = xpe.evaluate(query, apnDocument, nsResolver, 0, null);
-
-      var found = {};
-      var res = result.iterateNext();
-      while (res) { // turn each resulting XML element into a JS object
-        var apn = {};
-        var types = [];
-        for (var i = 0; i < res.attributes.length; i++) {
-          var name = res.attributes[i].name;
-          var value = res.attributes[i].value;
-          if (name == 'type') { // array of comma-separated values
-            types = value.split(',');
-          } else { // all other attributes are plain strings
-            apn[name] = value;
-          }
-        }
-        for (i = 0; i < types.length; i++) {
-          var type = types[i];
-          if (!found[type]) {
-            found[type] = [];
-          }
-          found[type].push(apn);
-        }
-        res = result.iterateNext();
-      }
-
-      return found;
     }
 
     // load and query APN database, then trigger callback on results
     var xhr = new XMLHttpRequest();
     xhr.open('GET', APN_FILE, true);
+    xhr.responseType = 'json';
     xhr.onreadystatechange = function() {
       if (xhr.readyState == 4 && (xhr.status == 200 || xhr.status === 0)) {
-        gCompatibleAPN = query(xhr.responseXML);
-        callback(gCompatibleAPN[usageFilter]);
+        var apn = xhr.response;
+        var mcc = gMobileConnection.iccInfo.mcc;
+        var mnc = gMobileConnection.iccInfo.mnc;
+        // get a list of matching APNs
+        gCompatibleAPN = apn[mcc] ? (apn[mcc][mnc] || []) : [];
+        callback(filter(gCompatibleAPN));
       }
     };
     xhr.send();

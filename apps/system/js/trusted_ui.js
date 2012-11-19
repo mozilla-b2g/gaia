@@ -98,9 +98,7 @@ var TrustedUIManager = {
     if (stackSize === 0) {
       // nothing to close.  what are you doing?
       return;
-    }
-
-    else if (stackSize === 1) {
+    } else if (stackSize === 1) {
       // only one dialog, so transition back to main app
       var self = this;
       var container = this.popupContainer;
@@ -116,9 +114,7 @@ var TrustedUIManager = {
       this.hide();
 
       window.focus();
-    }
-
-    else {
+    } else {
       // there are two or more dialogs, so remove the top one
       // (which reveals the one beneath it)
       this._closeTopDialog();
@@ -278,3 +274,4 @@ var TrustedUIManager = {
 };
 
 TrustedUIManager.init();
+

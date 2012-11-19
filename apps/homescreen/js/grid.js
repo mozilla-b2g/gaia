@@ -667,7 +667,12 @@ const GridManager = (function() {
       app.ondownloadapplied = function ondownloadapplied(event) {
         var withAnimation = false;
         createOrUpdateIconForApp(app, withAnimation, entryPoint);
+        app.ondownloadapplied = null;
+        app.ondownloaderror = null;
       };
+      app.ondownloaderror = function ondownloaderror(event) {
+        createOrUpdateIconForApp(app, false, entryPoint);
+      }
     }
 
     var manifest = app.manifest;

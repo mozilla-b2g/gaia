@@ -31,13 +31,12 @@ body {
   padding: 0px;
   margin: 0px;
   overflow: hidden;
-  font-size: 20px;
 }
 
-/* like .photoFrame */
+/* like .frame in gallery.css */
 #open-frame {
   position: absolute;
-  top: 5px;
+  top: 50px;
   left: 0px;
   width: 100%;
   bottom: 0px;
@@ -47,11 +46,10 @@ body {
   -moz-user-select: none;
 }
 
-/* copied from .photoFrame > img */
-#open-image {
+#open-frame > img {
   top: 0px;  /* javascript modifies this position with a transform */
   left: 0px;
-  position: relative;
+  position: absolute;
   border-width: 0px;
   padding: 0px;
   margin: 0px;
@@ -60,6 +58,8 @@ body {
   -moz-user-select: none;
 }
 
+
+/*
 #open-toolbar {
   background: rgba(128,128,128,0.5);
   height: 50px;
@@ -68,6 +68,7 @@ body {
   left: 0;
   right: 0;
 }
+*/
 
 footer {
   background: rgba(0, 0, 0, 0.75);
