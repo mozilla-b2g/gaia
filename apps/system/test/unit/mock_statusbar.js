@@ -19,7 +19,7 @@ var MockStatusBar = {
   },
 
   mNotificationUnread: false,
-  mTearDown: function tearDown() {
+  mTeardown: function teardown() {
     this.notificationsCount = null;
     this.mNotificationsUpdated = false;
     this.mNotificationUnread = false;

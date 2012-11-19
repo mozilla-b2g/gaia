@@ -6,7 +6,7 @@ var MockSystemBanner = {
 
   mShowCount: 0,
   mMessage: null,
-  mTearDown: function tearDown() {
+  mTeardown: function teardown() {
     this.mShowCount = 0;
     this.mMessage = null;
   }

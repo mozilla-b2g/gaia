@@ -633,7 +633,9 @@
         </div>
       </div>
 
-      <form id="app-install-dialog" data-type="confirm" role="dialog" data-z-index-level="app-install-dialog">
+      <form id="app-install-dialog" class='app-install-dialog'
+            data-type="confirm" role="dialog"
+            data-z-index-level="app-install-dialog">
         <section>
           <h1 id="app-install-message"></h1>
           <table>
@@ -656,21 +658,9 @@
         </section>
       </form>
 
-      <form id="updates-download-dialog" data-type="confirm" role="dialog" data-z-index-level="updates-download-dialog">
-        <section>
-          <h1>
-            Updates
-          </h1>
-          <ul>
-          </ul>
-          <menu>
-            <button id="updates-later-button" type="reset" data-l10n-id="later">Later</button>
-            <button id="updates-download-button" type="submit" data-l10n-id="download">Download</button>
-          </menu>
-        </section>
-      </form>
-
-      <form id="app-install-cancel-dialog" data-type="confirm" role="dialog" data-z-index-level="app-install-dialog">
+      <form id="app-install-cancel-dialog" class='app-install-dialog'
+            data-type="confirm" role="dialog"
+            data-z-index-level="app-install-dialog">
         <section>
           <h1 data-l10n-id="cancel-install">Cancel Install</h1>
           <p>
@@ -681,6 +671,39 @@
           <menu>
             <button id="app-install-confirm-cancel-button" type="reset" data-l10n-id="cancel-install">Cancel Install</button>
             <button id="app-install-resume-button" type="submit" data-l10n-id="resume">Resume</button>
+          </menu>
+        </section>
+      </form>
+
+      <form id="app-download-cancel-dialog" class='app-install-dialog'
+        data-type="confirm" role="dialog"
+        data-z-index-level="app-install-dialog">
+        <section>
+          <h1></h1>
+          <p data-l10n-id="app-download-can-be-restarted">The download can
+          be restarted later.</p>
+          <menu>
+            <button id="app-download-stop-button" class="danger confirm"
+              data-l10n-id="app-download-stop-button">Stop Download</button>
+            <button id="app-download-continue-button" class="cancel"
+              type="reset" data-l10n-id="continue">Continue</button>
+          </menu>
+        </section>
+      </form>
+
+      <form id="updates-download-dialog" data-type="confirm" role="dialog"
+            data-z-index-level="updates-download-dialog">
+        <section>
+          <h1>
+            Updates
+          </h1>
+          <ul>
+          </ul>
+          <menu>
+            <button id="updates-later-button" type="reset"
+                    data-l10n-id="later">Later</button>
+                  <button id="updates-download-button" type="submit"
+                    data-l10n-id="download">Download</button>
           </menu>
         </section>
       </form>
