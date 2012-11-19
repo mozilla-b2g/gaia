@@ -10,6 +10,10 @@
     <!-- Shared styles -->
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
     <link rel="stylesheet" type="text/css" href="shared/style/switches.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
+    
+    <!-- include building blocks -->
+    <link rel="stylesheet" type="text/css" href="style/bb/value_selector.css">
 
     <!-- Localization -->
     <link rel="resource" type="application/l10n" href="/shared/locales/date.ini">
@@ -25,6 +29,9 @@
     <script type="application/javascript" src="js/alarm.js"></script>
     <script type="application/javascript" src="js/stopwatch.js"></script>
     <script type="application/javascript" src="js/timer.js"></script>
+    
+    <!-- Value selector -->
+    <link rel="stylesheet" type="text/css" href="style/value_selector/value_selector.css">
   </head>
 
   <body class="hidden">
@@ -221,6 +228,23 @@
         </li>
       </ul>
     </section>
+    
+    <!-- In order to preview alarm ringtone, overwrite value selector for sound picker -->
+    <div id="value-selector" hidden data-z-index-level="value-selector">
+      <!-- popup of options for select element -->
+      <form id="select-option-popup" role="dialog">
+        <section id="value-selector-container">
+          <h1 data-l10n-id="choose-option">Choose your option</h1>
+          <ol role="listbox">
+            <!-- Append Alarm Ringtone Dyanmically -->
+          </ol>
+        </section>
+        <menu id="select-options-buttons">
+          <button class="value-selector-cancel" data-type="cancel" data-l10n-id="cancel">Cancel</button>
+          <button class="value-option-confirm affirmative" data-type="ok" data-l10n-id="ok">Ok</button>
+        </menu>
+      </form>
+    </div>
   </body>
 </html>
 
