@@ -27,10 +27,6 @@ var KeyboardManager = (function() {
   var manifestURL = getKeyboardURL() + 'manifest.webapp';
   var keyboard = generateKeyboard(container, keyboardURL, manifestURL);
 
-  // The overlay will display part of the keyboard that are above the
-  // current application.
-  var overlay = document.getElementById('keyboard-overlay');
-
   // Listen for mozbrowserlocationchange of keyboard iframe.
   var previousHash = '';
 
@@ -46,11 +42,9 @@ var KeyboardManager = (function() {
       case '#show':
         var size = parseInt(type[1]);
         var height = window.innerHeight - size;
-        overlay.hidden = false;
 
         var updateHeight = function() {
           container.removeEventListener('transitionend', updateHeight);
-          overlay.style.height = height + 'px';
           container.classList.add('visible');
 
           var detail = {
@@ -73,7 +67,6 @@ var KeyboardManager = (function() {
       case '#hide':
         container.classList.add('hide');
         container.classList.remove('visible');
-        overlay.hidden = true;
         dispatchEvent(new CustomEvent('keyboardhide'));
         break;
     }
