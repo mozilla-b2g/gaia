@@ -149,7 +149,7 @@ var UIManager = {
       function() {
         feedbackMessage.innerHTML = _('simContacts-reading');
       }, function(n) {
-        feedbackMessage.innerHTML = _('simContacts-imported', {n: n});
+        feedbackMessage.innerHTML = _('simContacts-imported2', {n: n});
       }, function() {
         feedbackMessage.innerHTML = _('simContacts-error');
     });
