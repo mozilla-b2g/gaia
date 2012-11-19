@@ -599,7 +599,7 @@ setService(function cc_setupCostControlService() {
       return status;
     }
 
-    if (!data.network.shortName && !data.network.longName) {
+    if (!data.network || (!data.network.shortName && !data.network.longName)) {
       status.detail = 'carrier-unknown';
       return status;
     }
