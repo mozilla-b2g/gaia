@@ -37,7 +37,7 @@ contacts.List = (function() {
     }
     renderGroupHeader('und', '#');
     favoriteGroup = document.getElementById('group-favorites').parentNode;
-    var selector = 'h2.block-title:not(.hide)';
+    var selector = 'header:not(.hide)';
     FixedHeader.init('#groups-container', '#fixed-container', selector);
 
     initAlphaScroll();
@@ -86,18 +86,18 @@ contacts.List = (function() {
 
 
   var renderGroupHeader = function renderGroupHeader(group, letter) {
-    var li = document.createElement('li');
-    var title = document.createElement('h2');
+    var letteredSection = document.createElement('section');
+    var title = document.createElement('header');
     title.id = 'group-' + group;
-    title.className = 'block-title hide';
+    title.className = 'hide';
     title.innerHTML = '<abbr title="Contacts listed ' + group + '">';
     title.innerHTML += letter + '</abbr>';
     var contactsContainer = document.createElement('ol');
     contactsContainer.id = 'contacts-list-' + group;
     contactsContainer.dataset.group = group;
-    li.appendChild(title);
-    li.appendChild(contactsContainer);
-    groupsList.appendChild(li);
+    letteredSection.appendChild(title);
+    letteredSection.appendChild(contactsContainer);
+    groupsList.appendChild(letteredSection);
   }
 
   var renderContact = function renderContact(contact) {
@@ -105,25 +105,25 @@ contacts.List = (function() {
     contact.familyName = contact.familyName || '';
     contact.org = contact.org || '';
     var contactContainer = document.createElement('li');
-    contactContainer.className = 'block-item';
+    contactContainer.className = 'contact-item';
     contactContainer.dataset.uuid = contact.id;
     var timestampDate = contact.updated || contact.published || new Date();
     contactContainer.dataset.updated = timestampDate.getTime();
     var link = document.createElement('a');
     link.href = '#';
-    link.className = 'item';
-    var figure = document.createElement('figure');
-    figure.className = 'item-media pull-right block-media';
-    var img = document.createElement('img');
+
+    //Render photo if there is one
     if (contact.photo && contact.photo.length > 0) {
+      var figure = document.createElement('aside');
+      figure.className = 'pack-end';
+      var img = document.createElement('img');
       Contacts.updatePhoto(contact.photo[0], img);
+      figure.appendChild(img);
+      link.appendChild(figure);
     }
-    figure.appendChild(img);
-    link.appendChild(figure);
-    var body = document.createElement('p');
-    body.className = 'item-body-exp';
-    var name = document.createElement('strong');
-    name.className = 'block-name';
+
+    //Add name and search keywords
+    var name = document.createElement('p');
     name.innerHTML = getHighlightedName(contact);
     var searchInfo = [];
     var searchable = ['givenName', 'familyName', 'org'];
@@ -132,38 +132,38 @@ contacts.List = (function() {
         searchInfo.push(contact[field][0]);
       }
     });
-    body.dataset['search'] = normalizeText(searchInfo.join(' '));
-    body.appendChild(name);
+    name.dataset['search'] = normalizeText(searchInfo.join(' '));
 
     // Label the contact concerning social networks
+    var meta = document.createElement('p');
     if (contact.category) {
       var marks = buildSocialMarks(contact.category);
       if (marks.length > 0) {
         if (!contact.org || contact.org.length === 0 ||
-            contact.org[0].length === 0) {
+          contact.org[0].length === 0) {
           marks[0].classList.add('notorg');
         }
         marks.forEach(function(mark) {
-          body.appendChild(mark);
+          meta.appendChild(mark);
         });
       }
     }
+    //Add organization name
+    meta.innerHTML += contact.org;
 
-    var small = document.createElement('small');
-    small.className = 'block-company';
-    small.textContent = contact.org;
-    body.appendChild(small);
-
-    link.appendChild(body);
+    //Final item structure
+    link.appendChild(name);
+    link.appendChild(meta);
     contactContainer.appendChild(link);
+
     return contactContainer;
   }
 
   var getHighlightedName = function getHighlightedName(contact) {
     if (orderByLastName) {
-      return contact.givenName + ' <b>' + contact.familyName + '</b>';
+      return contact.givenName + ' <strong>' + contact.familyName + '</strong>';
     } else {
-      return '<b>' + contact.givenName + '</b> ' + contact.familyName;
+      return '<strong>' + contact.givenName + '</strong> ' + contact.familyName;
     }
   };
 
@@ -453,8 +453,8 @@ contacts.List = (function() {
     var len = liElems.length;
     for (var i = 0; i < len; i++) {
       var liElem = liElems[i];
-      var familyName = liElem.querySelector('strong > b').textContent.trim();
-      var givenName = liElem.querySelector('strong');
+      var familyName = liElem.querySelector('p > strong').textContent.trim();
+      var givenName = liElem.querySelector('p');
 
       if (!orderByLastName) {
         var aux = familyName;
@@ -503,7 +503,7 @@ contacts.List = (function() {
         hideGroup(ol.dataset.group);
       }
     });
-    var selector = 'ol h2:not(.hide)';
+    var selector = 'ol header:not(.hide)';
     var visibleElements = groupsList.querySelectorAll(selector);
     var showNoContacts = visibleElements.length === 0;
     toggleNoContactsScreen(showNoContacts);
@@ -568,12 +568,13 @@ contacts.List = (function() {
   }
 
   function onClickHandler(evt) {
-    var dataset = evt.target.dataset;
+    var dataset = evt.target.parentNode.dataset;
     if (dataset && 'uuid' in dataset) {
       callbacks.forEach(function(callback) {
         callback(dataset.uuid);
       });
     }
+    evt.preventDefault();
   }
 
   var setOrderByLastName = function setOrderByLastName(value) {
