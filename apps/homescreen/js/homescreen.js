@@ -27,7 +27,7 @@ const Homescreen = (function() {
     if (Homescreen.isInEditMode()) {
       Homescreen.setMode('normal');
       GridManager.markDirtyState();
-      Permissions.hide();
+      UninstallDialog.hide();
       GridManager.goToPage(GridManager.pageHelper.getCurrentPageNumber());
     } else {
       GridManager.goToPage(1);
@@ -61,22 +61,32 @@ const Homescreen = (function() {
      *                      The application object.
      */
     showAppDialog: function h_showAppDialog(app) {
-      var title, body, yesLabel;
+      var title, body;
+      var cancel = {
+        title: _('cancel'),
+        callback: UninstallDialog.hide
+      };
+
+      var confirm = {
+        callback: function onAccept() {
+          UninstallDialog.hide();
+          app.uninstall();
+        }
+      };
+
       // Show a different prompt if the user is trying to remove
       // a bookmark shortcut instead of an app.
       if (app.isBookmark) {
-        title = _('remove-title', { name: app.manifest.name });
-        body = '';
-        yesLabel = _('remove');
+        title = _('remove-title-2', { name: app.manifest.name });
+        body = _('remove-body', { name: app.manifest.name });
+        confirm.title = _('remove');
       } else {
         title = _('delete-title', { name: app.manifest.name });
         body = _('delete-body', { name: app.manifest.name });
-        yesLabel = _('delete');
+        confirm.title = _('delete');
       }
 
-      Permissions.show(title, body, yesLabel, _('cancel'),
-                       function onAccept() { app.uninstall() },
-                       function onCancel() {});
+      UninstallDialog.show(title, body, cancel, confirm);
     },
 
     isInEditMode: function() {

@@ -35,6 +35,7 @@ var TonePlayer = {
      return;
 
    this._audio = new Audio();
+   this._audio.mozAudioChannelType = 'normal';
    this._audio.mozSetup(2, this._sampleRate);
   },
 

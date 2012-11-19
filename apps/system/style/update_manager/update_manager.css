@@ -1,11 +1,4 @@
 #update-manager-container {
-  position: relative;
-  height: 60px;
-
-  background-color: rgba(0, 0, 0, 0.5);
-  border-top: 1px black solid;
-  border-bottom: 1px black solid;
-
   display: none;
 }
 
@@ -24,10 +17,10 @@
   background-position: center center;
   background-repeat: no-repeat;
 
-  animation: 0.9s rotate infinite linear;
+  animation: 0.9s fn-rotate infinite linear;
 }
 
-@keyframes rotate {
+@keyframes fn-rotate {
   from {
     transform: rotate(1deg);
   }
@@ -41,27 +34,34 @@
   display: block;
 }
 
-#update-manager-container > .icon,
-#update-manager-toaster > .icon {
+#update-manager-container > .icon {
   float: left;
   width: 40px;
   height: 40px;
   margin: 10px 15px 10px 10px;
 
-  background-image: url('images/downloads.png');
   background-repeat: no-repeat;
   background-position: center center;
 }
 
-#update-manager-toaster > .icon {
-  width: 30px;
-  height: 30px;
-  margin: 5px 15px 5px 10px;
+#update-manager-container > .icon,
+#update-manager-toster > .icon {
+  background-image: url('images/downloads.png');
 }
 
 #update-manager-container.downloading > .icon {
   display: none;
 }
+
+#update-manager-toaster > .icon {
+  float: left;
+  width: 30px;
+  height: 30px;
+  margin: 5px 15px 5px 10px;
+  background-repeat: no-repeat;
+  background-position: center center;
+}
+
 
 #update-manager-toaster > .message,
 #update-manager-container > .message {

@@ -305,18 +305,16 @@ suite('system/Updatable', function() {
       suite('onprogress', function() {
         setup(function() {
           subject.download();
-          mockApp.progress = 1234;
         });
 
         test('should send progress to update manager', function() {
-          mockApp.mTriggerDownloadProgress();
+          mockApp.mTriggerDownloadProgress(1234);
           assert.equal(1234, MockUpdateManager.mProgressCalledWith);
         });
 
         test('should send progress delta to update manager', function() {
-          mockApp.mTriggerDownloadProgress();
-          mockApp.progress = 2234;
-          mockApp.mTriggerDownloadProgress();
+          mockApp.mTriggerDownloadProgress(1234);
+          mockApp.mTriggerDownloadProgress(2234);
           assert.equal(1000, MockUpdateManager.mProgressCalledWith);
         });
       });

@@ -72,7 +72,7 @@
     "contacts":{ "access": "readwrite" },
     "mobileconnection":{},
     "attention":{},
-    "settings":{ "access": "readonly" },
+    "settings":{ "access": "readwrite" },
     "desktop-notification":{},
     "alarms": {},
     "systemXHR": {},

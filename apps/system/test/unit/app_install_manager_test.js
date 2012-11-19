@@ -1,9 +1,11 @@
-requireApp('system/js/app_install_manager.js');
 requireApp('system/test/unit/mock_app.js');
 requireApp('system/test/unit/mock_chrome_event.js');
 requireApp('system/test/unit/mock_statusbar.js');
 requireApp('system/test/unit/mock_app.js');
 requireApp('system/test/unit/mock_system_banner.js');
+requireApp('system/test/unit/mock_notification_screen.js');
+
+requireApp('system/js/app_install_manager.js');
 
 // prevent Mocha to choke on "leaks" that are not leaks
 if (!window.StatusBar) {
@@ -14,13 +16,18 @@ if (!window.SystemBanner) {
   window.SystemBanner = null;
 }
 
+if (!window.NotificationScreen) {
+  window.NotificationScreen = null;
+}
+
 suite('system/AppInstallManager', function() {
   var realL10n;
   var realDispatchResponse;
   var realStatusBar;
   var realSystemBanner;
+  var realNotificationScreen;
 
-  var fakeDialog;
+  var fakeDialog, fakeNotif;
   var fakeCancelDialog;
 
   var lastL10nParams = null;
@@ -48,6 +55,9 @@ suite('system/AppInstallManager', function() {
 
     realSystemBanner = window.SystemBanner;
     window.SystemBanner = MockSystemBanner;
+
+    realNotificationScreen = window.NotificationScreen;
+    window.NotificationScreen = MockNotificationScreen;
   });
 
   suiteTeardown(function() {
@@ -69,6 +79,9 @@ suite('system/AppInstallManager', function() {
 
     window.SystemBanner = realSystemBanner;
     realSystemBanner = null;
+
+    window.NotificationScreen = realNotificationScreen;
+    realNotificationScreen = null;
   });
 
   setup(function() {
@@ -125,14 +138,19 @@ suite('system/AppInstallManager', function() {
       '</form>'
     ].join('');
 
+    fakeNotif = document.createElement('div');
+    fakeNotif.id = 'install-manager-notification-container';
+
     document.body.appendChild(fakeDialog);
     document.body.appendChild(fakeCancelDialog);
+    document.body.appendChild(fakeNotif);
     AppInstallManager.init();
   });
 
   teardown(function() {
     fakeDialog.parentNode.removeChild(fakeDialog);
     fakeCancelDialog.parentNode.removeChild(fakeCancelDialog);
+    fakeNotif.parentNode.removeChild(fakeNotif);
     lastDispatchedResponse = null;
     lastL10nParams = null;
 
@@ -383,6 +401,10 @@ suite('system/AppInstallManager', function() {
         assert.isUndefined(MockStatusBar.wasMethodCalled['incSystemDownloads']);
       });
 
+      test('should not add a notification', function() {
+        assert.equal(fakeNotif.childElementCount, 0);
+      });
+
     });
 
     suite('hosted app with cache', function() {
@@ -416,6 +438,40 @@ suite('system/AppInstallManager', function() {
         assert.ok(MockStatusBar.wasMethodCalled['decSystemDownloads']);
         assert.equal(MockSystemBanner.mMessage, 'Fake hosted app with cache download-stopped');
       });
+
+      test('should add a notification', function() {
+        assert.equal(fakeNotif.childElementCount, 1);
+      });
+
+      test('notification should have a message', function() {
+        assert.equal(fakeNotif.querySelector('.message').textContent,
+          'downloadingAppMessage');
+        assert.equal(fakeNotif.querySelector('progress').textContent,
+          'downloadingAppProgressNoMax');
+      });
+
+      test('notification progress should be indeterminate', function() {
+        assert.equal(fakeNotif.querySelector('progress').position, -1);
+      });
+
+      test('should remove the notif if we get downloadsuccess', function() {
+        mockApp.mTriggerDownloadSuccess();
+        assert.equal(fakeNotif.childElementCount, 0);
+      });
+
+      test('should remove the notif if we get downloaderror', function() {
+        mockApp.mTriggerDownloadError();
+        assert.equal(fakeNotif.childElementCount, 0);
+      });
+
+      test('should keep the progress indeterminate on progress', function() {
+        mockApp.mTriggerDownloadProgress(NaN);
+
+        var progressNode = fakeNotif.querySelector('progress');
+        assert.equal(progressNode.position, -1);
+        assert.equal(progressNode.textContent, 'downloadingAppProgressIndeterminate');
+      });
+
     });
 
     suite('packaged app', function() {
@@ -450,6 +506,57 @@ suite('system/AppInstallManager', function() {
         assert.ok(MockStatusBar.wasMethodCalled['decSystemDownloads']);
         assert.equal(MockSystemBanner.mMessage, 'Fake packaged app download-stopped');
       });
+
+      test('should add a notification', function() {
+        var method = 'incExternalNotifications';
+        assert.equal(fakeNotif.childElementCount, 1);
+        assert.ok(MockNotificationScreen.wasMethodCalled[method]);
+      });
+
+      test('notification should have a message', function() {
+        assert.equal(fakeNotif.querySelector('.message').textContent,
+          'downloadingAppMessage');
+      });
+
+      test('notification progress should have a max and a value', function() {
+        assert.equal(fakeNotif.querySelector('progress').max,
+          mockApp.updateManifest.size);
+        assert.equal(fakeNotif.querySelector('progress').value, 0);
+      });
+
+      test('notification progress should not be indeterminate', function() {
+        assert.notEqual(fakeNotif.querySelector('progress').position, -1);
+      });
+
+      test('should remove the notif if we get downloadsuccess', function() {
+        var method = 'decExternalNotifications';
+        mockApp.mTriggerDownloadSuccess();
+        assert.equal(fakeNotif.childElementCount, 0);
+        assert.ok(MockNotificationScreen.wasMethodCalled[method]);
+      });
+
+      test('should remove the notif if we get downloaderror', function() {
+        mockApp.mTriggerDownloadError();
+        assert.equal(fakeNotif.childElementCount, 0);
+      });
+
+      test('should update the progress notification on progress', function() {
+        var newprogress = 10,
+            size = mockApp.updateManifest.size,
+            ratio = newprogress / size;
+        mockApp.mTriggerDownloadProgress(newprogress);
+
+        var progressNode = fakeNotif.querySelector('progress');
+        assert.equal(progressNode.position, ratio);
+        assert.equal(progressNode.textContent, 'downloadingAppProgress');
+      });
+
+      test('should update the progress text content if we do not have the actual progress', function (){
+        mockApp.mTriggerDownloadProgress(NaN);
+
+        var progressNode = fakeNotif.querySelector('progress');
+        assert.equal(progressNode.textContent, 'downloadingAppProgressIndeterminate');
+      });
     });
   });
 
@@ -468,6 +575,10 @@ suite('system/AppInstallManager', function() {
 
     test('should handle gigabytes size', function() {
       assert.equal('3.73 GB', AppInstallManager.humanizeSize(4000901024));
+    });
+
+    test('should handle 0', function() {
+      assert.equal('0.00 bytes', AppInstallManager.humanizeSize(0));
     });
   });
 });

@@ -26,7 +26,11 @@
     <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/switches.css"/>
-    <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
+    <link rel="stylesheet" type="text/css" href="style/fake-notification.css"/>
+
+    <!-- Include shared resources
+    <link rel="resource" type="application/json" href="shared/resources/apn.json"/>
+    -->
 
     <!-- applications.js must not be deferred
          in order to catch webapps-registry-ready mozChromeEvent -->
@@ -285,13 +289,16 @@
 
         <div id="notifications-container">
           <!-- Update Manager -->
-          <div id="update-manager-container">
+          <div id="update-manager-container" class='fake-notification'>
             <div class="icon">
             </div>
             <div class="activity">
             </div>
             <div class="message">
             </div>
+          </div>
+          <!-- App Install Manager -->
+          <div id="install-manager-notification-container">
           </div>
           <!-- bluetooth transfer -->
           <div id="bluetooth-transfer-status-list">
@@ -691,18 +698,39 @@
             </div>
             <div id="notifications-lockscreen-container">
             </div>
+            <svg id="lockscreen-curve" xmlns="http://www.w3.org/2000/svg" version="1.1">
+              <image id="lockscreen-area-handle" x="150" y="100" width="20" height="9"
+                xlink:href="style/lockscreen/images/handle.png">
+                <animate class="lockscreen-start-animation" attributeType="XML" attributeName="y" begin="indefinite" dur="0.2s" to="100" />
+                <animate class="lockscreen-start-animation" attributeType="XML" attributeName="opacity" begin="indefinite" dur="0.5s" to="1" />
+                <animate class="lockscreen-end-animation" attributeType="XML" attributeName="y" begin="indefinite" dur="0.2s" to="0" />
+                <animate class="lockscreen-end-animation" attributeType="XML" attributeName="opacity" begin="indefinite" dur="0.5s" to="0" />
+                <animate class="lockscreen-prompt-animation" attributeType="XML" attributeName="y" dur="2s" calcMode="spline"
+                    begin="indefinite" keySplines="0 .50 .50 1; .50 0 1 .50; 0 .50 .50 1; .50 0 1 .50"
+                    values="100; 0; 120; 80; 100" />
+              </image>
+              <path fill="none" id="lockscreen-curvepath" stroke-width="1" stroke="white"
+                d="M0,80 C100,150 220,150 320,80">
+                  <animate class="lockscreen-start-animation" attributeType="XML" attributeName="d" begin="indefinite" dur="0.2s" to="M0,80 C100,150 220,150 320,80" />
+                  <animate class="lockscreen-start-animation" attributeType="XML" attributeName="stroke-opacity" begin="indefinite" dur="0.2s" to="1.0" />
+                  <animate class="lockscreen-end-animation" attributeType="XML" attributeName="d" begin="indefinite" dur="0.5s" to="M0,80 C100,-20 220,-20 320,80" />
+                  <animate class="lockscreen-end-animation" attributeType="XML" attributeName="stroke-opacity" begin="indefinite" dur="0.5s" to="0" />
+                  <animate class="lockscreen-prompt-animation" attributeType="XML" attributeName="d" dur="2s" calcMode="spline"
+                    begin="indefinite" keySplines="0 .50 .50 1; .50 0 1 .50;0 .50 .50 1; .50 0 1 .50;"
+                    values="M0,80 C100,150 220,150 320,80;
+                            M0,80 C100,40 220,40 320,80; M0,80 C100,150 220,150 320,80;
+                            M0,80 C100,100 220,100 320,80; M0,80 C100,150 220,150 320,80" />
+              </path>
+            </svg>
             <div id="lockscreen-area"></div>
-            <div id="lockscreen-area-camera" class="lockscreen-icon lockscreen-icon-left">
-              <div id="lockscreen-left-arrow" class="lockscreen-arrow"></div>
-              <div id="lockscreen-accessibility-camera" role="button" class="lockscreen-icon-a11y-button" data-l10n-id="camera-a11y-button" aria-label="Camera"></div>
+            <div id="lockscreen-icon-container">
+              <button id="lockscreen-area-camera" class="lockscreen-icon lockscreen-icon-left">
+                <div id="lockscreen-accessibility-camera" role="button" class="lockscreen-icon-a11y-button" data-l10n-id="camera-a11y-button" aria-label="Camera"></div>
+              </button>
+              <button id="lockscreen-area-unlock" class="lockscreen-icon lockscreen-icon-right">
+                <div id="lockscreen-accessibility-unlock" role="button" class="lockscreen-icon-a11y-button" data-l10n-id="unlock-a11y-button" aria-label="Unlock"></div>
+              </button>
             </div>
-            <div id="lockscreen-area-unlock" class="lockscreen-icon lockscreen-icon-right">
-              <div id="lockscreen-right-arrow" class="lockscreen-arrow"></div>
-              <div id="lockscreen-accessibility-unlock" role="button" class="lockscreen-icon-a11y-button" data-l10n-id="unlock-a11y-button" aria-label="Unlock"></div>
-            </div>
-            <div id="lockscreen-rail-left" class="lockscreen-rail"></div>
-            <div id="lockscreen-rail-right" class="lockscreen-rail"></div>
-            <div id="lockscreen-area-handle"><span></span><span></span></div>
           </div>
 
           <div id="lockscreen-panel-passcode" class="lockscreen-panel">
@@ -794,6 +822,11 @@
           <div class="active"></div>
           <div class="active"></div>
           <div class="active"></div>
+          <div></div>
+          <div></div>
+          <div></div>
+          <div></div>
+          <div></div>
           <div></div>
           <div></div>
           <div></div>
