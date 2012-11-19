@@ -617,6 +617,8 @@ var Contacts = (function() {
     });
   };
 
+
+
   return {
     'doneTag': doneTag,
     'goBack' : handleBack,
