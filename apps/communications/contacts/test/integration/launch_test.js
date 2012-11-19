@@ -70,11 +70,11 @@ suite('contacts - launch', function() {
 
     yield app.waitUntilElement(contactsList, 'displayed');
     yield app.waitUntilElement(lList, 'displayed');
-    var contacts = yield lList.findElements('.block-item');
+    var contacts = yield lList.findElements('.contact-item');
     assert.equal(contacts.length, 1);
 
     var lList = yield app.element('lList');
-    var contact = yield lList.findElement('.block-item');
+    var contact = yield lList.findElement('.contact-item');
     yield contact.click();
     yield app.waitUntilElement(contactDetails, 'displayed');
 
@@ -138,7 +138,7 @@ suite('contacts - launch', function() {
     var lList = yield app.element('lList');
     var doneButton = yield app.element('doneButton');
 
-    var contact = yield lList.findElement('.block-item');
+    var contact = yield lList.findElement('.contact-item');
     yield contact.click();
 
     var mirror = yield app.element('mirrorDetails');
@@ -362,7 +362,7 @@ suite('contacts - launch', function() {
     yield confirmButton.click();
 
     yield app.waitUntilElement(noContacts, 'displayed');
-    var contacts = yield lList.findElements('.block-item');
+    var contacts = yield lList.findElements('.contact-item');
     assert.equal(contacts.length, 0);
   });
 });
