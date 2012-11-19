@@ -3,7 +3,6 @@
   <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1.0"/>
-    <link rel="stylesheet" type="text/css" href="style/request.css"/>
     <link rel="stylesheet" type="text/css" href="style/homescreen.css"/>
     <link rel="stylesheet" type="text/css" href="style/grid.css"/>
     <link rel="stylesheet" type="text/css" href="style/dragdrop.css"/>
@@ -15,11 +14,12 @@
     <script type="text/javascript" src="shared/js/l10n.js"></script>
     <script type="text/javascript" src="shared/js/l10n_date.js"></script>
 
-    <link rel="stylesheet" type="text/css" href="/shared/style_unstable/progress_activity.css">
-
+    <link rel="stylesheet" type="text/css" href="shared/style_unstable/progress_activity.css">
     <link rel="stylesheet" type="text/css" href="shared/style/buttons.css">
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
     <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/confirm.css">
+    <link rel="stylesheet" type="text/css" href="style/request.css"/>
 
     <!-- Specific code -->
     <script type="text/javascript" defer src="js/request.js"></script>
@@ -60,6 +60,19 @@
           Address <input type="url" id="bookmark-url"></input>
         </label>
         <button id="button-bookmark-add" data-l10n-id="add-to-homescreen">Add to Home Screen</button>
+      </form>
+    </section>
+
+    <section id="delete-dialog">
+      <form role="dialog" data-type="confirm">
+        <section>
+          <h1 id="delete-dialog-title"></h1>
+          <p id="delete-dialog-message"></p>
+        </section>
+        <menu>
+          <button id="delete-dialog-cancel-button"></button>
+          <button id="delete-dialog-confirm-button" class="danger"></button>
+        </menu>
       </form>
     </section>
 
@@ -108,7 +121,7 @@
                     <ul id="evmeAppsList"></ul>
                 </div>
             </div>
-            
+
             <div id="shortcuts">
                 <div id="shortcuts-list">
                     <ul id="shortcuts-items"></ul>
