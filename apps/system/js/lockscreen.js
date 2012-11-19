@@ -935,7 +935,7 @@ var LockScreen = {
       function animationend() {
         this.iconContainer.removeEventListener('animationend', animationend);
         this.overlay.classList.remove('prompt');
-      });
+      }.bind(this));
   }
 };
 
