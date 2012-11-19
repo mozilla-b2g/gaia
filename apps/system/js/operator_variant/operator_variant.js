@@ -76,16 +76,16 @@
           'ril.mms.mmsc': 'mmsc',
           'ril.mms.mmsproxy': 'mmsproxy',
           'ril.mms.mmsport': 'mmsport'
+        },
+        'operatorvariant': {
+          'ril.iccInfo.mbdn': 'voicemail',
+          'ril.sms.strict7BitEncoding.enabled': 'enableStrict7BitEncodingForSms'
         }
       };
 
-      var operatorVariantPrefNames = {
-        'ril.iccInfo.mbdn': 'voicemail'
-      };
-
-      var operatorVariantBooleanPrefNames = {
-        'ril.sms.strict7BitEncoding.enabled': 'enableStrict7BitEncodingForSms'
-      };
+      var booleanPrefNames = [
+        'ril.sms.strict7BitEncoding.enabled'
+      ];
 
       var transaction = settings.createLock();
       transaction.set(cset);
@@ -101,22 +101,12 @@
         for (var key in prefNames) {
           var name = apnPrefNames[type][key];
           var item = {};
-          item[key] = apn[name] || '';
-          transaction.set(item);
-        }
-        if (type == 'default') {
-          for (var key in operatorVariantPrefNames) {
-            var name = operatorVariantPrefNames[key];
-            var item = {};
-            item[key] = apn[name] || '';
-            transaction.set(item);
-          }
-          for (var key in operatorVariantBooleanPrefNames) {
-            var name = operatorVariantBooleanPrefNames[key];
-            var item = {};
+          if (booleanPrefNames.indexOf(key) != -1) {
             item[key] = apn[name] || false;
-            transaction.set(item);
+          } else {
+            item[key] = apn[name] || '';
           }
+          transaction.set(item);
         }
       }
     });

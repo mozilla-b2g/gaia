@@ -72,6 +72,7 @@ document.addEventListener('DOMContentLoaded', function onload() {
   function queryGnomeDB(mcc, mnc, setting) {
     var query = '//gsm[network-id' + '[@mcc=' + mcc + '][@mnc=' + mnc + ']' +
         ']/' + setting;
+    console.log(query);
     var result = queryXML(gGnomeDB, query);
     var node = result.iterateNext();
     return node ? node.textContent : '';
@@ -103,28 +104,31 @@ document.addEventListener('DOMContentLoaded', function onload() {
     for (var mcc = 1; mcc < 999; mcc++) {
       var country = {};
       var result = queryAndroidDB(mcc);
-      if (result && result.length) {
+ 
+     if (result && result.length) {
         result.sort(function(a, b) {
           return parseInt(result.mnc, 10) < parseInt(result.mnc, 10);
         });
         for (var i = 0; i < result.length; i++) {
           var mnc = parseInt(result[i].mnc, 10);
 
+          var operatorVariantSettings = {};
           var voicemail = queryGnomeDB(mcc, mnc, 'voicemail');
           if (voicemail) {
-            result[i].voicemail = voicemail;
+            operatorVariantSettings.voicemail = voicemail;
             if (DEBUG) {
-              console.log(result[i].carrier + ': ' + voicemail);
+              console.log(operatorVariantSettings.voicemail + ': ' + voicemail);
             }
           }
-
-          var operatorSettings = queryOperatorVariantDB(mcc, mnc);
-          if (operatorSettings) {
-            console.log("Operator settings: " + JSON.stringify(operatorSettings));
+          var otherSettings = queryOperatorVariantDB(mcc, mnc);
+          if (otherSettings) {
+            if (DEBUG) {
+              console.log("Other operator settng: " + JSON.stringify(otherSettings));
+            }
             var enableStrict7BitEncodingForSms =
-              operatorSettings['enableStrict7BitEncodingForSms'];
+              otherSettings['enableStrict7BitEncodingForSms'];
             if (enableStrict7BitEncodingForSms) {
-              result[i].enableStrict7BitEncodingForSms =
+              operatorVariantSettings.enableStrict7BitEncodingForSms =
                 enableStrict7BitEncodingForSms == 'true';
             }
           }
@@ -142,6 +146,11 @@ document.addEventListener('DOMContentLoaded', function onload() {
             country[mnc].push(result[i]);
           } else {
             country[mnc] = [result[i]];
+            if (voicemail || otherSettings) {
+              operatorVariantSettings.type = [];
+              operatorVariantSettings.type.push('operatorvariant');
+              country[mnc].push(operatorVariantSettings);
+            }
           }
         }
         apn[mcc] = country;
@@ -184,16 +193,16 @@ document.addEventListener('DOMContentLoaded', function onload() {
       'ril.mms.mmsc': 'mmsc',
       'ril.mms.mmsproxy': 'mmsproxy',
       'ril.mms.mmsport': 'mmsport'
+    },
+    'operatorvariant': {
+      'ril.iccInfo.mbdn': 'voicemail',
+      'ril.sms.strict7BitEncoding.enabled': 'enableStrict7BitEncodingForSms'
     }
   };
 
-  var operatorVariantPrefNames = {
-    'ril.iccInfo.mbdn': 'voicemail'
-  };
-
-  var operatorVariantBooleanPrefNames = {
-    'ril.sms.strict7BitEncoding.enabled': 'enableStrict7BitEncodingForSms'
-  };
+  var booleanPrefNames = [
+    'ril.sms.strict7BitEncoding.enabled'
+  ];
 
   function loadDB(output, callback) {
     output.textContent = '\n loading database...';
@@ -249,16 +258,10 @@ document.addEventListener('DOMContentLoaded', function onload() {
       var prefNames = apnPrefNames[type];
       for (var key in prefNames) {
         var name = apnPrefNames[type][key];
-        prefs[key] = apn[name] || '';
-      }
-      if (type == 'default') {
-        for (var key in operatorVariantPrefNames) {
-          var name = operatorVariantPrefNames[key];
-          prefs[key] = apn[name] || '';
-        }
-        for (var key in operatorVariantBooleanPrefNames) {
-          var name = operatorVariantBooleanPrefNames[key];
+        if (booleanPrefNames.indexOf(key) != -1) {
           prefs[key] = apn[name] || false;
+        } else {
+          prefs[key] = apn[name] || '';
         }
       }
     }
