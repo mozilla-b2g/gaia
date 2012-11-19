@@ -151,18 +151,22 @@ html, body {
 }
 
 .step-2.step-state:before {
-  transform: translateX(100%);
+  transform: translateX(75%);
 }
 
 .step-3.step-state:before {
-  transform: translateX(200%);
+  transform: translateX(150%);
 }
 
 .step-4.step-state:before {
-  transform: translateX(300%);
+  transform: translateX(200%);
 }
 
 .step-5.step-state:before {
+  transform: translateX(300%);
+}
+
+.step-6.step-state:before {
   transform: translateX(400%);
 }
 
@@ -471,7 +475,6 @@ html, body {
   transition: opacity 0.2s ease;
   background: #b1f1ff;
   opacity: 0;
-  pointer-events: auto;
   position: absolute;
   left: 0;
   top: 0;
@@ -487,6 +490,10 @@ html, body {
 
 #import_contacts li.disabled {
   pointer-events: none;
+}
+
+#import_contacts li.disabled p{
+    pointer-events: none;
 }
 
 #import_contacts li.disabled:after {
@@ -702,7 +709,7 @@ html, body {
 }
 
 /*
-
+	States of Wifi
 */
 
 .wifi-signal0 {
@@ -730,3 +737,28 @@ html, body {
 	background-repeat: no-repeat !important; 
 	background-position: center center !important; 
 }
+
+/*
+	3G
+*/
+
+#data_3g [data-type="list"] li {
+  padding: 0 1.5rem;
+}
+
+#data_3g label:not([for]) {
+  width: 6rem;
+}
+
+#data_3g .content {
+  padding: 0 3rem 1rem 3rem;
+}
+
+#data_3g .content p {
+  font-size: 1.4rem;
+}
+
+[data-type="list"] aside {
+  margin: 0px 0.5rem 0px 0px !important;
+}
+

@@ -78,6 +78,11 @@ var UIManager = {
     return this.timeConfigurationLabel = document.getElementById(
       'time-configuration-label');
   },
+  get dataConnectionSwitch() {
+    delete this.dataConnectionSwitch;
+    return this.dataConnectionSwitch = document.getElementById(
+      'dataSwitch');
+  },
   get buttonLetsGo() {
     delete this.buttonLetsGo;
     return this.buttonLetsGo = document.getElementById('end');
@@ -101,6 +106,7 @@ var UIManager = {
     this.buttonLetsGo.addEventListener('click', function() {
       window.close();
     });
+   this.dataConnectionSwitch.addEventListener('click', this);
   },
   handleEvent: function ui_handleEvent(event) {
     switch (event.target.id) {
@@ -124,6 +130,10 @@ var UIManager = {
         break;
       case 'timezone-configuration':
         this.setTimeZone();
+        break;
+      case 'dataSwitch':
+        var status = event.target.checked;
+        DataMobile.toggle(status);
         break;
       default:
         if (event.target.parentNode.id == 'networks') {
@@ -341,5 +351,8 @@ var UIManager = {
   updateNetworkStatus: function uim_uns(ssid, status) {
     document.getElementById(ssid).
       querySelector('p:last-child').innerHTML = status;
+  },
+  updateDataConnectionStatus: function uim_udcs(status) {
+    this.dataConnectionSwitch.checked = status;
   }
 };
