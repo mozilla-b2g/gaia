@@ -9,7 +9,7 @@ var Calculator = {
   errorTimeout: null,
   toClear: false,
 
-  operators: ['÷', '×', '-', '+', '*', '/'],
+  operators: ['÷', '×', '-', '+', '*', '/', '^'],
 
   // Holds the current symbols for calculation
   stack: [],
@@ -230,7 +230,8 @@ var Calculator = {
     '*': function(a, b) { return a * b; },
     '+': function(a, b) { return a + b; },
     '-': function(a, b) { return a - b; },
-    '/': function(a, b) { return a / b; }
+    '/': function(a, b) { return a / b; },
+    '^': function(a, b) { return Math.pow(a, b); }
   },
 
   evaluatePostfix: function calculator_evaluatePostfix(postfix) {
