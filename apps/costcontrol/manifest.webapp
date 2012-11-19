@@ -17,12 +17,17 @@
     "networkstats-manage":{}
   },
   "activities": {
-    "costcontrol/open": {
+    "costcontrol/balance": {
       "filters": {
        },
       "disposition": "window"
     },
-    "costcontrol/topup": {
+    "costcontrol/telephony": {
+      "filters": {
+       },
+      "disposition": "window"
+    },
+    "costcontrol/data_usage": {
       "filters": {
        },
       "disposition": "window"
