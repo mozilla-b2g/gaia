@@ -526,3 +526,23 @@ iframe.backgroundWindow {
 #screen iframe.communication-frame {
   visibility: hidden;
 }
+
+/*
+  Styles for FTU starting
+*/
+
+#screen.ftu > [data-z-index-level="statusbar"]{
+  z-index: 3;
+}
+
+#screen.ftu > [data-z-index-level="lockscreen"]{
+  z-index: 3;
+}
+
+#screen.ftuStarting #lockscreen {
+  display: none;
+}
+
+#screen.ftuStarting #statusbar {
+  opacity: 0;
+}
