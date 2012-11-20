@@ -1,0 +1,16 @@
+.update-status {
+  display: none;
+}
+
+.update-status.visible {
+  display: block;
+}
+
+.update-status .general-information {
+  display: none;
+}
+
+.update-status.checking .general-information {
+  display: block;
+}
+
