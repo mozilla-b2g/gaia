@@ -73,8 +73,8 @@ setService(function cc_setupCostControlService() {
     datausage: false
   };
 
-  // App settings object to control settings
-  var _appSettings = (function cc_appSettings() {
+  // Class to create cached local options by SIM iccid
+  function AppSettings(iccid, options) {
 
     // Application settings
     var _cachedOptions = {
@@ -119,27 +119,6 @@ setService(function cc_setupCostControlService() {
 
     var _listeners = {};
 
-    function _initializeSettings(options) {
-      // No options, first time experience
-      if (!options) {
-        // It is implicit but let's make it explicit
-        _cachedOptions['fte'] = true;
-        debug('First Time Experience for this SIM');
-        return;
-      }
-
-      var event, value, defaultValue;
-      for (var option in _cachedOptions) {
-        defaultValue = _cachedOptions[option];
-        value = options[option];
-        if (typeof value !== 'undefined')
-          _cachedOptions[option] = value;
-
-        event = _newLocalSettingsChangeEvent(option, value, defaultValue);
-        window.dispatchEvent(event);
-      }
-    }
-
     function _newLocalSettingsChangeEvent(key, value, oldValue) {
       return new CustomEvent('localsettingschanged', {
         detail: { key: key, value: value, oldValue: oldValue }
@@ -180,7 +159,7 @@ setService(function cc_setupCostControlService() {
       debug('Setting ' + key + ' to ' + value + ' (' + typeof value + ')');
 
       _cachedOptions[key] = value; // update cache
-      asyncStorage.setItem(_iccid, _cachedOptions,
+      asyncStorage.setItem(iccid, _cachedOptions,
         function dispatchSettingsChange() {
           var event = _newLocalSettingsChangeEvent(key, value, oldValue);
           window.dispatchEvent(event);
@@ -200,28 +179,32 @@ setService(function cc_setupCostControlService() {
       window.dispatchEvent(event);
     }
 
-    var _iccid;
+    // No options, first time experience
+    if (!options) {
+      // It is implicit but let's make it explicit
+      _cachedOptions['fte'] = true;
+      debug('First Time Experience for this SIM');
 
-    // Recover application settings from DB using the ICCID as key
-    function _init() {
-      _iccid = _conn.iccInfo.iccid;
-      if (!_iccid) {
-        console.warn('No ICCID available, using NOICCID as ICCID instead');
-        _iccid = 'NOICCID';
+    } else {
+
+      var event, value, defaultValue;
+      for (var option in _cachedOptions) {
+        defaultValue = _defaults[option];
+        value = options[option];
+        if (typeof value !== 'undefined')
+          _cachedOptions[option] = value;
+
+        event = _newLocalSettingsChangeEvent(option, value, defaultValue);
+        window.dispatchEvent(event);
       }
-      debug('Loading options for SIM: ' + _iccid);
-      asyncStorage.getItem(_iccid, _initializeSettings);
+
     }
 
-    _init();
-
-    return {
-      observe: _observe,
-      option: _option,
-      defaultValue: _defaultValue,
-      touch: _touch
-    };
-  }());
+    this.observe = _observe;
+    this.option = _option;
+    this.defaultValue = _defaultValue;
+    this.touch = _touch;
+  }
 
   // Inner class: Balance.
   // Balance keeps an amount, a timestamp and a currency accesible by
@@ -309,6 +292,21 @@ setService(function cc_setupCostControlService() {
         afterCallback();
       }
     };
+  }
+
+  // Load local by SIM application settings, then continue with afterCallback
+  var _appSettings, _iccid;
+  function _loadAppSettings(afterCallback) {
+    _iccid = _conn.iccInfo.iccid;
+    if (!_iccid) {
+      console.warn('No ICCID available, using NOICCID as ICCID instead');
+      _iccid = 'NOICCID';
+    }
+    debug('Loading options for SIM: ' + _iccid);
+    asyncStorage.getItem(_iccid, function(options) {
+      _appSettings = new AppSettings(_iccid, options);
+      afterCallback();
+    });
   }
 
   // Attach event listeners for automatic updates on balance:
@@ -512,39 +510,47 @@ setService(function cc_setupCostControlService() {
   // Initializes the cost control module:
   // critical parameters, automatic updates and state-dependant settings
   function _init() {
+    // XXX: Synchronizing two async methods:
+    // 1- Load OEM configuration
+    // 2- Load application `by SIM` settings
+    // 3- Setup the service
+    // Hail CPS! (Continuation-Passing Style)
     _loadConfiguration(function cc_afterConfiguration() {
 
-      _configureAutoreset();
+      _loadAppSettings(function cc_afterAppSettings() {
 
-      _configureDataUsage();
-      console.info('Cost Control: data usage enabled.');
+        _configureAutoreset();
 
-      if (_checkEnableConditions()) {
-        _configureBalance();
-        _configureTelephony();
-        console.info('Cost Control: valid SIM card for balance and telephony.');
-      } else {
-        console.warn(
-          'Cost Control: non valid SIM card for balance nor telephony.');
-      }
+        _configureDataUsage();
+        console.info('Cost Control: data usage enabled.');
 
-      // State dependant settings allow simultaneous updates and
-      // topping up tasks
-      _state[STATE_UPDATING_BALANCE] = false;
-      _state[STATE_TOPPING_UP] = false;
-      _state[STATE_UPDATING_DATA_USAGE] = false;
-      _smsTimeout[STATE_UPDATING_BALANCE] = 0;
-      _smsTimeout[STATE_TOPPING_UP] = 0;
-      _onSMSReceived[STATE_UPDATING_BALANCE] = _onBalanceSMSReceived;
-      _onSMSReceived[STATE_TOPPING_UP] = _onConfirmationSMSReceived;
+        if (_checkEnableConditions()) {
+          _configureBalance();
+          _configureTelephony();
+          console.info('Cost Control: valid SIM card for ' +
+                       'balance and telephony.');
+        } else {
+          console.warn(
+            'Cost Control: non valid SIM card for balance nor telephony.');
+        }
 
-      // If data or voice change
-      _conn.onvoicechange = _dispatchServiceStatusChangeEvent;
-      _conn.ondatachange = _dispatchServiceStatusChangeEvent;
+        // State dependant settings allow simultaneous updates and
+        // topping up tasks
+        _state[STATE_UPDATING_BALANCE] = false;
+        _state[STATE_TOPPING_UP] = false;
+        _state[STATE_UPDATING_DATA_USAGE] = false;
+        _smsTimeout[STATE_UPDATING_BALANCE] = 0;
+        _smsTimeout[STATE_TOPPING_UP] = 0;
+        _onSMSReceived[STATE_UPDATING_BALANCE] = _onBalanceSMSReceived;
+        _onSMSReceived[STATE_TOPPING_UP] = _onConfirmationSMSReceived;
 
-      // See service_utils.js for information
-      nowIAmReady();
+        // If data or voice change
+        _conn.onvoicechange = _dispatchServiceStatusChangeEvent;
+        _conn.ondatachange = _dispatchServiceStatusChangeEvent;
 
+        // See service_utils.js for information
+        nowIAmReady();
+      });
     });
   }
 
