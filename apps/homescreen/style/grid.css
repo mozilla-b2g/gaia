@@ -66,8 +66,8 @@
 .apps ol > li > div {
   height: 100%;
   width: 100%;
-	margin-top: .4rem;
-	margin-bottom: .4rem;
+	margin-top: .5rem;
+	margin-bottom: .5rem;
   pointer-events: none; /* NO touchable area */
 }
 
