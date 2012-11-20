@@ -23,6 +23,7 @@ form[role="dialog"][data-type="confirm"] {
   /* Using font-size: 0; we avoid the unwanted visual space (about 3px)
   created by white-spaces and break lines in the code betewen inline-block elements */
   color: #fff;
+  text-align: left;
 }
 
 form[role="dialog"][data-type="confirm"]:before {

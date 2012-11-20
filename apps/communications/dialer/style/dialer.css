@@ -69,6 +69,10 @@ body.hidden *[data-l10n-id] {
   visibility: hidden;
 }
 
+.hide {
+  display: none !important;
+}
+
 /* Structure for toolbar*/
 
 .icon-recents:after {
