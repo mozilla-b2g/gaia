@@ -825,6 +825,7 @@ function MailFolder(api, wireRep) {
    *   @case['archive']
    *   @case['junk']
    *   @case['starred']
+   *   @case['important']
    *   @case['normal']{
    *     A traditional mail folder with nothing special about it.
    *   }
@@ -1881,7 +1882,7 @@ MailAPI.prototype = {
 
   _recv_badLogin: function ma__recv_badLogin(msg) {
     if (this.onbadlogin)
-      this.onbadlogin(new MailAccount(this, msg.account));
+      this.onbadlogin(new MailAccount(this, msg.account), msg.problem);
   },
 
   _recv_sliceSplice: function ma__recv_sliceSplice(msg) {
@@ -2148,6 +2149,13 @@ MailAPI.prototype = {
    *   @case['bad-user-or-pass']{
    *     The username and password didn't check out.  We don't know which one
    *     is wrong, just that one of them is wrong.
+   *   }
+   *   @case['imap-disabled']{
+   *     IMAP support is not enabled for the Gmail account in use.
+   *   }
+   *   @case['needs-app-pass']{
+   *     The Gmail account has two-factor authentication enabled, so the user
+   *     must provide an application-specific password.
    *   }
    *   @case['not-authorized']{
    *     The username and password are correct, but the user isn't allowed to
@@ -7851,6 +7859,7 @@ module.exports = function(address){
     });
 };
 });
+
 define('crypto',['require','exports','module'],function(require, exports, module) {
 
 exports.createHash = function(algorithm) {
@@ -8476,6 +8485,7 @@ function hasUTFChars(str){
     return !!rforeign.test(str);
 }
 });
+
 define('http',['require','exports','module'],function(require, exports, module) {
 });
 
@@ -8558,6 +8568,7 @@ function openUrlStream(url, options){
     return stream; 
 }
 });
+
 define('fs',['require','exports','module'],function(require, exports, module) {
 });
 
@@ -9803,6 +9814,7 @@ MailComposer.prototype._getMimeType = function(filename){
     return extension && mimelib.contentTypes[extension] || defaultMime;
 };
 });
+
 define('mailcomposer',['./mailcomposer/lib/mailcomposer'], function (main) {
     return main;
 });
@@ -11361,6 +11373,17 @@ function stashLinks(node, lowerTag) {
   }
 }
 
+var BLEACH_SETTINGS = {
+  tags: LEGAL_TAGS,
+  strip: true,
+  prune: PRUNE_TAGS,
+  attributes: LEGAL_ATTR_MAP,
+  styles: LEGAL_STYLES,
+  asNode: true,
+  callbackRegexp: RE_NODE_NEEDS_TRANSFORM,
+  callback: stashLinks
+};
+
 /**
  * @args[
  *   @param[htmlString String]{
@@ -11372,39 +11395,13 @@ function stashLinks(node, lowerTag) {
  *     now we don't.  This is consistent with many webmail clients who ignore
  *     style tags in the head, etc.
  *   }
- *   @param[callback @func[
- *     @args[
- *       @param[node DomNode]
- *       @param[lowerTag String]
- *     ]
- *     An optional callback function to be called before stashLinks.  Return
- *     true to skip stashLinks for this node, or false to call stashLinks.
- *   }
  * ]
  * @return[HtmlElement]{
  *   The sanitized HTML content wrapped in a div container.
  * }
  */
-exports.sanitizeAndNormalizeHtml = function sanitizeAndNormalize(htmlString,
-                                                                 callback) {
-  var settings = {
-    tags: LEGAL_TAGS,
-    strip: true,
-    prune: PRUNE_TAGS,
-    attributes: LEGAL_ATTR_MAP,
-    styles: LEGAL_STYLES,
-    asNode: true,
-    callbackRegexp: RE_NODE_NEEDS_TRANSFORM,
-    callback: stashLinks
-  };
-  if (callback) {
-    settings.callback = function(node, lowerTag) {
-      if (!callback(node, lowerTag))
-        stashLinks(node, lowerTag);
-    }
-  }
-
-  var sanitizedNode = $bleach.clean(htmlString, settings);
+exports.sanitizeAndNormalizeHtml = function sanitizeAndNormalize(htmlString) {
+  var sanitizedNode = $bleach.clean(htmlString, BLEACH_SETTINGS);
   return sanitizedNode;
 };
 
@@ -11816,6 +11813,7 @@ const FOLDER_TYPE_TO_SORT_PRIORITY = {
   account: 'a',
   inbox: 'c',
   starred: 'e',
+  important: 'f',
   drafts: 'g',
   queue: 'h',
   sent: 'i',
@@ -11961,7 +11959,11 @@ console.log('done proc modifyConfig');
     account.checkAccount(function(err) {
       // If we succeeded or the problem was not an authentication, assume
       // everything went fine and clear the problems.
-      if (!err || err !== 'bad-user-or-pass') {
+      if (!err || (
+          err !== 'bad-user-or-pass' && 
+          err !== 'needs-app-pass' && 
+          err !== 'imap-disabled'
+        )) {
         self.universe.clearAccountProblems(account);
       }
       // The login information is still bad; re-send the bad login notification.
@@ -12017,10 +12019,11 @@ console.log('done proc modifyConfig');
     this.universe.deleteAccount(msg.accountId);
   },
 
-  notifyBadLogin: function mb_notifyBadLogin(account) {
+  notifyBadLogin: function mb_notifyBadLogin(account, problem) {
     this.__sendMessage({
       type: 'badLogin',
       account: account.toBridgeWire(),
+      problem: problem
     });
   },
 
@@ -13443,9 +13446,9 @@ else {
  *
  * Explanation of most recent bump:
  *
- * Bumping to 14 because we now support (require, really) HTML in ActiveSync
+ * Bumping to 15 because IMAP folder names were not properly mutf-7 decoded.
  */
-const CUR_VERSION = exports.CUR_VERSION = 14;
+const CUR_VERSION = exports.CUR_VERSION = 15;
 
 /**
  * What is the lowest database version that we are capable of performing a
@@ -16126,6 +16129,41 @@ function parseImapDate(dstr) {
 }
 
 /**
+ * Modified utf-7 detecting regexp for use by `decodeModifiedUtf7`.
+ */
+const RE_MUTF7 = /&([^-]*)-/g,
+      RE_COMMA = /,/g;
+/**
+ * Decode the modified utf-7 representation used to encode mailbox names to
+ * lovely unicode.
+ *
+ * Notes:
+ * - '&' enters mutf-7 mode, '-' exits it (and exiting is required!), but '&-'
+ *    encodes a '&' rather than * a zero-length string.
+ * - ',' is used instead of '/' for the base64 encoding
+ *
+ * Learn all about it at:
+ * https://tools.ietf.org/html/rfc3501#section-5.1.3
+ */
+function decodeModifiedUtf7(encoded) {
+  return encoded.replace(
+    RE_MUTF7,
+    function replacer(fullMatch, b64data) {
+      // &- encodes &
+      if (!b64data.length)
+        return '&';
+      // we use a funky base64 where ',' is used instead of '/'...
+      b64data = b64data.replace(RE_COMMA, '/');
+      // The base-64 encoded utf-16 gets converted into a buffer holding the
+      // utf-16 encoded bits.
+      var u16data = new Buffer(b64data, 'base64');
+      // and this actually decodes the utf-16 into a JS string.
+      return u16data.toString('utf-16be');
+    });
+}
+exports.decodeModifiedUtf7 = decodeModifiedUtf7;
+
+/**
  * Parses IMAP date-times into UTC timestamps.  IMAP date-times are
  * "DD-Mon-YYYY HH:MM:SS +ZZZZ"
  */
@@ -16563,7 +16601,9 @@ ImapConnection.prototype.connect = function(loginCb) {
             if (self._state.requests[0].args.length === 0)
               self._state.requests[0].args.push({});
             result = /^\((.*)\) (.+?) "?([^"]+)"?$/.exec(data[2]);
+
             var box = {
+                  displayName: null,
                   attribs: result[1].split(' ').map(function(attrib) {
                              return attrib.substr(1).toUpperCase();
                            }),
@@ -16571,7 +16611,9 @@ ImapConnection.prototype.connect = function(loginCb) {
                           ? false : result[2].substring(1, result[2].length-1)),
                   children: null,
                   parent: null
-                }, name = result[3], curChildren = self._state.requests[0].args[0];
+                },
+                name = result[3],
+                curChildren = self._state.requests[0].args[0];
             if (name[0] === '"' && name[name.length-1] === '"')
               name = name.substring(1, name.length - 1);
 
@@ -16587,8 +16629,10 @@ ImapConnection.prototype.connect = function(loginCb) {
                 parent = curChildren[path[i]];
                 curChildren = curChildren[path[i]].children;
               }
+
               box.parent = parent;
             }
+            box.displayName = decodeModifiedUtf7(name);
             if (!curChildren[name])
               curChildren[name] = box;
           }
@@ -18274,7 +18318,7 @@ function ImapProber(credentials, connInfo, _LOG) {
   this._conn.on('error', this.onError.bind(this));
 
   this.onresult = null;
-  this.accountGood = null;
+  this.error = null;
 }
 exports.ImapProber = ImapProber;
 ImapProber.prototype = {
@@ -18294,14 +18338,14 @@ ImapProber.prototype = {
     }
 
     console.log('PROBE:IMAP happy, TZ offset:', tzOffset / (60 * 60 * 1000));
-    this.accountGood = true;
+    this.error = null;
 
     var conn = this._conn;
     this._conn = null;
 
     if (!this.onresult)
       return;
-    this.onresult(this.accountGood, conn, tzOffset);
+    this.onresult(this.error, conn, tzOffset);
     this.onresult = false;
   },
 
@@ -18309,7 +18353,12 @@ ImapProber.prototype = {
     if (!this.onresult)
       return;
     console.warn('PROBE:IMAP sad', err);
-    this.accountGood = false;
+    if (err.serverResponse.indexOf('[ALERT] Application-specific password required') != -1)
+      this.error = 'needs-app-pass';
+    else if(err.serverResponse.indexOf('[ALERT] Your account is not enabled for IMAP use.') != -1)
+      this.error = 'imap-disabled';
+    else
+      this.error = 'bad-user-or-pass';
     // we really want to make sure we clean up after this dude.
     try {
       this._conn.die();
@@ -18318,7 +18367,7 @@ ImapProber.prototype = {
     }
     this._conn = null;
 
-    this.onresult(this.accountGood, null);
+    this.onresult(this.error, null);
     // we could potentially see many errors...
     this.onresult = false;
   },
@@ -21655,7 +21704,6 @@ SmtpProber.prototype = {
     this._password = aPassword;
     this._deviceId = aDeviceId || 'v140Device';
     this._deviceType = aDeviceType || 'SmartPhone';
-    this.timeout = 0;
 
     this._connection = 0;
     this._waitingForConnection = false;
@@ -21870,11 +21918,6 @@ SmtpProber.prototype = {
                true);
       xhr.setRequestHeader('Content-Type', 'text/xml');
       xhr.setRequestHeader('Authorization', this._getAuth());
-      xhr.timeout = this.timeout;
-
-      xhr.upload.onprogress = xhr.upload.onload = function() {
-        xhr.timeout = 0;
-      };
 
       xhr.onload = function() {
         if (xhr.status < 200 || xhr.status >= 300)
@@ -21945,7 +21988,7 @@ SmtpProber.prototype = {
         aCallback(null, config);
       };
 
-      xhr.ontimeout = xhr.onerror = function() {
+      xhr.onerror = function() {
         aCallback(new Error('Error getting Autodiscover URL'));
       };
 
@@ -21978,11 +22021,6 @@ SmtpProber.prototype = {
       let conn = this;
       let xhr = new XMLHttpRequest({mozSystem: true, mozAnon: true});
       xhr.open('OPTIONS', this.baseUrl, true);
-      xhr.timeout = this.timeout;
-
-      xhr.upload.onprogress = xhr.upload.onload = function() {
-        xhr.timeout = 0;
-      };
 
       xhr.onload = function() {
         if (xhr.status < 200 || xhr.status >= 300) {
@@ -22000,7 +22038,7 @@ SmtpProber.prototype = {
         aCallback(null, result);
       };
 
-      xhr.ontimeout = xhr.onerror = function() {
+      xhr.onerror = function() {
         aCallback(new Error('Error getting OPTIONS URL'));
       };
 
@@ -22048,13 +22086,8 @@ SmtpProber.prototype = {
      *        parameters that should be added to the end of the request URL
      * @param aExtraHeaders (optional) an object containing any extra HTTP
      *        headers to send in the request
-     * @param aProgressCallback (optional) a callback to invoke with progress
-     *        information, when available. Two arguments are provided: the
-     *        number of bytes received so far, and the total number of bytes
-     *        expected (when known, 0 if unknown).
      */
-    postCommand: function(aCommand, aCallback, aExtraParams, aExtraHeaders,
-                          aProgressCallback) {
+    postCommand: function(aCommand, aCallback, aExtraParams, aExtraHeaders) {
       const contentType = 'application/vnd.ms-sync.wbxml';
 
       if (typeof aCommand === 'string' || typeof aCommand === 'number') {
@@ -22065,7 +22098,7 @@ SmtpProber.prototype = {
         let r = new WBXML.Reader(aCommand, ASCP);
         let commandName = r.document.next().localTagName;
         this.postData(commandName, contentType, aCommand.buffer, aCallback,
-                      aExtraParams, aExtraHeaders, aProgressCallback);
+                      aExtraParams, aExtraHeaders);
       }
     },
 
@@ -22083,13 +22116,9 @@ SmtpProber.prototype = {
      *        parameters that should be added to the end of the request URL
      * @param aExtraHeaders (optional) an object containing any extra HTTP
      *        headers to send in the request
-     * @param aProgressCallback (optional) a callback to invoke with progress
-     *        information, when available. Two arguments are provided: the
-     *        number of bytes received so far, and the total number of bytes
-     *        expected (when known, 0 if unknown).
      */
     postData: function(aCommand, aContentType, aData, aCallback, aExtraParams,
-                       aExtraHeaders, aProgressCallback) {
+                       aExtraHeaders) {
       // Make sure our command name is a string.
       if (typeof aCommand === 'number')
         aCommand = ASCP.__tagnames__[aCommand];
@@ -22134,16 +22163,6 @@ SmtpProber.prototype = {
           xhr.setRequestHeader(key, value);
       }
 
-      xhr.timeout = this.timeout;
-
-      xhr.upload.onprogress = xhr.upload.onload = function() {
-        xhr.timeout = 0;
-      };
-      xhr.onprogress = function(event) {
-        if (aProgressCallback)
-          aProgressCallback(event.loaded, event.total);
-      };
-
       let conn = this;
       let parentArgs = arguments;
       xhr.onload = function() {
@@ -22170,7 +22189,7 @@ SmtpProber.prototype = {
         aCallback(null, response);
       };
 
-      xhr.ontimeout = xhr.onerror = function() {
+      xhr.onerror = function() {
         aCallback(new Error('Error getting command URL'));
       };
 
@@ -26298,7 +26317,7 @@ exports.chewHeaderAndBodyStructure = function chewStructure(msg) {
    * Sizes are the size of the encoded string, not the decoded value.
    */
   function estimatePartSizeInBytes(partInfo) {
-    var encoding = partInfo.encoding;
+    var encoding = partInfo.encoding.toLowerCase();
     // Base64 encodes 3 bytes in 4 characters with padding that always
     // causes the encoding to take 4 characters.  The max encoded line length
     // (ignoring CRLF) is 76 bytes, with 72 bytes also fairly common.
@@ -26333,7 +26352,7 @@ exports.chewHeaderAndBodyStructure = function chewStructure(msg) {
 
     // - Start from explicit disposition, make attachment if non-displayable
     if (partInfo.disposition)
-      disposition = partInfo.disposition.type;
+      disposition = partInfo.disposition.type.toLowerCase();
     // UNTUNED-HEURISTIC (need test cases)
     // Parts with content ID's explicitly want to be referenced by the message
     // and so are inline.  (Although we might do well to check if they actually
@@ -29326,6 +29345,10 @@ ImapAccount.prototype = {
     return '[ImapAccount: ' + this.id + ']';
   },
 
+  get isGmail() {
+    return this.meta.capability.indexOf('X-GM-EXT-1') !== -1;
+  },
+
   /**
    * Make a given folder known to us, creating state tracking instances, etc.
    */
@@ -29670,7 +29693,13 @@ ImapAccount.prototype = {
           //   NO [AUTHENTICATIONFAILED] Incorrect username or password.
           case 'NO':
           case 'no':
-            errName = 'bad-user-or-pass';
+            // XXX: Should we check if it's GMail first?
+            if (err.serverResponse.indexOf('[ALERT] Application-specific password required') !== -1)
+              errName = 'needs-app-pass';
+            else if(err.serverResponse.indexOf('[ALERT] Your account is not enabled for IMAP use.') !== -1)
+              errName = 'imap-disabled';
+            else
+              errName = 'bad-user-or-pass';
             reachable = true;
             // go directly to the broken state; no retries
             maybeRetry = false;
@@ -29820,6 +29849,9 @@ ImapAccount.prototype = {
           case 'FLAGGED': // special-use
             type = 'starred';
             break;
+          case 'IMPORTANT': // (undocumented) xlist
+            type = 'important';
+            break;
           case 'INBOX': // xlist
             type = 'inbox';
             break;
@@ -29907,24 +29939,31 @@ ImapAccount.prototype = {
     // - walk the boxes
     function walkBoxes(boxLevel, pathSoFar, pathDepth) {
       for (var boxName in boxLevel) {
-        var box = boxLevel[boxName],
+        var box = boxLevel[boxName], meta,
             path = pathSoFar ? (pathSoFar + boxName) : boxName;
+
+        // - normalize jerk-moves
+        var type = self._determineFolderType(box, path);
+        // gmail finds it amusing to give us the localized name/path of its
+        // inbox, but still expects us to ask for it as INBOX.
+        if (type === 'inbox')
+          path = 'INBOX';
 
         // - already known folder
         if (folderPubsByPath.hasOwnProperty(path)) {
-          // Make sure the delimiter is up-to-date (for INBOX we initially make
-          // a guess which we must update here.)
-          var meta = folderPubsByPath[path];
-          if (meta.delim !== box.delim)
-            meta.delim = box.delim;
+          // Because we speculatively create the Inbox, both its display name
+          // and delimiter may be incorrect and need to be updated.
+          meta = folderPubsByPath[path];
+          meta.name = box.displayName;
+          meta.delim = box.delim;
 
           // mark it with true to show that we've seen it.
           folderPubsByPath[path] = true;
         }
         // - new to us!
         else {
-          var type = self._determineFolderType(box, path);
-          self._learnAboutFolder(boxName, path, type, box.delim, pathDepth);
+          self._learnAboutFolder(box.displayName, path, type, box.delim,
+                                 pathDepth);
         }
 
         if (box.children)
@@ -31744,45 +31783,7 @@ ActiveSyncFolderConn.prototype = {
       body.bodyReps = ['plain', bodyRep];
     }
     else if (bodyType === asbEnum.Type.HTML) {
-      // For some reason, Gmail converts cid: URLs into a URL relative to the
-      // Gmail web site, which isn't very useful for us. Detect this sort of
-      // tomfoolery and de-munge the URLs into a proper CID reference. These
-      // URLs usually look like the following:
-      //
-      //   ?ui=pb&view=att&th=13ab448f53725ee6m&attid=0.1.1&disp=emb&zw&atsh=1
-      //
-      // |th| is the message's ServerId, and |attid| is the part number for the
-      // attachment. Conveniently, the part number is also listed at the end of
-      // the FileReference in the WBXML response, like so:
-      //
-      //   1417301890109169382/5e21a1963d098bad_0.1.1
-      //
-      // What we want to do is grab the |attid| and then iterate through all our
-      // related parts and compare to the FileReference (stored in the |part|
-      // attribute) to find our attachment info. Then set the CID on our node
-      // from said info.
-      let demungeGmailUrls = function(node, lowerTag) {
-        if (lowerTag === 'img') {
-          let m, src = node.getAttribute('src');
-          // Find the magic Gmail URLs and grab the |attid| parameter.
-          if ((m = /^\?ui=pb&view=att&.*attid=([^&]*)/.exec(src))) {
-            for (let [,part] in Iterator(body.relatedParts)) {
-              // Check if the current related part's FileReference ends in the
-              // part number we're looking for.
-              if (part.part.lastIndexOf('_' + m[1]) ===
-                  part.part.length - m[1].length - 1) {
-                node.classList.add('moz-embedded-image');
-                node.setAttribute('cid-src', part.contentId);
-                return true;
-              }
-            }
-          }
-        }
-        return false;
-      };
-
-      let htmlNode = $htmlchew.sanitizeAndNormalizeHtml(bodyText,
-                                                        demungeGmailUrls);
+      let htmlNode = $htmlchew.sanitizeAndNormalizeHtml(bodyText);
       header.snippet = $htmlchew.generateSnippet(htmlNode,
                                                  DESIRED_SNIPPET_LENGTH);
       body.bodyReps = ['html', htmlNode.innerHTML];
@@ -33332,8 +33333,10 @@ CompositeAccount.prototype = {
       composedMessage,
       function(err, errDetails) {
         // We need to append the message to the sent folder if we think we sent
-        // the message okay.
-        if (!err) {
+        // the message okay and this is not gmail.  gmail automatically crams
+        // the message in the sent folder for us, so if we do it, we're just
+        // going to create duplicates.
+        if (!err && !this._receivePiece.isGmail) {
           var message = {
             messageText: composedMessage._outputBuffer,
             // do not specify date; let the server use its own timestamping
@@ -33486,7 +33489,7 @@ Configurators['imap+smtp'] = {
       ['imap', 'smtp'],
       function probesDone(results) {
         // -- both good?
-        if (results.imap[0] && results.smtp) {
+        if (!results.imap[0] && results.smtp) {
           var account = self._defineImapAccount(
             universe,
             userDetails, credentials,
@@ -33497,9 +33500,12 @@ Configurators['imap+smtp'] = {
         // -- either/both bad
         else {
           // clean up the imap connection if it was okay but smtp failed
-          if (results.imap[0])
+          if (!results.imap[0]) {
             results.imap[1].close();
-          callback('unknown', null);
+            callback('smtp-unknown', null); // Failure was caused by SMTP, but who knows why
+          } else {
+            callback(results.imap[0], null); // Pass imap error type back
+          }
           return;
         }
       });
@@ -35021,8 +35027,13 @@ MailUniverse.prototype = {
     account.problems.push(problem);
     account.enabled = false;
 
-    if (problem === 'bad-user-or-pass')
-      this.__notifyBadLogin(account);
+    switch (problem) {
+      case 'bad-user-or-pass':
+      case 'imap-disabled':
+      case 'needs-app-pass':
+        this.__notifyBadLogin(account, problem);
+        break;
+    }
   },
 
   clearAccountProblems: function(account) {
@@ -35033,10 +35044,10 @@ MailUniverse.prototype = {
     this._resumeOpProcessingForAccount(account);
   },
 
-  __notifyBadLogin: function(account) {
+  __notifyBadLogin: function(account, problem) {
     for (var iBridge = 0; iBridge < this._bridges.length; iBridge++) {
       var bridge = this._bridges[iBridge];
-      bridge.notifyBadLogin(account);
+      bridge.notifyBadLogin(account, problem);
     }
   },
 
