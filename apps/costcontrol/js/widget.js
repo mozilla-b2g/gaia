@@ -55,14 +55,25 @@ function setupWidget() {
     _setUpdatingMode(false);
   }
 
-  // Open the cost control & data usage application
-  function _openApp() {
-    var activity = new MozActivity({ name: 'costcontrol/open' });
+  // Open the balance view of the cost control & data usage application
+  function _openCCBalance() {
+    var activity = new MozActivity({ name: 'costcontrol/balance' });
+  }
+
+  // Open the telephony view of the cost control & data usage application
+  function _openCCTelephony() {
+    var activity = new MozActivity({ name: 'costcontrol/telephony' });
+  }
+
+    // Open the data usage view of the cost control & data usage application
+  function _openCCDataUsage() {
+    var activity = new MozActivity({ name: 'costcontrol/data_usage' });
   }
 
   // Specific setup for the balance view
   function _configureBalanceView() {
     _balanceView = document.getElementById('balance-view');
+    _balanceView.addEventListener('click', _openCCBalance);
     _balanceCredit = document.getElementById('balance-credit');
     _balanceCurrency = document.getElementById('balance-currency');
     _balanceTime = document.getElementById('balance-time');
@@ -88,6 +99,7 @@ function setupWidget() {
   // Specific setup for the teelphony view
   function _configureTelephonyView() {
     _telephonyView = document.getElementById('telephony-view');
+    _telephonyView.addEventListener('click', _openCCTelephony);
 
     // Update UI when some of these values change or...
     Service.settings.observe('smscount', _updateTelephonyUI);
@@ -105,6 +117,7 @@ function setupWidget() {
   function _configureDataUsageView() {
     _dataUsageLimitView = document.getElementById('datausage-limit-view');
     _dataUsageView = document.getElementById('datausage-view');
+    _dataUsageView.addEventListener('click', _openCCDataUsage);
 
     // Update UI when some of these values change or...
     Service.settings.observe('data_limit', _updateDataUsageUI);
@@ -139,9 +152,6 @@ function setupWidget() {
     _widget = document.getElementById('cost-control');
     _leftPanel = document.getElementById('left-panel');
     _rightPanel = document.getElementById('right-panel');
-
-    // Listener to open application
-    _widget.addEventListener('click', _openApp);
 
     _configureBalanceView();
     _configureTelephonyView();

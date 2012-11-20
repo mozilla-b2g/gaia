@@ -8,25 +8,29 @@ var MockNotificationScreen = {
   ],
 
   mockPopulate: function mockPopulate() {
-    this.mockMethods.forEach((function(methodName) {
+    this.mockMethods.forEach(function(methodName) {
       // we could probably put this method outside if we had a closure
       this[methodName] = function mns_method() {
         this.methodCalled(methodName);
       };
-    }).bind(this));
+    }, this);
   },
 
   init: function mns_init() {
     this.wasMethodCalled = {};
+    this.mockMethods.forEach(function(methodName) {
+      this[methodName].wasCalled = false;
+    }, this);
   },
 
   methodCalled: function mns_methodCalled(name) {
     this.wasMethodCalled[name] =
         this.wasMethodCalled[name] ? this.wasMethodCalled[name]++ : 1;
+    this[name].wasCalled = true;
   },
 
-  mTearDown: function mns_mTearDown() {
-    this.wasMethodCalled = {};
+  mTeardown: function mns_mTeardown() {
+    this.init();
   }
 };
 

@@ -264,7 +264,7 @@ contacts.Settings = (function() {
 
       },
       function onimport(num) {
-        addMessage(_('simContacts-imported', {n: num}), after);
+        addMessage(_('simContacts-imported2', {n: num}), after);
         contacts.List.load();
         Contacts.hideOverlay();
       },

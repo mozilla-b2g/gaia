@@ -89,6 +89,10 @@ Calendar.ns('Provider').Caldav = (function() {
               error.name = 'default';
 
             }
+
+            if (Calendar.DEBUG) {
+              console.error(error.message, error.stack);
+            }
             callback(error);
             return;
           }

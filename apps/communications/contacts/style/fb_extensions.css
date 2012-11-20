@@ -39,3 +39,12 @@ p.facebook.removed input {
   border-bottom: 1px solid #3b5998;
   border-left: 1px solid #3b5998;
 }
+
+.with-photo.removed.facebook img {
+  pointer-events: auto;
+  opacity: 0.95;
+}
+
+.with-photo.removed.facebook {
+  border: none;
+}

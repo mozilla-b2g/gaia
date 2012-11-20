@@ -14,3 +14,30 @@
   text-decoration: underline;
   margin-top: 2rem;
 }
+
+#crash-dialog.learn-more > form {
+  display: none;
+}
+
+#crash-dialog:not(.learn-more) > section {
+  display: none;
+}
+
+/* "Crash Reports" information page */
+#crash-dialog > section {
+  font-family: "MozTT", Sans-serif;
+  background-color: #fff;
+  color: #000;
+  position: absolute;
+  z-index: 100;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+#crash-dialog > section > p {
+  padding: 1rem 3rem;
+  font-size: 1.5rem;
+  white-space: normal;
+}

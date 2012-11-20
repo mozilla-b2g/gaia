@@ -10,7 +10,10 @@ var AppInstallManager = {
     this.authorUrl = document.getElementById('app-install-author-url');
     this.installButton = document.getElementById('app-install-install-button');
     this.cancelButton = document.getElementById('app-install-cancel-button');
-    this.cancelDialog = document.getElementById('app-install-cancel-dialog');
+    this.installCancelDialog =
+      document.getElementById('app-install-cancel-dialog');
+    this.downloadCancelDialog =
+      document.getElementById('app-download-cancel-dialog');
     this.confirmCancelButton =
       document.getElementById('app-install-confirm-cancel-button');
     this.resumeButton = document.getElementById('app-install-resume-button');
@@ -31,9 +34,15 @@ var AppInstallManager = {
 
 
     this.installButton.onclick = this.handleInstall.bind(this);
-    this.cancelButton.onclick = this.showCancelDialog.bind(this);
-    this.confirmCancelButton.onclick = this.handleCancel.bind(this);
-    this.resumeButton.onclick = this.hideCancelDialog.bind(this);
+    this.cancelButton.onclick = this.showInstallCancelDialog.bind(this);
+    this.confirmCancelButton.onclick = this.handleInstallCancel.bind(this);
+    this.resumeButton.onclick = this.hideInstallCancelDialog.bind(this);
+    this.notifContainer.onclick = this.showDownloadCancelDialog.bind(this);
+
+    this.downloadCancelDialog.querySelector('.confirm').onclick =
+      this.handleConfirmDownloadCancel.bind(this);
+    this.downloadCancelDialog.querySelector('.cancel').onclick =
+      this.handleCancelDownloadCancel.bind(this);
   },
 
   handleAppInstallPrompt: function ai_handleInstallPrompt(detail) {
@@ -76,7 +85,7 @@ var AppInstallManager = {
       this.dispatchResponse(id, 'webapps-install-granted');
     }).bind(this);
 
-    this.cancelCallback = (function ai_cancelCallback() {
+    this.installCancelCallback = (function ai_cancelCallback() {
       this.dispatchResponse(id, 'webapps-install-denied');
     }).bind(this);
 
@@ -149,6 +158,8 @@ var AppInstallManager = {
     this.notifContainer.insertAdjacentHTML('afterbegin', newNotif);
 
     var newNode = this.notifContainer.firstElementChild;
+    newNode.dataset.manifest = manifestURL;
+
     var _ = navigator.mozL10n.get;
 
     var message = _('downloadingAppMessage', {
@@ -246,27 +257,73 @@ var AppInstallManager = {
       _(units[e]);
   },
 
-  showCancelDialog: function ai_showCancelDialog(evt) {
+  showInstallCancelDialog: function ai_showInstallCancelDialog(evt) {
     if (evt)
       evt.preventDefault();
-    this.cancelDialog.classList.add('visible');
+    this.installCancelDialog.classList.add('visible');
     this.dialog.classList.remove('visible');
   },
 
-  hideCancelDialog: function ai_hideCancelDialog(evt) {
+  hideInstallCancelDialog: function ai_hideInstallCancelDialog(evt) {
     if (evt)
       evt.preventDefault();
     this.dialog.classList.add('visible');
-    this.cancelDialog.classList.remove('visible');
+    this.installCancelDialog.classList.remove('visible');
   },
 
-  handleCancel: function ai_handleCancel() {
-    if (this.cancelCallback)
-      this.cancelCallback();
-    this.cancelCallback = null;
-    this.cancelDialog.classList.remove('visible');
-  }
+  showDownloadCancelDialog: function ai_showDownloadCancelDialog(e) {
+    var currentNode = e.target;
 
+    if (!currentNode.classList.contains('fake-notification')) {
+      // tapped outside of a notification
+      return;
+    }
+
+    var manifestURL = currentNode.dataset.manifest,
+        app = Applications.getByManifestURL(manifestURL),
+        manifest = app.manifest || app.updateManifest,
+        dialog = this.downloadCancelDialog;
+
+    var title = dialog.querySelector('h1');
+
+    title.textContent = navigator.mozL10n.get('stopDownloading', {
+      app: manifest.name
+    });
+
+    dialog.classList.add('visible');
+    dialog.dataset.manifest = manifestURL;
+    UtilityTray.hide();
+  },
+
+  handleInstallCancel: function ai_handleInstallCancel() {
+    if (this.installCancelCallback)
+      this.installCancelCallback();
+    this.installCancelCallback = null;
+    this.installCancelDialog.classList.remove('visible');
+  },
+
+  handleConfirmDownloadCancel: function ai_handleConfirmDownloadCancel(e) {
+    e && e.preventDefault();
+    var dialog = this.downloadCancelDialog,
+        manifestURL = dialog.dataset.manifest;
+    if (manifestURL) {
+      var app = Applications.getByManifestURL(manifestURL);
+      app && app.cancelDownload();
+    }
+
+    this.hideDownloadCancelDialog();
+  },
+
+  handleCancelDownloadCancel: function ai_handleCancelDownloadCancel(e) {
+    e && e.preventDefault();
+    this.hideDownloadCancelDialog();
+  },
+
+  hideDownloadCancelDialog: function() {
+    var dialog = this.downloadCancelDialog;
+    dialog.classList.remove('visible');
+    delete dialog.dataset.manifest;
+  }
 };
 
 AppInstallManager.init();

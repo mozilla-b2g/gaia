@@ -398,21 +398,34 @@
         </div>
 
         <!-- Crash reporter -->
-        <form id="crash-dialog" role="dialog" data-type="confirm">
-          <section>
-            <h1 id="crash-dialog-title"></h1>
-            <p data-l10n-id="crash-dialog-message">Would you like to send Mozilla a report about the crash to help us fix the problem? (Reports are sent over Wi-Fi only)</p>
-            <p><a id="crash-info-link" data-l10n-id="crash-info-link">What's in a crash report?</a></p>
-            <p>
-              <input id="always-send" type="checkbox" checked="true"/>
-              <label for="always-send" data-l10n-id="crash-always-report">Always send Mozilla a report when a crash occurs.</label>
-            <p>
+        <div id="crash-dialog">
+          <form role="dialog" data-type="confirm">
+            <section id="crash-dialog-contents">
+              <h1 id="crash-dialog-title"></h1>
+              <p data-l10n-id="crash-dialog-message">Would you like to send Mozilla a report about the crash to help us fix the problem? (Reports are sent over Wi-Fi only)</p>
+              <p><a id="crash-info-link" data-l10n-id="crash-info-link">What's in a crash report?</a></p>
+              <p>
+                <input id="always-send" type="checkbox" checked="true"/>
+                <label for="always-send" data-l10n-id="crash-always-report">Always send Mozilla a report when a crash occurs.</label>
+              <p>
+            </section>
+            <menu>
+              <button id="dont-send-report" disabled="true" data-l10n-id="crash-dont-send">Don't Send</button>
+              <button id="send-report" class="recommend" data-l10n-id="crash-send">Send Report</button>
+            </menu>
+          </form>
+
+          <!-- "Crash Reports" information page -->
+          <section role="region" class="skin-dark">
+            <header>
+              <menu type="toolbar">
+                <button id="crash-reports-done" data-l10n-id="done">Done</button>
+              </menu>
+              <h1 data-l10n-id="crashReports">Crash Reports</h1>
+            </header>
+            <p data-l10n-id="crashReportsDescription"></p>
           </section>
-          <menu>
-            <button id="dont-send-report" disabled="true" data-l10n-id="crash-dont-send">Don't Send</button>
-            <button id="send-report" class="recommend" data-l10n-id="crash-send">Send Report</button>
-          </menu>
-        </form>
+        </div>
 
         <div id="popup-container">
           <section role="region" class="title-container skin-organic">
@@ -633,7 +646,9 @@
         </div>
       </div>
 
-      <form id="app-install-dialog" data-type="confirm" role="dialog" data-z-index-level="app-install-dialog">
+      <form id="app-install-dialog" class='app-install-dialog'
+            data-type="confirm" role="dialog"
+            data-z-index-level="app-install-dialog">
         <section>
           <h1 id="app-install-message"></h1>
           <table>
@@ -656,21 +671,9 @@
         </section>
       </form>
 
-      <form id="updates-download-dialog" data-type="confirm" role="dialog" data-z-index-level="updates-download-dialog">
-        <section>
-          <h1>
-            Updates
-          </h1>
-          <ul>
-          </ul>
-          <menu>
-            <button id="updates-later-button" type="reset" data-l10n-id="later">Later</button>
-            <button id="updates-download-button" type="submit" data-l10n-id="download">Download</button>
-          </menu>
-        </section>
-      </form>
-
-      <form id="app-install-cancel-dialog" data-type="confirm" role="dialog" data-z-index-level="app-install-dialog">
+      <form id="app-install-cancel-dialog" class='app-install-dialog'
+            data-type="confirm" role="dialog"
+            data-z-index-level="app-install-dialog">
         <section>
           <h1 data-l10n-id="cancel-install">Cancel Install</h1>
           <p>
@@ -681,6 +684,39 @@
           <menu>
             <button id="app-install-confirm-cancel-button" type="reset" data-l10n-id="cancel-install">Cancel Install</button>
             <button id="app-install-resume-button" type="submit" data-l10n-id="resume">Resume</button>
+          </menu>
+        </section>
+      </form>
+
+      <form id="app-download-cancel-dialog" class='app-install-dialog'
+        data-type="confirm" role="dialog"
+        data-z-index-level="app-install-dialog">
+        <section>
+          <h1></h1>
+          <p data-l10n-id="app-download-can-be-restarted">The download can
+          be restarted later.</p>
+          <menu>
+            <button id="app-download-stop-button" class="danger confirm"
+              data-l10n-id="app-download-stop-button">Stop Download</button>
+            <button id="app-download-continue-button" class="cancel"
+              type="reset" data-l10n-id="continue">Continue</button>
+          </menu>
+        </section>
+      </form>
+
+      <form id="updates-download-dialog" data-type="confirm" role="dialog"
+            data-z-index-level="updates-download-dialog">
+        <section>
+          <h1>
+            Updates
+          </h1>
+          <ul>
+          </ul>
+          <menu>
+            <button id="updates-later-button" type="reset"
+                    data-l10n-id="later">Later</button>
+                  <button id="updates-download-button" type="submit"
+                    data-l10n-id="download">Download</button>
           </menu>
         </section>
       </form>

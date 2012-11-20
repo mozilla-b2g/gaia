@@ -1,16 +1,61 @@
 'use strict';
 
 var Swiper = {
+  /*
+  * Timeout ID for backing from triggered state to normal state
+  */
+  triggeredTimeoutId: 0,
+
+  /*
+  * Interval ID for jumping prompt of curve and arrow
+  */
+  promptIntervalId: 0,
+
+  /*
+  * start/end curve/mask path data (position, curve control point)
+  */
+  CURVE_START_DATA: 'M0,80 C100,150 220,150 320,80',
+  CURVE_END_DATA: 'M0,80 C100,-20 220,-20 320,80',
+  CURVE_MASK_START_DATA: 'M0,80 C100,150 220,150 320,80 V 150 H 0 Z',
+  CURVE_MASK_END_DATA: 'M0,80 C100,-20 220,-20 320,80 V 150 H 0 Z',
+
+  /*
+  * curve/mask transform const parameters
+  */
+  CURVE_TRANSFORM_DATA: ['M0,80 C100,', '0', ' 220,', '0', ' 320,80'],
+  CURVE_MASK_TRANSFORM_DATA: ['M0,80 C100,', '0', ' 220,', '0',
+                              ' 320,80 V 150 H 0 Z'],
+
+  /*
+  * control points coordinate y for CURVE_TRANSFORM_DATA
+  */
+  CURVE_TRANSFORM_Y1_INDEX: 1,
+  CURVE_TRANSFORM_Y2_INDEX: 3,
+
+  /*
+  * jumping prompt interval
+  */
+  PROMPT_INTERVAL: 4000,
+
+  /*
+  * timeout for triggered state after swipe up
+  */
+  TRIGGERED_TIMEOUT: 5000,
+
   /* init */
   init: function ls_init() {
     this.getAllElements();
 
     this.area.addEventListener('mousedown', this);
-    this.areaHandle.addEventListener('mousedown', this);
-    this.areaHangup.addEventListener('mousedown', this);
-    this.areaPickup.addEventListener('mousedown', this);
+    this.areaHangup.addEventListener('click', this);
+    this.areaPickup.addEventListener('click', this);
 
     this.overlay.addEventListener('transitionend', this);
+
+    if (!this.promptIntervalId) {
+      this.promptIntervalId =
+        setInterval(this.prompt.bind(this), this.PROMPT_INTERVAL);
+    }
   },
 
   handleEvent: function ls_handleEvent(evt) {
@@ -22,54 +67,30 @@ var Swiper = {
         var overlay = this.overlay;
         var target = evt.target;
 
-        this._touch = {
-          target: null,
-          touched: false,
-          leftTarget: leftTarget,
-          rightTarget: rightTarget,
-          railLeftWidth: this.railLeft.offsetWidth,
-          railRightWidth: this.railRight.offsetWidth,
-          overlayWidth: this.overlay.offsetWidth,
-          handleWidth: this.areaHandle.offsetWidth,
-          maxHandleOffset: rightTarget.offsetLeft - handle.offsetLeft -
-            (handle.offsetWidth - rightTarget.offsetWidth) / 2
-        };
+        if (target === leftTarget || target === rightTarget) {
+          break;
+        }
+
+        if (overlay.classList.contains('triggered') &&
+            target != leftTarget && target != rightTarget) {
+          this.unloadPanel();
+          break;
+        }
+
+        this.iconContainer.classList.remove('prompt');
+        clearInterval(this.promptIntervalId);
+        this.promptIntervalId = 0;
+        Array.prototype.forEach.call(this.startAnimation, function(el) {
+          el.endElement();
+        });
+
+        this._touch = {};
         window.addEventListener('mouseup', this);
         window.addEventListener('mousemove', this);
-
-        switch (target) {
-          case leftTarget:
-            overlay.classList.add('touched-left');
-            break;
-
-          case rightTarget:
-            overlay.classList.add('touched-right');
-            break;
-
-          case this.areaHandle:
-            this._touch.touched = true;
-            this._touch.initX = evt.pageX;
-            this._touch.initY = evt.pageY;
-
-            overlay.classList.add('touched');
-            break;
-
-          case this.accessibilityPickup:
-            overlay.classList.add('touched');
-            this.areaPickup.classList.add('triggered');
-            this.areaHandle.classList.add('triggered');
-            this._touch.target = this.areaPickup;
-            this.handleGesture();
-            break;
-
-          case this.accessibilityHangup:
-            overlay.classList.add('touched');
-            this.areaPickup.classList.add('triggered');
-            this.areaHandle.classList.add('triggered');
-            this._touch.target = this.areaHangup;
-            this.handleGesture();
-            break;
-        }
+        this._touch.touched = true;
+        this._touch.initX = evt.pageX;
+        this._touch.initY = evt.pageY;
+        overlay.classList.add('touched');
         break;
 
       case 'mousemove':
@@ -81,24 +102,24 @@ var Swiper = {
         window.removeEventListener('mousemove', this);
         window.removeEventListener('mouseup', this);
 
-        this.overlay.classList.remove('touched-left');
-        this.overlay.classList.remove('touched-right');
-
         this.handleMove(evt.pageX, evt.pageY);
         this.handleGesture();
         delete this._touch;
         this.overlay.classList.remove('touched');
 
         break;
-    }
-  },
+      case 'click':
+        switch (evt.target) {
+          case this.areaHangup:
+            OnCallHandler.end();
+            break;
 
-  setRailWidth: function ls_setRailWidth(left, right) {
-    var touch = this._touch;
-    this.railLeft.style.transform =
-      'scaleX(' + (left / touch.railLeftWidth) + ')';
-    this.railRight.style.transform =
-      'scaleX(' + (right / touch.railRightWidth) + ')';
+          case this.areaPickup:
+            OnCallHandler.answer();
+            break;
+        }
+        break;
+    }
   },
 
   handleMove: function ls_handleMove(pageX, pageY) {
@@ -114,117 +135,152 @@ var Swiper = {
       touch.initY = pageY;
 
       var overlay = this.overlay;
-      overlay.classList.remove('touched-left');
-      overlay.classList.remove('touched-right');
       overlay.classList.add('touched');
     }
 
-    var dx = pageX - touch.initX;
+    var dy = pageY - touch.initY;
+    var handleMax = window.innerHeight / 4;
+    var ty = Math.max(- handleMax, dy);
+    var opacity = - ty / handleMax;
+    // Curve control point coordinate Y
+    var cy = 150 - opacity * 150;
+    touch.cy = cy;
+    var curvedata = [].concat(this.CURVE_TRANSFORM_DATA);
+    curvedata[this.CURVE_TRANSFORM_Y1_INDEX] = cy;
+    curvedata[this.CURVE_TRANSFORM_Y2_INDEX] = cy;
+    var maskdata = [].concat(this.CURVE_MASK_TRANSFORM_DATA);
+    maskdata[this.CURVE_TRANSFORM_Y1_INDEX] = cy;
+    maskdata[this.CURVE_TRANSFORM_Y2_INDEX] = cy;
 
-    var handleMax = touch.maxHandleOffset;
-    this.areaHandle.style.MozTransition = 'none';
-    this.areaHandle.style.MozTransform =
-      'translateX(' + Math.max(- handleMax, Math.min(handleMax, dx)) + 'px)';
-
-    var railMax = touch.railLeftWidth;
-    var railLeft = railMax + dx;
-    var railRight = railMax - dx;
-
-    this.setRailWidth(Math.max(0, Math.min(railMax * 2, railLeft)),
-                      Math.max(0, Math.min(railMax * 2, railRight)));
-
-    var base = touch.overlayWidth / 4;
-    var opacity = Math.max(0.1, (base - Math.abs(dx)) / base);
-
-    if (dx > 0) {
-      touch.rightTarget.style.opacity =
-        this.railRight.style.opacity = '';
-      touch.leftTarget.style.opacity =
-        this.railLeft.style.opacity = opacity;
-    } else {
-      touch.rightTarget.style.opacity =
-        this.railRight.style.opacity = opacity;
-      touch.leftTarget.style.opacity =
-        this.railLeft.style.opacity = '';
-    }
-
-    var handleWidth = touch.handleWidth;
-
-    if (railLeft < handleWidth / 2) {
-      touch.leftTarget.classList.add('triggered');
-      touch.rightTarget.classList.remove('triggered');
-      touch.target = touch.leftTarget;
-    } else if (railRight < handleWidth / 2) {
-      touch.leftTarget.classList.remove('triggered');
-      touch.rightTarget.classList.add('triggered');
-      touch.target = touch.rightTarget;
-    } else {
-      touch.leftTarget.classList.remove('triggered');
-      touch.rightTarget.classList.remove('triggered');
-      touch.target = null;
-    }
+    this.iconContainer.style.transform = 'translateY(' + ty / 1.5 + 'px)';
+    this.iconContainer.style.opacity = 0.4;
+    this.curvepath.setAttribute('d', curvedata.join(''));
+    this.hangupMask.setAttribute('d', maskdata.join(''));
+    this.pickupMask.setAttribute('d', maskdata.join(''));
+    this.areaHandle.setAttribute('y', 100 - opacity * 100);
   },
 
   handleGesture: function ls_handleGesture() {
-    var self = this;
+    var handleMax = window.innerHeight / 4;
     var touch = this._touch;
-    var target = touch.target;
-    this.areaHandle.style.MozTransition = null;
 
-    if (!target) {
-      self.areaHandle.style.MozTransform =
-        self.areaPickup.style.opacity =
-        self.railRight.style.opacity =
-        self.areaHangup.style.opacity =
-        self.railLeft.style.opacity =
-        self.railRight.style.width =
-        self.railLeft.style.width = '';
-      self.areaHandle.classList.remove('triggered');
-      self.areaHangup.classList.remove('triggered');
-      self.areaPickup.classList.remove('triggered');
-      return;
+    if (touch.cy < 80) {
+      Array.prototype.forEach.call(this.endAnimation, function(el) {
+        el.setAttribute('fill', 'freeze');
+        el.beginElement();
+      });
+      var self = this;
+      this.curvepath.addEventListener('endEvent', function endEvent() {
+        self.curvepath.removeEventListener('endEvent', endEvent);
+        self.curvepath.setAttribute('d', self.CURVE_END_DATA);
+        self.curvepath.setAttribute('stroke-opacity', 0);
+        self.hangupMask.setAttribute('d', self.CURVE_MASK_END_DATA);
+        self.hangupMask.setAttribute('fill-opacity', 0);
+        self.pickupMask.setAttribute('d', self.CURVE_MASK_END_DATA);
+        self.pickupMask.setAttribute('fill-opacity', 0);
+        self.areaHandle.setAttribute('y', 0);
+        self.areaHandle.setAttribute('opacity', 0);
+
+        Array.prototype.forEach.call(self.endAnimation, function(el) {
+          el.removeAttribute('fill');
+        });
+      });
+      this.areaHandle.style.transform =
+        this.areaHandle.style.opacity =
+        this.iconContainer.style.transform =
+        this.iconContainer.style.opacity = '';
+      this.overlay.classList.add('triggered');
+
+      this.triggeredTimeoutId =
+        setTimeout(this.unloadPanel.bind(this), this.TRIGGERED_TIMEOUT);
     }
-
-    var distance = target.offsetLeft - this.areaHandle.offsetLeft -
-      (this.areaHandle.offsetWidth - target.offsetWidth) / 2;
-    this.areaHandle.classList.add('triggered');
-
-    var transition = 'translateX(' + distance + 'px)';
-    var railLength = touch.rightTarget.offsetLeft -
-      touch.leftTarget.offsetLeft -
-      (this.areaHandle.offsetWidth + target.offsetWidth) / 2;
-
-    switch (target) {
-      case this.areaHangup:
-        this.setRailWidth(0, railLength);
-        OnCallHandler.end();
-        break;
-
-      case this.areaPickup:
-        this.setRailWidth(railLength, 0);
-        OnCallHandler.answer();
-        break;
+    else {
+      this.unloadPanel();
     }
   },
 
   getAllElements: function ls_getAllElements() {
     // ID of elements to create references
     var elements = ['area', 'area-pickup', 'area-hangup', 'area-handle',
-        'rail-left', 'rail-right',
+        'icon-container', 'curvepath', 'hangup-mask', 'pickup-mask',
         'accessibility-hangup', 'accessibility-pickup'];
+    var elementsForClass = ['start-animation', 'end-animation',
+        'prompt-animation'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {
         return p1.toUpperCase();
       });
-    }
+    };
 
     elements.forEach((function createElementRef(name) {
       this[toCamelCase(name)] = document.getElementById('swiper-' + name);
     }).bind(this));
 
+    elementsForClass.forEach((function createElementsRef(name) {
+      this[toCamelCase(name)] =
+        document.querySelectorAll('.swiper-' + name);
+    }).bind(this));
+
     this.overlay = document.getElementById('main-container');
     this.mainScreen = document.getElementById('call-screen');
+  },
+
+  prompt: function ls_prompt() {
+    if (this._touch && this._touch.touched)
+      return;
+    var forEach = Array.prototype.forEach;
+    forEach.call(this.promptAnimation, function(el) {
+      el.beginElement();
+    });
+    this.overlay.classList.add('prompt');
+
+    var self = this;
+    this.iconContainer.addEventListener('animationend',
+      function animationend() {
+        self.iconContainer.removeEventListener('animationend', animationend);
+        self.overlay.classList.remove('prompt');
+      });
+  },
+
+  unloadPanel: function ls_unloadPanel() {
+    var self = this;
+
+    Array.prototype.forEach.call(self.startAnimation, function(el) {
+      el.setAttribute('fill', 'freeze');
+      el.beginElement();
+    });
+    self.curvepath.addEventListener('endEvent', function eventend() {
+      self.curvepath.removeEventListener('endEvent', eventend);
+      self.curvepath.setAttribute('d', self.CURVE_START_DATA);
+      self.curvepath.setAttribute('stroke-opacity', '1.0');
+      self.hangupMask.setAttribute('d', self.CURVE_MASK_START_DATA);
+      self.hangupMask.setAttribute('fill-opacity', '1.0');
+      self.pickupMask.setAttribute('d', self.CURVE_MASK_START_DATA);
+      self.pickupMask.setAttribute('fill-opacity', '1.0');
+      self.areaHandle.setAttribute('y', 100);
+      self.areaHandle.setAttribute('opacity', 1);
+      Array.prototype.forEach.call(self.startAnimation, function(el) {
+        el.removeAttribute('fill');
+      });
+    });
+
+    self.areaHandle.style.transform =
+      self.areaPickup.style.transform =
+      self.areaHangup.style.transform =
+      self.iconContainer.style.transform =
+      self.iconContainer.style.opacity =
+      self.areaPickup.style.opacity =
+      self.areaHangup.style.opacity = '';
+    self.overlay.classList.remove('triggered');
+    self.areaPickup.classList.remove('triggered');
+    self.areaHangup.classList.remove('triggered');
+
+    clearTimeout(self.triggeredTimeoutId);
+    if (!self.promptIntervalId) {
+      self.promptIntervalId =
+        setInterval(self.prompt.bind(self), self.PROMPT_INTERVAL);
+    }
   }
 };
 

@@ -6,6 +6,9 @@
 if (typeof(ICAL) === 'undefined')
   (typeof(window) !== 'undefined') ? this.ICAL = {} : ICAL = {};
 
+ICAL.foldLength = 75;
+ICAL.newLineChar = '\r\n';
+
 /**
  * Helper functions used in various places within ical.js
  */
@@ -30,6 +33,33 @@ ICAL.helpers = {
   },
 
   /**
+   * Checks if the given number is NaN
+   */
+  isStrictlyNaN: function(number) {
+    return typeof(number) === 'number' && isNaN(number);
+  },
+
+  /**
+   * Parses a string value that is expected to be an
+   * integer, when the valid is not an integer throws
+   * a decoration error.
+   *
+   * @param {String} string raw input.
+   * @return {Number} integer.
+   */
+  strictParseInt: function(string) {
+    var result = parseInt(string, 10);
+
+    if (ICAL.helpers.isStrictlyNaN(result)) {
+      throw new Error(
+        'Could not extract integer from "' + string + '"'
+      );
+    }
+
+    return result;
+  },
+
+  /**
    * Creates or returns a class instance
    * of a given type with the initialization
    * data if the data is not already an instance
@@ -38,19 +68,19 @@ ICAL.helpers = {
    *
    * Example:
    *
-   *    var time = new ICAL.icaltime(...);
-   *    var result = ICAL.helpers.formatClassType(time, ICAL.icaltime);
+   *    var time = new ICAL.Time(...);
+   *    var result = ICAL.helpers.formatClassType(time, ICAL.Time);
    *
-   *    (result instanceof ICAL.icaltime)
+   *    (result instanceof ICAL.Time)
    *    // => true
    *
-   *    result = ICAL.helpers.formatClassType({}, ICAL.icaltime);
-   *    (result isntanceof ICAL.icaltime)
+   *    result = ICAL.helpers.formatClassType({}, ICAL.Time);
+   *    (result isntanceof ICAL.Time)
    *    // => true
    *
    *
    * @param {Object} data object initialization data.
-   * @param {Object} type object type (like ICAL.icaltime).
+   * @param {Object} type object type (like ICAL.Time).
    */
   formatClassType: function formatClassType(data, type) {
     if (typeof(data) === 'undefined')
@@ -60,6 +90,25 @@ ICAL.helpers = {
       return data;
     }
     return new type(data);
+  },
+
+  /**
+   * Identical to index of but will only match values
+   * when they are not preceded by a backslash char \\\
+   *
+   * @param {String} buffer string value.
+   * @param {String} search value.
+   * @param {Numeric} pos start position.
+   */
+  unescapedIndexOf: function(buffer, search, pos) {
+    while ((pos = buffer.indexOf(search, pos)) !== -1) {
+      if (pos > 0 && buffer[pos - 1] === '\\') {
+        pos += 1;
+      } else {
+        return pos;
+      }
+    }
+    return -1;
   },
 
   binsearchInsert: function(list, seekVal, cmpfunc) {
@@ -136,7 +185,8 @@ ICAL.helpers = {
     } else {
       var result = {};
       for (var name in aSrc) {
-        if (aSrc.hasOwnProperty(name)) {
+        // uses prototype method to allow use of Object.create(null);
+        if (Object.prototype.hasOwnProperty.call(aSrc, name)) {
           this.dumpn("Cloning " + name + "\n");
           if (aDeep) {
             result[name] = ICAL.helpers.clone(aSrc[name], true);
@@ -203,102 +253,884 @@ ICAL.helpers = {
   },
 
   pad2: function pad(data) {
-    return ("00" + data).substr(-2);
+    if (typeof(data) !== 'string') {
+      // handle fractions.
+      if (typeof(data) === 'number') {
+        data = parseInt(data);
+      }
+      data = String(data);
+    }
+
+    var len = data.length;
+
+    switch (len) {
+      case 0:
+        return '00';
+      case 1:
+        return '0' + data;
+      default:
+        return data;
+    }
   },
 
   trunc: function trunc(number) {
     return (number < 0 ? Math.ceil(number) : Math.floor(number));
   }
 };
-(typeof(ICAL) === 'undefined')? ICAL = {} : '';
-
-(function() {
-  ICAL.serializer = {
-    serializeToIcal: function(obj, name, isParam) {
-      if (obj && obj.icalclass) {
-        return obj.toString();
-      }
-
-      var str = "";
-
-      if (obj.type == "COMPONENT") {
-        str = "BEGIN:" + obj.name + ICAL.newLineChar;
-        for (var subkey in obj.value) {
-          str += this.serializeToIcal(obj.value[subkey]) + ICAL.newLineChar;
-        }
-        str += "END:" + obj.name;
-      } else {
-        str += ICAL.icalparser.stringifyProperty(obj);
-      }
-      return str;
-    }
-  };
-}());
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  * Portions Copyright (C) Philipp Kewisch, 2011-2012 */
 
-// TODO validate known parameters
-// TODO make sure all known types don't contain junk
-// TODO tests for parsers
-// TODO SAX type parser
-// TODO structure data in components
-// TODO enforce uppercase when parsing
-// TODO optionally preserve value types that are default but explicitly set
-// TODO floating timezone
 (typeof(ICAL) === 'undefined')? ICAL = {} : '';
-(function() {
-  /* NOTE: I'm not sure this is the latest syntax...
 
-     {
-       X-WR-CALNAME: "test",
-       components: {
-         VTIMEZONE: { ... },
-         VEVENT: {
-             "uuid1": {
-                 UID: "uuid1",
-                 ...
-                 components: {
-                     VALARM: [
-                         ...
-                     ]
-                 }
-             }
-         },
-         VTODO: { ... }
-       }
-     }
-     */
+ICAL.design = (function() {
+  'use strict';
 
-  // Exports
+  var ICAL_NEWLINE = /\\\\|\\;|\\,|\\[Nn]/g;
 
-  function ParserError(aState, aMessage) {
-    this.mState = aState;
-    this.name = "ParserError";
-    if (aState) {
-      var lineNrData = ("lineNr" in aState ? aState.lineNr + ":" : "") +
-                       ("character" in aState && !isNaN(aState.character) ?
-                         aState.character + ":" :
-                         "");
+  function DecorationError() {
+    Error.apply(this, arguments);
+  }
 
-      var message = lineNrData + aMessage;
-      if ("buffer" in aState) {
-        if (aState.buffer) {
-          message += " before '" + aState.buffer + "'";
-        } else {
-          message += " at end of line";
-        }
-      }
-      if ("line" in aState) {
-        message += " in '" + aState.line + "'";
-      }
-      this.message = message;
-    } else {
-      this.message = aMessage;
+  DecorationError.prototype = {
+    __proto__: Error.prototype
+  };
+
+  function replaceNewlineReplace(string) {
+    switch (string) {
+      case "\\\\":
+        return "\\";
+      case "\\;":
+        return ";";
+      case "\\,":
+        return ",";
+      case "\\n":
+      case "\\N":
+        return "\n";
+      default:
+        return string;
+    }
+  }
+
+  function replaceNewline(value) {
+    // avoid regex when possible.
+    if (value.indexOf('\\') === -1) {
+      return value;
     }
 
-    // create stack
+    return value.replace(ICAL_NEWLINE, replaceNewlineReplace);
+  }
+
+  /**
+   * Changes the format of the UNTIl part in the RECUR
+   * value type. When no UNTIL part is found the original
+   * is returned untouched.
+   *
+   * @param {String} type toICAL or fromICAL.
+   * @param {String} aValue the value to check.
+   * @return {String} upgraded/original value.
+   */
+  function recurReplaceUntil(aType, aValue) {
+    var idx = aValue.indexOf('UNTIL=');
+    if (idx === -1) {
+      return aValue;
+    }
+
+    idx += 6;
+
+    // everything before the value
+    var begin = aValue.substr(0, idx);
+
+    // everything after the value
+    var end;
+
+    // current until value
+    var until;
+
+    // end of value could be -1 meaning this is the last param.
+    var endValueIdx = aValue.indexOf(';', idx);
+
+    if (endValueIdx === -1) {
+      end = '';
+      until = aValue.substr(idx);
+    } else {
+      end = aValue.substr(endValueIdx);
+      until = aValue.substr(idx, endValueIdx - idx);
+    }
+
+    if (until.length > 10) {
+      until = design.value['date-time'][aType](until);
+    } else {
+      until = design.value.date[aType](until);
+    }
+
+    return begin + until + end;
+  }
+  /**
+   * Design data used by the parser to decide if data is semantically correct
+   */
+  var design = {
+    DecorationError: DecorationError,
+
+    defaultType: 'text',
+
+    param: {
+      // Although the syntax is DQUOTE uri DQUOTE, I don't think we should
+      // enfoce anything aside from it being a valid content line.
+      // "ALTREP": { ... },
+
+      // CN just wants a param-value
+      // "CN": { ... }
+
+      "cutype": {
+        values: ["INDIVIDUAL", "GROUP", "RESOURCE", "ROOM", "UNKNOWN"],
+        allowXName: true,
+        allowIanaToken: true
+      },
+
+      "delegated-from": {
+        valueType: "cal-address",
+        multiValue: ","
+      },
+      "delegated-to": {
+        valueType: "cal-address",
+        multiValue: ","
+      },
+      // "DIR": { ... }, // See ALTREP
+      "encoding": {
+        values: ["8BIT", "BASE64"]
+      },
+      // "FMTTYPE": { ... }, // See ALTREP
+      "fbtype": {
+        values: ["FREE", "BUSY", "BUSY-UNAVAILABLE", "BUSY-TENTATIVE"],
+        allowXName: true,
+        allowIanaToken: true
+      },
+      // "LANGUAGE": { ... }, // See ALTREP
+      "member": {
+        valueType: "cal-address",
+        multiValue: ","
+      },
+      "partstat": {
+        // TODO These values are actually different per-component
+        values: ["NEEDS-ACTION", "ACCEPTED", "DECLINED", "TENTATIVE",
+                 "DELEGATED", "COMPLETED", "IN-PROCESS"],
+        allowXName: true,
+        allowIanaToken: true
+      },
+      "range": {
+        values: ["THISLANDFUTURE"]
+      },
+      "related": {
+        values: ["START", "END"]
+      },
+      "reltype": {
+        values: ["PARENT", "CHILD", "SIBLING"],
+        allowXName: true,
+        allowIanaToken: true
+      },
+      "role": {
+        values: ["REQ-PARTICIPANT", "CHAIR",
+                 "OPT-PARTICIPANT", "NON-PARTICIPANT"],
+        allowXName: true,
+        allowIanaToken: true
+      },
+      "rsvp": {
+        valueType: "boolean"
+      },
+      "sent-by": {
+        valueType: "cal-address"
+      },
+      "tzid": {
+        matches: /^\//
+      },
+      "value": {
+        // since the value here is a 'type' lowercase is used.
+        values: ["binary", "boolean", "cal-address", "date", "date-time",
+                 "duration", "float", "integer", "period", "recur", "text",
+                 "time", "uri", "utc-offset"],
+        allowXName: true,
+        allowIanaToken: true
+      }
+    },
+
+    // When adding a value here, be sure to add it to the parameter types!
+    value: {
+
+      "binary": {
+        decorate: function(aString) {
+          return ICAL.Binary.fromString(aString);
+        },
+
+        undecorate: function(aBinary) {
+          return aBinary.toString();
+        }
+      },
+      "boolean": {
+        values: ["TRUE", "FALSE"],
+
+        fromICAL: function(aValue) {
+          switch(aValue) {
+            case 'TRUE':
+              return true;
+            case 'FALSE':
+              return false;
+            default:
+              //TODO: parser warning
+              return false;
+          }
+        },
+
+        toICAL: function(aValue) {
+          if (aValue) {
+            return 'TRUE';
+          }
+          return 'FALSE';
+        }
+
+      },
+      "cal-address": {
+        // needs to be an uri
+      },
+      "date": {
+        decorate: function(aValue) {
+          return ICAL.Time.fromDateString(aValue);
+        },
+
+        /**
+         * undecorates a time object.
+         */
+        undecorate: function(aValue) {
+          return aValue.toString();
+        },
+
+        fromICAL: function(aValue) {
+          // from: 20120901
+          // to: 2012-09-01
+          var result = aValue.substr(0, 4) + '-' +
+                       aValue.substr(4, 2) + '-' +
+                       aValue.substr(6, 2);
+
+          return result;
+        },
+
+        toICAL: function(aValue) {
+          // from: 2012-09-01
+          // to: 20120901
+
+          if (aValue.length !== 10) {
+            //TODO: serialize warning?
+            return aValue;
+          }
+
+          return aValue.substr(0, 4) +
+                 aValue.substr(5, 2) +
+                 aValue.substr(8, 2);
+        }
+      },
+      "date-time": {
+        fromICAL: function(aValue) {
+          // from: 20120901T130000
+          // to: 2012-09-01T13:00:00
+          var result = aValue.substr(0, 4) + '-' +
+                       aValue.substr(4, 2) + '-' +
+                       aValue.substr(6, 2) + 'T' +
+                       aValue.substr(9, 2) + ':' +
+                       aValue.substr(11, 2) + ':' +
+                       aValue.substr(13, 2);
+
+          if (aValue[15] === 'Z') {
+            result += 'Z'
+          }
+
+          return result;
+        },
+
+        toICAL: function(aValue) {
+          // from: 2012-09-01T13:00:00
+          // to: 20120901T130000
+
+          if (aValue.length < 19) {
+            // TODO: error
+            return aValue;
+          }
+
+          var result = aValue.substr(0, 4) +
+                       aValue.substr(5, 2) +
+                       // grab the (DDTHH) segment
+                       aValue.substr(8, 5) +
+                       // MM
+                       aValue.substr(14, 2) +
+                       // SS
+                       aValue.substr(17, 2);
+
+          if (aValue[19] === 'Z') {
+            result += 'Z';
+          }
+
+          return result;
+        },
+
+        decorate: function(aValue) {
+          return ICAL.Time.fromDateTimeString(aValue);
+        },
+
+        undecorate: function(aValue) {
+          return aValue.toString();
+        }
+      },
+      duration: {
+        decorate: function(aValue) {
+          return ICAL.Duration.fromString(aValue);
+        },
+        undecorate: function(aValue) {
+          return aValue.toString();
+        }
+      },
+      float: {
+        matches: /^[+-]?\d+\.\d+$/,
+        decorate: function(aValue) {
+          return ICAL.Value.fromString(aValue, "float");
+        },
+
+        fromICAL: function(aValue) {
+          var parsed = parseFloat(aValue);
+          if (ICAL.helpers.isStrictlyNaN(parsed)) {
+            // TODO: parser warning
+            return 0.0;
+          }
+          return parsed;
+        },
+
+        toICAL: function(aValue) {
+          return String(aValue);
+        }
+      },
+      integer: {
+        fromICAL: function(aValue) {
+          var parsed = parseInt(aValue);
+          if (ICAL.helpers.isStrictlyNaN(parsed)) {
+            return 0;
+          }
+          return parsed;
+        },
+
+        toICAL: function(aValue) {
+          return String(aValue);
+        }
+      },
+      period: {
+
+        fromICAL: function(string) {
+          var parts = string.split('/');
+          var result = design.value['date-time'].fromICAL(parts[0]) + '/';
+
+          if (ICAL.Duration.isValueString(parts[1])) {
+            result += parts[1];
+          } else {
+            result += design.value['date-time'].fromICAL(parts[1]);
+          }
+
+          return result;
+        },
+
+        toICAL: function(string) {
+          var parts = string.split('/');
+          var result = design.value['date-time'].toICAL(parts[0]) + '/';
+
+          if (ICAL.Duration.isValueString(parts[1])) {
+            result += parts[1];
+          } else {
+            result += design.value['date-time'].toICAL(parts[1]);
+          }
+
+          return result;
+        },
+
+        decorate: function(aValue) {
+          return ICAL.Period.fromString(aValue);
+        },
+
+        undecorate: function(aValue) {
+          return aValue.toString();
+        }
+      },
+      recur: {
+        fromICAL: recurReplaceUntil.bind(this, 'fromICAL'),
+        toICAL: recurReplaceUntil.bind(this, 'toICAL'),
+
+        decorate: function decorate(aValue) {
+          return ICAL.Recur.fromString(aValue);
+        },
+
+        undecorate: function(aRecur) {
+          return aRecur.toString();
+        }
+      },
+
+      text: {
+        matches: /.*/,
+
+        fromICAL: function(aValue, aName) {
+          return replaceNewline(aValue);
+        },
+
+        toICAL: function escape(aValue, aName) {
+          return aValue.replace(/\\|;|,|\n/g, function(str) {
+            switch (str) {
+            case "\\":
+              return "\\\\";
+            case ";":
+              return "\\;";
+            case ",":
+              return "\\,";
+            case "\n":
+              return "\\n";
+            default:
+              return str;
+            }
+          });
+        }
+      },
+
+      time: {
+        fromICAL: function(aValue) {
+          // from: MMHHSS(Z)?
+          // to: HH:MM:SS(Z)?
+          if (aValue.length < 6) {
+            // TODO: parser exception?
+            return aValue;
+          }
+
+          // HH::MM::SSZ?
+          var result = aValue.substr(0, 2) + ':' +
+                       aValue.substr(2, 2) + ':' +
+                       aValue.substr(4, 2);
+
+          if (aValue[6] === 'Z') {
+            result += 'Z';
+          }
+
+          return result;
+        },
+
+        toICAL: function(aValue) {
+          // from: HH:MM:SS(Z)?
+          // to: MMHHSS(Z)?
+          if (aValue.length < 8) {
+            //TODO: error
+            return aValue;
+          }
+
+          var result = aValue.substr(0, 2) +
+                       aValue.substr(3, 2) +
+                       aValue.substr(6, 2);
+
+          if (aValue[8] === 'Z') {
+            result += 'Z';
+          }
+
+          return result;
+        }
+      },
+
+      uri: {
+        // TODO
+        /* ... */
+      },
+
+      "utc-offset": {
+        toICAL: function(aValue) {
+          if (aValue.length < 7) {
+            // no seconds
+            // -0500
+            return aValue.substr(0, 3) +
+                   aValue.substr(4, 2);
+          } else {
+            // seconds
+            // -050000
+            return aValue.substr(0, 3) +
+                   aValue.substr(4, 2) +
+                   aValue.substr(7, 2);
+          }
+        },
+
+        fromICAL: function(aValue) {
+          if (aValue.length < 6) {
+            // no seconds
+            // -05:00
+            return aValue.substr(0, 3) + ':' +
+                   aValue.substr(3, 2);
+          } else {
+            // seconds
+            // -05:00:00
+            return aValue.substr(0, 3) + ':' +
+                   aValue.substr(3, 2) + ':' +
+                   aValue.substr(5, 2);
+          }
+        },
+
+        decorate: function(aValue) {
+          return ICAL.UtcOffset.fromString(aValue);
+        },
+
+        undecorate: function(aValue) {
+          return aValue.toString();
+        }
+      }
+    },
+
+    property: {
+      decorate: function decorate(aData, aParent) {
+        return new ICAL.Property(aData, aParent);
+      },
+      "attach": {
+        defaultType: "uri"
+      },
+      "attendee": {
+        defaultType: "cal-address"
+      },
+      "categories": {
+        defaultType: "text",
+        multiValue: ","
+      },
+      "completed": {
+        defaultType: "date-time"
+      },
+      "created": {
+        defaultType: "date-time"
+      },
+      "dtend": {
+        defaultType: "date-time",
+        allowedTypes: ["date-time", "date"]
+      },
+      "dtstamp": {
+        defaultType: "date-time"
+      },
+      "dtstart": {
+        defaultType: "date-time",
+        allowedTypes: ["date-time", "date"]
+      },
+      "due": {
+        defaultType: "date-time",
+        allowedTypes: ["date-time", "date"]
+      },
+      "duration": {
+        defaultType: "duration"
+      },
+      "exdate": {
+        defaultType: "date-time",
+        allowedTypes: ["date-time", "date"],
+        multiValue: ','
+      },
+      "exrule": {
+        defaultType: "recur"
+      },
+      "freebusy": {
+        defaultType: "period",
+        multiValue: ","
+      },
+      "geo": {
+        defaultType: "float",
+        multiValue: ";"
+      },
+      /* TODO exactly 2 values */"last-modified": {
+        defaultType: "date-time"
+      },
+      "organizer": {
+        defaultType: "cal-address"
+      },
+      "percent-complete": {
+        defaultType: "integer"
+      },
+      "repeat": {
+        defaultType: "integer"
+      },
+      "rdate": {
+        defaultType: "date-time",
+        allowedTypes: ["date-time", "date", "period"],
+        multiValue: ','
+      },
+      "recurrence-id": {
+        defaultType: "date-time",
+        allowedTypes: ["date-time", "date"]
+      },
+      "resources": {
+        defaultType: "text",
+        multiValue: ","
+      },
+      "request-status": {
+        defaultType: "text",
+        multiValue: ";"
+      },
+      "priority": {
+        defaultType: "integer"
+      },
+      "rrule": {
+        defaultType: "recur"
+      },
+      "sequence": {
+        defaultType: "integer"
+      },
+      "trigger": {
+        defaultType: "duration",
+        allowedTypes: ["duration", "date-time"]
+      },
+      "tzoffsetfrom": {
+        defaultType: "utc-offset"
+      },
+      "tzoffsetto": {
+        defaultType: "utc-offset"
+      },
+      "tzurl": {
+        defaultType: "uri"
+      },
+      "url": {
+        defaultType: "uri"
+      }
+    },
+
+    component: {
+      decorate: function decorate(aData, aParent) {
+        return new ICAL.Component(aData, aParent);
+      },
+      "vevent": {}
+    }
+
+  };
+
+  return design;
+}());
+ICAL.stringify = (function() {
+  'use strict';
+
+  var LINE_ENDING = '\r\n';
+  var DEFAULT_TYPE = 'text';
+
+  var design = ICAL.design;
+  var helpers = ICAL.helpers;
+
+  /**
+   * Convert a full jCal Array into a ical document.
+   *
+   * @param {Array} jCal document.
+   * @return {String} ical document.
+   */
+  function stringify(jCal) {
+    if (!jCal[0] || jCal[0] !== 'icalendar') {
+      throw new Error('must provide full jCal document');
+    }
+
+    // 1 because we skip the initial element.
+    var i = 1;
+    var len = jCal.length;
+    var result = '';
+
+    for (; i < len; i++) {
+      result += stringify.component(jCal[i]) + LINE_ENDING;
+    }
+
+    return result;
+  }
+
+  /**
+   * Converts an jCal component array into a ICAL string.
+   * Recursive will resolve sub-components.
+   *
+   * Exact component/property order is not saved all
+   * properties will come before subcomponents.
+   *
+   * @param {Array} component jCal fragment of a component.
+   */
+  stringify.component = function(component) {
+    var name = component[0].toUpperCase();
+    var result = 'BEGIN:' + name + LINE_ENDING;
+
+    var props = component[1];
+    var propIdx = 0;
+    var propLen = props.length;
+
+    for (; propIdx < propLen; propIdx++) {
+      result += stringify.property(props[propIdx]) + LINE_ENDING;
+    }
+
+    var comps = component[2];
+    var compIdx = 0;
+    var compLen = comps.length;
+
+    for (; compIdx < compLen; compIdx++) {
+      result += stringify.component(comps[compIdx]) + LINE_ENDING;
+    }
+
+    result += 'END:' + name;
+    return result;
+  }
+
+  /**
+   * Converts a single property to a ICAL string.
+   *
+   * @param {Array} property jCal property.
+   */
+  stringify.property = function(property) {
+    var name = property[0].toUpperCase();
+    var jsName = property[0];
+    var params = property[1];
+
+    var line = name;
+
+    var paramName;
+    for (paramName in params) {
+      if (params.hasOwnProperty(paramName)) {
+        line += ';' + paramName.toUpperCase();
+        line += '=' + stringify.propertyValue(params[paramName]);
+      }
+    }
+
+    // there is no value so return.
+    if (property.length === 3) {
+      // if no params where inserted and no value
+      // we given we must add a blank value.
+      if (!paramName) {
+        line += ':';
+      }
+      return line;
+    }
+
+    var valueType = property[2];
+
+    var propDetails;
+    var multiValue = false;
+    var isDefault = false;
+
+    if (jsName in design.property) {
+      propDetails = design.property[jsName];
+
+      if ('multiValue' in propDetails) {
+        multiValue = propDetails.multiValue;
+      }
+
+      if ('defaultType' in propDetails) {
+        if (valueType === propDetails.defaultType) {
+          isDefault = true;
+        }
+      } else {
+        if (valueType === DEFAULT_TYPE) {
+          isDefault = true;
+        }
+      }
+    } else {
+      if (valueType === DEFAULT_TYPE) {
+        isDefault = true;
+      }
+    }
+
+    // push the VALUE property if type is not the default
+    // for the current property.
+    if (!isDefault) {
+      // value will never contain ;/:/, so we don't escape it here.
+      line += ';VALUE=' + valueType.toUpperCase();
+    }
+
+    line += ':';
+
+    if (multiValue) {
+      line += stringify.multiValue(
+        property.slice(3), multiValue, valueType
+      );
+    } else {
+      line += stringify.value(property[3], valueType);
+    }
+
+    return ICAL.helpers.foldline(line);
+  }
+
+  /**
+   * Handles escaping of property values that may contain:
+   *
+   *    COLON (:), SEMICOLON (;), or COMMA (,)
+   *
+   * If any of the above are present the result is wrapped
+   * in double quotes.
+   *
+   * @param {String} value raw value.
+   * @return {String} given or escaped value when needed.
+   */
+  stringify.propertyValue = function(value) {
+
+    if ((helpers.unescapedIndexOf(value, ',') === -1) &&
+        (helpers.unescapedIndexOf(value, ':') === -1) &&
+        (helpers.unescapedIndexOf(value, ';') === -1)) {
+
+      return value;
+    }
+
+    return '"' + value + '"';
+  }
+
+  /**
+   * Converts an array of ical values into a single
+   * string based on a type and a delimiter value (like ",").
+   *
+   * @param {Array} values list of values to convert.
+   * @param {String} delim used to join the values usually (",", ";", ":").
+   * @param {String} type lowecase ical value type
+   *  (like boolean, date-time, etc..).
+   *
+   * @return {String} ical string for value.
+   */
+  stringify.multiValue = function(values, delim, type) {
+    var result = '';
+    var len = values.length;
+    var i = 0;
+
+    for (; i < len; i++) {
+      result += stringify.value(values[i], type);
+      if (i !== (len - 1)) {
+        result += delim;
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * Processes a single ical value runs the associated "toICAL"
+   * method from the design value type if available to convert
+   * the value.
+   *
+   * @param {String|Numeric} value some formatted value.
+   * @param {String} type lowecase ical value type
+   *  (like boolean, date-time, etc..).
+   * @return {String} ical value for single value.
+   */
+  stringify.value = function(value, type) {
+    if (type in design.value && 'toICAL' in design.value[type]) {
+      return design.value[type].toICAL(value);
+    }
+    return value;
+  }
+
+  return stringify;
+
+}());
+
+ICAL.parse = (function() {
+  'use strict';
+
+  var CHAR = /[^ \t]/;
+  var MULTIVALUE_DELIMITER = ',';
+  var VALUE_DELIMITER = ':';
+  var PARAM_DELIMITER = ';';
+  var PARAM_NAME_DELIMITER = '=';
+  var DEFAULT_TYPE = 'text';
+
+  var design = ICAL.design;
+  var helpers = ICAL.helpers;
+
+  function ParserError(message) {
+    this.message = message;
+
     try {
       throw new Error();
     } catch (e) {
@@ -309,1784 +1141,1065 @@ ICAL.helpers = {
   }
 
   ParserError.prototype = {
-    __proto__: Error.prototype,
-    constructor: ParserError
+    __proto__: Error.prototype
   };
 
-  var parser = {
-    Error: ParserError
-  };
-  ICAL.icalparser = parser;
+  function parser(input) {
+    var state = {};
+    var root = state.component = [
+      'icalendar'
+    ];
+
+    state.stack = [root];
+
+    parser._eachLine(input, function(err, line) {
+      parser._handleContentLine(line, state);
+    });
 
 
-  parser.lexContentLine = function lexContentLine(aState) {
-    // contentline   = name *(";" param ) ":" value CRLF
-    // The corresponding json object will be:
-    // { name: "name", parameters: { key: "value" }, value: "value" }
-    var lineData = {};
-
-    // Parse the name
-    lineData.name = parser.lexName(aState);
-
-    // Read Paramaters, if there are any.
-    if (aState.buffer.substr(0, 1) == ";") {
-      lineData.parameters = {};
-      while (aState.buffer.substr(0, 1) == ";") {
-        aState.buffer = aState.buffer.substr(1);
-        var param = parser.lexParam(aState);
-        lineData.parameters[param.name] = param.value;
-      }
+    // when there are still items on the stack
+    // throw a fatal error, a component was not closed
+    // correctly in that case.
+    if (state.stack.length > 1) {
+      throw new ParserError(
+        'invalid ical body. component began but did not end'
+      );
     }
 
-    // Read the value
-    parser.expectRE(aState, /^:/, "Expected ':'");
-    lineData.value = parser.lexValue(aState);
-    parser.expectEnd(aState, "Junk at End of Line");
-    return lineData;
-  };
+    state = null;
 
-  parser.lexName = function lexName(aState) {
-    function parseIanaToken(aState) {
-      var match = parser.expectRE(aState, /^([A-Za-z0-9-]+)/,
-                                  "Expected IANA Token");
-      return match[1];
-    }
-
-    function parseXName(aState) {
-      var error = "Expected XName";
-      var value = "X-";
-      var match = parser.expectRE(aState, /^X-/, error);
-
-      // Vendor ID
-      if ((match = parser.expectOptionalRE(aState, /^([A-Za-z0-9]+-)/, error))) {
-        value += match[1];
-      }
-
-      // Remaining part
-      match = parser.expectRE(aState, /^([A-Za-z0-9-]+)/, error);
-      value += match[1];
-
-      return value;
-    }
-    return parser.parseAlternative(aState, parseXName, parseIanaToken);
-  };
-
-  parser.lexValue = function lexValue(aState) {
-    // VALUE-CHAR = WSP / %x21-7E / NON-US-ASCII
-    // ; Any textual character
-
-    if (aState.buffer.length === 0) {
-      return aState.buffer;
-    }
-
-    // TODO the unicode range might be wrong!
-    var match = parser.expectRE(aState,
-                                /*  WSP|%x21-7E|NON-US-ASCII  */
-                                /^([ \t\x21-\x7E\u00C2-\uF400]+)/,
-                                "Invalid Character in value");
-
-    return match[1];
-  };
-
-  parser.lexParam = function lexParam(aState) {
-    // read param name
-    var name = parser.lexName(aState);
-    parser.expectRE(aState, /^=/, "Expected '='");
-
-    // read param value
-    var values = parser.parseList(aState, parser.lexParamValue, ",");
-    return {
-      name: name,
-      value: (values.length == 1 ? values[0] : values)
-    };
-  };
-
-  parser.lexParamValue = function lexParamValue(aState) {
-    // CONTROL = %x00-08 / %x0A-1F / %x7F
-    // ; All the controls except HTAB
-    function parseQuotedString(aState) {
-      parser.expectRE(aState, /^"/, "Expecting Quote Character");
-      // QSAFE-CHAR    = WSP / %x21 / %x23-7E / NON-US-ASCII
-      // ; Any character except CONTROL and DQUOTE
-
-      var match = parser.expectRE(aState, /^([^"\x00-\x08\x0A-\x1F\x7F]*)/,
-                                  "Invalid Param Value");
-      parser.expectRE(aState, /^"/, "Expecting Quote Character");
-      return match[1];
-    }
-
-    function lexParamText(aState) {
-      // SAFE-CHAR     = WSP / %x21 / %x23-2B / %x2D-39 / %x3C-7E / NON-US-ASCII
-      // ; Any character except CONTROL, DQUOTE, ";", ":", ","
-      var match = parser.expectRE(aState, /^([^";:,\x00-\x08\x0A-\x1F\x7F]*)/,
-                                  "Invalid Param Value");
-      return match[1];
-    }
-
-    return parser.parseAlternative(aState, parseQuotedString, lexParamText);
-  };
-
-  parser.parseContentLine = function parseContentLine(aState, aLineData) {
-
-    switch (aLineData.name) {
-    case "BEGIN":
-      var newdata = ICAL.helpers.initComponentData(aLineData.value);
-      if (aState.currentData) {
-        // If there is already data (i.e this is not the top level
-        // component), then push the new data to its values and
-        // stack the parent data.
-        aState.currentData.value.push(newdata);
-        aState.parentData.push(aState.currentData);
-      }
-
-      aState.currentData = newdata; // set the new data array
-      break;
-    case "END":
-      if (aState.currentData.name != aLineData.value) {
-        throw new ParserError(aState, "Unexpected END:" + aLineData.value +
-                              ", expected END:" + aState.currentData.name);
-      }
-      if (aState.parentData.length) {
-        aState.currentData = aState.parentData.pop();
-      }
-      break;
-    default:
-      ICAL.helpers.dumpn("parse " + aLineData.toString());
-      parser.detectParameterType(aLineData);
-      parser.detectValueType(aLineData);
-      ICAL.helpers.dumpn("parse " + aLineData.toString());
-      aState.currentData.value.push(aLineData);
-      break;
-    }
-  },
-
-  parser.detectParameterType = function detectParameterType(aLineData) {
-    for (var name in aLineData.parameters) {
-      var paramType = "TEXT";
-
-      if (name in ICAL.design.param && "valueType" in ICAL.design.param[name]) {
-        paramType = ICAL.design.param[name].valueType;
-      }
-      var paramData = {
-        value: aLineData.parameters[name],
-        type: paramType
-      };
-
-      aLineData.parameters[name] = paramData;
-    }
-  };
-
-  parser.detectValueType = function detectValueType(aLineData) {
-    var valueType = "TEXT";
-    var defaultType = null;
-    if (aLineData.name in ICAL.design.property &&
-        "defaultType" in ICAL.design.property[aLineData.name]) {
-      valueType = ICAL.design.property[aLineData.name].defaultType;
-    }
-
-    if ("parameters" in aLineData && "VALUE" in aLineData.parameters) {
-      var valueParam = aLineData.parameters.VALUE;
-      if (typeof(valueParam) === 'string') {
-        valueType = aLineData.parameters.VALUE.toUpperCase();
-      } else if(typeof(valueParam) === 'object') {
-        valueType = valueParam.value.toUpperCase();
-      }
-    }
-
-    if (!(valueType in ICAL.design.value)) {
-      throw new ParserError(aLineData, "Invalid VALUE Type '" + valueType);
-    }
-
-    aLineData.type = valueType;
-
-    // It could be a multi-value value, we have to take that apart first
-    function unwrapMultiValue(x, separator) {
-      var values = [];
-
-      function replacer(s, a) {
-        values.push(a);
-        return "";
-      }
-      var re = new RegExp("(.*?[^\\\\])" + separator, "g");
-      values.push(x.replace(re, replacer));
-      return values;
-    }
-
-    if (aLineData.name in ICAL.design.property) {
-      if (ICAL.design.property[aLineData.name].multiValue) {
-        aLineData.value = unwrapMultiValue(aLineData.value, ",");
-      } else if (ICAL.design.property[aLineData.name].structuredValue) {
-        aLineData.value = unwrapMultiValue(aLineData.value, ";");
-      } else {
-        aLineData.value = [aLineData.value];
-      }
-    } else {
-      aLineData.value = [aLineData.value];
-    }
-
-    if ("unescape" in ICAL.design.value[valueType]) {
-      var unescaper = ICAL.design.value[valueType].unescape;
-      for (var idx in aLineData.value) {
-        aLineData.value[idx] = unescaper(aLineData.value[idx], aLineData.name);
-      }
-    }
-
-    return aLineData;
+    return root;
   }
 
-  parser.validateValue = function validateValue(aLineData, aValueType,
-                                                aValue, aCheckParams) {
-    var propertyData = ICAL.design.property[aLineData.name];
-    var valueData = ICAL.design.value[aValueType];
+  // classes & constants
+  parser.ParserError = ParserError;
 
-    // TODO either make validators just consume the value, then check for end
-    // here (possibly requires returning remainder or renaming buffer<->value
-    // in the states) validators don't really need the whole linedata
+  parser._formatName = function(name) {
+    return name.toLowerCase();
+  }
 
-    if (!aValue.match) {
-      ICAL.helpers.dumpn("MAAA: " + aValue + " ? " + aValue.toString());
-    }
+  parser._handleContentLine = function(line, state) {
+    // break up the parts of the line
+    var valuePos = line.indexOf(VALUE_DELIMITER);
+    var paramPos = line.indexOf(PARAM_DELIMITER);
 
-    if (valueData.matches) {
-      // Test against regex
-      if (!aValue.match(valueData.matches)) {
-        throw new ParserError(aLineData, "Value '" + aValue + "' for " +
-                              aLineData.name + " is not " + aValueType);
-      }
-    } else if ("validate" in valueData) {
-      // Validator throws an error itself if needed
-      var objData = valueData.validate(aValue);
+    var nextPos = 0;
+    // name of property or begin/end
+    var name;
+    var value;
+    var params;
 
-      // Merge in extra value data, if it exists
-      ICAL.helpers.mixin(aLineData, objData);
-    } else if ("values" in valueData) {
-      // Fixed list of values
-      if (valueData.values.indexOf(aValue) < 0) {
-        throw new ParserError(aLineData, "Value for " + aLineData.name +
-                              " is not a " + aValueType);
-      }
-    }
+    /**
+     * Different property cases
+     *
+     *
+     * 1. RRULE:FREQ=foo
+     *    // FREQ= is not a param but the value
+     *
+     * 2. ATTENDEE;ROLE=REQ-PARTICIPANT;
+     *    // ROLE= is a param because : has not happened yet
+     */
 
-    if (aCheckParams && "requireParam" in valueData) {
-      var reqParam = valueData.requireParam;
-      for (var param in reqParam) {
-        if (!("parameters" in aLineData) ||
-            !(param in aLineData.parameters) ||
-            aLineData.parameters[param] != reqParam[param]) {
-
-          throw new ParserError(aLineData, "Value requires " + param + "=" +
-                                valueData.requireParam[param]);
-        }
+    if ((paramPos !== -1 && valuePos !== -1)) {
+      // when the parameter delimiter is after the
+      // value delimiter then its not a parameter.
+      if (paramPos > valuePos) {
+        paramPos = -1;
       }
     }
 
-    return aLineData;
-  };
-
-  parser.parseValue = function parseValue(aStr, aType) {
-    var lineData = {
-      value: [aStr]
-    };
-    return parser.validateValue(lineData, aType, aStr, false);
-  };
-
-  parser.decorateValue = function decorateValue(aType, aValue) {
-    if (aType in ICAL.design.value && "decorate" in ICAL.design.value[aType]) {
-      return ICAL.design.value[aType].decorate(aValue);
-    } else {
-      return ICAL.design.value.TEXT.decorate(aValue);
-    }
-  };
-
-  parser.stringifyProperty = function stringifyProperty(aLineData) {
-    ICAL.helpers.dumpn("Stringify: " + aLineData.toString());
-    var str = aLineData.name;
-    if (aLineData.parameters) {
-      for (var key in aLineData.parameters) {
-        str += ";" + key + "=" + aLineData.parameters[key].value;
+    if (paramPos !== -1) {
+      // when there are parameters (ATTENDEE;RSVP=TRUE;)
+      name = parser._formatName(line.substr(0, paramPos));
+      params = parser._parseParameters(line, paramPos);
+      if (valuePos !== -1) {
+        value = line.substr(valuePos + 1);
       }
-    }
+    } else if (valuePos !== -1) {
+      // without parmeters (BEGIN:VCAENDAR, CLASS:PUBLIC)
+      name = parser._formatName(line.substr(0, valuePos));
+      value = line.substr(valuePos + 1);
 
-    str += ":" + parser.stringifyValue(aLineData);
-
-    return ICAL.helpers.foldline(str);
-  };
-
-  parser.stringifyValue = function stringifyValue(aLineData) {
-    function arrayStringMap(arr, func) {
-      var newArr = [];
-      for (var idx in arr) {
-        newArr[idx] = func(arr[idx].toString());
-      }
-      return newArr;
-    }
-
-    if (aLineData) {
-      var values = aLineData.value;
-      if (aLineData.type in ICAL.design.value &&
-          "escape" in ICAL.design.value[aLineData.type]) {
-        var escaper = ICAL.design.value[aLineData.type].escape;
-        values = arrayStringMap(values, escaper);
-      }
-
-      var separator = ",";
-      if (aLineData.name in ICAL.design.property &&
-          ICAL.design.property[aLineData.name].structuredValue) {
-        separator = ";";
-      }
-
-      return values.join(separator);
-    } else {
-      return null;
-    }
-  };
-
-  parser.parseDateOrDateTime = function parseDateOrDateTime(aState) {
-    var data = parser.parseDate(aState);
-
-    if (parser.expectOptionalRE(aState, /^T/)) {
-      // This has a time component, parse it
-      var time = parser.parseTime(aState);
-
-      if (parser.expectOptionalRE(aState, /^Z/)) {
-        data.timezone = "Z";
-      }
-      ICAL.helpers.mixin(data, time);
-    }
-    return data;
-  };
-
-  parser.parseDateTime = function parseDateTime(aState) {
-    var data = parser.parseDate(aState);
-    parser.expectRE(aState, /^T/, "Expected 'T'");
-
-    var time = parser.parseTime(aState);
-
-    if (parser.expectOptionalRE(aState, /^Z/)) {
-      data.timezone = "Z";
-    }
-
-    ICAL.helpers.mixin(data, time);
-    return data;
-  };
-
-  parser.parseDate = function parseDate(aState) {
-    var dateRE = /^((\d{4})(0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01]))/;
-    var match = parser.expectRE(aState, dateRE, "Expected YYYYMMDD Date");
-    return {
-      year: parseInt(match[2], 10),
-      month: parseInt(match[3], 10),
-      day: parseInt(match[4], 10)
-    };
-    // TODO timezone?
-  };
-
-  parser.parseTime = function parseTime(aState) {
-    var timeRE = /^(([01][0-9]|2[0-3])([0-5][0-9])([0-5][0-9]|60))/;
-    var match = parser.expectRE(aState, timeRE, "Expected HHMMSS Time");
-    return {
-      hour: parseInt(match[2], 10),
-      minute: parseInt(match[3], 10),
-      second: parseInt(match[4], 10)
-    };
-  };
-
-  parser.parseDuration = function parseDuration(aState) {
-    var error = "Expected Duration Value";
-
-    function parseDurSecond(aState) {
-      var secMatch = parser.expectRE(aState, /^((\d+)S)/, "Expected Seconds");
-      return {
-        seconds: parseInt(secMatch[2], 10)
-      };
-    }
-
-    function parseDurMinute(aState) {
-      var data = {};
-      var minutes = parser.expectRE(aState, /^((\d+)M)/, "Expected Minutes");
-      try {
-        data = parseDurSecond(aState);
-      } catch (e) {
-        // seconds are optional, its ok
-        if (!(e instanceof ParserError)) {
-          throw e;
-        }
-      }
-      data.minutes = parseInt(minutes[2], 10);
-      return data;
-    }
-
-    function parseDurHour(aState) {
-      var data = {};
-      var hours = parser.expectRE(aState, /^((\d+)H)/, "Expected Hours");
-      try {
-        data = parseDurMinute(aState);
-      } catch (e) {
-        // seconds are optional, its ok
-        if (!(e instanceof ParserError)) {
-          throw e;
-        }
-      }
-
-      data.hours = parseInt(hours[2], 10);
-      return data;
-    }
-
-    function parseDurWeek(aState) {
-      return {
-        weeks: parseInt(parser.expectRE(aState, /^((\d+)W)/, "Expected Weeks")[2], 10)
-      };
-    }
-
-    function parseDurTime(aState) {
-      parser.expectRE(aState, /^T/, "Expected Time Value");
-      return parser.parseAlternative(aState, parseDurHour,
-                                     parseDurMinute, parseDurSecond);
-    }
-
-    function parseDurDate(aState) {
-      var days = parser.expectRE(aState, /^((\d+)D)/, "Expected Days");
-      var data;
-
-      try {
-        data = parseDurTime(aState);
-      } catch (e) {
-        // Its ok if this fails
-        if (!(e instanceof ParserError)) {
-          throw e;
-        }
-      }
-
-      if (data) {
-        data.days = parseInt(days[2], 10);
-      } else {
-        data = {
-          days: parseInt(days[2], 10)
-        };
-      }
-      return data;
-    }
-
-    var factor = parser.expectRE(aState, /^([+-]?P)/, error);
-
-    var durData = parser.parseAlternative(aState, parseDurDate,
-                                          parseDurTime, parseDurWeek);
-    parser.expectEnd(aState, "Junk at end of DURATION value");
-
-    durData.factor = (factor[1] == "-P" ? -1 : 1);
-    return durData;
-  };
-
-  parser.parsePeriod = function parsePeriod(aState) {
-    var dtime = parser.parseDateTime(aState);
-    parser.expectRE(aState, /\//, "Expected '/'");
-
-    var dtdur = parser.parseAlternative(aState, parser.parseDateTime,
-                                        parser.parseDuration);
-    var data = {
-      start: dtime
-    };
-    if ("factor" in dtdur) {
-      data.duration = dtdur;
-    } else {
-      data.end = dtdur;
-    }
-    return data;
-  },
-
-  parser.parseRecur = function parseRecur(aState) {
-    // TODO this function is quite cludgy, maybe it should be done differently
-    function parseFreq(aState) {
-      parser.expectRE(aState, /^FREQ=/, "Expected Frequency");
-      var ruleRE = /^(SECONDLY|MINUTELY|HOURLY|DAILY|WEEKLY|MONTHLY|YEARLY)/;
-      var match = parser.expectRE(aState, ruleRE, "Exepected Frequency Value");
-      return {
-        "FREQ": match[1]
-      };
-    }
-
-    function parseUntil(aState) {
-      parser.expectRE(aState, /^UNTIL=/, "Expected Frequency");
-      var untilDate = parser.parseDateOrDateTime(aState);
-      return {
-        "UNTIL": untilDate
-      };
-    }
-
-    function parseCount(aState) {
-      parser.expectRE(aState, /^COUNT=/, "Expected Count");
-      var match = parser.expectRE(aState, /^(\d+)/, "Expected Digit(s)");
-      return {
-        "COUNT": parseInt(match[1], 10)
-      };
-    }
-
-    function parseInterval(aState) {
-      parser.expectRE(aState, /^INTERVAL=/, "Expected Interval");
-      var match = parser.expectRE(aState, /^(\d+)/, "Expected Digit(s)");
-      return {
-        "INTERVAL": parseInt(match[1], 10)
-      };
-    }
-
-    function parseBySecond(aState) {
-      function parseSecond(aState) {
-        var secondRE = /^(60|[1-5][0-9]|[0-9])/;
-        var value = parser.expectRE(aState, secondRE, "Expected Second")[1];
-        return parseInt(value, 10);
-      }
-      parser.expectRE(aState, /^BYSECOND=/, "Expected BYSECOND");
-      var seconds = parser.parseList(aState, parseSecond, ",");
-      return {
-        "BYSECOND": seconds
-      };
-    }
-
-    function parseByMinute(aState) {
-      function parseMinute(aState) {
-        var minuteRE = /^([1-5][0-9]|[0-9])/;
-        var value = parser.expectRE(aState, minuteRE, "Expected Minute")[1];
-        return parseInt(value, 10);
-      }
-      parser.expectRE(aState, /^BYMINUTE=/, "Expected BYMINUTE");
-      var minutes = parser.parseList(aState, parseMinute, ",");
-      return {
-        "BYMINUTE": minutes
-      };
-    }
-
-    function parseByHour(aState) {
-      function parseHour(aState) {
-        var hourRE = /^(2[0-3]|1[0-9]|[0-9])/;
-        var value = parser.expectRE(aState, hourRE, "Expected Hour")[1];
-        return parseInt(value, 10);
-      }
-      parser.expectRE(aState, /^BYHOUR=/, "Expected BYHOUR");
-      var hours = parser.parseList(aState, parseHour, ",");
-      return {
-        "BYHOUR": hours
-      };
-    }
-
-    function parseByDay(aState) {
-      function parseWkDayNum(aState) {
-        var value = "";
-        var match = parser.expectOptionalRE(aState, /^([+-])/);
-        if (match) {
-          value += match[1];
-        }
-
-        match = parser.expectOptionalRE(aState, /^(5[0-3]|[1-4][0-9]|[1-9])/);
-        if (match) {
-          value += match[1];
-        }
-
-        var wkDayRE = /^(SU|MO|TU|WE|TH|FR|SA)/;
-        match = parser.expectRE(aState, wkDayRE, "Expected Week Ordinals");
-        value += match[1];
-        return value;
-      }
-      parser.expectRE(aState, /^BYDAY=/, "Expected BYDAY Rule");
-      var wkdays = parser.parseList(aState, parseWkDayNum, ",");
-      return {
-        "BYDAY": wkdays
-      };
-    }
-
-    function parseByMonthDay(aState) {
-      function parseMoDayNum(aState) {
-        var value = "";
-        var match = parser.expectOptionalRE(aState, /^([+-])/);
-        if (match) {
-          value += match[1];
-        }
-
-        match = parser.expectRE(aState, /^(3[01]|[12][0-9]|[1-9])/);
-        value += match[1];
-        return parseInt(value, 10);
-      }
-      parser.expectRE(aState, /^BYMONTHDAY=/, "Expected BYMONTHDAY Rule");
-      var modays = parser.parseList(aState, parseMoDayNum, ",");
-      return {
-        "BYMONTHDAY": modays
-      };
-    }
-
-    function parseByYearDay(aState) {
-      function parseYearDayNum(aState) {
-        var value = "";
-        var match = parser.expectOptionalRE(aState, /^([+-])/);
-        if (match) {
-          value += match[1];
-        }
-
-        var yrDayRE = /^(36[0-6]|3[0-5][0-9]|[12][0-9][0-9]|[1-9][0-9]|[1-9])/;
-        match = parser.expectRE(aState, yrDayRE);
-        value += match[1];
-        return parseInt(value, 10);
-      }
-      parser.expectRE(aState, /^BYYEARDAY=/, "Expected BYYEARDAY Rule");
-      var yrdays = parser.parseList(aState, parseYearDayNum, ",");
-      return {
-        "BYYEARDAY": yrdays
-      };
-    }
-
-    function parseByWeekNo(aState) {
-      function parseWeekNum(aState) {
-        var value = "";
-        var match = parser.expectOptionalRE(aState, /^([+-])/);
-        if (match) {
-          value += match[1];
-        }
-
-        match = parser.expectRE(aState, /^(5[0-3]|[1-4][0-9]|[1-9])/);
-        value += match[1];
-        return parseInt(value, 10);
-      }
-      parser.expectRE(aState, /^BYWEEKNO=/, "Expected BYWEEKNO Rule");
-      var weeknos = parser.parseList(aState, parseWeekNum, ",");
-      return {
-        "BYWEEKNO": weeknos
-      };
-    }
-
-    function parseByMonth(aState) {
-      function parseMonthNum(aState) {
-        var moNumRE = /^(1[012]|[1-9])/;
-        var match = parser.expectRE(aState, moNumRE, "Expected Month number");
-        return parseInt(match[1], 10);
-      }
-      parser.expectRE(aState, /^BYMONTH=/, "Expected BYMONTH Rule");
-      var monums = parser.parseList(aState, parseMonthNum, ",");
-      return {
-        "BYMONTH": monums
-      };
-    }
-
-    function parseBySetPos(aState) {
-      function parseSpList(aState) {
-        var spRE = /^(36[0-6]|3[0-5][0-9]|[12][0-9][0-9]|[1-9][0-9]|[1-9])/;
-        var value = parser.expectRE(aState, spRE)[1];
-
-        return parseInt(value, 10);
-      }
-      parser.expectRE(aState, /^BYSETPOS=/, "Expected BYSETPOS Rule");
-      var spnums = parser.parseList(aState, parseSpList, ",");
-      return {
-        "BYSETPOS": spnums
-      };
-    }
-
-    function parseWkst(aState) {
-      parser.expectRE(aState, /^WKST=/, "Expected WKST");
-      var wkstRE = /^(SU|MO|TU|WE|TH|FR|SA)/;
-      var match = parser.expectRE(aState, wkstRE, "Expected Weekday Name");
-      return {
-        "WKST": match[1]
-      };
-    }
-
-    function parseRulePart(aState) {
-      return parser.parseAlternative(aState,
-      parseFreq, parseUntil, parseCount, parseInterval,
-      parseBySecond, parseByMinute, parseByHour, parseByDay,
-      parseByMonthDay, parseByYearDay, parseByWeekNo,
-      parseByMonth, parseBySetPos, parseWkst);
-    }
-
-    // One or more rule parts
-    var value = parser.parseList(aState, parseRulePart, ";");
-    var data = {};
-    for (var key in value) {
-      ICAL.helpers.mixin(data, value[key]);
-    }
-
-    // Make sure there's no junk at the end
-    parser.expectEnd(aState, "Junk at end of RECUR value");
-    return data;
-  };
-
-  parser.parseUtcOffset = function parseUtcOffset(aState) {
-    var utcRE = /^(([+-])([01][0-9]|2[0-3])([0-5][0-9])([0-5][0-9])?)$/;
-    var match = parser.expectRE(aState, utcRE, "Expected valid utc offset");
-    return {
-      factor: (match[2] == "-" ? -1 : 1),
-      hours: parseInt(match[3], 10),
-      minutes: parseInt(match[4], 10)
-    };
-  };
-
-  parser.parseAlternative = function parseAlternative(aState /*, parserFunc, ... */) {
-    var tokens = null;
-    var args = Array.prototype.slice.call(arguments);
-    var parser;
-    args.shift();
-    var errors = [];
-
-    while (!tokens && (parser = args.shift())) {
-      try {
-        tokens = parser(aState);
-      } catch (e) {
-        if (e instanceof ParserError) {
-          errors.push(e);
-          tokens = null;
+      if (name === 'begin') {
+        var newComponent = [parser._formatName(value), [], []];
+        if (state.stack.length === 1) {
+          state.component.push(newComponent);
         } else {
-          throw e;
+          state.component[2].push(newComponent);
         }
+        state.stack.push(state.component);
+        state.component = newComponent;
+        return;
+      }
+
+      if (name === 'end') {
+        state.component = state.stack.pop();
+        return;
+      }
+    } else {
+      /**
+       * Invalid line.
+       * The rational to throw an error is we will
+       * never be certain that the rest of the file
+       * is sane and its unlikely that we can serialize
+       * the result correctly either.
+       */
+      throw new ParserError(
+        'invalid line (no token ";" or ":") "' + line + '"'
+      );
+    }
+
+    var valueType;
+    var multiValue = false;
+    var propertyDetails;
+
+    if (name in design.property) {
+      propertyDetails = design.property[name];
+
+      if ('multiValue' in propertyDetails) {
+        multiValue = propertyDetails.multiValue;
       }
     }
 
-    if (!tokens) {
-      var message = errors.join("\nOR ") || "No Tokens found";
-      throw new ParserError(aState, message);
+    // at this point params is mandatory per jcal spec
+    params = params || {};
+
+    // attempt to determine value
+    if (!('value' in params)) {
+      if (propertyDetails) {
+        valueType = propertyDetails.defaultType;
+      } else {
+        valueType = DEFAULT_TYPE;
+      }
+    } else {
+      // possible to avoid this?
+      valueType = params.value.toLowerCase();
+      delete params.value;
     }
 
-    return tokens;
-  },
+    /**
+     * Note on `var result` juggling:
+     *
+     * I observed that building the array in pieces has adverse
+     * effects on performance, so where possible we inline the creation.
+     * Its a little ugly but resulted in ~2000 additional ops/sec.
+     */
 
-  parser.parseList = function parseList(aState, aElementFunc, aSeparator) {
-    var listvals = [];
-
-    listvals.push(aElementFunc(aState));
-    var re = new RegExp("^" + aSeparator + "");
-    while (parser.expectOptionalRE(aState, re)) {
-      listvals.push(aElementFunc(aState));
+    if (value) {
+      if (multiValue) {
+        var result = [name, params, valueType];
+        parser._parseMultiValue(value, multiValue, valueType, result);
+      } else {
+        value = parser._parseValue(value, valueType);
+        var result = [name, params, valueType, value];
+      }
+    } else {
+      var result = [name, params, valueType];
     }
-    return listvals;
+
+    state.component[1].push(result);
   };
 
-  parser.expectOptionalRE = function expectOptionalRE(aState, aRegex) {
-    var match = aState.buffer.match(aRegex);
-    if (match) {
-      var count = ("1" in match ? match[1].length : match[0].length);
-      aState.buffer = aState.buffer.substr(count);
-      aState.character += count;
+  /**
+   * @param {String} value original value.
+   * @param {String} type type of value.
+   * @return {Object} varies on type.
+   */
+  parser._parseValue = function(value, type) {
+    if (type in design.value && 'fromICAL' in design.value[type]) {
+      return design.value[type].fromICAL(value);
     }
-    return match;
+    return value;
   };
 
-  parser.expectRE = function expectRE(aState, aRegex, aErrorMessage) {
-    var match = parser.expectOptionalRE(aState, aRegex);
-    if (!match) {
-      throw new ParserError(aState, aErrorMessage);
-    }
-    return match;
-  };
+  /**
+   * Parse parameters from a string to object.
+   *
+   * @param {String} line a single unfolded line.
+   * @param {Numeric} start position to start looking for properties.
+   * @param {Numeric} maxPos position at which values start.
+   * @return {Object} key/value pairs.
+   */
+  parser._parseParameters = function(line, start) {
+    var lastParam = start;
+    var pos = 0;
+    var delim = PARAM_NAME_DELIMITER;
+    var result = {};
 
-  parser.expectEnd = function expectEnd(aState, aErrorMessage) {
-    if (aState.buffer.length > 0) {
-      throw new ParserError(aState, aErrorMessage);
-    }
-  }
+    // find the next '=' sign
+    // use lastParam and pos to find name
+    // check if " is used if so get value from "->"
+    // then increment pos to find next ;
 
-  /* Possible shortening:
-      - pro: retains order
-      - con: datatypes not obvious
-      - pro: not so many objects created
+    while ((pos !== false) &&
+           (pos = helpers.unescapedIndexOf(line, delim, pos + 1)) !== -1) {
 
-    {
-      "begin:vcalendar": [
-        {
-          prodid: "-//Example Inc.//Example Client//EN",
-          version: "2.0"
-          "begin:vtimezone": [
-            {
-              "last-modified": [{
-                type: "date-time",
-                value: "2004-01-10T03:28:45Z"
-              }],
-              tzid: "US/Eastern"
-              "begin:daylight": [
-                {
-                  dtstart: {
-                    type: "date-time",
-                    value: "2000-04-04T02:00:00"
-                  }
-                  rrule: {
-                    type: "recur",
-                    value: {
-                      freq: "YEARLY",
-                      byday: ["1SU"],
-                      bymonth: ["4"],
-                    }
-                  }
-                }
-              ]
-            }
-          ],
-          "begin:vevent": [
-            {
-              category: [{
-                type: "text"
-                // have icalcomponent take apart the multivalues
-                value: "multi1,multi2,multi3"
-              },{
-                type "text"
-                value: "otherprop1"
-              }]
-            }
-          ]
-        }
-      ]
-    }
-    */
-})();
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
- * Portions Copyright (C) Philipp Kewisch, 2011-2012 */
+      var name = line.substr(lastParam + 1, pos - lastParam - 1);
 
-(typeof(ICAL) === 'undefined')? ICAL = {} : '';
+      var nextChar = line[pos + 1];
+      var substrOffset = -2;
 
-/**
- * Design data used by the parser to decide if data is semantically correct
- */
-ICAL.design = {
-  param: {
-    // Although the syntax is DQUOTE uri DQUOTE, I don't think we should
-    // enfoce anything aside from it being a valid content line.
-    // "ALTREP": { ... },
+      if (nextChar === '"') {
+        var valuePos = pos + 2;
+        pos = helpers.unescapedIndexOf(line, '"', valuePos);
+        var value = line.substr(valuePos, pos - valuePos);
+        lastParam = helpers.unescapedIndexOf(line, PARAM_DELIMITER, pos);
+      } else {
+        var valuePos = pos + 1;
+        substrOffset = -1;
 
-    // CN just wants a param-value
-    // "CN": { ... }
+        // move to next ";"
+        var nextPos = helpers.unescapedIndexOf(line, PARAM_DELIMITER, valuePos);
 
-    "CUTYPE": {
-      values: ["INDIVIDUAL", "GROUP", "RESOURCE", "ROOM", "UNKNOWN"],
-      allowXName: true,
-      allowIanaToken: true
-    },
-
-    "DELEGATED-FROM": {
-      valueType: "CAL-ADDRESS",
-      multiValue: true
-    },
-    "DELEGATED-TO": {
-      valueType: "CAL-ADDRESS",
-      multiValue: true
-    },
-    // "DIR": { ... }, // See ALTREP
-    "ENCODING": {
-      values: ["8BIT", "BASE64"]
-    },
-    // "FMTTYPE": { ... }, // See ALTREP
-    "FBTYPE": {
-      values: ["FREE", "BUSY", "BUSY-UNAVAILABLE", "BUSY-TENTATIVE"],
-      allowXName: true,
-      allowIanaToken: true
-    },
-    // "LANGUAGE": { ... }, // See ALTREP
-    "MEMBER": {
-      valueType: "CAL-ADDRESS",
-      multiValue: true
-    },
-    "PARTSTAT": {
-      // TODO These values are actually different per-component
-      values: ["NEEDS-ACTION", "ACCEPTED", "DECLINED", "TENTATIVE",
-               "DELEGATED", "COMPLETED", "IN-PROCESS"],
-      allowXName: true,
-      allowIanaToken: true
-    },
-    "RANGE": {
-      values: ["THISANDFUTURE"]
-    },
-    "RELATED": {
-      values: ["START", "END"]
-    },
-    "RELTYPE": {
-      values: ["PARENT", "CHILD", "SIBLING"],
-      allowXName: true,
-      allowIanaToken: true
-    },
-    "ROLE": {
-      values: ["REQ-PARTICIPANT", "CHAIR",
-               "OPT-PARTICIPANT", "NON-PARTICIPANT"],
-      allowXName: true,
-      allowIanaToken: true
-    },
-    "RSVP": {
-      valueType: "BOOLEAN"
-    },
-    "SENT-BY": {
-      valueType: "CAL-ADDRESS"
-    },
-    "TZID": {
-      matches: /^\//
-    },
-    "VALUE": {
-      values: ["BINARY", "BOOLEAN", "CAL-ADDRESS", "DATE", "DATE-TIME",
-               "DURATION", "FLOAT", "INTEGER", "PERIOD", "RECUR", "TEXT",
-               "TIME", "URI", "UTC-OFFSET"],
-      allowXName: true,
-      allowIanaToken: true
-    }
-  },
-
-  // When adding a value here, be sure to add it to the parameter types!
-  value: {
-
-    "BINARY": {
-      matches: /^([A-Za-z0-9+\/]{4})*([A-Za-z0-9+\/]{2}==|[A-Za-z0-9+\/]{3}=)?$/,
-      requireParam: {
-        "ENCODING": "BASE64"
-      },
-      decorate: function(aString) {
-        return ICAL.icalbinary.fromString(aString);
-      }
-    },
-    "BOOLEAN": {
-      values: ["TRUE", "FALSE"],
-      decorate: function(aValue) {
-        return ICAL.icalvalue.fromString(aValue, "BOOLEAN");
-      }
-    },
-    "CAL-ADDRESS": {
-      // needs to be an uri
-    },
-    "DATE": {
-      validate: function(aValue) {
-        var state = {
-          buffer: aValue
-        };
-        var data = ICAL.icalparser.parseDate(state);
-        ICAL.icalparser.expectEnd(state, "Junk at end of DATE value");
-        return data;
-      },
-      decorate: function(aValue) {
-        return ICAL.icaltime.fromString(aValue);
-      }
-    },
-    "DATE-TIME": {
-      validate: function(aValue) {
-        var state = {
-          buffer: aValue
-        };
-        var data = ICAL.icalparser.parseDateTime(state);
-        ICAL.icalparser.expectEnd(state, "Junk at end of DATE-TIME value");
-        return data;
-      },
-
-      decorate: function(aValue) {
-        return ICAL.icaltime.fromString(aValue);
-      }
-    },
-    "DURATION": {
-      validate: function(aValue) {
-        var state = {
-          buffer: aValue
-        };
-        var data = ICAL.icalparser.parseDuration(state);
-        ICAL.icalparser.expectEnd(state, "Junk at end of DURATION value");
-        return data;
-      },
-      decorate: function(aValue) {
-        return ICAL.icalduration.fromString(aValue);
-      }
-    },
-    "FLOAT": {
-      matches: /^[+-]?\d+\.\d+$/,
-      decorate: function(aValue) {
-        return ICAL.icalvalue.fromString(aValue, "FLOAT");
-      }
-    },
-    "INTEGER": {
-      matches: /^[+-]?\d+$/,
-      decorate: function(aValue) {
-        return ICAL.icalvalue.fromString(aValue, "INTEGER");
-      }
-    },
-    "PERIOD": {
-      validate: function(aValue) {
-        var state = {
-          buffer: aValue
-        };
-        var data = ICAL.icalparser.parsePeriod(state);
-        ICAL.icalparser.expectEnd(state, "Junk at end of PERIOD value");
-        return data;
-      },
-
-      decorate: function(aValue) {
-        return ICAL.icalperiod.fromString(aValue);
-      }
-    },
-    "RECUR": {
-      validate: function(aValue) {
-        var state = {
-          buffer: aValue
-        };
-        var data = ICAL.icalparser.parseRecur(state);
-        ICAL.icalparser.expectEnd(state, "Junk at end of RECUR value");
-        return data;
-      },
-
-      decorate: function decorate(aValue) {
-        return ICAL.icalrecur.fromString(aValue);
-      }
-    },
-
-    "TEXT": {
-      matches: /.*/,
-      decorate: function(aValue) {
-        return ICAL.icalvalue.fromString(aValue, "TEXT");
-      },
-      unescape: function(aValue, aName) {
-        return aValue.replace(/\\\\|\\;|\\,|\\[Nn]/g, function(str) {
-          switch (str) {
-          case "\\\\":
-            return "\\";
-          case "\\;":
-            return ";";
-          case "\\,":
-            return ",";
-          case "\\n":
-          case "\\N":
-            return "\n";
-          default:
-            return str;
+        if (nextPos === -1) {
+          // when there is no ";" attempt to locate ":"
+          nextPos = helpers.unescapedIndexOf(line, VALUE_DELIMITER, valuePos);
+          // no more tokens end of the line use .length
+          if (nextPos === -1) {
+            nextPos = line.length;
+            // because we are at the end we don't need to trim
+            // the found value of substr offset is zero
+            substrOffset = 0;
+          } else {
+            // next token is the beginning of the value
+            // so we must stop looking for the '=' token.
+            pos = false;
           }
-        });
-      },
-
-      escape: function escape(aValue, aName) {
-        return aValue.replace(/\\|;|,|\n/g, function(str) {
-          switch (str) {
-          case "\\":
-            return "\\\\";
-          case ";":
-            return "\\;";
-          case ",":
-            return "\\,";
-          case "\n":
-            return "\\n";
-          default:
-            return str;
-          }
-        });
-      }
-    },
-
-    "TIME": {
-      validate: function(aValue) {
-        var state = {
-          buffer: aValue
-        };
-        var data = ICAL.icalparser.parseTime(state);
-        ICAL.icalparser.expectEnd(state, "Junk at end of TIME value");
-        return data;
-      }
-    },
-
-    "URI": {
-      // TODO
-      /* ... */
-    },
-
-    "UTC-OFFSET": {
-      validate: function(aValue) {
-        var state = {
-          buffer: aValue
-        };
-        var data = ICAL.icalparser.parseUtcOffset(state);
-        ICAL.icalparser.expectEnd(state, "Junk at end of UTC-OFFSET value");
-        return data;
-      },
-
-      decorate: function(aValue) {
-        return ICAL.icalutcoffset.fromString(aValue);
-      }
-    }
-  },
-
-  property: {
-    decorate: function decorate(aData, aParent) {
-      return new ICAL.icalproperty(aData, aParent);
-    },
-    "ATTACH": {
-      defaultType: "URI"
-    },
-    "ATTENDEE": {
-      defaultType: "CAL-ADDRESS"
-    },
-    "CATEGORIES": {
-      defaultType: "TEXT",
-      multiValue: true
-    },
-    "COMPLETED": {
-      defaultType: "DATE-TIME"
-    },
-    "CREATED": {
-      defaultType: "DATE-TIME"
-    },
-    "DTEND": {
-      defaultType: "DATE-TIME",
-      allowedTypes: ["DATE-TIME", "DATE"]
-    },
-    "DTSTAMP": {
-      defaultType: "DATE-TIME"
-    },
-    "DTSTART": {
-      defaultType: "DATE-TIME",
-      allowedTypes: ["DATE-TIME", "DATE"]
-    },
-    "DUE": {
-      defaultType: "DATE-TIME",
-      allowedTypes: ["DATE-TIME", "DATE"]
-    },
-    "DURATION": {
-      defaultType: "DURATION"
-    },
-    "EXDATE": {
-      defaultType: "DATE-TIME",
-      allowedTypes: ["DATE-TIME", "DATE"]
-    },
-    "EXRULE": {
-      defaultType: "RECUR"
-    },
-    "FREEBUSY": {
-      defaultType: "PERIOD",
-      multiValue: true
-    },
-    "GEO": {
-      defaultType: "FLOAT",
-      structuredValue: true
-    },
-    /* TODO exactly 2 values */"LAST-MODIFIED": {
-      defaultType: "DATE-TIME"
-    },
-    "ORGANIZER": {
-      defaultType: "CAL-ADDRESS"
-    },
-    "PERCENT-COMPLETE": {
-      defaultType: "INTEGER"
-    },
-    "REPEAT": {
-      defaultType: "INTEGER"
-    },
-    "RDATE": {
-      defaultType: "DATE-TIME",
-      allowedTypes: ["DATE-TIME", "DATE", "PERIOD"]
-    },
-    "RECURRENCE-ID": {
-      defaultType: "DATE-TIME",
-      allowedTypes: ["DATE-TIME", "DATE"]
-    },
-    "RESOURCES": {
-      defaultType: "TEXT",
-      multiValue: true
-    },
-    "REQUEST-STATUS": {
-      defaultType: "TEXT",
-      structuredValue: true
-    },
-    "PRIORITY": {
-      defaultType: "INTEGER"
-    },
-    "RRULE": {
-      defaultType: "RECUR"
-    },
-    "SEQUENCE": {
-      defaultType: "INTEGER"
-    },
-    "TRIGGER": {
-      defaultType: "DURATION",
-      allowedTypes: ["DURATION", "DATE-TIME"]
-    },
-    "TZOFFSETFROM": {
-      defaultType: "UTC-OFFSET"
-    },
-    "TZOFFSETTO": {
-      defaultType: "UTC-OFFSET"
-    },
-    "TZURL": {
-      defaultType: "URI"
-    },
-    "URL": {
-      defaultType: "URI"
-    }
-  },
-
-  component: {
-    decorate: function decorate(aData, aParent) {
-      return new ICAL.icalcomponent(aData, aParent);
-    },
-    "VEVENT": {}
-  }
-};
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
- * Portions Copyright (C) Philipp Kewisch, 2011-2012 */
-
-
-
-(typeof(ICAL) === 'undefined')? ICAL = {} : '';
-(function() {
-  ICAL.icalcomponent = function icalcomponent(data, parent) {
-    this.wrappedJSObject = this;
-    this.parent = parent;
-    this.fromData(data);
-  }
-
-  ICAL.icalcomponent.prototype = {
-
-    data: null,
-    name: "",
-    components: null,
-    properties: null,
-
-    icalclass: "icalcomponent",
-
-    clone: function clone() {
-      return new ICAL.icalcomponent(this.undecorate(), this.parent);
-    },
-
-    fromData: function fromData(data) {
-      if (!data) {
-        data = ICAL.helpers.initComponentData(null);
-      }
-      this.data = data;
-      this.data.value = this.data.value || [];
-      this.data.type = this.data.type || "COMPONENT";
-      this.components = {};
-      this.properties = {};
-
-      // Save the name directly on the object, as we want this accessed
-      // from the outside.
-      this.name = this.data.name;
-      delete this.data.name;
-
-      var value = this.data.value;
-
-      for (var key in value) {
-        var keyname = value[key].name;
-        if (value[key].type == "COMPONENT") {
-          value[key] = new ICAL.icalcomponent(value[key], this);
-          ICAL.helpers.ensureKeyExists(this.components, keyname, []);
-          this.components[keyname].push(value[key]);
         } else {
-          value[key] = new ICAL.icalproperty(value[key], this);
-          ICAL.helpers.ensureKeyExists(this.properties, keyname, []);
-          this.properties[keyname].push(value[key]);
+          lastParam = nextPos;
         }
-      }
-    },
 
-    undecorate: function undecorate() {
-      var newdata = [];
-      for (var key in this.data.value) {
-        newdata.push(this.data.value[key].undecorate());
+        var value = line.substr(valuePos, nextPos - valuePos);
       }
-      return {
-        name: this.name,
-        type: "COMPONENT",
-        value: newdata
-      };
-    },
 
-    getFirstSubcomponent: function getFirstSubcomponent(aType) {
-      var comp = null;
-      if (aType) {
-        var ucType = aType.toUpperCase();
-        if (ucType in this.components &&
-            this.components[ucType] &&
-            this.components[ucType].length > 0) {
-          comp = this.components[ucType][0];
-        }
+      var type = DEFAULT_TYPE;
+
+      if (name in design.param && design.param[name].valueType) {
+        type = design.param[name].valueType;
+      }
+
+      result[parser._formatName(name)] = parser._parseValue(value, type);
+    }
+
+    return result;
+  }
+
+  /**
+   * Parse a multi value string
+   */
+  parser._parseMultiValue = function(buffer, delim, type, result) {
+    var pos = 0;
+    var lastPos = 0;
+
+    // split each piece
+    while ((pos = helpers.unescapedIndexOf(buffer, delim, lastPos)) !== -1) {
+      var value = buffer.substr(lastPos, pos - lastPos);
+      result.push(parser._parseValue(value, type));
+      lastPos = pos + 1;
+    }
+
+    // on the last piece take the rest of string
+    result.push(
+      parser._parseValue(buffer.substr(lastPos), type)
+    );
+
+    return result;
+  }
+
+  parser._eachLine = function(buffer, callback) {
+    var len = buffer.length;
+    var lastPos = buffer.search(CHAR);
+    var pos = lastPos;
+    var line;
+    var firstChar;
+
+    var newlineOffset;
+
+    do {
+      pos = buffer.indexOf('\n', lastPos) + 1;
+
+      if (buffer[pos - 2] === '\r') {
+        newlineOffset = 2;
       } else {
-        for (var thiscomp in this.components) {
-          comp = this.components[thiscomp][0];
-          break;
-        }
+        newlineOffset = 1;
       }
-      return comp;
-    },
 
-    getAllSubcomponents: function getAllSubcomponents(aType) {
-      var comps = [];
-      if (aType && aType != "ANY") {
-        var ucType = aType.toUpperCase();
-        if (ucType in this.components) {
-          for (var compKey in this.components[ucType]) {
-            comps.push(this.components[ucType][compKey]);
-          }
-        }
+      if (pos === 0) {
+        pos = len;
+        newlineOffset = 0;
+      }
+
+      firstChar = buffer[lastPos];
+
+      if (firstChar === ' ' || firstChar === '\t') {
+        // add to line
+        line += buffer.substr(
+          lastPos + 1,
+          pos - lastPos - (newlineOffset + 1)
+        );
       } else {
-        for (var compName in this.components) {
-          for (var compKey in this.components[compName]) {
-            comps.push(this.components[compName][compKey]);
-          }
-        }
-      }
-      return comps;
-    },
-
-    addSubcomponent: function addSubcomponent(aComp, aCompName) {
-      var ucName, comp;
-      var comp;
-      if (aComp.icalclass == "icalcomponent") {
-        ucName = aComp.name;
-        comp = aComp.clone();
-        comp.parent = this;
-      } else {
-        ucName = aCompName.toUpperCase();
-        comp = new ICAL.icalcomponent(aComp, ucName, this);
+        if (line)
+          callback(null, line);
+        // push line
+        line = buffer.substr(
+          lastPos,
+          pos - lastPos - newlineOffset
+        );
       }
 
-      this.data.value.push(comp);
-      ICAL.helpers.ensureKeyExists(this.components, ucName, []);
-      this.components[ucName].push(comp);
+      lastPos = pos;
+    } while (pos !== len);
+
+    // extra ending line
+    line = line.trim();
+
+    if (line.length)
+      callback(null, line);
+  }
+
+  return parser;
+
+}());
+ICAL.Component = (function() {
+  'use strict';
+
+  var PROPERTY_INDEX = 1;
+  var COMPONENT_INDEX = 2;
+  var NAME_INDEX = 0;
+
+  /**
+   * Create a wrapper for a jCal component.
+   *
+   * @param {Array|String} jCal
+   *  raw jCal component data OR name of new component.
+   * @param {ICAL.Component} parent parent component to associate.
+   */
+  function Component(jCal, parent) {
+    if (typeof(jCal) === 'string') {
+      // jCal spec (name, properties, components)
+      jCal = [jCal, [], []];
+    }
+
+    // mostly for legacy reasons.
+    this.jCal = jCal;
+
+    if (parent) {
+      this.parent = parent;
+    }
+  }
+
+  Component.prototype = {
+
+    get name() {
+      return this.jCal[NAME_INDEX];
     },
 
-    removeSubcomponent: function removeSubComponent(aName) {
-      var ucName = aName.toUpperCase();
-      for (var key in this.components[ucName]) {
-        var pos = this.data.value.indexOf(this.components[ucName][key]);
-        if (pos > -1) {
-          this.data.value.splice(pos, 1);
-        }
+    _hydrateComponent: function(index) {
+      if (!this._components) {
+        this._components = [];
       }
 
-      delete this.components[ucName];
-    },
-
-    hasProperty: function hasProperty(aName) {
-      var ucName = aName.toUpperCase();
-      return (ucName in this.properties);
-    },
-
-    getFirstProperty: function getFirstProperty(aName) {
-      var prop = null;
-      if (aName) {
-        var ucName = aName.toUpperCase();
-        if (ucName in this.properties && this.properties[ucName]) {
-          prop = this.properties[ucName][0];
-        }
-      } else {
-        for (var p in this.properties) {
-          prop = this.properties[p];
-          break;
-        }
+      if (this._components[index]) {
+        return this._components[index];
       }
-      return prop;
+
+      var comp = new Component(
+        this.jCal[COMPONENT_INDEX][index],
+        this
+      );
+
+      return this._components[index] = comp;
     },
 
-    getFirstPropertyValue: function getFirstPropertyValue(aName) {
-      // TODO string value?
-      var prop = this.getFirstProperty(aName);
-      return (prop ? prop.getFirstValue() : null);
-    },
-
-    getAllProperties: function getAllProperties(aName) {
-      var props = [];
-      if (aName && aName != "ANY") {
-        var ucType = aName.toUpperCase();
-        if (ucType in this.properties) {
-          props = this.properties[ucType].concat([]);
-        }
-      } else {
-        for (var propName in this.properties) {
-          props = props.concat(this.properties[propName]);
-        }
+    _hydrateProperty: function(index) {
+      if (!this._properties) {
+        this._properties = [];
       }
-      return props;
+
+      if (this._properties[index]) {
+        return this._properties[index];
+      }
+
+      var prop = new ICAL.Property(
+        this.jCal[PROPERTY_INDEX][index],
+        this
+      );
+
+      return this._properties[index] = prop;
     },
 
     /**
-     * Adds or replaces a property with a given value.
-     * Suitable for use when updating properties which
-     * are expected to only have a single value (like DTSTART, SUMMARY, etc..)
+     * Finds first sub component, optionally filtered by name.
      *
-     * @param {String} aName property name.
-     * @param {Object} aValue property value.
+     * @method getFirstSubcomponent
+     * @param {String} [name] optional name to filter by.
      */
-    updatePropertyWithValue: function updatePropertyWithValue(aName, aValue) {
-      if (!this.hasProperty(aName)) {
-        return this.addPropertyWithValue(aName, aValue);
+    getFirstSubcomponent: function(name) {
+      if (name) {
+        var i = 0;
+        var comps = this.jCal[COMPONENT_INDEX];
+        var len = comps.length;
+
+        for (; i < len; i++) {
+          if (comps[i][NAME_INDEX] === name) {
+            var result = this._hydrateComponent(i);
+            return result;
+          }
+        }
+      } else {
+        if (this.jCal[COMPONENT_INDEX].length) {
+          return this._hydrateComponent(0);
+        }
       }
 
-      var prop = this.getFirstProperty(aName);
+      // ensure we return a value (strict mode)
+      return null;
+    },
 
-      var lineData = ICAL.icalparser.detectValueType({
-        name: aName.toUpperCase(),
-        value: aValue
-      });
+    /**
+     * Finds all sub components, optionally filtering by name.
+     *
+     * @method getAllSubcomponents
+     * @param {String} [name] optional name to filter by.
+     */
+    getAllSubcomponents: function(name) {
+      var jCalLen = this.jCal[COMPONENT_INDEX].length;
 
-      prop.setValues(lineData.value, lineData.type);
+      if (name) {
+        var comps = this.jCal[COMPONENT_INDEX];
+        var result = [];
+        var i = 0;
+
+        for (; i < jCalLen; i++) {
+          if (name === comps[i][NAME_INDEX]) {
+            result.push(
+              this._hydrateComponent(i)
+            );
+          }
+        }
+        return result;
+      } else {
+        if (!this._components ||
+            (this._components.length !== jCalLen)) {
+          var i = 0;
+          for (; i < jCalLen; i++) {
+            this._hydrateComponent(i);
+          }
+        }
+
+        return this._components;
+      }
+    },
+
+    /**
+     * Returns true when a named property exists.
+     *
+     * @param {String} name property name.
+     * @return {Boolean} true when property is found.
+     */
+    hasProperty: function(name) {
+      var props = this.jCal[PROPERTY_INDEX];
+      var len = props.length;
+
+      var i = 0;
+      for (; i < len; i++) {
+        // 0 is property name
+        if (props[i][NAME_INDEX] === name) {
+          return true;
+        }
+      }
+
+      return false;
+    },
+
+    /**
+     * Finds first property.
+     *
+     * @param {String} [name] lowercase name of property.
+     * @return {ICAL.Property} found property.
+     */
+    getFirstProperty: function(name) {
+      if (name) {
+        var i = 0;
+        var props = this.jCal[PROPERTY_INDEX];
+        var len = props.length;
+
+        for (; i < len; i++) {
+          if (props[i][NAME_INDEX] === name) {
+            var result = this._hydrateProperty(i);
+            return result;
+          }
+        }
+      } else {
+        if (this.jCal[PROPERTY_INDEX].length) {
+          return this._hydrateProperty(0);
+        }
+      }
+
+      return null;
+    },
+
+    /**
+     * Returns first properties value if available.
+     *
+     * @param {String} [name] (lowecase) property name.
+     * @return {String} property value.
+     */
+    getFirstPropertyValue: function(name) {
+      var prop = this.getFirstProperty(name);
+      if (prop) {
+        return prop.getFirstValue();
+      }
+
+      return null;
+    },
+
+    /**
+     * get all properties in the component.
+     *
+     * @param {String} [name] (lowercase) property name.
+     * @return {Array[ICAL.Property]} list of properties.
+     */
+    getAllProperties: function(name) {
+      var jCalLen = this.jCal[PROPERTY_INDEX].length;
+
+      if (name) {
+        var props = this.jCal[PROPERTY_INDEX];
+        var result = [];
+        var i = 0;
+
+        for (; i < jCalLen; i++) {
+          if (name === props[i][NAME_INDEX]) {
+            result.push(
+              this._hydrateProperty(i)
+            );
+          }
+        }
+        return result;
+      } else {
+        if (!this._properties ||
+            (this._properties.length !== jCalLen)) {
+          var i = 0;
+          for (; i < jCalLen; i++) {
+            this._hydrateProperty(i);
+          }
+        }
+
+        return this._properties;
+      }
+
+      return null;
+    },
+
+    _removeObjectByIndex: function(jCalIndex, cache, index) {
+      // remove cached version
+      if (cache && cache[index]) {
+        cache.splice(index, 1);
+      }
+
+      // remove it from the jCal
+      this.jCal[jCalIndex].splice(index, 1);
+    },
+
+    _removeObject: function(jCalIndex, cache, nameOrObject) {
+      var i = 0;
+      var objects = this.jCal[jCalIndex];
+      var len = objects.length;
+      var cached = this[cache];
+
+      if (typeof(nameOrObject) === 'string') {
+        for (; i < len; i++) {
+          if (objects[i][NAME_INDEX] === nameOrObject) {
+            this._removeObjectByIndex(jCalIndex, cached, i);
+            return true;
+          }
+        }
+      } else if (cached) {
+        for (; i < len; i++) {
+          if (cached[i] && cached[i] === nameOrObject) {
+            this._removeObjectByIndex(jCalIndex, cached, i);
+            return true;
+          }
+        }
+      }
+
+      return false;
+    },
+
+    _removeAllObjects: function(jCalIndex, cache, name) {
+      var cached = this[cache];
+
+      if (name) {
+        var objects = this.jCal[jCalIndex];
+        var i = objects.length - 1;
+
+        // descending search required because splice
+        // is used and will effect the indices.
+        for (; i >= 0; i--) {
+          if (objects[i][NAME_INDEX] === name) {
+            this._removeObjectByIndex(jCalIndex, cached, i);
+          }
+        }
+      } else {
+        if (cache in this) {
+          // I think its probable that when we remove all
+          // of a type we may want to add to it again so it
+          // makes sense to reuse the object in that case.
+          // For now we remove the contents of the array.
+          this[cache].length = 0;
+        }
+        this.jCal[jCalIndex].length = 0;
+      }
+    },
+
+    /**
+     * Adds a single sub component.
+     *
+     * @param {ICAL.Component} component to add.
+     */
+    addSubcomponent: function(component) {
+      if (!this._components) {
+        this._components = [];
+      }
+
+      var idx = this.jCal[COMPONENT_INDEX].push(component.jCal);
+      this._components[idx - 1] = component;
+    },
+
+    /**
+     * Removes a single component by name or
+     * the instance of a specific component.
+     *
+     * @param {ICAL.Component|String} nameOrComp comp type.
+     * @return {Boolean} true when comp is removed.
+     */
+    removeSubcomponent: function(nameOrComp) {
+      return this._removeObject(COMPONENT_INDEX, '_components', nameOrComp);
+    },
+
+    /**
+     * Removes all components or (if given) all
+     * components by a particular name.
+     *
+     * @param {String} [name] (lowercase) component name.
+     */
+    removeAllSubcomponents: function(name) {
+      return this._removeAllObjects(COMPONENT_INDEX, '_components', name);
+    },
+
+    /**
+     * Adds a property to the component.
+     *
+     * @param {ICAL.Property} property object.
+     */
+    addProperty: function(property) {
+      if (!(property instanceof ICAL.Property)) {
+        throw new TypeError('must instance of ICAL.Property');
+      }
+
+      var idx = this.jCal[PROPERTY_INDEX].push(property.jCal);
+      property.component = this;
+
+      if (!this._properties) {
+        this._properties = [];
+      }
+
+      this._properties[idx - 1] = property;
+    },
+
+    /**
+     * Helper method to add a property with a value to the component.
+     *
+     * @param {String} name property name to add.
+     * @param {Object} value property value.
+     */
+    addPropertyWithValue: function(name, value) {
+      var prop = new ICAL.Property(name, this);
+      prop.setValue(value);
+
+      this.addProperty(prop, this);
 
       return prop;
     },
 
-    addPropertyWithValue: function addStringProperty(aName, aValue) {
-      var ucName = aName.toUpperCase();
-      var lineData = ICAL.icalparser.detectValueType({
-        name: ucName,
-        value: aValue
-      });
+    /**
+     * Helper method that will update or create a property
+     * of the given name and sets its value.
+     *
+     * @param {String} name property name.
+     * @param {Object} value property value.
+     * @return {ICAL.Property} property.
+     */
+    updatePropertyWithValue: function(name, value) {
+      var prop = this.getFirstProperty(name);
 
-      var prop = ICAL.icalproperty.fromData(lineData);
-      ICAL.helpers.dumpn("Adding property " + ucName + "=" + aValue);
-      return this.addProperty(prop);
-    },
-
-    addProperty: function addProperty(aProp) {
-      var prop = aProp;
-      if (aProp.parent) {
-        prop = aProp.clone();
-      }
-      aProp.parent = this;
-
-      ICAL.helpers.ensureKeyExists(this.properties, aProp.name, []);
-      this.properties[aProp.name].push(aProp);
-      ICAL.helpers.dumpn("DATA IS: " + this.data.toString());
-      this.data.value.push(aProp);
-      ICAL.helpers.dumpn("Adding property " + aProp);
-    },
-
-    removeProperty: function removeProperty(aName) {
-      var ucName = aName.toUpperCase();
-      for (var key in this.properties[ucName]) {
-        var pos = this.data.value.indexOf(this.properties[ucName][key]);
-        if (pos > -1) {
-          this.data.value.splice(pos, 1);
-        }
-      }
-      delete this.properties[ucName];
-    },
-
-    clearAllProperties: function clearAllProperties() {
-      this.properties = {};
-      for (var i = this.data.value.length - 1; i >= 0; i--) {
-        if (this.data.value[i].type != "COMPONENT") {
-          delete this.data.value[i];
-        }
-      }
-    },
-
-    _valueToJSON: function(value) {
-      if (value && value.icaltype) {
-        return value.toString();
-      }
-
-      if (typeof(value) === 'object') {
-        return this._undecorateJSON(value);
-      }
-
-      return value;
-    },
-
-    _undecorateJSON: function(object) {
-      if (object instanceof Array) {
-        var result = [];
-        var len = object.length;
-
-        for (var i = 0; i < len; i++) {
-          result.push(this._valueToJSON(object[i]));
-        }
-
+      if (prop) {
+        prop.setValue(value);
       } else {
-        var result = {};
-        var key;
+        prop = this.addPropertyWithValue(name, value);
+      }
 
-        for (key in object) {
-          if (object.hasOwnProperty(key)) {
-            result[key] = this._valueToJSON(object[key]);
+      return prop;
+    },
+
+    /**
+     * Removes a single property by name or
+     * the instance of the specific property.
+     *
+     * @param {String|ICAL.Property} nameOrProp to remove.
+     * @return {Boolean} true when deleted.
+     */
+    removeProperty: function(nameOrProp) {
+      return this._removeObject(PROPERTY_INDEX, '_properties', nameOrProp);
+    },
+
+    /**
+     * Removes all properties associated with this component.
+     *
+     * @param {String} [name] (lowecase) optional property name.
+     */
+    removeAllProperties: function(name) {
+      return this._removeAllObjects(PROPERTY_INDEX, '_properties', name);
+    },
+
+    toJSON: function() {
+      return this.jCal;
+    },
+
+    toString: function() {
+      return ICAL.stringify.component(
+        this.jCal
+      );
+    }
+
+  };
+
+  return Component;
+
+}());
+ICAL.Property = (function() {
+  'use strict';
+
+  var NAME_INDEX = 0;
+  var PROP_INDEX = 1;
+  var TYPE_INDEX = 2;
+  var VALUE_INDEX = 3;
+
+  var design = ICAL.design;
+
+  /**
+   * Provides a nicer interface to any kind of property.
+   * Its important to note that mutations done in the wrapper
+   * directly effect (mutate) the jCal object used to initialize.
+   *
+   * Can also be used to create new properties by passing
+   * the name of the property (as a String).
+   *
+   *
+   * @param {Array|String} jCal raw jCal representation OR
+   *  the new name of the property (when creating).
+   *
+   * @param {ICAL.Component} [component] parent component.
+   */
+  function Property(jCal, component) {
+    if (typeof(jCal) === 'string') {
+      // because we a creating by name we need
+      // to find the type when creating the property.
+      var name = jCal;
+
+      if (name in design.property) {
+        var prop = design.property[name];
+        if ('defaultType' in prop) {
+          var type = prop.defaultType;
+        } else {
+          var type = design.defaultType;
+        }
+      } else {
+        var type = design.defaultType;
+      }
+
+      jCal = [name, {}, type];
+    }
+
+    this.jCal = jCal;
+    this.component = component;
+    this._updateType();
+  }
+
+  Property.prototype = {
+    get type() {
+      return this.jCal[TYPE_INDEX];
+    },
+
+    get name() {
+      return this.jCal[NAME_INDEX];
+    },
+
+    _updateType: function() {
+      if (this.type in design.value) {
+        var designType = design.value[this.type];
+
+        if ('decorate' in design.value[this.type]) {
+          this.isDecorated = true;
+        } else {
+          this.isDecorated = false;
+        }
+
+        if (this.name in design.property) {
+          if ('multiValue' in design.property[this.name]) {
+            this.isMultiValue = true;
+          } else {
+            this.isMultiValue = false;
           }
         }
+      }
+    },
+
+    /**
+     * Hydrate a single value.
+     */
+    _hydrateValue: function(index) {
+      if (this._values && this._values[index]) {
+        return this._values[index];
+      }
+
+      // for the case where there is no value.
+      if (this.jCal.length <= (VALUE_INDEX + index)) {
+        return null;
+      }
+
+      if (this.isDecorated) {
+        if (!this._values) {
+          this._values = [];
+        }
+        return this._values[index] = this._decorate(
+          this.jCal[VALUE_INDEX + index]
+        );
+      } else {
+        return this.jCal[VALUE_INDEX + index];
+      }
+    },
+
+    _decorate: function(value) {
+      return design.value[this.type].decorate(value);
+    },
+
+    _undecorate: function(value) {
+      return design.value[this.type].undecorate(value);
+    },
+
+    _setDecoratedValue: function(value, index) {
+      if (!this._values) {
+        this._values = [];
+      }
+
+      if (typeof(value) === 'object' && 'icaltype' in value) {
+        // decorated value
+        this.jCal[VALUE_INDEX + index] = this._undecorate(value);
+        this._values[index] = value;
+      } else {
+        // undecorated value
+        this.jCal[VALUE_INDEX + index] = value;
+        this._values[index] = this._decorate(value);
+      }
+    },
+
+    /**
+     * Gets a param on the property.
+     *
+     * @param {String} name prop name (lowercase).
+     * @return {String} prop value.
+     */
+    getParameter: function(name) {
+      return this.jCal[PROP_INDEX][name];
+    },
+
+    /**
+     * Sets a param on the property.
+     *
+     * @param {String} value property value.
+     */
+    setParameter: function(name, value) {
+      this.jCal[PROP_INDEX][name] = value;
+    },
+
+    /**
+     * Removes a parameter
+     *
+     * @param {String} name prop name (lowercase).
+     */
+    removeParameter: function(name) {
+      return delete this.jCal[PROP_INDEX][name];
+    },
+
+    /**
+     * Sets type of property and clears out any
+     * existing values of the current type.
+     *
+     * @param {String} type new iCAL type (see design.values).
+     */
+    resetType: function(type) {
+      this.removeAllValues();
+      this.jCal[TYPE_INDEX] = type;
+      this._updateType();
+    },
+
+    /**
+     * Finds first property value.
+     *
+     * @return {String} first property value.
+     */
+    getFirstValue: function() {
+      return this._hydrateValue(0);
+    },
+
+    /**
+     * Gets all values on the property.
+     *
+     * NOTE: this creates an array during each call.
+     *
+     * @return {Array} list of values.
+     */
+    getValues: function() {
+      var len = this.jCal.length - VALUE_INDEX;
+
+      if (len < 1) {
+        // its possible for a property to have no value.
+        return null;
+      }
+
+      var i = 0;
+      var result = [];
+
+      for (; i < len; i++) {
+        result[i] = this._hydrateValue(i);
       }
 
       return result;
     },
 
+    removeAllValues: function() {
+      if (this._values) {
+        this._values.length = 0;
+      }
+      this.jCal.length = 3;
+    },
+
     /**
-     * Exports the components values to a json friendly
-     * object. You can use JSON.stringify directly on
-     * components as a result.
+     * Sets the values of the property.
+     * Will overwrite the existing values.
+     *
+     * @param {Array} values an array of values.
      */
-    toJSON: function toJSON() {
-      return this._undecorateJSON(this.undecorate());
-    },
-
-    toString: function toString() {
-      var str = ICAL.helpers.foldline("BEGIN:" + this.name) + ICAL.newLineChar;
-      for (var key in this.data.value) {
-        str += this.data.value[key].toString() + ICAL.newLineChar;
+    setValues: function(values) {
+      if (!this.isMultiValue) {
+        throw new Error(
+          this.name + ': does not not support mulitValue.\n' +
+          'override isMultiValue'
+        );
       }
-      str += ICAL.helpers.foldline("END:" + this.name);
-      return str;
-    }
-  };
 
-  ICAL.icalcomponent.fromString = function icalcomponent_from_string(str) {
-    return ICAL.icalcomponent.fromData(ICAL.parse(str));
-  };
+      var len = values.length;
+      var i = 0;
+      this.removeAllValues();
 
-  ICAL.icalcomponent.fromData = function icalcomponent_from_data(aData) {
-    return new ICAL.icalcomponent(aData);
-  };
-})();
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
- * Portions Copyright (C) Philipp Kewisch, 2011-2012 */
-
-
-
-(typeof(ICAL) === 'undefined')? ICAL = {} : '';
-(function() {
-  ICAL.icalproperty = function icalproperty(data, parent) {
-    this.wrappedJSObject = this;
-    this.parent = parent;
-    this.fromData(data);
-  }
-
-  ICAL.icalproperty.prototype = {
-    parent: null,
-    data: null,
-    name: null,
-    icalclass: "icalproperty",
-
-    clone: function clone() {
-      return new ICAL.icalproperty(this.undecorate(), this.parent);
-    },
-
-    fromData: function fromData(aData) {
-      if (!aData.name) {
-        ICAL.helpers.dumpn("Missing name: " + aData.toString());
-      }
-      this.name = aData.name;
-      this.data = aData;
-      this.setValues(this.data.value, this.data.type);
-      delete this.data.name;
-    },
-
-    undecorate: function() {
-      var values = [];
-      for (var key in this.data.value) {
-        var val = this.data.value[key];
-        if ("undecorate" in val) {
-          values.push(val.undecorate());
-        } else {
-          values.push(val);
+      if (this.isDecorated) {
+        for (; i < len; i++) {
+          this._setDecoratedValue(values[i], i);
+        }
+      } else {
+        for (; i < len; i++) {
+          this.jCal[VALUE_INDEX + i] = values[i];
         }
       }
-      var obj = {
-        name: this.name,
-        type: this.data.type,
-        value: values
-      };
-      if (this.data.parameters) {
-        obj.parameters = this.data.parameters;
-      }
-      return obj;
     },
+
+    /**
+     * Sets the current value of the property.
+     *
+     * @param {String|Object} value new prop value.
+     */
+    setValue: function(value) {
+      if (this.isDecorated) {
+        this._setDecoratedValue(value, 0);
+      } else {
+        this.jCal[VALUE_INDEX] = value;
+      }
+    },
+
+    /**
+     * Returns the jCal representation of this property.
+     *
+     * @return {Object} jCal.
+     */
+    toJSON: function() {
+      return this.jCal;
+    },
+
+    toICAL: function() {
+      return ICAL.stringify.property(
+        this.jCal
+      );
+    }
+
+  };
+
+  return Property;
+
+}());
+ICAL.UtcOffset = (function() {
+
+  function UtcOffset(aData) {
+    this.hours = aData.hours;
+    this.minutes = aData.minutes;
+    this.factor = aData.factor;
+  };
+
+  UtcOffset.prototype = {
+
+    hours: null,
+    minutes: null,
+    factor: null,
+
+    icaltype: "utc-offset",
 
     toString: function toString() {
-      return ICAL.icalparser.stringifyProperty({
-        name: this.name,
-        type: this.data.type,
-        value: this.data.value,
-        parameters: this.data.parameters
-      });
-    },
-
-    getStringValue: function getStringValue() {
-      ICAL.helpers.dumpn("GV: " + ICAL.icalparser.stringifyValue(this.data));
-      return ICAL.icalparser.stringifyValue(this.data);
-    },
-
-    setStringValue: function setStringValue(val) {
-      this.setValue(val, this.data.type);
-      // TODO force TEXT or rename method to something like setParseValue()
-    },
-
-    getFirstValue: function getValue() {
-      return (this.data.value ? this.data.value[0] : null);
-    },
-
-    getValues: function getValues() {
-      return (this.data.value ? this.data.value : []);
-    },
-
-    setValue: function setValue(aValue, aType) {
-      return this.setValues([aValue], aType);
-    },
-
-    setValues: function setValues(aValues, aType) {
-      var newValues = [];
-      var newType = null;
-      for (var key in aValues) {
-        var value = aValues[key];
-        if (value.icalclass && value.icaltype) {
-          if (newType && newType != value.icaltype) {
-            throw new Error("All values must be of the same type!");
-          } else {
-            newType = value.icaltype;
-          }
-          newValues.push(value);
-        } else {
-          var type;
-          if (aType) {
-            type = aType;
-          } else if (typeof value == "string") {
-            type = "TEXT";
-          } else if (typeof value == "number") {
-            type = (Math.floor(value) == value ? "INTEGER" : "FLOAT");
-          } else if (typeof value == "boolean") {
-            type = "BOOLEAN";
-            value = (value ? "TRUE" : "FALSE");
-          } else {
-            throw new ParserError(null, "Invalid value: " + value);
-          }
-
-          if (newType && newType != type) {
-            throw new Error("All values must be of the same type!");
-          } else {
-            newType = type;
-          }
-          ICAL.icalparser.validateValue(this.data, type, "" + value, true);
-          newValues.push(ICAL.icalparser.decorateValue(type, "" + value));
-        }
-      }
-
-      this.data.value = newValues;
-      this.data.type = newType;
-      return aValues;
-    },
-
-    getValueType: function getValueType() {
-      return this.data.type;
-    },
-
-    getName: function getName() {
-      return this.name;
-    },
-
-    getParameterValue: function getParameter(aName) {
-      var value = null;
-      var ucName = aName.toUpperCase();
-      if (ICAL.helpers.hasKey(this.data.parameters, ucName)) {
-        value = this.data.parameters[ucName].value;
-      }
-      return value;
-    },
-
-    getParameterType: function getParameterType(aName) {
-      var type = null;
-      var ucName = aName.toUpperCase();
-      if (ICAL.helpers.hasKey(this.data.parameters, ucName)) {
-        type = this.data.parameters[ucName].type;
-      }
-      return type;
-    },
-
-    setParameter: function setParameter(aName, aValue, aType) {
-      // TODO autodetect type by name
-      var ucName = aName.toUpperCase();
-      ICAL.helpers.ensureKeyExists(this.data, "parameters", {});
-      this.data.parameters[ucName] = {
-        type: aType || "TEXT",
-        value: aValue
-      };
-
-      if (aName == "VALUE") {
-        this.data.type = aValue;
-        // TODO revalidate value
-      }
-    },
-
-    countParameters: function countParmeters() {
-      // TODO Object.keys compatibility?
-      var dp = this.data.parameters;
-      return (dp ? Object.keys(dp).length : 0);
-    },
-
-    removeParameter: function removeParameter(aName) {
-      var ucName = aName.toUpperCase();
-      if (ICAL.helpers.hasKey(this.data.parameters, ucName)) {
-        delete this.data.parameters[ucName];
-      }
+      return (this.factor == 1 ? "+" : "-") +
+              ICAL.helpers.pad2(this.hours) + ':' +
+              ICAL.helpers.pad2(this.minutes);
     }
   };
 
-  ICAL.icalproperty.fromData = function(aData) {
-    return new ICAL.icalproperty(aData);
-  };
-})();
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
- * Portions Copyright (C) Philipp Kewisch, 2011-2012 */
+  UtcOffset.fromString = function(aString) {
+    // -05:00
+    var options = {};
+    //TODO: support seconds per rfc5545 ?
+    options.factor = (aString[0] === '+') ? 1 : -1;
+    options.hours = ICAL.helpers.strictParseInt(aString.substr(1, 2));
+    options.minutes = ICAL.helpers.strictParseInt(aString.substr(4, 2));
 
-
-
-(typeof(ICAL) === 'undefined')? ICAL = {} : '';
-(function() {
-  ICAL.icalvalue = function icalvalue(aData, aParent, aType) {
-    this.parent = aParent;
-    this.fromData(aData, aType);
+    return new ICAL.UtcOffset(options);
   };
 
-  ICAL.icalvalue.prototype = {
 
-    data: null,
-    parent: null,
-    icaltype: null,
+  return UtcOffset;
 
-    fromData: function icalvalue_fromData(aData, aType) {
-      var type = (aType || (aData && aData.type) || this.icaltype);
-      this.icaltype = type;
+}());
+ICAL.Binary = (function() {
 
-      if (aData && type) {
-        aData.type = type;
-      }
-
-      this.data = aData;
-    },
-
-    fromString: function icalvalue_fromString(aString, aType) {
-      var type = aType || this.icaltype;
-      this.fromData(ICAL.icalparser.parseValue(aString, type), type);
-    },
-
-    undecorate: function icalvalue_undecorate() {
-      return this.toString();
-    },
-
-    toString: function() {
-      return this.data.value.toString();
-    }
+  function Binary(aValue) {
+    this.value = aValue;
   };
 
-  ICAL.icalvalue.fromString = function icalvalue_fromString(aString, aType) {
-    var val = new ICAL.icalvalue();
-    val.fromString(aString, aType);
-    return val;
-  };
-
-  ICAL.icalvalue._createFromString = function icalvalue__createFromString(ctor) {
-    ctor.fromString = function icalvalue_derived_fromString(aStr) {
-      var val = new ctor();
-      val.fromString(aStr);
-      return val;
-    };
-  };
-
-  ICAL.icalbinary = function icalbinary(aData, aParent) {
-    ICAL.icalvalue.call(this, aData, aParent, "BINARY");
-  };
-
-  ICAL.icalbinary.prototype = {
-
-    __proto__: ICAL.icalvalue.prototype,
-
-    icaltype: "BINARY",
+  Binary.prototype = {
+    icaltype: "binary",
 
     decodeValue: function decodeValue() {
-      return this._b64_decode(this.data.value);
+      return this._b64_decode(this.value);
     },
 
     setEncodedValue: function setEncodedValue(val) {
-      this.data.value = this._b64_encode(val);
+      this.value = this._b64_encode(val);
     },
 
     _b64_encode: function base64_encode(data) {
@@ -2195,40 +2308,20 @@ ICAL.design = {
       dec = tmp_arr.join('');
 
       return dec;
-    }
-  };
-  ICAL.icalvalue._createFromString(ICAL.icalbinary);
-
-  ICAL.icalutcoffset = function icalutcoffset(aData, aParent) {
-    ICAL.icalvalue.call(this, aData, aParent, "UTC-OFFSET");
-  };
-
-  ICAL.icalutcoffset.prototype = {
-
-    __proto__: ICAL.icalvalue.prototype,
-
-    hours: null,
-    minutes: null,
-    factor: null,
-
-    icaltype: "UTC-OFFSET",
-
-    fromData: function fromData(aData) {
-      if (aData) {
-        this.hours = aData.hours;
-        this.minutes = aData.minutes;
-        this.factor = aData.factor;
-      }
     },
 
-    toString: function toString() {
-      return (this.factor == 1 ? "+" : "-") +
-              ICAL.helpers.pad2(this.hours) +
-              ICAL.helpers.pad2(this.minutes);
+    toString: function() {
+      return this.value;
     }
   };
-  ICAL.icalvalue._createFromString(ICAL.icalutcoffset);
-})();
+
+  Binary.fromString = function(aString) {
+    return new Binary(aString);
+  }
+
+  return Binary;
+
+}());
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -2238,18 +2331,38 @@ ICAL.design = {
 
 (typeof(ICAL) === 'undefined')? ICAL = {} : '';
 (function() {
-  ICAL.icalperiod = function icalperiod(aData) {
+  ICAL.Period = function icalperiod(aData) {
     this.wrappedJSObject = this;
-    this.fromData(aData);
+
+    if ('start' in aData) {
+      if (!(aData.start instanceof ICAL.Time)) {
+        throw new TypeError('.start must be an instance of ICAL.Time');
+      }
+      this.start = aData.start;
+    }
+
+    if ('end' in aData) {
+      if (!(aData.end instanceof ICAL.Time)) {
+        throw new TypeError('.end must be an instance of ICAL.Time');
+      }
+      this.end = aData.end;
+    }
+
+    if ('duration' in aData) {
+      if (!(aData.duration instanceof ICAL.Duration)) {
+        throw new TypeError('.start must be an instance of ICAL.Duration');
+      }
+      this.duration = aData.duration;
+    }
   };
 
-  ICAL.icalperiod.prototype = {
+  ICAL.Period.prototype = {
 
     start: null,
     end: null,
     duration: null,
     icalclass: "icalperiod",
-    icaltype: "PERIOD",
+    icaltype: "period",
 
     getDuration: function duration() {
       if (this.duration) {
@@ -2261,24 +2374,37 @@ ICAL.design = {
 
     toString: function toString() {
       return this.start + "/" + (this.end || this.duration);
-    },
-
-    fromData: function fromData(data) {
-      if (data) {
-        this.start = ("start" in data ? new ICAL.icaltime(data.start) : null);
-        this.end = ("end" in data ? new ICAL.icaltime(data.end) : null);
-        this.duration = ("duration" in data ? new ICAL.icalduration(data.duration) : null);
-      }
     }
   };
 
-  ICAL.icalperiod.fromString = function fromString(str) {
-    var data = ICAL.icalparser.parseValue(str, "PERIOD");
-    return ICAL.icalperiod.fromData(data);
+  ICAL.Period.fromString = function fromString(str) {
+    var parts = str.split('/');
+
+    if (parts.length !== 2) {
+      throw new Error(
+        'Invalid string value: "' + str + '" must contain a "/" char.'
+      );
+    }
+
+    var options = {
+      start: ICAL.Time.fromDateTimeString(parts[0])
+    };
+
+    var end = parts[1];
+
+    if (ICAL.Duration.isValueString(end)) {
+      options.duration = ICAL.Duration.fromString(end);
+    } else {
+      options.end = ICAL.Time.fromDateTimeString(end);
+    }
+
+    return new ICAL.Period(options);
   };
-  ICAL.icalperiod.fromData = function fromData(aData) {
-    return new ICAL.icalperiod(aData);
+
+  ICAL.Period.fromData = function fromData(aData) {
+    return new ICAL.Period(aData);
   };
+
 })();
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -2289,12 +2415,14 @@ ICAL.design = {
 
 (typeof(ICAL) === 'undefined')? ICAL = {} : '';
 (function() {
-  ICAL.icalduration = function icalduration(data) {
+  var DURATION_LETTERS = /([PDWHMTS]{1,1})/;
+
+  ICAL.Duration = function icalduration(data) {
     this.wrappedJSObject = this;
     this.fromData(data);
   };
 
-  ICAL.icalduration.prototype = {
+  ICAL.Duration.prototype = {
 
     weeks: 0,
     days: 0,
@@ -2303,10 +2431,10 @@ ICAL.design = {
     seconds: 0,
     isNegative: false,
     icalclass: "icalduration",
-    icaltype: "DURATION",
+    icaltype: "duration",
 
     clone: function clone() {
-      return ICAL.icalduration.fromData(this);
+      return ICAL.Duration.fromData(this);
     },
 
     toSeconds: function toSeconds() {
@@ -2399,17 +2527,76 @@ ICAL.design = {
     }
   };
 
-  ICAL.icalduration.fromSeconds = function icalduration_from_seconds(aSeconds) {
-    return (new ICAL.icalduration()).fromSeconds();
+  ICAL.Duration.fromSeconds = function icalduration_from_seconds(aSeconds) {
+    return (new ICAL.Duration()).fromSeconds();
   };
 
-  ICAL.icalduration.fromString = function icalduration_from_string(aStr) {
-    var data = ICAL.icalparser.parseValue(aStr, "DURATION");
-    return ICAL.icalduration.fromData(data);
+  /**
+   * Internal helper function to handle a chunk of a duration.
+   *
+   * @param {String} letter type of duration chunk.
+   * @param {String} number numeric value or -/+.
+   * @param {Object} dict target to assign values to.
+   */
+  function parseDurationChunk(letter, number, object) {
+    var type;
+    switch (letter) {
+      case 'P':
+        if (number && number === '-') {
+          object.isNegative = true;
+        } else {
+          object.isNegative = false;
+        }
+        // period
+        break;
+      case 'D':
+        type = 'days';
+        break;
+      case 'W':
+        type = 'weeks';
+        break;
+      case 'H':
+        type = 'hours';
+        break;
+      case 'M':
+        type = 'minutes';
+        break;
+      case 'S':
+        type = 'seconds';
+        break;
+    }
+
+    if (type) {
+      object[type] = parseInt(number);
+    }
+  }
+
+  /**
+   * @param {String} value raw ical value.
+   * @return {Boolean}
+   *  true when the given value is of the duration ical type.
+   */
+  ICAL.Duration.isValueString = function(string) {
+    return (string[0] === 'P' || string[1] === 'P');
+  },
+
+  ICAL.Duration.fromString = function icalduration_from_string(aStr) {
+    var pos = 0;
+    var dict = Object.create(null);
+
+    while ((pos = aStr.search(DURATION_LETTERS)) !== -1) {
+      var type = aStr[pos];
+      var numeric = aStr.substr(0, pos);
+      aStr = aStr.substr(pos + 1);
+
+      parseDurationChunk(type, numeric, dict);
+    }
+
+    return new ICAL.Duration(dict);
   };
 
-  ICAL.icalduration.fromData = function icalduration_from_data(aData) {
-    return new ICAL.icalduration(aData);
+  ICAL.Duration.fromData = function icalduration_from_data(aData) {
+    return new ICAL.Duration(aData);
   };
 })();
 /* This Source Code Form is subject to the terms of the Mozilla Public
@@ -2421,12 +2608,12 @@ ICAL.design = {
 
 (typeof(ICAL) === 'undefined')? ICAL = {} : '';
 (function() {
-  ICAL.icaltimezone = function icaltimezone(data) {
+  ICAL.Timezone = function icaltimezone(data) {
     this.wrappedJSObject = this;
     this.fromData(data);
   };
 
-  ICAL.icaltimezone.prototype = {
+  ICAL.Timezone.prototype = {
 
     tzid: "",
     location: "",
@@ -2475,7 +2662,7 @@ ICAL.design = {
     },
 
     utc_offset: function utc_offset(tt) {
-      if (this == ICAL.icaltimezone.utc_timezone || this == ICAL.icaltimezone.local_timezone) {
+      if (this == ICAL.Timezone.utc_timezone || this == ICAL.Timezone.local_timezone) {
         return 0;
       }
 
@@ -2502,14 +2689,14 @@ ICAL.design = {
         var change = ICAL.helpers.clone(this.changes[change_num], true);
         if (change.utc_offset < change.prev_utc_offset) {
           ICAL.helpers.dumpn("Adjusting " + change.utc_offset);
-          ICAL.icaltimezone.adjust_change(change, 0, 0, 0, change.utc_offset);
+          ICAL.Timezone.adjust_change(change, 0, 0, 0, change.utc_offset);
         } else {
           ICAL.helpers.dumpn("Adjusting prev " + change.prev_utc_offset);
-          ICAL.icaltimezone.adjust_change(change, 0, 0, 0,
+          ICAL.Timezone.adjust_change(change, 0, 0, 0,
                                           change.prev_utc_offset);
         }
 
-        var cmp = ICAL.icaltimezone._compare_change_fn(tt_change, change);
+        var cmp = ICAL.Timezone._compare_change_fn(tt_change, change);
         ICAL.helpers.dumpn("Compare" + cmp + " / " + change.toString());
 
         if (cmp >= 0) {
@@ -2538,10 +2725,10 @@ ICAL.design = {
 
       if (utc_offset_change < 0 && change_num_to_use > 0) {
         var tmp_change = ICAL.helpers.clone(zone_change, true);
-        ICAL.icaltimezone.adjust_change(tmp_change, 0, 0, 0,
+        ICAL.Timezone.adjust_change(tmp_change, 0, 0, 0,
                                         tmp_change.prev_utc_offset);
 
-        if (ICAL.icaltimezone._compare_change_fn(tt_change, tmp_change) < 0) {
+        if (ICAL.Timezone._compare_change_fn(tt_change, tmp_change) < 0) {
           var prev_zone_change = this.changes[change_num_to_use - 1];
 
           var want_daylight = false; // TODO
@@ -2565,7 +2752,7 @@ ICAL.design = {
       while (lower < upper) {
         middle = ICAL.helpers.trunc(lower + upper / 2);
         var zone_change = this.changes[middle];
-        var cmp = ICAL.icaltimezone._compare_change_fn(change, zone_change);
+        var cmp = ICAL.Timezone._compare_change_fn(change, zone_change);
         if (cmp == 0) {
           break;
         } else if (cmp > 0) {
@@ -2579,20 +2766,20 @@ ICAL.design = {
     },
 
     ensure_coverage: function ensure_coverage(aYear) {
-      if (ICAL.icaltimezone._minimum_expansion_year == -1) {
-        var today = ICAL.icaltime.now();
-        ICAL.icaltimezone._minimum_expansion_year = today.year;
+      if (ICAL.Timezone._minimum_expansion_year == -1) {
+        var today = ICAL.Time.now();
+        ICAL.Timezone._minimum_expansion_year = today.year;
       }
 
       var changes_end_year = aYear;
-      if (changes_end_year < ICAL.icaltimezone._minimum_expansion_year) {
-        changes_end_year = ICAL.icaltimezone._minimum_expansion_year;
+      if (changes_end_year < ICAL.Timezone._minimum_expansion_year) {
+        changes_end_year = ICAL.Timezone._minimum_expansion_year;
       }
 
-      changes_end_year += ICAL.icaltimezone.EXTRA_COVERAGE;
+      changes_end_year += ICAL.Timezone.EXTRA_COVERAGE;
 
-      if (changes_end_year > ICAL.icaltimezone.MAX_YEAR) {
-        changes_end_year = ICAL.icaltimezone.MAX_YEAR;
+      if (changes_end_year > ICAL.Timezone.MAX_YEAR) {
+        changes_end_year = ICAL.Timezone.MAX_YEAR;
       }
 
       if (!this.changes || this.expand_end_year < aYear) {
@@ -2611,7 +2798,7 @@ ICAL.design = {
         }
 
         this.changes = changes.concat(this.changes || []);
-        this.changes.sort(ICAL.icaltimezone._compare_change_fn);
+        this.changes.sort(ICAL.Timezone._compare_change_fn);
       }
 
       this.change_end_year = aYear;
@@ -2647,7 +2834,7 @@ ICAL.design = {
         change.minute = dtstart.minute;
         change.second = dtstart.second;
 
-        ICAL.icaltimezone.adjust_change(change, 0, 0, 0,
+        ICAL.Timezone.adjust_change(change, 0, 0, 0,
                                         -change.prev_utc_offset);
         changes.push(change);
       } else {
@@ -2668,8 +2855,8 @@ ICAL.design = {
             change.minute = rdate.time.minute;
             change.second = rdate.time.second;
 
-            if (rdate.time.zone == ICAL.icaltimezone.utc_timezone) {
-              ICAL.icaltimezone.adjust_change(change, 0, 0, 0,
+            if (rdate.time.zone == ICAL.Timezone.utc_timezone) {
+              ICAL.Timezone.adjust_change(change, 0, 0, 0,
                                               -change.prev_utc_offset);
             }
           }
@@ -2682,9 +2869,9 @@ ICAL.design = {
 
         var change = init_changes();
 
-        if (rrule.until && rrule.until.zone == ICAL.icaltimezone.utc_timezone) {
+        if (rrule.until && rrule.until.zone == ICAL.Timezone.utc_timezone) {
           rrule.until.adjust(0, 0, 0, change.prev_utc_offset);
-          rrule.until.zone = ICAL.icaltimezone.local_timezone;
+          rrule.until.zone = ICAL.Timezone.local_timezone;
         }
 
         var iterator = rrule.iterator(dtstart);
@@ -2704,7 +2891,7 @@ ICAL.design = {
           change.second = occ.second;
           change.isDate = occ.isDate;
 
-          ICAL.icaltimezone.adjust_change(change, 0, 0, 0,
+          ICAL.Timezone.adjust_change(change, 0, 0, 0,
                                           -change.prev_utc_offset);
           changes.push(change);
         }
@@ -2719,7 +2906,7 @@ ICAL.design = {
 
   };
 
-  ICAL.icaltimezone._compare_change_fn = function icaltimezone_compare_change_fn(a, b) {
+  ICAL.Timezone._compare_change_fn = function icaltimezone_compare_change_fn(a, b) {
     if (a.year < b.year) return -1;
     else if (a.year > b.year) return 1;
 
@@ -2741,11 +2928,11 @@ ICAL.design = {
     return 0;
   };
 
-  ICAL.icaltimezone.convert_time = function icaltimezone_convert_time(tt, from_zone, to_zone) {
+  ICAL.Timezone.convert_time = function icaltimezone_convert_time(tt, from_zone, to_zone) {
     if (tt.isDate ||
         from_zone.tzid == to_zone.tzid ||
-        from_zone == ICAL.icaltimezone.local_timezone ||
-        to_zone == ICAL.icaltimezone.local_timezone) {
+        from_zone == ICAL.Timezone.local_timezone ||
+        to_zone == ICAL.Timezone.local_timezone) {
       tt.zone = to_zone;
       return tt;
     }
@@ -2759,25 +2946,25 @@ ICAL.design = {
     return null;
   };
 
-  ICAL.icaltimezone.fromData = function icaltimezone_fromData(aData) {
-    var tt = new ICAL.icaltimezone();
+  ICAL.Timezone.fromData = function icaltimezone_fromData(aData) {
+    var tt = new ICAL.Timezone();
     return tt.fromData(aData);
   };
 
-  ICAL.icaltimezone.utc_timezone = ICAL.icaltimezone.fromData({
+  ICAL.Timezone.utc_timezone = ICAL.Timezone.fromData({
     tzid: "UTC"
   });
-  ICAL.icaltimezone.local_timezone = ICAL.icaltimezone.fromData({
+  ICAL.Timezone.local_timezone = ICAL.Timezone.fromData({
     tzid: "floating"
   });
 
-  ICAL.icaltimezone.adjust_change = function icaltimezone_adjust_change(change, days, hours, minutes, seconds) {
-    return ICAL.icaltime.prototype.adjust.call(change, days, hours, minutes, seconds);
+  ICAL.Timezone.adjust_change = function icaltimezone_adjust_change(change, days, hours, minutes, seconds) {
+    return ICAL.Time.prototype.adjust.call(change, days, hours, minutes, seconds);
   };
 
-  ICAL.icaltimezone._minimum_expansion_year = -1;
-  ICAL.icaltimezone.MAX_YEAR = 2035; // TODO this is because of time_t, which we don't need. Still usefull?
-  ICAL.icaltimezone.EXTRA_COVERAGE = 5;
+  ICAL.Timezone._minimum_expansion_year = -1;
+  ICAL.Timezone.MAX_YEAR = 2035; // TODO this is because of time_t, which we don't need. Still usefull?
+  ICAL.Timezone.EXTRA_COVERAGE = 5;
 })();
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -2788,12 +2975,12 @@ ICAL.design = {
 
 (typeof(ICAL) === 'undefined')? ICAL = {} : '';
 (function() {
-  ICAL.icaltime = function icaltime(data) {
+  ICAL.Time = function icaltime(data) {
     this.wrappedJSObject = this;
     this.fromData(data);
   };
 
-  ICAL.icaltime.prototype = {
+  ICAL.Time.prototype = {
 
     year: 0,
     month: 1,
@@ -2808,15 +2995,15 @@ ICAL.design = {
 
     auto_normalize: false,
     icalclass: "icaltime",
-    icaltype: "DATE-TIME",
+    icaltype: "date-time",
 
     clone: function icaltime_clone() {
-      return new ICAL.icaltime(this);
+      return new ICAL.Time(this);
     },
 
     reset: function icaltime_reset() {
-      this.fromData(ICAL.icaltime.epoch_time);
-      this.zone = ICAL.icaltimezone.utc_timezone;
+      this.fromData(ICAL.Time.epoch_time);
+      this.zone = ICAL.Timezone.utc_timezone;
     },
 
     resetTo: function icaltime_resetTo(year, month, day,
@@ -2835,10 +3022,10 @@ ICAL.design = {
     fromString: function icaltime_fromString(str) {
       var data;
       try {
-        data = ICAL.icalparser.parseValue(str, "DATE");
+        data = ICAL.DecorationParser.parseValue(str, "date");
         data.isDate = true;
       } catch (e) {
-        data = ICAL.icalparser.parseValue(str, "DATE-TIME");
+        data = ICAL.DecorationParser.parseValue(str, "date-time");
         data.isDate = false;
       }
       return this.fromData(data);
@@ -2849,7 +3036,7 @@ ICAL.design = {
         this.reset();
       } else {
         if (useUTC) {
-          this.zone = ICAL.icaltimezone.utc_timezone;
+          this.zone = ICAL.Timezone.utc_timezone;
           this.year = aDate.getUTCFullYear();
           this.month = aDate.getUTCMonth() + 1;
           this.day = aDate.getUTCDate();
@@ -2857,7 +3044,7 @@ ICAL.design = {
           this.minute = aDate.getUTCMinutes();
           this.second = aDate.getUTCSeconds();
         } else {
-          this.zone = ICAL.icaltimezone.local_timezone;
+          this.zone = ICAL.Timezone.local_timezone;
           this.year = aDate.getFullYear();
           this.month = aDate.getMonth() + 1;
           this.day = aDate.getDate();
@@ -2901,11 +3088,11 @@ ICAL.design = {
         //TODO: replace with timezone service
         switch (timezone) {
           case 'Z':
-          case ICAL.icaltimezone.utc_timezone.tzid:
-            this.zone = ICAL.icaltimezone.utc_timezone;
+          case ICAL.Timezone.utc_timezone.tzid:
+            this.zone = ICAL.Timezone.utc_timezone;
             break;
-          case ICAL.icaltimezone.local_timezone.tzid:
-            this.zone = ICAL.icaltimezone.local_timezone;
+          case ICAL.Timezone.local_timezone.tzid:
+            this.zone = ICAL.Timezone.local_timezone;
             break;
         }
       }
@@ -2915,7 +3102,7 @@ ICAL.design = {
       }
 
       if (!this.zone) {
-        this.zone = ICAL.icaltimezone.local_timezone;
+        this.zone = ICAL.Timezone.local_timezone;
       }
 
       if (aData && "auto_normalize" in aData) {
@@ -2948,8 +3135,8 @@ ICAL.design = {
     },
 
     dayOfYear: function icaltime_dayOfYear() {
-      var is_leap = (ICAL.icaltime.is_leap_year(this.year) ? 1 : 0);
-      var diypm = ICAL.icaltime._days_in_year_passed_month;
+      var is_leap = (ICAL.Time.is_leap_year(this.year) ? 1 : 0);
+      var diypm = ICAL.Time._days_in_year_passed_month;
       return diypm[is_leap][this.month - 1] + this.day;
     },
 
@@ -2977,7 +3164,7 @@ ICAL.design = {
 
     end_of_month: function end_of_month() {
       var result = this.clone();
-      result.day = ICAL.icaltime.daysInMonth(result.month, result.year);
+      result.day = ICAL.Time.daysInMonth(result.month, result.year);
       result.isDate = true;
       result.hour = 0;
       result.minute = 0;
@@ -3008,7 +3195,7 @@ ICAL.design = {
     },
 
     start_doy_week: function start_doy_week(aFirstDayOfWeek) {
-      var firstDow = aFirstDayOfWeek || ICAL.icaltime.SUNDAY;
+      var firstDow = aFirstDayOfWeek || ICAL.Time.SUNDAY;
       var delta = this.dayOfWeek() - firstDow;
       if (delta < 0) delta += 7;
       return this.dayOfYear() - delta;
@@ -3030,7 +3217,7 @@ ICAL.design = {
      *                   to the current month of this time object.
      */
     nthWeekDay: function icaltime_nthWeekDay(aDayOfWeek, aPos) {
-      var daysInMonth = ICAL.icaltime.daysInMonth(this.month, this.year);
+      var daysInMonth = ICAL.Time.daysInMonth(this.month, this.year);
       var weekday;
       var pos = aPos;
 
@@ -3144,16 +3331,16 @@ ICAL.design = {
       var isoyear = this.year;
 
       if (dt.month == 12 && dt.day > 28) {
-        week1 = ICAL.icaltime.week_one_starts(isoyear + 1, aWeekStart);
+        week1 = ICAL.Time.week_one_starts(isoyear + 1, aWeekStart);
         if (dt.compare(week1) < 0) {
-          week1 = ICAL.icaltime.week_one_starts(isoyear, aWeekStart);
+          week1 = ICAL.Time.week_one_starts(isoyear, aWeekStart);
         } else {
           isoyear++;
         }
       } else {
-        week1 = ICAL.icaltime.week_one_starts(isoyear, aWeekStart);
+        week1 = ICAL.Time.week_one_starts(isoyear, aWeekStart);
         if (dt.compare(week1) < 0) {
-          week1 = ICAL.icaltime.week_one_starts(--isoyear, aWeekStart);
+          week1 = ICAL.Time.week_one_starts(--isoyear, aWeekStart);
         }
       }
 
@@ -3187,7 +3374,7 @@ ICAL.design = {
           return leap_years_until(aEnd - 1) - leap_years_until(aStart);
         }
       }
-      var dur = new ICAL.icalduration();
+      var dur = new ICAL.Duration();
 
       dur.seconds = this.second - aDate.second;
       dur.minutes = this.minute - aDate.minute;
@@ -3199,7 +3386,7 @@ ICAL.design = {
         dur.days = this_doy - that_doy;
       } else if (this.year < aDate.year) {
         var days_left_thisyear = 365 +
-          (ICAL.icaltime.is_leap_year(this.year) ? 1 : 0) -
+          (ICAL.Time.is_leap_year(this.year) ? 1 : 0) -
           this.dayOfYear();
 
         dur.days -= days_left_thisyear + aDate.dayOfYear();
@@ -3207,7 +3394,7 @@ ICAL.design = {
         dur.days -= 365 * (aDate.year - this.year - 1);
       } else {
         var days_left_thatyear = 365 +
-          (ICAL.icaltime.is_leap_year(aDate.year) ? 1 : 0) -
+          (ICAL.Time.is_leap_year(aDate.year) ? 1 : 0) -
           aDate.dayOfYear();
 
         dur.days += days_left_thatyear + this.dayOfYear();
@@ -3220,7 +3407,7 @@ ICAL.design = {
 
     compare: function icaltime_compare(other) {
       function cmp(attr) {
-        return ICAL.icaltime._cmp_attr(a, b, attr);
+        return ICAL.Time._cmp_attr(a, b, attr);
       }
 
       if (!other) return 0;
@@ -3230,11 +3417,11 @@ ICAL.design = {
       }
 
       var target_zone;
-      if (this.zone == ICAL.icaltimezone.local_timezone ||
-          other.zone == ICAL.icaltimezone.local_timezone) {
-        target_zone = ICAL.icaltimezone.local_timezone;
+      if (this.zone == ICAL.Timezone.local_timezone ||
+          other.zone == ICAL.Timezone.local_timezone) {
+        target_zone = ICAL.Timezone.local_timezone;
       } else {
-        target_zone = ICAL.icaltimezone.utc_timezone;
+        target_zone = ICAL.Timezone.utc_timezone;
       }
 
       var a = this.convert_to_zone(target_zone);
@@ -3266,7 +3453,7 @@ ICAL.design = {
 
     compare_date_only_tz: function icaltime_compare_date_only_tz(other, tz) {
       function cmp(attr) {
-        return ICAL.icaltime._cmp_attr(a, b, attr);
+        return ICAL.Time._cmp_attr(a, b, attr);
       }
       var a = this.convert_to_zone(tz);
       var b = other.convert_to_zone(tz);
@@ -3284,7 +3471,7 @@ ICAL.design = {
       var zone_equals = (this.zone.tzid == zone.tzid);
 
       if (!this.isDate && !zone_equals) {
-        ICAL.icaltimezone.convert_time(copy, this.zone, zone);
+        ICAL.Timezone.convert_time(copy, this.zone, zone);
       }
 
       copy.zone = zone;
@@ -3292,29 +3479,49 @@ ICAL.design = {
     },
 
     utc_offset: function utc_offset() {
-      if (this.zone == ICAL.icaltimezone.local_timezone ||
-          this.zone == ICAL.icaltimezone.utc_timezone) {
+      if (this.zone == ICAL.Timezone.local_timezone ||
+          this.zone == ICAL.Timezone.utc_timezone) {
         return 0;
       } else {
         return this.zone.utc_offset(this);
       }
     },
 
+    /**
+     * Returns an RFC 5455 compliant ical representation of this object.
+     *
+     * @return {String} ical date/date-time.
+     */
+    toICALString: function() {
+      var string = this.toString();
+
+      if (string.length > 10) {
+        return ICAL.design.value['date-time'].toICAL(string);
+      } else {
+        return ICAL.design.value.date.toICAL(string);
+      }
+    },
+
     toString: function toString() {
-        return ("0000" + this.year).substr(-4) +
-               ("00" + this.month).substr(-2) +
-               ("00" + this.day).substr(-2) +
-               (this.isDate ? "" :
-                 "T" +
-                 ("00" + this.hour).substr(-2) +
-                 ("00" + this.minute).substr(-2) +
-                 ("00" + this.second).substr(-2) +
-                 (this.zone && this.zone.tzid == "UTC" ? "Z" : "")
-               );
+      var result = this.year + '-' +
+                   ICAL.helpers.pad2(this.month) + '-' +
+                   ICAL.helpers.pad2(this.day);
+
+      if (!this.isDate) {
+          result += 'T' + ICAL.helpers.pad2(this.hour) + ':' +
+                    ICAL.helpers.pad2(this.minute) + ':' +
+                    ICAL.helpers.pad2(this.second);
+
+        if (this.zone === ICAL.Timezone.utc_timezone) {
+          result += 'Z';
+        }
+      }
+
+      return result;
     },
 
     toJSDate: function toJSDate() {
-      if (this.zone == ICAL.icaltimezone.local_timezone) {
+      if (this.zone == ICAL.Timezone.local_timezone) {
         if (this.isDate) {
           return new Date(this.year, this.month - 1, this.day);
         } else {
@@ -3322,7 +3529,7 @@ ICAL.design = {
                           this.hour, this.minute, this.second, 0);
         }
       } else {
-        var utcDate = this.convert_to_zone(ICAL.icaltimezone.utc_timezone);
+        var utcDate = this.convert_to_zone(ICAL.Timezone.utc_timezone);
         if (this.isDate) {
           return Date.UTC(this.year, this.month - 1, this.day);
         } else {
@@ -3338,7 +3545,7 @@ ICAL.design = {
         this.minute = 0;
         this.second = 0;
       }
-      this.icaltype = (this.isDate ? "DATE" : "DATE-TIME");
+      this.icaltype = (this.isDate ? "date" : "date-time");
 
       this.adjust(0, 0, 0, 0);
       return this;
@@ -3392,7 +3599,7 @@ ICAL.design = {
       day = this.day + aExtraDays + days_overflow;
       if (day > 0) {
         for (;;) {
-          var daysInMonth = ICAL.icaltime.daysInMonth(this.month, this.year);
+          var daysInMonth = ICAL.Time.daysInMonth(this.month, this.year);
           if (day <= daysInMonth) {
             break;
           }
@@ -3414,7 +3621,7 @@ ICAL.design = {
             this.month--;
           }
 
-          day += ICAL.icaltime.daysInMonth(this.month, this.year);
+          day += ICAL.Time.daysInMonth(this.month, this.year);
         }
       }
 
@@ -3423,14 +3630,14 @@ ICAL.design = {
     },
 
     fromUnixTime: function fromUnixTime(seconds) {
-      var epoch = ICAL.icaltime.epoch_time.clone();
+      var epoch = ICAL.Time.epoch_time.clone();
       epoch.adjust(0, 0, 0, seconds);
       this.fromData(epoch);
-      this.zone = ICAL.icaltimezone.utc_timezone;
+      this.zone = ICAL.Timezone.utc_timezone;
     },
 
     toUnixTime: function toUnixTime() {
-      var dur = this.subtractDate(ICAL.icaltime.epoch_time);
+      var dur = this.subtractDate(ICAL.Time.epoch_time);
       return dur.toSeconds();
     },
 
@@ -3446,7 +3653,7 @@ ICAL.design = {
      *
      *    var deserialized = JSON.parse(json);
      *
-     *    var time = new ICAL.icaltime(deserialized);
+     *    var time = new ICAL.Time(deserialized);
      *
      */
     toJSON: function() {
@@ -3483,9 +3690,9 @@ ICAL.design = {
   (function setupNormalizeAttributes() {
     // This needs to run before any instances are created!
     function addAutoNormalizeAttribute(attr, mattr) {
-      ICAL.icaltime.prototype[mattr] = ICAL.icaltime.prototype[attr];
+      ICAL.Time.prototype[mattr] = ICAL.Time.prototype[attr];
 
-      Object.defineProperty(ICAL.icaltime.prototype, attr, {
+      Object.defineProperty(ICAL.Time.prototype, attr, {
         get: function() {
           return this[mattr];
         },
@@ -3512,11 +3719,11 @@ ICAL.design = {
       addAutoNormalizeAttribute("second", "mSecond");
       addAutoNormalizeAttribute("isDate", "mIsDate");
 
-      ICAL.icaltime.prototype.auto_normalize = true;
+      ICAL.Time.prototype.auto_normalize = true;
     }
   })();
 
-  ICAL.icaltime.daysInMonth = function icaltime_daysInMonth(month, year) {
+  ICAL.Time.daysInMonth = function icaltime_daysInMonth(month, year) {
     var _daysInMonth = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
     var days = 30;
 
@@ -3525,13 +3732,13 @@ ICAL.design = {
     days = _daysInMonth[month];
 
     if (month == 2) {
-      days += ICAL.icaltime.is_leap_year(year);
+      days += ICAL.Time.is_leap_year(year);
     }
 
     return days;
   };
 
-  ICAL.icaltime.is_leap_year = function icaltime_is_leap_year(year) {
+  ICAL.Time.is_leap_year = function icaltime_is_leap_year(year) {
     if (year <= 1752) {
       return ((year % 4) == 0);
     } else {
@@ -3539,20 +3746,20 @@ ICAL.design = {
     }
   };
 
-  ICAL.icaltime.fromDayOfYear = function icaltime_fromDayOfYear(aDayOfYear, aYear) {
+  ICAL.Time.fromDayOfYear = function icaltime_fromDayOfYear(aDayOfYear, aYear) {
     var year = aYear;
     var doy = aDayOfYear;
-    var tt = new ICAL.icaltime();
+    var tt = new ICAL.Time();
     tt.auto_normalize = false;
-    var is_leap = (ICAL.icaltime.is_leap_year(year) ? 1 : 0);
+    var is_leap = (ICAL.Time.is_leap_year(year) ? 1 : 0);
 
     if (doy < 1) {
       year--;
-      is_leap = (ICAL.icaltime.is_leap_year(year) ? 1 : 0);
-      doy += ICAL.icaltime._days_in_year_passed_month[is_leap][12];
-    } else if (doy > ICAL.icaltime._days_in_year_passed_month[is_leap][12]) {
-      is_leap = (ICAL.icaltime.is_leap_year(year) ? 1 : 0);
-      doy -= ICAL.icaltime._days_in_year_passed_month[is_leap][12];
+      is_leap = (ICAL.Time.is_leap_year(year) ? 1 : 0);
+      doy += ICAL.Time._days_in_year_passed_month[is_leap][12];
+    } else if (doy > ICAL.Time._days_in_year_passed_month[is_leap][12]) {
+      is_leap = (ICAL.Time.is_leap_year(year) ? 1 : 0);
+      doy -= ICAL.Time._days_in_year_passed_month[is_leap][12];
       year++;
     }
 
@@ -3560,9 +3767,9 @@ ICAL.design = {
     tt.isDate = true;
 
     for (var month = 11; month >= 0; month--) {
-      if (doy > ICAL.icaltime._days_in_year_passed_month[is_leap][month]) {
+      if (doy > ICAL.Time._days_in_year_passed_month[is_leap][month]) {
         tt.month = month + 1;
-        tt.day = doy - ICAL.icaltime._days_in_year_passed_month[is_leap][month];
+        tt.day = doy - ICAL.Time._days_in_year_passed_month[is_leap][month];
         break;
       }
     }
@@ -3571,27 +3778,74 @@ ICAL.design = {
     return tt;
   };
 
-  ICAL.icaltime.fromString = function fromString(str) {
-    var tt = new ICAL.icaltime();
-    return tt.fromString(str);
+  ICAL.Time.fromStringv2 = function fromString(str) {
+    return new ICAL.Time({
+      year: parseInt(str.substr(0, 4), 10),
+      month: parseInt(str.substr(5, 2), 10),
+      day: parseInt(str.substr(8, 2), 10),
+      isDate: true
+    });
   };
 
-  ICAL.icaltime.fromJSDate = function fromJSDate(aDate, useUTC) {
-    var tt = new ICAL.icaltime();
+  ICAL.Time.fromDateString = function(aValue) {
+    // YYYY-MM-DD
+    // 2012-10-10
+    return new ICAL.Time({
+      year: ICAL.helpers.strictParseInt(aValue.substr(0, 4)),
+      month: ICAL.helpers.strictParseInt(aValue.substr(5, 2)),
+      day: ICAL.helpers.strictParseInt(aValue.substr(8, 2)),
+      isDate: true
+    });
+  };
+
+  ICAL.Time.fromDateTimeString = function(aValue) {
+    if (aValue.length < 19) {
+      throw new Error(
+        'invalid date-time value: "' + aValue + '"'
+      );
+    }
+
+    // 2012-10-10T10:10:10(Z)?
+    var time = new ICAL.Time({
+      year: ICAL.helpers.strictParseInt(aValue.substr(0, 4)),
+      month: ICAL.helpers.strictParseInt(aValue.substr(5, 2)),
+      day: ICAL.helpers.strictParseInt(aValue.substr(8, 2)),
+      hour: ICAL.helpers.strictParseInt(aValue.substr(11, 2)),
+      minute: ICAL.helpers.strictParseInt(aValue.substr(14, 2)),
+      second: ICAL.helpers.strictParseInt(aValue.substr(17, 2))
+    });
+
+    if (aValue[19] === 'Z') {
+      time.zone = ICAL.Timezone.utc_timezone;
+    }
+
+    return time;
+  };
+
+  ICAL.Time.fromString = function fromString(aValue) {
+    if (aValue.length > 10) {
+      return ICAL.Time.fromDateTimeString(aValue);
+    } else {
+      return ICAL.Time.fromDateString(aValue);
+    }
+  };
+
+  ICAL.Time.fromJSDate = function fromJSDate(aDate, useUTC) {
+    var tt = new ICAL.Time();
     return tt.fromJSDate(aDate, useUTC);
   };
 
-  ICAL.icaltime.fromData = function fromData(aData) {
-    var t = new ICAL.icaltime();
+  ICAL.Time.fromData = function fromData(aData) {
+    var t = new ICAL.Time();
     return t.fromData(aData);
   };
 
-  ICAL.icaltime.now = function icaltime_now() {
-    return ICAL.icaltime.fromJSDate(new Date(), false);
+  ICAL.Time.now = function icaltime_now() {
+    return ICAL.Time.fromJSDate(new Date(), false);
   };
 
-  ICAL.icaltime.week_one_starts = function week_one_starts(aYear, aWeekStart) {
-    var t = ICAL.icaltime.fromData({
+  ICAL.Time.week_one_starts = function week_one_starts(aYear, aWeekStart) {
+    var t = ICAL.Time.fromData({
       year: aYear,
       month: 1,
       day: 4,
@@ -3599,11 +3853,11 @@ ICAL.design = {
     });
 
     var fourth_dow = t.dayOfWeek();
-    t.day += (1 - fourth_dow) + ((aWeekStart || ICAL.icaltime.SUNDAY) - 1);
+    t.day += (1 - fourth_dow) + ((aWeekStart || ICAL.Time.SUNDAY) - 1);
     return t;
   };
 
-  ICAL.icaltime.epoch_time = ICAL.icaltime.fromData({
+  ICAL.Time.epoch_time = ICAL.Time.fromData({
     year: 1970,
     month: 1,
     day: 1,
@@ -3614,24 +3868,27 @@ ICAL.design = {
     timezone: "Z"
   });
 
-  ICAL.icaltime._cmp_attr = function _cmp_attr(a, b, attr) {
+  ICAL.Time._cmp_attr = function _cmp_attr(a, b, attr) {
     if (a[attr] > b[attr]) return 1;
     if (a[attr] < b[attr]) return -1;
     return 0;
   };
 
-  ICAL.icaltime._days_in_year_passed_month = [
+  ICAL.Time._days_in_year_passed_month = [
     [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365],
     [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366]
   ];
 
-  ICAL.icaltime.SUNDAY = 1;
-  ICAL.icaltime.MONDAY = 2;
-  ICAL.icaltime.TUESDAY = 3;
-  ICAL.icaltime.WEDNESDAY = 4;
-  ICAL.icaltime.THURSDAY = 5;
-  ICAL.icaltime.FRIDAY = 6;
-  ICAL.icaltime.SATURDAY = 7;
+
+  ICAL.Time.SUNDAY = 1;
+  ICAL.Time.MONDAY = 2;
+  ICAL.Time.TUESDAY = 3;
+  ICAL.Time.WEDNESDAY = 4;
+  ICAL.Time.THURSDAY = 5;
+  ICAL.Time.FRIDAY = 6;
+  ICAL.Time.SATURDAY = 7;
+
+  ICAL.Time.DEFAULT_WEEK_START = ICAL.Time.MONDAY;
 })();
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -3644,43 +3901,64 @@ ICAL.design = {
 (function() {
 
   var DOW_MAP = {
-    SU: 1,
-    MO: 2,
-    TU: 3,
-    WE: 4,
-    TH: 5,
-    FR: 6,
-    SA: 7
+    SU: ICAL.Time.SUNDAY,
+    MO: ICAL.Time.MONDAY,
+    TU: ICAL.Time.TUESDAY,
+    WE: ICAL.Time.WEDNESDAY,
+    TH: ICAL.Time.THURSDAY,
+    FR: ICAL.Time.FRIDAY,
+    SA: ICAL.Time.SATURDAY
   };
 
-  ICAL.icalrecur = function icalrecur(data) {
+  var REVERSE_DOW_MAP = {};
+  for (var key in DOW_MAP) {
+    REVERSE_DOW_MAP[DOW_MAP[key]] = key;
+  }
+
+  var COPY_PARTS = ["BYSECOND", "BYMINUTE", "BYHOUR", "BYDAY",
+                    "BYMONTHDAY", "BYYEARDAY", "BYWEEKNO",
+                    "BYMONTH", "BYSETPOS"];
+
+  ICAL.Recur = function icalrecur(data) {
     this.wrappedJSObject = this;
     this.parts = {};
-    this.fromData(data);
+
+    if (typeof(data) === 'object') {
+      for (var key in data) {
+        this[key] = data[key];
+      }
+
+      if (this.until && !(this.until instanceof ICAL.Time)) {
+        this.until = new ICAL.Time(this.until);
+      }
+    }
+
+    if (!this.parts) {
+      this.parts = {};
+    }
   };
 
-  ICAL.icalrecur.prototype = {
+  ICAL.Recur.prototype = {
 
     parts: null,
 
     interval: 1,
-    wkst: ICAL.icaltime.MONDAY,
+    wkst: ICAL.Time.MONDAY,
     until: null,
     count: null,
     freq: null,
     icalclass: "icalrecur",
-    icaltype: "RECUR",
+    icaltype: "recur",
 
     iterator: function(aStart) {
-      return new ICAL.icalrecur_iterator({
+      return new ICAL.RecurIterator({
         rule: this,
         dtstart: aStart
       });
     },
 
     clone: function clone() {
-      return ICAL.icalrecur.fromData(this);
-      //return ICAL.icalrecur.fromIcalProperty(this.toIcalProperty());
+      return new ICAL.Recur(this.toJSON());
     },
 
     isFinite: function isfinite() {
@@ -3750,65 +4028,11 @@ ICAL.design = {
         result[prop] = this[prop];
       }
 
-      if (result.until instanceof ICAL.icaltime) {
+      if (result.until instanceof ICAL.Time) {
         result.until = result.until.toJSON();
       }
 
       return result;
-    },
-
-    fromData: function fromData(aData) {
-      var propsToCopy = ["freq", "count", "until", "wkst", "interval"];
-      for (var key in propsToCopy) {
-        var prop = propsToCopy[key];
-        if (aData && prop.toUpperCase() in aData) {
-          this[prop] = aData[prop.toUpperCase()];
-          // TODO casing sucks, fix the parser!
-        } else if (aData && prop in aData) {
-          this[prop] = aData[prop];
-          // TODO casing sucks, fix the parser!
-        }
-      }
-
-      // wkst is usually in SU, etc.. format we need
-      // to convert it from the string
-      if (typeof(this.wkst) === 'string') {
-        this.wkst = ICAL.icalrecur.icalDayToNumericDay(this.wkst);
-      }
-
-      // Another hack for multiple construction of until value.
-      if (this.until) {
-        if (this.until instanceof ICAL.icaltime) {
-          this.until = this.until.clone();
-        } else {
-          this.until = ICAL.icaltime.fromData(this.until);
-        }
-      }
-
-      var partsToCopy = ["BYSECOND", "BYMINUTE", "BYHOUR", "BYDAY",
-                         "BYMONTHDAY", "BYYEARDAY", "BYWEEKNO",
-                         "BYMONTH", "BYSETPOS"];
-      this.parts = {};
-      if (aData) {
-        for (var key in partsToCopy) {
-          var prop = partsToCopy[key];
-          if (prop in aData) {
-            this.parts[prop] = aData[prop];
-            // TODO casing sucks, fix the parser!
-          }
-        }
-        // TODO oh god, make it go away!
-        if (aData.parts) {
-          for (var key in partsToCopy) {
-            var prop = partsToCopy[key];
-            if (prop in aData.parts) {
-              this.parts[prop] = aData.parts[prop];
-              // TODO casing sucks, fix the parser!
-            }
-          }
-        }
-      }
-      return this;
     },
 
     toString: function icalrecur_toString() {
@@ -3823,55 +4047,39 @@ ICAL.design = {
       for (var k in this.parts) {
         str += ";" + k + "=" + this.parts[k];
       }
+      if (this.until ){
+        str += ';UNTIL=' + this.until.toString();
+      }
+      if ('wkst' in this && this.wkst !== ICAL.Time.DEFAULT_WEEK_START) {
+        str += ';WKST=' + REVERSE_DOW_MAP[this.wkst];
+      }
       return str;
-    },
-
-    toIcalProperty: function toIcalProperty() {
-      try {
-        var valueData = {
-          name: this.isNegative ? "EXRULE" : "RRULE",
-          type: "RECUR",
-          value: [this.toString()]
-          // TODO more props?
-        };
-        return ICAL.icalproperty.fromData(valueData);
-      } catch (e) {
-        ICAL.helpers.dumpn("EICALPROP: " + this.toString() + "//" + e);
-        ICAL.helpers.dumpn(e.stack);
-        return null;
-      }
-
-      return null;
-    },
-
-    fromIcalProperty: function fromIcalProperty(aProp) {
-      var propval = aProp.getFirstValue();
-      this.fromData(propval);
-      this.parts = ICAL.helpers.clone(propval.parts, true);
-      if (aProp.name == "EXRULE") {
-        this.isNegative = true;
-      } else if (aProp.name == "RRULE") {
-        this.isNegative = false;
-      } else {
-        throw new Error("Invalid Property " + aProp.name + " passed");
-      }
     }
   };
 
-  ICAL.icalrecur.fromData = function icalrecur_fromData(data) {
-    return (new ICAL.icalrecur(data));
+  function parseNumericValue(type, min, max, value) {
+    var result = value;
+
+    if (value[0] === '+') {
+      result = value.substr(1);
+    }
+
+    result = ICAL.helpers.strictParseInt(result);
+
+    if (min !== undefined && value < min) {
+      throw new Error(
+        type + ': invalid value "' + value + '" must be > ' + min
+      );
+    }
+
+    if (max !== undefined && value > max) {
+      throw new Error(
+        type + ': invalid value "' + value + '" must be < ' + min
+      );
+    }
+
+    return result;
   }
-
-  ICAL.icalrecur.fromString = function icalrecur_fromString(str) {
-    var data = ICAL.icalparser.parseValue(str, "RECUR");
-    return ICAL.icalrecur.fromData(data);
-  };
-
-  ICAL.icalrecur.fromIcalProperty = function icalrecur_fromIcalProperty(prop) {
-    var recur = new ICAL.icalrecur();
-    recur.fromIcalProperty(prop);
-    return recur;
-  };
 
   /**
    * Convert an ical representation of a day (SU, MO, etc..)
@@ -3880,20 +4088,109 @@ ICAL.design = {
    * @param {String} day ical day.
    * @return {Numeric} numeric value of given day.
    */
-  ICAL.icalrecur.icalDayToNumericDay = function toNumericDay(string) {
+  ICAL.Recur.icalDayToNumericDay = function toNumericDay(string) {
     //XXX: this is here so we can deal
     //     with possibly invalid string values.
 
     return DOW_MAP[string];
   };
 
+  var VALID_DAY_NAMES = /^(SU|MO|TU|WE|TH|FR|SA)$/;
+  var VALID_BYDAY_PART = /^([+-])?(5[0-3]|[1-4][0-9]|[1-9])?(SU|MO|TU|WE|TH|FR|SA)$/
+  var ALLOWED_FREQ = ['SECONDLY', 'MINUTELY', 'HOURLY',
+                      'DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY'];
+
+  var optionDesign = {
+    FREQ: function(value, dict) {
+      // yes this is actually equal or faster then regex.
+      // upside here is we can enumerate the valid values.
+      if (ALLOWED_FREQ.indexOf(value) !== -1) {
+        dict.freq = value;
+      } else {
+        throw new Error(
+          'invalid frequency "' + value + '" expected: "' +
+          ALLOWED_FREQ.join(', ') + '"'
+        );
+      }
+    },
+
+    COUNT: function(value, dict) {
+      dict.count = ICAL.helpers.strictParseInt(value);
+    },
+
+    INTERVAL: function(value, dict) {
+      dict.interval = ICAL.helpers.strictParseInt(value);
+    },
+
+    UNTIL: function(value, dict) {
+      dict.until = ICAL.Time.fromString(value);
+    },
+
+    WKST: function(value, dict) {
+      if (VALID_DAY_NAMES.test(value)) {
+        dict.wkst = ICAL.Recur.icalDayToNumericDay(value);
+      } else {
+        throw new Error('invalid WKST value "' + value + '"');
+      }
+    }
+  };
+
+  var partDesign = {
+    BYSECOND: parseNumericValue.bind(this, 'BYSECOND', 0, 60),
+    BYMINUTE: parseNumericValue.bind(this, 'BYMINUTE', 0, 59),
+    BYHOUR: parseNumericValue.bind(this, 'BYHOUR', 0, 23),
+    BYDAY: function(value) {
+      if (VALID_BYDAY_PART.test(value)) {
+        return value;
+      } else {
+        throw new Error('invalid BYDAY value "' + value + '"');
+      }
+    },
+    BYMONTHDAY: parseNumericValue.bind(this, 'BYMONTHDAY', -31, 31),
+    BYYEARDAY: parseNumericValue.bind(this, 'BYYEARDAY', -366, 366),
+    BYWEEKNO: parseNumericValue.bind(this, 'BYWEEKNO', -53, 53),
+    BYMONTH: parseNumericValue.bind(this, 'BYMONTH', 0, 12),
+    BYSETPOS: parseNumericValue.bind(this, 'BYSETPOS', -366, 366)
+  };
+
+  ICAL.Recur.fromString = function(string) {
+    var dict = Object.create(null);
+    var dictParts = dict.parts = Object.create(null);
+
+    // split is slower in FF but fast enough.
+    // v8 however this is faster then manual split?
+    var values = string.split(';');
+    var len = values.length;
+
+    for (var i = 0; i < len; i++) {
+      var parts = values[i].split('=');
+      var name = parts[0];
+      var value = parts[1];
+
+      if (name in partDesign) {
+        var partArr = value.split(',');
+        var partArrIdx = 0;
+        var partArrLen = partArr.length;
+
+        for (; partArrIdx < partArrLen; partArrIdx++) {
+          partArr[partArrIdx] = partDesign[name](partArr[partArrIdx]);
+        }
+        dictParts[name] = partArr;
+      } else if (name in optionDesign) {
+        optionDesign[name](value, dict);
+      }
+    }
+
+    return new ICAL.Recur(dict);
+  };
+
 })();
-ICAL.icalrecur_iterator = (function() {
+ICAL.RecurIterator = (function() {
 
   /**
    * Options:
-   *  - rule: (ICAL.icalrecur) instance
-   *  - dtstart: (ICAL.icaltime) start date of recurrence rule
+   *  - rule: (ICAL.Recur) instance
+   *  - dtstart: (ICAL.Time) start date of recurrence rule
    *  - initialized: (Boolean) when true will assume options
    *                           are from previously constructed
    *                           iterator and will not re-initialize
@@ -3927,16 +4224,16 @@ ICAL.icalrecur_iterator = (function() {
     days_index: 0,
 
     fromData: function(options) {
-      this.rule = ICAL.helpers.formatClassType(options.rule, ICAL.icalrecur);
+      this.rule = ICAL.helpers.formatClassType(options.rule, ICAL.Recur);
 
       if (!this.rule) {
-        throw new Error('iterator requires a (ICAL.icalrecur) rule');
+        throw new Error('iterator requires a (ICAL.Recur) rule');
       }
 
-      this.dtstart = ICAL.helpers.formatClassType(options.dtstart, ICAL.icaltime);
+      this.dtstart = ICAL.helpers.formatClassType(options.dtstart, ICAL.Time);
 
       if (!this.dtstart) {
-        throw new Error('iterator requires a (ICAL.icaltime) dtstart');
+        throw new Error('iterator requires a (ICAL.Time) dtstart');
       }
 
       if (options.by_data) {
@@ -3949,7 +4246,7 @@ ICAL.icalrecur_iterator = (function() {
         this.occurrence_number = options.occurrence_number;
 
       this.days = options.days || [];
-      this.last = ICAL.helpers.formatClassType(options.last, ICAL.icaltime);
+      this.last = ICAL.helpers.formatClassType(options.last, ICAL.Time);
 
       this.by_indices = options.by_indices;
 
@@ -4047,7 +4344,7 @@ ICAL.icalrecur_iterator = (function() {
           this.increment_year(this.rule.interval);
         }
 
-        var next = ICAL.icaltime.fromDayOfYear(this.days[0], this.last.year);
+        var next = ICAL.Time.fromDayOfYear(this.days[0], this.last.year);
 
         this.last.day = next.day;
         this.last.month = next.month;
@@ -4060,7 +4357,7 @@ ICAL.icalrecur_iterator = (function() {
         var pos = parts[0];
         var dow = parts[1];
 
-        var daysInMonth = ICAL.icaltime.daysInMonth(this.last.month, this.last.year);
+        var daysInMonth = ICAL.Time.daysInMonth(this.last.month, this.last.year);
         var poscount = 0;
 
         if (pos >= 0) {
@@ -4097,7 +4394,7 @@ ICAL.icalrecur_iterator = (function() {
 
       } else if (this.has_by_data("BYMONTHDAY")) {
         if (this.last.day < 0) {
-          var daysInMonth = ICAL.icaltime.daysInMonth(this.last.month, this.last.year);
+          var daysInMonth = ICAL.Time.daysInMonth(this.last.month, this.last.year);
           this.last.day = daysInMonth + this.last.day + 1;
         }
 
@@ -4263,7 +4560,7 @@ ICAL.icalrecur_iterator = (function() {
      *                 correct positive values for easier processing.
      */
     normalizeByMonthDayRules: function(year, month, rules) {
-      var daysInMonth = ICAL.icaltime.daysInMonth(month, year);
+      var daysInMonth = ICAL.Time.daysInMonth(month, year);
 
       // XXX: This is probably bad for performance to allocate
       //      a new array for each month we scan, if possible
@@ -4330,7 +4627,7 @@ ICAL.icalrecur_iterator = (function() {
       var self = this;
 
       function initMonth() {
-        daysInMonth = ICAL.icaltime.daysInMonth(
+        daysInMonth = ICAL.Time.daysInMonth(
           self.last.month, self.last.year
         );
 
@@ -4433,7 +4730,7 @@ ICAL.icalrecur_iterator = (function() {
       if (this.has_by_data("BYDAY") && this.has_by_data("BYMONTHDAY")) {
         data_valid = this._byDayAndMonthDay();
       } else if (this.has_by_data("BYDAY")) {
-        var daysInMonth = ICAL.icaltime.daysInMonth(this.last.month, this.last.year);
+        var daysInMonth = ICAL.Time.daysInMonth(this.last.month, this.last.year);
         var setpos = 0;
 
         if (this.has_by_data("BYSETPOS")) {
@@ -4481,7 +4778,7 @@ ICAL.icalrecur_iterator = (function() {
           this.increment_month();
         }
 
-        var daysInMonth = ICAL.icaltime.daysInMonth(this.last.month, this.last.year);
+        var daysInMonth = ICAL.Time.daysInMonth(this.last.month, this.last.year);
 
         var day = this.by_data.BYMONTHDAY[this.by_indices.BYMONTHDAY];
 
@@ -4498,7 +4795,7 @@ ICAL.icalrecur_iterator = (function() {
       } else {
         this.last.day = this.by_data.BYMONTHDAY[0];
         this.increment_month();
-        var daysInMonth = ICAL.icaltime.daysInMonth(this.last.month, this.last.year);
+        var daysInMonth = ICAL.Time.daysInMonth(this.last.month, this.last.year);
         this.last.day = Math.min(this.last.day, daysInMonth);
       }
 
@@ -4517,7 +4814,7 @@ ICAL.icalrecur_iterator = (function() {
       }
 
       for (;;) {
-        var tt = new ICAL.icaltime();
+        var tt = new ICAL.Time();
         tt.auto_normalize = false;
         this.by_indices.BYDAY++;
 
@@ -4531,6 +4828,7 @@ ICAL.icalrecur_iterator = (function() {
         var dow = parts[1];
 
         dow -= this.rule.wkst;
+
         if (dow < 0) {
           dow += 7;
         }
@@ -4548,12 +4846,20 @@ ICAL.icalrecur_iterator = (function() {
           }
         }
 
-        var next = ICAL.icaltime.fromDayOfYear(startOfWeek + dow,
+        var next = ICAL.Time.fromDayOfYear(startOfWeek + dow,
                                                   this.last.year);
 
-        this.last.day = next.day;
-        this.last.month = next.month;
+        /**
+         * The normalization horrors below are due to
+         * the fact that when the year/month/day changes
+         * it can effect the other operations that come after.
+         */
+        this.last.auto_normalize = false;
         this.last.year = next.year;
+        this.last.month = next.month;
+        this.last.day = next.day;
+        this.last.auto_normalize = true;
+        this.last.normalize();
 
         return end_of_data;
       }
@@ -4573,7 +4879,7 @@ ICAL.icalrecur_iterator = (function() {
         } while (this.days.length == 0);
       }
 
-      var next = ICAL.icaltime.fromDayOfYear(this.days[this.days_index],
+      var next = ICAL.Time.fromDayOfYear(this.days[this.days_index],
                                                 this.last.year);
 
       this.last.day = next.day;
@@ -4586,7 +4892,7 @@ ICAL.icalrecur_iterator = (function() {
       var matches = dow.match(/([+-]?[0-9])?(MO|TU|WE|TH|FR|SA|SU)/);
       if (matches) {
         var pos = parseInt(matches[1] || 0, 10);
-        dow = ICAL.icalrecur.icalDayToNumericDay(matches[2]);
+        dow = ICAL.Recur.icalDayToNumericDay(matches[2]);
         return [pos, dow];
       } else {
         return [0, 0];
@@ -4626,7 +4932,7 @@ ICAL.icalrecur_iterator = (function() {
 
     increment_monthday: function increment_monthday(inc) {
       for (var i = 0; i < inc; i++) {
-        var daysInMonth = ICAL.icaltime.daysInMonth(this.last.month, this.last.year);
+        var daysInMonth = ICAL.Time.daysInMonth(this.last.month, this.last.year);
         this.last.day++;
 
         if (this.last.day > daysInMonth) {
@@ -4684,7 +4990,7 @@ ICAL.icalrecur_iterator = (function() {
     },
 
     expand_year_days: function expand_year_days(aYear) {
-      var t = new ICAL.icaltime();
+      var t = new ICAL.Time();
       this.days = [];
 
       // We need our own copy with a few keys set
@@ -4708,7 +5014,7 @@ ICAL.icalrecur_iterator = (function() {
           t.month = month;
           t.day = 1;
           var first_week = t.week_number(this.rule.wkst);
-          t.day = ICAL.icaltime.daysInMonth(month, aYear);
+          t.day = ICAL.Time.daysInMonth(month, aYear);
           var last_week = t.week_number(this.rule.wkst);
           for (monthIdx = first_week; monthIdx < last_week; monthIdx++) {
             validWeeks[monthIdx] = 1;
@@ -4777,7 +5083,7 @@ ICAL.icalrecur_iterator = (function() {
       } else if (partCount == 2 && "BYDAY" in parts && "BYMONTH" in parts) {
         for (var monthkey in this.by_data.BYMONTH) {
           month = this.by_data.BYMONTH[monthkey];
-          var daysInMonth = ICAL.icaltime.daysInMonth(month, aYear);
+          var daysInMonth = ICAL.Time.daysInMonth(month, aYear);
 
           t.year = aYear;
           t.month = this.by_data.BYMONTH[monthkey];
@@ -4844,7 +5150,7 @@ ICAL.icalrecur_iterator = (function() {
 
         for (var daykey in expandedDays) {
           var day = expandedDays[daykey];
-          var tt = ICAL.icaltime.fromDayOfYear(day, aYear);
+          var tt = ICAL.Time.fromDayOfYear(day, aYear);
           if (this.by_data.BYMONTHDAY.indexOf(tt.day) >= 0) {
             this.days.push(day);
           }
@@ -4857,7 +5163,7 @@ ICAL.icalrecur_iterator = (function() {
 
         for (var daykey in expandedDays) {
           var day = expandedDays[daykey];
-          var tt = ICAL.icaltime.fromDayOfYear(day, aYear);
+          var tt = ICAL.Time.fromDayOfYear(day, aYear);
 
           if (this.by_data.BYMONTH.indexOf(tt.month) >= 0 &&
               this.by_data.BYMONTHDAY.indexOf(tt.day) >= 0) {
@@ -4869,7 +5175,7 @@ ICAL.icalrecur_iterator = (function() {
 
         for (var daykey in expandedDays) {
           var day = expandedDays[daykey];
-          var tt = ICAL.icaltime.fromDayOfYear(day, aYear);
+          var tt = ICAL.Time.fromDayOfYear(day, aYear);
           var weekno = tt.week_number(this.rule.wkst);
 
           if (this.by_data.BYWEEKNO.indexOf(weekno)) {
@@ -5106,7 +5412,7 @@ ICAL.icalrecur_iterator = (function() {
 }());
 ICAL.RecurExpansion = (function() {
   function formatTime(item) {
-    return ICAL.helpers.formatClassType(item, ICAL.icaltime);
+    return ICAL.helpers.formatClassType(item, ICAL.Time);
   }
 
   function compareTime(a, b) {
@@ -5114,18 +5420,14 @@ ICAL.RecurExpansion = (function() {
   }
 
   function isRecurringComponent(comp) {
-    return comp.hasProperty('RDATE') ||
-           comp.hasProperty('RRULE') ||
-           comp.hasProperty('RECURRENCE-ID');
-  }
-
-  function propertyValue(prop) {
-    return prop.data.value[0];
+    return comp.hasProperty('rdate') ||
+           comp.hasProperty('rrule') ||
+           comp.hasProperty('recurrence-id');
   }
 
   /**
    * Primary class for expanding recurring rules.
-   * Can take multiple RRULEs, RDATEs, EXDATE(s)
+   * Can take multiple rrules, rdates, exdate(s)
    * and iterate (in order) over each next occurrence.
    *
    * Once initialized this class can also be serialized
@@ -5135,8 +5437,8 @@ ICAL.RecurExpansion = (function() {
    *       with ICAL.Event which handles recurrence exceptions.
    *
    * Options:
-   *  - dtstart: (ICAL.icaltime) start time of event (required)
-   *  - component: (ICAL.icalcomponent) component (required unless resuming)
+   *  - dtstart: (ICAL.Time) start time of event (required)
+   *  - component: (ICAL.Component) component (required unless resuming)
    *
    * Examples:
    *
@@ -5152,7 +5454,7 @@ ICAL.RecurExpansion = (function() {
    *    // so its a good idea to limit the scope
    *    // of the iterations then resume later on.
    *
-   *    // next is always an ICAL.icaltime or null
+   *    // next is always an ICAL.Time or null
    *    var next;
    *
    *    while(someCondition && (next = expand.next())) {
@@ -5187,25 +5489,25 @@ ICAL.RecurExpansion = (function() {
     complete: false,
 
     /**
-     * Array of RRULE iterators.
+     * Array of rrule iterators.
      *
-     * @type Array[ICAL.icalrecur_iterator]
+     * @type Array[ICAL.RecurIterator]
      * @private
      */
     ruleIterators: null,
 
     /**
-     * Array of RDATE instances.
+     * Array of rdate instances.
      *
-     * @type Array[ICAL.icaltime]
+     * @type Array[ICAL.Time]
      * @private
      */
     ruleDates: null,
 
     /**
-     * Array of EXDATE instances.
+     * Array of exdate instances.
      *
-     * @type Array[ICAL.icaltime]
+     * @type Array[ICAL.Time]
      * @private
      */
     exDates: null,
@@ -5227,7 +5529,7 @@ ICAL.RecurExpansion = (function() {
     /**
      * Current negative date.
      *
-     * @type ICAL.icaltime
+     * @type ICAL.Time
      * @private
      */
     exDate: null,
@@ -5235,7 +5537,7 @@ ICAL.RecurExpansion = (function() {
     /**
      * Current additional date.
      *
-     * @type ICAL.icaltime
+     * @type ICAL.Time
      * @private
      */
     ruleDate: null,
@@ -5243,22 +5545,22 @@ ICAL.RecurExpansion = (function() {
     /**
      * Start date of recurring rules.
      *
-     * @type ICAL.icaltime
+     * @type ICAL.Time
      */
     dtstart: null,
 
     /**
      * Last expanded time
      *
-     * @type ICAL.icaltime
+     * @type ICAL.Time
      */
     last: null,
 
     fromData: function(options) {
-      var start = ICAL.helpers.formatClassType(options.dtstart, ICAL.icaltime);
+      var start = ICAL.helpers.formatClassType(options.dtstart, ICAL.Time);
 
       if (!start) {
-        throw new Error('.dtstart (ICAL.icaltime) must be given');
+        throw new Error('.dtstart (ICAL.Time) must be given');
       } else {
         this.dtstart = start;
       }
@@ -5269,7 +5571,7 @@ ICAL.RecurExpansion = (function() {
         this.last = formatTime(options.last);
 
         this.ruleIterators = options.ruleIterators.map(function(item) {
-          return ICAL.helpers.formatClassType(item, ICAL.icalrecur_iterator);
+          return ICAL.helpers.formatClassType(item, ICAL.RecurIterator);
         });
 
         this.ruleDateInc = options.ruleDateInc;
@@ -5352,7 +5654,7 @@ ICAL.RecurExpansion = (function() {
         }
 
         //XXX: The spec states that after we resolve the final
-        //     list of dates we execute EXDATE this seems somewhat counter
+        //     list of dates we execute exdate this seems somewhat counter
         //     intuitive to what I have seen most servers do so for now
         //     I exclude based on the original date not the one that may
         //     have been modified by the exception.
@@ -5399,7 +5701,7 @@ ICAL.RecurExpansion = (function() {
       var idx;
 
       for (; i < len; i++) {
-        prop = propertyValue(props[i]);
+        prop = props[i].getFirstValue();
 
         idx = ICAL.helpers.binsearchInsert(
           result,
@@ -5428,8 +5730,8 @@ ICAL.RecurExpansion = (function() {
         return;
       }
 
-      if (component.hasProperty('RRULE')) {
-        var rules = component.getAllProperties('RRULE');
+      if (component.hasProperty('rrule')) {
+        var rules = component.getAllProperties('rrule');
         var i = 0;
         var len = rules.length;
 
@@ -5437,8 +5739,7 @@ ICAL.RecurExpansion = (function() {
         var iter;
 
         for (; i < len; i++) {
-          rule = propertyValue(rules[i]);
-          rule = new ICAL.icalrecur(rule);
+          rule = rules[i].getFirstValue();
           iter = rule.iterator(this.dtstart);
           this.ruleIterators.push(iter);
 
@@ -5449,8 +5750,8 @@ ICAL.RecurExpansion = (function() {
         }
       }
 
-      if (component.hasProperty('RDATE')) {
-        this.ruleDates = this._extractDates(component, 'RDATE');
+      if (component.hasProperty('rdate')) {
+        this.ruleDates = this._extractDates(component, 'rdate');
         this.ruleDateInc = ICAL.helpers.binsearchInsert(
           this.ruleDates,
           this.last,
@@ -5460,8 +5761,8 @@ ICAL.RecurExpansion = (function() {
         this.ruleDate = this.ruleDates[this.ruleDateInc];
       }
 
-      if (component.hasProperty('EXDATE')) {
-        this.exDates = this._extractDates(component, 'EXDATE');
+      if (component.hasProperty('exdate')) {
+        this.exDates = this._extractDates(component, 'exdate');
         // if we have a .last day we increment the index to beyond it.
         this.exDateInc = ICAL.helpers.binsearchInsert(
           this.exDates,
@@ -5537,7 +5838,7 @@ ICAL.RecurExpansion = (function() {
 ICAL.Event = (function() {
 
   function Event(component, options) {
-    if (!(component instanceof ICAL.icalcomponent)) {
+    if (!(component instanceof ICAL.Component)) {
       options = component;
       component = null;
     }
@@ -5545,9 +5846,7 @@ ICAL.Event = (function() {
     if (component) {
       this.component = component;
     } else {
-      this.component = new ICAL.icalcomponent({
-        name: 'VEVENT'
-      });
+      this.component = new ICAL.Component('vevent');
     }
 
     this.exceptions = Object.create(null);
@@ -5575,14 +5874,14 @@ ICAL.Event = (function() {
      * If this component is an exception it cannot have other
      * exceptions related to it.
      *
-     * @param {ICAL.icalcomponent|ICAL.Event} obj component or event.
+     * @param {ICAL.Component|ICAL.Event} obj component or event.
      */
     relateException: function(obj) {
       if (this.isRecurrenceException()) {
         throw new Error('cannot relate exception to exceptions');
       }
 
-      if (obj instanceof ICAL.icalcomponent) {
+      if (obj instanceof ICAL.Component) {
         obj = new ICAL.Event(obj);
       }
 
@@ -5603,7 +5902,7 @@ ICAL.Event = (function() {
      * NOTE: this method is intend to be used in conjunction
      *       with the #iterator method.
      *
-     * @param {ICAL.icaltime} occurrence time occurrence.
+     * @param {ICAL.Time} occurrence time occurrence.
      */
     getOccurrenceDetails: function(occurrence) {
       var id = occurrence.toString();
@@ -5644,11 +5943,11 @@ ICAL.Event = (function() {
 
     isRecurring: function() {
       var comp = this.component;
-      return comp.hasProperty('RRULE') || comp.hasProperty('RDATE');
+      return comp.hasProperty('rrule') || comp.hasProperty('rdate');
     },
 
     isRecurrenceException: function() {
-      return this.component.hasProperty('RECURRENCE-ID');
+      return this.component.hasProperty('recurrence-id');
     },
 
     /**
@@ -5666,40 +5965,41 @@ ICAL.Event = (function() {
      * @return {Object} object of recurrence flags.
      */
     getRecurrenceTypes: function() {
-      var rules = this.component.getAllProperties('RRULE');
+      var rules = this.component.getAllProperties('rrule');
       var i = 0;
       var len = rules.length;
       var result = Object.create(null);
 
       for (; i < len; i++) {
-        result[rules[i].data.FREQ] = true;
+        var value = rules[i].getFirstValue();
+        result[value.freq] = true;
       }
 
       return result;
     },
 
     get uid() {
-      return this._firstPropsValue('UID');
+      return this._firstProp('uid');
     },
 
     set uid(value) {
-      this._setProp('UID', value);
+      this._setProp('uid', value);
     },
 
     get startDate() {
-      return this._firstProp('DTSTART');
+      return this._firstProp('dtstart');
     },
 
     set startDate(value) {
-      this._setProp('DTSTART', value);
+      this._setProp('dtstart', value);
     },
 
     get endDate() {
-      return this._firstProp('DTEND');
+      return this._firstProp('dtend');
     },
 
     set endDate(value) {
-      this._setProp('DTEND', value);
+      this._setProp('dtend', value);
     },
 
     get duration() {
@@ -5715,57 +6015,57 @@ ICAL.Event = (function() {
     },
 
     get location() {
-      return this._firstPropsValue('LOCATION');
+      return this._firstProp('location');
     },
 
     set location(value) {
-      return this._setProp('LOCATION', value);
+      return this._setProp('location', value);
     },
 
     get attendees() {
       //XXX: This is way lame we should have a better
       //     data structure for this later.
-      return this.component.getAllProperties('ATTENDEE');
+      return this.component.getAllProperties('attendee');
     },
 
     get summary() {
-      return this._firstPropsValue('SUMMARY');
+      return this._firstProp('summary');
     },
 
     set summary(value) {
-      this._setProp('SUMMARY', value);
+      this._setProp('summary', value);
     },
 
     get description() {
-      return this._firstPropsValue('DESCRIPTION');
+      return this._firstProp('description');
     },
 
     set description(value) {
-      this._setProp('DESCRIPTION', value);
+      this._setProp('description', value);
     },
 
     get organizer() {
-      return this._firstProp('ORGANIZER');
+      return this._firstProp('organizer');
     },
 
     set organizer(value) {
-      this._setProp('ORGANIZER', value);
+      this._setProp('organizer', value);
     },
 
     get sequence() {
-      return this._firstPropsValue('SEQUENCE');
+      return this._firstProp('sequence');
     },
 
     set sequence(value) {
-      this._setProp('SEQUENCE', value);
+      this._setProp('sequence', value);
     },
 
     get recurrenceId() {
-      return this._firstProp('RECURRENCE-ID');
+      return this._firstProp('recurrence-id');
     },
 
     set recurrenceId(value) {
-      this._setProp('RECURRENCE-ID', value);
+      this._setProp('recurrence-id', value);
     },
 
     _setProp: function(name, value) {
@@ -5774,21 +6074,6 @@ ICAL.Event = (function() {
 
     _firstProp: function(name) {
       return this.component.getFirstPropertyValue(name);
-    },
-
-    /**
-     * Return the first property value.
-     * Most useful in cases where no properties
-     * are expected and the value will be a text type.
-     */
-    _firstPropsValue: function(name) {
-      var prop = this._firstProp(name);
-
-      if (prop && prop.data && prop.data.value) {
-        return prop.data.value[0];
-      }
-
-      return null;
     },
 
     toString: function() {
@@ -5877,7 +6162,7 @@ ICAL.ComponentParser = (function() {
     /**
      * Fired when a top level component (vtimezone) is found
      *
-     * @param {ICAL.icaltimezone} timezone object.
+     * @param {ICAL.Timezone} timezone object.
      */
     ontimezone: function(component) {},
 
@@ -5899,11 +6184,11 @@ ICAL.ComponentParser = (function() {
     process: function(ical) {
       //TODO: this is sync now in the future we will have a incremental parser.
       if (typeof(ical) === 'string') {
-        ical = ICAL.parse(ical);
+        ical = ICAL.parse(ical)[1];
       }
 
-      if (!(ical instanceof ICAL.icalcomponent)) {
-        ical = new ICAL.icalcomponent(ical);
+      if (!(ical instanceof ICAL.Component)) {
+        ical = new ICAL.Component(ical);
       }
 
       var components = ical.getAllSubcomponents();
@@ -5915,7 +6200,7 @@ ICAL.ComponentParser = (function() {
         component = components[i];
 
         switch (component.name) {
-          case 'VEVENT':
+          case 'vevent':
             if (this.parseEvent) {
               this.onevent(new ICAL.Event(component));
             }
@@ -5933,54 +6218,5 @@ ICAL.ComponentParser = (function() {
 
   return ComponentParser;
 
-}());
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
- * Portions Copyright (C) Philipp Kewisch, 2011-2012 */
-
-
-
-(typeof(ICAL) === 'undefined')? ICAL = {} : '';
-
-(function() {
-  ICAL.foldLength = 75;
-  ICAL.newLineChar = "\n";
-
-  /**
-   * Return a parsed ICAL object to the ICAL format.
-   *
-   * @param {Object} object parsed ical string.
-   * @return {String} ICAL string.
-   */
-  ICAL.stringify = function ICALStringify(object) {
-    return ICAL.serializer.serializeToIcal(object);
-  };
-
-  /**
-   * Parse an ICAL object or string.
-   *
-   * @param {String|Object} ical ical string or pre-parsed object.
-   * @param {Boolean} decorate when true decorates object data types.
-   *
-   * @return {Object|ICAL.icalcomponent} The raw data or decorated icalcomponent.
-   */
-  ICAL.parse = function ICALParse(ical) {
-    var state = ICAL.helpers.initState(ical, 0);
-
-    while (state.buffer.length) {
-      var line = ICAL.helpers.unfoldline(state);
-      var lexState = ICAL.helpers.initState(line, state.lineNr);
-      if (line.match(/^\s*$/) && state.buffer.match(/^\s*$/)) {
-        break;
-      }
-
-      var lineData = ICAL.icalparser.lexContentLine(lexState);
-      ICAL.icalparser.parseContentLine(state, lineData);
-      state.lineNr++;
-    }
-
-    return state.currentData;
-  };
 }());
 
