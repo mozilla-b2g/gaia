@@ -212,9 +212,4 @@ suite('views/day', function() {
   test('#onfirstseen', function() {
     assert.equal(subject.onfirstseen, subject.render);
   });
-
-	test('#_scrollToFirstEvent', function() {
-    
-	});
-
 });
