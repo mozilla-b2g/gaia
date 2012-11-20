@@ -17,7 +17,7 @@
   background: #367fa2;
   text-align: center;
   color: black;
-  font-size: 1.3rem;
+  font-size: 1.4rem;
 }
 
 #permissionsListHeader + ul li select[value='allow'] {
@@ -33,7 +33,7 @@
   margin: auto;
   position: relative;
   top: 1rem;
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   line-height: 1em;
   width: calc(100% - 5rem);
   height: calc(60px - 2rem);

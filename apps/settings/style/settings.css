@@ -76,12 +76,12 @@ section[role="region"]:not(#root) > header:first-child + * {
 
 .description {
   padding: 1rem 3rem;
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   white-space: normal;
 }
 
 .link-text, .tel-text {
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   color: #336699;
   text-decoration: underline;
 }
@@ -127,7 +127,7 @@ label[for^="pwd"] {
   padding-left: 3rem;
   height: 3rem;
   line-height: 3rem;
-  font-size: 1.5rem;
+  font-size: 1.7rem;
 }
 
 
