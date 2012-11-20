@@ -23,14 +23,10 @@ if (typeof Contacts.extFb === 'undefined') {
       }
     }
 
-    extFb.importFBFromUrl = function importFromUrl(path) {
-      load(path, 'friends');
-    }
-
     extFb.importFB = function(evt) {
       closeRequested = false;
       canClose = false;
-      load('fb_import.html?contacts=1', 'friends');
+      load('fb_import.html', 'friends');
     }
 
     function open() {
@@ -53,7 +49,7 @@ if (typeof Contacts.extFb === 'undefined') {
       extensionFrame.src = null;
     }
 
-    function close() {
+    function close(message) {
       extensionFrame.addEventListener('transitionend', function tclose() {
         extensionFrame.removeEventListener('transitionend', tclose);
         if (canClose === true) {
@@ -61,6 +57,10 @@ if (typeof Contacts.extFb === 'undefined') {
         }
         else {
           closeRequested = true;
+        }
+
+        if (message) {
+          Contacts.showStatus(message);
         }
       // Otherwise we do nothing as the sync process will finish sooner or later
       });
@@ -271,11 +271,20 @@ if (typeof Contacts.extFb === 'undefined') {
         break;
 
         case 'window_close':
-          close();
-          if (data.from === 'import') {
-            contacts.List.load();
-          }
+          close(data.message);
+        break;
+
+        case 'fb_imported':
+          contacts.List.load();
           notifySettings();
+
+          Contacts.navigation.home(function finished() {
+            extensionFrame.contentWindow.postMessage({
+              type: 'contacts_loaded',
+              data: ''
+            }, fb.CONTACTS_APP_ORIGIN);
+          });
+
         break;
 
         case 'sync_finished':

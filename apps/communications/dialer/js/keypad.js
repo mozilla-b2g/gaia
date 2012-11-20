@@ -35,6 +35,7 @@ var TonePlayer = {
      return;
 
    this._audio = new Audio();
+   this._audio.mozAudioChannelType = 'normal';
    this._audio.mozSetup(2, this._sampleRate);
   },
 
@@ -518,10 +519,10 @@ var KeypadManager = {
       return;
      }
      var transaction = settings.createLock();
-     var request = transaction.get('ro.moz.ril.iccmbdn');
+     var request = transaction.get('ril.iccInfo.mbdn');
      request.onsuccess = function() {
-       if (request.result['ro.moz.ril.iccmbdn']) {
-         CallHandler.call(request.result['ro.moz.ril.iccmbdn']);
+       if (request.result['ril.iccInfo.mbdn']) {
+         CallHandler.call(request.result['ril.iccInfo.mbdn']);
        }
      };
      request.onerror = function() {};

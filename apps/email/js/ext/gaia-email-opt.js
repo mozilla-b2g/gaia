@@ -819,11 +819,13 @@ function MailFolder(api, wireRep) {
    *   }
    *   @case['inbox']
    *   @case['drafts']
+   *   @case['queue']
    *   @case['sent']
    *   @case['trash']
    *   @case['archive']
    *   @case['junk']
    *   @case['starred']
+   *   @case['important']
    *   @case['normal']{
    *     A traditional mail folder with nothing special about it.
    *   }
@@ -833,6 +835,9 @@ function MailFolder(api, wireRep) {
    * }
    */
   this.type = wireRep.type;
+
+  // Exchange folder name with the localized version if available
+  this.name = this._api.l10n_folder_name(this.name, this.type);
 
   this.selectable = (wireRep.type !== 'account') && (wireRep.type !== 'nomail');
 
@@ -1222,7 +1227,6 @@ MailBody.prototype = {
       node.classList.remove('moz-external-image');
     }
   },
-
   /**
    * Call this method when you are done with a message body.  This is required
    * so that any File/Blob URL's can be revoked.
@@ -1713,6 +1717,91 @@ var unexpectedBridgeDataError = reportError,
     internalError = reportError,
     reportClientCodeError = reportError;
 
+var MailUtils = {
+
+  /**
+   * Linkify the given plaintext, producing an Array of HTML nodes as a result.
+   */
+  linkifyPlain: function(body, doc) {
+    var nodes = [];
+    var match = true;
+    while (true) {
+      var url =
+        body.match(/^([\s\S]*?)(^|\s)((?:https?:\/\/|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}\/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))/im);
+      var email =
+        body.match(/^([\s\S]*?)(^|\s)([^@\s]+@[^.\s]+.[a-z]+)($|\s)/m);
+      // Pick the regexp with the earlier content; index will always be zero.
+      if (url &&
+          (!email || url[1].length < email[1].length)) {
+        var first = url[1] + url[2];
+        if (first.length > 0)
+          nodes.push(doc.createTextNode(first));
+
+        var link = doc.createElement('a');
+        link.className = 'moz-external-link';
+        link.setAttribute('ext-href', url[3]);
+        var text = doc.createTextNode(url[3]);
+        link.appendChild(text);
+        nodes.push(link);
+
+        body = body.substring(url[0].length);
+      }
+      else if (email) {
+        first = email[1] + email[2];
+        if (first.length > 0)
+          nodes.push(doc.createTextNode(first));
+
+        link = doc.createElement('a');
+        link.className = 'moz-external-link';
+        if (/^mailto:/.test(email[3]))
+          link.setAttribute('ext-href', email[3]);
+        else
+          link.setAttribute('ext-href', 'mailto:' + email[3]);
+        text = doc.createTextNode(email[3]);
+        link.appendChild(text);
+        nodes.push(link);
+
+        body = body.substring(email[0].length - email[4].length);
+      }
+      else {
+        break;
+      }
+    }
+
+    if (body.length > 0)
+      nodes.push(doc.createTextNode(body));
+
+    return nodes;
+  },
+
+  /**
+   * Process the document of an HTML iframe to linkify the text portions of the
+   * HTML document.  'A' tags and their descendants are not linkified, nor
+   * are the attributes of HTML nodes.
+   */
+  linkifyHTML: function(doc) {
+    function linkElem(elem) {
+      var children = elem.childNodes;
+      for (var i in children) {
+        var sub = children[i];
+        if (sub.nodeName == '#text') {
+          var nodes = MailUtils.linkifyPlain(sub.nodeValue, doc);
+
+          elem.replaceChild(nodes[nodes.length-1], sub);
+          for (var iNode = nodes.length-2; iNode >= 0; --iNode) {
+            elem.insertBefore(nodes[iNode], nodes[iNode+1]);
+          }
+        }
+        else if (sub.nodeName != 'A') {
+          linkElem(sub);
+        }
+      }
+    }
+
+    linkElem(doc.body);
+  },
+};
+
 /**
  * The public API exposed to the client via the MailAPI global.
  */
@@ -1762,6 +1851,8 @@ MailAPI.prototype = {
     return { type: 'MailAPI' };
   },
 
+  utils: MailUtils,
+
   /**
    * Send a message over/to the bridge.  The idea is that we (can) communicate
    * with the backend using only a postMessage-style JSON channel.
@@ -1791,7 +1882,7 @@ MailAPI.prototype = {
 
   _recv_badLogin: function ma__recv_badLogin(msg) {
     if (this.onbadlogin)
-      this.onbadlogin(new MailAccount(this, msg.account));
+      this.onbadlogin(new MailAccount(this, msg.account), msg.problem);
   },
 
   _recv_sliceSplice: function ma__recv_sliceSplice(msg) {
@@ -2058,6 +2149,13 @@ MailAPI.prototype = {
    *   @case['bad-user-or-pass']{
    *     The username and password didn't check out.  We don't know which one
    *     is wrong, just that one of them is wrong.
+   *   }
+   *   @case['imap-disabled']{
+   *     IMAP support is not enabled for the Gmail account in use.
+   *   }
+   *   @case['needs-app-pass']{
+   *     The Gmail account has two-factor authentication enabled, so the user
+   *     must provide an application-specific password.
    *   }
    *   @case['not-authorized']{
    *     The username and password are correct, but the user isn't allowed to
@@ -2614,6 +2712,32 @@ MailAPI.prototype = {
       type: 'localizedStrings',
       strings: strings
     });
+    if (strings.folderNames)
+      this.l10n_folder_names = strings.folderNames;
+  },
+
+  /**
+   * L10n strings for folder names.  These map folder types to appropriate
+   * localized strings.
+   *
+   * We don't remap unknown types, so this doesn't need defaults.
+   */
+  l10n_folder_names: {},
+
+  l10n_folder_name: function(name, type) {
+    if (this.l10n_folder_names.hasOwnProperty(type)) {
+      var lowerName = name.toLowerCase();
+      // Many of the names are the same as the type, but not all.
+      if ((type === lowerName) ||
+          (type === 'drafts' && lowerName === 'draft') ||
+          // yahoo.fr uses 'bulk mail' as its unlocalized name
+          (type === 'junk' && lowerName === 'bulk mail') ||
+          (type === 'junk' && lowerName === 'spam') ||
+          // this is for consistency with Thunderbird
+          (type === 'queue' && lowerName === 'unsent messages'))
+        return this.l10n_folder_names[type];
+    }
+    return name;
   },
 
   //////////////////////////////////////////////////////////////////////////////
@@ -7735,6 +7859,7 @@ module.exports = function(address){
     });
 };
 });
+
 define('crypto',['require','exports','module'],function(require, exports, module) {
 
 exports.createHash = function(algorithm) {
@@ -8360,6 +8485,7 @@ function hasUTFChars(str){
     return !!rforeign.test(str);
 }
 });
+
 define('http',['require','exports','module'],function(require, exports, module) {
 });
 
@@ -8442,6 +8568,7 @@ function openUrlStream(url, options){
     return stream; 
 }
 });
+
 define('fs',['require','exports','module'],function(require, exports, module) {
 });
 
@@ -9687,6 +9814,7 @@ MailComposer.prototype._getMimeType = function(filename){
     return extension && mimelib.contentTypes[extension] || defaultMime;
 };
 });
+
 define('mailcomposer',['./mailcomposer/lib/mailcomposer'], function (main) {
     return main;
 });
@@ -11198,6 +11326,7 @@ const RE_NODE_NEEDS_TRANSFORM = /^(?:a|area|img)$/;
 
 const RE_CID_URL = /^cid:/i;
 const RE_HTTP_URL = /^http(?:s)?/i;
+const RE_MAILTO_URL = /^mailto:/i;
 
 const RE_IMG_TAG = /^img$/;
 
@@ -11231,7 +11360,8 @@ function stashLinks(node, lowerTag) {
   // - a, area: href
   else {
     var link = node.getAttribute('href');
-    if (RE_HTTP_URL.test(link)) {
+    if (RE_HTTP_URL.test(link) ||
+        RE_MAILTO_URL.test(link)) {
       node.classList.add('moz-external-link');
       node.setAttribute('ext-href', link);
       // 'href' attribute will be removed by whitelist
@@ -11242,6 +11372,17 @@ function stashLinks(node, lowerTag) {
     }
   }
 }
+
+var BLEACH_SETTINGS = {
+  tags: LEGAL_TAGS,
+  strip: true,
+  prune: PRUNE_TAGS,
+  attributes: LEGAL_ATTR_MAP,
+  styles: LEGAL_STYLES,
+  asNode: true,
+  callbackRegexp: RE_NODE_NEEDS_TRANSFORM,
+  callback: stashLinks
+};
 
 /**
  * @args[
@@ -11254,39 +11395,13 @@ function stashLinks(node, lowerTag) {
  *     now we don't.  This is consistent with many webmail clients who ignore
  *     style tags in the head, etc.
  *   }
- *   @param[callback @func[
- *     @args[
- *       @param[node DomNode]
- *       @param[lowerTag String]
- *     ]
- *     An optional callback function to be called before stashLinks.  Return
- *     true to skip stashLinks for this node, or false to call stashLinks.
- *   }
  * ]
  * @return[HtmlElement]{
  *   The sanitized HTML content wrapped in a div container.
  * }
  */
-exports.sanitizeAndNormalizeHtml = function sanitizeAndNormalize(htmlString,
-                                                                 callback) {
-  var settings = {
-    tags: LEGAL_TAGS,
-    strip: true,
-    prune: PRUNE_TAGS,
-    attributes: LEGAL_ATTR_MAP,
-    styles: LEGAL_STYLES,
-    asNode: true,
-    callbackRegexp: RE_NODE_NEEDS_TRANSFORM,
-    callback: stashLinks
-  };
-  if (callback) {
-    settings.callback = function(node, lowerTag) {
-      if (!callback(node, lowerTag))
-        stashLinks(node, lowerTag);
-    }
-  }
-
-  var sanitizedNode = $bleach.clean(htmlString, settings);
+exports.sanitizeAndNormalizeHtml = function sanitizeAndNormalize(htmlString) {
+  var sanitizedNode = $bleach.clean(htmlString, BLEACH_SETTINGS);
   return sanitizedNode;
 };
 
@@ -11698,7 +11813,9 @@ const FOLDER_TYPE_TO_SORT_PRIORITY = {
   account: 'a',
   inbox: 'c',
   starred: 'e',
+  important: 'f',
   drafts: 'g',
+  queue: 'h',
   sent: 'i',
   junk: 'k',
   trash: 'm',
@@ -11842,7 +11959,11 @@ console.log('done proc modifyConfig');
     account.checkAccount(function(err) {
       // If we succeeded or the problem was not an authentication, assume
       // everything went fine and clear the problems.
-      if (!err || err !== 'bad-user-or-pass') {
+      if (!err || (
+          err !== 'bad-user-or-pass' && 
+          err !== 'needs-app-pass' && 
+          err !== 'imap-disabled'
+        )) {
         self.universe.clearAccountProblems(account);
       }
       // The login information is still bad; re-send the bad login notification.
@@ -11898,10 +12019,11 @@ console.log('done proc modifyConfig');
     this.universe.deleteAccount(msg.accountId);
   },
 
-  notifyBadLogin: function mb_notifyBadLogin(account) {
+  notifyBadLogin: function mb_notifyBadLogin(account, problem) {
     this.__sendMessage({
       type: 'badLogin',
       account: account.toBridgeWire(),
+      problem: problem
     });
   },
 
@@ -13324,9 +13446,9 @@ else {
  *
  * Explanation of most recent bump:
  *
- * Bumping to 14 because we now support (require, really) HTML in ActiveSync
+ * Bumping to 15 because IMAP folder names were not properly mutf-7 decoded.
  */
-const CUR_VERSION = exports.CUR_VERSION = 14;
+const CUR_VERSION = exports.CUR_VERSION = 15;
 
 /**
  * What is the lowest database version that we are capable of performing a
@@ -16007,6 +16129,41 @@ function parseImapDate(dstr) {
 }
 
 /**
+ * Modified utf-7 detecting regexp for use by `decodeModifiedUtf7`.
+ */
+const RE_MUTF7 = /&([^-]*)-/g,
+      RE_COMMA = /,/g;
+/**
+ * Decode the modified utf-7 representation used to encode mailbox names to
+ * lovely unicode.
+ *
+ * Notes:
+ * - '&' enters mutf-7 mode, '-' exits it (and exiting is required!), but '&-'
+ *    encodes a '&' rather than * a zero-length string.
+ * - ',' is used instead of '/' for the base64 encoding
+ *
+ * Learn all about it at:
+ * https://tools.ietf.org/html/rfc3501#section-5.1.3
+ */
+function decodeModifiedUtf7(encoded) {
+  return encoded.replace(
+    RE_MUTF7,
+    function replacer(fullMatch, b64data) {
+      // &- encodes &
+      if (!b64data.length)
+        return '&';
+      // we use a funky base64 where ',' is used instead of '/'...
+      b64data = b64data.replace(RE_COMMA, '/');
+      // The base-64 encoded utf-16 gets converted into a buffer holding the
+      // utf-16 encoded bits.
+      var u16data = new Buffer(b64data, 'base64');
+      // and this actually decodes the utf-16 into a JS string.
+      return u16data.toString('utf-16be');
+    });
+}
+exports.decodeModifiedUtf7 = decodeModifiedUtf7;
+
+/**
  * Parses IMAP date-times into UTC timestamps.  IMAP date-times are
  * "DD-Mon-YYYY HH:MM:SS +ZZZZ"
  */
@@ -16444,7 +16601,9 @@ ImapConnection.prototype.connect = function(loginCb) {
             if (self._state.requests[0].args.length === 0)
               self._state.requests[0].args.push({});
             result = /^\((.*)\) (.+?) "?([^"]+)"?$/.exec(data[2]);
+
             var box = {
+                  displayName: null,
                   attribs: result[1].split(' ').map(function(attrib) {
                              return attrib.substr(1).toUpperCase();
                            }),
@@ -16452,7 +16611,9 @@ ImapConnection.prototype.connect = function(loginCb) {
                           ? false : result[2].substring(1, result[2].length-1)),
                   children: null,
                   parent: null
-                }, name = result[3], curChildren = self._state.requests[0].args[0];
+                },
+                name = result[3],
+                curChildren = self._state.requests[0].args[0];
             if (name[0] === '"' && name[name.length-1] === '"')
               name = name.substring(1, name.length - 1);
 
@@ -16468,8 +16629,10 @@ ImapConnection.prototype.connect = function(loginCb) {
                 parent = curChildren[path[i]];
                 curChildren = curChildren[path[i]].children;
               }
+
               box.parent = parent;
             }
+            box.displayName = decodeModifiedUtf7(name);
             if (!curChildren[name])
               curChildren[name] = box;
           }
@@ -18155,7 +18318,7 @@ function ImapProber(credentials, connInfo, _LOG) {
   this._conn.on('error', this.onError.bind(this));
 
   this.onresult = null;
-  this.accountGood = null;
+  this.error = null;
 }
 exports.ImapProber = ImapProber;
 ImapProber.prototype = {
@@ -18175,14 +18338,14 @@ ImapProber.prototype = {
     }
 
     console.log('PROBE:IMAP happy, TZ offset:', tzOffset / (60 * 60 * 1000));
-    this.accountGood = true;
+    this.error = null;
 
     var conn = this._conn;
     this._conn = null;
 
     if (!this.onresult)
       return;
-    this.onresult(this.accountGood, conn, tzOffset);
+    this.onresult(this.error, conn, tzOffset);
     this.onresult = false;
   },
 
@@ -18190,7 +18353,12 @@ ImapProber.prototype = {
     if (!this.onresult)
       return;
     console.warn('PROBE:IMAP sad', err);
-    this.accountGood = false;
+    if (err.serverResponse.indexOf('[ALERT] Application-specific password required') != -1)
+      this.error = 'needs-app-pass';
+    else if(err.serverResponse.indexOf('[ALERT] Your account is not enabled for IMAP use.') != -1)
+      this.error = 'imap-disabled';
+    else
+      this.error = 'bad-user-or-pass';
     // we really want to make sure we clean up after this dude.
     try {
       this._conn.die();
@@ -18199,7 +18367,7 @@ ImapProber.prototype = {
     }
     this._conn = null;
 
-    this.onresult(this.accountGood, null);
+    this.onresult(this.error, null);
     // we could potentially see many errors...
     this.onresult = false;
   },
@@ -26149,7 +26317,7 @@ exports.chewHeaderAndBodyStructure = function chewStructure(msg) {
    * Sizes are the size of the encoded string, not the decoded value.
    */
   function estimatePartSizeInBytes(partInfo) {
-    var encoding = partInfo.encoding;
+    var encoding = partInfo.encoding.toLowerCase();
     // Base64 encodes 3 bytes in 4 characters with padding that always
     // causes the encoding to take 4 characters.  The max encoded line length
     // (ignoring CRLF) is 76 bytes, with 72 bytes also fairly common.
@@ -26184,7 +26352,7 @@ exports.chewHeaderAndBodyStructure = function chewStructure(msg) {
 
     // - Start from explicit disposition, make attachment if non-displayable
     if (partInfo.disposition)
-      disposition = partInfo.disposition.type;
+      disposition = partInfo.disposition.type.toLowerCase();
     // UNTUNED-HEURISTIC (need test cases)
     // Parts with content ID's explicitly want to be referenced by the message
     // and so are inline.  (Although we might do well to check if they actually
@@ -29177,6 +29345,10 @@ ImapAccount.prototype = {
     return '[ImapAccount: ' + this.id + ']';
   },
 
+  get isGmail() {
+    return this.meta.capability.indexOf('X-GM-EXT-1') !== -1;
+  },
+
   /**
    * Make a given folder known to us, creating state tracking instances, etc.
    */
@@ -29521,7 +29693,13 @@ ImapAccount.prototype = {
           //   NO [AUTHENTICATIONFAILED] Incorrect username or password.
           case 'NO':
           case 'no':
-            errName = 'bad-user-or-pass';
+            // XXX: Should we check if it's GMail first?
+            if (err.serverResponse.indexOf('[ALERT] Application-specific password required') !== -1)
+              errName = 'needs-app-pass';
+            else if(err.serverResponse.indexOf('[ALERT] Your account is not enabled for IMAP use.') !== -1)
+              errName = 'imap-disabled';
+            else
+              errName = 'bad-user-or-pass';
             reachable = true;
             // go directly to the broken state; no retries
             maybeRetry = false;
@@ -29671,6 +29849,9 @@ ImapAccount.prototype = {
           case 'FLAGGED': // special-use
             type = 'starred';
             break;
+          case 'IMPORTANT': // (undocumented) xlist
+            type = 'important';
+            break;
           case 'INBOX': // xlist
             type = 'inbox';
             break;
@@ -29715,6 +29896,8 @@ ImapAccount.prototype = {
           case 'INBOX':
             type = 'inbox';
             break;
+          // Yahoo provides "Bulk Mail" for yahoo.fr.
+          case 'BULK MAIL':
           case 'JUNK':
           case 'SPAM':
             type = 'junk';
@@ -29724,6 +29907,11 @@ ImapAccount.prototype = {
             break;
           case 'TRASH':
             type = 'trash';
+            break;
+          // This currently only exists for consistency with Thunderbird, but
+          // may become useful in the future when we need an outbox.
+          case 'UNSENT MESSAGES':
+            type = 'queue';
             break;
         }
       }
@@ -29751,24 +29939,31 @@ ImapAccount.prototype = {
     // - walk the boxes
     function walkBoxes(boxLevel, pathSoFar, pathDepth) {
       for (var boxName in boxLevel) {
-        var box = boxLevel[boxName],
+        var box = boxLevel[boxName], meta,
             path = pathSoFar ? (pathSoFar + boxName) : boxName;
+
+        // - normalize jerk-moves
+        var type = self._determineFolderType(box, path);
+        // gmail finds it amusing to give us the localized name/path of its
+        // inbox, but still expects us to ask for it as INBOX.
+        if (type === 'inbox')
+          path = 'INBOX';
 
         // - already known folder
         if (folderPubsByPath.hasOwnProperty(path)) {
-          // Make sure the delimiter is up-to-date (for INBOX we initially make
-          // a guess which we must update here.)
-          var meta = folderPubsByPath[path];
-          if (meta.delim !== box.delim)
-            meta.delim = box.delim;
+          // Because we speculatively create the Inbox, both its display name
+          // and delimiter may be incorrect and need to be updated.
+          meta = folderPubsByPath[path];
+          meta.name = box.displayName;
+          meta.delim = box.delim;
 
           // mark it with true to show that we've seen it.
           folderPubsByPath[path] = true;
         }
         // - new to us!
         else {
-          var type = self._determineFolderType(box, path);
-          self._learnAboutFolder(boxName, path, type, box.delim, pathDepth);
+          self._learnAboutFolder(box.displayName, path, type, box.delim,
+                                 pathDepth);
         }
 
         if (box.children)
@@ -30919,18 +31114,40 @@ define('mailapi/activesync/folder',
 
 const DESIRED_SNIPPET_LENGTH = 100;
 
+/**
+ * This is minimum number of messages we'd like to get for a folder for a given
+ * sync range. It's not exact, since we estimate from the number of messages in
+ * the past two weeks, but it's close enough.
+ */
+const DESIRED_MESSAGE_COUNT = 50;
+
 const FILTER_TYPE = $ascp.AirSync.Enums.FilterType;
 
-// Map our built-in sync range values to their corresponding ActiveSync
-// FilterType values. We exclude 3 and 6 months, since they aren't valid for
-// email.
+/**
+ * Map our built-in sync range values to their corresponding ActiveSync
+ * FilterType values. We exclude 3 and 6 months, since they aren't valid for
+ * email.
+ */
 const SYNC_RANGE_TO_FILTER_TYPE = {
-   '1d': FILTER_TYPE.OneDayBack,
-   '3d': FILTER_TYPE.ThreeDaysBack,
-   '1w': FILTER_TYPE.OneWeekBack,
-   '2w': FILTER_TYPE.TwoWeeksBack,
-   '1m': FILTER_TYPE.OneMonthBack,
-  'all': FILTER_TYPE.NoFilter,
+  'auto': null,
+    '1d': FILTER_TYPE.OneDayBack,
+    '3d': FILTER_TYPE.ThreeDaysBack,
+    '1w': FILTER_TYPE.OneWeekBack,
+    '2w': FILTER_TYPE.TwoWeeksBack,
+    '1m': FILTER_TYPE.OneMonthBack,
+   'all': FILTER_TYPE.NoFilter,
+};
+
+/**
+ * This mapping is purely for logging purposes.
+ */
+const FILTER_TYPE_TO_STRING = {
+  0: 'all messages',
+  1: 'one day',
+  2: 'three days',
+  3: 'one week',
+  4: 'two weeks',
+  5: 'one month',
 };
 
 function ActiveSyncFolderConn(account, storage, _parentLog) {
@@ -30953,14 +31170,25 @@ ActiveSyncFolderConn.prototype = {
     return this.folderMeta.syncKey = value;
   },
 
+  /**
+   * Get the filter type for this folder. The account-level syncRange property
+   * takes precedence here, but if it's set to "auto", we'll look at the
+   * filterType on a per-folder basis. The per-folder filterType may be
+   * undefined, in which case, we will attempt to infer a good filter type
+   * elsewhere (see _inferFilterType()).
+   */
   get filterType() {
     let syncRange = this._account.accountDef.syncRange;
     if (SYNC_RANGE_TO_FILTER_TYPE.hasOwnProperty(syncRange)) {
-      return SYNC_RANGE_TO_FILTER_TYPE[syncRange];
+      let accountFilterType = SYNC_RANGE_TO_FILTER_TYPE[syncRange];
+      if (accountFilterType)
+        return accountFilterType;
+      else
+        return this.folderMeta.filterType;
     }
     else {
-      console.warn('Got an invalid syncRange: ' + syncRange +
-                   ': using three days back instead');
+      console.warn('Got an invalid syncRange (' + syncRange +
+                   ') using three days back instead');
       return $ascp.AirSync.Enums.FilterType.ThreeDaysBack;
     }
   },
@@ -30968,9 +31196,10 @@ ActiveSyncFolderConn.prototype = {
   /**
    * Get the initial sync key for the folder so we can start getting data
    *
+   * @param {string} filterType The filter type for our synchronization
    * @param {function} callback A callback to be run when the operation finishes
    */
-  _getSyncKey: function asfc__getSyncKey(callback) {
+  _getSyncKey: function asfc__getSyncKey(filterType, callback) {
     let folderConn = this;
     let account = this._account;
     const as = $ascp.AirSync.Tags;
@@ -30986,7 +31215,7 @@ ActiveSyncFolderConn.prototype = {
           w.tag(as.SyncKey, '0')
            .tag(as.CollectionId, this.serverId)
            .stag(as.Options)
-             .tag(as.FilterType, this.filterType)
+             .tag(as.FilterType, filterType)
            .etag()
          .etag()
        .etag()
@@ -31020,6 +31249,133 @@ ActiveSyncFolderConn.prototype = {
   },
 
   /**
+   * Get an estimate of the number of messages to be synced.
+   *
+   * @param {string} filterType The filter type for our estimate
+   * @param {function} callback A callback to be run when the operation finishes
+   */
+  _getItemEstimate: function asfc__getItemEstimate(filterType, callback) {
+    const ie = $ascp.ItemEstimate.Tags;
+    const as = $ascp.AirSync.Tags;
+
+    let w = new $wbxml.Writer('1.3', 1, 'UTF-8');
+    w.stag(ie.GetItemEstimate)
+       .stag(ie.Collections)
+         .stag(ie.Collection)
+           .tag(as.SyncKey, this.syncKey)
+           .tag(ie.CollectionId, this.serverId)
+           .stag(as.Options)
+             .tag(as.FilterType, filterType)
+           .etag()
+         .etag()
+       .etag()
+     .etag();
+
+    this._account.conn.postCommand(w, function(aError, aResponse) {
+      if (aError) {
+        console.error(aError);
+        callback('unknown');
+        return;
+      }
+
+      let e = new $wbxml.EventParser();
+      const base = [ie.GetItemEstimate, ie.Response];
+
+      let status, estimate;
+      e.addEventListener(base.concat(ie.Status), function(node) {
+        status = node.children[0].textContent;
+      });
+      e.addEventListener(base.concat(ie.Collection, ie.Estimate),
+                         function(node) {
+        estimate = parseInt(node.children[0].textContent);
+      });
+      e.run(aResponse);
+
+      if (status !== $ascp.ItemEstimate.Enums.Status.Success) {
+        console.log('Error getting item estimate:', status);
+        callback('unknown');
+      }
+      else {
+        callback(null, estimate);
+      }
+    });
+  },
+
+  /**
+   * Infer the filter type for this folder to get a sane number of messages.
+   *
+   * @param {function} callback A callback to be run when the operation
+   *  finishes, taking two arguments: an error (if any), and the filter type we
+   *  picked
+   */
+  _inferFilterType: function asfc__inferFilterType(callback) {
+    let folderConn = this;
+    const Type = $ascp.AirSync.Enums.FilterType;
+
+    let getEstimate = function(filterType, onSuccess) {
+      folderConn._getSyncKey(filterType, function(error) {
+        if (error) {
+          callback('unknown');
+          return;
+        }
+
+        folderConn._getItemEstimate(filterType, function(error, estimate) {
+          if (error) {
+            callback('unknown');
+            return;
+          }
+
+          onSuccess(estimate);
+        });
+      });
+    };
+
+    getEstimate(Type.TwoWeeksBack, function(estimate) {
+      let messagesPerDay = estimate / 14; // Two weeks. Twoooo weeeeeeks.
+      let filterType;
+
+      if (estimate < 0)
+        filterType = Type.ThreeDaysBack;
+      else if (messagesPerDay >= DESIRED_MESSAGE_COUNT)
+        filterType = Type.OneDayBack;
+      else if (messagesPerDay * 3 >= DESIRED_MESSAGE_COUNT)
+        filterType = Type.ThreeDaysBack;
+      else if (messagesPerDay * 7 >= DESIRED_MESSAGE_COUNT)
+        filterType = Type.OneWeekBack;
+      else if (messagesPerDay * 14 >= DESIRED_MESSAGE_COUNT)
+        filterType = Type.TwoWeeksBack;
+      else if (messagesPerDay * 30 >= DESIRED_MESSAGE_COUNT)
+        filterType = Type.OneMonthBack;
+      else {
+        getEstimate(Type.NoFilter, function(estimate) {
+          let filterType;
+          if (estimate > DESIRED_MESSAGE_COUNT) {
+            filterType = Type.OneMonthBack;
+            // Reset the sync key since we're changing filter types. This avoids
+            // a round-trip where we'd normally get a zero syncKey from the
+            // server.
+            folderConn.syncKey = '0';
+          }
+          else {
+            filterType = Type.NoFilter;
+          }
+          folderConn._LOG.inferFilterType(filterType);
+          callback(null, filterType);
+        });
+        return;
+      }
+
+      if (filterType !== Type.TwoWeeksBack) {
+        // Reset the sync key since we're changing filter types. This avoids a
+        // round-trip where we'd normally get a zero syncKey from the server.
+        folderConn.syncKey = '0';
+      }
+      folderConn._LOG.inferFilterType(filterType);
+      callback(null, filterType);
+    });
+  },
+
+  /**
    * Sync the folder with the server and enumerate all the changes since the
    * last sync.
    *
@@ -31032,15 +31388,35 @@ ActiveSyncFolderConn.prototype = {
 
     if (!account.conn.connected) {
       account.conn.connect(function(error, config) {
-        if (error)
+        if (error) {
+          callback('unknown');
           console.error('Error connecting to ActiveSync:', error);
-        else
+        }
+        else {
           folderConn._enumerateFolderChanges(callback);
+        }
+      });
+      return;
+    }
+    if (!this.filterType) {
+      this._inferFilterType(function(error, filterType) {
+        if (error)
+          callback('unknown');
+        else {
+          console.log('We want a filter of', FILTER_TYPE_TO_STRING[filterType]);
+          folderConn.folderMeta.filterType = filterType;
+          folderConn._enumerateFolderChanges(callback);
+        }
       });
       return;
     }
     if (this.syncKey === '0') {
-      this._getSyncKey(this._enumerateFolderChanges.bind(this, callback));
+      this._getSyncKey(this.filterType, function(error) {
+        if (error)
+          callback('unknown');
+        else
+          folderConn._enumerateFolderChanges(callback);
+      });
       return;
     }
 
@@ -31055,6 +31431,7 @@ ActiveSyncFolderConn.prototype = {
     // an empty request to repeat our request. This saves a little bandwidth.
     if (this._account._syncsInProgress++ === 0 &&
         this._account._lastSyncKey === this.syncKey &&
+        this._account._lastSyncFilterType === this.filterType &&
         this._account._lastSyncResponseWasEmpty) {
       w = as.Sync;
     }
@@ -31104,6 +31481,7 @@ ActiveSyncFolderConn.prototype = {
       }
 
       folderConn._account._lastSyncKey = folderConn.syncKey;
+      folderConn._account._lastSyncFilterType = folderConn.filterType;
 
       if (!aResponse) {
         console.log('Sync completed with empty response');
@@ -31405,45 +31783,7 @@ ActiveSyncFolderConn.prototype = {
       body.bodyReps = ['plain', bodyRep];
     }
     else if (bodyType === asbEnum.Type.HTML) {
-      // For some reason, Gmail converts cid: URLs into a URL relative to the
-      // Gmail web site, which isn't very useful for us. Detect this sort of
-      // tomfoolery and de-munge the URLs into a proper CID reference. These
-      // URLs usually look like the following:
-      //
-      //   ?ui=pb&view=att&th=13ab448f53725ee6m&attid=0.1.1&disp=emb&zw&atsh=1
-      //
-      // |th| is the message's ServerId, and |attid| is the part number for the
-      // attachment. Conveniently, the part number is also listed at the end of
-      // the FileReference in the WBXML response, like so:
-      //
-      //   1417301890109169382/5e21a1963d098bad_0.1.1
-      //
-      // What we want to do is grab the |attid| and then iterate through all our
-      // related parts and compare to the FileReference (stored in the |part|
-      // attribute) to find our attachment info. Then set the CID on our node
-      // from said info.
-      let demungeGmailUrls = function(node, lowerTag) {
-        if (lowerTag === 'img') {
-          let m, src = node.getAttribute('src');
-          // Find the magic Gmail URLs and grab the |attid| parameter.
-          if ((m = /^\?ui=pb&view=att&.*attid=([^&]*)/.exec(src))) {
-            for (let [,part] in Iterator(body.relatedParts)) {
-              // Check if the current related part's FileReference ends in the
-              // part number we're looking for.
-              if (part.part.lastIndexOf('_' + m[1]) ===
-                  part.part.length - m[1].length - 1) {
-                node.classList.add('moz-embedded-image');
-                node.setAttribute('cid-src', part.contentId);
-                return true;
-              }
-            }
-          }
-        }
-        return false;
-      };
-
-      let htmlNode = $htmlchew.sanitizeAndNormalizeHtml(bodyText,
-                                                        demungeGmailUrls);
+      let htmlNode = $htmlchew.sanitizeAndNormalizeHtml(bodyText);
       header.snippet = $htmlchew.generateSnippet(htmlNode,
                                                  DESIRED_SNIPPET_LENGTH);
       body.bodyReps = ['html', htmlNode.innerHTML];
@@ -31465,6 +31805,10 @@ ActiveSyncFolderConn.prototype = {
         folderConn._account._recreateFolder(storage.folderId, function(s) {
           folderConn.storage = s;
         });
+        return;
+      }
+      else if (error) {
+        doneCallback(error);
         return;
       }
 
@@ -31489,7 +31833,8 @@ ActiveSyncFolderConn.prototype = {
       messagesSeen += added.length + changed.length + deleted.length;
 
       if (!moreAvailable) {
-        folderConn._LOG.syncDateRange_end(null, null, null, startTS, endTS);
+        folderConn._LOG.syncDateRange_end(added.length, changed.length,
+                                          deleted.length, startTS, endTS);
         storage.markSyncRange(startTS, endTS, 'XXX', accuracyStamp);
         doneCallback(null, messagesSeen);
       }
@@ -31733,6 +32078,7 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
     type: $log.CONNECTION,
     subtype: $log.CLIENT,
     events: {
+      inferFilterType: { filterType: false },
     },
     asyncJobs: {
       syncDateRange: {
@@ -32156,6 +32502,8 @@ define('mailapi/activesync/account',
 
 const bsearchForInsert = $util.bsearchForInsert;
 
+const DEFAULT_TIMEOUT_MS = exports.DEFAULT_TIMEOUT_MS = 30 * 1000;
+
 function ActiveSyncAccount(universe, accountDef, folderInfos, dbConn,
                            receiveProtoConn, _parentLog) {
   this.universe = universe;
@@ -32168,6 +32516,7 @@ function ActiveSyncAccount(universe, accountDef, folderInfos, dbConn,
   else {
     this.conn = new $activesync.Connection(accountDef.credentials.username,
                                            accountDef.credentials.password);
+    this.conn.timeout = DEFAULT_TIMEOUT_MS;
 
     // XXX: We should check for errors during connection and alert the user.
     if (this.accountDef.connInfo) {
@@ -32832,6 +33181,12 @@ const PIECE_ACCOUNT_TYPE_TO_CLASS = {
 const DEFAULT_SIGNATURE = exports.DEFAULT_SIGNATURE =
   'Sent from my Firefox OS device.';
 
+// The number of milliseconds to wait for various (non-ActiveSync) XHRs to
+// complete during the autoconfiguration process. This value is intentionally
+// fairly large so that we don't abort an XHR just because the network is
+// spotty.
+const AUTOCONFIG_TIMEOUT_MS = 30 * 1000;
+
 /**
  * Composite account type to expose account piece types with individual
  * implementations (ex: imap, smtp) together as a single account.  This is
@@ -32978,8 +33333,10 @@ CompositeAccount.prototype = {
       composedMessage,
       function(err, errDetails) {
         // We need to append the message to the sent folder if we think we sent
-        // the message okay.
-        if (!err) {
+        // the message okay and this is not gmail.  gmail automatically crams
+        // the message in the sent folder for us, so if we do it, we're just
+        // going to create duplicates.
+        if (!err && !this._receivePiece.isGmail) {
           var message = {
             messageText: composedMessage._outputBuffer,
             // do not specify date; let the server use its own timestamping
@@ -33132,7 +33489,7 @@ Configurators['imap+smtp'] = {
       ['imap', 'smtp'],
       function probesDone(results) {
         // -- both good?
-        if (results.imap[0] && results.smtp) {
+        if (!results.imap[0] && results.smtp) {
           var account = self._defineImapAccount(
             universe,
             userDetails, credentials,
@@ -33143,9 +33500,12 @@ Configurators['imap+smtp'] = {
         // -- either/both bad
         else {
           // clean up the imap connection if it was okay but smtp failed
-          if (results.imap[0])
+          if (!results.imap[0]) {
             results.imap[1].close();
-          callback('unknown', null);
+            callback('smtp-unknown', null); // Failure was caused by SMTP, but who knows why
+          } else {
+            callback(results.imap[0], null); // Pass imap error type back
+          }
           return;
         }
       });
@@ -33222,7 +33582,7 @@ Configurators['imap+smtp'] = {
       receiveType: 'imap',
       sendType: 'smtp',
 
-      syncRange: '3d',
+      syncRange: 'auto',
 
       credentials: credentials,
       receiveConnInfo: imapConnInfo,
@@ -33282,7 +33642,7 @@ Configurators['fake'] = {
       name: userDetails.accountName || userDetails.emailAddress,
 
       type: 'fake',
-      syncRange: '3d',
+      syncRange: 'auto',
 
       credentials: credentials,
       connInfo: {
@@ -33366,6 +33726,7 @@ Configurators['activesync'] = {
     var conn = new $asproto.Connection(credentials.username,
                                        credentials.password);
     conn.setServer(domainInfo.incoming.server);
+    conn.timeout = $asacct.DEFAULT_TIMEOUT_MS;
 
     conn.connect(function(error, config, options) {
       // XXX: Think about what to do with this error handling, since it's
@@ -33389,7 +33750,7 @@ Configurators['activesync'] = {
         name: userDetails.accountName || userDetails.emailAddress,
 
         type: 'activesync',
-        syncRange: '3d',
+        syncRange: 'auto',
 
         credentials: credentials,
         connInfo: {
@@ -33521,6 +33882,7 @@ Configurators['activesync'] = {
  */
 function Autoconfigurator(_LOG) {
   this._LOG = _LOG;
+  this.timeout = AUTOCONFIG_TIMEOUT_MS;
 }
 exports.Autoconfigurator = Autoconfigurator;
 Autoconfigurator.prototype = {
@@ -33551,6 +33913,8 @@ Autoconfigurator.prototype = {
   _getXmlConfig: function getXmlConfig(url, callback) {
     let xhr = new XMLHttpRequest({mozSystem: true});
     xhr.open('GET', url, true);
+    xhr.timeout = this.timeout;
+
     xhr.onload = function() {
       if (xhr.status < 200 || xhr.status >= 300) {
         callback('unknown');
@@ -33596,7 +33960,8 @@ Autoconfigurator.prototype = {
         callback('unknown');
       }
     };
-    xhr.onerror = function() { callback('unknown'); };
+
+    xhr.ontimeout = xhr.onerror = function() { callback('unknown'); };
 
     xhr.send();
   },
@@ -33720,13 +34085,16 @@ Autoconfigurator.prototype = {
     let xhr = new XMLHttpRequest({mozSystem: true});
     xhr.open('GET', 'https://live.mozillamessaging.com/dns/mx/' +
              encodeURIComponent(domain), true);
+    xhr.timeout = this.timeout;
+
     xhr.onload = function() {
       if (xhr.status === 200)
         callback(null, xhr.responseText.split('\n')[0]);
       else
         callback('unknown');
     };
-    xhr.onerror = function() { callback('unknown'); };
+
+    xhr.ontimeout = xhr.onerror = function() { callback('unknown'); };
 
     xhr.send();
   },
@@ -34659,8 +35027,13 @@ MailUniverse.prototype = {
     account.problems.push(problem);
     account.enabled = false;
 
-    if (problem === 'bad-user-or-pass')
-      this.__notifyBadLogin(account);
+    switch (problem) {
+      case 'bad-user-or-pass':
+      case 'imap-disabled':
+      case 'needs-app-pass':
+        this.__notifyBadLogin(account, problem);
+        break;
+    }
   },
 
   clearAccountProblems: function(account) {
@@ -34671,10 +35044,10 @@ MailUniverse.prototype = {
     this._resumeOpProcessingForAccount(account);
   },
 
-  __notifyBadLogin: function(account) {
+  __notifyBadLogin: function(account, problem) {
     for (var iBridge = 0; iBridge < this._bridges.length; iBridge++) {
       var bridge = this._bridges[iBridge];
-      bridge.notifyBadLogin(account);
+      bridge.notifyBadLogin(account, problem);
     }
   },
 

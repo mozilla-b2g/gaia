@@ -11,16 +11,15 @@ var MockStatusBar = {
   updateNotification: function(count) {
     var number = new Number(count);
     this.notificationsCount = number.toString();
-    this.mNotificationsUpdated = true;
+    this.methodCalled('updateNotification');
   },
 
   updateNotificationUnread: function(unread) {
     this.mNotificationUnread = unread;
   },
 
-  mNotificationsUpdated: false,
   mNotificationUnread: false,
-  mTearDown: function tearDown() {
+  mTeardown: function teardown() {
     this.notificationsCount = null;
     this.mNotificationsUpdated = false;
     this.mNotificationUnread = false;

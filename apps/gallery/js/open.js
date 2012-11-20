@@ -4,13 +4,12 @@ window.onload = function() {
 
 function handleOpenActivity(request) {
   var blob = request.source.data.blob;
-  var frame = document.getElementById('open-frame');
-  var image = document.getElementById('open-image');
+  var frame = new Frame(document.getElementById('open-frame'), false);
   var backButton = document.getElementById('open-back-button');
   var toolbar = document.getElementById('open-toolbar');
   var cameraButton = document.getElementById('open-camera-button');
   var deleteButton = document.getElementById('open-delete-button');
-  var gestureDetector = new GestureDetector(frame);
+  var gestureDetector = new GestureDetector(frame.container);
   var photoState;
 
   // If the request is from the camera, show the toolbar with the camera
@@ -20,29 +19,20 @@ function handleOpenActivity(request) {
   }
 
   // display the image
-  var url = URL.createObjectURL(blob);
-  image.src = url;
-  image.onload = function() {
-    URL.revokeObjectURL(url);
-    var fit = PhotoState.fitImage(image.naturalWidth,
-                                  image.naturalHeight,
-                                  frame.offsetWidth,
-                                  frame.offsetHeight);
-    PhotoState.positionImage(image, fit);
+  frame.displayImage(blob);
 
-    photoState = new PhotoState(image, image.naturalWidth, image.naturalHeight);
-
-    // Set up events
-    gestureDetector.startDetecting();
-    backButton.addEventListener('click', handleBackButton);
+  // Set up events
+  backButton.addEventListener('click', handleBackButton);
+  if (request.source.data.show_delete_button) {
     cameraButton.addEventListener('click', handleCameraButton);
     deleteButton.addEventListener('click', handleDeleteButton);
-    //  deleteButton.addEventListener('click', handleDeleteButton);
-    frame.addEventListener('dbltap', handleDoubleTap);
-    frame.addEventListener('transform', handleTransform);
-    frame.addEventListener('pan', handlePan);
-    frame.addEventListener('swipe', handleSwipe);
-  };
+  }
+
+  gestureDetector.startDetecting();
+  frame.container.addEventListener('dbltap', handleDoubleTap);
+  frame.container.addEventListener('transform', handleTransform);
+  frame.container.addEventListener('pan', handlePan);
+  frame.container.addEventListener('swipe', handleSwipe);
 
   function done(result) {
     if (request) {
@@ -63,22 +53,22 @@ function handleOpenActivity(request) {
 
   function handleDoubleTap(e) {
     var scale;
-    if (photoState.fit.scale > photoState.fit.baseScale)
-      scale = photoState.fit.baseScale / photoState.fit.scale;
+    if (frame.fit.scale > frame.fit.baseScale)
+      scale = frame.fit.baseScale / frame.fit.scale;
     else
       scale = 2;
 
-    photoState.zoom(scale, e.detail.clientX, e.detail.clientY, 200);
+    frame.zoom(scale, e.detail.clientX, e.detail.clientY, 200);
   }
 
   function handleTransform(e) {
-    photoState.zoom(e.detail.relative.scale,
-                    e.detail.midpoint.clientX,
-                    e.detail.midpoint.clientY);
+    frame.zoom(e.detail.relative.scale,
+               e.detail.midpoint.clientX,
+               e.detail.midpoint.clientY);
   }
 
   function handlePan(e) {
-    photoState.pan(e.detail.relative.dx, e.detail.relative.dy);
+    frame.pan(e.detail.relative.dx, e.detail.relative.dy);
   }
 
   function handleSwipe(e) {

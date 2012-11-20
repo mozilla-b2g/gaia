@@ -10,12 +10,6 @@ var Curtain = (function() {
   var retryButton = doc.querySelector('#retry');
 
   var progressElement = doc.querySelector('#progressElement');
-  var progressLabel = doc.querySelector('#progressLabel');
-
-  function setProgressUI(value) {
-    progressLabel.textContent = value + '%';
-    progressElement.setAttribute('value', value);
-  }
 
   var form = doc.querySelector('form');
 
@@ -34,13 +28,19 @@ var Curtain = (function() {
     return str.charAt(0).toUpperCase() + str.slice(1);
   }
 
-  function Progress() {
-    this.update = function(value) {
-      setProgressUI(value);
-    }
-  }
+  function Progress(from) {
+    this.from = from;
 
-  var progressObj = new Progress();
+    this.update = function (value, total) {
+      progressElement.setAttribute('value', (value * 100) / total);
+      messages['progress'].textContent = _('progressFB' + this.from, {
+        imported: value,
+        total: total
+      });
+    };
+
+    this.update(0, 1);
+  }
 
   return {
 
@@ -85,9 +85,7 @@ var Curtain = (function() {
         break;
 
         case 'progress':
-          messages[type].textContent = _(type + from);
-          setProgressUI(0);
-          out = progressObj;
+          out = new Progress(from);
         break;
       }
 

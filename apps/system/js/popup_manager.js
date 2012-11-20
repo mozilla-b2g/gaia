@@ -229,7 +229,8 @@ var PopupManager = {
 
     if (AirplaneMode.enabled) {
       this.errorTitle.textContent = _('airplane-is-on');
-      this.errorMessage.textContent = _('airplane-is-turned-on', {name: contentOrigin});
+      this.errorMessage.textContent = _('airplane-is-turned-on',
+          {name: contentOrigin});
     } else if (!navigator.onLine) {
       this.errorTitle.textContent = _('network-connection-unavailable');
       this.errorMessage.textContent = _('network-error', {name: contentOrigin});
@@ -292,7 +293,7 @@ var PopupManager = {
 
     this.showError();
     this.screen.classList.add('popup');
-    
+
     var popup = this._currentPopup[this._currentOrigin];
     this.title.textContent = this.getTitleFromUrl(popup.dataset.url);
     popup.hidden = false;
@@ -308,3 +309,4 @@ var PopupManager = {
 };
 
 PopupManager.init();
+

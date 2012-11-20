@@ -35,6 +35,7 @@ var Camera = {
   _filmStripShown: false,
   _filmStripTimer: null,
   _resumeViewfinderTimer: null,
+  _waitingToGenerateThumb: false,
 
   _styleSheet: document.styleSheets[0],
   _orientationRule: null,
@@ -322,7 +323,9 @@ var Camera = {
     var captureButton = this.captureButton;
     var switchButton = this.switchButton;
 
-    var onerror = function() handleError('error-recording');
+    var onerror = function() {
+      handleError('error-recording');
+    }
     var onsuccess = (function onsuccess() {
       document.body.classList.add('capturing');
       captureButton.removeAttribute('disabled');
@@ -336,7 +339,8 @@ var Camera = {
 
     var handleError = (function handleError(id) {
       this.enableButtons();
-      this.showOverlay(id);
+      alert(navigator.mozL10n.get(id + '-title') + '. ' +
+            navigator.mozL10n.get(id + '-text'));
     }).bind(this);
 
     this.disableButtons();
@@ -369,15 +373,18 @@ var Camera = {
         // Determine the number of bytes available on disk.
         var stat = this._videoStorage.stat();
         stat.onerror = onerror;
-        stat.onsuccess = function() startRecording(stat.result.freeBytes);
+        stat.onsuccess = function() {
+          startRecording(stat.result.freeBytes);
+        }
       }).bind(this);
     }).bind(this));
   },
 
-  addToFilmStrip: function camera_addToFilmStrip(name, thumbnail, type) {
+  addToFilmStrip: function camera_addToFilmStrip(name, thumbnail, type, originalBlob) {
     this._photosTaken.push({
       name: name,
       blob: thumbnail,
+      originalBlob: originalBlob,
       type: type
     });
     if (this._photosTaken.length > this.THUMBNAIL_LIMIT) {
@@ -389,36 +396,38 @@ var Camera = {
   generateVideoThumbnail: function camera_generateVideoThumbnail(callback) {
     var video;
     var preview = this._videoPreview;
-    var thumbGenerated = function() {
+    var thumbGenerated = function(blob) {
       callback(blob, video.type);
     }
 
     this._videoStorage.get(this._videoPath).onsuccess = (function(e) {
       video = e.target.result;
-      // TODO: This check shouldnt be needed as we wont be recording
-      // in a format we cannot play
-      // https://bugzilla.mozilla.org/show_bug.cgi?id=799306
-      if (!preview.canPlayType(video.type)) {
-        callback(false);
-        return;
-      }
-      var url = URL.createObjectURL(video);
       preview.preload = 'metadata';
       preview.width = self.THUMB_WIDTH + 'px';
       preview.height = self.THUMB_HEIGHT + 'px';
-      preview.src = url;
-      preview.onloadedmetadata =
-        this.generateThumbnail.bind(this, preview, thumbGenerated);
+      preview.src = URL.createObjectURL(video);
+      this._waitingToGenerateThumb = true;
+      // Some video formats fail to load metadata, they are still
+      // able to generate a thumbnail though, the callback will
+      // prevents itself from running twice
+      var genThumb = this.generateThumbnail.bind(this, preview, thumbGenerated);
+      setTimeout(genThumb, 2500);
+      preview.onloadedmetadata = genThumb;
     }).bind(this);
   },
 
   generateImageThumbnail: function camera_generateImageThumbnail(input, callback) {
     var img = document.createElement('img');
+    this._waitingToGenerateThumb = true;
     img.src = window.URL.createObjectURL(input);
     img.onload = this.generateThumbnail.bind(this, img, callback);
   },
 
   generateThumbnail: function camera_generateThumbnail(input, callback) {
+    if (!this._waitingToGenerateThumb) {
+      return;
+    }
+    this._waitingToGenerateThumb = false;
     var canvas = document.createElement('canvas');
     canvas.width = this.THUMB_WIDTH;
     canvas.height = this.THUMB_HEIGHT;
@@ -545,42 +554,52 @@ var Camera = {
     }
 
     // Launch the gallery with an open activity to view this specific photo
-    var storage = this._pictureStorage;
-    var getreq = storage.get(filename);
+    var storage =  isVideo ? this._videoStorage : this._pictureStorage;
+    var isVideo = /video/.test(filetype);
+    var activity;
 
-    getreq.onerror = function() {
-      console.warn('failed to get file:', filename, getreq.error.name);
-    };
-
-    getreq.onsuccess = function() {
-      var file = getreq.result;
-      var a = new MozActivity({
+    if (isVideo) {
+      activity = new MozActivity({
         name: 'open',
         data: {
           type: filetype,
-          blob: file,
+          src: 'ds:videos://' + filename,
+          extras: {
+            title: filename.split('/').pop()
+          }
+        }
+      });
+    } else {
+      var photo = this._photosTaken.filter(function(file) {
+        return file.name === filename;
+      })[0];
+      activity = new MozActivity({
+        name: 'open',
+        data: {
+          type: filetype,
+          blob: photo.originalBlob,
           show_delete_button: true
         }
       });
+    }
 
-      // We don't seem to get a mozvisiblitychange event when the
-      // inline open activity opens up, so we explicitly stop the
-      // and restart the preview stream
-      camera.stopPreview();
+    // We don't seem to get a mozvisiblitychange event when the
+    // inline open activity opens up, so we explicitly stop the
+    // and restart the preview stream
+    camera.stopPreview();
 
-      a.onerror = function(e) {
-        console.warn('open activity error:', a.error.name);
-        camera.startPreview();
-      };
-      a.onsuccess = function(e) {
-        camera.startPreview();
-        if (a.result.delete) {
-          storage.delete(filename).onerror = function(e) {
-            console.warn('Failed to delete', filename,
-                         'from DeviceStorage:', e.target.error);
+    activity.onerror = function(e) {
+      console.warn('open activity error:', activity.error.name);
+      camera.startPreview();
+    };
+    activity.onsuccess = function(e) {
+      camera.startPreview();
+      if (activity.result.delete) {
+        storage.delete(filename).onerror = function(e) {
+          console.warn('Failed to delete', filename,
+                       'from DeviceStorage:', e.target.error);
           };
-        }
-      };
+      }
     };
   },
 
@@ -793,14 +812,15 @@ var Camera = {
         }
 
         this.generateImageThumbnail(blob, (function(thumbBlob) {
-          this.addToFilmStrip(name, thumbBlob, 'image/jpeg');
+          this.addToFilmStrip(name, thumbBlob, 'image/jpeg', blob);
           this.checkStorageSpace();
         }).bind(this));
 
       }).bind(this);
 
       addreq.onerror = function() {
-        alert(navigator.mozL10n.get('error-saving-text'));
+        alert(navigator.mozL10n.get('error-saving-title') + '. ' +
+              navigator.mozL10n.get('error-saving-text'));
       };
     }).bind(this));
   },
@@ -894,7 +914,7 @@ var Camera = {
       this.showOverlay('pluggedin');
       break;
     case this.STORAGE_CAPACITY:
-      this.showOverlay('nospace');
+      this.showOverlay('nospace2');
       break;
     }
     if (this._previewActive) {

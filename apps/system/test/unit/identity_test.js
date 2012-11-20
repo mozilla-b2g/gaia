@@ -34,7 +34,7 @@ suite('identity', function() {
   setup(function() {});
 
   teardown(function() {
-    MockTrustedUIManager.mTearDown();
+    MockTrustedUIManager.mTeardown();
   });
 
   suite('open popup', function() {

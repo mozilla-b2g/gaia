@@ -47,7 +47,7 @@
 }
 
 .day-events .event {
-  position: relative;
+  position: absolute;
   height: 6rem;
   top: 0;
   z-index: 10;
@@ -79,12 +79,10 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  position: absolute;
 }
 
 .day-events .event .details {
   width: calc(100% - 1rem - 6px);
-  position: absolute;
   min-height: 2rem;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -96,27 +94,15 @@
   top: 3rem;
 }
 
+.day-events .event.partial-hour .details {
+  display: none;
+}
+
 .attendee {
   padding-right: 0.3rem;
 }
 
-/* overlap & conflicts */
-
-.event[data-conflicts] {
-  float: left;
-}
-
-/** generic conflict stuff / overlap */
-.event[data-conflicts="1"] { width: 50%; }
-.event[data-conflicts="2"] { width: 33.3%; }
-.event[data-conflicts="3"] { width: 25%; }
-.event[data-conflicts="4"] { width: 20%; }
-.event[data-conflicts="5"] { width: 16.66%; }
-.event[data-conflicts="6"] { width: 14.285%; }
-.event[data-conflicts="7"] { width: 12.5%; }
-.event[data-conflicts="8"] { width: 11.111%; }
-.event[data-conflicts="9"] { width: 10%; }
-.event[data-conflicts="10"] { width: 9.09%; }
+/* overlap */
 
 .event[data-overlaps="1"] { padding-left: 6px; z-index: 11; }
 .event[data-overlaps="2"] { padding-left: 12px; z-index: 12; }

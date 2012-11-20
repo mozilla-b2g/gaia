@@ -101,6 +101,7 @@
   margin: 1px;
   height: 6rem;
   width: 7rem;
+  position: relative;
 }
 
 #week-view .week-events > ol {
@@ -109,6 +110,11 @@
 
 #week-view .days-3 .week-events > ol {
   width: 9.5rem;
+}
+
+#week-view .week-events > ol li.event {
+  position: absolute;
+  width: 100%;
 }
 
 #week-view .week-events .container {

@@ -124,7 +124,7 @@ a:active {
   font-weight: lighter;
   height: 9rem;
   overflow: hidden;
-  background: -moz-linear-gradient(center top , #4C5055, #5C6064) repeat scroll 0 0 transparent;
+  background: #4C5055;
   border-top: 1px solid #3A3D41;
   color: #FFF;
   box-shadow: 0 3px 4px #111;
@@ -134,12 +134,6 @@ a:active {
   padding-left: 50%;
   width: 100%;
   height: 100%;
-}
-
-#dialer-container > div:last-child {
-  border-bottom: 0.2rem solid #4D5055;
-  margin-left: -50%;
-  margin-top: 7.5rem;
 }
 
 #frequency-indicator {
@@ -168,6 +162,7 @@ div.animation-on > div {
 }
 
 #frequency-dialer .dialer-unit-mark-box {
+  background: url(images/dial-notches.png) no-repeat 0 3.4rem;
   overflow: hidden;
   height: 5.5rem;
 }
@@ -179,29 +174,24 @@ div.animation-on > div {
   width: 320px;
 }
 
+/* The beginning and end of the dial are masked to hide notches that
+are out of range. */
+.dialer-unit-mark-mask-start,
+.dialer-unit-mark-mask-end {
+  background: #4C5055;
+  display: block;
+  height: 5.5rem;
+  position: absolute;
+}
+/* The mask at the end should be jogged left by .3rem (3px), since the
+mask is intended to cover everything except the first notch. */
+.dialer-unit-mark-mask-end {
+  margin-left: .3rem;
+}
+
 #frequency-dialer .dialer-unit-floor {
   color: #AAA;
   float: left;
-}
-
-#frequency-dialer .dialer-mark {
-  float: left;
-  width: 0.2rem;
-  height: 1rem;
-  margin: 4rem 1.3rem 0 0.1rem;
-  background-color: #6A6E71;
-}
-
-#frequency-dialer .dialer-mark-middle {
-  height: 1.2rem;
-  margin-top: 3.9rem;
-  background-color: #B0B3B4;
-}
-
-#frequency-dialer .dialer-mark-long {
-  height: 2.2rem;
-  margin-top: 3.4rem;
-  background-color: #C2C3C4;
 }
 /**** end *******/
 

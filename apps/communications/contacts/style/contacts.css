@@ -28,6 +28,10 @@ section[role="region"] > header:first-child sup {
   padding-right: 1rem;
 }
 
+.view-contacts-list .view-body-inner {
+  padding-left: 1.5rem;
+}
+
 #contact-name-title {
   max-width: 22rem;
   float: left;
@@ -268,7 +272,7 @@ fieldset legend.action:after {
   overflow: hidden;
   width: 1.5rem;
   height: 1.5rem;
-  margin-right: 1rem;
+  margin: -0.2rem 1rem 0 0;
 }
 
 .icon-social.icon-fb {
@@ -590,4 +594,16 @@ label.switch input:checked + span:after {
   background: url("/contacts/style/images/arrow_big.png") no-repeat scroll 93% 0.5rem transparent;
   height: 5rem;
   padding-top: 3.5rem;
+}
+
+#statusMsg {
+  position: fixed;
+  -moz-transition: -moz-transform .5s ease;
+  -moz-transform: translateY(8rem);
+  pointer-events: none;
+}
+
+#statusMsg.visible {
+  -moz-transform: translateY(0);
+  z-index: 1001;
 }

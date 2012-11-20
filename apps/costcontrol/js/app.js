@@ -100,8 +100,8 @@ function setupApp() {
 
   // Initializes the cost control module: basic parameters, automatic and manual
   // updates.
+  var _initialized = false;
   function _init() {
-
     var status = Service.getServiceStatus();
     if (status.fte) {
       var fteIframe = document.getElementById('fte-view');
@@ -121,9 +121,16 @@ function setupApp() {
     navigator.mozSetMessageHandler('activity',
       function settings_handleActivity(activityRequest) {
         var name = activityRequest.source.name;
+        settingsVManager.closeCurrentView();
         switch (name) {
-          case 'costcontrol/open':
-            viewManager.closeCurrentView();
+          case 'costcontrol/balance':
+            viewManager.changeViewTo(TAB_BALANCE);
+            break;
+          case 'costcontrol/telephony':
+            viewManager.changeViewTo(TAB_TELEPHONY);
+            break;
+          case 'costcontrol/data_usage':
+            viewManager.changeViewTo(TAB_DATA_USAGE);
             break;
         }
       }
@@ -131,12 +138,6 @@ function setupApp() {
 
     // Keep the left tab synchronized with the plantype
     Service.settings.observe('plantype', _setLeftTab);
-
-    // Update UI when localized
-    window.addEventListener('localized', function ccapp_onLocalized() {
-      for (var viewid in Views) if (Views.hasOwnProperty(viewid))
-        Views[viewid].localize();
-    });
 
     // Adapt tab visibility according to available functionality
     if (!status.enabledFunctionalities.balance &&
@@ -151,7 +152,17 @@ function setupApp() {
       viewManager.changeViewTo(TAB_DATA_USAGE);
       dataUsageTab.classList.add('standalone');
     }
+
+    _initialized = true;
   }
 
-  _init();
+  // Update UI when localized
+  window.addEventListener('localized', function ccapp_onLocalized() {
+    if (!_initialized)
+      _init();
+
+    for (var viewid in Views) if (Views.hasOwnProperty(viewid))
+      Views[viewid].localize();
+  });
+
 }

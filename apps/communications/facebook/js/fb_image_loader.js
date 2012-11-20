@@ -50,6 +50,7 @@ if (!ImageLoader) {
         var src = tmp.src = image.dataset.src;
         tmp.addEventListener('load', function onload() {
           image.src = src;
+          image.hidden = false;
           tmp.removeEventListener('load', onload);
         });
       });

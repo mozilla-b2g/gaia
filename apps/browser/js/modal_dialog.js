@@ -21,7 +21,9 @@ var ModalDialog = {
   getAllElements: function md_getAllElements() {
     var elementsID = ['alert', 'alert-ok', 'alert-message',
       'prompt', 'prompt-ok', 'prompt-cancel', 'prompt-input', 'prompt-message',
-      'confirm', 'confirm-ok', 'confirm-cancel', 'confirm-message'];
+      'confirm', 'confirm-ok', 'confirm-cancel', 'confirm-message',
+      'custom-prompt', 'custom-prompt-message', 'custom-prompt-buttons',
+      'custom-prompt-checkbox'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {
@@ -62,6 +64,7 @@ var ModalDialog = {
         elements[id].addEventListener('click', this);
       }
     }
+    elements.customPromptButtons.addEventListener('click', this);
   },
 
   // Default event handler
@@ -84,7 +87,7 @@ var ModalDialog = {
             evt.currentTarget === elements.promptCancel) {
           this.cancelHandler();
         } else {
-          this.confirmHandler();
+          this.confirmHandler(evt.target);
         }
         break;
 
@@ -136,6 +139,45 @@ var ModalDialog = {
         elements.promptMessage.innerHTML = message;
         break;
 
+      case 'custom-prompt':
+        var prompt = evt.detail;
+        elements.customPrompt.classList.add('visible');
+        elements.customPromptMessage.innerHTML = prompt.message;
+
+        // Display custom list of buttons
+        elements.customPromptButtons.innerHTML = '';
+        for (var i = 0, l = prompt.buttons.length; i < l; i++) {
+          var button = prompt.buttons[i];
+          var domElement = document.createElement('button');
+          domElement.dataset.buttonIndex = i;
+          if (button.messageType === 'builtin') {
+            // List of potential `message` values are defined here:
+            // http://hg.mozilla.org/mozilla-central/annotate/5ce71981e005/dom/browser-element/BrowserElementPromptService.jsm#l157
+            domElement.textContent = navigator.mozL10n.get(button.message);
+          } else if (button.messageType === 'custom') {
+            // For custom button, we assume that the text is already translated
+            domElement.textContent = button.message;
+          } else {
+            console.error('Unexpected button type : ' + button.messageType);
+            return;
+          }
+          elements.customPromptButtons.appendChild(domElement);
+        }
+
+        // Eventualy display a checkbox:
+        var checkbox = elements.customPromptCheckbox;
+        checkbox.hidden = !prompt.showCheckbox;
+        if (prompt.showCheckbox) {
+          if (prompt.checkboxCheckedByDefault) {
+            checkbox.setAttribute('checked', 'true');
+          } else {
+            checkbox.removeAttribute('checked');
+          }
+          // We assume that checkbox custom message is already translated
+          checkbox.nextSibling.textContent = prompt.checkboxMessage;
+        }
+        break;
+
       case 'confirm':
         elements.confirm.classList.add('visible');
         elements.confirmMessage.innerHTML = message;
@@ -154,7 +196,7 @@ var ModalDialog = {
   },
 
   // When user clicks OK button on alert/confirm/prompt
-  confirmHandler: function md_confirmHandler() {
+  confirmHandler: function md_confirmHandler(target) {
     this.screen.classList.remove('modal-dialog');
     var elements = this.elements;
 
@@ -169,6 +211,16 @@ var ModalDialog = {
       case 'prompt':
         evt.detail.returnValue = elements.promptInput.value;
         elements.prompt.classList.remove('visible');
+        break;
+
+      case 'custom-prompt':
+        var returnValue = {
+          selectedButton: target.dataset.buttonIndex
+        };
+        if (evt.showCheckbox)
+          returnValue.checked = elements.customPromptCheckbox.checked;
+        evt.detail.returnValue = returnValue;
+        elements.customPrompt.classList.remove('visible');
         break;
 
       case 'confirm':
