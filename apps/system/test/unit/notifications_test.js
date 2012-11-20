@@ -1,36 +1,30 @@
 requireApp('system/test/unit/mock_statusbar.js');
 requireApp('system/test/unit/mock_gesture_detector.js');
+requireApp('system/test/unit/mocks_helper.js');
 
 requireApp('system/js/notifications.js');
 
-var mocks = ['StatusBar', 'GestureDetector'];
+var mocksForNotificationScreen = ['StatusBar', 'GestureDetector'];
 
-mocks.forEach(function(objName) {
-  if (! window[objName]) {
-    window[objName] = null;
+mocksForNotificationScreen.forEach(function(mockName) {
+  if (! window[mockName]) {
+    window[mockName] = null;
   }
 });
 
-suite('system/NotificationScreen', function() {
+
+suite('system/NotificationScreen >', function() {
   var fakeNotifContainer, fakeLockScreenContainer, fakeToaster, fakeButton;
-  var realWindowObjects = {};
+
+  var mocksHelper;
 
   suiteSetup(function() {
-    mocks.forEach(function(objName) {
-      var mockName = 'Mock' + objName;
-      if (!window[mockName]) {
-        throw 'Mock ' + mockName + ' has not been loaded into the test';
-      }
-
-      realWindowObjects[objName] = window[objName];
-      window[objName] = window[mockName];
-    });
+    mocksHelper = new MocksHelper(mocksForNotificationScreen);
+    mocksHelper.suiteSetup();
   });
 
   suiteTeardown(function() {
-    mocks.forEach(function(objName) {
-      window[objName] = realWindowObjects[objName];
-    });
+    mocksHelper.suiteTeardown();
   });
 
   setup(function() {
@@ -55,6 +49,8 @@ suite('system/NotificationScreen', function() {
     document.body.appendChild(fakeLockScreenContainer);
     document.body.appendChild(fakeButton);
 
+    mocksHelper.setup();
+
     NotificationScreen.init();
   });
 
@@ -63,9 +59,11 @@ suite('system/NotificationScreen', function() {
     fakeLockScreenContainer.parentNode.removeChild(fakeLockScreenContainer);
     fakeToaster.parentNode.removeChild(fakeToaster);
     fakeButton.parentNode.removeChild(fakeButton);
+
+    mocksHelper.teardown();
   });
 
-  suite('updateStatusBarIcon', function() {
+  suite('updateStatusBarIcon >', function() {
     setup(function() {
       NotificationScreen.updateStatusBarIcon();
     });

@@ -85,7 +85,7 @@ suite('Render contacts list', function() {
   }
 
   function assertTotal(lengthTitles, lengthContacts) {
-    var total = list.querySelectorAll('h2:not(.hide)').length;
+    var total = list.querySelectorAll('header:not(.hide)').length;
     var totalC = list.querySelectorAll('li[data-uuid]').length;
 
     assert.equal(total, lengthTitles);
@@ -132,8 +132,8 @@ suite('Render contacts list', function() {
     groupsContainer.id = 'groups-container';
     groupsContainer.innerHTML = '<p id="no-result" class="hide" ' +
       'data-l10n-id="noResults">No contacts found</p>';
-    groupsContainer.innerHTML += '<ol class="block-list" ' +
-      'id="groups-list"></ol>';
+    groupsContainer.innerHTML += '<section data-type="list" ' +
+      'id="groups-list"></section>';
     groupsContainer.innerHTML += '<div id="fixed-container" ';
     groupsContainer.innerHTML += 'class="fixed-title"> </div>';
     groupsContainer.innerHTML += '<div id="current-jumper" ';
@@ -524,16 +524,16 @@ suite('Render contacts list', function() {
       subject.init(list);
     });
 
-    test('adding one FB Contact to an empty list', function() {
-      var deviceContact = new MockContactAllFields();
+    teardown(function() {
+      window.fb.setIsFbContact(false);
+      window.fb.setIsFbLinked(false);
+    });
 
-      deviceContact.id = '567';
-      deviceContact.familyName = ['Taylor'];
-      deviceContact.givenName = ['Bret'];
-      deviceContact.name = [deviceContact.givenName + ' ' +
-                            deviceContact.familyName];
+    test('adding one FB Contact to an empty list', function() {
+      window.fb.setIsFbContact(true);
+
+      var deviceContact = new MockContactAllFields();
       var newContact = new MockFb.Contact(deviceContact);
-      newContact.uid = '220439';
 
       newContact.getData().onsuccess = function cb() {
         var newList = [this.result];
@@ -567,11 +567,11 @@ suite('Render contacts list', function() {
       searchBox.value = contact.familyName[0];
       contacts.Search.search();
 
-      var selectorStr = 'li.block-item.search.hide';
+      var selectorStr = 'li.contact-item.search.hide';
       var hiddenContacts = container.querySelectorAll(selectorStr);
       assert.length(hiddenContacts, 2);
 
-      selectorStr = 'li.block-item.search:not(.hide)';
+      selectorStr = 'li.contact-item.search:not(.hide)';
       var showContact = container.querySelectorAll(selectorStr);
       assert.length(showContact, 1);
       assert.equal(showContact[0].dataset.uuid, contact.id);
@@ -584,7 +584,7 @@ suite('Render contacts list', function() {
       searchBox.value = 'YYY';
       contacts.Search.search();
 
-      var selectorStr = 'li.block-item.search.hide';
+      var selectorStr = 'li.contact-item.search.hide';
       var hiddenContacts = container.querySelectorAll(selectorStr);
       assert.length(hiddenContacts, 3);
       assert.isFalse(noResults.classList.contains('hide'));
@@ -612,9 +612,8 @@ suite('Render contacts list', function() {
 
         // Check as well the correct highlight
         // familyName to be in bold
-        var highlight = '<strong class="block-name">' +
-          mockContact.givenName[0] + ' <b>' +
-          mockContact.familyName[0] + '</b>';
+        var highlight = mockContact.givenName[0] + ' <strong>' +
+          mockContact.familyName[0] + '</strong>';
         assert.isTrue(printed.innerHTML.indexOf(highlight) == 0);
       }
     });
@@ -631,8 +630,8 @@ suite('Render contacts list', function() {
 
       // Check highlight
       // Given name to be in bold
-      var highlight = '<strong class="block-name"><b>' +
-          mockContact.givenName[0] + '</b> ' +
+      var highlight = '<strong>' +
+          mockContact.givenName[0] + '</strong> ' +
           mockContact.familyName[0];
       assert.isTrue(name.innerHTML.indexOf(highlight) == 0);
     });

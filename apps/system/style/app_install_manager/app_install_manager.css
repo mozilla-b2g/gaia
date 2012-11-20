@@ -1,5 +1,9 @@
 /* dialog */
-#app-install-dialog, #app-install-cancel-dialog {
+/* FIXME we have to see why we need such specific style here and why
+ * the general style in confirm.css isn't sufficient */
+#app-install-dialog,
+#app-install-cancel-dialog,
+#app-download-cancel-dialog {
   display: none;
   position: absolute;
   top: 20px;
@@ -9,16 +13,22 @@
   pointer-events: none;
 }
 
-#app-install-dialog.visible, #app-install-cancel-dialog.visible {
+#app-install-dialog.visible,
+#app-install-cancel-dialog.visible,
+#app-download-cancel-dialog.visible {
   display: inline-block;
   pointer-events: auto;
 }
 
-#app-install-dialog section, #app-install-cancel-dialog section {
+#app-install-dialog section,
+#app-install-cancel-dialog section,
+#app-download-cancel-dialog section {
   height: auto;
 }
 
-#app-install-dialog h1, #app-install-cancel-dialog h1 {
+#app-install-dialog h1,
+#app-install-cancel-dialog h1,
+#app-download-cancel-dialog h1 {
   border-bottom: none;
   background: none;
 }
@@ -55,6 +65,10 @@
   background-repeat: no-repeat;
   background-position: 15px center;
   background-image: url(images/downloads.png);
+}
+
+#install-manager-notification-container > .fake-notification > * {
+  pointer-events: none;
 }
 
 #install-manager-notification-container progress {

@@ -14,7 +14,7 @@ var MockTrustedUIManager = {
   mName: null,
   mFrame: null,
   mOrigin: null,
-  mTearDown: function tearDown() {
+  mTeardown: function teardown() {
     this.mOpened = false;
     this.mName = null;
     this.mFrame = null;

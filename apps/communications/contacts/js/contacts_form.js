@@ -32,6 +32,9 @@ contacts.Form = (function() {
   var REMOVED_CLASS = 'removed';
   var FB_CLASS = 'facebook';
 
+  // Remove icon button id
+  var IMG_DELETE_ID = 'img-delete-button';
+
   // The size we want our contact photos to be
   var PHOTO_WIDTH = 320;
   var PHOTO_HEIGHT = 320;
@@ -144,11 +147,13 @@ contacts.Form = (function() {
 
     if (contact.photo && contact.photo.length > 0) {
       currentPhoto = contact.photo[0];
-      // If the photo comes from FB it cannot be removed
       var button = addRemoveIconToPhoto();
-      if (nonEditableValues['hasPhoto']) {
-        thumbAction.classList.add(REMOVED_CLASS);
+      // Only can be removed a device contact photo
+      if (! (deviceContact.photo && deviceContact.photo.length > 0) ) {
         button.classList.add('hide');
+        // Avoid saving the image to the Contacts DB
+        thumbAction.classList.add(REMOVED_CLASS);
+        thumbAction.classList.add(FB_CLASS);
       }
     }
     Contacts.updatePhoto(currentPhoto, thumb);
@@ -531,8 +536,8 @@ contacts.Form = (function() {
   var resetForm = function resetForm() {
     currentPhoto = null;
     thumbAction.querySelector('p').classList.remove('hide');
-    var removeIcon = thumbAction.querySelector('button');
-    if (removeIcon) {
+    var removeIcon = thumbAction.querySelector('button#' + IMG_DELETE_ID);
+    if(removeIcon) {
       thumbAction.removeChild(removeIcon);
     }
     saveButton.removeAttribute('disabled');
@@ -592,6 +597,7 @@ contacts.Form = (function() {
 
   var removeFieldIcon = function removeFieldIcon(selector) {
     var delButton = document.createElement('button');
+    delButton.id = IMG_DELETE_ID;
     delButton.className = 'fillflow-row-action';
     var delIcon = document.createElement('span');
     delIcon.setAttribute('role', 'button');
@@ -613,8 +619,19 @@ contacts.Form = (function() {
   };
 
   var addRemoveIconToPhoto = function cf_addRemIconPhoto() {
-    var out = removeFieldIcon(thumbAction.id);
-    thumbAction.appendChild(out);
+    // Ensure the removed and FB class names are conveniently reseted
+    thumbAction.classList.remove(REMOVED_CLASS);
+    thumbAction.classList.remove(FB_CLASS);
+
+    var out = thumbAction.querySelector('button#' + IMG_DELETE_ID);
+    if(!out) {
+      out = removeFieldIcon(thumbAction.id);
+      thumbAction.appendChild(out);
+    }
+    else {
+      // Ensure it is visible
+      out.classList.remove('hide');
+    }
     thumbAction.classList.add('with-photo');
 
     return out;
@@ -644,6 +661,12 @@ contacts.Form = (function() {
                    currentPhoto = resized;
                  });
     }
+
+    activity.onerror = function() {
+      window.console.error('Error in the activity', activity.error);
+    }
+
+    return false;
   };
 
   function resizeBlob(blob, target_width, target_height, callback) {

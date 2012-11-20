@@ -1,1 +1,1254 @@
-eval(function(p,a,c,k,e,r){e=function(c){return(c<a?'':e(parseInt(c/a)))+((c=c%a)>35?String.fromCharCode(c+29):c.toString(36))};if(!''.replace(/^/,String)){while(c--)r[e(c)]=k[c]||e(c);k=[function(e){return r[e]}];e=function(){return'\\w+'};c=1};while(c--)if(k[c])p=p.replace(new RegExp('\\b'+e(c)+'\\b','g'),k[c]);return p}('9 17={3i:\'0.1.3\',16:1e-6};l v(){}v.23={e:l(i){8(i<1||i>7.4.q)?w:7.4[i-1]},2R:l(){8 7.4.q},1u:l(){8 F.1x(7.2u(7))},24:l(a){9 n=7.4.q;9 V=a.4||a;o(n!=V.q){8 1L}J{o(F.13(7.4[n-1]-V[n-1])>17.16){8 1L}}H(--n);8 2x},1q:l(){8 v.u(7.4)},1b:l(a){9 b=[];7.28(l(x,i){b.19(a(x,i))});8 v.u(b)},28:l(a){9 n=7.4.q,k=n,i;J{i=k-n;a(7.4[i],i+1)}H(--n)},2q:l(){9 r=7.1u();o(r===0){8 7.1q()}8 7.1b(l(x){8 x/r})},1C:l(a){9 V=a.4||a;9 n=7.4.q,k=n,i;o(n!=V.q){8 w}9 b=0,1D=0,1F=0;7.28(l(x,i){b+=x*V[i-1];1D+=x*x;1F+=V[i-1]*V[i-1]});1D=F.1x(1D);1F=F.1x(1F);o(1D*1F===0){8 w}9 c=b/(1D*1F);o(c<-1){c=-1}o(c>1){c=1}8 F.37(c)},1m:l(a){9 b=7.1C(a);8(b===w)?w:(b<=17.16)},34:l(a){9 b=7.1C(a);8(b===w)?w:(F.13(b-F.1A)<=17.16)},2k:l(a){9 b=7.2u(a);8(b===w)?w:(F.13(b)<=17.16)},2j:l(a){9 V=a.4||a;o(7.4.q!=V.q){8 w}8 7.1b(l(x,i){8 x+V[i-1]})},2C:l(a){9 V=a.4||a;o(7.4.q!=V.q){8 w}8 7.1b(l(x,i){8 x-V[i-1]})},22:l(k){8 7.1b(l(x){8 x*k})},x:l(k){8 7.22(k)},2u:l(a){9 V=a.4||a;9 i,2g=0,n=7.4.q;o(n!=V.q){8 w}J{2g+=7.4[n-1]*V[n-1]}H(--n);8 2g},2f:l(a){9 B=a.4||a;o(7.4.q!=3||B.q!=3){8 w}9 A=7.4;8 v.u([(A[1]*B[2])-(A[2]*B[1]),(A[2]*B[0])-(A[0]*B[2]),(A[0]*B[1])-(A[1]*B[0])])},2A:l(){9 m=0,n=7.4.q,k=n,i;J{i=k-n;o(F.13(7.4[i])>F.13(m)){m=7.4[i]}}H(--n);8 m},2Z:l(x){9 a=w,n=7.4.q,k=n,i;J{i=k-n;o(a===w&&7.4[i]==x){a=i+1}}H(--n);8 a},3g:l(){8 S.2X(7.4)},2d:l(){8 7.1b(l(x){8 F.2d(x)})},2V:l(x){8 7.1b(l(y){8(F.13(y-x)<=17.16)?x:y})},1o:l(a){o(a.K){8 a.1o(7)}9 V=a.4||a;o(V.q!=7.4.q){8 w}9 b=0,2b;7.28(l(x,i){2b=x-V[i-1];b+=2b*2b});8 F.1x(b)},3a:l(a){8 a.1h(7)},2T:l(a){8 a.1h(7)},1V:l(t,a){9 V,R,x,y,z;2S(7.4.q){27 2:V=a.4||a;o(V.q!=2){8 w}R=S.1R(t).4;x=7.4[0]-V[0];y=7.4[1]-V[1];8 v.u([V[0]+R[0][0]*x+R[0][1]*y,V[1]+R[1][0]*x+R[1][1]*y]);1I;27 3:o(!a.U){8 w}9 C=a.1r(7).4;R=S.1R(t,a.U).4;x=7.4[0]-C[0];y=7.4[1]-C[1];z=7.4[2]-C[2];8 v.u([C[0]+R[0][0]*x+R[0][1]*y+R[0][2]*z,C[1]+R[1][0]*x+R[1][1]*y+R[1][2]*z,C[2]+R[2][0]*x+R[2][1]*y+R[2][2]*z]);1I;2P:8 w}},1t:l(a){o(a.K){9 P=7.4.2O();9 C=a.1r(P).4;8 v.u([C[0]+(C[0]-P[0]),C[1]+(C[1]-P[1]),C[2]+(C[2]-(P[2]||0))])}1d{9 Q=a.4||a;o(7.4.q!=Q.q){8 w}8 7.1b(l(x,i){8 Q[i-1]+(Q[i-1]-x)})}},1N:l(){9 V=7.1q();2S(V.4.q){27 3:1I;27 2:V.4.19(0);1I;2P:8 w}8 V},2n:l(){8\'[\'+7.4.2K(\', \')+\']\'},26:l(a){7.4=(a.4||a).2O();8 7}};v.u=l(a){9 V=25 v();8 V.26(a)};v.i=v.u([1,0,0]);v.j=v.u([0,1,0]);v.k=v.u([0,0,1]);v.2J=l(n){9 a=[];J{a.19(F.2F())}H(--n);8 v.u(a)};v.1j=l(n){9 a=[];J{a.19(0)}H(--n);8 v.u(a)};l S(){}S.23={e:l(i,j){o(i<1||i>7.4.q||j<1||j>7.4[0].q){8 w}8 7.4[i-1][j-1]},33:l(i){o(i>7.4.q){8 w}8 v.u(7.4[i-1])},2E:l(j){o(j>7.4[0].q){8 w}9 a=[],n=7.4.q,k=n,i;J{i=k-n;a.19(7.4[i][j-1])}H(--n);8 v.u(a)},2R:l(){8{2D:7.4.q,1p:7.4[0].q}},2D:l(){8 7.4.q},1p:l(){8 7.4[0].q},24:l(a){9 M=a.4||a;o(1g(M[0][0])==\'1f\'){M=S.u(M).4}o(7.4.q!=M.q||7.4[0].q!=M[0].q){8 1L}9 b=7.4.q,15=b,i,G,10=7.4[0].q,j;J{i=15-b;G=10;J{j=10-G;o(F.13(7.4[i][j]-M[i][j])>17.16){8 1L}}H(--G)}H(--b);8 2x},1q:l(){8 S.u(7.4)},1b:l(a){9 b=[],12=7.4.q,15=12,i,G,10=7.4[0].q,j;J{i=15-12;G=10;b[i]=[];J{j=10-G;b[i][j]=a(7.4[i][j],i+1,j+1)}H(--G)}H(--12);8 S.u(b)},2i:l(a){9 M=a.4||a;o(1g(M[0][0])==\'1f\'){M=S.u(M).4}8(7.4.q==M.q&&7.4[0].q==M[0].q)},2j:l(a){9 M=a.4||a;o(1g(M[0][0])==\'1f\'){M=S.u(M).4}o(!7.2i(M)){8 w}8 7.1b(l(x,i,j){8 x+M[i-1][j-1]})},2C:l(a){9 M=a.4||a;o(1g(M[0][0])==\'1f\'){M=S.u(M).4}o(!7.2i(M)){8 w}8 7.1b(l(x,i,j){8 x-M[i-1][j-1]})},2B:l(a){9 M=a.4||a;o(1g(M[0][0])==\'1f\'){M=S.u(M).4}8(7.4[0].q==M.q)},22:l(a){o(!a.4){8 7.1b(l(x){8 x*a})}9 b=a.1u?2x:1L;9 M=a.4||a;o(1g(M[0][0])==\'1f\'){M=S.u(M).4}o(!7.2B(M)){8 w}9 d=7.4.q,15=d,i,G,10=M[0].q,j;9 e=7.4[0].q,4=[],21,20,c;J{i=15-d;4[i]=[];G=10;J{j=10-G;21=0;20=e;J{c=e-20;21+=7.4[i][c]*M[c][j]}H(--20);4[i][j]=21}H(--G)}H(--d);9 M=S.u(4);8 b?M.2E(1):M},x:l(a){8 7.22(a)},32:l(a,b,c,d){9 e=[],12=c,i,G,j;9 f=7.4.q,1p=7.4[0].q;J{i=c-12;e[i]=[];G=d;J{j=d-G;e[i][j]=7.4[(a+i-1)%f][(b+j-1)%1p]}H(--G)}H(--12);8 S.u(e)},31:l(){9 a=7.4.q,1p=7.4[0].q;9 b=[],12=1p,i,G,j;J{i=1p-12;b[i]=[];G=a;J{j=a-G;b[i][j]=7.4[j][i]}H(--G)}H(--12);8 S.u(b)},1y:l(){8(7.4.q==7.4[0].q)},2A:l(){9 m=0,12=7.4.q,15=12,i,G,10=7.4[0].q,j;J{i=15-12;G=10;J{j=10-G;o(F.13(7.4[i][j])>F.13(m)){m=7.4[i][j]}}H(--G)}H(--12);8 m},2Z:l(x){9 a=w,12=7.4.q,15=12,i,G,10=7.4[0].q,j;J{i=15-12;G=10;J{j=10-G;o(7.4[i][j]==x){8{i:i+1,j:j+1}}}H(--G)}H(--12);8 w},30:l(){o(!7.1y){8 w}9 a=[],n=7.4.q,k=n,i;J{i=k-n;a.19(7.4[i][i])}H(--n);8 v.u(a)},1K:l(){9 M=7.1q(),1c;9 n=7.4.q,k=n,i,1s,1n=7.4[0].q,p;J{i=k-n;o(M.4[i][i]==0){2e(j=i+1;j<k;j++){o(M.4[j][i]!=0){1c=[];1s=1n;J{p=1n-1s;1c.19(M.4[i][p]+M.4[j][p])}H(--1s);M.4[i]=1c;1I}}}o(M.4[i][i]!=0){2e(j=i+1;j<k;j++){9 a=M.4[j][i]/M.4[i][i];1c=[];1s=1n;J{p=1n-1s;1c.19(p<=i?0:M.4[j][p]-M.4[i][p]*a)}H(--1s);M.4[j]=1c}}}H(--n);8 M},3h:l(){8 7.1K()},2z:l(){o(!7.1y()){8 w}9 M=7.1K();9 a=M.4[0][0],n=M.4.q-1,k=n,i;J{i=k-n+1;a=a*M.4[i][i]}H(--n);8 a},3f:l(){8 7.2z()},2y:l(){8(7.1y()&&7.2z()===0)},2Y:l(){o(!7.1y()){8 w}9 a=7.4[0][0],n=7.4.q-1,k=n,i;J{i=k-n+1;a+=7.4[i][i]}H(--n);8 a},3e:l(){8 7.2Y()},1Y:l(){9 M=7.1K(),1Y=0;9 a=7.4.q,15=a,i,G,10=7.4[0].q,j;J{i=15-a;G=10;J{j=10-G;o(F.13(M.4[i][j])>17.16){1Y++;1I}}H(--G)}H(--a);8 1Y},3d:l(){8 7.1Y()},2W:l(a){9 M=a.4||a;o(1g(M[0][0])==\'1f\'){M=S.u(M).4}9 T=7.1q(),1p=T.4[0].q;9 b=T.4.q,15=b,i,G,10=M[0].q,j;o(b!=M.q){8 w}J{i=15-b;G=10;J{j=10-G;T.4[i][1p+j]=M[i][j]}H(--G)}H(--b);8 T},2w:l(){o(!7.1y()||7.2y()){8 w}9 a=7.4.q,15=a,i,j;9 M=7.2W(S.I(a)).1K();9 b,1n=M.4[0].q,p,1c,2v;9 c=[],2c;J{i=a-1;1c=[];b=1n;c[i]=[];2v=M.4[i][i];J{p=1n-b;2c=M.4[i][p]/2v;1c.19(2c);o(p>=15){c[i].19(2c)}}H(--b);M.4[i]=1c;2e(j=0;j<i;j++){1c=[];b=1n;J{p=1n-b;1c.19(M.4[j][p]-M.4[i][p]*M.4[j][i])}H(--b);M.4[j]=1c}}H(--a);8 S.u(c)},3c:l(){8 7.2w()},2d:l(){8 7.1b(l(x){8 F.2d(x)})},2V:l(x){8 7.1b(l(p){8(F.13(p-x)<=17.16)?x:p})},2n:l(){9 a=[];9 n=7.4.q,k=n,i;J{i=k-n;a.19(v.u(7.4[i]).2n())}H(--n);8 a.2K(\'\\n\')},26:l(a){9 i,4=a.4||a;o(1g(4[0][0])!=\'1f\'){9 b=4.q,15=b,G,10,j;7.4=[];J{i=15-b;G=4[i].q;10=G;7.4[i]=[];J{j=10-G;7.4[i][j]=4[i][j]}H(--G)}H(--b);8 7}9 n=4.q,k=n;7.4=[];J{i=k-n;7.4.19([4[i]])}H(--n);8 7}};S.u=l(a){9 M=25 S();8 M.26(a)};S.I=l(n){9 a=[],k=n,i,G,j;J{i=k-n;a[i]=[];G=k;J{j=k-G;a[i][j]=(i==j)?1:0}H(--G)}H(--n);8 S.u(a)};S.2X=l(a){9 n=a.q,k=n,i;9 M=S.I(n);J{i=k-n;M.4[i][i]=a[i]}H(--n);8 M};S.1R=l(b,a){o(!a){8 S.u([[F.1H(b),-F.1G(b)],[F.1G(b),F.1H(b)]])}9 d=a.1q();o(d.4.q!=3){8 w}9 e=d.1u();9 x=d.4[0]/e,y=d.4[1]/e,z=d.4[2]/e;9 s=F.1G(b),c=F.1H(b),t=1-c;8 S.u([[t*x*x+c,t*x*y-s*z,t*x*z+s*y],[t*x*y+s*z,t*y*y+c,t*y*z-s*x],[t*x*z-s*y,t*y*z+s*x,t*z*z+c]])};S.3b=l(t){9 c=F.1H(t),s=F.1G(t);8 S.u([[1,0,0],[0,c,-s],[0,s,c]])};S.39=l(t){9 c=F.1H(t),s=F.1G(t);8 S.u([[c,0,s],[0,1,0],[-s,0,c]])};S.38=l(t){9 c=F.1H(t),s=F.1G(t);8 S.u([[c,-s,0],[s,c,0],[0,0,1]])};S.2J=l(n,m){8 S.1j(n,m).1b(l(){8 F.2F()})};S.1j=l(n,m){9 a=[],12=n,i,G,j;J{i=n-12;a[i]=[];G=m;J{j=m-G;a[i][j]=0}H(--G)}H(--12);8 S.u(a)};l 14(){}14.23={24:l(a){8(7.1m(a)&&7.1h(a.K))},1q:l(){8 14.u(7.K,7.U)},2U:l(a){9 V=a.4||a;8 14.u([7.K.4[0]+V[0],7.K.4[1]+V[1],7.K.4[2]+(V[2]||0)],7.U)},1m:l(a){o(a.W){8 a.1m(7)}9 b=7.U.1C(a.U);8(F.13(b)<=17.16||F.13(b-F.1A)<=17.16)},1o:l(a){o(a.W){8 a.1o(7)}o(a.U){o(7.1m(a)){8 7.1o(a.K)}9 N=7.U.2f(a.U).2q().4;9 A=7.K.4,B=a.K.4;8 F.13((A[0]-B[0])*N[0]+(A[1]-B[1])*N[1]+(A[2]-B[2])*N[2])}1d{9 P=a.4||a;9 A=7.K.4,D=7.U.4;9 b=P[0]-A[0],2a=P[1]-A[1],29=(P[2]||0)-A[2];9 c=F.1x(b*b+2a*2a+29*29);o(c===0)8 0;9 d=(b*D[0]+2a*D[1]+29*D[2])/c;9 e=1-d*d;8 F.13(c*F.1x(e<0?0:e))}},1h:l(a){9 b=7.1o(a);8(b!==w&&b<=17.16)},2T:l(a){8 a.1h(7)},1v:l(a){o(a.W){8 a.1v(7)}8(!7.1m(a)&&7.1o(a)<=17.16)},1U:l(a){o(a.W){8 a.1U(7)}o(!7.1v(a)){8 w}9 P=7.K.4,X=7.U.4,Q=a.K.4,Y=a.U.4;9 b=X[0],1z=X[1],1B=X[2],1T=Y[0],1S=Y[1],1M=Y[2];9 c=P[0]-Q[0],2s=P[1]-Q[1],2r=P[2]-Q[2];9 d=-b*c-1z*2s-1B*2r;9 e=1T*c+1S*2s+1M*2r;9 f=b*b+1z*1z+1B*1B;9 g=1T*1T+1S*1S+1M*1M;9 h=b*1T+1z*1S+1B*1M;9 k=(d*g/f+h*e)/(g-h*h);8 v.u([P[0]+k*b,P[1]+k*1z,P[2]+k*1B])},1r:l(a){o(a.U){o(7.1v(a)){8 7.1U(a)}o(7.1m(a)){8 w}9 D=7.U.4,E=a.U.4;9 b=D[0],1l=D[1],1k=D[2],1P=E[0],1O=E[1],1Q=E[2];9 x=(1k*1P-b*1Q),y=(b*1O-1l*1P),z=(1l*1Q-1k*1O);9 N=v.u([x*1Q-y*1O,y*1P-z*1Q,z*1O-x*1P]);9 P=11.u(a.K,N);8 P.1U(7)}1d{9 P=a.4||a;o(7.1h(P)){8 v.u(P)}9 A=7.K.4,D=7.U.4;9 b=D[0],1l=D[1],1k=D[2],1w=A[0],18=A[1],1a=A[2];9 x=b*(P[1]-18)-1l*(P[0]-1w),y=1l*((P[2]||0)-1a)-1k*(P[1]-18),z=1k*(P[0]-1w)-b*((P[2]||0)-1a);9 V=v.u([1l*x-1k*z,1k*y-b*x,b*z-1l*y]);9 k=7.1o(P)/V.1u();8 v.u([P[0]+V.4[0]*k,P[1]+V.4[1]*k,(P[2]||0)+V.4[2]*k])}},1V:l(t,a){o(1g(a.U)==\'1f\'){a=14.u(a.1N(),v.k)}9 R=S.1R(t,a.U).4;9 C=a.1r(7.K).4;9 A=7.K.4,D=7.U.4;9 b=C[0],1E=C[1],1J=C[2],1w=A[0],18=A[1],1a=A[2];9 x=1w-b,y=18-1E,z=1a-1J;8 14.u([b+R[0][0]*x+R[0][1]*y+R[0][2]*z,1E+R[1][0]*x+R[1][1]*y+R[1][2]*z,1J+R[2][0]*x+R[2][1]*y+R[2][2]*z],[R[0][0]*D[0]+R[0][1]*D[1]+R[0][2]*D[2],R[1][0]*D[0]+R[1][1]*D[1]+R[1][2]*D[2],R[2][0]*D[0]+R[2][1]*D[1]+R[2][2]*D[2]])},1t:l(a){o(a.W){9 A=7.K.4,D=7.U.4;9 b=A[0],18=A[1],1a=A[2],2N=D[0],1l=D[1],1k=D[2];9 c=7.K.1t(a).4;9 d=b+2N,2h=18+1l,2o=1a+1k;9 Q=a.1r([d,2h,2o]).4;9 e=[Q[0]+(Q[0]-d)-c[0],Q[1]+(Q[1]-2h)-c[1],Q[2]+(Q[2]-2o)-c[2]];8 14.u(c,e)}1d o(a.U){8 7.1V(F.1A,a)}1d{9 P=a.4||a;8 14.u(7.K.1t([P[0],P[1],(P[2]||0)]),7.U)}},1Z:l(a,b){a=v.u(a);b=v.u(b);o(a.4.q==2){a.4.19(0)}o(b.4.q==2){b.4.19(0)}o(a.4.q>3||b.4.q>3){8 w}9 c=b.1u();o(c===0){8 w}7.K=a;7.U=v.u([b.4[0]/c,b.4[1]/c,b.4[2]/c]);8 7}};14.u=l(a,b){9 L=25 14();8 L.1Z(a,b)};14.X=14.u(v.1j(3),v.i);14.Y=14.u(v.1j(3),v.j);14.Z=14.u(v.1j(3),v.k);l 11(){}11.23={24:l(a){8(7.1h(a.K)&&7.1m(a))},1q:l(){8 11.u(7.K,7.W)},2U:l(a){9 V=a.4||a;8 11.u([7.K.4[0]+V[0],7.K.4[1]+V[1],7.K.4[2]+(V[2]||0)],7.W)},1m:l(a){9 b;o(a.W){b=7.W.1C(a.W);8(F.13(b)<=17.16||F.13(F.1A-b)<=17.16)}1d o(a.U){8 7.W.2k(a.U)}8 w},2k:l(a){9 b=7.W.1C(a.W);8(F.13(F.1A/2-b)<=17.16)},1o:l(a){o(7.1v(a)||7.1h(a)){8 0}o(a.K){9 A=7.K.4,B=a.K.4,N=7.W.4;8 F.13((A[0]-B[0])*N[0]+(A[1]-B[1])*N[1]+(A[2]-B[2])*N[2])}1d{9 P=a.4||a;9 A=7.K.4,N=7.W.4;8 F.13((A[0]-P[0])*N[0]+(A[1]-P[1])*N[1]+(A[2]-(P[2]||0))*N[2])}},1h:l(a){o(a.W){8 w}o(a.U){8(7.1h(a.K)&&7.1h(a.K.2j(a.U)))}1d{9 P=a.4||a;9 A=7.K.4,N=7.W.4;9 b=F.13(N[0]*(A[0]-P[0])+N[1]*(A[1]-P[1])+N[2]*(A[2]-(P[2]||0)));8(b<=17.16)}},1v:l(a){o(1g(a.U)==\'1f\'&&1g(a.W)==\'1f\'){8 w}8!7.1m(a)},1U:l(a){o(!7.1v(a)){8 w}o(a.U){9 A=a.K.4,D=a.U.4,P=7.K.4,N=7.W.4;9 b=(N[0]*(P[0]-A[0])+N[1]*(P[1]-A[1])+N[2]*(P[2]-A[2]))/(N[0]*D[0]+N[1]*D[1]+N[2]*D[2]);8 v.u([A[0]+D[0]*b,A[1]+D[1]*b,A[2]+D[2]*b])}1d o(a.W){9 c=7.W.2f(a.W).2q();9 N=7.W.4,A=7.K.4,O=a.W.4,B=a.K.4;9 d=S.1j(2,2),i=0;H(d.2y()){i++;d=S.u([[N[i%3],N[(i+1)%3]],[O[i%3],O[(i+1)%3]]])}9 e=d.2w().4;9 x=N[0]*A[0]+N[1]*A[1]+N[2]*A[2];9 y=O[0]*B[0]+O[1]*B[1]+O[2]*B[2];9 f=[e[0][0]*x+e[0][1]*y,e[1][0]*x+e[1][1]*y];9 g=[];2e(9 j=1;j<=3;j++){g.19((i==j)?0:f[(j+(5-i)%3)%3])}8 14.u(g,c)}},1r:l(a){9 P=a.4||a;9 A=7.K.4,N=7.W.4;9 b=(A[0]-P[0])*N[0]+(A[1]-P[1])*N[1]+(A[2]-(P[2]||0))*N[2];8 v.u([P[0]+N[0]*b,P[1]+N[1]*b,(P[2]||0)+N[2]*b])},1V:l(t,a){9 R=S.1R(t,a.U).4;9 C=a.1r(7.K).4;9 A=7.K.4,N=7.W.4;9 b=C[0],1E=C[1],1J=C[2],1w=A[0],18=A[1],1a=A[2];9 x=1w-b,y=18-1E,z=1a-1J;8 11.u([b+R[0][0]*x+R[0][1]*y+R[0][2]*z,1E+R[1][0]*x+R[1][1]*y+R[1][2]*z,1J+R[2][0]*x+R[2][1]*y+R[2][2]*z],[R[0][0]*N[0]+R[0][1]*N[1]+R[0][2]*N[2],R[1][0]*N[0]+R[1][1]*N[1]+R[1][2]*N[2],R[2][0]*N[0]+R[2][1]*N[1]+R[2][2]*N[2]])},1t:l(a){o(a.W){9 A=7.K.4,N=7.W.4;9 b=A[0],18=A[1],1a=A[2],2M=N[0],2L=N[1],2Q=N[2];9 c=7.K.1t(a).4;9 d=b+2M,2p=18+2L,2m=1a+2Q;9 Q=a.1r([d,2p,2m]).4;9 e=[Q[0]+(Q[0]-d)-c[0],Q[1]+(Q[1]-2p)-c[1],Q[2]+(Q[2]-2m)-c[2]];8 11.u(c,e)}1d o(a.U){8 7.1V(F.1A,a)}1d{9 P=a.4||a;8 11.u(7.K.1t([P[0],P[1],(P[2]||0)]),7.W)}},1Z:l(a,b,c){a=v.u(a);a=a.1N();o(a===w){8 w}b=v.u(b);b=b.1N();o(b===w){8 w}o(1g(c)==\'1f\'){c=w}1d{c=v.u(c);c=c.1N();o(c===w){8 w}}9 d=a.4[0],18=a.4[1],1a=a.4[2];9 e=b.4[0],1W=b.4[1],1X=b.4[2];9 f,1i;o(c!==w){9 g=c.4[0],2l=c.4[1],2t=c.4[2];f=v.u([(1W-18)*(2t-1a)-(1X-1a)*(2l-18),(1X-1a)*(g-d)-(e-d)*(2t-1a),(e-d)*(2l-18)-(1W-18)*(g-d)]);1i=f.1u();o(1i===0){8 w}f=v.u([f.4[0]/1i,f.4[1]/1i,f.4[2]/1i])}1d{1i=F.1x(e*e+1W*1W+1X*1X);o(1i===0){8 w}f=v.u([b.4[0]/1i,b.4[1]/1i,b.4[2]/1i])}7.K=a;7.W=f;8 7}};11.u=l(a,b,c){9 P=25 11();8 P.1Z(a,b,c)};11.2I=11.u(v.1j(3),v.k);11.2H=11.u(v.1j(3),v.i);11.2G=11.u(v.1j(3),v.j);11.36=11.2I;11.35=11.2H;11.3j=11.2G;9 $V=v.u;9 $M=S.u;9 $L=14.u;9 $P=11.u;',62,206,'||||elements|||this|return|var||||||||||||function|||if||length||||create|Vector|null|||||||||Math|nj|while||do|anchor||||||||Matrix||direction||normal||||kj|Plane|ni|abs|Line|ki|precision|Sylvester|A2|push|A3|map|els|else||undefined|typeof|contains|mod|Zero|D3|D2|isParallelTo|kp|distanceFrom|cols|dup|pointClosestTo|np|reflectionIn|modulus|intersects|A1|sqrt|isSquare|X2|PI|X3|angleFrom|mod1|C2|mod2|sin|cos|break|C3|toRightTriangular|false|Y3|to3D|E2|E1|E3|Rotation|Y2|Y1|intersectionWith|rotate|v12|v13|rank|setVectors|nc|sum|multiply|prototype|eql|new|setElements|case|each|PA3|PA2|part|new_element|round|for|cross|product|AD2|isSameSizeAs|add|isPerpendicularTo|v22|AN3|inspect|AD3|AN2|toUnitVector|PsubQ3|PsubQ2|v23|dot|divisor|inverse|true|isSingular|determinant|max|canMultiplyFromLeft|subtract|rows|col|random|ZX|YZ|XY|Random|join|N2|N1|D1|slice|default|N3|dimensions|switch|liesIn|translate|snapTo|augment|Diagonal|trace|indexOf|diagonal|transpose|minor|row|isAntiparallelTo|ZY|YX|acos|RotationZ|RotationY|liesOn|RotationX|inv|rk|tr|det|toDiagonalMatrix|toUpperTriangular|version|XZ'.split('|'),0,{}))
+// === Sylvester ===
+// Vector and Matrix mathematics modules for JavaScript
+// Copyright (c) 2007 James Coglan
+// 
+// Permission is hereby granted, free of charge, to any person obtaining
+// a copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+// THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+// DEALINGS IN THE SOFTWARE.
+
+var Sylvester = {
+  version: '0.1.3',
+  precision: 1e-6
+};
+
+function Vector() {}
+Vector.prototype = {
+
+  // Returns element i of the vector
+  e: function(i) {
+    return (i < 1 || i > this.elements.length) ? null : this.elements[i-1];
+  },
+
+  // Returns the number of elements the vector has
+  dimensions: function() {
+    return this.elements.length;
+  },
+
+  // Returns the modulus ('length') of the vector
+  modulus: function() {
+    return Math.sqrt(this.dot(this));
+  },
+
+  // Returns true iff the vector is equal to the argument
+  eql: function(vector) {
+    var n = this.elements.length;
+    var V = vector.elements || vector;
+    if (n != V.length) { return false; }
+    do {
+      if (Math.abs(this.elements[n-1] - V[n-1]) > Sylvester.precision) { return false; }
+    } while (--n);
+    return true;
+  },
+
+  // Returns a copy of the vector
+  dup: function() {
+    return Vector.create(this.elements);
+  },
+
+  // Maps the vector to another vector according to the given function
+  map: function(fn) {
+    var elements = [];
+    this.each(function(x, i) {
+      elements.push(fn(x, i));
+    });
+    return Vector.create(elements);
+  },
+  
+  // Calls the iterator for each element of the vector in turn
+  each: function(fn) {
+    var n = this.elements.length, k = n, i;
+    do { i = k - n;
+      fn(this.elements[i], i+1);
+    } while (--n);
+  },
+
+  // Returns a new vector created by normalizing the receiver
+  toUnitVector: function() {
+    var r = this.modulus();
+    if (r === 0) { return this.dup(); }
+    return this.map(function(x) { return x/r; });
+  },
+
+  // Returns the angle between the vector and the argument (also a vector)
+  angleFrom: function(vector) {
+    var V = vector.elements || vector;
+    var n = this.elements.length, k = n, i;
+    if (n != V.length) { return null; }
+    var dot = 0, mod1 = 0, mod2 = 0;
+    // Work things out in parallel to save time
+    this.each(function(x, i) {
+      dot += x * V[i-1];
+      mod1 += x * x;
+      mod2 += V[i-1] * V[i-1];
+    });
+    mod1 = Math.sqrt(mod1); mod2 = Math.sqrt(mod2);
+    if (mod1*mod2 === 0) { return null; }
+    var theta = dot / (mod1*mod2);
+    if (theta < -1) { theta = -1; }
+    if (theta > 1) { theta = 1; }
+    return Math.acos(theta);
+  },
+
+  // Returns true iff the vector is parallel to the argument
+  isParallelTo: function(vector) {
+    var angle = this.angleFrom(vector);
+    return (angle === null) ? null : (angle <= Sylvester.precision);
+  },
+
+  // Returns true iff the vector is antiparallel to the argument
+  isAntiparallelTo: function(vector) {
+    var angle = this.angleFrom(vector);
+    return (angle === null) ? null : (Math.abs(angle - Math.PI) <= Sylvester.precision);
+  },
+
+  // Returns true iff the vector is perpendicular to the argument
+  isPerpendicularTo: function(vector) {
+    var dot = this.dot(vector);
+    return (dot === null) ? null : (Math.abs(dot) <= Sylvester.precision);
+  },
+
+  // Returns the result of adding the argument to the vector
+  add: function(vector) {
+    var V = vector.elements || vector;
+    if (this.elements.length != V.length) { return null; }
+    return this.map(function(x, i) { return x + V[i-1]; });
+  },
+
+  // Returns the result of subtracting the argument from the vector
+  subtract: function(vector) {
+    var V = vector.elements || vector;
+    if (this.elements.length != V.length) { return null; }
+    return this.map(function(x, i) { return x - V[i-1]; });
+  },
+
+  // Returns the result of multiplying the elements of the vector by the argument
+  multiply: function(k) {
+    return this.map(function(x) { return x*k; });
+  },
+
+  x: function(k) { return this.multiply(k); },
+
+  // Returns the scalar product of the vector with the argument
+  // Both vectors must have equal dimensionality
+  dot: function(vector) {
+    var V = vector.elements || vector;
+    var i, product = 0, n = this.elements.length;
+    if (n != V.length) { return null; }
+    do { product += this.elements[n-1] * V[n-1]; } while (--n);
+    return product;
+  },
+
+  // Returns the vector product of the vector with the argument
+  // Both vectors must have dimensionality 3
+  cross: function(vector) {
+    var B = vector.elements || vector;
+    if (this.elements.length != 3 || B.length != 3) { return null; }
+    var A = this.elements;
+    return Vector.create([
+      (A[1] * B[2]) - (A[2] * B[1]),
+      (A[2] * B[0]) - (A[0] * B[2]),
+      (A[0] * B[1]) - (A[1] * B[0])
+    ]);
+  },
+
+  // Returns the (absolute) largest element of the vector
+  max: function() {
+    var m = 0, n = this.elements.length, k = n, i;
+    do { i = k - n;
+      if (Math.abs(this.elements[i]) > Math.abs(m)) { m = this.elements[i]; }
+    } while (--n);
+    return m;
+  },
+
+  // Returns the index of the first match found
+  indexOf: function(x) {
+    var index = null, n = this.elements.length, k = n, i;
+    do { i = k - n;
+      if (index === null && this.elements[i] == x) {
+        index = i + 1;
+      }
+    } while (--n);
+    return index;
+  },
+
+  // Returns a diagonal matrix with the vector's elements as its diagonal elements
+  toDiagonalMatrix: function() {
+    return Matrix.Diagonal(this.elements);
+  },
+
+  // Returns the result of rounding the elements of the vector
+  round: function() {
+    return this.map(function(x) { return Math.round(x); });
+  },
+
+  // Returns a copy of the vector with elements set to the given value if they
+  // differ from it by less than Sylvester.precision
+  snapTo: function(x) {
+    return this.map(function(y) {
+      return (Math.abs(y - x) <= Sylvester.precision) ? x : y;
+    });
+  },
+
+  // Returns the vector's distance from the argument, when considered as a point in space
+  distanceFrom: function(obj) {
+    if (obj.anchor) { return obj.distanceFrom(this); }
+    var V = obj.elements || obj;
+    if (V.length != this.elements.length) { return null; }
+    var sum = 0, part;
+    this.each(function(x, i) {
+      part = x - V[i-1];
+      sum += part * part;
+    });
+    return Math.sqrt(sum);
+  },
+
+  // Returns true if the vector is point on the given line
+  liesOn: function(line) {
+    return line.contains(this);
+  },
+
+  // Return true iff the vector is a point in the given plane
+  liesIn: function(plane) {
+    return plane.contains(this);
+  },
+
+  // Rotates the vector about the given object. The object should be a 
+  // point if the vector is 2D, and a line if it is 3D. Be careful with line directions!
+  rotate: function(t, obj) {
+    var V, R, x, y, z;
+    switch (this.elements.length) {
+      case 2:
+        V = obj.elements || obj;
+        if (V.length != 2) { return null; }
+        R = Matrix.Rotation(t).elements;
+        x = this.elements[0] - V[0];
+        y = this.elements[1] - V[1];
+        return Vector.create([
+          V[0] + R[0][0] * x + R[0][1] * y,
+          V[1] + R[1][0] * x + R[1][1] * y
+        ]);
+        break;
+      case 3:
+        if (!obj.direction) { return null; }
+        var C = obj.pointClosestTo(this).elements;
+        R = Matrix.Rotation(t, obj.direction).elements;
+        x = this.elements[0] - C[0];
+        y = this.elements[1] - C[1];
+        z = this.elements[2] - C[2];
+        return Vector.create([
+          C[0] + R[0][0] * x + R[0][1] * y + R[0][2] * z,
+          C[1] + R[1][0] * x + R[1][1] * y + R[1][2] * z,
+          C[2] + R[2][0] * x + R[2][1] * y + R[2][2] * z
+        ]);
+        break;
+      default:
+        return null;
+    }
+  },
+
+  // Returns the result of reflecting the point in the given point, line or plane
+  reflectionIn: function(obj) {
+    if (obj.anchor) {
+      // obj is a plane or line
+      var P = this.elements.slice();
+      var C = obj.pointClosestTo(P).elements;
+      return Vector.create([C[0] + (C[0] - P[0]), C[1] + (C[1] - P[1]), C[2] + (C[2] - (P[2] || 0))]);
+    } else {
+      // obj is a point
+      var Q = obj.elements || obj;
+      if (this.elements.length != Q.length) { return null; }
+      return this.map(function(x, i) { return Q[i-1] + (Q[i-1] - x); });
+    }
+  },
+
+  // Utility to make sure vectors are 3D. If they are 2D, a zero z-component is added
+  to3D: function() {
+    var V = this.dup();
+    switch (V.elements.length) {
+      case 3: break;
+      case 2: V.elements.push(0); break;
+      default: return null;
+    }
+    return V;
+  },
+
+  // Returns a string representation of the vector
+  inspect: function() {
+    return '[' + this.elements.join(', ') + ']';
+  },
+
+  // Set vector's elements from an array
+  setElements: function(els) {
+    this.elements = (els.elements || els).slice();
+    return this;
+  }
+};
+  
+// Constructor function
+Vector.create = function(elements) {
+  var V = new Vector();
+  return V.setElements(elements);
+};
+
+// i, j, k unit vectors
+Vector.i = Vector.create([1,0,0]);
+Vector.j = Vector.create([0,1,0]);
+Vector.k = Vector.create([0,0,1]);
+
+// Random vector of size n
+Vector.Random = function(n) {
+  var elements = [];
+  do { elements.push(Math.random());
+  } while (--n);
+  return Vector.create(elements);
+};
+
+// Vector filled with zeros
+Vector.Zero = function(n) {
+  var elements = [];
+  do { elements.push(0);
+  } while (--n);
+  return Vector.create(elements);
+};
+
+
+
+function Matrix() {}
+Matrix.prototype = {
+
+  // Returns element (i,j) of the matrix
+  e: function(i,j) {
+    if (i < 1 || i > this.elements.length || j < 1 || j > this.elements[0].length) { return null; }
+    return this.elements[i-1][j-1];
+  },
+
+  // Returns row k of the matrix as a vector
+  row: function(i) {
+    if (i > this.elements.length) { return null; }
+    return Vector.create(this.elements[i-1]);
+  },
+
+  // Returns column k of the matrix as a vector
+  col: function(j) {
+    if (j > this.elements[0].length) { return null; }
+    var col = [], n = this.elements.length, k = n, i;
+    do { i = k - n;
+      col.push(this.elements[i][j-1]);
+    } while (--n);
+    return Vector.create(col);
+  },
+
+  // Returns the number of rows/columns the matrix has
+  dimensions: function() {
+    return {rows: this.elements.length, cols: this.elements[0].length};
+  },
+
+  // Returns the number of rows in the matrix
+  rows: function() {
+    return this.elements.length;
+  },
+
+  // Returns the number of columns in the matrix
+  cols: function() {
+    return this.elements[0].length;
+  },
+
+  // Returns true iff the matrix is equal to the argument. You can supply
+  // a vector as the argument, in which case the receiver must be a
+  // one-column matrix equal to the vector.
+  eql: function(matrix) {
+    var M = matrix.elements || matrix;
+    if (typeof(M[0][0]) == 'undefined') { M = Matrix.create(M).elements; }
+    if (this.elements.length != M.length ||
+        this.elements[0].length != M[0].length) { return false; }
+    var ni = this.elements.length, ki = ni, i, nj, kj = this.elements[0].length, j;
+    do { i = ki - ni;
+      nj = kj;
+      do { j = kj - nj;
+        if (Math.abs(this.elements[i][j] - M[i][j]) > Sylvester.precision) { return false; }
+      } while (--nj);
+    } while (--ni);
+    return true;
+  },
+
+  // Returns a copy of the matrix
+  dup: function() {
+    return Matrix.create(this.elements);
+  },
+
+  // Maps the matrix to another matrix (of the same dimensions) according to the given function
+  map: function(fn) {
+    var els = [], ni = this.elements.length, ki = ni, i, nj, kj = this.elements[0].length, j;
+    do { i = ki - ni;
+      nj = kj;
+      els[i] = [];
+      do { j = kj - nj;
+        els[i][j] = fn(this.elements[i][j], i + 1, j + 1);
+      } while (--nj);
+    } while (--ni);
+    return Matrix.create(els);
+  },
+
+  // Returns true iff the argument has the same dimensions as the matrix
+  isSameSizeAs: function(matrix) {
+    var M = matrix.elements || matrix;
+    if (typeof(M[0][0]) == 'undefined') { M = Matrix.create(M).elements; }
+    return (this.elements.length == M.length &&
+        this.elements[0].length == M[0].length);
+  },
+
+  // Returns the result of adding the argument to the matrix
+  add: function(matrix) {
+    var M = matrix.elements || matrix;
+    if (typeof(M[0][0]) == 'undefined') { M = Matrix.create(M).elements; }
+    if (!this.isSameSizeAs(M)) { return null; }
+    return this.map(function(x, i, j) { return x + M[i-1][j-1]; });
+  },
+
+  // Returns the result of subtracting the argument from the matrix
+  subtract: function(matrix) {
+    var M = matrix.elements || matrix;
+    if (typeof(M[0][0]) == 'undefined') { M = Matrix.create(M).elements; }
+    if (!this.isSameSizeAs(M)) { return null; }
+    return this.map(function(x, i, j) { return x - M[i-1][j-1]; });
+  },
+
+  // Returns true iff the matrix can multiply the argument from the left
+  canMultiplyFromLeft: function(matrix) {
+    var M = matrix.elements || matrix;
+    if (typeof(M[0][0]) == 'undefined') { M = Matrix.create(M).elements; }
+    // this.columns should equal matrix.rows
+    return (this.elements[0].length == M.length);
+  },
+
+  // Returns the result of multiplying the matrix from the right by the argument.
+  // If the argument is a scalar then just multiply all the elements. If the argument is
+  // a vector, a vector is returned, which saves you having to remember calling
+  // col(1) on the result.
+  multiply: function(matrix) {
+    if (!matrix.elements) {
+      return this.map(function(x) { return x * matrix; });
+    }
+    var returnVector = matrix.modulus ? true : false;
+    var M = matrix.elements || matrix;
+    if (typeof(M[0][0]) == 'undefined') { M = Matrix.create(M).elements; }
+    if (!this.canMultiplyFromLeft(M)) { return null; }
+    var ni = this.elements.length, ki = ni, i, nj, kj = M[0].length, j;
+    var cols = this.elements[0].length, elements = [], sum, nc, c;
+    do { i = ki - ni;
+      elements[i] = [];
+      nj = kj;
+      do { j = kj - nj;
+        sum = 0;
+        nc = cols;
+        do { c = cols - nc;
+          sum += this.elements[i][c] * M[c][j];
+        } while (--nc);
+        elements[i][j] = sum;
+      } while (--nj);
+    } while (--ni);
+    var M = Matrix.create(elements);
+    return returnVector ? M.col(1) : M;
+  },
+
+  x: function(matrix) { return this.multiply(matrix); },
+
+  // Returns a submatrix taken from the matrix
+  // Argument order is: start row, start col, nrows, ncols
+  // Element selection wraps if the required index is outside the matrix's bounds, so you could
+  // use this to perform row/column cycling or copy-augmenting.
+  minor: function(a, b, c, d) {
+    var elements = [], ni = c, i, nj, j;
+    var rows = this.elements.length, cols = this.elements[0].length;
+    do { i = c - ni;
+      elements[i] = [];
+      nj = d;
+      do { j = d - nj;
+        elements[i][j] = this.elements[(a+i-1)%rows][(b+j-1)%cols];
+      } while (--nj);
+    } while (--ni);
+    return Matrix.create(elements);
+  },
+
+  // Returns the transpose of the matrix
+  transpose: function() {
+    var rows = this.elements.length, cols = this.elements[0].length;
+    var elements = [], ni = cols, i, nj, j;
+    do { i = cols - ni;
+      elements[i] = [];
+      nj = rows;
+      do { j = rows - nj;
+        elements[i][j] = this.elements[j][i];
+      } while (--nj);
+    } while (--ni);
+    return Matrix.create(elements);
+  },
+
+  // Returns true iff the matrix is square
+  isSquare: function() {
+    return (this.elements.length == this.elements[0].length);
+  },
+
+  // Returns the (absolute) largest element of the matrix
+  max: function() {
+    var m = 0, ni = this.elements.length, ki = ni, i, nj, kj = this.elements[0].length, j;
+    do { i = ki - ni;
+      nj = kj;
+      do { j = kj - nj;
+        if (Math.abs(this.elements[i][j]) > Math.abs(m)) { m = this.elements[i][j]; }
+      } while (--nj);
+    } while (--ni);
+    return m;
+  },
+
+  // Returns the indeces of the first match found by reading row-by-row from left to right
+  indexOf: function(x) {
+    var index = null, ni = this.elements.length, ki = ni, i, nj, kj = this.elements[0].length, j;
+    do { i = ki - ni;
+      nj = kj;
+      do { j = kj - nj;
+        if (this.elements[i][j] == x) { return {i: i+1, j: j+1}; }
+      } while (--nj);
+    } while (--ni);
+    return null;
+  },
+
+  // If the matrix is square, returns the diagonal elements as a vector.
+  // Otherwise, returns null.
+  diagonal: function() {
+    if (!this.isSquare) { return null; }
+    var els = [], n = this.elements.length, k = n, i;
+    do { i = k - n;
+      els.push(this.elements[i][i]);
+    } while (--n);
+    return Vector.create(els);
+  },
+
+  // Make the matrix upper (right) triangular by Gaussian elimination.
+  // This method only adds multiples of rows to other rows. No rows are
+  // scaled up or switched, and the determinant is preserved.
+  toRightTriangular: function() {
+    var M = this.dup(), els;
+    var n = this.elements.length, k = n, i, np, kp = this.elements[0].length, p;
+    do { i = k - n;
+      if (M.elements[i][i] == 0) {
+        for (j = i + 1; j < k; j++) {
+          if (M.elements[j][i] != 0) {
+            els = []; np = kp;
+            do { p = kp - np;
+              els.push(M.elements[i][p] + M.elements[j][p]);
+            } while (--np);
+            M.elements[i] = els;
+            break;
+          }
+        }
+      }
+      if (M.elements[i][i] != 0) {
+        for (j = i + 1; j < k; j++) {
+          var multiplier = M.elements[j][i] / M.elements[i][i];
+          els = []; np = kp;
+          do { p = kp - np;
+            // Elements with column numbers up to an including the number
+            // of the row that we're subtracting can safely be set straight to
+            // zero, since that's the point of this routine and it avoids having
+            // to loop over and correct rounding errors later
+            els.push(p <= i ? 0 : M.elements[j][p] - M.elements[i][p] * multiplier);
+          } while (--np);
+          M.elements[j] = els;
+        }
+      }
+    } while (--n);
+    return M;
+  },
+
+  toUpperTriangular: function() { return this.toRightTriangular(); },
+
+  // Returns the determinant for square matrices
+  determinant: function() {
+    if (!this.isSquare()) { return null; }
+    var M = this.toRightTriangular();
+    var det = M.elements[0][0], n = M.elements.length - 1, k = n, i;
+    do { i = k - n + 1;
+      det = det * M.elements[i][i];
+    } while (--n);
+    return det;
+  },
+
+  det: function() { return this.determinant(); },
+
+  // Returns true iff the matrix is singular
+  isSingular: function() {
+    return (this.isSquare() && this.determinant() === 0);
+  },
+
+  // Returns the trace for square matrices
+  trace: function() {
+    if (!this.isSquare()) { return null; }
+    var tr = this.elements[0][0], n = this.elements.length - 1, k = n, i;
+    do { i = k - n + 1;
+      tr += this.elements[i][i];
+    } while (--n);
+    return tr;
+  },
+
+  tr: function() { return this.trace(); },
+
+  // Returns the rank of the matrix
+  rank: function() {
+    var M = this.toRightTriangular(), rank = 0;
+    var ni = this.elements.length, ki = ni, i, nj, kj = this.elements[0].length, j;
+    do { i = ki - ni;
+      nj = kj;
+      do { j = kj - nj;
+        if (Math.abs(M.elements[i][j]) > Sylvester.precision) { rank++; break; }
+      } while (--nj);
+    } while (--ni);
+    return rank;
+  },
+  
+  rk: function() { return this.rank(); },
+
+  // Returns the result of attaching the given argument to the right-hand side of the matrix
+  augment: function(matrix) {
+    var M = matrix.elements || matrix;
+    if (typeof(M[0][0]) == 'undefined') { M = Matrix.create(M).elements; }
+    var T = this.dup(), cols = T.elements[0].length;
+    var ni = T.elements.length, ki = ni, i, nj, kj = M[0].length, j;
+    if (ni != M.length) { return null; }
+    do { i = ki - ni;
+      nj = kj;
+      do { j = kj - nj;
+        T.elements[i][cols + j] = M[i][j];
+      } while (--nj);
+    } while (--ni);
+    return T;
+  },
+
+  // Returns the inverse (if one exists) using Gauss-Jordan
+  inverse: function() {
+    if (!this.isSquare() || this.isSingular()) { return null; }
+    var ni = this.elements.length, ki = ni, i, j;
+    var M = this.augment(Matrix.I(ni)).toRightTriangular();
+    var np, kp = M.elements[0].length, p, els, divisor;
+    var inverse_elements = [], new_element;
+    // Matrix is non-singular so there will be no zeros on the diagonal
+    // Cycle through rows from last to first
+    do { i = ni - 1;
+      // First, normalise diagonal elements to 1
+      els = []; np = kp;
+      inverse_elements[i] = [];
+      divisor = M.elements[i][i];
+      do { p = kp - np;
+        new_element = M.elements[i][p] / divisor;
+        els.push(new_element);
+        // Shuffle of the current row of the right hand side into the results
+        // array as it will not be modified by later runs through this loop
+        if (p >= ki) { inverse_elements[i].push(new_element); }
+      } while (--np);
+      M.elements[i] = els;
+      // Then, subtract this row from those above it to
+      // give the identity matrix on the left hand side
+      for (j = 0; j < i; j++) {
+        els = []; np = kp;
+        do { p = kp - np;
+          els.push(M.elements[j][p] - M.elements[i][p] * M.elements[j][i]);
+        } while (--np);
+        M.elements[j] = els;
+      }
+    } while (--ni);
+    return Matrix.create(inverse_elements);
+  },
+
+  inv: function() { return this.inverse(); },
+
+  // Returns the result of rounding all the elements
+  round: function() {
+    return this.map(function(x) { return Math.round(x); });
+  },
+
+  // Returns a copy of the matrix with elements set to the given value if they
+  // differ from it by less than Sylvester.precision
+  snapTo: function(x) {
+    return this.map(function(p) {
+      return (Math.abs(p - x) <= Sylvester.precision) ? x : p;
+    });
+  },
+
+  // Returns a string representation of the matrix
+  inspect: function() {
+    var matrix_rows = [];
+    var n = this.elements.length, k = n, i;
+    do { i = k - n;
+      matrix_rows.push(Vector.create(this.elements[i]).inspect());
+    } while (--n);
+    return matrix_rows.join('\n');
+  },
+
+  // Set the matrix's elements from an array. If the argument passed
+  // is a vector, the resulting matrix will be a single column.
+  setElements: function(els) {
+    var i, elements = els.elements || els;
+    if (typeof(elements[0][0]) != 'undefined') {
+      var ni = elements.length, ki = ni, nj, kj, j;
+      this.elements = [];
+      do { i = ki - ni;
+        nj = elements[i].length; kj = nj;
+        this.elements[i] = [];
+        do { j = kj - nj;
+          this.elements[i][j] = elements[i][j];
+        } while (--nj);
+      } while(--ni);
+      return this;
+    }
+    var n = elements.length, k = n;
+    this.elements = [];
+    do { i = k - n;
+      this.elements.push([elements[i]]);
+    } while (--n);
+    return this;
+  }
+};
+
+// Constructor function
+Matrix.create = function(elements) {
+  var M = new Matrix();
+  return M.setElements(elements);
+};
+
+// Identity matrix of size n
+Matrix.I = function(n) {
+  var els = [], k = n, i, nj, j;
+  do { i = k - n;
+    els[i] = []; nj = k;
+    do { j = k - nj;
+      els[i][j] = (i == j) ? 1 : 0;
+    } while (--nj);
+  } while (--n);
+  return Matrix.create(els);
+};
+
+// Diagonal matrix - all off-diagonal elements are zero
+Matrix.Diagonal = function(elements) {
+  var n = elements.length, k = n, i;
+  var M = Matrix.I(n);
+  do { i = k - n;
+    M.elements[i][i] = elements[i];
+  } while (--n);
+  return M;
+};
+
+// Rotation matrix about some axis. If no axis is
+// supplied, assume we're after a 2D transform
+Matrix.Rotation = function(theta, a) {
+  if (!a) {
+    return Matrix.create([
+      [Math.cos(theta),  -Math.sin(theta)],
+      [Math.sin(theta),   Math.cos(theta)]
+    ]);
+  }
+  var axis = a.dup();
+  if (axis.elements.length != 3) { return null; }
+  var mod = axis.modulus();
+  var x = axis.elements[0]/mod, y = axis.elements[1]/mod, z = axis.elements[2]/mod;
+  var s = Math.sin(theta), c = Math.cos(theta), t = 1 - c;
+  // Formula derived here: http://www.gamedev.net/reference/articles/article1199.asp
+  // That proof rotates the co-ordinate system so theta
+  // becomes -theta and sin becomes -sin here.
+  return Matrix.create([
+    [ t*x*x + c, t*x*y - s*z, t*x*z + s*y ],
+    [ t*x*y + s*z, t*y*y + c, t*y*z - s*x ],
+    [ t*x*z - s*y, t*y*z + s*x, t*z*z + c ]
+  ]);
+};
+
+// Special case rotations
+Matrix.RotationX = function(t) {
+  var c = Math.cos(t), s = Math.sin(t);
+  return Matrix.create([
+    [  1,  0,  0 ],
+    [  0,  c, -s ],
+    [  0,  s,  c ]
+  ]);
+};
+Matrix.RotationY = function(t) {
+  var c = Math.cos(t), s = Math.sin(t);
+  return Matrix.create([
+    [  c,  0,  s ],
+    [  0,  1,  0 ],
+    [ -s,  0,  c ]
+  ]);
+};
+Matrix.RotationZ = function(t) {
+  var c = Math.cos(t), s = Math.sin(t);
+  return Matrix.create([
+    [  c, -s,  0 ],
+    [  s,  c,  0 ],
+    [  0,  0,  1 ]
+  ]);
+};
+
+// Random matrix of n rows, m columns
+Matrix.Random = function(n, m) {
+  return Matrix.Zero(n, m).map(
+    function() { return Math.random(); }
+  );
+};
+
+// Matrix filled with zeros
+Matrix.Zero = function(n, m) {
+  var els = [], ni = n, i, nj, j;
+  do { i = n - ni;
+    els[i] = [];
+    nj = m;
+    do { j = m - nj;
+      els[i][j] = 0;
+    } while (--nj);
+  } while (--ni);
+  return Matrix.create(els);
+};
+
+
+
+function Line() {}
+Line.prototype = {
+
+  // Returns true if the argument occupies the same space as the line
+  eql: function(line) {
+    return (this.isParallelTo(line) && this.contains(line.anchor));
+  },
+
+  // Returns a copy of the line
+  dup: function() {
+    return Line.create(this.anchor, this.direction);
+  },
+
+  // Returns the result of translating the line by the given vector/array
+  translate: function(vector) {
+    var V = vector.elements || vector;
+    return Line.create([
+      this.anchor.elements[0] + V[0],
+      this.anchor.elements[1] + V[1],
+      this.anchor.elements[2] + (V[2] || 0)
+    ], this.direction);
+  },
+
+  // Returns true if the line is parallel to the argument. Here, 'parallel to'
+  // means that the argument's direction is either parallel or antiparallel to
+  // the line's own direction. A line is parallel to a plane if the two do not
+  // have a unique intersection.
+  isParallelTo: function(obj) {
+    if (obj.normal) { return obj.isParallelTo(this); }
+    var theta = this.direction.angleFrom(obj.direction);
+    return (Math.abs(theta) <= Sylvester.precision || Math.abs(theta - Math.PI) <= Sylvester.precision);
+  },
+
+  // Returns the line's perpendicular distance from the argument,
+  // which can be a point, a line or a plane
+  distanceFrom: function(obj) {
+    if (obj.normal) { return obj.distanceFrom(this); }
+    if (obj.direction) {
+      // obj is a line
+      if (this.isParallelTo(obj)) { return this.distanceFrom(obj.anchor); }
+      var N = this.direction.cross(obj.direction).toUnitVector().elements;
+      var A = this.anchor.elements, B = obj.anchor.elements;
+      return Math.abs((A[0] - B[0]) * N[0] + (A[1] - B[1]) * N[1] + (A[2] - B[2]) * N[2]);
+    } else {
+      // obj is a point
+      var P = obj.elements || obj;
+      var A = this.anchor.elements, D = this.direction.elements;
+      var PA1 = P[0] - A[0], PA2 = P[1] - A[1], PA3 = (P[2] || 0) - A[2];
+      var modPA = Math.sqrt(PA1*PA1 + PA2*PA2 + PA3*PA3);
+      if (modPA === 0) return 0;
+      // Assumes direction vector is normalized
+      var cosTheta = (PA1 * D[0] + PA2 * D[1] + PA3 * D[2]) / modPA;
+      var sin2 = 1 - cosTheta*cosTheta;
+      return Math.abs(modPA * Math.sqrt(sin2 < 0 ? 0 : sin2));
+    }
+  },
+
+  // Returns true iff the argument is a point on the line
+  contains: function(point) {
+    var dist = this.distanceFrom(point);
+    return (dist !== null && dist <= Sylvester.precision);
+  },
+
+  // Returns true iff the line lies in the given plane
+  liesIn: function(plane) {
+    return plane.contains(this);
+  },
+
+  // Returns true iff the line has a unique point of intersection with the argument
+  intersects: function(obj) {
+    if (obj.normal) { return obj.intersects(this); }
+    return (!this.isParallelTo(obj) && this.distanceFrom(obj) <= Sylvester.precision);
+  },
+
+  // Returns the unique intersection point with the argument, if one exists
+  intersectionWith: function(obj) {
+    if (obj.normal) { return obj.intersectionWith(this); }
+    if (!this.intersects(obj)) { return null; }
+    var P = this.anchor.elements, X = this.direction.elements,
+        Q = obj.anchor.elements, Y = obj.direction.elements;
+    var X1 = X[0], X2 = X[1], X3 = X[2], Y1 = Y[0], Y2 = Y[1], Y3 = Y[2];
+    var PsubQ1 = P[0] - Q[0], PsubQ2 = P[1] - Q[1], PsubQ3 = P[2] - Q[2];
+    var XdotQsubP = - X1*PsubQ1 - X2*PsubQ2 - X3*PsubQ3;
+    var YdotPsubQ = Y1*PsubQ1 + Y2*PsubQ2 + Y3*PsubQ3;
+    var XdotX = X1*X1 + X2*X2 + X3*X3;
+    var YdotY = Y1*Y1 + Y2*Y2 + Y3*Y3;
+    var XdotY = X1*Y1 + X2*Y2 + X3*Y3;
+    var k = (XdotQsubP * YdotY / XdotX + XdotY * YdotPsubQ) / (YdotY - XdotY * XdotY);
+    return Vector.create([P[0] + k*X1, P[1] + k*X2, P[2] + k*X3]);
+  },
+
+  // Returns the point on the line that is closest to the given point or line
+  pointClosestTo: function(obj) {
+    if (obj.direction) {
+      // obj is a line
+      if (this.intersects(obj)) { return this.intersectionWith(obj); }
+      if (this.isParallelTo(obj)) { return null; }
+      var D = this.direction.elements, E = obj.direction.elements;
+      var D1 = D[0], D2 = D[1], D3 = D[2], E1 = E[0], E2 = E[1], E3 = E[2];
+      // Create plane containing obj and the shared normal and intersect this with it
+      // Thank you: http://www.cgafaq.info/wiki/Line-line_distance
+      var x = (D3 * E1 - D1 * E3), y = (D1 * E2 - D2 * E1), z = (D2 * E3 - D3 * E2);
+      var N = Vector.create([x * E3 - y * E2, y * E1 - z * E3, z * E2 - x * E1]);
+      var P = Plane.create(obj.anchor, N);
+      return P.intersectionWith(this);
+    } else {
+      // obj is a point
+      var P = obj.elements || obj;
+      if (this.contains(P)) { return Vector.create(P); }
+      var A = this.anchor.elements, D = this.direction.elements;
+      var D1 = D[0], D2 = D[1], D3 = D[2], A1 = A[0], A2 = A[1], A3 = A[2];
+      var x = D1 * (P[1]-A2) - D2 * (P[0]-A1), y = D2 * ((P[2] || 0) - A3) - D3 * (P[1]-A2),
+          z = D3 * (P[0]-A1) - D1 * ((P[2] || 0) - A3);
+      var V = Vector.create([D2 * x - D3 * z, D3 * y - D1 * x, D1 * z - D2 * y]);
+      var k = this.distanceFrom(P) / V.modulus();
+      return Vector.create([
+        P[0] + V.elements[0] * k,
+        P[1] + V.elements[1] * k,
+        (P[2] || 0) + V.elements[2] * k
+      ]);
+    }
+  },
+
+  // Returns a copy of the line rotated by t radians about the given line. Works by
+  // finding the argument's closest point to this line's anchor point (call this C) and
+  // rotating the anchor about C. Also rotates the line's direction about the argument's.
+  // Be careful with this - the rotation axis' direction affects the outcome!
+  rotate: function(t, line) {
+    // If we're working in 2D
+    if (typeof(line.direction) == 'undefined') { line = Line.create(line.to3D(), Vector.k); }
+    var R = Matrix.Rotation(t, line.direction).elements;
+    var C = line.pointClosestTo(this.anchor).elements;
+    var A = this.anchor.elements, D = this.direction.elements;
+    var C1 = C[0], C2 = C[1], C3 = C[2], A1 = A[0], A2 = A[1], A3 = A[2];
+    var x = A1 - C1, y = A2 - C2, z = A3 - C3;
+    return Line.create([
+      C1 + R[0][0] * x + R[0][1] * y + R[0][2] * z,
+      C2 + R[1][0] * x + R[1][1] * y + R[1][2] * z,
+      C3 + R[2][0] * x + R[2][1] * y + R[2][2] * z
+    ], [
+      R[0][0] * D[0] + R[0][1] * D[1] + R[0][2] * D[2],
+      R[1][0] * D[0] + R[1][1] * D[1] + R[1][2] * D[2],
+      R[2][0] * D[0] + R[2][1] * D[1] + R[2][2] * D[2]
+    ]);
+  },
+
+  // Returns the line's reflection in the given point or line
+  reflectionIn: function(obj) {
+    if (obj.normal) {
+      // obj is a plane
+      var A = this.anchor.elements, D = this.direction.elements;
+      var A1 = A[0], A2 = A[1], A3 = A[2], D1 = D[0], D2 = D[1], D3 = D[2];
+      var newA = this.anchor.reflectionIn(obj).elements;
+      // Add the line's direction vector to its anchor, then mirror that in the plane
+      var AD1 = A1 + D1, AD2 = A2 + D2, AD3 = A3 + D3;
+      var Q = obj.pointClosestTo([AD1, AD2, AD3]).elements;
+      var newD = [Q[0] + (Q[0] - AD1) - newA[0], Q[1] + (Q[1] - AD2) - newA[1], Q[2] + (Q[2] - AD3) - newA[2]];
+      return Line.create(newA, newD);
+    } else if (obj.direction) {
+      // obj is a line - reflection obtained by rotating PI radians about obj
+      return this.rotate(Math.PI, obj);
+    } else {
+      // obj is a point - just reflect the line's anchor in it
+      var P = obj.elements || obj;
+      return Line.create(this.anchor.reflectionIn([P[0], P[1], (P[2] || 0)]), this.direction);
+    }
+  },
+
+  // Set the line's anchor point and direction.
+  setVectors: function(anchor, direction) {
+    // Need to do this so that line's properties are not
+    // references to the arguments passed in
+    anchor = Vector.create(anchor);
+    direction = Vector.create(direction);
+    if (anchor.elements.length == 2) {anchor.elements.push(0); }
+    if (direction.elements.length == 2) { direction.elements.push(0); }
+    if (anchor.elements.length > 3 || direction.elements.length > 3) { return null; }
+    var mod = direction.modulus();
+    if (mod === 0) { return null; }
+    this.anchor = anchor;
+    this.direction = Vector.create([
+      direction.elements[0] / mod,
+      direction.elements[1] / mod,
+      direction.elements[2] / mod
+    ]);
+    return this;
+  }
+};
+
+  
+// Constructor function
+Line.create = function(anchor, direction) {
+  var L = new Line();
+  return L.setVectors(anchor, direction);
+};
+
+// Axes
+Line.X = Line.create(Vector.Zero(3), Vector.i);
+Line.Y = Line.create(Vector.Zero(3), Vector.j);
+Line.Z = Line.create(Vector.Zero(3), Vector.k);
+
+
+
+function Plane() {}
+Plane.prototype = {
+
+  // Returns true iff the plane occupies the same space as the argument
+  eql: function(plane) {
+    return (this.contains(plane.anchor) && this.isParallelTo(plane));
+  },
+
+  // Returns a copy of the plane
+  dup: function() {
+    return Plane.create(this.anchor, this.normal);
+  },
+
+  // Returns the result of translating the plane by the given vector
+  translate: function(vector) {
+    var V = vector.elements || vector;
+    return Plane.create([
+      this.anchor.elements[0] + V[0],
+      this.anchor.elements[1] + V[1],
+      this.anchor.elements[2] + (V[2] || 0)
+    ], this.normal);
+  },
+
+  // Returns true iff the plane is parallel to the argument. Will return true
+  // if the planes are equal, or if you give a line and it lies in the plane.
+  isParallelTo: function(obj) {
+    var theta;
+    if (obj.normal) {
+      // obj is a plane
+      theta = this.normal.angleFrom(obj.normal);
+      return (Math.abs(theta) <= Sylvester.precision || Math.abs(Math.PI - theta) <= Sylvester.precision);
+    } else if (obj.direction) {
+      // obj is a line
+      return this.normal.isPerpendicularTo(obj.direction);
+    }
+    return null;
+  },
+  
+  // Returns true iff the receiver is perpendicular to the argument
+  isPerpendicularTo: function(plane) {
+    var theta = this.normal.angleFrom(plane.normal);
+    return (Math.abs(Math.PI/2 - theta) <= Sylvester.precision);
+  },
+
+  // Returns the plane's distance from the given object (point, line or plane)
+  distanceFrom: function(obj) {
+    if (this.intersects(obj) || this.contains(obj)) { return 0; }
+    if (obj.anchor) {
+      // obj is a plane or line
+      var A = this.anchor.elements, B = obj.anchor.elements, N = this.normal.elements;
+      return Math.abs((A[0] - B[0]) * N[0] + (A[1] - B[1]) * N[1] + (A[2] - B[2]) * N[2]);
+    } else {
+      // obj is a point
+      var P = obj.elements || obj;
+      var A = this.anchor.elements, N = this.normal.elements;
+      return Math.abs((A[0] - P[0]) * N[0] + (A[1] - P[1]) * N[1] + (A[2] - (P[2] || 0)) * N[2]);
+    }
+  },
+
+  // Returns true iff the plane contains the given point or line
+  contains: function(obj) {
+    if (obj.normal) { return null; }
+    if (obj.direction) {
+      return (this.contains(obj.anchor) && this.contains(obj.anchor.add(obj.direction)));
+    } else {
+      var P = obj.elements || obj;
+      var A = this.anchor.elements, N = this.normal.elements;
+      var diff = Math.abs(N[0]*(A[0] - P[0]) + N[1]*(A[1] - P[1]) + N[2]*(A[2] - (P[2] || 0)));
+      return (diff <= Sylvester.precision);
+    }
+  },
+
+  // Returns true iff the plane has a unique point/line of intersection with the argument
+  intersects: function(obj) {
+    if (typeof(obj.direction) == 'undefined' && typeof(obj.normal) == 'undefined') { return null; }
+    return !this.isParallelTo(obj);
+  },
+
+  // Returns the unique intersection with the argument, if one exists. The result
+  // will be a vector if a line is supplied, and a line if a plane is supplied.
+  intersectionWith: function(obj) {
+    if (!this.intersects(obj)) { return null; }
+    if (obj.direction) {
+      // obj is a line
+      var A = obj.anchor.elements, D = obj.direction.elements,
+          P = this.anchor.elements, N = this.normal.elements;
+      var multiplier = (N[0]*(P[0]-A[0]) + N[1]*(P[1]-A[1]) + N[2]*(P[2]-A[2])) / (N[0]*D[0] + N[1]*D[1] + N[2]*D[2]);
+      return Vector.create([A[0] + D[0]*multiplier, A[1] + D[1]*multiplier, A[2] + D[2]*multiplier]);
+    } else if (obj.normal) {
+      // obj is a plane
+      var direction = this.normal.cross(obj.normal).toUnitVector();
+      // To find an anchor point, we find one co-ordinate that has a value
+      // of zero somewhere on the intersection, and remember which one we picked
+      var N = this.normal.elements, A = this.anchor.elements,
+          O = obj.normal.elements, B = obj.anchor.elements;
+      var solver = Matrix.Zero(2,2), i = 0;
+      while (solver.isSingular()) {
+        i++;
+        solver = Matrix.create([
+          [ N[i%3], N[(i+1)%3] ],
+          [ O[i%3], O[(i+1)%3]  ]
+        ]);
+      }
+      // Then we solve the simultaneous equations in the remaining dimensions
+      var inverse = solver.inverse().elements;
+      var x = N[0]*A[0] + N[1]*A[1] + N[2]*A[2];
+      var y = O[0]*B[0] + O[1]*B[1] + O[2]*B[2];
+      var intersection = [
+        inverse[0][0] * x + inverse[0][1] * y,
+        inverse[1][0] * x + inverse[1][1] * y
+      ];
+      var anchor = [];
+      for (var j = 1; j <= 3; j++) {
+        // This formula picks the right element from intersection by
+        // cycling depending on which element we set to zero above
+        anchor.push((i == j) ? 0 : intersection[(j + (5 - i)%3)%3]);
+      }
+      return Line.create(anchor, direction);
+    }
+  },
+
+  // Returns the point in the plane closest to the given point
+  pointClosestTo: function(point) {
+    var P = point.elements || point;
+    var A = this.anchor.elements, N = this.normal.elements;
+    var dot = (A[0] - P[0]) * N[0] + (A[1] - P[1]) * N[1] + (A[2] - (P[2] || 0)) * N[2];
+    return Vector.create([P[0] + N[0] * dot, P[1] + N[1] * dot, (P[2] || 0) + N[2] * dot]);
+  },
+
+  // Returns a copy of the plane, rotated by t radians about the given line
+  // See notes on Line#rotate.
+  rotate: function(t, line) {
+    var R = Matrix.Rotation(t, line.direction).elements;
+    var C = line.pointClosestTo(this.anchor).elements;
+    var A = this.anchor.elements, N = this.normal.elements;
+    var C1 = C[0], C2 = C[1], C3 = C[2], A1 = A[0], A2 = A[1], A3 = A[2];
+    var x = A1 - C1, y = A2 - C2, z = A3 - C3;
+    return Plane.create([
+      C1 + R[0][0] * x + R[0][1] * y + R[0][2] * z,
+      C2 + R[1][0] * x + R[1][1] * y + R[1][2] * z,
+      C3 + R[2][0] * x + R[2][1] * y + R[2][2] * z
+    ], [
+      R[0][0] * N[0] + R[0][1] * N[1] + R[0][2] * N[2],
+      R[1][0] * N[0] + R[1][1] * N[1] + R[1][2] * N[2],
+      R[2][0] * N[0] + R[2][1] * N[1] + R[2][2] * N[2]
+    ]);
+  },
+
+  // Returns the reflection of the plane in the given point, line or plane.
+  reflectionIn: function(obj) {
+    if (obj.normal) {
+      // obj is a plane
+      var A = this.anchor.elements, N = this.normal.elements;
+      var A1 = A[0], A2 = A[1], A3 = A[2], N1 = N[0], N2 = N[1], N3 = N[2];
+      var newA = this.anchor.reflectionIn(obj).elements;
+      // Add the plane's normal to its anchor, then mirror that in the other plane
+      var AN1 = A1 + N1, AN2 = A2 + N2, AN3 = A3 + N3;
+      var Q = obj.pointClosestTo([AN1, AN2, AN3]).elements;
+      var newN = [Q[0] + (Q[0] - AN1) - newA[0], Q[1] + (Q[1] - AN2) - newA[1], Q[2] + (Q[2] - AN3) - newA[2]];
+      return Plane.create(newA, newN);
+    } else if (obj.direction) {
+      // obj is a line
+      return this.rotate(Math.PI, obj);
+    } else {
+      // obj is a point
+      var P = obj.elements || obj;
+      return Plane.create(this.anchor.reflectionIn([P[0], P[1], (P[2] || 0)]), this.normal);
+    }
+  },
+
+  // Sets the anchor point and normal to the plane. If three arguments are specified,
+  // the normal is calculated by assuming the three points should lie in the same plane.
+  // If only two are sepcified, the second is taken to be the normal. Normal vector is
+  // normalised before storage.
+  setVectors: function(anchor, v1, v2) {
+    anchor = Vector.create(anchor);
+    anchor = anchor.to3D(); if (anchor === null) { return null; }
+    v1 = Vector.create(v1);
+    v1 = v1.to3D(); if (v1 === null) { return null; }
+    if (typeof(v2) == 'undefined') {
+      v2 = null;
+    } else {
+      v2 = Vector.create(v2);
+      v2 = v2.to3D(); if (v2 === null) { return null; }
+    }
+    var A1 = anchor.elements[0], A2 = anchor.elements[1], A3 = anchor.elements[2];
+    var v11 = v1.elements[0], v12 = v1.elements[1], v13 = v1.elements[2];
+    var normal, mod;
+    if (v2 !== null) {
+      var v21 = v2.elements[0], v22 = v2.elements[1], v23 = v2.elements[2];
+      normal = Vector.create([
+        (v12 - A2) * (v23 - A3) - (v13 - A3) * (v22 - A2),
+        (v13 - A3) * (v21 - A1) - (v11 - A1) * (v23 - A3),
+        (v11 - A1) * (v22 - A2) - (v12 - A2) * (v21 - A1)
+      ]);
+      mod = normal.modulus();
+      if (mod === 0) { return null; }
+      normal = Vector.create([normal.elements[0] / mod, normal.elements[1] / mod, normal.elements[2] / mod]);
+    } else {
+      mod = Math.sqrt(v11*v11 + v12*v12 + v13*v13);
+      if (mod === 0) { return null; }
+      normal = Vector.create([v1.elements[0] / mod, v1.elements[1] / mod, v1.elements[2] / mod]);
+    }
+    this.anchor = anchor;
+    this.normal = normal;
+    return this;
+  }
+};
+
+// Constructor function
+Plane.create = function(anchor, v1, v2) {
+  var P = new Plane();
+  return P.setVectors(anchor, v1, v2);
+};
+
+// X-Y-Z planes
+Plane.XY = Plane.create(Vector.Zero(3), Vector.k);
+Plane.YZ = Plane.create(Vector.Zero(3), Vector.i);
+Plane.ZX = Plane.create(Vector.Zero(3), Vector.j);
+Plane.YX = Plane.XY; Plane.ZY = Plane.YZ; Plane.XZ = Plane.ZX;
+
+// Utility functions
+var $V = Vector.create;
+var $M = Matrix.create;
+var $L = Line.create;
+var $P = Plane.create;
