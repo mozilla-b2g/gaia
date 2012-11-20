@@ -190,6 +190,7 @@ ifneq ($(DEBUG),1)
 	@echo "Packaged webapps"
 	@rm -rf apps/system/camera
 	@cp -r apps/camera apps/system/camera
+	@cat apps/camera/index.html | sed -e 's:shared/:../shared/:' > apps/system/camera/index.html
 	@rm apps/system/camera/manifest.webapp
 	@mkdir -p profile/webapps
 	@$(call run-js-command, webapp-zip)
