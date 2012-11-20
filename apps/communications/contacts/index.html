@@ -9,6 +9,7 @@
     <link href="/shared/style/headers.css" rel="stylesheet">
     <link href="/shared/style/input_areas.css" rel="stylesheet">
     <link href="/shared/style/buttons.css" rel="stylesheet">
+    <link href="/shared/style_unstable/lists.css" rel="stylesheet">
 
     <link href="/contacts/style/app.css" rel="stylesheet">
     <link href="/contacts/style/contacts.css" rel="stylesheet">
@@ -81,7 +82,7 @@
       <!-- Contacts List Section -->
       <section id='view-contacts-list' role="region" data-mirror="mirror-contacts-list" data-state="active" class="view view-noscroll view-contacts-list">
         <header>
-          <menu type="toolbar" role="menu">
+          <menu type="toolbar">
             <button role="menuitem" id="cancel_activty" class="hide"><span class="icon icon-close"data-l10n-id="exit">Exit</span></button>
             <button role="menuitem" id="add-contact-button"><span class="icon icon-add" data-l10n-id="add">add</span></button>
             <button role="menuitem" id="settings-button"><span class="icon icon-settings" data-l10n-id="settings">settings</span></button>
@@ -123,9 +124,9 @@
               </p>
             </form>
             <p id="no-result" class="hide" data-l10n-id="noResults">No contacts found</p>
-            <ol class="block-list" id="groups-list">
+            <section id="groups-list" data-type="list">
               <!-- Group template here -->
-            </ol>
+            </section>
           </div>
         </article>
         <div id='fixed-container' class='fixed-title'></div>
@@ -148,7 +149,7 @@
       <section id='view-contact-details' role="region" data-mirror="mirror-contact-details" class="view view-contact-profile">
         <header id='details-view-header'>
           <button id="details-back" class="negative"><span class="icon icon-back" data-l10n-id="back">back</span></button>
-          <menu type="toolbar" role="menu">
+          <menu type="toolbar">
             <button role="menuitem" id="edit-contact-button"><span class="icon icon-edit" data-l10n-id="edit" data-l10n-id="edit">edit</span></button>
           </menu>
           <h1 id='contact-name-title'></h1>
@@ -257,7 +258,7 @@
       <section id='view-contact-form' role="region" data-mirror="mirror-contact-form" class="view view-bottom view-edit-contact">
         <header>
           <button id='cancel-edit' class="negative"><span class="icon icon-close"data-l10n-id="exit">Exit</span></button>
-          <menu type="toolbar" role="menu" id='contact-form-actions'>
+          <menu type="toolbar" id='contact-form-actions'>
             <button id="save-button" role="menuitem"></button>
           </menu>
           <h1 id='contact-form-title'></h1>
@@ -431,7 +432,7 @@
       <section id="view-select-tag" role="region" data-mirror="mirror-contact-tags" class="view view-select-tag">
         <header>
           <button id="settings-cancel" class="negative"><span class="icon icon-back" data-l10n-id="back">back</span></button>
-          <menu type="toolbar" role="menu" id="contact-form-actions">
+          <menu type="toolbar" id="contact-form-actions">
             <button id="settings-done" role="menuitem" data-l10n-id="done">Done</button>
           </menu>
           <h1 data-l10n-id="label">Label</h1>

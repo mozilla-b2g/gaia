@@ -57,7 +57,12 @@ var CrashReporter = (function() {
     // "What's in a crash report?" link
     var crashInfoLink = document.getElementById('crash-info-link');
     crashInfoLink.addEventListener('click', function onLearnMoreClick() {
-      //XXX Show a "Crash Reports" information page (bug 801938)
+      var dialog = document.getElementById('crash-dialog');
+      document.getElementById('crash-reports-done').addEventListener('click', function onDoneClick() {
+        this.removeEventListener('click', onDoneClick);
+        dialog.classList.remove('learn-more');
+      });
+      dialog.classList.add('learn-more');
     });
 
     screen.classList.add('crash-dialog');

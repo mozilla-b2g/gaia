@@ -56,7 +56,7 @@ contacts.Search = (function() {
     for (var i = 0; i < allContacts.length; i++) {
       var contact = allContacts[i];
       contact.classList.add('search');
-      var body = contact.querySelector('.item-body-exp');
+      var body = contact.querySelector('[data-search]');
       var text = body ? body.dataset['search'] : contact.dataset['search'];
       if (!pattern.test(text)) {
         contact.classList.add('hide');
@@ -81,8 +81,10 @@ contacts.Search = (function() {
   };
 
   var getContactsDom = function contactsDom() {
-    var selector = ".block-item:not([data-uuid='#id#']";
-    return document.querySelectorAll(selector);
+    var list = document.getElementById('groups-list');
+    var items = ".contact-item:not([data-uuid='#id#']),"+
+                        ".block-item:not([data-uuid='#id#'])";
+    return list.querySelectorAll(items);
   }
 
   // When the cancel button inside the input is clicked
