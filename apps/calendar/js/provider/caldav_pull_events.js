@@ -204,11 +204,14 @@ Calendar.ns('Provider').CaldavPullEvents = (function() {
       var component = event.remote.icalComponent;
       delete event.remote.icalComponent;
 
-
-      this.icalQueue.push({
-        data: event.remote.icalComponent,
-        eventId: event._id
-      });
+      // don't save components for exceptions.
+      // the parent has the ical data.
+      if (!event.remote.recurrenceId) {
+        this.icalQueue.push({
+          data: component,
+          eventId: event._id
+        });
+      }
 
       if (exceptions) {
         for (var i = 0; i < exceptions.length; i++) {
