@@ -178,7 +178,7 @@ var BluetoothTransfer = {
         if (stats.freeBytes >= fileSize) {
           isStorageAvailable = true;
         } else {
-          errorMessage = _('sdcard-no-space');
+          errorMessage = _('sdcard-no-space2');
         }
         break;
       case 'unavailable':

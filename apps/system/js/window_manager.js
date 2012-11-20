@@ -1023,6 +1023,10 @@ var WindowManager = (function() {
       frame.classList.add('fullscreen-app');
     }
 
+    // A frame should start with visible false
+    if ('setVisible' in frame)
+      frame.setVisible(false);
+
     numRunningApps++;
   }
 
