@@ -71,6 +71,7 @@ settings = {
  "operatorvariant.mnc": 0,
  "ril.iccInfo.mbdn":"",
  "ril.sms.strict7BitEncoding.enabled": False,
+ "ril.cellbroadcast.searchlist": "",
  "phone.ring.keypad": True,
  "powersave.enabled": False,
  "powersave.threshold": 0,

@@ -2970,7 +2970,7 @@
   ],
   "6": [
     {"carrier":"Vivo MMS","apn":"mms.vivo.com.br","user":"vivo","password":"vivo","mmsc":"http://termnat.vivomms.com.br:8088/mms","mmsproxy":"200.142.130.104","mmsport":"80","authtype":"1","type":["mms"]},
-    {"voicemail":"*555","enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
+    {"voicemail":"*555","enableStrict7BitEncodingForSms":true,"cellBroadcastSearchList":"50","type":["operatorvariant"]},
     {"carrier":"Vivo Internet","apn":"zap.vivo.com.br","user":"vivo","password":"vivo","authtype":"1","type":["default","supl"]}
   ],
   "7": [
@@ -2980,12 +2980,12 @@
   ],
   "10": [
     {"carrier":"Vivo Internet","apn":"zap.vivo.com.br","user":"vivo","password":"vivo","type":["default","supl"]},
-    {"voicemail":"*555","enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
+    {"voicemail":"*555","enableStrict7BitEncodingForSms":true,"cellBroadcastSearchList":"50","type":["operatorvariant"]},
     {"carrier":"Vivo MMS","apn":"mms.vivo.com.br","user":"vivo","password":"vivo","mmsc":"http://termnat.vivomms.com.br:8088/mms","mmsproxy":"200.142.130.104","mmsport":"80","authtype":"1","type":["mms"]}
   ],
   "11": [
     {"carrier":"Vivo MMS","apn":"mms.vivo.com.br","user":"vivo","password":"vivo","mmsc":"http://termnat.vivomms.com.br:8088/mms","mmsproxy":"200.142.130.104","mmsport":"80","authtype":"1","type":["mms"]},
-    {"voicemail":"*555","enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
+    {"voicemail":"*555","enableStrict7BitEncodingForSms":true,"cellBroadcastSearchList":"50","type":["operatorvariant"]},
     {"carrier":"Vivo Internet","apn":"zap.vivo.com.br","user":"vivo","password":"vivo","authtype":"1","type":["default","supl"]}
   ],
   "16": [
@@ -3000,7 +3000,7 @@
   ],
   "23": [
     {"carrier":"Vivo Internet","apn":"zap.vivo.com.br","user":"vivo","password":"vivo","authtype":"1","type":["default","supl"]},
-    {"voicemail":"*555","enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
+    {"voicemail":"*555","enableStrict7BitEncodingForSms":true,"cellBroadcastSearchList":"50","type":["operatorvariant"]},
     {"carrier":"Vivo MMS","apn":"mms.vivo.com.br","user":"vivo","password":"vivo","mmsc":"http://termnat.vivomms.com.br:8088/mms","mmsproxy":"200.142.130.104","mmsport":"80","authtype":"1","type":["mms"]}
   ],
   "24": [

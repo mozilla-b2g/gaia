@@ -72,7 +72,6 @@ document.addEventListener('DOMContentLoaded', function onload() {
   function queryGnomeDB(mcc, mnc, setting) {
     var query = '//gsm[network-id' + '[@mcc=' + mcc + '][@mnc=' + mnc + ']' +
         ']/' + setting;
-    console.log(query);
     var result = queryXML(gGnomeDB, query);
     var node = result.iterateNext();
     return node ? node.textContent : '';
@@ -131,6 +130,12 @@ document.addEventListener('DOMContentLoaded', function onload() {
               operatorVariantSettings.enableStrict7BitEncodingForSms =
                 enableStrict7BitEncodingForSms == 'true';
             }
+            var cellBroadcastSearchList =
+              otherSettings['cellBroadcastSearchList'];
+            if (cellBroadcastSearchList) {
+              operatorVariantSettings.cellBroadcastSearchList =
+                cellBroadcastSearchList;
+            }
           }
 
           delete(result[i].mcc);
@@ -146,7 +151,7 @@ document.addEventListener('DOMContentLoaded', function onload() {
             country[mnc].push(result[i]);
           } else {
             country[mnc] = [result[i]];
-            if (voicemail || otherSettings) {
+            if (voicemail || otherSettings || cellBroadcastSearchList) {
               operatorVariantSettings.type = [];
               operatorVariantSettings.type.push('operatorvariant');
               country[mnc].push(operatorVariantSettings);
@@ -196,7 +201,8 @@ document.addEventListener('DOMContentLoaded', function onload() {
     },
     'operatorvariant': {
       'ril.iccInfo.mbdn': 'voicemail',
-      'ril.sms.strict7BitEncoding.enabled': 'enableStrict7BitEncodingForSms'
+      'ril.sms.strict7BitEncoding.enabled': 'enableStrict7BitEncodingForSms',
+      'ril.cellbroadcast.searchlist': 'cellBroadcastSearchList'
     }
   };
 
