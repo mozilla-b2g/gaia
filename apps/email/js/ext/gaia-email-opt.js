@@ -1727,7 +1727,7 @@ var MailUtils = {
     var match = true;
     while (true) {
       var url =
-        body.match(/^([\s\S]*?)(^|\s)(https?:\/\/[^\/\s]+(\/[\S]*)?)($|\s)/m);
+        body.match(/^([\s\S]*?)(^|\s)((?:https?:\/\/|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}\/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))/im);
       var email =
         body.match(/^([\s\S]*?)(^|\s)([^@\s]+@[^.\s]+.[a-z]+)($|\s)/m);
       // Pick the regexp with the earlier content; index will always be zero.
@@ -1744,7 +1744,7 @@ var MailUtils = {
         link.appendChild(text);
         nodes.push(link);
 
-        body = body.substring(url[0].length - url[5].length);
+        body = body.substring(url[0].length);
       }
       else if (email) {
         first = email[1] + email[2];
