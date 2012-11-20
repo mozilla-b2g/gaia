@@ -2,7 +2,7 @@
 
 const GridManager = (function() {
   var MAX_ICONS_PER_PAGE = 4 * 4;
-  var PREFERRED_ICON_SIZE = 64;
+  var PREFERRED_ICON_SIZE = 60;
   var SAVE_STATE_TIMEOUT = 100;
 
   var container;
