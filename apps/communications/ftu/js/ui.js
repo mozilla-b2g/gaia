@@ -87,6 +87,11 @@ var UIManager = {
     return this.dataConnectionSwitch = document.getElementById(
       'dataSwitch');
   },
+  get fakeSimPin() {
+    delete this.fakeSimPin;
+    return this.fakeSimPin = document.getElementById(
+      'fake-sim-pin');
+  },
   get buttonLetsGo() {
     delete this.buttonLetsGo;
     return this.buttonLetsGo = document.getElementById('end');
@@ -121,6 +126,7 @@ var UIManager = {
       UIManager.tutorialScreen.classList.add('show');
       Tutorial.init();
     });
+    this.fakeSimPin.addEventListener('input', this);
   },
   handleEvent: function ui_handleEvent(event) {
     switch (event.target.id) {
@@ -148,6 +154,10 @@ var UIManager = {
       case 'dataSwitch':
         var status = event.target.checked;
         DataMobile.toggle(status);
+        break;
+      case 'fake-sim-pin':
+        document.getElementById('sim-pin').value =
+          this.fakeSimPin.value;
         break;
       default:
         if (event.target.parentNode.id == 'networks') {
@@ -262,6 +272,10 @@ var UIManager = {
 
     };
     req.onerror = function sp_unlockError() {
+      // TODO Include same error handling as in Settings
+      document.getElementById('sim-pin').classList.add('onerror');
+      document.getElementById('sim-pin').value = '';
+      document.getElementById('fake-sim-pin').value = '';
       var retry = (req.result && req.result.retryCount) ?
         parseInt(req.result.retryCount, 10) : -1;
       document.getElementById('pin_error').innerHTML = 'Error ' + retry;
