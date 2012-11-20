@@ -36,7 +36,7 @@ var AppManager = {
         AppManager.thereIsSIM = true;
         if (req.result.enabled) {
           UIManager.pincodeScreen.classList.add('show');
-          document.getElementById('sim-pin').focus();
+          document.getElementById('fake-sim-pin').focus();
         } else {
           UIManager.activationScreen.classList.add('show');
           window.location.hash = '#languages';
