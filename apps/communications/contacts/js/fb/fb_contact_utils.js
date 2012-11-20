@@ -14,8 +14,8 @@ fb.CONTACTS_APP_ORIGIN = 'app://communications.gaiamobile.org';
 // Some convenience functions follow
 
 fb.isFbContact = function(devContact) {
-  return (devContact.category &&
-                        devContact.category.indexOf(fb.CATEGORY) !== -1);
+  return (devContact && devContact.category &&
+          devContact.category.indexOf(fb.CATEGORY) !== -1);
 };
 
 
