@@ -95,7 +95,7 @@ html, body {
 	display:none;
 }
 
-[role=navigation].forward-only #back {
+[role=navigation].forward-only .back {
 	display:none;
 }
 
@@ -103,7 +103,7 @@ html, body {
 	width: 100%;
 }
 
-[role=navigation].secondary-menu #forward {
+[role=navigation].secondary-menu .forward {
 	display: none;
 }
 
@@ -111,7 +111,7 @@ html, body {
 	display: block;
 }
 
-[role=navigation].back-only #back {
+[role=navigation].back-only .back {
 	width: 100%;
 	margin: 0;
 }
@@ -259,18 +259,18 @@ html, body {
 	Finish process
 */
 
-#finish {
+#finish, #tutorialFinish {
 	opacity: 0;
 	z-index: 3010;
 	transition: all 1s ease;
 	background: #3b4547;
 }
 
-#finish.show {
+#finish.show, #tutorialFinish.show {
 	opacity: 1;
 }
 
-#finish h1 {
+#finish h1, #tutorialFinish h1 {
 	margin: 0;
 	color: white;
 	font-size: 4.1rem;
@@ -279,7 +279,7 @@ html, body {
 	line-height: 4rem;
 }
 
-#finish h2 {
+#finish h2, #tutorialFinish h2 {
 	margin: 0;
 	color: white;
 	font-size: 1.8rem;
@@ -288,7 +288,7 @@ html, body {
 	line-height: 2rem;
 }
 
-#finish p {
+#finish p, #tutorialFinish p {
 	margin: 0;
 	color: white;
 	font-size: 1.4rem;
@@ -296,17 +296,24 @@ html, body {
 }
 
 #finish .content {
-	background: url(images/thumb-up.png) no-repeat center 90%;
+	background: url(images/icon_tour.png) no-repeat center 95%;
+}
+
+#tutorialFinish .content {
+	background: url(images/thumb-up.png) no-repeat center 70%;
+}
+
+#finish .content, #tutorialFinish .content {
 	height: calc(100% - 6rem);
   padding: 0 3rem;
   width: calc(100% - 6rem);
 }
 
-#finish [role=navigation] {
+#finish [role=navigation],#tutorialFinish [role=navigation] {
   border-top: .1rem solid #697476;
 }
 
-#finish [role=navigation] button {
+#finish [role=navigation] button,#tutorialFinish [role=navigation] button {
 	text-align: center;
 }
 
@@ -699,6 +706,7 @@ html, body {
   font-weight: 500;
 }
 
+
 #date_and_time [data-type="list"] select,
 #date_and_time [data-type="list"] input {
   width: 8rem;
@@ -762,3 +770,28 @@ html, body {
   margin: 0px 0.5rem 0px 0px !important;
 }
 
+
+/*
+	Tutorial
+*/
+
+#tutorial [role=main] > [role=region] {
+	background-color: #474747;
+	color: white;
+}
+
+#tutorial [role=main] {
+	height: 100%;
+	position: relative;
+}
+
+#tutorial header {
+	height: 6rem;
+	padding: 3rem 2.5rem 0 2.5rem;
+	font-size: 1.4rem;
+	margin-bottom: 1rem;
+}
+
+#tutorial section {
+	text-align: center;
+}

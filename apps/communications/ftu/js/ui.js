@@ -17,6 +17,10 @@ var UIManager = {
     delete this.finishScreen;
     return this.finishScreen = document.getElementById('finish');
   },
+  get tutorialScreen() {
+    delete this.tutorialScreen;
+    return this.tutorialScreen = document.getElementById('tutorial');
+  },
   get navBar() {
     delete this.navBar;
     return this.navBar = document.getElementById('nav-bar');
@@ -87,6 +91,10 @@ var UIManager = {
     delete this.buttonLetsGo;
     return this.buttonLetsGo = document.getElementById('end');
   },
+  get buttonSkip() {
+    delete this.buttonSkip;
+    return this.buttonSkip = document.getElementById('skip');
+  },
   init: function ui_init() {
     var currentDate = new Date();
     var f = new navigator.mozL10n.DateTimeFormat();
@@ -103,10 +111,16 @@ var UIManager = {
     this.timezoneConfiguration.addEventListener('change', this);
     this.timeConfiguration.addEventListener('input', this);
     this.dateConfiguration.addEventListener('input', this);
-    this.buttonLetsGo.addEventListener('click', function() {
+    this.buttonSkip.addEventListener('click', function() {
       window.close();
     });
-   this.dataConnectionSwitch.addEventListener('click', this);
+    this.dataConnectionSwitch.addEventListener('click', this);
+    this.buttonLetsGo.addEventListener('click', function() {
+      UIManager.activationScreen.classList.remove('show');
+      UIManager.finishScreen.classList.remove('show');
+      UIManager.tutorialScreen.classList.add('show');
+      Tutorial.init();
+    });
   },
   handleEvent: function ui_handleEvent(event) {
     switch (event.target.id) {
