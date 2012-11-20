@@ -74,7 +74,7 @@ body[role="application"] [role="dialog"] {
   text-align: left;
 }
 
-#firsttime-view .step menu button span {
+#firsttime-view .step menu button span:first-child {
   float: left;
   width: 1.3rem;
   height: 2.5rem;
@@ -82,7 +82,7 @@ body[role="application"] [role="dialog"] {
   background: url(../images/app/icons/prev.png) no-repeat center center;
 }
 
-#firsttime-view .step menu button.recommend span {
+#firsttime-view .step menu button.recommend span:first-child {
   float: right;
   background: url(../images/app/icons/next.png) no-repeat center center;
 }

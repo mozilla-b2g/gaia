@@ -8,7 +8,7 @@ var MockSettingsListener = {
   mName: null,
   mDefaultValue: null,
   mCallback: null,
-  mTearDown: function tearDown() {
+  mTeardown: function teardown() {
     this.mName = null;
     this.mDefaultValue = null;
     this.mDefaultCallback = null;

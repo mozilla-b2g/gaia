@@ -18,6 +18,10 @@ suite('Facebook Import', function() {
 
   suiteSetup(function() {
     subject = fb.importer;
+    // Forcing FTU as context
+    subject.getContext = function() {
+      return 'ftu';
+    }
 
     realFb = window.fb;
     window.fb = MockFb;

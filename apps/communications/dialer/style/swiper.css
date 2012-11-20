@@ -5,7 +5,6 @@
   left: 0;
   position: absolute;
   right: 0;
-  background-color: rgba(0, 0, 0, 0.8);
 }
 
 /* swiper-area-hangup */
@@ -26,23 +25,35 @@
 #swiper-area-hangup {
   background: url("./images/hangup_icon.png") no-repeat scroll center center rgba(0, 0, 0, 0.3);
 }
+#swiper-area-hangup:active {
+  background: url("./images/ActionIcon_40x40_hangup.png") no-repeat scroll center center rgb(255, 0, 0);
+}
 .swiper-icon-left {
-  left: 1.5rem;
+  left: 4rem;
+  border: 2px solid #FF0000;
 }
 .swiper-icon {
   -moz-box-sizing: border-box;
-  border: 2px solid rgba(255, 255, 255, 0.8);
-  border-radius: 2.7rem 2.7rem 2.7rem 2.7rem;
+  /*border: 2px solid rgba(255, 255, 255, 0.8);*/
+  border-radius: 3rem;
   bottom: 5rem;
-  height: 4.2rem;
+  height: 6rem;
   margin-bottom: -4.1rem;
   position: absolute;
   transition: opacity 0.1s linear 0s;
-  width: 4.2rem;
+  width: 6rem;
 }
 
 .touched .swiper-rail {
   opacity: 1;
+}
+
+.touched .swiper-icon {
+  transition: none;
+}
+
+.touched #swiper-icon-container {
+  transition: none;
 }
 
 /* swiper-area-pickup */
@@ -54,8 +65,12 @@
 #swiper-area-pickup {
   background: url("./images/pickup_icon.png") no-repeat scroll center center rgba(0, 0, 0, 0.3);
 }
+#swiper-area-pickup:active {
+  background: url("./images/ActionIcon_40x40_pickup.png") no-repeat scroll center center rgb(0, 255, 0);
+}
 .swiper-icon-right {
-  right: 1.5rem;
+  right: 4rem;
+  border: 2px solid #00FF00;
 }
 
 /* swiper-rail-left */
@@ -126,3 +141,42 @@
 #swiper-wrapper.hide{
   display: none;
 }
+
+#swiper-curve {
+  width: 100%;
+  bottom: 0;
+  position: absolute;
+}
+
+#swiper-icon-container {
+  position: absolute;
+  width: 100%;
+  bottom: -7rem;
+  height: 7rem;
+  opacity: 0;
+  transition:
+    transform 0.5s ease,
+    opacity 0.5s ease;
+}
+
+@keyframes swiper-prompt {
+  0%, 100% {
+    transform: translateY(0);
+    animation-timing-function: ease-out;
+  }
+  50% {
+    transform: translateY(-5rem);
+    animation-timing-function: ease-in;
+  }
+}
+
+.prompt #swiper-icon-container {
+  animation: swiper-prompt 1s 1;
+  opacity: 0.4;
+}
+
+.triggered #swiper-icon-container {
+  transform: translateY(-8.5rem);
+  opacity: 1;
+}
+

@@ -18,6 +18,7 @@
     "telephony":{},
     "voicemail":{},
     "device-storage:pictures":{ "access": "readcreate" },
+    "device-storage:music":{ "access": "readcreate" },
     "settings":{ "access": "readwrite" },
     "storage":{},
     "camera":{},

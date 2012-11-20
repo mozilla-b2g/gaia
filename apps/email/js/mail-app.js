@@ -12,10 +12,24 @@ var App = {
   _init: function() {
     // If our password is bad, we need to pop up a card to ask for the updated
     // password.
-    MailAPI.onbadlogin = function(account) {
-      Cards.pushCard('setup-fix-password', 'default', 'animate',
-                     { account: account, restoreCard: Cards.activeCardIndex },
-                     'right');
+    MailAPI.onbadlogin = function(account, problem) {
+      switch (problem) {
+        case 'bad-user-or-pass':
+          Cards.pushCard('setup-fix-password', 'default', 'animate',
+                         { account: account, restoreCard: Cards.activeCardIndex },
+                         'right');
+          break;
+        case 'imap-disabled':
+          Cards.pushCard('setup-fix-gmail-imap', 'default', 'animate',
+                         { account: account, restoreCard: Cards.activeCardIndex },
+                         'right');
+          break;
+        case 'needs-app-pass':
+          Cards.pushCard('setup-fix-gmail-twofactor', 'default', 'animate',
+                         { account: account, restoreCard: Cards.activeCardIndex },
+                         'right');
+          break;
+      }
     };
 
     MailAPI.useLocalizedStrings({
@@ -28,6 +42,15 @@ var App = {
         replyTo: mozL10n.get('forward-header-reply-to'),
         to: mozL10n.get('forward-header-to'),
         cc: mozL10n.get('forward-header-cc')
+      },
+      folderNames: {
+        inbox: mozL10n.get('folder-inbox'),
+        sent: mozL10n.get('folder-sent'),
+        drafts: mozL10n.get('folder-drafts'),
+        trash: mozL10n.get('folder-trash'),
+        queue: mozL10n.get('folder-unsent'),
+        junk: mozL10n.get('folder-junk'),
+        archives: mozL10n.get('archives')
       }
     });
   },

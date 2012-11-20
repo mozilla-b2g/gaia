@@ -4,7 +4,7 @@ var FbLauncher = (function(document) {
     var extensionFrame = document.querySelector('#fb-extensions');
     var oauthFrame = document.querySelector('#fb-oauth');
 
-    var currentURI = '/contacts/fb_import.html?contacts=1',
+    var currentURI = '/contacts/fb_import.html?ftu=1',
         access_token;
 
 

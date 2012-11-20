@@ -50,45 +50,17 @@ var NotificationScreen = {
 
   lockscreenPreview: true,
 
-  get container() {
-    delete this.container;
-
-    var id = 'desktop-notifications-container';
-    return this.container = document.getElementById(id);
-  },
-
-  get lockScreenContainer() {
-    delete this.lockScreenContainer;
-
-    var id = 'notifications-lockscreen-container';
-    return this.lockScreenContainer = document.getElementById(id);
-  },
-
-  get toaster() {
-    delete this.toaster;
-    return this.toaster = document.getElementById('notification-toaster');
-  },
-
-  get toasterIcon() {
-    delete this.toasterIcon;
-    return this.toasterIcon = document.getElementById('toaster-icon');
-  },
-  get toasterTitle() {
-    delete this.toasterTitle;
-    return this.toasterTitle = document.getElementById('toaster-title');
-  },
-  get toasterDetail() {
-    delete this.toasterDetail;
-    return this.toasterDetail = document.getElementById('toaster-detail');
-  },
-
-  get clearAllButton() {
-    delete this.clearAllButton;
-    return this.clearAllButton = document.getElementById('notification-clear');
-  },
-
   init: function ns_init() {
     window.addEventListener('mozChromeEvent', this);
+    this.container =
+      document.getElementById('desktop-notifications-container');
+    this.lockScreenContainer =
+      document.getElementById('notifications-lockscreen-container');
+    this.toaster = document.getElementById('notification-toaster');
+    this.toasterIcon = document.getElementById('toaster-icon');
+    this.toasterTitle = document.getElementById('toaster-title');
+    this.toasterDetail = document.getElementById('toaster-detail');
+    this.clearAllButton = document.getElementById('notification-clear');
 
     this._toasterGD = new GestureDetector(this.toaster);
     ['tap', 'mousedown', 'swipe'].forEach(function(evt) {
@@ -97,6 +69,10 @@ var NotificationScreen = {
     }, this);
 
     this.clearAllButton.addEventListener('click', this.clearAll.bind(this));
+
+    // will hold the count of external contributors to the notification
+    // screen
+    this.externalNotificationsCount = 0;
 
     window.addEventListener('utilitytrayshow', this);
     window.addEventListener('unlock', this.clearLockScreen.bind(this));
@@ -302,11 +278,27 @@ var NotificationScreen = {
   },
 
   updateStatusBarIcon: function ns_updateStatusBarIcon(unread) {
-    StatusBar.updateNotification(this.container.children.length);
+    var nbTotalNotif = this.container.children.length +
+      this.externalNotificationsCount;
+    StatusBar.updateNotification(nbTotalNotif);
 
     if (unread)
       StatusBar.updateNotificationUnread(true);
+  },
+
+  incExternalNotifications: function ns_incExternalNotifications() {
+    this.externalNotificationsCount++;
+    this.updateStatusBarIcon(true);
+  },
+
+  decExternalNotifications: function ns_decExternalNotifications() {
+    this.externalNotificationsCount--;
+    if (this.externalNotificationsCount < 0) {
+      this.externalNotificationsCount = 0;
+    }
+    this.updateStatusBarIcon();
   }
+
 };
 
 NotificationScreen.init();

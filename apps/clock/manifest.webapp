@@ -9,7 +9,7 @@
   },
   "permissions": {
     "alarms":{},
-    "settings":{ "access": "readonly" },
+    "settings":{ "access": "readwrite" },
     "attention":{}
   },
   "locales": {

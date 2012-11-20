@@ -31,7 +31,7 @@ function navigationStack(currentView) {
     next.dataset.state = 'active';
   };
 
-  var setCacheView = function(current, next, transition) {
+  var setCacheView = function(current, next, transition, callback) {
     current.classList.add('transitioning');
     next.classList.add('transitioning');
     var currentMirror = document.getElementById(current.dataset.mirror);
@@ -52,6 +52,9 @@ function navigationStack(currentView) {
       nextMirror.removeEventListener('transitionend', nocache);
       current.classList.remove('transitioning');
       next.classList.remove('transitioning');
+      if (typeof callback === 'function') {
+        setTimeout(callback, 0);
+      }
     });
   };
 
@@ -78,9 +81,13 @@ function navigationStack(currentView) {
     _currentView = nextView;
   };
 
-  this.back = function back() {
-    if (stack.length < 2)
+  this.back = function back(callback) {
+    if (stack.length < 2) {
+      if (typeof callback === 'function') {
+        setTimeout(callback, 0);
+      }
       return;
+    }
     var currentView = stack.pop();
     var current = document.getElementById(currentView.view);
     var nextView = stack[stack.length - 1];
@@ -89,26 +96,33 @@ function navigationStack(currentView) {
     switch (currentView.transition) {
       case 'none':
         setAppView(current, next);
+        if (typeof callback === 'function') {
+          setTimeout(callback, 0);
+        }
         break;
 
       case 'popup':
-        hidePopup(current, next);
+        hidePopup(current, next, callback);
         break;
 
       default:
         var reverted = revertTransition(currentView.transition);
-        setCacheView(current, next, reverted);
+        setCacheView(current, next, reverted, callback);
         break;
     }
     _currentView = nextView.view;
   };
 
-  this.home = function home() {
-    if (stack.length < 2)
+  this.home = function home(callback) {
+    if (stack.length < 2) {
+      if (typeof callback === 'function') {
+        setTimeout(callback, 0);
+      }
       return;
+    }
 
     while (stack.length > 1) {
-      this.back();
+      this.back(callback);
     }
   };
 
@@ -124,7 +138,7 @@ function navigationStack(currentView) {
     });
   }
 
-  var hidePopup = function c_hidePopup(current, next) {
+  var hidePopup = function c_hidePopup(current, next, callback) {
     next.dataset.state = 'active';
     current.classList.add('view-bottom');
     var nextMirror = document.getElementById(next.dataset.mirror);
@@ -132,6 +146,9 @@ function navigationStack(currentView) {
     nextMirror.style.display = '';
     current.addEventListener('transitionend', function hideView() {
       currentMirror.classList.add('view-bottom');
+      if (typeof callback === 'function') {
+        setTimeout(callback, 0);
+      }
       current.removeEventListener('transitionend', hideView);
     });
   }

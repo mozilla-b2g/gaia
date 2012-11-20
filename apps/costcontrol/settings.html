@@ -35,7 +35,8 @@
   <script type="text/javascript" src="js/service/service_utils.js"></script>
 
   <script type="text/javascript" defer src="js/views/view_manager.js"></script>
-  <script type="text/javascript" defer src="js/views/autosettings.js"></script>
+  <script type="text/javascript" defer src="js/utils/autosettings.js"></script>
+  <script type="text/javascript" defer src="js/views/limit_dialog.js"></script>
   <script type="text/javascript" defer src="js/views/settings.js"></script>
 </head>
 
@@ -92,7 +93,7 @@
             <span id="settings-low-limit-currency">R$</span>
             <input class="localsetting" data-option="lowlimit_threshold" data-disable-on="lowlimit=false" id="low-limit-input" type="number" />
           </label>
-          <p data-l10n-id="low-balance-explanation">Alert me when I’m under</p>
+          <p data-l10n-id="alert-limit">Alert limit</p>
         </li>
       </ul>
 
@@ -118,7 +119,7 @@
         </li>
         <li>
           <div class="end buttons-list">
-            <button class="localsetting icon icon-dialog" data-option="data_limit_value" data-inputdialog="data-limit-dialog" data-formatter="dataUnit" data-disable-on="data_limit=false">
+            <button class="localsetting icon icon-dialog set-data-limit" data-disable-on="data_limit=false">
               <span class="tag"></span>
             </button>
           </div>
@@ -162,23 +163,23 @@
   <section role="region" id="data-limit-dialog" class="view" data-viewport="bottom">
     <header>
       <menu type="toolbar">
-         <button id="topup-send-button" data-l10n-id="Done" class="recommend">Done</button>
+         <button id="data-usage-done-button" data-l10n-id="Done" class="recommend">Done</button>
       </menu>
-      <a class="cancel"><span id="topup-close-button" class="icon icon-close">close</span></a>
-      <h1 data-l10n-id="datalimit-title">Data usage limit</h1>
+      <a class="cancel"><span id="data-usage-close-button" class="icon icon-close">close</span></a>
+      <h1 data-l10n-id="data-limit-header">Data Usage Limit</h1>
     </header>
     <section class="content">
       <div class="info">
-        <h2 data-l10n-id="data-limit-dialog-title">Enter a mobile data usage limit</h2>
-        <p data-l10n-id="data-limit-dialog-explanation">
-          Connection speeds reduces after limit. It will be used as a reference to check against actual mobile data usage.
+        <h2 data-l10n-id="data-limit-dialog-title2">Enter a mobile data limit alert</h2>
+        <p data-l10n-id="data-limit-dialog-explanation2">
+          Connection speeds reduce after the limit is reached. Check with your data provider to set an appropriate alert level.
         </p>
       </div>
     </section>
     <form>
       <ul class="buttons-list">
         <li>
-          <button id="switch-unit-button" type="button" class="icon icon-dialog">
+          <button type="button" class="icon icon-dialog switch-unit-button">
             <span class="tag"></span>
           </button>
         </li>
@@ -208,7 +209,8 @@
         </li>
       </ul>
     </div>
-    <menu data-items="1">
+    <menu data-items="2">
+      <button data-l10n-id="cancel" class="cancel">Cancel</button>
       <button data-l10n-id="ok" class="recommend">Ok</button>
     </menu>
   </section>

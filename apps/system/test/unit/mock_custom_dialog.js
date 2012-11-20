@@ -16,7 +16,7 @@ var MockCustomDialog = {
   mShowedMsg: null,
   mShowedCancel: null,
   mShowedConfirm: null,
-  mTearDown: function tearDown() {
+  mTeardown: function teardown() {
     this.mShown = false;
     this.mShowedTitle = null;
     this.mShowedMsg = null;

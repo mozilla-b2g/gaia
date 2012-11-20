@@ -41,6 +41,19 @@
   transform: scale(0.6);
 }
 
+#cards-view .card h1 {
+  position: absolute;
+  top: 1.5rem;
+  left: 4rem;
+  z-index: 99999;
+  text-align: left;
+  font-size: 2em;
+}
+
+#cards-view .card header {
+  top: 1.5rem;
+}
+
 #cards-view .card[data-edit='true'] {
   position: relative;
   opacity: 0.8;

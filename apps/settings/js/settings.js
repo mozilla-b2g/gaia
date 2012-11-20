@@ -360,6 +360,42 @@ var Settings = {
     };
   },
 
+  launchFTU: function settings_launchFTU() {
+    var settings = this.mozSettings;
+    if (!settings)
+      return;
+
+    var key = 'ftu.manifestURL';
+    var req = settings.createLock().get(key);
+    req.onsuccess = function ftuManifest() {
+      var ftuManifestURL = req.result[key];
+
+      // Fallback if no settings present
+      if (!ftuManifestURL) {
+        ftuManifestURL = document.location.protocol +
+          '//communications.gaiamobile.org' + (location.port ? ':' +
+            location.port : '/manifest.webapp');
+      }
+
+      var ftuApp = null;
+      navigator.mozApps.mgmt.getAll().onsuccess = function gotApps(evt) {
+        var apps = evt.target.result;
+        for (var i = 0; i < apps.length && ftuApp == null; i++) {
+          var app = apps[i];
+          if (app.manifestURL == ftuManifestURL) {
+            ftuApp = app;
+          }
+        }
+
+        if (ftuApp) {
+          ftuApp.launch('ftu');
+        } else {
+          alert(_('no-ftu'));
+        }
+      }
+    }
+  },
+
   checkForUpdates: function settings_checkForUpdates() {
     var settings = this.mozSettings;
     if (!settings) {
@@ -445,6 +481,8 @@ window.addEventListener('load', function loadSettings() {
       case 'about':               // handle specific link + load gaia_commit.txt
         document.getElementById('check-update-now').onclick =
           Settings.checkForUpdates.bind(Settings);
+        document.getElementById('ftuLauncher').onclick =
+          Settings.launchFTU.bind(Settings);
         Settings.loadGaiaCommit();
         break;
       case 'help':                // handle specific link
@@ -540,7 +578,7 @@ window.addEventListener('localized', function showLanguages() {
   document.documentElement.dir = navigator.mozL10n.language.direction;
 
   // display the current locale in the main panel
-  var LANGUAGES = 'resources/languages.json';
+  var LANGUAGES = 'shared/resources/languages.json';
   if (Settings.languages) {
     document.getElementById('language-desc').textContent =
         Settings.languages[navigator.mozL10n.language.code];

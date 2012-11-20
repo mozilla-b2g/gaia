@@ -316,21 +316,34 @@ var frequencyDialer = {
     var markStart = start - start % this.unit;
     var html = '';
 
-    html += '    <div class="dialer-unit-mark-box">';
+    // At the beginning and end of the dial, some of the notches should be
+    // hidden. To do this, we use an absolutely positioned div mask.
+    // startMaskWidth and endMaskWidth track how wide that mask should be.
+    var startMaskWidth = 0;
+    var endMaskWidth = 0;
+
+    // unitWidth is how wide each notch is that needs to be covered.
+    var unitWidth = 16;
 
     var total = this.unit * 10;     // 0.1MHz
     for (var i = 0; i < total; i++) {
       var dialValue = markStart + i * 0.1;
-      if (dialValue < start || dialValue > end) {
-        html += '    <div class="dialer-mark hidden-block"></div>';
-      } else if ((i % 10) == 5) {
-        html += '    <div class="dialer-mark dialer-mark-middle"></div>';
-      } else {
-        html += '    <div class="dialer-mark ' +
-                  (0 == (i % 10) ? 'dialer-mark-long' : '') + '"></div>';
+      if (dialValue < start) {
+        startMaskWidth += unitWidth;
+      } else if (dialValue > end) {
+        endMaskWidth += unitWidth;
       }
     }
 
+    html += '    <div class="dialer-unit-mark-box">';
+    if (startMaskWidth > 0) {
+      html += '<div class="dialer-unit-mark-mask-start" style="width: ' +
+              startMaskWidth + 'px"></div>';
+    }
+    if (endMaskWidth > 0) {
+      html += '<div class="dialer-unit-mark-mask-end" style="width: ' +
+              endMaskWidth + 'px"></div>';
+    }
     html += '    </div>';
 
     var width = 'width: ' + (100 / this.unit) + '%';

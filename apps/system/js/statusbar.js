@@ -61,10 +61,6 @@ var StatusBar = {
     }
   },
 
-  get notificationsCount() {
-    return this.icons.notification.dataset.num;
-  },
-
   init: function sb_init() {
     this.getAllElements();
 
@@ -535,7 +531,7 @@ var StatusBar = {
       return str.replace(/\-(.)/g, function replacer(str, p1) {
         return p1.toUpperCase();
       });
-    }
+    };
 
     this.ELEMENTS.forEach((function createElementRef(name) {
       this.icons[toCamelCase(name)] =
