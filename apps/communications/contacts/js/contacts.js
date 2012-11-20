@@ -23,6 +23,9 @@ var Contacts = (function() {
       settings,
       settingsButton;
 
+  var readyToPaint = false;
+  var firstContacts = null;
+
   var currentContact = {};
 
   var contactsList = contacts.List;
@@ -91,7 +94,11 @@ var Contacts = (function() {
 
     if (!contactsList.loaded) {
       checkCancelableActivity();
-      loadList(overlay);
+      readyToPaint = true;
+      if (firstContacts) {
+        loadList(overlay, firstContacts);
+        readyToPaint = false;
+      }
     }
 
   };
@@ -274,8 +281,8 @@ var Contacts = (function() {
     });
   };
 
-  var loadList = function loadList(overlay) {
-    contactsList.load(null, overlay);
+  var loadList = function loadList(overlay, contacts) {
+    contactsList.load(contacts, overlay);
     contactsList.handleClick(contactListClickHandler);
   };
 
@@ -617,6 +624,23 @@ var Contacts = (function() {
       }, STATUS_TIME);
     });
   };
+
+  var getFirstContacts = function c_getFirstContacts() {
+    var onerror = function() {
+      console.error('Error getting first contacts');
+    }
+    contacts.List.getAllContacts(onerror, function(contacts) {
+      firstContacts = contacts;
+      if (readyToPaint) {
+        loadList(true, contacts);
+        firstContacts = null;
+      }
+    });
+  };
+
+  window.addEventListener('load', function() {
+    getFirstContacts();
+  });
 
   return {
     'doneTag': doneTag,
