@@ -1451,7 +1451,7 @@ var Browser = {
   },
 
   handleClearHistory: function browser_handleClearHistory() {
-    var msg = navigator.mozL10n.get('confirm-clear-history');
+    var msg = navigator.mozL10n.get('confirm-clear-browsing-history');
     if (confirm(msg)) {
       Places.clearHistory((function() {
 
@@ -1478,7 +1478,7 @@ var Browser = {
   },
 
   clearPrivateData: function browser_clearPrivateData() {
-    var msg = navigator.mozL10n.get('confirm-clear-private-data');
+    var msg = navigator.mozL10n.get('confirm-clear-cookies-and-stored-data');
     if (confirm(msg)) {
       var request = navigator.mozApps.getSelf();
       request.onsuccess = (function() {

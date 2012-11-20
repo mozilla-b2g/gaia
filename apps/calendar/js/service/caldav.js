@@ -25,7 +25,7 @@ Calendar.ns('Service').Caldav = (function() {
      * Default number of occurrences to find
      * when expanding a recurring event.
      */
-    _defaultOccurrenceLimit: 1000,
+    _defaultOccurrenceLimit: 500,
 
     _initEvents: function() {
       var events = [
@@ -85,11 +85,11 @@ Calendar.ns('Service').Caldav = (function() {
 
       if (options && options.startDate) {
         // convert startDate to unix ical time.
-        var icalDate = new ICAL.icaltime();
+        var icalDate = new ICAL.Time();
 
         // ical uses seconds not milliseconds
         icalDate.fromUnixTime(options.startDate.valueOf() / 1000);
-        filterEvent.setTimeRange({ start: icalDate.toString() });
+        filterEvent.setTimeRange({ start: icalDate.toICALString() });
       }
 
       // include only the VEVENT in the data
@@ -166,10 +166,11 @@ Calendar.ns('Service').Caldav = (function() {
      *
      * @param {String} etag etag.
      * @param {String} url caldav url.
+     * @param {String} ical raw ical string.
      * @param {ICAL.Event} event ical event.
      * @param {Object} [component] parsed VCALENDAR component.
      */
-    _formatEvent: function(etag, url, event, component) {
+    _formatEvent: function(etag, url, ical, event, component) {
       var exceptions = null;
       var key;
 
@@ -183,6 +184,7 @@ Calendar.ns('Service').Caldav = (function() {
           exceptions.push(this._formatEvent(
             etag,
             url,
+            ical,
             event.exceptions[key],
             component
           ));
@@ -210,9 +212,14 @@ Calendar.ns('Service').Caldav = (function() {
         location: event.location,
         start: this.formatICALTime(event.startDate),
         end: this.formatICALTime(event.endDate),
-        exceptions: exceptions,
-        icalComponent: component
+        exceptions: exceptions
       };
+
+      // only send icalComponent for primary events
+      // exceptions use the same icalComponent data anyway.
+      if (!result.recurrenceId) {
+        result.icalComponent = ical;
+      }
 
       return result;
     },
@@ -225,25 +232,24 @@ Calendar.ns('Service').Caldav = (function() {
     _displayAlarms: function(details) {
       var event = details.item;
       var comp = event.component;
-      var alarms = comp.getAllSubcomponents('VALARM');
+      var alarms = comp.getAllSubcomponents('valarm');
       var result = [];
 
       var start = details.startDate;
       var self = this;
 
       alarms.forEach(function(instance) {
-        var action = instance.getFirstPropertyValue('ACTION');
+        var action = instance.getFirstPropertyValue('action');
         if (action) {
-          action = action.data.value[0];
           if (action === 'DISPLAY') {
             // lets just assume we might have multiple triggers
-            var triggers = instance.getAllProperties('TRIGGER');
+            var triggers = instance.getAllProperties('trigger');
             var i = 0;
             var len = triggers.length;
 
             for (; i < len; i++) {
               var time = start.clone();
-              time.addDuration(triggers[i].data.value[0]);
+              time.addDuration(triggers[i].getFirstValue());
 
               result.push({
                 startDate: self.formatICALTime(time)
@@ -257,10 +263,10 @@ Calendar.ns('Service').Caldav = (function() {
     },
 
     /**
-     * Takes an ICAL.icaltime object and converts it
+     * Takes an ICAL.Time object and converts it
      * into the storage format familiar to the calendar app.
      *
-     *    var time = new ICAL.icaltime({
+     *    var time = new ICAL.Time({
      *      year: 2012,
      *      month: 1,
      *      day: 1,
@@ -300,18 +306,18 @@ Calendar.ns('Service').Caldav = (function() {
     },
 
     /**
-     * Formats a given time/date into a ICAL.icaltime instance.
+     * Formats a given time/date into a ICAL.Time instance.
      * Suitable for converting the output of formatICALTime back
      * into a similar representation of the original.
      *
      * Once a time instance goes through this method it should _not_
      * be modified as the DST information is lost (offset is preserved).
      *
-     * @param {ICAL.icaltime|Object} time formatted ical time
+     * @param {ICAL.Time|Object} time formatted ical time
      *                                    or output of formatICALTime.
      */
     formatInputTime: function(time) {
-      if (time instanceof ICAL.icaltime)
+      if (time instanceof ICAL.Time)
         return time;
 
       var utc = time.utc;
@@ -319,14 +325,14 @@ Calendar.ns('Service').Caldav = (function() {
       var offset = time.offset;
       var result;
 
-      if (tzid === ICAL.icaltimezone.local_timezone.tzid) {
-        result = new ICAL.icaltime();
+      if (tzid === ICAL.Timezone.local_timezone.tzid) {
+        result = new ICAL.Time();
         result.fromUnixTime(utc / 1000);
-        result.zone = ICAL.icaltimezone.local_timezone;
+        result.zone = ICAL.Timezone.local_timezone;
       } else {
-        result = new ICAL.icaltime();
+        result = new ICAL.Time();
         result.fromUnixTime((utc - offset) / 1000);
-        result.zone = ICAL.icaltimezone.utc_timezone;
+        result.zone = ICAL.Timezone.utc_timezone;
       }
 
       return result;
@@ -385,11 +391,11 @@ Calendar.ns('Service').Caldav = (function() {
     _defaultMaxDate: function() {
       var now = new Date();
 
-      return new ICAL.icaltime({
+      return new ICAL.Time({
         year: now.getFullYear(),
         // three months in advance
         // +1 because js months are zero based
-        month: now.getMonth() + 12,
+        month: now.getMonth() + 6,
         day: now.getDate()
       });
     },
@@ -429,7 +435,7 @@ Calendar.ns('Service').Caldav = (function() {
         maxDate = this.formatInputTime(options.maxDate);
 
       if (!('now' in options))
-        options.now = ICAL.icaltime.now();
+        options.now = ICAL.Time.now();
 
       now = options.now;
 
@@ -553,13 +559,13 @@ Calendar.ns('Service').Caldav = (function() {
           return;
         }
 
-        var result = self._formatEvent(etag.value, url, event);
+        var result = self._formatEvent(etag.value, url, ical, event);
         stream.emit('event', result);
 
         var options = {
           limit: self._defaultOccurrenceLimit,
           maxDate: self._defaultMaxDate(),
-          now: ICAL.icaltime.now()
+          now: ICAL.Time.now()
         };
 
         self.expandRecurringEvent(event, options, stream,
@@ -670,7 +676,7 @@ Calendar.ns('Service').Caldav = (function() {
 
     createEvent: function(account, calendar, event, callback) {
       var connection = new Caldav.Connection(account);
-      var vcalendar = new ICAL.icalcomponent({ name: 'VCALENDAR' });
+      var vcalendar = new ICAL.Component('vcalendar');
       var icalEvent = new ICAL.Event();
 
       // text fields
@@ -685,16 +691,15 @@ Calendar.ns('Service').Caldav = (function() {
       icalEvent.endDate = this.formatInputTime(event.end);
 
       vcalendar.addSubcomponent(icalEvent.component);
-      event.icalComponent = vcalendar.toString();
 
       var url = calendar.url + icalEvent.uid + '.ics';
       var req = this._assetRequest(connection, url);
 
       event.id = icalEvent.uid;
       event.url = url;
-      event.icalComponent = vcalendar.toJSON();
+      event.icalComponent = vcalendar.toString();
 
-      req.put({}, vcalendar.toString(), function(err, data, xhr) {
+      req.put({}, event.icalComponent, function(err, data, xhr) {
         var token = xhr.getResponseHeader('Etag');
         event.syncToken = token;
         // TODO: error handling

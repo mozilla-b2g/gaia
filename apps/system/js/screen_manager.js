@@ -66,12 +66,10 @@ var ScreenManager = {
           case 'screen':
             self._screenWakeLocked = (state == 'locked-foreground');
 
-            if (self._screenWakeLocked) {
+            if (self._screenWakeLocked)
               // Turn screen on if wake lock is acquire
               self.turnScreenOn();
-            } else if (self.screenEnabled) {
-              self.reconfigScreenTimeout();
-            }
+            self._reconfigScreenTimeout();
             break;
 
           case 'cpu':
@@ -86,7 +84,7 @@ var ScreenManager = {
     SettingsListener.observe('screen.timeout', 60,
     function screenTimeoutChanged(value) {
       self._idleTimeout = value;
-      self.setIdleTimeout(self._idleTimeout);
+      self._setIdleTimeout(self._idleTimeout);
 
       if (!self._firstOn) {
         self._firstOn = true;
@@ -156,7 +154,7 @@ var ScreenManager = {
     self._savedBrightness = navigator.mozPower.screenBrightness;
 
     var screenOff = function scm_screenOff() {
-      self.setIdleTimeout(0);
+      self._setIdleTimeout(0);
 
       window.removeEventListener('devicelight', self);
 
@@ -194,7 +192,7 @@ var ScreenManager = {
         // Cancel the dim out
         this._inTransition = false;
         this.setScreenBrightness(this._userBrightness, true);
-        this.reconfigScreenTimeout();
+        this._reconfigScreenTimeout();
       }
       return false;
     }
@@ -216,27 +214,30 @@ var ScreenManager = {
     if (this._deviceLightEnabled)
       window.addEventListener('devicelight', this);
 
-    this.reconfigScreenTimeout();
+    this._reconfigScreenTimeout();
     this.fireScreenChangeEvent();
     return true;
   },
 
-  reconfigScreenTimeout: function scm_reconfigScreenTimeout() {
+  _reconfigScreenTimeout: function scm_reconfigScreenTimeout() {
+    // Remove idle timer if screen wake lock is acquired.
+    if (this._screenWakeLocked) {
+      this._setIdleTimeout(0);
     // The screen should be turn off with shorter timeout if
     // it was never unlocked.
-    if (LockScreen.locked) {
-      this.setIdleTimeout(10, true);
+    } else if (LockScreen.locked) {
+      this._setIdleTimeout(10, true);
       var self = this;
       var stopShortIdleTimeout = function scm_stopShortIdleTimeout() {
         window.removeEventListener('unlock', stopShortIdleTimeout);
         window.removeEventListener('lockpanelchange', stopShortIdleTimeout);
-        self.setIdleTimeout(self._idleTimeout, false);
+        self._setIdleTimeout(self._idleTimeout, false);
       };
 
       window.addEventListener('unlock', stopShortIdleTimeout);
       window.addEventListener('lockpanelchange', stopShortIdleTimeout);
     } else {
-      this.setIdleTimeout(this._idleTimeout, false);
+      this._setIdleTimeout(this._idleTimeout, false);
     }
   },
 
@@ -306,7 +307,7 @@ var ScreenManager = {
     }
   },
 
-  setIdleTimeout: function scm_setIdleTimeout(time, instant) {
+  _setIdleTimeout: function scm_setIdleTimeout(time, instant) {
     window.clearIdleTimeout(this._idleTimerId);
 
     // Reset the idled state back to false.
