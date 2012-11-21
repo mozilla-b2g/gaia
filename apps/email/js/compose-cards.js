@@ -106,6 +106,9 @@ ComposeCard.prototype = {
     expandAddresses(this.ccNode, this.composer.cc);
     expandAddresses(this.bccNode, this.composer.bcc);
 
+    if (this.isEmptyAddress()) {
+      this.sendButton.setAttribute('aria-disabled', 'true');
+    }
     this.subjectNode.value = this.composer.subject;
     this.textBodyNode.value = this.composer.body.text;
     // force the textarea to be sized.
