@@ -17,6 +17,10 @@ var UIManager = {
     delete this.finishScreen;
     return this.finishScreen = document.getElementById('finish');
   },
+  get tutorialScreen() {
+    delete this.tutorialScreen;
+    return this.tutorialScreen = document.getElementById('tutorial');
+  },
   get navBar() {
     delete this.navBar;
     return this.navBar = document.getElementById('nav-bar');
@@ -83,9 +87,18 @@ var UIManager = {
     return this.dataConnectionSwitch = document.getElementById(
       'dataSwitch');
   },
+  get fakeSimPin() {
+    delete this.fakeSimPin;
+    return this.fakeSimPin = document.getElementById(
+      'fake-sim-pin');
+  },
   get buttonLetsGo() {
     delete this.buttonLetsGo;
     return this.buttonLetsGo = document.getElementById('end');
+  },
+  get buttonSkip() {
+    delete this.buttonSkip;
+    return this.buttonSkip = document.getElementById('skip');
   },
   init: function ui_init() {
     var currentDate = new Date();
@@ -103,10 +116,17 @@ var UIManager = {
     this.timezoneConfiguration.addEventListener('change', this);
     this.timeConfiguration.addEventListener('input', this);
     this.dateConfiguration.addEventListener('input', this);
-    this.buttonLetsGo.addEventListener('click', function() {
+    this.buttonSkip.addEventListener('click', function() {
       window.close();
     });
-   this.dataConnectionSwitch.addEventListener('click', this);
+    this.dataConnectionSwitch.addEventListener('click', this);
+    this.buttonLetsGo.addEventListener('click', function() {
+      UIManager.activationScreen.classList.remove('show');
+      UIManager.finishScreen.classList.remove('show');
+      UIManager.tutorialScreen.classList.add('show');
+      Tutorial.init();
+    });
+    this.fakeSimPin.addEventListener('input', this);
   },
   handleEvent: function ui_handleEvent(event) {
     switch (event.target.id) {
@@ -134,6 +154,10 @@ var UIManager = {
       case 'dataSwitch':
         var status = event.target.checked;
         DataMobile.toggle(status);
+        break;
+      case 'fake-sim-pin':
+        document.getElementById('sim-pin').value =
+          this.fakeSimPin.value;
         break;
       default:
         if (event.target.parentNode.id == 'networks') {
@@ -248,6 +272,10 @@ var UIManager = {
 
     };
     req.onerror = function sp_unlockError() {
+      // TODO Include same error handling as in Settings
+      document.getElementById('sim-pin').classList.add('onerror');
+      document.getElementById('sim-pin').value = '';
+      document.getElementById('fake-sim-pin').value = '';
       var retry = (req.result && req.result.retryCount) ?
         parseInt(req.result.retryCount, 10) : -1;
       document.getElementById('pin_error').innerHTML = 'Error ' + retry;

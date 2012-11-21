@@ -62,7 +62,7 @@ body {
     opacity: 0;
   }
   100% {
-    opacity: 100%;
+    opacity: 1;
   }
 }
 
@@ -532,11 +532,15 @@ iframe.backgroundWindow {
 */
 
 #screen.ftu > [data-z-index-level="statusbar"]{
-  z-index: 3;
+  z-index: 1;
 }
 
 #screen.ftu > [data-z-index-level="lockscreen"]{
-  z-index: 3;
+  z-index: 1;
+}
+
+#screen.ftu > [data-z-index-level="app"] > iframe.appWindow.homescreen {
+  opacity: 0;
 }
 
 #screen.ftuStarting #lockscreen {

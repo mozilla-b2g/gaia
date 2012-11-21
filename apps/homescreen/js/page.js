@@ -22,7 +22,7 @@ function Icon(descriptor, app) {
 
 Icon.prototype = {
   MIN_ICON_SIZE: 52,
-  MAX_ICON_SIZE: 54,
+  MAX_ICON_SIZE: 60,
 
   DEFAULT_ICON_URL: window.location.protocol + '//' + window.location.host +
                     '/style/images/default.png',
@@ -91,8 +91,8 @@ Icon.prototype = {
       img.style.visibility = 'visible';
     } else {
       img.setAttribute('role', 'presentation');
-      img.width = 68;
-      img.height = 68;
+      img.width = 64;
+      img.height = 64;
       if (descriptor.renderedIcon) {
         this.displayRenderedIcon();
       } else {
@@ -194,8 +194,8 @@ Icon.prototype = {
 
   renderImage: function icon_renderImage(img) {
     var canvas = document.createElement('canvas');
-    canvas.width = 68;
-    canvas.height = 68;
+    canvas.width = 64;
+    canvas.height = 64;
 
     var ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);

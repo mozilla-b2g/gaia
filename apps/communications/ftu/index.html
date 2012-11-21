@@ -31,6 +31,7 @@
 	<script defer type="text/javascript" src="/shared/js/async_storage.js"></script>
 	<script defer type="text/javascript" src="/ftu/js/wifi.js"></script>
 	<script defer type="text/javascript" src="/ftu/js/facebook.js"></script>
+	<script defer type="text/javascript" src="/ftu/js/tutorial.js"></script>
 	<script defer type="text/javascript" src="/ftu/js/navigation.js"></script>
 	<script defer type="text/javascript" src="/ftu/js/dataMobile.js"></script>
 	<script defer type="text/javascript" src="/ftu/js/time.js"></script>
@@ -51,6 +52,7 @@
     	<header data-l10n-id="type_pin">Type your PIN code:</header>
     	<section class="input-wrapper">
         <input id="sim-pin" name="simpin" type="password" size="8" maxlength="8" />
+        <input id="fake-sim-pin" name="fakesimpin" type="number" size="8" maxlength="8" />
         <div id="pin_error"></div>
       </section>
     </section>
@@ -319,41 +321,163 @@
 				</section>
 			</section>
 		</article>
-
 		<menu role="navigation" id="nav-bar" class="forward-only">
-			<button id="back" class="button-left" data-l10n-id="back">
+			<button id="back" class="button-left back" data-l10n-id="back">
 				back
 				<span></span>
 			</button>
-			<button class="recommend" id="forward" data-l10n-id="next">
+			<button class="recommend forward" id="forward" data-l10n-id="next">
 				next
 				<span></span>
 			</button>
 			<button class="recommend" id="join" data-l10n-id="join">
 				join
 			</button>
-		</nav>
+		</menu>
 	</section>
 	<section id="finish" role="region">
 		<section class="content">
 			<h1 data-l10n-id="startYourPhone">
         Start your Phone Tour!
       </h1>
-      <h2 data-l10n-id="enjoyYourPhone">
-        You're ready to enjoy your new phone.
+      <h2 data-l10n-id="joinTutorial">
+        Join us for a quick tutorial about your new phone.
       </h2>
       <p data-l10n-id="optionsAvailable">
         You can alter the language, Date / Time, Wi-Fi connection in the settings area.
       </p>
 	    </section>
-    	<menu role="navigation" class="forward-only">
-			  <button class="recommend fullsize" id="end" data-l10n-id="letsGo">
-				  Let's go!
-			  </button>
-		  </menu>
-    </section>
+    	<menu role="navigation">
+    		<button id="skip" class="button-left" data-l10n-id="skip">
+					Skip
+				</button>
+				<button class="recommend" id="end" data-l10n-id="startTour">
+					Start Tour!
+				</button>
+			</menu>
+		</section>
 	</section>
-
+	<section id="tutorial" role="region">
+		<article role="main">
+			<section role="region" id="step1">
+				<div>
+					<header id="step1Header">
+					</header>
+				</div>
+				<section>
+					<img  id="step1Img" src="">
+				</section>
+			</section>
+			<section role="region" id="step2">
+				<div>
+					<header id="step2Header">
+					</header>
+				</div>
+				<section>
+					<img id="step2Img" src="">
+				</section>
+			</section>
+			<section role="region" id="step3">
+				<div>
+					<header id="step3Header">
+					</header>
+				</div>
+				<section>
+					<img  id="step3Img" src="">
+				</section>
+			</section>
+			<section role="region" id="step4">
+				<div>
+					<header id="step4Header">
+					</header>
+				</div>
+				<section>
+					<img  id="step4Img" src="">
+				</section>
+			</section>
+			<section role="region" id="step5">
+				<div>
+					<header id="step5Header">
+					</header>
+				</div>
+				<section>
+					<img  id="step5Img" src="">
+				</section>
+			</section>
+			<section role="region" id="step6">
+				<div>
+					<header id="step6Header">
+					</header>
+				</div>
+				<section>
+					<img  id="step6Img" src="">
+				</section>
+			</section>
+			<section role="region" id="step7">
+				<div>
+					<header id="step7Header">
+					</header>
+				</div>
+				<section>
+					<img  id="step7Img" src="">
+				</section>
+			</section>
+			<section role="region" id="step8">
+				<div>
+					<header id="step8Header">
+					</header>
+				</div>
+				<section>
+					<img  id="step8Img" src="">
+				</section>
+			</section>
+			<section role="region" id="step9">
+				<div>
+					<header id="step9Header">
+					</header>
+				</div>
+				<section>
+					<img  id="step9Img" src="">
+				</section>
+			</section>
+			<section role="region" id="step10">
+				<div>
+					<header id="step10Header">
+					</header>
+				</div>
+				<section>
+					<img  id="step10Img" src="">
+				</section>
+			</section>
+		</article>
+		<nav role="navigation" id="tutorialNavBar" class="forward-only">
+			<button id="backTutorial" class="button-left back" data-l10n-id="back">
+				back
+				<span></span>
+			</button>
+			<button class="recommend forward" id="forwardTutorial" data-l10n-id="next">
+				next
+				<span></span>
+			</button>
+		</nav>
+	</section>
+	
+	<section id="tutorialFinish" role="region">
+		<section class="content">
+			<h1 data-l10n-id="thatsIt">
+        That's it!
+      </h1>
+      <h2 data-l10n-id="enjoyYourPhone">
+        You're ready to enjoy your new phone ;)
+      </h2>
+      </section>
+    	<menu role="navigation" class="forward-only">
+    		<button class="recommend" id="tutorialFinished" data-l10n-id="letsGo">
+					
+				</button>
+			</menu>
+		</section>
+	</section>
   <iframe id="fb-curtain" src="/facebook/curtain.html"></iframe>
   <iframe id="fb-oauth" hidden src="/facebook/fb_oauth.html"></iframe>
   <iframe id="fb-extensions"></iframe>
