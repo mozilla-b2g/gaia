@@ -29,6 +29,10 @@ a:hover, a:active, a:focus {
   font-family: 'MozTT';
 }
 
+.hide {
+  display: none !important;
+}
+
 .contact-primary-info {
   font-size: -moz-calc(15*0.226rem);
   color: black;

@@ -9,12 +9,12 @@
     <link href="/shared/style/headers.css" rel="stylesheet">
     <link href="/shared/style/input_areas.css" rel="stylesheet">
     <link href="/shared/style/buttons.css" rel="stylesheet">
+    <link href="/shared/style/confirm.css" rel="stylesheet">
     <link href="/shared/style_unstable/lists.css" rel="stylesheet">
 
     <link href="/contacts/style/app.css" rel="stylesheet">
     <link href="/contacts/style/contacts.css" rel="stylesheet">
     <link href="/contacts/style/search.css" rel="stylesheet">
-    <link href="/contacts/style/custom_dialog.css" rel="stylesheet">
     <link href="/contacts/style/input_cancel_button.css" rel="stylesheet">
     <link href="/contacts/style/fixed_header.css" rel="stylesheet">
     <link href="/facebook/style/curtain_frame.css" rel="stylesheet">
@@ -22,6 +22,10 @@
     <link href="/contacts/style/fb_extensions.css" rel="stylesheet">
 
     <script src="/contacts/js/activities.js"></script>
+
+    <!-- Confirm dialogs BB library -->
+    <script defer type="text/javascript" src="/contacts/js/confirm_dialog.js">
+    </script>
 
     <!-- Loading FB indexedDB related stuff -->
     <script src="/contacts/js/fb/fb_data.js"></script>
@@ -34,7 +38,6 @@
     <link rel="resource" type="application/l10n" href="/shared/locales/date.ini"/>
     <script type="text/javascript" src="/shared/js/l10n.js"></script>
     <script type="text/javascript" src="/shared/js/l10n_date.js"></script>
-    <script defer type="text/javascript" src="/shared/js/custom_dialog.js"></script>
     <script defer type="text/javascript" src="/shared/js/async_storage.js"></script>
 
     <script defer type="text/javascript" src="/shared/js/async_storage.js"></script>
@@ -509,5 +512,17 @@
     <section id="statusMsg" role="status">
       <p></p>
     </section>
+    
+    <form id="confirmation-message" class="hide" role="dialog" data-type="confirm">
+      <section>
+        <h1>Confirmation title</h1>
+        <p>Confirmation message</p>
+      </section>
+      <menu>
+        <button>Action 1</button>
+        <button>Action 2</button>
+      </menu>
+    </form>
+
   </body>
 </html>
