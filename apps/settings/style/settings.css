@@ -236,6 +236,19 @@ ul li > label .range-icons.brightness {
   white-space: nowrap;
 }
 
+/******************************************************************************
+ * Help
+ */
+
+#call-support-numbers {
+  position: absolute;
+  right: 2rem;
+}
+
+html[dir="rtl"] #call-support-numbers {
+  right: inherit;
+  left: 2rem;
+}
 
 /******************************************************************************
  * Right-To-Left layout
