@@ -983,6 +983,12 @@ Evme.Brain = new function() {
             requestSmartFolderApps = null,
             requestSmartFolderImage = null;
 
+        
+        // module was inited
+        this.init = function() {
+            $container.bind('click', checkCustomizeDone);
+        };
+        
         // show
         this.show = function() {
             Brain.FFOS.showMenu();
@@ -1042,11 +1048,6 @@ Evme.Brain = new function() {
             Brain.ShortcutsCustomize.addCustomizeButton();
         };
         
-        // empty space 
-        this.listClick = function() {
-            Brain.Shortcuts.doneEdit();
-        };
-        
         // return to normal shortcut mode
         this.doneEdit = function() {
             if (!Evme.Shortcuts.isEditing) return;
@@ -1060,7 +1061,17 @@ Evme.Brain = new function() {
         this.isEditing = function() {
             return Evme.Shortcuts.isEditing;
         };
-
+        
+        // checks all clicks inside our app, and stops the customizing mode
+        function checkCustomizeDone(e) {
+            if (e.target.tagName === 'DIV' || e.target.tagName === 'UL') {
+                if (!e.target.classList.contains('apps-group')) {
+                    Brain.Shortcuts.doneEdit();
+                }
+            }
+        }
+        
+        // stops editing (if active)
         this.hideIfEditing = function() {
             if (_this.isEditing()) {
                 _this.doneEdit();

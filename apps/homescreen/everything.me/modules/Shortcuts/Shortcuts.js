@@ -19,8 +19,6 @@ Evme.Shortcuts = new function() {
             "onBeforeScrollEnd": function(){ swiped = false; $el.removeClass("swiping"); }
         });
         
-        $el.bind("click", onListClick);
-        
         Evme.EventHandler.trigger(_name, "init");
     };
     
@@ -253,13 +251,6 @@ Evme.Shortcuts = new function() {
         
         $("#" + Evme.Utils.getID()).append($style);
         setDesign = true;
-    }
-    
-    function onListClick(e) {
-        if (e.originalTarget.id == 'shortcuts-list') {
-            Evme.EventHandler.trigger(_name, "listClick", {
-            });
-        }
     }
     
     function cbShow(bReport) {

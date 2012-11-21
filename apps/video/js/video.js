@@ -203,6 +203,7 @@ function startStream() {
 function metaDataParser(videofile, callback, metadataError) {
 
   var previewPlayer = document.createElement('video');
+  var completed = false;
 
   if (!previewPlayer.canPlayType(videofile.type)) {
     return callback({isVideo: false});
@@ -218,6 +219,11 @@ function metaDataParser(videofile, callback, metadataError) {
   previewPlayer.style.width = THUMBNAIL_WIDTH + 'px';
   previewPlayer.style.height = THUMBNAIL_HEIGHT + 'px';
   previewPlayer.src = url;
+  previewPlayer.onerror = function(e) {
+    if (!completed) {
+      metadataError(metadata.title);
+    }
+  };
   previewPlayer.onloadedmetadata = function() {
 
     // File Object only does basic detection for content type,
@@ -234,6 +240,7 @@ function metaDataParser(videofile, callback, metadataError) {
       metadata.poster = poster;
       URL.revokeObjectURL(url);
       previewPlayer.src = '';
+      completed = true;
       callback(metadata);
     });
   };

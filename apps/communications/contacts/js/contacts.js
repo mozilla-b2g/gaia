@@ -504,7 +504,7 @@ var Contacts = (function() {
           return;
         }
         contacts.List.getContactById(currentContact.id, function(contact) {
-          if (isUpdated(contact, currentContact)) {
+          if (!contact || isUpdated(contact, currentContact)) {
             return;
           }
           currentContact = contact;

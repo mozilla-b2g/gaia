@@ -503,7 +503,7 @@ contacts.List = (function() {
         hideGroup(ol.dataset.group);
       }
     });
-    var selector = 'ol header:not(.hide)';
+    var selector = 'section header:not(.hide)';
     var visibleElements = groupsList.querySelectorAll(selector);
     var showNoContacts = visibleElements.length === 0;
     toggleNoContactsScreen(showNoContacts);
