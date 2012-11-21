@@ -567,3 +567,8 @@ section[role="status"].active {
     font-size: 10px;
   }
 }
+
+/* Hide on initial render to prevent flashing */
+#settings {
+  visibility: hidden;
+}

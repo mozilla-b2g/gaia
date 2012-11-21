@@ -1,6 +1,6 @@
 Calendar.ns('Views').ModifyEvent = (function() {
 
-  var InputParser = Calendar.InputParser;
+  var InputParser = Calendar.Utils.InputParser;
 
   function ModifyEvent(options) {
     Calendar.View.apply(this, arguments);
