@@ -430,7 +430,7 @@ var ThreadListUI = {
   },
 
   executeDeletion: function thlui_executeDeletion() {
-    var response = window.confirm(_('deleteThreads-confirmation'));
+    var response = window.confirm(_('deleteThreads-confirmation2'));
     if (response) {
       WaitingScreen.show();
       this.delNumList = [];
