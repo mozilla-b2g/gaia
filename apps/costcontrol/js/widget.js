@@ -8,7 +8,7 @@
  * a balance update or timeout.
  */
 
-(function(undefined) {
+(function() {
 
   'use strict';
 

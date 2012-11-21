@@ -7,7 +7,7 @@
  * behaviour is delegated to each tab (in /js/views directory).
  */
 
-var CostControlApp = (function(undefined) {
+var CostControlApp = (function() {
 
   'use strict';
 

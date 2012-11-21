@@ -7,7 +7,7 @@
  * data usage and telephony.
  */
 
-var Settings = (function(undefined) {
+var Settings = (function() {
 
   'use strict';
 

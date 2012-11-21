@@ -19,21 +19,21 @@ function deepCopy(object) {
   if (object === null || !(object instanceof Object))
     return object;
 
-  var clon, constructor = object.constructor;
+  var clone, constructor = object.constructor;
   switch (constructor) {
     case Date:
-      clon = new constructor(object.getTime());
+      clone = new constructor(object.getTime());
       break;
     default:
-      clon = constructor();
+      clone = constructor();
       break;
   }
   for (var key in object) {
     if (object.hasOwnProperty(key))
-      clon[key] = deepCopy(object[key]);
+      clone[key] = deepCopy(object[key]);
   }
 
-  return clon;
+  return clone;
 }
 
 Object.prototype.extend = function _extend() {

@@ -107,7 +107,7 @@
  * has been made to meet scheduling constrins.
  */
 
-var MindGap = (function(undefined) {
+var MindGap = (function() {
 
   'use strict';
 

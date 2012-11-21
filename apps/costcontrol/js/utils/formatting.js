@@ -84,8 +84,8 @@ function smartRound(value) {
 }
 
 // Return a padded data value in MG/GB
-function padData(value) {
-  var rounded = roundData(value, 0);
+function padData(v) {
+  var rounded = roundData(v, 0);
   var value = rounded[0];
   var len = value.length;
   switch (len) {
