@@ -9,7 +9,7 @@ if (!this.SettingsListener) {
 
 suite('system/Statusbar', function() {
   var fakeStatusBarNode;
-  var realSettingsListener, realMozL10n;
+  var realSettingsListener, realMozL10n,
       fakeIcons = [];
 
   suiteSetup(function() {

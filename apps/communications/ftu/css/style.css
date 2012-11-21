@@ -28,6 +28,7 @@ html, body {
   background: url(images/bgtop.png) top left no-repeat,
               url(images/bgbottom.png) bottom left no-repeat,
               url(images/bg_1px.png) repeat-y;
+  background-size: 100% auto;
 }
 
 [role=region].show {
@@ -95,7 +96,7 @@ html, body {
 	display:none;
 }
 
-[role=navigation].forward-only #back {
+[role=navigation].forward-only .back {
 	display:none;
 }
 
@@ -103,7 +104,7 @@ html, body {
 	width: 100%;
 }
 
-[role=navigation].secondary-menu #forward {
+[role=navigation].secondary-menu .forward {
 	display: none;
 }
 
@@ -111,7 +112,7 @@ html, body {
 	display: block;
 }
 
-[role=navigation].back-only #back {
+[role=navigation].back-only .back {
 	width: 100%;
 	margin: 0;
 }
@@ -187,6 +188,7 @@ html, body {
 	z-index: 3000;
 	transition: all 1s ease;
 	background-image: url(images/powered.png);
+	background-size: 100% auto;
 }
 
 #splash.show {
@@ -208,11 +210,39 @@ html, body {
 
 #pincode .input-wrapper {
 	padding: 0 1.5rem;
+	position: relative;
+}
+
+#pincode #pin_error {
+	padding: 1rem 2rem;
+	font-size: 1.5rem;
+	color: red;
+}
+
+#pincode #sim-pin.onerror {
+	border-color: red;
 }
 
 #pincode .input-wrapper input {
 	font-size: 2rem;
   padding-left: 1.5rem;
+  pointer-events: none;
+}
+
+#pincode #fake-sim-pin {
+	margin-top: -4rem;
+	opacity: 0;
+	pointer-events: auto;
+}
+
+#pincode input[type="number"] {
+    -moz-box-sizing: border-box;
+    display: block;
+    overflow: hidden;
+    width: 100%;
+    height: 4rem;
+    resize: none;
+    padding: 0px 0.8rem;
 }
 
 /*
@@ -221,7 +251,8 @@ html, body {
 
 #languages [data-type="list"] {	
 	background: url(images/bgbubbles.png) 0 -4.5rem no-repeat;
-  padding-top: 14rem;
+	background-size: 100% auto;
+	padding-top: 14rem;
 }
 
 /*
@@ -259,18 +290,18 @@ html, body {
 	Finish process
 */
 
-#finish {
+#finish, #tutorialFinish {
 	opacity: 0;
 	z-index: 3010;
 	transition: all 1s ease;
 	background: #3b4547;
 }
 
-#finish.show {
+#finish.show, #tutorialFinish.show {
 	opacity: 1;
 }
 
-#finish h1 {
+#finish h1, #tutorialFinish h1 {
 	margin: 0;
 	color: white;
 	font-size: 4.1rem;
@@ -279,7 +310,7 @@ html, body {
 	line-height: 4rem;
 }
 
-#finish h2 {
+#finish h2, #tutorialFinish h2 {
 	margin: 0;
 	color: white;
 	font-size: 1.8rem;
@@ -288,7 +319,7 @@ html, body {
 	line-height: 2rem;
 }
 
-#finish p {
+#finish p, #tutorialFinish p {
 	margin: 0;
 	color: white;
 	font-size: 1.4rem;
@@ -296,17 +327,24 @@ html, body {
 }
 
 #finish .content {
-	background: url(images/thumb-up.png) no-repeat center 90%;
+	background: url(images/icon_tour.png) no-repeat center 95%;
+}
+
+#tutorialFinish .content {
+	background: url(images/thumb-up.png) no-repeat center 70%;
+}
+
+#finish .content, #tutorialFinish .content {
 	height: calc(100% - 6rem);
   padding: 0 3rem;
   width: calc(100% - 6rem);
 }
 
-#finish [role=navigation] {
+#finish [role=navigation],#tutorialFinish [role=navigation] {
   border-top: .1rem solid #697476;
 }
 
-#finish [role=navigation] button {
+#finish [role=navigation] button,#tutorialFinish [role=navigation] button {
 	text-align: center;
 }
 
@@ -699,6 +737,7 @@ html, body {
   font-weight: 500;
 }
 
+
 #date_and_time [data-type="list"] select,
 #date_and_time [data-type="list"] input {
   width: 8rem;
@@ -762,3 +801,28 @@ html, body {
   margin: 0px 0.5rem 0px 0px !important;
 }
 
+
+/*
+	Tutorial
+*/
+
+#tutorial [role=main] > [role=region] {
+	background-color: #474747;
+	color: white;
+}
+
+#tutorial [role=main] {
+	height: 100%;
+	position: relative;
+}
+
+#tutorial header {
+	height: 6rem;
+	padding: 3rem 2.5rem 0 2.5rem;
+	font-size: 1.4rem;
+	margin-bottom: 1rem;
+}
+
+#tutorial section {
+	text-align: center;
+}

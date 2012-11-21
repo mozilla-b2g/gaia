@@ -65,5 +65,4 @@
   window.addEventListener('utilitytrayshow', _ensureWidget);
   window.addEventListener('utilitytrayshow', _showWidget);
   window.addEventListener('utilitytrayhide', _hideWidget);
-  window.addEventListener('applicationready', _ensureWidget);
 }());

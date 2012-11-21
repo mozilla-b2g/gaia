@@ -1,6 +1,7 @@
 (function(window) {
   var idb = window.indexedDB;
-  const VERSION = 10;
+  const VERSION = 11;
+  var debug = Calendar.debug('database');
 
   var store = {
     events: 'events',
@@ -62,10 +63,14 @@
 
       function complete() {
         if (self.hasUpgraded && self.oldVersion < 8) {
-          self._setupDefaults(callback);
+          self._setupDefaults(function(err) {
+            callback(err);
+            self.emit('loaded');
+          });
         } else {
           if (callback) {
             callback();
+            self.emit('loaded');
           }
         }
       }
@@ -285,6 +290,10 @@
           if (this.oldVersion !== 0) {
             this._upgradeOperations.push(this._upgradeMoveICALComponents);
           }
+        } else if (curVersion === 10) {
+          if (this.oldVersion !== 0) {
+            this._upgradeOperations.push(this._resetCaldavAccounts);
+          }
         }
       }
     },
@@ -376,6 +385,90 @@
     },
 
     /** private db upgrade methods **/
+
+    /**
+     * Reset all caldav accounts removing all events,
+     * calendars, alarms and components.
+     * Then triggering resync.
+     *
+     * @param {Function} callback fired on completion.
+     */
+    _resetCaldavAccounts: function(callback) {
+      debug('enter reset caldav');
+
+      var trans = this.transaction(
+        [
+          store.accounts, store.calendars,
+          store.events, store.busytimes,
+          store.alarms, store.icalComponents
+        ],
+        'readwrite'
+      );
+
+      this.once('loaded', function() {
+        if ('syncController' in Calendar.App && navigator.onLine) {
+          Calendar.App.syncController.sync(function() {
+            debug('begin resync after reset');
+          });
+        } else {
+          debug('skipping resync');
+        }
+      });
+
+      var accountObjectStore = trans.objectStore(store.accounts);
+      var calendarObjectStore = trans.objectStore(store.calendars);
+      var calendarStore = this.getStore('Calendar');
+
+      trans.onerror = function(event) {
+        debug('ERROR', event.target.error.name);
+        callback(event.target.error);
+      };
+
+      trans.oncomplete = function() {
+        callback();
+      }
+
+      var caldavAccounts = Object.create(null);
+
+      function fetchCalendars() {
+        calendarObjectStore.mozGetAll().onsuccess = function(event) {
+          var result = event.target.result;
+          var i = 0;
+          var len = result.length;
+
+          for (; i < len; i++) {
+            var calendar = result[i];
+
+            if (calendar.accountId in caldavAccounts) {
+              debug('reset calendar:', calendar);
+              calendarStore.remove(calendar._id, trans);
+            }
+          }
+        };
+      }
+
+      accountObjectStore.mozGetAll().onsuccess = function(event) {
+        var result = event.target.result;
+        var i = 0;
+        var len = result.length;
+        var hasCaldav = false;
+
+        for (; i < len; i++) {
+          var account = result[i];
+
+          if (account.providerType === 'Caldav') {
+            hasCaldav = true;
+            debug('reset account', account);
+            caldavAccounts[account._id] = true;
+          }
+
+          if (hasCaldav) {
+            fetchCalendars();
+          }
+        }
+      };
+    },
+
     _upgradeMoveICALComponents: function(callback) {
       var trans = this.transaction(
         [store.events, store.icalComponents],

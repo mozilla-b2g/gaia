@@ -57,7 +57,7 @@ if (typeof fb.importer === 'undefined') {
     var contactList = document.querySelector('#groups-list');
 
     var headerElement = document.querySelector('header');
-    var friendsMsgElement = document.querySelector('p#friends-msg');
+    var friendsMsgElement = document.querySelector('#friends-msg');
     var scrollableElement = document.querySelector('#mainContent');
 
     var BLOCK_SIZE = 5;
@@ -201,8 +201,7 @@ if (typeof fb.importer === 'undefined') {
 
       eleNumImport.value = newValue;
 
-      var msgElement = document.querySelector('#friends-msg');
-      msgElement.textContent = _('friendsFound', {
+      friendsMsgElement.textContent = _('fbFriendsFound', {
         numFriends: newValue
       });
 
@@ -646,7 +645,7 @@ if (typeof fb.importer === 'undefined') {
 
       function updateProgress() {
         if (mprogress) {
-          mprogress.update(Math.ceil((++counter * 100) / total));
+          mprogress.update(++counter,total);
         }
       }
 

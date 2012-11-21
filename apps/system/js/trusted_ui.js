@@ -46,6 +46,7 @@ var TrustedUIManager = {
     window.addEventListener('home', this);
     window.addEventListener('holdhome', this);
     window.addEventListener('appwillopen', this);
+    window.addEventListener('appopen', this);
     window.addEventListener('appwillclose', this);
     window.addEventListener('appterminated', this);
     window.addEventListener('keyboardhide', this);
@@ -72,8 +73,9 @@ var TrustedUIManager = {
   },
 
   open: function trui_open(name, frame, chromeEventId) {
+    screen.mozLockOrientation('portrait');
     this._hideAllFrames();
-    if (this.currentStack.length > 0) {
+    if (this.currentStack.length) {
       this._makeDialogHidden(this._getTopDialog());
       this._pushNewDialog(name, frame, chromeEventId);
     } else {
@@ -91,6 +93,8 @@ var TrustedUIManager = {
     // XXX this assumes that close() will only be called from the
     // topmost element in the frame stack.  woooog.
     var stackSize = this.currentStack.length;
+
+    this._restoreOrientation();
 
     if (callback)
       callback();
@@ -172,7 +176,13 @@ var TrustedUIManager = {
   _makeDialogHidden: function trui_makeDialogHidden(dialog) {
     if (!dialog)
       return;
+    this._restoreOrientation();
     dialog.frame.classList.remove('selected');
+  },
+
+  _restoreOrientation: function trui_restoreOrientation() {
+    var app = WindowManager.getDisplayedApp();
+    WindowManager.setOrientationForApp(app);
   },
 
   _closeTopDialog: function trui_closeTopDialog() {
@@ -183,7 +193,7 @@ var TrustedUIManager = {
     this.container.removeChild(dialog.frame);
     this._dispatchCloseEvent(dialog.chromeEventId);
 
-    if (this.currentStack.length > 0) {
+    if (this.currentStack.length) {
       this._makeDialogVisible(this._getTopDialog());
     }
   },
@@ -246,12 +256,17 @@ var TrustedUIManager = {
         break;
       case 'appwillopen':
         this._lastDisplayedApp = evt.detail.origin;
-        if (this.currentStack.length > 0) {
+        if (this.currentStack.length) {
           // Reopening an app with trustedUI
           this.popupContainer.classList.remove('up');
           this._makeDialogVisible(this._getTopDialog());
           WindowManager.hideCurrentApp();
           this.reopenTrustedApp();
+        }
+        break;
+      case 'appopen':
+        if (this.currentStack.length) {
+          screen.mozLockOrientation('portrait');
         }
         break;
       case 'appwillclose':

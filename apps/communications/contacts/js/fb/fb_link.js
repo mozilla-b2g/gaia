@@ -24,6 +24,8 @@ if (!fb.link) {
     // The uid of the friend to be linked
     var friendUidToLink;
 
+    var linkProposalElement = document.querySelector('#linkProposal');
+
     // Base query to search for contacts
     var SEARCH_QUERY = ['SELECT uid, name, email from user ',
     ' WHERE uid IN (SELECT uid1 FROM friend WHERE uid2=me() ORDER BY rank) ',
@@ -251,6 +253,7 @@ if (!fb.link) {
         var data = response.data;
         currentRecommendation = data;
 
+        var numFriendsProposed = response.data.length;
         data.forEach(function(item) {
           if (!item.email) {
             item.email = '';
@@ -259,10 +262,15 @@ if (!fb.link) {
 
         if (numQueries === 3) {
           mainSection.classList.add('no-proposal');
+          numFriendsProposed = 0;
         } else {
           viewButton.textContent = _('viewAll');
           viewButton.onclick = UI.viewAllFriends;
         }
+
+        linkProposalElement.textContent = _('linkProposal', {
+          numFriends: numFriendsProposed
+        });
 
         utils.templates.append('#friends-list', data);
         ImageLoader.reload();

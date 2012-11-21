@@ -296,6 +296,19 @@ li a[role="button"].activity > b{
   bottom: 0;
 }
 
+/* BB Lists extending */
+[data-type="list"] header {
+  margin-left: -1rem;
+}
+
+/* JS helper */
+[data-type="list"] li p,
+[data-type="list"] li aside {
+  pointer-events: none;
+}
+
+
+
 /* Selection tag extended from shared/style/buttons.css */
 .view-select-tag .selection-list li button {
   background-color: #fff;
@@ -680,6 +693,27 @@ span[role="button"].icon-arrow.icon-arrow-right {
   font-style: normal;
   margin-top: 1rem;
 }
+
+.fillflow-media .edit-photo {
+  background: rgba(255, 255, 255, 0.4);
+  top: 0;
+  right: 5rem;
+  z-index: 1;
+  margin: 0;
+  display: none;
+  pointer-events: none;
+}
+
+.fillflow-media .edit-photo em {
+  color: #fff;
+  text-shadow: 0 0 2px rgba(0, 0, 0, 0.9);
+  margin-top: 6rem;
+}
+
+.with-photo .edit-photo {
+  display: block;
+}
+
 
 .fillflow-media img {
   width: 100%;
