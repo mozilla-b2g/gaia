@@ -150,6 +150,6 @@ section.valueselector button {
   margin: 0;
 }
 
-body[role="application"] menu:not([type="toolbar"]):not([data-items="1"]) button:last-child {
+section.valueselector menu:not([type="toolbar"]):not([data-items="1"]) button:last-child {
   margin: 0;
 }
