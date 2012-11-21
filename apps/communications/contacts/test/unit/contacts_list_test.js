@@ -460,6 +460,25 @@ suite('Render contacts list', function() {
       assertTotal(0, 0);
     });
 
+    test('removing one contact', function() {
+      subject.load([]);
+      var newList = new MockContactsList();
+      subject.load(newList);
+      var originalNumber = container.querySelectorAll('.contact-item').length;
+      assert.isNotNull(container.querySelector('[data-uuid="2"]'));
+
+      subject.remove('2');
+
+      var afterDelNumber = container.querySelectorAll('.contact-item').length;
+      assert.equal(originalNumber, afterDelNumber + 1);
+      assert.isNotNull(container.querySelector('[data-uuid="1"]'));
+      assert.isNull(container.querySelector('[data-uuid="2"]'));
+      assert.isNotNull(container.querySelector('[data-uuid="3"]'));
+
+      // There are contacts on the list so no contacts should be hidden
+      assert.isTrue(noContacts.classList.contains('hide'));
+    });
+
     test('checking no contacts when coming from activity', function() {
       MockActivities.currentlyHandling = true;
       subject.load([]);
