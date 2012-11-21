@@ -227,6 +227,12 @@ ul li > label .range-icons.brightness {
   pointer-events: none;
 }
 
+/******************************************************************************
+ * Device Information
+ */
+#last-update-date {
+  font-size: 1.4rem;
+}
 
 /******************************************************************************
  * Improve Firefox OS
@@ -258,4 +264,5 @@ html[dir="rtl"] label[for^="pwd"] {
   padding-left: inherit;
   padding-right: 3rem;
 }
+
 

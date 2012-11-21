@@ -290,6 +290,26 @@ var Settings = {
     req.send();
   },
 
+  loadLastUpdated: function settings_loadLastUpdated() {
+    var settings = this.mozSettings;
+    if (!settings) {
+      return;
+    }
+
+    var lastUpdateDate = document.getElementById('last-update-date');
+    var lock = settings.createLock();
+    var key = 'deviceinfo.last_updated';
+    var request = lock.get(key);
+    request.onsuccess = function() {
+      var lastUpdated = request.result[key];
+      var f = new navigator.mozL10n.DateTimeFormat();
+      var _ = navigator.mozL10n.get;
+
+      lastUpdateDate.textContent = f.localeFormat(new Date(lastUpdated),
+                                                  _('shortDateTimeFormat'));
+    };
+  },
+
   openDialog: function settings_openDialog(dialogID) {
     var settings = this.mozSettings;
     var dialog = document.getElementById(dialogID);
@@ -484,6 +504,7 @@ window.addEventListener('load', function loadSettings() {
         document.getElementById('ftuLauncher').onclick =
           Settings.launchFTU.bind(Settings);
         Settings.loadGaiaCommit();
+        Settings.loadLastUpdated();
         break;
       case 'help':                // handle specific link
         document.querySelector('[data-l10n-id="user-guide"]').onclick =
