@@ -140,6 +140,22 @@ function setupWidget() {
 
   }
 
+  // Full mode for data usage when only data is available
+  function _adaptLayout(evt) {
+
+    _widget.classList.remove('full');
+    _leftPanel.setAttribute('aria-hidden', 'false');
+
+    var status = evt.detail;
+    if (!status.enabledFunctionalities.balance &&
+        !status.enabledFunctionalities.telephony) {
+
+      _widget.classList.add('full');
+      _leftPanel.setAttribute('aria-hidden', 'true');
+    }
+  };
+
+
   // Attach event listeners for manual updates
   function _configureWidget() {
 
@@ -170,21 +186,8 @@ function setupWidget() {
       _updateUI();
     });
 
-    // Full mode for data usage when only data is available
-    Service.onservicestatuschange = function ccwidget_adaptLayout(evt) {
-
-      _widget.classList.remove('full');
-      _leftPanel.setAttribute('aria-hidden', 'false');
-
-      var status = evt.detail;
-      if (!status.enabledFunctionalities.balance &&
-          !status.enabledFunctionalities.telephony) {
-
-        _widget.classList.add('full');
-        _leftPanel.setAttribute('aria-hidden', 'true');
-      }
-    };
-
+    Service.onservicestatuschange = _adaptLayout;
+    _adaptLayout({ detail: Service.getServiceStatus() });
     _updateUI();
   }
 
