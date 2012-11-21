@@ -509,8 +509,8 @@ var ThreadListUI = {
 
         var message = messages[i];
         var time = message.timestamp.getTime();
-        var num = message.delivery == 'received' ?
-        message.sender : message.receiver;
+        var num =  message.sender || message.receiver;
+
         var numNormalized =
           PhoneNumberManager.getNormalizedInternationalNumber(num);
         if (!message.read) {
@@ -574,7 +574,7 @@ var ThreadListUI = {
     var dataName = Utils.escapeHTML(thread.name ||
                                     thread.num, true);
     var name = Utils.escapeHTML(thread.name);
-    var bodyText = thread.body.split('\n')[0];
+    var bodyText = (thread.body || '').split('\n')[0];
     var bodyHTML = Utils.escapeHTML(bodyText);
     // Create HTML structure
     var structureHTML = '  <a id="' + thread.num +
