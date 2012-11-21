@@ -21,13 +21,13 @@ if (typeof Contacts.extFb === 'undefined') {
       } else {
         unlink(contactId);
       }
-    }
+    };
 
     extFb.importFB = function(evt) {
       closeRequested = false;
       canClose = false;
       load('fb_import.html', 'friends');
-    }
+    };
 
     function open() {
       extensionFrame.className = 'opening';
@@ -81,22 +81,22 @@ if (typeof Contacts.extFb === 'undefined') {
         var profileUrl = 'https://m.facebook.com/' + uid;
 
         openURL(profileUrl);
-      }
+      };
 
       req.onerror = function() {
         window.console.error('Contacts FB Profile: Contact not found');
-      }
-    }
+      };
+    };
 
     extFb.wallPost = function(cid) {
       contactId = cid;
       fb.msg.ui.wallPost(contactId);
-    }
+    };
 
     extFb.sendPrivateMsg = function(cid) {
       contactId = cid;
       fb.msg.ui.sendPrivateMsg(contactId);
-    }
+    };
 
     extFb.initEventHandlers = function(socialNode, contact, linked) {
       var elements = {
@@ -131,7 +131,7 @@ if (typeof Contacts.extFb === 'undefined') {
         });
         node.addEventListener('click', elements[nodeName].callback);
       }
-    }
+    };
 
     function onClickWithId(evt, callback) {
       var contactId = evt.target.dataset['id'];
@@ -190,25 +190,26 @@ if (typeof Contacts.extFb === 'undefined') {
             contacts.List.remove(originalFbContact.id);
           }
           Contacts.showContactDetail(contactId);
-        }
+        };
 
         req.onerror = function() {
            window.console.error('FB: Error while linking contacts', req.error);
-        }
-      }
+        };
+      };
 
       mozContReq.onerror = function() {
          window.console.error('FB: Error while linking contacts',
                               mozContReq.error);
-      }
+      };
     }
 
     function unlink(cid) {
       var msg = _('social-unlink-confirm-title');
       var yesObject = {
         title: _('social-unlink-confirm-accept'),
+        isDanger: true,
         callback: function onAccept() {
-          CustomDialog.hide();
+          ConfirmDialog.hide();
           doUnlink(cid);
         }
       };
@@ -216,11 +217,11 @@ if (typeof Contacts.extFb === 'undefined') {
       var noObject = {
         title: _('cancel'),
         callback: function onCancel() {
-          CustomDialog.hide();
+          ConfirmDialog.hide();
         }
       };
 
-      CustomDialog.show(null, msg, noObject, yesObject);
+      ConfirmDialog.show(null, msg, noObject, yesObject);
     }
 
     function doUnlink(cid) {
@@ -235,11 +236,11 @@ if (typeof Contacts.extFb === 'undefined') {
           Contacts.updateContactDetail(cid);
           contacts.List.refresh(freq.result);
         }
-      }
+      };
 
       freq.onerror = function() {
         window.console.error('FB: Error while unlinking', freq.error);
-      }
+      };
     }
 
     function notifySettings() {
