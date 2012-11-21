@@ -8,7 +8,21 @@ var ConfirmDialog = (function() {
   var titleNode = screen.querySelector('h1');
   var messageNode = screen.querySelector('p');
   var action1Node = screen.querySelector('button:nth-of-type(1)');
+  var action1Callback;
   var action2Node = screen.querySelector('button:nth-of-type(2)');
+  var action2Callback;
+
+  var callBackAndPreventDefault = function(ev) {
+    if (ev.target === action1Node) {
+      action1Callback();
+      ev.preventDefault();
+      return false;
+    } else if (ev.target === action2Node) {
+      action2Callback();
+      ev.preventDefault();
+      return false;
+    }
+  }
 
   return {
     hide: function dialog_hide() {
@@ -20,10 +34,10 @@ var ConfirmDialog = (function() {
       messageNode.className = '';
       action1Node.textContent = '';
       action1Node.className = '';
-      action1Node.removeEventListener('click', action1Node.callback);
+      action1Node.onclick = null;
       action2Node.textContent = '';
       action2Node.className = '';
-      action2Node.removeEventListener('click', action2Node.callback);
+      action2Node.onclick = null;
       screen.classList.add('hide');
     },
 
@@ -54,9 +68,8 @@ var ConfirmDialog = (function() {
           action1Node.classList.add('danger');
         }
         if (action1.callback) {
-          action1Node.addEventListener('click', action1.callback);
-          // To remove the listener on hide.
-          action1Node.callback = action1.callback;
+          action1Callback = action1.callback;
+          action1Node.onclick = callBackAndPreventDefault;
         }
         if (!action2) {
           action2Node.classList.add('hide');
@@ -71,9 +84,8 @@ var ConfirmDialog = (function() {
           action2Node.classList.add('danger');
         }
         if (action2.callback) {
-          action2Node.addEventListener('click', action2.callback);
-          // To remove the listener on hide.
-          action2Node.callback = action2.callback;
+          action2Callback = action2.callback;
+          action2Node.onclick = callBackAndPreventDefault;
         }
         if (!action1) {
           action1Node.classList.add('hide');
