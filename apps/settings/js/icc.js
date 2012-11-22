@@ -211,7 +211,7 @@
         break;
 
       case icc.STK_CMD_PLAY_TONE:
-        debug(' STK:Play Tone: ', otions);
+        debug(' STK:Play Tone: ', options);
         playTone(options);
         iccLastCommandProcessed = true;
         responseSTKCommand({ resultCode: icc.STK_RESULT_OK });
