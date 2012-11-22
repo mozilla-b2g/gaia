@@ -150,6 +150,11 @@ var UssdManager = {
         this._popup.postMessage(this._pendingNotification, this._origin);
   },
 
+  isUSSD: function um_isUSSD(number) {
+    // A valid USSD/MMI code is any 'number' with a '*' and/or a '#' inside.
+    return ((number.indexOf('*') != -1) || (number.indexOf('#') != -1));
+  },
+
   handleEvent: function um_handleEvent(evt) {
     if (!evt.type)
       return;
