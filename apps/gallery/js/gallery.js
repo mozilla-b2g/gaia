@@ -4,19 +4,15 @@
 'use strict';
 
 // TODO
-// clean up comments... lots are out of date
-// fix share activity
 // fix edit mode
 
 /*
- * This app displays photos that are stored on the phone.
+ * This app displays photos and videos that are stored on the phone.
  *
  * Its starts with a thumbnail view in which small versions of all photos
- * are displayed.  Tapping on a thumbnail shows the full-size image.
- *
- * When a full-size image is displayed, swiping left or right moves to
- * the next or previous image (this depends on the writing direction of
- * the locale).
+ * and videos are displayed.  Tapping on a thumbnail shows the image
+ * or video at the full size of the screen and swiping left or right moves to
+ * the next or previous image or video.
  *
  * The app supports two-finger "pinch" gestures to zoom in and out on an
  * image.  When zoomed, a one finger swipe gesture pans within the zoomed
@@ -24,115 +20,13 @@
  * edge of the currently displayed image.
  *
  * To make transitions between photos smooth, the app preloads the next
- * and previous images and positions them off-screen to the right and
- * left (or opposite for RTL locales) of the currently displayed image.
+ * and previous image or video and positions them off-screen to the right and
+ * left of the currently displayed image.
  *
- * Images are displayed with <img> elements inside <div> elements. These
- * <div> elements are called "frames", and the three global variables
- * currentFrame, previousFrame and nextFrame refer to the
- * three frame divs.  The next and previous frames are positioned by
- * setting a CSS class, which sets the CSS left property to position them
- * offscreen (the classes are defined differently for RTL and LTR
- * languages).  When the user pans left or right (and when the current
- * image isn't zoomed in) the app sets the left property of the div that
- * contains all three frames so that the user sees one photo moving off
- * screen and the other one moving on. When the user lifts their finger,
- * the app uses a CSS transition to slide the current photo back into
- * place (if the pan wasn't far enough) or to complete the transition to
- * the next or previous photo.
- *
- * The transitions are performed by changing the CSS classes on the three
- * frame <divs> and cycling them. To transition to the next photo, for
- * example, nextFrame becomes currentFrame, currentFrame
- * becomes previousFrame, and previousFrame cycles around to
- * become the new nextFrame (and loads a new image). At the same
- * time, the css classes on these frames are changed to reposition them
- * and CSS handles the transition animation for us, animating both the
- * change in the left property caused by the class change, and the change
- * in the transform property which is set back to the empty string.
- *
- * The trickiest code has to do with handling zooms and pans while the
- * photo is zoomed in.  If the photo isn't zoomed in, then any pan ends
- * with a transition to a new photo or back to the original photo.  But
- * when we're zoomed, then pans can just be moving around within the
- * zoomed photo. Panning and zooming a photo is implemented by setting
- * the CSS top, left, width and height photos of the img tag. (The img is
- * display:relative, and the frame is overflow:none.) So this is a
- * completely different positioning mechanism than the one used for
- * swiping and transitioning photos sideways.
- *
- * Notice that a single pan gesture can cause two different things to
- * happen: it moves the zoomed in image within its frame and then, when
- * edge of the photo is reached, it starts to transition from that photo
- * to the next or previous one. Also, when we do zooms, we want to zoom
- * in or out around the midpoint between the user's fingers, and zooming
- * around a point requires us to pan the photo. The code for handling the
- * zoom and pan computations is separated out into the Frame class.
- *
- * Pan gestures are made with a single finger and are implemented with a
- * mousedown handler (so it works with a mouse on the desktop as well as
- * with a finger on a phone) that registers temporary capturing mousemove
- * and mouseup listeners.
- *
- * Zoom gestures are two finger gestures so they only work on
- * touch-sensitive devices and can't be tested on the desktop.  They're
- * implemented on top of basic touch events in the separate file gestures.js.
- *
- * This app has various display states it can be in.
- * Here's a list of the states and the transitions between them:
- *
- * State 0: Startup/Uninitialized
- *   -> regular launch: go to state 1
- *   -> launch for pick activity: go to state 7
- *
- * State 1: thumbnail list
- *   -> click on thumbnail: go to state 2
- *   -> click on select: go to state 3
- *
- * State 2: single photo view (with toolbar)
- *   -> gallery button: go to state 1
- *   -> edit button: go to state 4
- *   -> single tap: enter fullscreen mode, go to state 2a
- *   -> camera button: launch camera
- *   -> share button: launch share activity
- *   -> trash button: delete curent photo
- *
- * State 2a: fullscreen photo view (no toolbar)
- *   -> single tap: exit fullscreen mode, go to state 2
- *   -> leave fullscreen: go to state 2
- *
- * State 3: select mode
- *   -> click on X button: go to state 1
- *   -> click on thumbnail: highlight thumbnail
- *   -> trash button: delete selected images
- *   -> share button: share selected images
- *
- * State 4: edit mode
- *   -> click on X button: go to state 2
- *   -> save button: save edits, go to state 1 (?)
- *   -> exposure, crop, effects, borders buttons: switch among sub-states
- *    State 4a: exposure
- *    State 4b: cropping
- *    State 4c: effects
- *    State 4d: borders
- *
- * State 5: open mode
- * NOTE: this mode is now handled separately by open.html and open.js
- *   Enter fullscreen when entering this mode (?)
- *   -> camera button: end activity, go to state 1 or just close self
- *   -> swipe down: end activity, go to state 1 or just close self
- *   -> trash button: delete file, end activity, go to state 1 or close self
- *   -> exit fullscreen: end activity, go to state 1 or just close self
- *
- * State 6: pick mode
- *   -> click on thumbnail: go to state 7
- *   -> back button: end activity, go to state 1 or just exit
- *   ->
- *
- * State 7: crop mode
- *   -> back button: go to state 6
- *   -> check button: end activity, go to state 1 or just exit
- *   -> crop controls: change image size
+ * Image and videos are displayed in "frames" which are managed by
+ * the Frame.js abstraction. A Frame object includes a video player UI
+ * (from VideoPlayer.js) and also includes the code that manage zooming
+ * and panning within an image.
  */
 
 //
@@ -205,7 +99,11 @@ var files = [];
 
 var currentFileIndex = 0;       // What file is currently displayed
 
-
+// In thumbnailSelectView, we allow the user to select thumbnails.
+// These variables hold the names of the selected files, and map those
+// names to the corresponding File objects
+var selectedFileNames = [];
+var selectedFileNamesToBlobs = {};
 
 // The MediaDB objects that manage the filesystem and the database of metadata
 // See init()
@@ -622,7 +520,7 @@ function setView(view) {
   case thumbnailSelectView:
     thumbnailSelectView.appendChild(thumbnails);
     // Set the view header to a localized string
-    updateSelectionState();
+    clearSelection();
     break;
   case pickView:
     pickView.appendChild(thumbnails);
@@ -860,23 +758,55 @@ function thumbnailClickHandler(evt) {
     showFile(parseInt(target.dataset.index));
   }
   else if (currentView === thumbnailSelectView) {
-    target.classList.toggle('selected');
-    updateSelectionState();
+    updateSelection(target);
   }
   else if (currentView === pickView) {
     cropPickedImage(files[parseInt(target.dataset.index)]);
   }
 }
 
+function clearSelection() {
+  selectedFileNames = [];
+  selectedFileNamesToBlobs = {};
+  $('thumbnails-delete-button').classList.add('disabled');
+  $('thumbnails-share-button').classList.add('disabled');
+  $('thumbnails-number-selected').textContent =
+    navigator.mozL10n.get('number-selected2', { n: 0 });
+}
+
 // When we enter thumbnail selection mode, or when the selection changes
 // we call this function to update the message the top of the screen and to
 // enable or disable the Delete and Share buttons
-function updateSelectionState() {
-  var n = thumbnails.querySelectorAll('.selected.thumbnail').length;
-  var msg = navigator.mozL10n.get('number-selected2', { n: n });
+function updateSelection(thumbnail) {
+  // First, update the visual appearance of the element
+  thumbnail.classList.toggle('selected');
+
+  // Now update the list of selected filenames and filename->blob map
+  // based on whether we selected or deselected the thumbnail
+  var selected = thumbnail.classList.contains('selected');
+  var index = parseInt(thumbnail.dataset.index);
+  var filename = files[index].name;
+
+  if (selected) {
+    selectedFileNames.push(filename);
+    var db = files[index].metadata.video ? videodb : photodb;
+    db.getFile(filename, function(file) {
+      selectedFileNamesToBlobs[filename] = file;
+    });
+  }
+  else {
+    delete selectedFileNamesToBlobs[filename];
+    var i = selectedFileNames.indexOf(filename);
+    if (i !== -1)
+      selectedFileNames.splice(i, 1);
+  }
+
+  // Now update the UI based on the number of selected thumbnails
+  var numSelected = selectedFileNames.length;
+  var msg = navigator.mozL10n.get('number-selected2', { n: numSelected });
   $('thumbnails-number-selected').textContent = msg;
 
-  if (n === 0) {
+  if (numSelected === 0) {
     $('thumbnails-delete-button').classList.add('disabled');
     $('thumbnails-share-button').classList.add('disabled');
   }
@@ -910,7 +840,7 @@ function deleteSelectedItems() {
       selected[i].classList.toggle('selected');
       deleteFile(parseInt(selected[i].dataset.index));
     }
-    updateSelectionState();
+    clearSelection();
   }
 }
 
@@ -930,66 +860,55 @@ function deleteSingleItem() {
 
 // In fullscreen mode, the share button shares the current item
 function shareSingleItem() {
-  var image = files[currentFileIndex];
-  var filename = image.name;
-  shareFiles([filename]);
+  share([currentFrame.blob]);
 }
 
 // Clicking on the share button in select mode shares all selected images
 function shareSelectedItems() {
-  var selected = thumbnails.querySelectorAll('.selected.thumbnail');
-  if (selected.length === 0)
+  var blobs = selectedFileNames.map(function(name) {
+    return selectedFileNamesToBlobs[name];
+  });
+  share(blobs);
+}
+
+function share(blobs) {
+  if (blobs.length === 0)
     return;
-  var filenames = [];
-  for (var i = 0; i < selected.length; i++) {
-    var index = parseInt(selected[i].dataset.index);
-    filenames.push(files[index].name);
-  }
 
-  shareFiles(filenames);
-}
+  var names = [], types = [];
 
-/*
- * Share one or more images using Web Activities.
- *
- * Because multiple images may have different mime types we just
- * use 'image/*' as the type.
- *
- * Image data is passed as data: URLs because we can't pass blobs
- */
-function shareFiles(filenames) {
-  var blobs = [], basenames = [];
-  getBlobForNextFile();
+  // Get the file name (minus path) and type of each blob
+  blobs.forEach(function(blob) {
+    // Discard the path, we just want the base name
+    var name = blob.name;
+    if (name)
+      name = name.substring(name.lastIndexOf('/') + 1);
+    names.push(name);
 
-  function getBlobForNextFile() {
-    if (blobs.length === filenames.length) {
-      shareBlobs(blobs, basenames);
-    }
-    else {
-      var i = blobs.length;
-      var filename = filenames[i];
-      photodb.getFile(filename, function(file) {
-        blobs.push(file);
-        // filename is identical to file.name, both of which may contain path
-        // information.  We want to let the recipient know the name of the
-        // file, but not the path components.
-        basenames.push(filename.substring(filename.lastIndexOf('/') + 1));
-        getBlobForNextFile();
-      });
-    }
-  }
-}
+    // And we just want the first component of the type "image" or "video"
+    var type = blob.type;
+    if (type)
+      type = type.substring(0, type.indexOf('/'));
+    types.push(type);
+  });
 
-// This is called by shareFiles() once the filenames have
-// been converted to blobs
-function shareBlobs(blobs, filenames) {
+  // If there is just one type, or if all types are the same, then use
+  // that type plus '/*'. Otherwise, use 'multipart/mixed'
+  // If all the blobs are image we use 'image/*'. If all are videos
+  // we use 'video/*'. Otherwise, 'multipart/mixed'.
+  var type;
+  if (types.length === 1 || types.every(function(t) { return t === types[0]; }))
+    type = types[0] + '/*';
+  else
+    type = 'multipart/mixed';
+
   var a = new MozActivity({
     name: 'share',
     data: {
-      type: 'image/*',
+      type: type,
       number: blobs.length,
       blobs: blobs,
-      filenames: filenames
+      filenames: names
     }
   });
 

@@ -111,21 +111,25 @@ h2.block-title {
 }
 
 .link #main {
-  top: 9rem;
-  height: -moz-calc(100% - 9rem);
+  top: 7.7rem;
+  height: -moz-calc(100% - 7.7rem);
 }
 
 .link #mainContent {
-  padding: 0;
+  padding: 0 3.3rem 0 2.5rem; /* 2.5+0.8 for offset scrollbar */
 }
 
-link li {
-  margin-top: 0;
+/* Force having blue highlight */
+.link #mainContent li[data-uuid] *:not(input) {
+  pointer-events: auto;
 }
 
-.link li img {
-  margin-right: 0.8rem;
+.link #mainContent li[data-uuid] p,
+.link #mainContent li[data-uuid] img,
+.link #mainContent li[data-uuid] aside {
+  pointer-events: none;
 }
+
 
 #groups-list {
   width: -moz-calc(100% - 5rem - 0.8rem) !important;

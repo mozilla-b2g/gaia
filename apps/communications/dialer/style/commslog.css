@@ -317,15 +317,3 @@ label:not([for]).call-log-selection input + span {
 #add-contact-action-menu.visible {
   display: inline;
 }
-
-/*
-  Call log entries deletion confirmation
- */
-
-#recents-deletion-confirmation {
-  display: none;
-}
-
-#recents-deletion-confirmation.visible {
-  display: inline-block;
-}

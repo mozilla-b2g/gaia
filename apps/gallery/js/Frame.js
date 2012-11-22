@@ -38,6 +38,7 @@ function Frame(container, includeVideo) {
   }
   this.displayingVideo = false;
   this.displayingImage = false;
+  this.blob = null;
   this.url = null;
 }
 
@@ -50,6 +51,9 @@ Frame.prototype.displayImage = function displayImage(blob, width, height) {
   if (this.video)
     this.video.hide();
   this.image.style.display = 'block';
+
+  // Remember the blob
+  this.blob = blob;
 
   // If we have the blob url of something we've previously displayed
   // revoke it now
@@ -95,6 +99,9 @@ Frame.prototype.displayVideo = function displayVideo(blob, width, height) {
   // Show the video player and hide the image
   this.video.show();
   this.image.style.display = 'none';
+
+  // Remember the blob
+  this.blob = blob;
 
   // If we have the blob url of something we've previously displayed
   // revoke it now
@@ -143,6 +150,7 @@ Frame.prototype.clear = function clear() {
   if (this.video)
     this.video.hide();
   this.image.style.display = 'none';
+  this.blob = null;
   if (this.url) {
     URL.revokeObjectURL(this.url);
     this.url = null;

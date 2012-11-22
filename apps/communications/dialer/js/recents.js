@@ -94,24 +94,6 @@ var Recents = {
       getElementById('cancel-action-menu');
   },
 
-  get recentsDeletionConfirmation() {
-    delete this.recentsDeletionConfirmation;
-    return this.recentsDeletionConfirmation = document.
-      getElementById('recents-deletion-confirmation');
-  },
-
-  get recentsDeletionCancel() {
-    delete this.recentsDeletionCancel;
-    return this.recentsDeletionCancel = document.
-      getElementById('recents-deletion-cancel');
-  },
-
-  get recentsDeletionConfirm() {
-    delete this.recentsDeletionConfirm;
-    return this.recentsDeletionConfirm = document.
-      getElementById('recents-deletion-confirm');
-  },
-
   init: function re_init() {
     var self = this;
     if (this.recentsFilterContainer) {
@@ -166,18 +148,6 @@ var Recents = {
     if (this.cancelActionMenuItem) {
       this.cancelActionMenuItem.addEventListener('click',
         this.cancelActionMenu.bind(this));
-    }
-    if (this.recentsDeletionConfirmation) {
-      this.recentsDeletionConfirmation.addEventListener('submit',
-        this.formSubmit.bind(this));
-    }
-    if (this.recentsDeletionCancel) {
-      this.recentsDeletionCancel.addEventListener('click',
-        this.cancelRecentsDeletion.bind(this));
-    }
-    if (this.recentsDeletionConfirm) {
-      this.recentsDeletionConfirm.addEventListener('click',
-        this.deleteSelectedRecents.bind(this));
     }
 
     // Setting up the SimplePhoneMatcher
@@ -327,11 +297,22 @@ var Recents = {
   },
 
   executeDeletion: function re_executeDeletion() {
-    this.recentsDeletionConfirmation.classList.add('visible');
-  },
-
-  cancelRecentsDeletion: function re_cancelRecentsDeletion() {
-    this.recentsDeletionConfirmation.classList.remove('visible');
+    var self = this;
+    ConfirmDialog.show(
+      null,
+      _('confirm-deletion'),
+      {
+        title: _('cancel'),
+        callback: function() {
+          ConfirmDialog.hide();
+        }
+      },
+      {
+        title: _('delete'),
+        isDanger: true,
+        callback: self.deleteSelectedRecents.bind(self)
+      }
+    );
   },
 
   deleteSelectedRecents: function re_deleteSelectedRecents() {
@@ -352,7 +333,7 @@ var Recents = {
     RecentsDBManager.deleteList.call(RecentsDBManager,
       itemsToDelete, function deleteCB() {
         RecentsDBManager.get(function(recents) {
-          self.recentsDeletionConfirmation.classList.remove('visible');
+          ConfirmDialog.hide();
           self.render(recents);
           document.body.classList.remove('recents-edit');
         });
