@@ -25,12 +25,14 @@ const LandingPage = (function() {
     initTime();
   });
 
-  var clockOrigin = document.location.protocol + '//clock.' +
-        document.location.host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-
   var landingTime = document.querySelector('#landing-time');
   landingTime.addEventListener('click', function launchClock(evt) {
-    Applications.getByOrigin(clockOrigin).launch();
+    new MozActivity({
+      name: "view",
+      data: {
+        type: "time"
+      }
+    });
   });
 
   landingTime.addEventListener('contextmenu', function contextMenu(evt) {
