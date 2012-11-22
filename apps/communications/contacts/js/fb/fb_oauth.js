@@ -36,6 +36,21 @@ if (typeof fb.oauth === 'undefined') {
         state: state
       };
 
+      // Enables simple access to test tokens for hacking up the app
+      // This code will need to be deleted once we have a final product
+      fb.testToken = fb.testToken || parent.fb.testToken;
+      if (typeof fb.testToken === 'string' && fb.testToken.trim().length > 0) {
+        window.console.warn('Facebook. A test token will be used!');
+        tokenDataReady({
+          data: {
+            access_token: fb.testToken,
+            expires_in: 0,
+            state: state
+          }
+        });
+        return;
+      }
+
       asyncStorage.getItem(STORAGE_KEY,
                            function getAccessToken(tokenData) {
         if (!tokenData || !tokenData.access_token) {
