@@ -503,7 +503,7 @@ var Settings = {
     }
   },
 
-  updateLanguagePanel: function settings_presetLanguagePanel() {
+  updateLanguagePanel: function settings_updateLanguagePanel() {
     var panel = document.getElementById('languages');
     if (panel) { // update the date and time samples in the 'languages' panel
       var d = new Date();
