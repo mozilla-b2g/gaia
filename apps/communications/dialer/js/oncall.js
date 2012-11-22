@@ -160,6 +160,7 @@ var OnCallHandler = (function onCallHandler() {
 
   var displayed = false;
   var closing = false;
+  var animating = false;
   var ringing = false;
 
   /* === Settings === */
@@ -373,6 +374,7 @@ var OnCallHandler = (function onCallHandler() {
   /* === Call Screen === */
   function toggleScreen() {
     displayed = !displayed;
+    animating = true;
 
     CallScreen.screen.classList.remove('animate');
     CallScreen.screen.classList.toggle('prerender');
@@ -387,6 +389,9 @@ var OnCallHandler = (function onCallHandler() {
 
         CallScreen.screen.addEventListener('transitionend', function trWait() {
           CallScreen.screen.removeEventListener('transitionend', trWait);
+
+          animating = false;
+
           // We did animate the call screen off the viewport
           // now closing the window.
           if (!displayed) {
@@ -409,7 +414,7 @@ var OnCallHandler = (function onCallHandler() {
 
     closing = true;
 
-    if (animate) {
+    if (animate && !animating) {
       toggleScreen();
     } else {
       closeWindow();

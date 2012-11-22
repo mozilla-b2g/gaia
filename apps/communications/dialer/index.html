@@ -11,6 +11,8 @@
     <!-- Localization -->
     <link rel="resource" type="application/l10n" href="/dialer/locales/locales.ini">
     <link rel="resource" type="application/l10n" href="/shared/locales/date.ini">
+    <!-- Confirm dialogs BB library -->
+    <script defer type="text/javascript" src="/contacts/js/confirm_dialog.js"></script>
     <!-- Stable BB -->
     <link rel="stylesheet" type="text/css" href="/shared/style/headers.css">
     <link rel="stylesheet" type="text/css" href="/shared/style_unstable/tabs.css">
@@ -231,14 +233,15 @@
         <button id="cancel-action-menu" data-l10n-id="cancel">  Cancel  </button>
       </menu>
     </form>
-   
-    <form id="recents-deletion-confirmation" role="dialog" data-type="confirm">
+    
+    <form id="confirmation-message" class="hide" role="dialog" data-type="confirm">
       <section>
-        <p  data-l10n-id="confirm-deletion">Clear selected calls?</p>
+        <h1>Confirmation title</h1>
+        <p>Confirmation message</p>
       </section>
       <menu>
-        <button id="recents-deletion-cancel" data-l10n-id="cancel">Cancel</button>
-        <button id="recents-deletion-confirm" class="danger" data-l10n-id="delete">Delete</button>
+        <button>Action 1</button>
+        <button>Action 2</button>
       </menu>
     </form>
 
