@@ -348,8 +348,7 @@ var Carrier = (function newCarrier(window, document, undefined) {
   opAutoSelectInput.onchange = function() {
     if (opAutoSelectInput.checked) {
       gOperatorNetworkList.state = 'off';
-      // TODO: gMobileConnection.selectNetworkAutomatically()
-      // can't get this to work at the moment...
+      gMobileConnection.selectNetworkAutomatically();
     } else {
       gOperatorNetworkList.scan();
     }
