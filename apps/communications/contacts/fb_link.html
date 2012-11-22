@@ -39,8 +39,7 @@
     <link href="/shared/style/headers.css" rel="stylesheet">
     <link href="/shared/style/buttons.css" rel="stylesheet">
     <link href="/shared/style/confirm.css" rel="stylesheet">
-
-    <link rel="stylesheet" href="style/shared/widgets/lists/style.css">
+    <link href="/shared/style_unstable/lists.css" rel="stylesheet">
 
     <link rel="stylesheet" href="style/fb/facebook.css">
 
@@ -62,14 +61,16 @@
 
       <section id="main">
         <!-- Contacts List Section -->
-        <section id="mainContent" data-state="selection">
+        <section id="mainContent" data-state="selection" data-type="list">
           <ol id="friends-list">
             <li data-template data-uuid="#uid#">
-               <img data-src="https://graph.facebook.com/#uid#/picture?type=square" hidden>
-                <dl>
-                  <dt>#name#</dt>
-                  <dd>#email#</dd>
-                </dl>
+                <a href="#">
+                  <aside class="pack-end">
+                    <img data-src="https://graph.facebook.com/#uid#/picture?type=square" hidden>
+                  </aside>
+                  <p>#name#</p>
+                  <p>#email#</p>
+                </a>
             </li>
           </ol>
         </section> <!-- mainContent -->

@@ -431,7 +431,7 @@ if (!fb.link) {
     UI.selected = function(event) {
       Curtain.show('message', 'linking');
 
-      var element = event.target;
+      var element = event.target.parentNode;
       friendUidToLink = element.dataset.uuid;
 
       // First it is needed to check whether is an already imported friend
