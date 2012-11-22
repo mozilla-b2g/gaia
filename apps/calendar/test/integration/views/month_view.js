@@ -5,6 +5,8 @@ function MonthView(app) {
 MonthView.prototype = {
   __proto__: CalendarView.prototype,
 
+  viewSelector: 'monthView',
+
   /**
    * Navigate to this view.
    */

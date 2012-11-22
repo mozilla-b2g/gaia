@@ -6,6 +6,8 @@ require('/apps/calendar/js/utils/input_parser.js');
 require('/apps/calendar/test/integration/calendar_view.js');
 require('/apps/calendar/test/integration/views/modify_event_view.js');
 require('/apps/calendar/test/integration/views/month_view.js');
+require('/apps/calendar/test/integration/views/day_view.js');
+require('/apps/calendar/test/integration/views/week_view.js');
 require('/apps/calendar/test/integration/views/months_day_view.js');
 
 /* factories */
@@ -27,6 +29,11 @@ CalendarIntegration.prototype = {
 
   appName: 'Calendar',
 
+  searchTimeouts: {
+    long: 25000,
+    short: 2000
+  },
+
   /** selector tables */
   selectors: {
     /** views */
@@ -38,10 +45,15 @@ CalendarIntegration.prototype = {
     dayView: '#day-view',
     modifyEventView: '#modify-event-view',
 
+
+    /** view buttons */
+    addEventBtn: '#time-header a[href="/add/"]',
+    weekViewBtn: '#view-selector a[href="/week/"]',
+    dayViewBtn: '#view-selector a[href="/day/"]',
+
     /** buttons */
     showSettingsBtn: '#time-header button.settings',
     showAdvancedSettingsBtn: '#settings a[href="/advanced-settings/"]',
-    addEventBtn: '#time-header a[href="/add/"]',
     eventSaveBtn: '#modify-event-view > header .save',
     eventDeleteBtn: '#modify-event-view .delete-record',
 
@@ -57,6 +69,54 @@ CalendarIntegration.prototype = {
 
     /** generic */
     present: '.present'
+  },
+
+  launch: function(waitForBody, callback) {
+    var self = this;
+    AppIntegration.prototype.launch.call(this, true, function() {
+      self.task(function(app, next, done) {
+        yield IntegrationHelper.importScript(
+          app.device,
+          //TODO: this should likely be in atoms
+          '/test_apps/test-agent/common/test/synthetic_gestures.js'
+        );
+
+        yield app.resetSearchTimeout('long');
+
+        done();
+      });
+    });
+  },
+
+  /**
+   * Resets the element search timeout based on the .searchTimeouts property.
+   * Useful in cases where you want to reduce the timeout for known failures.
+   *
+   * @param {String} type (long or short).
+   */
+  resetSearchTimeout: function(type, callback) {
+    this.task(function(app, next, done) {
+      var timeout = this.searchTimeouts[type] || 3000;
+      yield app.device.setSearchTimeout(timeout);
+
+      done();
+    }, callback, this);
+  },
+
+  get dayView() {
+    if (!this._dayView) {
+      this._dayView = new DayView(this);
+    }
+
+    return this._dayView;
+  },
+
+  get weekView() {
+    if (!this._weekView) {
+      this._weekView = new WeekView(this);
+    }
+
+    return this._weekView;
   },
 
   get monthView() {
@@ -80,6 +140,27 @@ CalendarIntegration.prototype = {
       this._modifyEventView = new ModifyEventView(this);
     }
     return this._modifyEventView;
+  },
+
+  /**
+   * Swipes an element to the left or right.
+   *
+   * @param {Marionette.Element} element from marionette.
+   * @param {String} direction "left" or "right".
+   * @param {Number} duration period of time over which the swipe occurs.
+   */
+  swipe: function(element, direction, duration, callback) {
+    this.task(function(app, next, done) {
+      yield IntegrationHelper.sendAtom(
+        app.device,
+        '/apps/calendar/test/integration/atoms/view_swipe',
+        true,
+        // element, length of hold
+        [element, direction, (duration || 1200)]
+      );
+
+      done();
+    }, callback, this);
   },
 
   /**

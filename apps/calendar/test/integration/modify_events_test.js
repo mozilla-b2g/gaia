@@ -1,8 +1,4 @@
 require('/apps/calendar/test/integration/calendar_integration.js');
-/** require calc stuff to make things easier */
-require('apps/calendar/js/calendar.js');
-require('apps/calendar/js/calc.js');
-require('apps/calendar/js/utils/input_parser.js');
 
 suite('calendar - modify events', function() {
 
@@ -83,10 +79,15 @@ suite('calendar - modify events', function() {
 
   suiteSetup(function() {
     yield app.launch();
+
+
+    var btn = yield app.element('addEventBtn');
+    yield app.waitUntilElement(btn, 'displayed');
   });
 
   teardown(function() {
     // reset to month view between tests
+    yield app.resetSearchTimeout('long');
     yield app.monthView.navigate();
   });
 
@@ -177,6 +178,9 @@ suite('calendar - modify events', function() {
 
     //TODO: this is fairly ugly we can improve this
     try {
+      // set the search timeout to a lower amount
+      // (we know there is minimal wait here).
+      yield app.resetSearchTimeout('short');
       yield app.monthsDayView.eventByTitle(newValues.title);
     } catch (e) {
       error = e;
