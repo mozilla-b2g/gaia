@@ -513,7 +513,7 @@ const GridManager = (function() {
   }
 
   function getIconsForApp(app) {
-    return appIcons[descriptor.manifestURL];
+    return appIcons[app.manifestURL];
   }
 
   function getIconForBookmark(bookmarkURL) {
