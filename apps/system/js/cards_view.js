@@ -21,7 +21,10 @@ var CardsView = (function() {
   // if 'true' user can close the app
   // by dragging it upwards
   var MANUAL_CLOSING = true;
-
+  var currentTranslate = 0;
+  var nextTranslate = document.documentElement.clientWidth * 1.25;
+  var defaultTransform = 'scale(0.6)';
+  var ACTIVE = 'active';
   var cardsView = document.getElementById('cards-view');
   var screenElement = document.getElementById('screen');
   var cardsList = cardsView.firstElementChild;
@@ -104,6 +107,7 @@ var CardsView = (function() {
     currentDisplayed = 0;
     runningApps = WindowManager.getRunningApps();
 
+    currentTranslate = 0;
     // Switch to homescreen
     WindowManager.launch(null);
     cardsViewShown = true;
@@ -132,8 +136,17 @@ var CardsView = (function() {
       for (var origin in runningApps) {
         addCard(origin, runningApps[origin], function showCards() {
           screenElement.classList.add('cards-view');
-          cardsView.classList.add('active');
+          cardsView.classList.add(ACTIVE);
         });
+      }
+
+      //show first two cards on proper positions
+      cardsList.children[0].classList.add(ACTIVE);
+
+      if (cardsList.children.length > 1) {
+        cardsList.children[1].classList.add(ACTIVE);
+        cardsList.children[1].style.transform = defaultTransform +
+          ' translateX(' + nextTranslate + 'px)';
       }
 
     } else { // user ordering
@@ -155,7 +168,7 @@ var CardsView = (function() {
       userSortedApps.forEach(function(origin) {
         addCard(origin, runningApps[origin], function showCards() {
           screenElement.classList.add('cards-view');
-          cardsView.classList.add('active');
+          cardsView.classList.add(ACTIVE);
         });
       });
 
@@ -261,7 +274,6 @@ var CardsView = (function() {
     var origin = this.dataset.origin;
     alignCard(currentDisplayed, function cardAligned() {
       WindowManager.launch(origin);
-
       hideCardSwitcher();
     });
   }
@@ -275,7 +287,7 @@ var CardsView = (function() {
     window.removeEventListener('attentionscreenshow', CardsView);
 
     // Make the cardsView overlay inactive
-    cardsView.classList.remove('active');
+    cardsView.classList.remove(ACTIVE);
     cardsViewShown = false;
 
     // Release our screenshot blobs.
@@ -318,21 +330,68 @@ var CardsView = (function() {
     if (!cardsList.children[number])
       return;
 
-    var scrollLeft = cardsView.scrollLeft;
-    var targetScrollLeft = cardsList.children[number].offsetLeft;
+    // Current, next and previous cards is exist
+    var current = cardsList.children[number];
+    var next = cardsList.children[number + 1] || null;
+    var prev = cardsList.children[number - 1] || null;
 
-    if (Math.abs(scrollLeft - targetScrollLeft) < 4) {
-      cardsView.scrollLeft = cardsList.children[number].offsetLeft;
+    // Current displayed card always have translateX equal to 0,
+    // next card to nextTranslate, previous one to -nextTranslate
+    if (Math.abs(currentTranslate) < 4) {
+      current.style.transform = defaultTransform + ' translateX(0)';
+
+      // Only three cards visible at a time, hiding old ones...
+      var prevToHide = cardsList.children[number - 2] || null;
+      var nextToHide = cardsList.children[number + 2] || null;
+      if (prevToHide) {
+        prevToHide.classList.remove(ACTIVE);
+      }
+
+      if (nextToHide) {
+        nextToHide.classList.remove(ACTIVE);
+      }
+
+      // ...and showing new active cards
+      if (next) {
+        next.style.transform =
+          defaultTransform + ' translateX(' + nextTranslate + 'px)';
+        next.classList.add(ACTIVE);
+      }
+
+      if (prev) {
+        prev.style.transform =
+          defaultTransform + ' translateX(-' + nextTranslate + 'px)';
+        prev.classList.add(ACTIVE);
+      }
+
+      currentTranslate = 0;
+
       if (callback)
         callback();
       return;
     }
 
-    cardsView.scrollLeft = scrollLeft + (targetScrollLeft - scrollLeft) / 2;
+    currentTranslate = (currentTranslate) / 2;
+    current.style.transform = defaultTransform +
+      ' translateX(' + currentTranslate + 'px)';
+
+    var pos;
+    if (next) {
+      pos = currentTranslate + nextTranslate;
+      next.style.transform =
+        defaultTransform + ' translateX(' + pos + 'px)';
+    }
+
+    if (prev) {
+      pos = currentTranslate - nextTranslate;
+      prev.style.transform =
+        defaultTransform + ' translateX(' + pos + 'px)';
+    }
 
     window.mozRequestAnimationFrame(function newFrameCallback() {
       alignCard(number, callback);
     });
+
   }
 
   function onStartEvent(evt) {
@@ -341,7 +400,6 @@ var CardsView = (function() {
     cardsView.addEventListener('mousemove', CardsView);
     cardsView.addEventListener('swipe', CardsView);
 
-    initialCardViewPosition = cardsView.scrollLeft;
     initialTouchPosition = {
         x: evt.touches ? evt.touches[0].pageX : evt.pageX,
         y: evt.touches ? evt.touches[0].pageY : evt.pageY
@@ -361,7 +419,7 @@ var CardsView = (function() {
         // We don't want user to scroll the CardsView when one of the card is
         // already dragger upwards
         draggingCardUp = true;
-        evt.target.style.MozTransform = 'scale(0.6) translate(0, -' +
+        evt.target.style.MozTransform = defaultTransform + ' translate(0, -' +
                                         differenceY + 'px)';
       }
     }
@@ -370,8 +428,28 @@ var CardsView = (function() {
     // and Snapping Scrolling is enabled, we want to scroll
     // the CardList
     if (SNAPPING_SCROLLING && reorderedCard === null && !draggingCardUp) {
-      var differenceX = initialTouchPosition.x - touchPosition.x;
-      cardsView.scrollLeft = initialCardViewPosition + differenceX;
+      var current = cardsList.children[currentDisplayed];
+      var next = cardsList.children[currentDisplayed + 1] || null;
+      var prev = cardsList.children[currentDisplayed - 1] || null;
+      var pos;
+      currentTranslate = initialTouchPosition.x - touchPosition.x;
+
+      var differenceX = currentTranslate * -1;
+      current.style.transform = defaultTransform +
+        ' translateX(' + differenceX + 'px)';
+
+      if (next) {
+        pos = differenceX + nextTranslate;
+        next.style.transform = defaultTransform +
+          ' translateX(' + pos + 'px)';
+      }
+
+      if (prev) {
+        pos = differenceX - nextTranslate;
+        prev.style.transform = defaultTransform +
+          ' translateX(' + pos + 'px)';
+      }
+
     }
 
     // If re are in reordering mode (there is a DOM element in)
@@ -382,11 +460,12 @@ var CardsView = (function() {
       // Probably there is more clever solution for calculating
       // position of transformed DOM element, but this was my
       // first thought and it seems to work
-      var moveOffset = (cardsList.children[currentDisplayed].offsetLeft / 0.6) +
-                       differenceX - (dragMargin / 0.6);
+      var moveOffset =
+        (cardsList.children[currentDisplayed].offsetLeft / 0.6) +
+        differenceX - (dragMargin / 0.6);
 
       reorderedCard.style.MozTransform =
-        'scale(0.6) translate(' + moveOffset + 'px, 0)';
+        defaultTransform + ' translate(' + moveOffset + 'px, 0)';
 
       if (Math.abs(differenceX) > threshold) {
         // We don't want to jump to the next page immediately,
@@ -400,7 +479,7 @@ var CardsView = (function() {
           }, 500);
 
           if (differenceX > 0 &&
-              currentDisplayed <= cardsList.children.length) {
+              currentDisplayed < cardsList.children.length) {
             currentDisplayed++;
             sortingDirection = 'right';
             alignCard(currentDisplayed);
@@ -432,7 +511,7 @@ var CardsView = (function() {
     if (SNAPPING_SCROLLING && !draggingCardUp && reorderedCard === null) {
       if (Math.abs(eventDetail.dx) > threshold) {
         if (direction === 'left' &&
-            currentDisplayed <= cardsList.children.length) {
+            currentDisplayed < cardsList.children.length - 1) {
           currentDisplayed++;
           alignCard(currentDisplayed);
         } else if (direction === 'right' && currentDisplayed > 0) {
@@ -478,8 +557,15 @@ var CardsView = (function() {
         WindowManager.kill(element.dataset.origin);
 
         // If there are no cards left, then dismiss the task switcher.
-        if (!cardsList.children.length)
+        if (!cardsList.children.length) {
           hideCardSwitcher();
+        } else {
+          // If we remove the last card on the right from the list
+          // we need to decrease the currentDisplayed number
+          if (currentDisplayed === cardsList.children.length)
+            currentDisplayed--;
+          alignCard(currentDisplayed);
+        }
 
         return;
       } else {
