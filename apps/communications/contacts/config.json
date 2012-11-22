@@ -2,5 +2,6 @@
   "facebookEnabled": true,
   "operationsTimeout": 10000,
   "logLevel": "DEBUG",
-  "facebookSyncPeriod": 24
+  "facebookSyncPeriod": 24,
+  "testToken": ""
 }
