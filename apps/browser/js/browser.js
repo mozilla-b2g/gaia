@@ -467,7 +467,6 @@ var Browser = {
     } else {
       this.setUrlButtonMode(this.GO);
     }
-    this.sslIndicator.value = '';
     this.updateAwesomeScreen(input);
   },
 
@@ -770,6 +769,7 @@ var Browser = {
       AuthenticationDialog.hide();
 
       this.urlInput.value = this.currentTab.url;
+      this.sslIndicator.value = '';
       this.setUrlBar(this.currentTab.url);
       this.showAwesomeScreen();
       this.shouldFocus = true;
