@@ -330,7 +330,12 @@ var frequencyDialer = {
       var dialValue = markStart + i * 0.1;
       if (dialValue < start) {
         startMaskWidth += unitWidth;
+<<<<<<< HEAD
+      }
+      else if (dialValue > end) {
+=======
       } else if (dialValue > end) {
+>>>>>>> ae5bb150ac188aa7ecd653b5276f6139e756e444
         endMaskWidth += unitWidth;
       }
     }
