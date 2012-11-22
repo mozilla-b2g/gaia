@@ -138,10 +138,7 @@ body.hidden *[data-l10n-id] {
 #main-container {
   position: relative;
   height: 100%;
-  background-image: url("images/Generic_image.png");
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-position: center top;
+  background: rgba(0, 0, 0, 0.8) no-repeat center top/cover;
 }
 
 #actions-container {
