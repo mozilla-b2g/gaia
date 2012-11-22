@@ -52,6 +52,7 @@ ADB_REMOUNT?=0
 GAIA_ALL_APP_SRCDIRS=$(GAIA_APP_SRCDIRS)
 
 GAIA_LOCALES_PATH?=locales
+LOCALES_FILE?=shared/resources/languages.json
 
 ifeq ($(MAKECMDGOALS), demo)
 GAIA_DOMAIN=thisdomaindoesnotexist.org
@@ -160,10 +161,39 @@ TEST_DIRS ?= $(CURDIR)/tests
 
 # Generate profile/
 
-profile: applications-data preferences app-makefiles test-agent-config offline extensions install-xulrunner-sdk profile/settings.json
+profile: multilocale applications-data preferences app-makefiles test-agent-config offline extensions install-xulrunner-sdk profile/settings.json
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)profile"
 
 LANG=POSIX # Avoiding sort order differences between OSes
+
+.PHONY: multilocale
+multilocale:
+ifneq ($(LOCALE_BASEDIR),)
+	@echo "Enable locales specified in $(LOCALES_FILE)..."
+	@targets=""; \
+	for appdir in $(GAIA_APP_SRCDIRS); do \
+	    targets="$$targets --target $$appdir"; \
+	done; \
+	python $(CURDIR)/build/multilocale.py \
+		--config $(CURDIR)/$(LOCALES_FILE) \
+		--source $(LOCALE_BASEDIR) \
+		$$targets;
+	@echo "Done"
+	cp $(LOCALES_FILE) shared/resources/languages.json
+endif
+
+.PHONY: multilocale-clean
+multilocale-clean:
+	@echo "Cleaning l10n bits..."
+	@git ls-files --other --exclude-standard $(GAIA_APP_SRCDIRS) | grep '\.properties' | xargs rm -f
+	@git ls-files --modified $(GAIA_APP_SRCDIRS) | grep '\.properties' | xargs git checkout --
+ifneq ($(DEBUG),1)
+	@# Leave these files modified in DEBUG profiles
+	@git ls-files --modified $(GAIA_APP_SRCDIRS) | grep 'manifest.webapp' | xargs git checkout --
+	@git ls-files --modified $(GAIA_APP_SRCDIRS) | grep '\.ini' | xargs git checkout --
+	@git checkout -- shared/resources/languages.json
+	@echo "Done"
+endif
 
 app-makefiles:
 	for d in ${GAIA_APP_SRCDIRS}; \
@@ -204,6 +234,9 @@ offline-cache: webapp-manifests install-xulrunner-sdk
 
 # Create webapps
 offline: webapp-manifests webapp-zip
+ifneq ($(LOCALE_BASEDIR),)
+	$(MAKE) multilocale-clean
+endif
 
 
 # The install-xulrunner target arranges to get xulrunner downloaded and sets up
