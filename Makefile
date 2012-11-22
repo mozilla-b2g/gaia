@@ -281,6 +281,7 @@ EXTENDED_PREF_FILES = \
   custom-prefs.js \
   payment-prefs.js \
   ua-override-prefs.js \
+  oem-override-prefs.js \
 
 # Generate profile/prefs.js
 preferences: install-xulrunner-sdk
