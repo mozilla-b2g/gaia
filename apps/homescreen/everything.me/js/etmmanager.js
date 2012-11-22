@@ -20,11 +20,11 @@ var EvmeManager = (function() {
     }
 
     function addBookmark(params) {
-        GridManager.install({
+        GridManager.install(new Bookmark({
           bookmarkURL: params.originUrl,
           name: params.title,
           icon: params.icon
-        });
+        }));
     }
 
     function openUrl(url) {
