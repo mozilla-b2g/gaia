@@ -72,7 +72,10 @@ window.addEventListener('localized', function showPanel() {
     bluetoothTurnOnButton.addEventListener('click', turnOnBluetooth);
   }
 
-  function turnOnBluetooth() {
+  function turnOnBluetooth(evt) {
+    if (evt)
+      evt.preventDefault();
+
     dialogConfirmBluetooth.hidden = true;
     bluetooth.onadapteradded = function bt_adapterAdded() {
       initialDefaultAdapter(getPairedDevice);
