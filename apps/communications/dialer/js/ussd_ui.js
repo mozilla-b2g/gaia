@@ -57,6 +57,7 @@ var UssdUI = {
   },
 
   closeWindow: function uui_close() {
+    this.messageNode.textContent = '';
     window.opener.postMessage({
       type: 'close'
     }, this._origin);
