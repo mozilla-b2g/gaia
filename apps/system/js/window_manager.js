@@ -1482,9 +1482,9 @@ var WindowManager = (function() {
 
     if (document.mozFullScreen) {
       document.mozCancelFullScreen();
-    }
-    
-    if (displayedApp !== homescreen || inTransition) {
+    } else if (inlineActivityFrame) {
+      stopInlineActivity();
+    } else if (displayedApp !== homescreen || inTransition) {
       if (displayedApp != ftuURL) {
         setDisplayedApp(homescreen);
       } else {
