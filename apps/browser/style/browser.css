@@ -260,7 +260,7 @@ input[type="image"] {
 }
 
 .tabs-screen #toolbar-start {
-  background-image: url('./images/drawer-collapse.png'), url('./images/tabs-badge-background.png');
+  background-image: url('./images/iconaction_back_50x50.png'), url('./images/tabs-badge-background.png');
   background-repeat: no-repeat, no-repeat;
   background-position: top right, right;
   padding-right: 65px;
@@ -360,16 +360,16 @@ menu[type="toolbar"] button {
 }
 
 #back-button {
-  background-image: url("images/back.png");
+  background-image: url("images/iconaction_browser_back_30x30.png");
 }
 
 #forward-button {
-  background-image: url("images/forward.png");
+  background-image: url("images/iconaction_browser_forward_30x30.png");
 }
 
 
 #back-button:active {
-  background-image: url("images/back-pressed.png");
+  background-image: url("images/iconaction_browser_backpressed_30x30.png");
 }
 
 input::-moz-focus-inner {
@@ -386,7 +386,7 @@ input::-moz-focus-inner {
 
 #bookmark-button {
   float: right;
-  background-image: url("images/bookmark.png");
+  background-image: url("images/iconaction_bookmark_30x30.png");
 }
 
 #bookmark-button.bookmarked {
@@ -836,13 +836,13 @@ li[role="listitem"] small {
 }
 
 #settings-button {
-  background-image: url('images/settings.png');
+  background-image: url('images/iconaction_settings_30x30.png');
   float: right;
   height: 50px;
 }
 
 #new-tab-button {
-  background-image: url('images/add.png'), url('images/header-divider.png');
+  background-image: url('images/iconaction_new_30x30.png'), url('images/header-divider.png');
   float: right;
   height: 50px;
 }
