@@ -102,7 +102,7 @@ settings = {
  "tethering.wifi.prefix": "24",
  "tethering.wifi.dhcpserver.startip": "192.168.1.10",
  "tethering.wifi.dhcpserver.endip": "192.168.1.30",
- "tethering.wifi.ssid": "FirefoxHotSpot",
+ "tethering.wifi.ssid": "FirefoxHotspot",
  "tethering.wifi.security.type": "open",
  "tethering.wifi.security.password": "1234567890",
  "tethering.wifi.connectedClients": 0,
