@@ -34,8 +34,7 @@
       url(../../images/shared/pattern.png) repeat left top,
       url(../../images/shared/gradient.png) no-repeat left top / 100% 100%;
 }
-    #shortcuts-customize-loading:before {
-        content: "Loading...";
+    #shortcuts-customize-loading b {
         position: absolute;
         top: 50%;
         left: 0;

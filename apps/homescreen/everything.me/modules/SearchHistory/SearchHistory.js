@@ -1,6 +1,6 @@
 Evme.SearchHistory = new function Evme_SearchHistory() {
-    var _name = "SearchHistory", self = this, history = [];
-    var STORAGE_KEY = "userHistory",
+    var NAME = "SearchHistory", self = this, history = [],
+        STORAGE_KEY = "userHistory",
         MAXIMUM_ENTRIES = "FROM CONFIG";
     
     this.init = function init(options) {
@@ -10,7 +10,7 @@ Evme.SearchHistory = new function Evme_SearchHistory() {
         
         populate();
         
-        Evme.EventHandler.trigger(_name, "init");
+        Evme.EventHandler.trigger(NAME, "init");
     };
     
     this.save = function save(query, type) {
@@ -59,7 +59,7 @@ Evme.SearchHistory = new function Evme_SearchHistory() {
         history = [];
         Evme.Storage.remove(STORAGE_KEY);
         
-        Evme.EventHandler.trigger(_name, "clear");
+        Evme.EventHandler.trigger(NAME, "clear");
     };
     
     function trim() {
