@@ -33,7 +33,7 @@ function HandledCall(aCall, aNode) {
 
   var durationMessage = (this.call.state == 'incoming') ?
                          _('incoming') : _('connecting');
-  this.durationChildNode.textContent = durationMessage + '…';
+  this.durationChildNode.textContent = durationMessage;
 
   this.updateDirection();
 
@@ -71,7 +71,7 @@ HandledCall.prototype.startTimer = function hc_startTimer() {
     return;
 
   this.durationChildNode.textContent = (new Date(0)).toLocaleFormat('%M:%S');
-  this.durationNode.classList.add("isTimer");
+  this.durationNode.classList.add('isTimer');
   this._ticker = setInterval(function hc_updateTimer(self, startTime) {
     var elapsed = new Date(Date.now() - startTime);
     self.durationChildNode.textContent = elapsed.toLocaleFormat('%M:%S');
@@ -104,8 +104,7 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
       node.textContent = contact.name;
       var additionalInfo = Utils.getPhoneNumberAdditionalInfo(matchingTel,
                                                               contact);
-      additionalInfoNode.textContent = additionalInfo ?
-        additionalInfo : '';
+      KeypadManager.updateAdditionalContactInfo(additionalInfo);
       if (contact.photo && contact.photo.length > 0) {
         self.photo = contact.photo[0];
         CallScreen.setCallerContactImage(self.photo);
