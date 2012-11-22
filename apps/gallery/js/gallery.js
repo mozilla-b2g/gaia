@@ -499,6 +499,13 @@ function setView(view) {
     if (document.mozFullScreenElement === fullscreenView) {
       document.mozCancelFullScreen();
     }
+
+    // Clear the frames to release the memory they're holding and
+    // so that we don't see a flash of the old image when we return
+    // to fullscreen view
+    previousFrame.clear();
+    currentFrame.clear();
+    nextFrame.clear();
     break;
   }
 
@@ -1133,7 +1140,8 @@ function setupFrameContent(n, frame) {
     photodb.getFile(fileinfo.name, function(file) {
       frame.displayImage(file,
                          fileinfo.metadata.width,
-                         fileinfo.metadata.height);
+                         fileinfo.metadata.height,
+                         fileinfo.metadata.preview);
     });
   }
 }
