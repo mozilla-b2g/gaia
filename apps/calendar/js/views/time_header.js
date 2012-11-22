@@ -36,6 +36,17 @@ Calendar.ns('Views').TimeHeader = (function() {
       singleMonth: '%B '
     },
 
+    // when the title is wider than there is space 
+    // these shorter codes are used
+    shortScales: {
+      month: '%b %Y',
+      day: '%A %b %e',
+      // when week starts in one month and ends
+      // in another, we need both of them
+      // in the header
+      singleMonth: '%b '
+    },
+
     handleEvent: function(e) {
       // respond to all events here but
       // we add/remove listeners to reduce
@@ -90,7 +101,11 @@ Calendar.ns('Views').TimeHeader = (function() {
       this._updateTitle();
     },
 
-    getScale: function(type) {
+    getScale: function(type, shortForm) {
+      var currentScale = this.scales;
+      if (shortForm) {
+        currentScale = this.shortScales;
+      }
       // If we are creating header for the week view
       if (type === 'week') {
         var scale = '';
@@ -112,27 +127,64 @@ Calendar.ns('Views').TimeHeader = (function() {
         if (firstWeekday.getMonth() !== lastWeekday.getMonth()) {
           scale = this.app.dateFormat.localeFormat(
             firstWeekday,
-            this.scales.singleMonth
+            currentScale.singleMonth
           );
         }
 
         return scale + this.app.dateFormat.localeFormat(
             lastWeekday,
-            this.scales.month
+            currentScale.month
         );
       }
 
       return this.app.dateFormat.localeFormat(
         this.controller.position,
-        this.scales[type] || this.scales.month
+        currentScale[type] || currentScale.month
       );
+    },
+
+    _getTextWidth: function(element, text) {
+      // Create an invisible DOM element to which all the relevant
+      // styles from the element are applied.
+      // Returns how wide the invisible element is, using given the text.
+      // This value includes the left and right padding as they are
+      // included in element.clientWidth as well
+      var invisibleElement = document.createElement('span');
+      invisibleElement.textContent = text;
+      invisibleElement.style.position = "absolute";
+      invisibleElement.style.left = "-1000px";
+      document.body.appendChild(invisibleElement);
+      var styles = {
+        'fontFamily'     : 'font-family',
+        'fontStyle'      : 'font-style',
+        'fontVariant'    : 'font-variant',
+        'fontWeight'     : 'font-weight',
+        'fontSize'       : 'font-size',
+        'fontSizeAdjust' : 'font-size-adjust',
+        'fontStretch'    : 'font-stretch',
+        'paddingLeft'    : 'padding-left',
+        'paddingRight'   : 'padding-right'
+      };
+      var elementStyle = document.defaultView.getComputedStyle(element, null);
+      for (var prop in styles) {
+        invisibleElement.style[prop] = elementStyle.getPropertyValue(
+          styles[prop]
+        );
+      }
+      var width = invisibleElement.clientWidth;
+      document.body.removeChild(invisibleElement);
+      return width;
     },
 
     _updateTitle: function() {
       var con = this.app.timeController;
-      this.title.textContent = this.getScale(
-        con.scale
-      );
+      var text = this.getScale(con.scale);
+      var maxTitleSize = this.title.clientWidth;
+      var titleSize = this._getTextWidth(this.title, text);
+      if (titleSize > maxTitleSize) {
+        text = this.getScale(con.scale, true);
+      }
+      this.title.textContent = text;
     },
 
     render: function() {
