@@ -254,6 +254,7 @@ var Browser = {
       this.deleteTab(this.currentTab.id);
       this.showTabScreen();
     }
+    this.updateSecurityIcon();
   },
 
   handleNewTab: function browserHandleNewTab(e) {
@@ -768,6 +769,7 @@ var Browser = {
       AuthenticationDialog.hide();
 
       this.urlInput.value = this.currentTab.url;
+      this.sslIndicator.value = '';
       this.setUrlBar(this.currentTab.url);
       this.showAwesomeScreen();
       this.shouldFocus = true;
