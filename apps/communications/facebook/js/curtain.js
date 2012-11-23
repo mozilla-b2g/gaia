@@ -19,6 +19,8 @@ var Curtain = (function() {
     messages[name] = doc.getElementById(name + 'Msg');
   });
 
+  var progressTitle = doc.getElementById('progressTitle');
+
   function doShow(type) {
     form.dataset.state = type;
     curtainFrame.classList.add('visible');
@@ -28,18 +30,33 @@ var Curtain = (function() {
     return str.charAt(0).toUpperCase() + str.slice(1);
   }
 
-  function Progress(from) {
-    this.from = from;
+  function Progress(pfrom) {
+    var from = pfrom;
+    var counter = 0;
+    var total = 0;
 
-    this.update = function (value, total) {
-      progressElement.setAttribute('value', (value * 100) / total);
-      messages['progress'].textContent = _('progressFB' + this.from, {
-        imported: value,
+    progressElement.setAttribute('value', 0);
+    messages['progress'].textContent = _('progressFB3' + from, {
+      current: counter,
+      total: total
+    });
+
+    this.update = function() {
+      progressElement.setAttribute('value', (++counter * 100) / total);
+      messages['progress'].textContent = _('progressFB3' + from, {
+        current: counter,
         total: total
       });
     };
 
-    this.update(0, 1);
+    this.setFrom = function(pfrom) {
+      from = capitalize(pfrom);
+      progressTitle.textContent = _('progressFB3' + from + 'Title');
+    }
+
+    this.setTotal = function(ptotal) {
+      total = ptotal;
+    }
   }
 
   return {
@@ -85,6 +102,7 @@ var Curtain = (function() {
         break;
 
         case 'progress':
+          progressTitle.textContent = _(type + 'FB3' + from + 'Title');
           out = new Progress(from);
         break;
       }
