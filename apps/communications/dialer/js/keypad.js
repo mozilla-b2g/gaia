@@ -160,7 +160,7 @@ var KeypadManager = {
     var defaultFontSize = window.getComputedStyle(document.body, null)
                                 .getPropertyValue('font-size');
     this.minFontSize = parseInt(parseInt(defaultFontSize) * 10 * 0.226);
-    this.maxFontSize = parseInt(parseInt(defaultFontSize) * 16 * 0.226);
+    this.maxFontSize = parseInt(parseInt(defaultFontSize) * 18 * 0.226);
 
     this.phoneNumberView.value = '';
     this._phoneNumber = '';
@@ -283,7 +283,7 @@ var KeypadManager = {
           var app = evt.target.result;
           app.launch('dialer');
         };
-      }
+      };
 
       activity.onsuccess = function() {
         reopenApp();
@@ -500,8 +500,18 @@ var KeypadManager = {
 
   _updateAdditionalContactInfoView:
     function kh__updateAdditionalContactInfoView() {
-    var view = CallScreen.activeCall.querySelector('.additionalContactInfo');
-    view.textContent = this._additionalContactInfo;
+    var phoneNumberView = CallScreen.activeCall.querySelector('.number');
+    var additionalview = CallScreen.activeCall.querySelector(
+      '.additionalContactInfo');
+    if (!this._additionalContactInfo || this._additionalContactInfo === '') {
+      additionalview.textContent = '';
+      additionalview.classList.add('noAdditionalContactInfo');
+      phoneNumberView.classList.add('noAdditionalContactInfo');
+    } else {
+      phoneNumberView.classList.remove('noAdditionalContactInfo');
+      additionalview.classList.remove('noAdditionalContactInfo');
+      additionalview.textContent = this._additionalContactInfo;
+    }
   },
 
   restoreAdditionalContactInfo: function kh_restoreAdditionalContactInfo() {

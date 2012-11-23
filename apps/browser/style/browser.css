@@ -641,6 +641,7 @@ li[role="tab"] a.selected {
   background-origin: padding-box;
 }
 
+#results,
 section[role="tabpanel"] {
   padding-top: 5px;
   clear: both;
@@ -648,6 +649,7 @@ section[role="tabpanel"] {
   display: none;
 }
 
+#results.selected,
 section[role="tabpanel"].selected {
   display: block;
 }

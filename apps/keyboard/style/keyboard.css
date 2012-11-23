@@ -87,7 +87,7 @@ button::-moz-focus-inner {
   background-size: 100% 100%;
 }
 
-
+/* Standard key styles. */
 .keyboard-key > .visual-wrapper > span {
   /*
     top - begin | top - end
@@ -301,7 +301,9 @@ background-position: center 2.2rem;
   border-color: transparent;
 }
 
-/* Alternatives menu */
+/* Alternatives menu -- this menu appears when you tap and hold a key that has
+alternative special (accented) characters. The menu "grows" out of the key
+and displays the list of alternatives. */
 #keyboard-accent-char-menu {
   position: absolute;
   bottom: 0;
@@ -309,8 +311,8 @@ background-position: center 2.2rem;
   margin-bottom: -1px;
   height: 5.8rem;
   border-radius: 0.3rem;
-  background: #6EC5D5;
-  border: 1px solid #92d3e0;
+  background: #333;
+  border: 1px solid #000;
   white-space: nowrap;
   overflow: visible;
   display: none;
@@ -383,22 +385,25 @@ background-position: center 2.2rem;
   display: none;
 }
 
+/* Styles for keys in accent menu (not highlighted). */
 #keyboard-accent-char-menu .keyboard-key > .visual-wrapper > span {
   border: none;
   font: 3rem/5rem MozTT, Sans-serif;
   font-weight: 500;
-  color: #333;
+  color: #fff;
 }
 
 /* Highlighted non keboard key style */
 #keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper {
-  background: #333;
-  border: solid 0.2rem #333;
+  background: #6ec5d5;
+  border: solid 0.2rem #6ec5d5;
   -moz-box-sizing: content-box;
-  border-top: solid 1px #999;
-  border-bottom: solid 1px #333;
+  border-top: solid 1px #8BD1DD;
+  border-bottom: solid 1px #6ec5d5;
 }
 
+/* Highlighted special accent characters. These keys appear in the popover
+bubble above the key when you tap and hold. */
 #keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper > span {
   top: 0;
   left: 0;
@@ -406,7 +411,7 @@ background-position: center 2.2rem;
   z-index: 1;
   height: 100%;
   font-weight: normal;
-  color: #fff;
+  color: #1a3f46;
   background: none;
 }
 

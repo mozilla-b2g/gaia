@@ -18,15 +18,12 @@ a:hover, a:active, a:focus {
 
 .font-regular {
   font-family: 'MozTT';
-}
-
-.font-semibold {
-  font-family: 'MozTT';
-  font-weight: 600;
+  font-weight: 400;
 }
 
 .font-light {
   font-family: 'MozTT';
+  font-weight: 300;
 }
 
 .hide {
