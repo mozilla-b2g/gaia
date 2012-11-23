@@ -129,6 +129,11 @@ function getSelectedValue(selectElement) {
   return selectElement.options[selectElement.selectedIndex].value;
 }
 
+function getSelectedValueByIndex(selectElement, index) {
+  if (0 <= index < selectElement.options.length)
+    return selectElement.options[index].value;
+}
+
 var ValuePicker = (function() {
 
   //
@@ -328,5 +333,199 @@ var ValuePicker = (function() {
   }
 
   return VP;
+}());
+
+
+var ValueSelector = (function() {
+  //
+  // Constructor
+  //
+  function VS() {
+    this._containers = {};
+    this._popups = {};
+    this._buttons = {};
+    this._onConfirmHandler = null;
+    this._onCancelHandler = null;
+    this._onClickOptionHandler = null;
+    this.init();
+  }
+
+  //
+  // Internal methods
+  //
+  VS.prototype.debug = function(msg) {
+    var debugFlag = false;
+    if (debugFlag) {
+      console.log('[ValueSelector] ', msg);
+    }
+  },
+
+  VS.prototype.init = function() {
+    this._element = document.getElementById('value-selector');
+    this._element.addEventListener('mousedown', this);
+    this._containers =
+      document.getElementById('value-selector-container');
+    this._containers.addEventListener('click', this);
+    this._popups =
+      document.getElementById('select-option-popup');
+    this._popups.addEventListener('submit', this);
+
+    this._buttons = document.getElementById('select-options-buttons');
+    this._buttons.addEventListener('click', this);
+
+    window.addEventListener('appopen', this);
+    window.addEventListener('appwillclose', this);
+  },
+
+  VS.prototype.handleEvent = function(evt) {
+    switch (evt.type) {
+      case 'appopen':
+      case 'appwillclose':
+        this.hide();
+        break;
+      case 'click':
+        var currentTarget = evt.currentTarget;
+        switch (currentTarget) {
+          case this._buttons:
+            var target = evt.target;
+            if (target.dataset.type == 'cancel') {
+              this.cancel();
+            } else if (target.dataset.type == 'ok') {
+              this.confirm();
+            }
+            break;
+
+          case this._containers:
+            this.handleSelect(evt.target);
+            break;
+        }
+        break;
+
+      case 'submit':
+        // Prevent the form from submit.
+      case 'mousedown':
+        // Prevent focus being taken away by us.
+        evt.preventDefault();
+        break;
+
+      default:
+        this.debug('no event handler defined for' + evt.type);
+        break;
+    }
+  },
+
+  VS.prototype.handleSelect = function(target) {
+
+    if (target.dataset === undefined ||
+        (target.dataset.optionIndex === undefined &&
+         target.dataset.optionValue === undefined))
+      return;
+
+    var selectee = this._containers.querySelectorAll('[aria-checked="true"]');
+    for (var i = 0; i < selectee.length; i++) {
+      selectee[i].removeAttribute('aria-checked');
+    }
+    target.setAttribute('aria-checked', 'true');
+
+    if (this._onClickOptionHandler)
+      this._onClickOptionHandler(target);
+  },
+
+  VS.prototype.cancel = function() {
+    this.debug('cancel invoked');
+    if (this._onCancelHandler)
+      this._onCancelHandler();
+
+    this.hide();
+  },
+
+  VS.prototype.confirm = function() {
+
+    var singleOptionIndex;
+    var selectee = this._containers.querySelectorAll('[aria-checked="true"]');
+    if (selectee.length > 0)
+      singleOptionIndex = selectee[0].dataset.optionIndex;
+
+    if (this._onConfirmHandler)
+      this._onConfirmHandler(singleOptionIndex);
+
+    this.hide();
+  },
+
+  //
+  // Public methods
+  //
+  VS.prototype.buildOptions = function(options) {
+
+    var optionHTML = '';
+
+    function escapeHTML(str) {
+      var span = document.createElement('span');
+      span.textContent = str;
+      return span.innerHTML;
+    }
+
+    for (var i = 0, n = options.length; i < n; i++) {
+
+      var checked = options[i].selected ? ' aria-checked="true"' : '';
+      options[i].optionIndex = i;
+      // This for attribute is created only to avoid applying
+      // a general rule in building block
+      var forAttribute = ' for="gaia-option-' + options[i].optionIndex + '"';
+
+      optionHTML += '<li data-option-index="' + options[i].optionIndex + '"' +
+                     checked + '>' +
+                     '<label' + forAttribute + '> <span>' +
+                     escapeHTML(options[i].text) +
+                     '</span></label>' +
+                    '</li>';
+    }
+
+    var optionsContainer = document.querySelector(
+                             '#value-selector-container ol');
+    if (!optionsContainer)
+      return;
+
+    optionsContainer.innerHTML = optionHTML;
+
+    // Apply different style when the options are more than 1 page
+    if (options.length > 5) {
+      this._containers.classList.add('scrollable');
+    } else {
+      this._containers.classList.remove('scrollable');
+    }
+  },
+
+  VS.prototype.show = function() {
+    this._element.hidden = false;
+  },
+
+  VS.prototype.hide = function() {
+    this._element.hidden = true;
+  },
+
+  VS.prototype.setSelectedIndex = function(index) {
+    var selectee = this._containers.querySelectorAll('[aria-checked="true"]');
+    for (var i = 0; i < selectee.length; i++) {
+      selectee[i].removeAttribute('aria-checked');
+    }
+    var id = 'li[data-option-index="' + index + '"]';
+    var selectedOption = document.querySelector(id);
+    selectedOption.setAttribute('aria-checked', 'true');
+  },
+
+  VS.prototype.setOnConfirmHandler = function(confirmHandler) {
+    this._onConfirmHandler = confirmHandler;
+  },
+
+  VS.prototype.setOnCancelHandler = function(cancelHandler) {
+    this._onCancelHandler = cancelHandler;
+  },
+
+  VS.prototype.setOnClickOptionHandler = function(clickOptionHandler) {
+    this._onClickOptionHandler = clickOptionHandler;
+  }
+
+  return VS;
 }());
 

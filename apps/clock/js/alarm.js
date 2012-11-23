@@ -593,6 +593,8 @@ var AlarmEditView = {
     hour24State: null,
     is12hFormat: false
   },
+  soundPicker: null,
+  previewRingtonePlayer: null,
 
   get element() {
     delete this.element;
@@ -724,6 +726,14 @@ var AlarmEditView = {
     document.getElementById('picker-bar').classList.add(style);
   },
 
+  initSoundPicker: function aev_initSoundPicker() {
+    this.soundPicker = new ValueSelector();
+    this.soundPicker.buildOptions(this.soundSelect.options);
+    this.soundPicker.setOnClickOptionHandler(this.previewSound.bind(this));
+    this.soundPicker.setOnConfirmHandler(this.confirmSoundSelection.bind(this));
+    this.soundPicker.setOnCancelHandler(this.stopPreviewSound.bind(this));
+  },
+
   handleEvent: function aev_handleEvent(evt) {
     var input = evt.target;
     if (!input)
@@ -747,7 +757,8 @@ var AlarmEditView = {
         }
         break;
       case 'sound-menu':
-        this.soundSelect.focus();
+        this.soundPicker.setSelectedIndex(this.soundSelect.selectedIndex);
+        this.soundPicker.show();
         break;
       case 'sound-select':
         switch (evt.type) {
@@ -821,6 +832,9 @@ var AlarmEditView = {
     this.refreshRepeatMenu();
     this.initSoundSelect();
     this.refreshSoundMenu();
+    if (this.soundPicker == null)
+      this.initSoundPicker();
+
     this.initSnoozeSelect();
     this.refreshSnoozeMenu();
     this.deleteButton.hidden = (alarm.id) ? false : true;
@@ -856,10 +870,45 @@ var AlarmEditView = {
     return getSelectedValue(this.soundSelect);
   },
 
+  getSoundByIndex: function aev_getSoundByIndex(index) {
+    return getSelectedValueByIndex(this.soundSelect, index);
+  },
+
+  setSelectedSound: function aev_setSelectedSound(optionIndex) {
+    this.soundSelect.selectedIndex = optionIndex;
+    this.refreshSoundMenu(this.getSoundSelect());
+  },
+
   refreshSoundMenu: function aev_refreshSoundMenu(sound) {
     // XXX: Refresh and paser the name of sound file for sound menu.
     var sound = (sound) ? this.getSoundSelect() : this.alarm.sound;
     this.soundMenu.innerHTML = _(sound.slice(0, sound.lastIndexOf('.')));
+  },
+
+  confirmSoundSelection: function aev_confirmSoundSelection(optionIndex) {
+    this.setSelectedSound(optionIndex);
+    this.stopPreviewSound();
+  },
+
+  previewSound: function aev_previewSound(target) {
+    var seletedIndex = target.dataset.optionIndex;
+    var ringtoneName = this.getSoundByIndex(seletedIndex);
+    if (this.previewRingtonePlayer == null) {
+      this.previewRingtonePlayer = new Audio();
+    }
+    else {
+      this.previewRingtonePlayer.pause();
+    }
+    var ringtonePlayer = this.previewRingtonePlayer;
+    var previewRingtone = 'style/ringtones/' + ringtoneName;
+    ringtonePlayer.mozAudioChannelType = 'alarm';
+    ringtonePlayer.src = previewRingtone;
+    ringtonePlayer.play();
+  },
+
+  stopPreviewSound: function aev_stopPreviewSound() {
+    if (this.previewRingtonePlayer != null)
+      this.previewRingtonePlayer.pause();
   },
 
   initSnoozeSelect: function aev_initSnoozeSelect() {
