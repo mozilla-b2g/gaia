@@ -346,7 +346,7 @@ var Settings = {
     openDialog(dialogID, submit);
   },
 
-  openUserGuide: function settings_openUserGuide() {
+  getUserGuide: function settings_getUserGuide(callback) {
     var settings = this.mozSettings;
     if (!settings)
       return;
@@ -356,7 +356,7 @@ var Settings = {
     req.onsuccess = function userGuide() {
       var url = 'http://support.mozilla.org/1/firefox-os/' +
         req.result[key] + '/gonk/' + document.documentElement.lang + '/';
-      openLink(url);
+      callback(url);
     };
   },
 
@@ -538,8 +538,10 @@ window.addEventListener('load', function loadSettings() {
         Settings.loadGaiaCommit();
         break;
       case 'help':                // handle specific link
-        document.querySelector('[data-l10n-id="user-guide"]').onclick =
-          Settings.openUserGuide.bind(Settings);
+        Settings.getUserGuide(function userGuideCallback(url) {
+          document.querySelector('[data-l10n-id="user-guide"]').onclick =
+            function openUserGuide() { openLink(url) };
+        });
         break;
       case 'mediaStorage':        // full media storage status + panel startup
         MediaStorage.initUI();
