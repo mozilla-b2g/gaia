@@ -242,7 +242,9 @@ var Settings = {
       case 'radio':
       case 'text':
       case 'password':
-        value = input.value; // text
+        value = input.value; // default as text
+        if (input.dataset.valueType === "integer") // integer
+          value = parseInt(value);
         break;
     }
 
