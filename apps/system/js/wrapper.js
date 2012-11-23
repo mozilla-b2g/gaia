@@ -53,7 +53,7 @@ var Launcher = (function() {
 
   var buttonBarTimeout;
 
-  var isButtonBarDisplayed = true;
+  var isButtonBarDisplayed = false;
   function toggleButtonBar(time) {
     clearTimeout(buttonBarTimeout);
     footer.classList.toggle('closed');
