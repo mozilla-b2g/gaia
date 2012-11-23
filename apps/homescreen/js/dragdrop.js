@@ -8,6 +8,8 @@ const DragDropManager = (function() {
    */
   var isDisabledDrop = false;
 
+  var isDockDisabled = false;
+
   /*
    * Checking limits is disabled
    */
@@ -52,7 +54,17 @@ const DragDropManager = (function() {
   };
 
   function overDock(overlapElem) {
-    if (!overlapingDock && !DockManager.isFull()) {
+    if (isDockDisabled) {
+      if (!overlapingDock) {
+        // If we are coming from grid -> the drop action is disabled
+        draggableIcon.addClassToDragElement('overDock');
+        overlapingDock = isDisabledDrop = true;
+      }
+
+      return;
+    }
+
+    if (!overlapingDock) {
       // I've just entered
       draggableIcon.addClassToDragElement('overDock');
       var needsRender = false;
@@ -75,7 +87,7 @@ const DragDropManager = (function() {
 
     if (overlapingDock) {
       draggableIcon.removeClassToDragElement('overDock');
-      overlapingDock = false;
+      overlapingDock = isDisabledDrop = false;
       var curPageObj = pageHelper.getCurrent();
       if (curPageObj.getNumIcons() < pageHelper.maxIconsPerPage) {
         var needsRender = false;
@@ -152,6 +164,8 @@ const DragDropManager = (function() {
     draggableIcon.onDragStart(startEvent.x, startEvent.y);
     if (overlapingDock) {
       draggableIcon.addClassToDragElement('overDock');
+    } else if (DockManager.isFull()) {
+      isDockDisabled = true;
     }
   };
 
@@ -284,6 +298,7 @@ const DragDropManager = (function() {
       GridManager.onDragStart();
       DockManager.onDragStart();
       startEvent = initCoords;
+      isDockDisabled = false;
       overlapingDock = (initCoords.y >= limitY) ? true : false;
       onStart(evt.target);
     }
