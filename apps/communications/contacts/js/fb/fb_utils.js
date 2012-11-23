@@ -142,17 +142,16 @@ if (!fb.utils) {
       return outReq;
     };
 
-
     // On the device
     Utils.getNumFbContacts = function() {
       var outReq = new Utils.Request();
 
       window.setTimeout(function get_num_fb_contacts() {
-        var req = Utils.getAllFbContacts();
+        var req = fb.contacts.getAll();
 
         req.onsuccess = function() {
           var result = req.result || [];
-          outReq.done(result.length);
+          outReq.done(Object.keys(result).length);
         }
 
         req.onerror = function() {
@@ -253,7 +252,7 @@ if (!fb.utils) {
         var req = Utils.getAllFbContacts();
 
         req.onsuccess = function() {
-          var cleaner = new FbContactsCleaner(req.result);
+          var cleaner = new Utils.FbContactsCleaner(req.result);
           // And now success notification is sent
           outReq.done(cleaner);
           // The cleaning activity should be starting immediately
@@ -297,7 +296,7 @@ if (!fb.utils) {
             window.addEventListener('message', m_listen);
 
             var xhr = new XMLHttpRequest({
-              mozSystem:true
+              mozSystem: true
             });
 
             xhr.open('GET', logoutUrl, true);
@@ -307,7 +306,7 @@ if (!fb.utils) {
 
             xhr.onload = function(e) {
               if (xhr.status === 200 || xhr.status === 0) {
-                if(xhr.response.success) {
+                if (xhr.response.success) {
                   window.asyncStorage.removeItem(STORAGE_KEY);
                   outReq.done();
                 }
@@ -375,7 +374,7 @@ if (!fb.utils) {
     }
 
     // FbContactsCleaner Object
-    function FbContactsCleaner(contacts) {
+    Utils.FbContactsCleaner = function(contacts) {
       this.lcontacts = contacts;
       var next = 0;
       var self = this;
