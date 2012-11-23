@@ -20,6 +20,7 @@
     <link rel="stylesheet" type="text/css" href="style/simcard.css"/>
     <link rel="stylesheet" type="text/css" href="style/phone_lock.css"/>
     <link rel="stylesheet" type="text/css" href="style/apps.css"/>
+    <link rel="stylesheet" type="text/css" href="style/updates.css"/>
 
     <!-- Shared resources
     <link rel="resource" type="application/json" href="shared/resources/apn.json"/>
@@ -1780,7 +1781,11 @@
               data-l10n-id="check-update-now"> Check Now </button>
           </label>
         </li>
-        <li id="update-status" class="description" hidden></li>
+        <li id="update-status" class="description update-status">
+          <p class="description general-information"
+              data-l10n-id="checking-for-update">Checking for updates...</p>
+          <p class="description system-update-status"></p>
+        </li>
       </ul>
 
       <header>

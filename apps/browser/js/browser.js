@@ -169,7 +169,7 @@ var Browser = {
       'bookmark-entry-sheet-done', 'bookmark-title', 'bookmark-url',
       'bookmark-previous-url', 'bookmark-menu-add-home', 'new-tab-button',
       'awesomescreen-cancel-button', 'startscreen', 'top-site-thumbnails',
-      'no-top-sites', 'clear-private-data-button'];
+      'no-top-sites', 'clear-private-data-button', 'results'];
 
     // Loop and add element with camel style name to Modal Dialog attribute.
     elementIDs.forEach(function createElementRef(name) {
@@ -254,6 +254,7 @@ var Browser = {
       this.deleteTab(this.currentTab.id);
       this.showTabScreen();
     }
+    this.updateSecurityIcon();
   },
 
   handleNewTab: function browserHandleNewTab(e) {
@@ -766,8 +767,8 @@ var Browser = {
       // Hide modal dialog
       ModalDialog.hide();
       AuthenticationDialog.hide();
-
       this.urlInput.value = this.currentTab.url;
+      this.sslIndicator.value = '';
       this.setUrlBar(this.currentTab.url);
       this.showAwesomeScreen();
       this.shouldFocus = true;
@@ -809,23 +810,60 @@ var Browser = {
     this.bookmarksTab.classList.remove('selected');
     this.history.classList.remove('selected');
     this.historyTab.classList.remove('selected');
+    this.results.classList.remove('selected');
+  },
+
+  showAwesomescreenTabs: function browser_showAwesomescreenTabs() {
+    this.topSites.style.display = '';
+    this.bookmarks.style.display = '';
+    this.history.style.display = '';
+    this.tabHeaders.style.display = '';
+  },
+
+  hideAwesomescreenTabs: function browser_hideAwesomescreenTabs() {
+    this.topSites.style.display = 'none';
+    this.bookmarks.style.display = 'none';
+    this.history.style.display = 'none';
+    this.tabHeaders.style.display = 'none';
   },
 
   updateAwesomeScreen: function browser_updateAwesomeScreen(filter) {
     if (!filter) {
-      this.tabHeaders.style.display = 'block';
+      this.showAwesomescreenTabs();
+      this.results.classList.remove('selected');
       filter = false;
     } else {
-      this.tabHeaders.style.display = 'none';
+      this.hideAwesomescreenTabs();
+      this.results.classList.add('selected');
     }
-    Places.getTopSites(20, filter, this.showTopSites.bind(this));
+    Places.getTopSites(20, filter, this.showResults.bind(this));
+  },
+
+  showResults: function browser_showResults(visited, filter) {
+    this.results.innerHTML = '';
+    var list = document.createElement('ul');
+    list.setAttribute('role', 'listbox');
+    this.results.appendChild(list);
+    visited.forEach(function browser_processResult(data) {
+      this.drawAwesomescreenListItem(list, data, filter);
+    }, this);
+    if (visited.length < 2 && filter) {
+      var data = {
+        title: this.DEFAULT_SEARCH_PROVIDER_TITLE,
+        uri: 'http://' + this.DEFAULT_SEARCH_PROVIDER_URL +
+          '/search?q=' + filter,
+        iconUri: this.DEFAULT_SEARCH_PROVIDER_ICON,
+        description: _('search-for') + ' "' + filter + '"'
+      };
+      this.drawAwesomescreenListItem(list, data);
+    }
   },
 
   showTopSitesTab: function browser_showTopSitesTab(filter) {
     this.deselectAwesomescreenTabs();
     this.topSitesTab.classList.add('selected');
     this.topSites.classList.add('selected');
-    this.updateAwesomeScreen();
+    Places.getTopSites(20, filter, this.showTopSites.bind(this));
   },
 
   showTopSites: function browser_showTopSites(topSites, filter) {
@@ -836,16 +874,6 @@ var Browser = {
     topSites.forEach(function browser_processTopSite(data) {
       this.drawAwesomescreenListItem(list, data, filter);
     }, this);
-    if (topSites.length < 2 && filter) {
-      var data = {
-        title: this.DEFAULT_SEARCH_PROVIDER_TITLE,
-        uri: 'http://' + this.DEFAULT_SEARCH_PROVIDER_URL +
-          '/search?q=' + filter,
-        iconUri: this.DEFAULT_SEARCH_PROVIDER_ICON,
-        description: _('search-for') + ' "' + filter + '"'
-      };
-      this.drawAwesomescreenListItem(list, data);
-    }
   },
 
   showHistoryTab: function browser_showHistoryTab() {
@@ -1333,6 +1361,7 @@ var Browser = {
     this.mainScreen.addEventListener('transitionend', pageShown, true);
     this.switchScreen(this.AWESOME_SCREEN);
     this.setUrlButtonMode(this.GO);
+    this.showAwesomescreenTabs();
     this.showTopSitesTab();
   },
 

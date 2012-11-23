@@ -16,15 +16,12 @@ html * {
 
 .font-regular {
   font-family: 'MozTT';
-}
-
-.font-semibold {
-  font-family: 'MozTT';
-  font-weight: 600;
+  font-weight: 400;
 }
 
 .font-light {
   font-family: 'MozTT';
+  font-weight: 300;
 }
 
 #phone-number-view {
@@ -141,10 +138,7 @@ body.hidden *[data-l10n-id] {
 #main-container {
   position: relative;
   height: 100%;
-  background-image: url("images/Generic_image.png");
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-position: center top;
+  background: rgba(0, 0, 0, 0.8) no-repeat center top/cover;
 }
 
 #actions-container {
@@ -332,15 +326,22 @@ button[disabled] .icon-keypad-visibility {
   overflow: auto;
 }
 
-#calls[data-count="1"] > section .numberWrapper .number{
+#calls[data-count="1"] > section .numberWrapper .number {
   height: 4rem;
   padding: 2rem 2rem 0 0;
-  font-size: 2.4rem;
+  font-size: 3.6rem;
   line-height: 4rem;
   color: black;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+#calls[data-count="1"] > section .numberWrapper
+  .number.noAdditionalContactInfo {
+  height: 10rem;
+  line-height: 10rem;
+  padding: 0;
 }
 
 #calls > section .fake-number {
@@ -350,14 +351,19 @@ button[disabled] .icon-keypad-visibility {
   white-space: nowrap;
 }
 
-
 #calls[data-count="1"] > section .additionalContactInfo {
   height: 2rem;
+  width: 100%;
   padding: 0 2rem 2rem 2rem;
   background: #01c5ed;
-  font-size: 1.4rem;
+  font-size: 1.5rem;
   line-height: 2rem;
   color: white;
+}
+
+#calls[data-count="1"] > section
+  .additionalContactInfo.noAdditionalContactInfo {
+  display: none;
 }
 
 #calls[data-count="1"] > section .duration {
@@ -369,7 +375,7 @@ button[disabled] .icon-keypad-visibility {
 }
 
 #calls[data-count="1"] > section .duration > span {
-  font-size: 2.9rem;
+  font-size: 2.7rem;
   line-height: 11.1rem;
 }
 
@@ -387,7 +393,6 @@ button[disabled] .icon-keypad-visibility {
 }
 
 #calls > section .numberWrapper {
-  font-size: 1.5em;
   white-space: nowrap;
 }
 
@@ -409,25 +414,25 @@ button[disabled] .icon-keypad-visibility {
 #calls[data-count="1"] > section .duration > .direction > div {
   width: 3.5rem;
   height: 3.5rem;
-  margin: 3.7rem 0 0 0;
+  margin: 4rem 0 0 1rem;
   background-repeat: no-repeat;
-  background-size: 3.5rem 3.5rem;
+  background-size: 2.4rem 2.4rem;
 }
 
 #calls[data-count="1"] > section .duration > .direction.incoming > div {
-  background-image: url('images/DialerIcon_35x35_calling.png');
+  background-image: url('images/incoming_icon.png');
 }
 
 #calls[data-count="1"] > section .duration > .direction.outgoing > div {
-  background-image: url('images/DialerIcon_35x35_calling_out.png');
+  background-image: url('images/outgoing_icon.png');
 }
 
 #calls[data-count="1"] > section .duration > .direction.ongoing-in > div {
-  background-image: url('images/DialerIcon_35x35_incoming.png');
+  background-image: url('images/incoming_icon.png');
 }
 
 #calls[data-count="1"] > section .duration > .direction.ongoing-out > div {
-  background-image: url('images/DialerIcon_35x35_outgoing.png');
+  background-image: url('images/outgoing_icon.png');
 }
 
 
@@ -556,10 +561,10 @@ button[disabled] .icon-keypad-visibility {
     width: 100%;
     height: 100%;
     background-color: transparent;
-    font-size: 1.8em;
+    font-size: 1.8rem;
   }
 
-  #calls > section .numberWrapper,
+ #calls > section .numberWrapper,
   #calls[data-count="1"] > section .numberWrapper {
     width: -moz-calc(100% - 10rem);
     height: -moz-calc(100% - 2rem);
