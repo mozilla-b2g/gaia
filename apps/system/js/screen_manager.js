@@ -83,6 +83,8 @@ var ScreenManager = {
     this._firstOn = false;
     SettingsListener.observe('screen.timeout', 60,
     function screenTimeoutChanged(value) {
+      if (typeof value !== 'number')
+        value = parseInt(value);
       self._idleTimeout = value;
       self._setIdleTimeout(self._idleTimeout);
 
