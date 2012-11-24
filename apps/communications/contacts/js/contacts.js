@@ -129,7 +129,7 @@ var Contacts = (function() {
       ret[currentParam[0]] = currentParam[1];
     }
     return ret;
-  }
+  };
 
   var initContainers = function initContainers() {
     customTag = document.getElementById('custom-tag');
@@ -189,7 +189,7 @@ var Contacts = (function() {
       addButton.classList.remove('hide');
       settingsButton.classList.remove('hide');
     }
-  }
+  };
 
   var initLanguages = function initLanguages() {
     document.documentElement.lang = navigator.mozL10n.language.code;
@@ -224,9 +224,9 @@ var Contacts = (function() {
         // If no required type of data
         var dismiss = {
           title: _('ok'),
-          callback: CustomDialog.hide
+          callback: ConfirmDialog.hide
         };
-        CustomDialog.show('', noDataStr, dismiss);
+        ConfirmDialog.show(null, noDataStr, dismiss);
         break;
       case 1:
         // if one required type of data
@@ -385,7 +385,7 @@ var Contacts = (function() {
         selectedTag.removeAttribute('class');
       }
       selectedTag = null;
-    }
+    };
 
     selectTag(selectedLink);
   };
@@ -425,7 +425,7 @@ var Contacts = (function() {
   var sendSms = function sendSms(number) {
     if (!ActivityHandler.currentlyHandling)
       SmsIntegration.sendSms(number);
-  }
+  };
 
   var callOrPick = function callOrPick(number) {
     if (ActivityHandler.currentlyHandling) {
@@ -439,7 +439,7 @@ var Contacts = (function() {
         console.log('Telephony unavailable? : ' + e);
       }
     }
-  }
+  };
 
   var handleBack = function handleBack() {
     navigation.back();
@@ -480,7 +480,7 @@ var Contacts = (function() {
   var isUpdated = function isUpdated(contact1, contact2) {
     return contact1.id == contact2.id &&
       (contact1.updated - contact2.updated) == 0;
-  }
+  };
 
   // When a visiblity change is sent, handles and updates the
   // different views according to the app state
@@ -504,7 +504,7 @@ var Contacts = (function() {
           return;
         }
         contacts.List.getContactById(currentContact.id, function(contact) {
-          if (isUpdated(contact, currentContact)) {
+          if (!contact || isUpdated(contact, currentContact)) {
             return;
           }
           currentContact = contact;
@@ -521,7 +521,7 @@ var Contacts = (function() {
 
   var showEditContact = function showEditContact() {
     showForm(true);
-  }
+  };
 
   var showForm = function c_showForm(edit) {
     var contact = edit ? currentContact : null;
@@ -532,11 +532,11 @@ var Contacts = (function() {
 
       req.onsuccess = function() {
         contactsForm.render(contact, goToForm, req.result);
-      }
+      };
 
       req.onerror = function() {
         contactsForm.render(contact, goToForm);
-      }
+      };
     }
     else {
       contactsForm.render(contact, goToForm);
@@ -551,7 +551,7 @@ var Contacts = (function() {
     navigation.go('view-settings', 'popup');
     // The number of FB Friends has to be recalculated
     contacts.Settings.refresh();
-  }
+  };
 
   var showOverlay = function showOverlay(message) {
     var text = message || _('loadingContacts');
@@ -566,7 +566,7 @@ var Contacts = (function() {
 
   var stopPropagation = function stopPropagation(evt) {
     evt.preventDefault();
-  }
+  };
 
   var initEventListeners = function initEventListener() {
     // Definition of elements and handlers

@@ -2,7 +2,7 @@
 
 const GridManager = (function() {
   var MAX_ICONS_PER_PAGE = 4 * 4;
-  var PREFERRED_ICON_SIZE = 64;
+  var PREFERRED_ICON_SIZE = 60;
   var SAVE_STATE_TIMEOUT = 100;
 
   var container;
@@ -513,7 +513,7 @@ const GridManager = (function() {
   }
 
   function getIconsForApp(app) {
-    return appIcons[descriptor.manifestURL];
+    return appIcons[app.manifestURL];
   }
 
   function getIconForBookmark(bookmarkURL) {
@@ -640,7 +640,7 @@ const GridManager = (function() {
 
     appsByOrigin[app.origin] = app;
 
-    var manifest = app.manifest;
+    var manifest = app.manifest ? app.manifest : app.updateManifest;
     if (!manifest)
       return;
 
@@ -667,10 +667,15 @@ const GridManager = (function() {
       app.ondownloadapplied = function ondownloadapplied(event) {
         var withAnimation = false;
         createOrUpdateIconForApp(app, withAnimation, entryPoint);
+        app.ondownloadapplied = null;
+        app.ondownloaderror = null;
       };
+      app.ondownloaderror = function ondownloaderror(event) {
+        createOrUpdateIconForApp(app, false, entryPoint);
+      }
     }
 
-    var manifest = app.manifest;
+    var manifest = app.manifest ? app.manifest : app.updateManifest;
     var iconsAndNameHolder = manifest;
     if (entryPoint)
       iconsAndNameHolder = manifest.entry_points[entryPoint];
@@ -765,7 +770,7 @@ const GridManager = (function() {
         url.indexOf('https://') == 0)
       return url;
 
-    return app.origin + url;
+    return app.origin + '/' + url;
   }
 
 

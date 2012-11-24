@@ -9,11 +9,12 @@
     <link href="/shared/style/headers.css" rel="stylesheet">
     <link href="/shared/style/input_areas.css" rel="stylesheet">
     <link href="/shared/style/buttons.css" rel="stylesheet">
+    <link href="/shared/style/confirm.css" rel="stylesheet">
+    <link href="/shared/style_unstable/lists.css" rel="stylesheet">
 
     <link href="/contacts/style/app.css" rel="stylesheet">
     <link href="/contacts/style/contacts.css" rel="stylesheet">
     <link href="/contacts/style/search.css" rel="stylesheet">
-    <link href="/contacts/style/custom_dialog.css" rel="stylesheet">
     <link href="/contacts/style/input_cancel_button.css" rel="stylesheet">
     <link href="/contacts/style/fixed_header.css" rel="stylesheet">
     <link href="/facebook/style/curtain_frame.css" rel="stylesheet">
@@ -21,6 +22,10 @@
     <link href="/contacts/style/fb_extensions.css" rel="stylesheet">
 
     <script src="/contacts/js/activities.js"></script>
+
+    <!-- Confirm dialogs BB library -->
+    <script defer type="text/javascript" src="/contacts/js/confirm_dialog.js">
+    </script>
 
     <!-- Loading FB indexedDB related stuff -->
     <script src="/contacts/js/fb/fb_data.js"></script>
@@ -33,7 +38,6 @@
     <link rel="resource" type="application/l10n" href="/shared/locales/date.ini"/>
     <script type="text/javascript" src="/shared/js/l10n.js"></script>
     <script type="text/javascript" src="/shared/js/l10n_date.js"></script>
-    <script defer type="text/javascript" src="/shared/js/custom_dialog.js"></script>
     <script defer type="text/javascript" src="/shared/js/async_storage.js"></script>
 
     <script defer type="text/javascript" src="/shared/js/async_storage.js"></script>
@@ -81,7 +85,7 @@
       <!-- Contacts List Section -->
       <section id='view-contacts-list' role="region" data-mirror="mirror-contacts-list" data-state="active" class="view view-noscroll view-contacts-list">
         <header>
-          <menu type="toolbar" role="menu">
+          <menu type="toolbar">
             <button role="menuitem" id="cancel_activty" class="hide"><span class="icon icon-close"data-l10n-id="exit">Exit</span></button>
             <button role="menuitem" id="add-contact-button"><span class="icon icon-add" data-l10n-id="add">add</span></button>
             <button role="menuitem" id="settings-button"><span class="icon icon-settings" data-l10n-id="settings">settings</span></button>
@@ -123,9 +127,9 @@
               </p>
             </form>
             <p id="no-result" class="hide" data-l10n-id="noResults">No contacts found</p>
-            <ol class="block-list" id="groups-list">
+            <section id="groups-list" data-type="list">
               <!-- Group template here -->
-            </ol>
+            </section>
           </div>
         </article>
         <div id='fixed-container' class='fixed-title'></div>
@@ -148,7 +152,7 @@
       <section id='view-contact-details' role="region" data-mirror="mirror-contact-details" class="view view-contact-profile">
         <header id='details-view-header'>
           <button id="details-back" class="negative"><span class="icon icon-back" data-l10n-id="back">back</span></button>
-          <menu type="toolbar" role="menu">
+          <menu type="toolbar">
             <button role="menuitem" id="edit-contact-button"><span class="icon icon-edit" data-l10n-id="edit" data-l10n-id="edit">edit</span></button>
           </menu>
           <h1 id='contact-name-title'></h1>
@@ -205,8 +209,8 @@
                     </button>
                   </div>
 
-                  <button id="profile_button" data-l10n-id="show-profile" class="fillflow-row activity icon icon-fb-profile">
-                    Show Profile
+                  <button id="profile_button" data-l10n-id="show-fb-profile" class="fillflow-row activity icon icon-fb-profile">
+                    View Facebook profile
                   </button>
 
                   <button id="link_button" class="activity icon icon-link">
@@ -257,7 +261,7 @@
       <section id='view-contact-form' role="region" data-mirror="mirror-contact-form" class="view view-bottom view-edit-contact">
         <header>
           <button id='cancel-edit' class="negative"><span class="icon icon-close"data-l10n-id="exit">Exit</span></button>
-          <menu type="toolbar" role="menu" id='contact-form-actions'>
+          <menu type="toolbar" id='contact-form-actions'>
             <button id="save-button" role="menuitem"></button>
           </menu>
           <h1 id='contact-form-title'></h1>
@@ -275,7 +279,7 @@
                 <button type="reset" class="hide">Clear</button>
               </p>
               <p class="setbox-item">
-                <input data-cancelable placeholder="Carrier" data-field="carrier" data-l10n-id="carrier" name="tel[#i#][carrier]" class="textfield" type="text" value="#carrier#" id="carrier_#i#">
+                <input data-cancelable placeholder="Carrier" data-field="carrier" data-l10n-id="carrier" name="tel[#i#][carrier]" class="textfield" type="text" x-inputmode="latin-prose" value="#carrier#" id="carrier_#i#">
                 <button type="reset" class="hide">Clear</button>
               </p>
             </section>
@@ -305,7 +309,7 @@
             </legend>
             <section>
               <p class="setbox-item">
-                <input data-cancelable placeholder="Street" data-field="streetAddress" data-l10n-id="streetAddress" name="adr[#i#][streetAddress]" class="textfield" type="text" value="#streetAddress#" id="streetAddress_#i#">
+                <input data-cancelable placeholder="Street" data-field="streetAddress" data-l10n-id="streetAddress" name="adr[#i#][streetAddress]" class="textfield" type="text" x-inputmode="latin-prose" value="#streetAddress#" id="streetAddress_#i#">
                 <button type="reset" class="hide">Clear</button>
               </p>
               <p class="setbox-item">
@@ -313,11 +317,11 @@
                 <button type="reset" class="hide">Clear</button>
               </p>
               <p class="setbox-item">
-                <input data-cancelable placeholder="City" data-field="locality" data-l10n-id="locality" name="adr[#i#][locality]" class="textfield" type="text" value="#locality#" id="locality_#i#">
+                <input data-cancelable placeholder="City" data-field="locality" data-l10n-id="locality" name="adr[#i#][locality]" class="textfield" type="text" x-inputmode="latin-prose" value="#locality#" id="locality_#i#">
                 <button type="reset" class="hide">Clear</button>
               </p>
               <p class="setbox-item">
-                <input data-cancelable placeholder="Country" data-field="countryName" data-l10n-id="countryName" name="adr[#i#][countryName]" class="textfield" type="text" value="#countryName#" id="countryName_#i#">
+                <input data-cancelable placeholder="Country" data-field="countryName" data-l10n-id="countryName" name="adr[#i#][countryName]" class="textfield" type="text" x-inputmode="latin-prose" value="#countryName#" id="countryName_#i#">
                 <button type="reset" class="hide">Clear</button>
               </p>
             </section>
@@ -329,7 +333,7 @@
           <dl class="setbox fillflow-row">
             <dd class="setbox-body">
               <p class="setbox-item">
-               <input data-cancelable placeholder="Comment" data-l10n-id="comment" name="comment[#i#]" class="textfield" type="text" value="#note#" id="note_#i#">
+               <input data-cancelable placeholder="Comment" data-l10n-id="comment" name="comment[#i#]" class="textfield" type="text" x-inputmode="latin-prose" value="#note#" id="note_#i#">
                <button type="reset" class="hide">Clear</button>
               </p>
             </dd>
@@ -347,20 +351,23 @@
                     <span role="button" class="icon-addimage"></span>
                     <em data-l10n-id="addPhoto"> Add photo</em>
                   </p>
+                  <p class="edit-photo">
+                    <em data-l10n-id="edit">Edit</em>
+                  </p>
                   <img id="thumbnail-photo" alt="" style="background-image: url(#photo#); background-color: transparent;">
                 </a>
                 <div class="item-body-exp">
                   <p class="fillflow-row">
-                    <input data-cancelable placeholder="Name" data-l10n-id="givenName" name="givenName" class="textfield" type="text" value="#givenName#" id="givenName">
+                    <input data-cancelable placeholder="Name" data-l10n-id="givenName" name="givenName" class="textfield" type="text" x-inputmode="latin-prose" value="#givenName#" id="givenName">
                     <button type="reset" class="hide">Clear</button>
                   </p>
                   <p class="fillflow-row">
-                    <input data-cancelable placeholder="Last name" data-l10n-id="familyName" name="familyName" class="textfield" type="text" value="#familyName#" id="familyName">
+                    <input data-cancelable placeholder="Last name" data-l10n-id="familyName" name="familyName" class="textfield" type="text" x-inputmode="latin-prose" value="#familyName#" id="familyName">
                     <button type="reset" class="hide">Clear</button>
                   </p>
                 </div>
                 <p class="fillflow-row">
-                  <input data-cancelable placeholder="Company Name" data-l10n-id="org" name="org" class="textfield" type="text" value="" id="org">
+                  <input data-cancelable placeholder="Company Name" data-l10n-id="org" name="org" class="textfield" type="text" x-inputmode="latin-prose" value="" id="org">
                   <button type="reset" class="hide">Clear</button>
                 </p>
               </section>
@@ -428,7 +435,7 @@
       <section id="view-select-tag" role="region" data-mirror="mirror-contact-tags" class="view view-select-tag">
         <header>
           <button id="settings-cancel" class="negative"><span class="icon icon-back" data-l10n-id="back">back</span></button>
-          <menu type="toolbar" role="menu" id="contact-form-actions">
+          <menu type="toolbar" id="contact-form-actions">
             <button id="settings-done" role="menuitem" data-l10n-id="done">Done</button>
           </menu>
           <h1 data-l10n-id="label">Label</h1>
@@ -505,5 +512,17 @@
     <section id="statusMsg" role="status">
       <p></p>
     </section>
+    
+    <form id="confirmation-message" class="hide" role="dialog" data-type="confirm">
+      <section>
+        <h1>Confirmation title</h1>
+        <p>Confirmation message</p>
+      </section>
+      <menu>
+        <button>Action 1</button>
+        <button>Action 2</button>
+      </menu>
+    </form>
+
   </body>
 </html>

@@ -309,6 +309,8 @@ MessageListCard.prototype = {
 
   showSearch: function(folder, phrase, filter) {
     console.log('sf: showSearch. phrase:', phrase, phrase.length);
+    var tab = this.domNode.getElementsByClassName('filter')[0];
+    var nodes = tab.getElementsByClassName('msg-search-filter');
     if (this.messagesSlice) {
       this.messagesSlice.die();
       this.messagesSlice = null;
@@ -318,6 +320,13 @@ MessageListCard.prototype = {
     this.curPhrase = phrase;
     this.curFilter = filter;
 
+    for (var i = 0; i < nodes.length; i++) {
+      if (nodes[i].dataset.filter != this.curFilter) {
+        nodes[i].setAttribute('aria-selected', 'false');
+        continue;
+      }
+      nodes[i].setAttribute('aria-selected', 'true');
+    }
     if (phrase.length < 1)
       return false;
 
@@ -381,7 +390,8 @@ MessageListCard.prototype = {
     var text = this.domNode.
       getElementsByClassName('msg-list-empty-message-text')[0];
     text.textContent = this.mode == 'search' ?
-      mozL10n.get('messages-search-empty'):mozL10n.get('messages-folder-empty');
+      mozL10n.get('messages-search-empty') :
+      mozL10n.get('messages-folder-empty');
     this.messageEmptyContainer.classList.remove('collapsed');
     this.toolbar.editBtn.classList.add('disabled');
     this.toolbar.searchBtn.classList.add('disabled');
@@ -962,19 +972,7 @@ MessageReaderCard.prototype = {
     }
   },
 
-  onDownloadAttachmentClick: function(node, attachment) {
-    node.setAttribute('state', 'downloading');
-    attachment.download(function downloaded() {
-      node.setAttribute('state', 'downloaded');
-    });
-  },
-
-  onViewAttachmentClick: function(node, attachment) {
-    console.log('trying to open', attachment._file, 'type:',
-                attachment.mimetype);
-    if (!attachment._file)
-      return;
-
+  getAttachmentBlob: function(attachment, callback) {
     try {
       // Get the file contents as a blob, so we can open the blob
       var storageType = attachment._file[0];
@@ -988,36 +986,67 @@ MessageReaderCard.prototype = {
       };
 
       getreq.onsuccess = function() {
-        try {
-          // Now that we have the file, use an activity to open it
-          var file = getreq.result;
-          var activity = new MozActivity({
-            name: 'open',
-            data: {
-              type: attachment.mimetype,
-              blob: file
-            }
-          });
-          activity.onerror = function() {
-            console.warn('Problem with "open" activity', activity.error.name);
-          };
-          activity.onsuccess = function() {
-            console.log('"open" activity allegedly succeeded');
-          };
-        }
-        catch (ex) {
-          console.warn('Problem creating "open" activity:', ex, '\n', ex.stack);
-        }
+        // Now that we have the file, return the blob within callback function
+        var blob = getreq.result;
+        callback(blob);
       };
-    }
-    catch (ex) {
+    } catch (ex) {
       console.warn('Exception getting attachment from device storage:',
                    attachment._file, '\n', ex, '\n', ex.stack);
     }
   },
 
+  onDownloadAttachmentClick: function(node, attachment) {
+    var blobs = this.attachmentBlobs;
+    node.setAttribute('state', 'downloading');
+    attachment.download(function downloaded() {
+      if (!attachment._file)
+        return;
+      this.getAttachmentBlob(attachment, function callback(blob) {
+        var storageType = attachment._file[0];
+        var filename = attachment._file[1];
+        blobs[storageType + '/' + filename] = blob;
+        node.setAttribute('state', 'downloaded');
+      });
+    }.bind(this));
+  },
+
+  onViewAttachmentClick: function(node, attachment) {
+    console.log('trying to open', attachment._file, 'type:',
+                attachment.mimetype);
+    var blobs = this.attachmentBlobs;
+    if (!attachment._file)
+      return;
+
+    try {
+      // Now that we have the file, use an activity to open it
+      var storageType = attachment._file[0];
+      var filename = attachment._file[1];
+      var blob = blobs[storageType + '/' + filename];
+      if (!blob) {
+        throw new Error('Blob does not exist');
+      }
+      var activity = new MozActivity({
+        name: 'open',
+        data: {
+          type: attachment.mimetype,
+          blob: blob
+        }
+      });
+      activity.onerror = function() {
+        console.warn('Problem with "open" activity', activity.error.name);
+      };
+      activity.onsuccess = function() {
+        console.log('"open" activity allegedly succeeded');
+      };
+    }
+    catch (ex) {
+      console.warn('Problem creating "open" activity:', ex, '\n', ex.stack);
+    }
+  },
+
   onHyperlinkClick: function(event, linkNode, linkUrl, linkText) {
-    if(confirm(mozL10n.get('browse-to-url-prompt', { url: linkUrl })))
+    if (confirm(mozL10n.get('browse-to-url-prompt', { url: linkUrl })))
       window.open(linkUrl, '_blank');
   },
 
@@ -1040,7 +1069,7 @@ MessageReaderCard.prototype = {
         node.setAttribute('class', cname);
 
       var subnodes = MailAPI.utils.linkifyPlain(rep[i + 1], document);
-      for(var i in subnodes)
+      for (var i in subnodes)
         node.appendChild(subnodes[i]);
 
       bodyNode.appendChild(node);
@@ -1146,6 +1175,7 @@ MessageReaderCard.prototype = {
     var attachmentsContainer =
       domNode.getElementsByClassName('msg-attachments-container')[0];
     if (body.attachments && body.attachments.length) {
+      this.attachmentBlobs = {};
       var attTemplate = msgNodes['attachment-item'],
           filenameTemplate =
             attTemplate.getElementsByClassName('msg-attachment-filename')[0],
@@ -1174,6 +1204,13 @@ MessageReaderCard.prototype = {
           .addEventListener('click',
                             this.onViewAttachmentClick.bind(
                               this, attachmentNode, attachment));
+        if (attachment.isDownloaded) {
+          this.getAttachmentBlob(attachment, function callback(blob) {
+            var storageType = attachment._file[0];
+            var filename = attachment._file[1];
+            this.attachmentBlobs[storageType + '/' + filename] = blob;
+          }.bind(this));
+        }
       }
     }
     else {

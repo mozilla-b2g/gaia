@@ -26,6 +26,7 @@
 
     <script defer type="text/javascript" src="js/search.js"></script>
     <script defer type="text/javascript" src="js/utilities/normalizer.js"></script>
+    <script defer type="text/javascript" src="js/utilities/image_square.js"></script>
 
     <script defer type="text/javascript" src="js/fb/fb_data.js"></script>
     <script defer type="text/javascript" src="js/fb/fb_contact_utils.js"></script>
@@ -60,7 +61,7 @@
           <span class="icon icon-close" data-l10n-id="close">close</span>
         </a>
         <menu type="toolbar">
-          <button  id="import-action" data-l10n-id="import">
+          <button  id="import-action" data-l10n-id="import" disabled>
             Import
           </button>
         </menu>
@@ -121,8 +122,11 @@
 
         <form role="dialog" data-type="confirm" class="no-overlay">
           <menu id="select-all-wrapper">
-            <button id="select-all" data-l10n-id="selectAll" class="full">
-              Select All
+            <button id="deselect-all" class="edit-button" data-l10n-id="deselectAll">
+              Deselect all
+            </button>
+            <button id="select-all" class="edit-button" data-l10n-id="selectAll">
+              Select all
             </button>
           </menu>
         </form>

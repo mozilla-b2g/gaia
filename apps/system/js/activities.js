@@ -6,20 +6,31 @@
 var Activities = {
   init: function act_init() {
     window.addEventListener('mozChromeEvent', this);
+    window.addEventListener('home', this);
+    window.addEventListener('holdhome', this);
   },
 
   handleEvent: function act_handleEvent(evt) {
-    if (evt.type !== 'mozChromeEvent')
-      return;
+    switch (evt.type) {
+      case 'mozChromeEvent':
+        var detail = evt.detail;
+        switch (detail.type) {
+          case 'activity-choice':
+            this.chooseActivity(detail);
+            break;
 
-    var detail = evt.detail;
-    switch (detail.type) {
-      case 'activity-choice':
-        this.chooseActivity(detail);
+          case 'activity-done':
+            this.reopenActivityCaller(detail);
+            break;
+        }
         break;
-
-      case 'activity-done':
-        this.reopenActivityCaller(detail);
+      case 'home':
+        if (this._callerApp)
+          this._callerApp = null;
+        break;
+      case 'holdhome':
+        if (this._callerApp)
+          this._callerApp = null;
         break;
     }
   },
@@ -70,6 +81,9 @@ var Activities = {
     // inline activity frame will be removed by this action.
 
     // XXX: what if we have multiple web activities in-flight?
+    if (!this._callerApp)
+      return;
+
     WindowManager.launch(this._callerApp);
     delete this._callerApp;
   },

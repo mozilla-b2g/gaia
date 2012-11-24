@@ -56,7 +56,8 @@ var Contacts = {
       if (request.result.length > 1) {
         var name = contact.name[0].substring(0, 8),
             numOfothers = request.result.length - 1;
-        contact.name[0] = _('lineContactName', {name: name, n: numOfothers});
+        name = _('contactNameWithOthers', {name: name, n: numOfothers});
+        contact.name[0] = name;
       }
 
       var matchingTel = contact.tel[matchResult.localIndex];

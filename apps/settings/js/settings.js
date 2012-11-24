@@ -242,7 +242,9 @@ var Settings = {
       case 'radio':
       case 'text':
       case 'password':
-        value = input.value; // text
+        value = input.value; // default as text
+        if (input.dataset.valueType === "integer") // integer
+          value = parseInt(value);
         break;
     }
 
@@ -346,7 +348,7 @@ var Settings = {
     openDialog(dialogID, submit);
   },
 
-  openUserGuide: function settings_openUserGuide() {
+  getUserGuide: function settings_getUserGuide(callback) {
     var settings = this.mozSettings;
     if (!settings)
       return;
@@ -356,7 +358,7 @@ var Settings = {
     req.onsuccess = function userGuide() {
       var url = 'http://support.mozilla.org/1/firefox-os/' +
         req.result[key] + '/gonk/' + document.documentElement.lang + '/';
-      openLink(url);
+      callback(url);
     };
   },
 
@@ -403,23 +405,75 @@ var Settings = {
     }
 
     var _ = navigator.mozL10n.get;
-    var updateStatus = document.getElementById('update-status');
+    var updateStatus = document.getElementById('update-status'),
+        systemStatus = updateStatus.querySelector('.system-update-status');
 
-    updateStatus.textContent = _('checking-for-update');
-    updateStatus.hidden = false;
-
-    settings.addObserver('gecko.updateStatus', function onUpdateStatus(event) {
+    function onUpdateStatus(setting, event) {
       var value = event.settingValue;
-      switch (value) {
-        case 'check-complete':
-          updateStatus.hidden = true;
-          break;
-        default:
-          updateStatus.textContent = _(value, null, value);
-          break;
+      checkStatus[setting].value = value;
+
+      /* possible return values:
+       * for system updates:
+       * - no-updates
+       * - already-latest-version
+       * - check-complete
+       * - retry-when-online
+       *
+       * for apps updates:
+       * - check-complete
+       *
+       * use
+       * http://mxr.mozilla.org/mozilla-central/ident?i=setUpdateStatus&tree=mozilla-central&filter=&strict=1
+       * to check if this is still current
+       */
+      if (value !== 'check-complete') {
+        systemStatus.textContent = _(value, null, value);
       }
-      settings.removeObserver('gecko.updateStatus', onUpdateStatus);
-    });
+
+      checkIfStatusComplete();
+
+      settings.removeObserver(setting, checkStatus[setting].cb);
+      checkStatus[setting].cb = null;
+    }
+
+    function checkIfStatusComplete() {
+      var hasAllCheckComplete =
+        Object.keys(checkStatus).every(function(setting) {
+          return checkStatus[setting].value === 'check-complete';
+        });
+
+      var hasAllResponses =
+        Object.keys(checkStatus).every(function(setting) {
+          return !!checkStatus[setting].value;
+        });
+
+      if (hasAllCheckComplete) {
+        updateStatus.classList.remove('visible');
+        systemStatus.textContent = '';
+      }
+
+      if (hasAllResponses) {
+        updateStatus.classList.remove('checking');
+      }
+    }
+
+    /* Firefox currently doesn't implement adding 2 classes in one call */
+    /* see Bug 814014 */
+    updateStatus.classList.add('checking');
+    updateStatus.classList.add('visible');
+
+    /* remove whatever was there before */
+    systemStatus.textContent = '';
+
+    var checkStatus = {
+      'gecko.updateStatus': {},
+      'apps.updateStatus': {}
+    };
+
+    for (var setting in checkStatus) {
+      checkStatus[setting].cb = onUpdateStatus.bind(null, setting);
+      settings.addObserver(setting, checkStatus[setting].cb);
+    }
 
     var lock = settings.createLock();
     lock.set({
@@ -486,8 +540,10 @@ window.addEventListener('load', function loadSettings() {
         Settings.loadGaiaCommit();
         break;
       case 'help':                // handle specific link
-        document.querySelector('[data-l10n-id="user-guide"]').onclick =
-          Settings.openUserGuide.bind(Settings);
+        Settings.getUserGuide(function userGuideCallback(url) {
+          document.querySelector('[data-l10n-id="user-guide"]').onclick =
+            function openUserGuide() { openLink(url) };
+        });
         break;
       case 'mediaStorage':        // full media storage status + panel startup
         MediaStorage.initUI();

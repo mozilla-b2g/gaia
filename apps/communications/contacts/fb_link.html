@@ -8,6 +8,7 @@
     <title>Facebook Link</title>
 
     <script  defer type="text/javascript" src="js/utilities/templates.js"></script>
+    <script  defer type="text/javascript" src="js/utilities/image_square.js"></script>
     <script  defer type="text/javascript" src="js/utilities/event_listeners.js"></script>
 
     <script  defer type="text/javascript" src="oauth2/js/flow.js"></script>
@@ -38,8 +39,7 @@
     <link href="/shared/style/headers.css" rel="stylesheet">
     <link href="/shared/style/buttons.css" rel="stylesheet">
     <link href="/shared/style/confirm.css" rel="stylesheet">
-
-    <link rel="stylesheet" href="style/shared/widgets/lists/style.css">
+    <link href="/shared/style_unstable/lists.css" rel="stylesheet">
 
     <link rel="stylesheet" href="style/fb/facebook.css">
 
@@ -56,19 +56,21 @@
       </header>
 
       <header>
-        <h2 data-l10n-id="linkSelection">Select one of this possible matches for</h2>
+        <h2 id="linkProposal"></h2>
       </header>
 
       <section id="main">
         <!-- Contacts List Section -->
-        <section id="mainContent" data-state="selection">
+        <section id="mainContent" data-state="selection" data-type="list">
           <ol id="friends-list">
             <li data-template data-uuid="#uid#">
-               <img data-src="https://graph.facebook.com/#uid#/picture?type=square" hidden>
-                <dl>
-                  <dt>#name#</dt>
-                  <dd>#email#</dd>
-                </dl>
+                <a href="#">
+                  <aside class="pack-end">
+                    <img data-src="https://graph.facebook.com/#uid#/picture?type=square" hidden>
+                  </aside>
+                  <p>#name#</p>
+                  <p>#email#</p>
+                </a>
             </li>
           </ol>
         </section> <!-- mainContent -->

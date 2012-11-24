@@ -87,15 +87,16 @@ var AttentionScreen = {
     this.attentionScreen.appendChild(attentionFrame);
     this.attentionScreen.classList.add('displayed');
 
-    // Ensuring the proper mozvisibility change on the displayed app
-    // and the attention screen app
-    var displayedOrigin = WindowManager.getDisplayedApp();
-    var frameOrigin = attentionFrame.dataset.frameOrigin;
-    this._setVisibility(displayedOrigin, false);
-    this._setVisibility(frameOrigin, false);
-
     this.mainScreen.classList.add('attention');
     this.dispatchEvent('attentionscreenshow');
+
+    // If the current app != the app opening the screen it should get
+    // a visibility change event
+    var displayedOrigin = WindowManager.getDisplayedApp();
+    var frameOrigin = attentionFrame.dataset.frameOrigin;
+    if (displayedOrigin !== frameOrigin) {
+      this._setVisibility(displayedOrigin, false);
+    }
   },
 
   _setVisibility: function as_setVisibility(origin, visible) {

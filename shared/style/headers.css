@@ -216,20 +216,26 @@ section[role="region"] > header:first-child > button,
 section[role="region"] > header:first-child > a {
   position: absolute;
   left: 0;
-  width: 4rem;
+  width: 5rem;
   height: 5rem;
   background: url(headers/images/ui/separator-large.png) no-repeat 2rem center;
   overflow: hidden;
-  text-align: center;
+}
+
+section[role="region"] > header:first-child > button::-moz-focus-inner { 
+  border: 0;
+  padding: 0;
 }
 
 section[role="region"] > header:first-child > button .icon,
 section[role="region"] > header:first-child > a .icon {
+  display: block;
   overflow: visible;
   font-size: 0;
   position: static;
-  margin-left: -3rem;
   height: 4.9rem;
+  margin: 0;
+  width: 2rem;
 }
 
 section[role="region"] > header:first-child > button .icon:after,
@@ -246,7 +252,7 @@ section[role="region"] > header:first-child > a .icon:after {
 
 section[role="region"] > header > a .icon.icon-menu,
 section[role="region"] > header > button .icon.icon-menu {
-  background-position: -1rem center;
+  background-position: -1.1rem center;
 }
 
 /* ----------------------------------

@@ -57,25 +57,30 @@ form.search button[type="submit"] {
 
 /* Searching state */
 #view-contacts-list.searching > header {
-  transform: scale(0);
+  transform: translateY(-100%);
   pointer-events: none;
 }
 
 #view-contacts-list.searching .fixed-title {
-  transform: scale(0) !important;
+  opacity: 0;
 }
 
 #view-contacts-list.searching .view-jumper {
-  transform: scale(0);
+  opacity: 0;
+  pointer-events: none;
 }
 
-#view-contacts-list.searching #groups-list h2 {
+#view-contacts-list.searching #groups-list header {
   display: none;
 }
 
 #view-contacts-list.searching .view-body-inner {
   height: calc(100% + 5rem);
   margin-top: -5rem;
+}
+
+#view-contacts-list.searching #groups-list section li:last-child {
+  border-bottom: 0.1rem solid #DBD9D9;
 }
 
 #no-result {

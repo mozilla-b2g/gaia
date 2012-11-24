@@ -4,40 +4,47 @@ requireApp('system/test/unit/mock_statusbar.js');
 requireApp('system/test/unit/mock_app.js');
 requireApp('system/test/unit/mock_system_banner.js');
 requireApp('system/test/unit/mock_notification_screen.js');
+requireApp('system/test/unit/mock_applications.js');
+requireApp('system/test/unit/mock_utility_tray.js');
+requireApp('system/test/unit/mocks_helper.js');
 
 requireApp('system/js/app_install_manager.js');
 
-// prevent Mocha to choke on "leaks" that are not leaks
-if (!window.StatusBar) {
-  window.StatusBar = null;
-}
+var mocksForAppInstallManager = [
+  'StatusBar',
+  'SystemBanner',
+  'NotificationScreen',
+  'Applications',
+  'UtilityTray'
+];
 
-if (!window.SystemBanner) {
-  window.SystemBanner = null;
-}
+mocksForAppInstallManager.forEach(function(mockName) {
+  if (! window[mockName]) {
+    window[mockName] = null;
+  }
+});
 
-if (!window.NotificationScreen) {
-  window.NotificationScreen = null;
-}
-
-suite('system/AppInstallManager', function() {
+suite('system/AppInstallManager >', function() {
   var realL10n;
   var realDispatchResponse;
-  var realStatusBar;
-  var realSystemBanner;
-  var realNotificationScreen;
 
   var fakeDialog, fakeNotif;
-  var fakeCancelDialog;
+  var fakeInstallCancelDialog, fakeDownloadCancelDialog;
 
   var lastL10nParams = null;
   var lastDispatchedResponse = null;
+
+  var mocksHelper;
 
   suiteSetup(function() {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = {
       get: function get(key, params) {
         lastL10nParams = params;
+        if (params) {
+          return key + JSON.stringify(params);
+        }
+
         return key;
       }
     };
@@ -50,14 +57,8 @@ suite('system/AppInstallManager', function() {
       };
     };
 
-    realStatusBar = window.StatusBar;
-    window.StatusBar = MockStatusBar;
-
-    realSystemBanner = window.SystemBanner;
-    window.SystemBanner = MockSystemBanner;
-
-    realNotificationScreen = window.NotificationScreen;
-    window.NotificationScreen = MockNotificationScreen;
+    mocksHelper = new MocksHelper(mocksForAppInstallManager);
+    mocksHelper.suiteSetup();
   });
 
   suiteTeardown(function() {
@@ -74,14 +75,7 @@ suite('system/AppInstallManager', function() {
     navigator.mozL10n = realL10n;
     AppInstallManager.dispatchResponse = realDispatchResponse;
 
-    window.StatusBar = realStatusBar;
-    realStatusBar = null;
-
-    window.SystemBanner = realSystemBanner;
-    realSystemBanner = null;
-
-    window.NotificationScreen = realNotificationScreen;
-    realNotificationScreen = null;
+    mocksHelper.suiteTeardown();
   });
 
   setup(function() {
@@ -112,52 +106,70 @@ suite('system/AppInstallManager', function() {
       '</section>'
     ].join('');
 
-    fakeCancelDialog = document.createElement('form');
-    fakeCancelDialog.id = 'app-install-cancel-dialog';
-    fakeCancelDialog.innerHTML = [
-      '<form id="app-install-cancel-dialog" data-type="confirm" ' +
-      'role="dialog" data-z-index-level="app-install-dialog">',
-        '<section>',
-          '<h1 data-l10n-id="cancel-install">Cancel Install</h1>',
-          '<p>',
-            '<small data-l10n-id="cancelling-will-not-refund">Cancelling ' +
-            'will not refund a purchase. Refunds for paid content are ' +
-            'provided by the original seller.</small>',
-            '<small data-l10n-id="apps-can-be-installed-later">Apps can be ' +
-            'installed later from the original installation source.</small>',
-          '</p>',
-          '<p data-l10n-id="are-you-sure-you-want-to-cancel">' +
-          'Are you sure you want to cancel this install?</p>',
-          '<menu>',
-            '<button id="app-install-confirm-cancel-button" type="reset" ' +
-            'data-l10n-id="cancel-install">Cancel Install</button>',
-            '<button id="app-install-resume-button" type="submit" ' +
-            'data-l10n-id="resume">Resume</button>',
-          '</menu>',
-        '</section>',
-      '</form>'
+    fakeInstallCancelDialog = document.createElement('form');
+    fakeInstallCancelDialog.id = 'app-install-cancel-dialog';
+    fakeInstallCancelDialog.innerHTML = [
+      '<section>',
+        '<h1 data-l10n-id="cancel-install">Cancel Install</h1>',
+        '<p>',
+          '<small data-l10n-id="cancelling-will-not-refund">Cancelling ' +
+          'will not refund a purchase. Refunds for paid content are ' +
+          'provided by the original seller.</small>',
+          '<small data-l10n-id="apps-can-be-installed-later">Apps can be ' +
+          'installed later from the original installation source.</small>',
+        '</p>',
+        '<p data-l10n-id="are-you-sure-you-want-to-cancel">' +
+        'Are you sure you want to cancel this install?</p>',
+        '<menu>',
+          '<button id="app-install-confirm-cancel-button" type="reset" ' +
+          'data-l10n-id="cancel-install">Cancel Install</button>',
+          '<button id="app-install-resume-button" type="submit" ' +
+          'data-l10n-id="resume">Resume</button>',
+        '</menu>',
+      '</section>'
+    ].join('');
+
+    fakeDownloadCancelDialog = document.createElement('form');
+    fakeDownloadCancelDialog.id = 'app-download-cancel-dialog';
+    fakeDownloadCancelDialog.innerHTML = [
+      '<section>',
+        '<h1></h1>',
+        '<p data-l10n-id="app-download-can-be-restarted">' +
+        'The download can be restarted later.</p>',
+        '<menu>',
+          '<button id="app-download-stop-button" class="danger confirm" ',
+            'data-l10n-id="app-download-stop-button">Stop Download</button>',
+          '<button id="app-download-continue-button" class="cancel" ',
+            'type="reset" data-l10n-id="continue">Continue</button>',
+        '</menu>',
+      '</section>'
     ].join('');
 
     fakeNotif = document.createElement('div');
     fakeNotif.id = 'install-manager-notification-container';
 
     document.body.appendChild(fakeDialog);
-    document.body.appendChild(fakeCancelDialog);
+    document.body.appendChild(fakeInstallCancelDialog);
+    document.body.appendChild(fakeDownloadCancelDialog);
     document.body.appendChild(fakeNotif);
+
+    mocksHelper.setup();
+
     AppInstallManager.init();
   });
 
   teardown(function() {
     fakeDialog.parentNode.removeChild(fakeDialog);
-    fakeCancelDialog.parentNode.removeChild(fakeCancelDialog);
+    fakeInstallCancelDialog.parentNode.removeChild(fakeInstallCancelDialog);
+    fakeDownloadCancelDialog.parentNode.removeChild(fakeDownloadCancelDialog);
     fakeNotif.parentNode.removeChild(fakeNotif);
     lastDispatchedResponse = null;
     lastL10nParams = null;
 
-    MockStatusBar.mTearDown();
+    mocksHelper.teardown();
   });
 
-  suite('init', function() {
+  suite('init >', function() {
     test('should bind dom elements', function() {
       assert.equal('app-install-dialog', AppInstallManager.dialog.id);
       assert.equal('app-install-message', AppInstallManager.msg.id);
@@ -169,7 +181,7 @@ suite('system/AppInstallManager', function() {
       assert.equal('app-install-cancel-button',
         AppInstallManager.cancelButton.id);
       assert.equal('app-install-cancel-dialog',
-        AppInstallManager.cancelDialog.id);
+        AppInstallManager.installCancelDialog.id);
       assert.equal('app-install-confirm-cancel-button',
         AppInstallManager.confirmCancelButton.id);
       assert.equal('app-install-resume-button',
@@ -179,17 +191,17 @@ suite('system/AppInstallManager', function() {
     test('should bind to the click event', function() {
       assert.equal(AppInstallManager.handleInstall.name,
                    AppInstallManager.installButton.onclick.name);
-      assert.equal(AppInstallManager.showCancelDialog.name,
+      assert.equal(AppInstallManager.showInstallCancelDialog.name,
                    AppInstallManager.cancelButton.onclick.name);
-      assert.equal(AppInstallManager.handleCancel.name,
+      assert.equal(AppInstallManager.handleInstallCancel.name,
                    AppInstallManager.confirmCancelButton.onclick.name);
-      assert.equal(AppInstallManager.hideCancelDialog.name,
+      assert.equal(AppInstallManager.hideInstallCancelDialog.name,
                    AppInstallManager.resumeButton.onclick.name);
     });
   });
 
-  suite('events', function() {
-    suite('webapps-ask-install', function() {
+  suite('events >', function() {
+    suite('webapps-ask-install >', function() {
       setup(function() {
         var evt = new MockChromeEvent({
           type: 'webapps-ask-install',
@@ -214,8 +226,8 @@ suite('system/AppInstallManager', function() {
       });
 
       test('should fill the message with app name', function() {
-        assert.equal('install-app', AppInstallManager.msg.textContent);
-        assert.deepEqual({'name': 'Fake app'}, lastL10nParams);
+        assert.equal(AppInstallManager.msg.textContent,
+          'install-app{"name":"Fake app"}');
       });
 
       test('should use the mini manifest if no manifest', function() {
@@ -236,8 +248,8 @@ suite('system/AppInstallManager', function() {
 
         AppInstallManager.handleAppInstallPrompt(evt.detail);
 
-        assert.equal('install-app', AppInstallManager.msg.textContent);
-        assert.deepEqual({'name': 'Fake app'}, lastL10nParams);
+        assert.equal(AppInstallManager.msg.textContent,
+          'install-app{"name":"Fake app"}');
       });
 
       test('should fill the developer infos', function() {
@@ -263,7 +275,7 @@ suite('system/AppInstallManager', function() {
         assert.equal('', AppInstallManager.authorUrl.textContent);
       });
 
-      suite('install size', function() {
+      suite('install size >', function() {
         test('should display the package size', function() {
           assert.equal('5.00 MB', AppInstallManager.size.textContent);
         });
@@ -288,8 +300,8 @@ suite('system/AppInstallManager', function() {
         });
       });
 
-      suite('callbacks', function() {
-        suite('install', function() {
+      suite('callbacks >', function() {
+        suite('install >', function() {
           var defaultPrevented = false;
           setup(function() {
             AppInstallManager.handleInstall({preventDefault: function() {
@@ -318,31 +330,32 @@ suite('system/AppInstallManager', function() {
           });
         });
 
-        suite('show cancel dialog', function() {
+        suite('show cancel dialog >', function() {
           setup(function() {
-            AppInstallManager.showCancelDialog();
+            AppInstallManager.showInstallCancelDialog();
           });
 
           test('should show cancel dialog and hide dialog', function() {
-            assert.equal('visible', AppInstallManager.cancelDialog.className);
+            assert.equal('visible',
+              AppInstallManager.installCancelDialog.className);
             assert.equal('', AppInstallManager.dialog.className);
           });
         });
 
-        suite('hide cancel dialog', function() {
+        suite('hide cancel dialog >', function() {
           setup(function() {
-            AppInstallManager.hideCancelDialog();
+            AppInstallManager.hideInstallCancelDialog();
           });
 
           test('should hide cancel dialog and show dialog', function() {
-            assert.equal('', AppInstallManager.cancelDialog.className);
+            assert.equal('', AppInstallManager.installCancelDialog.className);
             assert.equal('visible', AppInstallManager.dialog.className);
           });
         });
 
-        suite('confirm cancel', function() {
+        suite('confirm cancel >', function() {
           setup(function() {
-            AppInstallManager.handleCancel();
+            AppInstallManager.handleInstallCancel();
           });
 
           test('should dispatch a webapps-install-denied', function() {
@@ -351,29 +364,26 @@ suite('system/AppInstallManager', function() {
           });
 
           test('should hide the dialog', function() {
-            assert.equal('', AppInstallManager.cancelDialog.className);
+            assert.equal('', AppInstallManager.installCancelDialog.className);
           });
 
           test('should remove the callback', function() {
-            assert.equal(null, AppInstallManager.cancelCallback);
+            assert.equal(null, AppInstallManager.installCancelCallback);
           });
         });
       });
     });
   });
 
-  suite('duringInstall', function() {
+  suite('duringInstall >', function() {
     var mockApp, e;
 
     setup(function() {
-      realSystemBanner = SystemBanner;
-      SystemBanner = MockSystemBanner;
       e = new CustomEvent('applicationinstall', { detail: {} });
     });
 
     teardown(function() {
-      SystemBanner.mTearDown;
-      SystemBanner = realSystemBanner;
+      MockSystemBanner.mTeardown();
     });
 
     function dispatchEvent() {
@@ -381,7 +391,7 @@ suite('system/AppInstallManager', function() {
         window.dispatchEvent(e);
     }
 
-    suite('hosted app without cache', function() {
+    suite('hosted app without cache >', function() {
       setup(function() {
         mockApp = new MockApp({
           manifest: {
@@ -407,7 +417,7 @@ suite('system/AppInstallManager', function() {
 
     });
 
-    suite('hosted app with cache', function() {
+    suite('hosted app with cache >', function() {
       setup(function() {
         mockApp = new MockApp({
           manifest: {
@@ -433,10 +443,12 @@ suite('system/AppInstallManager', function() {
         assert.ok(MockStatusBar.wasMethodCalled['decSystemDownloads']);
       });
 
-      test('should remove the icon and display error if we get downloaderror', function() {
+      test('should remove the icon and display error if we get downloaderror',
+        function() {
         mockApp.mTriggerDownloadError();
         assert.ok(MockStatusBar.wasMethodCalled['decSystemDownloads']);
-        assert.equal(MockSystemBanner.mMessage, 'Fake hosted app with cache download-stopped');
+        assert.equal(MockSystemBanner.mMessage,
+          'Fake hosted app with cache download-stopped');
       });
 
       test('should add a notification', function() {
@@ -445,9 +457,9 @@ suite('system/AppInstallManager', function() {
 
       test('notification should have a message', function() {
         assert.equal(fakeNotif.querySelector('.message').textContent,
-          'downloadingAppMessage');
+          'downloadingAppMessage{"appName":"Fake hosted app with cache"}');
         assert.equal(fakeNotif.querySelector('progress').textContent,
-          'downloadingAppProgressNoMax');
+          'downloadingAppProgressNoMax{"progress":0}');
       });
 
       test('notification progress should be indeterminate', function() {
@@ -469,12 +481,13 @@ suite('system/AppInstallManager', function() {
 
         var progressNode = fakeNotif.querySelector('progress');
         assert.equal(progressNode.position, -1);
-        assert.equal(progressNode.textContent, 'downloadingAppProgressIndeterminate');
+        assert.equal(progressNode.textContent,
+          'downloadingAppProgressIndeterminate');
       });
 
     });
 
-    suite('packaged app', function() {
+    suite('packaged app >', function() {
       setup(function() {
         mockApp = new MockApp({
           manifest: null,
@@ -501,10 +514,12 @@ suite('system/AppInstallManager', function() {
         assert.ok(MockStatusBar.wasMethodCalled['decSystemDownloads']);
       });
 
-      test('should remove the icon and display error if we get downloaderror', function() {
+      test('should remove the icon and display error if we get downloaderror',
+        function() {
         mockApp.mTriggerDownloadError();
         assert.ok(MockStatusBar.wasMethodCalled['decSystemDownloads']);
-        assert.equal(MockSystemBanner.mMessage, 'Fake packaged app download-stopped');
+        assert.equal(MockSystemBanner.mMessage,
+          'Fake packaged app download-stopped');
       });
 
       test('should add a notification', function() {
@@ -515,7 +530,7 @@ suite('system/AppInstallManager', function() {
 
       test('notification should have a message', function() {
         assert.equal(fakeNotif.querySelector('.message').textContent,
-          'downloadingAppMessage');
+          'downloadingAppMessage{"appName":"Fake packaged app"}');
       });
 
       test('notification progress should have a max and a value', function() {
@@ -548,19 +563,82 @@ suite('system/AppInstallManager', function() {
 
         var progressNode = fakeNotif.querySelector('progress');
         assert.equal(progressNode.position, ratio);
-        assert.equal(progressNode.textContent, 'downloadingAppProgress');
+        assert.equal(progressNode.textContent,
+          'downloadingAppProgress{"progress":"10.00 bytes","max":"5.00 MB"}');
       });
 
-      test('should update the progress text content if we do not have the actual progress', function (){
+      test('should update the progress text content if we do not have the ' +
+          'actual progress', function() {
         mockApp.mTriggerDownloadProgress(NaN);
 
         var progressNode = fakeNotif.querySelector('progress');
-        assert.equal(progressNode.textContent, 'downloadingAppProgressIndeterminate');
+        assert.equal(progressNode.textContent,
+          'downloadingAppProgressIndeterminate');
       });
     });
-  });
 
-  suite('humanizeSize', function() {
+    suite('cancelling a download >', function() {
+      setup(function() {
+        mockApp = new MockApp();
+        MockApplications.mRegisterMockApp(mockApp);
+        AppInstallManager.addNotification(mockApp);
+      });
+
+      test('tapping the notification should display the dialog', function() {
+        fakeNotif.querySelector('.fake-notification').click();
+        assert.isTrue(fakeDownloadCancelDialog.classList.contains('visible'));
+      });
+
+      test('tapping the container should not display the dialog', function() {
+        fakeNotif.click();
+        assert.isFalse(fakeDownloadCancelDialog.classList.contains('visible'));
+      });
+
+      test('should set the title with the app name', function() {
+        fakeNotif.querySelector('.fake-notification').click();
+        var title = fakeDownloadCancelDialog.querySelector('h1');
+        assert.equal(title.textContent, 'stopDownloading{"app":"Mock app"}');
+      });
+
+      test('should add the manifest url in data set', function() {
+        fakeNotif.querySelector('.fake-notification').click();
+        assert.equal(fakeDownloadCancelDialog.dataset.manifest,
+          mockApp.manifestURL);
+      });
+
+      test('should hide the notification tray', function() {
+        fakeNotif.querySelector('.fake-notification').click();
+        assert.isFalse(MockUtilityTray.mShown);
+      });
+
+      test('cancelling should hide the dialog only', function() {
+        fakeNotif.querySelector('.fake-notification').click();
+        fakeDownloadCancelDialog.querySelector('.cancel').click();
+        assert.isFalse(fakeDownloadCancelDialog.classList.contains('visible'));
+        assert.isFalse(mockApp.mCancelCalled);
+      });
+
+      test('accepting should hide the dialog and call cancelDownload on app',
+        function() {
+        fakeNotif.querySelector('.fake-notification').click();
+        fakeDownloadCancelDialog.querySelector('.confirm').click();
+        assert.isFalse(fakeDownloadCancelDialog.classList.contains('visible'));
+        assert.ok(mockApp.mCancelCalled);
+      });
+
+      test('accepting should hide the dialog but not call cancelDownload ' +
+           'if app is uninstalled',
+        function() {
+        fakeNotif.querySelector('.fake-notification').click();
+        MockApplications.mUnregisterMockApp(mockApp);
+        fakeDownloadCancelDialog.querySelector('.confirm').click();
+        assert.isFalse(fakeDownloadCancelDialog.classList.contains('visible'));
+        assert.isFalse(mockApp.mCancelCalled);
+      });
+    });
+
+  });
+  suite('humanizeSize >', function() {
     test('should handle bytes size', function() {
       assert.equal('42.00 bytes', AppInstallManager.humanizeSize(42));
     });

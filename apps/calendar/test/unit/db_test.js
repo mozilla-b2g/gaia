@@ -247,7 +247,6 @@ suite('db', function() {
       });
 
     });
-
   });
 
   suite('#_upgradeMoveICALComponents', function() {
@@ -285,8 +284,6 @@ suite('db', function() {
       }
     }
 
-    var hit = 0;
-
     // first setup is to ensure no database exists
     // and set its version to # 9
     setup(function(done) {
@@ -307,6 +304,10 @@ suite('db', function() {
           });
         });
       });
+    });
+
+    teardown(function() {
+      subject.close();
     });
 
     test('verify icalComponent was moved to new store', function(done) {
@@ -358,4 +359,108 @@ suite('db', function() {
 
     });
   });
+
+  suite('#_resetCaldavEventData', function() {
+    var localAccount;
+    var caldavAccount;
+    var caldavCalendar;
+    var localCalendar;
+
+    var syncCalled = false;
+
+    function stageData(done) {
+      var trans = subject.transaction(
+        [
+          'accounts', 'calendars', 'events',
+          'alarms', 'icalComponents'
+        ],
+        'readwrite'
+      );
+
+      trans.oncomplete = function() {
+        done();
+      };
+
+      localAccount = Factory('account', {
+        _id: 1,
+        providerType: 'Local'
+      });
+
+      caldavAccount = Factory('account', {
+        _id: 2,
+        providerType: 'Caldav'
+      });
+
+      var accountStore = trans.objectStore('accounts');
+
+      accountStore.add(localAccount);
+      accountStore.add(caldavAccount);
+
+      var calendarStore = trans.objectStore('calendars');
+
+      caldavCalendar = Factory('calendar', {
+        remote: { name: 'remove me' },
+        accountId: caldavAccount._id
+      });
+
+      localCalendar = Factory('calendar', {
+        accountId: localAccount._id
+      });
+
+      calendarStore.add(caldavCalendar);
+      calendarStore.add(localCalendar);
+    }
+
+    // first setup is to ensure no database exists
+    // and set its version to # 9
+    setup(function(done) {
+      this.timeout(12000);
+
+      Calendar.App.syncController = {
+        sync: function() {
+          syncCalled = true;
+        }
+      };
+
+      subject.deleteDatabase(function(err) {
+        if (err) {
+          done(err);
+          return;
+        }
+        subject.open(10, function() {
+          stageData(function() {
+            subject.close();
+            subject.open(11, function() {
+              subject.emit('loaded');
+              done();
+            });
+          });
+        });
+      });
+    });
+
+    teardown(function() {
+      subject.close();
+    });
+
+    test('verify icalComponent was moved to new store', function(done) {
+      var trans = subject.transaction('calendars');
+      var store = trans.objectStore('calendars');
+
+      assert.ok(syncCalled, 'calls resync');
+
+      store.mozGetAll().onsuccess = function(event) {
+        var result = event.target.result;
+        assert.length(result, 1);
+
+        assert.deepEqual(
+          result[0],
+          localCalendar
+        );
+
+        done();
+      }
+    });
+  });
+
 });

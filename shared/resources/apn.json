@@ -1,19 +1,23 @@
 {
 "202": {
   "1": [
-    {"carrier":"Cosmote Wireless Internet","apn":"internet","type":["default","supl"],"voicemail":"123"},
-    {"carrier":"Cosmote Mms","apn":"mms","mmsc":"http://mmsc.cosmote.gr:8002","mmsproxy":"10.10.10.20","mmsport":"8080","type":["mms"],"voicemail":"123"}
+    {"carrier":"Cosmote Wireless Internet","apn":"internet","type":["default","supl"]},
+    {"voicemail":"123","type":["operatorvariant"]},
+    {"carrier":"Cosmote Mms","apn":"mms","mmsc":"http://mmsc.cosmote.gr:8002","mmsproxy":"10.10.10.20","mmsport":"8080","type":["mms"]}
   ],
   "5": [
-    {"carrier":"Vf Mobile Internet","apn":"internet.vodafone.gr","type":["default","supl","dun"],"voicemail":"121"},
-    {"carrier":"Vf MMS","apn":"mms.vodafone.net","user":"user","password":"pass","mmsc":"http://mms.vodafone.gr","mmsproxy":"213.249.19.49","mmsport":"5080","type":["mms"],"voicemail":"121"}
+    {"carrier":"Vf Mobile Internet","apn":"internet.vodafone.gr","type":["default","supl","dun"]},
+    {"voicemail":"121","type":["operatorvariant"]},
+    {"carrier":"Vf MMS","apn":"mms.vodafone.net","user":"user","password":"pass","mmsc":"http://mms.vodafone.gr","mmsproxy":"213.249.19.49","mmsport":"5080","type":["mms"]}
   ],
   "9": [
-    {"carrier":"Q-Telecom MMS GPRS","apn":"q-mms.myq.gr","mmsc":"http://mms.myq.gr","mmsproxy":"192.168.80.134","mmsport":"8080","type":["mms"],"voicemail":"122"}
+    {"carrier":"Q-Telecom MMS GPRS","apn":"q-mms.myq.gr","mmsc":"http://mms.myq.gr","mmsproxy":"192.168.80.134","mmsport":"8080","type":["mms"]},
+    {"voicemail":"122","type":["operatorvariant"]}
   ],
   "10": [
-    {"carrier":"Wind Internet","apn":"gint.b-online.gr","type":["default","supl"],"voicemail":"122"},
-    {"carrier":"Wind MMS","apn":"mnet.b-online.gr","mmsc":"http://192.168.200.95/servlets/mms","mmsproxy":"192.168.200.11","mmsport":"9401","type":["mms"],"voicemail":"122"}
+    {"carrier":"Wind Internet","apn":"gint.b-online.gr","type":["default","supl"]},
+    {"voicemail":"122","type":["operatorvariant"]},
+    {"carrier":"Wind MMS","apn":"mnet.b-online.gr","mmsc":"http://192.168.200.95/servlets/mms","mmsproxy":"192.168.200.11","mmsport":"9401","type":["mms"]}
   ]
 },
 "204": {
@@ -36,59 +40,65 @@
 },
 "206": {
   "1": [
-    {"carrier":"Proximus MMS","apn":"event.proximus.be","user":"mms","password":"mms","mmsc":"http://mmsc.proximus.be/mms","mmsproxy":"10.55.14.75","mmsport":"8080","type":["mms"],"voicemail":"1230"},
-    {"carrier":"Proximus Internet","apn":"internet.proximus.be","type":["default","supl"],"voicemail":"1230"},
-    {"carrier":"Telenet Internet","apn":"telenetwap.be","type":["default","supl"],"voicemail":"1230"},
-    {"carrier":"Telenet MMS","apn":"mms.be","mmsc":"http://mmsc.telenet.be","mmsproxy":"195.130.149.100","mmsport":"80","type":["mms"],"voicemail":"1230"}
+    {"carrier":"Proximus MMS","apn":"event.proximus.be","user":"mms","password":"mms","mmsc":"http://mmsc.proximus.be/mms","mmsproxy":"10.55.14.75","mmsport":"8080","type":["mms"]},
+    {"voicemail":"1230","type":["operatorvariant"]},
+    {"carrier":"Proximus Internet","apn":"internet.proximus.be","type":["default","supl"]},
+    {"carrier":"Telenet Internet","apn":"telenetwap.be","type":["default","supl"]},
+    {"carrier":"Telenet MMS","apn":"mms.be","mmsc":"http://mmsc.telenet.be","mmsproxy":"195.130.149.100","mmsport":"80","type":["mms"]}
   ],
   "5": [
     {"carrier":"Telenet","apn":"telenetwap.be","type":["default","supl"]},
     {"carrier":"Telenet MMS","apn":"mms.be","mmsc":"http://mmsc.telenet.be","mmsproxy":"195.130.149.100","mmsport":"80","type":["mms"]}
   ],
   "10": [
-    {"carrier":"Mobistar MMS","apn":"mms.be","mmsc":"http://mmsc.mobistar.be","mmsproxy":"212.65.63.143","mmsport":"8080","type":["mms"],"voicemail":"5555"},
-    {"carrier":"Mobistar","apn":"mworld.be","user":"mobistar","password":"mobistar","proxy":"212.65.63.143","port":"8080","type":["default","supl"],"voicemail":"5555"}
+    {"carrier":"Mobistar MMS","apn":"mms.be","mmsc":"http://mmsc.mobistar.be","mmsproxy":"212.65.63.143","mmsport":"8080","type":["mms"]},
+    {"voicemail":"5555","type":["operatorvariant"]},
+    {"carrier":"Mobistar","apn":"mworld.be","user":"mobistar","password":"mobistar","proxy":"212.65.63.143","port":"8080","type":["default","supl"]}
   ],
   "20": [
-    {"carrier":"Base","apn":"gprs.base.be","user":"base","password":"base","proxy":"172.31.198.37","port":"5080","type":["default","supl"],"voicemail":"1933"},
-    {"carrier":"BASE MMS","apn":"mms.base.be","user":"base","password":"base","mmsc":"http://mmsc.base.be","mmsproxy":"217.72.235.1","mmsport":"8080","type":["mms"],"voicemail":"1933"}
+    {"carrier":"Base","apn":"gprs.base.be","user":"base","password":"base","proxy":"172.31.198.37","port":"5080","type":["default","supl"]},
+    {"voicemail":"1933","type":["operatorvariant"]},
+    {"carrier":"BASE MMS","apn":"mms.base.be","user":"base","password":"base","mmsc":"http://mmsc.base.be","mmsproxy":"217.72.235.1","mmsport":"8080","type":["mms"]}
   ]
 },
 "208": {
   "1": [
-    {"carrier":"Orange World","apn":"orange","user":"orange","password":"orange","authtype":"2","type":["default","supl"],"voicemail":"888"},
-    {"carrier":"Orange MMS","apn":"orange.acte","user":"orange","password":"orange","mmsc":"http://mms.orange.fr","mmsproxy":"192.168.10.200","mmsport":"8080","authtype":"2","type":["mms"],"voicemail":"888"},
-    {"carrier":"Orange Entreprise","apn":"orange-mib","proxy":"172.16.2.8","port":"8000","user":"orange","password":"orange","authtype":"2","type":["default"],"voicemail":"888"},
-    {"carrier":"VM WAP","apn":"ofnew.fr","user":"orange","password":"orange","type":["default","supl"],"voicemail":"888"},
-    {"carrier":"VM MMS","apn":"orange.acte","user":"orange","password":"orange","mmsc":"http://mms.orange.fr","mmsproxy":"192.168.10.200","mmsport":"8080","type":["mms"],"voicemail":"888"},
-    {"carrier":"Tele2 WAP","apn":"ofnew.fr","user":"orange","password":"orange","type":["default","supl"],"voicemail":"888"},
-    {"carrier":"Tele2 MMS","apn":"orange.acte","user":"orange","password":"orange","mmsc":"http://mms.orange.fr","mmsproxy":"192.168.10.200","mmsport":"8080","type":["mms"],"voicemail":"888"},
-    {"carrier":"Carrefour WAP","apn":"ofnew.fr","user":"orange","password":"orange","type":["default","supl"],"voicemail":"888"},
-    {"carrier":"Carrefour MMS","apn":"orange.acte","user":"orange","password":"orange","mmsc":"http://mms.orange.fr","mmsproxy":"192.168.10.200","mmsport":"8080","type":["mms"],"voicemail":"888"},
-    {"carrier":"NRJWEB","apn":"ofnew.fr","user":"orange","password":"orange","type":["default","supl"],"voicemail":"888"},
-    {"carrier":"NRJMMS","apn":"orange.acte","user":"orange","password":"orange","mmsc":"http://mms.orange.fr","mmsproxy":"192.168.10.200","mmsport":"8080","type":["mms"],"voicemail":"888"}
+    {"carrier":"Orange World","apn":"orange","user":"orange","password":"orange","authtype":"2","type":["default","supl"]},
+    {"voicemail":"888","type":["operatorvariant"]},
+    {"carrier":"Orange MMS","apn":"orange.acte","user":"orange","password":"orange","mmsc":"http://mms.orange.fr","mmsproxy":"192.168.10.200","mmsport":"8080","authtype":"2","type":["mms"]},
+    {"carrier":"Orange Entreprise","apn":"orange-mib","proxy":"172.16.2.8","port":"8000","user":"orange","password":"orange","authtype":"2","type":["default"]},
+    {"carrier":"VM WAP","apn":"ofnew.fr","user":"orange","password":"orange","type":["default","supl"]},
+    {"carrier":"VM MMS","apn":"orange.acte","user":"orange","password":"orange","mmsc":"http://mms.orange.fr","mmsproxy":"192.168.10.200","mmsport":"8080","type":["mms"]},
+    {"carrier":"Tele2 WAP","apn":"ofnew.fr","user":"orange","password":"orange","type":["default","supl"]},
+    {"carrier":"Tele2 MMS","apn":"orange.acte","user":"orange","password":"orange","mmsc":"http://mms.orange.fr","mmsproxy":"192.168.10.200","mmsport":"8080","type":["mms"]},
+    {"carrier":"Carrefour WAP","apn":"ofnew.fr","user":"orange","password":"orange","type":["default","supl"]},
+    {"carrier":"Carrefour MMS","apn":"orange.acte","user":"orange","password":"orange","mmsc":"http://mms.orange.fr","mmsproxy":"192.168.10.200","mmsport":"8080","type":["mms"]},
+    {"carrier":"NRJWEB","apn":"ofnew.fr","user":"orange","password":"orange","type":["default","supl"]},
+    {"carrier":"NRJMMS","apn":"orange.acte","user":"orange","password":"orange","mmsc":"http://mms.orange.fr","mmsproxy":"192.168.10.200","mmsport":"8080","type":["mms"]}
   ],
   "10": [
-    {"carrier":"SFR webphone","apn":"sl2sfr","type":["default","supl"],"voicemail":"123"},
-    {"carrier":"SFR Mobile","apn":"wapsfr","type":["default","supl"],"voicemail":"123"},
-    {"carrier":"MMS","apn":"mmssfr","mmsc":"http://mms1","mmsproxy":"10.151.0.1","mmsport":"8080","type":["mms"],"voicemail":"123"},
-    {"carrier":"NRJWEB","apn":"fnetnrj","type":["default","supl"],"voicemail":"123"},
-    {"carrier":"NRJMMS","mmsc":"http://mmsnrj","mmsproxy":"10.143.156.5","mmsport":"8080","apn":"mmsnrj","type":["mms"],"voicemail":"123"},
-    {"carrier":"Auchan WAP","proxy":"192.168.21.8","port":"8080","apn":"wap65","type":["default","supl"],"voicemail":"123"},
-    {"carrier":"Auchan MMS","mmsc":"http://mms65","mmsproxy":"10.143.156.8","mmsport":"8080","apn":"mms65","type":["mms"],"voicemail":"123"},
-    {"carrier":"WAP Simplicime","proxy":"192.168.21.3","port":"8080","apn":"wapdebitel","type":["default","supl"],"voicemail":"123"},
-    {"carrier":"MMS Simplicime","mmsc":"http://mmsdebitel","mmsproxy":"10.143.156.3","mmsport":"8080","apn":"mmsdebitel","type":["mms"],"voicemail":"123"},
-    {"carrier":"WAP LeclercMobile","proxy":"192.168.21.9","port":"8080","apn":"wap66","type":["default","supl"],"voicemail":"123"},
-    {"carrier":"MMS LeclercMobile","mmsc":"http://mms66","mmsproxy":"10.143.156.9","mmsport":"8080","apn":"mms66","type":["mms"],"voicemail":"123"},
-    {"carrier":"Coriolis WAP","proxy":"192.168.21.6","port":"8080","apn":"wapcoriolis","type":["default","supl"],"voicemail":"123"},
-    {"carrier":"Coriolis MMS","mmsc":"http://mmscoriolis","mmsproxy":"10.143.156.6","mmsport":"8080","apn":"mmscoriolis","type":["mms"],"voicemail":"123"},
-    {"carrier":"Keyyo Mobile Internet","apn":"internet68","type":["default","supl"],"voicemail":"123"},
-    {"carrier":"Keyyo Mobile MMS","mmsc":"http://mms68","mmsproxy":"10.143.156.11","mmsport":"8080","apn":"mms68","type":["mms"],"voicemail":"123"},
-    {"carrier":"WEB La Poste Mobile","proxy":"192.168.21.3","port":"8080","apn":"wapdebitel","type":["default","supl"],"voicemail":"123"},
-    {"carrier":"MMS La Poste Mobile","mmsc":"http://mmsdebitel","mmsproxy":"10.143.156.3","mmsport":"8080","apn":"mmsdebitel","type":["mms"],"voicemail":"123"}
+    {"carrier":"SFR webphone","apn":"sl2sfr","type":["default","supl"]},
+    {"voicemail":"123","type":["operatorvariant"]},
+    {"carrier":"SFR Mobile","apn":"wapsfr","type":["default","supl"]},
+    {"carrier":"MMS","apn":"mmssfr","mmsc":"http://mms1","mmsproxy":"10.151.0.1","mmsport":"8080","type":["mms"]},
+    {"carrier":"NRJWEB","apn":"fnetnrj","type":["default","supl"]},
+    {"carrier":"NRJMMS","mmsc":"http://mmsnrj","mmsproxy":"10.143.156.5","mmsport":"8080","apn":"mmsnrj","type":["mms"]},
+    {"carrier":"Auchan WAP","proxy":"192.168.21.8","port":"8080","apn":"wap65","type":["default","supl"]},
+    {"carrier":"Auchan MMS","mmsc":"http://mms65","mmsproxy":"10.143.156.8","mmsport":"8080","apn":"mms65","type":["mms"]},
+    {"carrier":"WAP Simplicime","proxy":"192.168.21.3","port":"8080","apn":"wapdebitel","type":["default","supl"]},
+    {"carrier":"MMS Simplicime","mmsc":"http://mmsdebitel","mmsproxy":"10.143.156.3","mmsport":"8080","apn":"mmsdebitel","type":["mms"]},
+    {"carrier":"WAP LeclercMobile","proxy":"192.168.21.9","port":"8080","apn":"wap66","type":["default","supl"]},
+    {"carrier":"MMS LeclercMobile","mmsc":"http://mms66","mmsproxy":"10.143.156.9","mmsport":"8080","apn":"mms66","type":["mms"]},
+    {"carrier":"Coriolis WAP","proxy":"192.168.21.6","port":"8080","apn":"wapcoriolis","type":["default","supl"]},
+    {"carrier":"Coriolis MMS","mmsc":"http://mmscoriolis","mmsproxy":"10.143.156.6","mmsport":"8080","apn":"mmscoriolis","type":["mms"]},
+    {"carrier":"Keyyo Mobile Internet","apn":"internet68","type":["default","supl"]},
+    {"carrier":"Keyyo Mobile MMS","mmsc":"http://mms68","mmsproxy":"10.143.156.11","mmsport":"8080","apn":"mms68","type":["mms"]},
+    {"carrier":"WEB La Poste Mobile","proxy":"192.168.21.3","port":"8080","apn":"wapdebitel","type":["default","supl"]},
+    {"carrier":"MMS La Poste Mobile","mmsc":"http://mmsdebitel","mmsproxy":"10.143.156.3","mmsport":"8080","apn":"mmsdebitel","type":["mms"]}
   ],
   "20": [
-    {"carrier":"Bouygues Telecom","apn":"mmsbouygtel.com","mmsc":"http://mms.bouyguestelecom.fr/mms/wapenc","mmsproxy":"62.201.129.226","mmsport":"8080","type":["default","supl","mms"],"voicemail":"660"}
+    {"carrier":"Bouygues Telecom","apn":"mmsbouygtel.com","mmsc":"http://mms.bouyguestelecom.fr/mms/wapenc","mmsproxy":"62.201.129.226","mmsport":"8080","type":["default","supl","mms"]},
+    {"voicemail":"660","type":["operatorvariant"]}
   ],
   "15": [
     {"carrier":"Free","apn":"free","type":["default","supl"]},
@@ -98,18 +108,22 @@
 "214": {
   "1": [
     {"carrier":"Internet movil","apn":"airtelwap.es","user":"wap@wap","password":"wap125","type":["default","supl"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"MMS VODAFONE","apn":"mms.vodafone.net","user":"wap@wap","password":"wap125","mmsc":"http://mmsc.vodafone.es/servlets/mms","mmsproxy":"212.73.32.10","mmsport":"80","type":["mms"]}
   ],
   "3": [
-    {"carrier":"Orange Internet Móvil","apn":"orangeworld","user":"orange","password":"orange","authtype":"1","type":["default"],"voicemail":"242"},
-    {"carrier":"Orange MMS","apn":"orangemms","proxy":"172.22.188.25","port":"8080","user":"orange","password":"orange","mmsc":"http://mms.orange.es","mmsproxy":"172.22.188.25","mmsport":"8080","authtype":"2","type":["mms"],"voicemail":"242"}
+    {"carrier":"Orange Internet Móvil","apn":"orangeworld","user":"orange","password":"orange","authtype":"1","type":["default"]},
+    {"voicemail":"242","enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
+    {"carrier":"Orange MMS","apn":"orangemms","proxy":"172.22.188.25","port":"8080","user":"orange","password":"orange","mmsc":"http://mms.orange.es","mmsproxy":"172.22.188.25","mmsport":"8080","authtype":"2","type":["mms"]}
   ],
   "4": [
-    {"carrier":"Yoigo Navegador","apn":"internet","type":["default","supl"],"voicemail":"633"},
-    {"carrier":"Yoigo MMS","apn":"mms","mmsc":"http://mmss/","mmsproxy":"193.209.134.141","mmsport":"80","type":["mms"],"voicemail":"633"}
+    {"carrier":"Yoigo Navegador","apn":"internet","type":["default","supl"]},
+    {"voicemail":"633","enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
+    {"carrier":"Yoigo MMS","apn":"mms","mmsc":"http://mmss/","mmsproxy":"193.209.134.141","mmsport":"80","type":["mms"]}
   ],
   "6": [
     {"carrier":"INTERNET GPRS","apn":"airtelnet.es","user":"vodafone","password":"vodafone","type":["default","supl"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"Euskaltel MMS","apn":"euskaltelmms.euskaltel.mobi","user":"MMS","password":"EUSKALTEL","mmsc":"http://mms.euskaltel.mobi","mmsproxy":"172.16.18.74","mmsport":"8080","type":["mms"]},
     {"carrier":"Euskaltel Internet","apn":"internet.euskaltel.mobi","user":"CLIENTE","password":"EUSKALTEL","type":["default","supl"]},
     {"carrier":"Internet R","apn":"internet.mundo-r.com","type":["default","supl"]},
@@ -119,15 +133,18 @@
     {"carrier":"MMS Vodafone","apn":"mms.vodafone.net","user":"wap@wap","password":"wap125","mmsc":"http://mmsc.vodafone.es/servlets/mms","mmsproxy":"212.73.32.10","mmsport":"80","type":["mms"]}
   ],
   "7": [
-    {"carrier":"Movistar MMS","apn":"telefonica.es","user":"telefonica","password":"telefonica","mmsc":"http://mms.movistar.com","mmsproxy":"10.138.255.5","mmsport":"8080","type":["mms"],"voicemail":"123"},
-    {"carrier":"Movistar","apn":"telefonica.es","user":"telefonica","password":"telefonica","proxy":"10.138.255.133","port":"8080","type":["default","supl"],"voicemail":"123"}
+    {"carrier":"Movistar MMS","apn":"telefonica.es","user":"telefonica","password":"telefonica","mmsc":"http://mms.movistar.com","mmsproxy":"10.138.255.5","mmsport":"8080","type":["mms"]},
+    {"voicemail":"123","enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
+    {"carrier":"Movistar","apn":"telefonica.es","user":"telefonica","password":"telefonica","proxy":"10.138.255.133","port":"8080","type":["default","supl"]}
   ],
   "8": [
     {"carrier":"Euskaltel MMS","apn":"euskaltelmms.euskaltel.mobi","user":"MMS","password":"EUSKALTEL","mmsc":"http://mms.euskaltel.mobi","mmsproxy":"172.16.18.74","mmsport":"8080","type":["mms"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"Euskaltel Internet","apn":"internet.euskaltel.mobi","user":"CLIENTE","password":"EUSKALTEL","type":["default","supl"]}
   ],
   "16": [
     {"carrier":"TeleCable Internet","apn":"internet.telecable.es","user":"telecable","password":"telecable","type":["default","supl"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"TeleCable MMS","apn":"mms.telecable.es","user":"telecable","password":"telecable","mmsc":"http://mms.telecable.es/mms/","mmsproxy":"212.89.0.84","mmsport":"8080","type":["mms"]}
   ]
 },
@@ -316,34 +333,39 @@
     {"carrier":"UBIQUISYS","apn":"internet","type":["default","supl","mms"]}
   ],
   "2": [
-    {"carrier":"O2 MOBILE WEB","apn":"mobile.o2.co.uk","user":"O2web","password":"O2web","type":["default","supl"],"voicemail":"901"},
-    {"carrier":"O2 MMS Prepay","apn":"payandgo.o2.co.uk","user":"payandgo","password":"password","mmsc":"http://mmsc.mms.o2.co.uk:8002","mmsproxy":"82.132.254.1","mmsport":"8080","type":["mms"],"voicemail":"901"},
-    {"carrier":"O2 MMS Postpay","apn":"wap.o2.co.uk","user":"o2wap","password":"password","mmsc":"http://mmsc.mms.o2.co.uk:8002","mmsproxy":"82.132.254.1","mmsport":"8080","type":["mms"],"voicemail":"901"}
+    {"carrier":"O2 MOBILE WEB","apn":"mobile.o2.co.uk","user":"O2web","password":"O2web","type":["default","supl"]},
+    {"voicemail":"901","type":["operatorvariant"]},
+    {"carrier":"O2 MMS Prepay","apn":"payandgo.o2.co.uk","user":"payandgo","password":"password","mmsc":"http://mmsc.mms.o2.co.uk:8002","mmsproxy":"82.132.254.1","mmsport":"8080","type":["mms"]},
+    {"carrier":"O2 MMS Postpay","apn":"wap.o2.co.uk","user":"o2wap","password":"password","mmsc":"http://mmsc.mms.o2.co.uk:8002","mmsproxy":"82.132.254.1","mmsport":"8080","type":["mms"]}
   ],
   "10": [
-    {"carrier":"O2 Mobile Web","apn":"mobile.o2.co.uk","user":"o2web","password":"password","type":["default","supl"],"voicemail":"901"},
-    {"carrier":"O2 MMS","apn":"wap.o2.co.uk","user":"o2wap","password":"password","proxy":"193.113.200.195","port":"8080","mmsc":"http://mmsc.mms.o2.co.uk:8002","mmsproxy":"82.132.254.1","mmsport":"8080","type":["mms"],"voicemail":"901"},
-    {"carrier":"O2 PREPAY","apn":"payandgo.o2.co.uk","proxy":"193.113.200.195","port":"8080","user":"payandgo","password":"password","mmsc":"http://mmsc.mms.o2.co.uk:8002","mmsproxy":"82.132.254.1","mmsport":"8080","type":["default","supl","mms"],"voicemail":"901"},
-    {"carrier":"TESCO","apn":"prepay.tesco-mobile.com","user":"tescowap","password":"password","mmsc":"http://mmsc.mms.o2.co.uk:8002","mmsproxy":"82.132.254.1","mmsport":"8080","type":["default","supl","mms"],"voicemail":"901"}
+    {"carrier":"O2 Mobile Web","apn":"mobile.o2.co.uk","user":"o2web","password":"password","type":["default","supl"]},
+    {"voicemail":"901","type":["operatorvariant"]},
+    {"carrier":"O2 MMS","apn":"wap.o2.co.uk","user":"o2wap","password":"password","proxy":"193.113.200.195","port":"8080","mmsc":"http://mmsc.mms.o2.co.uk:8002","mmsproxy":"82.132.254.1","mmsport":"8080","type":["mms"]},
+    {"carrier":"O2 PREPAY","apn":"payandgo.o2.co.uk","proxy":"193.113.200.195","port":"8080","user":"payandgo","password":"password","mmsc":"http://mmsc.mms.o2.co.uk:8002","mmsproxy":"82.132.254.1","mmsport":"8080","type":["default","supl","mms"]},
+    {"carrier":"TESCO","apn":"prepay.tesco-mobile.com","user":"tescowap","password":"password","mmsc":"http://mmsc.mms.o2.co.uk:8002","mmsproxy":"82.132.254.1","mmsport":"8080","type":["default","supl","mms"]}
   ],
   "11": [
-    {"carrier":"O2 MOBILE WEB","apn":"mobile.o2.co.uk","user":"O2web","password":"O2web","type":["default","supl"],"voicemail":"901"},
-    {"carrier":"O2 MMS Prepay","apn":"payandgo.o2.co.uk","user":"payandgo","password":"password","mmsc":"http://mmsc.mms.o2.co.uk:8002","mmsproxy":"82.132.254.1","mmsport":"8080","type":["mms"],"voicemail":"901"},
-    {"carrier":"O2 MMS Postpay","apn":"wap.o2.co.uk","user":"o2wap","password":"password","mmsc":"http://mmsc.mms.o2.co.uk:8002","mmsproxy":"82.132.254.1","mmsport":"8080","type":["mms"],"voicemail":"901"},
-    {"carrier":"O2 MOBILE WEB","apn":"mobile.o2.co.uk","user":"O2web","password":"O2web","type":["default","supl"],"voicemail":"901"},
-    {"carrier":"O2 MMS Prepay","apn":"payandgo.o2.co.uk","user":"payandgo","password":"password","mmsc":"http://mmsc.mms.02.co.uk:8002","mmsproxy":"82.132.254.1","mmsport":"8080","type":["mms"],"voicemail":"901"},
-    {"carrier":"O2 MMS Postpay","apn":"wap.o2.co.uk","user":"o2wap","password":"password","mmsc":"http://mmsc.mms.02.co.uk:8002","mmsproxy":"82.132.254.1","mmsport":"8080","type":["mms"],"voicemail":"901"}
+    {"carrier":"O2 MOBILE WEB","apn":"mobile.o2.co.uk","user":"O2web","password":"O2web","type":["default","supl"]},
+    {"voicemail":"901","type":["operatorvariant"]},
+    {"carrier":"O2 MMS Prepay","apn":"payandgo.o2.co.uk","user":"payandgo","password":"password","mmsc":"http://mmsc.mms.o2.co.uk:8002","mmsproxy":"82.132.254.1","mmsport":"8080","type":["mms"]},
+    {"carrier":"O2 MMS Postpay","apn":"wap.o2.co.uk","user":"o2wap","password":"password","mmsc":"http://mmsc.mms.o2.co.uk:8002","mmsproxy":"82.132.254.1","mmsport":"8080","type":["mms"]},
+    {"carrier":"O2 MOBILE WEB","apn":"mobile.o2.co.uk","user":"O2web","password":"O2web","type":["default","supl"]},
+    {"carrier":"O2 MMS Prepay","apn":"payandgo.o2.co.uk","user":"payandgo","password":"password","mmsc":"http://mmsc.mms.02.co.uk:8002","mmsproxy":"82.132.254.1","mmsport":"8080","type":["mms"]},
+    {"carrier":"O2 MMS Postpay","apn":"wap.o2.co.uk","user":"o2wap","password":"password","mmsc":"http://mmsc.mms.02.co.uk:8002","mmsproxy":"82.132.254.1","mmsport":"8080","type":["mms"]}
   ],
   "15": [
-    {"carrier":"Vodafone UK","apn":"wap.vodafone.co.uk","user":"wap","password":"wap","mmsc":"http://mms.vodafone.co.uk/servlets/mms","mmsproxy":"212.183.137.12","mmsport":"8799","type":["default","supl","mms"],"voicemail":"121"},
-    {"carrier":"Vodafone UK Prepay","apn":"pp.vodafone.co.uk","user":"wap","password":"wap","mmsc":"http://mms.vodafone.co.uk/servlets/mms","mmsproxy":"212.183.137.12","mmsport":"8799","type":["default","supl","mms"],"voicemail":"121"}
+    {"carrier":"Vodafone UK","apn":"wap.vodafone.co.uk","user":"wap","password":"wap","mmsc":"http://mms.vodafone.co.uk/servlets/mms","mmsproxy":"212.183.137.12","mmsport":"8799","type":["default","supl","mms"]},
+    {"voicemail":"121","type":["operatorvariant"]},
+    {"carrier":"Vodafone UK Prepay","apn":"pp.vodafone.co.uk","user":"wap","password":"wap","mmsc":"http://mms.vodafone.co.uk/servlets/mms","mmsproxy":"212.183.137.12","mmsport":"8799","type":["default","supl","mms"]}
   ],
   "20": [
     {"carrier":"3","apn":"three.co.uk","mmsc":"http://mms.um.three.co.uk:10021/mmsc","mmsproxy":"mms.three.co.uk","mmsport":"8799","type":["default","supl","mms"]}
   ],
   "30": [
-    {"carrier":"T-Mobile UK","apn":"general.t-mobile.uk","user":"t-mobile","password":"tm","mmsc":"http://mmsc.t-mobile.co.uk:8002","mmsproxy":"149.254.201.135","mmsport":"8080","type":["default","supl","mms"],"voicemail":"222"},
-    {"carrier":"Virgin Media","apn":"goto.virginmobile.uk","user":"user","mmsc":"http://mms.virginmobile.co.uk:8002","mmsproxy":"193.30.166.2","mmsport":"8080","type":["default","supl","mms"],"voicemail":"222"}
+    {"carrier":"T-Mobile UK","apn":"general.t-mobile.uk","user":"t-mobile","password":"tm","mmsc":"http://mmsc.t-mobile.co.uk:8002","mmsproxy":"149.254.201.135","mmsport":"8080","type":["default","supl","mms"]},
+    {"voicemail":"222","type":["operatorvariant"]},
+    {"carrier":"Virgin Media","apn":"goto.virginmobile.uk","user":"user","mmsc":"http://mms.virginmobile.co.uk:8002","mmsproxy":"193.30.166.2","mmsport":"8080","type":["default","supl","mms"]}
   ],
   "31": [
     {"carrier":"T-Mobile Internet","apn":"general.t-mobile.uk","user":"t-mobile","password":"tm","type":["default","supl"]},
@@ -354,12 +376,14 @@
     {"carrier":"T-Mobile Picture Message","apn":"general.t-mobile.uk","user":"t-mobile","password":"tm","mmsc":"http://mmsc.t-mobile.co.uk:8002","mmsproxy":"149.254.201.135","mmsport":"8080","type":["mms"]}
   ],
   "33": [
-    {"carrier":"Orange Internet","apn":"orangeinternet","authtype":"2","type":["default"],"voicemail":"123"},
-    {"carrier":"Orange MMS","apn":"orangemms","mmsc":"http://mms.orange.co.uk/","mmsproxy":"192.168.224.10","mmsport":"8080","authtype":"2","type":["mms"],"voicemail":"123"}
+    {"carrier":"Orange Internet","apn":"orangeinternet","authtype":"2","type":["default"]},
+    {"voicemail":"123","type":["operatorvariant"]},
+    {"carrier":"Orange MMS","apn":"orangemms","mmsc":"http://mms.orange.co.uk/","mmsproxy":"192.168.224.10","mmsport":"8080","authtype":"2","type":["mms"]}
   ],
   "34": [
-    {"carrier":"Orange internet","apn":"orangeinternet","type":["default","supl"],"voicemail":"123"},
-    {"carrier":"Orange MMS","apn":"orangemms","mmsc":"http://mms.orange.co.uk/","mmsproxy":"192.168.224.10","mmsport":"8080","type":["mms"],"voicemail":"123"}
+    {"carrier":"Orange internet","apn":"orangeinternet","type":["default","supl"]},
+    {"voicemail":"123","type":["operatorvariant"]},
+    {"carrier":"Orange MMS","apn":"orangemms","mmsc":"http://mms.orange.co.uk/","mmsproxy":"192.168.224.10","mmsport":"8080","type":["mms"]}
   ],
   "50": [
     {"carrier":"Jersey Telecom","apn":"mms","user":"mms","password":"mms","mmsc":"http://mms.surfmail.com/mmsc","mmsproxy":"212.9.19.199","mmsport":"3130","type":["mms"]},
@@ -382,12 +406,14 @@
 },
 "238": {
   "1": [
-    {"carrier":"TDC","apn":"internet","type":["default","supl"],"voicemail":"20171717"},
-    {"carrier":"TDC MMS","apn":"mms","mmsc":"http://mmsc.tdc.dk:8002","mmsproxy":"194.182.251.15","mmsport":"8080","type":["mms"],"voicemail":"20171717"}
+    {"carrier":"TDC","apn":"internet","type":["default","supl"]},
+    {"voicemail":"20171717","type":["operatorvariant"]},
+    {"carrier":"TDC MMS","apn":"mms","mmsc":"http://mmsc.tdc.dk:8002","mmsproxy":"194.182.251.15","mmsport":"8080","type":["mms"]}
   ],
   "2": [
-    {"carrier":"Telenor Internet","apn":"Internet","type":["default","supl"],"voicemail":"20171717"},
-    {"carrier":"Telenor MMS","apn":"telenor","mmsc":"http://mms.telenor.dk","mmsproxy":"212.88.64.8","mmsport":"8080","type":["mms"],"voicemail":"20171717"}
+    {"carrier":"Telenor Internet","apn":"Internet","type":["default","supl"]},
+    {"voicemail":"20171717","type":["operatorvariant"]},
+    {"carrier":"Telenor MMS","apn":"telenor","mmsc":"http://mms.telenor.dk","mmsproxy":"212.88.64.8","mmsport":"8080","type":["mms"]}
   ],
   "6": [
     {"carrier":"3","apn":"data.tre.dk","mmsc":"http://mms.3.dk/","mmsproxy":"mmsproxy.3.dk","mmsport":"8799","type":["default","supl","mms"]}
@@ -397,14 +423,16 @@
     {"carrier":"Telia MMS","apn":"www.mms.mtelia.dk","mmsc":"http://mms.telia.dk","mmsproxy":"193.209.134.131","mmsport":"8080","type":["mms"]}
   ],
   "77": [
-    {"carrier":"Telenor Internet","apn":"Internet","type":["default","supl"],"voicemail":"20171717"},
-    {"carrier":"Telenor MMS","apn":"telenor","mmsc":"http://mms.telenor.dk","mmsproxy":"212.88.64.8","mmsport":"8080","type":["mms"],"voicemail":"20171717"}
+    {"carrier":"Telenor Internet","apn":"Internet","type":["default","supl"]},
+    {"voicemail":"20171717","type":["operatorvariant"]},
+    {"carrier":"Telenor MMS","apn":"telenor","mmsc":"http://mms.telenor.dk","mmsproxy":"212.88.64.8","mmsport":"8080","type":["mms"]}
   ]
 },
 "240": {
   "1": [
-    {"carrier":"Telia SE MMS","apn":"mms.telia.se","mmsc":"http://mmss/","mmsproxy":"193.209.134.132","mmsport":"80","type":["mms"],"voicemail":"*133#"},
-    {"carrier":"Telia SE WAP","apn":"online.telia.se","proxy":"10.254.254.254","port":"8080","type":["default","supl"],"voicemail":"*133#"}
+    {"carrier":"Telia SE MMS","apn":"mms.telia.se","mmsc":"http://mmss/","mmsproxy":"193.209.134.132","mmsport":"80","type":["mms"]},
+    {"voicemail":"*133#","type":["operatorvariant"]},
+    {"carrier":"Telia SE WAP","apn":"online.telia.se","proxy":"10.254.254.254","port":"8080","type":["default","supl"]}
   ],
   "17": [
     {"carrier":"Halebop Internet","apn":"halebop.telia.se","type":["default","supl"]},
@@ -414,18 +442,22 @@
     {"carrier":"3","apn":"data.tre.se","mmsc":"http://mms.tre.se","mmsproxy":"mmsproxy.tre.se","mmsport":"8799","type":["default","supl","mms"]}
   ],
   "4": [
-    {"carrier":"Telenor Mobilsurf","apn":"services.telenor.se","proxy":"172.30.253.241","port":"8799","mmsc":"http://mms","mmsproxy":"172.30.253.241","mmsport":"8799","type":["default","supl","mms"],"voicemail":"888"}
+    {"carrier":"Telenor Mobilsurf","apn":"services.telenor.se","proxy":"172.30.253.241","port":"8799","mmsc":"http://mms","mmsproxy":"172.30.253.241","mmsport":"8799","type":["default","supl","mms"]},
+    {"voicemail":"888","type":["operatorvariant"]}
   ],
   "6": [
-    {"carrier":"Telenor MMS","apn":"services.telenor.se","mmsc":"http://mms","mmsproxy":"173.30.253.241","mmsport":"8799","type":["mms"],"voicemail":"888"},
-    {"carrier":"Telenor Mobilsurf","apn":"services.telenor.se","proxy":"173.30.253.241","port":"8799","type":["default","supl"],"voicemail":"888"}
+    {"carrier":"Telenor MMS","apn":"services.telenor.se","mmsc":"http://mms","mmsproxy":"173.30.253.241","mmsport":"8799","type":["mms"]},
+    {"voicemail":"888","type":["operatorvariant"]},
+    {"carrier":"Telenor Mobilsurf","apn":"services.telenor.se","proxy":"173.30.253.241","port":"8799","type":["default","supl"]}
   ],
   "7": [
-    {"carrier":"Tele2","apn":"internet.tele2.se","mmsc":"http://mmsc.tele2.se","mmsproxy":"130.244.202.30","mmsport":"8080","type":["default","supl","mms"],"voicemail":"222"}
+    {"carrier":"Tele2","apn":"internet.tele2.se","mmsc":"http://mmsc.tele2.se","mmsproxy":"130.244.202.30","mmsport":"8080","type":["default","supl","mms"]},
+    {"voicemail":"222","type":["operatorvariant"]}
   ],
   "8": [
-    {"carrier":"Telenor Mobilsurf","apn":"services.telenor.se","proxy":"172.30.253.241","port":"8799","type":["default","supl"],"voicemail":"888"},
-    {"carrier":"Telenor MMS","apn":"services.telenor.se","mmsc":"http://mms","mmsproxy":"172.30.253.241","mmsport":"8799","type":["mms"],"voicemail":"888"}
+    {"carrier":"Telenor Mobilsurf","apn":"services.telenor.se","proxy":"172.30.253.241","port":"8799","type":["default","supl"]},
+    {"voicemail":"888","type":["operatorvariant"]},
+    {"carrier":"Telenor MMS","apn":"services.telenor.se","mmsc":"http://mms","mmsproxy":"172.30.253.241","mmsport":"8799","type":["mms"]}
   ],
   "9": [
     {"carrier":"Telenor MMS","apn":"services.telenor.se","mmsc":"http://mms","mmsproxy":"173.30.253.241","mmsport":"8799","type":["mms"]},
@@ -438,16 +470,19 @@
 },
 "242": {
   "1": [
-    {"carrier":"Ventelo Internett","apn":"internet.ventelo.no","type":["default","supl"],"voicemail":"91500002"},
-    {"carrier":"Ventelo MMS","apn":"mms.ventelo.no","user":"ventelo","password":"1111","mmsc":"http://mmsc/","mmsproxy":"10.10.10.11","mmsport":"8080","type":["mms"],"voicemail":"91500002"},
-    {"carrier":"Telenor","apn":"telenor","mmsc":"http://mmsc","mmsproxy":"10.10.10.11","mmsport":"8080","type":["default","supl","mms"],"voicemail":"91500002"}
+    {"carrier":"Ventelo Internett","apn":"internet.ventelo.no","type":["default","supl"]},
+    {"voicemail":"91500002","type":["operatorvariant"]},
+    {"carrier":"Ventelo MMS","apn":"mms.ventelo.no","user":"ventelo","password":"1111","mmsc":"http://mmsc/","mmsproxy":"10.10.10.11","mmsport":"8080","type":["mms"]},
+    {"carrier":"Telenor","apn":"telenor","mmsc":"http://mmsc","mmsproxy":"10.10.10.11","mmsport":"8080","type":["default","supl","mms"]}
   ],
   "2": [
-    {"carrier":"NetCom MMS","apn":"mms.netcom.no","mmsc":"http://mm/","mmsproxy":"212.169.66.4","mmsport":"8080","type":["mms"],"voicemail":"47230000"},
-    {"carrier":"NetCom Internett","apn":"wap","type":["default","supl"],"voicemail":"47230000"}
+    {"carrier":"NetCom MMS","apn":"mms.netcom.no","mmsc":"http://mm/","mmsproxy":"212.169.66.4","mmsport":"8080","type":["mms"]},
+    {"voicemail":"47230000","type":["operatorvariant"]},
+    {"carrier":"NetCom Internett","apn":"wap","type":["default","supl"]}
   ],
   "4": [
-    {"carrier":"Tele2 Internett","apn":"internet.tele2.no","mmsc":"http://mmsc.tele2.no","mmsproxy":"193.12.40.14","mmsport":"8080","type":["default","supl","mms"],"voicemail":"47230000"}
+    {"carrier":"Tele2 Internett","apn":"internet.tele2.no","mmsc":"http://mmsc.tele2.no","mmsproxy":"193.12.40.14","mmsport":"8080","type":["default","supl","mms"]},
+    {"voicemail":"47230000","type":["operatorvariant"]}
   ],
   "5": [
     {"carrier":"NwN Internet","apn":"internet","type":["default","supl"]},
@@ -464,8 +499,9 @@
     {"carrier":"DNA MMS","apn":"mms","user":"dna","password":"mms","mmsc":"http://mmsc.dnafinland.fi/","mmsproxy":"10.1.1.2","mmsport":"8080","type":["mms"]}
   ],
   "5": [
-    {"carrier":"Elisa Internet","apn":"internet","type":["default","supl"],"voicemail":"777"},
-    {"carrier":"Elisa MMS","apn":"mms","mmsc":"http://mms.elisa.fi","mmsproxy":"213.161.41.57","mmsport":"80","type":["mms"],"voicemail":"777"}
+    {"carrier":"Elisa Internet","apn":"internet","type":["default","supl"]},
+    {"voicemail":"777","type":["operatorvariant"]},
+    {"carrier":"Elisa MMS","apn":"mms","mmsc":"http://mms.elisa.fi","mmsproxy":"213.161.41.57","mmsport":"80","type":["mms"]}
   ],
   "10": [
     {"carrier":"TDC Internet","apn":"internet.song.fi","user":"song@internet","password":"songnet","type":["default","supl"]},
@@ -585,18 +621,21 @@
 },
 "260": {
   "1": [
-    {"carrier":"Plus Internet","apn":"internet","type":["default","supl"],"voicemail":"2222"},
-    {"carrier":"Plus MMS","apn":"mms","mmsc":"http://mms.plusgsm.pl:8002","mmsproxy":"212.2.96.16","mmsport":"8080","type":["mms"],"voicemail":"2222"}
+    {"carrier":"Plus Internet","apn":"internet","type":["default","supl"]},
+    {"voicemail":"2222","type":["operatorvariant"]},
+    {"carrier":"Plus MMS","apn":"mms","mmsc":"http://mms.plusgsm.pl:8002","mmsproxy":"212.2.96.16","mmsport":"8080","type":["mms"]}
   ],
   "2": [
-    {"carrier":"T-mobile.pl","apn":"internet","type":["default","supl"],"voicemail":"602950"},
-    {"carrier":"T-mobile.pl","apn":"mms","mmsc":"http://mms/servlets/mms","mmsproxy":"213.158.194.226","mmsport":"8080","type":["mms"],"voicemail":"602950"},
-    {"carrier":"heyahinternet","apn":"heyah.pl","type":["default","supl"],"voicemail":"602950"},
-    {"carrier":"heyahmms","apn":"heyahmms","mmsc":"http://mms.heyah.pl/servlets/mms","mmsproxy":"213.158.194.226","mmsport":"8080","type":["mms"],"voicemail":"602950"}
+    {"carrier":"T-mobile.pl","apn":"internet","type":["default","supl"]},
+    {"voicemail":"602950","type":["operatorvariant"]},
+    {"carrier":"T-mobile.pl","apn":"mms","mmsc":"http://mms/servlets/mms","mmsproxy":"213.158.194.226","mmsport":"8080","type":["mms"]},
+    {"carrier":"heyahinternet","apn":"heyah.pl","type":["default","supl"]},
+    {"carrier":"heyahmms","apn":"heyahmms","mmsc":"http://mms.heyah.pl/servlets/mms","mmsproxy":"213.158.194.226","mmsport":"8080","type":["mms"]}
   ],
   "3": [
-    {"carrier":"Internet","apn":"Internet","user":"internet","password":"internet","type":["default"],"voicemail":"*501"},
-    {"carrier":"MMS Orange","apn":"mms","user":"mms","password":"mms","mmsc":"http://mms.orange.pl","mmsproxy":"192.168.6.104","mmsport":"8080","type":["mms"],"voicemail":"*501"}
+    {"carrier":"Internet","apn":"Internet","user":"internet","password":"internet","type":["default"]},
+    {"voicemail":"*501","type":["operatorvariant"]},
+    {"carrier":"MMS Orange","apn":"mms","user":"mms","password":"mms","mmsc":"http://mms.orange.pl","mmsproxy":"192.168.6.104","mmsport":"8080","type":["mms"]}
   ],
   "6": [
     {"carrier":"P4 Internet","apn":"internet","type":["default","supl"]},
@@ -608,16 +647,19 @@
     {"carrier":"T-Mobile Internet","apn":"internet.t-mobile","user":"t-mobile","password":"tm","mmsc":"http://mms.t-mobile.de/servlets/mms","mmsproxy":"172.28.23.131","mmsport":"8008","type":["default","supl","mms"]}
   ],
   "2": [
-    {"carrier":"Vodafone DE-MMS","apn":"event.vodafone.de","mmsc":"http://139.7.24.1/servlets/mms","mmsproxy":"139.7.29.17","mmsport":"80","type":["mms"],"voicemail":"5500"},
-    {"carrier":"Vodafone DE","apn":"web.vodafone.de","type":["default","supl"],"voicemail":"5500"}
+    {"carrier":"Vodafone DE-MMS","apn":"event.vodafone.de","mmsc":"http://139.7.24.1/servlets/mms","mmsproxy":"139.7.29.17","mmsport":"80","type":["mms"]},
+    {"voicemail":"5500","type":["operatorvariant"]},
+    {"carrier":"Vodafone DE","apn":"web.vodafone.de","type":["default","supl"]}
   ],
   "3": [
-    {"carrier":"E-Plus Web GPRS","apn":"internet.eplus.de","user":"eplus","password":"internet","type":["default","supl"],"voicemail":"9911"},
-    {"carrier":"E-Plus MMS","apn":"mms.eplus.de","user":"mms","password":"eplus","mmsc":"http://mms/eplus/","mmsproxy":"212.23.97.153","mmsport":"5080","type":["mms"],"voicemail":"9911"}
+    {"carrier":"E-Plus Web GPRS","apn":"internet.eplus.de","user":"eplus","password":"internet","type":["default","supl"]},
+    {"voicemail":"9911","type":["operatorvariant"]},
+    {"carrier":"E-Plus MMS","apn":"mms.eplus.de","user":"mms","password":"eplus","mmsc":"http://mms/eplus/","mmsproxy":"212.23.97.153","mmsport":"5080","type":["mms"]}
   ],
   "7": [
-    {"carrier":"o2","apn":"internet","mmsc":"http://10.81.0.7:8002","mmsproxy":"82.113.100.5","mmsport":"8080","type":["default","supl","mms"],"voicemail":"333"},
-    {"carrier":"o2 Internet Prepaid","apn":"pinternet.interkom.de","proxy":"82.113.100.6","port":"8080","mmsc":"http://10.81.0.7:8002","mmsproxy":"82.113.100.6","mmsport":"8080","type":["default","supl","mms"],"voicemail":"333"}
+    {"carrier":"o2","apn":"internet","mmsc":"http://10.81.0.7:8002","mmsproxy":"82.113.100.5","mmsport":"8080","type":["default","supl","mms"]},
+    {"voicemail":"333","type":["operatorvariant"]},
+    {"carrier":"o2 Internet Prepaid","apn":"pinternet.interkom.de","proxy":"82.113.100.6","port":"8080","mmsc":"http://10.81.0.7:8002","mmsproxy":"82.113.100.6","mmsport":"8080","type":["default","supl","mms"]}
   ]
 },
 "268": {
@@ -702,16 +744,19 @@
 },
 "284": {
   "1": [
-    {"carrier":"M-Tel","apn":"wap-gprs.mtel.bg","type":["default","supl"],"voicemail":"131"},
-    {"carrier":"M-Tel MMS","apn":"mms-gprs.mtel.bg","user":"mtel","password":"mtel","mmsc":"http://mmsc/","mmsproxy":"10.150.0.33","mmsport":"8080","type":["mms"],"voicemail":"131"}
+    {"carrier":"M-Tel","apn":"wap-gprs.mtel.bg","type":["default","supl"]},
+    {"voicemail":"131","type":["operatorvariant"]},
+    {"carrier":"M-Tel MMS","apn":"mms-gprs.mtel.bg","user":"mtel","password":"mtel","mmsc":"http://mmsc/","mmsproxy":"10.150.0.33","mmsport":"8080","type":["mms"]}
   ],
   "3": [
-    {"carrier":"Vivacom WAP","apn":"wap.vivacom.bg","user":"wap","password":"wap","proxy":"192.168.123.123","port":"8080","type":["default","supl"],"voicemail":"110"},
-    {"carrier":"Vivacom MMS","apn":"mms.vivacom.bg","user":"mms","password":"mms","mmsc":"http://mmsc.vivacom.bg","mmsproxy":"192.168.123.123","mmsport":"8080","type":["mms"],"voicemail":"110"}
+    {"carrier":"Vivacom WAP","apn":"wap.vivacom.bg","user":"wap","password":"wap","proxy":"192.168.123.123","port":"8080","type":["default","supl"]},
+    {"voicemail":"110","type":["operatorvariant"]},
+    {"carrier":"Vivacom MMS","apn":"mms.vivacom.bg","user":"mms","password":"mms","mmsc":"http://mmsc.vivacom.bg","mmsproxy":"192.168.123.123","mmsport":"8080","type":["mms"]}
   ],
   "5": [
-    {"carrier":"GPRS GLOBUL","apn":"globul","type":["default","supl"],"voicemail":"120"},
-    {"carrier":"GLOBUL MMS GPRS","apn":"mms.globul.bg","user":"mms","mmsc":"http://mmsc1.mms.globul.bg:8002","mmsproxy":"192.168.87.11","mmsport":"8004","type":["mms"],"voicemail":"120"}
+    {"carrier":"GPRS GLOBUL","apn":"globul","type":["default","supl"]},
+    {"voicemail":"120","type":["operatorvariant"]},
+    {"carrier":"GLOBUL MMS GPRS","apn":"mms.globul.bg","user":"mms","mmsc":"http://mmsc1.mms.globul.bg:8002","mmsproxy":"192.168.87.11","mmsport":"8004","type":["mms"]}
   ]
 },
 "286": {
@@ -823,38 +868,48 @@
     {"carrier":"My Multi Media","apn":"mms.c1.ama","user":"cell1mms","password":"cell1","mmsc":"http://mms.iot1.com/amarillo/mms.php","type":["mms"]}
   ],
   "160": [
-    {"carrier":"T-Mobile US 160","apn":"epc.tmobile.com","mmsc":"http://mms.msg.eng.t-mobile.com/mms/wapenc","type":["default","supl","mms"],"voicemail":"123"}
+    {"carrier":"T-Mobile US 160","apn":"epc.tmobile.com","mmsc":"http://mms.msg.eng.t-mobile.com/mms/wapenc","type":["default","supl","mms"]},
+    {"voicemail":"123","type":["operatorvariant"]}
   ],
   "170": [
     {"carrier":"DataConnect","apn":"isp.cingular","type":["default","supl"]},
     {"carrier":"Cingular MMS","apn":"wap.cingular","user":"WAP@CINGULARGPRS.COM","password":"CINGULAR1","mmsc":"http://mmsc.cingular.com","mmsproxy":"66.209.11.32","mmsport":"8080","type":["mms"]}
   ],
   "200": [
-    {"carrier":"T-Mobile US 200","apn":"epc.tmobile.com","mmsc":"http://mms.msg.eng.t-mobile.com/mms/wapenc","type":["default","supl","mms"],"voicemail":"123"}
+    {"carrier":"T-Mobile US 200","apn":"epc.tmobile.com","mmsc":"http://mms.msg.eng.t-mobile.com/mms/wapenc","type":["default","supl","mms"]},
+    {"voicemail":"123","type":["operatorvariant"]}
   ],
   "210": [
-    {"carrier":"T-Mobile US 210","apn":"epc.tmobile.com","mmsc":"http://mms.msg.eng.t-mobile.com/mms/wapenc","type":["default","supl","mms"],"voicemail":"123"}
+    {"carrier":"T-Mobile US 210","apn":"epc.tmobile.com","mmsc":"http://mms.msg.eng.t-mobile.com/mms/wapenc","type":["default","supl","mms"]},
+    {"voicemail":"123","type":["operatorvariant"]}
   ],
   "220": [
-    {"carrier":"T-Mobile US 220","apn":"epc.tmobile.com","mmsc":"http://mms.msg.eng.t-mobile.com/mms/wapenc","type":["default","supl","mms"],"voicemail":"123"}
+    {"carrier":"T-Mobile US 220","apn":"epc.tmobile.com","mmsc":"http://mms.msg.eng.t-mobile.com/mms/wapenc","type":["default","supl","mms"]},
+    {"voicemail":"123","type":["operatorvariant"]}
   ],
   "230": [
-    {"carrier":"T-Mobile US 230","apn":"epc.tmobile.com","mmsc":"http://mms.msg.eng.t-mobile.com/mms/wapenc","type":["default","supl","mms"],"voicemail":"123"}
+    {"carrier":"T-Mobile US 230","apn":"epc.tmobile.com","mmsc":"http://mms.msg.eng.t-mobile.com/mms/wapenc","type":["default","supl","mms"]},
+    {"voicemail":"123","type":["operatorvariant"]}
   ],
   "240": [
-    {"carrier":"T-Mobile US 240","apn":"epc.tmobile.com","mmsc":"http://mms.msg.eng.t-mobile.com/mms/wapenc","type":["default","supl","mms"],"voicemail":"123"}
+    {"carrier":"T-Mobile US 240","apn":"epc.tmobile.com","mmsc":"http://mms.msg.eng.t-mobile.com/mms/wapenc","type":["default","supl","mms"]},
+    {"voicemail":"123","type":["operatorvariant"]}
   ],
   "250": [
-    {"carrier":"T-Mobile US 250","apn":"epc.tmobile.com","mmsc":"http://mms.msg.eng.t-mobile.com/mms/wapenc","type":["default","supl","mms"],"voicemail":"123"}
+    {"carrier":"T-Mobile US 250","apn":"epc.tmobile.com","mmsc":"http://mms.msg.eng.t-mobile.com/mms/wapenc","type":["default","supl","mms"]},
+    {"voicemail":"123","type":["operatorvariant"]}
   ],
   "260": [
-    {"carrier":"T-Mobile US","apn":"epc.tmobile.com","mmsc":"http://mms.msg.eng.t-mobile.com/mms/wapenc","type":["default","supl","mms"],"voicemail":"123"}
+    {"carrier":"T-Mobile US","apn":"epc.tmobile.com","mmsc":"http://mms.msg.eng.t-mobile.com/mms/wapenc","type":["default","supl","mms"]},
+    {"voicemail":"123","type":["operatorvariant"]}
   ],
   "270": [
-    {"carrier":"T-Mobile US 270","apn":"epc.tmobile.com","mmsc":"http://mms.msg.eng.t-mobile.com/mms/wapenc","type":["default","supl","mms"],"voicemail":"123"}
+    {"carrier":"T-Mobile US 270","apn":"epc.tmobile.com","mmsc":"http://mms.msg.eng.t-mobile.com/mms/wapenc","type":["default","supl","mms"]},
+    {"voicemail":"123","type":["operatorvariant"]}
   ],
   "310": [
-    {"carrier":"T-Mobile US 310","apn":"epc.tmobile.com","mmsc":"http://mms.msg.eng.t-mobile.com/mms/wapenc","type":["default","supl","mms"],"voicemail":"123"}
+    {"carrier":"T-Mobile US 310","apn":"epc.tmobile.com","mmsc":"http://mms.msg.eng.t-mobile.com/mms/wapenc","type":["default","supl","mms"]},
+    {"voicemail":"123","type":["operatorvariant"]}
   ],
   "380": [
     {"carrier":"Cingular 380 ATT","apn":"proxy","mmsc":"http://mmsc.cingular.com/","mmsproxy":"wireless.cingular.com","type":["default","supl","mms"]},
@@ -878,9 +933,10 @@
     {"carrier":"MediaNet","apn":"wap.cingular","user":"WAP@CINGULARGPRS.COM","password":"CINGULAR1","mmsc":"http://mmsc.cingular.com","mmsproxy":"66.209.11.32","mmsport":"8080","type":["default","supl","mms"]}
   ],
   "490": [
-    {"carrier":"T-Mobile US 490","apn":"epc.tmobile.com","mmsc":"http://mms.msg.eng.t-mobile.com/mms/wapenc","type":["default","supl","mms"],"voicemail":"123"},
-    {"carrier":"GoodCall Picture Message","apn":"good.call","mmsc":"http://mms.suncom.net:8088/mms","mmsproxy":"66.150.33.125","mmsport":"8080","type":["mms"],"voicemail":"123"},
-    {"carrier":"Suncom MMS","apn":"mms","mmsc":"http://mms.suncom.net:8088/mms","mmsproxy":"66.150.33.125","mmsport":"8080","type":["mms"],"voicemail":"123"}
+    {"carrier":"T-Mobile US 490","apn":"epc.tmobile.com","mmsc":"http://mms.msg.eng.t-mobile.com/mms/wapenc","type":["default","supl","mms"]},
+    {"voicemail":"123","type":["operatorvariant"]},
+    {"carrier":"GoodCall Picture Message","apn":"good.call","mmsc":"http://mms.suncom.net:8088/mms","mmsproxy":"66.150.33.125","mmsport":"8080","type":["mms"]},
+    {"carrier":"Suncom MMS","apn":"mms","mmsc":"http://mms.suncom.net:8088/mms","mmsproxy":"66.150.33.125","mmsport":"8080","type":["mms"]}
   ],
   "560": [
     {"carrier":"DobsonMMS","apn":"dobsoncellularwap","mmsc":"http://mmsc","mmsproxy":"172.23.1.252","mmsport":"8799","type":["mms"]}
@@ -889,7 +945,8 @@
     {"carrier":"ChinookMMS","apn":"wapgw.chinookwireless.net","mmsc":"http://mms.cellonenation.net/mms/","mmsproxy":"204.181.155.195","mmsport":"8080","type":["mms"]}
   ],
   "580": [
-    {"carrier":"T-Mobile US 580","apn":"epc.tmobile.com","mmsc":"http://mms.msg.eng.t-mobile.com/mms/wapenc","type":["default","supl","mms"],"voicemail":"123"}
+    {"carrier":"T-Mobile US 580","apn":"epc.tmobile.com","mmsc":"http://mms.msg.eng.t-mobile.com/mms/wapenc","type":["default","supl","mms"]},
+    {"voicemail":"123","type":["operatorvariant"]}
   ],
   "590": [
     {"carrier":"CellularOne MMS","apn":"cellular1wap","mmsc":"http://mmsc","mmsproxy":"172.23.1.252","mmsport":"8799","type":["mms"]}
@@ -899,7 +956,8 @@
     {"carrier":"EpicMMS","apn":"mms.epictouch","mmsc":"http://mmsc.westlinkcom.com/servlets/mms","mmsproxy":"63.99.231.135","mmsport":"8080","type":["mms"]}
   ],
   "660": [
-    {"carrier":"T-Mobile US 660","apn":"epc.tmobile.com","mmsc":"http://mms.msg.eng.t-mobile.com/mms/wapenc","type":["default","supl","mms"],"voicemail":"123"}
+    {"carrier":"T-Mobile US 660","apn":"epc.tmobile.com","mmsc":"http://mms.msg.eng.t-mobile.com/mms/wapenc","type":["default","supl","mms"]},
+    {"voicemail":"123","type":["operatorvariant"]}
   ],
   "770": [
     {"carrier":"WEB 2","apn":"i2.iwireless.com","type":["default","supl"]},
@@ -907,7 +965,8 @@
     {"carrier":"PIAPicture Messaging","apn":"wap9.iwireless.com","mmsc":"http://mmsc.iwireless.dataonair.net:6672","mmsproxy":"209.4.229.32","mmsport":"9401","type":["mms"]}
   ],
   "800": [
-    {"carrier":"T-Mobile US 800","apn":"epc.tmobile.com","mmsc":"http://mms.msg.eng.t-mobile.com/mms/wapenc","type":["default","supl","mms"],"voicemail":"123"}
+    {"carrier":"T-Mobile US 800","apn":"epc.tmobile.com","mmsc":"http://mms.msg.eng.t-mobile.com/mms/wapenc","type":["default","supl","mms"]},
+    {"voicemail":"123","type":["operatorvariant"]}
   ],
   "840": [
     {"carrier":"Internet","apn":"isp","type":["default","supl"]},
@@ -939,18 +998,22 @@
 "334": {
   "20": [
     {"carrier":"Internet","apn":"internet.itelcel.com","user":"webgprs","password":"webgprs2002","authtype":"1","type":["default","supl","dun"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"Mensajes Multimedia","apn":"mms.itelcel.com","user":"mmsgprs","password":"mmsgprs2003","mmsc":"http://mms.itelcel.com/servlets/mms","mmsproxy":"148.233.151.240","mmsport":"8080","authtype":"1","type":["mms"]}
   ],
   "3": [
-    {"carrier":"movistar Internet","apn":"internet.movistar.mx","user":"movistar","password":"movistar","authtype":"1","type":["default","supl","dun"],"voicemail":"*86"},
-    {"carrier":"movistar MMS","apn":"mms.movistar.mx","user":"movistar","password":"movistar","mmsc":"http://mms.movistar.mx","mmsproxy":"10.2.20.1","mmsport":"80","authtype":"1","type":["mms"],"voicemail":"*86"}
+    {"carrier":"movistar Internet","apn":"internet.movistar.mx","user":"movistar","password":"movistar","authtype":"1","type":["default","supl","dun"]},
+    {"voicemail":"*86","enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
+    {"carrier":"movistar MMS","apn":"mms.movistar.mx","user":"movistar","password":"movistar","mmsc":"http://mms.movistar.mx","mmsproxy":"10.2.20.1","mmsport":"80","authtype":"1","type":["mms"]}
   ],
   "30": [
     {"carrier":"movistar Internet","apn":"internet.movistar.mx","user":"movistar","password":"movistar","authtype":"1","type":["default","supl","dun"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"movistar MMS","apn":"mms.movistar.mx","user":"movistar","password":"movistar","mmsc":"http://mms.movistar.mx","mmsproxy":"10.2.20.1","mmsport":"80","authtype":"1","type":["mms"]}
   ],
   "50": [
     {"carrier":"Iusacell Internet","apn":"web.iusacellgsm.mx","user":"Iusacellgsm","password":"Iusacellgsm","authtype":"0","type":["default","supl","dun"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"Iusacell MMS","apn":"mms.iusacellgsm.mx","user":"mmsiusacellgsm","password":"mmsiusacellgsm","mmsc":"http://mms.iusacell3g.com/","mmsproxy":"192.200.1.40","mmsport":"80","authtype":"0","type":["mms"]}
   ]
 },
@@ -1066,14 +1129,16 @@
 },
 "370": {
   "1": [
-    {"carrier":"Orange net","apn":"orangenet.com.do","user":"","password":"","authtype":"1","type":["default","supl","dun"],"voicemail":"*777"},
-    {"carrier":"Orange MMS","apn":"orangeworld","user":"orange","password":"orange","mmsproxy":"172.16.126.70","mmsport":"8080","mmsc":"http://mms.orange.com.do/servlets/mms","authtype":"1","type":["mms"],"voicemail":"*777"},
-    {"carrier":"Orange DO MMS","apn":"orangeworld","mmsc":"http://mmr.orangewi.com/servlets/mms","mmsproxy":"172.16.126.70","mmsport":"8080","type":["mms"],"voicemail":"*777"},
-    {"carrier":"Orange DO","apn":"orangenet.com.do","type":["default"],"voicemail":"*777"}
+    {"carrier":"Orange net","apn":"orangenet.com.do","user":"","password":"","authtype":"1","type":["default","supl","dun"]},
+    {"voicemail":"*777","type":["operatorvariant"]},
+    {"carrier":"Orange MMS","apn":"orangeworld","user":"orange","password":"orange","mmsproxy":"172.16.126.70","mmsport":"8080","mmsc":"http://mms.orange.com.do/servlets/mms","authtype":"1","type":["mms"]},
+    {"carrier":"Orange DO MMS","apn":"orangeworld","mmsc":"http://mmr.orangewi.com/servlets/mms","mmsproxy":"172.16.126.70","mmsport":"8080","type":["mms"]},
+    {"carrier":"Orange DO","apn":"orangenet.com.do","type":["default"]}
   ],
   "2": [
-    {"carrier":"INTERNET CLARO","apn":"internet.ideasclaro.com.do","user":"","password":"","authtype":"1","type":["default","supl","dun"],"voicemail":"*99"},
-    {"carrier":"MMS CLARO","apn":"mms.ideasclaro.com.do","user":"","password":"","mmsproxy":"190.80.147.8","mmsport":"8080","mmsc":"http://mms.ideasclaro.com.do/mms/wapenc","authtype":"1","type":["mms"],"voicemail":"*99"}
+    {"carrier":"INTERNET CLARO","apn":"internet.ideasclaro.com.do","user":"","password":"","authtype":"1","type":["default","supl","dun"]},
+    {"voicemail":"*99","type":["operatorvariant"]},
+    {"carrier":"MMS CLARO","apn":"mms.ideasclaro.com.do","user":"","password":"","mmsproxy":"190.80.147.8","mmsport":"8080","mmsc":"http://mms.ideasclaro.com.do/mms/wapenc","authtype":"1","type":["mms"]}
   ],
   "4": [
     {"carrier":"Viva Edge","apn":"edge.viva.net.do","proxy":"192.168.16.10","port":"9401","user":"viva","password":"viva","authtype":"1","type":["default","supl","dun"]},
@@ -2728,40 +2793,49 @@
 "704": {
   "1": [
     {"carrier":"INTERNET CLARO","apn":"internet.ideasclaro","user":"","password":"","authtype":"1","type":["default","supl","dun"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"MMS CLARO","apn":"mms.ideasclaro","user":"","password":"","mmsproxy":"216.230.133.66","mmsport":"8080","mmsc":"http://mms.ideasclaro.com:8002","authtype":"1","type":["mms"]}
   ],
   "2": [
     {"carrier":"BROADBAND TIGO","apn":"broadband.tigo.gt","user":"","password":"","authtype":"1","type":["default","supl","dun"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"MMS TIGO","apn":"mms.tigo.gt","user":"","password":"","mmsproxy":"10.16.17.12","mmsport":"8888","mmsc":"http://mms","authtype":"1","type":["mms"]}
   ],
   "3": [
     {"carrier":"Internet GT","apn":"internet.movistar.gt","user":"movistargt","password":"movistargt","authtype":"1","type":["default","supl","dun"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"MMS2 GPRS","apn":"mms.movistar.gt","user":"movistargt","password":"movistargt","mmsproxy":"10.12.22.1","mmsport":"80","mmsc":"http://mms.movistar.gt","authtype":"1","type":["mms"]}
   ],
   "30": [
     {"carrier":"Internet GT","apn":"internet.movistar.gt","user":"movistargt","password":"movistargt","authtype":"1","type":["default","supl","dun"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"MMS2 GPRS","apn":"mms.movistar.gt","user":"movistargt","password":"movistargt","mmsproxy":"10.12.22.1","mmsport":"80","mmsc":"http://mms.movistar.gt","authtype":"1","type":["mms"]}
   ]
 },
 "706": {
   "1": [
     {"carrier":"INTERNET CLARO","apn":"internet.ideasclaro","user":"","password":"","authtype":"1","type":["default","supl","dun"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"MMS CLARO","apn":"mms.ideasclaro","user":"","password":"","mmsproxy":"216.230.133.66","mmsport":"8080","mmsc":"http://mms.ideasclaro.com:8002","authtype":"1","type":["mms"]}
   ],
   "2": [
     {"carrier":"El Salvaldor Digicel","apn":"web.digicelsv.com","user":"","password":"","authtype":"1","type":["default","supl","dun"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"MMS El Salvador","apn":"wap.digicelsv.com","user":"","password":"","mmsproxy":"172.26.5.12","mmsport":"8080","mmsc":"http://172.26.5.132/servlets/mms","authtype":"1","type":["mms"]}
   ],
   "3": [
     {"carrier":"BROADBAND TIGO","apn":"broadband.tigo.sv","user":"","password":"","authtype":"1","type":["default","supl","dun"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"MMS TIGO","apn":"mms.tigo.sv","user":"","password":"","mmsproxy":"10.16.17.12","mmsport":"8888","mmsc":"http://mms","authtype":"1","type":["mms"]}
   ],
   "4": [
     {"carrier":"Internet SV","apn":"internet.movistar.sv","user":"movistarsv","password":"movistarsv","authtype":"1","type":["default","supl","dun"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"MMS2 GPRS","apn":"mms.movistar.sv","user":"movistarsv","password":"movistarsv","mmsproxy":"10.12.20.1","mmsport":"80","mmsc":"http://mms.movistar.sv","authtype":"1","type":["mms"]}
   ],
   "40": [
     {"carrier":"Internet SV","apn":"internet.movistar.sv","user":"movistarsv","password":"movistarsv","authtype":"1","type":["default","supl","dun"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"MMS2 GPRS","apn":"mms.movistar.sv","user":"movistarsv","password":"movistarsv","mmsproxy":"10.12.20.1","mmsport":"80","mmsc":"http://mms.movistar.sv","authtype":"1","type":["mms"]}
   ]
 },
@@ -2782,14 +2856,17 @@
 "710": {
   "21": [
     {"carrier":"INTERNET","apn":"web.emovil","user":"webemovil","password":"webemovil","authtype":"1","type":["default","supl","dun"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"MMS","apn":"mms.emovil","user":"mmsemovil","password":"mmsemovil","mmsproxy":"10.6.32.2","mmsport":"8080","mmsc":"http://10.6.32.27/servlets/mms","authtype":"1","type":["mms"]}
   ],
   "300": [
     {"carrier":"Internet GPRS","apn":"internet.movistar.ni","user":"movistarni","password":"movistarni","authtype":"1","type":["default","supl","dun"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"movistar MMS","apn":"mms.movistar.ni","user":"movistarni","password":"movistarni","mmsproxy":"10.12.23.1","mmsport":"80","mmsc":"http://mms.movistar.ni","authtype":"1","type":["mms"]}
   ],
   "730": [
     {"carrier":"INTERNET","apn":"web.emovil","user":"webemovil","password":"webemovil","authtype":"1","type":["default","supl","dun"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"MMS","apn":"mms.emovil","user":"mmsemovil","password":"mmsemovil","mmsproxy":"10.6.32.2","mmsport":"8080","mmsc":"http://10.6.32.27/servlets/mms","authtype":"1","type":["mms"]}
   ]
 },
@@ -2803,8 +2880,9 @@
     {"carrier":"Multimedia","apn":"kolbi3g","user":"","password":"","mmsproxy":"10.184.202.24","mmsport":"8080","mmsc":"http://mmsice","authtype":"1","type":["mms"]}
   ],
   "3": [
-    {"carrier":"INTERNET CLARO","apn":"internet.ideasclaro","user":"","password":"","authtype":"1","type":["default","supl","dun"],"voicemail":"190"},
-    {"carrier":"MMS CLARO","apn":"mms.ideasclaro","user":"","password":"","mmsproxy":"216.230.133.66","mmsport":"8080","mmsc":"http://mms.ideasclaro.com:8002","authtype":"1","type":["mms"],"voicemail":"190"}
+    {"carrier":"INTERNET CLARO","apn":"internet.ideasclaro","user":"","password":"","authtype":"1","type":["default","supl","dun"]},
+    {"voicemail":"190","type":["operatorvariant"]},
+    {"carrier":"MMS CLARO","apn":"mms.ideasclaro","user":"","password":"","mmsproxy":"216.230.133.66","mmsport":"8080","mmsc":"http://mms.ideasclaro.com:8002","authtype":"1","type":["mms"]}
   ],
   "4": [
     {"carrier":"movistar INTERNET","apn":"internet.movistar.cr","user":"movistarcr","password":"movistarcr","authtype":"1","type":["default","supl","dun"]},
@@ -2814,128 +2892,158 @@
 "714": {
   "1": [
     {"carrier":"Wap","apn":"apn01.cwpanama.com.pa","proxy":"172.25.3.5","port":"8080","user":"","password":"","authtype":"1","type":["default","supl","dun"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"Mms","apn":"apn02.cwpanama.com.pa","user":"","password":"","mmsproxy":"172.25.3.5","mmsport":"8080","mmsc":"http://mms.zonamovil.com.pa","authtype":"1","type":["mms"]}
   ],
   "20": [
     {"carrier":"movistar INTERNET","apn":"internet.movistar.pa","user":"movistarpa","password":"movistarpa","authtype":"1","type":["default","supl","dun"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"movistar MMS","apn":"mms.movistar.pa","user":"movistarpamms","password":"movistarpa","mmsproxy":"10.12.21.1","mmsport":"80","mmsc":"http://mms.movistar.pa","authtype":"1","type":["mms"]}
   ],
   "3": [
     {"carrier":"WEB Claro","apn":"web.claro.com.pa","user":"CLAROWEB","password":"CLAROWEB","authtype":"1","type":["default","supl","dun"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"MMS Claro","apn":"mms.claro.com.pa","user":"CLAROMMS","password":"CLAROMMS","mmsproxy":"10.240.3.129","mmsport":"8799","mmsc":"http://www.claro.com.pa/mms/","authtype":"1","type":["mms"]}
   ],
   "4": [
     {"carrier":"INTERNET Panama","apn":"web.digicelpanama.com","user":"","password":"","authtype":"1","type":["default","supl","dun"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"MMS Panama","apn":"wap.digicelpanama.com","user":"","password":"","mmsproxy":"172.27.99.99","mmsport":"8080","mmsc":"http://mmc.digicelpanama.com/servlets/mms","authtype":"1","type":["mms"]}
   ]
 },
 "716": {
   "6": [
     {"carrier":"movistar Internet","apn":"movistar.pe","user":"movistar@datos","password":"movistar","authtype":"1","type":["default","supl","dun"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"movistar MMS","apn":"mms.movistar.pe","user":"movistar@mms","password":"movistar","mmsproxy":"200.4.196.118","mmsport":"8080","mmsc":"http://mmsc.telefonicamovistar.com.pe:8088/mms/","authtype":"1","type":["mms"]}
   ],
   "10": [
     {"carrier":"CLARO DATOS","apn":"claro.pe","user":"claro","password":"claro","authtype":"1","type":["default","supl","dun"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"CLARO MMS","apn":"mms.claro.pe","user":"claro","password":"claro","mmsproxy":"192.168.231.30","mmsport":"80","mmsc":"http://claro/servlets/mms","authtype":"1","type":["mms"]}
   ]
 },
 "722": {
   "7": [
     {"carrier":"Movistar Emoción","apn":"wap.gprs.unifon.com.ar","user":"wap","password":"wap","proxy":"200.5.68.10","port":"8080","authtype":"1","type":["default","supl","dun"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"Movistar MMS","apn":"mms.gprs.unifon.com.ar","user":"mms","password":"mms","mmsproxy":"200.68.32.239","mmsport":"8080","mmsc":"http://mms.movistar.com.ar","authtype":"1","type":["mms"]}
   ],
   "31": [
     {"carrier":"Claro AR","apn":"igprs.claro.com.ar","user":"ctigprs","password":"ctigprs999","authtype":"1","type":["default","supl","dun"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"MMS GPRS AR","apn":"mms.ctimovil.com.ar","user":"ctimms","password":"ctimms999","mmsproxy":"170.51.255.240","mmsport":"8080","mmsc":"http://mms.ctimovil.com.ar","authtype":"1","type":["mms"]}
   ],
   "310": [
     {"carrier":"Claro AR","apn":"igprs.claro.com.ar","user":"ctigprs","password":"ctigprs999","authtype":"1","type":["default","supl","dun"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"MMS GPRS AR","apn":"mms.ctimovil.com.ar","user":"ctimms","password":"ctimms999","mmsproxy":"170.51.255.240","mmsport":"8080","mmsc":"http://mms.ctimovil.com.ar","authtype":"1","type":["mms"]}
   ],
   "34": [
     {"carrier":"Personal Datos","apn":"datos.personal.com","user":"gprs","password":"adgj","authtype":"1","type":["default","supl","dun"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"Personal MMS","apn":"mms","user":"mms","password":"mms","mmsproxy":"172.25.7.31","mmsport":"8080","mmsc":"http://mms.personal.com","authtype":"1","type":["mms"]}
   ],
   "341": [
     {"carrier":"Personal Datos","apn":"datos.personal.com","user":"gprs","password":"adgj","authtype":"1","type":["default","supl","dun"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"Personal MMS","apn":"mms","user":"mms","password":"mms","mmsproxy":"172.25.7.31","mmsport":"8080","mmsc":"http://mms.personal.com","authtype":"1","type":["mms"]}
   ]
 },
 "724": {
   "2": [
-    {"carrier":"TIM Connect","apn":"timbrasil.br","user":"tim","password":"tim","mmsc":"http://mms.tim.br","mmsproxy":"200.179.66.242","mmsport":"8080","authtype":"1","type":["default","supl","mms"],"voicemail":"*100"}
+    {"carrier":"TIM Connect","apn":"timbrasil.br","user":"tim","password":"tim","mmsc":"http://mms.tim.br","mmsproxy":"200.179.66.242","mmsport":"8080","authtype":"1","type":["default","supl","mms"]},
+    {"voicemail":"*100","enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]}
   ],
   "3": [
-    {"carrier":"TIM Connect","apn":"timbrasil.br","user":"tim","password":"tim","mmsc":"http://mms.tim.br","mmsproxy":"200.179.66.242","mmsport":"8080","authtype":"1","type":["default","supl","mms"],"voicemail":"*100"}
+    {"carrier":"TIM Connect","apn":"timbrasil.br","user":"tim","password":"tim","mmsc":"http://mms.tim.br","mmsproxy":"200.179.66.242","mmsport":"8080","authtype":"1","type":["default","supl","mms"]},
+    {"voicemail":"*100","enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]}
   ],
   "4": [
-    {"carrier":"TIM Connect","apn":"timbrasil.br","user":"tim","password":"tim","mmsc":"http://mms.tim.br","mmsproxy":"200.179.66.242","mmsport":"8080","authtype":"1","type":["default","supl","mms"],"voicemail":"*100"}
+    {"carrier":"TIM Connect","apn":"timbrasil.br","user":"tim","password":"tim","mmsc":"http://mms.tim.br","mmsproxy":"200.179.66.242","mmsport":"8080","authtype":"1","type":["default","supl","mms"]},
+    {"voicemail":"*100","enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]}
   ],
   "5": [
-    {"carrier":"Java Session","apn":"java.claro.com.br","user":"claro","password":"claro","authtype":"1","type":["default","supl"],"voicemail":"*100"},
-    {"carrier":"Claro Foto","apn":"mms.claro.com.br","user":"claro","password":"claro","mmsc":"http://mms.claro.com.br","mmsproxy":"200.169.126.10","mmsport":"8799","authtype":"1","type":["mms"],"voicemail":"*100"}
+    {"carrier":"Java Session","apn":"java.claro.com.br","user":"claro","password":"claro","authtype":"1","type":["default","supl"]},
+    {"voicemail":"*100","enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
+    {"carrier":"Claro Foto","apn":"mms.claro.com.br","user":"claro","password":"claro","mmsc":"http://mms.claro.com.br","mmsproxy":"200.169.126.10","mmsport":"8799","authtype":"1","type":["mms"]}
   ],
   "6": [
-    {"carrier":"Vivo MMS","apn":"mms.vivo.com.br","user":"vivo","password":"vivo","mmsc":"http://termnat.vivomms.com.br:8088/mms","mmsproxy":"200.142.130.104","mmsport":"80","authtype":"1","type":["mms"],"voicemail":"*555"},
-    {"carrier":"Vivo Internet","apn":"zap.vivo.com.br","user":"vivo","password":"vivo","authtype":"1","type":["default","supl"],"voicemail":"*555"}
+    {"carrier":"Vivo MMS","apn":"mms.vivo.com.br","user":"vivo","password":"vivo","mmsc":"http://termnat.vivomms.com.br:8088/mms","mmsproxy":"200.142.130.104","mmsport":"80","authtype":"1","type":["mms"]},
+    {"voicemail":"*555","enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
+    {"carrier":"Vivo Internet","apn":"zap.vivo.com.br","user":"vivo","password":"vivo","authtype":"1","type":["default","supl"]}
   ],
   "7": [
     {"carrier":"SCTL MMS","apn":"mms.sercomtel.com.br","user":"sercomtel","password":"sercomtel","mmsc":"http://mms.claro.com.br","mmsproxy":"200.169.126.10","mmsport":"8799","type":["mms"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"SCTL GPRS","apn":"sercomtel.com.br","user":"sercomtel","password":"sercomtel","type":["default","supl"]}
   ],
   "10": [
-    {"carrier":"Vivo Internet","apn":"zap.vivo.com.br","user":"vivo","password":"vivo","type":["default","supl"],"voicemail":"*555"},
-    {"carrier":"Vivo MMS","apn":"mms.vivo.com.br","user":"vivo","password":"vivo","mmsc":"http://termnat.vivomms.com.br:8088/mms","mmsproxy":"200.142.130.104","mmsport":"80","authtype":"1","type":["mms"],"voicemail":"*555"}
+    {"carrier":"Vivo Internet","apn":"zap.vivo.com.br","user":"vivo","password":"vivo","type":["default","supl"]},
+    {"voicemail":"*555","enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
+    {"carrier":"Vivo MMS","apn":"mms.vivo.com.br","user":"vivo","password":"vivo","mmsc":"http://termnat.vivomms.com.br:8088/mms","mmsproxy":"200.142.130.104","mmsport":"80","authtype":"1","type":["mms"]}
   ],
   "11": [
-    {"carrier":"Vivo MMS","apn":"mms.vivo.com.br","user":"vivo","password":"vivo","mmsc":"http://termnat.vivomms.com.br:8088/mms","mmsproxy":"200.142.130.104","mmsport":"80","authtype":"1","type":["mms"],"voicemail":"*555"},
-    {"carrier":"Vivo Internet","apn":"zap.vivo.com.br","user":"vivo","password":"vivo","authtype":"1","type":["default","supl"],"voicemail":"*555"}
+    {"carrier":"Vivo MMS","apn":"mms.vivo.com.br","user":"vivo","password":"vivo","mmsc":"http://termnat.vivomms.com.br:8088/mms","mmsproxy":"200.142.130.104","mmsport":"80","authtype":"1","type":["mms"]},
+    {"voicemail":"*555","enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
+    {"carrier":"Vivo Internet","apn":"zap.vivo.com.br","user":"vivo","password":"vivo","authtype":"1","type":["default","supl"]}
   ],
   "16": [
-    {"carrier":"BrT Modem","apn":"brt.br","user":"brt","password":"brt","authtype":"1","type":["default","supl"],"voicemail":"*100"},
-    {"carrier":"BrT MMS","apn":"mms.brt.br","user":"brt","password":"brt","mmsc":"http://mms.brasiltelecom.com.br/","mmsproxy":"200.96.8.29","mmsport":"8080","authtype":"1","type":["mms"],"voicemail":"*100"}
+    {"carrier":"BrT Modem","apn":"brt.br","user":"brt","password":"brt","authtype":"1","type":["default","supl"]},
+    {"voicemail":"*100","enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
+    {"carrier":"BrT MMS","apn":"mms.brt.br","user":"brt","password":"brt","mmsc":"http://mms.brasiltelecom.com.br/","mmsproxy":"200.96.8.29","mmsport":"8080","authtype":"1","type":["mms"]}
   ],
   "19": [
     {"carrier":"TelemigC GPRS","apn":"gprs.telemigcelular.com.br","user":"celular","password":"celular","type":["default","supl"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"MMS Telemig","apn":"mmsgprs.telemigcelular.com.br","user":"celular","password":"celular","mmsc":"http://mms.telemigcelular.com.br","mmsproxy":"200.192.230.142","mmsport":"8080","type":["mms"]}
   ],
   "23": [
-    {"carrier":"Vivo Internet","apn":"zap.vivo.com.br","user":"vivo","password":"vivo","authtype":"1","type":["default","supl"],"voicemail":"*555"},
-    {"carrier":"Vivo MMS","apn":"mms.vivo.com.br","user":"vivo","password":"vivo","mmsc":"http://termnat.vivomms.com.br:8088/mms","mmsproxy":"200.142.130.104","mmsport":"80","authtype":"1","type":["mms"],"voicemail":"*555"}
+    {"carrier":"Vivo Internet","apn":"zap.vivo.com.br","user":"vivo","password":"vivo","authtype":"1","type":["default","supl"]},
+    {"voicemail":"*555","enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
+    {"carrier":"Vivo MMS","apn":"mms.vivo.com.br","user":"vivo","password":"vivo","mmsc":"http://termnat.vivomms.com.br:8088/mms","mmsproxy":"200.142.130.104","mmsport":"80","authtype":"1","type":["mms"]}
   ],
   "24": [
-    {"carrier":"AmazôniaC GPRS","apn":"gprs.amazoniacelular.com.br","user":"celular","password":"celular","authtype":"1","type":["default","supl","dun"],"voicemail":"*100"},
-    {"carrier":"AmazôniaC MMS","apn":"mmsgprs.amazoniacelular.com.br","user":"celular","password":"celular","mmsc":"http://mms.amazoniacelular.com.br","mmsproxy":"200.192.230.142","mmsport":"8080","authtype":"1","type":["mms"],"voicemail":"*100"}
+    {"carrier":"AmazôniaC GPRS","apn":"gprs.amazoniacelular.com.br","user":"celular","password":"celular","authtype":"1","type":["default","supl","dun"]},
+    {"voicemail":"*100","enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
+    {"carrier":"AmazôniaC MMS","apn":"mmsgprs.amazoniacelular.com.br","user":"celular","password":"celular","mmsc":"http://mms.amazoniacelular.com.br","mmsproxy":"200.192.230.142","mmsport":"8080","authtype":"1","type":["mms"]}
   ],
   "31": [
-    {"carrier":"OI GPRS","apn":"gprs.oi.com.br","authtype":"1","type":["default","supl"],"voicemail":"*100"},
-    {"carrier":"OI MMS","apn":"mmsgprs.oi.com.br","user":"oimms","password":"oimms","mmsc":"http://200.222.42.204:8002","mmsproxy":"192.168.10.50","mmsport":"3128","authtype":"1","type":["mms"],"voicemail":"*100"}
+    {"carrier":"OI GPRS","apn":"gprs.oi.com.br","authtype":"1","type":["default","supl"]},
+    {"voicemail":"*100","enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
+    {"carrier":"OI MMS","apn":"mmsgprs.oi.com.br","user":"oimms","password":"oimms","mmsc":"http://200.222.42.204:8002","mmsproxy":"192.168.10.50","mmsport":"3128","authtype":"1","type":["mms"]}
   ]
 },
 "730": {
   "1": [
     {"carrier":"Internet Movil","apn":"bam.entelpcs.cl","user":"entelpcs","password":"entelpcs","authtype":"1","type":["default","supl","dun"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"MMS Entel","apn":"mms.entelpcs.cl","user":"entelpcs","password":"entelpcs","mmsproxy":"10.99.0.10","mmsport":"8080","mmsc":"http://mmsc.entelpcs.cl","authtype":"1","type":["mms"]}
   ],
   "10": [
     {"carrier":"Internet Movil","apn":"bam.entelpcs.cl","user":"entelpcs","password":"entelpcs","authtype":"1","type":["default","supl","dun"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"MMS Entel","apn":"mms.entelpcs.cl","user":"entelpcs","password":"entelpcs","mmsproxy":"10.99.0.10","mmsport":"8080","mmsc":"http://mmsc.entelpcs.cl","authtype":"1","type":["mms"]},
     {"carrier":"Internet Movil","apn":"bam.entelpcs.cl","user":"entelpcs","password":"entelpcs","authtype":"1","type":["default","supl","dun"]},
     {"carrier":"MMS Entel PCS","apn":"mms.entelpcs.cl","user":"entelpcs","password":"entelpcs","mmsc":"http://mmsc.entelpcs.cl","mmsproxy":"10.99.0.10","mmsport":"8080","authtype":"1","type":["mms"]}
   ],
   "2": [
     {"carrier":"NEM","apn":"wap.tmovil.cl","proxy":"172.17.8.11","port":"8080","user":"wap","password":"wap","authtype":"1","type":["default","supl","dun"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"MMS","apn":"mms.tmovil.cl","user":"mms","password":"mms","mmsproxy":"172.17.8.10","mmsport":"8080","mmsc":"http://mms.movistar.cl","authtype":"1","type":["mms"]}
   ],
   "3": [
     {"carrier":"BAM Claro","apn":"bam.clarochile.cl","user":"clarochile","password":"clarochile","authtype":"1","type":["default","supl","dun"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"MMS Claro","apn":"mms.clarochile.cl","user":"clarochile","password":"clarochile","mmsproxy":"172.23.200.200","mmsport":"8080","mmsc":"http://mms.clarochile.cl","authtype":"1","type":["mms"]}
   ],
   "7": [
-    {"carrier":"web","apn":"web.gtdmovil.cl","user":"webgtd","password":"webgtd","authtype":"1","type":["default","supl","dun"]}
+    {"carrier":"web","apn":"web.gtdmovil.cl","user":"webgtd","password":"webgtd","authtype":"1","type":["default","supl","dun"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]}
   ],
   "8": [
     {"carrier":"Internet","apn":"movil.vtr.com","user":"vtrmovil","password":"vtrmovil","authtype":"2","type":["default","supl","dun"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"Wap","apn":"wap.vtr.com","proxy":"192.168.94.210","port":"9028","user":"","password":"","authtype":"0","type":["default","supl","dun"]},
     {"carrier":"Bam","apn":"bam.vtr.com","user":"vtr","password":"vtr","authtype":"2","type":["default","supl","dun"]},
     {"carrier":"MMS","apn":"mms.vtr.com","user":"mms","password":"","mmsc":"http://192.168.94.162:19090/was","mmsproxy":"192.168.94.210","mmsport":"9028","authtype":"0","type":["mms"]}
@@ -2944,41 +3052,50 @@
 "732": {
   "101": [
     {"carrier":"WEB Comcel 3GSM","apn":"internet.comcel.com.co","user":"COMCELWEB","password":"COMCELWEB","authtype":"1","type":["default","supl","dun"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"MMS Comcel 3GSM","apn":"mms.comcel.com.co","user":"COMCELMMS","password":"COMCELMMS","mmsproxy":"198.228.90.225","mmsport":"8799","mmsc":"http://www.comcel.com.co/mms/","authtype":"1","type":["mms"]}
   ],
   "103": [
     {"carrier":"TIGO WEB","apn":"web.colombiamovil.com.co","user":"","password":"","authtype":"1","type":["default","supl","dun"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"TIGO Multimedia","apn":"mms.colombiamovil.com.co","user":"mms-cm1900","password":"mms-cm1900","mmsproxy":"190.102.206.48","mmsport":"8080","mmsc":"http://mms.ola.com.co","authtype":"1","type":["mms"]}
   ],
   "111": [
     {"carrier":"TIGO WEB","apn":"web.colombiamovil.com.co","user":"","password":"","authtype":"1","type":["default","supl","dun"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"TIGO Multimedia","apn":"mms.colombiamovil.com.co","user":"mms-cm1900","password":"mms-cm1900","mmsproxy":"190.102.206.48","mmsport":"8080","mmsc":"http://mms.ola.com.co","authtype":"1","type":["mms"]}
   ],
   "123": [
     {"carrier":"movistar INTERNET","apn":"internet.movistar.com.co","user":"movistar","password":"movistar","authtype":"1","type":["default","supl","dun"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"movistar MMS","apn":"mms.movistar.com.co","user":"movistar","password":"movistar","mmsproxy":"192.168.222.7","mmsport":"9001","mmsc":"http://mms.movistar.com.co","authtype":"1","type":["mms"]}
   ]
 },
 "734": {
   "1": [
     {"carrier":"Digitel GSM","apn":"gprsweb.digitel.ve","type":["default","supl","dun"],"authtype":"1"},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"MMS","apn":"expresate.digitel.ve","mmsproxy":"10.99.0.10","mmsport":"8080","mmsc":"http://mms.412.com.ve/servlets/mms","authtype":"1","type":["mms"]}
   ],
   "2": [
     {"carrier":"Digitel GSM","apn":"gprsweb.digitel.ve","authtype":"1","type":["default","supl","dun"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"MMS","apn":"expresate.digitel.ve","mmsproxy":"10.99.0.10","mmsport":"8080","mmsc":"http://mms.412.com.ve/servlets/mms","authtype":"1","type":["mms"]}
   ],
   "3": [
     {"carrier":"Digitel GSM","apn":"gprsweb.digitel.ve","authtype":"1","type":["default","supl","dun"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"MMS","apn":"expresate.digitel.ve","mmsproxy":"10.99.0.10","mmsport":"8080","mmsc":"http://mms.412.com.ve/servlets/mms","authtype":"1","type":["mms"]}
   ],
   "4": [
     {"carrier":"movistar INTERNET","apn":"internet.movistar.ve","authtype":"1","type":["default","supl","dun"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"movistar MMS","apn":"mms.movistar.ve","mmsproxy":"200.35.64.73","mmsport":"9001","mmsc":"http://mms.movistar.com.ve:8088/mms","authtype":"1","type":["mms"]},
     {"carrier":"movistar WAP","apn":"wap.movistar.ve","mmsproxy":"200.35.64.73","mmsport":"9001","authtype":"1","type":["default","supl","dun"]}
   ],
   "6": [
     {"carrier":"MODEM","apn":"int.movilnet.com.ve","authtype":"1","type":["default","supl","dun"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"MMS","apn":"mm.movilnet.com.ve","mmsproxy":"192.168.16.12","mmsport":"8080","mmsc":"http://mms2.movilnet.com.ve/servlets/mms","authtype":"1","type":["mms"]}
   ]
 },
@@ -2999,18 +3116,22 @@
 "740": {
   "0": [
     {"carrier":"movistar INTERNET","apn":"internet.movistar.com.ec","user":"movistar","password":"movistar","authtype":"1","type":["default","supl","dun"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"movistar MMS","apn":"mms.movistar.com.ec","user":"movistar","password":"movistar","mmsproxy":"10.3.5.50","mmsport":"9001","mmsc":"http://mms.movistar.com.ec:8088/mms/","authtype":"1","type":["mms"]}
   ],
   "1": [
     {"carrier":"Claro Internet","apn":"internet.porta.com.ec","user":"","password":"","authtype":"1","type":["default","supl","dun"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"MMS Claro","apn":"mms.porta.com.ec","user":"portamms","password":"portamms2003","mmsproxy":"216.250.208.94","mmsport":"8799","mmsc":"http://iesmms.porta.com.ec","authtype":"1","type":["mms"]}
   ],
   "10": [
     {"carrier":"Claro Internet","apn":"internet.porta.com.ec","user":"","password":"","authtype":"1","type":["default","supl","dun"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"MMS Claro","apn":"mms.porta.com.ec","user":"portamms","password":"portamms2003","mmsproxy":"216.250.208.94","mmsport":"8799","mmsc":"http://iesmms.porta.com.ec","authtype":"1","type":["mms"]}
   ],
   "2": [
     {"carrier":"ALEGRO 3G","apn":"internet3gsp.alegro.net.ec","user":"","password":"","authtype":"1","type":["default","supl","dun"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"MMS Alegro","apn":"mms.alegro.net.ec","user":"","password":"","mmsproxy":"10.4.85.3","mmsport":"8080","mmsc":"http://mms.alegro.net.ec/mms/","authtype":"1","type":["mms"]}
   ]
 },
@@ -3035,15 +3156,18 @@
 "748": {
   "1": [
     {"carrier":"wapANCEL","apn":"wap","proxy":"200.40.246.2","port":"3128","user":"","password":"","authtype":"1","type":["default","supl","dun"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"mmsANCEL","apn":"mms","user":"","password":"","mmsproxy":"200.40.246.2","mmsport":"3128","mmsc":"http://mmsc.mms.ancelutil.com.uy","authtype":"1","type":["mms"]},
     {"carrier":"gprsANCEL","apn":"gprs.ancel","authtype":"1","type":["default","supl","dun"]}
   ],
   "7": [
     {"carrier":"Movistar Emoción","apn":"webapn.movistar.com.uy","user":"movistar","password":"movistar","authtype":"1","type":["default","supl","dun"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"FOTOS MMS","apn":"apnmms.movistar.com.uy","user":"mmsuy","password":"mmsuy","mmsproxy":"10.0.2.29","mmsport":"8080","mmsc":"http://mmsc.movistar.com.uy","authtype":"1","type":["mms"]}
   ],
   "10": [
     {"carrier":"Claro UY","apn":"igprs.claro.com.uy","user":"ctigprs","password":"ctigprs999","authtype":"1","type":["default","supl","dun"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"MMS GPRS UY","apn":"mms.ctimovil.com.uy","user":"ctimms","password":"ctimms999","mmsproxy":"170.51.255.240","mmsport":"8080","mmsc":"http://mms.ctimovil.com.uy","authtype":"1","type":["mms"]}
   ]
 }

@@ -173,7 +173,7 @@ var UpdateManager = {
 
   cancelPrompt: function um_cancelPrompt() {
     CustomDialog.hide();
-      this.downloadDialog.classList.remove('visible');
+    this.downloadDialog.classList.remove('visible');
   },
 
   downloadProgressed: function um_downloadProgress(bytes) {

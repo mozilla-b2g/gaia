@@ -35,6 +35,7 @@
       '#import-close': fb.importer.ui.end,
       '#import-action': fb.importer.ui.importAll,
       '#done-search': contacts.Search.exitSearchMode,
+      '#groups-list': fb.importer.ui.selection,
       '#search-contact': [
         {
           event: 'focus',
@@ -49,6 +50,7 @@
 
     // This is done through onclick as it is going to be changed it dynamically
     document.querySelector('#select-all').onclick = fb.importer.ui.selectAll;
+    document.querySelector('#deselect-all').onclick = fb.importer.ui.unSelectAll;
 
     fb.contacts.init(function fb_init() {
       fb.importer.ui.init();

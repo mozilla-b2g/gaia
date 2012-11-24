@@ -62,7 +62,7 @@ body {
     opacity: 0;
   }
   100% {
-    opacity: 100%;
+    opacity: 1;
   }
 }
 
@@ -525,4 +525,28 @@ iframe.backgroundWindow {
 
 #screen iframe.communication-frame {
   visibility: hidden;
+}
+
+/*
+  Styles for FTU starting
+*/
+
+#screen.ftu > [data-z-index-level="statusbar"]{
+  z-index: 1;
+}
+
+#screen.ftu > [data-z-index-level="lockscreen"]{
+  z-index: 1;
+}
+
+#screen.ftu > [data-z-index-level="app"] > iframe.appWindow.homescreen {
+  opacity: 0;
+}
+
+#screen.ftuStarting #lockscreen {
+  display: none;
+}
+
+#screen.ftuStarting #statusbar {
+  opacity: 0;
 }

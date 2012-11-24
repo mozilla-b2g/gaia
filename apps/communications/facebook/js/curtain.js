@@ -10,12 +10,6 @@ var Curtain = (function() {
   var retryButton = doc.querySelector('#retry');
 
   var progressElement = doc.querySelector('#progressElement');
-  var progressLabel = doc.querySelector('#progressLabel');
-
-  function setProgressUI(value) {
-    progressLabel.textContent = value + '%';
-    progressElement.setAttribute('value', value);
-  }
 
   var form = doc.querySelector('form');
 
@@ -24,6 +18,8 @@ var Curtain = (function() {
   elements.forEach(function createElementRef(name) {
     messages[name] = doc.getElementById(name + 'Msg');
   });
+
+  var progressTitle = doc.getElementById('progressTitle');
 
   function doShow(type) {
     form.dataset.state = type;
@@ -34,13 +30,34 @@ var Curtain = (function() {
     return str.charAt(0).toUpperCase() + str.slice(1);
   }
 
-  function Progress() {
-    this.update = function(value) {
-      setProgressUI(value);
+  function Progress(pfrom) {
+    var from = pfrom;
+    var counter = 0;
+    var total = 0;
+
+    progressElement.setAttribute('value', 0);
+    messages['progress'].textContent = _('progressFB3' + from, {
+      current: counter,
+      total: total
+    });
+
+    this.update = function() {
+      progressElement.setAttribute('value', (++counter * 100) / total);
+      messages['progress'].textContent = _('progressFB3' + from, {
+        current: counter,
+        total: total
+      });
+    };
+
+    this.setFrom = function(pfrom) {
+      from = capitalize(pfrom);
+      progressTitle.textContent = _('progressFB3' + from + 'Title');
+    }
+
+    this.setTotal = function(ptotal) {
+      total = ptotal;
     }
   }
-
-  var progressObj = new Progress();
 
   return {
 
@@ -85,9 +102,8 @@ var Curtain = (function() {
         break;
 
         case 'progress':
-          messages[type].textContent = _(type + from);
-          setProgressUI(0);
-          out = progressObj;
+          progressTitle.textContent = _(type + 'FB3' + from + 'Title');
+          out = new Progress(from);
         break;
       }
 

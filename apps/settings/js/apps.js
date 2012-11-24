@@ -179,7 +179,7 @@ var ApplicationsList = {
         select.dataset.perm = perm;
 
         var askOpt = document.createElement('option');
-        askOpt.value = 'ask';
+        askOpt.value = 'prompt';
         askOpt.text = _('ask');
         select.add(askOpt);
 

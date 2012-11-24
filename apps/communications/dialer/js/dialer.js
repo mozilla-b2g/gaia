@@ -36,7 +36,7 @@ var CallHandler = (function callHandler() {
           window.location.hash = '#keyboard-view';
         }
       }
-    }
+    };
 
     if (document.readyState == 'complete') {
       fillNumber();
@@ -86,8 +86,12 @@ var CallHandler = (function callHandler() {
 
   /* === Calls === */
   function call(number) {
-    var settings = window.navigator.mozSettings, req;
+    if (UssdManager.isUSSD(number)) {
+      UssdManager.send(number);
+      return;
+    }
 
+    var settings = window.navigator.mozSettings, req;
     if (settings) {
       var settingsLock = settings.createLock();
       req = settingsLock.get('ril.radio.disabled');
@@ -105,61 +109,33 @@ var CallHandler = (function callHandler() {
   }
 
   function startDial(number) {
-    if (isUSSD(number)) {
-      if (conn.cardState === 'ready')
-        UssdManager.send(number);
-      else
-        CustomDialog.show(
-          _('emergencyDialogTitle'),
-          _('emergencyDialogBodyBadNumber'),
-          {
-            title: _('emergencyDialogBtnOk'),
-            callback: function() {
-              CustomDialog.hide();
-            }
-          }
-        );
+    
+    var sanitizedNumber = number.replace(/-/g, '');
+    if (telephony) {
+      var call = telephony.dial(sanitizedNumber);
 
-    } else {
-      var sanitizedNumber = number.replace(/-/g, '');
-      if (telephony) {
-        var call = telephony.dial(sanitizedNumber);
+      if (call) {
+        var cb = function clearPhoneView() {
+          KeypadManager.updatePhoneNumber('');
+        };
+        call.onconnected = cb;
+        call.ondisconnected = cb;
+        call.onerror = handleError;
 
-        if (call) {
-          var cb = function clearPhoneView() {
-            KeypadManager.updatePhoneNumber('');
-          };
-          call.onconnected = cb;
-          call.ondisconnected = cb;
-          call.onerror = handleError;
-
-          if (!callScreenWindow)
-            openCallScreen();
-        }
+         if (!callScreenWindow)
+          openCallScreen();
       }
     }
   }
 
-  function isUSSD(number) {
-    var ussdChars = ['*', '#'];
-
-    var relevantNumbers = [];
-    relevantNumbers.push(number.slice(0, 1));
-    relevantNumbers.push(number.slice(-1));
-
-    return relevantNumbers.every(function ussdTest(number) {
-      return ussdChars.indexOf(number) !== -1;
-    });
-  }
-
   function handleFlightMode() {
-    CustomDialog.show(
+    ConfirmDialog.show(
       _('callAirplaneModeTitle'),
       _('callAirplaneModeBody'),
       {
         title: _('callAirplaneModeBtnOk'),
         callback: function() {
-          CustomDialog.hide();
+          ConfirmDialog.hide();
 
           if (currentActivity) {
             currentActivity.postError('canceled');
@@ -183,13 +159,13 @@ var CallHandler = (function callHandler() {
     }
 
     if (errorRecognized) {
-      CustomDialog.show(
+      ConfirmDialog.show(
         _('emergencyDialogTitle'),
         _(emgcyDialogBody),
         {
           title: _('emergencyDialogBtnOk'),
           callback: function() {
-            CustomDialog.hide();
+            ConfirmDialog.hide();
           }
         }
       );
