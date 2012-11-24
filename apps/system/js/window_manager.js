@@ -406,7 +406,6 @@ var WindowManager = (function() {
     // If the FTU is closing, make sure we save this state
     if (frame.src == ftuURL) {
       window.asyncStorage.setItem('ftu.enabled', false);
-      document.getElementById('screen').classList.remove('ftu');
 
       // Done with FTU, letting everyone know
       var evt = document.createEvent('CustomEvent');
@@ -784,7 +783,6 @@ var WindowManager = (function() {
         setDisplayedApp(homescreen);
         return;
       }
-      document.getElementById('screen').classList.add('ftuStarting');
       var lock = navigator.mozSettings.createLock();
       var req = lock.get('ftu.manifestURL');
       req.onsuccess = function() {
@@ -880,11 +878,7 @@ var WindowManager = (function() {
     // Case 2: null --> app
     else if (!currentApp && newApp != homescreen) {
       openWindow(newApp, function windowOpened() {
-        handleInitlogo(function() {
-          var mainScreen = document.getElementById('screen');
-          mainScreen.classList.add('ftu');
-          mainScreen.classList.remove('ftuStarting');
-        });
+        handleInitlogo();
       });
     }
     // Case 3: null->homescreen || homescreen->app
@@ -1062,6 +1056,13 @@ var WindowManager = (function() {
 
   function removeFrame(origin) {
     var app = runningApps[origin];
+
+    // We may get two mozbrowserclose event at the same time
+    // But the first event has already be manipulated.
+    // So check if the app is running here.
+    if (!app)
+      return;
+
     var frame = app.frame;
 
     if (frame) {
@@ -1243,15 +1244,20 @@ var WindowManager = (function() {
 
   // If the application tried to close themselves by calling window.close()
   // we will handle that here.
-  // XXX: currently broken, see
-  // https://bugzilla.mozilla.org/show_bug.cgi?id=789392
   window.addEventListener('mozbrowserclose', function(e) {
     if (!'frameType' in e.target.dataset)
       return;
 
     switch (e.target.dataset.frameType) {
       case 'window':
+        // XXX: Because get mozbrowserclose twice at the same time may cause problem
+        // We have a workaround here.
+        // https://bugzilla.mozilla.org/show_bug.cgi?id=814583
+        if ('closing' in e.target.dataset)
+          return;
+
         kill(e.target.dataset.frameOrigin);
+        e.target.dataset.closing = true;
         break;
 
       case 'inline-activity':

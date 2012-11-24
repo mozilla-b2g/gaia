@@ -20,6 +20,12 @@ var LockScreen = {
   enabled: true,
 
   /*
+  * Specify the FTU app state. 
+  * When FTU is finished, this value would be set.
+  */
+  _ftuFinished: false,
+
+  /*
   * Boolean returns wether we want a sound effect when unlocking.
   */
   unlockSoundEnabled: true,
@@ -135,6 +141,9 @@ var LockScreen = {
     /* blocking holdhome and prevent Cards View from show up */
     window.addEventListener('holdhome', this, true);
 
+    /* FTU finished */
+    window.addEventListener('ftudone', this);
+
     /* mobile connection state on lock screen */
     var conn = window.navigator.mozMobileConnection;
     if (conn && conn.voice) {
@@ -147,6 +156,14 @@ var LockScreen = {
     var self = this;
     SettingsListener.observe('lockscreen.enabled', true, function(value) {
       self.setEnabled(value);
+    });
+
+    // If FTU is running, unlock the lockscreen in background.
+    window.asyncStorage.getItem('ftu.enabled', function getItem(launchFTU) {
+      if (launchFTU === false) {
+        self._ftuFinished = true;
+        self.lockIfEnabled(true);
+      }
     });
 
     SettingsListener.observe('audio.volume.master', 5, function(volume) {
@@ -222,6 +239,9 @@ var LockScreen = {
 
   handleEvent: function ls_handleEvent(evt) {
     switch (evt.type) {
+      case 'ftudone':
+        this._ftuFinished = true;
+        break;
       case 'screenchange':
         // XXX: If the screen is not turned off by ScreenManager
         // we would need to lock the screen again
@@ -497,7 +517,7 @@ var LockScreen = {
   },
 
   lockIfEnabled: function ls_lockIfEnabled(instant) {
-    if (this.enabled) {
+    if (this.enabled && this._ftuFinished) {
       this.lock(instant);
     } else {
       this.unlock(instant);
@@ -518,7 +538,11 @@ var LockScreen = {
 
     this.mainScreen.classList.remove('locked');
 
-    WindowManager.setOrientationForApp(WindowManager.getDisplayedApp());
+    try {
+      WindowManager.setOrientationForApp(WindowManager.getDisplayedApp());
+    } catch (e) {
+      console.warn('Card View gets screenchange event before window manager setup.');
+    }
 
     if (!wasAlreadyUnlocked) {
       // Any changes made to this,
