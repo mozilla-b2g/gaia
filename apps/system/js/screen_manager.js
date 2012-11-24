@@ -43,7 +43,7 @@ var ScreenManager = {
   /*
    * Wait for _dimNotice milliseconds during idle-screen-off
    */
-  _dimNotice: 10 * 1000,
+  _dimNotice: 100 * 1000,
 
   /*
    * We track the value of the idle timeout pref in this variable.
@@ -148,7 +148,6 @@ var ScreenManager = {
   turnScreenOff: function scm_turnScreenOff(instant) {
     if (!this.screenEnabled)
       return false;
-
     var self = this;
 
     // Remember the current screen brightness. We will restore it when
@@ -172,7 +171,9 @@ var ScreenManager = {
     };
 
     if (instant) {
-      screenOff();
+      if (!WindowManager.isFtuRunning()) {
+        screenOff();
+      }
       return true;
     }
 
