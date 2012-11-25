@@ -380,68 +380,83 @@ fieldset legend.action:after {
 }
 
 /* SETTINGS */
-
-body[role="application"] section[role="region"] > header .icon.icon-settings
+section[role="region"] > header .icon.icon-settings
      { background-image: url(/contacts/style/gphx/bitmap/default/vw-header/icons/settings.png); }
 
 section.view[data-state="active"] {
   transition: transform 0.5s ease;
 }
 
-#view-settings ul li {
-    -moz-box-sizing: border-box;
-    border-bottom: 0.1rem solid #BBBBBB; /*#E6E6E3;*/
-    color: #000000;
-    min-height: 6rem;
-    position: relative;
+#view-settings .view-body-inner {
+  padding: 0;
 }
 
-#view-settings ul li[aria-disabled="true"]:after {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #e6e6e6;
-  opacity: 0.7;
+/* Cutom FB item */
+#view-settings [data-type="list"] .fb-item {
+  height: auto;
+  min-height: 6rem;
 }
 
-#view-settings ul li[aria-disabled="true"] {
-  pointer-events: none;
+#view-settings [data-type="list"] .fb-item p {
+  padding-left: 3.3rem;
 }
 
-#view-settings ul li > label:not([for]) {
-    height: 100%;
-    left: 0;
-    position: absolute;
-    top: 0;
-    width: 100%;
-}
-
-#view-settings ul li > label + *, ul li > label + * + * {
-    display: block;
-    max-width: calc(100% - 66px);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-#view-settings ul li > a {
-    -moz-box-sizing: border-box;
-    color: #000000;
-    display: block;
-    font-size: 1.8rem;
-    height: 6rem;
-    line-height: 6rem;
-    outline: 0 none;
-    text-decoration: none;
-}
-
-#view-settings ul li > a ~ span {
+#view-settings [data-type="list"] .fb-item p span {
   display: block;
-  text-align: center;
-  line-height: 5rem;
+  padding-bottom: 0.4rem;
+}
+
+#view-settings [data-type="list"] .fb-item p:first-of-type {
+  background: url(/contacts/style/fb/profile_icon.png) no-repeat left calc(50% + 0.5rem);
+}
+
+#view-settings [data-type="list"] .fb-item aside {
+  position: static;
+  width: 6.5rem;
+}
+
+#view-settings [data-type="list"] .fb-item aside label {
+  position: absolute;
+  right: 0;
+}
+
+/* Extending BB lists components*/
+#view-settings [data-type="list"] li aside {
+  pointer-events: auto;
+}
+
+#view-settings [data-type="list"] li aside label {
+  height: 100%;
+  width: 6.5rem;
+}
+
+/* Extending BB buttons Icons at left side*/
+#view-settings [data-type="list"] li button {
+  margin: 1rem 0;
+}
+
+#view-settings [data-type="list"] li button.icon {
+  padding: 0 1rem 0 4rem;
+}
+
+#view-settings [data-type="list"] li button.icon:before {
+  right: auto;
+  left: 0.5rem;
+}
+
+/* Extending icon types*/
+#view-settings [data-type="list"] li button.icon-sim:before {
+  background-image: url(/contacts/style/images/import_SIM.png);
+}
+
+
+/* Error message */
+#view-settings .view-body-inner .fb-error {
+  color: #D1323F;
+  padding: 0;
+  font-size: 1.4rem;
+  line-height: 1.2em;
+  white-space: normal;
 }
 
 .result {
@@ -450,106 +465,6 @@ section.view[data-state="active"] {
   text-align: center;
   height: 5rem;
   line-height: 5rem;
-}
-
-li [data-l10n-id="importSim"] {
-  background-image: url(/contacts/style/images/import_SIM.png);
-  background-position: 14px center;
-  background-repeat: no-repeat;
-  padding-left: 5.5rem;
-}
-
-li [data-l10n-id="importFb"] {
-  background-image: url(/contacts/style/fb/profile_icon.png);
-  background-position: 0.9rem center; /* icons have different size */
-  background-repeat: no-repeat;
-  padding-left: 5.5rem;
-}
-
-/* ----------------------------------
- * SWITCH
- * ---------------------------------- */
-
-label.switch {
-    display: inline-block;
-    height: 4rem;
-    position: relative;
-    vertical-align: middle;
-    width: 6rem;
-    z-index: 1;
-}
-label:not([for]) {
-    display: inline-block;
-    height: 5rem;
-    position: relative;
-    vertical-align: middle;
-    width: 5rem;
-}
-
-label.switch {
-  display: inline-block;
-  vertical-align: middle;
-  position: relative;
-  z-index: 1;
-  width: 6rem;
-  height: 4rem;
-}
-
-label.switch input {
-  opacity: 0;
-}
-
-label.switch input[type="checkbox"] + span {
-  position: absolute;
-  left: 90%;
-  top: 50%;
-  margin: -1.1rem 0 0 -2.7rem;
-  width: 5.4rem;
-  height: 2.2rem;
-  pointer-events: none;
-  border: solid 1px #c2c2c2;
-  border-radius: 5.4rem;
-  overflow: hidden;
-  background: url(/contacts/style/gphx/bitmap/default/switches/images/switch/handler.png) no-repeat -0.2rem center;
-  background-size: auto calc(100% + 2px);
-  transition: background 0.18s ease;
-}
-
-label.switch span:after,
-label.switch span:before {
-  content: "";
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 5.4rem;
-  z-index: -1;
-  transition: transform 0.2s ease;
-}
-
-label.switch span:before {
-  right: 100%;
-  background: #00c3ea url(/contacts/style/gphx/bitmap/default/switches/images/switch/icon.png) no-repeat 0.5rem center;
-  background-size: auto calc(100% - 2px);
-}
-
-label.switch span:after {
-  left: 100%;
-  background: #e6e6e6;
-  transform: translateX(-5.4rem);
-}
-
-/* state ON */
-label.switch input:checked + span {
-  border-color: #00acce;
-  background-position: 3.2rem center;
-}
-
-label.switch input:checked + span:before {
-  transform: translateX(5.4rem);
-}
-
-label.switch input:checked + span:after {
-  transform: translateX(0);
 }
 
 /* No Contacts */

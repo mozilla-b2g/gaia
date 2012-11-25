@@ -222,7 +222,9 @@ if (!fb.sync) {
 
         // Once sync has finished the last update date is set
         // Thus we ensure next will happen in the next <period> hours
-        fb.utils.setLastUpdate(nextTimestamp, completionCallback);
+        fb.utils.setLastUpdate(nextTimestamp, function sync_end() {
+          completionCallback(totalToChange);
+        });
 
         if (theWorker) {
           theWorker.terminate();
