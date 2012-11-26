@@ -45,7 +45,7 @@ var KeyboardManager = (function() {
         container.classList.add('visible');
         var detail = {
           'detail': {
-            'height': size
+            'height': parseInt(type[1])
           }
         };
         dispatchEvent(new CustomEvent('keyboardchange', detail));
