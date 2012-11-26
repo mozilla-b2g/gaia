@@ -75,9 +75,9 @@ var LockScreen = {
   triggeredTimeoutId: 0,
 
   /*
-  * Interval ID for jumping prompt of curve and arrow
+  * Interval ID for elastic of curve and arrow
   */
-  promptIntervalId: 0,
+  elasticIntervalId: 0,
 
   /*
   * start/end curve path data (position, curve control point)
@@ -97,9 +97,9 @@ var LockScreen = {
   CURVE_TRANSFORM_Y2_INDEX: 3,
 
   /*
-  * jumping prompt interval
+  * elastic animation interval
   */
-  PROMPT_INTERVAL: 5000,
+  ELASTIC_INTERVAL: 5000,
 
   /*
   * timeout for triggered state after swipe up
@@ -232,8 +232,6 @@ var LockScreen = {
           if (!this.locked) {
             this._screenOffTime = new Date().getTime();
           }
-          clearInterval(this.promptIntervalId);
-          this.promptIntervalId = 0;
         } else {
           var _screenOffInterval = new Date().getTime() - this._screenOffTime;
           if (_screenOffInterval > this.passCodeRequestTimeout * 1000) {
@@ -241,12 +239,6 @@ var LockScreen = {
           } else {
             this._passCodeTimeoutCheck = false;
           }
-
-          if (!this.promptIntervalId) {
-            this.promptIntervalId =
-              setInterval(this.prompt.bind(this), this.PROMPT_INTERVAL);
-          }
-
         }
 
         this.lockIfEnabled(true);
@@ -286,9 +278,8 @@ var LockScreen = {
           break;
         }
 
-        this.iconContainer.classList.remove('prompt');
-        clearInterval(this.promptIntervalId);
-        this.promptIntervalId = 0;
+        this.iconContainer.classList.remove('elastic');
+        this.setElasticEnabled(false);
         Array.prototype.forEach.call(this.startAnimation, function(el) {
           el.endElement();
         });
@@ -421,6 +412,7 @@ var LockScreen = {
     }
     else {
       this.unloadPanel();
+      this.setElasticEnabled(true);
     }
   },
 
@@ -507,6 +499,7 @@ var LockScreen = {
   unlock: function ls_unlock(instant) {
     var wasAlreadyUnlocked = !this.locked;
     this.locked = false;
+    this.setElasticEnabled(false);
 
     this.mainScreen.focus();
     if (instant) {
@@ -543,6 +536,8 @@ var LockScreen = {
     this.updateTime();
 
     this.switchPanel();
+
+    this.setElasticEnabled(ScreenManager.screenEnabled);
 
     this.overlay.focus();
     if (instant)
@@ -661,10 +656,6 @@ var LockScreen = {
           self.areaUnlock.classList.remove('triggered');
 
           clearTimeout(self.triggeredTimeoutId);
-          if (!self.promptIntervalId) {
-            self.promptIntervalId =
-              setInterval(self.prompt.bind(self), self.PROMPT_INTERVAL);
-          }
         };
 
         if (toPanel !== 'camera') {
@@ -886,7 +877,7 @@ var LockScreen = {
         'passcode-pad', 'camera', 'accessibility-camera',
         'accessibility-unlock', 'panel-emergency-call'];
     var elementsForClass = ['start-animation', 'end-animation',
-        'prompt-animation'];
+        'elastic-animation'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {
@@ -922,19 +913,30 @@ var LockScreen = {
     });
   },
 
-  prompt: function ls_prompt() {
+  setElasticEnabled: function ls_setElasticEnabled(value) {
+    if (value && !this.elasticIntervalId) {
+      this.elasticIntervalId =
+        setInterval(this.playElastic.bind(this), this.ELASTIC_INTERVAL);
+    }
+    else if (!value && this.elasticIntervalId) {
+      clearInterval(this.elasticIntervalId);
+      this.elasticIntervalId = 0;
+    }
+  },
+
+  playElastic: function ls_playElastic() {
     if (this._touch && this._touch.touched)
       return;
     var forEach = Array.prototype.forEach;
-    forEach.call(this.promptAnimation, function(el) {
+    forEach.call(this.elasticAnimation, function(el) {
       el.beginElement();
     });
-    this.overlay.classList.add('prompt');
+    this.overlay.classList.add('elastic');
 
     this.iconContainer.addEventListener('animationend',
       function animationend() {
         this.iconContainer.removeEventListener('animationend', animationend);
-        this.overlay.classList.remove('prompt');
+        this.overlay.classList.remove('elastic');
       }.bind(this));
   }
 };
