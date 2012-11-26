@@ -91,7 +91,7 @@ var Settings = {
 
     // activate all links
     var self = this;
-    var links = panel.querySelectorAll('a[href^="http"], [data-href]');
+    var links = panel.querySelectorAll('a[href^="http"], a[href^="tel"], [data-href]');
     for (i = 0; i < links.length; i++) {
       var link = links[i];
       if (!link.dataset.href) {
