@@ -82,7 +82,7 @@ contacts.Search = (function() {
 
   var getContactsDom = function contactsDom() {
     var list = document.getElementById('groups-list');
-    var items = ".contact-item:not([data-uuid='#id#']),"+
+    var items = ".contact-item:not([data-uuid='#id#'])," +
                         ".block-item:not([data-uuid='#id#'])";
     return list.querySelectorAll(items);
   }

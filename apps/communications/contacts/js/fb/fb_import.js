@@ -530,8 +530,8 @@ if (typeof fb.importer === 'undefined') {
         }
 
         req.onerror = function() {
-          window.console.error('Facebook: Error while refreshing list. Closing '
-                               + 'FB Import');
+          window.console.error('Facebook: error while refreshing list. ' +
+              'Closing FB Import');
           UI.end();
         }
       } else {
@@ -907,3 +907,4 @@ if (typeof fb.importer === 'undefined') {
 
   })(document);
 }
+
