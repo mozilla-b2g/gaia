@@ -106,6 +106,10 @@ Evme.Apps = new function Evme_Apps() {
     };
 
     this.clear = function clear() {
+        if (appsDataArray.length === 0) {
+            return false;
+        }
+        
         window.clearTimeout(timeoutAppsToDrawLater);
         for (var id in appsArray) {
             appsArray[id].remove();
@@ -114,10 +118,13 @@ Evme.Apps = new function Evme_Apps() {
         appsDataArray = [];
         defaultIconToUse = 0;
         numberOfApps = 0;
+        
         elList.innerHTML = "";
         self.hasInstalled(false);
         self.More.hide();
         self.scrollToStart();
+        
+        return true;
     };
     
     this.refreshScroll = function refreshScroll() {
@@ -243,6 +250,10 @@ Evme.Apps = new function Evme_Apps() {
     
     this.getApps = function getApps() {
         return appsArray;
+    };
+    
+    this.hasApps = function hasApps() {
+        return appsDataArray.length > 0;
     };
     
     this.getAppsAsArray = function getAppsAsArray() {
