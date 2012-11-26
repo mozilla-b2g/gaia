@@ -173,22 +173,20 @@ var ScreenManager = {
 
       case 'callschanged':
         var telephony = window.navigator.mozTelephony;
-        if (telephony) {
-          if (0 == telephony.calls.length) {
-            window.removeEventListener('userproximity', this);
-            if (this._screenOffByProximity) {
-              this.turnScreenOn();
-            }
-            if (this._cpuWakeLock) {
-             this._cpuWakeLock.unlock();
-             this._cpuWakeLock = null;
-            }
+        if (!telephony.calls.length) {
+          window.removeEventListener('userproximity', this);
+          if (this._screenOffByProximity) {
+            this.turnScreenOn();
           }
-          else {
-            this._cpuWakeLock = navigator.requestWakeLock('cpu');
-            window.addEventListener('userproximity', this);
+          if (this._cpuWakeLock) {
+           this._cpuWakeLock.unlock();
+           this._cpuWakeLock = null;
           }
+          break;
         }
+
+        this._cpuWakeLock = navigator.requestWakeLock('cpu');
+        window.addEventListener('userproximity', this);
         break;
     }
   },
