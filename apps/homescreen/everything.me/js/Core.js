@@ -27,7 +27,8 @@ window.Evme = new function Evme_Core() {
             "timeBeforeAllowingDialogsRemoval": data.timeBeforeAllowingDialogsRemoval,
             "tips": data.tips,
             "searchSources": data.searchSources,
-            "pageViewSources": data.pageViewSources
+            "pageViewSources": data.pageViewSources,
+            "displayInstalledApps": data.apps.displayInstalledApps
         });
 
         Evme.DoATAPI.init({
