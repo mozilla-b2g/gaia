@@ -34,7 +34,7 @@ var TimeManager = {
     '9': 'GMT+09:00',
     '10': 'GMT+10:00',
     '11': 'GMT+11:00',
-    '12': 'GMT+12:00',
+    '12': 'GMT+12:00'
   },
 
   getTimeZone: function tm_getTZ(gmt) {

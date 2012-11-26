@@ -243,9 +243,11 @@ if (typeof Contacts.extFb === 'undefined') {
       };
     }
 
-    function notifySettings() {
+    function notifySettings(evtype) {
        // Notify observers that a change from FB could have happened
-      var event = new CustomEvent('fb_imported', {
+      var eventType = evtype || 'fb_changed';
+
+      var event = new CustomEvent(eventType, {
         'detail' : true
       });
 
@@ -267,6 +269,14 @@ if (typeof Contacts.extFb === 'undefined') {
           access_token = data.data;
         break;
 
+        case 'token_stored':
+          notifySettings('fb_token_ready');
+        break;
+
+        case 'token_error':
+          notifySettings('fb_token_error');
+        break;
+
         case 'abort':
           unload();
         break;
@@ -278,9 +288,8 @@ if (typeof Contacts.extFb === 'undefined') {
 
         case 'fb_updated':
           contacts.List.load();
-          notifySettings();
 
-          Contacts.navigation.home(function finished() {
+          Contacts.navigation.home(function fb_finished() {
             extensionFrame.contentWindow.postMessage({
               type: 'contacts_loaded',
               data: ''
@@ -294,15 +303,19 @@ if (typeof Contacts.extFb === 'undefined') {
           if (closeRequested) {
             unload();
           }
-          contacts.List.load();
-          notifySettings();
+          // Check whether there has been changes or not
+          if(data.data > 0) {
+            contacts.List.load();
+            notifySettings();
+          }
         break;
 
         case 'item_selected':
           var fData = data.data;
           doLink(fData);
 
-          notifySettings();
+          // Not needed to notifySettings as when settings will be open
+          // the info from FB will be refreshed anyway
         break;
 
         case 'messaging_ready':

@@ -140,14 +140,14 @@ if (typeof fb.importer === 'undefined') {
     }
 
     // Callback executed when a synchronization has finished successfully
-    function syncSuccess() {
+    function syncSuccess(numChanged) {
       window.console.log('Synchronization ended!!!');
       syncOngoing = false;
 
       fb.sync.scheduleNextSync();
       var msg = {
         type: 'sync_finished',
-        data: ''
+        data: numChanged || ''
       };
       parent.postMessage(msg, fb.CONTACTS_APP_ORIGIN);
     }
@@ -407,9 +407,15 @@ if (typeof fb.importer === 'undefined') {
           // There was a problem with the access token
           Curtain.hide();
           window.asyncStorage.removeItem(fb.utils.TOKEN_DATA_KEY,
-                                         Importer.start);
-        }
-      }
+            function token_removed() {
+              Importer.start();
+              parent.postMessage({
+                type: 'token_error',
+                data: ''
+              },fb.CONTACTS_APP_ORIGIN);
+          });
+        } // else
+      } // else
     }
 
     function cancelCb() {
@@ -530,8 +536,8 @@ if (typeof fb.importer === 'undefined') {
         }
 
         req.onerror = function() {
-          window.console.error('Facebook: Error while refreshing list. Closing '
-                               + 'FB Import');
+          window.console.error('Facebook: error while refreshing list. ' +
+              'Closing FB Import');
           UI.end();
         }
       } else {
@@ -907,3 +913,4 @@ if (typeof fb.importer === 'undefined') {
 
   })(document);
 }
+
