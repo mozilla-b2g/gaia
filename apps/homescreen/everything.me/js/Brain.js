@@ -91,6 +91,7 @@ Evme.Brain = new function Evme_Brain() {
         try {
             self[_class] && self[_class][_event] && self[_class][_event](_data || {});
         } catch(ex){
+            Evme.Utils.log('Evme CB Error: ' + ex.message);
             logger.error(ex);
         }
     }
@@ -234,6 +235,7 @@ Evme.Brain = new function Evme_Brain() {
         // clear button was clicked
         this.clearButtonClick = function clearButtonClick(data) {
             self.cancelBlur();
+            Evme.Searchbar.focus();
         };
 
         // searchbar value changed
@@ -537,6 +539,26 @@ Evme.Brain = new function Evme_Brain() {
 
         // app list has scrolled to bottom
         this.scrollBottom = function scrollBottom() {
+            Searcher.loadMoreApps();
+        };
+        
+        this.clearIfHas = function() {
+            var hadApps = Evme.Apps.clear();
+            if (!hadApps) {
+                return false;
+            }
+            
+            Evme.Searchbar.setValue('', true);
+            Brain.FFOS.showMenu();
+            
+            return true;
+        }
+    };
+
+    // modules/Apps/
+    this.AppsMore = new function() {
+        // more button was clicked
+        this.buttonClick = function() {
             Searcher.loadMoreApps();
         };
     };

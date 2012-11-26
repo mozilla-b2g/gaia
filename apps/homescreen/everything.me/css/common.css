@@ -136,7 +136,7 @@
 .shortcut.add .thumb:before,
 #shortcuts-favorites li.on:before,
 #close-category,
-.keyboard-visible .clear-visible #button-clear
+#button-clear
 {
     background-image: url('/everything.me/images/sprite.png');
     background-repeat: no-repeat;
