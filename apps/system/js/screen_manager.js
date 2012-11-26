@@ -148,7 +148,7 @@ var ScreenManager = {
   turnScreenOff: function scm_turnScreenOff(instant) {
     if (!this.screenEnabled)
       return false;
-
+    
     var self = this;
 
     // Remember the current screen brightness. We will restore it when
@@ -172,7 +172,9 @@ var ScreenManager = {
     };
 
     if (instant) {
-      screenOff();
+      if (!WindowManager.isFtuRunning()) {
+        screenOff();
+      }
       return true;
     }
 
