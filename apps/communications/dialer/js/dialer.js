@@ -187,6 +187,9 @@ var CallHandler = (function callHandler() {
   function handleMessage(evt) {
     if (evt.data == 'closing') {
       callScreenWindow = null;
+      if (Recents) {
+        Recents.refresh();
+      }
     }
   }
   window.addEventListener('message', handleMessage);
