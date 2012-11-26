@@ -56,6 +56,7 @@
      { "bluetooth-opp-transfer-complete": "/index.html" },
      { "bluetooth-opp-update-progress": "/index.html" },
      { "bluetooth-opp-receiving-file-confirmation": "/index.html" },
-     { "bluetooth-opp-transfer-start": "/index.html" }
+     { "bluetooth-opp-transfer-start": "/index.html" },
+     { "bluetooth-hfp-status-changed": "/index.html" }
   ]
 }
