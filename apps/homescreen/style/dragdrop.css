@@ -64,9 +64,7 @@ body[data-mode = 'edit'] ol > li[data-dragging] {
   opacity: 0;
 }
 
-body[data-dragging] ol > li > span,
-body[data-dragging] ol > li > div > span,
-body[data-dragging] ol > li > div > img {
+body[data-dragging] ol > li {
 	opacity: 0.7;
 }
 
