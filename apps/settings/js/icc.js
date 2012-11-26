@@ -355,7 +355,11 @@
     debug('Showing STK main menu');
     stkOpenAppName = null;
 
-    window.asyncStorage.getItem('stkMainAppMenu', function(menu) {
+    var settings = window.navigator.mozSettings;
+    var lock = settings.createLock();
+    var reqStkMainAppMenu = lock.get('icc.stkMainAppMenu');
+    reqStkMainAppMenu.onsuccess = function icc_getStkMainAppMenu() {
+      var menu = JSON.parse(reqStkMainAppMenu.result['icc.stkMainAppMenu']);
       clearList();
 
       document.getElementById('icc-stk-exit').classList.remove('hidden');
@@ -388,7 +392,7 @@
           attributes: [['stk-menu-item-identifier', menuItem.identifier]]
         }));
       });
-    });
+    };
   }
 
   function onMainMenuItemClick(event) {

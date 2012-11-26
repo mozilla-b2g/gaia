@@ -24,7 +24,11 @@
 
   setTimeout(function updateStkMenu() {
     debug('Showing STK main menu');
-    window.asyncStorage.getItem('stkMainAppMenu', function(menu) {
+    var settings = window.navigator.mozSettings;
+    var lock = settings.createLock();
+    var reqStkMainAppMenu = lock.get('icc.stkMainAppMenu');
+    reqStkMainAppMenu.onsuccess = function icc_getStkMainAppMenu() {
+      var menu = JSON.parse(reqStkMainAppMenu.result['icc.stkMainAppMenu']);
       var iccMenuItem = document.getElementById('menuItem-icc');
       if (!menu) {
         debug('No STK available - exit');
@@ -37,6 +41,6 @@
       // Show the entry in settings
       document.getElementById("icc-mainheader").classList.remove('hidden');
       document.getElementById("icc-mainentry").classList.remove('hidden');
-    });
+    };
   });
 })();

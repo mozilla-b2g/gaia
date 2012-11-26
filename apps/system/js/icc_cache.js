@@ -29,17 +29,15 @@
         debug('STK Proactive Command:', command);
         if (command.typeOfCommand == icc.STK_CMD_SET_UP_MENU) {
           debug("STK_CMD_SET_UP_MENU:", command.options);
-          window.asyncStorage.setItem('stkMainAppMenu', command.options,
-            function() {
-              debug("Cached");
-              icc.sendStkResponse(command, {
-                resultCode: icc.STK_RESULT_OK
-              });
-              setTimeout(window.close);
-          });
+          var settings = window.navigator.mozSettings;
+          var reqStkMainAppMenu = settings.createLock().set({'icc.stkMainAppMenu': JSON.stringify(command.options)});
+          reqStkMainAppMenu.onsuccess = function icc_getStkMainAppMenu() {
+            debug("Cached");
+            icc.sendStkResponse(command, {
+              resultCode: icc.STK_RESULT_OK
+            });
+          }
         }
       });
-  } else {
-    window.close();
   }
 })();
