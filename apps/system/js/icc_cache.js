@@ -22,12 +22,12 @@
     }
   }
 
-  if (!navigator.mozMobileConnection) {
+  if (!window.navigator.mozMobileConnection) {
     return;
   }
 
-  var icc = navigator.mozMobileConnection.icc;
-  navigator.mozSetMessageHandler('icc-stkcommand',
+  var icc = window.navigator.mozMobileConnection.icc;
+  window.navigator.mozSetMessageHandler('icc-stkcommand',
     function handleSTKCommand(command) {
       debug('STK Proactive Command:', command);
       if (command.typeOfCommand == icc.STK_CMD_SET_UP_MENU) {

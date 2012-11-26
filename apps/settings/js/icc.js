@@ -45,11 +45,11 @@
    * Init STK UI
    */
   function init() {
-    if (!navigator.mozMobileConnection) {
+    if (!window.navigator.mozMobileConnection) {
       return;
     }
 
-    icc = navigator.mozMobileConnection.icc;
+    icc = window.navigator.mozMobileConnection.icc;
 
     icc.onstksessionend = function handleSTKSessionEnd(event) {
       updateMenu();
@@ -234,7 +234,7 @@
       case icc.STK_EVENT_TYPE_CALL_CONNECTED:
       case icc.STK_EVENT_TYPE_CALL_DISCONNECTED:
         debug(' STK: Registering to communications changes event');
-        var comm = navigator.mozTelephony;
+        var comm = window.navigator.mozTelephony;
         comm.addEventListener('callschanged', handleCallsChangedEvent);
         break;
       case icc.STK_EVENT_TYPE_LOCATION_STATUS:
@@ -303,7 +303,7 @@
       return;
     }
     debug(' STK Communication changed - ' + evt.type);
-    navigator.mozTelephony.calls.forEach(function callIterator(call) {
+    window.navigator.mozTelephony.calls.forEach(function callIterator(call) {
       debug(' STK:CALLS State change: ' + call.state);
       var outgoing = call.state == 'incoming';
       if (call.state == 'incoming') {
@@ -600,7 +600,7 @@
     },timeout);
 
     if (options.isVibrate == true) {
-      navigator.vibrate([200]);
+      window.navigator.vibrate([200]);
     }
 
     if (options.text) {
@@ -671,7 +671,7 @@
    */
   function openSTKApplication() {
     document.location.hash = 'icc';
-    navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+    window.navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
       var app = evt.target.result;
       app.launch('settings');
     };
