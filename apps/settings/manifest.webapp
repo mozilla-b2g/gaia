@@ -49,7 +49,7 @@
                "bluetooth-cancel",
                "bluetooth-pairedstatuschanged",
                "bluetooth-hfp-status-changed",
-               "icc-stkcommand"],
+               { "icc-stkcommand": "/icc_cache.html" }],
   "locales": {
     "ar": {
       "name": "الضبط",
