@@ -69,10 +69,10 @@ var FacebookIntegration = {
         }
       };
       fb.utils.numFbFriendsData(callbackListener);
-    }
+    };
     req.onerror = function() {
       console.error('Could not get number of local contacts');
-    }
+    };
   }
 };
 
