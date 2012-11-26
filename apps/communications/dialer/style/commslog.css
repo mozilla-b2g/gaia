@@ -200,10 +200,7 @@ ul[role="tablist"][data-type="filter"] > [role="tab"].selected > a {
 }
 
 .primary-info-main {
-  overflow: hidden;
-  text-overflow: ellipsis;
   display: inline-block;
-  white-space: nowrap;
   padding-right: 0.6rem;
 }
 
