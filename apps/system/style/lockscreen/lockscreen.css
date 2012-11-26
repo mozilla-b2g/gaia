@@ -509,7 +509,7 @@ button::-moz-focus-inner {
   opacity: 1;
 }
 
-@keyframes lockscreen-prompt {
+@keyframes lockscreen-elastic {
   0%, 100% {
     transform: translateY(0);
     animation-timing-function: ease-out;
@@ -520,6 +520,6 @@ button::-moz-focus-inner {
   }
 }
 
-.prompt #lockscreen-icon-container {
-  animation: lockscreen-prompt 1s 1;
+.elastic #lockscreen-icon-container {
+  animation: lockscreen-elastic 1s 1;
 }
