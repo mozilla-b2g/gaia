@@ -239,7 +239,6 @@ input[type="image"] {
 }
 
 #throbber.loading {
-  height: 4px;
   background-image: url('images/progress.gif');
 }
 
