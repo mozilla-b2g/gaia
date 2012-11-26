@@ -1,74 +1,75 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<meta charset="utf-8">
-	<meta http-equiv="pragma" content="no-cache">
+  <meta charset="utf-8">
+  <meta http-equiv="pragma" content="no-cache">
 
-	<!-- Common style -->
-	<link rel="stylesheet" type="text/css" href="/shared/style/headers.css">
-	<link rel="stylesheet" type="text/css" href="/shared/style/switches.css">
-	<link rel="stylesheet" type="text/css" href="/shared/style/input_areas.css">
-	<link rel="stylesheet" type="text/css" href="/shared/style/buttons.css">
+  <!-- Common style -->
+  <link rel="stylesheet" type="text/css" href="/shared/style/headers.css">
+  <link rel="stylesheet" type="text/css" href="/shared/style/switches.css">
+  <link rel="stylesheet" type="text/css" href="/shared/style/input_areas.css">
+  <link rel="stylesheet" type="text/css" href="/shared/style/buttons.css">
   <link rel="stylesheet" type="text/css" href="/shared/style_unstable/lists.css">
 
-	<link rel="stylesheet" type="text/css" href="/ftu/css/style.css">
-	<!-- TODO Use BB of list when ready -->
-	<link rel="stylesheet" type="text/css" href="/ftu/css/fb_extensions.css">
-  <link href="/facebook/style/curtain_frame.css" rel="stylesheet">
+  <!-- Specific style -->
+  <link rel="stylesheet" type="text/css" href="/ftu/css/style.css">
+  <link rel="stylesheet" type="text/css" href="/ftu/css/fb_extensions.css">
+  <link rel="stylesheet" type="text/css" href="/facebook/style/curtain_frame.css">
 
-	<title>Welcome to Firefox OS</title>
+  <title>Welcome to Firefox OS</title>
 
-	<!-- Localization -->
-	<link rel="resource" type="application/l10n" href="/ftu/locales/locales.ini"/>
-	<link rel="resource" type="application/l10n" href="/shared/locales/date.ini"/>
-	<script type="text/javascript" src="/shared/js/l10n.js"></script>
-	<script type="text/javascript" src="/shared/js/l10n_date.js"></script>
+  <!-- Localization -->
+  <link rel="resource" type="application/l10n" href="/ftu/locales/locales.ini"/>
+  <link rel="resource" type="application/l10n" href="/shared/locales/date.ini"/>
+  <script type="text/javascript" src="/shared/js/l10n.js"></script>
+  <script type="text/javascript" src="/shared/js/l10n_date.js"></script>
 
-	<!-- Code for FTU App -->
-	<script defer type="text/javascript" src="/ftu/js/fb_launcher.js"></script>
-	<script defer type="text/javascript" src="/contacts/js/utilities/config.js"></script>
+  <!-- Code for FTU App -->
+  <script defer type="text/javascript" src="/ftu/js/fb_launcher.js"></script>
+  <script defer type="text/javascript" src="/contacts/js/utilities/config.js"></script>
   <script defer type="text/javascript" src="/contacts/js/fb/fb_utils.js"></script>
-	<script defer type="text/javascript" src="/shared/js/async_storage.js"></script>
-	<script defer type="text/javascript" src="/ftu/js/wifi.js"></script>
-	<script defer type="text/javascript" src="/ftu/js/facebook.js"></script>
-	<script defer type="text/javascript" src="/ftu/js/tutorial.js"></script>
-	<script defer type="text/javascript" src="/ftu/js/navigation.js"></script>
-	<script defer type="text/javascript" src="/ftu/js/dataMobile.js"></script>
-	<script defer type="text/javascript" src="/ftu/js/time.js"></script>
-	<script defer type="text/javascript" src="/ftu/js/ui.js"></script>
-	<script defer type="text/javascript" src="/ftu/js/language.js"></script>
-	<script defer type="text/javascript" src="/ftu/js/app.js"></script>
-	<script defer type="text/javascript" src="/contacts/js/utilities/import_sim_contacts.js"></script>
-
+  <script defer type="text/javascript" src="/shared/js/async_storage.js"></script>
+  <script defer type="text/javascript" src="/ftu/js/wifi.js"></script>
+  <script defer type="text/javascript" src="/ftu/js/facebook.js"></script>
+  <script defer type="text/javascript" src="/ftu/js/tutorial.js"></script>
+  <script defer type="text/javascript" src="/ftu/js/navigation.js"></script>
+  <script defer type="text/javascript" src="/ftu/js/data_mobile.js"></script>
+  <script defer type="text/javascript" src="/ftu/js/time.js"></script>
+  <script defer type="text/javascript" src="/ftu/js/ui.js"></script>
+  <script defer type="text/javascript" src="/ftu/js/language.js"></script>
+  <script defer type="text/javascript" src="/ftu/js/app.js"></script>
+  <script defer type="text/javascript" src="/contacts/js/utilities/import_sim_contacts.js"></script>
 </head>
 <body>
-	<section id="splash" role="region" class="show">
-	</section>
-	<section id="pincode" role="region" class="skin-organic">
-		<header>
-    	<h1 data-l10n-id="pincode">Pin code</h1>
+  <section id="splash" role="region" class="show">
+  </section>
+
+  <section id="pincode" role="region" class="skin-organic">
+    <header>
+      <h1 data-l10n-id="pincode">Pin code</h1>
     </header>
     <section class="pin_container">
-    	<header data-l10n-id="type_pin">Type your PIN code:</header>
-    	<section class="input-wrapper">
+      <header data-l10n-id="type_pin">Type your PIN code:</header>
+      <section class="input-wrapper">
         <input id="sim-pin" name="simpin" type="password" size="8" maxlength="8" />
         <input id="fake-sim-pin" name="fakesimpin" type="number" size="8" maxlength="8" />
         <div id="pin_error"></div>
       </section>
     </section>
     <nav role="navigation" class="forward-only">
-			<button class="recommend fullsize" id="done" data-l10n-id="done">
-				Done
-			</button>
-		</nav>
-	</section>
-	<section id="activation" role="region" class="skin-organic no-options">
-		<header>
-			<menu type="toolbar">
+      <button class="recommend fullsize" id="done" data-l10n-id="done">
+        Done
+      </button>
+    </nav>
+  </section>
+
+  <section id="activation" role="region" class="skin-organic no-options">
+    <header>
+      <menu type="toolbar">
         <button id="wifi-refresh" data-l10n-id="refresh">Refresh</button>
       </menu>
-    	<h1 id="main_title"></h1>
-	  </header>
+      <h1 id="main_title"></h1>
+    </header>
     <ol id="activation_progress" class="step-state">
       <li>languages</li>
       <li>3g</li>
@@ -77,56 +78,15 @@
       <li>date and time</li>
       <li>firefox privacy</li>
     </ol>
-		<article role="main">
-			<section role="region" id="languages">
+    <article role="main">
+      <section role="region" id="languages">
         <article data-type="list" class="pack-value-selector">
-  				<ul>
-  					<li>
-              <label>
-                <input type="radio" name="language.current" value="en-US" checked />
-                <span></span>
-                <p dir="ltr" data-l10n-id="english">English (US)</p>
-              </label>
-            </li>
-            <li aria-disabled="true">
-              <label>
-                <input disabled="disabled" type="radio" name="language.current" value="es"/>
-                <span></span>
-                <p dir="ltr" data-l10n-id="spanish">Español</p>
-              </label>
-            </li>
-            <li aria-disabled="true">
-              <label>
-                <input disabled="disabled" type="radio" name="language.current" value="fr"/>
-                <span></span>
-              <p dir="ltr" data-l10n-id="french">Français</p>
-              </label>
-            </li>
-            <li aria-disabled="true">
-              <label>
-                <input disabled="disabled" type="radio" name="language.current" value="it"/>
-                <span></span>
-              <p dir="ltr" data-l10n-id="italian">Italiano</p>
-              </label>
-            </li>
-            <li aria-disabled="true">
-              <label>
-                <input disabled="disabled" type="radio" name="language.current" value="pt-BR"/>
-                <span></span>
-              <p dir="ltr" data-l10n-id="portuguese">Português (do Brasil)</p>
-              </label>
-            </li>
-            <li aria-disabled="true">
-              <label>
-                <input disabled="disabled" type="radio" name="language.current" value="zh-TW"/>
-                <span></span>
-              <p dir="ltr" data-l10n-id="traditionalChinese">正體中文</p>
-              </label>
-            </li>
+          <ul>
+            <!-- filled by js/language.js -->
           </ul>
         </article>
-			</section>
-			<section role="region" id="data_3g">
+      </section>
+      <section role="region" id="data_3g">
         <article data-type="list">
           <ul>
             <li>
@@ -144,200 +104,201 @@
         <section class="content">
           <p id="dataExplanation" data-l10n-id="dataConnectionInfo">Some text here</p>
         </section>
-    	</section>
-			<section role="region" id="wifi">
+      </section>
+      <section role="region" id="wifi">
         <article data-type="list">
-  				<ul id="networks">
-	   			</ul>
-		    </article>
-    	</section>
-			<section role="region" id="configure_network">
-				<section id="configure_network_params">
-					<form>
-						<input type="text" id="wifi_ssid" class="hidden" value=""></input>
-						<label id="label_wifi_user" for="wifi_user" data-l10n-id="identity">User (optional):</label>
-						<input type="text" id="wifi_user" placeholder="User (optional)"></input>
-						<label for="wifi_password" data-l10n-id="password">Password</label>
-						<input type="password" id="wifi_password" placeholder="Password" value=""></input>
-					</form>
-				</section>
-			</section>
-			<section role="region" id="date_and_time">
-				<section id="time_zone_overlay" class="gmt0">
-				</section>
-				<section id="time_zone_map">
-					<h1 data-l10n-id="timeZone">
-						Time zone
-					</h1>
-					<h2 id="time-zone-title">
-						GMT +00:00 Greenwich Mean Time
-					</h2>
-				</section>
-				<form data-type="list" onsubmit="return false;">
-					<ul>
-						<li>
-							<button class="change icon icon-dialog" data-l10n-id="change">
-								Change
-							</button>
-							<p id="timezone-configuration-label">GMT +00:00</p>
-							<select class="invisible" id="timezone-configuration">
-		            <option value="-8">GMT -08:00</option>
-		            <option value="-7">GMT -07:00</option>
-		            <option value="-6">GMT -06:00</option>
-		            <option value="-5">GMT -05:00</option>
-		            <option value="-4">GMT -04:00</option>
-		            <option value="-3">GMT -03:00</option>
-		            <option value="-2">GMT -02:00</option>
-		            <option value="-1">GMT -01:00</option>
-		            <option value="0">GMT +00:00</option>
-		            <option value="1">GMT +01:00</option>
-		            <option value="2">GMT +02:00</option>
-		            <option value="3">GMT +03:00</option>
-		            <option value="4">GMT +04:00</option>
-		            <option value="5">GMT +05:00</option>
-		            <option value="6">GMT +06:00</option>
-		            <option value="7">GMT +07:00</option>
-		            <option value="8">GMT +08:00</option>
-		            <option value="9">GMT +09:00</option>
-		            <option value="10">GMT +10:00</option>
-		            <option value="11">GMT +11:00</option>
-		            <option value="12">GMT +12:00</option>
-			         </select>
-						</li>
-						<li>
-							<button class="change icon icon-dialog" data-l10n-id="change">
-								Change
-							</button>
-							<p id="date-configuration-label"></p>
-							<input id="date-configuration" class="invisible" type="date"></input>
-						</li>
-						<li>
-							<button class="change icon icon-dialog" data-l10n-id="change">
-								Change
-							</button>
-							<p id="time-configuration-label">00:00</p>
-							<input id="time-configuration" class="invisible" type="time"></input>
-						</li>
-					</ul>
-				</form>
-			</section>
-			<section role="region" id="import_contacts">
-        <article data-type="list">  
-  				<ul>
-  					<li id="sim_import">
+          <ul id="networks">
+          </ul>
+        </article>
+      </section>
+      <section role="region" id="configure_network">
+        <section id="configure_network_params">
+          <form>
+            <input type="text" id="wifi_ssid" class="hidden" value=""></input>
+            <label id="label_wifi_user" for="wifi_user" data-l10n-id="identity">User (optional):</label>
+            <input type="text" id="wifi_user" placeholder="User (optional)"></input>
+            <label for="wifi_password" data-l10n-id="password">Password</label>
+            <input type="password" id="wifi_password" placeholder="Password" value=""></input>
+          </form>
+        </section>
+      </section>
+      <section role="region" id="date_and_time">
+        <section id="time_zone_overlay" class="gmt0">
+        </section>
+        <section id="time_zone_map">
+          <h1 data-l10n-id="timeZone">
+            Time zone
+          </h1>
+          <h2 id="time-zone-title">
+            GMT +00:00 Greenwich Mean Time
+          </h2>
+        </section>
+        <form data-type="list" onsubmit="return false;">
+          <ul>
+            <li>
+              <button class="change icon icon-dialog" data-l10n-id="change">
+                Change
+              </button>
+              <p id="timezone-configuration-label">GMT +00:00</p>
+              <select class="invisible" id="timezone-configuration">
+                <option value="-8">GMT -08:00</option>
+                <option value="-7">GMT -07:00</option>
+                <option value="-6">GMT -06:00</option>
+                <option value="-5">GMT -05:00</option>
+                <option value="-4">GMT -04:00</option>
+                <option value="-3">GMT -03:00</option>
+                <option value="-2">GMT -02:00</option>
+                <option value="-1">GMT -01:00</option>
+                <option value="0">GMT +00:00</option>
+                <option value="1">GMT +01:00</option>
+                <option value="2">GMT +02:00</option>
+                <option value="3">GMT +03:00</option>
+                <option value="4">GMT +04:00</option>
+                <option value="5">GMT +05:00</option>
+                <option value="6">GMT +06:00</option>
+                <option value="7">GMT +07:00</option>
+                <option value="8">GMT +08:00</option>
+                <option value="9">GMT +09:00</option>
+                <option value="10">GMT +10:00</option>
+                <option value="11">GMT +11:00</option>
+                <option value="12">GMT +12:00</option>
+               </select>
+            </li>
+            <li>
+              <button class="change icon icon-dialog" data-l10n-id="change">
+                Change
+              </button>
+              <p id="date-configuration-label"></p>
+              <input id="date-configuration" class="invisible" type="date"></input>
+            </li>
+            <li>
+              <button class="change icon icon-dialog" data-l10n-id="change">
+                Change
+              </button>
+              <p id="time-configuration-label">00:00</p>
+              <input id="time-configuration" class="invisible" type="time"></input>
+            </li>
+          </ul>
+        </form>
+      </section>
+      <section role="region" id="import_contacts">
+        <article data-type="list">
+          <ul>
+            <li id="sim_import">
               <p data-l10n-id="importSim">SIM card</p>
               <p id="sim_import_feedback" data-l10n-id="notImportedYet">Not imported yet</p>
             </li>
-  				</ul>
+          </ul>
         </article>
-				<header>
-					<h2 data-l10n-id="otherAccount">Other accounts</h2>
-			  </header>
-        <article data-type="list">  
-  			  <ul>
-  					<li id="fb_import" class="disabled">
+        <header>
+          <h2 data-l10n-id="otherAccount">Other accounts</h2>
+        </header>
+        <article data-type="list">
+          <ul>
+            <li id="fb_import" class="disabled">
               <p data-l10n-id="importFb">Facebook</p>
-  						<p id="fb_import_feedback" data-l10n-id="notImportedYet">Not imported yet</p>
+              <p id="fb_import_feedback" data-l10n-id="notImportedYet">Not imported yet</p>
             </li>
           </ul>
         </article>
-			</section>
-			<section role="region" id="about-your-rights">
-				<p data-l10n-id="about-your-rights-0">
+      </section>
+      <section role="region" id="about-your-rights">
+        <p data-l10n-id="about-your-rights-0">
           Mozilla Firefox is free and open source software, built by a community
           of thousands from all over the world. There are a few things you should
           know:
         </p>
-      	<p data-l10n-id="about-your-rights-1">
+        <p data-l10n-id="about-your-rights-1">
           Firefox is made available to you under the terms of the Mozilla Public
           License. This means you may use, copy and distribute Firefox to others.
           You are also welcome to modify the source code of Firefox as you want to
           meet your needs. The Mozilla Public License also gives you the right to
           distribute your modified versions.
         </p>
-      	<p data-l10n-id="about-your-rights-2">
+        <p data-l10n-id="about-your-rights-2">
           You are not granted any trademark rights or licenses to the trademarks
           of the Mozilla Foundation or any party, including without Temporary Text
           limitation the Firefox name or logo. Additional information on
           trademarks may be found Only here.
         </p>
-     		<p data-l10n-id="about-your-rights-3">
+        <p data-l10n-id="about-your-rights-3">
           Some features in Firefox, such as the Crash Reporter, give you the
           option to provide feedback to Mozilla. By choosing to submit feedback,
           you give Mozilla permission to use the feedback to improve its products,
           to publish the feedback on its websites, and to distribute the feedback.
         </p>
-			</section>
-			<section role="region" id="about-your-privacy">
-				<p data-l10n-id="aboutYourPrivacy">About you privacy</p>
-			</section>
-			<section role="region" id="firefox_privacy">
-				<section class="logo_container">
+      </section>
+      <section role="region" id="about-your-privacy">
+        <p data-l10n-id="aboutYourPrivacy">About you privacy</p>
+      </section>
+      <section role="region" id="firefox_privacy">
+        <section class="logo_container">
           <img src="css/images/firefox64.png">
-					<span class="logo_title">De todos. Para Todos.</span>
-				</section>
+          <span class="logo_title">De todos. Para Todos.</span>
+        </section>
         <p data-l10n-id="mozillaCommunity">
-	        When you use Firefox OS, you become
-	        part of a global community helping to
-	        build a brighter future for the Web.
-	        If you’d like to know more about the
-	        Mozilla community, our other products
-	        and events near you, please enter your
-	        email address below.
+          When you use Firefox OS, you become
+          part of a global community helping to
+          build a brighter future for the Web.
+          If you’d like to know more about the
+          Mozilla community, our other products
+          and events near you, please enter your
+          email address below.
         </p>
         <section>
-        	<input type="email" data-l10n-id="emailAddress" placeholder="Email address"></input>
+          <input type="email" data-l10n-id="emailAddress" placeholder="Email address"></input>
         </section>
         <p data-l10n-id="learnHow">
          Learn how Mozilla handle your information in our <a>privacy policy</a>.
         </p>
-			</section>
-			<section role="region" id="welcome_firefox">
-				<section id="firefox_logo_horizontal">
-					<img src="css/images/logosmall.png">
-				</section>
-				<p data-l10n-id="welcomeFirefox">
-					Welcome to Firefox OS, the free and
+      </section>
+      <section role="region" id="welcome_firefox">
+        <section id="firefox_logo_horizontal">
+          <img src="css/images/logosmall.png">
+        </section>
+        <p data-l10n-id="welcomeFirefox">
+          Welcome to Firefox OS, the free and
           open source operating system from
           Mozilla. Our mission is to promote
           openness, innovation and opportunity
           by keeping the power of the Web in
           your hands.
-				</p>
-				<section id="firefox_os_privacy_links">
-					<a href="#about-your-rights" data-l10n-id="aboutYourRights"> About Your Rights </a>
+        </p>
+        <section id="firefox_os_privacy_links">
+          <a href="#about-your-rights" data-l10n-id="aboutYourRights"> About Your Rights </a>
           <a href="#about-your-privacy" data-l10n-id="aboutYourPrivacy"> About Your Privacy </a>
-				</section>
-				<section id="form_share_statistics">
-					<label>
+        </section>
+        <section id="form_share_statistics">
+          <label>
             <input type="checkbox" name="enable_statistic" />
             <span></span>
-	        </label>
-	        <p data-l10n-id="collaborate">
-	        	I want to help make Firefox OS faster and
-	        	easier to use by sharing information about
-	        	my phone's performance. Learn more
-	        </p>
-				</section>
-			</section>
-		</article>
-		<menu role="navigation" id="nav-bar" class="forward-only">
-			<button id="back" class="button-left back" data-l10n-id="back">
-				back
-				<span></span>
-			</button>
-			<button class="recommend forward" id="forward" data-l10n-id="next">
-				next
-				<span></span>
-			</button>
-			<button class="recommend" id="join" data-l10n-id="join">
-				join
-			</button>
-		</menu>
-	</section>
-	<section id="finish" role="region">
-		<section class="content">
-			<h1 data-l10n-id="startYourPhone">
+            <p data-l10n-id="collaborate">
+              I want to help make Firefox OS faster and
+              easier to use by sharing information about
+              my phone's performance. Learn more
+            </p>
+          </label>
+        </section>
+      </section>
+    </article>
+    <menu role="navigation" id="nav-bar" class="forward-only">
+      <button id="back" class="button-left back" data-l10n-id="back">
+        back
+        <span></span>
+      </button>
+      <button class="recommend forward" id="forward" data-l10n-id="next">
+        next
+        <span></span>
+      </button>
+      <button class="recommend" id="join" data-l10n-id="join">
+        join
+      </button>
+    </menu>
+  </section>
+
+  <section id="finish" role="region">
+    <section class="content">
+      <h1 data-l10n-id="startYourPhone">
         Start your Phone Tour!
       </h1>
       <h2 data-l10n-id="joinTutorial">
@@ -346,140 +307,142 @@
       <p data-l10n-id="optionsAvailable">
         You can alter the language, Date / Time, Wi-Fi connection in the settings area.
       </p>
-	    </section>
-    	<menu role="navigation">
-    		<button id="skip" class="button-left" data-l10n-id="skip">
-					Skip
-				</button>
-				<button class="recommend" id="end" data-l10n-id="startTour">
-					Start Tour!
-				</button>
-			</menu>
-		</section>
-	</section>
-	<section id="tutorial" role="region">
-		<article role="main">
-			<section role="region" id="step1">
-				<div>
-					<header id="step1Header">
-					</header>
-				</div>
-				<section>
-					<img  id="step1Img" src="">
-				</section>
-			</section>
-			<section role="region" id="step2">
-				<div>
-					<header id="step2Header">
-					</header>
-				</div>
-				<section>
-					<img id="step2Img" src="">
-				</section>
-			</section>
-			<section role="region" id="step3">
-				<div>
-					<header id="step3Header">
-					</header>
-				</div>
-				<section>
-					<img  id="step3Img" src="">
-				</section>
-			</section>
-			<section role="region" id="step4">
-				<div>
-					<header id="step4Header">
-					</header>
-				</div>
-				<section>
-					<img  id="step4Img" src="">
-				</section>
-			</section>
-			<section role="region" id="step5">
-				<div>
-					<header id="step5Header">
-					</header>
-				</div>
-				<section>
-					<img  id="step5Img" src="">
-				</section>
-			</section>
-			<section role="region" id="step6">
-				<div>
-					<header id="step6Header">
-					</header>
-				</div>
-				<section>
-					<img  id="step6Img" src="">
-				</section>
-			</section>
-			<section role="region" id="step7">
-				<div>
-					<header id="step7Header">
-					</header>
-				</div>
-				<section>
-					<img  id="step7Img" src="">
-				</section>
-			</section>
-			<section role="region" id="step8">
-				<div>
-					<header id="step8Header">
-					</header>
-				</div>
-				<section>
-					<img  id="step8Img" src="">
-				</section>
-			</section>
-			<section role="region" id="step9">
-				<div>
-					<header id="step9Header">
-					</header>
-				</div>
-				<section>
-					<img  id="step9Img" src="">
-				</section>
-			</section>
-			<section role="region" id="step10">
-				<div>
-					<header id="step10Header">
-					</header>
-				</div>
-				<section>
-					<img  id="step10Img" src="">
-				</section>
-			</section>
-		</article>
-		<nav role="navigation" id="tutorialNavBar" class="forward-only">
-			<button id="backTutorial" class="button-left back" data-l10n-id="back">
-				back
-				<span></span>
-			</button>
-			<button class="recommend forward" id="forwardTutorial" data-l10n-id="next">
-				next
-				<span></span>
-			</button>
-		</nav>
-	</section>
-	
-	<section id="tutorialFinish" role="region">
-		<section class="content">
-			<h1 data-l10n-id="thatsIt">
+      </section>
+      <menu role="navigation">
+        <button id="skip" class="button-left" data-l10n-id="skip">
+          Skip
+        </button>
+        <button class="recommend" id="end" data-l10n-id="startTour">
+          Start Tour!
+        </button>
+      </menu>
+    </section>
+  </section>
+
+  <section id="tutorial" role="region">
+    <article role="main">
+      <section role="region" id="step1">
+        <div>
+          <header id="step1Header">
+          </header>
+        </div>
+        <section>
+          <img  id="step1Img" src="">
+        </section>
+      </section>
+      <section role="region" id="step2">
+        <div>
+          <header id="step2Header">
+          </header>
+        </div>
+        <section>
+          <img id="step2Img" src="">
+        </section>
+      </section>
+      <section role="region" id="step3">
+        <div>
+          <header id="step3Header">
+          </header>
+        </div>
+        <section>
+          <img  id="step3Img" src="">
+        </section>
+      </section>
+      <section role="region" id="step4">
+        <div>
+          <header id="step4Header">
+          </header>
+        </div>
+        <section>
+          <img  id="step4Img" src="">
+        </section>
+      </section>
+      <section role="region" id="step5">
+        <div>
+          <header id="step5Header">
+          </header>
+        </div>
+        <section>
+          <img  id="step5Img" src="">
+        </section>
+      </section>
+      <section role="region" id="step6">
+        <div>
+          <header id="step6Header">
+          </header>
+        </div>
+        <section>
+          <img  id="step6Img" src="">
+        </section>
+      </section>
+      <section role="region" id="step7">
+        <div>
+          <header id="step7Header">
+          </header>
+        </div>
+        <section>
+          <img  id="step7Img" src="">
+        </section>
+      </section>
+      <section role="region" id="step8">
+        <div>
+          <header id="step8Header">
+          </header>
+        </div>
+        <section>
+          <img  id="step8Img" src="">
+        </section>
+      </section>
+      <section role="region" id="step9">
+        <div>
+          <header id="step9Header">
+          </header>
+        </div>
+        <section>
+          <img  id="step9Img" src="">
+        </section>
+      </section>
+      <section role="region" id="step10">
+        <div>
+          <header id="step10Header">
+          </header>
+        </div>
+        <section>
+          <img  id="step10Img" src="">
+        </section>
+      </section>
+    </article>
+    <nav role="navigation" id="tutorialNavBar" class="forward-only">
+      <button id="backTutorial" class="button-left back" data-l10n-id="back">
+        back
+        <span></span>
+      </button>
+      <button class="recommend forward" id="forwardTutorial" data-l10n-id="next">
+        next
+        <span></span>
+      </button>
+    </nav>
+  </section>
+
+  <section id="tutorialFinish" role="region">
+    <section class="content">
+      <h1 data-l10n-id="thatsIt">
         That's it!
       </h1>
       <h2 data-l10n-id="enjoyYourPhone">
         You're ready to enjoy your new phone ;)
       </h2>
       </section>
-    	<menu role="navigation" class="forward-only">
-    		<button class="recommend" id="tutorialFinished" data-l10n-id="letsGo">
-					
-				</button>
-			</menu>
-		</section>
-	</section>
+      <menu role="navigation" class="forward-only">
+        <button class="recommend" id="tutorialFinished" data-l10n-id="letsGo">
+        </button>
+      </menu>
+    </section>
+  </section>
+
   <iframe id="fb-curtain" src="/facebook/curtain.html"></iframe>
   <iframe id="fb-oauth" hidden src="/facebook/fb_oauth.html"></iframe>
   <iframe id="fb-extensions"></iframe>
 </body>
 </html>
+

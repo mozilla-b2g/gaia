@@ -548,9 +548,10 @@ var Contacts = (function() {
   };
 
   var showSettings = function showSettings() {
-    navigation.go('view-settings', 'popup');
-    // The number of FB Friends has to be recalculated
+     // The number of FB Friends has to be recalculated
     contacts.Settings.refresh();
+    
+    navigation.go('view-settings', 'popup');
   };
 
   var showOverlay = function showOverlay(message) {

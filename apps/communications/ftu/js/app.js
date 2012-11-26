@@ -45,7 +45,7 @@ var AppManager = {
       req.onerror = function() {
         UIManager.activationScreen.classList.add('show');
         window.location.hash = '#languages';
-      }
+      };
       // Remove the splash
       UIManager.splashScreen.classList.remove('show');
     }, kSplashTimeout);

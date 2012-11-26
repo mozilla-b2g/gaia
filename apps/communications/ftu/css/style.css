@@ -1,17 +1,17 @@
 html, body {
-	width: 100%;
-	height: 100%;
-	margin: 0;
-	padding: 0;
-	overflow: hidden !important;
-	font-size: 10px;
-	font-family: "MozTT","Moz",sans-serif;
-	font-weight: 400;
-	user-select: none;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden !important;
+  font-size: 10px;
+  font-family: "MozTT","Moz",sans-serif;
+  font-weight: 400;
+  user-select: none;
 }
 
 /*
-	Areas in our app
+  Areas in our app
 */
 
 
@@ -22,9 +22,9 @@ html, body {
   height: 100%;
   visibility: hidden;
   position: absolute;
-	top: 0;
-	left: 0;
-	overflow-x: auto;
+  top: 0;
+  left: 0;
+  overflow-x: auto;
   background: url(images/bgtop.png) top left no-repeat,
               url(images/bgbottom.png) bottom left no-repeat,
               url(images/bg_1px.png) repeat-y;
@@ -32,12 +32,12 @@ html, body {
 }
 
 [role=region].show {
-	visibility: visible;
+  visibility: visible;
 }
 
 [role=main] {
-	height: calc(100% - 11.5rem);
-	position: relative;
+  height: calc(100% - 11.5rem);
+  position: relative;
 }
 
 [role=main] > [role=region] {
@@ -45,7 +45,7 @@ html, body {
 }
 
 [role=region]:target {
-	visibility: visible;
+  visibility: visible;
 }
 
 [role=navigation] {
@@ -66,59 +66,59 @@ html, body {
 
 [role=navigation] button {
   width: calc((100% - 1rem) / 2);
-	float: left;
-	margin-right: 1rem;
+  float: left;
+  margin-right: 1rem;
   position: relative;
   text-align: right;
   text-transform: capitalize;
 }
 
 [role=navigation] .recommend {
-	margin-right: 0;
+  margin-right: 0;
   text-align: left;
 }
 
 [role=navigation] button span {
-	width: 3rem;
-	height: 100%;
-	left: 0;
-	position: absolute;
-	pointer-events: none;
-	background: url(images/prev.png) no-repeat center center;
+  width: 3rem;
+  height: 100%;
+  left: 0;
+  position: absolute;
+  pointer-events: none;
+  background: url(images/prev.png) no-repeat center center;
 }
 
 [role=navigation] button.recommend span {
   left: calc(100% - 3rem);
-	background: url(images/next.png) no-repeat center center;
+  background: url(images/next.png) no-repeat center center;
 }
 
 [role=navigation] #join {
-	display:none;
+  display:none;
 }
 
 [role=navigation].forward-only .back {
-	display:none;
+  display:none;
 }
 
 [role=navigation].forward-only .recommend {
-	width: 100%;
+  width: 100%;
 }
 
 [role=navigation].secondary-menu .forward {
-	display: none;
+  display: none;
 }
 
 [role=navigation].secondary-menu #join {
-	display: block;
+  display: block;
 }
 
 [role=navigation].back-only .back {
-	width: 100%;
-	margin: 0;
+  width: 100%;
+  margin: 0;
 }
 
 [role=navigation].back-only .recommend {
-	display:none;
+  display:none;
 }
 
 /* Steps state */
@@ -172,67 +172,67 @@ html, body {
 }
 
 /*
-	Header conditional button
+  Header conditional button
 */
 
 .no-options header menu {
-	display: none;
+  display: none;
 }
 
 /*
- 	Splash screen
+  Splash screen
 */
 
 #splash {
-	opacity: 0;
-	z-index: 3000;
-	transition: all 1s ease;
-	background-image: url(images/powered.png);
-	background-size: 100% auto;
+  opacity: 0;
+  z-index: 3000;
+  transition: all 1s ease;
+  background-image: url(images/powered.png);
+  background-size: 100% auto;
 }
 
 #splash.show {
-	opacity: 1;
+  opacity: 1;
 }
 /*
-	Pin code screen
+  Pin code screen
 */
 
 #pincode .pin_container {
-	height: calc(100% - 10rem);
+  height: calc(100% - 10rem);
 }
 
 #pincode section header {
-	padding: 1.5rem 3rem 0.5rem 3rem;
-	color: black;
-	font-size: 1.5rem;
+  padding: 1.5rem 3rem 0.5rem 3rem;
+  color: black;
+  font-size: 1.5rem;
 }
 
 #pincode .input-wrapper {
-	padding: 0 1.5rem;
-	position: relative;
+  padding: 0 1.5rem;
+  position: relative;
 }
 
 #pincode #pin_error {
-	padding: 1rem 2rem;
-	font-size: 1.5rem;
-	color: red;
+  padding: 1rem 2rem;
+  font-size: 1.5rem;
+  color: red;
 }
 
 #pincode #sim-pin.onerror {
-	border-color: red;
+  border-color: red;
 }
 
 #pincode .input-wrapper input {
-	font-size: 2rem;
+  font-size: 2rem;
   padding-left: 1.5rem;
   pointer-events: none;
 }
 
 #pincode #fake-sim-pin {
-	margin-top: -4rem;
-	opacity: 0;
-	pointer-events: auto;
+  margin-top: -4rem;
+  opacity: 0;
+  pointer-events: auto;
 }
 
 #pincode input[type="number"] {
@@ -246,13 +246,13 @@ html, body {
 }
 
 /*
-	Languages Styles
+  Languages Styles
 */
 
-#languages [data-type="list"] {	
-	background: url(images/bgbubbles.png) 0 -4.5rem no-repeat;
-	background-size: 100% auto;
-	padding-top: 14rem;
+#languages [data-type="list"] {
+  background: url(images/bgbubbles.png) 0 -4.5rem no-repeat;
+  background-size: 100% auto;
+  padding-top: 14rem;
 }
 
 /*
@@ -263,11 +263,11 @@ html, body {
 }
 
 /*
-	Wifi configuration
+  Wifi configuration
 */
 
 #configure_network_params form {
-	padding: 1rem 1.5rem;
+  padding: 1rem 1.5rem;
 }
 
 #configure_network_params form label {
@@ -282,60 +282,60 @@ html, body {
 }
 
 .hidden {
-	display: none !important;
+  display: none !important;
 }
 
 
 /*
-	Finish process
+  Finish process
 */
 
 #finish, #tutorialFinish {
-	opacity: 0;
-	z-index: 3010;
-	transition: all 1s ease;
-	background: #3b4547;
+  opacity: 0;
+  z-index: 3010;
+  transition: all 1s ease;
+  background: #3b4547;
 }
 
 #finish.show, #tutorialFinish.show {
-	opacity: 1;
+  opacity: 1;
 }
 
 #finish h1, #tutorialFinish h1 {
-	margin: 0;
-	color: white;
-	font-size: 4.1rem;
-	padding: 4rem 0 0 0;
-	font-weight: 200;
-	line-height: 4rem;
+  margin: 0;
+  color: white;
+  font-size: 4.1rem;
+  padding: 4rem 0 0 0;
+  font-weight: 200;
+  line-height: 4rem;
 }
 
 #finish h2, #tutorialFinish h2 {
-	margin: 0;
-	color: white;
-	font-size: 1.8rem;
-	padding: .5rem 0 2rem 0;
-	font-weight: 200;
-	line-height: 2rem;
+  margin: 0;
+  color: white;
+  font-size: 1.8rem;
+  padding: .5rem 0 2rem 0;
+  font-weight: 200;
+  line-height: 2rem;
 }
 
 #finish p, #tutorialFinish p {
-	margin: 0;
-	color: white;
-	font-size: 1.4rem;
+  margin: 0;
+  color: white;
+  font-size: 1.4rem;
   font-weight: normal;
 }
 
 #finish .content {
-	background: url(images/icon_tour.png) no-repeat center 95%;
+  background: url(images/icon_tour.png) no-repeat center 95%;
 }
 
 #tutorialFinish .content {
-	background: url(images/thumb-up.png) no-repeat center 70%;
+  background: url(images/thumb-up.png) no-repeat center 70%;
 }
 
 #finish .content, #tutorialFinish .content {
-	height: calc(100% - 6rem);
+  height: calc(100% - 6rem);
   padding: 0 3rem;
   width: calc(100% - 6rem);
 }
@@ -345,131 +345,131 @@ html, body {
 }
 
 #finish [role=navigation] button,#tutorialFinish [role=navigation] button {
-	text-align: center;
+  text-align: center;
 }
 
 /*
-	Date and time
+  Date and time
 */
 
 .change {
-	float: right; 
-	width: 8rem;
+  float: right;
+  width: 8rem;
 }
 
 #time_zone_overlay {
-	background-position: bottom;
-	background-repeat: no-repeat;
-	position: relative;
-	position: absolute;
-	z-index: 10;
-	width: 100%;
-	height: 4rem;
-	height: 21.5rem;
+  background-position: bottom;
+  background-repeat: no-repeat;
+  position: relative;
+  position: absolute;
+  z-index: 10;
+  width: 100%;
+  height: 4rem;
+  height: 21.5rem;
   margin-top: 0.5rem;
 }
 
 #time_zone_overlay.gmt0 {
-	background-image: url('images/timezone/+0.png') ;
+  background-image: url('images/timezone/+0.png') ;
 }
 #time_zone_overlay.gmt1 {
-	background-image: url('images/timezone/+1.png') ;
+  background-image: url('images/timezone/+1.png') ;
 }
 #time_zone_overlay.gmt2 {
-	background-image: url('images/timezone/+2.png') ;
+  background-image: url('images/timezone/+2.png') ;
 }
 #time_zone_overlay.gmt3 {
-	background-image: url('images/timezone/+3.png') ;
+  background-image: url('images/timezone/+3.png') ;
 }
 #time_zone_overlay.gmt4 {
-	background-image: url('images/timezone/+4.png') ;
+  background-image: url('images/timezone/+4.png') ;
 }
 #time_zone_overlay.gmt5 {
-	background-image: url('images/timezone/+5.png') ;
+  background-image: url('images/timezone/+5.png') ;
 }
 #time_zone_overlay.gmt6 {
-	background-image: url('images/timezone/+6.png') ;
+  background-image: url('images/timezone/+6.png') ;
 }
 #time_zone_overlay.gmt7 {
-	background-image: url('images/timezone/+7.png') ;
+  background-image: url('images/timezone/+7.png') ;
 }
 #time_zone_overlay.gmt8 {
-	background-image: url('images/timezone/+8.png') ;
+  background-image: url('images/timezone/+8.png') ;
 }
 #time_zone_overlay.gmt9 {
-	background-image: url('images/timezone/+9.png') ;
+  background-image: url('images/timezone/+9.png') ;
 }
 #time_zone_overlay.gmt10 {
-	background-image: url('images/timezone/+10.png') ;
+  background-image: url('images/timezone/+10.png') ;
 }
 #time_zone_overlay.gmt11 {
-	background-image: url('images/timezone/+11.png') ;
+  background-image: url('images/timezone/+11.png') ;
 }
 #time_zone_overlay.gmt12 {
-	background-image: url('images/timezone/+12.png') ;
+  background-image: url('images/timezone/+12.png') ;
 }
 #time_zone_overlay.gmt3 {
-	background-image: url('images/timezone/+3.png') ;
+  background-image: url('images/timezone/+3.png') ;
 }
 #time_zone_overlay.gmt4 {
-	background-image: url('images/timezone/+4.png') ;
+  background-image: url('images/timezone/+4.png') ;
 }
 
 #time_zone_overlay.gmt-1 {
-	background-image: url('images/timezone/-1.png') ;
+  background-image: url('images/timezone/-1.png') ;
 }
 #time_zone_overlay.gmt-2 {
-	background-image: url('images/timezone/-2.png') ;
+  background-image: url('images/timezone/-2.png') ;
 }
 #time_zone_overlay.gmt-3 {
-	background-image: url('images/timezone/-3.png') ;
+  background-image: url('images/timezone/-3.png') ;
 }
 #time_zone_overlay.gmt-4 {
-	background-image: url('images/timezone/-4.png') ;
+  background-image: url('images/timezone/-4.png') ;
 }
 #time_zone_overlay.gmt-5 {
-	background-image: url('images/timezone/-5.png') ;
+  background-image: url('images/timezone/-5.png') ;
 }
 #time_zone_overlay.gmt-6 {
-	background-image: url('images/timezone/-6.png') ;
+  background-image: url('images/timezone/-6.png') ;
 }
 #time_zone_overlay.gmt-7 {
-	background-image: url('images/timezone/-7.png') ;
+  background-image: url('images/timezone/-7.png') ;
 }
 #time_zone_overlay.gmt-8 {
-	background-image: url('images/timezone/-8.png') ;
+  background-image: url('images/timezone/-8.png') ;
 }
 
 #time_zone_map {
-	background-image: url('images/map.png') ;
-	background-position: bottom;
-	background-repeat: no-repeat;
-	position: relative;
-	height: 21.5rem;
-	width: 100%;
-	margin-top: 0.5rem;
-	z-index: 1;
+  background-image: url('images/map.png') ;
+  background-position: bottom;
+  background-repeat: no-repeat;
+  position: relative;
+  height: 21.5rem;
+  width: 100%;
+  margin-top: 0.5rem;
+  z-index: 1;
 }
 
 #date_and_time h1 {
-	font-size: 1.6rem;
+  font-size: 1.6rem;
   line-height: 1.8rem;
-	padding: 2rem 1.5rem 0 1.5rem;
-	font-weight: 500;
+  padding: 2rem 1.5rem 0 1.5rem;
+  font-weight: 500;
 }
 
 #date_and_time h2 {
-	font-size: 1.4rem;
+  font-size: 1.4rem;
   line-height: 1.6rem;
-	padding: 0 1.5rem;
-	font-weight: normal;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
+  padding: 0 1.5rem;
+  font-weight: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 #date_and_time h1,h2 {
-	margin: 0;
+  margin: 0;
 }
 
 #date_and_time [data-type="list"] {
@@ -499,7 +499,7 @@ html, body {
 
 
 /*
-	Import
+  Import
 */
 
 #import_contacts li,
@@ -541,11 +541,11 @@ html, body {
 }
 
 #import_contacts ul:first-child li:last-child {
-	margin-bottom: 0;
+  margin-bottom: 0;
 }
 
 /*
-	About your rights
+  About your rights
 */
 #welcome_firefox {
   padding: 1.5rem 3rem 0 3rem;
@@ -553,23 +553,23 @@ html, body {
 }
 
 #welcome_firefox p {
-	margin: 0;
-	color: #000;
-	padding: 0 0 2rem 0;
-	font-size: 1.35rem;
+  margin: 0;
+  color: #000;
+  padding: 0 0 2rem 0;
+  font-size: 1.35rem;
   line-height: 1.8rem;
 }
 #welcome_firefox #firefox_logo_horizontal {
-	margin: 1rem 0;
+  margin: 1rem 0;
 }
 
 #welcome_firefox label {
-	position: absolute;
-	margin: -1.5rem 0 0 -1.5rem;
+  position: absolute;
+  margin: -1.5rem 0 0 -1.5rem;
 }
 
 #welcome_firefox section a {
-	font-size: 1.35rem;
+  font-size: 1.35rem;
   line-height: 1.8rem;
   color: #000;
   text-decoration: underline;
@@ -577,13 +577,13 @@ html, body {
 }
 
 #welcome_firefox #firefox_os_privacy_links {
-	margin-bottom: 3rem;
+  margin-bottom: 3rem;
   display: block;
   overflow: hidden;
 }
 
 #welcome_firefox #firefox_os_privacy_links a {
-	width: 50%;
+  width: 50%;
   float: left;
 }
 
@@ -592,16 +592,27 @@ html, body {
 }
 
 #welcome_firefox #form_share_statistics {
-	clear: both;
+  clear: both;
+}
+
+#welcome_firefox #form_share_statistics label {
+  width: auto;
+  height: auto;
+  margin: 0 3rem 0 0;
+}
+
+#welcome_firefox #form_share_statistics span {
+  top: 1rem;
+  left: 1rem;
 }
 
 #welcome_firefox #form_share_statistics p {
-	width: calc(100% - 3.5rem);
+  width: calc(100% - 3.5rem);
   float: right;
 }
 
 /*
-	Privacy policies
+  Privacy policies
 */
 
 #firefox_privacy {
@@ -614,12 +625,12 @@ html, body {
 }
 
 #firefox_privacy .logo_container {
-	margin: 1rem 0 2.5rem 0;
+  margin: 1rem 0 2.5rem 0;
 }
 
 #firefox_privacy .logo_title {
-	font-size: 1.8rem;
-	margin-left: 1rem;
+  font-size: 1.8rem;
+  margin-left: 1rem;
   font-weight: 500;
 }
 
@@ -631,24 +642,29 @@ html, body {
   line-height: 1.8rem;
 }
 
+#firefox_privacy a {
+  margin-left: 0.3rem;
+}
+
+
 #firefox_privacy input {
   margin-bottom: 2rem;
 }
 
 .invisible {
-	position: absolute;
-	top: 0;
-	opacity: 0;
-	height: 4rem;
-	width: 100%;
+  position: absolute;
+  top: 0;
+  opacity: 0;
+  height: 4rem;
+  width: 100%;
 }
 
 /*
-	#about-your-rights
+  #about-your-rights
 */
 
 #about-your-rights p ,#about-your-privacy p {
-	margin: 0;
+  margin: 0;
   color: #000;
   padding: 0 3rem 1rem 3rem;
   font-size: 1.35rem;
@@ -656,10 +672,10 @@ html, body {
 }
 
 #about-your-rights p:first-child, #about-your-privacy p:first-child {
-	margin-top: 2rem;
+  margin-top: 2rem;
 }
 
-/******************************************************************************
+/*
  * Lists
  */
 
@@ -708,21 +724,21 @@ html, body {
 
 [data-type="list"].pack-value-selector li label:not([for]) {
   background: none;
-	height: 100%;
-	position: absolute;
-	left: 1.5rem;
-	right: 1.5rem;
+  height: 100%;
+  position: absolute;
+  left: 1.5rem;
+  right: 1.5rem;
   pointer-events: auto;
 }
 
 [data-type="list"].pack-value-selector li label:not([for]) input {
-	height: 100%
+  height: 100%
 }
 
 [data-type="list"].pack-value-selector li label:not([for]) input + span {
-	background: none;
-	left: 100%;
-	margin-left: -2.2rem;
+  background: none;
+  left: 100%;
+  margin-left: -2.2rem;
 }
 
 [data-type="list"].pack-value-selector li label:not([for]) input:checked + span {
@@ -748,11 +764,11 @@ html, body {
 }
 
 /*
-	States of Wifi
+  States of Wifi
 */
 
 .wifi-signal0 {
-	background-image: -moz-image-rect(url(images/wifi_sprite.png), 0, 32, 32, 0) !important;
+  background-image: -moz-image-rect(url(images/wifi_sprite.png), 0, 32, 32, 0) !important;
 }
 
 .wifi-signal1 {
@@ -772,13 +788,13 @@ html, body {
 }
 
 .icon {
-	background-color: transparent !important;
-	background-repeat: no-repeat !important; 
-	background-position: center center !important; 
+  background-color: transparent !important;
+  background-repeat: no-repeat !important;
+  background-position: center center !important;
 }
 
 /*
-	3G
+  3G
 */
 
 #data_3g [data-type="list"] li {
@@ -803,26 +819,26 @@ html, body {
 
 
 /*
-	Tutorial
+  Tutorial
 */
 
 #tutorial [role=main] > [role=region] {
-	background-color: #474747;
-	color: white;
+  background-color: #474747;
+  color: white;
 }
 
 #tutorial [role=main] {
-	height: 100%;
-	position: relative;
+  height: 100%;
+  position: relative;
 }
 
 #tutorial header {
-	height: 6rem;
-	padding: 3rem 2.5rem 0 2.5rem;
-	font-size: 1.4rem;
-	margin-bottom: 1rem;
+  height: 6rem;
+  padding: 3rem 2.5rem 0 2.5rem;
+  font-size: 1.4rem;
+  margin-bottom: 1rem;
 }
 
 #tutorial section {
-	text-align: center;
+  text-align: center;
 }

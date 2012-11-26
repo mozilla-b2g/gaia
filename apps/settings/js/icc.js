@@ -206,7 +206,7 @@
         break;
 
       case icc.STK_CMD_PLAY_TONE:
-        debug(' STK:Play Tone: ',otions);
+        debug(' STK:Play Tone: ', options);
         playTone(options);
         iccLastCommandProcessed = true;
         responseSTKCommand({ resultCode: icc.STK_RESULT_OK });
@@ -560,7 +560,8 @@
         selectedPhoneSound = 'resources/dtmf_tones/425Hz_200ms.ogg';
         break;
       case icc.STK_TONE_TYPE_ERROR:
-        selectedPhoneSound = 'resources/dtmf_tones/950Hz+1400Hz+1800Hz_200ms.ogg';
+        selectedPhoneSound =
+            'resources/dtmf_tones/950Hz+1400Hz+1800Hz_200ms.ogg';
         break;
       case icc.STK_TONE_TYPE_CALL_WAITING_TONE:
       case icc.STK_TONE_TYPE_RINGING_TONE:
@@ -674,3 +675,4 @@
     };
   };
 })();
+
