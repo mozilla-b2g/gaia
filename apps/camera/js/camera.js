@@ -709,7 +709,7 @@ var Camera = {
   },
 
   showFilmStrip: function camera_showFilmStrip() {
-    if (!this._photosTaken.length) {
+    if (!this._photosTaken.length || this._secureMode) {
       return;
     }
 
