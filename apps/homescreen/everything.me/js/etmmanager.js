@@ -84,7 +84,8 @@ var EvmeManager = (function() {
         addBookmark: addBookmark,
 
         isAppInstalled: function isAppInstalled(url) {
-            return !!GridManager.getAppByOrigin(url);
+            return GridManager.getIconForBookmark(url) ||
+                   GridManager.getAppByOrigin(url);
         },
         getApps: getApps,
         getAppIcon: getAppIcon,
