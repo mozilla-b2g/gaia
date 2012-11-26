@@ -413,7 +413,7 @@ var KeypadManager = {
       }
 
       // Manage long press
-      if (key == '0' || key == 'delete') {
+      if ((key == '0' && !this._onCall) || key == 'delete') {
         this._holdTimer = setTimeout(function(self) {
           if (key == 'delete') {
             self._phoneNumber = '';
