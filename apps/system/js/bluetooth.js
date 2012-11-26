@@ -8,10 +8,6 @@ var Bluetooth = {
   /* this property store a reference of the default adapter */
   defaultAdapter: null,
 
-  /* this property store the array of paired devices we got from the
-   * adapter */
-  pairedDevices: [],
-
   /* keep a global connected property here */
   connected: false,
 
@@ -20,13 +16,7 @@ var Bluetooth = {
       return;
 
     var bluetooth = window.navigator.mozBluetooth;
-    var self = this;
 
-    // XXX there is no "bluetooth.onenabled" callback can be hooked.
-    // We will probe for setting enable callback instead for now.
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=782586
-
-    var enabled = false;
     SettingsListener.observe('bluetooth.enabled', true, function(value) {
       if (!bluetooth) {
         // roll back the setting value to notify the UIs
@@ -36,112 +26,79 @@ var Bluetooth = {
             'bluetooth.enabled': false
           });
         }
-
         return;
       }
-
-      if (value !== enabled && value) {
-        // Setting value is not actually synced with Bluetooth device,
-        // let's wait a bit before getting adapter.
-        if (!bluetooth.enabled) {
-          setTimeout(function timeout() {
-            self.initDefaultAdapter();
-          }, 5000);
-
-          return;
-        }
-
-        self.initDefaultAdapter();
-      }
-
-      enabled = value;
     });
+
+    // when bluetooth adapter is ready, let get the default adapter.
+    // and try to acquire default adapter when booting.
+    bluetooth.onadapteradded = this.initDefaultAdapter.bind(this);
+    this.initDefaultAdapter();
+
+    /* for v1, we only support two use cases for bluetooth connection:
+     *   1. connecting with a headset
+     *   2. transfering a file to/from another device
+     * So we need to monitor their event messages to know we are (aren't)
+     * connected, then summarize to an event and dispatch to StatusBar
+     */
+
+    // In headset connected case:
+    navigator.mozSetMessageHandler('bluetooth-hfp-status-changed',
+      this.updateConnected.bind(this)
+    );
+
+    /* In file transfering case:
+     * since System Message can't be listened in two js files within a app,
+     * so we listen here but dispatch events to bluetooth_transfer.js
+     * when getting bluetooth file transfer start/complete system messages
+     */
+    var self = this;
+    navigator.mozSetMessageHandler('bluetooth-opp-transfer-start',
+      function bt_fileTransferUpdate() {
+        self.updateConnected();
+        var evt = document.createEvent('CustomEvent');
+        evt.initCustomEvent('bluetooth-opp-transfer-start',
+          /* canBubble */ true, /* cancelable */ false, null);
+        window.dispatchEvent(evt);
+      }
+    );
+
+    navigator.mozSetMessageHandler('bluetooth-opp-transfer-complete',
+      function bt_fileTransferUpdate() {
+        self.updateConnected();
+        var evt = document.createEvent('CustomEvent');
+        evt.initCustomEvent('bluetooth-opp-transfer-complete',
+          /* canBubble */ true, /* cancelable */ false, null);
+        window.dispatchEvent(evt);
+      }
+    );
+
   },
 
+  // Get adapter for BluetoothTransfer when everytime bluetooth is enabled
   initDefaultAdapter: function bt_initDefaultAdapter() {
     var bluetooth = window.navigator.mozBluetooth;
     var self = this;
 
-    if (!bluetooth || !('getDefaultAdapter' in bluetooth))
+    if (!bluetooth || !bluetooth.enabled ||
+        !('getDefaultAdapter' in bluetooth))
       return;
 
     var req = bluetooth.getDefaultAdapter();
     req.onsuccess = function bt_gotDefaultAdapter(evt) {
-      var adapter =
-        self.defaultAdapter = req.result;
-
-      /* If we get adapter.ondeviceconnected and
-      adapter.ondevicedisconnected, we can end here. But we don't...
-      https://bugzilla.mozilla.org/show_bug.cgi?id=778640
-      */
-
-      self.updateDeviceList.call(self);
-
-      /* We neither have adapter.ondevicepaired nor
-      adapter.ondeviceunpaired, that leaves us with only
-      adapter.ondevicefound to tackle */
-
-      // New device is being found. Update the paired device list only
-      // if it is being paired.
-      adapter.ondevicefound = function bt_deviceFound(evt) {
-        var device = evt.device;
-        device.onpropertychanged = function bt_devicePropertychanged() {
-          if (device.paired)
-            self.updateDeviceList.bind(self);
-        };
-      };
-
-      // We might have this callback or |device.ondisappeared|
-      // put it here anyway.
-      adapter.ondevicedisappeared = function bt_deviceDisappeared(evt) {
-        var device = evt.device;
-        device.onpropertychanged = null;
-      };
+      self.defaultAdapter = req.result;
     };
   },
 
-  updateDeviceList: function bt_updateDeviceList() {
-    var adapter = this.defaultAdapter;
+  updateConnected: function bt_updateConnected() {
+    var bluetooth = window.navigator.mozBluetooth;
 
-    // adapter.getPairedDevices will be implemented in
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=777671
-    if (!adapter.getPairedDevices)
+    if (!bluetooth || !('isConnected' in bluetooth))
       return;
 
-    var self = this;
-    var req = adapter.getPairedDevices();
-    req.onsuccess = function bt_gotPairedDevices(evt) {
-      var devices =
-        self.pairedDevices = req.result;
-
-      self.updateConnected.call(self);
-
-      devices.forEach(function devices_forEach(device) {
-        device.onpropertychanged = function bt_devicePropertychanged() {
-          // Device is connected, update connected status
-          if (device.connected)
-            self.updateConnected.bind(self);
-
-          // Device is unpaired, update the paired device list
-          if (!device.paired)
-            self.updateDeviceList.call(self);
-        }
-
-        // We might have this callback or |adapter.ondevicedisappeared|
-        // put it here anyway.
-        device.ondisappeared = function bt_deviceDisappeared() {
-          device.onpropertychanged = null;
-        };
-      });
-
-    }
-  },
-
-  updateConnected: function bt_updateConnected() {
     var wasConnected = this.connected;
-    this.connected = this.pairedDevices.some(function(device) {
-      return device.connected;
-    });
+    this.connected =
+      bluetooth.isConnected(0x111E) || bluetooth.isConnected(0x1105);
 
     if (wasConnected !== this.connected) {
       var evt = document.createEvent('CustomEvent');
@@ -154,8 +111,7 @@ var Bluetooth = {
 
   // This function is called by external (BluetoothTransfer) for re-use adapter
   getAdapter: function bt_getAdapter() {
-    var adapter = (this.defaultAdapter) ? this.defaultAdapter : null;
-    return adapter;
+    return this.defaultAdapter;
   }
 };
 

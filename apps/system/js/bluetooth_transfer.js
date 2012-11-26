@@ -26,13 +26,18 @@ var BluetoothTransfer = {
     navigator.mozSetMessageHandler('bluetooth-opp-receiving-file-confirmation',
       this.onReceivingFileConfirmation.bind(this)
     );
-    navigator.mozSetMessageHandler('bluetooth-opp-transfer-start',
+
+    // Listen to 'bluetooth-opp-transfer-start' from bluetooth.js
+    window.addEventListener('bluetooth-opp-transfer-start',
       this.onUpdateProgress.bind(this, 'start')
     );
+
     navigator.mozSetMessageHandler('bluetooth-opp-update-progress',
       this.onUpdateProgress.bind(this, 'progress')
     );
-    navigator.mozSetMessageHandler('bluetooth-opp-transfer-complete',
+
+    // Listen to 'bluetooth-opp-transfer-complete' from bluetooth.js
+    window.addEventListener('bluetooth-opp-transfer-complete',
       this.onTransferComplete.bind(this)
     );
     this.bannerContainer = this.banner.firstElementChild;
