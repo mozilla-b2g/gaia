@@ -479,6 +479,43 @@ var Settings = {
     lock.set({
       'gaia.system.checkForUpdates': true
     });
+  },
+
+  getSupportedLanguages: function settings_getLanguages(callback) {
+    var LANGUAGES = 'shared/resources/languages.json';
+
+    if (this._languages) {
+      callback(this._languages);
+    } else {
+      var self = this;
+      var xhr = new XMLHttpRequest();
+      xhr.onreadystatechange = function loadSupportedLocales() {
+        if (xhr.readyState === 4) {
+          if (xhr.status === 0 || xhr.status === 200) {
+            self._languages = xhr.response;
+            callback(self._languages);
+          } else {
+            console.error('Failed to fetch languages.json: ', xhr.statusText);
+          }
+        }
+      };
+      xhr.open('GET', LANGUAGES, true); // async
+      xhr.responseType = 'json';
+      xhr.send();
+    }
+  },
+
+  updateLanguagePanel: function settings_updateLanguagePanel() {
+    var panel = document.getElementById('languages');
+    if (panel) { // update the date and time samples in the 'languages' panel
+      var d = new Date();
+      var f = new navigator.mozL10n.DateTimeFormat();
+      var _ = navigator.mozL10n.get;
+      panel.querySelector('#region-date').textContent =
+          f.localeFormat(d, _('longDateFormat'));
+      panel.querySelector('#region-time').textContent =
+          f.localeFormat(d, _('shortTimeFormat'));
+    }
   }
 };
 
@@ -523,14 +560,19 @@ window.addEventListener('load', function loadSettings() {
       case 'sound':               // <input type="range">
         bug344618_polyfill();     // XXX to be removed when bug344618 is fixed
         break;
-      case 'languages':           // update date and time samples
-        var d = new Date();
-        var f = new navigator.mozL10n.DateTimeFormat();
-        var _ = navigator.mozL10n.get;
-        panel.querySelector('#region-date').textContent =
-            f.localeFormat(d, _('longDateFormat'));
-        panel.querySelector('#region-time').textContent =
-            f.localeFormat(d, _('shortTimeFormat'));
+      case 'languages':           // fill language selector
+        var langSel = document.querySelector('select[name="language.current"]');
+        langSel.innerHTML = '';
+        Settings.getSupportedLanguages(function fillLanguageList(languages) {
+          for (var lang in languages) {
+            var option = document.createElement('option');
+            option.value = lang;
+            option.textContent = languages[lang];
+            option.selected = (lang == document.documentElement.lang);
+            langSel.appendChild(option);
+          }
+        });
+        Settings.updateLanguagePanel();
         break;
       case 'about':               // handle specific link + load gaia_commit.txt
         document.getElementById('check-update-now').onclick =
@@ -634,27 +676,10 @@ window.addEventListener('localized', function showLanguages() {
   document.documentElement.dir = navigator.mozL10n.language.direction;
 
   // display the current locale in the main panel
-  var LANGUAGES = 'shared/resources/languages.json';
-  if (Settings.languages) {
+  Settings.getSupportedLanguages(function displayLang(languages) {
     document.getElementById('language-desc').textContent =
-        Settings.languages[navigator.mozL10n.language.code];
-  } else {
-    // store supported languages in `Settings.language'
-    var xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = function loadSupportedLocales() {
-      if (xhr.readyState === 4) {
-        if (xhr.status === 0 || xhr.status === 200) {
-          Settings.languages = JSON.parse(xhr.responseText);
-          document.getElementById('language-desc').textContent =
-              Settings.languages[navigator.mozL10n.language.code];
-        } else {
-          console.error('Failed to fetch languages.json: ', xhr.statusText);
-        }
-      }
-    };
-    xhr.open('GET', LANGUAGES, true); // async
-    xhr.responseType = 'text';
-    xhr.send();
-  }
+        languages[navigator.mozL10n.language.code];
+  });
+  Settings.updateLanguagePanel();
 });
 
