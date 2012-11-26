@@ -64,8 +64,7 @@
         }, true);
       };
 
-      icc.addEventListener("stkcommand", handleSTKCommand);
-//      navigator.mozSetMessageHandler('icc-stkcommand', handleSTKCommand);
+      icc.addEventListener('stkcommand', handleSTKCommand);
     }
 
     /**
@@ -542,7 +541,7 @@
    * Play tones
    */
   function playTone(options) {
-    debug("playTone: ", options);
+    debug('playTone: ', options);
 
     var tonePlayer = new Audio();
     var selectedPhoneSound;

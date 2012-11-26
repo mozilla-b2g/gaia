@@ -209,7 +209,7 @@ ul li > label .range-icons.brightness {
   background: none;
 }
 
-#icc .hidden, #icc-mainheader.hidden, #icc-mainentry.hidden {
+#icc .hidden {
   display: none;
 }
 

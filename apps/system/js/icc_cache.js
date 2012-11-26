@@ -28,11 +28,12 @@
       function handleSTKCommand(command) {
         debug('STK Proactive Command:', command);
         if (command.typeOfCommand == icc.STK_CMD_SET_UP_MENU) {
-          debug("STK_CMD_SET_UP_MENU:", command.options);
+          debug('STK_CMD_SET_UP_MENU:', command.options);
           var settings = window.navigator.mozSettings;
-          var reqStkMainAppMenu = settings.createLock().set({'icc.stkMainAppMenu': JSON.stringify(command.options)});
+          var reqStkMainAppMenu = settings.createLock().set(
+            {'icc.stkMainAppMenu': JSON.stringify(command.options)});
           reqStkMainAppMenu.onsuccess = function icc_getStkMainAppMenu() {
-            debug("Cached");
+            debug('Cached');
             icc.sendStkResponse(command, {
               resultCode: icc.STK_RESULT_OK
             });

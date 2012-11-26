@@ -29,18 +29,17 @@
     var reqStkMainAppMenu = lock.get('icc.stkMainAppMenu');
     reqStkMainAppMenu.onsuccess = function icc_getStkMainAppMenu() {
       var menu = JSON.parse(reqStkMainAppMenu.result['icc.stkMainAppMenu']);
-      var iccMenuItem = document.getElementById('menuItem-icc');
       if (!menu) {
         debug('No STK available - exit');
         return;
       }
 
-      debug('STK Main App Menu title: ' + menu.title);
-      iccMenuItem.textContent = menu.title;
-
       // Show the entry in settings
-      document.getElementById("icc-mainheader").classList.remove('hidden');
-      document.getElementById("icc-mainentry").classList.remove('hidden');
+      document.getElementById('icc-mainheader').hidden = false;
+      document.getElementById('icc-mainentry').hidden = false;
+
+      debug('STK Main App Menu title: ' + menu.title);
+      document.getElementById('menuItem-icc').textContent = menu.title;
     };
   });
 })();
