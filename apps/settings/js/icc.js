@@ -45,27 +45,29 @@
    * Init STK UI
    */
   function init() {
-    if (navigator.mozMobileConnection) {
-      icc = navigator.mozMobileConnection.icc;
-
-      icc.onstksessionend = function handleSTKSessionEnd(event) {
-        updateMenu();
-      };
-
-      document.getElementById('icc-stk-app-back').onclick = function goBack() {
-        responseSTKCommand({
-          resultCode: icc.STK_RESULT_BACKWARD_MOVE_BY_USER
-        });
-      };
-
-      window.onunload = function() {
-        responseSTKCommand({
-          resultCode: icc.STK_RESULT_NO_RESPONSE_FROM_USER
-        }, true);
-      };
-
-      icc.addEventListener('stkcommand', handleSTKCommand);
+    if (!navigator.mozMobileConnection) {
+      return;
     }
+
+    icc = navigator.mozMobileConnection.icc;
+
+    icc.onstksessionend = function handleSTKSessionEnd(event) {
+      updateMenu();
+    };
+
+    document.getElementById('icc-stk-app-back').onclick = function goBack() {
+      responseSTKCommand({
+        resultCode: icc.STK_RESULT_BACKWARD_MOVE_BY_USER
+      });
+    };
+
+    window.onunload = function() {
+      responseSTKCommand({
+        resultCode: icc.STK_RESULT_NO_RESPONSE_FROM_USER
+      }, true);
+    };
+
+    icc.addEventListener('stkcommand', handleSTKCommand);
 
     /**
      * Open STK main application
