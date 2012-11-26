@@ -11,8 +11,11 @@ contacts.Settings = (function() {
   var orderCheckbox,
       orderByLastName,
       simImportLink,
-      fbImportLink,
-      labelLink,
+      fbImportOption,
+      fbImportCheck,
+      fbUpdateButton,
+      fbTotalsMsg,
+      fbPwdRenewMsg,
       fbImportedValue,
       newOrderByLastName = null,
       ORDER_KEY = 'order.lastname';
@@ -20,10 +23,6 @@ contacts.Settings = (function() {
   // Initialise the settings screen (components, listeners ...)
   var init = function initialize() {
     initContainers();
-
-    getData();
-
-    checkOnline();
   };
 
   // Get the different values that we will show in the app
@@ -33,6 +32,10 @@ contacts.Settings = (function() {
       orderByLastName = value || false;
       updateOrderingUI();
     }).bind(this));
+
+    if (fb.isEnabled) {
+      fb.utils.getImportChecked(checkFbImported);
+    }
   };
 
   var updateOrderingUI = function updateOrderingUI() {
@@ -57,36 +60,67 @@ contacts.Settings = (function() {
     simImportLink.addEventListener('click',
       onSimImport);
 
-    fbImportLink = document.querySelector('[data-l10n-id="importFb"]');
-    document.addEventListener('fb_imported', function onImported(evt) {
-      // We just received an event saying we imported the contacts
-       fb.utils.getImportChecked(checkFbImported);
-    });
-    fb.utils.getImportChecked(checkFbImported);
-    fbImportLink.addEventListener('click', onFbImport);
+    if (fb.isEnabled) {
+      fbImportOption = document.querySelector('#settingsFb');
+      document.querySelector('#settingsFb > .fb-item').onclick = onFbEnable;
+
+      fbImportCheck = document.querySelector('[name="fb.imported"]');
+
+      fbUpdateButton = document.querySelector('#import-fb');
+      fbUpdateButton.onclick = Contacts.extFb.importFB;
+      fbTotalsMsg = document.querySelector('#fb-totals');
+      fbPwdRenewMsg = document.querySelector('#renew-pwd-msg');
+
+      document.addEventListener('fb_changed', function onFbChanged(evt) {
+        // We just received an event saying something might be changed
+        fbGetTotals(false);
+      });
+
+      document.addEventListener('fb_token_ready', function onFbCTokenReady(evt) {
+        // We just received an event saying we imported the contacts
+        fb.utils.getImportChecked(checkFbImported);
+      });
+
+      document.addEventListener('fb_token_error', function() {
+        fbImportedValue = 'renew-pwd';
+        fbImportOption.dataset.state = fbImportedValue;
+      });
+    }
+    else {
+      document.querySelector('#settings-article').dataset.state = 'fb-disabled';
+    }
   };
 
   // Callback that will modify the ui depending if we imported or not
   // contacts from FB
   var checkFbImported = function checkFbImportedCb(value) {
     fbImportedValue = value;
-    if (fbImportedValue) {
-      fbImportLink.textContent = _('facebook');
-      fbAddUnlinkOption();
-      fbGetTotals();
+    // Changing the state thus the CSS will select the correct values
+    fbImportOption.dataset.state = fbImportedValue;
+
+    if (fbImportedValue === 'logged-in') {
+      fbSetEnabledState();
     }
-    else {
-      if (labelLink) {
-        fbImportLink.textContent = _('importFb');
-        fbImportLink.parentNode.removeChild(labelLink);
-        labelLink = null;
-        cleanFbContactsMessage();
-      }
+    else if (fbImportedValue === 'logged-out') {
+      fbSetDisabledState();
+    }
+    else if (fbImportedValue === 'renew-pwd') {
+      fbSetEnabledState();
     }
   };
 
+  function fbSetEnabledState() {
+    fbGetTotals();
+
+    fbImportCheck.checked = true;
+  }
+
+  function fbSetDisabledState() {
+    fbImportCheck.checked = false;
+  }
+
   // Get total number of contacts imported from fb
-  var fbGetTotals = function fbGetTotals() {
+  var fbGetTotals = function fbGetTotals(requestRemoteData) {
     var req = fb.utils.getNumFbContacts();
 
     req.onsuccess = function() {
@@ -101,6 +135,11 @@ contacts.Settings = (function() {
         }
       };
 
+      // Do not ask for remote data if not necessary
+      if (requestRemoteData === false) {
+        callbackListener.remote = null;
+      }
+
       fb.utils.numFbFriendsData(callbackListener);
     };
 
@@ -110,55 +149,27 @@ contacts.Settings = (function() {
   };
 
   var fbUpdateTotals = function fbUpdateTotals(imported, total) {
-
     // If the total is not available then an empty string is showed
     var theTotal = total || '';
-    var span;
 
-    if (!document.getElementById('fbTotalsResult')) {
-      var li = document.createElement('li');
-      li.id = 'fbTotalsResult';
-      li.classList.add('result');
-      span = document.createElement('span');
-      li.appendChild(span);
-
-      li.onclick = Contacts.extFb.importFB;
-
-      var after = document.getElementById('settingsFb');
-      after.parentNode.insertBefore(li, after.nextSibling);
-    }
-    else {
-      span = document.querySelector('#fbTotalsResult span');
-    }
-
-    span.textContent = _('facebook-import-msg', {
+    var totalsMsgContent = _('facebook-import-msg', {
       'imported': imported,
       'total': theTotal
     });
 
-  };
-
-  var cleanFbContactsMessage = function cleanFbContactsMessage() {
-    var fbTotalsMessage = document.getElementById('fbTotalsResult');
-    if (fbTotalsMessage) {
-      fbTotalsMessage.parentNode.removeChild(fbTotalsMessage);
+    // This is to support the case of a long literal, particularly
+    // when 0 or 1 friends are imported
+    var msgPart1 = totalsMsgContent;
+    var msgPart2 = null;
+    if (imported <= 1) {
+      var position = totalsMsgContent.indexOf('(');
+      if (position != -1) {
+        msgPart1 = totalsMsgContent.substring(0, position - 1);
+        msgPart2 = '<span>' + totalsMsgContent.substring(position) + '</span>';
+      }
     }
-  };
 
-  // Insert the dom necessary to unlink your FB contacts
-  var fbAddUnlinkOption = function fbUnlinkOption() {
-    if (!labelLink) {
-      labelLink = document.createElement('label');
-      labelLink.classList.add('switch');
-      labelLink.innerHTML = '<input type="checkbox" checked="true" ' +
-        'name="fb.imported" />';
-      labelLink.innerHTML += '<span></span>';
-
-      fbImportLink.parentNode.insertBefore(labelLink, fbImportLink);
-
-      document.querySelector('[name="fb.imported"]').addEventListener('click',
-        onFbUnlink);
-    }
+    fbTotalsMsg.innerHTML = msgPart1 + (msgPart2 || '');
   };
 
   var onFbImport = function onFbImportClick(evt) {
@@ -176,28 +187,55 @@ contacts.Settings = (function() {
       after.parentNode.insertBefore(li, after.nextSibling);
     };
 
-  var onFbUnlink = function onFbUnlink(evt) {
+  var onFbEnable = function onFbEnable(evt) {
+    var WAIT_UNCHECK = 400;
+
     evt.preventDefault();
     evt.stopPropagation();
 
-    var msg = _('cleanFbConfirmMsg');
-    var yesObject = {
-      title: _('remove'),
-      isDanger: true,
-      callback: function() {
-        ConfirmDialog.hide();
-        doFbUnlink();
-      }
-    };
+    if (fbImportedValue === 'logged-out') {
+      fbImportCheck.checked = true;
+      // For starting we wait for the switch transition to give feedback
+      window.addEventListener('transitionend', function transendCheck(e) {
+        if (e.target.id === 'span-check-fb') {
+          window.removeEventListener('transitionend', transendCheck);
+          onFbImport();
+          // We need to uncheck just in case the user closes the window
+          // without logging in (we don't have any mechanism to know that fact)
+          window.setTimeout(function() {
+            fbImportCheck.checked = false;
+          },WAIT_UNCHECK);
+        }
+      });
+    }
+    else {
+      fbImportCheck.checked = false;
+      // For starting we wait for the switch transition to give feedback
+      window.addEventListener('transitionend', function fb_remove_all(e) {
+        if (e.target.id === 'span-check-fb') {
+          window.removeEventListener('transitionend', fb_remove_all);
+          var msg = _('cleanFbConfirmMsg');
+          var yesObject = {
+            title: _('remove'),
+            isDanger: true,
+            callback: function() {
+              ConfirmDialog.hide();
+              doFbUnlink();
+            }
+          };
 
-    var noObject = {
-      title: _('cancel'),
-      callback: function onCancel() {
-        ConfirmDialog.hide();
-      }
-    };
+          var noObject = {
+            title: _('cancel'),
+            callback: function onCancel() {
+              fbImportCheck.checked = true;
+              ConfirmDialog.hide();
+            }
+          };
 
-    ConfirmDialog.show(null, msg, noObject, yesObject);
+          ConfirmDialog.show(null, msg, noObject, yesObject);
+        }
+      });
+    }
   };
 
   function doFbUnlink() {
@@ -212,16 +250,18 @@ contacts.Settings = (function() {
         var logoutReq = fb.utils.logout();
 
         logoutReq.onsuccess = function() {
-          checkFbImported(false);
+          checkFbImported('logged-out');
           // And it is needed to clear any previously set alarm
           window.asyncStorage.getItem(fb.utils.ALARM_ID_KEY, function(data) {
             if (data) {
               navigator.mozAlarms.remove(Number(data));
-              window.asyncStorage.removeItem(fb.utils.ALARM_ID_KEY);
-              window.asyncStorage.removeItem(fb.utils.LAST_UPDATED_KEY);
-              window.asyncStorage.removeItem(fb.utils.CACHE_FRIENDS_KEY);
             }
+            window.asyncStorage.removeItem(fb.utils.ALARM_ID_KEY);
           });
+
+          window.asyncStorage.removeItem(fb.utils.LAST_UPDATED_KEY);
+          window.asyncStorage.removeItem(fb.utils.CACHE_FRIENDS_KEY);
+
           contacts.List.load();
           Contacts.hideOverlay();
         };
@@ -288,25 +328,23 @@ contacts.Settings = (function() {
   };
 
   var checkOnline = function() {
-    var disableElement = document.querySelector('#fbTotalsResult');
-    if (navigator.onLine === true) {
-      fbImportLink.parentNode.removeAttribute('aria-disabled');
-      if (disableElement) {
-        disableElement.removeAttribute('aria-disabled');
+    if (fb.isEnabled) {
+      if (navigator.onLine === true) {
+        fbImportOption.querySelector('li').removeAttribute('aria-disabled');
+        fbUpdateButton.removeAttribute('disabled');
       }
-    }
-    else {
-      fbImportLink.parentNode.setAttribute('aria-disabled', 'true');
-      if (disableElement) {
-        disableElement.setAttribute('aria-disabled', 'true');
+      else {
+        fbImportOption.querySelector('li.fb-item').setAttribute('aria-disabled',
+                                                              'true');
+        fbUpdateButton.removeAttribute('disabled');
+        fbUpdateButton.setAttribute('disabled', 'disabled');
       }
     }
   };
 
   var refresh = function refresh() {
-    if (document.getElementById('fbTotalsResult')) {
-      fbGetTotals();
-    }
+    getData();
+    checkOnline();
   };
 
   return {
