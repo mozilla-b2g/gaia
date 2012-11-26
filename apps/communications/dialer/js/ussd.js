@@ -151,8 +151,8 @@ var UssdManager = {
   },
 
   isUSSD: function um_isUSSD(number) {
-    // A valid USSD/MMI code is any 'number' with a '*' and/or a '#' inside.
-    return ((number.indexOf('*') != -1) || (number.indexOf('#') != -1));
+    // A valid USSD/MMI code is any 'number' ending in '#'.
+    return (number.charAt(number.length - 1) === '#');
   },
 
   handleEvent: function um_handleEvent(evt) {
