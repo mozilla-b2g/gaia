@@ -83,6 +83,8 @@ var ScreenManager = {
     this._firstOn = false;
     SettingsListener.observe('screen.timeout', 60,
     function screenTimeoutChanged(value) {
+      if (typeof value !== 'number')
+        value = parseInt(value);
       self._idleTimeout = value;
       self._setIdleTimeout(self._idleTimeout);
 
@@ -146,7 +148,7 @@ var ScreenManager = {
   turnScreenOff: function scm_turnScreenOff(instant) {
     if (!this.screenEnabled)
       return false;
-
+    
     var self = this;
 
     // Remember the current screen brightness. We will restore it when
@@ -170,7 +172,9 @@ var ScreenManager = {
     };
 
     if (instant) {
-      screenOff();
+      if (!WindowManager.isFtuRunning()) {
+        screenOff();
+      }
       return true;
     }
 

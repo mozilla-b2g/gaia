@@ -57,6 +57,7 @@ var WindowManager = (function() {
   var ftu = null;
   var ftuManifestURL = '';
   var ftuURL = '';
+  var runningFTU = false;
   // keep the reference of inline activity frame here
   var inlineActivityFrame = null;
 
@@ -405,9 +406,9 @@ var WindowManager = (function() {
   function windowClosed(frame) {
     // If the FTU is closing, make sure we save this state
     if (frame.src == ftuURL) {
-      window.asyncStorage.setItem('ftu.enabled', false);
+      runningFTU = false;
       document.getElementById('screen').classList.remove('ftu');
-
+      window.asyncStorage.setItem('ftu.enabled', false);
       // Done with FTU, letting everyone know
       var evt = document.createEvent('CustomEvent');
       evt.initCustomEvent('ftudone',
@@ -879,6 +880,7 @@ var WindowManager = (function() {
     }
     // Case 2: null --> app
     else if (!currentApp && newApp != homescreen) {
+      runningFTU = true;
       openWindow(newApp, function windowOpened() {
         handleInitlogo(function() {
           var mainScreen = document.getElementById('screen');
@@ -1482,9 +1484,8 @@ var WindowManager = (function() {
 
     if (document.mozFullScreen) {
       document.mozCancelFullScreen();
-    } else if (inlineActivityFrame) {
-      stopInlineActivity();
-    } else if (displayedApp !== homescreen || inTransition) {
+    }
+    if (displayedApp !== homescreen || inTransition) {
       if (displayedApp != ftuURL) {
         setDisplayedApp(homescreen);
       } else {
@@ -1532,6 +1533,9 @@ var WindowManager = (function() {
 
   // Return the object that holds the public API
   return {
+    isFtuRunning: function() {
+      return runningFTU;
+    },
     launch: launch,
     kill: kill,
     reload: reload,
