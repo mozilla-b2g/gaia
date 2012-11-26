@@ -595,6 +595,17 @@ html, body {
   clear: both;
 }
 
+#welcome_firefox #form_share_statistics label {
+  width: auto;
+  height: auto;
+  margin: 0 3rem 0 0;
+}
+
+#welcome_firefox #form_share_statistics span {
+  top: 1rem;
+  left: 1rem;
+}
+
 #welcome_firefox #form_share_statistics p {
   width: calc(100% - 3.5rem);
   float: right;
@@ -664,7 +675,7 @@ html, body {
   margin-top: 2rem;
 }
 
-/******************************************************************************
+/*
  * Lists
  */
 
