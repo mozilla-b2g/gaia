@@ -5,25 +5,6 @@
 
 (function() {
   /**
-   * Constants
-   */
-  var displayTextTimeout = 10000;
-  var DEBUG = false;
-
-  /**
-   * Debug method
-   */
-  function debug(msg, optObject) {
-    if (DEBUG) {
-      var output = '[DEBUG] STKUI: ' + msg;
-      if (optObject) {
-        output += JSON.stringify(optObject);
-      }
-      console.log(output);
-    }
-  }
-
-  /**
    * Init
    */
   var iccMenuItem = document.getElementById('menuItem-icc');
