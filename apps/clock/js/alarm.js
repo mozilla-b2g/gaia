@@ -463,7 +463,7 @@ var AlarmManager = {
     } else {
       nextAlarmFireTime = getNextAlarmFireTime(alarm);
     }
-    var request = navigator.mozAlarms.add(nextAlarmFireTime, 'honorTimezone',
+    var request = navigator.mozAlarms.add(nextAlarmFireTime, 'ignoreTimezone',
                   { id: alarm.id }); // give the alarm id for the request
     var self = this;
     request.onsuccess = function(e) {

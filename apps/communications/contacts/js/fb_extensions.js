@@ -273,9 +273,10 @@ if (typeof Contacts.extFb === 'undefined') {
 
         case 'window_close':
           close(data.message);
+          notifySettings();
         break;
 
-        case 'fb_imported':
+        case 'fb_updated':
           contacts.List.load();
           notifySettings();
 
@@ -285,7 +286,6 @@ if (typeof Contacts.extFb === 'undefined') {
               data: ''
             }, fb.CONTACTS_APP_ORIGIN);
           });
-
         break;
 
         case 'sync_finished':

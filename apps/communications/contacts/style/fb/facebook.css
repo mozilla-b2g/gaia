@@ -142,6 +142,10 @@ h2.block-title {
   display: block;
 }
 
+#groups-list li[data-uuid] * {
+  pointer-events: none;
+}
+
 #shortcuts {
   position: fixed;
   right: 0;

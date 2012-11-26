@@ -159,7 +159,7 @@
     opacity 0.5s ease;
 }
 
-@keyframes swiper-prompt {
+@keyframes swiper-elastic {
   0%, 100% {
     transform: translateY(0);
     animation-timing-function: ease-out;
@@ -170,8 +170,8 @@
   }
 }
 
-.prompt #swiper-icon-container {
-  animation: swiper-prompt 1s 1;
+.elastic #swiper-icon-container {
+  animation: swiper-elastic 1s 1;
   opacity: 0.4;
 }
 
