@@ -11,10 +11,10 @@
   <link rel="stylesheet" type="text/css" href="/shared/style/buttons.css">
   <link rel="stylesheet" type="text/css" href="/shared/style_unstable/lists.css">
 
+  <!-- Specific style -->
   <link rel="stylesheet" type="text/css" href="/ftu/css/style.css">
-  <!-- TODO Use BB of list when ready -->
   <link rel="stylesheet" type="text/css" href="/ftu/css/fb_extensions.css">
-  <link href="/facebook/style/curtain_frame.css" rel="stylesheet">
+  <link rel="stylesheet" type="text/css" href="/facebook/style/curtain_frame.css">
 
   <title>Welcome to Firefox OS</title>
 
@@ -33,17 +33,17 @@
   <script defer type="text/javascript" src="/ftu/js/facebook.js"></script>
   <script defer type="text/javascript" src="/ftu/js/tutorial.js"></script>
   <script defer type="text/javascript" src="/ftu/js/navigation.js"></script>
-  <script defer type="text/javascript" src="/ftu/js/dataMobile.js"></script>
+  <script defer type="text/javascript" src="/ftu/js/data_mobile.js"></script>
   <script defer type="text/javascript" src="/ftu/js/time.js"></script>
   <script defer type="text/javascript" src="/ftu/js/ui.js"></script>
   <script defer type="text/javascript" src="/ftu/js/language.js"></script>
   <script defer type="text/javascript" src="/ftu/js/app.js"></script>
   <script defer type="text/javascript" src="/contacts/js/utilities/import_sim_contacts.js"></script>
-
 </head>
 <body>
   <section id="splash" role="region" class="show">
   </section>
+
   <section id="pincode" role="region" class="skin-organic">
     <header>
       <h1 data-l10n-id="pincode">Pin code</h1>
@@ -62,6 +62,7 @@
       </button>
     </nav>
   </section>
+
   <section id="activation" role="region" class="skin-organic no-options">
     <header>
       <menu type="toolbar">
@@ -81,48 +82,7 @@
       <section role="region" id="languages">
         <article data-type="list" class="pack-value-selector">
           <ul>
-            <li>
-              <label>
-                <input type="radio" name="language.current" value="en-US" checked />
-                <span></span>
-                <p dir="ltr" data-l10n-id="english">English (US)</p>
-              </label>
-            </li>
-            <li aria-disabled="true">
-              <label>
-                <input disabled="disabled" type="radio" name="language.current" value="es"/>
-                <span></span>
-                <p dir="ltr" data-l10n-id="spanish">Español</p>
-              </label>
-            </li>
-            <li aria-disabled="true">
-              <label>
-                <input disabled="disabled" type="radio" name="language.current" value="fr"/>
-                <span></span>
-              <p dir="ltr" data-l10n-id="french">Français</p>
-              </label>
-            </li>
-            <li aria-disabled="true">
-              <label>
-                <input disabled="disabled" type="radio" name="language.current" value="it"/>
-                <span></span>
-              <p dir="ltr" data-l10n-id="italian">Italiano</p>
-              </label>
-            </li>
-            <li aria-disabled="true">
-              <label>
-                <input disabled="disabled" type="radio" name="language.current" value="pt-BR"/>
-                <span></span>
-              <p dir="ltr" data-l10n-id="portuguese">Português (do Brasil)</p>
-              </label>
-            </li>
-            <li aria-disabled="true">
-              <label>
-                <input disabled="disabled" type="radio" name="language.current" value="zh-TW"/>
-                <span></span>
-              <p dir="ltr" data-l10n-id="traditionalChinese">正體中文</p>
-              </label>
-            </li>
+            <!-- filled by js/language.js -->
           </ul>
         </article>
       </section>
@@ -335,6 +295,7 @@
       </button>
     </menu>
   </section>
+
   <section id="finish" role="region">
     <section class="content">
       <h1 data-l10n-id="startYourPhone">
@@ -357,6 +318,7 @@
       </menu>
     </section>
   </section>
+
   <section id="tutorial" role="region">
     <article role="main">
       <section role="region" id="step1">
@@ -473,13 +435,14 @@
       </section>
       <menu role="navigation" class="forward-only">
         <button class="recommend" id="tutorialFinished" data-l10n-id="letsGo">
-
         </button>
       </menu>
     </section>
   </section>
+
   <iframe id="fb-curtain" src="/facebook/curtain.html"></iframe>
   <iframe id="fb-oauth" hidden src="/facebook/fb_oauth.html"></iframe>
   <iframe id="fb-extensions"></iframe>
 </body>
 </html>
+

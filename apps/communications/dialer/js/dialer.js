@@ -109,7 +109,6 @@ var CallHandler = (function callHandler() {
   }
 
   function startDial(number) {
-    
     var sanitizedNumber = number.replace(/-/g, '');
     if (telephony) {
       var call = telephony.dial(sanitizedNumber);
@@ -280,3 +279,4 @@ document.addEventListener('mozvisibilitychange', function visibility(e) {
     Recents.refresh();
   }
 });
+
