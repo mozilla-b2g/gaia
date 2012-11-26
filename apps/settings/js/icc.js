@@ -256,7 +256,7 @@
       case icc.STK_EVENT_TYPE_NETWORK_SEARCH_MODE_CHANGED:
       case icc.STK_EVENT_TYPE_BROWSING_STATUS:
       case icc.STK_EVENT_TYPE_FRAMES_INFORMATION_CHANGED:
-        debug(' [DEBUG] STK TODO event: ' + JSON.stringify(eventList[evt]));
+        debug(' [DEBUG] STK TODO event: ', eventList[evt]);
         break;
       }
     }
@@ -356,9 +356,8 @@
     debug('Showing STK main menu');
     stkOpenAppName = null;
 
-    var settings = window.navigator.mozSettings;
-    var lock = settings.createLock();
-    var reqStkMainAppMenu = lock.get('icc.stkMainAppMenu');
+    var reqStkMainAppMenu =
+      window.navigator.mozSettings.createLock().get('icc.stkMainAppMenu');
     reqStkMainAppMenu.onsuccess = function icc_getStkMainAppMenu() {
       var menu = JSON.parse(reqStkMainAppMenu.result['icc.stkMainAppMenu']);
       clearList();
