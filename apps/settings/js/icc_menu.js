@@ -24,10 +24,10 @@
 
   setTimeout(function updateStkMenu() {
     debug('Showing STK main menu');
-    var reqStkMainAppMenu =
-      window.navigator.mozSettings.createLock().get('icc.stkMainAppMenu');
-    reqStkMainAppMenu.onsuccess = function icc_getStkMainAppMenu() {
-      var menu = JSON.parse(reqStkMainAppMenu.result['icc.stkMainAppMenu']);
+    var reqApplications =
+      window.navigator.mozSettings.createLock().get('icc.applications');
+    reqApplications.onsuccess = function icc_getApplications() {
+      var menu = JSON.parse(reqApplications.result['icc.applications']);
       if (!menu) {
         debug('No STK available - exit');
         return;

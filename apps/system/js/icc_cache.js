@@ -32,10 +32,10 @@
       debug('STK Proactive Command:', command);
       if (command.typeOfCommand == icc.STK_CMD_SET_UP_MENU) {
         debug('STK_CMD_SET_UP_MENU:', command.options);
-        var reqStkMainAppMenu = window.navigator.mozSettings.createLock().set({
-          'icc.stkMainAppMenu': JSON.stringify(command.options)
+        var reqApplications = window.navigator.mozSettings.createLock().set({
+          'icc.applications': JSON.stringify(command.options)
         });
-        reqStkMainAppMenu.onsuccess = function icc_getStkMainAppMenu() {
+        reqApplications.onsuccess = function icc_getApplications() {
           debug('Cached');
           icc.sendStkResponse(command, {
             resultCode: icc.STK_RESULT_OK
