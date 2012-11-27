@@ -970,7 +970,8 @@ li[role="listitem"] small {
 }
 
 /* This is a dirty hack to hide the bottom toolbar while
- * the keyboard is active, than device-height - 20px (for status bar),
+ * the keyboard is active, than device-height - 40px 
+ * (for status bar/mini attention screen),
  * then the keyboard is likely activated
  */
 /* For the Otoro, 320x480 */
