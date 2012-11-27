@@ -6,8 +6,8 @@
   margin: 0;
   padding: 0;
   width: 100%;
-  height: 3px;
-  background-image: url('images/progress.gif');
+  height: 4px;
+  background-image: url('../shared/progress.gif');
 
   pointer-events: none;
   visibility: hidden;
