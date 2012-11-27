@@ -80,8 +80,10 @@ var ModalDialog = {
         if (frameType != 'window' && frameType != 'inline-activity')
           return;
 
+        /* errors from wrapper should be handled in Window Manager */
         /* fatal case (App crashing) is handled in Window Manager */
-        if (evt.type == 'mozbrowsererror' && evt.detail.type == 'fatal')
+        if ('wrapper' in evt.target.dataset.frameOrigin.dataset ||
+            evt.type == 'mozbrowsererror' && evt.detail.type == 'fatal')
           return;
 
         evt.preventDefault();
