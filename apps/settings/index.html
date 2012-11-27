@@ -46,6 +46,9 @@
     <script type="application/javascript" defer src="js/connectivity.js"></script>
     <script type="application/javascript" defer src="js/security_privacy.js"></script>
 
+    <!-- ICC Main menu cache recover -->
+    <script type="application/javascript" src="js/icc_menu.js"></script>
+
     <!-- all non-#root panels will lazy-load their own scripts -->
   </head>
   <body class="skin-organic">
@@ -2000,6 +2003,14 @@
         <h1 data-l10n-id="improveFirefoxOS">Improve Firefox OS</h1>
       </header>
 
+      <ul>
+        <li>
+          <label>
+            <button data-href="http://input.mozilla.org/feedback" data-l10n-id="sendMozillaFeedback"></button>
+          </label>
+        </li>
+      </ul>
+
       <header>
         <h2 data-l10n-id="performanceData">Performance Data</h2>
       </header>
@@ -2065,19 +2076,23 @@
       <!--
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="helpAndFeedback"> Help </h1>
+        <h1 data-l10n-id="help"></h1>
       </header>
 
       <ul>
         <li>
-          <a href="#" data-href="http://www.telefonica.com/" data-l10n-id="online-support"> Online Support:
-            <span class="link-text" data-l10n-id="online-support-link">www.telefonica.com</span>
+          <a data-l10n-id="online-support"> Online Support:
+            <span class="link-text" data-l10n-id="online-support-link-text"></span>
           </a>
         </li>
         <li>
-          <a href="#" data-href="tel:+16509030800" data-l10n-id="call-support"> Call Support:
-            <span class="tel-text" data-l10n-id="call-support-number">+1 650-903-0800</span>
-          </a>
+          <span data-l10n-id="call-support"> Call Support:
+            <span id="call-support-numbers">
+              <a class="tel-text" data-l10n-id="call-support-link-1"></a>
+              <span data-l10n-id="call-support-link-or"></span>
+              <a class="tel-text" data-l10n-id="call-support-link-2"></a>
+            </span>
+          </span>
         </li>
         <li>
           <label>
@@ -2116,7 +2131,6 @@
         </menu>
       </form>
 
-      <script type="application/javascript" src="/shared/js/async_storage.js"></script>
       <script type="application/javascript" src="/shared/js/notification_helper.js"></script>
       <script type="application/javascript" src="js/icc.js"></script>
       -->
@@ -2253,21 +2267,21 @@
           <a id="menuItem-accessibility" class="menu-item" href="#accessibility" data-l10n-id="accessibility">Accessibility</a>
         </li>
         <li>
-          <a id="menuItem-helpAndFeedback" class="menu-item" href="#improveFirefoxOS" data-l10n-id="improveFirefoxOS">Improve Firefox OS</a>
+          <a id="menuItem-improveFirefoxOS" class="menu-item" href="#improveFirefoxOS" data-l10n-id="improveFirefoxOS">Improve Firefox OS</a>
         </li>
         <li>
-          <a id="menuItem-helpAndFeedback" class="menu-item" href="#help" data-l10n-id="helpAndFeedback">Help &amp; Feedback</a>
+          <a id="menuItem-help" class="menu-item" href="#help" data-l10n-id="help">Help</a>
         </li>
       </ul>
 
       <!-- Main :: SIM Toolkit -->
-      <header>
+      <header id="icc-mainheader" hidden>
         <h2 data-l10n-id="simToolkit">SIM Toolkit</h2>
       </header>
-      <ul>
+      <ul id="icc-mainentry" hidden>
         <li>
           <small id="icc-desc" class="menu-item-desc"></small>
-          <a id="menuItem-icc" class="menu-item" href="#icc" data-l10n-id="simToolkit">SIM Toolkit</a>
+          <a id="menuItem-icc" class="menu-item" href="#icc">SIM Toolkit</a>
         </li>
       </ul>
     </section>

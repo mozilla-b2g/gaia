@@ -8,6 +8,7 @@ label:not([for])  {
   width: 5rem;
   height: 5rem;
   position: relative;
+  background: none;
 }
 
 label:not([for]) input {

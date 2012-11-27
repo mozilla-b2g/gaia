@@ -104,11 +104,15 @@ if (typeof fb.oauth === 'undefined') {
 
         var end = parameters.expires_in;
 
-        // Don't wait for callback because it's not necessary
         window.asyncStorage.setItem(STORAGE_KEY, {
           access_token: access_token,
           expires: end * 1000,
           token_ts: Date.now()
+        }, function notify_parent() {
+              parent.postMessage({
+                type: 'token_stored',
+                data: ''
+              },fb.oauthflow.params.contactsAppOrigin);
         });
       },0);
     } // tokenReady

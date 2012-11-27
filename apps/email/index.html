@@ -53,7 +53,8 @@
         <span class="icon icon-close"></span>
       </button>
       <p>Toaster Title</p>
-      <button data-l10n-id="toaster-undo" class="toaster-banner-undo">undo</button>
+      <button data-l10n-id="toaster-undo" class="toaster-banner-undo"></button>
+      <button data-l10n-id="toaster-retry" class="toaster-banner-retry"></button>
     </section>
   </div>
 
@@ -98,6 +99,14 @@
         </div>
         <div class="fld-nav-toolbar bottom-toolbar">
           <button class="fld-nav-settings-btn bottom-btn"></button>
+          <div class="fld-nav-last-synced">
+            <h3>
+              <span class="fld-nav-last-synced-label"
+                    data-l10n-id="account-last-synced-label"></span>
+              <span class="fld-nav-last-synced-value"></span>
+            </h3>
+          </div>
+          <span class="fld-nav-account-problem icon collapsed">!</span>
         </div>
       </div>
       <!-- Lists the messages in a folder -->
@@ -139,6 +148,7 @@
               <button type="reset" data-l10n-id="form-clear-input"></button>
             </form>
           </header>
+          <!-- Search filter switcher -->
           <header class="msg-search-controls-bar">
             <ul role="tablist" class="filter" data-items="5">
               <li role="tab" class="msg-search-from msg-search-filter"
@@ -160,7 +170,8 @@
             </ul>
           </header>
         </section>
-        <!-- Search filter switcher -->
+        <progress class="msg-list-progress hidden" value="0" total="1.0">
+        </progress>
         <!-- Scroll region -->
         <div class="msg-list-scrollouter">
           <!-- exists so we can force a minimum height -->
@@ -783,6 +794,7 @@
     <div id="templ-fld">
       <a class="fld-account-item">
         <span class="fld-account-name"></span>
+        <span class="fld-account-problem icon collapsed">!</span>
         <span class="fld-account-unread"></span>
       </a>
       <a class="fld-folder-item">
