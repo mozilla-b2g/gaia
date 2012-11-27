@@ -46,6 +46,9 @@
     <script type="application/javascript" defer src="js/connectivity.js"></script>
     <script type="application/javascript" defer src="js/security_privacy.js"></script>
 
+    <!-- ICC Main menu cache recover -->
+    <script type="application/javascript" src="js/icc_menu.js"></script>
+
     <!-- all non-#root panels will lazy-load their own scripts -->
   </head>
   <body class="skin-organic">
@@ -2128,7 +2131,6 @@
         </menu>
       </form>
 
-      <script type="application/javascript" src="/shared/js/async_storage.js"></script>
       <script type="application/javascript" src="/shared/js/notification_helper.js"></script>
       <script type="application/javascript" src="js/icc.js"></script>
       -->
@@ -2273,13 +2275,13 @@
       </ul>
 
       <!-- Main :: SIM Toolkit -->
-      <header>
+      <header id="icc-mainheader" hidden>
         <h2 data-l10n-id="simToolkit">SIM Toolkit</h2>
       </header>
-      <ul>
+      <ul id="icc-mainentry" hidden>
         <li>
           <small id="icc-desc" class="menu-item-desc"></small>
-          <a id="menuItem-icc" class="menu-item" href="#icc" data-l10n-id="simToolkit">SIM Toolkit</a>
+          <a id="menuItem-icc" class="menu-item" href="#icc">SIM Toolkit</a>
         </li>
       </ul>
     </section>

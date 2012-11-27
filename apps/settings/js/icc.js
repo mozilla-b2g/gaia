@@ -5,25 +5,6 @@
 
 (function() {
   /**
-   * Constants
-   */
-  var displayTextTimeout = 10000;
-  var DEBUG = false;
-
-  /**
-   * Debug method
-   */
-  function debug(msg, optObject) {
-    if (DEBUG) {
-      var output = '[DEBUG] STKUI: ' + msg;
-      if (optObject) {
-        output += JSON.stringify(optObject);
-      }
-      console.log(output);
-    }
-  }
-
-  /**
    * Init
    */
   var iccMenuItem = document.getElementById('menuItem-icc');
@@ -45,27 +26,29 @@
    * Init STK UI
    */
   function init() {
-    if (navigator.mozMobileConnection) {
-      icc = navigator.mozMobileConnection.icc;
-
-      icc.onstksessionend = function handleSTKSessionEnd(event) {
-        updateMenu();
-      };
-
-      document.getElementById('icc-stk-app-back').onclick = function goBack() {
-        responseSTKCommand({
-          resultCode: icc.STK_RESULT_BACKWARD_MOVE_BY_USER
-        });
-      };
-
-      window.onunload = function() {
-        responseSTKCommand({
-          resultCode: icc.STK_RESULT_NO_RESPONSE_FROM_USER
-        }, true);
-      };
-
-      navigator.mozSetMessageHandler('icc-stkcommand', handleSTKCommand);
+    if (!window.navigator.mozMobileConnection) {
+      return;
     }
+
+    icc = window.navigator.mozMobileConnection.icc;
+
+    icc.onstksessionend = function handleSTKSessionEnd(event) {
+      updateMenu();
+    };
+
+    document.getElementById('icc-stk-app-back').onclick = function goBack() {
+      responseSTKCommand({
+        resultCode: icc.STK_RESULT_BACKWARD_MOVE_BY_USER
+      });
+    };
+
+    window.onunload = function() {
+      responseSTKCommand({
+        resultCode: icc.STK_RESULT_NO_RESPONSE_FROM_USER
+      }, true);
+    };
+
+    icc.addEventListener('stkcommand', handleSTKCommand);
 
     /**
      * Open STK main application
@@ -73,6 +56,9 @@
     iccMenuItem.onclick = function onclick() {
       updateMenu();
     };
+
+    // Load STK apps
+    updateMenu();
   }
 
   /**
@@ -95,21 +81,13 @@
   /**
    * Handle ICC Commands
    */
-  function handleSTKCommand(command) {
+  function handleSTKCommand(event) {
+    var command = event.command;
     debug('STK Proactive Command:', command);
     iccLastCommand = command;
     var options = command.options;
 
     switch (command.typeOfCommand) {
-      case icc.STK_CMD_SET_UP_MENU:
-        window.asyncStorage.setItem('stkMainAppMenu', options);
-        updateMenu();
-        iccLastCommandProcessed = true;
-        responseSTKCommand({
-          resultCode: icc.STK_RESULT_OK
-        });
-        break;
-
       case icc.STK_CMD_SELECT_ITEM:
         updateSelection(command);
         openSTKApplication();
@@ -237,7 +215,7 @@
       case icc.STK_EVENT_TYPE_CALL_CONNECTED:
       case icc.STK_EVENT_TYPE_CALL_DISCONNECTED:
         debug(' STK: Registering to communications changes event');
-        var comm = navigator.mozTelephony;
+        var comm = window.navigator.mozTelephony;
         comm.addEventListener('callschanged', handleCallsChangedEvent);
         break;
       case icc.STK_EVENT_TYPE_LOCATION_STATUS:
@@ -259,7 +237,7 @@
       case icc.STK_EVENT_TYPE_NETWORK_SEARCH_MODE_CHANGED:
       case icc.STK_EVENT_TYPE_BROWSING_STATUS:
       case icc.STK_EVENT_TYPE_FRAMES_INFORMATION_CHANGED:
-        debug(' [DEBUG] STK TODO event: ' + JSON.stringify(eventList[evt]));
+        debug(' [DEBUG] STK TODO event: ', eventList[evt]);
         break;
       }
     }
@@ -306,7 +284,7 @@
       return;
     }
     debug(' STK Communication changed - ' + evt.type);
-    navigator.mozTelephony.calls.forEach(function callIterator(call) {
+    window.navigator.mozTelephony.calls.forEach(function callIterator(call) {
       debug(' STK:CALLS State change: ' + call.state);
       var outgoing = call.state == 'incoming';
       if (call.state == 'incoming') {
@@ -359,7 +337,10 @@
     debug('Showing STK main menu');
     stkOpenAppName = null;
 
-    window.asyncStorage.getItem('stkMainAppMenu', function(menu) {
+    var reqApplications =
+      window.navigator.mozSettings.createLock().get('icc.applications');
+    reqApplications.onsuccess = function icc_getApplications() {
+      var menu = JSON.parse(reqApplications.result['icc.applications']);
       clearList();
 
       document.getElementById('icc-stk-exit').classList.remove('hidden');
@@ -392,7 +373,7 @@
           attributes: [['stk-menu-item-identifier', menuItem.identifier]]
         }));
       });
-    });
+    };
   }
 
   function onMainMenuItemClick(event) {
@@ -599,7 +580,7 @@
     },timeout);
 
     if (options.isVibrate == true) {
-      navigator.vibrate([200]);
+      window.navigator.vibrate([200]);
     }
 
     if (options.text) {
@@ -670,7 +651,7 @@
    */
   function openSTKApplication() {
     document.location.hash = 'icc';
-    navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+    window.navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
       var app = evt.target.result;
       app.launch('settings');
     };
