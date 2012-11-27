@@ -111,7 +111,7 @@ var Camera = {
   RECORD_SPACE_PADDING: 1024 * 1024 * 1,
 
   // Maximum image resolution for still photos taken with camera
-  MAX_IMAGE_RES: 1024 * 768, // was: 1600*1200
+  MAX_IMAGE_RES: 1600 * 1200, // Just under 2 megapixels
 
   get overlayTitle() {
     return document.getElementById('overlay-title');
