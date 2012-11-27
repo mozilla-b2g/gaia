@@ -302,9 +302,12 @@ var Settings = {
     var request = lock.get(key);
     request.onsuccess = function() {
       var lastUpdated = request.result[key];
+      if (!lastUpdated) {
+        return;
+      }
+
       var f = new navigator.mozL10n.DateTimeFormat();
       var _ = navigator.mozL10n.get;
-
       lastUpdateDate.textContent = f.localeFormat(new Date(lastUpdated),
                                                   _('shortDateTimeFormat'));
     };
