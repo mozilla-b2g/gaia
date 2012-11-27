@@ -42,43 +42,62 @@ function Frame(container, includeVideo) {
   this.url = null;
 }
 
-Frame.prototype.displayImage = function displayImage(blob, width, height) {
+Frame.prototype.displayImage = function displayImage(blob, width, height,
+                                                     preview)
+{
+  this.clear();  // Reset everything
+
+  // Remember what we're displaying
+  this.blob = blob;
+  this.fullsizeWidth = width;
+  this.fullsizeHeight = height;
+  this.preview = preview;
+
   // Keep track of what kind of content we have
   this.displayingImage = true;
-  this.displayingVideo = false;
 
-  // Hide the video player and display the image
-  if (this.video)
-    this.video.hide();
+  // Make the image element visible
   this.image.style.display = 'block';
 
-  // Remember the blob
-  this.blob = blob;
-
-  // If we have the blob url of something we've previously displayed
-  // revoke it now
-  if (this.url)
-    URL.revokeObjectURL(this.url);
-
-  // Get a new URL for this blob
-  this.url = URL.createObjectURL(blob);
-
-  // Display it as an image, and make sure the video isn't holding anything
-  this.image.src = this.url;
-  if (this.video)
-    this.video.player.src = null; // XXX '' or about:blank instead?
-
-  // If we have the width and height, position the image now.
-  // Otherwise, register an event handler to position it when loaded.
-  // The gallery app always has the dimensions but the open activity doesn't.
-  if (width && height) {
-    this.itemWidth = width;
-    this.itemHeight = height;
-    this.computeFit();
-    this.setPosition();
+  // If the preview is at least as big as the screen, display that.
+  // Otherwise, display the full-size image.
+  if (preview &&
+      (preview.width >= window.innerWidth ||
+       preview.height >= window.innerHeight)) {
+    this.displayingPreview = true;
+    this._displayImage(blob.slice(preview.start, preview.end, 'image/jpeg'),
+                       preview.width, preview.height);
   }
   else {
-    var self = this;
+    this._displayImage(blob, width, height);
+  }
+};
+
+// A utility function we use to display the full-size image or the
+// preview The last two arguments are optimizations used by
+// switchToFullSizeImage() to make the transition from preview to
+// fullscreen smooth. If waitForPaint is true, then this function will
+// keep the old image on the screen until the new image is painted
+// over it so we (hopefully) don't end up with a blank screen or
+// flash.  And if callback is specified, it will call the callback
+// when thew new images is visible on the screen.  If either of those
+// arguments are specified, the width and height must be specified.
+Frame.prototype._displayImage = function _displayImage(blob, width, height,
+                                                       waitForPaint, callback)
+{
+  var self = this;
+  var oldImage;
+
+  // Create a URL for the blob (or preview blob)
+  if (this.url)
+    URL.revokeObjectURL(this.url);
+  this.url = URL.createObjectURL(blob);
+
+  // If we don't know the width or the height yet, then set up an event
+  // handler to set the image size and position once it is loaded.
+  // This happens for the open activity.
+  if (!width || !height) {
+    this.image.src = this.url;
     this.image.addEventListener('load', function onload() {
       this.removeEventListener('load', onload);
       self.itemWidth = this.naturalWidth;
@@ -86,34 +105,124 @@ Frame.prototype.displayImage = function displayImage(blob, width, height) {
       self.computeFit();
       self.setPosition();
     });
+    return;
+  }
+
+  // Otherwise, we have a width and height, and we may also have to handle
+  // the waitForPaint and callback arguments
+
+  // If waitForPaint is set, then keep the old image around and displayed
+  // until the new image is loaded.
+  if (waitForPaint) {
+    // Remember the old image
+    oldImage = this.image;
+
+    // Create a new element to load the new image into.
+    // Insert it into the frame, but don't remove the old image yet
+    this.image = document.createElement('img');
+    this.container.appendChild(this.image);
+
+    // Change the old image slightly to give the user some immediate
+    // feedback that something is happening
+    oldImage.classList.add('swapping');
+  }
+
+  // Start loading the new image
+  this.image.src = this.url;
+  // Update image size and position
+  this.itemWidth = width;
+  this.itemHeight = height;
+  this.computeFit();
+  this.setPosition();
+
+  // If waitForPaint is set, or if there is a callback, then we need to
+  // run some code when the new image has loaded and been painted.
+  if (waitForPaint || callback) {
+    whenLoadedAndVisible(this.image, 1000, function() {
+      if (waitForPaint) {
+        // Remove the old image now that the new one is visible
+        self.container.removeChild(oldImage);
+        oldImage.src = null;
+      }
+
+      if (callback) {
+        // Let the caller know that the new image is ready, but
+        // wait for an animation frame before doing it. The point of
+        // using mozRequestAnimationFrame here is that it gives the
+        // removeChild() call above a chance to take effect.
+        mozRequestAnimationFrame(function() {
+          callback();
+        });
+      }
+    });
+  }
+
+  // Wait until the load event on the image fires, and then wait for a
+  // MozAfterPaint event after that, and then, finally, invoke the
+  // callback.  Don't wait more than the timeout, though: we need to
+  // ensure that we always call the callback even if the image does not
+  // load or if we don't get a MozAfterPaint event.
+  function whenLoadedAndVisible(image, timeout, callback) {
+    var called = false;
+    var timer = setTimeout(function()
+                           {
+                             called = true;
+                             callback();
+                           },
+                           timeout || 1000);
+
+    image.addEventListener('load', function onload() {
+      image.removeEventListener('load', onload);
+      window.addEventListener('MozAfterPaint', function onpaint() {
+        window.removeEventListener('MozAfterPaint', onpaint);
+        clearTimeout(timer);
+        if (!called) {
+          callback();
+        }
+      });
+    });
+  }
+};
+
+Frame.prototype._switchToFullSizeImage = function _switchToFullSizeImage(cb) {
+  if (this.displayingImage && this.displayingPreview) {
+    this.displayingPreview = false;
+    this._displayImage(this.blob, this.fullsizeWidth, this.fullsizeHeight,
+                       true, cb);
+  }
+};
+
+Frame.prototype._switchToPreviewImage = function _switchToPreviewImage() {
+  if (this.displayingImage && !this.displayingPreview) {
+    this.displayingPreview = true;
+    this._displayImage(this.blob.slice(this.preview.start,
+                                       this.preview.end,
+                                       'image/jpeg'),
+                       this.preview.width,
+                       this.preview.height);
   }
 };
 
 Frame.prototype.displayVideo = function displayVideo(blob, width, height) {
   if (!this.video)
     return;
+
+  this.clear();  // reset everything
+
   // Keep track of what kind of content we have
-  this.displayingImage = false;
   this.displayingVideo = true;
 
   // Show the video player and hide the image
   this.video.show();
-  this.image.style.display = 'none';
 
   // Remember the blob
   this.blob = blob;
-
-  // If we have the blob url of something we've previously displayed
-  // revoke it now
-  if (this.url)
-    URL.revokeObjectURL(this.url);
 
   // Get a new URL for this blob
   this.url = URL.createObjectURL(blob);
 
   // Display it in the video element
   this.video.player.src = this.url;
-  this.image.src = null; // XXX: about:blank or empty string?
 
   // If we have the width and height, position the video element now.
   // Otherwise, register an event handler to position it when loaded.
@@ -142,23 +251,37 @@ Frame.prototype.displayVideo = function displayVideo(blob, width, height) {
   }
 };
 
-// Display nothing
+// Reset the frame state, release any urls and and hide everything
 Frame.prototype.clear = function clear() {
+  // Reset the saved state
   this.displayingImage = false;
+  this.displayingPreview = false;
   this.displayingVideo = false;
   this.itemWidth = this.itemHeight = null;
-  if (this.video)
-    this.video.hide();
-  this.image.style.display = 'none';
   this.blob = null;
+  this.fullsizeWidth = this.fullsizeHeight = null;
+  this.preview = null;
+  this.fit = null;
   if (this.url) {
     URL.revokeObjectURL(this.url);
     this.url = null;
   }
+
+  // Hide the image
+  this.image.style.display = 'none';
   this.image.src = null;  // XXX: use about:blank or '' here?
-  if (this.video)
-    this.video.player.src = null;
-  this.fit = null;
+
+  // Hide the video player
+  if (this.video) {
+    this.video.hide();
+
+    // If the video player has its src set, clear it and release resources
+    // We do this in a roundabout way to avoid getting a warning in the console
+    if (this.video.player.src) {
+      this.video.player.removeAttribute('src');
+      this.video.player.load();
+    }
+  }
 };
 
 // Set the item's position based on this.fit
@@ -198,6 +321,26 @@ Frame.prototype.computeFit = function computeFit() {
 };
 
 Frame.prototype.reset = function reset() {
+  // If we're not displaying the preview image, but we have one,
+  // and it is the right size, then switch to it
+  if (this.displayingImage && !this.displayingPreview && this.preview &&
+      (this.preview.width >= window.innerWidth ||
+       this.preview.height >= window.innerHeight)) {
+    this._switchToPreviewImage(); // resets image size and position
+    return;
+  }
+
+  // Otherwise, if we are displaying the preview image but it is no
+  // longer big enough for the screen (such as after a resize event)
+  // then switch to full size. This case should be rare.
+  if (this.displayingImage && this.displayingPreview &&
+      this.preview.width < window.innerWidth &&
+      this.preview.height < window.innerHeight) {
+    this._switchToFullSizeImage(); // resets image size and position
+    return;
+  }
+
+  // Otherwise, just resize and position the item we're already displaying
   this.computeFit();
   this.setPosition();
 };
@@ -233,7 +376,7 @@ Frame.prototype.resize = function resize() {
   // The same is true if the new fit base scale is greater than the
   // old scale.
   if (oldfit.scale === oldfit.baseScale || newfit.baseScale > oldfit.scale) {
-    this.setPosition();
+    this.reset();
     return;
   }
 
@@ -258,6 +401,26 @@ Frame.prototype.zoom = function zoom(scale, centerX, centerY, time) {
   // Ignore zooms if we're not displaying an image
   if (!this.displayingImage)
     return;
+
+  // If we were displaying the preview, switch to the full-size image
+  if (this.displayingPreview) {
+    // If we want to to animate the zoom, then switch images, wait
+    // for the new one to load, and call this function again to process
+    // the zoom and animation.  But if we're not animating, then just
+    // switch images and continue.
+    if (time) { // if animating
+      var self = this;
+      this._switchToFullSizeImage(function() {
+        self.zoom(scale, centerX, centerY, time);
+      });
+      return;
+    }
+    else {
+      this.switching = true;
+      var self = this;
+      this._switchToFullSizeImage(function() { self.switching = false; });
+    }
+  }
 
   // Never zoom in farther than the native resolution of the image
   if (this.fit.scale * scale > 1) {
@@ -318,6 +481,9 @@ Frame.prototype.zoom = function zoom(scale, centerX, centerY, time) {
       this.fit.top = this.viewportHeight - this.fit.height;
     }
   }
+
+  if (this.switching)
+    return;
 
   // If a time was specified, set up a transition so that the
   // call to setPosition() below is animated

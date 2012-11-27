@@ -462,7 +462,12 @@ Evme.Brain = new function() {
                 case "history":
                     Evme.Helper.addLink(HISTORY_CLEAR_TEXT, function(e){
                         Evme.SearchHistory.clear();
-                        helperClick(Evme.Helper.clear, e);
+                        
+                        if (Evme.Searchbar.getValue()) {
+                            Evme.Helper.showSuggestions();
+                        } else {
+                            Evme.Helper.clear();
+                        }
                     });
 
                     break;

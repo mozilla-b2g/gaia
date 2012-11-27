@@ -424,6 +424,10 @@ if (!fb.link) {
       var cb = function() {
         allFriends = null;
         link.start(contactid);
+        parent.postMessage({
+          type: 'token_error',
+          data: ''
+        }, fb.CONTACTS_APP_ORIGIN);
       }
       window.asyncStorage.removeItem(fb.utils.TOKEN_DATA_KEY, cb);
     }
