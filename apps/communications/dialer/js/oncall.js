@@ -203,7 +203,6 @@ var OnCallHandler = (function onCallHandler() {
     // Animating the screen in the viewport.
     toggleScreen();
 
-    ProximityHandler.enable();
     cpuLock = navigator.requestWakeLock('cpu');
 
     if (telephony) {
@@ -406,7 +405,6 @@ var OnCallHandler = (function onCallHandler() {
     if (closing)
       return;
 
-    ProximityHandler.disable();
     if (cpuLock) {
       cpuLock.unlock();
       cpuLock = null;
