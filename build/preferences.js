@@ -20,7 +20,7 @@ Gaia.webapps.forEach(function (webapp) {
 
 // Probably wont be needed when https://bugzilla.mozilla.org/show_bug.cgi?id=768440 lands
 prefs.push(["dom.send_after_paint_to_content", true]);
-
+prefs.push(["javascript.options.strict", false]);
 prefs.push(["network.http.max-connections-per-server", 15]);
 
 // for https://bugzilla.mozilla.org/show_bug.cgi?id=811605 to let user know what prefs is for ril debugging
@@ -37,7 +37,6 @@ if (DEBUG) {
   prefs.push(["javascript.options.showInConsole", true]);
   prefs.push(["nglayout.debug.disable_xul_cache", true]);
   prefs.push(["browser.dom.window.dump.enabled", true]);
-  prefs.push(["javascript.options.strict", true]);
   prefs.push(["dom.report_all_js_exceptions", true]);
   prefs.push(["nglayout.debug.disable_xul_fastload", true]);
   prefs.push(["extensions.autoDisableScopes", 0]);
