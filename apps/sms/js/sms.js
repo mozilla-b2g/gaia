@@ -509,7 +509,8 @@ var ThreadListUI = {
 
         var message = messages[i];
         var time = message.timestamp.getTime();
-        var num =  message.sender || message.receiver;
+        var num = message.delivery == 'received' ?
+        message.sender : message.receiver;
 
         var numNormalized =
           PhoneNumberManager.getNormalizedInternationalNumber(num);
@@ -1209,7 +1210,8 @@ var ThreadUI = {
                 });
               }
               MessageManager.getMessages(ThreadListUI.renderThreads);
-              // XXX Once we have PhoneNumberJS in Gecko we will use num directly
+              // XXX Once we have PhoneNumberJS in Gecko we will
+              // use num directly:
               // https://bugzilla.mozilla.org/show_bug.cgi?id=809213
               MessageManager.send(numNormalized, text, function onsent(msg) {
                 var root = document.getElementById(message.timestamp.getTime());
