@@ -613,11 +613,6 @@ var WindowManager = (function() {
 
     openCallback = callback || function() {};
 
-    // Dispatch a appwillopen event
-    var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent('appwillopen', true, false, { origin: origin });
-    app.frame.dispatchEvent(evt);
-
     // Set the frame to be visible.
     if ('setVisible' in openFrame)
       openFrame.setVisible(true);
@@ -866,6 +861,19 @@ var WindowManager = (function() {
     setCloseFrame(null);
     screenElement.classList.remove('switch-app');
     screenElement.classList.remove('fullscreen-app');
+
+
+    // Dispatch an appwillopen event only when we open an app
+    if (newApp != currentApp) {
+      var evt = document.createEvent('CustomEvent');
+      evt.initCustomEvent('appwillopen', true, true, { origin: newApp });
+      // Allows listeners to cancel app opening and so stay on homescreen
+      if (!runningApps[newApp].frame.dispatchEvent(evt)) {
+        if (typeof(callback) == 'function')
+          callback
+        return;
+      }
+    }
 
     // Case 1: the app is already displayed
     if (currentApp && currentApp == newApp) {
