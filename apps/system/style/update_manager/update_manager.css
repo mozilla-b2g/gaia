@@ -45,7 +45,7 @@
 }
 
 #update-manager-container > .icon,
-#update-manager-toster > .icon {
+#update-manager-toaster > .icon {
   background-image: url('images/downloads.png');
 }
 
@@ -61,7 +61,6 @@
   background-repeat: no-repeat;
   background-position: center center;
 }
-
 
 #update-manager-toaster > .message,
 #update-manager-container > .message {
@@ -117,23 +116,64 @@
   pointer-events: auto;
 }
 
+#updates-download-dialog h1 {
+  font-size: 2.2rem;
+}
+
 #updates-download-dialog section {
   height: auto;
   overflow-y: scroll;
   max-height: -moz-calc(100% - 3.8rem);
 
-  font-size: 1.6rem;
+  font-size: 1.7rem;
 }
 
 #updates-download-dialog ul {
   list-style: none;
+  margin-top: 0.4rem;
   padding-left: 0;
 }
 
-#updates-download-dialog span {
+#updates-download-dialog li {
+  line-height: 3rem;
+  height: 5rem;
+
+  margin: 0 0.2rem;
+
+  border-top: solid 1px rgba(255, 255, 255, 0.05);
+}
+
+#updates-download-dialog li:first-child {
+  margin-top: 0;
+  border-top: 0;
+}
+
+#updates-download-dialog li.nosize {
+  line-height: 5rem;
+}
+
+#updates-download-dialog div {
   display: block;
+  width: calc(100% - 12rem);
+
+  line-height: 1rem;
+  font-weight: bold;
+  font-size: 1.5rem;
+}
+
+#updates-download-dialog label {
+  display: inline-block;
+  height: 5rem;
   float: right;
 
-  font-weight: bold;
-  font-size: 1.4rem;
+  line-height: 5rem;
+  font-size: 1.3rem;
+}
+
+#updates-download-dialog label.required {
+  width: 10rem;
+  padding-right: 0.5rem;
+
+  text-align: right;
+  text-transform: uppercase;
 }
