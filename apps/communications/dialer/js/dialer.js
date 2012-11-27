@@ -62,6 +62,43 @@ var CallHandler = (function callHandler() {
   }
   window.navigator.mozSetMessageHandler('activity', handleActivity);
 
+  /* === Notifications support === */
+  function handleNotification() {
+    navigator.mozApps.getSelf().onsuccess = function gotSelf(evt) {
+      var app = evt.target.result;
+      app.launch('dialer');
+      window.location.hash = '#recents-view';
+    }
+  }
+  window.navigator.mozSetMessageHandler('notification', handleNotification);
+
+  function handleNotificationRequest(number) {
+    Contacts.findByNumber(number, function lookup(contact) {
+      var title = _('missedCall');
+      var sender = (number && number.length) ? number : _('unknown');
+
+      if (contact && contact.name) {
+        sender = contact.name;
+      }
+
+      var body = _('from', {sender: sender});
+
+      navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+        var app = evt.target.result;
+
+        var iconURL = NotificationHelper.getIconURI(app, 'dialer');
+
+        var clickCB = function() {
+          app.launch('dialer');
+          window.location.hash = '#recents-view';
+        };
+
+        NotificationHelper.send(title, body, iconURL, clickCB);
+      };
+    });
+  }
+
+
   /* === Incoming and STK calls === */
   function newCall() {
     openCallScreen();
@@ -119,6 +156,21 @@ var CallHandler = (function callHandler() {
 
     callScreenWindow.postMessage(message, origin);
   }
+
+  // Receiving messages from the callscreen via post message
+  //   - when the call screen is closing
+  //   - when we need to send a missed call notification
+  function handleMessage(evt) {
+    var data = evt.data;
+
+    if (data === 'closing') {
+      handleCallScreenClosing();
+    } else if (data.type && data.type === 'notification') {
+      // We're being asked to send a missed call notification
+      handleNotificationRequest(data.number);
+    }
+  }
+  window.addEventListener('message', handleMessage);
 
   /* === Calls === */
   function call(number) {
@@ -228,17 +280,13 @@ var CallHandler = (function callHandler() {
     }
   }
 
-  // We use a simple postMessage protocol to know when the call screen is closed
-  function handleMessage(evt) {
-    if (evt.data == 'closing') {
-      callScreenWindow = null;
-      callScreenWindowLoaded = false;
-      if (Recents) {
-        Recents.refresh();
-      }
+  function handleCallScreenClosing() {
+    callScreenWindow = null;
+    callScreenWindowLoaded = false;
+    if (Recents) {
+      Recents.refresh();
     }
   }
-  window.addEventListener('message', handleMessage);
 
   return {
     call: call
