@@ -11,9 +11,7 @@
   var iccStkList = document.getElementById('icc-stk-list');
   var iccStkHeader = document.getElementById('icc-stk-header');
   var iccStkSubheader = document.getElementById('icc-stk-subheader');
-  var alertbox = document.getElementById('icc-stk-alert');
-  var alertbox_btn = document.getElementById('icc-stk-alert-btn');
-  var alertbox_msg = document.getElementById('icc-stk-alert-msg');
+  var displayTextTimeout = 10000;
   var iccLastCommand = null;
   var iccLastCommandProcessed = false;
   var stkOpenAppName = null;
@@ -176,9 +174,8 @@
         responseSTKCommand({
           resultCode: icc.STK_RESULT_OK
         });
-        if (confirm(options.confirmMessage)) {
-          openLink(options.url);
-        }
+
+        openURL(options.confirmMessage, options.url);
         break;
 
       case icc.STK_CMD_SET_UP_EVENT_LIST:
@@ -497,28 +494,32 @@
    */
   function displayText(command, cb) {
     var options = command.options;
-    if (!options.userClear) {
-    var timeoutId = setTimeout(function() {
-        alertbox.classList.add('hidden');
+    showAlert(options.text,
+      function(res) {                                 // onok
         if (cb) {
-          cb(false);
+          cb(res);
         }
       },
-      displayTextTimeout);
-    }
-
-    alertbox_btn.onclick = function() {
-      clearTimeout(timeoutId);
-      alertbox.classList.add('hidden');
-      if (cb) {
-        cb(true);
-      }
-    };
-
-    alertbox_msg.textContent = options.text;
-    alertbox.classList.remove('hidden');
+      null,                                           // oncancel
+      !options.userClear                              // autoclose
+    );
   }
 
+  /**
+   * Open browser
+   */
+  function openURL(msg, url) {
+    if(!msg) {
+      msg = url;
+    }
+    showAlert(msg,
+      function(res) {                                 // onok
+        openLink(url);
+      },
+      function() {},                                  // oncancel
+      false                                           // autoclose
+    );
+  }
   /**
    * Play tones
    */
@@ -584,11 +585,7 @@
     }
 
     if (options.text) {
-      alertbox_btn.onclick = function() {
-        alertbox.classList.add('hidden');
-      };
-      alertbox_msg.textContent = options.text;
-      alertbox.classList.remove('hidden');
+      showAlert(options.text, null, null, false);
     }
   }
 
@@ -647,6 +644,52 @@
   }
 
   /**
+   * Show alert/confirm box
+   */
+  function showAlert(msg, onok, oncancel, autoclear) {
+    var alertbox = document.getElementById('icc-stk-alert');
+    var alertbox_okbtn = document.getElementById('icc-stk-alert-okbtn');
+    var alertbox_cancelbtn = document.getElementById('icc-stk-alert-cancelbtn');
+    var alertbox_msg = document.getElementById('icc-stk-alert-msg');
+
+    if (autoclear) {
+      var timeoutId = setTimeout(function() {
+        alertbox.hidden = true;
+        if (onok) {
+          onok(false);
+        }
+      },
+      displayTextTimeout);
+    }
+
+    alertbox_okbtn.onclick = function() {
+      clearTimeout(timeoutId);
+      alertbox.hidden = true;
+      if (onok) {
+        onok(true);
+      }
+    };
+
+    alertbox_cancelbtn.onclick = function() {
+      clearTimeout(timeoutId);
+      alertbox.hidden = true;
+      if (oncancel) {
+        oncancel();
+      }
+    };
+
+    if(oncancel) {
+      alertbox_okbtn.classList.remove('full');
+      alertbox_cancelbtn.classList.remove('hidden');
+    } else {
+      alertbox_okbtn.classList.add('full');
+      alertbox_cancelbtn.classList.add('hidden');
+    }
+
+    alertbox_msg.textContent = msg;
+    alertbox.hidden = false;
+  }
+  /**
    * Open settings application with ICC section opened
    */
   function openSTKApplication() {
@@ -657,4 +700,3 @@
     };
   };
 })();
-
