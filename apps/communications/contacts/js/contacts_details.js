@@ -454,11 +454,20 @@ contacts.Details = (function() {
     }
   };
 
+  var reMark = function(field, value) {
+    var selector = '[data-' + field + '="' + value + '"]';
+    var elements = listContainer.querySelectorAll(selector);
+    for (var i = 0; i < elements.length; i++) {
+      elements[i].classList.add('remark');
+    }
+  }
+
   return {
     'init': init,
     'setContact': setContact,
     'toggleFavorite': toggleFavorite,
     'render': render,
-    'onLineChanged': checkOnline
+    'onLineChanged': checkOnline,
+    'reMark': reMark
   };
 })();
