@@ -692,11 +692,13 @@ function MailAccount(api, wireRep) {
   this.enabled = wireRep.enabled;
   /**
    * @listof[@oneof[
-   *   @case['login-failed']{
-   *     The login explicitly failed, suggesting that the user's password is
-   *     bad.  Other possible interpretations include the account settings are
-   *     somehow wrong now, the server is experiencing a transient failure,
-   *     or who knows.
+   *   @case['bad-user-or-pass']
+   *   @case['needs-app-pass']
+   *   @case['imap-disabled']
+   *   @case['connection']{
+   *     Generic connection problem; this problem can quite possibly be present
+   *     in conjunction with more specific problems such as a bad username /
+   *     password.
    *   }
    * ]]{
    *   A list of known problems with the account which explain why the account
@@ -729,6 +731,11 @@ MailAccount.prototype = {
       accountType: this.type,
       id: this.id,
     };
+  },
+
+  __update: function(wireRep) {
+    this.enabled = wireRep.enabled;
+    this.problems = wireRep.problems;
   },
 
   /**
@@ -839,6 +846,8 @@ function MailFolder(api, wireRep) {
   // Exchange folder name with the localized version if available
   this.name = this._api.l10n_folder_name(this.name, this.type);
 
+  this.__update(wireRep);
+
   this.selectable = (wireRep.type !== 'account') && (wireRep.type !== 'nomail');
 
   this.onchange = null;
@@ -857,6 +866,11 @@ MailFolder.prototype = {
       type: 'MailFolder',
       path: this.path
     };
+  },
+
+  __update: function(wireRep) {
+    this.lastSyncedAt = wireRep.lastSyncedAt ? new Date(wireRep.lastSyncedAt)
+                                             : null;
   },
 };
 
@@ -1377,12 +1391,20 @@ function BridgedViewSlice(api, ns, handle) {
 
   /**
    * @oneof[
+   *   @case['new']{
+   *     We were just created and have no meaningful state.
+   *   }
    *   @case['synchronizing']{
    *     We are talking to a server to populate/expand the contents of this
    *     list.
    *   }
    *   @case['synced']{
-   *     We are not talking to a server.
+   *     We successfully synchronized with the backing store/server.  If we are
+   *     known to be offline and did not attempt to talk to the server, then we
+   *     will still have this status.
+   *   }
+   *   @case['syncfailed']{
+   *     We tried to synchronize with the server but failed.
    *   }
    * ]{
    *   Quasi-extensible indicator of whether we are synchronizing or not.  The
@@ -1390,7 +1412,12 @@ function BridgedViewSlice(api, ns, handle) {
    *   at the end of the list of messages.
    * }
    */
-  this.status = 'synced';
+  this.status = 'new';
+
+  /**
+   * A value in the range [0.0, 1.0] expressing our synchronization progress.
+   */
+  this.syncProgress = 0.0;
 
   /**
    * False if we can grow the slice in the negative direction without
@@ -1935,8 +1962,11 @@ MailAPI.prototype = {
     slice.atTop = msg.atTop;
     slice.atBottom = msg.atBottom;
     slice.userCanGrowDownwards = msg.userCanGrowDownwards;
-    if (msg.status && slice.status !== msg.status) {
+    if (msg.status &&
+        (slice.status !== msg.status ||
+         slice.syncProgress !== msg.progress)) {
       slice.status = msg.status;
+      slice.syncProgress = msg.progress;
       if (slice.onstatus)
         slice.onstatus(slice.status);
     }
@@ -4967,6 +4997,7 @@ var TestActorProtoBase = {
     this._expectationsMetSoFar = true;
     // kill all processed entries.
     this._iExpectation = 0;
+    this._ignore = null;
     this._expectations.splice(0, this._expectations.length);
     this._expectNothing = false;
     this._expectDeath = false;
@@ -5003,6 +5034,9 @@ var TestActorProtoBase = {
         entry = entries[this._iEntry++];
         // ignore meta-entries (which are prefixed with a '!')
         if (entry[0][0] === "!")
+          continue;
+        // ignore ignored entries
+        if (this._ignore && this._ignore.hasOwnProperty(entry[0]))
           continue;
 
         // - try all the expectations for a match
@@ -5061,6 +5095,9 @@ var TestActorProtoBase = {
 
       // ignore meta-entries (which are prefixed with a '!')
       if (entry[0][0] === "!")
+        continue;
+        // ignore ignored entries
+      if (this._ignore && this._ignore.hasOwnProperty(entry[0]))
         continue;
 
       // Currently, require exact pairwise matching between entries and
@@ -5241,6 +5278,14 @@ function smartCompareEquiv(a, b, depthLeft) {
 }
 exports.smartCompareEquiv = smartCompareEquiv;
 
+function makeIgnoreFunc(name) {
+  return function ignoreFunc() {
+    if (!this._ignore)
+      this._ignore = {};
+    this._ignore[name] = true;
+  };
+};
+
 /**
  * Builds the logging and testing helper classes for the `register` driver.
  *
@@ -5337,6 +5382,7 @@ LoggestClassMaker.prototype = {
       this._expectations.push([name, val]);
       return this;
     };
+    this.testActorProto['ignore_' + name] = makeIgnoreFunc(name);
     this.testActorProto['_verify_' + name] = function(exp, entry) {
       return smartCompareEquiv(exp[1], entry[1], COMPARE_DEPTH);
     };
@@ -5447,6 +5493,7 @@ LoggestClassMaker.prototype = {
       this._expectations.push(exp);
       return this;
     };
+    this.testActorProto['ignore_' + name] = makeIgnoreFunc(name);
     this.testActorProto['_verify_' + name] = function(tupe, entry) {
       // only check arguments we had expectations for.
       for (var iArg = 1; iArg < tupe.length; iArg++) {
@@ -5578,6 +5625,7 @@ LoggestClassMaker.prototype = {
       this._expectations.push(exp);
       return this;
     };
+    this.testActorProto['ignore_' + name_begin] = makeIgnoreFunc(name_begin);
     this.testActorProto['expect_' + name_end] = function() {
       if (!this._activeForTestStep)
         throw new Error("Attempt to set expectations on an actor (" +
@@ -5594,6 +5642,7 @@ LoggestClassMaker.prototype = {
       this._expectations.push(exp);
       return this;
     };
+    this.testActorProto['ignore_' + name_end] = makeIgnoreFunc(name_end);
     this.testActorProto['_verify_' + name_begin] =
         this.testActorProto['_verify_' + name_end] = function(tupe, entry) {
       // only check arguments we had expectations for.
@@ -5744,6 +5793,7 @@ LoggestClassMaker.prototype = {
       this._expectations.push(exp);
       return this;
     };
+    this.testActorProto['ignore_' + name] = makeIgnoreFunc(name);
     this.testActorProto['_verify_' + name] = function(tupe, entry) {
       // report failure if an exception was returned!
       if (entry.length > numLogArgs + numTestOnlyArgs + 6) {
@@ -5805,6 +5855,7 @@ LoggestClassMaker.prototype = {
       this._expectations.push(exp);
       return this;
     };
+    this.testActorProto['ignore_' + name] = makeIgnoreFunc(name);
     this.testActorProto['_verify_' + name] = function(tupe, entry) {
       // only check arguments we had expectations for.
       for (var iArg = 1; iArg < tupe.length; iArg++) {
@@ -5861,6 +5912,7 @@ LoggestClassMaker.prototype = {
       // initially undefined, goes null when we register for pairing, goes to
       //  the logger instance when paired.
       this._logger = undefined;
+      this._ignore = null;
       this._expectations = [];
       this._expectationsMetSoFar = true;
       this._expectNothing = false;
@@ -7859,7 +7911,6 @@ module.exports = function(address){
     });
 };
 });
-
 define('crypto',['require','exports','module'],function(require, exports, module) {
 
 exports.createHash = function(algorithm) {
@@ -8485,7 +8536,6 @@ function hasUTFChars(str){
     return !!rforeign.test(str);
 }
 });
-
 define('http',['require','exports','module'],function(require, exports, module) {
 });
 
@@ -8568,7 +8618,6 @@ function openUrlStream(url, options){
     return stream; 
 }
 });
-
 define('fs',['require','exports','module'],function(require, exports, module) {
 });
 
@@ -9814,7 +9863,6 @@ MailComposer.prototype._getMimeType = function(filename){
     return extension && mimelib.contentTypes[extension] || defaultMime;
 };
 });
-
 define('mailcomposer',['./mailcomposer/lib/mailcomposer'], function (main) {
     return main;
 });
@@ -11908,9 +11956,7 @@ MailBridge.prototype = {
   },
 
   _cmd_modifyConfig: function mb__cmd_modifyConfig(msg) {
-console.log('received modifyConfig');
     this.universe.modifyConfig(msg.mods);
-console.log('done proc modifyConfig');
   },
 
   notifyConfig: function(config) {
@@ -11960,8 +12006,8 @@ console.log('done proc modifyConfig');
       // If we succeeded or the problem was not an authentication, assume
       // everything went fine and clear the problems.
       if (!err || (
-          err !== 'bad-user-or-pass' && 
-          err !== 'needs-app-pass' && 
+          err !== 'bad-user-or-pass' &&
+          err !== 'needs-app-pass' &&
           err !== 'imap-disabled'
         )) {
         self.universe.clearAccountProblems(account);
@@ -12077,6 +12123,24 @@ console.log('done proc modifyConfig');
     }
   },
 
+  /**
+   * Generate modifications for an account.  We only generate this for account
+   * queries proper and not the folder representations of accounts because we
+   * define that there is nothing interesting mutable for the folder
+   * representations.
+   */
+  notifyAccountModified: function(account) {
+    var slices = this._slicesByType['accounts'],
+        accountWireRep = account.toBridgeWire();
+    for (var i = 0; i < slices.length; i++) {
+      var proxy = slices[i];
+      var idx = proxy.markers.indexOf(account.id);
+      if (idx !== -1) {
+        proxy.sendUpdate([idx, accountWireRep]);
+      }
+    }
+  },
+
   notifyAccountRemoved: function(accountId) {
     var i, proxy, slices;
     // -- notify account slices
@@ -12124,6 +12188,20 @@ console.log('done proc modifyConfig');
       var idx = bsearchForInsert(proxy.markers, newMarker, strcmp);
       proxy.sendSplice(idx, 0, [folderMeta], false, false);
       proxy.markers.splice(idx, 0, newMarker);
+    }
+  },
+
+  notifyFolderModified: function(accountId, folderMeta) {
+    var marker = makeFolderSortString(accountId, folderMeta);
+
+    var slices = this._slicesByType['folders'];
+    for (var i = 0; i < slices.length; i++) {
+      var proxy = slices[i];
+
+      var idx = bsearchMaybeExists(proxy.markers, marker, strcmp);
+      if (idx === null)
+        continue;
+      proxy.sendUpdate([idx, folderMeta]);
     }
   },
 
@@ -12584,6 +12662,7 @@ function SliceBridgeProxy(bridge, ns, handle) {
   this.__listener = null;
 
   this.status = 'synced';
+  this.progress = 0.0;
   this.atTop = false;
   this.atBottom = false;
   this.userCanGrowDownwards = false;
@@ -12603,6 +12682,7 @@ SliceBridgeProxy.prototype = {
       requested: requested,
       moreExpected: moreExpected,
       status: this.status,
+      progress: this.progress,
       atTop: this.atTop,
       atBottom: this.atBottom,
       userCanGrowDownwards: this.userCanGrowDownwards,
@@ -12620,9 +12700,17 @@ SliceBridgeProxy.prototype = {
     });
   },
 
-  sendStatus: function sbp_sendStatus(status, requested, moreExpected) {
+  sendStatus: function sbp_sendStatus(status, requested, moreExpected,
+                                      progress) {
     this.status = status;
+    if (progress != null)
+      this.progress = progress;
     this.sendSplice(0, 0, [], requested, moreExpected);
+  },
+
+  sendSyncProgress: function(progress) {
+    this.progress = progress;
+    this.sendSplice(0, 0, [], true, true);
   },
 
   die: function sbp_die() {
@@ -12639,6 +12727,7 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
       send: { type: true },
     },
     TEST_ONLY_events: {
+      send: { msg: false },
     },
     errors: {
       badMessageType: { type: true },
@@ -13141,6 +13230,11 @@ var TIME_WARPED_NOW = null, FUTURE_TIME_WARPED_NOW = null;
  * unit tests using canned message stores.
  */
 exports.TEST_LetsDoTheTimewarpAgain = function(fakeNow) {
+  if (fakeNow === null) {
+    TIME_WARPED_NOW = null;
+    FUTURE_TIME_WARPED_NOW = null;
+    return;
+  }
   if (typeof(fakeNow) !== 'number')
     fakeNow = fakeNow.valueOf();
   TIME_WARPED_NOW = fakeNow;
@@ -13382,27 +13476,38 @@ exports.DEFAULT_CHECK_INTERVAL_ENUM = 'manual';
  * be too high an initial value for actual use, but is fine for tests.
  */
 exports.TEST_adjustSyncValues = function TEST_adjustSyncValues(syncValues) {
-  exports.INITIAL_FILL_SIZE = syncValues.fillSize;
-  exports.INITIAL_SYNC_DAYS = syncValues.days;
+  if (syncValues.hasOwnProperty('fillSize'))
+    exports.INITIAL_FILL_SIZE = syncValues.fillSize;
+  if (syncValues.hasOwnProperty('days'))
+    exports.INITIAL_SYNC_DAYS = syncValues.days;
 
-  exports.BISECT_DATE_AT_N_MESSAGES = syncValues.bisectThresh;
-  exports.TOO_MANY_MESSAGES = syncValues.tooMany;
+  if (syncValues.hasOwnProperty('bisectThresh'))
+    exports.BISECT_DATE_AT_N_MESSAGES = syncValues.bisectThresh;
+  if (syncValues.hasOwnProperty('tooMany'))
+    exports.TOO_MANY_MESSAGES = syncValues.tooMany;
 
-  exports.TIME_SCALE_FACTOR_ON_NO_MESSAGES = syncValues.scaleFactor;
+  if (syncValues.hasOwnProperty('scaleFactor'))
+    exports.TIME_SCALE_FACTOR_ON_NO_MESSAGES = syncValues.scaleFactor;
 
-  exports.REFRESH_USABLE_DATA_TIME_THRESH_NON_INBOX =
-    syncValues.refreshNonInbox;
-  exports.REFRESH_USABLE_DATA_TIME_THRESH_INBOX =
-    syncValues.refreshInbox;
-  exports.REFRESH_USABLE_DATA_OLD_IS_SAFE_THRESH =
-    syncValues.oldIsSafeForRefresh;
-  exports.REFRESH_USABLE_DATA_TIME_THRESH_OLD =
-    syncValues.refreshOld;
+  if (syncValues.hasOwnProperty('refreshNonInbox'))
+    exports.REFRESH_USABLE_DATA_TIME_THRESH_NON_INBOX =
+      syncValues.refreshNonInbox;
+  if (syncValues.hasOwnProperty('refreshInbox'))
+    exports.REFRESH_USABLE_DATA_TIME_THRESH_INBOX =
+      syncValues.refreshInbox;
+  if (syncValues.hasOwnProperty('oldIsSafeForRefresh'))
+    exports.REFRESH_USABLE_DATA_OLD_IS_SAFE_THRESH =
+      syncValues.oldIsSafeForRefresh;
+  if (syncValues.hasOwnProperty('refreshOld'))
+    exports.REFRESH_USABLE_DATA_TIME_THRESH_OLD =
+      syncValues.refreshOld;
 
-  exports.USE_KNOWN_DATE_RANGE_TIME_THRESH_NON_INBOX =
-    syncValues.useRangeNonInbox;
-  exports.USE_KNOWN_DATE_RANGE_TIME_THRESH_INBOX =
-    syncValues.useRangeInbox;
+  if (syncValues.hasOwnProperty('useRangeNonInbox'))
+    exports.USE_KNOWN_DATE_RANGE_TIME_THRESH_NON_INBOX =
+      syncValues.useRangeNonInbox;
+  if (syncValues.hasOwnProperty('useRangeInbox'))
+    exports.USE_KNOWN_DATE_RANGE_TIME_THRESH_INBOX =
+      syncValues.useRangeInbox;
 
   if (syncValues.hasOwnProperty('MAX_OP_TRY_COUNT'))
     exports.MAX_OP_TRY_COUNT = syncValues.MAX_OP_TRY_COUNT;
@@ -14234,15 +14339,8 @@ CronSyncer.prototype = {
     var inboxFolder = account.getFirstFolderWithType('inbox');
     var storage = account.getFolderStorageForFolderId(inboxFolder.id);
 
-    // - Skip syncing this account if there is already a sync in progress.
-
-    // XXX for IMAP, there are conceivable edge cases where the user is in the
-    // process of synchronizing a window far back in time but would want to hear
-    // about new messages in the folder.
-    if (storage.syncInProgress) {
-      doneCallback(null);
-      return;
-    }
+    // XXX check when the folder was most recently synchronized and skip this
+    // sync if it is sufficiently recent.
 
     // - Figure out how many additional notifications we can generate
     var outstandingInfo;
@@ -18435,7 +18533,7 @@ var getTZOffset = exports.getTZOffset = function getTZOffset(conn, callback) {
               var hpair = allHeaders[i];
               if (hpair.key !== 'received')
                 continue;
-              var tzMatch = /([+-]\d{4}).+$/.exec(hpair.value);
+              var tzMatch = /([+-]\d{4})/.exec(hpair.value);
               if (tzMatch) {
                 var tz =
                   parseInt(tzMatch[1].substring(1, 3)) * 60 * 60 * 1000+
@@ -21704,6 +21802,7 @@ SmtpProber.prototype = {
     this._password = aPassword;
     this._deviceId = aDeviceId || 'v140Device';
     this._deviceType = aDeviceType || 'SmartPhone';
+    this.timeout = 0;
 
     this._connection = 0;
     this._waitingForConnection = false;
@@ -21918,6 +22017,11 @@ SmtpProber.prototype = {
                true);
       xhr.setRequestHeader('Content-Type', 'text/xml');
       xhr.setRequestHeader('Authorization', this._getAuth());
+      xhr.timeout = this.timeout;
+
+      xhr.upload.onprogress = xhr.upload.onload = function() {
+        xhr.timeout = 0;
+      };
 
       xhr.onload = function() {
         if (xhr.status < 200 || xhr.status >= 300)
@@ -21988,7 +22092,7 @@ SmtpProber.prototype = {
         aCallback(null, config);
       };
 
-      xhr.onerror = function() {
+      xhr.ontimeout = xhr.onerror = function() {
         aCallback(new Error('Error getting Autodiscover URL'));
       };
 
@@ -22021,6 +22125,11 @@ SmtpProber.prototype = {
       let conn = this;
       let xhr = new XMLHttpRequest({mozSystem: true, mozAnon: true});
       xhr.open('OPTIONS', this.baseUrl, true);
+      xhr.timeout = this.timeout;
+
+      xhr.upload.onprogress = xhr.upload.onload = function() {
+        xhr.timeout = 0;
+      };
 
       xhr.onload = function() {
         if (xhr.status < 200 || xhr.status >= 300) {
@@ -22038,7 +22147,7 @@ SmtpProber.prototype = {
         aCallback(null, result);
       };
 
-      xhr.onerror = function() {
+      xhr.ontimeout = xhr.onerror = function() {
         aCallback(new Error('Error getting OPTIONS URL'));
       };
 
@@ -22086,8 +22195,13 @@ SmtpProber.prototype = {
      *        parameters that should be added to the end of the request URL
      * @param aExtraHeaders (optional) an object containing any extra HTTP
      *        headers to send in the request
+     * @param aProgressCallback (optional) a callback to invoke with progress
+     *        information, when available. Two arguments are provided: the
+     *        number of bytes received so far, and the total number of bytes
+     *        expected (when known, 0 if unknown).
      */
-    postCommand: function(aCommand, aCallback, aExtraParams, aExtraHeaders) {
+    postCommand: function(aCommand, aCallback, aExtraParams, aExtraHeaders,
+                          aProgressCallback) {
       const contentType = 'application/vnd.ms-sync.wbxml';
 
       if (typeof aCommand === 'string' || typeof aCommand === 'number') {
@@ -22098,7 +22212,7 @@ SmtpProber.prototype = {
         let r = new WBXML.Reader(aCommand, ASCP);
         let commandName = r.document.next().localTagName;
         this.postData(commandName, contentType, aCommand.buffer, aCallback,
-                      aExtraParams, aExtraHeaders);
+                      aExtraParams, aExtraHeaders, aProgressCallback);
       }
     },
 
@@ -22116,9 +22230,13 @@ SmtpProber.prototype = {
      *        parameters that should be added to the end of the request URL
      * @param aExtraHeaders (optional) an object containing any extra HTTP
      *        headers to send in the request
+     * @param aProgressCallback (optional) a callback to invoke with progress
+     *        information, when available. Two arguments are provided: the
+     *        number of bytes received so far, and the total number of bytes
+     *        expected (when known, 0 if unknown).
      */
     postData: function(aCommand, aContentType, aData, aCallback, aExtraParams,
-                       aExtraHeaders) {
+                       aExtraHeaders, aProgressCallback) {
       // Make sure our command name is a string.
       if (typeof aCommand === 'number')
         aCommand = ASCP.__tagnames__[aCommand];
@@ -22163,6 +22281,16 @@ SmtpProber.prototype = {
           xhr.setRequestHeader(key, value);
       }
 
+      xhr.timeout = this.timeout;
+
+      xhr.upload.onprogress = xhr.upload.onload = function() {
+        xhr.timeout = 0;
+      };
+      xhr.onprogress = function(event) {
+        if (aProgressCallback)
+          aProgressCallback(event.loaded, event.total);
+      };
+
       let conn = this;
       let parentArgs = arguments;
       xhr.onload = function() {
@@ -22189,7 +22317,7 @@ SmtpProber.prototype = {
         aCallback(null, response);
       };
 
-      xhr.onerror = function() {
+      xhr.ontimeout = xhr.onerror = function() {
         aCallback(new Error('Error getting command URL'));
       };
 
@@ -22372,7 +22500,16 @@ exports.TEST_useTimeoutFunc = function(func) {
   }
 };
 
-function BackoffEndpoint(name, listener, _parentLog) {
+/**
+ * @args[
+ *   @param[listener @dict[
+ *     @key[onEndpointStateChange @func[
+ *       @args[state]
+ *     ]]
+ *   ]]
+ * ]
+ */
+function BackoffEndpoint(name, listener, parentLog) {
   /** @oneof[
    *    @case['healthy']
    *    @case['unreachable']
@@ -22385,8 +22522,7 @@ function BackoffEndpoint(name, listener, _parentLog) {
    */
   this.state = 'healthy';
   this._iNextBackoff = 0;
-
-  this._LOG = LOGFAB.BackoffEndpoint(this, _parentLog, name);
+  this._LOG = LOGFAB.BackoffEndpoint(this, parentLog, name);
   this._LOG.state(this.state);
 
   this._badResources = {};
@@ -22394,10 +22530,18 @@ function BackoffEndpoint(name, listener, _parentLog) {
   this.listener = listener;
 }
 BackoffEndpoint.prototype = {
+  _setState: function(newState) {
+    if (this.state === newState)
+      return;
+    this.state = newState;
+    this._LOG.state(newState);
+    if (this.listener)
+      this.listener.onEndpointStateChange(newState);
+  },
+
   noteConnectSuccess: function() {
-    this.state = 'healthy';
+    this._setState('healthy');
     this._iNextBackoff = 0;
-    this._LOG.state(this.state);
   },
 
   /**
@@ -22410,6 +22554,10 @@ BackoffEndpoint.prototype = {
    *     for some reason.
    *   }
    * ]
+   * @return[shouldRetry Boolean]{
+   *   Returns true if we should retry creating the connection, false if we
+   *   should give up.
+   * }
    */
   noteConnectFailureMaybeRetry: function(reachable) {
     this._LOG.connectFailure(reachable);
@@ -22417,14 +22565,13 @@ BackoffEndpoint.prototype = {
       return false;
 
     if (reachable) {
-      this.state = 'broken';
-      this._LOG.state(this.state);
+      this._setState('broken');
       return false;
     }
 
     if (this._iNextBackoff > 0)
-      this.state = reachable ? 'broken' : 'unreachable';
-    this._LOG.state(this.state);
+      this._setState(reachable ? 'broken' : 'unreachable');
+
     // (Once this saturates, we never perform retries until the connection is
     // healthy again.  We do attempt re-connections when triggered by user
     // activity or synchronization logic; they just won't get retries.)
@@ -22444,8 +22591,7 @@ BackoffEndpoint.prototype = {
    */
   noteBrokenConnection: function() {
     this._LOG.connectFailure(true);
-    this.state = 'broken';
-    this._LOG.state(this.state);
+    this._setState('broken');
 
     this._iNextBackoff = BACKOFF_DURATIONS.length;
   },
@@ -22453,6 +22599,14 @@ BackoffEndpoint.prototype = {
   scheduleConnectAttempt: function(connectFunc) {
     if (this.state === 'shutdown')
       return;
+
+    // If we have already saturated our retries then there won't be any
+    // automatic retries and this request is assumed to want us to try and
+    // create a connection right now.
+    if (this._iNextBackoff >= BACKOFF_DURATIONS.length) {
+      connectFunc();
+      return;
+    }
 
     var backoff = BACKOFF_DURATIONS[this._iNextBackoff++],
         delay = backoff.fixedMS +
@@ -22476,22 +22630,21 @@ BackoffEndpoint.prototype = {
     if (!this._badResources.hasOwnProperty(resourceId))
       return true;
     var info = this._badResources[resourceId], now = $date.NOW();
-
   },
 
   shutdown: function() {
-    this.state = 'shutdown';
-    this._LOG.state(this.state);
+    this._setState('shutdown');
   },
 };
 
-exports.createEndpoint = function(name, listener) {
-  return new BackoffEndpoint(name, listener);
+exports.createEndpoint = function(name, listener, parentLog) {
+  return new BackoffEndpoint(name, listener, parentLog);
 };
 
 var LOGFAB = exports.LOGFAB = $log.register($module, {
   BackoffEndpoint: {
     type: $log.TASK,
+    subtype: $log.CLIENT,
     stateVars: {
       state: false,
     },
@@ -22813,12 +22966,16 @@ MailSlice.prototype = {
     this.setStatus('synced', true, false);
   },
 
-  setStatus: function(status, requested, moreExpected, flushAccumulated) {
+  setStatus: function(status, requested, moreExpected, flushAccumulated,
+                      progress) {
     if (!this._bridgeHandle)
       return;
 
-    if (status === 'synced') {
-      this._updateSliceFlags();
+    switch (status) {
+      case 'synced':
+      case 'syncfailed':
+        this._updateSliceFlags();
+        break;
     }
     if (flushAccumulated && this._accumulating) {
       if (this.headers.length > this.desiredHeaders) {
@@ -22836,8 +22993,18 @@ MailSlice.prototype = {
                                     requested, moreExpected);
     }
     else {
-      this._bridgeHandle.sendStatus(status, requested, moreExpected);
+      this._bridgeHandle.sendStatus(status, requested, moreExpected, progress);
     }
+  },
+
+  /**
+   * Update our sync progress with a value in the range [0.0, 1.0].  We leave
+   * it up to the specific protocol to determine how it maps values.
+   */
+  setSyncProgress: function(value) {
+    if (!this._bridgeHandle)
+      return;
+    this._bridgeHandle.sendSyncProgress(value);
   },
 
   batchAppendHeaders: function(headers, insertAt, moreComing) {
@@ -23371,7 +23538,9 @@ function FolderStorage(account, folderId, persistedFolderInfo, dbConn,
   this._slices = [];
   /**
    * The slice that is driving our current synchronization and wants to hear
-   * about all header modifications/notes as they occur.
+   * about all header modifications/notes as they occur.  This will be null
+   * when performing a refresh sync, but `_activeSync` will always be truthy
+   * when a sync is active.
    */
   this._curSyncSlice = null;
 
@@ -23380,15 +23549,6 @@ function FolderStorage(account, folderId, persistedFolderInfo, dbConn,
 }
 exports.FolderStorage = FolderStorage;
 FolderStorage.prototype = {
-  /**
-   * Return true if there is another sync happening in this folder right now.
-   * This allows the `CronSyncer` to avoid starting a sync that will immediately
-   * fail because there is a sync-in-progress.  See its logic for more details.
-   */
-  get syncInProgress() {
-    return this._curSyncSlice !== null;
-  },
-
   get hasActiveSlices() {
     return this._slices.length > 0;
   },
@@ -23406,7 +23566,7 @@ FolderStorage.prototype = {
       var slice = this._slices[i];
       slice._resetHeadersBecauseOfRefreshExplosion();
       slice.desiredHeaders = $sync.INITIAL_FILL_SIZE;
-      this._resetAndResyncSlice(slice, false);
+      this._resetAndResyncSlice(slice, false, null);
     }
   },
 
@@ -23429,25 +23589,30 @@ FolderStorage.prototype = {
     this._mutexedCallInProgress = true;
     this._LOG.mutexedCall_begin(callInfo.name);
 
-    callInfo.func(function mutexedOpDone() {
-      if (done) {
-        self._LOG.tooManyCallbacks(callInfo.name);
-        return;
-      }
-      self._LOG.mutexedCall_end(callInfo.name);
-      done = true;
-      if (self._mutexQueue[0] !== callInfo) {
-        self._LOG.mutexInvariantFail(callInfo.name, self._mutexQueue[0].name);
-        return;
-      }
-      self._mutexQueue.shift();
-      // Although everything should be async, avoid stack explosions by
-      // deferring the execution to a future turn of the event loop.
-      if (self._mutexQueue.length)
-        window.setZeroTimeout(self._invokeNextMutexedCall.bind(self));
-      else if (self._slices.length === 0)
-        self.folderSyncer.allConsumersDead();
-    });
+    try {
+      callInfo.func(function mutexedOpDone() {
+        if (done) {
+          self._LOG.tooManyCallbacks(callInfo.name);
+          return;
+        }
+        self._LOG.mutexedCall_end(callInfo.name);
+        done = true;
+        if (self._mutexQueue[0] !== callInfo) {
+          self._LOG.mutexInvariantFail(callInfo.name, self._mutexQueue[0].name);
+          return;
+        }
+        self._mutexQueue.shift();
+        // Although everything should be async, avoid stack explosions by
+        // deferring the execution to a future turn of the event loop.
+        if (self._mutexQueue.length)
+          window.setZeroTimeout(self._invokeNextMutexedCall.bind(self));
+        else if (self._slices.length === 0)
+          self.folderSyncer.allConsumersDead();
+      });
+    }
+    catch (ex) {
+      this._LOG.mutexedOpErr(ex);
+    }
   },
 
   /**
@@ -24149,7 +24314,12 @@ FolderStorage.prototype = {
       var listeners = self._pendingLoadListeners[aggrId];
       delete self._pendingLoadListeners[aggrId];
       for (var i = 0; i < listeners.length; i++) {
-        listeners[i](block);
+        try {
+          listeners[i](block);
+        }
+        catch (ex) {
+          self._LOG.callbackErr(ex);
+        }
       }
 
       if (self._pendingLoads.length === 0)
@@ -24243,15 +24413,24 @@ FolderStorage.prototype = {
    */
   sliceOpenFromNow: function ifs_sliceOpenFromNow(slice, daysDesired,
                                                   forceDeepening) {
-    daysDesired = daysDesired || $sync.INITIAL_SYNC_DAYS;
-    this._slices.push(slice);
-    if (this._curSyncSlice) {
-      console.error("Trying to open a slice and initiate a sync when there",
-                    "is already an active sync slice!");
-      return;
-    }
+    // Set the status immediately so that the UI will convey that the request is
+    // being processed, even though it might take a little bit to acquire the
+    // mutex.
+    slice.setStatus('synchronizing', false, true, false, 0.0);
     // by definition, we must be at the top
     slice.atTop = true;
+    this.runMutexed(
+      'sync',
+      this._sliceOpenFromNow.bind(this, slice, daysDesired, forceDeepening));
+  },
+  _sliceOpenFromNow: function ifs__sliceOpenFromNowfunction(
+      slice, daysDesired, forceDeepening, releaseMutex) {
+    daysDesired = daysDesired || $sync.INITIAL_SYNC_DAYS;
+
+    // We only put the slice in the list of slices now that we have the mutex
+    // in order to avoid having the slice have data fed into it if there were
+    // other synchronizations already in progress.
+    this._slices.push(slice);
 
     // -- Check if we have sufficiently useful data on hand.
     // For checking accuracy ranges, the first accuracy range is authoritative
@@ -24267,9 +24446,8 @@ FolderStorage.prototype = {
         worstGoodData = 0,
         existingDataGood = false;
 
-    var syncCallback = (function syncCallback(syncMode, accumulateMode,
-                                              ignoreHeaders) {
-      slice.setStatus('synchronizing', false, true);
+    var syncCallback = function syncCallback(syncMode, accumulateMode,
+                                             ignoreHeaders) {
       slice.waitingOnData = syncMode;
       if (accumulateMode && slice.headers.length === 0) {
         slice._accumulating = true;
@@ -24278,7 +24456,33 @@ FolderStorage.prototype = {
         slice.ignoreHeaders = true;
       }
       this._curSyncSlice = slice;
-    }).bind(this);
+    }.bind(this);
+
+    var reportSyncStatusAs = 'synced';
+    var doneCallback = function doneSyncCallback(err) {
+      if (err) {
+        // If we encountered an error in synchronization, then we want to
+        // convert to displaying what we have from our cache.
+        slice._resetHeadersBecauseOfRefreshExplosion();
+        slice.waitingOnData = 'db';
+        slice._accumulating = false;
+        slice.ignoreHeaders = false;
+        reportSyncStatusAs = 'syncfailed';
+        this.getMessagesInImapDateRange(
+          0, FUTURE(), $sync.INITIAL_FILL_SIZE, $sync.INITIAL_FILL_SIZE,
+          this.onFetchDBHeaders.bind(
+            this, slice, /* no refresh */ false, doneCallback, null));
+        return;
+      }
+
+      slice.waitingOnData = false;
+      slice.setStatus(reportSyncStatusAs, true, false, true);
+      this._curSyncSlice = null;
+
+      releaseMutex();
+    }.bind(this);
+
+    var progressCallback = slice.setSyncProgress.bind(slice);
 
     // If we're offline or the folder can't be synchronized right now, then
     // there's nothing to look into; use the DB.
@@ -24315,7 +24519,8 @@ FolderStorage.prototype = {
         var updateThresh = now - rangeThresh;
         if (ainfo.fullSync && SINCE(ainfo.fullSync.updated, updateThresh)) {
           this.folderSyncer.syncAdjustedDateRange(pastDate, futureNow,
-                                                  syncCallback);
+                                                  syncCallback, doneCallback,
+                                                  progressCallback);
           return;
         }
       }
@@ -24331,13 +24536,15 @@ FolderStorage.prototype = {
         // trigger a refresh if we are online
         this.onFetchDBHeaders.bind(
           this, slice,
-          this._account.universe.online && this.folderSyncer.syncable)
+          this._account.universe.online && this.folderSyncer.syncable,
+          doneCallback, releaseMutex)
       );
       return;
     }
 
     // -- Bad existing data, issue a sync and have the slice
-    this.folderSyncer.syncDateRange(pastDate, futureNow, syncCallback);
+    this.folderSyncer.syncDateRange(pastDate, futureNow, syncCallback,
+                                    doneCallback, progressCallback);
   },
 
   /**
@@ -24362,6 +24569,17 @@ FolderStorage.prototype = {
    * date overlap from sync activity.
    */
   growSlice: function ifs_growSlice(slice, dirMagnitude, userRequestsGrowth) {
+    // If the user requested synchronization, provide UI feedback immediately,
+    // otherwise, let the method set this state if/when we actually decide to
+    // talk to the server.
+    if (userRequestsGrowth)
+      slice.setStatus('synchronizing', false, true, false, 0.0);
+    this.runMutexed(
+      'grow',
+      this._growSlice.bind(this, slice, dirMagnitude, userRequestsGrowth));
+  },
+  _growSlice: function ifs__growSlice(slice, dirMagnitude, userRequestsGrowth,
+                                      releaseMutex) {
     var dir, desiredCount;
     if (dirMagnitude < 0) {
       dir = -1;
@@ -24373,6 +24591,8 @@ FolderStorage.prototype = {
         slice.endTS, slice.endUID, desiredCount,
         function(headers, moreExpected) {
           slice.batchAppendHeaders(headers, 0, moreExpected);
+          slice.desiredHeaders = slice.headers.length;
+          releaseMutex();
         });
     }
     else {
@@ -24394,19 +24614,39 @@ FolderStorage.prototype = {
               slice.batchAppendHeaders(batchHeaders.slice(0, firstNotToSend),
                                        -1, true);
             slice.desiredHeaders += desiredCount;
-            slice.setStatus('synchronizing', false, true);
+            // (we are did this if userRequestsGrowth is true in `growSlice`)
+            if (!userRequestsGrowth)
+              slice.setStatus('synchronizing', false, true, false, 0.0);
             slice.waitingOnData = syncMode;
             this._curSyncSlice = slice;
           }
         }).bind(this);
 
-        // If we're offline, just use what we've got and be done with it.
-        if (this._account.universe.online) {
+        var doneCallback = function doneGrowCallback(err) {
+          slice.waitingOnData = false;
+          slice.setStatus(err ? 'syncfailed' : 'synced', true, false, true);
+          this._curSyncSlice = null;
+
+          releaseMutex();
+        }.bind(this);
+
+        var progressCallback = slice.setSyncProgress.bind(slice);
+
+        // We can only grow if we are online and the account is enabled.  Of
+        // course, the account being disabled is usually something that can be
+        // resolved by us trying to talk to the server (either we end up with a
+        // connection or the user gets a UI action), so allow it in that case
+        // too.
+        if (this._account.universe.online &&
+            (this._account.enabled || userRequestsGrowth)) {
           growingSync = this.folderSyncer.growSync(
-            slice.startTS, batchHeaders, userRequestsGrowth, syncCallback);
+            slice.startTS, batchHeaders, userRequestsGrowth, syncCallback,
+            doneCallback, progressCallback);
         }
 
         if (!growingSync) {
+          // If a refresh is not actually required / going to happen, generate
+          // our slice events and cleanup the mutex.
           if (batchHeaders.length) {
             slice.batchAppendHeaders(batchHeaders, -1, false);
             slice.desiredHeaders = slice.headers.length;
@@ -24414,6 +24654,7 @@ FolderStorage.prototype = {
           else {
             slice.sendEmptyCompletion();
           }
+          releaseMutex();
         }
       }.bind(this);
 
@@ -24438,16 +24679,22 @@ FolderStorage.prototype = {
    * full date bounds.
    */
   refreshSlice: function ifs_refreshSlice(slice, useBisectLimit) {
-    // XXX use mutex scheduling to avoid this possibly happening...
-    if (this._curSyncSlice)
-      throw new Error("Can't refresh a slice when there is an existing sync");
-
+    // Set the status immediately so that the UI will convey that the request is
+    // being processed, even though it might take a little bit to acquire the
+    // mutex.
+    slice.setStatus('synchronizing', false, true, false, 0.0);
+    this.runMutexed(
+      'refresh',
+      this._refreshSlice.bind(this, slice, useBisectLimit));
+  },
+  _refreshSlice: function ifs__refreshSlice(slice, useBisectLimit,
+                                            releaseMutex) {
     slice.waitingOnData = 'refresh';
 
     var startTS = slice.startTS, endTS = slice.endTS;
 
     // - Grow endTS
-    // If the endTS lines up with the most recent know message for the folder,
+    // If the endTS lines up with the most recent known message for the folder,
     // then remove the timestamp constraint so it goes all the way to now.
     // OR if we just have no known messages
     if (this.headerIsYoungestKnown(endTS, slice.endUID)) {
@@ -24471,40 +24718,52 @@ FolderStorage.prototype = {
     // of the start message.
     else
       startTS += this._account.tzOffset;
+
     // quantize the start date
     if (startTS)
       startTS = quantizeDate(startTS);
 
-    this._LOG.refreshSlice(startTS, endTS, useBisectLimit);
+    this.folderSyncer.refreshSync(
+      startTS, endTS, useBisectLimit,
+      function refreshDoneCallback(err, bisectInfo, numMessages) {
+        var reportSyncStatusAs = 'synced';
+        switch (err) {
+          // If a bisection occurred then this can no longer be a refresh and
+          // instead we need to retract all known messages and instead convert
+          // this into a synchronization.
+          case 'bisect':
+            slice._resetHeadersBecauseOfRefreshExplosion();
+            return 'abort';
+          // If we returned abort, then we should now be called with...
+          case 'bisect-aborted':
+            // This is going to be converted into a new sliceOpenFromNow, so
+            // we want to release our mutex.
+            releaseMutex();
+            this._resetAndResyncSlice(slice, true);
+            return undefined;
 
-    var self = this;
-    this.folderSyncer.refreshSync(startTS, endTS, useBisectLimit,
-                                  function(bisectInfo, numMessages) {
-      // If a bisection occurred then this can no longer be a refresh and
-      // instead we need to retract all known messages and instead convert
-      // this into a synchronization.
-      if (bisectInfo) {
-        // (The first time through bisectInfo is an object; we return 'abort'
-        // and then get called again with 'aborted'...)
-        if (bisectInfo === 'aborted')
-          self._resetAndResyncSlice(slice, true);
-        else
-          slice._resetHeadersBecauseOfRefreshExplosion();
-        return 'abort';
-      }
+          case 'aborted':
+          case 'unknown':
+            reportSyncStatusAs = 'syncfailed';
+            break;
+        }
 
-      slice.waitingOnData = false;
-      if (self._curSyncSlice === slice)
-        self._curSyncSlice = null;
-      self._account.__checkpointSyncCompleted();
-      slice.setStatus('synced', true, false);
-      return undefined;
-    });
+        releaseMutex();
+        slice.waitingOnData = false;
+        if (!err)
+          this._account.__checkpointSyncCompleted();
+        slice.setStatus(reportSyncStatusAs, true, false);
+        return undefined;
+      }.bind(this),
+      slice.setSyncProgress.bind(slice));
   },
 
-  _resetAndResyncSlice: function(slice, forceDeepening) {
+  _resetAndResyncSlice: function(slice, forceDeepening, releaseMutex) {
     this._slices.splice(this._slices.indexOf(slice), 1);
-    this.sliceOpenFromNow(slice, null, forceDeepening);
+    if (releaseMutex)
+      this._sliceOpenFromNow(slice, null, forceDeepening, releaseMutex);
+    else
+      this.sliceOpenFromNow(slice, null, forceDeepening);
   },
 
   dyingSlice: function ifs_dyingSlice(slice) {
@@ -24518,7 +24777,7 @@ FolderStorage.prototype = {
   /**
    * Receive messages directly from the database (streaming).
    */
-  onFetchDBHeaders: function(slice, triggerRefresh,
+  onFetchDBHeaders: function(slice, triggerRefresh, doneCallback, releaseMutex,
                              headers, moreMessagesComing) {
     var triggerNow = false;
     if (!moreMessagesComing && triggerRefresh) {
@@ -24534,8 +24793,7 @@ FolderStorage.prototype = {
 
     if (!moreMessagesComing) {
       slice.desiredHeaders = slice.headers.length;
-      slice.setStatus('synced', true, false);
-      slice.waitingOnData = false;
+      doneCallback();
     }
     else if (triggerNow) {
       slice.desiredHeaders = slice.headers.length;
@@ -24547,7 +24805,7 @@ FolderStorage.prototype = {
       this._curSyncSlice = null;
       // We do want to use the bisection limit so that the refresh gets
       // converted to a sync in the event of an overflow.
-      this.refreshSlice(slice, $sync.BISECT_DATE_AT_N_MESSAGES);
+      this._refreshSlice(slice, $sync.BISECT_DATE_AT_N_MESSAGES, releaseMutex);
     }
   },
 
@@ -25022,6 +25280,11 @@ FolderStorage.prototype = {
     }
 
     aranges.splice.apply(aranges, [newInfo[0], delCount].concat(insertions));
+
+    this.folderMeta.lastSyncedAt = endTS;
+    if (this._account.universe)
+      this._account.universe.__notifyModifiedFolder(this._account.id,
+                                                    this.folderMeta);
   },
 
   /**
@@ -25049,7 +25312,12 @@ FolderStorage.prototype = {
                                                        date, id);
     if (posInfo[1] === null) {
       this._LOG.headerNotFound();
-      callback(null);
+      try {
+        callback(null);
+      }
+      catch (ex) {
+        this._LOG.callbackErr(ex);
+      }
       return;
     }
     var headerBlockInfo = posInfo[1], self = this;
@@ -25059,7 +25327,12 @@ FolderStorage.prototype = {
           var headerInfo = headerBlock.headers[idx] || null;
           if (!headerInfo)
             self._LOG.headerNotFound();
-          callback(headerInfo);
+          try {
+            callback(headerInfo);
+          }
+          catch (ex) {
+            self._LOG.callbackErr(ex);
+          }
         });
       return;
     }
@@ -25068,7 +25341,12 @@ FolderStorage.prototype = {
         headerInfo = block.headers[idx] || null;
     if (!headerInfo)
       this._LOG.headerNotFound();
-    callback(headerInfo);
+    try {
+      callback(headerInfo);
+    }
+    catch (ex) {
+      this._LOG.callbackErr(ex);
+    }
   },
 
   /**
@@ -25378,7 +25656,12 @@ FolderStorage.prototype = {
                                                        date, id);
     if (posInfo[1] === null) {
       this._LOG.bodyNotFound();
-      callback(null);
+      try {
+        callback(null);
+      }
+      catch (ex) {
+        this._log.callbackErr(ex);
+      }
       return;
     }
     var bodyBlockInfo = posInfo[1], self = this;
@@ -25387,7 +25670,12 @@ FolderStorage.prototype = {
           var bodyInfo = bodyBlock.bodies[id] || null;
           if (!bodyInfo)
             self._LOG.bodyNotFound();
-          callback(bodyInfo);
+          try {
+            callback(bodyInfo);
+          }
+          catch (ex) {
+            self._LOG.callbackErr(ex);
+          }
         });
       return;
     }
@@ -25395,7 +25683,12 @@ FolderStorage.prototype = {
         bodyInfo = block.bodies[id] || null;
     if (!bodyInfo)
       this._LOG.bodyNotFound();
-    callback(bodyInfo);
+    try {
+      callback(bodyInfo);
+    }
+    catch (ex) {
+      this._LOG.callbackErr(ex);
+    }
   },
 
   /**
@@ -25469,8 +25762,6 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
       // unexpected errors, so this is getting downgraded for now.
       headerNotFound: {},
       bodyNotFound: {},
-
-      refreshSlice: { startTS: false, endTS: false, useBisectLimit: false },
     },
     TEST_ONLY_events: {
     },
@@ -25482,7 +25773,10 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
       loadBlock: { block: false },
     },
     errors: {
+      callbackErr: { ex: $log.EXCEPTION },
+
       badBlockLoad: { type: false, blockId: false },
+
       // Exposing date/uid at a general level is deemed okay because they are
       // opaque identifiers and the most likely failure models involve the
       // values being ridiculous (and therefore not legal).
@@ -25490,6 +25784,8 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
       badDeletionRequest: { type: false, date: false, uid: false },
       bodyBlockMissing: { uid: false, idx: false, dict: false },
       serverIdMappingMissing: { srvid: false },
+
+      mutexedOpErr: { err: $log.EXCEPTION },
 
       tooManyCallbacks: { name: false },
       mutexInvariantFail: { fireName: false, curName: false },
@@ -26760,24 +27056,22 @@ const FLAG_FETCH_PARAMS = {
 /**
  * Folder connections do the actual synchronization logic.  They are associated
  * with one or more `ImapSlice` instances that issue the requests that trigger
- * synchronization.  Storage is handled by `ImapFolderStorage` or
- * `GmailMessageStorage` instances.
+ * synchronization.  Storage is handled by `FolderStorage` instances.  All of
+ * the connection life-cycle nitty-gritty is handled by the `ImapAccount`.
  *
- * == IMAP Protocol Connection Management
+ * == Progress
  *
- * We request IMAP protocol connections from the account.  There is currently no
- * way for us to surrender our connection or indicate to the account that we
- * are capable of surrending the connection.  That might be a good idea, though.
- *
- * All accesses to a folder's connection should be done through an
- * `ImapFolderConn`, even if the actual mutation logic is being driven by code
- * living in the account.
- *
- * == Error Handling / Connection Maintenance
- *
- * One-off transient connection failures are dealt with by reconnecting and
- * restarting whatever we were doing.  Because it's possible to be in a
- * situation where the network is bad, we use a backoff strategy
+ * Our progress break-down is:
+ * - [0.0, 0.1]: Getting the IMAP connection.
+ * - (0.1, 0.25]: Getting usable SEARCH results.  Bisect back-off does not
+ *     update progress.
+ * - (0.25, 1.0]: Fetching revised flags, headers, and bodies.  Since this
+ *     is primarily a question of network latency, we weight things based
+ *     on round-trip requests required with reduced cost for number of packets
+ *     required.
+ *   - Revised flags: 20 + 1 * number of known headers
+ *   - New headers: 20 + 5 * number of new headers
+ *   - Bodies: 30 * number of new headers
  *
  * == IDLE
  *
@@ -26819,10 +27113,13 @@ ImapFolderConn.prototype = {
    *   @param[label String]{
    *     A debugging label to name the purpose of the connection.
    *   }
+   *   @param[dieOnConnectFailure #:optional Boolean]{
+   *     See `ImapAccount.__folderDemandsConnection`.
+   *   }
    * ]
    */
-  acquireConn: function(callback, deathback, label) {
-    var self = this, handedOff = false;
+  acquireConn: function(callback, deathback, label, dieOnConnectFailure) {
+    var self = this;
     this._account.__folderDemandsConnection(
       this._storage.folderId, label,
       function gotconn(conn) {
@@ -26839,19 +27136,20 @@ ImapFolderConn.prototype = {
               // hand the connection back, noting a resource problem
               self._account.__folderDoneWithConnection(
                 self._conn, false, true);
-              deathback();
+              if (deathback)
+                deathback();
               return;
             }
             self.box = box;
-            handedOff = true;
             callback(self, self._storage);
           });
       },
       function deadconn() {
         self._conn = null;
-        if (handedOff && deathback)
+        if (deathback)
           deathback();
-      });
+      },
+      dieOnConnectFailure);
   },
 
   relinquishConn: function() {
@@ -26867,28 +27165,38 @@ ImapFolderConn.prototype = {
   },
 
   /**
-   * Wrap the search command and shirk the errors for now.  I was thinking we
-   * might have this do automatic connection re-establishment, etc., but I think
-   * it makes more sense to have the IMAP protocol connection object do that
-   * under the hood or in participation with the account class via another
-   * interface since it already handles command queueing.
-   *
-   * This also conveniently hides the connection acquisition asynchrony.
+   * Perform a SEARCH for the purposes of folder synchronization.  In the event
+   * we are unable to reach the server (we are offline, the server is down,
+   * nework troubles), the `abortedCallback` will be invoked.  Note that it can
+   * take many seconds for us to conclusively fail to reach the server.
    */
-  _reliaSearch: function(searchOptions, callback) {
+  _timelySyncSearch: function(searchOptions, searchedCallback,
+                              abortedCallback, progressCallback) {
     // If we don't have a connection, get one, then re-call.
     if (!this._conn) {
-      this.acquireConn(this._reliaSearch.bind(this, searchOptions, callback),
-                       /* XXX NULL deathback */ null, 'sync');
+      // XXX the abortedCallback should really only be used for the duration
+      // of this request, but it will end up being used for the entire duration
+      // our folder holds on to the connection.  This is not a great idea as
+      // long as we are leaving the IMAP connection idling in the folder (which
+      // causes us to not release the connection back to the account).  We
+      // should tie this to the mutex or something else transactional.
+      this.acquireConn(
+        this._timelySyncSearch.bind(this, searchOptions, searchedCallback,
+                                    abortedCallback, progressCallback),
+        abortedCallback, 'sync', true);
       return;
     }
 
+    // Having a connection is 10% of the battle
+    if (progressCallback)
+      progressCallback(0.1);
     this._conn.search(searchOptions, function(err, uids) {
         if (err) {
           console.error('Search error on', searchOptions, 'err:', err);
+          abortedCallback();
           return;
         }
-        callback(uids);
+        searchedCallback(uids);
       });
   },
 
@@ -26919,7 +27227,7 @@ ImapFolderConn.prototype = {
    * ]
    */
   syncDateRange: function(startTS, endTS, accuracyStamp, useBisectLimit,
-                          doneCallback) {
+                          doneCallback, progressCallback) {
 console.log("syncDateRange:", startTS, endTS);
     var searchOptions = BASELINE_SEARCH_OPTIONS.concat(), self = this,
       storage = self._storage;
@@ -26969,16 +27277,19 @@ console.log('BISECT CASE', serverUIDs.length, 'curDaysDelta', curDaysDelta);
             startTS = bisectInfo.newStartTS;
             // If we were being used for a refresh, they may want us to stop
             // and change their sync strategy.
-            if (doneCallback(bisectInfo, null) === 'abort') {
-              doneCallback('aborted', null);
+            if (doneCallback('bisect', bisectInfo, null) === 'abort') {
+              doneCallback('bisect-aborted', null);
               return null;
             }
 console.log("backoff! had", serverUIDs.length, "from", curDaysDelta,
             "startTS", startTS, "endTS", endTS, "backDays", backDays);
             return self.syncDateRange(startTS, endTS, accuracyStamp, null,
-                                      doneCallback);
+                                      doneCallback, progressCallback);
           }
         }
+
+        if (progressCallback)
+          progressCallback(0.25);
 
         // -- infer deletion, flag to distinguish known messages
         // rather than splicing lists and causing shifts, we null out values.
@@ -27010,8 +27321,12 @@ console.log("backoff! had", serverUIDs.length, "from", curDaysDelta,
                                         startTS, endTS);
             self._storage.markSyncRange(startTS, endTS, modseq,
                                         accuracyStamp);
-            doneCallback(null, newCount + knownCount);
-          });
+            if (completed)
+              return;
+            completed = true;
+            doneCallback(null, null, newCount + knownCount);
+          },
+          progressCallback);
       });
 
     // - Adjust DB time range for server skew on INTERNALDATE
@@ -27026,13 +27341,23 @@ console.log("backoff! had", serverUIDs.length, "from", curDaysDelta,
     // In other words, we care about the time in UTC-0, so we subtract the
     // offset.
     var skewedStartTS = startTS - this._account.tzOffset,
-        skewedEndTS = endTS ? endTS - this._account.tzOffset : null;
+        skewedEndTS = endTS ? endTS - this._account.tzOffset : null,
+        completed = false;
     console.log('Skewed DB lookup. Start: ',
                 skewedStartTS, new Date(skewedStartTS).toUTCString(),
                 'End: ', skewedEndTS,
                 skewedEndTS ? new Date(skewedEndTS).toUTCString() : null);
     this._LOG.syncDateRange_begin(null, null, null, startTS, endTS);
-    this._reliaSearch(searchOptions, callbacks.search);
+    this._timelySyncSearch(
+      searchOptions, callbacks.search,
+      function abortedSearch() {
+        if (completed)
+          return;
+        completed = true;
+        this._LOG.syncDateRange_end(0, 0, 0, startTS, endTS);
+        doneCallback('aborted');
+      }.bind(this),
+      progressCallback);
     this._storage.getAllMessagesInImapDateRange(skewedStartTS, skewedEndTS,
                                                 callbacks.db);
   },
@@ -27069,10 +27394,31 @@ console.log("backoff! had", serverUIDs.length, "from", curDaysDelta,
    * Third, we fetch the body parts in our newest-to-startTS order, adding
    * finalized headers and bodies as we go.
    */
-  _commonSync: function(newUIDs, knownUIDs, knownHeaders, doneCallback) {
+  _commonSync: function(newUIDs, knownUIDs, knownHeaders, doneCallback,
+                        progressCallback) {
     var conn = this._conn, storage = this._storage, self = this;
 console.log("_commonSync", 'newUIDs', newUIDs.length, 'knownUIDs',
             knownUIDs.length, 'knownHeaders', knownHeaders.length);
+    // See the `ImapFolderConn` block comment for rationale.
+    const KNOWN_HEADERS_AGGR_COST = 20,
+          KNOWN_HEADERS_PER_COST = 1,
+          NEW_HEADERS_AGGR_COST = 20,
+          NEW_HEADERS_PER_COST = 5,
+          NEW_BODIES_PER_COST = 30;
+    var progressCost =
+          (knownUIDs.length ? KNOWN_HEADERS_AGGR_COST : 0) +
+          KNOWN_HEADERS_PER_COST * knownUIDs.length +
+          (newUIDs.length ? NEW_HEADERS_AGGR_COST : 0) +
+          NEW_HEADERS_PER_COST * newUIDs.length +
+          NEW_BODIES_PER_COST * newUIDs.length,
+        progressSoFar = 0;
+
+    function updateProgress(newProgress) {
+      progressSoFar += newProgress;
+      if (progressCallback)
+        progressCallback(0.25 + 0.75 * (progressSoFar / progressCost));
+    }
+
     var callbacks = allbackMaker(
       ['newMsgs', 'knownMsgs'],
       function() {
@@ -27102,6 +27448,10 @@ console.log('   header processed');
           console.warn('New UIDs fetch error, ideally harmless:', err);
         });
       newFetcher.on('end', function onNewFetchEnd() {
+          // the fetch results will be bursty, so just update all at once
+          updateProgress(NEW_HEADERS_AGGR_COST +
+                         NEW_HEADERS_PER_COST * newUIDs.length);
+
           // sort the messages, endTS to startTS (aka numerically descending)
           newChewReps.sort(function(a, b) {
               return b.msg.date - a.msg.date;
@@ -27198,6 +27548,7 @@ try {
                 setupBodyParser(bodyPart);
                 msg.on('data', bodyParseBuffer);
                 msg.on('end', function() {
+                  updateProgress(NEW_BODIES_PER_COST);
                   partsReceived.push(finishBodyParsing());
 console.log('  !fetched body part for', chewRep.msg.id, bodyPart.partID,
             partsReceived.length, chewRep.bodyParts.length);
@@ -27282,6 +27633,9 @@ console.warn('  FLAGS: "' + header.flags.toString() + '" VS "' +
           console.warn('Known UIDs fetch error, ideally harmless:', err);
         });
       knownFetcher.on('end', function() {
+        // the fetch results will be bursty, so just update all at once
+        updateProgress(KNOWN_HEADERS_AGGR_COST +
+                       KNOWN_HEADERS_PER_COST * knownUIDs.length);
         callbacks.knownMsgs();
       });
     }
@@ -27344,8 +27698,14 @@ console.warn('  FLAGS: "' + header.flags.toString() + '" VS "' +
       fetcher.on('error', function(err) {
         if (!anyError)
           anyError = err;
-        if (--pendingFetches === 0)
-          callback(anyError, bodies);
+        if (--pendingFetches === 0) {
+          try {
+            callback(anyError, bodies);
+          }
+          catch (ex) {
+            self._LOG.callbackErr(ex);
+          }
+        }
       });
       fetcher.on('message', function(msg) {
         setupBodyParser(partInfo);
@@ -27353,8 +27713,14 @@ console.warn('  FLAGS: "' + header.flags.toString() + '" VS "' +
         msg.on('end', function() {
           bodies.push(new Blob([finishBodyParsing()], { type: partInfo.type }));
 
-          if (--pendingFetches === 0)
-            callback(anyError, bodies);
+          if (--pendingFetches === 0) {
+            try {
+              callback(anyError, bodies);
+            }
+            catch (ex) {
+              self._LOG.callbackErr(ex);
+            }
+          }
         });
       });
     });
@@ -27394,6 +27760,10 @@ function ImapFolderSyncer(account, folderStorage, _parentLog) {
    * before we hit this date, it makes sense to keep taking smaller sync steps.
    */
   this._curSyncDoNotGrowWindowBefore = null;
+  /**
+   * The callback to invoke when we complete the sync, regardless of success.
+   */
+  this._curSyncDoneCallback = null;
 
   this.folderConn = new ImapFolderConn(account, folderStorage, this._LOG);
 }
@@ -27405,12 +27775,14 @@ ImapFolderSyncer.prototype = {
    */
   syncable: true,
 
-  syncDateRange: function(startTS, endTS, syncCallback) {
+  syncDateRange: function(startTS, endTS, syncCallback, doneCallback,
+                          progressCallback) {
     syncCallback('sync', false);
-    this._startSync(startTS, endTS);
+    this._startSync(startTS, endTS, doneCallback, progressCallback);
   },
 
-  syncAdjustedDateRange: function(startTS, endTS, syncCallback) {
+  syncAdjustedDateRange: function(startTS, endTS, syncCallback, doneCallback,
+                                  progressCallback) {
     // We need to iterate over the headers to figure out the right
     // date to use.  We can't just use the accuracy range because it may
     // have been bisected by the user scrolling into the past and
@@ -27441,20 +27813,23 @@ ImapFolderSyncer.prototype = {
           startTS = quantizeDate(header.date + this._account.tzOffset);
         }
         syncCallback('sync', true);
-        this._startSync(startTS, endTS);
+        this._startSync(startTS, endTS, doneCallback, progressCallback);
       }.bind(this)
     );
   },
 
-  refreshSync: function(startTS, endTS, useBisectLimit, callback) {
+  refreshSync: function(startTS, endTS, useBisectLimit, doneCallback,
+                        progressCallback) {
     this._curSyncAccuracyStamp = NOW();
     // timezone compensation happens in the caller
-    this.folderConn.syncDateRange(startTS, endTS, this._curSyncAccuracyStamp,
-                                  useBisectLimit, callback);
+    this.folderConn.syncDateRange(
+      startTS, endTS, this._curSyncAccuracyStamp, useBisectLimit,
+      doneCallback, progressCallback);
   },
 
   // Returns false if no sync is necessary.
-  growSync: function(endTS, batchHeaders, userRequestsGrowth, syncCallback) {
+  growSync: function(endTS, batchHeaders, userRequestsGrowth, syncCallback,
+                     doneCallback, progressCallback) {
     // The sync wants to be BEFORE the earliest day (which we are assuming
     // is fully synced based on our day granularity).
     var syncEndTS = quantizeDate(endTS);
@@ -27492,30 +27867,48 @@ ImapFolderSyncer.prototype = {
 
       // Perform a limited synchronization; do not issue additional syncs!
       syncCallback('limsync', iFirstNotToSend);
-      this._startSync(syncStartTS, syncEndTS);
+      this._startSync(syncStartTS, syncEndTS, doneCallback, progressCallback);
       return true;
     }
     // If growth was requested/is allowed or our accuracy range already covers
     // as far back as we go, issue a (potentially expanding) sync.
     else if (batchHeaders.length === 0 && userRequestsGrowth) {
       syncCallback('sync', 0);
-      this._startSync(null, syncEndTS);
+      this._startSync(null, syncEndTS, doneCallback, progressCallback);
       return true;
     }
 
     return false;
   },
 
-  _startSync: function ifs__startSync(startTS, endTS) {
+  _startSync: function ifs__startSync(startTS, endTS, doneCallback,
+                                      progressCallback) {
     if (startTS === null)
       startTS = endTS - ($sync.INITIAL_SYNC_DAYS * DAY_MILLIS);
     this._curSyncAccuracyStamp = NOW();
     this._curSyncStartTS = startTS;
     this._curSyncDayStep = $sync.INITIAL_SYNC_DAYS;
     this._curSyncDoNotGrowWindowBefore = null;
+    this._curSyncDoneCallback = doneCallback;
 
     this.folderConn.syncDateRange(startTS, endTS, this._curSyncAccuracyStamp,
-                                  null, this.onSyncCompleted.bind(this));
+                                  null, this.onSyncCompleted.bind(this),
+                                  progressCallback);
+  },
+
+  _doneSync: function ifs__doneSync(err) {
+    if (this._curSyncDoneCallback)
+      this._curSyncDoneCallback(err);
+
+    // Save our state even if there was an error because we may have accumulated
+    // some partial state.
+    this._account.__checkpointSyncCompleted();
+
+    this._curSyncAccuracyStamp = null;
+    this._curSyncStartTS = null;
+    this._curSyncDayStep = null;
+    this._curSyncDoNotGrowWindowBefore = null;
+    this._curSyncDoneCallback = null;
   },
 
   /**
@@ -27523,13 +27916,19 @@ ImapFolderSyncer.prototype = {
    * either trigger another sync if we still want more data, or close out the
    * current sync.
    */
-  onSyncCompleted: function ifs_onSyncCompleted(bisectInfo, messagesSeen) {
+  onSyncCompleted: function ifs_onSyncCompleted(err, bisectInfo, messagesSeen) {
     // In the event the time range had to be bisected, update our info so if
     // we need to take another step we do the right thing.
-    if (bisectInfo) {
+    if (err === 'bisect') {
       this._curSyncDoNotGrowWindowBefore = bisectInfo.oldStartTS;
       this._curSyncDayStep = bisectInfo.dayStep;
       this._curSyncStartTS = bisectInfo.newStartTS;
+      // We return now without calling _doneSync because we are not done; the
+      // caller (syncDateRange) will re-trigger itself and keep going.
+      return;
+    }
+    else if (err) {
+      this._doneSync(err);
       return;
     }
 
@@ -27594,16 +27993,12 @@ console.log("folder message count", folderMessageCount,
         this.folderStorage._curSyncSlice.desiredHeaders =
           this.folderStorage._curSyncSlice.headers.length;
       }
-      this.folderStorage._curSyncSlice.waitingOnData = false;
-      this.folderStorage._curSyncSlice.setStatus('synced', true, false, true);
-      this.folderStorage._curSyncSlice = null;
-
-      this._account.__checkpointSyncCompleted();
+      this._doneSync();
       return;
     }
     else if (this.folderStorage._curSyncSlice._accumulating) {
-      this.folderStorage._curSyncSlice.setStatus('synchronizing', true, true,
-                                                 true);
+      this.folderStorage._curSyncSlice.setStatus(
+        'synchronizing', true, true, true);
     }
 
     // - Increase our search window size if we aren't finding anything
@@ -27701,6 +28096,8 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
     TEST_ONLY_events: {
     },
     errors: {
+      callbackErr: { ex: $log.EXCEPTION },
+
       bodyChewError: { ex: $log.EXCEPTION },
     },
     asyncJobs: {
@@ -28275,11 +28672,15 @@ exports._partitionAndAccessFoldersSequentially = function(
 
 define('mailapi/imap/jobs',
   [
+    'rdcommon/log',
     '../jobmixins',
+    'module',
     'exports'
   ],
   function(
+    $log,
     $jobmixins,
+    $module,
     exports
   ) {
 
@@ -28365,10 +28766,13 @@ const UNCHECKED_COHERENT_NOTYET = 'coherent-notyet';
  * }
  **/
 
-function ImapJobDriver(account, state) {
+function ImapJobDriver(account, state, _parentLog) {
   this.account = account;
   this.resilientServerIds = false;
   this._heldMutexReleasers = [];
+
+  this._LOG = LOGFAB.ImapJobDriver(this, _parentLog, this.account.id);
+
   this._state = state;
   // (we only need to use one as a proxy for initialization)
   if (!state.hasOwnProperty('suidToServerId')) {
@@ -28426,7 +28830,12 @@ ImapJobDriver.prototype = {
         syncer.folderConn.acquireConn(callback, deathback, label);
       }
       else {
-        callback(syncer.folderConn, storage);
+        try {
+          callback(syncer.folderConn, storage);
+        }
+        catch (ex) {
+          self._LOG.callbackErr(ex);
+        }
       }
     });
   },
@@ -28443,14 +28852,21 @@ ImapJobDriver.prototype = {
    * there is no need to release it directly.
    */
   _acquireConnWithoutFolder: function(label, callback, deathback) {
+    this._LOG.acquireConnWithoutFolder_begin(label);
     const self = this;
     this.account.__folderDemandsConnection(
       null, label,
       function(conn) {
+        self._LOG.acquireConnWithoutFolder_end(label);
         self._heldMutexReleasers.push(function() {
           self.account.__folderDoneWithConnection(conn, false, false);
         });
-        callback(conn);
+        try {
+          callback(conn);
+        }
+        catch (ex) {
+          self._LOG.callbackErr(ex);
+        }
       },
       deathback
     );
@@ -29082,7 +29498,10 @@ ImapJobDriver.prototype = {
       if (callback)
         callback(errString, folderMeta);
     }
-    this._acquireConnWithoutFolder('createFolder', gotConn);
+    function deadConn() {
+      callback('aborted-retry');
+    }
+    this._acquireConnWithoutFolder('createFolder', gotConn, deadConn);
   },
 
   check_createFolder: function(op, doneCallback) {
@@ -29143,6 +29562,18 @@ HighLevelJobDriver.prototype = {
   },
 };
 
+var LOGFAB = exports.LOGFAB = $log.register($module, {
+  ImapJobDriver: {
+    type: $log.DAEMON,
+    asyncJobs: {
+      acquireConnWithoutFolder: { label: false },
+    },
+    errors: {
+      callbackErr: { ex: $log.EXCEPTION },
+    },
+  },
+});
+
 }); // end define
 ;
 /**
@@ -29202,6 +29633,8 @@ function ImapAccount(universe, compositeAccount, accountId, credentials,
   this.universe = universe;
   this.compositeAccount = compositeAccount;
   this.id = accountId;
+
+  this.enabled = true;
 
   this._LOG = LOGFAB.ImapAccount(this, _parentLog, this.id);
 
@@ -29322,7 +29755,7 @@ function ImapAccount(universe, compositeAccount, accountId, credentials,
   });
 
   this._jobDriver = new $imapjobs.ImapJobDriver(
-                          this, this._folderInfos.$mutationState);
+                          this, this._folderInfos.$mutationState, this._LOG);
 
   /**
    * Flag to allow us to avoid calling closeBox to close a folder.  This avoids
@@ -29361,7 +29794,8 @@ ImapAccount.prototype = {
         path: path,
         type: type,
         delim: delim,
-        depth: depth
+        depth: depth,
+        lastSyncedAt: 0
       },
       $impl: {
         nextId: 0,
@@ -29552,7 +29986,7 @@ ImapAccount.prototype = {
    * like Thunderbird uses.  The rationale is that many servers cap the number
    * of connections we are allowed to maintain, plus it's hard to justify
    * locally tying up those resources.  (Thunderbird has more need of watching
-   * multiple folders than ourselves, bu we may still want to synchronize a
+   * multiple folders than ourselves, but we may still want to synchronize a
    * bunch of folders in parallel for latency reasons.)
    *
    * The provided connection will *not* be in the requested folder; it's up to
@@ -29576,15 +30010,31 @@ ImapAccount.prototype = {
    *     A callback to invoke if the connection dies or we feel compelled to
    *     reclaim it.
    *   }
+   *   @param[dieOnConnectFailure #:optional Boolean]{
+   *     Should we invoke the deathback for this request if we fail to establish
+   *     a connection in a timely manner?  This will be immediately invoked if
+   *     we are offline or if we exhaust our retries for establishing
+   *     connections with the server.
+   *   }
    * ]
    */
-  __folderDemandsConnection: function(folderId, label, callback, deathback) {
-    this._demandedConns.push({
+  __folderDemandsConnection: function(folderId, label, callback, deathback,
+                                      dieOnConnectFailure) {
+    // If we are offline, invoke the deathback soon and don't bother trying to
+    // get a connection.
+    if (dieOnConnectFailure && !this.universe.online) {
+      window.setZeroTimeout(deathback);
+      return;
+    }
+
+    var demand = {
       folderId: folderId,
       label: label,
       callback: callback,
-      deathback: deathback
-    });
+      deathback: deathback,
+      dieOnConnectFailure: Boolean(dieOnConnectFailure)
+    };
+    this._demandedConns.push(demand);
 
     // No line-cutting; bail if there was someone ahead of us.
     if (this._demandedConns.length > 1)
@@ -29596,8 +30046,32 @@ ImapAccount.prototype = {
 
     // - we need to wait for a new conn or one to free up
     this._makeConnectionIfPossible();
+
+    return;
   },
 
+  /**
+   * Trigger the deathbacks for all connection demands where dieOnConnectFailure
+   * is true.
+   */
+  _killDieOnConnectFailureDemands: function() {
+    for (var i = 0; i < this._demandedConns.length; i++) {
+      var demand = this._demandedConns[i];
+      if (demand.dieOnConnectFailure) {
+        demand.deathback.call(null);
+        this._demandedConns.splice(i--, 1);
+      }
+    }
+  },
+
+  /**
+   * Try and find an available connection and assign it to the first connection
+   * demand.
+   *
+   * @return[Boolean]{
+   *   True if we allocated a demand to a conncetion, false if we did not.
+   * }
+   */
   _allocateExistingConnection: function() {
     if (!this._demandedConns.length)
       return false;
@@ -29730,9 +30204,12 @@ ImapAccount.prototype = {
         if (maybeRetry) {
           if (this._backoffEndpoint.noteConnectFailureMaybeRetry(reachable))
             this._makeConnectionIfPossible();
+          else
+            this._killDieOnConnectFailureDemands();
         }
         else {
           this._backoffEndpoint.noteBrokenConnection();
+          this._killDieOnConnectFailureDemands();
         }
       }
       else {
@@ -29808,6 +30285,23 @@ ImapAccount.prototype = {
       }
     }
     this._LOG.connectionMismatch();
+  },
+
+  /**
+   * We receive this notification from our _backoffEndpoint.
+   */
+  onEndpointStateChange: function(state) {
+    switch (state) {
+      case 'healthy':
+        this.universe.__removeAccountProblem(this.compositeAccount,
+                                             'connection');
+        break;
+      case 'unreachable':
+      case 'broken':
+        this.universe.__reportAccountProblem(this.compositeAccount,
+                                             'connection');
+        break;
+    }
   },
 
   //////////////////////////////////////////////////////////////////////////////
@@ -30689,6 +31183,8 @@ MessageGenerator.prototype = {
       var age = aArgs.age;
       // start from 'now'
       var ts = this._clock || Date.now();
+      if (age.seconds)
+        ts -= age.seconds * 1000;
       if (age.minutes)
         ts -= age.minutes * 60 * 1000;
       if (age.hours)
@@ -30805,6 +31301,9 @@ MessageGenerator.prototype = {
    *  age: As used by makeMessage.
    *  age_incr: Similar to age, but used to increment the values in the age
    *      dictionary (assuming a value of zero if omitted).
+   *  age_incr_every: How often to apply age_incr.  If omitted, treated like 1
+   *      is specified.  Use this to cluster messages during the middle of the
+   *      day so you aren't betrayed by timezone issues.
    *  @param [aSetDef.msgsPerThread=1] The number of messages per thread.  If
    *      you want to create direct-reply threads, you can pass a value for this
    *      and have it not be one.  If you need fancier reply situations,
@@ -30820,10 +31319,12 @@ MessageGenerator.prototype = {
   makeMessages: function MessageGenerator_makeMessages(aSetDef) {
     var messages = [];
 
-    var args = {}, unit, delta;
+    var args = {
+      age_incr_every: 1,
+    }, unit, delta;
     // zero out all the age_incr fields in age (if present)
     if (aSetDef.age_incr) {
-      args.age = {};
+      args.age = { seconds: 0 };
       for (unit in aSetDef.age_incr) {
         args.age[unit] = 0;
       }
@@ -30874,9 +31375,16 @@ MessageGenerator.prototype = {
       messages.push(lastMessage);
 
       if (aSetDef.age_incr) {
-        for (unit in aSetDef.age_incr) {
-          delta = aSetDef.age_incr[unit];
-          args.age[unit] += delta;
+        if (!aSetDef.age_incr_every ||
+            (messages.length % aSetDef.age_incr_every === 0)) {
+          args.age.seconds = 0;
+          for (unit in aSetDef.age_incr) {
+            delta = aSetDef.age_incr[unit];
+            args.age[unit] += delta;
+          }
+        }
+        else {
+          args.age.seconds++;
         }
       }
     }
@@ -30920,6 +31428,7 @@ function FakeAccount(universe, accountDef, folderInfo, receiveProtoConn, _LOG) {
     address: ourIdentity.address,
   };
 
+  const HOURS_MS = 60 * 60 * 1000;
   var inboxFolder = {
     id: this.id + '/0',
     name: 'Inbox',
@@ -30927,6 +31436,7 @@ function FakeAccount(universe, accountDef, folderInfo, receiveProtoConn, _LOG) {
     type: 'inbox',
     delim: '/',
     depth: 0,
+    lastSyncedAt: Date.now() - 1 * HOURS_MS,
   };
   var todoFolder = {
     id: this.id + '/1',
@@ -30935,6 +31445,7 @@ function FakeAccount(universe, accountDef, folderInfo, receiveProtoConn, _LOG) {
     type: 'normal',
     delim: '/',
     depth: 1,
+    lastSyncedAt: Date.now() - 3 * HOURS_MS,
   };
   var draftsFolder = {
     id: this.id + '/2',
@@ -30943,6 +31454,7 @@ function FakeAccount(universe, accountDef, folderInfo, receiveProtoConn, _LOG) {
     type: 'drafts',
     delim: '/',
     depth: 0,
+    lastSyncedAt: Date.now() - 75 * HOURS_MS,
   };
   var sentFolder = {
     id: this.id + '/3',
@@ -30951,6 +31463,7 @@ function FakeAccount(universe, accountDef, folderInfo, receiveProtoConn, _LOG) {
     type: 'sent',
     delim: '/',
     depth: 0,
+    lastSyncedAt: Date.now() - 29 * HOURS_MS,
   };
 
   this.folders = [inboxFolder, todoFolder, draftsFolder, sentFolder];
@@ -31381,19 +31894,23 @@ ActiveSyncFolderConn.prototype = {
    *
    * @param {function} callback A function to be called when the operation has
    *   completed, taking three arguments: |added|, |changed|, and |deleted|
+   * @param {function} progress A function to be called as the operation
+   *   progresses that takes a number in the range [0.0, 1.0] to express
+   *   progress.
    */
-  _enumerateFolderChanges: function asfc__enumerateFolderChanges(callback) {
+  _enumerateFolderChanges: function asfc__enumerateFolderChanges(callback,
+                                                                 progress) {
     let folderConn = this, storage = this._storage;
     let account = this._account;
 
     if (!account.conn.connected) {
       account.conn.connect(function(error, config) {
         if (error) {
-          callback('unknown');
+          callback('aborted');
           console.error('Error connecting to ActiveSync:', error);
         }
         else {
-          folderConn._enumerateFolderChanges(callback);
+          folderConn._enumerateFolderChanges(callback, progress);
         }
       });
       return;
@@ -31405,7 +31922,7 @@ ActiveSyncFolderConn.prototype = {
         else {
           console.log('We want a filter of', FILTER_TYPE_TO_STRING[filterType]);
           folderConn.folderMeta.filterType = filterType;
-          folderConn._enumerateFolderChanges(callback);
+          folderConn._enumerateFolderChanges(callback, progress);
         }
       });
       return;
@@ -31413,9 +31930,9 @@ ActiveSyncFolderConn.prototype = {
     if (this.syncKey === '0') {
       this._getSyncKey(this.filterType, function(error) {
         if (error)
-          callback('unknown');
+          callback('aborted');
         else
-          folderConn._enumerateFolderChanges(callback);
+          folderConn._enumerateFolderChanges(callback, progress);
       });
       return;
     }
@@ -31477,6 +31994,7 @@ ActiveSyncFolderConn.prototype = {
 
       if (aError) {
         console.error('Error syncing folder:', aError);
+        callback('aborted');
         return;
       }
 
@@ -31557,7 +32075,7 @@ ActiveSyncFolderConn.prototype = {
                     changed.length + ', deleted ' + deleted.length);
         callback(null, added, changed, deleted, moreAvailable);
         if (moreAvailable)
-          folderConn._enumerateFolderChanges(callback);
+          folderConn._enumerateFolderChanges(callback, progress);
       }
       else if (status === asEnum.Status.InvalidSyncKey) {
         console.warn('ActiveSync had a bad sync key');
@@ -31566,7 +32084,17 @@ ActiveSyncFolderConn.prototype = {
       else {
         console.error('Something went wrong during ActiveSync syncing and we ' +
                       'got a status of ' + status);
+        callback('unknown');
       }
+    }, null, null,
+    function progressData(bytesSoFar, totalBytes) {
+      // We get the XHR progress status and convert it into progress in the
+      // range [0.10, 0.80].  The remaining 20% is processing the specific
+      // messages, but we don't bother to generate notifications since that
+      // is done synchronously.
+      if (!totalBytes)
+        totalBytes = Math.max(1000000, bytesSoFar);
+      progress(0.1 + 0.7 * bytesSoFar / totalBytes);
     });
   },
 
@@ -31793,7 +32321,7 @@ ActiveSyncFolderConn.prototype = {
   },
 
   syncDateRange: function asfc_syncDateRange(startTS, endTS, accuracyStamp,
-                                             doneCallback) {
+                                             doneCallback, progressCallback) {
     let storage = this._storage;
     let folderConn = this;
     let messagesSeen = 0;
@@ -31836,9 +32364,10 @@ ActiveSyncFolderConn.prototype = {
         folderConn._LOG.syncDateRange_end(added.length, changed.length,
                                           deleted.length, startTS, endTS);
         storage.markSyncRange(startTS, endTS, 'XXX', accuracyStamp);
-        doneCallback(null, messagesSeen);
+        doneCallback(null, null, messagesSeen);
       }
-    });
+    },
+    progressCallback);
   },
 
   performMutation: function(invokeWithWriter, callWhenDone) {
@@ -32016,25 +32545,35 @@ ActiveSyncFolderSyncer.prototype = {
     return this.folderConn.serverId !== null;
   },
 
-  syncDateRange: function(startTS, endTS, syncCallback) {
+  syncDateRange: function(startTS, endTS, syncCallback, doneCallback,
+                          progressCallback) {
     syncCallback('sync', false, true);
-    this.folderConn.syncDateRange(startTS, endTS, $date.NOW(),
-                                  this.onSyncCompleted.bind(this));
+    this.folderConn.syncDateRange(
+      startTS, endTS, $date.NOW(),
+      this.onSyncCompleted.bind(this, doneCallback),
+      progressCallback);
   },
 
-  syncAdjustedDateRange: function(startTS, endTS, syncCallback) {
+  syncAdjustedDateRange: function(startTS, endTS, syncCallback, doneCallback,
+                                  progressCallback) {
     // ActiveSync doesn't adjust date ranges. Just do a normal sync.
-    this.syncDateRange(startTS, endTS, syncCallback);
+    this.syncDateRange(startTS, endTS, syncCallback, doneCallback,
+                       progressCallback);
   },
 
-  refreshSync: function(startTS, endTS, useBisectLimit, callback) {
-    this.folderConn.syncDateRange(startTS, endTS, $date.NOW(), callback);
+  refreshSync: function(startTS, endTS, useBisectLimit, doneCallback,
+                        progressCallback) {
+    this.folderConn.syncDateRange(startTS, endTS, $date.NOW(),
+                                  doneCallback, progressCallback);
   },
 
   // Returns false if no sync is necessary.
-  growSync: function(endTS, batchHeaders, userRequestsGrowth, syncCallback) {
+  growSync: function(endTS, batchHeaders, userRequestsGrowth, syncCallback,
+                     doneCallback, progressCallback) {
     // ActiveSync is different, and trying to sync more doesn't work with it.
     // Just assume we've got all we need.
+    // (There is no need to invoke the callbacks; by returning false, we
+    // indicate that we did no work.)
     return false;
   },
 
@@ -32043,7 +32582,13 @@ ActiveSyncFolderSyncer.prototype = {
    * either trigger another sync if we still want more data, or close out the
    * current sync.
    */
-  onSyncCompleted: function ifs_onSyncCompleted(bisectInfo, messagesSeen) {
+  onSyncCompleted: function ifs_onSyncCompleted(doneCallback, err, bisectInfo,
+                                                messagesSeen) {
+    if (err) {
+      doneCallback(err);
+      return;
+    }
+
     let storage = this.folderStorage;
 
     console.log("Sync Completed!", messagesSeen, "messages synced");
@@ -32057,7 +32602,8 @@ ActiveSyncFolderSyncer.prototype = {
     storage.getMessagesInImapDateRange(
       0, $date.FUTURE(), $sync.INITIAL_FILL_SIZE, $sync.INITIAL_FILL_SIZE,
       // Don't trigger a refresh; we just synced.
-      storage.onFetchDBHeaders.bind(storage, storage._curSyncSlice, false)
+      storage.onFetchDBHeaders.bind(storage, storage._curSyncSlice, false,
+                                    doneCallback, null)
     );
 
     storage._curSyncSlice = null;
@@ -32101,24 +32647,31 @@ define('mailapi/activesync/jobs',
     'wbxml',
     'activesync/codepages',
     'activesync/protocol',
+    'rdcommon/log',
     '../jobmixins',
+    'module',
     'exports'
   ],
   function(
     $wbxml,
     $ascp,
     $activesync,
+    $log,
     $jobmixins,
+    $module,
     exports
   ) {
 
 
-function ActiveSyncJobDriver(account, state) {
+function ActiveSyncJobDriver(account, state, _parentLog) {
   this.account = account;
   // XXX for simplicity for now, let's assume that ActiveSync GUID's are
   // maintained across folder moves.
   this.resilientServerIds = true;
   this._heldMutexReleasers = [];
+
+  this._LOG = LOGFAB.ActiveSyncJobDriver(this, _parentLog, this.account.id);
+
   this._state = state;
   // (we only need to use one as a proxy for initialization)
   if (!state.hasOwnProperty('suidToServerId')) {
@@ -32151,11 +32704,21 @@ ActiveSyncJobDriver.prototype = {
       if (needConn && !self.account.conn.connected) {
         // XXX will this connection automatically retry?
         self.account.conn.connect(function(err, config) {
-          callback(syncer.folderConn, storage);
+          try {
+            callback(syncer.folderConn, storage);
+          }
+          catch (ex) {
+            self._LOG.callbackErr(ex);
+          }
         });
       }
       else {
-        callback(syncer.folderConn, storage);
+        try {
+          callback(syncer.folderConn, storage);
+        }
+        catch (ex) {
+          self._LOG.callbackErr(ex);
+        }
       }
     });
   },
@@ -32458,6 +33021,15 @@ ActiveSyncJobDriver.prototype = {
 
   //////////////////////////////////////////////////////////////////////////////
 };
+
+var LOGFAB = exports.LOGFAB = $log.register($module, {
+  ActiveSyncJobDriver: {
+    type: $log.DAEMON,
+    errors: {
+      callbackErr: { ex: $log.EXCEPTION },
+    },
+  },
+});
 
 }); // end define
 ;
@@ -32816,6 +33388,7 @@ ActiveSyncAccount.prototype = {
         path: path,
         type: this._folderTypes[typeNum],
         depth: depth,
+        lastSyncedAt: 0,
         syncKey: '0',
       },
       $impl: {
@@ -33203,7 +33776,7 @@ function CompositeAccount(universe, accountDef, folderInfo, dbConn,
   // Currently we don't persist the disabled state of an account because it's
   // easier for the UI to be edge-triggered right now and ensure that the
   // triggering occurs once each session.
-  this.enabled = true;
+  this._enabled = true;
   this.problems = [];
 
   // XXX for now we are stealing the universe's logger
@@ -33279,6 +33852,13 @@ CompositeAccount.prototype = {
       path: this.accountDef.name,
       type: 'account',
     };
+  },
+
+  get enabled() {
+    return this._enabled;
+  },
+  set enabled(val) {
+    this._enabled = this._receivePiece.enabled = val;
   },
 
   saveAccountState: function(reuseTrans) {
@@ -33420,7 +34000,7 @@ var autoconfigByDomain = exports._autoconfigByDomain = {
     incoming: {
       // This string may be clobbered with the correct port number when
       // running as a unit test.
-      server: 'http://localhost:8080',
+      server: 'http://localhost:8880',
     },
   },
   // Mapping for a nonexistent domain for testing a bad domain without it being
@@ -33501,8 +34081,9 @@ Configurators['imap+smtp'] = {
         else {
           // clean up the imap connection if it was okay but smtp failed
           if (!results.imap[0]) {
-            results.imap[1].close();
-            callback('smtp-unknown', null); // Failure was caused by SMTP, but who knows why
+            results.imap[1].die();
+            // Failure was caused by SMTP, but who knows why
+            callback('smtp-unknown', null);
           } else {
             callback(results.imap[0], null); // Pass imap error type back
           }
@@ -34653,10 +35234,9 @@ function MailUniverse(callAfterBigBang, testOptions) {
       // - Try to re-create any accounts using old account infos.
       if (lazyCarryover) {
         self._LOG.configMigrating(lazyCarryover);
-        var waitingCount = 0;
+        var waitingCount = lazyCarryover.accountInfos.length;
         var oldVersion = lazyCarryover.oldVersion;
         for (i = 0; i < lazyCarryover.accountInfos.length; i++) {
-          waitingCount++;
           var accountInfo = lazyCarryover.accountInfos[i];
           $acctcommon.recreateAccount(self, oldVersion, accountInfo,
                                       function() {
@@ -35027,6 +35607,8 @@ MailUniverse.prototype = {
     account.problems.push(problem);
     account.enabled = false;
 
+    this.__notifyModifiedAccount(account);
+
     switch (problem) {
       case 'bad-user-or-pass':
       case 'imap-disabled':
@@ -35034,6 +35616,19 @@ MailUniverse.prototype = {
         this.__notifyBadLogin(account, problem);
         break;
     }
+  },
+
+  __removeAccountProblem: function(account, problem) {
+    var idx = account.problems.indexOf(problem);
+    if (idx === -1)
+      return;
+    account.problems.splice(idx, 1);
+    account.enabled = (account.problems.length === 0);
+
+    this.__notifyModifiedAccount(account);
+
+    if (account.enabled)
+      this._resumeOpProcessingForAccount(account);
   },
 
   clearAccountProblems: function(account) {
@@ -35058,6 +35653,13 @@ MailUniverse.prototype = {
     }
   },
 
+  __notifyModifiedAccount: function(account) {
+    for (var iBridge = 0; iBridge < this._bridges.length; iBridge++) {
+      var bridge = this._bridges[iBridge];
+      bridge.notifyAccountModified(account);
+    }
+  },
+
   __notifyRemovedAccount: function(accountId) {
     for (var iBridge = 0; iBridge < this._bridges.length; iBridge++) {
       var bridge = this._bridges[iBridge];
@@ -35069,6 +35671,13 @@ MailUniverse.prototype = {
     for (var iBridge = 0; iBridge < this._bridges.length; iBridge++) {
       var bridge = this._bridges[iBridge];
       bridge.notifyFolderAdded(accountId, folderMeta);
+    }
+  },
+
+  __notifyModifiedFolder: function(accountId, folderMeta) {
+    for (var iBridge = 0; iBridge < this._bridges.length; iBridge++) {
+      var bridge = this._bridges[iBridge];
+      bridge.notifyFolderModified(accountId, folderMeta);
     }
   },
 
@@ -35875,7 +36484,7 @@ function createBridgePair(universe) {
   };
   TMB.__sendMessage = function(msg) {
     window.setZeroTimeout(function() {
-      TMB._LOG.send(msg.type);
+      TMB._LOG.send(msg.type, msg);
       TMA.__bridgeReceive(msg);
     });
   };

@@ -105,7 +105,11 @@
   background-image: -moz-image-rect(url(images/icons_sprite.png), 120, 90, 150, 60);
 }
 
-#menuItem-helpAndFeedback {
+#menuItem-improveFirefoxOS {
+  background-image: -moz-image-rect(url(images/icons_sprite.png), 120, 120, 150, 90);
+}
+
+#menuItem-help {
   background-image: -moz-image-rect(url(images/icons_sprite.png), 120, 120, 150, 90);
 }
 
