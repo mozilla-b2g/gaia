@@ -10,8 +10,10 @@
       window.navigator.mozSettings.createLock().get('icc.applications');
     reqApplications.onsuccess = function icc_getApplications() {
       var menu = JSON.parse(reqApplications.result['icc.applications']);
-      if (!menu) {
+      if (!menu || !menu.title || menu.title == "") {
         debug('No STK available - exit');
+        document.getElementById('icc-mainheader').hidden = true;
+        document.getElementById('icc-mainentry').hidden = true;
         return;
       }
 
