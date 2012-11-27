@@ -49,6 +49,8 @@ var NotificationScreen = {
   _toasterGD: null,
 
   lockscreenPreview: true,
+  alerts: true,
+  vibrates: true,
 
   init: function ns_init() {
     window.addEventListener('mozChromeEvent', this);
@@ -240,6 +242,28 @@ var NotificationScreen = {
                                this.lockScreenContainer.firstElementChild);
     }
 
+    if (this.alerts) {
+      var ringtonePlayer = new Audio();
+      ringtonePlayer.src = 'style/notifications/ringtones/notification.wav';
+      ringtonePlayer.mozAudioChannelType = 'notification';
+      ringtonePlayer.play();
+      window.setTimeout(function smsRingtoneEnder() {
+        ringtonePlayer.pause();
+        ringtonePlayer.src = '';
+      }, 2000);
+    }
+
+    if (this.vibrates) {
+      if (document.mozHidden) {
+        window.addEventListener('mozvisibilitychange', function waitOn() {
+          window.removeEventListener('mozvisibilitychange', waitOn);
+          navigator.vibrate([200, 200, 200, 200]);
+        });
+      } else {
+        navigator.vibrate([200, 200, 200, 200]);
+      }
+    }
+
     return notificationNode;
   },
 
@@ -307,4 +331,12 @@ SettingsListener.observe(
     'lockscreen.notifications-preview.enabled', true, function(value) {
 
   NotificationScreen.lockscreenPreview = value;
+});
+
+SettingsListener.observe('alert-sound.enabled', true, function(value) {
+  NotificationScreen.alerts = value;
+});
+
+SettingsListener.observe('alert-vibration.enabled', true, function(value) {
+  NotificationScreen.vibrates = value;
 });
