@@ -152,6 +152,11 @@ var Navigation = {
         UIManager.progressBar.className = 'step-state step-6';
         UIManager.navBar.classList.add('back-only');
         break;
+      case '#sharing-performance-data':
+        UIManager.progressBar.className = 'step-state step-6';
+        UIManager.mainTitle.innerHTML = _('sharing-performance-data');
+        UIManager.navBar.classList.add('back-only');
+        break;
       default:
         break;
     }
