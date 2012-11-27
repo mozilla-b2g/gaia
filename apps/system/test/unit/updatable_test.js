@@ -437,6 +437,13 @@ suite('system/Updatable', function() {
       assert.equal('wait', lastDispatchedEvent.value);
     });
 
+    test('canceling should remove from downloads queue', function() {
+      subject.declineInstall();
+
+      assert.isNotNull(MockUpdateManager.mLastDownloadsRemoval);
+      assert.equal(subject, MockUpdateManager.mLastDownloadsRemoval);
+    });
+
     test('apply prompt confirm callback', function() {
       assert.equal(subject.acceptInstall.name,
                    MockCustomDialog.mShowedConfirm.callback.name);
