@@ -17,12 +17,15 @@ function FolderPickerCard(domNode, mode, args) {
 
   this.foldersSlice = args.foldersSlice;
   this.foldersSlice.onsplice = this.onFoldersSplice.bind(this);
+  this.foldersSlice.onchange = this.onFoldersChange.bind(this);
 
   this.curAccount = args.curAccount;
   this.curFolder = args.curFolder;
+  this.mostRecentSyncTimestamp = 0;
 
   this.acctsSlice = args.acctsSlice;
   this.acctsSlice.onsplice = this.onAccountsSplice.bind(this);
+  this.acctsSlice.onchange = this.onAccountsChange.bind(this);
 
   this.accountsContainer =
     domNode.getElementsByClassName('fld-accounts-container')[0];
@@ -39,6 +42,11 @@ function FolderPickerCard(domNode, mode, args) {
     .addEventListener('click', this.onShowHideAccounts.bind(this), false);
   domNode.getElementsByClassName('fld-nav-settings-btn')[0]
     .addEventListener('click', this.onShowSettings.bind(this), false);
+
+  this.toolbarAccountProblemNode =
+    domNode.getElementsByClassName('fld-nav-account-problem')[0];
+  this.lastSyncedAtNode =
+    domNode.getElementsByClassName('fld-nav-last-synced-value')[0];
 
   // - DOM!
   this.updateSelfDom();
@@ -71,6 +79,14 @@ FolderPickerCard.prototype = {
     });
   },
 
+  onAccountsChange: function(account) {
+    this.updateAccountDom(account, false);
+    // If the currently selected account changed, we need to update the problems
+    // indicator on the toolbar.
+    if (account === this.curAccount)
+      this.updateSelfDom();
+  },
+
   updateAccountDom: function(account, firstTime) {
     var accountNode = account.element;
 
@@ -79,10 +95,19 @@ FolderPickerCard.prototype = {
         .textContent = account.name;
     }
 
-    if (account === this.curAccount)
+    if (account === this.curAccount) {
       accountNode.classList.add('fld-account-selected');
-    else
+    }
+    else {
       accountNode.classList.remove('fld-account-selected');
+    }
+
+    var problemNode =
+          accountNode.getElementsByClassName('fld-account-problem')[0];
+    if (account.problems.length)
+      problemNode.classList.remove('collapsed');
+    else
+      problemNode.classList.add('collapsed');
 
     // XXX unread count stuff once it exists
   },
@@ -96,6 +121,8 @@ FolderPickerCard.prototype = {
     var oldAccount = this.curAccount,
         account = this.curAccount = accountNode.account;
 
+    this.mostRecentSyncTimestamp = 0;
+
     this.updateSelfDom();
     if (oldAccount !== account) {
       // change selection status
@@ -105,6 +132,8 @@ FolderPickerCard.prototype = {
       // kill the old slice and its related DOM
       this.foldersSlice.die();
       this.foldersContainer.innerHTML = '';
+      this.lastSyncedAtNode.textContent = '';
+      this.lastSyncedAtNode.removeAttribute('data-time');
 
       // stop the user from doing anything until we load the folders for the
       // account and then transition to our card.
@@ -113,7 +142,8 @@ FolderPickerCard.prototype = {
       // load the folders for the account
       this.foldersSlice = MailAPI.viewFolders('account', account);
       this.foldersSlice.onsplice = this.onFoldersSplice.bind(this);
-      // T will cause the splice handler to select the inbox for us; we do
+      this.foldersSlice.onchange = this.onFoldersChange.bind(this);
+      // This will cause the splice handler to select the inbox for us; we do
       // this in the splice handler rather than in oncomplete because the splice
       // handler happens first and creates the DOM, and so this way it will set
       // the selection to be reflected in the DOM from the get-go.
@@ -161,6 +191,7 @@ FolderPickerCard.prototype = {
       }
     }
 
+    var dirtySyncTime = false;
     var insertBuddy = (index >= foldersContainer.childElementCount) ?
                         null : foldersContainer.children[index],
         self = this;
@@ -169,7 +200,33 @@ FolderPickerCard.prototype = {
       folderNode.folder = folder;
       self.updateFolderDom(folder, true);
       foldersContainer.insertBefore(folderNode, insertBuddy);
+
+      if (this.mostRecentSyncTimestamp < folder.lastSyncedAt) {
+        this.mostRecentSyncTimestamp = folder.lastSyncedAt;
+        dirtySyncTime = true;
+      }
     });
+    if (dirtySyncTime)
+      this.updateLastSyncedUI();
+  },
+
+  onFoldersChange: function(folder) {
+    if (this.mostRecentSyncTimestamp < folder.lastSyncedAt) {
+      this.mostRecentSyncTimestamp = folder.lastSyncedAt;
+      this.updateLastSyncedUI();
+    }
+  },
+
+  updateLastSyncedUI: function() {
+    if (this.mostRecentSyncTimestamp) {
+      this.lastSyncedAtNode.dataset.time =
+        this.mostRecentSyncTimestamp.valueOf();
+      this.lastSyncedAtNode.textContent =
+        prettyDate(this.mostRecentSyncTimestamp);
+    }
+    else {
+      this.lastSyncedAtNode.textContent = mozL10n.get('account-never-synced');
+    }
   },
 
   updateSelfDom: function(isAccount) {
@@ -187,6 +244,12 @@ FolderPickerCard.prototype = {
       icon.classList.remove('icon-back');
       icon.classList.add('icon-user');
     }
+
+    // Update account problem status
+    if (this.curAccount.problems.length)
+      this.toolbarAccountProblemNode.classList.remove('collapsed');
+    else
+      this.toolbarAccountProblemNode.classList.add('collapsed');
   },
 
   updateFolderDom: function(folder, firstTime) {
