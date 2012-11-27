@@ -1,7 +1,4 @@
 #keyboard-frame {
-  /* See the new mozpasspointerevents attribute added in bug 796452 */
-  pointer-events: none;
-
   position: absolute;
   bottom: 0;
 
@@ -14,10 +11,12 @@
 
 #keyboard-frame.visible {
   visibility: visible;
+  pointer-events: auto;
 }
 
 #keyboard-frame.hide {
   visibility: hidden;
+  pointer-events: none;
 
   transform: translateY(100%);
 }
@@ -30,3 +29,14 @@
   height: 100%;
   border: 0;
 }
+
+#keyboard-overlay {
+  position: absolute;
+  top: 0px;
+  width: 100%;
+  border: 0;
+  background: -moz-element(#keyboard-frame);
+  background-position: top center;
+  pointer-events: none;
+}
+
