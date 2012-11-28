@@ -26,10 +26,27 @@ var Settings = {
     // register web activity handler
     navigator.mozSetMessageHandler('activity', this.webActivityHandler);
 
-    // update <input> values when the corresponding setting is changed
+    // update corresponding setting when it changes
     settings.onsettingchange = function settingChanged(event) {
       var key = event.settingName;
       var value = event.settingValue;
+
+      // update <span> values when the corresponding setting is changed
+      var rule = 'span[data-name="' + key + '"]:not([data-ignore])';
+      var spanField = document.querySelector(rule);
+      if (spanField) {
+        // check whether this setting comes from a select option
+        rule = '[data-setting="' + key + '"] [value="' + value + '"]';
+        var option = document.querySelector(rule);
+        if (option) {
+          spanField.dataset.l10nId = option.dataset.l10nId;
+          spanField.textContent = option.textContent;
+        } else {
+          spanField.textContent = value;
+        }
+      }
+
+      // update <input> values when the corresponding setting is changed
       var input = document.querySelector('input[name="' + key + '"]');
       if (!input)
         return;
@@ -91,7 +108,8 @@ var Settings = {
 
     // activate all links
     var self = this;
-    var links = panel.querySelectorAll('a[href^="http"], a[href^="tel"], [data-href]');
+    var rule = 'a[href^="http"], a[href^="tel"], [data-href]';
+    var links = panel.querySelectorAll(rule);
     for (i = 0; i < links.length; i++) {
       var link = links[i];
       if (!link.dataset.href) {
@@ -191,8 +209,18 @@ var Settings = {
       var spanFields = panel.querySelectorAll(rule);
       for (i = 0; i < spanFields.length; i++) {
         var key = spanFields[i].dataset.name;
-        if (key && request.result[key] != undefined)
-          spanFields[i].textContent = request.result[key];
+        if (key && request.result[key] != undefined) {
+          // check whether this setting comes from a select option
+          rule = '[data-setting="' + key + '"] [value="' + request.result[key] + '"]';
+          // it may be in a different panel, so query the whole document
+          var option = document.querySelector(rule);
+          if (option) {
+            spanFields[i].dataset.l10nId = option.dataset.l10nId;
+            spanFields[i].textContent = option.textContent;
+          } else {
+            spanFields[i].textContent = request.result[key];
+          }
+        }
       }
     };
   },
@@ -243,7 +271,7 @@ var Settings = {
       case 'text':
       case 'password':
         value = input.value; // default as text
-        if (input.dataset.valueType === "integer") // integer
+        if (input.dataset.valueType === 'integer') // integer
           value = parseInt(value);
         break;
     }
@@ -296,7 +324,7 @@ var Settings = {
     var settings = this.mozSettings;
     var dialog = document.getElementById(dialogID);
     var fields =
-        dialog.querySelectorAll('input[data-setting]:not([data-ignore])');
+        dialog.querySelectorAll('[data-setting]:not([data-ignore])');
 
     /**
      * In Settings dialog boxes, we don't want the input fields to be preset
@@ -308,7 +336,7 @@ var Settings = {
      * explicitely when the dialog is shown.  If the dialog is validated
      * (submit), their values are stored into B2G settings.
      *
-     * XXX warning, this only supports text/password/radio input types.
+     * XXX warning, this only supports text/password/radio/select input types.
      */
 
     // initialize all setting fields in the dialog box
