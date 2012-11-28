@@ -272,6 +272,11 @@ suite('contacts - launch', function() {
     yield app.waitFor(function(expected) {
       app.waitForElementsLengthEqual(detailsList, '[data-comment]', 2, expected);
     });
+    var commentField = yield detailsList.findElement('#note-details-template-0');
+    var text = newContact['comment'][0];
+    var value = yield commentField.text();
+    assert.equal(value, text);
+
     var commentField = yield detailsList.findElement('#note-details-template-1');
     var text = comment;
     var value = yield commentField.text();
@@ -357,7 +362,7 @@ suite('contacts - launch', function() {
 
     yield deleteButton.click();
     var dialogScreen = yield app.element('dialogScreen');
-    var confirmButton = yield app.element('confirmButton');
+    var confirmButton = yield dialogScreen.findElement('button.danger');
     yield app.waitUntilElement(dialogScreen, 'displayed');
     yield confirmButton.click();
 
