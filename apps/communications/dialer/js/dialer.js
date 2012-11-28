@@ -232,9 +232,9 @@ var CallHandler = (function callHandler() {
   function handleFlightMode() {
     ConfirmDialog.show(
       _('callAirplaneModeTitle'),
-      _('callAirplaneModeBody'),
+      _('callAirplaneModeMessage'),
       {
-        title: _('callAirplaneModeBtnOk'),
+        title: _('cancel'),
         callback: function() {
           ConfirmDialog.hide();
 
@@ -242,6 +242,20 @@ var CallHandler = (function callHandler() {
             currentActivity.postError('canceled');
             currentActivity = null;
           }
+        }
+      },
+      {
+        title: _('settings'),
+        callback: function() {
+          var activity = new MozActivity({
+            name: 'configure',
+              data: {
+                target: 'device',
+                section: 'root'
+              }
+            }
+          );
+          ConfirmDialog.hide();
         }
       }
     );
