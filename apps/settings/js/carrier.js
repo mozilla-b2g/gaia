@@ -206,41 +206,6 @@ var Carrier = (function newCarrier(window, document, undefined) {
     document.getElementById('dataRoaming-expl').hidden = true;
   }
 
-  // auto-select the first matching APN
-  // when the data connection is enabled for the first time
-  if (settings) {
-    var apnSetting = 'ril.data.apn';
-    var dataSwitch = document.querySelector('input[name="ril.data.enabled"]');
-
-    var applyFirstAPN = function(apnItems) {
-      if (!apnItems || !apnItems.length)
-        return;
-
-      var item = apnItems[0];
-      var lock = settings.createLock();
-      lock.set({ 'ril.data.apn': item.apn || '' });
-      lock.set({ 'ril.data.user': item.user || '' });
-      lock.set({ 'ril.data.passwd': item.password || '' });
-      lock.set({ 'ril.data.httpProxyHost': item.proxy || '' });
-      lock.set({ 'ril.data.httpProxyPort': item.port || '' });
-      restartDataConnection(true);
-
-      delete(dataSwitch.onclick);
-    }
-
-    // check if `ril.data.apn' is undefined or empty
-    var req = settings.createLock().get(apnSetting);
-    req.onsuccess = function apn_getStatusSuccess() {
-      if (!req.result[apnSetting] || !req.result[apnSetting].length) {
-        dataSwitch.onclick = function dataSwitch_click(event) {
-          event.preventDefault();
-          event.stopPropagation();
-          queryAPN(applyFirstAPN);
-        };
-      }
-    };
-  }
-
   // network operator selection: auto/manual
   var opAutoSelect = document.getElementById('operator-autoSelect');
   var opAutoSelectInput = opAutoSelect.querySelector('input');
