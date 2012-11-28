@@ -105,7 +105,7 @@
   background-image: -moz-image-rect(url(images/icons_sprite.png), 120, 90, 150, 60);
 }
 
-#menuItem-improveFirefoxOS {
+#menuItem-improveBrowserOS {
   background-image: -moz-image-rect(url(images/icons_sprite.png), 120, 120, 150, 90);
 }
 
@@ -283,7 +283,7 @@
   background-position: right 3rem top 50%; /* same position as for Wi-Fi signal levels */
 }
 
-.privacy-firefoxOS {
+.privacy-browserOS {
   background-image: -moz-image-rect(url(images/privacy_sprite.png), 0, 32, 32, 0);
 }
 
