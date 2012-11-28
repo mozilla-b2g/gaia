@@ -637,6 +637,10 @@ window.addEventListener('load', function loadSettings() {
     // load panel (+ dependencies) if necessary -- this should be synchronous
     lazyLoad(newPanel);
 
+    // always load settings in case changes affecting current panel were made
+    // in previous panel (ex. wi-fi sharing)
+    Settings.presetPanel(newPanel);
+
     // switch previous/current classes -- the timeout is required to make the
     // transition smooth after lazy-loading a panel
     setTimeout(function switchPanel() {
