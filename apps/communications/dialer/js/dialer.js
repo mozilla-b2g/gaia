@@ -73,16 +73,38 @@ var CallHandler = (function callHandler() {
     }
 
     // Other commands needs to be handled from the call screen
-    if (!callScreenWindow)
-      return;
-
-    var origin = document.location.protocol + '//' +
-      document.location.host;
-
-    callScreenWindow.postMessage(command, origin);
+    sendCommandToCallScreen('BT', command);
   }
   window.navigator.mozSetMessageHandler('bluetooth-dialer-command',
                                          btCommandHandler);
+
+  /* === Headset Support === */
+  function headsetCommandHandler(message) {
+    sendCommandToCallScreen('HS', message);
+  }
+  window.navigator.mozSetMessageHandler('headset-button',
+                                        headsetCommandHandler);
+
+  /*
+    Send commands to the callScreen via post message.
+    @type: Handler to be used in the CallHandler (currently 'BT': bluethood
+                                                  and 'HS': headset)
+    @command: The specific message to each kind of type
+  */
+  function sendCommandToCallScreen(type, command) {
+    if (!callScreenWindow) {
+      return;
+    }
+
+    var origin = document.location.protocol + '//' +
+        document.location.host;
+    var message = {
+      type: type,
+      command: command
+    };
+
+    callScreenWindow.postMessage(message, origin);
+  }
 
   /* === Calls === */
   function call(number) {
