@@ -65,12 +65,14 @@ form.search button[type="submit"] {
   opacity: 0;
 }
 
-#view-contacts-list.searching .view-jumper {
+#view-contacts-list.searching .view-jumper,
+.searching #shortcuts {
   opacity: 0;
   pointer-events: none;
 }
 
-#view-contacts-list.searching #groups-list header {
+#view-contacts-list.searching #groups-list header,
+.searching #groups-list section > header {
   display: none;
 }
 
