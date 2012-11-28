@@ -33,10 +33,33 @@ body[role="application"] section[role="region"] > header > a .icon:after {
 form[role="dialog"].no-overlay {
   background: none;
   pointer-events: none;
+  position: fixed;
 }
 
 form[role="dialog"].no-overlay button {
   pointer-events: auto;
+}
+
+/* BB lists */
+.fb-import-list header {
+  border-bottom-color: #4D77CF;
+  color: #4D77CF;
+  padding-left: 0;
+  position: relative;
+  z-index: 2;
+}
+
+/* Force having always checkboxes */
+#groups-list.fb-import-list label {
+  left: 0;
+  pointer-events: auto;
+}
+#groups-list.fb-import-list label input + span {
+  background-image: url(/contacts/style/images/fb-check.png);
+}
+
+#groups-list.fb-import-list li {
+  padding-left: 4rem;
 }
 
 /* End BB */
@@ -82,22 +105,18 @@ h2.block-title {
 #main {
   position: fixed;
   top: 5rem;
-  height: -moz-calc(100% - 5rem);
+  height: calc(100% - 5rem);
   width: 100%;
 }
 
 #mainContent {
-  width: -moz-calc(100% + 0.8rem);
-
+  width: calc(100% + 0.8rem);
   overflow-x: hidden;
   overflow-y: auto;
-
   -moz-box-sizing: border-box;
-
   color: #333;
   text-align: left;
-
-  height: -moz-calc(100% - 6.5rem);
+  height: calc(100% - 6.9rem);
   padding-top: 3.7rem; /* Equal to search form height */
   position: relative;
 }
@@ -112,7 +131,7 @@ h2.block-title {
 
 .link #main {
   top: 7.7rem;
-  height: -moz-calc(100% - 7.7rem);
+  height: calc(100% - 7.7rem);
 }
 
 .link #mainContent {
@@ -132,7 +151,7 @@ h2.block-title {
 
 
 #groups-list {
-  width: -moz-calc(100% - 5rem - 0.8rem) !important;
+  width: calc(100% - 5rem - 0.8rem) !important;
   margin: 0;
   margin-left: 2.5rem;
   padding: 0.5rem 0 0 0 !important;
@@ -151,11 +170,9 @@ h2.block-title {
   right: 0;
   top: 5rem;
   bottom: 1rem;
-  height: -moz-calc(100% - 6.6rem - 6.5rem);
+  height: calc(100% - 6.6rem - 6.5rem);
   width: 4.5rem;
-
   background: transparent !important;
-
   z-index:100;
 }
 
@@ -173,10 +190,9 @@ h2.block-title {
 
 #shortcuts li {
   font-size: 1.0rem;
-  line-height: 1.4em;
+  line-height: 1.3em;
   text-align: center;
   text-transform: uppercase;
-
   width:100%;
 }
 

@@ -43,9 +43,10 @@
     <link href="/shared/style/status.css" rel="stylesheet">
     <link href="/shared/style/headers.css" rel="stylesheet">
     <link href="/shared/style/input_areas.css" rel="stylesheet">
+    <link href="/shared/style/switches.css" rel="stylesheet">
+    <link href="/shared/style_unstable/lists.css" rel="stylesheet">
     <link href="/shared/style/confirm.css" rel="stylesheet">
 
-    <link rel="stylesheet" href="style/shared/widgets/lists/style.css">
 
     <link rel="stylesheet" href="style/fb/facebook.css">
     <link rel="stylesheet" href="style/fixed_header.css">
@@ -94,30 +95,23 @@
             <output id="num-friends" hidden></output>
             <p id="friends-msg"></p>
           </section>
-          <ol id="groups-list" class="unbordered">
-            <li id="group-#group#" data-template>
-              <h2 class="block-title">
-                <abbr title="Contacts listed #group#">#group#</abbr>
-              </h2>
-
+          <section id="groups-list" class="unbordered fb-import-list" data-type="list">
+            <section id="group-#group#" data-template>
+              <header>#group#</header>
               <ol id="contacts-list-#group#">
                 <li data-template data-uuid="#uid#" data-search="#search#" aria-disabled="false" class="block-item">
-                  <div class="aside begin" role="presentation">
+                  <label>
                     <input type="checkbox" name="#uid#">
                     <span></span>
-                  </div>
-
-                  <img data-src="https://graph.facebook.com/#uid#/picture?type=square" hidden>
-
-                    <dl>
-                      <dt><strong>#givenName#</strong> #familyName#</dt>
-                      <dd>#email1#</dd>
-                    </dl>
+                  </label>
+                  <aside class="pack-end">
+                    <img data-src="https://graph.facebook.com/#uid#/picture?type=square" hidden>
+                  </aside>
+                  <p><strong>#givenName#</strong> #familyName#</p>
+                  <p>#email1#</p>
                 </li>
               </ol>
-
-            </li>
-          </ol>
+          </section> <!-- group template content -->
         </section> <!-- mainContent -->
 
         <form role="dialog" data-type="confirm" class="no-overlay">
@@ -138,7 +132,7 @@
         <form id="searchview-container" role="search" class="search">
            <button id='done-search' type="submit" data-l10n-id="done-search">Done</button>
            <p>
-             <label>
+             <label for="search-contact">
                <input data-cancelable required type="search" name="search" class="textfield"
                     placeholder="Search" id="search-contact"  data-l10n-id="search-contact">
                <button type="reset">Clear</button>
