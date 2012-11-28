@@ -36,15 +36,16 @@ credentials from other connections.
 
 Copy/modify the following code to use whatever URL you are hosting the e-mail
 app on.  If you are running b2g-desktop in debug mode by doing "make profile
-DEBUG=1" then it will host on port 8000.  If you did not explicitly specify a
+DEBUG=1" then it will host on port 8080.  If you did not explicitly specify a
 domain with GAIA_DOMAIN=domain to the make invocation, then your domain is
-gaiamobile.org.
+gaiamobile.org and the app will be found at "email.gaiamobile.org:8080".  Make
+sure your /etc/hosts file is pointing this domain at 127.0.0.1!
 
 Bring up the error console in firefox by hitting control-shift-J.  Paste the
 code into the "Code" box and click the "evaluate" button.
 
 ```
-host = 'http://gaiamobile.org:8080';
+host = 'http://email.gaiamobile.org:8080';
 perm = Components.classes["@mozilla.org/permissionmanager;1"]
                  .createInstance(Components.interfaces.nsIPermissionManager);
 ios = Components.classes["@mozilla.org/network/io-service;1"]
@@ -57,3 +58,9 @@ perm.add(uri, 'tcp-socket', 1);
 
 At the bottom of the Error Console list, you should see an entry that confirms
 the permissions were added.
+
+### Step 3: Run Gaia E-Mail! ###
+
+Start the b2g-desktop instance to serve the e-mail app on port 8080.
+
+Browse to http://email.gaiamobile.org:8080/ or whatever URL you used above.
