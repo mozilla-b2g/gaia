@@ -143,8 +143,12 @@ var PhoneLock = {
         evt.preventDefault();
         if (this._passcodeBuffer === '')
           this.hideErrorMessage();
+        
+        var code = evt.charCode;
+        if (code !== 0 && (code < 0x30 || code > 0x39))
+          return;
 
-        var key = String.fromCharCode(evt.charCode);
+        var key = String.fromCharCode(code);
         if (evt.charCode === 0) {
           if (this._passcodeBuffer.length > 0) {
             this._passcodeBuffer = this._passcodeBuffer.substring(0,

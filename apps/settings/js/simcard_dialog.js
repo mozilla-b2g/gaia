@@ -43,7 +43,7 @@ var SimPinDialog = {
       evt.preventDefault();
 
       var code = evt.charCode;
-      if (code !== 0 && code < 0x30 && code > 0x39)
+      if (code !== 0 && (code < 0x30 || code > 0x39))
         return;
 
       if (code === 0) { // backspace
