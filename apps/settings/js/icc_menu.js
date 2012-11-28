@@ -9,7 +9,8 @@
     var reqApplications =
       window.navigator.mozSettings.createLock().get('icc.applications');
     reqApplications.onsuccess = function icc_getApplications() {
-      var menu = JSON.parse(reqApplications.result['icc.applications']);
+      var json = reqApplications.result['icc.applications'];
+      var menu = json && JSON.parse(json);
       if (!menu) {
         debug('No STK available - exit');
         return;
