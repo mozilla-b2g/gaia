@@ -169,6 +169,7 @@ var Camera = {
       navigator.requestWakeLock('screen');
     }
 
+    this._shutterSound.mozAudioChannelType = 'publicnotification';
     this._storageState = this.STORAGE_INIT;
     this.setCaptureMode(this.CAMERA);
     this.initPositionUpdate();
