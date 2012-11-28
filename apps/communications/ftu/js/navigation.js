@@ -30,12 +30,12 @@ var steps = {
   },
   6: {
     onlyForward: false,
-    hash: '#welcome_firefox',
+    hash: '#welcome_browser',
     requireSIM: false
   },
   7: {
     onlyForward: false,
-    hash: '#firefox_privacy',
+    hash: '#browser_privacy',
     requireSIM: false
   }
 };
@@ -139,9 +139,9 @@ var Navigation = {
           fbOption.classList.add('disabled');
         }
         break;
-      case '#welcome_firefox':
+      case '#welcome_browser':
         UIManager.progressBar.className = 'step-state step-6';
-        UIManager.mainTitle.innerHTML = _('firefoxPrivacyChoices');
+        UIManager.mainTitle.innerHTML = _('browserPrivacyChoices');
         break;
       case '#about-your-rights':
         UIManager.progressBar.className = 'step-state step-6';

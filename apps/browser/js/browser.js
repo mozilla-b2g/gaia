@@ -80,7 +80,7 @@ var Browser = {
     this.newTabButton.addEventListener('click', this.handleNewTab.bind(this));
     this.settingsDoneButton.addEventListener('click',
       this.showPageScreen.bind(this));
-    this.aboutFirefoxButton.addEventListener('click',
+    this.aboutBrowserButton.addEventListener('click',
       this.showAboutPage.bind(this));
     this.clearHistoryButton.addEventListener('click',
       this.handleClearHistory.bind(this));
@@ -162,7 +162,7 @@ var Browser = {
       'bookmarks-tab', 'history-tab', 'back-button', 'forward-button',
       'bookmark-button', 'ssl-indicator', 'tabs-badge', 'throbber', 'frames',
       'tabs-list', 'main-screen', 'settings-button', 'settings-done-button',
-      'about-firefox-button', 'clear-history-button', 'crashscreen',
+      'about-browser-button', 'clear-history-button', 'crashscreen',
       'close-tab', 'try-reloading', 'bookmark-menu', 'bookmark-menu-add',
       'bookmark-menu-remove', 'bookmark-menu-cancel', 'bookmark-menu-edit',
       'bookmark-entry-sheet', 'bookmark-entry-sheet-cancel',
