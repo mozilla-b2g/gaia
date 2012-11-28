@@ -380,6 +380,7 @@ var KeypadManager = {
       this._longPress = false;
 
       if (key != 'delete') {
+        this._keyPressed = true;
         if (keypadSoundIsEnabled) {
           TonePlayer.play(gTonesFrequencies[key]);
         }
@@ -387,11 +388,15 @@ var KeypadManager = {
         // Sending the DTMF tone if on a call
         var telephony = navigator.mozTelephony;
         if (telephony && telephony.active &&
-            telephony.active.state == 'connected') {
-
+          telephony.active.state == 'connected') {
           telephony.startTone(key);
+          this._tonePlaying = true;
+          var self = this;
           window.setTimeout(function ch_stopTone() {
-            telephony.stopTone();
+            if (self._tonePlaying && !self._keyPressed) {
+              telephony.stopTone();
+              self._tonePlaying = false;
+            }
           }, 100);
 
         }
@@ -412,7 +417,7 @@ var KeypadManager = {
       }
 
       // Voicemail long press (needs to be longer since it actually dials)
-      if (event.target.dataset.voicemail) {
+      if (!this._onCall && event.target.dataset.voicemail) {
         this._holdTimer = setTimeout(function vm_call(self) {
           self._longPress = true;
           self._callVoicemail();
@@ -437,8 +442,18 @@ var KeypadManager = {
         } else {
           this._phoneNumber += key;
         }
+        if (this._tonePlaying) {
+          var telephony = navigator.mozTelephony;
+          if (telephony && telephony.active &&
+              telephony.active.state == 'connected') {
+            telephony.stopTone();
+            this._tonePlaying = false;
+          }
+        }
+        this._keyPressed = false;
       } else {
         this._phoneNumber += key;
+        this._keyPressed = false;
       }
 
       if (this._holdTimer)
