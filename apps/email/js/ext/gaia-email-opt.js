@@ -34030,6 +34030,7 @@ var autoconfigByDomain = exports._autoconfigByDomain = {
       // This string may be clobbered with the correct port number when
       // running as a unit test.
       server: 'http://localhost:8880',
+      username: '%EMAILADDRESS%',
     },
   },
   // Mapping for a nonexistent domain for testing a bad domain without it being
@@ -34328,7 +34329,7 @@ Configurators['activesync'] = {
   tryToCreateAccount: function cfg_as_ttca(universe, userDetails, domainInfo,
                                            callback, _LOG) {
     var credentials = {
-      username: userDetails.emailAddress,
+      username: domainInfo.incoming.username,
       password: userDetails.password,
     };
 
@@ -34617,6 +34618,7 @@ Autoconfigurator.prototype = {
         displayName: config.user.name,
         incoming: {
           server: config.mobileSyncServer.url,
+          username: config.user.email
         },
       };
       callback(null, autoconfig);
