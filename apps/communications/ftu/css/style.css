@@ -547,28 +547,28 @@ html, body {
 /*
   About your rights
 */
-#welcome_firefox {
+#welcome_browser {
   padding: 1.5rem 3rem 0 3rem;
   width: calc(100% - 6rem);
 }
 
-#welcome_firefox p {
+#welcome_browser p {
   margin: 0;
   color: #000;
   padding: 0 0 2rem 0;
   font-size: 1.35rem;
   line-height: 1.8rem;
 }
-#welcome_firefox #firefox_logo_horizontal {
+#welcome_browser #browser_logo_horizontal {
   margin: 1rem 0;
 }
 
-#welcome_firefox label {
+#welcome_browser label {
   position: absolute;
   margin: -1.5rem 0 0 -1.5rem;
 }
 
-#welcome_firefox section a {
+#welcome_browser section a {
   font-size: 1.35rem;
   line-height: 1.8rem;
   color: #000;
@@ -576,37 +576,37 @@ html, body {
   font-weight: 500;
 }
 
-#welcome_firefox #firefox_os_privacy_links {
+#welcome_browser #browser_os_privacy_links {
   margin-bottom: 3rem;
   display: block;
   overflow: hidden;
 }
 
-#welcome_firefox #firefox_os_privacy_links a {
+#welcome_browser #browser_os_privacy_links a {
   width: 50%;
   float: left;
 }
 
-#welcome_firefox #firefox_os_privacy_links a:last-child {
+#welcome_browser #browser_os_privacy_links a:last-child {
   float: right;
 }
 
-#welcome_firefox #form_share_statistics {
+#welcome_browser #form_share_statistics {
   clear: both;
 }
 
-#welcome_firefox #form_share_statistics label {
+#welcome_browser #form_share_statistics label {
   width: auto;
   height: auto;
   margin: 0 3rem 0 0;
 }
 
-#welcome_firefox #form_share_statistics span {
+#welcome_browser #form_share_statistics span {
   top: 1rem;
   left: 1rem;
 }
 
-#welcome_firefox #form_share_statistics p {
+#welcome_browser #form_share_statistics p {
   width: calc(100% - 3.5rem);
   float: right;
 }
@@ -615,26 +615,26 @@ html, body {
   Privacy policies
 */
 
-#firefox_privacy {
+#browser_privacy {
   padding: 1.5rem 3rem 0 3rem;
   width: calc(100% - 6rem);
 }
 
-#firefox_privacy img {
+#browser_privacy img {
   vertical-align: middle;
 }
 
-#firefox_privacy .logo_container {
+#browser_privacy .logo_container {
   margin: 1rem 0 2.5rem 0;
 }
 
-#firefox_privacy .logo_title {
+#browser_privacy .logo_title {
   font-size: 1.8rem;
   margin-left: 1rem;
   font-weight: 500;
 }
 
-#firefox_privacy p {
+#browser_privacy p {
   margin: 0;
   color: #000;
   padding: 0 0 2rem 0;
@@ -642,12 +642,12 @@ html, body {
   line-height: 1.8rem;
 }
 
-#firefox_privacy a {
+#browser_privacy a {
   margin-left: 0.3rem;
 }
 
 
-#firefox_privacy input {
+#browser_privacy input {
   margin-bottom: 2rem;
 }
 

@@ -26,7 +26,7 @@ var CrashReporter = (function() {
 
   // This function should only ever be called once.
   function showDialog(crashID, isChrome) {
-    var title = isChrome ? _('crash-dialog-os') :
+    var title = isChrome ? _('crash-dialog-os2') :
       _('crash-dialog-app', { name: crashedAppName });
     document.getElementById('crash-dialog-title').textContent = title;
 
@@ -76,7 +76,7 @@ var CrashReporter = (function() {
   }
 
   function showBanner(crashID, isChrome) {
-    var message = isChrome ? _('crash-banner-os') :
+    var message = isChrome ? _('crash-banner-os2') :
       _('crash-banner-app', { name: crashedAppName });
 
     var button = null;
