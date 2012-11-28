@@ -343,6 +343,7 @@ onLocalized(function bluetoothSettings() {
         var paired = req.result.slice();
         var length = paired.length;
         if (length == 0) {
+          gBluetoothInfoBlock.textContent = _('bt-status-nopaired');
           pairList.show(false);
           return;
         }
