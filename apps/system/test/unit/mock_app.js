@@ -15,6 +15,7 @@ function MockApp(opts) {
   this.removable = true;
   this.installState = 'installed';
   this.downloadAvailable = false;
+  this.downloadError = null;
 
   this.mId = idGen++;
   this.mDownloadCalled = false;
@@ -54,8 +55,13 @@ MockApp.prototype.mTriggerDownloadSuccess = function() {
   }
 };
 
-MockApp.prototype.mTriggerDownloadError = function() {
+MockApp.prototype.mTriggerDownloadError = function(error) {
   this.downloadAvailable = true;
+
+  this.downloadError = {
+    name: error || 'NETWORK_ERROR'
+  };
+
   if (this.ondownloaderror) {
     this.ondownloaderror({
         application: this

@@ -522,3 +522,7 @@ section.view[data-state="active"] {
   -moz-transform: translateY(0);
   z-index: 1001;
 }
+
+.remark {
+  color: #d20000;
+}

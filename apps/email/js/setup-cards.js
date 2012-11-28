@@ -237,6 +237,11 @@ function SetupManualConfig(domNode, mode, args) {
     'sup-manual-activesync-hostname')[0];
   this.activeSyncHostnameNode.setAttribute('placeholder',
      mozL10n.get('setup-manual-hostname-placeholder'));
+
+  this.activeSyncUsernameNode = domNode.getElementsByClassName(
+    'sup-manual-activesync-username')[0];
+  this.activeSyncUsernameNode.setAttribute('placeholder',
+     mozL10n.get('setup-manual-username-placeholder'));
 }
 SetupManualConfig.prototype = {
   onBack: function(event) {
@@ -262,7 +267,8 @@ SetupManualConfig.prototype = {
     }
     else { // config.type === 'activesync'
       config.incoming = {
-        server: 'https://' + this.activeSyncHostnameNode.value
+        server: 'https://' + this.activeSyncHostnameNode.value,
+        username: this.activeSyncUsernameNode.value
       };
     }
 

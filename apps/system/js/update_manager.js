@@ -17,6 +17,7 @@ var UpdateManager = {
   _downloadedBytes: 0,
   _errorTimeout: null,
   _wifiLock: null,
+  _systemUpdateDisplayed: false,
   NOTIFICATION_BUFFERING_TIMEOUT: 30 * 1000,
   TOASTER_TIMEOUT: 1200,
 
@@ -64,7 +65,8 @@ var UpdateManager = {
 
     this.container.onclick = this.containerClicked.bind(this);
     this.laterButton.onclick = this.cancelPrompt.bind(this);
-    this.downloadButton.onclick = this.startAllDownloads.bind(this);
+    this.downloadButton.onclick = this.startDownloads.bind(this);
+    this.downloadDialogList.onchange = this.updateDownloadButton.bind(this);
 
     window.addEventListener('mozChromeEvent', this);
     window.addEventListener('applicationinstall', this);
@@ -74,14 +76,27 @@ var UpdateManager = {
                              this.checkForUpdates.bind(this));
   },
 
-  startAllDownloads: function um_startAllDownloads(evt) {
+  startDownloads: function um_startDownloads(evt) {
     evt.preventDefault();
 
     this.downloadDialog.classList.remove('visible');
     UtilityTray.show();
 
-    this.updatesQueue.forEach(function(updatableApp) {
-      updatableApp.download();
+    var checkValues = {};
+    var dialog = this.downloadDialogList;
+    var checkboxes = dialog.querySelectorAll('input[type="checkbox"]');
+    for (var i = 0; i < checkboxes.length; i++) {
+      var checkbox = checkboxes[i];
+      checkValues[checkbox.dataset.position] = checkbox.checked;
+    }
+
+    this.updatesQueue.forEach(function(updatable, index) {
+      // The user opted out of the download
+      if (updatable.app && !checkValues[index]) {
+        return;
+      }
+
+      updatable.download();
     });
 
     this._downloadedBytes = 0;
@@ -134,7 +149,8 @@ var UpdateManager = {
   showDownloadPrompt: function um_showDownloadPrompt() {
     var _ = navigator.mozL10n.get;
 
-    this.downloadDialogTitle.textContent = _('updates', {
+    this._systemUpdateDisplayed = false;
+    this.downloadDialogTitle.textContent = _('numberOfUpdates', {
                                               n: this.updatesQueue.length
                                            });
 
@@ -155,20 +171,61 @@ var UpdateManager = {
     });
 
     this.downloadDialogList.innerHTML = '';
-    this.updatesQueue.forEach(function updatableIterator(updatable) {
+    this.updatesQueue.forEach(function updatableIterator(updatable, index) {
       var listItem = document.createElement('li');
       listItem.textContent = updatable.name;
 
+      // The user can choose not to update an app
+      var checkContainer = document.createElement('label');
+      if (updatable instanceof SystemUpdatable) {
+        checkContainer.textContent = _('required');
+        checkContainer.classList.add('required');
+        this._systemUpdateDisplayed = true;
+      } else {
+        var checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.dataset.position = index;
+        checkbox.checked = true;
+
+        var span = document.createElement('span');
+
+        checkContainer.appendChild(checkbox);
+        checkContainer.appendChild(span);
+      }
+      listItem.appendChild(checkContainer);
+
       if (updatable.size) {
-        var sizeItem = document.createElement('span');
+        var sizeItem = document.createElement('div');
         sizeItem.textContent = this._humanizeSize(updatable.size);
         listItem.appendChild(sizeItem);
+      } else {
+        listItem.classList.add('nosize');
       }
 
       this.downloadDialogList.appendChild(listItem);
     }, this);
 
     this.downloadDialog.classList.add('visible');
+  },
+
+  updateDownloadButton: function() {
+    if (this._systemUpdateDisplayed) {
+      this.downloadButton.disabled = false;
+      return;
+    }
+
+    var disabled = true;
+
+    var dialog = this.downloadDialogList;
+    var checkboxes = dialog.querySelectorAll('input[type="checkbox"]');
+    for (var i = 0; i < checkboxes.length; i++) {
+      if (checkboxes[i].checked) {
+        disabled = false;
+        break;
+      }
+    }
+
+    this.downloadButton.disabled = disabled;
   },
 
   cancelPrompt: function um_cancelPrompt() {

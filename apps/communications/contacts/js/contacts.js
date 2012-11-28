@@ -51,6 +51,8 @@ var Contacts = (function() {
         cList.getContactById(id, function onSuccess(savedContact) {
           currentContact = savedContact;
           contactsDetails.render(currentContact, TAG_OPTIONS);
+          if (params['tel'])
+            contactsDetails.reMark('tel', params['tel']);
           navigation.go(sectionId, 'none');
         }, function onError() {
           console.error('Error retrieving contact');
