@@ -29,7 +29,7 @@ Evme.Shortcuts = new function() {
             icons = data.icons;
             
         for (var id in icons) {
-            Evme.IconManager.add(id, icons[id], Evme.Utils.getIconsFormat());
+            Evme.IconManager.add(id, icons[id], Evme.Utils.ICONS_FORMATS.small);
         }
         
         for (var i=0; i<_shortcuts.length; i++) {
