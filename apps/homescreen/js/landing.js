@@ -5,11 +5,11 @@ const LandingPage = (function() {
 
   var _ = navigator.mozL10n.get;
   var dateTimeFormat = new navigator.mozL10n.DateTimeFormat();
-  var timeFormat = '%H:%M';
-  var dateFormat = '%A %e %B';
+  var timeFormat, dateFormat;
 
   var page = document.querySelector('#landing-page');
-  var clockElem = document.querySelector('#landing-clock');
+  var clockElemNumbers = document.querySelector('#landing-clock .numbers');
+  var clockElemMeridiem = document.querySelector('#landing-clock .meridiem');
   var dateElem = document.querySelector('#landing-date');
 
   page.addEventListener('gridpageshowstart', initTime);
@@ -20,8 +20,8 @@ const LandingPage = (function() {
   });
 
   window.addEventListener('localized', function localize() {
-    timeFormat = _('shortTimeFormat') || timeFormat;
-    dateFormat = _('longDateFormat') || dateFormat;
+    timeFormat = _('shortTimeFormat');
+    dateFormat = _('longDateFormat');
     initTime();
   });
 
@@ -58,7 +58,9 @@ const LandingPage = (function() {
   function updateUI() {
     var date = new Date();
 
-    clockElem.textContent = dateTimeFormat.localeFormat(date, timeFormat);
+    var time = dateTimeFormat.localeFormat(date, timeFormat);
+    clockElemNumbers.textContent = time.match(/([01]?\d):[0-5]\d/g);
+    clockElemMeridiem.textContent = (time.match(/AM|PM/i) || []).join('');
     dateElem.textContent = dateTimeFormat.localeFormat(date, dateFormat);
 
     return date;
