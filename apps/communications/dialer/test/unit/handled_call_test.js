@@ -181,6 +181,10 @@ suite('dialer/handled_call', function() {
       assert.isFalse(fakeNode.hidden);
     });
 
+    test('ensure the callscreen in connected mode', function() {
+      assert.equal(MockCallScreen.mLastRenderMode, 'connected');
+    });
+
     test('start the timer', function() {
       assert.ok(subject._ticker);
     });
