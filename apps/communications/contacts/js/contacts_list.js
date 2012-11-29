@@ -1,7 +1,6 @@
 ﻿'use strict';
 
 var contacts = window.contacts || {};
-
 contacts.List = (function() {
   var _,
       groupsList,
@@ -13,7 +12,8 @@ contacts.List = (function() {
       scrollable,
       settingsView,
       noContacts,
-      orderByLastName = null;
+      orderByLastName = null,
+      emptyList = true;
 
   var init = function load(element, overlay) {
     _ = navigator.mozL10n.get;
@@ -24,7 +24,6 @@ contacts.List = (function() {
     scrollable = document.querySelector('#groups-container');
     settingsView = document.querySelector('#view-settings .view-body-inner');
     noContacts = document.querySelector('#no-contacts');
-
 
     groupsList = element;
     groupsList.addEventListener('click', onClickHandler);
@@ -202,61 +201,47 @@ contacts.List = (function() {
   var buildContacts = function buildContacts(contacts, fbContacts) {
     var counter = {};
     var favorites = [];
+    var length = contacts.length;
+    var CHUNK_SIZE = 20;
+
     counter['favorites'] = 0;
-    var showNoContacs = contacts.length === 0;
+    var showNoContacs = length === 0;
     toggleNoContactsScreen(showNoContacs);
-    for (var i = 0; i < contacts.length; i++) {
-      var contact = contacts[i];
 
-      if (fbContacts && fb.isFbContact(contact)) {
-        var fbContact = new fb.Contact(contact);
-        contact = fbContact.merge(fbContacts[fbContact.uid]);
+    var numberOfChunks = Math.floor(length / CHUNK_SIZE);
+    function renderChunks(index) {
+      if (numberOfChunks === index) {
+        // Last round. Rendering remaining
+        var remaining = length % CHUNK_SIZE;
+        if (remaining > 0) {
+          for (var i = 0; i < remaining; i++) {
+            var current = (numberOfChunks * CHUNK_SIZE) + i;
+            buildContact(contacts[current], fbContacts, counter, favorites);
+          }
+        }
+        renderFavorites(favorites);
+        cleanLastElements(counter);
+        FixedHeader.refresh();
+        Contacts.hideOverlay();
+        emptyList = false;
+        return;
       }
 
-      contact.updated = contacts[i].updated || contacts[i].published ||
-                                                                    new Date();
-      var group = getGroupName(contact);
-      counter[group] = counter.hasOwnProperty(group) ? counter[group] + 1 : 0;
-      var listContainer = document.getElementById('contacts-list-' + group);
-      var newContact = renderContact(refillContactData(contact));
-      var contactSelector = '[data-uuid="' + contact.id + '"]';
-      var alreadyRendered = listContainer.querySelector(contactSelector);
-      var index = counter[group];
-      var nodes = listContainer.children;
-      var length = nodes.length;
-      if (alreadyRendered) {
-        // If already rendered, don't do anything unless one has been removed
-        // We check that comparing contact.id
-        var currentNode = nodes[index];
-        var itemBody = currentNode.querySelector('[data-search]');
-        var searchable = itemBody.dataset['search'];
-        var newItemBody = newContact.querySelector('[data-search]');
-        var newSearchable = newItemBody.dataset['search'];
-        var hasChanged = searchable != newSearchable ||
-                  contact.updated.getTime() > alreadyRendered.dataset.updated;
-        if (currentNode.dataset['uuid'] != contact.id || hasChanged) {
-          resetGroup(listContainer, counter[group]);
-          listContainer.appendChild(newContact);
-        }
-      } else {
-        // If the contact is not already there means is a new one or
-        // the letter is empty. If the new one is not at the end of the list
-        // we need to remove the following contacts
-        if (length > 0 && length >= index + 1) {
-          resetGroup(listContainer, counter[group]);
-        }
-        listContainer.appendChild(newContact);
+      for (var i = 0; i < CHUNK_SIZE; i++) {
+        var current = (index * CHUNK_SIZE) + i;
+        buildContact(contacts[current], fbContacts, counter, favorites);
       }
-      showGroup(group);
-      if (contact.category && contact.category.indexOf('favorite') != -1) {
-        counter['favorites']++;
-        favorites.push(contact);
+
+      if (index === 0) {
+        Contacts.hideOverlay();
       }
+
+      window.setTimeout(function() {
+        renderChunks(index+1);
+      }, 0);
     }
-    renderFavorites(favorites);
-    cleanLastElements(counter);
-    Contacts.hideOverlay();
-    FixedHeader.refresh();
+
+    renderChunks(0)
   };
 
   var toggleNoContactsScreen = function cl_toggleNoContacs(show) {
@@ -283,7 +268,57 @@ contacts.List = (function() {
       }
       currentCount > 0 ? showGroup(group) : hideGroup(group);
     }
-  }
+  };
+
+  var buildContact = function cl_bc(contact, fbContacts, counter, favorites) {
+    if (fbContacts && fb.isFbContact(contact)) {
+      var fbContact = new fb.Contact(contact);
+      contact = fbContact.merge(fbContacts[fbContact.uid]);
+    }
+
+    contact.updated = contact.updated || contact.published || new Date();
+    var group = getGroupName(contact);
+    counter[group] = counter.hasOwnProperty(group) ? counter[group] + 1 : 0;
+    var listContainer = document.getElementById('contacts-list-' + group);
+    var newContact = renderContact(refillContactData(contact));
+    var contactSelector = '[data-uuid="' + contact.id + '"]';
+    var alreadyRendered = listContainer.querySelector(contactSelector);
+    var index = counter[group];
+    var nodes = listContainer.children;
+    var length = nodes.length;
+    if (alreadyRendered) {
+      // If already rendered, don't do anything unless one has been removed
+      // We check that comparing contact.id
+      var currentNode = nodes[index];
+      var itemBody = currentNode.querySelector('[data-search]');
+      var searchable = itemBody.dataset['search'];
+      var newItemBody = newContact.querySelector('[data-search]');
+      var newSearchable = newItemBody.dataset['search'];
+      var hasChanged = searchable != newSearchable ||
+                contact.updated.getTime() > alreadyRendered.dataset.updated;
+      if (currentNode.dataset['uuid'] != contact.id || hasChanged) {
+        resetGroup(listContainer, counter[group]);
+        listContainer.appendChild(newContact);
+      }
+    } else {
+      // If the contact is not already there means is a new one or
+      // the letter is empty. If the new one is not at the end of the list
+      // we need to remove the following contacts
+      if (length > 0 && length >= index + 1) {
+        resetGroup(listContainer, counter[group]);
+      }
+      listContainer.appendChild(newContact);
+    }
+    showGroup(group);
+    if (contact.category && contact.category.indexOf('favorite') != -1) {
+      counter['favorites']++;
+      favorites.push(contact);
+      if (emptyList) {
+        showGroup('favorites');
+        addToFavoriteList(contact);
+      }
+    }
+  };
 
   var resetGroup = function resetGroup(container, start) {
     // Method that removes all the contacts in a letter, starting
@@ -298,6 +333,9 @@ contacts.List = (function() {
   };
 
   var renderFavorites = function renderFavorites(favorites) {
+    if (emptyList)
+      return;
+
     var group = 'contacts-list-favorites';
     var container = document.getElementById(group);
     container.innerHTML = '';
@@ -327,36 +365,31 @@ contacts.List = (function() {
   function addToFavoriteList(c) {
     var group = 'contacts-list-favorites';
     var container = document.getElementById(group);
-
     var newContact = renderContact(c);
     container.appendChild(newContact);
   }
 
   var getContactsByGroup = function gCtByGroup(errorCb, contacts) {
     if (contacts) {
-      buildContacts(contacts);
+      getContactsWithFb(contacts);
       return;
     }
+    getAllContacts(errorCb, getContactsWithFb);
+  };
 
-    var sortBy = orderByLastName ? 'familyName' : 'givenName';
-    var options = {
-      sortBy: sortBy,
-      sortOrder: 'ascending'
-    };
+  var getContactsWithFb = function cl_gContactsFb(contacts) {
+    if (!fb || !fb.contacts)
+      return buildContacts(contacts);
 
-    var request = navigator.mozContacts.find(options);
-    request.onsuccess = function findCallback() {
-      var fbReq = fb.contacts.getAll();
-      fbReq.onsuccess = function() {
-        buildContacts(request.result, fbReq.result);
-      }
-      fbReq.onerror = function() {
-         buildContacts(request.result);
-      }
-    };
+    var fbReq = fb.contacts.getAll();
+    fbReq.onsuccess = function() {
+      buildContacts(contacts, fbReq.result);
+    }
+    fbReq.onerror = function() {
+      buildContacts(contacts);
+    }
+  };
 
-    request.onerror = errorCb;
-  }
 
   var getContactById = function(contactID, successCb, errorCb) {
     var options = {
@@ -380,7 +413,7 @@ contacts.List = (function() {
           successCb(result);
         }
       } else {
-            successCb(result);
+          successCb(result);
       }
 
     }; // request.onsuccess
@@ -388,7 +421,21 @@ contacts.List = (function() {
     if (typeof errorCb === 'function') {
       request.onerror = errorCb;
     }
-  }
+  };
+
+  var getAllContacts = function cl_getAllContacts(errorCb, successCb) {
+    var sortBy = orderByLastName ? 'familyName' : 'givenName';
+    var options = {
+      sortBy: sortBy,
+      sortOrder: 'ascending'
+    };
+    var request = navigator.mozContacts.find(options);
+    request.onsuccess = function findCallback() {
+      successCb(request.result);
+    };
+
+    request.onerror = errorCb;
+  };
 
   /*
     Two contacts are returned because the enrichedContact is readonly
@@ -587,6 +634,7 @@ contacts.List = (function() {
     'load': load,
     'refresh': refresh,
     'getContactById': getContactById,
+    'getAllContacts': getAllContacts,
     'handleClick': handleClick,
     'remove': remove,
     'loaded': loaded,
