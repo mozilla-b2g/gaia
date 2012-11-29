@@ -32,8 +32,13 @@ var SystemScreen = {
  *
  * `SystemDialog` except the dialog DOM Element `id`.
  * This DOM Element has to have a DOM attribute 'role' set to 'dialog'.
+ *
+ * It also supports a second `options` object with following attributes:
+ *  `onHide`: function called when dialog is hidden, either when `hide()`
+ *            method is called, or when dialog is automatically hidden on
+ *            home button press
  */
-function SystemDialog(id) {
+function SystemDialog(id, options) {
   var overlay = document.getElementById('dialog-overlay');
   var dialog = document.getElementById(id);
   var screenName = 'dialog';
@@ -57,30 +62,52 @@ function SystemDialog(id) {
       case 'keyboardchange':
         updateHeight(evt.detail.height);
         break;
+      case 'home':
+      case 'holdhome':
+        // Automatically hide the dialog on home button press
+        if (SystemScreen.isVisible(screenName)) {
+          hide(evt.type);
+          // Prevent WindowManager to shift homescreen to the first page
+          // when the dialog is on top of the homescreen
+          var displayedApp = WindowManager.getDisplayedApp();
+          var displayedAppFrame = WindowManager.getAppFrame(displayedApp);
+          if (evt.type == 'home' &&
+              displayedAppFrame.classList.contains('homescreen'))
+            evt.stopImmediatePropagation();
+        }
+        break;
     }
   };
   window.addEventListener('resize', handleEvent);
   window.addEventListener('keyboardchange', handleEvent);
   window.addEventListener('keyboardhide', handleEvent);
+  window.addEventListener('home', handleEvent);
+  window.addEventListener('holdhome', handleEvent);
+
+  function show() {
+    dialog.hidden = false;
+    dialog.classList.add(id);
+    SystemScreen.show(screenName);
+    updateHeight();
+  }
+
+  function hide(reason) {
+    dialog.hidden = true;
+    dialog.classList.remove(id);
+    SystemScreen.hide(screenName);
+    if (typeof(options.onHide) == 'function')
+      options.onHide(reason);
+  }
+
+  function isVisible() {
+    return SystemScreen.isVisible(screenName) &&
+           overlay.classList.contains(id);
+  }
 
   return {
-    show: function sd_show() {
-      dialog.hidden = false;
-      dialog.classList.add(id);
-      SystemScreen.show(screenName);
-      updateHeight();
-    },
-
-    hide: function sd_hide() {
-      dialog.hidden = true;
-      dialog.classList.remove(id);
-      SystemScreen.hide(screenName);
-    },
-
-    isVisible: function sd_isVisible() {
-      return SystemScreen.isVisible(screenName) &&
-             overlay.classList.contains(id);
-    }
+    show: show,
+    hide: hide,
+    isVisible: isVisible
   };
 }
 
