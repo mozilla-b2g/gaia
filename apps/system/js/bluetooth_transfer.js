@@ -212,7 +212,8 @@ var BluetoothTransfer = {
   onUpdateProgress: function bt_onUpdateProgress(mode, evt) {
     switch (mode) {
       case 'start':
-        this.initProgress(evt);
+        var transferInfo = evt.detail.transferInfo;
+        this.initProgress(transferInfo);
         break;
 
       case 'progress':
@@ -327,20 +328,21 @@ var BluetoothTransfer = {
   },
 
   onTransferComplete: function bt_onTransferComplete(evt) {
+    var transferInfo = evt.detail.transferInfo;
     var _ = navigator.mozL10n.get;
     // Remove transferring progress
-    this.removeProgress(evt);
+    this.removeProgress(transferInfo);
     // Show banner and notification
-    if (evt.success == true) {
+    if (transferInfo.success == true) {
        // Show completed message of transferred result on the banner
       this.showBanner(true);
-      if (evt.received) {
+      if (transferInfo.received) {
         // Received file can be opened only
         // TODO: Need to modify the icon after visual provide
         NotificationHelper.send(_('transferFinished-receivedCompletedTitle'),
                                 _('transferFinished-completedBody'),
                                 'style/system_updater/images/download.png',
-                                this.openReceivedFile.bind(this, evt));
+                                this.openReceivedFile.bind(this, transferInfo));
       } else {
         NotificationHelper.send(_('transferFinished-sendingCompletedTitle'),
                                 _('transferFinished-completedBody'),
@@ -349,7 +351,7 @@ var BluetoothTransfer = {
     } else {
       // Show failed message of transferred result on the banner
       this.showBanner(false);
-      if (evt.received) {
+      if (transferInfo.received) {
         NotificationHelper.send(_('transferFinished-sendingFailedTitle'),
                                 _('transferFinished-failedBody'),
                                 'style/system_updater/images/download.png');
@@ -427,7 +429,8 @@ var BluetoothTransfer = {
             case 2:
             case 3:
             case 4:
-              // The file type of format *.acc, *.mp4, *.m4a should be "audio/mp4"
+              // The file type of format *.acc, *.mp4, *.m4a
+              // should be "audio/mp4"
               fileType = 'audio/mp4';
               break;
           }
