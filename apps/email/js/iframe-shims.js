@@ -178,11 +178,6 @@ function createAndInsertIframeForContent(htmlStr, parentNode, beforeNode,
     'width: ' + viewportWidth + 'px; ' +
     'height: ' + viewportHeight + 'px;'
   );
-  var interacter = document.createElement('div');
-  interacter.setAttribute(
-    'style',
-    'position: absolute; top: 0; left: 0; width: 100%; height: 100%; ' +
-    '-moz-user-select: none;');
 
   var iframe = document.createElement('iframe');
 
@@ -217,20 +212,28 @@ function createAndInsertIframeForContent(htmlStr, parentNode, beforeNode,
   iframe.contentDocument.write(htmlStr);
   iframe.contentDocument.write('</body>');
   iframe.contentDocument.close();
-  var iframeBody = iframe.contentDocument.body;
+  var iframeBody = iframe.contentDocument.documentElement;
+  var header = document.getElementsByClassName('msg-envelope-bar')[0];
+  var headerHeight = header.getBoundingClientRect().height;
+  var scrollView = parentNode.parentNode;
+  var scrollWidth = iframeBody.scrollWidth;
   var scrollHeight = iframeBody.scrollHeight;
 
-  var newsletterMode = iframeBody.scrollWidth > viewportWidth;
+  var newsletterMode = scrollWidth > viewportWidth;
+  var resizeHandler = null;
 
+  var detector = new GestureDetector(iframeBody);
+  // We don't need to ever stopDetecting since the closures that keep it
+  // alive are just the event listeners on the iframe.
+  detector.startDetecting();
   if (newsletterMode) {
-    var scrollWidth = iframeBody.scrollWidth;
-    viewport.appendChild(interacter);
 
     if (interactiveMode === 'interactive') {
       // setting iframe.style.height is not sticky, so be heavy-handed:
       iframe.setAttribute(
         'style',
         'border-width: 0px; overflow: hidden; ' +
+        '-moz-user-select: none; ' +
         'transform-origin: top left; ' +
         'width: ' + scrollWidth + 'px; ' +
         'height: ' + scrollHeight + 'px;');
@@ -241,15 +244,27 @@ function createAndInsertIframeForContent(htmlStr, parentNode, beforeNode,
                        viewportWidth, viewportHeight);
 
       var lastScale = photoState.scale, scaleMode = 0;
-      var detector = new GestureDetector(interacter);
-      // We don't need to ever stopDetecting since the closures that keep it
-      // alive are just the event listeners on the iframe.
-      detector.startDetecting();
-      viewport.addEventListener('pan', function(event) {
-        photoState.pan(event.detail.relative.dx,
-                       event.detail.relative.dy);
+      iframeBody.addEventListener('pan', function(event) {
+        var dx = event.detail.relative.dx;
+        var dy = event.detail.relative.dy;
+        // Adjust scroll view position whilw header is visible.
+        if (!header.classList.contains('collapsed')) {
+          if (scrollView.scrollTop > headerHeight) {
+            header.classList.add('collapsed');
+          }else if (photoState.top === 0 &&
+            scrollView.scrollTop <= headerHeight) {
+            scrollView.scrollTop += -dy;
+            dy = 0;
+          }
+        } else {
+          if (photoState.top === 0) {
+            header.classList.remove('collapsed');
+            scrollView.scrollTop = headerHeight;
+          }
+        }
+        photoState.pan(dx, dy);
       });
-      viewport.addEventListener('dbltap', function(e) {
+      iframeBody.addEventListener('dbltap', function(e) {
         var scale = photoState.scale;
 
         currentPhoto.style.MozTransition = 'all 100ms linear';
@@ -282,11 +297,15 @@ function createAndInsertIframeForContent(htmlStr, parentNode, beforeNode,
           photoState.zoom(scale, e.detail.clientX, e.detail.clientY);
         }
       });
-      viewport.addEventListener('transform', function(e) {
+      iframeBody.addEventListener('transform', function(e) {
         photoState.zoom(e.detail.relative.scale,
                         e.detail.midpoint.clientX,
                         e.detail.midpoint.clientY);
       });
+      resizeHandler = function() {
+        iframe.style.height = iframeBody.scrollHeight + 'px';
+        photoState.photoHeight = iframeBody.scrollHeight;
+      }
     }
     else {
       var scale = Math.min(1, viewportWidth / scrollWidth);
@@ -318,17 +337,26 @@ function createAndInsertIframeForContent(htmlStr, parentNode, beforeNode,
       '-moz-user-select: none; ' +
       'width: ' + viewportWidth + 'px; ' +
       'height: ' + scrollHeight + 'px;');
+    iframeBody.addEventListener('pan', function(event) {
+      scrollView.scrollTop += -event.detail.relative.dy;
+    });
+    resizeHandler = function() {
+      iframe.style.height = iframeBody.scrollHeight + 'px';
+    }
   }
 
   if (clickHandler)
     bindSanitizedClickHandler(iframe.contentDocument.body, clickHandler, null);
 
-  return iframe;
+  return {
+    iframe: iframe,
+    resizeHandler: resizeHandler
+  };
 }
 
 function bindSanitizedClickHandler(node, clickHandler, topNode) {
   node.addEventListener(
-    'click',
+    'tap',
     function clicked(event) {
       var node = event.originalTarget;
       while (node !== topNode) {

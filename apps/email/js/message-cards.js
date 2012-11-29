@@ -990,7 +990,8 @@ MessageReaderCard.prototype = {
           return;
 
         for (var i = 0; i < self.htmlBodyNodes.length; i++) {
-          self.body.showEmbeddedImages(self.htmlBodyNodes[i]);
+          self.body.showEmbeddedImages(self.htmlBodyNodes[i],
+                                       self.iframeResizeHandler);
         }
       });
       // XXX really we should check for external images to display that load
@@ -999,7 +1000,9 @@ MessageReaderCard.prototype = {
     }
     else {
       for (var i = 0; i < this.htmlBodyNodes.length; i++) {
-        this.body.showExternalImages(this.htmlBodyNodes[i]);
+        // Reset the iframe height for HTML message(newsletter mode).
+        this.body.showExternalImages(this.htmlBodyNodes[i],
+                                     this.iframeResizeHandler);
       }
       loadBar.classList.add('collapsed');
     }
@@ -1166,10 +1169,12 @@ MessageReaderCard.prototype = {
         this._populatePlaintextBodyNode(rootBodyNode, rep);
       }
       else if (repType === 'html') {
-        var iframe = createAndInsertIframeForContent(
+        var iframeShim = createAndInsertIframeForContent(
           rep, rootBodyNode, null,
           'interactive', this.onHyperlinkClick.bind(this));
+        var iframe = iframeShim.iframe;
         var bodyNode = iframe.contentDocument.body;
+        this.iframeResizeHandler = iframeShim.resizeHandler;
         MailAPI.utils.linkifyHTML(iframe.contentDocument);
         this.htmlBodyNodes.push(bodyNode);
         if (body.checkForExternalImages(bodyNode))
