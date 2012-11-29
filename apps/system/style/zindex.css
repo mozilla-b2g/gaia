@@ -130,6 +130,25 @@
 }
 
 /*
+  Styles during FTU. In this case lockscreen & homescreen should be behind FTU.
+  Once FTU is done, we will remove this styles in order to get the structure
+  of z-index as usual.
+*/
+
+#screen.ftu > [data-z-index-level="statusbar"]{
+  z-index: 1;
+}
+
+#screen.ftu > [data-z-index-level="lockscreen"]{
+  z-index: 1;
+}
+
+#screen.ftu > [data-z-index-level="app"] > iframe.appWindow.homescreen,
+#screen.ftu > [data-z-index-level="app"] > iframe.appWindow.homescreen.active {
+  z-index: 0;
+}
+
+/*
  * The below z-index numbers is used to met the following conditions:
  * - active ones must be on top of the inactive ones
  * - keyboard frame must be below the active ones

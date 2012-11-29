@@ -71,13 +71,14 @@ var Tutorial = {
   numTutorialSteps: Object.keys(tutorialSteps).length,
   currentStep: 1,
   init: function n_init() {
+    var self = this;
     var forward = document.getElementById('forwardTutorial');
     var back = document.getElementById('backTutorial');
     forward.addEventListener('click', this.forward.bind(this));
     back.addEventListener('click', this.back.bind(this));
 
-    document.getElementById('tutorialFinished').
-      addEventListener('click', function() {
+    this.tutorialFinish.addEventListener('click', function ftuEnd() {
+      self.tutorialFinish.removeEventListener('click', ftuEnd);
       window.close();
     });
     window.addEventListener('hashchange', this);
