@@ -100,6 +100,10 @@ var UIManager = {
     delete this.buttonSkip;
     return this.buttonSkip = document.getElementById('skip');
   },
+  get timeForm() {
+    delete this.timeForm;
+    return this.timeForm = document.getElementById('time-form');
+  },
   init: function ui_init() {
     var currentDate = new Date();
     var f = new navigator.mozL10n.DateTimeFormat();
@@ -127,6 +131,10 @@ var UIManager = {
       Tutorial.init();
     });
     this.fakeSimPin.addEventListener('input', this);
+    // Prevent form submit in case something try to send it
+    this.timeForm.addEventListener('submit', function (event) {
+      event.preventDefault();
+    });
   },
   handleEvent: function ui_handleEvent(event) {
     switch (event.target.id) {
