@@ -194,7 +194,7 @@ const DragDropManager = (function() {
 
   function drop(overlapElem, page) {
     var classList = overlapElem.classList;
-    if (classList.contains('icon') || classList.contains('options')) {
+    if (classList.contains('icon')) {
       var overlapIcon = GridManager.getIcon(overlapElem.dataset);
       page.drop(draggableIcon, overlapIcon);
     } else if (classList.contains('dockWrapper')) {
@@ -300,7 +300,8 @@ const DragDropManager = (function() {
       startEvent = initCoords;
       isDockDisabled = false;
       overlapingDock = (initCoords.y >= limitY) ? true : false;
-      onStart(evt.target);
+      onStart(evt.target.className === 'options' ? evt.target.parentNode :
+                                                   evt.target);
     }
   };
 }());
