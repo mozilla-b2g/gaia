@@ -92,6 +92,10 @@ function tzSelect(contSelector, citySelector, onchange) {
     var reqTimezone = settings.createLock().get('time.timezone');
     reqTimezone.onsuccess = function dt_getStatusSuccess() {
       var lastMozSettingValue = reqTimezone.result['time.timezone'];
+      if (!lastMozSettingValue) {
+        lastMozSettingValue = 'Pacific/Pago_Pago';
+      }
+
       setTimezoneDescription(lastMozSettingValue);
 
       // initialize the timezone selector with the initial TZ setting
