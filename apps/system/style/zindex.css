@@ -51,10 +51,6 @@
   z-index: 65535;
 }
 
-#screen > [data-z-index-level="keyboard-overlay"] {
-  z-index: 65536;
-}
-
 #screen > [data-z-index-level="keyboard-frame"] {
   z-index: 65536;
 }
@@ -103,8 +99,8 @@
   z-index: 2046;
 }
 
-/* Keep keyboard overlay under lockscreen when locked */
-#screen.locked > [data-z-index-level="keyboard-overlay"] {
+/* Keep keyboard under lockscreen when locked */
+#screen.locked > [data-z-index-level="keyboard-frame"] {
   z-index: 2045;
 }
 
@@ -116,14 +112,6 @@
 #screen > [data-z-index-level="updates-download-dialog"],
 #screen > [data-z-index-level="app"] > iframe.appWindow.inlineActivity {
   z-index: 1024;
-}
-
-#screen.modal-dialog > [data-z-index-level="keyboard-frame"].visible,
-#screen.authentication-dialog > [data-z-index-level="keyboard-frame"].visible,
-#screen.popup > [data-z-index-level="keyboard-frame"].visible,
-#screen.trustedui > [data-z-index-level="keyboard-frame"].visible,
-#screen.inline-activity > [data-z-index-level="keyboard-frame"].visible {
-  z-index: 1023; /* Keep it just behind the modal dialog */
 }
 
 /* Level 8 */
@@ -165,10 +153,6 @@
   z-index: 3;
 }
 
-#screen > [data-z-index-level="keyboard-frame"].visible {
-  z-index: 2;
-}
-
 #screen > [data-z-index-level="app"] > iframe.appWindow {
   z-index: 1;
 }
@@ -188,9 +172,7 @@
 #screen:-moz-full-screen-ancestor > [data-z-index-level="system-overlay"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="dialog-overlay"],
 
-#screen:-moz-full-screen-ancestor > [data-z-index-level="keyboard-overlay"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="keyboard-frame"],
-#screen:-moz-full-screen-ancestor > [data-z-index-level="keyboard-frame"].visible,
 
 #screen:-moz-full-screen-ancestor > [data-z-index-level="notification-toaster"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="cards-view"],
