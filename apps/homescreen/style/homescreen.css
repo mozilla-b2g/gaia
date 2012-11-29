@@ -111,3 +111,7 @@ li:active {
   background-color: #182026;
   opacity: 0;
 }
+
+#landing-page {
+  display: block;
+}

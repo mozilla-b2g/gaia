@@ -278,15 +278,28 @@ const GridManager = (function() {
     }
     applyEffectOverlay(index);
 
-    togglePagesVisibility(start, end);
-
     currentPage = index;
     updatePaginationBar();
 
-    if (previousPage == newPage) {
-      goToPageCallback();
-      newPage.moveByWithEffect(0, duration);
+    if (previousPage === newPage) {
+      container.addEventListener('transitionend', function transitionEnd(e) {
+        container.removeEventListener('transitionend', transitionEnd);
+        goToPageCallback();
+      });
+
+      if (index > 0) {
+        pages[index - 1].moveByWithEffect(-windowWidth, kPageTransitionDuration);
+      }
+
+      newPage.moveByWithEffect(0, kPageTransitionDuration);
+
+      if (index < pages.length) {
+        pages[index + 1].moveByWithEffect(windowWidth, kPageTransitionDuration);
+      }
+      
       return;
+    } else {
+      togglePagesVisibility(start, end);
     }
 
     // Force a reflow otherwise the newPage appears immediately because it is
