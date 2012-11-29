@@ -99,6 +99,11 @@
   z-index: 2046;
 }
 
+/* Keep keyboard under lockscreen when locked */
+#screen.locked > [data-z-index-level="keyboard-frame"] {
+  z-index: 2045;
+}
+
 /* Level 7: Dialog Module */
 #screen > [data-z-index-level="dialog-overlay"],
 #screen > [data-z-index-level="value-selector"],
