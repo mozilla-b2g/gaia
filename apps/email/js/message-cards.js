@@ -1102,8 +1102,9 @@ MessageReaderCard.prototype = {
         node.setAttribute('class', cname);
 
       var subnodes = MailAPI.utils.linkifyPlain(rep[i + 1], document);
-      for (var i in subnodes)
-        node.appendChild(subnodes[i]);
+      for (var iNode = 0; iNode < subnodes.length; iNode++) {
+        node.appendChild(subnodes[iNode]);
+      }
 
       bodyNode.appendChild(node);
     }
