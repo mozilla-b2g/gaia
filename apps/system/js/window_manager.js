@@ -1264,8 +1264,8 @@ var WindowManager = (function() {
 
   // If the application tried to close themselves by calling window.close()
   // we will handle that here.
-  // XXX: currently broken, see
-  // https://bugzilla.mozilla.org/show_bug.cgi?id=789392
+  // XXX: this event is fired twice:
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=814583
   window.addEventListener('mozbrowserclose', function(e) {
     if (!'frameType' in e.target.dataset)
       return;
@@ -1441,6 +1441,13 @@ var WindowManager = (function() {
   function kill(origin, callback) {
     if (!isRunning(origin))
       return;
+
+    // As we can't immediatly remove runningApps entry,
+    // we flag it as being killed in order to avoid trying to remove it twice.
+    // (Check required because of bug 814583)
+    if (runningApps[origin].killed)
+      return;
+    runningApps[origin].killed = true;
 
     // If the app is the currently displayed app, switch to the homescreen
     if (origin === displayedApp) {
