@@ -110,6 +110,12 @@
 
 #week-view .days-3 .week-events > ol {
   width: 9.5rem;
+  position: relative;
+}
+
+#week-view .days-3 .week-events > ol > li {
+  position: absolute;
+  width: 100%;
 }
 
 #week-view .week-events > ol li.event {
