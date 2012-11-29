@@ -41,6 +41,26 @@
             resultCode: icc.STK_RESULT_OK
           });
         }
+      } else {
+        // Unsolicited command? -> Open settings
+        debug("CMD: ", command);
+        if(WindowManager.getRunningApps()['app://settings.gaiamobile.org']) {
+          return;   // If settings is opened, we don't manage it
+        }
+        navigator.mozApps.mgmt.getAll().onsuccess = function gotApps(evt) {
+          var apps = evt.target.result;
+          apps.forEach(function appIterator(app) {
+            if(app.origin == "app://settings.gaiamobile.org") {
+              var reqIccData = window.navigator.mozSettings.createLock().set({
+                'icc.data': JSON.stringify(command)
+              });
+              reqIccData.onsuccess = function icc_getIccData() {
+                debug("Launching ", app.origin);
+                app.launch();
+              }
+            }
+          }, this);
+        }
       }
     });
 })();
