@@ -46,6 +46,7 @@
     <link href="/shared/style/switches.css" rel="stylesheet">
     <link href="/shared/style_unstable/lists.css" rel="stylesheet">
     <link href="/shared/style/confirm.css" rel="stylesheet">
+    <link href="/shared/style_unstable/scrolling.css" rel="stylesheet">
 
 
     <link rel="stylesheet" href="style/fb/facebook.css">
@@ -70,16 +71,14 @@
       </header>
 
       <section id="main">
-        <div id="shortcuts">
-          <abbr id="current" title="Contacts by "></abbr>
-          <ol class="unbordered">
+        <nav data-type="scrollbar">
+          <p></p>
+          <ol>
             <li data-template data-anchor="group-#anchor#" data-letter="#anchor#">
-              <a href="#">
-                <abbr title="Jump to #anchor#">#anchor#</abbr>
-              </a>
+              <a href="#">#anchor#</a>
             </li>
           </ol>
-        </div>
+        </nav>
 
         <!-- Contacts List Section -->
         <section id='mainContent' data-state="selection">

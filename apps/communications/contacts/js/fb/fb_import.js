@@ -72,14 +72,13 @@ if (typeof fb.importer === 'undefined') {
     var BLOCK_SIZE = 5;
 
     UI.init = function() {
-      var overlay, overlayContent;
+      var overlay;
 
-      overlay = overlayContent = document.querySelector('#shortcuts #current');
-      var jumper = document.querySelector('#shortcuts ol');
+      overlay = document.querySelector('nav[data-type="scrollbar"] p');
+      var jumper = document.querySelector('nav[data-type="scrollbar"] ol');
 
       var params = {
         overlay: overlay,
-        overlayContent: overlayContent,
         jumper: jumper,
         groupSelector: '#group-',
         scrollToCb: scrollToCb

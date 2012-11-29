@@ -148,8 +148,8 @@ suite('Render contacts list', function() {
       'id="groups-list"></section>';
     groupsContainer.innerHTML += '<div id="fixed-container" ';
     groupsContainer.innerHTML += 'class="fixed-title"> </div>';
-    groupsContainer.innerHTML += '<div id="current-jumper" ';
-    groupsContainer.innerHTML += 'class="view-jumper-current"></div>';
+    groupsContainer.innerHTML += '<nav data-type="scrollbar">';
+    groupsContainer.innerHTML += '<p></p></nav>';
     container.appendChild(groupsContainer);
     loading = document.createElement('div');
     loading.id = 'loading-overlay';
