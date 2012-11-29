@@ -127,10 +127,6 @@ body[data-transitioning] .loading:after {
   margin-left: -0.4rem;
 }
 
-.loading span {
-  margin-top: 0.4rem;
-}
-
 @keyframes rotate {
   from {
     transform: rotate(1deg)
