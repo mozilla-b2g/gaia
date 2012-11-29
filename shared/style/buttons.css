@@ -23,7 +23,7 @@ a[role="button"] {
   background: #fafafa url(buttons/images/ui/default.png) repeat-x left bottom;
   border: 0.1rem solid #9f9f9f;
   border-radius: 0.3rem;
-  font: 400 1.6rem/3.8rem 'MozTT', Sans-serif;
+  font: 500 1.6rem/3.8rem 'MozTT', Sans-serif;
   color: #333;
   text-align: center;
   text-shadow: 0.1rem 0.1rem 0 rgba(255,255,255,0.3);
@@ -98,7 +98,6 @@ li a[role="button"] {
   background: #e7e7e7;
   border-color: #b6b6b6;
   text-align: left;
-  font-weight: normal;
   /* For hacking box-shadows we need overflow:visible; so we lose text-overflows...*/
   white-space: normal;
   overflow: visible;
