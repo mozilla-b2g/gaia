@@ -276,7 +276,6 @@ contacts.List = (function() {
       contact = fbContact.merge(fbContacts[fbContact.uid]);
     }
 
-    contact.updated = contact.updated || contact.published || new Date();
     var group = getGroupName(contact);
     counter[group] = counter.hasOwnProperty(group) ? counter[group] + 1 : 0;
     var listContainer = document.getElementById('contacts-list-' + group);

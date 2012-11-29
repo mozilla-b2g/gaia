@@ -30,6 +30,7 @@ contacts.Settings = (function() {
     // Ordering
     asyncStorage.getItem(ORDER_KEY, (function orderValue(value) {
       orderByLastName = value || false;
+      newOrderByLastName = null;
       updateOrderingUI();
     }).bind(this));
 
@@ -317,7 +318,8 @@ contacts.Settings = (function() {
 
   // Dismiss settings window and execute operations if values got modified
   var close = function close() {
-    if (newOrderByLastName != orderByLastName && contacts.List) {
+    if (newOrderByLastName != null &&
+        newOrderByLastName != orderByLastName && contacts.List) {
       contacts.List.setOrderByLastName(newOrderByLastName);
       orderByLastName = newOrderByLastName;
     }
