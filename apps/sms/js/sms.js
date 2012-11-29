@@ -66,7 +66,7 @@ var MessageManager = {
             receiverInput.value = '';
             threadMessages.classList.add('new');
             MessageManager.slide(function() {
-              messageInput.focus();
+              receiverInput.focus();
             });
             break;
           case '#thread-list':
@@ -82,6 +82,7 @@ var MessageManager = {
               });
             } else {
               MessageManager.slide(function() {
+                ThreadUI.view.innerHTML = '';
                 if (MessageManager.activityTarget) {
                   window.location.hash =
                     '#num=' + MessageManager.activityTarget;
