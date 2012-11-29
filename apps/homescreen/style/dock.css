@@ -41,11 +41,11 @@
 #footer li span.options {
   position: absolute;
   top: 4.6rem;
-  left: 4.9rem;
-  width: 100%;
+  left: 0;
+  width: 90%;
   height: 2.6rem;
   z-index: 2;
-  background: url(../resources/images/delete.png) no-repeat;
+  background: url(../resources/images/delete.png) no-repeat right top;
 }
 
 #footer li > div > *:not(img) {

@@ -773,16 +773,20 @@ var WindowManager = (function() {
     }
   }
 
+  function skipFTU() {
+    // Eventually ask for SIM code, but only when we do not show FTU,
+    // which already asks for it!
+    handleInitlogo();
+    SimLock.showIfLocked();
+    setDisplayedApp(homescreen);
+  }
+
   // Check if the FTU was executed or not, if not, get a
   // reference to the app and launch it.
   function retrieveFTU() {
     window.asyncStorage.getItem('ftu.enabled', function getItem(launchFTU) {
       if (launchFTU === false) {
-        // Eventually ask for SIM code, but only when we do not show FTU,
-        // which already asks for it!
-        handleInitlogo();
-        SimLock.showIfLocked();
-        setDisplayedApp(homescreen);
+        skipFTU();
         return;
       }
       document.getElementById('screen').classList.add('ftuStarting');
@@ -792,17 +796,21 @@ var WindowManager = (function() {
         ftuManifestURL = this.result['ftu.manifestURL'];
         if (!ftuManifestURL) {
           dump('FTU manifest cannot be found skipping.\n');
-          setDisplayedApp(homescreen);
+          skipFTU();
           return;
         }
         ftu = Applications.getByManifestURL(ftuManifestURL);
         if (!ftu) {
           dump('Opps, bogus FTU manifest.\n');
-          setDisplayedApp(homescreen);
+          skipFTU();
           return;
         }
         ftuURL = ftu.origin + ftu.manifest.entry_points['ftu'].launch_path;
         ftu.launch('ftu');
+      };
+      req.onerror = function() {
+        dump('Couldn\'t get the ftu manifestURL.\n');
+        skipFTU();
       };
     });
   }

@@ -177,7 +177,7 @@
   top: -0.1rem;
   bottom: 0;
   right: 0;
-  left: -5rem;
+  left: -4rem;
   z-index: 1;
   width: auto;
   height: auto;
@@ -185,12 +185,13 @@
 }
 
 [data-type="list"] li > label input + span {
-  left: 2.5rem;
+  left: 0;
+  margin-left: 0;
 }
 
 /* Edit mode */
 [data-type="list"] [data-type="edit"] li {
-  transform: translateX(5rem);
+  transform: translateX(4rem);
   padding-left: 0;
 }
 

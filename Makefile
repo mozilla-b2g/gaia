@@ -179,12 +179,18 @@ ifneq ($(LOCALE_BASEDIR),)
 		--source $(LOCALE_BASEDIR) \
 		$$targets;
 	@echo "Done"
+ifneq ($(LOCALES_FILE),shared/resources/languages.json)
 	cp $(LOCALES_FILE) shared/resources/languages.json
+endif
 endif
 
 .PHONY: multilocale-clean
 multilocale-clean:
 	@echo "Cleaning l10n bits..."
+ifeq ($(wildcard .hg),.hg)
+	@hg update --clean
+	@hg status -n | xargs rm -rf
+else
 	@git ls-files --other --exclude-standard $(GAIA_APP_SRCDIRS) | grep '\.properties' | xargs rm -f
 	@git ls-files --modified $(GAIA_APP_SRCDIRS) | grep '\.properties' | xargs git checkout --
 ifneq ($(DEBUG),1)
@@ -193,6 +199,7 @@ ifneq ($(DEBUG),1)
 	@git ls-files --modified $(GAIA_APP_SRCDIRS) | grep '\.ini' | xargs git checkout --
 	@git checkout -- shared/resources/languages.json
 	@echo "Done"
+endif
 endif
 
 app-makefiles:
@@ -302,6 +309,7 @@ define run-js-command
 	const GAIA_APP_SRCDIRS = "$(GAIA_APP_SRCDIRS)";                             \
 	const GAIA_LOCALES_PATH = "$(GAIA_LOCALES_PATH)";                           \
 	const BUILD_APP_NAME = "$(BUILD_APP_NAME)";                                 \
+	const PRODUCTION = "$(PRODUCTION)";                                         \
 	const GAIA_ENGINE = "xpcshell";                                             \
 	';                                                                          \
 	$(XULRUNNERSDK) $(XPCSHELLSDK) -e "$$JS_CONSTS" -f build/utils.js "build/$(strip $1).js"

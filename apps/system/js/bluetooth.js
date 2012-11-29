@@ -54,21 +54,23 @@ var Bluetooth = {
      */
     var self = this;
     navigator.mozSetMessageHandler('bluetooth-opp-transfer-start',
-      function bt_fileTransferUpdate() {
+      function bt_fileTransferUpdate(transferInfo) {
         self.updateConnected();
         var evt = document.createEvent('CustomEvent');
         evt.initCustomEvent('bluetooth-opp-transfer-start',
-          /* canBubble */ true, /* cancelable */ false, null);
+          /* canBubble */ true, /* cancelable */ false,
+          {transferInfo: transferInfo});
         window.dispatchEvent(evt);
       }
     );
 
     navigator.mozSetMessageHandler('bluetooth-opp-transfer-complete',
-      function bt_fileTransferUpdate() {
+      function bt_fileTransferUpdate(transferInfo) {
         self.updateConnected();
         var evt = document.createEvent('CustomEvent');
         evt.initCustomEvent('bluetooth-opp-transfer-complete',
-          /* canBubble */ true, /* cancelable */ false, null);
+          /* canBubble */ true, /* cancelable */ false,
+          {transferInfo: transferInfo});
         window.dispatchEvent(evt);
       }
     );

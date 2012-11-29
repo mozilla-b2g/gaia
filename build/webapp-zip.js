@@ -42,6 +42,12 @@ const PR_EXCL = 0x80;
  * @param {nsIFile}      file      file xpcom to add.
  */
 function addToZip(zip, pathInZip, file) {
+
+  // Branding specific code
+  if (/shared\/locales\/branding$/.test(file.path)) {
+    file.append((PRODUCTION == 1) ? 'official' : 'unofficial');
+  }
+
   if (!file.exists())
     throw new Error('Can\'t add inexistent file to zip : ' + file.path);
 
