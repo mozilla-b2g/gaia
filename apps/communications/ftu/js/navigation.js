@@ -80,6 +80,7 @@ var Navigation = {
       if (self.currentStep > numSteps) {
         UIManager.activationScreen.classList.remove('show');
         UIManager.finishScreen.classList.add('show');
+        Tutorial.init();
         return;
       }
       var followingStep = steps[self.currentStep];
