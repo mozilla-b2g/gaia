@@ -2,10 +2,21 @@
 
 var CallHandler = (function callHandler() {
   var telephony = navigator.mozTelephony;
+  telephony.oncallschanged = function oncallschanged() {
+    if (callScreenWindowLoaded) {
+      if (telephony.calls.length === 0)
+        // Calls might be ended before callscreen registers call-related
+        // events. We send a message to notify callscreen of exiting when
+        // there are no calls.
+        sendCommandToCallScreen('*', 'exitCallScreen');
+    }
+  }
+
   var conn = navigator.mozMobileConnection;
   var _ = navigator.mozL10n.get;
 
   var callScreenWindow = null;
+  var callScreenWindowLoaded = false;
   var currentActivity = null;
 
   /* === Settings === */
@@ -87,8 +98,11 @@ var CallHandler = (function callHandler() {
 
   /*
     Send commands to the callScreen via post message.
-    @type: Handler to be used in the CallHandler (currently 'BT': bluethood
-                                                  and 'HS': headset)
+    @type: Handler to be used in the CallHandler. Currently managing to
+           kind of commands:
+           'BT': bluetooth
+           'HS': headset
+           '*' : for general cases, not specific to hardware control
     @command: The specific message to each kind of type
   */
   function sendCommandToCallScreen(type, command) {
@@ -203,12 +217,22 @@ var CallHandler = (function callHandler() {
     var urlBase = protocol + '//' + host + '/dialer/oncall.html';
     callScreenWindow = window.open(urlBase + '#' + screenState,
                 'call_screen', 'attention');
+    callScreenWindow.onload = function onload() {
+      callScreenWindowLoaded = true;
+      if (telephony.calls.length === 0) {
+        // Calls might be ended before callscreen is comletedly loaded, so that
+        // callscreen will miss call-related events. We send a message to notify
+        // callscreen of exiting when there are no calls.
+        sendCommandToCallScreen('*', 'exitCallScreen');
+      }
+    }
   }
 
   // We use a simple postMessage protocol to know when the call screen is closed
   function handleMessage(evt) {
     if (evt.data == 'closing') {
       callScreenWindow = null;
+      callScreenWindowLoaded = false;
       if (Recents) {
         Recents.refresh();
       }
