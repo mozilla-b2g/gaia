@@ -115,6 +115,7 @@ Icon.prototype = {
       // Menu button to delete the app
       var options = document.createElement('span');
       options.className = 'options';
+      options.dataset.isIcon = true;
       container.appendChild(options);
     }
 

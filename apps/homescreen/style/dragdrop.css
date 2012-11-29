@@ -60,6 +60,10 @@ body[data-mode = 'normal'] ol > li span.options {
   display: none;
 }
 
+body[data-dragging] ol > li span.options {
+  pointer-events: none;
+}
+
 body[data-mode = 'edit'] ol > li[data-dragging] {
   opacity: 0;
 }
