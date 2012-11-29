@@ -843,6 +843,9 @@ function MessageReaderCard(domNode, mode, args) {
   domNode.getElementsByClassName('msg-forward-btn')[0]
     .addEventListener('click', this.onForward.bind(this), false);
 
+  this.scrollContainer =
+    domNode.getElementsByClassName('scrollregion-below-header')[0];
+
   this.envelopeNode = domNode.getElementsByClassName('msg-envelope-bar')[0];
   this.envelopeNode
     .addEventListener('click', this.onEnvelopeClick.bind(this), false);
@@ -1168,7 +1171,7 @@ MessageReaderCard.prototype = {
       }
       else if (repType === 'html') {
         var iframe = createAndInsertIframeForContent(
-          rep, rootBodyNode, null,
+          rep, this.scrollContainer, rootBodyNode, null,
           'interactive', this.onHyperlinkClick.bind(this));
         var bodyNode = iframe.contentDocument.body;
         MailAPI.utils.linkifyHTML(iframe.contentDocument);

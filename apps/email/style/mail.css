@@ -153,6 +153,9 @@ body {
   height: -webkit-calc(100% - 5.8rem + 5px);
   height: calc(100% - 5.8rem + 5px);
 }
+.scrollregion-below-header.scrollregion-horizontal-too {
+  overflow-x: auto !important;
+}
 
 .bottom-toolbar {
   position: absolute;
