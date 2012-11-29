@@ -9,7 +9,7 @@ var ApplicationsList = {
 
   _permissions: [
     'power', 'sms', 'contacts', 'telephony', 'mozBluetooth', 'browser',
-    'mozApps', 'mobileconnection', 'mozFM', 'systemXHR', 'background',
+    'mozApps', 'mobileconnection', 'mozFM', 'systemXHR', 'background', 'background-sensors',
     'backgroundservice', 'settings', 'alarm', 'camera', 'fmradio', 'voicemail',
     'wifi-manage', 'wifi', 'networkstats-manage', 'geolocation',
     'webapps-manage', 'permissions', 'desktop-notification',
