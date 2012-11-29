@@ -443,7 +443,8 @@ var Browser = {
       this.mainScreen.addEventListener('transitionend', addressBarVisible);
       this.addressBarState = this.TRANSITIONING;
       this.mainScreen.classList.remove('address-hidden');
-    } else if (evt.detail.top > this.UPPER_SCROLL_THRESHOLD) {
+    } else if (evt.detail.top > this.UPPER_SCROLL_THRESHOLD 
+      && evt.detail.bottom > this.UPPER_SCROLL_THRESHOLD) {
       if (this.addressBarState == this.HIDDEN ||
         this.addressBarState == this.TRANSITIONING) {
         return;
