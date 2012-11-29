@@ -1129,10 +1129,36 @@ var ThreadUI = {
   },
 
   sendMessage: function thui_sendMessage(resendText) {
-    var settings = window.navigator.mozSettings,
-        throwGeneralError;
+    // Retrieve num depending on hash
+    var hash = window.location.hash;
+    // Depending where we are, we get different num
+    var num;
+    if (hash == '#new') {
+      num = this.contactInput.value;
+    } else {
+      num = MessageManager.getNumFromHash();
+    }
+    var numNormalized =
+      PhoneNumberManager.getNormalizedInternationalNumber(num);
+    // Retrieve text
+    var text = this.input.value;
+    // Check for resendText type as it can be a MouseEvent
+    if (!text && typeof(resendText) == 'string')
+      text = resendText;
+    // If we have something to send
+    if (numNormalized == '' || text == '')
+      return;
 
-    throwGeneralError = function() {
+    // Prevent sending same message multiple times
+    if (this.input.disabled)
+      return;
+    this.input.disabled = true;
+    function unlock() {
+      ThreadUI.input.disabled = false;
+    }
+
+    function throwGeneralError() {
+      unlock();
       CustomDialog.show(
         _('sendGeneralErrorTitle'),
         _('sendGeneralErrorBody'),
@@ -1145,130 +1171,149 @@ var ThreadUI = {
       );
     };
 
-    if (settings) {
-
-      var req = settings.createLock().get('ril.radio.disabled');
-      req.addEventListener('success', (function onsuccess() {
-        var status = req.result['ril.radio.disabled'];
-
-        // Retrieve num depending on hash
-        var hash = window.location.hash;
-        // Depending where we are, we get different num
-        if (hash == '#new') {
-          var num = this.contactInput.value;
-        } else {
-          var num = MessageManager.getNumFromHash();
-        }
-        var numNormalized =
-          PhoneNumberManager.getNormalizedInternationalNumber(num);
-        // Retrieve text
-        var text = this.input.value || resendText;
-        // If we have something to send
-        if (numNormalized != '' && text != '') {
-          // Create 'PendingMessage'
-          var tempDate = new Date();
-          var message = {
-            sender: null,
-            receiver: numNormalized,
-            delivery: 'sending',
-            body: text,
-            read: 1,
-            timestamp: tempDate
-          };
-          var self = this;
-          if (!status) {
-            message.error = false;
-            // Save the message into pendind DB before send.
-            PendingMsgManager.saveToMsgDB(message, function onsave(msg) {
-              ThreadUI.cleanFields();
-              if (window.location.hash == '#new') {
-                window.location.hash = '#num=' + num;
-              } else {
-                // Append to DOM
-                ThreadUI.appendMessage(message, function() {
-                   // Call to update headers
-                  Utils.updateTimeHeaders();
-
-                });
-              }
-              MessageManager.getMessages(ThreadListUI.renderThreads);
-              // XXX Once we have PhoneNumberJS in Gecko we will
-              // use num directly:
-              // https://bugzilla.mozilla.org/show_bug.cgi?id=809213
-              MessageManager.send(numNormalized, text, function onsent(msg) {
-                var root = document.getElementById(message.timestamp.getTime());
-                if (root) {
-                  //Removing delivery spinner
-                  var deliveryIcon = root.querySelector('.icon-delivery');
-                  deliveryIcon.parentNode.removeChild(deliveryIcon);
-
-                  var inputs = root.querySelectorAll('input[type="checkbox"]');
-                  if (inputs) {
-                    inputs[0].value = 'id_' + msg.id;
-                  }
-                }
-                // Remove the message from pending message DB since it
-                // could be sent successfully.
-                PendingMsgManager.deleteFromMsgDB(message,
-                  function ondelete(msg) {
-                    if (!msg) {
-                      //TODO: Handle message delete failed in pending DB.
-                    }
-                });
-              }, function onerror() {
-                var root = document.getElementById(message.timestamp.getTime());
-                PendingMsgManager.deleteFromMsgDB(message,
-                  function ondelete(msg) {
-                    message.error = true;
-                    PendingMsgManager.saveToMsgDB(message,
-                      function onsave(msg) {
-                        var filter = MessageManager.createFilter(
-                          message.receiver);
-                        MessageManager.getMessages(function(messages) {
-                          ThreadUI.renderMessages(messages);
-                          MessageManager.getMessages(
-                            ThreadListUI.renderThreads);
-                        }, filter);
-                    });
-                });
-              });
-            });
+    // Add a new pending message to the DB and update UI
+    function addPendingMessage(message, next) {
+      try {
+        PendingMsgManager.saveToMsgDB(message, function onsave(msg) {
+          ThreadUI.cleanFields();
+          unlock();
+          if (window.location.hash == '#new') {
+            window.location.hash = '#num=' + num;
           } else {
-            message.error = true;
-            // Save the message into pendind DB before send.
-            PendingMsgManager.saveToMsgDB(message, function onsave(msg) {
-              ThreadUI.cleanFields();
-              if (window.location.hash == '#new') {
-                window.location.hash = '#num=' + num;
-              } else {
-                // Append to DOM
-                ThreadUI.appendMessage(message, function() {
-                   // Call to update headers
-                  Utils.updateTimeHeaders();
-                });
-              }
-              CustomDialog.show(
-                _('sendAirplaneModeTitle'),
-                _('sendAirplaneModeBody'),
-                {
-                  title: _('sendAirplaneModeBtnOk'),
-                  callback: function() {
-                    CustomDialog.hide();
-                  }
-                }
-              );
-              MessageManager.getMessages(ThreadListUI.renderThreads);
+            // Append to DOM
+            ThreadUI.appendMessage(message, function() {
+               // Call to update headers
+              Utils.updateTimeHeaders();
             });
           }
+          MessageManager.getMessages(ThreadListUI.renderThreads);
+          if (typeof(next) == 'function') {
+            next();
+            next = null;
+          }
+        });
+      } catch(e) {
+        // indexedDB call in saveToMsgDB can throw exceptions
+        if (typeof(next) == 'function') {
+          next();
+          next = null;
         }
-      }).bind(this));
-
-      req.addEventListener('error', function onerror() {
-        throwGeneralError();
-      });
-    } else {
-      throwGeneralError();
+      }
     }
+
+    // Replace a pending message with the same one with
+    // the error property set to true.
+    function setErrorPendingMessage(message) {
+      PendingMsgManager.deleteFromMsgDB(message,
+        function ondelete(msg) {
+          message.error = true;
+          PendingMsgManager.saveToMsgDB(message,
+            function onsave(msg) {
+              // Update the UI
+              var filter = MessageManager.createFilter(message.receiver);
+              MessageManager.getMessages(function(messages) {
+                  ThreadUI.renderMessages(messages);
+                  MessageManager.getMessages(ThreadListUI.renderThreads);
+                }, filter);
+            });
+        });
+    }
+
+    // Call platform code that actually send the message
+    // And update UI
+    function doSendMessage(message, onsuccess, onerror) {
+      // XXX Once we have PhoneNumberJS in Gecko we will
+      // use num directly:
+      // https://bugzilla.mozilla.org/show_bug.cgi?id=809213
+      MessageManager.send(message.receiver, text, function onsent(msg) {
+        // Unlock message sending
+        unlock();
+
+        var root = document.getElementById(message.timestamp.getTime());
+        if (root) {
+          // Removing delivery spinner
+          var deliveryIcon = root.querySelector('.icon-delivery');
+          deliveryIcon.parentNode.removeChild(deliveryIcon);
+
+          var inputs = root.querySelectorAll('input[type="checkbox"]');
+          if (inputs) {
+            inputs[0].value = 'id_' + msg.id;
+          }
+        }
+
+        if (typeof(onsuccess) == 'function')
+          onsuccess();
+      }, onerror);
+
+    }
+
+    // Create 'PendingMessage'
+    var message = {
+      sender: null,
+      receiver: numNormalized,
+      delivery: 'sending',
+      body: text,
+      read: 1,
+      timestamp: new Date()
+    };
+
+    var settings = window.navigator.mozSettings;
+    if (!settings)
+      return throwGeneralError();
+
+    var sent = false;
+
+    var req = settings.createLock().get('ril.radio.disabled');
+    req.addEventListener('success', function onsuccess() {
+
+      var status = req.result['ril.radio.disabled'];
+
+      if (!status) {
+        message.error = false;
+        // Save the message into pendind DB before send.
+        addPendingMessage(message, function () {
+
+          // Sanity check, just to be sure that we do not send
+          // duplicated messages
+          if (sent)
+            return console.error("Try to send duplicated messages");
+          sent = true;
+
+          doSendMessage(message, function onsuccess() {
+
+            // Remove the message from pending message DB since it
+            // could be sent successfully.
+            PendingMsgManager.deleteFromMsgDB(message,
+              function ondelete(msg) {
+                if (!msg) {
+                  //TODO: Handle message delete failed in pending DB.
+                }
+            });
+          }, function onerror() {
+            // Delete pending message we just added,
+            // in order to add a similar one with error flag
+            setErrorPendingMessage(message);
+          });
+        });
+      } else {
+        message.error = true;
+        addPendingMessage(message, function () {
+          // Warn the user about being offline
+          CustomDialog.show(
+            _('sendAirplaneModeTitle'),
+            _('sendAirplaneModeBody'),
+            {
+              title: _('sendAirplaneModeBtnOk'),
+              callback: function() {
+                CustomDialog.hide();
+              }
+            }
+          );
+        });
+      }
+    });
+
+    req.addEventListener('error', throwGeneralError);
   },
 
   resendMessage: function thui_resendMessage(message) {
