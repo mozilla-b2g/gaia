@@ -658,6 +658,9 @@ var Recents = {
         var photoURL = URL.createObjectURL(contact.photo[0]);
         contactPhoto.style.backgroundImage = 'url(' + photoURL + ')';
         logItem.classList.add('contact-photo-available');
+      } else {
+        contactPhoto.style.backgroundImage = null;
+        logItem.classList.remove('contact-photo-available');
       }
       var phoneNumberAdditionalInfo = Utils.getPhoneNumberAdditionalInfo(
         matchingTel, contact);
