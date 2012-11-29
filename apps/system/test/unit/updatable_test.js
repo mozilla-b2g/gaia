@@ -199,6 +199,15 @@ suite('system/Updatable', function() {
       test('should call cancelDownload on the app', function() {
         assert.isTrue(mockApp.mCancelCalled);
       });
+
+      test('should send cancel message for system updates', function() {
+        subject = new SystemUpdatable(42);
+        subject._dispatchEvent = fakeDispatchEvent;
+        subject.cancelDownload();
+
+        assert.equal('update-download-cancel', lastDispatchedEvent.type);
+        assert.equal(subject, MockUpdateManager.mLastDownloadsRemoval);
+      });
     });
   });
 
