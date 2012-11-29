@@ -176,7 +176,7 @@ Icon.prototype = {
 
     if (this.icon && !this.downloading) {
       this.icon.classList.remove('loading');
-    } 
+    }
 
     img.onload = function icon_loadSuccess() {
       if (blob)
@@ -460,7 +460,7 @@ Page.prototype = {
     var container = this.movableContainer;
     var style = container.style;
     style.MozTransform = 'translateX(' + scrollX + 'px)';
-    style.MozTransition = '-moz-transform ' + duration + 's ease';
+    style.MozTransition = '-moz-transform ' + duration + 'ms ease';
   },
 
   /*
@@ -699,14 +699,14 @@ dockProto.moveByWithEffect = function dk_moveByWithEffect(scrollX, duration) {
   var container = this.movableContainer;
   var style = container.style;
   style.MozTransform = 'translateX(' + scrollX + 'px)';
-  style.MozTransition = '-moz-transform ' + duration + 's ease';
+  style.MozTransition = '-moz-transform ' + duration + 'ms ease';
 };
 
 dockProto.moveByWithDuration = function dk_moveByWithDuration(scrollX,
                                                               duration) {
   var style = this.movableContainer.style;
   style.MozTransform = 'translateX(' + scrollX + 'px)';
-  style.MozTransition = '-moz-transform ' + duration + 's ease';
+  style.MozTransition = '-moz-transform ' + duration + 'ms ease';
 };
 
 
