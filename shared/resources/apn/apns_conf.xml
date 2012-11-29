@@ -3687,6 +3687,20 @@
       type="default,mms"
   />
 
+  <apn carrier="SpeakOut"
+      mcc="302"
+      mnc="720"
+      apn="goam.com"
+      user="wapuser1"
+      password="wap"
+      proxy="10.128.1.69"
+      port="80"
+      mmsc="http://mms.gprs.rogers.com"
+      mmsproxy="10.128.1.69"
+      mmsport="80"
+      type="default,mms"
+  />
+
   <apn carrier="SaskTel"
       mcc="302"
       mnc="780"
