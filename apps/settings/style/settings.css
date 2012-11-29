@@ -222,9 +222,21 @@ ul li > label .range-icons.brightness {
  * Date & Time
  */
 
-#clock-date,
-#clock-time {
+#dateTime ul[data-state="auto"] ~ * {
+  display: none;
+}
+
+#time-manual span {
   pointer-events: none;
+}
+
+#time-manual input {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  opacity: 0;
 }
 
 

@@ -52,7 +52,7 @@ onLocalized(function SettingsDateAndTime() {
   }
 
   function setTimeManualEnabled(enabled) {
-    gTimeManualMenu.hidden = enabled ? true : false;
+    gTimeAutoSwitch.dataset.state = enabled ? 'auto' : 'manual';
   }
 
   function setTime(type) {
@@ -81,127 +81,29 @@ onLocalized(function SettingsDateAndTime() {
     SetTime.set(newDate);
   }
 
-  function setTimezoneDescription(timezone) {
-    _timezone = timezone;
-    gTimezoneDescription.innerHTML = parseNameByTimezoneValue(timezone);
-  }
-
-  function parseNameByTimezoneValue(value) {
-    for (var i = 0; i < _jsonData.length; i++) {
-      for (var j = 0; j < _jsonData[i].zones.length; j++) {
-        if (value == _jsonData[i].zones[j].value)
-          return _jsonData[i].zones[j].name;
-      }
-    }
-    return value;
-  }
-
-  function loadTimezoneDB(callback) {
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', _jsonUrl, true);
-    try {
-      xhr.responseType = 'json';
-    } catch (e) { }
-    xhr.overrideMimeType('application/json; charset=utf-8');
-    xhr.onreadystatechange = function xhrReadystatechange(ev) {
-      if (xhr.readyState !== 4)
-        return;
-
-      var response;
-      if (xhr.responseType == 'json') {
-        response = xhr.response;
-      } else {
-        try {
-          response = JSON.parse(xhr.responseText);
-        } catch (e) { }
-      }
-      _jsonData = response;
-
-      if (typeof response !== 'object') {
-        debug('Failed to load timezones.json: Malformed JSON');
-        callback();
-        return;
-      }
-      xhr = null;
-      if (callback) {
-        callback();
-      }
-    };
-
-    xhr.send(null);
-  }
-
-  function initTimezoneContinents() {
-    var content = '';
-    var continentsID = 'timezone-continents-';
-    for (var i = 0; i < _jsonData.length; i++) {
-      content += '<li id="timezone-continents-' + continentsID + i + '">' +
-                 '  <a href="#dateTime-timezone" id="continent-item"' +
-                      'data-id="' + i + '">' + _jsonData[i].group +
-                 '  </a>' +
-                 '</li>';
-    }
-    gTimezoneContinents.innerHTML = content;
-  }
-
-  function loadZones(index) {
-    var content = '';
-    for (var i = 0; i < _jsonData[index].zones.length; i++) {
-      var isChecked =
-        (_timezone == _jsonData[index].zones[i].value) ? 'checked' : '';
-      content += '<li>' +
-                 '  <label>' +
-                 '    <input type="radio" name="time.timezone" value="' +
-                        _jsonData[index].zones[i].value + '" ' +
-                        isChecked + '/>' +
-                 '    <span></span>' +
-                 '  </label>' +
-                 '  <a>' + _jsonData[index].zones[i].name + '</a>' +
-                 '</li>';
-    }
-    gTimezoneZones.innerHTML = content;
-  }
-
   var settings = window.navigator.mozSettings;
   if (!settings)
     return;
 
-  var gTimeManualMenu = document.getElementById('time-manual');
+  var gTimeAutoSwitch = document.getElementById('time-auto');
+  var gTimezoneCont = document.getElementById('timezone-continent');
+  var gTimezoneCity = document.getElementById('timezone-city');
   var gDatePicker = document.getElementById('date-picker');
   var gTimePicker = document.getElementById('time-picker');
   var gDate = document.getElementById('clock-date');
   var gTime = document.getElementById('clock-time');
-  var gTimezoneDescription = document.getElementById('timezoneDescription');
-  var gTimezoneContinents = document.getElementById('timezone-continents');
-  var gTimezoneZones = document.getElementById('timezone-zones-list');
   var _updateDateTimeout = null;
   var _updateClockTimeout = null;
-  var _timezone = null;
-  var _jsonUrl = 'shared/resources/timezones.json';
-  var _jsonData = [];
 
 
-  // issue #5276: PERSONALIZATION SETTINGS ->
-  //             "Date & Time Page" -> toggle "24-hour Clock" ON/OFF
-  // [TODO]: toggle 24-Hour clock display on/off
-  // register an observer to monitor time.timezone changes
-  settings.addObserver('time.timezone', function(event) {
-    setTimezoneDescription(event.settingValue);
-  });
+  /**
+   * Monitor time.nitz.automatic-update.enabled changes
+   */
 
-  // startup, update status
-  var reqTimezone = settings.createLock().get('time.timezone');
-  reqTimezone.onsuccess = function dt_getStatusSuccess() {
-    var lastMozSettingValue = reqTimezone.result['time.timezone'];
-    setTimezoneDescription(lastMozSettingValue);
-  };
-
-  // register an observer to monitor time.nitz.automatic-update.enabled changes
   settings.addObserver('time.nitz.automatic-update.enabled', function(event) {
     setTimeManualEnabled(event.settingValue);
   });
 
-  // startup, update status
   var reqTimeAutoUpdate =
     settings.createLock().get('time.nitz.automatic-update.enabled');
   reqTimeAutoUpdate.onsuccess = function dt_getStatusSuccess() {
@@ -210,22 +112,17 @@ onLocalized(function SettingsDateAndTime() {
     setTimeManualEnabled(lastMozSettingValue);
   };
 
+
+  /**
+   * UI startup
+   */
+
   SetTime.init();
-  loadTimezoneDB(initTimezoneContinents);
   updateDate();
   updateClock();
 
-  gTimezoneContinents.addEventListener('click', function clickContinents(evt) {
-    var link = evt.target;
-    if (!link)
-      return;
-
-    switch (link.id) {
-      case 'continent-item':
-        loadZones(link.dataset.id);
-        break;
-    }
-  });
+  // monitor time.timezone changes, see /shared/js/tz_select.js
+  tzSelect(gTimezoneCont, gTimezoneCity);
 
   gDatePicker.addEventListener('input', function datePickerChange() {
     setTime('date');
