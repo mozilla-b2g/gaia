@@ -22,19 +22,10 @@ var MessageManager = {
     document.addEventListener('mozvisibilitychange', this);
   },
   slide: function mm_slide(callback) {
-    var bodyClass = document.body.classList;
     var mainWrapper = document.getElementById('main-wrapper');
-    var snapshot = document.getElementById('snapshot');
-    if (mainWrapper.classList.contains('to-left')) {
-      bodyClass.add('snapshot-back');
-    } else {
-      bodyClass.add('snapshot');
-    }
     mainWrapper.classList.toggle('to-left');
-    snapshot.addEventListener('transitionend', function rm_snapshot() {
-      snapshot.removeEventListener('transitionend', rm_snapshot);
-      bodyClass.remove('snapshot');
-      bodyClass.remove('snapshot-back');
+    mainWrapper.addEventListener('transitionend', function slideTransition() {
+      mainWrapper.removeEventListener('transitionend', slideTransition);
       if (callback) {
         callback();
       }
