@@ -283,6 +283,11 @@ var UpdateManager = {
       return;
 
     if (updatable.app &&
+        updatable.app.installState !== 'installed') {
+      return;
+    }
+
+    if (updatable.app &&
         this.updatableApps.indexOf(updatable) === -1) {
       return;
     }
@@ -377,7 +382,7 @@ var UpdateManager = {
   checkStatuses: function um_checkStatuses() {
     this.updatableApps.forEach(function(updatableApp) {
       var app = updatableApp.app;
-      if (app.installState === 'installed' && app.downloadAvailable) {
+      if (app.downloadAvailable) {
         this.addToUpdatesQueue(updatableApp);
       }
     }, this);
