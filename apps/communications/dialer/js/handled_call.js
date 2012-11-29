@@ -162,12 +162,7 @@ HandledCall.prototype.disconnected = function hc_disconnected() {
   }
 
   if (this.recentsEntry) {
-    var recentToAdd = this.recentsEntry;
-    RecentsDBManager.init(function() {
-      RecentsDBManager.add(recentToAdd, function() {
-        RecentsDBManager.close();
-      });
-    });
+    OnCallHandler.addRecentEntry(this.recentsEntry);
   }
 
   if (!this.node)
