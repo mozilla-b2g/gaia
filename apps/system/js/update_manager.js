@@ -438,6 +438,16 @@ var UpdateManager = {
     }
 
     this._dispatchEvent('force-update-check');
+
+    var settings = navigator.mozSettings;
+    if (!settings) {
+      return;
+    }
+
+    var lock = settings.createLock();
+    lock.set({
+      'gaia.system.checkForUpdates': false
+    });
   },
 
   _dispatchEvent: function um_dispatchEvent(type, result) {

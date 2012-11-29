@@ -42,7 +42,7 @@ settings = {
  "devtools.debugger.log": False,
  "devtools.debugger.remote-enabled": False,
  "devtools.debugger.remote-port": 6000,
- "gaia.system.checkForUpdates": True,
+ "gaia.system.checkForUpdates": False,
  "dialer.ringtone": "classic.ogg",
  "geolocation.enabled": True,
  "keyboard.layouts.english": True,
