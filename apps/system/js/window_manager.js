@@ -614,11 +614,6 @@ var WindowManager = (function() {
 
     openCallback = callback || function() {};
 
-    // Dispatch a appwillopen event
-    var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent('appwillopen', true, false, { origin: origin });
-    app.frame.dispatchEvent(evt);
-
     // Set the frame to be visible.
     if ('setVisible' in openFrame)
       openFrame.setVisible(true);
@@ -643,11 +638,8 @@ var WindowManager = (function() {
       displayedApp = origin;
 
       return;
-    } else if (origin === ftuURL) {
-      // Add a way to identify ftu app
-      // (Used by SimLock)
-      openFrame.classList.add('ftu');
     }
+
 
     if (requireFullscreen(origin))
       screenElement.classList.add('fullscreen-app');
@@ -774,11 +766,12 @@ var WindowManager = (function() {
   }
 
   function skipFTU() {
-    // Eventually ask for SIM code, but only when we do not show FTU,
-    // which already asks for it!
     handleInitlogo();
-    SimLock.showIfLocked();
     setDisplayedApp(homescreen);
+    // Eventually ask for SIM code, but only when we do not show FTU,
+    // which already asks for it! Note that it has to be done
+    // after setDisplayedApp which is going to mess with focus.
+    SimLock.showIfLocked();
   }
 
   // Check if the FTU was executed or not, if not, get a
@@ -875,6 +868,19 @@ var WindowManager = (function() {
     setCloseFrame(null);
     screenElement.classList.remove('switch-app');
     screenElement.classList.remove('fullscreen-app');
+
+
+    // Dispatch an appwillopen event only when we open an app
+    if (newApp != currentApp) {
+      var evt = document.createEvent('CustomEvent');
+      evt.initCustomEvent('appwillopen', true, true, { origin: newApp });
+      // Allows listeners to cancel app opening and so stay on homescreen
+      if (!runningApps[newApp].frame.dispatchEvent(evt)) {
+        if (typeof(callback) == 'function')
+          callback();
+        return;
+      }
+    }
 
     // Case 1: the app is already displayed
     if (currentApp && currentApp == newApp) {
@@ -1031,6 +1037,11 @@ var WindowManager = (function() {
 
     if (requireFullscreen(origin)) {
       frame.classList.add('fullscreen-app');
+    }
+    if (origin === ftuURL) {
+      // Add a way to identify ftu app
+      // (Used by SimLock)
+      frame.classList.add('ftu');
     }
 
     // A frame should start with visible false
