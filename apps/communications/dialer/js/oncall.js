@@ -213,6 +213,12 @@ var OnCallHandler = (function onCallHandler() {
     }
   }
 
+  function postToMainWindow(data) {
+    var origin = document.location.protocol + '//' +
+      document.location.host;
+    window.opener.postMessage(data, origin);
+  }
+
   /* === Handled calls === */
   function onCallsChanged() {
     // Adding any new calls to handledCalls
@@ -338,30 +344,11 @@ var OnCallHandler = (function onCallHandler() {
 
       // The call wasn't picked up
       if (call.state == 'disconnected') {
-        navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
-          var app = evt.target.result;
-
-          var iconURL = NotificationHelper.getIconURI(app);
-
-          var notiClick = function() {
-            // Asking to launch itself
-            app.launch('#recents-view');
-          };
-
-          Contacts.findByNumber(call.number, function lookup(contact) {
-            var title = _('missedCall');
-            var sender = call.number.length ?
-                          call.number : _('unknown');
-
-            if (contact && contact.name) {
-              sender = contact.name;
-            }
-
-            var body = _('from', {sender: sender});
-
-            NotificationHelper.send(title, body, iconURL, notiClick);
-          });
+        var callInfo = {
+          type: 'notification',
+          number: call.number
         };
+        postToMainWindow(callInfo);
       }
     });
   }
@@ -416,9 +403,7 @@ var OnCallHandler = (function onCallHandler() {
   }
 
   function closeWindow() {
-    var origin = document.location.protocol + '//' +
-      document.location.host;
-    window.opener.postMessage('closing', origin);
+    postToMainWindow('closing');
     window.close();
   }
 
