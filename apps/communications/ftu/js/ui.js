@@ -124,7 +124,6 @@ var UIManager = {
       UIManager.activationScreen.classList.remove('show');
       UIManager.finishScreen.classList.remove('show');
       UIManager.tutorialScreen.classList.add('show');
-      Tutorial.init();
     });
     this.fakeSimPin.addEventListener('input', this);
   },
