@@ -275,7 +275,7 @@ suite('system/UpdateManager', function() {
       assert.equal(UpdateManager.containerClicked.name,
                    UpdateManager.container.onclick.name);
 
-      assert.equal(UpdateManager.startAllDownloads.name,
+      assert.equal(UpdateManager.startDownloads.name,
                    UpdateManager.downloadButton.onclick.name);
 
       assert.equal(UpdateManager.cancelPrompt.name,
@@ -412,17 +412,17 @@ suite('system/UpdateManager', function() {
 
         var evt = document.createEvent('MouseEvents');
         evt.initEvent('click', true, true);
-        UpdateManager.startAllDownloads(evt);
+        UpdateManager.startDownloads(evt);
 
         UpdateManager.addToDownloadsQueue(uAppWithDownloadAvailable);
 
         UpdateManager.downloadProgressed(1234);
       });
 
-      test('downloadedBytes should be reset by startAllDownloads', function() {
+      test('downloadedBytes should be reset by startDownloads', function() {
         var evt = document.createEvent('MouseEvents');
         evt.initEvent('click', true, true);
-        UpdateManager.startAllDownloads(evt);
+        UpdateManager.startDownloads(evt);
 
         assert.equal('downloadingUpdateMessage{"progress":"0.00 bytes"}',
                      UpdateManager.message.textContent);
@@ -625,16 +625,112 @@ suite('system/UpdateManager', function() {
       UpdateManager.init();
     });
 
-    suite('start all downloads', function() {
-      test('should call download on all the updatables', function() {
-        UpdateManager.updatableApps = updatableApps;
-        UpdateManager.updatesQueue = [uAppWithDownloadAvailable];
+    suite('start downloads', function() {
+      var systemUpdatable, appUpdatable, evt;
+
+      setup(function() {
         UpdateManager.init();
 
-        var evt = document.createEvent('MouseEvents');
+        systemUpdatable = new MockSystemUpdatable(5296345);
+
+        appUpdatable = new MockAppUpdatable(new MockApp());
+        appUpdatable.name = 'Angry birds';
+        appUpdatable.size = '423459';
+
+        UpdateManager.addToUpdatableApps(appUpdatable);
+        UpdateManager.addToUpdatesQueue(appUpdatable);
+        UpdateManager.addToUpdatesQueue(systemUpdatable);
+
+        UpdateManager.container.click();
+
+        evt = document.createEvent('MouseEvents');
         evt.initEvent('click', true, true);
-        UpdateManager.startAllDownloads(evt);
-        assert.isTrue(uAppWithDownloadAvailable.mDownloadCalled);
+      });
+
+      test('should enable the download button', function() {
+        var downloadButton = UpdateManager.downloadButton;
+        assert.isFalse(downloadButton.disabled);
+      });
+
+      suite('with all the checkboxes checked', function() {
+        setup(function() {
+          UpdateManager.startDownloads(evt);
+        });
+
+        test('should download system updates', function() {
+          assert.isTrue(systemUpdatable.mDownloadCalled);
+        });
+
+        test('should call download on checked app updatables', function() {
+          assert.isTrue(appUpdatable.mDownloadCalled);
+        });
+      });
+
+      suite('with no checkbox checked', function() {
+        setup(function() {
+          var dialog = UpdateManager.downloadDialogList;
+          var checkboxes = dialog.querySelectorAll('input[type="checkbox"]');
+          for (var i = 0; i < checkboxes.length; i++) {
+            var checkbox = checkboxes[i];
+            if (checkbox.checked) {
+              checkbox.click();
+            }
+          }
+
+          UpdateManager.startDownloads(evt);
+        });
+
+        test('the download button should be enabled', function() {
+          assert.isFalse(UpdateManager.downloadButton.disabled);
+        });
+
+        test('should still download system updates', function() {
+          assert.isTrue(systemUpdatable.mDownloadCalled);
+        });
+
+        test('should not call download on unchecked app updatables',
+        function() {
+          assert.isFalse(appUpdatable.mDownloadCalled);
+        });
+      });
+
+      suite('with only app updates', function() {
+        setup(function() {
+          UpdateManager.removeFromUpdatesQueue(systemUpdatable);
+          UpdateManager.container.click();
+        });
+
+        suite('unchecking all the checkboxes', function() {
+          var dialog, downloadButton;
+
+          setup(function() {
+            dialog = UpdateManager.downloadDialogList;
+            var checkboxes = dialog.querySelectorAll('input[type="checkbox"]');
+            for (var i = 0; i < checkboxes.length; i++) {
+              var checkbox = checkboxes[i];
+              if (checkbox.checked) {
+                checkboxes[i].click();
+              }
+            }
+
+            downloadButton = UpdateManager.downloadButton;
+          });
+
+          test('should disable the download button', function() {
+            assert.isTrue(downloadButton.disabled);
+          });
+
+          suite('then checking one back', function() {
+            setup(function() {
+              var checkbox = dialog.querySelector('input[type="checkbox"]');
+              checkbox.click();
+            });
+
+            test('should enable the download button back', function() {
+              assert.isFalse(downloadButton.disabled);
+            });
+          });
+        });
       });
     });
 
@@ -674,7 +770,7 @@ suite('system/UpdateManager', function() {
 
         test('should set the title', function() {
           var title = fakeDialog.querySelector('h1');
-          assert.equal('updates{"n":3}', title.textContent);
+          assert.equal('numberOfUpdates{"n":3}', title.textContent);
         });
 
         suite('update list rendering', function() {
@@ -682,19 +778,38 @@ suite('system/UpdateManager', function() {
             assert.equal(3, UpdateManager.downloadDialogList.children.length);
           });
 
-          test('should render system update item first', function() {
+          test('should render system update item first with required',
+          function() {
             var item = UpdateManager.downloadDialogList.children[0];
-            assert.equal('systemUpdate<span>5.05 MB</span>', item.innerHTML);
+
+            assert.include(item.textContent, 'systemUpdate');
+            assert.include(item.textContent, '5.05 MB');
+            assert.include(item.textContent, 'required');
           });
 
-          test('should render packaged app items alphabetically', function() {
+          test('should render packaged app items alphabetically with checkbox',
+            function() {
             var item = UpdateManager.downloadDialogList.children[1];
-            assert.equal('Angry birds<span>413.53 kB</span>', item.innerHTML);
+
+            assert.include(item.textContent, 'Angry birds');
+            assert.include(item.textContent, '413.53 kB');
+
+            var checkbox = item.querySelector('input');
+            assert.equal(checkbox.type, 'checkbox');
+            assert.isTrue(checkbox.checked);
+            assert.equal(checkbox.dataset.position, '1');
           });
 
-          test('should render hosted app items alphabetically', function() {
+          test('should render hosted app items alphabetically with checkbox',
+          function() {
             var item = UpdateManager.downloadDialogList.children[2];
-            assert.equal('Twitter', item.innerHTML);
+
+            assert.include(item.textContent, 'Twitter');
+
+            var checkbox = item.querySelector('input');
+            assert.equal(checkbox.type, 'checkbox');
+            assert.isTrue(checkbox.checked);
+            assert.equal(checkbox.dataset.position, '2');
           });
         });
       });
@@ -710,7 +825,7 @@ suite('system/UpdateManager', function() {
         var evt = document.createEvent('MouseEvents');
         evt.initEvent('click', true, true);
 
-        UpdateManager.startAllDownloads(evt);
+        UpdateManager.startDownloads(evt);
         var css = UpdateManager.downloadDialog.classList;
         assert.isFalse(css.contains('visible'));
         assert.isTrue(MockUtilityTray.mShown);

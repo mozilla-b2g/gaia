@@ -51,6 +51,19 @@ var ScreenManager = {
   _idleTimeout: 0,
   _idleTimerId: 0,
 
+  /*
+   * If the screen off is triggered by promixity during phon call then
+   * we need wake it up while phone is ended.
+   */
+  _screenOffByProximity: false,
+
+  /*
+   * Request wakelock during in_call state.
+   * To ensure turnScreenOff by proximity event is protected by wakelock for
+   * early suspend only.
+   */
+  _cpuWakeLock: null,
+
   init: function scm_init() {
     window.addEventListener('sleep', this);
     window.addEventListener('wake', this);
@@ -83,6 +96,8 @@ var ScreenManager = {
     this._firstOn = false;
     SettingsListener.observe('screen.timeout', 60,
     function screenTimeoutChanged(value) {
+      if (typeof value !== 'number')
+        value = parseInt(value);
       self._idleTimeout = value;
       self._setIdleTimeout(self._idleTimeout);
 
@@ -109,6 +124,11 @@ var ScreenManager = {
       self._userBrightness = value;
       self.setScreenBrightness(value, false);
     });
+
+    var telephony = window.navigator.mozTelephony;
+    if (telephony) {
+      telephony.addEventListener('callschanged', this);
+    }
   },
 
   handleEvent: function scm_handleEvent(evt) {
@@ -132,6 +152,33 @@ var ScreenManager = {
       case 'wake':
         this.turnScreenOn();
         break;
+
+      case 'userproximity':
+        if (evt.near) {
+          this.turnScreenOff(true);
+        } else {
+          this.turnScreenOn();
+        }
+        this._screenOffByProximity = evt.near;
+        break;
+
+      case 'callschanged':
+        var telephony = window.navigator.mozTelephony;
+        if (!telephony.calls.length) {
+          window.removeEventListener('userproximity', this);
+          if (this._screenOffByProximity) {
+            this.turnScreenOn();
+          }
+          if (this._cpuWakeLock) {
+           this._cpuWakeLock.unlock();
+           this._cpuWakeLock = null;
+          }
+          break;
+        }
+
+        this._cpuWakeLock = navigator.requestWakeLock('cpu');
+        window.addEventListener('userproximity', this);
+        break;
     }
   },
 
@@ -146,7 +193,7 @@ var ScreenManager = {
   turnScreenOff: function scm_turnScreenOff(instant) {
     if (!this.screenEnabled)
       return false;
-
+    
     var self = this;
 
     // Remember the current screen brightness. We will restore it when
@@ -170,7 +217,9 @@ var ScreenManager = {
     };
 
     if (instant) {
-      screenOff();
+      if (!WindowManager.isFtuRunning()) {
+        screenOff();
+      }
       return true;
     }
 

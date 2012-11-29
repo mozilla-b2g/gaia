@@ -40,12 +40,12 @@
 /* Option to delete apps */
 #footer li span.options {
   position: absolute;
-  top: .2rem;
+  top: 4.6rem;
   left: 0;
-  width: 100%;
+  width: 90%;
   height: 2.6rem;
   z-index: 2;
-  background: url(../resources/images/delete.png) no-repeat center top;
+  background: url(../resources/images/delete.png) no-repeat right top;
 }
 
 #footer li > div > *:not(img) {

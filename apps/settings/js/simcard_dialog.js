@@ -37,21 +37,13 @@ var SimPinDialog = {
     var displayField = document.querySelector('input[name="' + name + 'Vis"]');
     var self = this;
 
-    // Workaround bug 791920 until we found the root cause.
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=791920
-    // https://github.com/mozilla-b2g/gaia/issues/4500
-    inputField.addEventListener('click', function(evt) {
-      this.blur();
-      this.focus();
-    });
-
     inputField.addEventListener('keypress', function(evt) {
       if (evt.target !== inputField)
         return;
       evt.preventDefault();
 
       var code = evt.charCode;
-      if (code !== 0 && code < 0x30 && code > 0x39)
+      if (code !== 0 && (code < 0x30 || code > 0x39))
         return;
 
       if (code === 0) { // backspace

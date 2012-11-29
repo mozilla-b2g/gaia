@@ -157,9 +157,11 @@ var OnCallHandler = (function onCallHandler() {
 
   var handledCalls = [];
   var telephony = window.navigator.mozTelephony;
+  telephony.oncallschanged = onCallsChanged;
 
   var displayed = false;
   var closing = false;
+  var animating = false;
   var ringing = false;
 
   /* === Settings === */
@@ -202,24 +204,19 @@ var OnCallHandler = (function onCallHandler() {
     // Animating the screen in the viewport.
     toggleScreen();
 
-    ProximityHandler.enable();
     cpuLock = navigator.requestWakeLock('cpu');
 
     if (telephony) {
       // Somehow the muted property appears to true after initialization.
       // Set it to false.
       telephony.muted = false;
-
-      // Needs to be called at least once
-      onCallsChanged();
-      telephony.oncallschanged = onCallsChanged;
-
-      // If the call was ended before we got here we can close
-      // right away.
-      if (handledCalls.length === 0) {
-        exitCallScreen(false);
-      }
     }
+  }
+
+  function postToMainWindow(data) {
+    var origin = document.location.protocol + '//' +
+      document.location.host;
+    window.opener.postMessage(data, origin);
   }
 
   /* === Handled calls === */
@@ -249,6 +246,11 @@ var OnCallHandler = (function onCallHandler() {
 
     // Letting the layout know how many calls we're handling
     CallScreen.calls.dataset.count = handledCalls.length;
+
+    if (CallScreen.calls.dataset.count === 0) {
+      exitCallScreen(false);
+    }
+
   }
 
   function addCall(call) {
@@ -342,30 +344,11 @@ var OnCallHandler = (function onCallHandler() {
 
       // The call wasn't picked up
       if (call.state == 'disconnected') {
-        navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
-          var app = evt.target.result;
-
-          var iconURL = NotificationHelper.getIconURI(app);
-
-          var notiClick = function() {
-            // Asking to launch itself
-            app.launch('#recents-view');
-          };
-
-          Contacts.findByNumber(call.number, function lookup(contact) {
-            var title = _('missedCall');
-            var sender = call.number.length ?
-                          call.number : _('unknown');
-
-            if (contact && contact.name) {
-              sender = contact.name;
-            }
-
-            var body = _('from', {sender: sender});
-
-            NotificationHelper.send(title, body, iconURL, notiClick);
-          });
+        var callInfo = {
+          type: 'notification',
+          number: call.number
         };
+        postToMainWindow(callInfo);
       }
     });
   }
@@ -373,6 +356,7 @@ var OnCallHandler = (function onCallHandler() {
   /* === Call Screen === */
   function toggleScreen() {
     displayed = !displayed;
+    animating = true;
 
     CallScreen.screen.classList.remove('animate');
     CallScreen.screen.classList.toggle('prerender');
@@ -387,6 +371,9 @@ var OnCallHandler = (function onCallHandler() {
 
         CallScreen.screen.addEventListener('transitionend', function trWait() {
           CallScreen.screen.removeEventListener('transitionend', trWait);
+
+          animating = false;
+
           // We did animate the call screen off the viewport
           // now closing the window.
           if (!displayed) {
@@ -401,7 +388,6 @@ var OnCallHandler = (function onCallHandler() {
     if (closing)
       return;
 
-    ProximityHandler.disable();
     if (cpuLock) {
       cpuLock.unlock();
       cpuLock = null;
@@ -409,7 +395,7 @@ var OnCallHandler = (function onCallHandler() {
 
     closing = true;
 
-    if (animate) {
+    if (animate && !animating) {
       toggleScreen();
     } else {
       closeWindow();
@@ -417,15 +403,36 @@ var OnCallHandler = (function onCallHandler() {
   }
 
   function closeWindow() {
-    var origin = document.location.protocol + '//' +
-      document.location.host;
-    window.opener.postMessage('closing', origin);
+    postToMainWindow('closing');
     window.close();
   }
 
-  /* === Bluetooth Headset support ===*/
-  function handleBTCommand(evt) {
+  /* Handle commands send to the callscreen via postmessage */
+  function handleCommand(evt) {
     var message = evt.data;
+    if (!message) {
+      return;
+    }
+
+    // Currently managing to kind of commands:
+    // BT: bluetooth
+    // HS: headset
+    // * : general cases, not specific to hardware control
+    switch (message.type) {
+      case 'BT':
+        handleBTCommand(message.command);
+        break;
+      case 'HS':
+        handleHSCommand(message.command);
+        break;
+      case '*':
+        handleGeneralCommand(message.command);
+        break;
+    }
+  }
+
+  /* === Bluetooth Headset support ===*/
+  function handleBTCommand(message) {
     switch (message) {
       case 'CHUP':
         end();
@@ -441,7 +448,34 @@ var OnCallHandler = (function onCallHandler() {
         break;
     }
   }
-  window.addEventListener('message', handleBTCommand);
+
+  function handleHSCommand(message) {
+    // We will receive the message for button released,
+    // we will ignore it
+    if (message == 'headset-button-release') {
+      return;
+    }
+
+    if (telephony.active) {
+      end();
+    } else if (handledCalls.length > 1) {
+      holdAndAnswer();
+    } else {
+      answer();
+    }
+  }
+
+  function handleGeneralCommand(message) {
+    // Calls might be ended before callscreen is completely loaded or we
+    // register 'callschanged' event. To avoid leaving callscreen stuck open,
+    // we use a simple postMessage protocol to know when the call screen is
+    // supposed to be closed, in addition to 'callschanged' event.
+    if (message == 'exitCallScreen') {
+      exitCallScreen(false);
+    }
+  }
+
+  window.addEventListener('message', handleCommand);
 
   /* === User Actions === */
   function answer() {
@@ -551,4 +585,11 @@ window.addEventListener('localized', function callSetup(evt) {
   CallScreen.init();
   CallScreen.syncSpeakerEnabled();
   OnCallHandler.setup();
+  if (navigator.mozSettings) {
+    var req = navigator.mozSettings.createLock().get('wallpaper.image');
+    req.onsuccess = function cs_wi_onsuccess() {
+      CallScreen.mainContainer.style.backgroundImage =
+        'url(' + req.result['wallpaper.image'] + ')';
+    };
+  }
 });

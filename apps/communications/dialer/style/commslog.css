@@ -230,7 +230,6 @@ ul[role="tablist"][data-type="filter"] > [role="tab"].selected > a {
   float: left;
   height: 100%;
   width: 5rem;
-  background-image: url('images/icon_arrow.png');
   background-size: 1rem;
   background-position: 75% 75%;
   background-repeat: no-repeat;

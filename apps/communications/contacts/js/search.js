@@ -49,7 +49,7 @@ contacts.Search = (function() {
 
   var search = function performSearch() {
 
-    var pattern = new RegExp(normalizeText(searchBox.value), 'i');
+    var pattern = new RegExp(normalizeText(searchBox.value.trim()), 'i');
     var count = 0;
 
     var allContacts = getContactsDom();
@@ -82,7 +82,7 @@ contacts.Search = (function() {
 
   var getContactsDom = function contactsDom() {
     var list = document.getElementById('groups-list');
-    var items = ".contact-item:not([data-uuid='#id#']),"+
+    var items = ".contact-item:not([data-uuid='#id#'])," +
                         ".block-item:not([data-uuid='#id#'])";
     return list.querySelectorAll(items);
   }

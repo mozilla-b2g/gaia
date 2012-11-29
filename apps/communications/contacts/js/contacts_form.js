@@ -642,9 +642,7 @@ contacts.Form = (function() {
     var activity = new MozActivity({
       name: 'pick',
       data: {
-        type: 'image/jpeg',
-        width: PHOTO_WIDTH, // The desired width of the image
-        height: PHOTO_HEIGHT // The desired height of the image
+        type: 'image/jpeg'
       }
     });
 

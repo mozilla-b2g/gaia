@@ -37,7 +37,7 @@ ContactsIntegration.prototype = {
     /** other sections **/
     noContacts: '#no-contacts',
     lList: '#contacts-list-L',
-    dialogScreen: '#dialog-screen',
+    dialogScreen: '#confirmation-message',
     detailsList: '#details-list',
     mirrorDetails: '#mirror-contact-details',
 

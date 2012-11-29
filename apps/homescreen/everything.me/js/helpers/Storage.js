@@ -1,5 +1,5 @@
 Evme.Storage = new function() {
-    var _this = this, CURRENT_VERSION = "1.3",
+    var _this = this, CURRENT_VERSION = "1.4",
         _valueKey = "_v",
         _expirationKey = "_e",
         _versionKey = "_ver",

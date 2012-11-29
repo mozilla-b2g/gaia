@@ -25,7 +25,6 @@ fbFriends.List = (function() {
     agroups.forEach(function(group) {
       // New element appended
       var ele = utils.templates.append(groupsList, {group: group});
-      ele.addEventListener('click', fb.importer.ui.selection);
 
       // Array of friends
       var friends = groups[group];
@@ -46,7 +45,7 @@ fbFriends.List = (function() {
     });
 
     groupsList.removeChild(groupsList.children[0]); // Deleting template
-    FixedHeader.init('#mainContent', '#fixed-container', 'h2.block-title');
+    FixedHeader.init('#mainContent', '#fixed-container', '.fb-import-list header');
     ImageLoader.init('#mainContent', ".block-item:not([data-uuid='#uid#'])");
 
     if (typeof cb === 'function') {

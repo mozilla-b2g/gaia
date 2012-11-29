@@ -29,6 +29,8 @@ var TrustedUIManager = {
 
   loadingIcon: document.getElementById('statusbar-loading'),
 
+  throbber: document.getElementById('trustedui-throbber'),
+
   closeButton: document.getElementById('trustedui-close'),
 
   hasTrustedUI: function trui_hasTrustedUI(origin) {
@@ -51,6 +53,8 @@ var TrustedUIManager = {
     window.addEventListener('appterminated', this);
     window.addEventListener('keyboardhide', this);
     window.addEventListener('keyboardchange', this);
+    window.addEventListener('mozbrowserloadstart', this);
+    window.addEventListener('mozbrowserloadend', this);
     this.closeButton.addEventListener('click', this);
   },
 
@@ -282,6 +286,12 @@ var TrustedUIManager = {
         break;
       case 'keyboardhide':
         this.setHeight(window.innerHeight - StatusBar.height);
+        break;
+      case 'mozbrowserloadstart':
+        this.throbber.classList.add('loading');
+        break;
+      case 'mozbrowserloadend':
+        this.throbber.classList.remove('loading');
         break;
     }
   }

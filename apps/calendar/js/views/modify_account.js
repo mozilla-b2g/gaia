@@ -108,7 +108,11 @@
       });
     },
 
-    cancel: function() {
+    cancel: function(event) {
+      if (event) {
+        event.preventDefault();
+      }
+
       window.back();
     },
 

@@ -6,6 +6,7 @@ requireApp('system/test/unit/mock_system_banner.js');
 requireApp('system/test/unit/mock_notification_screen.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_utility_tray.js');
+requireApp('system/test/unit/mock_modal_dialog.js');
 requireApp('system/test/unit/mocks_helper.js');
 
 requireApp('system/js/app_install_manager.js');
@@ -15,7 +16,8 @@ var mocksForAppInstallManager = [
   'SystemBanner',
   'NotificationScreen',
   'Applications',
-  'UtilityTray'
+  'UtilityTray',
+  'ModalDialog'
 ];
 
 mocksForAppInstallManager.forEach(function(mockName) {
@@ -448,7 +450,8 @@ suite('system/AppInstallManager >', function() {
         mockApp.mTriggerDownloadError();
         assert.ok(MockStatusBar.wasMethodCalled['decSystemDownloads']);
         assert.equal(MockSystemBanner.mMessage,
-          'Fake hosted app with cache download-stopped');
+          'download-stopped2{"appName":"Fake hosted app with cache"}');
+        assert.isFalse(MockModalDialog.alert.mWasCalled);
       });
 
       test('should add a notification', function() {
@@ -519,7 +522,20 @@ suite('system/AppInstallManager >', function() {
         mockApp.mTriggerDownloadError();
         assert.ok(MockStatusBar.wasMethodCalled['decSystemDownloads']);
         assert.equal(MockSystemBanner.mMessage,
-          'Fake packaged app download-stopped');
+          'download-stopped2{"appName":"Fake packaged app"}');
+        assert.isFalse(MockModalDialog.alert.mWasCalled);
+      });
+
+      test('should display an alert if we get INSUFFICIENT STORAGE error',
+        function() {
+        mockApp.mTriggerDownloadError('INSUFFICIENT_STORAGE');
+        assert.ok(MockStatusBar.wasMethodCalled['decSystemDownloads']);
+        assert.isNull(MockSystemBanner.mMessage);
+        assert.isTrue(MockModalDialog.alert.mWasCalled);
+        var args = MockModalDialog.alert.mArgs;
+        assert.equal(args[0], 'not-enough-space');
+        assert.equal(args[1], 'not-enough-space-message');
+        assert.deepEqual(args[2], { title: 'ok' });
       });
 
       test('should add a notification', function() {

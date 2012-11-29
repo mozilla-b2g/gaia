@@ -20,6 +20,7 @@
     <link rel="stylesheet" type="text/css" href="style/simcard.css"/>
     <link rel="stylesheet" type="text/css" href="style/phone_lock.css"/>
     <link rel="stylesheet" type="text/css" href="style/apps.css"/>
+    <link rel="stylesheet" type="text/css" href="style/updates.css"/>
 
     <!-- Shared resources
     <link rel="resource" type="application/json" href="shared/resources/apn.json"/>
@@ -28,6 +29,7 @@
     -->
 
     <!-- Localization -->
+    <link rel="resource" type="application/l10n" href="shared/locales/branding.ini"/>
     <link rel="resource" type="application/l10n" href="locales/locales.ini"/>
     <link rel="resource" type="application/l10n" href="shared/locales/date.ini"/>
     <link rel="resource" type="application/l10n" href="shared/locales/permissions.ini"/>
@@ -44,6 +46,9 @@
     <script type="application/javascript" defer src="js/media_storage.js"></script>
     <script type="application/javascript" defer src="js/connectivity.js"></script>
     <script type="application/javascript" defer src="js/security_privacy.js"></script>
+
+    <!-- ICC Main menu cache recover -->
+    <script type="application/javascript" src="js/icc_menu.js"></script>
 
     <!-- all non-#root panels will lazy-load their own scripts -->
   </head>
@@ -606,7 +611,7 @@
         <menu type="toolbar">
           <button type="submit"><span data-l10n-id="ok">OK</span></button>
         </menu>
-        <h1 data-l10n-id="hotspotSettings"> HotSpot Settings </h1>
+        <h1 data-l10n-id="hotspotSettings"> Hotspot Settings </h1>
       </header>
 
       <ul>
@@ -621,9 +626,9 @@
         <li>
           <span data-l10n-id="wifi-security">Security
             <select data-setting="tethering.wifi.security.type">
-              <option>open</option>
-              <option>WPA</option>
-              <option selected>WPA2</option>
+              <option value="open" data-l10n-id="hotspot-open">open</option>
+              <option value="wpa-psk" data-l10n-id="hotspot-wpa-psk">WPA (TKIP)</option>
+              <option value="wpa2-psk" data-l10n-id="hotspot-wpa2-psk">WPA2 (AES)</option>
             </select>
           </span>
         </li>
@@ -648,7 +653,7 @@
             <input type="checkbox" data-type="switch" name="tethering.wifi.enabled"/>
             <span></span>
           </label>
-          <a data-l10n-id="wifi-hotspot">Wi-Fi HotSpot</a>
+          <a data-l10n-id="wifi-hotspot">Wi-Fi Hotspot</a>
         </li>
         <li class="description" data-l10n-id="internetSharing-wifi-desc">
           Allow other devices to share my phone’s Internet connection by connecting via Wi-Fi.
@@ -671,7 +676,7 @@
         <li>
           <label>
             <button data-href="#hotspot-wifiSettings"
-              data-l10n-id="hotspotSettings">HotSpot Settings</button>
+              data-l10n-id="hotspotSettings">Hotspot Settings</button>
           </label>
         </li>
       </ul>
@@ -828,13 +833,6 @@
       <ul>
         <li>
           <label>
-            <input type="checkbox" name="alert-sound.enabled" checked />
-            <span></span>
-          </label>
-          <a data-l10n-id="alerts">Alerts</a>
-        </li>
-        <li>
-          <label>
             <input type="checkbox" name="phone.ring.keypad" checked />
             <span></span>
           </label>
@@ -875,7 +873,7 @@
         </li>
         <li>
           <p data-l10n-id="screen-timeout">Screen Timeout</p>
-          <select name="screen.timeout">
+          <select name="screen.timeout" data-value-type="integer">
             <option value="60"  data-l10n-id="one-minute" selected>1 minute</option>
             <option value="120" data-l10n-id="two-minutes"> 2 minutes</option>
             <option value="300" data-l10n-id="five-minutes">5 minutes</option>
@@ -923,6 +921,20 @@
             <span></span>
           </label>
           <a data-l10n-id="lockscreen-notifications">Show on Lock Screen</a>
+        </li>
+        <li>
+          <label>
+            <input type="checkbox" name="alert-sound.enabled" checked />
+            <span></span>
+          </label>
+          <a data-l10n-id="ring">Ring</a>
+        </li>
+        <li>
+          <label>
+            <input type="checkbox" name="alert-vibration.enabled" checked />
+            <span></span>
+          </label>
+          <a data-l10n-id="vibrate">Vibrate</a>
         </li>
       </ul>
       -->
@@ -1011,10 +1023,6 @@
         <li>
           <span data-l10n-id="language">Language
             <select name="language.current">
-              <option value="ar">العربية</option>
-              <option value="en-US">English (US)</option>
-              <option value="fr">Français</option>
-              <option value="zh-TW">正體中文</option>
             </select>
           </span>
         </li>
@@ -1381,7 +1389,7 @@
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
         <h1 data-l10n-id="appPermissions">
-          Application Permissions
+          App permissions
         </h1>
       </header>
       <ul>
@@ -1539,14 +1547,6 @@
           <small data-l10n-id="simplifiedChinese-desc">Pinyin</small>
           <a data-l10n-id="simplifiedChinese">Simplified Chinese</a>
         </li>
-        <li>
-          <label>
-            <input type="checkbox" name="keyboard.layouts.japanese"/>
-            <span></span>
-          </label>
-          <small data-l10n-id="jp-kanji-desc">Kanji</small>
-          <a data-l10n-id="jp-kanji">Japanese</a>
-        </li>
       </ul>
       -->
     </section>
@@ -1641,26 +1641,26 @@
       </header>
 
       <ul>
-        <li class="description" data-l10n-id="about-your-rights2-0">
-          Firefox OS is built on free and open source software by a community
+        <li class="description" data-l10n-id="about-your-rights-0">
+          Browser OS is built on free and open source software by a community
           of thousands from all over the world. There are a few things you
           should know:
         </li>
-        <li class="description" data-l10n-id="about-your-rights2-1">
-          Firefox OS is made available to you under the terms of several open
+        <li class="description" data-l10n-id="about-your-rights-1">
+          Browser OS is made available to you under the terms of several open
           source licenses including the Mozilla Public License. A device
-          running Firefox OS may also contain proprietary software from third
+          running Browser OS may also contain proprietary software from third
           parties. Any code provided under open licenses give you the right
           to modify the source code and distribute your modified versions as
           long as you comply with their terms.
         </li>
-        <li class="description" data-l10n-id="about-your-rights2-2">
+        <li class="description" data-l10n-id="about-your-rights-2">
           You are not granted any trademark rights or licenses to the
           trademarks of the Mozilla Foundation or any party, including
-          without limitation the Firefox name or logo.
+          without limitation the Browser name or logo.
         </li>
-        <li class="description" data-l10n-id="about-your-rights2-3">
-          Some features in Firefox OS, such as the Crash Reporter, give you
+        <li class="description" data-l10n-id="about-your-rights-3">
+          Some features in Browser OS, such as the Crash Reporter, give you
           the option to provide feedback to Mozilla. By choosing to submit
           feedback, you give Mozilla permission to use the feedback to improve
           its products, to publish the feedback on its websites, and to
@@ -1681,8 +1681,8 @@
       </header>
 
       <ul>
-        <li class="privacy-menuitem privacy-firefoxOS">
-          <a href="https://www.mozilla.org/legal/privacy/firefox.html">Firefox OS</a>
+        <li class="privacy-menuitem privacy-browserOS">
+          <a href="https://www.mozilla.org/legal/privacy/firefox.html">Browser OS</a>
         </li>
         <li class="privacy-menuitem privacy-everythingME">
           <a href="http://corp.everything.me/#/privacy">everything.me</a>
@@ -1779,15 +1779,19 @@
               data-l10n-id="check-update-now"> Check Now </button>
           </label>
         </li>
-        <li id="update-status" class="description" hidden></li>
+        <li id="update-status" class="description update-status">
+          <p class="description general-information"
+              data-l10n-id="checking-for-update">Checking for updates...</p>
+          <p class="description system-update-status"></p>
+        </li>
       </ul>
 
       <header>
-        <h2 data-l10n-id="aboutFirefoxOS"> About Firefox OS </h2>
+        <h2 data-l10n-id="aboutBrowserOS"> About Browser OS </h2>
       </header>
       <ul>
-        <li class="description" data-l10n-id="firefox-os-desc">
-          Firefox OS is the free and open source operating system from Mozilla.
+        <li class="description" data-l10n-id="browser-os-desc">
+          Browser OS is the free and open source operating system from Mozilla.
           Our mission is to promote openness, innovation and opportunity by
           keeping the power of the Web in your hands.
         </li>
@@ -1970,11 +1974,11 @@
       -->
     </section>
 
-    <!-- Device :: Improve Firefox OS :: Crash Reports-->
+    <!-- Device :: Improve Browser OS :: Crash Reports-->
     <section role="region" hidden id="crashReports">
       <!--
       <header>
-        <a href="#improveFirefoxOS"><span class="icon icon-back">back</span></a>
+        <a href="#improveBrowserOS"><span class="icon icon-back">back</span></a>
         <h1 data-l10n-id="crashReports"> Crash Reports </h1>
       </header>
 
@@ -1990,13 +1994,21 @@
       -->
     </section>
 
-    <!-- Device :: Improve Firefox OS -->
-    <section role="region" hidden id="improveFirefoxOS">
+    <!-- Device :: Improve Browser OS -->
+    <section role="region" hidden id="improveBrowserOS">
       <!--
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="improveFirefoxOS">Improve Firefox OS</h1>
+        <h1 data-l10n-id="improveBrowserOS">Improve Browser OS</h1>
       </header>
+
+      <ul>
+        <li>
+          <label>
+            <button data-href="http://input.mozilla.org/feedback" data-l10n-id="sendMozillaFeedback"></button>
+          </label>
+        </li>
+      </ul>
 
       <header>
         <h2 data-l10n-id="performanceData">Performance Data</h2>
@@ -2004,11 +2016,11 @@
       <ul>
         <li>
           <label for="" class="description">
-            <span data-l10n-id="performanceDataInfo">
-              Make Firefox OS faster and easier to use by sharing
+            <span data-l10n-id="performanceDataInfo2">
+              Make Browser OS faster and easier to use by sharing
               information over Wi-Fi about your phone’s performance.
             </span>
-            <a href="https://www.mozilla.org/" data-l10n-id="learn-more" class="link-text">Learn More</a>
+            <a href="https://support.mozilla.org/kb/how-can-i-help-submitting-mobile-performance-data" data-l10n-id="learn-more" class="link-text">Learn More</a>
           </label>
         </li>
         <li>
@@ -2063,19 +2075,23 @@
       <!--
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="helpAndFeedback"> Help </h1>
+        <h1 data-l10n-id="help"></h1>
       </header>
 
       <ul>
         <li>
-          <a href="#" data-href="http://www.telefonica.com/" data-l10n-id="online-support"> Online Support:
-            <span class="link-text" data-l10n-id="online-support-link">www.telefonica.com</span>
+          <a data-l10n-id="online-support"> Online Support:
+            <span class="link-text" data-l10n-id="online-support-link-text"></span>
           </a>
         </li>
         <li>
-          <a href="#" data-href="tel:+16509030800" data-l10n-id="call-support"> Call Support:
-            <span class="tel-text" data-l10n-id="call-support-number">+1 650-903-0800</span>
-          </a>
+          <span data-l10n-id="call-support"> Call Support:
+            <span id="call-support-numbers">
+              <a class="tel-text" data-l10n-id="call-support-link-1"></a>
+              <span data-l10n-id="call-support-link-or"></span>
+              <a class="tel-text" data-l10n-id="call-support-link-2"></a>
+            </span>
+          </span>
         </li>
         <li>
           <label>
@@ -2114,7 +2130,6 @@
         </menu>
       </form>
 
-      <script type="application/javascript" src="/shared/js/async_storage.js"></script>
       <script type="application/javascript" src="/shared/js/notification_helper.js"></script>
       <script type="application/javascript" src="js/icc.js"></script>
       -->
@@ -2207,7 +2222,7 @@
 
       <!-- Main :: Security & Privacy -->
       <header>
-        <h2 data-l10n-id="securityAndPrivacy">Security &amp; Privacy</h2>
+        <h2 data-l10n-id="privacyAndSecurity">Privacy &amp; Security</h2>
       </header>
       <ul>
         <li>
@@ -2219,7 +2234,7 @@
           <a id="menuItem-simSecurity" class="menu-item" href="#simpin" data-l10n-id="simSecurity">SIM Security</a>
         </li>
         <li>
-          <a id="menuItem-appPermissions" class="menu-item" href="#appPermissions" data-l10n-id="appPermissions">App Permissions</a>
+          <a id="menuItem-appPermissions" class="menu-item" href="#appPermissions" data-l10n-id="appPermissions">App permissions</a>
         </li>
         <li>
           <small id="doNotTrack-desc" class="menu-item-desc"></small>
@@ -2251,21 +2266,21 @@
           <a id="menuItem-accessibility" class="menu-item" href="#accessibility" data-l10n-id="accessibility">Accessibility</a>
         </li>
         <li>
-          <a id="menuItem-helpAndFeedback" class="menu-item" href="#improveFirefoxOS" data-l10n-id="improveFirefoxOS">Improve Firefox OS</a>
+          <a id="menuItem-improveBrowserOS" class="menu-item" href="#improveBrowserOS" data-l10n-id="improveBrowserOS">Improve Browser OS</a>
         </li>
         <li>
-          <a id="menuItem-helpAndFeedback" class="menu-item" href="#help" data-l10n-id="helpAndFeedback">Help &amp; Feedback</a>
+          <a id="menuItem-help" class="menu-item" href="#help" data-l10n-id="help">Help</a>
         </li>
       </ul>
 
       <!-- Main :: SIM Toolkit -->
-      <header>
+      <header id="icc-mainheader" hidden>
         <h2 data-l10n-id="simToolkit">SIM Toolkit</h2>
       </header>
-      <ul>
+      <ul id="icc-mainentry" hidden>
         <li>
           <small id="icc-desc" class="menu-item-desc"></small>
-          <a id="menuItem-icc" class="menu-item" href="#icc" data-l10n-id="simToolkit">SIM Toolkit</a>
+          <a id="menuItem-icc" class="menu-item" href="#icc">SIM Toolkit</a>
         </li>
       </ul>
     </section>

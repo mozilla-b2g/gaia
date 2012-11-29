@@ -23,6 +23,9 @@ var Contacts = (function() {
       settings,
       settingsButton;
 
+  var readyToPaint = false;
+  var firstContacts = null;
+
   var currentContact = {};
 
   var contactsList = contacts.List;
@@ -51,6 +54,8 @@ var Contacts = (function() {
         cList.getContactById(id, function onSuccess(savedContact) {
           currentContact = savedContact;
           contactsDetails.render(currentContact, TAG_OPTIONS);
+          if (params['tel'])
+            contactsDetails.reMark('tel', params['tel']);
           navigation.go(sectionId, 'none');
         }, function onError() {
           console.error('Error retrieving contact');
@@ -91,7 +96,11 @@ var Contacts = (function() {
 
     if (!contactsList.loaded) {
       checkCancelableActivity();
-      loadList(overlay);
+      readyToPaint = true;
+      if (firstContacts) {
+        loadList(overlay, firstContacts);
+        readyToPaint = false;
+      }
     }
 
   };
@@ -274,8 +283,8 @@ var Contacts = (function() {
     });
   };
 
-  var loadList = function loadList(overlay) {
-    contactsList.load(null, overlay);
+  var loadList = function loadList(overlay, contacts) {
+    contactsList.load(contacts, overlay);
     contactsList.handleClick(contactListClickHandler);
   };
 
@@ -548,9 +557,10 @@ var Contacts = (function() {
   };
 
   var showSettings = function showSettings() {
-    navigation.go('view-settings', 'popup');
-    // The number of FB Friends has to be recalculated
+     // The number of FB Friends has to be recalculated
     contacts.Settings.refresh();
+    
+    navigation.go('view-settings', 'popup');
   };
 
   var showOverlay = function showOverlay(message) {
@@ -616,6 +626,23 @@ var Contacts = (function() {
       }, STATUS_TIME);
     });
   };
+
+  var getFirstContacts = function c_getFirstContacts() {
+    var onerror = function() {
+      console.error('Error getting first contacts');
+    }
+    contacts.List.getAllContacts(onerror, function(contacts) {
+      firstContacts = contacts;
+      if (readyToPaint) {
+        loadList(true, contacts);
+        firstContacts = null;
+      }
+    });
+  };
+
+  window.addEventListener('load', function() {
+    getFirstContacts();
+  });
 
   return {
     'doneTag': doneTag,

@@ -137,7 +137,7 @@ suite('dialer/handled_call', function() {
 
     test('duration outgoing', function() {
       assert.ok(subject.durationChildNode);
-      assert.equal(subject.durationChildNode.textContent, 'connecting…');
+      assert.equal(subject.durationChildNode.textContent, 'connecting');
     });
 
     test('duration incoming', function() {
@@ -145,7 +145,7 @@ suite('dialer/handled_call', function() {
       subject = new HandledCall(mockCall, fakeNode);
 
       assert.ok(subject.durationChildNode);
-      assert.equal(subject.durationChildNode.textContent, 'incoming…');
+      assert.equal(subject.durationChildNode.textContent, 'incoming');
     });
 
     test('direction', function() {
@@ -179,6 +179,10 @@ suite('dialer/handled_call', function() {
 
     test('show the node', function() {
       assert.isFalse(fakeNode.hidden);
+    });
+
+    test('ensure the callscreen in connected mode', function() {
+      assert.equal(MockCallScreen.mLastRenderMode, 'connected');
     });
 
     test('start the timer', function() {
@@ -341,12 +345,11 @@ suite('dialer/handled_call', function() {
   });
 
   suite('additional information', function() {
-    test('check additional info present', function() {
+    test('check additional info updated', function() {
       mockCall = new MockCall('888', 'incoming');
       subject = new HandledCall(mockCall, fakeNode);
 
-      var additionalInfoNode = fakeNode.querySelector('.additionalContactInfo');
-      assert.equal('888', additionalInfoNode.textContent);
+      assert.isTrue(MockKeypadManager.mUpdateAdditionalContactInfo);
     });
 
     test('check without additional info', function() {

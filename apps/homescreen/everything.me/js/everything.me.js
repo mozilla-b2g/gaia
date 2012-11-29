@@ -24,17 +24,14 @@ var EverythingME = {
         EvmeFacade.onShow();
       });
 
-      setTimeout(function loading() {
-        EverythingME.load(function success() {
-          var loadingOverlay = document.querySelector('#loading-overlay');
-          loadingOverlay.style.opacity = 0;
-          loadingOverlay.addEventListener('transitionend', function tEnd() {
-            document.querySelector('#evmeContainer').style.opacity = 1;
-            loadingOverlay.removeEventListener('transitionend', tEnd);
-            loadingOverlay.parentNode.removeChild(loadingOverlay);
-          });
-        });
-      }, 0);
+      EverythingME.load(function success() {
+        var loadingOverlay = document.querySelector('#loading-overlay');
+        loadingOverlay.style.opacity = 0;
+        setTimeout(function starting() {
+          document.querySelector('#evmeContainer').style.opacity = 1;
+          loadingOverlay.parentNode.removeChild(loadingOverlay);
+        }, 0);
+      });
     });
 
     page.addEventListener('gridpagehideend', function onpagehide() {
@@ -118,29 +115,45 @@ var EverythingME = {
     var head = document.head;
 
     var scriptLoadCount = 0;
+    var cssLoadCount = 0;
+
     function onScriptLoad(event) {
       event.target.removeEventListener('load', onScriptLoad);
-      scriptLoadCount += 1;
-      if (scriptLoadCount == js_files.length) {
+      if (++scriptLoadCount == js_files.length) {
         EverythingME.start(success);
+      } else {
+        loadScript(js_files[scriptLoadCount]);
       }
     }
 
-    for each(var file in js_files) {
+    function onCSSLoad(event) {
+      event.target.removeEventListener('load', onCSSLoad);
+      if (++cssLoadCount === css_files.length) {
+        loadScript(js_files[scriptLoadCount]);
+      } else {
+        loadCSS(css_files[cssLoadCount]);
+      }
+    }
+
+    function loadCSS(file) {
+      var link = document.createElement('link');
+      link.type = 'text/css';
+      link.rel = 'stylesheet';
+      link.href = 'everything.me/' + file + (CB ? '?' + Date.now() : '');
+      link.addEventListener('load', onCSSLoad);
+      setTimeout(function appendCSS() { head.appendChild(link); }, 0);
+    }
+
+    function loadScript(file) {
       var script = document.createElement('script');
       script.type = 'text/javascript';
       script.src = 'everything.me/' + file + (CB ? '?' + Date.now() : '');
       script.defer = true;
       script.addEventListener('load', onScriptLoad);
-      head.appendChild(script);
+      setTimeout(function appendScript() { head.appendChild(script) }, 0);
     }
-    for each(var file in css_files) {
-      var link = document.createElement('link');
-      link.type = 'text/css';
-      link.rel = 'stylesheet';
-      link.href = 'everything.me/' + file + (CB ? '?' + Date.now() : '');
-      head.appendChild(link);
-    }
+
+    loadCSS(css_files[cssLoadCount]);
   },
 
   initEvme: function EverythingME_initEvme(success) {

@@ -100,7 +100,6 @@ function setupApp() {
 
   // Initializes the cost control module: basic parameters, automatic and manual
   // updates.
-  var _initialized = false;
   function _init() {
     var status = Service.getServiceStatus();
     if (status.fte) {
@@ -117,9 +116,16 @@ function setupApp() {
     for (var viewId in Views)
       Views[viewId].init();
 
+    var settingsIframe = document.getElementById('settings-view');
+    settingsIframe.src = 'settings.html';
+
     // Handle web activity
     navigator.mozSetMessageHandler('activity',
       function settings_handleActivity(activityRequest) {
+        var status = Service.getServiceStatus();
+        if (status.fte)
+          return;
+
         var name = activityRequest.source.name;
         settingsVManager.closeCurrentView();
         switch (name) {
@@ -152,17 +158,13 @@ function setupApp() {
       viewManager.changeViewTo(TAB_DATA_USAGE);
       dataUsageTab.classList.add('standalone');
     }
-
-    _initialized = true;
   }
 
   // Update UI when localized
   window.addEventListener('localized', function ccapp_onLocalized() {
-    if (!_initialized)
-      _init();
-
     for (var viewid in Views) if (Views.hasOwnProperty(viewid))
       Views[viewid].localize();
   });
 
+  _init();
 }

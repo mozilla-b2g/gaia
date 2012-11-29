@@ -142,17 +142,16 @@ if (!fb.utils) {
       return outReq;
     };
 
-
     // On the device
     Utils.getNumFbContacts = function() {
       var outReq = new Utils.Request();
 
       window.setTimeout(function get_num_fb_contacts() {
-        var req = Utils.getAllFbContacts();
+        var req = fb.contacts.getAll();
 
         req.onsuccess = function() {
           var result = req.result || [];
-          outReq.done(result.length);
+          outReq.done(Object.keys(result).length);
         }
 
         req.onerror = function() {
@@ -186,7 +185,7 @@ if (!fb.utils) {
     // Obtains the number locally
     Utils.getCachedNumFbFriends = function(callback) {
       window.asyncStorage.getItem(CACHE_FRIENDS_KEY, function(data) {
-        if (typeof callback === 'function') {
+        if (typeof callback === 'function' && typeof data === 'number') {
           callback(data);
         }
       });
@@ -200,10 +199,22 @@ if (!fb.utils) {
     Utils.getImportChecked = function(callback) {
       // If we have an access token Import should be checked
       Utils.getCachedAccessToken(function(access_token) {
-        var out = false;
+        var out = 'logged-out';
 
         if (access_token) {
-          out = true;
+          out = 'logged-in';
+        }
+        else {
+          // In this case is needed to know whether the access_token has
+          // been invalidated
+          Utils.getCachedNumFbFriends(function(value) {
+            if (value) {
+              out = 'renew-pwd';
+              if (typeof callback === 'function') {
+                callback(out);
+              }
+            }
+          });
         }
 
         if (typeof callback === 'function') {
@@ -228,17 +239,18 @@ if (!fb.utils) {
         }
       }
 
-      var remoteCallbacks = {
-        success: auxCallback,
-        error: null,
-        timeout: null
-      };
-
-      Utils.getCachedAccessToken(function(access_token) {
-        if (access_token) {
-          Utils.getNumFbFriends(remoteCallbacks, access_token);
-        }
-      });
+      if (typeof remoteCb === 'function' && navigator.onLine === true) {
+        var remoteCallbacks = {
+          success: auxCallback,
+          error: null,
+          timeout: null
+        };
+        Utils.getCachedAccessToken(function(access_token) {
+          if (access_token) {
+            Utils.getNumFbFriends(remoteCallbacks, access_token);
+          }
+        });
+      }
     };
 
     // Clears all Fb data (use with caution!!)
@@ -253,7 +265,7 @@ if (!fb.utils) {
         var req = Utils.getAllFbContacts();
 
         req.onsuccess = function() {
-          var cleaner = new FbContactsCleaner(req.result);
+          var cleaner = new Utils.FbContactsCleaner(req.result);
           // And now success notification is sent
           outReq.done(cleaner);
           // The cleaning activity should be starting immediately
@@ -297,7 +309,7 @@ if (!fb.utils) {
             window.addEventListener('message', m_listen);
 
             var xhr = new XMLHttpRequest({
-              mozSystem:true
+              mozSystem: true
             });
 
             xhr.open('GET', logoutUrl, true);
@@ -307,7 +319,7 @@ if (!fb.utils) {
 
             xhr.onload = function(e) {
               if (xhr.status === 200 || xhr.status === 0) {
-                if(xhr.response.success) {
+                if (xhr.response.success) {
                   window.asyncStorage.removeItem(STORAGE_KEY);
                   outReq.done();
                 }
@@ -375,7 +387,7 @@ if (!fb.utils) {
     }
 
     // FbContactsCleaner Object
-    function FbContactsCleaner(contacts) {
+    Utils.FbContactsCleaner = function(contacts) {
       this.lcontacts = contacts;
       var next = 0;
       var self = this;

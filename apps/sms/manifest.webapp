@@ -10,7 +10,6 @@
   "permissions": {
     "sms":{},
     "contacts":{ "access": "readonly" },
-    "backgroundservice":{},
     "mobileconnection":{},
     "settings":{ "access": "readonly" },
     "desktop-notification":{}
@@ -47,5 +46,9 @@
        },
       "disposition": "window"
     }
-  }
+  },
+  "messages": [
+     { "sms-received": "/index.html" },
+     { "notification": "/index.html" }
+  ]
 }

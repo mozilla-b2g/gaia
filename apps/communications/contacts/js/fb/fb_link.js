@@ -424,6 +424,10 @@ if (!fb.link) {
       var cb = function() {
         allFriends = null;
         link.start(contactid);
+        parent.postMessage({
+          type: 'token_error',
+          data: ''
+        }, fb.CONTACTS_APP_ORIGIN);
       }
       window.asyncStorage.removeItem(fb.utils.TOKEN_DATA_KEY, cb);
     }
@@ -431,7 +435,7 @@ if (!fb.link) {
     UI.selected = function(event) {
       Curtain.show('message', 'linking');
 
-      var element = event.target;
+      var element = event.target.parentNode;
       friendUidToLink = element.dataset.uuid;
 
       // First it is needed to check whether is an already imported friend

@@ -23,7 +23,7 @@ var ValueSelector = {
 
     window.navigator.mozKeyboard.onfocuschange = function onfocuschange(evt) {
       var typeToHandle = ['select-one', 'select-multiple', 'date',
-        'time', 'datetime', 'datetime-local'];
+        'time', 'datetime', 'datetime-local', 'blur'];
 
       var type = evt.detail.type;
       // handle the <select> element and inputs with type of date/time
@@ -52,6 +52,9 @@ var ValueSelector = {
         case 'datetime':
         case 'datetime-local':
           // TODO
+          break;
+        case 'blur':
+          self.hide();
           break;
       }
     };
@@ -163,6 +166,32 @@ var ValueSelector = {
     } else {
       target.setAttribute('aria-checked', 'true');
     }
+
+    // setValue here to trigger change event
+    var singleOptionIndex;
+    var optionIndices = [];
+
+    var selectee = this._containers['select'].
+          querySelectorAll('[aria-checked="true"]');
+
+    if (this._currentPickerType === 'select-one') {
+
+      if (selectee.length > 0)
+        singleOptionIndex = selectee[0].dataset.optionIndex;
+
+      window.navigator.mozKeyboard.setSelectedOption(singleOptionIndex);
+
+    } else if (this._currentPickerType === 'select-multiple') {
+      // Multiple select case
+      for (var i = 0; i < selectee.length; i++) {
+
+        var index = parseInt(selectee[i].dataset.optionIndex);
+        optionIndices.push(index);
+      }
+
+      window.navigator.mozKeyboard.setSelectedOptions(optionIndices);
+    }
+
   },
 
   show: function vs_show(detail) {
@@ -191,25 +220,7 @@ var ValueSelector = {
 
   confirm: function vs_confirm() {
 
-    var singleOptionIndex;
-    var optionIndices = [];
-
-    var selectee = this._containers['select'].querySelectorAll('.selected');
-
-    if (this._currentPickerType === 'select-one' ||
-        this._currentPickerType === 'select-multiple') {
-      var selectee = this._containers['select'].
-          querySelectorAll('[aria-checked="true"]');
-    }
-
-    if (this._currentPickerType === 'select-one') {
-
-      if (selectee.length > 0)
-        singleOptionIndex = selectee[0].dataset.optionIndex;
-
-      window.navigator.mozKeyboard.setSelectedOption(singleOptionIndex);
-
-    } else if (this._currentPickerType === 'time') {
+    if (this._currentPickerType === 'time') {
 
       var timeValue = TimePicker.getTimeValue();
       this.debug('output value: ' + timeValue);
@@ -221,15 +232,6 @@ var ValueSelector = {
       dateValue = dateValue.toLocaleFormat('%Y-%m-%d');
       this.debug('output value: ' + dateValue);
       window.navigator.mozKeyboard.setValue(dateValue);
-    } else {
-      // Multiple select case
-      for (var i = 0; i < selectee.length; i++) {
-
-        var index = parseInt(selectee[i].dataset.optionIndex);
-        optionIndices.push(index);
-      }
-
-      window.navigator.mozKeyboard.setSelectedOptions(optionIndices);
     }
 
     window.navigator.mozKeyboard.removeFocus();
@@ -482,11 +484,18 @@ var TimePicker = {
 
 var ActiveEffectHelper = (function() {
 
+  var lastActiveElement = null;
+
   function _setActive(element, isActive) {
     if (isActive) {
       element.classList.add('active');
+      lastActiveElement = element;
     } else {
       element.classList.remove('active');
+      if (lastActiveElement) {
+        lastActiveElement.classList.remove('active');
+        lastActiveElement = null;
+      }
     }
   }
 
