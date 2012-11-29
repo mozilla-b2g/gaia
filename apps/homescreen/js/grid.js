@@ -247,7 +247,8 @@ const GridManager = (function() {
     if (index < 0 || index >= pages.length)
       return;
 
-    var delay = touchEndTimestamp - lastGoingPageTimestamp;
+    var delay = touchEndTimestamp - lastGoingPageTimestamp ||
+                kPageTransitionDuration;
     lastGoingPageTimestamp += delay;
     var duration = delay < kPageTransitionDuration ?
                    delay : kPageTransitionDuration
