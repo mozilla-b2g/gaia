@@ -6,6 +6,7 @@ input[type="password"],
 input[type="email"],
 input[type="tel"],
 input[type="search"],
+input[type="url"],
 textarea {
   -moz-box-sizing: border-box;
   display: block;
@@ -35,12 +36,13 @@ textarea:invalid {
   color: #b90000;
 }
 
-input[type="text"]:-moz-placeholder,
-input[type="password"]:-moz-placeholder,
-input[type="email"]:-moz-placeholder,
-input[type="tel"]:-moz-placeholder,
-input[type="search"]:-moz-placeholder,
-textarea:-moz-placeholder {
+input[type="text"]::-moz-placeholder,
+input[type="password"]::-moz-placeholder,
+input[type="email"]::-moz-placeholder,
+input[type="tel"]::-moz-placeholder,
+input[type="search"]::-moz-placeholder,
+input[type="url"]::-moz-placeholder,
+textarea::-moz-placeholder {
   color: #666;
 }
 
@@ -176,7 +178,7 @@ form[role="search"] {
   background: #e8e8e8 url(input_areas/images/ui/background.png) repeat-x;
 }
 
-section[role="region"] > header:first-child + form[role="search"] { 
+section[role="region"] > header:first-child + form[role="search"] {
   /* increase height when underneath a header because of header's shadow */
   padding-top: 0.3rem;
   border-bottom: 0.1rem solid #c8c8c8;
@@ -202,7 +204,7 @@ form[role="search"].bottom:after {
   background: url(input_areas/images/ui/shadow-invert.png) repeat-x 0 100%;
 }
 
-section[role="region"] > header:first-child + form[role="search"]:after{ 
+section[role="region"] > header:first-child + form[role="search"]:after{
   background: none;
 }
 
