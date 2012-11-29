@@ -99,6 +99,18 @@ suite('Render contacts list', function() {
     assert.isTrue(markPosition > -1);
   }
 
+  function assertContactFound(contact) {
+    var selectorStr = 'li.contact-item.search.hide';
+    var hiddenContacts = container.querySelectorAll(selectorStr);
+    assert.length(hiddenContacts, 2);
+
+    selectorStr = 'li.contact-item.search:not(.hide)';
+    var showContact = container.querySelectorAll(selectorStr);
+    assert.length(showContact, 1);
+    assert.equal(showContact[0].dataset.uuid, contact.id);
+    assert.isTrue(noResults.classList.contains('hide'));
+  }
+
   function getSearchStringFromContact(contact) {
     var expected = [];
     if (contact.givenName) {
@@ -586,15 +598,7 @@ suite('Render contacts list', function() {
       searchBox.value = contact.familyName[0];
       contacts.Search.search();
 
-      var selectorStr = 'li.contact-item.search.hide';
-      var hiddenContacts = container.querySelectorAll(selectorStr);
-      assert.length(hiddenContacts, 2);
-
-      selectorStr = 'li.contact-item.search:not(.hide)';
-      var showContact = container.querySelectorAll(selectorStr);
-      assert.length(showContact, 1);
-      assert.equal(showContact[0].dataset.uuid, contact.id);
-      assert.isTrue(noResults.classList.contains('hide'));
+      assertContactFound(contact);
     });
 
     test('check empty search', function() {
@@ -607,6 +611,20 @@ suite('Render contacts list', function() {
       var hiddenContacts = container.querySelectorAll(selectorStr);
       assert.length(hiddenContacts, 3);
       assert.isFalse(noResults.classList.contains('hide'));
+    });
+
+    test('Search  by name and surname with trailing whitespaces', function() {
+      mockContacts = new MockContactsList();
+      var contactIndex = Math.floor(Math.random() * mockContacts.length);
+      var contact = mockContacts[contactIndex];
+
+      subject.load(mockContacts);
+
+      searchBox.value = contact.givenName[0] + ' ' +
+                                                  contact.familyName[0] + '  ';
+      contacts.Search.search();
+
+      assertContactFound(contact);
     });
   });
 

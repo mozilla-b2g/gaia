@@ -128,7 +128,10 @@ contacts.List = (function() {
     var searchable = ['givenName', 'familyName', 'org'];
     searchable.forEach(function(field) {
       if (contact[field] && contact[field][0]) {
-        searchInfo.push(contact[field][0]);
+        var value = contact[field][0].trim();
+        if(value.length > 0) {
+          searchInfo.push(value);
+        }
       }
     });
     name.dataset['search'] = normalizeText(searchInfo.join(' '));
