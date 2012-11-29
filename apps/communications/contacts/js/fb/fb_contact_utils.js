@@ -88,9 +88,11 @@ fb.setFriendPictureUrl = function(devContact, url) {
 // Adapts data to the mozContact format names
 fb.friend2mozContact = function(f) {
 // givenName is put as name but it should be f.first_name
-  f.familyName = [f.last_name];
-  f.additionalName = [f.middle_name];
-  f.givenName = [f.first_name + ' ' + f.middle_name];
+  f.familyName = [f.last_name ? f.last_name.trim() : f.last_name];
+  var middleName = f.middle_name ? f.middle_name.trim() : f.middle_name;
+  f.additionalName = middleName;
+  var firstName = f.first_name ? f.first_name.trim() : f.first_name;
+  f.givenName = [(firstName + ' ' + middleName).trim()];
 
   delete f.last_name;
   delete f.middle_name;
