@@ -22,10 +22,13 @@
   <link rel="resource" type="application/l10n" href="/shared/locales/branding.ini"/>
   <link rel="resource" type="application/l10n" href="/ftu/locales/locales.ini"/>
   <link rel="resource" type="application/l10n" href="/shared/locales/date.ini"/>
+  <link rel="resource" type="application/l10n" href="/shared/locales/tz.ini"/>
+  <link rel="resource" type="application/json" href="/shared/resources/tz.json"/>
   <script type="text/javascript" src="/shared/js/l10n.js"></script>
   <script type="text/javascript" src="/shared/js/l10n_date.js"></script>
+  <script type="text/javascript" src="/shared/js/tz_select.js"></script>
 
-  <!-- Code for FTU App -->
+  <!-- Code for the FTU App -->
   <script defer type="text/javascript" src="/ftu/js/fb_launcher.js"></script>
   <script defer type="text/javascript" src="/contacts/js/utilities/config.js"></script>
   <script defer type="text/javascript" src="/contacts/js/fb/fb_utils.js"></script>
@@ -131,40 +134,27 @@
             Time zone
           </h1>
           <h2 id="time-zone-title">
-            GMT +00:00 Greenwich Mean Time
+            UTC +00:00 Greenwich Mean Time
           </h2>
         </section>
-        <form data-type="list" onsubmit="return false;">
+        <form id="time-form" data-type="list">
           <ul>
+            <!-- timezones -->
             <li>
-              <button class="change icon icon-dialog" data-l10n-id="change">
+              <button class="change icon icon-dialog" data-l10n-id="change" type="button">
                 Change
               </button>
-              <p id="timezone-configuration-label">GMT +00:00</p>
-              <select class="invisible" id="timezone-configuration">
-                <option value="-8">GMT -08:00</option>
-                <option value="-7">GMT -07:00</option>
-                <option value="-6">GMT -06:00</option>
-                <option value="-5">GMT -05:00</option>
-                <option value="-4">GMT -04:00</option>
-                <option value="-3">GMT -03:00</option>
-                <option value="-2">GMT -02:00</option>
-                <option value="-1">GMT -01:00</option>
-                <option value="0">GMT +00:00</option>
-                <option value="1">GMT +01:00</option>
-                <option value="2">GMT +02:00</option>
-                <option value="3">GMT +03:00</option>
-                <option value="4">GMT +04:00</option>
-                <option value="5">GMT +05:00</option>
-                <option value="6">GMT +06:00</option>
-                <option value="7">GMT +07:00</option>
-                <option value="8">GMT +08:00</option>
-                <option value="9">GMT +09:00</option>
-                <option value="10">GMT +10:00</option>
-                <option value="11">GMT +11:00</option>
-                <option value="12">GMT +12:00</option>
-               </select>
+              <p id="tz-continent-label"></p>
+              <select id="tz-continent" class="invisible"></select>
             </li>
+            <li>
+              <button class="change icon icon-dialog" data-l10n-id="change" type="button">
+                Change
+              </button>
+              <p id="tz-city-label">GMT</p>
+              <select id="tz-city" class="invisible"></select>
+            </li>
+            <!-- date/time -->
             <li>
               <button class="change icon icon-dialog" data-l10n-id="change">
                 Change
@@ -173,7 +163,7 @@
               <input id="date-configuration" class="invisible" type="date"></input>
             </li>
             <li>
-              <button class="change icon icon-dialog" data-l10n-id="change">
+              <button class="change icon icon-dialog" data-l10n-id="change" type="button">
                 Change
               </button>
               <p id="time-configuration-label">00:00</p>

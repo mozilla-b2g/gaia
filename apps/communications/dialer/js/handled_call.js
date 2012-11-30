@@ -46,6 +46,7 @@ function HandledCall(aCall, aNode) {
 HandledCall.prototype.handleEvent = function hc_handle(evt) {
   switch (evt.call.state) {
     case 'connected':
+      CallScreen.render('connected');
       this.connected();
       break;
     case 'disconnected':

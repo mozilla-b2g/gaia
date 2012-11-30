@@ -707,7 +707,9 @@ var LockScreen = {
 
     var timeFormat = _('shortTimeFormat') || '%H:%M';
     var dateFormat = _('longDateFormat') || '%A %e %B';
-    this.clock.textContent = f.localeFormat(d, timeFormat);
+    var time = f.localeFormat(d, timeFormat);
+    this.clockNumbers.textContent = time.match(/([01]?\d):[0-5]\d/g);
+    this.clockMeridiem.textContent = (time.match(/AM|PM/i) || []).join('');
     this.date.textContent = f.localeFormat(d, dateFormat);
 
     var self = this;
@@ -871,8 +873,8 @@ var LockScreen = {
 
   getAllElements: function ls_getAllElements() {
     // ID of elements to create references
-    var elements = ['connstate', 'mute', 'clock', 'date',
-        'area', 'area-unlock', 'area-camera', 'icon-container',
+    var elements = ['connstate', 'mute', 'clock-numbers', 'clock-meridiem',
+        'date', 'area', 'area-unlock', 'area-camera', 'icon-container',
         'area-handle', 'passcode-code', 'curvepath',
         'passcode-pad', 'camera', 'accessibility-camera',
         'accessibility-unlock', 'panel-emergency-call'];
@@ -942,4 +944,3 @@ var LockScreen = {
 };
 
 LockScreen.init();
-

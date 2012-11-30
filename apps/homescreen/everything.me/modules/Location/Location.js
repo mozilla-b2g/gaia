@@ -31,7 +31,8 @@ Evme.Location = new function() {
                 onSuccess && onSuccess(data);
                 cbLocationSuccess(data);
             }
-        }, reportError);
+        }, reportError,
+        { timeout: 2000 });
     };
     
     function cbLocationRequest() {

@@ -2,10 +2,21 @@
 
 var CallHandler = (function callHandler() {
   var telephony = navigator.mozTelephony;
+  telephony.oncallschanged = function oncallschanged() {
+    if (callScreenWindowLoaded) {
+      if (telephony.calls.length === 0)
+        // Calls might be ended before callscreen registers call-related
+        // events. We send a message to notify callscreen of exiting when
+        // there are no calls.
+        sendCommandToCallScreen('*', 'exitCallScreen');
+    }
+  }
+
   var conn = navigator.mozMobileConnection;
   var _ = navigator.mozL10n.get;
 
   var callScreenWindow = null;
+  var callScreenWindowLoaded = false;
   var currentActivity = null;
 
   /* === Settings === */
@@ -51,6 +62,43 @@ var CallHandler = (function callHandler() {
   }
   window.navigator.mozSetMessageHandler('activity', handleActivity);
 
+  /* === Notifications support === */
+  function handleNotification() {
+    navigator.mozApps.getSelf().onsuccess = function gotSelf(evt) {
+      var app = evt.target.result;
+      app.launch('dialer');
+      window.location.hash = '#recents-view';
+    }
+  }
+  window.navigator.mozSetMessageHandler('notification', handleNotification);
+
+  function handleNotificationRequest(number) {
+    Contacts.findByNumber(number, function lookup(contact) {
+      var title = _('missedCall');
+      var sender = (number && number.length) ? number : _('unknown');
+
+      if (contact && contact.name) {
+        sender = contact.name;
+      }
+
+      var body = _('from', {sender: sender});
+
+      navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+        var app = evt.target.result;
+
+        var iconURL = NotificationHelper.getIconURI(app, 'dialer');
+
+        var clickCB = function() {
+          app.launch('dialer');
+          window.location.hash = '#recents-view';
+        };
+
+        NotificationHelper.send(title, body, iconURL, clickCB);
+      };
+    });
+  }
+
+
   /* === Incoming and STK calls === */
   function newCall() {
     openCallScreen();
@@ -87,8 +135,11 @@ var CallHandler = (function callHandler() {
 
   /*
     Send commands to the callScreen via post message.
-    @type: Handler to be used in the CallHandler (currently 'BT': bluethood
-                                                  and 'HS': headset)
+    @type: Handler to be used in the CallHandler. Currently managing to
+           kind of commands:
+           'BT': bluetooth
+           'HS': headset
+           '*' : for general cases, not specific to hardware control
     @command: The specific message to each kind of type
   */
   function sendCommandToCallScreen(type, command) {
@@ -105,6 +156,21 @@ var CallHandler = (function callHandler() {
 
     callScreenWindow.postMessage(message, origin);
   }
+
+  // Receiving messages from the callscreen via post message
+  //   - when the call screen is closing
+  //   - when we need to send a missed call notification
+  function handleMessage(evt) {
+    var data = evt.data;
+
+    if (data === 'closing') {
+      handleCallScreenClosing();
+    } else if (data.type && data.type === 'notification') {
+      // We're being asked to send a missed call notification
+      handleNotificationRequest(data.number);
+    }
+  }
+  window.addEventListener('message', handleMessage);
 
   /* === Calls === */
   function call(number) {
@@ -203,18 +269,24 @@ var CallHandler = (function callHandler() {
     var urlBase = protocol + '//' + host + '/dialer/oncall.html';
     callScreenWindow = window.open(urlBase + '#' + screenState,
                 'call_screen', 'attention');
-  }
-
-  // We use a simple postMessage protocol to know when the call screen is closed
-  function handleMessage(evt) {
-    if (evt.data == 'closing') {
-      callScreenWindow = null;
-      if (Recents) {
-        Recents.refresh();
+    callScreenWindow.onload = function onload() {
+      callScreenWindowLoaded = true;
+      if (telephony.calls.length === 0) {
+        // Calls might be ended before callscreen is comletedly loaded, so that
+        // callscreen will miss call-related events. We send a message to notify
+        // callscreen of exiting when there are no calls.
+        sendCommandToCallScreen('*', 'exitCallScreen');
       }
     }
   }
-  window.addEventListener('message', handleMessage);
+
+  function handleCallScreenClosing() {
+    callScreenWindow = null;
+    callScreenWindowLoaded = false;
+    if (Recents) {
+      Recents.refresh();
+    }
+  }
 
   return {
     call: call

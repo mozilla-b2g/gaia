@@ -721,7 +721,10 @@
             <div id="lockscreen-header">
               <div id="lockscreen-connstate" hidden><span></span><span></span></div>
               <div id="lockscreen-mute" hidden></div>
-              <div id="lockscreen-clock"></div>
+              <div class="lockscreen-clock">
+                <span id="lockscreen-clock-numbers"></span>
+                <span id="lockscreen-clock-meridiem"></span>
+              </div>
               <div id="lockscreen-date"></div>
             </div>
             <div id="notifications-lockscreen-container">
@@ -806,8 +809,6 @@
         <menu class="actions">
         </menu>
       </div>
-
-      <div id="keyboard-overlay" data-z-index-level="keyboard-overlay"></div>
 
       <!-- keyboard -->
       <div id="keyboard-frame" class="hide" data-z-index-level="keyboard-frame"></div>

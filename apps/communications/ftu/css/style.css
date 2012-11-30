@@ -364,81 +364,50 @@ html, body {
   position: absolute;
   z-index: 10;
   width: 100%;
-  height: 4rem;
   height: 21.5rem;
   margin-top: 0.5rem;
 }
 
-#time_zone_overlay.gmt0 {
-  background-image: url('images/timezone/+0.png') ;
-}
-#time_zone_overlay.gmt1 {
-  background-image: url('images/timezone/+1.png') ;
-}
-#time_zone_overlay.gmt2 {
-  background-image: url('images/timezone/+2.png') ;
-}
-#time_zone_overlay.gmt3 {
-  background-image: url('images/timezone/+3.png') ;
-}
-#time_zone_overlay.gmt4 {
-  background-image: url('images/timezone/+4.png') ;
-}
-#time_zone_overlay.gmt5 {
-  background-image: url('images/timezone/+5.png') ;
-}
-#time_zone_overlay.gmt6 {
-  background-image: url('images/timezone/+6.png') ;
-}
-#time_zone_overlay.gmt7 {
-  background-image: url('images/timezone/+7.png') ;
-}
-#time_zone_overlay.gmt8 {
-  background-image: url('images/timezone/+8.png') ;
-}
-#time_zone_overlay.gmt9 {
-  background-image: url('images/timezone/+9.png') ;
-}
-#time_zone_overlay.gmt10 {
-  background-image: url('images/timezone/+10.png') ;
-}
-#time_zone_overlay.gmt11 {
-  background-image: url('images/timezone/+11.png') ;
-}
-#time_zone_overlay.gmt12 {
-  background-image: url('images/timezone/+12.png') ;
-}
-#time_zone_overlay.gmt3 {
-  background-image: url('images/timezone/+3.png') ;
-}
-#time_zone_overlay.gmt4 {
-  background-image: url('images/timezone/+4.png') ;
-}
+#time_zone_overlay.UTC0000 { background-image: url('images/timezone/+0.png'); }
+#time_zone_overlay.UTC0100 { background-image: url('images/timezone/+1.png'); }
+#time_zone_overlay.UTC0200 { background-image: url('images/timezone/+2.png'); }
+#time_zone_overlay.UTC0300 { background-image: url('images/timezone/+3.png'); }
+#time_zone_overlay.UTC0330 { }
+#time_zone_overlay.UTC0400 { background-image: url('images/timezone/+4.png'); }
+#time_zone_overlay.UTC0430 { }
+#time_zone_overlay.UTC0500 { background-image: url('images/timezone/+5.png'); }
+#time_zone_overlay.UTC0530 { }
+#time_zone_overlay.UTC0545 { }
+#time_zone_overlay.UTC0600 { background-image: url('images/timezone/+6.png'); }
+#time_zone_overlay.UTC0630 { }
+#time_zone_overlay.UTC0700 { background-image: url('images/timezone/+7.png'); }
+#time_zone_overlay.UTC0800 { background-image: url('images/timezone/+8.png'); }
+#time_zone_overlay.UTC0845 { }
+#time_zone_overlay.UTC0900 { background-image: url('images/timezone/+9.png'); }
+#time_zone_overlay.UTC0930 { }
+#time_zone_overlay.UTC1000 { background-image: url('images/timezone/+10.png'); }
+#time_zone_overlay.UTC1030 { }
+#time_zone_overlay.UTC1100 { background-image: url('images/timezone/+11.png'); }
+#time_zone_overlay.UTC1130 { }
+#time_zone_overlay.UTC1200 { background-image: url('images/timezone/+12.png'); }
+#time_zone_overlay.UTC1245 { }
+#time_zone_overlay.UTC1300 { }
+#time_zone_overlay.UTC1400 { }
 
-#time_zone_overlay.gmt-1 {
-  background-image: url('images/timezone/-1.png') ;
-}
-#time_zone_overlay.gmt-2 {
-  background-image: url('images/timezone/-2.png') ;
-}
-#time_zone_overlay.gmt-3 {
-  background-image: url('images/timezone/-3.png') ;
-}
-#time_zone_overlay.gmt-4 {
-  background-image: url('images/timezone/-4.png') ;
-}
-#time_zone_overlay.gmt-5 {
-  background-image: url('images/timezone/-5.png') ;
-}
-#time_zone_overlay.gmt-6 {
-  background-image: url('images/timezone/-6.png') ;
-}
-#time_zone_overlay.gmt-7 {
-  background-image: url('images/timezone/-7.png') ;
-}
-#time_zone_overlay.gmt-8 {
-  background-image: url('images/timezone/-8.png') ;
-}
+#time_zone_overlay.UTC-0100 { background-image: url('images/timezone/-1.png'); }
+#time_zone_overlay.UTC-0200 { background-image: url('images/timezone/-2.png'); }
+#time_zone_overlay.UTC-0300 { background-image: url('images/timezone/-3.png'); }
+#time_zone_overlay.UTC-0330 { }
+#time_zone_overlay.UTC-0400 { background-image: url('images/timezone/-4.png'); }
+#time_zone_overlay.UTC-0430 { }
+#time_zone_overlay.UTC-0500 { background-image: url('images/timezone/-5.png'); }
+#time_zone_overlay.UTC-0600 { background-image: url('images/timezone/-6.png'); }
+#time_zone_overlay.UTC-0700 { background-image: url('images/timezone/-7.png'); }
+#time_zone_overlay.UTC-0800 { background-image: url('images/timezone/-8.png'); }
+#time_zone_overlay.UTC-0900 { }
+#time_zone_overlay.UTC-0930 { }
+#time_zone_overlay.UTC-1000 { }
+#time_zone_overlay.UTC-1100 { }
 
 #time_zone_map {
   background-image: url('images/map.png') ;
@@ -449,6 +418,10 @@ html, body {
   width: 100%;
   margin-top: 0.5rem;
   z-index: 1;
+}
+
+#time-form {
+  z-index: 11;
 }
 
 #date_and_time h1 {

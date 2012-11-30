@@ -57,11 +57,6 @@ var UIManager = {
     delete this.joinButton;
     return this.joinButton = document.getElementById('join');
   },
-  get timezoneConfiguration() {
-    delete this.timezoneConfiguration;
-    return this.timezoneConfiguration =
-      document.getElementById('timezone-configuration');
-  },
   get dateConfiguration() {
     delete this.dateConfiguration;
     return this.dateConfiguration = document.getElementById(
@@ -100,6 +95,11 @@ var UIManager = {
     delete this.buttonSkip;
     return this.buttonSkip = document.getElementById('skip');
   },
+  get timeForm() {
+    delete this.timeForm;
+    return this.timeForm = document.getElementById('time-form');
+  },
+
   init: function ui_init() {
     var currentDate = new Date();
     var f = new navigator.mozL10n.DateTimeFormat();
@@ -113,7 +113,6 @@ var UIManager = {
     this.doneButton.addEventListener('click', this);
     this.joinButton.addEventListener('click', this);
     this.networks.addEventListener('click', this);
-    this.timezoneConfiguration.addEventListener('change', this);
     this.timeConfiguration.addEventListener('input', this);
     this.dateConfiguration.addEventListener('input', this);
     this.buttonSkip.addEventListener('click', function() {
@@ -124,10 +123,18 @@ var UIManager = {
       UIManager.activationScreen.classList.remove('show');
       UIManager.finishScreen.classList.remove('show');
       UIManager.tutorialScreen.classList.add('show');
-      Tutorial.init();
     });
     this.fakeSimPin.addEventListener('input', this);
+    // Prevent form submit in case something tries to send it
+    this.timeForm.addEventListener('submit', function(event) {
+      event.preventDefault();
+    });
+    // Initialize the timezone selector, see /shared/js/tz_select.js
+    var tzCont = document.getElementById('tz-continent');
+    var tzCity = document.getElementById('tz-city');
+    tzSelect(tzCont, tzCity, this.setTimeZone);
   },
+
   handleEvent: function ui_handleEvent(event) {
     switch (event.target.id) {
       case 'wifi-refresh':
@@ -148,9 +155,6 @@ var UIManager = {
       case 'date-configuration':
         this.setDate();
         break;
-      case 'timezone-configuration':
-        this.setTimeZone();
-        break;
       case 'dataSwitch':
         var status = event.target.checked;
         DataMobile.toggle(status);
@@ -166,6 +170,7 @@ var UIManager = {
         break;
     }
   },
+
   importFromSim: function ui_ifs() {
     var feedbackMessage = document.getElementById('sim_import_feedback');
     feedbackMessage.innerHTML = _('simContacts-importing');
@@ -178,6 +183,7 @@ var UIManager = {
         feedbackMessage.innerHTML = _('simContacts-error');
     });
   },
+
   joinNetwork: function ui_jn() {
     var password = document.getElementById('wifi_password').value;
     if (password == '') {
@@ -198,6 +204,7 @@ var UIManager = {
       window.history.back();
     }
   },
+
   setDate: function ui_sd() {
     if (!!this.lock) {
       return;
@@ -213,6 +220,7 @@ var UIManager = {
     TimeManager.set(timeToSet);
     dateLabel.innerHTML = timeToSet.toLocaleFormat('%Y-%m-%d');
   },
+
   setTime: function ui_st() {
     if (!!this.lock) {
       return;
@@ -234,26 +242,25 @@ var UIManager = {
     var format = _('shortTimeFormat');
     timeLabel.innerHTML = f.localeFormat(timeToSet, format);
   },
-  setTimeZone: function ui_stz() {
-    var tzConfiguration = document.getElementById('timezone-configuration');
-    var tzOverlay = document.getElementById('time_zone_overlay');
-    var tzInput = document.getElementById('timezone-configuration');
-    var tzTitle = document.getElementById('time-zone-title');
-    var tzLabel = document.getElementById('timezone-configuration-label');
 
-    var gmt = tzInput.options[tzInput.selectedIndex].value;
-
-    var classes = tzOverlay.classList;
-    for (var i = 0; i < classes.length; i++) {
-      tzOverlay.classList.remove(classes[i]);
-    }
-    tzOverlay.classList.add('gmt' + gmt);
-
-    // TODO Include automatic set of time
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=796265
-    tzLabel.innerHTML = TimeManager.getTimeZone(gmt);
-    tzTitle.innerHTML = TimeManager.getTimeZone(gmt);
+  setTimeZone: function ui_stz(timezone) {
+    var utc = 'UTC' + timezone.utcOffset;
+    document.getElementById('time_zone_overlay').className =
+      utc.replace(/[+:]/g, '');
+    document.getElementById('time-zone-title').textContent =
+      utc + ' ' + timezone.id;
+    document.getElementById('tz-continent-label').textContent =
+      timezone.id.replace(/\/.*$/, '');
+    document.getElementById('tz-city-label').textContent = timezone.city;
+    // it can take a few milliseconds before the TZ change is reflected on time
+    setTimeout(function updateTime() {
+      var f = new navigator.mozL10n.DateTimeFormat();
+      var now = new Date();
+      var timeLabel = document.getElementById('time-configuration-label');
+      timeLabel.innerHTML = f.localeFormat(now, _('shortTimeFormat'));
+    });
   },
+
   unlockSIM: function ui_us() {
     var pinInput = document.getElementById('sim-pin');
     var pin = pinInput.value;
@@ -281,6 +288,7 @@ var UIManager = {
       document.getElementById('pin_error').innerHTML = 'Error ' + retry;
     };
   },
+
   chooseNetwork: function ui_cn(event) {
     // Retrieve SSID from dataset
     var ssid = event.target.dataset.ssid;
@@ -320,6 +328,7 @@ var UIManager = {
       window.location.hash = '#configure_network';
     });
   },
+
   renderNetworks: function ui_rn(networks) {
     var networksDOM = document.getElementById('networks');
     networksDOM.innerHTML = '';
@@ -371,16 +380,20 @@ var UIManager = {
       }
     }
   },
+
   renderNetworkConfiguration: function uim_rnc(ssid, callback) {
     if (callback) {
       callback();
     }
   },
+
   updateNetworkStatus: function uim_uns(ssid, status) {
     document.getElementById(ssid).
       querySelector('p:last-child').innerHTML = status;
   },
+
   updateDataConnectionStatus: function uim_udcs(status) {
     this.dataConnectionSwitch.checked = status;
   }
 };
+

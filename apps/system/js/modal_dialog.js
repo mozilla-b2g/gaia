@@ -80,7 +80,11 @@ var ModalDialog = {
           return;
 
         /* fatal case (App crashing) is handled in Window Manager */
-        if (evt.type == 'mozbrowsererror' && evt.detail.type == 'fatal')
+        // XXX: Before https://bugzilla.mozilla.org/show_bug.cgi?id=816452 is
+        // confirmed and fixed, display the gecko error page instead of
+        // customized error page.
+        if (evt.type === 'mozbrowsererror' &&
+            (evt.detail.type === 'fatal' || 'wrapper' in evt.target.dataset))
           return;
 
         evt.preventDefault();
