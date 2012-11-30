@@ -1133,7 +1133,8 @@ function setupFrameContent(n, frame) {
     videodb.getFile(fileinfo.name, function(file) {
       frame.displayVideo(file,
                          fileinfo.metadata.width,
-                         fileinfo.metadata.height);
+                         fileinfo.metadata.height,
+                         fileinfo.metadata.rotation || 0);
     });
   }
   else {

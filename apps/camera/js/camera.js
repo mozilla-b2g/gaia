@@ -74,7 +74,7 @@ var Camera = {
 
   _previewConfigVideo: {
     profile: 'cif',
-    rotation: 90,
+    rotation: 0,
     width: 352,
     height: 288
   },
@@ -280,6 +280,7 @@ var Camera = {
       this._cameraObj.getPreviewStream(this._previewConfig,
                                        gotPreviewStream.bind(this));
     } else {
+      this._previewConfigVideo.rotation = this._phoneOrientation;
       this._cameraObj.getPreviewStreamVideoMode(this._previewConfigVideo,
                                                 gotPreviewStream.bind(this));
     }
@@ -353,7 +354,7 @@ var Camera = {
       }
 
       var config = {
-        rotation: 90,
+        rotation: this._phoneOrientation,
         maxFileSizeBytes: freeBytes - this.RECORD_SPACE_PADDING
       };
       this._cameraObj.startRecording(config,
@@ -363,14 +364,17 @@ var Camera = {
 
     this.createDCFFilename('video', '3gp', (function(filename) {
       this._videoPath = filename;
+
       // The CameraControl API will not automatically create directories
-      // for the new file if they do not exist, so write a stub file
-      // via the deviceStorage API which will, then start recording
-      // over it
-      var stub = new Blob([''], {'type': 'video\/3gpp'});
-      var req = this._videoStorage.addNamed(stub, filename);
+      // for the new file if they do not exist, so write a dummy file
+      // to the same directory via DeviceStorage to ensure that the directory
+      // exists before recording starts.
+      var dummyblob = new Blob([''], {type: 'video/3gpp'});
+      var dummyfilename = filename + '.dummy.3gp';
+      var req = this._videoStorage.addNamed(dummyblob, dummyfilename);
       req.onerror = onerror;
       req.onsuccess = (function fileCreated() {
+        this._videoStorage.delete(dummyfilename); // No need to wait for success
         // Determine the number of bytes available on disk.
         var stat = this._videoStorage.stat();
         stat.onerror = onerror;
@@ -555,7 +559,7 @@ var Camera = {
     }
 
     // Launch the gallery with an open activity to view this specific photo
-    var storage =  isVideo ? this._videoStorage : this._pictureStorage;
+    var storage = isVideo ? this._videoStorage : this._pictureStorage;
     var isVideo = /video/.test(filetype);
     var activity;
 
