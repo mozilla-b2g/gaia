@@ -6,3 +6,4 @@ pref("general.useragent.override.yelp.com", "\(Mobile#(Android; Mobile");
 pref("general.useragent.override.dailymotion.com", "\(Mobile#(Android; Mobile");
 pref("general.useragent.override.accounts.google.com", "\(Mobile#(Android; Mobile");
 pref("general.useragent.override.wikipedia.org", "\(Mobile#(Android; Mobile");
+pref("general.useragent.override.maps.google.com", "\(Mobile#(Android; Mobile");
