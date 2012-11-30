@@ -653,13 +653,12 @@ form.bottom[role="search"].new-sms-form {
 /*
   Loading screen while deleting
 */
-.show-loading {
-  opacity: 1 !important;
+#loading.show-loading {
+  display: block;
 }
 
 #loading {
-  opacity: 0;
-  transition: opacity 0.3s ease-out;
+  display: none;
 }
 
 .loading-header {
