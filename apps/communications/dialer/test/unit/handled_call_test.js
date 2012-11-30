@@ -4,7 +4,7 @@ requireApp('communications/dialer/test/unit/mock_keypad.js');
 requireApp('communications/dialer/test/unit/mock_call.js');
 requireApp('communications/dialer/test/unit/mock_contacts.js');
 requireApp('communications/dialer/test/unit/mock_call_screen.js');
-requireApp('communications/dialer/test/unit/mock_recents_db.js');
+requireApp('communications/dialer/test/unit/mock_call_handler.js');
 requireApp('communications/dialer/test/unit/mock_utils.js');
 
 // We're going to swap those with mock objects
@@ -12,11 +12,11 @@ requireApp('communications/dialer/test/unit/mock_utils.js');
 if (!this.Contacts) {
   this.Contacts = null;
 }
-if (!this.RecentsDBManager) {
-  this.RecentsDBManager = null;
-}
 if (!this.CallScreen) {
   this.CallScreen = null;
+}
+if (!this.OnCallHandler) {
+  this.OnCallHandler = null;
 }
 if (!this.KeypadManager) {
   this.KeypadManager = null;
@@ -31,8 +31,8 @@ suite('dialer/handled_call', function() {
   var fakeNode;
 
   var realContacts;
-  var realRecents;
   var realCallScreen;
+  var realCallHandler;
   var realKeypadManager;
   var realL10n;
   var realUtils;
@@ -42,11 +42,11 @@ suite('dialer/handled_call', function() {
     realContacts = window.Contacts;
     window.Contacts = MockContacts;
 
-    realRecents = window.RecentsDBManager;
-    window.RecentsDBManager = MockRecentsDBManager;
-
     realCallScreen = window.CallScreen;
     window.CallScreen = MockCallScreen;
+
+    realCallHandler = window.OnCallHandler;
+    window.OnCallHandler = MockOnCallHandler;
 
     realKeypadManager = window.KeypadManager;
     window.KeypadManager = MockKeypadManager;
@@ -66,8 +66,8 @@ suite('dialer/handled_call', function() {
 
   suiteTeardown(function() {
     window.Contacts = realContacts;
-    window.RecentsDBManager = realRecents;
     window.CallScreen = realCallScreen;
+    window.OnCallHandler = realCallHandler;
     window.KeypadManager = realKeypadManager;
     navigator.mozL10n = realL10n;
     window.Utils = realUtils;
@@ -107,9 +107,9 @@ suite('dialer/handled_call', function() {
     var el = document.getElementById('test');
     el.parentNode.removeChild(el);
 
-    MockRecentsDBManager.mTearDown();
     MockContacts.mTearDown();
     MockCallScreen.mTearDown();
+    MockOnCallHandler.mTeardown();
     MockKeypadManager.mTearDown();
     MockUtils.mTearDown();
   });
@@ -223,9 +223,7 @@ suite('dialer/handled_call', function() {
     });
 
     test('save recents entry', function() {
-      assert.isTrue(MockRecentsDBManager.mCalledInit);
-      assert.equal(MockRecentsDBManager.mCalledAdd, subject.recentsEntry);
-      assert.isTrue(MockRecentsDBManager.mCalledClose);
+      assert.equal(subject.recentsEntry, MockOnCallHandler.mLastEntryAdded);
     });
 
     test('mute off after call', function() {
