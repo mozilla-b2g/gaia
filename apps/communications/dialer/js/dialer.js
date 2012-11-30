@@ -98,6 +98,18 @@ var CallHandler = (function callHandler() {
     });
   }
 
+  /* === Recents support === */
+  function handleRecentAddRequest(entry) {
+    RecentsDBManager.init(function() {
+      RecentsDBManager.add(entry, function() {
+        RecentsDBManager.close();
+
+        if (Recents) {
+          Recents.refresh();
+        }
+      });
+    });
+  }
 
   /* === Incoming and STK calls === */
   function newCall() {
@@ -168,6 +180,8 @@ var CallHandler = (function callHandler() {
     } else if (data.type && data.type === 'notification') {
       // We're being asked to send a missed call notification
       handleNotificationRequest(data.number);
+    } else if (data.type && data.type === 'recent') {
+      handleRecentAddRequest(data.entry);
     }
   }
   window.addEventListener('message', handleMessage);
@@ -283,9 +297,6 @@ var CallHandler = (function callHandler() {
   function handleCallScreenClosing() {
     callScreenWindow = null;
     callScreenWindowLoaded = false;
-    if (Recents) {
-      Recents.refresh();
-    }
   }
 
   return {
