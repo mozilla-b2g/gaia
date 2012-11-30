@@ -40,6 +40,8 @@ contacts.List = (function() {
     FixedHeader.init('#groups-container', '#fixed-container', selector);
 
     initAlphaScroll();
+    ImageLoader.init('#groups-container', 'li');
+
     contacts.Search.init(conctactsListView, favoriteGroup);
   }
 
@@ -114,7 +116,7 @@ contacts.List = (function() {
       var figure = document.createElement('aside');
       figure.className = 'pack-end';
       var img = document.createElement('img');
-      Contacts.updatePhoto(contact.photo[0], img);
+      img.dataset.src = window.URL.createObjectURL(contact.photo[0]);
       figure.appendChild(img);
       link.appendChild(figure);
     }
@@ -223,6 +225,7 @@ contacts.List = (function() {
         renderFavorites(favorites);
         cleanLastElements(counter);
         FixedHeader.refresh();
+        ImageLoader.reload();
         Contacts.hideOverlay();
         emptyList = false;
         return;
@@ -238,6 +241,7 @@ contacts.List = (function() {
       }
 
       window.setTimeout(function() {
+        ImageLoader.reload();
         renderChunks(index + 1);
       }, 0);
     }
@@ -473,6 +477,7 @@ contacts.List = (function() {
     }
     toggleNoContactsScreen(false);
     FixedHeader.refresh();
+    ImageLoader.reload();
   }
 
   // Fills the contact data to display if no givenName and familyName
