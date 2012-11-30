@@ -2,7 +2,7 @@ Calendar.ns('Views').DayBased = (function() {
 
   var Calc = Calendar.Calc;
   var hoursOfOccurance = Calendar.Calc.hoursOfOccurance;
-  var OrderedMap = Calendar.OrderedMap;
+  var OrderedMap = Calendar.Utils.OrderedMap;
 
   const MINUTES_IN_HOUR = 60;
 
@@ -108,7 +108,7 @@ Calendar.ns('Views').DayBased = (function() {
      */
     _resetHourCache: function() {
       this._idsToHours = Object.create(null);
-      this.overlaps = new Calendar.Overlap();
+      this.overlaps = new Calendar.Utils.Overlap();
       this.hours = new OrderedMap([], Calc.compareHours);
     },
 

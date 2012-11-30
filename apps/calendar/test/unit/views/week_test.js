@@ -2,7 +2,7 @@ requireCommon('test/synthetic_gestures.js');
 
 requireApp('calendar/test/unit/helper.js', function() {
   require('/shared/js/gesture_detector.js');
-  requireLib('ordered_map.js');
+  requireLib('utils/ordered_map.js');
   requireLib('timespan.js');
   requireLib('templates/day.js');
   requireLib('templates/week.js');
