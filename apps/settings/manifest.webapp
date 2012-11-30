@@ -9,7 +9,6 @@
   },
   "permissions": {
     "mobileconnection":{},
-    "mozBluetooth":{},
     "bluetooth":{},
     "device-storage:pictures":{ "access": "readonly" },
     "device-storage:music":{ "access": "readonly" },
