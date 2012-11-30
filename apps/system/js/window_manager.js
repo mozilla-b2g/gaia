@@ -231,6 +231,7 @@ var WindowManager = (function() {
 
     frame.style.width = appFrame.style.width;
     frame.style.height = appFrame.style.height;
+    frame.style.top = appFrame.offsetTop + 'px';
   }
 
   function setFrameBackgroundBlob(frame, blob, transparent) {
