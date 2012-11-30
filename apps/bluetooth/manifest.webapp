@@ -25,9 +25,8 @@
     }   
   },
   "permissions": {
-    "settings":{ "access": "readwrite" },
     "bluetooth":{},
-    "mozBluetooth":{},
-    "device-storage:sdcard":{ "access": "readonly" }
+    "device-storage:sdcard":{ "access": "readonly" },
+    "settings":{ "access": "readwrite" }
   }
 }
