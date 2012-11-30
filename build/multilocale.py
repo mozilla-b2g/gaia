@@ -37,14 +37,15 @@ def parse_manifest_properties(filename):
         m = property_line.search(line)
         if not m or line.strip().startswith('#'):
             continue
+        value = m.group('value').strip()
         if '.' in m.group('id'):
             entry_point, key = m.group('id').split('.',1)
             if entry_point not in strings["entry_points"]:
                 strings["entry_points"][entry_point] = {}
-            strings["entry_points"][entry_point][key] = m.group('value')
+            strings["entry_points"][entry_point][key.strip()] = value
         else:
             key = m.group('id')
-            strings["default"][key] = m.group('value')
+            strings["default"][key.strip()] = value
     return strings
 
 
