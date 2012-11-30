@@ -19,7 +19,6 @@
     "permissions":{},
     "settings":{ "access": "readwrite" },
     "wifi-manage":{},
-    "wifi":{},
     "attention":{},
     "time":{},
     "desktop-notification":{},

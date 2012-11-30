@@ -77,7 +77,6 @@
     "alarms": {},
     "systemXHR": {},
     "wifi-manage":{},
-    "wifi":{},
     "time": {}
   },
   "orientation": "portrait-primary",
