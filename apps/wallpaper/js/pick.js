@@ -23,8 +23,8 @@ window.onload = function() {
 
     var canvas = document.createElement('canvas');
     var context = canvas.getContext('2d');
-    canvas.width = pickActivity.source.data.width;
-    canvas.height = pickActivity.source.data.height;
+    canvas.width = pickActivity.source.data.width || window.innerWidth;
+    canvas.height = pickActivity.source.data.height || window.innerHeight;
     context.drawImage(e.target, 0, 0);
 
     canvas.toBlob(function(blob) {

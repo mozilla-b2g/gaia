@@ -552,11 +552,11 @@ var Recents = {
       '        <span class="entry-count">' +
       '        </span>' +
       '      </section>' +
-      '      <section class="secondary-info">' +
+      '      <section class="secondary-info ellipsis">' +
       '        <span class="call-time">' +
                  Utils.prettyDate(recent.date) +
       '        </span>' +
-      '        <span class="call-additional-info ellipsis">' +
+      '        <span class="call-additional-info">' +
       '        </span>' +
       '      </section>' +
       '    </div>' +
@@ -658,6 +658,9 @@ var Recents = {
         var photoURL = URL.createObjectURL(contact.photo[0]);
         contactPhoto.style.backgroundImage = 'url(' + photoURL + ')';
         logItem.classList.add('contact-photo-available');
+      } else {
+        contactPhoto.style.backgroundImage = null;
+        logItem.classList.remove('contact-photo-available');
       }
       var phoneNumberAdditionalInfo = Utils.getPhoneNumberAdditionalInfo(
         matchingTel, contact);
@@ -779,7 +782,7 @@ var Recents = {
     if (!isNaN(primaryInfoNodeWidth) && !isNaN(primaryInfoMainNodeWidth) &&
       !isNaN(entryCountNodeWidth) &&
       (primaryInfoNodeWidth < primaryInfoMainNodeWidth + entryCountNodeWidth)) {
-      var newWidth = primaryInfoNodeWidth - entryCountNodeWidth - 4;
+      var newWidth = primaryInfoNodeWidth - entryCountNodeWidth - 5;
       primaryInfoMainNode.classList.add('ellipsed');
       primaryInfoMainNode.style.width = newWidth + 'px';
     }

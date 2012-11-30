@@ -531,15 +531,8 @@ iframe.backgroundWindow {
   Styles for FTU starting
 */
 
-#screen.ftu > [data-z-index-level="statusbar"]{
-  z-index: 1;
-}
-
-#screen.ftu > [data-z-index-level="lockscreen"]{
-  z-index: 1;
-}
-
-#screen.ftu > [data-z-index-level="app"] > iframe.appWindow.homescreen {
+#screen.ftu > [data-z-index-level="app"] > iframe.appWindow.homescreen,
+#screen.ftu > [data-z-index-level="app"] > iframe.appWindow.homescreen.active {
   opacity: 0;
 }
 

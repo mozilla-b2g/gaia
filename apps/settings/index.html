@@ -23,8 +23,8 @@
     <link rel="stylesheet" type="text/css" href="style/updates.css"/>
 
     <!-- Shared resources
+    <link rel="resource" type="application/json" href="shared/resources/tz.json"/>
     <link rel="resource" type="application/json" href="shared/resources/apn.json"/>
-    <link rel="resource" type="application/json" href="shared/resources/timezones.json"/>
     <link rel="resource" type="application/json" href="shared/resources/languages.json"/>
     -->
 
@@ -33,6 +33,7 @@
     <link rel="resource" type="application/l10n" href="locales/locales.ini"/>
     <link rel="resource" type="application/l10n" href="shared/locales/date.ini"/>
     <link rel="resource" type="application/l10n" href="shared/locales/permissions.ini"/>
+    <link rel="resource" type="application/l10n" href="shared/locales/tz.ini"/>
     <script type="application/javascript" src="shared/js/l10n.js"></script>
     <script type="application/javascript" src="shared/js/l10n_date.js"></script>
 
@@ -46,9 +47,7 @@
     <script type="application/javascript" defer src="js/media_storage.js"></script>
     <script type="application/javascript" defer src="js/connectivity.js"></script>
     <script type="application/javascript" defer src="js/security_privacy.js"></script>
-
-    <!-- ICC Main menu cache recover -->
-    <script type="application/javascript" src="js/icc_menu.js"></script>
+    <script type="application/javascript" defer src="js/icc_menu.js"></script>
 
     <!-- all non-#root panels will lazy-load their own scripts -->
   </head>
@@ -940,32 +939,6 @@
       -->
     </section>
 
-    <!-- Personalization :: Date & Time :: Time Zone (Continent) :: Time Zone (Zones) -->
-    <section role="region" hidden id="dateTime-timezone">
-      <!--
-      <header>
-        <a href="#dateTime-continent"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="selectTimezone"> Select Time Zone </h1>
-      </header>
-
-      <ul id="timezone-zones-list">
-      </ul>
-      -->
-    </section>
-
-    <!-- Personalization :: Date & Time :: Time Zone (Continent) -->
-    <section role="region" hidden id="dateTime-continent">
-      <!--
-      <header>
-        <a href="#dateTime"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="selectTimezoneContinent"> Select Continent </h1>
-      </header>
-
-      <ul id="timezone-continents">
-      </ul>
-      -->
-    </section>
-
     <!-- Personalization :: Date & Time -->
     <section role="region" hidden id="dateTime">
       <!--
@@ -974,8 +947,8 @@
         <h1 data-l10n-id="dateAndTime"> Date &amp; Time </h1>
       </header>
 
-      <ul>
-        <li id="time-nitz-automatic-update">
+      <ul id="time-auto" data-state="auto">
+        <li>
           <label>
             <input type="checkbox" data-type="switch" name="time.nitz.automatic-update.enabled"/>
             <span></span>
@@ -987,17 +960,14 @@
       <header>
         <h2 data-l10n-id="setTimeManually">Set Manually</h2>
       </header>
-      <ul id="time-manual" hidden>
-        <li id="setTimezone">
-          <a href="#dateTime-continent" data-l10n-id="timezoneMessage">Time Zone<span id="timezoneDescription"></span></a>
-        </li>
-        <li id="setDate">
+      <ul id="time-manual">
+        <li>
           <label>
             <input type="date" id="date-picker" />
           </label>
           <a data-l10n-id="dateMessage">Date <span id="clock-date"></span> </a>
         </li>
-        <li id="setTime">
+        <li>
           <label>
             <input type="time" id="time-picker" />
           </label>
@@ -1005,13 +975,30 @@
         </li>
       </ul>
 
+      <header>
+        <h2 data-l10n-id="timezoneMessage">Time zone</h2>
+      </header>
+      <ul id="timezone">
+        <li>
+          <span data-l10n-id="tz-continent">Continent
+            <select id="timezone-continent"></select>
+          </span>
+        </li>
+        <li>
+          <span data-l10n-id="tz-city">City
+            <select id="timezone-city"></select>
+          </span>
+        </li>
+      </ul>
+
+      <script type="application/javascript" src="shared/js/tz_select.js"></script>
       <script type="application/javascript" src="js/date_time.js"></script>
       -->
     </section>
 
     <!-- Personalization :: Language & Region -->
-    <!-- We should remove 'hidden' on the region selector and set 
-         data-l10n-id to languageAndRegion after being implemented in V2. -->
+    <!-- We should remove 'hidden' on the region selector and set
+      -  data-l10n-id to languageAndRegion after being implemented in v2. -->
     <section role="region" hidden id="languages">
       <!--
       <header>
@@ -1022,8 +1009,7 @@
       <ul>
         <li>
           <span data-l10n-id="language">Language
-            <select name="language.current">
-            </select>
+            <select name="language.current"></select>
           </span>
         </li>
         <li hidden>

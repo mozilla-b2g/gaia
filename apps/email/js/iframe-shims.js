@@ -162,28 +162,20 @@ const DEFAULT_STYLE_TAG =
  *   }
  * ]
  */
-function createAndInsertIframeForContent(htmlStr, parentNode, beforeNode,
+function createAndInsertIframeForContent(htmlStr, scrollContainer,
+                                         parentNode, beforeNode,
                                          interactiveMode,
                                          clickHandler) {
-  var viewportWidth = Cards._containerNode.offsetWidth,
-      viewportHeight = Cards._containerNode.offsetHeight - 140;
+  // Add padding to compensate for scroll-bars in environments (Firefox, not
+  // b2g) where they can show up and cause themselves to exist in perpetuity.
+  var scrollPad = 16;
 
+  var viewportWidth = parentNode.offsetWidth - scrollPad;
   var viewport = document.createElement('div');
   viewport.setAttribute(
     'style',
-    'overflow: hidden; ' +
-    // we want to be able to move the iframe in its own coordinate space
-    // inside of us.
-    'position: relative; ' +
-    'width: ' + viewportWidth + 'px; ' +
-    'height: ' + viewportHeight + 'px;'
-  );
-  var interacter = document.createElement('div');
-  interacter.setAttribute(
-    'style',
-    'position: absolute; top: 0; left: 0; width: 100%; height: 100%; ' +
-    '-moz-user-select: none;');
-
+    'overflow: hidden; position: relative; ' +
+    'width: 100%;');
   var iframe = document.createElement('iframe');
 
   iframe.setAttribute('sandbox', 'allow-same-origin');
@@ -196,17 +188,16 @@ function createAndInsertIframeForContent(htmlStr, parentNode, beforeNode,
   iframe.setAttribute(
     'style',
     'position: absolute; ' +
-    'border-width: 0px; ' +
-    'overflow: hidden; '
+    'border-width: 0px;' +
+    'overflow: hidden;'
 //    'pointer-events: none; ' +
 //    '-moz-user-select: none; ' +
 //    'width: ' + scrollWidth + 'px; ' +
 //    'height: ' + viewportHeight + 'px;'
   );
-
-  //iframe.setAttribute('srcdoc', htmlStr);
   viewport.appendChild(iframe);
   parentNode.insertBefore(viewport, beforeNode);
+  //iframe.setAttribute('srcdoc', htmlStr);
 
   // we want this fully synchronous so we can know the size of the document
   iframe.contentDocument.open();
@@ -217,79 +208,171 @@ function createAndInsertIframeForContent(htmlStr, parentNode, beforeNode,
   iframe.contentDocument.write(htmlStr);
   iframe.contentDocument.write('</body>');
   iframe.contentDocument.close();
-  var iframeBody = iframe.contentDocument.body;
+  var iframeBody = iframe.contentDocument.documentElement;
+  var scrollWidth = iframeBody.scrollWidth;
   var scrollHeight = iframeBody.scrollHeight;
 
-  var newsletterMode = iframeBody.scrollWidth > viewportWidth;
+console.warn('detected width:', scrollWidth, 'height', scrollHeight);
+console.warn('viewport width:', viewportWidth);
+
+  var newsletterMode = scrollWidth > viewportWidth,
+      resizeFrame;
 
   if (newsletterMode) {
-    var scrollWidth = iframeBody.scrollWidth;
-    viewport.appendChild(interacter);
+    var scale = Math.min(1, viewportWidth / scrollWidth),
+        baseScale = scale,
+        lastScale = scale,
+        scaleMode = 0;
+
+    viewport.setAttribute(
+      'style',
+      'padding: 0; border-width: 0; margin: 0; ' +
+      'position: relative; ' +
+      'overflow: hidden;');
+    viewport.style.width = (scrollWidth * scale) + 'px';
+    viewport.style.height = (scrollHeight * scale) + 'px';
 
     if (interactiveMode === 'interactive') {
       // setting iframe.style.height is not sticky, so be heavy-handed:
       iframe.setAttribute(
         'style',
-        'border-width: 0px; overflow: hidden; ' +
+        'padding: 0; border-width: 0; margin: 0; ' +
         'transform-origin: top left; ' +
-        'width: ' + scrollWidth + 'px; ' +
-        'height: ' + scrollHeight + 'px;');
+        'overflow: hidden; ' +
+        'pointer-events: none;');
+console.warn('setting style width to', scrollWidth);
+      iframe.style.width = scrollWidth + 'px';
 
-      var currentPhoto = iframe;
-      var photoState =
-        new PhotoState(iframe, scrollWidth, scrollHeight,
-                       viewportWidth, viewportHeight);
+      resizeFrame = function(updateHeight) {
+        if (updateHeight) {
+          iframe.style.height = '';
+          scrollHeight = iframeBody.scrollHeight;
+        }
+        iframe.style.transform = 'scale(' + scale + ')';
+        iframe.style.height =
+          ((scrollHeight * Math.max(1, scale)) + scrollPad) + 'px';
+        viewport.style.width = (scrollWidth * scale) + 'px';
+console.log('HORIZ:', (scrollWidth * scale));
+        viewport.style.height = ((scrollHeight * scale) + scrollPad) + 'px';
+        console.log('scaling to', scale, 'scrollHeight',
+                    scrollHeight, 'scaled:', scrollHeight * scale);
+console.warn('viewport w', viewport.offsetWidth,
+             'canon w', viewportWidth);
+      };
+      resizeFrame(true);
 
-      var lastScale = photoState.scale, scaleMode = 0;
-      var detector = new GestureDetector(interacter);
+      var zoomFrame = function(newScale, centerX, centerY) {
+        if (newScale === scale)
+          return;
+
+        // Our goal is to figure out how to scroll the window so that the
+        // location on the iframe corresponding to centerX/centerY maintains
+        // its position after zooming.
+
+        // centerX, centerY  are in screen coordinates.  Offset coordinates of
+        // the scrollContainer are screen (card) relative, but those of things
+        // inside the scrollContainer exist within that coordinate space and
+        // do not change as we scroll.
+        console.log('----ZOOM from', scale, 'to', newScale);
+        console.log('cx', centerX, 'cy', centerY,
+                    'vl', viewport.offsetLeft,
+                    'vt', viewport.offsetTop);
+        console.log('sl', scrollContainer.offsetLeft,
+                    'st', scrollContainer.offsetTop);
+
+        // convert them into visible scroll-region relative coordinates
+        // (ignoring what is currently scrolled.)
+        var sx = centerX - scrollContainer.offsetLeft,
+            sy = centerY - scrollContainer.offsetTop;
+
+        // Figure out how much of our iframe is scrolled off the screen.
+        var iframeScrolledTop =
+              scrollContainer.scrollTop - viewport.offsetTop +
+              scrollContainer.offsetTop,
+            iframeScrolledLeft = scrollContainer.scrollLeft;
+
+        // and now convert those into iframe-relative coords
+        var ix = sx + iframeScrolledLeft,
+            iy = sy + iframeScrolledTop;
+
+        var scaleDelta = (scale / newScale);
+
+        var vertScrollDelta = iy * scaleDelta,
+            horizScrollDelta = ix * scaleDelta;
+
+        console.log('ix', ix,
+                    'iy', iy);
+
+        console.warn('vdelt', vertScrollDelta, 'ift',
+                     iframeScrolledTop, 'delt', scaleDelta);
+        console.warn('hdelt', horizScrollDelta,
+                     'ifl', iframeScrolledLeft);
+
+        scale = newScale;
+        resizeFrame();
+        scrollContainer.scrollTop += vertScrollDelta;
+        scrollContainer.scrollLeft += horizScrollDelta;
+      };
+
+      var detectorTarget = viewport;
+      var detector = new GestureDetector(detectorTarget);
       // We don't need to ever stopDetecting since the closures that keep it
       // alive are just the event listeners on the iframe.
       detector.startDetecting();
-      viewport.addEventListener('pan', function(event) {
-        photoState.pan(event.detail.relative.dx,
-                       event.detail.relative.dy);
-      });
-      viewport.addEventListener('dbltap', function(e) {
-        var scale = photoState.scale;
+      detectorTarget.addEventListener('dbltap', function(e) {
 
-        currentPhoto.style.MozTransition = 'all 100ms linear';
-        currentPhoto.addEventListener('transitionend', function handler() {
-          currentPhoto.style.MozTransition = '';
-          currentPhoto.removeEventListener('transitionend', handler);
-        });
-
+console.log('DBL: lastScale', lastScale, 'scale', scale);
+        var newScale = scale;
         if (lastScale === scale) {
           scaleMode = (scaleMode + 1) % 3;
           switch (scaleMode) {
             case 0:
-              scale = photoState.baseScale;
+              newScale = baseScale;
               break;
             case 1:
-              scale = 1;
+              newScale = 1;
               break;
             case 2:
-              scale = 2;
+              newScale = 2;
               break;
           }
-          photoState.scale = lastScale = scale;
-          photoState._reposition();
         }
         else {
-          if (scale > 1)      // If already zoomed in,
-            scale = 1 / scale;  // zoom out to starting scale
-          else                           // Otherwise
-            scale = 2;                   // Zoom in by a factor of 2
-          photoState.zoom(scale, e.detail.clientX, e.detail.clientY);
+          // If already zoomed in, zoom out to starting scale
+          if (scale > 1) {
+            newScale = lastScale;
+            scaleMode = 0;
+          }
+          // Otherwise zoom in to 2x
+          else {
+            newScale = 2;
+            scaleMode = 2;
+          }
         }
+        lastScale = newScale;
+try {
+        zoomFrame(newScale, e.detail.clientX, e.detail.clientY);
+} catch (ex) {
+  console.error('zoom bug!', ex, '\n', ex.stack);
+}
       });
-      viewport.addEventListener('transform', function(e) {
-        photoState.zoom(e.detail.relative.scale,
-                        e.detail.midpoint.clientX,
-                        e.detail.midpoint.clientY);
+      detectorTarget.addEventListener('transform', function(e) {
+        var scaleFactor = e.detail.relative.scale,
+            newScale;
+        // Never zoom in farther than 2x
+        if (baseScale * scale * scaleFactor > 2) {
+          scaleFactor = 2 / (baseScale * scale);
+        }
+        // And never zoom out past
+        else if (scale * scaleFactor < 1) {
+          scaleFactor = 1 / scale;
+        }
+        newScale = scale * scaleFactor;
+        zoomFrame(newScale,
+                  e.detail.midpoint.clientX, e.detail.midpoint.clientY);
       });
     }
     else {
-      var scale = Math.min(1, viewportWidth / scrollWidth);
       iframe.setAttribute(
         'style',
         'border-width: 0px; ' +

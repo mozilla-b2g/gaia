@@ -128,7 +128,10 @@ contacts.List = (function() {
     var searchable = ['givenName', 'familyName', 'org'];
     searchable.forEach(function(field) {
       if (contact[field] && contact[field][0]) {
-        searchInfo.push(contact[field][0]);
+        var value = contact[field][0].trim();
+        if(value.length > 0) {
+          searchInfo.push(value);
+        }
       }
     });
     name.dataset['search'] = normalizeText(searchInfo.join(' '));
@@ -276,7 +279,6 @@ contacts.List = (function() {
       contact = fbContact.merge(fbContacts[fbContact.uid]);
     }
 
-    contact.updated = contact.updated || contact.published || new Date();
     var group = getGroupName(contact);
     counter[group] = counter.hasOwnProperty(group) ? counter[group] + 1 : 0;
     var listContainer = document.getElementById('contacts-list-' + group);

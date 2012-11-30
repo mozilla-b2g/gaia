@@ -176,7 +176,7 @@
         responseSTKCommand({
           resultCode: icc.STK_RESULT_OK
         });
-        if (confirm(options.confirmMessage)) {
+        if (!options.confirmMessage || confirm(options.confirmMessage)) {
           openLink(options.url);
         }
         break;

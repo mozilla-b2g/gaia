@@ -1,24 +1,30 @@
 #landing-time {
-  width: 100%;
   text-align: left;
-  padding: 1.5rem 1.6rem 1.2rem 1.6rem;
+  padding: 4.4rem 0 0 2.5rem;
   color: #fff;
   font-family: 'MozTT', sans-serif;
 }
 
 #landing-clock, #landing-date {
-  text-shadow: 1px 1px 3px #000000;
+  text-shadow: 2px 2px 3px #000000;
   margin: 0;
   padding: 0;
 }
 
 #landing-clock {
-  font-size: -moz-calc(27 * 0.226rem);
+  margin: 0 0 -1rem -0.4rem;
   font-weight: 300;
-  margin-bottom: -1rem;
+}
+
+.numbers {
+  font-size: calc(28 * 0.226rem);
+}
+
+.meridiem {
+  font-size: calc(17 * 0.226rem);
 }
 
 #landing-date {
-  font-size: -moz-calc(8 * 0.226rem);
+  font-size: calc(7 * 0.226rem);
   font-weight: 400;
 }

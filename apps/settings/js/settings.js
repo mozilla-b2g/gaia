@@ -211,8 +211,9 @@ var Settings = {
         var key = spanFields[i].dataset.name;
         if (key && request.result[key] != undefined) {
           // check whether this setting comes from a select option
-          rule = '[data-setting="' + key + '"] [value="' + request.result[key] + '"]';
-          // it may be in a different panel, so query the whole document
+          // (it may be in a different panel, so query the whole document)
+          rule = '[data-setting="' + key + '"] ' +
+            '[value="' + request.result[key] + '"]';
           var option = document.querySelector(rule);
           if (option) {
             spanFields[i].dataset.l10nId = option.dataset.l10nId;
