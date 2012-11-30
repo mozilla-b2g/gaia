@@ -2,6 +2,8 @@
 
 var CallHandler = (function callHandler() {
   var telephony = navigator.mozTelephony;
+  if (!telephony)
+    return;
   telephony.oncallschanged = function oncallschanged() {
     if (callScreenWindowLoaded) {
       if (telephony.calls.length === 0)
