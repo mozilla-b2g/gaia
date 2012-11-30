@@ -89,6 +89,8 @@ suite('calendar - modify events', function() {
     // reset to month view between tests
     yield app.resetSearchTimeout('long');
     yield app.monthView.navigate();
+    var today = yield app.element('todayBtn');
+    yield today.click();
   });
 
   test('add event - without pre-selected date', function() {

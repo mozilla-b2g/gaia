@@ -56,6 +56,7 @@ CalendarIntegration.prototype = {
     showAdvancedSettingsBtn: '#settings a[href="/advanced-settings/"]',
     eventSaveBtn: '#modify-event-view > header .save',
     eventDeleteBtn: '#modify-event-view .delete-record',
+    todayBtn: '#view-selector a[href="#today"]',
 
     /** lists */
     calendarList: '#settings .calendars',

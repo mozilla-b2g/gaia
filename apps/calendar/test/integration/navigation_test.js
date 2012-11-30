@@ -1,6 +1,6 @@
 require('/apps/calendar/test/integration/calendar_integration.js');
 
-suite('calendar - modify events', function() {
+suite('calendar - navigation', function() {
 
   var device;
   var helper = IntegrationHelper;
@@ -67,6 +67,8 @@ suite('calendar - modify events', function() {
   teardown(function() {
     // reset to month view between tests
     yield app.monthView.navigate();
+    var today = yield app.element('todayBtn');
+    yield today.click();
   });
 
   test('day view', function() {
