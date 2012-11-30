@@ -86,6 +86,42 @@ Gaia.externalWebapps.forEach(function (webapp) {
     throw new Error('External webapp `' + webapp.domain + '` doesn\'t have an' +
                     '`origin` file.');
 
+  var removable = undefined;
+
+  // In case of packaged app, just copy `application.zip` and `update.webapp`
+  let appPackage = webapp.sourceDirectoryFile.clone();
+  appPackage.append('application.zip');
+  if (appPackage.exists()) {
+    let updateManifest = webapp.sourceDirectoryFile.clone();
+    updateManifest.append('update.webapp');
+    if (!updateManifest.exists()) {
+      throw new Error('External packaged webapp `' + webapp.domain + '  is ' +
+                      'missing an `update.webapp` file. This JSON file ' +
+                      'contains a `package_path` attribute specifying where ' +
+                      ' download the application zip package from the origin' +
+                      ' specified in `origin` file.');
+    }
+    appPackage.copyTo(webappTargetDir, 'application.zip');
+    updateManifest.copyTo(webappTargetDir, 'update.webapp');
+    removable = true;
+  } else {
+    // Otherwise, we have an offline cache app
+    let srcCacheFolder = webapp.sourceDirectoryFile.clone();
+    srcCacheFolder.append('cache');
+    if (srcCacheFolder.exists()) {
+      let cacheManifest = srcCacheFolder.clone();
+      cacheManifest.append('manifest.appcache');
+      if (!cacheManifest.exists())
+        throw new Error('External webapp `' + webapp.domain + '` has a cache ' +
+                        'directory without `manifest.appcache` file.');
+
+      // Copy recursively the whole cache folder to webapp folder
+      let targetCacheFolder = webappTargetDir.clone();
+      targetCacheFolder.append('cache');
+      copyRec(srcCacheFolder, targetCacheFolder);
+    }
+  }
+
   // Add webapp's entry to the webapps global manifest
   manifests[webappTargetDirName] = {
     origin:        url,
@@ -96,20 +132,6 @@ Gaia.externalWebapps.forEach(function (webapp) {
     localId:       id++
   };
 
-  let srcCacheFolder = webapp.sourceDirectoryFile.clone();
-  srcCacheFolder.append("cache");
-  if (srcCacheFolder.exists()) {
-    let cacheManifest = srcCacheFolder.clone();
-    cacheManifest.append("manifest.appcache");
-    if (!cacheManifest.exists())
-      throw new Error('External webapp `' + webapp.domain + '` has a cache ' +
-                      'directory without `manifest.appcache` file.');
-
-    // Copy recursively the whole cache folder to webapp folder
-    let targetCacheFolder = webappTargetDir.clone();
-    targetCacheFolder.append("cache");
-    copyRec(srcCacheFolder, targetCacheFolder);
-  }
 });
 
 // Write webapps global manifest

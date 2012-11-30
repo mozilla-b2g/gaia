@@ -71,8 +71,13 @@ function ensureFolderExists(file) {
 }
 
 function getJSON(file) {
+  try {
   let content = getFileContent(file);
   return JSON.parse(content);
+  } catch(e) {
+    dump('Invalid JSON file : ' + file.path + '\n');
+    throw e;
+  }
 }
 
 function makeWebappsObject(dirs) {
