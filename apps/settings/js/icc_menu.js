@@ -29,9 +29,9 @@
       var cmd = reqIccData.result['icc.data'];
       if (cmd) {
         var iccCommand = JSON.parse(cmd);
-        debug("ICC async command (launcher): ", iccCommand);
+        debug('ICC async command (launcher): ', iccCommand);
         if (iccCommand) {        // Open ICC section
-          window.location.replace("app://settings.gaiamobile.org/index.html#icc");
+          window.location.replace('app://settings.gaiamobile.org/index.html#icc');
         }
       }
     }

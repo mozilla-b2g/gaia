@@ -71,13 +71,13 @@
       var cmd = reqIccData.result['icc.data'];
       if (cmd) {
         var iccCommand = JSON.parse(cmd);
-        debug("ICC async command: ", iccCommand);
+        debug('ICC async command: ', iccCommand);
         reqIccData = window.navigator.mozSettings.createLock().set({
-          'icc.data': ""
+          'icc.data': ''
         });
         if (iccCommand) {        // Open ICC section
-          var event = new CustomEvent("stkasynccommand", {
-            detail: { "command": iccCommand }
+          var event = new CustomEvent('stkasynccommand', {
+            detail: { 'command': iccCommand }
           });
           window.dispatchEvent(event);
         }
