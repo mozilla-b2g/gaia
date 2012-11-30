@@ -65,17 +65,17 @@
     // Load STK apps
     updateMenu();
 
-    // Check if async message was arrived
+    // Check if async message has arrived
     var reqIccData = window.navigator.mozSettings.createLock().get('icc.data');
     reqIccData.onsuccess = function icc_getIccData() {
       var cmd = reqIccData.result['icc.data'];
-      if(cmd && cmd != "") {
+      if (cmd) {
         var iccCommand = JSON.parse(cmd);
         debug("ICC async command: ", iccCommand);
         reqIccData = window.navigator.mozSettings.createLock().set({
           'icc.data': ""
         });
-        if(iccCommand && iccCommand != "") {        // Open ICC section
+        if (iccCommand) {        // Open ICC section
           var event = new CustomEvent("stkasynccommand", {
             detail: { "command": iccCommand }
           });

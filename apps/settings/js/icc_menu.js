@@ -27,10 +27,10 @@
     var reqIccData = window.navigator.mozSettings.createLock().get('icc.data');
     reqIccData.onsuccess = function icc_getIccData() {
       var cmd = reqIccData.result['icc.data'];
-      if(cmd && cmd != "") {
+      if (cmd) {
         var iccCommand = JSON.parse(cmd);
         debug("ICC async command (launcher): ", iccCommand);
-        if(iccCommand && iccCommand != "") {        // Open ICC section
+        if (iccCommand) {        // Open ICC section
           window.location.replace("app://settings.gaiamobile.org/index.html#icc");
         }
       }
