@@ -50,6 +50,10 @@ if (!ImageLoader) {
         var src = tmp.src = image.dataset.src;
         tmp.addEventListener('load', function onload() {
           image.src = src;
+
+          if (src.substring(0, 'blob:'.length) === 'blob:')
+            window.URL.revokeObjectURL(src);
+
           image.hidden = false;
           tmp.removeEventListener('load', onload);
         });
