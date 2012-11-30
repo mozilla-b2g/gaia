@@ -165,72 +165,24 @@ h2.block-title {
   pointer-events: none;
 }
 
-#shortcuts {
-  position: fixed;
-  right: 0;
-  top: 5rem;
-  bottom: 1rem;
-  height: calc(100% - 6.6rem - 6.5rem);
-  width: 4.5rem;
-  background: transparent !important;
-  z-index:100;
-}
-
-#shortcuts ol li[data-letter] {
-  display:block;
-}
-
-#shortcuts ol {
-  height: 100%;
-  padding: 0.3rem 0;
-  padding-left: 1rem;
-  opacity: 0.6;
-  width: 100%;
-}
-
-#shortcuts li {
-  font-size: 1.0rem;
-  line-height: 1.3em;
-  text-align: center;
-  text-transform: uppercase;
-  width:100%;
-}
-
-#shortcuts  a, #shortcuts  abbr {
-  display: block;
-  color: #333;
-  width: 100%;
-}
-
-
 abbr, acronym {
   cursor: default;
   border: none;
 }
 
+/* JUMPER */
 
-#shortcuts #current {
-  position: fixed;
-  right: 4rem;
-  top: 30%;
-  width: 10.5rem;
-  height: 10.5rem;
-
-  pointer-events: none;
-  background: rgba(0, 0, 0, 0.7);
-  font: 6rem/10.5rem System Sans Light, Sans-serif;
-  color: #fff;
-  text-align: center;
-  -moz-transition: opacity;
-  opacity: 0;
-
-  display: block;
-  text-indent: 1.5rem;
-
-  z-index: 20;
+nav[data-type="scrollbar"] {
+  height: calc(100% - 6.6rem - 6.5rem);
+  background: transparent !important;
+  z-index:100;
 }
 
-#shortcuts li * {
+nav[data-type="scrollbar"] li {
+  line-height: 1.3rem;
+}
+
+nav[data-type="scrollbar"] ol > li > * {
   pointer-events: none;
 }
 

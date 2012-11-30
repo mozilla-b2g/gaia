@@ -133,15 +133,6 @@ section[role="region"] > header:first-child sup {
   pointer-events: none;
 }
 
-.view-jumper-inner > li > * {
-  pointer-events: none;
-}
-
-.view-jumper span[role="button"] {
-  display: inline-block;
-  margin-right: 0;
-}
-
 /* Edit contact section */
 .view-edit-contact .tail-actions {
   padding-top: 0.7rem;
@@ -373,7 +364,7 @@ fieldset legend.action:after {
 
 /* Contacts in comms application */
 @media screen and (max-height: 450px) and (min-height: 420px) {
- .view-jumper li {
+ nav[data-type="scrollbar"] li {
   font-size: 1.05rem;
   line-height: 1.23rem;
  }

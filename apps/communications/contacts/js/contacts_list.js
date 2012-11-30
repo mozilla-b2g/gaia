@@ -20,7 +20,7 @@ contacts.List = (function() {
 
     cancel = document.getElementById('cancel-search'),
     conctactsListView = document.getElementById('view-contacts-list'),
-    fastScroll = document.querySelector('.view-jumper'),
+    fastScroll = document.querySelector('nav[data-type="scrollbar"]'),
     scrollable = document.querySelector('#groups-container');
     settingsView = document.querySelector('#view-settings .view-body-inner');
     noContacts = document.querySelector('#no-contacts');
@@ -44,13 +44,11 @@ contacts.List = (function() {
   }
 
   var initAlphaScroll = function initAlphaScroll() {
-    var overlay = document.querySelector('.view-jumper-current');
-    var overlayContent = document.querySelector('#current-jumper');
-    var jumper = document.querySelector('.view-jumper-inner');
+    var overlay = document.querySelector('nav[data-type="scrollbar"] p');
+    var jumper = document.querySelector('nav[data-type="scrollbar"] ol');
 
     var params = {
       overlay: overlay,
-      overlayContent: overlayContent,
       jumper: jumper,
       groupSelector: '#group-',
       scrollToCb: scrollToCb
@@ -129,7 +127,7 @@ contacts.List = (function() {
     searchable.forEach(function(field) {
       if (contact[field] && contact[field][0]) {
         var value = contact[field][0].trim();
-        if(value.length > 0) {
+        if (value.length > 0) {
           searchInfo.push(value);
         }
       }
@@ -240,11 +238,11 @@ contacts.List = (function() {
       }
 
       window.setTimeout(function() {
-        renderChunks(index+1);
+        renderChunks(index + 1);
       }, 0);
     }
 
-    renderChunks(0)
+    renderChunks(0);
   };
 
   var toggleNoContactsScreen = function cl_toggleNoContacs(show) {
