@@ -13,7 +13,6 @@
     "power":{},
     "webapps-manage":{},
     "mobileconnection":{},
-    "mozBluetooth":{},
     "bluetooth":{},
     "telephony":{},
     "voicemail":{},
