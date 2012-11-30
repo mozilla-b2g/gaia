@@ -88,7 +88,7 @@
 /* text label */
 .apps ol > li > div > span > span {
   font-size: -moz-calc(5.75 * 0.226rem); /* was 5pt */
-  text-shadow: 1px 1px 3px rgba(0,0,0,0.6);
+  text-shadow: 0.1rem 0.1rem 0.3rem rgba(0,0,0,0.6);
 }
 
 .labelWrapper {
@@ -106,11 +106,11 @@
 
 /* Alternative icons when an app is being installed */
 .loading:after {
-  margin: 8px;
+  margin: 0.8rem;
   content: "";
   position: absolute;
-  left: 0px;
-  top: 0px;
+  left: 0;
+  top: 0;
   z-index: 30000;
   width: 6rem;
   height: 6rem;
