@@ -173,7 +173,6 @@ var UpdateManager = {
     this.downloadDialogList.innerHTML = '';
     this.updatesQueue.forEach(function updatableIterator(updatable, index) {
       var listItem = document.createElement('li');
-      listItem.textContent = updatable.name;
 
       // The user can choose not to update an app
       var checkContainer = document.createElement('label');
@@ -193,6 +192,11 @@ var UpdateManager = {
         checkContainer.appendChild(span);
       }
       listItem.appendChild(checkContainer);
+
+      var name = document.createElement('div');
+      name.classList.add('name');
+      name.textContent = updatable.name;
+      listItem.appendChild(name);
 
       if (updatable.size) {
         var sizeItem = document.createElement('div');
