@@ -52,9 +52,12 @@ var StatusBar = {
    */
   systemDownloadsCount: 0,
 
-  /* For other app to acquire */
+  /* For other modules to acquire */
   get height() {
-    if (this.screen.classList.contains('active-statusbar')) {
+    if (this.screen.classList.contains('fullscreen-app') ||
+        document.querySelector('#screen:-moz-full-screen-ancestor')) {
+      return 0;
+    } else if (this.screen.classList.contains('active-statusbar')) {
       return this.attentionBar.offsetHeight;
     } else {
       return this.element.offsetHeight;
