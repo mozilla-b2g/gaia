@@ -98,6 +98,8 @@ var Navigation = {
       case '#languages':
         UIManager.progressBar.className = 'step-state step-1';
         UIManager.mainTitle.innerHTML = _('language');
+        // Hide refresh button in case we end up here coming back from wifi
+        UIManager.activationScreen.classList.add('no-options');
         break;
       case '#data_3g':
         UIManager.progressBar.className = 'step-state step-2';
