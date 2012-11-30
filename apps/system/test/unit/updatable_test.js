@@ -185,7 +185,7 @@ suite('system/Updatable', function() {
       });
     });
 
-    suite('cancel download', function() {
+    suite('cancel app update download', function() {
       setup(function() {
         subject.cancelDownload();
       });
@@ -199,14 +199,22 @@ suite('system/Updatable', function() {
       test('should call cancelDownload on the app', function() {
         assert.isTrue(mockApp.mCancelCalled);
       });
+    });
 
-      test('should send cancel message for system updates', function() {
+    suite('cancel system update download', function() {
+      setup(function() {
         subject = new SystemUpdatable(42);
         subject._dispatchEvent = fakeDispatchEvent;
         subject.cancelDownload();
+      });
 
-        assert.equal('update-download-cancel', lastDispatchedEvent.type);
+      test('should remove self from active downloads', function() {
+        assert.isNotNull(MockUpdateManager.mLastDownloadsRemoval);
         assert.equal(subject, MockUpdateManager.mLastDownloadsRemoval);
+      });
+
+      test('should send cancel message', function() {
+        assert.equal('update-download-cancel', lastDispatchedEvent.type);
       });
     });
   });
