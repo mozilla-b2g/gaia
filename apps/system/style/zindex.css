@@ -182,6 +182,7 @@
 
 /* We promotes the following overlays on top of the fullscreen web content. */
 
+#screen:-moz-full-screen-ancestor > [data-z-index-level="sleep-menu"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="list-menu"],
 #screen.locked:-moz-full-screen-ancestor > [data-z-index-level="statusbar"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="lockscreen"],
