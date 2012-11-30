@@ -109,14 +109,18 @@ suite('calendar - modify events', function() {
   test('add event - different day selected', function() {
     var now = yield app.remoteDate();
 
-    // remove the time information
     now = Calendar.Calc.createDay(now);
 
-    // increment to tomorrow
-    now.setDate(now.getDate() + 3);
+    // we move to the next month to avoid issues
+    // where we run out of dates to pick in the current month.
+    now.setDate(25);
+    now.setMonth(now.getMonth() + 1);
+
+    yield app.monthView.forward();
 
     // tap the next day in the month view
     var dayEl = yield app.monthView.dateElement(now);
+
     yield app.waitUntilElement(dayEl, 'displayed');
     yield dayEl.click();
 

@@ -24,6 +24,20 @@ MonthView.prototype = {
   },
 
   /**
+   * Swipes forward.
+   */
+  forward: function(callback) {
+    this.swipe('right', callback);
+  },
+
+  /**
+   * Swipes back.
+   */
+  back: function(callback) {
+    this.swipe('left', callback);
+  },
+
+  /**
    * Finds the element representing a
    * given date. Will not navigate
    * the calendar to new months only search
