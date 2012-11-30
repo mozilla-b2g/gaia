@@ -286,12 +286,9 @@ fieldset legend.action:after {
   Loading screen while loading contacts
 */
 
-.show-overlay {
-  opacity: 1!important;
-}
-
 #loading-overlay {
   pointer-events: none;
+  display: none;
   z-index: 200;
   background: rgba(0,0,0,.8);
   width: 100%;
@@ -300,9 +297,11 @@ fieldset legend.action:after {
   top: 0;
   left: 0;
   padding: 2rem;
-  opacity: 0;
   -moz-box-sizing: border-box;
-  transition: opacity 0.3s ease-out;
+}
+
+#loading-overlay.show-overlay {
+  display: block;
 }
 
 .loading-container {
