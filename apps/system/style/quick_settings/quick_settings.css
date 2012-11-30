@@ -1,3 +1,8 @@
+html, body {
+  font-family: 'MozTT', sans-serif;
+  font-size: 10px;
+}
+
 #quick-settings {
   display: block;
   width: 100%;
@@ -17,13 +22,12 @@
   height: 30px;
   margin: 15px 0;
   padding: 0;
-
   color: #fff;
   text-align: center;
   text-decoration: none;
   outline: none;
-  font-size: 14px;
-  line-height: 18px;
+  font-size: 1.4rem;
+  line-height: 1.8rem;
 
   border-right: 1px black solid;
   border-left: 1px gray solid;
