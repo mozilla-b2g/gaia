@@ -67,7 +67,7 @@ input[type="image"] {
 }
 
 #tray {
-  font-size: 16px;
+  font-size: 1.7rem;
   -moz-transition: 0.2s ease-in-out;
   position: absolute;
   left: 50px;
@@ -87,7 +87,7 @@ input[type="image"] {
   border: 0;
   color: white;
   background: black;
-  font-size: 16px;
+  font-size: 1.7rem;
   padding: 5px;
   cursor: pointer;
 }
@@ -164,7 +164,7 @@ input[type="image"] {
   width: 50px;
   top: 0;
   background: transparent;
-  font-size: 28px;
+  font-size: 2.8rem;
   color: white;
   padding-bottom: 7px;
 }
@@ -202,7 +202,7 @@ input[type="image"] {
   position: absolute;
   right: 0px;
   top: 0;
-  font-size: 22px;
+  font-size: 2.3rem;
   color: white;
   display: block;
   width: 44px;
@@ -218,7 +218,7 @@ input[type="image"] {
 }
 
 #more-tabs {
-  font-size: 1.2em;
+  font-size: 2.8rem;
 }
 
 #toolbar-start {
@@ -323,7 +323,7 @@ input[type="image"] {
 
 #url-input {
   font-family: 'MozTT', sans-serif;
-  font-size: 18px;
+  font-size: 1.7rem;
   height: 34px;
   -moz-box-flex: 1;
   margin: 0;
@@ -414,7 +414,7 @@ input::-moz-focus-inner {
 }
 
 #awesomescreen, #crashscreen, #startscreen {
-  font-size: 16px;
+  font-size: 1.7rem;
   position: absolute;
   top: 0;
   left: 0;
@@ -439,12 +439,12 @@ input::-moz-focus-inner {
 }
 
 #startscreen h1 {
-  font-size: 24px;
+  font-size: 2.5rem;
   margin: 10px 15px;
 }
 
 #startscreen h2 {
-  font-size: 14px;
+  font-size: 1.4rem;
   margin: 0 0 15px 15px;
 }
 
@@ -485,7 +485,7 @@ input::-moz-focus-inner {
 }
 
 #top-site-thumbnails li span {
-  font-size: 12px;
+  font-size: 1.4rem;
   display: block;
   width: 134px;
   height: 15px;
@@ -517,7 +517,7 @@ input::-moz-focus-inner {
 }
 
 #crashscreen h3 {
-  font-size: 2rem;
+  font-size: 2.1rem;
   font-weight: normal;
 }
 
@@ -527,7 +527,7 @@ input::-moz-focus-inner {
 }
 
 #crashscreen p {
-  font-size: 1.6rem;
+  font-size: 1.7rem;
 }
 
 #crashscreen menu[type="toolbar"] {
@@ -551,7 +551,7 @@ input::-moz-focus-inner {
   background: #fafafa url('images/button-background.png') repeat-x left bottom;
   border: 0.1rem solid #9f9f9f;
   border-radius: 0.3rem;
-  font-size: 1.6rem;
+  font-size: 1.7rem;
   font-family: 'MozTT', Sans-serif;
   line-height: 3.8rem;
   color: #333;
@@ -622,7 +622,7 @@ li[role="tab"] a {
   line-height: 36px;
   text-align: center;
   padding: 0 30px;
-  font-size: 14px;
+  font-size: 1.4rem;
   outline: none;
   margin-left: -30px;
   text-overflow: ellipsis;
@@ -656,7 +656,7 @@ section[role="tabpanel"].selected {
 }
 
 #awesomescreen h3 {
-  font-size: 0.9em;
+  font-size: 1.4rem;
   margin: 0 10px;
   color: #FF5F19;
   border-bottom: solid 1px #FF5F19;
@@ -700,7 +700,7 @@ li[role="listitem"] h5 {
   overflow: hidden;
   white-space: nowrap;
   pointer-events: none;
-  font-size: 14px;
+  font-size: 1.4rem;
 }
 
 li[role="listitem"] small {
@@ -712,7 +712,7 @@ li[role="listitem"] small {
 }
 
 .highlight {
-  font-weight: bold;
+  font-weight: 500;
   text-decoration: underline;
 }
 
@@ -848,7 +848,7 @@ li[role="listitem"] small {
 }
 
 #settings {
-  font-size: 16px;
+  font-size: 1.7rem;
   position: absolute;
   left: 0px;
   top: 0;
@@ -954,7 +954,7 @@ li[role="listitem"] small {
   position: relative;
   margin: 1rem 2rem;
   text-transform: uppercase;
-  font-size: 1.5rem;
+  font-size: 1.4rem;
  }
 
  #bookmark-entry-sheet input[type="text"],
