@@ -447,7 +447,6 @@ contacts.List = (function() {
     FB data on the mozContacts DB.
   */
   var addToList = function addToList(contact, enrichedContact) {
-    var newLi;
 
     var theContact = contact;
 
@@ -457,7 +456,7 @@ contacts.List = (function() {
 
     var group = getGroupName(theContact);
 
-    var list = groupsList.querySelector('#contacts-list-' + group);
+    var list = document.getElementById('contacts-list-' + group);
 
     addToGroup(theContact, list);
 
@@ -505,22 +504,8 @@ contacts.List = (function() {
     var len = liElems.length;
     for (var i = 0; i < len; i++) {
       var liElem = liElems[i];
-      var familyName = liElem.querySelector('p > strong').textContent.trim();
-      var givenName = liElem.querySelector('p');
-
-      if (!orderByLastName) {
-        var aux = familyName;
-        familyName = givenName;
-        givenName = aux;
-      } else {
-        givenName = givenName.childNodes[0].nodeValue.trim();
-      }
-
-      var name = getStringToBeOrdered({
-        familyName: [familyName],
-        givenName: [givenName]
-      });
-      if (name >= cName) {
+      var name = liElem.querySelector('p').dataset.search;
+      if (name.localeCompare(cName) >= 0) {
         newLi = renderContact(contact);
         list.insertBefore(newLi, liElem);
         break;
