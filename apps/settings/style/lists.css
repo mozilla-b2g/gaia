@@ -32,7 +32,7 @@ ul li > span {
   color: #000;
   -moz-box-sizing: border-box;
   height: 6rem;
-  font-size: 1.8rem;
+  font-size: 1.9rem;
   line-height: 6rem;
   padding: 0 3rem;
 }
@@ -64,7 +64,7 @@ ul li > small {
   right: 3rem;
   top: 50%;
   padding-top: 0.4rem;
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   color: #505859;
   /* click/tap events should be caught by the <a> element below the <small> */
   pointer-events: none;
@@ -89,7 +89,7 @@ ul li a[role="button"] {
   position: relative;
   top: 1rem;
   left: 2rem;
-  font-size: 1.5rem;
+  font-size: 1.7rem;
   line-height: 1em;
   width: calc(100% - 5rem);
   height: calc(100% - 2rem);
@@ -124,7 +124,7 @@ ul li > label:not([for]) ~ a {
  */
 
 ul li p {
-  font-size: 1.8rem;
+  font-size: 1.9rem;
   font-weight: 400;
   margin: 0;
   padding: 1rem 3rem;
@@ -236,7 +236,7 @@ ul li > label.bug344618_polyfill div span:last-child:active {
  */
 
 ul li select {
-  font-size: 1.8rem;
+  font-size: 1.9rem;
   height: 3rem;
   line-height: 3rem;
   text-align: center;
@@ -276,12 +276,12 @@ ul li progress, ul li meter {
  */
 
 dl > * {
-  font-size: 1.6em;
+  font-size: 1.7em;
 }
 
 dl dt {
   padding-left: 3rem;
-  font-weight: bold;
+  font-weight: 500;
   border-bottom: 0.1rem solid black;
 }
 
