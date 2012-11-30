@@ -16,7 +16,7 @@ window.addEventListener('localized', function showPanel() {
     activity = activityRequest;
     if (settings && bluetooth &&
         (activity.source.name == 'share') &&
-        (activity.source.data.filenames != null)) {
+        (activity.source.data.filepaths != null)) {
       isBluetoothEnabled();
     } else {
       var msg = 'Cannot transfer without blobs data!';
@@ -41,6 +41,10 @@ window.addEventListener('localized', function showPanel() {
   var deviceCancelButton =
     document.getElementById('device-select-button-cancel');
   var deviceOkButton = document.getElementById('device-select-button-ok');
+  // Don't let this form accidentally get submitted
+  document.getElementById('select-option-popup').onsubmit =
+    function handleSubmit(e) { e.preventDefault(); };
+
   var _debug = false;
 
   function debug(msg) {
@@ -110,7 +114,10 @@ window.addEventListener('localized', function showPanel() {
     };
   }
 
-  function cancelTransfer() {
+  function cancelTransfer(evt) {
+    if (evt)
+      evt.preventDefault();
+
     dialogConfirmBluetooth.hidden = true;
     dialogDeviceSelector.hidden = true;
     activity.postError('cancelled');
@@ -219,7 +226,7 @@ window.addEventListener('localized', function showPanel() {
     evt.target.setAttribute('aria-checked', 'true');
   }
 
-  function transferToDevice() {
+  function transferToDevice(evt) {
     var selectee =
       deviceSelectorContainers.querySelectorAll('[aria-checked="true"]');
     deviceSelect.selectedIndex = selectee[0].dataset.optionIndex;
@@ -232,9 +239,9 @@ window.addEventListener('localized', function showPanel() {
       // XXX: Bug 811615 - Miss file name when passing file by Web Activity.
       // If above issue is fixed,
       // we could refine following code to pass blob to API directly.
-      var filenames = activity.source.data.filenames;
+      var filepaths = activity.source.data.filepaths;
       var storage = navigator.getDeviceStorage('sdcard');
-      var getRequest = storage.get(filenames[0]);
+      var getRequest = storage.get(filepaths[0]);
 
       getRequest.onsuccess = function() {
         defaultAdapter.sendFile(targetDevice.address, getRequest.result);
