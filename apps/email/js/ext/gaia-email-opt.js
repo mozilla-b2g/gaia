@@ -20482,7 +20482,12 @@ SmtpProber.prototype = {
           for (let [,listener] in Iterator(this.listeners)) {
             if (this._pathMatches(fullPath, listener.path)) {
               node.children = [];
-              listener.callback(node);
+              try {
+                listener.callback(node);
+              }
+              catch (e) {
+                console.error(e);
+              }
             }
           }
 
@@ -20501,7 +20506,12 @@ SmtpProber.prototype = {
           for (let [,listener] in Iterator(this.listeners)) {
             if (this._pathMatches(fullPath, listener.path)) {
               recording--;
-              listener.callback(recPath[recPath.length-1]);
+              try {
+                listener.callback(recPath[recPath.length-1]);
+              }
+              catch (e) {
+                console.error(e);
+              }
             }
           }
 
