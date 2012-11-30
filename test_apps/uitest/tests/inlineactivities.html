@@ -11,15 +11,6 @@
     </style>
     <script>
 
-    // XXX: we should not use this to dismiss inline disposition app frame,
-    // see https://bugzilla.mozilla.org/show_bug.cgi?id=789392
-    var reopenApp = function reopen() {
-      navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
-        var app = evt.target.result;
-        app.launch();
-      };
-    };
-
     var go = function _go() {
       var a = new MozActivity(
         {
@@ -31,12 +22,10 @@
       );
 
       a.onsuccess = function () {
-        reopenApp();
         document.getElementById('result').textContent = this.result.text;
       };
 
       a.onerror = function() {
-        reopenApp();
         document.getElementById('result').textContent = '(canceled)';
       };
     };
