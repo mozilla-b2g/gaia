@@ -78,9 +78,6 @@ Icon.prototype = {
 
     // Icon container
     var icon = this.icon = document.createElement('div');
-    if (this.downloading) {
-      icon.classList.add('loading');
-    }
 
     // Image
     var img = this.img = new Image();
@@ -118,10 +115,18 @@ Icon.prototype = {
       // Menu button to delete the app
       var options = document.createElement('span');
       options.className = 'options';
+      options.dataset.isIcon = true;
       container.appendChild(options);
     }
 
     target.appendChild(container);
+
+    if (this.downloading) {
+      //XXX: Bug 816043 We need to force the repaint to show the span
+      // with the label and the animation (associated to the span)
+      container.style.visibility = 'visible';
+      icon.classList.add('loading');
+    }
   },
 
   fetchImageData: function icon_fetchImageData() {
@@ -172,7 +177,7 @@ Icon.prototype = {
 
     if (this.icon && !this.downloading) {
       this.icon.classList.remove('loading');
-    } 
+    }
 
     img.onload = function icon_loadSuccess() {
       if (blob)
@@ -456,7 +461,7 @@ Page.prototype = {
     var container = this.movableContainer;
     var style = container.style;
     style.MozTransform = 'translateX(' + scrollX + 'px)';
-    style.MozTransition = '-moz-transform ' + duration + 's ease';
+    style.MozTransition = '-moz-transform ' + duration + 'ms ease';
   },
 
   /*
@@ -695,14 +700,14 @@ dockProto.moveByWithEffect = function dk_moveByWithEffect(scrollX, duration) {
   var container = this.movableContainer;
   var style = container.style;
   style.MozTransform = 'translateX(' + scrollX + 'px)';
-  style.MozTransition = '-moz-transform ' + duration + 's ease';
+  style.MozTransition = '-moz-transform ' + duration + 'ms ease';
 };
 
 dockProto.moveByWithDuration = function dk_moveByWithDuration(scrollX,
                                                               duration) {
   var style = this.movableContainer.style;
   style.MozTransform = 'translateX(' + scrollX + 'px)';
-  style.MozTransition = '-moz-transform ' + duration + 's ease';
+  style.MozTransition = '-moz-transform ' + duration + 'ms ease';
 };
 
 

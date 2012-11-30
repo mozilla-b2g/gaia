@@ -40,6 +40,12 @@ function VideoPlayer(container) {
   var pausedBeforeDragging = false;
   var screenLock; // keep the screen on when playing
   var endedTimer;
+  var rotation;   // Do we have to rotate the video? Set by load()
+
+  this.load = function(url, rotate) {
+    rotation = rotate || 0;
+    player.src = url;
+  };
 
   // Set up everything for the initial paused state
   this.pause = function pause() {
@@ -183,28 +189,62 @@ function VideoPlayer(container) {
   function setPlayerSize() {
     var containerWidth = container.clientWidth;
     var containerHeight = container.clientHeight;
-    var videoWidth = player.videoWidth;
-    var videoHeight = player.videoHeight;
 
     // Don't do anything if we don't know our size.
     // This could happen if we get a resize event before our metadata loads
-    if (!videoWidth || !videoHeight)
+    if (!player.videoWidth || !player.videoHeight)
       return;
 
-    var xscale = containerWidth / videoWidth;
-    var yscale = containerHeight / videoHeight;
+
+    var width, height; // The size the video will appear, after rotation
+    switch (rotation) {
+    case 0:
+    case 180:
+      width = player.videoWidth;
+      height = player.videoHeight;
+      break;
+    case 90:
+    case 270:
+      width = player.videoHeight;
+      height = player.videoWidth;
+    }
+
+    var xscale = containerWidth / width;
+    var yscale = containerHeight / height;
     var scale = Math.min(xscale, yscale);
+    var transform = '';
 
     // scale large videos down, but don't scale small videos up
     if (scale < 1) {
-      videoWidth *= scale;
-      videoHeight *= scale;
+      width *= scale;
+      height *= scale;
+      transform = 'scale(' + scale + ') ';
     }
 
-    player.style.width = videoWidth + 'px';
-    player.style.height = videoHeight + 'px';
-    player.style.left = ((containerWidth - videoWidth) / 2) + 'px';
-    player.style.top = ((containerHeight - videoHeight) / 2) + 'px';
+    var left = ((containerWidth - width) / 2);
+    var top = ((containerHeight - height) / 2);
+
+    switch (rotation) {
+    case 0:
+      transform += 'translate(' + left + 'px,' + top + 'px)';
+      break;
+    case 90:
+      transform +=
+        'translate(' + (left + width) + 'px,' + top + 'px) ' +
+        'rotate(90deg)';
+      break;
+    case 180:
+      transform +=
+        'translate(' + (left + width) + 'px,' + (top + height) + 'px) ' +
+        'rotate(180deg)';
+      break;
+    case 270:
+      transform +=
+        'translate(' + left + 'px,' + (top + height) + 'px) ' +
+        'rotate(270deg)';
+      break;
+    }
+    player.style.transform = transform;
   }
 
   // handle drags on the time slider

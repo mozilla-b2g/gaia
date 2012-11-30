@@ -5,25 +5,6 @@
 
 (function() {
   /**
-   * Constants
-   */
-  var displayTextTimeout = 10000;
-  var DEBUG = false;
-
-  /**
-   * Debug method
-   */
-  function debug(msg, optObject) {
-    if (DEBUG) {
-      var output = '[DEBUG] STKUI: ' + msg;
-      if (optObject) {
-        output += JSON.stringify(optObject);
-      }
-      console.log(output);
-    }
-  }
-
-  /**
    * Init
    */
   var iccMenuItem = document.getElementById('menuItem-icc');
@@ -45,27 +26,34 @@
    * Init STK UI
    */
   function init() {
-    if (navigator.mozMobileConnection) {
-      icc = navigator.mozMobileConnection.icc;
-
-      icc.onstksessionend = function handleSTKSessionEnd(event) {
-        updateMenu();
-      };
-
-      document.getElementById('icc-stk-app-back').onclick = function goBack() {
-        responseSTKCommand({
-          resultCode: icc.STK_RESULT_BACKWARD_MOVE_BY_USER
-        });
-      };
-
-      window.onunload = function() {
-        responseSTKCommand({
-          resultCode: icc.STK_RESULT_NO_RESPONSE_FROM_USER
-        }, true);
-      };
-
-      navigator.mozSetMessageHandler('icc-stkcommand', handleSTKCommand);
+    if (!window.navigator.mozMobileConnection) {
+      return;
     }
+
+    icc = window.navigator.mozMobileConnection.icc;
+
+    icc.onstksessionend = function handleSTKSessionEnd(event) {
+      updateMenu();
+    };
+
+    document.getElementById('icc-stk-app-back').onclick = function goBack() {
+      responseSTKCommand({
+        resultCode: icc.STK_RESULT_BACKWARD_MOVE_BY_USER
+      });
+    };
+
+    window.onunload = function() {
+      responseSTKCommand({
+        resultCode: icc.STK_RESULT_NO_RESPONSE_FROM_USER
+      }, true);
+    };
+
+    icc.addEventListener('stkcommand', function do_handleSTKCmd(event) {
+      handleSTKCommand(event.command);
+    });
+    window.addEventListener('stkasynccommand', function do_handleAsyncSTKCmd(event) {
+      handleSTKCommand(event.detail.command);
+    });
 
     /**
      * Open STK main application
@@ -73,6 +61,28 @@
     iccMenuItem.onclick = function onclick() {
       updateMenu();
     };
+
+    // Load STK apps
+    updateMenu();
+
+    // Check if async message has arrived
+    var reqIccData = window.navigator.mozSettings.createLock().get('icc.data');
+    reqIccData.onsuccess = function icc_getIccData() {
+      var cmd = reqIccData.result['icc.data'];
+      if (cmd) {
+        var iccCommand = JSON.parse(cmd);
+        debug('ICC async command: ', iccCommand);
+        reqIccData = window.navigator.mozSettings.createLock().set({
+          'icc.data': ''
+        });
+        if (iccCommand) {        // Open ICC section
+          var event = new CustomEvent('stkasynccommand', {
+            detail: { 'command': iccCommand }
+          });
+          window.dispatchEvent(event);
+        }
+      }
+    }
   }
 
   /**
@@ -101,15 +111,6 @@
     var options = command.options;
 
     switch (command.typeOfCommand) {
-      case icc.STK_CMD_SET_UP_MENU:
-        window.asyncStorage.setItem('stkMainAppMenu', options);
-        updateMenu();
-        iccLastCommandProcessed = true;
-        responseSTKCommand({
-          resultCode: icc.STK_RESULT_OK
-        });
-        break;
-
       case icc.STK_CMD_SELECT_ITEM:
         updateSelection(command);
         openSTKApplication();
@@ -198,7 +199,7 @@
         responseSTKCommand({
           resultCode: icc.STK_RESULT_OK
         });
-        if (confirm(options.confirmMessage)) {
+        if (!options.confirmMessage || confirm(options.confirmMessage)) {
           openLink(options.url);
         }
         break;
@@ -211,7 +212,7 @@
         break;
 
       case icc.STK_CMD_PLAY_TONE:
-        debug(' STK:Play Tone: ',otions);
+        debug(' STK:Play Tone: ', options);
         playTone(options);
         iccLastCommandProcessed = true;
         responseSTKCommand({ resultCode: icc.STK_RESULT_OK });
@@ -237,7 +238,7 @@
       case icc.STK_EVENT_TYPE_CALL_CONNECTED:
       case icc.STK_EVENT_TYPE_CALL_DISCONNECTED:
         debug(' STK: Registering to communications changes event');
-        var comm = navigator.mozTelephony;
+        var comm = window.navigator.mozTelephony;
         comm.addEventListener('callschanged', handleCallsChangedEvent);
         break;
       case icc.STK_EVENT_TYPE_LOCATION_STATUS:
@@ -259,7 +260,7 @@
       case icc.STK_EVENT_TYPE_NETWORK_SEARCH_MODE_CHANGED:
       case icc.STK_EVENT_TYPE_BROWSING_STATUS:
       case icc.STK_EVENT_TYPE_FRAMES_INFORMATION_CHANGED:
-        debug(' [DEBUG] STK TODO event: ' + JSON.stringify(eventList[evt]));
+        debug(' [DEBUG] STK TODO event: ', eventList[evt]);
         break;
       }
     }
@@ -306,7 +307,7 @@
       return;
     }
     debug(' STK Communication changed - ' + evt.type);
-    navigator.mozTelephony.calls.forEach(function callIterator(call) {
+    window.navigator.mozTelephony.calls.forEach(function callIterator(call) {
       debug(' STK:CALLS State change: ' + call.state);
       var outgoing = call.state == 'incoming';
       if (call.state == 'incoming') {
@@ -359,7 +360,10 @@
     debug('Showing STK main menu');
     stkOpenAppName = null;
 
-    window.asyncStorage.getItem('stkMainAppMenu', function(menu) {
+    var reqApplications =
+      window.navigator.mozSettings.createLock().get('icc.applications');
+    reqApplications.onsuccess = function icc_getApplications() {
+      var menu = JSON.parse(reqApplications.result['icc.applications']);
       clearList();
 
       document.getElementById('icc-stk-exit').classList.remove('hidden');
@@ -392,7 +396,7 @@
           attributes: [['stk-menu-item-identifier', menuItem.identifier]]
         }));
       });
-    });
+    };
   }
 
   function onMainMenuItemClick(event) {
@@ -542,7 +546,7 @@
    * Play tones
    */
   function playTone(options) {
-    debug("playTone: ", options);
+    debug('playTone: ', options);
 
     var tonePlayer = new Audio();
     var selectedPhoneSound;
@@ -561,7 +565,8 @@
         selectedPhoneSound = 'resources/dtmf_tones/425Hz_200ms.ogg';
         break;
       case icc.STK_TONE_TYPE_ERROR:
-        selectedPhoneSound = 'resources/dtmf_tones/950Hz+1400Hz+1800Hz_200ms.ogg';
+        selectedPhoneSound =
+            'resources/dtmf_tones/950Hz+1400Hz+1800Hz_200ms.ogg';
         break;
       case icc.STK_TONE_TYPE_CALL_WAITING_TONE:
       case icc.STK_TONE_TYPE_RINGING_TONE:
@@ -598,7 +603,7 @@
     },timeout);
 
     if (options.isVibrate == true) {
-      navigator.vibrate([200]);
+      window.navigator.vibrate([200]);
     }
 
     if (options.text) {
@@ -669,9 +674,10 @@
    */
   function openSTKApplication() {
     document.location.hash = 'icc';
-    navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+    window.navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
       var app = evt.target.result;
       app.launch('settings');
     };
   };
 })();
+

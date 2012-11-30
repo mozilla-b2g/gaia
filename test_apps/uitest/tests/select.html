@@ -8,11 +8,32 @@
         font-size: 1.5em;
       }
     </style>
+
+    <script>
+      function changeTest(evt) {
+        console.log('++select++ onchange: ' + this.selectedIndex);
+      }
+
+      function blurTest(evt) {
+        console.log('++select++ onblur: ' + this.id);
+      }
+
+      window.onload = function onload() {
+	  var elementList = ['singleSel', 'multiSel', 'sizeSel'];
+	  elementList.forEach(function(elementId) {
+	      console.log('elementId: ' + elementId);
+	      document.getElementById(elementId).onchange = changeTest;
+	      document.getElementById(elementId).addEventListener('blur', blurTest);
+	  });
+      }
+
+
+    </script>
   </head>
   <body>
     <ul>
       <li>Select:
-      <select>
+      <select id="singleSel">
 	  <option value="Mozilla">Mozilla</option>
 	  <option value="B2G">B2G</option>
 	  <option value="Gaia">Gaia</option>
@@ -37,7 +58,7 @@
       </li>
 
       <li>Multiple Select:
-      <select multiple="multiple">
+      <select multiple="multiple" id="multiSel">
 	  <option value="Mozilla">Mozilla</option>
 	  <option value="B2G">B2G</option>
 	  <option value="Gaia">Gaia</option>
@@ -59,6 +80,16 @@
 
       <li>
           <input type="time" placeholder="Time" value="10:14" />
+      </li>
+
+      <li>Select with size=3:
+      <select size="3" id="sizeSel">
+	  <option value="Mozilla">Mozilla</option>
+	  <option value="B2G">B2G</option>
+	  <option value="Gaia">Gaia</option>
+	  <option value="Gecko">Gecko</option>
+	  <option value="Basecamp">Basecamp</option>
+      </select>
       </li>
 
     </ul>

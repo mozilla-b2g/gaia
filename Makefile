@@ -52,6 +52,7 @@ ADB_REMOUNT?=0
 GAIA_ALL_APP_SRCDIRS=$(GAIA_APP_SRCDIRS)
 
 GAIA_LOCALES_PATH?=locales
+LOCALES_FILE?=shared/resources/languages.json
 
 ifeq ($(MAKECMDGOALS), demo)
 GAIA_DOMAIN=thisdomaindoesnotexist.org
@@ -160,10 +161,46 @@ TEST_DIRS ?= $(CURDIR)/tests
 
 # Generate profile/
 
-profile: applications-data preferences app-makefiles test-agent-config offline extensions install-xulrunner-sdk profile/settings.json
+profile: multilocale applications-data preferences app-makefiles test-agent-config offline extensions install-xulrunner-sdk profile/settings.json
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)profile"
 
 LANG=POSIX # Avoiding sort order differences between OSes
+
+.PHONY: multilocale
+multilocale:
+ifneq ($(LOCALE_BASEDIR),)
+	@echo "Enable locales specified in $(LOCALES_FILE)..."
+	@targets=""; \
+	for appdir in $(GAIA_APP_SRCDIRS); do \
+	    targets="$$targets --target $$appdir"; \
+	done; \
+	python $(CURDIR)/build/multilocale.py \
+		--config $(CURDIR)/$(LOCALES_FILE) \
+		--source $(LOCALE_BASEDIR) \
+		$$targets;
+	@echo "Done"
+ifneq ($(LOCALES_FILE),shared/resources/languages.json)
+	cp $(LOCALES_FILE) shared/resources/languages.json
+endif
+endif
+
+.PHONY: multilocale-clean
+multilocale-clean:
+	@echo "Cleaning l10n bits..."
+ifeq ($(wildcard .hg),.hg)
+	@hg update --clean
+	@hg status -n | xargs rm -rf
+else
+	@git ls-files --other --exclude-standard $(GAIA_APP_SRCDIRS) | grep '\.properties' | xargs rm -f
+	@git ls-files --modified $(GAIA_APP_SRCDIRS) | grep '\.properties' | xargs git checkout --
+ifneq ($(DEBUG),1)
+	@# Leave these files modified in DEBUG profiles
+	@git ls-files --modified $(GAIA_APP_SRCDIRS) | grep 'manifest.webapp' | xargs git checkout --
+	@git ls-files --modified $(GAIA_APP_SRCDIRS) | grep '\.ini' | xargs git checkout --
+	@git checkout -- shared/resources/languages.json
+	@echo "Done"
+endif
+endif
 
 app-makefiles:
 	for d in ${GAIA_APP_SRCDIRS}; \
@@ -204,6 +241,9 @@ offline-cache: webapp-manifests install-xulrunner-sdk
 
 # Create webapps
 offline: webapp-manifests webapp-zip
+ifneq ($(LOCALE_BASEDIR),)
+	$(MAKE) multilocale-clean
+endif
 
 
 # The install-xulrunner target arranges to get xulrunner downloaded and sets up
@@ -269,6 +309,7 @@ define run-js-command
 	const GAIA_APP_SRCDIRS = "$(GAIA_APP_SRCDIRS)";                             \
 	const GAIA_LOCALES_PATH = "$(GAIA_LOCALES_PATH)";                           \
 	const BUILD_APP_NAME = "$(BUILD_APP_NAME)";                                 \
+	const PRODUCTION = "$(PRODUCTION)";                                         \
 	const GAIA_ENGINE = "xpcshell";                                             \
 	';                                                                          \
 	$(XULRUNNERSDK) $(XPCSHELLSDK) -e "$$JS_CONSTS" -f build/utils.js "build/$(strip $1).js"

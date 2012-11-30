@@ -166,6 +166,7 @@
 .msg-envelope-bar {
   border-bottom: 1px solid gray;
   font-size: 1.5rem;
+  width: 100%;
 }
 
 .msg-envelope-date {

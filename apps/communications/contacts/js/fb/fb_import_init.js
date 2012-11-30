@@ -50,7 +50,8 @@
 
     // This is done through onclick as it is going to be changed it dynamically
     document.querySelector('#select-all').onclick = fb.importer.ui.selectAll;
-    document.querySelector('#deselect-all').onclick = fb.importer.ui.unSelectAll;
+    document.querySelector('#deselect-all').onclick =
+        fb.importer.ui.unSelectAll;
 
     fb.contacts.init(function fb_init() {
       fb.importer.ui.init();
@@ -74,5 +75,5 @@
     type: 'messaging_ready',
     data: ''
   }, allowedOrigin);
-
 })(document);
+

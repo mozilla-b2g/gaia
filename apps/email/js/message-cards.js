@@ -80,6 +80,8 @@ function MessageListCard(domNode, mode, args) {
     domNode.getElementsByClassName('msg-messages-sync-more')[0];
   this.syncMoreNode
     .addEventListener('click', this.onGetMoreMessages.bind(this), false);
+  this.progressNode =
+    domNode.getElementsByClassName('msg-list-progress')[0];
 
   // - header buttons: non-edit mode
   domNode.getElementsByClassName('msg-folder-list-btn')[0]
@@ -283,8 +285,8 @@ MessageListCard.prototype = {
    * Show a folder, returning true if we actually changed folders or false if
    * we did nothing because we were already in the folder.
    */
-  showFolder: function(folder) {
-    if (folder === this.curFolder)
+  showFolder: function(folder, forceNewSlice) {
+    if (folder === this.curFolder && !forceNewSlice)
       return false;
 
     if (this.messagesSlice) {
@@ -380,10 +382,22 @@ MessageListCard.prototype = {
     if (newStatus === 'synchronizing') {
       this.syncingNode.classList.remove('collapsed');
       this.syncMoreNode.classList.add('collapsed');
+
+      this.progressNode.value = this.messagesSlice ?
+                                this.messagesSlice.syncProgress : 0;
+      this.progressNode.classList.remove('hidden');
     }
+    // (cover both 'synced' and 'syncfailed')
     else {
       this.syncingNode.classList.add('collapsed');
+      this.progressNode.classList.add('hidden');
     }
+
+    // If there was a problem talking to the server, notify the user and provide
+    // a means to attempt to talk to the server again.  We have made onRefresh
+    // pretty clever, so it can do all the legwork on accomplishing this goal.
+    if (newStatus === 'syncfailed')
+      Toaster.logRetryable(newStatus, this.onRefresh.bind(this));
   },
 
   showEmptyLayout: function() {
@@ -694,7 +708,26 @@ MessageListCard.prototype = {
   },
 
   onRefresh: function() {
-    this.messagesSlice.refresh();
+    switch (this.messagesSlice.status) {
+      // If we're still synchronizing, then the user is not well served by
+      // queueing a refresh yet, let's just squash this.
+      case 'new':
+      case 'synchronizing':
+        break;
+      // If we fully synchronized, then yes, let us refresh.
+      case 'synced':
+        this.messagesSlice.refresh();
+        break;
+      // If we failed to talk to the server, then let's only do a refresh if we
+      // know about any messages.  Otherwise let's just create a new slice by
+      // forcing reentry into the folder.
+      case 'syncfailed':
+        if (this.messagesSlice.items.length)
+          this.messagesSlice.refresh();
+        else
+          this.showFolder(this.curFolder, /* force new slice */ true);
+        break;
+    }
   },
 
   onStarMessages: function() {
@@ -809,6 +842,9 @@ function MessageReaderCard(domNode, mode, args) {
     .addEventListener('click', this.onMove.bind(this), false);
   domNode.getElementsByClassName('msg-forward-btn')[0]
     .addEventListener('click', this.onForward.bind(this), false);
+
+  this.scrollContainer =
+    domNode.getElementsByClassName('scrollregion-below-header')[0];
 
   this.envelopeNode = domNode.getElementsByClassName('msg-envelope-bar')[0];
   this.envelopeNode
@@ -1069,8 +1105,9 @@ MessageReaderCard.prototype = {
         node.setAttribute('class', cname);
 
       var subnodes = MailAPI.utils.linkifyPlain(rep[i + 1], document);
-      for (var i in subnodes)
-        node.appendChild(subnodes[i]);
+      for (var iNode = 0; iNode < subnodes.length; iNode++) {
+        node.appendChild(subnodes[iNode]);
+      }
 
       bodyNode.appendChild(node);
     }
@@ -1134,7 +1171,7 @@ MessageReaderCard.prototype = {
       }
       else if (repType === 'html') {
         var iframe = createAndInsertIframeForContent(
-          rep, rootBodyNode, null,
+          rep, this.scrollContainer, rootBodyNode, null,
           'interactive', this.onHyperlinkClick.bind(this));
         var bodyNode = iframe.contentDocument.body;
         MailAPI.utils.linkifyHTML(iframe.contentDocument);

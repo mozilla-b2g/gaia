@@ -127,8 +127,22 @@ var AppInstallManager = {
     var manifest = app.manifest || app.updateManifest;
     var name = manifest.name;
     StatusBar.decSystemDownloads();
-    var msg = name + ' ' + _('download-stopped');
-    SystemBanner.show(msg);
+
+    var error = app.downloadError;
+
+    switch (error.name) {
+      case 'INSUFFICIENT_STORAGE':
+        var title = _('not-enough-space'),
+            buttonText = _('ok'),
+            message = _('not-enough-space-message');
+
+        ModalDialog.alert(title, message, {title: buttonText});
+        break;
+      default:
+        var msg = _('download-stopped2', { appName: name });
+        SystemBanner.show(msg);
+    }
+
     this.finishDownload(app);
   },
 

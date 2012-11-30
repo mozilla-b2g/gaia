@@ -165,7 +165,7 @@
       req.onblocked = function(error) {
         callback(error, null);
         self.emit('error', error);
-      }
+      };
 
       req.onupgradeneeded = function(event) {
         self._handleVersionChange(req.result, event);
@@ -373,15 +373,15 @@
       req.onblocked = function(e) {
         // improve interface
         callback(new Error('blocked'));
-      }
+      };
 
       req.onsuccess = function(event) {
         callback(null, event);
-      }
+      };
 
       req.onerror = function(event) {
         callback(event, null);
-      }
+      };
     },
 
     /** private db upgrade methods **/
@@ -426,7 +426,7 @@
 
       trans.oncomplete = function() {
         callback();
-      }
+      };
 
       var caldavAccounts = Object.create(null);
 
@@ -478,11 +478,11 @@
       trans.onerror = function() {
         console.error('Error while upgrading ical components');
         callback();
-      }
+      };
 
       trans.oncomplete = function() {
         callback();
-      }
+      };
 
       var eventStore = trans.objectStore(store.events);
       var componentStore = trans.objectStore(store.icalComponents);
@@ -504,7 +504,7 @@
 
           cursor.continue();
         }
-      }
+      };
     }
   };
 

@@ -2,11 +2,11 @@ require('/apps/calendar/test/integration/calendar_integration.js');
 /** require calc stuff to make things easier */
 require('apps/calendar/js/calendar.js');
 require('apps/calendar/js/calc.js');
-require('apps/calendar/js/input_parser.js');
+require('apps/calendar/js/utils/input_parser.js');
 
 suite('calendar - modify events', function() {
 
-  var InputParser = Calendar.InputParser;
+  var InputParser = Calendar.Utils.InputParser;
   var device;
   var helper = IntegrationHelper;
   var app;

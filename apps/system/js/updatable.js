@@ -170,6 +170,8 @@ SystemUpdatable.prototype.showApplyPrompt = function() {
 SystemUpdatable.prototype.declineInstall = function() {
   CustomDialog.hide();
   this._dispatchEvent('update-prompt-apply-result', 'wait');
+
+  UpdateManager.removeFromDownloadsQueue(this);
 };
 
 SystemUpdatable.prototype.acceptInstall = function() {

@@ -517,23 +517,6 @@ button[disabled] .icon-keypad-visibility {
   margin: 1.5rem;
 }
 
-/* == Screen turn off hack == */
-
-#screen-off {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: black;
-  z-index: 1000;
-  display: none;
-}
-
-#screen-off.displayed {
-  display: block;
-}
-
 /* Handling the status bar mode */
 @media screen and (max-height: 40px) {
   body {

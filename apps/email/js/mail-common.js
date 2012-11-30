@@ -43,6 +43,18 @@ function populateTemplateNodes() {
   tngNodes = processTemplNodes('tng');
 }
 
+function addClass(domNode, name) {
+  if (domNode) {
+    domNode.classList.add(name);
+  }
+}
+
+function removeClass(domNode, name) {
+  if (domNode) {
+    domNode.classList.remove(name);
+  }
+}
+
 function batchAddClass(domNode, searchClass, classToAdd) {
   var nodes = domNode.getElementsByClassName(searchClass);
   for (var i = 0; i < nodes.length; i++) {
@@ -186,7 +198,13 @@ var Cards = {
    * }
    */
   _cardStack: [],
-  activeCardIndex: null,
+  activeCardIndex: -1,
+
+  /**
+   * Cards can stack on top of each other, make sure the stacked set is
+   * visible over the lower sets.
+   */
+  _zIndex: 0,
 
   /**
    * The DOM node that contains the _containerNode ("#cardContainer") and which
@@ -216,6 +234,13 @@ var Cards = {
    */
   _animatingDeadDomNodes: [],
 
+  /**
+   * Tracks the number of transition events per card animation. Since each
+   * animation ends up with two transitionend events since two cards are
+   * moving, need to wait for the last one to be finished before doing
+   * cleanup, like DOM removal.
+   */
+  _transitionCount: 0,
 
   /**
    * Annoying logic related to contextmenu event handling; search for the uses
@@ -259,9 +284,6 @@ var Cards = {
                                          this._onMaybeIntercept.bind(this),
                                          true);
 
-    this._adjustCardSizes();
-    window.addEventListener('resize', this._adjustCardSizes.bind(this), false);
-
     // XXX be more platform detecty. or just add more events. unless the
     // prefixes are already gone with webkit and opera?
     this._cardsNode.addEventListener('transitionend',
@@ -294,32 +316,7 @@ var Cards = {
         (event.clientX >
          this._containerNode.offsetWidth - this.TRAY_GUTTER_WIDTH)) {
       event.stopPropagation();
-      this.moveToCard(this.activeCardIndex + 1);
-    }
-  },
-
-  _adjustCardSizes: function(evt) {
-    var cardWidth = this._containerNode.offsetWidth,
-        cardHeight = this._containerNode.offsetHeight,
-        totalWidth = 0;
-
-    for (var i = 0; i < this._cardStack.length; i++) {
-      var cardInst = this._cardStack[i];
-      var targetWidth = cardWidth;
-      if (cardInst.modeDef.tray)
-        targetWidth -= this.TRAY_GUTTER_WIDTH;
-      cardInst.domNode.style.width = targetWidth + 'px';
-      cardInst.domNode.style.height = cardHeight + 'px';
-
-      cardInst.left = totalWidth;
-      totalWidth += targetWidth;
-    }
-    this._cardsNode.style.width = totalWidth + 'px';
-    this._cardsNode.style.height = cardHeight + 'px';
-
-    // Reset cards' position when container resized.
-    if (evt && evt.type == 'resize') {
-      this._showCard(this.activeCardIndex, 'immediate');
+      this.moveToCard(this.activeCardIndex + 1, 'animate', 'forward');
     }
   },
 
@@ -405,10 +402,12 @@ var Cards = {
     if (!placement) {
       cardIndex = this._cardStack.length;
       insertBuddy = null;
+      domNode.classList.add(cardIndex === 0 ? 'before': 'after');
     }
     else if (placement === 'left') {
       cardIndex = this.activeCardIndex++;
       insertBuddy = this._cardsNode.children[cardIndex];
+      domNode.classList.add('before');
     }
     else if (placement === 'right') {
       cardIndex = this.activeCardIndex + 1;
@@ -416,21 +415,19 @@ var Cards = {
         insertBuddy = null;
       else
         insertBuddy = this._cardsNode.children[cardIndex];
+      domNode.classList.add('after');
     }
     this._cardStack.splice(cardIndex, 0, cardInst);
     this._cardsNode.insertBefore(domNode, insertBuddy);
-    this._adjustCardSizes();
     if ('postInsert' in cardImpl)
       cardImpl.postInsert();
 
     if (showMethod !== 'none') {
-      // If we want to animate and we just inserted the card to the left, then
-      // we need to update our position so that the user perceives animation.
-      // (Otherwise our offset is already showing the new card.)
-      if (showMethod === 'animate' && placement === 'left')
-        this._showCard(this.activeCardIndex, 'immediate');
+      // make sure the reflow sees the new node so that the animation
+      // later is smooth.
+      domNode.clientWidth;
 
-      this._showCard(cardIndex, showMethod);
+      this._showCard(cardIndex, showMethod, 'forward');
     }
   },
 
@@ -667,6 +664,25 @@ var Cards = {
     if (!numCards)
       numCards = this._cardStack.length - firstIndex;
 
+    if (showMethod !== 'none') {
+      var nextCardIndex = null;
+      if (nextCardSpec)
+        nextCardIndex = this._findCard(nextCardSpec);
+      else if (this._cardStack.length)
+        nextCardIndex = Math.min(firstIndex - 1, this._cardStack.length - 1);
+
+      this._showCard(nextCardIndex, showMethod, 'back');
+    }
+
+    // Update activeCardIndex if nodes were removed that would affect its
+    // value.
+    if (firstIndex <= this.activeCardIndex) {
+      this.activeCardIndex -= numCards;
+      if (this.activeCardIndex < -1) {
+        this.activeCardIndex = -1;
+      }
+    }
+
     var deadCardInsts = this._cardStack.splice(
                           firstIndex, numCards);
     for (iCard = 0; iCard < deadCardInsts.length; iCard++) {
@@ -687,51 +703,115 @@ var Cards = {
           break;
       }
     }
-    if (showMethod !== 'none') {
-      var nextCardIndex = null;
-      if (nextCardSpec)
-        nextCardIndex = this._findCard(nextCardSpec);
-      else if (this._cardStack.length)
-        nextCardIndex = Math.min(firstIndex - 1, this._cardStack.length - 1);
-      this._showCard(nextCardIndex, showMethod);
-    }
   },
 
-  _showCard: function(cardIndex, showMethod) {
+  _showCard: function(cardIndex, showMethod, navDirection) {
+    // Do not do anything if this is a show card for the current card.
+    if (cardIndex === this.activeCardIndex) {
+      return;
+    }
+
+    if (cardIndex > this._cardStack.length - 1) {
+      // Some cards were removed, adjust.
+      cardIndex = this._cardStack.length - 1;
+    }
+    if (this.activeCardIndex > this._cardStack.length - 1) {
+      this.activeCardIndex = -1;
+    }
+
+    if (this.activeCardIndex === -1) {
+      this.activeCardIndex = cardIndex === 0 ? cardIndex : cardIndex - 1;
+    }
+
     var cardInst = (cardIndex !== null) ? this._cardStack[cardIndex] : null;
+    var beginNode = this._cardStack[this.activeCardIndex].domNode;
+    var endNode = this._cardStack[cardIndex].domNode;
+    var isForward = navDirection === 'forward';
 
-    var targetLeft;
-    if (cardInst)
-      targetLeft = 'translateX(' + (-cardInst.left) + 'px)';
-    else
-      targetLeft = 'translateX(0px)';
+    if (this._cardStack.length === 1) {
+      // Reset zIndex so that it does not grow ever higher when all but
+      // one card are removed
+      this._zIndex = 0;
+    }
 
-    var cardsNode = this._cardsNode;
-    if (cardsNode.style.MozTransform !== targetLeft) {
-      if (showMethod === 'immediate') {
-        // XXX cross-platform support.
-        cardsNode.style.MozTransitionProperty = 'none';
-        // make sure the reflow sees the transition is turned off.
-        cardsNode.clientWidth;
-        // explicitly clear since there will be no animation
-        this._eatingEventsUntilNextCard = false;
-      }
-      else {
-        this._eatingEventsUntilNextCard = true;
-      }
-      cardsNode.style.MozTransform = targetLeft;
+    // If going forward and it is an overlay node, then do not animate the
+    // beginning node, it will just sit under the overlay.
+    if (isForward && endNode.classList.contains('anim-overlay')) {
+      beginNode = null;
 
-      if (showMethod === 'immediate') {
-        // make sure the instantaneous transition is seen before we turn
-        // transitions back on.
-        cardsNode.clientWidth;
-        // CROSS-BROWSER-TODO
-        cardsNode.style.MozTransitionProperty = '-moz-transform';
+      // anim-overlays are the transitions to new layers in the stack. If
+      // starting a new one, it is forward movement and needs a new zIndex.
+      // Otherwise, going back to
+      this._zIndex += 100;
+    }
+
+    // If going back and the beginning node was an overlay, do not animate
+    // the end node, since it should just be hidden under the overlay.
+    if (beginNode && beginNode.classList.contains('anim-overlay')) {
+      if (isForward) {
+        // If a forward animation and overlay had a vertical transition,
+        // disable it, use normal horizontal transition.
+        if (showMethod !== 'immediate' &&
+            beginNode.classList.contains('anim-vertical')) {
+          removeClass(beginNode, 'anim-vertical');
+          addClass(beginNode, 'disabled-anim-vertical');
+        }
+      } else {
+        endNode = null;
+        this._zIndex -= 100;
       }
     }
-    else {
+
+    // If the zindex is not zero, then in an overlay stack, adjust zindex
+    // accordingly.
+    if (endNode && isForward && this._zIndex) {
+      endNode.style.zIndex = this._zIndex;
+    }
+
+    var cardsNode = this._cardsNode;
+
+    if (showMethod === 'immediate') {
+      addClass(beginNode, 'no-anim');
+      addClass(endNode, 'no-anim');
+
+      // make sure the reflow sees the transition is turned off.
+      cardsNode.clientWidth;
       // explicitly clear since there will be no animation
       this._eatingEventsUntilNextCard = false;
+    }
+    else {
+      this._transitionCount = (beginNode && endNode) ? 2 : 1;
+      this._eatingEventsUntilNextCard = true;
+    }
+
+    if (this.activeCardIndex === cardIndex) {
+      // same node, no transition, just bootstrapping UI.
+      removeClass(beginNode, 'before');
+      removeClass(beginNode, 'after');
+      addClass(beginNode, 'center');
+    } else if (this.activeCardIndex > cardIndex) {
+      // back
+      removeClass(beginNode, 'center');
+      addClass(beginNode, 'after');
+
+      removeClass(endNode, 'before');
+      addClass(endNode, 'center');
+    } else {
+      // forward
+      removeClass(beginNode, 'center');
+      addClass(beginNode, 'before');
+
+      removeClass(endNode, 'after');
+      addClass(endNode, 'center');
+    }
+
+    if (showMethod === 'immediate') {
+      // make sure the instantaneous transition is seen before we turn
+      // transitions back on.
+      cardsNode.clientWidth;
+
+      removeClass(beginNode, 'no-anim');
+      removeClass(endNode, 'no-anim');
     }
 
     // Hide toaster while active card index changed:
@@ -749,17 +829,32 @@ var Cards = {
   },
 
   _onTransitionEnd: function(event) {
-    if (this._eatingEventsUntilNextCard)
-      this._eatingEventsUntilNextCard = false;
-    if (this._animatingDeadDomNodes.length) {
-      this._animatingDeadDomNodes.forEach(function(domNode) {
-        if (domNode.parentNode)
-          domNode.parentNode.removeChild(domNode);
-      });
-      // Our coordinate space may have been affected, so update and re-show
-      // the current card.
-      this._adjustCardSizes();
-      this._showCard(this.activeCardIndex, 'immediate');
+    // Multiple cards can animate, so there can be multiple transitionend
+    // events. Only do the end work when all have finished animating.
+    if (this._transitionCount > 0)
+      this._transitionCount -= 1;
+
+    if (this._transitionCount === 0) {
+      if (this._eatingEventsUntilNextCard)
+        this._eatingEventsUntilNextCard = false;
+      if (this._animatingDeadDomNodes.length) {
+        // Use a setTimeout to give the animation some space to settle.
+        setTimeout(function () {
+          this._animatingDeadDomNodes.forEach(function(domNode) {
+            if (domNode.parentNode)
+              domNode.parentNode.removeChild(domNode);
+          });
+          this._animatingDeadDomNodes = [];
+        }.bind(this), 100);
+      }
+
+      // If an vertical overlay transition was was disabled, if
+      // current node index is an overlay, enable it again.
+      var endNode = this._cardStack[this.activeCardIndex].domNode;
+      if (endNode.classList.contains('disabled-anim-vertical')) {
+        removeClass(endNode, 'disabled-anim-vertical');
+        addClass(endNode, 'anim-vertical');
+      }
     }
   },
 
@@ -817,6 +912,20 @@ var Toaster = {
     return this.text =
            document.querySelector('section[role="status"] p');
   },
+  get undoBtn() {
+    delete this.undoBtn;
+    return this.undoBtn =
+           document.querySelector('.toaster-banner-undo');
+  },
+  get retryBtn() {
+    delete this.retryBtn;
+    return this.retryBtn =
+           document.querySelector('.toaster-banner-retry');
+  },
+
+  undoableOp: null,
+  retryCallback: null,
+
   /**
    * Toaster timeout setting.
    */
@@ -840,12 +949,18 @@ var Toaster = {
 
   /**
    * Tell toaster listeners about a mutation we just made.
+   *
+   * @args[
+   *   @param[undoableOp]
+   *   @param[pending #:optional Boolean]{
+   *     If true, indicates that we should wait to display this banner until we
+   *     transition to the next card.  This is appropriate for things like
+   *     deleting the message that is displayed on the current card (and which
+   *     will be imminently closed).
+   *   }
+   * ]
    */
   logMutation: function(undoableOp, pending) {
-    //Close previous toaster before showing the new one.
-    if (!this.body.classList.contains('collapsed')) {
-      this.hide();
-    }
     if (pending) {
       this.pendingStack.push(this.show.bind(this, 'undo', undoableOp));
     } else {
@@ -853,14 +968,26 @@ var Toaster = {
     }
   },
 
+  /**
+   * Something failed that it makes sense to let the user explicitly trigger
+   * a retry of!  For example, failure to synchronize.
+   */
+  logRetryable: function(retryStringId, retryCallback) {
+    this.show('retry', retryStringId, retryCallback);
+  },
+
   handleEvent: function(evt) {
     switch (evt.type) {
       case 'click' :
-        if (evt.target.classList.contains('toaster-banner-undo')) {
-          // TODO: Need to find out why undo could not work now.
-          // this.undoableOp.undo();
+        var classList = evt.target.classList;
+        if (classList.contains('toaster-banner-undo')) {
+          this.undoableOp.undo();
           this.hide();
-        } else if (evt.target.classList.contains('toaster-cancel-btn')) {
+        } else if (classList.contains('toaster-banner-retry')) {
+          if (this.retryCallback)
+            this.retryCallback();
+          this.hide();
+        } else if (classList.contains('toaster-cancel-btn')) {
           this.hide();
         }
         break;
@@ -870,28 +997,43 @@ var Toaster = {
     }
   },
 
-  show: function(type, operation) {
-    var text;
-    if (type == 'undo') {
+  show: function(type, operation, callback) {
+    // Close previous toaster before showing the new one.
+    if (!this.body.classList.contains('collapsed')) {
+      this.hide();
+    }
+
+    var text, textId, showUndo = false;
+    var undoBtn = this.body.querySelector('.toaster-banner-undo');
+    if (type === 'undo') {
       this.undoableOp = operation;
-      // There is no need to show toaster is affected message count < 1
+      // There is no need to show toaster if affected message count < 1
       if (!this.undoableOp || this.undoableOp.affectedCount < 1) {
         return;
       }
-      var textId = 'toaster-message-' + this.undoableOp.operation;
-      var undoBtn = this.body.querySelector('.toaster-banner-undo');
+      textId = 'toaster-message-' + this.undoableOp.operation;
       text = mozL10n.get(textId, { n: this.undoableOp.affectedCount });
       // https://bugzilla.mozilla.org/show_bug.cgi?id=804916
       // Remove undo email move/delete UI for V1.
-      if (this.undoableOp.operation == 'move' ||
-          this.undoableOp.operation == 'delete') {
-        undoBtn.classList.add('collapsed');
-      } else {
-        undoBtn.classList.remove('collapsed');
-      }
-    } else if (type == 'text') {
+      showUndo = (this.undoableOp.operation !== 'move' &&
+                  this.undoableOp.operation !== 'delete');
+    } else if (type === 'retry') {
+      textId = 'toaster-retryable-' + operation;
+      text = mozL10n.get(textId);
+      this.retryCallback = callback;
+    // XXX I assume this is for debug purposes?
+    } else if (type === 'text') {
       text = operation;
     }
+
+    if (type === 'undo' && showUndo)
+      this.undoBtn.classList.remove('collapsed');
+    else
+      this.undoBtn.classList.add('collapsed');
+    if (type === 'retry')
+      this.retryBtn.classList.remove('collapsed');
+    else
+      this.retryBtn.classList.add('collapsed');
 
     this.body.title = type;
     this.text.textContent = text;
@@ -908,8 +1050,10 @@ var Toaster = {
     this.fadeTimeout = null;
     this.body.removeEventListener('click', this);
     this.body.removeEventListener('transitionend', this);
+
     // Clear operations:
     this.undoableOp = null;
+    this.retryCallback = null;
   }
 };
 

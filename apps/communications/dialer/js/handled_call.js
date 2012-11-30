@@ -46,6 +46,7 @@ function HandledCall(aCall, aNode) {
 HandledCall.prototype.handleEvent = function hc_handle(evt) {
   switch (evt.call.state) {
     case 'connected':
+      CallScreen.render('connected');
       this.connected();
       break;
     case 'disconnected':
@@ -161,12 +162,7 @@ HandledCall.prototype.disconnected = function hc_disconnected() {
   }
 
   if (this.recentsEntry) {
-    var recentToAdd = this.recentsEntry;
-    RecentsDBManager.init(function() {
-      RecentsDBManager.add(recentToAdd, function() {
-        RecentsDBManager.close();
-      });
-    });
+    OnCallHandler.addRecentEntry(this.recentsEntry);
   }
 
   if (!this.node)

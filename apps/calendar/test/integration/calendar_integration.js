@@ -1,7 +1,7 @@
 /* tools from calendar */
 require('/apps/calendar/js/calendar.js');
 require('/apps/calendar/js/calc.js');
-require('/apps/calendar/js/input_parser.js');
+require('/apps/calendar/js/utils/input_parser.js');
 /** views */
 require('/apps/calendar/test/integration/calendar_view.js');
 require('/apps/calendar/test/integration/views/modify_event_view.js');

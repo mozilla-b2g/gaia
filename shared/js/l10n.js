@@ -815,7 +815,7 @@
 
       var arg = match[1];
       var sub = '';
-      if (arg in args) {
+      if (args && arg in args) {
         sub = args[arg];
       } else if (arg in gL10nData) {
         sub = gL10nData[arg][gTextProp];

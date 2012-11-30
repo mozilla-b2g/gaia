@@ -643,11 +643,17 @@ onLocalized(function wifiSettings() {
 
       // OK|Cancel buttons
       function submit() {
+        if (dialogID === 'wifi-joinHidden') {
+          network.ssid = dialog.querySelector('input[name=ssid]').value;
+        }
         if (key) {
           setPassword(password.value, identity.value);
         }
         if (callback) {
           callback();
+          if (dialogID === 'wifi-joinHidden') {
+            gKnownNetworkList.scan();
+          }
         }
         reset();
       };

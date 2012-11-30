@@ -17,6 +17,7 @@
     "bluetooth":{},
     "telephony":{},
     "voicemail":{},
+    "device-storage:sdcard":{ "access": "readonly" },
     "device-storage:pictures":{ "access": "readcreate" },
     "device-storage:music":{ "access": "readcreate" },
     "settings":{ "access": "readwrite" },
@@ -56,6 +57,8 @@
      { "bluetooth-opp-transfer-complete": "/index.html" },
      { "bluetooth-opp-update-progress": "/index.html" },
      { "bluetooth-opp-receiving-file-confirmation": "/index.html" },
-     { "bluetooth-opp-transfer-start": "/index.html" }
+     { "bluetooth-opp-transfer-start": "/index.html" },
+     { "icc-stkcommand": "/index.html" },
+     { "bluetooth-hfp-status-changed": "/index.html" }
   ]
 }

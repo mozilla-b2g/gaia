@@ -261,8 +261,6 @@ var CardsView = (function() {
     var origin = this.dataset.origin;
     alignCard(currentDisplayed, function cardAligned() {
       WindowManager.launch(origin);
-
-      hideCardSwitcher();
     });
   }
 
@@ -293,13 +291,6 @@ var CardsView = (function() {
         cardsList.removeChild(cardsList.firstElementChild);
       }
     });
-
-    // If there is a displayed app, give the keyboard focus back
-    // And switch back to that's apps orientation
-    if (WindowManager.getDisplayedApp()) {
-      runningApps[displayedApp].frame.focus();
-      WindowManager.setOrientationForApp(displayedApp);
-    }
   }
 
   function cardSwitcherIsShown() {

@@ -58,6 +58,7 @@ window.Evme = new function() {
         }
     };
     this.onHide = function() {
+        Evme.Brain.App.cancel();
         Evme.Brain.Shortcuts.doneEdit();
         Evme.Brain.SmartFolder.closeCurrent();
     };

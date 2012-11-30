@@ -48,8 +48,7 @@
                "bluetooth-authorize",
                "bluetooth-cancel",
                "bluetooth-pairedstatuschanged",
-               "bluetooth-hfp-status-changed",
-               "icc-stkcommand"],
+               "bluetooth-hfp-status-changed"],
   "locales": {
     "ar": {
       "name": "الضبط",

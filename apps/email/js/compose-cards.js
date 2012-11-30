@@ -30,6 +30,9 @@ function ComposeCard(domNode, mode, args) {
   this.htmlBodyContainer = domNode.getElementsByClassName('cmp-body-html')[0];
   this.htmlIframeNode = null;
 
+  this.scrollContainer =
+    domNode.getElementsByClassName('scrollregion-below-header')[0];
+
   // Add input event listener for handling the bubble creation/deletion.
   this.toNode.addEventListener('keydown', this.onAddressKeydown.bind(this));
   this.ccNode.addEventListener('keydown', this.onAddressKeydown.bind(this));
@@ -120,7 +123,8 @@ ComposeCard.prototype = {
       // able to see what they are sending, so reusing the viewing functionality
       // is desirable.
       this.htmlIframeNode = createAndInsertIframeForContent(
-        this.composer.body.html, this.htmlBodyContainer, /* append */ null,
+        this.composer.body.html, this.scrollContainer,
+        this.htmlBodyContainer, /* append */ null,
         'noninteractive',
         /* no click handler because no navigation desired */ null);
     }

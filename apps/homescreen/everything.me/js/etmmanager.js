@@ -78,13 +78,18 @@ var EvmeManager = (function() {
         return manifest.name;
     }
 
+    function getIconSize() {
+        return Icon.prototype.MAX_ICON_SIZE;
+    }
+
     return {
         openApp: openApp,
 
         addBookmark: addBookmark,
 
         isAppInstalled: function isAppInstalled(url) {
-            return !!GridManager.getAppByOrigin(url);
+            return GridManager.getIconForBookmark(url) ||
+                   GridManager.getAppByOrigin(url);
         },
         getApps: getApps,
         getAppIcon: getAppIcon,
@@ -94,7 +99,9 @@ var EvmeManager = (function() {
 
         menuShow: menuShow,
         menuHide: menuHide,
-        getMenuHeight: getMenuHeight
+        getMenuHeight: getMenuHeight,
+
+        getIconSize: getIconSize
     };
 }());
 

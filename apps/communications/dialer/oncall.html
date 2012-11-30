@@ -10,7 +10,6 @@
     <link rel="resource" type="application/l10n" href="/dialer/locales/locales.ini">
     <script type="application/javascript" src="/shared/js/l10n.js"></script>
     <script defer type="application/javascript" src="/shared/js/settings_listener.js"></script>
-    <script defer type="text/javascript" src="/shared/js/notification_helper.js"></script>
 
     <script defer type="application/javascript" src="/shared/js/simple_phone_matcher.js"></script>
     <script defer type="application/javascript" src="/dialer/js/contacts.js"></script>
@@ -19,7 +18,6 @@
     <script defer type="application/javascript" src="/dialer/js/oncall.js"></script>
     <script defer type="application/javascript" src="/dialer/js/handled_call.js"></script>
     <script defer type="application/javascript" src="/dialer/js/recents_db.js"></script>
-    <script defer type="application/javascript" src="/dialer/js/proximity.js"></script>
 
     <!-- incoming call / swiper on locked screen-->
     <link rel="stylesheet" type="text/css" href="/dialer/style/swiper.css">
@@ -95,12 +93,12 @@
                   <rect style="fill:#000000;fill-opacity:1;stroke:none" width="89" height="130" x="23" y="0" />
                 </clipPath>
 
-                <animate id="swiper-curve-prompt-animation" class="swiper-prompt-animation" attributeType="XML" attributeName="d" dur="2s" calcMode="spline"
+                <animate id="swiper-curve-elastic-animation" class="swiper-elastic-animation" attributeType="XML" attributeName="d" dur="2s" calcMode="spline"
                   begin="indefinite" keySplines="0 .50 .50 1; .50 0 1 .50;0 .50 .50 1; .50 0 1 .50;"
                   values="M0,80 C100,150 220,150 320,80;
                           M0,80 C100,40 220,40 320,80; M0,80 C100,150 220,150 320,80;
                           M0,80 C100,100 220,100 320,80; M0,80 C100,150 220,150 320,80" />
-                <animate id="swiper-spotlight-prompt-animation" class="swiper-prompt-animation"
+                <animate id="swiper-spotlight-elastic-animation" class="swiper-elastic-animation"
                   attributeType="XML" attributeName="d" dur="2s" calcMode="spline"
                   begin="indefinite" keySplines="0 .50 .50 1; .50 0 1 .50;0 .50 .50 1; .50 0 1 .50;"
                   values="M0,80 C100,150 220,150 320,80 V 150 H 0 Z;
@@ -113,7 +111,7 @@
                 <animate class="swiper-start-animation" attributeType="XML" attributeName="opacity" begin="indefinite" dur="0.5s" to="1" />
                 <animate class="swiper-end-animation" attributeType="XML" attributeName="y" begin="indefinite" dur="0.2s" to="0" />
                 <animate class="swiper-end-animation" attributeType="XML" attributeName="opacity" begin="indefinite" dur="0.5s" to="0" />
-                <animate class="swiper-prompt-animation" attributeType="XML" attributeName="y" dur="2s" calcMode="spline"
+                <animate class="swiper-elastic-animation" attributeType="XML" attributeName="y" dur="2s" calcMode="spline"
                     begin="indefinite" keySplines="0 .50 .50 1; .50 0 1 .50; 0 .50 .50 1; .50 0 1 .50"
                     values="100; 0; 120; 80; 100" />
               </image>
@@ -123,7 +121,7 @@
                 <animate class="swiper-start-animation" attributeType="XML" attributeName="stroke-opacity" begin="indefinite" dur="0.2s" to="1.0" />
                 <animate class="swiper-end-animation" attributeType="XML" attributeName="d" begin="indefinite" dur="0.5s" to="M0,80 C100,-20 220,-20 320,80" />
                 <animate class="swiper-end-animation" attributeType="XML" attributeName="stroke-opacity" begin="indefinite" dur="0.5s" to="0" />
-                <animate id="swiper-curve-prompt-animation" class="swiper-prompt-animation"
+                <animate id="swiper-curve-elastic-animation" class="swiper-elastic-animation"
                   attributeType="XML" attributeName="d" dur="2s" calcMode="spline"
                   begin="indefinite" keySplines="0 .50 .50 1; .50 0 1 .50;0 .50 .50 1; .50 0 1 .50;"
                   values="M0,80 C100,150 220,150 320,80;
@@ -137,7 +135,7 @@
                 <animate class="swiper-start-animation" attributeType="XML" attributeName="fill-opacity" begin="indefinite" dur="0.2s" to="1.0" />
                 <animate class="swiper-end-animation" attributeType="XML" attributeName="d" begin="indefinite" dur="0.5s" to="M0,80 C100,-20 220,-20 320,80 V 150 H 0 Z" />
                 <animate class="swiper-end-animation" attributeType="XML" attributeName="fill-opacity" begin="indefinite" dur="0.5s" to="0" />
-                <animate id="swiper-spotlight-prompt-animation" class="swiper-prompt-animation"
+                <animate id="swiper-spotlight-elastic-animation" class="swiper-elastic-animation"
                   attributeType="XML" attributeName="d" dur="2s" calcMode="spline"
                   begin="indefinite" keySplines="0 .50 .50 1; .50 0 1 .50;0 .50 .50 1; .50 0 1 .50;"
                   values="M0,80 C100,150 220,150 320,80 V 150 H 0 Z;
@@ -153,7 +151,7 @@
                 <animate class="swiper-start-animation" attributeType="XML" attributeName="fill-opacity" begin="indefinite" dur="0.2s" to="1.0" />
                 <animate class="swiper-end-animation" attributeType="XML" attributeName="d" begin="indefinite" dur="0.5s" to="M0,80 C100,-20 220,-20 320,80 V 150 H 0 Z" />
                 <animate class="swiper-end-animation" attributeType="XML" attributeName="fill-opacity" begin="indefinite" dur="0.5s" to="0" />
-                <animate id="swiper-spotlight-prompt-animation" class="swiper-prompt-animation"
+                <animate id="swiper-spotlight-elastic-animation" class="swiper-elastic-animation"
                   attributeType="XML" attributeName="d" dur="2s" calcMode="spline"
                   begin="indefinite" keySplines="0 .50 .50 1; .50 0 1 .50;0 .50 .50 1; .50 0 1 .50;"
                   values="M0,80 C100,150 220,150 320,80 V 150 H 0 Z;
@@ -233,7 +231,6 @@
         </div>
       </section>
     </article>
-    <div id="screen-off"></div>
     <article id="views">
       <article id="keyboard-view" class="view">
         <div id="phone-number-view-container">
@@ -312,7 +309,7 @@
                 <div class="keypad-key-label-container">
                   <div class="keypad-key-label" data-value="0">
                     <span class="keypad-number font-regular">0</span>
-                    <span class="keypad-text font-size-plus">+</span>
+                    <span class="keypad-text font-size-plus"></span>
                   </div>
                 </div>
               </div>

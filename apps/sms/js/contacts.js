@@ -43,6 +43,7 @@ var ContactDataManager = {
     if (cacheResult) {
       var cacheArray = cacheResult ? [cacheResult] : [];
       callback(cacheArray);
+      return;
     }
 
     var self = this;

@@ -14,9 +14,9 @@ const GridManager = (function() {
   var dragging = false;
 
   var opacityOnAppGridPageMax = .7;
-  var kPageTransitionDuration = .3;
+  var kPageTransitionDuration = 300;
   var overlay, overlayStyle;
-  var overlayTransition = 'opacity ' + kPageTransitionDuration + 's ease';
+  var overlayTransition = 'opacity ' + kPageTransitionDuration + 'ms ease';
 
   var numberOfSpecialPages = 0;
   var pages = [];
@@ -37,6 +37,7 @@ const GridManager = (function() {
   function handleEvent(evt) {
     switch (evt.type) {
       case 'mousedown':
+        touchStartTimestamp = evt.timeStamp;
         evt.stopPropagation();
         startEvent = evt;
         attachEvents();
@@ -149,6 +150,7 @@ const GridManager = (function() {
         container.addEventListener('mousemove', pan, true);
 
         window.addEventListener('mouseup', function removePanHandler(e) {
+          touchEndTimestamp = e.timeStamp;
           window.removeEventListener('mouseup', removePanHandler, true);
 
           container.removeEventListener('mousemove', pan, true);
@@ -199,7 +201,10 @@ const GridManager = (function() {
 
   function onTouchEnd(deltaX) {
     var page = currentPage;
-    if (Math.abs(deltaX) > thresholdForPanning) {
+    /* Bigger than threshold for panning or a fast movement bigger than
+       threshold for tapping */
+    if (Math.abs(deltaX) > thresholdForPanning ||
+        touchEndTimestamp - touchStartTimestamp < kPageTransitionDuration) {
       var forward = dirCtrl.goesForward(deltaX);
       if (forward && currentPage < pages.length - 1) {
         page = page + 1;
@@ -233,10 +238,20 @@ const GridManager = (function() {
     }
   }
 
+  var touchStartTimestamp = 0;
+  var touchEndTimestamp = 0;
+  var lastGoingPageTimestamp = 0;
+
   function goToPage(index, callback) {
     document.location.hash = (index == 1 ? 'root' : '');
     if (index < 0 || index >= pages.length)
       return;
+
+    var delay = touchEndTimestamp - lastGoingPageTimestamp ||
+                kPageTransitionDuration;
+    lastGoingPageTimestamp += delay;
+    var duration = delay < kPageTransitionDuration ?
+                   delay : kPageTransitionDuration
 
     var goToPageCallback = function() {
       delete document.body.dataset.transitioning;
@@ -271,7 +286,7 @@ const GridManager = (function() {
 
     if (previousPage == newPage) {
       goToPageCallback();
-      newPage.moveByWithEffect(0, kPageTransitionDuration);
+      newPage.moveByWithEffect(0, duration);
       return;
     }
 
@@ -281,9 +296,8 @@ const GridManager = (function() {
 
     previousPage.container.dispatchEvent(new CustomEvent('gridpagehidestart'));
     newPage.container.dispatchEvent(new CustomEvent('gridpageshowstart'));
-    previousPage.moveByWithEffect(-forward * windowWidth,
-                                  kPageTransitionDuration);
-    newPage.moveByWithEffect(0, kPageTransitionDuration);
+    previousPage.moveByWithEffect(-forward * windowWidth, duration);
+    newPage.moveByWithEffect(0, duration);
 
     container.addEventListener('transitionend', function transitionEnd(e) {
       container.removeEventListener('transitionend', transitionEnd);

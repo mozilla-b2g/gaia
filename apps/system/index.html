@@ -47,6 +47,7 @@
     <script defer src="js/hardware_buttons.js"></script>
     <script defer src="js/system_banner.js"></script>
     <script defer src="js/system_dialog.js"></script>
+    <script defer src="js/icc_cache.js"></script>
 
     <!-- Battery Manager -->
     <link rel="stylesheet" type="text/css" href="style/battery_manager/battery_manager.css">
@@ -178,6 +179,7 @@
     <link rel="stylesheet" type="text/css" href="style/themes/default/menus.css">
     <link rel="stylesheet" type="text/css" href="style/themes/default/buttons.css">
     <link rel="stylesheet" type="text/css" href="style/themes/default/banner.css">
+    <link rel="resource" type="application/l10n" href="shared/locales/branding.ini">
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
     <link rel="resource" type="application/l10n" href="shared/locales/date.ini">
     <link rel="resource" type="application/l10n" href="shared/locales/permissions.ini">
@@ -327,7 +329,7 @@
       <div id="windows" data-z-index-level="app">
         <!-- application windows are added here -->
         <header id="wrapper-activity-indicator"></header>
-        <footer id="wrapper-footer">
+        <footer id="wrapper-footer" class="closed">
           <div id="handler"></div>
           <menu type="buttonbar">
             <button type="button" id="back-button" alt="Back" data-disabled="disabled"></button>
@@ -531,19 +533,6 @@
             </menu>
           </div>
 
-          <div id="modal-dialog-error" role="dialog">
-            <div class="modal-dialog-message-container inner">
-              <h3 data-l10n-id="error-title" id="modal-dialog-error-title">Hmm, the app is having problems.</h3>
-              <p>
-              <span data-l10n-id="error-message" id="modal-dialog-error-message">The app has encountered an error and is not loading properly.</span>
-              </p>
-            </div>
-            <menu data-items="2">
-              <button id="modal-dialog-error-back" data-l10n-id="close">Close</button>
-              <button id="modal-dialog-error-reload" data-l10n-id="try-again">Try again</button>
-            </menu>
-          </div>
-
           <div id="modal-dialog-select-one" role="dialog">
             <div class="modal-dialog-message-container inner">
               <h3 id="modal-dialog-select-one-title"></h3>
@@ -567,8 +556,7 @@
             </ol>
           </section>
           <menu id="select-options-buttons">
-            <button class="value-selector-cancel" data-type="cancel" data-l10n-id="cancel">Cancel</button>
-            <button class="value-option-confirm affirmative" data-type="ok" data-l10n-id="ok">Ok</button>
+            <button class="value-option-confirm affirmative full" data-type="ok" data-l10n-id="ok">Ok</button>
           </menu>
         </form>
 
@@ -719,8 +707,8 @@
           <menu>
             <button id="updates-later-button" type="reset"
                     data-l10n-id="later">Later</button>
-                  <button id="updates-download-button" type="submit"
-                    data-l10n-id="download">Download</button>
+            <button id="updates-download-button" type="submit"
+              data-l10n-id="download">Download</button>
           </menu>
         </section>
       </form>
@@ -733,7 +721,10 @@
             <div id="lockscreen-header">
               <div id="lockscreen-connstate" hidden><span></span><span></span></div>
               <div id="lockscreen-mute" hidden></div>
-              <div id="lockscreen-clock"></div>
+              <div class="lockscreen-clock">
+                <span id="lockscreen-clock-numbers"></span>
+                <span id="lockscreen-clock-meridiem"></span>
+              </div>
               <div id="lockscreen-date"></div>
             </div>
             <div id="notifications-lockscreen-container">
@@ -745,7 +736,7 @@
                 <animate class="lockscreen-start-animation" attributeType="XML" attributeName="opacity" begin="indefinite" dur="0.5s" to="1" />
                 <animate class="lockscreen-end-animation" attributeType="XML" attributeName="y" begin="indefinite" dur="0.2s" to="0" />
                 <animate class="lockscreen-end-animation" attributeType="XML" attributeName="opacity" begin="indefinite" dur="0.5s" to="0" />
-                <animate class="lockscreen-prompt-animation" attributeType="XML" attributeName="y" dur="2s" calcMode="spline"
+                <animate class="lockscreen-elastic-animation" attributeType="XML" attributeName="y" dur="2s" calcMode="spline"
                     begin="indefinite" keySplines="0 .50 .50 1; .50 0 1 .50; 0 .50 .50 1; .50 0 1 .50"
                     values="100; 0; 120; 80; 100" />
               </image>
@@ -755,7 +746,7 @@
                   <animate class="lockscreen-start-animation" attributeType="XML" attributeName="stroke-opacity" begin="indefinite" dur="0.2s" to="1.0" />
                   <animate class="lockscreen-end-animation" attributeType="XML" attributeName="d" begin="indefinite" dur="0.5s" to="M0,80 C100,-20 220,-20 320,80" />
                   <animate class="lockscreen-end-animation" attributeType="XML" attributeName="stroke-opacity" begin="indefinite" dur="0.5s" to="0" />
-                  <animate class="lockscreen-prompt-animation" attributeType="XML" attributeName="d" dur="2s" calcMode="spline"
+                  <animate class="lockscreen-elastic-animation" attributeType="XML" attributeName="d" dur="2s" calcMode="spline"
                     begin="indefinite" keySplines="0 .50 .50 1; .50 0 1 .50;0 .50 .50 1; .50 0 1 .50;"
                     values="M0,80 C100,150 220,150 320,80;
                             M0,80 C100,40 220,40 320,80; M0,80 C100,150 220,150 320,80;
@@ -818,8 +809,6 @@
         <menu class="actions">
         </menu>
       </div>
-
-      <div id="keyboard-overlay" data-z-index-level="keyboard-overlay"></div>
 
       <!-- keyboard -->
       <div id="keyboard-frame" class="hide" data-z-index-level="keyboard-frame"></div>
