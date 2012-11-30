@@ -1,11 +1,13 @@
 /*
- * Frame.js:
+ * media_frame.js:
  *
- * A Frame displays a photo or a video. The open activity uses one of these
- * to display the opened item. The gallery app proper uses three side by side
- * to support smooth panning from one item to the next.
+ * A MediaFrame displays a photo or a video. The gallery app uses
+ * three side by side to support smooth panning from one item to the
+ * next.  The Camera app uses one for image and video preview. The
+ * Gallery app's open activity uses one of these to display the opened
+ * item.
  *
- * Frames have different behavior depending on whether they display
+ * MediaFrames have different behavior depending on whether they display
  * images or videos. Photo frames allow the user to zoom and pan on the photo.
  * Video frames allow the user to play and pause but don't allow zooming.
  *
@@ -20,12 +22,12 @@
  * photo that is not zoomed in at all, then it can't use any of the
  * pan, and returns the full amount which the gallery app turns into a
  * panning motion between frames.  But if the photo is zoomed in, then
- * the Frame will just move the photo within itself, if it can, and
+ * the MediaFrame will just move the photo within itself, if it can, and
  * return 0.
  *
  * Much of the code in this file used to be part of the PhotoState class.
  */
-function Frame(container, includeVideo) {
+function MediaFrame(container, includeVideo) {
   if (typeof container === 'string')
     container = document.getElementById(container);
   this.container = container;
@@ -42,8 +44,8 @@ function Frame(container, includeVideo) {
   this.url = null;
 }
 
-Frame.prototype.displayImage = function displayImage(blob, width, height,
-                                                     preview)
+MediaFrame.prototype.displayImage = function displayImage(blob, width, height,
+                                                          preview)
 {
   this.clear();  // Reset everything
 
@@ -82,8 +84,9 @@ Frame.prototype.displayImage = function displayImage(blob, width, height,
 // flash.  And if callback is specified, it will call the callback
 // when thew new images is visible on the screen.  If either of those
 // arguments are specified, the width and height must be specified.
-Frame.prototype._displayImage = function _displayImage(blob, width, height,
-                                                       waitForPaint, callback)
+MediaFrame.prototype._displayImage = function _displayImage(blob, width, height,
+                                                            waitForPaint,
+                                                            callback)
 {
   var self = this;
   var oldImage;
@@ -184,7 +187,7 @@ Frame.prototype._displayImage = function _displayImage(blob, width, height,
   }
 };
 
-Frame.prototype._switchToFullSizeImage = function _switchToFullSizeImage(cb) {
+MediaFrame.prototype._switchToFullSizeImage = function _switchToFull(cb) {
   if (this.displayingImage && this.displayingPreview) {
     this.displayingPreview = false;
     this._displayImage(this.blob, this.fullsizeWidth, this.fullsizeHeight,
@@ -192,7 +195,7 @@ Frame.prototype._switchToFullSizeImage = function _switchToFullSizeImage(cb) {
   }
 };
 
-Frame.prototype._switchToPreviewImage = function _switchToPreviewImage() {
+MediaFrame.prototype._switchToPreviewImage = function _switchToPreview() {
   if (this.displayingImage && !this.displayingPreview) {
     this.displayingPreview = true;
     this._displayImage(this.blob.slice(this.preview.start,
@@ -203,8 +206,8 @@ Frame.prototype._switchToPreviewImage = function _switchToPreviewImage() {
   }
 };
 
-Frame.prototype.displayVideo = function displayVideo(blob, width, height,
-                                                     rotation)
+MediaFrame.prototype.displayVideo = function displayVideo(blob, width, height,
+                                                          rotation)
 {
   if (!this.video)
     return;
@@ -230,7 +233,7 @@ Frame.prototype.displayVideo = function displayVideo(blob, width, height,
 };
 
 // Reset the frame state, release any urls and and hide everything
-Frame.prototype.clear = function clear() {
+MediaFrame.prototype.clear = function clear() {
   // Reset the saved state
   this.displayingImage = false;
   this.displayingPreview = false;
@@ -265,7 +268,7 @@ Frame.prototype.clear = function clear() {
 // Set the item's position based on this.fit
 // The VideoPlayer object fits itself to its container, and it
 // can't be zoomed or panned, so we only need to do this for images
-Frame.prototype.setPosition = function setPosition() {
+MediaFrame.prototype.setPosition = function setPosition() {
   if (!this.fit || !this.displayingImage)
     return;
 
@@ -274,7 +277,7 @@ Frame.prototype.setPosition = function setPosition() {
     'scale(' + this.fit.scale + ')';
 };
 
-Frame.prototype.computeFit = function computeFit() {
+MediaFrame.prototype.computeFit = function computeFit() {
   if (!this.displayingImage)
     return;
   this.viewportWidth = this.container.offsetWidth;
@@ -298,7 +301,7 @@ Frame.prototype.computeFit = function computeFit() {
   };
 };
 
-Frame.prototype.reset = function reset() {
+MediaFrame.prototype.reset = function reset() {
   // If we're not displaying the preview image, but we have one,
   // and it is the right size, then switch to it
   if (this.displayingImage && !this.displayingPreview && this.preview &&
@@ -330,7 +333,7 @@ Frame.prototype.reset = function reset() {
 // zoomed for the new size) then we adjust the fit properties so that
 // the pixel that was at the center of the screen before remains at
 // the center now, or as close as possible
-Frame.prototype.resize = function resize() {
+MediaFrame.prototype.resize = function resize() {
   var oldWidth = this.viewportWidth;
   var oldHeight = this.viewportHeight;
   var newWidth = this.container.offsetWidth;
@@ -375,7 +378,7 @@ Frame.prototype.resize = function resize() {
 // if we're calling zoom, then the swipe property will be 0.
 // If time is specified and non-zero, then we set a CSS transition
 // to animate the zoom.
-Frame.prototype.zoom = function zoom(scale, centerX, centerY, time) {
+MediaFrame.prototype.zoom = function zoom(scale, centerX, centerY, time) {
   // Ignore zooms if we're not displaying an image
   if (!this.displayingImage)
     return;
@@ -481,7 +484,7 @@ Frame.prototype.zoom = function zoom(scale, centerX, centerY, time) {
 // If the item being displayed is larger than the continer, pan it by
 // the specified amounts.  Return the "unused" dx amount for the gallery app
 // to use for sideways swiping
-Frame.prototype.pan = function(dx, dy) {
+MediaFrame.prototype.pan = function(dx, dy) {
   // We can only pan images, so return the entire dx amount
   if (!this.displayingImage) {
     return dx;
