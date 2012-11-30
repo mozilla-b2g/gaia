@@ -11,7 +11,8 @@
     "webapps-manage":{},
     "systemXHR":{},
     "settings":{ "access": "readwrite" },
-    "device-storage:pictures":{ "access": "readonly" }
+    "device-storage:pictures":{ "access": "readonly" },
+    "open-remote-window":{}
   },
   "locales": {
     "ar": {
