@@ -31,7 +31,10 @@
         var iccCommand = JSON.parse(cmd);
         debug('ICC async command (launcher): ', iccCommand);
         if (iccCommand) {        // Open ICC section
-          window.location.replace('app://settings.gaiamobile.org/index.html#icc');
+          var page = document.location.protocol + '//' +
+            document.location.host + '/index.html#icc';
+          debug("page: ", page);
+          window.location.replace(page);
         }
       }
     }
