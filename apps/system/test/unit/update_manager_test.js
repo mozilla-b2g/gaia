@@ -10,6 +10,7 @@ requireApp('system/test/unit/mock_chrome_event.js');
 requireApp('system/test/unit/mock_settings_listener.js');
 requireApp('system/test/unit/mock_statusbar.js');
 requireApp('system/test/unit/mock_notification_screen.js');
+requireApp('system/test/unit/mock_navigator_settings.js');
 
 requireApp('system/test/unit/mocks_helper.js');
 
@@ -33,6 +34,7 @@ mocksForUpdateManager.forEach(function(mockName) {
 suite('system/UpdateManager', function() {
   var realL10n;
   var realRequestWakeLock;
+  var realNavigatorSettings;
   var realDispatchEvent;
 
   var apps;
@@ -50,6 +52,9 @@ suite('system/UpdateManager', function() {
   var mocksHelper;
 
   suiteSetup(function() {
+
+    realNavigatorSettings = navigator.mozSettings;
+    navigator.mozSettings = MockNavigatorSettings;
 
     realL10n = navigator.mozL10n;
     navigator.mozL10n = {
@@ -86,6 +91,9 @@ suite('system/UpdateManager', function() {
   });
 
   suiteTeardown(function() {
+    navigator.mozSettings = realNavigatorSettings;
+    realNavigatorSettings = null;
+
     navigator.mozL10n = realL10n;
     navigator.requestWakeLock = realRequestWakeLock;
     UpdateManager._dispatchEvent = realDispatchEvent;
@@ -838,9 +846,19 @@ suite('system/UpdateManager', function() {
                      MockSettingsListener.mCallback.name);
       });
 
-      test('should dispatch force update event if asked for', function() {
-        UpdateManager.checkForUpdates(true);
-        assert.equal('force-update-check', lastDispatchedEvent.type);
+      suite('when asked to check', function() {
+        setup(function() {
+          UpdateManager.checkForUpdates(true);
+        });
+
+        test('should dispatch force update event if asked for', function() {
+          assert.equal('force-update-check', lastDispatchedEvent.type);
+        });
+
+        test('should set the setting back to false', function() {
+          var setting = 'gaia.system.checkForUpdates';
+          assert.isFalse(MockNavigatorSettings.mSettings[setting]);
+        });
       });
 
       test('should not dispatch force update event if not asked', function() {
