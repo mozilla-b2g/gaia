@@ -767,6 +767,7 @@ var WindowManager = (function() {
   }
 
   function skipFTU() {
+    document.getElementById('screen').classList.remove('ftuStarting');
     handleInitlogo();
     setDisplayedApp(homescreen);
     // Eventually ask for SIM code, but only when we do not show FTU,
@@ -779,11 +780,11 @@ var WindowManager = (function() {
   // reference to the app and launch it.
   function retrieveFTU() {
     window.asyncStorage.getItem('ftu.enabled', function getItem(launchFTU) {
+      document.getElementById('screen').classList.add('ftuStarting');
       if (launchFTU === false) {
         skipFTU();
         return;
       }
-      document.getElementById('screen').classList.add('ftuStarting');
       var lock = navigator.mozSettings.createLock();
       var req = lock.get('ftu.manifestURL');
       req.onsuccess = function() {
