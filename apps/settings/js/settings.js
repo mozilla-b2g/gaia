@@ -53,10 +53,46 @@ var Settings = {
 
       switch (input.dataset.type || input.type) { // bug344618
         case 'checkbox':
-        case 'switch':
           if (input.checked == value)
             return;
           input.checked = value;
+          break;
+        case 'switch':
+
+          // We get a lock of the switch, as well as any additional controls in data-locks
+          // We once we are sure we have the values for all settings, we toggle the switches
+          var unlock;
+          var getLock;
+          var operations = 1;
+          var locks = [key];
+          var lockValues = {};
+
+          if (input.dataset.locks) {
+            var addtlLocks = input.dataset.locks.split(',');
+            locks = locks.concat(addtlLocks);
+            operations += addtlLocks.length;
+          }
+
+          getLock = function(lockKey) {
+            var settingsLock =
+              settings.createLock().get(lockKey)
+            settingsLock.onsuccess = function settingsLockSuccess() {
+              lockValues[lockKey] = settingsLock.result[lockKey]; // boolean
+              operations--;
+              if (!operations) {
+                unlock();
+              }
+            };
+          }
+
+          unlock = function() {
+            input.disabled = false;
+            input.checked = lockValues[key];
+            input.parentNode.classList.remove('disabled');
+          }
+
+          locks.forEach(getLock);
+
           break;
         case 'range':
           if (input.value == value)
@@ -279,7 +315,13 @@ var Settings = {
     var value;
     switch (type) {
       case 'checkbox':
+        value = input.checked; // boolean
+        break;
+      // Disable switch controls
+      // these are re-enabled when we get the setting back
       case 'switch':
+        input.parentNode.classList.add('disabled');
+        input.disabled = true;
         value = input.checked; // boolean
         break;
       case 'range':
@@ -570,7 +612,6 @@ var Settings = {
 window.addEventListener('load', function loadSettings() {
   window.removeEventListener('load', loadSettings);
   window.addEventListener('change', Settings);
-  window.addEventListener('click', Settings); // XXX really needed?
   Settings.init();
 
   // panel lazy-loading
