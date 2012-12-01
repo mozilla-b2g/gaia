@@ -35180,13 +35180,12 @@ function MailUniverse(callAfterBigBang, testOptions) {
 
   this._bridges = [];
 
-  // hookup network status indication
-  var connection = window.navigator.connection ||
-                     window.navigator.mozConnection ||
-                     window.navigator.webkitConnection;
+  // We used to try and use navigator.connection, but it's not supported on B2G,
+  // so we have to use navigator.onLine like suckers.
   this.online = true; // just so we don't cause an offline->online transition
+  window.addEventListener('online', this._onConnectionChange.bind(this));
+  window.addEventListener('offline', this._onConnectionChange.bind(this));
   this._onConnectionChange();
-  connection.addEventListener('change', this._onConnectionChange.bind(this));
 
   this._testModeDisablingLocalOps = false;
 
@@ -35399,29 +35398,37 @@ MailUniverse.prototype = {
 
   //////////////////////////////////////////////////////////////////////////////
   _onConnectionChange: function() {
-    var connection = window.navigator.connection ||
-                       window.navigator.mozConnection ||
-                       window.navigator.webkitConnection;
     var wasOnline = this.online;
     /**
      * Are we online?  AKA do we have actual internet network connectivity.
-     * This should ideally be false behind a captive portal.
+     * This should ideally be false behind a captive portal.  This might also
+     * end up temporarily false if we move to a 2-phase startup process.
      */
-    this.online = connection.bandwidth > 0;
+    this.online = navigator.onLine;
+    // Knowing when the app thinks it is online/offline is going to be very
+    // useful for our console.log debug spew.
+    console.log('Email knows that it is:', this.online ? 'online' : 'offline',
+                'and previously was:', wasOnline ? 'online' : 'offline');
     /**
      * Do we want to minimize network usage?  Right now, this is the same as
      * metered, but it's conceivable we might also want to set this if the
      * battery is low, we want to avoid stealing network/cpu from other
      * apps, etc.
+     *
+     * NB: We used to get this from navigator.connection.metered, but we can't
+     * depend on that.
      */
-    this.minimizeNetworkUsage = connection.metered;
+    this.minimizeNetworkUsage = true;
     /**
      * Is there a marginal cost to network usage?  This is intended to be used
      * for UI (decision) purposes where we may want to prompt before doing
      * things when bandwidth is metered, but not when the user is on comparably
      * infinite wi-fi.
+     *
+     * NB: We used to get this from navigator.connection.metered, but we can't
+     * depend on that.
      */
-    this.networkCostsMoney = connection.metered;
+    this.networkCostsMoney = true;
 
     if (!wasOnline && this.online) {
       // - check if we have any pending actions to run and run them if so.
