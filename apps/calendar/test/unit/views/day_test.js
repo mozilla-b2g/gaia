@@ -144,7 +144,6 @@ suite('views/day', function() {
 
       // start in active state
       subject.onactive();
-      subject.currentFrame = true;
 
       // sanity check
       controller.selectedDay = new Date();
@@ -158,7 +157,6 @@ suite('views/day', function() {
       // event will not fire....
       controller.selectedDay = new Date(2012, 1, 2);
       assert.ok(!calledWith, 'should disable event listeners');
-      assert.ok(!subject.currentFrame, 'clears current frame');
     });
   });
 
