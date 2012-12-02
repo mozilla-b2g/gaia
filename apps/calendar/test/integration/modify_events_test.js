@@ -1,8 +1,4 @@
 require('/apps/calendar/test/integration/calendar_integration.js');
-/** require calc stuff to make things easier */
-require('apps/calendar/js/calendar.js');
-require('apps/calendar/js/calc.js');
-require('apps/calendar/js/utils/input_parser.js');
 
 suite('calendar - modify events', function() {
 
@@ -83,11 +79,18 @@ suite('calendar - modify events', function() {
 
   suiteSetup(function() {
     yield app.launch();
+
+
+    var btn = yield app.element('addEventBtn');
+    yield app.waitUntilElement(btn, 'displayed');
   });
 
   teardown(function() {
     // reset to month view between tests
+    yield app.resetSearchTimeout('long');
     yield app.monthView.navigate();
+    var today = yield app.element('todayBtn');
+    yield today.click();
   });
 
   test('add event - without pre-selected date', function() {
@@ -108,14 +111,18 @@ suite('calendar - modify events', function() {
   test('add event - different day selected', function() {
     var now = yield app.remoteDate();
 
-    // remove the time information
     now = Calendar.Calc.createDay(now);
 
-    // increment to tomorrow
-    now.setDate(now.getDate() + 3);
+    // we move to the next month to avoid issues
+    // where we run out of dates to pick in the current month.
+    now.setDate(25);
+    now.setMonth(now.getMonth() + 1);
+
+    yield app.monthView.forward();
 
     // tap the next day in the month view
     var dayEl = yield app.monthView.dateElement(now);
+
     yield app.waitUntilElement(dayEl, 'displayed');
     yield dayEl.click();
 
@@ -177,6 +184,9 @@ suite('calendar - modify events', function() {
 
     //TODO: this is fairly ugly we can improve this
     try {
+      // set the search timeout to a lower amount
+      // (we know there is minimal wait here).
+      yield app.resetSearchTimeout('short');
       yield app.monthsDayView.eventByTitle(newValues.title);
     } catch (e) {
       error = e;
