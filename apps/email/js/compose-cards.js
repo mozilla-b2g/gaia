@@ -122,11 +122,12 @@ ComposeCard.prototype = {
       // it gets to live in an iframe.  Its read-only and the user needs to be
       // able to see what they are sending, so reusing the viewing functionality
       // is desirable.
-      this.htmlIframeNode = createAndInsertIframeForContent(
+      var iframeShims = createAndInsertIframeForContent(
         this.composer.body.html, this.scrollContainer,
         this.htmlBodyContainer, /* append */ null,
         'noninteractive',
         /* no click handler because no navigation desired */ null);
+      this.htmlIframeNode = iframeShims.iframe;
     }
   },
 
