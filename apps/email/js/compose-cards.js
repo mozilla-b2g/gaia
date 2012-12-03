@@ -419,17 +419,6 @@ ComposeCard.prototype = {
     var self = this;
     contactBtn.classList.remove('show');
     try {
-      var reopenSelf = function reopenSelf(obj) {
-        navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
-          var app = evt.target.result;
-          app.launch();
-          if (obj.email) {
-            var emt = contactBtn.parentElement.querySelector('.cmp-addr-text');
-            self.insertBubble(emt, obj.name, obj.email);
-            self.sendButton.setAttribute('aria-disabled', 'false');
-          }
-        };
-      };
       var activity = new MozActivity({
         name: 'pick',
         data: {
@@ -437,12 +426,12 @@ ComposeCard.prototype = {
         }
       });
       activity.onsuccess = function success() {
-        reopenSelf(this.result);
+        if (this.result.email) {
+          var emt = contactBtn.parentElement.querySelector('.cmp-addr-text');
+          self.insertBubble(emt, this.result.name, this.result.email);
+          self.sendButton.setAttribute('aria-disabled', 'false');
+        }
       }
-      activity.onerror = function error() {
-        reopenSelf();
-      }
-
     } catch (e) {
       console.log('WebActivities unavailable? : ' + e);
     }
