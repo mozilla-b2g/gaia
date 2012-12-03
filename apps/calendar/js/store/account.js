@@ -21,8 +21,13 @@
           return;
         }
 
-        if ('url' in data) {
-          model.url = data.url;
+        // if this works we always will get a calendar home.
+        // This is used to find calendars.
+        model.calendarHome = data.calendarHome;
+
+        // entrypoint is used to re-authenticate.
+        if ('entrypoint' in data) {
+          model.entrypoint = data.entrypoint;
         }
 
         if ('domain' in data) {

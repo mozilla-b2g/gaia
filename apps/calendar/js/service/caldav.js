@@ -102,12 +102,19 @@ Calendar.ns('Service').Caldav = (function() {
     },
 
     getAccount: function(account, callback) {
-      var url = account.url;
+      var url = account.entrypoint;
       var connection = new Caldav.Connection(account);
 
       var request = this._requestHome(connection, url);
-      return request.send(function() {
-        callback.apply(this, arguments);
+      return request.send(function(err, data) {
+        if (err) {
+          callback(err);
+          return;
+        }
+
+        callback(null, {
+          calendarHome: data.url
+        });
       });
     },
 
@@ -126,7 +133,7 @@ Calendar.ns('Service').Caldav = (function() {
 
     findCalendars: function(account, callback) {
       var self = this;
-      var url = account.url;
+      var url = account.calendarHome;
       var connection = new Caldav.Connection(
         account
       );

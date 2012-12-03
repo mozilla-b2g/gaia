@@ -101,7 +101,8 @@
       user: 'user',
       password: 'password',
       domain: 'http://google.com',
-      url: '/'
+      entrypoint: '/dav/',
+      calendarHome: '/dav/my/foobar'
     }
   });
 
@@ -124,7 +125,7 @@
       user: 'user',
       password: 'password',
       domain: 'http://google.com',
-      url: '/',
+      entrypoint: '/',
       preset: 'local'
     }
   });
