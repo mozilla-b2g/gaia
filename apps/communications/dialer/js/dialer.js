@@ -10,7 +10,7 @@ var CallHandler = (function callHandler() {
         // there are no calls.
         sendCommandToCallScreen('*', 'exitCallScreen');
     }
-  }
+  };
 
   var conn = navigator.mozMobileConnection;
   var _ = navigator.mozL10n.get;
@@ -20,8 +20,8 @@ var CallHandler = (function callHandler() {
   var currentActivity = null;
 
   /* === Settings === */
-  var screenState = 'locked';
-  SettingsListener.observe('lockscreen.locked', false, function(value) {
+  var screenState = null;
+  SettingsListener.observe('lockscreen.locked', null, function(value) {
     if (value) {
       screenState = 'locked';
     } else {
@@ -68,7 +68,7 @@ var CallHandler = (function callHandler() {
       var app = evt.target.result;
       app.launch('dialer');
       window.location.hash = '#recents-view';
-    }
+    };
   }
   window.navigator.mozSetMessageHandler('notification', handleNotification);
 
@@ -98,6 +98,18 @@ var CallHandler = (function callHandler() {
     });
   }
 
+  /* === Recents support === */
+  function handleRecentAddRequest(entry) {
+    RecentsDBManager.init(function() {
+      RecentsDBManager.add(entry, function() {
+        RecentsDBManager.close();
+
+        if (Recents) {
+          Recents.refresh();
+        }
+      });
+    });
+  }
 
   /* === Incoming and STK calls === */
   function newCall() {
@@ -168,6 +180,8 @@ var CallHandler = (function callHandler() {
     } else if (data.type && data.type === 'notification') {
       // We're being asked to send a missed call notification
       handleNotificationRequest(data.number);
+    } else if (data.type && data.type === 'recent') {
+      handleRecentAddRequest(data.entry);
     }
   }
   window.addEventListener('message', handleMessage);
@@ -218,9 +232,9 @@ var CallHandler = (function callHandler() {
   function handleFlightMode() {
     ConfirmDialog.show(
       _('callAirplaneModeTitle'),
-      _('callAirplaneModeBody'),
+      _('callAirplaneModeMessage'),
       {
-        title: _('callAirplaneModeBtnOk'),
+        title: _('cancel'),
         callback: function() {
           ConfirmDialog.hide();
 
@@ -228,6 +242,20 @@ var CallHandler = (function callHandler() {
             currentActivity.postError('canceled');
             currentActivity = null;
           }
+        }
+      },
+      {
+        title: _('settings'),
+        callback: function() {
+          var activity = new MozActivity({
+            name: 'configure',
+              data: {
+                target: 'device',
+                section: 'root'
+              }
+            }
+          );
+          ConfirmDialog.hide();
         }
       }
     );
@@ -267,25 +295,48 @@ var CallHandler = (function callHandler() {
     var host = document.location.host;
     var protocol = document.location.protocol;
     var urlBase = protocol + '//' + host + '/dialer/oncall.html';
-    callScreenWindow = window.open(urlBase + '#' + screenState,
-                'call_screen', 'attention');
-    callScreenWindow.onload = function onload() {
-      callScreenWindowLoaded = true;
-      if (telephony.calls.length === 0) {
-        // Calls might be ended before callscreen is comletedly loaded, so that
-        // callscreen will miss call-related events. We send a message to notify
-        // callscreen of exiting when there are no calls.
-        sendCommandToCallScreen('*', 'exitCallScreen');
-      }
+
+    var openWindow = function dialer_openCallScreen(state) {
+      callScreenWindow = window.open(urlBase + '#' + state,
+                  'call_screen', 'attention');
+      callScreenWindow.onload = function onload() {
+        callScreenWindowLoaded = true;
+        if (telephony.calls.length === 0) {
+          // Calls might be ended before callscreen is comletedly loaded,
+          // so that callscreen will miss call-related events. We send a
+          // message to notify callscreen of exiting when there are no calls.
+          sendCommandToCallScreen('*', 'exitCallScreen');
+        }
+      };
+    };
+
+    // if screenState was initialized, use this value directly to openWindow()
+    // else if mozSettings doesn't exist, use default value 'unlocked'
+    if (screenState || !navigator.mozSettings) {
+      screenState = screenState || 'unlocked';
+      openWindow(screenState);
+      return;
     }
+
+    var req = navigator.mozSettings.createLock().get('lockscreen.locked');
+    req.onsuccess = function dialer_onsuccess() {
+      if (req.result['lockscreen.locked']) {
+        screenState = 'locked';
+      } else {
+        screenState = 'unlocked';
+      }
+      openWindow(screenState);
+    };
+    req.onerror = function dialer_onerror() {
+      // fallback to default value 'unlocked'
+      screenState = 'unlocked';
+      openWindow(screenState);
+    };
   }
 
   function handleCallScreenClosing() {
     callScreenWindow = null;
     callScreenWindowLoaded = false;
-    if (Recents) {
-      Recents.refresh();
-    }
   }
 
   return {

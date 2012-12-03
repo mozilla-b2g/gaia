@@ -548,6 +548,9 @@ html, body {
   text-decoration: underline;
   font-weight: 500;
 }
+#welcome_browser section p a {
+  margin-left: 0.3rem;
+}
 
 #welcome_browser #browser_os_privacy_links {
   margin-bottom: 3rem;
@@ -562,6 +565,7 @@ html, body {
 
 #welcome_browser #browser_os_privacy_links a:last-child {
   float: right;
+  text-align: right;
 }
 
 #welcome_browser #form_share_statistics {
@@ -615,10 +619,14 @@ html, body {
   line-height: 1.8rem;
 }
 
-#browser_privacy a {
+#browser_privacy p a {
   margin-left: 0.3rem;
+  font-size: 1.35rem;
+  line-height: 1.8rem;
+  color: #000;
+  text-decoration: underline;
+  font-weight: 500;
 }
-
 
 #browser_privacy input {
   margin-bottom: 2rem;
@@ -636,7 +644,7 @@ html, body {
   #about-your-rights
 */
 
-#about-your-rights p ,#about-your-privacy p {
+#about-your-rights p ,#about-your-privacy p, #sharing-performance-data p {
   margin: 0;
   color: #000;
   padding: 0 3rem 1rem 3rem;
@@ -644,8 +652,17 @@ html, body {
   line-height: 1.8rem;
 }
 
-#about-your-rights p:first-child, #about-your-privacy p:first-child {
+#about-your-rights p:first-child, #about-your-privacy p:first-child, #sharing-performance-data p:first-child {
   margin-top: 2rem;
+}
+
+#about-your-rights p a ,#about-your-privacy p a, #sharing-performance-data p a {
+  margin-left: 0.3rem;
+  font-size: 1.35rem;
+  line-height: 1.8rem;
+  color: #000;
+  text-decoration: underline;
+  font-weight: 500;
 }
 
 /*

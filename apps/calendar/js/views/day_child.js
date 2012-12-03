@@ -1,7 +1,7 @@
 Calendar.ns('Views').DayChild = (function() {
 
   var template = Calendar.Templates.Day;
-  var OrderedMap = Calendar.OrderedMap;
+  var OrderedMap = Calendar.Utils.OrderedMap;
 
   function Day(options) {
     Calendar.Views.DayBased.apply(this, arguments);

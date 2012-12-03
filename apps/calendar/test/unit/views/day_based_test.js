@@ -1,7 +1,7 @@
 requireApp('calendar/test/unit/helper.js', function() {
   requireLib('timespan.js');
-  requireLib('overlap.js');
-  requireLib('ordered_map.js');
+  requireLib('utils/overlap.js');
+  requireLib('utils/ordered_map.js');
   requireLib('templates/day.js');
   requireLib('views/day_based.js');
 });
@@ -11,7 +11,7 @@ suite('views/day_based', function() {
   var OrderedMap;
 
   suiteSetup(function() {
-    OrderedMap = Calendar.OrderedMap;
+    OrderedMap = Calendar.Utils.OrderedMap;
   });
 
   var subject;
@@ -60,7 +60,7 @@ suite('views/day_based', function() {
     assert.deepEqual(subject.timespan, expectedSpan);
 
     assert.instanceOf(subject.hours, OrderedMap);
-    assert.instanceOf(subject.overlaps, Calendar.Overlap);
+    assert.instanceOf(subject.overlaps, Calendar.Utils.Overlap);
   });
 
   suite('#_loadRecords', function() {
@@ -181,7 +181,14 @@ suite('views/day_based', function() {
       assert.equal(subject._changeToken, 0);
       var day = Calendar.Calc.createDay(startTime);
 
+      assert.ok(!subject.element.dataset.date, 'does not have a date');
       subject.changeDate(startTime, true);
+
+      assert.equal(
+        subject.element.dataset.date,
+        startTime.toString(),
+        'sets dataset.date'
+      );
 
       assert.equal(subject._changeToken, 1);
       assert.deepEqual(subject.date, day);

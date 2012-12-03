@@ -203,7 +203,9 @@ Frame.prototype._switchToPreviewImage = function _switchToPreviewImage() {
   }
 };
 
-Frame.prototype.displayVideo = function displayVideo(blob, width, height) {
+Frame.prototype.displayVideo = function displayVideo(blob, width, height,
+                                                     rotation)
+{
   if (!this.video)
     return;
 
@@ -221,34 +223,10 @@ Frame.prototype.displayVideo = function displayVideo(blob, width, height) {
   // Get a new URL for this blob
   this.url = URL.createObjectURL(blob);
 
-  // Display it in the video element
-  this.video.player.src = this.url;
-
-  // If we have the width and height, position the video element now.
-  // Otherwise, register an event handler to position it when loaded.
-  // The gallery app always has the dimensions but the open activity doesn't.
-  // Note that the video controls don't need to be positioned; they
-  // always go at the bottom of the container.
-  if (width && height) {
-    this.itemWidth = width;
-    this.itemHeight = height;
-    this.video.player.style.width = width + 'px';
-    this.video.player.style.height = height + 'px';
-    this.computeFit();
-    this.setPosition();
-  }
-  else {
-    var self = this;
-    this.video.player.addEventListener('loadedmetadata', function onload() {
-      this.removeEventListener('loadedmetadata', onload);
-      self.itemWidth = this.videoWidth;
-      self.itemHeight = this.videoHeight;
-      this.style.width = this.videoWidth + 'px';
-      this.style.height = this.videoHeight + 'px';
-      self.computeFit();
-      self.setPosition();
-    });
-  }
+  // Display it in the video element.
+  // The VideoPlayer class takes care of positioning itself, so we
+  // don't have to do anything here with computeFit() or setPosition()
+  this.video.load(this.url, rotation || 0);
 };
 
 // Reset the frame state, release any urls and and hide everything

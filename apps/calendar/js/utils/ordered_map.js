@@ -1,4 +1,4 @@
-Calendar.OrderedMap = (function() {
+Calendar.ns('Utils').OrderedMap = (function() {
   function OrderedMap(list, compare) {
     if (typeof(compare) === 'undefined') {
       compare = Calendar.compare;

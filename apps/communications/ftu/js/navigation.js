@@ -98,6 +98,8 @@ var Navigation = {
       case '#languages':
         UIManager.progressBar.className = 'step-state step-1';
         UIManager.mainTitle.innerHTML = _('language');
+        // Hide refresh button in case we end up here coming back from wifi
+        UIManager.activationScreen.classList.add('no-options');
         break;
       case '#data_3g':
         UIManager.progressBar.className = 'step-state step-2';
@@ -150,6 +152,11 @@ var Navigation = {
         break;
       case '#about-your-privacy':
         UIManager.progressBar.className = 'step-state step-6';
+        UIManager.navBar.classList.add('back-only');
+        break;
+      case '#sharing-performance-data':
+        UIManager.progressBar.className = 'step-state step-6';
+        UIManager.mainTitle.innerHTML = _('sharing-performance-data');
         UIManager.navBar.classList.add('back-only');
         break;
       default:

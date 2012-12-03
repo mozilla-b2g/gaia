@@ -118,7 +118,7 @@ Calendar.ns('Controllers').Alarm = (function() {
         if (endDate > now) {
           self._sendAlarmNotification(alarm, event, busytime);
         }
-      }
+      };
 
       alarmStore.get(alarm._id, trans, function(err, record) {
         dbAlarm = record;

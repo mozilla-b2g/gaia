@@ -4,20 +4,23 @@
  */
 Factory.define('form.modifyEvent', {
   oncreate: function(obj) {
+
+    var InputParser = Calendar.Utils.InputParser;
+
     if (obj.start) {
       var start = obj.start;
       delete obj.start;
 
-      obj.startDate = Calendar.InputParser.exportDate(start);
-      obj.startTime = Calendar.InputParser.exportTime(start);
+      obj.startDate = InputParser.exportDate(start);
+      obj.startTime = InputParser.exportTime(start);
     }
 
     if (obj.end) {
       var end = obj.end;
       delete obj.end;
 
-      obj.endDate = Calendar.InputParser.exportDate(end);
-      obj.endTime = Calendar.InputParser.exportTime(end);
+      obj.endDate = InputParser.exportDate(end);
+      obj.endTime = InputParser.exportTime(end);
     }
   }
 });

@@ -64,13 +64,13 @@ contacts.Search = (function() {
         contact.classList.remove('hide');
         count++;
       }
-      document.dispatchEvent(new CustomEvent('onupdate'));
     }
 
     if (count == 0) {
       searchNoResult.classList.remove('hide');
     } else {
       searchNoResult.classList.add('hide');
+      document.dispatchEvent(new CustomEvent('onupdate'));
     }
   };
 

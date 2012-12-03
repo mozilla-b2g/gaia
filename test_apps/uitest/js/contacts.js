@@ -121,21 +121,13 @@ var ContactsTest = {
     var self = this;
     activity.onsuccess = function() {
       var number = this.result.number;
-      navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
-        document.getElementById('activities-result').innerHTML =
+      document.getElementById('activities-result').innerHTML =
                                     'Picked contact with number: ' + number;
-        var app = evt.target.result;
-        app.launch();
-      };
     };
 
     activity.onerror = function() {
-      navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
-        document.getElementById('activities-result').innerHTML =
+      document.getElementById('activities-result').innerHTML =
                                                         'Activity canceled';
-        var app = evt.target.result;
-        app.launch();
-      };
     };
 
   },
@@ -151,22 +143,14 @@ var ContactsTest = {
     var self = this;
     activity.onsuccess = function() {
       var contact = this.result.contact;
-      navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
-        document.getElementById('activities-result').innerHTML =
+      document.getElementById('activities-result').innerHTML =
                             'New contact' + ' create with id: ' + contact.id;
-        self.setContactId(contact.id);
-        var app = evt.target.result;
-        app.launch();
-      };
+      self.setContactId(contact.id);
     };
 
     activity.onerror = function() {
-      navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
-        document.getElementById('activities-result').innerHTML =
+      document.getElementById('activities-result').innerHTML =
                                                           'Activity canceled';
-        var app = evt.target.result;
-        app.launch();
-      };
     };
 
   },
@@ -191,22 +175,14 @@ var ContactsTest = {
     var self = this;
     activity.onsuccess = function() {
       var contact = this.result.contact;
-      navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
-        document.getElementById('activities-result').innerHTML =
+      document.getElementById('activities-result').innerHTML =
                           'New contact' + ' create with id: ' + contact.id;
-        self.setContactId(contact.id);
-        var app = evt.target.result;
-        app.launch();
-      };
+      self.setContactId(contact.id);
     };
 
     activity.onerror = function() {
-      navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
-        document.getElementById('activities-result').innerHTML =
+      document.getElementById('activities-result').innerHTML =
                                                         'Activity canceled';
-        var app = evt.target.result;
-        app.launch();
-      };
     };
 
   },

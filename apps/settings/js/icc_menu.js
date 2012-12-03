@@ -23,5 +23,20 @@
       debug('STK Main App Menu title: ' + menu.title);
       document.getElementById('menuItem-icc').textContent = menu.title;
     };
+
+    var reqIccData = window.navigator.mozSettings.createLock().get('icc.data');
+    reqIccData.onsuccess = function icc_getIccData() {
+      var cmd = reqIccData.result['icc.data'];
+      if (cmd) {
+        var iccCommand = JSON.parse(cmd);
+        debug('ICC async command (launcher): ', iccCommand);
+        if (iccCommand) {        // Open ICC section
+          var page = document.location.protocol + '//' +
+            document.location.host + '/index.html#icc';
+          debug("page: ", page);
+          window.location.replace(page);
+        }
+      }
+    }
   });
 })();
