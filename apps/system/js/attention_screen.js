@@ -156,6 +156,9 @@ var AttentionScreen = {
   hide: function as_hide() {
     if (this.attentionScreen.querySelectorAll('iframe').length > 0) {
       if (!this.mainScreen.classList.contains('active-statusbar')) {
+        // Ensuring the proper mozvisibility changed on the displayed app
+        var displayedOrigin = WindowManager.getDisplayedApp();
+        this._setVisibility(displayedOrigin, true);
 
         this.mainScreen.classList.add('active-statusbar');
 
