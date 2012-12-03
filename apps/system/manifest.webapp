@@ -11,6 +11,7 @@
     "alarms": {},
     "browser":{},
     "power":{},
+    "fmradio":{},
     "webapps-manage":{},
     "mobileconnection":{},
     "bluetooth":{},

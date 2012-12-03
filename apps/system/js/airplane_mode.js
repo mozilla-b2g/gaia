@@ -34,6 +34,7 @@ var AirplaneMode = {
     var wifiManager = window.navigator.mozWifiManager;
     var mobileData = window.navigator.mozMobileConnection &&
       window.navigator.mozMobileConnection.data;
+    var fmRadio = window.navigator.mozFMRadio;
 
     var restoreMobileData = false;
     var restoreBluetooth = false;
@@ -94,6 +95,10 @@ var AirplaneMode = {
             'geolocation.enabled': false
           });
         }
+
+        // Turn off FM Radio.
+        if (fmRadio && fmRadio.enabled)
+          fmRadio.disable();
 
       } else {
         self.enabled = false;
