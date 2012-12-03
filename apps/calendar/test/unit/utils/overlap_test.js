@@ -103,7 +103,7 @@ suite('overlap', function() {
     );
   });
 
-  if (true) suite('#add', function() {
+  suite('#add', function() {
 
     setup(function() {
       subject.reset();
@@ -201,7 +201,7 @@ suite('overlap', function() {
 
   });
 
-  if (true) suite('#remove', function() {
+  suite('#remove', function() {
 
     setup(function() {
       subject.reset();
@@ -330,6 +330,28 @@ suite('overlap', function() {
         ['33.3333%', '33.3333%'], ['0%', '33.3333%'], ['66.6667%', '33.3333%'],
         ['0%', '50%'], ['50%', '50%'], ['', ''],
         [null, null], [null, null], [null, null]
+      ]);
+
+    });
+
+    test('bug 817763 - collapse columns on conflict delete', function() {
+
+      var records = addRecords([
+        [1, 0, 1, 15],
+        [1, 30, 2, 0]
+      ]);
+
+      var to_delete = addRecord(1, 0, 2, 0);
+      records.push(to_delete);
+
+      assert.deepEqual(widthAndLeftFromRecords(records), [
+        ['50%', '50%'], ['50%', '50%'], ['0%', '50%']
+      ]);
+
+      subject.remove(to_delete.busytime);
+
+      assert.deepEqual(widthAndLeftFromRecords(records), [
+        ['', ''], ['', ''], [null, null]
       ]);
 
     });
