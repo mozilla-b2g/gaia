@@ -25,7 +25,7 @@
 #phoneLock-passcode div.passcode-error {
   display: none;
   color: red;
-  font-size: 1.6rem;
+  font-size: 1.7rem;
   padding-left: 2rem;
 }
 
@@ -47,7 +47,7 @@
   width: 100%;
   color: rgb(0, 0, 0);
   -moz-box-sizing: border-box;
-  font-size: 1.8rem;
+  font-size: 1.9rem;
   padding: 0px 2rem;
 }
 

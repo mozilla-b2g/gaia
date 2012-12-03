@@ -281,7 +281,7 @@ Calendar.ConflictSpan = (function() {
 /**
  * Conflict manager
  */
-Calendar.Overlap = (function() {
+Calendar.ns('Utils').Overlap = (function() {
 
   function Overlap() {
     this.reset();

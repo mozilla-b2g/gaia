@@ -26,7 +26,8 @@ var Contacts = (function() {
   var readyToPaint = false;
   var firstContacts = null;
 
-  var currentContact = {};
+  var currentContact = {},
+      currentFbContact;
 
   var contactsList = contacts.List;
   var contactsDetails = contacts.Details;
@@ -207,17 +208,18 @@ var Contacts = (function() {
 
   var dataPickHandler = function dataPickHandler() {
     var type, dataSet, noDataStr, selectDataStr;
+    var theContact = currentFbContact || currentContact;
     // Add the new pick type here:
     switch (ActivityHandler.activityDataType) {
       case 'webcontacts/contact':
         type = 'number';
-        dataSet = currentContact.tel;
+        dataSet = theContact.tel;
         noDataStr = _('no_phones');
         selectDataStr = _('select_mobile');
         break;
       case 'webcontacts/email':
         type = 'email';
-        dataSet = currentContact.email;
+        dataSet = theContact.email;
         noDataStr = _('no_email');
         selectDataStr = _('select_email');
         break;
@@ -227,7 +229,7 @@ var Contacts = (function() {
     var numOfData = hasData ? dataSet.length : 0;
 
     var result = {};
-    result.name = currentContact.name;
+    result.name = theContact.name;
     switch (numOfData) {
       case 0:
         // If no required type of data
@@ -263,8 +265,9 @@ var Contacts = (function() {
   };
 
   var contactListClickHandler = function originalHandler(id) {
-    contactsList.getContactById(id, function findCallback(contact) {
+    contactsList.getContactById(id, function findCallback(contact, fbContact) {
       currentContact = contact;
+      currentFbContact = fbContact;
 
       if (!ActivityHandler.currentlyHandling) {
         contactsDetails.render(currentContact, TAG_OPTIONS);
@@ -559,7 +562,6 @@ var Contacts = (function() {
   var showSettings = function showSettings() {
      // The number of FB Friends has to be recalculated
     contacts.Settings.refresh();
-    
     navigation.go('view-settings', 'popup');
   };
 

@@ -69,13 +69,14 @@ suite('app', function() {
   });
 
   test('#view', function() {
-    var first = subject.view('Mock');
-    var second = subject.view('Mock');
+    subject.view('Mock', function(first) {
+      subject.view('Mock', function(second) {
+        assert.instanceOf(first, Calendar.Views.Mock);
+        assert.equal(first.app, subject);
 
-    assert.instanceOf(first, Calendar.Views.Mock);
-    assert.equal(first.app, subject);
-
-    assert.equal(first, second);
+        assert.equal(first, second);
+      });
+    });
   });
 
   test('#provider', function() {
@@ -91,77 +92,46 @@ suite('app', function() {
     );
   });
 
-  test('#_wrapViewObject', function() {
-    var result = subject._wrapViewObject('Mock');
-    var view;
-
-    assert.equal(subject._routeViewFn.Mock, result);
-
-    assert.ok(
-      !subject._views['Mock'],
-      'view should not be created by referencing it'
-    );
-    var nextCalled = false;
-
-    function next() {
-      nextCalled = true;
-    }
-
-    result({}, next);
-
-    view = subject._views['Mock'];
-    assert.ok(view, 'view should be created');
-    assert.ok(nextCalled);
-    assert.ok(view.active);
-
-    var second = subject._wrapViewObject('Mock');
-    assert.equal(result, second);
-  });
-
   test('#modifier', function() {
     var uniq = function() {};
     subject.modifier('/foo', 'Mock');
 
-    var cb = subject._routeViewFn['Mock'];
-    assert.ok(cb);
-
     var route = page.routes[0];
+
+    assert.equal(route.length, 5);
     assert.equal(route[0], '/foo');
-    assert.equal(route[1], cb, 'should set mock view');
+    assert.equal(route[4], subject.router._lastState, 'should add lastState fn');
   });
 
   suite('#route', function() {
 
-    test('object', function(done) {
+    test('singleRoute', function() {
       var mock = new Calendar.Views.Mock();
 
-      subject.state('/obj', mock);
+      subject.state('/single', 'Mock');
 
       var route = page.routes[0];
-      var cb = route[2];
-      var ctx = {
-        params: { hit: true}
-      };
 
-      cb(ctx, function() {
-        done(function() {
-          assert.equal(mock.activeWith[0], ctx);
-        });
-      });
+      assert.equal(route.length, 5);
+      assert.equal(route[0], '/single');
+      assert.instanceOf(route[1], Function, 'should add setPath');
+      assert.instanceOf(route[2], Function, 'should add loadAllViews');
+      assert.instanceOf(route[3], Function, 'should add handleView');
+      assert.equal(route[4], subject.router._lastState, 'should add lastState fn');
     });
 
-    test('normal', function() {
+    test('twoRoutes', function() {
       var uniq = function() {};
-      subject.state('/foo', 'Mock', 'Mock', uniq);
-
-      var cb = subject._routeViewFn['Mock'];
-      assert.ok(cb);
+      subject.state('/foo', ['Mock', 'Mock']);
 
       var route = page.routes[0];
+
+      assert.equal(route.length, 5);
       assert.equal(route[0], '/foo');
-      assert.equal(route[2], cb, 'should set mock view');
-      assert.equal(route[3], cb, 'should set second mock view');
-      assert.equal(route[4], uniq, 'should add normal fn');
+      assert.instanceOf(route[1], Function, 'should add setPath');
+      assert.instanceOf(route[2], Function, 'should add loadAllViews');
+      assert.instanceOf(route[3], Function, 'should add handleView');
+      assert.equal(route[4], subject.router._lastState, 'should add lastState fn');
     });
   });
 

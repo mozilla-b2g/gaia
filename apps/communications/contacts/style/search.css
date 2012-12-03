@@ -65,8 +65,7 @@ form.search button[type="submit"] {
   opacity: 0;
 }
 
-#view-contacts-list.searching .view-jumper,
-.searching #shortcuts {
+.searching nav[data-type="scrollbar"] {
   opacity: 0;
   pointer-events: none;
 }

@@ -5,6 +5,7 @@
     <title> Contacts </title>
 
     <!-- Building Blocks -->
+    <link href="/shared/style_unstable/progress_activity.css" rel="stylesheet">
     <link href="/shared/style/status.css" rel="stylesheet">
     <link href="/shared/style/headers.css" rel="stylesheet">
     <link href="/shared/style/input_areas.css" rel="stylesheet">
@@ -12,6 +13,7 @@
     <link href="/shared/style/buttons.css" rel="stylesheet">
     <link href="/shared/style/confirm.css" rel="stylesheet">
     <link href="/shared/style_unstable/lists.css" rel="stylesheet">
+    <link href="/shared/style_unstable/scrolling.css" rel="stylesheet">
 
     <link href="/contacts/style/app.css" rel="stylesheet">
     <link href="/contacts/style/contacts.css" rel="stylesheet">
@@ -49,6 +51,8 @@
     <script defer type="text/javascript" src="/contacts/js/utilities/templates.js"></script>
     <script defer type="text/javascript" src="/contacts/js/utilities/event_listeners.js"></script>
     <script defer type="text/javascript" src="/contacts/js/utilities/import_sim_contacts.js"></script>
+
+    <script defer type="text/javascript" src="/contacts/js/utilities/image_loader.js"></script>
 
     <script defer type="text/javascript" src="/contacts/js/navigation.js"></script>
     <script defer type="text/javascript" src="/contacts/js/contacts_list.js"></script>
@@ -107,18 +111,20 @@
               <p data-l10n-id="start-adding">start adding them now </p>
             </div>
           </div>
-          <div class="view-jumper">
-            <ol class="view-jumper-inner">
-              <li data-anchor="search-container" data-img="magnifier_icon_big.png"><a href="#"><span role="button" class="icon-search"></span></a></li>
-              <li data-anchor="group-favorites" data-img="star_icon_big.png"><a href="#"><span role="button" class="icon-fav-dark"></span></a></li>
+          <nav data-type="scrollbar">
+            <p></p>
+            <ol>
+              <li data-anchor="search-container" data-img="magnifier_icon_big.png">
+                <a href="#"><span class="pack-icon-search">Search</span></a>
+              </li>
+              <li data-anchor="group-favorites" data-img="star_icon_big.png">
+                <a href="#"><span class="pack-icon-favorites">Favorites</span></a>
+              </li>
               <li data-template data-anchor="group-#anchor#" data-letter="#anchor#">
-                <a href="#">
-                  <abbr class="letter" title="Jump to #anchor#">#anchor#</abbr>
-                </a>
+                <a href="#">#anchor#</a>
               </li>
             </ol>
-          </div>
-
+          </nav>
           <div id="groups-container" class="view-body-inner">
             <form id="search-container" class="search" role="search">
               <p>
@@ -134,7 +140,6 @@
           </div>
         </article>
         <div id='fixed-container' class='fixed-title'></div>
-        <div id="current-jumper" class="view-jumper-current"></div>
 
         <section id="search-view" class="view">
         <form id="searchview-container" class="search" role="search">

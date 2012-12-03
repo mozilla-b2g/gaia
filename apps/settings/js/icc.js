@@ -48,7 +48,12 @@
       }, true);
     };
 
-    icc.addEventListener('stkcommand', handleSTKCommand);
+    icc.addEventListener('stkcommand', function do_handleSTKCmd(event) {
+      handleSTKCommand(event.command);
+    });
+    window.addEventListener('stkasynccommand', function do_handleAsyncSTKCmd(event) {
+      handleSTKCommand(event.detail.command);
+    });
 
     /**
      * Open STK main application
@@ -59,6 +64,25 @@
 
     // Load STK apps
     updateMenu();
+
+    // Check if async message has arrived
+    var reqIccData = window.navigator.mozSettings.createLock().get('icc.data');
+    reqIccData.onsuccess = function icc_getIccData() {
+      var cmd = reqIccData.result['icc.data'];
+      if (cmd) {
+        var iccCommand = JSON.parse(cmd);
+        debug('ICC async command: ', iccCommand);
+        reqIccData = window.navigator.mozSettings.createLock().set({
+          'icc.data': ''
+        });
+        if (iccCommand) {        // Open ICC section
+          var event = new CustomEvent('stkasynccommand', {
+            detail: { 'command': iccCommand }
+          });
+          window.dispatchEvent(event);
+        }
+      }
+    }
   }
 
   /**
@@ -81,8 +105,7 @@
   /**
    * Handle ICC Commands
    */
-  function handleSTKCommand(event) {
-    var command = event.command;
+  function handleSTKCommand(command) {
     debug('STK Proactive Command:', command);
     iccLastCommand = command;
     var options = command.options;

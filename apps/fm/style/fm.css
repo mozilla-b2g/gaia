@@ -4,9 +4,9 @@ html, body {
   margin: 0;
   height: 100%;
   overflow: hidden;
-  font-size: 62.5%;
   color: #FFF;
-  font-family:'MozTT';
+  font-family: 'MozTT', sans-serif;
+  font-size: 10px;
 }
 
 body {
@@ -59,7 +59,7 @@ a:active {
   line-height: 4rem;
   width: 3.8rem;
   height: 3.8rem;
-  font-size: 3rem;
+  font-size: 1.4rem;
   border-radius: 50%;
   display: inline-block;
   margin-top: 3rem;
@@ -73,7 +73,7 @@ a:active {
 
 #frequency {
   font-size: 6rem;
-  font-weight: lighter;
+  font-weight: 300;
   color: #fff;
   padding-top: .5rem;
   position: absolute;
@@ -86,7 +86,7 @@ a:active {
 
 #frequency::after {
   content: "MHz";
-  font-size: 1.52rem;
+  font-size: 1.5rem;
   padding-left: 0.3rem;
 }
 
@@ -120,8 +120,8 @@ a:active {
 /**** styles for frequency dialer *****/
 #dialer-bar {
   top: 10rem;
-  font-size: 1.3rem;
-  font-weight: lighter;
+  font-size: 1.4rem;
+  font-weight: 400;
   height: 9rem;
   overflow: hidden;
   background: #4C5055;
@@ -210,10 +210,10 @@ div#fav-list-container {
 }
 
 div#fav-list-container > div {
-  font-size: 2.17rem;
-  font-weight: lighter;
+  font-size: 2.3rem;
+  font-weight: 300;
   height: 4.4rem;
-  margin: 0 2rem;
+  margin: 0 2rem 0.2rem 2rem;
   clear: both;
   border-top: 1px solid #3D4045;
 }
@@ -252,9 +252,9 @@ div#fav-list-container div.fav-list-frequency {
 
 div#fav-list-container div.fav-list-frequency::after {
   content: "MHz";
-  font-size: 1.52rem;
+  font-size: 1.5rem;
   position: absolute;
-  padding: 0.6rem 0 0 1rem;
+  padding: 6px 2px 0 10px;
 }
 /***** end *****/
 
@@ -293,7 +293,7 @@ div#fav-list-container div.fav-list-frequency::after {
   border: none;
   width: 7rem;
   height: 7rem;
-  font-size: 5rem;
+  font-size: 2.5rem;
   border-radius: 50%;
   text-align: center;
   box-shadow: 0 1px 1px #A8A8A8 inset, 0 2px 0 #1e2226;
@@ -371,16 +371,20 @@ a#frequency-op-seekup:active {
 }
 
 #antenna-warning-header {
-  padding: 1rem 0 1rem 2.5rem;
-  font-size: 1.52rem;
+  padding: 10px 30px 10px 30px;
+  font-weight: normal;
+  text-transform:capitalize;
+  font-size: 1.9rem;
+  color: #fff;
   margin-top: -2.5rem;
 }
 
 #antenna-warning-body {
-  font-size: 2.17rem;
-  padding: 0.5rem;
-  margin: 0 2rem;
-  border-top: 1px solid #D8D8D8;
+  font-weight: 300;
+  font-size: 2.5rem;
+  padding: 5px;
+  margin: 0 25px;
+  border-top: 1px solid #686868;
 }
 /******* end *******/
 

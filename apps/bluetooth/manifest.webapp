@@ -17,6 +17,7 @@
   "activities": {
     "share": {
       "filters": {
+      	"number": 1
        },
       "disposition": "inline",
       "returnValue": true,
@@ -24,10 +25,8 @@
     }   
   },
   "permissions": {
-    "settings":{ "access": "readwrite" },
     "bluetooth":{},
-    "mozBluetooth":{},
-    "device-storage:pictures":{ "access": "readwrite" },
-    "device-storage:music":{ "access": "readwrite" }
+    "device-storage:sdcard":{ "access": "readonly" },
+    "settings":{ "access": "readwrite" }
   }
 }

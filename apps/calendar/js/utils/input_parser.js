@@ -3,7 +3,7 @@
  * The intent is the methods here will only relate to the parsing
  * of input[type="date|time"]
  */
-Calendar.InputParser = (function() {
+Calendar.ns('Utils').InputParser = (function() {
 
   var InputParser = {
     _dateParts: ['year', 'month', 'date'],

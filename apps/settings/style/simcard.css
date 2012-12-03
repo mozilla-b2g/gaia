@@ -1,6 +1,6 @@
 #simpin-dialog .container {
   padding-left: 20px;
-  font-size: 1.5em;
+  font-size: 1.4em;
 }
 
 #simpin-dialog .container > div {
@@ -16,7 +16,7 @@
 }
 
 #simpin-dialog .input-wrapper input {
-  font-size: 2.0em;
+  font-size: 2.1rem;
   display: block;
 }
 

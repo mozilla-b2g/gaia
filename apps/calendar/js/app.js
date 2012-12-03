@@ -9,6 +9,70 @@ Calendar.App = (function(window) {
    */
   var App = {
 
+    // Dependency map for loading
+    cssBase: '/style/',
+    jsBase: '/js/',
+    dependencies: {
+      Store: {},
+      Style: {},
+      Templates: {},
+      Utils: {},
+      Views: {
+        AdvancedSettings: [
+          {type: 'Templates', name: 'Account'}
+        ],
+        CreateAccount: [
+         {type: 'Templates', name: 'Account'}
+        ],
+        Day: [
+          {type: 'Views', name: 'DayChild'},
+          {type: 'Views', name: 'TimeParent'}
+        ],
+        DayBased: [
+          {type: 'Utils', name: 'OrderedMap'}
+        ],
+        DayChild: [
+          {type: 'Templates', name: 'Day'},
+          {type: 'Utils', name: 'OrderedMap'},
+          {type: 'Utils', name: 'Overlap'},
+          {type: 'Views', name: 'DayBased'}
+        ],
+        ModifyEvent: [
+          {type: 'Style', name: 'ModifyEventView'},
+          {type: 'Utils', name: 'InputParser'}
+        ],
+        Month: [
+          {type: 'Templates', name: 'Month'},
+          {type: 'Views', name: 'MonthChild'},
+          {type: 'Views', name: 'TimeParent'}
+        ],
+        MonthChild: [
+          {type: 'Templates', name: 'Month'}
+        ],
+        MonthsDay: [
+          {type: 'Views', name: 'DayChild'}
+        ],
+        Settings: [
+          {type: 'Style', name: 'Settings'},
+          {type: 'Templates', name: 'Calendar'}
+        ],
+        TimeParent: [
+          {type: 'Utils', name: 'OrderedMap'}
+        ],
+        Week: [
+          {type: 'Style', name: 'WeekView'},
+          {type: 'Templates', name: 'Week'},
+          {type: 'Views', name: 'Day'},
+          {type: 'Views', name: 'WeekChild'}
+        ],
+        WeekChild: [
+          {type: 'Templates', name: 'Week'},
+          {type: 'Utils', name: 'OrderedMap'},
+          {type: 'Views', name: 'DayBased'}
+        ]
+      }
+    },
+
     /**
      * Entry point for application
      * must be called at least once before
@@ -37,36 +101,44 @@ Calendar.App = (function(window) {
       this.router.show(url);
     },
 
+    /**
+     * Shortcut for app.router.state
+     */
+    state: function() {
+      this.router.state.apply(this.router, arguments);
+    },
+
+    /**
+     * Shortcut for app.router.modifier
+     */
+    modifier: function() {
+      this.router.modifier.apply(this.router, arguments);
+    },
+
+    /**
+     * Shortcut for app.router.resetState
+     */
+    resetState: function() {
+      this.router.resetState();
+    },
+
     _routes: function() {
-      var self = this;
-
-      function tempView(selector) {
-        self._views[selector] = new Calendar.View(selector);
-        return selector;
-      }
-
-      function setPath(data, next) {
-        document.body.setAttribute('data-path', data.canonicalPath);
-        next();
-      }
 
       /* routes */
-      this.state('/week/', setPath, 'Week');
-      this.state('/day/', setPath, 'Day');
-      this.state('/month/', setPath, 'Month', 'MonthsDay');
-      this.modifier('/settings/', setPath, 'Settings', { clear: false });
-      this.modifier(
-        '/advanced-settings/', setPath, 'AdvancedSettings'
-      );
+      this.state('/week/', 'Week');
+      this.state('/day/', 'Day');
+      this.state('/month/', ['Month', 'MonthsDay']);
+      this.modifier('/settings/', 'Settings', { clear: false });
+      this.modifier('/advanced-settings/', 'AdvancedSettings');
 
-      this.state('/alarm-display/:id', 'ModifyEvent');
+      this.state('/alarm-display/:id', 'ModifyEvent', { path: false });
 
-      this.state('/add/', setPath, 'ModifyEvent');
-      this.state('/event/:id', setPath, 'ModifyEvent');
+      this.state('/add/', 'ModifyEvent');
+      this.state('/event/:id', 'ModifyEvent');
 
-      this.modifier('/select-preset/', setPath, 'CreateAccount');
-      this.modifier('/create-account/:preset', setPath, 'ModifyAccount');
-      this.modifier('/update-account/:id', setPath, 'ModifyAccount');
+      this.modifier('/select-preset/', 'CreateAccount');
+      this.modifier('/create-account/:preset', 'ModifyAccount');
+      this.modifier('/update-account/:id', 'ModifyAccount');
 
       this.router.start();
 
@@ -104,11 +176,13 @@ Calendar.App = (function(window) {
 
       this.timeController.move(new Date());
 
-      var header = this.view('TimeHeader');
-      var colors = this.view('CalendarColors');
+      this.view('TimeHeader', function(header) {
+          header.render();
+      });
 
-      colors.render();
-      header.render();
+      this.view('CalendarColors', function(colors) {
+        colors.render();
+      });
 
       document.body.classList.remove('loading');
       this._routes();
@@ -155,6 +229,81 @@ Calendar.App = (function(window) {
     },
 
     /**
+     * Loads a resource and all of it's dependencies
+     * @param {String} type of resource to load (folder name).
+     * @param {String} name view name.
+     * @param {Function} callback after all resources are loaded.
+     */
+    loadResource: function(type, name, cb) {
+
+      var file, script, classes = [];
+
+      var head = document.getElementsByTagName('head')[0];
+
+      var self = this;
+
+      /**
+       * Appends a script to the dom
+       */
+      var appendScript = function(config, cb) {
+        // lowercase_and_underscore the view to get the filename
+        file = config.name.replace(/([A-Z])/g, '_$1')
+          .replace(/^_/, '').toLowerCase();
+
+        if (config.type == 'Style') {
+          script = document.createElement('link');
+          script.type = 'text/css';
+          script.rel = 'stylesheet';
+          script.href = self.cssBase + file + '.css';
+          head.appendChild(script);
+          return cb();
+        }
+
+        script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.src = self.jsBase + config.type.toLowerCase() +
+          '/' + file + '.js';
+
+        if (cb) script.onload = cb;
+        head.appendChild(script);
+      };
+
+      /**
+       * Process a dependency node
+       * Ensures all sub-dependencies are processed
+       */
+      function processScripts(node, cb) {
+
+        // If there are no dependencies, or we already have this resource loaded, bail out
+        if (!App.dependencies[node.type] || (Calendar[node.type] && Calendar[node.type][node.name])) {
+            return cb();
+        }
+
+        var dependencies = App.dependencies[node.type][node.name];
+        var numDependencies = dependencies ? dependencies.length : 0;
+        var counter = 0;
+
+        if (numDependencies > 0) {
+          !function processRemaining() {
+            var toProcess = dependencies.shift();
+            processScripts(toProcess, function() {
+              counter++;
+              if (counter >= numDependencies) {
+                appendScript(node, cb);
+              } else {
+                processRemaining();
+              }
+            });
+          }();
+
+        } else {
+          appendScript(node, cb);
+        }
+      }
+      processScripts({type: type, name: name}, cb);
+    },
+
+    /**
      * Initializes a provider.
      */
     provider: function(name) {
@@ -171,42 +320,38 @@ Calendar.App = (function(window) {
      * Initializes a view and stores
      * a internal reference so when
      * view is called a second
-     * time the same view is returned.
+     * time the same view is used.
+     *
+     * Makes an asynchronous call to
+     * load the script if we do not
+     * have the view cached.
      *
      *    // for example if you have
      *    // a calendar view Foo
      *
      *    Calendar.Views.Foo = Klass;
      *
-     *    var view = app.view('Foo');
-     *    (view instanceof Calendar.Views.Foo) === true
+     *    app.view('Foo', function(view) {
+     *      (view instanceof Calendar.Views.Foo) === true
+     *    });
      *
      * @param {String} name view name.
+     * @param {Function} view loaded callback.
      */
-    view: function(name) {
-
+    view: function(name, cb) {
       if (!(name in this._views)) {
-        this._views[name] = new Calendar.Views[name]({
-          app: this
-        });
-      }
+        this.loadResource('Views', name, function() {
+          this._views[name] = new Calendar.Views[name]({
+            app: this
+          });
+          cb.call(this, this._views[name]);
+        }.bind(this));
 
-      return this._views[name];
+      } else {
+          cb.call(this, this._views[name]);
+      }
     },
 
-    /**
-     * Re-usable (via bind) function
-     * to create view callbacks.
-     */
-    _routeCallback: function(object, ctx, next) {
-
-      if (typeof(object) === 'string') {
-        object = this.view(object);
-      }
-
-      this.router.mangeObject(object, ctx);
-      next();
-    },
 
     /**
      * Pure convenience function for
@@ -217,75 +362,6 @@ Calendar.App = (function(window) {
      */
     store: function(name) {
       return this.db.getStore(name);
-    },
-
-    /**
-     * Wraps a view object in a function
-     * so it can be used with a router.
-     *
-     * Caches results so to not create
-     * duplicate functions.
-     */
-    _wrapViewObject: function(name) {
-      var self = this;
-
-      if (!(name in this._routeViewFn)) {
-        var routeViewCallback = this._routeCallback.bind(this, name);
-        this._routeViewFn[name] = routeViewCallback;
-      }
-
-      return this._routeViewFn[name];
-    },
-
-    _mapRoutes: function(args) {
-      args = Array.prototype.slice.call(args);
-
-      var path = args.shift();
-      var self = this;
-
-      var list = args.map(function(value) {
-        var type = typeof(value);
-
-        if (type === 'string') {
-          return self._wrapViewObject(value);
-        } else if (type === 'object') {
-          return self._routeCallback.bind(self, value);
-        }
-        return value;
-      });
-
-      list.unshift(path);
-
-      return list;
-    },
-
-    resetState: function() {
-      if (!this.currentPath) {
-        this.currentPath = '/month/';
-      }
-
-      this.go(this.currentPath);
-    },
-
-    state: function() {
-      var self = this;
-      this.router.state.apply(
-        this.router,
-        this._mapRoutes(arguments).concat([
-          // HACK: Sets current path in app.
-          function(ctx, next) {
-            self.currentPath = ctx.canonicalPath;
-            next();
-          }
-        ])
-      );
-    },
-
-    modifier: function() {
-      this.router.modifier.apply(
-        this.router,
-        this._mapRoutes(arguments)
-      );
     }
   };
 

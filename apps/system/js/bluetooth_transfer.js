@@ -341,12 +341,12 @@ var BluetoothTransfer = {
         // TODO: Need to modify the icon after visual provide
         NotificationHelper.send(_('transferFinished-receivedCompletedTitle'),
                                 _('transferFinished-completedBody'),
-                                'style/system_updater/images/download.png',
+                                'style/bluetooth_transfer/images/icon_bluetooth.png',
                                 this.openReceivedFile.bind(this, transferInfo));
       } else {
         NotificationHelper.send(_('transferFinished-sendingCompletedTitle'),
                                 _('transferFinished-completedBody'),
-                                'style/system_updater/images/download.png');
+                                'style/bluetooth_transfer/images/icon_bluetooth.png');
       }
     } else {
       // Show failed message of transferred result on the banner
@@ -354,11 +354,11 @@ var BluetoothTransfer = {
       if (transferInfo.received) {
         NotificationHelper.send(_('transferFinished-sendingFailedTitle'),
                                 _('transferFinished-failedBody'),
-                                'style/system_updater/images/download.png');
+                                'style/bluetooth_transfer/images/icon_bluetooth.png');
       } else {
         NotificationHelper.send(_('transferFinished-receivedFailedTitle'),
                                 _('transferFinished-failedBody'),
-                                'style/system_updater/images/download.png');
+                                'style/bluetooth_transfer/images/icon_bluetooth.png');
       }
     }
   },
