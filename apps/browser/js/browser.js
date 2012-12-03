@@ -63,9 +63,7 @@ var Browser = {
     this.urlInput.addEventListener('mouseup', this.urlMouseUp.bind(this));
     this.urlInput.addEventListener('keyup',
       this.handleUrlInputKeypress.bind(this));
-    this.topSites.addEventListener('click', this.followLink.bind(this));
-    this.bookmarks.addEventListener('click', this.followLink.bind(this));
-    this.history.addEventListener('click', this.followLink.bind(this));
+    this.tabPanels.addEventListener('click', this.followLink.bind(this));
     this.urlButton.addEventListener('click',
       this.handleUrlFormSubmit.bind(this));
     this.tabsBadge.addEventListener('click',
@@ -169,7 +167,7 @@ var Browser = {
       'bookmark-entry-sheet-done', 'bookmark-title', 'bookmark-url',
       'bookmark-previous-url', 'bookmark-menu-add-home', 'new-tab-button',
       'awesomescreen-cancel-button', 'startscreen', 'top-site-thumbnails',
-      'no-top-sites', 'clear-private-data-button', 'results'];
+      'no-top-sites', 'clear-private-data-button', 'results', 'tab-panels'];
 
     // Loop and add element with camel style name to Modal Dialog attribute.
     elementIDs.forEach(function createElementRef(name) {
