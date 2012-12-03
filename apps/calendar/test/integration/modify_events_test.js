@@ -79,8 +79,6 @@ suite('calendar - modify events', function() {
 
   suiteSetup(function() {
     yield app.launch();
-
-
     var btn = yield app.element('addEventBtn');
     yield app.waitUntilElement(btn, 'displayed');
   });
@@ -91,6 +89,63 @@ suite('calendar - modify events', function() {
     yield app.monthView.navigate();
     var today = yield app.element('todayBtn');
     yield today.click();
+  });
+
+  test('all day events', function() {
+    this.timeout(50000);
+
+    var today = Calendar.Calc.createDay(yield app.remoteDate());
+    var tomorrow = new Date(today.valueOf());
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    var events = 3;
+    var positions = [];
+
+    function assertNotInPositions(object) {
+      positions.forEach(function(other, idx) {
+        if (object.top === other.top) {
+          throw new Error(
+            'position overlap! event starts on another.'
+          );
+        }
+      });
+    }
+
+    for (var i = 0; i < events; i++) {
+      yield subject.add();
+
+      var values = Factory('form.modifyEvent', {
+        title: uuid(),
+        location: 'place',
+        description: 'lengthy thing',
+        start: today,
+        end: tomorrow
+      });
+
+      yield subject.update(values);
+      var allday = yield app.element('eventFormAllDay');
+      yield allday.click();
+      yield subject.save();
+
+      var monthView = yield app.element('monthView');
+      yield app.waitUntilElement(monthView, 'displayed');
+
+      // find the event in the months day view
+      var event = yield app.monthsDayView.eventByTitle(
+        values.title
+      );
+
+      var displayed = yield event.displayed();
+      assert.ok(
+        displayed,
+        'all day event #' + (i + 1) + ' should be displayed'
+      );
+
+      var pos = yield app.getPosition(event);
+
+      assertNotInPositions(pos);
+      positions.push(pos);
+    }
   });
 
   test('add event - without pre-selected date', function() {
