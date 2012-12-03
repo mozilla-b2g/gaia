@@ -516,6 +516,10 @@ Calendar.ns('Views').DayBased = (function() {
       this.date = Calendar.Calc.createDay(date);
       this.timespan = Calendar.Calc.spanOfDay(date);
 
+      if (this.element) {
+        this.element.dataset.date = this.date;
+      }
+
       controller.observeTime(this.timespan, this);
 
       if (clear) {

@@ -222,6 +222,19 @@
       <section role="region" id="about-your-privacy">
         <p data-l10n-id="aboutYourPrivacy">About you privacy</p>
       </section>
+      <section role="region" id="sharing-performance-data">
+        <p data-l10n-id='telemetry-allows'>
+          Telemetry allows you to send Mozilla more
+          detailed information about performance,
+          hardware, usage and customizations in your
+          Browser OS device. We use this information helps
+          make our products better, faster and more
+          responsive.
+        </p>
+        <!-- Links destinations are discussed in https://bugzilla.mozilla.org/show_bug.cgi?id=812956 -->
+        <p data-l10n-id='learn-more-about'>Learn more about <a data-l10n-id='telemetry'>Telemetry</a></p>
+        <p data-l10n-id='learn-about-our'>Learn more about our <a data-l10n-id='privacy-practices'>privacy practices</a> </p>
+      </section>
       <section role="region" id="browser_privacy">
         <section class="logo_container">
           <img src="css/images/browser64.png">
@@ -240,7 +253,8 @@
           <input type="email" data-l10n-id="emailAddress" placeholder="Email address"></input>
         </section>
         <p data-l10n-id="learnHow">
-         Learn how Mozilla handle your information in our <a>privacy policy</a>.
+        <!-- Link url depending on bug #812956-->
+         Learn how Mozilla handle your information in our <a data-l10n-id="privacyPolicy">privacy policy</a>.
         </p>
       </section>
       <section role="region" id="welcome_browser">
@@ -256,17 +270,17 @@
           your hands.
         </p>
         <section id="browser_os_privacy_links">
-          <a href="#about-your-rights" data-l10n-id="aboutYourRights"> About Your Rights </a>
-          <a href="#about-your-privacy" data-l10n-id="aboutYourPrivacy"> About Your Privacy </a>
+          <a href="#about-your-rights" data-l10n-id="aboutBrowser"> About Your Rights </a>
+          <a href="#about-your-privacy" data-l10n-id="aboutYourPrivacy2">Your Privacy</a>
         </section>
         <section id="form_share_statistics">
           <label>
             <input type="checkbox" name="enable_statistic" />
             <span></span>
-            <p data-l10n-id="collaborate">
+            <p data-l10n-id="collaborate2">
               I want to help make Browser OS faster and
               easier to use by sharing information about
-              my phone's performance. Learn more
+              my phone's performance<a href='#sharing-performance-data' data-l10n-id="learnMore">learn more</a>
             </p>
           </label>
         </section>
@@ -414,7 +428,6 @@
       </button>
     </nav>
   </section>
-
   <section id="tutorialFinish" role="region">
     <section class="content">
       <h1 data-l10n-id="thatsIt">

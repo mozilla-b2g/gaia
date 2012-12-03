@@ -369,15 +369,10 @@
       document.getElementById('icc-stk-exit').classList.remove('hidden');
       document.getElementById('icc-stk-app-back').classList.add('hidden');
 
-      if (!menu) {
-        var _ = window.navigator.mozL10n.get;
-        debug('STK Main App Menu not available.');
-        var li = document.createElement('li');
-        var p = document.createElement('p');
-        p.textContent = _('stkAppsNotAvailable');
-        p.className = 'description';
-        li.appendChild(p);
-        iccStkList.appendChild(li);
+      if (!menu || !menu.title) {
+        debug('No STK available - hide & exit');
+        document.getElementById('icc-mainheader').hidden = true;
+        document.getElementById('icc-mainentry').hidden = true;
         return;
       }
 

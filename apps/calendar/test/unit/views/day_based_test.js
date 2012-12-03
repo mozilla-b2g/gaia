@@ -181,7 +181,14 @@ suite('views/day_based', function() {
       assert.equal(subject._changeToken, 0);
       var day = Calendar.Calc.createDay(startTime);
 
+      assert.ok(!subject.element.dataset.date, 'does not have a date');
       subject.changeDate(startTime, true);
+
+      assert.equal(
+        subject.element.dataset.date,
+        startTime.toString(),
+        'sets dataset.date'
+      );
 
       assert.equal(subject._changeToken, 1);
       assert.deepEqual(subject.date, day);

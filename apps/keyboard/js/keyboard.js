@@ -271,8 +271,7 @@ var eventHandlers = {
   'mouseover': onMouseOver,
   'mouseleave': onMouseLeave,
   'mouseup': onMouseUp,
-  'mousemove': onMouseMove,
-  'transitionend': keyboardTransitionEnd
+  'mousemove': onMouseMove
 };
 
 // The first thing we do when the keyboard app loads is query all the
@@ -375,9 +374,7 @@ function initKeyboard() {
   }
 
   dimensionsObserver = new MutationObserver(function() {
-    // Not to update the app window height until the transition is complete
-    if (IMERender.ime.dataset.transitioncomplete)
-      updateTargetWindowHeight();
+    updateTargetWindowHeight();
   });
 
   // And observe mutation events on the renderer element
@@ -902,22 +899,6 @@ function isNormalKey(key) {
 // Event Handlers
 //
 
-// This transition end handler is triggered when the keyboard is dismissed
-function keyboardTransitionEnd() {
-  updateTargetWindowHeight();
-
-  if (IMERender.ime.dataset.hidden) {
-    // The keyboard just closed. Delete the flag we use on opening
-    // And let the system know that the keyboard has closed.
-    delete IMERender.ime.dataset.transitioncomplete;
-    notifyShowKeyboard(false);
-  } else {
-    // The keyboard just opened. Set this flag so that futures
-    // changes to the keyboard size call updateTargetWindowHeight()
-    IMERender.ime.dataset.transitioncomplete = true;
-  }
-}
-
 // When user scrolls over IME's candidate or alternatives panels
 function onScroll(evt) {
   if (!isPressing || !currentKey)
@@ -1330,7 +1311,6 @@ function showKeyboard(state) {
   }
   IMERender.ime.classList.remove('full-candidate-panel');
 
-  notifyShowKeyboard(true);
 }
 
 // Hide keyboard

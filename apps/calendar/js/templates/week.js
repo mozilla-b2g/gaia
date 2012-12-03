@@ -9,22 +9,18 @@
     },
 
     hour: function() {
-      return [
-        '<ol class="hour-', this.h('hour'), ' events">',
-          this.s('items'),
-        '</ol>'
-      ].join('');
+      return '<ol class="hour-' + this.h('hour') + ' events">' +
+          this.s('items') +
+        '</ol>';
     },
 
     event: function() {
-      return [
-        '<li class="event" data-id="', this.h('busytimeId'), '">',
-          '<div class="container calendar-id-', this.h('calendarId'), ' ' +
-                      'calendar-display calendar-color">',
-            this.h('title'),
-          '</div>',
-        '</li>'
-      ].join('');
+      return '<li class="event" data-id="' + this.h('busytimeId') + '">' +
+          '<div class="container calendar-id-' + this.h('calendarId') + ' ' +
+                      'calendar-display calendar-color">' +
+            this.h('title') +
+          '</div>' +
+        '</li>';
     }
   });
 
