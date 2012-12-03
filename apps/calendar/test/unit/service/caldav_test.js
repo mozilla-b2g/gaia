@@ -1029,6 +1029,11 @@ suite('service/caldav', function() {
 
             done(function() {
               assert.ok(!parseErr, parseErr);
+              assert.ok(
+                typeof(result.icalComponent) === 'string',
+                'updated result is returned as a string'
+              );
+
               assert.equal(
                 newEvent.sequence,
                 parseInt(original.sequence, 10) + 1,

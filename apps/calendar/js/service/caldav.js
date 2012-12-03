@@ -762,7 +762,7 @@ Calendar.ns('Service').Caldav = (function() {
         target.endDate = self.formatInputTime(event.end);
 
         var vcal = target.component.parent.toString();
-        event.icalComponent = target.component.parent.toJSON();
+        event.icalComponent = vcal;
 
         req.put({ etag: etag }, vcal, function(err, data, xhr) {
           var token = xhr.getResponseHeader('Etag');

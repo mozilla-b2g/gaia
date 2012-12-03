@@ -161,11 +161,10 @@ suite('calendar - navigation', function() {
     );
 
     yield app.dayView.navigate();
-    var steps = dates.length + 1;
+    var steps = dates.length;
     for (var current = 0; current <= steps; current++) {
       yield app.dayView.forward();
     }
-
 
     yield app.weekView.navigate();
     var newDates = yield app.weekView.activeDates();
