@@ -3,8 +3,18 @@
 // Parse the specified blob and pass an object of metadata to the
 // metadataCallback, or invoke the errorCallback with an error message.
 function parseAudioMetadata(blob, metadataCallback, errorCallback) {
-  if (!errorCallback)
-    errorCallback = function(s) { console.error(s); }
+  // If the file is in the DCIM/ directory and has a .3gp extension
+  // then it is a video, not a music file and we ignore it
+  if (blob.name.slice(0, 5) === 'DCIM/' && blob.name.slice(-4) === '.3gp') {
+    errorCallback('skipping video file');
+    return;
+  }
+
+  // If the file is too small to be a music file then ignore it
+  if (blob.size < 128) {
+    errorCallback('file is empty or too small');
+    return;
+  }
 
   // These are the property names we use in the returned metadata object
   var TITLE = 'title';
@@ -95,7 +105,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
     }
 
     try {
-      var magic = header.getASCIIText(0, 11);
+      var magic = header.getASCIIText(0, 12);
 
       if (magic.substring(0, 3) === 'ID3') {
         // parse ID3v2 tags in an MP3 file
@@ -114,13 +124,6 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
         // If this looks like an MP3 file, then look for ID3v1 metadata
         // tags at the end of the file. But even if there is no metadata
         // treat this as a playable file.
-
-        // Read bytes from the end of the file to see if it has
-        // ID3v1 tags there. But make sure it is big enough first
-        if (blob.size < 128) {
-          errorCallback('unknown file type; file is too small');
-          return;
-        }
 
         BlobView.get(blob, blob.size - 128, 128, function(footer, error) {
           if (error) {
@@ -495,19 +498,10 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
           return;
         }
         catch (e) {
-          console.error('MP4 metadata failure:', e);
           errorCallback(e);
         }
       }
       else {
-        // If the next atom is 'mdat', then its a huge data atom
-        // that we don't want to read, so quit
-        var nexttype = atom.getASCIIText(size + 4, 4);
-        if (nexttype === 'mdat') {
-          // we didn't find any metadata, return an empty object
-          metadataCallback(metadata);
-          return;
-        }
         // Otherwise, recurse and keep looking for the moov atom
         nextAtom(atom, findMoovAtom);
       }
@@ -518,19 +512,62 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
     // We've read the entire moov atom, so we've got all the bytes
     // we need and don't have to do an async read again.
     function parseMoovAtom(data, end) {
-      // Find the udta atom within the moov atom
-      while (data.index < end) {
+      var needudta = true, needtrak = true;
+      // Find the udta and trak atoms within the moov atom
+      while (data.index < end && (needudta || needtrak)) {
         var size = data.readUnsignedInt();
         var type = data.readASCIIText(4);
-        if (type === 'udta') {
-          parseUdtaAtom(data, data.index + size - 8);
-          data.index = end;
-          return;
+        var nextindex = data.index + size - 8;
+        if (type === 'udta') {       // Metadata is inside here
+          parseUdtaAtom(data, end);
+          data.index = nextindex;
+          needudta = false;
+        }
+        else if (type === 'trak') {  // We find the audio format inside here
+          data.advance(-8); // skip back to beginning
+          var mdia = findChildAtom(data, 'mdia');
+          if (mdia) {
+            var minf = findChildAtom(mdia, 'minf');
+            if (minf) {
+              var stbl = findChildAtom(minf, 'stbl');
+              if (stbl) {
+                var stsd = findChildAtom(stbl, 'stsd');
+                if (stsd) {
+                  stsd.advance(20);
+                  var codec = stsd.readASCIIText(4);
+                  if (codec !== 'mp4a') {
+                    throw 'Unsupported format in MP4 container: ' + codec;
+                  }
+                }
+              }
+            }
+          }
+          data.index = nextindex;
+          needtrak = false;
         }
         else {
           data.advance(size - 8);
         }
       }
+    }
+
+    function findChildAtom(data, atom) {
+      var length = data.readUnsignedInt();
+      data.advance(4);
+
+      while (data.index < length) {
+        var size = data.readUnsignedInt();
+        var type = data.readASCIIText(4);
+        if (type === atom) {
+          data.advance(-8);
+          return data;
+        }
+        else {
+          data.advance(size - 8);
+        }
+      }
+
+      return null;  // not found
     }
 
     function parseUdtaAtom(data, end) {
@@ -583,7 +620,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
             metadata[tagname] = value;
           }
           catch (e) {
-            console.error('skipping', type, ':', e);
+            console.warn('skipping', type, ':', e);
           }
         }
         data.index = next;
