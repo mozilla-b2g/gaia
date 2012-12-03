@@ -1,6 +1,7 @@
 /* tools from calendar */
 require('/apps/calendar/js/calendar.js');
 require('/apps/calendar/js/calc.js');
+require('/apps/calendar/js/ext/uuid.js');
 require('/apps/calendar/js/utils/input_parser.js');
 /** views */
 require('/apps/calendar/test/integration/calendar_view.js');
@@ -65,6 +66,7 @@ CalendarIntegration.prototype = {
     /** forms */
     eventForm: '#modify-event-view > form',
     eventFormFields: '#modify-event-view form [name]',
+    eventFormAllDay: '#modify-event-view form .allday label',
     eventFormStatus: '#modify-event-view [role="status"]',
     eventFormError: '#modify-event-view .errors',
 
@@ -162,6 +164,21 @@ CalendarIntegration.prototype = {
 
       done();
     }, callback, this);
+  },
+
+  /**
+   * @param {Marionette.Element} element to find top/left of.
+   */
+  getPosition: function(element, callback) {
+    this.task(function(app, next, done) {
+      var pos = yield IntegrationHelper.sendAtom(
+        app.device,
+        '/apps/calendar/test/integration/atoms/get_pos',
+        false,
+        [element]
+      );
+      done(null, pos);
+    }, callback);
   },
 
   /**
