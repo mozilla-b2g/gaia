@@ -1,12 +1,11 @@
-
 #wrapper-activity-indicator {
   position: fixed;
-  top: 20px; /* This is the status bar height */
+  top: 2rem; /* This is the status bar height */
   left: 0;
   margin: 0;
   padding: 0;
   width: 100%;
-  height: 4px;
+  height: 0.4rem;
   background-image: url('../shared/progress.gif');
 
   pointer-events: none;

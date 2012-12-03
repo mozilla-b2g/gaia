@@ -1,47 +1,47 @@
 #quick-settings {
   display: block;
   width: 100%;
-  height: 60px;
+  height: 6rem;
   padding: 0;
 
   background-image: url(images/background.png);
-  background-size: 100% 60px;
+  background-size: 100% 6rem;
 
-  border-top:1px black solid;
+  border-top:0.1rem black solid;
 }
 
 #quick-settings > a {
   display: block;
   float: left;
-  width: -moz-calc(20% - 2px);
-  height: 30px;
-  margin: 15px 0;
+  width: -moz-calc(20% - 0.2rem);
+  height: 3rem;
+  margin: 1.5rem 0;
   padding: 0;
 
   color: #fff;
   text-align: center;
   text-decoration: none;
   outline: none;
-  font-size: 14px;
-  line-height: 18px;
+  font-size: 1.4rem;
+  line-height: 1.8rem;
 
-  border-right: 1px black solid;
-  border-left: 1px gray solid;
+  border-right: 0.1rem black solid;
+  border-left: 0.1rem gray solid;
 }
 
 #quick-settings > a:first-child {
-  width: -moz-calc(20% - 1px);
+  width: -moz-calc(20% - 0.1rem);
   border-left: 0;
 }
 
 #quick-settings > a:last-child {
-  width: -moz-calc(20% - 1px);
+  width: -moz-calc(20% - 0.1rem);
   border-right: 0;
 }
 
 #quick-settings > a {
   background: center no-repeat;
-  background-size: 25px 25px;
+  background-size: 2.5rem 2.5rem;
 }
 #quick-settings > #quick-settings-wifi {
   background-image: url(images/wifi-off.svg);
