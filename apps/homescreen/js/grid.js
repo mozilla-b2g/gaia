@@ -36,20 +36,28 @@ const GridManager = (function() {
 
   function handleEvent(evt) {
     switch (evt.type) {
+      case 'touchstart':
+        evt.preventDefault();
+        window.removeEventListener('mousedown', handleEvent);
       case 'mousedown':
         touchStartTimestamp = evt.timeStamp;
         evt.stopPropagation();
-        startEvent = evt;
+        startEvent = evt.changedTouches[0];
         attachEvents();
         break;
 
+      case 'touchmove':
       case 'mousemove':
         evt.stopPropagation();
 
         // Starts panning only when tapping does not make sense
         // anymore. The pan will then start from this point to avoid
         // a jump effect.
-        var deltaX = evt.clientX - startEvent.clientX;
+        if (evt.touches) {
+          var deltaX = evt.clientX - startEvent.clientX;
+        } else {
+          var deltaX = evt.touches[0].clientX - startEvent.clientX;
+        }
         if (!isPanning) {
           if (Math.abs(deltaX) < thresholdForTapping) {
             return;
@@ -64,6 +72,7 @@ const GridManager = (function() {
         // direction of the inputs. The code here is carefully written
         // to avoid as much as possible allocations while panning.
         window.removeEventListener('mousemove', handleEvent);
+        window.removeEventListener('touchmove', handleEvent);
 
         // Before panning pages that are directly next to the current
         // target are set visible.
@@ -132,12 +141,18 @@ const GridManager = (function() {
         // Generate a function accordingly to the current page position.
         if (Homescreen.isInEditMode() || currentPage > 2) {
           var pan = function(e) {
-            deltaX = e.clientX - startX;
+            if (e.touches)
+              deltaX = e.touches[0].clientX - startX;
+            else
+              deltaX = e.clientX - startX;
             window.mozRequestAnimationFrame(refresh);
           };
         } else {
           var pan = function(e) {
-            deltaX = e.clientX - startX;
+            if (e.touches)
+              deltaX = e.touches[0].clientX - startX;
+            else
+              deltaX = e.clientX - startX;
             window.mozRequestAnimationFrame(refresh);
             window.mozRequestAnimationFrame(function() {
               setOverlayPanning(index, deltaX, forward);
@@ -145,15 +160,17 @@ const GridManager = (function() {
           }
         }
 
+        var movename = evt.type;
+        var endname = evt.type == 'mousemove' ? 'mouseup' : 'touchend';
         var container = pages[index].container;
         container.setCapture(true);
-        container.addEventListener('mousemove', pan, true);
+        container.addEventListener(movename, pan, true);
 
-        window.addEventListener('mouseup', function removePanHandler(e) {
+        window.addEventListener(endname, function removePanHandler(e) {
           touchEndTimestamp = e.timeStamp;
-          window.removeEventListener('mouseup', removePanHandler, true);
+          window.removeEventListener(endname, removePanHandler, true);
 
-          container.removeEventListener('mousemove', pan, true);
+          container.removeEventListener(movename, pan, true);
           document.releaseCapture();
 
           window.mozRequestAnimationFrame(function panTouchEnd() {
@@ -162,11 +179,16 @@ const GridManager = (function() {
         }, true);
         break;
 
+      case 'touchend':
+        if (evt.touches.length > 0)
+          break;
       case 'mouseup':
         evt.stopPropagation();
         releaseEvents();
         if (!isPanning) {
-          pageHelper.getCurrent().tap(evt.target);
+          pageHelper.getCurrent().tap(evt.changedTouches ?
+                                      evt.changedTouches[0].target :
+                                      evt.target);
         }
         isPanning = false;
         break;
@@ -220,11 +242,15 @@ const GridManager = (function() {
   function attachEvents() {
     window.addEventListener('mousemove', handleEvent);
     window.addEventListener('mouseup', handleEvent);
+    window.addEventListener('touchmove', handleEvent);
+    window.addEventListener('touchend', handleEvent);
   }
 
   function releaseEvents() {
     window.removeEventListener('mousemove', handleEvent);
     window.removeEventListener('mouseup', handleEvent);
+    window.removeEventListener('touchmove', handleEvent);
+    window.removeEventListener('touchend', handleEvent);
   }
 
   function togglePagesVisibility(start, end) {
@@ -559,6 +585,7 @@ const GridManager = (function() {
 
     container = document.querySelector(selector);
     container.addEventListener('contextmenu', handleEvent);
+    container.addEventListener('touchstart', handleEvent, true);
     container.addEventListener('mousedown', handleEvent, true);
 
     limits.left = container.offsetWidth * 0.05;
