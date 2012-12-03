@@ -28,6 +28,7 @@ GAIA_DOMAIN?=gaiamobile.org
 
 DEBUG?=0
 PRODUCTION?=0
+CHECKCSP?=0
 
 LOCAL_DOMAINS?=1
 
@@ -75,6 +76,11 @@ ifneq ($(GAIA_OUTOFTREE_APP_SRCDIRS),)
         && ln -sf $(appdir) outoftree_apps/)))
   GAIA_APP_SRCDIRS += outoftree_apps
 endif
+
+ifeq ($(MAKECMDGOALS), checkcsp)
+CHECKCSP=1
+endif
+
 
 ###############################################################################
 # The above rules generate the profile/ folder and all its content.           #
@@ -231,8 +237,18 @@ ifneq ($(DEBUG),1)
 	@rm apps/system/camera/manifest.webapp
 	@mkdir -p profile/webapps
 	@$(call run-js-command, webapp-zip)
+ifeq ($(CHECKCSP),1)
+	@echo "Verifying csp policies..."
+	@rm -f checkCSPPolicyResult.txt
+	@build/checkCSPPolicy.sh > checkCSPPolicyResult.txt
+	@echo "Check CSP: Done. Applications with possible problems:"
+	@grep "APPLICATION:" checkCSPPolicyResult.txt | cut -d: -f2 | sort -u
+	@echo "Please review the checkCSPPolicyResult.txt file for details."
+endif
 	@echo "Done"
 endif
+
+checkcsp: profile
 
 offline-cache: webapp-manifests install-xulrunner-sdk
 	@echo "Populate external apps appcache"
