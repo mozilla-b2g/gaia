@@ -4,6 +4,7 @@
 
 from gaiatest import GaiaTestCase
 
+
 class TestLaunchEntrypoint(GaiaTestCase):
 
     """ Special test because it verifies we can open apps
@@ -11,15 +12,14 @@ class TestLaunchEntrypoint(GaiaTestCase):
         Contacts & Dailer are two examples of those kinds of apps
         within gaia itself.
     """
+
     def test_launch_entrypoint(self):
-        # unlock the lockscreen if it's locked
-        self.assertTrue(self.lockscreen.unlock())
+        self.lockscreen.unlock()
 
         # Launch contacts
         app = self.apps.launch('Contacts')
-        self.assertTrue(app.frame_id is not None)
+        self.assertTrue(app.frame_id)
 
-        self.marionette.switch_to_frame(app.frame_id)
         url = self.marionette.get_url()
 
         # sanity check we launched the right app.
@@ -27,4 +27,4 @@ class TestLaunchEntrypoint(GaiaTestCase):
         self.assertTrue('/contacts' in url, 'wrong url: %s' % url)
 
         # close the app
-        self.apps.kill(app);
+        self.apps.kill(app)

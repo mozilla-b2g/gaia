@@ -188,13 +188,16 @@ var AppIntegration = (function() {
         var device = app.device;
 
         yield device.setScriptTimeout(15000);
-        yield IntegrationHelper.sendAtom(
+
+        yield IntegrationHelper.importScript(
           device,
-          '/tests/atoms/gaia_unlock',
-          true,
-          next
+          '/tests/atoms/gaia_lock_screen.js',
+          MochaTask.nodeNext
         );
 
+        yield device.executeAsyncScript(
+          'GaiaLockScreen.unlock();'
+        );
 
         yield IntegrationHelper.importScript(
           device,
