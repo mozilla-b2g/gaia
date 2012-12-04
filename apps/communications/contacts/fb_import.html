@@ -20,7 +20,7 @@
 
     <script defer type="text/javascript" src="js/utilities/templates.js"></script>
     <script defer type="text/javascript" src="js/utilities/event_listeners.js"></script>
-    <script  defer type="text/javascript" src="/facebook/js/fb_image_loader.js"></script>
+    <script defer type="text/javascript" src="/contacts/js/utilities/image_loader.js"></script>
     <script defer type="text/javascript" src="js/fb/friends_list.js"></script>
     <script defer type="text/javascript" src="js/contacts_shortcuts.js"></script>
 
@@ -46,6 +46,7 @@
     <link href="/shared/style/switches.css" rel="stylesheet">
     <link href="/shared/style_unstable/lists.css" rel="stylesheet">
     <link href="/shared/style/confirm.css" rel="stylesheet">
+    <link href="/shared/style_unstable/scrolling.css" rel="stylesheet">
 
 
     <link rel="stylesheet" href="style/fb/facebook.css">
@@ -70,16 +71,14 @@
       </header>
 
       <section id="main">
-        <div id="shortcuts">
-          <abbr id="current" title="Contacts by "></abbr>
-          <ol class="unbordered">
+        <nav data-type="scrollbar">
+          <p></p>
+          <ol>
             <li data-template data-anchor="group-#anchor#" data-letter="#anchor#">
-              <a href="#">
-                <abbr title="Jump to #anchor#">#anchor#</abbr>
-              </a>
+              <a href="#">#anchor#</a>
             </li>
           </ol>
-        </div>
+        </nav>
 
         <!-- Contacts List Section -->
         <section id='mainContent' data-state="selection">

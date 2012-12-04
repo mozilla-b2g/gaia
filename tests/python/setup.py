@@ -2,7 +2,7 @@ import os
 from setuptools import setup, find_packages
 import shutil
 
-version = '0.3'
+version = '0.4'
 
 # get documentation from the README
 try:

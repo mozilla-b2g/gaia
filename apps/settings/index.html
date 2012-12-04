@@ -23,8 +23,8 @@
     <link rel="stylesheet" type="text/css" href="style/updates.css"/>
 
     <!-- Shared resources
+    <link rel="resource" type="application/json" href="shared/resources/tz.json"/>
     <link rel="resource" type="application/json" href="shared/resources/apn.json"/>
-    <link rel="resource" type="application/json" href="shared/resources/timezones.json"/>
     <link rel="resource" type="application/json" href="shared/resources/languages.json"/>
     -->
 
@@ -33,6 +33,7 @@
     <link rel="resource" type="application/l10n" href="locales/locales.ini"/>
     <link rel="resource" type="application/l10n" href="shared/locales/date.ini"/>
     <link rel="resource" type="application/l10n" href="shared/locales/permissions.ini"/>
+    <link rel="resource" type="application/l10n" href="shared/locales/tz.ini"/>
     <script type="application/javascript" src="shared/js/l10n.js"></script>
     <script type="application/javascript" src="shared/js/l10n_date.js"></script>
 
@@ -46,9 +47,7 @@
     <script type="application/javascript" defer src="js/media_storage.js"></script>
     <script type="application/javascript" defer src="js/connectivity.js"></script>
     <script type="application/javascript" defer src="js/security_privacy.js"></script>
-
-    <!-- ICC Main menu cache recover -->
-    <script type="application/javascript" src="js/icc_menu.js"></script>
+    <script type="application/javascript" defer src="js/icc_menu.js"></script>
 
     <!-- all non-#root panels will lazy-load their own scripts -->
   </head>
@@ -673,7 +672,7 @@
             <span data-name="tethering.wifi.security.type"></span>
           </a>
         </li>
-        <li>
+        <li id="hotspot-settings-section">
           <label>
             <button data-href="#hotspot-wifiSettings"
               data-l10n-id="hotspotSettings">Hotspot Settings</button>
@@ -696,6 +695,8 @@
           Share my phone’s Internet connection with a USB-connected device.
         </li>
       </ul>
+
+      <script type="application/javascript" src="js/hotspot.js"></script>
       -->
     </section>
 
@@ -940,32 +941,6 @@
       -->
     </section>
 
-    <!-- Personalization :: Date & Time :: Time Zone (Continent) :: Time Zone (Zones) -->
-    <section role="region" hidden id="dateTime-timezone">
-      <!--
-      <header>
-        <a href="#dateTime-continent"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="selectTimezone"> Select Time Zone </h1>
-      </header>
-
-      <ul id="timezone-zones-list">
-      </ul>
-      -->
-    </section>
-
-    <!-- Personalization :: Date & Time :: Time Zone (Continent) -->
-    <section role="region" hidden id="dateTime-continent">
-      <!--
-      <header>
-        <a href="#dateTime"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="selectTimezoneContinent"> Select Continent </h1>
-      </header>
-
-      <ul id="timezone-continents">
-      </ul>
-      -->
-    </section>
-
     <!-- Personalization :: Date & Time -->
     <section role="region" hidden id="dateTime">
       <!--
@@ -974,8 +949,8 @@
         <h1 data-l10n-id="dateAndTime"> Date &amp; Time </h1>
       </header>
 
-      <ul>
-        <li id="time-nitz-automatic-update">
+      <ul id="time-auto" data-state="auto">
+        <li>
           <label>
             <input type="checkbox" data-type="switch" name="time.nitz.automatic-update.enabled"/>
             <span></span>
@@ -987,17 +962,14 @@
       <header>
         <h2 data-l10n-id="setTimeManually">Set Manually</h2>
       </header>
-      <ul id="time-manual" hidden>
-        <li id="setTimezone">
-          <a href="#dateTime-continent" data-l10n-id="timezoneMessage">Time Zone<span id="timezoneDescription"></span></a>
-        </li>
-        <li id="setDate">
+      <ul id="time-manual">
+        <li>
           <label>
             <input type="date" id="date-picker" />
           </label>
           <a data-l10n-id="dateMessage">Date <span id="clock-date"></span> </a>
         </li>
-        <li id="setTime">
+        <li>
           <label>
             <input type="time" id="time-picker" />
           </label>
@@ -1005,13 +977,30 @@
         </li>
       </ul>
 
+      <header>
+        <h2 data-l10n-id="timezoneMessage">Time zone</h2>
+      </header>
+      <ul id="timezone">
+        <li>
+          <span data-l10n-id="tz-continent">Continent
+            <select id="timezone-continent"></select>
+          </span>
+        </li>
+        <li>
+          <span data-l10n-id="tz-city">City
+            <select id="timezone-city"></select>
+          </span>
+        </li>
+      </ul>
+
+      <script type="application/javascript" src="shared/js/tz_select.js"></script>
       <script type="application/javascript" src="js/date_time.js"></script>
       -->
     </section>
 
     <!-- Personalization :: Language & Region -->
-    <!-- We should remove 'hidden' on the region selector and set 
-         data-l10n-id to languageAndRegion after being implemented in V2. -->
+    <!-- We should remove 'hidden' on the region selector and set
+      -  data-l10n-id to languageAndRegion after being implemented in v2. -->
     <section role="region" hidden id="languages">
       <!--
       <header>
@@ -1022,8 +1011,7 @@
       <ul>
         <li>
           <span data-l10n-id="language">Language
-            <select name="language.current">
-            </select>
+            <select name="language.current"></select>
           </span>
         </li>
         <li hidden>
@@ -1563,39 +1551,32 @@
 
       <ul>
         <li>
-          <a data-l10n-id="os-version"> OS Version
-            <span data-name="deviceinfo.os"></span>
-          </a>
+          <small data-name="deviceinfo.os"></small>
+          <a data-l10n-id="os-version"> OS Version </a>
         </li>
         <li>
-          <a data-l10n-id="firmware_revision"> Firmware Revision
-            <span data-name="deviceinfo.firmware_revision"></span>
-          </a>
+          <small data-name="deviceinfo.firmware_revision"></small>
+          <a data-l10n-id="firmware_revision"> Firmware Revision </a>
         </li>
         <li>
-          <a data-l10n-id="hardware_revision"> Hardware Revision
-            <span data-name="deviceinfo.hardware"></span>
-          </a>
+          <small data-name="deviceinfo.hardware"></small>
+          <a data-l10n-id="hardware_revision"> Hardware Revision </a>
         </li>
         <li>
-          <a data-l10n-id="macAddress"> MAC address
-            <span data-name="deviceinfo.mac"></span>
-          </a>
+          <small data-name="deviceinfo.mac"></small>
+          <a data-l10n-id="macAddress"> MAC address </a>
         </li>
         <li>
-          <a data-l10n-id="platform_version"> Platform Version
-            <span data-name="deviceinfo.platform_version"></span>
-          </a>
+          <small data-name="deviceinfo.platform_version"></small>
+          <a data-l10n-id="platform_version"> Platform Version </a>
         </li>
         <li>
-          <a data-l10n-id="build-id"> Build Identifier
-            <span data-name="deviceinfo.platform_build_id"></span>
-          </a>
+          <small data-name="deviceinfo.platform_build_id"></small>
+          <a data-l10n-id="build-id"> Build Identifier </a>
         </li>
         <li>
-          <a data-l10n-id="update-channel"> Update Channel
-            <span data-name="deviceinfo.update_channel"></span>
-          </a>
+          <small data-name="deviceinfo.update_channel"></small>
+          <a data-l10n-id="update-channel"> Update Channel </a>
         </li>
         <li>
           <label>
@@ -1691,43 +1672,41 @@
       -->
     </section>
 
-    <!-- Device :: Information :: Licensing -->
-    <section role="region" hidden id="about-licensing">
+    <!-- Device :: Information :: Legal Information -->
+    <section role="region" hidden id="about-legal-information">
       <!--
       <header>
         <button type="reset">
           <span data-l10n-id="back" class="icon icon-back">Back</span>
         </button>
-        <h1 data-l10n-id="licensing"> Licensing </h1>
+        <h1 data-l10n-id="about-licensing"> Legal Information </h1>
       </header>
 
+      <header>
+        <h2 data-l10n-id="mozilla"> Mozilla </h2>
+      </header>
       <ul>
-        <li class="description" data-l10n-id="licensing-1">
-          Binaries of this product have been made available to you by the Mozilla
-          Project, under the Mozilla Public License 2.0 (MPL). Know your rights.
-        </li>
-        <li class="description" data-l10n-id="licensing-2">
-          All of the source code to this product is available under licenses which
-          are both free and open source. Most of it is available under the Mozilla
-          Public License 2.0 (MPL).
-        </li>
         <li class="description">
-          <span><a href="https://www.mozilla.org/MPL/"
-              data-l10n-id="licensing-MPL">Mozilla Public License 2.0</a></span>
-        </li>
-        <li class="description" data-l10n-id="licensing-3">
-          The remainder of the software which is not under the Mozilla Public
-          License 2.0 MPL is available under one of a variety of other licenses.
-          Those that require reproduction of the license text in the distribution
-          are given below. (Note: your copy of this product may not contain code
-          covered by one or more of the licenses listed here, depending on the
-          exact product and version you choose.)
-        </li>
-        <li class="description">
-          <span><a href="http://www.apache.org/licenses/LICENSE-2.0.html"
-              data-l10n-id="licensing-Apache">Apache License 2.0</a></span>
+   			  <a href="#about-licensing" data-l10n-id="about-os-license">
+     			  Browser Os Open Source Notices
+  			  </a>
         </li>
       </ul>
+      -->
+    </section>
+
+    <!-- Device :: Information :: Licensing -->
+    <section role="region" hidden id="about-licensing">
+      <!--
+      <header>
+        <a href="#about-legal-information">
+			    <span class="icon icon-back">back</span>
+        </a>
+        <h1 data-l10n-id="about-os-license"> 
+			    Browser Os Open Source Notices 
+		    </h1>
+      </header>
+	    <iframe src="open-source-license.html" id="os-license"></iframe>
       -->
     </section>
 
@@ -1740,14 +1719,12 @@
       </header>
       <ul>
         <li>
-          <a id="model-name" data-l10n-id="model-name"> Model
-            <span data-name="deviceinfo.hardware"></span>
-          </a>
+          <small data-name="deviceinfo.hardware"></small>
+          <a id="model-name" data-l10n-id="model-name"> Model </a>
         </li>
         <li>
-          <a id="os-version" data-l10n-id="software"> Software
-            <span data-name="deviceinfo.software"></span>
-          </a>
+          <small data-name="deviceinfo.software"></small>
+          <a id="os-version" data-l10n-id="software"> Software </a>
         </li>
         <li>
           <small id="last-update-date"></small>
@@ -1809,7 +1786,7 @@
         </li>
         <li>
           <label>
-            <button data-href="#about-licensing"
+            <button data-href="#about-legal-information"
               data-l10n-id="about-licensing"> Licensing </button>
           </label>
         </li>

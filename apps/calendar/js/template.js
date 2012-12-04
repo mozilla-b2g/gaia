@@ -1,8 +1,4 @@
 (function(window) {
-  var FORMAT_REGEX;
-  FORMAT_REGEX = new RegExp('\\{([a-zA-Z0-9\\-\\_\\.]+)\\|?' +
-                           '([a-z0-9A-Z]+)?' +
-                           '(=([a-z-A-Z0-9\\-_ ]+))?\\}', 'g');
 
   var POSSIBLE_HTML = /[&<>"'`]/;
 
@@ -20,105 +16,70 @@
     return result;
   }
 
-  function Template(str) {
-    this.template = str;
+  function Template(fn) {
+    this.template = fn;
   }
 
   Template.handlers = {
 
-    'h': function(arg) {
+    arg: function(key) {
+      if (typeof(this.data) === 'undefined') {
+        return '';
+      } else if (typeof(this.data) !== 'object') {
+        return this.data;
+      }
+
+      return this.data[key];
+    },
+
+    'h': function(a) {
+
+      var arg = this.arg(a);
+
       //only escape bad looking stuff saves
       //a ton of time
       if (POSSIBLE_HTML.test(arg)) {
         span.textContent = arg;
         return span.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
       } else {
-        return arg.toString();
+        return String(arg);
       }
     },
 
-    bool: function(value, onTrue) {
-      if (value) {
+    's': function(a) {
+      var arg = this.arg(a);
+      return String((arg || ''));
+    },
+
+    bool: function(key, onTrue) {
+      if (this.data[key]) {
         return onTrue;
       } else {
         return '';
       }
     },
 
-    'l10n': function(name, prefix) {
+    'l10n': function(key, prefix) {
+      var value = this.arg(key);
+
       if (prefix) {
-        name = prefix + name;
+        value = prefix + value;
       }
-      return navigator.mozL10n.get(name);
+      return navigator.mozL10n.get(value);
     }
 
   };
 
   Template.prototype = {
 
-    compile: function(str) {
-      // Split the template string with template placeholders
-      // the resulting array is a mix of plain text string
-      // and placeholder pieces.
-      var chunks = str.split(FORMAT_REGEX);
-      return this.processTemplate.bind(this, chunks);
-    },
-
-    processTemplate: function processTemplate(chunks, a) {
-      if (typeof(a) === 'undefined') {
-        a = {};
-      } else if (typeof(a) !== 'object') {
-        a = { 'value': a };
-      }
-      var processPlaceholder = this.processPlaceholder.bind(null,
-                                            Calendar.Template.handlers,
-                                            a);
-      var str = [];
-      for (var i = 0; i < chunks.length; i++) {
-        // Append plain text piece of string
-        str.push(chunks[i]);
-        // Thanks to `str.split(FORMAT_REGEX)`, `chunks`
-        // contains non-placeholder piece of the template
-        // followed by the Regexp matching placeholders.
-        // FORMAT_REGEX has 4 internal matches.
-        // So the next 4 items are FORMAT_REGEX matches.
-        if (i < chunks.length-4) {
-          var matches = chunks.slice(i+1, i+5);
-          var placeholder = processPlaceholder.apply(null,
-                                                     matches);
-          // Append processed placeholder
-          str.push(placeholder);
-          i += 4;
-        }
-      }
-      return str.join('');
-    },
-
-    processPlaceholder: function processPlaceholder(handlers, a, name, type,
-                                                    wrap, value) {
-      if (!type) {
-        type = 'h';
-      }
-
-      if (type === 's') {
-        return String((a[name] || ""));
-      } else {
-        if (value) {
-          return handlers[type](a[name] || "", value || '');
-        } else {
-          return handlers[type](a[name] || "");
-        }
-      }
-    },
-
     /**
      * Renders template with given slots.
      *
      * @param {Object} object key, value pairs for template.
      */
-    render: function() {
-      this.render = this.compile(this.template);
-      return this.render.apply(this, arguments);
+    render: function(data) {
+      Template.handlers.data = data;
+      return this.template.apply(Template.handlers);
     },
 
     /**

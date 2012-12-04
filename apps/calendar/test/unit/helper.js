@@ -176,7 +176,7 @@
   requireLib('template.js');
   requireLib('interval_tree.js');
   requireLib('responder.js');
-  requireLib('overlap.js');
+  requireLib('utils/overlap.js');
   requireLib('time_observer.js');
   requireLib('provider/abstract.js');
   requireLib('provider/local.js');

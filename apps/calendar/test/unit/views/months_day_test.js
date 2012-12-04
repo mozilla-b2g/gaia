@@ -1,6 +1,6 @@
 requireApp('calendar/test/unit/helper.js', function() {
   requireLib('timespan.js');
-  requireLib('ordered_map.js');
+  requireLib('utils/ordered_map.js');
   requireLib('templates/day.js');
   requireLib('views/day_based.js');
   requireLib('views/day_child.js');

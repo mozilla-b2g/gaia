@@ -308,6 +308,8 @@ fb.Contact = function(deviceContact, cid) {
 
     if (fbdata) {
       out = Object.create(devContact);
+      out.updated = devContact.updated;
+      out.published = devContact.published;
 
       Object.keys(devContact).forEach(function(prop) {
         if (devContact[prop] && Array.isArray(devContact[prop])) {

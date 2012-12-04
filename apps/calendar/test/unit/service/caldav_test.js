@@ -337,25 +337,29 @@ suite('service/caldav', function() {
   test('#getAccount', function(done) {
     var calledWith;
     var given = Factory('caldav.account');
-    var result = {};
+    var result = {
+      url: '/myfoobar/'
+    };
 
     subject._requestHome = function() {
       calledWith = arguments;
       return {
         send: function(callback) {
           setTimeout(function() {
-            callback(result);
+            callback(null, result);
           }, 0);
         }
       };
     };
 
-    subject.getAccount(given, function(data) {
+    subject.getAccount(given, function(err, data) {
+      console.log(data);
       done(function() {
-        assert.deepEqual(data, result);
+        assert.ok(!err, 'should succeed');
+        assert.equal(data.calendarHome, result.url);
         assert.instanceOf(calledWith[0], Caldav.Connection);
         assert.equal(calledWith[0].domain, given.domain);
-        assert.equal(calledWith[1], given.url);
+        assert.equal(calledWith[1], given.entrypoint);
       });
     });
   });
@@ -808,10 +812,11 @@ suite('service/caldav', function() {
 
   suite('#findCalendars', function() {
     var results;
-    var given = { url: 'foo', domain: 'google' };
     var calledWith;
+    var given;
 
     setup(function() {
+      given = Factory('caldav.account');
       subject._requestCalendars = function() {
         calledWith = arguments;
         return {
@@ -849,7 +854,7 @@ suite('service/caldav', function() {
           );
 
           assert.instanceOf(calledWith[0], Caldav.Connection);
-          assert.equal(calledWith[1], given.url);
+          assert.equal(calledWith[1], given.calendarHome);
 
           assert.deepEqual(
             data['/one'],
@@ -1024,6 +1029,11 @@ suite('service/caldav', function() {
 
             done(function() {
               assert.ok(!parseErr, parseErr);
+              assert.ok(
+                typeof(result.icalComponent) === 'string',
+                'updated result is returned as a string'
+              );
+
               assert.equal(
                 newEvent.sequence,
                 parseInt(original.sequence, 10) + 1,

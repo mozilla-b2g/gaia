@@ -7,7 +7,9 @@ const Wallpaper = (function() {
     var a = new MozActivity({
       name: 'pick',
       data: {
-        type: 'image/jpeg'
+        type: 'image/jpeg',
+        width: 320,
+        height: 480
       }
     });
     a.onsuccess = function onWallpaperSuccess() {

@@ -12,6 +12,8 @@ ids.forEach(function createElementRef(name) {
   dom[toCamelCase(name)] = document.getElementById(name);
 });
 
+dom.player.mozAudioChannelType = 'content';
+
 var playing = false;
 
 // if this is true then the video tag is showing

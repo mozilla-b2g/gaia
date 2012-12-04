@@ -156,13 +156,20 @@ function hideScanProgress() {
 // Use Web Activities to share files
 function shareFile(filename) {
   musicdb.getFile(filename, function(file) {
+    // We try to fix Bug 814323 by using
+    // current workaround of bluetooth transfer
+    // so we will pass both filenames and filepaths
+    // The filepaths can be removed after Bug 811615 is fixed
+    var name = filename.substring(filename.lastIndexOf('/') + 1);
+
     var a = new MozActivity({
       name: 'share',
       data: {
         type: file.type,
         number: 1,
         blobs: [file],
-        filenames: [filename]
+        filenames: [name],
+        filepaths: [filename]
       }
     });
 

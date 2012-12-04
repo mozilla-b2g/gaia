@@ -22,19 +22,10 @@ var MessageManager = {
     document.addEventListener('mozvisibilitychange', this);
   },
   slide: function mm_slide(callback) {
-    var bodyClass = document.body.classList;
     var mainWrapper = document.getElementById('main-wrapper');
-    var snapshot = document.getElementById('snapshot');
-    if (mainWrapper.classList.contains('to-left')) {
-      bodyClass.add('snapshot-back');
-    } else {
-      bodyClass.add('snapshot');
-    }
     mainWrapper.classList.toggle('to-left');
-    snapshot.addEventListener('transitionend', function rm_snapshot() {
-      snapshot.removeEventListener('transitionend', rm_snapshot);
-      bodyClass.remove('snapshot');
-      bodyClass.remove('snapshot-back');
+    mainWrapper.addEventListener('transitionend', function slideTransition() {
+      mainWrapper.removeEventListener('transitionend', slideTransition);
       if (callback) {
         callback();
       }
@@ -75,7 +66,7 @@ var MessageManager = {
             receiverInput.value = '';
             threadMessages.classList.add('new');
             MessageManager.slide(function() {
-              messageInput.focus();
+              receiverInput.focus();
             });
             break;
           case '#thread-list':
@@ -91,6 +82,7 @@ var MessageManager = {
               });
             } else {
               MessageManager.slide(function() {
+                ThreadUI.view.innerHTML = '';
                 if (MessageManager.activityTarget) {
                   window.location.hash =
                     '#num=' + MessageManager.activityTarget;
@@ -258,16 +250,6 @@ var MessageManager = {
         MessageManager.markMessageRead(list[i], value, callback);
       } else {
         MessageManager.markMessageRead(list[i], value);
-      }
-    }
-  },
-
-  reopenSelf: function reopenSelf(number) {
-    navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
-      var app = evt.target.result;
-      app.launch();
-      if (number) {
-        window.location.hash = '#num=' + number;
       }
     }
   }
@@ -1386,12 +1368,10 @@ var ThreadUI = {
       });
       activity.onsuccess = function success() {
         var number = this.result.number;
-        MessageManager.reopenSelf(number);
+        if (number) {
+          window.location.hash = '#num=' + number;
+        }
       }
-      activity.onerror = function error() {
-        MessageManager.reopenSelf();
-      }
-
     } catch (e) {
       console.log('WebActivities unavailable? : ' + e);
     }
@@ -1422,12 +1402,6 @@ var ThreadUI = {
 
     try {
       var activity = new MozActivity(options);
-      activity.onsuccess = function success() {
-        MessageManager.reopenSelf();
-      }
-      activity.onerror = function error() {
-        MessageManager.reopenSelf();
-      }
     } catch (e) {
       console.log('WebActivities unavailable? : ' + e);
     }

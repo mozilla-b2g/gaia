@@ -173,7 +173,6 @@ var UpdateManager = {
     this.downloadDialogList.innerHTML = '';
     this.updatesQueue.forEach(function updatableIterator(updatable, index) {
       var listItem = document.createElement('li');
-      listItem.textContent = updatable.name;
 
       // The user can choose not to update an app
       var checkContainer = document.createElement('label');
@@ -193,6 +192,11 @@ var UpdateManager = {
         checkContainer.appendChild(span);
       }
       listItem.appendChild(checkContainer);
+
+      var name = document.createElement('div');
+      name.classList.add('name');
+      name.textContent = updatable.name;
+      listItem.appendChild(name);
 
       if (updatable.size) {
         var sizeItem = document.createElement('div');
@@ -281,6 +285,11 @@ var UpdateManager = {
   addToUpdatesQueue: function um_addToUpdatesQueue(updatable) {
     if (this._downloading)
       return;
+
+    if (updatable.app &&
+        updatable.app.installState !== 'installed') {
+      return;
+    }
 
     if (updatable.app &&
         this.updatableApps.indexOf(updatable) === -1) {
@@ -377,7 +386,7 @@ var UpdateManager = {
   checkStatuses: function um_checkStatuses() {
     this.updatableApps.forEach(function(updatableApp) {
       var app = updatableApp.app;
-      if (app.installState === 'installed' && app.downloadAvailable) {
+      if (app.downloadAvailable) {
         this.addToUpdatesQueue(updatableApp);
       }
     }, this);
@@ -433,6 +442,16 @@ var UpdateManager = {
     }
 
     this._dispatchEvent('force-update-check');
+
+    var settings = navigator.mozSettings;
+    if (!settings) {
+      return;
+    }
+
+    var lock = settings.createLock();
+    lock.set({
+      'gaia.system.checkForUpdates': false
+    });
   },
 
   _dispatchEvent: function um_dispatchEvent(type, result) {

@@ -137,6 +137,13 @@ var BackgroundServiceManager = (function bsm() {
     frames[manifestURL][name] = frame;
 
     document.body.appendChild(frame);
+
+    // Background services should load in the background.
+    //
+    // (The funky setTimeout(0) is to work around
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=810431 .)
+    setTimeout(function () { frame.setVisible(false) }, 0);
+
     return true;
   };
 
