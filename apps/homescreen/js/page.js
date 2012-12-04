@@ -11,13 +11,7 @@
 function Icon(descriptor, app) {
   this.descriptor = descriptor;
   this.app = app;
-  if (app) {
-    this.downloading = app.installState === 'pending' && app.downloading;
-    this.cancelled = app.installState === 'pending' && !app.downloading;
-  } else {
-    this.downloading = false;
-    this.cancelled = false;
-  }
+  this.updateAppStatus(app);
 };
 
 Icon.prototype = {
@@ -260,10 +254,19 @@ Icon.prototype = {
     });
   },
 
+  updateAppStatus: function icon_updateAppStatus(app) {
+    if (app) {
+      this.downloading = app.downloading;
+      this.cancelled = (app.installState === 'pending') && !app.downloading;
+    } else {
+      this.downloading = false;
+      this.cancelled = false;
+    }
+  },
+
   update: function icon_update(descriptor, app) {
     this.app = app;
-    this.downloading = app.installState === 'pending' && app.downloading;
-    this.cancelled = app.installState === 'pending' && !app.downloading;
+    this.updateAppStatus(app);
     var oldDescriptor = this.descriptor;
     this.descriptor = descriptor;
 
@@ -276,6 +279,19 @@ Icon.prototype = {
         descriptor.localizedName != oldDescriptor.localizedName) {
       this.translate();
     }
+  },
+
+  showDownloading: function icon_showDownloading() {
+    this.img.src = this.DOWNLOAD_ICON_URL;
+    this.container.style.visibility = 'visible';
+    this.icon.classList.add('loading');
+  },
+
+  showCancelled: function icon_showCancelled() {
+    this.img.src = this.CANCELED_ICON_URL;
+    this.container.style.visibility = 'visible';
+    this.icon.classList.remove('loading');
+    this.fetchImageData();
   },
 
   remove: function icon_remove() {
@@ -564,6 +580,11 @@ Page.prototype = {
 
       if (icon.descriptor.entry_point) {
         icon.app.launch(icon.descriptor.entry_point);
+        return;
+      }
+
+      if (icon.cancelled) {
+        GridManager.showRestartDownloadDialog(icon);
         return;
       }
       icon.app.launch();
