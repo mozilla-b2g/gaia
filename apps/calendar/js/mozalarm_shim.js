@@ -76,16 +76,16 @@
 
       if (self.onsuccess)
         self.onsuccess.apply(self, arguments);
-    }
+    };
 
     req.onerror = function() {
       if (self.onerror)
         self.onerror.apply(self, arguments);
-    }
+    };
 
     req.onblocked = function() {
       throw new Error('Blocked');
-    }
+    };
   }
 
   Db.prototype = {
@@ -280,7 +280,7 @@
     trans.oncomplete = function() {
       var interval = api._interval || DEFAULT_INTERVAL;
       setTimeout(watchAlarms, interval);
-    }
+    };
   }
 
 }());

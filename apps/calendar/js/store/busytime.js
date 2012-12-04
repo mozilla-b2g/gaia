@@ -101,7 +101,7 @@ Calendar.ns('Store').Busytime = (function() {
         }
 
         success(e);
-      }
+      };
 
       this._transactionCallback(trans, callback);
     },
