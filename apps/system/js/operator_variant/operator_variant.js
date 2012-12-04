@@ -37,7 +37,9 @@
         !cset['operatorvariant.mnc']) {
       return;
     }
-    if (gNetwork.mcc == 0 && gNetwork.mnc == 0) {
+
+    var cardState = mobileConnection.cardState;
+    if (gNetwork.mcc == 0 && gNetwork.mnc == 0 && cardState == 'ready') {
       return;
     }
     if ((gNetwork.mcc == cset['operatorvariant.mcc']) &&
@@ -79,7 +81,8 @@
         },
         'operatorvariant': {
           'ril.iccInfo.mbdn': 'voicemail',
-          'ril.sms.strict7BitEncoding.enabled': 'enableStrict7BitEncodingForSms'
+          'ril.sms.strict7BitEncoding.enabled': 'enableStrict7BitEncodingForSms',
+          'ril.cellbroadcast.searchlist': 'cellBroadcastSearchList'
         }
       };
 
@@ -92,7 +95,7 @@
       for (var type in apnPrefNames) {
         var apn = {};
         for (var i = 0; i < result.length; i++) {
-          if (result[i].type.indexOf(type) != -1) {
+          if (result[i] && result[i].type.indexOf(type) != -1) {
             apn = result[i];
             break;
           }
