@@ -48,7 +48,12 @@
       }, true);
     };
 
-    icc.addEventListener('stkcommand', handleSTKCommand);
+    icc.addEventListener('stkcommand', function do_handleSTKCmd(event) {
+      handleSTKCommand(event.command);
+    });
+    window.addEventListener('stkasynccommand', function do_handleAsyncSTKCmd(event) {
+      handleSTKCommand(event.detail.command);
+    });
 
     /**
      * Open STK main application
@@ -59,6 +64,25 @@
 
     // Load STK apps
     updateMenu();
+
+    // Check if async message has arrived
+    var reqIccData = window.navigator.mozSettings.createLock().get('icc.data');
+    reqIccData.onsuccess = function icc_getIccData() {
+      var cmd = reqIccData.result['icc.data'];
+      if (cmd) {
+        var iccCommand = JSON.parse(cmd);
+        debug('ICC async command: ', iccCommand);
+        reqIccData = window.navigator.mozSettings.createLock().set({
+          'icc.data': ''
+        });
+        if (iccCommand) {        // Open ICC section
+          var event = new CustomEvent('stkasynccommand', {
+            detail: { 'command': iccCommand }
+          });
+          window.dispatchEvent(event);
+        }
+      }
+    }
   }
 
   /**
@@ -81,8 +105,7 @@
   /**
    * Handle ICC Commands
    */
-  function handleSTKCommand(event) {
-    var command = event.command;
+  function handleSTKCommand(command) {
     debug('STK Proactive Command:', command);
     iccLastCommand = command;
     var options = command.options;
@@ -176,7 +199,7 @@
         responseSTKCommand({
           resultCode: icc.STK_RESULT_OK
         });
-        if (confirm(options.confirmMessage)) {
+        if (!options.confirmMessage || confirm(options.confirmMessage)) {
           openLink(options.url);
         }
         break;
@@ -346,15 +369,10 @@
       document.getElementById('icc-stk-exit').classList.remove('hidden');
       document.getElementById('icc-stk-app-back').classList.add('hidden');
 
-      if (!menu) {
-        var _ = window.navigator.mozL10n.get;
-        debug('STK Main App Menu not available.');
-        var li = document.createElement('li');
-        var p = document.createElement('p');
-        p.textContent = _('stkAppsNotAvailable');
-        p.className = 'description';
-        li.appendChild(p);
-        iccStkList.appendChild(li);
+      if (!menu || !menu.title) {
+        debug('No STK available - hide & exit');
+        document.getElementById('icc-mainheader').hidden = true;
+        document.getElementById('icc-mainentry').hidden = true;
         return;
       }
 

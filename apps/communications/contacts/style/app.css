@@ -354,65 +354,6 @@ form p + p {
   width: -moz-calc(100% + 0.8rem);
 }
 
-/* jumper: Goes directly to some point of a scrollable area */
-.view-jumper {
-  position: absolute;
-  right: 0;
-  top: 0;
-  bottom: 1rem;
-  z-index: 10;
-}
-
-.view-jumper:active .view-jumper-inner, .view-jumper.active .view-jumper-inner  {
-  background: #999;
-}
-
-.view-jumper-current {
-  position: absolute;
-  right: 4rem;
-  top: 30%;
-  z-index: 100;
-  width: 10.5rem;
-  height: 10.5rem;
-  background: rgba(0, 0, 0, 0.7);
-  font: 400 6rem/10.5rem MozTT, Sans-serif;
-  color: #fff;
-  text-align: center;
-  -moz-transition: opacity;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.view-jumper-current img{
-  width: 4.6rem;
-  height: 4.6rem;
-  position: absolute;
-  left:50%;
-  top: 50%;
-  margin-left:-2.3rem;
-  margin-top:-2.3rem;
-}
-
-.view-jumper-inner {
-  padding: 0.3rem 0;
-  border-radius: 4rem;
-  opacity: 0.6;
-}
-
-.view-jumper li {
-  font-size: 1.1rem;
-  line-height: 1.25em;
-  text-align: center;
-  text-transform: uppercase;
-  width: 4.5rem;
-}
-
-.view-jumper-inner a, .view-jumper-inner abbr {
-  display: block;
-  color: #333;
-  width: 100%;
-  text-indent: 1.5rem;
-}
 
 /* LAYOUT */
 /* ITEM: The smallest complete structure; */
@@ -474,25 +415,6 @@ span[role="button"] {
 
 span[role="button"].icon-finish {
   background-color: rgba(0, 0, 0, 0.5);
-}
-
-/* jumper */
-span[role="button"].icon-fav-dark {
-  background-image: url(/contacts/style/gphx/bitmap/default/vw-jumper/fav.png);
-  width: 1.2rem;
-  height: 1.1rem;
-}
-
-span[role="button"].icon-search {
-  background-image: url(/contacts/style/gphx/bitmap/default/vw-jumper/search.png);
-  width: 1.2rem;
-  height: 1.2rem;
-}
-
-span[role="button"].icon-fav-color {
-  background-image: url(/contacts/style/gphx/bitmap/default/block-list/fav.png);
-  width: 2rem;
-  height: 2rem;
 }
 
 /* selection list */
@@ -722,42 +644,19 @@ span[role="button"].icon-arrow.icon-arrow-right {
   background-size: cover;
 }
 
+/* JUMPER */
 
-/* ----------------------------------
- * PROGRESS + ACTIVITIES
- * ---------------------------------- */
-
-/* Activity indicator */
- body[role="application"] progress:not([value]) {
-   width: 2.9rem;
-   height: 2.9rem;
-   background: url(images/spinner.png) no-repeat left top;
-   border: none;
-   animation: 1s moveDefault infinite steps(10);
-   display: inline-block;
-   vertical-align: middle;
- }
-
- body[role="application"] progress:not([value])::-moz-progress-bar {
-   background: none;
- }
-
-@keyframes moveDefault {
-  from {
-    background-position: 0 top;
-  }
-
-  to {
-    background-position: -390px top;
-  }
+nav[data-type="scrollbar"] {
+  z-index: 6;
 }
 
-@keyframes moveSpinner {
-  from {
-    background-position: 0 top;
-  }
+nav[data-type="scrollbar"] ol > li > * {
+  pointer-events: none;
+}
 
-  to {
-    background-position: -300px top;
-  }
+nav[data-type="scrollbar"] p img {
+  position: absolute;
+  top: 25%;
+  left: 25%;
+  width: auto;
 }

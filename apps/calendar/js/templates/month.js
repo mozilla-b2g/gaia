@@ -1,41 +1,43 @@
 (function(window) {
 
   var Month = Calendar.Template.create({
-    busy: '<span class="' +
-              'busytime-{_id} ' +
-              'busy-length-{length} ' +
-              'busy-{start} ' +
-              'calendar-id-{calendarId} calendar-color calendar-display' +
-            '">' +
-            '&nbsp;' +
-          '</span>',
+    busy: function() {
+      return '<span class="' +
+                'busytime-' + this.h('_id') +
+                ' busy-length-' + this.h('length') +
+                ' busy-' + this.h('start') +
+                ' calendar-id-' + this.h('calendarId') + ' calendar-color calendar-display' +
+              '">' +
+              '&nbsp;' +
+            '</span>';
+    },
 
-    weekDaysHeader: [
-      '<header id="month-days">',
-        '<ol role="row">',
-          '{value|s}',
-        '</ol>',
-      '</header>'
-    ].join(''),
+    weekDaysHeader: function() {
+      return '<header id="month-days">' +
+          '<ol role="row">' +
+            this.s('value') +
+          '</ol>' +
+        '</header>';
+    },
 
-    weekDaysHeaderDay: [
-      '<li data-l10n-id="weekday-{day}-short">',
-        '{dayName}',
-      '</li>'
-    ].join(''),
+    weekDaysHeaderDay: function() {
+      return '<li data-l10n-id="weekday-' + this.h('day') + '-short">' +
+          this.h('dayName') +
+        '</li>';
+    },
 
-    week: [
-      '<ol role="row">',
-        '{value|s}',
-      '</ol>'
-    ].join(''),
+    week: function() {
+      return '<ol role="row">' +
+          this.s('value') +
+        '</ol>';
+    },
 
-    day: [
-      '<li id="{id|s}" data-date="{dateString|s}" class="{state|s}">',
-        '<span class="day">{date}</span>',
-        '<div class="busy-indicator">{busy|s}</div>',
-      '</li>'
-    ].join('')
+    day: function() {
+      return '<li id="' + this.s('id') + '" data-date="' + this.s('dateString') + '" class="' + this.s('state') + '">' +
+          '<span class="day">' + this.h('date') + '</span>' +
+          '<div class="busy-indicator">' + this.s('busy') + '</div>' +
+        '</li>';
+    }
   });
 
   Calendar.ns('Templates').Month = Month;

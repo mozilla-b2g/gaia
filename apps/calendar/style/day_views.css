@@ -53,6 +53,10 @@
   z-index: 10;
 }
 
+.day-events .hour-allday .event {
+  position: relative;
+}
+
 .day-events .container {
   /* turn off calendar color bg */
   background: white !important;

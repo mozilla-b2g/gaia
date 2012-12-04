@@ -105,6 +105,7 @@ var gWifiManager = (function(window) {
   return {
     // true if the wifi is enabled
     enabled: false,
+    macAddress: 'xx:xx:xx:xx:xx:xx',
 
     // enables/disables the wifi
     setEnabled: function fakeSetEnabled(bool) {
@@ -229,6 +230,14 @@ var Connectivity = (function(window, document, undefined) {
     document.getElementById('wifi-desc').textContent = _('fullStatus-' +
         gWifiManager.connection.status,
         gWifiManager.connection.network);
+
+    // record MAC address value here because Device Information
+    // needs this value for displaying
+    var macAddress = gWifiManager.macAddress;
+    var settings = window.navigator.mozSettings;
+    if (!settings)
+      return;
+    settings.createLock().set({'deviceinfo.mac': macAddress});
   }
 
   function updateCarrier() {

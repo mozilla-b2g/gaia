@@ -340,18 +340,65 @@ function coerce(length) {
 var ENCODER_OPTIONS = { fatal: false };
 
 /**
+ * Safe atob-variant that does not throw exceptions and just ignores characters
+ * that it does not know about.  This is an attempt to mimic node's
+ * implementation so that we can parse base64 with newlines present as well
+ * as being tolerant of complete gibberish people throw at us.  Since we are
+ * doing this by hand, we also take the opportunity to put the output directly
+ * in a typed array.
+ *
+ * In contrast, window.atob() throws Exceptions for all kinds of angry reasons.
+ */
+function safeBase64DecodeToArray(s) {
+  var bitsSoFar = 0, validBits = 0, iOut = 0,
+      arr = new Uint8Array(Math.ceil(s.length * 3 / 4));
+  for (var i = 0; i < s.length; i++) {
+    var c = s.charCodeAt(i), bits;
+    if (c >= 65 && c <= 90) // [A-Z]
+      bits = c - 65;
+    else if (c >= 97 && c <= 122) // [a-z]
+      bits = c - 97 + 26;
+    else if (c >= 48 && c <= 57) // [0-9]
+      bits = c - 48 + 52;
+    else if (c === 43) // +
+      bits = 62;
+    else if (c === 47) // /
+      bits = 63;
+    else if (c === 61) { // =
+      validBits = 0;
+      continue;
+    }
+    // ignore all other characters!
+    else
+      continue;
+    bitsSoFar = (bitsSoFar << 6) | bits;
+    validBits += 6;
+    if (validBits >= 8) {
+      validBits -= 8;
+      arr[iOut++] = bitsSoFar >> validBits;
+      if (validBits === 2)
+        bitsSoFar &= 0x3;
+      else if (validBits === 4)
+        bitsSoFar &= 0xf;
+    }
+  }
+
+  if (iOut < arr.length)
+    return arr.subarray(0, iOut);
+  return arr;
+}
+
+/**
  * Encode a unicode string into a (Uint8Array) byte array with the given
- * encoding. Wraps TextEncoder to provide hex and base64 encoding (which it does
- * not provide).
+ * encoding. Wraps TextEncoder to provide hex and base64 "encoding" (which it
+ * does not provide).
  */
 function encode(string, encoding) {
   var buf, i;
   switch (encoding) {
     case 'base64':
-      // (atob is base64 ASCII string -> binary JS string)
-      string = window.atob(string);
-      // fall through to the binary case since what we have is binary now!
-    // the stringencoding polyfill no longer implements binary, so it's up to us
+      buf = safeBase64DecodeToArray(string);
+      return buf;
     case 'binary':
       buf = new Uint8Array(string.length);
       for (i = 0; i < string.length; i++) {
@@ -1174,7 +1221,7 @@ MailBody.prototype = {
   /**
    * Synchronously trigger the display of embedded images.
    */
-  showEmbeddedImages: function(htmlNode) {
+  showEmbeddedImages: function(htmlNode, loadCallback) {
     var i, cidToObjectUrl = {},
         // the "|| window" is for our shimmed testing environment and should
         // not happen in production.
@@ -1204,6 +1251,9 @@ MailBody.prototype = {
         continue;
       // XXX according to an MDN tutorial we can use onload to destroy the
       // URL once the image has been loaded.
+      if (loadCallback) {
+        node.addEventListener('load', loadCallback, false);
+      }
       node.src = cidToObjectUrl[cid];
 
       node.removeAttribute('cid-src');
@@ -1230,12 +1280,15 @@ MailBody.prototype = {
    * using implementation-specific details subject to change, so don't do this
    * yourself.
    */
-  showExternalImages: function(htmlNode) {
+  showExternalImages: function(htmlNode, loadCallback) {
     // querySelectorAll is not live, whereas getElementsByClassName is; we
     // don't need/want live, especially with our manipulations.
     var nodes = htmlNode.querySelectorAll('.moz-external-image');
     for (var i = 0; i < nodes.length; i++) {
       var node = nodes[i];
+      if (loadCallback) {
+        node.addEventListener('load', loadCallback, false);
+      }
       node.setAttribute('src', node.getAttribute('ext-src'));
       node.removeAttribute('ext-src');
       node.classList.remove('moz-external-image');
@@ -7096,7 +7149,7 @@ module.exports.mimeFunctions = {
 
         for(var i=0, len = str.length; i<len; i++){
             chr = str.charAt(i);
-            if(chr == "=" && (hex = str.substr(i+1, 2).match(/[\da-fA-F]{2}/))){
+            if(chr == "=" && (hex = str.substr(i+1, 2)) && /[\da-fA-F]{2}/.test(hex)){
                 buffer[bufferPos++] = parseInt(hex, 16);
                 i+=2;
                 continue;
@@ -7204,21 +7257,9 @@ module.exports.mimeFunctions = {
         var remainder = "", lastCharset, curCharset;
         str = (str || "").toString();
 
-        while(str.match(/(\=\?[\w_\-]+\?[QB]\?[^\?]+\?\=)\s+(?=\=\?[\w_\-]+\?[QB]\?[^\?]+\?\=)/g)){
-            str = str.replace(/(\=\?[\w_\-]+\?[QB]\?[^\?]+\?\=)\s+(\=\?[\w_\-]+\?[QB]\?[^\?]+\?\=)/g,function(original, first, second){
-                var match1 = (first || "").trim().match(/^\=\?([\w_\-]+)\?([QB])\?([^\?]+)\?\=$/),
-                    match2 = (second || "").trim().match(/^\=\?([\w_\-]+)\?([QB])\?([^\?]+)\?\=$/);
-
-                if(match1[1] == match2[1] && match1[2] == match2[2]){
-                    return "=?"+match1[1]+"?"+match1[2]+"?"+match1[3] + match2[3]+"?=";
-                }else{
-                    return first+second;
-                }
-
-            });
-        }
-
-        str = str.replace(/\=\?([\w_\-]+)\?([QB])\?[^\?]+\?\=/g, (function(mimeWord, charset, encoding){
+        str = str.
+                replace(/(=\?[^?]+\?[QqBb]\?[^?]+\?=)\s+(?==\?[^?]+\?[QqBb]\?[^?]+\?=)/g, "$1").
+                replace(/\=\?([\w_\-]+)\?([QB])\?[^\?]+\?\=/g, (function(mimeWord, charset, encoding){
 
                       curCharset = charset + encoding;
 
@@ -20482,7 +20523,12 @@ SmtpProber.prototype = {
           for (let [,listener] in Iterator(this.listeners)) {
             if (this._pathMatches(fullPath, listener.path)) {
               node.children = [];
-              listener.callback(node);
+              try {
+                listener.callback(node);
+              }
+              catch (e) {
+                console.error(e);
+              }
             }
           }
 
@@ -20501,7 +20547,12 @@ SmtpProber.prototype = {
           for (let [,listener] in Iterator(this.listeners)) {
             if (this._pathMatches(fullPath, listener.path)) {
               recording--;
-              listener.callback(recPath[recPath.length-1]);
+              try {
+                listener.callback(recPath[recPath.length-1]);
+              }
+              catch (e) {
+                console.error(e);
+              }
             }
           }
 
@@ -35170,13 +35221,12 @@ function MailUniverse(callAfterBigBang, testOptions) {
 
   this._bridges = [];
 
-  // hookup network status indication
-  var connection = window.navigator.connection ||
-                     window.navigator.mozConnection ||
-                     window.navigator.webkitConnection;
+  // We used to try and use navigator.connection, but it's not supported on B2G,
+  // so we have to use navigator.onLine like suckers.
   this.online = true; // just so we don't cause an offline->online transition
+  window.addEventListener('online', this._onConnectionChange.bind(this));
+  window.addEventListener('offline', this._onConnectionChange.bind(this));
   this._onConnectionChange();
-  connection.addEventListener('change', this._onConnectionChange.bind(this));
 
   this._testModeDisablingLocalOps = false;
 
@@ -35389,29 +35439,37 @@ MailUniverse.prototype = {
 
   //////////////////////////////////////////////////////////////////////////////
   _onConnectionChange: function() {
-    var connection = window.navigator.connection ||
-                       window.navigator.mozConnection ||
-                       window.navigator.webkitConnection;
     var wasOnline = this.online;
     /**
      * Are we online?  AKA do we have actual internet network connectivity.
-     * This should ideally be false behind a captive portal.
+     * This should ideally be false behind a captive portal.  This might also
+     * end up temporarily false if we move to a 2-phase startup process.
      */
-    this.online = connection.bandwidth > 0;
+    this.online = navigator.onLine;
+    // Knowing when the app thinks it is online/offline is going to be very
+    // useful for our console.log debug spew.
+    console.log('Email knows that it is:', this.online ? 'online' : 'offline',
+                'and previously was:', wasOnline ? 'online' : 'offline');
     /**
      * Do we want to minimize network usage?  Right now, this is the same as
      * metered, but it's conceivable we might also want to set this if the
      * battery is low, we want to avoid stealing network/cpu from other
      * apps, etc.
+     *
+     * NB: We used to get this from navigator.connection.metered, but we can't
+     * depend on that.
      */
-    this.minimizeNetworkUsage = connection.metered;
+    this.minimizeNetworkUsage = true;
     /**
      * Is there a marginal cost to network usage?  This is intended to be used
      * for UI (decision) purposes where we may want to prompt before doing
      * things when bandwidth is metered, but not when the user is on comparably
      * infinite wi-fi.
+     *
+     * NB: We used to get this from navigator.connection.metered, but we can't
+     * depend on that.
      */
-    this.networkCostsMoney = connection.metered;
+    this.networkCostsMoney = true;
 
     if (!wasOnline && this.online) {
       // - check if we have any pending actions to run and run them if so.

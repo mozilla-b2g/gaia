@@ -1,6 +1,9 @@
 /* styles for the video element itself */
 .videoPlayer {
   position: absolute;
+  left: 0; /* we position it with a transform */
+  top:0;
+  transform-origin: 0 0;
 }
 
 /* video player controls */

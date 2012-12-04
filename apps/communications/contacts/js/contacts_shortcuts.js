@@ -8,7 +8,7 @@ if (!utils.alphaScroll) {
     var alphaScroll = utils.alphaScroll = {};
 
     var scrollToCallback, jumper, overlay,
-        overlayContent, overlayStyle, groupSelector;
+        overlayStyle, groupSelector;
 
     var isScrolling = false;
 
@@ -21,9 +21,6 @@ if (!utils.alphaScroll) {
     var P_JUMPER = 'jumper';
     // Element that shows the current letter
     var P_OVERLAY = 'overlay';
-    // Element that has the content of the current letter
-    // (can point to the same as overlay content)
-    var P_OVERLAY_CONTENT = 'overlayContent';
     // Selector that will allow to get the group that should be scrolled to
     // Group will be identified by this selector plus the corresponding letter
     var P_GROUP_SELECTOR = 'groupSelector';
@@ -37,10 +34,9 @@ if (!utils.alphaScroll) {
       scrollToCallback = params[P_SCROLLTO_CB];
       jumper = params[P_JUMPER];
       overlay = params[P_OVERLAY];
-      overlayContent = params[P_OVERLAY_CONTENT];
       groupSelector = params[P_GROUP_SELECTOR];
 
-      overlayContent.textContent = '';
+      overlay.textContent = '';
       overlayStyle = overlay.style;
 
       jumper.addEventListener('mousedown', scrollStart);
@@ -72,7 +68,7 @@ if (!utils.alphaScroll) {
       overlayStyle.MozTransitionDelay = TRANSITION_DELAY;
       overlayStyle.MozTransitionDuration = TRANSITION_DURATION;
       overlayStyle.opacity = '0';
-      overlayContent.textContent = previous = null;
+      overlay.textContent = previous = null;
       isScrolling = false;
     }
 
@@ -94,14 +90,14 @@ if (!utils.alphaScroll) {
 
       // Render
       if (evt.target.dataset.letter) {
-        overlayContent.textContent = evt.target.dataset.letter;
+        overlay.textContent = evt.target.dataset.letter;
       } else if (evt.target.dataset.img) {
-        overlayContent.textContent = '';
+        overlay.textContent = '';
         var img = new Image();
         img.src = 'style/images/' + evt.target.dataset.img;
-        overlayContent.appendChild(img);
+        overlay.appendChild(img);
       } else {
-        overlayContent.textContent = '';
+        overlay.textContent = '';
       }
 
       anch = current.anchor;

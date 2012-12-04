@@ -117,13 +117,14 @@
 }
 
 #updates-download-dialog h1 {
+  margin-top: 2rem;
   font-size: 2.2rem;
 }
 
 #updates-download-dialog section {
   height: auto;
   overflow-y: scroll;
-  max-height: -moz-calc(100% - 3.8rem);
+  max-height: 100%;
 
   font-size: 1.7rem;
 }
@@ -135,7 +136,6 @@
 }
 
 #updates-download-dialog li {
-  line-height: 3rem;
   height: 5rem;
 
   margin: 0 0.2rem;
@@ -148,21 +148,36 @@
   border-top: 0;
 }
 
-#updates-download-dialog li.nosize {
-  line-height: 5rem;
+#updates-download-dialog div {
+  float: left;
+  width: calc(100% - 8rem);
+  height: 2rem;
+
+  color: #fff;
+  font-weight: bold;
+  line-height: 1.2rem;
+  font-size: 1.2rem;
 }
 
-#updates-download-dialog div {
-  display: block;
-  width: calc(100% - 12rem);
-
-  line-height: 1rem;
-  font-weight: bold;
+#updates-download-dialog li .name {
   font-size: 1.5rem;
+  line-height: 3rem;
+  height: 3rem;
+
+  color: white;
+  font-weight: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#updates-download-dialog li.nosize .name {
+  line-height: 5rem;
+  height: 5rem;
 }
 
 #updates-download-dialog label {
-  display: inline-block;
+  display: block;
   height: 5rem;
   float: right;
 
@@ -171,7 +186,7 @@
 }
 
 #updates-download-dialog label.required {
-  width: 10rem;
+  width: 7.5rem;
   padding-right: 0.5rem;
 
   text-align: right;

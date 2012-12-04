@@ -554,6 +554,15 @@ var OnCallHandler = (function onCallHandler() {
     telephony.speakerEnabled = !telephony.speakerEnabled;
   }
 
+  /* === Recents management === */
+  function addRecentEntry(entry) {
+    var message = {
+      type: 'recent',
+      entry: entry
+    }
+    postToMainWindow(message);
+  }
+
   return {
     setup: setup,
 
@@ -567,7 +576,9 @@ var OnCallHandler = (function onCallHandler() {
     toggleMute: toggleMute,
     toggleSpeaker: toggleSpeaker,
     unmute: unmute,
-    turnSpeakerOff: turnSpeakerOff
+    turnSpeakerOff: turnSpeakerOff,
+
+    addRecentEntry: addRecentEntry
   };
 })();
 

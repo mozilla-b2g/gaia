@@ -81,6 +81,10 @@ body, html {
   bottom: 2px;
 }
 
+#screen.locked #statusbar-time {
+  display: none;
+}
+
 .sb-icon {
   width: 16px;
   height: 16px;
@@ -351,7 +355,7 @@ body, html {
   color: #666;
   width: 16px;
   height: 16px;
-  top: 0;
+  top: -2px;
   right: 0;
   padding: 0 1px;
   font-size: 1.49rem; /* 6.5pt */

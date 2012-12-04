@@ -14,7 +14,7 @@ Calendar.ns('Views').TimeParent = (function() {
    */
   function TimeParent() {
     Calendar.View.apply(this, arguments);
-    this.frames = new Calendar.OrderedMap();
+    this.frames = new Calendar.Utils.OrderedMap();
     this._initEvents();
   }
 

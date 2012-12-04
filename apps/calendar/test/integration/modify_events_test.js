@@ -1,12 +1,8 @@
 require('/apps/calendar/test/integration/calendar_integration.js');
-/** require calc stuff to make things easier */
-require('apps/calendar/js/calendar.js');
-require('apps/calendar/js/calc.js');
-require('apps/calendar/js/input_parser.js');
 
 suite('calendar - modify events', function() {
 
-  var InputParser = Calendar.InputParser;
+  var InputParser = Calendar.Utils.InputParser;
   var device;
   var helper = IntegrationHelper;
   var app;
@@ -83,11 +79,73 @@ suite('calendar - modify events', function() {
 
   suiteSetup(function() {
     yield app.launch();
+    var btn = yield app.element('addEventBtn');
+    yield app.waitUntilElement(btn, 'displayed');
   });
 
   teardown(function() {
     // reset to month view between tests
+    yield app.resetSearchTimeout('long');
     yield app.monthView.navigate();
+    var today = yield app.element('todayBtn');
+    yield today.click();
+  });
+
+  test('all day events', function() {
+    this.timeout(50000);
+
+    var today = Calendar.Calc.createDay(yield app.remoteDate());
+    var tomorrow = new Date(today.valueOf());
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    var events = 3;
+    var positions = [];
+
+    function assertNotInPositions(object) {
+      positions.forEach(function(other, idx) {
+        if (object.top === other.top) {
+          throw new Error(
+            'position overlap! event starts on another.'
+          );
+        }
+      });
+    }
+
+    for (var i = 0; i < events; i++) {
+      yield subject.add();
+
+      var values = Factory('form.modifyEvent', {
+        title: uuid(),
+        location: 'place',
+        description: 'lengthy thing',
+        start: today,
+        end: tomorrow
+      });
+
+      yield subject.update(values);
+      var allday = yield app.element('eventFormAllDay');
+      yield allday.click();
+      yield subject.save();
+
+      var monthView = yield app.element('monthView');
+      yield app.waitUntilElement(monthView, 'displayed');
+
+      // find the event in the months day view
+      var event = yield app.monthsDayView.eventByTitle(
+        values.title
+      );
+
+      var displayed = yield event.displayed();
+      assert.ok(
+        displayed,
+        'all day event #' + (i + 1) + ' should be displayed'
+      );
+
+      var pos = yield app.getPosition(event);
+
+      assertNotInPositions(pos);
+      positions.push(pos);
+    }
   });
 
   test('add event - without pre-selected date', function() {
@@ -108,14 +166,18 @@ suite('calendar - modify events', function() {
   test('add event - different day selected', function() {
     var now = yield app.remoteDate();
 
-    // remove the time information
     now = Calendar.Calc.createDay(now);
 
-    // increment to tomorrow
-    now.setDate(now.getDate() + 3);
+    // we move to the next month to avoid issues
+    // where we run out of dates to pick in the current month.
+    now.setDate(25);
+    now.setMonth(now.getMonth() + 1);
+
+    yield app.monthView.forward();
 
     // tap the next day in the month view
     var dayEl = yield app.monthView.dateElement(now);
+
     yield app.waitUntilElement(dayEl, 'displayed');
     yield dayEl.click();
 
@@ -177,6 +239,9 @@ suite('calendar - modify events', function() {
 
     //TODO: this is fairly ugly we can improve this
     try {
+      // set the search timeout to a lower amount
+      // (we know there is minimal wait here).
+      yield app.resetSearchTimeout('short');
       yield app.monthsDayView.eventByTitle(newValues.title);
     } catch (e) {
       error = e;

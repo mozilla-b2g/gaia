@@ -52,9 +52,12 @@ var StatusBar = {
    */
   systemDownloadsCount: 0,
 
-  /* For other app to acquire */
+  /* For other modules to acquire */
   get height() {
-    if (this.screen.classList.contains('active-statusbar')) {
+    if (this.screen.classList.contains('fullscreen-app') ||
+        document.querySelector('#screen:-moz-full-screen-ancestor')) {
+      return 0;
+    } else if (this.screen.classList.contains('active-statusbar')) {
       return this.attentionBar.offsetHeight;
     } else {
       return this.element.offsetHeight;
@@ -269,8 +272,7 @@ var StatusBar = {
       this._clockTimer =
         window.setTimeout((this.update.time).bind(this), (59 - sec) * 1000);
 
-      this.icons.time.textContent =
-          f.localeFormat(now, _('statusbarTimeFormat'));
+      this.icons.time.textContent = f.localeFormat(now, _('shortTimeFormat'));
 
       var label = this.icons.label;
       var l10nArgs = JSON.parse(label.dataset.l10nArgs || '{}');

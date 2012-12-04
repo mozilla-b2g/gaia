@@ -25,7 +25,7 @@ section[role="region"] > header:first-child:after {
 }
 
 section[role="region"] > header:first-child h1 {
-  font: 2.2rem/4.8rem "MozTT", Sans-serif;
+  font: 2.5rem/4.8rem "MozTT", Sans-serif;
   text-align: left;
   color: #fff;
   white-space: nowrap;
@@ -37,7 +37,7 @@ section[role="region"] > header:first-child h1 {
 }
 
 section[role="region"] > header:first-child h1 em {
-  font: bold 1.5rem/1em "MozTT", Sans-serif;
+  font: 400 1.5rem/1em "MozTT", Sans-serif;
 }
 
 section[role="region"] > header:first-child form {
@@ -57,7 +57,7 @@ section[role="region"] > header:first-child input[type="text"] {
   border-top-color: #a6501e;
   border-radius: 0.3rem;
   background: #fff url(headers/images/ui/shadow.png) repeat-x left -0.1rem;
-  font: 1.35rem/3em "MozTT", Sans-serif;
+  font: 1.5rem/3em "MozTT", Sans-serif;
   box-shadow: none;
 }
 
@@ -122,7 +122,7 @@ section[role="region"] > header:first-child button {
   background: none;
   padding: 0;
   overflow: hidden;
-  font: 600 1.4rem/1.1em "MozTT", Sans-serif;
+  font: 400 1.5rem/1.1em "MozTT", Sans-serif;
   color: #fff;
   border-radius: 0;
   text-decoration: none;
@@ -274,9 +274,9 @@ section[role="region"] > header:after {
 
 section[role="region"] > header h2 {
   font-family: "MozTT", Sans-serif;
-  font-weight: 600;
+  font-weight: 400;
   margin: 0 3rem;
-  font-size: 1.3rem;
+  font-size: 1.5rem;
   line-height: 1.8rem;
 }
 

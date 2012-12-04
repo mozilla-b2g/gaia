@@ -20,7 +20,7 @@ contacts.List = (function() {
 
     cancel = document.getElementById('cancel-search'),
     conctactsListView = document.getElementById('view-contacts-list'),
-    fastScroll = document.querySelector('.view-jumper'),
+    fastScroll = document.querySelector('nav[data-type="scrollbar"]'),
     scrollable = document.querySelector('#groups-container');
     settingsView = document.querySelector('#view-settings .view-body-inner');
     noContacts = document.querySelector('#no-contacts');
@@ -40,17 +40,17 @@ contacts.List = (function() {
     FixedHeader.init('#groups-container', '#fixed-container', selector);
 
     initAlphaScroll();
+    ImageLoader.init('#groups-container', 'li');
+
     contacts.Search.init(conctactsListView, favoriteGroup);
   }
 
   var initAlphaScroll = function initAlphaScroll() {
-    var overlay = document.querySelector('.view-jumper-current');
-    var overlayContent = document.querySelector('#current-jumper');
-    var jumper = document.querySelector('.view-jumper-inner');
+    var overlay = document.querySelector('nav[data-type="scrollbar"] p');
+    var jumper = document.querySelector('nav[data-type="scrollbar"] ol');
 
     var params = {
       overlay: overlay,
-      overlayContent: overlayContent,
       jumper: jumper,
       groupSelector: '#group-',
       scrollToCb: scrollToCb
@@ -116,7 +116,7 @@ contacts.List = (function() {
       var figure = document.createElement('aside');
       figure.className = 'pack-end';
       var img = document.createElement('img');
-      Contacts.updatePhoto(contact.photo[0], img);
+      img.dataset.src = window.URL.createObjectURL(contact.photo[0]);
       figure.appendChild(img);
       link.appendChild(figure);
     }
@@ -129,7 +129,7 @@ contacts.List = (function() {
     searchable.forEach(function(field) {
       if (contact[field] && contact[field][0]) {
         var value = contact[field][0].trim();
-        if(value.length > 0) {
+        if (value.length > 0) {
           searchInfo.push(value);
         }
       }
@@ -225,6 +225,7 @@ contacts.List = (function() {
         renderFavorites(favorites);
         cleanLastElements(counter);
         FixedHeader.refresh();
+        ImageLoader.reload();
         Contacts.hideOverlay();
         emptyList = false;
         return;
@@ -240,11 +241,12 @@ contacts.List = (function() {
       }
 
       window.setTimeout(function() {
-        renderChunks(index+1);
+        ImageLoader.reload();
+        renderChunks(index + 1);
       }, 0);
     }
 
-    renderChunks(0)
+    renderChunks(0);
   };
 
   var toggleNoContactsScreen = function cl_toggleNoContacs(show) {
@@ -445,7 +447,6 @@ contacts.List = (function() {
     FB data on the mozContacts DB.
   */
   var addToList = function addToList(contact, enrichedContact) {
-    var newLi;
 
     var theContact = contact;
 
@@ -455,7 +456,7 @@ contacts.List = (function() {
 
     var group = getGroupName(theContact);
 
-    var list = groupsList.querySelector('#contacts-list-' + group);
+    var list = document.getElementById('contacts-list-' + group);
 
     addToGroup(theContact, list);
 
@@ -475,6 +476,7 @@ contacts.List = (function() {
     }
     toggleNoContactsScreen(false);
     FixedHeader.refresh();
+    ImageLoader.reload();
   }
 
   // Fills the contact data to display if no givenName and familyName
@@ -502,22 +504,8 @@ contacts.List = (function() {
     var len = liElems.length;
     for (var i = 0; i < len; i++) {
       var liElem = liElems[i];
-      var familyName = liElem.querySelector('p > strong').textContent.trim();
-      var givenName = liElem.querySelector('p');
-
-      if (!orderByLastName) {
-        var aux = familyName;
-        familyName = givenName;
-        givenName = aux;
-      } else {
-        givenName = givenName.childNodes[0].nodeValue.trim();
-      }
-
-      var name = getStringToBeOrdered({
-        familyName: [familyName],
-        givenName: [givenName]
-      });
-      if (name >= cName) {
+      var name = liElem.querySelector('p').dataset.search;
+      if (name.localeCompare(cName) >= 0) {
         newLi = renderContact(contact);
         list.insertBefore(newLi, liElem);
         break;

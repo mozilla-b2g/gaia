@@ -13,10 +13,10 @@
     "power":{},
     "webapps-manage":{},
     "mobileconnection":{},
-    "mozBluetooth":{},
     "bluetooth":{},
     "telephony":{},
     "voicemail":{},
+    "device-storage:sdcard":{ "access": "readonly" },
     "device-storage:pictures":{ "access": "readcreate" },
     "device-storage:music":{ "access": "readcreate" },
     "settings":{ "access": "readwrite" },
@@ -24,13 +24,13 @@
     "camera":{},
     "geolocation":{},
     "wifi-manage":{},
-    "wifi":{},
     "desktop-notification":{},
     "idle":{},
     "network-events":{},
     "embed-apps":{},
     "background-sensors":{},
-    "permissions":{}
+    "permissions":{},
+    "audio":{ "channels": ["publicnotification", "notification"] }
   },
   "locales": {
     "ar": {

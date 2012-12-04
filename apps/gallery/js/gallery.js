@@ -882,14 +882,18 @@ function share(blobs) {
   if (blobs.length === 0)
     return;
 
-  var names = [], types = [];
+  var names = [], types = [], fullpaths = [];
 
   // Get the file name (minus path) and type of each blob
   blobs.forEach(function(blob) {
     // Discard the path, we just want the base name
     var name = blob.name;
-    if (name)
-      name = name.substring(name.lastIndexOf('/') + 1);
+    // We try to fix Bug 814323 by using
+    // current workaround of bluetooth transfer
+    // so we will pass both filenames and fullpaths
+    // The fullpaths can be removed after Bug 811615 is fixed
+    fullpaths.push(name);
+    name = name.substring(name.lastIndexOf('/') + 1);
     names.push(name);
 
     // And we just want the first component of the type "image" or "video"
@@ -915,7 +919,8 @@ function share(blobs) {
       type: type,
       number: blobs.length,
       blobs: blobs,
-      filenames: names
+      filenames: names,
+      filepaths: fullpaths
     }
   });
 
@@ -1133,7 +1138,8 @@ function setupFrameContent(n, frame) {
     videodb.getFile(fileinfo.name, function(file) {
       frame.displayVideo(file,
                          fileinfo.metadata.width,
-                         fileinfo.metadata.height);
+                         fileinfo.metadata.height,
+                         fileinfo.metadata.rotation || 0);
     });
   }
   else {

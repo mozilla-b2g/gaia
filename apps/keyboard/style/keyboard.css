@@ -50,12 +50,7 @@ button::-moz-focus-inner {
   width: 100%;
   background: #6a6f73;
   border-top: solid 1px #000;
-  -moz-transition: -moz-transform 0.3s ease;
   pointer-events: auto;
-}
-
-#keyboard.hide{
-  -moz-transform: translateY(100%);
 }
 
 /* Rows */

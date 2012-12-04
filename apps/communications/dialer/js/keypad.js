@@ -277,21 +277,6 @@ var KeypadManager = {
           }
         }
       });
-
-      var reopenApp = function reopenApp() {
-        navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
-          var app = evt.target.result;
-          app.launch('dialer');
-        };
-      };
-
-      activity.onsuccess = function() {
-        reopenApp();
-      };
-      activity.onerror = function() {
-        reopenApp();
-      };
-
     } catch (e) {
       console.log('WebActivities unavailable? : ' + e);
     }

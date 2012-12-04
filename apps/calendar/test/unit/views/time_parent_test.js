@@ -1,7 +1,7 @@
 requireApp('calendar/test/unit/helper.js', function() {
   require('/shared/js/gesture_detector.js');
   requireLib('timespan.js');
-  requireLib('ordered_map.js');
+  requireLib('utils/ordered_map.js');
   requireLib('views/time_parent.js');
 });
 
@@ -114,7 +114,7 @@ suite('views/time_parent', function() {
   test('initializer', function() {
     assert.instanceOf(subject, TimeParent);
     assert.instanceOf(subject, Calendar.View);
-    assert.instanceOf(subject.frames, Calendar.OrderedMap);
+    assert.instanceOf(subject.frames, Calendar.Utils.OrderedMap);
 
     assert.equal(subject.element.id, 'test');
   });

@@ -680,7 +680,7 @@ const GridManager = (function() {
     if (!app.isBookmark) {
       app.ondownloadapplied = function ondownloadapplied(event) {
         var withAnimation = false;
-        createOrUpdateIconForApp(app, withAnimation, entryPoint);
+        createOrUpdateIconForApp(event.application, withAnimation, entryPoint);
         app.ondownloadapplied = null;
         app.ondownloaderror = null;
       };
@@ -745,6 +745,45 @@ const GridManager = (function() {
         icon.show();
       });
     }
+  }
+
+  /*
+   * Shows a dialog to confirm the download retry
+   * calls the method 'download'. That's applied
+   * to an icon, that has associated an app already.
+   */
+  function showRestartDownloadDialog(icon) {
+    var app = icon.app;
+    var _ = navigator.mozL10n.get;
+    var confirm =  {
+      title: _('download'),
+      callback: function onAccept() {
+        app.download();
+        app.ondownloaderror = function(evt) {
+          icon.showCancelled();
+          icon.updateAppStatus(evt.application);
+        };
+        app.onprogress = function onProgress(evt) {
+          app.onprogress = null;
+          icon.updateAppStatus(evt.application);
+        }
+        icon.showDownloading();
+        ConfirmDialog.hide();
+      },
+      applyClass: 'recommend'
+    };
+
+    var cancel = {
+      title: _('cancel'),
+      callback: ConfirmDialog.hide
+    };
+
+    var localizedName = icon.descriptor.localizedName || icon.descriptor.name;
+    ConfirmDialog.show(_('restart-download-title'), 
+      _('restart-download-body', {'name': localizedName}), 
+      cancel, 
+      confirm);
+    return;
   }
 
   function bestMatchingIcon(app, manifest) {
@@ -913,6 +952,8 @@ const GridManager = (function() {
 
     dirCtrl: dirCtrl,
 
-    pageHelper: pageHelper
+    pageHelper: pageHelper,
+
+    showRestartDownloadDialog: showRestartDownloadDialog
   };
 })();
