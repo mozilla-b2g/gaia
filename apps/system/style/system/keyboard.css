@@ -12,10 +12,6 @@
   -moz-transition: visibility 0.2s ease, -moz-transform 0.2s ease;
 }
 
-#keyboard-frame.visible {
-  visibility: visible;
-}
-
 #keyboard-frame.hide {
   visibility: hidden;
 

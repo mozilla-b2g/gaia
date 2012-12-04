@@ -1551,39 +1551,32 @@
 
       <ul>
         <li>
-          <a data-l10n-id="os-version"> OS Version
-            <span data-name="deviceinfo.os"></span>
-          </a>
+          <small data-name="deviceinfo.os"></small>
+          <a data-l10n-id="os-version"> OS Version </a>
         </li>
         <li>
-          <a data-l10n-id="firmware_revision"> Firmware Revision
-            <span data-name="deviceinfo.firmware_revision"></span>
-          </a>
+          <small data-name="deviceinfo.firmware_revision"></small>
+          <a data-l10n-id="firmware_revision"> Firmware Revision </a>
         </li>
         <li>
-          <a data-l10n-id="hardware_revision"> Hardware Revision
-            <span data-name="deviceinfo.hardware"></span>
-          </a>
+          <small data-name="deviceinfo.hardware"></small>
+          <a data-l10n-id="hardware_revision"> Hardware Revision </a>
         </li>
         <li>
-          <a data-l10n-id="macAddress"> MAC address
-            <span data-name="deviceinfo.mac"></span>
-          </a>
+          <small data-name="deviceinfo.mac"></small>
+          <a data-l10n-id="macAddress"> MAC address </a>
         </li>
         <li>
-          <a data-l10n-id="platform_version"> Platform Version
-            <span data-name="deviceinfo.platform_version"></span>
-          </a>
+          <small data-name="deviceinfo.platform_version"></small>
+          <a data-l10n-id="platform_version"> Platform Version </a>
         </li>
         <li>
-          <a data-l10n-id="build-id"> Build Identifier
-            <span data-name="deviceinfo.platform_build_id"></span>
-          </a>
+          <small data-name="deviceinfo.platform_build_id"></small>
+          <a data-l10n-id="build-id"> Build Identifier </a>
         </li>
         <li>
-          <a data-l10n-id="update-channel"> Update Channel
-            <span data-name="deviceinfo.update_channel"></span>
-          </a>
+          <small data-name="deviceinfo.update_channel"></small>
+          <a data-l10n-id="update-channel"> Update Channel </a>
         </li>
         <li>
           <label>
@@ -1679,43 +1672,41 @@
       -->
     </section>
 
-    <!-- Device :: Information :: Licensing -->
-    <section role="region" hidden id="about-licensing">
+    <!-- Device :: Information :: Legal Information -->
+    <section role="region" hidden id="about-legal-information">
       <!--
       <header>
         <button type="reset">
           <span data-l10n-id="back" class="icon icon-back">Back</span>
         </button>
-        <h1 data-l10n-id="licensing"> Licensing </h1>
+        <h1 data-l10n-id="about-licensing"> Legal Information </h1>
       </header>
 
+      <header>
+        <h2 data-l10n-id="mozilla"> Mozilla </h2>
+      </header>
       <ul>
-        <li class="description" data-l10n-id="licensing-1">
-          Binaries of this product have been made available to you by the Mozilla
-          Project, under the Mozilla Public License 2.0 (MPL). Know your rights.
-        </li>
-        <li class="description" data-l10n-id="licensing-2">
-          All of the source code to this product is available under licenses which
-          are both free and open source. Most of it is available under the Mozilla
-          Public License 2.0 (MPL).
-        </li>
         <li class="description">
-          <span><a href="https://www.mozilla.org/MPL/"
-              data-l10n-id="licensing-MPL">Mozilla Public License 2.0</a></span>
-        </li>
-        <li class="description" data-l10n-id="licensing-3">
-          The remainder of the software which is not under the Mozilla Public
-          License 2.0 MPL is available under one of a variety of other licenses.
-          Those that require reproduction of the license text in the distribution
-          are given below. (Note: your copy of this product may not contain code
-          covered by one or more of the licenses listed here, depending on the
-          exact product and version you choose.)
-        </li>
-        <li class="description">
-          <span><a href="http://www.apache.org/licenses/LICENSE-2.0.html"
-              data-l10n-id="licensing-Apache">Apache License 2.0</a></span>
+   			  <a href="#about-licensing" data-l10n-id="about-os-license">
+     			  Browser Os Open Source Notices
+  			  </a>
         </li>
       </ul>
+      -->
+    </section>
+
+    <!-- Device :: Information :: Licensing -->
+    <section role="region" hidden id="about-licensing">
+      <!--
+      <header>
+        <a href="#about-legal-information">
+			    <span class="icon icon-back">back</span>
+        </a>
+        <h1 data-l10n-id="about-os-license"> 
+			    Browser Os Open Source Notices 
+		    </h1>
+      </header>
+	    <iframe src="open-source-license.html" id="os-license"></iframe>
       -->
     </section>
 
@@ -1728,19 +1719,16 @@
       </header>
       <ul>
         <li>
-          <a id="model-name" data-l10n-id="model-name"> Model
-            <span data-name="deviceinfo.hardware"></span>
-          </a>
+          <small data-name="deviceinfo.hardware"></small>
+          <a id="model-name" data-l10n-id="model-name"> Model </a>
         </li>
         <li>
-          <a id="os-version" data-l10n-id="software"> Software
-            <span data-name="deviceinfo.software"></span>
-          </a>
+          <small data-name="deviceinfo.software"></small>
+          <a id="os-version" data-l10n-id="software"> Software </a>
         </li>
         <li>
-          <a id="last-update-date" data-l10n-id="last-updated"> Last Updated
-            <span data-name="deviceinfo.last_updated"></span>
-          </a>
+          <small data-name="deviceinfo.last_updated"></small>
+          <a id="last-update-date" data-l10n-id="last-updated"> Last Updated </a>
         </li>
         <li>
           <label>
@@ -1798,7 +1786,7 @@
         </li>
         <li>
           <label>
-            <button data-href="#about-licensing"
+            <button data-href="#about-legal-information"
               data-l10n-id="about-licensing"> Licensing </button>
           </label>
         </li>

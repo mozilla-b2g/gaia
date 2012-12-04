@@ -705,15 +705,6 @@ onLocalized(function wifiSettings() {
       gWifiInfoBlock.textContent = _('fullStatus-initializing');
       gNetworkList.clear(true);
 
-      // record MAC address value
-      var macAddress = gWifiManager.macAddress;
-      settings.createLock().set({'deviceinfo.mac': macAddress});
-
-      var mac = document.querySelectorAll('[data-l10n-id="macAddress"] span');
-      for (var i = 0; i < mac.length; i++) {
-         mac[i].textContent = macAddress;
-      }
-
     } else {
       gWifiInfoBlock.textContent = _('disabled');
       if (gWpsInProgress) {

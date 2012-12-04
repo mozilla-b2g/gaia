@@ -284,3 +284,12 @@ html[dir="rtl"] label[for^="pwd"] {
   padding-right: 3rem;
 }
 
+
+/******************************************************************************
+* OS License
+*/
+ 
+iframe#os-license {
+  width: 100%;
+  height: calc(100% - 5rem);
+}

@@ -611,7 +611,6 @@ ul[role="tablist"] {
 
 li[role="tab"] {
   display: inline;
-
 }
 
 li[role="tab"] a {
@@ -626,6 +625,9 @@ li[role="tab"] a {
   font-size: 14px;
   outline: none;
   margin-left: -30px;
+  text-overflow: ellipsis;
+  max-width: calc(33% - 37px);
+  overflow: hidden;
 }
 
 li[role="tab"]:first-child a {
