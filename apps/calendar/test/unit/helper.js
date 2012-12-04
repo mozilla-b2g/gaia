@@ -73,7 +73,8 @@
     app: function() {
       Calendar.App.configure(
         this.db(),
-        new Calendar.Router(Calendar.Test.FakePage)
+        new Calendar.Router(Calendar.Test.FakePage),
+        new Calendar.Loader({})
       );
 
       Calendar.App.dateFormat = navigator.mozL10n.DateTimeFormat();
@@ -191,6 +192,7 @@
   requireLib('event_mutations.js');
   requireLib('view.js');
   requireLib('router.js');
+  requireLib('loader.js');
   requireLib('controllers/alarm.js');
   requireLib('controllers/time.js');
   requireLib('controllers/sync.js');

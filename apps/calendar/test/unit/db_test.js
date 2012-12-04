@@ -87,49 +87,6 @@ suite('db', function() {
 
   });
 
-  test('#load', function(done) {
-    var loaded = {
-      account: false,
-      calendar: false,
-      setting: false
-    };
-
-    var account = subject.getStore('Account');
-    var calendar = subject.getStore('Calendar');
-    var setting = subject.getStore('Setting');
-
-    setting.load = function(callback) {
-      callback(null, {});
-      loaded.setting = true;
-    }
-
-    account.load = function(callback) {
-      callback(null, {});
-      loaded.account = true;
-    }
-
-    calendar.load = function(callback) {
-      callback(null, {});
-      loaded.calendar = true;
-    }
-
-    assert.ok(!subject.isOpen);
-
-    subject.load(function(err) {
-      if (err) {
-        done(err);
-        return;
-      }
-      assert.ok(subject.isOpen);
-      done(function() {
-        assert.ok(loaded.account, 'should load account');
-        assert.ok(loaded.calendar, 'should load calendar');
-        assert.ok(loaded.setting), 'should load settings';
-        subject.close();
-      });
-    });
-  });
-
   suite('#open', function() {
     suite('on version change', function() {
 
@@ -144,8 +101,9 @@ suite('db', function() {
         setup(function(done) {
           accountStore = subject.getStore('Account');
           calendarStore = subject.getStore('Calendar');
+
           subject.open(function() {
-            subject.load(function() {
+            calendarStore.load(function() {
               setTimeout(function() {
                 done();
               }, 0);
@@ -253,9 +211,10 @@ suite('db', function() {
     var original;
 
     function stageData(done) {
+      
       var trans = subject.transaction('accounts', 'readwrite');
       var accountStore = trans.objectStore('accounts');
-
+      
       // not using factory for a reason we may never change
       // this test but the factory will change at some point
       // we are trying to emulate old data so it should not
@@ -318,6 +277,11 @@ suite('db', function() {
         var accounts = {};
 
         all.forEach(function(item) {
+
+          // db.load removal cause this to come back with local/offline entries
+          if (item.providerType === 'Local')
+            return;
+
           var id = item._id;
           accounts[item._id] = item;
 
@@ -551,6 +515,10 @@ suite('db', function() {
 
       store.mozGetAll().onsuccess = function(event) {
         var result = event.target.result;
+
+        // db.load removal cause this to come back with local/offline entries
+        result.shift();
+
         assert.length(result, 1);
 
         assert.deepEqual(

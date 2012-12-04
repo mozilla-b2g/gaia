@@ -42,80 +42,6 @@
     },
 
     /**
-     * Loads all records in Calendar & Account stores.
-     * Will open database if not already opened.
-     *
-     * @param {Function} callback node style.
-     */
-    load: function(callback) {
-      var pending = 3;
-      var self = this;
-
-      var accountStore = this.getStore('Account');
-      var settingStore = this.getStore('Setting');
-      var calendarStore = this.getStore('Calendar');
-
-      function next() {
-        pending--;
-        if (!pending)
-          complete();
-      }
-
-      function complete() {
-        if (self.hasUpgraded && self.oldVersion < 8) {
-          self._setupDefaults(function(err) {
-            callback(err);
-            self.emit('loaded');
-          });
-        } else {
-          if (callback) {
-            callback();
-            self.emit('loaded');
-          }
-        }
-      }
-
-      // if there is an error case we must
-      // throw an error any error here is completely
-      // fatal.
-      function loadRecords() {
-        accountStore.load(function(err) {
-          if (err) {
-            throw err;
-          }
-          next();
-        });
-
-        settingStore.load(function(err) {
-          if (err) {
-            throw err;
-          }
-          next();
-        });
-
-        calendarStore.load(function(err) {
-          if (err) {
-            throw err;
-          }
-          next();
-        });
-      }
-
-      if (!this.isOpen) {
-        pending++;
-        this.open(function(err) {
-          if (err) {
-            throw err;
-          }
-          loadRecords();
-          next();
-        });
-      } else {
-        loadRecords();
-      }
-    },
-
-    /**
      * Opens connection to database.
      *
      * @param {Numeric} [version] version of database to open.
@@ -137,6 +63,19 @@
 
       var self = this;
 
+      function done() {
+        var args = Array.slice(arguments);
+        if (self.hasUpgraded && self.oldVersion < 8) {
+          self._setupDefaults(function(err) {
+            callback.apply(self, args);
+            self.emit('open', self);
+          });
+        } else {
+          callback.apply(self, args);
+          self.emit('open', self);
+        }
+      }
+
       req.onsuccess = function(event) {
         self.isOpen = true;
         self.connection = req.result;
@@ -147,8 +86,7 @@
 
           function next() {
             if (!(--pending)) {
-              callback(null, self);
-              self.emit('open', self);
+              done(null, self);
             }
           }
 
@@ -157,8 +95,7 @@
             operation.call(self, next);
           }
         } else {
-          callback(null, self);
-          self.emit('open', self);
+          done(null, self);
         }
       };
 
@@ -478,12 +415,11 @@
 
       trans.oncomplete = function() {
         callback();
-      }
+      };
 
       trans.onerror = function(event) {
-        console.error('Error updating account urls');
         callback(event.error.name);
-      }
+      };
 
       var accountStore = trans.objectStore(store.accounts);
       var req = accountStore.openCursor();
@@ -493,7 +429,6 @@
         if (cursor) {
           var value = cursor.value;
           var preset = value.preset;
-
           value.calendarHome = value.url;
 
           // url is removed we have two urls now so
