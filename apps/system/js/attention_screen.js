@@ -30,6 +30,7 @@ var AttentionScreen = {
   init: function as_init() {
     window.addEventListener('mozbrowseropenwindow', this.open.bind(this), true);
     window.addEventListener('mozbrowserclose', this.close.bind(this), true);
+    window.addEventListener('mozbrowsererror', this.close.bind(this), true);
     window.addEventListener('keyboardchange', this.resize.bind(this), true);
     window.addEventListener('keyboardhide', this.resize.bind(this), true);
 
@@ -110,7 +111,8 @@ var AttentionScreen = {
 
   close: function as_close(evt) {
     if (!'frameType' in evt.target.dataset ||
-        evt.target.dataset.frameType !== 'attention')
+        evt.target.dataset.frameType !== 'attention' ||
+        (evt.type === 'mozbrowsererror' && evt.detail.type !== 'fatal'))
       return;
 
     // Ensuring the proper mozvisibility changed on the displayed app
@@ -154,6 +156,9 @@ var AttentionScreen = {
   hide: function as_hide() {
     if (this.attentionScreen.querySelectorAll('iframe').length > 0) {
       if (!this.mainScreen.classList.contains('active-statusbar')) {
+        // Ensuring the proper mozvisibility changed on the displayed app
+        var displayedOrigin = WindowManager.getDisplayedApp();
+        this._setVisibility(displayedOrigin, true);
 
         this.mainScreen.classList.add('active-statusbar');
 

@@ -1213,6 +1213,11 @@ var PDFView = {
       self.documentInfo = info;
       self.metadata = metadata;
 
+      // Provides some basic debug information
+      console.log('PDF ' + pdfDocument.fingerprint + ' [' +
+                  info.PDFFormatVersion + ' ' + (info.Producer || '-') +
+                  ' / ' + (info.Creator || '-') + ']');
+
       var pdfTitle;
       if (metadata) {
         if (metadata.has('dc:title'))
@@ -2654,7 +2659,7 @@ document.addEventListener('DOMContentLoaded', function webViewerLoad(evt) {
   var locale = navigator.language;
   if ('locale' in hashParams)
     locale = hashParams['locale'];
-  mozL10n.language.code = locale;
+  mozL10n.setLanguage(locale);
 
   if ('textLayer' in hashParams) {
     switch (hashParams['textLayer']) {
@@ -2915,7 +2920,7 @@ function selectScaleOption(value) {
 }
 
 window.addEventListener('localized', function localized(evt) {
-  document.getElementsByTagName('html')[0].dir = mozL10n.language.direction;
+  document.getElementsByTagName('html')[0].dir = mozL10n.getDirection();
 }, true);
 
 window.addEventListener('scalechange', function scalechange(evt) {

@@ -1,6 +1,6 @@
 (function(window) {
   var idb = window.indexedDB;
-  const VERSION = 11;
+  const VERSION = 12;
   var debug = Calendar.debug('database');
 
   var store = {
@@ -294,6 +294,10 @@
           if (this.oldVersion !== 0) {
             this._upgradeOperations.push(this._resetCaldavAccounts);
           }
+        } else if (curVersion === 11) {
+          if (this.oldVersion !== 0) {
+            this._upgradeOperations.push(this._upgradeAccountUrls);
+          }
         }
       }
     },
@@ -465,6 +469,54 @@
           if (hasCaldav) {
             fetchCalendars();
           }
+        }
+      };
+    },
+
+    _upgradeAccountUrls: function(callback) {
+      var trans = this.transaction(store.accounts, 'readwrite');
+
+      trans.oncomplete = function() {
+        callback();
+      }
+
+      trans.onerror = function(event) {
+        console.error('Error updating account urls');
+        callback(event.error.name);
+      }
+
+      var accountStore = trans.objectStore(store.accounts);
+      var req = accountStore.openCursor();
+
+      req.onsuccess = function upgradeUrls(e) {
+        var cursor = e.target.result;
+        if (cursor) {
+          var value = cursor.value;
+          var preset = value.preset;
+
+          value.calendarHome = value.url;
+
+          // url is removed we have two urls now so
+          // it would be unnecessarily confusing.
+          delete value.url;
+
+          // when possible we calculate the correct
+          // entrypoint (from our presets) if the preset
+          // is missing then we fallback to the original url.
+          if (preset in Calendar.Presets) {
+            var presetData = Calendar.Presets[preset].options;
+
+            // not using "in" intentionally.
+            if (presetData && presetData.entrypoint) {
+              value.entrypoint = presetData.entrypoint;
+            }
+          }
+
+          if (!value.entrypoint) {
+            value.entrypoint = value.calendarHome;
+          }
+          cursor.update(value);
+          cursor.continue();
         }
       };
     },

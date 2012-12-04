@@ -111,10 +111,10 @@ Calendar.ConflictSpan = (function() {
       // removes & adds between spans.
       if (skipMaintenance) { return this; }
 
-      this._resetTimes();
       this._splitIfNecessary();
       var boom = this._selfDestructIfNecessary();
       if (!boom) {
+        this._resetTimes();
         this._purgeEmptyColumns();
         this._updateLayout();
       }
@@ -201,9 +201,9 @@ Calendar.ConflictSpan = (function() {
       });
 
       // Perform partial post-removal maintenance
-      this._resetTimes();
       var boom = this._selfDestructIfNecessary();
       if (!boom) {
+        this._resetTimes();
         this._purgeEmptyColumns();
         this._updateLayout();
       }
@@ -237,7 +237,8 @@ Calendar.ConflictSpan = (function() {
       if (keys.length == 1) {
         // Exactly one left, so clean up.
         var busytime = this.all.byId[keys[0]];
-        this.remove(busytime);
+        this.remove(busytime, true);
+        this.parent._clearLayout(busytime);
       }
       return true;
     },

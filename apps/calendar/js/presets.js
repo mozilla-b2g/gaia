@@ -6,7 +6,7 @@
       options: {
         providerType: 'Caldav',
         domain: 'https://calendar.google.com',
-        url: '/calendar/dav/',
+        entrypoint: '/calendar/dav/',
         user: '@gmail.com'
       }
     },
@@ -16,7 +16,7 @@
       options: {
         domain: 'https://caldav.calendar.yahoo.com',
         providerType: 'Caldav',
-        url: '/',
+        entrypoint: '/',
         user: '@yahoo.com'
       }
     },
@@ -27,7 +27,7 @@
       options: {
         domain: '',
         providerType: 'Caldav',
-        url: ''
+        entrypoint: ''
       }
     },
 
@@ -46,7 +46,7 @@
       options: {
         domain: 'https://mail.mozilla.com',
         providerType: 'Caldav',
-        url: '',
+        entrypoint: '',
         user: '@mozilla.com'
       }
     }

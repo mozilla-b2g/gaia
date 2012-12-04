@@ -32,7 +32,7 @@ var Settings = {
       var value = event.settingValue;
 
       // update <span> values when the corresponding setting is changed
-      var rule = 'span[data-name="' + key + '"]:not([data-ignore])';
+      var rule = '[data-name="' + key + '"]:not([data-ignore])';
       var spanField = document.querySelector(rule);
       if (spanField) {
         // check whether this setting comes from a select option
@@ -205,10 +205,11 @@ var Settings = {
       }
 
       // preset all span with data-name fields
-      rule = 'span[data-name]:not([data-ignore])';
+      rule = '[data-name]:not([data-ignore])';
       var spanFields = panel.querySelectorAll(rule);
       for (i = 0; i < spanFields.length; i++) {
         var key = spanFields[i].dataset.name;
+
         if (key && request.result[key] != undefined) {
           // check whether this setting comes from a select option
           // (it may be in a different panel, so query the whole document)
@@ -220,6 +221,23 @@ var Settings = {
             spanFields[i].textContent = option.textContent;
           } else {
             spanFields[i].textContent = request.result[key];
+          }
+        } else { // request.result[key] is undefined
+          switch (key) {
+            //XXX bug 816899 will also provide 'deviceinfo.software' from Gecko
+            //  which is {os name + os version}
+            case 'deviceinfo.software':
+              var _ = navigator.mozL10n.get;
+              var text = _('brandShortName') + ' ' +
+                request.result['deviceinfo.os'];
+              spanFields[i].textContent = text;
+              break;
+
+            //XXX workaround request from bug 808892 comment 22
+            //  hide this field if it's undefined/empty.
+            case 'deviceinfo.firmware_revision':
+              spanFields[i].parentNode.hidden = true;
+              break;
           }
         }
       }
