@@ -230,8 +230,14 @@ var WindowManager = (function() {
     var frame = inlineActivityFrame;
 
     frame.style.width = appFrame.style.width;
-    frame.style.height = appFrame.style.height;
-    frame.style.top = appFrame.offsetTop + 'px';
+
+    if (document.mozFullScreen) {
+      frame.style.height = window.innerHeight + 'px';
+      frame.style.top = '0px';
+    } else {
+      frame.style.height = appFrame.style.height;
+      frame.style.top = appFrame.offsetTop + 'px';
+    }
   }
 
   function setFrameBackgroundBlob(frame, blob, transparent) {
