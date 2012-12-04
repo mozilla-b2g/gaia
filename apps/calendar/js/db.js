@@ -411,7 +411,7 @@
 
       this.once('loaded', function() {
         if ('syncController' in Calendar.App && navigator.onLine) {
-          Calendar.App.syncController.sync(function() {
+          Calendar.App.syncController.all(function() {
             debug('begin resync after reset');
           });
         } else {

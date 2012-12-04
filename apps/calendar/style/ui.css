@@ -173,19 +173,6 @@ ol.link-list a {
 
 /* modify account view */
 
-#modify-account-view.preset-google .full-url,
-#modify-account-view.preset-yahoo .full-url {
-  display: none;
-}
-
-#modify-account-view.create .delete-record {
-  display: none;
-}
-
-:target#remove-account-dialog {
-  display: block;
-}
-
 #remove-account-dialog {
   display: none;
 }

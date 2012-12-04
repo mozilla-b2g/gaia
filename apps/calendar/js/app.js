@@ -24,6 +24,10 @@ Calendar.App = (function(window) {
         CreateAccount: [
          {type: 'Templates', name: 'Account'}
         ],
+        ModifyAccount: [
+          {type: 'Utils', name: 'AccountCreation'},
+          {type: 'Style', name: 'ModifyAccountView'}
+        ],
         Day: [
           {type: 'Views', name: 'DayChild'},
           {type: 'Views', name: 'TimeParent'}
@@ -165,7 +169,6 @@ Calendar.App = (function(window) {
 
       this.dateFormat = navigator.mozL10n.DateTimeFormat();
 
-      this.syncController.observe();
       this.timeController.observe();
       this.alarmController.observe();
 
