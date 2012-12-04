@@ -9,7 +9,8 @@
   },
   "permissions": {
     "device-storage:music":{ "access": "readwrite" },
-    "settings":{ "access": "readonly" }
+    "settings":{ "access": "readonly" },
+    "audio":{ "channels": ["content"] }
   },
   "locales": {
     "ar": {

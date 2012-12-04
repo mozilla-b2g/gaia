@@ -29,7 +29,8 @@
     "network-events":{},
     "embed-apps":{},
     "background-sensors":{},
-    "permissions":{}
+    "permissions":{},
+    "audio":{ "channels": ["publicnotification", "notification"] }
   },
   "locales": {
     "ar": {
