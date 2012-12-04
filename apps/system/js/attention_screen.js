@@ -126,8 +126,8 @@ var AttentionScreen = {
 
     if (this.attentionScreen.querySelectorAll('iframe').length == 0) {
       this.attentionScreen.classList.remove('displayed');
-      this.dispatchEvent('attentionscreenhide');
       this.mainScreen.classList.remove('attention');
+      this.dispatchEvent('attentionscreenhide');
     }
 
     // We just removed the focused window leaving the system
