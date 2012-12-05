@@ -25,7 +25,7 @@
       <menu type="toolbar" id="toolbar-start">
         <form id="url-bar" novalidate>
           <input type="image" id="ssl-indicator" value="" />
-          <input type="text" id="url-input" placeholder="Enter Search or Address"
+          <input type="text" id="url-input" placeholder=""
                  data-l10n-id="enter-search-or-address" />
           <input type="image" id="url-button" value="" />
         </form>
@@ -37,13 +37,12 @@
       <div id="frames">
 
         <div id="startscreen" class="hidden">
-          <h1 data-l10n-id="browser">Browser</h1>
-          <h2 data-l10n-id="top-sites">Top Sites</h2>
+          <h1 data-l10n-id="browser"></h1>
+          <h2 data-l10n-id="top-sites"></h2>
           <div id="start-screen-top-sites">
             <ul id="top-site-thumbnails">
             </ul>
             <p id="no-top-sites" class="hidden" data-l10n-id="start-browsing">
-            Enter a search term or web address to start browsing.
             </p>
           </div>
         </div>
@@ -53,15 +52,15 @@
             <ul role="tablist">
               <li role="tab">
                 <a id="top-sites-tab" href="#" class="selected"
-                   data-l10n-id="top-sites">Top Sites</a>
+                   data-l10n-id="top-sites"></a>
               </li>
               <li role="tab">
                 <a id="bookmarks-tab" href="#"
-                   data-l10n-id="bookmarks">Bookmarks</a>
+                   data-l10n-id="bookmarks"></a>
               </li>
               <li role="tab">
                 <a id="history-tab" href="#"
-                   data-l10n-id="history">History</a>
+                   data-l10n-id="history"></a>
               </li>
             </ul>
           </nav>
@@ -78,14 +77,12 @@
         </div>
 
         <div id="crashscreen">
-          <h3 data-l10n-id="this-is-embarrassing">Well, this is embarrassing.</h3>
+          <h3 data-l10n-id="this-is-embarrassing"></h3>
           <img src="style/images/crashed-tab-icon.png" />
-          <p data-l10n-id="not-responding">We tried to display this webpage but it's not responding.</p>
+          <p data-l10n-id="not-responding"></p>
           <menu type="toolbar">
-            <button data-l10n-id="close-tab" id="close-tab">Close Tab</button>
-            <button data-l10n-id="reload-tab" id="try-reloading">
-            Try Reloading
-            </button>
+            <button data-l10n-id="close-tab" id="close-tab"></button>
+            <button data-l10n-id="reload-tab" id="try-reloading"></button>
           </menu>
         </div>
 
@@ -97,16 +94,15 @@
                   <div class="modal-dialog-message-container">
                     <span id="modal-dialog-alert-message"></span>
                   </div>
-                  <button id="modal-dialog-alert-ok" data-l10n-id="ok">OK</button>
+                  <button id="modal-dialog-alert-ok" data-l10n-id="ok"></button>
                 </div>
 
                 <div id="modal-dialog-confirm">
                   <div class="modal-dialog-message-container">
                     <span id="modal-dialog-confirm-message"></span>
                   </div>
-                  <button id="modal-dialog-confirm-ok" data-l10n-id="ok">OK</button>
+                  <button id="modal-dialog-confirm-ok" data-l10n-id="ok"></button>
                   <button id="modal-dialog-confirm-cancel" data-l10n-id="cancel">
-                    Cancel
                   </button>
                 </div>
 
@@ -115,9 +111,8 @@
                     <span id="modal-dialog-prompt-message"></span>
                     <input id="modal-dialog-prompt-input" />
                   </div>
-                  <button id="modal-dialog-prompt-ok" data-l10n-id="ok">OK</button>
+                  <button id="modal-dialog-prompt-ok" data-l10n-id="ok"></button>
                   <button id="modal-dialog-prompt-cancel" data-l10n-id="cancel">
-                    Cancel
                   </button>
                 </div>
 
@@ -158,13 +153,13 @@
 
     <section id="bookmark-menu" role="dialog" class="hidden">
       <menu class="actions">
-        <h3 data-l10n-id="bookmarks">Bookmarks</h3>
+        <h3 data-l10n-id="bookmarks"></h3>
         <ul>
-          <li><button id="bookmark-menu-add" data-l10n-id="bookmark">Bookmark</button></li>
-          <li><button id="bookmark-menu-remove" data-l10n-id="unbookmark">Unbookmark</button></li>
-          <li><button id="bookmark-menu-edit" data-l10n-id="edit-bookmark">Edit Bookmark</button></li>
-          <li><button id="bookmark-menu-add-home" data-l10n-id="add-to-home-screen">Add to Home Screen</button></li>
-          <li><button id="bookmark-menu-cancel" data-l10n-id="cancel">Cancel</button></li>
+          <li><button id="bookmark-menu-add" data-l10n-id="bookmark"></button></li>
+          <li><button id="bookmark-menu-remove" data-l10n-id="unbookmark"></button></li>
+          <li><button id="bookmark-menu-edit" data-l10n-id="edit-bookmark"></button></li>
+          <li><button id="bookmark-menu-add-home" data-l10n-id="add-to-home-screen"></button></li>
+          <li><button id="bookmark-menu-cancel" data-l10n-id="cancel"></button></li>
         </ul>
       </menu>
     </section>
@@ -172,18 +167,18 @@
     <section id="bookmark-entry-sheet" role="region" class="hidden skin-organic">
       <header>
         <button id="bookmark-entry-sheet-cancel">
-          <span class="icon icon-close" data-l10n-id="cancel">Cancel</span>
+          <span class="icon icon-close" data-l10n-id="cancel"></span>
         </button>
         <menu type="toolbar">
-          <button id="bookmark-entry-sheet-done" data-l10n-id="done">Done</button>
+          <button id="bookmark-entry-sheet-done" data-l10n-id="done"></button>
         </menu>
-        <h1 data-l10n-id="edit-bookmark">Edit Bookmark</h1>
+        <h1 data-l10n-id="edit-bookmark"></h1>
       </header>
       <label data-l10n-id="page-title">
-        Page Title <input type="text" id="bookmark-title"></input>
+        <input type="text" id="bookmark-title"></input>
       </label>
       <label data-l10n-id="address">
-        Address <input type="url" id="bookmark-url"></input>
+        <input type="url" id="bookmark-url"></input>
       </label>
       <input type="hidden" id="bookmark-previous-url"></input>
     </section>
@@ -191,18 +186,18 @@
     <section id="http-authentication-dialog" role="region" class="hidden skin-organic">
       <header>
         <button id="http-authentication-cancel">
-          <span class="icon icon-close">close</span>
+          <span class="icon icon-close"></span>
         </button>
         <menu type="toolbar">
-          <button id="http-authentication-ok" data-l10n-id="login">Login</button>
+          <button id="http-authentication-ok" data-l10n-id="login"></button>
         </menu>
-        <h1 l10n-id="login-to-a-website">Login to a website</h1>
+        <h1 l10n-id="login-to-a-website"></h1>
       </header>
       <span id="http-authentication-message"></span>
-      <label data-l10n-id="username">Username
+      <label data-l10n-id="username">
         <input type="text" id="http-authentication-username" />
       </label>
-      <label data-l10n-id="password">Password
+      <label data-l10n-id="password">
         <input id="http-authentication-password" type="password" />
       </label>
     </section>
@@ -210,25 +205,25 @@
     <section role="region" id="settings" class="skin-organic">
       <header id="settings-header">
         <button id="settings-done-button"><span class="icon icon-back"></span></button>
-        <h1 data-l10n-id="browser-settings">Browser Settings</h1>
+        <h1 data-l10n-id="browser-settings"></h1>
       </header>
       <ul>
         <li>
           <button id="about-browser-button"
-                  data-l10n-id="about-browser" class="icon icon-view">About Browser</button>
+                  data-l10n-id="about-browser" class="icon icon-view"></button>
         </li>
       </ul>
       <header>
-        <h2 data-l10n-id="privacy-and-security">Privacy & Security</h2>
+        <h2 data-l10n-id="privacy-and-security"></h2>
       </header>
       <ul>
         <li>
           <button id="clear-history-button"
-                  data-l10n-id="clear-browsing-history">Clear browsing history</button>
+                  data-l10n-id="clear-browsing-history"></button>
         </li>
         <li>
           <button id="clear-private-data-button"
-                  data-l10n-id="clear-cookies-and-stored-data">Clear cookies and stored data</button>
+                  data-l10n-id="clear-cookies-and-stored-data"></button>
         </li>
       </ul>
     </section>
