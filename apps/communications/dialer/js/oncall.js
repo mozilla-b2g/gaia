@@ -130,11 +130,18 @@ var CallScreen = {
 
     this.callToolbar.classList.add('transparent');
     this.incomingContainer.classList.add('displayed');
+
+    screenLock = navigator.requestWakeLock('screen');
   },
 
   hideIncoming: function cs_hideIncoming() {
     this.callToolbar.classList.remove('transparent');
     this.incomingContainer.classList.remove('displayed');
+
+    if (screenLock) {
+      screenLock.unlock();
+      screenLock = null;
+    }
   },
 
   syncSpeakerEnabled: function cs_syncSpeakerEnabled() {
@@ -275,8 +282,16 @@ var OnCallHandler = (function onCallHandler() {
     }
 
     if (handledCalls.length > 1) {
-      // signaling the user of the new call
-      navigator.vibrate([100, 100, 100]);
+      // New incoming call, signaling the user.
+      // Waiting for the screen to be turned on before vibrating.
+      if (document.mozHidden) {
+        window.addEventListener('mozvisibilitychange', function waitOn() {
+          window.removeEventListener('mozvisibilitychange', waitOn);
+          navigator.vibrate([100, 100, 100]);
+        });
+      } else {
+        navigator.vibrate([100, 100, 100]);
+      }
 
       var number = (call.number.length ? call.number : _('unknown'));
       Contacts.findByNumber(number, function lookupContact(contact) {
@@ -559,7 +574,7 @@ var OnCallHandler = (function onCallHandler() {
     var message = {
       type: 'recent',
       entry: entry
-    }
+    };
     postToMainWindow(message);
   }
 
