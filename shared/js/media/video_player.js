@@ -47,6 +47,9 @@ function VideoPlayer(container) {
     player.src = url;
   };
 
+  // Call this when the container size changes
+  this.setPlayerSize = setPlayerSize;
+
   // Set up everything for the initial paused state
   this.pause = function pause() {
     // Pause video playback
@@ -195,7 +198,6 @@ function VideoPlayer(container) {
     if (!player.videoWidth || !player.videoHeight)
       return;
 
-
     var width, height; // The size the video will appear, after rotation
     switch (rotation) {
     case 0:
@@ -212,38 +214,42 @@ function VideoPlayer(container) {
     var xscale = containerWidth / width;
     var yscale = containerHeight / height;
     var scale = Math.min(xscale, yscale);
-    var transform = '';
 
     // scale large videos down, but don't scale small videos up
     if (scale < 1) {
       width *= scale;
       height *= scale;
-      transform = 'scale(' + scale + ') ';
     }
 
     var left = ((containerWidth - width) / 2);
     var top = ((containerHeight - height) / 2);
 
+    var transform;
     switch (rotation) {
     case 0:
-      transform += 'translate(' + left + 'px,' + top + 'px)';
+      transform = 'translate(' + left + 'px,' + top + 'px)';
       break;
     case 90:
-      transform +=
+      transform =
         'translate(' + (left + width) + 'px,' + top + 'px) ' +
         'rotate(90deg)';
       break;
     case 180:
-      transform +=
+      transform =
         'translate(' + (left + width) + 'px,' + (top + height) + 'px) ' +
         'rotate(180deg)';
       break;
     case 270:
-      transform +=
+      transform =
         'translate(' + left + 'px,' + (top + height) + 'px) ' +
         'rotate(270deg)';
       break;
     }
+
+    if (scale < 1) {
+      transform += ' scale(' + scale + ')';
+    }
+
     player.style.transform = transform;
   }
 

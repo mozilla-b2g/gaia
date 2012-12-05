@@ -264,9 +264,9 @@ var metadataParsers = (function() {
         // If this is a .3gp video file, look for its rotation matrix and
         // then create the thumbnail. Otherwise set rotation to 0 and
         // create the thumbnail.
+        // getVideoRotation is defined in shared/js/media/get_video_rotation.js
         if (file.name.substring(file.name.lastIndexOf('.') + 1) === '3gp') {
           getVideoRotation(file, function(rotation) {
-            console.log(file.name, 'rotation:', rotation);
             if (typeof rotation === 'number')
               metadata.rotation = rotation;
             else if (typeof rotation === 'string')
@@ -299,68 +299,6 @@ var metadataParsers = (function() {
       console.error('Exception in videoMetadataParser', e, e.stack);
       errorCallback('Exception in videoMetadataParser');
     }
-  }
-
-  //
-  // Given an MP4/Quicktime based video file as a blob, read through its
-  // atoms to find the track header "tkhd" atom and extract the rotation
-  // matrix from it. Convert the matrix value to rotation in degrees and
-  // pass that number to the specified callback function. If no value is
-  // found but the video file is valid, pass null to the callback. If
-  // any errors occur, pass an error message (a string) callback.
-  //
-  // See also:
-  // http://androidxref.com/4.0.4/xref/frameworks/base/media/libstagefright/MPEG4Writer.cpp
-  // https://developer.apple.com/library/mac/#documentation/QuickTime/QTFF/QTFFChap2/qtff2.html
-  //
-  function getVideoRotation(blob, rotationCallback) {
-
-    // We want to loop through the top-level atoms until we find the 'moov'
-    // atom. Then, within this atom, there are one or more 'trak' atoms.
-    // Each 'trak' should begin with a 'tkhd' atom. The tkhd atom has
-    // a transformation matrix at byte 48.  The matrix is 9 32 bit integers.
-    // We'll interpret those numbers as a rotation of 0, 90, 180 or 270.
-    // If the video has more than one track, we expect all of them to have
-    // the same rotation, so we'll only look at the first 'trak' atom that
-    // we find.
-    MP4Parser(blob, {
-      errorHandler: function(msg) { rotationCallback(msg); },
-      eofHandler: function() { rotationCallback(null); },
-      defaultHandler: 'skip',  // Skip all atoms other than those listed below
-      moov: 'children',        // Enumerate children of the moov atom
-      trak: 'children',        // Enumerate children of the trak atom
-      tkhd: function(data) {   // Pass the tkhd atom to this function
-        // The matrix begins at byte 48
-        data.advance(48);
-
-        var a = data.readUnsignedInt();
-        var b = data.readUnsignedInt();
-        data.advance(4); // we don't care about this number
-        var c = data.readUnsignedInt();
-        var d = data.readUnsignedInt();
-
-        if (a === 0 && d === 0) { // 90 or 270 degrees
-          if (b === 0x00010000 && c === 0xFFFF0000)
-            rotationCallback(90);
-          else if (b === 0xFFFF0000 && c === 0x00010000)
-            rotationCallback(270);
-          else
-            rotationCallback('unexpected rotation matrix');
-        }
-        else if (b === 0 && c === 0) { // 0 or 180 degrees
-          if (a === 0x00010000 && d === 0x00010000)
-            rotationCallback(0);
-          else if (a === 0xFFFF0000 && d === 0xFFFF0000)
-            rotationCallback(180);
-          else
-            rotationCallback('unexpected rotation matrix');
-        }
-        else {
-          rotationCallback('unexpected rotation matrix');
-        }
-        return 'done';
-      }
-    });
   }
 
   return {
