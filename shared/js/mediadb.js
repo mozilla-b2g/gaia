@@ -1171,7 +1171,7 @@ var MediaDB = (function() {
         var getreq = media.storage.get(media.directory + f);
         getreq.onerror = function() {
           console.warn('MediaDB: Unknown file in insertRecord:',
-                       filename, getreq.error);
+                       media.directory + f, getreq.error);
           next();
         };
         getreq.onsuccess = function() {

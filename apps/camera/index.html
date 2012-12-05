@@ -7,11 +7,10 @@
     <link rel="resource" type="application/l10n" href="locales/locales.ini" />
     <link rel="resource" type="application/l10n" href="shared/locales/date.ini" />
     <link type="text/css" rel="stylesheet" href="style/camera.css"/>
+    <link type="text/css" rel="stylesheet" href="style/filmstrip.css"/>
+    <link type="text/css" rel="stylesheet" href="style/VideoPlayer.css"/>
   </head>
   <body>
-
-    <div id="film-strip" class="hidden"></div>
-
     <div id="focus-ring"></div>
     <video id="viewfinder" autoplay></video>
 
@@ -36,10 +35,31 @@
       </div>
     </div>
 
+    <!-- see filmstrip.js and filmstrip.css for these elements -->
+    <div id="filmstrip" class="hidden">
+      <a id="filmstrip-gallery-button" class="hidden button"></a>
+    </div>
+    <div id="preview" class="offscreen"> 
+      <div id="frame-container">     <!-- media frame rotates inside this -->
+        <div id="media-frame"></div> <!-- image or video here -->
+      </div>
+      <footer id="preview-controls"> <!-- camera, delete, share buttons -->   
+        <a id="camera-button" class="button"></a>
+        <a id="delete-button" class="button"></a>
+        <a id="share-button" class="button"></a>
+      </footer>  
+    </div>
+
     <script type="text/javascript" src="shared/js/l10n.js"></script>
     <script type="text/javascript" src="shared/js/l10n_date.js"></script>
     <script type="text/javascript" src="shared/js/async_storage.js"></script>
+    <script type="text/javascript" src="shared/js/blobview.js"></script>
+    <script type="text/javascript" src="shared/js/media/jpeg_metadata_parser.js"></script>
+    <script type="text/javascript" src="shared/js/media/get_video_rotation.js"></script>
+    <script type="text/javascript" src="shared/js/media/video_player.js"></script>
+    <script type="text/javascript" src="shared/js/media/media_frame.js"></script>
+    <script type="text/javascript" src="shared/js/gesture_detector.js"></script>
     <script type="text/javascript" src="js/camera.js"></script>
-
+    <script type="text/javascript" src="js/filmstrip.js"></script>
   </body>
 </html>
