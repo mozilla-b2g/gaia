@@ -1,0 +1,187 @@
+#filmstrip {
+  transition: 0.2s ease-in-out;
+  position: absolute;
+  z-index: 100;
+  left: 0;
+  right: 0;
+  height: 50px;
+  /*
+   * the background must be solid for preview mode because otherwise some
+   * of the frozen viewfinder shows through. If it really need to be translucent
+   * in camera mode, we'll have to change it with javascript
+   */
+  background: black;
+}
+
+#filmstrip.hidden {
+  transform: translateY(-50px);
+}
+
+img.thumbnail {
+  position: relative;
+  width: 46px;
+  height: 46px;
+  border: 2px solid white;
+  margin-right: 4px;
+  float: left; /* XXX: do we need this? */
+  -moz-user-select: none;
+  transition: 0.2s ease-in-out;
+}
+
+img.thumbnail.previewed {  /* if the thumbnail is being previewed */
+  border: 2px solid #0ac;
+}
+
+/*
+ * Make the thumbnails rotate with the phone
+ */
+#filmstrip[data-orientation="90"] img.thumbnail {
+  transform: rotate(-90deg);
+}
+#filmstrip[data-orientation="180"] img.thumbnail {
+  transform: rotate(-180deg);
+}
+#filmstrip[data-orientation="270"] img.thumbnail {
+  transform: rotate(-270deg);
+}
+
+/* this is where we display image and video previews */
+#preview {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  top: 50px;
+  bottom: 0px;
+  padding: 0;
+  margin: 0;
+  border-width: 0;
+  background: #000; /* opaque */
+  z-index: 100;     /* on top of all the camera stuff */
+  transition: transform 0.5s linear;
+  overflow: hidden;
+  transform-origin: 0 0;
+}
+
+#preview.offscreen {
+  transform: translateY(-100%) scale(.125) translateX(50%);
+}
+
+#frame-container {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  bottom: 40px;
+  padding: 0px;
+  margin: 0px;
+  overflow: hidden;
+  -moz-user-select: none;
+}
+
+#media-frame {
+  position: absolute;
+  /* size, position, and rotation are set based on the phone orientation */
+}
+
+#media-frame > img {
+  top: 0px;  /* javascript modifies this position with a transform */
+  left: 0px;
+  position: absolute;
+  border-width: 0px;
+  padding: 0px;
+  margin: 0px;
+  transform-origin: 0px 0px;
+  pointer-events: none;
+  -moz-user-select: none;
+}
+
+/*
+ * these styes apply when we're swapping out a preview image to replace
+ * it with a full-resolution image, but the full image isn't ready yet.
+ * This happens when the user starts to zoom in on the image. We need
+ * some sort of simple visual effect to fill ~500ms of dead time so the
+ * user doesn't think the app has frozen up
+ */
+#media-frame > img.swapping {
+  opacity: 0.8;
+  outline: dashed #0ac 4px;
+  outline-offset: -4px;
+}
+
+#media-frame > video {
+  transform-origin: 0px 0px;
+}
+
+#preview-controls {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0px;
+  height: 40px;
+  background-color: rgba(0, 0, 0, 0.8);
+  z-index: 100; /* above the dynamically inserted frame elements */
+}
+
+a.button {
+  display: block;
+  padding: 0;
+  margin: 0;
+  border-width: 0;
+  background-position: center center;
+  background-repeat: no-repeat;
+  transition: 0.2s ease-in-out;
+}
+
+a.button:active, a.button:focus {
+  outline: none;
+}
+
+a.button.hidden {
+  display: none;
+}
+
+#camera-button {
+ position: absolute;
+ left: 0;
+ width: 33%;
+ height: 100%;
+ background-image: url(images/camera.png);
+}
+
+#share-button {
+ position: absolute;
+ left: 33%;
+ width: 33%;
+ height: 100%;
+ background-image: url(images/share.png);
+}
+
+#delete-button {
+ position: absolute;
+ left: 67%;
+ width: 33%;
+ height: 100%;
+ background-image: url(images/delete.png);
+}
+
+#filmstrip-gallery-button {
+ position: absolute;
+ right: 0;
+ top: 0;
+ width: 50px;
+ height: 50px;
+ background-image: url(images/grid.png);
+}
+
+/*
+ * Make the button icons rotate with the phone
+ */
+#preview[data-orientation="90"] a.button {
+  transform: rotate(-90deg);
+}
+#preview[data-orientation="180"] a.button {
+  transform: rotate(-180deg);
+}
+#preview[data-orientation="270"] a.button {
+  transform: rotate(-270deg);
+}
