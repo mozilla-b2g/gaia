@@ -51,7 +51,7 @@
 
     <!-- all non-#root panels will lazy-load their own scripts -->
   </head>
-  <body class="skin-organic">
+  <body class="skin-organic uninit">
 
     <!--
       - Lazy-Loading: to avoid parsing all settings panels before necessary, the
@@ -136,7 +136,7 @@
         </li>
         <li class="password">
           <p data-l10n-id="password">password</p>
-          <input type="password" data-ignore name="password" maxlength="63" />
+          <input type="password" data-ignore name="password" maxlength="63" x-inputmode="verbatim" />
           <label for="pwd-auth">
             <input type="checkbox" data-ignore name="show-pwd" id="pwd-auth" />
             <span data-l10n-id="showPassword">show password</span>
@@ -1164,8 +1164,8 @@
       <div class="passcode-overlay">
         <input type="number" id="passcode-input" />
         <div class="passcode-container">
-          <div class="passcode-error" data-l10-id="incorrect-passcode" data-type="incorrect">Incorrect passcode!</div>
-          <div class="passcode-error" data-l10-id="passcode-dont-match" data-type="mismatch">Passcode don't match. Try again!</div>
+          <div class="passcode-error" data-l10n-id="incorrect-passcode" data-type="incorrect">Incorrect passcode!</div>
+          <div class="passcode-error" data-l10n-id="passcode-doesnt-match" data-type="mismatch">Passcode doesn't match. Try again!</div>
           <span data-l10n-id="passcode">Passcode</span>
           <div class="passcode" id="passcode-pseudo-input">
             <span class="passcode-digit"></span>
@@ -1702,8 +1702,8 @@
         <a href="#about-legal-information">
 			    <span class="icon icon-back">back</span>
         </a>
-        <h1 data-l10n-id="about-os-license"> 
-			    Browser Os Open Source Notices 
+        <h1 data-l10n-id="about-os-license">
+			    Browser Os Open Source Notices
 		    </h1>
       </header>
 	    <iframe src="open-source-license.html" id="os-license"></iframe>
@@ -1917,7 +1917,7 @@
             <input type="checkbox" name="ums.enabled"/>
             <span></span>
           </label>
-          <small id="ums-desc" data-l10-id="umsUnplugToDisable">Unplug USB cable to disable</small>
+          <small id="ums-desc" data-l10n-id="umsUnplugToDisable">Unplug USB cable to disable</small>
           <a data-l10n-id="umsEnabled">USB Mass Storage Enabled</a>
         </li>
       </ul>

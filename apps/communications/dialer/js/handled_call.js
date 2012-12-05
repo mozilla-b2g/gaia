@@ -85,8 +85,18 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
   var additionalInfoNode = this.additionalInfoNode;
 
   if (!number.length) {
-    var _ = navigator.mozL10n.get;
-    node.textContent = _('unknown');
+    var setUnknownNumber = function() {
+      var _ = navigator.mozL10n.get;
+      node.textContent = _('unknown');
+    };
+    if (navigator.mozL10n.readyState == 'complete') {
+      setUnknownNumber();
+    } else {
+      window.addEventListener('localized', function onLocalized() {
+        window.removeEventListener('localized', onLocalized);
+        setUnknownNumber();
+      });
+    }
     return;
   }
 
