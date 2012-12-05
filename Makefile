@@ -59,13 +59,17 @@ GAIA_DOMAIN=thisdomaindoesnotexist.org
 GAIA_APP_SRCDIRS=apps showcase_apps
 else ifeq ($(MAKECMDGOALS), production)
 PRODUCTION=1
+B2G_SYSTEM_APPS=1
 endif
 
 # PRODUCTION is also set for user and userdebug B2G builds
 ifeq ($(PRODUCTION), 1)
 GAIA_APP_SRCDIRS=apps
-GAIA_INSTALL_PARENT=/system/b2g
 ADB_REMOUNT=1
+endif
+
+ifeq ($(B2G_SYSTEM_APPS), 1)
+GAIA_INSTALL_PARENT=/system/b2g
 endif
 
 ifneq ($(GAIA_OUTOFTREE_APP_SRCDIRS),)
