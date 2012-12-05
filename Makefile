@@ -51,9 +51,6 @@ ADB_REMOUNT?=0
 
 GAIA_ALL_APP_SRCDIRS=$(GAIA_APP_SRCDIRS)
 
-GAIA_LOCALES_PATH?=locales
-LOCALES_FILE?=shared/resources/languages.json
-
 ifeq ($(MAKECMDGOALS), demo)
 GAIA_DOMAIN=thisdomaindoesnotexist.org
 GAIA_APP_SRCDIRS=apps showcase_apps
@@ -79,6 +76,10 @@ ifneq ($(GAIA_OUTOFTREE_APP_SRCDIRS),)
         && ln -sf $(appdir) outoftree_apps/)))
   GAIA_APP_SRCDIRS += outoftree_apps
 endif
+
+GAIA_LOCALES_PATH?=locales
+LOCALES_FILE?=shared/resources/languages.json
+GAIA_LOCALE_SRCDIRS=shared $(GAIA_APP_SRCDIRS)
 
 ###############################################################################
 # The above rules generate the profile/ folder and all its content.           #
@@ -173,13 +174,14 @@ LANG=POSIX # Avoiding sort order differences between OSes
 .PHONY: multilocale
 multilocale:
 ifneq ($(LOCALE_BASEDIR),)
+	$(MAKE) multilocale-clean
 	@echo "Enable locales specified in $(LOCALES_FILE)..."
 	@targets=""; \
-	for appdir in $(GAIA_APP_SRCDIRS); do \
+	for appdir in $(GAIA_LOCALE_SRCDIRS); do \
 	    targets="$$targets --target $$appdir"; \
 	done; \
 	python $(CURDIR)/build/multilocale.py \
-		--config $(CURDIR)/$(LOCALES_FILE) \
+		--config $(LOCALES_FILE) \
 		--source $(LOCALE_BASEDIR) \
 		$$targets;
 	@echo "Done"
@@ -193,14 +195,14 @@ multilocale-clean:
 	@echo "Cleaning l10n bits..."
 ifeq ($(wildcard .hg),.hg)
 	@hg update --clean
-	@hg status -n | xargs rm -rf
+	@hg status -n $(GAIA_LOCALE_SRCDIRS) | grep '\.properties' | xargs rm -rf
 else
-	@git ls-files --other --exclude-standard $(GAIA_APP_SRCDIRS) | grep '\.properties' | xargs rm -f
-	@git ls-files --modified $(GAIA_APP_SRCDIRS) | grep '\.properties' | xargs git checkout --
+	@git ls-files --other --exclude-standard $(GAIA_LOCALE_SRCDIRS) | grep '\.properties' | xargs rm -f
+	@git ls-files --modified $(GAIA_LOCALE_SRCDIRS) | grep '\.properties' | xargs git checkout --
 ifneq ($(DEBUG),1)
 	@# Leave these files modified in DEBUG profiles
-	@git ls-files --modified $(GAIA_APP_SRCDIRS) | grep 'manifest.webapp' | xargs git checkout --
-	@git ls-files --modified $(GAIA_APP_SRCDIRS) | grep '\.ini' | xargs git checkout --
+	@git ls-files --modified $(GAIA_LOCALE_SRCDIRS) | grep 'manifest.webapp' | xargs git checkout --
+	@git ls-files --modified $(GAIA_LOCALE_SRCDIRS) | grep '\.ini' | xargs git checkout --
 	@git checkout -- shared/resources/languages.json
 	@echo "Done"
 endif
@@ -245,9 +247,6 @@ offline-cache: webapp-manifests install-xulrunner-sdk
 
 # Create webapps
 offline: webapp-manifests webapp-zip
-ifneq ($(LOCALE_BASEDIR),)
-	$(MAKE) multilocale-clean
-endif
 
 
 # The install-xulrunner target arranges to get xulrunner downloaded and sets up
