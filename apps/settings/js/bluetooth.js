@@ -601,6 +601,9 @@ onLocalized(function bluetoothSettings() {
     if (lastMozSettingValue == enabled)
       return;
 
+    // lock UI toggle
+    gBluetoothCheckBox.disabled = true;
+
     lastMozSettingValue = enabled;
     updateBluetoothState(enabled);
 
@@ -630,7 +633,13 @@ onLocalized(function bluetoothSettings() {
   };
 
   bluetooth.onadapteradded = function bt_adapterAdded() {
+    // enable UI toggle
+    gBluetoothCheckBox.disabled = false;
     initialDefaultAdapter();
+  };
+  bluetooth.ondisabled = function bt_onDisabled() {
+    // enable UI toggle
+    gBluetoothCheckBox.disabled = false;
   };
 });
 

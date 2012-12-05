@@ -110,3 +110,6 @@ label input[data-type="switch"]:checked + span:after {
   transform: translateX(0);
 }
 
+label input[data-type="switch"]:disabled + span {
+  opacity: 0.5;
+}
