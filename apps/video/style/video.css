@@ -96,6 +96,9 @@ li hr {
   /* size and position are set in JS depending on*/
   /* video size and screen orientation */
   position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
 }
 
 /*
