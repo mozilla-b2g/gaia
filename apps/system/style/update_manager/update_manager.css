@@ -1,3 +1,8 @@
+html, body {
+  font-family: 'MozTT', sans-serif;
+  font-size: 10px;
+}
+
 #update-manager-container {
   display: none;
 }
@@ -9,14 +14,12 @@
 #update-manager-container > .activity {
   display: none;
   float: left;
-  width: 40px;
-  height: 40px;
-  margin: 10px 15px 10px 10px;
-
+  width: 32px;
+  height: 30px;
+  margin: 14px 10px;
   background-image: url(images/loader.png);
   background-position: center center;
   background-repeat: no-repeat;
-
   animation: 0.9s fn-rotate infinite linear;
 }
 
@@ -36,12 +39,10 @@
 
 #update-manager-container > .icon {
   float: left;
-  width: 40px;
-  height: 40px;
-  margin: 10px 15px 10px 10px;
-
-  background-repeat: no-repeat;
-  background-position: center center;
+  display: block;
+  width: 24px;
+  height: 24px;
+  margin: 18px 10px;
 }
 
 #update-manager-container > .icon,
@@ -55,28 +56,38 @@
 
 #update-manager-toaster > .icon {
   float: left;
-  width: 30px;
-  height: 30px;
-  margin: 5px 15px 5px 10px;
-  background-repeat: no-repeat;
-  background-position: center center;
+  display: block;
+  width: 24px;
+  height: 24px;
+  margin: 10px 10px;
 }
 
-#update-manager-toaster > .message,
-#update-manager-container > .message {
-  margin: 10px;
+#update-manager-toaster > .message {
+  position: absolute;
+  left: 50px;
+  top: 10px;
+  width: -moz-calc(100% - 55px);
+  color: #52b8cc;
+  font-size: 1.5rem;
+  font-weight: 500;
+}
 
-  line-height: 20px;
-  font-weight: 700;
-  font-size: 1.6rem;
+#update-manager-container > .message {
+  margin: 10px 0 0 50px;
+  width: -moz-calc(100% - 55px);
+  font-size: 1.5rem;
+  font-weight: 500;
+  line-height: 1.9rem;
+  color: #FFFFFF;
 }
 
 #update-manager-container > .message > span {
   display: block;
-
-  line-height: 20px;
-  font-weight: 300;
-  font-size: 1.2rem;
+  color: #bfbfbf;
+  font-size: 1.4rem;
+  line-height: 1.9rem;
+  font-weight: 400;
+  text-overflow: ellipsis;
 }
 
 #update-manager-toaster > .message > span {
@@ -88,18 +99,13 @@
   top: 0;
   left: 0;
   width: 100%;
-  height: 40px;
-
+  height: 50px;
   overflow: hidden;
-
   background-image: url('images/grey-noise-bg.png');
   background-repeat: repeat-x;
   -moz-box-sizing: border-box;
   border-bottom: 1px #2c2c2c solid;
-
-  font-size: 1em;
-
-  -moz-transform: translateY(-40px);
+  -moz-transform: translateY(-50px);
   -moz-transition: -moz-transform .3s ease-in-out;
 }
 
@@ -117,16 +123,20 @@
 }
 
 #updates-download-dialog h1 {
-  margin-top: 2rem;
-  font-size: 2.2rem;
+  text-transform:capitalize;
+  font-size: 1.9rem;
+  color: #fff;
+  padding: 0px 10px 11px 10px;
+  background: rgba(255, 255, 255, 0.0);
 }
 
 #updates-download-dialog section {
   height: auto;
+  line-height: 3.5rem;
   overflow-y: scroll;
-  max-height: 100%;
-
-  font-size: 1.7rem;
+  max-height: -moz-calc(100% - 3.8rem);
+  color: #ebebeb;
+  font-size: 2.5rem;
 }
 
 #updates-download-dialog ul {
@@ -136,10 +146,9 @@
 }
 
 #updates-download-dialog li {
+  line-height: 3rem;
   height: 5rem;
-
-  margin: 0 0.2rem;
-
+  margin: 0 1rem;
   border-top: solid 1px rgba(255, 255, 255, 0.05);
 }
 
@@ -149,21 +158,18 @@
 }
 
 #updates-download-dialog div {
-  float: left;
-  width: calc(100% - 8rem);
-  height: 2rem;
-
-  color: #fff;
-  font-weight: bold;
-  line-height: 1.2rem;
-  font-size: 1.2rem;
+  display: block;
+  height: 3.5rem;
+  font-weight: 500;
+  color: #ebebeb;
+  font-size: 1.4rem;
+  line-height: 3.5rem;
 }
 
 #updates-download-dialog li .name {
   font-size: 1.5rem;
   line-height: 3rem;
   height: 3rem;
-
   color: white;
   font-weight: normal;
   overflow: hidden;
@@ -177,18 +183,18 @@
 }
 
 #updates-download-dialog label {
-  display: block;
-  height: 5rem;
+  display: inline-block;
+  height: 3.5rem;
   float: right;
-
-  line-height: 5rem;
-  font-size: 1.3rem;
+  color: #ebebeb;
+  line-height: 3.5rem;
+  font-weight: 300;
+  font-size: 1.4rem;
 }
 
 #updates-download-dialog label.required {
-  width: 7.5rem;
+  width: 10rem;
   padding-right: 0.5rem;
-
   text-align: right;
   text-transform: uppercase;
 }
