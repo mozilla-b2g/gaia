@@ -1,0 +1,3 @@
+var MockGridManager = {
+  markDirtyState: function() {}
+};
