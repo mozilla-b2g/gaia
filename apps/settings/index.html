@@ -1672,41 +1672,45 @@
       -->
     </section>
 
-    <!-- Device :: Information :: Legal Information -->
-    <section role="region" hidden id="about-legal-information">
+    <!-- Device :: Information :: Legal :: Open Source Notices -->
+    <section role="region" hidden id="about-licensing">
       <!--
       <header>
-        <button type="reset">
-          <span data-l10n-id="back" class="icon icon-back">Back</span>
-        </button>
+        <a href="#about-legal">
+          <span class="icon icon-back">back</span>
+        </a>
+        <h1 data-l10n-id="open-source-notices">
+          Open Source Notices
+        </h1>
+      </header>
+      <iframe src="resources/open_source_license.html" id="os-license"></iframe>
+      -->
+    </section>
+
+    <!-- Device :: Information :: Legal -->
+    <section role="region" hidden id="about-legal">
+      <!--
+      <header>
+        <a href="#about">
+          <span class="icon icon-back">back</span>
+        </a>
         <h1 data-l10n-id="about-licensing"> Legal Information </h1>
       </header>
 
       <header>
-        <h2 data-l10n-id="mozilla"> Mozilla </h2>
+        <h2 data-l10n-id="about-mozilla"> Mozilla </h2>
       </header>
       <ul>
-        <li class="description">
-   			  <a href="#about-licensing" data-l10n-id="about-os-license">
-     			  Browser Os Open Source Notices
-  			  </a>
+        <li>
+          <a href="#about-licensing" data-l10n-id="open-source-notices">
+            Open Source Notices
+          </a>
         </li>
       </ul>
-      -->
-    </section>
 
-    <!-- Device :: Information :: Licensing -->
-    <section role="region" hidden id="about-licensing">
-      <!--
-      <header>
-        <a href="#about-legal-information">
-			    <span class="icon icon-back">back</span>
-        </a>
-        <h1 data-l10n-id="about-os-license">
-			    Browser Os Open Source Notices
-		    </h1>
+      <header hidden>
+        <h2 data-l10n-id="about-other"> Other </h2>
       </header>
-	    <iframe src="open-source-license.html" id="os-license"></iframe>
       -->
     </section>
 
@@ -1786,7 +1790,7 @@
         </li>
         <li>
           <label>
-            <button data-href="#about-legal-information"
+            <button data-href="#about-legal"
               data-l10n-id="about-licensing"> Licensing </button>
           </label>
         </li>
