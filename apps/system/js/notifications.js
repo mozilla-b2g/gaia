@@ -78,6 +78,7 @@ var NotificationScreen = {
 
     window.addEventListener('utilitytrayshow', this);
     window.addEventListener('unlock', this.clearLockScreen.bind(this));
+    window.addEventListener('mozvisibilitychange', this);
   },
 
   handleEvent: function ns_handleEvent(evt) {
@@ -100,7 +101,14 @@ var NotificationScreen = {
         this.swipe(evt);
         break;
       case 'utilitytrayshow':
+        this.updateTimestamps();
         StatusBar.updateNotificationUnread(false);
+        break;
+      case 'mozvisibilitychange':
+        //update timestamps in lockscreen notifications
+        if (!document.mozHidden) {
+          this.updateTimestamps();
+        }
         break;
     }
   },
@@ -179,6 +187,14 @@ var NotificationScreen = {
     }
   },
 
+  updateTimestamps: function ns_updateTimestamps() {
+    var timestamps = document.getElementsByClassName('timestamp');
+    for (var i = 0, l = timestamps.length; i < l; i++) {
+      timestamps[i].textContent = navigator.mozL10n.DateTimeFormat()
+        .fromNow(new Date(timestamps[i].dataset.timestamp), true);
+    }
+  },
+
   addNotification: function ns_addNotification(detail) {
     var notificationNode = document.createElement('div');
     notificationNode.className = 'notification';
@@ -189,9 +205,16 @@ var NotificationScreen = {
       var icon = document.createElement('img');
       icon.src = detail.icon;
       notificationNode.appendChild(icon);
-
       this.toasterIcon.src = detail.icon;
     }
+
+    var time = document.createElement('span');
+    var timestamp = new Date();
+    time.classList.add('timestamp');
+    time.dataset.timestamp = timestamp;
+    time.textContent = navigator.mozL10n.DateTimeFormat()
+      .fromNow(timestamp, true);
+    notificationNode.appendChild(time);
 
     var title = document.createElement('div');
     title.textContent = detail.title;
