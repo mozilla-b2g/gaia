@@ -603,6 +603,10 @@ nav[data-role="tabs"] {
   height: 36px;
 }
 
+#tab-panels {
+  height: 100%;
+}
+
 ul[role="tablist"] {
   margin: 0;
   padding: 0;
@@ -642,7 +646,6 @@ li[role="tab"] a.selected {
   background-origin: padding-box;
 }
 
-#results,
 section[role="tabpanel"] {
   padding-top: 5px;
   clear: both;
@@ -650,9 +653,24 @@ section[role="tabpanel"] {
   display: none;
 }
 
-#results.selected,
 section[role="tabpanel"].selected {
   display: block;
+}
+
+#results {
+  padding-top: 5px;
+  background-color: #f3f4f8;
+  display: block;
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+#results.hidden {
+  display: none;
 }
 
 #awesomescreen h3 {
@@ -735,7 +753,7 @@ li[role="listitem"] small {
 }
 
 #history, #bookmarks, #top-sites {
-  height: -moz-calc(100% - 36px);
+  height: calc(100% - 36px);
   overflow-y: auto;
   overflow-x: hidden;
 }
