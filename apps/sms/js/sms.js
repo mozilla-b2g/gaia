@@ -1508,13 +1508,41 @@ window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
 
 // We want to register the handler only when we're on the launch path
 if (!window.location.hash.length) {
-  window.navigator.mozSetMessageHandler('sms-received', function smsReceived(message) {
+  window.navigator.mozSetMessageHandler('sms-received',
+    function smsReceived(message) {
     // The black list includes numbers for which notifications should not
     // progress to the user. Se blackllist.js for more information.
+    var number = message.sender;
+    // Class 0 handler:
+    if (message.messageClass == 'class-0') {
+      // XXX: Hack hiding the message class in the icon URL
+      // Should use the tag element of the notification once the final spec
+      // lands:
+      // See: https://bugzilla.mozilla.org/show_bug.cgi?id=782211
+      navigator.mozApps.getSelf().onsuccess = function(evt) {
+        var app = evt.target.result;
+        var iconURL = NotificationHelper.getIconURI(app);
+
+        // XXX: Add params to Icon URL.
+        iconURL += '?class0';
+        var messageBody = number + '\n' + message.body;
+        var showMessage = function() {
+          app.launch();
+          alert(messageBody);
+        };
+
+        // We have to remove the SMS due to it does not have to be shown.
+        MessageManager.deleteMessage(message.id, function() {
+          // Once we remove the sms from DB we launch the notification
+          NotificationHelper.send(message.sender, message.body,
+                                    iconURL, showMessage);
+        });
+
+      };
+      return;
+    }
     if (BlackList.has(message.sender))
       return;
-
-    var number = message.sender;
 
     // The SMS app is already displayed
     if (!document.mozHidden) {
@@ -1533,7 +1561,7 @@ if (!window.location.hash.length) {
 
         // Stashing the number at the end of the icon URL to make sure
         // we get it back even via system message
-        iconURL += '?' + number;
+        iconURL += '?sms-received?' + number;
 
         var goToMessage = function() {
           app.launch();
@@ -1555,14 +1583,24 @@ if (!window.location.hash.length) {
     });
   });
 
-  window.navigator.mozSetMessageHandler('notification', function notificationClick(message) {
+  window.navigator.mozSetMessageHandler('notification',
+    function notificationClick(message) {
     navigator.mozApps.getSelf().onsuccess = function(evt) {
       var app = evt.target.result;
       app.launch();
 
       // Getting back the number form the icon URL
-      var number = message.imageURL.split('?')[1];
-      showThreadFromSystemMessage(number)
+      var notificationType = message.imageURL.split('?')[1];
+      // Case regular 'sms-received'
+      if (notificationType == 'sms-received') {
+        var number = message.imageURL.split('?')[2];
+        showThreadFromSystemMessage(number);
+        return;
+      }
+      var number = message.title;
+      // Class 0 message
+      var messageBody = number + '\n' + message.body;
+      alert(messageBody);
     }
   });
 }

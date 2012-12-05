@@ -356,6 +356,7 @@ body {
   top: 0;
 }
 
+#screen.attention > #windows > iframe.appWindow.fullscreen-app,
 #screen.attention > #windowSprite,
 #screen.fullscreen-app.attention > #windowSprite {
   height: calc(100% - 40px);

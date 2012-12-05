@@ -269,6 +269,7 @@
        mcc="724"
        mnc="06"
        enableStrict7BitEncodingForSms="true"
+       cellBroadcastSearchList="50"
    />
    <operator
        name="SCTL GPRS"
@@ -281,12 +282,14 @@
        mcc="724"
        mnc="10"
        enableStrict7BitEncodingForSms="true"
+       cellBroadcastSearchList="50"
    />
    <operator
        name="Vivo Internet"
        mcc="724"
        mnc="11"
        enableStrict7BitEncodingForSms="true"
+       cellBroadcastSearchList="50"
    />
    <operator
        name="BrT Modem"
@@ -305,6 +308,7 @@
        mcc="724"
        mnc="23"
        enableStrict7BitEncodingForSms="true"
+       cellBroadcastSearchList="50"
    />
    <operator
        name="AmazôniaC GPRS"

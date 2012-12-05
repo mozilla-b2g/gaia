@@ -79,9 +79,9 @@ var editBgImageButtons =
 // element, and video player controls within the div, and you can refer to
 // those as currentFrame.image and currentFrame.video.player and
 // currentFrame.video.controls.
-var previousFrame = new Frame($('frame1'));
-var currentFrame = new Frame($('frame2'));
-var nextFrame = new Frame($('frame3'));
+var previousFrame = new MediaFrame($('frame1'));
+var currentFrame = new MediaFrame($('frame2'));
+var nextFrame = new MediaFrame($('frame3'));
 
 // When this variable is set to true, we ignore any user gestures
 // so we don't try to pan or zoom during a frame transition.
