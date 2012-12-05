@@ -688,8 +688,7 @@ window.addEventListener('load', function loadSettings() {
       document.location.hash = 'root';
       break;
     case '#root':
-      document.getElementById('root').className = 'current';
-      showPanel();
+      // do nothing
       break;
     default:
       document.getElementById('root').className = 'previous';
