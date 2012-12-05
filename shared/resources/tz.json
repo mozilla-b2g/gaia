@@ -224,7 +224,7 @@
   {"cc":"CA", "offset":"-07:00,-06:00", "city":"Yellowknife"}
 ],
 
-"Antartica": [
+"Antarctica": [
   {"cc":"AQ", "offset":"+11:00,+08:00", "city":"Casey"},
   {"cc":"AQ", "offset":"+05:00,+07:00", "city":"Davis"},
   {"cc":"AQ", "offset":"+10:00,+10:00", "city":"DumontDUrville", "name":"Dumont d'Urville"},
