@@ -16,8 +16,6 @@ var Camera = {
   CAMERA: 'camera',
   VIDEO: 'video',
 
-  THUMBNAIL_LIMIT: 4,
-
   _videoTimer: null,
   _videoStart: null,
   _videoPath: null,
@@ -32,8 +30,6 @@ var Camera = {
   _photosTaken: [],
   _cameraProfile: null,
 
-  _filmStripShown: false,
-  _filmStripTimer: null,
   _resumeViewfinderTimer: null,
   _waitingToGenerateThumb: false,
 
@@ -56,6 +52,7 @@ var Camera = {
   _previewActive: false,
 
   PREVIEW_PAUSE: 500,
+  FILMSTRIP_DURATION: 5000, // show filmstrip for 5s before fading
 
   _flashModes: [],
   _currentFlashMode: 0,
@@ -90,9 +87,6 @@ var Camera = {
     video: {prefix: 'VID_'},
     image: {prefix: 'IMG_'}
   },
-
-  THUMB_WIDTH: 40,
-  THUMB_HEIGHT: 40,
 
   // Because we dont want to wait for the geolocation query
   // before we can take a photo, we keep a track of the users
@@ -149,10 +143,6 @@ var Camera = {
     return document.getElementById('focus-ring');
   },
 
-  get filmStrip() {
-    return document.getElementById('film-strip');
-  },
-
   get toggleButton() {
     return document.getElementById('toggle-camera');
   },
@@ -185,7 +175,6 @@ var Camera = {
     this.toggleButton.addEventListener('click', this.toggleCamera.bind(this));
     this.toggleFlashBtn.addEventListener('click', this.toggleFlash.bind(this));
     this.viewfinder.addEventListener('click', this.toggleFilmStrip.bind(this));
-    this.filmStrip.addEventListener('click', this.filmStripPressed.bind(this));
 
     this.switchButton
       .addEventListener('click', this.toggleModePressed.bind(this));
@@ -385,66 +374,6 @@ var Camera = {
     }).bind(this));
   },
 
-  addToFilmStrip: function camera_addToFilmStrip(name, thumbnail, type, originalBlob) {
-    this._photosTaken.push({
-      name: name,
-      blob: thumbnail,
-      originalBlob: originalBlob,
-      type: type
-    });
-    if (this._photosTaken.length > this.THUMBNAIL_LIMIT) {
-      this._photosTaken.shift();
-    }
-    this.showFilmStrip();
-  },
-
-  generateVideoThumbnail: function camera_generateVideoThumbnail(callback) {
-    var video;
-    var preview = this._videoPreview;
-    var thumbGenerated = function(blob) {
-      callback(blob, video.type);
-    }
-
-    this._videoStorage.get(this._videoPath).onsuccess = (function(e) {
-      video = e.target.result;
-      preview.preload = 'metadata';
-      preview.width = self.THUMB_WIDTH + 'px';
-      preview.height = self.THUMB_HEIGHT + 'px';
-      preview.src = URL.createObjectURL(video);
-      this._waitingToGenerateThumb = true;
-      // Some video formats fail to load metadata, they are still
-      // able to generate a thumbnail though, the callback will
-      // prevents itself from running twice
-      var genThumb = this.generateThumbnail.bind(this, preview, thumbGenerated);
-      setTimeout(genThumb, 2500);
-      preview.onloadedmetadata = genThumb;
-    }).bind(this);
-  },
-
-  generateImageThumbnail: function camera_generateImageThumbnail(input, callback) {
-    var img = document.createElement('img');
-    this._waitingToGenerateThumb = true;
-    img.src = window.URL.createObjectURL(input);
-    img.onload = this.generateThumbnail.bind(this, img, callback);
-  },
-
-  generateThumbnail: function camera_generateThumbnail(input, callback) {
-    if (!this._waitingToGenerateThumb) {
-      return;
-    }
-    this._waitingToGenerateThumb = false;
-    var canvas = document.createElement('canvas');
-    canvas.width = this.THUMB_WIDTH;
-    canvas.height = this.THUMB_HEIGHT;
-    URL.revokeObjectURL(input.src);
-    try {
-      canvas.getContext('2d').drawImage(input, 0, 0, canvas.width, canvas.height);
-      canvas.toBlob(callback);
-    } catch (e) {
-      console.error('Failed to create a poster image:', e);
-    }
-  },
-
   startRecordingTimer: function camera_startRecordingTimer() {
     this._videoStart = new Date().getTime();
     this.videoTimer.textContent = this.formatTimer(0);
@@ -464,12 +393,20 @@ var Camera = {
     window.clearInterval(this._videoTimer);
     this.enableButtons();
     document.body.classList.remove('capturing');
-    this.generateVideoThumbnail((function(thumbnail, videotype) {
-      if (!thumbnail) {
-        return;
-      }
-      this.addToFilmStrip(this._videoPath, thumbnail, videotype);
-    }).bind(this));
+
+    // XXX
+    // I need some way to know when the camera is done writing this file
+    // currently I'm sending this to the filmstrip which is trying to
+    // determine its rotation and fails sometimes if the file is not
+    // yet complete.  For now, I just defer for a second, but
+    // there ought to be a better way.
+    // See https://bugzilla.mozilla.org/show_bug.cgi?id=817367
+    // Maybe I'll get a device storage callback... check this.
+    var videofile = this._videoPath;
+    setTimeout(function() {
+      Filmstrip.addVideo(videofile);
+      Filmstrip.show(Camera.FILMSTRIP_DURATION);
+    }, 1000);
   },
 
   formatTimer: function camera_formatTimer(time) {
@@ -502,6 +439,12 @@ var Camera = {
   },
 
   galleryBtnPressed: function camera_galleryBtnPressed() {
+    // Can't launch the gallery if the lockscreen is locked.
+    // The button shouldn't even be visible in this case, but
+    // let's be really sure here.
+    if (this._secureMode)
+      return;
+
     // Launch the gallery with an activity
     var a = new MozActivity({
       name: 'browse',
@@ -525,6 +468,8 @@ var Camera = {
       // Setting MozRotate to 90 or 270 causes element to disappear
       rule.style.MozTransform = 'rotate(' + -(orientation + 1) + 'deg)';
       this._phoneOrientation = orientation;
+
+      Filmstrip.setOrientation(orientation);
     }
   },
 
@@ -537,75 +482,10 @@ var Camera = {
   },
 
   toggleFilmStrip: function camera_toggleFilmStrip(ev) {
-    if (this._filmStripShown) {
-      this.hideFilmStrip();
-    } else {
-      this.showFilmStrip();
-    }
-  },
-
-  filmStripPressed: function camera_filmStripPressed(e) {
-    var camera = this;
-    var target = e.target;
-    if (target.nodeName === 'IMG') {
-      target = target.parentNode;
-    }
-
-    var filename = target.getAttribute('data-filename');
-    var filetype = target.getAttribute('data-filetype');
-
-    if (this._secureMode || !filename) {
-      return;
-    }
-
-    // Launch the gallery with an open activity to view this specific photo
-    var storage = isVideo ? this._videoStorage : this._pictureStorage;
-    var isVideo = /video/.test(filetype);
-    var activity;
-
-    if (isVideo) {
-      activity = new MozActivity({
-        name: 'open',
-        data: {
-          type: filetype,
-          src: 'ds:videos://' + filename,
-          extras: {
-            title: filename.split('/').pop()
-          }
-        }
-      });
-    } else {
-      var photo = this._photosTaken.filter(function(file) {
-        return file.name === filename;
-      })[0];
-      activity = new MozActivity({
-        name: 'open',
-        data: {
-          type: filetype,
-          blob: photo.originalBlob,
-          show_delete_button: true
-        }
-      });
-    }
-
-    // We don't seem to get a mozvisiblitychange event when the
-    // inline open activity opens up, so we explicitly stop the
-    // and restart the preview stream
-    camera.stopPreview();
-
-    activity.onerror = function(e) {
-      console.warn('open activity error:', activity.error.name);
-      camera.startPreview();
-    };
-    activity.onsuccess = function(e) {
-      camera.startPreview();
-      if (activity.result.delete) {
-        storage.delete(filename).onerror = function(e) {
-          console.warn('Failed to delete', filename,
-                       'from DeviceStorage:', e.target.error);
-          };
-      }
-    };
+    if (Filmstrip.isShown())
+      Filmstrip.hide();
+    else
+      Filmstrip.show();
   },
 
   setSource: function camera_setSource(camera) {
@@ -713,44 +593,7 @@ var Camera = {
     this.enableButtons();
   },
 
-  showFilmStrip: function camera_showFilmStrip() {
-    if (!this._photosTaken.length || this._secureMode) {
-      return;
-    }
-
-    this.filmStrip.innerHTML = '';
-
-    this._photosTaken.forEach(function foreach_photos(image) {
-      var wrapper = document.createElement('div');
-      var preview = document.createElement('img');
-      wrapper.style.visibility = 'hidden';
-      wrapper.classList.add('thumbnail');
-      wrapper.classList.add(/image/.test(image.type) ? 'image' : 'video');
-      wrapper.setAttribute('data-filetype', image.type);
-      wrapper.setAttribute('data-filename', image.name);
-      preview.src = window.URL.createObjectURL(image.blob);
-      preview.onload = function() {
-        wrapper.style.visibility = 'visible';
-        window.URL.revokeObjectURL(this.src);
-      };
-      wrapper.appendChild(preview);
-      this.filmStrip.appendChild(wrapper);
-    }, this);
-    this.filmStrip.classList.remove('hidden');
-    this._filmStripShown = true;
-  },
-
-  hideFilmStrip: function camera_hideFilmStrip() {
-    this.filmStrip.classList.add('hidden');
-    this._filmStripShown = false;
-    if (this._filmStripTimer) {
-      window.clearTimeout(this.filmStripTimer);
-    }
-  },
-
   restartPreview: function camera_restartPreview() {
-    this._filmStripTimer =
-      window.setTimeout(this.hideFilmStrip.bind(this), 5000);
     this._resumeViewfinderTimer =
       window.setTimeout(this.resumePreview.bind(this), this.PREVIEW_PAUSE);
   },
@@ -816,10 +659,9 @@ var Camera = {
           return;
         }
 
-        this.generateImageThumbnail(blob, (function(thumbBlob) {
-          this.addToFilmStrip(name, thumbBlob, 'image/jpeg', blob);
-          this.checkStorageSpace();
-        }).bind(this));
+        Filmstrip.addImage(name, blob);
+        Filmstrip.show(Camera.FILMSTRIP_DURATION);
+        this.checkStorageSpace();
 
       }).bind(this);
 
@@ -867,8 +709,6 @@ var Camera = {
     case 'shared':
       this.updateStorageState(e.reason);
       break;
-    case 'deleted':
-      this.removeFromFilmStrip(e.path);
     }
     this.checkStorageSpace();
   },
@@ -884,15 +724,6 @@ var Camera = {
     case 'shared':
       this._storageState = this.STORAGE_UNMOUNTED;
       break;
-    }
-  },
-
-  removeFromFilmStrip: function camera_removeFromFilmStrip(filename) {
-    this._photosTaken = this._photosTaken.filter(function(image) {
-      return image.name !== filename;
-    });
-    if (this._filmStripShown) {
-      this.showFilmStrip();
     }
   },
 
@@ -1035,6 +866,8 @@ document.addEventListener('mozvisibilitychange', function() {
   if (document.mozHidden) {
     Camera.stopPreview();
     Camera.cancelActivity(true);
+    if (this._secureMode) // If the lockscreen is locked
+      Filmstrip.clear();  // then forget everything when closing camera
   } else {
     Camera.startPreview();
   }
