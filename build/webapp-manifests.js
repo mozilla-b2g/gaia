@@ -1,7 +1,6 @@
 
 function debug(msg) {
-  if (DEBUG)
-    dump('-*- ' + msg + '\n');
+  //dump('-*- webapp-manifest.js: ' + msg + '\n');
 }
 
 let webappsTargetDir = Cc['@mozilla.org/file/local;1']
