@@ -48,7 +48,7 @@ contacts.Form = (function() {
         var fields = form.querySelectorAll('input.textfield');
         var removedFields =
           Array.slice(form.querySelectorAll('.removed input.textfield'));
-        this._textFields = Array.filter(fields, function (field) {
+        this._textFields = Array.filter(fields, function(field) {
           return removedFields.indexOf(field) == -1;
         });
       }
@@ -270,6 +270,7 @@ contacts.Form = (function() {
       var def = (currentElem === 'type') ? default_type : '';
       var defObj = (typeof(obj) === 'string') ? obj : obj[currentElem];
       var value = currField[currentElem] = defObj || def;
+      currField[currentElem] = utils.text.escapeHTML(value, true);
       if (!infoFromFB && value && nonEditableValues[value]) {
         infoFromFB = true;
       }
