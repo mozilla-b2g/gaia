@@ -369,7 +369,7 @@
       document.getElementById('icc-stk-exit').classList.remove('hidden');
       document.getElementById('icc-stk-app-back').classList.add('hidden');
 
-      if (!menu || !menu.title) {
+      if (!menu || (menu.items.length == 1 && menu.items[0] === null)) {
         debug('No STK available - hide & exit');
         document.getElementById('icc-mainheader').hidden = true;
         document.getElementById('icc-mainentry').hidden = true;
