@@ -13,7 +13,12 @@ Calendar.ns('Store').Setting = (function() {
      * Default option values.
      */
     defaults: {
-      syncFrequency: 15
+      syncFrequency: 15,
+      syncAlarm: {
+        alarmId: null,
+        start: null,
+        end: null
+      }
     },
 
     /**
@@ -27,6 +32,20 @@ Calendar.ns('Store').Setting = (function() {
      */
     get syncFrequency() {
       var name = 'syncFrequency';
+      if (name in this.cached) {
+        return this.cached[name].value;
+      } else {
+        return this.defaults[name];
+      }
+    },
+
+    /**
+     * Current sync alarm, if any.
+     *
+     * @return {Null|Object} sync alarm.
+     */
+    get syncAlarm() {
+      var name = 'syncAlarm';
       if (name in this.cached) {
         return this.cached[name].value;
       } else {
