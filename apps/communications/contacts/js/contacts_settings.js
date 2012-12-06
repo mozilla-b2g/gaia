@@ -328,8 +328,10 @@ contacts.Settings = (function() {
 
       },
       function onimport(num) {
-        addMessage(_('simContacts-imported2', {n: num}), after);
-        contacts.List.load();
+        if (num > 0) {
+          contacts.List.load();
+        }
+        addMessage(_('simContacts-imported3', {n: num}), after);
         Contacts.hideOverlay();
       },
       function onerror() {
