@@ -174,15 +174,15 @@ var OnCallHandler = (function onCallHandler() {
 
   /* === Settings === */
   var activePhoneSound = true;
-  SettingsListener.observe('audio.volume.notification', true, function(value) {
+  SettingsListener.observe('ring.enabled', true, function(value) {
     activePhoneSound = !!value;
   });
 
-  var selectedPhoneSound = 'style/ringtones/classic.ogg';
-  SettingsListener.observe('dialer.ringtone', 'classic.ogg', function(value) {
-    selectedPhoneSound = 'style/ringtones/' + value;
+  var selectedPhoneSound = '';
+  SettingsListener.observe('dialer.ringtone', '', function(value) {
+    selectedPhoneSound = value;
     ringtonePlayer.pause();
-    ringtonePlayer.src = selectedPhoneSound;
+    ringtonePlayer.src = value;
 
     if (ringing) {
       ringtonePlayer.play();
@@ -338,7 +338,7 @@ var OnCallHandler = (function onCallHandler() {
       }, 600);
     }
 
-    if (activePhoneSound && selectedPhoneSound) {
+    if (activePhoneSound) {
       ringtonePlayer.play();
       ringing = true;
     }
