@@ -841,7 +841,8 @@
   ],
   "720": [
     {"carrier":"Rogers","apn":"rogers-core-appl1.apn","mmsc":"http://mms.gprs.rogers.com","mmsproxy":"10.128.1.69","mmsport":"80","type":["default","supl","mms"]},
-    {"carrier":"Chatr Internet","apn":"chatrweb.apn","mmsc":"http://mms.chatrwireless.com","mmsproxy":"205.151.11.11","mmsport":"80","type":["default","mms"]}
+    {"carrier":"Chatr Internet","apn":"chatrweb.apn","mmsc":"http://mms.chatrwireless.com","mmsproxy":"205.151.11.11","mmsport":"80","type":["default","mms"]},
+    {"carrier":"SpeakOut","apn":"goam.com","user":"wapuser1","password":"wap","proxy":"10.128.1.69","port":"80","mmsc":"http://mms.gprs.rogers.com","mmsproxy":"10.128.1.69","mmsport":"80","type":["default","mms"]}
   ],
   "780": [
     {"carrier":"SaskTel","apn":"pda.stm.sk.ca","mmsc":"http://mms.sasktel.com","mmsproxy":"mig.sasktel.com","mmsport":"80","type":["default","supl","mms"]}
