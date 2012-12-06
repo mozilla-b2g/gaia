@@ -37,6 +37,10 @@ section[role="region"] {
  * the `.previous' and '.current' classes are set by settings.js
  */
 
+.uninit section[role="region"] {
+  transition: none;
+}
+
 section[role="region"] {
   transform: translateX(+100%);
   transition: transform .4s ease;
@@ -291,7 +295,7 @@ html[dir="rtl"] label[for^="pwd"] {
 /******************************************************************************
 * OS License
 */
- 
+
 iframe#os-license {
   width: 100%;
   height: calc(100% - 5rem);
