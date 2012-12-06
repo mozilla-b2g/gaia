@@ -8,8 +8,7 @@ var StatusBar = {
   ELEMENTS: ['notification', 'time',
     'battery', 'wifi', 'data', 'flight-mode', 'signal', 'network-activity',
     'tethering', 'alarm', 'bluetooth', 'mute', 'headphones',
-    'recording', 'sms', 'geolocation', 'usb', 'label', 'system-downloads',
-    'call-forwarding'],
+    'recording', 'sms', 'geolocation', 'usb', 'label', 'system-downloads'],
 
   /* Timeout for 'recently active' indicators */
   kActiveIndicatorTimeout: 60 * 1000,
@@ -78,8 +77,7 @@ var StatusBar = {
       'tethering.wifi.connectedClients': ['tethering'],
       'tethering.usb.connectedClients': ['tethering'],
       'audio.volume.master': ['mute'],
-      'alarm.enabled': ['alarm'],
-      'ril.cf.unconditional.enabled': ['callForwarding']
+      'alarm.enabled': ['alarm']
     };
 
     var self = this;
@@ -512,11 +510,6 @@ var StatusBar = {
     systemDownloads: function sb_updatesystemDownloads() {
       var icon = this.icons.systemDownloads;
       icon.hidden = (this.systemDownloadsCount === 0);
-    },
-
-    callForwarding: function sb_updateCallForwarding() {
-      var icon = this.icons.callForwarding;
-      icon.hidden = !this.settingValues['ril.cf.unconditional.enabled'];
     }
   },
 
