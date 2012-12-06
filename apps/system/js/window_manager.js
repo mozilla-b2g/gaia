@@ -275,6 +275,8 @@ var WindowManager = (function() {
   function setOpenFrame(frame) {
     if (openFrame) {
       removeFrameClasses(openFrame);
+    } else if (openTimer) {
+      clearTimeout(openTimer);
     }
 
     openFrame = frame;
@@ -287,6 +289,8 @@ var WindowManager = (function() {
       removeFrameClasses(closeFrame);
       // closeFrame should not be set to active
       closeFrame.classList.remove('active');
+    } else if (closeTimer) {
+      clearTimeout(closeTimer);
     }
 
     closeFrame = frame;
@@ -315,7 +319,8 @@ var WindowManager = (function() {
 
     if (classList.contains('inlineActivity')) {
       if (classList.contains('active')) {
-        openFrame.focus();
+        if (openFrame)
+          openFrame.focus();
 
         setOpenFrame(null);
       } else {
@@ -330,11 +335,14 @@ var WindowManager = (function() {
         classList.remove('closing');
         classList.add('closing-card');
 
-        openFrame.classList.remove('opening-card');
-        openFrame.classList.add('opening-switching');
+        if (openFrame) {
+          openFrame.classList.remove('opening-card');
+          openFrame.classList.add('opening-switching');
+        }
       } else if (classList.contains('closing-card')) {
         windowClosed(frame);
         setTimeout(closeCallback);
+        closeCallback = null;
 
       } else if (classList.contains('opening-switching')) {
         // If the opening app need to be full screen, switch to full screen
@@ -351,7 +359,9 @@ var WindowManager = (function() {
         });
       } else if (classList.contains('opening')) {
         windowOpened(frame);
+
         setTimeout(openCallback);
+        openCallback = null;
 
         setCloseFrame(null);
         setOpenFrame(null);
@@ -363,12 +373,16 @@ var WindowManager = (function() {
 
     if (classList.contains('opening')) {
       windowOpened(frame);
+
       setTimeout(openCallback);
+      openCallback = null;
 
       setOpenFrame(null);
     } else if (classList.contains('closing')) {
       windowClosed(frame);
+
       setTimeout(closeCallback);
+      closeCallback = null;
 
       setCloseFrame(null);
     }
@@ -637,7 +651,13 @@ var WindowManager = (function() {
       //   setFrameBackground(openFrame, gotBackground, true);
       // will simply work here.
 
-      openCallback();
+      // Call the openCallback only once. We have to use tmp var as
+      // openCallback can be a method calling the callback
+      // (like the `removeFrame` callback in `kill()` ).
+      var tmpCallback = openCallback;
+      openCallback = null;
+      tmpCallback();
+
       windows.classList.add('active');
       openFrame.classList.add('homescreen');
       openFrame.focus();
@@ -654,6 +674,8 @@ var WindowManager = (function() {
     setFrameBackground(openFrame, function gotBackground() {
       // Start the transition when this async/sync callback is called.
       openTimer = setTimeout(function startOpeningTransition() {
+        if (!openFrame)
+          return;
         if (!screenElement.classList.contains('switch-app')) {
           openFrame.classList.add('opening');
         } else {
@@ -878,8 +900,7 @@ var WindowManager = (function() {
     if (!isFirstRunApplication) {
       toggleHomescreen(true);
     }
-    clearTimeout(openTimer);
-    clearTimeout(closeTimer);
+
     setOpenFrame(null);
     setCloseFrame(null);
     screenElement.classList.remove('switch-app');
@@ -1109,10 +1130,12 @@ var WindowManager = (function() {
     if (openFrame == frame) {
       setOpenFrame(null);
       setTimeout(openCallback);
+      openCallback = null;
     }
     if (closeFrame == frame) {
       setCloseFrame(null);
       setTimeout(closeCallback);
+      closeCallback = null;
     }
 
     delete runningApps[origin];
@@ -1452,6 +1475,7 @@ var WindowManager = (function() {
       setDisplayedApp(url);
     });
   }
+
 
   // Stop running the app with the specified origin
   function kill(origin, callback) {
