@@ -29,8 +29,6 @@
     }
   });
 
-  // XXX: This workaround could be removed once 
-  // https://bugzilla.mozilla.org/show_bug.cgi?id=811222 landed
   function onCall() {
     var telephony = window.navigator.mozTelephony;
     if (!telephony)
@@ -41,24 +39,6 @@
     });
   };
 
-  // XXX: This workaround could be removed once 
-  // https://bugzilla.mozilla.org/show_bug.cgi?id=811222 landed
-  function onRing() {
-    var telephony = window.navigator.mozTelephony;
-    if (!telephony)
-      return false;
-
-    return telephony.calls.some(function callIterator(call) {
-        return (call.state == 'incoming');
-    });
-  }
-  
-  // XXX: This workaround could be removed once 
-  // https://bugzilla.mozilla.org/show_bug.cgi?id=811222 landed
-  function onContentPlaying() {
-    return false;
-  }
-
   function onBTEarphoneConnected() {
     var bluetooth = navigator.mozBluetooth;
     if (!bluetooth)
@@ -68,22 +48,12 @@
     return navigator.mozBluetooth.isConnected(0x111E);
   };
 
-  // Platform doesn't provide the maximum value of each channel
-  // therefore, hard code here.
-  var MAX_VOLUME = {
-    'alarm': 15,
-    'notification': 15,
-    'telephony': 5,
-    'content': 15,
-    'bt_sco': 15
-  };
-
-  // Please refer https://wiki.mozilla.org/WebAPI/AudioChannels > Settings
   var currentVolume = {
-    'alarm': 15,
-    'notification': 15,
-    'telephony': 5,
-    'content': 15,
+    'system': 10,
+    'alarm': 10,
+    'notification': 10,
+    'voice_call': 10,
+    'music': 10,
     'bt_sco': 15
   };
   var pendingRequestCount = 0;
@@ -92,33 +62,38 @@
   // OFF -> VIBRATION -> MUTE
   var muteState = 'OFF';
 
-  for (var channel in currentVolume) {
-    var setting = 'audio.volume.' + channel;
-    SettingsListener.observe(setting, 5, function(volume) {
-      if (pendingRequestCount)
-        return;
+  SettingsListener.observe('audio.volume.system', 5, function(volume) {
+    if (pendingRequestCount)
+      return;
 
-      var max = MAX_VOLUME[channel];
-      currentVolume[channel] = parseInt(Math.max(0, Math.min(max, volume)), 10);
-    });
-  }
+    currentVolume['system'] = volume;
+  });
+
+  SettingsListener.observe('audio.volume.music', 5, function(volume) {
+    if (pendingRequestCount)
+      return;
+
+    currentVolume['music'] = volume;
+  });
+
+  SettingsListener.observe('audio.volume.voice_call', 5, function(volume) {
+    if (pendingRequestCount)
+      return;
+
+    currentVolume['voice_call'] = volume;
+  });
+
+  SettingsListener.observe('audio.volume.notification', 5, function(volume) {
+    if (pendingRequestCount)
+      return;
+
+    currentVolume['notification'] = volume;
+  });
 
   var activeTimeout = 0;
-
   function changeVolume(delta, channel) {
-    // XXX: These status-checking functions could be removed when
-    // Bug 811222 landed
-    if (!channel) {
-      if (onContentPlaying()) {
-        channel = 'content';
-      } else if (onRing()) {
-        channel = 'notification';
-      } else if (onCall()) {
-        channel = 'telephony';
-      } else {
-        channel = 'notification';
-      }
-    }
+    if (!channel)
+      channel = 'system';
 
     if (currentVolume[channel] == 0 ||
         ((currentVolume[channel] + delta) <= 0)) {
@@ -139,8 +114,11 @@
     }
 
     var volume = currentVolume[channel] + delta;
-    
-    currentVolume[channel] = volume = Math.max(0, Math.min(MAX_VOLUME[channel], volume));
+    if (channel != 'bt_sco') {
+      currentVolume[channel] = volume = Math.max(0, Math.min(10, volume));
+    } else {
+      currentVolume[channel] = volume = Math.max(0, Math.min(15, volume));
+    }
 
     var overlay = document.getElementById('system-overlay');
     var notification = document.getElementById('volume');
@@ -196,10 +174,28 @@
 
     notification.dataset.channel = channel;
 
-    var settingObject = {};
-    settingObject['audio.volume.' + channel] = volume;
-      
-    req = SettingsListener.getSettingsLock().set(settingObject);  
+    if (channel == 'bt_sco') {
+      req = SettingsListener.getSettingsLock().set({
+        'audio.volume.bt_sco': currentVolume[channel]
+      });
+    } else {
+      req = SettingsListener.getSettingsLock().set({
+        'audio.volume.system': currentVolume[channel]
+      });
+      // XXX: https://bugzilla.mozilla.org/show_bug.cgi?id=810780
+      // Before this fix is landed, set to all kind of volume at the same time
+      // to avoid some regression.
+      // Note: alarm is excluded here.
+      SettingsListener.getSettingsLock().set({
+        'audio.volume.music': currentVolume[channel]
+      });
+      SettingsListener.getSettingsLock().set({
+        'audio.volume.voice_call': currentVolume[channel]
+      });
+      SettingsListener.getSettingsLock().set({
+        'audio.volume.notification': currentVolume[channel]
+      });
+    }
 
     req.onsuccess = function onSuccess() {
       pendingRequestCount--;
