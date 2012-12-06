@@ -244,7 +244,6 @@ var Connectivity = (function(window, document, undefined) {
     var data = gMobileConnection.data ? gMobileConnection.data.network : null;
     var name = data ? (data.shortName || data.longName) : '';
     document.getElementById('data-desc').textContent = name;
-    document.getElementById('call-desc').textContent = name;
   }
 
   function updateBluetooth() {
