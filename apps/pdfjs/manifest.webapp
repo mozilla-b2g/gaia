@@ -1,35 +1,37 @@
 {
-  "name": "PDF Viewer",
-  "description": "Portable Document Format(PDF) Viewer",
-  "type": "certified",
-  "developer": {
-    "name": "The pdf.js Team",
-    "url": "https://github.com/mozilla/pdf.js"
-  },
-  "locales": {
-    "en-US": {
-      "name": "PDF Viewer",
-      "description": "Portable Document Format(PDF) Viewer"
-    }
-  },
-  "default_locale": "en-US",
-  "icons": {
-    "48": "/icon.png",
-    "64": "/icon64.png"
-  },
-  "orientation": "portrait-primary",
   "activities": {
-    "view" : {
+    "view": {
+      "returnValue": true, 
+      "href": "/content/web/viewer.html", 
+      "disposition": "inline", 
       "filters": {
         "type": "application/pdf"
-      },
-      "disposition": "inline",
-      "href": "/content/web/viewer.html",
-      "returnValue": true
+      }
     }
-  },
+  }, 
+  "name": "PDF Viewer", 
+  "default_locale": "en-US", 
+  "icons": {
+    "64": "/icon64.png", 
+    "48": "/icon.png"
+  }, 
+  "orientation": "portrait-primary", 
+  "description": "Portable Document Format(PDF) Viewer", 
   "permissions": {
-    "systemXHR":{},
-    "settings":{ "access": "readonly" }
+    "systemXHR": {}, 
+    "settings": {
+      "access": "readonly"
+    }
+  }, 
+  "type": "certified", 
+  "locales": {
+    "en-US": {
+      "name": "PDF Viewer", 
+      "description": "Portable Document Format(PDF) Viewer"
+    }
+  }, 
+  "developer": {
+    "url": "https://github.com/mozilla/pdf.js", 
+    "name": "The pdf.js Team"
   }
 }

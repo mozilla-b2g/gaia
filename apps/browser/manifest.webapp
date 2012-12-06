@@ -1,45 +1,47 @@
 {
-  "name": "Browser",
-  "description": "Gaia Web Browser",
-  "launch_path": "/index.html",
-  "type": "certified",
-  "developer": {
-    "name": "The Gaia Team",
-    "url": "https://github.com/mozilla-b2g/gaia"
-  },
-  "permissions": {
-    "browser":{},
-    "systemXHR":{},
-    "settings":{ "access": "readonly" }
-  },
-  "locales": {
-    "ar": {
-      "name": "المتصفح",
-      "description": "Gaia متصفح الويب"
-    },
-    "en-US": {
-      "name": "Browser",
-      "description": "Gaia Web Browser"
-    },
-    "fr": {
-      "name": "Navigateur",
-      "description": "Navigateur Web Gaia"
-    },
-    "zh-TW": {
-      "name": "網路瀏覽器",
-      "description": "Gaia 網路瀏覽器"
-    }
-  },
-  "default_locale": "en-US",
-  "icons": {
-    "120": "/style/icons/Browser.png",
-    "60": "/style/icons/60/Browser.png"
-  },
   "activities": {
     "view": {
       "filters": {
         "type": "url"
       }
     }
+  }, 
+  "name": "Browser", 
+  "default_locale": "en-US", 
+  "icons": {
+    "120": "/style/icons/Browser.png", 
+    "60": "/style/icons/60/Browser.png"
+  }, 
+  "description": "Gaia Web Browser", 
+  "launch_path": "/index.html", 
+  "permissions": {
+    "systemXHR": {}, 
+    "settings": {
+      "access": "readonly"
+    }, 
+    "browser": {}
+  }, 
+  "type": "certified", 
+  "locales": {
+    "zh-TW": {
+      "name": "\u7db2\u8def\u700f\u89bd\u5668", 
+      "description": "Gaia \u7db2\u8def\u700f\u89bd\u5668"
+    }, 
+    "en-US": {
+      "name": "Browser", 
+      "description": "Gaia Web Browser"
+    }, 
+    "ar": {
+      "name": "\u0627\u0644\u0645\u062a\u0635\u0641\u062d", 
+      "description": "Gaia \u0645\u062a\u0635\u0641\u062d \u0627\u0644\u0648\u064a\u0628"
+    }, 
+    "fr": {
+      "name": "Navigateur", 
+      "description": "Navigateur Web Gaia"
+    }
+  }, 
+  "developer": {
+    "url": "https://github.com/mozilla-b2g/gaia", 
+    "name": "The Gaia Team"
   }
 }

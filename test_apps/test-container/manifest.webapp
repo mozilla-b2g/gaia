@@ -1,37 +1,41 @@
 {
-  "name": "Test Container",
-  "type": "certified",
-  "description": "Test framework container",
-  "launch_path": "/index.html",
-  "developer": {
-    "name": "The Ateam",
-    "url": "https://wiki.mozilla.org/Auto-tools"
-  },
+  "name": "Test Container", 
+  "default_locale": "en-US", 
+  "description": "Test framework container", 
+  "launch_path": "/index.html", 
   "permissions": {
-    "alarms": {},
-    "browser":{},
-    "power":{},
-    "webapps-manage":{},
-    "mobileconnection":{},
-    "bluetooth":{},
-    "telephony":{},
-    "voicemail":{},
-    "device-storage:pictures":{ "access": "readwrite" },
-    "settings":{ "access": "readwrite" },
-    "storage":{},
-    "camera":{},
-    "geolocation":{},
-    "wifi-manage":{},
-    "desktop-notification":{},
-    "idle":{},
-    "network-events":{},
-    "embed-apps":{}
-  },
+    "geolocation": {}, 
+    "device-storage:pictures": {
+      "access": "readwrite"
+    }, 
+    "desktop-notification": {}, 
+    "wifi-manage": {}, 
+    "power": {}, 
+    "settings": {
+      "access": "readwrite"
+    }, 
+    "voicemail": {}, 
+    "storage": {}, 
+    "embed-apps": {}, 
+    "bluetooth": {}, 
+    "telephony": {}, 
+    "idle": {}, 
+    "camera": {}, 
+    "network-events": {}, 
+    "alarms": {}, 
+    "mobileconnection": {}, 
+    "webapps-manage": {}, 
+    "browser": {}
+  }, 
+  "type": "certified", 
   "locales": {
     "en-US": {
-      "name": "Test Container",
+      "name": "Test Container", 
       "description": "Test framework container"
     }
-  },
-  "default_locale": "en-US"
+  }, 
+  "developer": {
+    "url": "https://wiki.mozilla.org/Auto-tools", 
+    "name": "The Ateam"
+  }
 }

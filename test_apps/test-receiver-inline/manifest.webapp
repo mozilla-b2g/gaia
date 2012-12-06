@@ -1,21 +1,21 @@
 {
-  "name": "Test reciever (inline)",
-  "description": "Dummy app to respond to Test web activities",
-  "launch_path": "/index.html",
-  "developer": {
-    "name": "The Gaia Team",
-    "url": "https://github.com/mozilla-b2g/gaia"
-  },
   "activities": {
     "test": {
+      "returnValue": true, 
+      "disposition": "inline", 
       "filters": {
         "type": "inline"
-       },
-      "disposition": "inline",
-      "returnValue": true
+      }
     }
-  },
+  }, 
+  "name": "Test reciever (inline)", 
   "icons": {
     "128": "/style/icons/Blank.png"
+  }, 
+  "description": "Dummy app to respond to Test web activities", 
+  "launch_path": "/index.html", 
+  "developer": {
+    "url": "https://github.com/mozilla-b2g/gaia", 
+    "name": "The Gaia Team"
   }
 }

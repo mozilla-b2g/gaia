@@ -1,33 +1,33 @@
 {
-  "name": "Tasks",
-  "description": "Gaia Tasks",
-  "launch_path": "/index.html",
-  "developer": {
-    "name": "The Gaia Team",
-    "url": "https://github.com/mozilla-b2g/gaia"
-  },
+  "name": "Tasks", 
+  "default_locale": "en-US", 
+  "icons": {
+    "120": "/style/icons/Tasks.png", 
+    "60": "/style/icons/60/Tasks.png"
+  }, 
+  "orientation": "portrait-primary", 
+  "description": "Gaia Tasks", 
+  "launch_path": "/index.html", 
   "locales": {
-    "ar": {
-      "name": "Tasks",
-      "description": "Gaia Tasks"
-    },
-    "en-US": {
-      "name": "Tasks",
-      "description": "Gaia Tasks"
-    },
-    "fr": {
-      "name": "Tasks",
-      "description": "Gaia Tasks"
-    },
     "zh-TW": {
-      "name": "Tasks",
+      "name": "Tasks", 
+      "description": "Gaia Tasks"
+    }, 
+    "en-US": {
+      "name": "Tasks", 
+      "description": "Gaia Tasks"
+    }, 
+    "ar": {
+      "name": "Tasks", 
+      "description": "Gaia Tasks"
+    }, 
+    "fr": {
+      "name": "Tasks", 
       "description": "Gaia Tasks"
     }
-  },
-  "default_locale": "en-US",
-  "icons": {
-    "120": "/style/icons/Tasks.png",
-    "60": "/style/icons/60/Tasks.png"
-  },
-  "orientation": "portrait-primary"
+  }, 
+  "developer": {
+    "url": "https://github.com/mozilla-b2g/gaia", 
+    "name": "The Gaia Team"
+  }
 }

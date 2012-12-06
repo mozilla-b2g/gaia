@@ -1,62 +1,74 @@
 {
-  "name": "Gallery",
-  "description": "Gaia Gallery",
-  "type": "certified",
-  "launch_path": "/index.html",
-  "developer": {
-    "name": "The Gaia Team",
-    "url": "https://github.com/mozilla-b2g/gaia"
-  },
-  "permissions": {
-    "device-storage:pictures":{ "access": "readwrite" },
-    "device-storage:videos":{ "access": "readwrite" },
-    "settings":{ "access": "readonly" }
-  },
   "activities": {
     "browse": {
+      "disposition": "window", 
       "filters": {
         "type": "photos"
-       },
-      "disposition": "window"
-    },
-    "pick": {
-      "filters": {
-        "type": ["image/jpeg", "image/png"]
-       },
-      "disposition": "inline",
-      "returnValue": true,
-      "href": "/index.html#pick"
-    },
+      }
+    }, 
     "open": {
+      "href": "/open.html", 
+      "returnValue": true, 
+      "disposition": "inline", 
       "filters": {
-        "type": ["image/jpeg", "image/png"]
-       },
-      "disposition": "inline",
-      "returnValue": true,
-      "href": "/open.html"
+        "type": [
+          "image/jpeg", 
+          "image/png"
+        ]
+      }
+    }, 
+    "pick": {
+      "href": "/index.html#pick", 
+      "returnValue": true, 
+      "disposition": "inline", 
+      "filters": {
+        "type": [
+          "image/jpeg", 
+          "image/png"
+        ]
+      }
     }
-  },
-  "locales": {
-    "ar": {
-      "name": "إستديو",
-      "description": "Gaia إستديو"
-    },
-    "en-US": {
-      "name": "Gallery",
-      "description": "Gaia Gallery"
-    },
-    "fr": {
-      "name": "Galerie",
-      "description": "Galerie Gaia"
-    },
-    "zh-TW": {
-      "name": "相簿",
-      "description": "Gaia 相簿"
-    }
-  },
-  "default_locale": "en-US",
+  }, 
+  "name": "Gallery", 
+  "default_locale": "en-US", 
   "icons": {
-    "120": "/style/icons/Gallery.png",
+    "120": "/style/icons/Gallery.png", 
     "60": "/style/icons/60/Gallery.png"
+  }, 
+  "description": "Gaia Gallery", 
+  "launch_path": "/index.html", 
+  "permissions": {
+    "device-storage:videos": {
+      "access": "readwrite"
+    }, 
+    "device-storage:pictures": {
+      "access": "readwrite"
+    }, 
+    "settings": {
+      "access": "readonly"
+    }
+  }, 
+  "type": "certified", 
+  "locales": {
+    "zh-TW": {
+      "name": "\u76f8\u7c3f", 
+      "description": "Gaia \u76f8\u7c3f"
+    }, 
+    "en-US": {
+      "name": "Gallery", 
+      "description": "Gaia Gallery"
+    }, 
+    "ar": {
+      "name": "\u0625\u0633\u062a\u062f\u064a\u0648", 
+      "description": "Gaia \u0625\u0633\u062a\u062f\u064a\u0648"
+    }, 
+    "fr": {
+      "name": "Galerie", 
+      "description": "Galerie Gaia"
+    }
+  }, 
+  "developer": {
+    "url": "https://github.com/mozilla-b2g/gaia", 
+    "name": "The Gaia Team"
   }
 }

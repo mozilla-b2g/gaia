@@ -1,18 +1,18 @@
 {
-  "name": "Share Receiver",
-  "description": "Dummy app to respond to Share web activities",
-  "developer": {
-    "name": "The Gaia Team",
-    "url": "https://github.com/mozilla-b2g/gaia"
-  },
   "activities": {
     "share": {
+      "href": "/index.html", 
+      "returnValue": true, 
+      "disposition": "inline", 
       "filters": {
         "type": "image/*"
-       },
-      "disposition": "inline",
-      "returnValue": true,
-      "href": "/index.html"
+      }
     }
-  }
+  }, 
+  "developer": {
+    "url": "https://github.com/mozilla-b2g/gaia", 
+    "name": "The Gaia Team"
+  }, 
+  "name": "Share Receiver", 
+  "description": "Dummy app to respond to Share web activities"
 }

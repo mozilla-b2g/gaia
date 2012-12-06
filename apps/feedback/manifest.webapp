@@ -1,28 +1,30 @@
 {
-  "name": "Feedback",
-  "default_locale": "en-US",
-  "type": "certified",
-  "description": "Gaia Feedback",
-  "launch_path": "/index.html",
-  "locales": {
-    "en-US": {
-      "name": "Feedback",
-      "description": "Gaia Feedback"
-    }
-  },
-  "permissions": {
-    "device-storage:apps":{ "access": "readwrite" },
-    "webapps-manage":{},
-    "settings": { "access": "readonly" }
-  },
+  "name": "Feedback", 
+  "default_locale": "en-US", 
   "icons": {
     "60": "/style/icons/60/Feedback.png"
-  },
+  }, 
+  "orientation": "portrait-primary", 
   "developer": {
-    "url": "https://github.com/mozilla-b2g/gaia",
+    "url": "https://github.com/mozilla-b2g/gaia", 
     "name": "The Gaia Team"
-  },
-  "orientation": "portrait-primary"
+  }, 
+  "launch_path": "/index.html", 
+  "permissions": {
+    "settings": {
+      "access": "readonly"
+    }, 
+    "webapps-manage": {}, 
+    "device-storage:apps": {
+      "access": "readwrite"
+    }
+  }, 
+  "type": "certified", 
+  "locales": {
+    "en-US": {
+      "name": "Feedback", 
+      "description": "Gaia Feedback"
+    }
+  }, 
+  "description": "Gaia Feedback"
 }
-
-

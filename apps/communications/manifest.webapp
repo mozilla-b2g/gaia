@@ -1,116 +1,138 @@
 {
-  "name": "Communications",
-  "description": "Gaia Communications",
-  "type": "certified",
-  "launch_path": "/",
-  "developer": {
-    "name": "The Gaia Team",
-    "url": "https://github.com/mozilla-b2g/gaia"
-  },
-  "entry_points": {
-    "dialer": {
-      "launch_path": "/dialer/index.html#keyboard-view",
-      "name": "Phone",
-      "icons": {
-        "120": "/dialer/style/icons/Dialer.png",
-        "60": "/dialer/style/icons/60/Dialer.png"
-      },
-      "locales": {
-        "ar": {
-          "name": "هاتف",
-          "description": "Gaia هاتف"
-        },
-        "en-US": {
-          "name": "Phone",
-          "description": "Gaia Phone"
-        },
-        "fr": {
-          "name": "téléphone",
-          "description": "téléphone Gaia"
-        },
-        "zh-TW": {
-          "name": "電話",
-          "description": "Gaia 電話"
-        }
-      }
-    },
-    "contacts": {
-      "launch_path": "/contacts/index.html",
-      "name": "Contacts",
-      "icons": {
-        "120": "/contacts/style/icons/Contacts.png",
-        "60": "/contacts/style/icons/60/Contacts.png"
-      },
-      "locales": {
-        "ar": {
-          "name": "اتصالات",
-          "description": "Gaia اتصالات"
-        },
-        "en-US": {
-          "name": "Contacts",
-          "description": "Gaia Contacts"
-        },
-        "fr": {
-          "name": "Contacts",
-          "description": "Contacts Gaia"
-        },
-        "zh-TW": {
-          "name": "聯絡人",
-          "description": "Gaia 聯絡人"
-        }
-      }
-    },
-    "ftu": {
-      "launch_path": "/ftu/index.html",
-      "name": "FTU",
-      "fullscreen": "true"
-    }
-  },
-  "permissions": {
-    "telephony":{},
-    "voicemail":{},
-    "contacts":{ "access": "readwrite" },
-    "mobileconnection":{},
-    "attention":{},
-    "settings":{ "access": "readwrite" },
-    "desktop-notification":{},
-    "alarms": {},
-    "systemXHR": {},
-    "wifi-manage":{},
-    "time": {},
-    "audio":{ "channels": ["telephony", "ringer"] }
-  },
-  "orientation": "portrait-primary",
   "activities": {
-    "pick": {
-      "filters": {
-        "type": ["webcontacts/contact","webcontacts/email"]
-       },
-      "disposition": "inline",
-      "href": "/contacts/index.html?pick",
-      "returnValue": true
-    },
     "new": {
+      "returnValue": true, 
+      "href": "/contacts/index.html?new", 
+      "disposition": "window", 
       "filters": {
         "type": "webcontacts/contact"
-      },
-      "disposition": "window",
-      "href": "/contacts/index.html?new",
-      "returnValue": true
-    },
+      }
+    }, 
     "dial": {
+      "href": "/dialer/index.html#keyboard-view", 
+      "disposition": "window", 
       "filters": {
         "type": "webtelephony/number"
-      },
-      "href": "/dialer/index.html#keyboard-view",
-      "disposition": "window"
+      }
+    }, 
+    "pick": {
+      "returnValue": true, 
+      "href": "/contacts/index.html?pick", 
+      "disposition": "inline", 
+      "filters": {
+        "type": [
+          "webcontacts/contact", 
+          "webcontacts/email"
+        ]
+      }
     }
-  },
+  }, 
+  "entry_points": {
+    "dialer": {
+      "launch_path": "/dialer/index.html#keyboard-view", 
+      "name": "Phone", 
+      "locales": {
+        "zh-TW": {
+          "name": "\u96fb\u8a71", 
+          "description": "Gaia \u96fb\u8a71"
+        }, 
+        "en-US": {
+          "name": "Phone", 
+          "description": "Gaia Phone"
+        }, 
+        "ar": {
+          "name": "\u0647\u0627\u062a\u0641", 
+          "description": "Gaia \u0647\u0627\u062a\u0641"
+        }, 
+        "fr": {
+          "name": "t\u00e9l\u00e9phone", 
+          "description": "t\u00e9l\u00e9phone Gaia"
+        }
+      }, 
+      "icons": {
+        "120": "/dialer/style/icons/Dialer.png", 
+        "60": "/dialer/style/icons/60/Dialer.png"
+      }
+    }, 
+    "ftu": {
+      "fullscreen": "true", 
+      "launch_path": "/ftu/index.html", 
+      "name": "FTU"
+    }, 
+    "contacts": {
+      "launch_path": "/contacts/index.html", 
+      "name": "Contacts", 
+      "locales": {
+        "zh-TW": {
+          "name": "\u806f\u7d61\u4eba", 
+          "description": "Gaia \u806f\u7d61\u4eba"
+        }, 
+        "en-US": {
+          "name": "Contacts", 
+          "description": "Gaia Contacts"
+        }, 
+        "ar": {
+          "name": "\u0627\u062a\u0635\u0627\u0644\u0627\u062a", 
+          "description": "Gaia \u0627\u062a\u0635\u0627\u0644\u0627\u062a"
+        }, 
+        "fr": {
+          "name": "Contacts", 
+          "description": "Contacts Gaia"
+        }
+      }, 
+      "icons": {
+        "120": "/contacts/style/icons/Contacts.png", 
+        "60": "/contacts/style/icons/60/Contacts.png"
+      }
+    }
+  }, 
+  "name": "Communications", 
+  "orientation": "portrait-primary", 
+  "description": "Gaia Communications", 
   "messages": [
-     { "telephony-new-call": "/dialer/index.html#keyboard-view" },
-     { "bluetooth-dialer-command": "/dialer/index.html#keyboard-view" },
-     { "headset-button": "/dialer/index.html#keyboard-view" },
-     { "notification": "/dialer/index.html#keyboard-view" },
-     { "alarm": "/facebook/fb_sync.html" }
-  ]
+    {
+      "telephony-new-call": "/dialer/index.html#keyboard-view"
+    }, 
+    {
+      "bluetooth-dialer-command": "/dialer/index.html#keyboard-view"
+    }, 
+    {
+      "headset-button": "/dialer/index.html#keyboard-view"
+    }, 
+    {
+      "notification": "/dialer/index.html#keyboard-view"
+    }, 
+    {
+      "alarm": "/facebook/fb_sync.html"
+    }
+  ], 
+  "launch_path": "/", 
+  "permissions": {
+    "desktop-notification": {}, 
+    "wifi-manage": {}, 
+    "settings": {
+      "access": "readwrite"
+    }, 
+    "voicemail": {}, 
+    "attention": {}, 
+    "contacts": {
+      "access": "readwrite"
+    }, 
+    "telephony": {}, 
+    "systemXHR": {}, 
+    "time": {}, 
+    "alarms": {}, 
+    "mobileconnection": {}, 
+    "audio": {
+      "channels": [
+        "telephony", 
+        "ringer"
+      ]
+    }
+  }, 
+  "type": "certified", 
+  "developer": {
+    "url": "https://github.com/mozilla-b2g/gaia", 
+    "name": "The Gaia Team"
+  }
 }

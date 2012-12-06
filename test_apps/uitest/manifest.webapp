@@ -1,19 +1,23 @@
 {
-  "name": "UI tests",
-  "launch_path": "/index.html",
-  "type": "certified",
-  "developer": {
-    "name": "The Gaia Team",
-    "url": "https://github.com/mozilla-b2g/gaia"
-  },
+  "name": "UI tests", 
   "icons": {
     "120": "/style/icons/Uitest.png"
-  },
+  }, 
+  "launch_path": "/index.html", 
+  "developer": {
+    "url": "https://github.com/mozilla-b2g/gaia", 
+    "name": "The Gaia Team"
+  }, 
+  "type": "certified", 
   "permissions": {
-    "backgroundservice":{},
-    "attention":{},
-    "contacts":{ "access": "readwrite" },
-    "settings":{ "access": "readwrite" },
-    "desktop-notification":{}
+    "desktop-notification": {}, 
+    "attention": {}, 
+    "backgroundservice": {}, 
+    "settings": {
+      "access": "readwrite"
+    }, 
+    "contacts": {
+      "access": "readwrite"
+    }
   }
 }

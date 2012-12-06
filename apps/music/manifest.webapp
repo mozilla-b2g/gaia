@@ -1,39 +1,47 @@
 {
-  "name": "Music",
-  "description": "Gaia Music",
-  "type": "certified",
-  "launch_path": "/index.html",
-  "developer": {
-    "name": "The Gaia Team",
-    "url": "https://github.com/mozilla-b2g/gaia"
-  },
-  "permissions": {
-    "device-storage:music":{ "access": "readwrite" },
-    "settings":{ "access": "readonly" },
-    "audio":{ "channels": ["content"] }
-  },
-  "locales": {
-    "ar": {
-      "name": "موسيقى",
-      "description": "Gaia موسيقى"
-    },
-    "en-US": {
-      "name": "Music",
-      "description": "Gaia Music"
-    },
-    "fr": {
-      "name": "Musique",
-      "description": "Lecteur audio Gaia"
-    },
-    "zh-TW": {
-      "name": "音樂",
-      "description": "Gaia 音樂"
-    }
-  },
-  "default_locale": "en-US",
+  "name": "Music", 
+  "default_locale": "en-US", 
   "icons": {
-    "120": "/style/icons/Music.png",
+    "120": "/style/icons/Music.png", 
     "60": "/style/icons/60/Music.png"
-  },
-  "orientation": "portrait-primary"
+  }, 
+  "orientation": "portrait-primary", 
+  "description": "Gaia Music", 
+  "launch_path": "/index.html", 
+  "permissions": {
+    "device-storage:music": {
+      "access": "readwrite"
+    }, 
+    "audio": {
+      "channels": [
+        "content"
+      ]
+    }, 
+    "settings": {
+      "access": "readonly"
+    }
+  }, 
+  "type": "certified", 
+  "locales": {
+    "zh-TW": {
+      "name": "\u97f3\u6a02", 
+      "description": "Gaia \u97f3\u6a02"
+    }, 
+    "en-US": {
+      "name": "Music", 
+      "description": "Gaia Music"
+    }, 
+    "ar": {
+      "name": "\u0645\u0648\u0633\u064a\u0642\u0649", 
+      "description": "Gaia \u0645\u0648\u0633\u064a\u0642\u0649"
+    }, 
+    "fr": {
+      "name": "Musique", 
+      "description": "Lecteur audio Gaia"
+    }
+  }, 
+  "developer": {
+    "url": "https://github.com/mozilla-b2g/gaia", 
+    "name": "The Gaia Team"
+  }
 }

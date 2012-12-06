@@ -1,43 +1,47 @@
 {
-  "name": "Calendar",
-  "description": "Gaia Calendar",
-  "type": "certified",
-  "launch_path": "/index.html",
-  "developer": {
-    "name": "The Gaia Team",
-    "url": "https://github.com/mozilla-b2g/gaia"
-  },
-  "messages": [
-     { "alarm": "/index.html" }
-  ],
-  "permissions": {
-    "systemXHR":{},
-    "settings":{ "access": "readonly" },
-    "alarms":{},
-    "desktop-notification":{}
-  },
-  "locales": {
-    "ar": {
-      "name": "Calendar",
-      "description": "Gaia Calendar"
-    },
-    "en-US": {
-      "name": "Calendar",
-      "description": "Gaia Calendar"
-    },
-    "fr": {
-      "name": "Agenda",
-      "description": "Agenda Gaia"
-    },
-    "zh-TW": {
-      "name": "Calendar",
-      "description": "Gaia Calendar"
-    }
-  },
-  "default_locale": "en-US",
+  "name": "Calendar", 
+  "default_locale": "en-US", 
   "icons": {
-    "120": "/style/icons/Calendar.png",
+    "120": "/style/icons/Calendar.png", 
     "60": "/style/icons/60/Calendar.png"
-  },
-  "orientation": "portrait-primary"
+  }, 
+  "orientation": "portrait-primary", 
+  "description": "Gaia Calendar", 
+  "messages": [
+    {
+      "alarm": "/index.html"
+    }
+  ], 
+  "launch_path": "/index.html", 
+  "permissions": {
+    "alarms": {}, 
+    "systemXHR": {}, 
+    "desktop-notification": {}, 
+    "settings": {
+      "access": "readonly"
+    }
+  }, 
+  "type": "certified", 
+  "locales": {
+    "zh-TW": {
+      "name": "Calendar", 
+      "description": "Gaia Calendar"
+    }, 
+    "en-US": {
+      "name": "Calendar", 
+      "description": "Gaia Calendar"
+    }, 
+    "ar": {
+      "name": "Calendar", 
+      "description": "Gaia Calendar"
+    }, 
+    "fr": {
+      "name": "Agenda", 
+      "description": "Agenda Gaia"
+    }
+  }, 
+  "developer": {
+    "url": "https://github.com/mozilla-b2g/gaia", 
+    "name": "The Gaia Team"
+  }
 }

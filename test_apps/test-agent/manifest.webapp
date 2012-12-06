@@ -1,25 +1,23 @@
 {
-  "name": "Test Agent",
-  "default_locale": "en-US",
-  "description": "Gaia Test Agent",
-  "launch_path": "/index.html",
-  "permissions": {
-    "power": {}
-  },
-  "locales": {
-    "en-US": {
-      "name": "Test Agent",
-      "description": "Gaia Test Agent"
-    }
-  },
-  "developer": {
-    "url": "https://github.com/mozilla-b2g/gaia",
-    "name": "The Gaia Team"
-  },
+  "name": "Test Agent", 
+  "default_locale": "en-US", 
   "icons": {
     "120": "/style/icons/Test-agent.png"
-  },
-  "orientation": "portrait-primary"
+  }, 
+  "orientation": "portrait-primary", 
+  "description": "Gaia Test Agent", 
+  "launch_path": "/index.html", 
+  "developer": {
+    "url": "https://github.com/mozilla-b2g/gaia", 
+    "name": "The Gaia Team"
+  }, 
+  "locales": {
+    "en-US": {
+      "name": "Test Agent", 
+      "description": "Gaia Test Agent"
+    }
+  }, 
+  "permissions": {
+    "power": {}
+  }
 }
-
-
