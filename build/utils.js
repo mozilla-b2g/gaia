@@ -20,6 +20,26 @@ function getSubDirectories(directory) {
   return dirs;
 }
 
+/**
+ * Returns an array of nsIFile's for a given directory
+ *
+ * @param  {nsIFile} dir       directory to read.
+ * @param  {boolean} recursive set to true in order to walk recursively.
+ *
+ * @return {Array}   list of nsIFile's.
+ */
+function ls(dir, recursive) {
+  let results = [];
+  let files = dir.directoryEntries;
+  while (files.hasMoreElements()) {
+    let file = files.getNext().QueryInterface(Ci.nsILocalFile);
+    results.push(file);
+    if (recursive && file.isDirectory())
+      results = results.concat(ls(file, true));
+  }
+  return results;
+}
+
 function getFileContent(file) {
   let fileStream = Cc['@mozilla.org/network/file-input-stream;1']
                    .createInstance(Ci.nsIFileInputStream);

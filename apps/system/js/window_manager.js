@@ -1527,7 +1527,6 @@ var WindowManager = (function() {
         e.preventDefault();
       }
     } else {
-      stopInlineActivity();
       ensureHomescreen(true);
     }
   });
