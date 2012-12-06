@@ -336,6 +336,148 @@
       -->
     </section>
 
+    <!-- Connectivity :: Call :: Call Forwarding Not Reachable -->
+    <section role="region" hidden id="call-cf-notReachableSettings">
+      <!--
+      <header>
+        <a href="#call"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="callForwarding"> Call forwarding </h1>
+      </header>
+
+      <ul id="cf-notreachable-advanced">
+        <li>
+          <p data-l10n-id="cf-numberWhenUnreachable">Number when unreachable</p>
+          <input type="text" data-setting="ril.cf.notreachable.number" />
+        </li>
+        <li>
+          <label>
+            <input type="checkbox" data-type="switch" name="ril.cf.notreachable.enabled"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="callForwardingNotReachable"> Forward when unreachable </a>
+        </li>
+      </ul>
+
+      -->
+    </section>
+
+    <!-- Connectivity :: Call :: Call Forwarding No Reply -->
+    <section role="region" hidden id="call-cf-noReplySettings">
+      <!--
+      <header>
+        <a href="#call"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="callForwarding"> Call forwarding </h1>
+      </header>
+
+      <ul id="cf-noreply-advanced">
+        <li>
+          <p data-l10n-id="cf-numberWhenUnanswered">Number when unanswered</p>
+          <input type="text" data-setting="ril.cf.noreply.number" />
+        </li>
+        <li>
+          <label>
+            <input type="checkbox" data-type="switch" name="ril.cf.noreply.enabled"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="callForwardingNoReply"> Forward when unanswered </a>
+        </li>
+      </ul>
+
+      -->
+    </section>
+
+    <!-- Connectivity :: Call :: Call Forwarding Mobile Busy -->
+    <section role="region" hidden id="call-cf-mobileBusySettings">
+      <!--
+      <header>
+        <a href="#call"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="callForwarding"> Call forwarding </h1>
+      </header>
+
+      <ul id="cf-mobilebusy-advanced">
+        <li>
+          <p data-l10n-id="cf-numberWhenBusy">Number when busy</p>
+          <input type="text" data-setting="ril.cf.mobilebusy.number" />
+        </li>
+        <li>
+          <label>
+            <input type="checkbox" data-type="switch" name="ril.cf.mobilebusy.enabled"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="callForwardingMobileBusy"> Forward when busy </a>
+        </li>
+      </ul>
+
+      -->
+    </section>
+
+    <!-- Connectivity :: Call :: Call Forwarding Unconditional -->
+    <section role="region" hidden id="call-cf-unconditionalSettings">
+      <!--
+      <header>
+        <a href="#call"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="callForwarding"> Call forwarding </h1>
+      </header>
+
+      <ul id="cf-unconditional-advanced">
+        <li>
+          <p data-l10n-id="cf-alwaysUseThisNumber">Always use this number</p>
+          <input type="text" data-setting="ril.cf.unconditional.number"/>
+        </li>
+        <li>
+          <label>
+            <input type="checkbox" data-type="switch" name="ril.cf.unconditional.enabled"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="callForwardingUnconditional">Always forward</a>
+        </li>
+      </ul>
+
+      -->
+    </section>
+
+    <!-- Connectivity :: Call -->
+    <section role="region" hidden id="call">
+      <!--
+      <header>
+        <a href="#root"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="call"> Call Settings </h1>
+      </header>
+      <ul>
+        <li>
+          <label>
+            <input type="checkbox" data-type="switch" name="ril.callwaiting.enabled"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="callWaiting">Call Waiting</a>
+        </li>
+      </ul>
+      <header>
+        <h2 data-l10n-id="callForwarding"> Call Forwarding </h2>
+      </header>
+      <ul>
+        <li>
+          <small id="cfu-desc"></small>
+          <a id="menuItem-callForwardingUnconditional" href="#call-cf-unconditionalSettings" data-l10n-id="callForwardingUnconditional">Always forward</a>
+        </li>
+        <li>
+          <small id="cfmb-desc"></small>
+          <a id="menuItem-callForwardingMobileBusy" href="#call-cf-mobileBusySettings" data-l10n-id="callForwardingMobileBusy">Forward when busy</a>
+        </li>
+        <li>
+          <small id="cfnrep-desc"></small>
+          <a id="menuItem-callForwardingNoReply" href="#call-cf-noReplySettings" data-l10n-id="callForwardingNoReply">Forward when unanswered</a>
+        </li>
+        <li>
+          <small id="cfnrea-desc"></small>
+          <a id="menuItem-callForwardingNotReachable" href="#call-cf-notReachableSettings" data-l10n-id="callForwardingNotReachable">Forward when unreachable</a>
+        </li>
+      </ul>
+
+      <script type="application/javascript" src="js/call.js"></script>
+      -->
+    </section>
+
     <!-- Connectivity :: Cellular & Data :: Network Operator -->
     <section role="region" hidden id="carrier-operatorSettings">
       <!--
@@ -554,13 +696,6 @@
         <li>
           <small id="dataNetwork-desc"></small>
           <a data-l10n-id="dataNetwork">Carrier</a>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" data-type="switch" name="ril.callwaiting.enabled"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="callWaiting">Call Waiting</a>
         </li>
       </ul>
 
@@ -2200,6 +2335,10 @@
         <li>
           <small id="wifi-desc" class="menu-item-desc" data-l10n-id="fullStatus-disconnected">offline</small>
           <a id="menuItem-wifi" class="menu-item" href="#wifi" data-l10n-id="wifi">Wi-Fi</a>
+        </li>
+        <li>
+          <small id="call-desc" class="menu-item-desc"></small>
+          <a id="menuItem-call" class="menu-item" href="#call" data-l10n-id="call">Call</a>
         </li>
         <li>
           <small id="data-desc" class="menu-item-desc"></small>
