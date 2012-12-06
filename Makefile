@@ -56,13 +56,17 @@ GAIA_DOMAIN=thisdomaindoesnotexist.org
 GAIA_APP_SRCDIRS=apps showcase_apps
 else ifeq ($(MAKECMDGOALS), production)
 PRODUCTION=1
+B2G_SYSTEM_APPS=1
 endif
 
 # PRODUCTION is also set for user and userdebug B2G builds
 ifeq ($(PRODUCTION), 1)
 GAIA_APP_SRCDIRS=apps
-GAIA_INSTALL_PARENT=/system/b2g
 ADB_REMOUNT=1
+endif
+
+ifeq ($(B2G_SYSTEM_APPS), 1)
+GAIA_INSTALL_PARENT=/system/b2g
 endif
 
 ifneq ($(GAIA_OUTOFTREE_APP_SRCDIRS),)
@@ -205,7 +209,7 @@ endif
 endif
 
 app-makefiles:
-	@for d in ${GAIA_APP_SRCDIRS}; \
+	for d in ${GAIA_APP_SRCDIRS}; \
 	do \
 		for mfile in `find $$d -mindepth 2 -maxdepth 2 -name "Makefile"` ;\
 		do \
@@ -217,19 +221,23 @@ app-makefiles:
 # We duplicate manifest.webapp to manifest.webapp and manifest.json
 # to accommodate Gecko builds without bug 757613. Should be removed someday.
 webapp-manifests: install-xulrunner-sdk
+	@echo "Generated webapps"
 	@mkdir -p profile/webapps
 	@$(call run-js-command, webapp-manifests)
-	@#cat profile/webapps/webapps.json
+	@cat profile/webapps/webapps.json
+	@echo "Done"
 
 # Generate profile/webapps/APP/application.zip
 webapp-zip: stamp-commit-hash install-xulrunner-sdk
 ifneq ($(DEBUG),1)
+	@echo "Packaged webapps"
 	@rm -rf apps/system/camera
 	@cp -r apps/camera apps/system/camera
 	@cat apps/camera/index.html | sed -e 's:shared/:../shared/:' > apps/system/camera/index.html
 	@rm apps/system/camera/manifest.webapp
 	@mkdir -p profile/webapps
 	@$(call run-js-command, webapp-zip)
+	@echo "Done"
 endif
 
 offline-cache: webapp-manifests install-xulrunner-sdk
@@ -320,28 +328,33 @@ EXTENDED_PREF_FILES = \
 
 # Generate profile/prefs.js
 preferences: install-xulrunner-sdk
-	@test -d profile || mkdir -p profile
+	@echo "Generating prefs.js..."
+	test -d profile || mkdir -p profile
 	@$(call run-js-command, preferences)
 	@$(foreach prefs_file,$(addprefix build/,$(EXTENDED_PREF_FILES)),\
 	  if [ -f $(prefs_file) ]; then \
 	    cat $(prefs_file) >> profile/user.js; \
 	  fi; \
 	)
+	@echo "Done"
 
 # Generate profile/
 applications-data: install-xulrunner-sdk
+	@echo "Generating application data..."
 	test -d profile || mkdir -p profile
 	@$(call run-js-command, applications-data)
+	@echo "Done. If this results in an error remove the xulrunner/xulrunner-sdk folder in your gaia folder."
 
 # Generate profile/extensions
 EXT_DIR=profile/extensions
 extensions:
+	@echo "Generating extensions..."
 	@mkdir -p profile
 	@rm -rf $(EXT_DIR)
 ifeq ($(DEBUG),1)
 	cp -r tools/extensions $(EXT_DIR)
 endif
-	@echo "Finished: Generating extensions"
+	@echo "Done"
 
 
 
@@ -404,8 +417,8 @@ test-agent-config: test-agent-bootstrap-apps
 	@rm -f $(TEST_AGENT_CONFIG)
 	@touch $(TEST_AGENT_CONFIG)
 	@rm -f /tmp/test-agent-config;
-	@# Build json array of all test files
-	@for d in ${GAIA_APP_SRCDIRS}; \
+	# Build json array of all test files
+	for d in ${GAIA_APP_SRCDIRS}; \
 	do \
 		find $$d -name '*_test.js' | sed "s:$$d/::g"  >> /tmp/test-agent-config; \
 	done;
@@ -415,19 +428,19 @@ test-agent-config: test-agent-bootstrap-apps
 		sed -e ':a' -e 'N' -e '$$!ba' -e 's/\n/,\
 	/g' >> $(TEST_AGENT_CONFIG);
 	@echo '  ]}' >> $(TEST_AGENT_CONFIG);
-	@echo "Finished: test ui config file: $(TEST_AGENT_CONFIG)"
+	@echo "Built test ui config file: $(TEST_AGENT_CONFIG)"
 	@rm -f /tmp/test-agent-config
 
 .PHONY: test-agent-bootstrap-apps
 test-agent-bootstrap-apps:
-	@for d in `find -L ${GAIA_APP_SRCDIRS} -mindepth 1 -maxdepth 1 -type d` ;\
+	for d in `find -L ${GAIA_APP_SRCDIRS} -mindepth 1 -maxdepth 1 -type d` ;\
 	do \
 		  mkdir -p $$d/test/unit ; \
 		  mkdir -p $$d/test/integration ; \
 			cp -f $(TEST_COMMON)/test/boilerplate/_proxy.html $$d/test/unit/_proxy.html; \
 			cp -f $(TEST_COMMON)/test/boilerplate/_sandbox.html $$d/test/unit/_sandbox.html; \
 	done
-	@echo "Finished: bootstrapping test proxies/sandboxes";
+	@echo "Done bootstrapping test proxies/sandboxes";
 
 # Temp make file method until we can switch
 # over everything in test
@@ -488,7 +501,7 @@ lint:
 #     let us remove the update-offline-manifests target dependancy of the
 #     default target.
 stamp-commit-hash:
-	@(if [ -d ./.git ]; then \
+	(if [ -d ./.git ]; then \
 	  git log -1 --format="%H%n%at" HEAD > apps/settings/resources/gaia_commit.txt; \
 	else \
 	  echo 'Unknown Git commit; build date shown here.' > apps/settings/resources/gaia_commit.txt; \
@@ -497,7 +510,7 @@ stamp-commit-hash:
 
 # Erase all the indexedDB databases on the phone, so apps have to rebuild them.
 delete-databases:
-	@echo 'Stopping b2g'
+	@echo 'Stoping b2g'
 	$(ADB) shell stop b2g
 	$(ADB) shell rm -r $(MSYS_FIX)/data/local/indexedDB/*
 	@echo 'Starting b2g'
@@ -548,7 +561,7 @@ update-offline-manifests:
 TARGET_FOLDER = webapps/$(BUILD_APP_NAME).$(GAIA_DOMAIN)
 install-gaia: profile
 	$(ADB) start-server
-	@echo 'Stopping b2g'
+	@echo 'Stoping b2g'
 	$(ADB) shell stop b2g
 	$(ADB) shell rm -r $(MSYS_FIX)/cache/*
 

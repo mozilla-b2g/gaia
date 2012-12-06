@@ -35,7 +35,7 @@ var PairView = {
   pinInput: document.getElementById('pin-input'),
   passkeyInput: document.getElementById('passkey-input'),
 
-  init: function pv_init() {
+  show: function pv_show() {
     var _ = navigator.mozL10n.get;
     this.pairButton.addEventListener('click', this);
     this.closeButton.addEventListener('click', this);
@@ -72,7 +72,7 @@ var PairView = {
     }
   },
 
-  setUp: function pv_setDeviceInfo(mode, method, device, passkey) {
+  init: function pv_init(mode, method, device, passkey) {
     this._pairMode = mode;
     this._pairMethod = method;
     this._device = device;
@@ -81,6 +81,9 @@ var PairView = {
       var zeros = (len < 6) ? (new Array((6 - len) + 1)).join('0') : '';
       this._passkey = zeros + passkey;
     }
+
+    // show() only until the page is localized.
+    onLocalized(PairView.show.bind(PairView));
   },
 
   handleEvent: function pv_handleEvent(evt) {
@@ -130,6 +133,3 @@ function onLocalized(callback) {
     window.addEventListener('localized', callback);
   }
 }
-
-onLocalized(PairView.init.bind(PairView));
-
