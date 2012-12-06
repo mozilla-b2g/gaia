@@ -69,6 +69,9 @@ if (DEBUG) {
                      webapp.sourceDirectoryName);
   });
   prefs.push(["extensions.gaia.app_relative_path", appPathList.join(' ')]);
+
+  // Identity debug messages
+  prefs.push(["toolkit.identity.debug", true]);
 }
 
 function writePrefs() {
