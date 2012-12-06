@@ -953,6 +953,9 @@ var ThreadUI = {
     this.selectedInputList = [];
     this.pageHeader.innerHTML = _('editMode');
     this.checkInputs();
+
+    // Unlock sendMessage function.
+    ThreadUI.sendingMessage = false;
   },
 
   clearContact: function thui_clearContact() {
@@ -1132,7 +1135,16 @@ var ThreadUI = {
     var settings = window.navigator.mozSettings,
         throwGeneralError;
 
+    // Lock sendMessage in order to ensure sending the message only once
+    if (this.sendingMessage)
+      return;
+    this.sendingMessage = true;
+    function unlock() {
+      ThreadUI.sendingMessage = false;
+    }
+
     throwGeneralError = function() {
+      unlock();
       CustomDialog.show(
         _('sendGeneralErrorTitle'),
         _('sendGeneralErrorBody'),
@@ -1144,6 +1156,8 @@ var ThreadUI = {
         }
       );
     };
+
+    var sent = false;
 
     if (settings) {
 
@@ -1162,7 +1176,11 @@ var ThreadUI = {
         var numNormalized =
           PhoneNumberManager.getNormalizedInternationalNumber(num);
         // Retrieve text
-        var text = this.input.value || resendText;
+        var text = this.input.value;
+        // Ensure that resendText isn't a MouseEvent
+        if (typeof(resendText) == 'string')
+          text = resendText;
+
         // If we have something to send
         if (numNormalized != '' && text != '') {
           // Create 'PendingMessage'
@@ -1181,6 +1199,7 @@ var ThreadUI = {
             // Save the message into pendind DB before send.
             PendingMsgManager.saveToMsgDB(message, function onsave(msg) {
               ThreadUI.cleanFields();
+              unlock();
               if (window.location.hash == '#new') {
                 window.location.hash = '#num=' + num;
               } else {
@@ -1192,6 +1211,13 @@ var ThreadUI = {
                 });
               }
               MessageManager.getMessages(ThreadListUI.renderThreads);
+
+              // Safety check in order to ensure that we try to send the
+              // message only once
+              if (sent)
+                return;
+              sent = true;
+
               // XXX Once we have PhoneNumberJS in Gecko we will
               // use num directly:
               // https://bugzilla.mozilla.org/show_bug.cgi?id=809213
@@ -1238,6 +1264,7 @@ var ThreadUI = {
             // Save the message into pendind DB before send.
             PendingMsgManager.saveToMsgDB(message, function onsave(msg) {
               ThreadUI.cleanFields();
+              unlock();
               if (window.location.hash == '#new') {
                 window.location.hash = '#num=' + num;
               } else {
@@ -1260,6 +1287,8 @@ var ThreadUI = {
               MessageManager.getMessages(ThreadListUI.renderThreads);
             });
           }
+        } else {
+          unlock();
         }
       }).bind(this));
 
