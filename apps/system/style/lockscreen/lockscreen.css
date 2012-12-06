@@ -225,27 +225,33 @@
 
 #lockscreen-area {
   position: absolute;
-  height: 10rem;
+  height: 16rem;
   left: 0;
   right: 0;
   bottom: 0;
 }
 
-.lockscreen-icon {
+.lockscreen-icon-area {
+  width: 16rem;
+  height: 12rem;
   position: absolute;
+  bottom: -3rem;
+  background-color: rgba(0,0,0,0.5)
+  border: none;
+}
+
+.lockscreen-icon {
+  margin-top: 4rem;
   border-radius: 3rem;
   width: 6rem;
   height: 6rem;
-  bottom: 1rem;
-  margin-bottom: -2.1rem;
   background-color: rgba(0, 0, 0, 0.3);
-  outline: none;
-
   -moz-box-sizing: border-box;
   border: 2px solid rgba(255, 255, 255, 0.8);
+  pointer-events: none;
 }
 
-.lockscreen-icon:active {
+.lockscreen-icon-area:active > .lockscreen-icon {
   background-color: rgb(0, 138, 170);
 }
 
@@ -274,11 +280,11 @@
 }
 
 .lockscreen-icon-right {
-  right: 4rem;
+  right: 0;
 }
 
 .lockscreen-icon-left {
-  left: 4rem;
+  left: 0;
 }
 
 button::-moz-focus-inner {
@@ -291,16 +297,18 @@ button::-moz-focus-inner {
   animation: none;
 }
 
-#lockscreen-area-unlock {
+#lockscreen-area-unlock > div {
   background-image: url('./images/icon-unlock.png');
   background-position: center;
   background-repeat: no-repeat;
+  margin-left: 6rem;
 }
 
-#lockscreen-area-camera {
-  background: url('./images/icon-camera.png');
+#lockscreen-area-camera > div {
+  background-image: url('./images/icon-camera.png');
   background-position: center;
   background-repeat: no-repeat;
+  margin-left: 4rem;
 }
 
 [data-panel="emergency-call"] #lockscreen-panel-passcode {
@@ -504,6 +512,7 @@ button::-moz-focus-inner {
   bottom: -5rem;
   height: 5rem;
   opacity: 0.4;
+  pointer-events: none;
   transition:
     transform 0.5s ease,
     opacity 0.5s ease;
@@ -516,6 +525,7 @@ button::-moz-focus-inner {
 .triggered #lockscreen-icon-container {
   transform: translateY(-8.5rem);
   opacity: 1;
+  pointer-events: auto;
 }
 
 @keyframes lockscreen-elastic {

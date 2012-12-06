@@ -270,13 +270,11 @@ var LockScreen = {
         var overlay = this.overlay;
         var target = evt.target;
 
-        if (target === leftTarget || target === rightTarget) {
-          break;
-        }
-
-        if (overlay.classList.contains('triggered') &&
-            target != leftTarget && target != rightTarget) {
-          this.unloadPanel();
+        // Reset timer when touch while overlay triggered
+        if (this.overlay.classList.contains('triggered')) {
+          clearTimeout(this.triggeredTimeoutId);
+          this.triggeredTimeoutId = setTimeout(this.unloadPanel.bind(this),
+                                               this.TRIGGERED_TIMEOUT);
           break;
         }
 
