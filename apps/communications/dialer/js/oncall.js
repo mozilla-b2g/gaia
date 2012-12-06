@@ -2,6 +2,7 @@
 
 var CallScreen = {
   _ticker: null,
+  _screenLock: null,
 
   screen: document.getElementById('call-screen'),
   views: document.getElementById('views'),
@@ -131,16 +132,16 @@ var CallScreen = {
     this.callToolbar.classList.add('transparent');
     this.incomingContainer.classList.add('displayed');
 
-    screenLock = navigator.requestWakeLock('screen');
+    this._screenLock = navigator.requestWakeLock('screen');
   },
 
   hideIncoming: function cs_hideIncoming() {
     this.callToolbar.classList.remove('transparent');
     this.incomingContainer.classList.remove('displayed');
 
-    if (screenLock) {
-      screenLock.unlock();
-      screenLock = null;
+    if (this._screenLock) {
+      this._screenLock.unlock();
+      this._screenLock = null;
     }
   },
 
