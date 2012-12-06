@@ -36,9 +36,14 @@ var RingView = {
   init: function rv_init() {
     this.setAlarmTime();
     this.setAlarmLabel();
-    this.setWakeLockEnabled(true);
-    this.ring();
-    this.vibrate();
+    // If mozHidden is true in init state, 
+    // it means that alarm screen underneath the oncall screen.
+    // Don't let the alarm ring and vibrate.
+    if (!document.mozHidden) {
+      this.setWakeLockEnabled(true);
+      this.ring();
+      this.vibrate();
+    }
     document.addEventListener('mozvisibilitychange', this);
     this.snoozeButton.addEventListener('click', this);
     this.closeButton.addEventListener('click', this);
@@ -107,14 +112,22 @@ var RingView = {
   stopAlarmNotification: function rv_stopAlarmNotification(action) {
     switch (action) {
     case 'ring':
-      this._ringtonePlayer.pause();
+      if (this._ringtonePlayer)
+        this._ringtonePlayer.pause();
+        
       break;
     case 'vibrate':
-      window.clearInterval(this._vibrateInterval);
+      if (this._vibrateInterval)
+        window.clearInterval(this._vibrateInterval);
+        
       break;
     default:
-      this._ringtonePlayer.pause();
-      window.clearInterval(this._vibrateInterval);
+      if (this._ringtonePlayer)
+        this._ringtonePlayer.pause();
+        
+      if (this._vibrateInterval)
+        window.clearInterval(this._vibrateInterval);
+        
       break;
     }
     this.setWakeLockEnabled(false);

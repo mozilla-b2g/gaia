@@ -595,6 +595,7 @@ html, body {
 #browser_privacy {
   padding: 1.5rem 3rem 0 3rem;
   width: calc(100% - 6rem);
+  height: calc(100% - 3.5rem);
 }
 
 #browser_privacy img {

@@ -4,15 +4,17 @@
  * Icon constructor
  *
  * @param {Object} descriptor
- *                 An object that contains the data necessary to draw this icon.
+ *                 An object that contains the data necessary to draw this
+ *                 icon.
  * @param {Application} app [optional]
- *                      The Application or Bookmark object corresponding to this icon.
+ *                      The Application or Bookmark object corresponding to
+ *                      this icon.
  */
 function Icon(descriptor, app) {
   this.descriptor = descriptor;
   this.app = app;
   this.updateAppStatus(app);
-};
+}
 
 Icon.prototype = {
   MIN_ICON_SIZE: 52,
@@ -25,8 +27,9 @@ Icon.prototype = {
   CANCELED_ICON_URL: window.location.protocol + '//' + window.location.host +
                     '/style/images/app_paused.png',
 
-  // These properties will be copied from the descriptor onto the icon's HTML element
-  // dataset and allow us to uniquely look up the Icon object from the HTML element.
+  // These properties will be copied from the descriptor onto the icon's HTML
+  // element dataset and allow us to uniquely look up the Icon object from
+  // the HTML element.
   _descriptorIdentifiers: ['manifestURL', 'entry_point', 'bookmarkURL'],
 
   /**
@@ -127,7 +130,7 @@ Icon.prototype = {
     var descriptor = this.descriptor;
     var icon = descriptor.icon;
     if (!icon) {
-      self.loadImageData();
+      this.loadImageData();
       return;
     }
 
@@ -141,7 +144,14 @@ Icon.prototype = {
     var xhr = new XMLHttpRequest({mozAnon: true, mozSystem: true});
     xhr.open('GET', icon, true);
     xhr.responseType = 'blob';
-    xhr.send(null);
+    try {
+      xhr.send(null);
+    } catch (e) {
+      console.error('Got an exception when trying to load icon "' + icon +
+          '", falling back to default icon. Exception is:', e);
+      this.loadImageData();
+      return;
+    }
 
     xhr.onreadystatechange = function saveIcon_readyStateChange(evt) {
       if (xhr.readyState != xhr.DONE)
@@ -449,7 +459,7 @@ function Page(container, icons) {
   this.container = this.movableContainer = container;
   if (icons)
     this.render(icons);
-};
+}
 
 Page.prototype = {
 
@@ -704,7 +714,7 @@ function extend(subClass, superClass) {
 
 function Dock(container, icons) {
   Page.call(this, container, icons);
-};
+}
 
 extend(Dock, Page);
 

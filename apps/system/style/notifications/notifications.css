@@ -36,6 +36,10 @@
   padding: 0;
 
   line-height: 12px;
+  
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 #toaster-title {
@@ -48,10 +52,6 @@
   position: absolute;
   top: 22px;
   color: white;
-
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 #notification-toaster.displayed {
@@ -135,14 +135,24 @@
 .notification > div {
   margin: 0 0 0 56px;
   padding: 0;
-  width: -moz-calc(100% - 105px);
-
+  width: -moz-calc(100% - 125px);
   color: #dbdbdb;
   line-height: 16px;
   font-weight: 300;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.notification > .timestamp {
+  position: absolute;
+  right: 0;
+  top: 0;
+  color: #52B6CC;
+  margin: 14px 14px 0 0;
+  padding: 0;
+  display: inline;
+  line-height: 16px;
 }
 
 .notification > img {

@@ -238,17 +238,37 @@ function metaDataParser(videofile, callback, metadataError) {
     metadata.width = previewPlayer.videoWidth;
     metadata.height = previewPlayer.videoHeight;
 
-    captureFrame(previewPlayer, function(poster) {
-      metadata.poster = poster;
-      URL.revokeObjectURL(url);
-      previewPlayer.src = '';
-      completed = true;
-      callback(metadata);
-    });
+    function createThumbnail() {
+      captureFrame(previewPlayer, metadata, function(poster) {
+        metadata.poster = poster;
+        URL.revokeObjectURL(url);
+        completed = true;
+        previewPlayer.removeAttribute('src');
+        previewPlayer.load();
+        callback(metadata);
+      });
+    }
+
+    // If this is a .3gp video file, look for its rotation matrix and
+    // then create the thumbnail. Otherwise set rotation to 0 and
+    // create the thumbnail.
+    // getVideoRotation is defined in shared/js/media/get_video_rotation.js
+    if (/.3gp$/.test(videofile.name)) {
+      getVideoRotation(videofile, function(rotation) {
+        if (typeof rotation === 'number')
+          metadata.rotation = rotation;
+        else if (typeof rotation === 'string')
+          console.warn('Video rotation:', rotation);
+        createThumbnail();
+      });
+    } else {
+      metadata.rotation = 0;
+      createThumbnail();
+    }
   };
 }
 
-function captureFrame(player, callback) {
+function captureFrame(player, metadata, callback) {
   var skipped = false;
   var image = null;
   function doneSeeking() {
@@ -258,7 +278,28 @@ function captureFrame(player, callback) {
       var ctx = canvas.getContext('2d');
       canvas.width = THUMBNAIL_WIDTH;
       canvas.height = THUMBNAIL_HEIGHT;
+      // If a rotation is specified, rotate the canvas context
+      if ('rotation' in metadata) {
+        ctx.save();
+        switch (metadata.rotation) {
+        case 90:
+          ctx.translate(THUMBNAIL_WIDTH, 0);
+          ctx.rotate(Math.PI / 2);
+          break;
+        case 180:
+          ctx.translate(THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
+          ctx.rotate(Math.PI);
+          break;
+        case 270:
+          ctx.translate(0, THUMBNAIL_HEIGHT);
+          ctx.rotate(-Math.PI / 2);
+          break;
+        }
+      }
       ctx.drawImage(player, 0, 0, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
+      if (metadata.rotation) {
+        ctx.restore();
+      }
       image = canvas.mozGetAsFile('poster', 'image/jpeg');
     } catch (e) {
       console.error('Failed to create a poster image:', e);
@@ -351,19 +392,72 @@ function playerMousedown(event) {
   }
 }
 
-// Make the video fit the screen
-function setPlayerSize(videoWidth, videoHeight) {
-  var xscale = window.innerWidth / videoWidth;
-  var yscale = window.innerHeight / videoHeight;
+// Make the video fit the container
+function setPlayerSize() {
+  var containerWidth = window.innerWidth;
+  var containerHeight = window.innerHeight;
+
+  // Don't do anything if we don't know our size.
+  // This could happen if we get a resize event before our metadata loads
+  if (!dom.player.videoWidth || !dom.player.videoHeight)
+    return;
+
+  var width, height; // The size the video will appear, after rotation
+  var rotation = 'metadata' in currentVideo ?
+    currentVideo.metadata.rotation : 0;
+
+  switch (rotation) {
+  case 0:
+  case 180:
+    width = dom.player.videoWidth;
+    height = dom.player.videoHeight;
+    break;
+  case 90:
+  case 270:
+    width = dom.player.videoHeight;
+    height = dom.player.videoWidth;
+  }
+
+  var xscale = containerWidth / width;
+  var yscale = containerHeight / height;
   var scale = Math.min(xscale, yscale);
-  var width = videoWidth * scale;
-  var height = videoHeight * scale;
-  var left = (window.innerWidth - width) / 2;
-  var top = (window.innerHeight - height) / 2;
-  dom.player.style.width = width + 'px';
-  dom.player.style.height = height + 'px';
-  dom.player.style.left = left + 'px';
-  dom.player.style.top = top + 'px';
+
+  // scale large videos down, but don't scale small videos up
+  if (scale < 1) {
+    width *= scale;
+    height *= scale;
+  }
+
+  var left = ((containerWidth - width) / 2);
+  var top = ((containerHeight - height) / 2);
+
+  var transform;
+  switch (rotation) {
+  case 0:
+    transform = 'translate(' + left + 'px,' + top + 'px)';
+    break;
+  case 90:
+    transform =
+      'translate(' + (left + width) + 'px,' + top + 'px) ' +
+      'rotate(90deg)';
+    break;
+  case 180:
+    transform =
+      'translate(' + (left + width) + 'px,' + (top + height) + 'px) ' +
+      'rotate(180deg)';
+    break;
+  case 270:
+    transform =
+      'translate(' + left + 'px,' + (top + height) + 'px) ' +
+      'rotate(270deg)';
+    break;
+  }
+
+  if (scale < 1) {
+    transform += ' scale(' + scale + ')';
+  }
+
+  dom.player.style.transform = transform;
 }
 
 function setVideoUrl(player, video, callback) {
@@ -415,7 +509,7 @@ function showPlayer(data, autoPlay) {
     dom.videoFrame.classList.remove('hidden');
     dom.play.classList.remove('paused');
     playerShowing = true;
-    setPlayerSize(dom.player.videoWidth, dom.player.videoHeight);
+    setPlayerSize();
 
     if ('name' in currentVideo && /^DCIM/.test(currentVideo.name)) {
       dom.deleteVideoButton.classList.remove('hidden');
@@ -465,7 +559,7 @@ function hidePlayer() {
 
   // Record current information about played video
   video.metadata.currentTime = dom.player.currentTime;
-  captureFrame(dom.player, function(poster) {
+  captureFrame(dom.player, currentVideo.metadata, function(poster) {
     currentVideo.metadata.poster = poster;
     dom.player.currentTime = 0;
 
@@ -751,7 +845,7 @@ dom.videoControls.addEventListener('mousedown', playerMousedown);
 // orientation changes and when we go into fullscreen
 window.addEventListener('resize', function() {
   if (dom.player.readyState !== HAVE_NOTHING) {
-    setPlayerSize(dom.player.videoWidth, dom.player.videoHeight);
+    setPlayerSize();
   }
 });
 
