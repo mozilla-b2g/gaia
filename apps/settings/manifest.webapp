@@ -1,78 +1,90 @@
 {
-  "name": "Settings",
-  "description": "Gaia Settings",
-  "type": "certified",
-  "launch_path": "/index.html#root",
-  "developer": {
-    "name": "The Gaia Team",
-    "url": "https://github.com/mozilla-b2g/gaia"
-  },
-  "permissions": {
-    "mobileconnection":{},
-    "bluetooth":{},
-    "device-storage:pictures":{ "access": "readonly" },
-    "device-storage:music":{ "access": "readonly" },
-    "device-storage:videos":{ "access": "readonly" },
-    "device-storage:apps":{ "access": "readonly" },
-    "webapps-manage":{},
-    "permissions":{},
-    "settings":{ "access": "readwrite" },
-    "wifi-manage":{},
-    "attention":{},
-    "time":{},
-    "desktop-notification":{},
-    "power":{},
-    "telephony":{}
-  },
   "activities": {
-    "configure": {
-      "filters": {
-        "target": "device"
-       },
-      "disposition": "window"
-    },
     "unlock": {
+      "returnValue": true, 
+      "href": "unlock_simpin.html", 
+      "disposition": "inline", 
       "filters": {
         "target": "sim"
-       },
-      "disposition": "inline",
-      "href": "unlock_simpin.html",
-      "returnValue": true
+      }
+    }, 
+    "configure": {
+      "disposition": "window", 
+      "filters": {
+        "target": "device"
+      }
     }
-  },
-  "messages": ["bluetooth-requestconfirmation",
-               "bluetooth-requestpasskey",
-               "bluetooth-requestpincode",
-               "bluetooth-authorize",
-               "bluetooth-cancel",
-               "bluetooth-pairedstatuschanged",
-               "bluetooth-hfp-status-changed"],
-  "locales": {
-    "ar": {
-      "name": "الضبط",
-      "description": "Gaia الضبط"
-    },
-    "en-US": {
-      "name": "Settings",
-      "description": "Gaia Settings"
-    },
-    "fr": {
-      "name": "Paramètres",
-      "description": "Paramètres Gaia"
-    },
-    "tr": {
-      "name": "Ayarlar",
-      "description": "Gaia Ayarları"
-    },
-    "zh-TW": {
-      "name": "設定",
-      "description": "Gaia 設定"
-    }
-  },
-  "default_locale": "en-US",
+  }, 
+  "name": "Settings", 
+  "default_locale": "en-US", 
   "icons": {
-    "120": "/style/icons/Settings.png",
+    "120": "/style/icons/Settings.png", 
     "60": "/style/icons/60/Settings.png"
-  },
-  "orientation": "portrait-primary"
+  }, 
+  "orientation": "portrait-primary", 
+  "description": "Gaia Settings", 
+  "messages": [
+    "bluetooth-requestconfirmation", 
+    "bluetooth-requestpasskey", 
+    "bluetooth-requestpincode", 
+    "bluetooth-authorize", 
+    "bluetooth-cancel", 
+    "bluetooth-pairedstatuschanged", 
+    "bluetooth-hfp-status-changed"
+  ], 
+  "launch_path": "/index.html#root", 
+  "permissions": {
+    "device-storage:pictures": {
+      "access": "readonly"
+    }, 
+    "attention": {}, 
+    "desktop-notification": {}, 
+    "power": {}, 
+    "wifi-manage": {}, 
+    "device-storage:apps": {
+      "access": "readonly"
+    }, 
+    "device-storage:videos": {
+      "access": "readonly"
+    }, 
+    "settings": {
+      "access": "readwrite"
+    }, 
+    "bluetooth": {}, 
+    "telephony": {}, 
+    "device-storage:music": {
+      "access": "readonly"
+    }, 
+    "time": {}, 
+    "mobileconnection": {}, 
+    "webapps-manage": {}, 
+    "permissions": {}
+  }, 
+  "type": "certified", 
+  "locales": {
+    "zh-TW": {
+      "name": "\u8a2d\u5b9a", 
+      "description": "Gaia \u8a2d\u5b9a"
+    }, 
+    "en-US": {
+      "name": "Settings", 
+      "description": "Gaia Settings"
+    }, 
+    "ar": {
+      "name": "\u0627\u0644\u0636\u0628\u0637", 
+      "description": "Gaia \u0627\u0644\u0636\u0628\u0637"
+    }, 
+    "tr": {
+      "name": "Ayarlar", 
+      "description": "Gaia Ayarlar\u0131"
+    }, 
+    "fr": {
+      "name": "Param\u00e8tres", 
+      "description": "Param\u00e8tres Gaia"
+    }
+  }, 
+  "developer": {
+    "url": "https://github.com/mozilla-b2g/gaia", 
+    "name": "The Gaia Team"
+  }
 }

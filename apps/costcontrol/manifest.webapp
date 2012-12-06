@@ -1,60 +1,59 @@
 {
-  "name": "Cost Control",
-  "description": "Cost Control application to see credit and data usage statistics",
-  "type": "certified",
-  "launch_path": "/index.html#left-panel",
-  "developer": {
-    "name": "The Gaia Team",
-    "url": "https://github.com/mozilla-b2g/gaia"
-  },
-  "permissions": {
-    "sms":{},
-    "telephony":{},
-    "mobileconnection":{},
-    "backgroundservice":{},
-    "settings":{ "access": "readonly" },
-    "desktop-notification":{},
-    "networkstats-manage":{}
-  },
   "activities": {
     "costcontrol/balance": {
-      "filters": {
-       },
-      "disposition": "window"
-    },
+      "disposition": "window", 
+      "filters": {}
+    }, 
     "costcontrol/telephony": {
-      "filters": {
-       },
-      "disposition": "window"
-    },
+      "disposition": "window", 
+      "filters": {}
+    }, 
     "costcontrol/data_usage": {
-      "filters": {
-       },
-      "disposition": "window"
+      "disposition": "window", 
+      "filters": {}
     }
-  },
-  "locales": {
-    "ar": {
-      "name": "Cost Control",
-      "description": "Cost Control application to see credit and data usage statistics"
-    },
-    "en-US": {
-      "name": "Cost Control",
-      "description": "Cost Control application to see credit and data usage statistics"
-    },
-    "fr": {
-      "name": "Cost Control",
-      "description": "Cost Control application to see credit and data usage statistics"
-    },
-    "zh-TW": {
-      "name": "Cost Control",
-      "description": "Cost Control application to see credit and data usage statistics"
-    }
-  },
-  "default_locale": "en-US",
+  }, 
+  "name": "Cost Control", 
+  "default_locale": "en-US", 
   "icons": {
-    "120": "/style/icons/cost-control.png",
+    "120": "/style/icons/cost-control.png", 
     "60": "/style/icons/60/cost-control.png"
-  },
-  "orientation": "portrait-primary"
+  }, 
+  "orientation": "portrait-primary", 
+  "description": "Cost Control application to see credit and data usage statistics", 
+  "launch_path": "/index.html#left-panel", 
+  "permissions": {
+    "desktop-notification": {}, 
+    "settings": {
+      "access": "readonly"
+    }, 
+    "backgroundservice": {}, 
+    "sms": {}, 
+    "telephony": {}, 
+    "mobileconnection": {}, 
+    "networkstats-manage": {}
+  }, 
+  "type": "certified", 
+  "locales": {
+    "zh-TW": {
+      "name": "Cost Control", 
+      "description": "Cost Control application to see credit and data usage statistics"
+    }, 
+    "en-US": {
+      "name": "Cost Control", 
+      "description": "Cost Control application to see credit and data usage statistics"
+    }, 
+    "ar": {
+      "name": "Cost Control", 
+      "description": "Cost Control application to see credit and data usage statistics"
+    }, 
+    "fr": {
+      "name": "Cost Control", 
+      "description": "Cost Control application to see credit and data usage statistics"
+    }
+  }, 
+  "developer": {
+    "url": "https://github.com/mozilla-b2g/gaia", 
+    "name": "The Gaia Team"
+  }
 }

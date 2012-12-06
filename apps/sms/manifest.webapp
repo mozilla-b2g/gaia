@@ -1,54 +1,62 @@
 {
-  "name": "Messages",
-  "description": "Gaia Messages",
-  "type": "certified",
-  "launch_path": "/index.html",
-  "developer": {
-    "name": "The Gaia Team",
-    "url": "https://github.com/mozilla-b2g/gaia"
-  },
-  "permissions": {
-    "sms":{},
-    "contacts":{ "access": "readonly" },
-    "mobileconnection":{},
-    "settings":{ "access": "readonly" },
-    "desktop-notification":{}
-  },
-  "locales": {
-    "ar": {
-      "name": "رسائل",
-      "description": "Gaia رسائل"
-    },
-    "en-US": {
-      "name": "Messages",
-      "description": "Gaia Messages"
-    },
-    "fr": {
-      "name": "Messages",
-      "description": "Messages Gaia"
-    },
-    "zh-TW": {
-      "name": "訊息",
-      "description": "Gaia 訊息"
-    }
-  },
-  "default_locale": "en-US",
-  "background_page": "/background.html#0",
-  "icons": {
-    "120": "/style/icons/Sms.png",
-    "60": "/style/icons/60/Sms.png"
-  },
-  "orientation": "portrait-primary",
   "activities": {
     "new": {
+      "disposition": "window", 
       "filters": {
         "type": "websms/sms"
-       },
-      "disposition": "window"
+      }
     }
-  },
+  }, 
+  "name": "Messages", 
+  "default_locale": "en-US", 
+  "icons": {
+    "120": "/style/icons/Sms.png", 
+    "60": "/style/icons/60/Sms.png"
+  }, 
+  "orientation": "portrait-primary", 
+  "description": "Gaia Messages", 
   "messages": [
-     { "sms-received": "/index.html" },
-     { "notification": "/index.html" }
-  ]
+    {
+      "sms-received": "/index.html"
+    }, 
+    {
+      "notification": "/index.html"
+    }
+  ], 
+  "background_page": "/background.html#0", 
+  "launch_path": "/index.html", 
+  "permissions": {
+    "desktop-notification": {}, 
+    "mobileconnection": {}, 
+    "settings": {
+      "access": "readonly"
+    }, 
+    "sms": {}, 
+    "contacts": {
+      "access": "readonly"
+    }
+  }, 
+  "type": "certified", 
+  "locales": {
+    "zh-TW": {
+      "name": "\u8a0a\u606f", 
+      "description": "Gaia \u8a0a\u606f"
+    }, 
+    "en-US": {
+      "name": "Messages", 
+      "description": "Gaia Messages"
+    }, 
+    "ar": {
+      "name": "\u0631\u0633\u0627\u0626\u0644", 
+      "description": "Gaia \u0631\u0633\u0627\u0626\u0644"
+    }, 
+    "fr": {
+      "name": "Messages", 
+      "description": "Messages Gaia"
+    }
+  }, 
+  "developer": {
+    "url": "https://github.com/mozilla-b2g/gaia", 
+    "name": "The Gaia Team"
+  }
 }

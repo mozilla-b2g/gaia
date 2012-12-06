@@ -1,32 +1,36 @@
 {
-  "name": "Send To Bluetooth Device",
-  "type": "certified",
-  "description": "Gaia Bluetooth Transfer",
-  "launch_path": "/transfer.html",
-  "developer": {
-    "name": "The Gaia Team",
-    "url": "https://github.com/mozilla-b2g/gaia"
-  },
-  "locales": {
-    "en-US": {
-      "name": "Bluetooth Transfer",
-      "description": "Gaia Bluetooth Transfer"
-    }
-  },
-  "orientation": "portrait-primary",
   "activities": {
     "share": {
+      "href": "/transfer.html", 
+      "returnValue": true, 
+      "disposition": "inline", 
       "filters": {
-      	"number": 1
-       },
-      "disposition": "inline",
-      "returnValue": true,
-      "href": "/transfer.html"
-    }   
-  },
+        "number": 1
+      }
+    }
+  }, 
+  "name": "Send To Bluetooth Device", 
+  "orientation": "portrait-primary", 
+  "description": "Gaia Bluetooth Transfer", 
+  "launch_path": "/transfer.html", 
   "permissions": {
-    "bluetooth":{},
-    "device-storage:sdcard":{ "access": "readonly" },
-    "settings":{ "access": "readwrite" }
+    "device-storage:sdcard": {
+      "access": "readonly"
+    }, 
+    "settings": {
+      "access": "readwrite"
+    }, 
+    "bluetooth": {}
+  }, 
+  "type": "certified", 
+  "locales": {
+    "en-US": {
+      "name": "Bluetooth Transfer", 
+      "description": "Gaia Bluetooth Transfer"
+    }
+  }, 
+  "developer": {
+    "url": "https://github.com/mozilla-b2g/gaia", 
+    "name": "The Gaia Team"
   }
 }

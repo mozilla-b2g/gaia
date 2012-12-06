@@ -1,64 +1,93 @@
 {
-  "name": "System",
-  "type": "certified",
-  "description": "Main System",
-  "launch_path": "/index.html",
-  "developer": {
-    "name": "The Gaia Team",
-    "url": "https://github.com/mozilla-b2g/gaia"
-  },
+  "name": "System", 
+  "default_locale": "en-US", 
+  "description": "Main System", 
+  "messages": [
+    {
+      "alarm": "/index.html"
+    }, 
+    {
+      "bluetooth-opp-transfer-complete": "/index.html"
+    }, 
+    {
+      "bluetooth-opp-update-progress": "/index.html"
+    }, 
+    {
+      "bluetooth-opp-receiving-file-confirmation": "/index.html"
+    }, 
+    {
+      "bluetooth-opp-transfer-start": "/index.html"
+    }, 
+    {
+      "icc-stkcommand": "/index.html"
+    }, 
+    {
+      "bluetooth-hfp-status-changed": "/index.html"
+    }
+  ], 
+  "launch_path": "/index.html", 
   "permissions": {
-    "alarms": {},
-    "browser":{},
-    "power":{},
-    "webapps-manage":{},
-    "mobileconnection":{},
-    "bluetooth":{},
-    "telephony":{},
-    "voicemail":{},
-    "device-storage:sdcard":{ "access": "readonly" },
-    "device-storage:pictures":{ "access": "readwrite" },
-    "device-storage:videos":{ "access": "readwrite" },
-    "device-storage:music":{ "access": "readcreate" },
-    "settings":{ "access": "readwrite" },
-    "storage":{},
-    "camera":{},
-    "geolocation":{},
-    "wifi-manage":{},
-    "desktop-notification":{},
-    "idle":{},
-    "network-events":{},
-    "embed-apps":{},
-    "background-sensors":{},
-    "permissions":{},
-    "audio":{ "channels": ["publicnotification", "notification"] }
-  },
+    "geolocation": {}, 
+    "device-storage:sdcard": {
+      "access": "readonly"
+    }, 
+    "bluetooth": {}, 
+    "telephony": {}, 
+    "webapps-manage": {}, 
+    "device-storage:pictures": {
+      "access": "readwrite"
+    }, 
+    "wifi-manage": {}, 
+    "storage": {}, 
+    "device-storage:music": {
+      "access": "readcreate"
+    }, 
+    "camera": {}, 
+    "network-events": {}, 
+    "desktop-notification": {}, 
+    "power": {}, 
+    "embed-apps": {}, 
+    "mobileconnection": {}, 
+    "permissions": {}, 
+    "background-sensors": {}, 
+    "settings": {
+      "access": "readwrite"
+    }, 
+    "device-storage:videos": {
+      "access": "readwrite"
+    }, 
+    "voicemail": {}, 
+    "idle": {}, 
+    "alarms": {}, 
+    "audio": {
+      "channels": [
+        "publicnotification", 
+        "notification"
+      ]
+    }, 
+    "browser": {}
+  }, 
+  "type": "certified", 
   "locales": {
-    "ar": {
-      "name": "System",
-      "description": "Main System"
-    },
-    "en-US": {
-      "name": "System",
-      "description": "Main System"
-    },
-    "fr": {
-      "name": "System",
-      "description": "Main System"
-    },
     "zh-TW": {
-      "name": "System",
+      "name": "System", 
+      "description": "Main System"
+    }, 
+    "en-US": {
+      "name": "System", 
+      "description": "Main System"
+    }, 
+    "ar": {
+      "name": "System", 
+      "description": "Main System"
+    }, 
+    "fr": {
+      "name": "System", 
       "description": "Main System"
     }
-  },
-  "default_locale": "en-US",
-  "messages": [
-     { "alarm": "/index.html" },
-     { "bluetooth-opp-transfer-complete": "/index.html" },
-     { "bluetooth-opp-update-progress": "/index.html" },
-     { "bluetooth-opp-receiving-file-confirmation": "/index.html" },
-     { "bluetooth-opp-transfer-start": "/index.html" },
-     { "icc-stkcommand": "/index.html" },
-     { "bluetooth-hfp-status-changed": "/index.html" }
-  ]
+  }, 
+  "developer": {
+    "url": "https://github.com/mozilla-b2g/gaia", 
+    "name": "The Gaia Team"
+  }
 }
