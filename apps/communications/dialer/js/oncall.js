@@ -166,7 +166,7 @@ var OnCallHandler = (function onCallHandler() {
 
   /* === Settings === */
   var activePhoneSound = true;
-  SettingsListener.observe('ring.enabled', true, function(value) {
+  SettingsListener.observe('audio.volume.notification', true, function(value) {
     activePhoneSound = !!value;
   });
 
