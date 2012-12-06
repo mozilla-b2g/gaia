@@ -716,44 +716,16 @@
       <header>
         <h2 data-l10n-id="ring-tones">Ringtones</h2>
       </header>
-      <ul>
-        <li>
-          <label>
-            <input type="radio" name="tone-option" data-ignore value="classic.ogg" data-label="Classic" checked />
-            <span></span>
-          </label>
-          <a data-l10n-id="classic">Classic</a>
-        </li>
-        <li>
-          <label>
-            <input type="radio" name="tone-option" data-ignore value="old_school.ogg" data-label="Old School" />
-            <span></span>
-          </label>
-          <a data-l10n-id="oldSchool">Old School</a>
-        </li>
-        <li>
-          <label>
-            <input type="radio" name="tone-option" data-ignore value="low_bit.ogg" data-label="Low Bit" />
-            <span></span>
-          </label>
-          <a data-l10n-id="lowBit">Low Bit</a>
-        </li>
+      <ul id="ringtones-list">
       </ul>
 
       <header>
         <h2 data-l10n-id="alert-tones">Alert Tones</h2>
       </header>
-      <ul>
-        <li>
-          <label>
-            <input type="radio" name="tone-option" data-ignore value="sms.wav" data-label="Beep Beep" />
-            <span></span>
-          </label>
-          <a data-l10n-id="beep">Beep Beep</a>
-        </li>
+      <ul id="notifications-list">
       </ul>
 
-      <audio style="display: none;" src="resources/ringtones/classic.ogg"></audio>
+      <audio style="display: none;" src=""></audio>
       -->
     </section>
 
@@ -808,7 +780,7 @@
       <ul>
         <li>
           <span data-l10n-id="ringer">Ringer
-            <button id="call-tone-selection" class="tone-select">Old School</button>
++            <button id="call-tone-selection" class="tone-select" data-l10n-id="change"></button>
           </span>
         </li>
       </ul>

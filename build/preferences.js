@@ -1,6 +1,10 @@
 
 'use strict';
 
+function debug(msg) {
+  //dump('-*- preferences.js ' + msg + '\n');
+}
+
 const prefs = [];
 
 let homescreen = HOMESCREEN + (GAIA_PORT ? GAIA_PORT : '');
@@ -73,7 +77,7 @@ function writePrefs() {
     return 'user_pref("' + entry[0] + '", ' + JSON.stringify(entry[1]) + ');';
   }).join('\n');
   writeContent(userJs, content + "\n");
-  dump("\n" + content + "\n");
+  debug("\n" + content);
 }
 
 function setPrefs() {
