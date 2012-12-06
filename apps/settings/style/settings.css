@@ -142,11 +142,11 @@ label[for^="pwd"] {
  * APN settings
  */
 
-#apnSettings-custom {
+.apnSettings-custom {
   font-style: italic;
 }
 
-#apnSettings-advanced {
+.apnSettings-advanced {
   padding-bottom: 1em;
 }
 
