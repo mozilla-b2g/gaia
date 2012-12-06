@@ -75,14 +75,12 @@ function openDialog(dialogID, onSubmit, onReset) {
  * First click = play, second click = pause.
  */
 
-function audioPreview(element, type) {
+function audioPreview(element) {
   var audio = document.querySelector('#sound-selection audio');
   var source = audio.src;
   var playing = !audio.paused;
 
-  var url = '/shared/resources/media/' + type + '/' +
-            element.querySelector('input').value;
-  audio.src = url;
+  audio.src = 'resources/ringtones/' + element.querySelector('input').value;
   if (source === audio.src && playing) {
     audio.stop();
   } else {

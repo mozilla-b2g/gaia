@@ -130,6 +130,10 @@ var StatusBar = {
         this.update.label.call(this);
         break;
 
+      case 'iccinfochange':
+        this.update.label.call(this);
+        break;
+
       case 'datachange':
         this.update.data.call(this);
         break;
@@ -189,6 +193,7 @@ var StatusBar = {
       var conn = window.navigator.mozMobileConnection;
       if (conn) {
         conn.addEventListener('voicechange', this);
+        conn.addEventListener('iccinfochange', this);
         conn.addEventListener('datachange', this);
         this.update.signal.call(this);
         this.update.data.call(this);
@@ -216,6 +221,7 @@ var StatusBar = {
       var conn = window.navigator.mozMobileConnection;
       if (conn) {
         conn.removeEventListener('voicechange', this);
+        conn.removeEventListener('iccinfochange', this);
         conn.removeEventListener('datachange', this);
       }
 
@@ -242,8 +248,17 @@ var StatusBar = {
       }
 
       var voice = conn.voice;
+      var iccInfo = conn.iccInfo;
       var network = voice.network;
       l10nArgs.operator = network.shortName || network.longName;
+
+      if (iccInfo.isDisplaySpnRequired && iccInfo.spn) {
+        if (iccInfo.isDisplayNetworkNameRequired) {
+          l10nArgs.operator = l10nArgs.operator + ' ' + iccInfo.spn;
+        } else {
+          l10nArgs.operator = iccInfo.spn;
+        }
+      }
 
       if (network.mcc == 724 &&
         voice.cell && voice.cell.gsmLocationAreaCode) {
