@@ -522,8 +522,8 @@ onLocalized(function bluetoothSettings() {
       var host = window.location.host;
       childWindow = window.open(protocol + '//' + host + '/onpair.html',
                   'pair_screen', 'attention');
-      childWindow.onload = function() {
-        childWindow.PairView.setUp(pairingMode, method, device, passkey);
+      childWindow.onload = function childWindowLoaded() {
+        childWindow.PairView.init(pairingMode, method, device, passkey);
       };
     }
 
