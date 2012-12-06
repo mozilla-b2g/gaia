@@ -789,7 +789,7 @@ var AlarmEditView = {
       minute: now.getMinutes(), // use current minute
       enabled: true,
       repeat: '0000000',
-      sound: 'ac_classic_clock_alarm.opus',
+      sound: 'classic_buzz.ogg',
       snooze: 5,
       color: 'Darkorange'
     };
@@ -863,9 +863,9 @@ var AlarmEditView = {
   },
 
   refreshSoundMenu: function aev_refreshSoundMenu(sound) {
-    // Refresh and parse the name of sound file for sound menu.
+    // Refresh and paser the name of sound file for sound menu.
     var sound = (sound) ? this.getSoundSelect() : this.alarm.sound;
-    this.soundMenu.innerHTML = _(sound.replace('.', '_'));
+    this.soundMenu.innerHTML = _(sound.slice(0, sound.lastIndexOf('.')));
   },
 
   previewSound: function aev_previewSound() {
@@ -878,7 +878,7 @@ var AlarmEditView = {
     }
 
     var ringtoneName = this.getSoundSelect();
-    var previewRingtone = 'shared/resources/media/alarms/' + ringtoneName;
+    var previewRingtone = 'style/ringtones/' + ringtoneName;
     ringtonePlayer.mozAudioChannelType = 'alarm';
     ringtonePlayer.src = previewRingtone;
     ringtonePlayer.play();

@@ -716,16 +716,44 @@
       <header>
         <h2 data-l10n-id="ring-tones">Ringtones</h2>
       </header>
-      <ul id="ringtones-list">
+      <ul>
+        <li>
+          <label>
+            <input type="radio" name="tone-option" data-ignore value="classic.ogg" data-label="Classic" checked />
+            <span></span>
+          </label>
+          <a data-l10n-id="classic">Classic</a>
+        </li>
+        <li>
+          <label>
+            <input type="radio" name="tone-option" data-ignore value="old_school.ogg" data-label="Old School" />
+            <span></span>
+          </label>
+          <a data-l10n-id="oldSchool">Old School</a>
+        </li>
+        <li>
+          <label>
+            <input type="radio" name="tone-option" data-ignore value="low_bit.ogg" data-label="Low Bit" />
+            <span></span>
+          </label>
+          <a data-l10n-id="lowBit">Low Bit</a>
+        </li>
       </ul>
 
       <header>
         <h2 data-l10n-id="alert-tones">Alert Tones</h2>
       </header>
-      <ul id="notifications-list">
+      <ul>
+        <li>
+          <label>
+            <input type="radio" name="tone-option" data-ignore value="sms.wav" data-label="Beep Beep" />
+            <span></span>
+          </label>
+          <a data-l10n-id="beep">Beep Beep</a>
+        </li>
       </ul>
 
-      <audio style="display: none;" src=""></audio>
+      <audio style="display: none;" src="resources/ringtones/classic.ogg"></audio>
       -->
     </section>
 
@@ -740,13 +768,6 @@
       <ul>
         <li>
           <label>
-            <input type="checkbox" data-type="switch" name="ring.enabled" checked />
-            <span></span>
-          </label>
-          <a data-l10n-id="ring">Ring</a>
-        </li>
-        <li>
-          <label>
             <input type="checkbox" data-type="switch" name="vibration.enabled" checked />
             <span></span>
           </label>
@@ -755,47 +776,39 @@
       </ul>
 
       <header>
-        <h2 data-l10n-id="volume-and-tones">Volume and Tones</h2>
+        <h2 data-l10n-id="volume">Volume</h2>
       </header>
       <ul>
         <li>
-          <p data-l10n-id="normal-sound">Normal</p>
+          <p data-l10n-id="notification-sound">Notifications</p>
           <label>
-            <input type="range" name="audio.volume.system" min="0" value="5" max="10">
+            <input type="range" name="audio.volume.notification" step="1" min="0" value="15" max="15">
             <span class="range-icons volume"></span>
           </label>
         </li>
         <li>
           <p data-l10n-id="alarm-sound">Alarm</p>
           <label>
-            <input type="range" name="audio.volume.alarm" min="0" value="5" max="10">
-            <span class="range-icons volume"></span>
-          </label>
-        </li>
-        <li>
-          <p data-l10n-id="notification-sound">Notification</p>
-          <label>
-            <input type="range" name="audio.volume.notification" min="0" value="5" max="10">
+            <input type="range" name="audio.volume.alarm" step="1" min="0" value="15" max="15">
             <span class="range-icons volume"></span>
           </label>
         </li>
         <li>
           <p data-l10n-id="content-sound">Content</p>
           <label>
-            <input type="range" name="audio.volume.music" min="0" value="5" max="10">
+            <input type="range" name="audio.volume.content" step="1" min="0" value="15" max="15">
             <span class="range-icons volume"></span>
           </label>
         </li>
+      </ul>
+      
+      <header>
+        <h2 data-l10n-id="tones">Tones</h2>
+      </header>
+      <ul>
         <li>
-          <p data-l10n-id="voice-sound">Voice</p>
-          <label>
-            <input type="range" name="audio.volume.voice_call" min="0" value="5" max="10">
-            <span class="range-icons volume"></span>
-          </label>
-        </li>
-        <li>
-          <span data-l10n-id="call">Call
-            <button id="call-tone-selection" class="tone-select" data-l10n-id="change"></button>
+          <span data-l10n-id="ringer">Ringer
+            <button id="call-tone-selection" class="tone-select">Old School</button>
           </span>
         </li>
       </ul>

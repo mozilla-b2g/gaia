@@ -16,18 +16,13 @@ settings = {
  "alert-vibration.enabled": True,
  "app.reportCrashes": "ask",
  "app.update.interval": 86400,
- "audio.volume.alarm": 7,
+ "audio.volume.alarm": 15,
  "audio.volume.bt_sco": 15,
  "audio.volume.dtmf": 15,
- "audio.volume.enforced_audible": 7,
- "audio.volume.fm": 15,
- "audio.volume.master": 0.5,
- "audio.volume.music": 15,
- "audio.volume.notification": 7,
- "audio.volume.ring": 7,
- "audio.volume.system": 7,
+ "audio.volume.content": 15,
+ "audio.volume.notification": 15,
  "audio.volume.tts": 15,
- "audio.volume.voice_call": 5,
+ "audio.volume.telephony": 5,
  "bluetooth.enabled": False,
  "camera.shutter.enabled": True,
  "debug.dev-mode": False,
@@ -40,6 +35,7 @@ settings = {
  "debug.peformancedata.shared": False,
  "devtools.debugger.remote-enabled": False,
  "gaia.system.checkForUpdates": False,
+ "dialer.ringtone": "classic.ogg",
  "geolocation.enabled": True,
  "keyboard.layouts.english": True,
  "keyboard.layouts.dvorak": False,
@@ -69,7 +65,6 @@ settings = {
  "ril.iccInfo.mbdn":"",
  "ril.sms.strict7BitEncoding.enabled": False,
  "ril.cellbroadcast.searchlist": "",
- "debug.console.enabled": False,
  "phone.ring.keypad": True,
  "powersave.enabled": False,
  "powersave.threshold": 0,
@@ -156,8 +151,7 @@ def main():
         print "Wallpaper Filename:", wallpaper_filename
 
     # Set the default console output
-    if options.console:
-        settings["debug.console.enabled"] = options.console
+    settings["debug.console.enabled"] = options.console
 
     # Set the homescreen URL
     settings["homescreen.manifestURL"] = homescreen_url
@@ -169,20 +163,6 @@ def main():
     wallpaper_file = open(wallpaper_filename, "rb")
     wallpaper_base64 = base64.b64encode(wallpaper_file.read())
     settings["wallpaper.image"] = "data:image/jpeg;base64," + wallpaper_base64.decode("utf-8")
-
-    # Grab ringer_classic_prism.ogg and convert it into a base64 string
-    ringtone_name = "shared/resources/media/ringtones/ringer_classic_prism.ogg"
-    ringtone_file = open(ringtone_name, "rb");
-    ringtone_base64 = base64.b64encode(ringtone_file.read())
-    settings["dialer.ringtone"] = "data:audio/ogg;base64," + ringtone_base64.decode("utf-8")
-    settings["dialer.ringtone.name"] = "ringer_classic_prism.ogg"
-
-    # Grab notifier_ring.ogg and convert it into a base64 string
-    notification_name = "shared/resources/media/notifications/notifier_ring.ogg"
-    notification_file = open(notification_name, "rb");
-    notification_base64 = base64.b64encode(notification_file.read())
-    settings["notification.ringtone"] = "data:audio/ogg;base64," + notification_base64.decode("utf-8")
-    settings["notification.ringtone.name"] = "notifier_ring.ogg"
 
     json.dump(settings, open(settings_filename, "wb"))
 
