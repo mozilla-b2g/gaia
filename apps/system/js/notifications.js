@@ -79,6 +79,13 @@ var NotificationScreen = {
     window.addEventListener('utilitytrayshow', this);
     window.addEventListener('unlock', this.clearLockScreen.bind(this));
     window.addEventListener('mozvisibilitychange', this);
+
+    this._sound = '';
+
+    var self = this;
+    SettingsListener.observe('notification.ringtone', '', function(value) {
+      self._sound = value;
+    });
   },
 
   handleEvent: function ns_handleEvent(evt) {
@@ -267,7 +274,7 @@ var NotificationScreen = {
 
     if (this.alerts) {
       var ringtonePlayer = new Audio();
-      ringtonePlayer.src = 'style/notifications/ringtones/notification.wav';
+      ringtonePlayer.src = this._sound;
       ringtonePlayer.mozAudioChannelType = 'notification';
       ringtonePlayer.play();
       window.setTimeout(function smsRingtoneEnder() {
