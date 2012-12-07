@@ -37,7 +37,7 @@ fbFriends.List = (function() {
             searchInfo.push(friend[field][0]);
           }
         });
-        friend.search = normalizeText(searchInfo.join(' '));
+        friend.search = utils.text.normalize(searchInfo.join(' '));
         // New friend appended
         utils.templates.append(ele, friend);
         // We check wether this friend was in the AB or not before

@@ -336,6 +336,148 @@
       -->
     </section>
 
+    <!-- Connectivity :: Call :: Call Forwarding Not Reachable -->
+    <section role="region" hidden id="call-cf-notReachableSettings">
+      <!--
+      <header>
+        <a href="#call"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="callForwarding"> Call forwarding </h1>
+      </header>
+
+      <ul id="cf-notreachable-advanced">
+        <li>
+          <p data-l10n-id="cf-numberWhenUnreachable">Number when unreachable</p>
+          <input type="text" data-setting="ril.cf.notreachable.number" />
+        </li>
+        <li>
+          <label>
+            <input type="checkbox" data-type="switch" name="ril.cf.notreachable.enabled"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="callForwardingNotReachable"> Forward when unreachable </a>
+        </li>
+      </ul>
+
+      -->
+    </section>
+
+    <!-- Connectivity :: Call :: Call Forwarding No Reply -->
+    <section role="region" hidden id="call-cf-noReplySettings">
+      <!--
+      <header>
+        <a href="#call"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="callForwarding"> Call forwarding </h1>
+      </header>
+
+      <ul id="cf-noreply-advanced">
+        <li>
+          <p data-l10n-id="cf-numberWhenUnanswered">Number when unanswered</p>
+          <input type="text" data-setting="ril.cf.noreply.number" />
+        </li>
+        <li>
+          <label>
+            <input type="checkbox" data-type="switch" name="ril.cf.noreply.enabled"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="callForwardingNoReply"> Forward when unanswered </a>
+        </li>
+      </ul>
+
+      -->
+    </section>
+
+    <!-- Connectivity :: Call :: Call Forwarding Mobile Busy -->
+    <section role="region" hidden id="call-cf-mobileBusySettings">
+      <!--
+      <header>
+        <a href="#call"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="callForwarding"> Call forwarding </h1>
+      </header>
+
+      <ul id="cf-mobilebusy-advanced">
+        <li>
+          <p data-l10n-id="cf-numberWhenBusy">Number when busy</p>
+          <input type="text" data-setting="ril.cf.mobilebusy.number" />
+        </li>
+        <li>
+          <label>
+            <input type="checkbox" data-type="switch" name="ril.cf.mobilebusy.enabled"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="callForwardingMobileBusy"> Forward when busy </a>
+        </li>
+      </ul>
+
+      -->
+    </section>
+
+    <!-- Connectivity :: Call :: Call Forwarding Unconditional -->
+    <section role="region" hidden id="call-cf-unconditionalSettings">
+      <!--
+      <header>
+        <a href="#call"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="callForwarding"> Call forwarding </h1>
+      </header>
+
+      <ul id="cf-unconditional-advanced">
+        <li>
+          <p data-l10n-id="cf-alwaysUseThisNumber">Always use this number</p>
+          <input type="text" data-setting="ril.cf.unconditional.number"/>
+        </li>
+        <li>
+          <label>
+            <input type="checkbox" data-type="switch" name="ril.cf.unconditional.enabled"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="callForwardingUnconditional">Always forward</a>
+        </li>
+      </ul>
+
+      -->
+    </section>
+
+    <!-- Connectivity :: Call -->
+    <section role="region" hidden id="call">
+      <!--
+      <header>
+        <a href="#root"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="call"> Call Settings </h1>
+      </header>
+      <ul>
+        <li>
+          <label>
+            <input type="checkbox" data-type="switch" name="ril.callwaiting.enabled"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="callWaiting">Call Waiting</a>
+        </li>
+      </ul>
+      <header>
+        <h2 data-l10n-id="callForwarding"> Call Forwarding </h2>
+      </header>
+      <ul>
+        <li>
+          <small id="cfu-desc"></small>
+          <a id="menuItem-callForwardingUnconditional" href="#call-cf-unconditionalSettings" data-l10n-id="callForwardingUnconditional">Always forward</a>
+        </li>
+        <li>
+          <small id="cfmb-desc"></small>
+          <a id="menuItem-callForwardingMobileBusy" href="#call-cf-mobileBusySettings" data-l10n-id="callForwardingMobileBusy">Forward when busy</a>
+        </li>
+        <li>
+          <small id="cfnrep-desc"></small>
+          <a id="menuItem-callForwardingNoReply" href="#call-cf-noReplySettings" data-l10n-id="callForwardingNoReply">Forward when unanswered</a>
+        </li>
+        <li>
+          <small id="cfnrea-desc"></small>
+          <a id="menuItem-callForwardingNotReachable" href="#call-cf-notReachableSettings" data-l10n-id="callForwardingNotReachable">Forward when unreachable</a>
+        </li>
+      </ul>
+
+      <script type="application/javascript" src="js/call.js"></script>
+      -->
+    </section>
+
     <!-- Connectivity :: Cellular & Data :: Network Operator -->
     <section role="region" hidden id="carrier-operatorSettings">
       <!--
@@ -383,21 +525,21 @@
       -->
     </section>
 
-    <!-- Connectivity :: Cellular & Data :: APN Settings -->
-    <section role="region" hidden id="carrier-apnSettings">
+    <!-- Connectivity :: Cellular & Data :: Data Settings -->
+    <section role="region" hidden id="carrier-dataSettings">
       <!--
       <header>
         <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
         <menu type="toolbar">
           <button type="submit"><span data-l10n-id="ok">OK</span></button>
         </menu>
-        <h1 data-l10n-id="apnSettings"> APN Settings </h1>
+        <h1 data-l10n-id="dataSettings"> Data Settings </h1>
       </header>
 
-      <ul id="apnSettings-list">
-        <li id="apnSettings-custom">
+      <ul class="apnSettings-list">
+        <li class="apnSettings-custom">
           <label>
-            <input type="radio" name="APN.name" value="_custom_" checked />
+            <input type="radio" name="ril.data.carrier" value="_custom_" checked />
             <span></span>
           </label>
           <a data-l10n-id="custom">(custom settings)</a>
@@ -407,7 +549,7 @@
       <header>
         <h2 data-l10n-id="advancedSettings"> Advanced Settings </h2>
       </header>
-      <ul id="apnSettings-advanced">
+      <ul class="apnSettings-advanced">
         <li>
           <p data-l10n-id="apn">APN</p>
           <input type="text" data-setting="ril.data.apn" />
@@ -443,18 +585,100 @@
         <h1 data-l10n-id="mmsSettings"> MMS Settings </h1>
       </header>
 
-      <ul>
+      <ul class="apnSettings-list">
+        <li class="apnSettings-custom">
+          <label>
+            <input type="radio" name="ril.mms.carrier" value="_custom_" checked />
+            <span></span>
+          </label>
+          <a data-l10n-id="custom">(custom settings)</a>
+        </li>
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="advancedSettings"> Advanced Settings </h2>
+      </header>
+      <ul class="apnSettings-advanced">
+        <li>
+          <p data-l10n-id="apn">APN</p>
+          <input type="text" data-setting="ril.data.apn" />
+        </li>
+        <li>
+          <p data-l10n-id="identity">identity</p>
+          <input type="text" data-setting="ril.data.user" />
+        </li>
+        <li>
+          <p data-l10n-id="password">password</p>
+          <input type="text" data-setting="ril.data.passwd" />
+        </li>
+        <li>
+          <p data-l10n-id="httpProxyHost">HTTP Proxy Host</p>
+          <input type="text" data-setting="ril.data.httpProxyHost" />
+        </li>
+        <li>
+          <p data-l10n-id="httpProxyPort">HTTP Proxy Port</p>
+          <input type="text" data-setting="ril.data.httpProxyPort" />
+        </li>
         <li>
           <p data-l10n-id="mmsproxy">MMS Proxy</p>
-          <input type="text" data-setting="ril.data.mmsproxy" value="foo" />
+          <input type="text" data-setting="ril.mms.mmsproxy" />
         </li>
         <li>
           <p data-l10n-id="mmsport">MMS Port</p>
-          <input type="text" data-setting="ril.data.mmsport" value="bar" />
+          <input type="text" data-setting="ril.mms.mmsport" />
         </li>
         <li>
           <p data-l10n-id="mmsc">MMSC</p>
-          <input type="text" data-setting="ril.data.mmsc" value="baz" />
+          <input type="text" data-setting="ril.mms.mmsc" />
+        </li>
+      </ul>
+      -->
+    </section>
+
+    <!-- Connectivity :: Cellular & Data :: A-GPS Settings -->
+    <section role="region" hidden id="carrier-suplSettings">
+      <!--
+      <header>
+        <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
+        <menu type="toolbar">
+          <button type="submit"><span data-l10n-id="ok">OK</span></button>
+        </menu>
+        <h1 data-l10n-id="suplSettings"> A-GPS Settings </h1>
+      </header>
+
+      <ul class="apnSettings-list">
+        <li class="apnSettings-custom">
+          <label>
+            <input type="radio" name="ril.supl.carrier" value="_custom_" checked />
+            <span></span>
+          </label>
+          <a data-l10n-id="custom">(custom settings)</a>
+        </li>
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="advancedSettings"> Advanced Settings </h2>
+      </header>
+      <ul class="apnSettings-advanced">
+        <li>
+          <p data-l10n-id="apn">APN</p>
+          <input type="text" data-setting="ril.supl.apn" />
+        </li>
+        <li>
+          <p data-l10n-id="identity">identity</p>
+          <input type="text" data-setting="ril.supl.user" />
+        </li>
+        <li>
+          <p data-l10n-id="password">password</p>
+          <input type="text" data-setting="ril.supl.passwd" />
+        </li>
+        <li>
+          <p data-l10n-id="httpProxyHost">HTTP Proxy Host</p>
+          <input type="text" data-setting="ril.supl.httpProxyHost" />
+        </li>
+        <li>
+          <p data-l10n-id="httpProxyPort">HTTP Proxy Port</p>
+          <input type="text" data-setting="ril.supl.httpProxyPort" />
         </li>
       </ul>
       -->
@@ -472,13 +696,6 @@
         <li>
           <small id="dataNetwork-desc"></small>
           <a data-l10n-id="dataNetwork">Carrier</a>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" data-type="switch" name="ril.callwaiting.enabled"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="callWaiting">Call Waiting</a>
         </li>
       </ul>
 
@@ -516,14 +733,20 @@
         </li>
         <li>
           <label>
-            <button data-href="#carrier-apnSettings"
-              data-l10n-id="apnSettings">APN Settings</button>
+            <button data-href="#carrier-dataSettings"
+              data-l10n-id="dataSettings">Data Settings</button>
           </label>
         </li>
         <li hidden>
           <label>
             <button data-href="#carrier-mmsSettings"
               data-l10n-id="mmsSettings">MMS Settings</button>
+          </label>
+        </li>
+        <li>
+          <label>
+            <button data-href="#carrier-suplSettings"
+              data-l10n-id="suplSettings">A-GPS Settings</button>
           </label>
         </li>
       </ul>
@@ -716,44 +939,16 @@
       <header>
         <h2 data-l10n-id="ring-tones">Ringtones</h2>
       </header>
-      <ul>
-        <li>
-          <label>
-            <input type="radio" name="tone-option" data-ignore value="classic.ogg" data-label="Classic" checked />
-            <span></span>
-          </label>
-          <a data-l10n-id="classic">Classic</a>
-        </li>
-        <li>
-          <label>
-            <input type="radio" name="tone-option" data-ignore value="old_school.ogg" data-label="Old School" />
-            <span></span>
-          </label>
-          <a data-l10n-id="oldSchool">Old School</a>
-        </li>
-        <li>
-          <label>
-            <input type="radio" name="tone-option" data-ignore value="low_bit.ogg" data-label="Low Bit" />
-            <span></span>
-          </label>
-          <a data-l10n-id="lowBit">Low Bit</a>
-        </li>
+      <ul id="ringtones-list">
       </ul>
 
       <header>
         <h2 data-l10n-id="alert-tones">Alert Tones</h2>
       </header>
-      <ul>
-        <li>
-          <label>
-            <input type="radio" name="tone-option" data-ignore value="sms.wav" data-label="Beep Beep" />
-            <span></span>
-          </label>
-          <a data-l10n-id="beep">Beep Beep</a>
-        </li>
+      <ul id="notifications-list">
       </ul>
 
-      <audio style="display: none;" src="resources/ringtones/classic.ogg"></audio>
+      <audio style="display: none;" src=""></audio>
       -->
     </section>
 
@@ -808,7 +1003,7 @@
       <ul>
         <li>
           <span data-l10n-id="ringer">Ringer
-            <button id="call-tone-selection" class="tone-select">Old School</button>
++            <button id="call-tone-selection" class="tone-select" data-l10n-id="change"></button>
           </span>
         </li>
       </ul>
@@ -1596,14 +1791,14 @@
       -->
     </section>
 
-    <!-- Device :: Information :: About Your Rights -->
+    <!-- Device :: Information :: Your Rights -->
     <section role="region" hidden id="about-yourRights">
       <!--
       <header>
         <button type="reset">
           <span data-l10n-id="back" class="icon icon-back">Back</span>
         </button>
-        <h1 data-l10n-id="about-your-rights"> About Your Rights </h1>
+        <h1 data-l10n-id="your-rights"> Your Rights </h1>
       </header>
 
       <ul>
@@ -1636,62 +1831,77 @@
       -->
     </section>
 
-    <!-- Device :: Information :: About Your Privacy -->
+    <!-- Device :: Information :: Your Privacy -->
     <section role="region" hidden id="about-yourPrivacy">
       <!--
       <header>
         <button type="reset">
           <span data-l10n-id="back" class="icon icon-back">Back</span>
         </button>
-        <h1 data-l10n-id="about-your-privacy"> About Your Privacy </h1>
+        <h1 data-l10n-id="your-privacy"> Your Privacy </h1>
       </header>
 
+      <header>
+        <h2> Mozilla </h2>
+      </header>
       <ul>
-        <li class="privacy-menuitem privacy-browserOS">
-          <a href="https://www.mozilla.org/legal/privacy/firefox.html">Browser OS</a>
+        <li>
+          <a class="privacy-menuitem privacy-browserOS" href="https://www.mozilla.org/legal/privacy/firefox.html" data-l10n-id="brandShortName">B2G OS</a>
         </li>
-        <li class="privacy-menuitem privacy-everythingME">
-          <a href="http://corp.everything.me/#/privacy">everything.me</a>
+        <li>
+          <a class="privacy-menuitem privacy-marketPlace" href="https://marketplace.firefox.com/privacy-policy">Marketplace</a>
+        </li>
+      </ul>
+      <header>
+        <h2 data-l10n-id="about-other"> Other </h2>
+      </header>
+      <ul>
+        <li>
+          <a class="privacy-menuitem privacy-everythingME" href="http://corp.everything.me/privacy">everything.me</a>
         </li>
       </ul>
       -->
     </section>
 
-    <!-- Device :: Information :: Legal Information -->
-    <section role="region" hidden id="about-legal-information">
-      <!--
-      <header>
-        <button type="reset">
-          <span data-l10n-id="back" class="icon icon-back">Back</span>
-        </button>
-        <h1 data-l10n-id="about-licensing"> Legal Information </h1>
-      </header>
-
-      <header>
-        <h2 data-l10n-id="mozilla"> Mozilla </h2>
-      </header>
-      <ul>
-        <li class="description">
-   			  <a href="#about-licensing" data-l10n-id="about-os-license">
-     			  Browser Os Open Source Notices
-  			  </a>
-        </li>
-      </ul>
-      -->
-    </section>
-
-    <!-- Device :: Information :: Licensing -->
+    <!-- Device :: Information :: Legal :: Open Source Notices -->
     <section role="region" hidden id="about-licensing">
       <!--
       <header>
-        <a href="#about-legal-information">
-			    <span class="icon icon-back">back</span>
+        <a href="#about-legal">
+          <span class="icon icon-back">back</span>
         </a>
-        <h1 data-l10n-id="about-os-license">
-			    Browser Os Open Source Notices
-		    </h1>
+        <h1 data-l10n-id="open-source-notices">
+          Open Source Notices
+        </h1>
       </header>
-	    <iframe src="open-source-license.html" id="os-license"></iframe>
+      <iframe src="resources/open_source_license.html" id="os-license"></iframe>
+      -->
+    </section>
+
+    <!-- Device :: Information :: Legal -->
+    <section role="region" hidden id="about-legal">
+      <!--
+      <header>
+        <a href="#about">
+          <span class="icon icon-back">back</span>
+        </a>
+        <h1 data-l10n-id="about-legal-info"> Legal Information </h1>
+      </header>
+
+      <header>
+        <h2 data-l10n-id="about-mozilla"> Mozilla </h2>
+      </header>
+      <ul>
+        <li>
+          <a href="#about-licensing" data-l10n-id="open-source-notices">
+            Open Source Notices
+          </a>
+        </li>
+      </ul>
+
+      <header hidden>
+        <h2 data-l10n-id="about-other"> Other </h2>
+      </header>
       -->
     </section>
 
@@ -1760,19 +1970,19 @@
         <li>
           <label>
             <button data-href="#about-yourRights"
-              data-l10n-id="about-your-rights"> About Your Rights </button>
+              data-l10n-id="your-rights"> Your Rights </button>
           </label>
         </li>
         <li>
           <label>
             <button data-href="#about-yourPrivacy"
-              data-l10n-id="about-your-privacy"> About Your Privacy </button>
+              data-l10n-id="your-privacy"> Your Privacy </button>
           </label>
         </li>
         <li>
           <label>
-            <button data-href="#about-legal-information"
-              data-l10n-id="about-licensing"> Licensing </button>
+            <button data-href="#about-legal"
+              data-l10n-id="about-legal-info"> Legal Information </button>
           </label>
         </li>
       </ul>
@@ -2125,6 +2335,10 @@
         <li>
           <small id="wifi-desc" class="menu-item-desc" data-l10n-id="fullStatus-disconnected">offline</small>
           <a id="menuItem-wifi" class="menu-item" href="#wifi" data-l10n-id="wifi">Wi-Fi</a>
+        </li>
+        <li>
+          <small id="call-desc" class="menu-item-desc"></small>
+          <a id="menuItem-call" class="menu-item" href="#call" data-l10n-id="call">Call</a>
         </li>
         <li>
           <small id="data-desc" class="menu-item-desc"></small>

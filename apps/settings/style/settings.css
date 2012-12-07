@@ -142,11 +142,11 @@ label[for^="pwd"] {
  * APN settings
  */
 
-#apnSettings-custom {
+.apnSettings-custom {
   font-style: italic;
 }
 
-#apnSettings-advanced {
+.apnSettings-advanced {
   padding-bottom: 1em;
 }
 
@@ -255,6 +255,17 @@ ul li > label .range-icons.brightness {
   white-space: nowrap;
 }
 
+
+/******************************************************************************
+ * OS License
+ */
+
+#os-license {
+  width: 100%;
+  height: calc(100% - 5rem);
+}
+
+
 /******************************************************************************
  * Help
  */
@@ -268,6 +279,7 @@ html[dir="rtl"] #call-support-numbers {
   right: inherit;
   left: 2rem;
 }
+
 
 /******************************************************************************
  * Right-To-Left layout
@@ -291,12 +303,3 @@ html[dir="rtl"] label[for^="pwd"] {
   padding-right: 3rem;
 }
 
-
-/******************************************************************************
-* OS License
-*/
-
-iframe#os-license {
-  width: 100%;
-  height: calc(100% - 5rem);
-}

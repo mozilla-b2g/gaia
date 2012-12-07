@@ -105,7 +105,7 @@ contacts.List = (function() {
     contact.org = contact.org || '';
     var contactContainer = document.createElement('li');
     contactContainer.className = 'contact-item';
-    contactContainer.dataset.uuid = contact.id;
+    contactContainer.dataset.uuid = utils.text.escapeHTML(contact.id, true);
     var timestampDate = contact.updated || contact.published || new Date();
     contactContainer.dataset.updated = timestampDate.getTime();
     var link = document.createElement('a');
@@ -116,7 +116,11 @@ contacts.List = (function() {
       var figure = document.createElement('aside');
       figure.className = 'pack-end';
       var img = document.createElement('img');
-      img.dataset.src = window.URL.createObjectURL(contact.photo[0]);
+      try {
+        img.dataset.src = window.URL.createObjectURL(contact.photo[0]);
+      } catch(err) {
+        img.dataset.src = '';
+      }
       figure.appendChild(img);
       link.appendChild(figure);
     }
@@ -134,7 +138,8 @@ contacts.List = (function() {
         }
       }
     });
-    name.dataset['search'] = normalizeText(searchInfo.join(' '));
+    var escapedValue = utils.text.escapeHTML(searchInfo.join(' '), true);
+    name.dataset['search'] = utils.text.normalize(escapedValue);
 
     // Label the contact concerning social networks
     var meta = document.createElement('p');
@@ -151,7 +156,7 @@ contacts.List = (function() {
       }
     }
     //Add organization name
-    meta.innerHTML += contact.org;
+    meta.innerHTML += utils.text.escapeHTML(contact.org, true);
 
     //Final item structure
     link.appendChild(name);
@@ -162,10 +167,12 @@ contacts.List = (function() {
   }
 
   var getHighlightedName = function getHighlightedName(contact) {
+    var givenName = utils.text.escapeHTML(contact.givenName);
+    var familyName = utils.text.escapeHTML(contact.familyName);
     if (orderByLastName) {
-      return contact.givenName + ' <strong>' + contact.familyName + '</strong>';
+      return givenName + ' <strong>' + familyName + '</strong>';
     } else {
-      return '<strong>' + contact.givenName + '</strong> ' + contact.familyName;
+      return '<strong>' + givenName + '</strong> ' + familyName;
     }
   };
 
@@ -575,7 +582,7 @@ contacts.List = (function() {
 
   var getGroupName = function getGroupName(contact) {
     var ret = getStringToBeOrdered(contact);
-    ret = normalizeText(ret.charAt(0).toUpperCase());
+    ret = utils.text.normalize(ret.charAt(0).toUpperCase());
 
     var code = ret.charCodeAt(0);
     if (code < 65 || code > 90) {

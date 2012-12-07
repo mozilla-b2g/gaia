@@ -392,3 +392,9 @@ body, html {
   background: url('images/system-downloads.gif') no-repeat;
   background-position: 0 0;
 }
+
+.sb-icon-call-forwarding {
+  /* Waiting for the correct icon. In the mean time we use this one. */
+  background: url('images/call-forwarding.png') no-repeat;
+  background-position: 0 0;
+}
