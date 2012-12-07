@@ -31,12 +31,16 @@ var TonePlayer = {
   },
 
   ensureAudio: function tp_ensureAudio() {
-   if (this._audio)
+   if (/*this._audio || */this._tonePlayer)
      return;
-
+/*
    this._audio = new Audio();
    this._audio.mozAudioChannelType = 'normal';
    this._audio.mozSetup(2, this._sampleRate);
+*/
+   this._tonePlayer = new Audio();
+   this._tonePlayer.autoplay = true;
+   this._tonePlayer.loop = true;
   },
 
   generateFrames: function tp_generateFrames(soundData, freqRow, freqCol) {
@@ -52,12 +56,21 @@ var TonePlayer = {
       currentSoundSample++;
     }
   },
-
+/*
   play: function tp_play(frequencies) {
     var soundDataSize = this._sampleRate / 4;
     var soundData = new Float32Array(soundDataSize);
     this.generateFrames(soundData, frequencies[0], frequencies[1]);
     this._audio.mozWriteAudio(soundData);
+  },
+*/
+  playTone: function tp_playTone(key) {
+    this._tonePlayer.src = 'style/ringtones/' + key + '.wav';
+    this._tonePlayer.play();
+  },
+
+  pauseTone: function tp_pauseTone() {
+    this._tonePlayer.src = '';
   },
 
   // If the app loses focus, close the audio stream. This works around an
@@ -70,8 +83,11 @@ var TonePlayer = {
     } else {
       // Reset the audio stream. This ensures that the stream is shutdown
       // *immediately*.
-      this._audio.src = '';
+/*      this._audio.src = '';
       delete this._audio;
+*/
+      this._tonePlayer.src = '';
+      delete this._tonePlayer;
     }
   }
 
@@ -380,18 +396,24 @@ var KeypadManager = {
       this._longPress = false;
 
       if (key != 'delete') {
+        this._keyPressed = true;
         if (keypadSoundIsEnabled) {
-          TonePlayer.play(gTonesFrequencies[key]);
+          // TonePlayer.play(gTonesFrequencies[key]);
+          TonePlayer.playTone(key);
         }
 
         // Sending the DTMF tone if on a call
         var telephony = navigator.mozTelephony;
         if (telephony && telephony.active &&
-            telephony.active.state == 'connected') {
-
+          telephony.active.state == 'connected') {
           telephony.startTone(key);
+          this._tonePlaying = true;
+          var self = this;
           window.setTimeout(function ch_stopTone() {
-            telephony.stopTone();
+            if (self._tonePlaying && !self._keyPressed) {
+              telephony.stopTone();
+              self._tonePlaying = false;
+            }
           }, 100);
 
         }
@@ -412,7 +434,7 @@ var KeypadManager = {
       }
 
       // Voicemail long press (needs to be longer since it actually dials)
-      if (event.target.dataset.voicemail) {
+      if (!this._onCall && event.target.dataset.voicemail) {
         this._holdTimer = setTimeout(function vm_call(self) {
           self._longPress = true;
           self._callVoicemail();
@@ -437,12 +459,24 @@ var KeypadManager = {
         } else {
           this._phoneNumber += key;
         }
+        if (this._tonePlaying) {
+          var telephony = navigator.mozTelephony;
+          if (telephony && telephony.active &&
+              telephony.active.state == 'connected') {
+            telephony.stopTone();
+            this._tonePlaying = false;
+          }
+        }
+        this._keyPressed = false;
       } else {
         this._phoneNumber += key;
+        this._keyPressed = false;
       }
 
       if (this._holdTimer)
         clearTimeout(this._holdTimer);
+
+      TonePlayer.pauseTone();
 
       this._updatePhoneNumberView();
     }
