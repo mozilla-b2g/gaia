@@ -54,9 +54,13 @@ var CallScreen = {
 
   },
 
-  setCallerContactImage: function cs_setCallerContactImage(image_url) {
-    var photoURL = URL.createObjectURL(image_url);
-    this.mainContainer.style.backgroundImage = 'url(' + photoURL + ')';
+  setCallerContactImage: function cs_setCallerContactImage(image_url, force) {
+    var photoURL;
+    var isString = (typeof image_url == 'string');
+    photoURL = isString ? image_url : URL.createObjectURL(image_url);
+    if (!this.mainContainer.style.backgroundImage || force) {
+      this.mainContainer.style.backgroundImage = 'url(' + photoURL + ')';
+    }
   },
 
   toggleMute: function cs_toggleMute() {
@@ -612,4 +616,15 @@ window.addEventListener('localized', function callSetup(evt) {
   CallScreen.init();
   CallScreen.syncSpeakerEnabled();
   OnCallHandler.setup();
+  var isLocked = (window.location.hash === '#locked');
+  // After investigating in #815629, it seems that
+  // lock screen animation over the Wallpaper image is not
+  // performing well, so we are not painting it when is locked
+  // Being tracked in #817988
+  if (navigator.mozSettings && !isLocked) {
+    var req = navigator.mozSettings.createLock().get('wallpaper.image');
+    req.onsuccess = function cs_wi_onsuccess() {
+      CallScreen.setCallerContactImage(req.result['wallpaper.image']);
+    };
+  }
 });
