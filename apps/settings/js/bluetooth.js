@@ -247,6 +247,7 @@ onLocalized(function bluetoothSettings() {
     var childWindow = null;
 
     var pairingMode = 'active';
+    var userCanceledPairing = false;
     var pairingAddress = null;
     var connectingAddress = null;
     var connectedAddress = null;
@@ -427,11 +428,13 @@ onLocalized(function bluetoothSettings() {
           // if the attention screen still open, close it
           if (childWindow)
             childWindow.close();
-          // show pair process fail.
-          var msg = _('error-pair-title') + '\n' + _('error-pair-pincode');
           // display failure only when active request
-          if (pairingMode === 'active')
+          if (pairingMode === 'active' && !userCanceledPairing) {
+            // show pair process fail.
+            var msg = _('error-pair-title') + '\n' + _('error-pair-pincode');
             window.alert(msg);
+          }
+          userCanceledPairing = false;
           // rollback device status
           if (openList.index[pairingAddress]) {
             var item = openList.index[pairingAddress][1];
@@ -561,10 +564,11 @@ onLocalized(function bluetoothSettings() {
       discoverTimeout = null;
     }
 
-    function setConfirmation(address) {
+    function setConfirmation(address, confirmed) {
       if (!defaultAdapter)
         return;
-      var req = defaultAdapter.setPairingConfirmation(address, true);
+      userCanceledPairing = !confirmed;
+      var req = defaultAdapter.setPairingConfirmation(address, confirmed);
     }
 
     function setPinCode(address, pincode) {
