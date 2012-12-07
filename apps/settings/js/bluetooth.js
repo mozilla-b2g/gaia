@@ -288,7 +288,9 @@ onLocalized(function bluetoothSettings() {
         enableMsg.hidden = false;
         searchingItem.hidden = true;
         optionMenu.close();
-        stopDiscovery();
+        // clear discoverTimeout
+        clearTimeout(discoverTimeout);
+        discoverTimeout = null;
       }
     }
 
@@ -544,7 +546,7 @@ onLocalized(function bluetoothSettings() {
     }
 
     function stopDiscovery() {
-      if (!defaultAdapter)
+      if (!defaultAdapter || !bluetooth.enabled)
         return;
       var req = defaultAdapter.stopDiscovery();
       req.onsuccess = function bt_discoveryStopped() {
