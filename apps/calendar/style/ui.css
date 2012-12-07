@@ -89,7 +89,6 @@ ol.link-list a {
 
 #time-header h1 {
   max-width: calc(100% - 5rem);
-  direction:rtl;
 }
 
 #progress-indicator {
