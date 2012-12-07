@@ -624,6 +624,11 @@ Calendar.ns('Service').Caldav = (function() {
       }
 
       function handleResponse(url, data) {
+        if (!data) {
+          // throw some error;
+          console.log('Could not sync: ', url);
+          return;
+        }
         var etag = data.getetag.value;
         if (url in cache) {
           // don't need to track this for missing events.
