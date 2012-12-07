@@ -170,12 +170,6 @@ ol.link-list a {
   margin: 0 2rem;
 }
 
-/* modify account view */
-
-#remove-account-dialog {
-  display: none;
-}
-
 .fullscreen-view.active {
   visibility: visible;
 }
