@@ -196,6 +196,7 @@ var OnCallHandler = (function onCallHandler() {
   }
 
   var ringtonePlayer = new Audio();
+  ringtonePlayer.mozAudioChannelType = 'ringer';
   ringtonePlayer.src = selectedPhoneSound;
   ringtonePlayer.loop = true;
 
