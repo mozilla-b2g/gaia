@@ -123,6 +123,10 @@ var Calculator = {
     return n.toFixed(3);
   },
 
+  formatOutput: function calculator_formatOutput(n) {
+    return this.formatNumber(n).toString().replace(/0+$/, "");
+  },
+
   calculate: function calculator_calculate() {
     if (this.stack.length === 0)
       return;
@@ -131,7 +135,7 @@ var Calculator = {
       var postfix =
         this.infix2postfix(this.stack.map(this.substitute).join(''));
       var result = this.evaluatePostfix(postfix);
-      this.stack = [this.formatNumber(result).toString()];
+      this.stack = [this.formatOutput(result)];
       this.updateDisplay();
       this.toClear = true;
     } catch (err) {
@@ -321,9 +325,18 @@ Calculator.test = function() {
 
   var passed = formulas.every(run);
 
-  if (passed) {
-    console.log('Tests Passed!');
-  }
+  var zeroTests = [
+    [8.000, "8"],
+    [8.100, "8.1"],
+    [1008.100, "1008.1"],
+    [8100.001, "8100.001"]
+  ];
+  passed = passed && zeroTests.every(function(a) {
+    return Calculator.formatOutput(a[0]) === a[1];
+  });
+
+  console.log('Calculator tests: ' + (passed ? 'passed' : 'failed'));
+  
   return passed;
 };
 
