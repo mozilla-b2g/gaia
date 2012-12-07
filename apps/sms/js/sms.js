@@ -101,6 +101,7 @@ var MessageManager = {
             var num = this.getNumFromHash();
             if (num) {
               var filter = this.createFilter(num);
+              var messageInput = document.getElementById('message-to-send');
               MessageManager.currentNum = num;
               if (mainWrapper.classList.contains('edit')) {
                 this.getMessages(ThreadUI.renderMessages, filter);
@@ -108,11 +109,12 @@ var MessageManager = {
               } else if (threadMessages.classList.contains('new')) {
                 this.getMessages(ThreadUI.renderMessages, filter);
                 threadMessages.classList.remove('new');
+                messageInput.focus();
               } else {
                 this.getMessages(ThreadUI.renderMessages,
                   filter, null, function() {
                     MessageManager.slide(function() {
-                      document.getElementById('message-to-send').focus();
+                      messageInput.focus();
                     });
                   });
               }
