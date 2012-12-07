@@ -1,4 +1,4 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 'use strict';
@@ -745,6 +745,8 @@
       str = gL10nData[key + '[two]'][prop];
     } else if ((key + index) in gL10nData) {
       str = gL10nData[key + index][prop];
+    } else if ((key + '[other]') in gL10nData) {
+      str = gL10nData[key + '[other]'][prop];
     }
 
     return str;
@@ -815,7 +817,7 @@
 
       var arg = match[1];
       var sub = '';
-      if (arg in args) {
+      if (args && arg in args) {
         sub = args[arg];
       } else if (arg in gL10nData) {
         sub = gL10nData[arg][gTextProp];

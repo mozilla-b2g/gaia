@@ -14,9 +14,9 @@ const GridManager = (function() {
   var dragging = false;
 
   var opacityOnAppGridPageMax = .7;
-  var kPageTransitionDuration = .3;
+  var kPageTransitionDuration = 300;
   var overlay, overlayStyle;
-  var overlayTransition = 'opacity ' + kPageTransitionDuration + 's ease';
+  var overlayTransition = 'opacity ' + kPageTransitionDuration + 'ms ease';
 
   var numberOfSpecialPages = 0;
   var pages = [];
@@ -37,6 +37,7 @@ const GridManager = (function() {
   function handleEvent(evt) {
     switch (evt.type) {
       case 'mousedown':
+        touchStartTimestamp = evt.timeStamp;
         evt.stopPropagation();
         startEvent = evt;
         attachEvents();
@@ -149,6 +150,7 @@ const GridManager = (function() {
         container.addEventListener('mousemove', pan, true);
 
         window.addEventListener('mouseup', function removePanHandler(e) {
+          touchEndTimestamp = e.timeStamp;
           window.removeEventListener('mouseup', removePanHandler, true);
 
           container.removeEventListener('mousemove', pan, true);
@@ -199,7 +201,10 @@ const GridManager = (function() {
 
   function onTouchEnd(deltaX) {
     var page = currentPage;
-    if (Math.abs(deltaX) > thresholdForPanning) {
+    /* Bigger than threshold for panning or a fast movement bigger than
+       threshold for tapping */
+    if (Math.abs(deltaX) > thresholdForPanning ||
+        touchEndTimestamp - touchStartTimestamp < kPageTransitionDuration) {
       var forward = dirCtrl.goesForward(deltaX);
       if (forward && currentPage < pages.length - 1) {
         page = page + 1;
@@ -233,10 +238,20 @@ const GridManager = (function() {
     }
   }
 
+  var touchStartTimestamp = 0;
+  var touchEndTimestamp = 0;
+  var lastGoingPageTimestamp = 0;
+
   function goToPage(index, callback) {
     document.location.hash = (index == 1 ? 'root' : '');
     if (index < 0 || index >= pages.length)
       return;
+
+    var delay = touchEndTimestamp - lastGoingPageTimestamp ||
+                kPageTransitionDuration;
+    lastGoingPageTimestamp += delay;
+    var duration = delay < kPageTransitionDuration ?
+                   delay : kPageTransitionDuration
 
     var goToPageCallback = function() {
       delete document.body.dataset.transitioning;
@@ -271,7 +286,7 @@ const GridManager = (function() {
 
     if (previousPage == newPage) {
       goToPageCallback();
-      newPage.moveByWithEffect(0, kPageTransitionDuration);
+      newPage.moveByWithEffect(0, duration);
       return;
     }
 
@@ -281,9 +296,8 @@ const GridManager = (function() {
 
     previousPage.container.dispatchEvent(new CustomEvent('gridpagehidestart'));
     newPage.container.dispatchEvent(new CustomEvent('gridpageshowstart'));
-    previousPage.moveByWithEffect(-forward * windowWidth,
-                                  kPageTransitionDuration);
-    newPage.moveByWithEffect(0, kPageTransitionDuration);
+    previousPage.moveByWithEffect(-forward * windowWidth, duration);
+    newPage.moveByWithEffect(0, duration);
 
     container.addEventListener('transitionend', function transitionEnd(e) {
       container.removeEventListener('transitionend', transitionEnd);
@@ -666,7 +680,7 @@ const GridManager = (function() {
     if (!app.isBookmark) {
       app.ondownloadapplied = function ondownloadapplied(event) {
         var withAnimation = false;
-        createOrUpdateIconForApp(app, withAnimation, entryPoint);
+        createOrUpdateIconForApp(event.application, withAnimation, entryPoint);
         app.ondownloadapplied = null;
         app.ondownloaderror = null;
       };
@@ -731,6 +745,45 @@ const GridManager = (function() {
         icon.show();
       });
     }
+  }
+
+  /*
+   * Shows a dialog to confirm the download retry
+   * calls the method 'download'. That's applied
+   * to an icon, that has associated an app already.
+   */
+  function showRestartDownloadDialog(icon) {
+    var app = icon.app;
+    var _ = navigator.mozL10n.get;
+    var confirm =  {
+      title: _('download'),
+      callback: function onAccept() {
+        app.download();
+        app.ondownloaderror = function(evt) {
+          icon.showCancelled();
+          icon.updateAppStatus(evt.application);
+        };
+        app.onprogress = function onProgress(evt) {
+          app.onprogress = null;
+          icon.updateAppStatus(evt.application);
+        }
+        icon.showDownloading();
+        ConfirmDialog.hide();
+      },
+      applyClass: 'recommend'
+    };
+
+    var cancel = {
+      title: _('cancel'),
+      callback: ConfirmDialog.hide
+    };
+
+    var localizedName = icon.descriptor.localizedName || icon.descriptor.name;
+    ConfirmDialog.show(_('restart-download-title'), 
+      _('restart-download-body', {'name': localizedName}), 
+      cancel, 
+      confirm);
+    return;
   }
 
   function bestMatchingIcon(app, manifest) {
@@ -899,6 +952,8 @@ const GridManager = (function() {
 
     dirCtrl: dirCtrl,
 
-    pageHelper: pageHelper
+    pageHelper: pageHelper,
+
+    showRestartDownloadDialog: showRestartDownloadDialog
   };
 })();

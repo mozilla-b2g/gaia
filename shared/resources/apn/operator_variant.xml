@@ -1,0 +1,499 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+-->
+<variant version="1">
+   <operator
+       name="Internet movil"
+       mcc="214"
+       mnc="01"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="Orange Internet Móvil"
+       mcc="214"
+       mnc="03"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="Yoigo Navegador"
+       mcc="214"
+       mnc="04"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="INTERNET GPRS"
+       mcc="214"
+       mnc="06"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="Euskaltel Internet"
+       mcc="214"
+       mnc="06"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="Internet R"
+       mcc="214"
+       mnc="06"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="TeleCable Internet"
+       mcc="214"
+       mnc="06"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="Movistar"
+       mcc="214"
+       mnc="07"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="Euskaltel Internet"
+       mcc="214"
+       mnc="08"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="TeleCable Internet"
+       mcc="214"
+       mnc="16"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="Internet"
+       mcc="334"
+       mnc="020"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="Mensajes Multimedia"
+       mcc="334"
+       mnc="020"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="movistar Internet"
+       mcc="334"
+       mnc="03"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="movistar Internet"
+       mcc="334"
+       mnc="030"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="Iusacell Internet"
+       mcc="334"
+       mnc="050"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="INTERNET CLARO"
+       mcc="704"
+       mnc="01"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="BROADBAND TIGO"
+       mcc="704"
+       mnc="02"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="Internet GT"
+       mcc="704"
+       mnc="03"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="Internet GT"
+       mcc="704"
+       mnc="030"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="INTERNET CLARO"
+       mcc="706"
+       mnc="01"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="El Salvaldor Digicel"
+       mcc="706"
+       mnc="02"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="BROADBAND TIGO"
+       mcc="706"
+       mnc="03"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="Internet SV"
+       mcc="706"
+       mnc="04"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="Internet SV"
+       mcc="706"
+       mnc="040"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="INTERNET"
+       mcc="710"
+       mnc="21"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="Internet GPRS"
+       mcc="710"
+       mnc="300"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="INTERNET"
+       mcc="710"
+       mnc="730"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="Wap"
+       mcc="714"
+       mnc="01"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="movistar INTERNET"
+       mcc="714"
+       mnc="020"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="WEB Claro"
+       mcc="714"
+       mnc="03"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="INTERNET Panama"
+       mcc="714"
+       mnc="04"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="movistar Internet"
+       mcc="716"
+       mnc="06"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="CLARO DATOS"
+       mcc="716"
+       mnc="10"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="Movistar Emoción"
+       mcc="722"
+       mnc="07"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="Claro AR"
+       mcc="722"
+       mnc="31"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="Claro AR"
+       mcc="722"
+       mnc="310"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="Personal Datos"
+       mcc="722"
+       mnc="34"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="Personal Datos"
+       mcc="722"
+       mnc="341"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="TIM Connect"
+       mcc="724"
+       mnc="02"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="TIM Connect"
+       mcc="724"
+       mnc="03"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="TIM Connect"
+       mcc="724"
+       mnc="04"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="Java Session"
+       mcc="724"
+       mnc="05"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="Claro Foto"
+       mcc="724"
+       mnc="05"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="Vivo Internet"
+       mcc="724"
+       mnc="06"
+       enableStrict7BitEncodingForSms="true"
+       cellBroadcastSearchList="50"
+   />
+   <operator
+       name="SCTL GPRS"
+       mcc="724"
+       mnc="07"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="Vivo Internet"
+       mcc="724"
+       mnc="10"
+       enableStrict7BitEncodingForSms="true"
+       cellBroadcastSearchList="50"
+   />
+   <operator
+       name="Vivo Internet"
+       mcc="724"
+       mnc="11"
+       enableStrict7BitEncodingForSms="true"
+       cellBroadcastSearchList="50"
+   />
+   <operator
+       name="BrT Modem"
+       mcc="724"
+       mnc="16"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="TelemigC GPRS"
+       mcc="724"
+       mnc="19"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="Vivo Internet"
+       mcc="724"
+       mnc="23"
+       enableStrict7BitEncodingForSms="true"
+       cellBroadcastSearchList="50"
+   />
+   <operator
+       name="AmazôniaC GPRS"
+       mcc="724"
+       mnc="24"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="OI GPRS"
+       mcc="724"
+       mnc="31"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="Internet Movil"
+       mcc="730"
+       mnc="01"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="Internet Movil"
+       mcc="730"
+       mnc="10"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="NEM"
+       mcc="730"
+       mnc="02"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="BAM Claro"
+       mcc="730"
+       mnc="03"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="web"
+       mcc="730"
+       mnc="07"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="Internet"
+       mcc="730"
+       mnc="08"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="Wap"
+       mcc="730"
+       mnc="08"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="Bam"
+       mcc="730"
+       mnc="08"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="Internet Movil"
+       mcc="730"
+       mnc="10"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="WEB Comcel 3GSM"
+       mcc="732"
+       mnc="101"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="TIGO WEB"
+       mcc="732"
+       mnc="103"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="TIGO Multimedia"
+       mcc="732"
+       mnc="103"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="TIGO WEB"
+       mcc="732"
+       mnc="111"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="TIGO Multimedia"
+       mcc="732"
+       mnc="111"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="movistar INTERNET"
+       mcc="732"
+       mnc="123"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="Digitel GSM"
+       mcc="734"
+       mnc="01"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="Digitel GSM"
+       mcc="734"
+       mnc="02"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="Digitel GSM"
+       mcc="734"
+       mnc="03"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="movistar INTERNET"
+       mcc="734"
+       mnc="04"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="movistar WAP"
+       mcc="734"
+       mnc="04"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="MODEM"
+       mcc="734"
+       mnc="06"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="movistar INTERNET"
+       mcc="740"
+       mnc="00"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="Claro Internet"
+       mcc="740"
+       mnc="01"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="Claro Internet"
+       mcc="740"
+       mnc="010"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="ALEGRO 3G"
+       mcc="740"
+       mnc="02"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="wapANCEL"
+       mcc="748"
+       mnc="01"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="gprsANCEL"
+       mcc="748"
+       mnc="01"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="Movistar Emoción"
+       mcc="748"
+       mnc="07"
+       enableStrict7BitEncodingForSms="true"
+   />
+   <operator
+       name="Claro UY"
+       mcc="748"
+       mnc="10"
+       enableStrict7BitEncodingForSms="true"
+   />
+</variant>

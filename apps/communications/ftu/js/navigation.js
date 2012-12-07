@@ -30,12 +30,12 @@ var steps = {
   },
   6: {
     onlyForward: false,
-    hash: '#welcome_firefox',
+    hash: '#welcome_browser',
     requireSIM: false
   },
   7: {
     onlyForward: false,
-    hash: '#firefox_privacy',
+    hash: '#browser_privacy',
     requireSIM: false
   }
 };
@@ -80,6 +80,7 @@ var Navigation = {
       if (self.currentStep > numSteps) {
         UIManager.activationScreen.classList.remove('show');
         UIManager.finishScreen.classList.add('show');
+        Tutorial.init();
         return;
       }
       var followingStep = steps[self.currentStep];
@@ -97,6 +98,8 @@ var Navigation = {
       case '#languages':
         UIManager.progressBar.className = 'step-state step-1';
         UIManager.mainTitle.innerHTML = _('language');
+        // Hide refresh button in case we end up here coming back from wifi
+        UIManager.activationScreen.classList.add('no-options');
         break;
       case '#data_3g':
         UIManager.progressBar.className = 'step-state step-2';
@@ -139,9 +142,9 @@ var Navigation = {
           fbOption.classList.add('disabled');
         }
         break;
-      case '#welcome_firefox':
+      case '#welcome_browser':
         UIManager.progressBar.className = 'step-state step-6';
-        UIManager.mainTitle.innerHTML = _('firefoxPrivacyChoices');
+        UIManager.mainTitle.innerHTML = _('browserPrivacyChoices');
         break;
       case '#about-your-rights':
         UIManager.progressBar.className = 'step-state step-6';
@@ -149,6 +152,11 @@ var Navigation = {
         break;
       case '#about-your-privacy':
         UIManager.progressBar.className = 'step-state step-6';
+        UIManager.navBar.classList.add('back-only');
+        break;
+      case '#sharing-performance-data':
+        UIManager.progressBar.className = 'step-state step-6';
+        UIManager.mainTitle.innerHTML = _('sharing-performance-data');
         UIManager.navBar.classList.add('back-only');
         break;
       default:

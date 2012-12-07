@@ -1,9 +1,9 @@
 #pair-view div {
-  font-size: 1.6rem;
+  font-size: 1.7rem;
 }
 
 #pair-view #pair-description {
-  font-size: 1.3rem;
+  font-size: 1.4rem;
   margin-top: 10px;
   margin-bottom: 10px;
 }
@@ -17,21 +17,25 @@
 
 #pair-view .pair-method {
   text-align: center;
-  font-size: 1.8rem;
+  font-size: 1.9rem;
 }
 
 #pair-view .pair-method input {
-  font-size: 1.8rem;
+  font-size: 1.9rem;
 }
 
 #pair-view menu {
   padding: 0.7rem;
-  bottom: 0px;
+  position: relative;
 }
 
 #pair-view menu button {
   height: 2.8rem;
   line-height: 2.8rem;
+}
+
+#pair-view {
+  padding-bottom: 4.2rem;
 }
 
 #device-info {

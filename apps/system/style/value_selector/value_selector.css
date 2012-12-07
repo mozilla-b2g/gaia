@@ -73,6 +73,11 @@
   border-color: #00acce;
 }
 
+#select-options-buttons button.full {
+    width: calc(100% - 4.5rem);
+    margin: 1.5rem;
+}
+
 /*active class used to complement the "return false" in onmousedown effect */
 #value-selector button.active,
 button.affirmative.active {

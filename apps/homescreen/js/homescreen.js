@@ -27,7 +27,7 @@ const Homescreen = (function() {
     if (Homescreen.isInEditMode()) {
       Homescreen.setMode('normal');
       GridManager.markDirtyState();
-      UninstallDialog.hide();
+      ConfirmDialog.hide();
       GridManager.goToPage(GridManager.pageHelper.getCurrentPageNumber());
     } else {
       GridManager.goToPage(1);
@@ -64,14 +64,15 @@ const Homescreen = (function() {
       var title, body;
       var cancel = {
         title: _('cancel'),
-        callback: UninstallDialog.hide
+        callback: ConfirmDialog.hide
       };
 
       var confirm = {
         callback: function onAccept() {
-          UninstallDialog.hide();
+          ConfirmDialog.hide();
           app.uninstall();
-        }
+        },
+        applyClass: 'danger'
       };
 
       // Show a different prompt if the user is trying to remove
@@ -86,7 +87,7 @@ const Homescreen = (function() {
         confirm.title = _('delete');
       }
 
-      UninstallDialog.show(title, body, cancel, confirm);
+      ConfirmDialog.show(title, body, cancel, confirm);
     },
 
     isInEditMode: function() {

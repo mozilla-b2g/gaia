@@ -14,6 +14,7 @@ var KeyboardManager = (function() {
     var keyboard = document.createElement('iframe');
     keyboard.src = keyboardURL;
     keyboard.setAttribute('mozbrowser', 'true');
+    keyboard.setAttribute('mozpasspointerevents', 'true');
     keyboard.setAttribute('mozapp', manifestURL);
     //keyboard.setAttribute('remote', 'true');
 
@@ -26,10 +27,6 @@ var KeyboardManager = (function() {
   var keyboardURL = getKeyboardURL() + 'index.html';
   var manifestURL = getKeyboardURL() + 'manifest.webapp';
   var keyboard = generateKeyboard(container, keyboardURL, manifestURL);
-
-  // The overlay will display part of the keyboard that are above the
-  // current application.
-  var overlay = document.getElementById('keyboard-overlay');
 
   // Listen for mozbrowserlocationchange of keyboard iframe.
   var previousHash = '';
@@ -44,20 +41,15 @@ var KeyboardManager = (function() {
     var type = urlparser.hash.split('=');
     switch (type[0]) {
       case '#show':
-        var size = parseInt(type[1]);
-        var height = window.innerHeight - size;
-        overlay.hidden = false;
-
-        var updateHeight = function() {
+        var updateHeight = function updateHeight() {
           container.removeEventListener('transitionend', updateHeight);
-          overlay.style.height = height + 'px';
-          container.classList.add('visible');
 
           var detail = {
             'detail': {
-              'height': size
+              'height': parseInt(type[1])
             }
           };
+
           dispatchEvent(new CustomEvent('keyboardchange', detail));
         }
 
@@ -71,12 +63,19 @@ var KeyboardManager = (function() {
         break;
 
       case '#hide':
-        container.classList.add('hide');
-        container.classList.remove('visible');
-        overlay.hidden = true;
+        // inform window manager to resize app first or
+        // it may show the underlying homescreen
         dispatchEvent(new CustomEvent('keyboardhide'));
+        container.classList.add('hide');
         break;
     }
+  });
+
+  // For Bug 812115: hide the keyboard when the app is closed here,
+  // since it would take a longer round-trip to receive focuschange
+  window.addEventListener('appwillclose', function closeKeyboard() {
+      dispatchEvent(new CustomEvent('keyboardhide'));
+      container.classList.add('hide');
   });
 })();
 

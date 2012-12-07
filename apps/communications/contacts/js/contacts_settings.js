@@ -30,6 +30,7 @@ contacts.Settings = (function() {
     // Ordering
     asyncStorage.getItem(ORDER_KEY, (function orderValue(value) {
       orderByLastName = value || false;
+      newOrderByLastName = null;
       updateOrderingUI();
     }).bind(this));
 
@@ -89,6 +90,28 @@ contacts.Settings = (function() {
     else {
       document.querySelector('#settings-article').dataset.state = 'fb-disabled';
     }
+  };
+
+  var checkSIMCard = function checkSIMCard() {
+    var conn = window.navigator.mozMobileConnection;
+
+    if (!conn) {
+      enableSIMImport(false);
+      return;
+    }
+
+    enableSIMImport(conn.cardState == 'ready');
+  };
+
+  // Disables/Enables the actions over the sim import functionality
+  var enableSIMImport = function enableSIMImport(enable) {
+    var importSim = document.getElementById('settingsSIM');
+    if (enable) {
+      importSim.removeAttribute('aria-disabled');
+    }
+    else {
+      importSim.setAttribute('aria-disabled', 'true');
+    }    
   };
 
   // Callback that will modify the ui depending if we imported or not
@@ -305,8 +328,10 @@ contacts.Settings = (function() {
 
       },
       function onimport(num) {
-        addMessage(_('simContacts-imported2', {n: num}), after);
-        contacts.List.load();
+        if (num > 0) {
+          contacts.List.load();
+        }
+        addMessage(_('simContacts-imported3', {n: num}), after);
         Contacts.hideOverlay();
       },
       function onerror() {
@@ -317,7 +342,8 @@ contacts.Settings = (function() {
 
   // Dismiss settings window and execute operations if values got modified
   var close = function close() {
-    if (newOrderByLastName != orderByLastName && contacts.List) {
+    if (newOrderByLastName != null &&
+        newOrderByLastName != orderByLastName && contacts.List) {
       contacts.List.setOrderByLastName(newOrderByLastName);
       orderByLastName = newOrderByLastName;
     }
@@ -345,6 +371,7 @@ contacts.Settings = (function() {
   var refresh = function refresh() {
     getData();
     checkOnline();
+    checkSIMCard();
   };
 
   return {

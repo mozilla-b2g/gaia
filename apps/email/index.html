@@ -176,7 +176,7 @@
         <div class="msg-list-scrollouter">
           <!-- exists so we can force a minimum height -->
           <div class="msg-list-scrollinner">
-            <!-- The search textbox hides under the lip of the messages. 
+            <!-- The search textbox hides under the lip of the messages.
                  As soon as any typing happens in it, we push the search
                  controls card. -->
             <div class="msg-search-tease-bar msg-nonsearch-only">
@@ -242,7 +242,7 @@
               data-l10n-id="reader-header">ReaD</h1>
           </header>
         </section>
-        <div class="scrollregion-below-header">
+        <div class="scrollregion-below-header scrollregion-horizontal-too">
           <div class="msg-envelope-bar">
             <div class="msg-envelope-date"></div>
             <div class="msg-envelope-from-line msg-envelope-line">
@@ -493,6 +493,8 @@
               ActivesynC SettingS</h2>
             <input class="sup-manual-activesync-hostname sup-form-text"
                    type="text" placeholder="HostnamE" />
+            <input class="sup-manual-activesync-username sup-form-text"
+                   type="text" placeholder="UsernamE" />
           </div>
 
           <button class="sup-manual-next-btn sup-form-btn recommend"
@@ -550,7 +552,7 @@
       </div>
 
       <!-- Main settings menu, root of all (mail) settings -->
-      <section class="card-settings-main card skin-organic" role="region">
+      <section class="card-settings-main card anim-vertical anim-overlay skin-organic" role="region">
         <header class="tng-main-header">
           <menu type="toolbar" class="tng-close-btn">
             <button data-l10n-id="settings-done">Done</button>
@@ -869,7 +871,7 @@
           <progress></progress>
           <span class="cmp-sending-text" data-l10n-id="compose-sending-message">Sending messagE
           </span>
-        </p>        
+        </p>
       </div>
     </div>
     <!-- Widget nodes for the setup cards; styles use the sup prefix -->

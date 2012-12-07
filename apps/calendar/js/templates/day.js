@@ -1,31 +1,34 @@
 (function(window) {
+
   var Day = Calendar.Template.create({
-    hour: [
-      '<section class="hour hour-{hour} {classes} calendar-display">',
-        '<h4>',
-          '<span class="display-hour {hour}">{displayHour}</span>',
-        '</h4>',
-        /** has no semantic value - re-evaluate */
-        '<div class="events">{items|s}</div>',
-      '</section>'
-    ].join(''),
+    hour: function() {
+      return '<section class="hour hour-' + this.h('hour') + ' ' + this.h('classes') + ' calendar-display">' +
+          '<h4>' +
+            '<span class="display-hour ' + this.h('hour') + '">' + this.h('displayHour') + '</span>' +
+          '</h4>' +
+          /** has no semantic value - re-evaluate */
+          '<div class="events">' + this.s('items') + '</div>' +
+        '</section>';
+    },
 
-    attendee: '<span class="attendee">{value}</span>',
+    attendee: function() {
+      return '<span class="attendee">' + this.h('value') + '</span>';
+    },
 
-    event: [
-      '<section class="event calendar-id-{calendarId} ' +
-           'calendar-display" data-id="{busytimeId}">',
-        '<div class="container calendar-id-{calendarId} calendar-color">',
-          '<h5>{title}</h5>',
-          '<span class="details">',
-            '<span class="location">',
-              '{location}',
-            '</span>',
-            '{attendees|s}',
-          '</span>',
-        '</div>',
-      '</section>'
-    ].join('')
+    event: function() {
+      return '<section class="event calendar-id-' + this.h('calendarId') + ' ' +
+             'calendar-display" data-id="' + this.h('busytimeId') + '">' +
+          '<div class="container calendar-id-' + this.h('calendarId') + ' calendar-color">' +
+            '<h5>' + this.h('title') + '</h5>' +
+            '<span class="details">' +
+              '<span class="location">' +
+                this.h('location') +
+              '</span>' +
+              this.s('attendees') +
+            '</span>' +
+          '</div>' +
+        '</section>';
+    }
   });
 
   Day.eventSelector = '.event';
@@ -33,4 +36,3 @@
 
   Calendar.ns('Templates').Day = Day;
 }(this));
-

@@ -55,11 +55,11 @@
 .apps ol > li span.options {
   position: absolute;
   top: 4.6rem;
-  left: 4.9rem;
-  width: 100%;
+  left: 0;
+  width: 90%;
   height: 2.6rem;
   z-index: 2;
-  background: url(../resources/images/delete.png) no-repeat;
+  background: url(../resources/images/delete.png) no-repeat right top;
 }
 
 /* Container -> icon + label */
@@ -125,10 +125,6 @@ body[data-transitioning] .loading:after {
 .loading img {
   margin-top: 0.4rem;
   margin-left: -0.4rem;
-}
-
-.loading span {
-  margin-top: 0.4rem;
 }
 
 @keyframes rotate {

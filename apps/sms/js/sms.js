@@ -22,19 +22,10 @@ var MessageManager = {
     document.addEventListener('mozvisibilitychange', this);
   },
   slide: function mm_slide(callback) {
-    var bodyClass = document.body.classList;
     var mainWrapper = document.getElementById('main-wrapper');
-    var snapshot = document.getElementById('snapshot');
-    if (mainWrapper.classList.contains('to-left')) {
-      bodyClass.add('snapshot-back');
-    } else {
-      bodyClass.add('snapshot');
-    }
     mainWrapper.classList.toggle('to-left');
-    snapshot.addEventListener('transitionend', function rm_snapshot() {
-      snapshot.removeEventListener('transitionend', rm_snapshot);
-      bodyClass.remove('snapshot');
-      bodyClass.remove('snapshot-back');
+    mainWrapper.addEventListener('transitionend', function slideTransition() {
+      mainWrapper.removeEventListener('transitionend', slideTransition);
       if (callback) {
         callback();
       }
@@ -75,7 +66,7 @@ var MessageManager = {
             receiverInput.value = '';
             threadMessages.classList.add('new');
             MessageManager.slide(function() {
-              messageInput.focus();
+              receiverInput.focus();
             });
             break;
           case '#thread-list':
@@ -91,6 +82,7 @@ var MessageManager = {
               });
             } else {
               MessageManager.slide(function() {
+                ThreadUI.view.innerHTML = '';
                 if (MessageManager.activityTarget) {
                   window.location.hash =
                     '#num=' + MessageManager.activityTarget;
@@ -258,16 +250,6 @@ var MessageManager = {
         MessageManager.markMessageRead(list[i], value, callback);
       } else {
         MessageManager.markMessageRead(list[i], value);
-      }
-    }
-  },
-
-  reopenSelf: function reopenSelf(number) {
-    navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
-      var app = evt.target.result;
-      app.launch();
-      if (number) {
-        window.location.hash = '#num=' + number;
       }
     }
   }
@@ -509,7 +491,8 @@ var ThreadListUI = {
 
         var message = messages[i];
         var time = message.timestamp.getTime();
-        var num =  message.sender || message.receiver;
+        var num = message.delivery == 'received' ?
+        message.sender : message.receiver;
 
         var numNormalized =
           PhoneNumberManager.getNormalizedInternationalNumber(num);
@@ -824,7 +807,7 @@ var ThreadUI = {
           n: numOthers
         });
         carrierTag.classList.add('hide');
-      }else {
+      } else {
         Utils.getPhoneDetails(number,
                               contacts[0],
                               function returnedDetails(details) {
@@ -970,6 +953,9 @@ var ThreadUI = {
     this.selectedInputList = [];
     this.pageHeader.innerHTML = _('editMode');
     this.checkInputs();
+
+    // Unlock sendMessage function.
+    ThreadUI.sendingMessage = false;
   },
 
   clearContact: function thui_clearContact() {
@@ -1149,7 +1135,16 @@ var ThreadUI = {
     var settings = window.navigator.mozSettings,
         throwGeneralError;
 
+    // Lock sendMessage in order to ensure sending the message only once
+    if (this.sendingMessage)
+      return;
+    this.sendingMessage = true;
+    function unlock() {
+      ThreadUI.sendingMessage = false;
+    }
+
     throwGeneralError = function() {
+      unlock();
       CustomDialog.show(
         _('sendGeneralErrorTitle'),
         _('sendGeneralErrorBody'),
@@ -1161,6 +1156,8 @@ var ThreadUI = {
         }
       );
     };
+
+    var sent = false;
 
     if (settings) {
 
@@ -1179,7 +1176,11 @@ var ThreadUI = {
         var numNormalized =
           PhoneNumberManager.getNormalizedInternationalNumber(num);
         // Retrieve text
-        var text = this.input.value || resendText;
+        var text = this.input.value;
+        // Ensure that resendText isn't a MouseEvent
+        if (typeof(resendText) == 'string')
+          text = resendText;
+
         // If we have something to send
         if (numNormalized != '' && text != '') {
           // Create 'PendingMessage'
@@ -1198,6 +1199,7 @@ var ThreadUI = {
             // Save the message into pendind DB before send.
             PendingMsgManager.saveToMsgDB(message, function onsave(msg) {
               ThreadUI.cleanFields();
+              unlock();
               if (window.location.hash == '#new') {
                 window.location.hash = '#num=' + num;
               } else {
@@ -1209,7 +1211,15 @@ var ThreadUI = {
                 });
               }
               MessageManager.getMessages(ThreadListUI.renderThreads);
-              // XXX Once we have PhoneNumberJS in Gecko we will use num directly
+
+              // Safety check in order to ensure that we try to send the
+              // message only once
+              if (sent)
+                return;
+              sent = true;
+
+              // XXX Once we have PhoneNumberJS in Gecko we will
+              // use num directly:
               // https://bugzilla.mozilla.org/show_bug.cgi?id=809213
               MessageManager.send(numNormalized, text, function onsent(msg) {
                 var root = document.getElementById(message.timestamp.getTime());
@@ -1254,6 +1264,7 @@ var ThreadUI = {
             // Save the message into pendind DB before send.
             PendingMsgManager.saveToMsgDB(message, function onsave(msg) {
               ThreadUI.cleanFields();
+              unlock();
               if (window.location.hash == '#new') {
                 window.location.hash = '#num=' + num;
               } else {
@@ -1276,6 +1287,8 @@ var ThreadUI = {
               MessageManager.getMessages(ThreadListUI.renderThreads);
             });
           }
+        } else {
+          unlock();
         }
       }).bind(this));
 
@@ -1384,12 +1397,10 @@ var ThreadUI = {
       });
       activity.onsuccess = function success() {
         var number = this.result.number;
-        MessageManager.reopenSelf(number);
+        if (number) {
+          window.location.hash = '#num=' + number;
+        }
       }
-      activity.onerror = function error() {
-        MessageManager.reopenSelf();
-      }
-
     } catch (e) {
       console.log('WebActivities unavailable? : ' + e);
     }
@@ -1420,12 +1431,6 @@ var ThreadUI = {
 
     try {
       var activity = new MozActivity(options);
-      activity.onsuccess = function success() {
-        MessageManager.reopenSelf();
-      }
-      activity.onerror = function error() {
-        MessageManager.reopenSelf();
-      }
     } catch (e) {
       console.log('WebActivities unavailable? : ' + e);
     }
@@ -1465,14 +1470,8 @@ window.addEventListener('localized', function showBody() {
   document.documentElement.dir = navigator.mozL10n.language.direction;
 });
 
-window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
-  // XXX This lock is about https://github.com/mozilla-b2g/gaia/issues/5405
-  if (MessageManager.lockActivity)
-    return;
-  MessageManager.lockActivity = true;
-  activity.postResult({ status: 'accepted' });
-  var number = activity.source.data.number;
-  var activityAction = function act_action() {
+function showThreadFromSystemMessage(number) {
+  var showAction = function act_action() {
     var currentLocation = window.location.hash;
     switch (currentLocation) {
       case '#thread-list':
@@ -1481,11 +1480,11 @@ window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
         break;
       case '#new':
         window.location.hash = '#num=' + number;
-       delete MessageManager.lockActivity;
+        delete MessageManager.lockActivity;
         break;
       case '#edit':
         history.back();
-        activityAction();
+        showAction();
         break;
       default:
         if (currentLocation.indexOf('#num=') != -1) {
@@ -1508,20 +1507,130 @@ window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
   if (!document.documentElement.lang) {
     window.addEventListener('localized', function waitLocalized() {
       window.removeEventListener('localized', waitLocalized);
-      activityAction();
+      showAction();
     });
   } else {
     if (!document.mozHidden) {
       // Case of calling from Notification
-      activityAction();
+      showAction();
       return;
     }
     document.addEventListener('mozvisibilitychange',
       function waitVisibility() {
         document.removeEventListener('mozvisibilitychange', waitVisibility);
-        activityAction();
+        showAction();
     });
   }
+}
 
+window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
+  // XXX This lock is about https://github.com/mozilla-b2g/gaia/issues/5405
+  if (MessageManager.lockActivity)
+    return;
+  MessageManager.lockActivity = true;
+  activity.postResult({ status: 'accepted' });
+  var number = activity.source.data.number;
+  showThreadFromSystemMessage(number);
 });
+
+/* === Incoming SMS support === */
+
+// We want to register the handler only when we're on the launch path
+if (!window.location.hash.length) {
+  window.navigator.mozSetMessageHandler('sms-received',
+    function smsReceived(message) {
+    // The black list includes numbers for which notifications should not
+    // progress to the user. Se blackllist.js for more information.
+    var number = message.sender;
+    // Class 0 handler:
+    if (message.messageClass == 'class-0') {
+      // XXX: Hack hiding the message class in the icon URL
+      // Should use the tag element of the notification once the final spec
+      // lands:
+      // See: https://bugzilla.mozilla.org/show_bug.cgi?id=782211
+      navigator.mozApps.getSelf().onsuccess = function(evt) {
+        var app = evt.target.result;
+        var iconURL = NotificationHelper.getIconURI(app);
+
+        // XXX: Add params to Icon URL.
+        iconURL += '?class0';
+        var messageBody = number + '\n' + message.body;
+        var showMessage = function() {
+          app.launch();
+          alert(messageBody);
+        };
+
+        // We have to remove the SMS due to it does not have to be shown.
+        MessageManager.deleteMessage(message.id, function() {
+          // Once we remove the sms from DB we launch the notification
+          NotificationHelper.send(message.sender, message.body,
+                                    iconURL, showMessage);
+        });
+
+      };
+      return;
+    }
+    if (BlackList.has(message.sender))
+      return;
+
+    // The SMS app is already displayed
+    if (!document.mozHidden) {
+      var currentThread = MessageManager.getNumFromHash();
+      // If we are in the same thread, only we need to vibrate
+      if (number == currentThread) {
+        navigator.vibrate([200, 200, 200]);
+        return;
+      }
+    }
+
+    PhoneNumberManager.init(function phoneNMReady() {
+      navigator.mozApps.getSelf().onsuccess = function(evt) {
+        var app = evt.target.result;
+        var iconURL = NotificationHelper.getIconURI(app);
+
+        // Stashing the number at the end of the icon URL to make sure
+        // we get it back even via system message
+        iconURL += '?sms-received?' + number;
+
+        var goToMessage = function() {
+          app.launch();
+          showThreadFromSystemMessage(number);
+        };
+
+        ContactDataManager.getContactData(message.sender,
+        function gotContact(contact) {
+          var sender;
+          if (contact.length && contact[0].name) {
+            sender = contact[0].name;
+          } else {
+            sender = message.sender;
+          }
+
+          NotificationHelper.send(sender, message.body, iconURL, goToMessage);
+        });
+      };
+    });
+  });
+
+  window.navigator.mozSetMessageHandler('notification',
+    function notificationClick(message) {
+    navigator.mozApps.getSelf().onsuccess = function(evt) {
+      var app = evt.target.result;
+      app.launch();
+
+      // Getting back the number form the icon URL
+      var notificationType = message.imageURL.split('?')[1];
+      // Case regular 'sms-received'
+      if (notificationType == 'sms-received') {
+        var number = message.imageURL.split('?')[2];
+        showThreadFromSystemMessage(number);
+        return;
+      }
+      var number = message.title;
+      // Class 0 message
+      var messageBody = number + '\n' + message.body;
+      alert(messageBody);
+    }
+  });
+}
 

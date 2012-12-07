@@ -64,35 +64,43 @@ var UssdManager = {
         if (!result[i].active) {
           continue;
         }
-        switch (result[i].serviceClass) {
-          case this._conn.ICC_SERVICE_CLASS_VOICE:
-            voice = result[i].number;
-            break;
-          case this._conn.ICC_SERVICE_CLASS_DATA:
-            data = result[i].number;
-            break;
-          case this._conn.ICC_SERVICE_CLASS_FAX:
-            fax = result[i].number;
-            break;
-          case this._conn.ICC_SERVICE_CLASS_SMS:
-            sms = result[i].number;
-            break;
-          case this._conn.ICC_SERVICE_CLASS_DATA_SYNC:
-            sync = result[i].number;
-            break;
-          case this._conn.ICC_SERVICE_CLASS_DATA_ASYNC:
-            async = result[i].number;
-            break;
-          case this._conn.ICC_SERVICE_CLASS_PACKET:
-            packet = result[i].number;
-            break;
-          case this._conn.ICC_SERVICE_CLASS_PAD:
-            pad = result[i].number;
-            break;
-          default:
-            return this._('cf-error');
+
+        for (var serviceClassMask = 1;
+             serviceClassMask <= this._conn.ICC_SERVICE_CLASS_MAX;
+             serviceClassMask <<= 1) {
+          if ((serviceClassMask & result[i].serviceClass) != 0) {
+            switch (serviceClassMask) {
+              case this._conn.ICC_SERVICE_CLASS_VOICE:
+                voice = result[i].number;
+                break;
+              case this._conn.ICC_SERVICE_CLASS_DATA:
+                data = result[i].number;
+                break;
+              case this._conn.ICC_SERVICE_CLASS_FAX:
+                fax = result[i].number;
+                break;
+              case this._conn.ICC_SERVICE_CLASS_SMS:
+                sms = result[i].number;
+                break;
+              case this._conn.ICC_SERVICE_CLASS_DATA_SYNC:
+                sync = result[i].number;
+                break;
+              case this._conn.ICC_SERVICE_CLASS_DATA_ASYNC:
+                async = result[i].number;
+                break;
+              case this._conn.ICC_SERVICE_CLASS_PACKET:
+                packet = result[i].number;
+                break;
+              case this._conn.ICC_SERVICE_CLASS_PAD:
+                pad = result[i].number;
+                break;
+              default:
+                return this._('cf-error');
+            }
+          }
         }
       }
+
       msg += this._('cf-voice', {voice: voice || this._('cf-inactive')}) +
              this._('cf-data', {data: data || this._('cf-inactive')}) +
              this._('cf-fax', {fax: fax || this._('cf-inactive')}) +

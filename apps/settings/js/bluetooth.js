@@ -288,7 +288,9 @@ onLocalized(function bluetoothSettings() {
         enableMsg.hidden = false;
         searchingItem.hidden = true;
         optionMenu.close();
-        stopDiscovery();
+        // clear discoverTimeout
+        clearTimeout(discoverTimeout);
+        discoverTimeout = null;
       }
     }
 
@@ -343,6 +345,7 @@ onLocalized(function bluetoothSettings() {
         var paired = req.result.slice();
         var length = paired.length;
         if (length == 0) {
+          gBluetoothInfoBlock.textContent = _('bt-status-nopaired');
           pairList.show(false);
           return;
         }
@@ -521,8 +524,8 @@ onLocalized(function bluetoothSettings() {
       var host = window.location.host;
       childWindow = window.open(protocol + '//' + host + '/onpair.html',
                   'pair_screen', 'attention');
-      childWindow.onload = function() {
-        childWindow.PairView.setUp(pairingMode, method, device, passkey);
+      childWindow.onload = function childWindowLoaded() {
+        childWindow.PairView.init(pairingMode, method, device, passkey);
       };
     }
 
@@ -543,7 +546,7 @@ onLocalized(function bluetoothSettings() {
     }
 
     function stopDiscovery() {
-      if (!defaultAdapter)
+      if (!defaultAdapter || !bluetooth.enabled)
         return;
       var req = defaultAdapter.stopDiscovery();
       req.onsuccess = function bt_discoveryStopped() {

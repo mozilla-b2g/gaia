@@ -77,8 +77,8 @@
     "alarms": {},
     "systemXHR": {},
     "wifi-manage":{},
-    "wifi":{},
-    "time": {}
+    "time": {},
+    "audio":{ "channels": ["telephony", "ringer"] }
   },
   "orientation": "portrait-primary",
   "activities": {
@@ -109,6 +109,8 @@
   "messages": [
      { "telephony-new-call": "/dialer/index.html#keyboard-view" },
      { "bluetooth-dialer-command": "/dialer/index.html#keyboard-view" },
+     { "headset-button": "/dialer/index.html#keyboard-view" },
+     { "notification": "/dialer/index.html#keyboard-view" },
      { "alarm": "/facebook/fb_sync.html" }
   ]
 }

@@ -63,9 +63,7 @@ var Browser = {
     this.urlInput.addEventListener('mouseup', this.urlMouseUp.bind(this));
     this.urlInput.addEventListener('keyup',
       this.handleUrlInputKeypress.bind(this));
-    this.topSites.addEventListener('click', this.followLink.bind(this));
-    this.bookmarks.addEventListener('click', this.followLink.bind(this));
-    this.history.addEventListener('click', this.followLink.bind(this));
+    this.tabPanels.addEventListener('click', this.followLink.bind(this));
     this.urlButton.addEventListener('click',
       this.handleUrlFormSubmit.bind(this));
     this.tabsBadge.addEventListener('click',
@@ -80,7 +78,7 @@ var Browser = {
     this.newTabButton.addEventListener('click', this.handleNewTab.bind(this));
     this.settingsDoneButton.addEventListener('click',
       this.showPageScreen.bind(this));
-    this.aboutFirefoxButton.addEventListener('click',
+    this.aboutBrowserButton.addEventListener('click',
       this.showAboutPage.bind(this));
     this.clearHistoryButton.addEventListener('click',
       this.handleClearHistory.bind(this));
@@ -162,14 +160,14 @@ var Browser = {
       'bookmarks-tab', 'history-tab', 'back-button', 'forward-button',
       'bookmark-button', 'ssl-indicator', 'tabs-badge', 'throbber', 'frames',
       'tabs-list', 'main-screen', 'settings-button', 'settings-done-button',
-      'about-firefox-button', 'clear-history-button', 'crashscreen',
+      'about-browser-button', 'clear-history-button', 'crashscreen',
       'close-tab', 'try-reloading', 'bookmark-menu', 'bookmark-menu-add',
       'bookmark-menu-remove', 'bookmark-menu-cancel', 'bookmark-menu-edit',
       'bookmark-entry-sheet', 'bookmark-entry-sheet-cancel',
       'bookmark-entry-sheet-done', 'bookmark-title', 'bookmark-url',
       'bookmark-previous-url', 'bookmark-menu-add-home', 'new-tab-button',
       'awesomescreen-cancel-button', 'startscreen', 'top-site-thumbnails',
-      'no-top-sites', 'clear-private-data-button', 'results'];
+      'no-top-sites', 'clear-private-data-button', 'results', 'tab-panels'];
 
     // Loop and add element with camel style name to Modal Dialog attribute.
     elementIDs.forEach(function createElementRef(name) {

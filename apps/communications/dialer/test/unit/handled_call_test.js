@@ -4,7 +4,7 @@ requireApp('communications/dialer/test/unit/mock_keypad.js');
 requireApp('communications/dialer/test/unit/mock_call.js');
 requireApp('communications/dialer/test/unit/mock_contacts.js');
 requireApp('communications/dialer/test/unit/mock_call_screen.js');
-requireApp('communications/dialer/test/unit/mock_recents_db.js');
+requireApp('communications/dialer/test/unit/mock_call_handler.js');
 requireApp('communications/dialer/test/unit/mock_utils.js');
 
 // We're going to swap those with mock objects
@@ -12,11 +12,11 @@ requireApp('communications/dialer/test/unit/mock_utils.js');
 if (!this.Contacts) {
   this.Contacts = null;
 }
-if (!this.RecentsDBManager) {
-  this.RecentsDBManager = null;
-}
 if (!this.CallScreen) {
   this.CallScreen = null;
+}
+if (!this.OnCallHandler) {
+  this.OnCallHandler = null;
 }
 if (!this.KeypadManager) {
   this.KeypadManager = null;
@@ -31,8 +31,8 @@ suite('dialer/handled_call', function() {
   var fakeNode;
 
   var realContacts;
-  var realRecents;
   var realCallScreen;
+  var realCallHandler;
   var realKeypadManager;
   var realL10n;
   var realUtils;
@@ -42,11 +42,11 @@ suite('dialer/handled_call', function() {
     realContacts = window.Contacts;
     window.Contacts = MockContacts;
 
-    realRecents = window.RecentsDBManager;
-    window.RecentsDBManager = MockRecentsDBManager;
-
     realCallScreen = window.CallScreen;
     window.CallScreen = MockCallScreen;
+
+    realCallHandler = window.OnCallHandler;
+    window.OnCallHandler = MockOnCallHandler;
 
     realKeypadManager = window.KeypadManager;
     window.KeypadManager = MockKeypadManager;
@@ -55,7 +55,8 @@ suite('dialer/handled_call', function() {
     navigator.mozL10n = {
       get: function get(key) {
         return key;
-      }
+      },
+      readyState: 'complete'
     };
 
     realUtils = window.Utils;
@@ -66,8 +67,8 @@ suite('dialer/handled_call', function() {
 
   suiteTeardown(function() {
     window.Contacts = realContacts;
-    window.RecentsDBManager = realRecents;
     window.CallScreen = realCallScreen;
+    window.OnCallHandler = realCallHandler;
     window.KeypadManager = realKeypadManager;
     navigator.mozL10n = realL10n;
     window.Utils = realUtils;
@@ -107,9 +108,9 @@ suite('dialer/handled_call', function() {
     var el = document.getElementById('test');
     el.parentNode.removeChild(el);
 
-    MockRecentsDBManager.mTearDown();
     MockContacts.mTearDown();
     MockCallScreen.mTearDown();
+    MockOnCallHandler.mTeardown();
     MockKeypadManager.mTearDown();
     MockUtils.mTearDown();
   });
@@ -181,6 +182,10 @@ suite('dialer/handled_call', function() {
       assert.isFalse(fakeNode.hidden);
     });
 
+    test('ensure the callscreen in connected mode', function() {
+      assert.equal(MockCallScreen.mLastRenderMode, 'connected');
+    });
+
     test('start the timer', function() {
       assert.ok(subject._ticker);
     });
@@ -219,9 +224,7 @@ suite('dialer/handled_call', function() {
     });
 
     test('save recents entry', function() {
-      assert.isTrue(MockRecentsDBManager.mCalledInit);
-      assert.equal(MockRecentsDBManager.mCalledAdd, subject.recentsEntry);
-      assert.isTrue(MockRecentsDBManager.mCalledClose);
+      assert.equal(subject.recentsEntry, MockOnCallHandler.mLastEntryAdded);
     });
 
     test('mute off after call', function() {
@@ -337,6 +340,32 @@ suite('dialer/handled_call', function() {
     test('recents entry after refusal', function() {
       mockCall._disconnect();
       assert.equal(subject.recentsEntry.type, 'incoming-refused');
+    });
+  });
+
+  suite('unknown number', function() {
+    test('should display unknown l10n key if available', function() {
+      mockCall = new MockCall('', 'incoming');
+      subject = new HandledCall(mockCall, fakeNode);
+
+      var numberNode = fakeNode.querySelector('.numberWrapper .number');
+      assert.equal(numberNode.textContent, 'unknown');
+    });
+
+    test('should wait for localized event if needed', function() {
+      navigator.mozL10n.readyState = '';
+
+      mockCall = new MockCall('', 'incoming');
+      subject = new HandledCall(mockCall, fakeNode);
+
+      var numberNode = fakeNode.querySelector('.numberWrapper .number');
+      assert.notEqual(numberNode.textContent, 'unknown');
+
+      var evtObject = document.createEvent('Event');
+      evtObject.initEvent('localized', false, false);
+      window.dispatchEvent(evtObject);
+
+      assert.equal(numberNode.textContent, 'unknown');
     });
   });
 

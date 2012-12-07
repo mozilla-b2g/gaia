@@ -843,6 +843,9 @@ function MessageReaderCard(domNode, mode, args) {
   domNode.getElementsByClassName('msg-forward-btn')[0]
     .addEventListener('click', this.onForward.bind(this), false);
 
+  this.scrollContainer =
+    domNode.getElementsByClassName('scrollregion-below-header')[0];
+
   this.envelopeNode = domNode.getElementsByClassName('msg-envelope-bar')[0];
   this.envelopeNode
     .addEventListener('click', this.onEnvelopeClick.bind(this), false);
@@ -990,7 +993,8 @@ MessageReaderCard.prototype = {
           return;
 
         for (var i = 0; i < self.htmlBodyNodes.length; i++) {
-          self.body.showEmbeddedImages(self.htmlBodyNodes[i]);
+          self.body.showEmbeddedImages(self.htmlBodyNodes[i],
+                                       self.iframeResizeHandler);
         }
       });
       // XXX really we should check for external images to display that load
@@ -999,7 +1003,8 @@ MessageReaderCard.prototype = {
     }
     else {
       for (var i = 0; i < this.htmlBodyNodes.length; i++) {
-        this.body.showExternalImages(this.htmlBodyNodes[i]);
+        this.body.showExternalImages(this.htmlBodyNodes[i],
+                                     this.iframeResizeHandler);
       }
       loadBar.classList.add('collapsed');
     }
@@ -1102,8 +1107,9 @@ MessageReaderCard.prototype = {
         node.setAttribute('class', cname);
 
       var subnodes = MailAPI.utils.linkifyPlain(rep[i + 1], document);
-      for (var i in subnodes)
-        node.appendChild(subnodes[i]);
+      for (var iNode = 0; iNode < subnodes.length; iNode++) {
+        node.appendChild(subnodes[iNode]);
+      }
 
       bodyNode.appendChild(node);
     }
@@ -1166,10 +1172,12 @@ MessageReaderCard.prototype = {
         this._populatePlaintextBodyNode(rootBodyNode, rep);
       }
       else if (repType === 'html') {
-        var iframe = createAndInsertIframeForContent(
-          rep, rootBodyNode, null,
+        var iframeShim = createAndInsertIframeForContent(
+          rep, this.scrollContainer, rootBodyNode, null,
           'interactive', this.onHyperlinkClick.bind(this));
+        var iframe = iframeShim.iframe;
         var bodyNode = iframe.contentDocument.body;
+        this.iframeResizeHandler = iframeShim.resizeHandler;
         MailAPI.utils.linkifyHTML(iframe.contentDocument);
         this.htmlBodyNodes.push(bodyNode);
         if (body.checkForExternalImages(bodyNode))

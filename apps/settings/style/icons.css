@@ -105,7 +105,7 @@
   background-image: -moz-image-rect(url(images/icons_sprite.png), 120, 90, 150, 60);
 }
 
-#menuItem-improveFirefoxOS {
+#menuItem-improveBrowserOS {
   background-image: -moz-image-rect(url(images/icons_sprite.png), 120, 120, 150, 90);
 }
 
@@ -279,11 +279,12 @@
  */
 
 .privacy-menuitem {
+  padding-left: 5.5rem;
   background-repeat: no-repeat;
-  background-position: right 3rem top 50%; /* same position as for Wi-Fi signal levels */
+  background-position: 1.4rem center;
 }
 
-.privacy-firefoxOS {
+.privacy-browserOS {
   background-image: -moz-image-rect(url(images/privacy_sprite.png), 0, 32, 32, 0);
 }
 
@@ -291,6 +292,9 @@
   background-image: -moz-image-rect(url(images/privacy_sprite.png), 0, 64, 32, 32);
 }
 
+.privacy-marketPlace {
+  background-image: -moz-image-rect(url(images/privacy_sprite.png), 0, 96, 32, 64);
+}
 
 /******************************************************************************
  * Right-To-Left layout

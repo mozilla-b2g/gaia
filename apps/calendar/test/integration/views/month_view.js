@@ -5,6 +5,8 @@ function MonthView(app) {
 MonthView.prototype = {
   __proto__: CalendarView.prototype,
 
+  viewSelector: 'monthView',
+
   /**
    * Navigate to this view.
    */
@@ -19,6 +21,20 @@ MonthView.prototype = {
 
       done();
     }, callback, this);
+  },
+
+  /**
+   * Swipes forward.
+   */
+  forward: function(callback) {
+    this.swipe('right', callback);
+  },
+
+  /**
+   * Swipes back.
+   */
+  back: function(callback) {
+    this.swipe('left', callback);
   },
 
   /**

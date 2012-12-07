@@ -9,7 +9,6 @@
   },
   "permissions": {
     "mobileconnection":{},
-    "mozBluetooth":{},
     "bluetooth":{},
     "device-storage:pictures":{ "access": "readonly" },
     "device-storage:music":{ "access": "readonly" },
@@ -19,7 +18,6 @@
     "permissions":{},
     "settings":{ "access": "readwrite" },
     "wifi-manage":{},
-    "wifi":{},
     "attention":{},
     "time":{},
     "desktop-notification":{},

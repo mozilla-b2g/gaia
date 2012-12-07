@@ -37,7 +37,7 @@ fbFriends.List = (function() {
             searchInfo.push(friend[field][0]);
           }
         });
-        friend.search = normalizeText(searchInfo.join(' '));
+        friend.search = utils.text.normalize(searchInfo.join(' '));
         // New friend appended
         utils.templates.append(ele, friend);
         // We check wether this friend was in the AB or not before
@@ -45,7 +45,7 @@ fbFriends.List = (function() {
     });
 
     groupsList.removeChild(groupsList.children[0]); // Deleting template
-    FixedHeader.init('#mainContent', '#fixed-container', 'h2.block-title');
+    FixedHeader.init('#mainContent', '#fixed-container', '.fb-import-list header');
     ImageLoader.init('#mainContent', ".block-item:not([data-uuid='#uid#'])");
 
     if (typeof cb === 'function') {

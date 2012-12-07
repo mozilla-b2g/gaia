@@ -162,28 +162,23 @@ const DEFAULT_STYLE_TAG =
  *   }
  * ]
  */
-function createAndInsertIframeForContent(htmlStr, parentNode, beforeNode,
+function createAndInsertIframeForContent(htmlStr, scrollContainer,
+                                         parentNode, beforeNode,
                                          interactiveMode,
                                          clickHandler) {
-  var viewportWidth = Cards._containerNode.offsetWidth,
-      viewportHeight = Cards._containerNode.offsetHeight - 140;
+  // Add padding to compensate for scroll-bars in environments (Firefox, not
+  // b2g) where they can show up and cause themselves to exist in perpetuity.
+  var scrollPad = 16;
 
+  var viewportWidth = parentNode.offsetWidth - scrollPad;
   var viewport = document.createElement('div');
+  var title = document.getElementsByClassName('msg-reader-header')[0];
+  var header = document.getElementsByClassName('msg-envelope-bar')[0];
+  var extraHeight = title.clientHeight + header.clientHeight;
   viewport.setAttribute(
     'style',
-    'overflow: hidden; ' +
-    // we want to be able to move the iframe in its own coordinate space
-    // inside of us.
-    'position: relative; ' +
-    'width: ' + viewportWidth + 'px; ' +
-    'height: ' + viewportHeight + 'px;'
-  );
-  var interacter = document.createElement('div');
-  interacter.setAttribute(
-    'style',
-    'position: absolute; top: 0; left: 0; width: 100%; height: 100%; ' +
-    '-moz-user-select: none;');
-
+    'overflow: hidden; position: relative; ' +
+    'width: 100%;');
   var iframe = document.createElement('iframe');
 
   iframe.setAttribute('sandbox', 'allow-same-origin');
@@ -196,17 +191,16 @@ function createAndInsertIframeForContent(htmlStr, parentNode, beforeNode,
   iframe.setAttribute(
     'style',
     'position: absolute; ' +
-    'border-width: 0px; ' +
-    'overflow: hidden; '
+    'border-width: 0px;' +
+    'overflow: hidden;'
 //    'pointer-events: none; ' +
 //    '-moz-user-select: none; ' +
 //    'width: ' + scrollWidth + 'px; ' +
 //    'height: ' + viewportHeight + 'px;'
   );
-
-  //iframe.setAttribute('srcdoc', htmlStr);
   viewport.appendChild(iframe);
   parentNode.insertBefore(viewport, beforeNode);
+  //iframe.setAttribute('srcdoc', htmlStr);
 
   // we want this fully synchronous so we can know the size of the document
   iframe.contentDocument.open();
@@ -217,120 +211,187 @@ function createAndInsertIframeForContent(htmlStr, parentNode, beforeNode,
   iframe.contentDocument.write(htmlStr);
   iframe.contentDocument.write('</body>');
   iframe.contentDocument.close();
-  var iframeBody = iframe.contentDocument.body;
+  var iframeBody = iframe.contentDocument.documentElement;
+  var scrollWidth = iframeBody.scrollWidth;
   var scrollHeight = iframeBody.scrollHeight;
 
-  var newsletterMode = iframeBody.scrollWidth > viewportWidth;
+  var newsletterMode = scrollWidth > viewportWidth,
+      resizeFrame;
 
-  if (newsletterMode) {
-    var scrollWidth = iframeBody.scrollWidth;
-    viewport.appendChild(interacter);
+  var scale = Math.min(1, viewportWidth / scrollWidth),
+      baseScale = scale,
+      lastScale = scale,
+      scaleMode = 0;
 
-    if (interactiveMode === 'interactive') {
-      // setting iframe.style.height is not sticky, so be heavy-handed:
-      iframe.setAttribute(
-        'style',
-        'border-width: 0px; overflow: hidden; ' +
-        'transform-origin: top left; ' +
-        'width: ' + scrollWidth + 'px; ' +
-        'height: ' + scrollHeight + 'px;');
+  viewport.setAttribute(
+    'style',
+    'padding: 0; border-width: 0; margin: 0; ' +
+    'position: relative; ' +
+    'overflow: hidden;');
+  viewport.style.width = (scrollWidth * scale) + 'px';
+  viewport.style.height = (scrollHeight * scale) + 'px';
 
-      var currentPhoto = iframe;
-      var photoState =
-        new PhotoState(iframe, scrollWidth, scrollHeight,
-                       viewportWidth, viewportHeight);
+  // setting iframe.style.height is not sticky, so be heavy-handed:
+  iframe.setAttribute(
+    'style',
+    'padding: 0; border-width: 0; margin: 0; ' +
+    'transform-origin: top left; ' +
+    'overflow: hidden; ' +
+    'pointer-events: none;');
+  iframe.style.width = scrollWidth + 'px';
 
-      var lastScale = photoState.scale, scaleMode = 0;
-      var detector = new GestureDetector(interacter);
-      // We don't need to ever stopDetecting since the closures that keep it
-      // alive are just the event listeners on the iframe.
-      detector.startDetecting();
-      viewport.addEventListener('pan', function(event) {
-        photoState.pan(event.detail.relative.dx,
-                       event.detail.relative.dy);
-      });
-      viewport.addEventListener('dbltap', function(e) {
-        var scale = photoState.scale;
+  resizeFrame = function(updateHeight) {
+    if (updateHeight) {
+      iframe.style.height = '';
+      scrollHeight = iframeBody.scrollHeight;
+    }
+    iframe.style.transform = 'scale(' + scale + ')';
+    iframe.style.height =
+      ((scrollHeight * Math.max(1, scale)) + scrollPad) + 'px';
+    viewport.style.width = (scrollWidth * scale) + 'px';
+    viewport.style.height = ((scrollHeight * scale) + scrollPad) + 'px';
+  };
+  resizeFrame(true);
 
-        currentPhoto.style.MozTransition = 'all 100ms linear';
-        currentPhoto.addEventListener('transitionend', function handler() {
-          currentPhoto.style.MozTransition = '';
-          currentPhoto.removeEventListener('transitionend', handler);
-        });
+  var zoomFrame = function(newScale, centerX, centerY) {
+    if (newScale === scale)
+      return;
 
-        if (lastScale === scale) {
-          scaleMode = (scaleMode + 1) % 3;
-          switch (scaleMode) {
-            case 0:
-              scale = photoState.baseScale;
-              break;
-            case 1:
-              scale = 1;
-              break;
-            case 2:
-              scale = 2;
-              break;
-          }
-          photoState.scale = lastScale = scale;
-          photoState._reposition();
-        }
-        else {
-          if (scale > 1)      // If already zoomed in,
-            scale = 1 / scale;  // zoom out to starting scale
-          else                           // Otherwise
-            scale = 2;                   // Zoom in by a factor of 2
-          photoState.zoom(scale, e.detail.clientX, e.detail.clientY);
-        }
-      });
-      viewport.addEventListener('transform', function(e) {
-        photoState.zoom(e.detail.relative.scale,
-                        e.detail.midpoint.clientX,
-                        e.detail.midpoint.clientY);
-      });
+    // Our goal is to figure out how to scroll the window so that the
+    // location on the iframe corresponding to centerX/centerY maintains
+    // its position after zooming.
+
+    // centerX, centerY  are in screen coordinates.  Offset coordinates of
+    // the scrollContainer are screen (card) relative, but those of things
+    // inside the scrollContainer exist within that coordinate space and
+    // do not change as we scroll.
+    // console.log('----ZOOM from', scale, 'to', newScale);
+    // console.log('cx', centerX, 'cy', centerY,
+    //             'vl', viewport.offsetLeft,
+    //             'vt', viewport.offsetTop);
+    // console.log('sl', scrollContainer.offsetLeft,
+    //             'st', scrollContainer.offsetTop);
+
+    // Figure out how much of our iframe is scrolled off the screen.
+    var iframeScrolledTop = scrollContainer.scrollTop - extraHeight,
+        iframeScrolledLeft = scrollContainer.scrollLeft;
+
+    // and now convert those into iframe-relative coords
+    var ix = centerX + iframeScrolledLeft,
+        iy = centerY + iframeScrolledTop;
+
+    var scaleDelta = (newScale / scale);
+
+    var vertScrollDelta = iy * scaleDelta,
+        horizScrollDelta = ix * scaleDelta;
+
+    scale = newScale;
+    resizeFrame();
+    scrollContainer.scrollTop = vertScrollDelta + extraHeight - centerY;
+    scrollContainer.scrollLeft = horizScrollDelta - centerX;
+  };
+
+  var iframeShims = {
+    iframe: iframe,
+    resizeHandler: function() {
+      resizeFrame(true);
+    }
+  };
+  var detectorTarget = viewport;
+  var detector = new GestureDetector(detectorTarget);
+  // We don't need to ever stopDetecting since the closures that keep it
+  // alive are just the event listeners on the iframe.
+  detector.startDetecting();
+  // Using tap gesture event for URL link handling.
+  if (clickHandler) {
+    viewport.removeEventListener('click', clickHandler);
+    bindSanitizedClickHandler(viewport, clickHandler, null);
+  }
+  // If mail is not newsletter mode, ignore zoom/dbtap event handling.
+  if (!newsletterMode || interactiveMode !== 'interactive') {
+    return iframeShims;
+  }
+  detectorTarget.addEventListener('dbltap', function(e) {
+    var newScale = scale;
+    if (lastScale === scale) {
+      scaleMode = (scaleMode + 1) % 3;
+      switch (scaleMode) {
+        case 0:
+          newScale = baseScale;
+          break;
+        case 1:
+          newScale = 1;
+          break;
+        case 2:
+          newScale = 2;
+          break;
+      }
     }
     else {
-      var scale = Math.min(1, viewportWidth / scrollWidth);
-      iframe.setAttribute(
-        'style',
-        'border-width: 0px; ' +
-        ((scale < 1) ?
-          ('transform-origin: top left; transform: scale(' + scale + '); ') :
-          '') +
-        // these dimensions are pre-scaling and affect what gets transformed,
-        // but we will still impact the page layout so...
-        'width: ' + scrollWidth + 'px; ' +
-        'height: ' + scrollHeight + 'px;');
-      // ...so we want the viewport to clip appropriately
-      viewport.setAttribute(
-        'style',
-        'position: relative; ' +
-        'overflow: hidden; ' +
-        'width: ' + viewportWidth + 'px; ' +
-        'height: ' + Math.ceil(scrollHeight * scale) + 'px;');
+      // If already zoomed in, zoom out to starting scale
+      if (scale > 1) {
+        newScale = lastScale;
+        scaleMode = 0;
+      }
+      // Otherwise zoom in to 2x
+      else {
+        newScale = 2;
+        scaleMode = 2;
+      }
     }
-  }
-  else {
-    viewport.removeAttribute('style');
-    // setting iframe.style.height is not sticky, so be heavy-handed:
-    iframe.setAttribute(
-      'style',
-      'border-width: 0px; ' +
-      '-moz-user-select: none; ' +
-      'width: ' + viewportWidth + 'px; ' +
-      'height: ' + scrollHeight + 'px;');
-  }
+    lastScale = newScale;
+    try {
+      zoomFrame(newScale, e.detail.clientX, e.detail.clientY);
+    } catch (ex) {
+      console.error('zoom bug!', ex, '\n', ex.stack);
+    }
+  });
+  detectorTarget.addEventListener('transform', function(e) {
+    var scaleFactor = e.detail.relative.scale;
+    var newScale = scale * scaleFactor;
+    // Never zoom in farther than 2x
+    if (newScale > 2) {
+      newScale = 2;
+    }
+    // And never zoom out farther than baseScale
+    else if (newScale < baseScale) {
+      newScale = baseScale;
+    }
+    zoomFrame(newScale,
+              e.detail.midpoint.clientX, e.detail.midpoint.clientY);
+  });
 
-  if (clickHandler)
-    bindSanitizedClickHandler(iframe.contentDocument.body, clickHandler, null);
-
-  return iframe;
+  return iframeShims;
 }
 
-function bindSanitizedClickHandler(node, clickHandler, topNode) {
-  node.addEventListener(
-    'click',
+function bindSanitizedClickHandler(target, clickHandler, topNode) {
+  var iframe = target.childNodes[0], eventType, node;
+  // Variables that only valid for HTML type mail.
+  var root, title, header, titleHeight, headerHeight, iframeDoc;
+  // Tap gesture event for HTML type mail and click event for plain text mail
+  if (iframe) {
+    root = document.getElementsByClassName('scrollregion-horizontal-too')[0];
+    title = document.getElementsByClassName('msg-reader-header')[0];
+    header = document.getElementsByClassName('msg-envelope-bar')[0];
+    titleHeight = title.clientHeight;
+    headerHeight = header.clientHeight;
+    eventType = 'tap';
+    iframeDoc = iframe.contentDocument;
+  } else {
+    eventType = 'click';
+  }
+  target.addEventListener(
+    eventType,
     function clicked(event) {
-      var node = event.originalTarget;
+      if (iframe) {
+        var dx, dy;
+        var scale = iframe.style.transform.match(/(\d|\.)+/g)[0];
+        dx = event.detail.clientX + root.scrollLeft;
+        dy = event.detail.clientY + root.scrollTop - titleHeight - headerHeight;
+        node = iframeDoc.elementFromPoint(dx / scale, dy / scale);
+      } else {
+        node = event.originalTarget;
+      }
       while (node !== topNode) {
         if (node.nodeName === 'A') {
           if (node.hasAttribute('ext-href')) {
@@ -345,188 +406,3 @@ function bindSanitizedClickHandler(node, clickHandler, topNode) {
       }
     });
 }
-
-// figure out the size and position of an image based on its size
-// and the screen size.
-function fitImage(photoWidth, photoHeight, viewportWidth, viewportHeight) {
-  var scalex = viewportWidth / photoWidth;
-  // fit width for now.
-  var scale = scalex;
-
-  // Set the image size and position
-  var width = Math.floor(photoWidth * scale);
-  var height = Math.floor(photoHeight * scale);
-
-  return {
-    width: width,
-    height: height,
-    left: 0, //Math.floor((viewportWidth - width) / 2),
-    top: 0, //Math.floor((viewportHeight - height) / 2),
-    scale: scale
-  };
-}
-
-/*
- * This class encapsulates the zooming and panning functionality for
- * the gallery app and maintains the current size and position of the
- * currently displayed photo as well as the transition state (if any)
- * between photos.
- */
-function PhotoState(img, width, height, viewportWidth, viewportHeight) {
-  // The <img> element that we manipulate
-  this.img = img;
-
-  // The actual size of the photograph
-  this.photoWidth = width;
-  this.photoHeight = height;
-  this.viewportWidth = viewportWidth;
-  this.viewportHeight = viewportHeight;
-
-  // Do all the calculations
-  this.reset();
-}
-
-// An internal method called by reset(), zoom() and pan() to
-// set the size and position of the image element.
-PhotoState.prototype._reposition = function() {
-  this.width = this.photoWidth * this.scale;
-  this.height = this.photoHeight * this.scale;
-
-  if (this.width <= this.viewportWidth)
-    this.left = 0;
-  if (this.height <= this.viewportHeight)
-    this.top = 0;
-
-  var transform = 'translate(' + this.left + 'px, ' +
-                                  this.top + 'px) scale(' + this.scale + ')';
-  this.img.style.transform = transform;
-};
-
-// Compute the default size and position of the photo
-PhotoState.prototype.reset = function() {
-  // Compute the default size and position of the image
-  var fit = fitImage(this.photoWidth, this.photoHeight,
-                     this.viewportWidth, this.viewportHeight);
-  this.baseScale = fit.scale;
-  this.width = fit.width;
-  this.height = fit.height;
-  this.top = fit.top;
-  this.left = fit.left;
-
-  // Start off with no zoom
-  this.scale = this.baseScale;
-
-  // We start off with no swipe from left to right
-  this.swipe = 0;
-
-  this._reposition(); // Apply the computed size and position
-};
-
-// Zoom in by the specified factor, adjusting the pan amount so that
-// the image pixels at (centerX, centerY) remain at that position.
-// Assume that zoom gestures can't be done in the middle of swipes, so
-// if we're calling zoom, then the swipe property will be 0.
-PhotoState.prototype.zoom = function(scale, centerX, centerY) {
-  // Never zoom in farther than 2x the native resolution of the image
-  if (this.baseScale * this.scale * scale > 2) {
-    scale = 2 / (this.baseScale * this.scale);
-  }
-  // And never zoom out to make the image smaller than it would normally be
-  else if (this.scale * scale < 1) {
-    scale = 1 / this.scale;
-  }
-
-  this.scale = this.scale * scale;
-
-  // Change the size of the photo
-  this.width = Math.floor(this.photoWidth * this.baseScale * this.scale);
-  this.height = Math.floor(this.photoHeight * this.baseScale * this.scale);
-
-  // centerX and centerY are in viewport coordinates.
-  // These are the photo coordinates displayed at that point in the viewport
-  var photoX = centerX - this.left;
-  var photoY = centerY - this.top;
-
-  // After zooming, these are the new photo coordinates.
-  // Note we just use the relative scale amount here, not this.scale
-  var photoX = Math.floor(photoX * scale);
-  var photoY = Math.floor(photoY * scale);
-
-  // To keep that point still, here are the new left and top values we need
-  this.left = centerX - photoX;
-  this.top = centerY - photoY;
-
-  // Now make sure we didn't pan too much: If the image fits on the
-  // screen, center it. If the image is bigger than the screen, then
-  // make sure we haven't gone past any edges
-  if (this.width <= this.viewportWidth) {
-    this.left = (this.viewportWidth - this.width) / 2;
-  }
-  else {
-    // Don't let the left of the photo be past the left edge of the screen
-    if (this.left > 0)
-      this.left = 0;
-
-    // Right of photo shouldn't be to the left of the right edge
-    if (this.left + this.width < this.viewportWidth) {
-      this.left = this.viewportWidth - this.width;
-    }
-  }
-
-  if (this.height <= this.viewportHeight) {
-    this.top = (this.viewportHeight - this.height) / 2;
-  }
-  else {
-    // Don't let the top of the photo be below the top of the screen
-    if (this.top > 0)
-      this.top = 0;
-
-    // bottom of photo shouldn't be above the bottom of screen
-    if (this.top + this.height < this.viewportHeight) {
-      this.top = this.viewportHeight - this.height;
-    }
-  }
-
-  this._reposition();
-};
-
-PhotoState.prototype.pan = function(dx, dy) {
-  // Handle panning in the y direction first, since it is easier.
-  // Don't pan in the y direction if we already fit on the screen
-  if (this.height > this.viewportHeight) {
-    this.top += dy;
-
-    // Don't let the top of the photo be below the top of the screen
-    if (this.top > 0)
-      this.top = 0;
-
-    // bottom of photo shouldn't be above the bottom of screen
-    if (this.top + this.height < this.viewportHeight)
-      this.top = this.viewportHeight - this.height;
-  }
-
-  // Now handle the X dimension. In this case, we have to handle panning within
-  // a zoomed image, and swiping to transition from one photo to the next
-  // or previous.
-  if (this.width <= this.viewportWidth) {
-    // In this case, the photo isn't zoomed in, so we're just doing swiping
-    this.swipe += dx;
-  }
-  else {
-    this.left += dx;
-
-    // If this would take the left edge of the photo past the
-    // left edge of the screen, then we've got to do a swipe
-    if (this.left > 0) {
-      this.left = 0;
-    }
-
-    // Or, if this would take the right edge of the photo past the
-    // right edge of the screen, then we've got to swipe the other way
-    if (this.left + this.width < this.viewportWidth) {
-      this.left = this.viewportWidth - this.width;
-    }
-  }
-
-  this._reposition();
-};

@@ -46,6 +46,7 @@ function HandledCall(aCall, aNode) {
 HandledCall.prototype.handleEvent = function hc_handle(evt) {
   switch (evt.call.state) {
     case 'connected':
+      CallScreen.render('connected');
       this.connected();
       break;
     case 'disconnected':
@@ -84,8 +85,18 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
   var additionalInfoNode = this.additionalInfoNode;
 
   if (!number.length) {
-    var _ = navigator.mozL10n.get;
-    node.textContent = _('unknown');
+    var setUnknownNumber = function() {
+      var _ = navigator.mozL10n.get;
+      node.textContent = _('unknown');
+    };
+    if (navigator.mozL10n.readyState == 'complete') {
+      setUnknownNumber();
+    } else {
+      window.addEventListener('localized', function onLocalized() {
+        window.removeEventListener('localized', onLocalized);
+        setUnknownNumber();
+      });
+    }
     return;
   }
 
@@ -161,12 +172,7 @@ HandledCall.prototype.disconnected = function hc_disconnected() {
   }
 
   if (this.recentsEntry) {
-    var recentToAdd = this.recentsEntry;
-    RecentsDBManager.init(function() {
-      RecentsDBManager.add(recentToAdd, function() {
-        RecentsDBManager.close();
-      });
-    });
+    OnCallHandler.addRecentEntry(this.recentsEntry);
   }
 
   if (!this.node)

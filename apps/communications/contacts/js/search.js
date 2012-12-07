@@ -49,7 +49,7 @@ contacts.Search = (function() {
 
   var search = function performSearch() {
 
-    var pattern = new RegExp(normalizeText(searchBox.value), 'i');
+    var pattern = new RegExp(utils.text.normalize(searchBox.value.trim()), 'i');
     var count = 0;
 
     var allContacts = getContactsDom();
@@ -64,13 +64,13 @@ contacts.Search = (function() {
         contact.classList.remove('hide');
         count++;
       }
-      document.dispatchEvent(new CustomEvent('onupdate'));
     }
 
     if (count == 0) {
       searchNoResult.classList.remove('hide');
     } else {
       searchNoResult.classList.add('hide');
+      document.dispatchEvent(new CustomEvent('onupdate'));
     }
   };
 

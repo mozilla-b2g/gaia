@@ -81,6 +81,10 @@ body, html {
   bottom: 2px;
 }
 
+#screen.locked #statusbar-time {
+  display: none;
+}
+
 .sb-icon {
   width: 16px;
   height: 16px;
@@ -351,7 +355,7 @@ body, html {
   color: #666;
   width: 16px;
   height: 16px;
-  top: 0;
+  top: -2px;
   right: 0;
   padding: 0 1px;
   font-size: 1.49rem; /* 6.5pt */
@@ -386,5 +390,11 @@ body, html {
 .sb-icon-system-downloads {
   /* JW: waiting for the correct icon; in the mean time I made this one */
   background: url('images/system-downloads.gif') no-repeat;
+  background-position: 0 0;
+}
+
+.sb-icon-call-forwarding {
+  /* Waiting for the correct icon. In the mean time we use this one. */
+  background: url('images/call-forwarding.png') no-repeat;
   background-position: 0 0;
 }

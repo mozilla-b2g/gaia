@@ -23,7 +23,11 @@ var Contacts = (function() {
       settings,
       settingsButton;
 
-  var currentContact = {};
+  var readyToPaint = false;
+  var firstContacts = null;
+
+  var currentContact = {},
+      currentFbContact;
 
   var contactsList = contacts.List;
   var contactsDetails = contacts.Details;
@@ -51,6 +55,8 @@ var Contacts = (function() {
         cList.getContactById(id, function onSuccess(savedContact) {
           currentContact = savedContact;
           contactsDetails.render(currentContact, TAG_OPTIONS);
+          if (params['tel'])
+            contactsDetails.reMark('tel', params['tel']);
           navigation.go(sectionId, 'none');
         }, function onError() {
           console.error('Error retrieving contact');
@@ -91,7 +97,11 @@ var Contacts = (function() {
 
     if (!contactsList.loaded) {
       checkCancelableActivity();
-      loadList(overlay);
+      readyToPaint = true;
+      if (firstContacts) {
+        loadList(overlay, firstContacts);
+        readyToPaint = false;
+      }
     }
 
   };
@@ -198,17 +208,18 @@ var Contacts = (function() {
 
   var dataPickHandler = function dataPickHandler() {
     var type, dataSet, noDataStr, selectDataStr;
+    var theContact = currentFbContact || currentContact;
     // Add the new pick type here:
     switch (ActivityHandler.activityDataType) {
       case 'webcontacts/contact':
         type = 'number';
-        dataSet = currentContact.tel;
+        dataSet = theContact.tel;
         noDataStr = _('no_phones');
         selectDataStr = _('select_mobile');
         break;
       case 'webcontacts/email':
         type = 'email';
-        dataSet = currentContact.email;
+        dataSet = theContact.email;
         noDataStr = _('no_email');
         selectDataStr = _('select_email');
         break;
@@ -218,7 +229,7 @@ var Contacts = (function() {
     var numOfData = hasData ? dataSet.length : 0;
 
     var result = {};
-    result.name = currentContact.name;
+    result.name = theContact.name;
     switch (numOfData) {
       case 0:
         // If no required type of data
@@ -254,8 +265,9 @@ var Contacts = (function() {
   };
 
   var contactListClickHandler = function originalHandler(id) {
-    contactsList.getContactById(id, function findCallback(contact) {
+    contactsList.getContactById(id, function findCallback(contact, fbContact) {
       currentContact = contact;
+      currentFbContact = fbContact;
 
       if (!ActivityHandler.currentlyHandling) {
         contactsDetails.render(currentContact, TAG_OPTIONS);
@@ -274,8 +286,8 @@ var Contacts = (function() {
     });
   };
 
-  var loadList = function loadList(overlay) {
-    contactsList.load(null, overlay);
+  var loadList = function loadList(overlay, contacts) {
+    contactsList.load(contacts, overlay);
     contactsList.handleClick(contactListClickHandler);
   };
 
@@ -550,7 +562,6 @@ var Contacts = (function() {
   var showSettings = function showSettings() {
      // The number of FB Friends has to be recalculated
     contacts.Settings.refresh();
-    
     navigation.go('view-settings', 'popup');
   };
 
@@ -617,6 +628,23 @@ var Contacts = (function() {
       }, STATUS_TIME);
     });
   };
+
+  var getFirstContacts = function c_getFirstContacts() {
+    var onerror = function() {
+      console.error('Error getting first contacts');
+    }
+    contacts.List.getAllContacts(onerror, function(contacts) {
+      firstContacts = contacts;
+      if (readyToPaint) {
+        loadList(true, contacts);
+        firstContacts = null;
+      }
+    });
+  };
+
+  window.addEventListener('load', function() {
+    getFirstContacts();
+  });
 
   return {
     'doneTag': doneTag,

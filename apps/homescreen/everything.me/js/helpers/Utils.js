@@ -21,13 +21,14 @@ Evme.Utils = new function() {
         "MENU_HEIGHT": "menu-height",
         "GET_ALL_APPS": "get-all-apps",
         "GET_APP_ICON": "get-app-icon",
-        "GET_APP_NAME": "get-app-name"
+        "GET_APP_NAME": "get-app-name",
+        "GET_ICON_SIZE": "get-icon-size"
     };
-    
+
     this.log = function(message) {
         dump("(" + (new Date().getTime()) + ") DOAT: " + message);
     };
-    
+
     this.sendToFFOS = function(type, data) {
         switch (type) {
             case FFOSMessages.APP_CLICK:
@@ -60,6 +61,9 @@ Evme.Utils = new function() {
             case FFOSMessages.GET_APP_NAME:
                 return EvmeManager.getAppName(data);
                 break;
+            case FFOSMessages.GET_ICON_SIZE:
+                return EvmeManager.getIconSize();
+                break;
         }
     };
 
@@ -67,47 +71,47 @@ Evme.Utils = new function() {
         return CONTAINER_ID;
     };
 
-    this.getRoundIcon = function(imageSrc, size, callback) {
-        var canvas = document.createElement("canvas"),
-            ctx = canvas.getContext("2d"),
+    this.getRoundIcon = function(imageSrc, callback) {
+        var size = Evme.Utils.sendToFFOS(Evme.Utils.FFOSMessages.GET_ICON_SIZE) - 2,
             radius = size/2,
-            PADDING = 2;
+            img = new Image();
         
-        canvas.setAttribute("width", size);
-        canvas.setAttribute("height", size);
-        
-        ctx.beginPath();
-        ctx.arc(radius, radius + PADDING/2, radius - PADDING, 0, 2 * Math.PI, false);
-        ctx.clip();
-        
-        var img = new Image();
         img.onload = function() {
-            ctx.drawImage(img, 0 + PADDING, 0 + PADDING, size - PADDING*2, size - PADDING*2);
+            var canvas = document.createElement("canvas"),
+                ctx = canvas.getContext("2d");
+                
+            canvas.width = size;
+            canvas.height = size;
             
-            var data = canvas.toDataURL();
-            callback(data);
+            ctx.beginPath();
+            ctx.arc(radius, radius, radius, 0, 2 * Math.PI, false);
+            ctx.clip();
+            
+            ctx.drawImage(img, 0, 0, size, size);
+            
+            callback(canvas.toDataURL());
         };
         img.src = imageSrc;
     };
-    
+
     this.getKeyboardHeight = function() {
         return 210;
     };
-    
+
     this.init = function() {
         userAgent = navigator.userAgent;
         cssPrefix = _getCSSPrefix();
         connection = Connection.get();
         isTouch = "ontouchstart" in window;
     };
-    
+
     this.isNewUser = function() {
         if (isNewUser === undefined) {
             isNewUser = !Evme.Storage.get("counter-ALLTIME");
         }
         return isNewUser;
     };
-    
+
     this.updateObject = function(configData, groupConfig) {
         if (!groupConfig) return;
 
@@ -216,13 +220,13 @@ Evme.Utils = new function() {
 
         return true;
     };
-    
+
     this.Apps = new function() {
         var _this = this,
             timeoutAppsToDrawLater = null;
-            
+
         var TIMEOUT_BEFORE_DRAWING_REST_OF_APPS = 100;
-        
+
         this.print = function(options) {
             var apps = options.apps,
                 numAppsOffset = options.numAppsOffset || 0,
@@ -231,32 +235,32 @@ Evme.Utils = new function() {
                 $list = options.$list,
                 onDone = options.onDone,
                 hasInstalled = false,
-                
+
                 appsList = {},
                 iconsResult = {
                     "cached": [],
                     "missing": []
                 },
                 doLater = [];
-            
+
             window.clearTimeout(timeoutAppsToDrawLater);
-            
+
             var docFrag = document.createDocumentFragment();
             for (var i=0; i<apps.length; i++) {
                 var app = new Evme.App(apps[i], numAppsOffset+i, isMore, _this);
                 var id = apps[i].id;
                 var icon = app.getIcon();
-                
+
                 icon = Evme.IconManager.parse(id, icon, iconsFormat);
                 app.setIcon(icon);
-                
+
                 if (Evme.Utils.isKeyboardVisible() && (isMore || i<Math.max(apps.length/2, 8))) {
                     var $app = app.draw();
                     docFrag.appendChild($app[0]);
                 } else {
                     doLater.push(app);
                 }
-                
+
                 if (app.missingIcon()) {
                     if (!icon) {
                         icon = id;
@@ -265,20 +269,20 @@ Evme.Utils = new function() {
                 } else {
                     iconsResult["cached"].push(icon);
                 }
-                
+
                 appsList[id] = appsList;
-                
+
                 if (apps[i].installed) {
                     hasInstalled = true;
                 }
             }
-            
+
             if (hasInstalled) {
                 options.obj && options.obj.hasInstalled(true);
             }
-            
+
             $list[0].appendChild(docFrag);
-            
+
             if (doLater.length > 0) {
                 timeoutAppsToDrawLater = window.setTimeout(function(){
                     var docFrag = document.createDocumentFragment();
@@ -287,23 +291,23 @@ Evme.Utils = new function() {
                         docFrag.appendChild($app[0]);
                     }
                     $list[0].appendChild(docFrag);
-                    
+
                     window.setTimeout(function(){
                         $list.find(".new").removeClass("new");
                     }, 10);
-                    
+
                     onDone && onDone(appsList);
                 }, TIMEOUT_BEFORE_DRAWING_REST_OF_APPS);
             } else {
                 onDone && onDone(appsList);
             }
-            
+
             if (docFrag.childNodes.length > 0) {
                 window.setTimeout(function(){
                     $list.find(".new").removeClass("new");
                 }, 10);
             }
-            
+
             return iconsResult;
         }
     };
@@ -390,7 +394,7 @@ Evme.Utils = new function() {
     this.getCurrentSearchQuery = function(){
         return Evme.Brain.Searcher.getDisplayedQuery();
     };
-    
+
     var Connection = new function(){
         var _this = this,
             currentIndex,
@@ -426,34 +430,34 @@ Evme.Utils = new function() {
         this.init = function() {
             window.addEventListener("online", _this.setOnline);
             window.addEventListener("offline", _this.setOffline);
-            
+
             _this.set();
         };
-        
+
         this.setOnline = function() {
             Evme.EventHandler.trigger("Connection", "online");
         };
         this.setOffline = function() {
             Evme.EventHandler.trigger("Connection", "offline");
         };
-        
+
         this.online = function(callback) {
             callback(window.location.href.match(/_offline=true/)? false : navigator.onLine);
         };
-        
+
         this.get = function(){
             return getCurrent();
         };
-        
+
         this.set = function(index){
              currentIndex = index || (navigator.connection && navigator.connection.type) || 0;
              return getCurrent();
         };
-        
+
         function getCurrent(){
             return aug({}, consts, types[currentIndex]);
         }
-        
+
         function aug(){
             var main = arguments[0];
             for (var i=1, len=arguments.length; i<len; i++){
@@ -461,7 +465,7 @@ Evme.Utils = new function() {
             };
             return main;
         }
-        
+
         // init
         _this.init();
     };

@@ -57,7 +57,7 @@ var WindowManager = (function() {
   var ftu = null;
   var ftuManifestURL = '';
   var ftuURL = '';
-  var runningFTU = false;
+  var isRunningFirstRunApp = false;
   // keep the reference of inline activity frame here
   var inlineActivityFrame = null;
 
@@ -230,7 +230,14 @@ var WindowManager = (function() {
     var frame = inlineActivityFrame;
 
     frame.style.width = appFrame.style.width;
-    frame.style.height = appFrame.style.height;
+
+    if (document.mozFullScreen) {
+      frame.style.height = window.innerHeight + 'px';
+      frame.style.top = '0px';
+    } else {
+      frame.style.height = appFrame.style.height;
+      frame.style.top = appFrame.offsetTop + 'px';
+    }
   }
 
   function setFrameBackgroundBlob(frame, blob, transparent) {
@@ -268,6 +275,8 @@ var WindowManager = (function() {
   function setOpenFrame(frame) {
     if (openFrame) {
       removeFrameClasses(openFrame);
+    } else if (openTimer) {
+      clearTimeout(openTimer);
     }
 
     openFrame = frame;
@@ -280,6 +289,8 @@ var WindowManager = (function() {
       removeFrameClasses(closeFrame);
       // closeFrame should not be set to active
       closeFrame.classList.remove('active');
+    } else if (closeTimer) {
+      clearTimeout(closeTimer);
     }
 
     closeFrame = frame;
@@ -308,7 +319,8 @@ var WindowManager = (function() {
 
     if (classList.contains('inlineActivity')) {
       if (classList.contains('active')) {
-        openFrame.focus();
+        if (openFrame)
+          openFrame.focus();
 
         setOpenFrame(null);
       } else {
@@ -323,11 +335,14 @@ var WindowManager = (function() {
         classList.remove('closing');
         classList.add('closing-card');
 
-        openFrame.classList.remove('opening-card');
-        openFrame.classList.add('opening-switching');
+        if (openFrame) {
+          openFrame.classList.remove('opening-card');
+          openFrame.classList.add('opening-switching');
+        }
       } else if (classList.contains('closing-card')) {
         windowClosed(frame);
         setTimeout(closeCallback);
+        closeCallback = null;
 
       } else if (classList.contains('opening-switching')) {
         // If the opening app need to be full screen, switch to full screen
@@ -344,7 +359,9 @@ var WindowManager = (function() {
         });
       } else if (classList.contains('opening')) {
         windowOpened(frame);
+
         setTimeout(openCallback);
+        openCallback = null;
 
         setCloseFrame(null);
         setOpenFrame(null);
@@ -356,12 +373,16 @@ var WindowManager = (function() {
 
     if (classList.contains('opening')) {
       windowOpened(frame);
+
       setTimeout(openCallback);
+      openCallback = null;
 
       setOpenFrame(null);
     } else if (classList.contains('closing')) {
       windowClosed(frame);
+
       setTimeout(closeCallback);
+      closeCallback = null;
 
       setCloseFrame(null);
     }
@@ -385,7 +406,7 @@ var WindowManager = (function() {
     // Give the focus to the frame
     frame.focus();
 
-    if (!TrustedUIManager.isVisible()) {
+    if (!TrustedUIManager.isVisible() && !isRunningFirstRunApp) {
       // Set homescreen visibility to false
       toggleHomescreen(false);
     }
@@ -406,7 +427,7 @@ var WindowManager = (function() {
   function windowClosed(frame) {
     // If the FTU is closing, make sure we save this state
     if (frame.src == ftuURL) {
-      runningFTU = false;
+      isRunningFirstRunApp = false;
       document.getElementById('screen').classList.remove('ftu');
       window.asyncStorage.setItem('ftu.enabled', false);
       // Done with FTU, letting everyone know
@@ -614,11 +635,6 @@ var WindowManager = (function() {
 
     openCallback = callback || function() {};
 
-    // Dispatch a appwillopen event
-    var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent('appwillopen', true, false, { origin: origin });
-    app.frame.dispatchEvent(evt);
-
     // Set the frame to be visible.
     if ('setVisible' in openFrame)
       openFrame.setVisible(true);
@@ -635,7 +651,13 @@ var WindowManager = (function() {
       //   setFrameBackground(openFrame, gotBackground, true);
       // will simply work here.
 
-      openCallback();
+      // Call the openCallback only once. We have to use tmp var as
+      // openCallback can be a method calling the callback
+      // (like the `removeFrame` callback in `kill()` ).
+      var tmpCallback = openCallback;
+      openCallback = null;
+      tmpCallback();
+
       windows.classList.add('active');
       openFrame.classList.add('homescreen');
       openFrame.focus();
@@ -643,11 +665,8 @@ var WindowManager = (function() {
       displayedApp = origin;
 
       return;
-    } else if (origin === ftuURL) {
-      // Add a way to identify ftu app
-      // (Used by SimLock)
-      openFrame.classList.add('ftu');
     }
+
 
     if (requireFullscreen(origin))
       screenElement.classList.add('fullscreen-app');
@@ -655,6 +674,8 @@ var WindowManager = (function() {
     setFrameBackground(openFrame, function gotBackground() {
       // Start the transition when this async/sync callback is called.
       openTimer = setTimeout(function startOpeningTransition() {
+        if (!openFrame)
+          return;
         if (!screenElement.classList.contains('switch-app')) {
           openFrame.classList.add('opening');
         } else {
@@ -773,36 +794,46 @@ var WindowManager = (function() {
     }
   }
 
+  function skipFTU() {
+    document.getElementById('screen').classList.remove('ftuStarting');
+    handleInitlogo();
+    setDisplayedApp(homescreen);
+    // Eventually ask for SIM code, but only when we do not show FTU,
+    // which already asks for it! Note that it has to be done
+    // after setDisplayedApp which is going to mess with focus.
+    SimLock.showIfLocked();
+  }
+
   // Check if the FTU was executed or not, if not, get a
   // reference to the app and launch it.
   function retrieveFTU() {
     window.asyncStorage.getItem('ftu.enabled', function getItem(launchFTU) {
+      document.getElementById('screen').classList.add('ftuStarting');
       if (launchFTU === false) {
-        // Eventually ask for SIM code, but only when we do not show FTU,
-        // which already asks for it!
-        handleInitlogo();
-        SimLock.showIfLocked();
-        setDisplayedApp(homescreen);
+        skipFTU();
         return;
       }
-      document.getElementById('screen').classList.add('ftuStarting');
       var lock = navigator.mozSettings.createLock();
       var req = lock.get('ftu.manifestURL');
       req.onsuccess = function() {
         ftuManifestURL = this.result['ftu.manifestURL'];
         if (!ftuManifestURL) {
           dump('FTU manifest cannot be found skipping.\n');
-          setDisplayedApp(homescreen);
+          skipFTU();
           return;
         }
         ftu = Applications.getByManifestURL(ftuManifestURL);
         if (!ftu) {
           dump('Opps, bogus FTU manifest.\n');
-          setDisplayedApp(homescreen);
+          skipFTU();
           return;
         }
         ftuURL = ftu.origin + ftu.manifest.entry_points['ftu'].launch_path;
         ftu.launch('ftu');
+      };
+      req.onerror = function() {
+        dump('Couldn\'t get the ftu manifestURL.\n');
+        skipFTU();
       };
     });
   }
@@ -846,9 +877,15 @@ var WindowManager = (function() {
   // Switch to a different app
   function setDisplayedApp(origin, callback) {
     var currentApp = displayedApp, newApp = origin || homescreen;
-    // Returns the frame reference of the home screen app.
-    // Restarts the homescreen app if it was killed in the background.
-    var homescreenFrame = ensureHomescreen();
+    var isFirstRunApplication = !currentApp && (origin == ftuURL);
+
+    var homescreenFrame = null;
+    if (!isFirstRunApplication) {
+      // Returns the frame reference of the home screen app.
+      // Restarts the homescreen app if it was killed in the background.
+      homescreenFrame = ensureHomescreen();
+    }
+
     // Discard any existing activity
     stopInlineActivity();
 
@@ -860,13 +897,27 @@ var WindowManager = (function() {
     if (closeFrame && 'setVisible' in closeFrame)
       closeFrame.setVisible(false);
 
-    toggleHomescreen(true);
-    clearTimeout(openTimer);
-    clearTimeout(closeTimer);
+    if (!isFirstRunApplication) {
+      toggleHomescreen(true);
+    }
+
     setOpenFrame(null);
     setCloseFrame(null);
     screenElement.classList.remove('switch-app');
     screenElement.classList.remove('fullscreen-app');
+
+
+    // Dispatch an appwillopen event only when we open an app
+    if (newApp != currentApp) {
+      var evt = document.createEvent('CustomEvent');
+      evt.initCustomEvent('appwillopen', true, true, { origin: newApp });
+      // Allows listeners to cancel app opening and so stay on homescreen
+      if (!runningApps[newApp].frame.dispatchEvent(evt)) {
+        if (typeof(callback) == 'function')
+          callback();
+        return;
+      }
+    }
 
     // Case 1: the app is already displayed
     if (currentApp && currentApp == newApp) {
@@ -879,8 +930,8 @@ var WindowManager = (function() {
       }
     }
     // Case 2: null --> app
-    else if (!currentApp && newApp != homescreen) {
-      runningFTU = true;
+    else if (isFirstRunApplication) {
+      isRunningFirstRunApp = true;
       openWindow(newApp, function windowOpened() {
         handleInitlogo(function() {
           var mainScreen = document.getElementById('screen');
@@ -1024,6 +1075,11 @@ var WindowManager = (function() {
     if (requireFullscreen(origin)) {
       frame.classList.add('fullscreen-app');
     }
+    if (origin === ftuURL) {
+      // Add a way to identify ftu app
+      // (Used by SimLock)
+      frame.classList.add('ftu');
+    }
 
     // A frame should start with visible false
     if ('setVisible' in frame)
@@ -1074,10 +1130,12 @@ var WindowManager = (function() {
     if (openFrame == frame) {
       setOpenFrame(null);
       setTimeout(openCallback);
+      openCallback = null;
     }
     if (closeFrame == frame) {
       setCloseFrame(null);
       setTimeout(closeCallback);
+      closeCallback = null;
     }
 
     delete runningApps[origin];
@@ -1245,8 +1303,8 @@ var WindowManager = (function() {
 
   // If the application tried to close themselves by calling window.close()
   // we will handle that here.
-  // XXX: currently broken, see
-  // https://bugzilla.mozilla.org/show_bug.cgi?id=789392
+  // XXX: this event is fired twice:
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=814583
   window.addEventListener('mozbrowserclose', function(e) {
     if (!'frameType' in e.target.dataset)
       return;
@@ -1418,10 +1476,18 @@ var WindowManager = (function() {
     });
   }
 
+
   // Stop running the app with the specified origin
   function kill(origin, callback) {
     if (!isRunning(origin))
       return;
+
+    // As we can't immediatly remove runningApps entry,
+    // we flag it as being killed in order to avoid trying to remove it twice.
+    // (Check required because of bug 814583)
+    if (runningApps[origin].killed)
+      return;
+    runningApps[origin].killed = true;
 
     // If the app is the currently displayed app, switch to the homescreen
     if (origin === displayedApp) {
@@ -1492,6 +1558,7 @@ var WindowManager = (function() {
         e.preventDefault();
       }
     } else {
+      stopInlineActivity();
       ensureHomescreen(true);
     }
   });
@@ -1534,7 +1601,7 @@ var WindowManager = (function() {
   // Return the object that holds the public API
   return {
     isFtuRunning: function() {
-      return runningFTU;
+      return isRunningFirstRunApp;
     },
     launch: launch,
     kill: kill,

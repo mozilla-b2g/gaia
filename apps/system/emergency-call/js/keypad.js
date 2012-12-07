@@ -269,17 +269,6 @@ var KeypadManager = {
           }
         }
       });
-
-      var reopenApp = function reopenApp() {
-        navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
-          var app = evt.target.result;
-          app.launch();
-        };
-      }
-
-      activity.onsuccess = reopenApp;
-      activity.onerror = reopenApp;
-
     } catch (e) {
       console.log('WebActivities unavailable? : ' + e);
     }
@@ -448,10 +437,8 @@ var KeypadManager = {
     var phoneNumber = this._phoneNumber;
 
     // If there are digits in the phone number, show the delete button.
-    if (typeof CallScreen == 'undefined') {
-      var visibility = (phoneNumber.length > 0) ? 'visible' : 'hidden';
-      this.deleteButton.style.visibility = visibility;
-    }
+    var visibility = (phoneNumber.length > 0) ? 'visible' : 'hidden';
+    this.deleteButton.style.visibility = visibility;
 
     if (this._onCall) {
       var view = CallScreen.activeCall.querySelector('.number');

@@ -6,9 +6,12 @@
 html, body {
   margin: 0;
   padding: 0;
+  width: 100%;
+  height: 100%;
   font-size: 10px;
   font-family: "MozTT", sans-serif;
   overflow: hidden;
+  position: relative;
 }
 
 
@@ -33,6 +36,10 @@ section[role="region"] {
  * Panel targets -- transitions
  * the `.previous' and '.current' classes are set by settings.js
  */
+
+.uninit section[role="region"] {
+  transition: none;
+}
 
 section[role="region"] {
   transform: translateX(+100%);
@@ -76,12 +83,12 @@ section[role="region"]:not(#root) > header:first-child + * {
 
 .description {
   padding: 1rem 3rem;
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   white-space: normal;
 }
 
 .link-text, .tel-text {
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   color: #336699;
   text-decoration: underline;
 }
@@ -127,7 +134,7 @@ label[for^="pwd"] {
   padding-left: 3rem;
   height: 3rem;
   line-height: 3rem;
-  font-size: 1.5rem;
+  font-size: 1.7rem;
 }
 
 
@@ -135,11 +142,11 @@ label[for^="pwd"] {
  * APN settings
  */
 
-#apnSettings-custom {
+.apnSettings-custom {
   font-style: italic;
 }
 
-#apnSettings-advanced {
+.apnSettings-advanced {
   padding-bottom: 1em;
 }
 
@@ -222,19 +229,42 @@ ul li > label .range-icons.brightness {
  * Date & Time
  */
 
-#clock-date,
-#clock-time {
+#dateTime ul[data-state="auto"] ~ * {
+  display: none;
+}
+
+#time-manual span {
   pointer-events: none;
+}
+
+#time-manual input {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  opacity: 0;
 }
 
 
 /******************************************************************************
- * Improve Firefox OS
+ * Improve Browser OS
  */
 
-#improveFirefoxOS .link-text {
+#improveBrowserOS .link-text {
   white-space: nowrap;
 }
+
+
+/******************************************************************************
+ * OS License
+ */
+
+#os-license {
+  width: 100%;
+  height: calc(100% - 5rem);
+}
+
 
 /******************************************************************************
  * Help
@@ -249,6 +279,7 @@ html[dir="rtl"] #call-support-numbers {
   right: inherit;
   left: 2rem;
 }
+
 
 /******************************************************************************
  * Right-To-Left layout

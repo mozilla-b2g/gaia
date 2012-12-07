@@ -23,13 +23,16 @@
 // https://bugzilla.mozilla.org/show_bug.cgi?id=809057
 var PhoneNumberManager = {
   region: 'BR',
-  init: function pnm_init() {
+  init: function pnm_init(cb) {
     var self = this;
     // Method for retrieving the mcc
     function getLastMcc() {
       asyncStorage.getItem('mcc', function(mcc) {
         if (mcc) {
           self.region = MCC_ISO3166_TABLE[mcc];
+          if (cb) {
+            cb();
+          }
         }
       });
     }
@@ -42,6 +45,9 @@ var PhoneNumberManager = {
         asyncStorage.setItem('mcc', currentMCC);
         // Retrieve region
         self.region = MCC_ISO3166_TABLE[conn.voice.network.mcc];
+        if (cb) {
+          cb();
+        }
       } else {
         getLastMcc();
       }

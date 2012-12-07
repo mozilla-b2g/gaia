@@ -21,6 +21,7 @@
     <!-- System -->
     <link rel="stylesheet" type="text/css" href="style/system/system.css">
     <link rel="stylesheet" type="text/css" href="style/system/keyboard.css">
+    <link rel="stylesheet" type="text/css" href="style/sound_manager/sound_manager.css">
 
     <!-- Include shared building blocks -->
     <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
@@ -179,6 +180,7 @@
     <link rel="stylesheet" type="text/css" href="style/themes/default/menus.css">
     <link rel="stylesheet" type="text/css" href="style/themes/default/buttons.css">
     <link rel="stylesheet" type="text/css" href="style/themes/default/banner.css">
+    <link rel="resource" type="application/l10n" href="shared/locales/branding.ini">
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
     <link rel="resource" type="application/l10n" href="shared/locales/date.ini">
     <link rel="resource" type="application/l10n" href="shared/locales/permissions.ini">
@@ -279,6 +281,7 @@
         <div id="statusbar-sms" class="sb-icon sb-icon-sms" hidden></div>
         <div id="statusbar-geolocation" class="sb-icon sb-icon-geolocation" hidden></div>
         <div id="statusbar-usb" class="sb-icon sb-icon-usb" hidden></div>
+        <div id="statusbar-call-forwarding" class="sb-icon sb-icon-call-forwarding" hidden></div>
       </div>
 
       <div id="utility-tray" data-z-index-level="utility-tray">
@@ -532,19 +535,6 @@
             </menu>
           </div>
 
-          <div id="modal-dialog-error" role="dialog">
-            <div class="modal-dialog-message-container inner">
-              <h3 data-l10n-id="error-title" id="modal-dialog-error-title">Hmm, the app is having problems.</h3>
-              <p>
-              <span data-l10n-id="error-message" id="modal-dialog-error-message">The app has encountered an error and is not loading properly.</span>
-              </p>
-            </div>
-            <menu data-items="2">
-              <button id="modal-dialog-error-back" data-l10n-id="close">Close</button>
-              <button id="modal-dialog-error-reload" data-l10n-id="try-again">Try again</button>
-            </menu>
-          </div>
-
           <div id="modal-dialog-select-one" role="dialog">
             <div class="modal-dialog-message-container inner">
               <h3 id="modal-dialog-select-one-title"></h3>
@@ -568,8 +558,7 @@
             </ol>
           </section>
           <menu id="select-options-buttons">
-            <button class="value-selector-cancel" data-type="cancel" data-l10n-id="cancel">Cancel</button>
-            <button class="value-option-confirm affirmative" data-type="ok" data-l10n-id="ok">Ok</button>
+            <button class="value-option-confirm affirmative full" data-type="ok" data-l10n-id="ok">Ok</button>
           </menu>
         </form>
 
@@ -720,8 +709,8 @@
           <menu>
             <button id="updates-later-button" type="reset"
                     data-l10n-id="later">Later</button>
-                  <button id="updates-download-button" type="submit"
-                    data-l10n-id="download">Download</button>
+            <button id="updates-download-button" type="submit"
+              data-l10n-id="download">Download</button>
           </menu>
         </section>
       </form>
@@ -734,7 +723,10 @@
             <div id="lockscreen-header">
               <div id="lockscreen-connstate" hidden><span></span><span></span></div>
               <div id="lockscreen-mute" hidden></div>
-              <div id="lockscreen-clock"></div>
+              <div class="lockscreen-clock">
+                <span id="lockscreen-clock-numbers"></span>
+                <span id="lockscreen-clock-meridiem"></span>
+              </div>
               <div id="lockscreen-date"></div>
             </div>
             <div id="notifications-lockscreen-container">
@@ -765,12 +757,16 @@
             </svg>
             <div id="lockscreen-area"></div>
             <div id="lockscreen-icon-container">
-              <button id="lockscreen-area-camera" class="lockscreen-icon lockscreen-icon-left">
-                <div id="lockscreen-accessibility-camera" role="button" class="lockscreen-icon-a11y-button" data-l10n-id="camera-a11y-button" aria-label="Camera"></div>
-              </button>
-              <button id="lockscreen-area-unlock" class="lockscreen-icon lockscreen-icon-right">
-                <div id="lockscreen-accessibility-unlock" role="button" class="lockscreen-icon-a11y-button" data-l10n-id="unlock-a11y-button" aria-label="Unlock"></div>
-              </button>
+              <div id="lockscreen-area-camera" class="lockscreen-icon-area lockscreen-icon-left">
+                <div class="lockscreen-icon">
+                  <div id="lockscreen-accessibility-camera" role="button" class="lockscreen-icon-a11y-button" data-l10n-id="camera-a11y-button" aria-label="Camera"></div>
+                </div>
+              </div>
+              <div id="lockscreen-area-unlock" class="lockscreen-icon-area lockscreen-icon-right">
+                <div class="lockscreen-icon">
+                    <div id="lockscreen-accessibility-unlock" role="button" class="lockscreen-icon-a11y-button" data-l10n-id="unlock-a11y-button" aria-label="Unlock"></div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -819,8 +815,6 @@
         <menu class="actions">
         </menu>
       </div>
-
-      <div id="keyboard-overlay" data-z-index-level="keyboard-overlay"></div>
 
       <!-- keyboard -->
       <div id="keyboard-frame" class="hide" data-z-index-level="keyboard-frame"></div>

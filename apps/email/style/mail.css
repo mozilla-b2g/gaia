@@ -28,38 +28,68 @@ body {
   background-color: black;
 }
 
-#cardContainer {
-  width: 100%;
-  height: 100%;
-  position: relative;
-  overflow: hidden;
-  -moz-transform: translateX(0px);
-}
+#cardContainer,
 #cards {
   position: absolute;
   top: 0;
   left: 0;
-  -moz-transition-property: -moz-transform;
-  -moz-transition-duration: 300ms;
-  -moz-transition-timing-function: ease;
-  -webkit-transition-property: -webkit-transform;
-  -webkit-transition-duration: 300ms;
-  -webkit-transition-timing-function: ease;
-  -o-transition-property: -o-transform;
-  -o-transition-duration: 300ms;
-  -otransition-timing-function: ease;
-
-  /* To trigger hardward acceleration for webkit:
-     http://www.html5rocks.com/en/tutorials/speed/quick/#toc-hwaccel
-     May need to remove */
-  -webkit-transform: translateZ(0);
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
 }
 
 .card {
-  float: left;
-  position: relative;
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
   background-color: white;
+  -moz-transition-property: transform;
+  -moz-transition-duration: 0.3s;
+  -moz-transition-timing-function: ease;
+  -moz-transition-delay: 0;
+
+}
+
+.card.anim-up center {
+  transition: translateX(0);
+}
+
+.card.no-anim {
+  -moz-transition-property: none;
+}
+
+.card.center {
+  transform: translateX(0);
+}
+
+.card.center.anim-vertical {
+  transform: translateY(0);
+}
+
+.card.before {
+  transform: translateX(-100%);
+}
+
+.card.before.anim-vertical {
+  transform: translateY(100%);
+}
+
+.card.after {
+  transform: translateX(100%);
+}
+
+.card.after.anim-vertical {
+  transform: translateY(-100%);
+}
+
+.card.center.card-folder-picker {
+  width: calc(100% - 4.3em);
+}
+
+.card.center.card-folder-picker + .card.after {
+  transform: translateX(calc(100% - 4.3em));
 }
 
 .form-card {
@@ -93,7 +123,7 @@ body {
 .header-btn, .header-left-btn, .header-right-btn {
   position: absolute;
   top: 0px;
-  height: 5.2rem; 
+  height: 5.2rem;
   width: 3.2rem;
   border: none;
   background: none;
@@ -122,6 +152,9 @@ body {
   height: -moz-calc(100% - 5.8rem + 5px);
   height: -webkit-calc(100% - 5.8rem + 5px);
   height: calc(100% - 5.8rem + 5px);
+}
+.scrollregion-below-header.scrollregion-horizontal-too {
+  overflow-x: auto !important;
 }
 
 .bottom-toolbar {

@@ -112,7 +112,8 @@ SystemUpdatable.prototype.download = function() {
 };
 
 SystemUpdatable.prototype.cancelDownload = function() {
-  // Not implemented yet https://bugzilla.mozilla.org/show_bug.cgi?id=804571
+  this._dispatchEvent('update-download-cancel');
+  UpdateManager.removeFromDownloadsQueue(this);
 };
 
 SystemUpdatable.prototype.uninit = function() {
@@ -170,6 +171,8 @@ SystemUpdatable.prototype.showApplyPrompt = function() {
 SystemUpdatable.prototype.declineInstall = function() {
   CustomDialog.hide();
   this._dispatchEvent('update-prompt-apply-result', 'wait');
+
+  UpdateManager.removeFromDownloadsQueue(this);
 };
 
 SystemUpdatable.prototype.acceptInstall = function() {

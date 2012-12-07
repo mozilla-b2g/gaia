@@ -78,6 +78,10 @@ var EvmeManager = (function() {
         return manifest.name;
     }
 
+    function getIconSize() {
+        return Icon.prototype.MAX_ICON_SIZE;
+    }
+
     return {
         openApp: openApp,
 
@@ -95,7 +99,9 @@ var EvmeManager = (function() {
 
         menuShow: menuShow,
         menuHide: menuHide,
-        getMenuHeight: getMenuHeight
+        getMenuHeight: getMenuHeight,
+
+        getIconSize: getIconSize
     };
 }());
 

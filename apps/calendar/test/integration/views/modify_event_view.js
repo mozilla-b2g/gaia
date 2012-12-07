@@ -10,13 +10,15 @@ function ModifyEventView(app) {
 ModifyEventView.prototype = {
   __proto__: CalendarView.prototype,
 
+  viewSelector: 'modifyEventView',
+
   /**
    * Waits until the element is visible again.
    */
   waitUntilVisible: function(callback) {
     this.app.task(function(app, next, done) {
       var device = app.device;
-      var el = yield this._findElement('_element', 'modifyEventView', next);
+      var el = yield this._findElement('_element', this.viewSelector, next);
       var displayed = yield app.waitUntilElement(el, 'displayed');
       done(null, displayed);
     }, callback, this);
@@ -29,7 +31,7 @@ ModifyEventView.prototype = {
   displayed: function(callback) {
     this.app.task(function(app, next, done) {
       var device = app.device;
-      var el = yield this._findElement('_element', 'modifyEventView', next);
+      var el = yield this._findElement('_element', this.viewSelector, next);
       var displayed = yield el.displayed(next);
 
       done(null, displayed);
@@ -44,7 +46,7 @@ ModifyEventView.prototype = {
       var add = yield this._findElement('_addButton', 'addEventBtn', next);
       yield add.click(next);
 
-      var el = yield this._findElement('_element', 'modifyEventView', next);
+      var el = yield this._findElement('_element', this.viewSelector, next);
 
       yield app.waitUntilElement(el, 'displayed');
       done(null, el);

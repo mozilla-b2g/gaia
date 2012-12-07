@@ -89,7 +89,6 @@ ol.link-list a {
 
 #time-header h1 {
   max-width: calc(100% - 5rem);
-  direction:rtl;
 }
 
 #progress-indicator {
@@ -566,4 +565,9 @@ section[role="status"].active {
   html, body {
     font-size: 10px;
   }
+}
+
+/* Hide on initial render to prevent flashing */
+#settings {
+  visibility: hidden;
 }

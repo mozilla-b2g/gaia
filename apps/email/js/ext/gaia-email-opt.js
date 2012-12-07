@@ -340,18 +340,65 @@ function coerce(length) {
 var ENCODER_OPTIONS = { fatal: false };
 
 /**
+ * Safe atob-variant that does not throw exceptions and just ignores characters
+ * that it does not know about.  This is an attempt to mimic node's
+ * implementation so that we can parse base64 with newlines present as well
+ * as being tolerant of complete gibberish people throw at us.  Since we are
+ * doing this by hand, we also take the opportunity to put the output directly
+ * in a typed array.
+ *
+ * In contrast, window.atob() throws Exceptions for all kinds of angry reasons.
+ */
+function safeBase64DecodeToArray(s) {
+  var bitsSoFar = 0, validBits = 0, iOut = 0,
+      arr = new Uint8Array(Math.ceil(s.length * 3 / 4));
+  for (var i = 0; i < s.length; i++) {
+    var c = s.charCodeAt(i), bits;
+    if (c >= 65 && c <= 90) // [A-Z]
+      bits = c - 65;
+    else if (c >= 97 && c <= 122) // [a-z]
+      bits = c - 97 + 26;
+    else if (c >= 48 && c <= 57) // [0-9]
+      bits = c - 48 + 52;
+    else if (c === 43) // +
+      bits = 62;
+    else if (c === 47) // /
+      bits = 63;
+    else if (c === 61) { // =
+      validBits = 0;
+      continue;
+    }
+    // ignore all other characters!
+    else
+      continue;
+    bitsSoFar = (bitsSoFar << 6) | bits;
+    validBits += 6;
+    if (validBits >= 8) {
+      validBits -= 8;
+      arr[iOut++] = bitsSoFar >> validBits;
+      if (validBits === 2)
+        bitsSoFar &= 0x3;
+      else if (validBits === 4)
+        bitsSoFar &= 0xf;
+    }
+  }
+
+  if (iOut < arr.length)
+    return arr.subarray(0, iOut);
+  return arr;
+}
+
+/**
  * Encode a unicode string into a (Uint8Array) byte array with the given
- * encoding. Wraps TextEncoder to provide hex and base64 encoding (which it does
- * not provide).
+ * encoding. Wraps TextEncoder to provide hex and base64 "encoding" (which it
+ * does not provide).
  */
 function encode(string, encoding) {
   var buf, i;
   switch (encoding) {
     case 'base64':
-      // (atob is base64 ASCII string -> binary JS string)
-      string = window.atob(string);
-      // fall through to the binary case since what we have is binary now!
-    // the stringencoding polyfill no longer implements binary, so it's up to us
+      buf = safeBase64DecodeToArray(string);
+      return buf;
     case 'binary':
       buf = new Uint8Array(string.length);
       for (i = 0; i < string.length; i++) {
@@ -1174,7 +1221,7 @@ MailBody.prototype = {
   /**
    * Synchronously trigger the display of embedded images.
    */
-  showEmbeddedImages: function(htmlNode) {
+  showEmbeddedImages: function(htmlNode, loadCallback) {
     var i, cidToObjectUrl = {},
         // the "|| window" is for our shimmed testing environment and should
         // not happen in production.
@@ -1204,6 +1251,9 @@ MailBody.prototype = {
         continue;
       // XXX according to an MDN tutorial we can use onload to destroy the
       // URL once the image has been loaded.
+      if (loadCallback) {
+        node.addEventListener('load', loadCallback, false);
+      }
       node.src = cidToObjectUrl[cid];
 
       node.removeAttribute('cid-src');
@@ -1230,12 +1280,15 @@ MailBody.prototype = {
    * using implementation-specific details subject to change, so don't do this
    * yourself.
    */
-  showExternalImages: function(htmlNode) {
+  showExternalImages: function(htmlNode, loadCallback) {
     // querySelectorAll is not live, whereas getElementsByClassName is; we
     // don't need/want live, especially with our manipulations.
     var nodes = htmlNode.querySelectorAll('.moz-external-image');
     for (var i = 0; i < nodes.length; i++) {
       var node = nodes[i];
+      if (loadCallback) {
+        node.addEventListener('load', loadCallback, false);
+      }
       node.setAttribute('src', node.getAttribute('ext-src'));
       node.removeAttribute('ext-src');
       node.classList.remove('moz-external-image');
@@ -7096,7 +7149,7 @@ module.exports.mimeFunctions = {
 
         for(var i=0, len = str.length; i<len; i++){
             chr = str.charAt(i);
-            if(chr == "=" && (hex = str.substr(i+1, 2).match(/[\da-fA-F]{2}/))){
+            if(chr == "=" && (hex = str.substr(i+1, 2)) && /[\da-fA-F]{2}/.test(hex)){
                 buffer[bufferPos++] = parseInt(hex, 16);
                 i+=2;
                 continue;
@@ -7204,21 +7257,9 @@ module.exports.mimeFunctions = {
         var remainder = "", lastCharset, curCharset;
         str = (str || "").toString();
 
-        while(str.match(/(\=\?[\w_\-]+\?[QB]\?[^\?]+\?\=)\s+(?=\=\?[\w_\-]+\?[QB]\?[^\?]+\?\=)/g)){
-            str = str.replace(/(\=\?[\w_\-]+\?[QB]\?[^\?]+\?\=)\s+(\=\?[\w_\-]+\?[QB]\?[^\?]+\?\=)/g,function(original, first, second){
-                var match1 = (first || "").trim().match(/^\=\?([\w_\-]+)\?([QB])\?([^\?]+)\?\=$/),
-                    match2 = (second || "").trim().match(/^\=\?([\w_\-]+)\?([QB])\?([^\?]+)\?\=$/);
-
-                if(match1[1] == match2[1] && match1[2] == match2[2]){
-                    return "=?"+match1[1]+"?"+match1[2]+"?"+match1[3] + match2[3]+"?=";
-                }else{
-                    return first+second;
-                }
-
-            });
-        }
-
-        str = str.replace(/\=\?([\w_\-]+)\?([QB])\?[^\?]+\?\=/g, (function(mimeWord, charset, encoding){
+        str = str.
+                replace(/(=\?[^?]+\?[QqBb]\?[^?]+\?=)\s+(?==\?[^?]+\?[QqBb]\?[^?]+\?=)/g, "$1").
+                replace(/\=\?([\w_\-]+)\?([QB])\?[^\?]+\?\=/g, (function(mimeWord, charset, encoding){
 
                       curCharset = charset + encoding;
 
@@ -16202,6 +16243,14 @@ const CHARCODE_RBRACE = ('}').charCodeAt(0),
       CHARCODE_ASTERISK = ('*').charCodeAt(0),
       CHARCODE_RPAREN = (')').charCodeAt(0);
 
+var setTimeoutFunc = window.setTimeout.bind(window),
+    clearTimeoutFunc = window.clearTimeout.bind(window);
+
+exports.TEST_useTimeoutFuncs = function(setFunc, clearFunc) {
+  setTimeoutFunc = setFunc;
+  clearTimeoutFunc = clearFunc;
+};
+
 /**
  * A buffer for us to assemble buffers so the back-end doesn't fragment them.
  * This is safe for mozTCPSocket's buffer usage because the buffer is always
@@ -16426,12 +16475,12 @@ ImapConnection.prototype.connect = function(loginCb) {
     this._options.host, this._options.port, socketOptions);
 
   // XXX rely on mozTCPSocket for this?
-  this._state.tmrConn = setTimeout(this._fnTmrConn.bind(this, loginCb),
-                                   this._options.connTimeout);
+  this._state.tmrConn = setTimeoutFunc(this._fnTmrConn.bind(this, loginCb),
+                                       this._options.connTimeout);
 
   this._state.conn.onopen = function(evt) {
     if (self._LOG) self._LOG.connected();
-    clearTimeout(self._state.tmrConn);
+    clearTimeoutFunc(self._state.tmrConn);
     self._state.status = STATES.NOAUTH;
     fnInit();
   };
@@ -16805,7 +16854,7 @@ ImapConnection.prototype.connect = function(loginCb) {
       }
 
       var sendBox = false;
-      clearTimeout(self._state.tmrKeepalive);
+      clearTimeoutFunc(self._state.tmrKeepalive);
       if (self._state.status === STATES.BOXSELECTING) {
         if (data[1] === 'OK') {
           sendBox = true;
@@ -16884,7 +16933,7 @@ ImapConnection.prototype.connect = function(loginCb) {
           // minutes to avoid disconnection by the server
           self._send('IDLE', null, undefined, undefined, true);
         }
-        self._state.tmrKeepalive = setTimeout(function() {
+        self._state.tmrKeepalive = setTimeoutFunc(function() {
           if (self._state.isIdle) {
             if (self._state.ext.idle.state === IDLE_READY) {
               self._state.ext.idle.timeWaited += self._state.tmoKeepalive;
@@ -16926,7 +16975,7 @@ ImapConnection.prototype.connect = function(loginCb) {
         if ('isNotValidAtThisTime' in err)
           err = 'bad-security';
       }
-      clearTimeout(self._state.tmrConn);
+      clearTimeoutFunc(self._state.tmrConn);
       if (self._state.status === STATES.NOCONNECT) {
         var connErr = new Error('Unable to connect. Reason: ' + err);
         connErr.type = 'unknown';
@@ -17486,8 +17535,10 @@ ImapConnection.prototype._login = function(cb) {
   }
 };
 ImapConnection.prototype._reset = function() {
-  clearTimeout(this._state.tmrKeepalive);
-  clearTimeout(this._state.tmrConn);
+  if (this._state.tmrKeepalive)
+    clearTimeoutFunc(this._state.tmrKeepalive);
+  if (this._state.tmrConn)
+    clearTimeoutFunc(this._state.tmrConn);
   this._state.status = STATES.NOCONNECT;
   this._state.numCapRecvs = 0;
   this._state.requests = [];
@@ -17548,7 +17599,7 @@ ImapConnection.prototype._send = function(cmdstr, cmddata, cb, dispatchFunc,
     var prefix = '', cmd = (bypass ? cmdstr : this._state.requests[0].command),
         data = (bypass ? null : this._state.requests[0].cmddata),
         dispatch = (bypass ? null : this._state.requests[0].dispatch);
-    clearTimeout(this._state.tmrKeepalive);
+    clearTimeoutFunc(this._state.tmrKeepalive);
     // If we are currently in IDLE, we need to exit it before we send the
     // actual command.  We mark it as a bypass so it does't mess with the
     // list of requests.
@@ -18392,6 +18443,20 @@ define('mailapi/imap/probe',
   ) {
 
 /**
+ * How many milliseconds should we wait before giving up on the connection?
+ *
+ * This really wants to be adaptive based on the type of the connection, but
+ * right now we have no accurate way of guessing how good the connection is in
+ * terms of latency, overall internet speed, etc.  Experience has shown that 10
+ * seconds is currently insufficient on an unagi device on 2G on an AT&T network
+ * in American suburbs, although some of that may be problems internal to the
+ * device.  I am tripling that to 30 seconds for now because although it's
+ * horrible to drag out a failed connection to an unresponsive server, it's far
+ * worse to fail to connect to a real server on a bad network, etc.
+ */
+exports.CONNECT_TIMEOUT_MS = 30000;
+
+/**
  * Right now our tests consist of:
  * - logging in to test the credentials
  *
@@ -18406,6 +18471,8 @@ function ImapProber(credentials, connInfo, _LOG) {
 
     username: credentials.username,
     password: credentials.password,
+
+    connTimeout: exports.CONNECT_TIMEOUT_MS,
   };
   if (_LOG)
     opts._logParent = _LOG;
@@ -18451,12 +18518,31 @@ ImapProber.prototype = {
     if (!this.onresult)
       return;
     console.warn('PROBE:IMAP sad', err);
-    if (err.serverResponse.indexOf('[ALERT] Application-specific password required') != -1)
-      this.error = 'needs-app-pass';
-    else if(err.serverResponse.indexOf('[ALERT] Your account is not enabled for IMAP use.') != -1)
-      this.error = 'imap-disabled';
-    else
-      this.error = 'bad-user-or-pass';
+
+    switch (err.type) {
+      case 'NO':
+      case 'no':
+        if (!err.serverResponse)
+          this.error = 'unknown';
+        else if (err.serverResponse.indexOf(
+            '[ALERT] Application-specific password required') != -1)
+          this.error = 'needs-app-pass';
+        else if (err.serverResponse.indexOf(
+            '[ALERT] Your account is not enabled for IMAP use.') != -1)
+          this.error = 'imap-disabled';
+        else
+          this.error = 'bad-user-or-pass';
+        break;
+      case 'timeout':
+        this.error = 'timeout';
+        break;
+      // XXX we currently don't have a string for server maintenance, so go
+      // with unknown.  But it's also a very unlikely thing.
+      case 'server-maintenance':
+      default:
+        this.error = 'unknown';
+        break;
+    }
     // we really want to make sure we clean up after this dude.
     try {
       this._conn.die();
@@ -20482,7 +20568,12 @@ SmtpProber.prototype = {
           for (let [,listener] in Iterator(this.listeners)) {
             if (this._pathMatches(fullPath, listener.path)) {
               node.children = [];
-              listener.callback(node);
+              try {
+                listener.callback(node);
+              }
+              catch (e) {
+                console.error(e);
+              }
             }
           }
 
@@ -20501,7 +20592,12 @@ SmtpProber.prototype = {
           for (let [,listener] in Iterator(this.listeners)) {
             if (this._pathMatches(fullPath, listener.path)) {
               recording--;
-              listener.callback(recPath[recPath.length-1]);
+              try {
+                listener.callback(recPath[recPath.length-1]);
+              }
+              catch (e) {
+                console.error(e);
+              }
             }
           }
 
@@ -21775,12 +21871,175 @@ SmtpProber.prototype = {
     },
   };
 
-  // A mapping from domains to URLs appropriate for passing in to
-  // Connection.setServer(). Used for domains that don't support autodiscovery.
-  const hardcodedDomains = {
-    'gmail.com': 'https://m.google.com',
-    'googlemail.com': 'https://m.google.com',
-  };
+  /**
+   * Set the Authorization header on an XMLHttpRequest.
+   *
+   * @param xhr the XMLHttpRequest
+   * @param username the username
+   * @param password the user's password
+   */
+  function setAuthHeader(xhr, username, password) {
+    let authorization = 'Basic ' + btoa(username + ':' + password);
+    xhr.setRequestHeader('Authorization', authorization);
+  }
+
+  /**
+   * Perform autodiscovery for the server associated with this account.
+   *
+   * @param aEmailAddress the user's email address
+   * @param aPassword the user's password
+   * @param aTimeout a timeout (in milliseconds) for the request
+   * @param aCallback a callback taking an error status (if any) and the
+   *        server's configuration
+   * @param aNoRedirect true if autodiscovery should *not* follow any
+   *        specified redirects (typically used when autodiscover has already
+   *        told us about a redirect)
+   */
+  function autodiscover(aEmailAddress, aPassword, aTimeout, aCallback,
+                        aNoRedirect) {
+    if (!aCallback) aCallback = nullCallback;
+    let domain = aEmailAddress.substring(aEmailAddress.indexOf('@') + 1);
+
+    // The first time we try autodiscovery, we should try to recover from
+    // AutodiscoverDomainErrors. The second time, *all* errors should be
+    // reported to the callback.
+    do_autodiscover(domain, aEmailAddress, aPassword, aTimeout, aNoRedirect,
+                    function(aError, aConfig) {
+      if (aError instanceof AutodiscoverDomainError)
+        do_autodiscover('autodiscover.' + domain, aEmailAddress, aPassword,
+                        aTimeout, aNoRedirect, aCallback);
+      else
+        aCallback(aError, aConfig);
+    });
+  }
+  exports.autodiscover = autodiscover;
+
+  /**
+   * Perform the actual autodiscovery process for a given URL.
+   *
+   * @param aHost the host name to attempt autodiscovery for
+   * @param aEmailAddress the user's email address
+   * @param aPassword the user's password
+   * @param aTimeout a timeout (in milliseconds) for the request
+   * @param aNoRedirect true if autodiscovery should *not* follow any
+   *        specified redirects (typically used when autodiscover has already
+   *        told us about a redirect)
+   * @param aCallback a callback taking an error status (if any) and the
+   *        server's configuration
+   */
+  function do_autodiscover(aHost, aEmailAddress, aPassword, aTimeout,
+                           aNoRedirect, aCallback) {
+    let xhr = new XMLHttpRequest({mozSystem: true, mozAnon: true});
+    xhr.open('POST', 'https://' + aHost + '/autodiscover/autodiscover.xml',
+             true);
+    setAuthHeader(xhr, aEmailAddress, aPassword);
+    xhr.setRequestHeader('Content-Type', 'text/xml');
+    xhr.timeout = aTimeout;
+
+    xhr.upload.onprogress = xhr.upload.onload = function() {
+      xhr.timeout = 0;
+    };
+
+    xhr.onload = function() {
+      if (xhr.status < 200 || xhr.status >= 300)
+        return aCallback(new HttpError(xhr.statusText, xhr.status));
+
+      let doc = new DOMParser().parseFromString(xhr.responseText, 'text/xml');
+
+      function getNode(xpath, rel) {
+        return doc.evaluate(xpath, rel, nsResolver,
+                            XPathResult.FIRST_ORDERED_NODE_TYPE, null)
+                  .singleNodeValue;
+      }
+      function getNodes(xpath, rel) {
+        return doc.evaluate(xpath, rel, nsResolver,
+                            XPathResult.ORDERED_NODE_ITERATOR_TYPE, null);
+      }
+      function getString(xpath, rel) {
+        return doc.evaluate(xpath, rel, nsResolver, XPathResult.STRING_TYPE,
+                            null).stringValue;
+      }
+
+      if (doc.documentElement.tagName === 'parsererror')
+        return aCallback(new AutodiscoverDomainError(
+          'Error parsing autodiscover response'));
+
+      let responseNode = getNode('/ad:Autodiscover/ms:Response', doc);
+      if (!responseNode)
+        return aCallback(new AutodiscoverDomainError(
+          'Missing Autodiscover Response node'));
+
+      let error = getNode('ms:Error', responseNode) ||
+                  getNode('ms:Action/ms:Error', responseNode);
+      if (error)
+        return aCallback(new AutodiscoverError(
+          getString('ms:Message/text()', error)));
+
+      let redirect = getNode('ms:Action/ms:Redirect', responseNode);
+      if (redirect) {
+        if (aNoRedirect)
+          return aCallback(new AutodiscoverError(
+            'Multiple redirects occurred during autodiscovery'));
+
+        let redirectedEmail = getString('text()', redirect);
+        return autodiscover(redirectedEmail, aPassword, aTimeout, aCallback,
+                            true);
+      }
+
+      let user = getNode('ms:User', responseNode);
+      let config = {
+        culture: getString('ms:Culture/text()', responseNode),
+        user: {
+          name:  getString('ms:DisplayName/text()',  user),
+          email: getString('ms:EMailAddress/text()', user),
+        },
+        servers: [],
+      };
+
+      let servers = getNodes('ms:Action/ms:Settings/ms:Server', responseNode);
+      let server;
+      while ((server = servers.iterateNext())) {
+        config.servers.push({
+          type:       getString('ms:Type/text()',       server),
+          url:        getString('ms:Url/text()',        server),
+          name:       getString('ms:Name/text()',       server),
+          serverData: getString('ms:ServerData/text()', server),
+        });
+      }
+
+      // Try to find a MobileSync server from Autodiscovery.
+      for (let [,server] in Iterator(config.servers)) {
+        if (server.type === 'MobileSync') {
+          config.mobileSyncServer = server;
+          break;
+        }
+      }
+      if (!config.mobileSyncServer) {
+        return aCallback(new AutodiscoverError('No MobileSync server found'),
+                         config);
+      }
+
+      aCallback(null, config);
+    };
+
+    xhr.ontimeout = xhr.onerror = function() {
+      aCallback(new Error('Error getting Autodiscover URL'));
+    };
+
+    // TODO: use something like
+    // http://ejohn.org/blog/javascript-micro-templating/ here?
+    let postdata =
+    '<?xml version="1.0" encoding="utf-8"?>\n' +
+    '<Autodiscover xmlns="' + nsResolver('rq') + '">\n' +
+    '  <Request>\n' +
+    '    <EMailAddress>' + aEmailAddress + '</EMailAddress>\n' +
+    '    <AcceptableResponseSchema>' + nsResolver('ms') +
+         '</AcceptableResponseSchema>\n' +
+    '  </Request>\n' +
+    '</Autodiscover>';
+
+    xhr.send(postdata);
+  }
 
   /**
    * Create a new ActiveSync connection.
@@ -21792,37 +22051,29 @@ SmtpProber.prototype = {
    * appearing if the user's credentials are wrong and 2) it allows us to
    * connect to the same server as multiple users.
    *
-   * @param aEmail the user's email address
-   * @param aPassword the user's password
    * @param aDeviceId (optional) a string identifying this device
    * @param aDeviceType (optional) a string identifying the type of this device
    */
-  function Connection(aEmail, aPassword, aDeviceId, aDeviceType) {
-    this._email = aEmail;
-    this._password = aPassword;
+  function Connection(aDeviceId, aDeviceType) {
     this._deviceId = aDeviceId || 'v140Device';
     this._deviceType = aDeviceType || 'SmartPhone';
     this.timeout = 0;
 
-    this._connection = 0;
+    this._connected = false;
     this._waitingForConnection = false;
+    this._connectionError = null;
     this._connectionCallbacks = [];
+
+    this.baseUrl = null;
+    this._username = null;
+    this._password = null;
+
+    this.versions = [];
+    this.supportedCommands = [];
+    this.currentVersion = null;
   }
   exports.Connection = Connection;
   Connection.prototype = {
-    /**
-     * Get the auth string to add to our XHR's headers.
-     *
-     * @return the auth string
-     */
-    _getAuth: function() {
-      return 'Basic ' + btoa(this._email + ':' + this._password);
-    },
-
-    get _emailDomain() {
-      return this._email.substring(this._email.indexOf('@') + 1);
-    },
-
     /**
      * Perform any callbacks added during the connection process.
      *
@@ -21843,132 +22094,79 @@ SmtpProber.prototype = {
      * @return true iff we are fully connected to the server
      */
     get connected() {
-      return this._connection === 2;
+      return this._connected;
+    },
+
+    /*
+     * Initialize the connection with a server and account credentials.
+     *
+     * @param aServer the ActiveSync server to connect to
+     * @param aUsername the account's username
+     * @param aPassword the account's password
+     */
+    open: function(aServer, aUsername, aPassword) {
+      this.baseUrl = aServer + '/Microsoft-Server-ActiveSync';
+      this._username = aUsername;
+      this._password = aPassword;
     },
 
     /**
-     * Perform autodiscovery and get the options for the server associated with
-     * this account.
+     * Connect to the server with this account by getting the OPTIONS from
+     * the server (and verifying the account's credentials).
      *
-     * @param aCallback a callback taking an error status (if any), the
-     *        resulting autodiscovery settings, and the server's options.
+     * @param aCallback a callback taking an error status (if any) and the
+     *        server's options.
      */
     connect: function(aCallback) {
-      let conn = this;
-      if (aCallback) {
-        if (conn._connection === 2) {
-          aCallback(null, conn.config);
-          return;
-        }
-        conn._connectionCallbacks.push(aCallback);
+      // If we're already connected, just run the callback and return.
+      if (this.connected) {
+        if (aCallback)
+          aCallback(null);
+        return;
       }
-      if (conn._waitingForConnection)
+
+      // Otherwise, queue this callback up to fire when we do connect.
+      if (aCallback)
+        this._connectionCallbacks.push(aCallback);
+
+      // Don't do anything else if we're already trying to connect.
+      if (this._waitingForConnection)
         return;
 
-      function getAutodiscovery() {
-        // Check for hardcoded domains first.
-        let domain = conn._emailDomain.toLowerCase();
-        if (domain in hardcodedDomains)
-          conn.setServer(hardcodedDomains[domain]);
+      this._waitingForConnection = true;
+      this._connectionError = null;
 
-        if (conn._connection === 1) {
-          // Pass along minimal configuration info.
-          getOptions({ forced: true,
-                       selectedServer: { url: conn._forcedServer } });
-          return;
+      this.getOptions((function(aError, aOptions) {
+        this._waitingForConnection = false;
+        this._connectionError = aError;
+
+        if (aError) {
+          console.error('Error connecting to ActiveSync:', aError);
+          return this._notifyConnected(aError, aOptions);
         }
 
-        conn._waitingForConnection = true;
-        conn.autodiscover(function (aError, aConfig) {
-          conn._waitingForConnection = false;
+        this._connected = true;
+        this.versions = aOptions.versions;
+        this.supportedCommands = aOptions.commands;
+        this.currentVersion = new Version(aOptions.versions.slice(-1)[0]);
 
-          if (aError)
-            return conn._notifyConnected(aError, aConfig);
-
-          // Try to find a MobileSync server from Autodiscovery.
-          for (let [,server] in Iterator(aConfig.servers)) {
-            if (server.type === 'MobileSync') {
-              aConfig.selectedServer = server;
-              break;
-            }
-          }
-          if (!aConfig.selectedServer) {
-            conn._connection = 0;
-            return conn._notifyConnected(
-              new AutodiscoverError('No MobileSync server found'), aConfig);
-          }
-
-          conn.setServer(aConfig.selectedServer.url);
-          getOptions(aConfig);
-        });
-      }
-
-      function getOptions(aConfig) {
-        if (conn._connection === 2)
-          return;
-
-        conn._waitingForConnection = true;
-        conn.options(function(aError, aOptions) {
-          conn._waitingForConnection = false;
-
-          if (aError)
-            return conn._notifyConnected(aError, aConfig, aOptions);
-
-          conn._connection = 2;
-          conn.versions = aOptions.versions;
-          conn.supportedCommands = aOptions.commands;
-          conn.currentVersion = new Version(aOptions.versions.slice(-1)[0]);
-
-          if (!conn.supportsCommand('Provision'))
-            return conn._notifyConnected(null, aConfig, aOptions);
-
-          conn.provision(function (aError, aResponse) {
-            conn._notifyConnected(aError, aConfig, aOptions);
-          });
-        });
-      }
-
-      getAutodiscovery();
+        return this._notifyConnected(null, aOptions);
+      }).bind(this));
     },
 
     /**
-     * Disconnect from the ActiveSync server, and reset all local state.
+     * Disconnect from the ActiveSync server, and reset the connection state.
+     * The server and credentials remain set however, so you can safely call
+     * connect() again immediately after.
      */
     disconnect: function() {
       if (this._waitingForConnection)
         throw new Error("Can't disconnect while waiting for server response");
 
-      this._connection = 0;
-
-      this.baseUrl = null;
-
+      this._connected = false;
       this.versions = [];
       this.supportedCommands = [];
       this.currentVersion = null;
-    },
-
-    /**
-     * Perform autodiscovery for the server associated with this account.
-     *
-     * @param aCallback a callback taking an error status (if any) and the
-     *        server's configuration
-     * @param aNoRedirect true if autodiscovery should *not* follow any
-     *        specified redirects (typically used when autodiscover has already
-     *        told us about a redirect)
-     */
-    autodiscover: function(aCallback, aNoRedirect) {
-      if (!aCallback) aCallback = nullCallback;
-      let domain = this._emailDomain;
-
-      // The first time we try autodiscovery, we should try to recover from
-      // AutodiscoverDomainErrors. The second time, *all* errors should be
-      // reported to the callback.
-      this._autodiscover(domain, aNoRedirect, (function(aError, aConfig) {
-        if (aError instanceof AutodiscoverDomainError)
-          this._autodiscover('autodiscover.' + domain, aNoRedirect, aCallback);
-        else
-          aCallback(aError, aConfig);
-      }).bind(this));
     },
 
     /**
@@ -21988,143 +22186,18 @@ SmtpProber.prototype = {
     },
 
     /**
-     * Manually set the server for the connection.
-     *
-     * @param aConfig a string representing the server URL for commands.
-     */
-    setServer: function(aServer) {
-      this._forcedServer = aServer;
-      this.baseUrl = aServer + '/Microsoft-Server-ActiveSync';
-      this._connection = 1;
-    },
-
-    /**
-     * Perform the actual autodiscovery process for a given URL.
-     *
-     * @param aHost the host name to attempt autodiscovery for
-     * @param aNoRedirect true if autodiscovery should *not* follow any
-     *        specified redirects (typically used when autodiscover has already
-     *        told us about a redirect)
-     * @param aCallback a callback taking an error status (if any) and the
-     *        server's configuration
-     */
-    _autodiscover: function(aHost, aNoRedirect, aCallback) {
-      let conn = this;
-      if (!aCallback) aCallback = nullCallback;
-
-      let xhr = new XMLHttpRequest({mozSystem: true, mozAnon: true});
-      xhr.open('POST', 'https://' + aHost + '/autodiscover/autodiscover.xml',
-               true);
-      xhr.setRequestHeader('Content-Type', 'text/xml');
-      xhr.setRequestHeader('Authorization', this._getAuth());
-      xhr.timeout = this.timeout;
-
-      xhr.upload.onprogress = xhr.upload.onload = function() {
-        xhr.timeout = 0;
-      };
-
-      xhr.onload = function() {
-        if (xhr.status < 200 || xhr.status >= 300)
-          return aCallback(new HttpError(xhr.statusText, xhr.status));
-
-        let doc = new DOMParser().parseFromString(xhr.responseText, 'text/xml');
-
-        function getNode(xpath, rel) {
-          return doc.evaluate(xpath, rel, nsResolver,
-                              XPathResult.FIRST_ORDERED_NODE_TYPE, null)
-                    .singleNodeValue;
-        }
-        function getNodes(xpath, rel) {
-          return doc.evaluate(xpath, rel, nsResolver,
-                              XPathResult.ORDERED_NODE_ITERATOR_TYPE, null);
-        }
-        function getString(xpath, rel) {
-          return doc.evaluate(xpath, rel, nsResolver, XPathResult.STRING_TYPE,
-                              null).stringValue;
-        }
-
-        if (doc.documentElement.tagName === 'parsererror')
-          return aCallback(new AutodiscoverDomainError(
-            'Error parsing autodiscover response'));
-
-        let responseNode = getNode('/ad:Autodiscover/ms:Response', doc);
-        if (!responseNode)
-          return aCallback(new AutodiscoverDomainError(
-            'Missing Autodiscover Response node'));
-
-        let error = getNode('ms:Error', responseNode) ||
-                    getNode('ms:Action/ms:Error', responseNode);
-        if (error)
-          return aCallback(new AutodiscoverError(
-            getString('ms:Message/text()', error)));
-
-        let redirect = getNode('ms:Action/ms:Redirect', responseNode);
-        if (redirect) {
-          if (aNoRedirect)
-            return aCallback(new AutodiscoverError(
-              'Multiple redirects occurred during autodiscovery'));
-
-          conn._email = getString('text()', redirect);
-          return conn.autodiscover(aCallback, true);
-        }
-
-        let user = getNode('ms:User', responseNode);
-        let config = {
-          culture: getString('ms:Culture/text()', responseNode),
-          user: {
-            name:  getString('ms:DisplayName/text()',  user),
-            email: getString('ms:EMailAddress/text()', user),
-          },
-          servers: [],
-        };
-
-        let servers = getNodes('ms:Action/ms:Settings/ms:Server', responseNode);
-        let server;
-        while ((server = servers.iterateNext())) {
-          config.servers.push({
-            type:       getString('ms:Type/text()',       server),
-            url:        getString('ms:Url/text()',        server),
-            name:       getString('ms:Name/text()',       server),
-            serverData: getString('ms:ServerData/text()', server),
-          });
-        }
-
-        aCallback(null, config);
-      };
-
-      xhr.ontimeout = xhr.onerror = function() {
-        aCallback(new Error('Error getting Autodiscover URL'));
-      };
-
-      // TODO: use something like
-      // http://ejohn.org/blog/javascript-micro-templating/ here?
-      let postdata =
-      '<?xml version="1.0" encoding="utf-8"?>\n' +
-      '<Autodiscover xmlns="' + nsResolver('rq') + '">\n' +
-      '  <Request>\n' +
-      '    <EMailAddress>' + this._email + '</EMailAddress>\n' +
-      '    <AcceptableResponseSchema>' + nsResolver('ms') +
-           '</AcceptableResponseSchema>\n' +
-      '  </Request>\n' +
-      '</Autodiscover>';
-
-      xhr.send(postdata);
-    },
-
-    /**
      * Get the options for the server associated with this account.
      *
      * @param aCallback a callback taking an error status (if any), and the
      *        resulting options.
      */
-    options: function(aCallback) {
+    getOptions: function(aCallback) {
       if (!aCallback) aCallback = nullCallback;
-      if (this._connection < 1)
-        throw new Error('Must have server info before calling options()');
 
       let conn = this;
       let xhr = new XMLHttpRequest({mozSystem: true, mozAnon: true});
       xhr.open('OPTIONS', this.baseUrl, true);
+      setAuthHeader(xhr, this._username, this._password);
       xhr.timeout = this.timeout;
 
       xhr.upload.onprogress = xhr.upload.onload = function() {
@@ -22133,8 +22206,8 @@ SmtpProber.prototype = {
 
       xhr.onload = function() {
         if (xhr.status < 200 || xhr.status >= 300) {
-          console.log('ActiveSync options request failed with response ' +
-                      xhr.status);
+          console.error('ActiveSync options request failed with response ' +
+                        xhr.status);
           aCallback(new HttpError(xhr.statusText, xhr.status));
           return;
         }
@@ -22148,7 +22221,9 @@ SmtpProber.prototype = {
       };
 
       xhr.ontimeout = xhr.onerror = function() {
-        aCallback(new Error('Error getting OPTIONS URL'));
+        let error = new Error('Error getting OPTIONS URL');
+        console.error(error);
+        aCallback(error);
       };
 
       // Set the response type to "text" so that we don't try to parse an empty
@@ -22244,7 +22319,7 @@ SmtpProber.prototype = {
       if (!this.supportsCommand(aCommand)) {
         let error = new Error("This server doesn't support the command " +
                               aCommand);
-        console.log(error);
+        console.error(error);
         aCallback(error);
         return;
       }
@@ -22271,9 +22346,9 @@ SmtpProber.prototype = {
       // Now it's time to make our request!
       let xhr = new XMLHttpRequest({mozSystem: true, mozAnon: true});
       xhr.open('POST', this.baseUrl + '?' + paramsStr, true);
+      setAuthHeader(xhr, this._username, this._password);
       xhr.setRequestHeader('MS-ASProtocolVersion', this.currentVersion);
       xhr.setRequestHeader('Content-Type', aContentType);
-      xhr.setRequestHeader('Authorization', this._getAuth());
 
       // Add extra headers if we have any.
       if (aExtraHeaders) {
@@ -22305,8 +22380,8 @@ SmtpProber.prototype = {
         }
 
         if (xhr.status < 200 || xhr.status >= 300) {
-          console.log('ActiveSync command ' + aCommand + ' failed with ' +
-                      'response ' + xhr.status);
+          console.error('ActiveSync command ' + aCommand + ' failed with ' +
+                        'response ' + xhr.status);
           aCallback(new HttpError(xhr.statusText, xhr.status));
           return;
         }
@@ -22318,7 +22393,9 @@ SmtpProber.prototype = {
       };
 
       xhr.ontimeout = xhr.onerror = function() {
-        aCallback(new Error('Error getting command URL'));
+        let error = new Error('Error getting command URL');
+        console.error(error);
+        aCallback(error);
       };
 
       xhr.responseType = 'arraybuffer';
@@ -30168,9 +30245,13 @@ ImapAccount.prototype = {
           case 'NO':
           case 'no':
             // XXX: Should we check if it's GMail first?
-            if (err.serverResponse.indexOf('[ALERT] Application-specific password required') !== -1)
+            if (!err.serverResponse)
+              errName = 'unknown';
+            else if (err.serverResponse.indexOf(
+                '[ALERT] Application-specific password required') !== -1)
               errName = 'needs-app-pass';
-            else if(err.serverResponse.indexOf('[ALERT] Your account is not enabled for IMAP use.') !== -1)
+            else if (err.serverResponse.indexOf(
+                 '[ALERT] Your account is not enabled for IMAP use.') !== -1)
               errName = 'imap-disabled';
             else
               errName = 'bad-user-or-pass';
@@ -31707,7 +31788,8 @@ ActiveSyncFolderConn.prototype = {
   },
 
   /**
-   * Get the initial sync key for the folder so we can start getting data
+   * Get the initial sync key for the folder so we can start getting data. We
+   * assume we have already negotiated a connection in the caller.
    *
    * @param {string} filterType The filter type for our synchronization
    * @param {function} callback A callback to be run when the operation finishes
@@ -31762,7 +31844,8 @@ ActiveSyncFolderConn.prototype = {
   },
 
   /**
-   * Get an estimate of the number of messages to be synced.
+   * Get an estimate of the number of messages to be synced.  We assume we have
+   * already negotiated a connection in the caller.
    *
    * @param {string} filterType The filter type for our estimate
    * @param {function} callback A callback to be run when the operation finishes
@@ -31901,38 +31984,36 @@ ActiveSyncFolderConn.prototype = {
   _enumerateFolderChanges: function asfc__enumerateFolderChanges(callback,
                                                                  progress) {
     let folderConn = this, storage = this._storage;
-    let account = this._account;
 
-    if (!account.conn.connected) {
-      account.conn.connect(function(error, config) {
+    if (!this._account.conn.connected) {
+      this._account.conn.connect(function(error) {
         if (error) {
           callback('aborted');
-          console.error('Error connecting to ActiveSync:', error);
+          return;
         }
-        else {
-          folderConn._enumerateFolderChanges(callback, progress);
-        }
+        folderConn._enumerateFolderChanges(callback, progress);
       });
       return;
     }
     if (!this.filterType) {
       this._inferFilterType(function(error, filterType) {
-        if (error)
+        if (error) {
           callback('unknown');
-        else {
-          console.log('We want a filter of', FILTER_TYPE_TO_STRING[filterType]);
-          folderConn.folderMeta.filterType = filterType;
-          folderConn._enumerateFolderChanges(callback, progress);
+          return;
         }
+        console.log('We want a filter of', FILTER_TYPE_TO_STRING[filterType]);
+        folderConn.folderMeta.filterType = filterType;
+        folderConn._enumerateFolderChanges(callback, progress);
       });
       return;
     }
     if (this.syncKey === '0') {
       this._getSyncKey(this.filterType, function(error) {
-        if (error)
+        if (error) {
           callback('aborted');
-        else
-          folderConn._enumerateFolderChanges(callback, progress);
+          return;
+        }
+        folderConn._enumerateFolderChanges(callback, progress);
       });
       return;
     }
@@ -31958,7 +32039,7 @@ ActiveSyncFolderConn.prototype = {
          .stag(as.Collections)
            .stag(as.Collection);
 
-      if (account.conn.currentVersion.lt('12.1'))
+      if (this._account.conn.currentVersion.lt('12.1'))
             w.tag(as.Class, 'Email');
 
             w.tag(as.SyncKey, this.syncKey)
@@ -31970,7 +32051,7 @@ ActiveSyncFolderConn.prototype = {
       // XXX: For some servers (e.g. Hotmail), we could be smart and get the
       // native body type (plain text or HTML), but Gmail doesn't seem to let us
       // do this. For now, let's keep it simple and always get HTML.
-      if (account.conn.currentVersion.gte('12.0'))
+      if (this._account.conn.currentVersion.gte('12.0'))
               w.stag(asb.BodyPreference)
                  .tag(asb.Type, asbEnum.Type.HTML)
                .etag();
@@ -31983,7 +32064,7 @@ ActiveSyncFolderConn.prototype = {
        .etag();
     }
 
-    account.conn.postCommand(w, function(aError, aResponse) {
+    this._account.conn.postCommand(w, function(aError, aResponse) {
       let added   = [];
       let changed = [];
       let deleted = [];
@@ -32371,8 +32452,19 @@ ActiveSyncFolderConn.prototype = {
   },
 
   performMutation: function(invokeWithWriter, callWhenDone) {
-    const as = $ascp.AirSync.Tags,
-          folderConn = this;
+    let folderConn = this;
+    if (!this._account.conn.connected) {
+      this._account.conn.connect(function(error) {
+        if (error) {
+          callback('unknown');
+          return;
+        }
+        folderConn.performMutation(invokeWithWriter, callWhenDone);
+      });
+      return;
+    }
+
+    const as = $ascp.AirSync.Tags;
 
     let w = new $wbxml.Writer('1.3', 1, 'UTF-8');
     w.stag(as.Sync)
@@ -32443,6 +32535,19 @@ ActiveSyncFolderConn.prototype = {
   // XXX: take advantage of multipart responses here.
   // See http://msdn.microsoft.com/en-us/library/ee159875%28v=exchg.80%29.aspx
   downloadMessageAttachments: function(uid, partInfos, callback, progress) {
+    let folderConn = this;
+    if (!this._account.conn.connected) {
+      this._account.conn.connect(function(error) {
+        if (error) {
+          callback('unknown');
+          return;
+        }
+        folderConn.downloadMessageAttachments(uid, partInfos, callback,
+                                              progress);
+      });
+      return;
+    }
+
     const io = $ascp.ItemOperations.Tags;
     const ioStatus = $ascp.ItemOperations.Enums.Status;
     const asb = $ascp.AirSyncBase.Tags;
@@ -32702,8 +32807,7 @@ ActiveSyncJobDriver.prototype = {
 
       var syncer = storage.folderSyncer;
       if (needConn && !self.account.conn.connected) {
-        // XXX will this connection automatically retry?
-        self.account.conn.connect(function(err, config) {
+        self.account.conn.connect(function(error) {
           try {
             callback(syncer.folderConn, storage);
           }
@@ -32962,8 +33066,8 @@ ActiveSyncJobDriver.prototype = {
     var account = this.account, self = this;
     // establish a connection if we are not already connected
     if (!account.conn.connected) {
-      account.conn.connect(function(err, config) {
-        if (err) {
+      account.conn.connect(function(error) {
+        if (error) {
           doneCallback('aborted-retry');
           return;
         }
@@ -32975,10 +33079,10 @@ ActiveSyncJobDriver.prototype = {
     // The inbox needs to be resynchronized if there was no server id and we
     // have active slices displaying the contents of the folder.  (No server id
     // means the sync will not happen.)
-    var inboxFolder = this.account.getFirstFolderWithType('inbox'),
+    var inboxFolder = account.getFirstFolderWithType('inbox'),
         inboxStorage, inboxNeedsResync = false;
     if (inboxFolder && inboxFolder.serverId === null) {
-      inboxStorage = this.account.getFolderStorageForFolderId(inboxFolder.id);
+      inboxStorage = account.getFolderStorageForFolderId(inboxFolder.id);
       inboxNeedsResync = inboxStorage.hasActiveSlices;
     }
 
@@ -33086,25 +33190,13 @@ function ActiveSyncAccount(universe, accountDef, folderInfos, dbConn,
     this.conn = receiveProtoConn;
   }
   else {
-    this.conn = new $activesync.Connection(accountDef.credentials.username,
-                                           accountDef.credentials.password);
+    this.conn = new $activesync.Connection();
+    this.conn.open(accountDef.connInfo.server, accountDef.credentials.username,
+                   accountDef.credentials.password);
     this.conn.timeout = DEFAULT_TIMEOUT_MS;
 
     // XXX: We should check for errors during connection and alert the user.
-    if (this.accountDef.connInfo) {
-      this.conn.setServer(this.accountDef.connInfo.server);
-      this.conn.connect();
-    }
-    else {
-      // This can happen with an older, broken version of the ActiveSync code.
-      // We can probably remove this eventually.
-      console.warning('ActiveSync connection info not found; ' +
-                      'attempting autodiscovery');
-      this.conn.connect(function (error, config, options) {
-        accountDef.connInfo = { server: config.selectedServer.url };
-        universe.saveAccountDef(accountDef, folderInfos);
-      });
-    }
+    this.conn.connect();
   }
 
   this._db = dbConn;
@@ -33260,6 +33352,8 @@ ActiveSyncAccount.prototype = {
   },
 
   syncFolderList: function asa_syncFolderList(callback) {
+    // We can assume that we already have a connection here, since jobs.js
+    // ensures it.
     let account = this;
 
     const fh = $ascp.FolderHierarchy.Tags;
@@ -33521,6 +33615,18 @@ ActiveSyncAccount.prototype = {
   createFolder: function asa_createFolder(parentFolderId, folderName,
                                           containOnlyOtherFolders, callback) {
     let account = this;
+    if (!this.conn.connected) {
+      this.conn.connect(function(error) {
+        if (error) {
+          callback('unknown');
+          return;
+        }
+        account.createFolder(parentFolderId, folderName,
+                             containOnlyOtherFolders, callback);
+      });
+      return;
+    }
+
     let parentFolderServerId = parentFolderId ?
       this._folderInfos[parentFolderId] : '0';
 
@@ -33574,6 +33680,17 @@ ActiveSyncAccount.prototype = {
    */
   deleteFolder: function asa_deleteFolder(folderId, callback) {
     let account = this;
+    if (!this.conn.connected) {
+      this.conn.connect(function(error) {
+        if (error) {
+          callback('unknown');
+          return;
+        }
+        account.deleteFolder(folderId, callback);
+      });
+      return;
+    }
+
     let folderMeta = this._folderInfos[folderId].$meta;
 
     const fh = $ascp.FolderHierarchy.Tags;
@@ -33609,6 +33726,18 @@ ActiveSyncAccount.prototype = {
   },
 
   sendMessage: function asa_sendMessage(composedMessage, callback) {
+    let account = this;
+    if (!this.conn.connected) {
+      this.conn.connect(function(error) {
+        if (error) {
+          callback('unknown');
+          return;
+        }
+        account.sendMessage(composedMessage, callback);
+      });
+      return;
+    }
+
     // XXX: This is very hacky and gross. Fix it to use pipes later.
     composedMessage._cacheOutput = true;
     process.immediate = true;
@@ -34001,6 +34130,7 @@ var autoconfigByDomain = exports._autoconfigByDomain = {
       // This string may be clobbered with the correct port number when
       // running as a unit test.
       server: 'http://localhost:8880',
+      username: '%EMAILADDRESS%',
     },
   },
   // Mapping for a nonexistent domain for testing a bad domain without it being
@@ -34299,17 +34429,17 @@ Configurators['activesync'] = {
   tryToCreateAccount: function cfg_as_ttca(universe, userDetails, domainInfo,
                                            callback, _LOG) {
     var credentials = {
-      username: userDetails.emailAddress,
+      username: domainInfo.incoming.username,
       password: userDetails.password,
     };
 
     var self = this;
-    var conn = new $asproto.Connection(credentials.username,
-                                       credentials.password);
-    conn.setServer(domainInfo.incoming.server);
+    var conn = new $asproto.Connection();
+    conn.open(domainInfo.incoming.server, credentials.username,
+              credentials.password);
     conn.timeout = $asacct.DEFAULT_TIMEOUT_MS;
 
-    conn.connect(function(error, config, options) {
+    conn.connect(function(error, options) {
       // XXX: Think about what to do with this error handling, since it's
       // replicated in the autoconfig code.
       if (error) {
@@ -34335,7 +34465,7 @@ Configurators['activesync'] = {
 
         credentials: credentials,
         connInfo: {
-          server: config.selectedServer.url
+          server: domainInfo.incoming.server
         },
 
         identities: [
@@ -34568,15 +34698,8 @@ Autoconfigurator.prototype = {
    */
   _getConfigFromAutodiscover: function getConfigFromAutodiscover(userDetails,
                                                                  callback) {
-    // XXX: We should think about how this function is implemented:
-    // 1) Should we really create a Connection here? Maybe we want
-    //    autodiscover() to be a free function.
-    // 2) We're reimplementing jsas's "find the MobileSync server" code. Maybe
-    //    that belongs in autodiscover() somehow.
-
-    let conn = new $asproto.Connection(userDetails.emailAddress,
-                                       userDetails.password);
-    conn.autodiscover(function(error, config) {
+    $asproto.autodiscover(userDetails.emailAddress, userDetails.password,
+                          this.timeout, function(error, config) {
       if (error) {
         var failureType = 'unknown';
 
@@ -34590,22 +34713,15 @@ Autoconfigurator.prototype = {
         return;
       }
 
-      // Try to find a MobileSync server from Autodiscovery.
-      for (let [,server] in Iterator(config.servers)) {
-        if (server.type === 'MobileSync') {
-          let autoconfig = {
-            type: 'activesync',
-            displayName: config.user.name,
-            incoming: {
-              server: server.url,
-            },
-          };
-
-          return callback(null, autoconfig);
-        }
-      }
-
-      return callback('unknown');
+      let autoconfig = {
+        type: 'activesync',
+        displayName: config.user.name,
+        incoming: {
+          server: config.mobileSyncServer.url,
+          username: config.user.email
+        },
+      };
+      callback(null, autoconfig);
     });
   },
 
@@ -35154,13 +35270,12 @@ function MailUniverse(callAfterBigBang, testOptions) {
 
   this._bridges = [];
 
-  // hookup network status indication
-  var connection = window.navigator.connection ||
-                     window.navigator.mozConnection ||
-                     window.navigator.webkitConnection;
+  // We used to try and use navigator.connection, but it's not supported on B2G,
+  // so we have to use navigator.onLine like suckers.
   this.online = true; // just so we don't cause an offline->online transition
+  window.addEventListener('online', this._onConnectionChange.bind(this));
+  window.addEventListener('offline', this._onConnectionChange.bind(this));
   this._onConnectionChange();
-  connection.addEventListener('change', this._onConnectionChange.bind(this));
 
   this._testModeDisablingLocalOps = false;
 
@@ -35373,29 +35488,37 @@ MailUniverse.prototype = {
 
   //////////////////////////////////////////////////////////////////////////////
   _onConnectionChange: function() {
-    var connection = window.navigator.connection ||
-                       window.navigator.mozConnection ||
-                       window.navigator.webkitConnection;
     var wasOnline = this.online;
     /**
      * Are we online?  AKA do we have actual internet network connectivity.
-     * This should ideally be false behind a captive portal.
+     * This should ideally be false behind a captive portal.  This might also
+     * end up temporarily false if we move to a 2-phase startup process.
      */
-    this.online = connection.bandwidth > 0;
+    this.online = navigator.onLine;
+    // Knowing when the app thinks it is online/offline is going to be very
+    // useful for our console.log debug spew.
+    console.log('Email knows that it is:', this.online ? 'online' : 'offline',
+                'and previously was:', wasOnline ? 'online' : 'offline');
     /**
      * Do we want to minimize network usage?  Right now, this is the same as
      * metered, but it's conceivable we might also want to set this if the
      * battery is low, we want to avoid stealing network/cpu from other
      * apps, etc.
+     *
+     * NB: We used to get this from navigator.connection.metered, but we can't
+     * depend on that.
      */
-    this.minimizeNetworkUsage = connection.metered;
+    this.minimizeNetworkUsage = true;
     /**
      * Is there a marginal cost to network usage?  This is intended to be used
      * for UI (decision) purposes where we may want to prompt before doing
      * things when bandwidth is metered, but not when the user is on comparably
      * infinite wi-fi.
+     *
+     * NB: We used to get this from navigator.connection.metered, but we can't
+     * depend on that.
      */
-    this.networkCostsMoney = connection.metered;
+    this.networkCostsMoney = true;
 
     if (!wasOnline && this.online) {
       // - check if we have any pending actions to run and run them if so.
