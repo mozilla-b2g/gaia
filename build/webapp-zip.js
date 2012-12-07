@@ -1,27 +1,6 @@
 
 function debug(msg) {
-  if (DEBUG)
-    dump('-*- ' + msg + '\n');
-}
-
-/**
- * Returns an array of nsIFile's for a given directory
- *
- * @param  {nsIFile} dir       directory to read.
- * @param  {boolean} recursive set to true in order to walk recursively.
- *
- * @return {Array}   list of nsIFile's.
- */
-function ls(dir, recursive) {
-  let results = [];
-  let files = dir.directoryEntries;
-  while (files.hasMoreElements()) {
-    let file = files.getNext().QueryInterface(Ci.nsILocalFile);
-    results.push(file);
-    if (recursive && file.isDirectory())
-      results = results.concat(ls(file, true));
-  }
-  return results;
+  //dump('-*- webapps-zip.js ' + msg + '\n');
 }
 
 // Header values usefull for zip xpcom component
@@ -42,7 +21,6 @@ const PR_EXCL = 0x80;
  * @param {nsIFile}      file      file xpcom to add.
  */
 function addToZip(zip, pathInZip, file) {
-
   // Branding specific code
   if (/shared\/locales\/branding$/.test(file.path)) {
     file.append((PRODUCTION == 1) ? 'official' : 'unofficial');
@@ -73,6 +51,7 @@ function addToZip(zip, pathInZip, file) {
   }
   // Case 2/ Directory
   else if (file.isDirectory()) {
+    debug(' +directory to zip ' + pathInZip);
     if (!zip.hasEntry(pathInZip))
       zip.addEntryDirectory(pathInZip, file.lastModifiedTime, false);
 

@@ -279,8 +279,9 @@
  */
 
 .privacy-menuitem {
+  padding-left: 5.5rem;
   background-repeat: no-repeat;
-  background-position: right 3rem top 50%; /* same position as for Wi-Fi signal levels */
+  background-position: 1.4rem center;
 }
 
 .privacy-browserOS {
@@ -291,6 +292,9 @@
   background-image: -moz-image-rect(url(images/privacy_sprite.png), 0, 64, 32, 32);
 }
 
+.privacy-marketPlace {
+  background-image: -moz-image-rect(url(images/privacy_sprite.png), 0, 96, 32, 64);
+}
 
 /******************************************************************************
  * Right-To-Left layout

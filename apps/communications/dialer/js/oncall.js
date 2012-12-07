@@ -2,6 +2,7 @@
 
 var CallScreen = {
   _ticker: null,
+  _screenLock: null,
 
   screen: document.getElementById('call-screen'),
   views: document.getElementById('views'),
@@ -130,11 +131,18 @@ var CallScreen = {
 
     this.callToolbar.classList.add('transparent');
     this.incomingContainer.classList.add('displayed');
+
+    this._screenLock = navigator.requestWakeLock('screen');
   },
 
   hideIncoming: function cs_hideIncoming() {
     this.callToolbar.classList.remove('transparent');
     this.incomingContainer.classList.remove('displayed');
+
+    if (this._screenLock) {
+      this._screenLock.unlock();
+      this._screenLock = null;
+    }
   },
 
   syncSpeakerEnabled: function cs_syncSpeakerEnabled() {
@@ -170,11 +178,11 @@ var OnCallHandler = (function onCallHandler() {
     activePhoneSound = !!value;
   });
 
-  var selectedPhoneSound = 'style/ringtones/classic.ogg';
-  SettingsListener.observe('dialer.ringtone', 'classic.ogg', function(value) {
-    selectedPhoneSound = 'style/ringtones/' + value;
+  var selectedPhoneSound = '';
+  SettingsListener.observe('dialer.ringtone', '', function(value) {
+    selectedPhoneSound = value;
     ringtonePlayer.pause();
-    ringtonePlayer.src = selectedPhoneSound;
+    ringtonePlayer.src = value;
 
     if (ringing) {
       ringtonePlayer.play();
@@ -275,8 +283,16 @@ var OnCallHandler = (function onCallHandler() {
     }
 
     if (handledCalls.length > 1) {
-      // signaling the user of the new call
-      navigator.vibrate([100, 100, 100]);
+      // New incoming call, signaling the user.
+      // Waiting for the screen to be turned on before vibrating.
+      if (document.mozHidden) {
+        window.addEventListener('mozvisibilitychange', function waitOn() {
+          window.removeEventListener('mozvisibilitychange', waitOn);
+          navigator.vibrate([100, 100, 100]);
+        });
+      } else {
+        navigator.vibrate([100, 100, 100]);
+      }
 
       var number = (call.number.length ? call.number : _('unknown'));
       Contacts.findByNumber(number, function lookupContact(contact) {
@@ -322,7 +338,7 @@ var OnCallHandler = (function onCallHandler() {
       }, 600);
     }
 
-    if (activePhoneSound && selectedPhoneSound) {
+    if (activePhoneSound) {
       ringtonePlayer.play();
       ringing = true;
     }
@@ -559,7 +575,7 @@ var OnCallHandler = (function onCallHandler() {
     var message = {
       type: 'recent',
       entry: entry
-    }
+    };
     postToMainWindow(message);
   }
 
@@ -596,11 +612,4 @@ window.addEventListener('localized', function callSetup(evt) {
   CallScreen.init();
   CallScreen.syncSpeakerEnabled();
   OnCallHandler.setup();
-  if (navigator.mozSettings) {
-    var req = navigator.mozSettings.createLock().get('wallpaper.image');
-    req.onsuccess = function cs_wi_onsuccess() {
-      CallScreen.mainContainer.style.backgroundImage =
-        'url(' + req.result['wallpaper.image'] + ')';
-    };
-  }
 });

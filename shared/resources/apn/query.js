@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', function onload() {
   var OPERATOR_VARIANT_FILE = '../apn.json';
   var GNOME_DB_FILE = 'serviceproviders.xml';
   var ANDROID_DB_FILE = 'apns_conf.xml';
+  var LOCAL_ANDROID_DB_FILE = 'apns_conf-local.xml';
   var OPERATOR_VARIANT_DB_FILE = 'operator-variant.xml';
 
   var gGnomeDB = null;
@@ -221,9 +222,16 @@ document.addEventListener('DOMContentLoaded', function onload() {
           // xhr.responseType = 'json' to be compatible with Chrome... sigh.
           gAPN = JSON.parse(xhr.responseText);
         } else {
-          // the JSON database is not available, merge the two XML databases
+          // the JSON database is not available, merge the three XML databases
           output.textContent = '\n merging databases, this takes a while...';
           gAndroidDB = loadXML(ANDROID_DB_FILE);
+          // First merge the local DB
+          var localAndroidDB = loadXML(LOCAL_ANDROID_DB_FILE);
+          var localApns = localAndroidDB.documentElement.getElementsByTagName("apn");
+          for (var i = 0; i < localApns.length; ++i) {
+            gAndroidDB.documentElement.appendChild(localApns[i]);
+          }
+          // Then the Gnome DB
           gGnomeDB = loadXML(GNOME_DB_FILE);
           gOperatorVariantDB = loadXML(OPERATOR_VARIANT_DB_FILE);
           gAPN = mergeDBs();

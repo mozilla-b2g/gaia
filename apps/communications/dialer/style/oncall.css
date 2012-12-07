@@ -134,8 +134,9 @@ body.hidden *[data-l10n-id] {
 }
 
 #main-container {
-  position: relative;
+  position: absolute;
   height: 100%;
+  width: 100%;
   background: rgba(0, 0, 0, 0.8) no-repeat center top/cover;
 }
 
