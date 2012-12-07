@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+<!-- use empty string to specify no proxy or port -->
+<!-- This version must agree with that in apps/common/res/apns.xml -->
+<apns version="7">
+  <apn carrier="SpeakOut"
+      mcc="302"
+      mnc="720"
+      apn="goam.com"
+      user="wapuser1"
+      password="wap"
+      proxy="10.128.1.69"
+      port="80"
+      mmsc="http://mms.gprs.rogers.com"
+      mmsproxy="10.128.1.69"
+      mmsport="80"
+      type="default,mms"
+  />
+
+</apns>

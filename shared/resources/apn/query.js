@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', function onload() {
   var OPERATOR_VARIANT_FILE = '../apn.json';
   var GNOME_DB_FILE = 'serviceproviders.xml';
   var ANDROID_DB_FILE = 'apns_conf.xml';
-  var LOCAL_ANDROID_DB_FILE = 'apns_conf-local.xml';
+  var LOCAL_ANDROID_DB_FILE = 'apns_conf_local.xml';
   var OPERATOR_VARIANT_DB_FILE = 'operator-variant.xml';
 
   var gGnomeDB = null;
@@ -227,7 +227,12 @@ document.addEventListener('DOMContentLoaded', function onload() {
           gAndroidDB = loadXML(ANDROID_DB_FILE);
           // First merge the local DB
           var localAndroidDB = loadXML(LOCAL_ANDROID_DB_FILE);
+<<<<<<< HEAD
           var localApns = localAndroidDB.documentElement.getElementsByTagName("apn");
+=======
+          var localApns = localAndroidDB.documentElement
+                                        .getElementsByTagName('apn');
+>>>>>>> c634533... Bug 807312 - Part 2: Make an apns_conf-local.xml and update the .json file. Clarify the README. r=
           for (var i = 0; i < localApns.length; ++i) {
             gAndroidDB.documentElement.appendChild(localApns[i]);
           }
