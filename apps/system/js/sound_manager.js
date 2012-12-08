@@ -55,7 +55,7 @@
   
   // XXX: This workaround could be removed once 
   // https://bugzilla.mozilla.org/show_bug.cgi?id=811222 landed
-  function onContentPlaying() {
+  function onNotificationPlaying() {
     return false;
   }
 
@@ -109,14 +109,14 @@
     // XXX: These status-checking functions could be removed when
     // Bug 811222 landed
     if (!channel) {
-      if (onContentPlaying()) {
-        channel = 'content';
+      if (onNotificationPlaying()) {
+        channel = 'notification';
       } else if (onRing()) {
         channel = 'notification';
       } else if (onCall()) {
         channel = 'telephony';
       } else {
-        channel = 'notification';
+        channel = 'content';
       }
     }
 
