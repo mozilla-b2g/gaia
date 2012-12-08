@@ -84,7 +84,7 @@ Gaia.externalWebapps.forEach(function (webapp) {
   let installOrigin;
   let manifestURL;
 
-  let removable = false;
+  let removable = undefined;
 
   // In case of packaged app, just copy `application.zip` and `update.webapp`
   let appPackage = webapp.sourceDirectoryFile.clone();
