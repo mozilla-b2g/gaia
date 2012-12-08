@@ -22,7 +22,9 @@ function parseJPEGMetadata(file, metadataCallback, metadataError) {
   // Hopefully, this will be all we need and everything else will
   // be synchronous
   BlobView.get(file, 0, Math.min(16 * 1024, file.size), function(data) {
-    if (data.getUint8(0) !== 0xFF || data.getUint8(1) !== 0xD8) {
+    if (data.byteLength < 2 ||
+        data.getUint8(0) !== 0xFF ||
+        data.getUint8(1) !== 0xD8) {
       metadataError('Not a JPEG file');
       return;
     }
