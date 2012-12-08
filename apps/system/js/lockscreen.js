@@ -82,13 +82,13 @@ var LockScreen = {
   /*
   * start/end curve path data (position, curve control point)
   */
-  CURVE_START_DATA: 'M0,80 C100,150 220,150 320,80',
-  CURVE_END_DATA: 'M0,80 C100,-20 220,-20 320,80',
+  CURVE_START_DATA: 'M0,100 C30,80 70,80 95,100',
+  CURVE_END_DATA: 'M0,100 C30,20 70,20 95,100',
 
   /*
   * curve transform const parameters
   */
-  CURVE_TRANSFORM_DATA: ['M0,80 C100,', '0', ' 220,', '0', ' 320,80'],
+  CURVE_TRANSFORM_DATA: ['M0,100 C30,', '20', ' 70,', '10', ' 95,100'],
 
   /*
   * control points coordinate y for CURVE_TRANSFORM_DATA
