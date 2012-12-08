@@ -268,4 +268,9 @@ window.addEventListener('DOMContentLoaded', function() {
   showHideDiv('click', 'h1-parameters');
   showHideDiv('click', 'h1-status');
   showHideDiv('click', 'h1-debuglog');
+
+  document.getElementById('btnStart').addEventListener('click', startGeoloc);
+  document.getElementById('btnStop').addEventListener('click', stopGeoloc);
+  document.getElementById('btnClear').addEventListener('click', clearGeoloc);
+  document.getElementById('btnSave').addEventListener('click', saveGeoloc);
 });
