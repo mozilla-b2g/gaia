@@ -20,7 +20,7 @@ var AppInstallManager = {
 
     this.notifContainer =
             document.getElementById('install-manager-notification-container');
-    this.installNotifications = {};
+    this.appInfos = {};
 
     window.addEventListener('mozChromeEvent',
       (function ai_handleChromeEvent(e) {
@@ -43,6 +43,34 @@ var AppInstallManager = {
       this.handleConfirmDownloadCancel.bind(this);
     this.downloadCancelDialog.querySelector('.cancel').onclick =
       this.handleCancelDownloadCancel.bind(this);
+
+    // bind these handlers so that we can have only one instance and check
+    // them later on
+    ['handleDownloadSuccess',
+     'handleDownloadError',
+     'handleProgress',
+     'handleApplicationReady'
+    ].forEach(function(name) {
+      this[name] = this[name].bind(this);
+    }, this);
+
+    window.addEventListener('applicationready',
+        this.handleApplicationReady);
+  },
+
+  handleApplicationReady: function ai_handleApplicationReady(e) {
+    window.removeEventListener('applicationready',
+        this.handleApplicationReady);
+
+    var apps = e.detail.applications;
+
+    Object.keys(apps)
+      .map(function(key) { return apps[key]; })
+      .forEach(this.prepareForDownload, this);
+  },
+
+  handleApplicationInstall: function ai_handleApplicationInstallEvent(e) {
+    this.prepareForDownload(e.detail.application);
   },
 
   handleAppInstallPrompt: function ai_handleInstallPrompt(detail) {
@@ -100,25 +128,26 @@ var AppInstallManager = {
     this.dialog.classList.remove('visible');
   },
 
-  handleApplicationInstall: function ai_handleApplicationInstall(e) {
-    var app = e.detail.application,
-        manifestURL = app.manifestURL;
+  prepareForDownload: function ai_prepareForDownload(app) {
+    var manifestURL = app.manifestURL;
 
     if (app.installState === 'installed') {
       // nothing more to do here, everything is already done
       return;
     }
-    StatusBar.incSystemDownloads();
-    this.addNotification(app);
 
-    app.ondownloadsuccess = this.handleDownloadSuccess.bind(this);
-    app.ondownloaderror = this.handleDownloadError.bind(this);
-    app.onprogress = this.handleProgress.bind(this);
+    this.appInfos[manifestURL] = {};
+
+    // these methods are already bound to |this|
+    app.ondownloadsuccess = this.handleDownloadSuccess;
+    app.ondownloaderror = this.handleDownloadError;
+    app.onprogress = this.handleProgress;
   },
 
   handleDownloadSuccess: function ai_handleDownloadSuccess(evt) {
     var app = evt.application;
-    this.finishDownload(app);
+    this.onDownloadStop(app);
+    this.onDownloadFinish(app);
   },
 
   handleDownloadError: function ai_handleDownloadError(evt) {
@@ -126,7 +155,6 @@ var AppInstallManager = {
     var _ = navigator.mozL10n.get;
     var manifest = app.manifest || app.updateManifest;
     var name = manifest.name;
-    StatusBar.decSystemDownloads();
 
     var error = app.downloadError;
 
@@ -143,23 +171,52 @@ var AppInstallManager = {
         SystemBanner.show(msg);
     }
 
-    this.finishDownload(app);
+    this.onDownloadStop(app);
   },
 
-  finishDownload: function ai_cleanUp(app) {
-    StatusBar.decSystemDownloads();
-    this.removeNotification(app);
-    app.ondownloadsuccess = null;
-    app.ondownloaderror = null;
-    app.onprogress = null;
+  onDownloadStart: function ai_onDownloadStart(app) {
+    if (! this.hasNotification(app)) {
+      StatusBar.incSystemDownloads();
+      this.addNotification(app);
+    }
+  },
+
+  onDownloadStop: function ai_onDownloadStop(app) {
+    if (this.hasNotification(app)) {
+      StatusBar.decSystemDownloads();
+      this.removeNotification(app);
+    }
+  },
+
+  hasNotification: function ai_hasNotification(app) {
+    var appInfo = this.appInfos[app.manifestURL];
+    return appInfo && !!appInfo.installNotification;
+  },
+
+  onDownloadFinish: function ai_onDownloadFinish(app) {
+    delete this.appInfos[app.manifestURL];
+
+    // check if these are our handlers before removing them
+    if (app.ondownloadsuccess === this.handleDownloadSuccess) {
+      app.ondownloadsuccess = null;
+    }
+
+    if (app.ondownloaderror === this.handleDownloadError) {
+      app.ondownloaderror = null;
+    }
+
+    if (app.onprogress === this.handleProgress) {
+      app.onprogress = null;
+    }
   },
 
   addNotification: function ai_addNotification(app) {
     // should be unique (this is used already in applications.js)
     var manifestURL = app.manifestURL,
-        manifest = app.manifest || app.updateManifest;
+        manifest = app.manifest || app.updateManifest,
+        appInfo = this.appInfos[manifestURL];
 
-    if (this.installNotifications[manifestURL]) {
+    if (appInfo.installNotification) {
       return;
     }
 
@@ -182,36 +239,33 @@ var AppInstallManager = {
 
     newNode.querySelector('.message').textContent = message;
 
-    var progressNode = newNode.querySelector('progress');
-
-    var size = manifest.size;
+    var size = manifest.size,
+        progressNode = newNode.querySelector('progress');
     if (size) {
       progressNode.max = size;
-      progressNode.value = 0;
-      message = _('downloadingAppProgress',
-        {
-          progress: this.humanizeSize(0),
-          max: this.humanizeSize(size)
-        });
-    } else {
-      message = navigator.mozL10n.get(
-          'downloadingAppProgressNoMax', { progress: 0 });
+      appInfo.hasMax = true;
     }
-    progressNode.textContent = message;
 
-    this.installNotifications[manifestURL] = newNode;
+    appInfo.installNotification = newNode;
     NotificationScreen.incExternalNotifications();
   },
 
+  getNotificationProgressNode: function ai_getNotificationProgressNode(app) {
+    var appInfo = this.appInfos[app.manifestURL];
+    var progressNode = appInfo
+      && appInfo.installNotification
+      && appInfo.installNotification.querySelector('progress');
+    return progressNode || null;
+  },
+
   handleProgress: function ai_handleProgress(evt) {
-    var app = evt.application;
-    var notifNode = this.installNotifications[app.manifestURL];
+    var app = evt.application,
+        appInfo = this.appInfos[app.manifestURL];
 
-    if (!notifNode) {
-      return;
-    }
+    this.onDownloadStart(app);
 
-    var progressNode = notifNode.querySelector('progress');
+
+    var progressNode = this.getNotificationProgressNode(app);
     var message;
     var _ = navigator.mozL10n.get;
 
@@ -220,31 +274,31 @@ var AppInstallManager = {
       // handle the null and undefined cases as well
       message = _('downloadingAppProgressIndeterminate');
       progressNode.value = undefined; // switch to indeterminate state
-    } else if (progressNode.position === -1) {
-      // already in indeterminate state, means we have no max
-      message = _('downloadingAppProgressNoMax',
-                                      { progress: app.progress });
-    } else {
+    } else if (appInfo.hasMax) {
       message = _('downloadingAppProgress',
         {
           progress: this.humanizeSize(app.progress),
           max: this.humanizeSize(progressNode.max)
         });
       progressNode.value = app.progress;
+    } else {
+      message = _('downloadingAppProgressNoMax',
+                 { progress: this.humanizeSize(app.progress) });
     }
     progressNode.textContent = message;
   },
 
   removeNotification: function ai_removeNotification(app) {
     var manifestURL = app.manifestURL,
-        node = this.installNotifications[manifestURL];
+        appInfo = this.appInfos[manifestURL],
+        node = appInfo.installNotification;
 
     if (!node) {
       return;
     }
 
     node.parentNode.removeChild(node);
-    delete this.installNotifications[manifestURL];
+    delete appInfo.installNotification;
     NotificationScreen.decExternalNotifications();
   },
 

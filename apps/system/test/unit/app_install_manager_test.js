@@ -378,26 +378,21 @@ suite('system/AppInstallManager >', function() {
   });
 
   suite('duringInstall >', function() {
-    var mockApp, e;
-
-    setup(function() {
-      e = new CustomEvent('applicationinstall', { detail: {} });
-    });
-
-    teardown(function() {
-      MockSystemBanner.mTeardown();
-    });
+    var mockApp, mockAppName;
 
     function dispatchEvent() {
-        e.detail.application = mockApp;
-        window.dispatchEvent(e);
+      var e = new CustomEvent('applicationinstall', {
+        detail: { application: mockApp }
+      });
+      window.dispatchEvent(e);
     }
 
     suite('hosted app without cache >', function() {
       setup(function() {
+        mockAppName = 'Fake hosted app';
         mockApp = new MockApp({
           manifest: {
-            name: 'Fake hosted app',
+            name: mockAppName,
             developer: {
               name: 'Fake dev',
               url: 'http://fakesoftware.com'
@@ -419,11 +414,65 @@ suite('system/AppInstallManager >', function() {
 
     });
 
+    function beforeFirstProgressSuite() {
+      suite('before first progress >', function() {
+        test('should not show the icon', function() {
+          var method = 'incSystemDownloads';
+          assert.isUndefined(MockStatusBar.wasMethodCalled[method]);
+        });
+
+        test('should not add a notification', function() {
+          assert.equal(fakeNotif.childElementCount, 0);
+        });
+
+        suite('on downloadsuccess >', function() {
+          setup(function() {
+            // reseting these mocks as we want to test only one call
+            MockNotificationScreen.mTeardown();
+            MockStatusBar.mTeardown();
+
+            mockApp.mTriggerDownloadSuccess();
+          });
+
+          test('should not remove a notification', function() {
+            var method = 'decExternalNotifications';
+            assert.isUndefined(MockNotificationScreen.wasMethodCalled[method]);
+          });
+
+          test('should not remove the download icon', function() {
+            var method = 'decSystemDownloads';
+            assert.isUndefined(MockStatusBar.wasMethodCalled[method]);
+          });
+        });
+
+        suite('on downloaderror >', function() {
+          setup(function() {
+            // reseting these mocks as we want to test only one call
+            MockNotificationScreen.mTeardown();
+            MockStatusBar.mTeardown();
+
+            mockApp.mTriggerDownloadError();
+          });
+
+          test('should not remove a notification', function() {
+            var method = 'decExternalNotifications';
+            assert.isUndefined(MockNotificationScreen.wasMethodCalled[method]);
+          });
+
+          test('should not remove the download icon', function() {
+            var method = 'decSystemDownloads';
+            assert.isUndefined(MockStatusBar.wasMethodCalled[method]);
+          });
+        });
+      });
+    }
+
     suite('hosted app with cache >', function() {
       setup(function() {
+        mockAppName = 'Fake hosted app with cache';
         mockApp = new MockApp({
           manifest: {
-            name: 'Fake hosted app with cache',
+            name: mockAppName,
             developer: {
               name: 'Fake dev',
               url: 'http://fakesoftware.com'
@@ -436,66 +485,134 @@ suite('system/AppInstallManager >', function() {
         dispatchEvent();
       });
 
-      test('should show the icon', function() {
-        assert.ok(MockStatusBar.wasMethodCalled['incSystemDownloads']);
-      });
+      function downloadEventsSuite(afterError) {
+        var suiteName = 'on first progress';
+        if (afterError) {
+          suiteName += ' after error';
+        }
+        suiteName += ' >';
 
-      test('should remove the icon if we get downloadsuccess', function() {
-        mockApp.mTriggerDownloadSuccess();
-        assert.ok(MockStatusBar.wasMethodCalled['decSystemDownloads']);
-      });
+        suite(suiteName, function() {
+          setup(function() {
+            // reseting these mocks as we want to test only the following
+            // calls
+            MockNotificationScreen.mTeardown();
+            MockStatusBar.mTeardown();
 
-      test('should remove the icon and display error if we get downloaderror',
-        function() {
-        mockApp.mTriggerDownloadError();
-        assert.ok(MockStatusBar.wasMethodCalled['decSystemDownloads']);
-        assert.equal(MockSystemBanner.mMessage,
-          'download-stopped2{"appName":"Fake hosted app with cache"}');
-        assert.isFalse(MockModalDialog.alert.mWasCalled);
-      });
+            mockApp.mTriggerDownloadProgress(NaN);
+          });
 
-      test('should add a notification', function() {
-        assert.equal(fakeNotif.childElementCount, 1);
-      });
+          test('should add a notification', function() {
+            var method = 'incExternalNotifications';
+            assert.equal(fakeNotif.childElementCount, 1);
+            assert.ok(MockNotificationScreen.wasMethodCalled[method]);
+          });
 
-      test('notification should have a message', function() {
-        assert.equal(fakeNotif.querySelector('.message').textContent,
-          'downloadingAppMessage{"appName":"Fake hosted app with cache"}');
-        assert.equal(fakeNotif.querySelector('progress').textContent,
-          'downloadingAppProgressNoMax{"progress":0}');
-      });
+          test('notification should have a message', function() {
+            assert.equal(fakeNotif.querySelector('.message').textContent,
+              'downloadingAppMessage{"appName":"Fake hosted app with cache"}');
+            assert.equal(fakeNotif.querySelector('progress').textContent,
+              'downloadingAppProgressIndeterminate');
+          });
 
-      test('notification progress should be indeterminate', function() {
-        assert.equal(fakeNotif.querySelector('progress').position, -1);
-      });
+          test('notification progress should be indeterminate', function() {
+            assert.equal(fakeNotif.querySelector('progress').position, -1);
+          });
 
-      test('should remove the notif if we get downloadsuccess', function() {
-        mockApp.mTriggerDownloadSuccess();
-        assert.equal(fakeNotif.childElementCount, 0);
-      });
+          test('downloadsuccess > should remove the notif', function() {
+            var method = 'decExternalNotifications';
+            mockApp.mTriggerDownloadSuccess();
+            assert.equal(fakeNotif.childElementCount, 0);
+            assert.ok(MockNotificationScreen.wasMethodCalled[method]);
+          });
 
-      test('should remove the notif if we get downloaderror', function() {
-        mockApp.mTriggerDownloadError();
-        assert.equal(fakeNotif.childElementCount, 0);
-      });
+          test('on downloadsuccess > should remove only its progress handler',
+            function() {
 
-      test('should keep the progress indeterminate on progress', function() {
-        mockApp.mTriggerDownloadProgress(NaN);
+            var onprogressCalled = false;
+            mockApp.onprogress = function() {
+              onprogressCalled = true;
+            };
+            mockApp.mTriggerDownloadSuccess();
+            mockApp.mTriggerDownloadProgress(10);
+            assert.isTrue(onprogressCalled);
+          });
 
-        var progressNode = fakeNotif.querySelector('progress');
-        assert.equal(progressNode.position, -1);
-        assert.equal(progressNode.textContent,
-          'downloadingAppProgressIndeterminate');
-      });
+          suite('on indeterminate progress >', function() {
+            setup(function() {
+              mockApp.mTriggerDownloadProgress(NaN);
+            });
 
+            test('should keep the progress indeterminate', function() {
+              var progressNode = fakeNotif.querySelector('progress');
+              assert.equal(progressNode.position, -1);
+              assert.equal(progressNode.textContent,
+                'downloadingAppProgressIndeterminate');
+            });
+          });
+
+          suite('on quantified progress >', function() {
+            setup(function() {
+              mockApp.mTriggerDownloadProgress(10);
+            });
+
+            test('should have a quantified progress', function() {
+              var progressNode = fakeNotif.querySelector('progress');
+              assert.equal(progressNode.position, -1);
+              assert.equal(progressNode.textContent,
+                'downloadingAppProgressNoMax{"progress":"10.00 bytes"}');
+            });
+          });
+
+          if (!afterError) {
+
+            suite('on downloadError >', function() {
+              setup(function() {
+                // reseting these mocks as we only want to test the
+                // following call
+                MockStatusBar.mTeardown();
+                MockSystemBanner.mTeardown();
+                MockModalDialog.mTeardown();
+
+                mockApp.mTriggerDownloadError();
+              });
+
+              test('should remove the icon', function() {
+                  var method = 'decSystemDownloads';
+                  assert.ok(MockStatusBar.wasMethodCalled[method]);
+                });
+
+              test('should display an error', function() {
+                assert.equal(MockSystemBanner.mMessage,
+                  'download-stopped2{"appName":"' + mockAppName + '"}');
+              });
+
+              test('should not display the error dialog', function() {
+                assert.isFalse(MockModalDialog.alert.mWasCalled);
+              });
+
+              test('should remove the notif', function() {
+                assert.equal(fakeNotif.childElementCount, 0);
+              });
+
+              beforeFirstProgressSuite();
+              downloadEventsSuite(/*afterError*/ true);
+            });
+          }
+        });
+      }
+
+      beforeFirstProgressSuite();
+      downloadEventsSuite(/*afterError*/ false);
     });
 
     suite('packaged app >', function() {
       setup(function() {
+        mockAppName = 'Fake packaged app';
         mockApp = new MockApp({
           manifest: null,
           updateManifest: {
-            name: 'Fake packaged app',
+            name: mockAppName,
             size: 5245678,
             developer: {
               name: 'Fake dev',
@@ -508,96 +625,157 @@ suite('system/AppInstallManager >', function() {
         dispatchEvent();
       });
 
-      test('should show the icon', function() {
-        assert.ok(MockStatusBar.wasMethodCalled['incSystemDownloads']);
+
+      function downloadEventsSuite(afterError) {
+        var suiteName = 'on first progress';
+        if (afterError) {
+          suiteName += ' after error';
+        }
+        suiteName += ' >';
+
+        suite(suiteName, function() {
+          var newprogress = 5;
+
+          setup(function() {
+            // resetting this mock because we want to test only the
+            // following call
+            MockNotificationScreen.mTeardown();
+
+            mockApp.mTriggerDownloadProgress(newprogress);
+          });
+
+          test('should add a notification', function() {
+            var method = 'incExternalNotifications';
+            assert.equal(fakeNotif.childElementCount, 1);
+            assert.ok(MockNotificationScreen.wasMethodCalled[method]);
+          });
+
+          test('notification should have a message', function() {
+            var expectedText = 'downloadingAppMessage{"appName":"' +
+              mockAppName + '"}';
+          assert.equal(fakeNotif.querySelector('.message').textContent,
+            expectedText);
+          });
+
+          test('notification progress should have a max and a value',
+            function() {
+            assert.equal(fakeNotif.querySelector('progress').max,
+              mockApp.updateManifest.size);
+            assert.equal(fakeNotif.querySelector('progress').value,
+              newprogress);
+          });
+
+          test('notification progress should not be indeterminate',
+            function() {
+            assert.notEqual(fakeNotif.querySelector('progress').position, -1);
+          });
+
+          test('on downloadsuccess > should remove the notif', function() {
+            var method = 'decExternalNotifications';
+            mockApp.mTriggerDownloadSuccess();
+            assert.equal(fakeNotif.childElementCount, 0);
+            assert.ok(MockNotificationScreen.wasMethodCalled[method]);
+          });
+
+          test('on indeterminate progress > ' +
+              'should update the progress text content',
+            function() {
+              mockApp.mTriggerDownloadProgress(NaN);
+
+              var progressNode = fakeNotif.querySelector('progress');
+              assert.equal(progressNode.textContent,
+                'downloadingAppProgressIndeterminate');
+            });
+
+          suite('on progress >', function() {
+            var size, ratio;
+            var newprogress = 10;
+
+            setup(function() {
+              size = mockApp.updateManifest.size;
+              ratio = newprogress / size;
+              mockApp.mTriggerDownloadProgress(newprogress);
+            });
+
+            test('should update the progress notification', function() {
+              var progressNode = fakeNotif.querySelector('progress');
+              assert.equal(progressNode.position, ratio);
+              assert.equal(progressNode.textContent,
+                'downloadingAppProgress{"progress":"10.00 bytes",' +
+                '"max":"5.00 MB"}');
+            });
+          });
+
+          if (!afterError) {
+            suite('on downloadError >', function() {
+              setup(function() {
+                // resetting these tests because we want to test the
+                // following call only
+                MockStatusBar.mTeardown();
+                MockSystemBanner.mTeardown();
+                MockModalDialog.mTeardown();
+
+                mockApp.mTriggerDownloadError();
+              });
+
+              test('should remove the icon and display error',
+                function() {
+                  var method = 'decSystemDownloads';
+                  assert.ok(MockStatusBar.wasMethodCalled[method]);
+                });
+
+              test('should remove the icon', function() {
+                  var method = 'decSystemDownloads';
+                  assert.ok(MockStatusBar.wasMethodCalled[method]);
+                });
+
+              test('should display an error', function() {
+                assert.equal(MockSystemBanner.mMessage,
+                  'download-stopped2{"appName":"' + mockAppName + '"}');
+              });
+
+              test('should not display the error dialog', function() {
+                assert.isFalse(MockModalDialog.alert.mWasCalled);
+              });
+
+              test('should remove the notif', function() {
+                assert.equal(fakeNotif.childElementCount, 0);
+              });
+
+              beforeFirstProgressSuite();
+              downloadEventsSuite(/*afterError*/ true);
+            });
+          }
+        });
+      }
+
+      beforeFirstProgressSuite();
+      downloadEventsSuite(/*afterError*/ false);
+
+      suite('on INSUFFICIENT_STORAGE downloaderror >', function() {
+        test('should display an alert', function() {
+          mockApp.mTriggerDownloadError('INSUFFICIENT_STORAGE');
+          assert.isNull(MockSystemBanner.mMessage);
+          assert.isTrue(MockModalDialog.alert.mWasCalled);
+          var args = MockModalDialog.alert.mArgs;
+          assert.equal(args[0], 'not-enough-space');
+          assert.equal(args[1], 'not-enough-space-message');
+          assert.deepEqual(args[2], { title: 'ok' });
+        });
+
+        beforeFirstProgressSuite();
+        downloadEventsSuite(/*afterError*/ true);
       });
 
-      test('should remove the icon if we get downloadsuccess', function() {
-        mockApp.mTriggerDownloadSuccess();
-        assert.ok(MockStatusBar.wasMethodCalled['decSystemDownloads']);
-      });
 
-      test('should remove the icon and display error if we get downloaderror',
-        function() {
-        mockApp.mTriggerDownloadError();
-        assert.ok(MockStatusBar.wasMethodCalled['decSystemDownloads']);
-        assert.equal(MockSystemBanner.mMessage,
-          'download-stopped2{"appName":"Fake packaged app"}');
-        assert.isFalse(MockModalDialog.alert.mWasCalled);
-      });
-
-      test('should display an alert if we get INSUFFICIENT STORAGE error',
-        function() {
-        mockApp.mTriggerDownloadError('INSUFFICIENT_STORAGE');
-        assert.ok(MockStatusBar.wasMethodCalled['decSystemDownloads']);
-        assert.isNull(MockSystemBanner.mMessage);
-        assert.isTrue(MockModalDialog.alert.mWasCalled);
-        var args = MockModalDialog.alert.mArgs;
-        assert.equal(args[0], 'not-enough-space');
-        assert.equal(args[1], 'not-enough-space-message');
-        assert.deepEqual(args[2], { title: 'ok' });
-      });
-
-      test('should add a notification', function() {
-        var method = 'incExternalNotifications';
-        assert.equal(fakeNotif.childElementCount, 1);
-        assert.ok(MockNotificationScreen.wasMethodCalled[method]);
-      });
-
-      test('notification should have a message', function() {
-        assert.equal(fakeNotif.querySelector('.message').textContent,
-          'downloadingAppMessage{"appName":"Fake packaged app"}');
-      });
-
-      test('notification progress should have a max and a value', function() {
-        assert.equal(fakeNotif.querySelector('progress').max,
-          mockApp.updateManifest.size);
-        assert.equal(fakeNotif.querySelector('progress').value, 0);
-      });
-
-      test('notification progress should not be indeterminate', function() {
-        assert.notEqual(fakeNotif.querySelector('progress').position, -1);
-      });
-
-      test('should remove the notif if we get downloadsuccess', function() {
-        var method = 'decExternalNotifications';
-        mockApp.mTriggerDownloadSuccess();
-        assert.equal(fakeNotif.childElementCount, 0);
-        assert.ok(MockNotificationScreen.wasMethodCalled[method]);
-      });
-
-      test('should remove the notif if we get downloaderror', function() {
-        mockApp.mTriggerDownloadError();
-        assert.equal(fakeNotif.childElementCount, 0);
-      });
-
-      test('should update the progress notification on progress', function() {
-        var newprogress = 10,
-            size = mockApp.updateManifest.size,
-            ratio = newprogress / size;
-        mockApp.mTriggerDownloadProgress(newprogress);
-
-        var progressNode = fakeNotif.querySelector('progress');
-        assert.equal(progressNode.position, ratio);
-        assert.equal(progressNode.textContent,
-          'downloadingAppProgress{"progress":"10.00 bytes","max":"5.00 MB"}');
-      });
-
-      test('should update the progress text content if we do not have the ' +
-          'actual progress', function() {
-        mockApp.mTriggerDownloadProgress(NaN);
-
-        var progressNode = fakeNotif.querySelector('progress');
-        assert.equal(progressNode.textContent,
-          'downloadingAppProgressIndeterminate');
-      });
     });
 
     suite('cancelling a download >', function() {
       setup(function() {
-        mockApp = new MockApp();
+        mockApp = new MockApp({ installState: 'pending' });
         MockApplications.mRegisterMockApp(mockApp);
-        AppInstallManager.addNotification(mockApp);
+        dispatchEvent();
+        mockApp.mTriggerDownloadProgress(10);
       });
 
       test('tapping the notification should display the dialog', function() {
@@ -654,6 +832,30 @@ suite('system/AppInstallManager >', function() {
     });
 
   });
+
+  suite('restarting after reboot >', function() {
+    setup(function() {
+      var mockApp = new MockApp({
+        updateManifest: null,
+        installState: 'pending'
+      });
+
+      var e = new CustomEvent('applicationready', {
+        detail: { applications: {} }
+      });
+      e.detail.applications[mockApp.manifestURL] = mockApp;
+      window.dispatchEvent(e);
+
+      mockApp.mTriggerDownloadProgress(50);
+    });
+
+    test('should add a notification', function() {
+      var method = 'incExternalNotifications';
+      assert.equal(fakeNotif.childElementCount, 1);
+      assert.ok(MockNotificationScreen.wasMethodCalled[method]);
+    });
+  });
+
   suite('humanizeSize >', function() {
     test('should handle bytes size', function() {
       assert.equal('42.00 bytes', AppInstallManager.humanizeSize(42));

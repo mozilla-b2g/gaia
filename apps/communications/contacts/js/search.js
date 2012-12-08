@@ -49,7 +49,7 @@ contacts.Search = (function() {
 
   var search = function performSearch() {
 
-    var pattern = new RegExp(normalizeText(searchBox.value.trim()), 'i');
+    var pattern = new RegExp(utils.text.normalize(searchBox.value.trim()), 'i');
     var count = 0;
 
     var allContacts = getContactsDom();

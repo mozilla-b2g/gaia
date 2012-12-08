@@ -20,6 +20,26 @@ function getSubDirectories(directory) {
   return dirs;
 }
 
+/**
+ * Returns an array of nsIFile's for a given directory
+ *
+ * @param  {nsIFile} dir       directory to read.
+ * @param  {boolean} recursive set to true in order to walk recursively.
+ *
+ * @return {Array}   list of nsIFile's.
+ */
+function ls(dir, recursive) {
+  let results = [];
+  let files = dir.directoryEntries;
+  while (files.hasMoreElements()) {
+    let file = files.getNext().QueryInterface(Ci.nsILocalFile);
+    results.push(file);
+    if (recursive && file.isDirectory())
+      results = results.concat(ls(file, true));
+  }
+  return results;
+}
+
 function getFileContent(file) {
   let fileStream = Cc['@mozilla.org/network/file-input-stream;1']
                    .createInstance(Ci.nsIFileInputStream);
@@ -71,8 +91,13 @@ function ensureFolderExists(file) {
 }
 
 function getJSON(file) {
-  let content = getFileContent(file);
-  return JSON.parse(content);
+  try {
+    let content = getFileContent(file);
+    return JSON.parse(content);
+  } catch(e) {
+    dump('Invalid JSON file : ' + file.path + '\n');
+    throw e;
+  }
 }
 
 function makeWebappsObject(dirs) {
@@ -83,14 +108,18 @@ function makeWebappsObject(dirs) {
         let directories = getSubDirectories(directoryName);
         directories.forEach(function readManifests(dir) {
           let manifestFile = getFile(GAIA_DIR, directoryName, dir, "manifest.webapp");
+          let updateFile = getFile(GAIA_DIR, directoryName, dir, "update.webapp");
           // Ignore directories without manifest
-          if (!manifestFile.exists())
+          if (!manifestFile.exists() && !updateFile.exists()) {
             return;
+          }
+
+          let manifest = manifestFile.exists() ? manifestFile : updateFile;
           let domain = dir + "." + GAIA_DOMAIN;
 
           let webapp = {
-            manifest: getJSON(manifestFile),
-            manifestFile: manifestFile,
+            manifest: getJSON(manifest),
+            manifestFile: manifest,
             url: GAIA_SCHEME + domain + (GAIA_PORT ? GAIA_PORT : ''),
             domain: domain,
             sourceDirectoryFile: manifestFile.parent,
@@ -98,13 +127,11 @@ function makeWebappsObject(dirs) {
             sourceAppDirectoryName: directoryName
           };
 
-          // External webapps have an `origin` file
-          let origin = webapp.sourceDirectoryFile.clone();
-          origin.append('origin');
-          if (origin.exists()) {
-            let url = getFileContent(origin);
-            // Strip any leading/ending spaces
-            webapp.origin = url.replace(/^\s+|\s+$/, '');
+          // External webapps have a `metadata.json` file
+          let metaData = webapp.sourceDirectoryFile.clone();
+          metaData.append('metadata.json');
+          if (metaData.exists()) {
+            webapp.metaData = getJSON(metaData);
           }
 
           fun(webapp);

@@ -100,14 +100,7 @@ contacts.Settings = (function() {
       return;
     }
 
-    var req = conn.getCardLock('pin');
-    req.onsuccess = function onsucces(evt) {
-      enableSIMImport(!req.result.enabled);
-    };
-    req.onerror = function onerror(evt) {
-      console.error('Could not check if we have SIM');
-      enableSIMImport(false);
-    };
+    enableSIMImport(conn.cardState == 'ready');
   };
 
   // Disables/Enables the actions over the sim import functionality
@@ -335,8 +328,10 @@ contacts.Settings = (function() {
 
       },
       function onimport(num) {
-        addMessage(_('simContacts-imported2', {n: num}), after);
-        contacts.List.load();
+        if (num > 0) {
+          contacts.List.load();
+        }
+        addMessage(_('simContacts-imported3', {n: num}), after);
         Contacts.hideOverlay();
       },
       function onerror() {

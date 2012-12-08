@@ -26,8 +26,8 @@ function importSIMContacts(onread, onimport, onerror) {
 
     // early way out if no contacts have been found
     if (nContacts === 0) {
-      if (onerror) {
-        onerror();
+      if (onimport) {
+        onimport(0);
       }
       return;
     }

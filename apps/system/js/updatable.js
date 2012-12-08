@@ -112,7 +112,8 @@ SystemUpdatable.prototype.download = function() {
 };
 
 SystemUpdatable.prototype.cancelDownload = function() {
-  // Not implemented yet https://bugzilla.mozilla.org/show_bug.cgi?id=804571
+  this._dispatchEvent('update-download-cancel');
+  UpdateManager.removeFromDownloadsQueue(this);
 };
 
 SystemUpdatable.prototype.uninit = function() {

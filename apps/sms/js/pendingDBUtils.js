@@ -81,9 +81,8 @@ var PendingMsgManager = {
       callback(addRequest.result);
     }
     addRequest.onerror = function onerror() {
-      // Execute save operation again if failed.
-      window.setTimeout(
-        pendingMgr.saveToMsgDB(msg, callback).bind(pendingMgr), 500);
+      if (callback)
+        callback(null);
     }
   },
 
@@ -102,9 +101,6 @@ var PendingMsgManager = {
       if (callback) {
         callback(null);
       }
-      // Execute save operation again if failed.
-      window.setTimeout(
-        pendingMgr.deleteFromMsgDB(msg, callback).bind(pendingMgr), 500);
     }
   }
 };

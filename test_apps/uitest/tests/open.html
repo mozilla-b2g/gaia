@@ -4,34 +4,32 @@
     <meta charset="utf-8">
     <title>Open test</title>
     <style>
-    button {
+    button, input {
       font-size: 40px;
+      width: 100%;
     }
+
     </style>
-    <script>
-    if (window.alert !== window.parent.alert)
-      window.alert = window.parent.alert;
-    </script>
+    <script type="text/javascript" src="../js/window_open.js"></script>
   </head>
   <body>
     <h1>window.open</h1>
 
+    <h2> You should see the keyboard when focusing here </h2>
+    <input type="textarea"></input>
+
     <h2>Call on mozbrowser frame:</h2>
-    <p><button onclick="alert('Window: ' + window.parent.open('./popup.html'))">window.open</button></p>
-    <p><button onclick="alert('Window: ' + window.parent.open('./popup.html#attention', 'at', 'attention'))">
-      window.open(url, name, 'attention')</button></p>
-    <p><button onclick="alert('Window: ' + window.parent.open('./popup.html#background', 'bg', 'background'))">
-      window.open(url, name, 'background')</button></p>
-    <p><button onclick="window.parent.close()">window.close()</button></p>
+    <p><button class="mozbrowser" data-action="open" data-url="./popup.html">window.open</button></p>
+    <p><button class="mozbrowser" data-action="open" data-url="./popup.html#attention">window.open(url, name, 'attention')</button></p>
+    <p><button class="mozbrowser" data-action="open" data-url="./popup.html#background">window.open(url, name, 'background')</button></p>
+    <p><button class="mozbrowser" data-action="close" >window.close()</button></p>
 
     <h2>Call on this iframe within mozbrowser:</h2>
-    <p><button onclick="alert('Window: ' + window.open('./popup.html'))">window.open</button></p>
-    <p><button onclick="alert('Window: ' + window.open('./popup.html#attention', 'at', 'attention'))">
-      window.open(url, name, 'attention')</button></p>
-    <p><button onclick="alert('Window: ' + window.open('./popup.html#background', 'bg', 'background'))">
-      window.open(url, name, 'background')</button></p>
+    <p><button data-action="open" data-url="./popup.html">window.open</button></p>
+    <p><button data-action="open" data-url="./popup.html#attention">window.open(url, name, 'attention')</button></p>
+    <p><button data-action="open" data-url="./popup.html#background">window.open(url, name, 'background')</button></p>
 
-    <p><button onclick="window.open('https://www.google.com')">Open External URL</button></p>
+    <p><button data-action="open" data-url="https://google.com">Open External URL</button></p>
 
     <p>Press back button to go back.</p>
   </body>

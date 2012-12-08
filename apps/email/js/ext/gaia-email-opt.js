@@ -340,18 +340,65 @@ function coerce(length) {
 var ENCODER_OPTIONS = { fatal: false };
 
 /**
+ * Safe atob-variant that does not throw exceptions and just ignores characters
+ * that it does not know about.  This is an attempt to mimic node's
+ * implementation so that we can parse base64 with newlines present as well
+ * as being tolerant of complete gibberish people throw at us.  Since we are
+ * doing this by hand, we also take the opportunity to put the output directly
+ * in a typed array.
+ *
+ * In contrast, window.atob() throws Exceptions for all kinds of angry reasons.
+ */
+function safeBase64DecodeToArray(s) {
+  var bitsSoFar = 0, validBits = 0, iOut = 0,
+      arr = new Uint8Array(Math.ceil(s.length * 3 / 4));
+  for (var i = 0; i < s.length; i++) {
+    var c = s.charCodeAt(i), bits;
+    if (c >= 65 && c <= 90) // [A-Z]
+      bits = c - 65;
+    else if (c >= 97 && c <= 122) // [a-z]
+      bits = c - 97 + 26;
+    else if (c >= 48 && c <= 57) // [0-9]
+      bits = c - 48 + 52;
+    else if (c === 43) // +
+      bits = 62;
+    else if (c === 47) // /
+      bits = 63;
+    else if (c === 61) { // =
+      validBits = 0;
+      continue;
+    }
+    // ignore all other characters!
+    else
+      continue;
+    bitsSoFar = (bitsSoFar << 6) | bits;
+    validBits += 6;
+    if (validBits >= 8) {
+      validBits -= 8;
+      arr[iOut++] = bitsSoFar >> validBits;
+      if (validBits === 2)
+        bitsSoFar &= 0x3;
+      else if (validBits === 4)
+        bitsSoFar &= 0xf;
+    }
+  }
+
+  if (iOut < arr.length)
+    return arr.subarray(0, iOut);
+  return arr;
+}
+
+/**
  * Encode a unicode string into a (Uint8Array) byte array with the given
- * encoding. Wraps TextEncoder to provide hex and base64 encoding (which it does
- * not provide).
+ * encoding. Wraps TextEncoder to provide hex and base64 "encoding" (which it
+ * does not provide).
  */
 function encode(string, encoding) {
   var buf, i;
   switch (encoding) {
     case 'base64':
-      // (atob is base64 ASCII string -> binary JS string)
-      string = window.atob(string);
-      // fall through to the binary case since what we have is binary now!
-    // the stringencoding polyfill no longer implements binary, so it's up to us
+      buf = safeBase64DecodeToArray(string);
+      return buf;
     case 'binary':
       buf = new Uint8Array(string.length);
       for (i = 0; i < string.length; i++) {
@@ -7102,7 +7149,7 @@ module.exports.mimeFunctions = {
 
         for(var i=0, len = str.length; i<len; i++){
             chr = str.charAt(i);
-            if(chr == "=" && (hex = str.substr(i+1, 2).match(/[\da-fA-F]{2}/))){
+            if(chr == "=" && (hex = str.substr(i+1, 2)) && /[\da-fA-F]{2}/.test(hex)){
                 buffer[bufferPos++] = parseInt(hex, 16);
                 i+=2;
                 continue;
@@ -7210,21 +7257,9 @@ module.exports.mimeFunctions = {
         var remainder = "", lastCharset, curCharset;
         str = (str || "").toString();
 
-        while(str.match(/(\=\?[\w_\-]+\?[QB]\?[^\?]+\?\=)\s+(?=\=\?[\w_\-]+\?[QB]\?[^\?]+\?\=)/g)){
-            str = str.replace(/(\=\?[\w_\-]+\?[QB]\?[^\?]+\?\=)\s+(\=\?[\w_\-]+\?[QB]\?[^\?]+\?\=)/g,function(original, first, second){
-                var match1 = (first || "").trim().match(/^\=\?([\w_\-]+)\?([QB])\?([^\?]+)\?\=$/),
-                    match2 = (second || "").trim().match(/^\=\?([\w_\-]+)\?([QB])\?([^\?]+)\?\=$/);
-
-                if(match1[1] == match2[1] && match1[2] == match2[2]){
-                    return "=?"+match1[1]+"?"+match1[2]+"?"+match1[3] + match2[3]+"?=";
-                }else{
-                    return first+second;
-                }
-
-            });
-        }
-
-        str = str.replace(/\=\?([\w_\-]+)\?([QB])\?[^\?]+\?\=/g, (function(mimeWord, charset, encoding){
+        str = str.
+                replace(/(=\?[^?]+\?[QqBb]\?[^?]+\?=)\s+(?==\?[^?]+\?[QqBb]\?[^?]+\?=)/g, "$1").
+                replace(/\=\?([\w_\-]+)\?([QB])\?[^\?]+\?\=/g, (function(mimeWord, charset, encoding){
 
                       curCharset = charset + encoding;
 
@@ -16208,6 +16243,14 @@ const CHARCODE_RBRACE = ('}').charCodeAt(0),
       CHARCODE_ASTERISK = ('*').charCodeAt(0),
       CHARCODE_RPAREN = (')').charCodeAt(0);
 
+var setTimeoutFunc = window.setTimeout.bind(window),
+    clearTimeoutFunc = window.clearTimeout.bind(window);
+
+exports.TEST_useTimeoutFuncs = function(setFunc, clearFunc) {
+  setTimeoutFunc = setFunc;
+  clearTimeoutFunc = clearFunc;
+};
+
 /**
  * A buffer for us to assemble buffers so the back-end doesn't fragment them.
  * This is safe for mozTCPSocket's buffer usage because the buffer is always
@@ -16432,12 +16475,12 @@ ImapConnection.prototype.connect = function(loginCb) {
     this._options.host, this._options.port, socketOptions);
 
   // XXX rely on mozTCPSocket for this?
-  this._state.tmrConn = setTimeout(this._fnTmrConn.bind(this, loginCb),
-                                   this._options.connTimeout);
+  this._state.tmrConn = setTimeoutFunc(this._fnTmrConn.bind(this, loginCb),
+                                       this._options.connTimeout);
 
   this._state.conn.onopen = function(evt) {
     if (self._LOG) self._LOG.connected();
-    clearTimeout(self._state.tmrConn);
+    clearTimeoutFunc(self._state.tmrConn);
     self._state.status = STATES.NOAUTH;
     fnInit();
   };
@@ -16811,7 +16854,7 @@ ImapConnection.prototype.connect = function(loginCb) {
       }
 
       var sendBox = false;
-      clearTimeout(self._state.tmrKeepalive);
+      clearTimeoutFunc(self._state.tmrKeepalive);
       if (self._state.status === STATES.BOXSELECTING) {
         if (data[1] === 'OK') {
           sendBox = true;
@@ -16890,7 +16933,7 @@ ImapConnection.prototype.connect = function(loginCb) {
           // minutes to avoid disconnection by the server
           self._send('IDLE', null, undefined, undefined, true);
         }
-        self._state.tmrKeepalive = setTimeout(function() {
+        self._state.tmrKeepalive = setTimeoutFunc(function() {
           if (self._state.isIdle) {
             if (self._state.ext.idle.state === IDLE_READY) {
               self._state.ext.idle.timeWaited += self._state.tmoKeepalive;
@@ -16932,7 +16975,7 @@ ImapConnection.prototype.connect = function(loginCb) {
         if ('isNotValidAtThisTime' in err)
           err = 'bad-security';
       }
-      clearTimeout(self._state.tmrConn);
+      clearTimeoutFunc(self._state.tmrConn);
       if (self._state.status === STATES.NOCONNECT) {
         var connErr = new Error('Unable to connect. Reason: ' + err);
         connErr.type = 'unknown';
@@ -17492,8 +17535,10 @@ ImapConnection.prototype._login = function(cb) {
   }
 };
 ImapConnection.prototype._reset = function() {
-  clearTimeout(this._state.tmrKeepalive);
-  clearTimeout(this._state.tmrConn);
+  if (this._state.tmrKeepalive)
+    clearTimeoutFunc(this._state.tmrKeepalive);
+  if (this._state.tmrConn)
+    clearTimeoutFunc(this._state.tmrConn);
   this._state.status = STATES.NOCONNECT;
   this._state.numCapRecvs = 0;
   this._state.requests = [];
@@ -17554,7 +17599,7 @@ ImapConnection.prototype._send = function(cmdstr, cmddata, cb, dispatchFunc,
     var prefix = '', cmd = (bypass ? cmdstr : this._state.requests[0].command),
         data = (bypass ? null : this._state.requests[0].cmddata),
         dispatch = (bypass ? null : this._state.requests[0].dispatch);
-    clearTimeout(this._state.tmrKeepalive);
+    clearTimeoutFunc(this._state.tmrKeepalive);
     // If we are currently in IDLE, we need to exit it before we send the
     // actual command.  We mark it as a bypass so it does't mess with the
     // list of requests.
@@ -18398,6 +18443,20 @@ define('mailapi/imap/probe',
   ) {
 
 /**
+ * How many milliseconds should we wait before giving up on the connection?
+ *
+ * This really wants to be adaptive based on the type of the connection, but
+ * right now we have no accurate way of guessing how good the connection is in
+ * terms of latency, overall internet speed, etc.  Experience has shown that 10
+ * seconds is currently insufficient on an unagi device on 2G on an AT&T network
+ * in American suburbs, although some of that may be problems internal to the
+ * device.  I am tripling that to 30 seconds for now because although it's
+ * horrible to drag out a failed connection to an unresponsive server, it's far
+ * worse to fail to connect to a real server on a bad network, etc.
+ */
+exports.CONNECT_TIMEOUT_MS = 30000;
+
+/**
  * Right now our tests consist of:
  * - logging in to test the credentials
  *
@@ -18412,6 +18471,8 @@ function ImapProber(credentials, connInfo, _LOG) {
 
     username: credentials.username,
     password: credentials.password,
+
+    connTimeout: exports.CONNECT_TIMEOUT_MS,
   };
   if (_LOG)
     opts._logParent = _LOG;
@@ -18457,12 +18518,31 @@ ImapProber.prototype = {
     if (!this.onresult)
       return;
     console.warn('PROBE:IMAP sad', err);
-    if (err.serverResponse.indexOf('[ALERT] Application-specific password required') != -1)
-      this.error = 'needs-app-pass';
-    else if(err.serverResponse.indexOf('[ALERT] Your account is not enabled for IMAP use.') != -1)
-      this.error = 'imap-disabled';
-    else
-      this.error = 'bad-user-or-pass';
+
+    switch (err.type) {
+      case 'NO':
+      case 'no':
+        if (!err.serverResponse)
+          this.error = 'unknown';
+        else if (err.serverResponse.indexOf(
+            '[ALERT] Application-specific password required') != -1)
+          this.error = 'needs-app-pass';
+        else if (err.serverResponse.indexOf(
+            '[ALERT] Your account is not enabled for IMAP use.') != -1)
+          this.error = 'imap-disabled';
+        else
+          this.error = 'bad-user-or-pass';
+        break;
+      case 'timeout':
+        this.error = 'timeout';
+        break;
+      // XXX we currently don't have a string for server maintenance, so go
+      // with unknown.  But it's also a very unlikely thing.
+      case 'server-maintenance':
+      default:
+        this.error = 'unknown';
+        break;
+    }
     // we really want to make sure we clean up after this dude.
     try {
       this._conn.die();
@@ -30165,9 +30245,13 @@ ImapAccount.prototype = {
           case 'NO':
           case 'no':
             // XXX: Should we check if it's GMail first?
-            if (err.serverResponse.indexOf('[ALERT] Application-specific password required') !== -1)
+            if (!err.serverResponse)
+              errName = 'unknown';
+            else if (err.serverResponse.indexOf(
+                '[ALERT] Application-specific password required') !== -1)
               errName = 'needs-app-pass';
-            else if(err.serverResponse.indexOf('[ALERT] Your account is not enabled for IMAP use.') !== -1)
+            else if (err.serverResponse.indexOf(
+                 '[ALERT] Your account is not enabled for IMAP use.') !== -1)
               errName = 'imap-disabled';
             else
               errName = 'bad-user-or-pass';

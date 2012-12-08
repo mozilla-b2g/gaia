@@ -176,6 +176,14 @@ var ScreenManager = {
           break;
         }
 
+        // If the _cpuWakeLock is already set we are in a multiple
+        // call setup, turning the screen on to let user see the
+        // notification.
+        if (this._cpuWakeLock) {
+          this.turnScreenOn();
+          break;
+        }
+
         this._cpuWakeLock = navigator.requestWakeLock('cpu');
         window.addEventListener('userproximity', this);
         break;

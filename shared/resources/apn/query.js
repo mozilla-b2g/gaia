@@ -7,9 +7,10 @@ document.addEventListener('DOMContentLoaded', function onload() {
   var DEBUG = false;
 
   var OPERATOR_VARIANT_FILE = '../apn.json';
-  var GNOME_DB_FILE = 'serviceproviders.xml';
+  var GNOME_DB_FILE = 'service_providers.xml';
   var ANDROID_DB_FILE = 'apns_conf.xml';
-  var OPERATOR_VARIANT_DB_FILE = 'operator-variant.xml';
+  var LOCAL_ANDROID_DB_FILE = 'apns_conf_local.xml';
+  var OPERATOR_VARIANT_DB_FILE = 'operator_variant.xml';
 
   var gGnomeDB = null;
   var gAndroidDB = null;
@@ -72,7 +73,6 @@ document.addEventListener('DOMContentLoaded', function onload() {
   function queryGnomeDB(mcc, mnc, setting) {
     var query = '//gsm[network-id' + '[@mcc=' + mcc + '][@mnc=' + mnc + ']' +
         ']/' + setting;
-    console.log(query);
     var result = queryXML(gGnomeDB, query);
     var node = result.iterateNext();
     return node ? node.textContent : '';
@@ -131,6 +131,12 @@ document.addEventListener('DOMContentLoaded', function onload() {
               operatorVariantSettings.enableStrict7BitEncodingForSms =
                 enableStrict7BitEncodingForSms == 'true';
             }
+            var cellBroadcastSearchList =
+              otherSettings['cellBroadcastSearchList'];
+            if (cellBroadcastSearchList) {
+              operatorVariantSettings.cellBroadcastSearchList =
+                cellBroadcastSearchList;
+            }
           }
 
           delete(result[i].mcc);
@@ -146,7 +152,7 @@ document.addEventListener('DOMContentLoaded', function onload() {
             country[mnc].push(result[i]);
           } else {
             country[mnc] = [result[i]];
-            if (voicemail || otherSettings) {
+            if (voicemail || otherSettings || cellBroadcastSearchList) {
               operatorVariantSettings.type = [];
               operatorVariantSettings.type.push('operatorvariant');
               country[mnc].push(operatorVariantSettings);
@@ -196,7 +202,8 @@ document.addEventListener('DOMContentLoaded', function onload() {
     },
     'operatorvariant': {
       'ril.iccInfo.mbdn': 'voicemail',
-      'ril.sms.strict7BitEncoding.enabled': 'enableStrict7BitEncodingForSms'
+      'ril.sms.strict7BitEncoding.enabled': 'enableStrict7BitEncodingForSms',
+      'ril.cellbroadcast.searchlist': 'cellBroadcastSearchList'
     }
   };
 
@@ -215,9 +222,16 @@ document.addEventListener('DOMContentLoaded', function onload() {
           // xhr.responseType = 'json' to be compatible with Chrome... sigh.
           gAPN = JSON.parse(xhr.responseText);
         } else {
-          // the JSON database is not available, merge the two XML databases
+          // the JSON database is not available, merge the three XML databases
           output.textContent = '\n merging databases, this takes a while...';
           gAndroidDB = loadXML(ANDROID_DB_FILE);
+          // First merge the local DB
+          var localAndroidDB = loadXML(LOCAL_ANDROID_DB_FILE);
+          var localApns = localAndroidDB.documentElement.getElementsByTagName("apn");
+          for (var i = 0; i < localApns.length; ++i) {
+            gAndroidDB.documentElement.appendChild(localApns[i]);
+          }
+          // Then the Gnome DB
           gGnomeDB = loadXML(GNOME_DB_FILE);
           gOperatorVariantDB = loadXML(OPERATOR_VARIANT_DB_FILE);
           gAPN = mergeDBs();

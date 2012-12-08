@@ -154,7 +154,7 @@ suite('views/settings', function() {
           'not active initially'
         );
 
-        app.syncController.emit('sync start');
+        app.syncController.emit('syncStart');
       });
 
       teardown(function() {
@@ -166,7 +166,7 @@ suite('views/settings', function() {
       });
 
       test('complete', function() {
-        app.syncController.emit('sync complete');
+        app.syncController.emit('syncComplete');
         assert.ok(!classList.contains(subject.syncClass), 'remove active');
       });
     });
@@ -178,7 +178,7 @@ suite('views/settings', function() {
     var calledWith;
     var el = subject.syncButton;
 
-    controller.sync = function() {
+    controller.all = function() {
       calledWith = arguments;
     }
 
