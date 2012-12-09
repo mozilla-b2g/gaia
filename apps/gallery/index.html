@@ -18,6 +18,7 @@
     <script type="text/javascript" defer src="shared/js/media/get_video_rotation.js"></script>
     <script type="text/javascript" defer src="shared/js/media/video_player.js"></script>
     <script type="text/javascript" defer src="shared/js/media/media_frame.js"></script>
+    <script type="text/javascript" defer src="shared/js/visibility_monitor.js"></script>
     <!-- Specific code -->
     <script type="text/javascript" defer src="js/MetadataParser.js"></script>
     <script type="text/javascript" defer src="js/ImageEditor.js"></script>
@@ -27,9 +28,7 @@
   <body class="hidden" role="application">
     <!-- This element gets inserted into the different view elements --> 
     <!-- It gets styled differently depending on what its parent is -->
-    <ul id="thumbnails">
-      <!-- Thumbnails inserted here -->
-    </ul>
+    <ul id="thumbnails"></ul> <!-- Thumbnails inserted here -->
 
     <section role="region" id="thumbnail-list-view" class="hidden">
       <footer id="thumbnails-bottom">
