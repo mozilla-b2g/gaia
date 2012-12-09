@@ -18,8 +18,19 @@
   padding-top: 10px;
 }
 
+#errorMsg{
+  padding: 1rem;
+}
+
 #simpin-dialog .error #messageHeader {
   color: red;
+}
+
+/* for simpin error message,
+ * to override [role="dialog"] rules in core.css*/
+#messageBody {
+  color: #000;
+  white-space: normal;
 }
 
 #simpin-dialog .input-wrapper {
