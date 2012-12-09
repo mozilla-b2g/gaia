@@ -118,6 +118,10 @@ ul li > label:not([for]) ~ a {
   padding-right: 6rem;
 }
 
+ul li > label.disabled {
+  opacity:0.5;
+}
+
 
 /******************************************************************************
  * Text inputs
