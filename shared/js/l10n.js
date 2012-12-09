@@ -215,7 +215,11 @@
           }
         }
       };
-      xhr.send(null);
+      try {
+        xhr.send(null);
+      } catch (e) {
+        console.debug('l10n: error getting "' + url + '"', e);
+      }
     }
 
     // load and parse l10n data (warning: global variables are used here)
