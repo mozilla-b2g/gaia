@@ -242,9 +242,19 @@ var Connectivity = (function(window, document, undefined) {
 
   function updateCarrier() {
     var data = gMobileConnection.data ? gMobileConnection.data.network : null;
+    var voice = gMobileConnection.voice ? gMobileConnection.voice.network : null;
+    var icc = gMobileConnection.iccInfo ? gMobileConnection.iccInfo : null;
     var name = data ? (data.shortName || data.longName) : '';
+    var netmnc = data ? data.mnc : '00';
+    var netmcc = data ? data.mcc : '000';
+    var simmnc = icc ? icc.mnc : '00';
+    var simmcc = icc ? icc.mcc : '000';
+    var msisdn = icc ? icc.msisdn : 'N/A';
     document.getElementById('data-desc').textContent = name;
     document.getElementById('call-desc').textContent = name;
+    document.getElementById('msisdn-desc').textContent = msisdn;
+    document.getElementById('netid-desc').textContent = netmcc + netmnc;
+    document.getElementById('simid-desc').textContent = simmcc + simmnc;
   }
 
   function updateBluetooth() {
