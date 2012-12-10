@@ -7,10 +7,10 @@ document.addEventListener('DOMContentLoaded', function onload() {
   var DEBUG = false;
 
   var OPERATOR_VARIANT_FILE = '../apn.json';
-  var GNOME_DB_FILE = 'serviceproviders.xml';
+  var GNOME_DB_FILE = 'service_providers.xml';
   var ANDROID_DB_FILE = 'apns_conf.xml';
-  var LOCAL_ANDROID_DB_FILE = 'apns_conf-local.xml';
-  var OPERATOR_VARIANT_DB_FILE = 'operator-variant.xml';
+  var LOCAL_ANDROID_DB_FILE = 'apns_conf_local.xml';
+  var OPERATOR_VARIANT_DB_FILE = 'operator_variant.xml';
 
   var gGnomeDB = null;
   var gAndroidDB = null;

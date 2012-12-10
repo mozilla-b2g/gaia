@@ -131,6 +131,12 @@ function init() {
 }
 
 function initUI() {
+  // Keep track of when thumbnails are onscreen and offscreen
+  monitorChildVisibility(thumbnails,
+                         360,                 // extra space top and bottom
+                         thumbnailOnscreen,   // set background image
+                         thumbnailOffscreen); // remove background image
+
   // Clicks on the thumbnails do different things depending on what
   // view we're in.
   thumbnails.onclick = thumbnailClickHandler;
@@ -346,7 +352,7 @@ function fileDeleted(filename) {
 
   // Remove the corresponding thumbnail
   var thumbnailElts = thumbnails.querySelectorAll('.thumbnail');
-  URL.revokeObjectURL(thumbnailElts[n].style.backgroundImage.slice(5, -2));
+  URL.revokeObjectURL(thumbnailElts[n].dataset.backgroundImage.slice(5, -2));
   thumbnails.removeChild(thumbnailElts[n]);
 
   // Change the index associated with all the thumbnails after the deleted one
@@ -627,7 +633,7 @@ function createThumbnailList() {
 }
 
 //
-// Create a thumbnail <img> element
+// Create a thumbnail element
 //
 function createThumbnail(imagenum) {
   var li = document.createElement('li');
@@ -637,9 +643,25 @@ function createThumbnail(imagenum) {
   var fileinfo = files[imagenum];
   // We revoke this url in imageDeleted
   var url = URL.createObjectURL(fileinfo.metadata.thumbnail);
-  li.style.backgroundImage = 'url("' + url + '")';
 
+  // We set the url on a data attribute and let the onscreen
+  // and offscreen callbacks below set and unset the actual
+  // background image style. This means that we don't keep
+  // images decoded if we don't need them.
+  li.dataset.backgroundImage = 'url("' + url + '")';
   return li;
+}
+
+// monitorChildVisibility() calls this when a thumbnail comes onscreen
+function thumbnailOnscreen(thumbnail) {
+  if (thumbnail.dataset.backgroundImage)
+    thumbnail.style.backgroundImage = thumbnail.dataset.backgroundImage;
+}
+
+// monitorChildVisibility() calls this when a thumbnail goes offscreen
+function thumbnailOffscreen(thumbnail) {
+  if (thumbnail.dataset.backgroundImage)
+    thumbnail.style.backgroundImage = null;
 }
 
 //

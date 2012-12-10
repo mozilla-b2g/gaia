@@ -29,6 +29,21 @@ section {
   font-size: 10px;
 }
 
+.hidden {
+  display: none;
+}
+
+/*
+ * When we hide the thumbnail list, to go into single-photo fullscreen mode,
+ * we need to retain thumbnail layout information so monitorChildVisibility()
+ * doesn't get confused if we delete a photo while in fullscreen mode.
+ * So hide them this way instead of display:none
+ */
+#thumbnail-list-view.hidden {
+  display: block;
+  visibility: hidden;
+}
+
 /* All of the main views fill the screen */
 #thumbnail-list-view, #thumbnail-select-view, #fullscreen-view, #pick-view, #edit-view, #crop-view {
   position: absolute;
@@ -122,6 +137,13 @@ section {
   background-size: cover;        /* allow some cropping */
   background-position: center;   /* keep the cropping at the edges */
   background-repeat: no-repeat;
+  /*
+   * When we have a background image it will cover the whole thumbnail
+   * but when we're swapping that image in it might be visible before
+   * the image. So we want a color that contrasts with the border so we
+   * at least get the effect of a grid rather than a black screen
+   */
+  background-color: #444;
 }
 
 .thumbnail.selected {
@@ -231,10 +253,6 @@ section {
 
 .frame > video {
   transform-origin: 0px 0px;
-}
-
-.hidden {
-  display: none;
 }
 
 /* localization */

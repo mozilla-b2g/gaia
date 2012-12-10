@@ -30,10 +30,26 @@ var Bluetooth = {
       }
     });
 
-    // when bluetooth adapter is ready, let get the default adapter.
-    // and try to acquire default adapter when booting.
-    bluetooth.onadapteradded = this.initDefaultAdapter.bind(this);
+    var self = this;
+    // when bluetooth adapter is ready, emit event to notify QuickSettings
+    // and try to get defaultAdapter at this moment
+    bluetooth.onadapteradded = function bt_onAdapterAdded() {
+      var evt = document.createEvent('CustomEvent');
+      evt.initCustomEvent('bluetooth-adapter-added',
+        /* canBubble */ true, /* cancelable */ false, null);
+      window.dispatchEvent(evt);
+      self.initDefaultAdapter();
+    };
+    // if bluetooth is enabled in booting time, try to get adapter now
     this.initDefaultAdapter();
+
+    // when bluetooth is really disabled, emit event to notify QuickSettings
+    bluetooth.ondisabled = function bt_onDisabled() {
+      var evt = document.createEvent('CustomEvent');
+      evt.initCustomEvent('bluetooth-disabled',
+        /* canBubble */ true, /* cancelable */ false, null);
+      window.dispatchEvent(evt);
+    };
 
     /* for v1, we only support two use cases for bluetooth connection:
      *   1. connecting with a headset

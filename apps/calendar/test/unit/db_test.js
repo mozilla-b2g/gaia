@@ -517,7 +517,7 @@ suite('db', function() {
       this.timeout(12000);
 
       Calendar.App.syncController = {
-        sync: function() {
+        all: function() {
           syncCalled = true;
         }
       };

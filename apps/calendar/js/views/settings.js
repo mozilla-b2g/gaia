@@ -67,12 +67,12 @@
           break;
 
         // hide sync button
-        case 'sync start':
+        case 'syncStart':
           this.syncProgressTarget.classList.add(this.syncClass);
           break;
 
         // show sync button
-        case 'sync complete':
+        case 'syncComplete':
           this.syncProgressTarget.classList.remove(this.syncClass);
           break;
       }
@@ -88,8 +88,8 @@
 
       // sync controller events
       var controller = this.app.syncController;
-      controller.on('sync start', this);
-      controller.on('sync complete', this);
+      controller.on('syncStart', this);
+      controller.on('syncComplete', this);
 
       // dom events
       this.syncButton.addEventListener('click', this._onSyncClick.bind(this));
@@ -123,9 +123,9 @@
     },
 
     _onSyncClick: function() {
-      // trigger the sync the sync start/complete events
+      // trigger the sync the syncStart/complete events
       // will hide/show the button.
-      this.app.syncController.sync();
+      this.app.syncController.all();
     },
 
     _update: function(id, model) {

@@ -95,6 +95,21 @@ label input[data-type="switch"] + span:after {
   transform: translateX(-5.4rem);
 }
 
+/* switch: disabled state */
+label input[data-type="switch"]:disabled + span:before,
+label input[data-type="switch"]:disabled + span:after {
+  opacity: 0.2;
+}
+
+label input[data-type="switch"]:disabled + span {
+  opacity: 0.3;
+}
+
+label input[data-type="switch"]:checked:disabled + span {
+  opacity: 1;
+  border: solid 1px #A7DBE6;
+}
+
 /* 'ON' state */
 
 label input[data-type="switch"]:checked + span {

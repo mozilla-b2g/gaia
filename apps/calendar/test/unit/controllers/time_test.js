@@ -60,10 +60,10 @@ suite('controllers/time', function() {
     suite('sync cache lock', function() {
       setup(function() {
         subject.observe();
-        app.syncController.emit('sync start');
+        app.syncController.emit('syncStart');
       });
 
-      test('locks after sync start', function() {
+      test('locks after syncStart', function() {
         assert.isTrue(subject.cacheLocked);
       });
 
@@ -74,7 +74,7 @@ suite('controllers/time', function() {
           calledWith = true;
         }
 
-        app.syncController.emit('sync complete');
+        app.syncController.emit('syncComplete');
         assert.isFalse(subject.cacheLocked);
         assert.isTrue(calledWith, 'purged');
       });

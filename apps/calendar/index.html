@@ -20,6 +20,7 @@
   <link rel="stylesheet" type="text/css" href="/shared/style/confirm.css" />
   <link rel="stylesheet" type="text/css" href="/shared/style/switches.css" />
   <link rel="stylesheet" type="text/css" href="/shared/style/status.css" />
+  <link rel="stylesheet" type="text/css" href="/shared/style_unstable/progress_activity.css" />
 
   <script src="/js/mozalarm_shim.js" type="text/javascript" charset="utf-8"></script>
 
@@ -350,6 +351,12 @@
 
     <h1 data-l10n-id="account-header">Account</h1>
   </header>
+
+  <section class="during-progress">
+    <p data-l10n-id="modify-account-setting-up">SeTtiNg uP ACcOunt</p>
+    <progress class="small"></progress>
+  </section>
+
   <form>
     <fieldset>
       <ol>
@@ -369,13 +376,11 @@
       </ol>
     </fieldset>
   </form>
-	
-	<section role="status">
- 	  <p class="errors"></p>
-	</section>
-	
-  <div class="during-progress">
-  </div>
+
+  <section role="status">
+    <p class="errors"></p>
+  </section>
+
 
   <a data-l10n-id="remove-account-data" role="button" href="#remove-account-dialog" class="danger delete-record">
     Remove Local Data
