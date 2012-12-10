@@ -141,7 +141,8 @@
         account = accounts.cached[cal.accountId];
         if (account) {
           provider = Calendar.App.provider(account.providerType);
-          if (provider[propName]) {
+          var caps = provider.calendarCapabilities(cal);
+          if (caps[propName]) {
             result.push(cal);
           }
         }

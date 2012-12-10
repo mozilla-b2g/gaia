@@ -41,10 +41,6 @@
   Local.prototype = {
     __proto__: Calendar.Provider.Abstract.prototype,
 
-    canCreateEvent: true,
-    canUpdateEvent: true,
-    canDeleteEvent: true,
-
     getAccount: function(account, callback) {
       callback(null, {});
     },
