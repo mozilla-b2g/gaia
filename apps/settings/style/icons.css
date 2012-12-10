@@ -25,6 +25,10 @@
   background-image: -moz-image-rect(url(images/icons_sprite.png), 0, 90, 30, 60);
 }
 
+#menuItem-callSettings {
+  background-image: -moz-image-rect(url(images/icons_sprite.png), 150, 30, 180, 0);
+}
+
 #menuItem-cellularAndData {
   background-image: -moz-image-rect(url(images/icons_sprite.png), 0, 120, 30, 90);
 }
