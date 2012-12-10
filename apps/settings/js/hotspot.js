@@ -6,7 +6,8 @@
 onLocalized(function hotspot() {
 
   var settings = window.navigator.mozSettings;
-  var hotspotSettingsSection = document.getElementById('hotspot-settings-section');
+  var hotspotSettingsSection =
+      document.getElementById('hotspot-settings-section');
 
   function setHotspotSettingsEnabled(enabled) {
     hotspotSettingsSection.hidden = enabled;
