@@ -32,6 +32,12 @@ window.addEventListener('localized', function showPanel() {
     document.getElementById('enable-bluetooth-button-turn-on');
   var dialogAlertView = document.getElementById('alert-view');
   var alertOkButton = document.getElementById('alert-button-ok');
+  var dialogConfirmPairing =
+    document.getElementById('enable-bluetooth-settings-view');
+  var pairingCancelButton =
+    document.getElementById('enable-bluetooth-settings-button-cancel');
+  var pairingOkButton =
+    document.getElementById('enable-bluetooth-settings-button-ok');
   var deviceSelect = null;
   var dialogDeviceSelector = document.getElementById('value-selector');
   var deviceSelectorContainers =
@@ -137,6 +143,33 @@ window.addEventListener('localized', function showPanel() {
     endTransfer();
   }
 
+  function showPairingConfirmation(msg) {
+    debug(msg);
+    dialogConfirmPairing.hidden = false;
+    pairingCancelButton.addEventListener('click',
+      confirmPairingDevice.bind(this, false));
+    pairingOkButton.addEventListener('click',
+      confirmPairingDevice.bind(this, true));
+  }
+
+  function confirmPairingDevice(enabled) {
+    dialogConfirmPairing.hidden = true;
+    pairingCancelButton.removeEventListener('click', confirmPairingDevice);
+    pairingOkButton.removeEventListener('click', confirmPairingDevice);
+    if (enabled) {
+      // Launch Settings App to Bluetooth settings.
+      var activityRequest = new MozActivity({
+        name: 'configure',
+        data: {
+          target: 'device',
+          section: 'bluetooth'
+        }
+      });
+    }
+    activity.postError('cancelled');
+    endTransfer();
+  }
+
   function endTransfer() {
     bluetoothCancelButton.removeEventListener('click', cancelTransfer);
     bluetoothTurnOnButton.removeEventListener('click', turnOnBluetooth);
@@ -151,7 +184,7 @@ window.addEventListener('localized', function showPanel() {
       if (length == 0) {
         var msg = 'There is no paired device!' +
                   ' Please pair your bluetooth device first.';
-        cannotTransfer(msg);
+        showPairingConfirmation(msg);
         return;
       }
       // Put the list to value selector

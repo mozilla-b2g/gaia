@@ -22,6 +22,10 @@ SettingsListener.observe('phone.ring.keypad', true, function(value) {
 });
 
 var TonePlayer = {
+  _frequencies: null,
+  _intervalID: null,
+  _position: null,
+  _stoping: false,
   _sampleRate: 8000,
 
   init: function tp_init() {
@@ -36,28 +40,73 @@ var TonePlayer = {
 
    this._audio = new Audio();
    this._audio.mozAudioChannelType = 'normal';
-   this._audio.mozSetup(2, this._sampleRate);
   },
 
-  generateFrames: function tp_generateFrames(soundData, freqRow, freqCol) {
-    var currentSoundSample = 0;
-    var kr = 2 * Math.PI * freqRow / this._sampleRate;
-    var kc = 2 * Math.PI * freqCol / this._sampleRate;
-    for (var i = 0; i < soundData.length; i += 2) {
-      var smoother = 0.5 + (Math.sin((i * Math.PI) / soundData.length)) / 2;
+  // Generating audio frames for the 2 given frequencies
+  generateFrames: function tp_generateFrames(soundData) {
+    var position = this._position;
 
-      soundData[i] = Math.sin(kr * currentSoundSample) * smoother;
-      soundData[i + 1] = Math.sin(kc * currentSoundSample) * smoother;
+    var kr = 2 * Math.PI * this._frequencies[0] / this._sampleRate;
+    var kc = 2 * Math.PI * this._frequencies[1] / this._sampleRate;
 
-      currentSoundSample++;
+    for (var i = 0; i < soundData.length; i++) {
+      // Poor man's ADSR, without release
+      var factor;
+      if (position < 200) {
+        // Attack
+        factor = position / 200;
+      } else if (position > 200 && position < 400) {
+        // Decay
+        factor = 1 - ((position - 200) / 200) * 0.4; // Decay factor
+      } else if (position >= 400) {
+        // Sustain
+        factor = 0.6;
+      }
+
+      soundData[i] = (Math.sin(kr * position) +
+                      Math.sin(kc * position)) / 2 * factor;
+      position++;
     }
+
+    this._position += soundData.length;
   },
 
-  play: function tp_play(frequencies) {
-    var soundDataSize = this._sampleRate / 4;
-    var soundData = new Float32Array(soundDataSize);
-    this.generateFrames(soundData, frequencies[0], frequencies[1]);
-    this._audio.mozWriteAudio(soundData);
+  start: function tp_start(frequencies) {
+    this._frequencies = frequencies;
+    this._position = 0;
+    this._stoping = false;
+
+    // Already playing
+    if (this._intervalID) {
+      return;
+    }
+
+    this._audio.mozSetup(1, this._sampleRate);
+    this._audio.volume = 1;
+
+    var initialSoundData = new Float32Array(1200);
+    this.generateFrames(initialSoundData);
+    this._audio.mozWriteAudio(initialSoundData);
+
+    // Continuing playing until .stop() is called
+    // (long press support)
+    this._intervalID = setInterval((function audioLoop() {
+      if (this._stoping)
+        return;
+
+      var soundData = new Float32Array(1200);
+      this.generateFrames(soundData);
+      this._audio.mozWriteAudio(soundData);
+    }).bind(this), 60);
+  },
+
+  stop: function tp_stop() {
+    this._stoping = true;
+
+    clearInterval(this._intervalID);
+    this._intervalID = null;
+
+    this._audio.src = '';
   },
 
   // If the app loses focus, close the audio stream. This works around an
@@ -74,7 +123,6 @@ var TonePlayer = {
       delete this._audio;
     }
   }
-
 };
 
 var KeypadManager = {
@@ -375,25 +423,25 @@ var KeypadManager = {
     if (!key)
       return;
 
+    var telephony = navigator.mozTelephony;
+
     event.stopPropagation();
     if (event.type == 'mousedown') {
       this._longPress = false;
 
       if (key != 'delete') {
         if (keypadSoundIsEnabled) {
-          TonePlayer.play(gTonesFrequencies[key]);
+          TonePlayer.start(gTonesFrequencies[key]);
+
+          // We do not support long press if not on a call
+          if (!this._onCall) {
+            TonePlayer.stop();
+          }
         }
 
         // Sending the DTMF tone if on a call
-        var telephony = navigator.mozTelephony;
-        if (telephony && telephony.active &&
-            telephony.active.state == 'connected') {
-
+        if (this._onCall) {
           telephony.startTone(key);
-          window.setTimeout(function ch_stopTone() {
-            telephony.stopTone();
-          }, 100);
-
         }
       }
 
@@ -419,6 +467,19 @@ var KeypadManager = {
         }, 3000, this);
       }
     } else if (event.type == 'mouseup') {
+      // Stop playing the DTMF/tone after a small delay
+      // or right away if this is a long press
+      var delay = this._longPress ? 0 : 100;
+      if (this._onCall) {
+        if (keypadSoundIsEnabled) {
+          TonePlayer.stop();
+        }
+
+        window.setTimeout(function ch_stopTone() {
+          telephony.stopTone();
+        }, delay);
+      }
+
       // If it was a long press our work is already done
       if (this._longPress) {
         this._longPress = false;
