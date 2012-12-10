@@ -830,17 +830,6 @@ li[role="listitem"] small {
   display: none;
 }
 
-#modal-dialog-alert,
-#modal-dialog-confirm,
-#modal-dialog-prompt {
-  width: 90% !important;
-  margin: 0 auto !important;
-}
-
-#modal-dialog {
-  background: rgba(0, 0, 0, 0.5);
-}
-
 #tray-toolbar {
   background: none;
   height: 50px;
