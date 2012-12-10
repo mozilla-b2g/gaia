@@ -76,11 +76,15 @@ onLocalized(function wifiSettings() {
   };
 
   gWifiManager.onenabled = function onWifiEnabled() {
+    // enable UI toogle
+    gWifiCheckBox.disabled = false;
     updateNetworkState();
     gNetworkList.scan();
   };
 
   gWifiManager.ondisabled = function onWifiDisabled() {
+    // enable UI toogle
+    gWifiCheckBox.disabled = false;
     gWifiInfoBlock.textContent = _('disabled');
     gNetworkList.clear(false);
     gNetworkList.autoscan = false;
@@ -721,6 +725,9 @@ onLocalized(function wifiSettings() {
   settings.addObserver('wifi.enabled', function(event) {
     if (lastMozSettingValue == event.settingValue)
       return;
+
+    // lock UI toggle
+    gWifiCheckBox.disabled = true;
 
     lastMozSettingValue = event.settingValue;
     setMozSettingsEnabled(event.settingValue);
