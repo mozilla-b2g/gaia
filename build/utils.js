@@ -91,13 +91,8 @@ function ensureFolderExists(file) {
 }
 
 function getJSON(file) {
-  try {
-    let content = getFileContent(file);
-    return JSON.parse(content);
-  } catch(e) {
-    dump('Invalid JSON file : ' + file.path + '\n');
-    throw e;
-  }
+  let content = getFileContent(file);
+  return JSON.parse(content);
 }
 
 function makeWebappsObject(dirs) {
@@ -108,18 +103,14 @@ function makeWebappsObject(dirs) {
         let directories = getSubDirectories(directoryName);
         directories.forEach(function readManifests(dir) {
           let manifestFile = getFile(GAIA_DIR, directoryName, dir, "manifest.webapp");
-          let updateFile = getFile(GAIA_DIR, directoryName, dir, "update.webapp");
           // Ignore directories without manifest
-          if (!manifestFile.exists() && !updateFile.exists()) {
+          if (!manifestFile.exists())
             return;
-          }
-
-          let manifest = manifestFile.exists() ? manifestFile : updateFile;
           let domain = dir + "." + GAIA_DOMAIN;
 
           let webapp = {
-            manifest: getJSON(manifest),
-            manifestFile: manifest,
+            manifest: getJSON(manifestFile),
+            manifestFile: manifestFile,
             url: GAIA_SCHEME + domain + (GAIA_PORT ? GAIA_PORT : ''),
             domain: domain,
             sourceDirectoryFile: manifestFile.parent,
@@ -127,11 +118,13 @@ function makeWebappsObject(dirs) {
             sourceAppDirectoryName: directoryName
           };
 
-          // External webapps have a `metadata.json` file
-          let metaData = webapp.sourceDirectoryFile.clone();
-          metaData.append('metadata.json');
-          if (metaData.exists()) {
-            webapp.metaData = getJSON(metaData);
+          // External webapps have an `origin` file
+          let origin = webapp.sourceDirectoryFile.clone();
+          origin.append('origin');
+          if (origin.exists()) {
+            let url = getFileContent(origin);
+            // Strip any leading/ending spaces
+            webapp.origin = url.replace(/^\s+|\s+$/, '');
           }
 
           fun(webapp);
