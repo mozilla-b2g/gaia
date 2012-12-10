@@ -84,7 +84,7 @@ var ModalDialog = {
         // confirmed and fixed, display the gecko error page instead of
         // customized error page.
         if (evt.type === 'mozbrowsererror' &&
-            (evt.detail.type === 'fatal' || 'wrapper' in evt.target.dataset))
+            evt.detail.type === 'fatal')
           return;
 
         evt.preventDefault();
