@@ -22,11 +22,11 @@ SettingsListener.observe('phone.ring.keypad', true, function(value) {
 });
 
 var TonePlayer = {
-  _frequencies: null,
-  _intervalID: null,
-  _position: null,
-  _stoping: false,
-  _sampleRate: 8000,
+  _frequencies: null, // from gTonesFrequencies
+  _sampleRate: 8000, // number of frames/sec
+  _position: null, // number of frames generated
+  _intervalID: null, // id for the audio loop's setInterval
+  _stopping: false,
 
   init: function tp_init() {
     document.addEventListener('mozvisibilitychange',
@@ -43,24 +43,29 @@ var TonePlayer = {
   },
 
   // Generating audio frames for the 2 given frequencies
-  generateFrames: function tp_generateFrames(soundData) {
+  generateFrames: function tp_generateFrames(soundData, shortPress) {
     var position = this._position;
 
     var kr = 2 * Math.PI * this._frequencies[0] / this._sampleRate;
     var kc = 2 * Math.PI * this._frequencies[1] / this._sampleRate;
 
     for (var i = 0; i < soundData.length; i++) {
-      // Poor man's ADSR, without release
+      // Poor man's ADSR
+      // Only short press have a release phase because we don't know
+      // when the long press will end
       var factor;
       if (position < 200) {
         // Attack
         factor = position / 200;
       } else if (position > 200 && position < 400) {
         // Decay
-        factor = 1 - ((position - 200) / 200) * 0.4; // Decay factor
-      } else if (position >= 400) {
+        factor = 1 - ((position - 200) / 200) * 0.3; // Decay factor
+      } else if (shortPress && position > 800) {
+        // Release, short press only
+        factor = 0.7 - ((position - 800) / 400 * 0.7);
+      } else {
         // Sustain
-        factor = 0.6;
+        factor = 0.7;
       }
 
       soundData[i] = (Math.sin(kr * position) +
@@ -71,10 +76,10 @@ var TonePlayer = {
     this._position += soundData.length;
   },
 
-  start: function tp_start(frequencies) {
+  start: function tp_start(frequencies, shortPress) {
     this._frequencies = frequencies;
     this._position = 0;
-    this._stoping = false;
+    this._stopping = false;
 
     // Already playing
     if (this._intervalID) {
@@ -84,24 +89,28 @@ var TonePlayer = {
     this._audio.mozSetup(1, this._sampleRate);
     this._audio.volume = 1;
 
+    // Writing 150ms of sound (duration for a short press)
     var initialSoundData = new Float32Array(1200);
-    this.generateFrames(initialSoundData);
+    this.generateFrames(initialSoundData, shortPress);
     this._audio.mozWriteAudio(initialSoundData);
 
+    if (shortPress)
+      return;
+
+    // Long press support
     // Continuing playing until .stop() is called
-    // (long press support)
     this._intervalID = setInterval((function audioLoop() {
-      if (this._stoping)
+      if (this._stopping)
         return;
 
       var soundData = new Float32Array(1200);
       this.generateFrames(soundData);
       this._audio.mozWriteAudio(soundData);
-    }).bind(this), 60);
+    }).bind(this), 60); // Avoiding under-run issues by keeping this low
   },
 
   stop: function tp_stop() {
-    this._stoping = true;
+    this._stopping = true;
 
     clearInterval(this._intervalID);
     this._intervalID = null;
@@ -431,12 +440,8 @@ var KeypadManager = {
 
       if (key != 'delete') {
         if (keypadSoundIsEnabled) {
-          TonePlayer.start(gTonesFrequencies[key]);
-
           // We do not support long press if not on a call
-          if (!this._onCall) {
-            TonePlayer.stop();
-          }
+          TonePlayer.start(gTonesFrequencies[key], !this._onCall);
         }
 
         // Sending the DTMF tone if on a call
