@@ -183,7 +183,7 @@ var Navigation = {
         break;
       case '#import_contacts':
         UIManager.progressBar.className = 'step-state step-5';
-        UIManager.mainTitle.innerHTML = _('importContacts');
+        UIManager.mainTitle.innerHTML = _('importContacts2');
         var fbOption = document.getElementById('fb_import');
         var simOption = document.getElementById('sim_import');
         // If there is SIM we activate import from SIM
