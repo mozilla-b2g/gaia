@@ -223,7 +223,9 @@ var Camera = {
   },
 
   enableButtons: function camera_enableButtons() {
-    this.switchButton.removeAttribute('disabled');
+    if (!this._pendingPick) {
+      this.switchButton.removeAttribute('disabled');
+    }
     this.captureButton.removeAttribute('disabled');
   },
 
