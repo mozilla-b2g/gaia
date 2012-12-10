@@ -247,6 +247,7 @@ onLocalized(function bluetoothSettings() {
     var childWindow = null;
 
     var pairingMode = 'active';
+    var userCanceledPairing = false;
     var pairingAddress = null;
     var connectingAddress = null;
     var connectedAddress = null;
@@ -288,7 +289,9 @@ onLocalized(function bluetoothSettings() {
         enableMsg.hidden = false;
         searchingItem.hidden = true;
         optionMenu.close();
-        stopDiscovery();
+        // clear discoverTimeout
+        clearTimeout(discoverTimeout);
+        discoverTimeout = null;
       }
     }
 
@@ -425,11 +428,13 @@ onLocalized(function bluetoothSettings() {
           // if the attention screen still open, close it
           if (childWindow)
             childWindow.close();
-          // show pair process fail.
-          var msg = _('error-pair-title') + '\n' + _('error-pair-pincode');
           // display failure only when active request
-          if (pairingMode === 'active')
+          if (pairingMode === 'active' && !userCanceledPairing) {
+            // show pair process fail.
+            var msg = _('error-pair-title') + '\n' + _('error-pair-pincode');
             window.alert(msg);
+          }
+          userCanceledPairing = false;
           // rollback device status
           if (openList.index[pairingAddress]) {
             var item = openList.index[pairingAddress][1];
@@ -544,7 +549,7 @@ onLocalized(function bluetoothSettings() {
     }
 
     function stopDiscovery() {
-      if (!defaultAdapter)
+      if (!defaultAdapter || !bluetooth.enabled)
         return;
       var req = defaultAdapter.stopDiscovery();
       req.onsuccess = function bt_discoveryStopped() {
@@ -559,10 +564,11 @@ onLocalized(function bluetoothSettings() {
       discoverTimeout = null;
     }
 
-    function setConfirmation(address) {
+    function setConfirmation(address, confirmed) {
       if (!defaultAdapter)
         return;
-      var req = defaultAdapter.setPairingConfirmation(address, true);
+      userCanceledPairing = !confirmed;
+      var req = defaultAdapter.setPairingConfirmation(address, confirmed);
     }
 
     function setPinCode(address, pincode) {
@@ -601,6 +607,9 @@ onLocalized(function bluetoothSettings() {
     if (lastMozSettingValue == enabled)
       return;
 
+    // lock UI toggle
+    gBluetoothCheckBox.disabled = true;
+
     lastMozSettingValue = enabled;
     updateBluetoothState(enabled);
 
@@ -630,7 +639,13 @@ onLocalized(function bluetoothSettings() {
   };
 
   bluetooth.onadapteradded = function bt_adapterAdded() {
+    // enable UI toggle
+    gBluetoothCheckBox.disabled = false;
     initialDefaultAdapter();
+  };
+  bluetooth.ondisabled = function bt_onDisabled() {
+    // enable UI toggle
+    gBluetoothCheckBox.disabled = false;
   };
 });
 
