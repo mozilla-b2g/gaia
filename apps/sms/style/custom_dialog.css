@@ -28,6 +28,10 @@ body[role="application"] [role="dialog"]:not([data-type="edit"]) {
   z-index: 100;
 }
 
+body[role="application"] [role="dialog"]:not([data-type="edit"]) > * {
+  overflow: hidden;
+}
+
 body[role="application"] [role="dialog"]:not([data-type="edit"]) > .inner {
   -moz-box-sizing: padding-box;
   display: inline-block;

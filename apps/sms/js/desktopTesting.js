@@ -18,7 +18,7 @@ if (!navigator.mozSms) {
     var messages = [
       {
         sender: null,
-        receiver: '1-977',
+        receiver: '1977',
         body: 'Nothing :)',
         delivery: 'sent',
         id: 52,
@@ -26,7 +26,7 @@ if (!navigator.mozSms) {
       },
       {
         sender: null,
-        receiver: '1-97743-6797',
+        receiver: '1977436797',
         body: 'Nothing :)',
         delivery: 'sent',
         id: 51,
@@ -34,7 +34,7 @@ if (!navigator.mozSms) {
       },
       {
         sender: null,
-        receiver: '1-97743-797',
+        receiver: '197743797',
         body: 'Nothing :)',
         delivery: 'sent',
         id: 50,
@@ -42,7 +42,7 @@ if (!navigator.mozSms) {
       },
       {
         sender: null,
-        receiver: '1-6797',
+        receiver: '16797',
         body: 'Nothing :)',
         delivery: 'sent',
         id: 49,
@@ -50,7 +50,7 @@ if (!navigator.mozSms) {
       },
       {
         sender: null,
-        receiver: '197-743-697',
+        receiver: '197743697',
         body: 'Nothing :)',
         delivery: 'sent',
         id: 48,
@@ -58,7 +58,7 @@ if (!navigator.mozSms) {
       },
       {
         sender: null,
-        receiver: '1-9777436797',
+        receiver: '19777436797',
         body: 'Nothing :)',
         delivery: 'sent',
         id: 47,
@@ -66,7 +66,7 @@ if (!navigator.mozSms) {
       },
       {
         sender: null,
-        receiver: '1-97-74-6797',
+        receiver: '197746797',
         body: 'Nothing :)',
         delivery: 'sent',
         id: 46,
@@ -74,7 +74,7 @@ if (!navigator.mozSms) {
       },
       {
         sender: null,
-        receiver: '1-77-743-697',
+        receiver: '177743697',
         body: 'Nothing :)',
         delivery: 'sent',
         id: 45,
@@ -82,7 +82,7 @@ if (!navigator.mozSms) {
       },
       {
         sender: null,
-        receiver: '1-977-743',
+        receiver: '1977743',
         body: 'Nothing :)',
         delivery: 'sent',
         id: 44,
@@ -90,7 +90,7 @@ if (!navigator.mozSms) {
       },
       {
         sender: null,
-        receiver: '1-977-6797',
+        receiver: '19776797',
         body: 'Nothing :)',
         delivery: 'sent',
         id: 43,
@@ -98,7 +98,7 @@ if (!navigator.mozSms) {
       },
       {
         sender: null,
-        receiver: '977-743-6797',
+        receiver: '9777436797',
         body: 'Nothing :)',
         delivery: 'sent',
         id: 42,
@@ -107,14 +107,14 @@ if (!navigator.mozSms) {
 
       {
         sender: null,
-        receiver: '1-977-743-6797',
+        receiver: '19777436797',
         body: 'Nothing :)',
         delivery: 'sent',
         id: 41,
         timestamp: new Date(Date.now() - 44000000)
       },
       {
-        sender: '1-977-743-6797',
+        sender: '19777436797',
         body: 'Hey! What\s up?',
         delivery: 'received',
         id: 40,
@@ -124,7 +124,7 @@ if (!navigator.mozSms) {
 
     for (var i = 0; i < 15; i++) {
       messages.push({
-        sender: '1-488-678-3487',
+        sender: '14886783487',
         body: 'Hello world!',
         delivery: 'received',
         id: 39 - i,
