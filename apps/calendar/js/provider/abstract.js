@@ -26,33 +26,6 @@ Calendar.ns('Provider').Abstract = (function() {
     canSync: false,
 
     /**
-     * Can create events for this provider?
-     */
-    canCreateEvent: false,
-
-    /**
-     * Can edit events for this provider?
-     */
-    canUpdateEvent: false,
-
-    /**
-     * Can delete events from this provider?
-     */
-    canDeleteEvent: false,
-
-    /**
-     * Are there configuration options for this provider?
-     */
-    hasAccountSettings: false,
-
-    /**
-     * Attempt to get account accepts
-     * a single object and callback.
-     * Required options vary based on
-     * .useCredentials / .useUrl
-     *
-     * account:
-     *  - url: (String)
      *  - domain: (String)
      *  - password: (String)
      *  - user: (String)
@@ -109,13 +82,32 @@ Calendar.ns('Provider').Abstract = (function() {
     createEvent: function(event, callback) {},
 
     /**
+     * Returns an object with three keys used to
+     * determine the capabilities of a given calendar.
+     *
+     * - canCreate (Boolean)
+     * - canUpdate (Boolean)
+     * - canDelete (Boolean)
+     *
+     * @param {Object} calendar full calendar details.
+     */
+    calendarCapabilities: function(calendar) {
+      return {
+        canCreateEvent: true,
+        canUpdateEvent: true,
+        canDeleteEvent: true
+      };
+    },
+
+    /**
      * Returns the capabilities of a single event.
      */
     eventCapabilities: function() {
+      var caps = this.calendarCapabilities();
       return {
-        canUpdate: this.canUpdateEvent,
-        canCreate: this.canUpdateEvent,
-        canDelete: this.canUpdateEvent
+        canCreate: caps.canCreateEvent,
+        canUpdate: caps.canUpdateEvent,
+        canDelete: caps.canDeleteEvent
       };
     }
 

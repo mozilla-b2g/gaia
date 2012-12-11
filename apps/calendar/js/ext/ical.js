@@ -512,6 +512,10 @@ ICAL.design = (function() {
                        aValue.substr(4, 2) + '-' +
                        aValue.substr(6, 2);
 
+          if (aValue[8] === 'Z') {
+            result += 'Z';
+          }
+
           return result;
         },
 
@@ -519,14 +523,20 @@ ICAL.design = (function() {
           // from: 2012-09-01
           // to: 20120901
 
-          if (aValue.length !== 10) {
+          if (aValue.length > 11) {
             //TODO: serialize warning?
             return aValue;
           }
 
-          return aValue.substr(0, 4) +
-                 aValue.substr(5, 2) +
-                 aValue.substr(8, 2);
+          var result = aValue.substr(0, 4) +
+                       aValue.substr(5, 2) +
+                       aValue.substr(8, 2);
+
+          if (aValue[10] === 'Z') {
+            result += 'Z';
+          }
+
+          return result;
         }
       },
       "date-time": {
@@ -850,7 +860,13 @@ ICAL.design = (function() {
       "rdate": {
         defaultType: "date-time",
         allowedTypes: ["date-time", "date", "period"],
-        multiValue: ','
+        multiValue: ',',
+        detectType: function(string) {
+          if (string.indexOf('/') !== -1) {
+            return 'period';
+          }
+          return (string.indexOf('T') === -1) ? 'date' : 'date-time';
+        }
       },
       "recurrence-id": {
         defaultType: "date-time",
@@ -1129,15 +1145,7 @@ ICAL.parse = (function() {
   var helpers = ICAL.helpers;
 
   function ParserError(message) {
-    this.message = message;
-
-    try {
-      throw new Error();
-    } catch (e) {
-      var split = e.stack.split('\n');
-      split.shift();
-      this.stack = split.join('\n');
-    }
+    Error.apply(this, arguments);
   }
 
   ParserError.prototype = {
@@ -1162,7 +1170,7 @@ ICAL.parse = (function() {
     // correctly in that case.
     if (state.stack.length > 1) {
       throw new ParserError(
-        'invalid ical body. component began but did not end'
+        'invalid ical body, a began started but did not end'
       );
     }
 
@@ -1259,23 +1267,30 @@ ICAL.parse = (function() {
       if ('multiValue' in propertyDetails) {
         multiValue = propertyDetails.multiValue;
       }
+
+      if (value && 'detectType' in propertyDetails) {
+        valueType = propertyDetails.detectType(value);
+      }
     }
 
     // at this point params is mandatory per jcal spec
     params = params || {};
 
     // attempt to determine value
-    if (!('value' in params)) {
-      if (propertyDetails) {
-        valueType = propertyDetails.defaultType;
+    if (!valueType) {
+      if (!('value' in params)) {
+        if (propertyDetails) {
+          valueType = propertyDetails.defaultType;
+        } else {
+          valueType = DEFAULT_TYPE;
+        }
       } else {
-        valueType = DEFAULT_TYPE;
+        // possible to avoid this?
+        valueType = params.value.toLowerCase();
       }
-    } else {
-      // possible to avoid this?
-      valueType = params.value.toLowerCase();
-      delete params.value;
     }
+
+    delete params.value;
 
     /**
      * Note on `var result` juggling:
@@ -2065,7 +2080,7 @@ ICAL.Property = (function() {
 
       if (len < 1) {
         // its possible for a property to have no value.
-        return null;
+        return [];
       }
 
       var i = 0;
@@ -4828,7 +4843,6 @@ ICAL.RecurIterator = (function() {
         var dow = parts[1];
 
         dow -= this.rule.wkst;
-
         if (dow < 0) {
           dow += 7;
         }
@@ -4849,17 +4863,9 @@ ICAL.RecurIterator = (function() {
         var next = ICAL.Time.fromDayOfYear(startOfWeek + dow,
                                                   this.last.year);
 
-        /**
-         * The normalization horrors below are due to
-         * the fact that when the year/month/day changes
-         * it can effect the other operations that come after.
-         */
-        this.last.auto_normalize = false;
-        this.last.year = next.year;
-        this.last.month = next.month;
         this.last.day = next.day;
-        this.last.auto_normalize = true;
-        this.last.normalize();
+        this.last.month = next.month;
+        this.last.year = next.year;
 
         return end_of_data;
       }
@@ -5701,16 +5707,16 @@ ICAL.RecurExpansion = (function() {
       var idx;
 
       for (; i < len; i++) {
-        prop = props[i].getFirstValue();
+        props[i].getValues().forEach(function(prop) {
+          idx = ICAL.helpers.binsearchInsert(
+            result,
+            prop,
+            compareTime
+          );
 
-        idx = ICAL.helpers.binsearchInsert(
-          result,
-          prop,
-          compareTime
-        );
-
-        // ordered insert
-        result.splice(idx, 0, prop);
+          // ordered insert
+          result.splice(idx, 0, prop);
+        });
       }
 
       return result;
@@ -5728,6 +5734,29 @@ ICAL.RecurExpansion = (function() {
         this.ruleDate = this.last.clone();
         this.complete = true;
         return;
+      }
+
+      if (component.hasProperty('rdate')) {
+        this.ruleDates = this._extractDates(component, 'rdate');
+
+        // special hack for cases where first rdate is prior
+        // to the start date. We only check for the first rdate.
+        // This is mostly for google's crazy recurring date logic
+        // (contacts birthdays).
+        if ((this.ruleDates[0]) &&
+            (this.ruleDates[0].compare(this.dtstart) < 0)) {
+
+          this.ruleDateInc = 0;
+          this.last = this.ruleDates[0].clone();
+        } else {
+          this.ruleDateInc = ICAL.helpers.binsearchInsert(
+            this.ruleDates,
+            this.last,
+            compareTime
+          );
+        }
+
+        this.ruleDate = this.ruleDates[this.ruleDateInc];
       }
 
       if (component.hasProperty('rrule')) {
@@ -5748,17 +5777,6 @@ ICAL.RecurExpansion = (function() {
           // XXX: I find this suspicious might be a bug?
           iter.next();
         }
-      }
-
-      if (component.hasProperty('rdate')) {
-        this.ruleDates = this._extractDates(component, 'rdate');
-        this.ruleDateInc = ICAL.helpers.binsearchInsert(
-          this.ruleDates,
-          this.last,
-          compareTime
-        );
-
-        this.ruleDate = this.ruleDates[this.ruleDateInc];
       }
 
       if (component.hasProperty('exdate')) {
@@ -5851,6 +5869,10 @@ ICAL.Event = (function() {
 
     this.exceptions = Object.create(null);
 
+    if (options && options.strictExceptions) {
+      this.strictExceptions = options.strictExceptions;
+    }
+
     if (options && options.exceptions) {
       options.exceptions.forEach(this.relateException, this);
     }
@@ -5864,6 +5886,13 @@ ICAL.Event = (function() {
      * @type Array[ICAL.Event]
      */
     exceptions: null,
+
+    /**
+     * When true will verify exceptions are related by their UUID.
+     *
+     * @type {Boolean}
+     */
+    strictExceptions: false,
 
     /**
      * Relates a given event exception to this object.
@@ -5885,7 +5914,7 @@ ICAL.Event = (function() {
         obj = new ICAL.Event(obj);
       }
 
-      if (obj.uid !== this.uid) {
+      if (this.strictExceptions && obj.uid !== this.uid) {
         throw new Error('attempted to relate unrelated exception');
       }
 

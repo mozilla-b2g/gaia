@@ -19,6 +19,11 @@
     }
   });
 
+  // Store the current active channel; change with 'audio-channel-changed' mozChromeEvent
+  var currentChannel = 'notification';
+
+  var vibrationEnabled = true;
+
   // This event is generated in shell.js in response to bluetooth headset.
   // Bluetooth headset always assign audio volume to a specific value when
   // pressing its volume-up/volume-down buttons.
@@ -26,12 +31,18 @@
     var type = e.detail.type;
     if (type == 'bluetooth-volumeset') {
       changeVolume(e.detail.value - currentVolume['bt_sco'], 'bt_sco');
+    } else if (type == 'audio-channel-changed') {
+      currentChannel = e.detail.channel;
     }
   });
 
-  // XXX: This workaround could be removed once 
-  // https://bugzilla.mozilla.org/show_bug.cgi?id=811222 landed
   function onCall() {
+    if (currentChannel == 'telephony')
+      return true;
+
+    // XXX: This work should be removed
+    // once we could get telephony channel change event
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=819858
     var telephony = window.navigator.mozTelephony;
     if (!telephony)
       return false;
@@ -39,24 +50,6 @@
     return telephony.calls.some(function callIterator(call) {
         return (call.state == 'connected');
     });
-  };
-
-  // XXX: This workaround could be removed once 
-  // https://bugzilla.mozilla.org/show_bug.cgi?id=811222 landed
-  function onRing() {
-    var telephony = window.navigator.mozTelephony;
-    if (!telephony)
-      return false;
-
-    return telephony.calls.some(function callIterator(call) {
-        return (call.state == 'incoming');
-    });
-  }
-  
-  // XXX: This workaround could be removed once 
-  // https://bugzilla.mozilla.org/show_bug.cgi?id=811222 landed
-  function onNotificationPlaying() {
-    return false;
   }
 
   function onBTEarphoneConnected() {
@@ -102,41 +95,64 @@
       currentVolume[channel] = parseInt(Math.max(0, Math.min(max, volume)), 10);
     });
   }
+  
+  SettingsListener.observe('vibration.enabled', true, function(vibration) {
+    if (pendingRequestCount)
+      return;
+
+    vibrationEnabled = vibration;
+  });
 
   var activeTimeout = 0;
 
-  function changeVolume(delta, channel) {
-    // XXX: These status-checking functions could be removed when
-    // Bug 811222 landed
-    if (!channel) {
-      if (onNotificationPlaying()) {
-        channel = 'notification';
-      } else if (onRing()) {
-        channel = 'notification';
-      } else if (onCall()) {
-        channel = 'telephony';
-      } else {
-        channel = 'content';
-      }
-    }
+  // When hardware volume key is pressed, we need to decide which channel we should toggle.
+  // This method returns the string for setting key 'audio.volume.*' represents that.
+  // Note: this string does not always equal to currentChannel
+  // since some different channels are grouped together to listen to the same setting.
+  function getChannel() {
+    if (onCall())
+      return 'telephony';
 
-    if (currentVolume[channel] == 0 ||
-        ((currentVolume[channel] + delta) <= 0)) {
-      if (delta < 0) {
-        if (muteState == 'OFF') {
-          muteState = 'VIBRATION';
-        } else {
-          muteState = 'MUTE';
+    switch (currentChannel) {
+      case 'normal':
+      case 'content':
+        return 'content';
+      case 'telephony':
+        return 'telephony';
+      case 'alarm':
+        return 'alarm';
+      case 'notification':
+      case 'ringer':
+      default:
+        return 'notification';
+    }
+  }
+
+  function getVolumeState(currentVolume, delta, channel) {
+    if (channel == 'notification') {
+      if (currentVolume + delta <= 0) {
+        if (currentVolume == 0 && vibrationEnabled) {
+          vibrationEnabled = false;
+        } else if (currentVolume > 0 && !vibrationEnabled) {
+          vibrationEnabled = true;
         }
+        return 'MUTE';
       } else {
-        if (muteState == 'MUTE') {
-          delta = 0;
-          muteState = 'VIBRATION';
-        } else {
-          muteState = 'OFF';
-        }
+        return 'OFF';
+      }
+    } else {
+      if (currentVolume + delta <= 0) {
+        return 'MUTE';
+      } else {
+        return 'OFF';
       }
     }
+  }
+
+  function changeVolume(delta, channel) {
+    channel = channel ? channel : getChannel();
+
+    muteState = getVolumeState(currentVolume[channel], delta, channel);
 
     var volume = currentVolume[channel] + delta;
     
@@ -149,22 +165,28 @@
 
     switch (muteState) {
       case 'OFF':
-        classes.remove('vibration');
         classes.remove('mute');
-        break;
-      case 'VIBRATION':
-        classes.add('vibration');
-        classes.add('mute');
-        SettingsListener.getSettingsLock().set({
-          'vibration.enabled': true
-        });
+        if (vibrationEnabled) {
+          classes.add('vibration');
+        } else {
+          classes.remove('vibration');
+        }
         break;
       case 'MUTE':
-        classes.remove('vibration');
         classes.add('mute');
-        SettingsListener.getSettingsLock().set({
-          'vibration.enabled': false
-        });
+        if (channel == 'notification') {
+          if (vibrationEnabled) {
+            classes.add('vibration');
+            SettingsListener.getSettingsLock().set({
+                'vibration.enabled': true
+            });
+          } else {
+            classes.remove('vibration');
+            SettingsListener.getSettingsLock().set({
+                'vibration.enabled': false
+            });
+          }
+        }
         break;
     }
 
