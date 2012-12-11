@@ -28,6 +28,7 @@ GAIA_DOMAIN?=gaiamobile.org
 
 DEBUG?=0
 PRODUCTION?=0
+CHECKCSP?=0
 
 LOCAL_DOMAINS?=1
 
@@ -80,6 +81,10 @@ endif
 GAIA_LOCALES_PATH?=locales
 LOCALES_FILE?=shared/resources/languages.json
 GAIA_LOCALE_SRCDIRS=shared $(GAIA_APP_SRCDIRS)
+
+ifeq ($(MAKECMDGOALS), checkcsp)
+CHECKCSP=1
+endif
 
 ###############################################################################
 # The above rules generate the profile/ folder and all its content.           #
@@ -235,6 +240,17 @@ ifneq ($(DEBUG),1)
 	@mkdir -p profile/webapps
 	@$(call run-js-command, webapp-zip)
 endif
+ifeq ($(CHECKCSP),1)
+	@echo "Verifying csp policies..."
+	@rm -f checkCSPPolicyResult.txt
+	@build/checkCSPPolicy.sh > checkCSPPolicyResult.txt
+	@echo "Check CSP: Done. Applications with possible problems:"
+	@grep "APPLICATION:" checkCSPPolicyResult.txt | cut -d: -f2 | sort -u
+	@echo "Please review the checkCSPPolicyResult.txt file for details."
+	@echo "Done"
+endif
+
+checkcsp: profile
 
 offline-cache: webapp-manifests install-xulrunner-sdk
 	@echo "Populate external apps appcache"
