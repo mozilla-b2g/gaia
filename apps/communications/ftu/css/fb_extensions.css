@@ -1,6 +1,6 @@
 #fb-extensions {
-  position: absolute;
-  top: -100%;
+  position: fixed;
+  top: 100%;
   left: 0;
   z-index: 1000;
   width: 100%;
@@ -8,8 +8,8 @@
   border: 0;
   margin: 0;
   padding: 0;
-  transition: all .6s ease;
-  background-color: #26272c;
+  -moz-transition: transform .6s ease;
+  background: #f4f4f4;
 }
 
 #fb-extensions.opening {
@@ -18,19 +18,6 @@
 
 #fb-extensions.closing {
   transform: translateY(0);
-}
-
-#fb-extensions[data-anim-from = 'left'] {
-  top: 0;
-  left: 100%;
-}
-
-#fb-extensions[data-anim-from = 'left'].opening {
-  transform: translateX(-100%);
-}
-
-#fb-extensions[data-anim-from = 'left'].closing {
-  transform: translateX(0);
 }
 
 .facebook.removed dl,
