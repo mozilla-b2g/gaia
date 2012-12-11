@@ -14,6 +14,12 @@ var Calculator = {
   // Holds the current symbols for calculation
   stack: [],
 
+  // Clears the stack
+  clear: function calculator_clear() {
+    this.stack.length = 0;
+    this.toClear = false;
+  },
+
   updateDisplay: function calculator_updateDisplay() {
     if (this.stack.length === 0) {
       this.display.innerHTML = '0';
@@ -39,14 +45,16 @@ var Calculator = {
 
   appendValue: function calculator_appendValue(value) {
     if (this.toClear) {
-      this.stack = [];
-      this.toClear = false;
+      this.clear();
     }
     this.stack.push(value);
     this.updateDisplay();
   },
 
   appendDigit: function calculator_appendDigit(value) {
+    if (this.toClear) {
+      this.clear();
+    }
     this.toClear = false;
 
     var currentNumber = this.stack.pop();
@@ -154,8 +162,7 @@ var Calculator = {
 
   startBackspaceTimeout: function calculator_startBackspaceTimeout() {
     this.backSpaceTimeout = window.setTimeout(function fullBackSpace(self) {
-      self.stack = [];
-      self.toClear = false;
+      self.clear();
       self.updateDisplay();
       self.backSpaceTimeout = null;
     }, this.BACKSPACE_TIMEOUT, this);
