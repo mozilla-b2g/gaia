@@ -676,9 +676,10 @@ onLocalized(function wifiSettings() {
     gWifiInfoBlock.textContent =
         _('fullStatus-' + networkStatus, gWifiManager.connection.network);
 
-    if (networkStatus === 'connectingfailed') {
+    if (networkStatus === 'connectingfailed' && gCurrentNetwork) {
       // connection has failed, probably an authentication issue...
-      delete(gCurrentNetwork.password); // force a new authentication dialog
+      delete(gCurrentNetwork.password);
+      gWifiManager.forget(gCurrentNetwork); // force a new authentication dialog
       gNetworkList.display(gCurrentNetwork,
           _('shortStatus-connectingfailed'));
       gCurrentNetwork = null;
