@@ -1,7 +1,8 @@
 
 "use strict";
 
-var EvmeManager = (function() {
+var EvmeManager = (function EvmeManager() {
+    var currentWindow = null;
     var currentURL = null;
 
     function openApp(params) {

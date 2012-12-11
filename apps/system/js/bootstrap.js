@@ -28,6 +28,7 @@ window.addEventListener('load', function startup() {
 
   SourceView.init();
   Shortcuts.init();
+  ScreenManager.turnScreenOn();
 
   // We need to be sure to get the focus in order to wake up the screen
   // if the phone goes to sleep before any user interaction.
