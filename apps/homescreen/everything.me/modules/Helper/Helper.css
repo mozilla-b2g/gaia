@@ -177,7 +177,7 @@
         #helper ul li:after {
             content: "";
             position: absolute;
-            top: 14px;
+            top: 12px;
             left: -3px;
             width: 4px;
             height: 4px;
