@@ -107,8 +107,6 @@ Evme.Brain = new function Evme_Brain() {
             Brain.Searchbar.setEmptyClass();
 
             Evme.Shortcuts.show();
-
-            Brain.FFOS.showMenu();
         };
     };
 
@@ -170,8 +168,6 @@ Evme.Brain = new function Evme_Brain() {
             if (searchbarValue === "") {
                 Evme.Helper.setTitle();
                 Evme.Helper.showTitle();
-
-                Brain.FFOS.showMenu();
             } else if (didClickApp) {
                 Evme.Searchbar.setValue(searchbarValue);
                 Evme.Helper.setTitle(searchbarValue);
@@ -238,9 +234,6 @@ Evme.Brain = new function Evme_Brain() {
         // clear button was clicked
         this.clearButtonClick = function clearButtonClick(data) {
             self.cancelBlur();
-            if (!Evme.Utils.isKeyboardVisible) {
-                Brain.FFOS.showMenu();
-            }
         };
 
         // searchbar value changed
@@ -822,7 +815,6 @@ Evme.Brain = new function Evme_Brain() {
         // shortcut was clicked
         this.show = function show(data) {
             elContainer.classList.add("smart-folder-visible");
-            Brain.FFOS.hideMenu();
 
             currentFolder = data.folder;
             
@@ -840,8 +832,6 @@ Evme.Brain = new function Evme_Brain() {
         // close button was clicked
         this.close = function close() {
             currentFolder = null;
-            
-            window.setTimeout(Brain.FFOS.showMenu, 200);
         };
 
         // get current folder
@@ -985,8 +975,6 @@ Evme.Brain = new function Evme_Brain() {
 
         // show
         this.show = function show() {
-            Brain.FFOS.showMenu();
-            
             new Evme.Tip(TIPS.APP_EXPLAIN, function onShow(tip) {
                 elContainer.addEventListener("touchstart", tip.hide);
             }).show();
@@ -1048,7 +1036,6 @@ Evme.Brain = new function Evme_Brain() {
 
             Evme.Shortcuts.isEditing = false;
             elContainer.classList.remove("shortcuts-customizing");
-            Brain.FFOS.showMenu();
         };
 
         // returns edit status
@@ -1082,7 +1069,6 @@ Evme.Brain = new function Evme_Brain() {
         this.hold = function hold() {
             Evme.Shortcuts.isEditing = true;
             elContainer.classList.add("shortcuts-customizing");
-            Brain.FFOS.hideMenu();
         };
 
         // item clicked
@@ -1115,13 +1101,11 @@ Evme.Brain = new function Evme_Brain() {
             isOpen = false;
         
         this.show = function show() {
-            Brain.FFOS.hideMenu();
             isOpen = true;
         };
         
         this.hide = function hide() {
             Evme.ShortcutsCustomize.Loading.hide();
-            Brain.FFOS.showMenu();
             isOpen = false;
         };
 
@@ -1145,7 +1129,6 @@ Evme.Brain = new function Evme_Brain() {
                 "icons": data.icons
             }, function onSuccess(){
                 Brain.Shortcuts.loadFromAPI();
-                Brain.FFOS.showMenu();
             });
         };
 
@@ -1155,7 +1138,6 @@ Evme.Brain = new function Evme_Brain() {
 
             isRequesting = true;
 
-            Brain.FFOS.hideMenu();
             Evme.ShortcutsCustomize.Loading.show();
 
             // load user/default shortcuts from API
@@ -1209,7 +1191,6 @@ Evme.Brain = new function Evme_Brain() {
             requestSuggest && requestSuggest.abort();
             window.setTimeout(Evme.ShortcutsCustomize.Loading.hide, 50);
             isRequesting = false;
-            Brain.FFOS.showMenu();
         };
 
         // inject + button

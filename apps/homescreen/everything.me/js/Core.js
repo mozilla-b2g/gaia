@@ -51,11 +51,6 @@ window.Evme = new function Evme_Core() {
     
     this.onShow = function onShow() {
         Evme.Shortcuts.refreshScroll();
-        if (Evme.Searchbar.getValue() || Evme.Brain.SmartFolder.get()) {
-            Evme.Brain.FFOS.hideMenu(); 
-        } else {
-            Evme.Brain.FFOS.showMenu();
-        }
     };
     this.onHide = function onHide() {
         Evme.Brain.Shortcuts.doneEdit();
@@ -63,7 +58,7 @@ window.Evme = new function Evme_Core() {
     };
     
     this.onHideStart = function onHideStart(source) {
-        if (source == "homeButtonClick") {
+        if (source === "homeButtonClick") {
             if (
                 Evme.Brain.Shortcuts.hideIfEditing() ||
                 Evme.Brain.ShortcutsCustomize.isOpen() ||
