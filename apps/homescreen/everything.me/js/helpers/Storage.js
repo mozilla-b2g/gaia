@@ -1,12 +1,12 @@
-Evme.Storage = new function() {
-    var _this = this, CURRENT_VERSION = "1.4",
+Evme.Storage = new function Evme_Storage() {
+    var self = this, CURRENT_VERSION = "1.4",
         _valueKey = "_v",
         _expirationKey = "_e",
         _versionKey = "_ver",
         _cache = {};
         
-    this.set = function(key, val, ttl) {
-        _this.remove(key, true);
+    this.set = function set(key, val, ttl) {
+        self.remove(key, true);
         
         if (val === undefined) { return false; }
         
@@ -33,7 +33,7 @@ Evme.Storage = new function() {
     };
     this.add = this.set;
     
-    this.get = function(key) {
+    this.get = function get(key) {
         if (key) {
             var val = _cache[key];
             
@@ -41,7 +41,7 @@ Evme.Storage = new function() {
             
             if (val[_expirationKey]) {
                 if (new Date().getTime() >= val[_expirationKey]) {
-                    _this.remove(key);
+                    self.remove(key);
                     val = null;
                 }
             }
@@ -52,7 +52,7 @@ Evme.Storage = new function() {
         }
     };
     
-    this.remove = function(key, bDontUpdate) {
+    this.remove = function remove(key, bDontUpdate) {
         if (!_cache[key]) { return false; }
         
         delete _cache[key];
@@ -68,7 +68,7 @@ Evme.Storage = new function() {
         return !bDontUpdate;
     };
     
-    this.enabled = function() {
+    this.enabled = function enabled() {
         var enabled = false;
         
         try {
@@ -90,7 +90,7 @@ Evme.Storage = new function() {
     };
     
     function populate() {
-        if (_this.enabled()) {
+        if (self.enabled()) {
             var version = null;
             try {
                 version = localStorage.getItem(_versionKey);
@@ -109,7 +109,7 @@ Evme.Storage = new function() {
                     try {
                         _cache[k] = JSON.parse(value);
                         if (_cache[k][_expirationKey] && now >= _cache[k][_expirationKey]){
-                            _this.remove(k);
+                            self.remove(k);
                         }
                     } catch(ex) {
                         _cache[k] = value;
