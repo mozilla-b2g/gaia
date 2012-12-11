@@ -214,10 +214,6 @@ var TrustedUIManager = {
     return this.screen.classList.contains('trustedui');
   },
 
-  setHeight: function trui_setHeight(height) {
-    this.overlay.style.height = height + 'px';
-  },
-
   _destroyDialog: function trui_destroyDialog(origin) {
     var stack = this.currentStack;
     if (origin)
@@ -279,13 +275,6 @@ var TrustedUIManager = {
         var dialog = this._getTopDialog();
         this._makeDialogHidden(dialog);
         this.hide();
-        break;
-      case 'keyboardchange':
-        this.setHeight(window.innerHeight -
-          StatusBar.height - evt.detail.height);
-        break;
-      case 'keyboardhide':
-        this.setHeight(window.innerHeight - StatusBar.height);
         break;
       case 'mozbrowserloadstart':
         this.throbber.classList.add('loading');
