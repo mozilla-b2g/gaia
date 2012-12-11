@@ -363,8 +363,11 @@ if (!fb.link) {
         });
 
         clearList();
+        
+        var fragment = document.createDocumentFragment();
+        utils.templates.append(friendsList, response.data, fragment);
+        friendsList.appendChild(fragment);
 
-        utils.templates.append(friendsList, response.data);
         imgLoader.reload();
 
         Curtain.hide();

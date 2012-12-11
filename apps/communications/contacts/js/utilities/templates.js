@@ -94,7 +94,7 @@ if (!utils.templates) {
      *
      *
      */
-    function add(element, data, mode) {
+    function add(element, data, mode, targetNode) {
       // It is supported both the element itself or a selector
       var target = getTarget(element);
       var newElem;
@@ -123,7 +123,7 @@ if (!utils.templates) {
 
         if (template) {
           newElem = this.render(template, oneData);
-
+          target = targetNode || target;
           if (mode === 'A') {
              target.appendChild(newElem);
           } else if (mode === 'P') { // Append mode
@@ -159,10 +159,10 @@ if (!utils.templates) {
      *
      *
      */
-    Templates.append = function(element, data) {
+    Templates.append = function(element, data, targetNode) {
       var f = add.bind(this);
 
-      return f(element, data, 'A');
+      return f(element, data, 'A', targetNode);
     };
 
 
@@ -182,10 +182,10 @@ if (!utils.templates) {
      *
      *
      */
-    Templates.prepend = function(element, data) {
+    Templates.prepend = function(element, data, targetNode) {
        var f = add.bind(this);
 
-      return f(element, data, 'P');
+      return f(element, data, 'P', targetNode);
     };
 
 
