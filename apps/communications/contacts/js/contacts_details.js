@@ -65,12 +65,12 @@ contacts.Details = (function() {
 
   var initPullEffect = function cd_initPullEffect(cover) {
     cover.addEventListener('mousedown', function(event) {
-      if (event.target != cover || contactDetails.classList.contains('no-photo'))
+      if (contactDetails.classList.contains('no-photo'))
         return;
 
       var startPosition = event.clientY;
       var currentPosition;
-      var initMargin = '8rem';
+      var initMargin = '16rem';
       contactDetails.classList.add('up');
       cover.classList.add('up');
 
@@ -91,14 +91,14 @@ contacts.Details = (function() {
       var onMouseUp = function onMouseUp(event) {
         contactDetails.classList.add('up');
         cover.classList.add('up');
-        contactDetails.style.transform = null;
-        cover.style.transform = null;
-        removeEventListener('mousemove', onMouseMove);
-        removeEventListener('mouseup', onMouseUp);
+        contactDetails.style.transform = 'translateY(' + initMargin + ')';
+        cover.style.transform = 'translateY(-' + photoPos + 'rem)';
+        cover.removeEventListener('mousemove', onMouseMove);
+        cover.removeEventListener('mouseup', onMouseUp);
       };
 
-      addEventListener('mousemove', onMouseMove);
-      addEventListener('mouseup', onMouseUp);
+      cover.addEventListener('mousemove', onMouseMove);
+      cover.addEventListener('mouseup', onMouseUp);
     });
   };
 
@@ -455,11 +455,18 @@ contacts.Details = (function() {
   };
 
   var renderPhoto = function cd_renderPhoto(contact) {
-    contactDetails.classList.remove('up');
     if (contact.photo && contact.photo.length > 0) {
+      contactDetails.classList.add('up');
+      var clientHeight = contactDetails.clientHeight;
+      if (detailsInner.offsetHeight < clientHeight) {
+        cover.style.overflow = 'hidden';
+      } else {
+        cover.style.overflow = 'auto';
+      }
       Contacts.updatePhoto(contact.photo[0], cover);
     } else {
       cover.style.backgroundImage = '';
+      cover.style.overflow = 'auto';
       contactDetails.style.transform = '';
       contactDetails.classList.add('no-photo');
     }

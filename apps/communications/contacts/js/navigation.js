@@ -2,38 +2,82 @@
 
 function navigationStack(currentView) {
   var transitions = {
-    'right-left': 'view-right',
-    'popup': 'view-bottom'
+    'left-right': { from: 'view-left', to: 'view-right'},
+    'top-bottom': { from: 'view-bottom', to: 'view-top'},
+    'right-left': { from: 'view-right', to: 'view-left'},
+    'bottom-top': { from: 'view-top', to: 'view-bottom'},
+    'popup': { from: 'popup', to: 'popup'},
+    'none': { from: 'none', to: 'none'}
   };
 
   var _currentView = currentView;
+  var app = document.getElementById('app');
+  var cache = document.getElementById('cache');
+  var transitionTimeout = 0;
+
   var stack = [];
 
-  stack.push({view: currentView, transition: 'popup'});
+  stack.push({view: currentView, transition: 'none'});
 
-  var waitForTransition = function(view, callback) {
-    if (!callback)
-      return;
+  var revertTransition = function(transition) {
+    return {
+      from: transitions[transition].to,
+      to: transitions[transition].from
+    };
+  };
 
-    view.addEventListener('transitionend', function onTransitionEnd() {
-      view.removeEventListener('transitionend', onTransitionEnd);
-      setTimeout(callback, 0);
+  var setAppView = function(current, next) {
+    current.dataset.state = 'inactive';
+    next.dataset.state = 'active';
+  };
+
+  var setCacheView = function(current, next, transition, callback) {
+    current.classList.add('transitioning');
+    next.classList.add('transitioning');
+    var currentMirror = document.getElementById(current.dataset.mirror);
+    var nextMirror = document.getElementById(next.dataset.mirror);
+    var move = transitions[transition] || transition;
+
+    cache.dataset.state = 'active';
+    clearTimeout(transitionTimeout);
+    transitionTimeout = setTimeout(function animate() {
+      currentMirror.classList.add(move.to);
+      nextMirror.classList.remove(move.from);
+    }, 1);
+
+    nextMirror.addEventListener('transitionend', function nocache() {
+      setAppView(current, next);
+      app.dataset.state = 'active';
+      cache.dataset.state = 'inactive';
+      nextMirror.removeEventListener('transitionend', nocache);
+      current.classList.remove('transitioning');
+      next.classList.remove('transitioning');
+      if (typeof callback === 'function') {
+        setTimeout(callback, 0);
+      }
     });
   };
 
   this.go = function go(nextView, transition) {
     if (_currentView === nextView)
       return;
-
-    // Remove items that match nextView from the stack to prevent duplicates.
-    stack = stack.filter(function (item) {
-      return item.view != nextView;
-    });
-
+    var current = document.getElementById(_currentView);
     var next = document.getElementById(nextView);
-    next.classList.remove(transitions[transition] || transition);
+
+    switch (transition) {
+      case 'none':
+        setAppView(current, next);
+        break;
+
+      case 'popup':
+        showPopup(current, next);
+        break;
+
+      default:
+        setCacheView(current, next, transition);
+        break;
+    }
     stack.push({ view: nextView, transition: transition});
-    next.style.zIndex = stack.length;
     _currentView = nextView;
   };
 
@@ -44,13 +88,28 @@ function navigationStack(currentView) {
       }
       return;
     }
-
     var currentView = stack.pop();
     var current = document.getElementById(currentView.view);
     var nextView = stack[stack.length - 1];
-    var transition = currentView.transition;
-    current.classList.add(transitions[transition] || transition);
-    waitForTransition(current, callback);
+    var next = document.getElementById(nextView.view);
+
+    switch (currentView.transition) {
+      case 'none':
+        setAppView(current, next);
+        if (typeof callback === 'function') {
+          setTimeout(callback, 0);
+        }
+        break;
+
+      case 'popup':
+        hidePopup(current, next, callback);
+        break;
+
+      default:
+        var reverted = revertTransition(currentView.transition);
+        setCacheView(current, next, reverted, callback);
+        break;
+    }
     _currentView = nextView.view;
   };
 
@@ -67,7 +126,35 @@ function navigationStack(currentView) {
     }
   };
 
+  var showPopup = function c_showPopup(current, next) {
+    next.dataset.state = 'active';
+    var nextMirror = document.getElementById(next.dataset.mirror);
+    var currentMirror = document.getElementById(current.dataset.mirror);
+    next.classList.remove('view-bottom');
+    next.addEventListener('transitionend', function hideView() {
+      currentMirror.style.display = 'none';
+      nextMirror.classList.remove('view-bottom');
+      next.removeEventListener('transitionend', hideView);
+    });
+  }
+
+  var hidePopup = function c_hidePopup(current, next, callback) {
+    next.dataset.state = 'active';
+    current.classList.add('view-bottom');
+    var nextMirror = document.getElementById(next.dataset.mirror);
+    var currentMirror = document.getElementById(current.dataset.mirror);
+    nextMirror.style.display = '';
+    current.addEventListener('transitionend', function hideView() {
+      currentMirror.classList.add('view-bottom');
+      if (typeof callback === 'function') {
+        setTimeout(callback, 0);
+      }
+      current.removeEventListener('transitionend', hideView);
+    });
+  }
+
   this.currentView = function currentView() {
     return _currentView != null ? _currentView : '';
   };
+
 }
