@@ -55,7 +55,8 @@ suite('dialer/handled_call', function() {
     navigator.mozL10n = {
       get: function get(key) {
         return key;
-      }
+      },
+      readyState: 'complete'
     };
 
     realUtils = window.Utils;
@@ -339,6 +340,32 @@ suite('dialer/handled_call', function() {
     test('recents entry after refusal', function() {
       mockCall._disconnect();
       assert.equal(subject.recentsEntry.type, 'incoming-refused');
+    });
+  });
+
+  suite('unknown number', function() {
+    test('should display unknown l10n key if available', function() {
+      mockCall = new MockCall('', 'incoming');
+      subject = new HandledCall(mockCall, fakeNode);
+
+      var numberNode = fakeNode.querySelector('.numberWrapper .number');
+      assert.equal(numberNode.textContent, 'unknown');
+    });
+
+    test('should wait for localized event if needed', function() {
+      navigator.mozL10n.readyState = '';
+
+      mockCall = new MockCall('', 'incoming');
+      subject = new HandledCall(mockCall, fakeNode);
+
+      var numberNode = fakeNode.querySelector('.numberWrapper .number');
+      assert.notEqual(numberNode.textContent, 'unknown');
+
+      var evtObject = document.createEvent('Event');
+      evtObject.initEvent('localized', false, false);
+      window.dispatchEvent(evtObject);
+
+      assert.equal(numberNode.textContent, 'unknown');
     });
   });
 

@@ -29,6 +29,21 @@ section {
   font-size: 10px;
 }
 
+.hidden {
+  display: none;
+}
+
+/*
+ * When we hide the thumbnail list, to go into single-photo fullscreen mode,
+ * we need to retain thumbnail layout information so monitorChildVisibility()
+ * doesn't get confused if we delete a photo while in fullscreen mode.
+ * So hide them this way instead of display:none
+ */
+#thumbnail-list-view.hidden {
+  display: block;
+  visibility: hidden;
+}
+
 /* All of the main views fill the screen */
 #thumbnail-list-view, #thumbnail-select-view, #fullscreen-view, #pick-view, #edit-view, #crop-view {
   position: absolute;
@@ -122,6 +137,13 @@ section {
   background-size: cover;        /* allow some cropping */
   background-position: center;   /* keep the cropping at the edges */
   background-repeat: no-repeat;
+  /*
+   * When we have a background image it will cover the whole thumbnail
+   * but when we're swapping that image in it might be visible before
+   * the image. So we want a color that contrasts with the border so we
+   * at least get the effect of a grid rather than a black screen
+   */
+  background-color: #444;
 }
 
 .thumbnail.selected {
@@ -233,10 +255,6 @@ section {
   transform-origin: 0px 0px;
 }
 
-.hidden {
-  display: none;
-}
-
 /* localization */
 body.hidden *[data-l10n-id] {
   visibility: hidden;
@@ -311,7 +329,7 @@ footer {
 }
 
 .icon.icon-done {
-  background-image: url('images/actionicon_done.png') !important;
+  background-image: url('images/iconaction_done_30x30.png') !important;
 }
 
 #thumbnails-camera-button {
@@ -319,7 +337,7 @@ footer {
   width: 50%;
   height: 100%;
   left: 0;
-  background-image: url('images/camera.png');
+  background-image: url('images/iconaction_camera_30x30.png');
   border-right: 1px solid #000;
 }
 
@@ -328,7 +346,7 @@ footer {
   width: 50%;
   height: 100%;
   left: 50%;
-  background-image: url('images/select.png');
+  background-image: url('images/iconaction_select_30x30.png');
 }
 
 #thumbnails-delete-button {
@@ -336,7 +354,7 @@ footer {
   width: 50%;
   height: 100%;
   left: 0;
-  background-image: url('images/delete.png');
+  background-image: url('images/iconaction_delete_30x30.png');
   border-right: 1px solid #000;
 }
 
@@ -345,7 +363,7 @@ footer {
   width: 50%;
   height: 100%;
   left: 50%;
-  background-image: url('images/share.png');
+  background-image: url('images/iconaction_share_30x30.png');
 }
 
 #fullscreen-toolbar {
@@ -366,7 +384,7 @@ footer {
   width: 20%;
   height: 100%;
   left: 0;
-  background-image: url('images/actionicon_grid_view.png');
+  background-image: url('images/iconaction_camera_gridview_30x30.png');
 }
 
 #fullscreen-camera-button {
@@ -374,7 +392,7 @@ footer {
   width: 20%;
   height: 100%;
   left: 20%;
-  background-image: url('images/camera.png');
+  background-image: url('images/iconaction_camera_30x30.png');
 }
 
 #fullscreen-edit-button {
@@ -382,7 +400,7 @@ footer {
   width: 20%;
   height: 100%;
   left: 40%;
-  background-image: url('images/edit.png');
+  background-image: url('images/iconaction_edit_30x30.png');
 }
 
 #fullscreen-share-button {
@@ -390,7 +408,7 @@ footer {
   width: 20%;
   height: 100%;
   left: 60%;
-  background-image: url('images/share.png');
+  background-image: url('images/iconaction_share_30x30.png');
 }
 
 #fullscreen-delete-button {
@@ -398,7 +416,7 @@ footer {
   width: 20%;
   height: 100%;
   left: 80%;
-  background-image: url('images/delete.png');
+  background-image: url('images/iconaction_delete_30x30.png');
 }
 
 #pick-top {
@@ -521,23 +539,23 @@ footer {
 
 #edit-crop-none {
   left: 0;
-  background-image: url('images/actionicon_undo.png');
+  background-image: url('images/iconaction_undo_30x30.png');
 }
 #edit-crop-aspect-free {
   left: 20%;
-  background-image: url('images/actionicon_cropfree.png');
+  background-image: url('images/iconaction_camera_freecrop_30x30.png');
 }
 #edit-crop-aspect-portrait {
   left: 40%;
-  background-image: url('images/actionicon_crop23.png');
+  background-image: url('images/iconaction_camera_crop2x3_30x30.png');
 }
 #edit-crop-aspect-landscape {
   left: 60%;
-  background-image: url('images/actionicon_crop32.png');
+  background-image: url('images/iconaction_camera_crop3x2_30x30.png');
 }
 #edit-crop-aspect-square {
   left: 80%;
-  background-image: url('images/actionicon_crop11.png');
+  background-image: url('images/iconaction_camera_crop1x1_30x30.png');
 }
 
 /* instead of using images inside the buttons above, just draw boxes */

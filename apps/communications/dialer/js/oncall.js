@@ -2,6 +2,7 @@
 
 var CallScreen = {
   _ticker: null,
+  _screenLock: null,
 
   screen: document.getElementById('call-screen'),
   views: document.getElementById('views'),
@@ -53,9 +54,13 @@ var CallScreen = {
 
   },
 
-  setCallerContactImage: function cs_setCallerContactImage(image_url) {
-    var photoURL = URL.createObjectURL(image_url);
-    this.mainContainer.style.backgroundImage = 'url(' + photoURL + ')';
+  setCallerContactImage: function cs_setCallerContactImage(image_url, force) {
+    var photoURL;
+    var isString = (typeof image_url == 'string');
+    photoURL = isString ? image_url : URL.createObjectURL(image_url);
+    if (!this.mainContainer.style.backgroundImage || force) {
+      this.mainContainer.style.backgroundImage = 'url(' + photoURL + ')';
+    }
   },
 
   toggleMute: function cs_toggleMute() {
@@ -130,11 +135,18 @@ var CallScreen = {
 
     this.callToolbar.classList.add('transparent');
     this.incomingContainer.classList.add('displayed');
+
+    this._screenLock = navigator.requestWakeLock('screen');
   },
 
   hideIncoming: function cs_hideIncoming() {
     this.callToolbar.classList.remove('transparent');
     this.incomingContainer.classList.remove('displayed');
+
+    if (this._screenLock) {
+      this._screenLock.unlock();
+      this._screenLock = null;
+    }
   },
 
   syncSpeakerEnabled: function cs_syncSpeakerEnabled() {
@@ -166,15 +178,15 @@ var OnCallHandler = (function onCallHandler() {
 
   /* === Settings === */
   var activePhoneSound = true;
-  SettingsListener.observe('ring.enabled', true, function(value) {
+  SettingsListener.observe('audio.volume.notification', true, function(value) {
     activePhoneSound = !!value;
   });
 
-  var selectedPhoneSound = 'style/ringtones/classic.ogg';
-  SettingsListener.observe('dialer.ringtone', 'classic.ogg', function(value) {
-    selectedPhoneSound = 'style/ringtones/' + value;
+  var selectedPhoneSound = '';
+  SettingsListener.observe('dialer.ringtone', '', function(value) {
+    selectedPhoneSound = value;
     ringtonePlayer.pause();
-    ringtonePlayer.src = selectedPhoneSound;
+    ringtonePlayer.src = value;
 
     if (ringing) {
       ringtonePlayer.play();
@@ -188,6 +200,7 @@ var OnCallHandler = (function onCallHandler() {
   }
 
   var ringtonePlayer = new Audio();
+  ringtonePlayer.mozAudioChannelType = 'ringer';
   ringtonePlayer.src = selectedPhoneSound;
   ringtonePlayer.loop = true;
 
@@ -275,8 +288,16 @@ var OnCallHandler = (function onCallHandler() {
     }
 
     if (handledCalls.length > 1) {
-      // signaling the user of the new call
-      navigator.vibrate([100, 100, 100]);
+      // New incoming call, signaling the user.
+      // Waiting for the screen to be turned on before vibrating.
+      if (document.mozHidden) {
+        window.addEventListener('mozvisibilitychange', function waitOn() {
+          window.removeEventListener('mozvisibilitychange', waitOn);
+          navigator.vibrate([100, 100, 100]);
+        });
+      } else {
+        navigator.vibrate([100, 100, 100]);
+      }
 
       var number = (call.number.length ? call.number : _('unknown'));
       Contacts.findByNumber(number, function lookupContact(contact) {
@@ -322,7 +343,7 @@ var OnCallHandler = (function onCallHandler() {
       }, 600);
     }
 
-    if (activePhoneSound && selectedPhoneSound) {
+    if (activePhoneSound) {
       ringtonePlayer.play();
       ringing = true;
     }
@@ -559,7 +580,7 @@ var OnCallHandler = (function onCallHandler() {
     var message = {
       type: 'recent',
       entry: entry
-    }
+    };
     postToMainWindow(message);
   }
 
@@ -596,11 +617,15 @@ window.addEventListener('localized', function callSetup(evt) {
   CallScreen.init();
   CallScreen.syncSpeakerEnabled();
   OnCallHandler.setup();
-  if (navigator.mozSettings) {
+  var isLocked = (window.location.hash === '#locked');
+  // After investigating in #815629, it seems that
+  // lock screen animation over the Wallpaper image is not
+  // performing well, so we are not painting it when is locked
+  // Being tracked in #817988
+  if (navigator.mozSettings && !isLocked) {
     var req = navigator.mozSettings.createLock().get('wallpaper.image');
     req.onsuccess = function cs_wi_onsuccess() {
-      CallScreen.mainContainer.style.backgroundImage =
-        'url(' + req.result['wallpaper.image'] + ')';
+      CallScreen.setCallerContactImage(req.result['wallpaper.image']);
     };
   }
 });

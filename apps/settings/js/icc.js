@@ -51,7 +51,8 @@
     icc.addEventListener('stkcommand', function do_handleSTKCmd(event) {
       handleSTKCommand(event.command);
     });
-    window.addEventListener('stkasynccommand', function do_handleAsyncSTKCmd(event) {
+    window.addEventListener('stkasynccommand',
+        function do_handleAsyncSTKCmd(event) {
       handleSTKCommand(event.detail.command);
     });
 
@@ -369,7 +370,7 @@
       document.getElementById('icc-stk-exit').classList.remove('hidden');
       document.getElementById('icc-stk-app-back').classList.add('hidden');
 
-      if (!menu || !menu.title) {
+      if (!menu || (menu.items.length == 1 && menu.items[0] === null)) {
         debug('No STK available - hide & exit');
         document.getElementById('icc-mainheader').hidden = true;
         document.getElementById('icc-mainentry').hidden = true;

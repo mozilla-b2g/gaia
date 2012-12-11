@@ -79,6 +79,42 @@ suite('provider/caldav', function() {
     assert.isTrue(subject.useCredentials);
   });
 
+  suite('#calendarCapabilities', function() {
+    /**
+     * Creates a test for a privilege set
+     */
+    function testPrivilege(name, privileges, expected) {
+      test(name, function() {
+        var calendar = Factory('calendar', {
+          remote: {
+            privilegeSet: privileges
+          }
+        });
+
+        var result = subject.calendarCapabilities(
+          calendar
+        );
+
+        assert.hasProperties(result, expected);
+      });
+    }
+
+    testPrivilege('missing privilegeSet', null, {
+      canUpdateEvent: true,
+      canDeleteEvent: true,
+      canCreateEvent: true
+    });
+
+    testPrivilege('delete', ['unbind'], {
+      canDeleteEvent: true
+    });
+
+    testPrivilege('create/update', ['write-content'], {
+      canCreateEvent: true,
+      canUpdateEvent: true
+    });
+  });
+
   suite('#eventCapabilities', function() {
     test('recurring', function() {
       var event = Factory('event', {
@@ -97,8 +133,11 @@ suite('provider/caldav', function() {
       assert.deepEqual(actual, expected);
     });
 
-    test('normal', function() {
-      var event = Factory('event');
+    test('without calendar permissions', function() {
+      var calendar = Factory('calendar');
+      var event = Factory('event', { calendarId: calendar._id });
+      calendarStore.cached[calendar._id] = calendar;
+
       assert.isFalse(event.remote.isRecurring);
 
       var expected = {
@@ -109,6 +148,36 @@ suite('provider/caldav', function() {
 
       var actual = subject.eventCapabilities(event);
       assert.deepEqual(actual, expected);
+    });
+
+    test('with calendar permissions', function() {
+      var calledWith = null;
+      var calendar = Factory('calendar');
+      var givenCaps = {
+        canUpdateEvent: true,
+        canDeleteEvent: true,
+        canCreateEvent: false
+      };
+
+      subject.calendarCapabilities = function() {
+        calledWith = arguments;
+        return givenCaps;
+      }
+
+      var event = Factory('event', { calendarId: calendar._id });
+      calendarStore.cached[calendar._id] = calendar;
+
+      var caps = subject.eventCapabilities(event);
+      assert.deepEqual(
+        calledWith,
+        [calendar]
+      );
+
+      assert.deepEqual(caps, {
+        canCreate: givenCaps.canCreateEvent,
+        canUpdate: givenCaps.canUpdateEvent,
+        canDelete: givenCaps.canDeleteEvent
+      });
     });
   });
 

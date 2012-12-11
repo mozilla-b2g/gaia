@@ -57,7 +57,7 @@ HandledCall.prototype.handleEvent = function hc_handle(evt) {
       break;
     case 'resumed':
       if (this.photo) {
-        CallScreen.setCallerContactImage(this.photo);
+        CallScreen.setCallerContactImage(this.photo, true);
       }
       CallScreen.syncSpeakerEnabled();
       break;
@@ -85,8 +85,18 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
   var additionalInfoNode = this.additionalInfoNode;
 
   if (!number.length) {
-    var _ = navigator.mozL10n.get;
-    node.textContent = _('unknown');
+    var setUnknownNumber = function() {
+      var _ = navigator.mozL10n.get;
+      node.textContent = _('unknown');
+    };
+    if (navigator.mozL10n.readyState == 'complete') {
+      setUnknownNumber();
+    } else {
+      window.addEventListener('localized', function onLocalized() {
+        window.removeEventListener('localized', onLocalized);
+        setUnknownNumber();
+      });
+    }
     return;
   }
 
@@ -108,7 +118,7 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
       KeypadManager.updateAdditionalContactInfo(additionalInfo);
       if (contact.photo && contact.photo.length > 0) {
         self.photo = contact.photo[0];
-        CallScreen.setCallerContactImage(self.photo);
+        CallScreen.setCallerContactImage(self.photo, true);
       }
       return;
     }

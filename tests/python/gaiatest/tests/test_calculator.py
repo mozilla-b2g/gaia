@@ -6,36 +6,46 @@ from gaiatest import GaiaTestCase
 
 
 class TestCalculator(GaiaTestCase):
-    def test_calculator_basic(self):
+
+    _display_locator = ('id', 'display')
+    _multiply_button_locator = ('id', 'multiply')
+    _clear_button_locator = ('xpath', "//input[@value='C']")
+    _equals_button_locator = ('xpath', "//input[@value='=']")
+    _three_button_locator = ('xpath', "//input[@value='3']")
+    _five_button_locator = ('xpath', "//input[@value='5']")
+
+    def setUp(self):
+        GaiaTestCase.setUp(self)
+
         # unlock the lockscreen if it's locked
-        self.assertTrue(self.lockscreen.unlock())
+        self.lockscreen.unlock()
 
         # launch the Calculator app
-        app = self.apps.launch('Calculator')
-        self.assertTrue(app.frame_id is not None)
+        self.app = self.apps.launch('Calculator')
 
-        # switch into the Calculator's frame
-        self.marionette.switch_to_frame(app.frame_id)
-        url = self.marionette.get_url()
-        self.assertTrue('calculator' in url, 'wrong url: %s' % url)
+    def test_calculator_basic(self):
+        # https://moztrap.mozilla.org/manage/case/2844/
+
+        # wait for the elements to show up
+        self.wait_for_element_displayed(*self._clear_button_locator)
 
         # clear the calculator's display
-        element = self.marionette.find_element('xpath', '//*[@value="C"]')
-        element.click()
+        self.marionette.find_element(*self._clear_button_locator).click()
 
         # perform a 3*5 calculation
-        element = self.marionette.find_element('xpath', '//*[@value="3"]')
-        element.click()
-        element = self.marionette.find_element('id', 'multiply')
-        element.click()
-        element = self.marionette.find_element('xpath', '//*[@value="5"]')
-        element.click()
-        element = self.marionette.find_element('xpath', '//*[@value="="]')
-        element.click()
+        self.marionette.find_element(*self._three_button_locator).click()
+        self.marionette.find_element(*self._multiply_button_locator).click()
+        self.marionette.find_element(*self._five_button_locator).click()
+        self.marionette.find_element(*self._equals_button_locator).click()
 
         # verify the result
-        display = self.marionette.find_element('id', 'display')
+        display = self.marionette.find_element(*self._display_locator)
         self.assertEquals(display.text, '15', 'wrong calculated value!')
 
+    def tearDown(self):
+
         # close the app
-        self.apps.kill(app)
+        if hasattr(self, 'app'):
+            self.apps.kill(self.app)
+
+        GaiaTestCase.tearDown(self)

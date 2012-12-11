@@ -65,6 +65,7 @@ Calendar.ns('Service').Caldav = (function() {
       req.addResource('calendar', Resource);
       req.prop(['ical', 'calendar-color']);
       req.prop(['caldav', 'calendar-description']);
+      req.prop('current-user-privilege-set');
       req.prop('displayname');
       req.prop('resourcetype');
       req.prop(['calserver', 'getctag']);
@@ -102,12 +103,19 @@ Calendar.ns('Service').Caldav = (function() {
     },
 
     getAccount: function(account, callback) {
-      var url = account.url;
+      var url = account.entrypoint;
       var connection = new Caldav.Connection(account);
 
       var request = this._requestHome(connection, url);
-      return request.send(function() {
-        callback.apply(this, arguments);
+      return request.send(function(err, data) {
+        if (err) {
+          callback(err);
+          return;
+        }
+
+        callback(null, {
+          calendarHome: data.url
+        });
       });
     },
 
@@ -120,13 +128,14 @@ Calendar.ns('Service').Caldav = (function() {
       result.color = cal.color;
       result.description = cal.description;
       result.syncToken = cal.ctag;
+      result.privilegeSet = cal.privilegeSet;
 
       return result;
     },
 
     findCalendars: function(account, callback) {
       var self = this;
-      var url = account.url;
+      var url = account.calendarHome;
       var connection = new Caldav.Connection(
         account
       );
@@ -151,9 +160,20 @@ Calendar.ns('Service').Caldav = (function() {
         for (key in calendars) {
           if (calendars.hasOwnProperty(key)) {
             item = calendars[key];
-            results[key] = self._formatCalendar(
+            var formattedCal = self._formatCalendar(
               item
             );
+
+            // If privilegeSet is not present we will assume full permissions.
+            // Its highly unlikey that it is missing however.
+            if (('privilegeSet' in formattedCal) &&
+                (formattedCal.privilegeSet.indexOf('read') === -1)) {
+
+              // skip calendars without read permissions
+              continue;
+            }
+
+            results[key] = formattedCal;
           }
         }
         callback(null, results);
@@ -556,6 +576,7 @@ Calendar.ns('Service').Caldav = (function() {
 
         if (err) {
           callback(err);
+          console.log('ERR', ical);
           return;
         }
 
@@ -617,6 +638,11 @@ Calendar.ns('Service').Caldav = (function() {
       }
 
       function handleResponse(url, data) {
+        if (!data) {
+          // throw some error;
+          console.log('Could not sync: ', url);
+          return;
+        }
         var etag = data.getetag.value;
         if (url in cache) {
           // don't need to track this for missing events.
@@ -755,7 +781,7 @@ Calendar.ns('Service').Caldav = (function() {
         target.endDate = self.formatInputTime(event.end);
 
         var vcal = target.component.parent.toString();
-        event.icalComponent = target.component.parent.toJSON();
+        event.icalComponent = vcal;
 
         req.put({ etag: etag }, vcal, function(err, data, xhr) {
           var token = xhr.getResponseHeader('Etag');

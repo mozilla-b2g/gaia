@@ -175,7 +175,7 @@ suite('service/caldav', function() {
   });
 
   test('#_formatCalendar', function() {
-    var cal = Factory('caldav.calendar');
+    var cal = Factory.build('caldav.calendar');
     var result = subject._formatCalendar(cal);
 
     assert.equal(result.id, cal.url);
@@ -184,6 +184,8 @@ suite('service/caldav', function() {
     assert.equal(result.syncToken, cal.ctag);
     assert.equal(result.description, cal.description);
     assert.equal(result.color, cal.color);
+    assert.ok(cal.privilegeSet, 'has privilegeSet');
+    assert.equal(result.privilegeSet, cal.privilegeSet);
   });
 
   suite('#_formatEvent', function() {
@@ -337,25 +339,28 @@ suite('service/caldav', function() {
   test('#getAccount', function(done) {
     var calledWith;
     var given = Factory('caldav.account');
-    var result = {};
+    var result = {
+      url: '/myfoobar/'
+    };
 
     subject._requestHome = function() {
       calledWith = arguments;
       return {
         send: function(callback) {
           setTimeout(function() {
-            callback(result);
+            callback(null, result);
           }, 0);
         }
       };
     };
 
-    subject.getAccount(given, function(data) {
+    subject.getAccount(given, function(err, data) {
       done(function() {
-        assert.deepEqual(data, result);
+        assert.ok(!err, 'should succeed');
+        assert.equal(data.calendarHome, result.url);
         assert.instanceOf(calledWith[0], Caldav.Connection);
         assert.equal(calledWith[0].domain, given.domain);
-        assert.equal(calledWith[1], given.url);
+        assert.equal(calledWith[1], given.entrypoint);
       });
     });
   });
@@ -808,10 +813,11 @@ suite('service/caldav', function() {
 
   suite('#findCalendars', function() {
     var results;
-    var given = { url: 'foo', domain: 'google' };
     var calledWith;
+    var given;
 
     setup(function() {
+      given = Factory('caldav.account');
       subject._requestCalendars = function() {
         calledWith = arguments;
         return {
@@ -827,12 +833,16 @@ suite('service/caldav', function() {
 
     test('success', function(done) {
       results = {
-        '/one': Factory(
+        '/one': Factory.build(
           'caldav.calendar', { name: 'one' }
         ),
 
-        '/two': Factory(
+        '/two': Factory.build(
           'caldav.calendar', { name: 'one' }
+        ),
+
+        '/three': Factory.build(
+          'caldav.calendar', { name: 'no read', privilegeSet: ['foo'] }
         )
       };
 
@@ -849,7 +859,7 @@ suite('service/caldav', function() {
           );
 
           assert.instanceOf(calledWith[0], Caldav.Connection);
-          assert.equal(calledWith[1], given.url);
+          assert.equal(calledWith[1], given.calendarHome);
 
           assert.deepEqual(
             data['/one'],
@@ -861,6 +871,11 @@ suite('service/caldav', function() {
             data['/two'],
             subject._formatCalendar(results['/two']),
             'should format and include /two calendar'
+          );
+
+          assert.ok(
+            !data['/three'],
+            'skips calendars without read privleges'
           );
         });
       });
@@ -1024,6 +1039,11 @@ suite('service/caldav', function() {
 
             done(function() {
               assert.ok(!parseErr, parseErr);
+              assert.ok(
+                typeof(result.icalComponent) === 'string',
+                'updated result is returned as a string'
+              );
+
               assert.equal(
                 newEvent.sequence,
                 parseInt(original.sequence, 10) + 1,

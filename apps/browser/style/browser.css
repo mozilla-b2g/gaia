@@ -67,7 +67,7 @@ input[type="image"] {
 }
 
 #tray {
-  font-size: 16px;
+  font-size: 1.7rem;
   -moz-transition: 0.2s ease-in-out;
   position: absolute;
   left: 50px;
@@ -87,7 +87,7 @@ input[type="image"] {
   border: 0;
   color: white;
   background: black;
-  font-size: 16px;
+  font-size: 1.7rem;
   padding: 5px;
   cursor: pointer;
 }
@@ -164,7 +164,7 @@ input[type="image"] {
   width: 50px;
   top: 0;
   background: transparent;
-  font-size: 28px;
+  font-size: 2.8rem;
   color: white;
   padding-bottom: 7px;
 }
@@ -202,7 +202,7 @@ input[type="image"] {
   position: absolute;
   right: 0px;
   top: 0;
-  font-size: 22px;
+  font-size: 2.3rem;
   color: white;
   display: block;
   width: 44px;
@@ -218,7 +218,7 @@ input[type="image"] {
 }
 
 #more-tabs {
-  font-size: 1.2em;
+  font-size: 2.8rem;
 }
 
 #toolbar-start {
@@ -260,7 +260,7 @@ input[type="image"] {
 }
 
 .tabs-screen #toolbar-start {
-  background-image: url('./images/drawer-collapse.png'), url('./images/tabs-badge-background.png');
+  background-image: url('./images/iconaction_back_50x50.png'), url('./images/tabs-badge-background.png');
   background-repeat: no-repeat, no-repeat;
   background-position: top right, right;
   padding-right: 65px;
@@ -323,7 +323,7 @@ input[type="image"] {
 
 #url-input {
   font-family: 'MozTT', sans-serif;
-  font-size: 18px;
+  font-size: 1.7rem;
   height: 34px;
   -moz-box-flex: 1;
   margin: 0;
@@ -360,16 +360,16 @@ menu[type="toolbar"] button {
 }
 
 #back-button {
-  background-image: url("images/back.png");
+  background-image: url("images/iconaction_browser_back_30x30.png");
 }
 
 #forward-button {
-  background-image: url("images/forward.png");
+  background-image: url("images/iconaction_browser_forward_30x30.png");
 }
 
 
 #back-button:active {
-  background-image: url("images/back-pressed.png");
+  background-image: url("images/iconaction_browser_backpressed_30x30.png");
 }
 
 input::-moz-focus-inner {
@@ -386,7 +386,7 @@ input::-moz-focus-inner {
 
 #bookmark-button {
   float: right;
-  background-image: url("images/bookmark.png");
+  background-image: url("images/iconaction_bookmark_30x30.png");
 }
 
 #bookmark-button.bookmarked {
@@ -414,7 +414,7 @@ input::-moz-focus-inner {
 }
 
 #awesomescreen, #crashscreen, #startscreen {
-  font-size: 16px;
+  font-size: 1.7rem;
   position: absolute;
   top: 0;
   left: 0;
@@ -439,12 +439,12 @@ input::-moz-focus-inner {
 }
 
 #startscreen h1 {
-  font-size: 24px;
+  font-size: 2.5rem;
   margin: 10px 15px;
 }
 
 #startscreen h2 {
-  font-size: 14px;
+  font-size: 1.4rem;
   margin: 0 0 15px 15px;
 }
 
@@ -485,7 +485,7 @@ input::-moz-focus-inner {
 }
 
 #top-site-thumbnails li span {
-  font-size: 12px;
+  font-size: 1.4rem;
   display: block;
   width: 134px;
   height: 15px;
@@ -517,7 +517,7 @@ input::-moz-focus-inner {
 }
 
 #crashscreen h3 {
-  font-size: 2rem;
+  font-size: 2.1rem;
   font-weight: normal;
 }
 
@@ -527,7 +527,7 @@ input::-moz-focus-inner {
 }
 
 #crashscreen p {
-  font-size: 1.6rem;
+  font-size: 1.7rem;
 }
 
 #crashscreen menu[type="toolbar"] {
@@ -551,7 +551,7 @@ input::-moz-focus-inner {
   background: #fafafa url('images/button-background.png') repeat-x left bottom;
   border: 0.1rem solid #9f9f9f;
   border-radius: 0.3rem;
-  font-size: 1.6rem;
+  font-size: 1.7rem;
   font-family: 'MozTT', Sans-serif;
   line-height: 3.8rem;
   color: #333;
@@ -603,6 +603,10 @@ nav[data-role="tabs"] {
   height: 36px;
 }
 
+#tab-panels {
+  height: 100%;
+}
+
 ul[role="tablist"] {
   margin: 0;
   padding: 0;
@@ -622,7 +626,7 @@ li[role="tab"] a {
   line-height: 36px;
   text-align: center;
   padding: 0 30px;
-  font-size: 14px;
+  font-size: 1.4rem;
   outline: none;
   margin-left: -30px;
   text-overflow: ellipsis;
@@ -642,7 +646,6 @@ li[role="tab"] a.selected {
   background-origin: padding-box;
 }
 
-#results,
 section[role="tabpanel"] {
   padding-top: 5px;
   clear: both;
@@ -650,13 +653,28 @@ section[role="tabpanel"] {
   display: none;
 }
 
-#results.selected,
 section[role="tabpanel"].selected {
   display: block;
 }
 
+#results {
+  padding-top: 5px;
+  background-color: #f3f4f8;
+  display: block;
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+#results.hidden {
+  display: none;
+}
+
 #awesomescreen h3 {
-  font-size: 0.9em;
+  font-size: 1.4rem;
   margin: 0 10px;
   color: #FF5F19;
   border-bottom: solid 1px #FF5F19;
@@ -700,7 +718,7 @@ li[role="listitem"] h5 {
   overflow: hidden;
   white-space: nowrap;
   pointer-events: none;
-  font-size: 14px;
+  font-size: 1.4rem;
 }
 
 li[role="listitem"] small {
@@ -712,7 +730,7 @@ li[role="listitem"] small {
 }
 
 .highlight {
-  font-weight: bold;
+  font-weight: 500;
   text-decoration: underline;
 }
 
@@ -735,7 +753,7 @@ li[role="listitem"] small {
 }
 
 #history, #bookmarks, #top-sites {
-  height: -moz-calc(100% - 36px);
+  height: calc(100% - 36px);
   overflow-y: auto;
   overflow-x: hidden;
 }
@@ -812,17 +830,6 @@ li[role="listitem"] small {
   display: none;
 }
 
-#modal-dialog-alert,
-#modal-dialog-confirm,
-#modal-dialog-prompt {
-  width: 90% !important;
-  margin: 0 auto !important;
-}
-
-#modal-dialog {
-  background: rgba(0, 0, 0, 0.5);
-}
-
 #tray-toolbar {
   background: none;
   height: 50px;
@@ -836,19 +843,19 @@ li[role="listitem"] small {
 }
 
 #settings-button {
-  background-image: url('images/settings.png');
+  background-image: url('images/iconaction_settings_30x30.png');
   float: right;
   height: 50px;
 }
 
 #new-tab-button {
-  background-image: url('images/add.png'), url('images/header-divider.png');
+  background-image: url('images/iconaction_new_30x30.png'), url('images/header-divider.png');
   float: right;
   height: 50px;
 }
 
 #settings {
-  font-size: 16px;
+  font-size: 1.7rem;
   position: absolute;
   left: 0px;
   top: 0;
@@ -954,7 +961,7 @@ li[role="listitem"] small {
   position: relative;
   margin: 1rem 2rem;
   text-transform: uppercase;
-  font-size: 1.5rem;
+  font-size: 1.4rem;
  }
 
  #bookmark-entry-sheet input[type="text"],

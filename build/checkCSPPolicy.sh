@@ -1,13 +1,7 @@
 #!/bin/bash
 
-#produccion
-#PATH_BASE=/home/mcjimenez/dev/gaia
 PATH_BASE=`pwd`
 DIR_APPS=profile/webapps
-
-#pruebas
-#PATH_BASE=/home/mcjimenez/dev/
-#DIR_APPS=pruebasKK
 
 EVENTS="onclick ondblclick onmousedown onmousemove onmouseover onmouseout onmouseup onkeydown onkeypress onkeyup onabort onerror onload onresize onscroll onunload onblur onchange onfocus onreset onselect onsubmit ondragdrop onmove"  
 

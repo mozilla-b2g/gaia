@@ -79,9 +79,9 @@ var editBgImageButtons =
 // element, and video player controls within the div, and you can refer to
 // those as currentFrame.image and currentFrame.video.player and
 // currentFrame.video.controls.
-var previousFrame = new Frame($('frame1'));
-var currentFrame = new Frame($('frame2'));
-var nextFrame = new Frame($('frame3'));
+var previousFrame = new MediaFrame($('frame1'));
+var currentFrame = new MediaFrame($('frame2'));
+var nextFrame = new MediaFrame($('frame3'));
 
 // When this variable is set to true, we ignore any user gestures
 // so we don't try to pan or zoom during a frame transition.
@@ -131,6 +131,12 @@ function init() {
 }
 
 function initUI() {
+  // Keep track of when thumbnails are onscreen and offscreen
+  monitorChildVisibility(thumbnails,
+                         360,                 // extra space top and bottom
+                         thumbnailOnscreen,   // set background image
+                         thumbnailOffscreen); // remove background image
+
   // Clicks on the thumbnails do different things depending on what
   // view we're in.
   thumbnails.onclick = thumbnailClickHandler;
@@ -346,7 +352,7 @@ function fileDeleted(filename) {
 
   // Remove the corresponding thumbnail
   var thumbnailElts = thumbnails.querySelectorAll('.thumbnail');
-  URL.revokeObjectURL(thumbnailElts[n].style.backgroundImage.slice(5, -2));
+  URL.revokeObjectURL(thumbnailElts[n].dataset.backgroundImage.slice(5, -2));
   thumbnails.removeChild(thumbnailElts[n]);
 
   // Change the index associated with all the thumbnails after the deleted one
@@ -627,7 +633,7 @@ function createThumbnailList() {
 }
 
 //
-// Create a thumbnail <img> element
+// Create a thumbnail element
 //
 function createThumbnail(imagenum) {
   var li = document.createElement('li');
@@ -637,9 +643,25 @@ function createThumbnail(imagenum) {
   var fileinfo = files[imagenum];
   // We revoke this url in imageDeleted
   var url = URL.createObjectURL(fileinfo.metadata.thumbnail);
-  li.style.backgroundImage = 'url("' + url + '")';
 
+  // We set the url on a data attribute and let the onscreen
+  // and offscreen callbacks below set and unset the actual
+  // background image style. This means that we don't keep
+  // images decoded if we don't need them.
+  li.dataset.backgroundImage = 'url("' + url + '")';
   return li;
+}
+
+// monitorChildVisibility() calls this when a thumbnail comes onscreen
+function thumbnailOnscreen(thumbnail) {
+  if (thumbnail.dataset.backgroundImage)
+    thumbnail.style.backgroundImage = thumbnail.dataset.backgroundImage;
+}
+
+// monitorChildVisibility() calls this when a thumbnail goes offscreen
+function thumbnailOffscreen(thumbnail) {
+  if (thumbnail.dataset.backgroundImage)
+    thumbnail.style.backgroundImage = null;
 }
 
 //

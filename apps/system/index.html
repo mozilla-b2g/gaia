@@ -21,6 +21,7 @@
     <!-- System -->
     <link rel="stylesheet" type="text/css" href="style/system/system.css">
     <link rel="stylesheet" type="text/css" href="style/system/keyboard.css">
+    <link rel="stylesheet" type="text/css" href="style/sound_manager/sound_manager.css">
 
     <!-- Include shared building blocks -->
     <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
@@ -280,6 +281,7 @@
         <div id="statusbar-sms" class="sb-icon sb-icon-sms" hidden></div>
         <div id="statusbar-geolocation" class="sb-icon sb-icon-geolocation" hidden></div>
         <div id="statusbar-usb" class="sb-icon sb-icon-usb" hidden></div>
+        <div id="statusbar-call-forwarding" class="sb-icon sb-icon-call-forwarding" hidden></div>
       </div>
 
       <div id="utility-tray" data-z-index-level="utility-tray">
@@ -755,12 +757,16 @@
             </svg>
             <div id="lockscreen-area"></div>
             <div id="lockscreen-icon-container">
-              <button id="lockscreen-area-camera" class="lockscreen-icon lockscreen-icon-left">
-                <div id="lockscreen-accessibility-camera" role="button" class="lockscreen-icon-a11y-button" data-l10n-id="camera-a11y-button" aria-label="Camera"></div>
-              </button>
-              <button id="lockscreen-area-unlock" class="lockscreen-icon lockscreen-icon-right">
-                <div id="lockscreen-accessibility-unlock" role="button" class="lockscreen-icon-a11y-button" data-l10n-id="unlock-a11y-button" aria-label="Unlock"></div>
-              </button>
+              <div id="lockscreen-area-camera" class="lockscreen-icon-area lockscreen-icon-left">
+                <div class="lockscreen-icon">
+                  <div id="lockscreen-accessibility-camera" role="button" class="lockscreen-icon-a11y-button" data-l10n-id="camera-a11y-button" aria-label="Camera"></div>
+                </div>
+              </div>
+              <div id="lockscreen-area-unlock" class="lockscreen-icon-area lockscreen-icon-right">
+                <div class="lockscreen-icon">
+                    <div id="lockscreen-accessibility-unlock" role="button" class="lockscreen-icon-a11y-button" data-l10n-id="unlock-a11y-button" aria-label="Unlock"></div>
+                </div>
+              </div>
             </div>
           </div>
 

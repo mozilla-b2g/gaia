@@ -1,0 +1,33 @@
+#modify-account-view.preset-google .full-url,
+#modify-account-view.preset-yahoo .full-url {
+  display: none;
+}
+
+#modify-account-view.create .delete-record {
+  display: none;
+}
+
+:target#remove-account-dialog {
+  display: block;
+}
+
+#modify-account-view .during-progress {
+  display: none;
+}
+
+#modify-account-view.in-progress .during-progress {
+  display: block;
+  height: 100%;
+  width: 100%;
+  padding: 10% 0%;
+  text-align: center;
+}
+
+#modify-account-view.in-progress button,
+#modify-account-view.in-progress form {
+  display: none;
+}
+
+#remove-account-dialog {
+  display: none;
+}

@@ -101,6 +101,7 @@ var MessageManager = {
             var num = this.getNumFromHash();
             if (num) {
               var filter = this.createFilter(num);
+              var messageInput = document.getElementById('message-to-send');
               MessageManager.currentNum = num;
               if (mainWrapper.classList.contains('edit')) {
                 this.getMessages(ThreadUI.renderMessages, filter);
@@ -108,11 +109,12 @@ var MessageManager = {
               } else if (threadMessages.classList.contains('new')) {
                 this.getMessages(ThreadUI.renderMessages, filter);
                 threadMessages.classList.remove('new');
+                messageInput.focus();
               } else {
                 this.getMessages(ThreadUI.renderMessages,
                   filter, null, function() {
                     MessageManager.slide(function() {
-                      document.getElementById('message-to-send').focus();
+                      messageInput.focus();
                     });
                   });
               }
@@ -953,6 +955,9 @@ var ThreadUI = {
     this.selectedInputList = [];
     this.pageHeader.innerHTML = _('editMode');
     this.checkInputs();
+
+    // Unlock sendMessage function.
+    ThreadUI.sendingMessage = false;
   },
 
   clearContact: function thui_clearContact() {
@@ -1132,7 +1137,16 @@ var ThreadUI = {
     var settings = window.navigator.mozSettings,
         throwGeneralError;
 
+    // Lock sendMessage in order to ensure sending the message only once
+    if (this.sendingMessage)
+      return;
+    this.sendingMessage = true;
+    function unlock() {
+      ThreadUI.sendingMessage = false;
+    }
+
     throwGeneralError = function() {
+      unlock();
       CustomDialog.show(
         _('sendGeneralErrorTitle'),
         _('sendGeneralErrorBody'),
@@ -1144,6 +1158,8 @@ var ThreadUI = {
         }
       );
     };
+
+    var sent = false;
 
     if (settings) {
 
@@ -1162,7 +1178,11 @@ var ThreadUI = {
         var numNormalized =
           PhoneNumberManager.getNormalizedInternationalNumber(num);
         // Retrieve text
-        var text = this.input.value || resendText;
+        var text = this.input.value;
+        // Ensure that resendText isn't a MouseEvent
+        if (typeof(resendText) == 'string')
+          text = resendText;
+
         // If we have something to send
         if (numNormalized != '' && text != '') {
           // Create 'PendingMessage'
@@ -1181,6 +1201,7 @@ var ThreadUI = {
             // Save the message into pendind DB before send.
             PendingMsgManager.saveToMsgDB(message, function onsave(msg) {
               ThreadUI.cleanFields();
+              unlock();
               if (window.location.hash == '#new') {
                 window.location.hash = '#num=' + num;
               } else {
@@ -1192,6 +1213,13 @@ var ThreadUI = {
                 });
               }
               MessageManager.getMessages(ThreadListUI.renderThreads);
+
+              // Safety check in order to ensure that we try to send the
+              // message only once
+              if (sent)
+                return;
+              sent = true;
+
               // XXX Once we have PhoneNumberJS in Gecko we will
               // use num directly:
               // https://bugzilla.mozilla.org/show_bug.cgi?id=809213
@@ -1238,6 +1266,7 @@ var ThreadUI = {
             // Save the message into pendind DB before send.
             PendingMsgManager.saveToMsgDB(message, function onsave(msg) {
               ThreadUI.cleanFields();
+              unlock();
               if (window.location.hash == '#new') {
                 window.location.hash = '#num=' + num;
               } else {
@@ -1260,6 +1289,8 @@ var ThreadUI = {
               MessageManager.getMessages(ThreadListUI.renderThreads);
             });
           }
+        } else {
+          unlock();
         }
       }).bind(this));
 
@@ -1508,13 +1539,41 @@ window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
 
 // We want to register the handler only when we're on the launch path
 if (!window.location.hash.length) {
-  window.navigator.mozSetMessageHandler('sms-received', function smsReceived(message) {
+  window.navigator.mozSetMessageHandler('sms-received',
+    function smsReceived(message) {
     // The black list includes numbers for which notifications should not
     // progress to the user. Se blackllist.js for more information.
+    var number = message.sender;
+    // Class 0 handler:
+    if (message.messageClass == 'class-0') {
+      // XXX: Hack hiding the message class in the icon URL
+      // Should use the tag element of the notification once the final spec
+      // lands:
+      // See: https://bugzilla.mozilla.org/show_bug.cgi?id=782211
+      navigator.mozApps.getSelf().onsuccess = function(evt) {
+        var app = evt.target.result;
+        var iconURL = NotificationHelper.getIconURI(app);
+
+        // XXX: Add params to Icon URL.
+        iconURL += '?class0';
+        var messageBody = number + '\n' + message.body;
+        var showMessage = function() {
+          app.launch();
+          alert(messageBody);
+        };
+
+        // We have to remove the SMS due to it does not have to be shown.
+        MessageManager.deleteMessage(message.id, function() {
+          // Once we remove the sms from DB we launch the notification
+          NotificationHelper.send(message.sender, message.body,
+                                    iconURL, showMessage);
+        });
+
+      };
+      return;
+    }
     if (BlackList.has(message.sender))
       return;
-
-    var number = message.sender;
 
     // The SMS app is already displayed
     if (!document.mozHidden) {
@@ -1533,7 +1592,7 @@ if (!window.location.hash.length) {
 
         // Stashing the number at the end of the icon URL to make sure
         // we get it back even via system message
-        iconURL += '?' + number;
+        iconURL += '?sms-received?' + number;
 
         var goToMessage = function() {
           app.launch();
@@ -1555,14 +1614,24 @@ if (!window.location.hash.length) {
     });
   });
 
-  window.navigator.mozSetMessageHandler('notification', function notificationClick(message) {
+  window.navigator.mozSetMessageHandler('notification',
+    function notificationClick(message) {
     navigator.mozApps.getSelf().onsuccess = function(evt) {
       var app = evt.target.result;
       app.launch();
 
       // Getting back the number form the icon URL
-      var number = message.imageURL.split('?')[1];
-      showThreadFromSystemMessage(number)
+      var notificationType = message.imageURL.split('?')[1];
+      // Case regular 'sms-received'
+      if (notificationType == 'sms-received') {
+        var number = message.imageURL.split('?')[2];
+        showThreadFromSystemMessage(number);
+        return;
+      }
+      var number = message.title;
+      // Class 0 message
+      var messageBody = number + '\n' + message.body;
+      alert(messageBody);
     }
   });
 }

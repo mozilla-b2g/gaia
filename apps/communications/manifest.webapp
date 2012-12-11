@@ -77,7 +77,8 @@
     "alarms": {},
     "systemXHR": {},
     "wifi-manage":{},
-    "time": {}
+    "time": {},
+    "audio":{ "channels": ["telephony", "ringer"] }
   },
   "orientation": "portrait-primary",
   "activities": {

@@ -230,8 +230,14 @@ var WindowManager = (function() {
     var frame = inlineActivityFrame;
 
     frame.style.width = appFrame.style.width;
-    frame.style.height = appFrame.style.height;
-    frame.style.top = appFrame.offsetTop + 'px';
+
+    if (document.mozFullScreen) {
+      frame.style.height = window.innerHeight + 'px';
+      frame.style.top = '0px';
+    } else {
+      frame.style.height = appFrame.style.height;
+      frame.style.top = appFrame.offsetTop + 'px';
+    }
   }
 
   function setFrameBackgroundBlob(frame, blob, transparent) {
@@ -269,6 +275,8 @@ var WindowManager = (function() {
   function setOpenFrame(frame) {
     if (openFrame) {
       removeFrameClasses(openFrame);
+    } else if (openTimer) {
+      clearTimeout(openTimer);
     }
 
     openFrame = frame;
@@ -281,6 +289,8 @@ var WindowManager = (function() {
       removeFrameClasses(closeFrame);
       // closeFrame should not be set to active
       closeFrame.classList.remove('active');
+    } else if (closeTimer) {
+      clearTimeout(closeTimer);
     }
 
     closeFrame = frame;
@@ -309,7 +319,8 @@ var WindowManager = (function() {
 
     if (classList.contains('inlineActivity')) {
       if (classList.contains('active')) {
-        openFrame.focus();
+        if (openFrame)
+          openFrame.focus();
 
         setOpenFrame(null);
       } else {
@@ -324,11 +335,14 @@ var WindowManager = (function() {
         classList.remove('closing');
         classList.add('closing-card');
 
-        openFrame.classList.remove('opening-card');
-        openFrame.classList.add('opening-switching');
+        if (openFrame) {
+          openFrame.classList.remove('opening-card');
+          openFrame.classList.add('opening-switching');
+        }
       } else if (classList.contains('closing-card')) {
         windowClosed(frame);
         setTimeout(closeCallback);
+        closeCallback = null;
 
       } else if (classList.contains('opening-switching')) {
         // If the opening app need to be full screen, switch to full screen
@@ -345,7 +359,9 @@ var WindowManager = (function() {
         });
       } else if (classList.contains('opening')) {
         windowOpened(frame);
+
         setTimeout(openCallback);
+        openCallback = null;
 
         setCloseFrame(null);
         setOpenFrame(null);
@@ -357,12 +373,16 @@ var WindowManager = (function() {
 
     if (classList.contains('opening')) {
       windowOpened(frame);
+
       setTimeout(openCallback);
+      openCallback = null;
 
       setOpenFrame(null);
     } else if (classList.contains('closing')) {
       windowClosed(frame);
+
       setTimeout(closeCallback);
+      closeCallback = null;
 
       setCloseFrame(null);
     }
@@ -631,7 +651,13 @@ var WindowManager = (function() {
       //   setFrameBackground(openFrame, gotBackground, true);
       // will simply work here.
 
-      openCallback();
+      // Call the openCallback only once. We have to use tmp var as
+      // openCallback can be a method calling the callback
+      // (like the `removeFrame` callback in `kill()` ).
+      var tmpCallback = openCallback;
+      openCallback = null;
+      tmpCallback();
+
       windows.classList.add('active');
       openFrame.classList.add('homescreen');
       openFrame.focus();
@@ -648,6 +674,8 @@ var WindowManager = (function() {
     setFrameBackground(openFrame, function gotBackground() {
       // Start the transition when this async/sync callback is called.
       openTimer = setTimeout(function startOpeningTransition() {
+        if (!openFrame)
+          return;
         if (!screenElement.classList.contains('switch-app')) {
           openFrame.classList.add('opening');
         } else {
@@ -726,9 +754,6 @@ var WindowManager = (function() {
       var app = Applications.getByManifestURL(homescreenManifestURL);
       appendFrame(null, homescreen, homescreenURL,
                   app.manifest.name, app.manifest, app.manifestURL);
-
-      addWrapperListener();
-
     } else if (reset) {
       runningApps[homescreen].frame.src = homescreenURL;
     }
@@ -767,6 +792,7 @@ var WindowManager = (function() {
   }
 
   function skipFTU() {
+    document.getElementById('screen').classList.remove('ftuStarting');
     handleInitlogo();
     setDisplayedApp(homescreen);
     // Eventually ask for SIM code, but only when we do not show FTU,
@@ -779,11 +805,11 @@ var WindowManager = (function() {
   // reference to the app and launch it.
   function retrieveFTU() {
     window.asyncStorage.getItem('ftu.enabled', function getItem(launchFTU) {
+      document.getElementById('screen').classList.add('ftuStarting');
       if (launchFTU === false) {
         skipFTU();
         return;
       }
-      document.getElementById('screen').classList.add('ftuStarting');
       var lock = navigator.mozSettings.createLock();
       var req = lock.get('ftu.manifestURL');
       req.onsuccess = function() {
@@ -871,8 +897,7 @@ var WindowManager = (function() {
     if (!isFirstRunApplication) {
       toggleHomescreen(true);
     }
-    clearTimeout(openTimer);
-    clearTimeout(closeTimer);
+
     setOpenFrame(null);
     setCloseFrame(null);
     screenElement.classList.remove('switch-app');
@@ -1029,7 +1054,7 @@ var WindowManager = (function() {
     windows.appendChild(frame);
 
     // And map the app origin to the info we need for the app
-    runningApps[origin] = {
+    var app = {
       get name() {
         var name = getAppName(origin, this.manifest);
         if (!name) {
@@ -1043,6 +1068,7 @@ var WindowManager = (function() {
       frame: frame,
       launchTime: 0
     };
+    runningApps[origin] = app;
 
     if (requireFullscreen(origin)) {
       frame.classList.add('fullscreen-app');
@@ -1058,6 +1084,8 @@ var WindowManager = (function() {
       frame.setVisible(false);
 
     numRunningApps++;
+
+    return app;
   }
 
   function startInlineActivity(origin, url, name, manifest, manifestURL) {
@@ -1102,10 +1130,12 @@ var WindowManager = (function() {
     if (openFrame == frame) {
       setOpenFrame(null);
       setTimeout(openCallback);
+      openCallback = null;
     }
     if (closeFrame == frame) {
       setCloseFrame(null);
       setTimeout(closeCallback);
+      closeCallback = null;
     }
 
     delete runningApps[origin];
@@ -1383,68 +1413,153 @@ var WindowManager = (function() {
     kill(origin);
   });
 
-  // Add handler that deals with wrappers
-  function addWrapperListener() {
-    var frame = runningApps[homescreen].frame;
-    frame.addEventListener('mozbrowseropenwindow', function handleWrapper(evt) {
-      var detail = evt.detail;
-      if (detail.name !== '_blank')
-        return;
-      evt.stopImmediatePropagation();
 
-      var url = detail.url;
-      if (displayedApp === url) {
+  function hasPermission(app, permission) {
+    var mozPerms = navigator.mozPermissionSettings;
+    if (!mozPerms)
+      return false;
+
+    var value = mozPerms.get(permission, app.manifestURL, app.origin, false);
+
+    return (value === 'allow');
+  }
+
+  // Watch for window.open usages in order to open wrapper frames
+  window.addEventListener('mozbrowseropenwindow', function handleWrapper(evt) {
+    var detail = evt.detail;
+    var features;
+    try {
+      features = JSON.parse(detail.features);
+    } catch(e) {
+      features = {};
+    }
+
+    // Handles only call to window.open with `{remote: true}` feature.
+    if (!features.remote)
+      return;
+
+    // XXX bug 819882: for now, only allows homescreen to open oop windows
+    var callerFrame = evt.target;
+    var manifestURL = callerFrame.getAttribute('mozapp');
+    var callerApp = Applications.getByManifestURL(manifestURL);
+    if (!callerApp || !callerFrame.classList.contains('homescreen'))
+      return;
+    var callerOrigin = callerApp.origin;
+
+    // So, we are going to open a remote window.
+    // Now, avoid PopupManager listener to be fired.
+    evt.stopImmediatePropagation();
+
+    var name = detail.name;
+    var url = detail.url;
+
+    // Use fake origin for named windows in order to be able to reuse them,
+    // otherwise always open a new window for '_blank'.
+    var origin = null;
+    var app = null;
+    if (name == '_blank') {
+      origin = url;
+
+      // Just bring on top if a wrapper window is already running with this url
+      if (origin in runningApps &&
+          runningApps[origin].windowName == '_blank') {
+        setDisplayedApp(origin);
         return;
       }
+    } else {
+      origin = 'window:' + name + ',source:' + callerOrigin;
 
-      if (isRunning(url)) {
-        if ('loading' in runningApps[url].frame.dataset) {
-          wrapperHeader.classList.add('visible');
+      for (var appOrigin  in runningApps) {
+        var a = runningApps[appOrigin];
+        if (a.windowName == name) {
+          app = a;
+          break;
         }
-        setDisplayedApp(url);
-        return;
       }
 
-      var frameElement = detail.frameElement;
-      try {
-        var features = JSON.parse(detail.features);
-        var regExp = new RegExp('&nbsp;', 'g');
+      // If the url is already loaded, just display the app
+      if (app && app.frame.src == url) {
+        setDisplayedApp(origin);
+        return;
+      }
+    }
 
-        frameElement.dataset.name = features.name.replace(regExp, ' ') || url;
-        frameElement.dataset.icon = features.icon || '';
+    var title = '', icon = ''; var remote = false;
+    var originName, originURL, searchName, searchURL;
 
-        if (features.origin) {
-          frameElement.dataset.originName =
-                                  features.origin.name.replace(regExp, ' ');
-          frameElement.dataset.originURL =
-                                  decodeURIComponent(features.origin.url);
-        }
+    try {
+      var features = JSON.parse(detail.features);
+      var regExp = new RegExp('&nbsp;', 'g');
 
-        if (features.search) {
-          frameElement.dataset.searchName =
-                                  features.search.name.replace(regExp, ' ');
-          frameElement.dataset.searchURL =
-                                  decodeURIComponent(features.search.url);
-        }
-      } catch (ex) { }
+      title = features.name.replace(regExp, ' ') || url;
+      icon = features.icon || '';
 
-      frameElement.addEventListener('mozbrowserloadstart', function start() {
-        frameElement.dataset.loading = true;
+      if (features.origin) {
+        originName = features.origin.name.replace(regExp, ' ');
+        originURL = decodeURIComponent(features.origin.url);
+      }
+
+      if (features.search) {
+        searchName = features.search.name.replace(regExp, ' ');
+        searchURL = decodeURIComponent(features.search.url);
+      }
+    } catch (ex) { }
+
+    // If we don't reuse an existing app, open a brand new one
+    var frame;
+    if (!app) {
+      // Bug 807438: Move new window document OOP
+      // Ignore `event.detail.frameElement` for now in order
+      // to create a remote system app frame.
+      // So that new window documents are going to share
+      // system app content processes data jar.
+      frame = document.createElement('iframe');
+      frame.setAttribute('mozbrowser', 'true');
+      frame.setAttribute('remote', 'true');
+
+      frame.addEventListener('mozbrowserloadstart', function start() {
+        frame.dataset.loading = true;
         wrapperHeader.classList.add('visible');
       });
 
-      frameElement.addEventListener('mozbrowserloadend', function end() {
-        delete frameElement.dataset.loading;
+      frame.addEventListener('mozbrowserloadend', function end() {
+        delete frame.dataset.loading;
         wrapperHeader.classList.remove('visible');
       });
 
-      appendFrame(frameElement, url, url, frameElement.dataset.name, {
-        'name': frameElement.dataset.name
+      var app = appendFrame(frame, origin, url, title, {
+        'name': title
       }, null);
 
-      setDisplayedApp(url);
-    });
-  }
+      // Set the window name in order to reuse this app if we try to open
+      // a new window with same name
+      app.windowName = name;
+    } else {
+      frame = app.frame;
+
+      // Update app name for the card view
+      app.manifest.name = title;
+    }
+
+    frame.dataset.name = title;
+    frame.dataset.icon = icon;
+
+    if (originName)
+      frame.dataset.originName = originName;
+    if (originURL)
+      frame.dataset.originURL = originURL;
+
+    if (searchName)
+      frame.dataset.searchName = searchName;
+    if (searchURL)
+      frame.dataset.searchURL = searchURL;
+
+    // First load blank page in order to hide previous website
+    frame.src = url;
+
+    setDisplayedApp(origin);
+  }, true); // Use capture in order to catch the event before PopupManager does
+
 
   // Stop running the app with the specified origin
   function kill(origin, callback) {
@@ -1527,6 +1642,7 @@ var WindowManager = (function() {
         e.preventDefault();
       }
     } else {
+      stopInlineActivity();
       ensureHomescreen(true);
     }
   });

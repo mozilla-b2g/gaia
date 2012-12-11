@@ -64,6 +64,7 @@ var Browser = {
     this.urlInput.addEventListener('keyup',
       this.handleUrlInputKeypress.bind(this));
     this.tabPanels.addEventListener('click', this.followLink.bind(this));
+    this.results.addEventListener('click', this.followLink.bind(this));
     this.urlButton.addEventListener('click',
       this.handleUrlFormSubmit.bind(this));
     this.tabsBadge.addEventListener('click',
@@ -127,7 +128,7 @@ var Browser = {
 
     this.handleWindowResize();
 
-    ModalDialog.init(false);
+    ModalDialog.init();
     AuthenticationDialog.init(false);
 
     // Load homepage once Places is initialised
@@ -808,31 +809,14 @@ var Browser = {
     this.bookmarksTab.classList.remove('selected');
     this.history.classList.remove('selected');
     this.historyTab.classList.remove('selected');
-    this.results.classList.remove('selected');
-  },
-
-  showAwesomescreenTabs: function browser_showAwesomescreenTabs() {
-    this.topSites.style.display = '';
-    this.bookmarks.style.display = '';
-    this.history.style.display = '';
-    this.tabHeaders.style.display = '';
-  },
-
-  hideAwesomescreenTabs: function browser_hideAwesomescreenTabs() {
-    this.topSites.style.display = 'none';
-    this.bookmarks.style.display = 'none';
-    this.history.style.display = 'none';
-    this.tabHeaders.style.display = 'none';
   },
 
   updateAwesomeScreen: function browser_updateAwesomeScreen(filter) {
     if (!filter) {
-      this.showAwesomescreenTabs();
-      this.results.classList.remove('selected');
+      this.results.classList.add('hidden');
       filter = false;
     } else {
-      this.hideAwesomescreenTabs();
-      this.results.classList.add('selected');
+      this.results.classList.remove('hidden');
     }
     Places.getTopSites(20, filter, this.showResults.bind(this));
   },
@@ -1348,6 +1332,7 @@ var Browser = {
   },
 
   showAwesomeScreen: function browser_showAwesomeScreen() {
+    this.results.classList.add('hidden');
     this.tabsBadge.innerHTML = '';
     // Ensure the user cannot interact with the browser until the
     // transition has ended, this will not be triggered unless the
@@ -1359,7 +1344,6 @@ var Browser = {
     this.mainScreen.addEventListener('transitionend', pageShown, true);
     this.switchScreen(this.AWESOME_SCREEN);
     this.setUrlButtonMode(this.GO);
-    this.showAwesomescreenTabs();
     this.showTopSitesTab();
   },
 

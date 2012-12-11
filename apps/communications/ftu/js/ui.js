@@ -133,6 +133,10 @@ var UIManager = {
     var tzCont = document.getElementById('tz-continent');
     var tzCity = document.getElementById('tz-city');
     tzSelect(tzCont, tzCity, this.setTimeZone);
+
+    this.offlineErrorDialog = document.getElementById('offline-error-dialog');
+    var button = this.offlineErrorDialog.querySelector('button');
+    button.addEventListener('click', this.onOfflineDialogButtonClick.bind(this));
   },
 
   handleEvent: function ui_handleEvent(event) {
@@ -171,6 +175,17 @@ var UIManager = {
     }
   },
 
+  displayOfflineDialog: function ui_displayOfflineDialog(href, title) {
+    var dialog = this.offlineErrorDialog,
+        text = _('offline-dialog-text', { url: href });
+    dialog.querySelector('small').textContent = text;
+    dialog.classList.add('visible');
+  },
+
+  onOfflineDialogButtonClick: function ui_onOfflineDialogButtonClick(e) {
+    this.offlineErrorDialog.classList.remove('visible');
+  },
+
   importFromSim: function ui_ifs() {
     var feedbackMessage = document.getElementById('sim_import_feedback');
     feedbackMessage.innerHTML = _('simContacts-importing');
@@ -178,7 +193,7 @@ var UIManager = {
       function() {
         feedbackMessage.innerHTML = _('simContacts-reading');
       }, function(n) {
-        feedbackMessage.innerHTML = _('simContacts-imported2', {n: n});
+        feedbackMessage.innerHTML = _('simContacts-imported3', {n: n});
       }, function() {
         feedbackMessage.innerHTML = _('simContacts-error');
     });

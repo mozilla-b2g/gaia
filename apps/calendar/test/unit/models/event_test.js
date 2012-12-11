@@ -33,6 +33,23 @@ suite('models/event', function() {
       assert.equal(subject.data, rawEvent);
     });
 
+    test('from existing model without .startDate/.endDate', function() {
+      var event = new Calendar.Models.Event();
+      var start = new Date(2012, 0, 1);
+      var end = new Date(2012, 0, 5);
+
+      event.startDate = start;
+      event.endDate = end;
+
+      var data = event.data;
+      delete data.remote.startDate;
+      delete data.remote.endDate;
+
+      var newEvent = new Calendar.Models.Event(data);
+      assert.deepEqual(newEvent.startDate, start);
+      assert.deepEqual(newEvent.endDate, end);
+    });
+
     test('from new model', function() {
       subject = new Calendar.Models.Event();
       assert.ok(subject.data, 'has data');

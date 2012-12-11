@@ -89,7 +89,6 @@ ol.link-list a {
 
 #time-header h1 {
   max-width: calc(100% - 5rem);
-  direction:rtl;
 }
 
 #progress-indicator {
@@ -169,25 +168,6 @@ ol.link-list a {
 #create-account-view > ol,
 #create-account-view > p {
   margin: 0 2rem;
-}
-
-/* modify account view */
-
-#modify-account-view.preset-google .full-url,
-#modify-account-view.preset-yahoo .full-url {
-  display: none;
-}
-
-#modify-account-view.create .delete-record {
-  display: none;
-}
-
-:target#remove-account-dialog {
-  display: block;
-}
-
-#remove-account-dialog {
-  display: none;
 }
 
 .fullscreen-view.active {
