@@ -37,9 +37,23 @@ function testPermissions(outputElement) {
     'tcp-socket', 'bluetooth', 'storage', 'time', 'networkstats-manager',
     'idle', 'network-events', 'embed-apps',
     // Just don't.
-    'deprecated-hwvideo'
+    'deprecated-hwvideo', 'and-this-permission-does-not-exist'
   ];
   
+  var specialPermissions=[
+    'contacts', 'device-storage:pictures', 'device-storage:music', 'device-storage:videos',
+    'device-storage:apps'
+  ];
+  var access=["read", "write", "create"];
+
+  for (var i=0; i<specialPermissions.length; i++) {
+    for (var j=0; j<access.length; j++) {
+      _permissions.push(specialPermissions[i]+"-"+access[j]);
+    }
+  }
+
+
+
   var mozPerms = navigator.mozPermissionSettings;
   if (!mozPerms) {
     createElementAt(outputElement,"p","","I can't access mozPermissionSettings!");
