@@ -27,10 +27,12 @@
     <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/switches.css"/>
+
     <link rel="stylesheet" type="text/css" href="style/fake-notification.css"/>
 
     <!-- Include shared resources
     <link rel="resource" type="application/json" href="shared/resources/apn.json"/>
+    <link rel="resource" type="image/png" href="shared/resources/branding/"/>
     -->
 
     <!-- applications.js must not be deferred
@@ -210,36 +212,27 @@
     <link rel="stylesheet" type="text/css" href="style/zindex.css">
 
     <style>
-    /* initlogo style is here to prevent flashing */
+      /* initlogo style is here to prevent flashing */
+      #initlogo {
+        position: absolute;
+        overflow: hidden;
+        width: 100%;
+        height: 100%;
 
-    #initlogo {
-      position: absolute;
-      overflow: hidden;
-      width: 100%;
-      height: 100%;
+        background: #000 url('shared/resources/branding/initlogo.png') bottom right no-repeat;
 
-      background: #000 url('./resources/images/initlogo.png') bottom right no-repeat;
+        z-index: 65536;
 
-      z-index: 65536;
+        opacity: 1;
+        transition: opacity 1s ease 3s;
+        pointer-events: none;
+      }
 
-      visibility: visible;
-      opacity: 1;
-      transition: visibility 3s ease, opacity 3s ease;
-      pointer-events: none;
-    }
-
-    #initlogo.hide {
-      visibility: hidden;
-      opacity: 0;
-    }
-
-    #initlogo > img {
-      position: absolute;
-      bottom: 0;
-      right: 0;
-    }
-
+      #initlogo.hide {
+        opacity: 0;
+      }
     </style>
+
   </head>
 
   <body role="application">
