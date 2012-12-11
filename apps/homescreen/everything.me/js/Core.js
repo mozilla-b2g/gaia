@@ -53,6 +53,7 @@ window.Evme = new function Evme_Core() {
         document.body.classList.add('evme-displayed');
         
         Evme.Shortcuts.refreshScroll();
+        Evme.Helper.refreshIScroll();
     };
     this.onHide = function onHide() {
         document.body.classList.remove('evme-displayed');
