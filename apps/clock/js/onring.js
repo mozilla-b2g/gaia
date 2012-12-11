@@ -76,7 +76,7 @@ var RingView = {
     var ringtonePlayer = this._ringtonePlayer;
     ringtonePlayer.mozAudioChannelType = 'alarm';
     ringtonePlayer.loop = true;
-    var selectedAlarmSound = 'shared/ringtones/media/alarms/' +
+    var selectedAlarmSound = 'shared/resources/media/alarms/' +
                              window.opener.AlarmManager.getAlarmSound();
     ringtonePlayer.src = selectedAlarmSound;
     ringtonePlayer.play();
