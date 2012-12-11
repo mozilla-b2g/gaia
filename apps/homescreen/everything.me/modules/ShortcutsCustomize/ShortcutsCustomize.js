@@ -72,7 +72,11 @@ Evme.ShortcutsCustomize = new function Evme_ShortcutsCustomize() {
         this.show = function loadingShow() {
             if (active) return;
             
-            var el = Evme.$create('div', {'id': ID}, '<menu><button>' + TEXT_CANCEL + '</button></menu>');
+            var el = Evme.$create('div', {'id': ID},
+                        '<div class="loading-wrapper">' +
+                            '<progress class="loading-icon small"></progress>' +
+                        '</div>' +
+                        '<menu><button>' + TEXT_CANCEL + '</button></menu>');
                       
             Evme.$("button", el, function onItem(elButton) {
                 elButton.addEventListener("click", onLoadingCancel)
