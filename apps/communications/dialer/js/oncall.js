@@ -551,7 +551,7 @@ var OnCallHandler = (function onCallHandler() {
 
     // If not we're rejecting the last incoming call
     if (!handledCalls.length) {
-      toggleScreen();
+      exitCallScreen(true);
       return;
     }
 
