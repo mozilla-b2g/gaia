@@ -309,7 +309,7 @@ var ThreadListUI = {
 
   updateMsgWithContact: function thlui_updateMsgWithContact(number, contact) {
     var name =
-            this.view.querySelector('a[data-num="' + number + '"] div.name');
+            this.view.querySelector('a[data-num="' + number + '"] p.name');
     if (contact && contact.length > 0) {
       if (contact.length > 1) {
         var contactName = contact[0].name;
@@ -320,9 +320,7 @@ var ThreadListUI = {
         });
       }else {
         var choosenContact = contact[0];
-        var name =
-              this.view.querySelector('a[data-num="' + number + '"] div.name');
-        var selector = 'a[data-num="' + number + '"] div.photo img';
+        var selector = 'a[data-num="' + number + '"] aside img';
         var photo = this.view.querySelector(selector);
         if (name && choosenContact.name && choosenContact.name != '') {
           name.innerHTML = choosenContact.name;
@@ -483,7 +481,7 @@ var ThreadListUI = {
                                                     classList.remove('hide');
       FixedHeader.init('#thread-list-container',
                        '#threads-fixed-container',
-                       'h2');
+                       'header');
 
       ThreadListUI.iconEdit.classList.remove('disabled');
       var threadIds = [],
@@ -498,7 +496,7 @@ var ThreadListUI = {
 
         var numNormalized =
           PhoneNumberManager.getNormalizedInternationalNumber(num);
-        if (!message.read) {
+        if (!message.read && message.read != undefined) {
           if (unreadThreads.indexOf(numNormalized) == -1) {
             unreadThreads.push(numNormalized);
           }
@@ -512,9 +510,11 @@ var ThreadListUI = {
             'unreadCount': !message.read ? 1 : 0,
             'id': numNormalized
           };
+
           if (threadIds.length == 0) {
             dayHeaderIndex = Utils.getDayDate(time);
             ThreadListUI.createNewHeader(time);
+            
           }else {
             var tmpDayIndex = Utils.getDayDate(time);
             if (tmpDayIndex < dayHeaderIndex) {
@@ -552,8 +552,8 @@ var ThreadListUI = {
 
   appendThread: function thlui_appendThread(thread) {
     // Create DOM element
-    var threadHTML = document.createElement('div');
-    threadHTML.classList.add('item');
+    var id = 'threadGroup'+Utils.getDayDate(thread.timestamp);
+    var threadsContainer = document.getElementById(id);
 
     // Retrieve info from thread
     var dataName = Utils.escapeHTML(thread.name ||
@@ -561,36 +561,39 @@ var ThreadListUI = {
     var name = Utils.escapeHTML(thread.name);
     var bodyText = (thread.body || '').split('\n')[0];
     var bodyHTML = Utils.escapeHTML(bodyText);
+    // Create list element
+    var threadDOM = document.createElement('li');
     // Create HTML structure
-    var structureHTML = '  <a id="' + thread.num +
+    var structureHTML = '  <label class="danger checkbox-container">' +
+            '   <input type="checkbox" value="' + thread.num + '">' +
+            '   <span></span>' +
+            '  </label>' +
+            '  <a id="' + thread.num +
             '" href="#num=' + thread.num + '"' +
             '     data-num="' + thread.num + '"' +
             '     data-name="' + dataName + '"' +
             '     data-notempty="' +
                   (thread.timestamp ? 'true' : '') + '">' +
-            '    <span class="unread-mark">' +
-            '      <i class="i-unread-mark"></i>' +
-            '    </span>' +
-            '    <div class="name">' + name + '</div>' +
+            '    <aside class="icon icon-unread">' +
+            '      unread' +
+            '    </aside>' +
+            '    <aside class="pack-end">' +
+            '      <img src="">' +
+            '    </aside>' +
+            '    <p class="name">' + name + '</p>' +
                 (!thread.timestamp ? '' :
-            '    <div class="time ' +
-                  (thread.unreadCount > 0 ? 'unread' : '') +
-            '      " data-time="' + thread.timestamp + '">' +
-                  Utils.getFormattedHour(thread.timestamp) +
-            '    </div>') +
-            '    <div class="msg">' + bodyHTML + '</div>' +
-            '    <div class="unread-tag"></div>' +
-            '    <div class="photo">' +
-            '    <img src="">' +
-            '    </div>' +
-            '  </a>' +
-            '  <label class="danger checkbox-container">' +
-            '   <input type="checkbox" value="' + thread.num + '">' +
-            '   <span></span>' +
-            '  </label>';
+            '    <p>' +
+            '     <time ' +
+            '       data-time="' + thread.timestamp + '">' +
+                    Utils.getFormattedHour(thread.timestamp) +
+            '     </time>' +
+                  bodyHTML +
+            '    </p>') +
+            '  </a>';
     // Update HTML and append
-    threadHTML.innerHTML = structureHTML;
-    this.view.appendChild(threadHTML);
+    threadDOM.innerHTML = structureHTML;
+    // Append to the right container
+    threadsContainer.appendChild(threadDOM);
 
     // Get the contact data for the number
     ContactDataManager.getContactData(thread.num, function gotContact(contact) {
@@ -601,7 +604,7 @@ var ThreadListUI = {
   // Adds a new grouping header if necessary (today, tomorrow, ...)
   createNewHeader: function thlui_createNewHeader(timestamp) {
     // Create DOM Element
-    var headerHTML = document.createElement('h2');
+    var headerHTML = document.createElement('header');
     // Append 'time-update' state
     headerHTML.dataset.timeUpdate = true;
     headerHTML.dataset.time = timestamp;
@@ -610,6 +613,11 @@ var ThreadListUI = {
     headerHTML.innerHTML = Utils.getHeaderDate(timestamp);
     //Add to DOM
     ThreadListUI.view.appendChild(headerHTML);
+    // Create DOM element for the set of threads tied to this header
+    var threadsContainer = document.createElement('ul');
+    threadsContainer.id = 'threadGroup'+Utils.getDayDate(timestamp);
+    ThreadListUI.view.appendChild(threadsContainer);
+    // Update fixed header
     FixedHeader.refresh();
   }
 };
@@ -770,7 +778,7 @@ var ThreadUI = {
   // Adds a new grouping header if necessary (today, tomorrow, ...)
   createTimeHeader: function thui_createTimeHeader(timestamp, hourOnly) {
     // Create DOM Element
-    var headerHTML = document.createElement('h2');
+    var headerHTML = document.createElement('header');
     // Append 'time-update' state
     headerHTML.dataset.timeUpdate = true;
     headerHTML.dataset.time = timestamp;
@@ -871,9 +879,12 @@ var ThreadUI = {
     messageDOM.classList.add('message-block');
 
     // Get data for rendering
-    var outgoing = (message.delivery == 'sent' ||
-      message.delivery == 'sending');
-    var className = (outgoing ? 'sent' : 'received');
+    if (message.delivery == 'sending') {
+      var className =  (message.error == true) ? 'error' : 'sending';
+    } else {
+      var className = ((message.delivery == 'sent') ? 'sent' : 'received');
+    }
+    
     var timestamp = message.timestamp.getTime();
     var bodyText = message.body;
     var bodyHTML = Utils.escapeHTML(bodyText);
@@ -884,11 +895,11 @@ var ThreadUI = {
     // Adding edit options to the left side
     if (message.delivery == 'sending') {
       //Add edit options for pending
-      htmlStructure += '<label class="danger message-option msg-checkbox">' +
+      htmlStructure += '<aside><label class="danger message-option msg-checkbox">' +
                                      ' <input value="ts_' + timestamp +
                                      '" type="checkbox">' +
                                      ' <span></span>' +
-                                   '</label>';
+                                   '</label></aside>';
 
       // Add delivery icon/progress if necessary
       deliveryIcon = '<span class="message-option icon-delivery">' +
@@ -898,11 +909,11 @@ var ThreadUI = {
           '</span>';
       } else {
       //Add edit options
-      htmlStructure += '<label class="danger message-option msg-checkbox">' +
+      htmlStructure += '<aside><label class="danger message-option msg-checkbox">' +
                                      '  <input value="id_' + message.id +
                                      '" type="checkbox">' +
                                      '  <span></span>' +
-                                   '</label>';
+                                   '</label></aside>';
     }
 
     htmlStructure += '<span class="bubble-container ' + className + '">' +

@@ -18,20 +18,34 @@ if (!navigator.mozSms) {
     var messages = [
       {
         sender: null,
-        receiver: '1-977',
+        receiver: '1977',
         body: 'Nothing :)',
-        delivery: 'sent',
-        id: 52,
+        delivery: 'sending',
+        id: 54,
         timestamp: new Date(Date.now() - 86400000)
       },
       {
-        sender: null,
-        receiver: '1-97743-6797',
+        sender: '1977',
         body: 'Nothing :)',
-        delivery: 'sent',
-        id: 51,
-        timestamp: new Date(Date.now() - 172800000)
+        delivery: 'received',
+        id: 53,
+        timestamp: new Date(Date.now() - 86400000)
       },
+      {
+        sender: '1977',
+        body: 'Nothing :)',
+        delivery: 'received',
+        id: 52,
+        timestamp: new Date(Date.now() - 86400000)
+      },
+      // {
+      //   sender: null,
+      //   receiver: '1-97743-6797',
+      //   body: 'Nothing :)',
+      //   delivery: 'sent',
+      //   id: 51,
+      //   timestamp: new Date(Date.now() - 172800000)
+      // },
       {
         sender: null,
         receiver: '1-97743-797',
@@ -39,22 +53,6 @@ if (!navigator.mozSms) {
         delivery: 'sent',
         id: 50,
         timestamp: new Date(Date.now() - 322800000)
-      },
-      {
-        sender: null,
-        receiver: '1-6797',
-        body: 'Nothing :)',
-        delivery: 'sent',
-        id: 49,
-        timestamp: new Date(Date.now() - 482800000)
-      },
-      {
-        sender: null,
-        receiver: '197-743-697',
-        body: 'Nothing :)',
-        delivery: 'sent',
-        id: 48,
-        timestamp: new Date(Date.now() - 652800000)
       },
       {
         sender: null,
@@ -70,6 +68,7 @@ if (!navigator.mozSms) {
         body: 'Nothing :)',
         delivery: 'sent',
         id: 46,
+        read: false,
         timestamp: new Date(Date.now() - 1002800000)
       },
       {
@@ -87,38 +86,6 @@ if (!navigator.mozSms) {
         delivery: 'sent',
         id: 44,
         timestamp: new Date(Date.now() - 1352800000)
-      },
-      {
-        sender: null,
-        receiver: '1-977-6797',
-        body: 'Nothing :)',
-        delivery: 'sent',
-        id: 43,
-        timestamp: new Date(Date.now() - 200000000)
-      },
-      {
-        sender: null,
-        receiver: '977-743-6797',
-        body: 'Nothing :)',
-        delivery: 'sent',
-        id: 42,
-        timestamp: new Date(Date.now() - 230000000)
-      },
-
-      {
-        sender: null,
-        receiver: '1-977-743-6797',
-        body: 'Nothing :)',
-        delivery: 'sent',
-        id: 41,
-        timestamp: new Date(Date.now() - 44000000)
-      },
-      {
-        sender: '1-977-743-6797',
-        body: 'Hey! What\s up?',
-        delivery: 'received',
-        id: 40,
-        timestamp: new Date(Date.now() - 50000000)
       }
     ];
 
