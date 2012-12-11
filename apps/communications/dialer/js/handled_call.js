@@ -57,7 +57,7 @@ HandledCall.prototype.handleEvent = function hc_handle(evt) {
       break;
     case 'resumed':
       if (this.photo) {
-        CallScreen.setCallerContactImage(this.photo);
+        CallScreen.setCallerContactImage(this.photo, true);
       }
       CallScreen.syncSpeakerEnabled();
       break;
@@ -118,7 +118,7 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
       KeypadManager.updateAdditionalContactInfo(additionalInfo);
       if (contact.photo && contact.photo.length > 0) {
         self.photo = contact.photo[0];
-        CallScreen.setCallerContactImage(self.photo);
+        CallScreen.setCallerContactImage(self.photo, true);
       }
       return;
     }

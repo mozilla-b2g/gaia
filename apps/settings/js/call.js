@@ -26,8 +26,10 @@ var Calls = (function(window, document, undefined) {
 
   // Display rule info.
   function displayRule(rules, elementId, settingKey) {
-    var textInput = document.querySelector('input[data-setting="ril.cf.' + settingKey + '.number"]');
-    var switchInput = document.querySelector('input[name="ril.cf.' + settingKey + '.enabled"]');
+    var textSelector = 'input[data-setting="ril.cf.' + settingKey + '.number"]';
+    var textInput = document.querySelector(textSelector);
+    var switchSelector = 'input[name="ril.cf.' + settingKey + '.enabled"]';
+    var switchInput = document.querySelector(switchSelector);
 
     for (var i = 0; i < rules.length; i++) {
       if (rules[i].active &&
@@ -91,19 +93,19 @@ var Calls = (function(window, document, undefined) {
             var notReachableRules = notReachable.result;
             displayRule(notReachableRules, 'cfnrea-desc', 'notreachable');
           };
-          notReachable.onerror = function () {
+          notReachable.onerror = function() {
             displayInfoForAll(_('callForwardingQueryError'));
           };
         };
-        noReply.onerror = function () {
+        noReply.onerror = function() {
           displayInfoForAll(_('callForwardingQueryError'));
         };
       };
-      mobileBusy.onerror = function () {
+      mobileBusy.onerror = function() {
         displayInfoForAll(_('callForwardingQueryError'));
       };
     };
-    unconditional.onerror = function () {
+    unconditional.onerror = function() {
       displayInfoForAll(_('callForwardingQueryError'));
     };
   };
@@ -124,7 +126,8 @@ var Calls = (function(window, document, undefined) {
                          'notreachable'];
       settingKeys.forEach(function(key) {
         settings.addObserver('ril.cf.' + key + '.enabled', function(event) {
-          var textInput = document.querySelector('input[data-setting="ril.cf.' + key + '.number"]');
+          var selector = 'input[data-setting="ril.cf.' + key + '.number"]';
+          var textInput = document.querySelector(selector);
           var mozMobileCFInfo = {};
 
           mozMobileCFInfo['action'] = event.settingValue ?
@@ -132,33 +135,36 @@ var Calls = (function(window, document, undefined) {
             _cfAction.CALL_FORWARD_ACTION_DISABLE;
           switch (key) {
             case 'unconditional':
-              mozMobileCFInfo['reason'] = _cfReason.CALL_FORWARD_REASON_UNCONDITIONAL;
+              mozMobileCFInfo['reason'] =
+                _cfReason.CALL_FORWARD_REASON_UNCONDITIONAL;
               break;
             case 'mobilebusy':
-              mozMobileCFInfo['reason'] = _cfReason.CALL_FORWARD_REASON_MOBILE_BUSY;
+              mozMobileCFInfo['reason'] =
+                _cfReason.CALL_FORWARD_REASON_MOBILE_BUSY;
               break;
             case 'noreply':
-              mozMobileCFInfo['reason'] = _cfReason.CALL_FORWARD_REASON_NO_REPLY;
+              mozMobileCFInfo['reason'] =
+                _cfReason.CALL_FORWARD_REASON_NO_REPLY;
               break;
             case 'notreachable':
-              mozMobileCFInfo['reason'] = _cfReason.CALL_FORWARD_REASON_NOT_REACHABLE;
+              mozMobileCFInfo['reason'] =
+                _cfReason.CALL_FORWARD_REASON_NOT_REACHABLE;
               break;
           }
-          mozMobileCFInfo['serviceClass'] = gMobileConnection.ICC_SERVICE_CLASS_VOICE;
+          mozMobileCFInfo['serviceClass'] =
+            gMobileConnection.ICC_SERVICE_CLASS_VOICE;
           // TODO: Check number.
           mozMobileCFInfo['number'] = textInput.value;
           mozMobileCFInfo['timeSecond'] =
-            mozMobileCFInfo['reason'] != _cfReason.CALL_FORWARD_REASON_NO_REPLY ?
-            0 : 20;
+            mozMobileCFInfo['reason'] !=
+              _cfReason.CALL_FORWARD_REASON_NO_REPLY ? 0 : 20;
           console.log(JSON.stringify(mozMobileCFInfo));
 
           var req = gMobileConnection.setCallForwardingOption(mozMobileCFInfo);
           req.onsuccess = function() {
-            console.log("Success");
             getCallForwardingOption();
           };
           req.onerror = function() {
-            console.log("Error");
             getCallForwardingOption();
           };
         });
@@ -169,3 +175,4 @@ var Calls = (function(window, document, undefined) {
 
 // Startup.
 onLocalized(Calls.init.bind(Calls));
+

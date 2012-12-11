@@ -128,7 +128,7 @@ var Browser = {
 
     this.handleWindowResize();
 
-    ModalDialog.init(false);
+    ModalDialog.init();
     AuthenticationDialog.init(false);
 
     // Load homepage once Places is initialised

@@ -133,6 +133,10 @@ var UIManager = {
     var tzCont = document.getElementById('tz-continent');
     var tzCity = document.getElementById('tz-city');
     tzSelect(tzCont, tzCity, this.setTimeZone);
+
+    this.offlineErrorDialog = document.getElementById('offline-error-dialog');
+    var button = this.offlineErrorDialog.querySelector('button');
+    button.addEventListener('click', this.onOfflineDialogButtonClick.bind(this));
   },
 
   handleEvent: function ui_handleEvent(event) {
@@ -169,6 +173,17 @@ var UIManager = {
         }
         break;
     }
+  },
+
+  displayOfflineDialog: function ui_displayOfflineDialog(href, title) {
+    var dialog = this.offlineErrorDialog,
+        text = _('offline-dialog-text', { url: href });
+    dialog.querySelector('small').textContent = text;
+    dialog.classList.add('visible');
+  },
+
+  onOfflineDialogButtonClick: function ui_onOfflineDialogButtonClick(e) {
+    this.offlineErrorDialog.classList.remove('visible');
   },
 
   importFromSim: function ui_ifs() {

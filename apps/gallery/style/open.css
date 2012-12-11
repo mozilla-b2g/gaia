@@ -86,7 +86,7 @@ footer {
   width: 50%;
   height: 100%;
   left: 0;
-  background-image: url('images/camera.png');
+  background-image: url('images/iconaction_camera_30x30.png');
 }
 
 #open-delete-button {
@@ -94,7 +94,7 @@ footer {
   width: 50%;
   height: 100%;
   left: 50%;
-  background-image: url('images/delete.png');
+  background-image: url('images/iconaction_delete_30x30.png');
 }
 
 /* buttons */
