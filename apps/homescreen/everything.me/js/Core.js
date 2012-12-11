@@ -51,6 +51,7 @@ window.Evme = new function Evme_Core() {
     
     this.onShow = function onShow() {
         Evme.Shortcuts.refreshScroll();
+        Evme.Helper.refreshIScroll();
     };
     this.onHide = function onHide() {
         Evme.Brain.Shortcuts.doneEdit();
