@@ -13,6 +13,11 @@ const PR_TRUNCATE = 0x20;
 const PR_SYNC = 0x40;
 const PR_EXCL = 0x80;
 
+function isSubjectToBranding(path) {
+  return /shared\/[a-zA-Z]+\/branding$/.test(path) ||
+         /branding\/initlogo.png/.test(path);
+}
+
 /**
  * Add a file or a directory, recursively, to a zip file
  *
@@ -22,8 +27,8 @@ const PR_EXCL = 0x80;
  */
 function addToZip(zip, pathInZip, file) {
   // Branding specific code
-  if (/shared\/locales\/branding$/.test(file.path)) {
-    file.append((PRODUCTION == 1) ? 'official' : 'unofficial');
+  if (isSubjectToBranding(file.path)) {
+    file.append((OFFICIAL == 1) ? 'official' : 'unofficial');
   }
 
   if (!file.exists())
@@ -177,12 +182,14 @@ Gaia.webapps.forEach(function(webapp) {
             break;
           case 'locales':
             let localeName = path.substr(0, path.lastIndexOf('.'));
-            if (used.locales.indexOf(localeName) == -1)
+            if (used.locales.indexOf(localeName) == -1) {
               used.locales.push(localeName);
+            }
             break;
           case 'resources':
-            if (used.resources.indexOf(path) == -1)
+            if (used.resources.indexOf(path) == -1) {
               used.resources.push(path);
+            }
             break;
           case 'style':
             let styleName = path.substr(0, path.lastIndexOf('.'));
@@ -240,8 +247,9 @@ Gaia.webapps.forEach(function(webapp) {
       file.append(segment);
     });
     if (!file.exists()) {
-      throw new Error('Using inexistent shared resource: ' + path + ' from: ' +
-                      webapp.domain);
+      dump('Using inexistent shared resource: ' + path +
+           ' from: ' + webapp.domain + '\n');
+      return;
     }
     addToZip(zip, '/shared/resources/' + path, file);
   });
