@@ -4,6 +4,7 @@ var contacts = window.contacts || {};
 
 contacts.Details = (function() {
   var photoPos = 7;
+  var initMargin = 16;
   var contactData,
       contactDetails,
       listContainer,
@@ -70,7 +71,7 @@ contacts.Details = (function() {
 
       var startPosition = event.clientY;
       var currentPosition;
-      var initMargin = '16rem';
+      var margin = initMargin + 'rem';
       contactDetails.classList.add('up');
       cover.classList.add('up');
 
@@ -80,7 +81,7 @@ contacts.Details = (function() {
         if (newMargin > 0 && newMargin < 150) {
           contactDetails.classList.remove('up');
           cover.classList.remove('up');
-          var calc = '-moz-calc(' + initMargin + ' + ' + newMargin + 'px)';
+          var calc = 'calc(' + margin + ' + ' + newMargin + 'px)';
           // Divide by 40 (4 times slower and in rems)
           contactDetails.style.transform = 'translateY(' + calc + ')';
           var newPos = (-photoPos + (newMargin / 40)) + 'rem';
@@ -91,7 +92,7 @@ contacts.Details = (function() {
       var onMouseUp = function onMouseUp(event) {
         contactDetails.classList.add('up');
         cover.classList.add('up');
-        contactDetails.style.transform = 'translateY(' + initMargin + ')';
+        contactDetails.style.transform = 'translateY(' + margin + ')';
         cover.style.transform = 'translateY(-' + photoPos + 'rem)';
         cover.removeEventListener('mousemove', onMouseMove);
         cover.removeEventListener('mouseup', onMouseUp);
@@ -457,7 +458,7 @@ contacts.Details = (function() {
   var renderPhoto = function cd_renderPhoto(contact) {
     if (contact.photo && contact.photo.length > 0) {
       contactDetails.classList.add('up');
-      var clientHeight = contactDetails.clientHeight;
+      var clientHeight = contactDetails.clientHeight - (initMargin * 10);
       if (detailsInner.offsetHeight < clientHeight) {
         cover.style.overflow = 'hidden';
       } else {
