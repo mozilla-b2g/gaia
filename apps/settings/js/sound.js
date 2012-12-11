@@ -13,7 +13,7 @@
       settingName: 'notification.ringtone',
       element: document.getElementById('notifications-list')
     }
-  }
+  };
 
   // Root path containing the sounds
   var root = '/shared/resources/media/';
@@ -57,9 +57,9 @@
     xhr.onload = function successGetBase64For() {
       debug('success: get base64 for ' + type + '(' + name + ')');
 
-      var binary = ''
+      var binary = '';
       for (var i = 0; i < xhr.responseText.length; i++) {
-        binary += String.fromCharCode(xhr.responseText.charCodeAt(i) & 0xff)
+        binary += String.fromCharCode(xhr.responseText.charCodeAt(i) & 0xff);
       }
       callback(window.btoa(binary));
     }
@@ -80,15 +80,16 @@
     var list = '';
     for (var sound in sounds) {
       var text = navigator.mozL10n.get(sound.replace('.', '_'));
-      list += '<li>' +
-              '  <label>' +
-              '    <input type="radio" name="' + type + '-option" data-ignore ' +
-              'value="' + sound + '" data-label="' + text + '" />' +
-              '    <span></span>' +
-              '  </label>' +
-              '  <a data-l10n-id="' + sound + '">' + text + '</a>' +
-              '</li>';
-    };
+      list +=
+        '<li>' +
+        '  <label>' +
+        '    <input type="radio" name="' + type + '-option" data-ignore ' +
+        'value="' + sound + '" data-label="' + text + '" />' +
+        '    <span></span>' +
+        '  </label>' +
+        '  <a data-l10n-id="' + sound + '">' + text + '</a>' +
+        '</li>';
+    }
     return list;
   }
 
@@ -122,8 +123,8 @@
       var list = lists[key];
 
       // There is a closure in order to keep the right target for list/key
-      // when the callback end.
-      (function (list, key) {
+      // when the callback ends.
+      (function(list, key) {
         getSoundsFor(key, function(sounds) {
           list.element.innerHTML = generateList(sounds, key);
           activateCurrentElementFor(list);

@@ -20,12 +20,13 @@ Bookmark.prototype = {
   launch: function bookmark_launch() {
     var features = {
       name: this.manifest.name.replace(/\s/g, '&nbsp;'),
-      icon: this.manifest.icons['60']
+      icon: this.manifest.icons['60'],
+      remote: true
     };
 
     // The third parameter is received in window_manager without whitespaces
     // so we decice replace them for &nbsp;
-    return window.open(this.url, '_blank', JSON.stringify(features));
+    window.open(this.url, '_blank', JSON.stringify(features));
   },
 
   uninstall: function bookmark_uninstall() {

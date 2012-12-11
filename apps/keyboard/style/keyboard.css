@@ -136,6 +136,10 @@ button::-moz-focus-inner {
   background: url(images/dark-alpha.png) repeat left top;
   border-radius: 0.6rem;
 }
+.keyboard-key:not(.special-key).highlighted:last-child > .visual-wrapper:after {
+  right: -0.2rem;
+  border-radius: 0.6rem 0 0 0.6rem; 
+}
 .keyboard-key:not(.special-key).highlighted > .visual-wrapper:before {
   content: "";
   position: absolute;
@@ -170,6 +174,10 @@ button::-moz-focus-inner {
   z-index: -1;
   background: url(images/dark-alpha.png) repeat left top;
   border-radius: 0.6rem;
+}
+.keyboard-key:not(.special-key).highlighted:last-child > .visual-wrapper > span:after {
+  right: -0.2rem;
+  border-radius: 0.6rem 0 0 0.6rem;
 }
 
 .keyboard-key:not(.special-key).highlighted:last-child  > .visual-wrapper > span {

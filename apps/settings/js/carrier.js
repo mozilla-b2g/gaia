@@ -172,18 +172,6 @@ var Carrier = (function newCarrier(window, document, undefined) {
     };
   }
 
-  // update network information when the data connection has changed
-  function updateConnection() {
-    var data = gMobileConnection.data ? gMobileConnection.data.network : null;
-    if (!data || !data.mcc) {
-      console.warn('GSM data network could not be found');
-    }
-
-    // display data carrier name
-    var name = data ? (data.shortName || data.longName) : '';
-    document.getElementById('dataNetwork-desc').textContent = name;
-  }
-
   // 2G|3G network selection
   document.getElementById('preferredNetworkType').onchange =
     restartDataConnection;
@@ -337,8 +325,7 @@ var Carrier = (function newCarrier(window, document, undefined) {
 
     // startup
     init: function carrier_init() {
-      gMobileConnection.addEventListener('datachange', updateConnection);
-      updateConnection();
+      Connectivity.updateCarrier(); // see connectivity.js
       updateSelectionMode();
       // XXX this should be done later -- not during init()
       this.fillAPNList('data');

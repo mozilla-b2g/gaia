@@ -9,6 +9,7 @@
   <link rel="stylesheet" type="text/css" href="/shared/style/switches.css">
   <link rel="stylesheet" type="text/css" href="/shared/style/input_areas.css">
   <link rel="stylesheet" type="text/css" href="/shared/style/buttons.css">
+  <link rel="stylesheet" type="text/css" href="/shared/style/confirm.css">
   <link rel="stylesheet" type="text/css" href="/shared/style_unstable/lists.css">
 
   <!-- Specific style -->
@@ -220,21 +221,74 @@
         </p>
       </section>
       <section role="region" id="about-your-privacy">
-        <p data-l10n-id="aboutYourPrivacy">About you privacy</p>
+        <i class='hack-first-child'></i> <!-- see Bug 819886 -->
+        <header>
+          <h2> Mozilla </h2>
+        </header>
+        <article data-type="list">
+          <ul>
+            <li>
+              <a class="privacy-menuitem privacy-browserOS external"
+                href="https://www.mozilla.org/legal/privacy/firefox.html"
+                data-l10n-id="privacy-b2g"
+                title="B2G OS">B2G OS</a>
+            </li>
+            <li>
+              <a class="privacy-menuitem privacy-marketPlace external"
+                 href="https://marketplace.firefox.com/privacy-policy"
+                 data-l10n-id="privacy-marketplace"
+                 title="Marketplace">
+                Marketplace
+              </a>
+            </li>
+          </ul>
+        </article>
+        <header>
+          <h2 data-l10n-id="about-other"> Other </h2>
+        </header>
+        <article data-type="list">
+          <ul>
+            <li>
+              <a class="privacy-menuitem privacy-everythingME external"
+                href="http://corp.everything.me/privacy"
+                data-l10n-id="privacy-e-me"
+                title="everything.me">everything.me</a>
+            </li>
+          </ul>
+        </article>
       </section>
       <section role="region" id="sharing-performance-data">
         <p data-l10n-id='telemetry-allows'>
           Telemetry allows you to send Mozilla more
           detailed information about performance,
           hardware, usage and customizations in your
-          Browser OS device. We use this information helps
+          Browser OS device. We use this information to
           make our products better, faster and more
           responsive.
         </p>
         <!-- Links destinations are discussed in https://bugzilla.mozilla.org/show_bug.cgi?id=812956 -->
-        <p data-l10n-id='learn-more-about'>Learn more about <a data-l10n-id='telemetry'>Telemetry</a></p>
-        <p data-l10n-id='learn-about-our'>Learn more about our <a data-l10n-id='privacy-practices'>privacy practices</a> </p>
+        <p data-l10n-id='learn-more-at'>Learn more at
+        <a class='external'
+           data-l10n-id='external-telemetry'
+           href='http://www.mozilla.org/telemetry/'
+           title='Telemetry'>
+             www.mozilla.org/telemetry/
+        </a>
+        </p>
+        <p data-l10n-id='learn-about-information'>Learn how Mozilla handles your
+        information at
+          <a class='external'
+             data-l10n-id='external-privacy'
+             title='Privacy'
+             href='http://www.mozilla.org/privacy/'>
+               www.mozilla.org/privacy/
+          </a>
+        </p>
       </section>
+      <section role="region" id="external-url-loader" class='external'>
+        <iframe src='about:blank' class='external'></iframe>
+      </section>
+
       <section role="region" id="browser_privacy">
         <section class="logo_container">
           <img src="css/images/browser64.png">
@@ -443,6 +497,18 @@
       </menu>
     </section>
   </section>
+
+  <form role='dialog' data-type='confirm' id='offline-error-dialog'>
+    <section>
+      <h1 data-l10n-id='offline-dialog-title'>You must be connected to the Internet to view the page.</h1>
+      <p><small data-l10n-id='offline-dialog-text'>Please go back and connect to
+        the Internet. You can also view the page later from Settings or by
+        entering {{url}} in any browser.</small></p>
+      <menu>
+        <button class='full' data-l10n-id='OK'>OK</button>
+      </menu>
+    </section>
+  </form>
 
   <iframe id="fb-curtain" src="/facebook/curtain.html"></iframe>
   <iframe id="fb-oauth" hidden src="/facebook/fb_oauth.html"></iframe>

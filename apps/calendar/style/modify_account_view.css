@@ -27,3 +27,7 @@
 #modify-account-view.in-progress form {
   display: none;
 }
+
+#remove-account-dialog {
+  display: none;
+}
