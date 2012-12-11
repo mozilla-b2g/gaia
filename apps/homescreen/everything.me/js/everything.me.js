@@ -16,11 +16,13 @@ var EverythingME = {
                                                     classList.remove('frozen');
 
       EverythingME.displayed = true;
+      footerStyle.MozTransform = "translateY(75px)";
 
       page.addEventListener('gridpageshowend', function onpageshowafterload() {
         if (EverythingME.displayed) return;
 
         EverythingME.displayed = true;
+        footerStyle.MozTransform = "translateY(75px)";
         EvmeFacade.onShow();
       });
 
