@@ -10,7 +10,7 @@
   "permissions": {
     "device-storage:videos":{ "access": "readwrite" },
     "deprecated-hwvideo":{},
-    "audio":{ "channels": ["content"] }
+    "audio-channel-content":{}
   },
   "locales": {
     "ar": {

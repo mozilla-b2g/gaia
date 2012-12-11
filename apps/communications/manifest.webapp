@@ -78,7 +78,8 @@
     "systemXHR": {},
     "wifi-manage":{},
     "time": {},
-    "audio":{ "channels": ["telephony", "ringer"] }
+    "audio-channel-telephony":{},
+    "audio-channel-ringer":{}
   },
   "orientation": "portrait-primary",
   "activities": {
