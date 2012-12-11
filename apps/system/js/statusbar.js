@@ -133,6 +133,16 @@ var StatusBar = {
         this.update.label.call(this);
         break;
 
+      case 'cardstatechange':
+        this.update.signal.call(this);
+        this.update.label.call(this);
+        this.update.data.call(this);
+        break;
+
+      case 'callschanged':
+        this.update.signal.call(this);
+        break;
+
       case 'iccinfochange':
         this.update.label.call(this);
         break;
@@ -143,6 +153,7 @@ var StatusBar = {
 
       case 'bluetoothconnectionchange':
         this.update.bluetooth.call(this);
+        break;
 
       case 'moztimechange':
         this.update.time.call(this);
@@ -345,22 +356,36 @@ var StatusBar = {
       flightModeIcon.hidden = true;
       icon.hidden = false;
 
-      icon.dataset.roaming = voice.roaming;
-      if (!voice.connected && !voice.emergencyCallsOnly) {
-        // "No Network" / "Searching"
-        icon.dataset.level = -1;
-
-        // Possible value of voice.state are
-        // 'notSearching', 'searching', 'denied', 'registered',
-        // where the later three means the phone is trying to grabbing
-        // the network. See
-        // https://bugzilla.mozilla.org/show_bug.cgi?id=777057
-        icon.dataset.searching = (voice.state !== 'notSearching');
-
-      } else {
-        // "Emergency Calls Only (REASON)" / "Carrier" / "Carrier (Roaming)"
+      if (conn.cardState === 'absent') {
+        // no SIM
+        delete icon.dataset.level;
+        delete icon.dataset.emergency;
+        delete icon.dataset.searching;
+        delete icon.dataset.roaming;
+      } else if (voice.connected || this.hasActiveCall()) {
+        // "Carrier" / "Carrier (Roaming)"
         icon.dataset.level = Math.ceil(voice.relSignalStrength / 20); // 0-5
+        icon.dataset.roaming = voice.roaming;
+
+        delete icon.dataset.emergency;
+        delete icon.dataset.searching;
+      } else {
+        // "No Network" / "Emergency Calls Only (REASON)" / trying to connect
+        icon.dataset.level = -1;
+        // logically, we should have "&& !voice.connected" as well but we
+        // already know this.
+        icon.dataset.searching = (!voice.emergencyCallsOnly &&
+                                  voice.state !== 'notSearching');
+        icon.dataset.emergency = (voice.emergencyCallsOnly);
+        delete icon.dataset.roaming;
       }
+
+      if (voice.emergencyCallsOnly) {
+        this.addCallListener();
+      } else {
+        this.removeCallListener();
+      }
+
     },
 
     data: function sb_updateSignal() {
@@ -527,6 +552,27 @@ var StatusBar = {
     callForwarding: function sb_updateCallForwarding() {
       var icon = this.icons.callForwarding;
       icon.hidden = !this.settingValues['ril.cf.unconditional.enabled'];
+    }
+  },
+
+  hasActiveCall: function sb_hasActiveCall() {
+    var telephony = navigator.mozTelephony;
+
+    // will return true as soon as we begin dialing
+    return !!(telephony && telephony.active);
+  },
+
+  addCallListener: function sb_addCallListener() {
+    var telephony = navigator.mozTelephony;
+    if (telephony) {
+      telephony.addEventListener('callschanged', this);
+    }
+  },
+
+  removeCallListener: function sb_addCallListener() {
+    var telephony = navigator.mozTelephony;
+    if (telephony) {
+      telephony.removeEventListener('callschanged', this);
     }
   },
 
