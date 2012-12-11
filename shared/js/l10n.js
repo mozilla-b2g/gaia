@@ -187,7 +187,7 @@
       function loadImport(url) {
         loadResource(url, function(content) {
           parseRawLines(content, false); // don't allow recursive imports
-        }, false, false); // load synchronously
+        }, null, false); // load synchronously
       }
 
       // fill the dictionary
@@ -197,6 +197,11 @@
 
     // load the specified resource file
     function loadResource(url, onSuccess, onFailure, asynchronous) {
+      onSuccess = onSuccess || function _onSuccess(data) {};
+      onFailure = onFailure || function _onFailure() {
+        consoleWarn(url + ' not found.');
+      };
+
       var xhr = new XMLHttpRequest();
       xhr.open('GET', url, asynchronous);
       if (xhr.overrideMimeType) {
@@ -205,17 +210,22 @@
       xhr.onreadystatechange = function() {
         if (xhr.readyState == 4) {
           if (xhr.status == 200 || xhr.status === 0) {
-            if (onSuccess) {
-              onSuccess(xhr.responseText);
-            }
+            onSuccess(xhr.responseText);
           } else {
-            if (onFailure) {
-              onFailure();
-            }
+            onFailure();
           }
         }
       };
-      xhr.send(null);
+      xhr.onerror = onFailure;
+      xhr.ontimeout = onFailure;
+
+      // in Firefox OS with the app:// protocol, trying to XHR a non-existing
+      // URL will raise an exception here -- hence this ugly try...catch.
+      try {
+        xhr.send(null);
+      } catch(e) {
+        onFailure();
+      }
     }
 
     // load and parse l10n data (warning: global variables are used here)
