@@ -57,7 +57,7 @@ var Contacts = (function() {
           contactsDetails.render(currentContact, TAG_OPTIONS);
           if (params['tel'])
             contactsDetails.reMark('tel', params['tel']);
-          navigation.go(sectionId, 'right-left');
+          navigation.go(sectionId, 'none');
         }, function onError() {
           console.error('Error retrieving contact');
         });

@@ -7,16 +7,17 @@
 
 /* Global */
 html, body {
-  width: 100%;
   height: 100%;
-  margin: 0;
-  padding: 0;
+}
+
+html {
   font-size: 62.5%;
-  overflow: hidden;
-  position: relative;
 }
 
 body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
   background: #000;
   color: #fff;
   font: 1.6rem/2.2rem MozTT, Sans-serif;
@@ -184,29 +185,43 @@ menu, nav, section, video, audio, canvas, progress, meter, time {
 
 /* APP */
 /* view */
-
-.view {
-  position: absolute;
-  overflow: hidden;
-  top: 0;
+.view, .cache, .views {
+  position: fixed;
   left: 0;
+  top: 0;
   width: 100%;
   height: 100%;
-  transform: translate(0, 0);
-  transition: transform 0.5s ease;
 }
 
-.view:not(.view-noscroll) {
-  overflow-x: hidden;
-  overflow-y: auto;
+.view[data-state="active"], .cache[data-state="active"] {
+  z-index: 100;
+}
+
+.cache {
+  pointer-events: none;
+}
+
+.cache .view {
+  background-color: transparent;
+  background-repeat: no-repeat;
+  -moz-transition: all 0.5s ease;
+  position: fixed;
 }
 
 .view-right {
-  transform: translateX(100%);
+  -moz-transform: translateX(100%);
+}
+
+.view-left {
+  -moz-transform: translateX(-100%);
+}
+
+.view-top {
+  -moz-transform: translateY(-100%);
 }
 
 .view-bottom {
-  transform: translateY(100%);
+  -moz-transform: translateY(100%);
 }
 
 
