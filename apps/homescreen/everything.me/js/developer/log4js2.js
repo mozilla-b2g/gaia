@@ -91,7 +91,7 @@ function Log(level,logger,prefix) {
         * Sets the current logger prefix 
         * @param {String} prefix This prefix will be prepended to all messages.
         */
-       this.setPrefix = function(pre) {
+       this.setPrefix = function setPrefix(pre) {
            if (pre!='undefined') { _prefix = pre; }
        else { _prefix = false; }
        }
@@ -99,7 +99,7 @@ function Log(level,logger,prefix) {
         * Sets the current logger function
         * @param logger The function that will be called when a log event needs to be displayed
         */
-       this.setLogger = function(logger) {
+       this.setLogger = function setLogger(logger) {
            if (logger!='undefined') { _logger = logger; }
            if (logger === Log.writeLogger){
                var loggerWrapper = document.createElement("div");
@@ -117,7 +117,7 @@ function Log(level,logger,prefix) {
                var clear = document.createElement("a");
                clear.innerHTML = "clear";
                clear.href = "javascript://";
-               clear.addEventListener("click", function(){
+               clear.addEventListener("click", function onClick(){
                    loggerList.innerHTML = "";
                }, false);
                loggerWrapper.appendChild(clear);
@@ -131,7 +131,7 @@ function Log(level,logger,prefix) {
         * Sets the current threshold log level for this Log instance.  Only events that have a priority of this level or greater are logged.
         * @param level The new threshold priority level for logging events.  This can be one of the static members {@link Log#DEBUG},  {@link Log#INFO}, {@link Log#WARN}, {@link Log#ERROR}, {@link Log#FATAL}, {@link Log#NONE}, or it can be one of the strings ["debug", "info", "warn", "error", "fatal", "none"].
         */
-       this.setLevel = function(level) { 
+       this.setLevel = function setLevel(level) { 
            if (level!='undefined' && typeof level =='number') {
                    _currentLevel = level;
            } else if (level!='undefined') {
@@ -149,21 +149,21 @@ function Log(level,logger,prefix) {
     * @return current prefix
     */
        
-       this.getPrefix = function() { return _prefix; }
+       this.getPrefix = function getPrefix() { return _prefix; }
 
        /**
         * Gets the current event logger function
     * @return current logger
     */
        
-       this.getLogger = function() { return _logger; }
+       this.getLogger = function getLogger() { return _logger; }
 
        /**
         * Gets the current threshold priority level
     * @return current level
     */
        
-       this.getLevel = function() { return _currentLevel; }
+       this.getLevel = function getLevel() { return _currentLevel; }
        
        if (level!='undefined') { this.setLevel(level); }
        if (logger!='undefined') { this.setLogger(logger); }
@@ -173,27 +173,27 @@ function Log(level,logger,prefix) {
  * Log an event with priority of "debug"
  * @param s the log message
  */
-Log.prototype.debug     = function() { if (this.getLevel()<=Log.DEBUG) { this._log("DEBUG",this, arguments); } }
+Log.prototype.debug     = function debug() { if (this.getLevel()<=Log.DEBUG) { this._log("DEBUG",this, arguments); } }
 /**
  * Log an event with priority of "info"
  * @param s the log message
  */
-Log.prototype.info      = function() { if (this.getLevel()<=Log.INFO ) { this._log("INFO",this, arguments); } }
+Log.prototype.info      = function info() { if (this.getLevel()<=Log.INFO ) { this._log("INFO",this, arguments); } }
 /**
  * Log an event with priority of "warn"
  * @param s the log message
  */
-Log.prototype.warn      = function() { if (this.getLevel()<=Log.WARN ) { this._log("WARN",this, arguments); } }
+Log.prototype.warn      = function warn() { if (this.getLevel()<=Log.WARN ) { this._log("WARN",this, arguments); } }
 /**
  * Log an event with priority of "error"
  * @param s the log message
  */
-Log.prototype.error     = function() { if (this.getLevel()<=Log.ERROR) { this._log("ERROR",this, arguments); } }
+Log.prototype.error     = function error() { if (this.getLevel()<=Log.ERROR) { this._log("ERROR",this, arguments); } }
 /**
  * Log an event with priority of "fatal" 
  * @param s the log message
  */
-Log.prototype.fatal     = function() { if (this.getLevel()<=Log.FATAL) { this._log("FATAL",this, arguments); } }
+Log.prototype.fatal     = function fatal() { if (this.getLevel()<=Log.FATAL) { this._log("FATAL",this, arguments); } }
 
 /**
  * _log is the function that actually calling the configured logger function.
@@ -206,7 +206,7 @@ Log.prototype.fatal     = function() { if (this.getLevel()<=Log.FATAL) { this._l
  * @param level The priority level of this log event
  * @param {Log} obj The originating {@link Log} object.
  */
-Log.prototype._log = function(level,obj,msgObj) {
+Log.prototype._log = function _log(level,obj,msgObj) {
     // INFO: 2010-12-26 14:11:42,690 in User::resetDailyVotes() (User.php:850): Reset Daily Votes for 0 Use
     var date = new Date();
     var d = "";
@@ -242,13 +242,13 @@ CONSOLE_ENABLED = false;
  * @param {String} msg The message to display
  * @param level The priority level of this log event
  */
-Log.alertLogger = function(level,obj,msgArr) { alert(level+" - "+msgArr.join(' ')); }
+Log.alertLogger = function alertLogger(level,obj,msgArr) { alert(level+" - "+msgArr.join(' ')); }
 /**
  * Static write logger method.  This logger will print the message out to the web page using document.writeln.
  * @param {String} msg The message to display
  * @param level The priority level of this log event
  */
-Log.writeLogger = function(level,obj,msgArr) { 
+Log.writeLogger = function writeLogger(level,obj,msgArr) { 
     var li = document.createElement("li");
     li.innerHTML = level+"&nbsp;:&nbsp;"+msgArr.join(' ');
     var firstLi = loggerList.getElementsByTagName("li")[0];
@@ -263,7 +263,7 @@ Log.writeLogger = function(level,obj,msgArr) {
  * @param level The priority level of this log event
  * @param {Log} obj The originating {@link Log} object.
  */
-Log.consoleLogger = function(level,obj,msgArr) {
+Log.consoleLogger = function consoleLogger(level,obj,msgArr) {
     if (!CONSOLE_ENABLED) return;
     
     if (window.console) {
@@ -291,7 +291,7 @@ Log.consoleLogger = function(level,obj,msgArr) {
  * @param level The priority level of this log event
  * @param {Log} obj The originating {@link Log} object.
  */
-Log.popupLogger = function(level,obj,msgArr) {
+Log.popupLogger = function popupLogger(level,obj,msgArr) {
     var msg = msgArr.join(' ');
        if (obj.popupBlocker) {
     return;
@@ -346,7 +346,7 @@ Log.popupLogger = function(level,obj,msgArr) {
  * @param {Object} the Object that you'd like to see
  * @return {String} a String representation of the object passed
  */
-Log.dumpObject=function (obj,indent) {
+Log.dumpObject = function dumpObject(obj,indent) {
     if (!indent) { indent="";}
     if (indent.length>20) { return ; } // don't go too far...
     var s="{\n";

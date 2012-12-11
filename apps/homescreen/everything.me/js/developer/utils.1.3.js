@@ -9,17 +9,19 @@ function create(tagName, parent, props, callback, adjacentNode) {
     }
     if (callback && tagName == 'script'){
         var loaded = false;
-        var loadFunction = function(){
+        
+        function onLoad(){
             if (loaded) {
                 return;
             }
             loaded=true;
             callback();
-        };
-        o.onload = loadFunction;
-        o.onreadystatechange = function(){
+        }
+        
+        o.onload = onLoad;
+        o.onreadystatechange = function onReadyStateChange(){
             if (this.readyState == 'loaded'){
-                loadFunction();
+                onLoad();
             }
         };
     }
@@ -37,20 +39,20 @@ function create(tagName, parent, props, callback, adjacentNode) {
 
 function parseQuery() {
     var r = {};
-   (location.search || '').replace(/(?:[?&]|^)([^=]+)=([^&]*)/g, function(ig, k, v) {r[k] = v;});
+   (location.search || '').replace(/(?:[?&]|^)([^=]+)=([^&]*)/g, function regexMatch(ig, k, v) {r[k] = v;});
    return r;
 }
 
 function proxify(origObj,proxyObj,funkList){
-    var replaceFunk = function(org,proxy,fName)
-    {
-        org[fName] = function()
-        {
-           return proxy[fName].apply(proxy,arguments);
+    function replaceFunk(org,proxy,fName) {
+        org[fName] = function applier() {
+           return proxy[fName].apply(proxy, arguments);
         };
-    };
+    }
 
-    for(var v in funkList) {replaceFunk(origObj,proxyObj,funkList[v]);}
+    for(var v in funkList) {
+    	replaceFunk(origObj, proxyObj, funkList[v]);
+	}
 }
 
 function unique(a) {
@@ -87,7 +89,7 @@ function trim(str){
     }
 }
 
-var Logger = function(){
+function Logger(){
     function getLoggerLevel(){
     	if (/http:\/\/.+\.(loc)\.flyapps\.me\//.test(location.href) || /http:\/\/loc\.flyapps\.me\//.test(location.href) || /http:\/\/.+test\.flyapps\.me\//.test(location.href)){
             return Log.DEBUG;
@@ -127,7 +129,7 @@ var Logger = function(){
     }
 
     return new Log(getLoggerLevel(), getLoggerOutput());
-};
+}
 
 function addListener(){
     if (typeof arguments[0] === 'string'){

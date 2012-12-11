@@ -2,10 +2,10 @@
 
 if(!('ontouchstart' in window)) {
   // keep track of the button state.  we don't want to fire touchmove when the mouse is up
-  var isMouseDown = false;
+  var isMouseDown = false,
+  	  originator = null;
   
-  var originator = null;
-  var fireTouch = function(type, e) {
+  function fireTouch(type, e) {
     var target = originator || e.target;
     var newEvent = document.createEvent('MouseEvent');  // trying to create an actual TouchEvent will create an error
     newEvent.initMouseEvent(type, true, true, window, e.detail,
@@ -50,15 +50,15 @@ if(!('ontouchstart' in window)) {
   }
   
   // hook up the mouse->touch mapped listeners
-  var mousedown = function(e) {
+  function mousedown(e) {
     isMouseDown = true;
     fireTouch('touchstart', e);
   }
-  var mousemove = function(e) {
+  function mousemove(e) {
     if(!isMouseDown) return;
     fireTouch('touchmove', e);
   }
-  var mouseup = function(e) {
+  function mouseup(e) {
     isMouseDown = false;
     fireTouch('touchend', e);
   }
