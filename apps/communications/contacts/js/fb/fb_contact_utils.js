@@ -231,7 +231,33 @@ fb.mergeContact = function(devContact, fbContact) {
     });
   }
 
+  // It is needed to merge names just in case the contact has no local name
+  fb.mergeNames(devContact, fbContact);
+
   return devContact;
+};
+
+fb.mergeNames = function(devContact, fbContact) {
+  var namesChanged = false;
+  var nameFields = ['givenName', 'familyName'];
+  nameFields.forEach(function(anameField) {
+    // If the device contact does not have name fields setted
+    // we use the Facebook ones
+    var fieldValue = devContact[anameField];
+    var fbValue = fbContact[anameField];
+    if ((!Array.isArray(fieldValue) || fieldValue.length === 0) &&
+        Array.isArray(fbValue) && fbValue.length > 0) {
+      namesChanged = true;
+      devContact[anameField] = (fieldValue && fieldValue[0]) || [];
+      devContact[anameField].push(fbValue[0]);
+    }
+  });
+
+  if (namesChanged) {
+    var givenName = devContact.givenName[0] || '';
+    var familyName = devContact.familyName[0] || '';
+    devContact.name = [givenName + ' ' + familyName];
+  }
 };
 
 fb.getContactByNumber = function(number, onsuccess, onerror) {
@@ -246,8 +272,7 @@ fb.getContactByNumber = function(number, onsuccess, onerror) {
 
 // Only will be executed in the case of not loading fb.utils previously
 // i.e. dialer and call log FB integration
-var fb = window.fb || {};
-fb.utils = window.fb.utils || {};
+fb.utils = this.fb.utils || {};
 
 // Returns the mozContact associated to a UID in FB
 fb.utils.getMozContactByUid = function(uid, onsuccess, onerror) {
