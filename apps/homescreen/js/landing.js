@@ -5,47 +5,23 @@ const LandingPage = (function() {
 
   var _ = navigator.mozL10n.get;
   var dateTimeFormat = new navigator.mozL10n.DateTimeFormat();
-  var timeFormat, dateFormat;
 
-  var page = document.querySelector('#landing-page');
-  var clockElemNumbers = document.querySelector('#landing-clock .numbers');
-  var clockElemMeridiem = document.querySelector('#landing-clock .meridiem');
-  var dateElem = document.querySelector('#landing-date');
+  var timeFormat, dateFormat, clockElemNumbers, clockElemMeridiem,
+      dateElem, updateInterval;
 
-  page.addEventListener('gridpageshowstart', initTime);
-
-  var updateInterval;
-  page.addEventListener('gridpagehideend', function onPageHideEnd() {
-    window.clearInterval(updateInterval);
+  var localized = false;
+  window.addEventListener('localized', function localizedReady() {
+    localized = true;
   });
 
-  window.addEventListener('localized', function localize() {
+  function localize() {
     timeFormat = _('shortTimeFormat');
     dateFormat = _('longDateFormat');
     initTime();
-  });
-
-  var clockOrigin = document.location.protocol + '//clock.' +
-        document.location.host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-
-  var landingTime = document.querySelector('#landing-time');
-  landingTime.addEventListener('click', function launchClock(evt) {
-    Applications.getByOrigin(clockOrigin).launch();
-  });
-
-  landingTime.addEventListener('contextmenu', function contextMenu(evt) {
-    evt.stopImmediatePropagation();
-  });
-
-  document.addEventListener('mozvisibilitychange', function mozVisChange() {
-    if (!page.dataset.currentPage) {
-      return;
-    }
-
-    document.mozHidden ? window.clearInterval(updateInterval) : initTime();
-  });
+  }
 
   function initTime() {
+    window.clearInterval(updateInterval);
     var date = updateUI();
     setTimeout(function setUpdateInterval() {
       updateUI();
@@ -66,4 +42,47 @@ const LandingPage = (function() {
     return date;
   }
 
+  function initialize() {
+    clockElemNumbers = document.querySelector('#landing-clock .numbers');
+    clockElemMeridiem = document.querySelector('#landing-clock .meridiem');
+    dateElem = document.querySelector('#landing-date');
+
+    var clockOrigin = document.location.protocol + '//clock.' +
+        document.location.host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
+    var landingTime = document.querySelector('#landing-time');
+    landingTime.addEventListener('click', function launchClock(evt) {
+      GridManager.getAppByOrigin(clockOrigin).launch();
+    });
+    landingTime.addEventListener('contextmenu', function contextMenu(evt) {
+      evt.stopImmediatePropagation();
+    });
+
+    document.addEventListener('mozvisibilitychange', function mozVisChange() {
+      if (document.location.hash != '#root') {
+        return;
+      }
+
+      document.mozHidden ? window.clearInterval(updateInterval) : initTime();
+    });
+
+    if (localized) {
+      localize();
+    }
+
+    window.addEventListener('localized', localize);
+  }
+
+  return {
+    init: initialize
+  };
+
 }());
+
+if (document.readyState === 'complete') {
+  LandingPage.init();
+} else {
+  window.addEventListener('DOMContentLoaded', function landingStart() {
+    LandingPage.init();
+    window.removeEventListener('DOMContentLoaded', landingStart);
+  });
+}

@@ -1,8 +1,6 @@
 'use strict';
 
 const Wallpaper = (function() {
-  var overlay = document.getElementById('icongrid');
-
   function onHomescreenContextmenu() {
     var a = new MozActivity({
       name: 'pick',
@@ -31,6 +29,7 @@ const Wallpaper = (function() {
 
   return {
     init: function init() {
+      var overlay = document.getElementById('icongrid');
       overlay.addEventListener('contextmenu', onHomescreenContextmenu);
     }
   };
