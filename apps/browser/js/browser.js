@@ -1313,7 +1313,6 @@ var Browser = {
     if (length == 1)
       places.push({uri: '', title: ''});
 
-    var self = this;
     places.forEach(function processPlace(place) {
       var thumbnail = document.createElement('li');
       var link = document.createElement('a');
@@ -1321,9 +1320,11 @@ var Browser = {
       link.href = place.uri;
       title.textContent = place.title ? place.title : place.uri;
 
-      var objectURL = URL.createObjectURL(place.screenshot);
-      self._topSiteThumbnailObjectURLs.push(objectURL);
-      link.style.backgroundImage = 'url(' + objectURL + ')';
+      if (place.screenshot) {
+        var objectURL = URL.createObjectURL(place.screenshot);
+        this._topSiteThumbnailObjectURLs.push(objectURL);
+        link.style.backgroundImage = 'url(' + objectURL + ')';
+      }
 
       thumbnail.appendChild(link);
       thumbnail.appendChild(title);
