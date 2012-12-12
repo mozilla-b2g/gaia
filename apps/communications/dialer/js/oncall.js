@@ -102,13 +102,15 @@ var CallScreen = {
         this.rejectButton.classList.remove('hide');
         this.rejectButton.classList.add('full-space');
         this.callToolbar.classList.remove('transparent');
+        this.mainContainer.classList.remove('transparent');
         this.keypadButton.setAttribute('disabled', 'disabled');
         this.swiperWrapper.classList.add('hide');
         break;
       case 'incoming':
         this.answerButton.classList.remove('hide');
         this.rejectButton.classList.remove('hide');
-        this.callToolbar.classList.remove('transparent');
+        this.callToolbar.classList.add('transparent');
+        this.mainContainer.classList.add('transparent');
         this.keypadButton.setAttribute('disabled', 'disabled');
         this.swiperWrapper.classList.add('hide');
         break;
@@ -116,6 +118,7 @@ var CallScreen = {
         this.answerButton.classList.add('hide');
         this.rejectButton.classList.add('hide');
         this.callToolbar.classList.add('transparent');
+        this.mainContainer.classList.remove('transparent');
         this.keypadButton.setAttribute('disabled', 'disabled');
         this.swiperWrapper.classList.remove('hide');
         break;
@@ -124,6 +127,7 @@ var CallScreen = {
         this.rejectButton.classList.remove('hide');
         this.rejectButton.classList.add('full-space');
         this.callToolbar.classList.remove('transparent');
+        this.mainContainer.classList.remove('transparent');
         this.swiperWrapper.classList.add('hide');
         break;
     }

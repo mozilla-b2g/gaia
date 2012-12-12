@@ -62,7 +62,8 @@ html * {
   display: none;
 }
 
-.grid-row.transparent {
+.grid-row.transparent,
+#co-advanced.transparent {
   visibility: hidden;
 }
 
@@ -148,6 +149,10 @@ body.hidden *[data-l10n-id] {
   background-color: rgba(0, 0, 0, 0.45);
   width: 100%;
   height: calc(100% - 9rem);
+}
+
+#main-container.transparent:before {
+  background-color: transparent;
 }
 
 #actions-container {
