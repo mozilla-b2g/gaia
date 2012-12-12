@@ -73,4 +73,6 @@
 #quick-settings > #quick-settings-full-app {
   background-image: url(images/settings.svg);
 }
-
+.quick-settings-airplane-mode {
+  opacity: 0.5;
+}
