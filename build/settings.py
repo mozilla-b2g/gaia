@@ -113,6 +113,7 @@ settings = {
 
 def main():
     parser = optparse.OptionParser(description="Generate initial settings.json file")
+    parser.add_option(      "--override", help="JSON files for custom settings overrides")
     parser.add_option(      "--homescreen", help="specify the homescreen URL")
     parser.add_option(      "--ftu", help="specify the ftu manifest URL")
     parser.add_option("-c", "--console", help="indicate if the console should be enabled", action="store_true")
@@ -180,6 +181,14 @@ def main():
     notification_base64 = base64.b64encode(notification_file.read())
     settings["notification.ringtone"] = "data:audio/ogg;base64," + notification_base64.decode("utf-8")
     settings["notification.ringtone.name"] = "notifier_ring.ogg"
+
+    if options.override and os.path.exists(options.override):
+      try:
+        overrides = json.load(open(options.override))
+        for key, val in overrides.items():
+          settings[key] = val
+      except Exception, e:
+        print "Error while applying override setting file: %s\n%s" % (options.override, e)
 
     json.dump(settings, open(settings_filename, "wb"))
 
