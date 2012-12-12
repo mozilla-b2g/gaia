@@ -732,32 +732,9 @@
             </div>
             <div id="notifications-lockscreen-container">
             </div>
-            <svg id="lockscreen-curve" xmlns="http://www.w3.org/2000/svg" version="1.1">
-              <image id="lockscreen-area-handle" x="150" y="100" width="20" height="9"
-                xlink:href="style/lockscreen/images/handle.png">
-                <animate class="lockscreen-start-animation" attributeType="XML" attributeName="y" begin="indefinite" dur="0.2s" to="100" />
-                <animate class="lockscreen-start-animation" attributeType="XML" attributeName="opacity" begin="indefinite" dur="0.5s" to="1" />
-                <animate class="lockscreen-end-animation" attributeType="XML" attributeName="y" begin="indefinite" dur="0.2s" to="0" />
-                <animate class="lockscreen-end-animation" attributeType="XML" attributeName="opacity" begin="indefinite" dur="0.5s" to="0" />
-                <animate class="lockscreen-elastic-animation" attributeType="XML" attributeName="y" dur="2s" calcMode="spline"
-                    begin="indefinite" keySplines="0 .50 .50 1; .50 0 1 .50; 0 .50 .50 1; .50 0 1 .50"
-                    values="100; 0; 120; 80; 100" />
-              </image>
-              <path fill="none" id="lockscreen-curvepath" stroke-width="1" stroke="white"
-                d="M0,80 C100,150 220,150 320,80">
-                  <animate class="lockscreen-start-animation" attributeType="XML" attributeName="d" begin="indefinite" dur="0.2s" to="M0,80 C100,150 220,150 320,80" />
-                  <animate class="lockscreen-start-animation" attributeType="XML" attributeName="stroke-opacity" begin="indefinite" dur="0.2s" to="1.0" />
-                  <animate class="lockscreen-end-animation" attributeType="XML" attributeName="d" begin="indefinite" dur="0.5s" to="M0,80 C100,-20 220,-20 320,80" />
-                  <animate class="lockscreen-end-animation" attributeType="XML" attributeName="stroke-opacity" begin="indefinite" dur="0.5s" to="0" />
-                  <animate class="lockscreen-elastic-animation" attributeType="XML" attributeName="d" dur="2s" calcMode="spline"
-                    begin="indefinite" keySplines="0 .50 .50 1; .50 0 1 .50;0 .50 .50 1; .50 0 1 .50;"
-                    values="M0,80 C100,150 220,150 320,80;
-                            M0,80 C100,40 220,40 320,80; M0,80 C100,150 220,150 320,80;
-                            M0,80 C100,100 220,100 320,80; M0,80 C100,150 220,150 320,80" />
-              </path>
-            </svg>
             <div id="lockscreen-area"></div>
             <div id="lockscreen-icon-container">
+              <div id="lockscreen-area-handle"></div>
               <div id="lockscreen-area-camera" class="lockscreen-icon-area lockscreen-icon-left">
                 <div class="lockscreen-icon">
                   <div id="lockscreen-accessibility-camera" role="button" class="lockscreen-icon-a11y-button" data-l10n-id="camera-a11y-button" aria-label="Camera"></div>
