@@ -84,10 +84,18 @@ form.search button[type="submit"] {
   border-bottom: 0.1rem solid #DBD9D9;
 }
 
+#view-contacts-list.searching #groups-list-search,
+#content.searching #groups-list-search {
+  opacity: 0;
+}
+
 #no-result {
-  margin-top: -moz-calc((100% - 0.5rem) / 2);
+  color: black;
+  margin-top: -moz-calc((100% - 7.3rem) / 2);
   text-align: center;
   margin-left: -0.8rem;
+  font-size: 1.8rem;
+  color: #666;
 }
 
 /* facebook search */
@@ -107,6 +115,41 @@ form.search button[type="submit"] {
 .facebook.searching #groups-list h2 {
   display: none;
 }
+
+#groups-list-search {
+  opacity: 0;
+  pointer-events: none;
+}
+
+#searchview-container {
+  z-index: 5;
+}
+
+#content.searching.nonemptysearch #groups-list-search,
+#view-contacts-list.searching.nonemptysearch #groups-list-search {
+  position: absolute;
+  opacity: 1;
+  background: #f3f3f3;
+  text-align: left;
+  pointer-events: auto;
+  top: 3.8rem;
+  left: 0;
+  right: 0;
+  height: calc(100% - 3.8rem);
+  padding: 0 1.5rem;
+}
+
+#content.searching.nonemptysearch #search-list > li[data-uuid] *:not(input),
+#view-contacts-list.searching.nonemptysearch #search-list > li[data-uuid] > a * {
+  pointer-events: none;
+}
+
+#content.searching.nonemptysearch #search-list,
+#view-contacts-list.searching.nonemptysearch #search-list {
+  height: 45rem;
+  overflow: auto;
+}
+
 
 #content.searching #main {
   height: 100%;
