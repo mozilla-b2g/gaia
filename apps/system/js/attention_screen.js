@@ -232,9 +232,7 @@ var AttentionScreen = {
   // shrink the attention screen overlay to status bar
   // invoked when we get a "home" event
   hide: function as_hide() {
-    // Doing nothing if the screen is already hiden
-    // or in the lockscreen
-    if (!this.isFullyVisible() || LockScreen.locked)
+    if (!this.isFullyVisible())
       return;
 
     this.dispatchEvent('status-active');

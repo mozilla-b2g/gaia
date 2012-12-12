@@ -40,10 +40,6 @@
         {
           event: 'focus',
           handler: contacts.Search.enterSearchMode
-        },
-        {
-          event: 'keyup',
-          handler: contacts.Search.search
         }
       ]
     });
@@ -76,4 +72,3 @@
     data: ''
   }, allowedOrigin);
 })(document);
-

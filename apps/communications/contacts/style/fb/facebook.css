@@ -50,15 +50,18 @@ form[role="dialog"].no-overlay button {
 }
 
 /* Force having always checkboxes */
-#groups-list.fb-import-list label {
+#groups-list.fb-import-list label,
+#search-list label {
   left: 0;
   pointer-events: auto;
 }
-#groups-list.fb-import-list label input + span {
+#groups-list.fb-import-list label input + span,
+#search-list label input + span {
   background-image: url(/contacts/style/images/fb-check.png);
 }
 
-#groups-list.fb-import-list li {
+#groups-list.fb-import-list li,
+#search-list li {
   padding-left: 4rem;
 }
 
@@ -189,7 +192,6 @@ nav[data-type="scrollbar"] ol > li > * {
 #mainContent li[data-uuid] *:not(input) {
   pointer-events: none;
 }
-
 
 ol.unbordered > li {
   border: none !important;
