@@ -153,7 +153,7 @@ var metadataParsers = (function() {
                                      // preview blob, then fall back on
                                      // the full-size image
                                      console.warn('Error creating thumbnail' +
-                                                  'from preview:', errmsg);
+                                                  ' from preview:', errmsg);
                                      getImageSizeAndThumbnail(file,
                                                               metadataCallback,
                                                               metadataError);
