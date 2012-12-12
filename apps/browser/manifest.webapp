@@ -28,6 +28,10 @@
     "zh-TW": {
       "name": "網路瀏覽器",
       "description": "Gaia 網路瀏覽器"
+    },
+    "pt-BR": {
+      "name": "Navegador",
+      "description": "Navegador Web Gaia"
     }
   },
   "default_locale": "en-US",
