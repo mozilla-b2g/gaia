@@ -17,120 +17,105 @@
   top: 1.9rem;
   width: 1.2rem;
 }
-.swiper-icon-left:after {
-  animation: 2s ease 0s normal none infinite swiper-arrow-left;
-  background: url("./images/arrow-left.png") no-repeat scroll center center transparent;
-  right: -7.5rem;
+
+#swiper-area-hangup > div {
+  background-image: url("images/hangup_icon.png");
+  background-position: center;
+  background-repeat: no-repeat;
+  margin-left: 4.2rem;
+  margin-right: auto;
+  transition: opacity 0.5s ease;
 }
-#swiper-area-hangup {
-  background: url("./images/hangup_icon.png") no-repeat scroll center center rgba(0, 0, 0, 0.3);
+
+.touched #swiper-area-hangup > div {
+  transition: none;
 }
-#swiper-area-hangup:active {
-  background: url("./images/ActionIcon_40x40_hangup.png") no-repeat scroll center center rgb(255, 0, 0);
+
+#swiper-area-hangup:active > div {
+  background-image: url("images/hangup_icon_pressed.png");
+  background-color: #F80000;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 .swiper-icon-left {
-  left: 4rem;
-  border: 2px solid #FF0000;
+  left: 0;
+  border-top: 1px solid #F80000;
 }
+.swiper-icon-right > div {
+  border: 2px solid #82C82D;
+}
+.swiper-icon-left > div {
+  border: 2px solid #F80000;
+}
+
 .swiper-icon {
+  margin-top: 2rem;
+  border-radius: 3.2rem;
+  width: 6.4rem;
+  height: 6.4rem;
+  background-color: rgba(0, 0, 0, 0.7);
   -moz-box-sizing: border-box;
-  /*border: 2px solid rgba(255, 255, 255, 0.8);*/
-  border-radius: 3rem;
-  bottom: 5rem;
-  height: 6rem;
-  margin-bottom: -4.1rem;
-  position: absolute;
-  transition: opacity 0.1s linear 0s;
-  width: 6rem;
+  pointer-events: none;
 }
 
 .touched .swiper-rail {
   opacity: 1;
 }
 
-.touched .swiper-icon {
-  transition: none;
+.swiper-icon-area {
+  width: -moz-calc(50%);
+  height: 100%;
+  position: absolute;
+  background-image: linear-gradient(to bottom,
+                    rgba(0,0,0,0.8), rgba(0,0,0,0.2) 20%);
+  pointer-events: none;
 }
 
-.touched #swiper-icon-container {
-  transition: none;
+.triggered .swiper-icon-area {
+  pointer-events: auto;
 }
 
 /* swiper-area-pickup */
-.swiper-icon-right:after {
-  animation: 2s ease 0s normal none infinite swiper-arrow-right;
-  background: url("./images/arrow-right.png") no-repeat scroll center center transparent;
-  left: -7.5rem;
+#swiper-area-pickup > div {
+  background-image: url("images/pickup_icon.png");
+  background-position: center;
+  background-repeat: no-repeat;
+  margin-right: 4.2rem;
+  margin-left: auto;
+  transition: opacity 0.5s ease;
 }
-#swiper-area-pickup {
-  background: url("./images/pickup_icon.png") no-repeat scroll center center rgba(0, 0, 0, 0.3);
+
+.touched #swiper-area-pickup > div {
+  transition: none;
 }
-#swiper-area-pickup:active {
-  background: url("./images/ActionIcon_40x40_pickup.png") no-repeat scroll center center rgb(0, 255, 0);
+
+#swiper-area-pickup:active > div {
+  background-image: url("images/pickup_icon_pressed.png");
+  background-color: #82C82D;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 .swiper-icon-right {
-  right: 4rem;
-  border: 2px solid #00FF00;
-}
-
-/* swiper-rail-left */
-#swiper-rail-left {
-  left: 7.8rem;
-  transform-origin: 0% 0%;
-}
-.swiper-rail {
-  background-color: rgba(255, 255, 255, 0.8);
-  bottom: 5rem;
-  height: 0.2rem;
-  margin: -21px;
-  opacity: 0;
-  position: absolute;
-  transition: opacity 0.1s linear 0s;
-  width: calc(50% - 5rem - 0.7rem);
-}
-
-/* swiper-rail-right */
-#swiper-rail-right {
-  right: 7.8rem;
-  transform-origin: 100% 0%;
+  right: 0;
+  border-top: 1px solid #83C72B;
 }
 
 /* swiper-area-handle */
-#swiper-area-handle:after {
-  background-image: url("./images/handle.png");
-  background-position: 50% 50%;
-  background-repeat: no-repeat;
-  background-size: contain;
-  content: "";
-  height: 100%;
-  left: 0;
-  position: absolute;
-  top: 0;
-  transition: opacity 0.1s linear 0s;
-  width: 100%;
-}
-#swiper-area-handle:before {
-  background-image: url("./images/handle-grow.png");
-  background-position: 50% 50%;
-  background-repeat: no-repeat;
-  background-size: contain;
-  content: "";
-  height: 6.8rem;
-  left: -0.9rem;
-  opacity: 0;
-  position: absolute;
-  top: -0.9rem;
-  width: 6.8rem;
-}
 #swiper-area-handle {
-  bottom: 5rem;
-  height: 5rem;
-  left: 50%;
-  margin-bottom: -4.5rem;
-  margin-left: -2.5rem;
+  opacity: 1;
   position: absolute;
-  transition: -moz-transform 0.1s linear 0s;
-  width: 5rem;
+  background-image: url('images/handle.png');
+  background-repeat: no-repeat;
+  background-position: center;
+  border-top: 1px solid transparent;
+  top: 0;
+  height: 0.9rem;
+  width: 100%;
+  transition: opacity 0.5s ease;
+}
+
+.touched #swiper-area-handle {
+  transition: none;
 }
 
 /* swiper */
@@ -142,21 +127,20 @@
   display: none;
 }
 
-#swiper-curve {
-  width: 100%;
-  bottom: 0;
-  position: absolute;
-}
-
 #swiper-icon-container {
   position: absolute;
   width: 100%;
-  bottom: -7rem;
-  height: 7rem;
-  opacity: 0;
+  bottom: -8rem;
+  height: 10rem;
+  pointer-events: none;
+  padding-top: 2rem;
   transition:
     transform 0.5s ease,
     opacity 0.5s ease;
+}
+
+.touched #swiper-icon-container {
+  transition: none;
 }
 
 @keyframes swiper-elastic {
@@ -172,11 +156,59 @@
 
 .elastic #swiper-icon-container {
   animation: swiper-elastic 1s 1;
-  opacity: 0.4;
 }
 
 .triggered #swiper-icon-container {
-  transform: translateY(-8.5rem);
+  transform: translateY(-8rem);
   opacity: 1;
 }
 
+.triggered #swiper-area-pickup > div {
+  opacity: 1;
+}
+
+.triggered #swiper-area-hangup > div {
+  opacity: 1;
+}
+
+.triggered #swiper-area-handle {
+  opacity: 0;
+}
+
+@keyframes swiper-elastic {
+  0%, 60%, 100% {
+    transform: translateY(0);
+    animation-timing-function: ease-out;
+  }
+  30% {
+    transform: translateY(-5rem);
+    animation-timing-function: ease-in;
+  }
+  80% {
+    transform: translateY(-1.5rem);
+    animation-timing-function: ease-in;
+  }
+}
+
+@keyframes swiper-elastic-icon {
+  0%, 60%, 100% {
+    opacity: 0.1;
+    animation-timing-function: ease-out;
+  }
+  30% {
+    opacity: 0.5;
+    animation-timing-function: ease-in;
+  }
+  80% {
+    opacity: 0.4;
+    animation-timing-function: ease-in;
+  }
+}
+
+.elastic .swiper-icon {
+  animation: swiper-elastic-icon 1.3s infinite;
+}
+
+.elastic #swiper-icon-container {
+  animation: swiper-elastic 1.3s infinite;
+}
