@@ -209,3 +209,82 @@ fb.getAddress = function(fbdata) {
 
   return out;
 };
+
+
+fb.mergeContact = function(devContact, fbContact) {
+  var out = {};
+  for (var elem in devContact) {
+    out[elem] = devContact[elem];
+    if (fbContact[elem] && fbContact[elem].length) {
+      var devElem = devContact[elem] || [];
+      var fbElem = fbContact[elem];
+      if (devElem.toString() != fbElem.toString()) {
+        out[elem] = devElem.concat(fbContact[elem]);
+      }
+    }
+  }
+
+  for (var elem in fbContact) {
+    if (!out[elem]) {
+      out[elem] = fbContact[elem];
+    }
+  }
+
+  return out;
+};
+
+fb.getContactByNumber = function(number, onsuccess, onerror) {
+  var req = fb.contacts.getByPhone(number);
+
+  req.onsuccess = function(e) {
+    onsuccess(e.target.result);
+  };
+
+  req.onerror = onerror;
+};
+
+// Only will be executed in the case of not loading fb.utils previously
+// i.e. dialer and call log FB integration
+var fb = window.fb || {};
+fb.utils = window.fb.utils || {};
+
+// Returns the mozContact associated to a UID in FB
+fb.utils.getMozContactByUid = function(uid, onsuccess, onerror) {
+  var filter = {
+    filterBy: ['category'],
+    filterValue: uid,
+    filterOp: 'contains'
+  };
+
+  var req = navigator.mozContacts.find(filter);
+  req.onsuccess = onsuccess;
+  req.onerror = onerror;
+};
+
+ /**
+  *   Request auxiliary object to support asynchronous calls
+  *
+  */
+fb.utils.Request = function() {
+  this.done = function(result) {
+    this.result = result;
+    if (typeof this.onsuccess === 'function') {
+      var ev = {};
+      ev.target = this;
+      window.setTimeout(function() {
+        this.onsuccess(ev);
+      }.bind(this), 0);
+    }
+  }
+
+  this.failed = function(error) {
+    this.error = error;
+    if (typeof this.onerror === 'function') {
+      var ev = {};
+      ev.target = this;
+      window.setTimeout(function() {
+        this.onerror(ev);
+      }.bind(this), 0);
+    }
+  }
+}
