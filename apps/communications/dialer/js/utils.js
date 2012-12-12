@@ -1,15 +1,14 @@
 'use strict';
 
-// Based on Resig's pretty date.
-var _ = navigator.mozL10n.get;
-
 var Utils = {
   prettyDate: function ut_prettyDate(time) {
+    var _ = navigator.mozL10n.get;
     var dtf = new navigator.mozL10n.DateTimeFormat();
     return dtf.localeFormat(new Date(time), _('shortTimeFormat'));
   },
 
   headerDate: function ut_headerDate(time) {
+    var _ = navigator.mozL10n.get;
     var dtf = new navigator.mozL10n.DateTimeFormat();
     var today = _('today');
     var yesterday = _('yesterday');

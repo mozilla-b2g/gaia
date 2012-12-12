@@ -913,12 +913,18 @@
    */
 
   // load the default locale on startup
-  window.addEventListener('DOMContentLoaded', function l10nStartup() {
+  function l10nStartup() {
     gReadyState = 'interactive';
     consoleLog('loading [' + navigator.language + '] resources, ' +
         (gAsyncResourceLoading ? 'asynchronously.' : 'synchronously.'));
     loadLocale(navigator.language, translateFragment);
-  });
+  }
+
+  if (document.readyState == 'interactive' || document.readyState == 'complete') {
+    l10nStartup();
+  } else {
+    window.addEventListener('DOMContentLoaded', l10nStartup);
+  }
 
   // load the appropriate locale if the language setting has changed
   if ('mozSettings' in navigator && navigator.mozSettings) {
