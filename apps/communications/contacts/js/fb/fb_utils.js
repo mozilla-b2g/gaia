@@ -17,18 +17,6 @@ if (!fb.utils) {
       fb.oauthflow.params['redirectLogout'] : '';
     var STORAGE_KEY = Utils.TOKEN_DATA_KEY = 'tokenData';
 
-    function getMozContactByUid(uid, success, error) {
-      var filter = {
-        filterBy: ['category'],
-        filterValue: uid,
-        filterOp: 'contains'
-      };
-
-      var req = navigator.mozContacts.find(filter);
-      req.onsuccess = success;
-      req.onerror = error;
-    }
-
       // For controlling data synchronization
     Utils.setLastUpdate = function(value, cb) {
       window.asyncStorage.setItem(LAST_UPDATED_KEY, {
@@ -79,7 +67,7 @@ if (!fb.utils) {
       var outReq = new Utils.Request();
 
       window.setTimeout(function get_mozContact_ByUid() {
-        getMozContactByUid(uid,
+        Utils.getMozContactByUid(uid,
           function onsuccess(e) {
             if (e.target.result && e.target.result.length > 0) {
               outReq.done(e.target.result[0]);
@@ -101,7 +89,7 @@ if (!fb.utils) {
       var outReq = new Utils.Request();
 
       window.setTimeout(function get_mozContact_ByUid() {
-        getMozContactByUid(uid,
+        Utils.getMozContactByUid(uid,
           function onsuccess(e) {
             if (e.target.result && e.target.result.length > 0) {
               outReq.done(e.target.result.length);
@@ -358,33 +346,6 @@ if (!fb.utils) {
 
     } // logout
 
-    /**
-     *   Request auxiliary object to support asynchronous calls
-     *
-     */
-    Utils.Request = function() {
-      this.done = function(result) {
-        this.result = result;
-        if (typeof this.onsuccess === 'function') {
-          var ev = {};
-          ev.target = this;
-          window.setTimeout(function() {
-            this.onsuccess(ev);
-          }.bind(this), 0);
-        }
-      }
-
-      this.failed = function(error) {
-        this.error = error;
-        if (typeof this.onerror === 'function') {
-          var ev = {};
-          ev.target = this;
-          window.setTimeout(function() {
-            this.onerror(ev);
-          }.bind(this), 0);
-        }
-      }
-    }
 
     // FbContactsCleaner Object
     Utils.FbContactsCleaner = function(contacts) {
