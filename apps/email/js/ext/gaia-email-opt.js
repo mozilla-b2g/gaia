@@ -19792,13 +19792,49 @@ SmtpProber.prototype = {
     LITERAL_AC:  0xC4,
   };
 
-  function ParseError(message) {
-      this.name = 'WBXML.ParseError';
-      this.message = message || '';
+  /**
+   * Create a constructor for a custom error type that works like a built-in
+   * Error.
+   *
+   * @param name the string name of the error
+   * @param parent (optional) a parent class for the error, defaults to Error
+   * @param extraArgs an array of extra arguments that can be passed to the
+   *        constructor of this error type
+   * @return the constructor for this error
+   */
+  function makeError(name, parent, extraArgs) {
+    function CustomError() {
+      // Try to let users call this as CustomError(...) without the "new". This
+      // is imperfect, and if you call this function directly and give it a
+      // |this| that's a CustomError, things will break. Don't do it!
+      var self = this instanceof CustomError ?
+                 this : Object.create(CustomError.prototype);
+      var tmp = Error();
+      var offset = 1;
+
+      self.stack = tmp.stack.substring(tmp.stack.indexOf('\n') + 1);
+      self.message = arguments[0] || tmp.message;
+      if (extraArgs) {
+        offset += extraArgs.length;
+        for (var i = 0; i < extraArgs.length; i++)
+          self[extraArgs[i]] = arguments[i+1];
+      }
+
+      var m = /@(.+):(.+)/.exec(self.stack);
+      self.fileName = arguments[offset] || (m && m[1]) || "";
+      self.lineNumber = arguments[offset + 1] || (m && m[2]) || 0;
+
+      return self;
+    }
+    CustomError.prototype = Object.create((parent || Error).prototype);
+    CustomError.prototype.name = name;
+    CustomError.prototype.constructor = CustomError;
+
+    return CustomError;
   }
+
+  var ParseError = makeError('WBXML.ParseError');
   exports.ParseError = ParseError;
-  ParseError.prototype = new Error();
-  ParseError.prototype.constructor = ParseError;
 
   function StringTable(data, decoder) {
     this.strings = [];
@@ -20651,8 +20687,9 @@ SmtpProber.prototype = {
     get bytes() { return new Uint8Array(this._rawbuf, 0, this._pos); },
   };
 
-  function EventParser(reader) {
+  function EventParser() {
     this.listeners = [];
+    this.onerror = function(e) { throw e; };
   }
   exports.EventParser = EventParser;
   EventParser.prototype = {
@@ -20687,7 +20724,8 @@ SmtpProber.prototype = {
                 listener.callback(node);
               }
               catch (e) {
-                console.error(e);
+                if (this.onerror)
+                  this.onerror(e);
               }
             }
           }
@@ -20711,7 +20749,8 @@ SmtpProber.prototype = {
                 listener.callback(recPath[recPath.length-1]);
               }
               catch (e) {
-                console.error(e);
+                if (this.onerror)
+                  this.onerror(e);
               }
             }
           }
@@ -21914,30 +21953,56 @@ SmtpProber.prototype = {
 
   function nullCallback() {}
 
-  function AutodiscoverError(message) {
-    this.name = 'ActiveSync.AutodiscoverError';
-    this.message = message || '';
+  /**
+   * Create a constructor for a custom error type that works like a built-in
+   * Error.
+   *
+   * @param name the string name of the error
+   * @param parent (optional) a parent class for the error, defaults to Error
+   * @param extraArgs an array of extra arguments that can be passed to the
+   *        constructor of this error type
+   * @return the constructor for this error
+   */
+  function makeError(name, parent, extraArgs) {
+    function CustomError() {
+      // Try to let users call this as CustomError(...) without the "new". This
+      // is imperfect, and if you call this function directly and give it a
+      // |this| that's a CustomError, things will break. Don't do it!
+      var self = this instanceof CustomError ?
+                 this : Object.create(CustomError.prototype);
+      var tmp = Error();
+      var offset = 1;
+
+      self.stack = tmp.stack.substring(tmp.stack.indexOf('\n') + 1);
+      self.message = arguments[0] || tmp.message;
+      if (extraArgs) {
+        offset += extraArgs.length;
+        for (var i = 0; i < extraArgs.length; i++)
+          self[extraArgs[i]] = arguments[i+1];
+      }
+
+      var m = /@(.+):(.+)/.exec(self.stack);
+      self.fileName = arguments[offset] || (m && m[1]) || "";
+      self.lineNumber = arguments[offset + 1] || (m && m[2]) || 0;
+
+      return self;
+    }
+    CustomError.prototype = Object.create((parent || Error).prototype);
+    CustomError.prototype.name = name;
+    CustomError.prototype.constructor = CustomError;
+
+    return CustomError;
   }
+
+  var AutodiscoverError = makeError('ActiveSync.AutodiscoverError');
   exports.AutodiscoverError = AutodiscoverError;
-  AutodiscoverError.prototype = new Error();
-  AutodiscoverError.prototype.constructor = AutodiscoverError;
 
-  function AutodiscoverDomainError(message) {
-    this.name = 'ActiveSync.AutodiscoverDomainError';
-    this.message = message || '';
-  }
+  var AutodiscoverDomainError = makeError('ActiveSync.AutodiscoverDomainError',
+                                          AutodiscoverError);
   exports.AutodiscoverDomainError = AutodiscoverDomainError;
-  AutodiscoverDomainError.prototype = new AutodiscoverError();
-  AutodiscoverDomainError.prototype.constructor = AutodiscoverDomainError;
 
-  function HttpError(message, status) {
-    this.name = 'ActiveSync.HttpError';
-    this.message = message || '';
-    this.status = status || 0;
-  }
+  var HttpError = makeError('ActiveSync.HttpError', null, ['status']);
   exports.HttpError = HttpError;
-  HttpError.prototype = new Error();
-  HttpError.prototype.constructor = HttpError;
 
   function nsResolver(prefix) {
     const baseUrl = 'http://schemas.microsoft.com/exchange/autodiscover/';
@@ -32412,11 +32477,17 @@ ActiveSyncFolderConn.prototype = {
         return;
       }
 
+      // Reset the SyncKey, just in case we don't see a sync key in the
+      // response.
+      folderConn.syncKey = '0';
+
       let e = new $wbxml.EventParser();
       e.addEventListener([as.Sync, as.Collections, as.Collection, as.SyncKey],
                          function(node) {
         folderConn.syncKey = node.children[0].textContent;
       });
+
+      e.onerror = function() {}; // Ignore errors.
       e.run(aResponse);
 
       if (folderConn.syncKey === '0') {
@@ -32474,10 +32545,19 @@ ActiveSyncFolderConn.prototype = {
                          function(node) {
         estimate = parseInt(node.children[0].textContent);
       });
-      e.run(aResponse);
+
+      try {
+        e.run(aResponse);
+      }
+      catch (ex) {
+        console.error('Error parsing GetItemEstimate response', ex, '\n',
+                      ex.stack);
+        callback('unknown');
+        return;
+      }
 
       if (status !== $ascp.ItemEstimate.Enums.Status.Success) {
-        console.log('Error getting item estimate:', status);
+        console.error('Error getting item estimate:', status);
         callback('unknown');
       }
       else {
@@ -32696,9 +32776,7 @@ ActiveSyncFolderConn.prototype = {
 
       e.addEventListener(base.concat(as.Commands, [[as.Add, as.Change]]),
                          function(node) {
-        let id;
-        let guid;
-        let msg;
+        let id, guid, msg;
 
         for (let [,child] in Iterator(node.children)) {
           switch (child.tag) {
@@ -32706,7 +32784,14 @@ ActiveSyncFolderConn.prototype = {
             guid = child.children[0].textContent;
             break;
           case as.ApplicationData:
-            msg = folderConn._parseMessage(child, node.tag === as.Add);
+            try {
+              msg = folderConn._parseMessage(child, node.tag === as.Add);
+            }
+            catch (ex) {
+              // If we get an error, just log it and skip this message.
+              console.error('Failed to parse a message:', ex, '\n', ex.stack);
+              return;
+            }
             break;
           }
         }
@@ -32738,7 +32823,14 @@ ActiveSyncFolderConn.prototype = {
         deleted.push(guid);
       });
 
-      e.run(aResponse);
+      try {
+        e.run(aResponse);
+      }
+      catch (ex) {
+        console.error('Error parsing Sync response:', ex, '\n', ex.stack);
+        callback('unknown');
+        return;
+      }
 
       if (status === asEnum.Status.Success) {
         console.log('Sync completed: added ' + added.length + ', changed ' +
@@ -33063,13 +33155,13 @@ ActiveSyncFolderConn.prototype = {
     if (this._account.conn.currentVersion.lt('12.1'))
           w.tag(as.Class, 'Email');
 
-          w.tag(as.SyncKey, this._storage.folderMeta.syncKey)
-           .tag(as.CollectionId, this._storage.folderMeta.serverId)
+          w.tag(as.SyncKey, this.syncKey)
+           .tag(as.CollectionId, this.serverId)
            // DeletesAsMoves defaults to true, so we can omit it
            // GetChanges defaults to true, so we must explicitly disable it to
            // avoid hearing about changes.
            .tag(as.GetChanges, '0')
-             .stag(as.Commands);
+           .stag(as.Commands);
 
     try {
       invokeWithWriter(w);
@@ -33106,9 +33198,16 @@ ActiveSyncFolderConn.prototype = {
 
       //console.warn('COMMAND RESULT:\n', aResponse.dump());
       //aResponse.rewind();
-      e.run(aResponse);
+      try {
+        e.run(aResponse);
+      }
+      catch (ex) {
+        console.error('Error parsing Sync reponse:', ex, '\n', ex.stack);
+        callWhenDone('unknown');
+        return;
+      }
 
-      if (status === '1') {
+      if (status === $ascp.AirSync.Enums.Status.Success) {
         folderConn.syncKey = syncKey;
         if (callWhenDone)
           callWhenDone(null);
@@ -34000,7 +34099,15 @@ ActiveSyncAccount.prototype = {
         }
       });
 
-      e.run(aResponse);
+      try {
+        e.run(aResponse);
+      }
+      catch (ex) {
+        console.error('Error parsing FolderSync response:', ex, '\n',
+                      ex.stack);
+        callback('unknown');
+        return;
+      }
 
       // It's possible we got some folders in an inconvenient order (i.e. child
       // folders before their parents). Keep trying to add folders until we're
@@ -34266,7 +34373,15 @@ ActiveSyncAccount.prototype = {
         serverId = node.children[0].textContent;
       });
 
-      e.run(aResponse);
+      try {
+        e.run(aResponse);
+      }
+      catch (ex) {
+        console.error('Error parsing FolderCreate response:', ex, '\n',
+                      ex.stack);
+        callback('unknown');
+        return;
+      }
 
       if (status === fhStatus.Success) {
         let folderMeta = account._addedFolder(serverId, parentFolderServerId,
@@ -34324,7 +34439,17 @@ ActiveSyncAccount.prototype = {
         account.meta.syncKey = node.children[0].textContent;
       });
 
-      e.run(aResponse);
+      try {
+
+        e.run(aResponse);
+      }
+      catch (ex) {
+        console.error('Error parsing FolderDelete response:', ex, '\n',
+                      ex.stack);
+        callback('unknown');
+        return;
+      }
+
       if (status === fhStatus.Success) {
         account._deletedFolder(folderMeta.serverId);
         callback(null, folderMeta);
