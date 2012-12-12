@@ -39,7 +39,7 @@ fbFriends.List = (function() {
         });
 
         // Enabling searching by email
-        if(friend['email1']) {
+        if (friend['email1']) {
           searchInfo.push(friend['email1']);
         }
 
