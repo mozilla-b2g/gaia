@@ -1151,12 +1151,14 @@ Evme.Brain = new function Evme_Brain() {
 
         // done button clicked
         this.done = function done(data) {
-            Evme.DoATAPI.Shortcuts.add({
-                "shortcuts": data.shortcuts,
-                "icons": data.icons
-            }, function onSuccess(){
-                Brain.Shortcuts.loadFromAPI();
-            });
+            if (data.shortcuts && data.shortcuts.length > 0) {
+                Evme.DoATAPI.Shortcuts.add({
+                    "shortcuts": data.shortcuts,
+                    "icons": data.icons
+                }, function onSuccess(){
+                    Brain.Shortcuts.loadFromAPI();
+                });
+            }
         };
 
         // prepare and show
