@@ -1,30 +1,26 @@
-Evme.Location = new function() {
-    var _name = "Location", _this = this,
-        $elLocationName = null, $elButton = null, $elSelectorDialog = null, $locationScreen = null,
-        $elButtonManual = null,
-        dialog = null, dialogActive = false, timeoutLocationRequest = null;
-    var lat = "", lon = "", name = "",
-        lastUserLat = "", lastUserLon = "";
+Evme.Location = new function Evme_Location() {
+    var NAME = "Location", self = this;
     
-    this.init = function(options) {
+    this.init = function init(options) {
         options || (options = {});
         
-        Evme.EventHandler.trigger(_name, "init");
+        Evme.EventHandler.trigger(NAME, "init");
     };
     
-    this.requestUserLocation = function(onSuccess, onError) {
-        var hadError = false,
-            reportError = function(data) {
+    this.requestUserLocation = function requestUserLocation(onSuccess, onError) {
+        var hadError = false;
+        
+        function reportError(data) {
             if (!hadError) {
                 hadError = true;
                 cbError(data);
                 onError && onError(data);
             }
-        };
+        }
         
         cbLocationRequest();
         
-        navigator.geolocation.getCurrentPosition(function(data){
+        navigator.geolocation.getCurrentPosition(function onLocationSuccess(data){
             if (!data || !data.coords) {
                 reportError(data);
             } else if (!hadError) {
@@ -36,16 +32,16 @@ Evme.Location = new function() {
     };
     
     function cbLocationRequest() {
-        Evme.EventHandler.trigger(_name, "requesting");
+        Evme.EventHandler.trigger(NAME, "requesting");
     }
     
     function cbLocationSuccess(data) {
-        Evme.EventHandler.trigger(_name, "success", {
+        Evme.EventHandler.trigger(NAME, "success", {
             "data": data
         });
     }
     
     function cbError(data) {
-        Evme.EventHandler.trigger(_name, "error", data);
+        Evme.EventHandler.trigger(NAME, "error", data);
     }
 };

@@ -1,147 +1,150 @@
-(function() {
-    var currentTip = null;
+window.Evme.currentTip = null;
+
+window.Evme.Tip = function Evme_Tip(_config, _onShow, _onHide) {
+    var self = this, NAME = "Tips",
+        el = null, elScreen = null,
+        id = '', text = "", buttons = [], className = "", closeAfter = false, showAfter = false,
+        blockScreen = false, timesToShow = Infinity, timesShown = 0, closeOnClick = false,
+        timeoutAutoHide = null,
+        onHide = _onHide || null, onShow = _onShow || null,
+        
+        CSS_TRANSITION_TIME = 400;
     
-    var Tip = function(_config, _onShow, _onHide) {
-        var _this = this,
-            _name = "Tips",
-            $el = null, $elScreen = null,
-            id = '', text = "", buttons = [], className = "", closeAfter = false, showAfter = false,
-            blockScreen = false, timesToShow = Infinity, timesShown = 0, closeOnClick = false,
-            timeoutAutoHide = null,
-            onHide = _onHide || null, onShow = _onShow || null;
-            
-        var CSS_TRANSITION_TIME = 400;
-        
-        this.init = function(options, bIgnoreStorage) {
-            if ('enabled' in options && enabled.enabled === false) {
-                return false;
-            }
-            
-            id = "tip_" + options.id;
-            text = options.text;
-            buttons = options.buttons || [];
-            closeAfter = options.closeAfter;
-            showAfter = options.showAfter || 0;
-            className = options.className;
-            closeOnClick = options.closeOnClick || false;
-            timesToShow = options.timesToShow || Infinity;
-            blockScreen = options.blockScreen || false;
-            
-            timesShown = options.ignoreStorage? 0 : Evme.Storage.get(id) || 0;
-            
-            if (timesShown < timesToShow && $("#" + id).length == 0) {
-                $el = $('<div id="' + id + '" class="tip">' + text + '</div>');
-                
-                $el.bind("touchstart", click);
-                
-                if (className) {
-                    $el.addClass(className);
-                }
-                
-                addButtons();
-                
-                if (blockScreen) {
-                    $elScreen = $('<div class="screen tip-screen" style="opacity: 0;"></div>');
-                    $("#" + Evme.Utils.getID()).append($elScreen);
-                }
-                
-                $("#" + Evme.Utils.getID()).append($el);
-                
-                $el.css("margin-top", -($el.height()/2) + "px");
-            }
-            
-            return _this;
-        };
-        
-        this.show = function() {
-            if (!$el) return false;
-            if (timesShown >= timesToShow) return false;
-            
-            if (currentTip) {
-                currentTip.hide("other-tip");
-            }
-            
-            window.setTimeout(function(){
-                $elScreen && $elScreen.addClass("visible");
-                $el.addClass("visible");
-                
-                if (closeAfter) {
-                    timeoutAutoHide = window.setTimeout(function(){
-                        _this.hide("auto");
-                    }, closeAfter);
-                }
-                
-                timesShown++;
-                Evme.Storage.set(id, timesShown);
-                
-                onShow && onShow(_this);
-            }, showAfter);
-            
-            currentTip = _this;
-            
-            Evme.EventHandler.trigger(_name, "show", {
-                "id": id
-            });
-            
-            return _this;
-        };
-        
-        this.hide = function(source) {
-            if (!$el) return;
-            
-            Evme.EventHandler.trigger(_name, "hide", {
-                "id": id,
-                "source": ((typeof source == "string")? source : "external")
-            });
-            
-            window.clearTimeout(timeoutAutoHide);
-            
-            $elScreen && $elScreen.removeClass("visible");
-            $el.removeClass("visible");
-            
-            window.setTimeout(function(){
-                $elScreen && $elScreen.remove();
-                $el.remove();
-                onHide && onHide(_this);
-                $el = null;
-            }, CSS_TRANSITION_TIME + 50);
-            
-            currentTip = null;
-            
-            return _this;
-        };
-        
-        this.id = function() { return id; };
-        
-        function addButtons() {
-            if (!buttons || buttons.length === 0) return;
-            
-            var $buttons = $('<div class="buttons"></div>'),
-                style = 'style="width: ' + 100/buttons.length + '%;"';
-            
-            for (var i=0; i<buttons.length; i++) {
-                var button = buttons[i],
-                    $button = $('<div ' + style + '><b>' + button.text + '</b></div>');
-                    
-                $button.bind("click", button.onclick);
-                    
-                $buttons.append($button);
-            }
-            
-            $el.append($buttons);
-            $el.addClass("has-buttons");
+    this.init = function init(options, bIgnoreStorage) {
+        if ('enabled' in options && enabled.enabled === false) {
+            return false;
         }
         
-        function click(e) {
-            if (closeOnClick) {
-                e.preventDefault();
-                e.stopPropagation();
-                _this.hide("click");
+        id = "tip_" + options.id;
+        text = options.text;
+        buttons = options.buttons || [];
+        closeAfter = options.closeAfter;
+        showAfter = options.showAfter || 0;
+        className = options.className;
+        closeOnClick = options.closeOnClick || false;
+        timesToShow = options.timesToShow || Infinity;
+        blockScreen = options.blockScreen || false;
+        
+        timesShown = options.ignoreStorage? 0 : Evme.Storage.get(id) || 0;
+        
+        if (timesShown < timesToShow && !Evme.$("#" + id)) {
+            el = Evme.$create('div', {'id': id, 'class': "tip"}, text);
+            
+            el.addEventListener("touchstart", click);
+            
+            if (className) {
+                el.classList.add(className);
             }
+            
+            addButtons();
+            
+            if (blockScreen) {
+                elScreen = Evme.$create('div', {'class': "screen tip-screen", 'style': "opacity: 0;"});
+                Evme.Utils.getContainer().appendChild(elScreen);
+            }
+            
+            Evme.Utils.getContainer().appendChild(el);
+            
+            el.style.marginTop = -el.offsetHeight/2 + "px";
         }
         
-        _config && _this.init(_config);
+        return self;
     };
     
-    window.Evme.Tip = Tip;
-})();
+    this.show = function show() {
+        if (!el) {
+            return false;
+        }
+        if (timesShown >= timesToShow) {
+            return false;
+        }
+        
+        if (window.Evme.currentTip) {
+            window.Evme.currentTip.hide("other-tip");
+        }
+        
+        window.setTimeout(function onTimeout(){
+            elScreen && elScreen.classList.add("visible");
+            el.classList.add("visible");
+            
+            if (closeAfter) {
+                timeoutAutoHide = window.setTimeout(function onTimeout(){
+                    self.hide("auto");
+                }, closeAfter);
+            }
+            
+            timesShown = timesShown + 1;
+            Evme.Storage.set(id, timesShown);
+            
+            onShow && onShow(self);
+        }, showAfter);
+        
+        window.Evme.currentTip = self;
+        
+        Evme.EventHandler.trigger(NAME, "show", {
+            "id": id
+        });
+        
+        return self;
+    };
+    
+    this.hide = function hide(source) {
+        if (!el) {
+            return;
+        }
+        
+        Evme.EventHandler.trigger(NAME, "hide", {
+            "id": id,
+            "source": ((typeof source == "string")? source : "external")
+        });
+        
+        window.clearTimeout(timeoutAutoHide);
+        
+        elScreen && elScreen.classList.remove("visible");
+        el.classList.remove("visible");
+        
+        window.setTimeout(function onTimeout(){
+            Evme.$remove(elScreen);
+            Evme.$remove(el);
+            
+            onHide && onHide(self);
+            
+            el = null;
+        }, CSS_TRANSITION_TIME + 50);
+        
+        window.Evme.currentTip = null;
+        
+        return self;
+    };
+    
+    this.id = function id() { return id; };
+    
+    function addButtons() {
+        if (!buttons || buttons.length === 0) return;
+        
+        var elButtons = Evme.$create('div', {'class': "buttons"}),
+            style = 'width: ' + 100/buttons.length + '%;';
+        
+        for (var i=0; i<buttons.length; i++) {
+            var button = buttons[i],
+                elButton = Evme.$create('div', {'style': style}, '<b>' + button.text + '</b>');
+                
+            elButton.addEventListener("click", button.onclick);
+                
+            elButtons.appendChild(elButton);
+        }
+        
+        el.appendChild(elButtons);
+        el.classList.add("has-buttons");
+    }
+    
+    function click(e) {
+        if (closeOnClick) {
+            e.preventDefault();
+            e.stopPropagation();
+            self.hide("click");
+        }
+    }
+    
+    _config && self.init(_config);
+};

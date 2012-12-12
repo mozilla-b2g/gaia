@@ -1,13 +1,13 @@
-Evme.SmartFolder = function(_options) {
-    var _this = this, _name = "SmartFolder",
+Evme.SmartFolder = function Evme_SartFolder(_options) {
+    var self = this, NAME = "SmartFolder",
         name = '', image = '', scroll = null, shouldFadeImage = false, bgImage = null,
-        $el = null, $elScreen = null, $elTitle = null, $elClose = null,
-        $elAppsContainer = null, $elApps = null,
-        $elImage = null, $elImageOverlay = null, $elImageFullscreen = null,
-        reportedScrollMove = false, onScrollEnd = null, onClose = null,
-        fadeBy = 1;
+        el = null, elScreen = null, elTitle = null, elClose = null,
+        elAppsContainer = null, elApps = null,
+        elImage = null, elImageOverlay = null, elImageFullscreen = null,
+        reportedScrollMove = false, onScrollEnd = null,
+        fadeBy = 1,
         
-    var CLASS_WHEN_VISIBLE = 'visible',
+        CLASS_WHEN_VISIBLE = 'visible',
         CLASS_WHEN_IMAGE_FULLSCREEN = 'full-image',
         CLASS_WHEN_ANIMATING = 'animate',
         CLASS_WHEN_MAX_HEIGHT = 'maxheight',
@@ -21,261 +21,258 @@ Evme.SmartFolder = function(_options) {
         MAX_SCROLL_FADE = 200,
         FULLSCREEN_THRESHOLD = 0.8;
         
-    this.init = function(options) {
+    this.init = function init(options) {
         !options && (options = {});
         
         createElement();
         
-        options.bgImage && _this.setBgImage(options.bgImage);
-        options.name && _this.setName(options.name);
-        options.image && _this.setImage(options.image);
-        options.parent && _this.appendTo(options.parent);
-        (typeof options.maxHeight == "number") && (MAX_HEIGHT = options.maxHeight);
+        options.bgImage && self.setBgImage(options.bgImage);
+        options.name && self.setName(options.name);
+        options.image && self.setImage(options.image);
+        options.elParent && self.appendTo(options.elParent);
+        (typeof options.maxHeight === "number") && (MAX_HEIGHT = options.maxHeight);
         
         onScrollEnd = options.onScrollEnd;
-        onClose = options.onClose;
         
-        _this.MoreIndicator.init({
+        self.MoreIndicator.init({
             "text": LOAD_MORE_TEXT,
-            "$parent": $elApps
+            "elParent": elApps
         });
         
-        Evme.EventHandler.trigger(_name, "init");
+        Evme.EventHandler.trigger(NAME, "init");
         
-        return _this;
+        return self;
     };
     
-    this.show = function() {
-        window.setTimeout(function(){
-            $el.addClass(CLASS_WHEN_VISIBLE);
-            $elScreen.addClass(CLASS_WHEN_VISIBLE);
+    this.show = function show() {
+        window.setTimeout(function onTimeout(){
+            el.classList.add(CLASS_WHEN_VISIBLE);
+            elScreen.classList.add(CLASS_WHEN_VISIBLE);
         }, 0);
         
-        Evme.EventHandler.trigger(_name, "show", {
-            "folder": _this
-        });
-        return _this;
-    };
-    
-    this.hide = function() {
-        $el.removeClass(CLASS_WHEN_VISIBLE);
-        $elScreen.removeClass(CLASS_WHEN_VISIBLE);
-        
-        Evme.EventHandler.trigger(_name, "hide", {
-            "folder": _this
+        Evme.EventHandler.trigger(NAME, "show", {
+            "folder": self
         });
         
-        return _this;
+        return self;
     };
     
-    this.close = function(e) {
+    this.hide = function hide() {
+        el.classList.remove(CLASS_WHEN_VISIBLE);
+        elScreen.classList.remove(CLASS_WHEN_VISIBLE);
+        
+        Evme.EventHandler.trigger(NAME, "hide", {
+            "folder": self
+        });
+        
+        return self;
+    };
+    
+    this.close = function close(e) {
         e && e.preventDefault();
         e && e.stopPropagation();
         
-        _this.hide();
+        self.hide();
         
-        window.setTimeout(function(){
-            $el && $el.remove();
-            $elScreen && $elScreen.remove();
-        }, 500);
+        window.setTimeout(function onTimeout(){
+            Evme.$remove(el);
+            Evme.$remove(elScreen);
+            
+            Evme.EventHandler.trigger(NAME, "close", {
+                "folder": self
+            });
+        }, 350);
         
-        onClose && onClose(_this);
-        
-        Evme.EventHandler.trigger(_name, "close");
-        return _this;
+        return self;
     };
     
-    this.clear = function() {
-        $elApps.html('');
+    this.clear = function clear() {
+        elApps.innerHTML = '';
     };
     
-    this.loadApps = function(options, onDone) {
+    this.loadApps = function loadApps(options, onDone) {
         var apps = options.apps,
             iconsFormat = options.iconsFormat,
-            offset = options.offset;
+            offset = options.offset,
             
-        var iconsResult = Evme.Utils.Apps.print({
-            "obj": _this,
-            "apps": apps,
-            "numAppsOffset": offset,
-            "isMore": offset > 0,
-            "iconsFormat": iconsFormat,
-            "$list": $elApps,
-            "onDone": function(group, appsList) {
-                scroll.refresh();
-                
-                SCROLL_TO_BOTTOM = $elAppsContainer.height() - $elApps.height();
-                if (offset === 0) {
-                    scroll.scrollTo(0, 0);
+            iconsResult = Evme.Utils.Apps.print({
+                "obj": self,
+                "apps": apps,
+                "numAppsOffset": offset,
+                "isMore": offset > 0,
+                "iconsFormat": iconsFormat,
+                "elList": elApps,
+                "onDone": function onAppsPrintComplete(group, appsList) {
+                    scroll.refresh();
+                    
+                    SCROLL_TO_BOTTOM = elAppsContainer.offsetHeight - elApps.offsetHeight;
+                    if (offset === 0) {
+                        scroll.scrollTo(0, 0);
+                    }
+                    
+                    onDone && onDone();
                 }
-                
-                onDone && onDone();
-            }
-        });
+            });
         
-        Evme.EventHandler.trigger(_name, "load");
+        Evme.EventHandler.trigger(NAME, "load");
     };
     
-    this.appendTo = function($elParent) {
-        $elParent.append($el);
-        $elParent.append($elScreen);
+    this.appendTo = function appendTo(elParent) {
+        elParent.appendChild(el);
+        elParent.appendChild(elScreen);
         
-        if ($el.height() > MAX_HEIGHT) {
-            $el.addClass(CLASS_WHEN_MAX_HEIGHT);
-            $el.css({
-                'height': MAX_HEIGHT + 'px',
-                'margin-top': -MAX_HEIGHT/2 + 'px'
-            });
+        if (el.offsetHeight > MAX_HEIGHT) {
+            el.classList.add(CLASS_WHEN_MAX_HEIGHT);
+            el.style.cssText += 'height: ' + MAX_HEIGHT + 'px; margin-top: ' + (-MAX_HEIGHT/2) + 'px;';
         }
         
-        return _this;
+        return self;
     };
     
-    this.setName = function(_name) {
-        if (!_name || _name == name) return _this;
-        name = _name;
-        $elTitle.html(TITLE_PREFIX + ' <span>' + name + '</span>');
+    this.setName = function setName(newName) {
+        if (!newName || newName === name) {
+            return self;
+        }
         
-        return _this;
+        name = newName;
+        
+        elTitle.innerHTML = TITLE_PREFIX + ' <span>' + name + '</span>';
+        
+        return self;
     };
     
-    this.setImage = function(_image) {
-        if (!_image || _image == image) return _this;
-        image = _image;
+    this.setImage = function setImage(newImage) {
+        if (!newImage || newImage === image) {
+            return self;
+        }
         
-        $elImage.css('background-image', 'url(' + image.image + ')');
+        image = newImage;
         
-        $elImageFullscreen = Evme.BackgroundImage.getFullscreenElement(image, _this.hideFullscreen);
-        $el.append($elImageFullscreen);
+        elImage.style.backgroundImage = 'url(' + image.image + ')';
         
-        return _this;
+        elImageFullscreen = Evme.BackgroundImage.getFullscreenElement(image, self.hideFullscreen);
+        el.appendChild(elImageFullscreen);
+        
+        return self;
     };
     
-    this.setBgImage = function(_bgImage) {
-        if (!_bgImage || _bgImage == bgImage) return _this;
-        bgImage = _bgImage;
+    this.setBgImage = function setBgImage(newBgImage) {
+        if (!newBgImage || newBgImage === bgImage) {
+            return self;
+        }
         
-        $el.css('background-image', 'url(' + bgImage + ')');
+        bgImage = newBgImage;
         
-        return _this;
+        el.style.backgroundImage = 'url(' + bgImage + ')';
+        
+        return self;
     };
     
-    this.showFullscreen = function(e) {
+    this.showFullscreen = function showFullScreen(e) {
         e && e.preventDefault();
         e && e.stopPropagation();
         
-        $el.addClass(CLASS_WHEN_ANIMATING);
-        window.setTimeout(function(){
-            _this.fadeImage(0);
-            $el.addClass(CLASS_WHEN_IMAGE_FULLSCREEN);
-            window.setTimeout(function(){
+        el.classList.add(CLASS_WHEN_ANIMATING);
+        window.setTimeout(function onTimeout(){
+            self.fadeImage(0);
+            el.classList.add(CLASS_WHEN_IMAGE_FULLSCREEN);
+            
+            window.setTimeout(function onTimeout(){
                 scroll.scrollTo(0, 0);
             }, 100);
         }, 10);
     };
     
-    this.hideFullscreen = function(e) {
+    this.hideFullscreen = function hideFullscreen(e) {
         e && e.preventDefault();
         e && e.stopPropagation();
         
-        $el.addClass(CLASS_WHEN_ANIMATING);
-        window.setTimeout(function(){
-            _this.fadeImage(1);
-            $el.removeClass(CLASS_WHEN_IMAGE_FULLSCREEN);
-            window.setTimeout(function(){
-                $el.removeClass(CLASS_WHEN_ANIMATING);
+        el.classList.add(CLASS_WHEN_ANIMATING);
+        window.setTimeout(function onTimeout(){
+            self.fadeImage(1);
+            el.classList.remove(CLASS_WHEN_IMAGE_FULLSCREEN);
+            
+            window.setTimeout(function onTimeout(){
+                el.classList.remove(CLASS_WHEN_ANIMATING);
             }, TRANSITION_DURATION);
         }, 10);
     };
     
-    this.fadeImage = function(howMuch) {
-        $elImageOverlay[0].style.opacity = howMuch;
-        $elAppsContainer[0].style.opacity = howMuch;
+    this.fadeImage = function fadeImage(howMuch) {
+        elImageOverlay.style.opacity = howMuch;
+        elAppsContainer.style.opacity = howMuch;
     };
     
-    this.hasInstalled = function(isTrue) {
+    this.hasInstalled = function hasInstalled(isTrue) {
         if (typeof isTrue !== 'boolean') {
-            return $elAppsContainer.hasClass("has-installed");
+            return elAppsContainer.classList.contains("has-installed");
         }
         
         if (isTrue) {
-            $elAppsContainer.addClass("has-installed");
+            elAppsContainer.classList.add("has-installed");
         } else {
-            $elAppsContainer.removeClass("has-installed");
+            elAppsContainer.classList.remove("has-installed");
         }
         
         return isTrue;
     };
     
-    this.MoreIndicator = new function() {
-        var _this = this,
-            $el = null, $parent = null, spinner = null, text = '';
+    this.MoreIndicator = new function MoreIndicator() {
+        var self = this,
+            el = null, elParent = null,
+            text = '';
             
-        this.init = function(options) {
-            $parent = options.$parent;
+        this.init = function init(options) {
+            elParent = options.elParent;
             text = options.text;
         };
         
-        this.set = function(hasMore) {
+        this.set = function set(hasMore) {
             if (hasMore) {
-                $parent.addClass('has-more');
+                elParent.classList.add('has-more');
             } else {
-                $parent.removeClass('has-more');
+                elParent.classList.remove('has-more');
             }
         };
         
-        this.show = function() {
-            $el = $('<li class="loadmore"><span></span>' + text + '</li>');
-            $parent.append($el);
+        this.show = function show() {
+            el = Evme.$create('li', {'class': "loadmore"}, '<progress class="small skin-dark"></progress>' + text);
+            elParent.appendChild(el);
             
-            $parent.addClass("loading-more");
-            
-            var opts = {
-              "lines": 8,
-              "length": 2,
-              "width": 3,
-              "radius": 3,
-              "color": "#fff",
-              "speed": 1,
-              "trail": 60,
-              "shadow": false
-            };
-            spinner = new Spinner(opts).spin($el.find("span")[0]);
+            elParent.classList.add("loading-more");
         };
         
-        this.hide = function() {
-            spinner.stop();
-            $parent.removeClass("loading-more");
-            $el && $el.remove();
+        this.hide = function hide() {
+            elParent.classList.remove("loading-more");
+            Evme.$remove(el);
         };
     };
     
-    this.getElement = function() { return $el; };
-    this.getName = function() { return name; };
-    this.getImage = function() { return image; };
+    this.getElement = function getElement() { return el; };
+    this.getName = function getName() { return name; };
+    this.getImage = function getImage() { return image; };
     
     function createElement() {
-        $elScreen = $('<div class="screen smart-folder-screen"></div>');
-        $el = $('<div class="smart-folder">' +
+        elScreen = Evme.$create('div', {'class': "screen smart-folder-screen"});
+        el =  Evme.$create('div', {'class': "smart-folder"},
                     '<h2 class="title"></h2>' +
                     '<div class="evme-apps">' +
                         '<ul></ul>' +
                     '</div>' +
                     '<div class="image"><div class="image-overlay"></div></div>' +
-                    '<b class="close"></b>' +
-                '</div>');
+                    '<b class="close"></b>');
                 
-        $elTitle = $el.find(".title");
-        $elAppsContainer = $el.find(".evme-apps");
-        $elApps = $elAppsContainer.find("ul");
-        $elImage = $el.find(".image");
-        $elImageOverlay = $el.find(".image-overlay");
-        $elClose = $el.find(".close");
+        elTitle = Evme.$(".title", el)[0];
+        elAppsContainer = Evme.$(".evme-apps", el)[0];
+        elApps = Evme.$('ul', elAppsContainer)[0];
+        elImage = Evme.$(".image", el)[0];
+        elImageOverlay = Evme.$(".image-overlay", el)[0];
+        elClose = Evme.$('.close', el)[0];
         
-        $elClose.bind("click", _this.close);
-        $elAppsContainer.data("scrollOffset", 0);
+        elClose.addEventListener("click", self.close);
+        elAppsContainer.dataset.scrollOffset = 0;
         
-        scroll = new Scroll($elApps.parent()[0], {
+        scroll = new Scroll(elApps.parentNode, {
             "hScroll": false,
             "checkDOMChanges": false,
             "onScrollStart": onScrollStart,
@@ -287,7 +284,7 @@ Evme.SmartFolder = function(_options) {
     function onScrollStart(data) {
         var y = scroll.y;
         
-        $elAppsContainer.data("scrollOffset", y);
+        elAppsContainer.dataset.scrollOffset = y;
         shouldFadeImage = (y === 0);
         fadeBy = 1;
         reportedScrollMove = false;
@@ -304,26 +301,26 @@ Evme.SmartFolder = function(_options) {
             }
             
             fadeBy = _fadeBy;
-            _this.fadeImage(fadeBy);
+            self.fadeImage(fadeBy);
         }
         
         if (!reportedScrollMove && SCROLL_TO_BOTTOM + y < LOAD_MORE_SCROLL_THRESHOLD) {
             reportedScrollMove = true;
-            onScrollEnd && onScrollEnd(_this);
+            onScrollEnd && onScrollEnd(self);
         }
     }
     
     function onTouchEnd() {
         var y = scroll.y;
         
-        $elAppsContainer.data("scrollOffset", y);
+        elAppsContainer.dataset.scrollOffset = y;
         
         if (shouldFadeImage && scroll.distY >= FULLSCREEN_THRESHOLD*MAX_SCROLL_FADE) {
-            _this.showFullscreen();
+            self.showFullscreen();
         } else {
-            _this.hideFullscreen();
+            self.hideFullscreen();
         }
     }
     
-    _this.init(_options);
+    self.init(_options);
 };

@@ -1,12 +1,13 @@
 'use strict';
 
-if (!ImageLoader) {
-  var ImageLoader = (function() {
-
+if (!window.ImageLoader) {
+  var ImageLoader = function ImageLoader(pContainer, pItems) {
     var container, items, itemsSelector, scrollLatency = 100, scrollTimer,
         lastViewTop = 0, index, total;
 
     var forEach = Array.prototype.forEach;
+
+    init(pContainer, pItems);
 
     /**
      *  Initializer
@@ -50,10 +51,7 @@ if (!ImageLoader) {
         var src = tmp.src = image.dataset.src;
         tmp.addEventListener('load', function onload() {
           image.src = src;
-
-          if (src.substring(0, 'blob:'.length) === 'blob:')
-            window.URL.revokeObjectURL(src);
-
+          item.dataset.visited = 'true';
           image.hidden = false;
           tmp.removeEventListener('load', onload);
         });
@@ -81,17 +79,13 @@ if (!ImageLoader) {
           return; // Below
         }
 
-        if (!item.visited && itemTop + item.offsetHeight >= viewTop) {
+        if (item.dataset.visited !== 'true' &&
+            itemTop + item.offsetHeight >= viewTop) {
           loadImages(item); // Inside
-          item.visited = true;
         }
       }
-    }
+    } // update
 
-    return {
-      'init': init,
-      'reload': load
-    };
-
-  })();
+    this.reload = load;
+  };
 }
