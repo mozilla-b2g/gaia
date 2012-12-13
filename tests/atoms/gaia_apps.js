@@ -3,6 +3,7 @@
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 var GaiaApps = {
+
   normalizeName: function(name) {
     return name.replace(/[- ]+/g, '').toLowerCase();
   },
@@ -79,6 +80,33 @@ var GaiaApps = {
     return count;
   },
 
+  // Kills the specified app.
+  kill: function(aOrigin, aCallback) {
+    var callback = aCallback || marionetteScriptFinished;
+    let runningApps = window.wrappedJSObject.WindowManager.getRunningApps();
+    if (!runningApps.hasOwnProperty(aOrigin)) {
+      callback(false);
+    }
+    else {
+      window.addEventListener('appterminated', function gt_onAppTerminated() {
+        window.removeEventListener('appterminated', gt_onAppTerminated);
+        waitFor(
+          function() {
+            console.log("app with origin '" + aOrigin + "' has terminated");
+            callback(true);
+          },
+          function() {
+            let runningApps =
+              window.wrappedJSObject.WindowManager.getRunningApps();
+            return !runningApps.hasOwnProperty(aOrigin);
+          }
+        );
+      });
+      console.log("terminating app with origin '" + aOrigin + "'");
+      window.wrappedJSObject.WindowManager.kill(aOrigin);
+    }
+  },
+
   // Kills all running apps, except the homescreen.
   killAll: function() {
     let originsToClose = [];
@@ -88,7 +116,7 @@ var GaiaApps = {
     for (let origin in runningApps) {
       if (origin.indexOf('homescreen') == -1) {
         originsToClose.push(origin);
-     }
+      }
     }
 
     if (!originsToClose.length) {
@@ -96,26 +124,17 @@ var GaiaApps = {
       return;
     }
 
-    window.addEventListener('appterminated', function gt_onAppTerminated(evt) {
-      let index = originsToClose.indexOf(evt.detail.origin);
-      if (index > -1) {
-        originsToClose.splice(index, 1);
-      }
-      if (!originsToClose.length) {
-        window.removeEventListener('appterminated', gt_onAppTerminated);
-        // Even after the 'appterminated' event has been fired for an app,
-        // it can still exist in the apps list, so wait until 1 or fewer
-        // apps are running (since we don't close the homescreen app).
-        waitFor(
-          function() { marionetteScriptFinished(true); },
-          function() { return that.numRunningApps() <= 1; }
-        );
-      }
+    originsToClose.slice(0).forEach(function(origin) {
+      GaiaApps.kill(origin, function() {});
     });
 
-    originsToClose.slice(0).forEach(function(origin) {
-      window.wrappedJSObject.WindowManager.kill(origin);
-    });
+    // Even after the 'appterminated' event has been fired for an app,
+    // it can still exist in the apps list, so wait until 1 or fewer
+    // apps are running (since we don't close the homescreen app).
+    waitFor(
+      function() { marionetteScriptFinished(true); },
+      function() { return that.numRunningApps() <= 1; }
+    );
   },
 
   // Launches app with the specified name (e.g., 'Calculator'); returns the

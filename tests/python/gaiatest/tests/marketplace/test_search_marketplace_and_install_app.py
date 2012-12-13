@@ -29,16 +29,15 @@ class TestSearchMarketplaceAndInstallApp(GaiaTestCase):
     _yes_button_locator = ('id', 'app-install-install-button')
 
     # Label identifier for all homescreen apps
-    _icons_locator = ('css selector', '.labelWrapper')
+    _app_icon_locator = ('xpath', "//li[@class='icon']//span[text()='%s']" % APP_NAME)
+    _homescreen_iframe_locator = ('css selector', 'iframe.homescreen')
 
     def setUp(self):
         GaiaTestCase.setUp(self)
 
-        # unlock the lockscreen if it's locked
-        self.lockscreen.unlock()
-
-        self.data_layer.enable_wifi()
-        self.data_layer.connect_to_wifi(self.testvars['wifi'])
+        if self.wifi:
+            self.data_layer.enable_wifi()
+            self.data_layer.connect_to_wifi(self.testvars['wifi'])
 
         # launch the app
         self.app = self.apps.launch('Marketplace')
@@ -74,15 +73,11 @@ class TestSearchMarketplaceAndInstallApp(GaiaTestCase):
         self.wait_for_element_displayed(*self._yes_button_locator)
         self.marionette.find_element(*self._yes_button_locator).click()
 
-        self.marionette.switch_to_frame()
+        homescreen_frame = self.marionette.find_element(*self._homescreen_iframe_locator)
+        self.marionette.switch_to_frame(homescreen_frame)
 
-        # Wait for app install to complete in the homescreen
-        def wait_for_install_to_complete(marionette):
-            labels = marionette.find_elements(*self._icons_locator)      
-            matches = [lb for lb in labels if lb.text == APP_NAME[:12]]
-            return len(matches) == 1
-        
-        self.wait_for_condition(wait_for_install_to_complete)
+        # Wait for app's icon to appear on the homescreen
+        self.wait_for_element_present(*self._app_icon_locator)
 
     def tearDown(self):
 
@@ -90,7 +85,8 @@ class TestSearchMarketplaceAndInstallApp(GaiaTestCase):
         if self.app:
             self.apps.kill(self.app)
 
-        self.data_layer.disable_wifi()
+        if self.wifi:
+            self.data_layer.disable_wifi()
+
         self.apps.uninstall(APP_NAME)
         GaiaTestCase.tearDown(self)
-
