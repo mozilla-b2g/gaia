@@ -698,6 +698,7 @@ const GridManager = (function() {
       bookmarkURL: app.bookmarkURL,
       manifestURL: app.manifestURL,
       entry_point: entryPoint,
+      updateTime: app.updateTime,
       removable: app.removable,
       name: iconsAndNameHolder.name,
       icon: bestMatchingIcon(app, iconsAndNameHolder)
