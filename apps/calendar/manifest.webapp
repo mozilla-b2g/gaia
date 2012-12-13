@@ -32,6 +32,10 @@
     "zh-TW": {
       "name": "Calendar",
       "description": "Gaia Calendar"
+    },
+    "pt-BR": {
+      "name": "Calendário",
+      "description": "Calendário Gaia"
     }
   },
   "default_locale": "en-US",
