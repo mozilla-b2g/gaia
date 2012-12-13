@@ -23,9 +23,6 @@ class TestCallLog(GaiaTestCase):
         # TODO insert call data before the test
         # This test will fail if no calls have been made
 
-        # unlock the lockscreen if it's locked
-        self.lockscreen.unlock()
-
         # launch the app
         self.app = self.apps.launch('Phone')
 

@@ -23,9 +23,6 @@ class TestVideoPlayer(GaiaTestCase):
     def setUp(self):
         GaiaTestCase.setUp(self)
 
-        # unlock the lockscreen if it's locked
-        self.lockscreen.unlock()
-
         # launch the Video app
         self.app = self.apps.launch('Video')
         self.wait_for_element_displayed(*self._video_items_locator)
@@ -48,16 +45,16 @@ class TestVideoPlayer(GaiaTestCase):
         self.wait_for_element_displayed(*self._video_frame_locator)
         self.wait_for_element_displayed(*self._video_loaded_locator)
 
+        # Wait for vid to have started playing
+        self.assertTrue(self.marionette.execute_script("return window.wrappedJSObject.playing;"))
+
         # Tap to make toolbar visible
         self.marionette.tap(self.marionette.find_element(*self._video_frame_locator))
 
-        # Let video play for one second
-        time.sleep(1)
-
-        # The elapsed time > 0:00 is the only indication of the video playing
-        self.assertIsNotNone(self.marionette.find_element(*self._elapsed_text_locator).text)
+        # The elapsed time != 0:00 is the only indication of the toolbar visible
         self.assertNotEqual(self.marionette.find_element(*self._elapsed_text_locator).text, "00:00")
 
+        # Check the name too. This will only work if the toolbar is visible
         self.assertEqual(first_video_name,
                         self.marionette.find_element(*self._video_title_locator).text)
 

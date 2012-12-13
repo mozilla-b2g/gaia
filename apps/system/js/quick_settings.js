@@ -19,6 +19,16 @@ var QuickSettings = {
 
     var self = this;
 
+    // Disable data button if airplane mode is enabled
+    SettingsListener.observe('ril.radio.disabled', true, function(value) {
+      self.data.dataset.airplaneMode = value;
+      if (value) {
+        self.data.classList.add('quick-settings-airplane-mode');
+      } else {
+        self.data.classList.remove('quick-settings-airplane-mode');
+      }
+    });
+
     /* monitor data setting
      * TODO prevent quickly tapping on it
      */
@@ -130,12 +140,14 @@ var QuickSettings = {
             break;
 
           case this.data:
-            // TODO should ignore the action if data initialization isn't done
-            var enabled = !!this.data.dataset.enabled;
+            if (this.data.dataset.airplaneMode !== 'true') {
+              // TODO should ignore the action if data initialization isn't done
+              var enabled = !!this.data.dataset.enabled;
 
-            SettingsListener.getSettingsLock().set({
-              'ril.data.enabled': !enabled
-            });
+              SettingsListener.getSettingsLock().set({
+                'ril.data.enabled': !enabled
+              });
+            }
 
             break;
 

@@ -153,7 +153,7 @@ var metadataParsers = (function() {
                                      // preview blob, then fall back on
                                      // the full-size image
                                      console.warn('Error creating thumbnail' +
-                                                  'from preview:', errmsg);
+                                                  ' from preview:', errmsg);
                                      getImageSizeAndThumbnail(file,
                                                               metadataCallback,
                                                               metadataError);
@@ -192,13 +192,8 @@ var metadataParsers = (function() {
     offscreenImage.src = url;
 
     offscreenImage.onerror = function() {
-      // XXX When launched as an inline activity this gets into a failure
-      // loop where this function is called over and over. Unsetting
-      // onerror here works around it. I don't know why the error is
-      // happening in the first place..
-      offscreenImage.onerror = null;
       URL.revokeObjectURL(url);
-      offscreenImage.src = null;
+      offscreenImage.removeAttribute('src');
       error('getImageSizeAndThumbnail: Image failed to load');
     };
 
@@ -210,7 +205,7 @@ var metadataParsers = (function() {
       // If the image was already thumbnail size, it is its own thumbnail
       if (metadata.width <= THUMBNAIL_WIDTH &&
           metadata.height <= THUMBNAIL_HEIGHT) {
-        offscreenImage.src = null;
+        offscreenImage.removeAttribute('src');
         //
         // XXX
         // Because of a gecko bug, we can't just store the image file itself
@@ -225,7 +220,7 @@ var metadataParsers = (function() {
         createThumbnailFromElement(offscreenImage, false, 0,
                                    function(thumbnail) {
                                      metadata.thumbnail = thumbnail;
-                                     offscreenImage.src = null;
+                                     offscreenImage.removeAttribute('src');
                                      callback(metadata);
                                    });
       }

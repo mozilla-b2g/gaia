@@ -273,6 +273,7 @@ body.hidden *[data-l10n-id] {
   height: 3px;
   border: none;
   overflow: hidden;
+  z-index: 3; /* has to be higher than pick-top */
 }
 
 #throbber {
