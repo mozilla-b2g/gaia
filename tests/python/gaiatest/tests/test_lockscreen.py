@@ -11,6 +11,7 @@ class TestLockScreen(GaiaTestCase):
     _lockscreen_locator = ('id', 'lockscreen')
     _lockscreen_handle_locator = ('id', 'lockscreen-area-handle')
     _unlock_button_locator = ('id', 'lockscreen-area-unlock')
+    _lockscreen_animation_locator = ('css selector', 'animate.lockscreen-start-animation[attributeName="y"]')
 
     # Homescreen locators
     _homescreen_frame_locator = ('css selector', 'iframe.homescreen')
@@ -24,7 +25,6 @@ class TestLockScreen(GaiaTestCase):
 
     def test_unlock_swipe_to_homescreen(self):
         # https://moztrap.mozilla.org/manage/case/1296/
-
         self._swipe_and_unlock()
 
         unlock_button = self.marionette.find_element(*self._unlock_button_locator)
@@ -48,9 +48,11 @@ class TestLockScreen(GaiaTestCase):
         unlock_handle_x_centre = int(unlock_handle.size['width']/2)
         unlock_handle_y_centre = int(unlock_handle.size['height']/2)
 
-        # Flick from unlock handle to (0, -100) over 800ms duration
-        self.marionette.flick(unlock_handle, unlock_handle_x_centre,
-            unlock_handle_y_centre, 0, -100, 800)
+        # Get the end position from the demo animation
+        end_animation_position = int(self.marionette.find_element(*self._lockscreen_animation_locator).get_attribute('to'))
+
+        # Flick from unlock handle to (0, -end_animation_position) over 800ms duration
+        self.marionette.flick(unlock_handle, unlock_handle_x_centre, unlock_handle_y_centre, 0, 0 - end_animation_position, 800)
 
         # Wait for the svg to animate and handle to disappear
         # TODO add assertion that unlock buttons are visible after bug 813561 is fixed

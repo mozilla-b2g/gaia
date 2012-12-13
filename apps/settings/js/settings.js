@@ -592,6 +592,7 @@ window.addEventListener('load', function loadSettings() {
   window.addEventListener('change', Settings);
   window.addEventListener('click', Settings); // XXX really needed?
   Settings.init();
+  handleDataConnectivity();
 
   // panel lazy-loading
   function lazyLoad(panel) {
@@ -711,6 +712,37 @@ window.addEventListener('load', function loadSettings() {
         oldPanel.removeEventListener('transitionend', onTransitionEnd);
         oldPanel.hidden = true;
       });
+    });
+  }
+
+  function handleDataConnectivity() {
+    function updateDataConnectivity(disabled) {
+      var item = document.querySelector('#data-connectivity');
+      var link = document.querySelector('#menuItem-cellularAndData');
+      if (!item || !link)
+        return;
+
+      if (disabled) {
+        item.classList.add('carrier-disabled');
+        link.onclick = function() { return false; }
+      } else {
+        item.classList.remove('carrier-disabled');
+        link.onclick = null;
+      }
+    }
+
+    var key = 'ril.radio.disabled';
+
+    var settings = Settings.mozSettings;
+    if (!settings)
+      return;
+
+    var req = settings.createLock().get(key);
+    req.onsuccess = function() {
+      updateDataConnectivity(req.result[key]);
+    };
+    settings.addObserver(key, function(evt) {
+      updateDataConnectivity(evt.settingValue);
     });
   }
 

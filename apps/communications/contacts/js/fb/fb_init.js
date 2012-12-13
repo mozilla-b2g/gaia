@@ -18,10 +18,7 @@ if (typeof fb.init === 'undefined') {
         fb.syncPeriod = configData.facebookSyncPeriod || 24;
         fb.testToken = configData.testToken;
 
-        // The FB Contacts DB Cache is initialized regardless FB is enabled
-        // or not. That's because we would like to avoid to add extra conditions
-        // throughout the code, thus keeping it as simple as possible
-        initalizeDB(callback);
+        callback();
       }
 
       req.onerror = function(code) {
@@ -33,10 +30,6 @@ if (typeof fb.init === 'undefined') {
         // throughout the code, thus keeping it as simple as possible
         initalizeDB(callback);
       }
-    }
-
-    function initalizeDB(cb) {
-      fb.contacts.init(cb);
     }
 
   })();
