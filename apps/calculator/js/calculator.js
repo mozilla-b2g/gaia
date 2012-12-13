@@ -58,8 +58,12 @@ var Calculator = {
         if (currentNumber.indexOf('.') == -1)
           currentNumber += value;
       }
-      else
+      else if (value == '0' && (currentNumber == undefined || currentNumber == '0')) {
+        // Don't allow unnecessary leading zeros
+      }
+      else {
         currentNumber += value;
+      }
 
       this.appendValue(currentNumber);
     }
