@@ -580,7 +580,7 @@ contacts.List = (function() {
       contact.email[0].value : '');
     ret.push('#');
 
-    return ret.join('');
+    return utils.text.normalize(ret.join(''));
   }
 
   var getGroupName = function getGroupName(contact) {
