@@ -1,6 +1,6 @@
 'use strict';
 
-const PREFERRED_ICON_SIZE = 64;
+const PREFERRED_ICON_SIZE = 60;
 const GAIA_CORE_APP_SRCDIR = 'apps';
 const GAIA_EXTERNAL_APP_SRCDIR = 'external-apps';
 const INSTALL_TIME = 132333986000; // Match this to value in webapp-manifests.js
