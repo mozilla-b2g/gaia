@@ -65,6 +65,11 @@
  *          and rebuild it from scratch. If you ever change your metadata parser
  *          function or alter the array of indexes.
  *
+ *       autoscan:
+ *          Whether MediaDB should automatically scan every time it becomes
+ *          ready. The default is true. If you set this to false you are
+ *          responsible for calling scan() in response to the 'ready' event.
+ *
  * MediaDB STATE
  *
  * A MediaDB object must asynchronously open a connection to its database, and
@@ -311,6 +316,7 @@ var MediaDB = (function() {
     this.version = options.version || 1;
     this.directory = options.directory || '';
     this.mimeTypes = options.mimeTypes;
+    this.autoscan = (options.autoscan !== undefined) ? options.autoscan : true;
     this.state = MediaDB.OPENING;
     this.scanning = false;  // becomes true while scanning
 
@@ -452,7 +458,8 @@ var MediaDB = (function() {
         switch (stats.state) {
         case 'available':
           changeState(media, MediaDB.READY);
-          scan(media); // Start scanning as soon as we're ready
+          if (media.autoscan)
+            scan(media); // Start scanning as soon as we're ready
           break;
         case 'unavailable':
           changeState(media, MediaDB.NOCARD);
@@ -476,7 +483,8 @@ var MediaDB = (function() {
       switch (e.reason) {
       case 'available':
         changeState(media, MediaDB.READY);
-        scan(media); // automatically scan every time the card comes back
+        if (media.autoscan)
+          scan(media); // automatically scan every time the card comes back
         break;
       case 'unavailable':
         changeState(media, MediaDB.NOCARD);
@@ -759,18 +767,77 @@ var MediaDB = (function() {
         else {
           // Final time, tell the callback that there are no more.
           handle.state = 'complete';
-          callback(null);  // XXX: is this actually useful?
+          callback(null);
         }
       };
 
       return handle;
     },
 
+    // This method takes the same arguments as enumerate(), but batches
+    // the results into an array and passes them to the callback all at
+    // once when the enumeration is complete. It uses enumerate() so it
+    // is no faster than that method, but may be more convenient.
+    enumerateAll: function enumerateAll(key, range, direction, callback) {
+      var batch = [];
+
+      // The first three arguments are optional, but the callback
+      // is required, and we don't want to have to pass three nulls
+      if (arguments.length === 1) {
+        callback = key;
+        key = undefined;
+      }
+      else if (arguments.length === 2) {
+        callback = range;
+        range = undefined;
+      }
+      else if (arguments.length === 3) {
+        callback = direction;
+        direction = undefined;
+      }
+
+      return this.enumerate(key, range, direction, function(fileinfo) {
+        if (fileinfo !== null)
+          batch.push(fileinfo);
+        else
+          callback(batch);
+      });
+    },
+
     // Cancel a pending enumeration. After calling this the callback for
     // the specified enumeration will not be invoked again.
-    cancelEnumeration: function(handle) {
+    cancelEnumeration: function cancelEnumeration(handle) {
       if (handle.state === 'enumerating')
         handle.state = 'cancelling';
+    },
+
+    // Use the non-standard mozGetAll() function to return all of the
+    // records in the database in one big batch. The records will be
+    // sorted by filename
+    getAll: function getAll(callback) {
+      if (this.state !== MediaDB.READY)
+        throw Error('MediaDB is not ready. State: ' + this.state);
+
+      var store = this.db.transaction('files').objectStore('files');
+      var request = store.mozGetAll();
+      request.onerror = function() {
+        console.error('MediaDB.getAll() failed with', request.error);
+      };
+      request.onsuccess = function() {
+        var all = request.result;  // All records in the object store
+
+        // Filter out files that failed metadata parsing
+        var good = all.filter(function(fileinfo) { return !fileinfo.fail; });
+
+        callback(good);
+      };
+    },
+
+    // Scan for new or deleted files.
+    // This is only necessary if you have explicitly disabled automatic
+    // scanning by setting autoscan:false in the options object.
+    scan: function() {
+      scan(this);
     },
 
     // Use the device storage stat() method and pass the resulting
