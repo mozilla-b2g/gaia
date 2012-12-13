@@ -824,7 +824,10 @@ const GridManager = (function() {
         url.indexOf('https://') == 0)
       return url;
 
-    return app.origin + '/' + url;
+    if (app.origin.slice(-1) == '/')
+      return app.origin.slice(0, -1) + url;
+
+    return app.origin + url;
   }
 
 
