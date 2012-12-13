@@ -241,8 +241,19 @@ offline-cache: webapp-manifests install-xulrunner-sdk
 	@$(call run-js-command, offline-cache)
 	@echo "Done"
 
+# Optimize L10N startup impact by inserting the L10N strings into the markup at build time
+translate-html:
+	@set -e ; \
+	for d in $(addsuffix /*,$(GAIA_APP_SRCDIRS)) ; do \
+	(cd $$d && if [ -f index.html ] ; then \
+		python $(CURDIR)/build/translate-html.py index.html \
+			--shared-path $(CURDIR)/shared \
+			--shared-path $(CURDIR) \
+			--app-root $(CURDIR)/$$d ;\
+	fi ) ; done
+
 # Create webapps
-offline: webapp-manifests webapp-zip
+offline: webapp-manifests translate-html webapp-zip
 
 
 # The install-xulrunner target arranges to get xulrunner downloaded and sets up
@@ -629,6 +640,8 @@ install-settings-defaults: profile/settings.json
 # clean out build products
 clean:
 	rm -rf profile
+	rm apps/settings/gaia-commit.txt
+	find *apps/* -name "*.html.*" -exec rm {} +
 
 # clean out build products
 really-clean: clean

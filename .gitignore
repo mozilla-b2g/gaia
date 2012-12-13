@@ -23,6 +23,8 @@ manifest.appcache
 /showcase_apps/*/test/unit/_sandbox.html
 /showcase_apps/*/test/unit/_proxy.html
 
+/*apps/*/*.html.*
+
 /profile/
 /profile.tar.gz
 /.xulrunner-url
