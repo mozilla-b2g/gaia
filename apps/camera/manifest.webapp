@@ -48,6 +48,10 @@
     "zh-TW": {
       "name": "相機",
       "description": "Gaia 相機"
+    },
+    "pt-BR": {
+      "name": "Camera",
+      "description": "Camera Gaia"
     }
   },
   "default_locale": "en-US",
