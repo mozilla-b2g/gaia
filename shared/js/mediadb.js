@@ -65,6 +65,15 @@
  *          and rebuild it from scratch. If you ever change your metadata parser
  *          function or alter the array of indexes.
  *
+ *       batchHoldTime:
+ *          How long (in ms) to wait after finding a new file during a scan
+ *          before reporting it.  Longer hold times allow more batching of
+ *          changes the default is 100ms.
+ *
+ *       batchSize:
+ *          When batching changes, don't allow the batches to exceed this
+ *          amount. The default is 0 which means no maximum batch size.
+ *
  * MediaDB STATE
  *
  * A MediaDB object must asynchronously open a connection to its database, and
@@ -313,6 +322,15 @@ var MediaDB = (function() {
     this.mimeTypes = options.mimeTypes;
     this.state = MediaDB.OPENING;
     this.scanning = false;  // becomes true while scanning
+
+    // While scanning, we attempt to send change events in batches.
+    // After finding a new or deleted file, we'll wait this long before
+    // sending events in case we find another new or deleted file right away.
+    this.batchHoldTime = options.batchHoldTime || 100;
+
+    // But we'll send a batch of changes right away if it gets this big
+    // A batch size of 0 means no maximum batch size
+    this.batchSize = options.batchSize || 0;
 
     if (this.directory &&
         this.directory[this.directory.length - 1] !== '/')
@@ -797,10 +815,6 @@ var MediaDB = (function() {
   // an index for file modification date.
   MediaDB.VERSION = 2;
 
-  // Hold create and delete onchange events for this long to batch up events
-  // that come in rapid succession. This happens when scanning, e.g.
-  MediaDB.NOTIFICATION_HOLD_TIME = 100;
-
   // These are the values of the state property of a MediaDB object
   // The NOCARD, UNMOUNTED, and CLOSED values are also used as the detail
   // property of 'unavailable' events
@@ -1273,19 +1287,22 @@ var MediaDB = (function() {
 
   // Don't send out notification events right away. Wait a short time to
   // see if others arrive that we can batch up.  This is common for scanning
-  // But if we're invoked with null as the argument that is the signal that
-  // a scan() has just completed, so push out all notifications right away
-  // and trigger a scanend event.
   function queueCreateNotification(media, fileinfo) {
-    var details = media.details;
-    details.pendingCreateNotifications.push(fileinfo);
-    resetNotificationTimer(media);
+    var creates = media.details.pendingCreateNotifications;
+    creates.push(fileinfo);
+    if (media.batchSize && creates.length >= media.batchSize)
+      sendNotifications(media);
+    else
+      resetNotificationTimer(media);
   }
 
   function queueDeleteNotification(media, filename) {
-    var details = media.details;
-    details.pendingDeleteNotifications.push(filename);
-    resetNotificationTimer(media);
+    var deletes = media.details.pendingDeleteNotifications;
+    deletes.push(filename);
+    if (media.batchSize && deletes.length >= media.batchSize)
+      sendNotifications(media);
+    else
+      resetNotificationTimer(media);
   }
 
   function resetNotificationTimer(media) {
@@ -1294,7 +1311,7 @@ var MediaDB = (function() {
       clearTimeout(details.pendingNotificationTimer);
     details.pendingNotificationTimer =
       setTimeout(function() { sendNotifications(media); },
-                 MediaDB.NOTIFICATION_HOLD_TIME);
+                 media.batchHoldTime);
   }
 
   // Send out notifications for creations and deletions
