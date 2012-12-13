@@ -11,6 +11,10 @@
     "en-US": {
       "name": "Bluetooth Transfer",
       "description": "Gaia Bluetooth Transfer"
+    },
+    "pt-BR": {
+      "name": "Transferência Bluetooth",
+      "description": "Transferência Bluetooth Gaia"
     }
   },
   "orientation": "portrait-primary",
