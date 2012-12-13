@@ -540,37 +540,3 @@ body.hidden *[data-l10n-id] {
     background-image: url(images/clock_background_small.png);
   }
 }
-
-/* 480x800 phones */
-@media screen and (width: 480px) {
-  html {
-    font-size: 10px;
-  }
-  #analog-clock-svg-body.alarm1 {
-    transform: matrix(1.13,0,0,1.13,0,7);
-  }
-  #analog-clock-svg-body.alarm2 {
-    transform: matrix(0.96,0,0,0.96,0,-1);
-  }
-  #analog-clock-svg-body.alarm3 {
-    transform: matrix(0.74,0,0,0.74,0,-11.5);
-  }
-  #analog-clock-svg-body.alarm4 {
-    transform: matrix(0.52,0,0,0.52,0,-21.5);
-  }
-  #analog-clock-background-cache1 {
-    background-image: url(images/analog_clock_background1_big.png);
-  }
-  #analog-clock-background-cache2 {
-    background-image: url(images/analog_clock_background2_big.png);
-  }
-  #analog-clock-background-cache3 {
-    background-image: url(images/analog_clock_background3_big.png);
-  }
-  #analog-clock-background-cache4 {
-    background-image: url(images/analog_clock_background4_big.png);
-  }
-  #clock-view {
-    background-image: url(images/clock_background_big.png);
-  }
-}
