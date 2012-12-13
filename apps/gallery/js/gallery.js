@@ -274,14 +274,18 @@ function initDB(include_videos) {
   photodb = new MediaDB('pictures', metadataParsers.imageMetadataParser, {
     mimeTypes: ['image/jpeg', 'image/png'],
     version: 2,
-    autoscan: false
+    autoscan: false,    // We're going to call scan() explicitly
+    batchHoldTime: 350, // Batch files during scanning
+    batchSize: 12       // Max batch size: one screenful
   });
 
   if (include_videos) {
     // For videos, this app is only interested in files under DCIM/.
     videodb = new MediaDB('videos', metadataParsers.videoMetadataParser, {
       directory: 'DCIM/',
-      autoscan: false
+      autoscan: false,    // We're going to call scan() explicitly
+      batchHoldTime: 350, // Batch files during scanning
+      batchSize: 12       // Max batch size: one screenful
     });
   }
   else {
@@ -577,7 +581,10 @@ function fileCreated(fileinfo) {
   if (editedPhotoIndex >= insertPosition)
     editedPhotoIndex++;
 
-  // Redisplay the current photo if we're in photo view
+  // Redisplay the current photo if we're in photo view. The current
+  // photo should not change, but the content of the next or previous frame
+  // might. This call will only make changes if the filename to display
+  // in a frame has actually changed.
   if (currentView === fullscreenView) {
     showFile(currentFileIndex);
   }
@@ -1256,10 +1263,18 @@ function setupFrameContent(n, frame) {
   // Make sure n is in range
   if (n < 0 || n >= files.length) {
     frame.clear();
+    delete frame.filename;
     return;
   }
 
   var fileinfo = files[n];
+
+  // If we're already displaying this file in this frame, then do nothing
+  if (fileinfo.name === frame.filename)
+    return;
+
+  // Remember what file we're going to display
+  frame.filename = fileinfo.name;
 
   if (fileinfo.metadata.video) {
     videodb.getFile(fileinfo.name, function(file) {
