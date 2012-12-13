@@ -13,9 +13,6 @@ class TestUpdater(GaiaTestCase):
     def setUp(self):
         GaiaTestCase.setUp(self)
 
-        # unlock the lockscreen if it's locked
-        self.lockscreen.unlock()
-
         # launch the Settings app
         self.app = self.apps.launch('Settings')
 

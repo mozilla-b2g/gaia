@@ -21,22 +21,20 @@ class TestDialer(GaiaTestCase):
 
 
     def setUp(self):
-
         GaiaTestCase.setUp(self)
-
-        # unlock the lockscreen if it's locked
-        self.lockscreen.unlock()
-
-        # set audio volume to 0
-        self.data_layer.set_volume(0)
 
         # launch the app
         self.app = self.apps.launch('Phone')
 
-        self._test_phone_number = self.testvars['remote_phone_number']
-
     def test_dialer_make_call(self):
         # https://moztrap.mozilla.org/manage/case/1298/
+
+        self.assertTrue(self.testvars, 'Test variables file not provided')
+        self.assertTrue('remote_phone_number' in self.testvars,
+                        'No remote phone number present in test variables file')
+        self._test_phone_number = self.testvars['remote_phone_number']
+        self.assertTrue(self._test_phone_number,
+                        'Remote phone number in test variables file is empty')
 
         self.wait_for_element_displayed(*self._keyboard_container_locator)
 
@@ -56,7 +54,7 @@ class TestDialer(GaiaTestCase):
         self.marionette.switch_to_frame()
 
         # Wait for call screen then switch to it
-        self.wait_for_element_present(*self._call_screen_locator)
+        self.wait_for_element_present(*self._call_screen_locator, timeout=30)
         call_screen = self.marionette.find_element(*self._call_screen_locator)
         self.marionette.switch_to_frame(call_screen)
 
@@ -64,7 +62,7 @@ class TestDialer(GaiaTestCase):
         self.wait_for_element_displayed(*self._outgoing_call_locator)
 
         # Wait for the state to get to 'alerting' which means connection made
-        self.wait_for_condition(lambda m: self.data_layer.active_telephony_state == "alerting", timeout=20)
+        self.wait_for_condition(lambda m: self.data_layer.active_telephony_state == "alerting", timeout=30)
 
         # Check the number displayed is the one we dialed
         self.assertEqual(self._test_phone_number,

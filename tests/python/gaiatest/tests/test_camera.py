@@ -10,15 +10,13 @@ class TestCamera(GaiaTestCase):
     _capture_button_locator = ('id', 'capture-button')
     _focus_ring = ('id','focus-ring')
     _switch_source_button_locator = ('id', 'switch-button')
-    _film_strip_image_locator = (
-        'css selector', 'div#film-strip div.image > img')
+    _film_strip_locator = ('id', 'filmstrip')
+    _film_strip_image_locator = ('css selector', '#filmstrip > img.thumbnail')
     _video_capturing_locator = ('css selector', 'body.capturing')
     _video_timer_locator = ('id', 'video-timer')
 
     def setUp(self):
         GaiaTestCase.setUp(self)
-
-        self.lockscreen.unlock()
 
         # launch the Camera app
         self.app = self.apps.launch('camera')
@@ -37,11 +35,10 @@ class TestCamera(GaiaTestCase):
         # The focus state will be either 'focused' or 'fail'
         self.assertEqual(focus_state, 'focused', "Camera failed to focus with error: %s" % focus_state)
 
-        self.wait_for_element_present(*self._film_strip_image_locator)
+        self.wait_for_element_displayed(*self._film_strip_image_locator) #wait for image to be added in to filmstrip
 
         # Find the new picture in the film strip
-        self.assertTrue(self.marionette.find_element(
-            *self._film_strip_image_locator).is_displayed())
+        self.assertTrue(self.marionette.find_element(*self._film_strip_image_locator).is_displayed())
 
     def test_capture_a_video(self):
         # https://moztrap.mozilla.org/manage/case/2477/
