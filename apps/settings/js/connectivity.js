@@ -230,8 +230,6 @@ var Connectivity = (function(window, document, undefined) {
 
     // this listener is replaced when bluetooth.js is loaded
     gBluetooth.onadapteradded = updateBluetooth;
-    // these listeners are not cleared by bluetooth.js
-    gBluetooth.onenabled = updateBluetooth;
     gBluetooth.ondisabled = updateBluetooth;
     updateBluetooth();
     initSystemMessageHandler();
