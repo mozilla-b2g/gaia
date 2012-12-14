@@ -233,6 +233,9 @@ body {
   left: 0;
   top: 20px;
 
+  /* Need to leave this in here to prevent flickering. */
+  transform: scale(1);
+
 /*
  * Do not specify height/width here! They should go to
  * Window.prototype.resize() in window_manager.js

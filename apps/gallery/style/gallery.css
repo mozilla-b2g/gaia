@@ -33,17 +33,6 @@ section {
   display: none;
 }
 
-/*
- * When we hide the thumbnail list, to go into single-photo fullscreen mode,
- * we need to retain thumbnail layout information so monitorChildVisibility()
- * doesn't get confused if we delete a photo while in fullscreen mode.
- * So hide them this way instead of display:none
- */
-#thumbnail-list-view.hidden {
-  display: block;
-  visibility: hidden;
-}
-
 /* All of the main views fill the screen */
 #thumbnail-list-view, #thumbnail-select-view, #fullscreen-view, #pick-view, #edit-view, #crop-view {
   position: absolute;
@@ -114,12 +103,37 @@ section {
 
 #thumbnails {
   position: absolute;
+  left: 0;
+  width: calc(100% + 1px); /* one extra pixel for the right margin */
+  /* top and bottom are set depending on view below */
   padding: 0;
   margin: 0;
   overflow-y: scroll;
   overflow-x: hidden;
-  /* Cheating! Due to margins to the right, a row of 3 thumbnails is be thicker than 100% */
-  width: 104%;
+}
+
+/* thumbnails in regular thumbnail list view */
+#thumbnails.list {
+  top: 0;
+  bottom: 0;
+}
+
+/* thumbnails in thumbnail select view where there is a top bar */
+#thumbnails.select {
+  top: 50px;
+  bottom: 0;
+}
+
+/* thumbnails in pick view where there is a top bar and no bottom */
+#thumbnails.pick {
+  top: 50px;
+  bottom: 0;
+}
+
+#thumbnails.offscreen {
+  top: 0;
+  bottom: 0;
+  transform: translate(100%, 0);
 }
 
 .thumbnail {
@@ -151,6 +165,15 @@ section {
   outline-offset: -3px;
 }
 
+/*
+ * give the very last thumbnail a large bottom margin so that it doesn't
+ * get stuck hidden behind the overlaid toolbar.
+ */
+.thumbnail:last-child {
+  margin-bottom: 40px;
+}
+
+
 /* 320x480 phones */
 @media (orientation: portrait) and (width: 320px) {
   .thumbnail {
@@ -173,30 +196,6 @@ section {
         width: 160px;
         height: 160px;
     }
-}
-
-/* thumbnails in regular thumbnail list view */
-#thumbnail-list-view > #thumbnails {
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0px;
-}
-
-/* thumbnails in thumbnail select view where there is a top bar */
-#thumbnail-select-view > #thumbnails {
-  top: 50px;
-  left: 0;
-  right: 0;
-  bottom: 0px;
-}
-
-/* thumbnails in pick view where there is a top bar and no bottom */
-#pick-view > #thumbnails {
-  top: 50px;
-  left: 0;
-  right: 0;
-  bottom: 0;
 }
 
 /* since fullscreen-view is fullscreen, it needs its own background color */

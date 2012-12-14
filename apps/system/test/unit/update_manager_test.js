@@ -1,3 +1,5 @@
+'use strict';
+
 requireApp('system/js/update_manager.js');
 
 requireApp('system/test/unit/mock_app.js');
@@ -11,6 +13,7 @@ requireApp('system/test/unit/mock_settings_listener.js');
 requireApp('system/test/unit/mock_statusbar.js');
 requireApp('system/test/unit/mock_notification_screen.js');
 requireApp('system/test/unit/mock_navigator_settings.js');
+requireApp('system/test/unit/mock_navigator_wake_lock.js');
 
 requireApp('system/test/unit/mocks_helper.js');
 
@@ -47,7 +50,6 @@ suite('system/UpdateManager', function() {
 
   var tinyTimeout = 5;
   var lastDispatchedEvent = null;
-  var lastWakeLock = null;
 
   var mocksHelper;
 
@@ -67,16 +69,7 @@ suite('system/UpdateManager', function() {
     };
 
     realRequestWakeLock = navigator.requestWakeLock;
-    navigator.requestWakeLock = function(lock) {
-      lastWakeLock = {
-        released: false,
-        topic: lock,
-        unlock: function() {
-          this.released = true;
-        }
-      };
-      return lastWakeLock;
-    };
+    navigator.requestWakeLock = MockNavigatorWakeLock.requestWakeLock;
 
     realDispatchEvent = UpdateManager._dispatchEvent;
     UpdateManager._dispatchEvent = function fakeDispatch(type, value) {
@@ -96,6 +89,8 @@ suite('system/UpdateManager', function() {
 
     navigator.mozL10n = realL10n;
     navigator.requestWakeLock = realRequestWakeLock;
+    realRequestWakeLock = null;
+
     UpdateManager._dispatchEvent = realDispatchEvent;
 
     mocksHelper.suiteTeardown();
@@ -185,7 +180,8 @@ suite('system/UpdateManager', function() {
     fakeDialog.parentNode.removeChild(fakeDialog);
 
     lastDispatchedEvent = null;
-    lastWakeLock = null;
+    MockNavigatorWakeLock.mTeardown();
+    MockNavigatorSettings.mTeardown();
   });
 
   suite('init', function() {
@@ -1031,8 +1027,8 @@ suite('system/UpdateManager', function() {
           });
 
           test('should request wifi wake lock', function() {
-            assert.equal('wifi', lastWakeLock.topic);
-            assert.isFalse(lastWakeLock.released);
+            assert.equal('wifi', MockNavigatorWakeLock.mLastWakeLock.topic);
+            assert.isFalse(MockNavigatorWakeLock.mLastWakeLock.released);
           });
         });
 
@@ -1086,9 +1082,16 @@ suite('system/UpdateManager', function() {
           });
 
           test('should release the wifi wake lock', function() {
-            assert.equal('wifi', lastWakeLock.topic);
-            assert.isTrue(lastWakeLock.released);
+            assert.equal('wifi', MockNavigatorWakeLock.mLastWakeLock.topic);
+            assert.isTrue(MockNavigatorWakeLock.mLastWakeLock.released);
           });
+        });
+
+        test('should not break if wifi unlock throws an exception',
+             function() {
+          MockNavigatorWakeLock.mThrowAtNextUnlock();
+          UpdateManager.removeFromDownloadsQueue(updatableApp);
+          assert.ok(true);
         });
 
         test('should remove system updates too', function() {

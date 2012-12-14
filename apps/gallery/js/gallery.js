@@ -515,12 +515,73 @@ function binarysearch(array, element, comparator, from, to) {
     return binarysearch(array, element, comparator, mid + 1, to);
 }
 
+// Fullscreen mode is flaky. When we enter and leave it we get a resize event
+// because of the new window size. But sometimes we get an extra resize event
+// with the window sized to 0. If this happens, then our list of thumbnails
+// gets sized to 0 and loses its scroll position.
+// See https://bugzilla.mozilla.org/show_bug.cgi?id=820571
+//
+// This self-executing function is here to workaround that issue.
+// In addition, it ensures that when we leave full screen mode, the
+// thumbnail for whatever image we were just viewing is visible on the
+// screen. (That is something that we cannot do in setView() because
+// it has to happen after the resize event arrives, and that is
+// asynchronous and does not occur until after setView() has
+// returned.)
+(function fullscreenWorkaround() {
+  var savedScrollTop, leavingFullScreenMode = false;
+
+  document.addEventListener('mozfullscreenchange', function() {
+    if (document.mozFullScreenElement) {
+      // We're entering fullscreen mode: remember our scroll position before
+      // we get a resize event.
+      savedScrollTop = thumbnails.scrollTop;
+      leavingFullScreenMode = false;
+    }
+    else {
+      // We're leaving fullscreen. We can't restore the scroll position
+      // yet... We have to wait until after the resize event or events.
+      leavingFullScreenMode = true;
+    }
+  });
+
+  window.addEventListener('resize', function() {
+    // If we've just left fullscreen mode, and we get a resize event where
+    // the window height is not zero, then restore the scroll position
+    // in case it got lost.
+    if (window.innerHeight !== 0 && leavingFullScreenMode) {
+      thumbnails.scrollTop = savedScrollTop;
+      leavingFullScreenMode = false; // Just do it once
+
+      // If we're leaving fullscreen, then we were just viewing a photo
+      // or video, so make sure its thumbnail is fully on the screen
+      scrollToShowThumbnail(currentFileIndex);
+    }
+  });
+}());
+
 // Make the thumbnail for image n visible
 function scrollToShowThumbnail(n) {
   var selector = 'li[data-index="' + n + '"]';
   var thumbnail = thumbnails.querySelector(selector);
-  if (thumbnail)
-    thumbnail.scrollIntoView();
+  if (thumbnail) {
+    var screenTop = thumbnails.scrollTop;
+    var screenBottom = screenTop + thumbnails.clientHeight;
+    var thumbnailTop = thumbnail.offsetTop;
+    var thumbnailBottom = thumbnailTop + thumbnail.offsetHeight;
+    var toolbarHeight = 40; // compute this dynamically?
+
+    // Adjust the screen bottom up to be above the overlaid footer
+    screenBottom -= toolbarHeight;
+
+    if (thumbnailTop < screenTop) {            // If thumbnail is above screen
+      thumbnails.scrollTop = thumbnailTop;     // scroll up to show it.
+    }
+    else if (thumbnailBottom > screenBottom) { // If thumbnail is below screen
+      thumbnails.scrollTop =                   // scroll  down to show it
+        thumbnailBottom - thumbnails.clientHeight + toolbarHeight;
+    }
+  }
 }
 
 function setView(view) {
@@ -560,21 +621,22 @@ function setView(view) {
   }
 
   // Now do setup for the view we're entering
-  // In particular, we've got to move the thumbnails list into each view
+  // In particular, we've got to set the thumbnail class appropriately
+  // for each view
   switch (view) {
   case thumbnailListView:
-    thumbnailListView.appendChild(thumbnails);
-    scrollToShowThumbnail(currentFileIndex);
+    thumbnails.className = 'list';
     break;
   case thumbnailSelectView:
-    thumbnailSelectView.appendChild(thumbnails);
+    thumbnails.className = 'select';
     // Set the view header to a localized string
     clearSelection();
     break;
   case pickView:
-    pickView.appendChild(thumbnails);
+    thumbnails.className = 'pick';
     break;
   case fullscreenView:
+    thumbnails.className = 'offscreen';
     // Show the toolbar
     fullscreenView.classList.remove('toolbarhidden');
     // Enter fullscreen mode
@@ -584,10 +646,7 @@ function setView(view) {
     document.addEventListener('mozfullscreenchange', fullscreenExitHandler);
     break;
   default:
-    // In any other view, remove the thumbnails from the document so
-    // they don't show anywhere
-    if (thumbnails.parentNode)
-      thumbnails.parentNode.removeChild(thumbnails);
+    thumbnails.className = 'offscreen';
     break;
   }
 
