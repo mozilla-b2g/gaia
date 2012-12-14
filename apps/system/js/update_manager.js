@@ -14,6 +14,7 @@
 var UpdateManager = {
   _mgmt: null,
   _downloading: false,
+  _uncompressing: false,
   _downloadedBytes: 0,
   _errorTimeout: null,
   _wifiLock: null,
@@ -32,6 +33,7 @@ var UpdateManager = {
   downloadDialogList: null,
 
   updatableApps: [],
+  systemUpdatable: null,
   updatesQueue: [],
   downloadsQueue: [],
 
@@ -50,6 +52,8 @@ var UpdateManager = {
         }
       }, this);
     }).bind(this);
+
+    this.systemUpdatable = new SystemUpdatable();
 
     this.container = document.getElementById('update-manager-container');
     this.message = this.container.querySelector('.message');
@@ -244,25 +248,37 @@ var UpdateManager = {
     }
   },
 
+  startedUncompressing: function um_startedUncompressing() {
+    this._uncompressing = true;
+    this.render();
+  },
+
   render: function um_render() {
     var _ = navigator.mozL10n.get;
-
-    if (this._downloading) {
-      this.container.classList.add('downloading');
-      var humanProgress = this._humanizeSize(this._downloadedBytes);
-      this.message.innerHTML = _('downloadingUpdateMessage', {
-                                  progress: humanProgress
-                                });
-    } else {
-      this.message.innerHTML = _('updatesAvailableMessage', {
-                                 n: this.updatesQueue.length
-                               });
-      this.container.classList.remove('downloading');
-    }
 
     this.toasterMessage.innerHTML = _('updatesAvailableMessage', {
                                       n: this.updatesQueue.length
                                     });
+
+    var message = '';
+    if (this._downloading) {
+      if (this._uncompressing && this.downloadsQueue.length === 1) {
+        message = _('uncompressingMessage');
+      } else {
+        var humanProgress = this._humanizeSize(this._downloadedBytes);
+        message = _('downloadingUpdateMessage', {
+                    progress: humanProgress
+                  });
+      }
+    } else {
+      message = _('updatesAvailableMessage', {
+                 n: this.updatesQueue.length
+                });
+    }
+
+    this.message.innerHTML = message;
+    var css = this.container.classList;
+    this._downloading ? css.add('downloading') : css.remove('downloading');
   },
 
   addToUpdatableApps: function um_addtoUpdatableapps(updatableApp) {
@@ -433,13 +449,10 @@ var UpdateManager = {
       return;
 
     var detail = evt.detail;
-    if (!detail.type)
-      return;
 
-    switch (detail.type) {
-      case 'update-available':
-        this.addToUpdatesQueue(new SystemUpdatable(detail.size));
-        break;
+    if (detail.type && detail.type === 'update-available') {
+      this.systemUpdatable.size = detail.size;
+      this.addToUpdatesQueue(this.systemUpdatable);
     }
   },
 
