@@ -1,3 +1,5 @@
+'use strict';
+
 function MockAppUpdatable(aApp) {
   this.app = aApp;
 
@@ -25,7 +27,15 @@ function MockSystemUpdatable(downloadSize) {
   this.mDownloadCalled = false;
   this.mCancelCalled = false;
   this.mUninitCalled = false;
+
+  MockSystemUpdatable.mInstancesCount++;
 }
+
+MockSystemUpdatable.mInstancesCount = 0;
+MockSystemUpdatable.mTeardown = function() {
+  MockSystemUpdatable.mInstancesCount = 0;
+};
+
 
 MockSystemUpdatable.prototype.uninit = function() {
   this.mUninitCalled = true;
