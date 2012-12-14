@@ -11,7 +11,7 @@
     "alarms":{},
     "settings":{ "access": "readwrite" },
     "attention":{},
-    "audio":{ "channels": ["alarm"] }
+    "audio-channel-alarm":{}
   },
   "locales": {
     "ar": {

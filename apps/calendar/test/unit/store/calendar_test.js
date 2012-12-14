@@ -276,7 +276,6 @@ suite('store/calendar', function() {
     caps.forEach(function(name) {
       test('find: ' + name, function() {
         var result = subject.findWithCapability(name);
-        assert.length(result, 1);
         assert.equal(result[0], localCal);
       });
     });

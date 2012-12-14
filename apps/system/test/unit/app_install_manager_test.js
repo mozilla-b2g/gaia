@@ -1,3 +1,5 @@
+'use strict';
+
 requireApp('system/test/unit/mock_app.js');
 requireApp('system/test/unit/mock_chrome_event.js');
 requireApp('system/test/unit/mock_statusbar.js');
@@ -7,6 +9,7 @@ requireApp('system/test/unit/mock_notification_screen.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_utility_tray.js');
 requireApp('system/test/unit/mock_modal_dialog.js');
+requireApp('system/test/unit/mock_navigator_wake_lock.js');
 requireApp('system/test/unit/mocks_helper.js');
 
 requireApp('system/js/app_install_manager.js');
@@ -29,6 +32,7 @@ mocksForAppInstallManager.forEach(function(mockName) {
 suite('system/AppInstallManager >', function() {
   var realL10n;
   var realDispatchResponse;
+  var realRequestWakeLock;
 
   var fakeDialog, fakeNotif;
   var fakeInstallCancelDialog, fakeDownloadCancelDialog;
@@ -59,6 +63,9 @@ suite('system/AppInstallManager >', function() {
       };
     };
 
+    realRequestWakeLock = navigator.requestWakeLock;
+    navigator.requestWakeLock = MockNavigatorWakeLock.requestWakeLock;
+
     mocksHelper = new MocksHelper(mocksForAppInstallManager);
     mocksHelper.suiteSetup();
   });
@@ -76,6 +83,9 @@ suite('system/AppInstallManager >', function() {
 
     navigator.mozL10n = realL10n;
     AppInstallManager.dispatchResponse = realDispatchResponse;
+
+    navigator.requestWakeLock = realRequestWakeLock;
+    realRequestWakeLock = null;
 
     mocksHelper.suiteTeardown();
   });
@@ -169,6 +179,7 @@ suite('system/AppInstallManager >', function() {
     lastL10nParams = null;
 
     mocksHelper.teardown();
+    MockNavigatorWakeLock.mTeardown();
   });
 
   suite('init >', function() {
@@ -467,6 +478,75 @@ suite('system/AppInstallManager >', function() {
       });
     }
 
+    function downloadErrorSuite(downloadEventsSuite) {
+      suite('on downloadError >', function() {
+        setup(function() {
+          // reseting these mocks as we only want to test the
+          // following call
+          MockStatusBar.mTeardown();
+          MockSystemBanner.mTeardown();
+          MockModalDialog.mTeardown();
+        });
+
+        function downloadErrorTests(errorName) {
+          test('should display an error', function() {
+            var expectedErrorMsg = knownErrors[errorName] +
+                                   '{"appName":"' + mockAppName + '"}';
+
+            assert.equal(MockSystemBanner.mMessage, expectedErrorMsg);
+          });
+
+          test('should not display the error dialog', function() {
+            assert.isFalse(MockModalDialog.alert.mWasCalled);
+          });
+
+        }
+
+        function specificDownloadErrorSuite(errorName) {
+          suite(errorName + ' >', function() {
+            setup(function() {
+              mockApp.mTriggerDownloadError(errorName);
+            });
+
+            downloadErrorTests(errorName);
+          });
+        }
+
+        var knownErrors = {
+          'FALLBACK_ERROR': 'app-install-generic-error',
+          'NETWORK_ERROR': 'app-install-download-failed',
+          'DOWNLOAD_ERROR': 'app-install-download-failed',
+          'MISSING_MANIFEST': 'app-install-install-failed',
+          'INVALID_MANIFEST': 'app-install-install-failed',
+          'INSTALL_FROM_DENIED': 'app-install-install-failed',
+          'INVALID_SECURITY_LEVEL': 'app-install-install-failed',
+          'INVALID_PACKAGE': 'app-install-install-failed',
+          'APP_CACHE_DOWNLOAD_ERROR': 'app-install-download-failed'
+        };
+
+        Object.keys(knownErrors).forEach(specificDownloadErrorSuite);
+
+        suite('GENERIC_ERROR >', function() {
+          setup(function() {
+            mockApp.mTriggerDownloadError('GENERIC_ERROR');
+          });
+
+          test('should remove the notif', function() {
+            assert.equal(fakeNotif.childElementCount, 0);
+          });
+
+          test('should remove the icon', function() {
+            var method = 'decSystemDownloads';
+            assert.ok(MockStatusBar.wasMethodCalled[method]);
+          });
+
+          beforeFirstProgressSuite();
+          downloadEventsSuite(/*afterError*/ true);
+        });
+
+      });
+    }
+
     suite('hosted app with cache >', function() {
       setup(function() {
         mockAppName = 'Fake hosted app with cache';
@@ -519,11 +599,26 @@ suite('system/AppInstallManager >', function() {
             assert.equal(fakeNotif.querySelector('progress').position, -1);
           });
 
-          test('downloadsuccess > should remove the notif', function() {
-            var method = 'decExternalNotifications';
-            mockApp.mTriggerDownloadSuccess();
-            assert.equal(fakeNotif.childElementCount, 0);
-            assert.ok(MockNotificationScreen.wasMethodCalled[method]);
+          test('should request wifi wake lock', function() {
+            assert.equal('wifi', MockNavigatorWakeLock.mLastWakeLock.topic);
+            assert.isFalse(MockNavigatorWakeLock.mLastWakeLock.released);
+          });
+
+          suite('on downloadsuccess >', function() {
+            setup(function() {
+              mockApp.mTriggerDownloadSuccess();
+            });
+
+            test('should remove the notif', function() {
+              var method = 'decExternalNotifications';
+              assert.equal(fakeNotif.childElementCount, 0);
+              assert.ok(MockNotificationScreen.wasMethodCalled[method]);
+            });
+
+            test('should release the wifi wake lock', function() {
+              assert.equal('wifi', MockNavigatorWakeLock.mLastWakeLock.topic);
+              assert.isTrue(MockNavigatorWakeLock.mLastWakeLock.released);
+            });
           });
 
           test('on downloadsuccess > should remove only its progress handler',
@@ -565,39 +660,7 @@ suite('system/AppInstallManager >', function() {
           });
 
           if (!afterError) {
-
-            suite('on downloadError >', function() {
-              setup(function() {
-                // reseting these mocks as we only want to test the
-                // following call
-                MockStatusBar.mTeardown();
-                MockSystemBanner.mTeardown();
-                MockModalDialog.mTeardown();
-
-                mockApp.mTriggerDownloadError();
-              });
-
-              test('should remove the icon', function() {
-                  var method = 'decSystemDownloads';
-                  assert.ok(MockStatusBar.wasMethodCalled[method]);
-                });
-
-              test('should display an error', function() {
-                assert.equal(MockSystemBanner.mMessage,
-                  'download-stopped2{"appName":"' + mockAppName + '"}');
-              });
-
-              test('should not display the error dialog', function() {
-                assert.isFalse(MockModalDialog.alert.mWasCalled);
-              });
-
-              test('should remove the notif', function() {
-                assert.equal(fakeNotif.childElementCount, 0);
-              });
-
-              beforeFirstProgressSuite();
-              downloadEventsSuite(/*afterError*/ true);
-            });
+            downloadErrorSuite(downloadEventsSuite);
           }
         });
       }
@@ -670,11 +733,35 @@ suite('system/AppInstallManager >', function() {
             assert.notEqual(fakeNotif.querySelector('progress').position, -1);
           });
 
-          test('on downloadsuccess > should remove the notif', function() {
-            var method = 'decExternalNotifications';
+          test('should request wifi wake lock', function() {
+            assert.equal('wifi', MockNavigatorWakeLock.mLastWakeLock.topic);
+            assert.isFalse(MockNavigatorWakeLock.mLastWakeLock.released);
+          });
+
+          suite('on downloadsuccess >', function() {
+            setup(function() {
+              mockApp.mTriggerDownloadSuccess();
+            });
+
+            test('should remove the notif', function() {
+              var method = 'decExternalNotifications';
+              assert.equal(fakeNotif.childElementCount, 0);
+              assert.ok(MockNotificationScreen.wasMethodCalled[method]);
+            });
+
+            test('should release the wifi wake lock', function() {
+              assert.equal('wifi', MockNavigatorWakeLock.mLastWakeLock.topic);
+              assert.isTrue(MockNavigatorWakeLock.mLastWakeLock.released);
+            });
+
+          });
+
+          test('on downloadsuccess > ' +
+               'should not break if wifi unlock throws an exception',
+               function() {
+            MockNavigatorWakeLock.mThrowAtNextUnlock();
             mockApp.mTriggerDownloadSuccess();
-            assert.equal(fakeNotif.childElementCount, 0);
-            assert.ok(MockNotificationScreen.wasMethodCalled[method]);
+            assert.ok(true);
           });
 
           test('on indeterminate progress > ' +
@@ -707,44 +794,7 @@ suite('system/AppInstallManager >', function() {
           });
 
           if (!afterError) {
-            suite('on downloadError >', function() {
-              setup(function() {
-                // resetting these tests because we want to test the
-                // following call only
-                MockStatusBar.mTeardown();
-                MockSystemBanner.mTeardown();
-                MockModalDialog.mTeardown();
-
-                mockApp.mTriggerDownloadError();
-              });
-
-              test('should remove the icon and display error',
-                function() {
-                  var method = 'decSystemDownloads';
-                  assert.ok(MockStatusBar.wasMethodCalled[method]);
-                });
-
-              test('should remove the icon', function() {
-                  var method = 'decSystemDownloads';
-                  assert.ok(MockStatusBar.wasMethodCalled[method]);
-                });
-
-              test('should display an error', function() {
-                assert.equal(MockSystemBanner.mMessage,
-                  'download-stopped2{"appName":"' + mockAppName + '"}');
-              });
-
-              test('should not display the error dialog', function() {
-                assert.isFalse(MockModalDialog.alert.mWasCalled);
-              });
-
-              test('should remove the notif', function() {
-                assert.equal(fakeNotif.childElementCount, 0);
-              });
-
-              beforeFirstProgressSuite();
-              downloadEventsSuite(/*afterError*/ true);
-            });
+            downloadErrorSuite(downloadEventsSuite);
           }
         });
       }

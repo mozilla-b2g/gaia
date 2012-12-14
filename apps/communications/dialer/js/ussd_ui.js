@@ -56,8 +56,7 @@ var UssdUI = {
     window.addEventListener('message', this);
   },
 
-  closeWindow: function uui_close() {
-    this.messageNode.textContent = '';
+  closeWindow: function uui_closeWindow() {
     window.opener.postMessage({
       type: 'close'
     }, this._origin);
@@ -66,7 +65,7 @@ var UssdUI = {
   },
 
   showMessage: function uui_showMessage(message) {
-    document.body.classList.remove('loading');
+    this.hideLoading();
     this.responseTextNode.removeAttribute('disabled');
     this.messageNode.textContent = message;
   },
@@ -75,6 +74,10 @@ var UssdUI = {
     document.body.classList.add('loading');
     this.responseTextNode.setAttribute('disabled', 'disabled');
     this.sendNode.setAttribute('disabled', 'disabled');
+  },
+
+  hideLoading: function uui_hideLoading() {
+    document.body.classList.remove('loading');
   },
 
   showResponseForm: function uui_showForm() {
@@ -139,6 +142,9 @@ var UssdUI = {
         break;
       case 'voicechange':
         this.updateHeader(evt.data.operator);
+        break;
+      case 'close':
+        this.closeWindow();
         break;
     }
   }

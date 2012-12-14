@@ -400,6 +400,7 @@ a.unread .unread-mark .icon-unread-mark {
 .edit .message-block label.danger {
   transform: translateX(100%);
   opacity: 1;
+  pointer-events: none;
 }
 
 .edit .bubble-container.received {
@@ -555,6 +556,10 @@ form.bottom[role="search"].new-sms-form {
   left: 0;
   right: 0;
   bottom: 0;
+}
+
+#send-message.active {
+  background: #aaf;
 }
 
 #message-to-send {

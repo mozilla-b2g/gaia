@@ -16,12 +16,9 @@ class TestCardsView(GaiaTestCase):
     def setUp(self):
         GaiaTestCase.setUp(self)
 
-        # unlock the lockscreen if it's locked
-        self.lockscreen.unlock()
-
         # launch the Calculator app as a basic, reliable
         # app to test against in Cards View
-        self.app = self.apps.launch('Calculator')
+        self.calculator = self.apps.launch('Calculator')
 
         # wait for the Calculator to load
         self.wait_for_element_displayed(*self._clear_button_locator)
@@ -50,6 +47,25 @@ class TestCardsView(GaiaTestCase):
         self.assertFalse(card_view_element.is_displayed(),
             "Card view not expected to be visible")
 
+    def test_that_app_can_be_launched_from_cards_view(self):
+        # https://github.com/mozilla/gaia-ui-tests/issues/98
+
+        # go to the home screen
+        self.marionette.switch_to_frame()
+        self._touch_home_button()
+        self.wait_for_element_not_displayed(*self._clear_button_locator)
+
+        # pull up the cards view
+        self.marionette.switch_to_frame()
+        self._hold_home_button()
+        self.wait_for_element_displayed(*self._cards_view_locator)
+
+        # launch the calculator from the cards view
+        calc_card = self.marionette.find_element(*self._calculator_card_locator)
+        calc_card.click()
+        self.marionette.switch_to_frame(self.calculator.frame_id)
+        self.wait_for_element_displayed(*self._clear_button_locator)
+
     def _hold_home_button(self):
         self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('holdhome'));")
 
@@ -59,7 +75,7 @@ class TestCardsView(GaiaTestCase):
     def tearDown(self):
 
         # close the app
-        if hasattr(self, 'app'):
-            self.apps.kill(self.app)
+        if hasattr(self, 'calculator'):
+            self.apps.kill(self.calculator)
 
         GaiaTestCase.tearDown(self)

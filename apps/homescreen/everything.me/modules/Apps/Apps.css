@@ -187,7 +187,7 @@
     height: 40px;
     line-height: 40px;
     color: #fff;
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 600;
     padding: 0;
     z-index: 50;
@@ -195,15 +195,6 @@
     box-shadow: 0 -1px 0 0 rgba(255, 255, 255, .6), 0 -2px 0 0 rgba(0, 0, 0, .5);
     -moz-transition: none;
     transition: none;
-}
-#evmeContainer .evme-apps ul li#more-apps span {
-    position: relative;
-    display: inline-block;
-    width: 20px;
-    height: 20px;
-    vertical-align: middle;
-    margin-right: 3px;
-    top: -2px;
 }
 
 #evmeContainer #evmeApps .connection-message {

@@ -38,6 +38,49 @@ Calendar.ns('Provider').Caldav = (function() {
     hasAccountSettings: true,
 
     /**
+     * Determines the capabilities of a specific calendar.
+     *
+     * The .remote property should contain a .privilegeSet array
+     * with the caldav specific names of privileges.
+     * In the case where .privilegeSet is missing all privileges are granted.
+     *
+     * (see http://tools.ietf.org/html/rfc3744#section-5.4).
+     *
+     *   - write-content: (PUT) can edit/add events
+     *   - unbind: (DELETE) remove events
+     *
+     *
+     * There are aggregate values (write for example) but
+     * the spec states the specific permissions must also be expanded
+     * so even if they have full write permissions we only check
+     * for write-content.
+     *
+     * @param {Object} calendar object with caldav remote details.
+     * @return {Object} object with three properties
+     *  (canUpdate, canDelete, canCreate).
+     */
+    calendarCapabilities: function(calendar) {
+      var remote = calendar.remote;
+
+      if (!remote.privilegeSet) {
+        return {
+          canUpdateEvent: true,
+          canDeleteEvent: true,
+          canCreateEvent: true
+        };
+      }
+
+      var privilegeSet = remote.privilegeSet;
+      var canWriteConent = privilegeSet.indexOf('write-content') !== -1;
+
+      return {
+        canUpdateEvent: canWriteConent,
+        canCreateEvent: canWriteConent,
+        canDeleteEvent: privilegeSet.indexOf('unbind') !== -1
+      };
+    },
+
+    /**
      * Returns the capabilities of a single event.
      */
     eventCapabilities: function(event) {
@@ -49,7 +92,17 @@ Calendar.ns('Provider').Caldav = (function() {
           canCreate: false
         };
       } else {
-        return _super.eventCapabilities.call(this, event);
+        var calendarStore = this.app.store('Calendar');
+        var calendar = calendarStore.cached[event.calendarId];
+        var caps = this.calendarCapabilities(
+          calendar
+        );
+
+        return {
+          canCreate: caps.canCreateEvent,
+          canUpdate: caps.canUpdateEvent,
+          canDelete: caps.canDeleteEvent
+        };
       }
     },
 

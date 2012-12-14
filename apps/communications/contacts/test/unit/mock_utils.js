@@ -6,7 +6,7 @@ var MockURL = {
   }
 };
 
-var MockImageLoader = {
-  init: function() {},
-  reload: function() {}
+var MockImageLoader = function() {
+  this.init = function() {};
+  this.reload = function() {};
 };

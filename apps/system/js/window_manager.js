@@ -66,16 +66,12 @@ var WindowManager = (function() {
   var screenElement = document.getElementById('screen');
   var wrapperHeader = document.querySelector('#wrapper-activity-indicator');
   var wrapperFooter = document.querySelector('#wrapper-footer');
-
-  // XXX: Unless https://bugzilla.mozilla.org/show_bug.cgi?id=808231
-  // is fixed, wait for 100ms before starting the transition so
-  // we will not see opening apps/homescreen flash in.
-  var kTransitionWait = 100;
+  var kTransitionTimeout = 300;
 
   // Set this to true to debugging the transitions and state change
   var slowTransition = false;
   if (slowTransition) {
-    kTransitionWait = 1000;
+    kTransitionTimeout = 1000;
     windows.classList.add('slow-transition');
   }
 
@@ -267,16 +263,14 @@ var WindowManager = (function() {
   var closeFrame = null;
   var openCallback = null;
   var closeCallback = null;
-  var openTimer;
-  var closeTimer;
+  var transitionOpenCallback = null;
+  var transitionCloseCallback = null;
 
   // Use setOpenFrame() to reset the CSS classes set
   // to the current openFrame (before overwriting the reference)
   function setOpenFrame(frame) {
     if (openFrame) {
       removeFrameClasses(openFrame);
-    } else if (openTimer) {
-      clearTimeout(openTimer);
     }
 
     openFrame = frame;
@@ -289,8 +283,6 @@ var WindowManager = (function() {
       removeFrameClasses(closeFrame);
       // closeFrame should not be set to active
       closeFrame.classList.remove('active');
-    } else if (closeTimer) {
-      clearTimeout(closeTimer);
     }
 
     closeFrame = frame;
@@ -635,10 +627,6 @@ var WindowManager = (function() {
 
     openCallback = callback || function() {};
 
-    // Set the frame to be visible.
-    if ('setVisible' in openFrame)
-      openFrame.setVisible(true);
-
     // set the size of the opening app
     setAppSize(origin);
 
@@ -667,22 +655,64 @@ var WindowManager = (function() {
       return;
     }
 
-
     if (requireFullscreen(origin))
       screenElement.classList.add('fullscreen-app');
 
-    setFrameBackground(openFrame, function gotBackground() {
-      // Start the transition when this async/sync callback is called.
-      openTimer = setTimeout(function startOpeningTransition() {
-        if (!openFrame)
-          return;
-        if (!screenElement.classList.contains('switch-app')) {
-          openFrame.classList.add('opening');
-        } else {
-          openFrame.classList.add('opening-card');
-        }
-      }, kTransitionWait);
-    });
+    transitionOpenCallback = function startOpeningTransition() {
+      // We have been canceled by another transition.
+      if (!openFrame || transitionOpenCallback != startOpeningTransition)
+        return;
+
+      // Make sure we're not called twice.
+      transitionOpenCallback = null;
+
+      if (!screenElement.classList.contains('switch-app')) {
+        openFrame.classList.add('opening');
+      } else {
+        openFrame.classList.add('opening-card');
+      }
+    };
+
+    if ('unpainted' in openFrame.dataset) {
+      waitForNextPaintOrBackground(openFrame, transitionOpenCallback);
+    } else {
+      waitForNextPaint(openFrame, transitionOpenCallback);
+    }
+
+    // Set the frame to be visible.
+    if ('setVisible' in openFrame)
+      openFrame.setVisible(true);
+  }
+
+  function waitForNextPaintOrBackground(frame, callback) {
+    var waiting = true;
+    function proceed() {
+      if (waiting) {
+        waiting = false;
+        callback();
+      }
+    }
+
+    waitForNextPaint(frame, proceed);
+    setFrameBackground(frame, proceed);
+  }
+
+  function waitForNextPaint(frame, callback) {
+    function onNextPaint() {
+      clearTimeout(timeout);
+      callback();
+    }
+
+    // Register a timeout in case we don't receive
+    // nextpaint in an acceptable time frame.
+    var timeout = setTimeout(function () {
+      if ('removeNextPaintListener' in frame)
+        frame.removeNextPaintListener(onNextPaint);
+      callback();
+    }, kTransitionTimeout);
+
+    if ('addNextPaintListener' in frame)
+      frame.addNextPaintListener(onNextPaint);
   }
 
   // Perform a "close" animation for the app's iframe
@@ -716,7 +746,14 @@ var WindowManager = (function() {
     evt.initCustomEvent('appwillclose', true, false, { origin: origin });
     closeFrame.dispatchEvent(evt);
 
-    closeTimer = setTimeout(function startClosingTransition() {
+    transitionCloseCallback = function startClosingTransition() {
+      // We have been canceled by another transition.
+      if (!closeFrame || transitionCloseCallback != startClosingTransition)
+        return;
+
+      // Make sure we're not called twice.
+      transitionCloseCallback = null;
+
       // Start the transition
       closeFrame.classList.add('closing');
       closeFrame.classList.remove('active');
@@ -724,7 +761,9 @@ var WindowManager = (function() {
         wrapperHeader.classList.remove('visible');
         wrapperFooter.classList.remove('visible');
       }
-    }, kTransitionWait);
+    };
+
+    waitForNextPaint(homescreenFrame, transitionCloseCallback);
   }
 
   // Perform a "switching" animation for the closing frame and the opening frame
@@ -754,9 +793,6 @@ var WindowManager = (function() {
       var app = Applications.getByManifestURL(homescreenManifestURL);
       appendFrame(null, homescreen, homescreenURL,
                   app.manifest.name, app.manifest, app.manifestURL);
-
-      addWrapperListener();
-
     } else if (reset) {
       runningApps[homescreen].frame.src = homescreenURL;
     }
@@ -886,6 +922,10 @@ var WindowManager = (function() {
       homescreenFrame = ensureHomescreen();
     }
 
+    // Cancel transitions waiting to be started.
+    transitionOpenCallback = null;
+    transitionCloseCallback = null;
+
     // Discard any existing activity
     stopInlineActivity();
 
@@ -905,7 +945,6 @@ var WindowManager = (function() {
     setCloseFrame(null);
     screenElement.classList.remove('switch-app');
     screenElement.classList.remove('fullscreen-app');
-
 
     // Dispatch an appwillopen event only when we open an app
     if (newApp != currentApp) {
@@ -1057,7 +1096,7 @@ var WindowManager = (function() {
     windows.appendChild(frame);
 
     // And map the app origin to the info we need for the app
-    runningApps[origin] = {
+    var app = {
       get name() {
         var name = getAppName(origin, this.manifest);
         if (!name) {
@@ -1071,6 +1110,7 @@ var WindowManager = (function() {
       frame: frame,
       launchTime: 0
     };
+    runningApps[origin] = app;
 
     if (requireFullscreen(origin)) {
       frame.classList.add('fullscreen-app');
@@ -1086,6 +1126,8 @@ var WindowManager = (function() {
       frame.setVisible(false);
 
     numRunningApps++;
+
+    return app;
   }
 
   function startInlineActivity(origin, url, name, manifest, manifestURL) {
@@ -1413,68 +1455,152 @@ var WindowManager = (function() {
     kill(origin);
   });
 
-  // Add handler that deals with wrappers
-  function addWrapperListener() {
-    var frame = runningApps[homescreen].frame;
-    frame.addEventListener('mozbrowseropenwindow', function handleWrapper(evt) {
-      var detail = evt.detail;
-      if (detail.name !== '_blank')
-        return;
-      evt.stopImmediatePropagation();
 
-      var url = detail.url;
-      if (displayedApp === url) {
+  function hasPermission(app, permission) {
+    var mozPerms = navigator.mozPermissionSettings;
+    if (!mozPerms)
+      return false;
+
+    var value = mozPerms.get(permission, app.manifestURL, app.origin, false);
+
+    return (value === 'allow');
+  }
+
+  // Watch for window.open usages in order to open wrapper frames
+  window.addEventListener('mozbrowseropenwindow', function handleWrapper(evt) {
+    var detail = evt.detail;
+    var features;
+    try {
+      features = JSON.parse(detail.features);
+    } catch(e) {
+      features = {};
+    }
+
+    // Handles only call to window.open with `{remote: true}` feature.
+    if (!features.remote)
+      return;
+
+    // XXX bug 819882: for now, only allows homescreen to open oop windows
+    var callerFrame = evt.target;
+    var manifestURL = callerFrame.getAttribute('mozapp');
+    var callerApp = Applications.getByManifestURL(manifestURL);
+    if (!callerApp || !callerFrame.classList.contains('homescreen'))
+      return;
+    var callerOrigin = callerApp.origin;
+
+    // So, we are going to open a remote window.
+    // Now, avoid PopupManager listener to be fired.
+    evt.stopImmediatePropagation();
+
+    var name = detail.name;
+    var url = detail.url;
+
+    // Use fake origin for named windows in order to be able to reuse them,
+    // otherwise always open a new window for '_blank'.
+    var origin = null;
+    var app = null;
+    if (name == '_blank') {
+      origin = url;
+
+      // Just bring on top if a wrapper window is already running with this url
+      if (origin in runningApps &&
+          runningApps[origin].windowName == '_blank') {
+        setDisplayedApp(origin);
         return;
       }
+    } else {
+      origin = 'window:' + name + ',source:' + callerOrigin;
 
-      if (isRunning(url)) {
-        if ('loading' in runningApps[url].frame.dataset) {
-          wrapperHeader.classList.add('visible');
+      for (var appOrigin  in runningApps) {
+        var a = runningApps[appOrigin];
+        if (a.windowName == name) {
+          app = a;
+          break;
         }
-        setDisplayedApp(url);
-        return;
       }
 
-      var frameElement = detail.frameElement;
-      try {
-        var features = JSON.parse(detail.features);
-        var regExp = new RegExp('&nbsp;', 'g');
+      // If the url is already loaded, just display the app
+      if (app && app.frame.src == url) {
+        setDisplayedApp(origin);
+        return;
+      }
+    }
 
-        frameElement.dataset.name = features.name.replace(regExp, ' ') || url;
-        frameElement.dataset.icon = features.icon || '';
+    var title = '', icon = ''; var remote = false;
+    var originName, originURL, searchName, searchURL;
 
-        if (features.origin) {
-          frameElement.dataset.originName =
-                                  features.origin.name.replace(regExp, ' ');
-          frameElement.dataset.originURL =
-                                  decodeURIComponent(features.origin.url);
-        }
+    try {
+      var features = JSON.parse(detail.features);
+      var regExp = new RegExp('&nbsp;', 'g');
 
-        if (features.search) {
-          frameElement.dataset.searchName =
-                                  features.search.name.replace(regExp, ' ');
-          frameElement.dataset.searchURL =
-                                  decodeURIComponent(features.search.url);
-        }
-      } catch (ex) { }
+      title = features.name.replace(regExp, ' ') || url;
+      icon = features.icon || '';
 
-      frameElement.addEventListener('mozbrowserloadstart', function start() {
-        frameElement.dataset.loading = true;
+      if (features.origin) {
+        originName = features.origin.name.replace(regExp, ' ');
+        originURL = decodeURIComponent(features.origin.url);
+      }
+
+      if (features.search) {
+        searchName = features.search.name.replace(regExp, ' ');
+        searchURL = decodeURIComponent(features.search.url);
+      }
+    } catch (ex) { }
+
+    // If we don't reuse an existing app, open a brand new one
+    var frame;
+    if (!app) {
+      // Bug 807438: Move new window document OOP
+      // Ignore `event.detail.frameElement` for now in order
+      // to create a remote system app frame.
+      // So that new window documents are going to share
+      // system app content processes data jar.
+      frame = document.createElement('iframe');
+      frame.setAttribute('mozbrowser', 'true');
+      frame.setAttribute('remote', 'true');
+
+      frame.addEventListener('mozbrowserloadstart', function start() {
+        frame.dataset.loading = true;
         wrapperHeader.classList.add('visible');
       });
 
-      frameElement.addEventListener('mozbrowserloadend', function end() {
-        delete frameElement.dataset.loading;
+      frame.addEventListener('mozbrowserloadend', function end() {
+        delete frame.dataset.loading;
         wrapperHeader.classList.remove('visible');
       });
 
-      appendFrame(frameElement, url, url, frameElement.dataset.name, {
-        'name': frameElement.dataset.name
+      var app = appendFrame(frame, origin, url, title, {
+        'name': title
       }, null);
 
-      setDisplayedApp(url);
-    });
-  }
+      // Set the window name in order to reuse this app if we try to open
+      // a new window with same name
+      app.windowName = name;
+    } else {
+      frame = app.frame;
+
+      // Update app name for the card view
+      app.manifest.name = title;
+    }
+
+    frame.dataset.name = title;
+    frame.dataset.icon = icon;
+
+    if (originName)
+      frame.dataset.originName = originName;
+    if (originURL)
+      frame.dataset.originURL = originURL;
+
+    if (searchName)
+      frame.dataset.searchName = searchName;
+    if (searchURL)
+      frame.dataset.searchURL = searchURL;
+
+    // First load blank page in order to hide previous website
+    frame.src = url;
+
+    setDisplayedApp(origin);
+  }, true); // Use capture in order to catch the event before PopupManager does
 
 
   // Stop running the app with the specified origin
@@ -1491,11 +1617,29 @@ var WindowManager = (function() {
 
     // If the app is the currently displayed app, switch to the homescreen
     if (origin === displayedApp) {
-      setDisplayedApp(homescreen, function() {
+      // when the homescreen is displayed and being
+      // killed we need to forcibly restart it...
+      if (origin === homescreen) {
         removeFrame(origin);
-        if (callback)
-          setTimeout(callback);
-      });
+
+        // XXX workaround bug 810431.
+        // we need this here and not in other situations
+        // as it is expected that homescreen frame is available.
+        setTimeout(function() {
+          setDisplayedApp();
+
+          if (callback) {
+            callback();
+          }
+        });
+      } else {
+        setDisplayedApp(homescreen, function() {
+          removeFrame(origin);
+          if (callback)
+            setTimeout(callback);
+        });
+      }
+
     } else {
       removeFrame(origin);
     }

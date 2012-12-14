@@ -209,3 +209,108 @@ fb.getAddress = function(fbdata) {
 
   return out;
 };
+
+// Merge done specifically for dialer and Call Log apps
+fb.mergeContact = function(devContact, fbContact) {
+  var fbPhotos = fbContact.photo;
+  if (!devContact.photo && Array.isArray(fbPhotos)) {
+    devContact.photo = [];
+  }
+
+  if (Array.isArray(fbPhotos) && fbPhotos.length > 0 && fbPhotos[0]) {
+    devContact.photo.push(fbPhotos[0]);
+  }
+
+  if (!devContact.tel && Array.isArray(fbContact.tel)) {
+    devContact.tel = [];
+  }
+
+  if (Array.isArray(fbContact.tel)) {
+    fbContact.tel.forEach(function(atel) {
+      devContact.tel.push(atel);
+    });
+  }
+
+  // It is needed to merge names just in case the contact has no local name
+  fb.mergeNames(devContact, fbContact);
+
+  return devContact;
+};
+
+fb.mergeNames = function(devContact, fbContact) {
+  var namesChanged = false;
+  var nameFields = ['givenName', 'familyName'];
+  nameFields.forEach(function(anameField) {
+    // If the device contact does not have name fields setted
+    // we use the Facebook ones
+    var fieldValue = devContact[anameField];
+    var fbValue = fbContact[anameField];
+    if ((!Array.isArray(fieldValue) || fieldValue.length === 0) &&
+        Array.isArray(fbValue) && fbValue.length > 0) {
+      namesChanged = true;
+      devContact[anameField] = (fieldValue && fieldValue[0]) || [];
+      devContact[anameField].push(fbValue[0]);
+    }
+  });
+
+  if (namesChanged) {
+    var givenName = devContact.givenName[0] || '';
+    var familyName = devContact.familyName[0] || '';
+    devContact.name = [givenName + ' ' + familyName];
+  }
+};
+
+fb.getContactByNumber = function(number, onsuccess, onerror) {
+  var req = fb.contacts.getByPhone(number);
+
+  req.onsuccess = function(e) {
+    onsuccess(e.target.result);
+  };
+
+  req.onerror = onerror;
+};
+
+// Only will be executed in the case of not loading fb.utils previously
+// i.e. dialer and call log FB integration
+fb.utils = this.fb.utils || {};
+
+// Returns the mozContact associated to a UID in FB
+fb.utils.getMozContactByUid = function(uid, onsuccess, onerror) {
+  var filter = {
+    filterBy: ['category'],
+    filterValue: uid,
+    filterOp: 'contains'
+  };
+
+  var req = navigator.mozContacts.find(filter);
+  req.onsuccess = onsuccess;
+  req.onerror = onerror;
+};
+
+ /**
+  *   Request auxiliary object to support asynchronous calls
+  *
+  */
+fb.utils.Request = function() {
+  this.done = function(result) {
+    this.result = result;
+    if (typeof this.onsuccess === 'function') {
+      var ev = {};
+      ev.target = this;
+      window.setTimeout(function() {
+        this.onsuccess(ev);
+      }.bind(this), 0);
+    }
+  }
+
+  this.failed = function(error) {
+    this.error = error;
+    if (typeof this.onerror === 'function') {
+      var ev = {};
+      ev.target = this;
+      window.setTimeout(function() {
+        this.onerror(ev);
+      }.bind(this), 0);
+    }
+  }
+};

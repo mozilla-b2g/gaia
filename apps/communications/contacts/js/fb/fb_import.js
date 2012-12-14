@@ -68,6 +68,7 @@ if (typeof fb.importer === 'undefined') {
     var headerElement = document.querySelector('header');
     var friendsMsgElement = document.querySelector('#friends-msg');
     var scrollableElement = document.querySelector('#mainContent');
+    var imgLoader;
 
     var BLOCK_SIZE = 5;
 
@@ -85,7 +86,8 @@ if (typeof fb.importer === 'undefined') {
       };
 
       utils.alphaScroll.init(params);
-      contacts.Search.init(document.getElementById('content'));
+      contacts.Search.init(document.getElementById('content'), null,
+                           onSearchResultCb);
     }
 
     UI.end = function(event) {
@@ -101,6 +103,21 @@ if (typeof fb.importer === 'undefined') {
 
     function scrollToCb(groupContainer) {
       scrollableElement.scrollTop = groupContainer.offsetTop;
+    }
+
+    function onSearchResultCb(e) {
+      var target = e.target;
+      var uid = target.dataset.uuid;
+      var checkbox = target.querySelector('input[type="checkbox"]');
+      checkbox.checked = !checkbox.checked;
+
+      var realNode = contactList.querySelector(
+                          '[data-uuid=' + '"' + uid + '"' + ']');
+      var realCheckbox = realNode.querySelector('input[type="checkbox"]');
+
+      UI.selection({
+        target: realNode
+      });
     }
 
     /**
@@ -167,15 +184,24 @@ if (typeof fb.importer === 'undefined') {
      *
      */
     function friendsAvailable() {
-      Curtain.hide(sendReadyEvent);
+      imgLoader = new ImageLoader('#mainContent',
+                                ".block-item:not([data-uuid='#uid#'])");
 
       friendsLoaded = true;
 
       if (contactsLoaded) {
-        window.setTimeout(startSync, 0);
+        window.addEventListener('message', function importOnViewPort(e) {
+          var data = e.data;
 
+          if (data && data.type === 'dom_transition_end') {
+            window.removeEventListener('message', importOnViewPort);
+            window.setTimeout(startSync, 0);
+          }
+        });
         markExisting(existingFbContacts);
       }
+
+      Curtain.hide(sendReadyEvent);
     }
 
     function sendReadyEvent() {
@@ -912,4 +938,3 @@ if (typeof fb.importer === 'undefined') {
 
   })(document);
 }
-

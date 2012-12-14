@@ -5,7 +5,7 @@
     <meta http-equiv="pragma" content="no-cache">
     <title>Browser</title>
     <link rel="stylesheet" href="style/browser.css" type="text/css">
-    <link rel="stylesheet" href="style/modal_dialog.css" type="text/css">
+    <link rel="stylesheet" href="shared/style/confirm.css" type="text/css">
     <link rel="stylesheet" href="style/action_menu.css" type="text/css">
     <link rel="stylesheet" href="shared/style/headers.css">
     <link rel="stylesheet" href="style/authentication_dialog.css" type="text/css">
@@ -72,9 +72,9 @@
             </section>
             <section id="history" role="tabpanel">
             </section>
-            <section id="results">
-            </section>
           </div>
+          <section id="results" class="hidden">
+          </section>
         </div>
 
         <div id="crashscreen">
@@ -89,53 +89,6 @@
           </menu>
         </div>
 
-        <div id="screen">
-          <div id="modal-dialog">
-            <div id="modal-dialog-table">
-              <div id="modal-dialog-tablecell">
-                <div id="modal-dialog-alert">
-                  <div class="modal-dialog-message-container">
-                    <span id="modal-dialog-alert-message"></span>
-                  </div>
-                  <button id="modal-dialog-alert-ok" data-l10n-id="ok">OK</button>
-                </div>
-
-                <div id="modal-dialog-confirm">
-                  <div class="modal-dialog-message-container">
-                    <span id="modal-dialog-confirm-message"></span>
-                  </div>
-                  <button id="modal-dialog-confirm-ok" data-l10n-id="ok">OK</button>
-                  <button id="modal-dialog-confirm-cancel" data-l10n-id="cancel">
-                    Cancel
-                  </button>
-                </div>
-
-                <div id="modal-dialog-prompt">
-                  <div class="modal-dialog-message-container">
-                    <span id="modal-dialog-prompt-message"></span>
-                    <input id="modal-dialog-prompt-input" />
-                  </div>
-                  <button id="modal-dialog-prompt-ok" data-l10n-id="ok">OK</button>
-                  <button id="modal-dialog-prompt-cancel" data-l10n-id="cancel">
-                    Cancel
-                  </button>
-                </div>
-
-                <div id="modal-dialog-custom-prompt">
-                  <div class="modal-dialog-message-container">
-                    <span id="modal-dialog-custom-prompt-message"></span>
-                  </div>
-                  <label>
-                    <input id="modal-dialog-custom-prompt-checkbox" type="checkbox" hidden />
-                    <span></span>
-                  </label>
-                  <div id="modal-dialog-custom-prompt-buttons"></div>
-                </div>
-
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
 
@@ -206,6 +159,51 @@
         <input id="http-authentication-password" type="password" />
       </label>
     </section>
+
+    <form role="dialog" id="modal-dialog-confirm" data-type="confirm" hidden>
+      <section>
+        <p><span id="modal-dialog-confirm-message"></span></p>
+      </section>
+      <menu>
+        <button id="modal-dialog-confirm-cancel" data-l10n-id="cancel">Cancel</button>
+        <button id="modal-dialog-confirm-ok" data-l10n-id="ok">OK</button>
+      </menu>
+    </form>
+
+    <form role="dialog" id="modal-dialog-alert" data-type="confirm" hidden>
+      <section>
+        <p><span id="modal-dialog-alert-message"></span></p>
+      </section>
+      <menu>
+        <button id="modal-dialog-alert-ok" class="full" data-l10n-id="ok">OK</button>
+      </menu>
+    </form>
+
+    <form role="dialog" id="modal-dialog-prompt" data-type="confirm" hidden>
+      <section>
+        <p>
+          <span id="modal-dialog-prompt-message"></span>
+          <input id="modal-dialog-prompt-input" />
+        </p>
+      </section>
+      <menu>
+        <button id="modal-dialog-prompt-cancel" data-l10n-id="cancel">
+          Cancel
+        </button>
+        <button id="modal-dialog-prompt-ok" data-l10n-id="ok">OK</button>
+      </menu>
+    </form>
+
+    <form role="dialog" id="modal-dialog-custom-prompt" data-type="confirm" hidden>
+      <section>
+        <p><span id="modal-dialog-custom-prompt-message"></span></p>
+        <label>
+          <input id="modal-dialog-custom-prompt-checkbox" type="checkbox" />
+          <span></span>
+        </label>
+      </section>
+      <menu id="modal-dialog-custom-prompt-buttons"></menu>
+    </form>
 
     <section role="region" id="settings" class="skin-organic">
       <header id="settings-header">

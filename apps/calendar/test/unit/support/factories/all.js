@@ -43,7 +43,9 @@
       name: 'my calendar',
       color: '#333',
       description: 'description',
-      syncToken: '1'
+      syncToken: '1',
+      // read, write, delete
+      privilegeSet: ['read', 'write-content', 'unbind']
     },
 
     onbuild: function(obj) {
@@ -91,7 +93,12 @@
       name: 'name',
       color: '#333',
       ctag: 'token',
-      description: '1'
+      description: '1',
+      privilegeSet: [
+        'read',
+        'write',
+        'write-content'
+      ]
     }
 
   });

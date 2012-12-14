@@ -16,6 +16,7 @@
     <domain>live.it</domain>
     <domain>live.jp</domain>
     <domain>msn.com</domain>
+    <domain>outlook.com</domain>
     <displayName>Microsoft Live Hotmail</displayName>
     <displayShortName>Hotmail</displayShortName>
     <incomingServer type="activesync">

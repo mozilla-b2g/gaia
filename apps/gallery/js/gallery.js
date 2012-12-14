@@ -109,6 +109,8 @@ var selectedFileNamesToBlobs = {};
 // See init()
 var photodb, videodb;
 
+var visibilityMonitor;
+
 // The localized event is the main entry point for the app.
 // We don't do anything until we receive it.
 window.addEventListener('localized', function showBody() {
@@ -126,15 +128,6 @@ window.addEventListener('localized', function showBody() {
 });
 
 function init() {
-  initUI();
-  initDB();
-}
-
-function initUI() {
-  // Clicks on the thumbnails do different things depending on what
-  // view we're in.
-  thumbnails.onclick = thumbnailClickHandler;
-
   // Clicking on the back button goes back to the thumbnail view
   $('fullscreen-back-button').onclick = setView.bind(null, thumbnailListView);
 
@@ -243,19 +236,61 @@ function initUI() {
   previousFrame.container.addEventListener('transitionend', removeTransition);
   currentFrame.container.addEventListener('transitionend', removeTransition);
   nextFrame.container.addEventListener('transitionend', removeTransition);
+
+  // If we were not invoked by an activity, then start off in thumbnail
+  // list mode, and fire up the image and video mediadb objects.
+  if (!navigator.mozHasPendingMessage('activity')) {
+    initDB(true);
+    setView(thumbnailListView);
+  }
+
+  // Register a handler for activities. This will take care of the rest
+  // of the initialization process.
+  navigator.mozSetMessageHandler('activity', function activityHandler(a) {
+    var activityName = a.source.name;
+    switch (activityName) {
+    case 'browse':
+      // The 'browse' activity is the way we launch Gallery from Camera.
+      // If this was a cold start, then the db needs to be initialized.
+      if (!photodb)
+        initDB(true);  // Initialize both the photo and video databases
+      // Always switch to the list of thumbnails.
+      setView(thumbnailListView);
+      break;
+    case 'pick':
+      if (pendingPick) // I don't think this can really happen anymore
+        cancelPick();
+      if (!photodb)
+        initDB(false); // Don't include videos when picking photos!
+      startPick(a);
+      break;
+    }
+  });
 }
 
-
-function initDB() {
+// Initialize MediaDB objects for photos and videos, and set up their
+// event handlers.
+function initDB(include_videos) {
   photodb = new MediaDB('pictures', metadataParsers.imageMetadataParser, {
     mimeTypes: ['image/jpeg', 'image/png'],
-    version: 2
+    version: 2,
+    autoscan: false,    // We're going to call scan() explicitly
+    batchHoldTime: 350, // Batch files during scanning
+    batchSize: 12       // Max batch size: one screenful
   });
 
-  // For videos, this app is only interested in files under DCIM/.
-  videodb = new MediaDB('videos', metadataParsers.videoMetadataParser, {
-    directory: 'DCIM/'
-  });
+  if (include_videos) {
+    // For videos, this app is only interested in files under DCIM/.
+    videodb = new MediaDB('videos', metadataParsers.videoMetadataParser, {
+      directory: 'DCIM/',
+      autoscan: false,    // We're going to call scan() explicitly
+      batchHoldTime: 350, // Batch files during scanning
+      batchSize: 12       // Max batch size: one screenful
+    });
+  }
+  else {
+    videodb = null;
+  }
 
   // This is called when DeviceStorage becomes unavailable because the
   // sd card is removed or because it is mounted for USB mass storage
@@ -275,23 +310,31 @@ function initDB() {
     if (currentOverlay === 'nocard' || currentOverlay === 'pluggedin')
       showOverlay(null);
 
-    // If the videodb is also ready, enumerate photos and videos
-    if (videodb.state === MediaDB.READY)
-      createThumbnailList();
+    // If we're including videos also, be sure that they are ready
+    if (include_videos) {
+      if (videodb.state === MediaDB.READY)
+        initThumbnails();
+    }
+    else {
+      initThumbnails();
+    }
   };
 
-  videodb.onready = function() {
-    // If the photodb is also ready, create thumbnails.
-    // Depending on the order of the ready events, either this code
-    // or the code above will fire and set up the thumbnails
-    if (photodb.state === MediaDB.READY)
-      createThumbnailList();
-  };
+  if (include_videos) {
+    videodb.onready = function() {
+      // If the photodb is also ready, create thumbnails.
+      // Depending on the order of the ready events, either this code
+      // or the code above will fire and set up the thumbnails
+      if (photodb.state === MediaDB.READY)
+        initThumbnails();
+    };
+  }
 
-  // When the mediadbs are scanning, let the user know
+  // When the mediadbs are scanning, let the user know. We count scan starts
+  // and ends so we correctly display the throbber while either db is scanning.
   var scanning = 0;
 
-  photodb.onscanstart = videodb.onscanstart = function onscanstart() {
+  photodb.onscanstart = function onscanstart() {
     scanning++;
     if (scanning == 1) {
       // Show the scanning indicator
@@ -300,7 +343,7 @@ function initDB() {
     }
   };
 
-  photodb.onscanend = videodb.onscanend = function onscanend() {
+  photodb.onscanend = function onscanend() {
     scanning--;
     if (scanning == 0) {
       // Hide the scanning indicator
@@ -310,25 +353,128 @@ function initDB() {
   };
 
   // One or more files was created (or was just discovered by a scan)
-  // XXX If the array is big, we should just rebuild the UI from scratch
-  photodb.oncreated = videodb.oncreated = function(event) {
+  photodb.oncreated = function(event) {
     event.detail.forEach(fileCreated);
   };
 
   // One or more files were deleted (or were just discovered missing by a scan)
-  // XXX If the array is big, we should just rebuild the UI from scratch
-  photodb.ondeleted = videodb.ondeleted = function(event) {
+  photodb.ondeleted = function(event) {
     event.detail.forEach(fileDeleted);
   };
 
-  // Start off in thumbnail list view, unless there is a pending activity
-  // request message. In that case, the message handler will set the
-  // initial view
-  if (!navigator.mozHasPendingMessage('activity'))
-    setView(thumbnailListView);
+  if (include_videos) {
+    videodb.onscanstart = photodb.onscanstart;
+    videodb.onscanend = photodb.onscanend;
+    videodb.oncreated = photodb.oncreated;
+    videodb.ondelete = photodb.oncreated;
+  }
+}
 
-  // Register a handler for activities
-  navigator.mozSetMessageHandler('activity', webActivityHandler);
+// This comparison function is used for sorting arrays and doing binary
+// search on the resulting sorted arrays.
+function compareFilesByDate(a, b) {
+  if (a.date < b.date)
+    return 1;  // larger (newer) dates come first
+  else if (a.date > b.date)
+    return -1;
+  return 0;
+}
+
+//
+// Enumerate existing entries in the photo and video databases in reverse
+// chronological order (most recent first) and display thumbnails for them all.
+// After the thumbnails are displayed, scan for new files.
+//
+// This function gets called when the app first starts up, and also
+// when the sdcard becomes available again after a USB mass storage
+// session or an sdcard replacement.
+//
+function initThumbnails() {
+  // If we've already been called once, then we've already got thumbnails
+  // displayed. There is no need to re-enumerate them, so we just go
+  // straight to scanning for new files
+  if (visibilityMonitor) {
+    scan();
+    return;
+  }
+
+  // Keep track of when thumbnails are onscreen and offscreen
+  visibilityMonitor =
+    monitorChildVisibility(thumbnails,
+                           360,                 // extra space top and bottom
+                           thumbnailOnscreen,   // set background image
+                           thumbnailOffscreen); // remove background image
+
+  var photos, videos;
+  photodb.getAll(function(records) {
+    photos = records;
+    if (videos)
+      mergeAndCreateThumbnails();
+  });
+
+  if (videodb) {
+    videodb.getAll(function(records) {
+      videos = records;
+      if (photos)
+        mergeAndCreateThumbnails();
+    });
+  }
+  else {
+    videos = [];
+  }
+
+  // This is called when we have all the photos and all the videos
+  function mergeAndCreateThumbnails() {
+    // Sort both batches of files by date
+    photos.sort(compareFilesByDate);
+    videos.sort(compareFilesByDate);
+
+    // Now merge the two arrays into files[], maintaining sort order
+    var numPhotos = photos.length;
+    var numVideos = videos.length;
+    var p = 0, v = 0;
+    while (p < numPhotos || v < numVideos) {
+      if (v >= numVideos) {          // If no more videos
+        files.push(photos[p++]);     // Add the next photo
+      }
+      else if (p >= numPhotos) {     // If no more photos
+        files.push(videos[v++]);     // Add the next video
+      }
+      else {                         // Otherwise, add the newer one
+        if (photos[p].date >= videos[v].date) {
+          files.push(photos[p++]);
+        }
+        else {
+          files.push(videos[v++]);
+        }
+      }
+      // Create and display a thumbnail for the file we just added
+      thumbnails.appendChild(createThumbnail(files.length - 1));
+    }
+
+    // Now that the thumbnails are created, we can start handling clicks
+    thumbnails.onclick = thumbnailClickHandler;
+
+    // And we can dismiss the spinner overlay
+    $('spinner-overlay').classList.add('hidden');
+
+    // But if we didn't find any files, put up the no files overlay
+    if (files.length === 0) {
+      showOverlay('emptygallery');
+    }
+
+    // Scan for new files. We used to start a scan right away but we don't
+    // really have a way to properly handle scan results while enumerating
+    // the thumbnails, so now we just enumerate as fast as we can and then
+    // start scanning for new results.
+    scan();
+  }
+}
+
+function scan() {
+  photodb.scan();
+  if (videodb)
+    videodb.scan();
 }
 
 function fileDeleted(filename) {
@@ -346,7 +492,7 @@ function fileDeleted(filename) {
 
   // Remove the corresponding thumbnail
   var thumbnailElts = thumbnails.querySelectorAll('.thumbnail');
-  URL.revokeObjectURL(thumbnailElts[n].style.backgroundImage.slice(5, -2));
+  URL.revokeObjectURL(thumbnailElts[n].dataset.backgroundImage.slice(5, -2));
   thumbnails.removeChild(thumbnailElts[n]);
 
   // Change the index associated with all the thumbnails after the deleted one
@@ -377,7 +523,8 @@ function fileDeleted(filename) {
 
   // If there are no more photos show the "no pix" overlay
   if (files.length === 0) {
-    setView(thumbnailListView);
+    if (currentView !== pickView)
+      setView(thumbnailListView);
     showOverlay('emptygallery');
   }
 }
@@ -410,13 +557,7 @@ function fileCreated(fileinfo) {
   }
   else {
     // Otherwise we have to search for the right insertion spot
-    insertPosition = binarysearch(files, fileinfo, function(a, b) {
-      if (a.date < b.date)
-        return 1;  // larger (newer) dates come first
-      else if (a.date > b.date)
-        return -1;
-      return 0;
-    });
+    insertPosition = binarysearch(files, fileinfo, compareFilesByDate);
   }
 
   // Insert the image info into the array
@@ -440,7 +581,10 @@ function fileCreated(fileinfo) {
   if (editedPhotoIndex >= insertPosition)
     editedPhotoIndex++;
 
-  // Redisplay the current photo if we're in photo view
+  // Redisplay the current photo if we're in photo view. The current
+  // photo should not change, but the content of the next or previous frame
+  // might. This call will only make changes if the filename to display
+  // in a frame has actually changed.
   if (currentView === fullscreenView) {
     showFile(currentFileIndex);
   }
@@ -473,12 +617,73 @@ function binarysearch(array, element, comparator, from, to) {
     return binarysearch(array, element, comparator, mid + 1, to);
 }
 
+// Fullscreen mode is flaky. When we enter and leave it we get a resize event
+// because of the new window size. But sometimes we get an extra resize event
+// with the window sized to 0. If this happens, then our list of thumbnails
+// gets sized to 0 and loses its scroll position.
+// See https://bugzilla.mozilla.org/show_bug.cgi?id=820571
+//
+// This self-executing function is here to workaround that issue.
+// In addition, it ensures that when we leave full screen mode, the
+// thumbnail for whatever image we were just viewing is visible on the
+// screen. (That is something that we cannot do in setView() because
+// it has to happen after the resize event arrives, and that is
+// asynchronous and does not occur until after setView() has
+// returned.)
+(function fullscreenWorkaround() {
+  var savedScrollTop, leavingFullScreenMode = false;
+
+  document.addEventListener('mozfullscreenchange', function() {
+    if (document.mozFullScreenElement) {
+      // We're entering fullscreen mode: remember our scroll position before
+      // we get a resize event.
+      savedScrollTop = thumbnails.scrollTop;
+      leavingFullScreenMode = false;
+    }
+    else {
+      // We're leaving fullscreen. We can't restore the scroll position
+      // yet... We have to wait until after the resize event or events.
+      leavingFullScreenMode = true;
+    }
+  });
+
+  window.addEventListener('resize', function() {
+    // If we've just left fullscreen mode, and we get a resize event where
+    // the window height is not zero, then restore the scroll position
+    // in case it got lost.
+    if (window.innerHeight !== 0 && leavingFullScreenMode) {
+      thumbnails.scrollTop = savedScrollTop;
+      leavingFullScreenMode = false; // Just do it once
+
+      // If we're leaving fullscreen, then we were just viewing a photo
+      // or video, so make sure its thumbnail is fully on the screen
+      scrollToShowThumbnail(currentFileIndex);
+    }
+  });
+}());
+
 // Make the thumbnail for image n visible
 function scrollToShowThumbnail(n) {
   var selector = 'li[data-index="' + n + '"]';
   var thumbnail = thumbnails.querySelector(selector);
-  if (thumbnail)
-    thumbnail.scrollIntoView();
+  if (thumbnail) {
+    var screenTop = thumbnails.scrollTop;
+    var screenBottom = screenTop + thumbnails.clientHeight;
+    var thumbnailTop = thumbnail.offsetTop;
+    var thumbnailBottom = thumbnailTop + thumbnail.offsetHeight;
+    var toolbarHeight = 40; // compute this dynamically?
+
+    // Adjust the screen bottom up to be above the overlaid footer
+    screenBottom -= toolbarHeight;
+
+    if (thumbnailTop < screenTop) {            // If thumbnail is above screen
+      thumbnails.scrollTop = thumbnailTop;     // scroll up to show it.
+    }
+    else if (thumbnailBottom > screenBottom) { // If thumbnail is below screen
+      thumbnails.scrollTop =                   // scroll  down to show it
+        thumbnailBottom - thumbnails.clientHeight + toolbarHeight;
+    }
+  }
 }
 
 function setView(view) {
@@ -518,21 +723,22 @@ function setView(view) {
   }
 
   // Now do setup for the view we're entering
-  // In particular, we've got to move the thumbnails list into each view
+  // In particular, we've got to set the thumbnail class appropriately
+  // for each view
   switch (view) {
   case thumbnailListView:
-    thumbnailListView.appendChild(thumbnails);
-    scrollToShowThumbnail(currentFileIndex);
+    thumbnails.className = 'list';
     break;
   case thumbnailSelectView:
-    thumbnailSelectView.appendChild(thumbnails);
+    thumbnails.className = 'select';
     // Set the view header to a localized string
     clearSelection();
     break;
   case pickView:
-    pickView.appendChild(thumbnails);
+    thumbnails.className = 'pick';
     break;
   case fullscreenView:
+    thumbnails.className = 'offscreen';
     // Show the toolbar
     fullscreenView.classList.remove('toolbarhidden');
     // Enter fullscreen mode
@@ -542,10 +748,7 @@ function setView(view) {
     document.addEventListener('mozfullscreenchange', fullscreenExitHandler);
     break;
   default:
-    // In any other view, remove the thumbnails from the document so
-    // they don't show anywhere
-    if (thumbnails.parentNode)
-      thumbnails.parentNode.removeChild(thumbnails);
+    thumbnails.className = 'offscreen';
     break;
   }
 
@@ -563,71 +766,8 @@ function setView(view) {
   }
 }
 
-// Enumerate existing entries in the photo and video databases in reverse
-// chronological order (most recent first) and display thumbnails for them all.
-function createThumbnailList() {
-  // If thumbnails already exist, erase everything and start over
-  if (thumbnails.firstChild !== null) {
-    thumbnails.textContent = '';
-    files = [];
-  }
-
-  // We need to enumerate both the photo and video dbs and interleave
-  // the files they return so that everything is in chronological order
-  // from most recent to least recent.
-
-  // Temporary arrays to hold enumerated files
-  var photos = [], videos = [];
-
-  photodb.enumerate('date', null, 'prev', function(fileinfo) {
-    photos.push(fileinfo);
-    merge();
-  });
-
-  videodb.enumerate('date', null, 'prev', function(fileinfo) {
-    videos.push(fileinfo);
-    merge();
-  });
-
-  // Create thumbnails for as many of the files in the photos and videos arrays
-  // as we can. This is the tricky bit of the algorithm for ensuring that
-  // they are sorted by date
-  function merge() {
-    // If we don't have at least one of each, we don't know what the newest is
-    while (photos.length > 0 && videos.length > 0) {
-      if (photos[0] === null && videos[0] === null) {
-        // Both enumerations are done
-        if (files.length === 0) { // If we didn't find anything
-          showOverlay('emptygallery');
-        }
-        break;
-      }
-
-      // If we've finished enumerating photos, then videos[0] is next
-      if (photos[0] === null) {
-        thumb(videos.shift());
-      }
-      else if (videos[0] === null) {
-        thumb(photos.shift());
-      }
-      else if (videos[0].date > photos[0].date) {
-        thumb(videos.shift());
-      }
-      else {
-        thumb(photos.shift());
-      }
-    }
-  }
-
-  function thumb(fileinfo) {
-    files.push(fileinfo);                  // remember the file
-    var thumbnail = createThumbnail(files.length - 1); // create its thumbnail
-    thumbnails.appendChild(thumbnail); // display the thumbnail
-  }
-}
-
 //
-// Create a thumbnail <img> element
+// Create a thumbnail element
 //
 function createThumbnail(imagenum) {
   var li = document.createElement('li');
@@ -637,37 +777,31 @@ function createThumbnail(imagenum) {
   var fileinfo = files[imagenum];
   // We revoke this url in imageDeleted
   var url = URL.createObjectURL(fileinfo.metadata.thumbnail);
-  li.style.backgroundImage = 'url("' + url + '")';
 
+  // We set the url on a data attribute and let the onscreen
+  // and offscreen callbacks below set and unset the actual
+  // background image style. This means that we don't keep
+  // images decoded if we don't need them.
+  li.dataset.backgroundImage = 'url("' + url + '")';
   return li;
 }
 
-//
-// Web Activities
-//
-
-// Register this with navigator.mozSetMessageHandler
-function webActivityHandler(activityRequest) {
-  var activityName = activityRequest.source.name;
-  switch (activityName) {
-  case 'browse':
-    if (launchedAsInlineActivity)
-      return;
-    // The 'browse' activity is just the way we launch the app
-    // There's nothing else to do here.
-    setView(thumbnailListView);
-    break;
-  case 'pick':
-    if (!launchedAsInlineActivity)
-      return;
-    if (pendingPick)
-      cancelPick();
-    startPick(activityRequest);
-    break;
-  }
+// monitorChildVisibility() calls this when a thumbnail comes onscreen
+function thumbnailOnscreen(thumbnail) {
+  if (thumbnail.dataset.backgroundImage)
+    thumbnail.style.backgroundImage = thumbnail.dataset.backgroundImage;
 }
 
-var launchedAsInlineActivity = window.location.hash === '#pick';
+// monitorChildVisibility() calls this when a thumbnail goes offscreen
+function thumbnailOffscreen(thumbnail) {
+  if (thumbnail.dataset.backgroundImage)
+    thumbnail.style.backgroundImage = null;
+}
+
+//
+// Pick activity
+//
+
 var pendingPick;
 var pickType;
 var pickWidth, pickHeight;
@@ -1129,10 +1263,18 @@ function setupFrameContent(n, frame) {
   // Make sure n is in range
   if (n < 0 || n >= files.length) {
     frame.clear();
+    delete frame.filename;
     return;
   }
 
   var fileinfo = files[n];
+
+  // If we're already displaying this file in this frame, then do nothing
+  if (fileinfo.name === frame.filename)
+    return;
+
+  // Remember what file we're going to display
+  frame.filename = fileinfo.name;
 
   if (fileinfo.metadata.video) {
     videodb.getFile(fileinfo.name, function(file) {

@@ -84,7 +84,9 @@ AppUpdatable.prototype.appliedCallBack = function() {
   this.cleanCallbacks();
 };
 
-AppUpdatable.prototype.errorCallBack = function() {
+AppUpdatable.prototype.errorCallBack = function(e) {
+  var errorName = e.application.downloadError.name;
+  console.info('downloadError event, error code is', errorName);
   UpdateManager.requestErrorBanner();
   UpdateManager.removeFromDownloadsQueue(this);
   this.cleanCallbacks();

@@ -17,7 +17,10 @@ class TestContacts(GaiaTestCase):
     _call_phone_number_button_locator = ('id', 'call-or-pick-0')
 
     # Call Screen app
-    _calling_number_locator = ('xpath', "//section[1]//div[@class='number']")
+    # TODO if this step fails bug 817291 may have been fixed
+    # Change this locator for the one commented below
+    _calling_number_locator = ('css selector', "div.additionalContactInfo")
+    #_calling_number_locator = ('css selector', "div.number")
     _outgoing_call_locator = ('css selector', 'div.direction.outgoing')
     _hangup_bar_locator = ('id', 'callbar-hang-up-action')
     _call_app_locator = ('css selector', "iframe[name='call_screen']")
@@ -25,8 +28,6 @@ class TestContacts(GaiaTestCase):
 
     def setUp(self):
         GaiaTestCase.setUp(self)
-
-        self.lockscreen.unlock()
 
         # launch the Contacts app
         self.app = self.apps.launch('Contacts')
@@ -64,7 +65,8 @@ class TestContacts(GaiaTestCase):
         self.wait_for_element_displayed(*self._outgoing_call_locator)
 
         # Check the number displayed is the one we dialed
-        self.assertEqual(self.contact['tel']['value'],
+        # TODO if this step fails bug 817291 may have been fixed
+        self.assertIn(self.contact['tel']['value'],
             self.marionette.find_element(*self._calling_number_locator).text)
 
         # hang up before the person answers ;)

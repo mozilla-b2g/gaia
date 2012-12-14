@@ -16,9 +16,6 @@ class TestGallery(GaiaTestCase):
     def setUp(self):
         GaiaTestCase.setUp(self)
 
-        # unlock the lockscreen if it's locked
-        self.lockscreen.unlock()
-
         # launch the Gallery app
         self.app = self.apps.launch('Gallery')
 

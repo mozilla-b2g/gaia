@@ -35,10 +35,11 @@
         if (iccCommand) {        // Open ICC section
           var page = document.location.protocol + '//' +
             document.location.host + '/index.html#icc';
-          debug("page: ", page);
+          debug('page: ', page);
           window.location.replace(page);
         }
       }
     }
   });
 })();
+

@@ -21,38 +21,47 @@ fbFriends.List = (function() {
 
     var agroups = Object.keys(groups);
 
+    var fragment = document.createDocumentFragment();
+
     // For each group
     agroups.forEach(function(group) {
       // New element appended
-      var ele = utils.templates.append(groupsList, {group: group});
+      var ele = utils.templates.append(groupsList, {group: group}, fragment);
 
       // Array of friends
       var friends = groups[group];
       // For each friend in the group
       friends.forEach(function(friend) {
         var searchInfo = [];
-        var searchable = ['givenName', 'familyName', 'org'];
+        var searchable = ['givenName', 'familyName'];
         searchable.forEach(function(field) {
           if (friend[field] && friend[field][0]) {
             searchInfo.push(friend[field][0]);
           }
         });
+
+        // Enabling searching by email
+        if (friend['email1']) {
+          searchInfo.push(friend['email1']);
+        }
+
         friend.search = utils.text.normalize(searchInfo.join(' '));
+
         // New friend appended
         utils.templates.append(ele, friend);
         // We check wether this friend was in the AB or not before
       });
     });
 
-    groupsList.removeChild(groupsList.children[0]); // Deleting template
-    FixedHeader.init('#mainContent', '#fixed-container', '.fb-import-list header');
-    ImageLoader.init('#mainContent', ".block-item:not([data-uuid='#uid#'])");
-
+    groupsList.innerHTML = ''; // Deleting template
+    groupsList.appendChild(fragment);
+    FixedHeader.init('#mainContent', '#fixed-container',
+                     '.fb-import-list header');
     if (typeof cb === 'function') {
-      window.setTimeout(function() { cb(); }, 0);
+      // We wait a delay depending on number of nodes (the curtain is displayed)
+      window.setTimeout(function () { cb(); }, contacts.length * 2);
     }
   };
-
 
   function getStringToBeOrdered(contact) {
     var ret = [];

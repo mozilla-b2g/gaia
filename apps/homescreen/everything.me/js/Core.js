@@ -1,5 +1,5 @@
-window.Evme = new function() {
-    var _name = "Core", _this = this, logger,
+window.Evme = new function Evme_Core() {
+    var _name = "Core", self = this, logger,
         recalculateHeightRetries = 1,
         TIMEOUT_BEFORE_INIT_SESSION = "FROM CONFIG",
         OPACITY_CHANGE_DURATION = 300,
@@ -7,7 +7,7 @@ window.Evme = new function() {
 
     this.shouldSearchOnInputBlur = true;
 
-    this.init = function() {
+    this.init = function init() {
         data = Evme.__config;
 
         logger = (typeof Logger !== "undefined") ? new Logger() : console;
@@ -41,30 +41,24 @@ window.Evme = new function() {
     };
 
     // Gaia communication methods
-    this.setOpacityBackground = function(value) {
+    this.setOpacityBackground = function setOpacityBackground(value) {
         Evme.BackgroundImage.changeOpacity(value, OPACITY_CHANGE_DURATION);
     };
 
-    this.pageMove = function(value) {
+    this.pageMove = function pageMove(value) {
         Evme.BackgroundImage.changeOpacity(Math.floor(value*100)/100);
     };
     
-    this.onShow = function() {
+    this.onShow = function onShow() {
         Evme.Shortcuts.refreshScroll();
-        if (Evme.Searchbar.getValue() || Evme.Brain.SmartFolder.get()) {
-            Evme.Brain.FFOS.hideMenu(); 
-        } else {
-            Evme.Brain.FFOS.showMenu();
-        }
     };
-    this.onHide = function() {
-        Evme.Brain.App.cancel();
+    this.onHide = function onHide() {
         Evme.Brain.Shortcuts.doneEdit();
         Evme.Brain.SmartFolder.closeCurrent();
     };
     
-    this.onHideStart = function(source) {
-        if (source == "homeButtonClick") {
+    this.onHideStart = function onHideStart(source) {
+        if (source === "homeButtonClick") {
             if (
                 Evme.Brain.Shortcuts.hideIfEditing() ||
                 Evme.Brain.ShortcutsCustomize.isOpen() ||
@@ -80,10 +74,7 @@ window.Evme = new function() {
     };
 
     function initObjects(data) {
-        var $container = $("#" + Evme.Utils.getID());
-        
         Evme.ConnectionMessage.init({
-            "$parent": $container,
             "texts": data.texts.connection
         });
         
@@ -91,28 +82,22 @@ window.Evme = new function() {
             
         });
         
-        Evme.Screens.init({
-            "$screens": $(".content_page"),
-            "tabs": data.texts.tabs
-        });
-        
         Evme.Shortcuts.init({
-            "$el": $("#shortcuts"),
-            "$loading": $("#shortcuts-loading"),
-            "design": data.design.shortcuts,
+            "el": Evme.$("#shortcuts"),
+            "elLoading": Evme.$("#shortcuts-loading"),
             "shortcutsFavorites": data.texts.shortcutsFavorites,
             "defaultShortcuts": data._defaultShortcuts
         });
         
         Evme.ShortcutsCustomize.init({
-            "$parent": $container,
+            "elParent": Evme.Utils.getContainer(),
             "texts": data.texts.shortcutsFavorites
         });
 
         Evme.Searchbar.init({
-            "$el": $("#search-q"),
-            "$form": $("#search-rapper"),
-            "$defaultText": $("#default-text"),
+            "el": Evme.$("#search-q"),
+            "elForm": Evme.$("#search-rapper"),
+            "elDefaultText": Evme.$("#default-text"),
             "texts": data.texts.searchbar,
             "timeBeforeEventPause": data.searchbar.timeBeforeEventPause,
             "timeBeforeEventIdle": data.searchbar.timeBeforeEventIdle,
@@ -120,16 +105,15 @@ window.Evme = new function() {
         });
 
         Evme.Helper.init({
-            "$el": $("#helper"),
-            "$elTitle": $("#search-title"),
-            "$tip": $("#helper-tip"),
+            "el": Evme.$("#helper"),
+            "elTitle": Evme.$("#search-title"),
+            "elTip": Evme.$("#helper-tip"),
             "texts": data.texts.helper
         });
 
         Evme.Apps.init({
-            "$el": $("#evmeApps"),
-            "$buttonMore": $("#button-more"),
-            "$header": $("#search #header"),
+            "el": Evme.$("#evmeApps"),
+            "elHeader": Evme.$("#header"),
             "texts": data.texts.apps,
             "design": data.design.apps,
             "appHeight": data.apps.appHeight,
@@ -141,8 +125,8 @@ window.Evme = new function() {
         });
 
         Evme.BackgroundImage.init({
-            "$el": $("#search-overlay"),
-            "$elementsToFade": $("#evmeApps, #header, #search-header"),
+            "el": Evme.$("#search-overlay"),
+            "elementsToFade": [Evme.$("#evmeApps"), Evme.$("#header"), Evme.$("#search-header")],
             "defaultImage": data.defaultBGImage,
             "texts": data.texts.backgroundImage
         });

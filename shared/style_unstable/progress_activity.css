@@ -5,9 +5,9 @@
 /* Spinner */
 progress:not([value]) {
   background: url(progress_activity/images/ui/default.png) no-repeat center center;
-  animation: 0.9s rotate infinite linear;
-  width: 6.4rem;
-  height: 6.4rem;
+  animation: 0.9s rotate infinite steps(30);
+  width: 2.9rem;
+  height: 2.9rem;
   border: none;
   display: inline-block;
   vertical-align: middle;
@@ -31,28 +31,6 @@ progress:not([value]).opposite {
 progress:not([value]).opposite.skin-dark,
 p[role="status"].skin-dark progress:not([value]).opposite {
   background-image: url(progress_activity/images/ui/default.png);
-}
-
-/* Small */
-progress:not([value]).small {
-  width: 3.2em;
-  height: 3.2em;
-  background-image: url(progress_activity/images/ui/default-small.png);
-}
-
-progress:not([value]).small.opposite {
-  background-image: url(progress_activity/images/ui/opposite-small.png);
-}
-
-/* Dark skin */
-progress:not([value]).skin-dark.small,
-p[role="status"].skin-dark progress:not([value]).small {
-  background-image: url(progress_activity/images/ui/dark/default-small.png);
-}
-
-progress:not([value]).skin-dark.small.opposite,
-p[role="status"].skin-dark progress:not([value]).small.opposite {
-  background-image: url(progress_activity/images/ui/default-small.png);
 }
 
 /* Progress bar */

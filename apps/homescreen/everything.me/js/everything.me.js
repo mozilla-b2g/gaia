@@ -16,11 +16,13 @@ var EverythingME = {
                                                     classList.remove('frozen');
 
       EverythingME.displayed = true;
+      footerStyle.MozTransform = "translateY(75px)";
 
       page.addEventListener('gridpageshowend', function onpageshowafterload() {
         if (EverythingME.displayed) return;
 
         EverythingME.displayed = true;
+        footerStyle.MozTransform = "translateY(75px)";
         EvmeFacade.onShow();
       });
 
@@ -76,7 +78,6 @@ var EverythingME = {
                     'modules/BackgroundImage/BackgroundImage.js',
                     'modules/Dialog/Dialog.js',
                     'modules/Location/Location.js',
-                    'modules/Screens/Screens.js',
                     'modules/Shortcuts/Shortcuts.js',
                     'modules/ShortcutsCustomize/ShortcutsCustomize.js',
                     'modules/Searchbar/Searchbar.js',
@@ -86,11 +87,9 @@ var EverythingME = {
                     'modules/ConnectionMessage/ConnectionMessage.js',
                     'modules/SmartFolder/SmartFolder.js',
                     'js/helpers/Storage.js',
-                    'js/developer/zepto.0.7.js',
                     'js/developer/utils.1.3.js',
                     'js/plugins/Scroll.js',
                     'js/external/iscroll.js',
-                    'js/external/spin.js',
                     'js/developer/log4js2.js',
                     'js/api/apiv2.js',
                     'js/api/DoATAPI.js',
@@ -103,7 +102,6 @@ var EverythingME = {
                      'modules/Apps/Apps.css',
                      'modules/BackgroundImage/BackgroundImage.css',
                      'modules/Dialog/Dialog.css',
-                     'modules/Screens/Screens.css',
                      'modules/Shortcuts/Shortcuts.css',
                      'modules/ShortcutsCustomize/ShortcutsCustomize.css',
                      'modules/Searchbar/Searchbar.css',
@@ -175,7 +173,7 @@ var EverythingME = {
 };
 
 var EvmeFacade = {
-  onHideStart: function() {
+  onHideStart: function onHideStart() {
     return false;
   }
 };

@@ -376,7 +376,14 @@ var UpdateManager = {
       this.checkStatuses();
 
       if (this._wifiLock) {
-        this._wifiLock.unlock();
+        try {
+          this._wifiLock.unlock();
+        } catch (e) {
+          // this can happen if the lock is already unlocked
+          console.error('error during unlock', e);
+        }
+
+        this._wifiLock = null;
       }
 
       this.render();
