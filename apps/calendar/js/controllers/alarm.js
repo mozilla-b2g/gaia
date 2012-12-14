@@ -5,6 +5,7 @@ Calendar.ns('Controllers').Alarm = (function() {
   function Alarm(app) {
     this.app = app;
     this.store = app.store('Alarm');
+    this.settings = app.store('Setting');
   }
 
   Alarm.prototype = {
@@ -14,6 +15,17 @@ Calendar.ns('Controllers').Alarm = (function() {
     observe: function() {
       var self = this;
 
+      this._wifiLock = null;
+      this.app.syncController.on('syncComplete', function() {
+        if (self._wifiLock !== null)
+          self._wifiLock.unlock();
+      });
+
+      this._nextPeriodicSync = this.settings.syncAlarm;
+      
+      if (this._nextPeriodicSync.alarmId === null)
+        this._resetSyncAlarm(false);
+
       if (navigator.mozSetMessageHandler) {
         debug('set message handler');
         navigator.mozSetMessageHandler('alarm', function(msg) {
@@ -22,15 +34,21 @@ Calendar.ns('Controllers').Alarm = (function() {
       } else {
         debug('mozSetMessageHandler is mising!');
       }
+
+      this.settings.on('syncFrequencyChange', function() {
+        self._resetSyncAlarm(false);
+      });
     },
 
     handleAlarmMessage: function(message) {
       debug('got message', message);
-      // XXX: this method only wraps handleAlarm
-      // right now because period sync is not implemented.
-      // In the future we could have many types of system
-      // messages related to alarms and we handle them here.
-      this.handleAlarm(message.data);
+      switch (message.data.type) {
+        case 'sync':
+          this._handleSyncMessage();
+          break;
+        default:
+          this.handleAlarm(message.data);
+      }
     },
 
     _sendAlarmNotification: function(alarm, event, busytime) {
@@ -131,6 +149,57 @@ Calendar.ns('Controllers').Alarm = (function() {
       busytimeStore.get(alarm.busytimeId, trans, function(err, record) {
         busytime = record;
       });
+    },
+
+    /**
+     * Resets or sets the periodic sync alarm
+     *
+     * @param {Boolean} triggered indicates that the alarm fired.
+     */
+    _resetSyncAlarm: function(triggered) {
+      if (this._nextPeriodicSync.alarmId) {
+        navigator.mozAlarms.remove(this._nextPeriodicSync.alarmId);
+        this._nextPeriodicSync.alarmId = null;
+      }
+
+      var duration = this.settings.syncFrequency;
+      if (duration === null) {
+        this.settings.set('syncAlarm', this._nextPeriodicSync);
+        return;
+      }
+      duration *= 60 * 1000; // Convert minutes to milliseconds
+
+      var start = new Date();
+      var end = new Date(start.getTime() + duration);
+
+      // We're resetting the sync alarm after a settings change and times are still in range
+      if (!triggered &&
+          this._nextPeriodicSync.end > start &&
+          this._nextPeriodicSync.start.getTime() + duration > start) {
+        start = this._nextPeriodicSync.start;
+        end = new Date(start.getTime() + duration);
+      }
+      
+      var request = navigator.mozAlarms.add(end, 'ignoreTimezone', {type: 'sync'});
+      var self = this;
+      request.onsuccess = function(e) {
+        self._nextPeriodicSync.alarmId = e.target.result;
+        self._nextPeriodicSync.start = start;
+        self._nextPeriodicSync.end = end;
+        self.settings.set('syncAlarm', self._nextPeriodicSync)
+      };
+      request.onerror = function(e) {
+        debug('Error setting alarm:', e.target.error.name);
+      };
+    },
+
+    /**
+     * Handles an sync alarm firing
+     */
+    _handleSyncMessage: function() {
+      this._wifiLock = navigator.requestWakeLock('wifi');
+      this.app.syncController.all();
+      this._resetSyncAlarm(true);
     }
 
   };
