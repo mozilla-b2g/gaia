@@ -19,8 +19,30 @@ if (!navigator.mozSms) {
       {
         sender: null,
         receiver: '1977',
-        body: 'Nothing :)',
+        body: 'Test',
         delivery: 'sent',
+        id: 55,
+        timestamp: new Date(Date.now() - 86000000)
+      },
+      {
+        sender: '1977',
+        body: 'Can U delete me lol?',
+        delivery: 'received',
+        id: 54,
+        timestamp: new Date(Date.now() - 86100000)
+      },
+      {
+        sender: null,
+        receiver: '1977',
+        body: 'What bout me?',
+        delivery: 'sent',
+        id: 53,
+        timestamp: new Date(Date.now() - 86200000)
+      },
+      {
+        sender: '1977',
+        body: 'Wow lol foo xD bar',
+        delivery: 'received',
         id: 52,
         timestamp: new Date(Date.now() - 86400000)
       },
