@@ -489,11 +489,6 @@ suite('system/AppInstallManager >', function() {
         });
 
         function downloadErrorTests(errorName) {
-          test('should remove the icon', function() {
-              var method = 'decSystemDownloads';
-              assert.ok(MockStatusBar.wasMethodCalled[method]);
-            });
-
           test('should display an error', function() {
             var expectedErrorMsg = knownErrors[errorName] +
                                    '{"appName":"' + mockAppName + '"}';
@@ -503,10 +498,6 @@ suite('system/AppInstallManager >', function() {
 
           test('should not display the error dialog', function() {
             assert.isFalse(MockModalDialog.alert.mWasCalled);
-          });
-
-          test('should remove the notif', function() {
-            assert.equal(fakeNotif.childElementCount, 0);
           });
 
         }
@@ -540,9 +531,15 @@ suite('system/AppInstallManager >', function() {
             mockApp.mTriggerDownloadError('GENERIC_ERROR');
           });
 
-          /* this makes the test execution too slow because of
-           * https://bugzilla.mozilla.org/show_bug.cgi?id=820883
-           * When this bug is fixed we might uncomment these lines. */
+          test('should remove the notif', function() {
+            assert.equal(fakeNotif.childElementCount, 0);
+          });
+
+          test('should remove the icon', function() {
+            var method = 'decSystemDownloads';
+            assert.ok(MockStatusBar.wasMethodCalled[method]);
+          });
+
           beforeFirstProgressSuite();
           downloadEventsSuite(/*afterError*/ true);
         });
