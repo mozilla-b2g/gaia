@@ -10,18 +10,30 @@ Calendar.App = (function(window) {
   var App = {
 
     // Dependency map for loading
-    cssBase: '/style/',
-    jsBase: '/js/',
     dependencies: {
-      Store: {},
+      StoreLoad: {
+        Busytime: [
+          {type: 'StoreLoad', name: 'Calendar'}
+        ],
+        Calendar: [
+        ]
+      },
       Style: {},
       Templates: {},
       Utils: {},
       Views: {
         AdvancedSettings: [
+          {type: 'StoreLoad', name: 'Account'},
+          {type: 'StoreLoad', name: 'Setting'},
           {type: 'Templates', name: 'Account'}
         ],
+        CalendarColors: [
+          {type: 'StoreLoad', name: 'Calendar'}
+        ],
         CreateAccount: [
+         {type: 'Utils', name: 'AccountCreation'},
+         {type: 'StoreLoad', name: 'Account'},
+         {type: 'Style', name: 'ModifyAccountView'},
          {type: 'Templates', name: 'Account'}
         ],
         ModifyAccount: [
@@ -41,11 +53,17 @@ Calendar.App = (function(window) {
           {type: 'Utils', name: 'Overlap'},
           {type: 'Views', name: 'DayBased'}
         ],
+        ModifyAccount: [
+          {type: 'StoreLoad', name: 'Account'}
+        ],
         ModifyEvent: [
+          {type: 'StoreLoad', name: 'Account'},
+          {type: 'StoreLoad', name: 'Calendar'},
           {type: 'Style', name: 'ModifyEventView'},
           {type: 'Utils', name: 'InputParser'}
         ],
         Month: [
+          {type: 'StoreLoad', name: 'Calendar'},
           {type: 'Templates', name: 'Month'},
           {type: 'Views', name: 'MonthChild'},
           {type: 'Views', name: 'TimeParent'}
@@ -57,6 +75,7 @@ Calendar.App = (function(window) {
           {type: 'Views', name: 'DayChild'}
         ],
         Settings: [
+          {type: 'StoreLoad', name: 'Calendar'},
           {type: 'Style', name: 'Settings'},
           {type: 'Templates', name: 'Calendar'}
         ],
@@ -82,9 +101,10 @@ Calendar.App = (function(window) {
      * must be called at least once before
      * using other methods.
      */
-    configure: function(db, router) {
+    configure: function(db, router, loader) {
       this.db = db;
       this.router = router;
+      this.loader = loader;
 
       this._providers = Object.create(null);
       this._views = Object.create(null);
@@ -154,8 +174,28 @@ Calendar.App = (function(window) {
 
     },
 
-    _init: function() {
+    /**
+     * Primary code for app can go here.
+     */
+    init: function() {
       var self = this;
+
+      if (!this.db) {
+        this.configure(
+          new Calendar.Db('b2g-calendar'),
+          new Calendar.Router(page),
+          new Calendar.Loader(this.dependencies)
+        );
+      }
+
+      // start the workers
+      this.serviceController.start(false);
+
+      // localize
+      this.loader.onLocalized(function() {
+        self.dateFormat = navigator.mozL10n.DateTimeFormat();
+      });
+
       // quick hack for today button
       var today = document.querySelector('#view-selector .today');
 
@@ -167,8 +207,6 @@ Calendar.App = (function(window) {
         e.preventDefault();
       });
 
-      this.dateFormat = navigator.mozL10n.DateTimeFormat();
-
       this.timeController.observe();
       this.alarmController.observe();
 
@@ -177,133 +215,26 @@ Calendar.App = (function(window) {
       // transparently. Defaults to off for tests.
       this.store('Alarm').autoQueue = true;
 
-      this.timeController.move(new Date());
-
-      this.view('TimeHeader', function(header) {
-          header.render();
-      });
-
-      this.view('CalendarColors', function(colors) {
-        colors.render();
-      });
-
-      document.body.classList.remove('loading');
       this._routes();
-    },
 
-    /**
-     * Primary code for app can go here.
-     */
-    init: function() {
-      var self = this;
-      var pending = 2;
+      this.db.open(function() {
+        self.timeController.move(new Date());
 
-      function next() {
-        pending--;
-        if (!pending) {
-          self._init();
-        }
-      }
-
-      if (!this.db) {
-        this.configure(
-          new Calendar.Db('b2g-calendar'),
-          new Calendar.Router(page)
-        );
-      }
-
-      // start the workers
-      this.serviceController.start(false);
-
-      // localize && pre-initialize the database
-      if (navigator.mozL10n && navigator.mozL10n.readyState == 'complete') {
-        // document is already localized
-        next();
-      } else {
-        // waiting for the document to be localized (= standard case)
-        window.addEventListener('localized', function() {
-          next();
+        self.view('TimeHeader', function(header) {
+          header.render();
         });
-      }
 
-      this.db.load(function() {
-        next();
+        self.view('CalendarColors', function(colors) {
+          colors.render();
+        });
       });
     },
 
     /**
-     * Loads a resource and all of it's dependencies
-     * @param {String} type of resource to load (folder name).
-     * @param {String} name view name.
-     * @param {Function} callback after all resources are loaded.
+     * Shortcut for app.loader.load
      */
     loadResource: function(type, name, cb) {
-
-      var file, script, classes = [];
-
-      var head = document.getElementsByTagName('head')[0];
-
-      var self = this;
-
-      /**
-       * Appends a script to the dom
-       */
-      var appendScript = function(config, cb) {
-        // lowercase_and_underscore the view to get the filename
-        file = config.name.replace(/([A-Z])/g, '_$1')
-          .replace(/^_/, '').toLowerCase();
-
-        if (config.type == 'Style') {
-          script = document.createElement('link');
-          script.type = 'text/css';
-          script.rel = 'stylesheet';
-          script.href = self.cssBase + file + '.css';
-          head.appendChild(script);
-          return cb();
-        }
-
-        script = document.createElement('script');
-        script.type = 'text/javascript';
-        script.src = self.jsBase + config.type.toLowerCase() +
-          '/' + file + '.js';
-
-        if (cb) script.onload = cb;
-        head.appendChild(script);
-      };
-
-      /**
-       * Process a dependency node
-       * Ensures all sub-dependencies are processed
-       */
-      function processScripts(node, cb) {
-
-        // If there are no dependencies, or we already have this resource loaded, bail out
-        if (!App.dependencies[node.type] || (Calendar[node.type] && Calendar[node.type][node.name])) {
-            return cb();
-        }
-
-        var dependencies = App.dependencies[node.type][node.name];
-        var numDependencies = dependencies ? dependencies.length : 0;
-        var counter = 0;
-
-        if (numDependencies > 0) {
-          !function processRemaining() {
-            var toProcess = dependencies.shift();
-            processScripts(toProcess, function() {
-              counter++;
-              if (counter >= numDependencies) {
-                appendScript(node, cb);
-              } else {
-                processRemaining();
-              }
-            });
-          }();
-
-        } else {
-          appendScript(node, cb);
-        }
-      }
-      processScripts({type: type, name: name}, cb);
+      this.loader.load({type: type, name: name}, cb);
     },
 
     /**
@@ -342,14 +273,22 @@ Calendar.App = (function(window) {
      * @param {Function} view loaded callback.
      */
     view: function(name, cb) {
-      if (!(name in this._views)) {
-        this.loadResource('Views', name, function() {
-          this._views[name] = new Calendar.Views[name]({
-            app: this
-          });
-          cb.call(this, this._views[name]);
-        }.bind(this));
 
+      var self = this;
+
+      function loadAsync() {
+        self.loadResource('Views', name, function() {
+          self._views[name] = new Calendar.Views[name]({
+            app: self
+          });
+          self.loader.onRenderReady(function() {
+            cb.call(self, self._views[name]);
+          });
+        });
+      }
+
+      if (!(name in this._views)) {
+        loadAsync();
       } else {
           cb.call(this, this._views[name]);
       }

@@ -81,8 +81,8 @@
      * of a given state (without exiting it)
      *
      * @param {String} path path as defined by page.js.
-     * @param {String|Array} one or multiple view identifiers
-     * @param {Object} options: (clear, path)
+     * @param {String|Array} one or multiple view identifiers.
+     * @param {Object} option keys such as clear, path.
      */
     state: function(path, views, options) {
 
@@ -130,13 +130,18 @@
         }
 
         // Activate objects
-        for (var i = 0,view; view = viewObjs[i]; i++) {
+        for (var i = 0, view; view = viewObjs[i]; i++) {
           self.mangeObject(view, ctx);
         }
 
         // Set the current path
         if (options.appPath !== false) {
           self.currentPath = ctx.canonicalPath;
+        }
+
+        // Remove the loading state if it exists once we handle all views
+        if (document.body.classList.contains('loading')) {
+          document.body.classList.remove('loading');
         }
 
         next();
@@ -153,7 +158,7 @@
       options = options || {};
       options.appPath = false;
       options.clear = false;
-      this.state(path, view, options)
+      this.state(path, view, options);
     }
   };
 

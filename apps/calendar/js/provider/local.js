@@ -36,7 +36,7 @@
       id: LOCAL_CALENDAR_ID,
       color: '#D2642A'
     };
-  }
+  };
 
   Local.prototype = {
     __proto__: Calendar.Provider.Abstract.prototype,
