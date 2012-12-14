@@ -14,6 +14,7 @@ requireApp('system/test/unit/mock_statusbar.js');
 requireApp('system/test/unit/mock_notification_screen.js');
 requireApp('system/test/unit/mock_navigator_settings.js');
 requireApp('system/test/unit/mock_navigator_wake_lock.js');
+requireApp('system/test/unit/mock_l10n.js');
 
 requireApp('system/test/unit/mocks_helper.js');
 
@@ -59,14 +60,7 @@ suite('system/UpdateManager', function() {
     navigator.mozSettings = MockNavigatorSettings;
 
     realL10n = navigator.mozL10n;
-    navigator.mozL10n = {
-      get: function get(key, params) {
-        if (params)
-          return key + JSON.stringify(params);
-
-        return key;
-      }
-    };
+    navigator.mozL10n = MockL10n;
 
     realRequestWakeLock = navigator.requestWakeLock;
     navigator.requestWakeLock = MockNavigatorWakeLock.requestWakeLock;
