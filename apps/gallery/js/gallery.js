@@ -109,6 +109,8 @@ var selectedFileNamesToBlobs = {};
 // See init()
 var photodb, videodb;
 
+var visibilityMonitor;
+
 // The localized event is the main entry point for the app.
 // We don't do anything until we receive it.
 window.addEventListener('localized', function showBody() {
@@ -126,16 +128,6 @@ window.addEventListener('localized', function showBody() {
 });
 
 function init() {
-  // Keep track of when thumbnails are onscreen and offscreen
-  monitorChildVisibility(thumbnails,
-                         360,                 // extra space top and bottom
-                         thumbnailOnscreen,   // set background image
-                         thumbnailOffscreen); // remove background image
-
-  // Clicks on the thumbnails do different things depending on what
-  // view we're in.
-  thumbnails.onclick = thumbnailClickHandler;
-
   // Clicking on the back button goes back to the thumbnail view
   $('fullscreen-back-button').onclick = setView.bind(null, thumbnailListView);
 
@@ -281,13 +273,19 @@ function init() {
 function initDB(include_videos) {
   photodb = new MediaDB('pictures', metadataParsers.imageMetadataParser, {
     mimeTypes: ['image/jpeg', 'image/png'],
-    version: 2
+    version: 2,
+    autoscan: false,    // We're going to call scan() explicitly
+    batchHoldTime: 350, // Batch files during scanning
+    batchSize: 12       // Max batch size: one screenful
   });
 
   if (include_videos) {
     // For videos, this app is only interested in files under DCIM/.
     videodb = new MediaDB('videos', metadataParsers.videoMetadataParser, {
-      directory: 'DCIM/'
+      directory: 'DCIM/',
+      autoscan: false,    // We're going to call scan() explicitly
+      batchHoldTime: 350, // Batch files during scanning
+      batchSize: 12       // Max batch size: one screenful
     });
   }
   else {
@@ -315,10 +313,10 @@ function initDB(include_videos) {
     // If we're including videos also, be sure that they are ready
     if (include_videos) {
       if (videodb.state === MediaDB.READY)
-        createThumbnailList();
+        initThumbnails();
     }
     else {
-      createPhotoThumbnailList();
+      initThumbnails();
     }
   };
 
@@ -328,7 +326,7 @@ function initDB(include_videos) {
       // Depending on the order of the ready events, either this code
       // or the code above will fire and set up the thumbnails
       if (photodb.state === MediaDB.READY)
-        createThumbnailList();
+        initThumbnails();
     };
   }
 
@@ -370,6 +368,113 @@ function initDB(include_videos) {
     videodb.oncreated = photodb.oncreated;
     videodb.ondelete = photodb.oncreated;
   }
+}
+
+// This comparison function is used for sorting arrays and doing binary
+// search on the resulting sorted arrays.
+function compareFilesByDate(a, b) {
+  if (a.date < b.date)
+    return 1;  // larger (newer) dates come first
+  else if (a.date > b.date)
+    return -1;
+  return 0;
+}
+
+//
+// Enumerate existing entries in the photo and video databases in reverse
+// chronological order (most recent first) and display thumbnails for them all.
+// After the thumbnails are displayed, scan for new files.
+//
+// This function gets called when the app first starts up, and also
+// when the sdcard becomes available again after a USB mass storage
+// session or an sdcard replacement.
+//
+function initThumbnails() {
+  // If we've already been called once, then we've already got thumbnails
+  // displayed. There is no need to re-enumerate them, so we just go
+  // straight to scanning for new files
+  if (visibilityMonitor) {
+    scan();
+    return;
+  }
+
+  // Keep track of when thumbnails are onscreen and offscreen
+  visibilityMonitor =
+    monitorChildVisibility(thumbnails,
+                           360,                 // extra space top and bottom
+                           thumbnailOnscreen,   // set background image
+                           thumbnailOffscreen); // remove background image
+
+  var photos, videos;
+  photodb.getAll(function(records) {
+    photos = records;
+    if (videos)
+      mergeAndCreateThumbnails();
+  });
+
+  if (videodb) {
+    videodb.getAll(function(records) {
+      videos = records;
+      if (photos)
+        mergeAndCreateThumbnails();
+    });
+  }
+  else {
+    videos = [];
+  }
+
+  // This is called when we have all the photos and all the videos
+  function mergeAndCreateThumbnails() {
+    // Sort both batches of files by date
+    photos.sort(compareFilesByDate);
+    videos.sort(compareFilesByDate);
+
+    // Now merge the two arrays into files[], maintaining sort order
+    var numPhotos = photos.length;
+    var numVideos = videos.length;
+    var p = 0, v = 0;
+    while (p < numPhotos || v < numVideos) {
+      if (v >= numVideos) {          // If no more videos
+        files.push(photos[p++]);     // Add the next photo
+      }
+      else if (p >= numPhotos) {     // If no more photos
+        files.push(videos[v++]);     // Add the next video
+      }
+      else {                         // Otherwise, add the newer one
+        if (photos[p].date >= videos[v].date) {
+          files.push(photos[p++]);
+        }
+        else {
+          files.push(videos[v++]);
+        }
+      }
+      // Create and display a thumbnail for the file we just added
+      thumbnails.appendChild(createThumbnail(files.length - 1));
+    }
+
+    // Now that the thumbnails are created, we can start handling clicks
+    thumbnails.onclick = thumbnailClickHandler;
+
+    // And we can dismiss the spinner overlay
+    $('spinner-overlay').classList.add('hidden');
+
+    // But if we didn't find any files, put up the no files overlay
+    if (files.length === 0) {
+      showOverlay('emptygallery');
+    }
+
+    // Scan for new files. We used to start a scan right away but we don't
+    // really have a way to properly handle scan results while enumerating
+    // the thumbnails, so now we just enumerate as fast as we can and then
+    // start scanning for new results.
+    scan();
+  }
+}
+
+function scan() {
+  photodb.scan();
+  if (videodb)
+    videodb.scan();
 }
 
 function fileDeleted(filename) {
@@ -452,13 +557,7 @@ function fileCreated(fileinfo) {
   }
   else {
     // Otherwise we have to search for the right insertion spot
-    insertPosition = binarysearch(files, fileinfo, function(a, b) {
-      if (a.date < b.date)
-        return 1;  // larger (newer) dates come first
-      else if (a.date > b.date)
-        return -1;
-      return 0;
-    });
+    insertPosition = binarysearch(files, fileinfo, compareFilesByDate);
   }
 
   // Insert the image info into the array
@@ -482,7 +581,10 @@ function fileCreated(fileinfo) {
   if (editedPhotoIndex >= insertPosition)
     editedPhotoIndex++;
 
-  // Redisplay the current photo if we're in photo view
+  // Redisplay the current photo if we're in photo view. The current
+  // photo should not change, but the content of the next or previous frame
+  // might. This call will only make changes if the filename to display
+  // in a frame has actually changed.
   if (currentView === fullscreenView) {
     showFile(currentFileIndex);
   }
@@ -662,86 +764,6 @@ function setView(view) {
         document.mozFullScreenElement !== fullscreenView)
       setView(thumbnailListView);
   }
-}
-
-// Enumerate existing entries in the photo and video databases in reverse
-// chronological order (most recent first) and display thumbnails for them all.
-function createThumbnailList() {
-  // If thumbnails already exist, erase everything and start over
-  if (thumbnails.firstChild !== null) {
-    thumbnails.textContent = '';
-    files = [];
-  }
-
-  // We need to enumerate both the photo and video dbs and interleave
-  // the files they return so that everything is in chronological order
-  // from most recent to least recent.
-
-  // Temporary arrays to hold enumerated files
-  var photos = [], videos = [];
-
-  photodb.enumerate('date', null, 'prev', function(fileinfo) {
-    photos.push(fileinfo);
-    merge();
-  });
-
-  videodb.enumerate('date', null, 'prev', function(fileinfo) {
-    videos.push(fileinfo);
-    merge();
-  });
-
-  // Create thumbnails for as many of the files in the photos and videos arrays
-  // as we can. This is the tricky bit of the algorithm for ensuring that
-  // they are sorted by date
-  function merge() {
-    // If we don't have at least one of each, we don't know what the newest is
-    while (photos.length > 0 && videos.length > 0) {
-      if (photos[0] === null && videos[0] === null) {
-        // Both enumerations are done
-        if (files.length === 0) { // If we didn't find anything
-          showOverlay('emptygallery');
-        }
-        break;
-      }
-
-      // If we've finished enumerating photos, then videos[0] is next
-      if (photos[0] === null) {
-        thumb(videos.shift());
-      }
-      else if (videos[0] === null) {
-        thumb(photos.shift());
-      }
-      else if (videos[0].date > photos[0].date) {
-        thumb(videos.shift());
-      }
-      else {
-        thumb(photos.shift());
-      }
-    }
-  }
-
-  function thumb(fileinfo) {
-    files.push(fileinfo);                  // remember the file
-    var thumbnail = createThumbnail(files.length - 1); // create its thumbnail
-    thumbnails.appendChild(thumbnail); // display the thumbnail
-  }
-}
-
-// A simpler version of createThumbnailList that only enumerates photos.
-// This is used by the pick activity.
-function createPhotoThumbnailList() {
-  photodb.enumerate('date', null, 'prev', function(fileinfo) {
-    if (fileinfo === null) {
-      if (files.length === 0) { // If we didn't find anything
-        showOverlay('emptygallery');
-      }
-    }
-    else {
-      files.push(fileinfo);                              // Remember file
-      var thumbnail = createThumbnail(files.length - 1); // Create thumbnail
-      thumbnails.appendChild(thumbnail);                 // Display thumbnail
-    }
-  });
 }
 
 //
@@ -1241,10 +1263,18 @@ function setupFrameContent(n, frame) {
   // Make sure n is in range
   if (n < 0 || n >= files.length) {
     frame.clear();
+    delete frame.filename;
     return;
   }
 
   var fileinfo = files[n];
+
+  // If we're already displaying this file in this frame, then do nothing
+  if (fileinfo.name === frame.filename)
+    return;
+
+  // Remember what file we're going to display
+  frame.filename = fileinfo.name;
 
   if (fileinfo.metadata.video) {
     videodb.getFile(fileinfo.name, function(file) {
