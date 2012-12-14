@@ -29,7 +29,8 @@
         "type": ["image/jpeg"]
        },
       "returnValue": true,
-      "disposition": "inline"
+      "disposition": "inline",
+      "href": "/index.html#pick"
     }
   },
   "locales": {
