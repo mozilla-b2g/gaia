@@ -287,7 +287,6 @@ fieldset legend.action:after {
 */
 
 #loading-overlay {
-  pointer-events: none;
   display: none;
   z-index: 200;
   background: rgba(0,0,0,.8);
