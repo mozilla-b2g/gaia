@@ -32,7 +32,11 @@
  * In that sense, this class can be used to workaround
  * https://bugzilla.mozilla.org/show_bug.cgi?id=689623
  *
- * This function makes the following assumptions. If your program violates
+ * The return value of this function is an object that has a stop() method.
+ * calling the stop method stops visiblity monitoring. If you want to restart
+ * call monitorChildVisiblity() again.
+ *
+ * monitorChildVisiblity() makes the following assumptions. If your program
  * violates them, the function may not work correctly:
  *
  *  Child elements of the container element flow left to right and
@@ -83,13 +87,24 @@ function monitorChildVisibility(container, scrollmargin,
   window.addEventListener('resize', resizeHandler);
 
   // Update the onscreen region when children are added or removed
-  new MutationObserver(mutationHandler).observe(container, { childList: true });
+  var observer = new MutationObserver(mutationHandler);
+  observer.observe(container, { childList: true });
 
   // Now determine the initial onscreen region
   adjustBounds();
 
   // Call the onscreenCallback for the initial onscreen elements
   callCallbacks();
+
+  // Return an object that allows the caller to stop monitoring
+  return {
+    stop: function stop() {
+      // Unregister our event handlers and stop the mutation observer.
+      container.removeEventListener('scroll', scrollHandler);
+      window.removeEventListener('resize', resizeHandler);
+      observer.disconnect();
+    }
+  };
 
   // Adjust the onscreen element range and synchronously call onscreen
   // and offscreen callbacks as needed.

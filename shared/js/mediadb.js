@@ -65,6 +65,20 @@
  *          and rebuild it from scratch. If you ever change your metadata parser
  *          function or alter the array of indexes.
  *
+ *       autoscan:
+ *          Whether MediaDB should automatically scan every time it becomes
+ *          ready. The default is true. If you set this to false you are
+ *          responsible for calling scan() in response to the 'ready' event.
+ *
+ *       batchHoldTime:
+ *          How long (in ms) to wait after finding a new file during a scan
+ *          before reporting it.  Longer hold times allow more batching of
+ *          changes the default is 100ms.
+ *
+ *       batchSize:
+ *          When batching changes, don't allow the batches to exceed this
+ *          amount. The default is 0 which means no maximum batch size.
+ *
  * MediaDB STATE
  *
  * A MediaDB object must asynchronously open a connection to its database, and
@@ -185,6 +199,19 @@
  * it switches to 'cancelled' when the cancellation is complete. If you call
  * cancelEnumeration(), the callback function you passed to enumerate() is
  * guaranteed not to be called again.
+ *
+ * In addition to enumerate(), there are two other methods you can use
+ * to enumerate database entries:
+ *
+ * enumerateAll() takes the same arguments and returns the same values
+ * as enumerate(), but it batches the results and passes them in an
+ * array to the callback function.
+ *
+ * getAll() takes a callback argument and passes it an array of all
+ * entries in the database, sorted by filename. It does not allow you
+ * to specify a key, range, or direction, but if you need all entries
+ * from the database, this method is is much faster than enumerating
+ * entries individually.
  *
  * FILESYSTEM CHANGES
  *
@@ -311,8 +338,18 @@ var MediaDB = (function() {
     this.version = options.version || 1;
     this.directory = options.directory || '';
     this.mimeTypes = options.mimeTypes;
+    this.autoscan = (options.autoscan !== undefined) ? options.autoscan : true;
     this.state = MediaDB.OPENING;
     this.scanning = false;  // becomes true while scanning
+
+    // While scanning, we attempt to send change events in batches.
+    // After finding a new or deleted file, we'll wait this long before
+    // sending events in case we find another new or deleted file right away.
+    this.batchHoldTime = options.batchHoldTime || 100;
+
+    // But we'll send a batch of changes right away if it gets this big
+    // A batch size of 0 means no maximum batch size
+    this.batchSize = options.batchSize || 0;
 
     if (this.directory &&
         this.directory[this.directory.length - 1] !== '/')
@@ -452,7 +489,8 @@ var MediaDB = (function() {
         switch (stats.state) {
         case 'available':
           changeState(media, MediaDB.READY);
-          scan(media); // Start scanning as soon as we're ready
+          if (media.autoscan)
+            scan(media); // Start scanning as soon as we're ready
           break;
         case 'unavailable':
           changeState(media, MediaDB.NOCARD);
@@ -476,7 +514,8 @@ var MediaDB = (function() {
       switch (e.reason) {
       case 'available':
         changeState(media, MediaDB.READY);
-        scan(media); // automatically scan every time the card comes back
+        if (media.autoscan)
+          scan(media); // automatically scan every time the card comes back
         break;
       case 'unavailable':
         changeState(media, MediaDB.NOCARD);
@@ -759,18 +798,77 @@ var MediaDB = (function() {
         else {
           // Final time, tell the callback that there are no more.
           handle.state = 'complete';
-          callback(null);  // XXX: is this actually useful?
+          callback(null);
         }
       };
 
       return handle;
     },
 
+    // This method takes the same arguments as enumerate(), but batches
+    // the results into an array and passes them to the callback all at
+    // once when the enumeration is complete. It uses enumerate() so it
+    // is no faster than that method, but may be more convenient.
+    enumerateAll: function enumerateAll(key, range, direction, callback) {
+      var batch = [];
+
+      // The first three arguments are optional, but the callback
+      // is required, and we don't want to have to pass three nulls
+      if (arguments.length === 1) {
+        callback = key;
+        key = undefined;
+      }
+      else if (arguments.length === 2) {
+        callback = range;
+        range = undefined;
+      }
+      else if (arguments.length === 3) {
+        callback = direction;
+        direction = undefined;
+      }
+
+      return this.enumerate(key, range, direction, function(fileinfo) {
+        if (fileinfo !== null)
+          batch.push(fileinfo);
+        else
+          callback(batch);
+      });
+    },
+
     // Cancel a pending enumeration. After calling this the callback for
     // the specified enumeration will not be invoked again.
-    cancelEnumeration: function(handle) {
+    cancelEnumeration: function cancelEnumeration(handle) {
       if (handle.state === 'enumerating')
         handle.state = 'cancelling';
+    },
+
+    // Use the non-standard mozGetAll() function to return all of the
+    // records in the database in one big batch. The records will be
+    // sorted by filename
+    getAll: function getAll(callback) {
+      if (this.state !== MediaDB.READY)
+        throw Error('MediaDB is not ready. State: ' + this.state);
+
+      var store = this.db.transaction('files').objectStore('files');
+      var request = store.mozGetAll();
+      request.onerror = function() {
+        console.error('MediaDB.getAll() failed with', request.error);
+      };
+      request.onsuccess = function() {
+        var all = request.result;  // All records in the object store
+
+        // Filter out files that failed metadata parsing
+        var good = all.filter(function(fileinfo) { return !fileinfo.fail; });
+
+        callback(good);
+      };
+    },
+
+    // Scan for new or deleted files.
+    // This is only necessary if you have explicitly disabled automatic
+    // scanning by setting autoscan:false in the options object.
+    scan: function() {
+      scan(this);
     },
 
     // Use the device storage stat() method and pass the resulting
@@ -796,10 +894,6 @@ var MediaDB = (function() {
   // This is version 2 because we modified the default schema to include
   // an index for file modification date.
   MediaDB.VERSION = 2;
-
-  // Hold create and delete onchange events for this long to batch up events
-  // that come in rapid succession. This happens when scanning, e.g.
-  MediaDB.NOTIFICATION_HOLD_TIME = 100;
 
   // These are the values of the state property of a MediaDB object
   // The NOCARD, UNMOUNTED, and CLOSED values are also used as the detail
@@ -1273,19 +1367,22 @@ var MediaDB = (function() {
 
   // Don't send out notification events right away. Wait a short time to
   // see if others arrive that we can batch up.  This is common for scanning
-  // But if we're invoked with null as the argument that is the signal that
-  // a scan() has just completed, so push out all notifications right away
-  // and trigger a scanend event.
   function queueCreateNotification(media, fileinfo) {
-    var details = media.details;
-    details.pendingCreateNotifications.push(fileinfo);
-    resetNotificationTimer(media);
+    var creates = media.details.pendingCreateNotifications;
+    creates.push(fileinfo);
+    if (media.batchSize && creates.length >= media.batchSize)
+      sendNotifications(media);
+    else
+      resetNotificationTimer(media);
   }
 
   function queueDeleteNotification(media, filename) {
-    var details = media.details;
-    details.pendingDeleteNotifications.push(filename);
-    resetNotificationTimer(media);
+    var deletes = media.details.pendingDeleteNotifications;
+    deletes.push(filename);
+    if (media.batchSize && deletes.length >= media.batchSize)
+      sendNotifications(media);
+    else
+      resetNotificationTimer(media);
   }
 
   function resetNotificationTimer(media) {
@@ -1294,7 +1391,7 @@ var MediaDB = (function() {
       clearTimeout(details.pendingNotificationTimer);
     details.pendingNotificationTimer =
       setTimeout(function() { sendNotifications(media); },
-                 MediaDB.NOTIFICATION_HOLD_TIME);
+                 media.batchHoldTime);
   }
 
   // Send out notifications for creations and deletions
