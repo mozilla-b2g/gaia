@@ -261,27 +261,11 @@ var StatusBar = {
         return;
       }
 
-      var voice = conn.voice;
-      var iccInfo = conn.iccInfo;
-      var network = voice.network;
-      l10nArgs.operator = network.shortName || network.longName;
+      var operatorInfos = MobileOperator.userFacingInfo(conn);
+      l10nArgs.operator = operatorInfos.operator;
 
-      if (iccInfo.isDisplaySpnRequired && iccInfo.spn) {
-        if (iccInfo.isDisplayNetworkNameRequired) {
-          l10nArgs.operator = l10nArgs.operator + ' ' + iccInfo.spn;
-        } else {
-          l10nArgs.operator = iccInfo.spn;
-        }
-      }
-
-      if (network.mcc == 724 &&
-        voice.cell && voice.cell.gsmLocationAreaCode) {
-        // We are in Brazil, It is legally required to show local region name
-
-        var lac = voice.cell.gsmLocationAreaCode % 100;
-        var region = MobileInfo.brazil.regions[lac];
-        if (region)
-          l10nArgs.operator += ' ' + region;
+      if (operatorInfos.region) {
+        l10nArgs.operator += ' ' + operatorInfos.region;
       }
 
       label.dataset.l10nArgs = JSON.stringify(l10nArgs);
