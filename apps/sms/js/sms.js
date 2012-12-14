@@ -699,6 +699,25 @@ var ThreadUI = {
     this.pendingDelList = [];
     this.selectedInputList = [];
     this.sendButton.addEventListener('click', this.sendMessage.bind(this));
+
+    // Prevent sendbutton to hide the keyboard:
+    this.sendButton.addEventListener('mousedown',
+      function (event) {
+        event.preventDefault();
+        event.target.classList.add("active");
+      }
+    );
+    this.sendButton.addEventListener('mouseup',
+      function (event) {
+        event.target.classList.remove("active");
+      }
+    );
+    this.sendButton.addEventListener('mouseout',
+      function (event) {
+        event.target.classList.remove("active");
+      }
+    );
+
     this.pickButton.addEventListener('click', this.pickContact.bind(this));
     this.selectAllButton.addEventListener('click',
       this.selectAllMessages.bind(this));

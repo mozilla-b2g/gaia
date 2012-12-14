@@ -558,6 +558,10 @@ form.bottom[role="search"].new-sms-form {
   bottom: 0;
 }
 
+#send-message.active {
+  background: #aaf;
+}
+
 #message-to-send {
   padding: 0.4rem 0 0.4rem 0.4rem;
   line-height: 2rem;

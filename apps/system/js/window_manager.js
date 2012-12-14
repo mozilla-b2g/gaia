@@ -178,6 +178,7 @@ var WindowManager = (function() {
     if ('wrapper' in frame.dataset) {
       cssHeight -= 10;
     }
+    cssHeight -= KeyboardManager.height;
     cssHeight += 'px';
 
     if (!screenElement.classList.contains('attention') &&
