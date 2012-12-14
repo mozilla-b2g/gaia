@@ -133,7 +133,7 @@ var Curtain = (function() {
       curtainFrame.addEventListener('transitionend', function tend() {
         curtainFrame.removeEventListener('transitionend', tend);
         if (typeof hiddenCB === 'function') {
-          window.setTimeout(hiddenCB, 0);
+          hiddenCB();
         }
       });
     },

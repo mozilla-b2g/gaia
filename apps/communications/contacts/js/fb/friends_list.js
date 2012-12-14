@@ -21,10 +21,12 @@ fbFriends.List = (function() {
 
     var agroups = Object.keys(groups);
 
+    var fragment = document.createDocumentFragment();
+
     // For each group
     agroups.forEach(function(group) {
       // New element appended
-      var ele = utils.templates.append(groupsList, {group: group});
+      var ele = utils.templates.append(groupsList, {group: group}, fragment);
 
       // Array of friends
       var friends = groups[group];
@@ -51,14 +53,15 @@ fbFriends.List = (function() {
       });
     });
 
-    groupsList.removeChild(groupsList.children[0]); // Deleting template
-    FixedHeader.init('#mainContent', '#fixed-container', '.fb-import-list header');
-
+    groupsList.innerHTML = ''; // Deleting template
+    groupsList.appendChild(fragment);
+    FixedHeader.init('#mainContent', '#fixed-container',
+                     '.fb-import-list header');
     if (typeof cb === 'function') {
-      window.setTimeout(function() { cb(); }, 0);
+      // We wait a delay depending on number of nodes (the curtain is displayed)
+      window.setTimeout(function () { cb(); }, contacts.length * 2);
     }
   };
-
 
   function getStringToBeOrdered(contact) {
     var ret = [];
