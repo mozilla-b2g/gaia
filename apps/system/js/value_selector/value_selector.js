@@ -59,7 +59,6 @@ var ValueSelector = {
       }
     };
 
-
     this._element = document.getElementById('value-selector');
     this._element.addEventListener('mousedown', this);
     this._containers['select'] =
@@ -73,19 +72,19 @@ var ValueSelector = {
     this._popups['time'] =
       document.getElementById('time-picker-popup');
     this._popups['date'] =
-      document.getElementById('date-picker-popup');
+      document.getElementById('spin-date-picker-popup');
 
     this._buttons['select'] = document.getElementById('select-options-buttons');
     this._buttons['select'].addEventListener('click', this);
 
     this._buttons['time'] = document.getElementById('time-picker-buttons');
     this._buttons['time'].addEventListener('click', this);
+    this._buttons['date'] = document.getElementById('spin-date-picker-buttons');
 
-    this._buttons['date'] = document.getElementById('date-picker-buttons');
     this._buttons['date'].addEventListener('click', this);
 
     this._containers['time'] = document.getElementById('picker-bar');
-    this._containers['date'] = document.getElementById('date-picker-container');
+    this._containers['date'] = document.getElementById('spin-date-picker');
 
     ActiveEffectHelper.enableActive(this._buttons['select']);
     ActiveEffectHelper.enableActive(this._buttons['time']);
@@ -104,6 +103,14 @@ var ValueSelector = {
 
     window.addEventListener('appopen', this);
     window.addEventListener('appwillclose', this);
+
+    // invalidate the current spin date picker when language setting changes
+    navigator.mozSettings.addObserver('language.current',
+      (function language_change(e) {
+        if (this._datePicker) {
+          this._datePicker.uninit();
+          this._datePicker = null;
+      }}).bind(this));
   },
 
   handleEvent: function vs_handleEvent(evt) {
@@ -334,7 +341,6 @@ var ValueSelector = {
     var timePicker = TimePicker.timePicker;
     // Set the value of time picker according to the current value
     if (timePicker.is12hFormat) {
-
       var hour = (time.hours % 12);
       hour = (hour == 0) ? 12 : hour;
       // 24-hour state value selector: AM = 0, PM = 1
@@ -354,28 +360,7 @@ var ValueSelector = {
     this.showPanel('date');
 
     if (!this._datePicker) {
-      var picker = new DatePicker(this._containers['date']);
-      this._datePicker = picker;
-
-      var nextEl = document.querySelector('.next');
-      var prevEl = document.querySelector('.previous');
-      var accept = document.querySelector('#date-picker-confirm');
-
-      nextEl.onclick = function() {
-        picker.next();
-      }
-
-      prevEl.onclick = function() {
-        picker.previous();
-      }
-
-      var currentMonth = document.getElementById('current-month');
-      var updateMonth = function updateMonth(date) {
-        picker.value = null;
-        currentMonth.textContent = date.toLocaleFormat('%B %Y');
-      }
-      picker.onmonthchange = updateMonth;
-
+      this._datePicker = new SpinDatePicker(this._containers['date']);
     }
 
     // Show current date as default value
@@ -387,10 +372,9 @@ var ValueSelector = {
 
       date = inputParser.formatInputDate(currentValue, '');
     }
-
-    this._datePicker.display(date.getFullYear(), date.getMonth(),
-                             date.getDate());
+    this._datePicker.value = date;
   }
+
 };
 
 var TimePicker = {
@@ -540,4 +524,3 @@ var ActiveEffectHelper = (function() {
 })();
 
 ValueSelector.init();
-

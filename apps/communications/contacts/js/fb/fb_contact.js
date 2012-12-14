@@ -347,6 +347,8 @@ fb.Contact = function(deviceContact, cid) {
       dcontact[field] = fbdata[field];
     });
 
+    // To support the case in which the contact does not have a local name
+    fb.mergeNames(dcontact, fbdata);
   }
 
   // Gets the data
