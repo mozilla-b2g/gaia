@@ -51,7 +51,7 @@ Gaia.webapps.forEach(function (webapp) {
   // Add webapp's entry to the webapps global manifest.
   // appStatus == 3 means this is a certified app.
   // appStatus == 2 means this is a privileged app.
-  // appStatus == 1 means this is an installen (unprivileged) app
+  // appStatus == 1 means this is an installed (unprivileged) app
   
   let appStatus = 1; // By default, apps are installed
   switch (webapp.manifest.type) {
