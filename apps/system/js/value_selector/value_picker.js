@@ -53,8 +53,8 @@ var ValuePicker = (function() {
   VP.prototype.setSelectedIndexByDisplayedText = function(displayedText) {
     var newIndex = this._valueDisplayedText.indexOf(displayedText);
     if (newIndex != -1) {
-      if (this._currentIndex != tunedIndex) {
-        this._currentIndex = tunedIndex;
+      if (this._currentIndex != newIndex) {
+        this._currentIndex = newIndex;
         this.onselectedindexchange(this._currentIndex);
       }
       this.updateUI(newIndex);
