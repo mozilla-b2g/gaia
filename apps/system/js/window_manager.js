@@ -1617,11 +1617,29 @@ var WindowManager = (function() {
 
     // If the app is the currently displayed app, switch to the homescreen
     if (origin === displayedApp) {
-      setDisplayedApp(homescreen, function() {
+      // when the homescreen is displayed and being
+      // killed we need to forcibly restart it...
+      if (origin === homescreen) {
         removeFrame(origin);
-        if (callback)
-          setTimeout(callback);
-      });
+
+        // XXX workaround bug 810431.
+        // we need this here and not in other situations
+        // as it is expected that homescreen frame is available.
+        setTimeout(function() {
+          setDisplayedApp();
+
+          if (callback) {
+            callback();
+          }
+        });
+      } else {
+        setDisplayedApp(homescreen, function() {
+          removeFrame(origin);
+          if (callback)
+            setTimeout(callback);
+        });
+      }
+
     } else {
       removeFrame(origin);
     }
