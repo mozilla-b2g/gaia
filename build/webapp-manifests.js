@@ -55,16 +55,16 @@ Gaia.webapps.forEach(function (webapp) {
   
   let appStatus = 1; // By default, apps are installed
   switch (webapp.manifest.type) {
-  case "certified":
-    appStatus = 3;
-    break;
-  case "privileged":
-    appStatus = 2;
-    break;
-  case "web":
-  default:
-    appStatus = 1;
-    break;
+    case "certified":
+      appStatus = 3;
+      break;
+    case "privileged":
+      appStatus = 2;
+      break;
+    case "web":
+    default:
+      appStatus = 1;
+      break;
   }
   let url = webapp.url;
   manifests[webappTargetDirName] = {
