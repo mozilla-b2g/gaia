@@ -33,12 +33,16 @@
 
   /**
    * Debug helpers
+   *
+   *   gDEBUG == 0: don't display any console message
+   *   gDEBUG == 1: display only warnings, not logs
+   *   gDEBUG == 2: display all console messages
    */
 
-  var gDEBUG = false;
+  var gDEBUG = 1;
 
   function consoleLog(message) {
-    if (gDEBUG) {
+    if (gDEBUG == 2) {
       console.log('[l10n] ' + message);
     }
   };
@@ -187,7 +191,7 @@
       function loadImport(url) {
         loadResource(url, function(content) {
           parseRawLines(content, false); // don't allow recursive imports
-        }, false, false); // load synchronously
+        }, null, false); // load synchronously
       }
 
       // fill the dictionary
@@ -197,6 +201,11 @@
 
     // load the specified resource file
     function loadResource(url, onSuccess, onFailure, asynchronous) {
+      onSuccess = onSuccess || function _onSuccess(data) {};
+      onFailure = onFailure || function _onFailure() {
+        consoleWarn(url + ' not found.');
+      };
+
       var xhr = new XMLHttpRequest();
       xhr.open('GET', url, asynchronous);
       if (xhr.overrideMimeType) {
@@ -205,17 +214,22 @@
       xhr.onreadystatechange = function() {
         if (xhr.readyState == 4) {
           if (xhr.status == 200 || xhr.status === 0) {
-            if (onSuccess) {
-              onSuccess(xhr.responseText);
-            }
+            onSuccess(xhr.responseText);
           } else {
-            if (onFailure) {
-              onFailure();
-            }
+            onFailure();
           }
         }
       };
-      xhr.send(null);
+      xhr.onerror = onFailure;
+      xhr.ontimeout = onFailure;
+
+      // in Firefox OS with the app:// protocol, trying to XHR a non-existing
+      // URL will raise an exception here -- hence this ugly try...catch.
+      try {
+        xhr.send(null);
+      } catch(e) {
+        onFailure();
+      }
     }
 
     // load and parse l10n data (warning: global variables are used here)
@@ -761,8 +775,6 @@
   function getL10nData(key, args) {
     var data = gL10nData[key];
     if (!data) {
-      //consoleWarn('#' + key + ' missing for [' + gLanguage + ']');
-      // XXX temporary log, to be removed after the string freeze
       consoleWarn('[l10n] #' + key + ' is undefined.');
     }
 
@@ -842,25 +854,21 @@
     // get the related l10n object
     var data = getL10nData(l10n.id, l10n.args);
     if (!data) {
-      //consoleWarn('#' + l10n.id + ' missing for [' + gLanguage + ']');
-      // XXX temporary log, to be removed after the string freeze
-      consoleWarn('[l10n] #' + l10n.id + ' is undefined.');
+      consoleWarn('#' + l10n.id + ' is undefined.');
       return;
     }
 
     // translate element (TODO: security checks?)
-    // for the node content, replace the content of the first child textNode
-    // and clear other child textNodes
     if (data[gTextProp]) { // XXX
       if (element.children.length === 0) {
         element[gTextProp] = data[gTextProp];
       } else {
-        var children = element.childNodes,
-            found = false;
+        // this element has element children: replace the content of the first
+        // (non-empty) child textNode and clear other child textNodes
+        var children = element.childNodes;
+        var found = false;
         for (var i = 0, l = children.length; i < l; i++) {
-          if (children[i].nodeType === 3 &&
-              /\S/.test(children[i].textContent)) { // XXX
-            // using nodeValue seems cross-browser
+          if (children[i].nodeType === 3 && /\S/.test(children[i].nodeValue)) {
             if (found) {
               children[i].nodeValue = '';
             } else {
@@ -869,8 +877,11 @@
             }
           }
         }
+        // if no (non-empty) textNode is found, insert a textNode before the
+        // first element child.
         if (!found) {
-          consoleWarn('unexpected error, could not translate element content');
+          var textNode = document.createTextNode(data[gTextProp]);
+          element.insertBefore(textNode, element.firstChild);
         }
       }
       delete data[gTextProp];

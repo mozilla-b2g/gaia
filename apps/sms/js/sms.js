@@ -62,8 +62,9 @@ var MessageManager = {
             var contactButton = document.getElementById('icon-contact');
             contactButton.parentNode.appendChild(contactButton);
             document.getElementById('messages-container').innerHTML = '';
-            messageInput.innerHTML = '';
+            messageInput.value = '';
             receiverInput.value = '';
+            ThreadUI.sendButton.disabled = true;
             threadMessages.classList.add('new');
             MessageManager.slide(function() {
               receiverInput.focus();
@@ -705,7 +706,9 @@ var ThreadUI = {
       this.deselectAllMessages.bind(this));
     this.cancelButton.addEventListener('click', this.cancelEditMode.bind(this));
     this.input.addEventListener('input', this.updateInputHeight.bind(this));
+    this.input.addEventListener('input', this.enableSend.bind(this));
     this.contactInput.addEventListener('input', this.searchContact.bind(this));
+    this.contactInput.addEventListener('input', this.enableSend.bind(this));
     this.deleteButton.addEventListener('click',
                                        this.executeDeletion.bind(this));
     this.title.addEventListener('click', this.activateContact.bind(this));
@@ -714,6 +717,15 @@ var ThreadUI = {
     this.editForm.addEventListener('submit', this);
     this.telForm.addEventListener('submit', this);
     this.sendForm.addEventListener('submit', this);
+  },
+
+  enableSend: function thui_enableSend() {
+    if (window.location.hash == '#new' && this.contactInput.value.length == 0) {
+      this.sendButton.disabled = true;
+      return;
+    }
+
+    this.sendButton.disabled = !(this.input.value.length > 0);
   },
 
   scrollViewToBottom: function thui_scrollViewToBottom(animateFromPos) {
@@ -831,6 +843,8 @@ var ThreadUI = {
   },
 
   renderMessages: function thui_renderMessages(messages, callback) {
+    // Clean form
+    ThreadUI.cleanForm();
     // Update Header
     ThreadUI.updateHeaderData(MessageManager.currentNum);
     // Sorting messages reverse
@@ -945,7 +959,8 @@ var ThreadUI = {
   },
 
   cleanForm: function thui_cleanForm() {
-    this.input.innerHTML = '';
+    this.sendButton.disabled = true;
+    this.input.value = '';
     var inputs = this.view.querySelectorAll('input[type="checkbox"]');
     for (var i = 0; i < inputs.length; i++) {
       inputs[i].checked = false;
@@ -969,7 +984,6 @@ var ThreadUI = {
     var inputs =
             this.view.querySelectorAll('input[type="checkbox"]:not(:checked)');
     for (var i = 0; i < inputs.length; i++) {
-      inputs[i].checked = true;
       ThreadUI.clickInput(inputs[i]);
     }
     ThreadUI.checkInputs();
@@ -979,7 +993,6 @@ var ThreadUI = {
     var inputs =
             this.view.querySelectorAll('input[type="checkbox"]:checked');
     for (var i = 0; i < inputs.length; i++) {
-      inputs[i].checked = false;
       ThreadUI.clickInput(inputs[i]);
     }
     ThreadUI.checkInputs();
@@ -1082,14 +1095,16 @@ var ThreadUI = {
 
   clickInput: function thui_clickInput(target) {
     if (target.checked) {
-      ThreadUI.selectedInputList.push(target);
-      // Adding red bubble
-      target.parentNode.parentNode.classList.add('selected');
-    } else {
+      target.checked = false;
       ThreadUI.selectedInputList.splice(
                       ThreadUI.selectedInputList.indexOf(target), 1);
       // Removing red bubble
       target.parentNode.parentNode.classList.remove('selected');
+    } else {
+      target.checked = true;
+      ThreadUI.selectedInputList.push(target);
+      // Adding red bubble
+      target.parentNode.parentNode.classList.add('selected');
     }
   },
 
@@ -1115,9 +1130,13 @@ var ThreadUI = {
   handleEvent: function thui_handleEvent(evt) {
     switch (evt.type) {
       case 'click':
-        if (evt.target.type == 'checkbox') {
-          ThreadUI.clickInput(evt.target);
-          ThreadUI.checkInputs();
+        if (window.location.hash != '#edit') {
+          return;
+        }
+        var inputs = evt.target.parentNode.getElementsByTagName('input');
+        if (inputs && inputs.length > 0) {
+            ThreadUI.clickInput(inputs[0]);
+            ThreadUI.checkInputs();
         }
         break;
       case 'submit':
@@ -1134,9 +1153,27 @@ var ThreadUI = {
   },
 
   sendMessage: function thui_sendMessage(resendText) {
+    // First of all check if we can send a SMS
+    // Retrieve num depending on hash
+    var hash = window.location.hash;
+    // Depending where we are, we get different num
+    if (hash == '#new') {
+      var num = this.contactInput.value;
+      if (!num || num == '') {
+        return;
+      }
+    } else {
+      var num = MessageManager.getNumFromHash();
+    }
+
+    // Retrieve text
+    var text = this.input.value;
+    if (!text || text == '') {
+      return;
+    }
+
     var settings = window.navigator.mozSettings,
         throwGeneralError;
-
     // Lock sendMessage in order to ensure sending the message only once
     if (this.sendingMessage)
       return;
@@ -1167,18 +1204,8 @@ var ThreadUI = {
       req.addEventListener('success', (function onsuccess() {
         var status = req.result['ril.radio.disabled'];
 
-        // Retrieve num depending on hash
-        var hash = window.location.hash;
-        // Depending where we are, we get different num
-        if (hash == '#new') {
-          var num = this.contactInput.value;
-        } else {
-          var num = MessageManager.getNumFromHash();
-        }
         var numNormalized =
           PhoneNumberManager.getNormalizedInternationalNumber(num);
-        // Retrieve text
-        var text = this.input.value;
         // Ensure that resendText isn't a MouseEvent
         if (typeof(resendText) == 'string')
           text = resendText;

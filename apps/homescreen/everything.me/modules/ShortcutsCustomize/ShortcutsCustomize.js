@@ -1,61 +1,54 @@
-Evme.ShortcutsCustomize = new function() {
-    var _name = 'ShortcutsCustomize', _this = this,
-        $list = null,
-        numSelectedStartedWith = 0, numSuggestedStartedWith = 0, savedIcons = null;
+Evme.ShortcutsCustomize = new function Evme_ShortcutsCustomize() {
+    var NAME = 'ShortcutsCustomize', self = this,
+        elList = null, elParent = null,
+        savedIcons = null;
         
-    this.init = function(options) {
-        $parent = options.$parent;
+    this.init = function init(options) {
+        elParent = options.elParent;
         
-        $list = $('<select multiple="multiple" id="shortcuts-select"></select>');
-        $list.bind('change', done);
-        $list.bind('blur', onHide);
+        elList = Evme.$create('select', {'multiple': "multiple", 'id': "shortcuts-select"});
+        elList.addEventListener('change', done);
+        elList.addEventListener('blur', onHide);
         
-        $parent.append($list);
+        elParent.appendChild(elList);
         
-        Evme.EventHandler.trigger(_name, 'init');
+        Evme.EventHandler.trigger(NAME, 'init');
     };
     
-    this.show = function() {
-        $list.focus();
+    this.show = function show() {
+        elList.focus();
         
-        Evme.EventHandler.trigger(_name, 'show', {
-            'numSelected': numSelectedStartedWith,
-            'numSuggested': numSuggestedStartedWith
-        });
+        Evme.EventHandler.trigger(NAME, 'show');
     };
     
-    this.hide = function() {
-        $('window').focus();
-        $list.blur();
+    this.hide = function hide() {
+        window.focus();
+        elList.blur();
     };
     
-    this.get = function() {
-        var $items = $list.find('option'),
-            shortcuts = [];
+    this.get = function get() {
+        var shortcuts = [],
+            elShourtcuts = Evme.$('option', elList);
         
-        for (var i=0; i<$items.length; i++) {
-            if ($items[i].selected) {
-                shortcuts.push($items[i].value);
+        for (var i=0, elOption=elShourtcuts[i]; elOption; elOption=elShourtcuts[++i]) {
+            if (elOption.selected) {
+                shortcuts.push(elOption.value);
             }
         }
         
         return shortcuts;
     };
     
-    this.load = function(data) {
-        var shortcuts = data.shortcuts;
-            
-        numSelectedStartedWith = 0;
-        numSuggestedStartedWith = 0;
+    this.load = function load(data) {
         savedIcons = data.icons;
         
-        $list.empty();
-        _this.add(shortcuts);
+        elList.innerHTML = '';
+        self.add(data.shortcuts);
         
-        Evme.EventHandler.trigger(_name, 'load');
+        Evme.EventHandler.trigger(NAME, 'load');
     };
     
-    this.add = function(shortcuts) {
+    this.add = function add(shortcuts) {
         var html = '';
         
         for (var query in shortcuts) {
@@ -63,60 +56,61 @@ Evme.ShortcutsCustomize = new function() {
             
             if (shortcuts[query]) {
                 html += ' selected="selected"';
-                numSelectedStartedWith++;
-            } else {
-                numSuggestedStartedWith++;
             }
             
             html += '>' + query.replace(/</g, '&lt;') + '</option>';
         }
         
-        $list.append(html);
+        elList.innerHTML = html;
     };
     
-    this.Loading = new function() {
+    this.Loading = new function Loading() {
         var active = false,
             ID = 'shortcuts-customize-loading',
             TEXT_CANCEL = "Cancel";
         
-        this.show = function() {
+        this.show = function loadingShow() {
             if (active) return;
             
-            var $el = $('<div id="' + ID + '"><menu><button>' + TEXT_CANCEL + '</button></menu></div>');
-            $('#' + Evme.Utils.getID()).append($el);
+            var el = Evme.$create('div', {'id': ID}, '<menu><button>' + TEXT_CANCEL + '</button></menu>');
+                      
+            Evme.$("button", el, function onItem(elButton) {
+                elButton.addEventListener("click", onLoadingCancel)
+            });
+            
+            Evme.Utils.getContainer().appendChild(el);
+            
             active = true;
             
-            $el.find("button").bind("click", onLoadingCancel);
+            Evme.EventHandler.trigger(NAME, 'loadingShow');
         };
         
-        this.hide = function() {
+        this.hide = function loadingHide() {
             if (!active) return;
             
-            $('#' + ID).remove();
+            Evme.$remove('#' + ID);
             active = false;
+            
+            Evme.EventHandler.trigger(NAME, 'loadingHide');
         };
     };
     
     function onHide() {
-        Evme.EventHandler.trigger(_name, 'hide');
+        Evme.EventHandler.trigger(NAME, 'hide');
     }
     
     function onLoadingCancel(e) {
-        Evme.EventHandler.trigger(_name, 'loadingCancel', {
+        Evme.EventHandler.trigger(NAME, 'loadingCancel', {
             'e': e
         });
     }
     
     function done() {
-        var shortcuts = _this.get();
+        var shortcuts = self.get();
         
-        Evme.EventHandler.trigger(_name, 'done', {
+        Evme.EventHandler.trigger(NAME, 'done', {
             'shortcuts': shortcuts,
-            'icons': savedIcons,
-            'numSelectedStartedWith': numSelectedStartedWith,
-            'numSuggestedStartedWith': numSuggestedStartedWith,
-            'numSelected': shortcuts.length,
-            'numSuggested': $list.find('option').length - shortcuts.length
+            'icons': savedIcons
         });
     }
 };

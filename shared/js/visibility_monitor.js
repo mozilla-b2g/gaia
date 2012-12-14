@@ -152,7 +152,7 @@ function monitorChildVisibility(container, scrollmargin,
     // doesn't affect us at all.
     if (lastOnscreen &&
         after(child, lastOnscreen) &&
-        container.scrollHeight > container.clientHeight)
+        child.offsetTop > container.clientHeight + scrollmargin)
       return;
 
     // Otherwise, if this is the first element added or if it is after

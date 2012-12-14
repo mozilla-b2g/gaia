@@ -8,6 +8,5 @@ from gaiatest import GaiaTestCase
 class TestLockScreen(GaiaTestCase):
 
     def test_lock_unlock(self):
-        self.lockscreen.unlock()
         self.lockscreen.lock()
         self.lockscreen.unlock()

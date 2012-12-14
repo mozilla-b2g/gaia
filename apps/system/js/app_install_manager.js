@@ -178,6 +178,7 @@ var AppInstallManager = {
     if (! this.hasNotification(app)) {
       StatusBar.incSystemDownloads();
       this.addNotification(app);
+      this.requestWifiLock(app);
     }
   },
 
@@ -185,6 +186,7 @@ var AppInstallManager = {
     if (this.hasNotification(app)) {
       StatusBar.decSystemDownloads();
       this.removeNotification(app);
+      this.releaseWifiLock(app);
     }
   },
 
@@ -300,6 +302,29 @@ var AppInstallManager = {
     node.parentNode.removeChild(node);
     delete appInfo.installNotification;
     NotificationScreen.decExternalNotifications();
+  },
+
+  requestWifiLock: function ai_requestWifiLock(app) {
+    var appInfo = this.appInfos[app.manifestURL];
+    if (! appInfo.wifiLock) {
+      // we don't want 2 locks for the same app
+      appInfo.wifiLock = navigator.requestWakeLock('wifi');
+    }
+  },
+
+  releaseWifiLock: function ai_releaseWifiLock(app) {
+    var appInfo = this.appInfos[app.manifestURL];
+
+    if (appInfo.wifiLock) {
+      try {
+        appInfo.wifiLock.unlock();
+      } catch (e) {
+        // this can happen if the lock is already unlocked
+        console.error('error during unlock', e);
+      }
+
+      delete appInfo.wifiLock;
+    }
   },
 
   dispatchResponse: function ai_dispatchResponse(id, type) {

@@ -119,6 +119,7 @@ def main():
     parser.add_option("-o", "--output", help="specify the name of the output file")
     parser.add_option("-w", "--wallpaper", help="specify the name of the wallpaper file")
     parser.add_option("-v", "--verbose", help="increase output verbosity", action="store_true")
+    parser.add_option(      "--noftu", help="bypass the ftu app")
     (options, args) = parser.parse_args(sys.argv[1:])
 
     verbose = options.verbose
@@ -158,7 +159,8 @@ def main():
     settings["homescreen.manifestURL"] = homescreen_url
 
     # Set the ftu manifest URL
-    settings["ftu.manifestURL"] = ftu_url
+    if not options.noftu:
+        settings["ftu.manifestURL"] = ftu_url
 
     # Grab wallpaper.jpg and convert it into a base64 string
     wallpaper_file = open(wallpaper_filename, "rb")

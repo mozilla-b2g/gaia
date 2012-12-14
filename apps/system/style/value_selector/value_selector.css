@@ -18,7 +18,8 @@
 }
 
 #select-options-buttons,
-#time-picker-buttons {
+#time-picker-buttons,
+#spin-date-picker-buttons {
   /* from building blocks, core.css - menu:not([type="toolbar"]*/
   white-space: nowrap;
   margin: 0;
@@ -40,7 +41,8 @@
 }
 
 #select-options-buttons button,
-#time-picker-buttons button{
+#time-picker-buttons button,
+#spin-date-picker-buttons button{
   /* from building block - other/buttons/style.css*/
   width: calc((100% - 4.5rem) / 2);  /*overridden for 2 buttons*/
 
@@ -95,7 +97,8 @@ button.affirmative.active {
     color: #FFFFFF !important;
 }
 
-#time-picker-popup {
+#time-picker-popup,
+#spin-date-picker-popup {
   top: 0px;
   padding: 0 0 7rem;  /*remove the top padding*/
 
@@ -114,7 +117,8 @@ button.affirmative.active {
   color: #fff;
 }
 
-#time-picker-popup h3 {
+#time-picker-popup h3,
+#spin-date-picker-popup h3 {
     font-family: 'MozTT', Sans-serif;
     font-weight: normal;
     font-size: 1.6rem;

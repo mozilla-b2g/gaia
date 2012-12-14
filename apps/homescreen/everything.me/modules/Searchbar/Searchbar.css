@@ -110,7 +110,6 @@
         background: #1ac6ea;
         background: -moz-linear-gradient(center top, #1ac6ea 0%, #12a8e0 100%);
         -moz-user-select: none;
-        user-select: none;
         overflow: hidden;
         display: none;
     }

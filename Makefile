@@ -309,6 +309,7 @@ define run-js-command
 	const GAIA_LOCALES_PATH = "$(GAIA_LOCALES_PATH)";                           \
 	const BUILD_APP_NAME = "$(BUILD_APP_NAME)";                                 \
 	const PRODUCTION = "$(PRODUCTION)";                                         \
+	const OFFICIAL = "$(MOZILLA_OFFICIAL)";                                     \
 	const GAIA_ENGINE = "xpcshell";                                             \
 	';                                                                          \
 	$(XULRUNNERSDK) $(XPCSHELLSDK) -e "$$JS_CONSTS" -f build/utils.js "build/$(strip $1).js"
@@ -610,8 +611,12 @@ purge:
 	$(ADB) shell rm -r $(MSYS_FIX)$(GAIA_INSTALL_PARENT)/webapps
 
 # Build the settings.json file from settings.py
+ifeq ($(NOFTU), 1)
+SETTINGS_ARG=--noftu
+endif
+
 profile/settings.json: build/settings.py build/wallpaper.jpg
-	python build/settings.py --console --homescreen $(SCHEME)homescreen.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --ftu $(SCHEME)communications.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --wallpaper build/wallpaper.jpg --output $@
+	python build/settings.py $(SETTINGS_ARG) --console --homescreen $(SCHEME)homescreen.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --ftu $(SCHEME)communications.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --wallpaper build/wallpaper.jpg --output $@
 
 # push profile/settings.json to the phone
 install-settings-defaults: profile/settings.json

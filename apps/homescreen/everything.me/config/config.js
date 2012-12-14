@@ -154,9 +154,6 @@ Evme.__config = {
         }
     ],
     "design": {
-        "shortcuts": {
-            "itemsPerRow": 4
-        },
         "apps": {
             "defaultIconUrl": {
                 "20": [

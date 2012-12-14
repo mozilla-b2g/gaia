@@ -3,7 +3,7 @@
  * Released under MIT license, http://cubiq.org/license
  */
 
-(function(){
+(function Closure(){
 var m = Math,
     mround = function (r) { return r >> 0; },
     vendor = (/webkit/i).test(navigator.appVersion) ? 'webkit' :
@@ -21,13 +21,13 @@ var m = Math,
     hasTransform = vendor + 'Transform' in document.documentElement.style,
     hasTransitionEnd = true, //isIDevice || isPlaybook,
 
-    nextFrame = (function() {
+    nextFrame = (function nextFrameWrapper() {
         return window.requestAnimationFrame
             || window.webkitRequestAnimationFrame
             || window.mozRequestAnimationFrame
             || window.oRequestAnimationFrame
             || window.msRequestAnimationFrame
-            || function(callback) { return setTimeout(callback, 17); }
+            || function customRequestAnimationFrame(callback) { return window.setTimeout(callback, 17); }
     })(),
     cancelFrame = (function () {
         return window.cancelRequestAnimationFrame
@@ -507,21 +507,21 @@ iScroll.prototype = {
         (el || this.scroller).removeEventListener(type, this, !!bubble);
     },
 
-    _unpreventMove: function() {
+    _unpreventMove: function _unpreventMove() {
         if (!this._preventingEvent) return;
 
         this.options.elToPreventMove.removeEventListener("touchmove", this._preventTouchMove);
         this._preventingEvent = false;
     },
-
-    _preventMove: function() {
+    
+    _preventMove: function _preventMove() {
         if (this._preventingEvent) return;
 
         this._preventingEvent = true;
         this.options.elToPreventMove.addEventListener("touchmove", this._preventTouchMove);
     },
-
-    _preventTouchMove: function(e) {
+    
+    _preventTouchMove: function _preventTouchMove(e) {
         e.preventDefault();
         e.stopImmediatePropagation();
     },

@@ -596,10 +596,6 @@ var Contacts = (function() {
         {
           event: 'focus',
           handler: contacts.Search.enterSearchMode
-        },
-        {
-          event: 'keyup',
-          handler: contacts.Search.search
         }
       ],
       '#details-back': handleBack, // Details

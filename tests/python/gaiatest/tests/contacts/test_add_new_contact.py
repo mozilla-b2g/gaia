@@ -30,8 +30,6 @@ class TestContacts(GaiaTestCase):
     def setUp(self):
         GaiaTestCase.setUp(self)
 
-        self.lockscreen.unlock()
-
         # launch the Contacts app
         self.app = self.apps.launch('Contacts')
         self.wait_for_element_not_displayed(*self._loading_overlay)

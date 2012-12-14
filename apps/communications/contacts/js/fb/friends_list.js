@@ -31,13 +31,20 @@ fbFriends.List = (function() {
       // For each friend in the group
       friends.forEach(function(friend) {
         var searchInfo = [];
-        var searchable = ['givenName', 'familyName', 'org'];
+        var searchable = ['givenName', 'familyName'];
         searchable.forEach(function(field) {
           if (friend[field] && friend[field][0]) {
             searchInfo.push(friend[field][0]);
           }
         });
+
+        // Enabling searching by email
+        if (friend['email1']) {
+          searchInfo.push(friend['email1']);
+        }
+
         friend.search = utils.text.normalize(searchInfo.join(' '));
+
         // New friend appended
         utils.templates.append(ele, friend);
         // We check wether this friend was in the AB or not before
@@ -46,7 +53,6 @@ fbFriends.List = (function() {
 
     groupsList.removeChild(groupsList.children[0]); // Deleting template
     FixedHeader.init('#mainContent', '#fixed-container', '.fb-import-list header');
-    ImageLoader.init('#mainContent', ".block-item:not([data-uuid='#uid#'])");
 
     if (typeof cb === 'function') {
       window.setTimeout(function() { cb(); }, 0);
