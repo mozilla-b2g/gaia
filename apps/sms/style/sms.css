@@ -394,6 +394,7 @@ a.unread .unread-mark .icon-unread-mark {
 .message-block .bubble-container {
   display: block;
   padding: 1rem 0rem;
+  pointer-events: none;
 }
 
 /* Edit mode */

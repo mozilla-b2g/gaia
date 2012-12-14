@@ -1133,7 +1133,7 @@ var ThreadUI = {
         if (window.location.hash != '#edit') {
           return;
         }
-        var inputs = evt.target.parentNode.getElementsByTagName('input');
+        var inputs = evt.target.getElementsByTagName('input');
         if (inputs && inputs.length > 0) {
             ThreadUI.clickInput(inputs[0]);
             ThreadUI.checkInputs();
