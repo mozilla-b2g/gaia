@@ -50,6 +50,22 @@ Gaia.webapps.forEach(function (webapp) {
 
   // Add webapp's entry to the webapps global manifest.
   // appStatus == 3 means this is a certified app.
+  // appStatus == 2 means this is a privileged app.
+  // appStatus == 1 means this is an installed (unprivileged) app
+  
+  let appStatus = 1; // By default, apps are installed
+  switch (webapp.manifest.type) {
+    case "certified":
+      appStatus = 3;
+      break;
+    case "privileged":
+      appStatus = 2;
+      break;
+    case "web":
+    default:
+      appStatus = 1;
+      break;
+  }
   let url = webapp.url;
   manifests[webappTargetDirName] = {
     origin:        url,
@@ -57,7 +73,7 @@ Gaia.webapps.forEach(function (webapp) {
     receipt:       null,
     installTime:   132333986000,
     manifestURL:   url + '/manifest.webapp',
-    appStatus:     3,
+    appStatus:     appStatus,
     localId:       id++
   };
 
