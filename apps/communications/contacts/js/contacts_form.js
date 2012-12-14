@@ -587,6 +587,7 @@ contacts.Form = (function() {
       'note': 0
     };
     textFieldsCache.clear();
+		formView.scrollTop = 0;
   };
 
   var resetRemoved = function cf_resetRemoved() {
