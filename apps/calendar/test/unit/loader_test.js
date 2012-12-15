@@ -5,7 +5,7 @@ requireApp('calendar/test/unit/helper.js', function() {
   requireLib('app.js');
 });
 
-suite('dependencies', function() {
+suite('loader', function() {
 
   // don't need a real db for this;
   var subject;
@@ -25,6 +25,8 @@ suite('dependencies', function() {
   setup(function() {
     subject = testSupport.calendar.app();
     subject.loader.map = {
+      StoreLoad: {},
+      Style: {},
       Templates: {},
       Views: {
         LazyMockView: [
@@ -107,5 +109,48 @@ suite('dependencies', function() {
     assert.equal(count, 2);
 
     done();
+  });
+
+  suite('#includers', function() {
+
+    var styleHandler;
+    var storeLoadHandler;
+
+    setup(function(done) {
+
+      var styleHandler = subject.loader.includeStyle;
+      var storeLoadHandler = subject.loader.includeStoreLoad;
+
+      // Our LazyMockView already has a template, give it a store and a style
+      subject.loader.map.Views.LazyMockView.push(
+        {type: 'StoreLoad', name: 'TempStore'},
+        {type: 'Style', name: 'TempStyle'}
+      );
+
+      done()
+    });
+
+    teardown(function() {
+      subject.loader.includeStyle = styleHandler;
+      subject.loader.includeStoreLoad = storeLoadHandler;
+    });
+
+    test('callbacks', function(done) {
+      var counter = 0;
+
+      function includer(config, cb) {
+        counter++;
+        return this.runQueue(config);
+      }
+
+      subject.loader.includeStyle = includer;
+      subject.loader.includeStoreLoad = includer;
+
+      subject.view('LazyMockView', function(view) {
+        assert.equal(counter, 2); // Called for the style and storeload
+        done();
+      });
+    });
+
   });
 });
