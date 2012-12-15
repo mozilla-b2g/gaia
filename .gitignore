@@ -39,3 +39,5 @@ manifest.appcache
 /locales/*
 
 /outoftree_apps/
+
+/backups/
