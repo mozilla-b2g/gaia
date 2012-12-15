@@ -99,6 +99,11 @@ var UIManager = {
     delete this.timeForm;
     return this.timeForm = document.getElementById('time-form');
   },
+  get check_sharePerfomance() {
+    delete this.check_sharePerfomance;
+    return this.check_sharePerfomance =
+        document.getElementById('share_performance');
+  },
 
   init: function ui_init() {
     var currentDate = new Date();
@@ -129,6 +134,9 @@ var UIManager = {
     this.timeForm.addEventListener('submit', function(event) {
       event.preventDefault();
     });
+    // Enable sharing performance data (saving to settings)
+    this.check_sharePerfomance.addEventListener('click', this);
+
     // Initialize the timezone selector, see /shared/js/tz_select.js
     var tzCont = document.getElementById('tz-continent');
     var tzCity = document.getElementById('tz-city');
@@ -167,12 +175,23 @@ var UIManager = {
         document.getElementById('sim-pin').value =
           this.fakeSimPin.value;
         break;
+      case 'share_performance':
+        this.updateSetting(event.target.name, event.target.value);
+        break;
       default:
         if (event.target.parentNode.id == 'networks') {
           this.chooseNetwork(event);
         }
         break;
     }
+  },
+
+  updateSetting: function ui_updateSetting(name, value) {
+    var settings = window.navigator.mozSettings;
+    if (!name || !settings )
+      return;
+    var cset = {}; cset[name] = value;
+    settings.createLock().set(cset);
   },
 
   displayOfflineDialog: function ui_displayOfflineDialog(href, title) {
