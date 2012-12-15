@@ -48,6 +48,10 @@ REPORTER?=Spec
 GAIA_APP_SRCDIRS?=apps test_apps showcase_apps
 GAIA_INSTALL_PARENT?=/data/local
 ADB_REMOUNT?=0
+BACKUP_DIR?=$(PWD)/device-backup/
+# activities and/or settings resetting when restoring during 'reinstall'
+RESTORE_CLEAN?=activities
+DATABASES?=/data/local/indexedDB/
 
 GAIA_ALL_APP_SRCDIRS=$(GAIA_APP_SRCDIRS)
 
@@ -625,6 +629,59 @@ install-settings-defaults: profile/settings.json
 	$(ADB) push profile/settings.json /system/b2g/defaults/settings.json
 	$(ADB) shell start b2g
 
+$(BACKUP_DIR):
+	test -d $(BACKUP_DIR) || mkdir -p $(BACKUP_DIR)
+
+.PHONY: backup restore reset-restore reinstall
+backup: $(BACKUP_DIR)
+	$(ADB) shell stop b2g
+	$(ADB) pull $(MSYS_FIX)/$(DATABASES)/ $(BACKUP_DIR)
+	$(ADB) shell start b2g
+
+restore: $(BACKUP_DIR)
+	$(ADB) shell stop b2g
+	$(ADB) push $(BACKUP_DIR) $(MSYS_FIX)/$(DATABASES)/
+	$(ADB) shell start b2g
+
+RESET_DATABASES =
+ifneq (,$(findstring activities,$(RESTORE_CLEAN)))
+RESET_DATABASES += 3104902905ascetiitvi.sqlite
+endif
+ifneq (,$(findstring settings,$(RESTORE_CLEAN)))
+RESET_DATABASES += 2588645841ssegtnti.sqlite
+endif
+ifneq (,$(findstring sms,$(RESTORE_CLEAN)))
+RESET_DATABASES += 226660312ssm.sqlite
+endif
+ifneq (,$(findstring netstats,$(RESTORE_CLEAN)))
+RESET_DATABASES += 3249156127nsetta_ts.sqlite
+endif
+ifneq (,$(findstring contacts,$(RESTORE_CLEAN)))
+RESET_DATABASES += 3406066227csotncta.sqlite
+endif
+ifneq (,$(findstring alarms,$(RESTORE_CLEAN)))
+RESET_DATABASES += 4045445992aslmar.sqlite
+endif
+
+reset-restore: reset-gaia
+	$(ADB) shell stop b2g
+	# Save new databases from reset-gaia before reinstalling
+	if [ ! -z "$(RESET_DATABASES)" ]; then \
+		for db in $(RESET_DATABASES); do \
+			$(ADB) shell mv $(MSYS_FIX)/$(DATABASES)/chrome/$$db $(MSYS_FIX)/$(DATABASES)/chrome/$$db.reset ;\
+		done; \
+	fi;
+	$(ADB) push $(BACKUP_DIR) $(MSYS_FIX)/$(DATABASES)/
+	# Copy-back reset-gaia database before restarting
+	if [ ! -z "$(RESET_DATABASES)" ]; then \
+		for db in $(RESET_DATABASES); do \
+			$(ADB) shell rm $(MSYS_FIX)/$(DATABASES)/chrome/$$db ; \
+			$(ADB) shell mv $(MSYS_FIX)/$(DATABASES)/chrome/$$db.reset $(MSYS_FIX)/$(DATABASES)/chrome/$$db ;\
+		done; \
+	fi;
+	$(ADB) shell start b2g
+
+reinstall: backup reset-restore
 
 # clean out build products
 clean:
