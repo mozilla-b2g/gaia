@@ -418,8 +418,8 @@ html, body {
 
 #analog-clock-container {
   width: 100%;
-  height: -moz-calc(100% - 5.8rem);
-  margin: 5.8rem auto auto;
+  height: -moz-calc(100% - 5.9rem);
+  margin: 5.9rem auto auto;
   position: absolute;
 }
 /* These CSS styles all apply to the SVG clock elements */
