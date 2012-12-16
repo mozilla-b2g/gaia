@@ -48,9 +48,9 @@ var App = {
         sent: mozL10n.get('folder-sent'),
         drafts: mozL10n.get('folder-drafts'),
         trash: mozL10n.get('folder-trash'),
-        queue: mozL10n.get('folder-unsent'),
+        queue: mozL10n.get('folder-queue'),
         junk: mozL10n.get('folder-junk'),
-        archives: mozL10n.get('archives')
+        archives: mozL10n.get('folder-archives')
       }
     });
   },
@@ -112,7 +112,7 @@ var App = {
         }
         Cards.assertNoCards();
         Cards.pushCard(
-          'setup-pick-service', 'default', 'immediate',
+          'setup-account-info', 'default', 'immediate',
           {
             allowBack: false
           });
