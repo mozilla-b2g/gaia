@@ -165,7 +165,6 @@ var CallScreen = {
 var OnCallHandler = (function onCallHandler() {
   // Changing this will probably require markup changes
   var CALLS_LIMIT = 2;
-  var _ = navigator.mozL10n.get;
 
   var handledCalls = [];
   var telephony = window.navigator.mozTelephony;
@@ -299,14 +298,16 @@ var OnCallHandler = (function onCallHandler() {
         navigator.vibrate([100, 100, 100]);
       }
 
-      var number = (call.number.length ? call.number : _('unknown'));
-      Contacts.findByNumber(number, function lookupContact(contact) {
-        if (contact && contact.name) {
-          CallScreen.incomingNumber.textContent = contact.name;
-          return;
-        }
+      LazyL10n.get(function localized(_) {
+        var number = (call.number.length ? call.number : _('unknown'));
+        Contacts.findByNumber(number, function lookupContact(contact) {
+          if (contact && contact.name) {
+            CallScreen.incomingNumber.textContent = contact.name;
+            return;
+          }
 
-        CallScreen.incomingNumber.textContent = number;
+          CallScreen.incomingNumber.textContent = number;
+        });
       });
 
       CallScreen.showIncoming();
@@ -605,20 +606,15 @@ var OnCallHandler = (function onCallHandler() {
   };
 })();
 
-window.addEventListener('localized', function callSetup(evt) {
-  window.removeEventListener('localized', callSetup);
+window.addEventListener('load', function callSetup(evt) {
+  window.removeEventListener('load', callSetup);
 
-  // Set the 'lang' and 'dir' attributes to <html> when the page is translated
-  document.documentElement.lang = navigator.mozL10n.language.code;
-  document.documentElement.dir = navigator.mozL10n.language.direction;
-
-  // <body> children are hidden until the UI is translated
-  document.body.classList.remove('hidden');
-
-  KeypadManager.init(true);
+  OnCallHandler.setup();
   CallScreen.init();
   CallScreen.syncSpeakerEnabled();
-  OnCallHandler.setup();
+
+  KeypadManager.init(true);
+
   var isLocked = (window.location.hash === '#locked');
   // After investigating in #815629, it seems that
   // lock screen animation over the Wallpaper image is not
