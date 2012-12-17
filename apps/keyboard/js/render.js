@@ -14,7 +14,7 @@
 const IMERender = (function() {
 
   var ime, menu, pendingSymbolPanel, candidatePanel, candidatePanelToggleButton;
-  var getUpperCaseValue, isSpecialKey, onScroll;
+  var getUpperCaseValue, isSpecialKey;
 
   var _menuKey, _altContainer;
 
@@ -25,10 +25,9 @@ const IMERender = (function() {
   // Initiaze the render. It needs some business logic to determine:
   //   1- The uppercase for a key object
   //   2- When a key is a special key
-  var init = function kr_init(uppercaseFunction, keyTest, scrollHandler) {
+  var init = function kr_init(uppercaseFunction, keyTest) {
     getUpperCaseValue = uppercaseFunction;
     isSpecialKey = keyTest;
-    onScroll = scrollHandler;
     this.ime = document.getElementById('keyboard');
   }
 
@@ -147,7 +146,6 @@ const IMERender = (function() {
 
     this.ime.innerHTML = content;
     this.menu = document.getElementById('keyboard-accent-char-menu');
-    this.menu.addEventListener('scroll', onScroll);
 
     // Builds candidate panel
     if (layout.needsCandidatePanel || flags.showCandidatePanel) {
@@ -472,7 +470,6 @@ const IMERender = (function() {
     candidatePanel.id = 'keyboard-candidate-panel';
     if (inputMethodName)
       candidatePanel.classList.add(inputMethodName);
-    candidatePanel.addEventListener('scroll', onScroll);
     return candidatePanel;
   };
 
