@@ -1376,6 +1376,59 @@ var WindowManager = (function() {
     deleteAppScreenshotFromDatabase(e.detail.application.origin);
   });
 
+  // When an UI layer is overlapping the current app,
+  // WindowManager should set the visibility of app iframe to false
+  // And reset to true when the layer is gone.
+  // We may need to handle windowclosing, windowopened in the future.
+  var attentionScreenTimer = null;
+  
+  var overlayEvents = ['lock', 'unlock', 'attentionscreenshow', 'attentionscreenhide', 'status-active', 'status-inactive'];
+
+  function overlayEventHandler(evt) {
+    if (attentionScreenTimer)
+      clearTimeout(attentionScreenTimer);
+    switch (evt.type) {
+      case 'status-active':
+      case 'attentionscreenhide':
+      case 'unlock':
+        if (LockScreen.locked)
+          return;
+        setVisibilityForCurrentApp(true);
+        break;
+      case 'lock':
+        setVisibilityForCurrentApp(false);
+        break;
+
+      /*
+      * Because in-transition is needed in attention screen,
+      * We set a timer here to deal with visibility change
+      */
+      case 'status-inactive':
+        if (!AttentionScreen.isVisible())
+          return;
+      case 'attentionscreenshow':
+        if (evt.detail && evt.detail.origin &&
+          evt.detail.origin != displayedApp) {
+            attentionScreenTimer = setTimeout(function setVisibility(){
+              setVisibilityForCurrentApp(false);
+            }, 5000);
+        }
+        break;
+    }
+  }
+
+  overlayEvents.forEach(function overlayEventIterator(event) {
+    window.addEventListener(event, overlayEventHandler);
+  });
+
+  function setVisibilityForCurrentApp(visible) {
+    var app = runningApps[displayedApp];
+    if (!app)
+      return;
+    if ('setVisible' in app.frame)
+      app.frame.setVisible(visible);
+  }
+
   function handleAppCrash(origin, manifestURL) {
     if (origin && manifestURL) {
       // When inline activity frame crashes,
