@@ -659,11 +659,14 @@ suite('service/caldav', function() {
 
     test('single', function(done) {
       var expectedComponent = ICAL.parse(fixtures.singleEvent)[1];
-      // normalize expected output
-      expectedComponent = (new ICAL.Component(expectedComponent)).toJSON();
+      var comp = new ICAL.Component(expectedComponent);
+      var timezone = comp.getFirstSubcomponent('vtimezone');
+      var tzid = timezone.getFirstPropertyValue('tzid');
 
       subject.parseEvent(fixtures.singleEvent, function(err, event) {
         done(function() {
+          assert.ok(ICAL.TimezoneService.has(tzid), 'has timezone ' + tzid);
+
           assert.instanceOf(event, ICAL.Event);
           assert.deepEqual(
             event.component.parent.toJSON(),

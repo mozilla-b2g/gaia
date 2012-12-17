@@ -320,7 +320,7 @@ Icon.prototype = {
     if (!app)
       return;
 
-    var manifest = app.manifest;
+    var manifest = app.manifest || app.updateManifest;
     if (!manifest)
       return;
 

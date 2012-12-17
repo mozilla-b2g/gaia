@@ -46,6 +46,9 @@ function openLink(url) {
  */
 
 function openDialog(dialogID, onSubmit, onReset) {
+  if('#' + dialogID == document.location.hash)
+    return;
+
   var origin = document.location.hash;
   var dialog = document.getElementById(dialogID);
 

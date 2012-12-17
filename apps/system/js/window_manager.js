@@ -478,28 +478,29 @@ var WindowManager = (function() {
     }
 
     // Get the screenshot from the database
-    getAppScreenshotFromDatabase(frame.src, function(screenshot) {
-      // If firstpaint is faster than database, we will not transition
-      // with screenshot.
-      if (!('unpainted' in frame.dataset)) {
+    getAppScreenshotFromDatabase(frame.src || frame.dataset.frameOrigin,
+      function(screenshot) {
+        // If firstpaint is faster than database, we will not transition
+        // with screenshot.
+        if (!('unpainted' in frame.dataset)) {
+          callback();
+          return;
+        }
+
+        if (!screenshot) {
+          // put a default background
+          frame.classList.add('default-background');
+          callback();
+          return;
+        }
+
+        // set the screenshot as the background of the frame itself.
+        // we are safe to do so since there is nothing on it yet.
+        setFrameBackgroundBlob(frame, screenshot, transparent);
+
+        // start the transition
         callback();
-        return;
-      }
-
-      if (!screenshot) {
-        // put a default background
-        frame.classList.add('default-background');
-        callback();
-        return;
-      }
-
-      // set the screenshot as the background of the frame itself.
-      // we are safe to do so since there is nothing on it yet.
-      setFrameBackgroundBlob(frame, screenshot, transparent);
-
-      // start the transition
-      callback();
-    });
+      });
   }
 
   // On-disk database for window manager.
@@ -1049,6 +1050,9 @@ var WindowManager = (function() {
     // Note that we don't set the frame size here.  That will happen
     // when we display the app in setDisplayedApp()
 
+    // frames are began unpainted.
+    frame.dataset.unpainted = true;
+
     if (!manifestURL) {
       frame.setAttribute('data-wrapper', 'true');
       return frame;
@@ -1058,9 +1062,6 @@ var WindowManager = (function() {
     // They also need to be marked as 'mozapp' to be recognized as apps by the
     // platform.
     frame.setAttribute('mozbrowser', 'true');
-
-    // frames are began unpainted.
-    frame.dataset.unpainted = true;
 
     // These apps currently have bugs preventing them from being
     // run out of process. All other apps will be run OOP.
@@ -1375,6 +1376,59 @@ var WindowManager = (function() {
 
     deleteAppScreenshotFromDatabase(e.detail.application.origin);
   });
+
+  // When an UI layer is overlapping the current app,
+  // WindowManager should set the visibility of app iframe to false
+  // And reset to true when the layer is gone.
+  // We may need to handle windowclosing, windowopened in the future.
+  var attentionScreenTimer = null;
+  
+  var overlayEvents = ['lock', 'unlock', 'attentionscreenshow', 'attentionscreenhide', 'status-active', 'status-inactive'];
+
+  function overlayEventHandler(evt) {
+    if (attentionScreenTimer)
+      clearTimeout(attentionScreenTimer);
+    switch (evt.type) {
+      case 'status-active':
+      case 'attentionscreenhide':
+      case 'unlock':
+        if (LockScreen.locked)
+          return;
+        setVisibilityForCurrentApp(true);
+        break;
+      case 'lock':
+        setVisibilityForCurrentApp(false);
+        break;
+
+      /*
+      * Because in-transition is needed in attention screen,
+      * We set a timer here to deal with visibility change
+      */
+      case 'status-inactive':
+        if (!AttentionScreen.isVisible())
+          return;
+      case 'attentionscreenshow':
+        if (evt.detail && evt.detail.origin &&
+          evt.detail.origin != displayedApp) {
+            attentionScreenTimer = setTimeout(function setVisibility(){
+              setVisibilityForCurrentApp(false);
+            }, 5000);
+        }
+        break;
+    }
+  }
+
+  overlayEvents.forEach(function overlayEventIterator(event) {
+    window.addEventListener(event, overlayEventHandler);
+  });
+
+  function setVisibilityForCurrentApp(visible) {
+    var app = runningApps[displayedApp];
+    if (!app)
+      return;
+    if ('setVisible' in app.frame)
+      app.frame.setVisible(visible);
+  }
 
   function handleAppCrash(origin, manifestURL) {
     if (origin && manifestURL) {
