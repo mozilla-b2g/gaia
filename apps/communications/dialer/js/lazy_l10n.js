@@ -16,14 +16,12 @@ var LazyL10n = {
 
     // Adding the l10n JS files to the DOM
     // the l10n resources
-    var derahs = 'shared'; // Ugly, waiting for bug 822108
-
     var l10nScript = document.createElement('script');
-    l10nScript.src = '/' + derahs + '/js/l10n.js';
+    l10nScript.src = '/shared/js/l10n.js';
     document.head.appendChild(l10nScript);
 
     var l10nDateScript = document.createElement('script');
-    l10nDateScript.src = '/' + derahs + '/js/l10n_date.js';
+    l10nDateScript.src = '/shared/js/l10n_date.js';
     document.head.appendChild(l10nDateScript);
 
     this._inDOM = true;
