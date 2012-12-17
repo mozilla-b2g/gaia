@@ -136,6 +136,42 @@ var Carrier = (function newCarrier(window, document, undefined) {
           }
         }
       };
+      // Cache the custom settings value temporary for issue:
+      // https://bugzilla.mozilla.org/show_bug.cgi?id=820119
+      var customValueCache = {};
+      var carrierKeys = ['apn', 'user', 'passwd',
+                         'httpProxyHost', 'httpProxyPort'];
+      if (usage == 'mms') {
+        carrierKeys += ['mmsc', 'mmsproxy', 'mmsport'];
+      }
+      carrierKeys.forEach(function(carrierKey) {
+        var key = 'ril.' + usage + '.' + carrierKey;
+        // Observer the carrier settings change. If settings save as custom,
+        // update the custom cache, otherwise clean the custom cache.
+        settings.addObserver(key, function(event) {
+          if (lastItem.querySelector('input').checked) {
+            customValueCache[carrierKey] = event.settingValue;
+          } else {
+            customValueCache = {};
+          }
+        });
+        // If the init settings is custom, sync the custom cache to value in
+        // settings database.
+        if (!lastItem.querySelector('input').checked) {
+          return;
+        }
+        var request = settings.createLock().get(key);
+        request.onsuccess = function() {
+          customValueCache[carrierKey] = request.result[key];
+        }
+
+      });
+
+      lastItem.querySelector('input').onclick = function() {
+        for (key in customValueCache) {
+          rilData(key).value = customValueCache[key] || '';
+        }
+      }
     }
 
     // set current APN to 'custom' on user modification
