@@ -27718,7 +27718,7 @@ exports.chewBodyParts = function chewBodyParts(rep, bodyPartContents,
     date: rep.msg.date,
     flags: rep.msg.flags,
     hasAttachments: rep.attachments.length > 0,
-    subject: rep.msg.msg.subject,
+    subject: rep.msg.msg.subject || null,
     snippet: snippet,
   };
 
