@@ -105,7 +105,8 @@ var TonePlayer = {
 
       var soundData = new Float32Array(1200);
       this.generateFrames(soundData);
-      this._audio.mozWriteAudio(soundData);
+      if (this._audio != null)
+        this._audio.mozWriteAudio(soundData);
     }).bind(this), 60); // Avoiding under-run issues by keeping this low
   },
 
@@ -115,7 +116,8 @@ var TonePlayer = {
     clearInterval(this._intervalID);
     this._intervalID = null;
 
-    this._audio.src = '';
+    if (this._audio != null)
+      this._audio.src = '';
   },
 
   // If the app loses focus, close the audio stream. This works around an
@@ -128,7 +130,11 @@ var TonePlayer = {
     } else {
       // Reset the audio stream. This ensures that the stream is shutdown
       // *immediately*.
-      this._audio.src = '';
+      this.stop();
+      // Just in case stop any dtmf tone
+      if (navigator.mozTelephony) {
+        navigator.mozTelephony.stopTone();
+      }
       delete this._audio;
     }
   }
