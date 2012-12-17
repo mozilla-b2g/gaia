@@ -184,9 +184,14 @@ suite('Render contacts list', function() {
     searchSection.id = 'search-view';
     searchSection.innerHTML = '<input type="text" id="search-contact"/>';
     searchSection.innerHTML += '<section id="groups-list-search">';
-    searchSection.innerHTML += '<p id="no-result" class="hide" data-l10n-id="noResults">No contacts found</p>';
     searchSection.innerHTML += '<ol id="search-list" data-type="list"></ol>';
     searchSection.innerHTML += '</section>';
+    searchSection.innerHTML += '<section>';
+    searchSection.innerHTML += '<p id="no-result" class="hide" data-l10n-id="noResults">No contacts found</p>';
+    searchSection.innerHTML += '<p id="search-progress" class="hidden" role="status">';
+    searchSection.innerHTML += '<progress class="small"></progress></p>';
+    searchSection.innerHTML += '</section>';
+
     document.body.appendChild(searchSection);
 
     searchBox = document.getElementById('search-contact');
