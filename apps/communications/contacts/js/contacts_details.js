@@ -4,7 +4,7 @@ var contacts = window.contacts || {};
 
 contacts.Details = (function() {
   var photoPos = 7;
-  var initMargin = 16;
+  var initMargin = 8;
   var contactData,
       contactDetails,
       listContainer,
@@ -66,22 +66,19 @@ contacts.Details = (function() {
 
   var initPullEffect = function cd_initPullEffect(cover) {
     cover.addEventListener('mousedown', function(event) {
-      if (contactDetails.classList.contains('no-photo'))
+      if (event.target != cover || contactDetails.classList.contains('no-photo'))
         return;
 
       var startPosition = event.clientY;
-      var currentPosition;
-      var margin = initMargin + 'rem';
       contactDetails.classList.add('up');
       cover.classList.add('up');
 
       var onMouseMove = function onMouseMove(event) {
-        currentPosition = event.clientY;
-        var newMargin = currentPosition - startPosition;
+        var newMargin = event.clientY - startPosition;
         if (newMargin > 0 && newMargin < 150) {
           contactDetails.classList.remove('up');
           cover.classList.remove('up');
-          var calc = 'calc(' + margin + ' + ' + newMargin + 'px)';
+          var calc = 'calc(' + initMargin + 'rem + ' + newMargin + 'px)';
           // Divide by 40 (4 times slower and in rems)
           contactDetails.style.transform = 'translateY(' + calc + ')';
           var newPos = (-photoPos + (newMargin / 40)) + 'rem';
@@ -92,14 +89,14 @@ contacts.Details = (function() {
       var onMouseUp = function onMouseUp(event) {
         contactDetails.classList.add('up');
         cover.classList.add('up');
-        contactDetails.style.transform = 'translateY(' + margin + ')';
-        cover.style.transform = 'translateY(-' + photoPos + 'rem)';
-        cover.removeEventListener('mousemove', onMouseMove);
-        cover.removeEventListener('mouseup', onMouseUp);
+        contactDetails.style.transform = null;
+        cover.style.transform = null;
+        removeEventListener('mousemove', onMouseMove);
+        removeEventListener('mouseup', onMouseUp);
       };
 
-      cover.addEventListener('mousemove', onMouseMove);
-      cover.addEventListener('mouseup', onMouseUp);
+      addEventListener('mousemove', onMouseMove);
+      addEventListener('mouseup', onMouseUp);
     });
   };
 
@@ -456,6 +453,7 @@ contacts.Details = (function() {
   };
 
   var renderPhoto = function cd_renderPhoto(contact) {
+    contactDetails.classList.remove('up');
     if (contact.photo && contact.photo.length > 0) {
       contactDetails.classList.add('up');
       var clientHeight = contactDetails.clientHeight - (initMargin * 10);

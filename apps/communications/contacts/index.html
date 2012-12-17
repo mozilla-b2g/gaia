@@ -86,9 +86,8 @@
     <iframe id="fb-oauth" hidden src="/facebook/fb_oauth.html"></iframe>
     <iframe id="fb-extensions"></iframe>
 
-    <div id="app" class="views" data-state="active">
       <!-- Contacts List Section -->
-      <section id='view-contacts-list' role="region" data-mirror="mirror-contacts-list" data-state="active" class="view view-noscroll view-contacts-list">
+      <section id='view-contacts-list' role="region" data-state="active" class="view view-noscroll view-contacts-list">
         <header>
           <menu type="toolbar">
             <button role="menuitem" id="cancel_activty" class="hide"><span class="icon icon-close"data-l10n-id="exit">Exit</span></button>
@@ -160,7 +159,7 @@
       </section>
 
       <!-- Contact Details Section -->
-      <section id='view-contact-details' role="region" data-mirror="mirror-contact-details" class="view view-contact-profile">
+      <section id='view-contact-details' role="region" class="view view-right view-contact-profile">
         <header id='details-view-header'>
           <button id="details-back" class="negative"><span class="icon icon-back" data-l10n-id="back">back</span></button>
           <menu type="toolbar">
@@ -171,9 +170,9 @@
           <sup id='favorite-star' class='hide'></sup>
         </header>
 
-        <article class="view-body">
-          <div class="view-body-inner" id="cover-img">
-            <section id="contact-detail">
+        <article id="contact-detail-wrapper" class="view-body">
+          <div id="cover-img"></div>
+            <section id="contact-detail" class="view-body-inner">
               <!-- Phone Template -->
               <li data-phone id='phone-details-template-#i#' data-template>
                 <h2>#type#</h2>
@@ -264,13 +263,12 @@
                 </ul>
               </div>
             </section>
-          </div>
         </article>
       </section>
 
 
       <!-- Edit Section -->
-      <section id='view-contact-form' role="region" data-mirror="mirror-contact-form" class="view view-bottom view-edit-contact">
+      <section id='view-contact-form' role="region" class="view view-bottom view-edit-contact">
         <header>
           <button id='cancel-edit' class="negative"><span class="icon icon-close"data-l10n-id="exit">Exit</span></button>
           <menu type="toolbar" id='contact-form-actions'>
@@ -444,7 +442,7 @@
       </section>
 
       <!-- Tag selection -->
-      <section id="view-select-tag" role="region" data-mirror="mirror-contact-tags" class="view view-select-tag">
+      <section id="view-select-tag" role="region" class="view view-right view-select-tag">
         <header>
           <button id="settings-cancel" class="negative"><span class="icon icon-back" data-l10n-id="back">back</span></button>
           <menu type="toolbar" id="contact-form-actions">
@@ -466,7 +464,7 @@
       </section>
 
       <!-- Settings section -->
-      <section data-theme="organic" id="view-settings" role="region" data-mirror="mirror-settings" class="skin-organic view view-bottom">
+      <section data-theme="organic" id="view-settings" role="region" class="skin-organic view view-bottom">
         <header>
           <button id="settings-close" class="negative">
             <span class="icon icon-close"data-l10n-id="exit">Exit</span>
@@ -523,25 +521,16 @@
         </article>
       </section>
 
-      <article id="loading-overlay" class="show-overlay">
-        <section class="loading-container">
+      <section id="loading-overlay" role="region" class="view">
+        <article class="loading-container">
           <header class="loading-header" data-l10n-id="loadingContacts">
             Loading contacts…
           </header>
           <p class="loading-icon" role="status">
             <progress></progress>
           </p>
-        </section>
-      </article>
-    </div>
-
-    <div class="cache" id="cache">
-      <div id="mirror-contacts-list" class="view" style="background-image: -moz-element(#view-contacts-list);"></div>
-      <div id="mirror-contact-form" class="view view-bottom" style="background-image: -moz-element(#view-contact-form);"></div>
-      <div id="mirror-contact-tags" class="view view-right" style="background-image: -moz-element(#view-select-tag);"></div>
-      <div id="mirror-contact-details" class="view view-right" style="background-image: -moz-element(#view-contact-details);"></div>
-      <div id="mirror-settings" class="view view-bottom" style="background-image: -moz-element(#view-settings);"></div>
-    </div>
+        </article>
+      </section>
 
     <section id="statusMsg" role="status">
       <p></p>
