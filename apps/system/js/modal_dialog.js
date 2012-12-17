@@ -239,11 +239,10 @@ var ModalDialog = {
     var protocol = document.location.protocol + '//';
     var origin = protocol + 'system.' + domain;
     var errorURL = origin + '/error.html?' +
-                   'origin=' + this.currentOrigin + '&' +
                    'name=' + name + '&' +
                    'type=' + type;
-    if (errorURL != target.src || type != 'other') {
-      target.src = errorURL;
+    if (target.src.indexOf(errorURL) == -1 || type != 'other') {
+      target.src = errorURL + '&origin=' + target.dataset.frameURL;
     }
   },
 
