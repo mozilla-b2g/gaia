@@ -34,12 +34,28 @@ var RingView = {
   },
 
   init: function rv_init() {
+    document.addEventListener('mozvisibilitychange', this);
+    if (!document.mozHidden) {
+      this.startAlarmNotification();
+    } else {
+      // The setTimeout() is used to workaround
+      // https://bugzilla.mozilla.org/show_bug.cgi?id=810431
+      // The workaround is used in screen off mode.
+      // mozHidden will be true in init() state.
+      var self = this;
+      window.setTimeout(function rv_checkMozHidden() {
+        // If mozHidden is true in init state,
+        // it means that the incoming call happens before the alarm.
+        // We should just put a "silent" alarm screen
+        // underneath the oncall screen
+        if (!document.mozHidden) {
+          self.startAlarmNotification();
+        }
+      }, 0);
+    }
+
     this.setAlarmTime();
     this.setAlarmLabel();
-    this.setWakeLockEnabled(true);
-    this.ring();
-    this.vibrate();
-    document.addEventListener('mozvisibilitychange', this);
     this.snoozeButton.addEventListener('click', this);
     this.closeButton.addEventListener('click', this);
   },
@@ -74,6 +90,7 @@ var RingView = {
   ring: function rv_ring() {
     this._ringtonePlayer = new Audio();
     var ringtonePlayer = this._ringtonePlayer;
+    ringtonePlayer.addEventListener('mozinterruptbegin', this);
     ringtonePlayer.mozAudioChannelType = 'alarm';
     ringtonePlayer.loop = true;
     var selectedAlarmSound = 'shared/resources/media/alarms/' +
@@ -104,17 +121,31 @@ var RingView = {
     }
   },
 
+  startAlarmNotification: function rv_startAlarmNotification() {
+    this.setWakeLockEnabled(true);
+    this.ring();
+    this.vibrate();
+  },
+
   stopAlarmNotification: function rv_stopAlarmNotification(action) {
     switch (action) {
     case 'ring':
-      this._ringtonePlayer.pause();
+      if (this._ringtonePlayer)
+        this._ringtonePlayer.pause();
+
       break;
     case 'vibrate':
-      window.clearInterval(this._vibrateInterval);
+      if (this._vibrateInterval)
+        window.clearInterval(this._vibrateInterval);
+
       break;
     default:
-      this._ringtonePlayer.pause();
-      window.clearInterval(this._vibrateInterval);
+      if (this._ringtonePlayer)
+        this._ringtonePlayer.pause();
+
+      if (this._vibrateInterval)
+        window.clearInterval(this._vibrateInterval);
+
       break;
     }
     this.setWakeLockEnabled(false);
@@ -122,34 +153,37 @@ var RingView = {
 
   handleEvent: function rv_handleEvent(evt) {
     switch (evt.type) {
-      case 'mozvisibilitychange':
-        if (document.mozHidden) {
-          // XXX: https://bugzilla.mozilla.org/show_bug.cgi?id=809087
-          // TODO: Receive mozvisibilitychange to turn off
-          // alarm's ringtone and vibration
-          return;
-        }
+    case 'mozvisibilitychange':
+      // https://bugzilla.mozilla.org/show_bug.cgi?id=810431
+      // Since Bug 810431 is not fixed yet,
+      // be carefull to use the event here during alarm goes off.
+      break;
+    case 'mozinterruptbegin':
+      // Only ringer/telephony channel audio could trigger 'mozinterruptbegin'
+      // event on the 'alarm' channel audio element.
+      // If the incoming call happens after the alarm rings,
+      // we need to close ourselves.
+      window.opener.AlarmManager.cancelHandler();
+      window.close();
+      break;
+    case 'click':
+      var input = evt.target;
+      if (!input)
+        return;
+
+      switch (input.id) {
+      case 'ring-button-snooze':
+        this.stopAlarmNotification();
+        window.opener.AlarmManager.snoozeHandler();
+        window.close();
         break;
-
-      case 'click':
-        var input = evt.target;
-        if (!input)
-          return;
-
-        switch (input.id) {
-          case 'ring-button-snooze':
-            this.stopAlarmNotification();
-            window.opener.AlarmManager.snoozeHandler();
-            window.close();
-            break;
-
-          case 'ring-button-close':
-            this.stopAlarmNotification();
-            window.opener.AlarmManager.cancelHandler();
-            window.close();
-            break;
-        }
+      case 'ring-button-close':
+        this.stopAlarmNotification();
+        window.opener.AlarmManager.cancelHandler();
+        window.close();
         break;
+      }
+      break;
     }
   }
 

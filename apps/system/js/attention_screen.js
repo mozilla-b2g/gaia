@@ -103,27 +103,10 @@ var AttentionScreen = {
     if (!this.isVisible()) {
       this.attentionScreen.classList.add('displayed');
       this.mainScreen.classList.add('attention');
-      this.dispatchEvent('attentionscreenshow');
-
-      // If the current app != the app opening the screen it should get
-      // a visibility change event
-      var displayedOrigin = WindowManager.getDisplayedApp();
-      var frameOrigin = attentionFrame.dataset.frameOrigin;
-      if (displayedOrigin !== frameOrigin) {
-        this._setAppFrameVisibility(displayedOrigin, false);
-      }
+      this.dispatchEvent('attentionscreenshow', { origin: attentionFrame.dataset.frameOrigin });
     } else if (!this.isFullyVisible() &&
       this.attentionScreen.lastElementChild === attentionFrame) {
       this.show();
-    }
-  },
-
-  _setAppFrameVisibility: function as_setAppFrameVisibility(origin, visible) {
-    if (!origin)
-      return;
-    var frame = WindowManager.getAppFrame(origin);
-    if (frame && 'setVisible' in frame) {
-      frame.setVisible(visible);
     }
   },
 
@@ -161,11 +144,8 @@ var AttentionScreen = {
         (evt.type === 'mozbrowsererror' && evt.detail.type !== 'fatal'))
       return;
 
-    // Ensuring the proper mozvisibility changed on the displayed app
-    var displayedOrigin = WindowManager.getDisplayedApp();
-    this._setAppFrameVisibility(displayedOrigin, true);
-
     // Remove the frame
+    var origin = evt.target.dataset.frameOrigin;
     this.attentionScreen.removeChild(evt.target);
 
     // We've just removed the focused window leaving the system
@@ -176,6 +156,8 @@ var AttentionScreen = {
     // we need to update the visibility and show() the overlay.
     if (this.attentionScreen.querySelectorAll('iframe').length) {
       this._updateAttentionFrameVisibility();
+
+      this.dispatchEvent('attentionscreenclose', { origin: origin });
 
       if (!this.isFullyVisible())
         this.show();
@@ -191,12 +173,13 @@ var AttentionScreen = {
     if (!this.isFullyVisible()) {
       this.mainScreen.classList.remove('active-statusbar');
       this.attentionScreen.classList.remove('status-mode');
-      this.dispatchEvent('status-inactive');
+      this.dispatchEvent('status-inactive',
+        { origin: this.attentionScreen.lastElementChild.dataset.frameOrigin });
     }
 
     this.attentionScreen.classList.remove('displayed');
     this.mainScreen.classList.remove('attention');
-    this.dispatchEvent('attentionscreenhide');
+    this.dispatchEvent('attentionscreenhide', { origin: origin });
   },
 
   // expend the attention screen overlay to full screen
@@ -205,15 +188,6 @@ var AttentionScreen = {
     this.attentionScreen.classList.remove('status-mode');
     // there shouldn't be a transition from "status-mode" to "active-statusbar"
     this.attentionScreen.style.transition = 'none';
-
-    // If the current app != the app opening the screen it should get
-    // a visibility change event
-    var attentionFrame = this.attentionScreen.lastElementChild;
-    var displayedOrigin = WindowManager.getDisplayedApp();
-    var frameOrigin = attentionFrame.dataset.frameOrigin;
-    if (displayedOrigin !== frameOrigin) {
-      this._setAppFrameVisibility(displayedOrigin, false);
-    }
 
     var self = this;
     window.addEventListener('MozAfterPaint', function finishAfterPaint() {
@@ -224,7 +198,8 @@ var AttentionScreen = {
         // leaving "active-statusbar" mode,
         // with a transform: translateY() slide down transition.
         self.mainScreen.classList.remove('active-statusbar');
-        self.dispatchEvent('status-inactive');
+        self.dispatchEvent('status-inactive',
+          { origin: self.attentionScreen.lastElementChild.dataset.frameOrigin });
       });
     });
   },
@@ -235,12 +210,10 @@ var AttentionScreen = {
     if (!this.isFullyVisible())
       return;
 
+    // The only way to hide attention screen is home/holdhome event
+    // So we don't fire any origin information here.
+    // The expected behavior is restore homescreen visibility to true in Window Manager
     this.dispatchEvent('status-active');
-
-    // Ensuring the proper mozvisibility changed on the displayed app
-    var displayedOrigin = WindowManager.getDisplayedApp();
-    this._setAppFrameVisibility(displayedOrigin, true);
-
 
     // entering "active-statusbar" mode,
     // with a transform: translateY() slide up transition.
@@ -255,9 +228,9 @@ var AttentionScreen = {
     });
   },
 
-  dispatchEvent: function as_dispatchEvent(name) {
+  dispatchEvent: function as_dispatchEvent(name, detail) {
     var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent(name, true, true, null);
+    evt.initCustomEvent(name, true, true, detail);
     window.dispatchEvent(evt);
   },
 

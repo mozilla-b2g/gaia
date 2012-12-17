@@ -21,6 +21,8 @@ var Curtain = (function() {
 
   var progressTitle = doc.getElementById('progressTitle');
 
+  var cpuWakeLock;
+
   function doShow(type) {
     form.dataset.state = type;
     curtainFrame.classList.add('visible');
@@ -104,6 +106,7 @@ var Curtain = (function() {
         case 'progress':
           progressTitle.textContent = _(type + 'FB3' + from + 'Title');
           out = new Progress(from);
+          cpuWakeLock = navigator.requestWakeLock('cpu');
         break;
       }
 
@@ -120,12 +123,17 @@ var Curtain = (function() {
      *
      */
     hide: function c_hide(hiddenCB) {
+      if (cpuWakeLock) {
+        cpuWakeLock.unlock();
+        cpuWakeLock = null;
+      }
+
       delete form.dataset.state;
       curtainFrame.classList.remove('visible');
       curtainFrame.addEventListener('transitionend', function tend() {
         curtainFrame.removeEventListener('transitionend', tend);
         if (typeof hiddenCB === 'function') {
-          window.setTimeout(hiddenCB, 0);
+          hiddenCB();
         }
       });
     },

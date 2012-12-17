@@ -478,7 +478,9 @@ html, body {
   Import
 */
 
-#import_contacts li,
+#import_contacts li {
+  padding: 0 3.5rem;
+}
 #wifi li {
   padding: 0 1.5rem;
 }
@@ -518,6 +520,14 @@ html, body {
 
 #import_contacts ul:first-child li:last-child {
   margin-bottom: 0;
+}
+
+#sim_import {
+  background: url('images/import_sim.png') center left no-repeat;
+}
+
+#fb_import {
+  background: url('images/import_fb.png') center left no-repeat;
 }
 
 /*

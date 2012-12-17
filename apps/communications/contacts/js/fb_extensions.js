@@ -29,10 +29,6 @@ if (typeof Contacts.extFb === 'undefined') {
       load('fb_import.html', 'friends');
     };
 
-    function open() {
-      extensionFrame.className = 'opening';
-    }
-
     function load(uri, from) {
       window.addEventListener('message', messageHandler);
       oauthFrame.contentWindow.postMessage({
@@ -261,7 +257,14 @@ if (typeof Contacts.extFb === 'undefined') {
 
       switch (data.type) {
         case 'ready':
-          open();
+          extensionFrame.className = 'opening';
+          extensionFrame.addEventListener('transitionend', function topen() {
+            extensionFrame.removeEventListener('transitionend', topen);
+            extensionFrame.contentWindow.postMessage({
+              type: 'dom_transition_end',
+              data: ''
+            }, fb.CONTACTS_APP_ORIGIN);
+          });
         break;
 
         case 'authenticated':

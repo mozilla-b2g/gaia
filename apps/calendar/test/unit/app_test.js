@@ -32,6 +32,49 @@ suite('app', function() {
     router = subject.router;
   });
 
+  test('initialization', function() {
+    assert.ok(subject.startingURL, 'has startingURL');
+  });
+
+  suite('global events', function() {
+    var calledWith;
+    var realRestart;
+    var realTimeout;
+
+    setup(function() {
+      calledWith = 0;
+      realTimeout = subject._mozTimeRefreshTimeout;
+      realRestart = Calendar.App.forceRestart;
+
+      subject._mozTimeRefreshTimeout = 1;
+      subject.forceRestart = function() {
+        calledWith++;
+      }
+    });
+
+    teardown(function() {
+      subject.forceRestart = realRestart;
+      subject._mozTimeRefreshTimeout = realTimeout;
+    });
+
+    test('moztimechange', function(done) {
+      // dispatch multiple times to ensure it only fires callback
+      // once...
+      window.dispatchEvent(new Event('moztimechange'));
+      window.dispatchEvent(new Event('moztimechange'));
+
+      setTimeout(function() {
+        window.dispatchEvent(new Event('moztimechange'));
+      }, 0);
+
+      setTimeout(function() {
+        done(function() {
+          assert.equal(calledWith, 1);
+        });
+      }, 100);
+    });
+  });
+
   test('#configure', function() {
     assert.deepEqual(subject._routeViewFn, {});
 
@@ -52,6 +95,48 @@ suite('app', function() {
 
     assert.instanceOf(subject.db, Calendar.Db);
     assert.instanceOf(subject.router, Calendar.Router);
+  });
+
+  suite('#forceRestart', function() {
+    var realLocation = window.location;
+
+    suiteSetup(function() {
+      assert.equal(subject._location, window.location);
+      subject._location = {};
+    });
+
+    suiteTeardown(function() {
+      subject._location = realLocation;
+    });
+
+    test('redirect to manifest url', function() {
+      subject.forceRestart();
+
+      assert.equal(
+        subject._location.href,
+        subject.startingURL,
+        'redirects to manifest entrypoint'
+      );
+    });
+
+    test('with pending restart', function() {
+      // begin the restart
+      subject.forceRestart();
+      var url = subject.startingURL = '/xxx';
+
+      // try again while restarting
+      subject.forceRestart();
+
+      // should fail
+      assert.notEqual(subject._location.href, url);
+
+      assert.isTrue(subject.restartPending);
+      subject.restartPending = false;
+
+      // works after pending is done
+      subject.forceRestart();
+      assert.equal(subject._location.href, url);
+    });
   });
 
   suite('#go', function() {

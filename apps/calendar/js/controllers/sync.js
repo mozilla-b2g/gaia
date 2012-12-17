@@ -46,6 +46,10 @@ Calendar.ns('Controllers').Sync = (function() {
       for (var key in account.cached) {
         this.account(account.cached[key]);
       }
+
+      // If we have nothing to sync
+      if (!this.pending)
+        this.emit('syncComplete');
     },
 
     /**

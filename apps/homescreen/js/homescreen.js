@@ -77,13 +77,14 @@ const Homescreen = (function() {
 
       // Show a different prompt if the user is trying to remove
       // a bookmark shortcut instead of an app.
+      var manifest = app.manifest || app.updateManifest;
       if (app.isBookmark) {
-        title = _('remove-title-2', { name: app.manifest.name });
-        body = _('remove-body', { name: app.manifest.name });
+        title = _('remove-title-2', { name: manifest.name });
+        body = _('remove-body', { name: manifest.name });
         confirm.title = _('remove');
       } else {
-        title = _('delete-title', { name: app.manifest.name });
-        body = _('delete-body', { name: app.manifest.name });
+        title = _('delete-title', { name: manifest.name });
+        body = _('delete-body', { name: manifest.name });
         confirm.title = _('delete');
       }
 

@@ -59,7 +59,7 @@ MockApp.prototype.mTriggerDownloadError = function(error) {
   this.downloadAvailable = true;
 
   this.downloadError = {
-    name: error || 'NETWORK_ERROR'
+    name: error || 'UNKNOWN_ERROR'
   };
 
   if (this.ondownloaderror) {
