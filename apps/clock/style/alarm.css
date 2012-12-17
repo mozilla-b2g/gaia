@@ -73,12 +73,14 @@ a.button.right {
 }
 
 a.button.right.plus {
-  width: 2.75rem;
-  height: 2.75rem;
-  background-image: url(images/add_alarm.png);
-  background-size: 100%;
-  background-repeat: no-repeat;
+  background: url(images/add_alarm.png) no-repeat center;
+  padding: 2.2rem 1.5rem;
+  height: 2.5rem;
+  width: 3.2rem;
   border: none;
+  margin: 0;
+  right: 0;
+  top: 0;
 }
 
 a.button.right.done-button {
@@ -106,8 +108,8 @@ a.abstract-menu {
   padding-left: 7.50rem;
   outline: 0;
   color: black;
-  font: 1.50rem/1.81rem 'MozTT',sans-serif;
-  padding-top: 1.25rem;
+  font: 1.9rem 'MozTT',sans-serif;
+  padding-top: 1.05rem;
   padding-bottom: 1.25rem;
 }
 
@@ -122,14 +124,15 @@ select.abstract-menu {
   text-align: center;
   text-decoration: none;
   width: 100%;
+  line-height: 4.2rem;
 }
 
 #alarm-delete-button {
   background: -moz-linear-gradient(bottom, #900010, #c90010);
   border: none;
-  height: 3.44rem;
+  height: 4.2rem;
   overflow: hidden;
-  margin: 1.5rem 1.5rem 1rem;
+  margin: 0.3rem 0 0;
   text-shadow: -1px -1px 0 #830B0B;
   border-radius: 0.19rem 0.19rem 0.19rem 0.19rem;
 }
@@ -202,13 +205,17 @@ body.hidden #alarm-view {
 }
 
 li.singleline {
-  height: 4rem;
+  height: 4.67rem;
   border-top: none;
   border-bottom: 0.06rem solid #cbcbcc;
-  padding-left: 5%;
-  padding-right: 5%;
+  padding-left: 1.2rem;
+  padding-right: 1.2rem;
   overflow: hidden;
   -moz-box-sizing: border-box;
+}
+
+li.singleline.field:active {
+  background: #B1F1FF;
 }
 
 li.multiline {
@@ -224,10 +231,14 @@ li.multiline:active {
 }
 
 li.picker {
-  height: 21.88rem;
+  position: relative;
+  height: 16.71rem;
   padding-top: 0.31rem;
+  padding-bottom: 0.5rem;
   border-top: none;
   border-bottom: none;
+  width: 27rem;
+  margin: 0 auto;
 }
 
 li.picker:active {
@@ -236,11 +247,14 @@ li.picker:active {
 }
 
 .view-alarm-lbl {
-  color: #7d7d7d;
-  font: 1.50rem/1.50rem 'MozTT',sans-serif;
-  top: 1.38rem;
-  height: auto;
+  font: 1.40rem 'MozTT',sans-serif;
   pointer-events: none;
+  margin-top: 1.4rem;
+  color: #505859;
+}
+
+.snooze-lbl {
+  margin-top: 1.5rem;
 }
 
 /* Table View */
@@ -257,23 +271,18 @@ ul {
 
 ul li { /* 6rem, including a 0.13rem border */
   position: relative;
-  height: 6.25rem;
-  border-top: 0.06rem solid #cbcbcc;
+  height: 5.8rem;
   color: #555;
 }
 
 ul li:active {
   background-color: rgba(0, 0, 0, .07);
-  text-shadow: #999 0 -0.06rem 0;
   color: #222;
 }
 
 ul li > a {
   display: block;
-  padding-top: 1rem;
   padding-bottom: 1rem;
-  height:      4.25rem; /* -moz-calc(100% - 2.50rem); */
-  line-height: 4.25rem; /* -moz-calc(100% - 2.50rem); */
   text-decoration: none;
   outline: 0;
   color: #555;
@@ -284,7 +293,6 @@ ul li > a, ul li > span, ul li > small { /* text ellipsis */
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  position: absolute;
   width: -moz-calc(100% - 8.13rem);
 }
 
@@ -301,25 +309,39 @@ ul li > small {
 }
 
 .alarmList-time {
-  float: left;
-  width: 41%;
-  padding-top: 0.75rem;
   text-align: left;
+  width: 41%;
 }
 
 .alarmList-detail {
-  float: left;
-  width: 50%;
+  position: absolute;
   text-align: left;
-  margin-left: -0.19rem;
+  width: 50%;
+  top: 0;
 }
 
 #alarms label {
   position: absolute;
-  right: 0;
-  top: 50%;
-  margin-top: -2.5rem;
   z-index: 0;
+  right: 0;
+  height: 5.8rem;
+}
+
+#alarms label input[type="checkbox"] + span {
+  background: url(images/alarm_off.png) no-repeat center top;
+  width: 3.4rem;
+  height: 3.4rem;
+}
+#alarms label input[type="checkbox"]:checked + span {
+  border-color: #00acce;
+  background: url(images/alarm_on.png) no-repeat center top;;
+}
+
+#alarms label span {
+  left: auto;
+  right: 0.5rem;
+  top: 1.2rem;
+  margin: 0;
 }
 
 /* fake input boxes for checkboxes & radio buttons */
@@ -381,7 +403,7 @@ select, input, textarea {
   background:none;
   border:0.13rem solid white;
   border-radius: 0.31rem;
-  font-size: 1em;
+  font-size: 1.9rem;
 }
 
 select:focus, input:focus, textarea:focus {
@@ -393,10 +415,13 @@ select.right {
 }
 
 input.right {
-  width: -moz-calc(100% - 12.50rem);
-  margin: 0.37rem 0.50rem 0.19rem 7.50rem;
-  height: 3.13rem;
-  font: 1.50rem/1.88rem 'MozTT',sans-serif;
+  font: 1.9rem 'MozTT',sans-serif;
+  margin: 0.37rem 0.5rem 0.19rem 6.6rem;
+  width: -moz-calc(100% - 8.5rem);
+  border: 0.06rem solid #CBCBCC;
+  padding: 0.4rem 1rem;
+  background: #FFFFFF;
+  height: 2.8rem;
   color: black;
 }
 /* ----------- Input Error ---------- */
@@ -430,18 +455,27 @@ input ~ *:empty {
   max-height: 52%;
   position: absolute;
   bottom: 0rem;
-  padding-left: 5%;
-  padding-right: 5%;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
   background-color: transparent;
   background-image: none;
 }
 
+#alarms li {
+  background: url(images/alarm_sep.png) top no-repeat;
+  padding-top: 0.2rem;
+  padding-left: 0.8rem;
+}
+
+#digital-clock-background.visible ~ #alarms.count4 li:first-child {
+  background: none;
+}
+
 #edit-alarm.tableView {
-  background: url(images/edit_background.png) repeat scroll center center;
+  background: url(images/edit_background.png) no-repeat center center;
   background-size: 100% 100%;
-  width: 100%;
-  padding-left: 0;
-  padding-right: 0;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
 }
 
 li img {
@@ -451,8 +485,6 @@ li img {
 }
 
 .description {
-  position: relative;
-  float: left;
   width: 100%;
   height: auto;
   line-height: normal;
@@ -460,41 +492,48 @@ li img {
 }
 
 .alarmList-time span.time {
+  font: lighter 2.8rem 'MozTT', sans-serif;
+  margin-right: 0.4rem;
+  color: #CFE2E5;
   height: auto;
-  font: 2.50rem/2.50rem 'MozTT', sans-serif;
-  color: black;
 }
 
 .alarmList-time span.hour24-state {
   height: auto;
-  font: 1.38rem/1.38rem 'MozTT', sans-serif;
-  color: #25292a;
+  font: 1.4rem 'MozTT', sans-serif;
+  color: #5C6466;
   margin-left: -0.25rem;
-  text-transform:lowercase;
+  text-transform: uppercase;
 }
 
 .alarmList-detail .label {
-  height: auto;
-  font: 1.50rem/1.50rem 'MozTT', sans-serif;
-  color: black;
+  font: 1.4rem 'MozTT', sans-serif;
   text-overflow: ellipsis;
-  padding-top: 0.31rem;
+  position: absolute;
+  overflow: hidden;
+  color: #737D80;
+  left: 12.5rem;
+  width: 11rem;
+  top: 1.6rem;
 }
 
 .alarmList-detail .repeat {
-  height: auto;
-  font: 1.50rem/1.50rem 'MozTT', sans-serif;
-  color: #646768;
+  font: 1.4rem 'MozTT', sans-serif;
+  text-transform: capitalize;
   text-overflow: ellipsis;
-  padding-top: 0.44rem;
+  position: absolute;
+  overflow: hidden;
+  color: #A1B0B1;
+  width: 23.6rem;
+  top: 3.4rem;
+}
+
+.alarmList-detail .comma {
+  color: #454B4C;
 }
 
 .alarmList-detail .hiddenSummary {
   display: none;
-}
-
-.alarmList-detail .paddingTop {
-  padding-top: 1.19rem;
 }
 
 .lebal {
@@ -512,13 +551,8 @@ li img {
   -moz-border-bottom-colors: #CBCBCC #FFFFFF; 
 }
 
-#picker-bar.format12h {
-  width: 85%;
-}
-
-#picker-bar.format24h {
-  width: 60%;
-}
+#picker-bar.format12h {}
+#picker-bar.format24h {}
 
 #picker-bar-gradient {
   -moz-border-top-colors:
@@ -548,36 +582,44 @@ li img {
   width: 100%;
   height: 100%;
   position: relative;
-  padding-top: 8.28rem;
+  padding-top: 5.95rem;
 }
 
 #value-indicator-wrapper {
-  -moz-border-top-colors:
-    rgba(0, 0, 0, 0.05) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.15)
-    rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.25) rgba(0, 0, 0, 0.3)
-    rgba(0, 0, 0, 0.35);
-
-  -moz-border-bottom-colors:
-    rgba(0, 0, 0, 0.05) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.15)
-    rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.25) rgba(0, 0, 0, 0.3)
-    rgba(0, 0, 0, 0.35);
-
-  border-top: solid 0.44rem;
-  border-bottom: solid 0.44rem;
+  background: url(/style/images/picker_label.png) no-repeat -6px 0;
   position: absolute;
-  height: 4.50rem;
+  top: 5.6rem;
+  height: 6rem;
   width: 100%;
   pointer-events: none;
 }
 
-#value-indicator-hover-time {
-  pointer-events: none;
-  background-color: #00A5C5;
-  color: #FFF;
+#value-indicator-left,
+#value-indicator-right {
+  background: url(/style/images/picker_label.png) no-repeat 0 0;
   position: absolute;
-  height: 100%;
-  font: 1.88rem/3.75rem 'MozTT',sans-serif;
+  width: 0.6rem;
+  height: 6rem;
+  top: 5.6rem;
+}
+
+#value-indicator-left {
+  left: -0.5rem;
+}
+
+#value-indicator-right {
+  background-position: top right;
+  right: -0.5rem;
+}
+
+#value-indicator-hover-time {
+  font: lighter 1.88rem/3.75rem 'MozTT',sans-serif;
+  pointer-events: none;
+  position: absolute;
   text-align: center;
+  line-height: 5.6rem;
+  height: 100%;
+  color: #FFF;
 }
 
 #picker-bar.format12h #value-indicator-hover-time {
@@ -590,10 +632,9 @@ li img {
 
 #value-indicator-hover {
   pointer-events: none;
-  background-color: #00A5C5;
   position: absolute;
-  width: 34%;
   height: 100%;
+  width: 34%;
   right:0;
 }
 
@@ -655,13 +696,19 @@ div.animation-on {
 
 .picker-unit {
   position: relative;
-  font: 2.13rem/5.3rem 'MozTT',sans-serif;
+  font: 2.2rem 'MozTT',sans-serif;
   color: black;
   text-align: center;
   vertical-align: middle;
   width: 100%;
   height: 5.3rem;
+  line-height: 5.3rem;
   pointer-events: none;
+  /*-moz-transition: font-size 0.5s ease;*/
+}
+.picker-unit.active {
+  color: #FFFFFF;
+  font-size: 3.2rem;
 }
 
 #picker-bar-background {
