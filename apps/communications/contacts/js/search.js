@@ -6,10 +6,14 @@ contacts.Search = (function() {
   var favoriteGroup,
       inSearchMode = false,
       conctactsListView,
+      searchView,
+      CONTACTS_SELECTOR = ".contact-item:not([data-uuid='#id#'])," +
+                              ".block-item:not([data-uuid='#uid#'])",
       list,
       searchBox,
       searchList,
       searchNoResult,
+      searchProgress,
       contactNodes = null,
       // On the steady state holds the list result of the current search
       searchableNodes = null,
@@ -26,10 +30,15 @@ contacts.Search = (function() {
       SEARCH_PAGE_SIZE = 7,
       // Search result will not be showing more than HARD_LIMIT contacts
       HARD_LIMIT = 25,
+      emptySearch = true,
+      remainingPending = true,
       imgLoader;
 
   var init = function load(_conctactsListView, _groupFavorites, _clickHandler) {
     conctactsListView = _conctactsListView;
+
+    searchView = document.getElementById('search-view');
+
     favoriteGroup = _groupFavorites;
     searchBox = document.getElementById('search-contact');
     searchList = document.getElementById('search-list');
@@ -40,6 +49,7 @@ contacts.Search = (function() {
       blurList = true;
     });
     searchNoResult = document.getElementById('no-result');
+    searchProgress = document.getElementById('search-progress');
     list = document.getElementById('groups-list');
     searchBox.addEventListener('blur', function() {
       window.setTimeout(onSearchBlur, 0);
@@ -49,35 +59,28 @@ contacts.Search = (function() {
       blurList = false;
     });
 
-    imgLoader = new ImageLoader('#search-list', 'li');
+    imgLoader = new ImageLoader('#groups-list-search', 'li');
   }
 
   //Search mode instructions
   var exitSearchMode = function exitSearchMode(evt) {
-    window.removeEventListener('input', onInput);
+    evt.preventDefault();
+    searchView.classList.remove('insearchmode');
 
-    if (evt) {
-      evt.preventDefault();
-    }
     window.setTimeout(function exit_search() {
-      searchNoResult.classList.add('hide');
-      conctactsListView.classList.remove('searching');
-      conctactsListView.classList.remove('nonemptysearch');
-      searchBox.value = '';
-      inSearchMode = false;
-      // Show elements that were hidden for the search
-      if (favoriteGroup) {
-        favoriteGroup.classList.remove('hide');
-      }
+      hideProgressResults();
 
+      searchBox.value = '';
       // Resetting state
       contactNodes = null;
       searchList.innerHTML = '';
       searchTextCache = {};
       resetState();
-    },0);
 
-    return false;
+      inSearchMode = false;
+    }, 0);
+
+    window.removeEventListener('input', onInput);
   };
 
   function resetState() {
@@ -89,32 +92,80 @@ contacts.Search = (function() {
     // We don't know if the user will launch a new search later
     theClones = {};
     searchList.innerHTML = '';
+    emptySearch = true;
+    remainingPending = true;
   }
 
   function addRemainingResults(nodes,from) {
-    for (var i = from; i < from + CHUNK_SIZE &&
-                                    i < HARD_LIMIT && i < nodes.length; i++) {
+    if (remainingPending !== true) {
+      return;
+    }
+
+    var fragment = document.createDocumentFragment();
+
+    for (var i = from; i < HARD_LIMIT && i < nodes.length; i++) {
       var node = nodes[i].node;
       var clon = getClone(node);
-      searchList.appendChild(clon);
+      fragment.appendChild(clon);
       currentSet[node.dataset.uuid] = clon;
     }
 
-    if (i < HARD_LIMIT && i < nodes.length && blurList) {
-      window.setTimeout(function add_remaining() {
-        addRemainingResults(nodes, from + CHUNK_SIZE);
-      },0);
+    if (fragment.hasChildNodes()) {
+      searchList.appendChild(fragment);
+      imgLoader.reload();
     }
 
-    imgLoader.reload();
+    remainingPending = false;
   }
 
   function onSearchBlur(e) {
     if (canReuseSearchables && searchableNodes &&
-        conctactsListView.classList.contains('nonemptysearch') && blurList) {
+        searchView.classList.contains('insearchmode') && blurList) {
       // All the searchable nodes have to be added
       addRemainingResults(searchableNodes, SEARCH_PAGE_SIZE);
     }
+    else if (emptySearch === true && remainingPending === true) {
+      var lastNode = searchList.querySelector('li:last-child');
+      if (lastNode) {
+        var lastNodeUid = lastNode.dataset.uuid;
+        var startNode = getNextContactNode(conctactsListView.querySelector
+                            ('[data-uuid="' + lastNodeUid + '"]'));
+        fillIdentityResults(startNode, HARD_LIMIT - SEARCH_PAGE_SIZE);
+        remainingPending = false;
+
+        imgLoader.reload();
+      }
+    }
+  }
+
+  function fillIdentityResults(startNode, number) {
+    var fragment = document.createDocumentFragment();
+
+    var contact = startNode;
+    for (var i = 0; i < number && contact; i++) {
+      var clonedNode = getClone(contact);
+      fragment.appendChild(clonedNode);
+      currentSet[contact.dataset.uuid] = clonedNode;
+      contact = getNextContactNode(contact);
+    }
+
+    if (fragment.hasChildNodes()) {
+      searchList.appendChild(fragment);
+    }
+  }
+
+  // Traverses the contact list trying to find the next node
+  // Avoids a querySelectorAll which would cause performance problems
+  function getNextContactNode(contact) {
+    var out = contact.nextElementSibling;
+    var nextParent = contact.parentNode.parentNode.nextElementSibling;
+
+    while (!out && nextParent) {
+      out = nextParent.querySelector('ol > li:first-child');
+      nextParent = nextParent.nextElementSibling;
+    }
+
+    return out;
   }
 
   function getClone(node) {
@@ -134,22 +185,34 @@ contacts.Search = (function() {
   }
 
   function onInput(e) {
-    if(e.target.id === searchBox.id) {
+    if (e.target.id === searchBox.id) {
       search();
     }
   }
 
-  var enterSearchMode = function searchMode() {
-    window.setTimeout(function enter_search() {
-      if (!inSearchMode) {
-        inSearchMode = true;
-        conctactsListView.classList.add('searching');
-        cleanContactsList();
-        window.addEventListener('input', onInput);
-      }
-    }, 0);
-    return false;
+  var enterSearchMode = function searchMode(evt) {
+    evt.preventDefault();
+
+    if (!inSearchMode) {
+      window.addEventListener('input', onInput);
+      searchView.classList.add('insearchmode');
+      fillInitialSearchPage();
+      inSearchMode = true;
+      emptySearch = true;
+
+      // And now that everything is ready let's paint the keyboard
+      searchBox.focus();
+    }
   };
+
+  function fillInitialSearchPage() {
+    hideProgressResults();
+
+    var firstContact = conctactsListView.querySelector(CONTACTS_SELECTOR);
+    fillIdentityResults(firstContact, SEARCH_PAGE_SIZE);
+
+    imgLoader.reload();
+  }
 
   function doSearch(contacts, from, searchText, pattern, state) {
     var end = from + CHUNK_SIZE;
@@ -166,7 +229,7 @@ contacts.Search = (function() {
           }
         } else {
           if (state.count === 0) {
-            searchNoResult.classList.add('hide');
+            hideProgressResults();
           }
           // Only an initial page of elements is loaded in the search list
           if (Object.keys(currentSet).length
@@ -190,16 +253,22 @@ contacts.Search = (function() {
         }, 0);
       } else {
         if (state.count === 0) {
-          searchNoResult.classList.remove('hide');
+          showNoResults();
+
           canReuseSearchables = false;
         } else {
-          document.dispatchEvent(new CustomEvent('onupdate'));
           imgLoader.reload();
           searchableNodes = state.searchables;
           canReuseSearchables = true;
+          // If the user wished to scroll let's add the remaining results
+          if (blurList === true) {
+            window.setTimeout(function() {
+              addRemainingResults(searchableNodes, SEARCH_PAGE_SIZE);
+            },0);
+          }
         }
 
-        if(typeof state.searchDoneCb === 'function') {
+        if (typeof state.searchDoneCb === 'function') {
           state.searchDoneCb();
         }
       }
@@ -217,11 +286,14 @@ contacts.Search = (function() {
     var thisSearchText = new String(currentTextToSearch);
 
     if (thisSearchText.length === 0) {
-      conctactsListView.classList.remove('nonemptysearch');
       resetState();
+      window.setTimeout(fillInitialSearchPage, 0);
     }
     else {
-      conctactsListView.classList.add('nonemptysearch');
+      showProgress();
+      emptySearch = false;
+      // The remaining results have not been added yet
+      remainingPending = true;
       var pattern = new RegExp(thisSearchText, 'i');
       var contactsToSearch = getContactsToSearch(thisSearchText,
                                                prevTextToSearch);
@@ -240,9 +312,9 @@ contacts.Search = (function() {
     var out = '';
 
     var uuid = contact.dataset.uuid;
-    if(uuid) {
+    if (uuid) {
       out = searchTextCache[uuid];
-      if(!out) {
+      if (!out) {
         var body = contact.querySelector('[data-search]');
         out = body ? body.dataset['search'] : contact.dataset['search'];
         searchTextCache[uuid] = out;
@@ -255,19 +327,10 @@ contacts.Search = (function() {
     return out;
   }
 
-  var cleanContactsList = function cleanContactsList() {
-    if (favoriteGroup) {
-      favoriteGroup.classList.add('hide');
-    }
-  };
-
   var getContactsDom = function contactsDom() {
     if (!contactNodes) {
-      var itemsSelector = ".contact-item:not([data-uuid='#id#'])," +
-                        ".block-item:not([data-uuid='#uid#'])";
-      contactNodes = list.querySelectorAll(itemsSelector);
+      contactNodes = list.querySelectorAll(CONTACTS_SELECTOR);
     }
-
     return contactNodes;
   }
 
@@ -290,11 +353,26 @@ contacts.Search = (function() {
     return inSearchMode;
   }
 
+  function showProgress() {
+    searchNoResult.classList.add('hide');
+    searchProgress.classList.remove('hidden');
+  }
+
+  function showNoResults() {
+    searchNoResult.classList.remove('hide');
+    searchProgress.classList.add('hidden');
+  }
+
+  function hideProgressResults() {
+    searchNoResult.classList.add('hide');
+    searchProgress.classList.add('hidden');
+  }
+
   // When the cancel button inside the input is clicked
   document.addEventListener('cancelInput', function() {
     searchBox.focus();
-    conctactsListView.classList.remove('nonemptysearch');
     resetState();
+    window.setTimeout(fillInitialSearchPage, 0);
   });
 
   return {

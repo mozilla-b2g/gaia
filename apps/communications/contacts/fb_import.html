@@ -41,6 +41,7 @@
     <link rel="stylesheet" href="style/shared/core/css/root.css">
 
     <!-- Building Blocks -->
+    <link href="/shared/style_unstable/progress_activity.css" rel="stylesheet">
     <link href="/shared/style/status.css" rel="stylesheet">
     <link href="/shared/style/headers.css" rel="stylesheet">
     <link href="/shared/style/input_areas.css" rel="stylesheet">
@@ -85,8 +86,8 @@
         <section id='mainContent' data-state="selection">
           <form id="search-container" role="search" class="search">
             <p>
-              <label for="search-contact">
-                <input type="search" name="search" class="textfield" placeholder="Search" data-l10n-id="search-contact" />
+              <label for="search" id="search-start">
+                <input type="search" name="search" class="textfield" placeholder="Search" data-l10n-id="search-contact">
               </label>
             </p>
           </form>
@@ -101,34 +102,36 @@
               <ol id="contacts-list-#group#">
                 <li data-template data-uuid="#uid#" data-search="#search#" aria-disabled="false" class="block-item">
                   <label>
-                    <input type="checkbox" name="#uid#">
+                    <input type="checkbox" name="#uid#"></input>
                     <span></span>
                   </label>
                   <aside class="pack-end">
-                    <img data-src="https://graph.facebook.com/#uid#/picture?type=square">
+                    <img data-src="https://graph.facebook.com/#uid#/picture?type=square"></img>
                   </aside>
                   <p><strong>#givenName#</strong> #familyName#</p>
                   <p>#email1#</p>
                 </li>
               </ol>
-          </section> <!-- group template content -->
-        </section> <!-- mainContent -->
+           </section> <!-- group template content -->
+          </section> <!-- groupsList -->
 
-        <form role="dialog" data-type="confirm" class="no-overlay">
-          <menu id="select-all-wrapper">
-            <button id="deselect-all" class="edit-button" data-l10n-id="deselectAll">
-              Deselect all
-            </button>
-            <button id="select-all" class="edit-button" data-l10n-id="selectAll">
-              Select all
-            </button>
-          </menu>
-        </form>
-      </section> <!-- main -->
+          <form role="dialog" data-type="confirm" class="no-overlay">
+            <menu id="select-all-wrapper">
+              <button id="deselect-all" class="edit-button" data-l10n-id="deselectAll">
+                Deselect all
+              </button>
+              <button id="select-all" class="edit-button" data-l10n-id="selectAll">
+                Select all
+              </button>
+            </menu>
+          </form>
+
+      </section> <!-- mainContent -->
 
       <section id='fixed-container' class='fixed-title-fb'></section>
+      </section> <!-- main -->
 
-      <section id="search-view" class="view">
+      <section id="search-view" class="view" role="region">
         <form id="searchview-container" role="search" class="search">
            <button id='done-search' type="submit" data-l10n-id="done-search">Done</button>
            <p>
@@ -139,17 +142,24 @@
              </label>
            </p>
         </form>
-        <section id="groups-list-search" data-type="list">
-          <p id="no-result" class="hide" data-l10n-id="noResults">No contacts found</p>
-          <ol id="search-list">
+        <section id="groups-list-search">
+          <ol id="search-list" data-type="list">
           </ol>
         </section>
+
+        <section>
+          <p id="no-result" class="hide" data-l10n-id="noResults">No contacts found</p>
+          <p id="search-progress" class="hidden" role="status">
+            <progress  class="small"></progress>
+          </p>
+        </section>
+
       </section> <!-- search-view section -->
 
-    </section> <!-- role="region" -->
+      <section id="statusMsg" role="status">
+        <p></p>
+      </section>
 
-    <section id="statusMsg" role="status">
-      <p></p>
-    </section>
+    </section> <!-- role region -->
   </body>
 </html>
