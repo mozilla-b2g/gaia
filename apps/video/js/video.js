@@ -6,7 +6,7 @@ var ids = ['player', 'thumbnails', 'overlay', 'overlay-title',
            'overlay-text', 'videoControls', 'videoFrame', 'videoBar',
            'close', 'play', 'playHead', 'timeSlider', 'elapsedTime',
            'video-title', 'duration-text', 'elapsed-text', 'bufferedTime',
-           'slider-wrapper', 'throbber', 'delete-video-button'];
+           'slider-wrapper', 'throbber', 'delete-video-button', 'delete-confirmation-button'];
 
 ids.forEach(function createElementRef(name) {
   dom[toCamelCase(name)] = document.getElementById(name);
@@ -88,6 +88,8 @@ function init() {
     event.detail.forEach(videoDeleted);
   };
 
+  dom.deleteConfirmationButton.addEventListener('click', deleteSelectedVideoFile, false);
+
   appStarted = true;
 }
 
@@ -129,7 +131,7 @@ function videoAdded(videodata) {
 
   thumbnail.appendChild(title);
   thumbnail.appendChild(duration);
-  thumbnail.setAttribute('data-name', videodata.name);
+  thumbnail.dataset.name = videodata.name;
 
   var hr = document.createElement('hr');
   thumbnail.appendChild(hr);
@@ -149,14 +151,23 @@ function videoAdded(videodata) {
   dom.thumbnails.appendChild(thumbnail);
 }
 
-dom.thumbnails.addEventListener('contextmenu', function() {
+dom.thumbnails.addEventListener('contextmenu', function(evt) {
+  var node = evt.target;
+  var found = false;
+  while (!found && node) { 
+    if (node.dataset.name) { 
+      found = true;
+      selectedVideo = node.dataset.name;
+    } else { 
+      node = node.parentNode;
+    }
+  }
   ctxTriggered = true;
 });
 
 function deleteSelectedVideoFile() {
   if (selectedVideo) {
     deleteFile(selectedVideo);
-    selectedVideo = null;
   }
 }
 
@@ -169,8 +180,9 @@ function deleteFile(file) {
 }
 
 function videoDeleted(filename) {
-  videoCount -= 1;
+  videoCount--;
   dom.thumbnails.removeChild(getThumbnailDom(filename));
+  updateDialog();
 }
 
 // Only called on startup to generate initial list of already
@@ -762,7 +774,7 @@ function actHandle(activity) {
       fromMediaDB: false,
       name: filename,
       title: title
-    }
+    };
     break;
   case 'view':
     activityData = {
