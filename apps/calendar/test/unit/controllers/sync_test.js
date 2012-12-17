@@ -57,6 +57,11 @@ suite('controllers/sync', function() {
     assert.equal(subject.pending, 0);
   });
 
+  test('sync all, no accounts', function(done) {
+    subject.once('syncComplete', done);
+    subject.all();
+  });
+
   suite('#all', function() {
     var list = [];
 

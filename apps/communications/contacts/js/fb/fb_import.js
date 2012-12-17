@@ -187,15 +187,21 @@ if (typeof fb.importer === 'undefined') {
       imgLoader = new ImageLoader('#mainContent',
                                 ".block-item:not([data-uuid='#uid#'])");
 
-      Curtain.hide(sendReadyEvent);
-
       friendsLoaded = true;
 
       if (contactsLoaded) {
-        window.setTimeout(startSync, 0);
+        window.addEventListener('message', function importOnViewPort(e) {
+          var data = e.data;
 
+          if (data && data.type === 'dom_transition_end') {
+            window.removeEventListener('message', importOnViewPort);
+            window.setTimeout(startSync, 0);
+          }
+        });
         markExisting(existingFbContacts);
       }
+
+      Curtain.hide(sendReadyEvent);
     }
 
     function sendReadyEvent() {
