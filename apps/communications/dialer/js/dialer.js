@@ -1,21 +1,6 @@
 'use strict';
 
 var CallHandler = (function callHandler() {
-  var telephony = navigator.mozTelephony;
-  if (!telephony)
-    return;
-  telephony.oncallschanged = function oncallschanged() {
-    if (callScreenWindowLoaded) {
-      if (telephony.calls.length === 0)
-        // Calls might be ended before callscreen registers call-related
-        // events. We send a message to notify callscreen of exiting when
-        // there are no calls.
-        sendCommandToCallScreen('*', 'exitCallScreen');
-    }
-  };
-
-  var conn = navigator.mozMobileConnection;
-
   var callScreenWindow = null;
   var callScreenWindowLoaded = false;
   var currentActivity = null;
@@ -103,19 +88,22 @@ var CallHandler = (function callHandler() {
 
   /* === Recents support === */
   function handleRecentAddRequest(entry) {
-    RecentsDBManager.init(function() {
-      RecentsDBManager.add(entry, function() {
-        RecentsDBManager.close();
-
-        if (Recents) {
+    Recents.load(function recentsLoaded() {
+      RecentsDBManager.init(function() {
+        RecentsDBManager.add(entry, function() {
+          RecentsDBManager.close();
           Recents.refresh();
-        }
+        });
       });
     });
   }
 
   /* === Incoming and STK calls === */
   function newCall() {
+    // We need to query mozTelephony a first time here
+    // see bug 823958
+    var telephony = navigator.mozTelephony;
+
     openCallScreen();
   }
   window.navigator.mozSetMessageHandler('telephony-new-call', newCall);
@@ -215,6 +203,8 @@ var CallHandler = (function callHandler() {
 
   function startDial(number) {
     var sanitizedNumber = number.replace(/-/g, '');
+
+    var telephony = navigator.mozTelephony;
     if (telephony) {
       var call = telephony.dial(sanitizedNumber);
 
@@ -308,6 +298,8 @@ var CallHandler = (function callHandler() {
                   'call_screen', 'attention');
       callScreenWindow.onload = function onload() {
         callScreenWindowLoaded = true;
+
+        var telephony = navigator.mozTelephony;
         if (telephony.calls.length === 0) {
           // Calls might be ended before callscreen is comletedly loaded,
           // so that callscreen will miss call-related events. We send a

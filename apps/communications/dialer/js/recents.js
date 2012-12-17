@@ -76,6 +76,12 @@ var Recents = {
       getElementById('add-contact-action-menu');
   },
 
+  get recentsEditMenu() {
+    delete this.recentsEditMenu;
+    return this.recentsEditMenu = document.
+      getElementById('edit-mode');
+  },
+
   get callMenuItem() {
     delete this.callMenuItem;
     return this.callMenuItem = document.
@@ -100,17 +106,65 @@ var Recents = {
       getElementById('cancel-action-menu');
   },
 
-  load: function re_load() {
-    if (this._loaded)
+  load: function re_load(callback) {
+    if (this._loaded) {
+      if (callback) {
+        callback();
+      }
       return;
+    }
 
     this._loaded = true;
 
-    LazyL10n.get(function localized() {
-      var headerSelector = '#recents-container h2';
-      FixedHeader.init('#recents-container',
-                       '#fixed-container', headerSelector);
-      Recents.init();
+    // Time to load the external css/js
+    var stylesheets = [
+      '/dialer/style/commslog.css',
+      '/dialer/style/fixed_header.css',
+      '/shared/style/headers.css',
+      '/shared/style/switches.css',
+      '/shared/style/edit_mode.css',
+      '/shared/style/action_menu.css'
+    ];
+    stylesheets.forEach(function cssIterator(url) {
+      var link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = url;
+      document.head.appendChild(link);
+    });
+
+    var scripts = [
+      '/dialer/js/fixed_header.js',
+      '/dialer/js/utils.js',
+      '/dialer/js/recents_db.js',
+    ];
+
+    var scriptLoadCount = 0;
+    var scriptLoaded = (function() {
+      scriptLoadCount++;
+
+      // All the scripts are now loaded
+      if (scriptLoadCount === scripts.length) {
+        var headerSelector = '#recents-container h2';
+        FixedHeader.init('#recents-container',
+                         '#fixed-container', headerSelector);
+
+
+        this.init();
+        this.recentsView.classList.remove('hidden');
+        this.addContactActionMenu.hidden = false;
+        this.recentsEditMenu.hidden = false;
+
+        if (callback) {
+          callback();
+        }
+      }
+    }).bind(this);
+
+    scripts.forEach(function scriptIterator(url) {
+      var script = document.createElement('script');
+      script.src = url;
+      script.onload = scriptLoaded;
+      document.head.appendChild(script);
     });
   },
 
@@ -188,14 +242,13 @@ var Recents = {
 
   // Refresh can be called on an unloaded Recents
   refresh: function re_refresh() {
-    if (!this._loaded) {
-      this.load();
-    }
-
-    RecentsDBManager.init(function() {
-      RecentsDBManager.get(function(recents) {
-        LazyL10n.get(function localized() {
-          Recents.render(recents);
+    this.load(function loaded() {
+      RecentsDBManager.init(function() {
+        RecentsDBManager.get(function(recents) {
+          // We need l10n to be loaded before rendering
+          LazyL10n.get(function localized() {
+            Recents.render(recents);
+          });
         });
       });
     });
@@ -670,6 +723,11 @@ var Recents = {
   },
 
   updateContactDetails: function re_updateContactDetails() {
+    // If we're not loaded yet, nothing to update
+    if (!this._loaded) {
+      return;
+    }
+
     var itemSelector = '.log-item:not(.hide)',
       callLogItems = document.querySelectorAll(itemSelector);
     for (var i = 0; i < callLogItems.length; i++) {
@@ -800,6 +858,10 @@ var Recents = {
   },
 
   updateHighlighted: function re_updateHighlighted() {
+    // No need to update if we're not loaded yet
+    if (!this._loaded)
+      return;
+
     var itemSelector = '.log-item.highlighted',
       items = document.querySelectorAll(itemSelector),
       itemsLength = items.length;
