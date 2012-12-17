@@ -399,6 +399,11 @@ suite('system/Updatable', function() {
           assert.isNotNull(MockUpdateManager.mLastDownloadsRemoval);
           assert.equal(subject, MockUpdateManager.mLastDownloadsRemoval);
         });
+
+        test('should remove self from update queue', function() {
+          assert.isNotNull(MockUpdateManager.mLastUpdatesRemoval);
+          assert.equal(subject, MockUpdateManager.mLastUpdatesRemoval);
+        });
       });
 
       suite('update-progress', function() {

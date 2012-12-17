@@ -150,6 +150,7 @@ SystemUpdatable.prototype.handleEvent = function(evt) {
 SystemUpdatable.prototype.errorCallBack = function() {
   UpdateManager.requestErrorBanner();
   UpdateManager.removeFromDownloadsQueue(this);
+  UpdateManager.removeFromUpdatesQueue(this);
 };
 
 SystemUpdatable.prototype.showApplyPrompt = function() {
