@@ -81,7 +81,7 @@ ul[role="tablist"][data-type="filter"] > [role="tab"].selected > a {
 }
 
 .view-body .fixed-title {
-  margin-left: 1.5rem;
+  background-position: 1.5rem 0;
   height: 3.5rem;
 }
 
@@ -130,7 +130,6 @@ ul[role="tablist"][data-type="filter"] > [role="tab"].selected > a {
   float: left;
   height: 100%;
   width: 5rem;
-
 }
 
 .icon-incoming {
