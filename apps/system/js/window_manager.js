@@ -478,28 +478,29 @@ var WindowManager = (function() {
     }
 
     // Get the screenshot from the database
-    getAppScreenshotFromDatabase(frame.src, function(screenshot) {
-      // If firstpaint is faster than database, we will not transition
-      // with screenshot.
-      if (!('unpainted' in frame.dataset)) {
+    getAppScreenshotFromDatabase(frame.src || frame.dataset.frameOrigin,
+      function(screenshot) {
+        // If firstpaint is faster than database, we will not transition
+        // with screenshot.
+        if (!('unpainted' in frame.dataset)) {
+          callback();
+          return;
+        }
+
+        if (!screenshot) {
+          // put a default background
+          frame.classList.add('default-background');
+          callback();
+          return;
+        }
+
+        // set the screenshot as the background of the frame itself.
+        // we are safe to do so since there is nothing on it yet.
+        setFrameBackgroundBlob(frame, screenshot, transparent);
+
+        // start the transition
         callback();
-        return;
-      }
-
-      if (!screenshot) {
-        // put a default background
-        frame.classList.add('default-background');
-        callback();
-        return;
-      }
-
-      // set the screenshot as the background of the frame itself.
-      // we are safe to do so since there is nothing on it yet.
-      setFrameBackgroundBlob(frame, screenshot, transparent);
-
-      // start the transition
-      callback();
-    });
+      });
   }
 
   // On-disk database for window manager.
@@ -1049,6 +1050,9 @@ var WindowManager = (function() {
     // Note that we don't set the frame size here.  That will happen
     // when we display the app in setDisplayedApp()
 
+    // frames are began unpainted.
+    frame.dataset.unpainted = true;
+
     if (!manifestURL) {
       frame.setAttribute('data-wrapper', 'true');
       return frame;
@@ -1058,9 +1062,6 @@ var WindowManager = (function() {
     // They also need to be marked as 'mozapp' to be recognized as apps by the
     // platform.
     frame.setAttribute('mozbrowser', 'true');
-
-    // frames are began unpainted.
-    frame.dataset.unpainted = true;
 
     // These apps currently have bugs preventing them from being
     // run out of process. All other apps will be run OOP.
