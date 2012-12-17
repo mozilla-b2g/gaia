@@ -210,6 +210,30 @@ fb.getAddress = function(fbdata) {
   return out;
 };
 
+// The contact is now totally unlinked
+// [...,facebook, fb_not_linked, 123456,....]
+fb.markAsUnlinked = function(devContact) {
+  var category = devContact.category;
+  var updatedCategory = [];
+
+  if (category) {
+    var idx = category.indexOf(fb.CATEGORY);
+    if (idx !== -1) {
+      for (var c = 0; c < idx; c++) {
+        updatedCategory.push(category[c]);
+      }
+      // The facebook category, the linked mark and the UID are skipped
+      for (var c = idx + 3; c < category.length; c++) {
+         updatedCategory.push(category[c]);
+      }
+    }
+  }
+
+  devContact.category = updatedCategory;
+
+  return devContact;
+};
+
 // Merge done specifically for dialer and Call Log apps
 fb.mergeContact = function(devContact, fbContact) {
   var fbPhotos = fbContact.photo;
