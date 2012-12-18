@@ -615,22 +615,15 @@ html, body {
   vertical-align: middle;
 }
 
-#browser_privacy .logo_container {
-  margin: 1rem 0 2.5rem 0;
-}
-
-#browser_privacy .logo_title {
-  font-size: 1.8rem;
-  margin-left: 1rem;
-  font-weight: 500;
-}
-
 #browser_privacy p {
   margin: 0;
   color: #000;
   padding: 0 0 2rem 0;
   font-size: 1.35rem;
   line-height: 1.8rem;
+}
+#browser_privacy p:first-child {
+  margin-top: 2rem;
 }
 
 #browser_privacy p a {
