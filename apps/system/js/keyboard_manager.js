@@ -30,6 +30,7 @@ var KeyboardManager = (function() {
 
   // Listen for mozbrowserlocationchange of keyboard iframe.
   var previousHash = '';
+  var height = 0;
 
   var urlparser = document.createElement('a');
   keyboard.addEventListener('mozbrowserlocationchange', function(e) {
@@ -43,10 +44,11 @@ var KeyboardManager = (function() {
       case '#show':
         var updateHeight = function updateHeight() {
           container.removeEventListener('transitionend', updateHeight);
+          height = parseInt(type[1]);
 
           var detail = {
             'detail': {
-              'height': parseInt(type[1])
+              'height': height
             }
           };
 
@@ -65,6 +67,7 @@ var KeyboardManager = (function() {
       case '#hide':
         // inform window manager to resize app first or
         // it may show the underlying homescreen
+        height = 0;
         dispatchEvent(new CustomEvent('keyboardhide'));
         container.classList.add('hide');
         break;
@@ -77,5 +80,11 @@ var KeyboardManager = (function() {
       dispatchEvent(new CustomEvent('keyboardhide'));
       container.classList.add('hide');
   });
+
+  return {
+    get height() {
+      return height;
+    }
+  };
 })();
 

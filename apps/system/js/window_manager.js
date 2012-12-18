@@ -178,6 +178,7 @@ var WindowManager = (function() {
     if ('wrapper' in frame.dataset) {
       cssHeight -= 10;
     }
+    cssHeight -= KeyboardManager.height;
     cssHeight += 'px';
 
     if (!screenElement.classList.contains('attention') &&
@@ -1322,17 +1323,18 @@ var WindowManager = (function() {
           // in the app frame. But we don't care.
           appendFrame(null, origin, e.detail.url,
                       name, app.manifest, app.manifestURL);
+
+          // set the size of the iframe
+          // so Cards View will get a correct screenshot of the frame
+          if (!e.detail.isActivity)
+            setAppSize(origin, false);
         } else {
           ensureHomescreen();
         }
 
         // We will only bring web activity handling apps to the foreground
-        if (!e.detail.isActivity) {
-          // set the size of the iframe
-          // so Cards View will get a correct screenshot of the frame
-          setAppSize(origin, false);
+        if (!e.detail.isActivity)
           return;
-        }
 
         // XXX: the correct way would be for UtilityTray to close itself
         // when there is a appwillopen/appopen event.
