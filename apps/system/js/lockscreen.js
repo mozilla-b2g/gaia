@@ -138,12 +138,19 @@ var LockScreen = {
       self.setEnabled(value);
     });
 
-    SettingsListener.observe('audio.volume.master', 5, function(volume) {
-      self.mute.hidden = !!volume;
+    SettingsListener.observe('ring.enabled', true, function(value) {
+      self.mute.hidden = value;
     });
 
-    SettingsListener.observe(
-      'ril.radio.disabled', false, function(value) {
+    SettingsListener.observe('vibration.enabled', true, function(value) {
+      if (value) {
+        self.mute.classList.add('vibration');
+      } else {
+        self.mute.classList.remove('vibration');
+      }
+    });
+
+    SettingsListener.observe('ril.radio.disabled', false, function(value) {
       self.airplaneMode = value;
       self.updateConnState();
     });

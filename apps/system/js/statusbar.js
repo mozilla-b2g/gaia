@@ -77,8 +77,9 @@ var StatusBar = {
       'tethering.wifi.enabled': ['tethering'],
       'tethering.wifi.connectedClients': ['tethering'],
       'tethering.usb.connectedClients': ['tethering'],
-      'audio.volume.master': ['mute'],
+      'ring.enabled': ['mute'],
       'alarm.enabled': ['alarm'],
+      'vibration.enabled': ['vibration'],
       'ril.cf.unconditional.enabled': ['callForwarding']
     };
 
@@ -451,7 +452,16 @@ var StatusBar = {
 
     mute: function sb_updateMute() {
       this.icons.mute.hidden =
-        (this.settingValues['audio.volume.master'] !== 0);
+        (this.settingValues['ring.enabled'] == true);
+    },
+
+    vibration: function sb_vibration() {
+      var vibrate = (this.settingValues['vibration.enabled'] == true);
+      if (vibrate) {
+        this.icons.mute.classList.add('vibration');
+      } else {
+        this.icons.mute.classList.remove('vibration');
+      }
     },
 
     recording: function sb_updateRecording() {

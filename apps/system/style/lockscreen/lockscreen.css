@@ -200,6 +200,10 @@
   background: transparent url('./images/mute.png') center center no-repeat;
 }
 
+#lockscreen-mute.vibration {
+  background: transparent url('./images/vibration.png') center center no-repeat;
+}
+
 .lockscreen-clock {
 	margin: -0.8rem 0 -1rem -0.4rem;
 	font-weight: 300;
