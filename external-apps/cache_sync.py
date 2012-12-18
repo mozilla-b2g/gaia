@@ -14,8 +14,10 @@ def read_manifest():
 
 
 def read_origin():
-    # Extract the origin from the origin file
-    return open('origin', 'r').readline().rstrip()
+    # Extract the origin from the metadata.json file
+    file = open('metadata.json', 'r').read()
+    content = json.loads(file)
+    return content['origin']
 
 
 def parse_offline_manifest(s, origin):
