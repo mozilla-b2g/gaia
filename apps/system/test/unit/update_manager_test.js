@@ -14,6 +14,7 @@ requireApp('system/test/unit/mock_statusbar.js');
 requireApp('system/test/unit/mock_notification_screen.js');
 requireApp('system/test/unit/mock_navigator_settings.js');
 requireApp('system/test/unit/mock_navigator_wake_lock.js');
+requireApp('system/test/unit/mock_l10n.js');
 
 requireApp('system/test/unit/mocks_helper.js');
 
@@ -59,14 +60,7 @@ suite('system/UpdateManager', function() {
     navigator.mozSettings = MockNavigatorSettings;
 
     realL10n = navigator.mozL10n;
-    navigator.mozL10n = {
-      get: function get(key, params) {
-        if (params)
-          return key + JSON.stringify(params);
-
-        return key;
-      }
-    };
+    navigator.mozL10n = MockL10n;
 
     realRequestWakeLock = navigator.requestWakeLock;
     navigator.requestWakeLock = MockNavigatorWakeLock.requestWakeLock;
@@ -161,6 +155,7 @@ suite('system/UpdateManager', function() {
     UpdateManager.updatesQueue = [];
     UpdateManager.downloadsQueue = [];
     UpdateManager._downloading = false;
+    UpdateManager._uncompressing = false;
     UpdateManager.container = null;
     UpdateManager.message = null;
     UpdateManager.toaster = null;
@@ -318,10 +313,14 @@ suite('system/UpdateManager', function() {
         assert.equal(42, UpdateManager.updatesQueue[lastIndex].size);
       });
 
-      test('should not add a system updatable if there is one', function() {
+      test('should not add or instanciate a system updatable if there is one',
+      function() {
         var initialLength = UpdateManager.updatesQueue.length;
+
         UpdateManager.handleEvent(event);
-        assert.equal(initialLength, UpdateManager.updatesQueue.length);
+
+        assert.equal(UpdateManager.updatesQueue.length, initialLength);
+        assert.equal(MockSystemUpdatable.mInstancesCount, 1);
       });
     });
   });
@@ -400,6 +399,57 @@ suite('system/UpdateManager', function() {
         UpdateManager.downloadProgressed(-100);
         assert.equal('downloadingUpdateMessage{"progress":"1.21 kB"}',
                      UpdateManager.message.textContent);
+      });
+    });
+
+    suite('uncompress display', function() {
+      var systemUpdatable;
+
+      setup(function() {
+        systemUpdatable = new MockSystemUpdatable(42);
+      });
+
+      suite('when we only have the system update', function() {
+        setup(function() {
+          UpdateManager.addToUpdatesQueue(systemUpdatable);
+          UpdateManager.addToDownloadsQueue(systemUpdatable);
+          UpdateManager.startedUncompressing();
+        });
+
+        test('should render in uncompressing mode', function() {
+          assert.equal(UpdateManager.message.textContent,
+                       'uncompressingMessage');
+        });
+      });
+
+      suite('when we have various ongoing updates', function() {
+        setup(function() {
+          UpdateManager.addToUpdatableApps(uAppWithDownloadAvailable);
+          UpdateManager.addToUpdatesQueue(uAppWithDownloadAvailable);
+          UpdateManager.addToDownloadsQueue(uAppWithDownloadAvailable);
+
+          UpdateManager.addToUpdatesQueue(systemUpdatable);
+          UpdateManager.addToDownloadsQueue(systemUpdatable);
+
+          UpdateManager.startedUncompressing();
+        });
+
+        test('should stay in downloading mode', function() {
+          assert.include(UpdateManager.message.textContent,
+                          'downloadingUpdateMessage');
+        });
+
+        suite('once the app updates are done', function() {
+          setup(function() {
+            UpdateManager.removeFromDownloadsQueue(uAppWithDownloadAvailable);
+            UpdateManager.removeFromUpdatesQueue(uAppWithDownloadAvailable);
+          });
+
+          test('should render in uncompressing mode', function() {
+            assert.equal(UpdateManager.message.textContent,
+                         'uncompressingMessage');
+          });
+        });
       });
     });
 
