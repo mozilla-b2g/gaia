@@ -116,22 +116,12 @@ var Calculator = {
     return key;
   },
 
-  formatNumber: function calculator_formatNumber(n) {
-    if (n % 1 == 0) {
-      return n;
-    }
-    return n.toFixed(3);
-  },
-
-  calculate: function calculator_calculate() {
-    if (this.stack.length === 0)
-      return;
-
+  /**
+   * Wrapper to calculate and display the results
+   */
+  run: function calculator_run() {
     try {
-      var postfix =
-        this.infix2postfix(this.stack.map(this.substitute).join(''));
-      var result = this.evaluatePostfix(postfix);
-      this.stack = [this.formatNumber(result).toString()];
+      this.calculate();
       this.updateDisplay();
       this.toClear = true;
     } catch (err) {
@@ -143,6 +133,34 @@ var Calculator = {
         }, 300, this);
       }
     }
+  },
+
+  calculate: function calculator_calculate() {
+    if (this.stack.length === 0)
+      return;
+
+      // Handle exponential numbers as strings so postfix will properly work
+      if (/e(\+|\-)/.test(this.stack.join(''))) {
+        this.stack = this.stack.map(function(item) {
+          item = item.replace(/([0-9\.]+)e(\+|\-)+([0-9]*)/g, function(whole, num, sign, exp) {
+            var base = Math.round(num);
+            var tail = new Array(parseInt(exp)+1).join('0');
+
+            if (sign === '-') {
+              return '0.' + tail + base
+            }
+            return base + tail
+          });
+          return item;
+        });
+      }
+
+      var postfix =
+        this.infix2postfix(this.stack.map(this.substitute).join(''));
+      var result = this.evaluatePostfix(postfix);
+      this.stack = [String(result)];
+
+      return result;
   },
 
   clearBackspaceTimeout: function calculator_clearBackspaceTimeout() {
@@ -275,7 +293,7 @@ var Calculator = {
           case 'command':
             switch (value) {
               case '=':
-                this.calculate();
+                this.run();
                 break;
               case 'C':
                 this.backSpace();
@@ -301,8 +319,15 @@ Calculator.test = function() {
   function run(args) {
     var formula = args[0];
     var expected = args[1];
-    var postfix = Calculator.infix2postfix(formula);
-    var result = Calculator.evaluatePostfix(postfix);
+
+    if (Array.isArray(formula)) {
+      Calculator.stack = formula;
+    } else {
+      Calculator.stack = formula.split('');
+    }
+
+    var result = Calculator.calculate();
+    //console.log(result, expected)
     return expected === result;
   };
 
@@ -316,7 +341,17 @@ Calculator.test = function() {
     ['-5.5*6', -33],
     ['-5.5*-6.4', 35.2],
     ['-6-6-6', -18],
-    ['6-6-6', -6]
+    ['6-6-6', -6],
+    ['.001 /2', .0005],
+    ['(0-.001)/2', -.0005],
+    ['-.001/(0-2)', .0005],
+    ['1000000000000000000000000+1', 1e+24],
+    ['1000000000000000000000000-1', 1e+24],
+    [['1e+30', '+', '10'], 1e+30],
+    [['1e+30', '*', '10'], 1e+31],
+    [['1e+30', '/', '100'], 1e+28],
+    [['10', '/', '1000000000000000000000000'], 1e-23],
+    [['10', '/', '-1000000000000000000000000'], -1e-23]
   ];
 
   var passed = formulas.every(run);
@@ -324,7 +359,6 @@ Calculator.test = function() {
   if (passed) {
     console.log('Tests Passed!');
   }
+
   return passed;
 };
-
-
