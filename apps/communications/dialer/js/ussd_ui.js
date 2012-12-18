@@ -43,17 +43,19 @@ var UssdUI = {
   },
 
   init: function uui_init() {
-    this._ = window.navigator.mozL10n.get;
-    this.updateHeader(window.name);
-    this.closeNode.addEventListener('click', this.closeWindow.bind(this));
-    this.sendNode.addEventListener('click', this.reply.bind(this));
-    this.responseTextResetNode.addEventListener('click',
-      this.resetResponse.bind(this));
-    this.responseTextNode.addEventListener('input',
-      this.responseUpdated.bind(this));
-    this._origin = document.location.protocol + '//' +
-      document.location.host;
-    window.addEventListener('message', this);
+    LazyL10n.get((function localized(_) {
+      this._ = _;
+      this.updateHeader(window.name);
+      this.closeNode.addEventListener('click', this.closeWindow.bind(this));
+      this.sendNode.addEventListener('click', this.reply.bind(this));
+      this.responseTextResetNode.addEventListener('click',
+        this.resetResponse.bind(this));
+      this.responseTextNode.addEventListener('input',
+        this.responseUpdated.bind(this));
+      this._origin = document.location.protocol + '//' +
+        document.location.host;
+      window.addEventListener('message', this);
+    }).bind(this));
   },
 
   closeWindow: function uui_closeWindow() {
@@ -150,7 +152,8 @@ var UssdUI = {
   }
 };
 
-window.addEventListener('localized', function usui_startup(evt) {
+window.addEventListener('load', function usui_startup(evt) {
+  window.removeEventListener('load', usui_startup);
   UssdUI.init();
 });
 
