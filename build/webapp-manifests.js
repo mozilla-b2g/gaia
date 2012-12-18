@@ -145,6 +145,9 @@ Gaia.externalWebapps.forEach(function (webapp) {
     }
   }
 
+  let etag = webapp.metaData.etag || null;
+  let packageEtag = webapp.metaData.packageEtag || null;
+
   // Add webapp's entry to the webapps global manifest
   manifests[webappTargetDirName] = {
     origin:        origin,
@@ -153,7 +156,9 @@ Gaia.externalWebapps.forEach(function (webapp) {
     installTime:   132333986000,
     manifestURL:   manifestURL,
     removable:     removable,
-    localId:       id++
+    localId:       id++,
+    etag:          etag,
+    packageEtag:   packageEtag
   };
 
 });
