@@ -1,3 +1,4 @@
+const INSTALL_TIME = 132333986000; // Match this to value in applications-data.js
 
 function debug(msg) {
   //dump('-*- webapp-manifest.js: ' + msg + '\n');
@@ -71,7 +72,7 @@ Gaia.webapps.forEach(function (webapp) {
     origin:        url,
     installOrigin: url,
     receipt:       null,
-    installTime:   132333986000,
+    installTime:   INSTALL_TIME,
     manifestURL:   url + '/manifest.webapp',
     appStatus:     appStatus,
     localId:       id++

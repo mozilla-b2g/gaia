@@ -5,13 +5,6 @@
 *********************************************************** */
 if (!navigator.mozSms) {
 
-  if (!navigator.mozSettings) {
-    window.addEventListener('load', function loadWithoutSettings() {
-      ThreadUI.init();
-      ThreadListUI.init();
-    });
-  }
-
   // We made up a fake database on
   var messagesHack = [];
   (function() {
@@ -19,16 +12,26 @@ if (!navigator.mozSms) {
       {
         sender: null,
         receiver: '1977',
-        body: 'Nothing :)',
+        body: 'Alo, how are you today, my friend? :)',
         delivery: 'sent',
         id: 52,
-        timestamp: new Date(Date.now() - 86400000)
+        read: true,
+        timestamp: new Date(Date.now())
       },
       {
         sender: null,
-        receiver: '1977436797',
-        body: 'Nothing :)',
+        receiver: '1977',
+        body: 'arr :)',
         delivery: 'sent',
+        id: 511,
+        read: true,
+        timestamp: new Date(Date.now() - 8400000000)
+      },
+      {
+        sender: null,
+        receiver: '436797',
+        body: 'Sending :)',
+        delivery: 'sending',
         id: 51,
         timestamp: new Date(Date.now() - 172800000)
       },
@@ -58,9 +61,10 @@ if (!navigator.mozSms) {
       },
       {
         sender: null,
-        receiver: '19777436797',
-        body: 'Nothing :)',
-        delivery: 'sent',
+        receiver: '436797',
+        body: 'Error message:)',
+        delivery: 'sending',
+        error: true,
         id: 47,
         timestamp: new Date(Date.now() - 822800000)
       },
@@ -98,8 +102,8 @@ if (!navigator.mozSms) {
       },
       {
         sender: null,
-        receiver: '9777436797',
-        body: 'Nothing :)',
+        receiver: '436797',
+        body: 'Enviado :)',
         delivery: 'sent',
         id: 42,
         timestamp: new Date(Date.now() - 230000000)
@@ -107,15 +111,15 @@ if (!navigator.mozSms) {
 
       {
         sender: null,
-        receiver: '19777436797',
-        body: 'Nothing :)',
+        receiver: '436797',
+        body: 'Enviado 2 :)',
         delivery: 'sent',
         id: 41,
         timestamp: new Date(Date.now() - 44000000)
       },
       {
-        sender: '19777436797',
-        body: 'Hey! What\s up?',
+        sender: '436797',
+        body: 'Recibido!',
         delivery: 'received',
         id: 40,
         timestamp: new Date(Date.now() - 50000000)
@@ -148,9 +152,21 @@ if (!navigator.mozSms) {
         });
       }
 
+      if (!invert) {
+        msgs.sort(function(a,b){
+          return b.timestamp - a.timestamp;
+        });
+      } else {
+        msgs.sort(function(a,b){
+          return a.timestamp - b.timestamp;
+        });
+      }
       return msgs;
     }
 
+    messagesHack.sort(function(a,b){
+      return b.timestamp - a.timestamp;
+    });
     var msg = messagesHack.slice();
     if (invert)
       msg.reverse();

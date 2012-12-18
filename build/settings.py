@@ -113,6 +113,7 @@ settings = {
 
 def main():
     parser = optparse.OptionParser(description="Generate initial settings.json file")
+    parser.add_option(      "--override", help="JSON files for custom settings overrides")
     parser.add_option(      "--homescreen", help="specify the homescreen URL")
     parser.add_option(      "--ftu", help="specify the ftu manifest URL")
     parser.add_option("-c", "--console", help="indicate if the console should be enabled", action="store_true")
@@ -167,19 +168,27 @@ def main():
     wallpaper_base64 = base64.b64encode(wallpaper_file.read())
     settings["wallpaper.image"] = "data:image/jpeg;base64," + wallpaper_base64.decode("utf-8")
 
-    # Grab ringer_classic_prism.ogg and convert it into a base64 string
-    ringtone_name = "shared/resources/media/ringtones/ringer_classic_prism.ogg"
+    # Grab ringer_classic_courier.opus and convert it into a base64 string
+    ringtone_name = "shared/resources/media/ringtones/ringer_classic_courier.opus"
     ringtone_file = open(ringtone_name, "rb");
     ringtone_base64 = base64.b64encode(ringtone_file.read())
     settings["dialer.ringtone"] = "data:audio/ogg;base64," + ringtone_base64.decode("utf-8")
-    settings["dialer.ringtone.name"] = "ringer_classic_prism.ogg"
+    settings["dialer.ringtone.name"] = "ringer_classic_courier.opus"
 
-    # Grab notifier_ring.ogg and convert it into a base64 string
-    notification_name = "shared/resources/media/notifications/notifier_ring.ogg"
+    # Grab notifier_bell.opus and convert it into a base64 string
+    notification_name = "shared/resources/media/notifications/notifier_bell.opus"
     notification_file = open(notification_name, "rb");
     notification_base64 = base64.b64encode(notification_file.read())
     settings["notification.ringtone"] = "data:audio/ogg;base64," + notification_base64.decode("utf-8")
-    settings["notification.ringtone.name"] = "notifier_ring.ogg"
+    settings["notification.ringtone.name"] = "notifier_bell.opus"
+
+    if options.override and os.path.exists(options.override):
+      try:
+        overrides = json.load(open(options.override))
+        for key, val in overrides.items():
+          settings[key] = val
+      except Exception, e:
+        print "Error while applying override setting file: %s\n%s" % (options.override, e)
 
     json.dump(settings, open(settings_filename, "wb"))
 

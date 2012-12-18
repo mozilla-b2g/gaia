@@ -280,12 +280,14 @@ Icon.prototype = {
     var oldDescriptor = this.descriptor;
     this.descriptor = descriptor;
 
-    if (descriptor.icon == oldDescriptor.icon) {
+    if (descriptor.updateTime == oldDescriptor.updateTime &&
+        descriptor.icon == oldDescriptor.icon) {
       this.descriptor.renderedIcon = oldDescriptor.renderedIcon;
     } else {
       this.fetchImageData();
     }
-    if (descriptor.name != oldDescriptor.name ||
+    if (descriptor.updateTime != oldDescriptor.updateTime ||
+        descriptor.name != oldDescriptor.name ||
         descriptor.localizedName != oldDescriptor.localizedName) {
       this.translate();
     }

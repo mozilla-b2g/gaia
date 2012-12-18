@@ -1363,12 +1363,6 @@ var WindowManager = (function() {
     }
   });
 
-  // If there is a new application coming in, we should switch to
-  // home screen so the user would see the icon pops up.
-  window.addEventListener('applicationinstall', function(e) {
-    setDisplayedApp(homescreen);
-  });
-
   // Deal with application uninstall event
   // if the application is being uninstalled, we ensure it stop running here.
   window.addEventListener('applicationuninstall', function(e) {
