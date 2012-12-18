@@ -149,23 +149,20 @@ var layoutPage = LAYOUT_PAGE_DEFAULT;
 // and layouts, and type specific keys like ".com" for url keyboards.
 var currentLayout = null;
 
-var isPressing = null;
 var isWaitingForSecondTap = false;
 var isShowingAlternativesMenu = false;
 var isContinousSpacePressed = false;
 var isUpperCase = false;
 var isUpperCaseLocked = false;
 var currentKey = null;
+var touchEventsPresent = false;
+var touchedKeys = {};
+var touchCount = 0;
 var currentInputType = null;
 var menuLockedArea = null;
 
 // Show accent char menu (if there is one) after ACCENT_CHAR_MENU_TIMEOUT
 const ACCENT_CHAR_MENU_TIMEOUT = 700;
-
-// If user leave the original key and did not move to
-// a key within the accent character menu,
-// after HIDE_ALTERNATIVES_MENU_TIMEOUT the menu will be removed.
-const HIDE_ALTERNATIVES_MENU_TIMEOUT = 700;
 
 // Backspace repeat delay and repeat rate
 const REPEAT_RATE = 100;
@@ -182,7 +179,6 @@ const CAPS_LOCK_TIMEOUT = 450;
 var deleteTimeout = 0;
 var deleteInterval = 0;
 var menuTimeout = 0;
-var hideMenuTimeout = 0;
 
 // This object has one property for each keyboard layout setting.
 // If the user turns on that setting in the settings app, the value of
@@ -267,9 +263,8 @@ var dimensionsObserver;
 // A map of event names to event handlers.
 // We register these handlers on the keyboard renderer element
 var eventHandlers = {
+  'touchstart': onTouchStart,
   'mousedown': onMouseDown,
-  'mouseover': onMouseOver,
-  'mouseleave': onMouseLeave,
   'mouseup': onMouseUp,
   'mousemove': onMouseMove
 };
@@ -366,7 +361,7 @@ function initKeyboard() {
   }
 
   // Initialize the rendering module
-  IMERender.init(getUpperCaseValue, isSpecialKeyObj, onScroll);
+  IMERender.init(getUpperCaseValue, isSpecialKeyObj);
 
   // Attach event listeners to the element that does rendering
   for (var event in eventHandlers) {
@@ -771,11 +766,9 @@ function notifyShowKeyboard(show) {
 
 // Sends a delete code to remove last character
 // The argument specifies whether this is an auto repeat or not.
+// We call triggerFeedback() for the initial press, but we
+// purposefully do not call it again for auto repeating delete.
 function sendDelete(isRepeat) {
-  // If it was not an autorepeat, then we've already done the feedback
-  if (isRepeat)
-    triggerFeedback();
-
   // Pass the isRepeat argument to the input method. It may not want
   // to compute suggestions, for example, if this is just one in a series
   // of repeating events.
@@ -794,13 +787,31 @@ function getUpperCaseValue(key) {
   return v;
 }
 
-// Show alternatives for the HTML node key
-function showAlternatives(key) {
-
-  // Avoid alternatives of alternatives
-  if (isShowingAlternativesMenu)
+function setMenuTimeout(target, coords, touchId) {
+  // Only set a timeout to show alternatives if there is one touch.
+  // This avoids paving over menuTimeout with a new timeout id
+  // from a separate touch.
+  if (touchCount > 1)
     return;
 
+  menuTimeout = window.setTimeout(function menuTimeout() {
+    // Don't try to show the alternatives menu if it's already showing,
+    // or if there's more than one touch on the screen.
+    if (isShowingAlternativesMenu || touchCount > 1)
+      return;
+
+    showAlternatives(target);
+
+    // If we successfuly showed the alternatives menu, redirect the
+    // press over the first key in the menu.
+    if (isShowingAlternativesMenu)
+      movePress(target, coords, touchId);
+
+  }, ACCENT_CHAR_MENU_TIMEOUT);
+}
+
+// Show alternatives for the HTML node key
+function showAlternatives(key) {
   // Get the key object from layout
   var alternatives, altMap, value, keyObj, uppercaseValue;
   var r = key ? key.dataset.row : -1, c = key ? key.dataset.column : -1;
@@ -868,25 +879,12 @@ function showAlternatives(key) {
 }
 
 // Hide alternatives.
-function hideAlternatives(addDelay) {
+function hideAlternatives() {
   if (!isShowingAlternativesMenu)
     return;
 
-  function actualHideAlternatives() {
-    IMERender.hideAlternativesCharMenu();
-    isShowingAlternativesMenu = false;
-  }
-
-  if (!addDelay) {
-    actualHideAlternatives();
-    return;
-  }
-
-  clearTimeout(hideMenuTimeout);
-  hideMenuTimeout = window.setTimeout(
-    actualHideAlternatives,
-    HIDE_ALTERNATIVES_MENU_TIMEOUT
-  );
+  IMERender.hideAlternativesCharMenu();
+  isShowingAlternativesMenu = false;
 }
 
 // Test if an HTML node is a normal key
@@ -899,47 +897,125 @@ function isNormalKey(key) {
 // Event Handlers
 //
 
-// When user scrolls over IME's candidate or alternatives panels
-function onScroll(evt) {
-  if (!isPressing || !currentKey)
-    return;
-
-  if (evt.target === IMERender.menu)
-    clearTimeout(hideMenuTimeout);
-
-  onMouseLeave(evt);
-  isPressing = false; // cancel the following mouseover event
-}
-
-// When user touches the keyboard
-function onMouseDown(evt) {
-  var keyCode;
-
-  // Prevent loosing focus to the currently focused app
-  // Otherwise, right after mousedown event, the app will receive a focus event.
-  IMERender.ime.setCapture(false);
+function onTouchStart(evt) {
+  // Prevent a mouse event from firing (this doesn't currently work
+  // because of bug 819102)
   evt.preventDefault();
 
-  isPressing = true;
-  currentKey = evt.target;
-  if (!isNormalKey(currentKey))
+  // Let the world know that we're using touch events.
+  touchEventsPresent = true;
+
+  // Don't allow new touches if the alternatives menu is showing.
+  if (isShowingAlternativesMenu)
     return;
-  keyCode = parseInt(currentKey.dataset.keycode);
+
+  touchCount = evt.touches.length;
+
+  handleTouches(evt, function handleTouchStart(touch, touchId) {
+    var target = touch.target;
+
+    // Add touchmove and touchend listeners directly to the target so that we
+    // will always hear these events, even if the target is removed from the DOM.
+    // This can happen when the keyboard switches cases, as well as when we
+    // show the alternate characters menu for a key.
+    target.addEventListener('touchmove', onTouchMove);
+    target.addEventListener('touchend', onTouchEnd);
+    target.addEventListener('touchcancel', onTouchEnd);
+
+    touchedKeys[touchId] = { target: target, x: touch.pageX, y: touch.pageY };
+    startPress(target, touch, touchId);
+  });
+}
+
+function onTouchMove(evt) {
+  // Prevent a mouse event from firing
+  evt.preventDefault();
+
+  handleTouches(evt, function handleTouchMove(touch, touchId) {
+    // Avoid calling document.elementFromPoint and movePress if
+    // the touch hasn't moved very far.
+    var x = Math.abs(touchedKeys[touchId].x - touch.pageX);
+    var y = Math.abs(touchedKeys[touchId].y - touch.pageY);
+    if (x < 5 && y < 5)
+      return;
+
+    // Update our cached x/y values.
+    touchedKeys[touchId].x = touch.pageX;
+    touchedKeys[touchId].y = touch.pageY;
+
+    // touch.target is the element that the touch started on, so we
+    // need to find the new key with elementFromPoint.
+    var target = document.elementFromPoint(touch.pageX, touch.pageY);
+    movePress(target, touch, touchId);
+  });
+}
+
+function onTouchEnd(evt) {
+  // Prevent a mouse event from firing
+  evt.preventDefault();
+  touchCount = evt.touches.length;
+
+  handleTouches(evt, function handleTouchEnd(touch, touchId) {
+    // Because of bug 822558, we sometimes get two touchend events,
+    // so we should bail if we've already handled one touchend.
+    if (!touchedKeys[touchId])
+      return;
+
+    // Remove the event listeners from the original target.
+    var target = touch.target;
+    target.removeEventListener('touchmove', onTouchMove);
+    target.removeEventListener('touchend', onTouchEnd);
+    target.removeEventListener('touchcancel', onTouchEnd);
+
+    // Send the updated target to endPress.
+    endPress(touchedKeys[touchId].target, touch, touchId);
+    delete touchedKeys[touchId];
+  });
+}
+
+// Helper function to iterate through a touch event's
+// changedTouches array. For each touch, it calls a callback
+// function with the touch and touchId as arguments.
+function handleTouches(evt, callback) {
+  for (var i = 0; i < evt.changedTouches.length; i++) {
+    var touch = evt.changedTouches[i];
+    var touchId = touch.identifier;
+    callback(touch, touchId);
+  }
+}
+
+// Mouse events will fire after touch events. Because preventDefault()
+// isn't working properly for touch events (bug 819102), we need to
+// handle these subsequent mouse events ourselves.
+// FIXME: We should be able to get rid of these touchEventsPresent checks
+// once bug 819102 is fixed.
+function onMouseDown(evt) {
+  // Prevent loosing focus to the currently focused app
+  // Otherwise, right after mousedown event, the app will receive a focus event.
+  evt.preventDefault();
+
+  // Bail if we're using touch events.
+  if (touchEventsPresent)
+    return;
+
+  IMERender.ime.setCapture(false);
+  currentKey = evt.target;
+  startPress(currentKey, evt, null);
+}
+
+// The coords object can either be a mouse event or a touch. We just expect the
+// coords object to have clientX, clientY, pageX, and pageY properties.
+function startPress(target, coords, touchId) {
+  if (!isNormalKey(target))
+    return;
 
   // Feedback
-  IMERender.highlightKey(currentKey);
+  IMERender.highlightKey(target);
   triggerFeedback();
 
-  // Key alternatives when long press
-  menuTimeout = window.setTimeout((function menuTimeout() {
-    showAlternatives(currentKey);
+  setMenuTimeout(target, coords, touchId);
 
-    // redirect mouse over event so that the first key in menu
-    // would be highlighted
-    if (inMenuLockedArea(evt))
-      redirectMouseOver(evt);
-
-  }), ACCENT_CHAR_MENU_TIMEOUT);
+  var keyCode = parseInt(target.dataset.keycode);
 
   // Special keys (such as delete) response when pressing (not releasing)
   // Furthermore, delete key has a repetition behavior
@@ -958,18 +1034,23 @@ function onMouseDown(evt) {
       }, REPEAT_RATE);
 
     }, REPEAT_TIMEOUT);
-
   }
 }
 
 
-function inMenuLockedArea(evt) {
-  return (isShowingAlternativesMenu &&
-          menuLockedArea &&
-          evt.pageY >= menuLockedArea.top &&
-          evt.pageY <= menuLockedArea.bottom &&
-          evt.pageX >= menuLockedArea.left &&
-          evt.pageX <= menuLockedArea.right);
+function inMenuLockedArea(coords) {
+  return (menuLockedArea &&
+          coords.pageY >= menuLockedArea.top &&
+          coords.pageY <= menuLockedArea.bottom &&
+          coords.pageX >= menuLockedArea.left &&
+          coords.pageX <= menuLockedArea.right);
+}
+
+function onMouseMove(evt) {
+  if (touchEventsPresent)
+    return;
+
+  movePress(evt.target, evt, null);
 }
 
 // [LOCKED_AREA] TODO:
@@ -977,108 +1058,78 @@ function inMenuLockedArea(evt) {
 // It consists into compute an area where the user movement is redirected
 // to the alternative menu keys but I would prefer another alternative
 // with better performance.
-function onMouseMove(evt) {
+function movePress(target, coords, touchId) {
   // Control locked zone for menu
-  if (inMenuLockedArea(evt)) {
-    clearTimeout(hideMenuTimeout);
-    redirectMouseOver(evt);
+  if (isShowingAlternativesMenu && inMenuLockedArea(coords)) {
+    var menuChildren = IMERender.menu.children;
+    var redirectTarget = menuChildren[Math.floor(
+      (coords.pageX - menuLockedArea.left) / menuLockedArea.ratio)];
+
+    target = redirectTarget;
   }
-}
 
-// When user changes to another button (it handle what happend if the user
-// keeps pressing the same area. Similar to onMouseDown)
-function onMouseOver(evt) {
-  var target = evt.target;
-  var keyCode = parseInt(target.dataset.keycode);
+  var oldTarget = touchEventsPresent ? touchedKeys[touchId].target : currentKey;
 
-  // Do nothing if no pressing (mouse events), same key or not a normal key
-  if (!isPressing || currentKey == target || !isNormalKey(target))
+  // Do nothing if there are invalid targets, if the user is touching the
+  // same key, or if the new target is not a normal key.
+  if (!target || !oldTarget || oldTarget == target || !isNormalKey(target))
     return;
 
   // Update highlight: remove from older
-  IMERender.unHighlightKey(currentKey);
+  IMERender.unHighlightKey(oldTarget);
+
+  var keyCode = parseInt(target.dataset.keycode);
 
   // Ignore if moving over delete key
   if (keyCode == KeyEvent.DOM_VK_BACK_SPACE) {
     // Set currentKey to null so that no key is entered in this case.
     // Except when the current key is actually backspace itself. Then we
     // need to leave currentKey alone, so that autorepeat works correctly.
-    if (parseInt(currentKey.dataset.keycode) !== keyCode)
-      currentKey = null;
+    if (parseInt(oldTarget.dataset.keycode) !== keyCode)
+      setCurrentKey(null, touchId);
     return;
   }
 
   // Update highlight: add to the new
   IMERender.highlightKey(target);
-  currentKey = target;
+  setCurrentKey(target, touchId);
 
   clearTimeout(deleteTimeout);
   clearInterval(deleteInterval);
   clearTimeout(menuTimeout);
 
-  // Control hide of alternatives menu
-  if (target.parentNode === IMERender.menu || inMenuLockedArea(evt)) {
-    clearTimeout(hideMenuTimeout);
-  } else {
-    hideAlternatives(false);
-  }
+  // Hide of alternatives menu if the touch moved out of it
+  if (target.parentNode !== IMERender.menu && isShowingAlternativesMenu && !inMenuLockedArea(coords))
+    hideAlternatives();
 
   // Control showing alternatives menu
-  menuTimeout = window.setTimeout((function menuTimeout() {
-    showAlternatives(target);
-  }), ACCENT_CHAR_MENU_TIMEOUT);
+  setMenuTimeout(target, coords, touchId);
+
+  function setCurrentKey(value, touchId) {
+    if (touchEventsPresent)
+      touchedKeys[touchId].target = value;
+    else
+      currentKey = value;
+  }
 }
 
-function redirectMouseOver(evt) {
-  var menuChildren = IMERender.menu.children;
-
-  var event = document.createEvent('MouseEvent');
-  event.initMouseEvent(
-    'mouseover', true, true, window, 0,
-    0, 0, 0, 0,
-    false, false, false, false, 0, null
-  );
-
-  var redirectTarget = menuChildren[Math.floor(
-    (evt.pageX - menuLockedArea.left) / menuLockedArea.ratio)];
-
-  if (redirectTarget)
-    redirectTarget.dispatchEvent(event);
-}
-
-// When user leaves the keyboard
-function onMouseLeave(evt) {
-  if (!isPressing || !currentKey)
+function onMouseUp(evt) {
+  if (touchEventsPresent)
     return;
 
-  IMERender.unHighlightKey(currentKey);
-
-
-  // Program alternatives to hide
-  if (evt.target !== IMERender.menu &&
-      evt.target.parentNode !== IMERender.menu)
-    hideAlternatives(true);
-
+  endPress(currentKey, evt, null);
   currentKey = null;
 }
 
-
 // The user is releasing a key so the key has been pressed. The meat is here.
-function onMouseUp(evt) {
-  isPressing = false;
-
-  if (!currentKey)
-    return;
-
+function endPress(target, coords, touchId) {
   clearTimeout(deleteTimeout);
   clearInterval(deleteInterval);
   clearTimeout(menuTimeout);
 
-  hideAlternatives(false);
+  hideAlternatives();
 
-  var target = currentKey;
-  var keyCode = parseInt(target.dataset.keycode);
-  if (!isNormalKey(target))
+  if (!target || !isNormalKey(target))
     return;
 
   // IME candidate selected
@@ -1090,12 +1141,12 @@ function onMouseUp(evt) {
     }
 
     IMERender.highlightKey(target);
-    currentKey = null;
     return;
   }
 
   IMERender.unHighlightKey(target);
-  currentKey = null;
+
+  var keyCode = parseInt(target.dataset.keycode);
 
   // Delete is a special key, it reacts when pressed not released
   if (keyCode == KeyEvent.DOM_VK_BACK_SPACE)
@@ -1219,7 +1270,7 @@ function onMouseUp(evt) {
 
     // Normal key
   default:
-    var offset = getOffset(evt);
+    var offset = getOffset(target, coords);
     inputMethod.click(keyCode, offset.x, getKeyCoordinateY(offset.y));
     break;
   }
@@ -1235,11 +1286,9 @@ function getKeyCoordinateY(y) {
   return y - yBias;
 }
 
-function getOffset(evt) {
-  var el = evt.currentTarget;
+function getOffset(el, coords) {
   var x = 0;
   var y = 0;
-
 
   while (el) {
     x += el.offsetLeft - el.scrollLeft;
@@ -1247,8 +1296,8 @@ function getOffset(evt) {
     el = el.offsetParent;
   }
 
-  x = evt.clientX - x;
-  y = evt.clientY - y;
+  x = coords.clientX - x;
+  y = coords.clientY - y;
 
   return { x: x, y: y };
 }
