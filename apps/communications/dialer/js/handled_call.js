@@ -71,12 +71,24 @@ HandledCall.prototype.startTimer = function hc_startTimer() {
   if (this._ticker)
     return;
 
-  this.durationChildNode.textContent = (new Date(0)).toLocaleFormat('%M:%S');
+  function padNumber(n) {
+    return n > 9 ? n : '0' + n;
+  }
+
+  this.durationChildNode.textContent = '00:00';
   this.durationNode.classList.add('isTimer');
-  this._ticker = setInterval(function hc_updateTimer(self, startTime) {
-    var elapsed = new Date(Date.now() - startTime);
-    self.durationChildNode.textContent = elapsed.toLocaleFormat('%M:%S');
-  }, 1000, this, Date.now());
+  LazyL10n.get((function localized(_) {
+    this._ticker = setInterval(function hc_updateTimer(self, startTime) {
+      var elapsed = new Date(Date.now() - startTime);
+      var duration = {
+        h: padNumber(elapsed.getUTCHours()),
+        m: padNumber(elapsed.getUTCMinutes()),
+        s: padNumber(elapsed.getUTCSeconds())
+      }
+      self.durationChildNode.textContent = _(elapsed.getUTCHours() > 0 ?
+        'callDurationHours' : 'callDurationMinutes', duration);
+    }, 1000, this, Date.now());
+  }).bind(this));
 };
 
 HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
