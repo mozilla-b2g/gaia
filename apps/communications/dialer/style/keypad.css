@@ -199,6 +199,12 @@ article:not(:target) #keypad-delete {
   vertical-align: middle;
 }
 
+#keypad-callbar-add-contact.disabled {
+  opacity: 0.2;
+  border: .1rem solid #2d292a;
+}
+
+
 #keypad-callbar-add-contact:active {
   background: #333333;
 }
