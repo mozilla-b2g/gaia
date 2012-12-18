@@ -5,7 +5,7 @@ html, body {
 
 html {
   height: 100%;
-  background-image: url('images/start-page-logo.png'), -moz-linear-gradient(#f8f8fa, #cadce6);
+  background-image: url('/shared/resources/branding/about_logo.png'), -moz-linear-gradient(#f8f8fa, #cadce6);
   background-repeat: no-repeat, no-repeat;
   background-position: top right;
 }

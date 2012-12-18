@@ -190,7 +190,7 @@ html, body {
   opacity: 0;
   z-index: 3000;
   transition: all 1s ease;
-  background-image: url(images/powered.png);
+  background-image: url(/shared/resources/branding/powered.png);
   background-size: 100% auto;
 }
 
@@ -721,15 +721,15 @@ i.hack-first-child {
 }
 
 .privacy-browserOS {
-  background-image: -moz-image-rect(url(images/privacy_sprite.png), 0, 32, 32, 0);
+  background-image: -moz-image-rect(url(/shared/resources/branding/privacy_sprite.png), 0, 32, 32, 0);
 }
 
 .privacy-everythingME {
-  background-image: -moz-image-rect(url(images/privacy_sprite.png), 0, 64, 32, 32);
+  background-image: -moz-image-rect(url(/shared/resources/branding/privacy_sprite.png), 0, 64, 32, 32);
 }
 
 .privacy-marketPlace {
-  background-image: -moz-image-rect(url(images/privacy_sprite.png), 0, 96, 32, 64);
+  background-image: -moz-image-rect(url(/shared/resources/branding/privacy_sprite.png), 0, 96, 32, 64);
 }
 
 /* no connection error dialog */
