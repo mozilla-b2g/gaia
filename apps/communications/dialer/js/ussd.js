@@ -27,6 +27,9 @@ var UssdManager = {
     this._origin = document.location.protocol + '//' +
       document.location.host;
     if (this._conn) {
+      // We cancel any active session if one exists to avoid sending any new
+      // USSD message within an invalid session.
+      this._conn.cancelMMI();
       this._conn.addEventListener('ussdreceived', this);
       window.addEventListener('message', this);
     }
