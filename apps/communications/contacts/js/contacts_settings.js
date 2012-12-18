@@ -111,7 +111,7 @@ contacts.Settings = (function() {
     }
     else {
       importSim.setAttribute('aria-disabled', 'true');
-    }    
+    }
   };
 
   // Callback that will modify the ui depending if we imported or not
@@ -261,14 +261,22 @@ contacts.Settings = (function() {
     }
   };
 
+  function resetWait(wakeLock) {
+    Contacts.hideOverlay();
+    if (wakeLock) {
+      wakeLock.unlock();
+    }
+  }
+
   function doFbUnlink() {
     Contacts.showOverlay(_('cleaningFbData'));
+    var wakeLock = navigator.requestWakeLock('cpu');
 
     var req = fb.utils.clearFbData();
 
     req.onsuccess = function() {
-      req.result.onsuccess = function() {
-
+      var cleaner = req.result;
+      cleaner.onsuccess = function() {
         Contacts.showOverlay(_('loggingOutFb'));
         var logoutReq = fb.utils.logout();
 
@@ -286,26 +294,33 @@ contacts.Settings = (function() {
           window.asyncStorage.removeItem(fb.utils.CACHE_FRIENDS_KEY);
 
           contacts.List.load();
-          Contacts.hideOverlay();
+          resetWait(wakeLock);
         };
 
         logoutReq.onerror = function(e) {
           contacts.List.load();
-          Contacts.hideOverlay();
+          resetWait(wakeLock);
           window.console.error('Contacts: Error while FB logout: ',
-                              e.target.error);
+                              e.target.error.name);
         };
       };
 
-      req.result.oncleaned = function(num) {
+      cleaner.oncleaned = function(num) {
         // Nothing done here for the moment
       };
 
-      req.result.onerror = function(error) {
-        window.console.error('Contacts: Error while FB cleaning');
-        Contacts.hideOverlay();
+      cleaner.onerror = function(contactid, error) {
+        window.console.error('Contacts: Error while FB cleaning contact: ',
+                             contactid, 'Error: ', error.name);
+        // Wait state is not resetted because the cleaning process will continue
       };
     };
+
+    req.onerror = function(e) {
+      window.console.error('Error while starting the cleaning operations',
+                           req.error.name);
+      resetWait(wakeLock);
+    }
   }
 
   // Listens for any change in the ordering preferences

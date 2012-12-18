@@ -24,6 +24,9 @@ if (!this.KeypadManager) {
 if (!this.Utils) {
   this.Utils = null;
 }
+if (!this.LazyL10n) {
+  this.LazyL10n = null;
+}
 
 suite('dialer/handled_call', function() {
   var subject;
@@ -34,7 +37,7 @@ suite('dialer/handled_call', function() {
   var realCallScreen;
   var realCallHandler;
   var realKeypadManager;
-  var realL10n;
+  var realLazyL10n;
   var realUtils;
   var phoneNumber;
 
@@ -51,12 +54,13 @@ suite('dialer/handled_call', function() {
     realKeypadManager = window.KeypadManager;
     window.KeypadManager = MockKeypadManager;
 
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = {
-      get: function get(key) {
-        return key;
-      },
-      readyState: 'complete'
+    realLazyL10n = LazyL10n;
+    window.LazyL10n = {
+      get: function get(cb) {
+        cb(function l10n_get(key) {
+          return key;
+        });
+      }
     };
 
     realUtils = window.Utils;
@@ -70,7 +74,7 @@ suite('dialer/handled_call', function() {
     window.CallScreen = realCallScreen;
     window.OnCallHandler = realCallHandler;
     window.KeypadManager = realKeypadManager;
-    navigator.mozL10n = realL10n;
+    window.LazyL10n = realLazyL10n;
     window.Utils = realUtils;
   });
 
@@ -343,30 +347,12 @@ suite('dialer/handled_call', function() {
     });
   });
 
-  suite('unknown number', function() {
-    test('should display unknown l10n key if available', function() {
-      mockCall = new MockCall('', 'incoming');
-      subject = new HandledCall(mockCall, fakeNode);
+  test('should display unknown l10n key', function() {
+    mockCall = new MockCall('', 'incoming');
+    subject = new HandledCall(mockCall, fakeNode);
 
-      var numberNode = fakeNode.querySelector('.numberWrapper .number');
-      assert.equal(numberNode.textContent, 'unknown');
-    });
-
-    test('should wait for localized event if needed', function() {
-      navigator.mozL10n.readyState = '';
-
-      mockCall = new MockCall('', 'incoming');
-      subject = new HandledCall(mockCall, fakeNode);
-
-      var numberNode = fakeNode.querySelector('.numberWrapper .number');
-      assert.notEqual(numberNode.textContent, 'unknown');
-
-      var evtObject = document.createEvent('Event');
-      evtObject.initEvent('localized', false, false);
-      window.dispatchEvent(evtObject);
-
-      assert.equal(numberNode.textContent, 'unknown');
-    });
+    var numberNode = fakeNode.querySelector('.numberWrapper .number');
+    assert.equal(numberNode.textContent, 'unknown');
   });
 
   suite('additional information', function() {

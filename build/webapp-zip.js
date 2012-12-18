@@ -150,8 +150,8 @@ Gaia.webapps.forEach(function(webapp) {
 
   // Put shared files, but copy only files actually used by the webapp.
   // We search for shared file usage by parsing webapp source code.
-  let EXTENSIONS_WHITELIST = ['js', 'htm', 'html', 'css'];
-  let SHARED_USAGE = /shared\/([^\/]+)\/([^''\s]+)("|')/g;
+  let EXTENSIONS_WHITELIST = ['html'];
+  let SHARED_USAGE = /=['"]\.?\.?\/?shared\/([^\/]+)\/([^''\s]+)("|')/g;
 
   let used = {
     js: [],              // List of JS file paths to copy
@@ -247,8 +247,8 @@ Gaia.webapps.forEach(function(webapp) {
       file.append(segment);
     });
     if (!file.exists()) {
-      dump('Using inexistent shared resource: ' + path +
-           ' from: ' + webapp.domain + '\n');
+      throw new Error('Using inexistent shared resource: ' + path +
+                      ' from: ' + webapp.domain + '\n');
       return;
     }
     addToZip(zip, '/shared/resources/' + path, file);

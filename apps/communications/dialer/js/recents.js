@@ -1,8 +1,8 @@
 'use strict';
 
-var _ = navigator.mozL10n.get;
-
 var Recents = {
+  _: null,
+  _loaded: false,
 
   get headerEditModeText() {
     delete this.headerEditModeText;
@@ -100,6 +100,20 @@ var Recents = {
       getElementById('cancel-action-menu');
   },
 
+  load: function re_load() {
+    if (this._loaded)
+      return;
+
+    this._loaded = true;
+
+    LazyL10n.get(function localized() {
+      var headerSelector = '#recents-container h2';
+      FixedHeader.init('#recents-container',
+                       '#fixed-container', headerSelector);
+      Recents.init();
+    });
+  },
+
   init: function re_init() {
     var self = this;
     if (this.recentsFilterContainer) {
@@ -166,13 +180,23 @@ var Recents = {
       SimplePhoneMatcher.mcc = conn.voice.network.mcc.toString();
     }
 
-    self.refresh();
+    LazyL10n.get(function localized(_) {
+      self._ = _;
+      self.refresh();
+    });
   },
 
+  // Refresh can be called on an unloaded Recents
   refresh: function re_refresh() {
+    if (!this._loaded) {
+      this.load();
+    }
+
     RecentsDBManager.init(function() {
       RecentsDBManager.get(function(recents) {
-        Recents.render(recents);
+        LazyL10n.get(function localized() {
+          Recents.render(recents);
+        });
       });
     });
   },
@@ -182,7 +206,7 @@ var Recents = {
       switch (event.target ? event.target.id : event) {
         case 'edit-button': // Entering edit mode
           // Updating header
-          this.headerEditModeText.textContent = _('edit');
+          this.headerEditModeText.textContent = this._('edit');
           this.deselectSelectedEntries();
           document.body.classList.toggle('recents-edit');
           break;
@@ -225,9 +249,9 @@ var Recents = {
           querySelectorAll('.log-item:not(.hide) input:checked');
         var selectedCallsLength = selectedCalls.length;
         if (selectedCallsLength == 0) {
-          this.headerEditModeText.textContent = _('edit');
+          this.headerEditModeText.textContent = this._('edit');
         } else {
-          this.headerEditModeText.textContent = _('edit-selected',
+          this.headerEditModeText.textContent = this._('edit-selected',
                                                   {n: selectedCallsLength});
         }
       }
@@ -259,9 +283,9 @@ var Recents = {
             querySelectorAll('.log-item:not(.hide) input:checked');
           var selectedCallsLength = selectedCalls.length;
           if (selectedCallsLength == 0) {
-            this.headerEditModeText.textContent = _('edit');
+            this.headerEditModeText.textContent = this._('edit');
           } else {
-            this.headerEditModeText.textContent = _('edit-selected',
+            this.headerEditModeText.textContent = this._('edit-selected',
                                                     {n: selectedCallsLength});
           }
         }
@@ -285,7 +309,7 @@ var Recents = {
     }
     var itemShown = document.querySelectorAll('.log-item:not(.hide)');
     var itemsCounter = itemShown.length;
-    this.headerEditModeText.textContent = _('edit-selected',
+    this.headerEditModeText.textContent = this._('edit-selected',
                                             {n: itemsCounter});
     this.recentsIconDelete.classList.remove('disabled');
     this.deselectAllThreads.removeAttribute('disabled');
@@ -299,10 +323,10 @@ var Recents = {
     for (var i = 0; i < length; i++) {
       items[i].checked = false;
     }
-    this.headerEditModeText.textContent = _('edit');
+    this.headerEditModeText.textContent = this._('edit');
     this.recentsIconDelete.classList.add('disabled');
     this.selectAllThreads.removeAttribute('disabled');
-    this.selectAllThreads.textContent = _('selectAll');
+    this.selectAllThreads.textContent = this._('selectAll');
     this.deselectAllThreads.setAttribute('disabled', 'disabled');
   },
 
@@ -310,15 +334,15 @@ var Recents = {
     var self = this;
     ConfirmDialog.show(
       null,
-      _('confirm-deletion'),
+      this._('confirm-deletion'),
       {
-        title: _('cancel'),
+        title: this._('cancel'),
         callback: function() {
           ConfirmDialog.hide();
         }
       },
       {
-        title: _('delete'),
+        title: this._('delete'),
         isDanger: true,
         callback: self.deleteSelectedRecents.bind(self)
       }
@@ -441,13 +465,13 @@ var Recents = {
       }
       var count = this.getSelectedEntries().length;
       if (count == 0) {
-        this.headerEditModeText.textContent = _('edit');
+        this.headerEditModeText.textContent = this._('edit');
         this.recentsIconDelete.classList.add('disabled');
         this.deselectAllThreads.setAttribute('disabled', 'disabled');
         this.selectAllThreads.removeAttribute('disabled');
-        this.selectAllThreads.textContent = _('selectAll');
+        this.selectAllThreads.textContent = this._('selectAll');
       } else {
-        this.headerEditModeText.textContent = _('edit-selected',
+        this.headerEditModeText.textContent = this._('edit-selected',
                                                 {n: count});
         this.recentsIconDelete.classList.remove('disabled');
         this.deselectAllThreads.removeAttribute('disabled');
@@ -547,7 +571,7 @@ var Recents = {
       '    <div class="grid-cell grid-v-align">' +
       '      <section class="primary-info">' +
       '        <span class="primary-info-main ellipsis">' +
-                 (recent.number || _('unknown')) +
+                 (recent.number || this._('unknown')) +
       '        </span>' +
       '        <span class="entry-count">' +
       '        </span>' +
@@ -653,7 +677,7 @@ var Recents = {
         count = logItem.dataset.count;
     if (contact !== null) {
       primaryInfoMainNode.textContent = (contact.name && contact.name !== '') ?
-        contact.name : _('unknown');
+        contact.name : Recents._('unknown');
       if (contact.photo && contact.photo[0]) {
         var photoURL = URL.createObjectURL(contact.photo[0]);
         contactPhoto.style.backgroundImage = 'url(' + photoURL + ')';
@@ -788,10 +812,3 @@ var Recents = {
     }
   }
 };
-
-window.addEventListener('localized', function recentsSetup() {
-  window.removeEventListener('localized', recentsSetup);
-    var headerSelector = '#recents-container h2';
-    FixedHeader.init('#recents-container', '#fixed-container', headerSelector);
-    Recents.init();
-});

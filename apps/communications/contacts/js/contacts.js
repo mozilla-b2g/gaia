@@ -497,12 +497,12 @@ var Contacts = (function() {
   // When a visiblity change is sent, handles and updates the
   // different views according to the app state
   var handleVisibilityChange = function handleVisibilityChange() {
-    contacts.List.load();
     switch (navigation.currentView()) {
       case 'view-contact-details':
         if (!currentContact) {
           return;
         }
+        contacts.List.load();
         contacts.List.getContactById(currentContact.id, function(contact) {
           if (isUpdated(contact, currentContact)) {
             return;
@@ -515,6 +515,7 @@ var Contacts = (function() {
         if (!currentContact) {
           return;
         }
+        contacts.List.load();
         contacts.List.getContactById(currentContact.id, function(contact) {
           if (!contact || isUpdated(contact, currentContact)) {
             return;
@@ -523,6 +524,9 @@ var Contacts = (function() {
           contactsDetails.render(currentContact, TAG_OPTIONS);
           navigation.back();
         });
+        break;
+      case 'view-contacts-list':
+        contacts.List.load();
         break;
     }
   };
