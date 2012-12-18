@@ -166,7 +166,7 @@ section {
 #thumbnails.offscreen {
   top: 0;
   bottom: 0;
-  transform: translate(100%, 0);
+  visibility: hidden;
 }
 
 .thumbnail {
