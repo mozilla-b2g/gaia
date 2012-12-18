@@ -1,0 +1,20 @@
+CACHE MANIFEST
+# Last built: 2012-12-20 09:49:18+0000
+
+CACHE:
+https://marketplace-dev-cdn.allizom.org/media/css/mkt/offline-min.css?build=1be65b7
+https://marketplace-dev-cdn.allizom.org/media/img/mkt/arrows/plain.png?bb08440
+https://marketplace-dev-cdn.allizom.org/media/img/mkt/loading-16.png?0393859
+https://marketplace-dev-cdn.allizom.org/media/img/mkt/header-icons.png?34abd16
+https://marketplace-dev-cdn.allizom.org/media/img/mkt/arrows/plain-lrg-go.png?925a17b
+https://marketplace-dev-cdn.allizom.org/media/img/mkt/divider.png?cdf0bdb
+https://marketplace-dev-cdn.allizom.org/media/img/mkt/logos/mp_aurora_wordmark_200x30.png?9d10615
+https://marketplace-dev-cdn.allizom.org/media/img/zamboni/mobile/loading-white.png?2816057
+https://marketplace-dev-cdn.allizom.org/media/img/mkt/expand-toggle.png?dcb0144
+https://marketplace-dev-cdn.allizom.org/media/img/mkt/grain.png?d99a08c
+
+NETWORK:
+*
+
+FALLBACK:
+/telefonica /offline/home

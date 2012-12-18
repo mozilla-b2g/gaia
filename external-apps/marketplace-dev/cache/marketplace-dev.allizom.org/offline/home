@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en-US" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+          <meta name="robots" content="noindex">
+        <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, maximum-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>Firefox Marketplace</title>
+
+    <link rel="shortcut icon" href="https://marketplace-dev-cdn.allizom.org/media/img/mkt/aurora_fav.ico">
+
+    <link rel="stylesheet" media="all" href="https://marketplace-dev-cdn.allizom.org/media/css/mkt/offline-min.css?build=1be65b7" />
+
+  </head>
+  <body class="html-ltr  force-mobile offline">
+
+    <header id="site-header" class="c">
+      <section>
+        <h1>Firefox Marketplace</h1>
+      </section>
+    </header>
+
+    <div id="container">
+      <div id="page" role="main"
+           data-context="{&#34;category&#34;: &#34;&#34;, &#34;hash&#34;: &#34;offline&#34;, &#34;bodyclass&#34;: &#34;offline&#34;, &#34;parent&#34;: &#34;&#34;, &#34;title&#34;: &#34;Firefox Marketplace&#34;, &#34;headertitle&#34;: &#34;Firefox Marketplace&#34;, &#34;cache&#34;: &#34;no&#34;, &#34;type&#34;: &#34;offline&#34;}">
+                  <section class="infobox">
+            <h3>
+              Sorry, you need to be online to access the Marketplace.
+            </h3>
+            <div>
+              <button onclick="window.location.reload()">Try Again</button>
+            </div>
+          </section>
+              </div>
+    </div>
+
+      </body>
+</html>
