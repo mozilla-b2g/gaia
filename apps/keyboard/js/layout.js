@@ -697,7 +697,7 @@ const Keyboards = {
       S: 'ŚŠŞ',
       n: 'ńñň'
     },
-    textLayoutOverwrites: {
+    textLayoutOverwrite: {
       ',': "'",
       '.': false
     },
