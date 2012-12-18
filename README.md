@@ -89,3 +89,5 @@ To run integration tests:
 Note: If you're using a FirefoxOS Device, it must have been flashed
 with a build with marionette enabled. If it doesn't have marionette
 enabled, then running `make test-integration` will time out.
+
+fooo
