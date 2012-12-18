@@ -1,9 +1,6 @@
 'use strict';
 
 var Camera = {
-
-  _started: false,
-
   _cameras: null,
   _camera: 0,
   _captureMode: null,
@@ -152,6 +149,13 @@ var Camera = {
   },
 
   init: function camera_init() {
+    // If we don't have any pending messages, show the usual UI
+    // Otherwise, determine which buttons to show once we get our
+    // activity message
+    if (!navigator.mozHasPendingMessage('activity')) {
+      this.galleryButton.classList.remove('hidden');
+      this.switchButton.classList.remove('hidden');
+    }
 
     // Dont let the phone go to sleep while the camera is
     // active, user must manually close it
@@ -214,11 +218,18 @@ var Camera = {
       this.setToggleCameraStyle();
       this.setSource(this._camera);
 
-      this._started = true;
-
-      if (this._pendingPick) {
-        this.initActivity();
-      }
+      navigator.mozSetMessageHandler('activity', function(activity) {
+        var name = activity.source.name;
+        if (name === 'pick') {
+          Camera.initPick(activity);
+        }
+        else {
+          // We got another activity. Perhaps we were launched from gallery
+          // So show our usual buttons
+          Camera.galleryButton.classList.remove('hidden');
+          Camera.switchButton.classList.remove('hidden');
+        }
+      });
     }).bind(this));
   },
 
@@ -236,21 +247,24 @@ var Camera = {
 
   // When inside an activity the user cannot switch between
   // the gallery or video recording.
-  initActivity: function camera_initActivity() {
-    this.galleryButton.setAttribute('disabled', 'disabled');
-    this.switchButton.setAttribute('disabled', 'disabled');
+  initPick: function camera_initPick(activity) {
+    this._pendingPick = activity;
+
+    // Hide the gallery and switch buttons, leaving only the shutter
+    this.galleryButton.classList.add('hidden');
+    this.switchButton.classList.add('hidden');
+
+    // Display the cancel button and add an event listener for it
+    var cancelButton = document.getElementById('cancel-pick');
+    cancelButton.classList.remove('hidden');
+    cancelButton.onclick = this.cancelPick.bind(this);
   },
 
-  cancelActivity: function camera_cancelActivity(error) {
-    if (error && this._pendingPick) {
+  cancelPick: function camera_cancelPick() {
+    if (this._pendingPick) {
       this._pendingPick.postError('pick cancelled');
     }
     this._pendingPick = null;
-
-    if (!this._secureMode) {
-      this.galleryButton.removeAttribute('disabled');
-    }
-    this.switchButton.removeAttribute('disabled');
   },
 
   toggleModePressed: function camera_toggleCaptureMode(e) {
@@ -655,7 +669,7 @@ var Camera = {
               type: 'image/jpeg',
               blob: getreq.result
             });
-            this.cancelActivity();
+            this.cancelPick();
           }).bind(this);
 
           return;
@@ -846,20 +860,6 @@ var Camera = {
   }
 };
 
-function actHandle(activity) {
-  var name = activity.source.name;
-  if (name === 'pick') {
-    Camera._pendingPick = activity;
-    if (Camera._started) {
-      Camera.initActivity();
-    }
-  }
-}
-
-if (window.navigator.mozSetMessageHandler) {
-  window.navigator.mozSetMessageHandler('activity', actHandle);
-}
-
 window.addEventListener('DOMContentLoaded', function CameraInit() {
   Camera.init();
 });
@@ -867,7 +867,7 @@ window.addEventListener('DOMContentLoaded', function CameraInit() {
 document.addEventListener('mozvisibilitychange', function() {
   if (document.mozHidden) {
     Camera.stopPreview();
-    Camera.cancelActivity(true);
+    Camera.cancelPick();
     if (this._secureMode) // If the lockscreen is locked
       Filmstrip.clear();  // then forget everything when closing camera
   } else {
