@@ -1322,17 +1322,18 @@ var WindowManager = (function() {
           // in the app frame. But we don't care.
           appendFrame(null, origin, e.detail.url,
                       name, app.manifest, app.manifestURL);
+
+          // set the size of the iframe
+          // so Cards View will get a correct screenshot of the frame
+          if (!e.detail.isActivity)
+            setAppSize(origin, false);
         } else {
           ensureHomescreen();
         }
 
         // We will only bring web activity handling apps to the foreground
-        if (!e.detail.isActivity) {
-          // set the size of the iframe
-          // so Cards View will get a correct screenshot of the frame
-          setAppSize(origin, false);
+        if (!e.detail.isActivity)
           return;
-        }
 
         // XXX: the correct way would be for UtilityTray to close itself
         // when there is a appwillopen/appopen event.
@@ -1407,6 +1408,11 @@ var WindowManager = (function() {
             attentionScreenTimer = setTimeout(function setVisibility(){
               setVisibilityForCurrentApp(false);
             }, 5000);
+
+            // Immediatly blur the frame in order to ensure hiding the keyboard
+            var app = runningApps[displayedApp];
+            if (app)
+              app.frame.blur();
         }
         break;
     }
@@ -1422,6 +1428,13 @@ var WindowManager = (function() {
       return;
     if ('setVisible' in app.frame)
       app.frame.setVisible(visible);
+
+    // Restore/give away focus on visiblity change
+    // so that the app can take back its focus
+    if (visible)
+      app.frame.focus();
+    else
+      app.frame.blur();
   }
 
   function handleAppCrash(origin, manifestURL) {
