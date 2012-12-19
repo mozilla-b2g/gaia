@@ -123,6 +123,7 @@ let hidden_apps = [
   gaiaManifestURL('system'),
   gaiaManifestURL('pdfjs')
 ];
+
 init = getFile(GAIA_DIR, GAIA_CORE_APP_SRCDIR, 'homescreen', 'js', 'hiddenapps.js');
 writeContent(init, "var HIDDEN_APPS = " + JSON.stringify(hidden_apps));
 
