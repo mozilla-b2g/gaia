@@ -2,23 +2,28 @@
 'use strict';
 
 const Homescreen = (function() {
-  var mode = 'normal';
+  var mode = 'normal', initialized = false;
 
   var _ = navigator.mozL10n.get;
   setLocale();
   window.addEventListener('localized', function localize() {
     setLocale();
-    GridManager.localize();
+    if (initialized) {
+      GridManager.localize();
+    }
   });
 
   // Initialize the various components.
-  PaginationBar.init('.paginationScroller');
-  GridManager.init('.apps', '.dockWrapper', function gm_init() {
-    PaginationBar.show();
-    GridManager.goToPage(1);
-    DragDropManager.init();
-    Wallpaper.init();
-  });
+  function initialize() {
+    PaginationBar.init('.paginationScroller');
+    GridManager.init('.apps', '.dockWrapper', function gm_init() {
+      PaginationBar.show();
+      GridManager.goToPage(1);
+      DragDropManager.init();
+      Wallpaper.init();
+      initialized = true;
+    });
+  }
 
   window.addEventListener('hashchange', function() {
     if (document.location.hash != '#root')
@@ -97,6 +102,18 @@ const Homescreen = (function() {
 
     setMode: function(newMode) {
       mode = document.body.dataset.mode = newMode;
-    }
+    },
+
+    init: initialize
   };
+
 })();
+
+if (document.readyState === 'complete') {
+  Homescreen.init();
+} else {
+  window.addEventListener('DOMContentLoaded', function homescreenStart() {
+    Homescreen.init();
+    window.removeEventListener('DOMContentLoaded', homescreenStart);
+  });
+}
