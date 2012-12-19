@@ -1,42 +1,40 @@
+html, body {
+  font-family: 'MozTT', sans-serif;
+  font-size: 10px;
+}
+
 #notification-toaster {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
-  height: 40px;
-
+  height: 50px;
   overflow: hidden;
-
   background-image: url('images/grey-noise-bg.png');
   background-repeat: repeat-x;
   -moz-box-sizing: border-box;
   border-bottom: 1px #2c2c2c solid;
-
-  font-size: 1em;
-
-  -moz-transform: translateY(-40px);
+  -moz-transform: translateY(-50px);
   -moz-transition: -moz-transform .3s ease-in-out;
 }
 
 #toaster-icon {
   position: absolute;
-  width: 24px;
-  height: 24px;
-  top: 8px;
-  left: 6px;
-
+  width: 30px;
+  height: 30px;
+  top: 7px;
+  left: 10px;
   pointer-events: none;
 }
 
 #notification-toaster > div {
-  left: 38px;
-  width: -moz-calc(100% - 38px);
-  height: 12px;
-
+  left: 50px;
+  width: -moz-calc(100% - 55px);
+  height: 19px;
   padding: 0;
 
-  line-height: 12px;
-  
+  line-height: 1.9rem;
+
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -44,14 +42,21 @@
 
 #toaster-title {
   position: absolute;
-  top: 4px;
-  color: #52B6CC;
+  top: 3px;
+  color: #52b8cc;
+  font-size: 1.5rem;
+  font-weight: 500;
 }
 
 #toaster-detail {
   position: absolute;
   top: 22px;
   color: white;
+  font-size: 1.4rem;
+  font-weight: 400;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 #notification-toaster.displayed {
@@ -60,32 +65,29 @@
 
 #notification-bar {
   height: 30px;
-
   background-color: #52b6cc;
   color: #1b3f46;
 }
 
 #notification-bar span {
   display: inline-block;
-  margin-left: 16px;
-
-  font-size: 1.2em;
+  margin-left: 15px;
+  font-size: 1.4rem;
+  font-weight: 500;
   line-height: 30px;
-  font-weight: 700;
 }
 
 #notification-bar button {
   float: right;
-  margin-right: 16px;
+  margin-right: 15px;
   width: 30%;
   height: 30px;
-
   padding: 0;
   border: 0;
   background: none;
-
   text-align: right;
-  font-size: 1.1em;
+  font-size: 1.4rem;
+  font-weight: 500;
 }
 
 /* remove ugly dotted outline when focus */
@@ -105,9 +107,10 @@
 
 .notification {
   position: relative;
-
   height: 60px;
-  font-weight: 700;
+  font-size: 1.4rem;
+  font-weight: 400;
+  line-height: 1.9rem;
 
   background-color: rgba(0, 0, 0, 0.5);
 
@@ -124,21 +127,21 @@
 }
 
 .notification > div:first-of-type {
-  margin: 14px 0 0 56px;
-
-  font-size: 1.2em;
-  font-weight: 700;
-  line-height: 16px;
-  color: #f2f2f2;
+  margin: 10px 0 0 50px;
+  font-size: 1.5rem;
+  font-weight: 500;
+  line-height: 1.9rem;
+  color: #FFFFFF;
 }
 
 .notification > div {
-  margin: 0 0 0 56px;
+  margin: 0 0 0 50px;
   padding: 0;
-  width: -moz-calc(100% - 125px);
-  color: #dbdbdb;
-  line-height: 16px;
-  font-weight: 300;
+  width: -moz-calc(100% - 55px);
+  color: #bfbfbf;
+  font-size: 1.4rem;
+  line-height: 1.9rem;
+  font-weight: 400;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -158,9 +161,9 @@
 .notification > img {
   float: left;
   display: block;
-  width: 32px;
-  height: 32px;
-  margin: 14px;
+  width: 30px;
+  height: 30px;
+  margin: 15px 10px;
   pointer-events: none;
 }
 
