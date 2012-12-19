@@ -80,7 +80,7 @@ var NotificationScreen = {
     window.addEventListener('unlock', this.clearLockScreen.bind(this));
     window.addEventListener('mozvisibilitychange', this);
 
-    this._sound = '';
+    this._sound = 'style/notifications/ringtones/notifier_exclamation.ogg';
 
     var self = this;
     SettingsListener.observe('notification.ringtone', '', function(value) {
