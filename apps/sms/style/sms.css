@@ -465,6 +465,15 @@ form.bottom[role="search"].new-sms-form {
   background: #008aaa;
 }
 
+#send-message:before {
+  content: attr(data-counter);
+  font-size: 1.2rem;
+  color: #606060;
+  position: absolute;
+  right: 1.5rem;
+  bottom: 2.4rem;
+}
+
 #message-to-send {
   padding: 0.4rem 0 0.4rem 0.4rem;
   line-height: 2rem;
