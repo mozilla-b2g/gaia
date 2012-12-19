@@ -1,3 +1,5 @@
+'use strict';
+
 requireApp('system/js/identity.js');
 requireApp('system/test/unit/mock_chrome_event.js');
 requireApp('system/test/unit/mock_trusted_ui_manager.js');
@@ -48,10 +50,9 @@ suite('identity', function() {
     });
 
     test('popup parameters', function() {
-      assert.equal(true, MockTrustedUIManager.mOpened);
-      assert.equal('IdentityFlow', MockTrustedUIManager.mName);
-      assert.equal('https://b2g.personatest.org/sign_in#NATIVE', MockTrustedUIManager.mOrigin);
-      assert.equal(MockTrustedUIManager.mOrigin, MockTrustedUIManager.mFrame.src);
+      assert.equal(MockTrustedUIManager.mOpened, true);
+      assert.equal(MockTrustedUIManager.mName, 'IdentityFlow');
+      assert.equal(MockTrustedUIManager.mChromeEventId, 'test-open-event-id');
     });
 
     test('frame event listener', function() {
