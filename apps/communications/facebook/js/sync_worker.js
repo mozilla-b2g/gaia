@@ -18,7 +18,7 @@ importScripts('/contacts/js/fb/fb_query.js',
   var UPDATED_QUERY = [
       'SELECT uid, name, first_name, last_name, ' ,
       'middle_name, birthday_date, email, current_location, ' ,
-      'work, cell, other_phone, hometown_location, pic_big ' ,
+      'work, phones, hometown_location, pic_big ' ,
       ' FROM user' ,
       ' WHERE uid ',
       ' IN (SELECT uid1 FROM friend WHERE uid2=me()',
