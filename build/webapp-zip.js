@@ -151,7 +151,7 @@ Gaia.webapps.forEach(function(webapp) {
   // Put shared files, but copy only files actually used by the webapp.
   // We search for shared file usage by parsing webapp source code.
   let EXTENSIONS_WHITELIST = ['html'];
-  let SHARED_USAGE = /=['"]\.?\.?\/?shared\/([^\/]+)\/([^''\s]+)("|')/g;
+  let SHARED_USAGE = /<(?:script|link).+=['"]\.?\.?\/?shared\/([^\/]+)\/([^''\s]+)("|')/g;
 
   let used = {
     js: [],              // List of JS file paths to copy
