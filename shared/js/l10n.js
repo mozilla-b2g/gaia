@@ -909,39 +909,8 @@
 
 
   /**
-   * Startup & Public API
+   * Public API & startup
    */
-
-  // load the default locale on startup
-  function l10nStartup() {
-    gReadyState = 'interactive';
-    consoleLog('loading [' + navigator.language + '] resources, ' +
-        (gAsyncResourceLoading ? 'asynchronously.' : 'synchronously.'));
-
-    // load the default locale and translate the document if required
-    if (document.documentElement.lang == navigator.language) {
-      loadLocale(navigator.language, fireL10nReadyEvent);
-    } else {
-      loadLocale(navigator.language, translateFragment);
-    }
-  }
-
-  // the build system used in Firefox OS doesn't expose any `document'...
-  if (typeof(document) !== 'undefined') {
-    if (document.readyState === 'interactive' ||
-        document.readyState === 'complete') {
-      l10nStartup();
-    } else {
-      document.addEventListener('DOMContentLoaded', l10nStartup);
-    }
-  }
-
-  // load the appropriate locale if the language setting has changed
-  if ('mozSettings' in navigator && navigator.mozSettings) {
-    navigator.mozSettings.addObserver('language.current', function(event) {
-      loadLocale(event.settingValue, translateFragment);
-    });
-  }
 
   // Public API
   navigator.mozL10n = {
@@ -977,6 +946,34 @@
     // this can be used to avoid race conditions
     get readyState() { return gReadyState; }
   };
+
+  // load the default locale on startup
+  function l10nStartup() {
+    gReadyState = 'interactive';
+    consoleLog('loading [' + navigator.language + '] resources, ' +
+        (gAsyncResourceLoading ? 'asynchronously.' : 'synchronously.'));
+
+    // load the default locale and translate the document if required
+    if (document.documentElement.lang == navigator.language) {
+      loadLocale(navigator.language, fireL10nReadyEvent);
+    } else {
+      loadLocale(navigator.language, translateFragment);
+    }
+  }
+
+  if (document.readyState === 'interactive' ||
+      document.readyState === 'complete') {
+    l10nStartup();
+  } else {
+    document.addEventListener('DOMContentLoaded', l10nStartup);
+  }
+
+  // load the appropriate locale if the language setting has changed
+  if ('mozSettings' in navigator && navigator.mozSettings) {
+    navigator.mozSettings.addObserver('language.current', function(event) {
+      loadLocale(event.settingValue, translateFragment);
+    });
+  }
 
   consoleLog('library loaded.');
 })(this);
