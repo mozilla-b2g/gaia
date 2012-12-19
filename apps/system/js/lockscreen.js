@@ -80,23 +80,6 @@ var LockScreen = {
   elasticIntervalId: 0,
 
   /*
-  * start/end curve path data (position, curve control point)
-  */
-  CURVE_START_DATA: 'M0,80 C100,150 220,150 320,80',
-  CURVE_END_DATA: 'M0,80 C100,-20 220,-20 320,80',
-
-  /*
-  * curve transform const parameters
-  */
-  CURVE_TRANSFORM_DATA: ['M0,80 C100,', '0', ' 220,', '0', ' 320,80'],
-
-  /*
-  * control points coordinate y for CURVE_TRANSFORM_DATA
-  */
-  CURVE_TRANSFORM_Y1_INDEX: 1,
-  CURVE_TRANSFORM_Y2_INDEX: 3,
-
-  /*
   * elastic animation interval
   */
   ELASTIC_INTERVAL: 5000,
@@ -105,6 +88,11 @@ var LockScreen = {
   * timeout for triggered state after swipe up
   */
   TRIGGERED_TIMEOUT: 7000,
+
+  /*
+  * Max value for handle swiper up
+  */
+  HANDLE_MAX: 70,
 
   /* init */
   init: function ls_init() {
@@ -283,11 +271,8 @@ var LockScreen = {
           break;
         }
 
-        this.iconContainer.classList.remove('elastic');
+        this.overlay.classList.remove('elastic');
         this.setElasticEnabled(false);
-        Array.prototype.forEach.call(this.startAnimation, function(el) {
-          el.endElement();
-        });
 
         this._touch = {
           touched: false,
@@ -312,7 +297,6 @@ var LockScreen = {
         break;
 
       case 'mouseup':
-        var handle = this.areaHandle;
         window.removeEventListener('mousemove', this);
         window.removeEventListener('mouseup', this);
 
@@ -370,50 +354,43 @@ var LockScreen = {
     }
 
     var dy = pageY - touch.initY;
-    var handleMax = window.innerHeight / 4;
-    var ty = Math.max(- handleMax, dy);
-    var opacity = - ty / handleMax;
-    // Curve control point coordinate Y
-    var cy = 150 - opacity * 150;
-    touch.cy = cy;
-    var curvedata = [].concat(this.CURVE_TRANSFORM_DATA);
-    curvedata[this.CURVE_TRANSFORM_Y1_INDEX] = cy;
-    curvedata[this.CURVE_TRANSFORM_Y2_INDEX] = cy;
+    var ty = Math.max(- this.HANDLE_MAX, dy);
+    var base = - ty / this.HANDLE_MAX;
+    // mapping position 20-100 to opacity 0.1-0.5
+    var opacity = base <= 0.2 ? 0.1 : base * 0.5;
+    touch.ty = ty;
 
-    this.iconContainer.style.transform = 'translateY(' + ty / 1.5 + 'px)';
-    this.curvepath.setAttribute('d', curvedata.join(''));
-    this.areaHandle.setAttribute('y', 100 - opacity * 100);
+    this.iconContainer.style.transform = 'translateY(' + ty + 'px)';
+    this.areaCamera.style.opacity =
+      this.areaUnlock.style.opacity = opacity;
   },
 
   handleGesture: function ls_handleGesture() {
-    var handleMax = window.innerHeight / 4;
     var touch = this._touch;
-
-    if (touch.cy < 80) {
-      Array.prototype.forEach.call(this.endAnimation, function(el) {
-        el.setAttribute('fill', 'freeze');
-        el.beginElement();
-      });
-      var self = this;
-      this.curvepath.addEventListener('endEvent', function endEvent() {
-        self.curvepath.removeEventListener('endEvent', endEvent);
-        self.curvepath.setAttribute('d', self.CURVE_END_DATA);
-        self.curvepath.setAttribute('stroke-opacity', 0);
-        self.areaHandle.setAttribute('y', 0);
-        self.areaHandle.setAttribute('opacity', 0);
-
-        Array.prototype.forEach.call(self.endAnimation, function(el) {
-          el.removeAttribute('fill');
-        });
-      });
+    if (touch.ty < -50) {
       this.areaHandle.style.transform =
         this.areaHandle.style.opacity =
         this.iconContainer.style.transform =
-        this.iconContainer.style.opacity = '';
+        this.iconContainer.style.opacity =
+        this.areaCamera.style.transform =
+        this.areaCamera.style.opacity =
+        this.areaUnlock.style.transform =
+        this.areaUnlock.style.opacity = '';
       this.overlay.classList.add('triggered');
 
       this.triggeredTimeoutId =
         setTimeout(this.unloadPanel.bind(this), this.TRIGGERED_TIMEOUT);
+    }
+    else if (touch.ty > -10) {
+      touch.touched = false;
+      this.unloadPanel();
+      this.playElastic();
+      this.iconContainer.addEventListener('animationend',
+        function prompt() {
+          this.iconContainer.removeEventListener('animationend', prompt);
+          this.overlay.classList.remove('elastic');
+          this.setElasticEnabled(true);
+        }.bind(this));
     }
     else {
       this.unloadPanel();
@@ -632,21 +609,6 @@ var LockScreen = {
       default:
         var self = this;
         var unload = function unload() {
-          Array.prototype.forEach.call(self.startAnimation, function(el) {
-            el.setAttribute('fill', 'freeze');
-            el.beginElement();
-          });
-          self.curvepath.addEventListener('endEvent', function eventend() {
-            self.curvepath.removeEventListener('endEvent', eventend);
-            self.curvepath.setAttribute('d', self.CURVE_START_DATA);
-            self.curvepath.setAttribute('stroke-opacity', '1.0');
-            self.areaHandle.setAttribute('y', 100);
-            self.areaHandle.setAttribute('opacity', 1);
-            Array.prototype.forEach.call(self.startAnimation, function(el) {
-              el.removeAttribute('fill');
-            });
-          });
-
           self.areaHandle.style.transform =
             self.areaUnlock.style.transform =
             self.areaCamera.style.transform =
@@ -661,6 +623,7 @@ var LockScreen = {
           self.areaUnlock.classList.remove('triggered');
 
           clearTimeout(self.triggeredTimeoutId);
+          self.setElasticEnabled(true);
         };
 
         if (toPanel !== 'camera') {
@@ -889,11 +852,9 @@ var LockScreen = {
     // ID of elements to create references
     var elements = ['connstate', 'mute', 'clock-numbers', 'clock-meridiem',
         'date', 'area', 'area-unlock', 'area-camera', 'icon-container',
-        'area-handle', 'passcode-code', 'curvepath',
+        'area-handle', 'passcode-code',
         'passcode-pad', 'camera', 'accessibility-camera',
         'accessibility-unlock', 'panel-emergency-call'];
-    var elementsForClass = ['start-animation', 'end-animation',
-        'elastic-animation'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {
@@ -903,11 +864,6 @@ var LockScreen = {
 
     elements.forEach((function createElementRef(name) {
       this[toCamelCase(name)] = document.getElementById('lockscreen-' + name);
-    }).bind(this));
-
-    elementsForClass.forEach((function createElementsRef(name) {
-      this[toCamelCase(name)] =
-        document.querySelectorAll('.lockscreen-' + name);
     }).bind(this));
 
     this.overlay = document.getElementById('lockscreen');
@@ -943,10 +899,6 @@ var LockScreen = {
   playElastic: function ls_playElastic() {
     if (this._touch && this._touch.touched)
       return;
-    var forEach = Array.prototype.forEach;
-    forEach.call(this.elasticAnimation, function(el) {
-      el.beginElement();
-    });
     this.overlay.classList.add('elastic');
 
     this.iconContainer.addEventListener('animationend',

@@ -32,7 +32,11 @@ html, body {
   width: 33%;
 }
 
-#switch-button span, #capture-button span, #gallery-button span {
+#switch-button span,
+#capture-button span,
+#gallery-button span,
+#cancel-pick span
+{
   -moz-transition: 0.2s ease-in-out;
   pointer-events: none;
   background-position: center center;
@@ -67,12 +71,31 @@ html, body {
   width: 100%;
   height: 100%;
 }
+
+#gallery-button.hidden {
+  display:none;
+}
+
 #gallery-button span {
   background-image: url(images/grid.png);
 }
 
 #gallery-button[disabled=disabled] {
   display: none;
+}
+
+#cancel-pick {
+  display:block;
+  width: 100%;
+  height: 100%;
+}
+
+#cancel-pick.hidden {
+  display:none
+}
+
+#cancel-pick span {
+  background-image: url(images/actionicon_cancel.png);
 }
 
 #capture-button[disabled=disabled] {
