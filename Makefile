@@ -49,6 +49,8 @@ GAIA_APP_SRCDIRS?=apps test_apps showcase_apps
 GAIA_INSTALL_PARENT?=/data/local
 ADB_REMOUNT?=0
 
+PERM_TABLE_URL=http://hg.mozilla.org/mozilla-central/raw-file/tip/dom/apps/src/PermissionsTable.jsm
+
 GAIA_ALL_APP_SRCDIRS=$(GAIA_APP_SRCDIRS)
 
 ifeq ($(MAKECMDGOALS), demo)
@@ -233,6 +235,10 @@ ifneq ($(DEBUG),1)
 	@cat apps/camera/index.html | sed -e 's:shared/:../shared/:' > apps/system/camera/index.html
 	@rm apps/system/camera/manifest.webapp
 	@mkdir -p profile/webapps
+	@rm -f build/PermissionsTable.jsm
+	@$(DOWNLOAD_CMD) $(PERM_TABLE_URL)
+	@mv PermissionsTable.jsm build
+	@$(call run-js-command, generate-permissions)
 	@$(call run-js-command, webapp-zip)
 endif
 
