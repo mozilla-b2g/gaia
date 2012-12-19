@@ -144,6 +144,8 @@ if (!fb.sync) {
 
     // Updates the FB data from a friend
     function updateFbFriend(contactId, cfdata) {
+      fb.friend2mozContact(cfdata);
+
       cfdata.fbInfo = cfdata.fbInfo || {};
 
       cfdata.fbInfo.org = [fb.getWorksAt(cfdata)];
