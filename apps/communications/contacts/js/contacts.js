@@ -596,9 +596,9 @@ var Contacts = (function() {
       '#settings-done': doneTag,
       '#settings-close': contacts.Settings.close,
       '#cancel-search': contacts.Search.exitSearchMode, // Search related
-      '#search-contact': [
+      '#search-start': [
         {
-          event: 'focus',
+          event: 'click',
           handler: contacts.Search.enterSearchMode
         }
       ],

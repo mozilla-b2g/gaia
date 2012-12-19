@@ -127,8 +127,8 @@
           <div id="groups-container" class="view-body-inner">
             <form id="search-container" class="search" role="search">
               <p>
-                <label for="search-contact">
-                  <input type="search" name="search" class="textfield" placeholder="Search" data-l10n-id="search-contact" />
+                <label for="search" id="search-start">
+                  <input type="search" name="search" class="textfield" placeholder="Search" data-l10n-id="search-contact">
                 </label>
               </p>
             </form>
@@ -138,25 +138,33 @@
           </div>
         </article>
         <div id='fixed-container' class='fixed-title'></div>
-
-        <section id="search-view" class="view">
-          <form id="searchview-container" class="search" role="search">
-            <button id='cancel-search' data-l10n-id="cancel" type="submit">Cancel</button>
-            <p>
-              <label for="search-contact">
-                <input data-cancelable required type="search" name="search" class="textfield" placeholder="Search"
-                       id="search-contact" data-l10n-id="search-contact" />
-                <button type="reset" class="hide">Clear</button>
-              </label>
-            </p>
-          </form>
-          <section id="groups-list-search">
-            <p id="no-result" class="hide" data-l10n-id="noResults">No contacts found</p>
-            <ol id="search-list" data-type="list">
-            </ol>
-          </section>
-        </section>    <!-- Search list -->
       </section>
+
+      <section id="search-view" class="view">
+        <form id="searchview-container" class="search" role="search">
+          <button id='cancel-search' data-l10n-id="cancel" type="submit">Cancel</button>
+          <p>
+            <label for="search-contact">
+              <input data-cancelable required type="search" name="search" class="textfield" placeholder="Search"
+                     id="search-contact" data-l10n-id="search-contact">
+              <button type="reset" class="hide">Clear</button>
+            </label>
+          </p>
+        </form>
+
+        <section id="groups-list-search">
+          <ol id="search-list" data-type="list">
+          </ol>
+        </section>
+
+        <section>
+          <p id="no-result" class="hide" data-l10n-id="noResults">No contacts found</p>
+          <p id="search-progress" class="hidden" role="status">
+            <progress  class="small"></progress>
+          </p>
+        </section>
+
+      </section>    <!-- Search view -->
 
       <!-- Contact Details Section -->
       <section id='view-contact-details' role="region" class="view view-right view-contact-profile">
