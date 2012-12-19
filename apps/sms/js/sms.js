@@ -546,7 +546,7 @@ var ThreadListUI = {
       }
       // Update threads with 'unread' if some was missing
       for (var i = 0; i < unreadThreads.length; i++) {
-         document.getElementById('thread_' + thread.num).
+         document.getElementById('thread_' + unreadThreads[i]).
                     getElementsByTagName('a')[0].classList.add('unread');
       }
 
