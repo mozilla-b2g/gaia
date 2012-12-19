@@ -12,6 +12,7 @@ var AppManager = {
     UIManager.init();
     Navigation.init();
     DataMobile.init();
+    this.disableUpdates();
     var kSplashTimeout = 700;
     // Retrieve mobile connection if available
     var conn = window.navigator.mozMobileConnection;
@@ -49,6 +50,14 @@ var AppManager = {
       // Remove the splash
       UIManager.splashScreen.classList.remove('show');
     }, kSplashTimeout);
+  },
+  // Disable the automated updates during the FTU
+  // Will be enabled when finished (see system/bootstrap)
+  disableUpdates: function disableUpdates() {
+    var lock = window.navigator.mozSettings.createLock();
+    lock.set({
+      'gaia.system.checkForUpdates': false
+    });
   }
 };
 
