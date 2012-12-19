@@ -1046,6 +1046,8 @@ var WindowManager = (function() {
     frame.setAttribute('mozallowfullscreen', 'true');
     frame.className = 'appWindow';
     frame.dataset.frameOrigin = origin;
+    // Save original frame URL in order to restore it on frame load error
+    frame.dataset.frameURL = url;
 
     // Note that we don't set the frame size here.  That will happen
     // when we display the app in setDisplayedApp()
