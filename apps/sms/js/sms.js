@@ -143,7 +143,14 @@ var MessageManager = {
             var num = this.getNumFromHash();
             if (num) {
               var filter = this.createFilter(num);
-              this.getMessages(ThreadUI.renderMessages, filter);
+              var typedText = ThreadUI.input.value;
+              this.getMessages(ThreadUI.renderMessages, filter, true,
+                function() {
+                  // Restored previous typed text.
+                  ThreadUI.input.value = typedText;
+                  ThreadUI.input.focus();
+                  ThreadUI.enableSend();
+              });
             }
           }
         }
