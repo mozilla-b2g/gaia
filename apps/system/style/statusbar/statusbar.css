@@ -318,6 +318,10 @@ body, html {
   background-position: -273px -60px;
 }
 
+.sb-icon-mute.vibration {
+  background-position: -210px -60px;
+}
+
 .sb-icon-usb {
   background-position: -294px -60px;
 }
