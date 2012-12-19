@@ -462,7 +462,7 @@ form.bottom[role="search"].new-sms-form {
 }
 
 #send-message.active {
-  background: #aaf;
+  background: #008aaa;
 }
 
 #message-to-send {
