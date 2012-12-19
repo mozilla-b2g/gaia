@@ -116,7 +116,7 @@ html, body {
 
 #updates-download-dialog {
   padding-bottom: 4.9rem;
-  padding-top: 0rem;
+  padding-top: 0;
   display: none;
 }
 
