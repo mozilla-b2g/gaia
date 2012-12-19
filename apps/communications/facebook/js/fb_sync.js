@@ -377,6 +377,7 @@ if (!fb.sync) {
       var toBeUpdated = {};
 
       fb.utils.getLastUpdate(function import_updates(lastUpdate) {
+        var toBeChanged = 0;
         var lastUpdateTime = Math.round(lastUpdate / 1000);
 
         debug('Last update time: ', lastUpdateTime);
@@ -407,6 +408,7 @@ if (!fb.sync) {
               }
               else {
                 debug('Updating friend: ', friendData.uid);
+                toBeChanged++;
                 updateFbFriend(aContact.id, friendData);
               }
             }
@@ -416,6 +418,7 @@ if (!fb.sync) {
           }
           else {
             debug('Removing friend: ', aContact.id);
+            toBeChanged++;
             removeFbFriend(aContact.id);
           }
         });
@@ -426,7 +429,7 @@ if (!fb.sync) {
         // worker
         var toBeUpdatedList = Object.keys(toBeUpdated);
         if (toBeUpdatedList.length > 0) {
-          totalToChange = changed + toBeUpdatedList.length;
+          totalToChange = toBeChanged + toBeUpdatedList.length;
 
           debug('Starting worker for updating img data');
           startWorker();
@@ -444,7 +447,7 @@ if (!fb.sync) {
           });
         }
         else {
-          totalToChange = changed;
+          totalToChange = toBeChanged;
           checkTotals();
         }
       });
