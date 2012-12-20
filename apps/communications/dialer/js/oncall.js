@@ -176,9 +176,12 @@ var OnCallHandler = (function onCallHandler() {
   var ringing = false;
 
   /* === Settings === */
-  var activePhoneSound = true;
-  SettingsListener.observe('audio.volume.notification', true, function(value) {
+  var activePhoneSound = null;
+  SettingsListener.observe('ring.enabled', true, function(value) {
     activePhoneSound = !!value;
+    if (ringing && activePhoneSound) {
+      ringtonePlayer.play();
+    }
   });
 
   var selectedPhoneSound = '';
@@ -187,7 +190,7 @@ var OnCallHandler = (function onCallHandler() {
     ringtonePlayer.pause();
     ringtonePlayer.src = value;
 
-    if (ringing) {
+    if (ringing && activePhoneSound) {
       ringtonePlayer.play();
     }
   });
@@ -203,7 +206,7 @@ var OnCallHandler = (function onCallHandler() {
   ringtonePlayer.src = selectedPhoneSound;
   ringtonePlayer.loop = true;
 
-  var activateVibration = true;
+  var activateVibration = null;
   SettingsListener.observe('vibration.enabled', true, function(value) {
     activateVibration = !!value;
   });
@@ -292,10 +295,14 @@ var OnCallHandler = (function onCallHandler() {
       if (document.mozHidden) {
         window.addEventListener('mozvisibilitychange', function waitOn() {
           window.removeEventListener('mozvisibilitychange', waitOn);
-          navigator.vibrate([100, 100, 100]);
+          if (activateVibration) {
+            navigator.vibrate([100, 100, 100]);
+          }
         });
       } else {
-        navigator.vibrate([100, 100, 100]);
+        if (activateVibration) {
+          navigator.vibrate([100, 100, 100]);
+        }
       }
 
       LazyL10n.get(function localized(_) {
@@ -336,16 +343,20 @@ var OnCallHandler = (function onCallHandler() {
 
   function handleFirstIncoming(call) {
     var vibrateInterval = 0;
-    if (activateVibration) {
+    if (activateVibration != false) {
       vibrateInterval = window.setInterval(function vibrate() {
-        if ('vibrate' in navigator) {
+        // Wait for the setting value to return before starting a vibration.
+        if ('vibrate' in navigator && activateVibration) {
           navigator.vibrate([200]);
         }
       }, 600);
     }
 
-    if (activePhoneSound) {
+    if (activePhoneSound == true) {
       ringtonePlayer.play();
+      ringing = true;
+    } else if (activePhoneSound == null) {
+      // Let's wait for the setting to return before playing any sound.
       ringing = true;
     }
 

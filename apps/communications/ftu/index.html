@@ -20,6 +20,7 @@
   <title>Welcome to Browser OS</title>
 
   <!-- Localization -->
+  <link rel="resource" type="image/png" href="/shared/resources/branding/"/>
   <link rel="resource" type="application/l10n" href="/shared/locales/branding.ini"/>
   <link rel="resource" type="application/l10n" href="/ftu/locales/locales.ini"/>
   <link rel="resource" type="application/l10n" href="/shared/locales/date.ini"/>
@@ -309,13 +310,16 @@
           <input type="email" data-l10n-id="emailAddress" placeholder="Email address"></input>
         </section>
         <p data-l10n-id="learnHow">
-        <!-- Link url depending on bug #812956-->
-         Learn how Mozilla handle your information in our <a data-l10n-id="privacyPolicy">privacy policy</a>.
+          Learn how Mozilla handle your information in our
+          <a data-l10n-id="privacyPolicy" class="external"
+            href="https://www.mozilla.org/privacy/firefox-os/" title="Privacy policy">
+            privacy policy
+         </a>.
         </p>
       </section>
       <section role="region" id="welcome_browser">
         <section id="browser_logo_horizontal">
-          <img src="css/images/logosmall.png">
+          <img src="/shared/resources/branding/logosmall.png">
         </section>
         <p data-l10n-id="welcomeBrowser">
           Welcome to Browser OS, the free and
@@ -381,95 +385,62 @@
   </section>
 
   <section id="tutorial" role="region">
+    <ol id="tutorial_progress" class="step-state">
+      <li>step 1</li>
+      <li>step 2</li>
+      <li>step 3</li>
+      <li>step 4</li>
+      <li>step 5</li>
+    </ol>
     <article role="main">
       <section role="region" id="step1">
         <div>
           <header id="step1Header">
+            Swipe from right to left to browse your apps.
           </header>
         </div>
         <section>
-          <img  id="step1Img" src="">
+          <img id="step1Img">
         </section>
       </section>
       <section role="region" id="step2">
         <div>
           <header id="step2Header">
+            Swipe from left to right to discover new apps.
           </header>
         </div>
         <section>
-          <img id="step2Img" src="">
+          <img id="step2Img">
         </section>
       </section>
       <section role="region" id="step3">
         <div>
           <header id="step3Header">
+            Tap and hold on an icon to delete or move it.
           </header>
         </div>
         <section>
-          <img  id="step3Img" src="">
+          <img id="step3Img">
         </section>
       </section>
       <section role="region" id="step4">
         <div>
           <header id="step4Header">
+            Swipe down to access recent notifications, credit information and settings.
           </header>
         </div>
         <section>
-          <img  id="step4Img" src="">
+          <img id="step4Img">
         </section>
       </section>
       <section role="region" id="step5">
         <div>
           <header id="step5Header">
+            Tap and hold the home button to browse and close recent apps.
           </header>
         </div>
         <section>
-          <img  id="step5Img" src="">
-        </section>
-      </section>
-      <section role="region" id="step6">
-        <div>
-          <header id="step6Header">
-          </header>
-        </div>
-        <section>
-          <img  id="step6Img" src="">
-        </section>
-      </section>
-      <section role="region" id="step7">
-        <div>
-          <header id="step7Header">
-          </header>
-        </div>
-        <section>
-          <img  id="step7Img" src="">
-        </section>
-      </section>
-      <section role="region" id="step8">
-        <div>
-          <header id="step8Header">
-          </header>
-        </div>
-        <section>
-          <img  id="step8Img" src="">
-        </section>
-      </section>
-      <section role="region" id="step9">
-        <div>
-          <header id="step9Header">
-          </header>
-        </div>
-        <section>
-          <img  id="step9Img" src="">
-        </section>
-      </section>
-      <section role="region" id="step10">
-        <div>
-          <header id="step10Header">
-          </header>
-        </div>
-        <section>
-          <img  id="step10Img" src="">
+          <img id="step5Img">
         </section>
       </section>
     </article>

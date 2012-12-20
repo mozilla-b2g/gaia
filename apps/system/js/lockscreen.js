@@ -138,12 +138,19 @@ var LockScreen = {
       self.setEnabled(value);
     });
 
-    SettingsListener.observe('audio.volume.master', 5, function(volume) {
-      self.mute.hidden = !!volume;
+    SettingsListener.observe('ring.enabled', true, function(value) {
+      self.mute.hidden = value;
     });
 
-    SettingsListener.observe(
-      'ril.radio.disabled', false, function(value) {
+    SettingsListener.observe('vibration.enabled', true, function(value) {
+      if (value) {
+        self.mute.classList.add('vibration');
+      } else {
+        self.mute.classList.remove('vibration');
+      }
+    });
+
+    SettingsListener.observe('ril.radio.disabled', false, function(value) {
       self.airplaneMode = value;
       self.updateConnState();
     });
@@ -264,14 +271,14 @@ var LockScreen = {
         var target = evt.target;
 
         // Reset timer when touch while overlay triggered
-        if (this.overlay.classList.contains('triggered')) {
+        if (overlay.classList.contains('triggered')) {
           clearTimeout(this.triggeredTimeoutId);
           this.triggeredTimeoutId = setTimeout(this.unloadPanel.bind(this),
                                                this.TRIGGERED_TIMEOUT);
           break;
         }
 
-        this.overlay.classList.remove('elastic');
+        overlay.classList.remove('elastic');
         this.setElasticEnabled(false);
 
         this._touch = {
@@ -380,19 +387,19 @@ var LockScreen = {
 
       this.triggeredTimeoutId =
         setTimeout(this.unloadPanel.bind(this), this.TRIGGERED_TIMEOUT);
-    }
-    else if (touch.ty > -10) {
+    } else if (touch.ty > -10) {
       touch.touched = false;
       this.unloadPanel();
       this.playElastic();
-      this.iconContainer.addEventListener('animationend',
-        function prompt() {
-          this.iconContainer.removeEventListener('animationend', prompt);
-          this.overlay.classList.remove('elastic');
-          this.setElasticEnabled(true);
-        }.bind(this));
-    }
-    else {
+
+      var self = this;
+      var container = this.iconContainer;
+      container.addEventListener('animationend', function prompt() {
+        container.removeEventListener('animationend', prompt);
+        self.overlay.classList.remove('elastic');
+        self.setElasticEnabled(true);
+      });
+    } else {
       this.unloadPanel();
       this.setElasticEnabled(true);
     }
@@ -623,7 +630,7 @@ var LockScreen = {
           self.areaUnlock.classList.remove('triggered');
 
           clearTimeout(self.triggeredTimeoutId);
-          self.setElasticEnabled(true);
+          self.setElasticEnabled(false);
         };
 
         if (toPanel !== 'camera') {
@@ -886,26 +893,25 @@ var LockScreen = {
   },
 
   setElasticEnabled: function ls_setElasticEnabled(value) {
-    if (value && !this.elasticIntervalId) {
+    clearInterval(this.elasticIntervalId);
+    if (value) {
       this.elasticIntervalId =
         setInterval(this.playElastic.bind(this), this.ELASTIC_INTERVAL);
-    }
-    else if (!value && this.elasticIntervalId) {
-      clearInterval(this.elasticIntervalId);
-      this.elasticIntervalId = 0;
     }
   },
 
   playElastic: function ls_playElastic() {
     if (this._touch && this._touch.touched)
       return;
-    this.overlay.classList.add('elastic');
 
-    this.iconContainer.addEventListener('animationend',
-      function animationend() {
-        this.iconContainer.removeEventListener('animationend', animationend);
-        this.overlay.classList.remove('elastic');
-      }.bind(this));
+    var overlay = this.overlay;
+    var container = this.iconContainer;
+
+    overlay.classList.add('elastic');
+    container.addEventListener('animationend', function animationend(e) {
+      container.removeEventListener(e.type, animationend);
+      overlay.classList.remove('elastic');
+    });
   }
 };
 

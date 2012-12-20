@@ -620,7 +620,7 @@ function modifyLayout(keyboardName) {
 
         // adds . and , to both sides of the space bar
       case 'text':
-        var overwrites = layout.textLayoutOverwrites || {};
+        var overwrites = layout.textLayoutOverwrite || {};
         var next = c + 1;
         if (overwrites['.'] !== false) {
           space.ratio -= 1;

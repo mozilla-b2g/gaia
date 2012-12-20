@@ -9,6 +9,10 @@ var UIManager = {
     delete this.progressBar;
     return this.progressBar = document.getElementById('activation_progress');
   },
+  get tutorialProgress() {
+    delete this.tutorialProgress;
+    return this.tutorialProgress = document.getElementById('tutorial_progress');
+  },
   get activationScreen() {
     delete this.activationScreen;
     return this.activationScreen = document.getElementById('activation');

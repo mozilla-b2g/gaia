@@ -4,7 +4,7 @@ window.onload = function() {
 
 function handleOpenActivity(request) {
   var blob = request.source.data.blob;
-  var frame = new Frame(document.getElementById('open-frame'), false);
+  var frame = new MediaFrame(document.getElementById('open-frame'), false);
   var backButton = document.getElementById('open-back-button');
   var toolbar = document.getElementById('open-toolbar');
   var cameraButton = document.getElementById('open-camera-button');

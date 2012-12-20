@@ -87,6 +87,20 @@ fb.setFriendPictureUrl = function(devContact, url) {
 
 // Adapts data to the mozContact format names
 fb.friend2mozContact = function(f) {
+
+  function normalizeFbPhoneNumber(phone) {
+    var out = phone.number;
+    if (phone.country_code && out.indexOf('+') !== 0) {
+      out = '+' + phone.country_code + out;
+    }
+    return out;
+  }
+
+  // Check whether this has been already normalized to mozContact
+  if (Array.isArray(f.familyName)) {
+    return f;
+  }
+
 // givenName is put as name but it should be f.first_name
   f.familyName = [f.last_name ? f.last_name.trim() : (f.last_name || '')];
   var middleName = f.middle_name ? f.middle_name.trim() : (f.middle_name || '');
@@ -111,31 +125,17 @@ fb.friend2mozContact = function(f) {
     f.email1 = '';
   }
 
-  var nextidx = 0;
-  if (f.cell) {
-
-    f.tel = [{
-      type: [privateType],
-      value: f.cell
-    }];
-
-    nextidx = 1;
+  if (Array.isArray(f.phones) && f.phones.length > 0) {
+    f.tel = [];
+    f.phones.forEach(function(aphone) {
+      f.tel.push({
+        type: [privateType],
+        value: normalizeFbPhoneNumber(aphone)
+      });
+    });
   }
 
-  if (f.other_phone) {
-    if (!f.tel) {
-      f.tel = [];
-    }
-
-    f.tel[nextidx] = {
-      type: [privateType],
-      value: f.other_phone
-    };
-
-  }
-
-  delete f.other_phone;
-  delete f.cell;
+  delete f.phones;
 
   f.uid = f.uid.toString();
 
