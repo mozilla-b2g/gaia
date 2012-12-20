@@ -80,6 +80,7 @@ endif
 GAIA_LOCALES_PATH?=locales
 LOCALES_FILE?=shared/resources/languages.json
 GAIA_LOCALE_SRCDIRS=shared $(GAIA_APP_SRCDIRS)
+GAIA_DEFAULT_LOCALE?=en-US
 
 ###############################################################################
 # The above rules generate the profile/ folder and all its content.           #
@@ -178,7 +179,7 @@ ifneq ($(LOCALE_BASEDIR),)
 	@echo "Enable locales specified in $(LOCALES_FILE)..."
 	@targets=""; \
 	for appdir in $(GAIA_LOCALE_SRCDIRS); do \
-	    targets="$$targets --target $$appdir"; \
+		targets="$$targets --target $$appdir"; \
 	done; \
 	python $(CURDIR)/build/multilocale.py \
 		--config $(LOCALES_FILE) \
@@ -230,19 +231,27 @@ webapp-zip: stamp-commit-hash install-xulrunner-sdk
 ifneq ($(DEBUG),1)
 	@rm -rf apps/system/camera
 	@cp -r apps/camera apps/system/camera
-	@cat apps/camera/index.html | sed -e 's:shared/:../shared/:' > apps/system/camera/index.html
 	@rm apps/system/camera/manifest.webapp
 	@mkdir -p profile/webapps
 	@$(call run-js-command, webapp-zip)
 endif
 
+# Precompile l10n
+webapp-l10n: install-xulrunner-sdk
+	@$(call run-js-command, webapp-l10n)
+
+# Remove temporary l10n files
+l10n-clean: install-xulrunner-sdk
+	@$(call run-js-command, l10n-clean)
+
+# Populate appcache
 offline-cache: webapp-manifests install-xulrunner-sdk
 	@echo "Populate external apps appcache"
 	@$(call run-js-command, offline-cache)
 	@echo "Done"
 
 # Create webapps
-offline: webapp-manifests webapp-zip
+offline: webapp-manifests webapp-l10n webapp-zip l10n-clean
 
 
 # The install-xulrunner target arranges to get xulrunner downloaded and sets up
@@ -310,6 +319,7 @@ define run-js-command
 	const BUILD_APP_NAME = "$(BUILD_APP_NAME)";                                 \
 	const PRODUCTION = "$(PRODUCTION)";                                         \
 	const OFFICIAL = "$(MOZILLA_OFFICIAL)";                                     \
+	const GAIA_DEFAULT_LOCALE = "$(GAIA_DEFAULT_LOCALE)";                       \
 	const GAIA_ENGINE = "xpcshell";                                             \
 	';                                                                          \
 	$(XULRUNNERSDK) $(XPCSHELLSDK) -e "$$JS_CONSTS" -f build/utils.js "build/$(strip $1).js"
@@ -427,10 +437,10 @@ test-agent-config: test-agent-bootstrap-apps
 test-agent-bootstrap-apps:
 	@for d in `find -L ${GAIA_APP_SRCDIRS} -mindepth 1 -maxdepth 1 -type d` ;\
 	do \
-		  mkdir -p $$d/test/unit ; \
-		  mkdir -p $$d/test/integration ; \
-			cp -f $(TEST_COMMON)/test/boilerplate/_proxy.html $$d/test/unit/_proxy.html; \
-			cp -f $(TEST_COMMON)/test/boilerplate/_sandbox.html $$d/test/unit/_sandbox.html; \
+		mkdir -p $$d/test/unit ; \
+		mkdir -p $$d/test/integration ; \
+		cp -f $(TEST_COMMON)/test/boilerplate/_proxy.html $$d/test/unit/_proxy.html; \
+		cp -f $(TEST_COMMON)/test/boilerplate/_sandbox.html $$d/test/unit/_sandbox.html; \
 	done
 	@echo "Finished: bootstrapping test proxies/sandboxes";
 
@@ -494,10 +504,10 @@ lint:
 #     default target.
 stamp-commit-hash:
 	@(if [ -d ./.git ]; then \
-	  git log -1 --format="%H%n%at" HEAD > apps/settings/resources/gaia_commit.txt; \
+		git log -1 --format="%H%n%at" HEAD > apps/settings/resources/gaia_commit.txt; \
 	else \
-	  echo 'Unknown Git commit; build date shown here.' > apps/settings/resources/gaia_commit.txt; \
-	  date +%s >> apps/settings/resources/gaia_commit.txt; \
+		echo 'Unknown Git commit; build date shown here.' > apps/settings/resources/gaia_commit.txt; \
+		date +%s >> apps/settings/resources/gaia_commit.txt; \
 	fi)
 
 # Erase all the indexedDB databases on the phone, so apps have to rebuild them.
@@ -635,3 +645,4 @@ clean:
 # clean out build products
 really-clean: clean
 	rm -rf xulrunner-sdk .xulrunner-url
+
