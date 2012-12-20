@@ -42,7 +42,7 @@
   var gDEBUG = 1;
 
   function consoleLog(message) {
-    if (gDEBUG == 2) {
+    if (gDEBUG >= 2) {
       console.log('[l10n] ' + message);
     }
   };
@@ -227,7 +227,7 @@
       // URL will raise an exception here -- hence this ugly try...catch.
       try {
         xhr.send(null);
-      } catch(e) {
+      } catch (e) {
         onFailure();
       }
     }
@@ -775,7 +775,7 @@
   function getL10nData(key, args) {
     var data = gL10nData[key];
     if (!data) {
-      consoleWarn('[l10n] #' + key + ' is undefined.');
+      consoleWarn('#' + key + ' is undefined.');
     }
 
     /** This is where l10n expressions should be processed.
@@ -917,13 +917,23 @@
     gReadyState = 'interactive';
     consoleLog('loading [' + navigator.language + '] resources, ' +
         (gAsyncResourceLoading ? 'asynchronously.' : 'synchronously.'));
-    loadLocale(navigator.language, translateFragment);
+
+    // load the default locale and translate the document if required
+    if (document.documentElement.lang == navigator.language) {
+      loadLocale(navigator.language, fireL10nReadyEvent);
+    } else {
+      loadLocale(navigator.language, translateFragment);
+    }
   }
 
-  if (document.readyState == 'interactive' || document.readyState == 'complete') {
-    l10nStartup();
-  } else {
-    window.addEventListener('DOMContentLoaded', l10nStartup);
+  // the build system used in Firefox OS doesn't expose any `document'...
+  if (typeof(document) !== 'undefined') {
+    if (document.readyState === 'interactive' ||
+        document.readyState === 'complete') {
+      l10nStartup();
+    } else {
+      document.addEventListener('DOMContentLoaded', l10nStartup);
+    }
   }
 
   // load the appropriate locale if the language setting has changed
