@@ -73,7 +73,6 @@ html, body {
   margin-right: 1rem;
   position: relative;
   text-align: right;
-  text-transform: capitalize;
 }
 
 [role=navigation] .recommend {
