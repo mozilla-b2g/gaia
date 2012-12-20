@@ -232,7 +232,8 @@ Calendar.App = (function(window) {
       this.serviceController.start(false);
 
       // localize && pre-initialize the database
-      if (navigator.mozL10n && navigator.mozL10n.readyState == 'complete') {
+      if (navigator.mozL10n && (navigator.mozL10n.readyState == 'interactive' ||
+                                navigator.mozL10n.readyState == 'complete')) {
         // document is already localized
         next();
       } else {
@@ -293,8 +294,10 @@ Calendar.App = (function(window) {
        */
       function processScripts(node, cb) {
 
-        // If there are no dependencies, or we already have this resource loaded, bail out
-        if (!App.dependencies[node.type] || (Calendar[node.type] && Calendar[node.type][node.name])) {
+        // If there are no dependencies, or we already have this resource
+        // loaded, bail out
+        if (!App.dependencies[node.type] || (Calendar[node.type] &&
+              Calendar[node.type][node.name])) {
             return cb();
         }
 
