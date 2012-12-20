@@ -139,7 +139,7 @@ html, body {
 
  .step-state:before {
   content: "";
-  width: calc(100% / 5);
+  width: calc(100% / 6);
   height: 0.6rem;
   position: absolute;
   top: 50%;
@@ -155,23 +155,23 @@ html, body {
 }
 
 .step-2.step-state:before {
-  transform: translateX(75%);
+  transform: translateX(100%);
 }
 
 .step-3.step-state:before {
-  transform: translateX(150%);
-}
-
-.step-4.step-state:before {
   transform: translateX(200%);
 }
 
-.step-5.step-state:before {
+.step-4.step-state:before {
   transform: translateX(300%);
 }
 
-.step-6.step-state:before {
+.step-5.step-state:before {
   transform: translateX(400%);
+}
+
+.step-6.step-state:before {
+  transform: translateX(500%);
 }
 
 /*
@@ -190,7 +190,7 @@ html, body {
   opacity: 0;
   z-index: 3000;
   transition: all 1s ease;
-  background-image: url(images/powered.png);
+  background-image: url(/shared/resources/branding/powered.png);
   background-size: 100% auto;
 }
 
@@ -721,15 +721,15 @@ i.hack-first-child {
 }
 
 .privacy-browserOS {
-  background-image: -moz-image-rect(url(images/privacy_sprite.png), 0, 32, 32, 0);
+  background-image: -moz-image-rect(url(/shared/resources/branding/privacy_sprite.png), 0, 32, 32, 0);
 }
 
 .privacy-everythingME {
-  background-image: -moz-image-rect(url(images/privacy_sprite.png), 0, 64, 32, 32);
+  background-image: -moz-image-rect(url(/shared/resources/branding/privacy_sprite.png), 0, 64, 32, 32);
 }
 
 .privacy-marketPlace {
-  background-image: -moz-image-rect(url(images/privacy_sprite.png), 0, 96, 32, 64);
+  background-image: -moz-image-rect(url(/shared/resources/branding/privacy_sprite.png), 0, 96, 32, 64);
 }
 
 /* no connection error dialog */
@@ -899,12 +899,25 @@ i.hack-first-child {
 }
 
 #tutorial header {
-  height: 6rem;
-  padding: 3rem 2.5rem 0 2.5rem;
+  height: 5rem;
   font-size: 1.4rem;
-  margin-bottom: 1rem;
+  padding: 3rem 1.5rem 1rem 1.5rem;
+  text-align: left;
 }
 
 #tutorial section {
   text-align: center;
+}
+
+/* Tutorial Steps state */
+#tutorial .step-state {
+  border-bottom: none;
+  top: 1.5rem;
+}
+
+#tutorial .step-state:before {
+  width: calc(100% / 5);
+  height: 0.3rem;
+  margin-top: -0.2rem;
+  background: #FFFFFF;
 }

@@ -122,18 +122,18 @@ var AttentionScreen = {
     // set the last one in the DOM to visible
     // The setTimeout() and the closure is used to workaround
     // https://bugzilla.mozilla.org/show_bug.cgi?id=810431
-    (function() {
-      var frame = frames[i];
-      setTimeout(function() { frame.setVisible(true); }, 0);
-    })();
+    setTimeout(function(frame) {
+      frame.setVisible(true);
+      frame.focus();
+    }, 0, frames[i]);
 
     while (i--) {
       // The setTimeout() and the closure is used to workaround
       // https://bugzilla.mozilla.org/show_bug.cgi?id=810431
-      (function() {
-        var frame = frames[i];
-        setTimeout(function() { frame.setVisible(false); }, 0);
-      })();
+      setTimeout(function(frame) {
+        frame.setVisible(false);
+        frame.blur();
+      }, 0, frames[i]);
     }
   },
 

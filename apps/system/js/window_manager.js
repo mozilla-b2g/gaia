@@ -1046,6 +1046,8 @@ var WindowManager = (function() {
     frame.setAttribute('mozallowfullscreen', 'true');
     frame.className = 'appWindow';
     frame.dataset.frameOrigin = origin;
+    // Save original frame URL in order to restore it on frame load error
+    frame.dataset.frameURL = url;
 
     // Note that we don't set the frame size here.  That will happen
     // when we display the app in setDisplayedApp()
@@ -1092,6 +1094,16 @@ var WindowManager = (function() {
         createFrame(origFrame, origin, url, name, manifest, manifestURL);
     frame.id = 'appframe' + nextAppId++;
     frame.dataset.frameType = 'window';
+
+    // If this frame corresponds to the homescreen, set mozapptype=homescreen
+    // so we're less likely to kill this frame's process when we're running low
+    // on memory.
+    //
+    // We must do this before we the appendChild() call below. Once
+    // we add this frame to the document, we can't change its app type.
+    if (origin === homescreen) {
+      frame.setAttribute('mozapptype', 'homescreen');
+    }
 
     // Add the iframe to the document
     windows.appendChild(frame);
@@ -1322,17 +1334,18 @@ var WindowManager = (function() {
           // in the app frame. But we don't care.
           appendFrame(null, origin, e.detail.url,
                       name, app.manifest, app.manifestURL);
+
+          // set the size of the iframe
+          // so Cards View will get a correct screenshot of the frame
+          if (!e.detail.isActivity)
+            setAppSize(origin, false);
         } else {
           ensureHomescreen();
         }
 
         // We will only bring web activity handling apps to the foreground
-        if (!e.detail.isActivity) {
-          // set the size of the iframe
-          // so Cards View will get a correct screenshot of the frame
-          setAppSize(origin, false);
+        if (!e.detail.isActivity)
           return;
-        }
 
         // XXX: the correct way would be for UtilityTray to close itself
         // when there is a appwillopen/appopen event.
@@ -1407,6 +1420,11 @@ var WindowManager = (function() {
             attentionScreenTimer = setTimeout(function setVisibility(){
               setVisibilityForCurrentApp(false);
             }, 5000);
+
+            // Immediatly blur the frame in order to ensure hiding the keyboard
+            var app = runningApps[displayedApp];
+            if (app)
+              app.frame.blur();
         }
         break;
     }
@@ -1422,6 +1440,13 @@ var WindowManager = (function() {
       return;
     if ('setVisible' in app.frame)
       app.frame.setVisible(visible);
+
+    // Restore/give away focus on visiblity change
+    // so that the app can take back its focus
+    if (visible)
+      app.frame.focus();
+    else
+      app.frame.blur();
   }
 
   function handleAppCrash(origin, manifestURL) {
