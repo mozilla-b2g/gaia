@@ -27,6 +27,16 @@ form[role="dialog"][data-type="edit"] > menu {
   transform: translateY(110%);
 }
 
+/* Override Building Block styles for lists */
+#recents-container[data-type="list"] li {
+  border-top: 0.1rem solid #DBD9D9;
+  border-bottom: none;
+}
+
+#recents-container[data-type="list"] li:first-child {
+  border-top: none;
+}
+
 .disabled {
   pointer-events: none;
   opacity: 0.3;
@@ -85,20 +95,6 @@ ul[role="tablist"][data-type="filter"] > [role="tab"].selected > a {
   height: 3.5rem;
 }
 
-.view-body h2 {
-  margin: 0;
-  font-family: FontRegular;
-  border-bottom: solid 1px #ff4e00;
-  padding-left: 1.5rem;
-  margin-left: 1.5rem;
-  margin-right: 1.5rem;
-  padding-top:1rem;
-  font-size: -moz-calc(6*0.226rem);
-  color: #ff4e00;
-  text-transform: uppercase;
-  height: 1.8rem;
-}
-
 .header-noresult {
   padding-bottom: 4rem;
 }
@@ -116,59 +112,52 @@ ul[role="tablist"][data-type="filter"] > [role="tab"].selected > a {
   background-image: url('images/ComLog_200x200_clock.png');
 }
 
-.log-group li {
-  height: 5rem;
-  border-bottom: .1rem solid  #dbdbdb;
-  color:black;
-}
-
-.log-group li:last-child{
-  border-bottom: 0;
-}
-
 .icon-container {
   float: left;
   height: 100%;
   width: 5rem;
 }
 
-.icon-incoming {
-  width: 3rem;
-  height: 3rem;
+[data-type="list"] aside.icon.icon-incoming {
   background-image: url('images/CallLog_30x30_incoming.png');
 }
 
-.icon-outgoing {
-  width: 3rem;
-  height: 3rem;
+[data-type="list"] aside.icon.icon-outgoing {
   background-image: url('images/CallLog_30x30_outgoing.png');
 }
 
-.icon-missed {
-  width: 3rem;
-  height: 3rem;
+[data-type="list"] aside.icon.icon-missed {
   background-image: url('images/CallLog_30x30_missed_grey.png');
-}
-
-.call-type-icon {
-  margin: 0 auto;
-}
-
-.log-item {
-  position: relative;
-  overflow: visible;
-  transition: transform 0.4s ease;
 }
 
 .log-item * {
   pointer-events: none;
 }
 
+.log-item .primary-info {
+  text-overflow: clip;
+}
+
+.log-item.hasPhoto .primary-info {
+  width: 19rem;
+}
+
+.log-item:not(.hasPhoto) .primary-info {
+  width: 25rem;
+}
+
+.log-item .primary-info span {
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .log-item .call-log-contact-photo {
   pointer-events: auto;
 }
 
-.log-item.highlighted .icon-missed {
+[data-type="list"] .highlighted aside.icon.icon-missed {
   background-image: url('images/CallLog_30x30_missed.png');
 }
 
@@ -180,79 +169,6 @@ ul[role="tablist"][data-type="filter"] > [role="tab"].selected > a {
   color: red !important;
 }
 
-.log-item-info {
-  float: left;
-  height: 100%;
-  width: -moz-calc(100% - 10rem);
-}
-
-.ellipsis {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.primary-info {
-  font-family: FontRegular;
-  font-size: -moz-calc(8 * 0.226rem);
-  color: #000000;
-}
-
-.primary-info-main {
-  display: inline-block;
-  padding-right: 0.6rem;
-}
-
-.primary-info-main.ellipsed {
-  padding-right: 0rem;
-}
-
-.entry-count {
-  overflow: hidden;
-  display: inline-block;
-}
-
-.secondary-info {
-  font-family: FontRegular;
-  font-size: -moz-calc(6 * 0.226rem);
-  color: #5b5b5b;
-}
-
-.call-additional-info {
-  padding-left: 0.7rem;
-}
-
-.call-log-contact-photo {
-  float: left;
-  height: 100%;
-  width: 5rem;
-  background-size: 1rem;
-  background-position: 75% 75%;
-  background-repeat: no-repeat;
-}
-
-.log-item.isContact.contact-photo-available .call-log-contact-photo {
-  background-position: center;
-  background-size: cover;
-  background-repeat: no-repeat;
-}
-
-label:not([for]).call-log-selection {
-  height: 100%;
-  width: auto;
-  display: none;
-  overflow: hidden;
-  position: absolute;
-  right: 0;
-  left: -5rem;
-  top: 0;
-  border-bottom: .1rem solid  #dbdbdb;
-}
-
-label:not([for]).call-log-selection input + span {
-  left: 2.5rem;
-}
-
 /* Edit mode state */
 .recents-edit form[role="dialog"][data-type="edit"] header,
 .recents-edit form[role="dialog"][data-type="edit"] > menu {
@@ -260,11 +176,23 @@ label:not([for]).call-log-selection input + span {
 }
 
 .recents-edit label:not([for]).call-log-selection {
-  display: block;
+  transform: translateX(4rem);
+  transition: transform 0.4s ease;
 }
 
-.recents-edit .log-item {
-  transform: translateX(5rem);
+.recents-edit .log-item a {
+  transform: translateX(3rem);
+  transition: all 0.4s ease;
+}
+
+.recents-edit .log-item.hasPhoto .primary-info,
+  .recents-edit .log-item:not(.hasPhoto) .primary-info {
+  width: 22rem; 
+}
+
+.recents-edit .pack-end {
+  transition: all 0.4s ease;
+  transform: translateX(6rem);
 }
 
 .recents-edit .call-log-contact-photo {

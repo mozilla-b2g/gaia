@@ -111,7 +111,7 @@
         }
     #evmeContainer .smart-folder .evme-apps {
         position: absolute;
-        top: 60px;
+        top: 55px;
         left: 5px;
         right: 5px;
         bottom: 0;
@@ -125,20 +125,8 @@
         #evmeContainer .smart-folder .evme-apps li {
             width: 25%;
         }
-        #evmeContainer .smart-folder .evme-apps li.installed:nth-child(1) {
-            left: 0;
-        }
-        #evmeContainer .smart-folder .evme-apps li.installed:nth-child(2) {
-            left: 25%;
-        }
-        #evmeContainer .smart-folder .evme-apps li.installed:nth-child(3) {
-            left: 50%;
-        }
-        #evmeContainer .smart-folder .evme-apps li.installed:nth-child(4) {
-            left: 75%;
-        }
-        #evmeContainer .smart-folder .evme-apps ul li .thumb:after {
-            display: none;
+        #evmeContainer .smart-folder .evme-apps li.installed-separator {
+            width: 100%;
         }
         
     #evmeContainer .smart-folder .has-installed .connection-message {
