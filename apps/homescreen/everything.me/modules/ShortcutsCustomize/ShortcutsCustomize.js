@@ -7,7 +7,6 @@ Evme.ShortcutsCustomize = new function Evme_ShortcutsCustomize() {
         elParent = options.elParent;
         
         elList = Evme.$create('select', {'multiple': "multiple", 'id': "shortcuts-select"});
-        elList.addEventListener('change', done);
         elList.addEventListener('blur', onHide);
         
         elParent.appendChild(elList);
@@ -101,6 +100,15 @@ Evme.ShortcutsCustomize = new function Evme_ShortcutsCustomize() {
     
     function onHide() {
         Evme.EventHandler.trigger(NAME, 'hide');
+
+        var shortcuts = self.get();
+        
+        if (shortcuts.length > 0) {
+          Evme.EventHandler.trigger(NAME, 'done', {
+              'shortcuts': shortcuts,
+              'icons': savedIcons
+          });
+        }
     }
     
     function onLoadingCancel(e) {
@@ -109,12 +117,4 @@ Evme.ShortcutsCustomize = new function Evme_ShortcutsCustomize() {
         });
     }
     
-    function done() {
-        var shortcuts = self.get();
-        
-        Evme.EventHandler.trigger(NAME, 'done', {
-            'shortcuts': shortcuts,
-            'icons': savedIcons
-        });
-    }
 };
