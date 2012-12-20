@@ -453,7 +453,7 @@ body.player-mode #views {
 #player-cover {
   position: relative;
   width: 100%;
-  height: 74%;
+  height: calc(100% - 10rem);
   overflow: hidden;
 }
 
@@ -608,8 +608,12 @@ button::-moz-focus-inner {
 #player-seek {
   position: relative;
   width: 100%;
-  height: 13%;
-  background: #222222;
+  height: 4.5rem;
+  background: url('./images/scroll_bar_bg.png');
+  background-position: center center;
+  background-repeat: repeat-x;
+  background-color: #151515;
+  overflow: hidden;
 }
 
 #player-seek-elapsed, 
@@ -621,8 +625,9 @@ button::-moz-focus-inner {
 
 #player-seek-elapsed, 
 #player-seek-remaining {  
-  top: 36%;
-  width: 20%;
+  top: calc(50% - 0.69rem);
+  width: 18%;
+  line-height: 1.38rem;
   font-size: 1.38rem;
   font-weight: 500;
   color: #a1afb2;
@@ -630,32 +635,67 @@ button::-moz-focus-inner {
 }
 
 #player-seek-bar {
-  top: 36%;
   width: 60%;
-  height: 28%;
+  height: 100%;
+  padding: 0 2%;
 }
 
 #player-seek-bar-progress {
   -moz-appearance: none;
-  width: 100%;
-  height: 100%;
-  border-radius: 2px;
+  position: absolute;
+  top: calc(50% - 0.15rem);
+  left: 2.5%;
+  width: 95%;
+  height: 0.3rem;
+  border-radius: 5px;
   border-width: 0px;
   box-shadow: 1px 1px rgba(255, 255, 255, 0.2);
-  background-color: rgba(0, 0, 0, 0.7);
+  background: url("./images/timeline.png");
+  background-position: center center;
+  background-repeat: repeat-x;
 }
 
 #player-seek-bar-progress::-moz-progress-bar {
-  border-radius: 2px;
-  background-color: #0095CC;
+  border-radius: 5px;
+  background: url("./images/timeline_filled.png");
+  background-position: center center;
+  background-repeat: repeat-x;
+}
+
+#player-seek-bar-indicator {
+  position: absolute;
+  top: calc(50% - 4.05rem);
+  width: 6.5rem;
+  height: 6.5rem;
+  border-radius: 50%;
+  background-image: url("./images/scrubber.png");
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-color: transparent;
+  border: solid 0.8rem transparent;
+  transition: background-color 300ms ease,
+              border 300ms ease;
+  pointer-events: none;
+}
+
+#player-seek-bar-indicator.highlight {
+  /* background-image does not support transition
+   * so here we use background-color and border on a div
+   * to draw an image just like
+   * url("./images/scrubber_pressed.png")
+   * that image is also committed
+   * if UX wants to use the original image
+   */
+  background-color: rgba(0, 180, 225, 0.85);
+  border: solid 0.8rem rgba(0, 0, 0, 0.3);
 }
 
 #player-controls {
   position: relative;
   width: 100%;
-  height: 13%;
+  height: 5.5rem;
   overflow: hidden;
-  background: #111111;
+  background: rgba(0, 0, 0, 1);
 }
 
 #player-controls-previous, 
