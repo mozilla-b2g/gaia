@@ -4,6 +4,7 @@ var RecentsDBManager = {
   _dbName: 'dialerRecents',
   _dbStore: 'dialerRecents',
   _dbVersion: 1,
+  prepolulated : false,
   init: function rdbm_init(callback) {
     try {
       var indexedDB = window.indexedDB || window.webkitIndexedDB ||
@@ -19,6 +20,10 @@ var RecentsDBManager = {
       this.request.onsuccess = function(event) {
         //Store DB object in RecentsDBManager
         self.db = event.target.result;
+        if(!navigator.mozTelephony && !self.prepopulated){
+          self.prepopulateDB();
+          self.prepopulated = true;
+        }
         if (callback) {
           //Callback if needed
           callback();
@@ -74,14 +79,21 @@ var RecentsDBManager = {
   },
   // Method for prepopulating the recents DB for Dev-team
   prepopulateDB: function rdbm_prepopulateDB(callback) {
-    for (var i = 0; i < 10; i++) {
-      var recent = {
+    var recent;
+    for (var i = 0; i < 5; i++) {
+      recent = {
         date: (Date.now() - i * 86400000),
         type: 'incoming',
         number: '123123123'
       };
       this.add(recent);
     }
+    recent = {
+      date: (Date.now() - 86400000),
+      type: 'dialing',
+      number: '321321321'
+    };
+    this.add(recent);
     if (callback) {
       callback();
     }
