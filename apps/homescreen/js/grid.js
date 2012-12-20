@@ -659,7 +659,7 @@ const GridManager = (function() {
       return;
 
     var entryPoints = manifest.entry_points;
-    if (!entryPoints) {
+    if (!entryPoints || manifest.type != "certified") {
       createOrUpdateIconForApp(app);
       return;
     }

@@ -116,13 +116,14 @@ var WindowManager = (function() {
     if (!app)
       return false;
 
-    if (app.manifest.entry_points) {
-      var entryPoint = app.manifest.entry_points[origin.split('/')[3]];
+    var manifest = app.manifest;
+    if (manifest.entry_points && manifest.type == "certified") {
+      var entryPoint = manifest.entry_points[origin.split('/')[3]];
       if (entryPoint)
           return entryPoint.fullscreen;
       return false;
     } else {
-      return app.manifest.fullscreen;
+      return manifest.fullscreen;
     }
   }
 
@@ -1241,19 +1242,20 @@ var WindowManager = (function() {
     if (!app)
       return;
 
-    var name = app.manifest.name;
-    if (app.manifest.locales &&
-        app.manifest.locales[document.documentElement.lang] &&
-        app.manifest.locales[document.documentElement.lang].name) {
-      name = app.manifest.locales[document.documentElement.lang].name;
+    var manifest = app.manifest;
+    var name = manifest.name;
+    if (manifest.locales &&
+        manifest.locales[document.documentElement.lang] &&
+        manifest.locales[document.documentElement.lang].name) {
+      name = manifest.locales[document.documentElement.lang].name;
     }
     var origin = app.origin;
 
     // Check if it's a virtual app from a entry point.
     // If so, change the app name and origin to the
     // entry point.
-    var entryPoints = app.manifest.entry_points;
-    if (entryPoints) {
+    var entryPoints = manifest.entry_points;
+    if (entryPoints && manifest.type == "certified") {
       var givenPath = e.detail.url.substr(origin.length);
 
       // Workaround here until the bug (to be filed) is fixed
@@ -1309,7 +1311,7 @@ var WindowManager = (function() {
           // let's deal them here.
 
           startInlineActivity(origin, e.detail.url,
-                              name, app.manifest, app.manifestURL);
+                              name, manifest, app.manifestURL);
 
           return;
         }
@@ -1333,7 +1335,7 @@ var WindowManager = (function() {
           // XXX: We could ended opening URls not for the app frame
           // in the app frame. But we don't care.
           appendFrame(null, origin, e.detail.url,
-                      name, app.manifest, app.manifestURL);
+                      name, manifest, app.manifestURL);
 
           // set the size of the iframe
           // so Cards View will get a correct screenshot of the frame
@@ -1466,7 +1468,7 @@ var WindowManager = (function() {
       return '';
 
     var lang = document.documentElement.lang;
-    if (manifest.entry_points) {
+    if (manifest.entry_points && manifest.type == "certified") {
       var entryPoint = manifest.entry_points[origin.split('/')[3]];
       if (entryPoint.locales && entryPoint.locales[lang] &&
           entryPoint.locales[lang].name) {
