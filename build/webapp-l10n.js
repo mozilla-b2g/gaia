@@ -5,7 +5,7 @@ function debug(str) {
 
 
 /**
- * Expose a global `webL10n' object and load `l10n.js' in it
+ * Helpers
  */
 
 var webL10n = {
@@ -13,16 +13,6 @@ var webL10n = {
     language: GAIA_DEFAULT_LOCALE
   }
 };
-
-var mozIJSSubScriptLoader = Cc['@mozilla.org/moz/jssubscript-loader;1']
-                            .getService(Ci.mozIJSSubScriptLoader);
-mozIJSSubScriptLoader.loadSubScript('file:///' +
-    GAIA_DIR + '/shared/js/l10n.js', webL10n);
-
-
-/**
- * Helpers
- */
 
 function l10n_getFileContent(appName, relativePath) {
   let paths = relativePath.replace(/^\//, '').split('/');
@@ -78,7 +68,6 @@ function l10n_serializeHTMLDocument(file, document) {
 
 function l10n_compile(webapp, file) {
   debug('localizing: ' + file.path);
-  let mozL10n = webL10n.navigator.mozL10n;
 
   // catch console.[log|warn|info] calls and redirect them to `dump()'
   // XXX for some reason, this won't work if gDEBUG >= 2 in l10n.js
@@ -112,6 +101,8 @@ function l10n_compile(webapp, file) {
   webL10n.dispatchEvent = function() {
     debug('fireL10nReadyEvent');
 
+    var mozL10n = webL10n.navigator.mozL10n;
+
     // set the lang/dir attributes of the current document
     let docElt = webL10n.document.documentElement;
     docElt.dir = mozL10n.language.direction;
@@ -128,8 +119,19 @@ function l10n_compile(webapp, file) {
   webL10n.document = (new DOMParser()).parseFromString(getFileContent(file),
       'text/html');
 
-  // selecting the language triggers XMLHttpRequest and dispatchEvent above
-  mozL10n.language.code = webL10n.navigator.language;
+  // l10n.js only translates immediatly when the document looks ready --
+  // but as `readyState' is not configurable, we have to use `defineProperty'.
+  Object.defineProperty(webL10n.document, 'readyState', {
+    enumerable: false,
+    configurable: false,
+    writable: false,
+    value: 'complete'
+  });
+
+  // load and evaluate the l10n.js library that will process the document
+  // and call dispatchEvent on completion
+  Services.scriptloader.loadSubScript('file:///' +
+    GAIA_DIR + '/shared/js/l10n.js', webL10n);
 }
 
 
