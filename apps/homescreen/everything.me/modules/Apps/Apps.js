@@ -89,8 +89,17 @@ Evme.Apps = new function Evme_Apps() {
             self.clear();
         }
         
-        var missingIcons = drawApps(apps, isMore, iconsFormat, onDone);
-        if (offset === 0) {
+        var missingIcons = drawApps(apps, isMore, iconsFormat, function onAppsDrawn(){
+            if (options.installed && apps.length > 0) {
+                self.addInstalledSeparator();
+            }
+            
+            if (onDone instanceof Function) {
+                onDone();
+            }
+        });
+        
+        if (options.clear) {
             self.scrollToStart();
         }
         
@@ -149,6 +158,10 @@ Evme.Apps = new function Evme_Apps() {
         }
         
         return isTrue;
+    };
+    
+    this.addInstalledSeparator = function addInstalledSeparator() {
+        elList.appendChild(Evme.$create('li', {'class': "installed-separator"}));
     };
     
     this.disableScroll = function disableScroll() {
