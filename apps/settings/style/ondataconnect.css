@@ -1,0 +1,18 @@
+form[role="dialog"] h1.heading {
+  background: -moz-image-rect(url(images/icons_sprite.png), 0, 120, 30, 90) no-repeat scroll 0 50% transparent;
+  border: 0;
+  font-size: 1.1rem;
+  line-height: 30px;
+  font-weight: bold;
+  text-indent: 30px;
+  white-space: nowrap;
+}
+
+form[role="dialog"] p.message {
+  border: 5px solid #fff;
+  border-left: 0;
+  border-right: 0;
+  font-size: 1.1rem;
+  margin: 10px 0;
+  padding: 10px 0;
+}
