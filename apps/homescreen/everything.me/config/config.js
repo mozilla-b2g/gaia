@@ -9,7 +9,8 @@ Evme.__config = {
     "timeoutBeforeSessionInit": 0,
     "apps": {
         "appHeight": 89,
-        "widthForFiveApps": 400
+        "widthForFiveApps": 400,
+        "displayInstalledApps": true
     },
     "timeBeforeAllowingDialogsRemoval": 2000,
     "numberOfAppsToLoad": 16,
