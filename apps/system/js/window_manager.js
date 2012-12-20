@@ -1095,6 +1095,16 @@ var WindowManager = (function() {
     frame.id = 'appframe' + nextAppId++;
     frame.dataset.frameType = 'window';
 
+    // If this frame corresponds to the homescreen, set mozapptype=homescreen
+    // so we're less likely to kill this frame's process when we're running low
+    // on memory.
+    //
+    // We must do this before we the appendChild() call below. Once
+    // we add this frame to the document, we can't change its app type.
+    if (origin === homescreen) {
+      frame.setAttribute('mozapptype', 'homescreen');
+    }
+
     // Add the iframe to the document
     windows.appendChild(frame);
 
