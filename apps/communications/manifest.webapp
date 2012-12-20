@@ -95,7 +95,7 @@
       "filters": {
         "type": "webcontacts/contact"
       },
-      "disposition": "window",
+      "disposition": "inline",
       "href": "/contacts/index.html?new",
       "returnValue": true
     },
