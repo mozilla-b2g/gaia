@@ -399,7 +399,6 @@ Evme.Brain = new function Evme_Brain() {
             var query = Searcher.getDisplayedQuery();
 
             if (refineQueryShown != query) {
-
                 Evme.DoATAPI.getDisambiguations({
                     "query": query
                 }, function onSuccess(data) {
@@ -425,6 +424,10 @@ Evme.Brain = new function Evme_Brain() {
             cleared = false;
 
             Evme.Helper.getList().classList.remove("default");
+            
+            if (type !== "refine") {
+                refineQueryShown = "";
+            }
 
             switch (type) {
                 case "":
