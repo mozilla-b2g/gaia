@@ -181,8 +181,25 @@ var ScreenManager = {
         // notification.
         if (this._cpuWakeLock) {
           this.turnScreenOn();
+
           break;
         }
+
+        // Enable the user proximity sensor once the call is connected.
+        var call = telephony.calls[0];
+        call.addEventListener('statechange', this);
+
+        break;
+
+      case 'statechange':
+        var call = evt.target;
+        if (call.state !== 'connected') {
+          break;
+        }
+
+        // The call is connected. Remove the statechange listener
+        // and enable the user proximity sensor.
+        call.removeEventListener('statechange', this);
 
         this._cpuWakeLock = navigator.requestWakeLock('cpu');
         window.addEventListener('userproximity', this);
@@ -201,7 +218,7 @@ var ScreenManager = {
   turnScreenOff: function scm_turnScreenOff(instant) {
     if (!this.screenEnabled)
       return false;
-    
+
     var self = this;
 
     // Remember the current screen brightness. We will restore it when
