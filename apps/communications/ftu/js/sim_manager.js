@@ -23,10 +23,11 @@ var SimManager = {
 
   importContacts: function sm_importContacts() {
     var feedback = UIManager.simImportFeedback;
-
     feedback.innerHTML = _('simContacts-importing');
     UIManager.navBar.setAttribute('aria-disabled', 'true');
     UIManager.loadingOverlay.classList.add('show-overlay');
+    var importButton = UIManager.simImportButton;
+    importButton.classList.add('disabled');
 
     importSIMContacts(
       function() {
@@ -39,6 +40,7 @@ var SimManager = {
         feedback.innerHTML = _('simContacts-error');
         UIManager.navBar.removeAttribute('aria-disabled');
         UIManager.loadingOverlay.classList.remove('show-overlay');
+        importButton.classList.remove('disabled');
     }.bind(this));
   },
 
