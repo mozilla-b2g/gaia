@@ -166,5 +166,7 @@ Gaia.externalWebapps.forEach(function (webapp) {
 // Write webapps global manifest
 let manifestFile = webappsTargetDir.clone();
 manifestFile.append('webapps.json');
+
 // stringify json with 2 spaces indentation
 writeContent(manifestFile, JSON.stringify(manifests, null, 2) + '\n');
+
