@@ -230,7 +230,6 @@ webapp-zip: stamp-commit-hash install-xulrunner-sdk
 ifneq ($(DEBUG),1)
 	@rm -rf apps/system/camera
 	@cp -r apps/camera apps/system/camera
-	@cat apps/camera/index.html | sed -e 's:shared/:../shared/:' > apps/system/camera/index.html
 	@rm apps/system/camera/manifest.webapp
 	@mkdir -p profile/webapps
 	@$(call run-js-command, webapp-zip)
