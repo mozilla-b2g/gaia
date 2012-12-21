@@ -5,6 +5,7 @@
 
 var MessageManager = {
   init: function mm_init() {
+    this.initialized = true;
     // Init PhoneNumberManager for solving country code issue.
     PhoneNumberManager.init();
     // Init Pending DB. Once it will be loaded will render threads
@@ -734,17 +735,17 @@ var ThreadUI = {
     this.sendButton.addEventListener('mousedown',
       function btnDown(event) {
         event.preventDefault();
-        event.target.classList.add("active");
+        event.target.classList.add('active');
       }
     );
     this.sendButton.addEventListener('mouseup',
       function btnUp(event) {
-        event.target.classList.remove("active");
+        event.target.classList.remove('active');
       }
     );
     this.sendButton.addEventListener('mouseout',
       function mouseOut(event) {
-        event.target.classList.remove("active");
+        event.target.classList.remove('active');
       }
     );
 
@@ -1628,7 +1629,9 @@ window.addEventListener('resize', function resize() {
 });
 
 window.addEventListener('localized', function showBody() {
-  MessageManager.init();
+  if (!MessageManager.initialized) {
+    MessageManager.init();
+  }
 
   // Set the 'lang' and 'dir' attributes to <html> when the page is translated
   document.documentElement.lang = navigator.mozL10n.language.code;
@@ -1636,7 +1639,7 @@ window.addEventListener('localized', function showBody() {
 });
 
 function showThreadFromSystemMessage(number) {
-  var showAction = function act_action() {
+  var showAction = function act_action(number) {
     var currentLocation = window.location.hash;
     switch (currentLocation) {
       case '#thread-list':
@@ -1649,7 +1652,7 @@ function showThreadFromSystemMessage(number) {
         break;
       case '#edit':
         history.back();
-        showAction();
+        showAction(number);
         break;
       default:
         if (currentLocation.indexOf('#num=') != -1) {
@@ -1672,23 +1675,26 @@ function showThreadFromSystemMessage(number) {
   if (!document.documentElement.lang) {
     window.addEventListener('localized', function waitLocalized() {
       window.removeEventListener('localized', waitLocalized);
-      showAction();
+      showAction(number);
     });
   } else {
     if (!document.mozHidden) {
       // Case of calling from Notification
-      showAction();
+      showAction(number);
       return;
     }
     document.addEventListener('mozvisibilitychange',
       function waitVisibility() {
         document.removeEventListener('mozvisibilitychange', waitVisibility);
-        showAction();
+        showAction(number);
     });
   }
 }
 
 window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
+  if (!MessageManager.initialized) {
+    MessageManager.init();
+  }
   // XXX This lock is about https://github.com/mozilla-b2g/gaia/issues/5405
   if (MessageManager.lockActivity)
     return;
