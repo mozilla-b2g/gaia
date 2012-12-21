@@ -338,6 +338,10 @@ var CallHandler = (function callHandler() {
     callScreenWindowLoaded = false;
   }
 
+  /* === USSD === */
+  window.navigator.mozSetMessageHandler('ussd-received',
+                                        UssdManager.openUI.bind(UssdManager));
+
   return {
     call: call
   };
