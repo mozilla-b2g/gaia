@@ -1378,6 +1378,14 @@ var WindowManager = (function() {
     }
   });
 
+  // Deal with locationchange
+  window.addEventListener('mozbrowserlocationchange', function(e) {
+    if (!'frameType' in e.target.dataset)
+      return;
+
+    e.target.dataset.url = e.detail;
+  });
+
   // Deal with application uninstall event
   // if the application is being uninstalled, we ensure it stop running here.
   window.addEventListener('applicationuninstall', function(e) {
