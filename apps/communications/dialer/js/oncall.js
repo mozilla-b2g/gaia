@@ -391,19 +391,20 @@ var OnCallHandler = (function onCallHandler() {
     displayed = !displayed;
     animating = true;
 
-    CallScreen.screen.classList.remove('animate');
-    CallScreen.screen.classList.toggle('prerender');
+    var callScreen = CallScreen.screen;
+    callScreen.classList.remove('animate');
+    callScreen.classList.toggle('prerender');
 
     window.addEventListener('MozAfterPaint', function ch_finishAfterPaint() {
       window.removeEventListener('MozAfterPaint', ch_finishAfterPaint);
 
       window.setTimeout(function cs_transitionNextLoop() {
-        CallScreen.screen.classList.add('animate');
-        CallScreen.screen.classList.toggle('displayed');
-        CallScreen.screen.classList.toggle('prerender');
+        callScreen.classList.add('animate');
+        callScreen.classList.toggle('displayed');
+        callScreen.classList.toggle('prerender');
 
-        CallScreen.screen.addEventListener('transitionend', function trWait() {
-          CallScreen.screen.removeEventListener('transitionend', trWait);
+        callScreen.addEventListener('transitionend', function trWait() {
+          callScreen.removeEventListener('transitionend', trWait);
 
           animating = false;
 
