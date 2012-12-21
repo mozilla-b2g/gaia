@@ -174,6 +174,7 @@ body.hidden *[data-l10n-id] {
   border-top: 1px solid #3A3A3A;
   border-bottom: 1px solid #3A3A3A;
   border-right: 1px solid #3A3A3A;
+  border-radius: 0;
 }
 
 #co-advanced span.grid-cell:last-child .co-advanced-option {
