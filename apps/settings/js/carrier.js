@@ -3,6 +3,13 @@
 
 'use strict';
 
+/**
+ * gDataConnect is defined here because the child window created for displaying
+ * data Connection warning requests needs to access its method via window.opener
+ */
+
+var gDataConnect = {};
+
 // handle carrier settings
 var Carrier = (function newCarrier(window, document, undefined) {
   var APN_FILE = '/shared/resources/apn.json';
@@ -176,20 +183,59 @@ var Carrier = (function newCarrier(window, document, undefined) {
   document.getElementById('preferredNetworkType').onchange =
     restartDataConnection;
 
-  // 'Data Roaming' message
+  // 'Data Roaming' message and data connection messaging
   var settings = Settings.mozSettings;
   if (settings) {
     var _ = window.navigator.mozL10n.get;
     var dataRoamingSetting = 'ril.data.roaming_enabled';
+    var dataConnectionSetting = 'ril.data.enabled';
+    var dataConnectionSettingWarning = 'ril.data.enabled.warning';
+
+    gDataConnect.setDataConnectionState = function(state) {
+      var cset = {};
+      cset[dataConnectionSetting] = !!state;
+      settings.createLock().set(cset);
+    };
+    gDataConnect.setDataConnectionWarningState = function(state) {
+      var cset = {};
+      cset[dataConnectionSettingWarning] = !!state;
+      settings.createLock().set(cset);
+    };
 
     var displayDataRoamingMessage = function(enabled) {
       var messageID = 'dataRoaming-' + (enabled ? 'enabled' : 'disabled');
       document.getElementById('dataRoaming-expl').textContent = _(messageID);
-    }
+    };
+
+    var displayDataConnectionMessage = function(enabled) {
+      var warningDisabled = true;
+      var req = settings.createLock().get(dataConnectionSettingWarning);
+      req.onsuccess = function() {
+        warningDisabled = req.result &&
+            req.result[dataConnectionSettingWarning];
+        if (enabled && warningDisabled) {
+          document.getElementById('dataConnection-expl').hidden = false;
+          document.getElementById('dataConnection-expl').textContent =
+              _('dataConnection-warning-message');
+        } else if (enabled) {
+          document.getElementById('dataConnection-expl').hidden = true;
+          var protocol = window.location.protocol;
+          var host = window.location.host;
+          window.open(protocol + '//' + host + '/ondataconnect.html',
+                      'dataconnect_screen', 'attention');
+        } else {
+          document.getElementById('dataConnection-expl').hidden = true;
+        }
+      };
+    };
 
     // register an observer to monitor setting changes
     settings.addObserver(dataRoamingSetting, function(event) {
       displayDataRoamingMessage(event.settingValue);
+    });
+
+    settings.addObserver(dataConnectionSetting, function(event) {
+      displayDataConnectionMessage(event.settingValue);
     });
 
     // get the initial setting value
@@ -198,8 +244,19 @@ var Carrier = (function newCarrier(window, document, undefined) {
       var enabled = req.result && req.result[dataRoamingSetting];
       displayDataRoamingMessage(enabled);
     };
+
+    var dataConnectionSettingRequest =
+        settings.createLock().get(dataConnectionSetting);
+    dataConnectionSettingRequest.onsuccess =
+        function connection_getStatusSuccess() {
+      var enabled = dataConnectionSettingRequest.result &&
+          dataConnectionSettingRequest.result[dataConnectionSetting];
+      displayDataConnectionMessage(enabled);
+    };
+
   } else {
     document.getElementById('dataRoaming-expl').hidden = true;
+    document.getElementById('dataConnection-expl').hidden = true;
   }
 
   // network operator selection: auto/manual
