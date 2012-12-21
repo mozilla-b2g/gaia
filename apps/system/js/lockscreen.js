@@ -138,12 +138,19 @@ var LockScreen = {
       self.setEnabled(value);
     });
 
-    SettingsListener.observe('audio.volume.master', 5, function(volume) {
-      self.mute.hidden = !!volume;
+    SettingsListener.observe('ring.enabled', true, function(value) {
+      self.mute.hidden = value;
     });
 
-    SettingsListener.observe(
-      'ril.radio.disabled', false, function(value) {
+    SettingsListener.observe('vibration.enabled', true, function(value) {
+      if (value) {
+        self.mute.classList.add('vibration');
+      } else {
+        self.mute.classList.remove('vibration');
+      }
+    });
+
+    SettingsListener.observe('ril.radio.disabled', false, function(value) {
       self.airplaneMode = value;
       self.updateConnState();
     });
@@ -264,14 +271,14 @@ var LockScreen = {
         var target = evt.target;
 
         // Reset timer when touch while overlay triggered
-        if (this.overlay.classList.contains('triggered')) {
+        if (overlay.classList.contains('triggered')) {
           clearTimeout(this.triggeredTimeoutId);
           this.triggeredTimeoutId = setTimeout(this.unloadPanel.bind(this),
                                                this.TRIGGERED_TIMEOUT);
           break;
         }
 
-        this.overlay.classList.remove('elastic');
+        overlay.classList.remove('elastic');
         this.setElasticEnabled(false);
 
         this._touch = {
@@ -380,19 +387,19 @@ var LockScreen = {
 
       this.triggeredTimeoutId =
         setTimeout(this.unloadPanel.bind(this), this.TRIGGERED_TIMEOUT);
-    }
-    else if (touch.ty > -10) {
+    } else if (touch.ty > -10) {
       touch.touched = false;
       this.unloadPanel();
       this.playElastic();
-      this.iconContainer.addEventListener('animationend',
-        function prompt() {
-          this.iconContainer.removeEventListener('animationend', prompt);
-          this.overlay.classList.remove('elastic');
-          this.setElasticEnabled(true);
-        }.bind(this));
-    }
-    else {
+
+      var self = this;
+      var container = this.iconContainer;
+      container.addEventListener('animationend', function prompt() {
+        container.removeEventListener('animationend', prompt);
+        self.overlay.classList.remove('elastic');
+        self.setElasticEnabled(true);
+      });
+    } else {
       this.unloadPanel();
       this.setElasticEnabled(true);
     }
@@ -623,7 +630,7 @@ var LockScreen = {
           self.areaUnlock.classList.remove('triggered');
 
           clearTimeout(self.triggeredTimeoutId);
-          self.setElasticEnabled(true);
+          self.setElasticEnabled(false);
         };
 
         if (toPanel !== 'camera') {
@@ -762,33 +769,15 @@ var LockScreen = {
 
       return;
     }
-
-    if (voice.network.mcc == 724 &&
-        voice.cell && voice.cell.gsmLocationAreaCode) {
-      // We are in Brazil, It is legally required to show local info
-      // about current registered GSM network in a legally specified way.
-      var lac = voice.cell.gsmLocationAreaCode % 100;
-      var carriers = MobileInfo.brazil.carriers;
-      var regions = MobileInfo.brazil.regions;
-
-      connstateLine2.textContent =
-        (carriers[voice.network.mnc] || ('724' + voice.network.mnc)) +
-        ' ' +
-        (regions[lac] ? regions[lac] + ' ' + lac : '');
+    var operatorInfos = MobileOperator.userFacingInfo(conn);
+    if (operatorInfos.carrier) {
+      connstateLine2.textContent = operatorInfos.carrier + ' ' + operatorInfos.region;
     }
 
-    var carrierName = voice.network.shortName || voice.network.longName;
-
-    if (iccInfo.isDisplaySpnRequired && iccInfo.spn) {
-      if (iccInfo.isDisplayNetworkNameRequired) {
-        carrierName = carrierName + ' ' + iccInfo.spn;
-      } else {
-        carrierName = iccInfo.spn;
-      }
-    }
+    var operator = operatorInfos.operator
 
     if (voice.roaming) {
-      var l10nArgs = { operator: carrierName };
+      var l10nArgs = { operator: operator };
       connstateLine1.dataset.l10nId = 'roaming';
       connstateLine1.dataset.l10nArgs = JSON.stringify(l10nArgs);
       connstateLine1.textContent = _('roaming', l10nArgs);
@@ -797,7 +786,7 @@ var LockScreen = {
     }
 
     delete connstateLine1.dataset.l10nId;
-    connstateLine1.textContent = carrierName;
+    connstateLine1.textContent = operator;
   },
 
   updatePassCodeUI: function lockscreen_updatePassCodeUI() {
@@ -886,26 +875,25 @@ var LockScreen = {
   },
 
   setElasticEnabled: function ls_setElasticEnabled(value) {
-    if (value && !this.elasticIntervalId) {
+    clearInterval(this.elasticIntervalId);
+    if (value) {
       this.elasticIntervalId =
         setInterval(this.playElastic.bind(this), this.ELASTIC_INTERVAL);
-    }
-    else if (!value && this.elasticIntervalId) {
-      clearInterval(this.elasticIntervalId);
-      this.elasticIntervalId = 0;
     }
   },
 
   playElastic: function ls_playElastic() {
     if (this._touch && this._touch.touched)
       return;
-    this.overlay.classList.add('elastic');
 
-    this.iconContainer.addEventListener('animationend',
-      function animationend() {
-        this.iconContainer.removeEventListener('animationend', animationend);
-        this.overlay.classList.remove('elastic');
-      }.bind(this));
+    var overlay = this.overlay;
+    var container = this.iconContainer;
+
+    overlay.classList.add('elastic');
+    container.addEventListener('animationend', function animationend(e) {
+      container.removeEventListener(e.type, animationend);
+      overlay.classList.remove('elastic');
+    });
   }
 };
 

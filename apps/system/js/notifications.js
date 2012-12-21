@@ -49,6 +49,7 @@ var NotificationScreen = {
   _toasterGD: null,
 
   lockscreenPreview: true,
+  silent: false,
   alerts: true,
   vibrates: true,
 
@@ -80,7 +81,7 @@ var NotificationScreen = {
     window.addEventListener('unlock', this.clearLockScreen.bind(this));
     window.addEventListener('mozvisibilitychange', this);
 
-    this._sound = '';
+    this._sound = 'style/notifications/ringtones/notifier_exclamation.ogg';
 
     var self = this;
     SettingsListener.observe('notification.ringtone', '', function(value) {
@@ -272,7 +273,7 @@ var NotificationScreen = {
                                this.lockScreenContainer.firstElementChild);
     }
 
-    if (this.alerts) {
+    if (this.alerts && !this.silent) {
       var ringtonePlayer = new Audio();
       ringtonePlayer.src = this._sound;
       ringtonePlayer.mozAudioChannelType = 'notification';
@@ -365,6 +366,10 @@ SettingsListener.observe(
 
 SettingsListener.observe('alert-sound.enabled', true, function(value) {
   NotificationScreen.alerts = value;
+});
+
+SettingsListener.observe('ring.enabled', true, function(value) {
+  NotificationScreen.silent = !value;
 });
 
 SettingsListener.observe('alert-vibration.enabled', true, function(value) {

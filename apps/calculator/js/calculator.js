@@ -116,13 +116,6 @@ var Calculator = {
     return key;
   },
 
-  formatNumber: function calculator_formatNumber(n) {
-    if (n % 1 == 0) {
-      return n;
-    }
-    return n.toFixed(3);
-  },
-
   calculate: function calculator_calculate() {
     if (this.stack.length === 0)
       return;
@@ -131,7 +124,7 @@ var Calculator = {
       var postfix =
         this.infix2postfix(this.stack.map(this.substitute).join(''));
       var result = this.evaluatePostfix(postfix);
-      this.stack = [this.formatNumber(result).toString()];
+      this.stack = [String(result)];
       this.updateDisplay();
       this.toClear = true;
     } catch (err) {
@@ -177,41 +170,31 @@ var Calculator = {
   // Currently functions are unimplemented and only operators with
   // left association are used
   infix2postfix: function calculator_infix2postfix(infix) {
-    // We cant know up till this point whether - is for negation or subtraction
-    // at this point we modify negation operators into (0-N) so 4+-5 -> 4+(0-5)
-    infix = infix.replace(
-      /(([^0-9])-|^-)([0-9.]+)/g,
-      function(match, _, pre, num) {
-        pre = pre || '';
-        return pre + '(0-' + num + ')';
-      }
-    );
-
-    // basic tokenisation to ensure we group numbers with >1 digit together
-    var tokens = infix.match(/[0-9.]+|\*|\/|\+|\-|\(|\)/g);
+    var parser = new Parser(infix);
+    var tokens = parser.parse();
     var output = [];
     var stack = [];
 
     tokens.forEach(function infix2postfix_inner(token) {
-      if (/[0-9.]+/.test(token)) {
-        output.push(parseFloat(token, 10));
+      if (token.number) {
+        output.push(parseFloat(token.value, 10));
       }
 
       var isOperator = this.isOperator;
-      if (isOperator(token)) {
+      if (isOperator(token.value)) {
         var precedence = this.precedence;
-        while (isOperator(stack[stack.length - 1]) &&
-               precedence(token) <= precedence(stack[stack.length - 1])) {
+        while (stack.length && isOperator(stack[stack.length - 1]) &&
+               precedence(token.value) <= precedence(stack[stack.length - 1])) {
           output.push(stack.pop());
         }
-        stack.push(token);
+        stack.push(token.value);
       }
 
-      if (token === '(') {
-        stack.push(token);
+      if (token.value === '(') {
+        stack.push(token.value);
       }
 
-      if (token === ')') {
+      if (token.value === ')') {
         while (stack.length && stack[stack.length - 1] !== '(') {
           output.push(stack.pop());
         }
@@ -316,7 +299,17 @@ Calculator.test = function() {
     ['-5.5*6', -33],
     ['-5.5*-6.4', 35.2],
     ['-6-6-6', -18],
-    ['6-6-6', -6]
+    ['6-6-6', -6],
+    ['.001 /2', .0005],
+    ['(0-.001)/2', -.0005],
+    ['-.001/(0-2)', .0005],
+    ['1000000000000000000000000+1', 1e+24],
+    ['1000000000000000000000000-1', 1e+24],
+    ['1e+30+10', 1e+30],
+    ['1e+30*10', 1e+31],
+    ['1e+30/100', 1e+28],
+    ['10/1000000000000000000000000', 1e-23],
+    ['10/-1000000000000000000000000', -1e-23]
   ];
 
   var passed = formulas.every(run);
@@ -326,5 +319,4 @@ Calculator.test = function() {
   }
   return passed;
 };
-
 

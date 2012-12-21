@@ -35,6 +35,15 @@ var SleepMenu = {
     SettingsListener.observe('ril.radio.disabled', false, function(value) {
       self.isFlightModeEnabled = value;
     });
+
+    var settings = navigator.mozSettings;
+    SettingsListener.observe('audio.volume.notification', 7, function(value) {
+      settings.createLock().set({'ring.enabled': (value != 0)});
+    });
+
+    SettingsListener.observe('ring.enabled', true, function(value) {
+      self.isSilentModeEnabled = !value;
+    });
   },
 
   // Generate items

@@ -230,6 +230,7 @@ body, html {
   background-position: -21px -40px;
 }
 
+.sb-icon-signal[data-emergency="true"],
 .sb-icon-signal[data-level="0"] {
   background-position: -42px -40px;
 }
@@ -255,6 +256,8 @@ body, html {
 }
 
 .sb-icon-signal {
+  /* default icon is the "no sim" icon */
+  background-position: -147px -80px;
   position: relative;
 }
 
@@ -316,6 +319,10 @@ body, html {
 
 .sb-icon-mute {
   background-position: -273px -60px;
+}
+
+.sb-icon-mute.vibration {
+  background-position: -210px -60px;
 }
 
 .sb-icon-usb {

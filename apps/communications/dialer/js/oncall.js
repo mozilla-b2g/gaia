@@ -4,6 +4,7 @@ var CallScreen = {
   _ticker: null,
   _screenLock: null,
 
+  body: document.body,
   screen: document.getElementById('call-screen'),
   views: document.getElementById('views'),
 
@@ -51,7 +52,6 @@ var CallScreen = {
 
     this.calls.addEventListener('click',
                                 OnCallHandler.toggleCalls);
-
   },
 
   setCallerContactImage: function cs_setCallerContactImage(image_url, force) {
@@ -85,14 +85,14 @@ var CallScreen = {
 
   showKeypad: function cs_showKeypad() {
     KeypadManager.render('oncall');
-    this.views.classList.add('show');
+    this.body.classList.add('showKeypad');
   },
 
   hideKeypad: function cs_hideKeypad() {
     KeypadManager.restorePhoneNumber();
     KeypadManager.restoreAdditionalContactInfo();
     KeypadManager.formatPhoneNumber();
-    this.views.classList.remove('show');
+    this.body.classList.remove('showKeypad');
   },
 
   render: function cs_render(layout_type) {
@@ -131,7 +131,7 @@ var CallScreen = {
 
   showIncoming: function cs_showIncoming() {
     // Hiding the keypad
-    this.views.classList.remove('show');
+    this.body.classList.remove('showKeypad');
 
     this.callToolbar.classList.add('transparent');
     this.incomingContainer.classList.add('displayed');
@@ -176,9 +176,12 @@ var OnCallHandler = (function onCallHandler() {
   var ringing = false;
 
   /* === Settings === */
-  var activePhoneSound = true;
-  SettingsListener.observe('audio.volume.notification', true, function(value) {
+  var activePhoneSound = null;
+  SettingsListener.observe('ring.enabled', true, function(value) {
     activePhoneSound = !!value;
+    if (ringing && activePhoneSound) {
+      ringtonePlayer.play();
+    }
   });
 
   var selectedPhoneSound = '';
@@ -187,7 +190,7 @@ var OnCallHandler = (function onCallHandler() {
     ringtonePlayer.pause();
     ringtonePlayer.src = value;
 
-    if (ringing) {
+    if (ringing && activePhoneSound) {
       ringtonePlayer.play();
     }
   });
@@ -203,7 +206,7 @@ var OnCallHandler = (function onCallHandler() {
   ringtonePlayer.src = selectedPhoneSound;
   ringtonePlayer.loop = true;
 
-  var activateVibration = true;
+  var activateVibration = null;
   SettingsListener.observe('vibration.enabled', true, function(value) {
     activateVibration = !!value;
   });
@@ -292,10 +295,14 @@ var OnCallHandler = (function onCallHandler() {
       if (document.mozHidden) {
         window.addEventListener('mozvisibilitychange', function waitOn() {
           window.removeEventListener('mozvisibilitychange', waitOn);
-          navigator.vibrate([100, 100, 100]);
+          if (activateVibration) {
+            navigator.vibrate([100, 100, 100]);
+          }
         });
       } else {
-        navigator.vibrate([100, 100, 100]);
+        if (activateVibration) {
+          navigator.vibrate([100, 100, 100]);
+        }
       }
 
       LazyL10n.get(function localized(_) {
@@ -336,16 +343,20 @@ var OnCallHandler = (function onCallHandler() {
 
   function handleFirstIncoming(call) {
     var vibrateInterval = 0;
-    if (activateVibration) {
+    if (activateVibration != false) {
       vibrateInterval = window.setInterval(function vibrate() {
-        if ('vibrate' in navigator) {
+        // Wait for the setting value to return before starting a vibration.
+        if ('vibrate' in navigator && activateVibration) {
           navigator.vibrate([200]);
         }
       }, 600);
     }
 
-    if (activePhoneSound) {
+    if (activePhoneSound == true) {
       ringtonePlayer.play();
+      ringing = true;
+    } else if (activePhoneSound == null) {
+      // Let's wait for the setting to return before playing any sound.
       ringing = true;
     }
 
@@ -380,19 +391,20 @@ var OnCallHandler = (function onCallHandler() {
     displayed = !displayed;
     animating = true;
 
-    CallScreen.screen.classList.remove('animate');
-    CallScreen.screen.classList.toggle('prerender');
+    var callScreen = CallScreen.screen;
+    callScreen.classList.remove('animate');
+    callScreen.classList.toggle('prerender');
 
     window.addEventListener('MozAfterPaint', function ch_finishAfterPaint() {
       window.removeEventListener('MozAfterPaint', ch_finishAfterPaint);
 
       window.setTimeout(function cs_transitionNextLoop() {
-        CallScreen.screen.classList.add('animate');
-        CallScreen.screen.classList.toggle('displayed');
-        CallScreen.screen.classList.toggle('prerender');
+        callScreen.classList.add('animate');
+        callScreen.classList.toggle('displayed');
+        callScreen.classList.toggle('prerender');
 
-        CallScreen.screen.addEventListener('transitionend', function trWait() {
-          CallScreen.screen.removeEventListener('transitionend', trWait);
+        callScreen.addEventListener('transitionend', function trWait() {
+          callScreen.removeEventListener('transitionend', trWait);
 
           animating = false;
 

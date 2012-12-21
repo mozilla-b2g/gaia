@@ -23,6 +23,7 @@
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
     <link rel="resource" type="application/l10n" href="shared/locales/date.ini">
     <!-- Shared code -->
+    <script type="text/javascript" src="shared/js/settings_listener.js"></script>
     <script type="text/javascript" src="shared/js/async_storage.js"></script>
     <script type="text/javascript" src="shared/js/l10n.js"></script>
     <script type="text/javascript" src="shared/js/l10n_date.js"></script>
@@ -113,7 +114,7 @@
         <article id="messages-container" class="view-body" data-type="list">
         </article>
         <form role="search" id="new-sms-form" class="bottom new-sms-form">
-          <button id="send-message" disabled data-l10n-id="send" type="submit">SEND</button>
+          <button id="send-message" disabled data-l10n-id="send" type="submit">Send</button>
           <p>
             <textarea type="text" id="message-to-send" name="message-to-send" placeholder="Message" data-l10n-id="composeMessage"></textarea>
           </p>

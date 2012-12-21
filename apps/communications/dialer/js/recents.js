@@ -76,6 +76,12 @@ var Recents = {
       getElementById('add-contact-action-menu');
   },
 
+  get recentsEditMenu() {
+    delete this.recentsEditMenu;
+    return this.recentsEditMenu = document.
+      getElementById('edit-mode');
+  },
+
   get callMenuItem() {
     delete this.callMenuItem;
     return this.callMenuItem = document.
@@ -100,17 +106,65 @@ var Recents = {
       getElementById('cancel-action-menu');
   },
 
-  load: function re_load() {
-    if (this._loaded)
+  load: function re_load(callback) {
+    if (this._loaded) {
+      if (callback) {
+        callback();
+      }
       return;
+    }
 
     this._loaded = true;
 
-    LazyL10n.get(function localized() {
-      var headerSelector = '#recents-container h2';
-      FixedHeader.init('#recents-container',
-                       '#fixed-container', headerSelector);
-      Recents.init();
+    // Time to load the external css/js
+    var stylesheets = [
+      '/dialer/style/commslog.css',
+      '/dialer/style/fixed_header.css',
+      '/shared/style/headers.css',
+      '/shared/style/switches.css',
+      '/shared/style/edit_mode.css',
+      '/shared/style/action_menu.css'
+    ];
+    stylesheets.forEach(function cssIterator(url) {
+      var link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = url;
+      document.head.appendChild(link);
+    });
+
+    var scripts = [
+      '/dialer/js/fixed_header.js',
+      '/dialer/js/utils.js',
+      '/dialer/js/recents_db.js',
+    ];
+
+    var scriptLoadCount = 0;
+    var scriptLoaded = (function() {
+      scriptLoadCount++;
+
+      // All the scripts are now loaded
+      if (scriptLoadCount === scripts.length) {
+        var headerSelector = '#recents-container h2';
+        FixedHeader.init('#recents-container',
+                         '#fixed-container', headerSelector);
+
+
+        this.init();
+        this.recentsView.classList.remove('hidden');
+        this.addContactActionMenu.hidden = false;
+        this.recentsEditMenu.hidden = false;
+
+        if (callback) {
+          callback();
+        }
+      }
+    }).bind(this);
+
+    scripts.forEach(function scriptIterator(url) {
+      var script = document.createElement('script');
+      script.src = url;
+      script.onload = scriptLoaded;
+      document.head.appendChild(script);
     });
   },
 
@@ -188,14 +242,13 @@ var Recents = {
 
   // Refresh can be called on an unloaded Recents
   refresh: function re_refresh() {
-    if (!this._loaded) {
-      this.load();
-    }
-
-    RecentsDBManager.init(function() {
-      RecentsDBManager.get(function(recents) {
-        LazyL10n.get(function localized() {
-          Recents.render(recents);
+    this.load(function loaded() {
+      RecentsDBManager.init(function() {
+        RecentsDBManager.get(function(recents) {
+          // We need l10n to be loaded before rendering
+          LazyL10n.get(function localized() {
+            Recents.render(recents);
+          });
         });
       });
     });
@@ -209,9 +262,11 @@ var Recents = {
           this.headerEditModeText.textContent = this._('edit');
           this.deselectSelectedEntries();
           document.body.classList.toggle('recents-edit');
+          this.fitPrimaryInfoToSpace();
           break;
         case 'recents-icon-close': // Exit edit mode with no deletions
           document.body.classList.toggle('recents-edit');
+          this.fitPrimaryInfoToSpace();
           break;
       }
     }
@@ -223,9 +278,8 @@ var Recents = {
       return;
     }
     var action = event.target.dataset.action;
-    var noMissedCallsSelector = '.log-item[data-type^=dialing]' +
-      ':not(.collapsed), ' +
-      '.log-item[data-type=incoming-connected]:not(.collapsed)';
+    var noMissedCallsSelector = '.log-item[data-type^=dialing],' +
+      '.log-item[data-type=incoming-connected]';
     var noMissedCallsItems = document.querySelectorAll(noMissedCallsSelector);
     var noMissedCallsLength = noMissedCallsItems.length;
     var i;
@@ -297,7 +351,24 @@ var Recents = {
     }
     this.allFilter.classList.toggle('selected');
     this.missedFilter.classList.toggle('selected');
+    this.limitVisibleEntries(100);
+  },
 
+  limitVisibleEntries: function re_limitVisibleEntries(limit) {
+    var visibleCalls = this.recentsContainer.
+      querySelectorAll('.log-item:not(.hide)');
+    var end = visibleCalls.length;
+    if (end > limit) {
+      for (var i = limit; i < end; i++) {
+        var visibleCallParentNode = visibleCalls[i].parentNode;
+        visibleCallParentNode.removeChild(visibleCalls[i]);
+        // Remove the day header if no more entries.
+        if (visibleCallParentNode.getElementsByTagName('*').length === 0) {
+          visibleCallParentNode.parentNode.parentNode.
+            removeChild(visibleCallParentNode.parentNode);
+        }
+      }
+    }
   },
 
   selectAllEntries: function re_selectAllEntries() {
@@ -552,7 +623,6 @@ var Recents = {
         classes += 'icon-incoming';
       }
     }
-
     var entry =
       '<li class="log-item ' + highlight +
       '  " data-num="' + recent.number +
@@ -562,31 +632,26 @@ var Recents = {
       '    <input type="checkbox" />' +
       '    <span></span>' +
       '  </label>' +
-      '  <section class="icon-container grid center">' +
-      '    <div class="grid-cell grid-v-align">' +
-      '      <div class="call-type-icon ' + classes + '"></div>' +
-      '    </div>' +
-      '  </section>' +
-      '  <section class="log-item-info grid">' +
-      '    <div class="grid-cell grid-v-align">' +
-      '      <section class="primary-info">' +
-      '        <span class="primary-info-main ellipsis">' +
-                 (recent.number || this._('unknown')) +
-      '        </span>' +
-      '        <span class="entry-count">' +
-      '        </span>' +
-      '      </section>' +
-      '      <section class="secondary-info ellipsis">' +
-      '        <span class="call-time">' +
-                 Utils.prettyDate(recent.date) +
-      '        </span>' +
-      '        <span class="call-additional-info">' +
-      '        </span>' +
-      '      </section>' +
-      '    </div>' +
-      '  </section>' +
-      '  <section class="call-log-contact-photo' + '">' +
-      '  </section>' +
+      '  <aside class="pack-end">' +
+      '    <img class="call-log-contact-photo" src="myimage.jpg">' +
+      '  </aside>' +
+      '  <a href="#">' +
+      '    <aside class="icon call-type-icon ' + classes + '"></aside>' +
+      '    <p class="primary-info">' +
+      '      <span class="primary-info-main">' +
+               (recent.number || this._('unknown')) +
+      '      </span>' + '<span class="many-contacts">' +
+      '      </span>' + '<span class="entry-count">' +
+      '      </span>' +
+      '    </p>' +
+      '    <p class="secondary-info">' +
+      '      <span class="call-time">' +
+               Utils.prettyDate(recent.date) +
+      '      </span>' +
+      '      <span class="call-additional-info">' +
+      '      </span>' +
+      '    </p>' +
+      '  </a>' +
       '</li>';
     return entry;
   },
@@ -624,8 +689,8 @@ var Recents = {
           currentDay = day;
           content +=
           '<section data-timestamp="' + day + '">' +
-          ' <h2 id="header-day-' + day + '">' + Utils.headerDate(day) +
-          ' </h2>' +
+          ' <header id="header-day-' + day + '">' + Utils.headerDate(day) +
+          ' </header>' +
           ' <ol id="list-day-' + day + '" class="log-group">';
         }
         var highlight = (value < recents[i].date) ? 'highlighted' : '';
@@ -658,6 +723,11 @@ var Recents = {
   },
 
   updateContactDetails: function re_updateContactDetails() {
+    // If we're not loaded yet, nothing to update
+    if (!this._loaded) {
+      return;
+    }
+
     var itemSelector = '.log-item:not(.hide)',
       callLogItems = document.querySelectorAll(itemSelector);
     for (var i = 0; i < callLogItems.length; i++) {
@@ -668,23 +738,28 @@ var Recents = {
     }
   },
 
-  contactCallBack: function re_contactCallBack(logItem, contact, matchingTel) {
+  contactCallBack: function re_contactCallBack(logItem, contact, matchingTel,
+    contactsWithSameNumber) {
     var contactPhoto = logItem.querySelector('.call-log-contact-photo');
     var primaryInfoMainNode = logItem.querySelector('.primary-info-main'),
+        manyContactsNode = logItem.querySelector('.many-contacts'),
         phoneNumberAdditionalInfoNode =
           logItem.querySelector('.call-additional-info'),
         phoneNumber = logItem.dataset.num.trim(),
         count = logItem.dataset.count;
     if (contact !== null) {
       primaryInfoMainNode.textContent = (contact.name && contact.name !== '') ?
-        contact.name : Recents._('unknown');
+        contact.name : this._('unknown');
+      manyContactsNode.innerHTML = contactsWithSameNumber ?
+        '&#160;' + this._('contactNameWithOthersSuffix',
+          {n: contactsWithSameNumber}) : '';
       if (contact.photo && contact.photo[0]) {
         var photoURL = URL.createObjectURL(contact.photo[0]);
-        contactPhoto.style.backgroundImage = 'url(' + photoURL + ')';
-        logItem.classList.add('contact-photo-available');
+        contactPhoto.src = photoURL;
+        logItem.classList.add('hasPhoto');
       } else {
-        contactPhoto.style.backgroundImage = null;
-        logItem.classList.remove('contact-photo-available');
+        contactPhoto.src = '';
+        logItem.classList.remove('hasPhoto');
       }
       var phoneNumberAdditionalInfo = Utils.getPhoneNumberAdditionalInfo(
         matchingTel, contact);
@@ -699,11 +774,10 @@ var Recents = {
         primaryInfoMainNode.textContent = phoneNumber;
         phoneNumberAdditionalInfoNode.textContent = '';
         logItem.classList.remove('isContact');
-        logItem.classList.remove('contact-photo-available');
       }
     }
     var entryCountNode = logItem.querySelector('.entry-count');
-    entryCountNode.textContent = (count > 1) ? '(' + count + ')' : '';
+    entryCountNode.innerHTML = (count > 1) ? '&#160;(' + count + ')' : '';
     this.fitPrimaryInfoToSpace(logItem);
   },
 
@@ -772,11 +846,10 @@ var Recents = {
   },
 
   groupCalls: function re_groupCalls(olderCallEl, newerCallEl, count, inc) {
-    olderCallEl.classList.add('hide');
-    olderCallEl.classList.add('collapsed');
+    olderCallEl.parentNode.removeChild(olderCallEl);
     count += inc;
     var entryCountNode = newerCallEl.querySelector('.entry-count');
-    entryCountNode.textContent = '(' + count + ')';
+    entryCountNode.innerHTML = '&#160;(' + count + ')';
     newerCallEl.dataset.count = count;
   },
 
@@ -785,6 +858,10 @@ var Recents = {
   },
 
   updateHighlighted: function re_updateHighlighted() {
+    // No need to update if we're not loaded yet
+    if (!this._loaded)
+      return;
+
     var itemSelector = '.log-item.highlighted',
       items = document.querySelectorAll(itemSelector),
       itemsLength = items.length;
@@ -794,21 +871,35 @@ var Recents = {
   },
 
   fitPrimaryInfoToSpace: function re_fitPrimaryInfoToSpace(logItemNode) {
-    var primaryInfoNode = logItemNode.querySelector('.primary-info'),
-      primaryInfoMainNode = logItemNode.querySelector('.primary-info-main'),
-      entryCountNode = logItemNode.querySelector('.entry-count'),
-      primaryInfoNodeCS = window.getComputedStyle(primaryInfoNode),
-      primaryInfoMainNodeCS = window.getComputedStyle(primaryInfoMainNode),
-      entryCountNodeCS = window.getComputedStyle(entryCountNode),
-      primaryInfoNodeWidth = parseInt(primaryInfoNodeCS.width),
-      primaryInfoMainNodeWidth = parseInt(primaryInfoMainNodeCS.width),
-      entryCountNodeWidth = parseInt(entryCountNodeCS.width);
-    if (!isNaN(primaryInfoNodeWidth) && !isNaN(primaryInfoMainNodeWidth) &&
-      !isNaN(entryCountNodeWidth) &&
-      (primaryInfoNodeWidth < primaryInfoMainNodeWidth + entryCountNodeWidth)) {
-      var newWidth = primaryInfoNodeWidth - entryCountNodeWidth - 5;
-      primaryInfoMainNode.classList.add('ellipsed');
-      primaryInfoMainNode.style.width = newWidth + 'px';
+    var logItemNodes;
+    if (logItemNode) {
+      logItemNodes = [];
+      logItemNodes.push(logItemNode);
+    } else {
+      logItemNodes = this.recentsContainer.
+        querySelectorAll('.log-item.isContact:not(.hide)');
+    }
+    for (var i = 0; i < logItemNodes.length; i++) {
+      var primaryInfoNode = logItemNodes[i].
+        querySelector('.primary-info');
+      var primaryInfoNodeWidth = primaryInfoNode.clientWidth;
+      var primaryInfoMainNode = logItemNodes[i].
+        querySelector('.primary-info-main');
+      primaryInfoMainNode.style.width = 'auto';
+      var primaryInfoMainNodeCS = window.getComputedStyle(primaryInfoMainNode);
+      var primaryInfoMainNodeWidth = parseInt(primaryInfoMainNodeCS.width);
+      var manyContactsNode = logItemNodes[i].querySelector('.many-contacts');
+      var manyContactsNodeCS = window.getComputedStyle(manyContactsNode);
+      var manyContactsNodeWidth = parseInt(manyContactsNodeCS.width);
+      var entryCountNode = logItemNodes[i].querySelector('.entry-count');
+      var entryCountNodeCS = window.getComputedStyle(entryCountNode);
+      var entryCountNodeWidth = parseInt(entryCountNodeCS.width);
+      if ((primaryInfoMainNodeWidth + manyContactsNodeWidth +
+          entryCountNodeWidth) > primaryInfoNodeWidth) {
+        primaryInfoMainNode.style.width = (primaryInfoNodeWidth -
+          manyContactsNodeWidth - entryCountNodeWidth) + 'px';
+      }
     }
   }
 };
+

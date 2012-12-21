@@ -191,7 +191,7 @@ var ModalDialog = {
         var returnValue = {
           selectedButton: target.dataset.buttonIndex
         };
-        if (evt.showCheckbox)
+        if (evt.detail.showCheckbox)
           returnValue.checked = elements.customPromptCheckbox.checked;
         evt.detail.returnValue = returnValue;
         elements.customPrompt.hidden = true;
