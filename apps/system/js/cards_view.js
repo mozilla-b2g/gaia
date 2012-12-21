@@ -221,6 +221,10 @@ var CardsView = (function() {
           PopupManager.getOpenedOriginFromOpener(origin);
         card.appendChild(subtitle);
         card.classList.add('popup');
+      } else if (getOffOrigin(app.frame.dataset.url ? app.frame.dataset.url : app.frame.src, origin)) {
+        var subtitle = document.createElement('p');
+        subtitle.textContent = getOffOrigin(app.frame.dataset.url ? app.frame.dataset.url : app.frame.src, origin);
+        card.appendChild(subtitle);
       }
 
       if (TrustedUIManager.hasTrustedUI(origin)) {
@@ -263,6 +267,44 @@ var CardsView = (function() {
       WindowManager.launch(origin);
     });
   }
+
+  function getOriginObject(url) {
+    var parser = document.createElement('a');
+    parser.href = url;
+
+    return {
+      protocol: parser.protocol,
+      hostname: parser.hostname,
+      port: parser.port
+    }
+  }
+
+  function getOffOrigin(src, origin) {
+    // Use src and origin as cache key
+    var cacheKey = JSON.stringify(Array.prototype.slice.call(arguments));
+    if (!getOffOrigin.cache[cacheKey]) {
+      var native = getOriginObject(origin);
+      var current = getOriginObject(src);
+      if (current.protocol == 'http:') {
+        // Display http:// protocol anyway
+        getOffOrigin.cache[cacheKey] = current.protocol + '//' + current.hostname;
+      } else if (native.protocol == current.protocol &&
+        native.hostname == current.hostname &&
+        native.port == current.port) {
+        // Same origin policy
+        getOffOrigin.cache[cacheKey] = '';
+      } else if (current.protocol == 'app:') {
+        // Avoid displaying app:// protocol
+        getOffOrigin.cache[cacheKey] = '';
+      } else {
+        getOffOrigin.cache[cacheKey] = current.protocol + '//' + current.hostname;
+      }
+    }
+
+    return getOffOrigin.cache[cacheKey];
+  }
+
+  getOffOrigin.cache = {};
 
   function hideCardSwitcher() {
     if (!cardSwitcherIsShown())
