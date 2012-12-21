@@ -350,7 +350,7 @@
       <ul id="cf-notreachable-advanced">
         <li>
           <p data-l10n-id="cf-numberWhenUnreachable">Number when unreachable</p>
-          <input type="text" data-setting="ril.cf.notreachable.number" />
+          <input type="text" id="cf-notreachable-number" data-setting="ril.cf.notreachable.number" disabled/>
         </li>
         <li>
           <label>
@@ -374,7 +374,7 @@
       <ul id="cf-noreply-advanced">
         <li>
           <p data-l10n-id="cf-numberWhenUnanswered">Number when unanswered</p>
-          <input type="text" data-setting="ril.cf.noreply.number" />
+          <input type="text" id="cf-noreply-number" data-setting="ril.cf.noreply.number" disabled/>
         </li>
         <li>
           <label>
@@ -398,7 +398,7 @@
       <ul id="cf-mobilebusy-advanced">
         <li>
           <p data-l10n-id="cf-numberWhenBusy">Number when busy</p>
-          <input type="text" data-setting="ril.cf.mobilebusy.number" />
+          <input type="text" id="cf-mobilebusy-number" data-setting="ril.cf.mobilebusy.number" disabled/>
         </li>
         <li>
           <label>
@@ -422,7 +422,7 @@
       <ul id="cf-unconditional-advanced">
         <li>
           <p data-l10n-id="cf-alwaysUseThisNumber">Always use this number</p>
-          <input type="text" data-setting="ril.cf.unconditional.number"/>
+          <input type="text" id="cf-unconditional-number" data-setting="ril.cf.unconditional.number" disabled/>
         </li>
         <li>
           <label>
@@ -457,19 +457,19 @@
         <h2 data-l10n-id="callForwarding"> Call Forwarding </h2>
       </header>
       <ul>
-        <li>
+        <li id="li-cfu-desc" class="disabled">
           <small id="cfu-desc"></small>
           <a id="menuItem-callForwardingUnconditional" href="#call-cf-unconditionalSettings" data-l10n-id="callForwardingUnconditional">Always forward</a>
         </li>
-        <li>
+        <li id="li-cfmb-desc" class="disabled">
           <small id="cfmb-desc"></small>
           <a id="menuItem-callForwardingMobileBusy" href="#call-cf-mobileBusySettings" data-l10n-id="callForwardingMobileBusy">Forward when busy</a>
         </li>
-        <li>
+        <li id="li-cfnrep-desc" class="disabled">
           <small id="cfnrep-desc"></small>
           <a id="menuItem-callForwardingNoReply" href="#call-cf-noReplySettings" data-l10n-id="callForwardingNoReply">Forward when unanswered</a>
         </li>
-        <li>
+        <li id="li-cfnrea-desc" class="disabled">
           <small id="cfnrea-desc"></small>
           <a id="menuItem-callForwardingNotReachable" href="#call-cf-notReachableSettings" data-l10n-id="callForwardingNotReachable">Forward when unreachable</a>
         </li>
@@ -2326,7 +2326,7 @@
         </li>
         <li>
           <small id="call-desc" class="menu-item-desc"></small>
-          <a id="menuItem-call" class="menu-item" href="#call"
+          <a id="menuItem-callSettings" class="menu-item" href="#call"
             data-l10n-id="callSettings">Call Settings</a>
         </li>
         <li id="data-connectivity">

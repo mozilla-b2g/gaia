@@ -279,7 +279,6 @@ var Connectivity = (function(window, document, undefined) {
   };
 
   var dataDesc = document.getElementById('data-desc');
-  var callDesc = document.getElementById('call-desc');
 
   function updateCarrier() {
     var setCarrierStatus = function(msg) {
@@ -288,7 +287,6 @@ var Connectivity = (function(window, document, undefined) {
       var text = msg.error ||
         ((data && operator) ? (operator + ' - ' + data) : operator);
       dataDesc.textContent = text;
-      callDesc.textContent = text;
 
       /**
        * XXX italic style for specifying state change is not a ideal solution
@@ -297,7 +295,6 @@ var Connectivity = (function(window, document, undefined) {
        * We might have to switch to labels with parenthesis for these languages.
        */
       dataDesc.style.fontStyle = msg.error ? 'italic' : 'normal';
-      callDesc.style.fontStyle = msg.error ? 'italic' : 'normal';
 
       // in case the "Carrier & Data" panel is displayed...
       var dataNetwork = document.getElementById('dataNetwork-desc');
