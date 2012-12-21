@@ -110,7 +110,7 @@
 }
 
 #menuItem-improveBrowserOS {
-  background-image: -moz-image-rect(url(images/icons_sprite.png), 120, 120, 150, 90);
+  background-image: -moz-image-rect(url(images/icons_sprite.png), 150, 60, 180, 30);
 }
 
 #menuItem-help {
@@ -299,6 +299,7 @@
 .privacy-marketPlace {
   background-image: -moz-image-rect(url(images/privacy_sprite.png), 0, 96, 32, 64);
 }
+
 
 /******************************************************************************
  * Right-To-Left layout
