@@ -4,22 +4,30 @@ requireApp('system/test/unit/mock_settings_listener.js');
 requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/test/unit/mock_navigator_moz_mobile_connection.js');
 requireApp('system/test/unit/mock_navigator_moz_telephony.js');
+requireApp('system/test/unit/mock_mobile_operator.js');
+requireApp('system/test/unit/mocks_helper.js');
 
 requireApp('system/js/statusbar.js');
 
-if (!window.SettingsListener) {
-  window.SettingsListener = null;
-}
+var mocksForStatusBar = ['SettingsListener', 'MobileOperator'];
+
+mocksForStatusBar.forEach(function(mockName) {
+  if (! window[mockName]) {
+    window[mockName] = null;
+  }
+});
 
 suite('system/Statusbar', function() {
   var fakeStatusBarNode;
+  var mocksHelper;
+
   var realSettingsListener, realMozL10n, realMozMobileConnection,
       realMozTelephony,
       fakeIcons = [];
 
   suiteSetup(function() {
-    realSettingsListener = window.SettingsListener;
-    window.SettingsListener = MockSettingsListener;
+    mocksHelper = new MocksHelper(mocksForStatusBar);
+    mocksHelper.suiteSetup();
     realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
     realMozMobileConnection = navigator.mozMobileConnection;
@@ -29,6 +37,7 @@ suite('system/Statusbar', function() {
   });
 
   suiteTeardown(function() {
+    mocksHelper.suiteTeardown();
     navigator.mozL10n = realMozL10n;
     navigator.mozMobileConnection = realMozMobileConnection;
     navigator.mozTelephony = realMozTelephony;
@@ -36,6 +45,7 @@ suite('system/Statusbar', function() {
   });
 
   setup(function() {
+    mocksHelper.setup();
     fakeStatusBarNode = document.createElement('div');
     fakeStatusBarNode.id = 'statusbar';
     document.body.appendChild(fakeStatusBarNode);
@@ -52,6 +62,7 @@ suite('system/Statusbar', function() {
     StatusBar.init();
   });
   teardown(function() {
+    mocksHelper.teardown();
     fakeStatusBarNode.parentNode.removeChild(fakeStatusBarNode);
     MockNavigatorMozTelephony.mTeardown();
     MockNavigatorMozMobileConnection.mTeardown();
@@ -369,6 +380,42 @@ suite('system/Statusbar', function() {
       assert.equal(dataset.emergency, 'true');
       assert.notEqual(dataset.searching, 'true');
     });
+  }),
 
+  suite('operator name', function() {
+    setup(function() {
+      MockNavigatorMozMobileConnection.voice = {
+        connected: true,
+        network: {
+          shortName: 'Fake short',
+          longName: 'Fake long',
+          mnc: 10 // VIVO
+        },
+        cell: {
+          gsmLocationAreaCode: 71 // BA
+        }
+      }
+
+      MockNavigatorMozMobileConnection.iccInfo = {
+        isDisplaySpnRequired: false,
+        spn: 'Fake SPN'
+      }
+    });
+
+    test('Connection without region', function() {
+      MobileOperator.mOperator = 'Orange';
+      var evt = new CustomEvent('iccinfochange');
+      StatusBar.handleEvent(evt);
+      assert.include(fakeIcons.label.textContent, 'Orange');
+    });
+    test('Connection with region', function() {
+      MobileOperator.mOperator = 'Orange';
+      MobileOperator.mRegion = 'PR';
+      var evt = new CustomEvent('iccinfochange');
+      StatusBar.handleEvent(evt);
+      var label_content = fakeIcons.label.textContent;
+      assert.include(label_content, 'Orange');
+      assert.include(label_content, 'PR');
+    });
   });
 });

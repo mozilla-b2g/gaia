@@ -1,7 +1,47 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
 'use strict';
+
+var MobileOperator = {
+  BRAZIL_MCC: 724,
+
+  userFacingInfo: function mo_userFacingInfo(mobileConnection) {
+    var network = mobileConnection.voice.network;
+    var iccInfo = mobileConnection.iccInfo;
+    var operator = network.shortName || network.longName;
+
+    if (iccInfo.isDisplaySpnRequired && iccInfo.spn) {
+      if (iccInfo.isDisplayNetworkNameRequired) {
+        operator = operator + ' ' + iccInfo.spn;
+      } else {
+        operator = iccInfo.spn;
+      }
+    }
+
+    var carrier, region;
+    if (this.isBrazil(mobileConnection)) {
+      // We are in Brazil, It is legally required to show local info
+      // about current registered GSM network in a legally specified way.
+      var lac = mobileConnection.voice.cell.gsmLocationAreaCode % 100;
+      var carriers = MobileInfo.brazil.carriers;
+      var regions = MobileInfo.brazil.regions;
+
+      carrier = carriers[network.mnc] || (this.BRAZIL_MCC.toString() + network.mnc);
+      region = (regions[lac] ? regions[lac] + ' ' + lac : '');
+    }
+
+    return {
+      'operator': operator,
+      'carrier': carrier,
+      'region': region
+    };
+  },
+
+  isBrazil: function mo_isBrazil(mobileConnection) {
+    var cell = mobileConnection.voice.cell;
+    return mobileConnection.voice.network.mcc == this.BRAZIL_MCC &&
+           cell && cell.gsmLocationAreaCode;
+  }
+};
+
 
 var MobileInfo = {
   brazil: {

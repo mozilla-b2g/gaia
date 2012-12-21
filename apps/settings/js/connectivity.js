@@ -319,8 +319,12 @@ var Connectivity = (function(window, document, undefined) {
     // operator name & data connection type
     if (!gMobileConnection.data || !gMobileConnection.data.network)
       return setCarrierStatus({ error: '???'}); // XXX should never happen
+    var operatorInfos = MobileOperator.userFacingInfo(gMobileConnection);
+    var operator = operatorInfos.operator;
+    if (operatorInfos.region) {
+      operator += ' ' + operatorInfos.region;
+    }
     var data = gMobileConnection.data;
-    var operator = data.network.shortName || data.network.longName;
     var dataType = (data.connected && data.type) ? kDataType[data.type] : '';
     setCarrierStatus({
       operator: operator,
