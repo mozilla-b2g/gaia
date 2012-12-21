@@ -351,7 +351,7 @@ var KeypadManager = {
   },
 
   hangUpCallFromKeypad: function hk_hangUpCallFromKeypad(event) {
-    CallScreen.views.classList.remove('show');
+    CallScreen.body.classList.remove('showKeypad');
     OnCallHandler.end();
   },
 

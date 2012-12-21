@@ -4,6 +4,7 @@ var CallScreen = {
   _ticker: null,
   _screenLock: null,
 
+  body: document.body,
   screen: document.getElementById('call-screen'),
   views: document.getElementById('views'),
 
@@ -51,7 +52,6 @@ var CallScreen = {
 
     this.calls.addEventListener('click',
                                 OnCallHandler.toggleCalls);
-
   },
 
   setCallerContactImage: function cs_setCallerContactImage(image_url, force) {
@@ -85,14 +85,14 @@ var CallScreen = {
 
   showKeypad: function cs_showKeypad() {
     KeypadManager.render('oncall');
-    this.views.classList.add('show');
+    this.body.classList.add('showKeypad');
   },
 
   hideKeypad: function cs_hideKeypad() {
     KeypadManager.restorePhoneNumber();
     KeypadManager.restoreAdditionalContactInfo();
     KeypadManager.formatPhoneNumber();
-    this.views.classList.remove('show');
+    this.body.classList.remove('showKeypad');
   },
 
   render: function cs_render(layout_type) {
@@ -131,7 +131,7 @@ var CallScreen = {
 
   showIncoming: function cs_showIncoming() {
     // Hiding the keypad
-    this.views.classList.remove('show');
+    this.body.classList.remove('showKeypad');
 
     this.callToolbar.classList.add('transparent');
     this.incomingContainer.classList.add('displayed');
