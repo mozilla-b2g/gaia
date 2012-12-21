@@ -46,7 +46,7 @@ function openLink(url) {
  */
 
 function openDialog(dialogID, onSubmit, onReset) {
-  if('#' + dialogID == document.location.hash)
+  if ('#' + dialogID == document.location.hash)
     return;
 
   var origin = document.location.hash;
