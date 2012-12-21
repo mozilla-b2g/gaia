@@ -232,7 +232,11 @@ var WindowManager = (function() {
       frame.style.height = window.innerHeight + 'px';
       frame.style.top = '0px';
     } else {
-      frame.style.height = appFrame.style.height;
+      if ('wrapper' in appFrame.dataset) {
+        frame.style.height = window.innerHeight - StatusBar.height + 'px';
+      } else {
+        frame.style.height = appFrame.style.height;
+      }
       frame.style.top = appFrame.offsetTop + 'px';
     }
   }
@@ -1173,6 +1177,10 @@ var WindowManager = (function() {
     setFrameBackground(openFrame, function gotBackground() {
       // Start the transition when this async/sync callback is called.
       openFrame.classList.add('active');
+      if ('wrapper' in runningApps[displayedApp].frame.dataset) {
+        wrapperFooter.classList.remove('visible');
+        wrapperHeader.classList.remove('visible');
+      }
     });
   }
 
@@ -1225,8 +1233,12 @@ var WindowManager = (function() {
 
     // Give back focus to the displayed app
     var app = runningApps[displayedApp];
-    if (app && app.frame)
+    if (app && app.frame) {
       app.frame.focus();
+      if ('wrapper' in app.frame.dataset) {
+        wrapperFooter.classList.add('visible');
+      }
+    }
 
     // Remove the active class and start the closing transition
     frame.classList.remove('active');
