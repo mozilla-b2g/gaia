@@ -1,8 +1,16 @@
 Evme.Location = new function Evme_Location() {
-    var NAME = "Location", self = this;
+    var NAME = "Location", self = this,
+        alertShown = false,
+        
+        ALERT_MESSAGE = 'Results are always local, so you don\'t have to type your location.' +
+                        "\n\n" +
+                        'You can manage this location permission from Settings.',
+        STORAGE_KEY = 'geo-alert-shown';
     
     this.init = function init(options) {
         options || (options = {});
+        
+        alertShown = Evme.Storage.get(STORAGE_KEY);
         
         Evme.EventHandler.trigger(NAME, "init");
     };
@@ -16,6 +24,11 @@ Evme.Location = new function Evme_Location() {
                 cbError(data);
                 onError && onError(data);
             }
+        }
+        
+        if (!alertShown) {
+            Evme.Storage.set(STORAGE_KEY, true);
+            alert(ALERT_MESSAGE);
         }
         
         cbLocationRequest();
