@@ -158,8 +158,10 @@ contacts.List = (function() {
         });
       }
     }
-    //Add organization name
-    meta.innerHTML += utils.text.escapeHTML(contact.org, true);
+    // Add organization name
+    if (contact.org && contact.org.length > 0 && contact.org[0] !== '') {
+      meta.innerHTML += utils.text.escapeHTML(contact.org[0], true);
+    }
 
     //Final item structure
     link.appendChild(name);

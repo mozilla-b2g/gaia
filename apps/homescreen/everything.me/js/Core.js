@@ -27,7 +27,8 @@ window.Evme = new function Evme_Core() {
             "timeBeforeAllowingDialogsRemoval": data.timeBeforeAllowingDialogsRemoval,
             "tips": data.tips,
             "searchSources": data.searchSources,
-            "pageViewSources": data.pageViewSources
+            "pageViewSources": data.pageViewSources,
+            "displayInstalledApps": data.apps.displayInstalledApps
         });
 
         Evme.DoATAPI.init({
@@ -50,9 +51,14 @@ window.Evme = new function Evme_Core() {
     };
     
     this.onShow = function onShow() {
+        document.body.classList.add('evme-displayed');
+        
         Evme.Shortcuts.refreshScroll();
+        Evme.Helper.refreshIScroll();
     };
     this.onHide = function onHide() {
+        document.body.classList.remove('evme-displayed');
+        
         Evme.Brain.Shortcuts.doneEdit();
         Evme.Brain.SmartFolder.closeCurrent();
     };
@@ -63,7 +69,8 @@ window.Evme = new function Evme_Core() {
                 Evme.Brain.Shortcuts.hideIfEditing() ||
                 Evme.Brain.ShortcutsCustomize.isOpen() ||
                 Evme.Brain.ShortcutsCustomize.hideIfRequesting() ||
-                Evme.Brain.SmartFolder.hideIfOpen()
+                Evme.Brain.SmartFolder.hideIfOpen() ||
+                Evme.Brain.Apps.clearIfHas()
             ) {
                 return true;
             }

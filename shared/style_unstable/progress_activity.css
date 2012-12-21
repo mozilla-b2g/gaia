@@ -57,7 +57,7 @@ p[role="status"].skin-dark progress[value] {
 /* Labels */
 p[role="status"] {
   padding: 0.5rem;
-  font: 600 1.3rem/1em "Open Sans", Sans-serif;
+  font: 500 1.3rem/1em "MozTT", Sans-serif;
 }
 
 p[role="status"] progress:not([value]) {
