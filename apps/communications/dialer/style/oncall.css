@@ -101,7 +101,7 @@ body.showKeypad #views {
 }
 
 body.showKeypad #keyboard-container {
-  height: 35rem;
+  height: 34.5rem;
 }
 
 body.showKeypad .duration {
@@ -187,11 +187,11 @@ body.hidden *[data-l10n-id] {
 .co-advanced-option {
   height: 9.5rem;
   width: 100%;
-  background: rgba(0,0,0,.92);
-  border: 0;
-  border-top: 1px solid #3A3A3A;
-  border-bottom: 1px solid #3A3A3A;
-  border-right: 1px solid #3A3A3A;
+  background: rgba(24,24,24,.92);
+  border: solid 0.1rem rgba(255, 255, 255, 0.2);
+  border-right-color: rgba(0, 0, 0, 0.4);
+  border-bottom-color: rgba(0, 0, 0, 0.4);
+  -moz-box-sizing: border-box;
   border-radius: 0;
 }
 
@@ -199,8 +199,13 @@ body.hidden *[data-l10n-id] {
   background: #00aacc;
 }
 
+
+#co-advanced span.grid-cell:first-child .co-advanced-option {
+  border-left: 0;
+}
+
 #co-advanced span.grid-cell:last-child .co-advanced-option {
-  border-right: 0px;
+  border-right: 0;
 }
 
 #mute > span {
@@ -239,7 +244,12 @@ button[disabled] .icon-keypad-visibility {
 }
 
 #callbar {
-  background: rgba(0,0,0,.92);
+  background: rgba(24,24,24,.92);
+  border: solid 0.1rem rgba(255, 255, 255, 0.2);
+  border-right-color: rgba(0, 0, 0, 0.4);
+  border-bottom-color: rgba(0, 0, 0, 0.4);
+  border-left: 0;
+  -moz-box-sizing: border-box;
 }
 
 #callbar-hang-up {
