@@ -1,4 +1,5 @@
 /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
+
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 'use strict';
@@ -171,6 +172,19 @@ var ApplicationsList = {
       var value = mozPerms.get(perm, app.manifestURL, app.origin, false);
       if ((manifest.permissions && perm in manifest.permissions) ||
           value === 'allow') {
+
+        try {
+          // Don't show implicit permissions
+          // XXX: Execute between a try/catch block till
+          // we clean the list of permissions
+          var isExplicit = mozPerms.isExplicit(perm, app.manifestURL, app.origin, false);
+          if (!isExplicit) {
+            return;
+          }
+        } catch (e) { 
+          console.warn('Don\'t know about permission: ' + perm);
+        }
+
         var item = document.createElement('li');
         var content = document.createElement('span');
         content.textContent = _(perm);
@@ -195,6 +209,7 @@ var ApplicationsList = {
 
         select.value = value;
         select.setAttribute('value', value);
+
         select.onchange = this.selectValueChanged.bind(this);
 
         item.onclick = function focusSelect() {

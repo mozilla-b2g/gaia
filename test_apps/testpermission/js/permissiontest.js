@@ -25,21 +25,38 @@ function createElementAt(mainBody,type,id,optionalText,before) {
 // End of useful DOM manipulation...
 //////////////////////////////////////////////////////////////////////////////
 
+var _permissions = [];
+var _specialPermissions = [];
+var _access = [];
+
+function loadPermissionsTable() {
+  if (_permissions.length == 0) { // First time call
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', '/shared/resources/permissionsTable.json',true);
+    xhr.responseType = 'json';
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState == 4 && (xhr.status == 200 || xhr.status === 0)) {
+        var permissionsTable = xhr.response;
+        _permissions = permissionsTable.plainPermissions;
+        _specialPermissions = permissionsTable.composedPermissions;
+        _access = permissionsTable.accessModes;
+
+        for (var i=0; i<_specialPermissions.length; i++) {
+          for (var j=0; j<_access.length; j++) {
+            _permissions.push(_specialPermissions[i]+"-"+_access[j]);
+          }
+        }
+      }
+    };
+    xhr.send();
+  }
+}
+
+
 function testPermissions(outputElement) {
-  var _permissions = [
-    'power', 'sms', 'contacts', 'telephony', 'browser',
-    'mozApps', 'mobileconnection', 'mozFM', 'systemXHR', 'background',
-    'backgroundservice', 'settings', 'alarm', 'camera', 'fmradio', 'voicemail',
-    'wifi-manage', 'wifi', 'networkstats-manage', 'geolocation',
-    'webapps-manage', 'permissions', 'desktop-notification',
-    'device-storage:pictures', 'device-storage:music', 'device-storage:videos',
-    'device-storage:apps', 'alarms', 'attention', 'content-camera',
-    'tcp-socket', 'bluetooth', 'storage', 'time', 'networkstats-manager',
-    'idle', 'network-events', 'embed-apps',
-    // Just don't.
-    'deprecated-hwvideo'
-  ];
-  
+
+  loadPermissionsTable();
+
   var mozPerms = navigator.mozPermissionSettings;
   if (!mozPerms) {
     createElementAt(outputElement,"p","","I can't access mozPermissionSettings!");
