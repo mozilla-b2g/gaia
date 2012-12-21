@@ -104,8 +104,15 @@ article:not(:target) #keypad-delete {
 }
 
 .keypad-key:active {
-  background: rgba(0, 0, 0, 0.7);
-  color: rgba(255, 255, 255, 0.7);
+  background: #00aacc;
+}
+
+.keypad-key:active .keypad-text {
+  color: white;
+}
+
+.keypad-key:active .voicemail {
+  background-image: url('images/voicemail_.png');
 }
 
 .keypad-key-label-container {
@@ -198,6 +205,12 @@ article:not(:target) #keypad-delete {
   border-radius: .2rem;
   vertical-align: middle;
 }
+
+#keypad-callbar-add-contact.disabled {
+  opacity: 0.2;
+  border: .1rem solid #2d292a;
+}
+
 
 #keypad-callbar-add-contact:active {
   background: #333333;

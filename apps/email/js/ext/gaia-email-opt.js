@@ -18175,7 +18175,11 @@ function parseFetch(str, literalData, fetchData) {
       fetchData.date = parseImapDateTime(result[i+1]);
     }
     else if (result[i] === 'FLAGS') {
-      fetchData.flags = result[i+1].filter(isNotEmpty);
+      // filter out empty flags and \Recent.  As RFC 3501 makes clear, the
+      // \Recent flag is effectively useless because its semantics are that
+      // only one connection will see it.  Accordingly, there's no need to
+      // trouble consumers with it.
+      fetchData.flags = result[i+1].filter(isNotEmptyOrRecent);
       // simplify comparison for downstream logic by sorting.
       fetchData.flags.sort();
     }
@@ -18417,6 +18421,12 @@ function stringExplode(string, delimiter, limit) {
 
 function isNotEmpty(str) {
   return str.trim().length > 0;
+}
+
+const RE_RECENT = /^\\Recent$/i;
+function isNotEmptyOrRecent(str) {
+  var s = str.trim();
+  return s.length > 0 && !RE_RECENT.test(s);
 }
 
 function escape(str) {
@@ -27718,7 +27728,7 @@ exports.chewBodyParts = function chewBodyParts(rep, bodyPartContents,
     date: rep.msg.date,
     flags: rep.msg.flags,
     hasAttachments: rep.attachments.length > 0,
-    subject: rep.msg.msg.subject,
+    subject: rep.msg.msg.subject || null,
     snippet: snippet,
   };
 
@@ -29382,14 +29392,20 @@ exports._partitionAndAccessFoldersSequentially = function(
     var iNextServerId = serverIds.indexOf(null);
     for (var i = 0; i < headers.length; i++) {
       var header = headers[i];
-      if (!header)
-        console.warn('missing header!',
-                     JSON.stringify(folderMessageNamers[iNextServerId]));
-      var srvid = header.srvid;
-      serverIds[iNextServerId] = srvid;
+      // It's possible that by the time this job actually gets a chance to run
+      // that the header is no longer in the folder.  This is rare but not
+      // particularly exceptional.
+      if (header) {
+        var srvid = header.srvid;
+        serverIds[iNextServerId] = srvid;
+        // A header that exists but does not have a server id is exceptional and
+        // bad, although logic should handle it because of the above dead-header
+        // case.  suidToServerId should really have provided this information to
+        // us.
+        if (!srvid)
+          console.warn('Header', headers[i].suid, 'missing server id in job!');
+      }
       iNextServerId = serverIds.indexOf(null, iNextServerId + 1);
-      if (!srvid)
-        console.warn('Header', headers[i].suid, 'missing server id in job!');
     }
     try {
       callInFolder(folderConn, storage, serverIds, folderMessageNamers,
@@ -29727,10 +29743,15 @@ ImapJobDriver.prototype = {
         var uids = [];
         for (var i = 0; i < serverIds.length; i++) {
           var srvid = serverIds[i];
-          // If the header is somehow an offline header, it will be zero and
-          // there is nothing we can really do for it.
+          // The header may have disappeared from the server, in which case the
+          // header is moot.
           if (srvid)
             uids.push(srvid);
+        }
+        // Be done if all of the headers were moot.
+        if (!uids.length) {
+          callWhenDone();
+          return;
         }
         if (addTags) {
           modsToGo++;
@@ -30034,9 +30055,23 @@ ImapJobDriver.prototype = {
             perFolderDone();
           }
 
-          for (var i = 0; i < namers.length; i++) {
+          // Build a guid-to-namer map and deal with any messages that no longer
+          // exist on the server.  Do it backwards so we can splice.
+          for (var i = namers.length - 1; i >= 0; i--) {
+            var srvid = serverIds[i];
+            if (!srvid) {
+              serverIds.splice(i, 1);
+              namers.splice(i, 1);
+              continue;
+            }
             var namer = namers[i];
             guidToNamer[namer.guid] = namer;
+          }
+          // it's possible all the messages could be gone, in which case we
+          // are done with this folder already!
+          if (serverIds.length === 0) {
+            perFolderDone();
+            return;
           }
 
           folderConn._conn.copy(
@@ -33828,10 +33863,8 @@ ActiveSyncJobDriver.prototype = {
               let srvid = serverIds[i];
               // If the header is somehow an offline header, it will be null and
               // there is nothing we can really do for it.
-              if (!srvid) {
-                console.log('AS message', namers[i].suid, 'lacks srvid!');
+              if (!srvid)
                 continue;
-              }
 
               w.stag(as.Delete)
                   .tag(as.ServerId, srvid)

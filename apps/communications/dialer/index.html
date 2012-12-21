@@ -26,6 +26,9 @@
     <link rel="stylesheet" type="text/css" href="/shared/style/action_menu.css">
     <link rel="stylesheet" type="text/css" href="/shared/style/confirm.css">
 
+    <!-- Unstable BB -->
+    <link rel="stylesheet" type="text/css" href="/shared/style_unstable/lists.css">
+    
     <!-- Shared js -->
     <script type="text/javascript" src="/shared/js/async_storage.js"></script>
     <script defer type="application/javascript" src="/shared/js/settings_listener.js"></script>
@@ -68,7 +71,7 @@
             </nav>
             <div class="view-body">
               <div id="fixed-container" class="fixed-title"></div>
-              <article id="recents-container" class="view-body-inner">
+              <article id="recents-container" class="view-body-inner" data-type="list">
               </article>
             </div>
           </section>
@@ -201,7 +204,7 @@
               </div>
             </section>
             <section id="keypad-callbar">
-              <span role="button" id="keypad-callbar-add-contact" data-type="action" data-value="add-contact" >
+              <span role="button" id="keypad-callbar-add-contact" data-type="action" data-value="add-contact" class="disabled">
                 <div class="icon-add-contact"></div>
               </span>
               <span role="button" id="keypad-callbar-call-action" data-type="action" data-value="make-call">
@@ -214,9 +217,9 @@
       </article>
     </section>
 
-    <form role="dialog" data-type="edit">
+    <form id="edit-mode" role="dialog" data-type="edit">
       <section>
-        <header>
+        <header id="edit-mode-header">
           <button id="recents-icon-close">
             <span id="cancel-button" class="icon icon-close">close</span>
           </button>

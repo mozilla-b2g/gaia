@@ -55,6 +55,9 @@ function importSIMContacts(onread, onimport, onerror) {
      */
     for (var i = 0; i < nContacts; i++) {
       simContacts[i].givenName = simContacts[i].name;
+      for (var j = 0; j < simContacts[i].tel.length; j++) {
+        simContacts[i].tel[j].type = navigator.mozL10n.get('mobile');
+      }
       var req = window.navigator.mozContacts.save(simContacts[i]);
       req.onsuccess = count;
       req.onerror = count;
