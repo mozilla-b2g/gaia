@@ -17,6 +17,7 @@ suite('controllers/alarm', function() {
   var busytimeStore;
   var eventStore;
   var settingStore;
+  var accountStore;
 
   var realSyncSettings;
 
@@ -31,6 +32,7 @@ suite('controllers/alarm', function() {
     busytimeStore = app.store('Busytime');
     eventStore = app.store('Event');
     settingStore = app.store('Setting');
+    accountStore = app.store('Account');
 
     db.open(function() {
       // Suppress initial creation of sync alarms
@@ -49,7 +51,7 @@ suite('controllers/alarm', function() {
   teardown(function(done) {
     testSupport.calendar.clearStore(
       db,
-      ['accounts', 'calendars', 'events', 'busytimes'],
+      ['accounts', 'calendars', 'events', 'busytimes', 'settings'],
       done
     );
   });
@@ -381,6 +383,54 @@ suite('controllers/alarm', function() {
       subject._handleSyncMessage();
       // This test will succeed when the wifi lock is released
     });
+
+    suite('#_accountsChanged', function() {
+      var testAccount;
+      var origReset;
+      var first = true;
+      var _done;
+
+      function mockReset(triggered) {
+        assert.equal(triggered, false);
+        if (first) {
+          assert.equal(subject._nextPeriodicSync.enabled, true);
+          first = false;
+          
+          var trans = db.transaction(
+            ['accounts'],
+            'readwrite'
+          );
+          accountStore.remove(testAccount._id, trans);
+        } else {
+          assert.equal(subject._nextPeriodicSync.enabled, false);
+          _done();
+        }
+      }
+
+      setup(function() {
+        origReset = subject._resetSyncAlarm;
+        subject._resetSyncAlarm = mockReset;
+      });
+      teardown(function() {
+        subject._resetSyncAlarm = origReset;
+      });
+
+      test('sync enabled/disabled by syncable account addition/removal', function(done) {
+        _done = done;
+        var trans = db.transaction(
+          ['accounts'],
+          'readwrite'
+        );
+
+        testAccount = Factory('account', {
+          providerType: 'Caldav'
+        });
+
+        assert.equal(Object.keys(accountStore._cached).length, 0);
+        accountStore.persist(testAccount, trans);
+      });
+    });
+
   });
 
 

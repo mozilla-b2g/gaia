@@ -332,6 +332,8 @@
 
         // intentionally after the callbacks...
         self._removeFromCache(id);
+
+        self.emit('removeCompleted', id);
       });
     },
 

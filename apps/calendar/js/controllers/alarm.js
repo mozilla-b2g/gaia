@@ -6,6 +6,7 @@ Calendar.ns('Controllers').Alarm = (function() {
     this.app = app;
     this.store = app.store('Alarm');
     this.settings = app.store('Setting');
+    this.accounts = app.store('Account');
   }
 
   Alarm.prototype = {
@@ -37,6 +38,13 @@ Calendar.ns('Controllers').Alarm = (function() {
 
       this.settings.on('syncFrequencyChange', function() {
         self._resetSyncAlarm(false);
+      });
+
+      this.accounts.on('persist', function() {
+        self._accountsChanged(true);
+      });
+      this.accounts.on('removeCompleted', function() {
+        self._accountsChanged(false);
       });
     },
 
@@ -163,7 +171,7 @@ Calendar.ns('Controllers').Alarm = (function() {
       }
 
       var duration = this.settings.syncFrequency;
-      if (duration === null) {
+      if (duration === null || !this._nextPeriodicSync.enabled) {
         this.settings.set('syncAlarm', this._nextPeriodicSync);
         return;
       }
@@ -200,6 +208,30 @@ Calendar.ns('Controllers').Alarm = (function() {
       this._wifiLock = navigator.requestWakeLock('wifi');
       this.app.syncController.all();
       this._resetSyncAlarm(true);
+    }, 
+
+    _accountsChanged: function(added) {
+      if (
+        (added && this._nextPeriodicSync.enabled) ||
+        (!added && !this._nextPeriodicSync.enabled)
+      )
+        return;
+
+      // Search for a syncable account
+      var enable = false;
+      for (var key in this.accounts.cached) {
+        var account = this.accounts.cached[key];
+        var provider = this.app.provider(account.providerType);
+        if (provider.canSync) {
+          enable = true;
+          break;
+        }
+      }
+
+      if (this._nextPeriodicSync.enabled != enable) {
+        this._nextPeriodicSync.enabled = enable;
+        this._resetSyncAlarm(false);
+      }
     }
 
   };
