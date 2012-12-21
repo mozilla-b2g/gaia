@@ -254,6 +254,16 @@ var AttentionScreen = {
     }
   },
 
+  getAttentiveApps: function as_getAttentiveApps() {
+    var attentionScreen = this.attentionScreen;
+    var frames = this.attentionScreen.querySelectorAll('iframe');
+    var attentiveApps = [];
+    Array.prototype.forEach.call(frames, function pushFrame(frame) {
+      attentiveApps.push(frame.dataset.frameOrigin);
+    });
+    return attentiveApps;
+  },
+
   _hasAttentionPermission: function as_hasAttentionPermission(app) {
     var mozPerms = navigator.mozPermissionSettings;
     if (!mozPerms)
