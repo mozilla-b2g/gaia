@@ -128,7 +128,8 @@ var Calls = (function(window, document, undefined) {
             toggleTapOnEntry();
 
             // Hide call forwarding icon if neccesary
-            checkForCallForwardingReasonEnabled(_cfReason.CALL_FORWARD_REASON_UNCONDITIONAL,
+            checkForCallForwardingReasonEnabled(_cfReason.
+                CALL_FORWARD_REASON_UNCONDITIONAL,
               function onsuccess(enabled) {
                 var settings = window.navigator.mozSettings;
                 var lock = settings.createLock();
