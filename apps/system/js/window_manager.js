@@ -1095,6 +1095,7 @@ var WindowManager = (function() {
         createFrame(origFrame, origin, url, name, manifest, manifestURL);
     frame.id = 'appframe' + nextAppId++;
     frame.dataset.frameType = 'window';
+    frame.name = 'main';
 
     // If this frame corresponds to the homescreen, set mozapptype=homescreen
     // so we're less likely to kill this frame's process when we're running low
@@ -1149,6 +1150,7 @@ var WindowManager = (function() {
     var frame = createFrame(null, origin, url, name, manifest, manifestURL);
     frame.classList.add('inlineActivity');
     frame.dataset.frameType = 'inline-activity';
+    frame.name = 'inline';
 
     // Discard any existing activity
     stopInlineActivity();
@@ -1399,7 +1401,7 @@ var WindowManager = (function() {
   // And reset to true when the layer is gone.
   // We may need to handle windowclosing, windowopened in the future.
   var attentionScreenTimer = null;
-  
+
   var overlayEvents = ['lock', 'unlock', 'attentionscreenshow', 'attentionscreenhide', 'status-active', 'status-inactive'];
 
   function overlayEventHandler(evt) {
