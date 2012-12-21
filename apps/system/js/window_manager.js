@@ -1094,6 +1094,7 @@ var WindowManager = (function() {
         createFrame(origFrame, origin, url, name, manifest, manifestURL);
     frame.id = 'appframe' + nextAppId++;
     frame.dataset.frameType = 'window';
+    frame.name = 'main';
 
     // Add the iframe to the document
     windows.appendChild(frame);
@@ -1138,6 +1139,7 @@ var WindowManager = (function() {
     var frame = createFrame(null, origin, url, name, manifest, manifestURL);
     frame.classList.add('inlineActivity');
     frame.dataset.frameType = 'inline-activity';
+    frame.name = 'inline';
 
     // Discard any existing activity
     stopInlineActivity();
@@ -1379,7 +1381,7 @@ var WindowManager = (function() {
   // And reset to true when the layer is gone.
   // We may need to handle windowclosing, windowopened in the future.
   var attentionScreenTimer = null;
-  
+
   var overlayEvents = ['lock', 'unlock', 'attentionscreenshow', 'attentionscreenhide', 'status-active', 'status-inactive'];
 
   function overlayEventHandler(evt) {
