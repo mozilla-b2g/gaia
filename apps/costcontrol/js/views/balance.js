@@ -9,7 +9,7 @@
  * can be triggered by a successful top up request.
  */
 
-var BalanceTab = (function(undefined) {
+var BalanceTab = (function() {
   'use strict';
 
   var view, updateButton;
@@ -266,6 +266,7 @@ var BalanceTab = (function(undefined) {
     // Limits: reaching zero / low limit
     if (balance.balance === 0) {
       view.classList.add('no-credit');
+
     } else {
       view.classList.remove('no-credit');
 

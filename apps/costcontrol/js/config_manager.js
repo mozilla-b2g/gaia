@@ -1,5 +1,5 @@
 
-var ConfigManager = (function(undefined) {
+var ConfigManager = (function() {
 
   'use strict';
 
@@ -82,7 +82,6 @@ var ConfigManager = (function(undefined) {
   Date.prototype.toJSON = function() {
     return {'__date__': this.toISOString()};
   };
-
   function settingsReviver(k, v) {
     if (v === null || typeof v !== 'object' || !v.hasOwnProperty('__date__'))
       return v;
@@ -100,21 +99,20 @@ var ConfigManager = (function(undefined) {
   function requestSettings(callback) {
     asyncStorage.getItem(currentICCID, function _wrapGetItem(localSettings) {
       // No entry: set defaults
-      if (typeof localSettings == 'object') {
-        settings = localSettings;
-      } else {
-        settings = JSON.parse(localSettings, settingsReviver);
+      settings = JSON.parse(localSettings, settingsReviver);
+      if (settings !== null) {
+        if (callback)
+          callback(settings);
+        return;
       }
-      if (settings === null) {
-        settings = deepCopy(DEFAULT_SETTINGS);
-        asyncStorage.setItem(currentICCID, JSON.stringify(settings),
-          function _onceSettingsSet() {
+
+      settings = deepCopy(DEFAULT_SETTINGS);
+      asyncStorage.setItem(currentICCID, JSON.stringify(settings),
+        function _onceSettingsSet() {
+          if (callback)
             callback(settings);
-          }
-        );
-      } else {
-        callback(settings);
-      }
+        }
+      );
     });
   }
 
@@ -205,6 +203,7 @@ var ConfigManager = (function(undefined) {
   function syncObserve(name, callback, avoidInitialCall) {
     debug('Installing observer for ' + name);
 
+    // XXX: initialize this only if an observer is added
     if (callbacks === undefined) {
       callbacks = {};
 
@@ -233,7 +232,7 @@ var ConfigManager = (function(undefined) {
     if (callbacks[name].indexOf(callback) < 0) {
       callbacks[name].push(callback);
       avoidInitialCall = avoidInitialCall || false;
-      if (!avoidInitialCall)
+      if (!avoidInitialCall && callback)
         callback(settings[name], null, name, settings);
     }
   }

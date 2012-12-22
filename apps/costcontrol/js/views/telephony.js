@@ -7,7 +7,7 @@
  */
 
 
-var TelephonyTab = (function(undefined) {
+var TelephonyTab = (function() {
   'use strict';
   var costcontrol, tabmanager, initialized = false;
   var view, smscount, calltime, time, resetDate;
