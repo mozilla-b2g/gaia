@@ -1,16 +1,16 @@
 /* TOPUP VIEW */
-#topup-view {
-  bottom: 0;
+#topup-dialog {
+  top: 0;
 }
 
-#topup-view form {
+#topup-dialog form {
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
 }
 
-#topup-view form input {
+#topup-dialog form input {
   text-align: right;
   color: #333;
   font-weight: bold;
@@ -18,11 +18,11 @@
   height: 3.8rem;
 }
 
-#topup-view .content .info {
+#topup-dialog .content .info {
   text-align: center;
 }
 
-#topup-view .content .info h2 {
+#topup-dialog .content .info h2 {
   font-size: 1.8rem;
   line-height: 1em;
   font-weight: normal;
@@ -30,7 +30,7 @@
   margin-bottom: 1rem;
 }
 
-#topup-view .content .info p {
+#topup-dialog .content .info p {
   font-size: 1.4rem;
   line-height: 1.3em;
   color: #505859;
@@ -38,11 +38,11 @@
   margin-bottom: 0.5rem;
 }
 
-#topup-view .content .info .loading progress {
+#topup-dialog .content .info .loading progress {
   float: left;
   margin: 1rem;
 }
-#topup-view .content .info .loading p {
+#topup-dialog .content .info .loading p {
   padding-top: 0.8rem;
 }
 
