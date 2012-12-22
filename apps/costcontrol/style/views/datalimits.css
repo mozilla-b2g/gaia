@@ -1,6 +1,6 @@
 /* TOPUP VIEW */
 #data-limit-dialog {
-  bottom: 0;
+  top: 0;
 }
 
 #data-limit-dialog form {
