@@ -130,13 +130,15 @@ writeContent(init, "var HIDDEN_APPS = " + JSON.stringify(hidden_apps));
 init = getFile(GAIA_DIR, 'apps', 'costcontrol', 'js', 'config.json');
 
 content = {
-  enableon: { 724: [6, 10, 11, 23] }, // { MCC: [ MNC1, MNC2, ...] }
+  enable_on: { 724: [6, 10, 11, 23] }, // { MCC: [ MNC1, MNC2, ...] }
+  is_free: true,
+  is_roaming_free: true,
   credit: { currency : 'R$' },
   balance: { 
     destination: '8000',
     text: 'SALDO',
     senders: ['1515'],
-    regexp: 'R\\$\\s*([0-9]+)(?:[,\\.]([0-9]+))?'
+    regexp: 'Saldo Recarga: R\\$\\s*([0-9]+)(?:[,\\.]([0-9]+))?'
   },
   topup: {
     destination: '7000',
@@ -152,5 +154,5 @@ writeContent(init, JSON.stringify(content));
 
 // SMS
 init = getFile(GAIA_DIR, 'apps', 'sms', 'js', 'blacklist.json');
-content = ["1515"];
+content = ["1515", "7000"];
 writeContent(init, JSON.stringify(content));

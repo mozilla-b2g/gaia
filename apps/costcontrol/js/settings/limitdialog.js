@@ -1,20 +1,13 @@
 
 'use strict';
 
-function dataLimitRecognizer(widget) {
-  if (widget.classList.contains('set-data-limit'))
-    return 'data-limit';
-
-  return null;
-}
-
 function dataLimitConfigurer(guiWidget, settings, viewManager) {
 
   var dialog = document.getElementById('data-limit-dialog');
   var switchUnitButton = document.getElementById('switch-unit-button');
   var dataLimitInput = dialog.querySelector('input');
   var format = function ccal_formatterDataUnit(value) {
-    var unit = settings.option('data_limit_unit');
+    var unit = settings.option('dataLimitUnit');
     return formatData([value, unit]);
   };
 
@@ -23,8 +16,8 @@ function dataLimitConfigurer(guiWidget, settings, viewManager) {
   if (okButton) {
     okButton.addEventListener('click', function ccld_onDialogOk() {
       var value = parseFloat(dataLimitInput.value);
-      settings.option('data_limit_value', value);
-      settings.option('data_limit_unit', currentUnit);
+      settings.option('dataLimitValue', value);
+      settings.option('dataLimitUnit', currentUnit);
       viewManager.closeCurrentView();
     });
   }
@@ -33,11 +26,11 @@ function dataLimitConfigurer(guiWidget, settings, viewManager) {
   if (cancelButton) {
     cancelButton.addEventListener('click',
       function ccld_onDialogCancel() {
-        var oldValue = settings.option('data_limit_value');
-        var oldUnit = settings.option('data_limit_unit');
+        var oldValue = settings.option('dataLimitValue');
+        var oldUnit = settings.option('dataLimitUnit');
         currentUnit = oldUnit;
-        settings.option('data_limit_value', oldValue);
-        settings.option('data_limit_unit', oldUnit);
+        settings.option('dataLimitValue', oldValue);
+        settings.option('dataLimitUnit', oldUnit);
         viewManager.closeCurrentView();
       }
     );
@@ -51,7 +44,7 @@ function dataLimitConfigurer(guiWidget, settings, viewManager) {
   );
 
   // Configure the swicth unit button
-  var currentUnit = settings.option('data_limit_unit');
+  var currentUnit = settings.option('dataLimitUnit');
   var switchUnitButton = dialog.querySelector('.switch-unit-button');
   switchUnitButton.querySelector('span.tag').textContent = currentUnit;
   switchUnitButton.addEventListener('click',
@@ -62,12 +55,12 @@ function dataLimitConfigurer(guiWidget, settings, viewManager) {
   );
 
   // Keep the widget and the dialog synchronized
-  settings.observe('data_limit_value',
+  settings.observe('dataLimitValue',
     function ccld_onValueChange(value) {
 
       // Use default value if no value
       if (value === null || typeof value === 'undefined')
-        value = settings.defaultValue('data_limit_value');
+        value = settings.defaultValue('dataLimitValue');
 
       // Set dialog
       dataLimitInput.value = value;
@@ -77,12 +70,12 @@ function dataLimitConfigurer(guiWidget, settings, viewManager) {
     }
   );
 
-  settings.observe('data_limit_unit',
+  settings.observe('dataLimitUnit',
     function ccld_onUnitChange(value) {
 
       // Use default value if no value
       if (value === null || typeof value === 'undefined')
-        value = settings.defaultValue('data_limit_unit');
+        value = settings.defaultValue('dataLimitUnit');
 
       // Set dialog
       switchUnitButton.querySelector('span.tag').textContent = value;
@@ -97,7 +90,7 @@ function dataLimitConfigurer(guiWidget, settings, viewManager) {
   guiWidget.addEventListener('click', function ccld_onWidgetClick() {
     viewManager.changeViewTo(dialog.id);
     dataLimitInput.focus();
-    oldUnitValue = settings.option('data_limit_unit');
+    oldUnitValue = settings.option('dataLimitUnit');
     switchUnitButton.querySelector('span.tag').textContent = oldUnitValue;
   });
 
