@@ -608,4 +608,5 @@ var StatusBar = {
   }
 };
 
-StatusBar.init();
+window.addEventListener('localized', StatusBar.init.bind(StatusBar));
+

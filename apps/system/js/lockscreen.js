@@ -897,4 +897,5 @@ var LockScreen = {
   }
 };
 
-LockScreen.init();
+window.addEventListener('localized', LockScreen.init.bind(LockScreen));
+
