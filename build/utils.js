@@ -6,8 +6,8 @@ Cu.import('resource://gre/modules/FileUtils.jsm');
 Cu.import('resource://gre/modules/Services.jsm');
 
 function isSubjectToBranding(path) {
-  return /shared\/[a-zA-Z]+\/branding$/.test(path) ||
-         /branding\/initlogo.png/.test(path);
+  return /shared[\/\\][a-zA-Z]+[\/\\]branding$/.test(path) ||
+         /branding[\/\\]initlogo.png/.test(path);
 }
 
 function getSubDirectories(directory) {
