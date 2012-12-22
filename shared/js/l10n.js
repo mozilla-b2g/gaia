@@ -834,7 +834,7 @@
       } else if (arg in gL10nData) {
         sub = gL10nData[arg][gTextProp];
       } else {
-        consoleWarn('argument {{' + arg + '}} for #' + key + ' is undefined.');
+        consoleLog('argument {{' + arg + '}} for #' + key + ' is undefined.');
         return str;
       }
 
