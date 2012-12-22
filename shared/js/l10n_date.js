@@ -51,6 +51,12 @@ navigator.mozL10n.DateTimeFormat = function(locales, options) {
           value = d.getHours() % 12 || 12;
           break;
 
+        case '%e':
+          // Bug 824210: Gecko's toLocalFormat doesn't support '%e' when built
+          // with MSVC.
+          value = d.toLocaleFormat('%#d');
+          break;
+
         // localized date/time strings
         case '%c':
         case '%x':
