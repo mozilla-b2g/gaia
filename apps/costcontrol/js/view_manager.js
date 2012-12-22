@@ -70,7 +70,7 @@ ViewManager.prototype.changeViewTo = function _changeViewTo(viewId, callback) {
     view.dataset.viewport = '';
   }
 
-  if (typeof callback === 'function')
+  if (callback)
     callback(isTab, viewId, isTab ? currentViewId : previousViewId);
 };
 
@@ -107,4 +107,3 @@ ViewManager.prototype.isCurrentTab = function _isCurrentTab(tab) {
 ViewManager.prototype.getCurrentTab = function _getCurrentTab() {
   return this._currentTab;
 };
-

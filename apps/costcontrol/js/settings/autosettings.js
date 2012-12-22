@@ -3,7 +3,7 @@
 
 'use strict';
 
-var AutoSettings = (function(undefined) {
+var AutoSettings = (function() {
 
   var OPTION_CONFIGURERS = {
     'select': function _selectConfigurer(guiWidget) {
@@ -212,7 +212,7 @@ var AutoSettings = (function(undefined) {
     }
 
     // Widgets
-    var allGUIWidgets = document.querySelectorAll(root + ' .settingsoption');
+    var allGUIWidgets = document.querySelectorAll(root + ' .settings-option');
     [].forEach.call(allGUIWidgets, function _forEachWidget(guiWidget) {
 
       var type = getWidgetType(guiWidget);

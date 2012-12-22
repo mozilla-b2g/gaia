@@ -12,7 +12,7 @@
  *
  */
 
-var CostControl = (function(undefined) {
+var CostControl = (function() {
 
   'use strict';
 
@@ -333,7 +333,9 @@ var CostControl = (function(undefined) {
     tomorrow.setTime(today.getTime() + DAY);
 
     var end = toMidnight(settings.nextReset ?
-                         new Date(settings.nextReset.getTime() - DAY) : tomorrow);
+                         new Date(settings.nextReset.getTime() - DAY) :
+                         tomorrow);
+
 
     asyncStorage.getItem('dataUsageTags', function _onTags(tags) {
 

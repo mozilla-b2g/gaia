@@ -5,7 +5,7 @@
  * It has several canvas areas layered one above the others.
  */
 
-var DataUsageTab = (function(undefined) {
+var DataUsageTab = (function() {
 
   'use strict';
 

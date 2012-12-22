@@ -2,7 +2,7 @@
  * First time experience is in charge of set up the application.
  */
 
-(function(undefined) {
+(function() {
 
   'use strict';
 
