@@ -771,10 +771,11 @@ var LockScreen = {
     }
     var operatorInfos = MobileOperator.userFacingInfo(conn);
     if (operatorInfos.carrier) {
-      connstateLine2.textContent = operatorInfos.carrier + ' ' + operatorInfos.region;
+      connstateLine2.textContent = operatorInfos.carrier + ' ' +
+        operatorInfos.region;
     }
 
-    var operator = operatorInfos.operator
+    var operator = operatorInfos.operator;
 
     if (voice.roaming) {
       var l10nArgs = { operator: operator };
