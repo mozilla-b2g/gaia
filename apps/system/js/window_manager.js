@@ -117,7 +117,7 @@ var WindowManager = (function() {
       return false;
 
     var manifest = app.manifest;
-    if (manifest.entry_points && manifest.type == "certified") {
+    if (manifest.entry_points && manifest.type == 'certified') {
       var entryPoint = manifest.entry_points[origin.split('/')[3]];
       if (entryPoint)
           return entryPoint.fullscreen;
@@ -711,7 +711,7 @@ var WindowManager = (function() {
 
     // Register a timeout in case we don't receive
     // nextpaint in an acceptable time frame.
-    var timeout = setTimeout(function () {
+    var timeout = setTimeout(function() {
       if ('removeNextPaintListener' in frame)
         frame.removeNextPaintListener(onNextPaint);
       callback();
@@ -1269,7 +1269,7 @@ var WindowManager = (function() {
     // If so, change the app name and origin to the
     // entry point.
     var entryPoints = manifest.entry_points;
-    if (entryPoints && manifest.type == "certified") {
+    if (entryPoints && manifest.type == 'certified') {
       var givenPath = e.detail.url.substr(origin.length);
 
       // Workaround here until the bug (to be filed) is fixed
@@ -1414,7 +1414,14 @@ var WindowManager = (function() {
   // We may need to handle windowclosing, windowopened in the future.
   var attentionScreenTimer = null;
 
-  var overlayEvents = ['lock', 'unlock', 'attentionscreenshow', 'attentionscreenhide', 'status-active', 'status-inactive'];
+  var overlayEvents = [
+    'lock',
+    'unlock',
+    'attentionscreenshow',
+    'attentionscreenhide',
+    'status-active',
+    'status-inactive'
+  ];
 
   function overlayEventHandler(evt) {
     if (attentionScreenTimer)
@@ -1441,7 +1448,7 @@ var WindowManager = (function() {
       case 'attentionscreenshow':
         if (evt.detail && evt.detail.origin &&
           evt.detail.origin != displayedApp) {
-            attentionScreenTimer = setTimeout(function setVisibility(){
+            attentionScreenTimer = setTimeout(function setVisibility() {
               setVisibilityForCurrentApp(false);
             }, 5000);
 
@@ -1490,7 +1497,7 @@ var WindowManager = (function() {
       return '';
 
     var lang = document.documentElement.lang;
-    if (manifest.entry_points && manifest.type == "certified") {
+    if (manifest.entry_points && manifest.type == 'certified') {
       var entryPoint = manifest.entry_points[origin.split('/')[3]];
       if (entryPoint.locales && entryPoint.locales[lang] &&
           entryPoint.locales[lang].name) {
@@ -1569,7 +1576,7 @@ var WindowManager = (function() {
     var features;
     try {
       features = JSON.parse(detail.features);
-    } catch(e) {
+    } catch (e) {
       features = {};
     }
 
@@ -1608,7 +1615,7 @@ var WindowManager = (function() {
     } else {
       origin = 'window:' + name + ',source:' + callerOrigin;
 
-      for (var appOrigin  in runningApps) {
+      for (var appOrigin in runningApps) {
         var a = runningApps[appOrigin];
         if (a.windowName == name) {
           app = a;
@@ -1863,3 +1870,4 @@ var WindowManager = (function() {
     retrieveFTU: retrieveFTU
   };
 }());
+

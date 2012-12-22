@@ -18,7 +18,7 @@ var extractParams = function extractParams(url) {
     rv[param[0]] = param[1];
   }
   return rv;
-}
+};
 
 window.addEventListener('localized', function onload(e) {
   var title = document.getElementById('title');
@@ -47,6 +47,6 @@ window.addEventListener('localized', function onload(e) {
 
   document.getElementById('close').onclick = closeWindow;
   document.getElementById('reload').onclick = function() {
-    reloadWindow(params['origin'])
+    reloadWindow(params['origin']);
   };
 });
