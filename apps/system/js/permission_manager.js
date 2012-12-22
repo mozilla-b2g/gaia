@@ -47,15 +47,17 @@ var PermissionManager = (function() {
     var str = '';
     var _ = navigator.mozL10n.get;
 
+    var permissionName = _('perm-' + detail.permission);
+
     if (detail.isApp) {
       // App
       str = _('permission-ask', {
-        'permission': _(detail.permission), 'app': detail.appName
+        'permission': permissionName, 'app': detail.appName
       });
     } else {
       // Web content
       str = _('permission-ask', {
-        'permission': _(detail.permission), 'app': detail.origin
+        'permission': permissionName, 'app': detail.origin
       });
     }
 
