@@ -5,7 +5,8 @@ const LandingPage = (function() {
 
   var _ = navigator.mozL10n.get;
   var dateTimeFormat = new navigator.mozL10n.DateTimeFormat();
-  var timeFormat, dateFormat;
+  var timeFormat = _('shortTimeFormat') || '%H:%M';
+  var dateFormat = _('longDateFormat') || '%A %e %B';
 
   var page = document.querySelector('#landing-page');
   var clockElemNumbers = document.querySelector('#landing-clock .numbers');
@@ -20,8 +21,6 @@ const LandingPage = (function() {
   });
 
   window.addEventListener('localized', function localize() {
-    timeFormat = _('shortTimeFormat');
-    dateFormat = _('longDateFormat');
     initTime();
   });
 
