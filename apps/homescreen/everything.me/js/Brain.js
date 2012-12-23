@@ -127,8 +127,6 @@ Evme.Brain = new function Evme_Brain() {
         this.focus = function focus(data) {
             Evme.Utils.setKeyboardVisibility(true);
 
-            Brain.FFOS.hideMenu();
-
             Evme.Helper.disableCloseAnimation();
             Evme.Helper.hideTitle();
             if (Evme.Searchbar.getValue() !== "") {
@@ -282,21 +280,6 @@ Evme.Brain = new function Evme_Brain() {
                 tipKeyboard.hide();
                 tipKeyboard = null;
             }
-        };
-    };
-    this.FFOS = new function FFOS() {
-        // dock hidden
-        this.hideMenu = function hideMenu() {
-            Evme.Utils.sendToFFOS(Evme.Utils.FFOSMessages.HIDE_MENU);
-            elContainer.classList.remove("ffos-menu-visible");
-            Evme.Shortcuts.refreshScroll();
-        };
-
-        // dock appears
-        this.showMenu = function showMenu() {
-            Evme.Utils.sendToFFOS(Evme.Utils.FFOSMessages.SHOW_MENU);
-            elContainer.classList.add("ffos-menu-visible");
-            Evme.Shortcuts.refreshScroll();
         };
     };
 
@@ -552,7 +535,6 @@ Evme.Brain = new function Evme_Brain() {
             }
             
             Evme.Searchbar.setValue('', true);
-            Brain.FFOS.showMenu();
             
             return true;
         }
