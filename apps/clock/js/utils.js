@@ -45,7 +45,7 @@ function summarizeDaysOfWeek(bitStr) {
         weekdays.push(_('weekday-' + ((i + 1) % 7) + '-short'));
       }
     }
-    summary = weekdays.join(', ');
+    summary = weekdays.join('<span class="comma">,</span> ');
   }
   return summary;
 }
@@ -223,6 +223,7 @@ var ValuePicker = (function() {
   };
 
   VP.prototype.updateUI = function(index, ignorePicker) {
+    this.resetUI();
     if (true !== ignorePicker) {
       this.element.style.top =
             (this._lower - index) * this._space + 'px';
@@ -236,6 +237,14 @@ var ValuePicker = (function() {
   VP.prototype.removeEventListeners = function() {
     this.element.removeEventListener('mouseup', this.mouseupHandler, false);
     this.element.removeEventListener('mousemove', this.mousemoveHandler, false);
+  };
+
+  VP.prototype.resetUI = function() {
+    var actives = this.element.querySelectorAll(".active");
+    for (var i = 0; i < actives.length; i++) {
+      actives[i].classList.remove('active');
+    }
+    this._pickerUnits[this._currentIndex].classList.add('active');
   };
 
   function cloneEvent(evt) {

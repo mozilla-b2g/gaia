@@ -41,7 +41,7 @@ function formatData(dataArray) {
   return _('magnitude', { value: dataArray[0], unit: dataArray[1] });
 }
 
-// Return a fixed point data value in MG/GB
+// Return a fixed point data value in KB/MB/GB
 function roundData(value, positions) {
   positions = (typeof positions === 'undefined') ? 2 : positions;
   if (value < 1000)
@@ -56,9 +56,36 @@ function roundData(value, positions) {
   return [(value / 1000000000).toFixed(positions), 'GB'];
 }
 
+function getPositions(value) {
+  if (value < 10)
+    return 2;
+  if (value < 100)
+    return 1;
+  return 0;
+}
+
+function smartRound(value) {
+  var positions;
+  if (value < 1000)
+    return [value.toFixed(getPositions(value)), 'B'];
+
+  if (value < 1000000) {
+    var kbytes = value / 1000;
+    return [kbytes.toFixed(getPositions(kbytes)), 'KB'];
+  }
+
+  if (value < 1000000000) {
+    var mbytes = value / 1000000;
+    return [mbytes.toFixed(getPositions(mbytes)), 'MB'];
+  }
+
+  var gbytes = value / 1000000000;
+  return [gbytes.toFixed(getPositions(gbytes)), 'GB'];
+}
+
 // Return a padded data value in MG/GB
-function padData(value) {
-  var rounded = roundData(value, 0);
+function padData(v) {
+  var rounded = roundData(v, 0);
   var value = rounded[0];
   var len = value.length;
   switch (len) {

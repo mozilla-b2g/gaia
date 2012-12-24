@@ -190,7 +190,7 @@ var AppInstallManager = {
         // showing the real error to a potential developer
         console.info('downloadError event, error code is', errorName);
 
-        var key = this.mapDownloadErrorsToMessage[errorName] || 'generic-error';
+        var key = this.mapDownloadErrorsToMessage[errorName] || 'generic-error';
         var msg = _('app-install-' + key, { appName: name });
         SystemBanner.show(msg);
     }

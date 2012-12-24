@@ -65,4 +65,13 @@
   window.addEventListener('utilitytrayshow', _ensureWidget);
   window.addEventListener('utilitytrayshow', _showWidget);
   window.addEventListener('utilitytrayhide', _hideWidget);
+
+  window.addEventListener('applicationready', function _onReady() {
+    asyncStorage.getItem('ftu.enabled', function _onValue(enabled) {
+      if (enabled !== false)
+        window.addEventListener('ftudone', _ensureWidget);
+      else
+        _ensureWidget();
+    });
+  });
 }());

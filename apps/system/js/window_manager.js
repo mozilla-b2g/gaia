@@ -117,7 +117,7 @@ var WindowManager = (function() {
       return false;
 
     var manifest = app.manifest;
-    if (manifest.entry_points && manifest.type == "certified") {
+    if (manifest.entry_points && manifest.type == 'certified') {
       var entryPoint = manifest.entry_points[origin.split('/')[3]];
       if (entryPoint)
           return entryPoint.fullscreen;
@@ -232,7 +232,11 @@ var WindowManager = (function() {
       frame.style.height = window.innerHeight + 'px';
       frame.style.top = '0px';
     } else {
-      frame.style.height = appFrame.style.height;
+      if ('wrapper' in appFrame.dataset) {
+        frame.style.height = window.innerHeight - StatusBar.height + 'px';
+      } else {
+        frame.style.height = appFrame.style.height;
+      }
       frame.style.top = appFrame.offsetTop + 'px';
     }
   }
@@ -707,7 +711,7 @@ var WindowManager = (function() {
 
     // Register a timeout in case we don't receive
     // nextpaint in an acceptable time frame.
-    var timeout = setTimeout(function () {
+    var timeout = setTimeout(function() {
       if ('removeNextPaintListener' in frame)
         frame.removeNextPaintListener(onNextPaint);
       callback();
@@ -1095,6 +1099,7 @@ var WindowManager = (function() {
         createFrame(origFrame, origin, url, name, manifest, manifestURL);
     frame.id = 'appframe' + nextAppId++;
     frame.dataset.frameType = 'window';
+    frame.name = 'main';
 
     // If this frame corresponds to the homescreen, set mozapptype=homescreen
     // so we're less likely to kill this frame's process when we're running low
@@ -1149,6 +1154,7 @@ var WindowManager = (function() {
     var frame = createFrame(null, origin, url, name, manifest, manifestURL);
     frame.classList.add('inlineActivity');
     frame.dataset.frameType = 'inline-activity';
+    frame.name = 'inline';
 
     // Discard any existing activity
     stopInlineActivity();
@@ -1171,6 +1177,10 @@ var WindowManager = (function() {
     setFrameBackground(openFrame, function gotBackground() {
       // Start the transition when this async/sync callback is called.
       openFrame.classList.add('active');
+      if ('wrapper' in runningApps[displayedApp].frame.dataset) {
+        wrapperFooter.classList.remove('visible');
+        wrapperHeader.classList.remove('visible');
+      }
     });
   }
 
@@ -1223,8 +1233,12 @@ var WindowManager = (function() {
 
     // Give back focus to the displayed app
     var app = runningApps[displayedApp];
-    if (app && app.frame)
+    if (app && app.frame) {
       app.frame.focus();
+      if ('wrapper' in app.frame.dataset) {
+        wrapperFooter.classList.add('visible');
+      }
+    }
 
     // Remove the active class and start the closing transition
     frame.classList.remove('active');
@@ -1255,7 +1269,7 @@ var WindowManager = (function() {
     // If so, change the app name and origin to the
     // entry point.
     var entryPoints = manifest.entry_points;
-    if (entryPoints && manifest.type == "certified") {
+    if (entryPoints && manifest.type == 'certified') {
       var givenPath = e.detail.url.substr(origin.length);
 
       // Workaround here until the bug (to be filed) is fixed
@@ -1378,6 +1392,14 @@ var WindowManager = (function() {
     }
   });
 
+  // Deal with locationchange
+  window.addEventListener('mozbrowserlocationchange', function(e) {
+    if (!'frameType' in e.target.dataset)
+      return;
+
+    e.target.dataset.url = e.detail;
+  });
+
   // Deal with application uninstall event
   // if the application is being uninstalled, we ensure it stop running here.
   window.addEventListener('applicationuninstall', function(e) {
@@ -1391,8 +1413,15 @@ var WindowManager = (function() {
   // And reset to true when the layer is gone.
   // We may need to handle windowclosing, windowopened in the future.
   var attentionScreenTimer = null;
-  
-  var overlayEvents = ['lock', 'unlock', 'attentionscreenshow', 'attentionscreenhide', 'status-active', 'status-inactive'];
+
+  var overlayEvents = [
+    'lock',
+    'unlock',
+    'attentionscreenshow',
+    'attentionscreenhide',
+    'status-active',
+    'status-inactive'
+  ];
 
   function overlayEventHandler(evt) {
     if (attentionScreenTimer)
@@ -1419,7 +1448,7 @@ var WindowManager = (function() {
       case 'attentionscreenshow':
         if (evt.detail && evt.detail.origin &&
           evt.detail.origin != displayedApp) {
-            attentionScreenTimer = setTimeout(function setVisibility(){
+            attentionScreenTimer = setTimeout(function setVisibility() {
               setVisibilityForCurrentApp(false);
             }, 5000);
 
@@ -1468,7 +1497,7 @@ var WindowManager = (function() {
       return '';
 
     var lang = document.documentElement.lang;
-    if (manifest.entry_points && manifest.type == "certified") {
+    if (manifest.entry_points && manifest.type == 'certified') {
       var entryPoint = manifest.entry_points[origin.split('/')[3]];
       if (entryPoint.locales && entryPoint.locales[lang] &&
           entryPoint.locales[lang].name) {
@@ -1547,7 +1576,7 @@ var WindowManager = (function() {
     var features;
     try {
       features = JSON.parse(detail.features);
-    } catch(e) {
+    } catch (e) {
       features = {};
     }
 
@@ -1586,7 +1615,7 @@ var WindowManager = (function() {
     } else {
       origin = 'window:' + name + ',source:' + callerOrigin;
 
-      for (var appOrigin  in runningApps) {
+      for (var appOrigin in runningApps) {
         var a = runningApps[appOrigin];
         if (a.windowName == name) {
           app = a;
@@ -1841,3 +1870,4 @@ var WindowManager = (function() {
     retrieveFTU: retrieveFTU
   };
 }());
+
