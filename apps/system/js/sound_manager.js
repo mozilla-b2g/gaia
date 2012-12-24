@@ -87,14 +87,16 @@
   var muteState = 'OFF';
 
   for (var channel in currentVolume) {
-    var setting = 'audio.volume.' + channel;
-    SettingsListener.observe(setting, 5, function(volume) {
-      if (pendingRequestCount)
-        return;
+    (function(channel) {
+      var setting = 'audio.volume.' + channel;
+      SettingsListener.observe(setting, 5, function onSettingsChange(volume) {
+        if (pendingRequestCount)
+          return;
 
-      var max = MAX_VOLUME[channel];
-      currentVolume[channel] = parseInt(Math.max(0, Math.min(max, volume)), 10);
-    });
+        var max = MAX_VOLUME[channel];
+        currentVolume[channel] = parseInt(Math.max(0, Math.min(max, volume)), 10);
+      });
+    })(channel);
   }
 
   SettingsListener.observe('vibration.enabled', true, function(vibration) {
