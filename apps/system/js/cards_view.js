@@ -27,6 +27,8 @@ var CardsView = (function() {
   var cardsList = cardsView.firstElementChild;
   var displayedApp;
   var runningApps;
+  // Unkillable apps which have attention screen now
+  var attentiveApps = [];
   // Card which we are re-ordering now
   var reorderedCard = null;
   var currentDisplayed = 0;
@@ -94,7 +96,6 @@ var CardsView = (function() {
 
     // events to handle
     window.addEventListener('lock', CardsView);
-    window.addEventListener('attentionscreenshow', CardsView);
 
     // Close utility tray if it is opened.
     UtilityTray.hide(true);
@@ -316,7 +317,6 @@ var CardsView = (function() {
 
     // events to handle
     window.removeEventListener('lock', CardsView);
-    window.removeEventListener('attentionscreenshow', CardsView);
 
     // Make the cardsView overlay inactive
     cardsView.classList.remove('active');
@@ -490,8 +490,10 @@ var CardsView = (function() {
     ) {
 
       draggingCardUp = false;
-      if (-eventDetail.dy > removeCardThreshold) {
-
+      // Prevent user from closing the app with a attention screen
+      if (-eventDetail.dy > removeCardThreshold &&
+        attentiveApps.indexOf(element.dataset.origin) == -1
+      ) {
         // remove the app also from the ordering list
         if (
           userSortedApps.indexOf(element.dataset.origin) !== -1 &&
@@ -568,6 +570,10 @@ var CardsView = (function() {
     }
   }
 
+  function updateAttentiveApps() {
+    attentiveApps = AttentionScreen.getAttentiveApps();
+  }
+
   window.addEventListener('applicationuninstall',
     function removeUninstaledApp(evt) {
       var origin = evt.detail.application.origin;
@@ -605,7 +611,12 @@ var CardsView = (function() {
 
       case 'lock':
       case 'attentionscreenshow':
+        updateAttentiveApps();
         hideCardSwitcher();
+        break;
+
+      case 'attentionscreenhide':
+        updateAttentiveApps();
         break;
 
       case 'holdhome':
@@ -628,6 +639,8 @@ var CardsView = (function() {
   };
 })();
 
+window.addEventListener('attentionscreenshow', CardsView);
+window.addEventListener('attentionscreenhide', CardsView);
 window.addEventListener('holdhome', CardsView);
 window.addEventListener('home', CardsView);
 window.addEventListener('appwillopen', CardsView);
