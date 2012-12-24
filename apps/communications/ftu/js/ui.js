@@ -267,19 +267,32 @@ var UIManager = {
       WifiManager.connect(ssid);
       return;
     }
+
     // Remove refresh option
     UIManager.activationScreen.classList.add('no-options');
     // Update title
     UIManager.mainTitle.innerHTML = ssid;
+
     // Update network
     var selectedNetwork = WifiManager.getNetwork(ssid);
     var ssidHeader = document.getElementById('wifi_ssid');
     var userLabel = document.getElementById('label_wifi_user');
     var userInput = document.getElementById('wifi_user');
     var passwordInput = document.getElementById('wifi_password');
+    var showPassword = document.querySelector('input[name=show_password]');
+
+    // Show / Hide password
+    passwordInput.type = 'password';
+    passwordInput.value = '';
+    showPassword.checked = false;
+    showPassword.onchange = function() {
+      passwordInput.type = this.checked ? 'text' : 'password';
+    };
+
     // Update form
     passwordInput.value = '';
     ssidHeader.value = ssid;
+
     // Render form taking into account the type of network
     UIManager.renderNetworkConfiguration(selectedNetwork, function() {
       // Activate secondary menu
@@ -288,11 +301,11 @@ var UIManager = {
       if (WifiManager.isUserMandatory(ssid)) {
         userLabel.classList.remove('hidden');
         userInput.classList.remove('hidden');
-
       } else {
         userLabel.classList.add('hidden');
         userInput.classList.add('hidden');
       }
+
       // Change hash
       window.location.hash = '#configure_network';
     });
