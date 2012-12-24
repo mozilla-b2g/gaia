@@ -110,6 +110,73 @@ var Calls = (function(window, document, undefined) {
     };
   };
 
+  function updateCallWaitingItemState(callWaitingEnabled) {
+    var menuItem = document.querySelector('#menuItem-callWaiting');
+    var input = menuItem.querySelector('.checkbox-label input');
+
+    if (callWaitingEnabled === null)
+      menuItem.dataset.state = 'unknown';
+    else {
+      input.checked = callWaitingEnabled;
+      if (callWaitingEnabled)
+        menuItem.dataset.state = 'on';
+      else
+        menuItem.dataset.state = 'off';
+    }
+  }
+
+  function initCallWaiting() {
+    var settings = window.navigator.mozSettings;
+    if (!settings) {
+      return;
+    }
+
+    // Bind call waiting setting to the input
+    var input =
+      document.querySelector('#menuItem-callWaiting .checkbox-label input');
+    input.addEventListener('change', function cs_cwInputChanged(event) {
+      var lock = settings.createLock();
+      lock.set({
+        'ril.callwaiting.enabled': input.checked
+      });
+    });
+
+    settings.addObserver('ril.callwaiting.enabled',
+      function call_callWaitingChanged(event) {
+        updateCallWaitingItemState(event.settingValue);
+    });
+
+    var getCWEnabled = settings.createLock().get('ril.callwaiting.enabled');
+    getCWEnabled.onsuccess = function cs_getCWEnabledSuccess() {
+      updateCallWaitingItemState(getCWEnabled.result['ril.callwaiting.enabled']);
+    };
+
+    // Initialize the alert panel
+    var alertLabel = document.querySelector('#menuItem-callWaiting .alert-label');
+    var alertPanel = document.querySelector('#call .cw-alert');
+    var confirmInput =
+      alertPanel.querySelector('.cw-alert-checkbox-label input');
+    var setBtn = alertPanel.querySelector('.cw-alert-set');
+    var cancelBtn = alertPanel.querySelector('.cw-alert-cancel');
+
+    alertLabel.addEventListener('click', function cs_alertLabelClicked(event) {
+      confirmInput.checked = false;
+      alertPanel.hidden = false;
+    });
+
+    setBtn.addEventListener('click', function cs_alertSetClicked(event) {
+      var lock = settings.createLock();
+      lock.set({
+        'ril.callwaiting.enabled': confirmInput.checked
+      });
+      alertPanel.hidden = true;
+    });
+
+    cancelBtn.addEventListener('click', function cs_alertCancelClicked(event) {
+      alertPanel.hidden = true;
+    });
+  }
+
   // Public API.
   return {
     // Startup.
@@ -169,6 +236,9 @@ var Calls = (function(window, document, undefined) {
           };
         });
       });
+
+      // Check call waiting state
+      initCallWaiting();
     }
   };
 })(this, document);

@@ -443,9 +443,12 @@
       </header>
 
       <ul>
-        <li>
-          <label>
-            <input type="checkbox" data-type="switch" name="ril.callwaiting.enabled"/>
+        <li id="menuItem-callWaiting" data-state="off">
+          <label class="checkbox-label">
+            <input type="checkbox" data-type="switch"/>
+            <span></span>
+          </label>
+          <label class="alert-label" hidden>
             <span></span>
           </label>
           <a data-l10n-id="callWaiting">Call Waiting</a>
@@ -473,6 +476,26 @@
           <a id="menuItem-callForwardingNotReachable" href="#call-cf-notReachableSettings" data-l10n-id="callForwardingNotReachable">Forward when unreachable</a>
         </li>
       </ul>
+
+      <form role="dialog" data-type="confirm" hidden class="cw-alert">
+        <section>
+          <h1 data-l10n-id="confirmCallWaitingTitle">Unable to confirm call waiting preferences</h1>
+          <p>
+            <strong data-l10n-id="confirmCallWaitingDesc">The device is currently unable to communicate with the carrier. Try setting the preference again.</strong>
+          </p>
+          <p class="cw-alert-sub-p">
+            <label class="cw-alert-checkbox-label">
+              <input type="checkbox" data-type="switch"/>
+              <span></span>
+            </label>
+            <span data-l10n-id="callWaiting">Call Waiting</span>
+          </p>
+        </section>
+        <menu>
+          <button class="cw-alert-cancel" data-l10n-id="cancel">Cancel</button>
+          <button class="cw-alert-set recommend" data-l10n-id="set">Set</button>
+        </menu>
+      </form>
 
       <script type="application/javascript" src="js/call.js"></script>
       -->
