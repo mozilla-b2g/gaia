@@ -42,42 +42,42 @@
   <script defer type="text/javascript" src="/ftu/js/navigation.js"></script>
   <script defer type="text/javascript" src="/ftu/js/data_mobile.js"></script>
   <script defer type="text/javascript" src="/ftu/js/time.js"></script>
-  <script defer type="text/javascript" src="/ftu/js/ui.js"></script>
+  <script defer type="text/javascript" src="/ftu/js/ui.js" defer></script>
   <script defer type="text/javascript" src="/ftu/js/language.js"></script>
   <script defer type="text/javascript" src="/ftu/js/app.js"></script>
   <script defer type="text/javascript" src="/contacts/js/utilities/import_sim_contacts.js"></script>
 </head>
 <body>
-  <section id="splash" role="region" class="show">
+  <section id="splash-screen" role="region" class="show">
   </section>
 
-  <section id="pincode" role="region" class="skin-organic">
+  <section id="pincode-screen" role="region" class="skin-organic">
     <header>
       <h1 data-l10n-id="pincode">Pin code</h1>
     </header>
     <section class="pin_container">
       <header data-l10n-id="type_pin">Type your PIN code:</header>
       <section class="input-wrapper">
-        <input id="sim-pin" name="simpin" type="password" size="8" maxlength="8" />
+        <input id="pin-input" name="simpin" type="password" size="8" maxlength="8" />
         <input id="fake-sim-pin" name="fakesimpin" type="number" size="8" maxlength="8" />
-        <div id="pin_error"></div>
+        <div id="pin-error"></div>
       </section>
     </section>
     <nav role="navigation" class="forward-only">
-      <button class="recommend fullsize" id="done" data-l10n-id="done">
+      <button class="recommend fullsize" id="done-button" data-l10n-id="done">
         Done
       </button>
     </nav>
   </section>
 
-  <section id="activation" role="region" class="skin-organic no-options">
+  <section id="activation-screen" role="region" class="skin-organic no-options">
     <header>
       <menu type="toolbar">
-        <button id="wifi-refresh" data-l10n-id="refresh">Refresh</button>
+        <button id="wifi-refresh-button" data-l10n-id="refresh">Refresh</button>
       </menu>
-      <h1 id="main_title"></h1>
+      <h1 id="main-title"></h1>
     </header>
-    <ol id="activation_progress" class="step-state">
+    <ol id="progress-bar" class="step-state">
       <li>languages</li>
       <li>3g</li>
       <li>wifi</li>
@@ -99,7 +99,7 @@
             <li>
               <aside class="pack-end">
                 <label>
-                  <input type="checkbox" data-type="switch" id="dataSwitch">
+                  <input type="checkbox" data-type="switch" id="data-connection-switch">
                   <span></span>
                 </label>
               </aside>
@@ -178,9 +178,9 @@
       <section role="region" id="import_contacts">
         <article data-type="list">
           <ul>
-            <li id="sim_import">
+            <li id="sim-import-button">
               <p data-l10n-id="importSim2">SIM card</p>
-              <p id="sim_import_feedback" data-l10n-id="notImportedYet">Not imported yet</p>
+              <p id="sim-import-feedback" data-l10n-id="notImportedYet">Not imported yet</p>
             </li>
           </ul>
         </article>
@@ -335,7 +335,7 @@
         </section>
         <section id="form_share_statistics">
           <label>
-            <input type="checkbox" id="share_performance" name="debug.performance_data.shared"/>
+            <input type="checkbox" id="share-performance" name="debug.performance_data.shared"/>
             <span></span>
             <p data-l10n-id="collaborate2">
               I want to help make Browser OS faster and
@@ -355,13 +355,13 @@
         next
         <span></span>
       </button>
-      <button class="recommend" id="join" data-l10n-id="join">
+      <button class="recommend" id="wifi-join-button" data-l10n-id="join">
         join
       </button>
     </menu>
   </section>
 
-  <section id="finish" role="region">
+  <section id="finish-screen" role="region">
     <section class="content">
       <h1 data-l10n-id="startYourPhone">
         Start your Phone Tour!
@@ -374,18 +374,18 @@
       </p>
       </section>
       <menu role="navigation">
-        <button id="skip" class="button-left" data-l10n-id="skip">
+        <button id="button-skip" class="button-left" data-l10n-id="skip">
           Skip
         </button>
-        <button class="recommend" id="end" data-l10n-id="startTour">
+        <button class="recommend" id="button-lets-go" data-l10n-id="startTour">
           Start Tour!
         </button>
       </menu>
     </section>
   </section>
 
-  <section id="tutorial" role="region">
-    <ol id="tutorial_progress" class="step-state">
+  <section id="tutorial-screen" role="region">
+    <ol id="tutorial-progress" class="step-state">
       <li>step 1</li>
       <li>step 2</li>
       <li>step 3</li>

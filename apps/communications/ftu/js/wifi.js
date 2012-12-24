@@ -18,7 +18,7 @@ var WifiManager = {
         callback(self.networks);
       };
       req.onerror = function onScanError() {
-        console.log('Error reading networks: ' + req.error);
+        console.log('Error reading networks: ' + req.error.name);
       };
     } else {
       var fakeNetworks = [

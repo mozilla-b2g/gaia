@@ -6,7 +6,7 @@ body[role="application"] [role="dialog"] {
 }
 
 #firsttime-view, #firsttime-view .view{
-  bottom: 0;
+  top: 0;
 }
 
 /* Steps state */

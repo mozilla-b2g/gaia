@@ -1,98 +1,78 @@
 /* DATAUSAGE VIEW */
 #datausage-tab .content {
-  padding: 1rem 0;
+  padding: 0;
 }
-
 
 /* DATA TOGGLE */
 #datausage-tab .toggle-data {
   list-style: none;
   padding: 0;
   margin: 0 1.5rem;
-  overflow: hidden;
+  border: solid 1px #adadad;
+  border-right: none;
+  border-left: none;
 }
 
 #datausage-tab .toggle-data li {
-  float: left;
-  width: calc(100%/2);
-  position: relative;
+  padding-left: 3rem;
+  height: 4rem;
+  border-bottom-color: #adadad;
 }
 
-#datausage-tab .toggle-data li :-moz-any(label, span) {
-  display: block;
+#datausage-tab .toggle-data li p {
+  color: #707070;
 }
 
-#datausage-tab .toggle-data li input {
-  position: absolute;
-  pointer-events: none;
+#datausage-tab .toggle-data li p:only-child,
+#datausage-tab .toggle-data li p:first-of-type:last-of-type {
+  line-height: 1.8rem;
+}
+
+#datausage-tab .toggle-data li p strong {
+  color: #333;
+}
+
+#datausage-tab .toggle-data li label {
+  height: 100%;
+  pointer-events: auto;
   left: 0;
-  top: 0;
-  opacity: 0;
+  border: none;
 }
 
-#datausage-tab .toggle-data li span {
-  height: 2.5rem;
-  border: solid 1px #b2b2b2;
-  background: #fafafa url(../images/app/ui/datausage/toggle-bg.png) repeat-x left bottom;
-  font-weight: 600;
-  font-size: 1.6rem;
-  line-height: 2.5rem;
-  padding: 1rem 1rem 1rem 4rem;
+#datausage-tab .toggle-data li label span {
+  right: 0;
+  left: auto;
 }
 
-#datausage-tab .toggle-data li:first-child span {
-  border-radius: 0.3rem 0 0 0.3rem;
-}
-
-#datausage-tab .toggle-data li:last-child span {
-  border-radius: 0 0.3rem 0.3rem 0;
-}
-
-#datausage-tab .toggle-data li:last-child {
-  margin-left: -1px;
-}
 
 /* Color legend (square) */
-#datausage-tab .toggle-data li span:before {
+#datausage-tab .toggle-data li:before {
   content: "";
-  width: 2rem;
-  height: 2rem;
+  width: 1.5rem;
+  height: 1.5rem;
   position: absolute;
-  background: #fff;
   border: solid 1px #979797;
-  left: 1rem;
+  left: 0.5rem;
   top: 50%;
-  margin: -1.2rem 0 0;
+  margin: -0.95rem 0 0;
   transition: background 0.2s ease;
 }
 
-#datausage-tab .toggle-data li span em {
-  font-style: normal;
-  font-weight: normal;
-  font-size: 1.4rem;
-  opacity: 0;
+#datausage-tab .toggle-data li:first-child:before {
+  background: #975177 url(../images/app/ui/datausage/pattern-3g.png) repeat left top;
 }
 
-/* Active state */
-#datausage-tab .toggle-data li input:checked + span {
-  background: #efefef;
-  box-shadow: inset 0 3px 4px -1px rgba(0, 0, 0, 0.2);
+#datausage-tab .toggle-data li:last-child:before {
+  background-color: #d4e073;
 }
 
-#datausage-tab .toggle-data li input:checked + span:before {
-  background: url(../images/app/ui/datausage/pattern.png) repeat left top;
+/* Disabled state */
+#datausage-tab .toggle-data li[aria-disabled=true]:before {
+  background: #d4d2d2;
 }
 
-#datausage-tab .toggle-data li:first-child input:checked + span:before {
-  background-color: #901560;
-}
-
-#datausage-tab .toggle-data li:last-child input:checked + span:before {
-  background-color: #cbd936;
-}
-
-#datausage-tab .toggle-data li input:checked + span em {
-  opacity: 1;
+#datausage-tab .toggle-data li[aria-disabled=true] .overview {
+  display: none;
 }
 
 /* GRAPHS */
@@ -104,27 +84,7 @@
 #datausage-tab section.graph canvas {
   position: absolute;
   left: 0;
-  top: 1rem;
+  top: 0;
   width: 100%;
   height: 100%;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -140,6 +140,7 @@ var PhoneLock = {
     switch (evt.target) {
       case this.passcodeEnable:
         evt.preventDefault();
+        this._passcodeBuffer = '';
         if (this.settings.passcodeEnable) {
           this.changeMode('confirm');
         } else {
@@ -252,7 +253,6 @@ var PhoneLock = {
 
   backToPhoneLock: function pl_backToPhoneLock() {
     this._passcodeBuffer = '';
-    this.updatePasscodeUI();
     this.passcodeInput.blur();
     document.location.hash = 'phoneLock';
   }

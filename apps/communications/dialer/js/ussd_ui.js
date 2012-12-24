@@ -43,7 +43,12 @@ var UssdUI = {
   },
 
   init: function uui_init() {
+    if (window.location.hash != '#send') {
+      this.hideLoading();
+    }
     LazyL10n.get((function localized(_) {
+      window.addEventListener('message', this);
+      window.dispatchEvent(new CustomEvent('ready'));
       this._ = _;
       this.updateHeader(window.name);
       this.closeNode.addEventListener('click', this.closeWindow.bind(this));
@@ -54,7 +59,6 @@ var UssdUI = {
         this.responseUpdated.bind(this));
       this._origin = document.location.protocol + '//' +
         document.location.host;
-      window.addEventListener('message', this);
     }).bind(this));
   },
 

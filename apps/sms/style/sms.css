@@ -439,6 +439,7 @@ section[role="region"].new > header:first-child form {
   font-weight: 600;
   font-size: calc(7 * 0.226rem);
   color: white;
+  opacity: 0.99; /* hackaround for painting bug (bug 821221) */
 }
 
 .disabled {

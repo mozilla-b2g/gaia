@@ -103,7 +103,9 @@ var AttentionScreen = {
     if (!this.isVisible()) {
       this.attentionScreen.classList.add('displayed');
       this.mainScreen.classList.add('attention');
-      this.dispatchEvent('attentionscreenshow', { origin: attentionFrame.dataset.frameOrigin });
+      this.dispatchEvent('attentionscreenshow', {
+        origin: attentionFrame.dataset.frameOrigin
+      });
     } else if (!this.isFullyVisible() &&
       this.attentionScreen.lastElementChild === attentionFrame) {
       this.show();
@@ -198,8 +200,9 @@ var AttentionScreen = {
         // leaving "active-statusbar" mode,
         // with a transform: translateY() slide down transition.
         self.mainScreen.classList.remove('active-statusbar');
-        self.dispatchEvent('status-inactive',
-          { origin: self.attentionScreen.lastElementChild.dataset.frameOrigin });
+        self.dispatchEvent('status-inactive', {
+          origin: self.attentionScreen.lastElementChild.dataset.frameOrigin
+        });
       });
     });
   },
@@ -210,9 +213,10 @@ var AttentionScreen = {
     if (!this.isFullyVisible())
       return;
 
-    // The only way to hide attention screen is home/holdhome event
+    // The only way to hide attention screen is the home/holdhome event.
     // So we don't fire any origin information here.
-    // The expected behavior is restore homescreen visibility to true in Window Manager
+    // The expected behavior is restore homescreen visibility to 'true'
+    // in the Window Manager.
     this.dispatchEvent('status-active');
 
     // entering "active-statusbar" mode,

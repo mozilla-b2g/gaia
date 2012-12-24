@@ -9,32 +9,6 @@ html, body {
   overflow: hidden;
 }
 
-#bookmark-entry-sheet {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  background-color: #edeee9;
-  z-index: 10001;
-  display: none;
-}
-
-#bookmark-entry-sheet.active {
-  display: block;
-}
-
-#bookmark-form {
-  padding: 1.5rem;
-}
-
-#bookmark-form label {
-  text-transform: uppercase;
-  font-size: 1.5rem;
-}
-
-#bookmark-form input {
-  margin-bottom: 1.5rem;
-}
-
 * {
   -moz-user-select: -moz-none;
 }

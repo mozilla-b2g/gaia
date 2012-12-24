@@ -132,7 +132,8 @@ settings = {
  "vibration.enabled": True,
  "wifi.enabled": True,
  "wifi.disabled_by_wakelock": False,
- "wifi.notification": False
+ "wifi.notification": False,
+ "icc.displayTextTimeout": 10000
 }
 
 def main():

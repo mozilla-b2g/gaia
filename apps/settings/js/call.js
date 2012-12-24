@@ -38,6 +38,7 @@ var Calls = (function(window, document, undefined) {
           _('callForwardingForwardingVoiceTo') + ' ' + rules[i].number;
         textInput.value = rules[i].number;
         switchInput.checked = true;
+        document.getElementById('cf-' + settingKey + '-number').disabled = true;
         return;
       }
     }
@@ -46,9 +47,21 @@ var Calls = (function(window, document, undefined) {
       _('callForwardingNotForwarding');
     textInput.value = '';
     switchInput.checked = false;
+    document.getElementById('cf-' + settingKey + '-number').disabled = false;
   };
 
-  // Display what's happening while getting call forwarding info.
+  // Enable/disable tapping on call forwarding entry.
+  function toggleTapOnEntry() {
+    var elementIds = ['li-cfu-desc',
+                      'li-cfmb-desc',
+                      'li-cfnrep-desc',
+                      'li-cfnrea-desc'];
+    elementIds.forEach(function(id) {
+      document.getElementById(id).classList.toggle('disabled');
+    });
+  };
+
+  // Display what's happening while requesting call forwarding info.
   function displayInfoForAll(what) {
     document.getElementById('cfu-desc').textContent =
       document.getElementById('cfmb-desc').textContent =
@@ -57,9 +70,28 @@ var Calls = (function(window, document, undefined) {
             what;
   };
 
+  // Check whether call forwaring is enabled for that specific reason.
+  function checkForCallForwardingReasonEnabled(reason, callback) {
+    var req = gMobileConnection.getCallForwardingOption(reason);
+    req.onsuccess = function() {
+      var rules = req.result;
+      for (var i = 0; i < rules.length; i++) {
+        if (rules[i].active &&
+            ((_voiceServiceClassMask & rules[i].serviceClass) != 0)) {
+          callback(true);
+          return;
+        }
+      }
+      callback(false);
+    };
+    req.onerror = function() {
+      callback(false);
+    };
+  };
+
   // Get current call forwarding rules.
   function getCallForwardingOption() {
-    displayInfoForAll(_('callForwardingGetting'));
+    displayInfoForAll(_('callForwardingRequesting'));
 
     // Queries rules for unconditional call forwarding.
     var unconditional = gMobileConnection.getCallForwardingOption(
@@ -92,6 +124,23 @@ var Calls = (function(window, document, undefined) {
           notReachable.onsuccess = function() {
             var notReachableRules = notReachable.result;
             displayRule(notReachableRules, 'cfnrea-desc', 'notreachable');
+
+            toggleTapOnEntry();
+
+            // Hide call forwarding icon if neccesary
+            checkForCallForwardingReasonEnabled(_cfReason.CALL_FORWARD_REASON_UNCONDITIONAL,
+              function onsuccess(enabled) {
+                var settings = window.navigator.mozSettings;
+                var lock = settings.createLock();
+                var key = 'ril.cf.unconditional.enabled';
+                var request = lock.get(key);
+                request.onsuccess = function() {
+                  if (!enabled && request.result[key]) {
+                    var cset = {}; cset[key] = false;
+                    lock.set(cset);
+                  }
+                };
+            });
           };
           notReachable.onerror = function() {
             displayInfoForAll(_('callForwardingQueryError'));
@@ -116,7 +165,7 @@ var Calls = (function(window, document, undefined) {
     init: function calls_init() {
       var settings = window.navigator.mozSettings;
       if (!settings) {
-        // TODO: Update UI with some error info.
+        displayInfoForAll(_('callForwardingQueryError'));
         return;
       }
       getCallForwardingOption();
@@ -158,13 +207,14 @@ var Calls = (function(window, document, undefined) {
           mozMobileCFInfo['timeSecond'] =
             mozMobileCFInfo['reason'] !=
               _cfReason.CALL_FORWARD_REASON_NO_REPLY ? 0 : 20;
-          console.log(JSON.stringify(mozMobileCFInfo));
 
           var req = gMobileConnection.setCallForwardingOption(mozMobileCFInfo);
           req.onsuccess = function() {
+            toggleTapOnEntry();
             getCallForwardingOption();
           };
           req.onerror = function() {
+            toggleTapOnEntry();
             getCallForwardingOption();
           };
         });
