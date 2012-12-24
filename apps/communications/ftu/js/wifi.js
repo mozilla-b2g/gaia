@@ -122,13 +122,13 @@ var WifiManager = {
 
   getSecurityType: function wn_gst(network) {
     var key = network.capabilities[0];
-        if (/WEP$/.test(key))
-          return 'WEP';
-        if (/PSK$/.test(key))
-          return 'WPA-PSK';
-        if (/EAP$/.test(key))
-          return 'WPA-EAP';
-        return false;
+    if (/WEP$/.test(key))
+      return 'WEP';
+    if (/PSK$/.test(key))
+      return 'WPA-PSK';
+    if (/EAP$/.test(key))
+      return 'WPA-EAP';
+    return false;
   },
   isUserMandatory: function wn_ium(ssid) {
     var network = this.getNetwork(ssid);

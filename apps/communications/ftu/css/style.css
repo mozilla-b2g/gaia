@@ -53,16 +53,16 @@ html, body {
 
 [role=navigation] {
   white-space: nowrap;
-  margin: 0px;
+  margin: 0;
   padding: 1.5rem;
   border-top: 1px solid #a6a6a6;
   background: rgba(0,0,0,0.05);
   display: block;
   overflow: hidden;
   position: absolute;
-  left: 0px;
-  right: 0px;
-  bottom: 0px;
+  left: 0;
+  right: 0;
+  bottom: 0;
   z-index: 3;
   height: 3.5rem;
 }
@@ -245,7 +245,7 @@ html, body {
     width: 100%;
     height: 4rem;
     resize: none;
-    padding: 0px 0.8rem;
+    padding: 0 0.8rem;
 }
 
 /*
@@ -288,6 +288,22 @@ html, body {
   display: none !important;
 }
 
+/* 'show password' checkboxes */
+#configure_network_params label:not([for]){
+  display: inline-block;
+  width: auto;
+  height: auto;
+}
+#configure_network_params label span {
+  top: 2rem;
+  left: 3rem;
+}
+#configure_network_params label p {
+  width: auto;
+  float: right;
+  bottom: 0.4rem;
+  left: 3rem;
+}
 
 /*
   Finish process
@@ -880,7 +896,7 @@ i.hack-first-child {
 }
 
 [data-type="list"] aside {
-  margin: 0px 0.5rem 0px 0px !important;
+  margin: 0 0.5rem 0 0 !important;
 }
 
 
