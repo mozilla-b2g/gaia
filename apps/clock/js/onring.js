@@ -163,6 +163,7 @@ var RingView = {
       // event on the 'alarm' channel audio element.
       // If the incoming call happens after the alarm rings,
       // we need to close ourselves.
+      this.stopAlarmNotification();
       window.opener.AlarmManager.cancelHandler();
       window.close();
       break;
