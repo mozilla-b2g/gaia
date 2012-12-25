@@ -79,7 +79,8 @@
     "wifi-manage":{},
     "time": {},
     "audio-channel-telephony":{},
-    "audio-channel-ringer":{}
+    "audio-channel-ringer":{},
+    "browser":{}
   },
   "orientation": "portrait-primary",
   "activities": {
