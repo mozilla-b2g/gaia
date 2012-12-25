@@ -17,7 +17,7 @@ var _FbDataSearcher = function(variants) {
     fb.getContactByNumber(variant, function success(result) {
       var contact = result;
 
-      if(contact) {
+      if (contact) {
         fb.utils.getMozContactByUid(contact.uid, function merge(e) {
           var devContact = e.target.result[0];
           var finalContact = fb.mergeContact(devContact, contact);
@@ -36,7 +36,7 @@ var _FbDataSearcher = function(variants) {
       else {
         notFoundCb();
       }
-    },function error_getContactByNumber () {
+    }, function error_getContactByNumber() {
         console.error('Error getting FB contacts');
         notFoundCb();
     });
@@ -48,7 +48,7 @@ var _FbDataSearcher = function(variants) {
 
   function notFoundCb() {
     pointer++;
-    if(pointer < self.variants.length) {
+    if (pointer < self.variants.length) {
       window.console.log('******* Checking variant *****', pointer);
       check(self.variants[pointer]);
     }
@@ -63,8 +63,9 @@ var _FbDataSearcher = function(variants) {
 
   this.start = function() {
     check(self.variants[0]);
-  }
-}
+  };
+
+};
 
 var Contacts = {
 
@@ -102,7 +103,7 @@ var Contacts = {
       if (request.result.length === 0) {
         // Checking if FB is enabled or not
         window.asyncStorage.getItem('tokenData', function(data) {
-          if(!data || !data.access_token) {
+          if (!data || !data.access_token) {
             // Facebook is not even enabled
             callback(null);
             return;
@@ -114,7 +115,7 @@ var Contacts = {
           searcher.onsuccess = callback;
           searcher.onNotFound = function not_found() {
             callback(null);
-          }
+          };
         });
 
         return;
@@ -131,28 +132,26 @@ var Contacts = {
       var matchResult = SimplePhoneMatcher.bestMatch(variants, matches);
 
       var contact = request.result[matchResult.bestMatchIndex];
-
+      var contactsWithSameNumber;
       if (request.result.length > 1) {
-        var name = contact.name[0].substring(0, 8),
-            numOfothers = request.result.length - 1;
-        name = _('contactNameWithOthers', {name: name, n: numOfothers});
-        contact.name[0] = name;
+        contactsWithSameNumber = request.result.length - 1;
       }
 
       var matchingTel = contact.tel[matchResult.localIndex];
-      if(fb.isFbLinked(contact)) {
+      if (fb.isFbLinked(contact)) {
         // Merge with the FB data
         var req = fb.contacts.get(fb.getFriendUid(contact));
         req.onsuccess = function() {
-          callback(fb.mergeContact(contact,req.result), matchingTel);
-        }
+          callback(fb.mergeContact(contact, req.result), matchingTel,
+            contactsWithSameNumber);
+        };
         req.onerror = function() {
           window.console.error('Error while getting FB Data');
-          callback(contact, matchingTel);
-        }
+          callback(contact, matchingTel, contactsWithSameNumber);
+        };
       }
       else {
-        callback(contact, matchingTel);
+        callback(contact, matchingTel, contactsWithSameNumber);
       }
     };
     request.onerror = function findError() {

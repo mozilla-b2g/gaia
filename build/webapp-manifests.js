@@ -1,3 +1,4 @@
+const INSTALL_TIME = 132333986000; // Match this to value in applications-data.js
 
 function debug(msg) {
   //dump('-*- webapp-manifest.js: ' + msg + '\n');
@@ -71,7 +72,7 @@ Gaia.webapps.forEach(function (webapp) {
     origin:        url,
     installOrigin: url,
     receipt:       null,
-    installTime:   132333986000,
+    installTime:   INSTALL_TIME,
     manifestURL:   url + '/manifest.webapp',
     appStatus:     appStatus,
     localId:       id++
@@ -144,6 +145,9 @@ Gaia.externalWebapps.forEach(function (webapp) {
     }
   }
 
+  let etag = webapp.metaData.etag || null;
+  let packageEtag = webapp.metaData.packageEtag || null;
+
   // Add webapp's entry to the webapps global manifest
   manifests[webappTargetDirName] = {
     origin:        origin,
@@ -152,7 +156,9 @@ Gaia.externalWebapps.forEach(function (webapp) {
     installTime:   132333986000,
     manifestURL:   manifestURL,
     removable:     removable,
-    localId:       id++
+    localId:       id++,
+    etag:          etag,
+    packageEtag:   packageEtag
   };
 
 });
@@ -160,5 +166,7 @@ Gaia.externalWebapps.forEach(function (webapp) {
 // Write webapps global manifest
 let manifestFile = webappsTargetDir.clone();
 manifestFile.append('webapps.json');
+
 // stringify json with 2 spaces indentation
 writeContent(manifestFile, JSON.stringify(manifests, null, 2) + '\n');
+

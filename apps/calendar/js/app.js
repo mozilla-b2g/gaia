@@ -8,6 +8,12 @@ Calendar.App = (function(window) {
    * location to reference database.
    */
   var App = {
+    //XXX: always assumes that app is never lazy loaded
+    startingURL: window.location.href,
+
+    _location: window.location,
+
+    _mozTimeRefreshTimeout: 3000,
 
     // Dependency map for loading
     cssBase: '/style/',
@@ -94,6 +100,16 @@ Calendar.App = (function(window) {
       this.syncController = new Calendar.Controllers.Sync(this);
       this.serviceController = new Calendar.Controllers.Service(this);
       this.alarmController = new Calendar.Controllers.Alarm(this);
+    },
+
+    /**
+     * Internally restarts the application.
+     */
+    forceRestart: function() {
+      if (!this.restartPending) {
+        this.restartPending = true;
+        this._location.href = this.startingURL;
+      }
     },
 
     /**
@@ -216,7 +232,8 @@ Calendar.App = (function(window) {
       this.serviceController.start(false);
 
       // localize && pre-initialize the database
-      if (navigator.mozL10n && navigator.mozL10n.readyState == 'complete') {
+      if (navigator.mozL10n && (navigator.mozL10n.readyState == 'interactive' ||
+                                navigator.mozL10n.readyState == 'complete')) {
         // document is already localized
         next();
       } else {
@@ -277,8 +294,10 @@ Calendar.App = (function(window) {
        */
       function processScripts(node, cb) {
 
-        // If there are no dependencies, or we already have this resource loaded, bail out
-        if (!App.dependencies[node.type] || (Calendar[node.type] && Calendar[node.type][node.name])) {
+        // If there are no dependencies, or we already have this resource
+        // loaded, bail out
+        if (!App.dependencies[node.type] || (Calendar[node.type] &&
+              Calendar[node.type][node.name])) {
             return cb();
         }
 
@@ -368,13 +387,25 @@ Calendar.App = (function(window) {
     }
   };
 
+  // Restart the calendar when the timezone changes.
+  // We do this on a timer because this event may fire
+  // many times. Refreshing the url of the calendar frequently
+  // can result in crashes so we attempt to do this only after
+  // the user has completed their selection.
+  var _changeTimerId;
+  window.addEventListener('moztimechange', function onMozTimeChange() {
+    clearTimeout(_changeTimerId);
+
+    _changeTimerId = setTimeout(function() {
+      App.forceRestart();
+    }, App._mozTimeRefreshTimeout);
+  });
+
+  window.addEventListener('load', function onLoad() {
+    window.removeEventListener('load', onLoad);
+    App.init();
+  });
+
   return App;
 
 }(this));
-
-window.addEventListener('load', function onLoad() {
-  window.removeEventListener('load', onLoad);
-
-  Calendar.App.init();
-});
-

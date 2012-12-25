@@ -27,6 +27,8 @@ var CardsView = (function() {
   var cardsList = cardsView.firstElementChild;
   var displayedApp;
   var runningApps;
+  // Unkillable apps which have attention screen now
+  var attentionScreenApps = [];
   // Card which we are re-ordering now
   var reorderedCard = null;
   var currentDisplayed = 0;
@@ -94,7 +96,6 @@ var CardsView = (function() {
 
     // events to handle
     window.addEventListener('lock', CardsView);
-    window.addEventListener('attentionscreenshow', CardsView);
 
     // Close utility tray if it is opened.
     UtilityTray.hide(true);
@@ -221,6 +222,12 @@ var CardsView = (function() {
           PopupManager.getOpenedOriginFromOpener(origin);
         card.appendChild(subtitle);
         card.classList.add('popup');
+      } else if (getOffOrigin(app.frame.dataset.url ?
+            app.frame.dataset.url : app.frame.src, origin)) {
+        var subtitle = document.createElement('p');
+        subtitle.textContent = getOffOrigin(app.frame.dataset.url ?
+            app.frame.dataset.url : app.frame.src, origin);
+        card.appendChild(subtitle);
       }
 
       if (TrustedUIManager.hasTrustedUI(origin)) {
@@ -264,13 +271,52 @@ var CardsView = (function() {
     });
   }
 
+  function getOriginObject(url) {
+    var parser = document.createElement('a');
+    parser.href = url;
+
+    return {
+      protocol: parser.protocol,
+      hostname: parser.hostname,
+      port: parser.port
+    };
+  }
+
+  function getOffOrigin(src, origin) {
+    // Use src and origin as cache key
+    var cacheKey = JSON.stringify(Array.prototype.slice.call(arguments));
+    if (!getOffOrigin.cache[cacheKey]) {
+      var native = getOriginObject(origin);
+      var current = getOriginObject(src);
+      if (current.protocol == 'http:') {
+        // Display http:// protocol anyway
+        getOffOrigin.cache[cacheKey] = current.protocol + '//' +
+          current.hostname;
+      } else if (native.protocol == current.protocol &&
+        native.hostname == current.hostname &&
+        native.port == current.port) {
+        // Same origin policy
+        getOffOrigin.cache[cacheKey] = '';
+      } else if (current.protocol == 'app:') {
+        // Avoid displaying app:// protocol
+        getOffOrigin.cache[cacheKey] = '';
+      } else {
+        getOffOrigin.cache[cacheKey] = current.protocol + '//' +
+          current.hostname;
+      }
+    }
+
+    return getOffOrigin.cache[cacheKey];
+  }
+
+  getOffOrigin.cache = {};
+
   function hideCardSwitcher() {
     if (!cardSwitcherIsShown())
       return;
 
     // events to handle
     window.removeEventListener('lock', CardsView);
-    window.removeEventListener('attentionscreenshow', CardsView);
 
     // Make the cardsView overlay inactive
     cardsView.classList.remove('active');
@@ -444,7 +490,10 @@ var CardsView = (function() {
     ) {
 
       draggingCardUp = false;
-      if (-eventDetail.dy > removeCardThreshold) {
+      // Prevent user from closing the app with a attention screen
+      if (-eventDetail.dy > removeCardThreshold &&
+        attentionScreenApps.indexOf(element.dataset.origin) == -1
+      ) {
 
         // remove the app also from the ordering list
         if (
@@ -559,7 +608,12 @@ var CardsView = (function() {
 
       case 'lock':
       case 'attentionscreenshow':
+        attentionScreenApps = AttentionScreen.getAttentionScreenOrigins();
         hideCardSwitcher();
+        break;
+
+      case 'attentionscreenhide':
+        attentionScreenApps = AttentionScreen.getAttentionScreenOrigins();
         break;
 
       case 'holdhome':
@@ -582,6 +636,8 @@ var CardsView = (function() {
   };
 })();
 
+window.addEventListener('attentionscreenshow', CardsView);
+window.addEventListener('attentionscreenhide', CardsView);
 window.addEventListener('holdhome', CardsView);
 window.addEventListener('home', CardsView);
 window.addEventListener('appwillopen', CardsView);

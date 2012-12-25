@@ -33,6 +33,13 @@ settings = {
  "debug.log-animations.enabled": False,
  "debug.paint-flashing.enabled": False,
  "debug.peformancedata.shared": False,
+ "deviceinfo.firmware_revision": "",
+ "deviceinfo.hardware": "",
+ "deviceinfo.os": "",
+ "deviceinfo.platform_build_id": "",
+ "deviceinfo.platform_version": "",
+ "deviceinfo.software": "",
+ "deviceinfo.update_channel": "",
  "devtools.debugger.remote-enabled": False,
  "gaia.system.checkForUpdates": False,
  "geolocation.enabled": True,
@@ -72,6 +79,7 @@ settings = {
  "ril.callwaiting.enabled": True,
  "ril.data.enabled": False,
  "ril.data.apn": "",
+ "ril.data.carrier": "",
  "ril.data.passwd": "",
  "ril.data.httpProxyHost": "",
  "ril.data.httpProxyPort": 0,
@@ -80,7 +88,23 @@ settings = {
  "ril.data.mmsport": 0,
  "ril.data.roaming_enabled": False,
  "ril.data.user": "",
+ "ril.mms.apn": "",
+ "ril.mms.carrier": "",
+ "ril.mms.httpProxyHost": "",
+ "ril.mms.httpProxyPort": "",
+ "ril.mms.mmsc": "",
+ "ril.mms.mmsport": "",
+ "ril.mms.mmsproxy": "",
+ "ril.mms.passwd": "",
+ "ril.mms.user": "",
+ "ril.radio.preferredNetworkType": "",
  "ril.radio.disabled": False,
+ "ril.supl.apn": "",
+ "ril.supl.carrier": "",
+ "ril.supl.httpProxyHost": "",
+ "ril.supl.httpProxyPort": "",
+ "ril.supl.passwd": "",
+ "ril.supl.user": "",
  "ril.sms.strict7BitEncoding.enabled": False,
  "ring.enabled": True,
  "screen.automatic-brightness": True,
@@ -108,11 +132,13 @@ settings = {
  "vibration.enabled": True,
  "wifi.enabled": True,
  "wifi.disabled_by_wakelock": False,
- "wifi.notification": False
+ "wifi.notification": False,
+ "icc.displayTextTimeout": 10000
 }
 
 def main():
     parser = optparse.OptionParser(description="Generate initial settings.json file")
+    parser.add_option(      "--override", help="JSON files for custom settings overrides")
     parser.add_option(      "--homescreen", help="specify the homescreen URL")
     parser.add_option(      "--ftu", help="specify the ftu manifest URL")
     parser.add_option("-c", "--console", help="indicate if the console should be enabled", action="store_true")
@@ -167,19 +193,27 @@ def main():
     wallpaper_base64 = base64.b64encode(wallpaper_file.read())
     settings["wallpaper.image"] = "data:image/jpeg;base64," + wallpaper_base64.decode("utf-8")
 
-    # Grab ringer_classic_prism.ogg and convert it into a base64 string
-    ringtone_name = "shared/resources/media/ringtones/ringer_classic_prism.ogg"
+    # Grab ringer_classic_courier.opus and convert it into a base64 string
+    ringtone_name = "shared/resources/media/ringtones/ringer_classic_courier.opus"
     ringtone_file = open(ringtone_name, "rb");
     ringtone_base64 = base64.b64encode(ringtone_file.read())
     settings["dialer.ringtone"] = "data:audio/ogg;base64," + ringtone_base64.decode("utf-8")
-    settings["dialer.ringtone.name"] = "ringer_classic_prism.ogg"
+    settings["dialer.ringtone.name"] = "ringer_classic_courier.opus"
 
-    # Grab notifier_ring.ogg and convert it into a base64 string
-    notification_name = "shared/resources/media/notifications/notifier_ring.ogg"
+    # Grab notifier_bell.opus and convert it into a base64 string
+    notification_name = "shared/resources/media/notifications/notifier_bell.opus"
     notification_file = open(notification_name, "rb");
     notification_base64 = base64.b64encode(notification_file.read())
     settings["notification.ringtone"] = "data:audio/ogg;base64," + notification_base64.decode("utf-8")
-    settings["notification.ringtone.name"] = "notifier_ring.ogg"
+    settings["notification.ringtone.name"] = "notifier_bell.opus"
+
+    if options.override and os.path.exists(options.override):
+      try:
+        overrides = json.load(open(options.override))
+        for key, val in overrides.items():
+          settings[key] = val
+      except Exception, e:
+        print "Error while applying override setting file: %s\n%s" % (options.override, e)
 
     json.dump(settings, open(settings_filename, "wb"))
 

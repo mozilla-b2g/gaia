@@ -10,6 +10,7 @@ var BatteryManager = {
 
   _notification: null,
   _screenOn: true,
+  _previousLevel: 0,
 
   getAllElements: function bm_getAllElements() {
     this.screen = document.getElementById('screen');
@@ -42,12 +43,15 @@ var BatteryManager = {
         if (!battery)
           return;
 
+        var level = Math.min(100, Math.round(battery.level * 100));
         if (this._screenOn) {
-          var level = Math.floor(battery.level * 10) * 10;
           this.notification.dataset.level = level;
-          if (level == 10 || level == 30 || level == 100)
+
+          if (!battery.charging && this._previousLevel != level && level == 10)
             this.display();
         }
+
+        this._previousLevel = level;
 
         PowerSaveHandler.onBatteryChange();
         break;

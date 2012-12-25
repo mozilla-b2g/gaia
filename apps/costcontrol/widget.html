@@ -4,40 +4,46 @@
   <meta charset="utf-8">
   <title>Cost Control Widget</title>
   <link rel="stylesheet" type="text/css" href="style/widget.css">
-
-  <!-- Localization -->
   <link rel="resource" type="application/l10n" href="locales/locales.ini">
 
-  <!-- Shared code -->
   <script type="text/javascript" src="shared/js/l10n.js"></script>
-  <script type="text/javascript" src="shared/js/settings_listener.js"></script>
+  <script type="text/javascript" src="shared/js/l10n_date.js"></script>
+  <script type="text/javascript" src="shared/js/async_storage.js"></script>
 
-  <!-- Specific code -->
   <script type="text/javascript" src="js/utils/debug.js"></script>
+  <script type="text/javascript" src="js/utils/toolkit.js"></script>
   <script type="text/javascript" src="js/utils/formatting.js"></script>
 
-  <script type="text/javascript" src="js/service/service_utils.js"></script>
+  <script type="text/javascript" defer src="js/config_manager.js"></script>
+  <script type="text/javascript" defer src="js/mindgap.js"></script>
+  <script type="text/javascript" defer src="js/common.js"></script>
+  <script type="text/javascript" defer src="js/costcontrol.js"></script>
   <script type="text/javascript" defer src="js/widget.js"></script>
 </head>
 <body>
   <section id="cost-control">
+
     <section class="credit" id="left-panel">
+
       <section class="view" id="balance-view">
         <span id="balance-icon" class="icon"></span>
         <div class="info">
-            <p><span class="unit" id="balance-currency"></span><span id="balance-credit"></span></p>
-            <p class="meta"><time id="balance-time"></time></p>
+            <p id="balance-credit" data-l10n-id="not-available"></p>
+            <p class="meta"></p>
         </div>
       </section>
+
       <section class="view" id="telephony-view" aria-hidden="true">
         <div class="info">
-          <p><span id="telephony-calltime"></span><span class="unit">Min</span> <span id="telephony-smscount"></span><span class="unit">SMS</span></p>
+          <p><span id="telephony-calltime"></span><span class="unit"></span> <span id="telephony-smscount"></span><span class="unit"></span></p>
           <p class="meta"><time id="telephony-from-date"></time> – <time id="telephony-to-date"></time></p>
         </div>
       </section>
+
     </section>
 
     <section class="data" id="right-panel">
+
       <section class="view" id="datausage-limit-view">
         <div class="stats">
           <progress max="100" value="0"></progress>
@@ -49,13 +55,17 @@
           </dl>
         </div>
       </section>
+
       <section class="view" id="datausage-view">
         <div class="info">
-          <p><span>50</span><span class="unit">MB</span></p>
-          <p class="meta" data-l10n-id="3g-data-usage">3G data usage</p>
+          <p id="mobile-usage-value"></p>
+          <p class="meta"><time id="datausage-from-date"></time> – <time id="datausage-to-date"></time></p>
         </div>
       </section>
+
     </section>
+
   </section>
+  <iframe id="message-handler" src="message_handler.html" aria-hidden="true"></iframe>
 </body>
 </html>

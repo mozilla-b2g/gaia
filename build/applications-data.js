@@ -1,8 +1,9 @@
 'use strict';
 
-const PREFERRED_ICON_SIZE = 64;
+const PREFERRED_ICON_SIZE = 60;
 const GAIA_CORE_APP_SRCDIR = 'apps';
 const GAIA_EXTERNAL_APP_SRCDIR = 'external-apps';
+const INSTALL_TIME = 132333986000; // Match this to value in webapp-manifests.js
 
 // Initial Homescreen icon descriptors.
 
@@ -77,6 +78,7 @@ function iconDescriptor(directory, app_name, entry_point) {
   return {
     manifestURL: manifestURL,
     entry_point: entry_point,
+    updateTime: INSTALL_TIME,
     name: manifest.name,
     icon: icon
   };
@@ -121,6 +123,7 @@ let hidden_apps = [
   gaiaManifestURL('system'),
   gaiaManifestURL('pdfjs')
 ];
+
 init = getFile(GAIA_DIR, GAIA_CORE_APP_SRCDIR, 'homescreen', 'js', 'hiddenapps.js');
 writeContent(init, "var HIDDEN_APPS = " + JSON.stringify(hidden_apps));
 
@@ -128,13 +131,15 @@ writeContent(init, "var HIDDEN_APPS = " + JSON.stringify(hidden_apps));
 init = getFile(GAIA_DIR, 'apps', 'costcontrol', 'js', 'config.json');
 
 content = {
-  enableon: { 724: [6, 10, 11, 23] }, // { MCC: [ MNC1, MNC2, ...] }
+  enable_on: { 724: [6, 10, 11, 23] }, // { MCC: [ MNC1, MNC2, ...] }
+  is_free: true,
+  is_roaming_free: true,
   credit: { currency : 'R$' },
   balance: { 
     destination: '8000',
     text: 'SALDO',
     senders: ['1515'],
-    regexp: 'R\\$\\s*([0-9]+)(?:[,\\.]([0-9]+))?'
+    regexp: 'Saldo Recarga: R\\$\\s*([0-9]+)(?:[,\\.]([0-9]+))?'
   },
   topup: {
     destination: '7000',
@@ -150,5 +155,5 @@ writeContent(init, JSON.stringify(content));
 
 // SMS
 init = getFile(GAIA_DIR, 'apps', 'sms', 'js', 'blacklist.json');
-content = ["1515"];
+content = ["1515", "7000"];
 writeContent(init, JSON.stringify(content));

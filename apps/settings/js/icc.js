@@ -18,6 +18,7 @@
   var iccLastCommandProcessed = false;
   var stkOpenAppName = null;
   var stkLastSelectedTest = null;
+  var displayTextTimeout = 10000;
   var icc;
 
   init();
@@ -84,6 +85,13 @@
         }
       }
     }
+
+    // Update displayTextTimeout with settings parameter
+    var reqDisplayTimeout =
+      window.navigator.mozSettings.createLock().get('icc.displayTextTimeout');
+    reqDisplayTimeout.onsuccess = function icc_getDisplayTimeout() {
+      displayTextTimeout = reqDisplayTimeout.result['icc.displayTextTimeout'];
+    };
   }
 
   /**
@@ -517,7 +525,7 @@
   function displayText(command, cb) {
     var options = command.options;
     if (!options.userClear) {
-    var timeoutId = setTimeout(function() {
+      var timeoutId = setTimeout(function() {
         alertbox.classList.add('hidden');
         if (cb) {
           cb(false);

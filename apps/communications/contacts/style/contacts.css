@@ -39,57 +39,58 @@ section[role="region"] > header:first-child sup {
 
 /* Contact detail main section */
 
-.view-contact-profile article.view-body {
-  position: absolute;
-  width: calc(100% + 1rem);
-  min-height: calc(100% + 2rem);
+.view-contact-profile .view-body {
+  position: relative;
+  overflow-x: hidden;
+  overflow-y: auto;
+  background-color: #f5f5f5;
 }
 
-.view-contact-profile .view-body-inner {
+.view-contact-profile #cover-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   background: transparent no-repeat;
-  transform: translateY(-7rem);
   background-size: 100% auto;
-  padding: 0;
-  background-color: #f5f5f5;
-  overflow: visible;
-  position: relative;
-  min-height: 100%;
+  transform: translateY(-7rem);
+}
+
+.view-contact-profile #cover-img.up {
+  transition: transform 0.25s ease-out;
 }
 
 #contact-detail-inner {
   padding-bottom: 1rem;
 }
 
-.view-contact-profile .view-body-inner.up {
-  transform: translateY(-7rem);
-  transition: transform 0.25s ease-out;
-}
-
-.view-contact-profile .view-body-inner > section {
+.view-contact-profile .view-body-inner {
+  position: relative;
   padding: 0 2rem;
   background: #f5f5f5;
-  min-height: calc(100% - 16rem);
   overflow: hidden;
   width: 100%;
-  position: absolute;
+  min-height: calc(100% - 8rem);
   -moz-box-sizing: border-box;
+  transform: translateY(8rem);
+}
+
+.view-contact-profile .view-body-inner.up {
+  transition: transform 0.5s ease-out;
 }
 
 .view-contact-profile .view-body-inner hr {
   margin-top: 0;
 }
 
-.view-contact-profile .view-body-inner > section h1{
+.view-contact-profile .view-body-inner h1 {
   padding-top: 1.4rem;
 }
 
-.view-contact-profile .view-body-inner > section.no-photo {
-  transform: translateY(8rem);
-}
-
-.view-contact-profile .view-body-inner > section.up {
-  transform: translateY(16rem);
-  transition: transform 0.5s ease-out;
+.view-contact-profile .view-body-inner.no-photo {
+  transform: translateY(0);
+  min-height: 100%;
 }
 
 .view-contact-profile .view-body-inner .comment-notes {
@@ -287,7 +288,6 @@ fieldset legend.action:after {
 */
 
 #loading-overlay {
-  pointer-events: none;
   display: none;
   z-index: 200;
   background: rgba(0,0,0,.8);
@@ -372,10 +372,6 @@ fieldset legend.action:after {
 /* SETTINGS */
 section[role="region"] > header .icon.icon-settings
      { background-image: url(/contacts/style/gphx/bitmap/default/vw-header/icons/settings.png); }
-
-section.view[data-state="active"] {
-  transition: transform 0.5s ease;
-}
 
 #view-settings .view-body-inner {
   padding: 0;

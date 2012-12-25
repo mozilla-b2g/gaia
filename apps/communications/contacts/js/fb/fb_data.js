@@ -30,10 +30,6 @@ if (!window.fb.contacts) {
       function continueCb() {
         numResponses++;
         pointer++;
-        continuee();
-      }
-
-      function continuee() {
         if (pointer < self.items.length && numResponses === CHUNK_SIZE) {
           numResponses = 0;
           migrateSlice(pointer);
@@ -332,6 +328,35 @@ if (!window.fb.contacts) {
       },0);
 
       return retRequest;
+    }
+
+    contacts.clear = function() {
+      var outRequest = new fb.utils.Request();
+
+       window.setTimeout(function clear() {
+        contacts.init(function() {
+          doClear(outRequest);
+        },
+        function() {
+           initError(outRequest);
+        });
+      },0);
+
+      return outRequest;
+    }
+
+    function doClear(outRequest) {
+      var transaction = database.transaction([STORE_NAME], 'readwrite');
+      transaction.oncomplete = function(e) {
+        outRequest.done(e.target.result);
+      }
+
+      transaction.onerror = function(e) {
+        outRequest.failed(e.target.error);
+      }
+      var objectStore = transaction.objectStore(STORE_NAME);
+
+      objectStore.clear();
     }
 
     function notifyOpenSuccess(cb) {

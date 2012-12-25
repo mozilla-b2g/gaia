@@ -1,20 +1,6 @@
 'use strict';
 
 var CallHandler = (function callHandler() {
-  var telephony = navigator.mozTelephony;
-  telephony.oncallschanged = function oncallschanged() {
-    if (callScreenWindowLoaded) {
-      if (telephony.calls.length === 0)
-        // Calls might be ended before callscreen registers call-related
-        // events. We send a message to notify callscreen of exiting when
-        // there are no calls.
-        sendCommandToCallScreen('*', 'exitCallScreen');
-    }
-  };
-
-  var conn = navigator.mozMobileConnection;
-  var _ = navigator.mozL10n.get;
-
   var callScreenWindow = null;
   var callScreenWindowLoaded = false;
   var currentActivity = null;
@@ -74,45 +60,50 @@ var CallHandler = (function callHandler() {
 
   function handleNotificationRequest(number) {
     Contacts.findByNumber(number, function lookup(contact) {
-      var title = _('missedCall');
-      var sender = (number && number.length) ? number : _('unknown');
+      LazyL10n.get(function localized(_) {
+        var title = _('missedCall');
+        var sender = (number && number.length) ? number : _('unknown');
 
-      if (contact && contact.name) {
-        sender = contact.name;
-      }
+        if (contact && contact.name) {
+          sender = contact.name;
+        }
 
-      var body = _('from', {sender: sender});
+        var body = _('from', {sender: sender});
 
-      navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
-        var app = evt.target.result;
+        navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+          var app = evt.target.result;
 
-        var iconURL = NotificationHelper.getIconURI(app, 'dialer');
+          var iconURL = NotificationHelper.getIconURI(app, 'dialer');
 
-        var clickCB = function() {
-          app.launch('dialer');
-          window.location.hash = '#recents-view';
+          var clickCB = function() {
+            app.launch('dialer');
+            window.location.hash = '#recents-view';
+          };
+
+          NotificationHelper.send(title, body, iconURL, clickCB);
         };
-
-        NotificationHelper.send(title, body, iconURL, clickCB);
-      };
+      });
     });
   }
 
   /* === Recents support === */
   function handleRecentAddRequest(entry) {
-    RecentsDBManager.init(function() {
-      RecentsDBManager.add(entry, function() {
-        RecentsDBManager.close();
-
-        if (Recents) {
+    Recents.load(function recentsLoaded() {
+      RecentsDBManager.init(function() {
+        RecentsDBManager.add(entry, function() {
+          RecentsDBManager.close();
           Recents.refresh();
-        }
+        });
       });
     });
   }
 
   /* === Incoming and STK calls === */
   function newCall() {
+    // We need to query mozTelephony a first time here
+    // see bug 823958
+    var telephony = navigator.mozTelephony;
+
     openCallScreen();
   }
   window.navigator.mozSetMessageHandler('telephony-new-call', newCall);
@@ -212,6 +203,8 @@ var CallHandler = (function callHandler() {
 
   function startDial(number) {
     var sanitizedNumber = number.replace(/-/g, '');
+
+    var telephony = navigator.mozTelephony;
     if (telephony) {
       var call = telephony.dial(sanitizedNumber);
 
@@ -230,61 +223,65 @@ var CallHandler = (function callHandler() {
   }
 
   function handleFlightMode() {
-    ConfirmDialog.show(
-      _('callAirplaneModeTitle'),
-      _('callAirplaneModeMessage'),
-      {
-        title: _('cancel'),
-        callback: function() {
-          ConfirmDialog.hide();
-
-          if (currentActivity) {
-            currentActivity.postError('canceled');
-            currentActivity = null;
-          }
-        }
-      },
-      {
-        title: _('settings'),
-        callback: function() {
-          var activity = new MozActivity({
-            name: 'configure',
-              data: {
-                target: 'device',
-                section: 'root'
-              }
-            }
-          );
-          ConfirmDialog.hide();
-        }
-      }
-    );
-  }
-
-  function handleError(event) {
-    var erName = event.call.error.name, emgcyDialogBody,
-        errorRecognized = false;
-
-    if (erName === 'BadNumberError') {
-      errorRecognized = true;
-      emgcyDialogBody = 'emergencyDialogBodyBadNumber';
-    } else if (erName === 'DeviceNotAcceptedError') {
-      errorRecognized = true;
-      emgcyDialogBody = 'emergencyDialogBodyDeviceNotAccepted';
-    }
-
-    if (errorRecognized) {
+    LazyL10n.get(function localized(_) {
       ConfirmDialog.show(
-        _('emergencyDialogTitle'),
-        _(emgcyDialogBody),
+        _('callAirplaneModeTitle'),
+        _('callAirplaneModeMessage'),
         {
-          title: _('emergencyDialogBtnOk'),
+          title: _('cancel'),
           callback: function() {
+            ConfirmDialog.hide();
+
+            if (currentActivity) {
+              currentActivity.postError('canceled');
+              currentActivity = null;
+            }
+          }
+        },
+        {
+          title: _('settings'),
+          callback: function() {
+            var activity = new MozActivity({
+              name: 'configure',
+                data: {
+                  target: 'device',
+                  section: 'root'
+                }
+              }
+            );
             ConfirmDialog.hide();
           }
         }
       );
-    }
+    });
+  }
+
+  function handleError(event) {
+    LazyL10n.get(function localized(_) {
+      var erName = event.call.error.name, emgcyDialogBody,
+          errorRecognized = false;
+
+      if (erName === 'BadNumberError') {
+        errorRecognized = true;
+        emgcyDialogBody = 'emergencyDialogBodyBadNumber';
+      } else if (erName === 'DeviceNotAcceptedError') {
+        errorRecognized = true;
+        emgcyDialogBody = 'emergencyDialogBodyDeviceNotAccepted';
+      }
+
+      if (errorRecognized) {
+        ConfirmDialog.show(
+          _('emergencyDialogTitle'),
+          _(emgcyDialogBody),
+          {
+            title: _('emergencyDialogBtnOk'),
+            callback: function() {
+              ConfirmDialog.hide();
+            }
+          }
+        );
+      }
+    });
   }
 
   /* === Attention Screen === */
@@ -301,6 +298,8 @@ var CallHandler = (function callHandler() {
                   'call_screen', 'attention');
       callScreenWindow.onload = function onload() {
         callScreenWindowLoaded = true;
+
+        var telephony = navigator.mozTelephony;
         if (telephony.calls.length === 0) {
           // Calls might be ended before callscreen is comletedly loaded,
           // so that callscreen will miss call-related events. We send a
@@ -338,6 +337,10 @@ var CallHandler = (function callHandler() {
     callScreenWindow = null;
     callScreenWindowLoaded = false;
   }
+
+  /* === USSD === */
+  window.navigator.mozSetMessageHandler('ussd-received',
+                                        UssdManager.openUI.bind(UssdManager));
 
   return {
     call: call
@@ -383,9 +386,15 @@ var NavbarManager = {
         checkContactsTab();
         Recents.updateContactDetails();
         recent.classList.add('toolbar-option-selected');
+        Recents.load();
         Recents.updateLatestVisit();
         break;
       case '#contacts-view':
+        var frame = document.getElementById('iframe-contacts');
+        if (!frame.src) {
+          frame.src = '/contacts/index.html';
+        }
+
         contacts.classList.add('toolbar-option-selected');
         Recents.updateHighlighted();
         break;
@@ -398,17 +407,11 @@ var NavbarManager = {
   }
 };
 
-window.addEventListener('localized', function startup(evt) {
-  window.removeEventListener('localized', startup);
+window.addEventListener('load', function startup(evt) {
+  window.removeEventListener('load', startup);
+
   KeypadManager.init();
   NavbarManager.init();
-
-  // Set the 'lang' and 'dir' attributes to <html> when the page is translated
-  document.documentElement.lang = navigator.mozL10n.language.code;
-  document.documentElement.dir = navigator.mozL10n.language.direction;
-
-  // <body> children are hidden until the UI is translated
-  document.body.classList.remove('hidden');
 });
 
 // Listening to the keyboard being shown
@@ -427,4 +430,3 @@ document.addEventListener('mozvisibilitychange', function visibility(e) {
     Recents.refresh();
   }
 });
-

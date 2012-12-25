@@ -26,14 +26,16 @@
     <link rel="resource" type="application/json" href="shared/resources/tz.json"/>
     <link rel="resource" type="application/json" href="shared/resources/apn.json"/>
     <link rel="resource" type="application/json" href="shared/resources/languages.json"/>
+    <link rel="resource" type="application/json" href="shared/resources/media/ringtones/"/>
+    <link rel="resource" type="application/json" href="shared/resources/media/notifications/"/>
     -->
 
     <!-- Localization -->
     <link rel="resource" type="application/l10n" href="shared/locales/branding.ini"/>
-    <link rel="resource" type="application/l10n" href="locales/locales.ini"/>
     <link rel="resource" type="application/l10n" href="shared/locales/date.ini"/>
     <link rel="resource" type="application/l10n" href="shared/locales/permissions.ini"/>
     <link rel="resource" type="application/l10n" href="shared/locales/tz.ini"/>
+    <link rel="resource" type="application/l10n" href="locales/locales.ini"/>
     <script type="application/javascript" src="shared/js/l10n.js"></script>
     <script type="application/javascript" src="shared/js/l10n_date.js"></script>
 
@@ -45,6 +47,7 @@
     <script type="application/javascript" defer src="js/battery.js"></script>
     <script type="application/javascript" defer src="js/app_storage.js"></script>
     <script type="application/javascript" defer src="js/media_storage.js"></script>
+    <script type="application/javascript" defer src="shared/js/mobile_operator.js"></script>
     <script type="application/javascript" defer src="js/connectivity.js"></script>
     <script type="application/javascript" defer src="js/security_privacy.js"></script>
     <script type="application/javascript" defer src="js/icc_menu.js"></script>
@@ -347,7 +350,7 @@
       <ul id="cf-notreachable-advanced">
         <li>
           <p data-l10n-id="cf-numberWhenUnreachable">Number when unreachable</p>
-          <input type="text" data-setting="ril.cf.notreachable.number" />
+          <input type="text" id="cf-notreachable-number" data-setting="ril.cf.notreachable.number" disabled/>
         </li>
         <li>
           <label>
@@ -371,7 +374,7 @@
       <ul id="cf-noreply-advanced">
         <li>
           <p data-l10n-id="cf-numberWhenUnanswered">Number when unanswered</p>
-          <input type="text" data-setting="ril.cf.noreply.number" />
+          <input type="text" id="cf-noreply-number" data-setting="ril.cf.noreply.number" disabled/>
         </li>
         <li>
           <label>
@@ -395,7 +398,7 @@
       <ul id="cf-mobilebusy-advanced">
         <li>
           <p data-l10n-id="cf-numberWhenBusy">Number when busy</p>
-          <input type="text" data-setting="ril.cf.mobilebusy.number" />
+          <input type="text" id="cf-mobilebusy-number" data-setting="ril.cf.mobilebusy.number" disabled/>
         </li>
         <li>
           <label>
@@ -419,7 +422,7 @@
       <ul id="cf-unconditional-advanced">
         <li>
           <p data-l10n-id="cf-alwaysUseThisNumber">Always use this number</p>
-          <input type="text" data-setting="ril.cf.unconditional.number"/>
+          <input type="text" id="cf-unconditional-number" data-setting="ril.cf.unconditional.number" disabled/>
         </li>
         <li>
           <label>
@@ -441,9 +444,12 @@
       </header>
 
       <ul>
-        <li>
-          <label>
-            <input type="checkbox" data-type="switch" name="ril.callwaiting.enabled"/>
+        <li id="menuItem-callWaiting" data-state="off">
+          <label class="checkbox-label">
+            <input type="checkbox" data-type="switch"/>
+            <span></span>
+          </label>
+          <label class="alert-label" hidden>
             <span></span>
           </label>
           <a data-l10n-id="callWaiting">Call Waiting</a>
@@ -454,23 +460,43 @@
         <h2 data-l10n-id="callForwarding"> Call Forwarding </h2>
       </header>
       <ul>
-        <li>
+        <li id="li-cfu-desc" class="disabled">
           <small id="cfu-desc"></small>
           <a id="menuItem-callForwardingUnconditional" href="#call-cf-unconditionalSettings" data-l10n-id="callForwardingUnconditional">Always forward</a>
         </li>
-        <li>
+        <li id="li-cfmb-desc" class="disabled">
           <small id="cfmb-desc"></small>
           <a id="menuItem-callForwardingMobileBusy" href="#call-cf-mobileBusySettings" data-l10n-id="callForwardingMobileBusy">Forward when busy</a>
         </li>
-        <li>
+        <li id="li-cfnrep-desc" class="disabled">
           <small id="cfnrep-desc"></small>
           <a id="menuItem-callForwardingNoReply" href="#call-cf-noReplySettings" data-l10n-id="callForwardingNoReply">Forward when unanswered</a>
         </li>
-        <li>
+        <li id="li-cfnrea-desc" class="disabled">
           <small id="cfnrea-desc"></small>
           <a id="menuItem-callForwardingNotReachable" href="#call-cf-notReachableSettings" data-l10n-id="callForwardingNotReachable">Forward when unreachable</a>
         </li>
       </ul>
+
+      <form role="dialog" data-type="confirm" hidden class="cw-alert">
+        <section>
+          <h1 data-l10n-id="confirmCallWaitingTitle">Unable to confirm call waiting preferences</h1>
+          <p>
+            <strong data-l10n-id="confirmCallWaitingDesc">The device is currently unable to communicate with the carrier. Try setting the preference again.</strong>
+          </p>
+          <p class="cw-alert-sub-p">
+            <label class="cw-alert-checkbox-label">
+              <input type="checkbox" data-type="switch"/>
+              <span></span>
+            </label>
+            <span data-l10n-id="callWaiting">Call Waiting</span>
+          </p>
+        </section>
+        <menu>
+          <button class="cw-alert-cancel" data-l10n-id="cancel">Cancel</button>
+          <button class="cw-alert-set recommend" data-l10n-id="set">Set</button>
+        </menu>
+      </form>
 
       <script type="application/javascript" src="js/call.js"></script>
       -->
@@ -488,9 +514,9 @@
         <li>
           <span data-l10n-id="operator-networkType">Network Type
             <select name="ril.radio.preferredNetworkType" id="preferredNetworkType">
-              <option data-l10n-id="operator-networkType-auto" value="wcmda/gsm">Automatic</option>
+              <option data-l10n-id="operator-networkType-auto" value="wcdma/gsm">Automatic</option>
               <option data-l10n-id="operator-networkType-2G" value="gsm">2G only</option>
-              <option data-l10n-id="operator-networkType-3G" value="wcmda">3G only</option>
+              <option data-l10n-id="operator-networkType-3G" value="wcdma">3G only</option>
             </select>
           </span>
         </li>
@@ -1537,15 +1563,6 @@
         <h2 data-l10n-id="permissions">Permissions</h2>
       </header>
       <ul>
-        <li>
-          <span>settings
-            <select>
-              <option>ask</option>
-              <option>deny</option>
-              <option>allow</option>
-            </select>
-          </span>
-        </li>
       </ul>
 
       <header>
@@ -1663,13 +1680,6 @@
             <span></span>
           </label>
           <a data-l10n-id="dev-mode">Developer Mode</a>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" name="debug.oop.disabled"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="oop-disabled">Disable Out-Of-Process</a>
         </li>
         <li>
           <label>
@@ -2201,7 +2211,7 @@
         </li>
         <li>
           <label>
-            <input type="checkbox" name="debug.peformancedata.shared" />
+            <input type="checkbox" name="debug.performance_data.shared" />
             <span></span>
           </label>
           <a data-l10n-id="sharePerformanceData">Submit performance data</a>
@@ -2342,7 +2352,7 @@
         </li>
         <li>
           <small id="call-desc" class="menu-item-desc"></small>
-          <a id="menuItem-call" class="menu-item" href="#call"
+          <a id="menuItem-callSettings" class="menu-item" href="#call"
             data-l10n-id="callSettings">Call Settings</a>
         </li>
         <li id="data-connectivity">
@@ -2456,7 +2466,7 @@
 
       <!-- Main :: SIM Toolkit -->
       <header id="icc-mainheader" hidden>
-        <h2 data-l10n-id="simToolkit">SIM Toolkit</h2>
+        <h2 data-l10n-id="operatorServices">Operator Services</h2>
       </header>
       <ul id="icc-mainentry" hidden>
         <li>

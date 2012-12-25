@@ -49,7 +49,7 @@ if (typeof fb.importer === 'undefined') {
     var FRIENDS_QUERY = [
       'SELECT uid, name, first_name, last_name, pic_big, current_location, ' ,
       'middle_name, birthday_date, email, profile_update_time, ' ,
-      ' work, education, cell, other_phone, hometown_location' ,
+      ' work, education, phones, hometown_location' ,
       ' FROM user' ,
       ' WHERE uid ',
       'IN (SELECT uid1 FROM friend WHERE uid2=me())' ,
@@ -69,8 +69,6 @@ if (typeof fb.importer === 'undefined') {
     var friendsMsgElement = document.querySelector('#friends-msg');
     var scrollableElement = document.querySelector('#mainContent');
     var imgLoader;
-
-    var BLOCK_SIZE = 5;
 
     UI.init = function() {
       var overlay;
@@ -590,23 +588,53 @@ if (typeof fb.importer === 'undefined') {
       }
     }
 
+    function getCleaner(mode, contacts, cb) {
+      if (mode === 'update') {
+        var cleaner = new fb.utils.FbContactsCleaner(contacts, mode);
+        window.setTimeout(cleaner.start, 0);
+        cb(cleaner);
+      }
+      else {
+        // Mode === clear
+        var req = fb.utils.clearFbData();
+        req.onsuccess = function() {
+          cb(req.result);
+        }
+
+        req.onerror = function(e) {
+          window.console.error('Error while starting cleaning: ',
+                               e.target.error.name);
+          cb(null);
+        }
+      }
+    }
+
     function cleanContacts(onsuccess, progress) {
       var contacts = [];
+      var unSelectedKeys = Object.keys(unSelectedContacts);
       // FbContactsCleaner expects an Array object
-      Object.keys(unSelectedContacts).forEach(function iterator(uid) {
+      unSelectedKeys.forEach(function iterator(uid) {
         var deviceContacts = unSelectedContacts[uid];
         for (var i = 0; i < deviceContacts.length; i++) {
           contacts.push(deviceContacts[i]);
         }
       });
 
-      var cleaner = new fb.utils.FbContactsCleaner(contacts);
+      // To optimize if the user wishes to unselect all
+      var mode = 'update';
+      if (unSelectedKeys.length === existingFbContacts.length) {
+        mode = 'clear';
+      }
 
-      cleaner.oncleaned = progress.update;
-      cleaner.onsuccess = onsuccess;
-
-      // The cleaning activity should be starting immediately
-      window.setTimeout(cleaner.start, 0);
+      getCleaner(mode, contacts, function got_cleaner(cleaner) {
+        if (cleaner) {
+          cleaner.oncleaned = progress.update;
+          cleaner.onsuccess = onsuccess;
+        }
+        else {
+          Importer.errorHandler();
+        }
+      });
     }
 
     function getTotalUnselected() {

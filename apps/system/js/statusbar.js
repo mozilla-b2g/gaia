@@ -77,8 +77,9 @@ var StatusBar = {
       'tethering.wifi.enabled': ['tethering'],
       'tethering.wifi.connectedClients': ['tethering'],
       'tethering.usb.connectedClients': ['tethering'],
-      'audio.volume.master': ['mute'],
+      'ring.enabled': ['mute'],
       'alarm.enabled': ['alarm'],
+      'vibration.enabled': ['vibration'],
       'ril.cf.unconditional.enabled': ['callForwarding']
     };
 
@@ -132,6 +133,16 @@ var StatusBar = {
         this.update.label.call(this);
         break;
 
+      case 'cardstatechange':
+        this.update.signal.call(this);
+        this.update.label.call(this);
+        this.update.data.call(this);
+        break;
+
+      case 'callschanged':
+        this.update.signal.call(this);
+        break;
+
       case 'iccinfochange':
         this.update.label.call(this);
         break;
@@ -142,6 +153,7 @@ var StatusBar = {
 
       case 'bluetoothconnectionchange':
         this.update.bluetooth.call(this);
+        break;
 
       case 'moztimechange':
         this.update.time.call(this);
@@ -249,27 +261,11 @@ var StatusBar = {
         return;
       }
 
-      var voice = conn.voice;
-      var iccInfo = conn.iccInfo;
-      var network = voice.network;
-      l10nArgs.operator = network.shortName || network.longName;
+      var operatorInfos = MobileOperator.userFacingInfo(conn);
+      l10nArgs.operator = operatorInfos.operator;
 
-      if (iccInfo.isDisplaySpnRequired && iccInfo.spn) {
-        if (iccInfo.isDisplayNetworkNameRequired) {
-          l10nArgs.operator = l10nArgs.operator + ' ' + iccInfo.spn;
-        } else {
-          l10nArgs.operator = iccInfo.spn;
-        }
-      }
-
-      if (network.mcc == 724 &&
-        voice.cell && voice.cell.gsmLocationAreaCode) {
-        // We are in Brazil, It is legally required to show local region name
-
-        var lac = voice.cell.gsmLocationAreaCode % 100;
-        var region = MobileInfo.brazil.regions[lac];
-        if (region)
-          l10nArgs.operator += ' ' + region;
+      if (operatorInfos.region) {
+        l10nArgs.operator += ' ' + operatorInfos.region;
       }
 
       label.dataset.l10nArgs = JSON.stringify(l10nArgs);
@@ -344,22 +340,36 @@ var StatusBar = {
       flightModeIcon.hidden = true;
       icon.hidden = false;
 
-      icon.dataset.roaming = voice.roaming;
-      if (!voice.connected && !voice.emergencyCallsOnly) {
-        // "No Network" / "Searching"
-        icon.dataset.level = -1;
-
-        // Possible value of voice.state are
-        // 'notSearching', 'searching', 'denied', 'registered',
-        // where the later three means the phone is trying to grabbing
-        // the network. See
-        // https://bugzilla.mozilla.org/show_bug.cgi?id=777057
-        icon.dataset.searching = (voice.state !== 'notSearching');
-
-      } else {
-        // "Emergency Calls Only (REASON)" / "Carrier" / "Carrier (Roaming)"
+      if (conn.cardState === 'absent') {
+        // no SIM
+        delete icon.dataset.level;
+        delete icon.dataset.emergency;
+        delete icon.dataset.searching;
+        delete icon.dataset.roaming;
+      } else if (voice.connected || this.hasActiveCall()) {
+        // "Carrier" / "Carrier (Roaming)"
         icon.dataset.level = Math.ceil(voice.relSignalStrength / 20); // 0-5
+        icon.dataset.roaming = voice.roaming;
+
+        delete icon.dataset.emergency;
+        delete icon.dataset.searching;
+      } else {
+        // "No Network" / "Emergency Calls Only (REASON)" / trying to connect
+        icon.dataset.level = -1;
+        // logically, we should have "&& !voice.connected" as well but we
+        // already know this.
+        icon.dataset.searching = (!voice.emergencyCallsOnly &&
+                                  voice.state !== 'notSearching');
+        icon.dataset.emergency = (voice.emergencyCallsOnly);
+        delete icon.dataset.roaming;
       }
+
+      if (voice.emergencyCallsOnly) {
+        this.addCallListener();
+      } else {
+        this.removeCallListener();
+      }
+
     },
 
     data: function sb_updateSignal() {
@@ -451,7 +461,16 @@ var StatusBar = {
 
     mute: function sb_updateMute() {
       this.icons.mute.hidden =
-        (this.settingValues['audio.volume.master'] !== 0);
+        (this.settingValues['ring.enabled'] == true);
+    },
+
+    vibration: function sb_vibration() {
+      var vibrate = (this.settingValues['vibration.enabled'] == true);
+      if (vibrate) {
+        this.icons.mute.classList.add('vibration');
+      } else {
+        this.icons.mute.classList.remove('vibration');
+      }
     },
 
     recording: function sb_updateRecording() {
@@ -520,6 +539,27 @@ var StatusBar = {
     }
   },
 
+  hasActiveCall: function sb_hasActiveCall() {
+    var telephony = navigator.mozTelephony;
+
+    // will return true as soon as we begin dialing
+    return !!(telephony && telephony.active);
+  },
+
+  addCallListener: function sb_addCallListener() {
+    var telephony = navigator.mozTelephony;
+    if (telephony) {
+      telephony.addEventListener('callschanged', this);
+    }
+  },
+
+  removeCallListener: function sb_addCallListener() {
+    var telephony = navigator.mozTelephony;
+    if (telephony) {
+      telephony.removeEventListener('callschanged', this);
+    }
+  },
+
   updateNotification: function sb_updateNotification(count) {
     var icon = this.icons.notification;
     if (!count) {
@@ -568,4 +608,11 @@ var StatusBar = {
   }
 };
 
-StatusBar.init();
+if (navigator.mozL10n.readyState == 'complete' ||
+    navigator.mozL10n.readyState == 'interactive') {
+  StatusBar.init();
+} else {
+  window.addEventListener('localized', StatusBar.init.bind(StatusBar));
+}
+
+

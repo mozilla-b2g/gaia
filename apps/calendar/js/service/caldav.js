@@ -311,7 +311,7 @@ Calendar.ns('Service').Caldav = (function() {
      */
     formatICALTime: function(time) {
       var zone = time.zone;
-      var offset = zone.utc_offset() * 1000;
+      var offset = time.utcOffset() * 1000;
       var utc = time.toUnixTime() * 1000;
 
       utc += offset;
@@ -345,14 +345,14 @@ Calendar.ns('Service').Caldav = (function() {
       var offset = time.offset;
       var result;
 
-      if (tzid === ICAL.Timezone.local_timezone.tzid) {
+      if (tzid === ICAL.Timezone.localTimezone.tzid) {
         result = new ICAL.Time();
         result.fromUnixTime(utc / 1000);
-        result.zone = ICAL.Timezone.local_timezone;
+        result.zone = ICAL.Timezone.localTimezone;
       } else {
         result = new ICAL.Time();
         result.fromUnixTime((utc - offset) / 1000);
-        result.zone = ICAL.Timezone.utc_timezone;
+        result.zone = ICAL.Timezone.utcTimezone;
       }
 
       return result;
@@ -377,6 +377,14 @@ Calendar.ns('Service').Caldav = (function() {
       var parser = new ICAL.ComponentParser();
       var primaryEvent;
       var exceptions = [];
+
+      parser.ontimezone = function(zone) {
+        var id = zone.tzid;
+
+        if (!ICAL.TimezoneService.has(id)) {
+          ICAL.TimezoneService.register(id, zone);
+        }
+      }
 
       parser.onevent = function(item) {
         if (item.isRecurrenceException()) {
@@ -576,7 +584,6 @@ Calendar.ns('Service').Caldav = (function() {
 
         if (err) {
           callback(err);
-          console.log('ERR', ical);
           return;
         }
 

@@ -46,6 +46,9 @@ function openLink(url) {
  */
 
 function openDialog(dialogID, onSubmit, onReset) {
+  if('#' + dialogID == document.location.hash)
+    return;
+
   var origin = document.location.hash;
   var dialog = document.getElementById(dialogID);
 
@@ -268,7 +271,8 @@ function bug344618_polyfill() {
  */
 
 function onLocalized(callback) {
-  if (navigator.mozL10n.readyState == 'complete') {
+  if (navigator.mozL10n.readyState == 'complete' ||
+      navigator.mozL10n.readyState == 'interactive') {
     callback();
   } else {
     window.addEventListener('localized', callback);

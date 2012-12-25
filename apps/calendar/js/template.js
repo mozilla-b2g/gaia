@@ -42,7 +42,9 @@
         span.textContent = arg;
         return span.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
       } else {
-        return String(arg);
+        // we don't want to call String in the case of "".
+        // we emit a string version rather then an empty string.
+        return arg || '';
       }
     },
 

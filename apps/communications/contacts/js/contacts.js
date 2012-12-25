@@ -57,7 +57,7 @@ var Contacts = (function() {
           contactsDetails.render(currentContact, TAG_OPTIONS);
           if (params['tel'])
             contactsDetails.reMark('tel', params['tel']);
-          navigation.go(sectionId, 'none');
+          navigation.go(sectionId, 'right-left');
         }, function onError() {
           console.error('Error retrieving contact');
         });
@@ -497,12 +497,12 @@ var Contacts = (function() {
   // When a visiblity change is sent, handles and updates the
   // different views according to the app state
   var handleVisibilityChange = function handleVisibilityChange() {
-    contacts.List.load();
     switch (navigation.currentView()) {
       case 'view-contact-details':
         if (!currentContact) {
           return;
         }
+        contacts.List.load();
         contacts.List.getContactById(currentContact.id, function(contact) {
           if (isUpdated(contact, currentContact)) {
             return;
@@ -515,6 +515,7 @@ var Contacts = (function() {
         if (!currentContact) {
           return;
         }
+        contacts.List.load();
         contacts.List.getContactById(currentContact.id, function(contact) {
           if (!contact || isUpdated(contact, currentContact)) {
             return;
@@ -523,6 +524,9 @@ var Contacts = (function() {
           contactsDetails.render(currentContact, TAG_OPTIONS);
           navigation.back();
         });
+        break;
+      case 'view-contacts-list':
+        contacts.List.load();
         break;
     }
   };
@@ -592,9 +596,9 @@ var Contacts = (function() {
       '#settings-done': doneTag,
       '#settings-close': contacts.Settings.close,
       '#cancel-search': contacts.Search.exitSearchMode, // Search related
-      '#search-contact': [
+      '#search-start': [
         {
-          event: 'focus',
+          event: 'click',
           handler: contacts.Search.enterSearchMode
         }
       ],

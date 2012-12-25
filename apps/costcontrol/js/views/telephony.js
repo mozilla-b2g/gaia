@@ -1,94 +1,112 @@
-/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-'use strict';
+/*
+ * The telephony tab is in charge of show telephony and billing cycle
+ * information.
+ *
+ * It has two areas of drawing: one for the counters and another for
+ */
 
-// Data Usage is in charge of display detailed information about data
-// consumption per application and interface.
-var TAB_TELEPHONY = 'telephony-tab';
-viewManager.tabs[TAB_TELEPHONY] = (function cc_setUpDataUsage() {
 
-  function _init() {
-    var status = Service.getServiceStatus();
-    if (!status.enabledFunctionalities.telephony) {
-      debug('Telephony functionality disabled. Skippin Telephony Tab set up.');
+var TelephonyTab = (function() {
+  'use strict';
+  var costcontrol, tabmanager, initialized = false;
+  var view, smscount, calltime, time, resetDate;
+  function setupTab(tmgr) {
+    if (initialized)
       return;
-    }
 
-    debug('Initializing Telephony Tab');
-    var balanceFilter = document.getElementById('telephony-tab-filter');
-    balanceFilter.addEventListener('click', function ccapp_onBalanceTab() {
-      viewManager.changeViewTo(TAB_TELEPHONY);
+    CostControl.getInstance(function _onCostControl(instance) {
+      costcontrol = instance;
+      tabmanager = tmgr;
+
+      // HTML entities
+      view = document.getElementById('telephony-tab');
+      smscount = document.getElementById('telephony-smscount');
+      calltime = document.getElementById('telephony-calltime');
+      time = document.getElementById('telephony-time');
+      resetDate = document.getElementById('reset-date');
+
+      window.addEventListener('localized', localize);
+
+      // Configure showing tab
+      var tabButton = document.getElementById('telephony-tab-filter');
+      tabButton.addEventListener('click', function _showTab() {
+        tabmanager.changeViewTo('telephony-tab');
+      });
+
+      // Configure updates
+      document.addEventListener('mozvisibilitychange', updateWhenVisible, true);
+      ConfigManager.observe('lastTelephonyActivity', updateCounters, true);
+      ConfigManager.observe('lastTelephonyReset', updateTimePeriod, true);
+      ConfigManager.observe('nextReset', updateNextReset, true);
+
+      updateUI();
+      initialized = true;
     });
-
-    // Observe smscount and calltime
-    Service.settings.observe('smscount', _updateUICounters);
-    Service.settings.observe('calltime', _updateUICounters);
-    Service.settings.observe('lastreset', _updateUICounters);
-    Service.settings.observe('next_reset', _updateUITrackingInfo);
-
-    _updateUI();
   }
 
-  function _updateUICounters() {
-    function toMinutes(milliseconds) {
-      return Math.ceil(milliseconds / (1000 * 60));
-    }
-
-    // Dates
-    var formattedTime = _('never');
-    var lastReset = Service.settings.option('lastreset');
-    if (lastReset !== null)
-      formattedTime = (new Date(lastReset))
-                      .toLocaleFormat(_('short-date-format'));
-    document.getElementById('telephony-from-date').textContent = formattedTime;
-
-    var now = new Date();
-    document.getElementById('telephony-to-date').textContent =
-      _('today') + ', ' + now.toLocaleFormat('%H:%M');
-
-    // Counters
-    document.getElementById('calltime').textContent =
-      toMinutes(Service.settings.option('calltime'));
-    document.getElementById('smscount').textContent =
-      Service.settings.option('smscount');
-
+  function localize() {
+    if (initialized)
+      updateUI();
   }
 
-  function _updateUITrackingInfo() {
-    var resetDate = document.getElementById('reset-date');
-    var trackingPeriod = Service.settings.option('tracking_period');
-    if (trackingPeriod === Service.TRACKING_NEVER) {
-      resetDate.textContent = _('never');
+  function finalize() {
+    if (!initialized)
       return;
-    }
 
-    var nextResetDate = Service.settings.option('next_reset');
-    if (!nextResetDate) {
-      resetDate.textContent = _('never');
-      return;
-    }
+    document.removeEventListener('mozvisibilitychange', updateWhenVisible);
+    ConfigManager.removeObserver('lastTelephonyActivity', updateCounters);
+    ConfigManager.removeObserver('lastTelephonyReset', updateTimePeriod);
+    ConfigManager.removeObserver('nextReset', updateNextReset);
 
-    resetDate.textContent =
-      nextResetDate.toLocaleFormat(_('short-date-format'));
+    initialized = false;
   }
 
-  function _updateUI() {
-    _updateUICounters();
-    _updateUITrackingInfo();
+  function updateWhenVisible() {
+    if (!document.mozHidden && initialized)
+      updateUI();
   }
 
-  // Updates the UI to match the localization
-  function _localize() {
-    _updateUI();
+  function updateUI() {
+    var requestObj = { type: 'telephony' };
+    ConfigManager.requestSettings(function _onSettings(settings) {
+      costcontrol.request(requestObj, function _afterRequest(result) {
+        var telephonyActivity = result.data;
+        updateTimePeriod(settings.lastTelephonyReset, null, null, settings);
+        updateCounters(telephonyActivity);
+        updateNextReset(settings.nextReset, null, null, settings);
+      });
+    });
+  }
+
+  function updateTimePeriod(lastReset, old, key, settings) {
+    time.innerHTML = formatTimeHTML(lastReset,
+                                    settings.lastTelephonyActivity.timestamp);
+
+  }
+
+  function updateCounters(activity) {
+    smscount.innerHTML = _('magnitude', {
+      value: activity.smscount,
+      unit: 'SMS'
+    });
+    calltime.innerHTML = _('magnitude', {
+      value: Math.ceil(activity.calltime / 60000),
+      unit: 'min.'
+    });
+  }
+
+  function updateNextReset(reset, old, key, settings) {
+    if (settings.trackingPeriod === 'never') {
+      resetDate.innerHTML = _('never');
+    } else {
+      var content = settings.nextReset.toLocaleFormat(_('short-date-format'));
+      resetDate.innerHTML = content;
+    }
   }
 
   return {
-    init: _init,
-    localize: _localize,
-    updateUI: _updateUI
+    initialize: setupTab,
+    finalize: finalize
   };
 }());
-
-// Add to views as well
-Views[TAB_TELEPHONY] = viewManager.tabs[TAB_TELEPHONY];

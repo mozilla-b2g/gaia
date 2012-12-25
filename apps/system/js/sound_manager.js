@@ -19,7 +19,8 @@
     }
   });
 
-  // Store the current active channel; change with 'audio-channel-changed' mozChromeEvent
+  // Store the current active channel;
+  // change with 'audio-channel-changed' mozChromeEvent
   var currentChannel = 'notification';
 
   var vibrationEnabled = true;
@@ -86,16 +87,18 @@
   var muteState = 'OFF';
 
   for (var channel in currentVolume) {
-    var setting = 'audio.volume.' + channel;
-    SettingsListener.observe(setting, 5, function(volume) {
-      if (pendingRequestCount)
-        return;
+    (function(channel) {
+      var setting = 'audio.volume.' + channel;
+      SettingsListener.observe(setting, 5, function onSettingsChange(volume) {
+        if (pendingRequestCount)
+          return;
 
-      var max = MAX_VOLUME[channel];
-      currentVolume[channel] = parseInt(Math.max(0, Math.min(max, volume)), 10);
-    });
+        var max = MAX_VOLUME[channel];
+        currentVolume[channel] = parseInt(Math.max(0, Math.min(max, volume)), 10);
+      });
+    })(channel);
   }
-  
+
   SettingsListener.observe('vibration.enabled', true, function(vibration) {
     if (pendingRequestCount)
       return;
@@ -105,10 +108,12 @@
 
   var activeTimeout = 0;
 
-  // When hardware volume key is pressed, we need to decide which channel we should toggle.
-  // This method returns the string for setting key 'audio.volume.*' represents that.
-  // Note: this string does not always equal to currentChannel
-  // since some different channels are grouped together to listen to the same setting.
+  // When hardware volume key is pressed, we need to decide which channel we
+  // should toggle.
+  // This method returns the string for setting key 'audio.volume.*' represents
+  // that.
+  // Note: this string does not always equal to currentChannel since some
+  // different channels are grouped together to listen to the same setting.
   function getChannel() {
     if (onCall())
       return 'telephony';
@@ -155,8 +160,9 @@
     muteState = getVolumeState(currentVolume[channel], delta, channel);
 
     var volume = currentVolume[channel] + delta;
-    
-    currentVolume[channel] = volume = Math.max(0, Math.min(MAX_VOLUME[channel], volume));
+
+    currentVolume[channel] = volume =
+      Math.max(0, Math.min(MAX_VOLUME[channel], volume));
 
     var overlay = document.getElementById('system-overlay');
     var notification = document.getElementById('volume');
@@ -220,8 +226,8 @@
 
     var settingObject = {};
     settingObject['audio.volume.' + channel] = volume;
-      
-    req = SettingsListener.getSettingsLock().set(settingObject);  
+
+    req = SettingsListener.getSettingsLock().set(settingObject);
 
     req.onsuccess = function onSuccess() {
       pendingRequestCount--;
@@ -232,3 +238,4 @@
     };
   }
 })();
+

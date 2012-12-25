@@ -42,7 +42,7 @@
   var gDEBUG = 1;
 
   function consoleLog(message) {
-    if (gDEBUG == 2) {
+    if (gDEBUG >= 2) {
       console.log('[l10n] ' + message);
     }
   };
@@ -227,7 +227,7 @@
       // URL will raise an exception here -- hence this ugly try...catch.
       try {
         xhr.send(null);
-      } catch(e) {
+      } catch (e) {
         onFailure();
       }
     }
@@ -775,7 +775,7 @@
   function getL10nData(key, args) {
     var data = gL10nData[key];
     if (!data) {
-      consoleWarn('[l10n] #' + key + ' is undefined.');
+      consoleWarn('#' + key + ' is undefined.');
     }
 
     /** This is where l10n expressions should be processed.
@@ -787,7 +787,7 @@
     for (var prop in data) {
       var str = data[prop];
       str = substIndexes(str, args, key, prop);
-      str = substArguments(str, args);
+      str = substArguments(str, args, key);
       rv[prop] = str;
     }
     return rv;
@@ -820,7 +820,7 @@
   }
 
   // replace {{arguments}} with their values
-  function substArguments(str, args) {
+  function substArguments(str, args, key) {
     var reArgs = /\{\{\s*([a-zA-Z\.:-]+)\s*\}\}/;
     var match = reArgs.exec(str);
     while (match) {
@@ -834,7 +834,7 @@
       } else if (arg in gL10nData) {
         sub = gL10nData[arg][gTextProp];
       } else {
-        consoleWarn('could not find argument {{' + arg + '}}');
+        consoleLog('argument {{' + arg + '}} for #' + key + ' is undefined.');
         return str;
       }
 
@@ -913,43 +913,27 @@
    */
 
   // load the default locale on startup
-  window.addEventListener('DOMContentLoaded', function l10nStartup() {
+  function l10nStartup() {
     gReadyState = 'interactive';
     consoleLog('loading [' + navigator.language + '] resources, ' +
         (gAsyncResourceLoading ? 'asynchronously.' : 'synchronously.'));
-    loadLocale(navigator.language, translateFragment);
-
-    /**
-     * navigator.language is built from preference intl.accept_languages
-     * which is set by b2g/chrome/content/settings.js in change of
-     * language.current value.
-     *
-     * Sometimes a race condition seems to occurs, leading in the system
-     * localized apart from what has been early-loaded, like lockscreen
-     * and statusbar.
-     *
-     * Hence we will also query by hand the settings and load the locale.
-     */
-    if ('mozSettings' in navigator && navigator.mozSettings) {
-      var name = 'language.current';
-      console.log("l10n: requesting settings lock");
-      var transaction = navigator.mozSettings.createLock();
-      if (transaction) {
-        console.log("l10n: got settings lock");
-        console.log("l10n: requesting setting " + name);
-        var req = transaction.get(name);
-        req.addEventListener('success', (function () {
-          var lang = req.result[name];
-          console.log("l10n: reloading with locale lang=" + lang);
-          loadLocale(lang, translateFragment);
-        }));
-        req.addEventListener('error', (function () {
-          console.log("l10n: error requesting " + name);
-        }));
-        console.log("l10n: requested setting " + name + " waiting response");
-      }
+    // load the default locale and translate the document if required
+    if (document.documentElement.lang === navigator.language) {
+      loadLocale(navigator.language, fireL10nReadyEvent);
+    } else {
+      loadLocale(navigator.language, translateFragment);
     }
-  });
+  }
+
+  // the B2G build system doesn't expose any `document'...
+  if (typeof(document) !== 'undefined') {
+    if (document.readyState === 'interactive' ||
+        document.readyState === 'complete') {
+      l10nStartup();
+    } else {
+      document.addEventListener('DOMContentLoaded', l10nStartup);
+    }
+  }
 
   // load the appropriate locale if the language setting has changed
   if ('mozSettings' in navigator && navigator.mozSettings) {

@@ -80,7 +80,14 @@ var AppInstallManager = {
   },
 
   handleApplicationInstall: function ai_handleApplicationInstallEvent(e) {
-    this.prepareForDownload(e.detail.application);
+    var app = e.detail.application;
+
+    if (app.installState === 'installed') {
+      this.showInstallSuccess(app);
+      return;
+    }
+
+    this.prepareForDownload(app);
   },
 
   handleAppInstallPrompt: function ai_handleInstallPrompt(detail) {
@@ -140,12 +147,6 @@ var AppInstallManager = {
 
   prepareForDownload: function ai_prepareForDownload(app) {
     var manifestURL = app.manifestURL;
-
-    if (app.installState === 'installed') {
-      // nothing more to do here, everything is already done
-      return;
-    }
-
     this.appInfos[manifestURL] = {};
 
     // these methods are already bound to |this|
@@ -154,8 +155,17 @@ var AppInstallManager = {
     app.onprogress = this.handleProgress;
   },
 
+  showInstallSuccess: function ai_showInstallSuccess(app) {
+    var manifest = app.manifest || app.updateManifest;
+    var name = manifest.name;
+    var _ = navigator.mozL10n.get;
+    var msg = _('app-install-success', { appName: name });
+    SystemBanner.show(msg);
+  },
+
   handleDownloadSuccess: function ai_handleDownloadSuccess(evt) {
     var app = evt.application;
+    this.showInstallSuccess(app);
     this.onDownloadStop(app);
     this.onDownloadFinish(app);
   },
@@ -180,7 +190,7 @@ var AppInstallManager = {
         // showing the real error to a potential developer
         console.info('downloadError event, error code is', errorName);
 
-        var key = this.mapDownloadErrorsToMessage[errorName] || 'generic-error';
+        var key = this.mapDownloadErrorsToMessage[errorName] || 'generic-error';
         var msg = _('app-install-' + key, { appName: name });
         SystemBanner.show(msg);
     }

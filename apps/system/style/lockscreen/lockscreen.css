@@ -2,8 +2,8 @@
   position: absolute;
   /* 20px = height of status bar */
   top: 20px;
-  width: -moz-calc(100%);
-  height: -moz-calc(100% - 20px);
+  width: calc(100%);
+  height: calc(100% - 20px);
   overflow: hidden;
   background-color: #000;
 
@@ -19,7 +19,7 @@
 
 #screen.active-statusbar > #lockscreen {
   top: 40px;
-  height: -moz-calc(100% - 40px);
+  height: calc(100% - 40px);
 }
 
 #screen:not(.locked) > #lockscreen,
@@ -200,6 +200,10 @@
   background: transparent url('./images/mute.png') center center no-repeat;
 }
 
+#lockscreen-mute.vibration {
+  background: transparent url('./images/vibration.png') center center no-repeat;
+}
+
 .lockscreen-clock {
 	margin: -0.8rem 0 -1rem -0.4rem;
 	font-weight: 300;
@@ -233,16 +237,16 @@
 }
 
 .lockscreen-icon-area {
-  width: 16rem;
+  width: calc(50%);
   height: 12rem;
   position: absolute;
-  bottom: -3rem;
-  background-color: rgba(0,0,0,0.5)
-  border: none;
+  border-style: none;
+  opacity: 0.1;
+  transition: opacity 0.5s ease;
 }
 
 .lockscreen-icon {
-  margin-top: 4rem;
+  margin-top: 2rem;
   border-radius: 3rem;
   width: 6rem;
   height: 6rem;
@@ -298,18 +302,26 @@ button::-moz-focus-inner {
   animation: none;
 }
 
+.lockscreen-icon-right > .lockscreen-icon {
+  margin-right: 4rem;
+  margin-left: auto;
+}
+
+.lockscreen-icon-left > .lockscreen-icon {
+  margin-left: 4rem;
+  margin-right: auto;
+}
+
 #lockscreen-area-unlock > div {
   background-image: url('./images/icon-unlock.png');
   background-position: center;
   background-repeat: no-repeat;
-  margin-left: 6rem;
 }
 
 #lockscreen-area-camera > div {
   background-image: url('./images/icon-camera.png');
   background-position: center;
   background-repeat: no-repeat;
-  margin-left: 4rem;
 }
 
 [data-panel="emergency-call"] #lockscreen-panel-passcode {
@@ -336,7 +348,7 @@ button::-moz-focus-inner {
   -moz-box-sizing: border-box;
   border-top: 1px solid #525050;
   visibility: hidden;
-  transform: translateY(-moz-calc(21.4rem + 7.2rem));
+  transform: translateY(calc(21.4rem + 7.2rem));
   transition: visibility 0.3s ease, transform 0.3s ease;
 }
 
@@ -353,9 +365,9 @@ button::-moz-focus-inner {
   -moz-box-sizing: border-box;
   display: block;
   float: left;
-  width: -moz-calc(25% - 1rem);
+  width: calc(25% - 1rem);
   margin: 1.5rem 0.5rem;
-  height: -moz-calc(100% - 3rem);
+  height: calc(100% - 3rem);
   text-align: center;
   box-shadow: 0 0 0.8rem #999 inset;
   background-color: #fff;
@@ -403,7 +415,7 @@ button::-moz-focus-inner {
   width: 100%;
   background-color: rgba(0, 0, 0, 0.8);
   visibility: hidden;
-  transform: translateY(-moz-calc(21.4rem + 7em));
+  transform: translateY(calc(21.4rem + 7em));
   transition: visibility 0.3s ease, transform 0.3s ease;
 }
 
@@ -501,19 +513,28 @@ button::-moz-focus-inner {
   transform: translateX(0);
 }
 
-#lockscreen-curve {
-  width: 100%;
-  bottom: 0.5px;
+#lockscreen-area-handle {
   position: absolute;
+  background-image: url('./images/handle.png');
+  background-repeat: no-repeat;
+  background-position: center;
+  border-top: 1px solid transparent;
+  top: -2rem;
+  height: 0.9rem;
+  width: 100%;
+  transition:
+    transform 0.5s ease,
+    opacity 0.5s ease;
 }
 
 #lockscreen-icon-container {
   position: absolute;
   width: 100%;
-  bottom: -5rem;
-  height: 5rem;
-  opacity: 0.4;
+  bottom: -8rem;
+  height: 10rem;
   pointer-events: none;
+  border-top: 1px solid #989898;
+  background-image: linear-gradient(to bottom, rgba(0,0,0,0.8), rgba(0,0,0,0.2) 20%);
   transition:
     transform 0.5s ease,
     opacity 0.5s ease;
@@ -523,23 +544,71 @@ button::-moz-focus-inner {
   transition: none;
 }
 
+.touched #lockscreen-area-handle {
+  transition: none;
+}
+
+.touched .lockscreen-icon-area {
+  transition: none;
+}
+
 .triggered #lockscreen-icon-container {
-  transform: translateY(-8.5rem);
+  transform: translateY(-8rem);
   opacity: 1;
   pointer-events: auto;
 }
 
+.triggered #lockscreen-area-handle {
+  transform: translateY(-1rem);
+  opacity: 0;
+}
+
+.triggered .lockscreen-icon-area {
+  opacity: 1;
+}
+
 @keyframes lockscreen-elastic {
-  0%, 100% {
+  0%, 40%, 75%, 97% {
     transform: translateY(0);
     animation-timing-function: ease-out;
   }
-  50% {
+  20% {
     transform: translateY(-5rem);
+    animation-timing-function: ease-in;
+  }
+  55% {
+    transform: translateY(-2.3rem);
+    animation-timing-function: ease-in;
+  }
+  85% {
+    transform: translateY(-0.5rem);
     animation-timing-function: ease-in;
   }
 }
 
+@keyframes lockscreen-elastic-icon {
+  0%, 40%, 75%, 97% {
+    opacity: 0.1;
+    animation-timing-function: ease-out;
+  }
+  20% {
+    opacity: 0.5;
+    animation-timing-function: ease-in;
+  }
+  55% {
+    opacity: 0.4;
+    animation-timing-function: ease-in;
+  }
+  85% {
+    opacity: 0.3;
+    animation-timing-function: ease-in;
+  }
+}
+
+.elastic .lockscreen-icon-area {
+  animation: lockscreen-elastic-icon 2.5s 1;
+}
+
 .elastic #lockscreen-icon-container {
-  animation: lockscreen-elastic 1s 1;
+  animation: lockscreen-elastic 2.5s 1;
 }

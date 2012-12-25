@@ -124,6 +124,11 @@ suite('calendar/template', function() {
         output,
         '&lt;div class=&quot;foo&quot;&gt;&#x27;zomg&#x27;&lt;/div&gt;'
       );
+
+      assert.equal(
+        tpl.render({}),
+        ''
+      );
     });
 
     test('without arguments', function() {

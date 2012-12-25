@@ -260,7 +260,7 @@ body {
 }
 
 #windows > iframe.appWindow:not(.homescreen).default-background {
-  background: url('./images/splash_screen_generic.png') center center no-repeat #fff;
+  background: url('/shared/resources/branding/splash_screen_generic.png') center center no-repeat #fff;
 }
 
 #windows > iframe.appWindow:not(.active):not(.homescreen):not(.opening):not(.closing) {

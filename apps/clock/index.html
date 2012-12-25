@@ -30,43 +30,22 @@
     <script type="application/javascript" src="js/timer.js"></script>
   </head>
 
-  <body class="hidden">
+  <body>
     <div id="views">
       <div id="alarm-view" class="active view">
         <div id="clock-view">
-  
           <div id="analog-clock">
-            <div id="analog-clock-background-cache1" class="analog-clock-background-cache"></div>
-            <div id="analog-clock-background-cache2" class="analog-clock-background-cache"></div>
-            <div id="analog-clock-background-cache3" class="analog-clock-background-cache"></div>
-            <div id="analog-clock-background-cache4" class="analog-clock-background-cache"></div>
             <div id="analog-clock-container">
-              <svg id="analog-clock-svg" viewBox="-50 -50 100 150">
-                <defs> <!-- Define a filter for drop-shadows -->
-                  <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
-                    <feOffset result="offOut" in="SourceAlpha" dx="0" dy="0.6"/>
-                    <feGaussianBlur result="blurOut" in="offOut" stdDeviation="0.8"/>
-                    <feBlend in="SourceGraphic" in2="blurOut" mode="normal"/>
-                  </filter> <!-- Define gradients for hands color -->
-                  <linearGradient id="hourhand-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" style="stop-color:#3a3e40;stop-opacity:1"/>
-                    <stop offset="100%" style="stop-color:#14191b;stop-opacity:1"/>
-                  </linearGradient>
-                  <linearGradient id="minutehand-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" style="stop-color:#5e696d;stop-opacity:1"/>
-                    <stop offset="100%" style="stop-color:#4f5b5f;stop-opacity:1"/>
-                  </linearGradient>
-                </defs>
-                <g id="analog-clock-svg-body">
-                  <!-- Draw hands pointing straight up. We rotate them in the code. -->
-                  <g id="hands" filter="url(#shadow)"> <!-- Add shadows to the hands -->
-                    <rect id="hourhand" x="-1.3" y="0" width="2.6" height="26" rx="0.4" ry="0.4" fill="url(#hourhand-gradient)" stroke="url(#hourhand-gradient)" stroke-width="0"/>
-                    <rect id="minutehand" x="-1.3" y="0" width="2.6" height="40" rx="0.4" ry="0.4" fill="url(#minutehand-gradient)" stroke="url(#minutehand-gradient)" stroke-width="0"/>
-                    <circle id="minutehandCentralPoint" cx="0" cy="0" r="2.7"/> <!-- the minute hand central point -->
-                    <line id="secondhand" x1="0" y1="8" x2="0" y2="-41"/>
-                    <circle id="secondhandCentralPoint" cx="0" cy="0" r="1.4"/> <!-- the second hand central point -->
-                  </g>
-                </g>
+              <svg id="analog-clock-svg"
+                   xmlns="http://www.w3.org/2000/svg"
+                   version="1.1" viewBox="0 0 270 270">
+                <circle id="minutehandCentralPoint" cx="135" cy="135" r="9"/>
+                <rect id="hourhand" x="131" y="135" width="8" height="92"/>
+                <rect id="minutehand" x="131" y="135" width="8" height="113"/>
+                <!-- This is the second hand path, Thanks illustrator! -->
+                <path id="secondhand"
+                  d="M142.103,135c0-3.562-3.103-6.495-6.103-6.936V0h-2v128.095c-3,0.53-5.897,3.415-5.897,6.905
+                  s2.897,6.375,5.897,6.905V161h2v-19.064C139,141.495,142.103,138.562,142.103,135z"/>
               </svg>
             </div>
           </div>
@@ -148,7 +127,7 @@
     <!-- Alarm -->
     <section id="alarm" class="view skin-organic" role="region" data-title="Alarm">
       <header>
-        <a href="#alarm-view"><span class="icon icon-back">back</span></a>
+        <a href="#alarm-view" id="alarm-clock-container"><span class="icon icon-back" id="alarm-back" >back</span></a>
         <menu type="toolbar">
           <a id="alarm-done" href="#alarm-view" data-l10n-id="done">Done</a>
         </menu>
@@ -156,6 +135,8 @@
       </header>
       <ul id="edit-alarm" class="tableView">
         <li class="picker">
+          <div id="value-indicator-left"></div>
+          <div id="value-indicator-right"></div>
           <div id="picker-bar">
             <div id="picker-container">
               <div id="value-indicator-bottom"></div>
@@ -175,11 +156,11 @@
             <div id="picker-bar-gradient"></div>
           </div>
         </li>
-        <li class="singleline">
+        <li class="singleline field">
           <span class="view-alarm-lbl" data-l10n-id="label">Label</span>
           <input type="text" class="right" data-l10n-id="alarm" name="alarm.label" placeholder="Alarm"/>
         </li>
-        <li class="singleline">
+        <li class="singleline field">
           <span class="view-alarm-lbl" data-l10n-id="repeat">Repeat</span>
           <select id="repeat-select" multiple="true" class="abstract-menu">
             <option value="0" data-l10n-id="weekday-1-long">Monday</option>
@@ -193,7 +174,7 @@
           <a id="repeat-menu" data-l10n-id="never" class="abstract-menu">Never</a>
           <p></p>
         </li>
-        <li class="singleline">
+        <li class="singleline field">
           <span class="view-alarm-lbl" data-l10n-id="sound">Sound</span>
           <select id="sound-select" class="abstract-menu">
             <option value="ac_classic_clock_alarm.opus" data-l10n-id="ac_classic_clock_alarm_opus"></option>
@@ -208,8 +189,8 @@
           <a id="sound-menu" class="abstract-menu">Classic</a>
           <p></p>
         </li>
-        <li class="singleline">
-          <span class="view-alarm-lbl" data-l10n-id="snooze">Snooze</span>
+        <li class="singleline field">
+          <span class="view-alarm-lbl snooze-lbl" data-l10n-id="snooze">Snooze</span>
           <select id="snooze-select" class="abstract-menu">
             <option data-l10n-id="nMinutes" data-l10n-args='{"n": "5"}'  value="5">  5 minutes</option>
             <option data-l10n-id="nMinutes" data-l10n-args='{"n": "10"}' value="10">10 minutes</option>
@@ -219,7 +200,7 @@
           <a id="snooze-menu" class="abstract-menu" data-l10n-id="nMinutes" data-l10n-args='{"n": "5"}'>5 minutes</a>
           <p></p>
         </li>
-        <li id="alarm-delete-button">
+        <li id="alarm-delete-button" class="singleline">
           <a id="alarm-delete" href="#alarm-view" data-l10n-id="delete">Delete</a>
         </li>
       </ul>

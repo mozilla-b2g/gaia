@@ -6,11 +6,18 @@
     <title>Dialer</title>
     <link rel="stylesheet" type="text/css" href="/dialer/style/oncall.css">
     <link rel="stylesheet" type="text/css" href="/dialer/style/keypad.css">
+
     <!-- Localization -->
+    <script defer type="application/javascript" src="/dialer/js/lazy_l10n.js"></script>
     <link rel="resource" type="application/l10n" href="/dialer/locales/locales.ini">
+    <link rel="resource" type="application/l10n" href="/shared/locales/date.ini">
+    <!-- Making sure the shared resources will be copy into the zip
     <script type="application/javascript" src="/shared/js/l10n.js"></script>
+    <script type="application/javascript" src="/shared/js/l10n_date.js"></script>
+    -->
+
     <script defer type="application/javascript" src="/shared/js/settings_listener.js"></script>
-    <script defer type="text/javascript" src="/shared/js/async_storage.js"></script>
+    <script defer type="application/javascript" src="/shared/js/async_storage.js"></script>
 
     <script defer type="application/javascript" src="/shared/js/simple_phone_matcher.js"></script>
     <script defer type="application/javascript" src="/dialer/js/contacts.js"></script>
@@ -18,7 +25,6 @@
     <script defer type="application/javascript" src="/dialer/js/utils.js"></script>
     <script defer type="application/javascript" src="/dialer/js/oncall.js"></script>
     <script defer type="application/javascript" src="/dialer/js/handled_call.js"></script>
-    <script defer type="application/javascript" src="/dialer/js/recents_db.js"></script>
 
     <script defer type="application/javascript" src="/contacts/js/fb/fb_data.js"></script>
     <script defer type="application/javascript" src="/contacts/js/fb/fb_contact_utils.js"></script>
@@ -26,9 +32,8 @@
     <!-- incoming call / swiper on locked screen-->
     <link rel="stylesheet" type="text/css" href="/dialer/style/swiper.css">
     <script defer src="/dialer/js/swiper.js"></script>
-
   </head>
-  <body class="hidden">
+  <body>
     <article id="call-screen">
       <article id="calls" data-count="0">
         <section>
@@ -250,33 +255,33 @@
         <article id="keyboard-container">
           <section id="keypad">
             <div class="keypad-cell">
-              <div class="keypad-key">
+              <div class="keypad-key" data-value="1">
                 <div class="keypad-key-label-container">
-                  <div class="keypad-key-label" data-value="1">
+                  <div class="keypad-key-label">
                     <span class="keypad-number font-regular">1</span>
                     <span  class="keypad-text font-regular"></span>
                   </div>
                 </div>
               </div>
-              <div class="keypad-key">
+              <div class="keypad-key" data-value="4">
                 <div class="keypad-key-label-container">
-                  <div class="keypad-key-label" data-value="4">
+                  <div class="keypad-key-label">
                     <span class="keypad-number font-regular">4</span>
                     <span  class="keypad-text font-regular">GHI</span>
                   </div>
                 </div>
               </div>
-              <div class="keypad-key">
+              <div class="keypad-key" data-value="7">
                 <div class="keypad-key-label-container">
-                  <div class="keypad-key-label" data-value="7">
+                  <div class="keypad-key-label">
                     <span class="keypad-number font-regular">7</span>
                     <span class="keypad-text font-regular">PQRS</span>
                   </div>
                 </div>
               </div>
-              <div class="keypad-key">
+              <div class="keypad-key" data-value="*">
                 <div class="keypad-key-label-container">
-                  <div class="keypad-key-label keypad-key-label-centered" data-value="*">
+                  <div class="keypad-key-label keypad-key-label-centered">
                     <span>
                       <div class="asterisk"></div>
                     </span>
@@ -285,33 +290,33 @@
               </div>
             </div>
             <div class="keypad-cell">
-              <div class="keypad-key">
+              <div class="keypad-key" data-value="2">
                 <div class="keypad-key-label-container">
-                  <div class="keypad-key-label" data-value="2">
+                  <div class="keypad-key-label">
                     <span class="keypad-number font-regular">2</span>
                     <span class="keypad-text font-regular">ABC</span>
                   </div>
                 </div>
               </div>
-              <div class="keypad-key">
+              <div class="keypad-key" data-value="5">
                 <div class="keypad-key-label-container">
-                  <div class="keypad-key-label" data-value="5">
+                  <div class="keypad-key-label">
                     <span class="keypad-number font-regular">5</span>
                     <span class="keypad-text font-regular">JKL</span>
                   </div>
                 </div>
               </div>
-              <div class="keypad-key">
+              <div class="keypad-key" data-value="8">
                 <div class="keypad-key-label-container">
-                  <div class="keypad-key-label" data-value="8">
+                  <div class="keypad-key-label">
                     <span class="keypad-number font-regular">8</span>
                     <span  class="keypad-text font-regular">TUV</span>
                   </div>
                 </div>
               </div>
-              <div class="keypad-key">
+              <div class="keypad-key" data-value="0">
                 <div class="keypad-key-label-container">
-                  <div class="keypad-key-label" data-value="0">
+                  <div class="keypad-key-label">
                     <span class="keypad-number font-regular">0</span>
                     <span class="keypad-text font-size-plus"></span>
                   </div>
@@ -319,33 +324,33 @@
               </div>
             </div>
             <div class="keypad-cell">
-              <div class="keypad-key">
+              <div class="keypad-key" data-value="3">
                 <div class="keypad-key-label-container">
-                  <div class="keypad-key-label" data-value="3">
+                  <div class="keypad-key-label">
                     <span class="keypad-number font-regular">3</span>
                     <span  class="keypad-text font-regular">DEF</span>
                   </div>
                 </div>
               </div>
-              <div class="keypad-key">
+              <div class="keypad-key" data-value="6">
                 <div class="keypad-key-label-container">
-                  <div class="keypad-key-label" data-value="6">
+                  <div class="keypad-key-label">
                     <span class="keypad-number font-regular">6</span>
                     <span  class="keypad-text font-regular">MNO</span>
                   </div>
                 </div>
               </div>
-              <div class="keypad-key">
+              <div class="keypad-key" data-value="9">
                 <div class="keypad-key-label-container">
-                  <div class="keypad-key-label" data-value="9">
+                  <div class="keypad-key-label">
                     <span class="keypad-number font-regular">9</span>
                     <span  class="keypad-text font-regular">WXYZ</span>
                   </div>
                 </div>
               </div>
-              <div class="keypad-key">
+              <div class="keypad-key" data-type="dial" data-value="#">
                 <div class="keypad-key-label-container">
-                  <div class="keypad-key-label  keypad-key-label-centered" data-type="dial" data-value="#">
+                  <div class="keypad-key-label  keypad-key-label-centered">
                     <span>
                       <div class="sharp"></div>
                     </span>

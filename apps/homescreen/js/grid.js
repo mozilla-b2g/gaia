@@ -46,17 +46,14 @@ const GridManager = (function() {
       case 'mousemove':
         evt.stopPropagation();
 
-        // Starts panning only when tapping does not make sense
-        // anymore. The pan will then start from this point to avoid
-        // a jump effect.
+        // Start panning immediately but only disable
+        // the tap when we've moved far enough.
         var deltaX = evt.clientX - startEvent.clientX;
-        if (!isPanning) {
-          if (Math.abs(deltaX) < thresholdForTapping) {
-            return;
-          } else {
-            isPanning = true;
-            document.body.dataset.transitioning = 'true';
-          }
+        if (deltaX == 0)
+          return;
+        document.body.dataset.transitioning = 'true';
+        if (Math.abs(deltaX) >= thresholdForTapping) {
+          isPanning = true;
         }
 
         // Panning time! Stop listening here to enter into a dedicated
@@ -346,13 +343,15 @@ const GridManager = (function() {
     // switch RTL-sensitive methods accordingly
     setDirCtrl();
 
-    for each (var iconsForApp in appIcons) {
-      for each (var icon in iconsForApp) {
-        icon.translate();
+    for (var manifestURL in appIcons) {
+      var iconsForApp = appIcons[manifestURL];
+      for (var entryPoint in iconsForApp) {
+        iconsForApp[entryPoint].translate();
       }
     }
-    for each (var icon in bookmarkIcons) {
-      icon.translate();
+
+    for (var bookmarkURL in bookmarkIcons) {
+      bookmarkIcons[bookmarkURL].translate();
     }
 
     haveLocale = true;
@@ -647,7 +646,7 @@ const GridManager = (function() {
    * corresponding icon(s) for it (an app can have multiple entry
    * points, each one is represented as an icon.)
    */
-  function processApp(app, withAnimation, callback) {
+  function processApp(app, callback) {
     // Ignore system apps.
     if (HIDDEN_APPS.indexOf(app.manifestURL) != -1)
       return;
@@ -659,8 +658,8 @@ const GridManager = (function() {
       return;
 
     var entryPoints = manifest.entry_points;
-    if (!entryPoints) {
-      createOrUpdateIconForApp(app, withAnimation);
+    if (!entryPoints || manifest.type != "certified") {
+      createOrUpdateIconForApp(app);
       return;
     }
 
@@ -668,24 +667,23 @@ const GridManager = (function() {
       if (!entryPoints[entryPoint].icons)
         continue;
 
-      createOrUpdateIconForApp(app, withAnimation, entryPoint);
+      createOrUpdateIconForApp(app, entryPoint);
     }
   }
 
   /*
    * Create or update a single icon for an Application (or Bookmark) object.
    */
-  function createOrUpdateIconForApp(app, withAnimation, entryPoint) {
+  function createOrUpdateIconForApp(app, entryPoint) {
     // Make sure we update the icon/label when the app is updated.
     if (!app.isBookmark) {
       app.ondownloadapplied = function ondownloadapplied(event) {
-        var withAnimation = false;
-        createOrUpdateIconForApp(event.application, withAnimation, entryPoint);
+        createOrUpdateIconForApp(event.application, entryPoint);
         app.ondownloadapplied = null;
         app.ondownloaderror = null;
       };
       app.ondownloaderror = function ondownloaderror(event) {
-        createOrUpdateIconForApp(app, false, entryPoint);
+        createOrUpdateIconForApp(app, entryPoint);
       }
     }
 
@@ -698,6 +696,7 @@ const GridManager = (function() {
       bookmarkURL: app.bookmarkURL,
       manifestURL: app.manifestURL,
       entry_point: entryPoint,
+      updateTime: app.updateTime,
       removable: app.removable,
       name: iconsAndNameHolder.name,
       icon: bestMatchingIcon(app, iconsAndNameHolder)
@@ -719,18 +718,10 @@ const GridManager = (function() {
       return;
     }
 
-    if (withAnimation)
-      descriptor.hidden = true;
-
     var icon = new Icon(descriptor, app);
     rememberIcon(icon);
 
-    // Normally we just silently add icons to the last page, unless we're
-    // installing an app/bookmark with a visibile animation. Then we want
-    // to pick the first page with an empty space.
-    var index = pages.length - 1;
-    if (withAnimation)
-      index = getFirstPageWithEmptySpace();
+    var index = getFirstPageWithEmptySpace();
 
     if (index < pages.length) {
       pages[index].appendIcon(icon);
@@ -739,12 +730,6 @@ const GridManager = (function() {
     }
 
     GridManager.markDirtyState();
-
-    if (withAnimation) {
-      goToPage(index, function install_goToPage() {
-        icon.show();
-      });
-    }
   }
 
   /*
@@ -823,7 +808,10 @@ const GridManager = (function() {
         url.indexOf('https://') == 0)
       return url;
 
-    return app.origin + '/' + url;
+    if (app.origin.slice(-1) == '/')
+      return app.origin.slice(0, -1) + url;
+
+    return app.origin + url;
   }
 
 
@@ -881,8 +869,7 @@ const GridManager = (function() {
      *                      The application (or bookmark) object
      */
     install: function gm_install(app) {
-      var withAnimation = true;
-      processApp(app, withAnimation);
+      processApp(app);
     },
 
     /*

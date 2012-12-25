@@ -412,6 +412,7 @@ suite('system/AppInstallManager >', function() {
           updateManifest: null,
           installState: 'installed'
         });
+        MockSystemBanner.mTeardown();
         dispatchEvent();
       });
 
@@ -421,6 +422,11 @@ suite('system/AppInstallManager >', function() {
 
       test('should not add a notification', function() {
         assert.equal(fakeNotif.childElementCount, 0);
+      });
+
+      test('should display a confirmation', function() {
+        assert.equal(MockSystemBanner.mMessage,
+        'app-install-success{"appName":"' + mockAppName + '"}');
       });
 
     });
@@ -454,6 +460,12 @@ suite('system/AppInstallManager >', function() {
             var method = 'decSystemDownloads';
             assert.isUndefined(MockStatusBar.wasMethodCalled[method]);
           });
+
+          test('should display a confirmation', function() {
+            assert.equal(MockSystemBanner.mMessage,
+            'app-install-success{"appName":"' + mockAppName + '"}');
+          });
+
         });
 
         suite('on downloaderror >', function() {
@@ -561,7 +573,7 @@ suite('system/AppInstallManager >', function() {
           updateManifest: null,
           installState: 'pending'
         });
-
+        MockSystemBanner.mTeardown();
         dispatchEvent();
       });
 
@@ -631,6 +643,12 @@ suite('system/AppInstallManager >', function() {
             mockApp.mTriggerDownloadSuccess();
             mockApp.mTriggerDownloadProgress(10);
             assert.isTrue(onprogressCalled);
+          });
+
+          test('on downloadsuccess > should display a confirmation', function() {
+            mockApp.mTriggerDownloadSuccess();
+            assert.equal(MockSystemBanner.mMessage,
+            'app-install-success{"appName":"' + mockAppName + '"}');
           });
 
           suite('on indeterminate progress >', function() {
@@ -703,7 +721,7 @@ suite('system/AppInstallManager >', function() {
             // resetting this mock because we want to test only the
             // following call
             MockNotificationScreen.mTeardown();
-
+            MockSystemBanner.mTeardown();
             mockApp.mTriggerDownloadProgress(newprogress);
           });
 
@@ -762,6 +780,12 @@ suite('system/AppInstallManager >', function() {
             MockNavigatorWakeLock.mThrowAtNextUnlock();
             mockApp.mTriggerDownloadSuccess();
             assert.ok(true);
+          });
+
+          test('on downloadsuccess > should display a confirmation', function() {
+            mockApp.mTriggerDownloadSuccess();
+            assert.equal(MockSystemBanner.mMessage,
+            'app-install-success{"appName":"' + mockAppName + '"}');
           });
 
           test('on indeterminate progress > ' +

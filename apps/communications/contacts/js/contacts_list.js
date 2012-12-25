@@ -158,8 +158,10 @@ contacts.List = (function() {
         });
       }
     }
-    //Add organization name
-    meta.innerHTML += utils.text.escapeHTML(contact.org, true);
+    // Add organization name
+    if (contact.org && contact.org.length > 0 && contact.org[0] !== '') {
+      meta.innerHTML += utils.text.escapeHTML(contact.org[0], true);
+    }
 
     //Final item structure
     link.appendChild(name);
@@ -580,7 +582,7 @@ contacts.List = (function() {
       contact.email[0].value : '');
     ret.push('#');
 
-    return ret.join('');
+    return utils.text.normalize(ret.join(''));
   }
 
   var getGroupName = function getGroupName(contact) {

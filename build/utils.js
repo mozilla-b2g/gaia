@@ -5,6 +5,11 @@ Cu.import('resource://gre/modules/XPCOMUtils.jsm');
 Cu.import('resource://gre/modules/FileUtils.jsm');
 Cu.import('resource://gre/modules/Services.jsm');
 
+function isSubjectToBranding(path) {
+  return /shared[\/\\][a-zA-Z]+[\/\\]branding$/.test(path) ||
+         /branding[\/\\]initlogo.png/.test(path);
+}
+
 function getSubDirectories(directory) {
   let appsDir = new FileUtils.File(GAIA_DIR);
   appsDir.append(directory);
@@ -25,17 +30,21 @@ function getSubDirectories(directory) {
  *
  * @param  {nsIFile} dir       directory to read.
  * @param  {boolean} recursive set to true in order to walk recursively.
+ * @param  {RegExp}  exclude   optional filter to exclude file/directories.
  *
  * @return {Array}   list of nsIFile's.
  */
-function ls(dir, recursive) {
+function ls(dir, recursive, exclude) {
   let results = [];
   let files = dir.directoryEntries;
   while (files.hasMoreElements()) {
     let file = files.getNext().QueryInterface(Ci.nsILocalFile);
-    results.push(file);
-    if (recursive && file.isDirectory())
-      results = results.concat(ls(file, true));
+    if (!exclude || !exclude.test(file.leafName)) {
+      results.push(file);
+      if (recursive && file.isDirectory()) {
+        results = results.concat(ls(file, true, exclude));
+      }
+    }
   }
   return results;
 }
@@ -48,7 +57,7 @@ function getFileContent(file) {
   let converterStream = Cc['@mozilla.org/intl/converter-input-stream;1']
                           .createInstance(Ci.nsIConverterInputStream);
   converterStream.init(fileStream, 'utf-8', fileStream.available(),
-                       Ci.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER);
+      Ci.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER);
 
   let out = {};
   let count = fileStream.available();
@@ -62,9 +71,16 @@ function getFileContent(file) {
 }
 
 function writeContent(file, content) {
-  let stream = FileUtils.openFileOutputStream(file);
-  stream.write(content, content.length);
-  stream.close();
+  var fileStream = Cc['@mozilla.org/network/file-output-stream;1']
+                     .createInstance(Ci.nsIFileOutputStream);
+  fileStream.init(file, 0x02 | 0x08 | 0x20, 0666, 0);
+
+  let converterStream = Cc['@mozilla.org/intl/converter-output-stream;1']
+                          .createInstance(Ci.nsIConverterOutputStream);
+
+  converterStream.init(fileStream, 'utf-8', 0, 0);
+  converterStream.writeString(content);
+  converterStream.close();
 }
 
 // Return an nsIFile by joining paths given as arguments
@@ -83,7 +99,7 @@ function ensureFolderExists(file) {
   if (!file.exists()) {
     try {
       file.create(Ci.nsIFile.DIRECTORY_TYPE, parseInt('0755', 8));
-    } catch(e if e.result == Cr.NS_ERROR_FILE_ALREADY_EXISTS) {
+    } catch (e if e.result == Cr.NS_ERROR_FILE_ALREADY_EXISTS) {
       // Bug 808513: Ignore races between `if exists() then create()`.
       return;
     }
@@ -94,7 +110,7 @@ function getJSON(file) {
   try {
     let content = getFileContent(file);
     return JSON.parse(content);
-  } catch(e) {
+  } catch (e) {
     dump('Invalid JSON file : ' + file.path + '\n');
     throw e;
   }
@@ -102,20 +118,22 @@ function getJSON(file) {
 
 function makeWebappsObject(dirs) {
   return {
-    forEach: function (fun) {
+    forEach: function(fun) {
       let appSrcDirs = dirs.split(' ');
       appSrcDirs.forEach(function parseDirectory(directoryName) {
         let directories = getSubDirectories(directoryName);
         directories.forEach(function readManifests(dir) {
-          let manifestFile = getFile(GAIA_DIR, directoryName, dir, "manifest.webapp");
-          let updateFile = getFile(GAIA_DIR, directoryName, dir, "update.webapp");
+          let manifestFile = getFile(GAIA_DIR, directoryName, dir,
+              'manifest.webapp');
+          let updateFile = getFile(GAIA_DIR, directoryName, dir,
+              'update.webapp');
           // Ignore directories without manifest
           if (!manifestFile.exists() && !updateFile.exists()) {
             return;
           }
 
           let manifest = manifestFile.exists() ? manifestFile : updateFile;
-          let domain = dir + "." + GAIA_DOMAIN;
+          let domain = dir + '.' + GAIA_DOMAIN;
 
           let webapp = {
             manifest: getJSON(manifest),
@@ -152,31 +170,32 @@ function registerProfileDirectory() {
   let directoryProvider = {
     getFile: function provider_getFile(prop, persistent) {
       persistent.value = true;
-      if (prop != "ProfD" && prop != "ProfLDS") {
+      if (prop != 'ProfD' && prop != 'ProfLDS') {
         throw Cr.NS_ERROR_FAILURE;
       }
 
       return new FileUtils.File(PROFILE_DIR);
     },
 
-    QueryInterface: XPCOMUtils.generateQI([Ci.nsIDirectoryServiceProvider, Ci.nsISupports])
+    QueryInterface: XPCOMUtils.generateQI([Ci.nsIDirectoryServiceProvider,
+                                           Ci.nsISupports])
   };
 
-  Cc["@mozilla.org/file/directory_service;1"]
+  Cc['@mozilla.org/file/directory_service;1']
     .getService(Ci.nsIProperties)
     .QueryInterface(Ci.nsIDirectoryService)
     .registerProvider(directoryProvider);
 }
 
-if (Gaia.engine === "xpcshell") {
+if (Gaia.engine === 'xpcshell') {
   registerProfileDirectory();
 }
-
 
 function gaiaOriginURL(name) {
   return GAIA_SCHEME + name + '.' + GAIA_DOMAIN + (GAIA_PORT ? GAIA_PORT : '');
 }
 
 function gaiaManifestURL(name) {
-  return gaiaOriginURL(name) + "/manifest.webapp";
+  return gaiaOriginURL(name) + '/manifest.webapp';
 }
+
