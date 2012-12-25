@@ -969,7 +969,12 @@ var ThreadUI = {
     // Init readMessages array
     ThreadUI.readMessages = [];
     // Per each message I will append DOM element
-    messages.forEach(ThreadUI.appendMessage);
+    messages.forEach(function(message) {
+      ThreadUI.appendMessage(message);
+      var messageID = 'message' + message.timestamp.getTime();
+      var messageDOM = document.getElementById(messageID);
+      ThreadUI.markAsSent(message, messageDOM);
+    });
     // Update read messages if necessary
     if (ThreadUI.readMessages.length > 0) {
       MessageManager.markMessagesRead(ThreadUI.readMessages, 'true',
@@ -1244,6 +1249,23 @@ var ThreadUI = {
     this.updateInputHeight();
   },
 
+  /**
+   * Marks a message as sent.
+   * Used as a callback for sendMessage
+   */
+  markAsSent: function thui_markAsSent(msg, messageDOM) {
+    // Remove 'sending' style
+    var aElement = messageDOM.getElementsByTagName('a')[0];
+    aElement.classList.remove('sending');
+    // Remove the 'spinner'
+    var spinnerContainer =
+      aElement.getElementsByTagName('aside')[0];
+    aElement.removeChild(spinnerContainer);
+    // Update ID of the input to regular SMS
+    var input = messageDOM.getElementsByTagName('input')[0];
+    input.value = 'id_' + msg.id;
+  },
+
   sendMessage: function thui_sendMessage(resendText) {
 
     if (resendText && (typeof(resendText) == 'string') && resendText != '') {
@@ -1329,18 +1351,8 @@ var ThreadUI = {
               var messageDOM = document.getElementById(messageID);
 
               MessageManager.send(numNormalized, text, function onsent(msg) {
-                // If message is sent succesfully
+                self.markAsSent(msg, messageDOM);
 
-                // Remove 'sending' style
-                var aElement = messageDOM.getElementsByTagName('a')[0];
-                aElement.classList.remove('sending');
-                // Remove the 'spinner'
-                var spinnerContainer =
-                  aElement.getElementsByTagName('aside')[0];
-                aElement.removeChild(spinnerContainer);
-                // Update ID of the input to regular SMS
-                var input = messageDOM.getElementsByTagName('input')[0];
-                input.value = 'id_' + msg.id;
                 // Remove from pending
                 PendingMsgManager.deleteFromMsgDB(message,
                   function ondelete(msg) {
