@@ -10,7 +10,7 @@
   background-attachment: scroll, scroll;
   background-clip: border-box, border-box;
   background-color: transparent;
-  background-image: url("/everything.me/images/pattern.png"), url("/everything.me/images/gradient.png");
+  background-image: url("/everything.me/images/shared/pattern.png"), url("/everything.me/images/shared/gradient.png");
   background-origin: padding-box, padding-box;
   background-position: left top, left top;
   background-repeat: repeat, no-repeat;
