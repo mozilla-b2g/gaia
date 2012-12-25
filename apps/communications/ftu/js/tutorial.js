@@ -37,7 +37,7 @@ var Tutorial = {
   },
   get tutorialScreen() {
     delete this.tutorialScreen;
-    return this.tutorialScreen = document.getElementById('tutorial');
+    return this.tutorialScreen = document.getElementById('tutorial-screen');
   },
   get tutorialFinish() {
     delete this.tutorialFinish;
