@@ -291,11 +291,19 @@ var Connectivity = (function(window, document, undefined) {
     var simmnc = icc ? icc.mnc : '00';
     var simmcc = icc ? icc.mcc : '000';
     var msisdn = icc ? icc.msisdn : 'N/A';
+
+    netmcc = (netmcc < 100 && netmcc >= 10) ? "0"  + netmcc : netmcc;
+    simmcc = (simmcc < 100 && simmcc >= 10) ? "0"  + simmcc : simmcc;
+    netmcc = (netmcc < 100 && netmcc < 10)  ? "00" + netmcc : netmcc;
+    simmcc = (simmcc < 100 && simmcc < 10)  ? "00" + simmcc : simmcc;
+    netmnc = netmnc < 10 ? "0" + netmnc : netmnc;
+    simmnc = simmnc < 10 ? "0" + simmnc : simmnc;
+
     document.getElementById('data-desc').textContent = name;
     document.getElementById('call-desc').textContent = name;
     document.getElementById('msisdn-desc').textContent = msisdn;
-    document.getElementById('netid-desc').textContent = netmcc + netmnc;
-    document.getElementById('simid-desc').textContent = simmcc + simmnc;
+    document.getElementById('netid-desc').textContent = netmcc + "" + netmnc;
+    document.getElementById('simid-desc').textContent = simmcc + "" + simmnc;
 
     var setCarrierStatus = function(msg) {
       var operator = msg.operator || '';
