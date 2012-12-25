@@ -137,6 +137,46 @@ label[for^="pwd"] {
 
 
 /******************************************************************************
+ * Call settings
+ */
+
+/* three-state items: on|off|unknown */
+#menuItem-callWaiting .checkbox-label,
+#menuItem-callWaiting[data-state="on"] .checkbox-label,
+#menuItem-callWaiting[data-state="off"] .checkbox-label {
+  display: block;
+}
+
+#menuItem-callWaiting .alert-label,
+#menuItem-callWaiting[data-state="on"] .alert-label,
+#menuItem-callWaiting[data-state="off"] .alert-label {
+  display: none;
+}
+
+#menuItem-callWaiting[data-state="unknown"] .checkbox-label {
+  display: none;
+}
+
+#menuItem-callWaiting[data-state="unknown"] .alert-label {
+  display: block;
+}
+
+#menuItem-callWaiting .alert-label > span {
+  top: 50%;
+  margin-top: -1.5rem;
+}
+
+#call .cw-alert .cw-alert-sub-p {
+  border-top: none;
+}
+
+#call .cw-alert .cw-alert-checkbox-label {
+  position: absolute;
+  right: 0;
+  height: 2.7rem;
+}
+
+/******************************************************************************
  * Cellular and Data
  */
 
