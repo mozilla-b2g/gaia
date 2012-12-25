@@ -208,21 +208,21 @@
       <ul>
         <li>
           <label>
-            <input type="radio" name="wifi.wps.method" value="pbc" checked />
+            <input type="radio" data-setting="wifi.wps.method" name="wpsMethodSelection" value="pbc" checked />
             <span></span>
           </label>
           <a data-l10n-id="wpsPbcLabel">Button connection</a>
         </li>
         <li>
           <label>
-            <input type="radio" name="wifi.wps.method" value="myPin" />
+            <input type="radio" data-setting="wifi.wps.method" name="wpsMethodSelection" value="myPin" />
             <span></span>
           </label>
           <a data-l10n-id="wpsMyPinLabel">My PIN connection</a>
         </li>
         <li>
           <label>
-            <input type="radio" name="wifi.wps.method" value="apPin" />
+            <input type="radio" data-setting="wifi.wps.method" name="wpsMethodSelection" value="apPin" />
             <span></span>
           </label>
           <a data-l10n-id="wpsApPinLabel">AP PIN connection</a>
@@ -540,7 +540,7 @@
       <ul class="apnSettings-list">
         <li class="apnSettings-custom">
           <label>
-            <input type="radio" name="ril.data.carrier" value="_custom_" checked />
+            <input type="radio" data-setting="ril.data.carrier" name="dataApnSettingsCarrier" value="_custom_" checked />
             <span></span>
           </label>
           <a data-l10n-id="custom">(custom settings)</a>
@@ -589,7 +589,7 @@
       <ul class="apnSettings-list">
         <li class="apnSettings-custom">
           <label>
-            <input type="radio" name="ril.mms.carrier" value="_custom_" checked />
+            <input type="radio" data-setting="ril.mms.carrier" name="mmsApnSettingsCarrier" value="_custom_" checked />
             <span></span>
           </label>
           <a data-l10n-id="custom">(custom settings)</a>
@@ -650,7 +650,7 @@
       <ul class="apnSettings-list">
         <li class="apnSettings-custom">
           <label>
-            <input type="radio" name="ril.supl.carrier" value="_custom_" checked />
+            <input type="radio" data-setting="ril.supl.carrier" name="suplApnSettingsCarrier" value="_custom_" checked />
             <span></span>
           </label>
           <a data-l10n-id="custom">(custom settings)</a>
