@@ -5,25 +5,12 @@ function debug(str) {
 
 
 /**
- * Expose a global `l10nTarget' object and load `l10n.js' in it --
- * note: the `?reload' trick ensures we don't load a cached `l10njs' library.
+ * Expose a global `l10nTarget' object and load `l10n.js' in it
  */
 
 var l10nTarget = { navigator: {} };
-Services.scriptloader.loadSubScript('file:///' + GAIA_DIR +
-    '/shared/js/l10n.js?reload=' + new Date().getTime(), l10nTarget);
-
-
-/**
- * Locale list -- by default, only the default one
- */
-
-var l10nLocales = [GAIA_DEFAULT_LOCALE];
-var l10nDictionary = {
-  locales: {},
-  default_locale: GAIA_DEFAULT_LOCALE
-};
-l10nDictionary.locales[GAIA_DEFAULT_LOCALE] = {};
+Services.scriptloader.
+    loadSubScript('file:///' + GAIA_DIR + '/shared/js/l10n.js', l10nTarget);
 
 
 /**
@@ -60,22 +47,7 @@ function l10n_getFileContent(webapp, htmlFile, relativePath) {
   }
 }
 
-function l10n_embedExternalResources(doc, dictionary) {
-  // remove all external l10n resource nodes
-  var resources = doc.querySelectorAll('link[type="application/l10n"]');
-  for (let i = 0; i < resources.length; i++) {
-    let res = resources[i].outerHTML;
-    resources[i].outerHTML = '<!-- ' + res + ' -->';
-  }
-
-  // put the current dictionary in an inline JSON script
-  let script = doc.createElement('script');
-  script.type = 'application/l10n';
-  script.innerHTML = '\n  ' + JSON.stringify(dictionary) + '\n';
-  doc.documentElement.appendChild(script);
-}
-
-function l10n_serializeHTMLDocument(doc, file) {
+function l10n_serializeHTMLDocument(file, doc) {
   debug('saving: ' + file.path);
 
   // the doctype string should always be '<!DOCTYPE html>' but just in case...
@@ -100,7 +72,7 @@ function l10n_serializeHTMLDocument(doc, file) {
     htmlStr += ' ' + attrs[i].nodeName.toLowerCase() +
                '="' + attrs[i].nodeValue + '"';
   }
-  let innerHTML = docElt.innerHTML.replace(/  \n*<\/body>\n*/, '  </body>\n');
+  let innerHTML = docElt.innerHTML.replace(/  \n\n\n<\/body>$/, '  </body>');
   htmlStr += '>\n  ' + innerHTML + '\n</html>\n';
 
   writeContent(file, doctypeStr + htmlStr);
@@ -108,9 +80,6 @@ function l10n_serializeHTMLDocument(doc, file) {
 
 function l10n_compile(webapp, file) {
   let mozL10n = l10nTarget.navigator.mozL10n;
-
-  let processedLocales = 0;
-  let dictionary = l10nDictionary;
 
   // catch console.[log|warn|info] calls and redirect them to `dump()'
   // XXX for some reason, this won't work if gDEBUG >= 2 in l10n.js
@@ -142,28 +111,17 @@ function l10n_compile(webapp, file) {
 
   // catch the `localized' event dispatched by `fireL10nReadyEvent()'
   l10nTarget.dispatchEvent = function() {
-    processedLocales++;
-    debug('fireL10nReadyEvent - ' +
-        processedLocales + '/' + l10nLocales.length);
-
+    debug('fireL10nReadyEvent');
     let docElt = l10nTarget.document.documentElement;
-    dictionary.locales[mozL10n.language.code] = mozL10n.dictionary;
 
-    if (processedLocales < l10nLocales.length) {
-      // load next locale
-      mozL10n.language.code = l10nLocales[processedLocales];
-    } else {
-      // we expect the last locale to be the default one:
-      // set the lang/dir attributes of the current document
-      docElt.dir = mozL10n.language.direction;
-      docElt.lang = mozL10n.language.code;
+    // set the lang/dir attributes of the current document
+    docElt.dir = mozL10n.language.direction;
+    docElt.lang = mozL10n.language.code;
 
-      // save localized document
-      let newPath = file.path + '.' + GAIA_DEFAULT_LOCALE;
-      let newFile = new FileUtils.File(newPath);
-      l10n_embedExternalResources(l10nTarget.document, dictionary);
-      l10n_serializeHTMLDocument(l10nTarget.document, newFile);
-    }
+    // save localized document
+    let newPath = file.path + '.' + docElt.lang;
+    let newFile = new FileUtils.File(newPath);
+    l10n_serializeHTMLDocument(newFile, l10nTarget.document);
   };
 
   // load and parse the HTML document
@@ -175,7 +133,7 @@ function l10n_compile(webapp, file) {
   // selecting a language triggers `XMLHttpRequest' and `dispatchEvent' above
   if (l10nTarget.document.querySelector('script[src$="l10n.js"]')) {
     debug('localizing: ' + file.path);
-    mozL10n.language.code = l10nLocales[processedLocales];
+    mozL10n.language.code = GAIA_DEFAULT_LOCALE;
   }
 }
 
@@ -185,24 +143,6 @@ function l10n_compile(webapp, file) {
  */
 
 debug('Begin');
-
-if (GAIA_INLINE_LOCALES) {
-  l10nLocales = [];
-  l10nDictionary.locales = {};
-
-  let file = getFile(GAIA_DIR + '/' + LOCALES_FILE);
-  let locales = JSON.parse(getFileContent(file));
-
-  // we keep the default locale order for `l10nDictionary.locales',
-  // but we ensure the default locale comes last in `l10nLocales'.
-  for (let lang in locales) {
-    if (lang != GAIA_DEFAULT_LOCALE) {
-      l10nLocales.push(lang);
-    }
-    l10nDictionary.locales[lang] = {};
-  }
-  l10nLocales.push(GAIA_DEFAULT_LOCALE);
-}
 
 Gaia.webapps.forEach(function(webapp) {
   // if BUILD_APP_NAME isn't `*`, we only accept one webapp
