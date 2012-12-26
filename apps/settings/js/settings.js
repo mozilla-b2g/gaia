@@ -273,6 +273,12 @@ var Settings = {
     if (!key || !settings || event.type != 'change')
       return;
 
+    // Not touching <input> with data-setting attribute here
+    // because they would have to be committed with a explicit "submit"
+    // of their own dialog.
+    if (input.dataset.setting)
+      return;
+
     var value;
     switch (type) {
       case 'checkbox':
@@ -375,10 +381,12 @@ var Settings = {
      * explicitely when the dialog is shown.  If the dialog is validated
      * (submit), their values are stored into B2G settings.
      *
-     * XXX warning, this only supports text/password/radio/select input types.
+     * XXX warning, this only supports text/password/radio/select/radio input types.
      */
 
     // initialize all setting fields in the dialog box
+    // XXX for fields being added by lazily loaded script,
+    // it would have to initialize the fields again themselves.
     function reset() {
       if (settings) {
         var lock = settings.createLock();
@@ -387,7 +395,14 @@ var Settings = {
             var key = input.dataset.setting;
             var request = lock.get(key);
             request.onsuccess = function() {
-              input.value = request.result[key] || '';
+              switch (input.type) {
+                case 'radio':
+                  input.checked = (input.value == request.result[key]);
+                  break;
+                default:
+                  input.value = request.result[key] || '';
+                  break;
+              }
             };
           })(fields[i]);
         }
@@ -397,6 +412,9 @@ var Settings = {
     // validate all settings in the dialog box
     function submit() {
       if (settings) {
+        // Update the fields node list to include dynamically added fields
+        fields = dialog.querySelectorAll('[data-setting]:not([data-ignore])');
+
         // mozSettings does not support multiple keys in the cset object
         // with one set() call,
         // see https://bugzilla.mozilla.org/show_bug.cgi?id=779381
@@ -405,7 +423,15 @@ var Settings = {
           var input = fields[i];
           var cset = {};
           var key = input.dataset.setting;
-          cset[key] = input.value;
+          switch (input.type) {
+            case 'radio':
+              if (input.checked)
+                cset[key] = input.value;
+              break;
+            default:
+              cset[key] = input.value;
+              break;
+          }
           lock.set(cset);
         }
       }
