@@ -40,6 +40,9 @@ const PaginationBar = (function() {
       scroller.setAttribute('aria-valuemax', total - 1);
       if (total && previousTotal !== total) {
         style.width = (100 / total) + '%';
+        // Force a reflow otherwise the pagination bar is not resized after
+        // rebooting the device (see bug 822186)
+        scroller.getBoundingClientRect();
         previousTotal = total;
       }
 
