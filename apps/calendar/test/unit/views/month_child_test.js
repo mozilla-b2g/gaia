@@ -220,7 +220,7 @@ suite('views/month_child', function() {
       var added = [];
       subject._renderBusytime = function(record) {
         added.push(record);
-      }
+      };
 
       var record = Factory('busytime', {
         startDate: createHour(23)
@@ -240,7 +240,7 @@ suite('views/month_child', function() {
       var removed = [];
       subject._removeBusytimes = function(list) {
         removed.push(list);
-      }
+      };
 
       var record = Factory('busytime', {
         startDate: createHour(23)
@@ -722,28 +722,8 @@ suite('views/month_child', function() {
   });
 
   suite('#create', function() {
-    var slice;
-    var calledCachedWith;
-    var calledRenderWith;
-
     setup(function() {
       controller.move(month);
-    });
-
-    setup(function() {
-      calledRenderWith = [];
-      slice = [
-        1, 2, 3
-      ];
-
-      controller.queryCache = function() {
-        calledCachedWith = arguments;
-        return slice;
-      };
-
-      subject._renderBusytime = function(item) {
-        calledRenderWith.push(item);
-      };
     });
 
     test('initial create', function() {
@@ -751,13 +731,6 @@ suite('views/month_child', function() {
           expected = subject._renderMonth();
 
       result = subject.create();
-
-      assert.equal(calledCachedWith[0], subject.timespan);
-      assert.deepEqual(
-        calledRenderWith,
-        [1, 2, 3]
-      );
-
       assert.equal(subject.element, result);
 
       assert.isTrue(
@@ -784,9 +757,44 @@ suite('views/month_child', function() {
       list = subject.element.classList;
     });
 
-    test('#activate', function() {
-      subject.activate();
-      assert.ok(list.contains(subject.ACTIVE));
+    suite('#activate', function() {
+      var slice;
+      var calledCachedWith;
+      var calledRenderWith;
+
+      setup(function() {
+        controller.move(month);
+      });
+
+      setup(function(done) {
+        calledRenderWith = [];
+        slice = [
+          1, 2, 3
+        ];
+
+        controller.queryCache = function() {
+          // wait for _renderBusytime to complete
+          Calendar.nextTick(done);
+          calledCachedWith = arguments;
+          return slice;
+        };
+
+        subject._renderBusytime = function(item) {
+          calledRenderWith.push(item);
+        };
+
+        subject.activate();
+      });
+
+      test('first activation', function() {
+        assert.ok(list.contains(subject.ACTIVE));
+        assert.equal(calledCachedWith[0], subject.timespan);
+        assert.deepEqual(
+          calledRenderWith,
+          [1, 2, 3]
+        );
+      });
+
     });
 
     test('#deactivate', function() {

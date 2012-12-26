@@ -72,7 +72,7 @@ suite('controllers/time', function() {
 
         subject.purgeCache = function() {
           calledWith = true;
-        }
+        };
 
         app.syncController.emit('syncComplete');
         assert.isFalse(subject.cacheLocked);
@@ -254,7 +254,7 @@ suite('controllers/time', function() {
 
       trans.oncomplete = function() {
         done();
-      }
+      };
 
       eventStore.persist(event, trans);
       busytimeStore.persist(hasAlarm, trans);
@@ -406,7 +406,7 @@ suite('controllers/time', function() {
     subject.move = function() {
       Calendar.Controllers.Time.prototype.move.apply(this, arguments);
       calledMove = arguments;
-    }
+    };
 
     subject.selectedDay = new Date(2012, 1, 1);
     subject.moveToMostRecentDay();
@@ -541,7 +541,7 @@ suite('controllers/time', function() {
       var calledWith = false;
       subject._updateBusytimeCache = function() {
         calledWith = true;
-      }
+      };
 
       subject.cacheLocked = true;
 
@@ -640,7 +640,7 @@ suite('controllers/time', function() {
           expectedItems,
           'should interval tree items outside of total span'
         );
-      }
+      };
     });
 
     cacheTest('past - does not fit', function() {
@@ -883,7 +883,7 @@ suite('controllers/time', function() {
 
       trans.oncomplete = function() {
         done();
-      }
+      };
 
       busytimeStore.persist(past, trans);
       busytimeStore.persist(present, trans);

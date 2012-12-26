@@ -50,7 +50,7 @@ suite('db', function() {
   test('#_openStore', function() {
     var Store = function(db) {
       this.db = db;
-    }
+    };
 
     Store.prototype = {
       __proto__: Calendar.Store.Abstract.prototype,
@@ -80,7 +80,7 @@ suite('db', function() {
 
       trans.onabort = function() {
         done();
-      }
+      };
 
       trans.abort();
     });
@@ -101,17 +101,17 @@ suite('db', function() {
     setting.load = function(callback) {
       callback(null, {});
       loaded.setting = true;
-    }
+    };
 
     account.load = function(callback) {
       callback(null, {});
       loaded.account = true;
-    }
+    };
 
     calendar.load = function(callback) {
       callback(null, {});
       loaded.calendar = true;
-    }
+    };
 
     assert.ok(!subject.isOpen);
 
@@ -360,7 +360,7 @@ suite('db', function() {
 
       trans.oncomplete = function() {
         done();
-      }
+      };
 
       // stage some data to verify we don't
       // mutate records without icalComponent.
@@ -435,7 +435,7 @@ suite('db', function() {
             );
           });
         });
-      }
+      };
 
       var eventsStore = trans.objectStore('events');
       var componentsStore = trans.objectStore('icalComponents');
@@ -455,7 +455,7 @@ suite('db', function() {
 
       componentsStore.mozGetAll().onsuccess = function(e) {
         map('eventId', e.target.result, componentsById);
-      }
+      };
 
     });
   });
@@ -559,7 +559,7 @@ suite('db', function() {
         );
 
         done();
-      }
+      };
     });
   });
 

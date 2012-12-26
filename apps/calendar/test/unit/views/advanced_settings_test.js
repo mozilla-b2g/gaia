@@ -157,7 +157,7 @@ suite('views/advanced_settings', function() {
         if (name === 'syncFrequency') {
           calledWith = value;
         }
-      }
+      };
     });
 
     function change(name, value) {

@@ -161,7 +161,7 @@ Calendar.ns('Store').Alarm = (function() {
       req.onerror = function() {
         var msg = 'Alarm cursor failed to open';
         callback(new Error(msg));
-      }
+      };
 
       var addedFutureAlarm = false;
 
@@ -188,7 +188,7 @@ Calendar.ns('Store').Alarm = (function() {
             callback();
           }
         }
-      }
+      };
     },
 
     /**
@@ -213,7 +213,7 @@ Calendar.ns('Store').Alarm = (function() {
 
       index.get(busytimeId).onsuccess = function(e) {
         callback(null, e.target.result);
-      }
+      };
     },
 
     /**
@@ -260,8 +260,14 @@ Calendar.ns('Store').Alarm = (function() {
           requiresAlarm = true;
         }
 
-        self._moveAlarms(now, requiresAlarm, callback || function() {});
-      }
+
+        callback = callback || function() {};
+        self._moveAlarms(
+          now,
+          requiresAlarm,
+          callback
+        );
+      };
 
       req.onerror = function() {
         var msg = 'failed to get alarms';
@@ -270,7 +276,7 @@ Calendar.ns('Store').Alarm = (function() {
         if (callback) {
           callback(new Error(msg));
         }
-      }
+      };
 
     }
 

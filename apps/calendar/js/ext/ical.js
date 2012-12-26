@@ -2676,7 +2676,7 @@ ICAL.Binary = (function() {
       if (aData instanceof ICAL.Component) {
         this.component = aData;
         this.tzid = this.component.getFirstPropertyValue('tzid');
-        return;
+        return null;
       }
 
       for (var key in OPTIONS) {

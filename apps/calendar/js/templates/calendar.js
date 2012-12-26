@@ -3,7 +3,8 @@
   var Cal = Calendar.Template.create({
     item: function() {
       return '<li id="calendar-' + this.h('_id') + '">' +
-          '<div class="calendar-id-' + this.h('_id') + ' calendar-color"></div>' +
+          '<div class="calendar-id-' +
+            this.h('_id') + ' calendar-color"></div>' +
           '<label>' +
             '<span class="name">' + this.h('name') + '</span>' +
             '<input ' +

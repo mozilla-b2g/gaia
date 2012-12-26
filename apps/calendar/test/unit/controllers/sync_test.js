@@ -84,7 +84,7 @@ suite('controllers/sync', function() {
 
       subject.account = function(model) {
         calledModels.push(model);
-      }
+      };
 
       subject.all();
 
@@ -141,7 +141,7 @@ suite('controllers/sync', function() {
       calendarSyncCalls = [];
       account.sync = function() {
         accountSyncCall = Array.slice(arguments);
-      }
+      };
 
       calendar.sync = function() {
         calendarSyncCalls.push(Array.slice(arguments));
