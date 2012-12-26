@@ -56,8 +56,14 @@ var Navigation = {
     UIManager.activationScreen.addEventListener('click',
         this.handleExternalLinksClick.bind(this));
 
-    this.externalIframe = document.querySelector(
-        this.externalUrlLoaderSelector + ' iframe');
+    var browserFrame = document.createElement('iframe');
+    browserFrame.setAttribute('mozbrowser', 'true');
+    browserFrame.classList.add('external');
+
+    var container = document.querySelector(this.externalUrlLoaderSelector);
+    container.appendChild(browserFrame);
+
+    this.externalIframe = browserFrame;
 
     // this will be called by setTimeout, so it's easier if it's already bound
     this.backFromIframe = this.backFromIframe.bind(this);
@@ -127,7 +133,7 @@ var Navigation = {
 
     e.preventDefault();
     var href = link.href,
-        title = link.getAttribute('title') || link.textContent;
+        title = link.getAttribute('title') || link.textContent;
 
     if (navigator.onLine) {
       this.displayExternalLink(href, title);

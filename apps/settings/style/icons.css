@@ -160,6 +160,17 @@
   background-image: url(images/wifi_lock.png);
 }
 
+/******************************************************************************
+ * Call Settings icons
+ */
+
+ #menuItem-callWaiting .alert-label > span {
+  position: absolute;
+  width: 3rem;
+  height: 3rem;
+  background-image: url(images/call_waiting_disabled.png);
+ }
+
 
 /******************************************************************************
  * Bluetooth devices
