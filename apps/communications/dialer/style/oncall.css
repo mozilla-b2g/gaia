@@ -66,7 +66,8 @@ button::-moz-focus-inner {
   display: none;
 }
 
-.grid-row.transparent {
+.grid-row.transparent,
+#co-advanced.transparent {
   visibility: hidden;
 }
 
@@ -132,24 +133,45 @@ body.hidden *[data-l10n-id] {
   margin: 0;
   border: 0;
   background: LightGray;
-  -moz-transform: translateY(-100%);
   z-index: 100;
 }
 
-#call-screen.animate {
-  -moz-transition: -moz-transform 0.5s ease;
+#call-screen:not([data-layout="incoming-locked"]) {
+  transform: translateY(-100%);
+}
+
+#call-screen:not([data-layout="incoming-locked"]).animate {
+  -moz-transition: transform 0.5s ease;
+}
+
+#call-screen:not([data-layout="incoming-locked"]).displayed {
+  transform: translateY(0);
+}
+
+#call-screen[data-layout="incoming-locked"] {
+  opacity: 0;
+}
+
+#call-screen[data-layout="incoming-locked"].animate {
+  -moz-transition: opacity 1s ease;
+}
+
+#call-screen[data-layout="incoming-locked"].displayed {
+  opacity: 1;
+}
+
+#call-screen:before {
+  background: url("images/mask.png") no-repeat scroll 50% 50% / cover transparent;
 }
 
 #call-screen.prerender {
-  -moz-transform: translateY(-moz-calc(-100% + 1px));
-}
-
-#call-screen.displayed {
-  -moz-transform: translateY(0);
+  transform: translateY(-moz-calc(-100% + 1px));
+  opacity: 0.05;
 }
 
 #call-screen.displayed.prerender {
-  -moz-transform: translateY(-1px);
+  transform: translateY(-1px);
+  opacity: 0.95;
 }
 
 #main-container {
@@ -169,6 +191,10 @@ body.hidden *[data-l10n-id] {
   height: calc(100% - 9rem);
 }
 
+#main-container.transparent:before {
+  background-color: transparent;
+}
+
 #actions-container {
   position: absolute;
   bottom: 0;
@@ -177,7 +203,9 @@ body.hidden *[data-l10n-id] {
 }
 
 #call-options {
-  height: 9.5rem;
+  height:15.5rem;
+  position: absolute;
+  bottom: 0;
 }
 
 #co-advanced {
@@ -327,6 +355,7 @@ button[disabled] .icon-keypad-visibility {
 
   z-index: 500;
 }
+
 #calls[data-count="1"] {
   height: 22rem;
 }
@@ -596,4 +625,67 @@ button[disabled] .icon-keypad-visibility {
     font-size: 3.3rem;
     line-height: 100%;
   }
+}
+
+#locked-contact-photo {
+  position: absolute;
+  top: 21rem;
+  bottom: 0;
+  width: 100%;
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-color: black;
+}
+
+#locked-contact-photo.masked {
+  background-position: 100% -22rem;
+}
+
+#locked-contact-photo.masked:before {
+  content: "";
+  background-position: 100% -22rem;
+  background-image: url("images/mask.png");
+  position: absolute;
+  top: 0;
+  width: 100%;
+  bottom: 0;
+}
+
+#call-screen[data-layout="dialing"] #callbar-answer,
+#call-screen[data-layout="dialing"] #swiper-wrapper,
+#call-screen[data-layout="incoming"] #swiper-wrapper,
+#call-screen[data-layout="incoming-locked"] #callbar-answer,
+#call-screen[data-layout="incoming-locked"] #callbar-hang-up,
+#call-screen[data-layout="incoming-locked"] #call-options,
+#call-screen[data-layout="incoming-locked"] .duration,
+#call-screen[data-layout="connected"] #swiper-wrapper,
+#call-screen[data-layout="connected"] #callbar-answer,
+#call-screen:not([data-layout="incoming-locked"]) #locked-contact-photo {
+  display: none;
+}
+
+#call-screen[data-layout="dialing"] #callbar-hang-up,
+#call-screen[data-layout="connected"] #callbar-hang-up {
+  width: 100%;
+}
+
+#call-screen[data-layout="dialing"] #callbar-hang-up-action {
+  margin: 1rem 1.5rem 1.5rem 1.5rem;
+}
+
+#call-screen[data-layout="incoming"] #co-advanced,
+#call-screen[data-layout="incoming-locked"] #co-advanced {
+  visibility: hidden;
+}
+
+#call-screen[data-layout="incoming"] #main-container,
+#call-screen[data-layout="incoming"] #main-container:before,
+#call-screen[data-layout="incoming-locked"] #main-container,
+#call-screen[data-layout="incoming-locked"] #main-container:before,
+#call-screen[data-layout="incoming-locked"] {
+  background-color: transparent;
+}
+
+#call-screen[data-layout="incoming-locked"] #calls {
+  top: 14rem;
 }
