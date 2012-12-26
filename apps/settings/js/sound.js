@@ -130,7 +130,8 @@
           activateCurrentElementFor(list);
 
           list.element.onclick = function onListClick(evt) {
-            audioPreview(evt.target, key);
+            if (evt.target.tagName == 'LABEL')
+              audioPreview(evt.target, key);
           };
         });
       })(list, key);
@@ -142,6 +143,7 @@
 
     var submit = dialog.querySelector('[type=submit]');
     submit.onclick = function onsubmit() {
+      stopAudioPreview();
       var rule = 'input[type="radio"]:checked';
 
       // Update the settings value for the selected sounds
@@ -169,8 +171,17 @@
 
     var reset = dialog.querySelector('[type=reset]');
     reset.onclick = function onreset() {
+      stopAudioPreview();
       document.location.hash = 'sound'; // hide dialog box
     };
+  }
+
+  function stopAudioPreview() {
+    var audio = document.querySelector('#sound-selection audio');
+    if (!audio.paused) {
+      audio.pause();
+      audio.src = '';
+    }
   }
 
   // main
@@ -179,6 +190,9 @@
 
   var button = document.getElementById('call-tone-selection');
   button.onclick = function() {
+    for (var key in lists) {
+      activateCurrentElementFor(lists[key]);
+    }
     document.location.hash = 'sound-selection';
   };
 })();
