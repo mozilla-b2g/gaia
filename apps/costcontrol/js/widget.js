@@ -201,6 +201,26 @@
             updateBalance(balance,
                           settings.lowLimit && settings.lowLimitThreshold);
           });
+
+        } else if (currentMode === 'POSTPAID') {
+          requestObj = { type: 'telephony' };
+          costcontrol.request(requestObj, function _onRequest(result) {
+            var activity = result.data;
+            document.getElementById('telephony-calltime').innerHTML =
+              _('magnitude', {
+                value: (activity.calltime / 60).toFixed(0),
+                unit: 'min'
+              }
+            );
+            document.getElementById('telephony-smscount').innerHTML =
+              _('magnitude', {
+                value: activity.smscount,
+                unit: 'SMS'
+              }
+            );
+            views.telephony.querySelector('.meta').innerHTML =
+              formatTimeHTML(activity.timestamp);
+          });
         }
       }
     });
