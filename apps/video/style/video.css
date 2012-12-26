@@ -163,16 +163,23 @@ body.hidden *[data-l10n-id] {
   outline: none;
 }
 
-#close, #h1 {
+#h1 {
   background: none !important;
 }
 
 .icon-back {
   pointer-events: none;
+  width: 2.3rem !important;
 }
 
 header {
-  background: rgba(0, 0, 0, 0.3) !important;
+  background: rgba(0, 0, 0, 0.6) !important;
+}
+
+header h1 {
+  font-size: 2.5rem !important;
+  line-height: 5rem !important;
+  margin: 0px 0px 0px 3.4rem !important;
 }
 
 
@@ -227,37 +234,42 @@ header .icon:after {
 
 /* main control bar: play|pause, timeupdate, rwd|fwd */
 #videoBar {
+  background-image: url(images/scroll_bar_bg.png);
+  background-color: rgba(0, 0, 0, 0.75);
+  background-position: center right;
+  background-repeat: no-repeat;
   position: absolute;
+  overflow: hidden;
   left: 0px;
   right: 0px;
   bottom: 0px;
-  height: 50px;
+  height: 4.5rem;
   margin: 0;
   padding: 0;
-  background-color: rgba(0, 0, 0, 0.3);
-  overflow: hidden;
 }
 
 #play, #play:after {
-  width: 100px;
-  height: 100px;
+  width: 8rem;
+  height: 4.5rem;
 }
 
 #play {
+  background: url(images/button_bg_normal.png) no-repeat;
   position: absolute;
   border: none;
   padding: 0;
   margin: 0;
-  background: -moz-linear-gradient(top, #000 0%,#222 100%);
-  border-radius: 100px;
-  top: -23px;
-  left: 10px;
+  left: 0.5rem;
+  top: 0;
   z-index: 20;
 }
 
+#play:active {
+  background: url(images/button_bg_pressed.png) no-repeat;
+}
+
 #play:after {
-  background-position: center center;
-  background-size: 75%;
+  background-position: 2.3rem 0.8rem;
   background-repeat: no-repeat;
   content: " ";
   display: block;
@@ -267,22 +279,16 @@ header .icon:after {
 
 /* play/pause button */
 #play:after {
-  background-image: url("images/btn_pause_off.png");
-}
-#play:active:after {
-  background-image: url("images/btn_pause_press.png");
+  background-image: url("images/pause.png");
 }
 #play.paused:after {
-  background-image: url("images/btn_play_off.png");
-}
-#play.paused:active:after {
-  background-image: url("images/btn_play_press.png");
+  background-image: url("images/play.png");
 }
 
 /* time slider */
 #timeSlider {
   position: absolute;
-  left: 110px;
+  left: 8.5rem;
   top: 0px;
   right: 0px;
   height: 100%;
@@ -290,27 +296,24 @@ header .icon:after {
 
 #timeSlider span {
   display: block;
-  width: 45px;
+  width: 5.9rem;
   position: absolute;
-  color: white;
+  color: #A1AFB2;
+  font-size: 1.4rem;
   height: 100%;
-  line-height: 50px;
+  line-height: 4.6rem;
   text-align: center;
-  font-size: 15px;
 }
 
-#elapsed-text {
-  left: 10px;
-}
 #duration-text {
-  right: 10px;
+  right: 0.5rem;
 }
 
 #slider-wrapper {
   position: absolute;
   top: 0px;
-  left: 70px;
-  right: 70px;
+  left: 7rem;
+  right: 7rem;
   height: 100%;
 }
 
@@ -324,11 +327,10 @@ header .icon:after {
   width: 0%;
   top: 50%;
   margin-top: -2px;
-  border-radius: 6px;
 }
 
 #elapsedTime {
-  background-color: #fff;
+  background: url(images/timeline_filled.png) no-repeat left center;
   z-index: 30;
 }
 
@@ -338,19 +340,59 @@ header .icon:after {
 }
 
 #timeBackground {
-  background-color: #333;
+  background: url(images/timeline.png);
   z-index: 10;
   width: 100%;
 }
 
 #playHead {
+  -moz-transition: background 1s linear;
+  background: url(images/scrubber.png);
+  margin: -1.1rem 0 0 -1.2rem;
+  position: absolute;
+  pointer-events: none;
+  border: none;
   display: block;
-  height: 20px;
-  width: 25px;
-  border-radius: 25px;
-  border: 0;
-  background-color: white;
+  height: 2.4rem;
+  width: 2.7rem;
   z-index: 100;
-  top: 50%;
-  margin: -10px 0 0 -12px;
+  top: 49%;
 }
+
+#playHead.active {
+  background: url(images/scrubber_pressed.png);
+  width: 8.1rem;
+  height: 4.5rem;
+  margin: -1rem 0 0 -3.93rem;
+  top: 1rem;
+}
+
+@media screen and (width: 320px) {
+  #play, #play:after {
+    width: 5.6rem;
+  }
+
+  #play {
+    background-image: url(images/portrait/button_bg_normal.png);
+  }
+
+  #play:active {
+    background-image: url(images/portrait/button_bg_pressed.png);
+  }
+
+  #play:after {
+    background-position: 1.1rem 0.8rem;
+  }
+
+  #timeSlider {
+    left: 6.1rem;
+  }
+
+  #videoBar {
+    background-image: url(images/portrait/scroll_bar_bg.png);
+    background-position: 6rem center;
+  }
+}
+
+:focus { outline:none; }
+::-moz-focus-inner { border:0; }
