@@ -65,7 +65,6 @@ function addToZip(zip, pathInZip, file) {
   // Case 2/ Directory
   else if (file.isDirectory()) {
     debug(' +directory to zip ' + pathInZip);
-
     if (!zip.hasEntry(pathInZip))
       zip.addEntryDirectory(pathInZip, file.lastModifiedTime, false);
 
@@ -151,10 +150,6 @@ Gaia.webapps.forEach(function(webapp) {
   debug('# Create zip for: ' + webapp.domain);
   let files = ls(webapp.sourceDirectoryFile);
   files.forEach(function(file) {
-      // Ignore l10n files if they have been inlined
-      if (GAIA_INLINE_LOCALES &&
-          (file.leafName === 'locales' || file.leafName === 'locales.ini'))
-        return;
       // Ignore files from /shared directory (these files were created by
       // Makefile code). Also ignore files in the /test directory.
       if (file.leafName !== 'shared' && file.leafName !== 'test')
@@ -195,11 +190,9 @@ Gaia.webapps.forEach(function(webapp) {
               used.js.push(path);
             break;
           case 'locales':
-            if (!GAIA_INLINE_LOCALES) {
-              let localeName = path.substr(0, path.lastIndexOf('.'));
-              if (used.locales.indexOf(localeName) == -1) {
-                used.locales.push(localeName);
-              }
+            let localeName = path.substr(0, path.lastIndexOf('.'));
+            if (used.locales.indexOf(localeName) == -1) {
+              used.locales.push(localeName);
             }
             break;
           case 'resources':
