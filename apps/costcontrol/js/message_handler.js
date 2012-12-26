@@ -198,5 +198,41 @@
           break;
       }
     });
+
+    // Count a new SMS
+    window.navigator.mozSetMessageHandler('sms-sent', function _onSMSSent(sms) {
+      ConfigManager.requestSettings(function _onSettings(settings) {
+        debug('SMS sent!');
+        var manager = window.navigator.mozSms;
+        var realCount = manager.getNumberOfMessagesForText(sms.body);
+        settings.lastTelephonyActivity.timestamp = new Date();
+        settings.lastTelephonyActivity.smscount += realCount;
+        ConfigManager.setOption({
+          lastDataUsage: settings.lastTelephonyActivity
+        }, function _sync() {
+          localStorage['sync'] = 'lastTelephonyActivity#' + Math.random();
+        });
+      });
+    });
+
+    // When a call ends
+    window.navigator.mozSetMessageHandler('telephony-call-ended',
+      function _onCall(tcall) {
+        if (tcall.direction !== 'outgoing')
+          return;
+
+        debug('Outgoing call finished!');
+        ConfigManager.requestSettings(function _onSettings(settings) {
+          settings.lastTelephonyActivity.timestamp = new Date();
+          settings.lastTelephonyActivity.calltime += tcall.duration;
+          ConfigManager.setOption({
+            lastDataUsage: settings.lastTelephonyActivity
+          }, function _sync() {
+            localStorage['sync'] = 'lastTelephonyActivity#' + Math.random();
+          });
+        });
+      }
+    );
+
   }
 }());
