@@ -65,12 +65,6 @@
     return document.querySelectorAll('link[type="application/l10n"]');
   }
 
-  function getL10nDictionary() {
-    var script = document.querySelector('script[type="application/l10n"]');
-    // TODO: support multiple and external JSON dictionaries
-    return script ? JSON.parse(script.innerHTML) : null;
-  }
-
   function getTranslatableChildren(element) {
     return element ? element.querySelectorAll('*[data-l10n-id]') : [];
   }
@@ -268,8 +262,6 @@
 
   // load and parse all resources for the specified locale
   function loadLocale(lang, callback) {
-    callback = callback || function _callback() {};
-
     clear();
     gLanguage = lang;
 
@@ -278,16 +270,7 @@
     var langLinks = getL10nResourceLinks();
     var langCount = langLinks.length;
     if (langCount == 0) {
-      // we might have a pre-compiled dictionary instead
-      var dict = getL10nDictionary();
-      if (dict && dict.locales && dict.default_locale) {
-        consoleLog('using the embedded JSON directory, early way out');
-        gL10nData = dict.locales[lang] || dict.locales[dict.default_locale];
-        callback();
-      } else {
-        consoleLog('no resource to load, early way out');
-      }
-      // early way out
+      consoleLog('no resource to load, early way out');
       fireL10nReadyEvent(lang);
       gReadyState = 'complete';
       return;
@@ -299,7 +282,9 @@
     onResourceLoaded = function() {
       gResourceCount++;
       if (gResourceCount >= langCount) {
-        callback();
+        if (callback) { // execute the [optional] callback
+          callback();
+        }
         fireL10nReadyEvent(lang);
         gReadyState = 'complete';
       }
@@ -925,9 +910,6 @@
 
   /**
    * Startup & Public API
-   *
-   * This section is quite specific to the B2G project: old browsers are not
-   * supported and the API is slightly different from the standard webl10n one.
    */
 
   // load the default locale on startup
@@ -961,7 +943,7 @@
     });
   }
 
-  // public API
+  // Public API
   navigator.mozL10n = {
     // get a localized string
     get: function l10n_get(key, args, fallback) {
@@ -992,10 +974,7 @@
     // translate an element or document fragment
     translate: translateFragment,
 
-    // get (a clone of) the dictionary for the current locale
-    get dictionary() { return JSON.parse(JSON.stringify(gL10nData)); },
-
-    // this can be used to prevent race conditions
+    // this can be used to avoid race conditions
     get readyState() { return gReadyState; }
   };
 
