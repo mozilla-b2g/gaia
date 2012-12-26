@@ -126,6 +126,11 @@
             <input type="text" id="wifi_user" data-l10n-id="identityInput" placeholder="User"></input>
             <label for="wifi_password" data-l10n-id="password">Password</label>
             <input type="password" id="wifi_password" data-l10n-id="passwordInput" placeholder="Password" value=""></input>
+            <label id="label_show_password">
+              <input type="checkbox" data-ignore name="show_password" />
+              <span></span>
+              <p id="wifi_show_password" data-l10n-id="showPassword">Show Password</p>
+            </label>
           </form>
         </section>
       </section>
@@ -289,7 +294,6 @@
         </p>
       </section>
       <section role="region" id="external-url-loader" class='external'>
-        <iframe src='about:blank' class='external'></iframe>
       </section>
 
       <section role="region" id="browser_privacy">
