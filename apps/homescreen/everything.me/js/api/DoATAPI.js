@@ -21,9 +21,9 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         
         requestsQueue = {},
         requestsToPerformOnOnline = [],
-        sessionInitRequest = null;
+        sessionInitRequest = null,
         
-    var requestsToCache = {
+        requestsToCache = {
             "Search.apps": true,
             "Search.bgimage": true,
             "Shortcuts.get": 60*24*2,
@@ -47,13 +47,21 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
     };
     
     this.init = function init(options){
-        apiKey = options.apiKey,
+        apiKey = options.apiKey;
         appVersion = options.appVersion || "";
         authCookieName = options.authCookieName;
         manualCampaignStats = options.manualCampaignStats;
         
         manualCredentials = Evme.Storage.get(STORAGE_KEY_CREDS);
         
+        
+        // listen to locale and timezone changes, and update the user cookie accordingly
+        navigator.mozSettings.addObserver('language.current', function onLanguageChange(e) {
+            setClientInfoCookie({
+                "locale": e.settingValue
+            });
+        });
+        navigator.mozSettings.addObserver('time.timezone', setClientInfoCookie);
         setClientInfoCookie();
         
         self.Session.init();
@@ -632,18 +640,19 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
     };
     
     // set locale and timezone cookies
-    function setClientInfoCookie() {
-        var locale = navigator.language || "",
-            timezone = (new Date().getTimezoneOffset()/-60).toString();
-            
-        var val = [
-            "lc="+encodeURIComponent(locale),
-            "tz="+encodeURIComponent(timezone)
-        ];
+    function setClientInfoCookie(changedValues) {
+        !changedValues && (changedValues = {});
         
+        var locale = changedValues.locale || navigator.language || "",
+            timezone = changedValues.timezone || (new Date().getTimezoneOffset()/-60).toString(),
+            val = [
+                "lc="+encodeURIComponent(locale),
+                "tz="+encodeURIComponent(timezone)
+            ];
+            
         // to backend's request
         val = val.join(",");
- 
+        
         Evme.Utils.Cookies.set("clientInfo", val, null, ".everything.me");  
     }
     
