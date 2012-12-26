@@ -114,18 +114,6 @@ Evme.Utils = new function Evme_Utils() {
         return newUser;
     };
     
-    this.updateObject = function updateObject(configData, groupConfig) {
-        if (!groupConfig) {
-            return;
-        }
-
-        for (var key in groupConfig) {
-            eval('configData["' + key.replace(/=>/g, '"]["') + '"] = groupConfig[key]');
-        }
-
-        return configData;
-    };
-
     this.formatImageData = function formatImageData(image) {
         if (!image || typeof image !== "object") {
             return image;
