@@ -147,7 +147,6 @@ function videoAdded(videodata) {
       ctxTriggered = false;
     }
   });
-
   dom.thumbnails.appendChild(thumbnail);
 }
 
@@ -709,6 +708,8 @@ function dragSlider(e) {
 
     dragging = false;
 
+    dom.playHead.classList.remove('active');
+
     if (dom.player.currentTime === dom.player.duration) {
       pause();
     } else if (!isPaused) {
@@ -719,6 +720,7 @@ function dragSlider(e) {
   function mousemoveHandler(event) {
     var pos = position(event);
     var percent = pos * 100 + '%';
+    dom.playHead.classList.add('active');
     dom.playHead.style.left = percent;
     dom.elapsedTime.style.width = percent;
     dom.player.currentTime = dom.player.duration * pos;
