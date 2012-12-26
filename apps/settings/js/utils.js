@@ -87,7 +87,8 @@ function audioPreview(element, type) {
             element.querySelector('input').value;
   audio.src = url;
   if (source === audio.src && playing) {
-    audio.stop();
+    audio.pause();
+    audio.src = '';
   } else {
     audio.play();
   }
