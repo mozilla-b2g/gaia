@@ -559,7 +559,15 @@ var Camera = {
       camera.onRecorderStateChange = this.recordingStateChanged.bind(this);
       camera.getPreviewStream(this._previewConfig, gotPreviewScreen.bind(this));
     }
-    navigator.mozCameras.getCamera(options, gotCamera.bind(this));
+
+    // If there is already a camera, we would have to release it first.
+    if (this._cameraObj) {
+      this.release(function camera_release_callback() {
+        navigator.mozCameras.getCamera(options, gotCamera.bind(this));
+      });
+    } else {
+      navigator.mozCameras.getCamera(options, gotCamera.bind(this));
+    }
   },
 
   recordingStateChanged: function(msg) {
@@ -601,6 +609,8 @@ var Camera = {
     this._previewActive = false;
     this.viewfinder.mozSrcObject = null;
     this.cancelPositionUpdate();
+
+    this.release();
   },
 
   resumePreview: function camera_resumePreview() {
@@ -857,6 +867,21 @@ var Camera = {
   cancelPositionUpdate: function camera_cancelPositionUpdate() {
     window.clearInterval(this._positionTimer);
     this._positionTimer = null;
+  },
+
+  release: function camera_release(callback) {
+    if (!this._cameraObj)
+      return;
+
+    this._cameraObj.release(function cameraReleased() {
+      Camera._cameraObj = null;
+      if (callback)
+        callback.call(Camera);
+    }, function releaseError() {
+      console.warn('Camera: failed to release hardware?');
+      if (callback)
+        callback.call(Camera);
+    });
   }
 };
 
