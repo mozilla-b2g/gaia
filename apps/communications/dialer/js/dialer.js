@@ -110,8 +110,8 @@ var CallHandler = (function callHandler() {
 
   /* === Bluetooth Support === */
   function btCommandHandler(message) {
-    var command = message['bluetooth-dialer-command'];
-
+    var command = message['command'];
+    var partialCommand = command.substring(0, 3);
     if (command === 'BLDN') {
       RecentsDBManager.init(function() {
         RecentsDBManager.getLast(function(lastRecent) {
@@ -120,6 +120,10 @@ var CallHandler = (function callHandler() {
           }
         });
       });
+      return;
+    } else if (partialCommand === 'ATD') {
+      var phoneNumber = command.substring(3);
+      CallHandler.call(phoneNumber);
       return;
     }
 
