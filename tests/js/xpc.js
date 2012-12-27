@@ -1,6 +1,7 @@
 (function(window) {
   window.parent = window;
   window.location.host = 'localhost';
+  window.Date = Date;
 
   var seenModule = {};
   var path = window.xpcModule.require('path');
@@ -38,11 +39,11 @@
 
   require('/test_apps/test-agent/common/vendor/mocha/mocha.js');
   require('/tests/reporters/jsonmoztest.js');
-  mocha.reporters.JSONMozTest = JSONMozTestReporter;
+  Mocha.reporters.JSONMozTest = JSONMozTestReporter;
   process.stdout.write = window.xpcDump;
 
   //Hack to format errors
-  mocha.reporters.Base.list = function(failures) {
+  Mocha.reporters.Base.list = function(failures) {
     failures.forEach(function(test, i) {
       // format
       var fmt = this.color('error title', '  %s) %s:\n') +
@@ -102,8 +103,8 @@
   var env = window.xpcModule.require('env');
   var reporter = env.get('REPORTER') || 'Spec';
 
-  if (!(reporter in mocha.reporters)) {
-    var reporters = Object.keys(mocha.reporters);
+  if (!(reporter in Mocha.reporters)) {
+    var reporters = Object.keys(Mocha.reporters);
     var idx = reporters.indexOf('Base');
 
     if (idx !== -1) {
@@ -121,7 +122,7 @@
   } else {
     mocha.setup({
       ui: 'tdd',
-      reporter: mocha.reporters[reporter],
+      reporter: Mocha.reporters[reporter],
       // change the default timeout to all tests to 6 seconds
       timeout: 20000
     });
