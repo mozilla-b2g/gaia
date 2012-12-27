@@ -15,7 +15,6 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         userLat = undefined,
         userLon = undefined,
         appVersion = undefined,
-        testStats = undefined,
         manualCredentials = null,
         manualCampaignStats = null,
         requestingSession = false,
@@ -701,12 +700,6 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         if (!params.stats) {
             params.stats = {};
         }
-        var tests = getTestsReporting();
-        if (tests) {
-            for (var test in tests) {
-                params.stats["test_" + test] = tests[test];
-            }
-        }
         /* ---------------- */
        
         var _request = new Evme.Request();
@@ -745,21 +738,6 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         }
         
         return _request;
-    }
-    
-    function getTestsReporting() {
-        if (testStats != undefined) {
-            return testStats;
-        }
-        
-        var tests = (typeof Tests !== "undefined")? Tests.getAll() : [];
-        
-        testStats = {};
-        for (var i=0; i<tests.length; i++) {
-            testStats[tests[i].testName] = tests[i].testGroup;
-        }
-        
-        return testStats;
     }
     
     function shouldRetry(data) {

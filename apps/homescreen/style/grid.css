@@ -77,7 +77,6 @@
 }
 
 .labelWrapper {
-  text-transform: capitalize; /* First letter always capitalized */
   color: #fff; /* App label color */
   white-space: nowrap; /* NO new lines */
   display: block;

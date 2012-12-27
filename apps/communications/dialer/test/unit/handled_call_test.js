@@ -243,10 +243,6 @@ suite('dialer/handled_call', function() {
       assert.isTrue(mockCall._listenerRemoved);
     });
 
-    test('hide the node', function() {
-      assert.isTrue(fakeNode.hidden);
-    });
-
     test('clear the ticker', function() {
       assert.equal(subject._ticker, null);
     });

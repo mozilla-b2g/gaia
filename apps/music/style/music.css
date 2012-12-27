@@ -43,26 +43,41 @@ body {
  * the overlay text shows up more clearly
  */
 #overlay-content {
-  margin-top: 30%;
-  margin-left: 10%;
-  margin-right: 10%;
-  padding: 10%;
-  border: solid black 4px;
-  border-radius: 10px;
-  background-color: rgba(0, 0, 0, 0.6);
-  font-family: "MozTT", sans-serif;
+  background:
+  url(images/ui/pattern.png) repeat left top,
+  url(images/ui/gradient.png) no-repeat left top;
+  background-size: auto auto, 100% 100%;
+  /* We can't use shortand with background size because is not implemented yet:
+  https://bugzilla.mozilla.org/show_bug.cgi?id=570326; */
+  overflow: hidden;
+  position: absolute;
+  z-index: 100;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  font-family: "MozTT", Sans-serif;
+  font-size: 0;
+  /* Using font-size: 0; we avoid the unwanted visual space (about 3px)
+  created by white-spaces and break lines in the code betewen inline-block elements */
   color: #fff;
-  -moz-user-select: none;
+  padding: 110px 25px 0px 25px;
 }
 
 #overlay-title {
-  text-align: center;
-  font-weight: bold;
-  font-size: 26px;
+  font-weight: normal;
+  text-transform:capitalize;
+  font-size: 1.9rem;
+  color: #fff;
+  margin: 0 5px -10px 5px;
 }
 
 #overlay-text {
-  font-size: 18px;
+  padding: 10px 5px 0 5px;
+  border-top: 1px solid #686868;	
+  font-weight: 300;
+  font-size: 2.5rem;
+  color: #ebebeb;
 }
 
 /* the indeterminate progress bar displayed while scanning */
@@ -215,7 +230,7 @@ body.player-mode #views {
 
 #views-sublist-header-name {
   position:relative;
-  font-size: 1.83rem;
+  font-size: 1.9rem;
   padding: 0 1rem;
   width: calc(100% - 2rem);
   height: 4rem;
@@ -235,7 +250,7 @@ body.player-mode #views {
 #views-sublist-controls-shuffle {
   position:relative;
   float: left;
-  font-size: 1.83rem;
+  font-size: 1.9rem;
   padding: 0 1rem;
   width: 50%;
   height: 4rem;
@@ -333,16 +348,18 @@ body.player-mode #views {
 
 .tile-title-artist {
   color: rgba(255, 255, 255, 1);
-  font-size: 1.38rem;
+  font-size: 1.4rem;
 }
 
 .tile-title-album {
   color: rgba(255, 255, 255, 0.65);
-  font-size: 1.38rem;
+  font-size: 1.4rem;
+  position: relative;
+  top: -5px;
 }
 
 .main-tile-title {
-  font-size: 1.83rem;
+  font-size: 1.9rem;
 }
 
 .sub-tile-title {
@@ -453,7 +470,7 @@ body.player-mode #views {
 #player-cover {
   position: relative;
   width: 100%;
-  height: 74%;
+  height: calc(100% - 10rem);
   overflow: hidden;
 }
 
@@ -517,14 +534,14 @@ body.player-mode #views {
   width: 100%;
   height: auto;
   text-align: left;
-  font-size: 1.83rem;
+  font-size: 1.9rem;
 }
 
 #player-cover-album {
   width: 100%;
   height: auto;
   text-align: left;
-  font-size: 1.61rem;
+  font-size: 1.7rem;
 }
 
 #player-cover-buttons {
@@ -546,7 +563,7 @@ body.player-mode #views {
   padding: 0px;
   border-radius: 35px;
   margin: 0 10px;
-  font-weight: bold;
+  font-weight: 500;
   background-position: center center;
   background-repeat: no-repeat;
 }
@@ -608,8 +625,12 @@ button::-moz-focus-inner {
 #player-seek {
   position: relative;
   width: 100%;
-  height: 13%;
-  background: #222222;
+  height: 4.5rem;
+  background: url('./images/scroll_bar_bg.png');
+  background-position: center center;
+  background-repeat: repeat-x;
+  background-color: #151515;
+  overflow: hidden;
 }
 
 #player-seek-elapsed, 
@@ -621,41 +642,77 @@ button::-moz-focus-inner {
 
 #player-seek-elapsed, 
 #player-seek-remaining {  
-  top: 36%;
-  width: 20%;
-  font-size: 1.38rem;
+  top: calc(50% - 0.69rem);
+  width: 18%;
+  line-height: 1.38rem;
+  font-size: 1.4rem;
   font-weight: 500;
   color: #a1afb2;
   text-align: center;
 }
 
 #player-seek-bar {
-  top: 36%;
   width: 60%;
-  height: 28%;
+  height: 100%;
+  padding: 0 2%;
 }
 
 #player-seek-bar-progress {
   -moz-appearance: none;
-  width: 100%;
-  height: 100%;
-  border-radius: 2px;
+  position: absolute;
+  top: calc(50% - 0.15rem);
+  left: 2.5%;
+  width: 95%;
+  height: 0.3rem;
+  border-radius: 5px;
   border-width: 0px;
   box-shadow: 1px 1px rgba(255, 255, 255, 0.2);
-  background-color: rgba(0, 0, 0, 0.7);
+  background: url("./images/timeline.png");
+  background-position: center center;
+  background-repeat: repeat-x;
 }
 
 #player-seek-bar-progress::-moz-progress-bar {
-  border-radius: 2px;
-  background-color: #0095CC;
+  border-radius: 5px;
+  background: url("./images/timeline_filled.png");
+  background-position: center center;
+  background-repeat: repeat-x;
+}
+
+#player-seek-bar-indicator {
+  position: absolute;
+  top: calc(50% - 4.05rem);
+  width: 6.5rem;
+  height: 6.5rem;
+  border-radius: 50%;
+  background-image: url("./images/scrubber.png");
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-color: transparent;
+  border: solid 0.8rem transparent;
+  transition: background-color 300ms ease,
+              border 300ms ease;
+  pointer-events: none;
+}
+
+#player-seek-bar-indicator.highlight {
+  /* background-image does not support transition
+   * so here we use background-color and border on a div
+   * to draw an image just like
+   * url("./images/scrubber_pressed.png")
+   * that image is also committed
+   * if UX wants to use the original image
+   */
+  background-color: rgba(0, 180, 225, 0.85);
+  border: solid 0.8rem rgba(0, 0, 0, 0.3);
 }
 
 #player-controls {
   position: relative;
   width: 100%;
-  height: 13%;
+  height: 5.5rem;
   overflow: hidden;
-  background: #111111;
+  background: rgba(0, 0, 0, 1);
 }
 
 #player-controls-previous, 
@@ -666,7 +723,7 @@ button::-moz-focus-inner {
   height: 100%;
   padding: 0px;
   border-width: 0px;
-  font-weight: bold;
+  font-weight: 500;
   overflow: hidden;
   background-position: center center;
   background-repeat: no-repeat;
@@ -730,7 +787,7 @@ button::-moz-focus-inner {
   width: 25%;
   height: 100%;
   padding: 0px;
-  font-size: 1.61rem;
+  font-size: 1.7rem;
   background-position: center center;
   background-repeat: no-repeat;
 }
@@ -805,7 +862,7 @@ li.list-header {
   width: calc(100% - 11.5rem);
   height: 2.5rem;
   line-height: 2.5rem;
-  font-size: 1.83rem;
+  font-size: 1.9rem;
   color: rgb(0, 138, 170);
   border-bottom: solid 1px rgba(255, 255, 255, 0.1);
   pointer-events: none;
@@ -857,7 +914,7 @@ li.list-item a:active {
   top: 10%;
   width: calc(100% - 12rem);
   padding: 0 0.5rem 0 3rem;
-  font-size: 1.83rem;
+  font-size: 1.9rem;
   color: white;
 }
 
@@ -865,7 +922,7 @@ li.list-item a:active {
   top: 3rem;
   width: calc(100% - 12rem);
   padding: 0 0.5rem 0 3rem;
-  font-size: 1.61rem;
+  font-size: 1.7rem;
   color: #8a9699;
 }
 
@@ -874,7 +931,7 @@ li.list-item a:active {
   height: 6rem;
   line-height: 6rem;
   padding: 0 0.5rem 0 3rem;
-  font-size: 1.83rem;
+  font-size: 1.9rem;
   color: white;
 }
 
@@ -884,7 +941,7 @@ li.list-item a:active {
   padding-left: 3rem;
   padding-right: 0.5rem;
   line-height: 6rem;
-  font-size: 1.83rem;
+  font-size: 1.9rem;
   color: white;
   border-bottom: solid 1px rgba(255, 255, 255, 0.1);
 }
@@ -907,8 +964,8 @@ li.list-item a:active {
   top: 0;
   height: 6rem;
   line-height: 6rem;
-  font-size: 1.3rem;
-  font-weight: bolder;
+  font-size: 1.4rem;
+  font-weight: 500;
   color: rgba(255, 255, 255, 0.5);
   text-align: center;
   pointer-events: none;
@@ -924,7 +981,7 @@ li.list-item a:active {
   height: 6rem;
   line-height: 6rem;
   padding-right: 0.5rem;
-  font-size: 1.83rem;
+  font-size: 1.9rem;
   color: white;
   border-bottom: solid 1px rgba(255, 255, 255, 0.1);
 }
