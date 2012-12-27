@@ -381,7 +381,8 @@ var Settings = {
      * explicitely when the dialog is shown.  If the dialog is validated
      * (submit), their values are stored into B2G settings.
      *
-     * XXX warning, this only supports text/password/radio/select/radio input types.
+     * XXX
+     * warning, this only supports text/password/radio/select/radio input types.
      */
 
     // initialize all setting fields in the dialog box
@@ -471,11 +472,12 @@ var Settings = {
     req.onsuccess = function ftuManifest() {
       var ftuManifestURL = req.result[key];
 
-      // Fallback if no settings present
+      // fallback if no settings present
       if (!ftuManifestURL) {
         ftuManifestURL = document.location.protocol +
-          '//communications.gaiamobile.org' + (location.port ? ':' +
-            location.port : '/manifest.webapp');
+          '//communications.gaiamobile.org' +
+          (location.port ? (':' + location.port) : '') +
+          '/manifest.webapp';
       }
 
       var ftuApp = null;
@@ -491,7 +493,7 @@ var Settings = {
         if (ftuApp) {
           ftuApp.launch('ftu');
         } else {
-          alert(_('no-ftu'));
+          alert(navigator.mozL10n.get('no-ftu'));
         }
       }
     }
