@@ -60,9 +60,36 @@ var AppIntegration = (function() {
     return dec;
   }
 
+  /**
+   * Returns parsed test variables from the file denoted by the
+   * TESTVARS environment variable or "testvars.json" if it exists.
+   *
+   * If the file doesn't exist, then this logs an error to the console
+   * and returns {}.
+   */
+  function getTestVars() {
+    var env = window.xpcModule.require('env');
+    var testvars = env.get('TESTVARS') || 'testvars.json';
+    var fs = window.xpcModule.require('fs');
+
+    if ((testvars.slice(0, 1) !== '/') && (!fs.existsSync(testvars))) {
+      // This starts in the tests/js/ directory, so we go up two
+      // directories and start relative to there.
+      testvars = '../../' + testvars;
+    }
+
+    if (fs.existsSync(testvars)) {
+      return JSON.parse(fs.readFileSync(testvars));
+    }
+
+    console.error('"' + testvars + '" does not exist.');
+    return {};
+  }
+
   function AppIntegration(device) {
     this.device = device;
     this.defaultCallback = device.defaultCallback;
+    this.allTestVars = getTestVars();
   }
 
   AppIntegration.prototype = {
@@ -100,6 +127,14 @@ var AppIntegration = (function() {
      */
     selectors: {
       //settingsView: '#settings'
+    },
+
+    /**
+     * Returns the test vars for this app (as specified
+     * by this.appName) or {}.
+     */
+    getAppTestVars: function() {
+      return this.allTestVars[this.appName] || {};
     },
 
     /**
