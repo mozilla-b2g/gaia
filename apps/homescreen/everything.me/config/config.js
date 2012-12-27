@@ -214,7 +214,6 @@ Evme.__config = {
         }
     },
     "categoriesDialogs": {},
-    "tests": [],
     "_localShortcuts": [
         {"query":"social","appIds":[693,588,694]},
         {"query":"games","appIds":[1251,807,1883]},

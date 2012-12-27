@@ -282,7 +282,13 @@ function changeMode(mode) {
       break;
   }
 
-  TitleBar.changeTitleText(title);
+  // if title doesn't exist, that should be the first time launch
+  // so we can just ignore changeTitleText()
+  // because the title is already localized in HTML
+  // And if title does exist, it should be the localized "Music"
+  // so it will be just fine to update changeTitleText() again
+  if (title)
+    TitleBar.changeTitleText(title);
 
   if (mode === currentMode)
     return;
@@ -954,16 +960,20 @@ var PlayerView = {
 
     this.ratings = document.getElementById('player-album-rating').children;
 
+    this.seekRegion = document.getElementById('player-seek-bar');
     this.seekBar = document.getElementById('player-seek-bar-progress');
+    this.seekIndicator = document.getElementById('player-seek-bar-indicator');
     this.seekElapsed = document.getElementById('player-seek-elapsed');
     this.seekRemaining = document.getElementById('player-seek-remaining');
 
     this.playControl = document.getElementById('player-controls-play');
 
     this.isPlaying = false;
+    this.isSeeking = false;
     this.dataSource = [];
     this.currentIndex = 0;
     this.backgroundIndex = 0;
+    this.setSeekBar(0, 0, 0); // Set 0 to default seek position
 
     asyncStorage.getItem(SETTINGS_OPTION_KEY, this.setOptions.bind(this));
 
@@ -971,8 +981,12 @@ var PlayerView = {
 
     // Seeking audio too frequently causes the Desktop build hangs
     // A related Bug 739094 in Bugzilla
-    this.seekBar.addEventListener('mousemove', this);
+    this.seekRegion.addEventListener('mousedown', this);
+    this.seekRegion.addEventListener('mousemove', this);
+    this.seekRegion.addEventListener('mouseup', this);
 
+    this.audio.addEventListener('play', this);
+    this.audio.addEventListener('pause', this);
     this.audio.addEventListener('timeupdate', this);
     this.audio.addEventListener('ended', this);
 
@@ -1197,8 +1211,6 @@ var PlayerView = {
     } else {
       this.audio.play();
     }
-
-    this.playControl.classList.remove('is-pause');
   },
 
   pause: function pv_pause() {
@@ -1211,8 +1223,6 @@ var PlayerView = {
     }
 
     this.audio.pause();
-
-    this.playControl.classList.add('is-pause');
   },
 
   stop: function pv_stop() {
@@ -1338,6 +1348,14 @@ var PlayerView = {
     this.seekBar.max = endTime;
     this.seekBar.value = currentTime;
 
+    // if endTime is 0, that's a reset of seekBar
+    var ratio = (endTime != 0) ? (currentTime / endTime) : 0;
+    // The width of the seek indicator must be also considered
+    // so we divide the width of seek indicator by 2 to find the center point
+    var x = (ratio * this.seekBar.offsetWidth -
+      this.seekIndicator.offsetWidth / 2) + 'px';
+    this.seekIndicator.style.transform = 'translateX(' + x + ')';
+
     this.seekElapsed.textContent = formatTime(currentTime);
     this.seekRemaining.textContent = '-' + formatTime(endTime - currentTime);
   },
@@ -1353,13 +1371,6 @@ var PlayerView = {
           case 'player-cover':
           case 'player-cover-image':
             this.showInfo();
-
-            break;
-
-          case 'player-seek-bar-progress':
-            // target is the seek bar, and evt.layerX is the clicked position
-            var seekTime = evt.layerX / target.clientWidth * target.max;
-            this.seekAudio(seekTime);
 
             break;
 
@@ -1422,13 +1433,44 @@ var PlayerView = {
         }
 
         break;
+      case 'play':
+        this.playControl.classList.remove('is-pause');
+        break;
+      case 'pause':
+        this.playControl.classList.add('is-pause');
+        break;
+      case 'mousedown':
       case 'mousemove':
+        if (evt.type === 'mousedown') {
+          target.setCapture(false);
+          this.isSeeking = true;
+          this.seekIndicator.classList.add('highlight');
+        }
+        if (this.isSeeking) {
+          var x = 0;
+
+          if (evt.layerX < 0) {
+            x = 0;
+          } else if (evt.layerX > target.clientWidth) {
+            x = target.clientWidth;
+          } else {
+            x = evt.layerX;
+          }
+          // target is the seek bar, and evt.layerX is the moved position
+          var seekTime = x / target.clientWidth * this.seekBar.max;
+          this.setSeekBar(this.audio.startTime, this.audio.duration, seekTime);
+        }
+        break;
+      case 'mouseup':
+        this.isSeeking = false;
+        this.seekIndicator.classList.remove('highlight');
         // target is the seek bar, and evt.layerX is the moved position
-        var seekTime = evt.layerX / target.clientWidth * target.max;
+        var seekTime = evt.layerX / target.clientWidth * this.seekBar.max;
         this.seekAudio(seekTime);
         break;
       case 'timeupdate':
-        this.updateSeekBar();
+        if (!this.isSeeking)
+          this.updateSeekBar();
 
         // Since we don't always get reliable 'ended' events, see if
         // we've reached the end this way.
@@ -1526,9 +1568,6 @@ var TabBar = {
               musicdb.enumerate('metadata.' + this.option, null,
                                 'nextunique',
                                 ListView.update.bind(ListView, this.option));
-
-            break;
-          case 'tabs-more':
 
             break;
         }

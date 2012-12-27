@@ -79,7 +79,8 @@ var Carrier = (function newCarrier(window, document, undefined) {
       // create an <input type="radio"> element
       var input = document.createElement('input');
       input.type = 'radio';
-      input.name = 'ril.' + usage + '.carrier';
+      input.name = usage + 'ApnSettingsCarrier';
+      input.dataset.setting = 'ril.' + usage + '.carrier';
       input.value = item.carrier || item.apn;
       input.onclick = function fillAPNData() {
         rilData('apn').value = item.apn || '';
@@ -144,12 +145,12 @@ var Carrier = (function newCarrier(window, document, undefined) {
     };
 
     // force data connection to restart if changes are validated
-    apnPanel.querySelector('button[type=submit]').onclick =
-        restartDataConnection;
+    var submitButton = apnPanel.querySelector('button[type=submit]');
+    submitButton.addEventListener('click', restartDataConnection);
   }
 
   // restart data connection by toggling it off and on again
-  function restartDataConnection(forceStart) {
+  function restartDataConnection() {
     var settings = Settings.mozSettings;
     if (!settings)
       return;
@@ -163,7 +164,7 @@ var Carrier = (function newCarrier(window, document, undefined) {
 
     var request = settings.createLock().get(key);
     request.onsuccess = function() {
-      if (request.result[key] || forceStart) {
+      if (request.result[key]) {
         setDataState(false);    // turn data off
         setTimeout(function() { // turn data back on
           setDataState(true);
