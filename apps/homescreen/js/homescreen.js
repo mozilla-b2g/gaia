@@ -83,6 +83,8 @@ const Homescreen = (function() {
         body = _('remove-body', { name: manifest.name });
         confirm.title = _('remove');
       } else {
+        // Make sure to get the localized name
+        manifest = new ManifestHelper(manifest);
         title = _('delete-title', { name: manifest.name });
         body = _('delete-body', { name: manifest.name });
         confirm.title = _('delete');
