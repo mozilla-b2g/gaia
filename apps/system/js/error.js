@@ -1,8 +1,3 @@
-
-function closeWindow() {
-  window.close();
-}
-
 function reloadWindow(url) {
   document.location.replace(url);
 }
@@ -45,7 +40,6 @@ window.addEventListener('localized', function onload(e) {
       break;
   }
 
-  document.getElementById('close').onclick = closeWindow;
   document.getElementById('reload').onclick = function() {
     reloadWindow(params['origin']);
   };
