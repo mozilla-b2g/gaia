@@ -106,7 +106,6 @@ let content = [
     iconDescriptor(GAIA_CORE_APP_SRCDIR, 'email'),
     iconDescriptor(GAIA_CORE_APP_SRCDIR, 'music'),
     iconDescriptor(GAIA_CORE_APP_SRCDIR, 'video'),
-    iconDescriptor(GAIA_CORE_APP_SRCDIR, 'calculator'),
     iconDescriptor(GAIA_EXTERNAL_APP_SRCDIR, 'marketplace-dev')
   ]
 ];
