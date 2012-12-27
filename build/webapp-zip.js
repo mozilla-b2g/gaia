@@ -254,6 +254,9 @@ Gaia.webapps.forEach(function(webapp) {
     file.append('resources');
     path.split('/').forEach(function(segment) {
       file.append(segment);
+      if (isSubjectToBranding(file.path)) {
+        file.append((OFFICIAL == 1) ? 'official' : 'unofficial');
+      }
     });
     if (!file.exists()) {
       throw new Error('Using inexistent shared resource: ' + path +
@@ -281,4 +284,3 @@ Gaia.webapps.forEach(function(webapp) {
 
   zip.close();
 });
-
