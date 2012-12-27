@@ -343,7 +343,10 @@
     <section role="region" hidden id="call-cf-notReachableSettings">
       <!--
       <header>
-        <a href="#call"><span class="icon icon-back">back</span></a>
+        <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
+        <menu type="toolbar">
+          <button type="submit"><span data-l10n-id="ok">OK</span></button>
+        </menu>
         <h1 data-l10n-id="callForwarding"> Call forwarding </h1>
       </header>
 
@@ -354,7 +357,7 @@
         </li>
         <li>
           <label>
-            <input type="checkbox" data-type="switch" name="ril.cf.notreachable.enabled"/>
+            <input type="checkbox" data-type="switch" data-setting="ril.cf.notreachable.enabled"/>
             <span></span>
           </label>
           <a data-l10n-id="callForwardingNotReachable"> Forward when unreachable </a>
@@ -367,7 +370,10 @@
     <section role="region" hidden id="call-cf-noReplySettings">
       <!--
       <header>
-        <a href="#call"><span class="icon icon-back">back</span></a>
+        <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
+        <menu type="toolbar">
+          <button type="submit"><span data-l10n-id="ok">OK</span></button>
+        </menu>
         <h1 data-l10n-id="callForwarding"> Call forwarding </h1>
       </header>
 
@@ -378,7 +384,7 @@
         </li>
         <li>
           <label>
-            <input type="checkbox" data-type="switch" name="ril.cf.noreply.enabled"/>
+            <input type="checkbox" data-type="switch" data-setting="ril.cf.noreply.enabled"/>
             <span></span>
           </label>
           <a data-l10n-id="callForwardingNoReply"> Forward when unanswered </a>
@@ -391,7 +397,10 @@
     <section role="region" hidden id="call-cf-mobileBusySettings">
       <!--
       <header>
-        <a href="#call"><span class="icon icon-back">back</span></a>
+        <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
+        <menu type="toolbar">
+          <button type="submit"><span data-l10n-id="ok">OK</span></button>
+        </menu>
         <h1 data-l10n-id="callForwarding"> Call forwarding </h1>
       </header>
 
@@ -402,7 +411,7 @@
         </li>
         <li>
           <label>
-            <input type="checkbox" data-type="switch" name="ril.cf.mobilebusy.enabled"/>
+            <input type="checkbox" data-type="switch" data-setting="ril.cf.mobilebusy.enabled"/>
             <span></span>
           </label>
           <a data-l10n-id="callForwardingMobileBusy"> Forward when busy </a>
@@ -415,7 +424,10 @@
     <section role="region" hidden id="call-cf-unconditionalSettings">
       <!--
       <header>
-        <a href="#call"><span class="icon icon-back">back</span></a>
+        <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
+        <menu type="toolbar">
+          <button type="submit"><span data-l10n-id="ok">OK</span></button>
+        </menu>
         <h1 data-l10n-id="callForwarding"> Call forwarding </h1>
       </header>
 
@@ -426,7 +438,7 @@
         </li>
         <li>
           <label>
-            <input type="checkbox" data-type="switch" name="ril.cf.unconditional.enabled"/>
+            <input type="checkbox" data-type="switch" data-setting="ril.cf.unconditional.enabled"/>
             <span></span>
           </label>
           <a data-l10n-id="callForwardingUnconditional">Always forward</a>
@@ -462,19 +474,19 @@
       <ul>
         <li id="li-cfu-desc" class="disabled">
           <small id="cfu-desc"></small>
-          <a id="menuItem-callForwardingUnconditional" href="#call-cf-unconditionalSettings" data-l10n-id="callForwardingUnconditional">Always forward</a>
+          <a id="menuItem-callForwardingUnconditional" data-href="#call-cf-unconditionalSettings" data-l10n-id="callForwardingUnconditional">Always forward</a>
         </li>
         <li id="li-cfmb-desc" class="disabled">
           <small id="cfmb-desc"></small>
-          <a id="menuItem-callForwardingMobileBusy" href="#call-cf-mobileBusySettings" data-l10n-id="callForwardingMobileBusy">Forward when busy</a>
+          <a id="menuItem-callForwardingMobileBusy" data-href="#call-cf-mobileBusySettings" data-l10n-id="callForwardingMobileBusy">Forward when busy</a>
         </li>
         <li id="li-cfnrep-desc" class="disabled">
           <small id="cfnrep-desc"></small>
-          <a id="menuItem-callForwardingNoReply" href="#call-cf-noReplySettings" data-l10n-id="callForwardingNoReply">Forward when unanswered</a>
+          <a id="menuItem-callForwardingNoReply" data-href="#call-cf-noReplySettings" data-l10n-id="callForwardingNoReply">Forward when unanswered</a>
         </li>
         <li id="li-cfnrea-desc" class="disabled">
           <small id="cfnrea-desc"></small>
-          <a id="menuItem-callForwardingNotReachable" href="#call-cf-notReachableSettings" data-l10n-id="callForwardingNotReachable">Forward when unreachable</a>
+          <a id="menuItem-callForwardingNotReachable" data-href="#call-cf-notReachableSettings" data-l10n-id="callForwardingNotReachable">Forward when unreachable</a>
         </li>
       </ul>
 

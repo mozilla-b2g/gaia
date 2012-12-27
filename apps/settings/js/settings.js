@@ -399,6 +399,9 @@ var Settings = {
                 case 'radio':
                   input.checked = (input.value == request.result[key]);
                   break;
+                case 'checkbox':
+                  input.checked = request.result[key] || false;
+                  break;
                 default:
                   input.value = request.result[key] || '';
                   break;
@@ -427,6 +430,9 @@ var Settings = {
             case 'radio':
               if (input.checked)
                 cset[key] = input.value;
+              break;
+            case 'checkbox':
+                cset[key] = input.checked;
               break;
             default:
               cset[key] = input.value;
