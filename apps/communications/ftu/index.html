@@ -36,13 +36,14 @@
   <script defer type="text/javascript" src="/contacts/js/utilities/config.js"></script>
   <script defer type="text/javascript" src="/contacts/js/fb/fb_utils.js"></script>
   <script defer type="text/javascript" src="/shared/js/async_storage.js"></script>
+  <script defer type="text/javascript" src="/ftu/js/sim_manager.js"></script>
   <script defer type="text/javascript" src="/ftu/js/wifi.js"></script>
   <script defer type="text/javascript" src="/ftu/js/facebook.js"></script>
   <script defer type="text/javascript" src="/ftu/js/tutorial.js"></script>
   <script defer type="text/javascript" src="/ftu/js/navigation.js"></script>
   <script defer type="text/javascript" src="/ftu/js/data_mobile.js"></script>
   <script defer type="text/javascript" src="/ftu/js/time.js"></script>
-  <script defer type="text/javascript" src="/ftu/js/ui.js" defer></script>
+  <script defer type="text/javascript" src="/ftu/js/ui.js"></script>
   <script defer type="text/javascript" src="/ftu/js/language.js"></script>
   <script defer type="text/javascript" src="/ftu/js/app.js"></script>
   <script defer type="text/javascript" src="/contacts/js/utilities/import_sim_contacts.js"></script>
@@ -63,8 +64,11 @@
         <div id="pin-error"></div>
       </section>
     </section>
-    <nav role="navigation" class="forward-only">
-      <button class="recommend fullsize" id="done-button" data-l10n-id="done">
+    <nav role="navigation">
+      <button id="skip-pin-button" class="button-left" data-l10n-id="skip">
+        Skip
+      </button>
+      <button id="unlock-sim-button" class="recommend" data-l10n-id="done">
         Done
       </button>
     </nav>
@@ -378,10 +382,10 @@
       </p>
       </section>
       <menu role="navigation">
-        <button id="button-skip" class="button-left" data-l10n-id="skip">
+        <button id="skip-tutorial-button" class="button-left" data-l10n-id="skip">
           Skip
         </button>
-        <button class="recommend" id="button-lets-go" data-l10n-id="startTour">
+        <button id="lets-go-button" class="recommend" data-l10n-id="startTour">
           Start Tour!
         </button>
       </menu>
