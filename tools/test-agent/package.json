@@ -3,11 +3,11 @@
   "version": "0.0.1",
   "private": true,
   "dependencies": {
-    "test-agent": "0.7.1",
+    "test-agent": "0.8.0",
     "marionette-client": "0.5.1",
     "b2g-scripts": "0.3.0",
     "chai": "0.5.3",
-    "mocha": "~1.0",
+    "mocha": "~1.7",
     "xpcwindow": "0.4.4"
   }
 }

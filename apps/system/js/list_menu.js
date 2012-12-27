@@ -60,14 +60,10 @@ var ListMenu = {
       var button = document.createElement('a');
       button.setAttribute('role', 'button');
       if (item.type && item.type == 'menu') {
-        this.currentLevel += 1;
-        this.currentParent = containerDiv.id;
-        this.buildMenu(item.items);
-        this.currentLevel -= 1;
-        item_div.classList.add('submenu');
-
-        button.href = '#' + this.currentChild;
-        button.textContent = item.label;
+        // XXX: We disallow multi-level menu at this moment
+        // See https://bugzilla.mozilla.org/show_bug.cgi?id=824928
+        // for UX design and dev implementation tracking
+        return;
       } else if (item.type && item.type == 'menuitem') {
         button.dataset.value = item.id;
         button.textContent = item.label;

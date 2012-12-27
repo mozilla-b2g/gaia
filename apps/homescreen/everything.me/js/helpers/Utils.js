@@ -8,7 +8,7 @@ Evme.Utils = new function Evme_Utils() {
         CONTAINER_ID = "evmeContainer",
         COOKIE_NAME_CREDENTIALS = "credentials",
         
-        FFOSMessages = this.FFOSMessages = {
+        OSMessages = this.OSMessages = {
             "APP_CLICK": "open-in-app",
             "APP_INSTALL": "add-bookmark",
             "IS_APP_INSTALLED": "is-app-installed",
@@ -41,34 +41,63 @@ Evme.Utils = new function Evme_Utils() {
         dump("(" + (new Date().getTime()) + ") DOAT: " + message);
     };
     
-    this.sendToFFOS = function sendToFFOS(type, data) {
+    this.l10n = function l10n(module, key, args) {
+        return navigator.mozL10n.get(Evme.Utils.l10nKey(module, key), args);
+    };
+    this.l10nAttr = function l10nAttr(module, key, args) {
+        var attr = 'data-l10n-id="' + Evme.Utils.l10nKey(module, key) + '"';
+        
+        if (args) {
+            try {
+                attr += ' data-l10n-args="' + JSON.stringify(args) + '"';
+            } catch(ex) {
+                
+            }
+        }
+        
+        return attr;
+    };
+    this.l10nKey = function l10nKey(module, key) {
+        return ('evme-' + module + '-' + key).toLowerCase();
+    };
+    this.l10nParseConfig = function l10nParseConfig(text) {
+        if (typeof text === "string") {
+            return text;
+        }
+        
+        var firstLanguage = Object.keys(text)[0],
+            currentLang = navigator.mozL10n.language.code || firstLanguage,
+            translation = text[currentLang] || text[firstLanguage] || '';
+        
+        return translation;
+    };
+    
+    this.sendToOS = function sendToOS(type, data) {
         switch (type) {
-            case FFOSMessages.APP_CLICK:
+            case OSMessages.APP_CLICK:
                 EvmeManager.openApp(data);
                 break;
-            case FFOSMessages.APP_INSTALL:
+            case OSMessages.APP_INSTALL:
                 EvmeManager.addBookmark(data);
                 break;
-            case FFOSMessages.IS_APP_INSTALLED:
+            case OSMessages.IS_APP_INSTALLED:
                 return EvmeManager.isAppInstalled(data.url);
-            case FFOSMessages.OPEN_URL:
+            case OSMessages.OPEN_URL:
                 return EvmeManager.openUrl(data.url);
-            case FFOSMessages.SHOW_MENU:
+            case OSMessages.SHOW_MENU:
                 return EvmeManager.menuShow();
-            case FFOSMessages.HIDE_MENU:
+            case OSMessages.HIDE_MENU:
                 return EvmeManager.menuHide();
-            case FFOSMessages.MENU_HEIGHT:
+            case OSMessages.MENU_HEIGHT:
                 return EvmeManager.getMenuHeight();
-            case FFOSMessages.GET_ALL_APPS:
+            case OSMessages.GET_ALL_APPS:
                 return EvmeManager.getApps();
-            case FFOSMessages.GET_APP_ICON:
+            case OSMessages.GET_APP_ICON:
                 return EvmeManager.getAppIcon(data);
-            case FFOSMessages.GET_APP_NAME:
+            case OSMessages.GET_APP_NAME:
                 return EvmeManager.getAppName(data);
-                break;
-            case FFOSMessages.GET_ICON_SIZE:
+            case OSMessages.GET_ICON_SIZE:
                 return EvmeManager.getIconSize();
-                break;
         }
     };
 
@@ -85,7 +114,7 @@ Evme.Utils = new function Evme_Utils() {
     };
 
     this.getRoundIcon = function getRoundIcon(imageSrc, callback) {
-        var size = Evme.Utils.sendToFFOS(Evme.Utils.FFOSMessages.GET_ICON_SIZE) - 2,
+        var size = Evme.Utils.sendToOS(Evme.Utils.OSMessages.GET_ICON_SIZE) - 2,
             radius = size/2,
             img = new Image();
         
@@ -127,7 +156,7 @@ Evme.Utils = new function Evme_Utils() {
 
     this.getIconGroup = function getIconGroup() {
         return Evme.Utils.cloneObject(Evme.__config.iconsGroupSettings);
-    }
+    };
 
     this.getIconsFormat = function getIconsFormat() {
         return iconsFormat || _getIconsFormat();

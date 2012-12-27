@@ -176,7 +176,7 @@ suite('db', function() {
           var item = calendarStore.cached[list[0]];
 
           assert.ok(item);
-          assert.equal(item.remote.name, 'Offline Calendar');
+          assert.equal(item.remote.name, 'Offline calendar');
 
           var acc = calendarStore.accountFor(item);
           assert.ok(acc, 'has account');

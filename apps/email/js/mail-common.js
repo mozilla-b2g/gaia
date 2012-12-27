@@ -649,6 +649,9 @@ var Cards = {
     }
     else if (cardDomNode === null) {
       firstIndex = 0;
+      // reset the z-index to 0 since we may have cards in the stack that
+      // adjusted the z-index (and we are definitively clearing all cards).
+      this._zIndex = 0;
     }
     else {
       for (iCard = this._cardStack.length - 1; iCard >= 0; iCard--) {
