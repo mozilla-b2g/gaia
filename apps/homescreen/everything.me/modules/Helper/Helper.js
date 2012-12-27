@@ -4,12 +4,6 @@ Evme.Helper = new function Evme_Helper() {
         _data = {}, defaultText = "", iscroll = null, currentDisplayedType = "", timeoutShowRefine = null,
         queryForSuggestions = "", lastVisibleItem, clicked = false, titleVisible = false,
         TOTAL_WIDTH_ADDITION = 20, MIN_WIDTH = 308, TYPE_ELEMENT_OFFSET = 86,
-        TITLE_PREFIX = "FROM CONFIG",
-        TITLE_PREFIX_EMPTY = "FROM CONFIG",
-        TITLE_SHORTCUTS = "FROM CONFIG",
-        TITLE_HISTORY = "FROM CONFIG",
-        TITLE_DID_YOU_MEAN = "FROM CONFIG",
-        TITLE_REFINE = "FROM CONFIG",
         
         bShouldAnimate = true, ftr = {};
            
@@ -23,7 +17,6 @@ Evme.Helper = new function Evme_Helper() {
             }
         }
 
-        defaultText = options.texts.defaultText;
         el = options.el;
         elTitle = options.elTitle;
         elTip = options.elTip;
@@ -31,14 +24,6 @@ Evme.Helper = new function Evme_Helper() {
         elWrapper = el.parentNode;
         elList = Evme.$("ul", el)[0];
         
-        TITLE_SHORTCUTS = options.texts.titleShortcuts;
-        TITLE_HISTORY = options.texts.titleHistory;
-        TITLE_DID_YOU_MEAN = options.texts.titleDidYouMean;
-        TITLE_REFINE = options.texts.titleRefine;
-        
-        TITLE_PREFIX = options.texts.titlePrefix || "Everything";
-        TITLE_PREFIX_EMPTY = options.texts.titlePrefixEmpty || TITLE_PREFIX;
-
         elList.addEventListener("click", elementClick, false);
         elTitle.addEventListener("click", titleClicked, false);
         
@@ -82,16 +67,12 @@ Evme.Helper = new function Evme_Helper() {
     };
     
     this.empty = function empty() {
-        elList.innerHTML = "";
+        elList.innerHTML = '<li class="label" ' + Evme.Utils.l10nAttr(NAME, 'default') + '></li>';
         elList.classList.remove("default");
     };
     
     this.clear = function clear() {
-        if (defaultText) {
-            self.showText(defaultText);
-        } else {
-            self.empty();
-        }
+        self.empty();
         
         Evme.EventHandler.trigger(NAME, "clear");
     };
@@ -195,16 +176,18 @@ Evme.Helper = new function Evme_Helper() {
     this.showSuggestions = function showSuggestions(querySentWith) {
         querySentWith && (queryForSuggestions = querySentWith);
         
-        Evme.EventHandler.trigger(NAME, "showSuggestions", {
-            "data": _data.suggestions
-        });
-        
         if (_data.suggestions.length > 0) {
             if (_data.suggestions.length > 4) {
                 _data.suggestions = _data.suggestions.slice(0, 4);
             }
-            self.showList(_data.suggestions);
+            self.showList({
+                "data": _data.suggestions
+            });
         }
+        
+        Evme.EventHandler.trigger(NAME, "showSuggestions", {
+            "data": _data.suggestions
+        });
     };
     
     this.getSuggestionsQuery = function getSuggestionsQuery() {
@@ -213,28 +196,39 @@ Evme.Helper = new function Evme_Helper() {
     
     this.showHistory = function showHistory() {
         self.disableAnimation();
+        
+        self.showList({
+            "data": _data.history,
+            "l10nKey": 'history-title',
+            "className": "history"
+        });
+        
         Evme.EventHandler.trigger(NAME, "showHistory", {
             "data": _data.history
         });
-        self.showList(_data.history, TITLE_HISTORY, "history");
     };
     
     this.showSpelling = function showSpelling() {
         self.disableAnimation();
-        Evme.EventHandler.trigger(NAME, "showSpelling", {
-            "data": _data.spelling
-        });
         
         var list = _data.spelling;
         if (list.length == 0) {
             list = _data.types;
         }
         
-        self.showList(list, TITLE_DID_YOU_MEAN, "didyoumean");
+        self.showList({
+            "data": list,
+            "l10nKey": 'didyoumean-title',
+            "className": "didyoumean"
+        });
         
         if (list.length > 0) {
             self.flash();
         }
+        
+        Evme.EventHandler.trigger(NAME, "showSpelling", {
+            "data": _data.spelling
+        });
     };
     
     this.loadRefinement = function loadRefinement(types) {
@@ -245,48 +239,40 @@ Evme.Helper = new function Evme_Helper() {
         self.enableCloseAnimation();
         self.disableAnimation();
         
+        self.showList({
+            "data": _data.types,
+            "l10nKey": 'refine-title',
+            "className": "refine"
+        });
+        
         Evme.EventHandler.trigger(NAME, "showRefinement", {
             "data": _data.types
         });
-        
-        self.showList(_data.types, TITLE_REFINE, "refine");
     };
     
-    this.showText = function showText(text) {
-        self.enableCloseAnimation();
-        self.disableAnimation();
-        
-        Evme.EventHandler.trigger(NAME, "showText", {
-            "text": text
-        });
-        
-        self.showList([], text, "text");
-    };
-    
-    this.showList = function showList(_items, label, classToAdd) {
-        !classToAdd && (classToAdd = "");
+    this.showList = function showList(data) {
+        var classToAdd = data.className || '',
+            label = data.l10nKey? Evme.Utils.l10nAttr(NAME, data.l10nKey) : '',
+            items = (data.data || []).slice(0);
+            
         currentDisplayedType = classToAdd;
         
-        var items = _items.slice(0);
         self.empty();
         
         elList.className = classToAdd;
         
+        var html = "";
+        
         if (label) {
-            items.splice(0, 0, label);
+            html += '<li class="label" ' + label + '></li>';
         }
         
-        var html = "";
         for (var i=0; i<items.length; i++) {
             html += getElement(items[i], i, classToAdd);
         }
         elList.innerHTML = html;
         
-        if (label) {
-            elList.firstChild.classList.add("label");
-        }
-        
-        self.refreshIScroll();
+        window.setTimeout(self.refreshScroll, 0);
         
         if (bShouldAnimate) {
             self.disableAnimation();
@@ -314,7 +300,7 @@ Evme.Helper = new function Evme_Helper() {
         }, 0);
     };
     
-    this.refreshIScroll = function refreshIScroll() {
+    this.refreshScroll = function refreshScroll() {
         MIN_WIDTH = el.offsetWidth;
         setWidth();
         iscroll.refresh();
@@ -323,9 +309,10 @@ Evme.Helper = new function Evme_Helper() {
 
     this.setTitle = function setTitle(title, type) {
         if (!title) {
-            elTitle.innerHTML = '<b>' + TITLE_PREFIX_EMPTY + '</b>';
+            elTitle.innerHTML = '<b ' + Evme.Utils.l10nAttr(NAME, 'title-empty') + '></b>';
             return false;
         }
+        
         
         var currentTitle = Evme.$('.query', elTitle)[0],
             currentType = Evme.$('.type', elTitle)[0];
@@ -342,7 +329,7 @@ Evme.Helper = new function Evme_Helper() {
             }
         }
         
-        var html =  '<b>' + TITLE_PREFIX + '</b>' +
+        var html =  '<b ' + Evme.Utils.l10nAttr(NAME, 'title-prefix') + '></b>' +
                     '<span class="query">' + title + '</span>' +
                     '<em class="type">(' + (type || "") + ')</em>';
         
@@ -374,7 +361,7 @@ Evme.Helper = new function Evme_Helper() {
         elWrapper.classList.remove("close");
         elTitle.classList.add("close");
         window.setTimeout(self.disableCloseAnimation, 50);
-        self.refreshIScroll();
+        self.refreshScroll();
         
         titleVisible = false;
     };
@@ -406,8 +393,11 @@ Evme.Helper = new function Evme_Helper() {
         elTip.style.visibility = 'hidden';
     };
     
-    this.addLink = function addLink(text, callback, isBefore) {
-        var elLink = Evme.$create('li', {'class': "link"}, text);
+    this.addLink = function addLink(l10Key, callback, isBefore) {
+        var elLink = Evme.$create('li', {
+            'class': "link",
+            'data-l10n-id': Evme.Utils.l10nKey(NAME, l10Key)
+        });
         
         elLink.addEventListener("click", function onClick(e) {
             e.stopPropagation();
@@ -421,13 +411,16 @@ Evme.Helper = new function Evme_Helper() {
             elList.appendChild(elLink);
         }
         
-        self.refreshIScroll();
+        window.setTimeout(self.refreshScroll, 0);
         
         return elLink;
     };
     
-    this.addText = function addText(text) {
-        var el = Evme.$create('li', {'class': "text"}, text);
+    this.addText = function addText(l10Key) {
+        var el = Evme.$create('li', {
+            'class': "text",
+            'data-l10n-id': Evme.Utils.l10nKey(NAME, l10Key)
+        });
         
         el.addEventListener("click", function onClick(e) {
             e.stopPropagation();
@@ -436,7 +429,7 @@ Evme.Helper = new function Evme_Helper() {
         
         elList.appendChild(el);
         
-        self.refreshIScroll();
+        self.refreshScroll();
     };
     
     function animateSuggestions() {

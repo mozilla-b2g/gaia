@@ -11,8 +11,6 @@ Evme.SmartFolder = function Evme_SartFolder(_options) {
         CLASS_WHEN_IMAGE_FULLSCREEN = 'full-image',
         CLASS_WHEN_ANIMATING = 'animate',
         CLASS_WHEN_MAX_HEIGHT = 'maxheight',
-        TITLE_PREFIX = "<em></em>Everything",
-        LOAD_MORE_TEXT = "Loading...",
         SCROLL_TO_BOTTOM = "CALCULATED",
         SCROLL_TO_SHOW_IMAGE = 80,
         TRANSITION_DURATION = 400,
@@ -35,7 +33,6 @@ Evme.SmartFolder = function Evme_SartFolder(_options) {
         onScrollEnd = options.onScrollEnd;
         
         self.MoreIndicator.init({
-            "text": LOAD_MORE_TEXT,
             "elParent": elApps
         });
         
@@ -142,7 +139,9 @@ Evme.SmartFolder = function Evme_SartFolder(_options) {
         
         name = newName;
         
-        elTitle.innerHTML = TITLE_PREFIX + ' <span>' + name + '</span>';
+        elTitle.innerHTML = '<em></em>' +
+                            '<b ' + Evme.Utils.l10nAttr(NAME, 'title-prefix') + '></b> ' +
+                            '<span>' + name + '</span>';
         
         return self;
     };
@@ -246,7 +245,11 @@ Evme.SmartFolder = function Evme_SartFolder(_options) {
         };
         
         this.show = function show() {
-            el = Evme.$create('li', {'class': "loadmore"}, '<progress class="small skin-dark"></progress>' + text);
+            el = Evme.$create('li',
+                    {'class': "loadmore"},
+                    '<progress class="small skin-dark"></progress>' +
+                    '<b ' + Evme.Utils.l10nAttr(NAME, 'loading-more') + '></b>');
+                    
             elParent.appendChild(el);
             
             elParent.classList.add("loading-more");

@@ -1,5 +1,5 @@
 Evme.Shortcuts = new function Evme_Shortcuts() {
-    var _name = "Shortcuts", self = this, scroll = null,
+    var NAME = "Shortcuts", self = this, scroll = null,
         el = null, elList = null, elLoading = null, loadedResponse = null,
         shortcuts = [], visible = false, isSwiping = false, swiped = false, customizing = false, enabled = true,
         categoryPageData = {};
@@ -19,7 +19,7 @@ Evme.Shortcuts = new function Evme_Shortcuts() {
             "onBeforeScrollEnd": function onBeforeScrollEnd(){ swiped = false; el.classList.remove("swiping"); }
         });
         
-        Evme.EventHandler.trigger(_name, "init");
+        Evme.EventHandler.trigger(NAME, "init");
     };
     
     this.load = function load(data) {
@@ -220,28 +220,28 @@ Evme.Shortcuts = new function Evme_Shortcuts() {
     }
     
     function cbShow(bReport) {
-        Evme.EventHandler.trigger(_name, "show", {
+        Evme.EventHandler.trigger(NAME, "show", {
             "shortcuts": shortcuts,
             "report": (bReport === true)
         });
     }
     
     function cbHide(bReport) {
-        Evme.EventHandler.trigger(_name, "hide", {
+        Evme.EventHandler.trigger(NAME, "hide", {
             "shortcuts": shortcuts,
             "report": (bReport === true)
         });
     }
     
     function cbLoaded() {
-        Evme.EventHandler.trigger(_name, "load", {
+        Evme.EventHandler.trigger(NAME, "load", {
             "shortcuts": shortcuts
         });
     }
 }
 
 Evme.Shortcut = function Evme_Shortcut() {
-    var _name = "Shortcut", self = this, cfg = null, id = "id"+Math.round(Math.random()*10000),
+    var NAME = "Shortcut", self = this, cfg = null, id = "id"+Math.round(Math.random()*10000),
         el = null, elThumb = null,  index = -1, query = "", image = "", imageLoadingRetry = 0,
         timeoutHold = null, removed = false,
         posStart = [0, 0], timeStart = 0, fingerMoved = true;
@@ -316,7 +316,7 @@ Evme.Shortcut = function Evme_Shortcut() {
     this.isCustom = function isCustom() { return cfg.isCustom; };
     
     function onRemove(e) {
-        Evme.EventHandler.trigger(_name, "remove", {
+        Evme.EventHandler.trigger(NAME, "remove", {
             "shortcut": self,
             "data": cfg,
             "index": index,
@@ -363,7 +363,7 @@ Evme.Shortcut = function Evme_Shortcut() {
         if (fingerMoved) return;
         fingerMoved = false;
         
-        Evme.EventHandler.trigger(_name, "click", {
+        Evme.EventHandler.trigger(NAME, "click", {
             "shortcut": self,
             "data": cfg,
             "query": cfg.query,
@@ -378,7 +378,7 @@ Evme.Shortcut = function Evme_Shortcut() {
         if (fingerMoved) return;
         fingerMoved = false;
         
-        Evme.EventHandler.trigger(_name, "hold", {
+        Evme.EventHandler.trigger(NAME, "hold", {
             "shortcut": self,
             "data": cfg,
             "el": el,

@@ -5,8 +5,6 @@ Evme.Searchbar = new function Evme_Searchbar() {
         timeoutSearchOnBackspace = null, timeoutPause = null, timeoutIdle = null,
         intervalPolling = null,
         
-        DEFAULT_TEXT = "FROM CONFIG",
-        BUTTON_CLEAR = "FROM CONFIG",
         SEARCHBAR_POLLING_INTERVAL = 300,
         TIMEOUT_BEFORE_SEARCHING_ON_BACKSPACE = 500,
         TIMEOUT_BEFORE_SENDING_PAUSE_EVENT = "FROM CONFIG",
@@ -33,12 +31,6 @@ Evme.Searchbar = new function Evme_Searchbar() {
             cbReturnPressed(e, el.value);
         });
         
-        DEFAULT_TEXT = options.texts.defaultText;
-        if (DEFAULT_TEXT) {
-            elDefaultText.innerHTML = DEFAULT_TEXT;
-        }
-        BUTTON_CLEAR = options.texts.clear;
-        
         TIMEOUT_BEFORE_SENDING_PAUSE_EVENT = options.timeBeforeEventPause;
         TIMEOUT_BEFORE_SENDING_IDLE_EVENT = options.timeBeforeEventIdle;
         
@@ -48,17 +40,15 @@ Evme.Searchbar = new function Evme_Searchbar() {
         el.addEventListener("keyup", inputKeyUp);
         
         var elButtonClear = Evme.$("#button-clear");
-        elButtonClear.innerHTML = BUTTON_CLEAR;
         elButtonClear.addEventListener("touchstart", function onTouchStart(e){
             e.preventDefault();
             e.stopPropagation();
             clearButtonClick();
         });
-        elButtonClear.addEventListener("click", clearButtonClick);
         
         Evme.EventHandler.trigger(NAME, "init");
     };
-
+    
     this.getValue = function getValue() {
         return value;
     };

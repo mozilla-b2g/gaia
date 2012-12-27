@@ -3,7 +3,7 @@ window.Evme.currentTip = null;
 window.Evme.Tip = function Evme_Tip(_config, _onShow, _onHide) {
     var self = this, NAME = "Tips",
         el = null, elScreen = null,
-        id = '', text = "", buttons = [], className = "", closeAfter = false, showAfter = false,
+        id = '', _data = {}, buttons = [], classes = [], closeAfter = false, showAfter = false,
         blockScreen = false, timesToShow = Infinity, timesShown = 0, closeOnClick = false,
         timeoutAutoHide = null,
         onHide = _onHide || null, onShow = _onShow || null,
@@ -17,10 +17,11 @@ window.Evme.Tip = function Evme_Tip(_config, _onShow, _onHide) {
         
         id = "tip_" + options.id;
         text = options.text;
+        _data = options._data || {};
         buttons = options.buttons || [];
         closeAfter = options.closeAfter;
         showAfter = options.showAfter || 0;
-        className = options.className;
+        classes = options.classes;
         closeOnClick = options.closeOnClick || false;
         timesToShow = options.timesToShow || Infinity;
         blockScreen = options.blockScreen || false;
@@ -28,12 +29,19 @@ window.Evme.Tip = function Evme_Tip(_config, _onShow, _onHide) {
         timesShown = options.ignoreStorage? 0 : Evme.Storage.get(id) || 0;
         
         if (timesShown < timesToShow && !Evme.$("#" + id)) {
-            el = Evme.$create('div', {'id': id, 'class': "tip"}, text);
+            el = Evme.$create('div', {
+                'id': id,
+                'class': "tip",
+                'data-l10n-id': Evme.Utils.l10nKey(NAME, options.id),
+                'data-l10n-args': JSON.stringify(_data)
+            });
             
             el.addEventListener("touchstart", click);
             
-            if (className) {
-                el.classList.add(className);
+            if (classes) {
+                for (var i=0; i<classes.length; i++) {
+                    el.classList.add(classes[i]);
+                }
             }
             
             addButtons();
@@ -104,6 +112,8 @@ window.Evme.Tip = function Evme_Tip(_config, _onShow, _onHide) {
         el.classList.remove("visible");
         
         window.setTimeout(function onTimeout(){
+            el && el.removeEventListener("touchstart", click);
+            
             Evme.$remove(elScreen);
             Evme.$remove(el);
             
@@ -129,8 +139,11 @@ window.Evme.Tip = function Evme_Tip(_config, _onShow, _onHide) {
             var button = buttons[i],
                 elButton = Evme.$create('div', {'style': style}, '<b>' + button.text + '</b>');
                 
-            elButton.addEventListener("click", button.onclick);
-                
+            elButton.addEventListener("click", function onClick(e) {
+                this.removeEventListener("click", onClick);
+                button.onclick(e);
+            });
+            
             elButtons.appendChild(elButton);
         }
         
