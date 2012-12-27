@@ -150,7 +150,7 @@ Evme.BackgroundImage = new function Evme_BackgroundImage() {
 
         if (data.source) {
             Evme.$(".content", el)[0].addEventListener("touchstart", function onTouchEnd(e){
-                Evme.Utils.sendToFFOS(Evme.Utils.FFOSMessages.OPEN_URL, {
+                Evme.Utils.sendToOS(Evme.Utils.OSMessages.OPEN_URL, {
                     "url": data.source
                 });
             });

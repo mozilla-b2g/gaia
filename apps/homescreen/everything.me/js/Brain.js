@@ -80,7 +80,7 @@ Evme.Brain = new function Evme_Brain() {
 
         logger = _config && _config.logger || console;
 
-        ICON_SIZE = Evme.Utils.sendToFFOS(Evme.Utils.FFOSMessages.GET_ICON_SIZE);
+        ICON_SIZE = Evme.Utils.sendToOS(Evme.Utils.OSMessages.GET_ICON_SIZE);
     };
 
     /**
@@ -126,8 +126,6 @@ Evme.Brain = new function Evme_Brain() {
         // Searchbar focused. Keyboard shows
         this.focus = function focus(data) {
             Evme.Utils.setKeyboardVisibility(true);
-
-            Brain.FFOS.hideMenu();
 
             Evme.Helper.disableCloseAnimation();
             Evme.Helper.hideTitle();
@@ -284,22 +282,7 @@ Evme.Brain = new function Evme_Brain() {
             }
         };
     };
-    this.FFOS = new function FFOS() {
-        // dock hidden
-        this.hideMenu = function hideMenu() {
-            Evme.Utils.sendToFFOS(Evme.Utils.FFOSMessages.HIDE_MENU);
-            elContainer.classList.remove("ffos-menu-visible");
-            Evme.Shortcuts.refreshScroll();
-        };
-
-        // dock appears
-        this.showMenu = function showMenu() {
-            Evme.Utils.sendToFFOS(Evme.Utils.FFOSMessages.SHOW_MENU);
-            elContainer.classList.add("ffos-menu-visible");
-            Evme.Shortcuts.refreshScroll();
-        };
-    };
-
+    
     // modules/Helper/
     this.Helper = new function Helper() {
         var self = this,
@@ -552,7 +535,6 @@ Evme.Brain = new function Evme_Brain() {
             }
             
             Evme.Searchbar.setValue('', true);
-            Brain.FFOS.showMenu();
             
             return true;
         }
@@ -584,8 +566,8 @@ Evme.Brain = new function Evme_Brain() {
 
         // app pressed and held
         this.hold = function hold(data) {
-            var isAppInstalled = Evme.Utils.sendToFFOS(
-                Evme.Utils.FFOSMessages.IS_APP_INSTALLED,
+            var isAppInstalled = Evme.Utils.sendToOS(
+                Evme.Utils.OSMessages.IS_APP_INSTALLED,
                 { "url": data.data.appUrl }
             );
 
@@ -606,7 +588,7 @@ Evme.Brain = new function Evme_Brain() {
             // make it round
             Evme.Utils.getRoundIcon(appIcon, function onIconReady(roundedAppIcon) {
                 // bookmark
-                Evme.Utils.sendToFFOS(Evme.Utils.FFOSMessages.APP_INSTALL, {
+                Evme.Utils.sendToOS(Evme.Utils.OSMessages.APP_INSTALL, {
                     "originUrl": data.app.getFavLink(),
                     "title": data.data.name,
                     "icon": roundedAppIcon
@@ -779,7 +761,7 @@ Evme.Brain = new function Evme_Brain() {
                 GridManager.getAppByOrigin(data.appUrl).launch();
             } else {
                 Evme.Utils.getRoundIcon(appIcon, function onIconReady(roundedAppIcon) {
-                    Evme.Utils.sendToFFOS(Evme.Utils.FFOSMessages.APP_CLICK, {
+                    Evme.Utils.sendToOS(Evme.Utils.OSMessages.APP_CLICK, {
                         "url": data.appUrl,
                         "originUrl": data.favUrl,
                         "title": data.name,
@@ -1490,7 +1472,7 @@ Evme.Brain = new function Evme_Brain() {
                 regex = new RegExp('(' + query + ')', 'i'),
                 apps = [],
                 typeApps = INSTALLED_APPS_TO_TYPE[query.toLowerCase()],
-                _apps = Evme.Utils.sendToFFOS(Evme.Utils.FFOSMessages.GET_ALL_APPS);
+                _apps = Evme.Utils.sendToOS(Evme.Utils.OSMessages.GET_ALL_APPS);
 
             if (!query) {
                 return apps;
@@ -1498,7 +1480,7 @@ Evme.Brain = new function Evme_Brain() {
 
             for (var i=0; i<_apps.length; i++) {
                 var app = _apps[i],
-                    name = Evme.Utils.sendToFFOS(Evme.Utils.FFOSMessages.GET_APP_NAME, app);
+                    name = Evme.Utils.sendToOS(Evme.Utils.OSMessages.GET_APP_NAME, app);
 
                 if (regex.test(name) || typeApps && typeApps.indexOf(app.manifest.name) !== -1) {
                     apps.push({
@@ -1507,7 +1489,7 @@ Evme.Brain = new function Evme_Brain() {
                        'installed': true,
                        'appUrl': app.origin,
                        'preferences': '',
-                       'icon': Evme.Utils.sendToFFOS(Evme.Utils.FFOSMessages.GET_APP_ICON, app),
+                       'icon': Evme.Utils.sendToOS(Evme.Utils.OSMessages.GET_APP_ICON, app),
                        'requiresLocation': false,
                        'appNativeUrl': '',
                        'numShares': 0,
