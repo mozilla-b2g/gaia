@@ -49,7 +49,7 @@ suite('system/UpdateManager', function() {
   var fakeToaster;
   var fakeDialog;
 
-  var tinyTimeout = 5;
+  var tinyTimeout = 10;
   var lastDispatchedEvent = null;
 
   var mocksHelper;
@@ -150,33 +150,39 @@ suite('system/UpdateManager', function() {
     mocksHelper.setup();
   });
 
-  teardown(function() {
-    UpdateManager.updatableApps = [];
-    UpdateManager.updatesQueue = [];
-    UpdateManager.downloadsQueue = [];
-    UpdateManager._downloading = false;
-    UpdateManager._uncompressing = false;
-    UpdateManager.container = null;
-    UpdateManager.message = null;
-    UpdateManager.toaster = null;
-    UpdateManager.toasterMessage = null;
-    UpdateManager.laterButton = null;
-    UpdateManager.downloadButton = null;
-    UpdateManager.downloadDialog = null;
-    UpdateManager.downloadDialogTitle = null;
-    UpdateManager.downloadDialogList = null;
+  teardown(function(done) {
+    // wait for all actions to happen in UpdateManager before reseting
+    setTimeout(function() {
+      UpdateManager.updatableApps = [];
+      UpdateManager.updatesQueue = [];
+      UpdateManager.downloadsQueue = [];
+      UpdateManager._downloading = false;
+      UpdateManager._uncompressing = false;
+      UpdateManager.container = null;
+      UpdateManager.message = null;
+      UpdateManager.toaster = null;
+      UpdateManager.toasterMessage = null;
+      UpdateManager.laterButton = null;
+      UpdateManager.downloadButton = null;
+      UpdateManager.downloadDialog = null;
+      UpdateManager.downloadDialogTitle = null;
+      UpdateManager.downloadDialogList = null;
 
-    MockAppsMgmt.mTeardown();
+      MockAppsMgmt.mTeardown();
 
-    mocksHelper.teardown();
+      mocksHelper.teardown();
 
-    fakeNode.parentNode.removeChild(fakeNode);
-    fakeToaster.parentNode.removeChild(fakeToaster);
-    fakeDialog.parentNode.removeChild(fakeDialog);
+      fakeNode.parentNode.removeChild(fakeNode);
+      fakeToaster.parentNode.removeChild(fakeToaster);
+      fakeDialog.parentNode.removeChild(fakeDialog);
 
-    lastDispatchedEvent = null;
-    MockNavigatorWakeLock.mTeardown();
-    MockNavigatorSettings.mTeardown();
+      lastDispatchedEvent = null;
+      MockNavigatorWakeLock.mTeardown();
+      MockNavigatorSettings.mTeardown();
+
+      done();
+    }, tinyTimeout * 5);
+    // we use *5 because sometimes we have to wait for 2 timeouts
   });
 
   suite('init', function() {
@@ -503,7 +509,7 @@ suite('system/UpdateManager', function() {
               assert.equal('updatesAvailableMessage{"n":1}',
                            UpdateManager.message.textContent);
               done();
-            }, tinyTimeout * 2);
+            }, tinyTimeout * 1.5);
           });
 
           test('should display an updated count', function(done) {
