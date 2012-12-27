@@ -34,24 +34,24 @@
   overflow: hidden;
 }
 
-.cmp-addr-text, .cmp-subject-text, .cmp-dot-text {
+input.cmp-addr-text, input.cmp-subject-text, input.cmp-dot-text {
   border: 0;
   background: none;
   font-size: 1.5rem;
   margin-left: 0.5rem;
 }
 
-.cmp-addr-text, .cmp-dot-text {
+input.cmp-addr-text, input.cmp-dot-text {
   margin-top: 2px;
   float: left;
   width: 0.5rem;
 }
 
-.cmp-dot-text {
+input.cmp-dot-text {
   width: 0.5rem;
 }
 
-.cmp-subject-text {
+input.cmp-subject-text {
   text-overflow: ellipsis;
 }
 
@@ -104,7 +104,7 @@
   background: rgba(0,0,0,.8);
 }
 
-.cmp-messages-sending{
+.cmp-messages-sending {
   position: absolute;
   top:40%;
   width: 80%;
