@@ -20,9 +20,8 @@ var UssdManager = {
   init: function um_init() {
     if (this._conn.voice) {
       this._conn.addEventListener('voicechange', this);
-      // Even without SIM card, the mozMobileConnection.voice.network object
-      // exists, although its shortName property is null.
-      this._operator = this._conn.voice.network.shortName;
+      this._operator = MobileOperator.userFacingInfo(this._conn).operator;
+
     }
     this._origin = document.location.protocol + '//' +
       document.location.host;
@@ -237,10 +236,7 @@ var UssdManager = {
           };
         break;
       case 'voicechange':
-        // Even without SIM card, the mozMobileConnection.voice.network object
-        // exists, although its shortName property is null.
-        this._operator = this._conn.voice.network.shortName ?
-          this._conn.voice.network.shortName : null;
+        this._operator = MobileOperator.userFacingInfo(this._conn).operator;
         message = {
           type: 'voicechange',
           operator: (this._operator ? this._operator : 'Unknown')
