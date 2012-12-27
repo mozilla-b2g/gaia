@@ -5,7 +5,7 @@ Evme.Apps = new function Evme_Apps() {
         scroll = null, defaultIconToUse = 0,
         reportedScrollMove = false, shouldFadeBG = false,
         isSwiping = false,
-    
+        
         fadeBy = 0, showingFullScreen = false,
         timeoutAppsToDrawLater = null,
         
@@ -35,9 +35,7 @@ Evme.Apps = new function Evme_Apps() {
         el = options.el;
         elList = Evme.$('ul', el)[0];
         
-        self.More.init({
-            "textLoading": options.texts.moreLoading,
-        });
+        self.More.init();
         
         DEFAULT_ICON_URL = options.design.defaultIconUrl[Evme.Utils.ICONS_FORMATS.Large];
         if (typeof DEFAULT_ICON_URL == "string") {
@@ -414,21 +412,22 @@ Evme.Apps = new function Evme_Apps() {
         var NAME = "AppsMore", self = this,
             el = null,
             
-            ID = "more-apps",
-            TEXT_LOADING = "FROM CONFIG";
+            ID = "more-apps";
 
         this.init = function init(options) {
             options = options || {};
             
             id = options.id;
-            TEXT_LOADING = options.textLoading;
         };
         
         this.show = function show() {
             if (!el) {
                 visible = true;
                 
-                el = Evme.$create('li',  {'id': ID}, '<progress class="small skin-dark"></progress>' + TEXT_LOADING);
+                el = Evme.$create('li',
+                        {'id': ID},
+                        '<progress class="small skin-dark"></progress>' +
+                        '<b ' + Evme.Utils.l10nAttr(NAME, 'loading') + '></b>');
                 
                 Evme.Apps.getList().appendChild(el);
                 
