@@ -290,7 +290,8 @@ onLocalized(function bluetoothSettings() {
         enableMsg.hidden = true;
         openList.show(true);
         searchingItem.hidden = false;
-        document.addEventListener('mozvisibilitychange', stopDiscoveryWhenLeaveApp);
+        document.addEventListener('mozvisibilitychange',
+            stopDiscoveryWhenLeaveApp);
       } else {
         openList.show(false);
         pairList.show(false);
@@ -303,7 +304,8 @@ onLocalized(function bluetoothSettings() {
         // clear discoverTimeout
         clearTimeout(discoverTimeout);
         discoverTimeout = null;
-        document.removeEventListener('mozvisibilitychange', stopDiscoveryWhenLeaveApp);
+        document.removeEventListener('mozvisibilitychange',
+            stopDiscoveryWhenLeaveApp);
       }
     }
 
