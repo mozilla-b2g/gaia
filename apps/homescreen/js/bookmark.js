@@ -59,6 +59,10 @@ var BookmarkEditor = {
   },
 
   save: function bookmarkEditor_save() {
+    // Only allow http(s): urls to be bookmarked.
+    if (/^https?:/.test(this.bookmarkUrl.value) == false)
+      return;
+
     this.data.name = this.bookmarkTitle.value;
     this.data.bookmarkURL = this.bookmarkUrl.value;
 
