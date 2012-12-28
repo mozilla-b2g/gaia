@@ -81,6 +81,7 @@ var UIManager = {
     });
 
     this.skipTutorialButton.addEventListener('click', function() {
+      WifiManager.finish();
       window.close();
     });
     this.letsGoButton.addEventListener('click', function() {
