@@ -38,7 +38,8 @@
   "activities": {
     "view": {
       "filters": {
-        "type": "url"
+        "type": "url",
+        "url": { "required":true, "regexp":"/^https?:/" }
       }
     }
   }
