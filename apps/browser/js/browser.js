@@ -25,7 +25,7 @@ var Browser = {
   AWESOME_SCREEN: 'awesome-screen',
   SETTINGS_SCREEN: 'settings-screen',
   previousScreen: null,
-  currentScreen: this.PAGE_SCREEN,
+  currentScreen: 'page-screen',
 
   DEFAULT_SEARCH_PROVIDER_URL: 'm.bing.com',
   DEFAULT_SEARCH_PROVIDER_TITLE: 'Bing',
@@ -278,7 +278,9 @@ var Browser = {
           return;
         }
         // If address bar is hidden then show it
-        this.mainScreen.classList.remove('address-hidden');
+        if (this.addressBarState === this.HIDDEN) {
+          this.showAddressBar();
+        }
         tab.loading = true;
         if (isCurrentTab && this.currentScreen === this.PAGE_SCREEN) {
           this.throbber.classList.add('loading');
@@ -429,34 +431,42 @@ var Browser = {
 
   handleScroll: function browser_handleScroll(evt) {
     if (evt.detail.top < this.LOWER_SCROLL_THRESHOLD) {
-      if (this.addressBarState == this.VISIBLE ||
-        this.addressBarState == this.TRANSITIONING) {
+      if (this.addressBarState === this.VISIBLE ||
+          this.addressBarState === this.TRANSITIONING) {
         return;
       }
-      var addressBarVisible = (function browser_addressBarVisible() {
-        this.mainScreen.classList.remove('expanded');
-        this.addressBarState = this.VISIBLE;
-        this.mainScreen.removeEventListener('transitionend',
-          addressBarVisible);
-      }).bind(this);
-      this.mainScreen.addEventListener('transitionend', addressBarVisible);
-      this.addressBarState = this.TRANSITIONING;
-      this.mainScreen.classList.remove('address-hidden');
+      this.showAddressBar();
     } else if (evt.detail.top > this.UPPER_SCROLL_THRESHOLD) {
-      if (this.addressBarState == this.HIDDEN ||
-        this.addressBarState == this.TRANSITIONING) {
+      if (this.addressBarState === this.HIDDEN ||
+          this.addressBarState === this.TRANSITIONING) {
         return;
       }
-      var addressBarHidden = (function browser_addressBarHidden() {
-        this.addressBarState = this.HIDDEN;
-        this.mainScreen.removeEventListener('transitionend',
-          addressBarHidden);
-      }).bind(this);
-      this.mainScreen.classList.add('expanded');
-      this.addressBarState = this.TRANSITIONING;
-      this.mainScreen.addEventListener('transitionend', addressBarHidden);
-      this.mainScreen.classList.add('address-hidden');
+      this.hideAddressBar();
     }
+  },
+
+  hideAddressBar: function browser_hideAddressBar() {
+    var addressBarHidden = (function browser_addressBarHidden() {
+      this.addressBarState = this.HIDDEN;
+      this.mainScreen.removeEventListener('transitionend', addressBarHidden);
+    }).bind(this);
+    this.mainScreen.addEventListener('transitionend', addressBarHidden);
+    this.addressBarState = this.TRANSITIONING;
+    this.mainScreen.classList.add('expanded');
+    this.mainScreen.clientTop;
+    this.mainScreen.classList.add('address-hidden');
+  },
+
+  showAddressBar: function browser_showAddressBar() {
+    var addressBarVisible = (function browser_addressBarVisible() {
+      this.mainScreen.classList.remove('expanded');
+      this.addressBarState = this.VISIBLE;
+      this.mainScreen.removeEventListener('transitionend', addressBarVisible);
+    }).bind(this);
+    this.mainScreen.addEventListener('transitionend', addressBarVisible);
+    this.addressBarState = this.TRANSITIONING;
+    this.mainScreen.clientTop;
+    this.mainScreen.classList.remove('address-hidden');
   },
 
   handleUrlInputKeypress: function browser_handleUrlInputKeypress(evt) {
@@ -959,7 +969,7 @@ var Browser = {
 
   drawHistoryHeading: function browser_drawHistoryHeading(threshold,
     timestamp) {
-    const LABELS = [
+    var LABELS = [
       'future',
       'today',
       'yesterday',
@@ -1399,8 +1409,8 @@ var Browser = {
     });
     this._tabScreenObjectURLs = [];
 
-    for each(var tab in this.tabs) {
-      var li = this.generateTabLi(tab, multipleTabs);
+    for (var tab in this.tabs) {
+      var li = this.generateTabLi(this.tabs[tab], multipleTabs);
       ul.appendChild(li);
     }
 
@@ -1474,16 +1484,17 @@ var Browser = {
           this.showTopSiteThumbnails.bind(this));
 
         var self = this;
-        for each(var tab in this.tabs) {
+        var tabIds = Object.keys(this.tabs);
+        tabIds.forEach(function(tabId) {
+          var tab = self.tabs[tabId];
           if (tab.dom.purgeHistory) {
-            tab.dom.purgeHistory().onsuccess = (function(e) {
-              if (self.tabs[tabId] == self.currentTab) {
+            tab.dom.purgeHistory().onsuccess = function(e) {
+              if (tab == self.currentTab) {
                 self.refreshButtons();
               }
-            });
+            };
           }
-        }
-
+        });
       }).bind(this));
 
       this.history.innerHTML = '';

@@ -3,8 +3,6 @@ Evme.BackgroundImage = new function Evme_BackgroundImage() {
         el = null, elFullScreen = null, elementsToFade = null, elDefault = null, elStyle = null,
         currentImage = null, elCurrentImage = null, active = false, changeOpacityTransitionCallback = null,
         defaultImage = "",
-
-        SOURCE_LABEL = "FROM CONFIG",
         TIMEOUT_BEFORE_REMOVING_OLD_IMAGE = 1500;
 
     this.init = function init(options) {
@@ -14,9 +12,7 @@ Evme.BackgroundImage = new function Evme_BackgroundImage() {
         el = options.el;
         elementsToFade = options.elementsToFade;
         elStyle = el.style;
-
-        SOURCE_LABEL = options.texts.sourceLabel;
-
+        
         elDefault = Evme.$create('div',  {'class': 'img default-image visible'});
         if (defaultImage) {
             elDefault.style.backgroundImage = defaultImage;
@@ -134,7 +130,7 @@ Evme.BackgroundImage = new function Evme_BackgroundImage() {
                         '<div class="img" style="background-image: url(' + data.image + ')"></div>' +
                         '<div class="content">' +
                             ((data.query)? '<h2>' + data.query + '</h2>' : '') +
-                            ((data.source)? '<div class="source">' + SOURCE_LABEL + ' <span>' + data.source + '</span></div>' : '') +
+                            ((data.source)? '<div class="source"><b ' + Evme.Utils.l10nAttr(NAME, 'source-label') + '></b> <span>' + data.source + '</span></div>' : '') +
                             '<b class="close"></b>' +
                         '</div>');
 
@@ -150,7 +146,7 @@ Evme.BackgroundImage = new function Evme_BackgroundImage() {
 
         if (data.source) {
             Evme.$(".content", el)[0].addEventListener("touchstart", function onTouchEnd(e){
-                Evme.Utils.sendToFFOS(Evme.Utils.FFOSMessages.OPEN_URL, {
+                Evme.Utils.sendToOS(Evme.Utils.OSMessages.OPEN_URL, {
                     "url": data.source
                 });
             });

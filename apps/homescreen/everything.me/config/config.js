@@ -65,66 +65,6 @@ Evme.__config = {
     },
     "infoLogger": false,
     "maxHistoryEntries": "10",
-    "texts": {
-        "searchbar": {
-            "defaultText": "Everything...",
-            "clear": "Back"
-        },
-        "helper": {
-            "defaultText": "Enter any topic or search query",
-            "dismiss": "Dismiss",
-            "noRefine": "no refinement available",
-            "titleShortcuts": "Categories:",
-            "linkShortcuts": "Categories",
-            "linkPersonalize": "Add Categories",
-            "titleHistory": "History:",
-            "linkHistory": "History",
-            "clearHistory": "Clear history",
-            "titleDidYouMean": "Did you mean:",
-            "titleRefine": "Did you mean:",
-            "titlePrefix": "Everything",
-            "titlePrefixEmpty": "Everything"
-        },
-        "shortcutsFavorites": {
-            "title": "Select Shortcuts",
-            "subTitle": "Mark the subjects you like",
-            "titleCustomize": "Select Shortcuts",
-            "subTitleCustomize": "Mark the subjects you like",
-            "buttonDone": "Done",
-            "buttonDoneSaving": "Saving..."
-        },
-        "apps": {
-            "more": "More",
-            "moreLoading": "Loading...",
-            "connectionError": "Connect to the internet to get <span class='has-installed-visible'>even more </span>apps for {QUERY}"
-        },
-        "backgroundImage": {
-            "sourceLabel": "Source:"
-        },
-        "location": {
-            "manualTitle": "Enter ZIP or City",
-            "manualNoResults": "No locations found AT ALL",
-            "menuTitle": "Update your location",
-            "menuLocateMe": "Locate me",
-            "menuEnterLocation": "Enter a location",
-            "menuClose": "Do it later",
-            "tip": "Results are always <b>local</b>, so you don't have to type your location.",
-            "tipTitle": "Location-based results",
-            "tipLocating": "Locating...",
-            "tipButton": "Locate me",
-            "errorTipTitle": "We couldn't locate you :(",
-            "errorTipLabel": "Let's try a ZIP code instead:",
-            "errorTipButtonCancel": "Do it Later",
-            "errorTipButtonOK": "Locate me",
-            "errorCantLocateTitle": "Still can’t locate you :(",
-            "errorCantLocateText": "Please allow GPS in your Settings screen.",
-            "errorCantLocateButtonCancel": "Cancel",
-            "errorCantLocateButtonSettings": "Go to Settings"
-        },
-        "connection": {
-            "defaultMessage": "You need to be connected to the internet to use this app"
-        }
-    },
     "iconsGroupSettings": [
         {
             "x": 14,
@@ -167,50 +107,23 @@ Evme.__config = {
     },
     "tips": {
         "APP_EXPLAIN": {
-            "id": "homepage-tip",
-            "text": "Find the things you love with the coolest apps.",
+            "id": "app-explain",
             "timesToShow": 1,
             "closeAfter": 6000,
             "closeOnClick": true
         },
-        "SHORTCUTS_FAVORITES_DONE": {
-            "id": "shortcuts-fav-done",
-            "text": "That's it!<br />You now have apps for practically Everything.<br /><br />Find the things you love with your apps, and have a great time!",
-            "timesToShow": 1,
-            "closeAfter": 20000,
-            "closeOnClick": true
-        },
         "SEARCHBAR_FOCUS": {
-            "id": "searchpage-tip",
-            "text": "Find your favorite singer or band, a movie you want to see, anything...",
+            "id": "searchbar-focus",
             "timesToShow": 1,
             "closeAfter": 60000,
-            "className": "stuckToSearchbar seeThrough"
+            "classes": ["stuckToSearchbar", "seeThrough"]
         },
         "EXACT_RESULTS": {
-            "id": "tip-first-exact",
-            "text": "These are the apps for <b>{QUERY}</b>,<br /><br />Tap any icon to open it.",
+            "id": "exact-results",
             "timesToShow": 1,
             "showAfter": 500,
             "closeAfter": 4000,
             "closeOnClick": true
-        },
-        "HELPER": {
-            "WEATHER": {
-                "id": "tip-shortcuts-weather",
-                "text": "Weather is local, unless you add city",
-                "timesToShow": "3"
-            },
-            "MOST VISITED": {
-                "id": "tip-shortcuts-most-visited",
-                "text": "Any app you use will be added here",
-                "timesToShow": "3"
-            },
-            "GOOGLE,GOOGLE.COM,WWW.GOOGLE.COM": {
-                "id": "tip-shortcuts-google",
-                "text": "You can search directly from here!",
-                "timesToShow": "3"
-            }
         }
     },
     "categoriesDialogs": {},

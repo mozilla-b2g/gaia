@@ -23,13 +23,7 @@ Evme.Brain = new function Evme_Brain() {
 
         // whether to show shortcuts customize on startup or not
         ENABLE_FAVORITES_SHORTCUTS_SCREEN = false,
-
-        HISTORY_CLEAR_TEXT = "FROM CONFIG",
-        REFINE_DISMISS_TEXT = "FROM CONFIG",
-        NO_REFINE_TEXT = "FROM CONFIG",
-        SHOW_HISTORY_TEXT = "FROM CONFIG",
-        APPS_ERROR_TEXT = "FROM CONFIG",
-
+        
         QUERY_TYPES = {
             "EXPERIENCE": "experience",
             "APP": "app",
@@ -59,15 +53,10 @@ Evme.Brain = new function Evme_Brain() {
         // bind to events
         Evme.EventHandler && Evme.EventHandler.bind(catchCallback);
         elContainer = Evme.Utils.getContainer();
+        
+        initL10nObserver();
 
         _config = options;
-
-        // Helper
-        HISTORY_CLEAR_TEXT = _config.helper.clearHistory;
-        REFINE_DISMISS_TEXT = _config.helper.dismiss;
-        NO_REFINE_TEXT = _config.helper.noRefine;
-        SHOW_HISTORY_TEXT = _config.helper.linkHistory;
-        APPS_ERROR_TEXT = _config.apps.connectionError;
 
         // Tips
         TIPS = _config.tips;
@@ -80,8 +69,31 @@ Evme.Brain = new function Evme_Brain() {
 
         logger = _config && _config.logger || console;
 
-        ICON_SIZE = Evme.Utils.sendToFFOS(Evme.Utils.FFOSMessages.GET_ICON_SIZE);
+        ICON_SIZE = Evme.Utils.sendToOS(Evme.Utils.OSMessages.GET_ICON_SIZE);
     };
+    
+    // l10n: create a mutation observer to know when a node was added
+    // and check if it needs to be translated
+    function initL10nObserver() {
+        new MutationObserver(Evme.Brain.l10nMutationObserver)
+            .observe(elContainer, {
+                childList: true,
+                subtree: true
+            });
+    }
+    
+    // callback for "node added" mutation observer
+    // this translates all the new nodes added
+    this.l10nMutationObserver = function onMutationEventNodeAdded(mutations) {
+        for (var i=0, mutation; mutation=mutations[i++];) {
+            var children = mutation.addedNodes || [];
+            for (var j=0, node; node=children[j++];) {
+                if (node instanceof HTMLElement) {
+                    node && navigator.mozL10n.translate(node);
+                }
+            }
+        }
+    }
 
     /**
      * main event handling method that catches all the events from the different modules,
@@ -93,6 +105,7 @@ Evme.Brain = new function Evme_Brain() {
     function catchCallback(_class, _event, _data) {
         logger.debug(_class + "." + _event + "(", (_data || ""), ")");
         
+        Evme.Utils.log('Callback: ' + _class + '.' + _event);
         try {
             self[_class] && self[_class][_event] && self[_class][_event](_data || {});
         } catch(ex){
@@ -126,8 +139,6 @@ Evme.Brain = new function Evme_Brain() {
         // Searchbar focused. Keyboard shows
         this.focus = function focus(data) {
             Evme.Utils.setKeyboardVisibility(true);
-
-            Brain.FFOS.hideMenu();
 
             Evme.Helper.disableCloseAnimation();
             Evme.Helper.hideTitle();
@@ -284,22 +295,7 @@ Evme.Brain = new function Evme_Brain() {
             }
         };
     };
-    this.FFOS = new function FFOS() {
-        // dock hidden
-        this.hideMenu = function hideMenu() {
-            Evme.Utils.sendToFFOS(Evme.Utils.FFOSMessages.HIDE_MENU);
-            elContainer.classList.remove("ffos-menu-visible");
-            Evme.Shortcuts.refreshScroll();
-        };
-
-        // dock appears
-        this.showMenu = function showMenu() {
-            Evme.Utils.sendToFFOS(Evme.Utils.FFOSMessages.SHOW_MENU);
-            elContainer.classList.add("ffos-menu-visible");
-            Evme.Shortcuts.refreshScroll();
-        };
-    };
-
+    
     // modules/Helper/
     this.Helper = new function Helper() {
         var self = this,
@@ -423,22 +419,22 @@ Evme.Brain = new function Evme_Brain() {
 
         // display hepler
         this.show = function show(data) {
-            var items = data.data;
-            var type = data.type;
-
+            var items = data.data,
+                type = data.type;
+            
             cleared = false;
-
+            
             Evme.Helper.getList().classList.remove("default");
             
             if (type !== "refine") {
                 refineQueryShown = "";
             }
-
+            
             switch (type) {
                 case "":
                     var history = Evme.SearchHistory.get() || [];
                     if (history && history.length > 0) {
-                        Evme.Helper.addLink(SHOW_HISTORY_TEXT, function onLinkAdded(){
+                        Evme.Helper.addLink('history-link', function onLinkAdded(){
                             self.animateIntoHistory(history);
                         });
                     }
@@ -446,19 +442,19 @@ Evme.Brain = new function Evme_Brain() {
                 case "refine":
                     if (refineQueryShown == Searcher.getDisplayedQuery()) {
                         if (items.length == 1) {
-                            Evme.Helper.addText(NO_REFINE_TEXT);
+                            Evme.Helper.addText('no-refine');
                         }
-
-                        Evme.Helper.addLink(REFINE_DISMISS_TEXT, didyoumeanClick);
+                        
+                        Evme.Helper.addLink('dismiss', didyoumeanClick);
                     }
                     break;
 
                 case "didyoumean":
-                    Evme.Helper.addLink(REFINE_DISMISS_TEXT, didyoumeanClick);
+                    Evme.Helper.addLink('dismiss', didyoumeanClick);
                     break;
 
                 case "history":
-                    Evme.Helper.addLink(HISTORY_CLEAR_TEXT, function onLinkAdded(e){
+                    Evme.Helper.addLink('history-clear', function historyclearClick(e){
                         Evme.SearchHistory.clear();
                         
                         if (Evme.Searchbar.getValue()) {
@@ -474,15 +470,10 @@ Evme.Brain = new function Evme_Brain() {
 
         // Spelling correction item click
         function didyoumeanClick(e) {
-            var callback = Evme.Helper.showTitle;
-            if (Evme.Utils.isKeyboardVisible) {
-                callback = Evme.Helper.showSuggestions;
-            }
-
             e && e.stopPropagation();
             e && e.preventDefault();
-
-            setTimeout(callback, TIMEOUT_ANDROID_BEFORE_HELPER_CLICK);
+            
+            setTimeout(Evme.Utils.isKeyboardVisible? Evme.Helper.showSuggestions : Evme.Helper.showTitle, TIMEOUT_ANDROID_BEFORE_HELPER_CLICK);
         }
     };
 
@@ -552,7 +543,6 @@ Evme.Brain = new function Evme_Brain() {
             }
             
             Evme.Searchbar.setValue('', true);
-            Brain.FFOS.showMenu();
             
             return true;
         }
@@ -584,8 +574,8 @@ Evme.Brain = new function Evme_Brain() {
 
         // app pressed and held
         this.hold = function hold(data) {
-            var isAppInstalled = Evme.Utils.sendToFFOS(
-                Evme.Utils.FFOSMessages.IS_APP_INSTALLED,
+            var isAppInstalled = Evme.Utils.sendToOS(
+                Evme.Utils.OSMessages.IS_APP_INSTALLED,
                 { "url": data.data.appUrl }
             );
 
@@ -606,7 +596,7 @@ Evme.Brain = new function Evme_Brain() {
             // make it round
             Evme.Utils.getRoundIcon(appIcon, function onIconReady(roundedAppIcon) {
                 // bookmark
-                Evme.Utils.sendToFFOS(Evme.Utils.FFOSMessages.APP_INSTALL, {
+                Evme.Utils.sendToOS(Evme.Utils.OSMessages.APP_INSTALL, {
                     "originUrl": data.app.getFavLink(),
                     "title": data.data.name,
                     "icon": roundedAppIcon
@@ -697,7 +687,7 @@ Evme.Brain = new function Evme_Brain() {
             
             elPseudo.style.cssText += 'position: absolute; top: ' + oldPos.top + 'px; left: ' + oldPos.left + 'px; -moz-transform: translate3d(0,0,0);';
 
-            var appName = "Loading...";
+            var appName = Evme.Utils.l10n('apps', 'loading-app');
             if (bNeedsLocation) {
                 appName = "";
             }
@@ -779,7 +769,7 @@ Evme.Brain = new function Evme_Brain() {
                 GridManager.getAppByOrigin(data.appUrl).launch();
             } else {
                 Evme.Utils.getRoundIcon(appIcon, function onIconReady(roundedAppIcon) {
-                    Evme.Utils.sendToFFOS(Evme.Utils.FFOSMessages.APP_CLICK, {
+                    Evme.Utils.sendToOS(Evme.Utils.OSMessages.APP_CLICK, {
                         "url": data.appUrl,
                         "originUrl": data.favUrl,
                         "title": data.name,
@@ -838,22 +828,23 @@ Evme.Brain = new function Evme_Brain() {
     this.SmartFolder = new function SmartFolder() {
         var self = this,
             currentFolder = null,
-            requestSmartFolderApps = null;
-
+            requestSmartFolderApps = null,
+            requestSmartFolderImage = null;
+        
         // shortcut was clicked
         this.show = function show(data) {
             elContainer.classList.add("smart-folder-visible");
 
             currentFolder = data.folder;
             
-            window.setTimeout(self.loadAppsIntoFolder, 2000);
+            window.setTimeout(self.loadAppsIntoFolder, 500);
         };
         
         // hiding the folder
         this.hide = function hide() {
             elContainer.classList.remove("smart-folder-visible");
             
-            Evme.Brain.Shortcuts.cancelSmartFolderRequests();
+            Evme.Brain.SmartFolder.cancelRequests();
             Evme.ConnectionMessage.hide();
         };
         
@@ -871,7 +862,8 @@ Evme.Brain = new function Evme_Brain() {
         this.closeCurrent = function closeCurrent() {
             currentFolder && currentFolder.close();
         };
-
+        
+        // if a folder is open- close it
         this.hideIfOpen = function hideIfOpen() {
             if (self.get()) {
                 self.closeCurrent();
@@ -881,6 +873,36 @@ Evme.Brain = new function Evme_Brain() {
             return false;
         };
         
+        // cancel the current outgoing smart folder requests
+        this.cancelRequests = function cancelRequests() {
+            requestSmartFolderApps && requestSmartFolderApps.abort();
+            requestSmartFolderImage && requestSmartFolderImage.abort();
+        };
+        
+        // load the folder's background image
+        this.loadBGImage = function loadBGImage() {
+            if (!currentFolder) return;
+            
+            var query = currentFolder.getName();
+            
+            requestSmartFolderImage = Evme.DoATAPI.bgimage({
+                "query": query,
+                "feature": SEARCH_SOURCES.SHORTCUT_SMART_FOLDER,
+                "exact": true,
+                "width": screen.width,
+                "height": screen.height
+            }, function onSuccess(data) {
+                currentFolder && currentFolder.setImage({
+                    "image": Evme.Utils.formatImageData(data.response.image),
+                    "query": query,
+                    "source": data.response.source
+                });
+                
+                requestSmartFolderImage = null;
+            });
+        };
+        
+        // start the smart folder apps loading process
         this.loadAppsIntoFolder = function loadAppsIntoFolder(onAppsLoaded) {
             if (!currentFolder) return;
 
@@ -934,6 +956,8 @@ Evme.Brain = new function Evme_Brain() {
                     onAppsLoaded && onAppsLoaded(apps);
                 });
             });
+            
+            self.loadBGImage();
         };
 
         // load more apps in smartfolder
@@ -990,11 +1014,8 @@ Evme.Brain = new function Evme_Brain() {
             customizeInited = false,
             timeoutShowLoading = null,
             clickedCustomizeHandle = false,
-            loadingCustomization = false,
-            requestSmartFolderApps = null,
-            requestSmartFolderImage = null;
-
-
+            loadingCustomization = false;
+        
         // module was inited
         this.init = function init() {
             elContainer.addEventListener('click', checkCustomizeDone);
@@ -1017,39 +1038,15 @@ Evme.Brain = new function Evme_Brain() {
                 Evme.Shortcuts.load(data.response);
             });
         };
-
-        // fired when smartfolder shows but closed before apps requests return
-        this.cancelSmartFolderRequests = function cancelSmartFolderRequests() {
-            requestSmartFolderApps && requestSmartFolderApps.abort();
-            requestSmartFolderImage && requestSmartFolderImage.abort();
-        };
-
+        
         // shortcut is clicked
         this.showSmartFolder = function showSmartFolder(options) {
-            var folder = new Evme.SmartFolder({
-                            "name": options.query,
-                            "bgImage": (Evme.BackgroundImage.get() || {}).image,
-                            "elParent": elContainer,
-                            "onScrollEnd": Evme.Brain.SmartFolder.loadMoreApps
-                        });
-
-            folder.show();
-
-            requestSmartFolderImage = Evme.DoATAPI.bgimage({
-                "query": options.query,
-                "feature": SEARCH_SOURCES.SHORTCUT_SMART_FOLDER,
-                "exact": true,
-                "width": screen.width,
-                "height": screen.height
-            }, function onSuccess(data) {
-                folder.setImage({
-                    "image": Evme.Utils.formatImageData(data.response.image),
-                    "query": options.query,
-                    "source": data.response.source
-                });
-
-                requestSmartFolderImage = null;
-            });
+            new Evme.SmartFolder({
+                "name": options.query,
+                "bgImage": (Evme.BackgroundImage.get() || {}).image,
+                "elParent": elContainer,
+                "onScrollEnd": Evme.Brain.SmartFolder.loadMoreApps
+            }).show();
         };
 
         // shortcuts loaded. add + icon
@@ -1225,7 +1222,11 @@ Evme.Brain = new function Evme_Brain() {
         // inject + button
         this.addCustomizeButton = function addCustomizeButton() {
             var el = Evme.Shortcuts.getElement(),
-                elCustomize = Evme.$create('li', {'class': "shortcut add"}, '<div class="c"><span class="thumb"></span><b>More</b></div>');
+                elCustomize = Evme.$create('li', {'class': "shortcut add"},
+                                '<div class="c">' +
+                                    '<span class="thumb"></span>' +
+                                    '<b ' + Evme.Utils.l10nAttr('shortcuts', 'more') + '></b>' +
+                                '</div>');
             
             elCustomize.addEventListener("click", self.showUI);
             
@@ -1301,7 +1302,6 @@ Evme.Brain = new function Evme_Brain() {
         };
 
         function showHelperTip(tip, options) {
-            Evme.Helper.showText(tip.text);
             Evme.Helper.hideTitle();
             Evme.Helper.flash();
             self.markAsShown(tip);
@@ -1334,13 +1334,18 @@ Evme.Brain = new function Evme_Brain() {
     this.DoATAPI = new function DoATAPI() {
         // trigger message when request fails
         this.cantSendRequest = function cantSendRequest() {
-            var message = APPS_ERROR_TEXT,
-                folder = Brain.SmartFolder.get(),
-                elParent = folder? Evme.$(".evme-apps", folder.getElement())[0] : Evme.Apps.getList().parentNode,
-                query = Evme.Searchbar.getElement().value || (folder && folder.getName()) || '';
-
-            message = message.replace(/{QUERY}/g, query);
-            Evme.ConnectionMessage.show(message, elParent);
+            var folder = Brain.SmartFolder.get(),
+                query = Evme.Searchbar.getElement().value || (folder && folder.getName()) || '',
+                elTo = folder? Evme.$(".evme-apps", folder.getElement())[0] : Evme.Apps.getList().parentNode,
+                bHasInstalled = folder? folder.hasInstalled() : Evme.Apps.hasInstalled(),
+                textKey = bHasInstalled? 'apps-has-installed' : 'apps';
+                
+            Evme.ConnectionMessage.show(elTo, textKey, { 'query': query });
+        };
+        
+        // an API callback method had en error
+        this.clientError = function(data) {
+            Evme.Utils.log('API Exception! ' + data.exception.message);
         };
     };
 
@@ -1490,7 +1495,7 @@ Evme.Brain = new function Evme_Brain() {
                 regex = new RegExp('(' + query + ')', 'i'),
                 apps = [],
                 typeApps = INSTALLED_APPS_TO_TYPE[query.toLowerCase()],
-                _apps = Evme.Utils.sendToFFOS(Evme.Utils.FFOSMessages.GET_ALL_APPS);
+                _apps = Evme.Utils.sendToOS(Evme.Utils.OSMessages.GET_ALL_APPS);
 
             if (!query) {
                 return apps;
@@ -1498,7 +1503,7 @@ Evme.Brain = new function Evme_Brain() {
 
             for (var i=0; i<_apps.length; i++) {
                 var app = _apps[i],
-                    name = Evme.Utils.sendToFFOS(Evme.Utils.FFOSMessages.GET_APP_NAME, app);
+                    name = Evme.Utils.sendToOS(Evme.Utils.OSMessages.GET_APP_NAME, app);
 
                 if (regex.test(name) || typeApps && typeApps.indexOf(app.manifest.name) !== -1) {
                     apps.push({
@@ -1507,7 +1512,7 @@ Evme.Brain = new function Evme_Brain() {
                        'installed': true,
                        'appUrl': app.origin,
                        'preferences': '',
-                       'icon': Evme.Utils.sendToFFOS(Evme.Utils.FFOSMessages.GET_APP_ICON, app),
+                       'icon': Evme.Utils.sendToOS(Evme.Utils.OSMessages.GET_APP_ICON, app),
                        'requiresLocation': false,
                        'appNativeUrl': '',
                        'numShares': 0,
@@ -1629,18 +1634,15 @@ Evme.Brain = new function Evme_Brain() {
             }
 
             if (isExactMatch) {
-                var originalTip = TIPS.EXACT_RESULTS;
+                var tip = TIPS.EXACT_RESULTS;
                 if (data.response.queryType == QUERY_TYPES.EXPERIENCE && TIPS.EXACT_RESULTS_SHORTCUT) {
-                    originalTIp = TIPS.EXACT_RESULTS_SHORTCUT;
+                    tip = TIPS.EXACT_RESULTS_SHORTCUT;
                 }
-
-                var tip = Evme.Utils.cloneObject(originalTip),
-                    query = Evme.Searchbar.getValue();
-
-                tip.text = tip.text.replace(/{QUERY}/gi, query);
-                if (query.match(/apps/i)) {
-                    tip.text = tip.text.replace("apps for ", "");
-                }
+                
+                tip._data = {
+                    "query": lastSearch.query
+                };
+                
                 new Evme.Tip(tip).show();
             }
 

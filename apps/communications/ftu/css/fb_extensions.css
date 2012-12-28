@@ -8,7 +8,7 @@
   border: 0;
   margin: 0;
   padding: 0;
-  -moz-transition: transform .6s ease;
+  transition: transform .6s ease;
   background: #f4f4f4;
 }
 
@@ -39,3 +39,4 @@ p.facebook.removed input {
   border-bottom: 1px solid #3b5998;
   border-left: 1px solid #3b5998;
 }
+

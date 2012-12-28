@@ -36,13 +36,14 @@
   <script defer type="text/javascript" src="/contacts/js/utilities/config.js"></script>
   <script defer type="text/javascript" src="/contacts/js/fb/fb_utils.js"></script>
   <script defer type="text/javascript" src="/shared/js/async_storage.js"></script>
+  <script defer type="text/javascript" src="/ftu/js/sim_manager.js"></script>
   <script defer type="text/javascript" src="/ftu/js/wifi.js"></script>
   <script defer type="text/javascript" src="/ftu/js/facebook.js"></script>
   <script defer type="text/javascript" src="/ftu/js/tutorial.js"></script>
   <script defer type="text/javascript" src="/ftu/js/navigation.js"></script>
   <script defer type="text/javascript" src="/ftu/js/data_mobile.js"></script>
   <script defer type="text/javascript" src="/ftu/js/time.js"></script>
-  <script defer type="text/javascript" src="/ftu/js/ui.js" defer></script>
+  <script defer type="text/javascript" src="/ftu/js/ui.js"></script>
   <script defer type="text/javascript" src="/ftu/js/language.js"></script>
   <script defer type="text/javascript" src="/ftu/js/app.js"></script>
   <script defer type="text/javascript" src="/contacts/js/utilities/import_sim_contacts.js"></script>
@@ -63,8 +64,11 @@
         <div id="pin-error"></div>
       </section>
     </section>
-    <nav role="navigation" class="forward-only">
-      <button class="recommend fullsize" id="done-button" data-l10n-id="done">
+    <nav role="navigation">
+      <button id="skip-pin-button" class="button-left" data-l10n-id="skip">
+        Skip
+      </button>
+      <button id="unlock-sim-button" class="recommend" data-l10n-id="done">
         Done
       </button>
     </nav>
@@ -266,13 +270,10 @@
         </article>
       </section>
       <section role="region" id="sharing-performance-data">
-        <p data-l10n-id='telemetry-allows'>
-          Telemetry allows you to send Mozilla more
-          detailed information about performance,
-          hardware, usage and customizations in your
-          Browser OS device. We use this information to
-          make our products better, faster and more
-          responsive.
+        <p data-l10n-id='telemetry-sends'>
+          Telemetry sends Mozilla data about performance, hardware,
+          configurations and customizations in your Browser OS device. We use
+          this to make our products better, faster and more responsive.
         </p>
         <!-- Links destinations are discussed in https://bugzilla.mozilla.org/show_bug.cgi?id=812956 -->
         <p data-l10n-id='learn-more-at'>Learn more at
@@ -297,10 +298,6 @@
       </section>
 
       <section role="region" id="browser_privacy">
-        <section class="logo_container">
-          <img src="css/images/browser64.png">
-          <span class="logo_title">De todos. Para Todos.</span>
-        </section>
         <p data-l10n-id="mozillaCommunity2">
           When you use Browser OS, you become
           part of a global community helping to
@@ -341,10 +338,9 @@
           <label>
             <input type="checkbox" id="share-performance" name="debug.performance_data.shared"/>
             <span></span>
-            <p data-l10n-id="collaborate2">
-              I want to help make Browser OS faster and
-              easier to use by sharing information about
-              my phone's performance<a href='#sharing-performance-data' data-l10n-id="learnMore">learn more</a>
+            <p data-l10n-id="collaborate">
+              I want to help improve Browser OS by sharing data about my phone.
+              <a href='#sharing-performance-data' data-l10n-id="learnMore">Learn more.</a>
             </p>
           </label>
         </section>
@@ -378,10 +374,10 @@
       </p>
       </section>
       <menu role="navigation">
-        <button id="button-skip" class="button-left" data-l10n-id="skip">
+        <button id="skip-tutorial-button" class="button-left" data-l10n-id="skip">
           Skip
         </button>
-        <button class="recommend" id="button-lets-go" data-l10n-id="startTour">
+        <button id="lets-go-button" class="recommend" data-l10n-id="startTour">
           Start Tour!
         </button>
       </menu>
