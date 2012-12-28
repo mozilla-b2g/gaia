@@ -33,7 +33,8 @@
     "background-sensors":{},
     "permissions":{},
     "audio-channel-publicnotification":{},
-    "audio-channel-notification":{}
+    "audio-channel-notification":{},
+    "cellbroadcast":{}
   },
   "locales": {
     "ar": {
