@@ -7,6 +7,10 @@ var WifiManager = {
       this.api = window.navigator.mozWifiManager;
       this.changeStatus();
       this.gCurrentNetwork = this.api.connection.network;
+
+      // Ensure that wifi is on.
+      var lock = window.navigator.mozSettings.createLock();
+      this.enable(lock);
     }
   },
   scan: function wn_scan(callback) {
@@ -55,9 +59,8 @@ var WifiManager = {
       callback(fakeNetworks);
     }
   },
-  enable: function wn_enable(firstTime) {
-    var settings = window.navigator.mozSettings;
-    settings.createLock().set({'wifi.enabled': true});
+  enable: function wn_enable(lock) {
+    lock.set({'wifi.enabled': true});
   },
   getNetwork: function wm_gn(ssid) {
     var network;
