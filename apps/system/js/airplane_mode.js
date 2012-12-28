@@ -52,7 +52,7 @@ var AirplaneMode = {
 
         // Turn off mobile data
         // We toggle the mozSettings value here just for the sake of UI,
-        // platform ril dissconnects mobile data when
+        // platform ril disconnects mobile data when
         // 'ril.radio.disabled' is true.
         if (mobileData) {
           restoreMobileData = mobileDataEnabled;
@@ -129,6 +129,8 @@ var AirplaneMode = {
             'geolocation.enabled': true
           });
         }
+
+        SimLock.showIfLocked();
       }
     });
   }
