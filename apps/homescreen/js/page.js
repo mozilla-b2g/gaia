@@ -361,14 +361,7 @@ Icon.prototype = {
     if (entryPoint)
       iconsAndNameHolder = manifest.entry_points[entryPoint];
 
-    var localizedName = iconsAndNameHolder.name;
-    var locales = iconsAndNameHolder.locales;
-    if (locales) {
-      var locale = locales[document.documentElement.lang];
-      if (locale && locale.name) {
-        localizedName = locale.name;
-      }
-    }
+    var localizedName = new ManifestHelper(iconsAndNameHolder).name;
 
     this.label.textContent = localizedName;
     if (descriptor.localizedName != localizedName) {

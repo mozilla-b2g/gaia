@@ -692,6 +692,8 @@ const GridManager = (function() {
     if (entryPoint)
       iconsAndNameHolder = manifest.entry_points[entryPoint];
 
+    iconsAndNameHolder = new ManifestHelper(iconsAndNameHolder);
+
     var descriptor = {
       bookmarkURL: app.bookmarkURL,
       manifestURL: app.manifestURL,
@@ -702,12 +704,7 @@ const GridManager = (function() {
       icon: bestMatchingIcon(app, iconsAndNameHolder)
     };
     if (haveLocale && !app.isBookmark) {
-      var locales = iconsAndNameHolder.locales;
-      if (locales) {
-        var locale = locales[document.documentElement.lang];
-        if (locale && locale.name)
-          descriptor.localizedName = locale.name;
-      }
+      descriptor.localizedName = iconsAndNameHolder.name;
     }
 
     // If there's an existing icon for this bookmark/app/entry point already, let
