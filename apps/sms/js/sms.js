@@ -77,12 +77,12 @@ var MessageManager = {
         spinnerContainer.innerHTML = '';
         // Add resend action
         messageDOM.addEventListener('click', function resend() {
-        messageDOM.removeEventListener('click', resend);
-        var hash = window.location.hash;
-        if (hash != '#edit') {
-          ThreadUI.resendMessage(message);
-        }
-      });
+          messageDOM.removeEventListener('click', resend);
+          var hash = window.location.hash;
+          if (hash != '#edit') {
+            ThreadUI.resendMessage(message);
+          }
+        });
       });
     }
     window.addEventListener('hashchange', this);
@@ -479,7 +479,6 @@ var ThreadListUI = {
     if (response) {
       WaitingScreen.show();
       this.delNumList = [];
-      // this.pendingDelList = [];
       var filters = [];
       var inputs = ThreadListUI.selectedInputList;
       for (var i = 0; i < inputs.length; i++) {
@@ -490,11 +489,7 @@ var ThreadListUI = {
         var currentFilter = filters.pop();
         MessageManager.getMessages(function gotMessages(messages) {
           for (var j = 0; j < messages.length; j++) {
-            // if (messages[j].delivery == 'sending') {
-            //   ThreadListUI.pendingDelList.push(messages[j]);
-            // } else {
-              ThreadListUI.delNumList.push(parseFloat(messages[j].id));
-            // }
+            ThreadListUI.delNumList.push(parseFloat(messages[j].id));
           }
           if (filters.length > 0) {
             fillList(filters, callback);
@@ -1013,7 +1008,7 @@ var ThreadUI = {
       ThreadUI.readMessages.push(message.id);
     }
 
-    console.log('El estado es '+message.delivery);
+    console.log('Status is '+message.delivery);
     // Retrieve all data from message
     var timestamp = message.timestamp.getTime();
     var bodyText = message.body;
@@ -1021,9 +1016,6 @@ var ThreadUI = {
 
     // Which type of css class we need to apply?
     var messageClass = '';
-    // if (message.error) {
-    //   messageClass = 'error';
-    // } else 
     if (message.delivery == 'failed' || message.delivery == 'error') {
       messageClass = 'error';
     } else {
@@ -1141,7 +1133,6 @@ var ThreadUI = {
       var deleteMessages = function() {
         MessageManager.getMessages(ThreadListUI.renderThreads,
                                            null, null, function() {
-          // TODO Si has borrado todo al carajo
           var completeDeletionDone = false;
           // Then sending/received messages
           for (var i = 0; i < inputs.length; i++) {
