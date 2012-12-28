@@ -37,7 +37,8 @@
   "activities": {
     "save-bookmark": {
       "filters": {
-        "type": "url"
+        "type": "url",
+        "url": { "required":true, "regexp":"/^https?:/" }
       },
       "disposition": "inline",
       "href": "/save-bookmark.html",
