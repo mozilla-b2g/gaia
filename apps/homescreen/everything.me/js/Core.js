@@ -46,20 +46,20 @@ window.Evme = new function Evme_Core() {
     this.pageMove = function pageMove(value) {
         Evme.BackgroundImage.changeOpacity(Math.floor(value*100)/100);
     };
-    
+
     this.onShow = function onShow() {
         document.body.classList.add('evme-displayed');
-        
+
         Evme.Shortcuts.refreshScroll();
         Evme.Helper.refreshScroll();
     };
     this.onHide = function onHide() {
         document.body.classList.remove('evme-displayed');
-        
+
         Evme.Brain.Shortcuts.doneEdit();
         Evme.Brain.SmartFolder.closeCurrent();
     };
-    
+
     this.onHideStart = function onHideStart(source) {
         if (source === "homeButtonClick") {
             if (
@@ -71,7 +71,7 @@ window.Evme = new function Evme_Core() {
             ) {
                 return true;
             }
-        }        
+        }
 
         Evme.Brain.Searchbar.blur();
         return false; // allow navigation to homescreen
@@ -80,18 +80,18 @@ window.Evme = new function Evme_Core() {
     function initObjects(data) {
         Evme.ConnectionMessage.init({
         });
-        
+
         Evme.Location.init({
-            
+
         });
-        
+
         Evme.Shortcuts.init({
             "el": Evme.$("#shortcuts"),
             "elLoading": Evme.$("#shortcuts-loading"),
             "design": data.design.shortcuts,
             "defaultShortcuts": data._defaultShortcuts
         });
-        
+
         Evme.ShortcutsCustomize.init({
             "elParent": Evme.Utils.getContainer()
         });
@@ -127,6 +127,10 @@ window.Evme = new function Evme_Core() {
             "el": Evme.$("#search-overlay"),
             "elementsToFade": [Evme.$("#evmeApps"), Evme.$("#header"), Evme.$("#search-header")],
             "defaultImage": data.defaultBGImage
+        });
+
+        Evme.Banner.init({
+            "el": Evme.$("#evmeBanner")
         });
 
         Evme.SearchHistory.init({
