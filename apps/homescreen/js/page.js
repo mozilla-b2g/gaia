@@ -599,6 +599,19 @@ Page.prototype = {
         GridManager.showRestartDownloadDialog(icon);
         return;
       }
+
+      // https://bugzilla.mozilla.org/show_bug.cgi?id=824677
+      // Apps from remote locations should display a message that
+      // it's not possible to run them without internet connection
+      if (
+          (icon.descriptor.manifestURL.indexOf('http://') > -1) ||
+          (icon.descriptor.manifestURL.indexOf('https://') > -1)
+      ) {
+        if (!navigator.onLine) {
+          alert(navigator.mozL10n.get('alert-no-connection'));
+          return;
+        }
+      }
       icon.app.launch();
     }
   },
