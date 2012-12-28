@@ -9,7 +9,7 @@
 
 function JSONMozTestReporter(runner) {
   var self = this;
-  global.mocha.reporters.Base.call(this, runner);
+  global.Mocha.reporters.Base.call(this, runner);
 
   var tests = [];
   var failures = [];

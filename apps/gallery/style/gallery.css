@@ -232,8 +232,8 @@ section {
 
 @media (orientation: landscape) and (width: 480px) {
   .thumbnail {
-    width: 120px;
-    height: 120px;
+    width: 119px;
+    height: 119px;
   }
 }
 
@@ -241,8 +241,8 @@ section {
 @media (orientation: portrait) and (width: 480px),
        (orientation: landscape) and (width: 800px) {
     .thumbnail {
-        width: 160px;
-        height: 160px;
+        width: 159px;
+        height: 159px;
     }
 }
 

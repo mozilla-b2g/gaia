@@ -134,17 +134,6 @@
     -moz-transition: -moz-transform .4s ease;
     transition: transform .4s ease;
 }
-    #helper-rapper .loading {
-        position: absolute;
-        top: 17px;
-        right: 16px;
-        width: 0;
-        height: 0;
-        display: none;
-    }
-    #helper-rapper .loading.visible {
-        display: block;
-    }
     #helper ul {
         position: absolute;
         top: -3px !important;

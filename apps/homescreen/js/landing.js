@@ -59,7 +59,7 @@ const LandingPage = (function() {
     var date = new Date();
 
     var time = dateTimeFormat.localeFormat(date, timeFormat);
-    clockElemNumbers.textContent = time.match(/([012]?\d):[0-5]\d/g);
+    clockElemNumbers.textContent = time.match(/([012]?\d).[0-5]\d/g);
     clockElemMeridiem.textContent = (time.match(/AM|PM/i) || []).join('');
     dateElem.textContent = dateTimeFormat.localeFormat(date, dateFormat);
 
@@ -67,3 +67,4 @@ const LandingPage = (function() {
   }
 
 }());
+

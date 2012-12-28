@@ -69,20 +69,19 @@ onLocalized(function SettingsAppStorage() {
       if (!element)
         return;
 
-      if (!l10nId) {
-        l10nId = 'size-';
-      }
-
       // KB - 3 KB (nearest ones), MB, GB - 1.2 MB (nearest tenth)
       var fixedDigits = (size < 1024 * 1024) ? 0 : 1;
       var sizeInfo = FileSizeFormatter.getReadableFileSize(size, fixedDigits);
 
-      element.textContent = _(l10nId + sizeInfo.unit, { size: sizeInfo.size });
+      element.textContent = _(l10nId || 'storageSize', {
+        size: sizeInfo.size,
+        unit: _('byteUnit-' + sizeInfo.unit)
+      });
     }
 
     // Update the subtitle of device storage
     var element = document.getElementById('device-storage-desc');
-    formatSize(element, freeSize, 'available-size-');
+    formatSize(element, freeSize, 'availableSize');
 
     // Update the storage details
     element = document.getElementById('apps-total-space');

@@ -84,7 +84,7 @@ var Navigation = {
         self.currentStep--;
         if (self.currentStep > 0) {
           var followingStep = steps[self.currentStep];
-          if (followingStep.requireSIM && !AppManager.thereIsSIM) {
+          if (followingStep.requireSIM && !SimManager.unlocked) {
             goToStep();
           } else {
             self.manageStep();
@@ -115,14 +115,13 @@ var Navigation = {
         return;
       }
       var followingStep = steps[self.currentStep];
-      if (followingStep.requireSIM && !AppManager.thereIsSIM) {
+      if (followingStep.requireSIM && !SimManager.unlocked) {
         goToStepForward();
       } else {
         self.manageStep();
       }
     };
     goToStepForward();
-
   },
 
   handleExternalLinksClick: function n_handleExternalLinksClick(e) {
@@ -191,9 +190,9 @@ var Navigation = {
         UIManager.progressBar.className = 'step-state step-5';
         UIManager.mainTitle.innerHTML = _('importContacts2');
         var fbOption = document.getElementById('fb_import');
-        var simOption = document.getElementById('sim_import');
-        // If there is SIM we activate import from SIM
-        if (AppManager.thereIsSIM) {
+        var simOption = document.getElementById('sim-import-button');
+        // If there is an unlocked SIM we activate import from SIM
+        if (AppManager.thereIsSIM && SimManager.unlocked) {
           simOption.classList.remove('disabled');
         } else {
           simOption.classList.add('disabled');

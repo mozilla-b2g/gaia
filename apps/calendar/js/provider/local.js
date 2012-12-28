@@ -27,7 +27,7 @@
     }
 
     if (!name) {
-      name = 'Offline Calendar';
+      name = 'Offline calendar';
     }
 
     return {

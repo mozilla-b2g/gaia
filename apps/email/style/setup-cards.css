@@ -1,39 +1,39 @@
 
 .sup-form {
-  text-align: center;
+  margin: 1rem 2rem;
 }
 
-.sup-form-label {
-  text-align: center;
-  margin: 2rem 3rem;
-  font-weight: normal;
-  text-align: left;
+.sup-manual-prompt {
+  font: 1.1rem "MozTT", Sans-serif;
 }
-.sup-form-text {
-  -moz-box-sizing: border-box;
-  border: 1px solid #D1D1D1;
-  border-radius: 0.3rem 0.3rem 0.3rem 0.3rem;
-  display: block;
-  height: 4rem;
-  padding: 0 0.5rem;
-  margin: 1rem 3rem 1rem 3rem;
-  width: calc(100% - 6rem);
-}
+
 .sup-form-btn {
   margin: 1.5rem 3rem;
   width: calc(100% - 6rem);
 }
 
-.sup-services-container {
+.sup-error-region {
+  background-color: black;
+  color: #fff;
+  padding: 0.8rem;
+}
+.sup-error-message {
+  font-size: 120%;
   text-align: center;
 }
-.sup-service-choice {
-  margin: 0 1.5rem;
-  width: calc(100% - 3rem);
-  height: auto;
-  list-style-type: none;
-  border: none;
+.sup-error-code {
+  color: #aaa;
+  font-size: 80%;
+  margin-top: 0.4rem;
+  text-align: right;
 }
+.sup-error-code:before {
+  content: "[";
+}
+.sup-error-code:after {
+  content: "]";
+}
+
 
 .sup-progress-region {
   padding: 0 5%;
@@ -65,6 +65,15 @@
   to {
     background-position: -390px top;
   }
+}
+
+.sup-account-done-label {
+  text-align: center;
+}
+
+/* get some margin around the form elements; I'm not sure how BB wants it */
+.tng-form {
+  margin: 0 3rem;
 }
 
 .tng-header-item {
