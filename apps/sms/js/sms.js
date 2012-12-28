@@ -239,25 +239,7 @@ var MessageManager = {
         messages.push(cursor.message);
         cursor.continue();
       } else {
-        // if (!PendingMsgManager.dbReady) {
-          callback(messages, callbackArgs);
-        //   return;
-        // }
-        // var filterNum = filter ? filter.numbers[0] : null;
-        // var numNormalized = PhoneNumberManager.
-        //   getNormalizedInternationalNumber(filterNum);
-        // //TODO: Refine the pending message append with non-blocking method.
-        // PendingMsgManager.getMsgDB(numNormalized, function msgCb(pendingMsgs) {
-        //   if (!pendingMsgs) {
-        //     return;
-        //   }
-        //   messages = messages.concat(pendingMsgs);
-        //   messages.sort(function(a, b) {
-        //       return filterNum ? a.timestamp - b.timestamp :
-        //                         b.timestamp - a.timestamp;
-        //   });
-        //   callback(messages, callbackArgs);
-        // });
+        callback(messages, callbackArgs);
       }
     };
 
@@ -519,32 +501,11 @@ var ThreadListUI = {
           } else {
             MessageManager.deleteMessages(ThreadListUI.delNumList,
                                           function() {
-              // if (ThreadListUI.pendingDelList.length > 0) {
-              //   for (var j = 0; j < ThreadListUI.pendingDelList.length; j++) {
-              //     if (j == ThreadListUI.pendingDelList.length - 1) {
-                    
-              //       .deleteFromMsgDB(
-              //         ThreadListUI.pendingDelList[j], function() {
-              //         MessageManager.getMessages(
-              //           function recoverMessages(messages) {
-              //             ThreadListUI.renderThreads(messages);
-              //             WaitingScreen.hide();
-              //             ThreadListUI.editDone = true;
-              //             window.location.hash = '#thread-list';
-              //         });
-              //       });
-              //     } else {
-              //       PendingMsgManager.deleteFromMsgDB(
-              //         ThreadListUI.pendingDelList[j]);
-              //     }
-              //   }
-              // } else {
-                MessageManager.getMessages(function recoverMessages(messages) {
-                  ThreadListUI.renderThreads(messages);
-                  WaitingScreen.hide();
-                  window.location.hash = '#thread-list';
-                });
-              // }
+              MessageManager.getMessages(function recoverMessages(messages) {
+                ThreadListUI.renderThreads(messages);
+                WaitingScreen.hide();
+                window.location.hash = '#thread-list';
+              });
             });
           }
         }, currentFilter);
@@ -1168,19 +1129,12 @@ var ThreadUI = {
     if (response) {
       WaitingScreen.show();
       var delNumList = [];
-      // var pendingDelList = [];
-      // var tempTSList = [];
       var inputs =
         ThreadUI.view.querySelectorAll('input[type="checkbox"]:checked');
       for (var i = 0; i < inputs.length; i++) {
         var inputValue = inputs[i].value;
-        // if (inputValue.indexOf('ts_') != -1) {
-        //   var valueParsed = inputValue.replace('ts_', '');
-        //   tempTSList.push(parseFloat(valueParsed));
-        // } else {
-          var valueParsed = inputValue.replace('id_', '');
-          delNumList.push(parseFloat(valueParsed));
-        // }
+        var valueParsed = inputValue.replace('id_', '');
+        delNumList.push(parseFloat(valueParsed));
       }
 
       // Method for deleting all inputs selected
@@ -1217,35 +1171,9 @@ var ThreadUI = {
         });
       };
 
-      // MessageManager.getMessages(function(messages) {
-      //   for (var i = 0; i < messages.length; i++) {
-      //     var message = messages[i];
-      //     if (message.delivery == 'sending') {
-      //       if (tempTSList.indexOf(message.timestamp.getTime()) != -1) {
-      //         pendingDelList.push(message);
-      //       }
-      //     }
-      //   }
-        // Now we have our lists filled, we start the deletion
-        MessageManager.deleteMessages(delNumList, function() {
-        //   if (pendingDelList.length > 0) {
-        //     for (var i = 0; i < pendingDelList.length; i++) {
-        //       if (i == pendingDelList.length - 1) {
-        //         // Once everything is removed
-        //         PendingMsgManager.deleteFromMsgDB(pendingDelList[i],
-        //           function() {
-        //             // Update Thread-list
-        //             deleteMessages();
-        //           });
-        //       } else {
-        //         PendingMsgManager.deleteFromMsgDB(pendingDelList[i]);
-        //       }
-        //     }
-        //   } else {
-            deleteMessages();
-        //   }
-        });
-      // });
+      MessageManager.deleteMessages(delNumList, function() {
+        deleteMessages();
+      });
     }
   },
 
@@ -1396,152 +1324,6 @@ var ThreadUI = {
     }
 
     sendAndUpdate();
-
-    // if (settings) {
-    //   // Check if RIL is enabled or not
-    //   var req = settings.createLock().get('ril.radio.disabled');
-    //   req.addEventListener('success', (function onsuccess() {
-    //     // RIL it's available
-    //     var status = req.result['ril.radio.disabled'];
-    //     // Retrieve normalized phone number
-    //     // TODO Remove with
-    //     // https://bugzilla.mozilla.org/show_bug.cgi?id=811539
-    //     var numNormalized =
-    //       PhoneNumberManager.getNormalizedInternationalNumber(num);
-
-    //     // Create 'PendingMessage'
-    //     // TODO Remove this algorithm when
-    //     // https://bugzilla.mozilla.org/show_bug.cgi?id=774621
-    //     var tempDate = new Date();
-    //     var message = {
-    //       sender: null,
-    //       receiver: numNormalized,
-    //       delivery: 'sending',
-    //       body: text,
-    //       read: 1,
-    //       timestamp: tempDate
-    //     };
-
-    //     var self = this;
-    //     if (!status) {
-    //       // If we have RIL enabled
-    //       message.error = false;
-
-    //       // Save the message into pendind DB before send.
-    //       PendingMsgManager.saveToMsgDB(message, function onsave(msg) {
-    //         // XXX Once we have PhoneNumberJS in Gecko we will
-    //         // use num directly:
-    //         // https://bugzilla.mozilla.org/show_bug.cgi?id=809213
-
-    //         var sendAndUpdate = function() {
-    //           var messageID = 'message' + message.timestamp.getTime();
-    //           var messageDOM = document.getElementById(messageID);
-
-    //           MessageManager.send(numNormalized, text, function onsent(msg) {
-    //             // If message is sent succesfully
-
-    //             // Remove 'sending' style
-    //             var aElement = messageDOM.getElementsByTagName('a')[0];
-    //             aElement.classList.remove('sending');
-    //             // Remove the 'spinner'
-    //             var spinnerContainer =
-    //               aElement.getElementsByTagName('aside')[0];
-    //             aElement.removeChild(spinnerContainer);
-    //             // Update ID of the input to regular SMS
-    //             var input = messageDOM.getElementsByTagName('input')[0];
-    //             input.value = 'id_' + msg.id;
-    //             // Remove from pending
-    //             PendingMsgManager.deleteFromMsgDB(message,
-    //               function ondelete(msg) {
-    //                 if (!msg) {
-    //                   //TODO: Handle message delete failed in pending DB.
-    //                 }
-    //             });
-    //           }, function onerror() {
-    //             // If was impossible to send the sms
-    //             // Update 'sending' to 'error' style
-    //             var aElement = messageDOM.getElementsByTagName('a')[0];
-    //             aElement.classList.remove('sending');
-    //             aElement.classList.add('error');
-    //             // We remove the 'spinner', and keeps the error mark
-    //             var spinnerContainer =
-    //               aElement.getElementsByTagName('aside')[0];
-    //             spinnerContainer.innerHTML = '';
-    //             // Update 'status' in pendingDB
-    //             PendingMsgManager.deleteFromMsgDB(message,
-    //               function ondelete(msg) {
-    //                 message.error = true;
-    //                 messageDOM.addEventListener('click', function resend() {
-    //                   messageDOM.removeEventListener('click', resend);
-    //                   var hash = window.location.hash;
-    //                   if (hash != '#edit') {
-    //                     ThreadUI.resendMessage(message);
-    //                   }
-    //                 });
-
-    //                 PendingMsgManager.saveToMsgDB(message,
-    //                   function onsave(msg) {
-    //                     MessageManager.getMessages(
-    //                           ThreadListUI.renderThreads);
-    //                 });
-    //             });
-    //           });
-    //         };
-    //         // Once we store into 'pendingDB'
-    //         if (window.location.hash == '#new') {
-    //           // If we are in 'new' we go to the right thread
-    //           window.location.hash = '#num=' + num;
-    //           ThreadUI.pendingAction = sendAndUpdate;
-    //         } else {
-    //           // If we are in the right thread we append to DOM
-    //           ThreadUI.appendMessage(message, function() {
-    //             // Call to update headers
-    //             Utils.updateTimeHeaders();
-    //           });
-    //           sendAndUpdate();
-    //         }
-    //         // We update the thread list
-    //         // TODO We need to ensure that we have finish to render
-    //         MessageManager.getMessages(ThreadListUI.renderThreads);
-
-    //       });
-
-    //     } else {
-    //       // If RIL is disabled
-    //       message.error = true;
-    //       // Save the message into pendind DB before send.
-    //       PendingMsgManager.saveToMsgDB(message, function onsave(msg) {
-    //         if (window.location.hash == '#new') {
-    //           window.location.hash = '#num=' + num;
-    //         } else {
-    //           // Append to DOM
-    //           ThreadUI.appendMessage(message, function() {
-    //              // Call to update headers
-    //             Utils.updateTimeHeaders();
-    //           });
-    //         }
-    //       });
-    //       CustomDialog.show(
-    //         _('sendAirplaneModeTitle'),
-    //         _('sendAirplaneModeBody'),
-    //         {
-    //           title: _('sendAirplaneModeBtnOk'),
-    //           callback: function() {
-    //             CustomDialog.hide();
-    //           }
-    //         }
-    //       );
-    //       MessageManager.getMessages(ThreadListUI.renderThreads);
-    //     }
-    //   }).bind(this));
-
-    //   req.addEventListener('error', function onerror() {
-    //     throwGeneralError();
-    //   });
-    // } else {
-    //   // TODO Check if we need it or not! Because the message is wrong
-    //   throwGeneralError();
-    // }
   },
 
   resendMessage: function thui_resendMessage(message) {
