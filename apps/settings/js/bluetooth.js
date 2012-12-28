@@ -530,23 +530,36 @@ onLocalized(function bluetoothSettings() {
     }
 
     function onRequestPairing(evt, method) {
-      var device = {
-        address: evt.address,
-        name: evt.name || _('unnamed-device'),
-        icon: evt.icon || 'bluetooth-default'
+      var showPairView = function bt_showPairView() {
+        var device = {
+          address: evt.address,
+          name: evt.name || _('unnamed-device'),
+          icon: evt.icon || 'bluetooth-default'
+        };
+
+        if (device.address !== pairingAddress) {
+          pairingAddress = device.address;
+          pairingMode = 'passive';
+        }
+        var passkey = evt.passkey || null;
+        var protocol = window.location.protocol;
+        var host = window.location.host;
+        childWindow = window.open(protocol + '//' + host + '/onpair.html',
+                    'pair_screen', 'attention');
+        childWindow.onload = function childWindowLoaded() {
+          childWindow.PairView.init(pairingMode, method, device, passkey);
+        };
       };
 
-      if (device.address !== pairingAddress) {
-        pairingAddress = device.address;
-        pairingMode = 'passive';
-      }
-      var passkey = evt.passkey || null;
-      var protocol = window.location.protocol;
-      var host = window.location.host;
-      childWindow = window.open(protocol + '//' + host + '/onpair.html',
-                  'pair_screen', 'attention');
-      childWindow.onload = function childWindowLoaded() {
-        childWindow.PairView.init(pairingMode, method, device, passkey);
+      var req = navigator.mozSettings.createLock().get('lockscreen.locked');
+      req.onsuccess = function bt_onGetLocksuccess() {
+        if (!req.result['lockscreen.locked']) {
+          showPairView();
+        }
+      };
+      req.onerror = function bt_onGetLockError() {
+        // fallback to default value 'unlocked'
+        showPairView();
       };
     }
 
