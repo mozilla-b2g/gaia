@@ -45,6 +45,11 @@ window.addEventListener('localized', function onload(e) {
       break;
   }
 
+  if (params['wrapper']) {
+    document.getElementById('close').style.display = 'none';
+    document.getElementById('toolbar').dataset.items = 1;
+  }
+
   document.getElementById('close').onclick = closeWindow;
   document.getElementById('reload').onclick = function() {
     reloadWindow(params['origin']);

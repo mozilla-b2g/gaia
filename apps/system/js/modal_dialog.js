@@ -242,7 +242,11 @@ var ModalDialog = {
                    'name=' + name + '&' +
                    'type=' + type;
     if (target.src.indexOf(errorURL) == -1 || type != 'other') {
-      target.src = errorURL + '&origin=' + target.dataset.frameURL;
+      var parameter = '';
+      if ('wrapper' in target.dataset)
+        parameter = '&wrapper=1';
+
+      target.src = errorURL + '&origin=' + target.dataset.frameURL + parameter;
     }
   },
 
