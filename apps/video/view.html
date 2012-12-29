@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="pragma" content="no-cache" />
+    <title>Videos</title>
+    <link rel="resource" type="application/l10n" href="locales/locales.ini" />
+    <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
+    <link rel="stylesheet" type="text/css" href="style/video.css" />
+  </head>
+  <body role="application" class="skin-dark">
+    <div id="videoFrame">
+      <video id="player" preload="metadata"></video>
+      <!-- video controls -->
+      <div id="videoControls" class="hidden">
+        <section role="region">
+          <header>
+            <a href="#" id="close"><span class="icon icon-back">back</span></a>
+            <h1 id="video-title"></h1>
+          </header>
+
+          <footer id="videoBar">
+            <button id="play"></button>
+            <div id="timeSlider">
+              <span id="elapsed-text"></span>
+              <div id="slider-wrapper">
+                <div id="elapsedTime" class="progress"></div>
+                <div id="bufferedTime" class="progress"></div>
+                <div id="timeBackground" class="progress"></div>
+                <button id="playHead"></button>
+              </div>
+              <span id="duration-text"></span>
+            </div>
+          </footer>
+        </section>
+      </div>
+    </div>
+
+    <script type="text/javascript" src="shared/js/l10n.js"></script>
+    <script type="text/javascript" src="js/view.js"></script>
+  </body>
+</html>
