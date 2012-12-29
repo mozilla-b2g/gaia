@@ -1,4 +1,9 @@
+
 function reloadWindow(url) {
+  // This can be a malicious script. See bug 822232.
+  if (/^https?:/.test(url) == false) {
+    return;
+
   document.location.replace(url);
 }
 

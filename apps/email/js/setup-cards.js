@@ -5,6 +5,26 @@
  **/
 
 /**
+ * Map error codes to their l10n string id.  This exists because we have
+ * revised some of the strings and so a direct transformation is no longer
+ * sufficient.  If an error code does not exist in this map, it gets mapped
+ * to the "unknown" value's l10n string id.
+ */
+const SETUP_ERROR_L10N_ID_MAP = {
+  'offline': 'setup-error-offline',
+  'bad-user-or-pass': 'setup-error-bad-user-or-pass2',
+  'not-authorized': 'setup-error-not-authorized',
+  'unknown': 'setup-error-unknown2',
+  'needs-app-pass': 'setup-error-needs-app-pass',
+  'imap-disabled': 'setup-error-imap-disabled',
+  'bad-security': 'setup-error-bad-security',
+  'unresponsive-server': 'setup-error-unresponsive-server',
+  'server-problem': 'setup-error-server-problem',
+  'no-config-info': 'setup-error-no-config-info',
+  'server-maintenance': 'setup-error-server-maintenance'
+};
+
+/**
  * Enter basic account info card (name, e-mail address, password) to try and
  * autoconfigure an account.
  */
@@ -99,10 +119,12 @@ SetupAccountInfoCard.prototype = {
       this.domNode.getElementsByClassName('sup-error-code')[0];
 
     // Attempt to get a user-friendly string for the error we got. If we can't
-    // find a match, just show the "unknown error" string.
-    var unknownErrorStr = mozL10n.get('setup-error-unknown');
-    var errorStr = mozL10n.get('setup-error-' + errName, errDetails) ||
-                     unknownErrorStr;
+    // find a match, just show the "unknown" error string.
+    var errorStr = mozL10n.get(
+      SETUP_ERROR_L10N_ID_MAP.hasOwnProperty(errName) ?
+        SETUP_ERROR_L10N_ID_MAP[errName] :
+        SETUP_ERROR_L10N_ID_MAP['unknown'],
+      errDetails);
     errorMessageNode.textContent = errorStr;
 
     // Expose the error code to the UI.  Additionally, if there was a status,

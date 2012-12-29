@@ -1484,16 +1484,17 @@ var Browser = {
           this.showTopSiteThumbnails.bind(this));
 
         var self = this;
-        for each(var tab in this.tabs) {
+        var tabIds = Object.keys(this.tabs);
+        tabIds.forEach(function(tabId) {
+          var tab = self.tabs[tabId];
           if (tab.dom.purgeHistory) {
-            tab.dom.purgeHistory().onsuccess = (function(e) {
-              if (self.tabs[tabId] == self.currentTab) {
+            tab.dom.purgeHistory().onsuccess = function(e) {
+              if (tab == self.currentTab) {
                 self.refreshButtons();
               }
-            });
+            };
           }
-        }
-
+        });
       }).bind(this));
 
       this.history.innerHTML = '';

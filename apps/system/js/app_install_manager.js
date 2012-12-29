@@ -109,13 +109,9 @@ var AppInstallManager = {
       this.size.textContent = _('unknown');
     }
 
-    // Get localised name or use default
-    var name = manifest.name;
-    var locales = manifest.locales;
-    var lang = navigator.language;
-    if (locales && locales[lang] && locales[lang].name)
-      name = locales[lang].name;
-    var msg = _('install-app', {'name': name});
+    // Wrap manifest to get localized properties
+    manifest = new ManifestHelper(manifest);
+    var msg = _('install-app', {'name': manifest.name});
     this.msg.textContent = msg;
 
     if (manifest.developer) {
@@ -157,7 +153,7 @@ var AppInstallManager = {
 
   showInstallSuccess: function ai_showInstallSuccess(app) {
     var manifest = app.manifest || app.updateManifest;
-    var name = manifest.name;
+    var name = new ManifestHelper(manifest).name;
     var _ = navigator.mozL10n.get;
     var msg = _('app-install-success', { appName: name });
     SystemBanner.show(msg);
@@ -174,7 +170,7 @@ var AppInstallManager = {
     var app = evt.application;
     var _ = navigator.mozL10n.get;
     var manifest = app.manifest || app.updateManifest;
-    var name = manifest.name;
+    var name = new ManifestHelper(manifest).name;
 
     var errorName = app.downloadError.name;
 
@@ -260,7 +256,7 @@ var AppInstallManager = {
     var _ = navigator.mozL10n.get;
 
     var message = _('downloadingAppMessage', {
-      appName: manifest.name
+      appName: new ManifestHelper(manifest).name
     });
 
     newNode.querySelector('.message').textContent = message;
@@ -404,7 +400,7 @@ var AppInstallManager = {
     var title = dialog.querySelector('h1');
 
     title.textContent = navigator.mozL10n.get('stopDownloading', {
-      app: manifest.name
+      app: new ManifestHelper(manifest).name
     });
 
     dialog.classList.add('visible');

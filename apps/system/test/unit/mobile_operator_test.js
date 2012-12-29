@@ -2,8 +2,6 @@
 
 'use strict';
 
-requireApp('system/test/unit/mock_moz_mobile_connection.js');
-
 requireApp('system/shared/js/mobile_operator.js');
 
 suite('shared/MobileOperator', function() {
@@ -12,7 +10,17 @@ suite('shared/MobileOperator', function() {
 
 
   setup(function() {
-    MockMobileConnection = new MockMozMobileConnection();
+    MockMobileConnection = {
+      voice: {
+        network: {
+          shortName: 'Fake short',
+          longName: 'Fake long',
+          mnc: '6'
+        },
+        cell: { gsmLocationAreaCode: 71 }
+      },
+      iccInfo: { spn: 'Fake SPN' }
+    };
   });
 
   suite('Worldwide connection', function() {

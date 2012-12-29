@@ -2,6 +2,7 @@
 
 var MobileOperator = {
   BRAZIL_MCC: 724,
+  BRAZIL_CELLBROADCAST_CHANNEL: 50,
 
   userFacingInfo: function mo_userFacingInfo(mobileConnection) {
     var network = mobileConnection.voice.network;

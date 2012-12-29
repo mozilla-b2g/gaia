@@ -67,9 +67,18 @@ var SimLock = {
       return false;
 
     if (LockScreen.locked)
-      return;
+      return false;
 
     switch (conn.cardState) {
+      // If the phone is in airplane mode then the state will be 'absent' before
+      // going to null.
+      case null:
+      case 'absent':
+        conn.addEventListener('cardstatechange', function stateChange(e) {
+          conn.removeEventListener(e.type, stateChange);
+          this.showIfLocked();
+        }.bind(this));
+        break;
       case 'pukRequired':
       case 'pinRequired':
         SimPinDialog.show('unlock', this.onClose);
