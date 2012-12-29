@@ -323,7 +323,7 @@ var UIManager = {
         li.dataset.ssid = network.ssid;
         // Show authentication method
         var keys = network.capabilities;
-        if (network.connected) {
+        if (WifiManager.isConnectedTo(network)) {
           small.textContent = _('shortStatus-connected');
         } else {
           if (keys && keys.length) {
@@ -340,7 +340,11 @@ var UIManager = {
         li.appendChild(ssidp);
         li.appendChild(small);
         // Append to DOM
-        networksDOM.appendChild(li);
+        if (WifiManager.isConnectedTo(network)) {
+          networksDOM.insertBefore(li, networksDOM.firstChild);
+        } else {
+          networksDOM.appendChild(li);
+        }
       }
     }
   },
@@ -352,8 +356,11 @@ var UIManager = {
   },
 
   updateNetworkStatus: function uim_uns(ssid, status) {
+    if (!document.getElementById(ssid))
+      return;
+
     document.getElementById(ssid).
-      querySelector('p:last-child').innerHTML = status;
+      querySelector('p:last-child').innerHTML = _('shortStatus-' + status);
   },
 
   updateDataConnectionStatus: function uim_udcs(status) {
