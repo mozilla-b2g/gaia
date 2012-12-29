@@ -18,12 +18,46 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
   var controlFadeTimeout = null;
   var dragging = false;
   var data = activity.source.data;
-  var extras = data.extras || {};
   var url = data.url;
-  var title = extras.title || '';
+  var title = data.title || '';
 
-  initUI();
-  showPlayer(url, title);
+  if (data.status === 'fail' || data.errorcode) {
+    // This only happens when we're invoked for youtube videos
+    // Display an error message, but make sure we're localized first
+    if (navigator.mozL10n.readyState === 'complete') {
+      handleError(data.reason);
+    }
+    else {
+      window.addEventListener('localized', function handleLocalized() {
+        window.removeEventListener('localized', handleLocalized);
+        handleError(data.reason);
+      });
+    }
+  }
+  else {
+    initUI();
+    showPlayer(url, title);
+  }
+
+  function handleError(message) {
+    // Remove any HTML tags from the youtube error message
+    var div = document.createElement('div');
+    div.innerHTML = message;
+    message = div.textContent;
+
+    // Get a localized error message prefix
+    var prefix = navigator.mozL10n.get('youtube-error-prefix');
+
+    // Display the error message to the user
+    // XXX Using alert() is simple but ugly.
+    alert(prefix + '\n\n' + message);
+
+    // When the user clicks okay, end the activity.
+    // Do this on a timer so the alert has time to go away.
+    // Otherwise it appears to remain up over the caller and the user
+    // has to dismiss it twice.
+    setTimeout(function() { activity.postResult({}); }, 50);
+  }
 
   function initUI() {
     // Fullscreen mode and inline activities don't seem to play well together
