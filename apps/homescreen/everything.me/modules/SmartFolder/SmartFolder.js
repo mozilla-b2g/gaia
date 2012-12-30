@@ -1,6 +1,6 @@
 Evme.SmartFolder = function Evme_SartFolder(_options) {
     var self = this, NAME = "SmartFolder",
-        name = '', image = '', scroll = null, shouldFadeImage = false, bgImage = null,
+        experienceId = '', query = '', image = '', scroll = null, shouldFadeImage = false, bgImage = null,
         el = null, elScreen = null, elTitle = null, elClose = null,
         elAppsContainer = null, elApps = null,
         elImage = null, elImageOverlay = null, elImageFullscreen = null,
@@ -25,7 +25,8 @@ Evme.SmartFolder = function Evme_SartFolder(_options) {
         createElement();
         
         options.bgImage && self.setBgImage(options.bgImage);
-        options.name && self.setName(options.name);
+        options.query && self.setQuery(options.query);
+        options.experienceId && self.setExperience(options.experienceId);
         options.image && self.setImage(options.image);
         options.elParent && self.appendTo(options.elParent);
         (typeof options.maxHeight === "number") && (MAX_HEIGHT = options.maxHeight);
@@ -133,16 +134,35 @@ Evme.SmartFolder = function Evme_SartFolder(_options) {
         return self;
     };
     
-    this.setName = function setName(newName) {
-        if (!newName || newName === name) {
+    this.setExperience = function setExperience(newExperienceId) {
+        if (!newExperienceId || newExperienceId === experienceId) {
             return self;
         }
         
-        name = newName;
+        experienceId = newExperienceId;
         
+        var l10nkey = 'id-' + Evme.Utils.shortcutIdToKey(experienceId),
+            queryById = Evme.Utils.l10n('shortcut', l10nkey);
+            
         elTitle.innerHTML = '<em></em>' +
                             '<b ' + Evme.Utils.l10nAttr(NAME, 'title-prefix') + '></b> ' +
-                            '<span>' + name + '</span>';
+                            '<span ' + Evme.Utils.l10nAttr('shortcut', l10nkey) + '></span>';
+        
+        if (queryById) {
+            self.setQuery(queryById);
+        } else if (query) {
+            Evme.$('span', elTitle)[0].innerHTML = query;
+        }
+        
+        return self;
+    };
+    
+    this.setQuery = function setQuery(newQuery) {
+        if (!newQuery || newQuery === query) {
+            return self;
+        }
+        
+        query = newQuery;
         
         return self;
     };
@@ -263,7 +283,8 @@ Evme.SmartFolder = function Evme_SartFolder(_options) {
     };
     
     this.getElement = function getElement() { return el; };
-    this.getName = function getName() { return name; };
+    this.getExperience = function getExperience() { return experienceId; };
+    this.getQuery = function getQuery() { return query; };
     this.getImage = function getImage() { return image; };
     
     function createElement() {

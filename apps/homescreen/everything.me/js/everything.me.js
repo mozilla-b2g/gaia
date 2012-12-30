@@ -74,6 +74,7 @@ var EverythingME = {
         js_files = ['js/etmmanager.js',
                     'js/Core.js',
                     'config/config.js',
+                    'config/shortcuts.js',
                     'js/Brain.js',
                     'modules/Apps/Apps.js',
                     'modules/BackgroundImage/BackgroundImage.js',
