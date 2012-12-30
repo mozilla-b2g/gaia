@@ -978,14 +978,14 @@ var ThreadUI = {
     messageDOM.classList.add('bubble');
     messageDOM.id = 'message-' + id;
 
-    var inputValue = message.id;
+    var inputValue = id;
 
     var asideHTML = '';
     // Do we have to add some error/sending icon?
     switch (message.delivery) {
       case 'error':
         asideHTML = '<aside class="pack-end"></aside>';
-        ThreadUI.addResendHandler(message);
+        ThreadUI.addResendHandler(message, messageDOM);
         break;
       case 'sending':
         asideHTML = '<aside class="pack-end">' +
@@ -1026,8 +1026,7 @@ var ThreadUI = {
     ThreadUI.scrollViewToBottom();
   },
 
-  addResendHandler: function thui_addResendHandler(message) {
-    var messageDOM = document.getElementById('message-' + message.id);
+  addResendHandler: function thui_addResendHandler(message, messageDOM) {
     messageDOM.addEventListener('click', function resend(e) {
       var hash = window.location.hash;
       if (hash != '#edit') {
@@ -1253,7 +1252,7 @@ var ThreadUI = {
     var spinnerContainer = aElement.querySelector('aside');
     spinnerContainer.innerHTML = '';
 
-    ThreadUI.addResendHandler(message);
+    ThreadUI.addResendHandler(message, messageDOM);
 
     this.ifRilDisabled(this.showAirplaneModeError);
   },
