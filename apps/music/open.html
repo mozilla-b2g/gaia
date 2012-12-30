@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="pragma" content="no-cache" />
+    <title>Music</title>
+    <link rel="stylesheet" href="style/music.css" type="text/css" />
+    <!-- Include shared building blocks -->
+    <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
+    <!-- Localization -->
+    <link rel="resource" type="application/l10n" href="locales/locales.ini">
+    <!-- Shared code -->
+    <script type="text/javascript" src="shared/js/l10n.js"></script>
+    <script type="text/javascript" defer src="shared/js/blobview.js"></script>
+    <!-- Specific code -->
+    <script type="text/javascript" defer src="js/metadata.js"></script>
+    <script type="text/javascript" defer src="js/utils.js"></script>
+    <script type="text/javascript" defer src="js/Player.js"></script>
+    <script type="text/javascript" defer src="js/open.js"></script>
+  </head>
+
+  <body role="application">
+    <section id="title" role="region" class="skin-dark">
+      <header>
+        <button id="title-back"><span class="icon icon-back"></span></button>
+        <h1 id="title-text" data-l10n-id="music">Music</h1>
+      </header>
+    </section>
+    <div id="views">
+      <div id="views-player" class="view">
+        <div id="player-cover">
+          <img id="player-cover-image" />
+          <div id="player-cover-caption">
+            <div id="player-cover-artist" data-l10n-id="songArtist">Song Artist</div>
+            <div id="player-cover-album" data-l10n-id="songAlbum">Song Album</div>
+          </div>
+          <div id="player-cover-buttons">
+            <button id="player-album-repeat" class="player-cover-button repeat-list" disabled></button>
+            <div id="player-album-rating">
+              <button class="rating-star" data-rating="1" disabled></button>
+              <button class="rating-star" data-rating="2" disabled></button>
+              <button class="rating-star" data-rating="3" disabled></button>
+              <button class="rating-star" data-rating="4" disabled></button>
+              <button class="rating-star" data-rating="5" disabled></button>
+            </div>
+            <button id="player-album-shuffle" class="player-cover-button shuffle-on" disabled></button>
+          </div>
+        </div>
+        <div id="player-seek">
+          <span id="player-seek-elapsed">00:00</span>
+          <div id="player-seek-bar">
+            <progress id="player-seek-bar-progress" value="0"></progress>
+            <div id="player-seek-bar-indicator"></div>
+          </div>
+          <span id="player-seek-remaining">00:00</span>
+        </div>
+        <div id="player-controls">
+          <button id="player-controls-previous" class="player-controls-button" disabled></button>
+          <button id="player-controls-play" class="player-controls-button is-pause"></button>
+          <button id="player-controls-next" class="player-controls-button" disabled></button>
+        </div>
+        <audio id="player-audio" class="hidden"></audio>
+      </div>
+    </div>
+  </body>
+</html>

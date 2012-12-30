@@ -767,6 +767,13 @@ button::-moz-focus-inner {
 .player-controls-button:active {
   background: rgb(0, 138, 170);
 }
+.player-controls-button:disabled {
+  opacity: 0.3;
+}
+.player-controls-button:disabled:active {
+  background: transparent;
+}
+
 
 #tabs {
   position: absolute;
