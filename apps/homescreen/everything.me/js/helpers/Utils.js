@@ -49,7 +49,7 @@ Evme.Utils = new function Evme_Utils() {
         
         if (args) {
             try {
-                attr += ' data-l10n-args="' + JSON.stringify(args) + '"';
+                attr += ' data-l10n-args="' + JSON.stringify(args).replace(/"/g, '&quot;') + '"';
             } catch(ex) {
                 
             }
@@ -114,7 +114,7 @@ Evme.Utils = new function Evme_Utils() {
     };
 
     this.getRoundIcon = function getRoundIcon(imageSrc, callback) {
-        var size = Evme.Utils.sendToOS(Evme.Utils.OSMessages.GET_ICON_SIZE) - 2,
+        var size = self.sendToOS(self.OSMessages.GET_ICON_SIZE) - 2,
             radius = size/2,
             img = new Image();
         
@@ -155,7 +155,7 @@ Evme.Utils = new function Evme_Utils() {
     };
 
     this.getIconGroup = function getIconGroup() {
-        return Evme.Utils.cloneObject(Evme.__config.iconsGroupSettings);
+        return self.cloneObject(Evme.__config.iconsGroupSettings);
     };
 
     this.getIconsFormat = function getIconsFormat() {
