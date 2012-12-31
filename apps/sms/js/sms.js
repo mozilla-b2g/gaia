@@ -146,9 +146,11 @@ var MessageManager = {
           } else {
             // As soon as we click in the thread, we visually mark it
             // as read.
-            document.getElementById('thread_' + num)
-                    .getElementsByTagName('a')[0].classList
+            var threadRead = document.getElementById('thread_' + num);
+            if (threadRead) {
+              threadRead.getElementsByTagName('a')[0].classList
                     .remove('unread');
+            }
             this.getMessages(ThreadUI.renderMessages,
               filter, true, function() {
                 MessageManager.slide(function() {
