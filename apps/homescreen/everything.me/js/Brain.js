@@ -836,7 +836,7 @@ Evme.Brain = new function Evme_Brain() {
             elContainer.classList.add("smart-folder-visible");
 
             currentFolder = data.folder;
-            window.setTimeout(self.loadAppsIntoFolder, 500);
+            window.setTimeout(self.loadAppsIntoFolder, 400);
         };
 
         // hiding the folder
