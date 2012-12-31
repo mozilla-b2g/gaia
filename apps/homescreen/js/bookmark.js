@@ -3,6 +3,12 @@
 var Bookmark = function Bookmark(params) {
   this.removable = true;
 
+  if ('iconable' in params) {
+    this.iconable = params.iconable;
+  } else {
+    this.iconable = true;
+  }
+
   this.isBookmark = true;
   this.url = this.bookmarkURL = this.origin = params.bookmarkURL;
 
