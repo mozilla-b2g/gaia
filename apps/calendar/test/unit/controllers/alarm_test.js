@@ -39,6 +39,7 @@ suite('controllers/alarm', function() {
       realSyncSettings = [settingStore.syncFrequency, settingStore.syncAlarm];
       settingStore.set('syncFrequency', null);
       settingStore.set('syncAlarm', {
+        enabled: true, 
         alarmId: null,
         start: null,
         end: null
@@ -408,6 +409,13 @@ suite('controllers/alarm', function() {
       }
 
       setup(function() {
+        settingStore.set('syncAlarm', {
+          enabled: false, 
+          alarmId: null,
+          start: null,
+          end: null
+        });
+
         origReset = subject._resetSyncAlarm;
         subject._resetSyncAlarm = mockReset;
       });

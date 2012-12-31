@@ -46,6 +46,7 @@ Calendar.ns('Controllers').Alarm = (function() {
       this.accounts.on('removeCompleted', function() {
         self._accountsChanged(false);
       });
+      this._accountsChanged(); // Check on startup in case we've missed events
     },
 
     handleAlarmMessage: function(message) {
@@ -172,6 +173,7 @@ Calendar.ns('Controllers').Alarm = (function() {
 
       var duration = this.settings.syncFrequency;
       if (duration === null || !this._nextPeriodicSync.enabled) {
+        throw 'foo!' + this._nextPeriodicSync.enabled;
         this.settings.set('syncAlarm', this._nextPeriodicSync);
         return;
       }
@@ -210,10 +212,13 @@ Calendar.ns('Controllers').Alarm = (function() {
       this._resetSyncAlarm(true);
     }, 
 
+    /**
+     * Scans account list to enable/disable periodic sync
+     */
     _accountsChanged: function(added) {
       if (
-        (added && this._nextPeriodicSync.enabled) ||
-        (!added && !this._nextPeriodicSync.enabled)
+        (added === true && this._nextPeriodicSync.enabled) ||
+        (added === false && !this._nextPeriodicSync.enabled)
       )
         return;
 
@@ -228,7 +233,7 @@ Calendar.ns('Controllers').Alarm = (function() {
         }
       }
 
-      if (this._nextPeriodicSync.enabled != enable) {
+      if (this._nextPeriodicSync.enabled !== enable) {
         this._nextPeriodicSync.enabled = enable;
         this._resetSyncAlarm(false);
       }
