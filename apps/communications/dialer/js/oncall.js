@@ -234,7 +234,6 @@ var OnCallHandler = (function onCallHandler() {
 
       if (!stillHere) {
         removeCall(index);
-        return;
       }
     });
 
@@ -308,12 +307,32 @@ var OnCallHandler = (function onCallHandler() {
   }
 
   function removeCall(index) {
+    var removedCall = handledCalls[index];
     handledCalls.splice(index, 1);
 
     if (handledCalls.length > 0) {
-      // Resuming the first remaining call
-      handledCalls[0].call.resume();
+      // Only hiding the call if we have another one to display
+      removedCall.hide();
       CallScreen.hideIncoming();
+
+      var remainingCall = handledCalls[0];
+      if (remainingCall.call.state == 'incoming') {
+        // The active call ended, showing the incoming call
+        remainingCall.show();
+
+        // This is the difference between an endAndAnswer() and
+        // the active call being disconnected while a call is waiting
+        setTimeout(function nextTick() {
+          if (remainingCall.call.state == 'incoming') {
+            CallScreen.render('incoming');
+          };
+        });
+
+        return;
+      }
+
+      // The incoming call was rejected, resuming...
+      remainingCall.call.resume();
       return;
     }
 

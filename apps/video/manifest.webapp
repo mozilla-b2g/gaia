@@ -37,17 +37,13 @@
     "60": "/style/icons/60/Video.png"
   },
   "activities": {
-    "open" : {
-      "filters": {
-        "type": ["video/webm", "video/mp4", "video/3gpp"]
-      },
-      "returnValue": true,
-      "disposition": "inline"
-    },
     "view" : {
       "filters": {
         "type": ["video/webm", "video/mp4", "video/3gpp"]
-      }
+      },
+      "href": "view.html",
+      "disposition": "inline",
+      "returnValue": true
     }
   }
 }

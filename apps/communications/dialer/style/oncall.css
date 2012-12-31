@@ -184,11 +184,11 @@ body.hidden *[data-l10n-id] {
 #main-container:before {
   content: "";
   position: absolute;
-  top: 9rem;
+  top: 7rem;
   left: 0;
   background-color: rgba(0, 0, 0, 0.45);
   width: 100%;
-  height: calc(100% - 9rem);
+  height: calc(100% - 7rem);
 }
 
 #main-container.transparent:before {
