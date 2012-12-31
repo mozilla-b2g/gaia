@@ -82,7 +82,7 @@ var ApplicationsList = {
     var listFragment = document.createDocumentFragment();
     this._apps.forEach(function appIterator(app, index) {
       var icon = null;
-      var manifest = app.manifest ? app.manifest : app.updateManifest;
+      var manifest = new ManifestHelper(app.manifest ? app.manifest : app.updateManifest);
       if (manifest.icons &&
           Object.keys(manifest.icons).length) {
 
@@ -151,7 +151,7 @@ var ApplicationsList = {
   showAppDetails: function al_showAppDetail(app) {
     this._displayedApp = app;
 
-    var manifest = app.manifest ? app.manifest : app.updateManifest;
+    var manifest = new ManifestHelper(app.manifest ? app.manifest : app.updateManifest);
     var developer = manifest.developer;
     this.detailTitle.textContent = manifest.name;
 
@@ -277,7 +277,7 @@ var ApplicationsList = {
       return;
 
     var _ = navigator.mozL10n.get;
-    var name = this._displayedApp.manifest.name;
+    var name = new ManifestHelper(this._displayedApp.manifest).name;
 
     if (confirm(_('uninstallConfirm', {app: name}))) {
       this._displayedApp.uninstall();
@@ -315,9 +315,10 @@ var ApplicationsList = {
 
   _sortApps: function al_sortApps() {
     this._apps.sort(function alphabeticalSort(app, otherApp) {
-      var manifest = app.manifest ? app.manifest : app.updateManifest;
-      var otherManifest = otherApp.manifest ?
-        otherApp.manifest : otherApp.updateManifest;
+      var manifest = new ManifestHelper(app.manifest ?
+        app.manifest : app.updateManifest);
+      var otherManifest = new ManifestHelper(otherApp.manifest ?
+        otherApp.manifest : otherApp.updateManifest);
       return manifest.name > otherManifest.name;
     });
   }

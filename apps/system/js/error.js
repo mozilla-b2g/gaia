@@ -1,9 +1,9 @@
 
-function closeWindow() {
-  window.close();
-}
-
 function reloadWindow(url) {
+  // This can be a malicious script. See bug 822232.
+  if (/^https?:/.test(url) == false) {
+    return;
+
   document.location.replace(url);
 }
 
@@ -45,7 +45,6 @@ window.addEventListener('localized', function onload(e) {
       break;
   }
 
-  document.getElementById('close').onclick = closeWindow;
   document.getElementById('reload').onclick = function() {
     reloadWindow(params['origin']);
   };

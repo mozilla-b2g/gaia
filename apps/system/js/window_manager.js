@@ -1257,12 +1257,7 @@ var WindowManager = (function() {
       return;
 
     var manifest = app.manifest;
-    var name = manifest.name;
-    if (manifest.locales &&
-        manifest.locales[document.documentElement.lang] &&
-        manifest.locales[document.documentElement.lang].name) {
-      name = manifest.locales[document.documentElement.lang].name;
-    }
+    var name = new ManifestHelper(manifest).name;
     var origin = app.origin;
 
     // Check if it's a virtual app from a entry point.
@@ -1285,13 +1280,7 @@ var WindowManager = (function() {
         if (path.indexOf('/' + ep) == 0 &&
             (currentEp.launch_path == path)) {
           origin = origin + currentEp.launch_path;
-          var lang = document.documentElement.lang;
-          if (currentEp.locales && currentEp.locales[lang] &&
-              currentEp.locales[lang].name) {
-            name = currentEp.locales[lang].name;
-          } else {
-            name = currentEp.name;
-          }
+          name = new ManifestHelper(currentEp).name;
         }
       }
     }
@@ -1496,21 +1485,11 @@ var WindowManager = (function() {
     if (!manifest)
       return '';
 
-    var lang = document.documentElement.lang;
     if (manifest.entry_points && manifest.type == 'certified') {
       var entryPoint = manifest.entry_points[origin.split('/')[3]];
-      if (entryPoint.locales && entryPoint.locales[lang] &&
-          entryPoint.locales[lang].name) {
-        return entryPoint.locales[lang].name;
-      } else {
-        return entryPoint.name;
-      }
-    } else if (manifest.locales && manifest.locales[lang] &&
-               manifest.locales[lang].name) {
-      return manifest.locales[lang].name;
-    } else {
-      return manifest.name;
+      return new ManifestHelper(entryPoint).name;
     }
+    return new ManifestHelper(manifest).name;
   }
 
   // Deal with crashed apps

@@ -305,7 +305,7 @@
                      data-l10n-id="compose-to">tO:</span>
               <div class="cmp-to-container cmp-addr-container">
                 <div class="cmp-bubble-container">
-                    <input class="cmp-to-text cmp-addr-text" type="text" />
+                    <input class="cmp-to-text cmp-addr-text" type="email" />
                 </div>
                 <div class="cmp-to-add cmp-contact-add"></div>
               </div>
@@ -318,7 +318,7 @@
                      data-l10n-id="compose-cc">cC:</span>
               <div class="cmp-cc-container cmp-addr-container">
                 <div class="cmp-bubble-container">
-                  <input class="cmp-cc-text cmp-addr-text" type="text" />
+                  <input class="cmp-cc-text cmp-addr-text" type="email" />
                 </div>
                 <div class="cmp-cc-add cmp-contact-add"></div>
               </div>
@@ -328,7 +328,7 @@
                      data-l10n-id="compose-bcc">BcC:</span>
               <div class="cmp-bcc-container cmp-addr-container">
                 <div class="cmp-bubble-container">
-                  <input class="cmp-bcc-text cmp-addr-text" type="text" />
+                  <input class="cmp-bcc-text cmp-addr-text" type="email" />
                 </div>
                 <div class="cmp-bcc-add cmp-contact-add"></div>
               </div>
@@ -398,9 +398,11 @@
                data-l10n-id="setup-info-header">YouR LogiN InformatioN</h3>
             <form>
               <p>
+                <!-- x-inputmode is a temporary v1 B2G stop-gap -->
                 <input class="sup-info-name" type="text"
                        data-l10n-id="setup-info-name"
-                       inputmode="latin-name"
+                       x-inputmode="verbatim"
+                       inputmode="verbatim"
                        required />
                 <button type="reset"></button>
               </p>
@@ -484,9 +486,11 @@
             <div class="sup-manual-common">
               <form>
                 <p>
+                  <!-- x-inputmode is a temporary v1 B2G stop-gap -->
                   <input class="sup-info-name" type="text"
                          data-l10n-id="setup-info-name"
-                         inputmode="latin-name"
+                         x-inputmode="verbatim"
+                         inputmode="verbatim"
                          required />
                   <button type="reset"></button>
                 </p>

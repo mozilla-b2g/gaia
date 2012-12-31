@@ -16,7 +16,9 @@ function AppUpdatable(app) {
   this._mgmt = navigator.mozApps.mgmt;
   this.app = app;
 
-  this.name = app.manifest.name;
+  var manifest = app.manifest ? app.manifest : app.updateManifest;
+  this.name = new ManifestHelper(manifest).name;
+
   this.size = app.updateManifest ? app.updateManifest.size : null;
   app.ondownloadavailable = this.availableCallBack.bind(this);
 }

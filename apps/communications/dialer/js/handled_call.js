@@ -183,3 +183,17 @@ HandledCall.prototype.disconnected = function hc_disconnected() {
   CallScreen.turnSpeakerOff();
   this.remove();
 };
+
+HandledCall.prototype.show = function hc_show() {
+  if (!this.node)
+    return;
+
+  this.node.hidden = false;
+};
+
+HandledCall.prototype.hide = function hc_hide() {
+  if (!this.node)
+    return;
+
+  this.node.hidden = true;
+};

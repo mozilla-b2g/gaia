@@ -20,6 +20,8 @@ Icon.prototype = {
   MIN_ICON_SIZE: 52,
   MAX_ICON_SIZE: 60,
 
+  DEFAULT_BOOKMARK_ICON_URL: window.location.protocol + '//' + window.location.host +
+                    '/style/images/default_favicon.png',
   DEFAULT_ICON_URL: window.location.protocol + '//' + window.location.host +
                     '/style/images/default.png',
   DOWNLOAD_ICON_URL: window.location.protocol + '//' + window.location.host +
@@ -186,22 +188,49 @@ Icon.prototype = {
     img.onload = function icon_loadSuccess() {
       if (blob)
         window.URL.revokeObjectURL(img.src);
-
       self.renderImage(img);
     };
 
     img.onerror = function icon_loadError() {
       if (blob)
         window.URL.revokeObjectURL(img.src);
-
-      img.src = self.DEFAULT_ICON_URL;
+      img.src = getDefaultIcon(self.app);
       img.onload = function icon_errorIconLoadSucess() {
         self.renderImage(img);
       };
     };
   },
 
+  renderImageForBookMark: function icon_renderImageForBookmark(img){
+    var self = this;
+    var canvas = document.createElement('canvas');
+    canvas.width = 64;
+    canvas.height = 64;
+    var ctx = canvas.getContext('2d');
+
+    // Draw the background
+    var background = new Image();
+    background.src = 'style/images/default_background.png';
+    background.onload = function icon_loadBackgroundSuccess(){
+      ctx.shadowColor = 'rgba(0,0,0,0.8)';
+      ctx.shadowBlur = 2;
+      ctx.shadowOffsetY = 2;
+      ctx.drawImage(background,2,2);
+      // Disable smoothing on icon resize
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetY = 0;
+      ctx.mozImageSmoothingEnabled = false;
+      ctx.drawImage(img,16,16,32,32);
+      canvas.toBlob(self.renderBlob.bind(self));
+    };
+  },
+
   renderImage: function icon_renderImage(img) {
+    if( this.app && this.app.isBookmark ) {
+      this.renderImageForBookMark(img);
+      return;
+    }
+
     var canvas = document.createElement('canvas');
     canvas.width = 64;
     canvas.height = 64;
@@ -226,12 +255,13 @@ Icon.prototype = {
                   width, height);
     ctx.fill();
 
-    var self = this;
-    canvas.toBlob(function canvasAsBlob(blob) {
-      self.descriptor.renderedIcon = blob;
-      GridManager.markDirtyState();
-      self.displayRenderedIcon();
-    });
+    canvas.toBlob(this.renderBlob.bind(this));
+  },
+
+  renderBlob: function icon_renderBlob(blob) {
+    this.descriptor.renderedIcon = blob;
+    GridManager.markDirtyState();
+    this.displayRenderedIcon();
   },
 
   displayRenderedIcon: function icon_displayRenderedIcon(img, skipRevoke) {
@@ -331,14 +361,7 @@ Icon.prototype = {
     if (entryPoint)
       iconsAndNameHolder = manifest.entry_points[entryPoint];
 
-    var localizedName = iconsAndNameHolder.name;
-    var locales = iconsAndNameHolder.locales;
-    if (locales) {
-      var locale = locales[document.documentElement.lang];
-      if (locale && locale.name) {
-        localizedName = locale.name;
-      }
-    }
+    var localizedName = new ManifestHelper(iconsAndNameHolder).name;
 
     this.label.textContent = localizedName;
     if (descriptor.localizedName != localizedName) {
@@ -705,6 +728,14 @@ Page.prototype = {
     });
   }
 };
+
+function getDefaultIcon(app){
+  if (app && app.isBookmark) {
+    return Icon.prototype.DEFAULT_BOOKMARK_ICON_URL;
+  } else {
+    return Icon.prototype.DEFAULT_ICON_URL;
+  }
+}
 
 function extend(subClass, superClass) {
   var F = function() {};
