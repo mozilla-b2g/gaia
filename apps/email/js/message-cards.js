@@ -21,7 +21,7 @@ const SCROLL_MAX_RETENTION_SCREENS = 7;
  * @param message the message object
  */
 function displaySubject(subjectNode, message) {
-  var subject = message.subject.trim();
+  var subject = message.subject && message.subject.trim();
   if (subject) {
     subjectNode.textContent = subject;
     subjectNode.classList.remove('msg-no-subject');
