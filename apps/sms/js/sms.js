@@ -8,8 +8,7 @@ var MessageManager = {
     this.initialized = true;
     // Init PhoneNumberManager for solving country code issue.
     PhoneNumberManager.init();
-
-    MessageManager.getMessages(ThreadListUI.renderThreads);
+    MessageManager.getThreads(ThreadListUI.renderThreads);
     // Init UI Managers
     ThreadUI.init();
     ThreadListUI.init();
@@ -28,7 +27,7 @@ var MessageManager = {
   onMessageSending: function mm_onMessageSending(e) {
     var message = e.message;
     ThreadUI.appendMessage(message);
-    MessageManager.getMessages(ThreadListUI.renderThreads);
+    MessageManager.getThreads(ThreadListUI.renderThreads);
   },
 
   onMessageFailed: function mm_onMessageFailed(e) {
@@ -55,12 +54,12 @@ var MessageManager = {
     if (num && num === sender) {
       //Append message and mark as unread
       this.markMessagesRead([message.id], true, function() {
-        MessageManager.getMessages(ThreadListUI.renderThreads);
+        MessageManager.getThreads(ThreadListUI.renderThreads);
       });
       ThreadUI.appendMessage(message);
       Utils.updateTimeHeaders();
     } else {
-      this.getMessages(ThreadListUI.renderThreads);
+      this.getThreads(ThreadListUI.renderThreads);
     }
   },
 
@@ -103,7 +102,7 @@ var MessageManager = {
         if (mainWrapper.classList.contains('edit')) {
           if (ThreadListUI.editDone) {
             ThreadListUI.editDone = false;
-            this.getMessages(ThreadListUI.renderThreads);
+            this.getThreads(ThreadListUI.renderThreads);
           }
           mainWrapper.classList.remove('edit');
         } else if (threadMessages.classList.contains('new')) {
@@ -168,7 +167,7 @@ var MessageManager = {
       if (window.location.hash == '#edit') {
         return;
       }
-      this.getMessages(ThreadListUI.renderThreads);
+      this.getThreads(ThreadListUI.renderThreads);
       if (!MessageManager.lockActivity) {
         var num = this.currentNum;
         if (num) {
@@ -202,6 +201,22 @@ var MessageManager = {
     var num = /\bnum=(.+)(&|$)/.exec(window.location.hash);
     return num ? num[1] : null;
   },
+
+  getThreads: function mm_getThreads(callback, extraArg) {
+    var request = navigator.mozSms.getThreadList();
+    request.onsuccess = function onsuccess(evt) {
+      var threads = evt.target.result;
+      if (callback) {
+        callback(threads, extraArg);
+      }
+    };
+
+    request.onerror = function onerror() {
+      var msg = 'Reading the database. Error: ' + request.errorCode;
+      console.log(msg);
+    };
+  },
+
   // Retrieve messages from DB and execute callback
   getMessages: function mm_getMessages(callback, filter, invert, callbackArgs) {
     var request = navigator.mozSms.getMessages(filter, !invert);
@@ -458,8 +473,8 @@ var ThreadListUI = {
 
         MessageManager.deleteMessages(delNumList,
                                       function() {
-          MessageManager.getMessages(function recoverMessages(messages) {
-            ThreadListUI.renderThreads(messages);
+          MessageManager.getThreads(function recoverThreads(threads) {
+            ThreadListUI.renderThreads(threads);
             WaitingScreen.hide();
             ThreadListUI.editDone = true;
             window.location.hash = '#thread-list';
@@ -474,9 +489,10 @@ var ThreadListUI = {
     window.location.hash = '#thread-list';
   },
 
-  renderThreads: function thlui_renderThreads(messages, callback) {
+  renderThreads: function thlui_renderThreads(threads, callback) {
     ThreadListUI.view.innerHTML = '';
-    if (messages.length > 0) {
+
+    if (threads.length > 0) {
       document.getElementById('threads-fixed-container').
                                                     classList.remove('hide');
       FixedHeader.init('#thread-list-container',
@@ -487,43 +503,45 @@ var ThreadListUI = {
       var threadIds = [],
           dayHeaderIndex = 0,
           unreadThreads = [];
-      for (var i = 0; i < messages.length; i++) {
 
-        var message = messages[i];
-        var time = message.timestamp.getTime();
-        var num = message.delivery == 'received' ?
-        message.sender : message.receiver;
+      for (var i = threads.length - 1; i >= 0; i--) {
+        var thread = threads[i];
+        var time = thread.timestamp.getTime();
+        var num = thread.senderOrReceiver;
 
         var numNormalized =
           PhoneNumberManager.getNormalizedInternationalNumber(num);
-        if (!message.read) {
-          if (unreadThreads.indexOf(numNormalized) == -1) {
-            unreadThreads.push(numNormalized);
-          }
+
+        if (thread.unreadCount) {
+          unreadThreads.push(numNormalized);
         }
+
         if (threadIds.indexOf(numNormalized) == -1) {
           var thread = {
-            'body': message.body,
+            'body': thread.body,
             'name': numNormalized,
             'num': numNormalized,
             'timestamp': time,
-            'unreadCount': !message.read ? 1 : 0,
+            'unreadCount': thread.unreadCount,
             'id': numNormalized
           };
+
           if (threadIds.length == 0) {
             dayHeaderIndex = Utils.getDayDate(time);
             ThreadListUI.createNewHeader(time);
-          }else {
+          } else {
             var tmpDayIndex = Utils.getDayDate(time);
             if (tmpDayIndex < dayHeaderIndex) {
               ThreadListUI.createNewHeader(time);
               dayHeaderIndex = tmpDayIndex;
             }
           }
+
           threadIds.push(numNormalized);
           ThreadListUI.appendThread(thread);
         }
       }
+
       // Update threads with 'unread' if some was missing
       for (var i = 0; i < unreadThreads.length; i++) {
          document.getElementById('thread_' + unreadThreads[i]).
@@ -544,7 +562,8 @@ var ThreadListUI = {
       ThreadListUI.view.innerHTML = noResultHTML;
       ThreadListUI.iconEdit.classList.add('disabled');
     }
-    // Callback when every message is appended
+
+    // Callback when every thread is appended
     if (callback) {
       callback();
     }
@@ -954,7 +973,7 @@ var ThreadUI = {
     if (ThreadUI.readMessages.length > 0) {
       MessageManager.markMessagesRead(ThreadUI.readMessages, 'true',
         function() {
-        MessageManager.getMessages(ThreadListUI.renderThreads);
+        MessageManager.getThreads(ThreadListUI.renderThreads);
       });
     }
     // Boot update of headers
@@ -1091,8 +1110,8 @@ var ThreadUI = {
 
       // Method for deleting all inputs selected
       var deleteMessages = function() {
-        MessageManager.getMessages(ThreadListUI.renderThreads,
-                                           null, null, function() {
+        MessageManager.getThreads(ThreadListUI.renderThreads,
+        function afterRender() {
           var completeDeletionDone = false;
           // Then sending/received messages
           for (var i = 0; i < inputs.length; i++) {
