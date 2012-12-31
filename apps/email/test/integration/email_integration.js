@@ -22,7 +22,10 @@ EmailIntegration.prototype = {
     setupInfoEmail: 'div.sup-form input.sup-info-email',
     setupInfoPassword: 'div.sup-form input.sup-info-password',
     nextButton: 'button.sup-info-next-btn',
-    continueButton: 'button.sup-show-mail-btn'
+    continueButton: 'button.sup-show-mail-btn',
+
+    folderLabel: 'h1.msg-list-header-folder-label',
+    messagesSyncing: 'p.msg-messages-syncing'
   },
 
   /**
@@ -118,6 +121,35 @@ EmailIntegration.prototype = {
   },
 
   /**
+   * Returns the class name for an element.
+   */
+  getClassName: function getClassName(element, callback) {
+    this.task(function(app, next, done) {
+      yield element.scriptWith(
+        'return (function(elem) { return elem.className; }.apply(this, arguments));',
+        function(err, result) {
+          done(null, result);
+        });
+    }.bind(this), callback);
+  },
+
+  /**
+   * Waits until the specified element has the required class.
+   */
+  waitForClass: function waitForClass(element, classname, callback) {
+    this.waitFor(
+      function testFun(testCallback) {
+        this.task(function(app, next, done) {
+          yield app.getClassName(
+            element,
+            function(err, result) {
+              done(null, result.split(' ').indexOf(classname) >= 0);
+            });
+        }, testCallback);
+      }.bind(this), 20000, callback);
+  },
+
+  /**
    * Retrieve account credentials from specified filename.
    *
    * If the filename is not specified, it defaults to
@@ -194,6 +226,19 @@ EmailIntegration.prototype = {
 
       var continueButton = yield app.element('continueButton');
       yield continueButton.click();
+
+      // Wait for the message list to show up for Inbox.
+      yield app.waitForCard('message-list');
+      yield app.waitForTransitionEnd();
+
+      // Verify this is the Inbox.
+      // message-list -> msg-list-header-folder-label
+      var folderLabel = yield app.element('folderLabel');
+      assert.equal('Inbox', yield folderLabel.text());
+
+      // Wait until it's done the first sync and showing messages.
+      var messagesSyncing = yield app.element('messagesSyncing');
+      yield app.waitForClass(messagesSyncing, 'collapsed');
 
       done();
     }.bind(this), callback);
