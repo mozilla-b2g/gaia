@@ -943,13 +943,19 @@ var MediaDB = (function() {
       fullScan();
     }
 
+    //
     // Return true if media db should ignore this file.
-    // If the file name begins with a . we'll ignore it.
-    // (. files seem to be created during USB Mass Storage sessions on a Mac)
+    //
+    // If any components of the path begin with a . we'll ignore the file.
+    // The '.' prefix indicates hidden files and directories on Unix and
+    // when files are "moved to trash" during a USB Mass Storage session they
+    // are sometimes not actually deleted, but moved to a hidden directory.
+    //
     // If an array of media types was specified when the MediaDB was created
     // and the type of this file is not a member of that list, then ignore it.
+    //
     function ignore(file) {
-      if (file.name[file.name.lastIndexOf('/') + 1] === '.')
+      if (file.name[0] === '.' || file.name.indexOf('/.') !== -1)
         return true;
       if (media.mimeTypes && media.mimeTypes.indexOf(file.type) === -1)
         return true;
