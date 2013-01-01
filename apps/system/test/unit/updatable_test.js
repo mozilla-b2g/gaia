@@ -24,6 +24,9 @@ if (!this.WindowManager) {
 if (!this.UtilityTray) {
   this.UtilityTray = null;
 }
+if (!this.ManifestHelper) {
+  this.ManifestHelper = null;
+}
 
 suite('system/Updatable', function() {
   var subject;
@@ -35,6 +38,7 @@ suite('system/Updatable', function() {
   var realDispatchEvent;
   var realCustomDialog;
   var realL10n;
+  var realManifestHelper;
 
   var lastDispatchedEvent = null;
   var fakeDispatchEvent;
@@ -58,6 +62,11 @@ suite('system/Updatable', function() {
         return key;
       }
     };
+
+    realManifestHelper = window.ManifestHelper;
+    window.ManifestHelper = function mockMH(manifest) {
+      return manifest;
+    };
   });
 
   suiteTeardown(function() {
@@ -67,6 +76,7 @@ suite('system/Updatable', function() {
     window.UtilityTray = realUtilityTray;
 
     navigator.mozL10n = realL10n;
+    window.ManifestHelper = realManifestHelper;
   });
 
   setup(function() {
@@ -97,6 +107,13 @@ suite('system/Updatable', function() {
   suite('init', function() {
     test('should keep a reference to the app', function() {
       assert.equal(mockApp, subject.app);
+    });
+
+    test('should handle fresh app with just an updateManifest', function() {
+      var freshApp = new MockApp();
+      freshApp.manifest = undefined;
+      subject = new AppUpdatable(freshApp);
+      assert.equal(freshApp, subject.app);
     });
   });
 

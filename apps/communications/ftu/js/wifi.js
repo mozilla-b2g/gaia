@@ -9,6 +9,21 @@ var WifiManager = {
       this.gCurrentNetwork = this.api.connection.network;
     }
   },
+  isConnectedTo: function wn_isConnectedTo(network) {
+    /**
+     * XXX the API should expose a 'connected' property on 'network',
+     * and 'gWifiManager.connection.network' should be comparable to 'network'.
+     * Until this is properly implemented, we just compare SSIDs and capabilities
+     * to tell wether the network is already connected or not.
+     */
+    var currentNetwork = this.api.connection.network;
+    if (!currentNetwork || this.api.connection.status != 'connected')
+      return false;
+    var key = network.ssid + '+' + network.capabilities.join('+');
+    var curkey = currentNetwork.ssid + '+' +
+        currentNetwork.capabilities.join('+');
+    return (key == curkey);
+  },
   scan: function wn_scan(callback) {
     if ('mozWifiManager' in window.navigator) {
       var req = WifiManager.api.getNetworks();
@@ -84,6 +99,7 @@ var WifiManager = {
           }
       } else {
         // Connect directly
+        this.gCurrentNetwork = network;
         this.api.associate(network);
         return;
       }
@@ -113,6 +129,9 @@ var WifiManager = {
       UIManager.updateNetworkStatus(self.ssid, event.status);
       if (event.status == 'connected') {
         self.isConnected = true;
+        if (self.networks && self.networks.length) {
+          UIManager.renderNetworks(self.networks);
+        }
       } else {
         self.isConnected = false;
       }

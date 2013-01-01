@@ -1,5 +1,5 @@
 /* from building blocks, core.css - [role=dialog]*/
-.banner {
+#evmeContainer .banner {
   position: absolute;
   background: orange;
   width: 100%;
@@ -20,26 +20,26 @@
   z-index: -1;
   opacity: 0;
 }
-.banner.visible {
+#evmeContainer .banner.visible {
   z-index: 10001;
   opacity: 1;
   -moz-transition: all 600ms ease;
 }
-.banner:before {
+#evmeContainer .banner:before {
   content: "";
   display: inline-block;
   height: 100%;
   vertical-align: middle;
   width: 1px;
 }
-.banner:after {
+#evmeContainer .banner:after {
   content: "";
   display: inline-block;
   height: 100%;
   vertical-align: middle;
   width: 1px;
 }
-.banner > p {
+#evmeContainer .banner > p {
   display: inline-block;
   font-size: 1.56rem;
   line-height: 2.34rem;
@@ -49,7 +49,7 @@
   color: #FFFFFF;
   font-family: "MozTT",Sans-serif;
 }
-.banner > p > strong {
+#evmeContainer .banner > p > strong {
   color: #0995B0;
   font-weight: normal;
   text-transform: uppercase;

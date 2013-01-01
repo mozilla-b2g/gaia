@@ -78,15 +78,27 @@ function createAndSetCoverURL(img, fileinfo, isCached) {
     img.src = url;
   }
 
+  function createCoverURL(file) {
+    var cover = file.slice(fileinfo.metadata.picture.start,
+                           fileinfo.metadata.picture.end,
+                           fileinfo.metadata.picture.type);
+    url = URL.createObjectURL(cover);
+  }
+
   if (isCached) {
     url = URL.createObjectURL(fileinfo.metadata.thumbnail);
     setImageURL();
   } else {
+    // if fileinfo has a blob, we can just use it to get the cover image
+    // this should happen when the player receives a blob from web activity
+    if (fileinfo.blob) {
+      createCoverURL(fileinfo.blob);
+      setImageURL();
+      return;
+    }
+
     musicdb.getFile(fileinfo.name, function(file) {
-      var cover = file.slice(fileinfo.metadata.picture.start,
-                             fileinfo.metadata.picture.end,
-                             fileinfo.metadata.picture.type);
-      url = URL.createObjectURL(cover);
+      createCoverURL(file);
       setImageURL();
     });
   }
