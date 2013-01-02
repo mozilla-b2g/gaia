@@ -4,6 +4,16 @@
 const DragDropManager = (function() {
 
   /*
+   * It defines the time (in ms) while checking limits is disabled
+   */
+  var CHECK_LIMITS_DELAY = 700;
+
+  /*
+   * It defines the time (in ms) between consecutive rearranges
+   */
+  var REARRANGE_DELAY = 50;
+
+  /*
    * Drop feature is disabled (in the borders of the icongrid)
    */
   var isDisabledDrop = false;
@@ -43,7 +53,7 @@ const DragDropManager = (function() {
           isDisabledCheckingLimits = false;
           checkLimits();
         }
-      , 1000);
+      , CHECK_LIMITS_DELAY);
     }
   };
 
@@ -83,11 +93,17 @@ const DragDropManager = (function() {
   }
 
   function overIconGrid() {
+    if (transitioning) {
+      isDisabledDrop = true;
+      return;
+    }
+
+    isDisabledDrop = false;
     var currentX = currentEvent.x;
 
     if (overlapingDock) {
       draggableIcon.removeClassToDragElement('overDock');
-      overlapingDock = isDisabledDrop = false;
+      overlapingDock = false;
       var curPageObj = pageHelper.getCurrent();
       if (curPageObj.getNumIcons() < pageHelper.maxIconsPerPage) {
         var needsRender = false;
@@ -96,10 +112,10 @@ const DragDropManager = (function() {
         curPageObj.insertBeforeLastIcon(draggableIcon);
       }
     } else if (dirCtrl.limitNext(currentX)) {
-      isDisabledDrop = true;
       if (isDisabledCheckingLimits) {
         return;
       }
+      isDisabledDrop = true;
 
       var curPageObj = pageHelper.getCurrent();
       if (pageHelper.getCurrentPageNumber() <
@@ -116,10 +132,10 @@ const DragDropManager = (function() {
         GridManager.goToNextPage(onNavigationEnd);
       }
     } else if (dirCtrl.limitPrev(currentX)) {
-      isDisabledDrop = true;
       if (pageHelper.getCurrentPageNumber() === 2 || isDisabledCheckingLimits) {
         return;
       }
+      isDisabledDrop = true;
 
       var curPageObj = pageHelper.getCurrent();
       var prevPageObj = pageHelper.getPrevious();
@@ -132,10 +148,6 @@ const DragDropManager = (function() {
       setDisabledCheckingLimits(true);
       transitioning = true;
       GridManager.goToPreviousPage(onNavigationEnd);
-    } else if (transitioning) {
-      isDisabledDrop = true;
-    } else {
-      isDisabledDrop = false;
     }
   }
 
@@ -245,7 +257,8 @@ const DragDropManager = (function() {
           page.drop(draggableIcon, lastIcon);
         }
       } else {
-        overlapingTimeout = setTimeout(drop, 500, overlapElem, page);
+        overlapingTimeout = setTimeout(drop, REARRANGE_DELAY, overlapElem,
+                                       page);
       }
     }
 

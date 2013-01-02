@@ -11,7 +11,7 @@
 	margin-top: .4rem;
 	margin-bottom: .4rem;
   -moz-transform: scale(1.25);
-  -moz-transition: -moz-transform .4s;
+  -moz-transition: -moz-transform .3s;
 }
 
 /* label wrapper */
@@ -22,7 +22,7 @@
 
 /* text label */
 .draggable > div > span > span {
-  font-size: -moz-calc(5 * 0.226rem); /* 5pt */
+  font-size: -moz-calc(5.75 * 0.226rem);
   text-shadow: 1px 1px 3px rgba(0,0,0,0.6);
   /* shift left edge of text half distance to left */
   margin-left: -106%;
@@ -73,7 +73,7 @@ body[data-dragging] ol > li {
 }
 
 body[data-mode = 'edit'] ol > li {
-  -moz-animation-duration: .4s;
+  -moz-animation-duration: .3s;
 }
 
 @-moz-keyframes jumpNextCell {
