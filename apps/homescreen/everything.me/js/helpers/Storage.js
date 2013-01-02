@@ -1,9 +1,11 @@
 Evme.Storage = new function Evme_Storage() {
     var self = this, CURRENT_VERSION = "1.4",
-        _valueKey = "_v",
-        _expirationKey = "_e",
-        _versionKey = "_ver",
-        _cache = {};
+        localCache = {},
+        isEnabled,
+        
+        KEY_VALUE = '_v',
+        KEY_EXPIRE = '_e',
+        KEY_VERSION = '_ver';
         
     this.set = function set(key, val, ttl) {
         self.remove(key, true);
@@ -11,13 +13,13 @@ Evme.Storage = new function Evme_Storage() {
         if (val === undefined) { return false; }
         
         var objToSave = {};
-        objToSave[_valueKey] = val;
+        objToSave[KEY_VALUE] = val;
         
         if (ttl) {
-            objToSave[_expirationKey] = new Date().getTime() + ttl*1000;
+            objToSave[KEY_EXPIRE] = Date.now() + ttl*1000;
         }
         
-        _cache[key] = objToSave;
+        localCache[key] = objToSave;
         
         try {
             localStorage.setItem(key, JSON.stringify(objToSave));
@@ -35,27 +37,25 @@ Evme.Storage = new function Evme_Storage() {
     
     this.get = function get(key) {
         if (key) {
-            var val = _cache[key];
+            var val = localCache[key];
             
             if (!val) { return null; }
             
-            if (val[_expirationKey]) {
-                if (new Date().getTime() >= val[_expirationKey]) {
-                    self.remove(key);
-                    val = null;
-                }
+            if (val[KEY_EXPIRE] && Date.now() >= val[KEY_EXPIRE]) {
+                self.remove(key);
+                val = null;
             }
             
-            return val && val[_valueKey];
+            return val && val[KEY_VALUE];
         } else {
-            return _cache;
+            return localCache;
         }
     };
     
     this.remove = function remove(key, bDontUpdate) {
-        if (!_cache[key]) { return false; }
+        if (!localCache[key]) { return false; }
         
-        delete _cache[key];
+        delete localCache[key];
         
         if (!bDontUpdate) {
             try {
@@ -68,37 +68,36 @@ Evme.Storage = new function Evme_Storage() {
         return !bDontUpdate;
     };
     
-    this.enabled = function enabled() {
-        var enabled = false;
-        
-        try {
-            if (!("localStorage" in window) || !window["localStorage"]) {
-                return false;
-            }
-            
-            var key = "__testkey__",
-                val = "__testval__";
-                
-            localStorage.setItem(key, val);
-            
-            enabled = localStorage.getItem(key) == val;
-        } catch(ex) {
-            enabled = false;
+    this.enabled = function enabled(bForceCheck) {
+        if (isEnabled !== undefined && !bForceCheck) {
+            return isEnabled;
         }
         
-        return enabled;
+        var key = "__testkey__",
+            val = "__testval__";
+            
+        try {
+            if (window.localStorage) {
+                localStorage.setItem(key, val);
+                isEnabled = localStorage.getItem(key) === val;
+            }
+        } catch(ex) {
+            isEnabled = false;
+        }
+        
+        return isEnabled;
     };
     
     function populate() {
         if (self.enabled()) {
-            var version = null;
+            var version = null,
+                now = Date.now();
+                
             try {
-                version = localStorage.getItem(_versionKey);
+                version = localStorage.getItem(KEY_VERSION);
             } catch(ex) {}
             
-            if (version == CURRENT_VERSION) {
-                var now = new Date().getTime();
-                
+            if (version === CURRENT_VERSION) {
                 for (var k in localStorage) {
                     var value = localStorage.getItem(k);
                     
@@ -107,18 +106,19 @@ Evme.Storage = new function Evme_Storage() {
                     }
                     
                     try {
-                        _cache[k] = JSON.parse(value);
-                        if (_cache[k][_expirationKey] && now >= _cache[k][_expirationKey]){
+                        var obj = JSON.parse(value);
+                        localCache[k] = obj;
+                        if (obj[KEY_EXPIRE] && now >= obj[KEY_EXPIRE]){
                             self.remove(k);
                         }
                     } catch(ex) {
-                        _cache[k] = value;
+                        localCache[k] = value;
                     }
                 }
             } else {
                 try {
                     localStorage.clear();
-                    localStorage.setItem(_versionKey, CURRENT_VERSION);
+                    localStorage.setItem(KEY_VERSION, CURRENT_VERSION);
                 } catch(ex) {}
             }
         }
