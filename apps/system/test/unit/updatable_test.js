@@ -9,53 +9,37 @@ requireApp('system/test/unit/mock_apps_mgmt.js');
 requireApp('system/test/unit/mock_chrome_event.js');
 requireApp('system/test/unit/mock_custom_dialog.js');
 requireApp('system/test/unit/mock_utility_tray.js');
+requireApp('system/test/unit/mock_manifest_helper.js');
+requireApp('system/test/unit/mocks_helper.js');
 
-// We're going to swap those with mock objects
-// so we need to make sure they are defined.
-if (!this.CustomDialog) {
-  this.CustomDialog = null;
-}
-if (!this.UpdateManager) {
-  this.UpdateManager = null;
-}
-if (!this.WindowManager) {
-  this.WindowManager = null;
-}
-if (!this.UtilityTray) {
-  this.UtilityTray = null;
-}
-if (!this.ManifestHelper) {
-  this.ManifestHelper = null;
-}
+
+var mocksForUpdatable = [
+  'CustomDialog',
+  'UpdateManager',
+  'WindowManager',
+  'UtilityTray',
+  'ManifestHelper'
+];
+
+mocksForUpdatable.forEach(function(mockName) {
+  if (!window[mockName]) {
+    window[mockName] = null;
+  }
+});
 
 suite('system/Updatable', function() {
   var subject;
   var mockApp;
 
-  var realUpdateManager;
-  var realWindowManager;
-  var realUtilityTray;
   var realDispatchEvent;
-  var realCustomDialog;
   var realL10n;
-  var realManifestHelper;
+
+  var mocksHelper;
 
   var lastDispatchedEvent = null;
   var fakeDispatchEvent;
 
   suiteSetup(function() {
-    realUpdateManager = window.UpdateManager;
-    window.UpdateManager = MockUpdateManager;
-
-    realWindowManager = window.WindowManager;
-    window.WindowManager = MockWindowManager;
-
-    realCustomDialog = window.CustomDialog;
-    window.CustomDialog = MockCustomDialog;
-
-    realUtilityTray = window.UtilityTray;
-    window.UtilityTray = MockUtilityTray;
-
     realL10n = navigator.mozL10n;
     navigator.mozL10n = {
       get: function get(key) {
@@ -63,20 +47,13 @@ suite('system/Updatable', function() {
       }
     };
 
-    realManifestHelper = window.ManifestHelper;
-    window.ManifestHelper = function mockMH(manifest) {
-      return manifest;
-    };
+    mocksHelper = new MocksHelper(mocksForUpdatable);
+    mocksHelper.suiteSetup();
   });
 
   suiteTeardown(function() {
-    window.UpdateManager = realUpdateManager;
-    window.WindowManager = realWindowManager;
-    window.CustomDialog = realCustomDialog;
-    window.UtilityTray = realUtilityTray;
-
     navigator.mozL10n = realL10n;
-    window.ManifestHelper = realManifestHelper;
+    mocksHelper.suiteTeardown();
   });
 
   setup(function() {
@@ -91,14 +68,13 @@ suite('system/Updatable', function() {
       };
     };
     subject._dispatchEvent = fakeDispatchEvent;
+
+    mocksHelper.setup();
   });
 
   teardown(function() {
-    MockUpdateManager.mTeardown();
     MockAppsMgmt.mTeardown();
-    MockCustomDialog.mTeardown();
-    MockWindowManager.mTeardown();
-    MockUtilityTray.mTeardown();
+    mocksHelper.teardown();
 
     subject._dispatchEvent = realDispatchEvent;
     lastDispatchedEvent = null;
