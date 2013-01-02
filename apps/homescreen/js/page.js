@@ -226,7 +226,7 @@ Icon.prototype = {
   },
 
   renderImage: function icon_renderImage(img) {
-    if( this.app && this.app.isBookmark ) {
+    if( this.app && this.app.iconable ) {
       this.renderImageForBookMark(img);
       return;
     }
@@ -730,7 +730,7 @@ Page.prototype = {
 };
 
 function getDefaultIcon(app){
-  if (app && app.isBookmark) {
+  if (app && app.iconable) {
     return Icon.prototype.DEFAULT_BOOKMARK_ICON_URL;
   } else {
     return Icon.prototype.DEFAULT_ICON_URL;
