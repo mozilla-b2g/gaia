@@ -401,6 +401,7 @@ MessageListCard.prototype = {
     if (newStatus === 'synchronizing') {
       this.syncingNode.classList.remove('collapsed');
       this.syncMoreNode.classList.add('collapsed');
+      this.hideEmptyLayout();
 
       this.progressNode.value = this.messagesSlice ?
                                 this.messagesSlice.syncProgress : 0;

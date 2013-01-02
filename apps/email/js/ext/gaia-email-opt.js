@@ -25986,7 +25986,13 @@ FolderStorage.prototype = {
     return syncTS;
   },
 
+  /**
+   * Are we synchronized as far back in time as we are able to synchronize?
+   */
   syncedToDawnOfTime: function() {
+    if (!this.folderSyncer.canGrowSync)
+      return true;
+
     var oldestSyncTS = this.getOldestFullSyncDate();
     return ON_OR_BEFORE(oldestSyncTS, $sync.OLDEST_SYNC_DATE);
   },
@@ -28226,6 +28232,13 @@ function ImapFolderConn(account, storage, _parentLog) {
   this.box = null;
 }
 ImapFolderConn.prototype = {
+  /**
+   * Can we grow this sync range?  IMAP always lets us do this.
+   */
+  get canGrowSync() {
+    return true;
+  },
+
   /**
    * Acquire a connection and invoke the callback once we have it and we have
    * entered the folder.  This method should only be called when running
@@ -33796,6 +33809,13 @@ ActiveSyncFolderSyncer.prototype = {
     return this.folderConn.serverId !== null;
   },
 
+  /**
+   * Can we grow this sync range?  Not in ActiveSync land!
+   */
+  get canGrowSync() {
+    return false;
+  },
+
   syncDateRange: function(startTS, endTS, syncCallback, doneCallback,
                           progressCallback) {
     syncCallback('sync', false, true);
@@ -34224,11 +34244,9 @@ ActiveSyncJobDriver.prototype = {
     // have active slices displaying the contents of the folder.  (No server id
     // means the sync will not happen.)
     var inboxFolder = account.getFirstFolderWithType('inbox'),
-        inboxStorage, inboxNeedsResync = false;
-    if (inboxFolder && inboxFolder.serverId === null) {
+        inboxStorage;
+    if (inboxFolder && inboxFolder.serverId === null)
       inboxStorage = account.getFolderStorageForFolderId(inboxFolder.id);
-      inboxNeedsResync = inboxStorage.hasActiveSlices;
-    }
 
     account.syncFolderList(function(err) {
       if (!err)
@@ -34236,8 +34254,10 @@ ActiveSyncJobDriver.prototype = {
       // save if it worked
       doneCallback(err ? 'aborted-retry' : null, null, !err);
 
-      if (inboxNeedsResync)
+      if (inboxStorage && inboxStorage.hasActiveSlices) {
+        console.log("Refreshing fake inbox");
         inboxStorage.resetAndRefreshActiveSlices();
+      }
     });
   },
 
