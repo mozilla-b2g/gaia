@@ -20,7 +20,8 @@ var EvmeManager = (function EvmeManager() {
         GridManager.install(new Bookmark({
           bookmarkURL: params.originUrl,
           name: params.title,
-          icon: params.icon
+          icon: params.icon,
+          iconable: false
         }));
     }
 
