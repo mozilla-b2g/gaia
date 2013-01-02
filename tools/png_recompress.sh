@@ -7,7 +7,8 @@ opt_verbose=no
 opt_recursive=no
 opt_backup=no
 opt_keepgoing=no
-opt_optipng_args="-o7 --strip all -clobber -quiet"
+opt_optipng_args="-o7 -strip all -clobber -quiet"
+opt_optipng_args_nostrip="-o7 -clobber -quiet"
 opt_advpng_args="-z -4 -q"
 opt_help=no
 opt_paths=""
@@ -15,7 +16,7 @@ opt_paths=""
 ###############################################################################
 # Other globals
 
-# Temporary directory used through the script
+# Temporary directory and log file used through the script
 tmpdir=`mktemp -d -t tmp.XXXXXXXXXX`
 
 if [ $? -ne 0 ]; then
@@ -23,7 +24,14 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-trap 'rm -rf "$tmpdir"' EXIT INT TERM HUP
+tmplog=`mktemp -t tmp.XXXXXXXXXX`
+
+if [ $? -ne 0 ]; then
+    printf "error: Cannot create a temporary log file"
+    exit 1
+fi
+
+trap 'rm -rf "$tmpdir $tmplog"' EXIT INT TERM HUP
 
 size_cmd="printf 1" # Command used to obtain the size of a file
 total_src_size="0"  # Total size of the source files
@@ -82,6 +90,7 @@ parse_args() {
                     exit 1
                 else
                     opt_optipng_args="$2"
+                    opt_optipng_args_nostrip=`echo $2 | sed -e 's/-strip all//'`
                     shift 2
                 fi
             elif [ $1 = "--advpng-args" ]; then
@@ -120,7 +129,7 @@ parse_args() {
 
     # Adjust the arguments
     if [ $opt_backup = yes ]; then
-        : # opt_optipng_args="$opt_optipng_args -backup"
+        opt_optipng_args="$opt_optipng_args -backup"
     fi
 }
 
@@ -175,6 +184,7 @@ recompress_dir() {
 
 recompress_file() {
     local rv=0
+    local apng=0
     local src_size=`$size_cmd "$1"`
 
     if [ $opt_backup = yes ]; then
@@ -189,8 +199,18 @@ recompress_file() {
         fi
     fi
 
-    optipng $opt_optipng_args "$1"
-    rv=$?
+    optipng -o0 -simulate "$1" 1>"$tmplog" 2>"$tmplog"
+    grep -q APNG "$tmplog"
+    apng=$?
+
+    if [ $apng -eq 0 ]; then
+        # Do not strip animated PNG files otherwise the frames will be gone
+        optipng $opt_optipng_args_nostrip "$1"
+        rv=$?
+    else
+        optipng $opt_optipng_args "$1"
+        rv=$?
+    fi
 
     if [ $rv -ne 0 ]; then
         printf "error: optipng $opt_optipng_args \"$1\" returned $rv\n"
@@ -200,12 +220,15 @@ recompress_file() {
         fi
     fi
 
-    advpng $opt_advpng_args "$1"
-    rv=$?
+    if [ $apng -ne 0 ]; then
+        # Do not invoke advpng on animated PNG files as it will strip the frames
+        advpng $opt_advpng_args "$1"
+        rv=$?
 
-    if [ $rv -ne 0 ]; then
-        printf "error: advpng $opt_optipng_args \"$1\" returned $rv\n"
-        exit 1
+        if [ $rv -ne 0 ]; then
+            printf "error: advpng $opt_optipng_args \"$1\" returned $rv\n"
+            exit 1
+        fi
     fi
 
     local comp_size=`$size_cmd "$1"`
