@@ -249,13 +249,37 @@ ComposeCard.prototype = {
       return;
     }
     this.sendButton.setAttribute('aria-disabled', 'false');
-    if (node.value.slice(-1) == ',') {
+    var makeBubble = false;
+    // When do we want to tie off this e-mail address, put it into a bubble
+    // and clear the input box so the user can type another address?
+    switch (node.value.slice(-1)) {
+      // If they hit space and we believe they've already typed an email
+      // address!  (Space is okay in a display name or to delimit a display
+      // name from the e-mail address)
+      //
+      // We use the presence of an '@' character as indicating that the e-mail
+      // address
+      case ' ':
+        makeBubble = node.value.indexOf('@') !== -1;
+        break;
+      // We started out supporting comma, but now it's not on our keyboard at
+      // all in type=email mode!  We aren't terribly concerned about it not
+      // being usable in display names, although we really should check for
+      // quoting...
+      case ',':
+      // Semicolon is on the keyboard, and we also don't care about it not
+      // being usable in display names.
+      case ';':
+        makeBubble = true;
+        break;
+    }
+    if (makeBubble) {
       // TODO: Need to match the email with contact name.
       node.style.width = '0.5rem';
       // TODO: We will apply email address parser for showing bubble properly.
       //       We simply set name as string that splited from address
       //       before parser is ready.
-      this.insertBubble(node, null, node.value.split(',')[0]);
+      this.insertBubble(node, null, node.value.slice(0, -1));
       node.value = '';
     }
     // XXX: Workaround to get the length of the string. Here we create a dummy
