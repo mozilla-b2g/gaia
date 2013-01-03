@@ -59,12 +59,14 @@ const Keyboards = {
       [{ value: '4', ratio: 3},{ value: '5', ratio: 3},{ value: '6', ratio: 3}],
       [{ value: '7', ratio: 3},{ value: '8', ratio: 3},{ value: '9', ratio: 3}],
       [
-        { value: '.', ratio: 3, altNote: ','},{ value: '0', ratio: 3},
+        { value: '.', ratio: 3, altNote: ','},
+        { value: '0', ratio: 3, altNote: '-'},
         { value: '⌫', ratio: 3, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
       ]
     ],
     alt: {
-      '.' : ','
+      '.' : ',',
+      '0' : '-'
     }
   },
   telLayout: {

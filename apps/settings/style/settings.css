@@ -215,14 +215,43 @@ label[for^="pwd"] {
  * Wallpaper snapshot
  */
 
+#wallpaper-header { border: none; }
+
+#wallpaper {
+  position: relative;
+  overflow: hidden;
+  height: 17rem;
+}
+
+#wallpaper-button {
+  background: url(images/wallpaper_edit.png) no-repeat 25rem 11.5rem;
+  position: absolute;
+  border: none;
+  height: 100%;
+  width: 100%;
+  top: 0;
+  left: 0;
+  margin: 0;
+}
+#wallpaper-button:active {
+  background-image: url(images/wallpaper_edit_pressed.png);
+}
+
 #wallpaper-preview {
-  width: 9rem;
-  height: 13.5rem;
-  border: solid black 0.2rem;
-  border-radius: 0.4rem;
-  margin-left: 11rem;
-  margin-top: -1rem;
-  margin-bottom: 0.5rem;
+  margin-top: -10rem;
+  position: absolute;
+  width: 100%;
+}
+
+#screen-timeout {
+  height: auto !important;
+}
+
+#display li {
+  height: 6.2rem;
+}
+#display li:last-child {
+  border-bottom: none;
 }
 
 
@@ -237,7 +266,7 @@ ul li > label .range-icons {
   bottom: 0;
   left: 0;
   margin: 0 auto;
-  width: calc(100% - 6rem);
+  width: calc(100% - 4.1rem);
   height: 3rem;
 }
 
@@ -251,6 +280,18 @@ ul li > label .range-icons.brightness {
   background:
     url(images/range_icons_brightness_min.png) no-repeat 0 50%,
     url(images/range_icons_brightness_max.png) no-repeat 100% 50%;
+  left: 2.5rem;
+  right: auto;
+
+}
+
+#brightness-manual div {
+  position: relative;
+  top: calc(50% - 1.5rem);
+  left: 7.5rem;
+  right: 7.5rem;
+  height: 3rem;
+  width: calc(100% - 15rem);
 }
 
 

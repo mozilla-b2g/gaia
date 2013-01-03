@@ -24688,6 +24688,13 @@ FolderStorage.prototype = {
     }
   },
 
+  /**
+   * Split the contents of the given body block into a newer and older block.
+   * The newer info block will be mutated in place; the older block info will
+   * be created and returned.  The newer block is filled with data until it
+   * first overflows newerTargetBytes.  This method is responsible for updating
+   * the actual containing blocks as well.
+   */
   _splitBodyBlock: function ifs__splitBodyBlock(splinfo, splock,
                                                 newerTargetBytes) {
     // Save off the start timestamp/uid; these may have been extended beyond the
@@ -24696,23 +24703,29 @@ FolderStorage.prototype = {
     var savedStartTS = splinfo.startTS, savedStartUID = splinfo.startUID;
 
     var newerBytes = 0, uids = splock.uids, newDict = {}, oldDict = {},
-        inNew = true, numHeaders = null;
-    for (var i = 0; i < uids.length; i++) {
-      var uid = uids[i],
-          body = splock.bodies[uid];
-      if (inNew) {
-        newerBytes += body.size;
-        newDict[uid] = body;
-        if (newerBytes >= newerTargetBytes) {
-          inNew = false;
-          splinfo.count = numHeaders = i + 1;
-          splinfo.startTS = body.date;
-          splinfo.startUID = uid;
-        }
+        inNew = true, numHeaders = null, i, uid, body,
+        idxLast = uids.length - 1;
+    // loop for new traversal; picking a split-point so that there is at least
+    // one item in each block.
+    for (i = 0; i < idxLast; i++) {
+      uid = uids[i],
+      body = splock.bodies[uid];
+      newerBytes += body.size;
+      newDict[uid] = body;
+      if (newerBytes >= newerTargetBytes) {
+        i++;
+        break;
       }
-      else {
-        oldDict[uid] = body;
-      }
+    }
+    // mark the breakpoint; i is pointing at the first old-block message
+    splinfo.count = numHeaders = i;
+    // and these values are from the last processed new-block message
+    splinfo.startTS = body.date;
+    splinfo.startUID = uid;
+    // loop for old traversal
+    for (; i < uids.length; i++) {
+      uid = uids[i];
+      oldDict[uid] = splock.bodies[uid];
     }
 
     var oldEndUID = uids[numHeaders];
@@ -24720,6 +24733,8 @@ FolderStorage.prototype = {
       savedStartTS, savedStartUID,
       oldDict[oldEndUID].date, oldEndUID,
       splinfo.estSize - newerBytes,
+      // (the older block gets the uids the new/existing block does not want,
+      //  leaving `uids` containing only the d
       uids.splice(numHeaders, uids.length - numHeaders),
       oldDict);
     splinfo.estSize = newerBytes;
@@ -25305,7 +25320,7 @@ FolderStorage.prototype = {
       insertInBlock(thing, uid, info, block);
 
       // -- split if necessary
-      if (info.estSize >= MAX_BLOCK_SIZE) {
+      if (info.count > 1 && info.estSize >= MAX_BLOCK_SIZE) {
         // - figure the desired resulting sizes
         var firstBlockTarget;
         // big part to the center at the edges (favoring front edge)
@@ -25986,7 +26001,13 @@ FolderStorage.prototype = {
     return syncTS;
   },
 
+  /**
+   * Are we synchronized as far back in time as we are able to synchronize?
+   */
   syncedToDawnOfTime: function() {
+    if (!this.folderSyncer.canGrowSync)
+      return true;
+
     var oldestSyncTS = this.getOldestFullSyncDate();
     return ON_OR_BEFORE(oldestSyncTS, $sync.OLDEST_SYNC_DATE);
   },
@@ -28227,6 +28248,13 @@ function ImapFolderConn(account, storage, _parentLog) {
 }
 ImapFolderConn.prototype = {
   /**
+   * Can we grow this sync range?  IMAP always lets us do this.
+   */
+  get canGrowSync() {
+    return true;
+  },
+
+  /**
    * Acquire a connection and invoke the callback once we have it and we have
    * entered the folder.  This method should only be called when running
    * inside `runMutexed`.
@@ -29530,7 +29558,7 @@ exports.do_download = function(op, callback) {
           storeTo = storePartsTo[i];
 
       if (blob) {
-        partInfo.sizeEstimate = blob.length;
+        partInfo.sizeEstimate = blob.size;
         partInfo.type = blob.type;
         if (storeTo === 'idb')
           partInfo.file = blob;
@@ -33796,6 +33824,13 @@ ActiveSyncFolderSyncer.prototype = {
     return this.folderConn.serverId !== null;
   },
 
+  /**
+   * Can we grow this sync range?  Not in ActiveSync land!
+   */
+  get canGrowSync() {
+    return false;
+  },
+
   syncDateRange: function(startTS, endTS, syncCallback, doneCallback,
                           progressCallback) {
     syncCallback('sync', false, true);
@@ -34224,11 +34259,9 @@ ActiveSyncJobDriver.prototype = {
     // have active slices displaying the contents of the folder.  (No server id
     // means the sync will not happen.)
     var inboxFolder = account.getFirstFolderWithType('inbox'),
-        inboxStorage, inboxNeedsResync = false;
-    if (inboxFolder && inboxFolder.serverId === null) {
+        inboxStorage;
+    if (inboxFolder && inboxFolder.serverId === null)
       inboxStorage = account.getFolderStorageForFolderId(inboxFolder.id);
-      inboxNeedsResync = inboxStorage.hasActiveSlices;
-    }
 
     account.syncFolderList(function(err) {
       if (!err)
@@ -34236,8 +34269,10 @@ ActiveSyncJobDriver.prototype = {
       // save if it worked
       doneCallback(err ? 'aborted-retry' : null, null, !err);
 
-      if (inboxNeedsResync)
+      if (inboxStorage && inboxStorage.hasActiveSlices) {
+        console.log("Refreshing fake inbox");
         inboxStorage.resetAndRefreshActiveSlices();
+      }
     });
   },
 

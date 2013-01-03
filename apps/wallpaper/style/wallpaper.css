@@ -6,14 +6,24 @@ html, body {
 }
 
 /* for the pick activity */
+#wallpapers {
+  overflow: hidden;
+}
+
 .wallpaper {
-  display: block;
-  width: 200px;
-  height: 300px;
-  border: solid white 3px;
-  border-radius: 5px;
-  margin-left: 60px;
-  margin-top: 15px;
+  background-size:cover;
+  background-repeat: no-repeat;
+  border-bottom: 1px solid #000000;
+  border-right: 1px solid #000000;
+  position: relative;
+  overflow: hidden;
+  height: 15.9rem;
+  float: left;
+  width: 33%;
+}
+
+#wallpapers .wallpaper:nth-child(3n) {
+  border-right: none;
 }
 
 /* for the share activity */

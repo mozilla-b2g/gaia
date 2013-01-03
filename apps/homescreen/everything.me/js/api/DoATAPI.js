@@ -12,18 +12,18 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         CACHE_EXPIRATION_IN_MINUTES = 30,
         STORAGE_KEY_CREDS = "credentials",
         authCookieName = '',
-        userLat = undefined,
-        userLon = undefined,
-        appVersion = undefined,
+        userLat,
+        userLon,
+        appVersion,
         manualCredentials = null,
         manualCampaignStats = null,
         requestingSession = false,
         
         requestsQueue = {},
         requestsToPerformOnOnline = [],
-        sessionInitRequest = null;
+        sessionInitRequest = null,
         
-    var requestsToCache = {
+        requestsToCache = {
             "Search.apps": true,
             "Search.bgimage": true,
             "Shortcuts.get": 60*24*2,
@@ -47,60 +47,68 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
     };
     
     this.init = function init(options){
-        apiKey = options.apiKey,
+        apiKey = options.apiKey;
         appVersion = options.appVersion || "";
         authCookieName = options.authCookieName;
         manualCampaignStats = options.manualCampaignStats;
         
         manualCredentials = Evme.Storage.get(STORAGE_KEY_CREDS);
         
+        
+        // listen to locale and timezone changes, and update the user cookie accordingly
+        navigator.mozSettings.addObserver('language.current', function onLanguageChange(e) {
+            setClientInfoCookie({
+                "locale": e.settingValue
+            });
+        });
+        navigator.mozSettings.addObserver('time.timezone', setClientInfoCookie);
         setClientInfoCookie();
         
         self.Session.init();
     };
     
-    this.search = function search(_options, callback, noSession) {
-        !_options && (_options = {});
+    this.search = function search(options, callback, noSession) {
+        !options && (options = {});
         
-        var options = {
-            "query": _options.query,
-            "typeHint": _options.typeHint,
-            "feature": _options.feature,
-            "cachedIcons": _options.cachedIcons,
-            "exact": _options.exact,
-            "spellcheck": _options.spellcheck,
-            "suggest": _options.suggest,
-            "first": _options.first,
-            "limit": _options.limit,
-            "idx": _options.index,
-            "iconFormat": _options.iconFormat,
-            "prevQuery": (_options.first == 0)? _options.prevQuery || "" : ""
+        var params = {
+            "query": options.query,
+            "typeHint": options.typeHint,
+            "feature": options.feature,
+            "cachedIcons": options.cachedIcons,
+            "exact": options.exact,
+            "spellcheck": options.spellcheck,
+            "suggest": options.suggest,
+            "first": options.first,
+            "limit": options.limit,
+            "idx": options.index,
+            "iconFormat": options.iconFormat,
+            "prevQuery": (options.first === 0)? options.prevQuery || "" : ""
         };
         
         return request({
             "methodNamespace": "Search",
             "methodName": "apps",
-            "params": options,
+            "params": params,
             "callback": callback,
             "noSession": noSession
-        }, _options._NOCACHE);
+        }, options._NOCACHE);
     };
     
     this.User = new function User() {
-        this.apps = function apps(_options, callback) {
-            !_options && (_options = {});
+        this.apps = function apps(options, callback) {
+            !options && (options = {});
             
-            var options = {
-                "cachedIcons": _options.cachedIcons,
-                "first": _options.first,
-                "limit": _options.limit,
-                "iconFormat": _options.iconFormat,
+            var params = {
+                "cachedIcons": options.cachedIcons,
+                "first": options.first,
+                "limit": options.limit,
+                "iconFormat": options.iconFormat
             };
             
             return request({
                 "methodNamespace": "User",
                 "methodName": "apps",
-                "params": options,
+                "params": params,
                 "callback": callback
             });
         };
@@ -115,72 +123,72 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         };
     };
     
-    this.suggestions = function suggestions(_options, callback) {
-        !_options && (_options = {});
+    this.suggestions = function suggestions(options, callback) {
+        !options && (options = {});
     
-        var options = {
-            "query": _options.query
+        var params = {
+            "query": options.query
         };
         
         return request({
             "methodNamespace": "Search",
             "methodName": "suggestions",
-            "params": options,
+            "params": params,
             "callback": callback
-        }, _options._NOCACHE);
+        }, options._NOCACHE);
     };
     
-    this.icons = function icons(_options, callback) {
-        !_options && (_options = {});
+    this.icons = function icons(options, callback) {
+        !options && (options = {});
         
-        var options = {
-            "ids": _options.ids,
-            "iconFormat": _options.iconFormat
+        var params = {
+            "ids": options.ids,
+            "iconFormat": options.iconFormat
         };
         
         return request({
             "methodNamespace": "App",
             "methodName": "icons",
-            "params": options,
+            "params": params,
             "callback": callback
-        }, _options._NOCACHE);
+        }, options._NOCACHE);
     };
     
-    this.bgimage = function bgimage(_options, callback) {
-        !_options && (_options = {});
+    this.bgimage = function bgimage(options, callback) {
+        !options && (options = {});
 
-        var options = {
-            "query": _options.query,
-            "typeHint": _options.typeHint,
-            "feature": _options.feature,
-            "exact": _options.exact,
-            "width": _options.width,
-            "height": _options.height,
-            "idx": _options.index,
-            "prevQuery": _options.prevQuery || ""
+        var params = {
+            "query": options.query,
+            "typeHint": options.typeHint,
+            "feature": options.feature,
+            "exact": options.exact,
+            "width": options.width,
+            "height": options.height,
+            "idx": options.index,
+            "prevQuery": options.prevQuery || ""
         };
 
         return request({
             "methodNamespace": "Search",
             "methodName": "bgimage",
-            "params": options,
+            "params": params,
             "callback": callback
-        }, _options._NOCACHE);
+        }, options._NOCACHE);
     };
     
-    this.getDisambiguations = function getDisambiguations(_options, callback) {
-        !_options && (_options = {});
+    this.getDisambiguations = function getDisambiguations(options, callback) {
+        !options && (options = {});
 
-        var options = {
-            "query": _options.query
+        var params = {
+            "query": options.query
         };
 
         return request({
             "methodNamespace": "Search",
             "methodName": "disambiguate",
-            "params": options,
+            "params": params,
             "callback": callback
-        }, _options._NOCACHE);
+        }, options._NOCACHE);
     };
     
     this.Shortcuts = new function Shortcuts() {
@@ -189,7 +197,7 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
             STORAGE_KEY_ICONS = "localShortcutsIcons",
             queriesToAppIds = {};
         
-        this.get = function get(_options, callback) {
+        this.get = function get(options, callback) {
             var shortcuts = Evme.Storage.get(STORAGE_KEY_SHORTCUTS),
                 icons = Evme.Storage.get(STORAGE_KEY_ICONS);
                 
@@ -203,11 +211,11 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
             callback && callback(createResponse(shortcuts, icons));
         };
         
-        this.set = function set(_options, callback) {
-            !_options && (_options = {});
+        this.set = function set(options, callback) {
+            !options && (options = {});
             
-            var shortcuts = _options.shortcuts || [],
-                icons = _options.icons || {};
+            var shortcuts = options.shortcuts || [],
+                icons = options.icons || {};
             
             for (var i=0; i<shortcuts.length; i++) {
                 if (typeof shortcuts[i] == "string") {
@@ -225,9 +233,9 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
             callback && callback();
         };
         
-        this.add = function add(_options, callback) {
-            var shortcuts = (Array.isArray(_options.shortcuts))? _options.shortcuts : [_options.shortcuts],
-                icons = _options.icons;
+        this.add = function add(options, callback) {
+            var shortcuts = (Array.isArray(options.shortcuts))? options.shortcuts : [options.shortcuts],
+                icons = options.icons;
 
             self.get(null, function onGetSuccess(data) {
                 var currentShortcuts = data.response.shortcuts,
@@ -293,22 +301,22 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
             });
         };
         
-        this.suggest = function suggest(_options, callback) {
-            !_options && (_options = {});
+        this.suggest = function suggest(options, callback) {
+            !options && (options = {});
             
-            var options = {
-                "existing": JSON.stringify(_options.existing || [])
+            var params = {
+                "existing": JSON.stringify(options.existing || [])
             };
             
             return request({
                 "methodNamespace": "Shortcuts",
                 "methodName": "suggestions",
-                "params": options,
+                "params": params,
                 "callback": function onRequestSuccess(data) {
                     saveAppIds(data.response.shortcuts);
                     callback && callback(data);
                 }
-            }, _options._NOCACHE);
+            }, options._NOCACHE);
         };
         
         function saveAppIds(shortcuts) {
@@ -327,24 +335,24 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         }
     };
     
-    this.trending = function trending(_options, callback) {
-        !_options && (_options = {});
+    this.trending = function trending(options, callback) {
+        !options && (options = {});
         
-        var options = {
-            "first": _options.first,
-            "limit": _options.limit,
-            "returnImage": _options.returnImage,
-            "iconFormat": _options.iconFormat,
-            "quality": _options.quality,
-            "queries": _options.queries
+        var params = {
+            "first": options.first,
+            "limit": options.limit,
+            "returnImage": options.returnImage,
+            "iconFormat": options.iconFormat,
+            "quality": options.quality,
+            "queries": options.queries
         };
         
         return request({
             "methodNamespace": "Search",
             "methodName": "trending",
-            "params": options,
+            "params": params,
             "callback": callback
-        }, _options._NOCACHE);
+        }, options._NOCACHE);
     }
     
     this.Logger = new function Logger(){
@@ -365,15 +373,15 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         });
     };
     
-    this.report = function report(_options, callback) {
-        _options = addGlobals(_options);
+    this.report = function report(options, callback) {
+        options = addGlobals(options);
         
         return request({
             "methodNamespace": "Stats",
             "methodName": "report",
-            "params": _options,
+            "params": options,
             "callback": callback
-        }, _options._NOCACHE);
+        }, options._NOCACHE);
     };
     
     function addGlobals(options) {
@@ -389,20 +397,20 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         return options;
     }
     
-    this.searchLocations = function searchLocations(_options, callback) {
-        !_options && (_options = {});
+    this.searchLocations = function searchLocations(options, callback) {
+        !options && (options = {});
         
-        var options = {
-            "query": _options.query,
+        var params = {
+            "query": options.query,
             "latlon": undefined
         };
         
         return request({
             "methodNamespace": "Location",
             "methodName": "search",
-            "params": options,
+            "params": params,
             "callback": callback
-        }, _options._NOCACHE);
+        }, options._NOCACHE);
     };
     
     this.setLocation = function setLocation(lat, lon, callback) {
@@ -419,7 +427,7 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         return (userLat && userLon);
     };
     
-    this.request = function request(methodNamespace, methodName, params, callback) {
+    this.request = function publicRequest(methodNamespace, methodName, params, callback) {
         return request({
             "methodNamespace": methodNamespace,
             "methodName": methodName,
@@ -429,21 +437,21 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
     };
     
     
-    this.initSession = function initSession(_options, callback) {
-        !_options && (_options = {});
+    this.initSession = function initSession(options, callback) {
+        !options && (options = {});
         
-        var options = {
+        var params = {
             "id": self.Session.get().id,
             "deviceId": deviceId,
-            "cachedIcons": _options.cachedIcons,
+            "cachedIcons": options.cachedIcons,
             "stats": {
                 "userAgent": navigator.userAgent,
                 "referrer": document.referrer,
                 "connectionType": Evme.Utils.connection().type || "",
                 "locale": navigator.language || "",
                 "GMT": (new Date().getTimezoneOffset()/-60).toString(),
-                "sessionInitCause": _options.cause,
-                "sessionInitSrc": _options.source,
+                "sessionInitCause": options.cause,
+                "sessionInitSrc": options.source,
                 "cookiesEnabled": Evme.Utils.bCookiesEnabled() || false,
                 "localStorageEnabled": Evme.Utils.bLocalStorageEnabled()
             }
@@ -458,7 +466,7 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         return request({
             "methodNamespace": "Session",
             "methodName": "init",
-            "params": options,
+            "params": params,
             "callback": function onSessionInitSuccess(data, url) {
                 requestingSession = false;
                 
@@ -632,18 +640,19 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
     };
     
     // set locale and timezone cookies
-    function setClientInfoCookie() {
-        var locale = navigator.language || "",
-            timezone = (new Date().getTimezoneOffset()/-60).toString();
-            
-        var val = [
-            "lc="+encodeURIComponent(locale),
-            "tz="+encodeURIComponent(timezone)
-        ];
+    function setClientInfoCookie(changedValues) {
+        !changedValues && (changedValues = {});
         
+        var locale = changedValues.locale || navigator.language || "",
+            timezone = changedValues.timezone || (new Date().getTimezoneOffset()/-60).toString(),
+            val = [
+                "lc="+encodeURIComponent(locale),
+                "tz="+encodeURIComponent(timezone)
+            ];
+            
         // to backend's request
         val = val.join(",");
- 
+        
         Evme.Utils.Cookies.set("clientInfo", val, null, ".everything.me");  
     }
     
@@ -652,11 +661,13 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
             methodName = options.methodName,
             params = options.params || {},
             callback = options.callback,
-            noSession = options.noSession;
+            noSession = options.noSession,
+            
+            useCache = requestsToCache[methodNamespace+"."+methodName],
+            cacheKey = '',
+            
+            shouldInit = Evme.DoATAPI.Session.shouldInit();
         
-        var useCache = requestsToCache[methodNamespace+"."+methodName];
-        
-        var shouldInit = Evme.DoATAPI.Session.shouldInit();
         if (requestsToPerformOnOnline.length != 0 && shouldInit.should && !doesntNeedSession[methodNamespace+"." + methodName] && !manualCredentials && !dontRetryIfNoSession) {
             requestsQueue[JSON.stringify(options)] = options;
             reInitSession(shouldInit.cause);
@@ -668,9 +679,6 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
             params["latlon"] = userLat + "," + userLon;
         }
         
-        ignoreCache = true;
-        
-        var cacheKey = "";
         if (useCache) {
             cacheKey = getCacheKey(methodNamespace, methodName, params);
             

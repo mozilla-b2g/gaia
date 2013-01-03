@@ -49,13 +49,13 @@ li p {
 }
 li p.name {
   color: #fff;
-  font-weight: bold;
-  font-size: 16px;
+  font-weight: 500;
+  font-size: 1.4rem;
 }
 li p.time {
   margin-top: 4px;
-  font-size: 16px;
-  color: #bbb;
+  font-size: 1.4rem;
+  color: #95a3a6;
 }
 li:last-child hr {
   display: none;
@@ -124,26 +124,41 @@ li hr {
  * the overlay text shows up more clearly
  */
 #overlay-content {
-  margin-top: 30%;
-  margin-left: 10%;
-  margin-right: 10%;
-  padding: 10%;
-  border: solid black 4px;
-  border-radius: 10px;
-  background-color: rgba(0, 0, 0, 0.6);
-  font-family: "MozTT", sans-serif;
+  background:
+  url(images/ui/pattern.png) repeat left top,
+  url(images/ui/gradient.png) no-repeat left top;
+  background-size: auto auto, 100% 100%;
+  /* We can't use shortand with background size because is not implemented yet:
+  https://bugzilla.mozilla.org/show_bug.cgi?id=570326; */
+  overflow: hidden;
+  position: absolute;
+  z-index: 100;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  font-family: "MozTT", Sans-serif;
+  font-size: 0;
+  /* Using font-size: 0; we avoid the unwanted visual space (about 3px)
+  created by white-spaces and break lines in the code betewen inline-block elements */
   color: #fff;
-  -moz-user-select: none;
+  padding: 110px 25px 0px 25px;
 }
 
 #overlay-title {
-  text-align: center;
-  font-weight: bold;
-  font-size: 26px;
+  font-weight: normal;
+  text-transform:capitalize;
+  font-size: 1.9rem;
+  color: #fff;
+  margin: 0 5px -10px 5px;
 }
 
 #overlay-text {
-  font-size: 18px;
+  padding: 10px 5px 0 5px;
+  border-top: 1px solid #686868;	
+  font-weight: 300;
+  font-size: 2.5rem;
+  color: #ebebeb;
 }
 
 /* localization */
@@ -298,10 +313,10 @@ header .icon:after {
   width: 5.9rem;
   position: absolute;
   color: #A1AFB2;
-  font-size: 1.4rem;
   height: 100%;
   line-height: 4.6rem;
   text-align: center;
+  font-size: 1.4rem;
 }
 
 #duration-text {
