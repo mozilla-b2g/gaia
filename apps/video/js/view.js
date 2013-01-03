@@ -160,20 +160,16 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     var yscale = containerHeight / height;
     var scale = Math.min(xscale, yscale);
 
-    // scale large videos down, but don't scale small videos up
-    if (scale < 1) {
-      width *= scale;
-      height *= scale;
-    }
+    // scale large videos down, and scale small videos up
+    width *= scale;
+    height *= scale;
 
     var left = ((containerWidth - width) / 2);
     var top = ((containerHeight - height) / 2);
 
     var transform = 'translate(' + left + 'px,' + top + 'px)';
 
-    if (scale < 1) {
-      transform += ' scale(' + scale + ')';
-    }
+    transform += ' scale(' + scale + ')';
 
     dom.player.style.transform = transform;
   }
