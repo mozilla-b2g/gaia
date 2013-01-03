@@ -69,6 +69,13 @@ Calendar.ns('Provider').CaldavPullEvents = (function() {
 
     this.syncStart = new Date();
     this._busytimeStore = this.app.store('Busytime');
+
+    // Catch account events to watch for mid-sync removal
+    this._accountStore = this.app.store('Account');
+    this._accountStore.on('remove', this._removeAccount.bind(this));
+
+    this._aborted = false;
+    this._trans = null;
   }
 
   PullEvents.prototype = {
@@ -220,8 +227,42 @@ Calendar.ns('Provider').CaldavPullEvents = (function() {
       }
     },
 
+    /**
+     * Account removal event handler. Aborts the rest of sync processing, if
+     * the account deleted is the subject of the current sync.
+     *
+     * @param {String} database object id.
+     */
+    _removeAccount: function(id) {
+      if (id === this.account._id) {
+        // This is our account, so abort the sync.
+        this.abort();
+      }
+    },
+
+    /**
+     * Abort the sync. After this, further events will be ignored and commit()
+     * will do nothing.
+     */
+    abort: function() {
+      if (this._aborted) {
+        // Bail, if already aborted.
+        return;
+      }
+      // Flag that the sync should be aborted.
+      this._aborted = true;
+      if (this._trans) {
+        // Attempt to abort the in-progress commit transaction
+        this._trans.abort();
+      }
+    },
 
     handleEvent: function(event) {
+      if (this._aborted) {
+        // Ignore all events, if the sync has been aborted.
+        return;
+      }
+
       var data = event.data;
 
       switch (event.type) {
@@ -240,6 +281,11 @@ Calendar.ns('Provider').CaldavPullEvents = (function() {
     },
 
     commit: function(callback) {
+      if (this._aborted) {
+        // Commit nothing, if sync was aborted.
+        return callback(null);
+      }
+
       var eventStore = this.app.store('Event');
       var icalComponentStore = this.app.store('IcalComponent');
       var calendarStore = this.app.store('Calendar');
@@ -253,6 +299,9 @@ Calendar.ns('Provider').CaldavPullEvents = (function() {
         ['calendars', 'events', 'busytimes', 'alarms', 'icalComponents'],
         'readwrite'
       );
+
+      // Stash a reference to the transaction, in case we still need to abort.
+      this._trans = trans;
 
       var self = this;
 
@@ -292,10 +341,12 @@ Calendar.ns('Provider').CaldavPullEvents = (function() {
       calendarStore.persist(calendar, trans);
 
       trans.addEventListener('error', function(e) {
+        self._trans = null;
         callback(e);
       });
 
       trans.addEventListener('complete', function() {
+        self._trans = null;
         callback(null);
       });
     }
