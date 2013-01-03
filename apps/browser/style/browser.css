@@ -630,7 +630,7 @@ li[role="tab"] a {
   outline: none;
   margin-left: -30px;
   text-overflow: ellipsis;
-  max-width: calc(33% - 37px);
+  max-width: calc(33% - 39px);
   overflow: hidden;
 }
 
