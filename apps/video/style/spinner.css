@@ -1,0 +1,33 @@
+/* Spinner */
+#spinner-overlay { /* just like the #overlay element */
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+/*
+ * spinner animation styles copied from 
+ * shared/style_unstable/progress_activity.css 
+ */
+#spinner {
+  position: absolute;
+  top: calc(50% - 15px);
+  left: calc(50% - 15px);
+  width: 29px;
+  height: 29px;
+  background: url(images/spinner.png) no-repeat center center;
+  animation: 0.9s spinner-animation infinite steps(30);
+  border: none;
+}
+
+@keyframes spinner-animation {
+  from {
+    transform: rotate(1deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
