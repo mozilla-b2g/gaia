@@ -13,6 +13,7 @@ var UIManager = {
     'finish-screen',
     'nav-bar',
     'main-title',
+    'loading-overlay',
     // PIN Screen
     'pincode-screen',
     'pin-input',
