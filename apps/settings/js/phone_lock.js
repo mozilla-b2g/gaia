@@ -121,8 +121,10 @@ var PhoneLock = {
     if (document.location.hash != 'phoneLock-passcode') {
       var self = this;
       document.location.hash = 'phoneLock-passcode'; // show dialog box
-      this.passcodePanel.addEventListener('transitionend', function ontransitionend() {
-        self.passcodePanel.removeEventListener('transitionend', ontransitionend);
+      this.passcodePanel.
+           addEventListener('transitionend', function ontransitionend() {
+        self.passcodePanel.
+             removeEventListener('transitionend', ontransitionend);
         self.passcodeInput.focus();
       });
     }
@@ -259,7 +261,5 @@ var PhoneLock = {
 };
 
 // startup
-onLocalized(function() {
-  PhoneLock.init();
-});
+onLocalized(PhoneLock.init.bind(PhoneLock));
 
