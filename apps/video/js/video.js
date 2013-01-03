@@ -415,11 +415,10 @@ function setPlayerSize() {
   var yscale = containerHeight / height;
   var scale = Math.min(xscale, yscale);
 
-  // scale large videos down, but don't scale small videos up
-  if (scale < 1) {
-    width *= scale;
-    height *= scale;
-  }
+  // scale large videos down and scale small videos up
+  // this might result in lower image quality for small videos
+  width *= scale;
+  height *= scale;
 
   var left = ((containerWidth - width) / 2);
   var top = ((containerHeight - height) / 2);
@@ -446,9 +445,7 @@ function setPlayerSize() {
     break;
   }
 
-  if (scale < 1) {
-    transform += ' scale(' + scale + ')';
-  }
+  transform += ' scale(' + scale + ')';
 
   dom.player.style.transform = transform;
 }
