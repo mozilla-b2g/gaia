@@ -11,10 +11,11 @@ section[role="region"] > header:first-child sup {
   height: 3.2rem;
   vertical-align: text-top;
   text-indent: 100%;
+  display: inline-block;
   overflow: hidden;
   position: relative;
-  float: left;
-  top: 0;
+  top: -0.4rem;
+  margin: 0 -0.5rem 0 0;
 }
 
 .contact-header img {
@@ -30,11 +31,6 @@ section[role="region"] > header:first-child sup {
 
 .view-contacts-list .view-body-inner {
   padding-left: 1.5rem;
-}
-
-#contact-name-title {
-  max-width: 22rem;
-  float: left;
 }
 
 /* Contact detail main section */
