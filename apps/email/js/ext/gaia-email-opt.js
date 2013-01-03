@@ -29558,7 +29558,7 @@ exports.do_download = function(op, callback) {
           storeTo = storePartsTo[i];
 
       if (blob) {
-        partInfo.sizeEstimate = blob.length;
+        partInfo.sizeEstimate = blob.size;
         partInfo.type = blob.type;
         if (storeTo === 'idb')
           partInfo.file = blob;
