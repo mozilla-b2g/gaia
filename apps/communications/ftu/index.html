@@ -11,8 +11,10 @@
   <link rel="stylesheet" type="text/css" href="/shared/style/buttons.css">
   <link rel="stylesheet" type="text/css" href="/shared/style/confirm.css">
   <link rel="stylesheet" type="text/css" href="/shared/style_unstable/lists.css">
+  <link rel="stylesheet" type="text/css" href="/shared/style_unstable/progress_activity.css">
 
   <!-- Specific style -->
+  <link rel="stylesheet" type="text/css" href="/contacts/style/overlay.css">
   <link rel="stylesheet" type="text/css" href="/ftu/css/style.css">
   <link rel="stylesheet" type="text/css" href="/ftu/css/fb_extensions.css">
   <link rel="stylesheet" type="text/css" href="/facebook/style/curtain_frame.css">
@@ -485,6 +487,17 @@
       </menu>
     </section>
   </form>
+
+  <section id="loading-overlay" role="region" class="view">
+    <article class="loading-container">
+      <header class="loading-header" data-l10n-id="simContacts-importing">
+        Importing SIM contacts…
+      </header>
+      <p class="loading-icon" role="status">
+        <progress></progress>
+      </p>
+    </article>
+  </section>
 
   <iframe id="fb-curtain" src="/facebook/curtain.html"></iframe>
   <iframe id="fb-oauth" hidden src="/facebook/fb_oauth.html"></iframe>
