@@ -8,6 +8,8 @@ var BatteryManager = {
   TRANSITION_SPEED: 1.8,
   TRANSITION_FRACTION: 0.30,
 
+  AUTO_SHUTDOWN_LEVEL: 0.02,
+
   _notification: null,
   _screenOn: true,
   _previousLevel: 0,
@@ -18,10 +20,23 @@ var BatteryManager = {
     this.notification = document.getElementById('battery');
   },
 
+  checkBatteryDrainage: function bm_checkBatteryDrainage() {
+    var battery = window.navigator.battery;
+    if (!battery)
+      return;
+
+    if (battery.level <= this.AUTO_SHUTDOWN_LEVEL)
+      SleepMenu.startPowerOff(false);
+  },
+
   init: function bm_init() {
     this.getAllElements();
     var battery = window.navigator.battery;
     if (battery) {
+      // When the device is booted, check if the battery is drained.
+      // If so, SleepMenu.startPowerOff() would be called.
+      this.checkBatteryDrainage();
+
       battery.addEventListener('levelchange', this);
       battery.addEventListener('chargingchange', this);
     }
@@ -43,7 +58,10 @@ var BatteryManager = {
         if (!battery)
           return;
 
+        this.checkBatteryDrainage();
+
         var level = Math.min(100, Math.round(battery.level * 100));
+
         if (this._screenOn) {
           this.notification.dataset.level = level;
 
