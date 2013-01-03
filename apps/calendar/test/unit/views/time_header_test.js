@@ -77,9 +77,18 @@ suite('views/time_header', function() {
     );
   });
 
+  test('#getScale shortform', function() {
+    controller.move(new Date(2012, 10, 30));
+    var out = subject.getScale('week', true);
+    assert.equal(
+      out.length,
+      12
+    );
+  });
+
   // When week starts in one month
   // and ends in another we need
-  // 'Month1 Month2 Year' like header.
+  // 'Month1 Month2 Year' like header
   test('#getScale for week', function() {
     controller.move(new Date(2012, 0, 30));
     var firstMonth = fmt.localeFormat(
@@ -94,6 +103,27 @@ suite('views/time_header', function() {
     var out = subject.getScale('week');
     assert.include(out, firstMonth);
     assert.include(out, secondMonth);
+  });
+
+  // 'November December 2012' use short form: 'Nov Dec 2012'
+  test('#getScale for week short forms', function() {
+    controller.move(new Date(2012, 10, 30));
+    var firstMonth = fmt.localeFormat(
+      new Date(2012, 10, 30),
+      '%b '
+    );
+    var secondMonth = fmt.localeFormat(
+      new Date(2012, 11, 1),
+      '%b %Y'
+    );
+    var out = subject.getScale('week');
+    // This is always too small so the short form is forced
+    subject.title.style.maxWidth = '10px';
+    var textWidth = subject._getTextWidth(subject.title, out);
+    controller.scale = 'week';
+    subject._updateTitle();
+    assert.operator(textWidth, ">", subject.title.clientWidth);
+    assert.equal(subject.title.textContent, firstMonth + secondMonth);
   });
 
   test('#_updateTitle', function() {
