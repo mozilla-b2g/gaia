@@ -21,9 +21,14 @@
   worker.on({
 
     'sandbox': function() {
-      /* Load your fav assertion engine */
-      /* expect.js
-      */
+      /**
+       * Important will not cause failures if missing.
+       * Allows each app to have its own setup.js file that will execute
+       * before any tests are loaded so we can utilize helpers outside
+       * of setup blocks. Any files require from setup.js should also
+       * block loading of any tests...
+       */
+      worker.loader.require('/test/unit/setup.js');
     },
 
     'run tests': function() {

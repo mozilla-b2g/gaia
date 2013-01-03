@@ -449,17 +449,8 @@ var Settings = {
   },
 
   getUserGuide: function settings_getUserGuide(callback) {
-    var settings = this.mozSettings;
-    if (!settings)
-      return;
-
-    var key = 'deviceinfo.os';
-    var req = settings.createLock().get(key);
-    req.onsuccess = function userGuide() {
-      var url = 'http://support.mozilla.org/1/firefox-os/' +
-        req.result[key] + '/gonk/' + document.documentElement.lang + '/';
-      callback(url);
-    };
+    var url = 'http://support.mozilla.org/products/firefox-os';
+    callback(url);
   },
 
   launchFTU: function settings_launchFTU() {
