@@ -41,7 +41,7 @@ var DataMobile = {
   },
   getAPN: function dm_getapn(callback) {
     // TODO Use 'shared' version
-    var APN_FILE = '/ftu/resources/apn.json';
+    var APN_FILE = '/shared/resources/apn.json';
     var self = this;
     // Retrieve the list of APN configurations
     // load and query APN database, then trigger callback on results

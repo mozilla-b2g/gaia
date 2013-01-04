@@ -218,7 +218,8 @@ var Navigation = {
         break;
     }
 
-    if (steps[this.currentStep].hash === actualHash) {
+    if (this.currentStep <= numSteps &&
+        steps[this.currentStep].hash === actualHash) {
       UIManager.navBar.classList.remove('back-only');
     }
   },
