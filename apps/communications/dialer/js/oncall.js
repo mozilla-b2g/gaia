@@ -191,14 +191,11 @@ var OnCallHandler = (function onCallHandler() {
   });
 
   var screenLock;
-  var cpuLock;
 
   /* === Setup === */
   function setup() {
     // Animating the screen in the viewport.
     toggleScreen();
-
-    cpuLock = navigator.requestWakeLock('cpu');
 
     if (telephony) {
       // Somehow the muted property appears to true after initialization.
@@ -420,11 +417,6 @@ var OnCallHandler = (function onCallHandler() {
   function exitCallScreen(animate) {
     if (closing) {
       return;
-    }
-
-    if (cpuLock) {
-      cpuLock.unlock();
-      cpuLock = null;
     }
 
     closing = true;
