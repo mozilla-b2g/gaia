@@ -35944,7 +35944,14 @@ Autoconfigurator.prototype = {
       callback('no-config-info', null, { status: 'error' });
     };
 
-    xhr.send();
+    // Gecko currently throws in send() if the file we're opening doesn't exist.
+    // This is almost certainly wrong, but let's just work around it for now.
+    try {
+      xhr.send();
+    }
+    catch(e) {
+      callback('no-config-info', null, { status: 404 });
+    }
   },
 
   /**
