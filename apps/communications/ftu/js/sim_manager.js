@@ -23,14 +23,22 @@ var SimManager = {
 
   importContacts: function sm_importContacts() {
     var feedback = UIManager.simImportFeedback;
+
     feedback.innerHTML = _('simContacts-importing');
+    UIManager.navBar.setAttribute('aria-disabled', 'true');
+    UIManager.loadingOverlay.classList.add('show-overlay');
+
     importSIMContacts(
       function() {
         feedback.innerHTML = _('simContacts-reading');
       }, function(n) {
         feedback.innerHTML = _('simContacts-imported3', {n: n});
+        UIManager.navBar.removeAttribute('aria-disabled');
+        UIManager.loadingOverlay.classList.remove('show-overlay');
       }, function() {
         feedback.innerHTML = _('simContacts-error');
+        UIManager.navBar.removeAttribute('aria-disabled');
+        UIManager.loadingOverlay.classList.remove('show-overlay');
     }.bind(this));
   },
 

@@ -6,8 +6,6 @@
 var Activities = {
   init: function act_init() {
     window.addEventListener('mozChromeEvent', this);
-    window.addEventListener('home', this);
-    window.addEventListener('holdhome', this);
   },
 
   handleEvent: function act_handleEvent(evt) {
@@ -18,19 +16,7 @@ var Activities = {
           case 'activity-choice':
             this.chooseActivity(detail);
             break;
-
-          case 'activity-done':
-            this.reopenActivityCaller(detail);
-            break;
         }
-        break;
-      case 'home':
-        if (this._callerApp)
-          this._callerApp = null;
-        break;
-      case 'holdhome':
-        if (this._callerApp)
-          this._callerApp = null;
         break;
     }
   },
@@ -62,7 +48,6 @@ var Activities = {
 
     this._sendEvent(returnedChoice);
     delete this._id;
-    this._callerApp = WindowManager.getDisplayedApp();
   },
 
   cancel: function act_cancel(value) {
@@ -74,18 +59,6 @@ var Activities = {
 
     this._sendEvent(returnedChoice);
     delete this._id;
-  },
-
-  reopenActivityCaller: function reopenActivityCaller(detail) {
-    // Ask Window Manager to bring the caller to foreground.
-    // inline activity frame will be removed by this action.
-
-    // XXX: what if we have multiple web activities in-flight?
-    if (!this._callerApp)
-      return;
-
-    WindowManager.launch(this._callerApp);
-    delete this._callerApp;
   },
 
   _sendEvent: function act_sendEvent(value) {
