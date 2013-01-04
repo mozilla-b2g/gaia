@@ -468,8 +468,10 @@ var CardsView = (function() {
 
     if (SNAPPING_SCROLLING && !draggingCardUp && reorderedCard === null) {
       if (Math.abs(eventDetail.dx) > threshold) {
-        if (direction === 'left' &&
-            currentDisplayed <= cardsList.children.length) {
+        if (
+            direction === 'left' &&
+            currentDisplayed < cardsList.children.length - 1
+        ) {
           currentDisplayed++;
           alignCard(currentDisplayed);
         } else if (direction === 'right' && currentDisplayed > 0) {
@@ -516,6 +518,12 @@ var CardsView = (function() {
 
         // Stop the app itself
         WindowManager.kill(element.dataset.origin);
+
+        // Fix for non selectable cards when we remove the last card
+        // Described in https://bugzilla.mozilla.org/show_bug.cgi?id=825293
+        if (cardsList.children.length === currentDisplayed) {
+          currentDisplayed--;
+        }
 
         // If there are no cards left, then dismiss the task switcher.
         if (!cardsList.children.length)
