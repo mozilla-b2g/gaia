@@ -7,6 +7,7 @@ var RingView = {
   _ringtonePlayer: null,
   _vibrateInterval: null,
   _screenLock: null,
+  _onFireAlarm: {},
 
   get time() {
     delete this.time;
@@ -35,6 +36,7 @@ var RingView = {
 
   init: function rv_init() {
     document.addEventListener('mozvisibilitychange', this);
+    this._onFireAlarm = window.opener.ActiveAlarmController.getOnFireAlarm();
     // If mozHidden is true in init state,
     // it means that the incoming call happens before the alarm.
     // We should just put a "silent" alarm screen
@@ -66,14 +68,14 @@ var RingView = {
   },
 
   setAlarmTime: function rv_setAlarmTime() {
-    var alarmTime = window.opener.AlarmManager.getAlarmTime();
+    var alarmTime = this.getAlarmTime();
     var time = getLocaleTime(alarmTime);
     this.time.textContent = time.t;
     this.hourState.textContent = time.p;
   },
 
   setAlarmLabel: function rv_setAlarmLabel() {
-    this.alarmLabel.textContent = window.opener.AlarmManager.getAlarmLabel();
+    this.alarmLabel.textContent = this.getAlarmLabel();
   },
 
   ring: function rv_ring() {
@@ -83,7 +85,7 @@ var RingView = {
     ringtonePlayer.mozAudioChannelType = 'alarm';
     ringtonePlayer.loop = true;
     var selectedAlarmSound = 'shared/resources/media/alarms/' +
-                             window.opener.AlarmManager.getAlarmSound();
+                             this.getAlarmSound();
     ringtonePlayer.src = selectedAlarmSound;
     ringtonePlayer.play();
     /* If user don't handle the onFire alarm,
@@ -140,6 +142,21 @@ var RingView = {
     this.setWakeLockEnabled(false);
   },
 
+  getAlarmTime: function am_getAlarmTime() {
+    var d = new Date();
+    d.setHours(this._onFireAlarm.hour);
+    d.setMinutes(this._onFireAlarm.minute);
+    return d;
+  },
+
+  getAlarmLabel: function am_getAlarmLabel() {
+    return this._onFireAlarm.label;
+  },
+
+  getAlarmSound: function am_getAlarmSound() {
+    return this._onFireAlarm.sound;
+  },
+
   handleEvent: function rv_handleEvent(evt) {
     switch (evt.type) {
     case 'mozvisibilitychange':
@@ -153,7 +170,6 @@ var RingView = {
       // If the incoming call happens after the alarm rings,
       // we need to close ourselves.
       this.stopAlarmNotification();
-      window.opener.AlarmManager.cancelHandler();
       window.close();
       break;
     case 'click':
@@ -164,12 +180,11 @@ var RingView = {
       switch (input.id) {
       case 'ring-button-snooze':
         this.stopAlarmNotification();
-        window.opener.AlarmManager.snoozeHandler();
+        window.opener.ActiveAlarmController.snoozeHandler();
         window.close();
         break;
       case 'ring-button-close':
         this.stopAlarmNotification();
-        window.opener.AlarmManager.cancelHandler();
         window.close();
         break;
       }
