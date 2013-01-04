@@ -79,7 +79,8 @@ Calendar.App = (function(window) {
           {type: 'Templates', name: 'Week'},
           {type: 'Utils', name: 'OrderedMap'},
           {type: 'Views', name: 'DayBased'}
-        ]
+        ],
+        Errors: []
       }
     },
 
@@ -202,6 +203,8 @@ Calendar.App = (function(window) {
       this.view('CalendarColors', function(colors) {
         colors.render();
       });
+
+      this.view('Errors');
 
       document.body.classList.remove('loading');
       this._routes();
@@ -366,10 +369,12 @@ Calendar.App = (function(window) {
           this._views[name] = new Calendar.Views[name]({
             app: this
           });
-          cb.call(this, this._views[name]);
+          if (cb) {
+            cb.call(this, this._views[name]);
+          }
         }.bind(this));
 
-      } else {
+      } else if (cb) {
           cb.call(this, this._views[name]);
       }
     },
@@ -384,6 +389,13 @@ Calendar.App = (function(window) {
      */
     store: function(name) {
       return this.db.getStore(name);
+    },
+
+    /**
+     * Returns the offline status.
+     */
+    offline: function() {
+      return (navigator && 'onLine' in navigator) ? !navigator.onLine : true;
     }
   };
 
