@@ -353,30 +353,37 @@ var ThreadListUI = {
    },
 
   updateThreadWithContact:
-    function thlui_updateThreadWithContact(number, contacts) {
+    function thlui_updateThreadWithContact(number, thread) {
 
-    var thread = document.getElementById('thread_' + number);
-    var nameContainer = thread.getElementsByClassName('name')[0];
-    var contact = contacts[0];
+    ContactDataManager.getContactData(number,
+      function gotContact(contacts) {
+      if (!contacts || ! Array.isArray(contacts) || contacts.length < 1) {
+        return;
+      }
+      // If there is contact with the phone number requested, we
+      // update the info in the thread
+      var nameContainer = thread.getElementsByClassName('name')[0];
+      var contact = contacts[0];
 
-    // Update contact phone number
-    var contactName = contact.name;
-    if (contacts.length > 1) {
-      // If there are more than one contact with same phone number
-      var others = contacts.length - 1;
-      nameContainer.innerHTML = _('others', {
-        name: contactName,
-        n: others
-      });
-    }else {
-      nameContainer.innerHTML = contactName;
-    }
-    // Do we have to update photo?
-    if (contact.photo && contact.photo[0]) {
-      var photo = thread.getElementsByTagName('img')[0];
-      var photoURL = URL.createObjectURL(contact.photo[0]);
-      photo.src = photoURL;
-    }
+      // Update contact phone number
+      var contactName = contact.name;
+      if (contacts.length > 1) {
+        // If there are more than one contact with same phone number
+        var others = contacts.length - 1;
+        nameContainer.innerHTML = _('others', {
+          name: contactName,
+          n: others
+        });
+      }else {
+        nameContainer.innerHTML = contactName;
+      }
+      // Do we have to update photo?
+      if (contact.photo && contact.photo[0]) {
+        var photo = thread.getElementsByTagName('img')[0];
+        var photoURL = URL.createObjectURL(contact.photo[0]);
+        photo.src = photoURL;
+      }
+    });
   },
 
   handleEvent: function thlui_handleEvent(evt) {
@@ -608,16 +615,8 @@ var ThreadListUI = {
     // Append Element
     threadsContainer.appendChild(threadDOM);
 
-    // Get the contact data for the number
-    ContactDataManager.getContactData(thread.num,
-      function gotContact(contacts) {
-      if (!contacts || !(contacts instanceof Array) || contacts.length < 1) {
-        return;
-      }
-      // If there is contact with the phone number requested, we
-      // update the info in the thread
-      ThreadListUI.updateThreadWithContact(thread.num, contacts);
-    });
+    // Update info given a number
+    ThreadListUI.updateThreadWithContact(thread.num, threadDOM);
   },
 
   // Adds a new grouping header if necessary (today, tomorrow, ...)
@@ -641,6 +640,17 @@ var ThreadListUI = {
 
     // Refresh fixed header logic
     FixedHeader.refresh();
+  },
+  // Method for updating all contact info after creating a contact
+  updateContactsInfo: function mm_updateContactsInfo() {
+    // Retrieve all 'li' elements and getting the phone numbers
+    var threads = ThreadListUI.view.getElementsByTagName('li');
+    for (var i = 0; i < threads.length; i++) {
+      var thread = threads[i];
+      var num = thread.id.replace('thread_', '');
+      // Update info of the contact given a number
+      ThreadListUI.updateThreadWithContact(num, thread);
+    }
   }
 };
 
@@ -1463,8 +1473,16 @@ var ThreadUI = {
 
     try {
       var activity = new MozActivity(options);
+      activity.onsuccess = ThreadUI.onCreateContact;
     } catch (e) {
       console.log('WebActivities unavailable? : ' + e);
+    }
+  },
+  onCreateContact: function thui_onCreateContact() {
+    ThreadListUI.updateContactsInfo();
+    // Update Header if needed
+    if (window.location.hash.substr(0, 5) === '#num=') {
+      ThreadUI.updateHeaderData();
     }
   }
 };
