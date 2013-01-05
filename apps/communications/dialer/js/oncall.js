@@ -191,14 +191,11 @@ var OnCallHandler = (function onCallHandler() {
   });
 
   var screenLock;
-  var cpuLock;
 
   /* === Setup === */
   function setup() {
     // Animating the screen in the viewport.
     toggleScreen();
-
-    cpuLock = navigator.requestWakeLock('cpu');
 
     if (telephony) {
       // Somehow the muted property appears to true after initialization.
@@ -269,33 +266,7 @@ var OnCallHandler = (function onCallHandler() {
 
     if (handledCalls.length > 1) {
       // New incoming call, signaling the user.
-      // Waiting for the screen to be turned on before vibrating.
-      if (document.mozHidden) {
-        window.addEventListener('mozvisibilitychange', function waitOn() {
-          window.removeEventListener('mozvisibilitychange', waitOn);
-          if (activateVibration) {
-            navigator.vibrate([100, 100, 100]);
-          }
-        });
-      } else {
-        if (activateVibration) {
-          navigator.vibrate([100, 100, 100]);
-        }
-      }
-
-      LazyL10n.get(function localized(_) {
-        var number = (call.number.length ? call.number : _('unknown'));
-        Contacts.findByNumber(number, function lookupContact(contact) {
-          if (contact && contact.name) {
-            CallScreen.incomingNumber.textContent = contact.name;
-            return;
-          }
-
-          CallScreen.incomingNumber.textContent = number;
-        });
-      });
-
-      CallScreen.showIncoming();
+      handleCallWaiting(call);
     } else {
       if (window.location.hash === '#locked' &&
           (call.state == 'incoming')) {
@@ -384,6 +355,33 @@ var OnCallHandler = (function onCallHandler() {
     });
   }
 
+  function handleCallWaiting(call) {
+    LazyL10n.get(function localized(_) {
+      var number = (call.number.length ? call.number : _('unknown'));
+      Contacts.findByNumber(number, function lookupContact(contact) {
+        if (contact && contact.name) {
+          CallScreen.incomingNumber.textContent = contact.name;
+          return;
+        }
+
+        CallScreen.incomingNumber.textContent = number;
+      });
+    });
+
+    CallScreen.showIncoming();
+
+    var vibrateInterval = window.setInterval(function vibrate() {
+      if ('vibrate' in navigator) {
+        navigator.vibrate([200]);
+      }
+    }, 2000);
+
+    call.addEventListener('statechange', function callStateChange() {
+      call.removeEventListener('statechange', callStateChange);
+      window.clearInterval(vibrateInterval);
+    });
+  }
+
   /* === Call Screen === */
   function toggleScreen() {
     displayed = !displayed;
@@ -419,11 +417,6 @@ var OnCallHandler = (function onCallHandler() {
   function exitCallScreen(animate) {
     if (closing) {
       return;
-    }
-
-    if (cpuLock) {
-      cpuLock.unlock();
-      cpuLock = null;
     }
 
     closing = true;

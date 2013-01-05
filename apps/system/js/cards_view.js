@@ -625,6 +625,9 @@ var CardsView = (function() {
         break;
 
       case 'holdhome':
+        if (LockScreen.locked)
+          return;
+
         SleepMenu.hide();
         showCardSwitcher();
         break;

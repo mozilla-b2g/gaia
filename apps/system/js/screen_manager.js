@@ -154,21 +154,24 @@ var ScreenManager = {
         break;
 
       case 'userproximity':
+        this._screenOffByProximity = evt.near;
         if (evt.near) {
           this.turnScreenOff(true);
         } else {
           this.turnScreenOn();
         }
-        this._screenOffByProximity = evt.near;
         break;
 
       case 'callschanged':
         var telephony = window.navigator.mozTelephony;
         if (!telephony.calls.length) {
-          window.removeEventListener('userproximity', this);
           if (this._screenOffByProximity) {
             this.turnScreenOn();
           }
+
+          window.removeEventListener('userproximity', this);
+          this._screenOffByProximity = false;
+
           if (this._cpuWakeLock) {
            this._cpuWakeLock.unlock();
            this._cpuWakeLock = null;
@@ -224,6 +227,14 @@ var ScreenManager = {
     // Remember the current screen brightness. We will restore it when
     // we turn the screen back on.
     self._savedBrightness = navigator.mozPower.screenBrightness;
+
+    // Remove the cpuWakeLock if screen is not turned off by
+    // userproximity event.
+    if (!this._screenOffByProximity && this._cpuWakeLock) {
+      window.removeEventListener('userproximity', this);
+      this._cpuWakeLock.unlock();
+      this._cpuWakeLock = null;
+    }
 
     var screenOff = function scm_screenOff() {
       self._setIdleTimeout(0);
@@ -282,6 +293,20 @@ var ScreenManager = {
     // Set the brightness before the screen is on.
     this.setScreenBrightness(this._savedBrightness, instant);
 
+    // If we are in a call and there is no cpuWakeLock,
+    // we would have to get one here.
+    var telephony = window.navigator.mozTelephony;
+    if (!this._cpuWakeLock && telephony && telephony.calls.length) {
+      telephony.calls.some(function checkCallConnection(call) {
+        if (call.state == 'connected') {
+          this._cpuWakeLock = navigator.requestWakeLock('cpu');
+          window.addEventListener('userproximity', this);
+          return true;
+        }
+        return false;
+      }, this);
+    }
+
     // Actually turn the screen on.
     var power = navigator.mozPower;
     if (power)
@@ -298,6 +323,7 @@ var ScreenManager = {
 
     this._reconfigScreenTimeout();
     this.fireScreenChangeEvent();
+
     return true;
   },
 
