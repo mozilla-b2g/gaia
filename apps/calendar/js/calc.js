@@ -416,8 +416,11 @@ Calendar.Calc = (function() {
      * @return {Date} first date in the week of given date.
      */
     getWeekStartDate: function(date) {
+      var weekStartDiff = navigator.mozL10n.get('weekStartDiff');
+      weekStartDiff = parseInt(weekStartDiff || "0");
+
       var currentDay = Calc.dayOfWeek(date);
-      var startDay = date.getDate() - currentDay;
+      var startDay = (date.getDate() - currentDay) + weekStartDiff;
 
       return Calc.createDay(date, startDay);
     },
