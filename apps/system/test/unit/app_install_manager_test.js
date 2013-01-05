@@ -3,6 +3,7 @@
 requireApp('system/test/unit/mock_app.js');
 requireApp('system/test/unit/mock_chrome_event.js');
 requireApp('system/test/unit/mock_statusbar.js');
+requireApp('system/test/unit/mock_manifest_helper.js');
 requireApp('system/test/unit/mock_app.js');
 requireApp('system/test/unit/mock_system_banner.js');
 requireApp('system/test/unit/mock_notification_screen.js');
@@ -20,7 +21,8 @@ var mocksForAppInstallManager = [
   'NotificationScreen',
   'Applications',
   'UtilityTray',
-  'ModalDialog'
+  'ModalDialog',
+  'ManifestHelper'
 ];
 
 mocksForAppInstallManager.forEach(function(mockName) {
