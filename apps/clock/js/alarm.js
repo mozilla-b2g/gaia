@@ -767,7 +767,7 @@ var AlarmEditView = {
         }
         break;
       case 'repeat-menu':
-        this.repeatSelect.focus();
+        setTimeout(function(self) { self.repeatSelect.focus(); }, 0, this);
         break;
       case 'repeat-select':
         switch (evt.type) {
@@ -777,7 +777,7 @@ var AlarmEditView = {
         }
         break;
       case 'sound-menu':
-        this.soundSelect.focus();
+        setTimeout(function(self) { self.soundSelect.focus(); }, 0, this);
         break;
       case 'sound-select':
         switch (evt.type) {
@@ -791,7 +791,7 @@ var AlarmEditView = {
         }
         break;
       case 'snooze-menu':
-        this.snoozeSelect.focus();
+        setTimeout(function(self) { self.snoozeSelect.focus(); }, 0, this);
         break;
       case 'snooze-select':
         switch (evt.type) {

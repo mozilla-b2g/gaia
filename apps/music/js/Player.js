@@ -481,7 +481,7 @@ var PlayerView = {
   },
 
   seekAudio: function pv_seekAudio(seekTime) {
-    if (seekTime)
+    if (seekTime !== undefined)
       this.audio.currentTime = seekTime;
 
     // mp3 returns in microseconds
@@ -606,21 +606,18 @@ var PlayerView = {
       case 'mousemove':
         if (evt.type === 'mousedown') {
           target.setCapture(false);
+          MouseEventShim.setCapture()
           this.isSeeking = true;
           this.seekIndicator.classList.add('highlight');
         }
         if (this.isSeeking && this.audio.duration > 0) {
-          var x = 0;
-
-          if (evt.layerX < 0) {
+          // target is the seek bar
+          var x = (evt.clientX - target.offsetLeft) / target.offsetWidth;
+          if (x < 0)
             x = 0;
-          } else if (evt.layerX > target.clientWidth) {
-            x = target.clientWidth;
-          } else {
-            x = evt.layerX;
-          }
-          // target is the seek bar, and evt.layerX is the moved position
-          var seekTime = x / target.clientWidth * this.seekBar.max;
+          if (x > 1)
+            x = 1;
+          var seekTime = x * this.seekBar.max;
           this.setSeekBar(this.audio.startTime, this.audio.duration, seekTime);
         }
         break;
@@ -629,8 +626,12 @@ var PlayerView = {
         this.seekIndicator.classList.remove('highlight');
 
         if (this.audio.duration > 0) {
-          // target is the seek bar, and evt.layerX is the moved position
-          var seekTime = evt.layerX / target.clientWidth * this.seekBar.max;
+          var x = (evt.clientX - target.offsetLeft) / target.offsetWidth;
+          if (x < 0)
+            x = 0;
+          if (x > 1)
+            x = 1;
+          var seekTime = x * this.seekBar.max;
           this.seekAudio(seekTime);
         }
         break;

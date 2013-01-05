@@ -31,6 +31,7 @@ var PhoneLock = {
     this.phonelockDesc = document.getElementById('phoneLock-desc');
     this.lockscreenEnable = document.getElementById('lockscreen-enable');
     this.passcodeInput = document.getElementById('passcode-input');
+    this.passcodeContainer = document.getElementById('passcode-container');
     this.passcodeDigits = document.querySelectorAll('.passcode-digit');
     this.passcodeEnable = document.getElementById('passcode-enable');
     this.passcodeEditButton = document.getElementById('passcode-edit');
@@ -47,7 +48,15 @@ var PhoneLock = {
     this.passcodeEditButton.addEventListener('click', this);
     this.createPasscodeButton.addEventListener('click', this);
     this.changePasscodeButton.addEventListener('click', this);
-    this.passcodePanel.addEventListener('mousedown', this, true);
+
+    // If the pseudo-input loses focus, then allow the user to restore focus
+    // by touching the container around the pseudo-input.
+    var self = this;
+    this.passcodeContainer.addEventListener('mousedown', function(evt) {
+      self.passcodeInput.focus();
+      evt.preventDefault();
+    });
+
     this.fetchSettings();
   },
 
@@ -119,26 +128,17 @@ var PhoneLock = {
     this.MODE = mode;
     this.passcodePanel.dataset.mode = mode;
     if (document.location.hash != 'phoneLock-passcode') {
-      var self = this;
       document.location.hash = 'phoneLock-passcode'; // show dialog box
-      this.passcodePanel.
-           addEventListener('transitionend', function ontransitionend() {
-        self.passcodePanel.
-             removeEventListener('transitionend', ontransitionend);
-        self.passcodeInput.focus();
-      });
+
+      // Open the keyboard after the UI transition. We can't listen for the
+      // ontransitionend event because some of the passcode mode changes, such
+      // as edit->new, do not trigger transition events.
+      setTimeout(function(self) { self.passcodeInput.focus(); }, 0, this);
     }
     this.updatePassCodeUI();
   },
 
   handleEvent: function pl_handleEvent(evt) {
-    // Prevent mousedown event to avoid the keypad losing focus.
-    if (evt.type == 'mousedown') {
-      this.passcodeInput.focus();
-      evt.preventDefault();
-      return;
-    }
-
     switch (evt.target) {
       case this.passcodeEnable:
         evt.preventDefault();
