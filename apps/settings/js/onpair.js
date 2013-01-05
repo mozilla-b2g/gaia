@@ -99,7 +99,8 @@ var PairView = {
         this.closeButton.disabled = true;
         switch (this._pairMethod) {
           case 'confirmation':
-            window.opener.gDeviceList.setConfirmation(this._device.address, true);
+            window.opener.gDeviceList.
+                   setConfirmation(this._device.address, true);
             break;
           case 'pincode':
             var value = this.pinInput.value;

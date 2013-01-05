@@ -836,7 +836,7 @@ Evme.Brain = new function Evme_Brain() {
             elContainer.classList.add("smart-folder-visible");
 
             currentFolder = data.folder;
-            window.setTimeout(self.loadAppsIntoFolder, 500);
+            window.setTimeout(self.loadAppsIntoFolder, 400);
         };
 
         // hiding the folder
@@ -920,7 +920,8 @@ Evme.Brain = new function Evme_Brain() {
             currentFolder.loadApps({
                 "apps": installedApps,
                 "iconsFormat": iconsFormat,
-                "offset": 0
+                "offset": 0,
+                "installed": true
             }, function onDone() {
                 requestSmartFolderApps = Evme.DoATAPI.search({
                     "query": query,

@@ -219,6 +219,10 @@ var SleepMenu = {
     if (!power)
       return;
 
+    // Early return if we are already shutting down.
+    if (document.getElementById('poweroff-splash'))
+      return;
+
     // Show shutdown animation before actually performing shutdown.
     //  * step1: fade-in poweroff-splash.
     //  * step2: The 3-rings animation is performed on the screen.

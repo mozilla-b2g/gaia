@@ -380,6 +380,8 @@ var Calls = (function(window, document, undefined) {
     var alertLabel =
       document.querySelector('#menuItem-callWaiting .alert-label');
     var alertPanel = document.querySelector('#call .cw-alert');
+    var alertLabel =
+      document.querySelector('#menuItem-callWaiting .alert-label');
     var confirmInput =
       alertPanel.querySelector('.cw-alert-checkbox-label input');
     var setBtn = alertPanel.querySelector('.cw-alert-set');

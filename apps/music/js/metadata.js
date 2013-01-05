@@ -3,10 +3,21 @@
 // Parse the specified blob and pass an object of metadata to the
 // metadataCallback, or invoke the errorCallback with an error message.
 function parseAudioMetadata(blob, metadataCallback, errorCallback) {
+  var filename = blob.name;
+
   // If the file is in the DCIM/ directory and has a .3gp extension
   // then it is a video, not a music file and we ignore it
-  if (blob.name.slice(0, 5) === 'DCIM/' && blob.name.slice(-4) === '.3gp') {
-    errorCallback('skipping video file');
+  if (filename.slice(0, 5) === 'DCIM/' &&
+      filename.slice(-4).toLowerCase() === '.3gp') {
+    errorCallback('skipping 3gp video file');
+    return;
+  }
+
+  // If the file has a .m4v extension then it is almost certainly a video.
+  // Device Storage should not even return these files to us:
+  // see https://bugzilla.mozilla.org/show_bug.cgi?id=826024
+  if (filename.slice(-4).toLowerCase() === '.m4v') {
+    errorCallback('skipping m4v video file');
     return;
   }
 
@@ -85,19 +96,18 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
 
   // If the blob has a name, use that as a default title in case
   // we can't find one in the file
-  if (blob.name) {
-    var p1 = blob.name.lastIndexOf('/');
-    var p2 = blob.name.lastIndexOf('.');
+  if (filename) {
+    var p1 = filename.lastIndexOf('/');
+    var p2 = filename.lastIndexOf('.');
     if (p2 === -1)
-      p2 = blob.name.length;
-    metadata[TITLE] = blob.name.substring(p1 + 1, p2);
+      p2 = filename.length;
+    metadata[TITLE] = filename.substring(p1 + 1, p2);
   }
 
   // Read the start of the file, figure out what kind it is, and call
-  // the appropriate parser.  Start off with an 8kb chunk of data.
-  // If the file contains album art, we'll have to go back and read
-  // a bigger chunk, but if it doesn't we probably won't need another read.
-  var headersize = Math.min(8 * 1024, blob.size);
+  // the appropriate parser.  Start off with an 64kb chunk of data.
+  // If the metadata is in that initial chunk we won't have to read again.
+  var headersize = Math.min(64 * 1024, blob.size);
   BlobView.get(blob, 0, headersize, function(header, error) {
     if (error) {
       errorCallback(error);
@@ -456,8 +466,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
   }
 
   //
-  // XXX: probably not working right. Need a special case for
-  //   the track number atom?
+  // XXX: Need a special case for the track number atom?
   //
   // https://developer.apple.com/library/mac/#documentation/QuickTime/QTFF/QTFFChap1/qtff1.html
   // http://en.wikipedia.org/wiki/MPEG-4_Part_14
@@ -470,40 +479,55 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
     // we're reading and parsing here for a tree that I need to traverse.
     // Maybe nextBox() and firstChildBox() functions would be helpful.
     // Or even make these methods of BlobView?  Not sure if it is worth
-    // the time to refactor, though...
+    // the time to refactor, though... See also the approach in
+    // shared/js/get_video_rotation.js
     //
 
-    function nextAtom(view, callback) {
-      // The size of this atom tells us the position of the next. We want to
-      // be sure that we always read an extra 8 bytes so we know the size and
-      // type of the next atom, too.
-      var thisAtomSize = view.getUint32(0);
-      var nextAtomSize = view.getUint32(thisAtomSize);
-      var nextAtomStart = view.sliceOffset + view.byteOffset + thisAtomSize;
-      view.getMore(nextAtomStart, nextAtomSize + 8, callback);
-    }
-
-    // Our header view is on the ftyp atom. Read the subsequent atoms
-    // until we find the moov atom (likely the next one).
-    nextAtom(header, findMoovAtom);
+    findMoovAtom(header);
 
     function findMoovAtom(atom) {
-      var size = atom.readUnsignedInt();
-      var type = atom.readASCIIText(4);
+      try {
+        var offset = atom.sliceOffset + atom.viewOffset; // position in blob
+        var size = atom.readUnsignedInt();
+        var type = atom.readASCIIText(4);
 
-      if (type === 'moov') {
-        try {
-          parseMoovAtom(atom, atom.index + size - 8);
-          handleCoverArt(metadata);
-          return;
+        if (size === 0) {
+          // A size of 0 means the rest of the file
+          size = atom.blob.size - offset;
         }
-        catch (e) {
-          errorCallback(e);
+        else if (size === 1) {
+          // A size of 1 means the size is in bytes 8-15
+          size = atom.readUnsignedInt() * 4294967296 + atom.readUnsignedInt();
+        }
+
+        if (type === 'moov') {
+          // Get the full contents of this atom
+          atom.getMore(offset, size, function(moov) {
+            try {
+              parseMoovAtom(moov, size);
+              handleCoverArt(metadata);
+              return;
+            }
+            catch (e) {
+              errorCallback(e);
+            }
+          });
+        }
+        else {
+          // Otherwise, get the start of the next atom and recurse
+          // to continue the search for the moov atom.
+          // If we're reached the end of the blob without finding
+          // anything, just call the metadata callback with no metadata
+          if (offset + size + 16 <= atom.blob.size) {
+            atom.getMore(offset + size, 16, findMoovAtom);
+          }
+          else {
+            metadataCallback(metadata);
+          }
         }
       }
-      else {
-        // Otherwise, recurse and keep looking for the moov atom
-        nextAtom(atom, findMoovAtom);
+      catch (e) {
+        errorCallback(e);
       }
     }
 
@@ -512,16 +536,19 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
     // We've read the entire moov atom, so we've got all the bytes
     // we need and don't have to do an async read again.
     function parseMoovAtom(data, end) {
-      var needudta = true, needtrak = true;
+      data.advance(8); // skip the size and type of this atom
+
       // Find the udta and trak atoms within the moov atom
-      while (data.index < end && (needudta || needtrak)) {
+      // There will only be one udta atom, but there may be multiple trak
+      // atoms. In that case, this is probably a movie file and we'll reject
+      // it when we find a track that is not an mp4 audio codec.
+      while (data.index < end) {
         var size = data.readUnsignedInt();
         var type = data.readASCIIText(4);
         var nextindex = data.index + size - 8;
         if (type === 'udta') {       // Metadata is inside here
           parseUdtaAtom(data, end);
           data.index = nextindex;
-          needudta = false;
         }
         else if (type === 'trak') {  // We find the audio format inside here
           data.advance(-8); // skip back to beginning
@@ -543,7 +570,6 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
             }
           }
           data.index = nextindex;
-          needtrak = false;
         }
         else {
           data.advance(size - 8);
@@ -742,4 +768,3 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
     }
   }
 }
-
