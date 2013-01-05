@@ -189,10 +189,13 @@
         var name;
         var html = '';
 
+        var weekStartDiff = navigator.mozL10n.get('weekStartDiff');
+        weekStartDiff = parseInt(weekStartDiff || "0");
+
         for (; i < days; i++) {
-          name = navigator.mozL10n.get('weekday-' + i + '-short');
+          name = navigator.mozL10n.get('weekday-' + ((i + weekStartDiff) % days) + '-short');
           html += template.weekDaysHeaderDay.render({
-            day: String(i),
+            day: String((i + weekStartDiff) % days),
             dayName: name
           });
         }
