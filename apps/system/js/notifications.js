@@ -39,7 +39,7 @@
 }());
 
 var NotificationScreen = {
-  TOASTER_TIMEOUT: 1200,
+  TOASTER_TIMEOUT: 2000,
   TRANSITION_SPEED: 1.8,
   TRANSITION_FRACTION: 0.30,
 
@@ -129,9 +129,6 @@ var NotificationScreen = {
     evt.preventDefault();
     this._notification = evt.target;
     this._containerWidth = this.container.clientWidth;
-
-    this._notification.style.MozTransition = '';
-    this._notification.style.width = evt.target.parentNode.clientWidth + 'px';
   },
 
   swipe: function ns_swipe(evt) {
@@ -141,7 +138,11 @@ var NotificationScreen = {
     var farEnough = Math.abs(distance) >
       this._containerWidth * this.TRANSITION_FRACTION;
 
-    if (!(farEnough || fastEnough)) {
+    // We only remove the notification if the swipe was
+    // - left to right
+    // - far or fast enough
+    if ((distance > 0) ||
+        !(farEnough || fastEnough)) {
       // Werent far or fast enough to delete, restore
       delete this._notification;
       return;
@@ -168,6 +169,7 @@ var NotificationScreen = {
         toaster.style.MozTransition = '';
         toaster.style.MozTransform = '';
         toaster.classList.remove('displayed');
+        toaster.classList.remove('disappearing');
 
         setTimeout(function nextLoop() {
           toaster.style.display = 'block';
