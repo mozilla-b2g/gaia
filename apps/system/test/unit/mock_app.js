@@ -3,7 +3,8 @@ var idGen = 0;
 function MockApp(opts) {
   /* default values */
   this.origin = 'https://testapp.gaiamobile.org';
-  this.manifestURL = 'https://testapp.gaiamobile.org/manifest.webapp';
+  this.manifestURL = 'https://testapp.gaiamobile.org/manifest' +
+                      idGen + '.webapp';
   this.manifest = {
     name: 'Mock app'
   };

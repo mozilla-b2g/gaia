@@ -423,7 +423,9 @@ var UpdateManager = {
 
   onuninstall: function um_onuninstall(evt) {
     this.updatableApps.some(function appIterator(updatableApp, index) {
-      if (updatableApp.app === evt.application) {
+      // The application object we get from the event
+      // has only origin and manifestURL properties
+      if (updatableApp.app.manifestURL === evt.application.manifestURL) {
         this.removeFromAll(updatableApp);
         return true;
       }
