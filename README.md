@@ -40,9 +40,6 @@ To run all the unit tests with B2G Desktop:
    or `make test-agent-test APP=<APP>` to run unit tests for a
    specific app
 
-   or `make test-agent-test TESTS=<PATH/TO/TESTFILE.JS>` to run unit
-   tests in a specific file
-
 More importantly, you can use test-agent-server to watch the files
 on the filesystem and execute relevant tests when they change:
 

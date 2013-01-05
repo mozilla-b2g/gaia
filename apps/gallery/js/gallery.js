@@ -711,6 +711,9 @@ function setView(view) {
     previousFrame.clear();
     currentFrame.clear();
     nextFrame.clear();
+    delete previousFrame.filename;
+    delete currentFrame.filename;
+    delete nextFrame.filename;
     break;
   }
 

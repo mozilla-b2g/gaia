@@ -38,6 +38,7 @@
     <link rel="resource" type="application/l10n" href="locales/locales.ini"/>
     <script type="application/javascript" src="shared/js/l10n.js"></script>
     <script type="application/javascript" src="shared/js/l10n_date.js"></script>
+    <script type="application/javascript" defer src="shared/js/mouse_event_shim.js"></script>
     <script type="application/javascript" defer src="shared/js/manifest_helper.js"></script>
 
     <!-- Specific code -->
@@ -1374,7 +1375,7 @@
 
       <div class="passcode-overlay">
         <input type="number" id="passcode-input" />
-        <div class="passcode-container">
+        <div class="passcode-container" id="passcode-container">
           <div class="passcode-error" data-l10n-id="incorrect-passcode" data-type="incorrect">Incorrect passcode!</div>
           <div class="passcode-error" data-l10n-id="passcode-doesnt-match" data-type="mismatch">Passcode doesn't match. Try again!</div>
           <span data-l10n-id="passcode">Passcode</span>
