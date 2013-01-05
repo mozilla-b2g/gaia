@@ -158,7 +158,7 @@ content = ["1515", "7000"];
 writeContent(init, JSON.stringify(content));
 
 // Browser
-init = getFile(GAIA_DIR, 'apps', 'browser', 'default_data', 'init.json');
+init = getFile(GAIA_DIR, 'apps', 'browser', 'js', 'init.json');
 
 content = {
   "bookmarks": [
