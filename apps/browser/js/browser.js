@@ -180,7 +180,7 @@ var Browser = {
     console.log('Populating default data.');
     // Fetch default data
     var xhr = new XMLHttpRequest();
-    xhr.open('GET', '/default_data/init.json', true);
+    xhr.open('GET', '/js/init.json', true);
     xhr.addEventListener('load', (function browser_defaultDataListener() {
       if (!(xhr.status === 200 | xhr.status === 0))
         return;
