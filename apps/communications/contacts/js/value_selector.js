@@ -1,140 +1,102 @@
 /*
 How to:
-  var prompt1 = new ValueSelector('Dummy title 1', [
+  var prompt1 = new ValueSelector([
     {
       label: 'Dummy element',
-      callback: function() {
-        alert('Define an action here!');
-      }
     }
   ]);
 
-  prompt1.addToList('Another button', function(){alert('Another action');});
+  prompt1.addToList('Another button');
+  prompt1.onchange =  function() {alert('Another action');}
   prompt1.show();
 */
 
-function ValueSelector(title, list) {
-  var init, show, hide, render, setTitle, emptyList, addToList,
-      data, el;
+function ValueSelector(list) {
+  var data, el, select;
+  var self = this;
 
-  init = function() {
-    var strPopup, body, section, btnCancel;
+  function init() {
+    var strPopup, body, section;
 
     // Model. By having dummy data in the model,
     // it make it easier for othe developers to catch up to speed
     data = {
-      title: 'No Title',
       list: [
         {
-          label: 'Dummy element',
-          callback: function() {
-            alert('Define an action here!');
-          }
+          label: 'Dummy element'
         }
       ]
     };
 
     body = document.body;
+    el = body.querySelector('section.valueselector');
+    if (el === null) {
+      el = document.createElement('section');
+      el.className = 'valueselector';
+      strPopup = '<form>';
+      strPopup += '  <select name="selector_name">';
+      strPopup += '    <option>Dummy element</option>';
+      strPopup += '  </select>';
+      strPopup += '</form>';
 
-    el = document.createElement('section');
-    el.setAttribute('class', 'valueselector');
-    el.setAttribute('role', 'region');
+      el.innerHTML += strPopup;
+      body.appendChild(el);
+    }
 
-    strPopup = '<div role="dialog">';
-    strPopup += '  <div class="center">';
-    strPopup += '    <h3>No Title</h3>';
-    strPopup += '    <ul>';
-    strPopup += '      <li>';
-    strPopup += '        <label>';
-    strPopup += '          <input type="radio" name="option">';
-    strPopup += '          <span>Dummy element</span>';
-    strPopup += '        </label>';
-    strPopup += '      </li>';
-    strPopup += '    </ul>';
-    strPopup += '  </div>';
-    strPopup += '  <menu>';
-    strPopup += '    <button>' + _('cancel') + '</button>';
-    strPopup += '  </menu>';
-    strPopup += '</div>';
-
-    el.innerHTML += strPopup;
-    body.appendChild(el);
-
-    btnCancel = el.querySelector('button');
-    btnCancel.addEventListener('click', function() {
-      hide();
+    select = el.querySelector('select');
+    select.addEventListener('change', function() {
+      if (typeof self.onchange === 'function') {
+        window.setTimeout(function handle_onchange() {
+          // Wait a few milisecs to give feedback to the user
+          self.onchange(select.value);
+        }, 200);
+      }
     });
 
     // Empty dummy data
     emptyList();
-
-    // Apply optional actions while initializing
-    if (typeof title === 'string') {
-      setTitle(title);
-    }
 
     if (Array.isArray(list)) {
       data.list = list;
     }
   }
 
-  show = function() {
+  this.show = function() {
     render();
+
     el.classList.add('visible');
-  }
 
-  hide = function() {
+    // And now focus it to force the system to pop up the options
+    select.focus();
+  };
+
+  this.hide = function() {
+    // Avoid consuming resources
     el.classList.remove('visible');
-  }
+  };
 
-  render = function() {
-    var title = el.querySelector('h3'),
-        list = el.querySelector('ul');
+  function render() {
+    select.innerHTML = '';
+    select.value = '';
+    var totalOptions = data.list.length;
 
-    title.innerHTML = data.title;
+    select.setAttribute('size', totalOptions);
 
-    list.innerHTML = '';
-    for (var i = 0; i < data.list.length; i++) {
-      var li = document.createElement('li'),
-          label = document.createElement('label'),
-          input = document.createElement('input'),
-          span = document.createElement('span'),
-          text = document.createTextNode(data.list[i].label);
-
-      span.appendChild(text);
-      span.addEventListener('click', data.list[i].callback, false);
-      input.setAttribute('type', 'radio');
-      input.setAttribute('name', 'option');
-      label.appendChild(input);
-      label.appendChild(span);
-      li.appendChild(label);
-      list.appendChild(li);
+    for (var i = 0; i < totalOptions; i++) {
+      var option = new Option(data.list[i].label, data.list[i].label);
+      select.add(option);
     }
   }
 
-  setTitle = function(str) {
-    data.title = str;
-  }
-
-  emptyList = function() {
+  function emptyList() {
     data.list = [];
   }
 
-  addToList = function(label, callback) {
+  this.addToList = function(label) {
     data.list.push({
-      label: label,
-      callback: callback
+      label: label
     });
-  }
+  };
 
   init();
-
-  return{
-    init: init,
-    show: show,
-    hide: hide,
-    setTitle: setTitle,
-    addToList: addToList,
-    List: list
-  };
 }
