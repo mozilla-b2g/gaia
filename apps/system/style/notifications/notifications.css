@@ -167,7 +167,8 @@ html, body {
   pointer-events: none;
 }
 
-.notification.disappearing {
+.notification.disappearing,
+#notification-toaster.disappearing {
   transition: transform 0.3s linear;
   transform: translateX(100%);
 }

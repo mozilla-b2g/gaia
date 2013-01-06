@@ -1,4 +1,4 @@
-﻿'use strict';
+'use strict';
 
 var _ = navigator.mozL10n.get;
 var TAG_OPTIONS;
@@ -247,21 +247,20 @@ var Contacts = (function() {
         break;
       default:
         // if more than one required type of data
-        var prompt1 = new ValueSelector(selectDataStr);
+        var prompt1 = new ValueSelector();
         for (var i = 0; i < dataSet.length; i++) {
           var data = dataSet[i].value,
               carrier = dataSet[i].carrier || '';
-          prompt1.addToList(data + ' ' + carrier, function(itemData) {
-            return function() {
-              prompt1.hide();
-              result[type] = itemData;
-              ActivityHandler.postPickSuccess(result);
-            }
-          }(data));
-
+          prompt1.addToList(data + ' ' + carrier);
         }
+
+        prompt1.onchange = function onchange(itemData) {
+          prompt1.hide();
+          result[type] = itemData;
+          ActivityHandler.postPickSuccess(result);
+        };
         prompt1.show();
-    }
+    } // switch
   };
 
   var contactListClickHandler = function originalHandler(id) {
@@ -632,7 +631,7 @@ var Contacts = (function() {
   var getFirstContacts = function c_getFirstContacts() {
     var onerror = function() {
       console.error('Error getting first contacts');
-    }
+    };
     contacts.List.getAllContacts(onerror, function(contacts) {
       firstContacts = contacts;
       if (readyToPaint) {

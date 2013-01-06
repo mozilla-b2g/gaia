@@ -251,7 +251,8 @@ var ValuePicker = (function() {
     if ('touches' in evt) {
       evt = evt.touches[0];
     }
-    return { x: evt.pageX, y: evt.pageY, timestamp: evt.timeStamp };
+    return { x: evt.pageX, y: evt.pageY,
+             timestamp: MouseEventShim.getEventTimestamp(evt) };
   }
 
   //
@@ -287,7 +288,6 @@ var ValuePicker = (function() {
 
   function vp_mousemove(event) {
     event.stopPropagation();
-    event.target.setCapture(true);
     currentEvent = cloneEvent(event);
 
     calcSpeed();
@@ -324,6 +324,8 @@ var ValuePicker = (function() {
 
   function vp_mousedown(event) {
     event.stopPropagation();
+    event.target.setCapture(true);
+    MouseEventShim.setCapture();
 
     // Stop animation
     this.element.classList.remove('animation-on');
