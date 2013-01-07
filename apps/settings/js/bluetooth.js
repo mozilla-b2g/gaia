@@ -593,7 +593,7 @@ onLocalized(function bluetoothSettings() {
     }
 
     function startDiscovery() {
-      if (!bluetooth.enabled || !defaultAdapter)
+      if (!bluetooth.enabled || !defaultAdapter || discoverTimeout)
         return;
 
       var req = defaultAdapter.startDiscovery();
@@ -616,7 +616,7 @@ onLocalized(function bluetoothSettings() {
     }
 
     function stopDiscovery() {
-      if (!bluetooth.enabled || !defaultAdapter)
+      if (!bluetooth.enabled || !defaultAdapter || !discoverTimeout)
         return;
       var req = defaultAdapter.stopDiscovery();
       req.onsuccess = function bt_discoveryStopped() {
