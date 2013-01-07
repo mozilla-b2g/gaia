@@ -103,7 +103,13 @@ function tzSelect(contSelector, citySelector, onchange) {
         var req = settings.createLock().set({ 'time.timezone': tz.id });
         if (onchange) {
           req.onsuccess = function updateTZ_callback() {
-            onchange(tz);
+            // Wait until the timezone is actually set
+            // before calling the callback.
+            window.addEventListener('moztimechange', function timeChanged() {
+              window.removeEventListener('moztimechange', timeChanged);
+
+              onchange(tz);
+            });
           }
         }
       }, lastMozSettingValue);
