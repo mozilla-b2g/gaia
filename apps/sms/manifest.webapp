@@ -43,6 +43,7 @@
     "new": {
       "filters": {
         "type": "websms/sms"
+        "number:" { "required: true, "regexp": "/^[0-9+\. ]+$/" }
        },
       "disposition": "window"
     }
