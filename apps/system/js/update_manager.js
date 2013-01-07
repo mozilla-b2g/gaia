@@ -47,12 +47,8 @@ var UpdateManager = {
     this._mgmt.getAll().onsuccess = (function gotAll(evt) {
       var apps = evt.target.result;
       apps.forEach(function appIterator(app) {
-        var updatableApp = new AppUpdatable(app);
-        this.addToUpdatableApps(updatableApp);
-        if (app.downloadAvailable) {
-          this.addToUpdatesQueue(updatableApp);
-        }
-      }, this);
+        new AppUpdatable(app);
+      });
     }).bind(this);
 
     this.systemUpdatable = new SystemUpdatable();
@@ -304,16 +300,16 @@ var UpdateManager = {
       return;
 
     var removedApp = this.updatableApps[removeIndex];
-    if (removedApp.app.downloadAvailable) {
-      this.removeFromUpdatesQueue(removedApp);
-    }
+    this.removeFromUpdatesQueue(removedApp);
+
     removedApp.uninit();
     this.updatableApps.splice(removeIndex, 1);
   },
 
   addToUpdatesQueue: function um_addToUpdatesQueue(updatable) {
-    if (this._downloading)
+    if (this._downloading) {
       return;
+    }
 
     if (updatable.app &&
         updatable.app.installState !== 'installed') {
@@ -335,22 +331,25 @@ var UpdateManager = {
     this.updatesQueue.push(updatable);
 
     if (this.updatesQueue.length === 1) {
-      var self = this;
-      setTimeout(function waitForMore() {
-        if (self.updatesQueue.length) {
-          self.container.classList.add('displayed');
-          self.toaster.classList.add('displayed');
-
-          setTimeout(function waitToHide() {
-            self.toaster.classList.remove('displayed');
-          }, self.TOASTER_TIMEOUT);
-
-          NotificationScreen.incExternalNotifications();
-        }
-      }, this.NOTIFICATION_BUFFERING_TIMEOUT);
+      setTimeout(this.displayNotificationAndToaster.bind(this),
+          this.NOTIFICATION_BUFFERING_TIMEOUT);
     }
 
     this.render();
+  },
+
+  displayNotificationAndToaster: function um_displayNotificationAndToaster() {
+    if (this.updatesQueue.length && !this._downloading) {
+      this.container.classList.add('displayed');
+      this.toaster.classList.add('displayed');
+
+      var self = this;
+      setTimeout(function waitToHide() {
+        self.toaster.classList.remove('displayed');
+      }, this.TOASTER_TIMEOUT);
+
+      NotificationScreen.incExternalNotifications();
+    }
   },
 
   removeFromUpdatesQueue: function um_removeFromUpdatesQueue(updatable) {
@@ -388,6 +387,7 @@ var UpdateManager = {
       StatusBar.incSystemDownloads();
       this._wifiLock = navigator.requestWakeLock('wifi');
 
+      this.container.classList.add('displayed');
       this.render();
     }
   },
@@ -402,6 +402,7 @@ var UpdateManager = {
     if (this.downloadsQueue.length === 0) {
       this._downloading = false;
       StatusBar.decSystemDownloads();
+      this._downloadedBytes = 0;
       this.checkStatuses();
 
       if (this._wifiLock) {
@@ -431,7 +432,6 @@ var UpdateManager = {
   oninstall: function um_oninstall(evt) {
     var app = evt.application;
     var updatableApp = new AppUpdatable(app);
-    this.addToUpdatableApps(updatableApp);
   },
 
   onuninstall: function um_onuninstall(evt) {
