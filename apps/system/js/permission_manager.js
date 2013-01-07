@@ -47,7 +47,7 @@ var PermissionManager = (function() {
     var str = '';
     var _ = navigator.mozL10n.get;
 
-    var permissionName = _('perm-' + detail.permission);
+    var permissionName = _('perm-' + detail.permission.replace(':', '-'));
 
     if (detail.isApp) {
       // App
