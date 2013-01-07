@@ -7,6 +7,11 @@ var WifiManager = {
       this.api = window.navigator.mozWifiManager;
       this.changeStatus();
       this.gCurrentNetwork = this.api.connection.network;
+
+      // Ensure that wifi is on.
+      var lock = window.navigator.mozSettings.createLock();
+      this.enable(lock);
+      this.enableDebugging(lock);
     }
   },
   isConnectedTo: function wn_isConnectedTo(network) {
@@ -70,9 +75,24 @@ var WifiManager = {
       callback(fakeNetworks);
     }
   },
-  enable: function wn_enable(firstTime) {
-    var settings = window.navigator.mozSettings;
-    settings.createLock().set({'wifi.enabled': true});
+  enable: function wn_enable(lock) {
+    lock.set({'wifi.enabled': true});
+  },
+  enableDebugging: function wn_enableDebugging(lock) {
+    // For bug 819947: turn on wifi debugging output to help track down a bug
+    // in wifi. We turn on wifi output only while the FTU app is active.
+    this._prevDebuggingValue = false;
+    var req = lock.get('wifi.debugging.enabled');
+    req.onsuccess = function wn_getDebuggingSuccess() {
+      this._prevDebuggingValue = req.result['wifi.debugging.enabled'];
+    };
+    lock.set({ 'wifi.debugging.enabled': true });
+  },
+  finish: function wn_finish() {
+    if (!this._prevDebuggingValue) {
+      var resetLock = window.navigator.mozSettings.createLock();
+      resetLock.set({'wifi.debugging.enabled': false});
+    }
   },
   getNetwork: function wm_gn(ssid) {
     var network;
