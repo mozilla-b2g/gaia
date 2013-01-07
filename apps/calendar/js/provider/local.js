@@ -10,6 +10,8 @@
     this.alarms = this.app.store('Alarm');
   }
 
+  Local.calendarId = LOCAL_CALENDAR_ID;
+
   /**
    * Returns the details for the default calendars.
    */
