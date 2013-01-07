@@ -339,7 +339,7 @@ contacts.Details = (function() {
       var telField = {
         value: utils.text.escapeHTML(currentTel.value, true) || '',
         type: escapedType || TAG_OPTIONS['phone-type'][0].value,
-        carrier: utils.text.escapeHTML(currentTel.carrier, true) || '',
+        carrier: utils.text.escapeHTML(currentTel.carrier || '', true) || '',
         i: tel
       };
       var template = utils.templates.render(phonesTemplate, telField);

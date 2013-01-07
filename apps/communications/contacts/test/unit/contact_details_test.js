@@ -306,6 +306,23 @@ suite('Render contact', function() {
       assert.include(container.innerHTML, mockContact.tel[0].type);
     });
 
+    test('with 1 phone and carrier undefined', function() {
+      var contactNoCarrier = new MockContactAllFields();
+      contactNoCarrier.tel = [
+        {
+          value: '+34678987123',
+          type: ['Personal']
+        }
+      ];
+      subject.setContact(contactNoCarrier);
+      subject.render(null, TAG_OPTIONS);
+      var phoneButton = container.querySelector('#call-or-pick-0');
+      assert.equal(phoneButton.querySelector('b').textContent,
+                    contactNoCarrier.tel[0].value);
+      var carrierContent = phoneButton.querySelector('em').textContent;
+      assert.lengthOf(carrierContent, 0);
+    });
+
     test('with no phones', function() {
       var contactWoTel = new MockContactAllFields();
       contactWoTel.tel = [];
