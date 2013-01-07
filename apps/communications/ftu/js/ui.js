@@ -232,13 +232,11 @@ var UIManager = {
     document.getElementById('tz-continent-label').textContent =
       timezone.id.replace(/\/.*$/, '');
     document.getElementById('tz-city-label').textContent = timezone.city;
-    // it can take a few milliseconds before the TZ change is reflected on time
-    setTimeout(function updateTime() {
-      var f = new navigator.mozL10n.DateTimeFormat();
-      var now = new Date();
-      var timeLabel = document.getElementById('time-configuration-label');
-      timeLabel.innerHTML = f.localeFormat(now, _('shortTimeFormat'));
-    });
+
+    var f = new navigator.mozL10n.DateTimeFormat();
+    var now = new Date();
+    var timeLabel = document.getElementById('time-configuration-label');
+    timeLabel.innerHTML = f.localeFormat(now, _('shortTimeFormat'));
   },
 
   chooseNetwork: function ui_cn(event) {
