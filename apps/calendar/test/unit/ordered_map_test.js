@@ -1,5 +1,5 @@
 requireApp('calendar/test/unit/helper.js', function() {
-  requireLib('utils/ordered_map.js');
+  requireLib('ordered_map.js');
 });
 
 suite('ordered_map', function() {
@@ -7,7 +7,7 @@ suite('ordered_map', function() {
   var subject;
 
   setup(function() {
-    subject = new Calendar.Utils.OrderedMap(
+    subject = new Calendar.OrderedMap(
       [[8, 'foo'], [1, 'baz']], Calendar.compare
     );
   });

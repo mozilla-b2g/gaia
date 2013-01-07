@@ -1438,10 +1438,6 @@ RequestReader.prototype =
             var filePath = this._findRealPath(applicationName);
             if (oldPath.indexOf("/shared/") === 0) {
               filePath += "/../..";
-              if (oldPath.indexOf('/branding/') != -1) {
-                oldPath = oldPath.replace('branding',
-                                          'branding/unofficial');
-              }
             }
             request._path = filePath + oldPath;
 

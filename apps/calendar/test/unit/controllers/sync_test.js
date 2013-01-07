@@ -20,18 +20,15 @@ suite('controllers/sync', function() {
     this.timeout(10000);
 
     app = testSupport.calendar.app();
-    db = app.db;
     subject = new Calendar.Controllers.Sync(app);
 
     calendar = app.store('Calendar');
     account = app.store('Account');
     event = app.store('Event');
 
-    accModel = Factory('account', {
-      _id: 'one'
-    });
+    accModel = Factory('account');
 
-    db.open(function(err) {
+    event.db.open(function(err) {
       if (err) {
         done(err);
         return;
@@ -42,218 +39,169 @@ suite('controllers/sync', function() {
 
   teardown(function(done) {
     testSupport.calendar.clearStore(
-      db,
+      event.db,
       ['accounts', 'calendars', 'events', 'busytimes'],
       done
     );
   });
 
   teardown(function() {
-    db.close();
+    event.db.close();
   });
 
-  test('initialization', function() {
-    assert.equal(subject.app, app);
-    assert.equal(subject.pending, 0);
-  });
+  test('#observe', function(done) {
+    var model = Factory('account');
+    var calledWith;
+    var syncStart;
+    var syncEnd;
 
-  test('sync all, no accounts', function(done) {
-    subject.once('syncComplete', done);
-    subject.all();
-  });
-
-  suite('#all', function() {
-    var list = [];
-
-    setup(function(done) {
-      var trans = db.transaction('accounts', 'readwrite');
-
-      list.push(Factory('account'));
-      list.push(Factory('account'));
-
-      account.persist(list[0], trans);
-      account.persist(list[1], trans);
-
-      trans.oncomplete = function() {
-        done();
-      };
-    });
-
-    test('sync account', function() {
-      var calledModels = [];
-
-      subject.account = function(model) {
-        calledModels.push(model);
-      }
-
-      subject.all();
-
-      assert.deepEqual(
-        calledModels,
-        list,
-        'requests a sync of all accounts'
-      );
-    });
-  });
-
-  suite('individual sync operations', function() {
-    var calendars;
-    var accountSyncCall;
-    var calendarSyncCalls;
-    var events;
-
-    function assertEmit(event) {
-      assert.isTrue(
-        (event in events),
-        'has emitted ' + event
-      );
-    }
-
-    function assertDoesNotEmit(event) {
-      assert.isFalse(
-        (event in events),
-        'emitted ' + event
-      );
-    }
-
-    var handler = {
-      handleEvent: function(event) {
-        events[event.type] = event.data;
-      }
+    function complete() {
+      done(function() {
+        assert.equal(calledWith[0], model);
+        assert.ok(syncStart, 'start sync');
+        assert.ok(syncEnd, 'end sync');
+      });
     };
 
+    subject.on('sync start', function() {
+      syncStart = true;
+    });
+
+    subject.on('sync complete', function() {
+      syncEnd = true;
+    });
+
+    subject.observe();
+
+    subject._syncAccount = function(data) {
+      calledWith = arguments;
+      setTimeout(complete, 0);
+      var cb = arguments[1];
+      cb();
+    }
+
+    account.persist(model);
+  });
+
+  suite('#sync', function() {
+    var list = [];
+
+    setup(function() {
+      list.push(Factory('account'));
+      list.push(Factory('account'));
+    });
+
     setup(function(done) {
-      var trans = db.transaction(
-        ['accounts', 'calendars'],
-        'readwrite'
-      );
+      account.persist(list[0], done);
+    });
 
-      trans.oncomplete = function() {
-        done();
-      };
+    setup(function(done) {
+      account.persist(list[1], done);
+    });
 
-      // setup events
-      events = {};
-      subject.on('syncStart', handler);
-      subject.on('syncComplete', handler);
+    test('sync account', function(done) {
+      var calledModels = [];
 
-      // setup mocks
-      calendarSyncCalls = [];
-      account.sync = function() {
-        accountSyncCall = Array.slice(arguments);
+      subject._syncAccount = function(model, cb) {
+        calledModels.push(model);
+        setTimeout(function() {
+          cb(null);
+        }, 0);
       }
 
-      calendar.sync = function() {
-        calendarSyncCalls.push(Array.slice(arguments));
-      };
+      subject.sync(function() {
+        done(function() {
+          assert.deepEqual(
+            calledModels,
+            list
+          );
+        });
+      });
+    });
+  });
 
-      // setup db
-      calendars = [];
-      account.persist(accModel, trans);
+  suite('#_syncAccount', function() {
+    var list;
 
-      var numberOfCalendars = 2;
-      while (numberOfCalendars--) {
+    setup(function(done) {
+      list = [];
+      account.persist(accModel, done);
+    });
+
+    function addCalendar() {
+      setup(function(done) {
         var item = Factory('calendar', {
           accountId: accModel._id
         });
 
-        calendars.push(item);
-        calendar.persist(item, trans);
+        list.push(item);
+        calendar.persist(item, done);
+      });
+    }
+
+    addCalendar();
+    addCalendar();
+
+    var syncedCals;
+
+    setup(function() {
+      syncedCals = [];
+      calendar.sync = function(acc, cal, cb) {
+        setTimeout(function() {
+          syncedCals.push([acc, cal]);
+          cb(null);
+        }, 0);
+      };
+    });
+
+    test('sync /w calendars', function(done) {
+      var calledAcc;
+
+      account.sync = function(model, cb) {
+        setTimeout(function() {
+          calledAcc = model;
+          cb(null);
+        }, 0);
       }
-    });
 
-    suite('#account', function() {
-      test('success', function() {
-        var firedCallback = false;
-        subject.account(accModel, function() {
-          firedCallback = true;
-        });
+      subject._syncAccount(accModel, function(err) {
+        if (err) {
+          done(err);
+          return;
+        }
 
-        assertEmit('syncStart');
-        assert.equal(accountSyncCall[0], accModel);
-
-        // successful sync
-        accountSyncCall[1]();
-
-        // not done until calendars have synced
-        assertDoesNotEmit('syncComplete');
-        assert.length(calendarSyncCalls, 2);
-
-        // complete all calls
-        calendarSyncCalls.forEach(function(item) {
-          var cb = item.pop();
-          assert.ok(
-            !firedCallback,
-            'does not fire callback before all are complete'
+        done(function() {
+          assert.deepEqual(
+            syncedCals,
+            [
+              [accModel, list[0]],
+              [accModel, list[1]]
+            ]
           );
-          cb();
-        });
 
-        assert.ok(firedCallback, 'fires after all sync operations');
-        assertEmit('syncComplete');
+          assert.equal(
+            calledAcc,
+            accModel
+          );
+        });
       });
     });
 
-    suite('#calendar', function() {
+    test('sync - account fail', function(done) {
+      account.sync = function(model, cb) {
+        setTimeout(function() {
+          cb(new Error('err'));
+        }, 0);
+      };
 
-      test('multiple in progress', function() {
-        var complete = 0;
-
-        subject.calendar(accModel, calendars[0]);
-        assertEmit('syncStart');
-        delete events['syncStart'];
-
-        subject.calendar(accModel, calendars[1]);
-        assertDoesNotEmit('syncStart');
-
-        var firstSync = calendarSyncCalls.shift();
-        firstSync[firstSync.length - 1]();
-
-        // because there are two pending...
-        assertDoesNotEmit('syncComplete');
-
-        var secondSync = calendarSyncCalls.shift();
-        secondSync[secondSync.length - 1]();
-
-        // now both are fully completed.
-        assertEmit('syncComplete');
-      });
-
-      test('success', function(done) {
-        subject.calendar(accModel, calendars[0], function() {
-          assertEmit('syncComplete');
-          done();
+      subject._syncAccount(accModel, function(err) {
+        done(function() {
+          assert.equal(syncedCals.length, 0);
+          assert.instanceOf(err, Error);
         });
-        assertEmit('syncStart');
-
-        assert.length(calendarSyncCalls, 1, 'emits syncComplete');
-
-        var sync = calendarSyncCalls[0];
-
-        assert.deepEqual(
-          sync.slice(0, 2),
-          [accModel, calendars[0]]
-        );
-
-        assertDoesNotEmit('syncComplete');
-        sync[sync.length - 1]();
-      });
-
-      test('failure', function(done) {
-        var sentErr = new Error();
-
-        subject.calendar(accModel, calendars[0], function(err) {
-          assert.equal(err, sentErr);
-          assertEmit('syncComplete');
-          done();
-        });
-
-        var sync = calendarSyncCalls.shift();
-        assert.ok(sync);
-
-        sync[sync.length - 1](sentErr);
       });
     });
+
   });
 
 });

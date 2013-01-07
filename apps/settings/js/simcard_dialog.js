@@ -43,7 +43,7 @@ var SimPinDialog = {
       evt.preventDefault();
 
       var code = evt.charCode;
-      if (code !== 0 && (code < 0x30 || code > 0x39))
+      if (code !== 0 && code < 0x30 && code > 0x39)
         return;
 
       if (code === 0) { // backspace
@@ -264,9 +264,6 @@ var SimPinDialog = {
   // the origin parameter records the dialog caller.
   // when the dialog is closed, we can relocate back to the caller's div.
   show: function spl_show(action, onsuccess, oncancel, origin) {
-    if ('#simpin-dialog' == document.location.hash)
-      return;
-
     var _ = navigator.mozL10n.get;
 
     this.dialogDone.disabled = true;

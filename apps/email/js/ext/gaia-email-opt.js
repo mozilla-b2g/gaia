@@ -340,65 +340,18 @@ function coerce(length) {
 var ENCODER_OPTIONS = { fatal: false };
 
 /**
- * Safe atob-variant that does not throw exceptions and just ignores characters
- * that it does not know about.  This is an attempt to mimic node's
- * implementation so that we can parse base64 with newlines present as well
- * as being tolerant of complete gibberish people throw at us.  Since we are
- * doing this by hand, we also take the opportunity to put the output directly
- * in a typed array.
- *
- * In contrast, window.atob() throws Exceptions for all kinds of angry reasons.
- */
-function safeBase64DecodeToArray(s) {
-  var bitsSoFar = 0, validBits = 0, iOut = 0,
-      arr = new Uint8Array(Math.ceil(s.length * 3 / 4));
-  for (var i = 0; i < s.length; i++) {
-    var c = s.charCodeAt(i), bits;
-    if (c >= 65 && c <= 90) // [A-Z]
-      bits = c - 65;
-    else if (c >= 97 && c <= 122) // [a-z]
-      bits = c - 97 + 26;
-    else if (c >= 48 && c <= 57) // [0-9]
-      bits = c - 48 + 52;
-    else if (c === 43) // +
-      bits = 62;
-    else if (c === 47) // /
-      bits = 63;
-    else if (c === 61) { // =
-      validBits = 0;
-      continue;
-    }
-    // ignore all other characters!
-    else
-      continue;
-    bitsSoFar = (bitsSoFar << 6) | bits;
-    validBits += 6;
-    if (validBits >= 8) {
-      validBits -= 8;
-      arr[iOut++] = bitsSoFar >> validBits;
-      if (validBits === 2)
-        bitsSoFar &= 0x3;
-      else if (validBits === 4)
-        bitsSoFar &= 0xf;
-    }
-  }
-
-  if (iOut < arr.length)
-    return arr.subarray(0, iOut);
-  return arr;
-}
-
-/**
  * Encode a unicode string into a (Uint8Array) byte array with the given
- * encoding. Wraps TextEncoder to provide hex and base64 "encoding" (which it
- * does not provide).
+ * encoding. Wraps TextEncoder to provide hex and base64 encoding (which it does
+ * not provide).
  */
 function encode(string, encoding) {
   var buf, i;
   switch (encoding) {
     case 'base64':
-      buf = safeBase64DecodeToArray(string);
-      return buf;
+      // (atob is base64 ASCII string -> binary JS string)
+      string = window.atob(string);
+      // fall through to the binary case since what we have is binary now!
+    // the stringencoding polyfill no longer implements binary, so it's up to us
     case 'binary':
       buf = new Uint8Array(string.length);
       for (i = 0; i < string.length; i++) {
@@ -1221,7 +1174,7 @@ MailBody.prototype = {
   /**
    * Synchronously trigger the display of embedded images.
    */
-  showEmbeddedImages: function(htmlNode, loadCallback) {
+  showEmbeddedImages: function(htmlNode) {
     var i, cidToObjectUrl = {},
         // the "|| window" is for our shimmed testing environment and should
         // not happen in production.
@@ -1251,9 +1204,6 @@ MailBody.prototype = {
         continue;
       // XXX according to an MDN tutorial we can use onload to destroy the
       // URL once the image has been loaded.
-      if (loadCallback) {
-        node.addEventListener('load', loadCallback, false);
-      }
       node.src = cidToObjectUrl[cid];
 
       node.removeAttribute('cid-src');
@@ -1280,15 +1230,12 @@ MailBody.prototype = {
    * using implementation-specific details subject to change, so don't do this
    * yourself.
    */
-  showExternalImages: function(htmlNode, loadCallback) {
+  showExternalImages: function(htmlNode) {
     // querySelectorAll is not live, whereas getElementsByClassName is; we
     // don't need/want live, especially with our manipulations.
     var nodes = htmlNode.querySelectorAll('.moz-external-image');
     for (var i = 0; i < nodes.length; i++) {
       var node = nodes[i];
-      if (loadCallback) {
-        node.addEventListener('load', loadCallback, false);
-      }
       node.setAttribute('src', node.getAttribute('ext-src'));
       node.removeAttribute('ext-src');
       node.classList.remove('moz-external-image');
@@ -2208,12 +2155,6 @@ MailAPI.prototype = {
    *   }
    *   @case['no-dns-entry']{
    *     We couldn't find the domain name in question, full stop.
-   *
-   *     Not currently generated; eventually desired because it suggests a typo
-   *     and so a specialized error message is useful.
-   *   }
-   *   @case['no-config-info']{
-   *     We were unable to locate configuration information for the domain.
    *   }
    *   @case['unresponsive-server']{
    *     Requests to the server timed out.  AKA we sent packets into a black
@@ -2222,16 +2163,18 @@ MailAPI.prototype = {
    *   @case['port-not-listening']{
    *     Attempts to connect to the given port on the server failed.  We got
    *     packets back rejecting our connection.
-   *
-   *     Not currently generated; primarily desired because it is very useful if
-   *     we are domain guessing.  Also desirable for error messages because it
-   *     suggests a user typo or the less likely server outage.
    *   }
    *   @case['bad-security']{
    *     We were able to connect to the port and initiate TLS, but we didn't
    *     like what we found.  This could be a mismatch on the server domain,
    *     a self-signed or otherwise invalid certificate, insufficient crypto,
    *     or a vulnerable server implementation.
+   *   }
+   *   @case['not-an-imap-server']{
+   *     Whatever is there isn't actually an IMAP server.
+   *   }
+   *   @case['sucky-imap-server']{
+   *     The IMAP server is too bad for us to use.
    *   }
    *   @case['bad-user-or-pass']{
    *     The username and password didn't check out.  We don't know which one
@@ -2247,11 +2190,6 @@ MailAPI.prototype = {
    *   @case['not-authorized']{
    *     The username and password are correct, but the user isn't allowed to
    *     access the mail server.
-   *   }
-   *   @case['server-problem']{
-   *     We were able to talk to the "server" named in the details object, but
-   *     we encountered some type of problem.  The details object will also
-   *     include a "status" value.
    *   }
    *   @case['server-maintenance']{
    *     The server appears to be undergoing maintenance, at least for this
@@ -2280,17 +2218,6 @@ MailAPI.prototype = {
    *   @param[callback @func[
    *     @args[
    *       @param[err AccountCreationError]
-   *       @param[errDetails @dict[
-   *         @key[server #:optional String]{
-   *           The server we had trouble talking to.
-   *         }
-   *         @key[status #:optional @oneof[Number String]]{
-   *           The HTTP status code number, or "timeout", or something otherwise
-   *           providing detailed additional information about the error.  This
-   *           is usually too technical to be presented to the user, but is
-   *           worth encoding with the error name proper if possible.
-   *         }
-   *       ]]
    *     ]
    *   ]
    * ]
@@ -2321,7 +2248,7 @@ MailAPI.prototype = {
     }
     delete this._pendingRequests[msg.handle];
 
-    req.callback.call(null, msg.error, msg.errorDetails);
+    req.callback.call(null, msg.error);
   },
 
   _clearAccountProblems: function ma__clearAccountProblems(account) {
@@ -6289,1969 +6216,6 @@ var STATEDELTA = exports.STATEDELTA = 'statedelta';
 
 }); // end define
 ;
-/**
- *
- **/
-
-define('mailapi/util',
-  [
-    'exports'
-  ],
-  function(
-    exports
-  ) {
-
-/**
- * Header info comparator that orders messages in order of numerically
- * decreasing date and UIDs.  So new messages come before old messages,
- * and messages with higher UIDs (newer-ish) before those with lower UIDs
- * (when the date is the same.)
- */
-const cmpHeaderYoungToOld = exports.cmpHeaderYoungToOld =
-    function cmpHeaderYoungToOld(a, b) {
-  var delta = b.date - a.date;
-  if (delta)
-    return delta;
-  // favor larger UIDs because they are newer-ish.
-  return b.id - a.id;
-}
-
-/**
- * Perform a binary search on an array to find the correct insertion point
- *  in the array for an item.  From deuxdrop; tested in
- *  deuxdrop's `unit-simple-algos.js` test.
- *
- * @return[Number]{
- *   The correct insertion point in the array, thereby falling in the inclusive
- *   range [0, arr.length].
- * }
- */
-const bsearchForInsert = exports.bsearchForInsert =
-    function bsearchForInsert(list, seekVal, cmpfunc) {
-  if (!list.length)
-    return 0;
-  var low  = 0, high = list.length - 1,
-      mid, cmpval;
-  while (low <= high) {
-    mid = low + Math.floor((high - low) / 2);
-    cmpval = cmpfunc(seekVal, list[mid]);
-    if (cmpval < 0)
-      high = mid - 1;
-    else if (cmpval > 0)
-      low = mid + 1;
-    else
-      break;
-  }
-  if (cmpval < 0)
-    return mid; // insertion is displacing, so use mid outright.
-  else if (cmpval > 0)
-    return mid + 1;
-  else
-    return mid;
-};
-
-var bsearchMaybeExists = exports.bsearchMaybeExists =
-    function bsearchMaybeExists(list, seekVal, cmpfunc, aLow, aHigh) {
-  var low  = ((aLow === undefined)  ? 0                 : aLow),
-      high = ((aHigh === undefined) ? (list.length - 1) : aHigh),
-      mid, cmpval;
-  while (low <= high) {
-    mid = low + Math.floor((high - low) / 2);
-    cmpval = cmpfunc(seekVal, list[mid]);
-    if (cmpval < 0)
-      high = mid - 1;
-    else if (cmpval > 0)
-      low = mid + 1;
-    else
-      return mid;
-  }
-  return null;
-};
-
-/**
- * Partition a list of messages (identified by message namers, aka the suid and
- * date of the message) by the folder they belong to.
- *
- * @args[
- *   @param[messageNamers @listof[MessageNamer]]
- * ]
- * @return[@listof[@dict[
- *   @key[folderId FolderID]
- *   @key[messages @listof[MessageNamer]]
- * ]
- */
-exports.partitionMessagesByFolderId =
-    function partitionMessagesByFolderId(messageNamers) {
-  var results = [], foldersToMsgs = {};
-  for (var i = 0; i < messageNamers.length; i++) {
-    var messageNamer = messageNamers[i],
-        messageSuid = messageNamer.suid,
-        idxLastSlash = messageSuid.lastIndexOf('/'),
-        folderId = messageSuid.substring(0, idxLastSlash);
-
-    if (!foldersToMsgs.hasOwnProperty(folderId)) {
-      var messages = [messageNamer];
-      results.push({
-        folderId: folderId,
-        messages: messages,
-      });
-      foldersToMsgs[folderId] = messages;
-    }
-    else {
-      foldersToMsgs[folderId].push(messageNamer);
-    }
-  }
-  return results;
-};
-
-exports.formatAddresses = function(nameAddrPairs) {
-  var addrstrings = [];
-  for (var i = 0; i < nameAddrPairs.length; i++) {
-    var pair = nameAddrPairs[i];
-    // support lazy people providing only an e-mail... or very careful
-    // people who are sure they formatted things correctly.
-    if (typeof(pair) === 'string') {
-      addrstrings.push(pair);
-    }
-    else if (!pair.name) {
-      addrstrings.push(pair.address);
-    }
-    else {
-      addrstrings.push(
-        '"' + pair.name.replace(/["']/g, '') + '" <' +
-          pair.address + '>');
-    }
-  }
-
-  return addrstrings.join(', ');
-};
-
-}); // end define
-;
-/**
- * Process text/plain message bodies for quoting / signatures.
- *
- * We have two main goals in our processing:
- *
- * 1) Improve display by being able to automatically collapse excessively quoted
- * blocks and large/redundant signature blocks and hide them entirely from snippet
- * generation.
- *
- * 2) Allow us to reply to messages and provide automatically limited quoting.
- * Specifically, we want to provide one message's worth of context when replying
- * to a message.  We also want to avoid messages in a thread indefinitely
- * growing in size because all users keep replying and leaving default quoting
- * intact.
- *
- *
- **/
-
-define('mailapi/quotechew',
-  [
-    'exports'
-  ],
-  function(
-    exports
-  ) {
-
-////////////////////////////////////////////////////////////////////////////////
-// Content Type Encoding
-//
-// We encode content type values as integers in an attempt to have the serialized
-// form not be super huge and be pretty quick to check without generating garbage
-// objects.
-//
-// The low-order nibble encodes the type for styling purposes; everything above
-// that nibble is per-type and may encode integer values or use hot bits to
-// indicate type.
-
-/**
- * Actual content of the message written by the user.
- */
-const CT_AUTHORED_CONTENT = 0x1;
-/**
- * Niceties like greetings/thanking someone/etc.  These are things that we want to
- * show when displaying the message, but that arguably are of lower importance and
- * might want to be elided for snippet purposes, etc.
- */
-const CT_AUTHORED_NICETIES = 0x11;
-/**
- * The signature of the message author; might contain useful information in it.
- */
-const CT_SIGNATURE = 0x2;
-
-/**
- * The line that says "Blah wrote:" that precedes a quote.  It's not part of the
- * user content, but it's also not part of the quote.
- */
-const CT_LEADIN_TO_QUOTE = 0x3;
-
-const CT_QUOTED_TYPE = 0x4;
-
-/**
- * A quoted reply; eligible for collapsing.  Depth of quoting will also be
- * encoded in the actual integer value.
- */
-const CT_QUOTED_REPLY = 0x14;
-/**
- * A quoted forwarded message; we would guess that the user has not previously seen
- * the message and the quote wants to be displayed.
- */
-const CT_QUOTED_FORWARD = 0x24;
-/**
- * Quoted content that has not been pruned.  Aspirational!
- */
-const CT_QUOTED_IN_ENTIRETY = 0x40;
-/**
- * The quote has been subjected to some level of manual intervention. Aspirational!
- */
-const CT_QUOTED_GARDENED = 0x80;
-
-const CT_QUOTE_DEPTH_MASK = 0xff00;
-
-/**
- * Legal-ish boilerplate about how it's only for the recipient, etc. etc.
- * Generally going to be long and boring.
- */
-const CT_BOILERPLATE_DISCLAIMER = 0x5;
-/**
- * Boilerplate about the message coming from a mailing list, info about the
- * mailing list.
- */
-const CT_BOILERPLATE_LIST_INFO = 0x6;
-/**
- * Product branding boilerplate that may or may not indicate that the composing
- * device was a mobile device (which is useful).
- */
-const CT_BOILERPLATE_PRODUCT = 0x7;
-/**
- * Advertising automatically inserted by the mailing list or free e-mailing service,
- * etc.  This is assumed to be boring.
- */
-const CT_BOILERPLATE_ADS = 0x8;
-
-const CHARCODE_GT = ('>').charCodeAt(0),
-      CHARCODE_SPACE = (' ').charCodeAt(0),
-      CHARCODE_NBSP = ('\xa0').charCodeAt(0),
-      CHARCODE_NEWLINE = ('\n').charCodeAt(0);
-
-const RE_ORIG_MESAGE_DELIM = /^-{5} Original Message -{5}$/;
-
-const RE_ALL_WS = /^\s+$/;
-
-const RE_SECTION_DELIM = /^[_-]{6,}$/;
-
-const RE_LIST_BOILER = /mailing list$/;
-
-const RE_WROTE_LINE = /wrote/;
-
-const RE_SIGNATURE_LINE = /^-- $/;
-
-/**
- * The maximum number of lines that can be in a boilerplate chunk.  We expect
- * disclaimer boilerplate to be what drives this.
- */
-const MAX_BOILERPLATE_LINES = 20;
-
-/**
- * Catch various common well-known product branding lines:
- * - "Sent from my iPhone/iPad/mobile device".  Apple, others.
- * - "Sent from my Android ...".  Common prefix for wildly varying Android
- *     strings.
- * - "Sent from my ...".  And there are others that don't match the above but
- *     that match the prefix.
- * - "Sent from Mobile"
- */
-const RE_PRODUCT_BOILER = /^(?:Sent from (?:Mobile|my .+))$/;
-
-const RE_LEGAL_BOILER_START = /^(?:This message|Este mensaje)/;
-
-function indexOfDefault(string, search, startIndex, defVal) {
-  var idx = string.indexOf(search, startIndex);
-  if (idx === -1)
-    return defVal;
-  return idx;
-}
-
-const NEWLINE = '\n', RE_NEWLINE = /\n/g;
-
-function countNewlinesInRegion(string, startIndex, endIndex) {
-  var idx = startIndex - 1, count = 0;
-  for (;;) {
-    idx = string.indexOf(NEWLINE, idx + 1);
-    if (idx === -1 || idx >= endIndex)
-      return count;
-    count++;
-  }
-  return null;
-}
-
-/**
- * Process the contents of a text body for quoting purposes.
- *
- * Key behaviors:
- *
- * - Whitespace is trimmed at the boundaries of regions.  Our CSS styling will
- *   take care of making sure there is appropriate whitespace.  This is an
- *   intentional normalization that should cover both people who fail to put
- *   whitespace in their messages (jerks) and people who put whitespace in.
- *
- * - Newlines are maintained inside of blocks.
- *
- * - We look backwards for boilerplate blocks once we encounter the first quote
- *   block or the end of the message.  We keep incrementally looking backwards
- *   until we reach something that we don't think is boilerplate.
- */
-exports.quoteProcessTextBody = function quoteProcessTextBody(fullBodyText) {
-  var contentRep = [];
-  var line;
-  /**
-   * Count the number of '>' quoting characters in the line, mutating `line` to
-   * not include the quoting characters.  Some clients will place a single space
-   * between each '>' at higher depths, and we support that.  But any more spaces
-   * than that and we decide we've reached the end of the quote marker.
-   */
-  function countQuoteDepthAndNormalize() {
-    // We know that the first character is a '>' already.
-    var count = 1;
-    var lastStartOffset = 1, spaceOk = true;
-
-    for (var i = 1; i < line.length; i++) {
-      var c = line.charCodeAt(i);
-      if (c === CHARCODE_GT) {
-        count++;
-        lastStartOffset++;
-        spaceOk = true;
-      }
-      else if (c === CHARCODE_SPACE) {
-        if (!spaceOk)
-          break;
-        lastStartOffset++;
-        spaceOk = false;
-      }
-      else {
-        break;
-      }
-    }
-    if (lastStartOffset)
-      line = line.substring(lastStartOffset);
-    return count;
-  }
-
-  /**
-   * Scan backwards line-by-line through a chunk of text looking for boilerplate
-   * chunks.  We can stop once we determine we're not in boilerplate.
-   *
-   * - Product blurbs must be the first non-whitespace line seen to be detected;
-   *   they do not have to be delimited by an ASCII line.
-   *
-   * - Legal boilerplate must be delimited by an ASCII line.
-   */
-  function lookBackwardsForBoilerplate(chunk) {
-    var idxLineStart, idxLineEnd, line,
-        idxRegionEnd = chunk.length,
-        scanLinesLeft = MAX_BOILERPLATE_LINES,
-        sawNonWhitespaceLine = false,
-        lastContentLine = null,
-        lastBoilerplateStart = null,
-        sawProduct = false,
-        insertAt = contentRep.length;
-
-    function pushBoilerplate(contentType, merge) {
-      var boilerChunk = chunk.substring(idxLineStart, idxRegionEnd);
-      var idxChunkEnd = idxLineStart - 1;
-      // We used to do a trimRight here, but that would eat spaces in addition
-      // to newlines.  This was undesirable for both roundtripping purposes and
-      // mainly because the "-- " signature marker has a significant space
-      // character on the end there.
-      while (chunk.charCodeAt(idxChunkEnd - 1) === CHARCODE_NEWLINE) {
-        idxChunkEnd--;
-      }
-      var newChunk = chunk.substring(0, idxChunkEnd);
-      var ate = countNewlinesInRegion(chunk, newChunk.length, idxLineStart - 1);
-      chunk = newChunk;
-      idxRegionEnd = chunk.length;
-
-      if (!merge) {
-        contentRep.splice(insertAt, 0,
-                          ((ate&0xff) << 8) | contentType,
-                          boilerChunk);
-      }
-      else {
-        // nb: this merge does not properly reuse the previous existing 'ate'
-        // value; if we start doing more complex merges, the hardcoded '\n'
-        // below will need to be computed.
-        contentRep[insertAt] = ((ate&0xff) << 8) | (contentRep[insertAt]&0xff);
-        contentRep[insertAt + 1] = boilerChunk + '\n' +
-                                     contentRep[insertAt + 1];
-      }
-
-      sawNonWhitespaceLine = false;
-      scanLinesLeft = MAX_BOILERPLATE_LINES;
-      lastContentLine = null;
-      lastBoilerplateStart = idxLineStart;
-    }
-
-    for (idxLineStart = chunk.lastIndexOf('\n') + 1,
-           idxLineEnd = chunk.length;
-         idxLineEnd > 0 && scanLinesLeft;
-         idxLineEnd = idxLineStart - 1,
-           idxLineStart = chunk.lastIndexOf('\n', idxLineEnd - 1) + 1,
-           scanLinesLeft--) {
-
-      // (do not include the newline character)
-      line = chunk.substring(idxLineStart, idxLineEnd);
-
-      // - Skip whitespace lines.
-      if (!line.length ||
-          (line.length === 1 && line.charCodeAt(0) === CHARCODE_NBSP))
-        continue;
-
-      // - Explicit signature demarcation
-      if (RE_SIGNATURE_LINE.test(line)) {
-        // Check if this is just tagging something we decided was boilerplate in
-        // a proper signature wrapper.  If so, then execute a boilerplate merge.
-        if (idxLineEnd + 1 === lastBoilerplateStart) {
-          pushBoilerplate(null, true);
-        }
-        else {
-          pushBoilerplate(CT_SIGNATURE);
-        }
-        continue;
-      }
-
-      // - Section delimiter; try and classify what lives in this section
-      if (RE_SECTION_DELIM.test(line)) {
-        if (lastContentLine) {
-          // - Look for a legal disclaimer sequentially following the line.
-          if (RE_LEGAL_BOILER_START.test(lastContentLine)) {
-            pushBoilerplate(CT_BOILERPLATE_DISCLAIMER);
-            continue;
-          }
-          // - Look for mailing list
-          if (RE_LIST_BOILER.test(lastContentLine)) {
-            pushBoilerplate(CT_BOILERPLATE_LIST_INFO);
-            continue;
-          }
-        }
-        // The section was not boilerplate, so thus ends the reign of
-        // boilerplate.  Bail.
-        return chunk;
-      }
-      // - A line with content!
-      if (!sawNonWhitespaceLine) {
-        // - Product boilerplate (must be first/only non-whitespace line)
-        if (!sawProduct && RE_PRODUCT_BOILER.test(line)) {
-          pushBoilerplate(CT_BOILERPLATE_PRODUCT);
-          sawProduct = true;
-          continue;
-        }
-        sawNonWhitespaceLine = true;
-      }
-      lastContentLine = line;
-    }
-
-    return chunk;
-  }
-
-  /**
-   * Assume that we are in a content region and that all variables are proper.
-   */
-  function pushContent(considerForBoilerplate, upToPoint, forcePostLine) {
-    if (idxRegionStart === null) {
-      if (atePreLines) {
-        // decrement atePreLines if we are not the first chunk because then we get
-        // an implicit/free newline.
-        if (contentRep.length)
-          atePreLines--;
-        contentRep.push((atePreLines&0xff) << 8 | CT_AUTHORED_CONTENT);
-        contentRep.push('');
-      }
-    }
-    else {
-      if (upToPoint === undefined)
-        upToPoint = idxLineStart;
-
-      var chunk = fullBodyText.substring(idxRegionStart,
-                                         idxLastNonWhitespaceLineEnd);
-      var atePostLines = forcePostLine ? 1 : 0;
-      if (idxLastNonWhitespaceLineEnd + 1 !== upToPoint) {
-        // We want to count the number of newlines after the newline that
-        // belongs to the last non-meaningful-whitespace line up to the
-        // effective point.  If we saw a lead-in, the effective point is
-        // preceding the lead-in line's newline.  Otherwise it is the start point
-        // of the current line.
-        atePostLines += countNewlinesInRegion(fullBodyText,
-                                              idxLastNonWhitespaceLineEnd + 1,
-                                              upToPoint);
-      }
-      contentRep.push(((atePreLines&0xff) << 8) | ((atePostLines&0xff) << 16) |
-                      CT_AUTHORED_CONTENT);
-      var iChunk = contentRep.push(chunk) - 1;
-
-      if (considerForBoilerplate) {
-        var newChunk = lookBackwardsForBoilerplate(chunk);
-        if (chunk.length !== newChunk.length) {
-          // Propagate any atePost lines.
-          if (atePostLines) {
-            var iLastMeta = contentRep.length - 2;
-            // We can blindly write post-lines since boilerplate currently
-            // doesn't infer any post-newlines on its own.
-            contentRep[iLastMeta] = ((atePostLines&0xff) << 16) |
-                                    contentRep[iLastMeta];
-            contentRep[iChunk - 1] = ((atePreLines&0xff) << 8) |
-                                     CT_AUTHORED_CONTENT;
-          }
-
-          // If we completely processed the chunk into boilerplate, then we can
-          // remove it after propagating any pre-eat amount.
-          if (!newChunk.length) {
-            if (atePreLines) {
-              var bpAte = (contentRep[iChunk + 1] >> 8)&0xff;
-              bpAte += atePreLines;
-              contentRep[iChunk + 1] = ((bpAte&0xff) << 8) |
-                                       (contentRep[iChunk + 1]&0xffff00ff);
-            }
-            contentRep.splice(iChunk - 1, 2);
-          }
-          else {
-            contentRep[iChunk] = newChunk;
-          }
-        }
-      }
-    }
-
-    atePreLines = 0;
-    idxRegionStart = null;
-    lastNonWhitespaceLine = null;
-    idxLastNonWhitespaceLineEnd = null;
-    idxPrevLastNonWhitespaceLineEnd = null;
-  }
-
-  function pushQuote(newQuoteDepth) {
-    var atePostLines = 0;
-    // Discard empty lines at the end.  We already skipped adding blank lines, so
-    // no need to do the front side.
-    while (quoteRunLines.length &&
-           !quoteRunLines[quoteRunLines.length - 1]) {
-      quoteRunLines.pop();
-      atePostLines++;
-    }
-    contentRep.push(((atePostLines&0xff) << 24) |
-                    ((ateQuoteLines&0xff) << 16) |
-                    ((inQuoteDepth - 1) << 8) |
-                    CT_QUOTED_REPLY);
-    contentRep.push(quoteRunLines.join('\n'));
-    inQuoteDepth = newQuoteDepth;
-    if (inQuoteDepth)
-      quoteRunLines = [];
-    else
-      quoteRunLines = null;
-
-    ateQuoteLines = 0;
-    generatedQuoteBlock = true;
-  }
-
-  // == On indices and newlines
-  // Our line ends always point at the newline for the line; for the last line
-  // in the body, there may be no newline, but that doesn't matter since substring
-  // is fine with us asking for more than it has.
-
-
-  var idxLineStart, idxLineEnd, bodyLength = fullBodyText.length,
-      // null means we are looking for a non-whitespace line.
-      idxRegionStart = null,
-      curRegionType = null,
-      lastNonWhitespaceLine = null,
-      // The index of the last non-purely whitespace line.
-      idxLastNonWhitespaceLineEnd = null,
-      // value of idxLastNonWhitespaceLineEnd prior to its current value
-      idxPrevLastNonWhitespaceLineEnd = null,
-      //
-      inQuoteDepth = 0,
-      quoteRunLines = null,
-      contentType = null,
-      generatedQuoteBlock = false,
-      atePreLines = 0, ateQuoteLines = 0;
-  for (idxLineStart = 0,
-         idxLineEnd = indexOfDefault(fullBodyText, '\n', idxLineStart,
-                                     fullBodyText.length);
-       idxLineStart < bodyLength;
-       idxLineStart = idxLineEnd + 1,
-         idxLineEnd = indexOfDefault(fullBodyText, '\n', idxLineStart,
-                                     fullBodyText.length)) {
-
-    line = fullBodyText.substring(idxLineStart, idxLineEnd);
-
-    // - Do not process purely whitespace lines.
-    // Because our content runs are treated as regions, ignoring whitespace
-    // lines simply means that we don't start or end content blocks on blank
-    // lines.  Blank lines in the middle of a content block are maintained
-    // because our slice will include them.
-    if (!line.length ||
-        (line.length === 1
-         && line.charCodeAt(0) === CHARCODE_NBSP)) {
-      if (inQuoteDepth)
-        pushQuote(0);
-      if (idxRegionStart === null)
-        atePreLines++;
-      continue;
-    }
-
-    if (line.charCodeAt(0) === CHARCODE_GT) {
-      var lineDepth = countQuoteDepthAndNormalize();
-      // We are transitioning into a quote state...
-      if (!inQuoteDepth) {
-        // - Check for a "Blah wrote:" content line
-        if (lastNonWhitespaceLine &&
-            RE_WROTE_LINE.test(lastNonWhitespaceLine)) {
-
-          // count the newlines up to the lead-in's newline
-          var upToPoint = idxLastNonWhitespaceLineEnd;
-          idxLastNonWhitespaceLineEnd = idxPrevLastNonWhitespaceLineEnd;
-          // Nuke the content region if the lead-in was the start of the region;
-          // this can be inferred by there being no prior content line.
-          if (idxLastNonWhitespaceLineEnd === null)
-            idxRegionStart = null;
-
-          var leadin = lastNonWhitespaceLine;
-          pushContent(!generatedQuoteBlock, upToPoint);
-          var leadinNewlines = 0;
-          if (upToPoint + 1 !== idxLineStart)
-            leadinNewlines = countNewlinesInRegion(fullBodyText,
-                                                   upToPoint + 1, idxLineStart);
-          contentRep.push((leadinNewlines << 8) | CT_LEADIN_TO_QUOTE);
-          contentRep.push(leadin);
-        }
-        else {
-          pushContent(!generatedQuoteBlock);
-        }
-        quoteRunLines = [];
-        inQuoteDepth = lineDepth;
-      }
-      // There is a change in quote depth
-      else if (lineDepth !== inQuoteDepth) {
-        pushQuote(lineDepth);
-      }
-
-      // Eat whitespace lines until we get a non-whitespace (quoted) line.
-      if (quoteRunLines.length || line.length)
-        quoteRunLines.push(line);
-      else
-        ateQuoteLines++;
-    }
-    else {
-      if (inQuoteDepth) {
-        pushQuote(0);
-        idxLastNonWhitespaceLineEnd = null;
-      }
-      if (idxRegionStart === null)
-        idxRegionStart = idxLineStart;
-
-      lastNonWhitespaceLine = line;
-      idxPrevLastNonWhitespaceLineEnd = idxLastNonWhitespaceLineEnd;
-      idxLastNonWhitespaceLineEnd = idxLineEnd;
-    }
-  }
-  if (inQuoteDepth) {
-    pushQuote(0);
-  }
-  else {
-    // There is no implicit newline for the final block, so force it if we had
-    // a newline.
-    pushContent(true, fullBodyText.length,
-                (fullBodyText.charCodeAt(fullBodyText.length - 1) ===
-                  CHARCODE_NEWLINE));
-  }
-
-  return contentRep;
-};
-
-/**
- * The maximum number of characters to shrink the snippet to try and find a
- * whitespace boundary.  If it would take more characters than this, we just
- * do a hard truncation and hope things work out visually.
- */
-const MAX_WORD_SHRINK = 8;
-
-const RE_NORMALIZE_WHITESPACE = /\s+/g;
-
-/**
- * Derive the snippet for a message from its processed body representation.  We
- * take the snippet from the first non-empty content block, normalizing
- * all whitespace to a single space character for each instance, then truncate
- * with a minor attempt to align on word boundaries.
- */
-exports.generateSnippet = function generateSnippet(rep, desiredLength) {
-  for (var i = 0; i < rep.length; i += 2) {
-    var etype = rep[i]&0xf, block = rep[i + 1];
-    switch (etype) {
-      case CT_AUTHORED_CONTENT:
-        if (!block.length)
-          break;
-        // - truncate
-        // (no need to truncate if short)
-        if (block.length < desiredLength)
-          return block.trim().replace(RE_NORMALIZE_WHITESPACE, ' ');
-        // try and truncate on a whitespace boundary
-        var idxPrevSpace = block.lastIndexOf(' ', desiredLength);
-        if (desiredLength - idxPrevSpace < MAX_WORD_SHRINK)
-          return block.substring(0, idxPrevSpace).trim()
-                      .replace(RE_NORMALIZE_WHITESPACE, ' ');
-        return block.substring(0, desiredLength).trim()
-                    .replace(RE_NORMALIZE_WHITESPACE, ' ');
-    }
-  }
-
-  return '';
-};
-
-/**
- * What is the deepest quoting level that we should repeat?  Our goal is not to be
- * the arbiter of style, but to provide a way to bound message growth in the face
- * of reply styles where humans do not manually edit quotes.
- *
- * We accept depth levels up to 5 mainly because a quick perusal of mozilla lists
- * shows cases where 5 levels of nesting were used to provide useful context.
- */
-const MAX_QUOTE_REPEAT_DEPTH = 5;
-// we include a few more than we need for forwarded text regeneration
-const replyQuotePrefixStrings = [
-  '> ', '>> ', '>>> ', '>>>> ', '>>>>> ', '>>>>>> ', '>>>>>>> ', '>>>>>>>> ',
-  '>>>>>>>>> ',
-];
-const replyQuotePrefixStringsNoSpace = [
-  '>', '>>', '>>>', '>>>>', '>>>>>', '>>>>>>', '>>>>>>>', '>>>>>>>>',
-  '>>>>>>>>>',
-];
-const replyQuoteNewlineReplaceStrings = [
-  '\n> ', '\n>> ', '\n>>> ', '\n>>>> ', '\n>>>>> ', '\n>>>>>> ', '\n>>>>>>> ',
-  '\n>>>>>>>> ',
-];
-const replyQuoteNewlineReplaceStringsNoSpace = [
-  '\n>', '\n>>', '\n>>>', '\n>>>>', '\n>>>>>', '\n>>>>>>', '\n>>>>>>>',
-  '\n>>>>>>>>',
-];
-const replyPrefix = '> ', replyNewlineReplace = '\n> ';
-
-function expandQuotedPrefix(s, depth) {
-  if (s.charCodeAt(0) === CHARCODE_NEWLINE)
-    return replyQuotePrefixStringsNoSpace[depth];
-  return replyQuotePrefixStrings[depth];
-}
-
-/**
- * Expand a quoted block so that it has the right number of greater than signs
- * and inserted whitespace where appropriate.  (Blank lines don't want
- * whitespace injected.)
- */
-function expandQuoted(s, depth) {
-  var ws = replyQuoteNewlineReplaceStrings[depth],
-      nows = replyQuoteNewlineReplaceStringsNoSpace[depth];
-  return s.replace(RE_NEWLINE, function(m, idx) {
-    if (s.charCodeAt(idx+1) === CHARCODE_NEWLINE)
-      return nows;
-    else
-      return ws;
-  });
-}
-
-/**
- * Generate a text message reply given an already quote-processed body.  We do
- * not simply '>'-prefix everything because 1) we don't store the raw message
- * text because it's faster for us to not quote-process everything every time we
- * display a message, 2) we want to strip some stuff out, 3) we don't care about
- * providing a verbatim quote.
- */
-exports.generateReplyText = function generateReplyText(rep) {
-  var strBits = [];
-  for (var i = 0; i < rep.length; i += 2) {
-    var etype = rep[i]&0xf, block = rep[i + 1];
-    switch (etype) {
-      case CT_AUTHORED_CONTENT:
-      case CT_SIGNATURE:
-      case CT_LEADIN_TO_QUOTE:
-        strBits.push(expandQuotedPrefix(block, 0));
-        strBits.push(expandQuoted(block, 0));
-        break;
-      case CT_QUOTED_TYPE:
-        var depth = ((rep[i] >> 8)&0xff) + 1;
-        if (depth < MAX_QUOTE_REPEAT_DEPTH) {
-          strBits.push(expandQuotedPrefix(block, depth));
-          strBits.push(expandQuoted(block, depth));
-        }
-        break;
-      // -- eat boilerplate!
-      // No one needs to read boilerplate in a reply; the point is to
-      // provide context, not the whole message.  (Forward the message if
-      // you want the whole thing!)
-      case CT_BOILERPLATE_DISCLAIMER:
-      case CT_BOILERPLATE_LIST_INFO:
-      case CT_BOILERPLATE_PRODUCT:
-      case CT_BOILERPLATE_ADS:
-        break;
-    }
-  }
-
-  return strBits.join('');
-};
-
-/**
- * Regenerate the text of a message for forwarding.  'Original Message' is not
- * prepended and information about the message's header is not prepended.  That
- * is done in `generateForwardMessage`.
- *
- * We attempt to generate a message as close to the original message as
- * possible, but it doesn't have to be 100%.
- */
-exports.generateForwardBodyText = function generateForwardBodyText(rep) {
-  var strBits = [], nl;
-
-  for (var i = 0; i < rep.length; i += 2) {
-    if (i)
-      strBits.push(NEWLINE);
-
-    var etype = rep[i]&0xf, block = rep[i + 1];
-    switch (etype) {
-      // - injected with restored whitespace
-      case CT_AUTHORED_CONTENT:
-        // pre-newlines
-        for (nl = (rep[i] >> 8)&0xff; nl; nl--)
-          strBits.push(NEWLINE);
-        strBits.push(block);
-        // post new-lines
-        for (nl = (rep[i] >> 16)&0xff; nl; nl--)
-          strBits.push(NEWLINE);
-        break;
-      case CT_LEADIN_TO_QUOTE:
-        strBits.push(block);
-        for (nl = (rep[i] >> 8)&0xff; nl; nl--)
-          strBits.push(NEWLINE);
-        break;
-      // - injected verbatim,
-      case CT_SIGNATURE:
-      case CT_BOILERPLATE_DISCLAIMER:
-      case CT_BOILERPLATE_LIST_INFO:
-      case CT_BOILERPLATE_PRODUCT:
-      case CT_BOILERPLATE_ADS:
-        for (nl = (rep[i] >> 8)&0xff; nl; nl--)
-          strBits.push(NEWLINE);
-        strBits.push(block);
-        for (nl = (rep[i] >> 16)&0xff; nl; nl--)
-          strBits.push(NEWLINE);
-        break;
-      // - quote character reconstruction
-      // this is not guaranteed to round-trip since we assume the non-whitespace
-      // variant...
-      case CT_QUOTED_TYPE:
-        var depth = Math.min((rep[i] >> 8)&0xff, 8);
-        for (nl = (rep[i] >> 16)&0xff; nl; nl--) {
-          strBits.push(replyQuotePrefixStringsNoSpace[depth]);
-          strBits.push(NEWLINE);
-        }
-        strBits.push(expandQuotedPrefix(block, depth));
-        strBits.push(expandQuoted(block, depth));
-        for (nl = (rep[i] >> 24)&0xff; nl; nl--) {
-          strBits.push(NEWLINE);
-          strBits.push(replyQuotePrefixStringsNoSpace[depth]);
-        }
-        break;
-    }
-  }
-
-  return strBits.join('');
-};
-
-}); // end define
-;
-// UMD boilerplate to work across node/AMD/naked browser:
-// https://github.com/umdjs/umd
-(function (root, factory) {
-    if (typeof exports === 'object') {
-        // Node. Does not work with strict CommonJS, but
-        // only CommonJS-like enviroments that support module.exports,
-        // like Node.
-        module.exports = factory();
-    } else if (typeof define === 'function' && define.amd) {
-        // AMD. Register as an anonymous module.
-        define('bleach',[],factory);
-    } else {
-        // Browser globals
-        root.Bleach = factory();
-    }
-}(this, function () {
-
-var ALLOWED_TAGS = [
-    'a',
-    'abbr',
-    'acronym',
-    'b',
-    'blockquote',
-    'code',
-    'em',
-    'i',
-    'li',
-    'ol',
-    'strong',
-    'ul'
-];
-var ALLOWED_ATTRIBUTES = {
-    'a': ['href', 'title'],
-    'abbr': ['title'],
-    'acronym': ['title']
-};
-var ALLOWED_STYLES = [];
-
-var Node = {
-  ELEMENT_NODE                :  1,
-  ATTRIBUTE_NODE              :  2,
-  TEXT_NODE                   :  3,
-  CDATA_SECTION_NODE          :  4,
-  ENTITY_REFERENCE_NODE       :  5,
-  ENTITY_NODE                 :  6,
-  PROCESSING_INSTRUCTION_NODE :  7,
-  COMMENT_NODE                :  8,
-  DOCUMENT_NODE               :  9,
-  DOCUMENT_TYPE_NODE          : 10,
-  DOCUMENT_FRAGMENT_NODE      : 11,
-  NOTATION_NODE               : 12
-};
-
-var DEFAULTS = {
-  tags: ALLOWED_TAGS,
-  prune: [],
-  attributes: ALLOWED_ATTRIBUTES,
-  styles: ALLOWED_STYLES,
-  strip: false,
-  stripComments: true
-};
-
-var bleach = {};
-
-bleach._preCleanNodeHack = null;
-
-// This is for web purposes; node will clobber this with 'jsdom'.
-bleach.documentConstructor = function() {
-  // Per hsivonen, this creates a document flagged as "loaded as data" which is
-  // desirable for safety reasons as it avoids pre-fetches, etc.
-  return document.implementation.createHTMLDocument('');
-};
-
-/**
- * Clean a string.
- */
-bleach.clean = function (html, opts) {
-  if (!html) return '';
-
-  var document = bleach.documentConstructor(),
-      dirty = document.createElement('dirty');
-
-  // To get stylesheets parsed by Gecko, we need to put the node in a document.
-  document.body.appendChild(dirty);
-  dirty.innerHTML = html;
-
-  if (bleach._preCleanNodeHack)
-    bleach._preCleanNodeHack(dirty, html);
-  bleach.cleanNode(dirty, opts);
-
-  var asNode = opts && opts.hasOwnProperty("asNode") && opts.asNode;
-  if (asNode)
-    return dirty;
-  return dirty.innerHTML;
-};
-
-/**
- * Clean the children of a node, but not the node itself.  Maybe this is
- * a bad idea.
- */
-bleach.cleanNode = function(dirtyNode, opts) {
-  var document = dirtyNode.ownerDocument;
-  opts = opts || DEFAULTS;
-  var doStrip = opts.hasOwnProperty('strip') ? opts.strip : DEFAULTS.strip,
-      doStripComments = opts.hasOwnProperty('stripComments') ?
-                          opts.stripComments : DEFAULTS.stripComments,
-      allowedTags = opts.hasOwnProperty('tags') ? opts.tags : DEFAULTS.tags,
-      pruneTags = opts.hasOwnProperty('prune') ? opts.prune : DEFAULTS.prune,
-      attrsByTag = opts.hasOwnProperty('attributes') ? opts.attributes
-                                                     : DEFAULTS.attributes,
-      allowedStyles = opts.hasOwnProperty('styles') ? opts.styles
-                                                    : DEFAULTS.styles,
-      reCallbackOnTag = opts.hasOwnProperty('callbackRegexp') ? opts.callbackRegexp
-                                                              : null,
-      reCallback = reCallbackOnTag && opts.callback,
-      wildAttrs;
-  if (Array.isArray(attrsByTag)) {
-    wildAttrs = attrsByTag;
-    attrsByTag = {};
-  }
-  else if (attrsByTag.hasOwnProperty('*')) {
-    wildAttrs = attrsByTag['*'];
-  }
-  else {
-    wildAttrs = [];
-  }
-
-  function slashAndBurn(root, callback) {
-    var child, i = 0;
-    // console.log('slashing');
-    // console.log('type ', root.nodeType);
-    // console.log('value', root.nodeValue||['<',root.tagName,'>'].join(''));
-    // console.log('innerHTML', root.innerHTML);
-    // console.log('--------');
-
-    // TODO: investigate whether .nextSibling is faster/more GC friendly
-    while ((child = root.childNodes[i++])) {
-      if (child.nodeType === 8 && doStripComments) {
-        root.removeChild(child);
-        continue;
-      }
-      if (child.nodeType === 1) {
-        var tag = child.tagName.toLowerCase();
-        if (allowedTags.indexOf(tag) === -1) {
-          // The tag is not in the whitelist.
-
-          // Strip?
-          if (doStrip) {
-            // Should this tag and its children be pruned?
-            // (This is not the default because new HTML tags with semantic
-            // meaning can be added and should not cause content to disappear.)
-            if (pruneTags.indexOf(tag) !== -1) {
-              root.removeChild(child);
-              // This will have shifted the sibling down, so decrement so we hit
-              // it next.
-              i--;
-            }
-            // Not pruning, so move the children up.
-            else {
-              while (child.firstChild) {
-                root.insertBefore(child.firstChild, child);
-              }
-              root.removeChild(child);
-              // We want to make sure we process all of the children, so
-              // decrement.  Alternately, we could have called slashAndBurn
-              // on 'child' before splicing in the contents.
-              i--;
-            }
-          }
-          // Otherwise, quote the child.
-          // Unit tests do not indicate if this should be recursive or not,
-          // so it's not.
-          else {
-            var textNode = document.createTextNode(child.outerHTML);
-            // jsdom bug? creating a text node always adds a linebreak;
-            textNode.nodeValue = textNode.nodeValue.replace(/\n$/, '');
-            root.replaceChild(textNode, child);
-          }
-          continue;
-        }
-
-        // If a callback was specified and it matches the tag name, then invoke
-        // the callback.  This happens before the attribute filtering so that
-        // the function can observe dangerous attributes, but in the event of
-        // the (silent) failure of this function, they will still be safely
-        // removed.
-        if (reCallbackOnTag && reCallbackOnTag.test(tag)) {
-          reCallback(child, tag);
-        }
-
-        var styles, iStyle, decl;
-        // Style tags are special.  Their parsed state gets represented on
-        // "sheet" iff the node is linked into a document (on gecko).  We can
-        // manipulate the representation but it does *not* automatically
-        // reflect into the textContent of the style tag.  Accordingly, we
-        //
-        if (tag === 'style') {
-          var sheet = child.sheet,
-              rules = sheet.cssRules,
-              keepRulesCssTexts = [];
-
-          for (var iRule = 0; iRule < rules.length; iRule++) {
-            var rule = rules[iRule];
-            if (rule.type !== 1) { // STYLE_RULE
-              // we could do "sheet.deleteRule(iRule);" but there is no benefit
-              // since we will just clobber the textContent without this skipped
-              // rule.
-              continue;
-            }
-            styles = rule.style;
-            for (iStyle = styles.length - 1; iStyle >= 0; iStyle--) {
-              decl = styles[iStyle];
-              if (allowedStyles.indexOf(decl) === -1) {
-                styles.removeProperty(decl);
-              }
-            }
-            keepRulesCssTexts.push(rule.cssText);
-          }
-          child.textContent = keepRulesCssTexts.join('\n');
-        }
-
-        if (child.style.length) {
-          styles = child.style;
-          for (iStyle = styles.length - 1; iStyle >= 0; iStyle--) {
-            decl = styles[iStyle];
-            if (allowedStyles.indexOf(decl) === -1) {
-              styles.removeProperty(decl);
-            }
-          }
-        }
-
-        if (child.attributes.length) {
-          var attrs = child.attributes;
-          for (var iAttr = attrs.length - 1; iAttr >= 0; iAttr--) {
-            var attr = attrs[iAttr];
-            var whitelist = attrsByTag[tag];
-            attr = attr.nodeName;
-            if (wildAttrs.indexOf(attr) === -1 &&
-                (!whitelist || whitelist.indexOf(attr) === -1)) {
-              attrs.removeNamedItem(attr);
-            }
-          }
-        }
-      }
-      slashAndBurn(child, callback);
-    }
-  }
-  slashAndBurn(dirtyNode);
-};
-
-return bleach;
-
-})); // close out UMD boilerplate
-;
-/**
- * Process text/html for message body purposes.  Specifically:
- *
- * - sanitize HTML (using bleach.js): discard illegal markup entirely, render
- *   legal but 'regulated' markup inert (ex: links to external content).
- * - TODO: perform normalization of quote markup from different clients into
- *   blockquotes, like how Thunderbird conversations does it.
- * - snippet generation: Try and generate a usable snippet string from something
- *   that is not a quote.
- *
- * We may eventually try and perform more detailed analysis like `quotechew.js`
- * does with structured markup, potentially by calling out to quotechew, but
- * that's a tall order to get right, so it's mightily postponed.
- **/
-
-define('mailapi/htmlchew',
-  [
-    'exports',
-    'bleach'
-  ],
-  function(
-    exports,
-    $bleach
-  ) {
-
-/**
- * Whitelisted HTML tags list. Currently from nsTreeSanitizer.cpp which credits
- * Mark Pilgrim and Sam Ruby for its own initial whitelist.
- *
- * IMPORTANT THUNDERBIRD NOTE: Thunderbird only engages its sanitization logic
- * when processing mailto URIs, when the non-default
- * "view | message body as | simple html" setting is selected, or when
- * displaying spam messages.  Accordingly, the settings are pretty strict
- * and not particularly thought-out.  Non-CSS presentation is stripped, which
- * is pretty much the lingua franca of e-mail.  (Thunderbird itself generates
- * font tags, for example.)
- *
- * Some things are just not in the list at all:
- * - SVG: Thunderbird nukes these itself because it forces
- *   SanitizerCidEmbedsOnly which causes flattening of everything in the SVG
- *   namespace.
- *
- * Tags that we are opting not to include will be commented with a reason tag:
- * - annoying: This thing is ruled out currently because it only allows annoying
- *   things to happen *given our current capabilities*.
- * - scripty: This thing requires scripting to make anything happen, and we do
- *   not allow scripting.
- * - forms: We have no UI to expose the target of a form right now, so it's
- *   not safe.  Thunderbird displays a scam warning, which isn't realy a big
- *   help, but it's something.  Because forms are largely unsupported or just
- *   broken in many places, they are rarely used, so we are turning them off
- *   entirely.
- * - implicitly-nuked: killed as part of the parse process because we assign
- *   to innerHTML rather than creating a document with the string in it.
- * - inline-style-only: Styles have to be included in the document itself,
- *   and for now, on the elements themselves.  We now support <style> tags
- *   (although src will be sanitized off), but not <link> tags because they want
- *   to reference external stuff.
- * - dangerous: The semantics of the tag are intentionally at odds with our
- *   goals and/or are extensible.  (ex: link tag.)
- * - interactive-ui: A cross between scripty and forms, things like (HTML5)
- *   menu and command imply some type of mutation that requires scripting.
- *   They also are frequently very attribute-heavy.
- * - svg: it's SVG, we don't support it yet!
- */
-var LEGAL_TAGS = [
-  'a', 'abbr', 'acronym', 'area', 'article', 'aside',
-  // annoying: 'audio',
-  'b',
-  'bdi', 'bdo', // (bidirectional markup stuff)
-  'big', 'blockquote',
-  // implicitly-nuked: 'body'
-  'br',
-  // forms: 'button',
-  // scripty: canvas
-  'caption',
-  'center',
-  'cite', 'code', 'col', 'colgroup',
-  // interactive-ui: 'command',
-  // forms: 'datalist',
-  'dd', 'del', 'details', 'dfn', 'dir', 'div', 'dl', 'dt',
-  'em',
-  // forms: 'fieldset' (but allowed by nsTreeSanitizer)
-  'figcaption', 'figure',
-  'font',
-  'footer',
-  // forms: 'form',
-  'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-  // implicitly-nuked: head
-  'header', 'hgroup', 'hr',
-  // implicitly-nuked: html
-  'i', 'img',
-  // forms: 'input',
-  'ins', // ("represents a range of text that has been inserted to a document")
-  'kbd', // ("The kbd element represents user input")
-  'label', 'legend', 'li',
-  // dangerous, inline-style-only: link
-  /* link supports many types, none of which we want, some of which are
-   * risky: http://dev.w3.org/html5/spec/links.html#linkTypes. Specifics:
-   * - "stylesheet": This would be okay for cid links, but there's no clear
-   *   advantage over inline styles, so we forbid it, especially as supporting
-   *   it might encourage other implementations to dangerously support link.
-   * - "prefetch": Its whole point is de facto information leakage.
-   */
-  'listing', // (deprecated, like "pre")
-  'map', 'mark',
-  // interactive-ui: 'menu', 'meta', 'meter',
-  'nav',
-  'nobr', // (deprecated "white-space:nowrap" equivalent)
-  'noscript',
-  'ol',
-  // forms: 'optgroup',
-  // forms: 'option',
-  'output', // (HTML5 draft: "result of a calculation in a form")
-  'p', 'pre',
-  // interactive-ui: 'progress',
-  'q',
-  /* http://www.w3.org/TR/ruby/ is a pronounciation markup that is not directly
-   * supported by gecko at this time (although there is a Firefox extension).
-   * All of 'rp', 'rt', and 'ruby' are ruby tags.  The spec also defines 'rb'
-   * and 'rbc' tags that nsTreeSanitizer does not whitelist, however.
-   */
-  'rp', 'rt', 'ruby',
-  's', 'samp', 'section',
-  // forms: 'select',
-  'small',
-  // annoying?: 'source',
-  'span', 'strike', 'strong',
-  'style',
-  'sub', 'summary', 'sup',
-  // svg: 'svg', NB: this lives in its own namespace
-  'table', 'tbody', 'td',
-  // forms: 'textarea',
-  'tfoot', 'th', 'thead', 'time',
-  'title', // XXX does this mean anything outside head?
-  'tr',
-  // annoying?: 'track'
-  'tt',
-  'u', 'ul', 'var',
-  // annoying: 'video',
-  'wbr' // (HTML5 draft: line break opportunity)
-];
-
-/**
- * Tags whose children should be removed along with the tag itself, rather than
- * splicing the children into the position originally occupied by the parent.
- *
- * We do this for:
- * - forms; see `LEGAL_TAGS` for the rationale.  Note that we don't bother
- *   including children that should already be nuked by PRUNE_TAGS.  For
- *   example, 'option' and 'optgroup' only make sense under 'select' or
- *   'datalist', so we need not include them.  This means that if the tags
- *   are used in nonsensical positions, they will have their contents
- *   merged into the document text, but that's not a major concern.
- * - 'script': no one wants to read the ignored JS code!
- * - 'style': no one wants to read the CSS we are (currently) ignoring
- */
-var PRUNE_TAGS = [
-  'button', // (forms)
-  'datalist', // (forms)
-  'script', // (script)
-  'select', // (forms)
-  'style', // (style)
-  'svg', // (svg)
-];
-
-/**
- * What attributes to allow globally and on specific tags.
- *
- * Forbidden marker names:
- * - URL-like: The attribute can contain URL's and we don't care enough to
- *   sanitize the contents right now.
- * - sanitized: We manually do something with the attribute in our processing
- *   logic.
- * - specific: The attribute is explicitly named on the relevant element types.
- * - unsupported: Gecko ignores the attribute and there is no chance of
- *   standardization, so just strip it.
- * - microformat: we can't do anything with microformats right now, save some
- *   space.
- * - awkward: It's not dangerous, but it's not clear how it could have useful
- *   semantics.
- */
-var LEGAL_ATTR_MAP = {
-  '*': [
-    'abbr', // (tables: removed from HTML5)
-    // forms: 'accept', 'accept-charset',
-    // interactive-ui: 'accesskey',
-    // forms: 'action',
-    'align', // (pres)
-    'alt', // (fallback content)
-    // forms: 'autocomplete', 'autofocus',
-    // annoying: 'autoplay',
-    'axis', // (tables: removed from HTML5)
-    // URL-like: 'background',
-    'bgcolor', 'border', // (pres)
-    'cellpadding', 'cellspacing', // (pres)
-    // unsupported: 'char',
-    'charoff', // (tables)
-    // specific: 'charset'
-    // forms, interactive-ui: 'checked',
-    // URL-like: 'cite'
-    'class', 'clear', 'color', // (pres)
-    'cols', 'colspan', // (tables)
-    'compact', // (pres)
-    // dangerous: 'content', (meta content refresh is bad.)
-    // interactive-ui: 'contenteditable', (we already use this ourselves!)
-    // interactive-ui: 'contextmenu',
-    // annoying: 'controls', (media)
-    'coords', // (area image map)
-    'datetime', // (ins, del, time semantic markups)
-    // forms: 'disabled',
-    'dir', // (rtl)
-    // interactive-ui: 'draggable',
-    // forms: 'enctype',
-    'face', // (pres)
-    // forms: 'for',
-    'frame', // (tables)
-    'headers', // (tables)
-    'height', // (layout)
-    // interactive-ui: 'hidden', 'high',
-    // sanitized: 'href',
-    // specific: 'hreflang',
-    'hspace', // (pres)
-    // dangerous: 'http-equiv' (meta refresh, maybe other trickiness)
-    // interactive-ui: 'icon',
-    // inline-style-only: 'id',
-    // specific: 'ismap', (area image map)
-    // microformat: 'itemid', 'itemprop', 'itemref', 'itemscope', 'itemtype',
-    // annoying: 'kind', (media)
-    // annoying, forms, interactive-ui: 'label',
-    'lang', // (language support)
-    // forms: 'list',
-    // dangerous: 'longdesc', (link to a long description, html5 removed)
-    // annoying: 'loop',
-    // interactive-ui: 'low',
-    // forms, interactive-ui: 'max',
-    // forms: 'maxlength',
-    'media', // (media-query for linky things; safe if links are safe)
-    // forms: 'method',
-    // forms, interactive-ui: 'min',
-    // unsupported: 'moz-do-not-send', (thunderbird internal composition)
-    // forms: 'multiple',
-    // annoying: 'muted',
-    // forms, interactive-ui: 'name', (although pretty safe)
-    'nohref', // (image maps)
-    // forms: 'novalidate',
-    'noshade', // (pres)
-    'nowrap', // (tables)
-    'open', // (for "details" element)
-    // interactive-ui: 'optimum',
-    // forms: 'pattern', 'placeholder',
-    // annoying: 'playbackrate',
-    'pointsize', // (pres)
-    // annoying:  'poster', 'preload',
-    // forms: 'prompt',
-    'pubdate', // ("time" element)
-    // forms: 'radiogroup', 'readonly',
-    // dangerous: 'rel', (link rel, a rel, area rel)
-    // forms: 'required',
-    // awkward: 'rev' (reverse link; you can't really link to emails)
-    'reversed', // (pres? "ol" reverse numbering)
-    // interactive-ui: 'role', We don't want a screen reader making the user
-    //   think that part of the e-mail is part of the UI.  (WAI-ARIA defines
-    //   "accessible rich internet applications", not content markup.)
-    'rows', 'rowspan', 'rules', // (tables)
-    // sanitized: 'src',
-    'size', // (pres)
-    'scope', // (tables)
-    // inline-style-only: 'scoped', (on "style" elem)
-    // forms: 'selected',
-    'shape', // (image maps)
-    'span', // (tables)
-    // interactive-ui: 'spellcheck',
-    // sanitized, dangerous: 'src'
-    // annoying: 'srclang',
-    'start', // (pres? "ol" numbering)
-    'summary', // (tables accessibility)
-    'style', // (pres)
-    // interactive-ui: 'tabindex',
-    // dangerous: 'target', (specifies a browsing context, but our semantics
-    //   are extremely clear and don't need help.)
-    'title', // (advisory)
-    // specific, dangerous: type (various, but mime-type for links is not the
-    //   type of thing we would ever want to propagate or potentially deceive
-    //   the user with.)
-    'valign', // (pres)
-    'value', // (pres? "li" override for "ol"; various form uses)
-    'vspace', // (pres)
-    'width', // (layout)
-    // forms: 'wrap',
-  ],
-  'a': ['ext-href', 'hreflang'],
-  'area': ['ext-href', 'hreflang'],
-  // these are used by our quoting and Thunderbird's quoting
-  'blockquote': ['cite', 'type'],
-  'img': ['cid-src', 'ext-src', 'ismap', 'usemap'],
-  // This may only end up being used as a debugging thing, but let's let charset
-  // through for now.
-  'meta': ['charset'],
-  'ol': ['type'], // (pres)
-  'style': ['type'],
-};
-
-/**
- * CSS Style rules to support.
- *
- * nsTreeSanitizer is super lazy about style binding and does not help us out.
- * What it does is nuke all rule types except NAMESPACE (@namespace), FONT_FACE
- * (@font-face), and STYLE rules (actual styling).  This means nuking CHARSET
- * (@charset to specify the encoding of the stylesheet if the server did not
- * provide it), IMPORT (@import to reference other stylesheet files), MEDIA
- * (@media media queries), PAGE (@page page box info for paged media),
- * MOZ_KEYFRAMES, MOZ_KEYFRAME, SUPPORTS (@supports provides support for rules
- * conditioned on browser support, but is at risk.)  The only style directive it
- * nukes is "-moz-binding" which is the XBL magic and considered dangerous.
- *
- * Risks: Anything that takes a url() is dangerous insofar as we need to
- * sanitize the url.  XXX for now we just avoid any style that could potentially
- * hold a URI.
- *
- * Good news: We always cram things into an iframe, so we don't need to worry
- * about clever styling escaping out into our UI.
- *
- * New reasons not to allow:
- * - animation: We don't want or need animated wackiness.
- * - slow: Doing the thing is slow!
- */
-var LEGAL_STYLES = [
-  // animation: animation*
-  // URI-like: background, background-image
-  'background-color',
-  // NB: border-image is not set by the 'border' aliases
-  'border',
-  'border-bottom', 'border-bottom-color', 'border-bottom-left-radius',
-  'border-bottom-right-radius', 'border-bottom-style', 'border-bottom-width',
-  'border-color',
-  // URI-like: border-image*
-  'border-left', 'border-left-color', 'border-left-style', 'border-left-width',
-  'border-radius',
-  'border-right', 'border-right-color', 'border-right-style',
-  'border-right-width',
-  'border-style',
-  'border-top', 'border-top-color', 'border-top-left-radius',
-  'border-top-right-radius', 'border-top-style', 'border-top-width',
-  'border-width',
-  // slow: box-shadow
-  'clear',
-  'color',
-  'display',
-  'float',
-  'font-family',
-  'font-size',
-  'font-style',
-  'font-weight',
-  'height',
-  'line-height',
-  // URI-like: list-style, list-style-image
-  'list-style-position',
-  'list-style-type',
-  'margin', 'margin-bottom', 'margin-left', 'margin-right', 'margin-top',
-  'padding', 'padding-bottom', 'padding-left', 'padding-right', 'padding-top',
-  'text-align', 'text-align-last',
-  'text-decoration', 'text-decoration-color', 'text-decoration-line',
-  'text-decoration-style', 'text-indent',
-  'vertical-align',
-  'white-space',
-  'width',
-  'word-break', 'word-spacing', 'word-wrap',
-];
-
-/**
- * The regular expression to detect nodes that should be passed to stashLinks.
- *
- * ignore-case is not required; the value is checked against the lower-cased tag.
- */
-const RE_NODE_NEEDS_TRANSFORM = /^(?:a|area|img)$/;
-
-const RE_CID_URL = /^cid:/i;
-const RE_HTTP_URL = /^http(?:s)?/i;
-const RE_MAILTO_URL = /^mailto:/i;
-
-const RE_IMG_TAG = /^img$/;
-
-/**
- * Transforms src tags, ensure that links are http and transform them too so
- * that they don't actually navigate when clicked on but we can hook them.  (The
- * HTML display iframe is not intended to navigate; we just want to trigger the
- * browser.
- */
-function stashLinks(node, lowerTag) {
-  // - img: src
-  if (RE_IMG_TAG.test(lowerTag)) {
-    var src = node.getAttribute('src');
-    if (RE_CID_URL.test(src)) {
-      node.classList.add('moz-embedded-image');
-      // strip the cid: bit, it is necessarily there and therefore redundant.
-      node.setAttribute('cid-src', src.substring(4));
-      // 'src' attribute will be removed by whitelist
-    }
-    else if (RE_HTTP_URL.test(src)) {
-      node.classList.add('moz-external-image');
-      node.setAttribute('ext-src', src);
-      // 'src' attribute will be removed by whitelist
-    }
-    else {
-      // paranoia; no known benefit if this got through
-      node.removeAttribute('cid-src');
-      node.removeAttribute('ext-src');
-    }
-  }
-  // - a, area: href
-  else {
-    var link = node.getAttribute('href');
-    if (RE_HTTP_URL.test(link) ||
-        RE_MAILTO_URL.test(link)) {
-      node.classList.add('moz-external-link');
-      node.setAttribute('ext-href', link);
-      // 'href' attribute will be removed by whitelist
-    }
-    else {
-      // paranoia; no known benefit if this got through
-      node.removeAttribute('ext-href');
-    }
-  }
-}
-
-var BLEACH_SETTINGS = {
-  tags: LEGAL_TAGS,
-  strip: true,
-  prune: PRUNE_TAGS,
-  attributes: LEGAL_ATTR_MAP,
-  styles: LEGAL_STYLES,
-  asNode: true,
-  callbackRegexp: RE_NODE_NEEDS_TRANSFORM,
-  callback: stashLinks
-};
-
-/**
- * @args[
- *   @param[htmlString String]{
- *     An unsanitized HTML string.  The HTML content can be a fully valid HTML
- *     document with 'html' and 'body' tags and such, but most of that extra
- *     structure will currently be discarded.
- *
- *     In the future we may try and process the body and such correctly, but for
- *     now we don't.  This is consistent with many webmail clients who ignore
- *     style tags in the head, etc.
- *   }
- * ]
- * @return[HtmlElement]{
- *   The sanitized HTML content wrapped in a div container.
- * }
- */
-exports.sanitizeAndNormalizeHtml = function sanitizeAndNormalize(htmlString) {
-  var sanitizedNode = $bleach.clean(htmlString, BLEACH_SETTINGS);
-  return sanitizedNode;
-};
-
-const ELEMENT_NODE = 1, TEXT_NODE = 3;
-
-const RE_NORMALIZE_WHITESPACE = /\s+/g;
-
-/**
- * Derive snippet text from the already-sanitized HTML representation.
- */
-exports.generateSnippet = function generateSnippet(sanitizedHtmlNode,
-                                                   desiredLength) {
-  var snippet = '';
-
-  // Perform a traversal of the DOM tree skipping over things we don't care
-  // about.  Whenever we see an element we can descend into, we do so.
-  // Whenever we finish processing a node, we move to our next sibling.
-  // If there is no next sibling, we move up the tree until there is a next
-  // sibling or we hit the top.
-  var node = sanitizedHtmlNode.firstChild, done = false;
-  if (!node)
-    return snippet;
-  while (!done) {
-    if (node.nodeType === ELEMENT_NODE) {
-      switch (node.tagName.toLowerCase()) {
-        // - Things that can't contain useful text.
-        // Avoid including block-quotes in the snippet.
-        case 'blockquote':
-        // The style does not belong in the snippet!
-        case 'style':
-          break;
-
-        default:
-          if (node.firstChild) {
-            node = node.firstChild;
-            continue;
-          }
-          break;
-      }
-    }
-    else if (node.nodeType === TEXT_NODE) {
-      // these text nodes can be ridiculously full of whitespace.  Normalize
-      // the whitespace down to one whitespace character.
-      var normalizedText =
-            node.data.replace(RE_NORMALIZE_WHITESPACE, ' ');
-      // If the join would create two adjacents spaces, then skip the one
-      // on the thing we are concatenating.
-      if (snippet.length && normalizedText[0] === ' ' &&
-          snippet[snippet.length - 1] === ' ')
-        normalizedText = normalizedText.substring(1);
-      snippet += normalizedText;
-      if (snippet.length >= desiredLength)
-        break; // (exits the loop)
-    }
-
-    while (!node.nextSibling) {
-      node = node.parentNode;
-      if (node === sanitizedHtmlNode) {
-        // yeah, a goto or embedding this in a function might have been cleaner
-        done = true;
-        break;
-      }
-    }
-    if (!done)
-      node = node.nextSibling;
-  }
-
-  return snippet.substring(0, desiredLength);
-};
-
-/**
- * Wrap text/plain content into a serialized HTML string safe for insertion
- * via innerHTML.
- *
- * By default we wrap everything in a 'div' tag with 'br' indicating newlines.
- * Alternately, we could use 'white-space: pre-wrap' if we were more confident
- * about recipients having sufficient CSS support and our own desire to have
- * things resemble text/plain.
- *
- * NB: simple escaping should also be fine, but this is unlikely to be a
- * performance hotspot.
- */
-exports.wrapTextIntoSafeHTMLString = function(text, wrapTag,
-                                              transformNewlines, attrs) {
-  if (transformNewlines === undefined)
-    transformNewlines = true;
-
-  var doc = document.implementation.createHTMLDocument(''),
-      wrapNode = doc.createElement(wrapTag || 'div');
-
-  if (transformNewlines) {
-    var lines = text.split('\n');
-    for (var i = 0; i < lines.length; i++) {
-      var lineText = lines[i];
-      if (i)
-        wrapNode.appendChild(doc.createElement('br'));
-      if (lineText.length)
-        wrapNode.appendChild(doc.createTextNode(lineText));
-    }
-  }
-  else {
-    wrapNode.textContent = text;
-  }
-
-  if (attrs) {
-    for (var iAttr = 0; iAttr < attrs.length; iAttr += 2) {
-      wrapNode.setAttribute(attrs[iAttr], attrs[iAttr + 1]);
-    }
-  }
-
-  return wrapNode.outerHTML;
-};
-
-const RE_QUOTE_CHAR = /"/g;
-
-/**
- * Make an HTML attribute value safe.
- */
-exports.escapeAttrValue = function(s) {
-  return s.replace(RE_QUOTE_CHAR, '&quot;');
-};
-
-}); // end define
-;
-/**
- * Message processing logic that deals with message representations at a higher
- * level than just text/plain processing (`quotechew.js`) or text/html
- * (`htmlchew.js`) parsing.  We are particularly concerned with replying to
- * messages and forwarding messages, and use the aforementioned libs to do the
- * gruntwork.
- *
- * For replying and forwarding, we synthesize messages so that there is always
- * a text part that is the area where the user can enter text which may be
- * followed by a read-only editable HTML block.  If replying to a text/plain
- * message, the quoted text is placed in the text area.  If replying to a
- * message with any text/html parts, we generate an HTML block for all parts.
- **/
-
-define('mailapi/mailchew',
-  [
-    'exports',
-    './util',
-    './quotechew',
-    './htmlchew'
-  ],
-  function(
-    exports,
-    $util,
-    $quotechew,
-    $htmlchew
-  ) {
-
-const RE_RE = /^[Rr][Ee]: /;
-
-/**
- * Generate the reply subject for a message given the prior subject.  This is
- * simply prepending "Re: " to the message if it does not already have an
- * "Re:" equivalent.
- *
- * Note, some clients/gateways (ex: I think the google groups web client? at
- * least whatever has a user-agent of G2/1.0) will structure mailing list
- * replies so they look like "[list] Re: blah" rather than the "Re: [list] blah"
- * that Thunderbird would produce.  Thunderbird (and other clients) pretend like
- * that inner "Re:" does not exist, and so do we.
- *
- * We _always_ use the exact string "Re: " when prepending and do not localize.
- * This is done primarily for consistency with Thunderbird, but it also is
- * friendly to other e-mail applications out there.
- *
- * Thunderbird does support recognizing a
- * mail/chrome/messenger-region/region.properties property,
- * "mailnews.localizedRe" for letting locales specify other strings used by
- * clients that do attempt to localize "Re:".  Thunderbird also supports a
- * weird "Re(###):" or "Re[###]:" idiom; see
- * http://mxr.mozilla.org/comm-central/ident?i=NS_MsgStripRE for more details.
- */
-exports.generateReplySubject = function generateReplySubject(origSubject) {
-  if (RE_RE.test(origSubject))
-      return origSubject;
-  return 'Re: ' + origSubject;
-};
-
-var l10n_wroteString = '{name} wrote',
-    l10n_originalMessageString = 'Original Message';
-
-/*
- * L10n strings for forward headers.  In Thunderbird, these come from
- * mime.properties:
- * http://mxr.mozilla.org/comm-central/source/mail/locales/en-US/chrome/messenger/mime.properties
- *
- * The libmime logic that injects them is mime_insert_normal_headers:
- * http://mxr.mozilla.org/comm-central/source/mailnews/mime/src/mimedrft.cpp#791
- *
- * Our dictionary maps from the lowercased header name to the human-readable
- * string.
- *
- * XXX actually do the l10n hookup for this
- */
-var l10n_forward_header_labels = {
-  subject: 'Subject',
-  date: 'Date',
-  from: 'From',
-  replyTo: 'Reply-To',
-  to: 'To',
-  cc: 'CC',
-};
-
-exports.setLocalizedStrings = function(strings) {
-  l10n_wroteString = strings.wrote;
-  l10n_originalMessageString = strings.originalMessage;
-
-  l10n_forward_header_labels = strings.forwardHeaderLabels;
-};
-
-/**
- * Generate the reply body representation given info about the message we are
- * replying to.
- *
- * This does not include potentially required work such as propagating embedded
- * attachments or de-sanitizing links/embedded images/external images.
- */
-exports.generateReplyBody = function generateReplyMessage(reps, authorPair,
-                                                          msgDate,
-                                                          identity, refGuid) {
-  var useName = authorPair.name || authorPair.address;
-
-  var textMsg = '\n\n' +
-                l10n_wroteString.replace('{name}', useName) + ':\n',
-      htmlMsg = null;
-
-  for (var i = 0; i < reps.length; i += 2) {
-    var repType = reps[i], rep = reps[i + 1];
-
-    if (repType === 'plain') {
-      var replyText = $quotechew.generateReplyText(rep);
-      // If we've gone HTML, this needs to get concatenated onto the HTML.
-      if (htmlMsg) {
-        htmlMsg += $htmlchew.wrapTextIntoSafeHTMLString(replyText) + '\n';
-      }
-      // We haven't gone HTML yet, so this can all still be text.
-      else {
-        textMsg += replyText;
-      }
-    }
-    else {
-      if (!htmlMsg) {
-        htmlMsg = '';
-        // slice off the trailing newline of textMsg
-        textMsg = textMsg.slice(0, -1);
-      }
-      // rep has already been sanitized and therefore all HTML tags are balanced
-      // and so there should be no rude surprises from this simplistic looking
-      // HTML creation.  The message-id of the message never got sanitized,
-      // however, so it needs to be escaped.
-      htmlMsg += '<blockquote cite="mid:' + $htmlchew.escapeAttrValue(refGuid) +
-                 '" type="cite">' +
-                 rep +
-                 '</blockquote>';
-    }
-  }
-
-  // Thunderbird's default is to put the signature after the quote, so us too.
-  // (It also has complete control over all of this, but not us too.)
-  if (identity.signature) {
-    // Thunderbird wraps its signature in a:
-    // <pre class="moz-signature" cols="72"> construct and so we do too.
-    if (htmlMsg)
-      htmlMsg += $htmlchew.wrapTextIntoSafeHTMLString(
-                   identity.signature, 'pre', false,
-                   ['class', 'moz-signature', 'cols', '72']);
-    else
-      textMsg += '\n\n-- \n' + identity.signature + '\n';
-  }
-
-  return {
-    text: textMsg,
-    html: htmlMsg
-  };
-};
-
-/**
- * Generate the body of an inline forward message.  XXX we need to generate
- * the header summary which needs some localized strings.
- */
-exports.generateForwardMessage = function generateForwardMessage(
-                                   author, date, subject, bodyInfo, identity) {
-  var textMsg = '\n\n', htmlMsg = null;
-
-  if (identity.signature)
-    textMsg += '-- \n' + identity.signature + '\n\n';
-
-  textMsg += '-------- ' + l10n_originalMessageString + ' --------\n';
-  // XXX l10n! l10n! l10n!
-
-  // Add the headers in the same order libmime adds them in
-  // mime_insert_normal_headers so that any automated attempt to re-derive
-  // the headers has a little bit of a chance (since the strings are
-  // localized.)
-
-  // : subject
-  textMsg += l10n_forward_header_labels['subject'] + ': ' + subject + '\n';
-
-  // We do not track or remotely care about the 'resent' headers
-  // : resent-comments
-  // : resent-date
-  // : resent-from
-  // : resent-to
-  // : resent-cc
-  // : date
-  textMsg += l10n_forward_header_labels['date'] + ': ' + new Date(date) + '\n';
-  // : from
-  textMsg += l10n_forward_header_labels['from'] + ': ' +
-               $util.formatAddresses([author]) + '\n';
-  // : reply-to
-  if (bodyInfo.replyTo)
-    textMsg += l10n_forward_header_labels['replyTo'] + ': ' +
-                 $util.formatAddresses([bodyInfo.replyTo]) + '\n';
-  // : organization
-  // : to
-  if (bodyInfo.to)
-    textMsg += l10n_forward_header_labels['to'] + ': ' +
-                 $util.formatAddresses(bodyInfo.to) + '\n';
-  // : cc
-  if (bodyInfo.cc)
-    textMsg += l10n_forward_header_labels['cc'] + ': ' +
-                 $util.formatAddresses(bodyInfo.cc) + '\n';
-  // (bcc should never be forwarded)
-  // : newsgroups
-  // : followup-to
-  // : references (only for newsgroups)
-
-  textMsg += '\n';
-
-  var reps = bodyInfo.bodyReps;
-  for (var i = 0; i < reps.length; i += 2) {
-    var repType = reps[i], rep = reps[i + 1];
-
-    if (repType === 'plain') {
-      var forwardText = $quotechew.generateForwardBodyText(rep);
-      // If we've gone HTML, this needs to get concatenated onto the HTML.
-      if (htmlMsg) {
-        htmlMsg += $htmlchew.wrapTextIntoSafeHTMLString(forwardText) + '\n';
-      }
-      // We haven't gone HTML yet, so this can all still be text.
-      else {
-        textMsg += forwardText;
-      }
-    }
-    else {
-      if (!htmlMsg)
-        htmlMsg = '';
-      htmlMsg += rep;
-    }
-  }
-
-  return {
-    text: textMsg,
-    html: htmlMsg
-  };
-};
-
-const HTML_WRAP_TOP =
-  '<html><body><body bgcolor="#FFFFFF" text="#000000">';
-const HTML_WRAP_BOTTOM =
-  '</body></html>';
-
-/**
- * Combine the user's plaintext composition with the read-only HTML we provided
- * them into a final HTML representation.
- */
-exports.mergeUserTextWithHTML = function mergeReplyTextWithHTML(text, html) {
-  return HTML_WRAP_TOP +
-         $htmlchew.wrapTextIntoSafeHTMLString(text, 'div') +
-         html +
-         HTML_WRAP_BOTTOM;
-};
-
-}); // end define
-;
 define('events',['require','exports','module'],function (require, exports, module) {
 if (!process.EventEmitter) process.EventEmitter = function () {};
 
@@ -9132,7 +7096,7 @@ module.exports.mimeFunctions = {
 
         for(var i=0, len = str.length; i<len; i++){
             chr = str.charAt(i);
-            if(chr == "=" && (hex = str.substr(i+1, 2)) && /[\da-fA-F]{2}/.test(hex)){
+            if(chr == "=" && (hex = str.substr(i+1, 2).match(/[\da-fA-F]{2}/))){
                 buffer[bufferPos++] = parseInt(hex, 16);
                 i+=2;
                 continue;
@@ -9240,9 +7204,21 @@ module.exports.mimeFunctions = {
         var remainder = "", lastCharset, curCharset;
         str = (str || "").toString();
 
-        str = str.
-                replace(/(=\?[^?]+\?[QqBb]\?[^?]+\?=)\s+(?==\?[^?]+\?[QqBb]\?[^?]+\?=)/g, "$1").
-                replace(/\=\?([\w_\-]+)\?([QB])\?[^\?]+\?\=/g, (function(mimeWord, charset, encoding){
+        while(str.match(/(\=\?[\w_\-]+\?[QB]\?[^\?]+\?\=)\s+(?=\=\?[\w_\-]+\?[QB]\?[^\?]+\?\=)/g)){
+            str = str.replace(/(\=\?[\w_\-]+\?[QB]\?[^\?]+\?\=)\s+(\=\?[\w_\-]+\?[QB]\?[^\?]+\?\=)/g,function(original, first, second){
+                var match1 = (first || "").trim().match(/^\=\?([\w_\-]+)\?([QB])\?([^\?]+)\?\=$/),
+                    match2 = (second || "").trim().match(/^\=\?([\w_\-]+)\?([QB])\?([^\?]+)\?\=$/);
+
+                if(match1[1] == match2[1] && match1[2] == match2[2]){
+                    return "=?"+match1[1]+"?"+match1[2]+"?"+match1[3] + match2[3]+"?=";
+                }else{
+                    return first+second;
+                }
+
+            });
+        }
+
+        str = str.replace(/\=\?([\w_\-]+)\?([QB])\?[^\?]+\?\=/g, (function(mimeWord, charset, encoding){
 
                       curCharset = charset + encoding;
 
@@ -11891,193 +9867,1964 @@ define('mailcomposer',['./mailcomposer/lib/mailcomposer'], function (main) {
     return main;
 });
 /**
- * Composition stuff.
+ *
  **/
 
-define('mailapi/composer',
+define('mailapi/util',
   [
-    'mailcomposer',
-    './mailchew',
-    './util',
     'exports'
   ],
   function(
-    $mailcomposer,
-    $mailchew,
-    $imaputil,
     exports
   ) {
 
 /**
- * Abstraction around the mailcomposer helper library that exists to consolidate
- * our hackish uses of it, as well as to deal with our need to create variations
- * of a message with and without the Bcc headers present.  This is also being
- * used as a vehicle to eventually support streams instead of generating a
- * single big buffer.
- *
- * Our API is currently synchronous for getting envelope data and asynchronous
- * for generating the body.  The asynchronous bit comes because we chose to
- * internalize our fetching of the contents of attachments from Blobs which is
- * an inherently asynchronous thing.
+ * Header info comparator that orders messages in order of numerically
+ * decreasing date and UIDs.  So new messages come before old messages,
+ * and messages with higher UIDs (newer-ish) before those with lower UIDs
+ * (when the date is the same.)
  */
-function Composer(mode, wireRep, account, identity) {
-  this.mode = mode;
-  this.wireRep = wireRep;
-  this.account = account;
-  this.identity = identity;
-
-  this._asyncPending = 0;
-  this._deferredCalls = [];
-
-  // - snapshot data we create for consistency
-  // we create now so multiple MailComposer creations will
-  // have the same values.
-  this.sentDate = new Date();
-  // we're copying nodemailer here; we might want to include some more...
-  this.messageId =
-    '<' + Date.now() + Math.random().toString(16).substr(1) + '@mozgaia>';
-
-  this._mcomposer = null;
-  this._mcomposerOpts = null;
-  this._buildMailComposer();
-
-  this._attachments = [];
-
-  // - fetch attachments if sending
-  if (mode === 'send' && wireRep.attachments) {
-    wireRep.attachments.forEach(function(attachmentDef) {
-      var reader = new FileReader();
-      reader.onload = function onloaded() {
-        this._attachments.push({
-          filename: attachmentDef.name,
-          contentType: attachmentDef.blob.type,
-          contents: new Uint8Array(reader.result),
-        });
-        if (--this._asyncPending === 0)
-          this._asyncLoadsCompleted();
-      }.bind(this);
-      try {
-        reader.readAsArrayBuffer(attachmentDef.blob);
-        this._asyncPending++;
-      }
-      catch (ex) {
-        console.error('Problem attaching attachment:', ex, '\n', ex.stack);
-      }
-    }.bind(this));
-  }
+const cmpHeaderYoungToOld = exports.cmpHeaderYoungToOld =
+    function cmpHeaderYoungToOld(a, b) {
+  var delta = b.date - a.date;
+  if (delta)
+    return delta;
+  // favor larger UIDs because they are newer-ish.
+  return b.id - a.id;
 }
-exports.Composer = Composer;
-Composer.prototype = {
-  _buildMailComposer: function() {
-    var wireRep = this.wireRep, body = wireRep.body;
-    var mcomposer = this._mcomposer = new $mailcomposer.MailComposer();
 
-    var messageOpts = {
-      from: $imaputil.formatAddresses([this.identity]),
-      subject: wireRep.subject,
-    };
-    if (body.html) {
-      messageOpts.html = $mailchew.mergeUserTextWithHTML(body.text, body.html);
+/**
+ * Perform a binary search on an array to find the correct insertion point
+ *  in the array for an item.  From deuxdrop; tested in
+ *  deuxdrop's `unit-simple-algos.js` test.
+ *
+ * @return[Number]{
+ *   The correct insertion point in the array, thereby falling in the inclusive
+ *   range [0, arr.length].
+ * }
+ */
+const bsearchForInsert = exports.bsearchForInsert =
+    function bsearchForInsert(list, seekVal, cmpfunc) {
+  if (!list.length)
+    return 0;
+  var low  = 0, high = list.length - 1,
+      mid, cmpval;
+  while (low <= high) {
+    mid = low + Math.floor((high - low) / 2);
+    cmpval = cmpfunc(seekVal, list[mid]);
+    if (cmpval < 0)
+      high = mid - 1;
+    else if (cmpval > 0)
+      low = mid + 1;
+    else
+      break;
+  }
+  if (cmpval < 0)
+    return mid; // insertion is displacing, so use mid outright.
+  else if (cmpval > 0)
+    return mid + 1;
+  else
+    return mid;
+};
+
+var bsearchMaybeExists = exports.bsearchMaybeExists =
+    function bsearchMaybeExists(list, seekVal, cmpfunc, aLow, aHigh) {
+  var low  = ((aLow === undefined)  ? 0                 : aLow),
+      high = ((aHigh === undefined) ? (list.length - 1) : aHigh),
+      mid, cmpval;
+  while (low <= high) {
+    mid = low + Math.floor((high - low) / 2);
+    cmpval = cmpfunc(seekVal, list[mid]);
+    if (cmpval < 0)
+      high = mid - 1;
+    else if (cmpval > 0)
+      low = mid + 1;
+    else
+      return mid;
+  }
+  return null;
+};
+
+/**
+ * Partition a list of messages (identified by message namers, aka the suid and
+ * date of the message) by the folder they belong to.
+ *
+ * @args[
+ *   @param[messageNamers @listof[MessageNamer]]
+ * ]
+ * @return[@listof[@dict[
+ *   @key[folderId FolderID]
+ *   @key[messages @listof[MessageNamer]]
+ * ]
+ */
+exports.partitionMessagesByFolderId =
+    function partitionMessagesByFolderId(messageNamers) {
+  var results = [], foldersToMsgs = {};
+  for (var i = 0; i < messageNamers.length; i++) {
+    var messageNamer = messageNamers[i],
+        messageSuid = messageNamer.suid,
+        idxLastSlash = messageSuid.lastIndexOf('/'),
+        folderId = messageSuid.substring(0, idxLastSlash);
+
+    if (!foldersToMsgs.hasOwnProperty(folderId)) {
+      var messages = [messageNamer];
+      results.push({
+        folderId: folderId,
+        messages: messages,
+      });
+      foldersToMsgs[folderId] = messages;
     }
     else {
-      messageOpts.body = body.text;
+      foldersToMsgs[folderId].push(messageNamer);
     }
+  }
+  return results;
+};
 
-    if (this.identity.replyTo)
-      messageOpts.replyTo = this.identity.replyTo;
-    if (wireRep.to && wireRep.to.length)
-      messageOpts.to = $imaputil.formatAddresses(wireRep.to);
-    if (wireRep.cc && wireRep.cc.length)
-      messageOpts.cc = $imaputil.formatAddresses(wireRep.cc);
-    if (wireRep.bcc && wireRep.bcc.length)
-      messageOpts.bcc = $imaputil.formatAddresses(wireRep.bcc);
-    mcomposer.setMessageOption(messageOpts);
+exports.formatAddresses = function(nameAddrPairs) {
+  var addrstrings = [];
+  for (var i = 0; i < nameAddrPairs.length; i++) {
+    var pair = nameAddrPairs[i];
+    // support lazy people providing only an e-mail... or very careful
+    // people who are sure they formatted things correctly.
+    if (typeof(pair) === 'string') {
+      addrstrings.push(pair);
+    }
+    else if (!pair.name) {
+      addrstrings.push(pair.address);
+    }
+    else {
+      addrstrings.push(
+        '"' + pair.name.replace(/["']/g, '') + '" <' +
+          pair.address + '>');
+    }
+  }
 
-    if (wireRep.customHeaders) {
-      for (var iHead = 0; iHead < wireRep.customHeaders.length; iHead += 2){
-        mcomposer.addHeader(wireRep.customHeaders[iHead],
-                           wireRep.customHeaders[iHead+1]);
+  return addrstrings.join(', ');
+};
+
+}); // end define
+;
+/**
+ * Process text/plain message bodies for quoting / signatures.
+ *
+ * We have two main goals in our processing:
+ *
+ * 1) Improve display by being able to automatically collapse excessively quoted
+ * blocks and large/redundant signature blocks and hide them entirely from snippet
+ * generation.
+ *
+ * 2) Allow us to reply to messages and provide automatically limited quoting.
+ * Specifically, we want to provide one message's worth of context when replying
+ * to a message.  We also want to avoid messages in a thread indefinitely
+ * growing in size because all users keep replying and leaving default quoting
+ * intact.
+ *
+ *
+ **/
+
+define('mailapi/quotechew',
+  [
+    'exports'
+  ],
+  function(
+    exports
+  ) {
+
+////////////////////////////////////////////////////////////////////////////////
+// Content Type Encoding
+//
+// We encode content type values as integers in an attempt to have the serialized
+// form not be super huge and be pretty quick to check without generating garbage
+// objects.
+//
+// The low-order nibble encodes the type for styling purposes; everything above
+// that nibble is per-type and may encode integer values or use hot bits to
+// indicate type.
+
+/**
+ * Actual content of the message written by the user.
+ */
+const CT_AUTHORED_CONTENT = 0x1;
+/**
+ * Niceties like greetings/thanking someone/etc.  These are things that we want to
+ * show when displaying the message, but that arguably are of lower importance and
+ * might want to be elided for snippet purposes, etc.
+ */
+const CT_AUTHORED_NICETIES = 0x11;
+/**
+ * The signature of the message author; might contain useful information in it.
+ */
+const CT_SIGNATURE = 0x2;
+
+/**
+ * The line that says "Blah wrote:" that precedes a quote.  It's not part of the
+ * user content, but it's also not part of the quote.
+ */
+const CT_LEADIN_TO_QUOTE = 0x3;
+
+const CT_QUOTED_TYPE = 0x4;
+
+/**
+ * A quoted reply; eligible for collapsing.  Depth of quoting will also be
+ * encoded in the actual integer value.
+ */
+const CT_QUOTED_REPLY = 0x14;
+/**
+ * A quoted forwarded message; we would guess that the user has not previously seen
+ * the message and the quote wants to be displayed.
+ */
+const CT_QUOTED_FORWARD = 0x24;
+/**
+ * Quoted content that has not been pruned.  Aspirational!
+ */
+const CT_QUOTED_IN_ENTIRETY = 0x40;
+/**
+ * The quote has been subjected to some level of manual intervention. Aspirational!
+ */
+const CT_QUOTED_GARDENED = 0x80;
+
+const CT_QUOTE_DEPTH_MASK = 0xff00;
+
+/**
+ * Legal-ish boilerplate about how it's only for the recipient, etc. etc.
+ * Generally going to be long and boring.
+ */
+const CT_BOILERPLATE_DISCLAIMER = 0x5;
+/**
+ * Boilerplate about the message coming from a mailing list, info about the
+ * mailing list.
+ */
+const CT_BOILERPLATE_LIST_INFO = 0x6;
+/**
+ * Product branding boilerplate that may or may not indicate that the composing
+ * device was a mobile device (which is useful).
+ */
+const CT_BOILERPLATE_PRODUCT = 0x7;
+/**
+ * Advertising automatically inserted by the mailing list or free e-mailing service,
+ * etc.  This is assumed to be boring.
+ */
+const CT_BOILERPLATE_ADS = 0x8;
+
+const CHARCODE_GT = ('>').charCodeAt(0),
+      CHARCODE_SPACE = (' ').charCodeAt(0),
+      CHARCODE_NBSP = ('\xa0').charCodeAt(0),
+      CHARCODE_NEWLINE = ('\n').charCodeAt(0);
+
+const RE_ORIG_MESAGE_DELIM = /^-{5} Original Message -{5}$/;
+
+const RE_ALL_WS = /^\s+$/;
+
+const RE_SECTION_DELIM = /^[_-]{6,}$/;
+
+const RE_LIST_BOILER = /mailing list$/;
+
+const RE_WROTE_LINE = /wrote/;
+
+const RE_SIGNATURE_LINE = /^-- $/;
+
+/**
+ * The maximum number of lines that can be in a boilerplate chunk.  We expect
+ * disclaimer boilerplate to be what drives this.
+ */
+const MAX_BOILERPLATE_LINES = 20;
+
+/**
+ * Catch various common well-known product branding lines:
+ * - "Sent from my iPhone/iPad/mobile device".  Apple, others.
+ * - "Sent from my Android ...".  Common prefix for wildly varying Android
+ *     strings.
+ * - "Sent from my ...".  And there are others that don't match the above but
+ *     that match the prefix.
+ * - "Sent from Mobile"
+ */
+const RE_PRODUCT_BOILER = /^(?:Sent from (?:Mobile|my .+))$/;
+
+const RE_LEGAL_BOILER_START = /^(?:This message|Este mensaje)/;
+
+function indexOfDefault(string, search, startIndex, defVal) {
+  var idx = string.indexOf(search, startIndex);
+  if (idx === -1)
+    return defVal;
+  return idx;
+}
+
+const NEWLINE = '\n', RE_NEWLINE = /\n/g;
+
+function countNewlinesInRegion(string, startIndex, endIndex) {
+  var idx = startIndex - 1, count = 0;
+  for (;;) {
+    idx = string.indexOf(NEWLINE, idx + 1);
+    if (idx === -1 || idx >= endIndex)
+      return count;
+    count++;
+  }
+  return null;
+}
+
+/**
+ * Process the contents of a text body for quoting purposes.
+ *
+ * Key behaviors:
+ *
+ * - Whitespace is trimmed at the boundaries of regions.  Our CSS styling will
+ *   take care of making sure there is appropriate whitespace.  This is an
+ *   intentional normalization that should cover both people who fail to put
+ *   whitespace in their messages (jerks) and people who put whitespace in.
+ *
+ * - Newlines are maintained inside of blocks.
+ *
+ * - We look backwards for boilerplate blocks once we encounter the first quote
+ *   block or the end of the message.  We keep incrementally looking backwards
+ *   until we reach something that we don't think is boilerplate.
+ */
+exports.quoteProcessTextBody = function quoteProcessTextBody(fullBodyText) {
+  var contentRep = [];
+  var line;
+  /**
+   * Count the number of '>' quoting characters in the line, mutating `line` to
+   * not include the quoting characters.  Some clients will place a single space
+   * between each '>' at higher depths, and we support that.  But any more spaces
+   * than that and we decide we've reached the end of the quote marker.
+   */
+  function countQuoteDepthAndNormalize() {
+    // We know that the first character is a '>' already.
+    var count = 1;
+    var lastStartOffset = 1, spaceOk = true;
+
+    for (var i = 1; i < line.length; i++) {
+      var c = line.charCodeAt(i);
+      if (c === CHARCODE_GT) {
+        count++;
+        lastStartOffset++;
+        spaceOk = true;
+      }
+      else if (c === CHARCODE_SPACE) {
+        if (!spaceOk)
+          break;
+        lastStartOffset++;
+        spaceOk = false;
+      }
+      else {
+        break;
       }
     }
-    mcomposer.addHeader('User-Agent', 'Mozilla Gaia Email Client 0.1alpha');
-    mcomposer.addHeader('Date', this.sentDate.toUTCString());
-
-    mcomposer.addHeader('Message-Id', this.messageId);
-    if (wireRep.references)
-      mcomposer.addHeader('References', wireRep.references);
-  },
+    if (lastStartOffset)
+      line = line.substring(lastStartOffset);
+    return count;
+  }
 
   /**
-   * Build the body consistent with the requested options.  If this is our
-   * first time building a body, we can use the existing _mcomposer.  If the
-   * opts are the same as last time, we can reuse the built body.  If the opts
-   * have changed, we need to create a new _mcomposer because it accumulates
-   * state and then generate the body.
-   */
-  _ensureBodyWithOpts: function(opts) {
-    // reuse the existing body if possible
-    if (this._mcomposerOpts &&
-        this._mcomposerOpts.includeBcc === opts.includeBcc) {
-      return;
-    }
-    // if we already build a body, we need to create a new mcomposer
-    if (this._mcomposerOpts !== null)
-      this._buildMailComposer();
-    // save the opts for next time
-    this._mcomposerOpts = opts;
-    // it's fine to directly clobber this in
-    this._mcomposer.options.keepBcc = opts.includeBcc;
-
-    for (var iAtt = 0; iAtt < this._attachments.length; iAtt++) {
-      this._mcomposer.addAttachment(this._attachments[iAtt]);
-    }
-
-    // Render the message to its output buffer.
-    var mcomposer = this._mcomposer;
-    mcomposer._cacheOutput = true;
-    process.immediate = true;
-    mcomposer._processBufferedOutput = function() {
-      // we are stopping the DKIM logic from firing.
-    };
-    mcomposer._composeMessage();
-    process.immediate = false;
-
-    // (the data is now in mcomposer._outputBuffer)
-  },
-
-  _asyncLoadsCompleted: function() {
-    while (this._deferredCalls.length) {
-      var toCall = this._deferredCalls.shift();
-      toCall();
-    }
-  },
-
-  getEnvelope: function() {
-    return this._mcomposer.getEnvelope();
-  },
-
-  /**
-   * Request that a body be produced as a single buffer with the given options.
-   * Multiple calls to this method can be made and they may overlap.
+   * Scan backwards line-by-line through a chunk of text looking for boilerplate
+   * chunks.  We can stop once we determine we're not in boilerplate.
    *
-   * @args[
-   *   @param[opts @dict[
-   *     @key[includeBcc Boolean]{
-   *       Should we include the BCC data in the headers?
-   *     }
-   *   ]]
-   * ]
+   * - Product blurbs must be the first non-whitespace line seen to be detected;
+   *   they do not have to be delimited by an ASCII line.
+   *
+   * - Legal boilerplate must be delimited by an ASCII line.
    */
-  withMessageBuffer: function(opts, callback) {
-    if (this._asyncPending) {
-      this._deferredCalls.push(
-        this.withMessageBuffer.bind(this, opts, callback));
-      return;
+  function lookBackwardsForBoilerplate(chunk) {
+    var idxLineStart, idxLineEnd, line,
+        idxRegionEnd = chunk.length,
+        scanLinesLeft = MAX_BOILERPLATE_LINES,
+        sawNonWhitespaceLine = false,
+        lastContentLine = null,
+        lastBoilerplateStart = null,
+        sawProduct = false,
+        insertAt = contentRep.length;
+
+    function pushBoilerplate(contentType, merge) {
+      var boilerChunk = chunk.substring(idxLineStart, idxRegionEnd);
+      var idxChunkEnd = idxLineStart - 1;
+      // We used to do a trimRight here, but that would eat spaces in addition
+      // to newlines.  This was undesirable for both roundtripping purposes and
+      // mainly because the "-- " signature marker has a significant space
+      // character on the end there.
+      while (chunk.charCodeAt(idxChunkEnd - 1) === CHARCODE_NEWLINE) {
+        idxChunkEnd--;
+      }
+      var newChunk = chunk.substring(0, idxChunkEnd);
+      var ate = countNewlinesInRegion(chunk, newChunk.length, idxLineStart - 1);
+      chunk = newChunk;
+      idxRegionEnd = chunk.length;
+
+      if (!merge) {
+        contentRep.splice(insertAt, 0,
+                          ((ate&0xff) << 8) | contentType,
+                          boilerChunk);
+      }
+      else {
+        // nb: this merge does not properly reuse the previous existing 'ate'
+        // value; if we start doing more complex merges, the hardcoded '\n'
+        // below will need to be computed.
+        contentRep[insertAt] = ((ate&0xff) << 8) | (contentRep[insertAt]&0xff);
+        contentRep[insertAt + 1] = boilerChunk + '\n' +
+                                     contentRep[insertAt + 1];
+      }
+
+      sawNonWhitespaceLine = false;
+      scanLinesLeft = MAX_BOILERPLATE_LINES;
+      lastContentLine = null;
+      lastBoilerplateStart = idxLineStart;
     }
 
-    this._ensureBodyWithOpts(opts);
-    callback(this._mcomposer._outputBuffer);
-  },
+    for (idxLineStart = chunk.lastIndexOf('\n') + 1,
+           idxLineEnd = chunk.length;
+         idxLineEnd > 0 && scanLinesLeft;
+         idxLineEnd = idxLineStart - 1,
+           idxLineStart = chunk.lastIndexOf('\n', idxLineEnd - 1) + 1,
+           scanLinesLeft--) {
+
+      // (do not include the newline character)
+      line = chunk.substring(idxLineStart, idxLineEnd);
+
+      // - Skip whitespace lines.
+      if (!line.length ||
+          (line.length === 1 && line.charCodeAt(0) === CHARCODE_NBSP))
+        continue;
+
+      // - Explicit signature demarcation
+      if (RE_SIGNATURE_LINE.test(line)) {
+        // Check if this is just tagging something we decided was boilerplate in
+        // a proper signature wrapper.  If so, then execute a boilerplate merge.
+        if (idxLineEnd + 1 === lastBoilerplateStart) {
+          pushBoilerplate(null, true);
+        }
+        else {
+          pushBoilerplate(CT_SIGNATURE);
+        }
+        continue;
+      }
+
+      // - Section delimiter; try and classify what lives in this section
+      if (RE_SECTION_DELIM.test(line)) {
+        if (lastContentLine) {
+          // - Look for a legal disclaimer sequentially following the line.
+          if (RE_LEGAL_BOILER_START.test(lastContentLine)) {
+            pushBoilerplate(CT_BOILERPLATE_DISCLAIMER);
+            continue;
+          }
+          // - Look for mailing list
+          if (RE_LIST_BOILER.test(lastContentLine)) {
+            pushBoilerplate(CT_BOILERPLATE_LIST_INFO);
+            continue;
+          }
+        }
+        // The section was not boilerplate, so thus ends the reign of
+        // boilerplate.  Bail.
+        return chunk;
+      }
+      // - A line with content!
+      if (!sawNonWhitespaceLine) {
+        // - Product boilerplate (must be first/only non-whitespace line)
+        if (!sawProduct && RE_PRODUCT_BOILER.test(line)) {
+          pushBoilerplate(CT_BOILERPLATE_PRODUCT);
+          sawProduct = true;
+          continue;
+        }
+        sawNonWhitespaceLine = true;
+      }
+      lastContentLine = line;
+    }
+
+    return chunk;
+  }
+
+  /**
+   * Assume that we are in a content region and that all variables are proper.
+   */
+  function pushContent(considerForBoilerplate, upToPoint, forcePostLine) {
+    if (idxRegionStart === null) {
+      if (atePreLines) {
+        // decrement atePreLines if we are not the first chunk because then we get
+        // an implicit/free newline.
+        if (contentRep.length)
+          atePreLines--;
+        contentRep.push((atePreLines&0xff) << 8 | CT_AUTHORED_CONTENT);
+        contentRep.push('');
+      }
+    }
+    else {
+      if (upToPoint === undefined)
+        upToPoint = idxLineStart;
+
+      var chunk = fullBodyText.substring(idxRegionStart,
+                                         idxLastNonWhitespaceLineEnd);
+      var atePostLines = forcePostLine ? 1 : 0;
+      if (idxLastNonWhitespaceLineEnd + 1 !== upToPoint) {
+        // We want to count the number of newlines after the newline that
+        // belongs to the last non-meaningful-whitespace line up to the
+        // effective point.  If we saw a lead-in, the effective point is
+        // preceding the lead-in line's newline.  Otherwise it is the start point
+        // of the current line.
+        atePostLines += countNewlinesInRegion(fullBodyText,
+                                              idxLastNonWhitespaceLineEnd + 1,
+                                              upToPoint);
+      }
+      contentRep.push(((atePreLines&0xff) << 8) | ((atePostLines&0xff) << 16) |
+                      CT_AUTHORED_CONTENT);
+      var iChunk = contentRep.push(chunk) - 1;
+
+      if (considerForBoilerplate) {
+        var newChunk = lookBackwardsForBoilerplate(chunk);
+        if (chunk.length !== newChunk.length) {
+          // Propagate any atePost lines.
+          if (atePostLines) {
+            var iLastMeta = contentRep.length - 2;
+            // We can blindly write post-lines since boilerplate currently
+            // doesn't infer any post-newlines on its own.
+            contentRep[iLastMeta] = ((atePostLines&0xff) << 16) |
+                                    contentRep[iLastMeta];
+            contentRep[iChunk - 1] = ((atePreLines&0xff) << 8) |
+                                     CT_AUTHORED_CONTENT;
+          }
+
+          // If we completely processed the chunk into boilerplate, then we can
+          // remove it after propagating any pre-eat amount.
+          if (!newChunk.length) {
+            if (atePreLines) {
+              var bpAte = (contentRep[iChunk + 1] >> 8)&0xff;
+              bpAte += atePreLines;
+              contentRep[iChunk + 1] = ((bpAte&0xff) << 8) |
+                                       (contentRep[iChunk + 1]&0xffff00ff);
+            }
+            contentRep.splice(iChunk - 1, 2);
+          }
+          else {
+            contentRep[iChunk] = newChunk;
+          }
+        }
+      }
+    }
+
+    atePreLines = 0;
+    idxRegionStart = null;
+    lastNonWhitespaceLine = null;
+    idxLastNonWhitespaceLineEnd = null;
+    idxPrevLastNonWhitespaceLineEnd = null;
+  }
+
+  function pushQuote(newQuoteDepth) {
+    var atePostLines = 0;
+    // Discard empty lines at the end.  We already skipped adding blank lines, so
+    // no need to do the front side.
+    while (quoteRunLines.length &&
+           !quoteRunLines[quoteRunLines.length - 1]) {
+      quoteRunLines.pop();
+      atePostLines++;
+    }
+    contentRep.push(((atePostLines&0xff) << 24) |
+                    ((ateQuoteLines&0xff) << 16) |
+                    ((inQuoteDepth - 1) << 8) |
+                    CT_QUOTED_REPLY);
+    contentRep.push(quoteRunLines.join('\n'));
+    inQuoteDepth = newQuoteDepth;
+    if (inQuoteDepth)
+      quoteRunLines = [];
+    else
+      quoteRunLines = null;
+
+    ateQuoteLines = 0;
+    generatedQuoteBlock = true;
+  }
+
+  // == On indices and newlines
+  // Our line ends always point at the newline for the line; for the last line
+  // in the body, there may be no newline, but that doesn't matter since substring
+  // is fine with us asking for more than it has.
+
+
+  var idxLineStart, idxLineEnd, bodyLength = fullBodyText.length,
+      // null means we are looking for a non-whitespace line.
+      idxRegionStart = null,
+      curRegionType = null,
+      lastNonWhitespaceLine = null,
+      // The index of the last non-purely whitespace line.
+      idxLastNonWhitespaceLineEnd = null,
+      // value of idxLastNonWhitespaceLineEnd prior to its current value
+      idxPrevLastNonWhitespaceLineEnd = null,
+      //
+      inQuoteDepth = 0,
+      quoteRunLines = null,
+      contentType = null,
+      generatedQuoteBlock = false,
+      atePreLines = 0, ateQuoteLines = 0;
+  for (idxLineStart = 0,
+         idxLineEnd = indexOfDefault(fullBodyText, '\n', idxLineStart,
+                                     fullBodyText.length);
+       idxLineStart < bodyLength;
+       idxLineStart = idxLineEnd + 1,
+         idxLineEnd = indexOfDefault(fullBodyText, '\n', idxLineStart,
+                                     fullBodyText.length)) {
+
+    line = fullBodyText.substring(idxLineStart, idxLineEnd);
+
+    // - Do not process purely whitespace lines.
+    // Because our content runs are treated as regions, ignoring whitespace
+    // lines simply means that we don't start or end content blocks on blank
+    // lines.  Blank lines in the middle of a content block are maintained
+    // because our slice will include them.
+    if (!line.length ||
+        (line.length === 1
+         && line.charCodeAt(0) === CHARCODE_NBSP)) {
+      if (inQuoteDepth)
+        pushQuote(0);
+      if (idxRegionStart === null)
+        atePreLines++;
+      continue;
+    }
+
+    if (line.charCodeAt(0) === CHARCODE_GT) {
+      var lineDepth = countQuoteDepthAndNormalize();
+      // We are transitioning into a quote state...
+      if (!inQuoteDepth) {
+        // - Check for a "Blah wrote:" content line
+        if (lastNonWhitespaceLine &&
+            RE_WROTE_LINE.test(lastNonWhitespaceLine)) {
+
+          // count the newlines up to the lead-in's newline
+          var upToPoint = idxLastNonWhitespaceLineEnd;
+          idxLastNonWhitespaceLineEnd = idxPrevLastNonWhitespaceLineEnd;
+          // Nuke the content region if the lead-in was the start of the region;
+          // this can be inferred by there being no prior content line.
+          if (idxLastNonWhitespaceLineEnd === null)
+            idxRegionStart = null;
+
+          var leadin = lastNonWhitespaceLine;
+          pushContent(!generatedQuoteBlock, upToPoint);
+          var leadinNewlines = 0;
+          if (upToPoint + 1 !== idxLineStart)
+            leadinNewlines = countNewlinesInRegion(fullBodyText,
+                                                   upToPoint + 1, idxLineStart);
+          contentRep.push((leadinNewlines << 8) | CT_LEADIN_TO_QUOTE);
+          contentRep.push(leadin);
+        }
+        else {
+          pushContent(!generatedQuoteBlock);
+        }
+        quoteRunLines = [];
+        inQuoteDepth = lineDepth;
+      }
+      // There is a change in quote depth
+      else if (lineDepth !== inQuoteDepth) {
+        pushQuote(lineDepth);
+      }
+
+      // Eat whitespace lines until we get a non-whitespace (quoted) line.
+      if (quoteRunLines.length || line.length)
+        quoteRunLines.push(line);
+      else
+        ateQuoteLines++;
+    }
+    else {
+      if (inQuoteDepth) {
+        pushQuote(0);
+        idxLastNonWhitespaceLineEnd = null;
+      }
+      if (idxRegionStart === null)
+        idxRegionStart = idxLineStart;
+
+      lastNonWhitespaceLine = line;
+      idxPrevLastNonWhitespaceLineEnd = idxLastNonWhitespaceLineEnd;
+      idxLastNonWhitespaceLineEnd = idxLineEnd;
+    }
+  }
+  if (inQuoteDepth) {
+    pushQuote(0);
+  }
+  else {
+    // There is no implicit newline for the final block, so force it if we had
+    // a newline.
+    pushContent(true, fullBodyText.length,
+                (fullBodyText.charCodeAt(fullBodyText.length - 1) ===
+                  CHARCODE_NEWLINE));
+  }
+
+  return contentRep;
+};
+
+/**
+ * The maximum number of characters to shrink the snippet to try and find a
+ * whitespace boundary.  If it would take more characters than this, we just
+ * do a hard truncation and hope things work out visually.
+ */
+const MAX_WORD_SHRINK = 8;
+
+const RE_NORMALIZE_WHITESPACE = /\s+/g;
+
+/**
+ * Derive the snippet for a message from its processed body representation.  We
+ * take the snippet from the first non-empty content block, normalizing
+ * all whitespace to a single space character for each instance, then truncate
+ * with a minor attempt to align on word boundaries.
+ */
+exports.generateSnippet = function generateSnippet(rep, desiredLength) {
+  for (var i = 0; i < rep.length; i += 2) {
+    var etype = rep[i]&0xf, block = rep[i + 1];
+    switch (etype) {
+      case CT_AUTHORED_CONTENT:
+        if (!block.length)
+          break;
+        // - truncate
+        // (no need to truncate if short)
+        if (block.length < desiredLength)
+          return block.trim().replace(RE_NORMALIZE_WHITESPACE, ' ');
+        // try and truncate on a whitespace boundary
+        var idxPrevSpace = block.lastIndexOf(' ', desiredLength);
+        if (desiredLength - idxPrevSpace < MAX_WORD_SHRINK)
+          return block.substring(0, idxPrevSpace).trim()
+                      .replace(RE_NORMALIZE_WHITESPACE, ' ');
+        return block.substring(0, desiredLength).trim()
+                    .replace(RE_NORMALIZE_WHITESPACE, ' ');
+    }
+  }
+
+  return '';
+};
+
+/**
+ * What is the deepest quoting level that we should repeat?  Our goal is not to be
+ * the arbiter of style, but to provide a way to bound message growth in the face
+ * of reply styles where humans do not manually edit quotes.
+ *
+ * We accept depth levels up to 5 mainly because a quick perusal of mozilla lists
+ * shows cases where 5 levels of nesting were used to provide useful context.
+ */
+const MAX_QUOTE_REPEAT_DEPTH = 5;
+// we include a few more than we need for forwarded text regeneration
+const replyQuotePrefixStrings = [
+  '> ', '>> ', '>>> ', '>>>> ', '>>>>> ', '>>>>>> ', '>>>>>>> ', '>>>>>>>> ',
+  '>>>>>>>>> ',
+];
+const replyQuotePrefixStringsNoSpace = [
+  '>', '>>', '>>>', '>>>>', '>>>>>', '>>>>>>', '>>>>>>>', '>>>>>>>>',
+  '>>>>>>>>>',
+];
+const replyQuoteNewlineReplaceStrings = [
+  '\n> ', '\n>> ', '\n>>> ', '\n>>>> ', '\n>>>>> ', '\n>>>>>> ', '\n>>>>>>> ',
+  '\n>>>>>>>> ',
+];
+const replyQuoteNewlineReplaceStringsNoSpace = [
+  '\n>', '\n>>', '\n>>>', '\n>>>>', '\n>>>>>', '\n>>>>>>', '\n>>>>>>>',
+  '\n>>>>>>>>',
+];
+const replyPrefix = '> ', replyNewlineReplace = '\n> ';
+
+function expandQuotedPrefix(s, depth) {
+  if (s.charCodeAt(0) === CHARCODE_NEWLINE)
+    return replyQuotePrefixStringsNoSpace[depth];
+  return replyQuotePrefixStrings[depth];
+}
+
+/**
+ * Expand a quoted block so that it has the right number of greater than signs
+ * and inserted whitespace where appropriate.  (Blank lines don't want
+ * whitespace injected.)
+ */
+function expandQuoted(s, depth) {
+  var ws = replyQuoteNewlineReplaceStrings[depth],
+      nows = replyQuoteNewlineReplaceStringsNoSpace[depth];
+  return s.replace(RE_NEWLINE, function(m, idx) {
+    if (s.charCodeAt(idx+1) === CHARCODE_NEWLINE)
+      return nows;
+    else
+      return ws;
+  });
+}
+
+/**
+ * Generate a text message reply given an already quote-processed body.  We do
+ * not simply '>'-prefix everything because 1) we don't store the raw message
+ * text because it's faster for us to not quote-process everything every time we
+ * display a message, 2) we want to strip some stuff out, 3) we don't care about
+ * providing a verbatim quote.
+ */
+exports.generateReplyText = function generateReplyText(rep) {
+  var strBits = [];
+  for (var i = 0; i < rep.length; i += 2) {
+    var etype = rep[i]&0xf, block = rep[i + 1];
+    switch (etype) {
+      case CT_AUTHORED_CONTENT:
+      case CT_SIGNATURE:
+      case CT_LEADIN_TO_QUOTE:
+        strBits.push(expandQuotedPrefix(block, 0));
+        strBits.push(expandQuoted(block, 0));
+        break;
+      case CT_QUOTED_TYPE:
+        var depth = ((rep[i] >> 8)&0xff) + 1;
+        if (depth < MAX_QUOTE_REPEAT_DEPTH) {
+          strBits.push(expandQuotedPrefix(block, depth));
+          strBits.push(expandQuoted(block, depth));
+        }
+        break;
+      // -- eat boilerplate!
+      // No one needs to read boilerplate in a reply; the point is to
+      // provide context, not the whole message.  (Forward the message if
+      // you want the whole thing!)
+      case CT_BOILERPLATE_DISCLAIMER:
+      case CT_BOILERPLATE_LIST_INFO:
+      case CT_BOILERPLATE_PRODUCT:
+      case CT_BOILERPLATE_ADS:
+        break;
+    }
+  }
+
+  return strBits.join('');
+};
+
+/**
+ * Regenerate the text of a message for forwarding.  'Original Message' is not
+ * prepended and information about the message's header is not prepended.  That
+ * is done in `generateForwardMessage`.
+ *
+ * We attempt to generate a message as close to the original message as
+ * possible, but it doesn't have to be 100%.
+ */
+exports.generateForwardBodyText = function generateForwardBodyText(rep) {
+  var strBits = [], nl;
+
+  for (var i = 0; i < rep.length; i += 2) {
+    if (i)
+      strBits.push(NEWLINE);
+
+    var etype = rep[i]&0xf, block = rep[i + 1];
+    switch (etype) {
+      // - injected with restored whitespace
+      case CT_AUTHORED_CONTENT:
+        // pre-newlines
+        for (nl = (rep[i] >> 8)&0xff; nl; nl--)
+          strBits.push(NEWLINE);
+        strBits.push(block);
+        // post new-lines
+        for (nl = (rep[i] >> 16)&0xff; nl; nl--)
+          strBits.push(NEWLINE);
+        break;
+      case CT_LEADIN_TO_QUOTE:
+        strBits.push(block);
+        for (nl = (rep[i] >> 8)&0xff; nl; nl--)
+          strBits.push(NEWLINE);
+        break;
+      // - injected verbatim,
+      case CT_SIGNATURE:
+      case CT_BOILERPLATE_DISCLAIMER:
+      case CT_BOILERPLATE_LIST_INFO:
+      case CT_BOILERPLATE_PRODUCT:
+      case CT_BOILERPLATE_ADS:
+        for (nl = (rep[i] >> 8)&0xff; nl; nl--)
+          strBits.push(NEWLINE);
+        strBits.push(block);
+        for (nl = (rep[i] >> 16)&0xff; nl; nl--)
+          strBits.push(NEWLINE);
+        break;
+      // - quote character reconstruction
+      // this is not guaranteed to round-trip since we assume the non-whitespace
+      // variant...
+      case CT_QUOTED_TYPE:
+        var depth = Math.min((rep[i] >> 8)&0xff, 8);
+        for (nl = (rep[i] >> 16)&0xff; nl; nl--) {
+          strBits.push(replyQuotePrefixStringsNoSpace[depth]);
+          strBits.push(NEWLINE);
+        }
+        strBits.push(expandQuotedPrefix(block, depth));
+        strBits.push(expandQuoted(block, depth));
+        for (nl = (rep[i] >> 24)&0xff; nl; nl--) {
+          strBits.push(NEWLINE);
+          strBits.push(replyQuotePrefixStringsNoSpace[depth]);
+        }
+        break;
+    }
+  }
+
+  return strBits.join('');
+};
+
+}); // end define
+;
+// UMD boilerplate to work across node/AMD/naked browser:
+// https://github.com/umdjs/umd
+(function (root, factory) {
+    if (typeof exports === 'object') {
+        // Node. Does not work with strict CommonJS, but
+        // only CommonJS-like enviroments that support module.exports,
+        // like Node.
+        module.exports = factory();
+    } else if (typeof define === 'function' && define.amd) {
+        // AMD. Register as an anonymous module.
+        define('bleach',[],factory);
+    } else {
+        // Browser globals
+        root.Bleach = factory();
+    }
+}(this, function () {
+
+var ALLOWED_TAGS = [
+    'a',
+    'abbr',
+    'acronym',
+    'b',
+    'blockquote',
+    'code',
+    'em',
+    'i',
+    'li',
+    'ol',
+    'strong',
+    'ul'
+];
+var ALLOWED_ATTRIBUTES = {
+    'a': ['href', 'title'],
+    'abbr': ['title'],
+    'acronym': ['title']
+};
+var ALLOWED_STYLES = [];
+
+var Node = {
+  ELEMENT_NODE                :  1,
+  ATTRIBUTE_NODE              :  2,
+  TEXT_NODE                   :  3,
+  CDATA_SECTION_NODE          :  4,
+  ENTITY_REFERENCE_NODE       :  5,
+  ENTITY_NODE                 :  6,
+  PROCESSING_INSTRUCTION_NODE :  7,
+  COMMENT_NODE                :  8,
+  DOCUMENT_NODE               :  9,
+  DOCUMENT_TYPE_NODE          : 10,
+  DOCUMENT_FRAGMENT_NODE      : 11,
+  NOTATION_NODE               : 12
+};
+
+var DEFAULTS = {
+  tags: ALLOWED_TAGS,
+  prune: [],
+  attributes: ALLOWED_ATTRIBUTES,
+  styles: ALLOWED_STYLES,
+  strip: false,
+  stripComments: true
+};
+
+var bleach = {};
+
+bleach._preCleanNodeHack = null;
+
+// This is for web purposes; node will clobber this with 'jsdom'.
+bleach.documentConstructor = function() {
+  // Per hsivonen, this creates a document flagged as "loaded as data" which is
+  // desirable for safety reasons as it avoids pre-fetches, etc.
+  return document.implementation.createHTMLDocument('');
+};
+
+/**
+ * Clean a string.
+ */
+bleach.clean = function (html, opts) {
+  if (!html) return '';
+
+  var document = bleach.documentConstructor(),
+      dirty = document.createElement('dirty');
+
+  // To get stylesheets parsed by Gecko, we need to put the node in a document.
+  document.body.appendChild(dirty);
+  dirty.innerHTML = html;
+
+  if (bleach._preCleanNodeHack)
+    bleach._preCleanNodeHack(dirty, html);
+  bleach.cleanNode(dirty, opts);
+
+  var asNode = opts && opts.hasOwnProperty("asNode") && opts.asNode;
+  if (asNode)
+    return dirty;
+  return dirty.innerHTML;
+};
+
+/**
+ * Clean the children of a node, but not the node itself.  Maybe this is
+ * a bad idea.
+ */
+bleach.cleanNode = function(dirtyNode, opts) {
+  var document = dirtyNode.ownerDocument;
+  opts = opts || DEFAULTS;
+  var doStrip = opts.hasOwnProperty('strip') ? opts.strip : DEFAULTS.strip,
+      doStripComments = opts.hasOwnProperty('stripComments') ?
+                          opts.stripComments : DEFAULTS.stripComments,
+      allowedTags = opts.hasOwnProperty('tags') ? opts.tags : DEFAULTS.tags,
+      pruneTags = opts.hasOwnProperty('prune') ? opts.prune : DEFAULTS.prune,
+      attrsByTag = opts.hasOwnProperty('attributes') ? opts.attributes
+                                                     : DEFAULTS.attributes,
+      allowedStyles = opts.hasOwnProperty('styles') ? opts.styles
+                                                    : DEFAULTS.styles,
+      reCallbackOnTag = opts.hasOwnProperty('callbackRegexp') ? opts.callbackRegexp
+                                                              : null,
+      reCallback = reCallbackOnTag && opts.callback,
+      wildAttrs;
+  if (Array.isArray(attrsByTag)) {
+    wildAttrs = attrsByTag;
+    attrsByTag = {};
+  }
+  else if (attrsByTag.hasOwnProperty('*')) {
+    wildAttrs = attrsByTag['*'];
+  }
+  else {
+    wildAttrs = [];
+  }
+
+  function slashAndBurn(root, callback) {
+    var child, i = 0;
+    // console.log('slashing');
+    // console.log('type ', root.nodeType);
+    // console.log('value', root.nodeValue||['<',root.tagName,'>'].join(''));
+    // console.log('innerHTML', root.innerHTML);
+    // console.log('--------');
+
+    // TODO: investigate whether .nextSibling is faster/more GC friendly
+    while ((child = root.childNodes[i++])) {
+      if (child.nodeType === 8 && doStripComments) {
+        root.removeChild(child);
+        continue;
+      }
+      if (child.nodeType === 1) {
+        var tag = child.tagName.toLowerCase();
+        if (allowedTags.indexOf(tag) === -1) {
+          // The tag is not in the whitelist.
+
+          // Strip?
+          if (doStrip) {
+            // Should this tag and its children be pruned?
+            // (This is not the default because new HTML tags with semantic
+            // meaning can be added and should not cause content to disappear.)
+            if (pruneTags.indexOf(tag) !== -1) {
+              root.removeChild(child);
+              // This will have shifted the sibling down, so decrement so we hit
+              // it next.
+              i--;
+            }
+            // Not pruning, so move the children up.
+            else {
+              while (child.firstChild) {
+                root.insertBefore(child.firstChild, child);
+              }
+              root.removeChild(child);
+              // We want to make sure we process all of the children, so
+              // decrement.  Alternately, we could have called slashAndBurn
+              // on 'child' before splicing in the contents.
+              i--;
+            }
+          }
+          // Otherwise, quote the child.
+          // Unit tests do not indicate if this should be recursive or not,
+          // so it's not.
+          else {
+            var textNode = document.createTextNode(child.outerHTML);
+            // jsdom bug? creating a text node always adds a linebreak;
+            textNode.nodeValue = textNode.nodeValue.replace(/\n$/, '');
+            root.replaceChild(textNode, child);
+          }
+          continue;
+        }
+
+        // If a callback was specified and it matches the tag name, then invoke
+        // the callback.  This happens before the attribute filtering so that
+        // the function can observe dangerous attributes, but in the event of
+        // the (silent) failure of this function, they will still be safely
+        // removed.
+        if (reCallbackOnTag && reCallbackOnTag.test(tag)) {
+          reCallback(child, tag);
+        }
+
+        var styles, iStyle, decl;
+        // Style tags are special.  Their parsed state gets represented on
+        // "sheet" iff the node is linked into a document (on gecko).  We can
+        // manipulate the representation but it does *not* automatically
+        // reflect into the textContent of the style tag.  Accordingly, we
+        //
+        if (tag === 'style') {
+          var sheet = child.sheet,
+              rules = sheet.cssRules,
+              keepRulesCssTexts = [];
+
+          for (var iRule = 0; iRule < rules.length; iRule++) {
+            var rule = rules[iRule];
+            if (rule.type !== 1) { // STYLE_RULE
+              // we could do "sheet.deleteRule(iRule);" but there is no benefit
+              // since we will just clobber the textContent without this skipped
+              // rule.
+              continue;
+            }
+            styles = rule.style;
+            for (iStyle = styles.length - 1; iStyle >= 0; iStyle--) {
+              decl = styles[iStyle];
+              if (allowedStyles.indexOf(decl) === -1) {
+                styles.removeProperty(decl);
+              }
+            }
+            keepRulesCssTexts.push(rule.cssText);
+          }
+          child.textContent = keepRulesCssTexts.join('\n');
+        }
+
+        if (child.style.length) {
+          styles = child.style;
+          for (iStyle = styles.length - 1; iStyle >= 0; iStyle--) {
+            decl = styles[iStyle];
+            if (allowedStyles.indexOf(decl) === -1) {
+              styles.removeProperty(decl);
+            }
+          }
+        }
+
+        if (child.attributes.length) {
+          var attrs = child.attributes;
+          for (var iAttr = attrs.length - 1; iAttr >= 0; iAttr--) {
+            var attr = attrs[iAttr];
+            var whitelist = attrsByTag[tag];
+            attr = attr.nodeName;
+            if (wildAttrs.indexOf(attr) === -1 &&
+                (!whitelist || whitelist.indexOf(attr) === -1)) {
+              attrs.removeNamedItem(attr);
+            }
+          }
+        }
+      }
+      slashAndBurn(child, callback);
+    }
+  }
+  slashAndBurn(dirtyNode);
+};
+
+return bleach;
+
+})); // close out UMD boilerplate
+;
+/**
+ * Process text/html for message body purposes.  Specifically:
+ *
+ * - sanitize HTML (using bleach.js): discard illegal markup entirely, render
+ *   legal but 'regulated' markup inert (ex: links to external content).
+ * - TODO: perform normalization of quote markup from different clients into
+ *   blockquotes, like how Thunderbird conversations does it.
+ * - snippet generation: Try and generate a usable snippet string from something
+ *   that is not a quote.
+ *
+ * We may eventually try and perform more detailed analysis like `quotechew.js`
+ * does with structured markup, potentially by calling out to quotechew, but
+ * that's a tall order to get right, so it's mightily postponed.
+ **/
+
+define('mailapi/htmlchew',
+  [
+    'exports',
+    'bleach'
+  ],
+  function(
+    exports,
+    $bleach
+  ) {
+
+/**
+ * Whitelisted HTML tags list. Currently from nsTreeSanitizer.cpp which credits
+ * Mark Pilgrim and Sam Ruby for its own initial whitelist.
+ *
+ * IMPORTANT THUNDERBIRD NOTE: Thunderbird only engages its sanitization logic
+ * when processing mailto URIs, when the non-default
+ * "view | message body as | simple html" setting is selected, or when
+ * displaying spam messages.  Accordingly, the settings are pretty strict
+ * and not particularly thought-out.  Non-CSS presentation is stripped, which
+ * is pretty much the lingua franca of e-mail.  (Thunderbird itself generates
+ * font tags, for example.)
+ *
+ * Some things are just not in the list at all:
+ * - SVG: Thunderbird nukes these itself because it forces
+ *   SanitizerCidEmbedsOnly which causes flattening of everything in the SVG
+ *   namespace.
+ *
+ * Tags that we are opting not to include will be commented with a reason tag:
+ * - annoying: This thing is ruled out currently because it only allows annoying
+ *   things to happen *given our current capabilities*.
+ * - scripty: This thing requires scripting to make anything happen, and we do
+ *   not allow scripting.
+ * - forms: We have no UI to expose the target of a form right now, so it's
+ *   not safe.  Thunderbird displays a scam warning, which isn't realy a big
+ *   help, but it's something.  Because forms are largely unsupported or just
+ *   broken in many places, they are rarely used, so we are turning them off
+ *   entirely.
+ * - implicitly-nuked: killed as part of the parse process because we assign
+ *   to innerHTML rather than creating a document with the string in it.
+ * - inline-style-only: Styles have to be included in the document itself,
+ *   and for now, on the elements themselves.  We now support <style> tags
+ *   (although src will be sanitized off), but not <link> tags because they want
+ *   to reference external stuff.
+ * - dangerous: The semantics of the tag are intentionally at odds with our
+ *   goals and/or are extensible.  (ex: link tag.)
+ * - interactive-ui: A cross between scripty and forms, things like (HTML5)
+ *   menu and command imply some type of mutation that requires scripting.
+ *   They also are frequently very attribute-heavy.
+ * - svg: it's SVG, we don't support it yet!
+ */
+var LEGAL_TAGS = [
+  'a', 'abbr', 'acronym', 'area', 'article', 'aside',
+  // annoying: 'audio',
+  'b',
+  'bdi', 'bdo', // (bidirectional markup stuff)
+  'big', 'blockquote',
+  // implicitly-nuked: 'body'
+  'br',
+  // forms: 'button',
+  // scripty: canvas
+  'caption',
+  'center',
+  'cite', 'code', 'col', 'colgroup',
+  // interactive-ui: 'command',
+  // forms: 'datalist',
+  'dd', 'del', 'details', 'dfn', 'dir', 'div', 'dl', 'dt',
+  'em',
+  // forms: 'fieldset' (but allowed by nsTreeSanitizer)
+  'figcaption', 'figure',
+  'font',
+  'footer',
+  // forms: 'form',
+  'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+  // implicitly-nuked: head
+  'header', 'hgroup', 'hr',
+  // implicitly-nuked: html
+  'i', 'img',
+  // forms: 'input',
+  'ins', // ("represents a range of text that has been inserted to a document")
+  'kbd', // ("The kbd element represents user input")
+  'label', 'legend', 'li',
+  // dangerous, inline-style-only: link
+  /* link supports many types, none of which we want, some of which are
+   * risky: http://dev.w3.org/html5/spec/links.html#linkTypes. Specifics:
+   * - "stylesheet": This would be okay for cid links, but there's no clear
+   *   advantage over inline styles, so we forbid it, especially as supporting
+   *   it might encourage other implementations to dangerously support link.
+   * - "prefetch": Its whole point is de facto information leakage.
+   */
+  'listing', // (deprecated, like "pre")
+  'map', 'mark',
+  // interactive-ui: 'menu', 'meta', 'meter',
+  'nav',
+  'nobr', // (deprecated "white-space:nowrap" equivalent)
+  'noscript',
+  'ol',
+  // forms: 'optgroup',
+  // forms: 'option',
+  'output', // (HTML5 draft: "result of a calculation in a form")
+  'p', 'pre',
+  // interactive-ui: 'progress',
+  'q',
+  /* http://www.w3.org/TR/ruby/ is a pronounciation markup that is not directly
+   * supported by gecko at this time (although there is a Firefox extension).
+   * All of 'rp', 'rt', and 'ruby' are ruby tags.  The spec also defines 'rb'
+   * and 'rbc' tags that nsTreeSanitizer does not whitelist, however.
+   */
+  'rp', 'rt', 'ruby',
+  's', 'samp', 'section',
+  // forms: 'select',
+  'small',
+  // annoying?: 'source',
+  'span', 'strike', 'strong',
+  'style',
+  'sub', 'summary', 'sup',
+  // svg: 'svg', NB: this lives in its own namespace
+  'table', 'tbody', 'td',
+  // forms: 'textarea',
+  'tfoot', 'th', 'thead', 'time',
+  'title', // XXX does this mean anything outside head?
+  'tr',
+  // annoying?: 'track'
+  'tt',
+  'u', 'ul', 'var',
+  // annoying: 'video',
+  'wbr' // (HTML5 draft: line break opportunity)
+];
+
+/**
+ * Tags whose children should be removed along with the tag itself, rather than
+ * splicing the children into the position originally occupied by the parent.
+ *
+ * We do this for:
+ * - forms; see `LEGAL_TAGS` for the rationale.  Note that we don't bother
+ *   including children that should already be nuked by PRUNE_TAGS.  For
+ *   example, 'option' and 'optgroup' only make sense under 'select' or
+ *   'datalist', so we need not include them.  This means that if the tags
+ *   are used in nonsensical positions, they will have their contents
+ *   merged into the document text, but that's not a major concern.
+ * - 'script': no one wants to read the ignored JS code!
+ * - 'style': no one wants to read the CSS we are (currently) ignoring
+ */
+var PRUNE_TAGS = [
+  'button', // (forms)
+  'datalist', // (forms)
+  'script', // (script)
+  'select', // (forms)
+  'style', // (style)
+  'svg', // (svg)
+];
+
+/**
+ * What attributes to allow globally and on specific tags.
+ *
+ * Forbidden marker names:
+ * - URL-like: The attribute can contain URL's and we don't care enough to
+ *   sanitize the contents right now.
+ * - sanitized: We manually do something with the attribute in our processing
+ *   logic.
+ * - specific: The attribute is explicitly named on the relevant element types.
+ * - unsupported: Gecko ignores the attribute and there is no chance of
+ *   standardization, so just strip it.
+ * - microformat: we can't do anything with microformats right now, save some
+ *   space.
+ * - awkward: It's not dangerous, but it's not clear how it could have useful
+ *   semantics.
+ */
+var LEGAL_ATTR_MAP = {
+  '*': [
+    'abbr', // (tables: removed from HTML5)
+    // forms: 'accept', 'accept-charset',
+    // interactive-ui: 'accesskey',
+    // forms: 'action',
+    'align', // (pres)
+    'alt', // (fallback content)
+    // forms: 'autocomplete', 'autofocus',
+    // annoying: 'autoplay',
+    'axis', // (tables: removed from HTML5)
+    // URL-like: 'background',
+    'bgcolor', 'border', // (pres)
+    'cellpadding', 'cellspacing', // (pres)
+    // unsupported: 'char',
+    'charoff', // (tables)
+    // specific: 'charset'
+    // forms, interactive-ui: 'checked',
+    // URL-like: 'cite'
+    'class', 'clear', 'color', // (pres)
+    'cols', 'colspan', // (tables)
+    'compact', // (pres)
+    // dangerous: 'content', (meta content refresh is bad.)
+    // interactive-ui: 'contenteditable', (we already use this ourselves!)
+    // interactive-ui: 'contextmenu',
+    // annoying: 'controls', (media)
+    'coords', // (area image map)
+    'datetime', // (ins, del, time semantic markups)
+    // forms: 'disabled',
+    'dir', // (rtl)
+    // interactive-ui: 'draggable',
+    // forms: 'enctype',
+    'face', // (pres)
+    // forms: 'for',
+    'frame', // (tables)
+    'headers', // (tables)
+    'height', // (layout)
+    // interactive-ui: 'hidden', 'high',
+    // sanitized: 'href',
+    // specific: 'hreflang',
+    'hspace', // (pres)
+    // dangerous: 'http-equiv' (meta refresh, maybe other trickiness)
+    // interactive-ui: 'icon',
+    // inline-style-only: 'id',
+    // specific: 'ismap', (area image map)
+    // microformat: 'itemid', 'itemprop', 'itemref', 'itemscope', 'itemtype',
+    // annoying: 'kind', (media)
+    // annoying, forms, interactive-ui: 'label',
+    'lang', // (language support)
+    // forms: 'list',
+    // dangerous: 'longdesc', (link to a long description, html5 removed)
+    // annoying: 'loop',
+    // interactive-ui: 'low',
+    // forms, interactive-ui: 'max',
+    // forms: 'maxlength',
+    'media', // (media-query for linky things; safe if links are safe)
+    // forms: 'method',
+    // forms, interactive-ui: 'min',
+    // unsupported: 'moz-do-not-send', (thunderbird internal composition)
+    // forms: 'multiple',
+    // annoying: 'muted',
+    // forms, interactive-ui: 'name', (although pretty safe)
+    'nohref', // (image maps)
+    // forms: 'novalidate',
+    'noshade', // (pres)
+    'nowrap', // (tables)
+    'open', // (for "details" element)
+    // interactive-ui: 'optimum',
+    // forms: 'pattern', 'placeholder',
+    // annoying: 'playbackrate',
+    'pointsize', // (pres)
+    // annoying:  'poster', 'preload',
+    // forms: 'prompt',
+    'pubdate', // ("time" element)
+    // forms: 'radiogroup', 'readonly',
+    // dangerous: 'rel', (link rel, a rel, area rel)
+    // forms: 'required',
+    // awkward: 'rev' (reverse link; you can't really link to emails)
+    'reversed', // (pres? "ol" reverse numbering)
+    // interactive-ui: 'role', We don't want a screen reader making the user
+    //   think that part of the e-mail is part of the UI.  (WAI-ARIA defines
+    //   "accessible rich internet applications", not content markup.)
+    'rows', 'rowspan', 'rules', // (tables)
+    // sanitized: 'src',
+    'size', // (pres)
+    'scope', // (tables)
+    // inline-style-only: 'scoped', (on "style" elem)
+    // forms: 'selected',
+    'shape', // (image maps)
+    'span', // (tables)
+    // interactive-ui: 'spellcheck',
+    // sanitized, dangerous: 'src'
+    // annoying: 'srclang',
+    'start', // (pres? "ol" numbering)
+    'summary', // (tables accessibility)
+    'style', // (pres)
+    // interactive-ui: 'tabindex',
+    // dangerous: 'target', (specifies a browsing context, but our semantics
+    //   are extremely clear and don't need help.)
+    'title', // (advisory)
+    // specific, dangerous: type (various, but mime-type for links is not the
+    //   type of thing we would ever want to propagate or potentially deceive
+    //   the user with.)
+    'valign', // (pres)
+    'value', // (pres? "li" override for "ol"; various form uses)
+    'vspace', // (pres)
+    'width', // (layout)
+    // forms: 'wrap',
+  ],
+  'a': ['ext-href', 'hreflang'],
+  'area': ['ext-href', 'hreflang'],
+  // these are used by our quoting and Thunderbird's quoting
+  'blockquote': ['cite', 'type'],
+  'img': ['cid-src', 'ext-src', 'ismap', 'usemap'],
+  // This may only end up being used as a debugging thing, but let's let charset
+  // through for now.
+  'meta': ['charset'],
+  'ol': ['type'], // (pres)
+  'style': ['type'],
+};
+
+/**
+ * CSS Style rules to support.
+ *
+ * nsTreeSanitizer is super lazy about style binding and does not help us out.
+ * What it does is nuke all rule types except NAMESPACE (@namespace), FONT_FACE
+ * (@font-face), and STYLE rules (actual styling).  This means nuking CHARSET
+ * (@charset to specify the encoding of the stylesheet if the server did not
+ * provide it), IMPORT (@import to reference other stylesheet files), MEDIA
+ * (@media media queries), PAGE (@page page box info for paged media),
+ * MOZ_KEYFRAMES, MOZ_KEYFRAME, SUPPORTS (@supports provides support for rules
+ * conditioned on browser support, but is at risk.)  The only style directive it
+ * nukes is "-moz-binding" which is the XBL magic and considered dangerous.
+ *
+ * Risks: Anything that takes a url() is dangerous insofar as we need to
+ * sanitize the url.  XXX for now we just avoid any style that could potentially
+ * hold a URI.
+ *
+ * Good news: We always cram things into an iframe, so we don't need to worry
+ * about clever styling escaping out into our UI.
+ *
+ * New reasons not to allow:
+ * - animation: We don't want or need animated wackiness.
+ * - slow: Doing the thing is slow!
+ */
+var LEGAL_STYLES = [
+  // animation: animation*
+  // URI-like: background, background-image
+  'background-color',
+  // NB: border-image is not set by the 'border' aliases
+  'border',
+  'border-bottom', 'border-bottom-color', 'border-bottom-left-radius',
+  'border-bottom-right-radius', 'border-bottom-style', 'border-bottom-width',
+  'border-color',
+  // URI-like: border-image*
+  'border-left', 'border-left-color', 'border-left-style', 'border-left-width',
+  'border-radius',
+  'border-right', 'border-right-color', 'border-right-style',
+  'border-right-width',
+  'border-style',
+  'border-top', 'border-top-color', 'border-top-left-radius',
+  'border-top-right-radius', 'border-top-style', 'border-top-width',
+  'border-width',
+  // slow: box-shadow
+  'clear',
+  'color',
+  'display',
+  'float',
+  'font-family',
+  'font-size',
+  'font-style',
+  'font-weight',
+  'height',
+  'line-height',
+  // URI-like: list-style, list-style-image
+  'list-style-position',
+  'list-style-type',
+  'margin', 'margin-bottom', 'margin-left', 'margin-right', 'margin-top',
+  'padding', 'padding-bottom', 'padding-left', 'padding-right', 'padding-top',
+  'text-align', 'text-align-last',
+  'text-decoration', 'text-decoration-color', 'text-decoration-line',
+  'text-decoration-style', 'text-indent',
+  'vertical-align',
+  'white-space',
+  'width',
+  'word-break', 'word-spacing', 'word-wrap',
+];
+
+/**
+ * The regular expression to detect nodes that should be passed to stashLinks.
+ *
+ * ignore-case is not required; the value is checked against the lower-cased tag.
+ */
+const RE_NODE_NEEDS_TRANSFORM = /^(?:a|area|img)$/;
+
+const RE_CID_URL = /^cid:/i;
+const RE_HTTP_URL = /^http(?:s)?/i;
+const RE_MAILTO_URL = /^mailto:/i;
+
+const RE_IMG_TAG = /^img$/;
+
+/**
+ * Transforms src tags, ensure that links are http and transform them too so
+ * that they don't actually navigate when clicked on but we can hook them.  (The
+ * HTML display iframe is not intended to navigate; we just want to trigger the
+ * browser.
+ */
+function stashLinks(node, lowerTag) {
+  // - img: src
+  if (RE_IMG_TAG.test(lowerTag)) {
+    var src = node.getAttribute('src');
+    if (RE_CID_URL.test(src)) {
+      node.classList.add('moz-embedded-image');
+      // strip the cid: bit, it is necessarily there and therefore redundant.
+      node.setAttribute('cid-src', src.substring(4));
+      // 'src' attribute will be removed by whitelist
+    }
+    else if (RE_HTTP_URL.test(src)) {
+      node.classList.add('moz-external-image');
+      node.setAttribute('ext-src', src);
+      // 'src' attribute will be removed by whitelist
+    }
+    else {
+      // paranoia; no known benefit if this got through
+      node.removeAttribute('cid-src');
+      node.removeAttribute('ext-src');
+    }
+  }
+  // - a, area: href
+  else {
+    var link = node.getAttribute('href');
+    if (RE_HTTP_URL.test(link) ||
+        RE_MAILTO_URL.test(link)) {
+      node.classList.add('moz-external-link');
+      node.setAttribute('ext-href', link);
+      // 'href' attribute will be removed by whitelist
+    }
+    else {
+      // paranoia; no known benefit if this got through
+      node.removeAttribute('ext-href');
+    }
+  }
+}
+
+var BLEACH_SETTINGS = {
+  tags: LEGAL_TAGS,
+  strip: true,
+  prune: PRUNE_TAGS,
+  attributes: LEGAL_ATTR_MAP,
+  styles: LEGAL_STYLES,
+  asNode: true,
+  callbackRegexp: RE_NODE_NEEDS_TRANSFORM,
+  callback: stashLinks
+};
+
+/**
+ * @args[
+ *   @param[htmlString String]{
+ *     An unsanitized HTML string.  The HTML content can be a fully valid HTML
+ *     document with 'html' and 'body' tags and such, but most of that extra
+ *     structure will currently be discarded.
+ *
+ *     In the future we may try and process the body and such correctly, but for
+ *     now we don't.  This is consistent with many webmail clients who ignore
+ *     style tags in the head, etc.
+ *   }
+ * ]
+ * @return[HtmlElement]{
+ *   The sanitized HTML content wrapped in a div container.
+ * }
+ */
+exports.sanitizeAndNormalizeHtml = function sanitizeAndNormalize(htmlString) {
+  var sanitizedNode = $bleach.clean(htmlString, BLEACH_SETTINGS);
+  return sanitizedNode;
+};
+
+const ELEMENT_NODE = 1, TEXT_NODE = 3;
+
+const RE_NORMALIZE_WHITESPACE = /\s+/g;
+
+/**
+ * Derive snippet text from the already-sanitized HTML representation.
+ */
+exports.generateSnippet = function generateSnippet(sanitizedHtmlNode,
+                                                   desiredLength) {
+  var snippet = '';
+
+  // Perform a traversal of the DOM tree skipping over things we don't care
+  // about.  Whenever we see an element we can descend into, we do so.
+  // Whenever we finish processing a node, we move to our next sibling.
+  // If there is no next sibling, we move up the tree until there is a next
+  // sibling or we hit the top.
+  var node = sanitizedHtmlNode.firstChild, done = false;
+  if (!node)
+    return snippet;
+  while (!done) {
+    if (node.nodeType === ELEMENT_NODE) {
+      switch (node.tagName.toLowerCase()) {
+        // - Things that can't contain useful text.
+        // Avoid including block-quotes in the snippet.
+        case 'blockquote':
+        // The style does not belong in the snippet!
+        case 'style':
+          break;
+
+        default:
+          if (node.firstChild) {
+            node = node.firstChild;
+            continue;
+          }
+          break;
+      }
+    }
+    else if (node.nodeType === TEXT_NODE) {
+      // these text nodes can be ridiculously full of whitespace.  Normalize
+      // the whitespace down to one whitespace character.
+      var normalizedText =
+            node.data.replace(RE_NORMALIZE_WHITESPACE, ' ');
+      // If the join would create two adjacents spaces, then skip the one
+      // on the thing we are concatenating.
+      if (snippet.length && normalizedText[0] === ' ' &&
+          snippet[snippet.length - 1] === ' ')
+        normalizedText = normalizedText.substring(1);
+      snippet += normalizedText;
+      if (snippet.length >= desiredLength)
+        break; // (exits the loop)
+    }
+
+    while (!node.nextSibling) {
+      node = node.parentNode;
+      if (node === sanitizedHtmlNode) {
+        // yeah, a goto or embedding this in a function might have been cleaner
+        done = true;
+        break;
+      }
+    }
+    if (!done)
+      node = node.nextSibling;
+  }
+
+  return snippet.substring(0, desiredLength);
+};
+
+/**
+ * Wrap text/plain content into a serialized HTML string safe for insertion
+ * via innerHTML.
+ *
+ * By default we wrap everything in a 'div' tag with 'br' indicating newlines.
+ * Alternately, we could use 'white-space: pre-wrap' if we were more confident
+ * about recipients having sufficient CSS support and our own desire to have
+ * things resemble text/plain.
+ *
+ * NB: simple escaping should also be fine, but this is unlikely to be a
+ * performance hotspot.
+ */
+exports.wrapTextIntoSafeHTMLString = function(text, wrapTag,
+                                              transformNewlines, attrs) {
+  if (transformNewlines === undefined)
+    transformNewlines = true;
+
+  var doc = document.implementation.createHTMLDocument(''),
+      wrapNode = doc.createElement(wrapTag || 'div');
+
+  if (transformNewlines) {
+    var lines = text.split('\n');
+    for (var i = 0; i < lines.length; i++) {
+      var lineText = lines[i];
+      if (i)
+        wrapNode.appendChild(doc.createElement('br'));
+      if (lineText.length)
+        wrapNode.appendChild(doc.createTextNode(lineText));
+    }
+  }
+  else {
+    wrapNode.textContent = text;
+  }
+
+  if (attrs) {
+    for (var iAttr = 0; iAttr < attrs.length; iAttr += 2) {
+      wrapNode.setAttribute(attrs[iAttr], attrs[iAttr + 1]);
+    }
+  }
+
+  return wrapNode.outerHTML;
+};
+
+const RE_QUOTE_CHAR = /"/g;
+
+/**
+ * Make an HTML attribute value safe.
+ */
+exports.escapeAttrValue = function(s) {
+  return s.replace(RE_QUOTE_CHAR, '&quot;');
+};
+
+}); // end define
+;
+/**
+ * Message processing logic that deals with message representations at a higher
+ * level than just text/plain processing (`quotechew.js`) or text/html
+ * (`htmlchew.js`) parsing.  We are particularly concerned with replying to
+ * messages and forwarding messages, and use the aforementioned libs to do the
+ * gruntwork.
+ *
+ * For replying and forwarding, we synthesize messages so that there is always
+ * a text part that is the area where the user can enter text which may be
+ * followed by a read-only editable HTML block.  If replying to a text/plain
+ * message, the quoted text is placed in the text area.  If replying to a
+ * message with any text/html parts, we generate an HTML block for all parts.
+ **/
+
+define('mailapi/mailchew',
+  [
+    'exports',
+    './util',
+    './quotechew',
+    './htmlchew'
+  ],
+  function(
+    exports,
+    $util,
+    $quotechew,
+    $htmlchew
+  ) {
+
+const RE_RE = /^[Rr][Ee]: /;
+
+/**
+ * Generate the reply subject for a message given the prior subject.  This is
+ * simply prepending "Re: " to the message if it does not already have an
+ * "Re:" equivalent.
+ *
+ * Note, some clients/gateways (ex: I think the google groups web client? at
+ * least whatever has a user-agent of G2/1.0) will structure mailing list
+ * replies so they look like "[list] Re: blah" rather than the "Re: [list] blah"
+ * that Thunderbird would produce.  Thunderbird (and other clients) pretend like
+ * that inner "Re:" does not exist, and so do we.
+ *
+ * We _always_ use the exact string "Re: " when prepending and do not localize.
+ * This is done primarily for consistency with Thunderbird, but it also is
+ * friendly to other e-mail applications out there.
+ *
+ * Thunderbird does support recognizing a
+ * mail/chrome/messenger-region/region.properties property,
+ * "mailnews.localizedRe" for letting locales specify other strings used by
+ * clients that do attempt to localize "Re:".  Thunderbird also supports a
+ * weird "Re(###):" or "Re[###]:" idiom; see
+ * http://mxr.mozilla.org/comm-central/ident?i=NS_MsgStripRE for more details.
+ */
+exports.generateReplySubject = function generateReplySubject(origSubject) {
+  if (RE_RE.test(origSubject))
+      return origSubject;
+  return 'Re: ' + origSubject;
+};
+
+var l10n_wroteString = '{name} wrote',
+    l10n_originalMessageString = 'Original Message';
+
+/*
+ * L10n strings for forward headers.  In Thunderbird, these come from
+ * mime.properties:
+ * http://mxr.mozilla.org/comm-central/source/mail/locales/en-US/chrome/messenger/mime.properties
+ *
+ * The libmime logic that injects them is mime_insert_normal_headers:
+ * http://mxr.mozilla.org/comm-central/source/mailnews/mime/src/mimedrft.cpp#791
+ *
+ * Our dictionary maps from the lowercased header name to the human-readable
+ * string.
+ *
+ * XXX actually do the l10n hookup for this
+ */
+var l10n_forward_header_labels = {
+  subject: 'Subject',
+  date: 'Date',
+  from: 'From',
+  replyTo: 'Reply-To',
+  to: 'To',
+  cc: 'CC',
+};
+
+exports.setLocalizedStrings = function(strings) {
+  l10n_wroteString = strings.wrote;
+  l10n_originalMessageString = strings.originalMessage;
+
+  l10n_forward_header_labels = strings.forwardHeaderLabels;
+};
+
+/**
+ * Generate the reply body representation given info about the message we are
+ * replying to.
+ *
+ * This does not include potentially required work such as propagating embedded
+ * attachments or de-sanitizing links/embedded images/external images.
+ */
+exports.generateReplyBody = function generateReplyMessage(reps, authorPair,
+                                                          msgDate,
+                                                          identity, refGuid) {
+  var useName = authorPair.name || authorPair.address;
+
+  var textMsg = '\n\n' +
+                l10n_wroteString.replace('{name}', useName) + ':\n',
+      htmlMsg = null;
+
+  for (var i = 0; i < reps.length; i += 2) {
+    var repType = reps[i], rep = reps[i + 1];
+
+    if (repType === 'plain') {
+      var replyText = $quotechew.generateReplyText(rep);
+      // If we've gone HTML, this needs to get concatenated onto the HTML.
+      if (htmlMsg) {
+        htmlMsg += $htmlchew.wrapTextIntoSafeHTMLString(replyText) + '\n';
+      }
+      // We haven't gone HTML yet, so this can all still be text.
+      else {
+        textMsg += replyText;
+      }
+    }
+    else {
+      if (!htmlMsg) {
+        htmlMsg = '';
+        // slice off the trailing newline of textMsg
+        textMsg = textMsg.slice(0, -1);
+      }
+      // rep has already been sanitized and therefore all HTML tags are balanced
+      // and so there should be no rude surprises from this simplistic looking
+      // HTML creation.  The message-id of the message never got sanitized,
+      // however, so it needs to be escaped.
+      htmlMsg += '<blockquote cite="mid:' + $htmlchew.escapeAttrValue(refGuid) +
+                 '" type="cite">' +
+                 rep +
+                 '</blockquote>';
+    }
+  }
+
+  // Thunderbird's default is to put the signature after the quote, so us too.
+  // (It also has complete control over all of this, but not us too.)
+  if (identity.signature) {
+    // Thunderbird wraps its signature in a:
+    // <pre class="moz-signature" cols="72"> construct and so we do too.
+    if (htmlMsg)
+      htmlMsg += $htmlchew.wrapTextIntoSafeHTMLString(
+                   identity.signature, 'pre', false,
+                   ['class', 'moz-signature', 'cols', '72']);
+    else
+      textMsg += '\n\n-- \n' + identity.signature + '\n';
+  }
+
+  return {
+    text: textMsg,
+    html: htmlMsg
+  };
+};
+
+/**
+ * Generate the body of an inline forward message.  XXX we need to generate
+ * the header summary which needs some localized strings.
+ */
+exports.generateForwardMessage = function generateForwardMessage(
+                                   author, date, subject, bodyInfo, identity) {
+  var textMsg = '\n\n', htmlMsg = null;
+
+  if (identity.signature)
+    textMsg += '-- \n' + identity.signature + '\n\n';
+
+  textMsg += '-------- ' + l10n_originalMessageString + ' --------\n';
+  // XXX l10n! l10n! l10n!
+
+  // Add the headers in the same order libmime adds them in
+  // mime_insert_normal_headers so that any automated attempt to re-derive
+  // the headers has a little bit of a chance (since the strings are
+  // localized.)
+
+  // : subject
+  textMsg += l10n_forward_header_labels['subject'] + ': ' + subject + '\n';
+
+  // We do not track or remotely care about the 'resent' headers
+  // : resent-comments
+  // : resent-date
+  // : resent-from
+  // : resent-to
+  // : resent-cc
+  // : date
+  textMsg += l10n_forward_header_labels['date'] + ': ' + new Date(date) + '\n';
+  // : from
+  textMsg += l10n_forward_header_labels['from'] + ': ' +
+               $util.formatAddresses([author]) + '\n';
+  // : reply-to
+  if (bodyInfo.replyTo)
+    textMsg += l10n_forward_header_labels['replyTo'] + ': ' +
+                 $util.formatAddresses([bodyInfo.replyTo]) + '\n';
+  // : organization
+  // : to
+  if (bodyInfo.to)
+    textMsg += l10n_forward_header_labels['to'] + ': ' +
+                 $util.formatAddresses(bodyInfo.to) + '\n';
+  // : cc
+  if (bodyInfo.cc)
+    textMsg += l10n_forward_header_labels['cc'] + ': ' +
+                 $util.formatAddresses(bodyInfo.cc) + '\n';
+  // (bcc should never be forwarded)
+  // : newsgroups
+  // : followup-to
+  // : references (only for newsgroups)
+
+  textMsg += '\n';
+
+  var reps = bodyInfo.bodyReps;
+  for (var i = 0; i < reps.length; i += 2) {
+    var repType = reps[i], rep = reps[i + 1];
+
+    if (repType === 'plain') {
+      var forwardText = $quotechew.generateForwardBodyText(rep);
+      // If we've gone HTML, this needs to get concatenated onto the HTML.
+      if (htmlMsg) {
+        htmlMsg += $htmlchew.wrapTextIntoSafeHTMLString(forwardText) + '\n';
+      }
+      // We haven't gone HTML yet, so this can all still be text.
+      else {
+        textMsg += forwardText;
+      }
+    }
+    else {
+      if (!htmlMsg)
+        htmlMsg = '';
+      htmlMsg += rep;
+    }
+  }
+
+  return {
+    text: textMsg,
+    html: htmlMsg
+  };
+};
+
+const HTML_WRAP_TOP =
+  '<html><body><body bgcolor="#FFFFFF" text="#000000">';
+const HTML_WRAP_BOTTOM =
+  '</body></html>';
+
+/**
+ * Combine the user's plaintext composition with the read-only HTML we provided
+ * them into a final HTML representation.
+ */
+exports.mergeUserTextWithHTML = function mergeReplyTextWithHTML(text, html) {
+  return HTML_WRAP_TOP +
+         $htmlchew.wrapTextIntoSafeHTMLString(text, 'div') +
+         html +
+         HTML_WRAP_BOTTOM;
 };
 
 }); // end define
@@ -12089,16 +11836,16 @@ Composer.prototype = {
 define('mailapi/mailbridge',
   [
     'rdcommon/log',
+    'mailcomposer',
     './mailchew',
-    './composer',
     './util',
     'module',
     'exports'
   ],
   function(
     $log,
+    $mailcomposer,
     $mailchew,
-    $composer,
     $imaputil,
     $module,
     exports
@@ -12242,12 +11989,11 @@ MailBridge.prototype = {
   _cmd_tryToCreateAccount: function mb__cmd_tryToCreateAccount(msg) {
     var self = this;
     this.universe.tryToCreateAccount(msg.details, msg.domainInfo,
-                                     function(error, account, errorDetails) {
+                                     function(error, account) {
         self.__sendMessage({
             type: 'tryToCreateAccountResults',
             handle: msg.handle,
             error: error,
-            errorDetails: errorDetails,
           });
       });
   },
@@ -12812,27 +12558,94 @@ MailBridge.prototype = {
       // message and try and execute it.
       return;
     }
-    var wireRep = msg.state,
-        identity = this.universe.getIdentityForSenderIdentityId(
+
+    var composer = new $mailcomposer.MailComposer(),
+        wireRep = msg.state;
+    var identity = this.universe.getIdentityForSenderIdentityId(
                      wireRep.senderId),
         account = this.universe.getAccountForSenderIdentityId(
-                    wireRep.senderId),
-        composer = new $composer.Composer(msg.command, wireRep,
-                                          account, identity);
+                    wireRep.senderId);
+
+    var body = wireRep.body;
+
+    var messageOpts = {
+      from: $imaputil.formatAddresses([identity]),
+      subject: wireRep.subject,
+    };
+    if (body.html) {
+      messageOpts.html = $mailchew.mergeUserTextWithHTML(body.text, body.html);
+    }
+    else {
+      messageOpts.body = body.text;
+    }
+
+    if (identity.replyTo)
+      messageOpts.replyTo = identity.replyTo;
+    if (wireRep.to && wireRep.to.length)
+      messageOpts.to = $imaputil.formatAddresses(wireRep.to);
+    if (wireRep.cc && wireRep.cc.length)
+      messageOpts.cc = $imaputil.formatAddresses(wireRep.cc);
+    if (wireRep.bcc && wireRep.bcc.length)
+      messageOpts.bcc = $imaputil.formatAddresses(wireRep.bcc);
+    composer.setMessageOption(messageOpts);
+
+    if (wireRep.customHeaders) {
+      for (var iHead = 0; iHead < wireRep.customHeaders.length; iHead += 2){
+        composer.addHeader(wireRep.customHeaders[iHead],
+                           wireRep.customHeaders[iHead+1]);
+      }
+    }
+    composer.addHeader('User-Agent', 'Mozilla Gaia Email Client 0.1alpha');
+    var sentDate = new Date();
+    composer.addHeader('Date', sentDate.toUTCString());
+    // we're copying nodemailer here; we might want to include some more...
+    var messageId =
+      '<' + Date.now() + Math.random().toString(16).substr(1) + '@mozgaia>';
+
+    composer.addHeader('Message-Id', messageId);
+    if (wireRep.references)
+      composer.addHeader('References', wireRep.references);
+
 
     if (msg.command === 'send') {
-      var self = this;
+      var self = this, asyncPending = 0;
 
-      account.sendMessage(composer, function(err, badAddresses) {
-        this.__sendMessage({
-          type: 'sent',
-          handle: msg.handle,
-          err: err,
-          badAddresses: badAddresses,
-          messageId: composer.messageId,
-          sentDate: composer.sentDate.valueOf(),
+      if (wireRep.attachments) {
+        wireRep.attachments.forEach(function(attachmentDef) {
+          var reader = new FileReader();
+          reader.onload = function onloaded() {
+            composer.addAttachment({
+              filename: attachmentDef.name,
+              contentType: attachmentDef.blob.type,
+              contents: new Uint8Array(reader.result),
+            });
+            if (--asyncPending === 0)
+              initiateSend();
+          };
+          try {
+            reader.readAsArrayBuffer(attachmentDef.blob);
+            asyncPending++;
+          }
+          catch (ex) {
+            console.error('Problem attaching attachment:', ex, '\n', ex.stack);
+          }
         });
-      }.bind(this));
+      }
+
+      var initiateSend = function() {
+        account.sendMessage(composer, function(err, badAddresses) {
+          self.__sendMessage({
+            type: 'sent',
+            handle: msg.handle,
+            err: err,
+            badAddresses: badAddresses,
+            messageId: messageId,
+            sentDate: sentDate.valueOf(),
+          });
+        });
+      };
+      if (asyncPending === 0)
+        initiateSend();
     }
     else { // (msg.command === draft)
       // XXX save drafts!
@@ -13544,48 +13357,6 @@ exports.USE_KNOWN_DATE_RANGE_TIME_THRESH_NON_INBOX = 7 * $date.DAY_MILLIS;
 exports.USE_KNOWN_DATE_RANGE_TIME_THRESH_INBOX = 6 * $date.HOUR_MILLIS;
 
 ////////////////////////////////////////////////////////////////////////////////
-// Block Purging Constants (IMAP only)
-//
-// These values are all intended for resource-constrained mobile devices.  A
-// more powerful tablet-class or desktop-class app would probably want to crank
-// the values way up.
-
-/**
- * Every time we create this many new body blocks, queue a purge job for the
- * folder.
- *
- * Body sizes are most variable and should usually take up more space than their
- * owning header blocks, so it makes sense for this to be the proxy we use for
- * disk space usage/growth.
- */
-exports.BLOCK_PURGE_EVERY_N_NEW_BODY_BLOCKS = 4;
-
-/**
- * How much time must have elapsed since the given messages were last
- * synchronized before purging?  Our accuracy ranges are updated whenever we are
- * online and we attempt to display messages.  So before we purge messages, we
- * make sure that the accuracy range covering the messages was updated at least
- * this long ago before deciding to purge.
- */
-exports.BLOCK_PURGE_ONLY_AFTER_UNSYNCED_MS = 14 * $date.DAY_MILLIS;
-
-/**
- * What is the absolute maximum number of blocks we will store per folder for
- * each block type?  If we have more blocks than this, we will discard them
- * regardless of any time considerations.
- *
- * The hypothetical upper bound for disk uage per folder is:
- *  X 'number of blocks' * 2 'types of blocks' * 96k 'maximum block size'.
- *
- * So for the current value of 128 we are looking at 24 megabytes, which is
- * a lot.
- *
- * This is intended to protect people who have ridiculously high message
- * densities from time-based heuristics not discarding things fast enough.
- */
-exports.BLOCK_PURGE_HARD_MAX_BLOCK_LIMIT = 128;
-
-////////////////////////////////////////////////////////////////////////////////
 // General Sync Constants
 
 /**
@@ -13602,8 +13373,6 @@ exports.INITIAL_FILL_SIZE = 15;
 
 /**
  * How many days in the past should we first look for messages.
- *
- * IMAP only.
  */
 exports.INITIAL_SYNC_DAYS = 3;
 
@@ -13612,8 +13381,6 @@ exports.INITIAL_SYNC_DAYS = 3;
  * a sync and don't find any messages?  There are upper bounds in
  * `FolderStorage.onSyncCompleted` that cap this and there's more comments
  * there.
- *
- * IMAP only.
  */
 exports.TIME_SCALE_FACTOR_ON_NO_MESSAGES = 1.6;
 
@@ -13621,8 +13388,6 @@ exports.TIME_SCALE_FACTOR_ON_NO_MESSAGES = 1.6;
  * What is the furthest back in time we are willing to go?  This is an
  * arbitrary choice to avoid our logic going crazy, not to punish people with
  * comprehensive mail collections.
- *
- * IMAP only.
  */
 exports.OLDEST_SYNC_DATE = (new Date(1990, 0, 1)).valueOf();
 
@@ -13633,8 +13398,6 @@ exports.OLDEST_SYNC_DATE = (new Date(1990, 0, 1)).valueOf();
  * a smaller number of messages.  This will result in some wasted traffic
  * but better a small wasted amount (for UIDs) than a larger wasted amount
  * (to get the dates for all the messages.)
- *
- * IMAP only.
  */
 exports.BISECT_DATE_AT_N_MESSAGES = 50;
 
@@ -13647,43 +13410,8 @@ exports.BISECT_DATE_AT_N_MESSAGES = 50;
  * This could be eliminated by adjusting time ranges when we know the
  * density is high (from our block indices) or by re-issuing search results
  * when the server is telling us more than we can handle.
- *
- * IMAP only.
  */
 exports.TOO_MANY_MESSAGES = 2000;
-
-
-////////////////////////////////////////////////////////////////////////////////
-// Size Estimate Constants
-
-/**
- * The estimated size of a `HeaderInfo` structure.  We are using a constant
- * since there is not a lot of variability in what we are storing and this
- * is probably good enough.
- *
- * Our estimate is based on guesses based on presumed structured clone encoding
- * costs for each field using a reasonable upper bound for length.  Our
- * estimates are trying not to factor in compressability too much since our
- * block size targets are based on the uncompressed size.
- * - id: 4: integer less than 64k
- * - srvid: 40: 38 char uuid with {}'s, (these are uuid's on hotmail)
- * - suid: 13: 'xx/xx/xxxxx' (11)
- * - guid: 80: 66 character (unquoted) message-id from gmail, 48 from moco.
- *         This is unlikely to compress well and there could be more entropy
- *         out there, so guess high.
- * - author: 70: 32 for the e-mail address covers to 99%, another 32 for the
- *           display name which will usually be shorter than 32 but could
- *           involve encoded characters that bloat the utf8 persistence.
- * - date: 9: double that will be largely used)
- * - flags: 32: list which should normally top out at ['\Seen', '\Flagged'], but
- *              could end up with non-junk markers, etc. so plan for at least
- *              one extra.
- * - hasAttachments: 2: boolean
- * - subject: 80
- * - snippet: 100 (we target 100, it will come in under)
- */
-exports.HEADER_EST_SIZE_IN_BYTES = 430;
-
 
 ////////////////////////////////////////////////////////////////////////////////
 // Error / Retry Constants
@@ -13738,24 +13466,6 @@ exports.CHECK_INTERVALS_ENUMS_TO_MS = {
  */
 exports.DEFAULT_CHECK_INTERVAL_ENUM = 'manual';
 
-const DAY_MILLIS = 24 * 60 * 60 * 1000;
-
-/**
- * Map the ActiveSync-limited list of sync ranges to milliseconds.  Do NOT
- * add additional values to this mapping unless you make sure that our UI
- * properly limits ActiveSync accounts to what the protocol supports.
- */
-exports.SYNC_RANGE_ENUMS_TO_MS = {
-  // This choice is being made for IMAP.
-  'auto': 30 * DAY_MILLIS,
-    '1d': 1 * DAY_MILLIS,
-    '3d': 3 * DAY_MILLIS,
-    '1w': 7 * DAY_MILLIS,
-    '2w': 14 * DAY_MILLIS,
-    '1m': 30 * DAY_MILLIS,
-   'all': 30 * 365 * DAY_MILLIS,
-};
-
 
 ////////////////////////////////////////////////////////////////////////////////
 // Unit test support
@@ -13799,17 +13509,6 @@ exports.TEST_adjustSyncValues = function TEST_adjustSyncValues(syncValues) {
     exports.USE_KNOWN_DATE_RANGE_TIME_THRESH_INBOX =
       syncValues.useRangeInbox;
 
-  if (syncValues.hasOwnProperty('HEADER_EST_SIZE_IN_BYTES'))
-    exports.HEADER_EST_SIZE_IN_BYTES =
-      syncValues.HEADER_EST_SIZE_IN_BYTES;
-
-  if (syncValues.hasOwnProperty('BLOCK_PURGE_ONLY_AFTER_UNSYNCED_MS'))
-    exports.BLOCK_PURGE_ONLY_AFTER_UNSYNCED_MS =
-      syncValues.BLOCK_PURGE_ONLY_AFTER_UNSYNCED_MS;
-  if (syncValues.hasOwnProperty('BLOCK_PURGE_HARD_MAX_BLOCK_LIMIT'))
-    exports.BLOCK_PURGE_HARD_MAX_BLOCK_LIMIT =
-      syncValues.BLOCK_PURGE_HARD_MAX_BLOCK_LIMIT;
-
   if (syncValues.hasOwnProperty('MAX_OP_TRY_COUNT'))
     exports.MAX_OP_TRY_COUNT = syncValues.MAX_OP_TRY_COUNT;
   if (syncValues.hasOwnProperty('OP_UNKNOWN_ERROR_TRY_COUNT_INCREMENT'))
@@ -13852,9 +13551,9 @@ else {
  *
  * Explanation of most recent bump:
  *
- * Bumping to 16 because header/body size estimates have been adjusted.
+ * Bumping to 15 because IMAP folder names were not properly mutf-7 decoded.
  */
-const CUR_VERSION = exports.CUR_VERSION = 16;
+const CUR_VERSION = exports.CUR_VERSION = 15;
 
 /**
  * What is the lowest database version that we are capable of performing a
@@ -16503,14 +16202,6 @@ const CHARCODE_RBRACE = ('}').charCodeAt(0),
       CHARCODE_ASTERISK = ('*').charCodeAt(0),
       CHARCODE_RPAREN = (')').charCodeAt(0);
 
-var setTimeoutFunc = window.setTimeout.bind(window),
-    clearTimeoutFunc = window.clearTimeout.bind(window);
-
-exports.TEST_useTimeoutFuncs = function(setFunc, clearFunc) {
-  setTimeoutFunc = setFunc;
-  clearTimeoutFunc = clearFunc;
-};
-
 /**
  * A buffer for us to assemble buffers so the back-end doesn't fragment them.
  * This is safe for mozTCPSocket's buffer usage because the buffer is always
@@ -16672,8 +16363,7 @@ function ImapConnection (options) {
     }
   };
   this._options = extend(true, this._options, options);
-  // The Date.now thing is to assign a random/unique value as a logging stop-gap
-  this._LOG = (this._options._logParent ? LOGFAB.ImapProtoConn(this, this._options._logParent, Date.now() % 1000) : null);
+  this._LOG = (this._options._logParent ? LOGFAB.ImapProtoConn(this, this._options._logParent, null) : null);
   if (this._LOG) this._LOG.created();
   this.delim = null;
   this.namespaces = { personal: [], other: [], shared: [] };
@@ -16736,12 +16426,12 @@ ImapConnection.prototype.connect = function(loginCb) {
     this._options.host, this._options.port, socketOptions);
 
   // XXX rely on mozTCPSocket for this?
-  this._state.tmrConn = setTimeoutFunc(this._fnTmrConn.bind(this, loginCb),
-                                       this._options.connTimeout);
+  this._state.tmrConn = setTimeout(this._fnTmrConn.bind(this, loginCb),
+                                   this._options.connTimeout);
 
   this._state.conn.onopen = function(evt) {
     if (self._LOG) self._LOG.connected();
-    clearTimeoutFunc(self._state.tmrConn);
+    clearTimeout(self._state.tmrConn);
     self._state.status = STATES.NOAUTH;
     fnInit();
   };
@@ -17115,7 +16805,7 @@ ImapConnection.prototype.connect = function(loginCb) {
       }
 
       var sendBox = false;
-      clearTimeoutFunc(self._state.tmrKeepalive);
+      clearTimeout(self._state.tmrKeepalive);
       if (self._state.status === STATES.BOXSELECTING) {
         if (data[1] === 'OK') {
           sendBox = true;
@@ -17194,7 +16884,7 @@ ImapConnection.prototype.connect = function(loginCb) {
           // minutes to avoid disconnection by the server
           self._send('IDLE', null, undefined, undefined, true);
         }
-        self._state.tmrKeepalive = setTimeoutFunc(function() {
+        self._state.tmrKeepalive = setTimeout(function() {
           if (self._state.isIdle) {
             if (self._state.ext.idle.state === IDLE_READY) {
               self._state.ext.idle.timeWaited += self._state.tmoKeepalive;
@@ -17229,19 +16919,17 @@ ImapConnection.prototype.connect = function(loginCb) {
   };
   this._state.conn.onerror = function(evt) {
     try {
-      var err = evt.data, errType;
+      var err = evt.data;
       // (only do error probing on things we can safely use 'in' on)
       if (err && typeof(err) === 'object') {
         // detect an nsISSLStatus instance by an unusual property.
-        if ('isNotValidAtThisTime' in err) {
-          err = new Error('SSL error');
-          errType = err.type = 'bad-security';
-        }
+        if ('isNotValidAtThisTime' in err)
+          err = 'bad-security';
       }
-      clearTimeoutFunc(self._state.tmrConn);
+      clearTimeout(self._state.tmrConn);
       if (self._state.status === STATES.NOCONNECT) {
         var connErr = new Error('Unable to connect. Reason: ' + err);
-        connErr.type = errType || 'unresponsive-server';
+        connErr.type = 'unknown';
         connErr.serverResponse = '';
         loginCb(connErr);
       }
@@ -17798,10 +17486,8 @@ ImapConnection.prototype._login = function(cb) {
   }
 };
 ImapConnection.prototype._reset = function() {
-  if (this._state.tmrKeepalive)
-    clearTimeoutFunc(this._state.tmrKeepalive);
-  if (this._state.tmrConn)
-    clearTimeoutFunc(this._state.tmrConn);
+  clearTimeout(this._state.tmrKeepalive);
+  clearTimeout(this._state.tmrConn);
   this._state.status = STATES.NOCONNECT;
   this._state.numCapRecvs = 0;
   this._state.requests = [];
@@ -17862,7 +17548,7 @@ ImapConnection.prototype._send = function(cmdstr, cmddata, cb, dispatchFunc,
     var prefix = '', cmd = (bypass ? cmdstr : this._state.requests[0].command),
         data = (bypass ? null : this._state.requests[0].cmddata),
         dispatch = (bypass ? null : this._state.requests[0].dispatch);
-    clearTimeoutFunc(this._state.tmrKeepalive);
+    clearTimeout(this._state.tmrKeepalive);
     // If we are currently in IDLE, we need to exit it before we send the
     // actual command.  We mark it as a bypass so it does't mess with the
     // list of requests.
@@ -18198,11 +17884,7 @@ function parseFetch(str, literalData, fetchData) {
       fetchData.date = parseImapDateTime(result[i+1]);
     }
     else if (result[i] === 'FLAGS') {
-      // filter out empty flags and \Recent.  As RFC 3501 makes clear, the
-      // \Recent flag is effectively useless because its semantics are that
-      // only one connection will see it.  Accordingly, there's no need to
-      // trouble consumers with it.
-      fetchData.flags = result[i+1].filter(isNotEmptyOrRecent);
+      fetchData.flags = result[i+1].filter(isNotEmpty);
       // simplify comparison for downstream logic by sorting.
       fetchData.flags.sort();
     }
@@ -18444,12 +18126,6 @@ function stringExplode(string, delimiter, limit) {
 
 function isNotEmpty(str) {
   return str.trim().length > 0;
-}
-
-const RE_RECENT = /^\\Recent$/i;
-function isNotEmptyOrRecent(str) {
-  var s = str.trim();
-  return s.length > 0 && !RE_RECENT.test(s);
 }
 
 function escape(str) {
@@ -18716,20 +18392,6 @@ define('mailapi/imap/probe',
   ) {
 
 /**
- * How many milliseconds should we wait before giving up on the connection?
- *
- * This really wants to be adaptive based on the type of the connection, but
- * right now we have no accurate way of guessing how good the connection is in
- * terms of latency, overall internet speed, etc.  Experience has shown that 10
- * seconds is currently insufficient on an unagi device on 2G on an AT&T network
- * in American suburbs, although some of that may be problems internal to the
- * device.  I am tripling that to 30 seconds for now because although it's
- * horrible to drag out a failed connection to an unresponsive server, it's far
- * worse to fail to connect to a real server on a bad network, etc.
- */
-exports.CONNECT_TIMEOUT_MS = 30000;
-
-/**
  * Right now our tests consist of:
  * - logging in to test the credentials
  *
@@ -18744,8 +18406,6 @@ function ImapProber(credentials, connInfo, _LOG) {
 
     username: credentials.username,
     password: credentials.password,
-
-    connTimeout: exports.CONNECT_TIMEOUT_MS,
   };
   if (_LOG)
     opts._logParent = _LOG;
@@ -18757,7 +18417,6 @@ function ImapProber(credentials, connInfo, _LOG) {
 
   this.onresult = null;
   this.error = null;
-  this.errorDetails = { server: connInfo.hostname };
 }
 exports.ImapProber = ImapProber;
 ImapProber.prototype = {
@@ -18792,10 +18451,12 @@ ImapProber.prototype = {
     if (!this.onresult)
       return;
     console.warn('PROBE:IMAP sad', err);
-
-    var normErr = normalizeError(err);
-    this.error = normErr.name;
-
+    if (err.serverResponse.indexOf('[ALERT] Application-specific password required') != -1)
+      this.error = 'needs-app-pass';
+    else if(err.serverResponse.indexOf('[ALERT] Your account is not enabled for IMAP use.') != -1)
+      this.error = 'imap-disabled';
+    else
+      this.error = 'bad-user-or-pass';
     // we really want to make sure we clean up after this dude.
     try {
       this._conn.die();
@@ -18804,108 +18465,10 @@ ImapProber.prototype = {
     }
     this._conn = null;
 
-    this.onresult(this.error, null, this.errorDetails);
+    this.onresult(this.error, null);
     // we could potentially see many errors...
     this.onresult = false;
   },
-};
-
-/**
- * Convert error objects from the IMAP connection to our internal error codes
- * as defined in `MailApi.js` for tryToCreateAccount.  This is used by the
- * probe during account creation and by `ImapAccount` during general connection
- * establishment.
- *
- * @return[@dict[
- *   @key[name String]
- *   @key[reachable Boolean]{
- *     Does this error indicate the server was reachable?  This is to be
- *     reported to the `BackoffEndpoint`.
- *   }
- *   @key[retry Boolean]{
- *     Should we retry the connection?  The answer is no for persistent problems
- *     or transient problems that are expected to be longer lived than the scale
- *     of our automatic retries.
- *   }
- *   @key[reportProblem Boolean]{
- *     Should we report this as a problem on the account?  We should do this
- *     if we expect this to be a persistent problem that requires user action
- *     to resolve and we expect `MailUniverse.__reportAccountProblem` to
- *     generate a specific user notification for the error.  If we're not going
- *     to bother the user with a popup, then we probably want to return false
- *     for this and leave it for the connection failure to cause the
- *     `BackoffEndpoint` to cause a problem to be logged via the listener
- *     mechanism.
- *   }
- * ]]
- */
-var normalizeError = exports.normalizeError = function normalizeError(err) {
-  var errName, reachable = false, retry = true, reportProblem = false;
-  // We want to produce error-codes as defined in `MailApi.js` for
-  // tryToCreateAccount.  We have also tried to make imap.js produce
-  // error codes of the right type already, but for various generic paths
-  // (like saying 'NO'), there isn't currently a good spot for that.
-  switch (err.type) {
-    // dovecot says after a delay and does not terminate the connection:
-    //   NO [AUTHENTICATIONFAILED] Authentication failed.
-    // zimbra 7.2.x says after a delay and DOES terminate the connection:
-    //   NO LOGIN failed
-    //   * BYE Zimbra IMAP server terminating connection
-    // yahoo says after a delay and does not terminate the connection:
-    //   NO [AUTHENTICATIONFAILED] Incorrect username or password.
-  case 'NO':
-  case 'no':
-    reachable = true;
-    if (!err.serverResponse) {
-      errName = 'unknown';
-      reportProblem = false;
-    }
-    else {
-      // All of these require user action to resolve.
-      reportProblem = true;
-      retry = false;
-      if (err.serverResponse.indexOf(
-        '[ALERT] Application-specific password required') !== -1)
-        errName = 'needs-app-pass';
-      else if (err.serverResponse.indexOf(
-            '[ALERT] Your account is not enabled for IMAP use.') !== -1 ||
-          err.serverResponse.indexOf(
-            '[ALERT] IMAP access is disabled for your domain.') !== -1)
-        errName = 'imap-disabled';
-      else
-        errName = 'bad-user-or-pass';
-    }
-    break;
-  case 'server-maintenance':
-    errName = err.type;
-    reachable = true;
-    // do retry
-    break;
-  // An SSL error is either something we just want to report (probe), or
-  // something that is currently probably best treated as a network failure.  We
-  // could tell the user they may be experiencing a MITM attack, but that's not
-  // really something they can do anything about and we have protected them from
-  // it currently.
-  case 'bad-security':
-    errName = err.type;
-    reachable = true;
-    retry = false;
-    break;
-  case 'unresponsive-server':
-  case 'timeout':
-    errName = 'unresponsive-server';
-    break;
-  default:
-    errName = 'unknown';
-    break;
-  }
-
-  return {
-    name: errName,
-    reachable: reachable,
-    retry: retry,
-    reportProblem: reportProblem,
-  };
 };
 
 
@@ -19038,13 +18601,9 @@ function NetSocket(port, host, crypto) {
   this._actualSock.onerror = this._onerror.bind(this);
   this._actualSock.ondata = this._ondata.bind(this);
   this._actualSock.onclose = this._onclose.bind(this);
-
-  this.destroyed = false;
 }
 exports.NetSocket = NetSocket;
 util.inherits(NetSocket, EventEmitter);
-NetSocket.prototype.setTimeout = function() {
-};
 NetSocket.prototype.setKeepAlive = function(shouldKeepAlive) {
 };
 NetSocket.prototype.write = function(buffer) {
@@ -19052,7 +18611,6 @@ NetSocket.prototype.write = function(buffer) {
 };
 NetSocket.prototype.end = function() {
   this._actualSock.close();
-  this.destroyed = true;
 };
 
 NetSocket.prototype._onconnect = function(event) {
@@ -19232,10 +18790,7 @@ function pipe(pair, socket) {
     return cleartext;
 }
 });
-define('xoauth2',['require','exports','module'],function(require, exports, module) {
-});
-
-define('simplesmtp/lib/client',['require','exports','module','stream','util','net','tls','os','./starttls','xoauth2','crypto'],function (require, exports, module) {
+define('simplesmtp/lib/client',['require','exports','module','stream','util','net','tls','os','./starttls'],function (require, exports, module) {
 // TODO:
 // * Lisada timeout serveri ühenduse jaoks
 
@@ -19244,9 +18799,7 @@ var Stream = require('stream').Stream,
     net = require('net'),
     tls = require('tls'),
     oslib = require('os'),
-    starttls = require('./starttls').starttls,
-    xoauth2 = require('xoauth2'),
-    crypto = require('crypto');
+    starttls = require('./starttls').starttls;
 
 // monkey patch net and tls to support nodejs 0.4
 if(!net.connect && net.createConnection){
@@ -19266,7 +18819,7 @@ module.exports = function(port, host, options){
 
 /**
  * <p>Generates a SMTP connection object</p>
- * 
+ *
  * <p>Optional options object takes the following possible properties:</p>
  * <ul>
  *     <li><b>secureConnection</b> - use SSL</li>
@@ -19276,7 +18829,7 @@ module.exports = function(port, host, options){
  *     <li><b>debug</b> - output client and server messages to console</li>
  *     <li><b>instanceId</b> - unique instance id for debugging</li>
  * </ul>
- * 
+ *
  * @constructor
  * @namespace SMTP Client module
  * @param {Number} [port=25] Port number to connect to
@@ -19287,16 +18840,16 @@ function SMTPClient(port, host, options){
     Stream.call(this);
     this.writable = true;
     this.readable = true;
-    
+
     this.options = options || {};
-    
+
     this.port = port || (this.options.secureConnection ? 465 : 25);
     this.host = host || "localhost";
-    
+
     this.options.secureConnection = !!this.options.secureConnection;
     this.options.auth = this.options.auth || false;
     this.options.maxConnections = this.options.maxConnections || 5;
-    
+
     if(!this.options.name){
         // defaul hostname is machine hostname or [IP]
         var defaultHostname = (oslib.hostname && oslib.hostname()) ||
@@ -19308,10 +18861,10 @@ function SMTPClient(port, host, options){
         if(defaultHostname.match(/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/)){
             defaultHostname = "["+defaultHostname+"]";
         }
-        
+
         this.options.name = defaultHostname;
     }
-    
+
     this._init();
 }
 utillib.inherits(SMTPClient, Stream);
@@ -19321,77 +18874,56 @@ utillib.inherits(SMTPClient, Stream);
  */
 SMTPClient.prototype._init = function(){
     /**
-     * Defines if the current connection is secure or not. If not, 
+     * Defines if the current connection is secure or not. If not,
      * STARTTLS can be used if available
      * @private
      */
     this._secureMode = false;
-    
+
     /**
      * Ignore incoming data on TLS negotiation
      * @private
      */
     this._ignoreData = false;
-    
-    /**
-     * Store incomplete messages coming from the server
-     * @private
-     */
-    this._remainder = "";
 
     /**
      * If set to true, then this object is no longer active
-     * @private 
+     * @private
      */
     this.destroyed = false;
-    
+
     /**
      * The socket connecting to the server
      * @publick
      */
     this.socket = false;
-    
+
     /**
      * Lists supported auth mechanisms
      * @private
      */
     this._supportedAuth = [];
-    
+
     /**
      * Currently in data transfer state
      * @private
      */
     this._dataMode = false;
-    
+
     /**
-     * Keep track if the client sends a leading \r\n in data mode 
+     * Keep track if the client sends a leading \r\n in data mode
      * @private
      */
     this._lastDataBytes = new Buffer(2);
-    
+
     /**
      * Function to run if a data chunk comes from the server
      * @private
      */
     this._currentAction = false;
-    
+
     if(this.options.ignoreTLS || this.options.secureConnection){
         this._secureMode = true;
-    }
-
-    /**
-     * XOAuth2 token generator if XOAUTH2 auth is used
-     * @private
-     */
-    this._xoauth2 = false;
-
-    if(typeof this.options.auth.XOAuth2 == "object" && typeof this.options.auth.XOAuth2.getToken == "function"){
-        this._xoauth2 = this.options.auth.XOAuth2;
-    }else if(typeof this.options.auth.XOAuth2 == "object"){
-        if(!this.options.auth.XOAuth2.user && this.options.auth.user){
-            this.options.auth.XOAuth2.user = this.options.auth.user;
-        }
-        this._xoauth2 = xoauth2.createXOAuth2Generator(this.options.auth.XOAuth2);
     }
 };
 
@@ -19407,13 +18939,13 @@ SMTPClient.prototype.connect = function(){
         this.socket = net.connect(this.port, this.host);
         this.socket.on("connect", this._onConnect.bind(this));
     }
-    
+
     this.socket.on("error", this._onError.bind(this));
 };
 
 /**
  * <p>Upgrades the connection to TLS</p>
- * 
+ *
  * @param {Function} callback Callbac function to run when the connection
  *        has been secured
  */
@@ -19424,15 +18956,15 @@ SMTPClient.prototype._upgradeConnection = function(callback){
         this._ignoreData = false;
         this._secureMode = true;
         this.socket.on("data", this._onData.bind(this));
-            
+
         return callback(null, true);
     }).bind(this));
 };
 
 /**
- * <p>Connection listener that is run when the connection to 
+ * <p>Connection listener that is run when the connection to
  * the server is opened</p>
- * 
+ *
  * @event
  */
 SMTPClient.prototype._onConnect = function(){
@@ -19441,14 +18973,11 @@ SMTPClient.prototype._onConnect = function(){
     }else if(this.socket.encrypted && "setKeepAlive" in this.socket.encrypted){
         this.socket.encrypted.setKeepAlive(true); // secure connection
     }
-    
+
     this.socket.on("data", this._onData.bind(this));
     this.socket.on("close", this._onClose.bind(this));
     this.socket.on("end", this._onEnd.bind(this));
 
-    this.socket.setTimeout(3 * 3600 * 1000); // 1 hours
-    this.socket.on("timeout", this._onTimeout.bind(this));
-    
     this._currentAction = this._actionGreeting;
 };
 
@@ -19464,31 +18993,22 @@ SMTPClient.prototype._destroy = function(){
 
 /**
  * <p>'data' listener for data coming from the server</p>
- * 
+ *
  * @event
  * @param {Buffer} chunk Data chunk coming from the server
  */
 SMTPClient.prototype._onData = function(chunk){
-    var str;
-
-    if(this._ignoreData || !chunk || !chunk.length){
+    if(this._ignoreData){
         return;
     }
 
-    // Wait until end of line
-    if(chunk[chunk.length-1] != 0x0A){
-        this._remainder += chunk.toString();
-        return;
-    }else{
-        str = (this._remainder + chunk.toString()).trim();
-        this._remainder = "";
-    }
+    var str = chunk.toString().trim();
 
     if(this.options.debug){
         console.log("SERVER"+(this.options.instanceId?" "+
-            this.options.instanceId:"")+":\n└──"+str.replace(/\r?\n/g,"\n   "));
+            this.options.instanceId:"")+":\n   "+str.replace(/\n/g,"\n   "));
     }
-    
+
     if(typeof this._currentAction == "function"){
         this._currentAction.call(this, str);
     }
@@ -19496,7 +19016,7 @@ SMTPClient.prototype._onData = function(chunk){
 
 /**
  * <p>'error' listener for the socket</p>
- * 
+ *
  * @event
  * @param {Error} err Error object
  * @param {String} type Error name
@@ -19514,7 +19034,7 @@ SMTPClient.prototype._onError = function(err, type, data){
 
 /**
  * <p>'close' listener for the socket</p>
- * 
+ *
  * @event
  */
 SMTPClient.prototype._onClose = function(){
@@ -19523,7 +19043,7 @@ SMTPClient.prototype._onClose = function(){
 
 /**
  * <p>'end' listener for the socket</p>
- * 
+ *
  * @event
  */
 SMTPClient.prototype._onEnd = function(){
@@ -19531,17 +19051,8 @@ SMTPClient.prototype._onEnd = function(){
 };
 
 /**
- * <p>'timeout' listener for the socket</p>
- * 
- * @event
- */
-SMTPClient.prototype._onTimeout = function(){
-    this.close();
-};
-
-/**
  * <p>Passes data stream to socket if in data mode</p>
- * 
+ *
  * @param {Buffer} chunk Chunk of data to be sent to the server
  */
 SMTPClient.prototype.write = function(chunk){
@@ -19551,11 +19062,11 @@ SMTPClient.prototype.write = function(chunk){
         // say act like everything's normal.
         return true;
     }
-    
+
     if(typeof chunk == "string"){
         chunk = new Buffer(chunk, "utf-8");
     }
-    
+
     if(chunk.length > 2){
         this._lastDataBytes[0] = chunk[chunk.length-2];
         this._lastDataBytes[1] = chunk[chunk.length-1];
@@ -19563,12 +19074,12 @@ SMTPClient.prototype.write = function(chunk){
         this._lastDataBytes[0] = this._lastDataBytes[1];
         this._lastDataBytes[1] = chunk[0];
     }
-    
+
     if(this.options.debug){
         console.log("CLIENT (DATA)"+(this.options.instanceId?" "+
-            this.options.instanceId:"")+":\n└──"+chunk.toString().trim().replace(/\n/g,"\n   "));
+            this.options.instanceId:"")+":\n   "+chunk.toString().trim().replace(/\n/g,"\n   "));
     }
-    
+
     // pass the chunk to the socket
     return this.socket.write(chunk);
 };
@@ -19576,7 +19087,7 @@ SMTPClient.prototype.write = function(chunk){
 /**
  * <p>Indicates that a data stream for the socket is ended. Works only
  * in data mode.</p>
- * 
+ *
  * @param {Buffer} [chunk] Chunk of data to be sent to the server
  */
 SMTPClient.prototype.end = function(chunk){
@@ -19586,7 +19097,7 @@ SMTPClient.prototype.end = function(chunk){
         // say act like everything's normal.
         return true;
     }
-    
+
     if(chunk && chunk.length){
         this.write(chunk);
     }
@@ -19595,7 +19106,7 @@ SMTPClient.prototype.end = function(chunk){
     this._currentAction = this._actionStream;
 
     // indicate that the stream has ended by sending a single dot on its own line
-    // if the client already closed the data with \r\n no need to do it again 
+    // if the client already closed the data with \r\n no need to do it again
     if(this._lastDataBytes[0] == 0x0D && this._lastDataBytes[1] == 0x0A){
         this.socket.write(new Buffer(".\r\n", "utf-8"));
     }else if(this._lastDataBytes[1] == 0x0D){
@@ -19603,20 +19114,20 @@ SMTPClient.prototype.end = function(chunk){
     }else{
         this.socket.write(new Buffer("\r\n.\r\n"));
     }
-    
-    // end data mode    
+
+    // end data mode
     this._dataMode = false;
 };
 
 /**
  * <p>Send a command to the server, append \r\n</p>
- * 
+ *
  * @param {String} str String to be sent to the server
  */
 SMTPClient.prototype.sendCommand = function(str){
     if(this.options.debug){
         console.log("CLIENT"+(this.options.instanceId?" "+
-            this.options.instanceId:"")+":\n└──"+(str || "").toString().trim().replace(/\n/g,"\n   "));
+            this.options.instanceId:"")+":\n   "+(str || "").toString().trim().replace(/\n/g,"\n   "));
     }
     this.socket.write(new Buffer(str+"\r\n", "utf-8"));
 };
@@ -19636,10 +19147,7 @@ SMTPClient.prototype.close = function(){
     if(this.options.debug){
         console.log("Closing connection to the server");
     }
-    if(this.socket && this.socket.socket && this.socket.socket.end && !this.socket.socket.destroyed){
-        this.socket.socket.end();
-    }
-    if(this.socket && this.socket.end && !this.socket.destroyed){
+    if(this.socket && !this.socket.destroyed){
         this.socket.end();
     }
     this._destroy();
@@ -19648,18 +19156,18 @@ SMTPClient.prototype.close = function(){
 /**
  * <p>Initiates a new message by submitting envelope data, starting with
  * <code>MAIL FROM:</code> command</p>
- * 
- * @param {Object} envelope Envelope object in the form of 
+ *
+ * @param {Object} envelope Envelope object in the form of
  *        <code>{from:"...", to:["..."]}</code>
  */
 SMTPClient.prototype.useEnvelope = function(envelope){
     this._envelope = envelope || {};
     this._envelope.from = this._envelope.from || ("anonymous@"+this.options.name);
-    
+
     // clone the recipients array for latter manipulation
     this._envelope.rcptQueue = JSON.parse(JSON.stringify(this._envelope.to || []));
     this._envelope.rcptFailed = [];
-    
+
     this._currentAction = this._actionMAIL;
     this.sendCommand("MAIL FROM:<"+(this._envelope.from)+">");
 };
@@ -19669,30 +19177,27 @@ SMTPClient.prototype.useEnvelope = function(envelope){
  * indicate that this client is ready to take in an outgoing mail</p>
  */
 SMTPClient.prototype._authenticateUser = function(){
-    
+
     if(!this.options.auth){
         // no need to authenticate, at least no data given
         this._currentAction = this._actionIdle;
         this.emit("idle"); // ready to take orders
         return;
     }
-    
+
     var auth;
+
     if(this.options.auth.XOAuthToken && this._supportedAuth.indexOf("XOAUTH")>=0){
         auth = "XOAUTH";
-    }else if(this._xoauth2 && this._supportedAuth.indexOf("XOAUTH2")>=0){
-        auth = "XOAUTH2";
-    }else if(this.options.authMethod) {
-        auth = this.options.authMethod.toUpperCase().trim();
     }else{
         // use first supported
         auth = (this._supportedAuth[0] || "PLAIN").toUpperCase().trim();
     }
-    
+
     switch(auth){
         case "XOAUTH":
             this._currentAction = this._actionAUTHComplete;
-            
+
             if(typeof this.options.auth.XOAuthToken == "object" &&
               typeof this.options.auth.XOAuthToken.generate == "function"){
                 this.options.auth.XOAuthToken.generate((function(err, XOAuthToken){
@@ -19705,16 +19210,6 @@ SMTPClient.prototype._authenticateUser = function(){
                 this.sendCommand("AUTH XOAUTH " + this.options.auth.XOAuthToken.toString());
             }
             return;
-        case "XOAUTH2":
-            this._currentAction = this._actionAUTHComplete;
-            this._xoauth2.getToken((function(err, token){
-                if(err){
-                    this._onError(err, "XOAUTH2Error");
-                    return;
-                }
-                this.sendCommand("AUTH XOAUTH2 " + token);
-            }).bind(this));
-            return;
         case "LOGIN":
             this._currentAction = this._actionAUTH_LOGIN_USER;
             this.sendCommand("AUTH LOGIN");
@@ -19726,12 +19221,8 @@ SMTPClient.prototype._authenticateUser = function(){
                     this.options.auth.user+"\u0000"+
                     this.options.auth.pass,"utf-8").toString("base64"));
             return;
-        case "CRAM-MD5":
-            this._currentAction = this._actionAUTH_CRAM_MD5;
-            this.sendCommand("AUTH CRAM-MD5");
-            return;
     }
-    
+
     this._onError(new Error("Unknown authentication method - "+auth), "UnknowAuthError");
 };
 
@@ -19741,7 +19232,7 @@ SMTPClient.prototype._authenticateUser = function(){
  * <p>Will be run after the connection is created and the server sends
  * a greeting. If the incoming message starts with 220 initiate
  * SMTP session by sending EHLO command</p>
- * 
+ *
  * @param {String} str Message from the server
  */
 SMTPClient.prototype._actionGreeting = function(str){
@@ -19749,7 +19240,7 @@ SMTPClient.prototype._actionGreeting = function(str){
         this._onError(new Error("Invalid greeting from server - "+str), false, str);
         return;
     }
-    
+
     this._currentAction = this._actionEHLO;
     this.sendCommand("EHLO "+this.options.name);
 };
@@ -19759,7 +19250,7 @@ SMTPClient.prototype._actionGreeting = function(str){
  * error, try HELO instead, otherwise initiate TLS negotiation
  * if STARTTLS is supported by the server or move into the
  * authentication phase.</p>
- * 
+ *
  * @param {String} str Message from the server
  */
 SMTPClient.prototype._actionEHLO = function(str){
@@ -19769,46 +19260,36 @@ SMTPClient.prototype._actionEHLO = function(str){
         this.sendCommand("HELO "+this.options.name);
         return;
     }
-    
+
     // Detect if the server supports STARTTLS
     if(!this._secureMode && str.match(/[ \-]STARTTLS\r?$/mi)){
         this.sendCommand("STARTTLS");
         this._currentAction = this._actionSTARTTLS;
-        return; 
+        return;
     }
-    
+
     // Detect if the server supports PLAIN auth
     if(str.match(/AUTH(?:\s+[^\n]*\s+|\s+)PLAIN/i)){
         this._supportedAuth.push("PLAIN");
     }
-    
+
     // Detect if the server supports LOGIN auth
     if(str.match(/AUTH(?:\s+[^\n]*\s+|\s+)LOGIN/i)){
         this._supportedAuth.push("LOGIN");
     }
-    
-    // Detect if the server supports CRAM-MD5 auth
-    if(str.match(/AUTH(?:\s+[^\n]*\s+|\s+)CRAM-MD5/i)){
-        this._supportedAuth.push("CRAM-MD5");
-    }
 
-    // Detect if the server supports XOAUTH auth
+    // Detect if the server supports LOGIN auth
     if(str.match(/AUTH(?:\s+[^\n]*\s+|\s+)XOAUTH/i)){
         this._supportedAuth.push("XOAUTH");
     }
 
-    // Detect if the server supports XOAUTH2 auth
-    if(str.match(/AUTH(?:\s+[^\n]*\s+|\s+)XOAUTH2/i)){
-        this._supportedAuth.push("XOAUTH2");
-    }
-    
     this._authenticateUser.call(this);
 };
 
 /**
  * <p>Handles server response for HELO command. If it yielded in
  * error, emit 'error', otherwise move into the authentication phase.</p>
- * 
+ *
  * @param {String} str Message from the server
  */
 SMTPClient.prototype._actionHELO = function(str){
@@ -19823,7 +19304,7 @@ SMTPClient.prototype._actionHELO = function(str){
  * <p>Handles server response for STARTTLS command. If there's an error
  * try HELO instead, otherwise initiate TLS upgrade. If the upgrade
  * succeedes restart the EHLO</p>
- * 
+ *
  * @param {String} str Message from the server
  */
 SMTPClient.prototype._actionSTARTTLS = function(str){
@@ -19833,7 +19314,7 @@ SMTPClient.prototype._actionSTARTTLS = function(str){
         this.sendCommand("HELO "+this.options.name);
         return;
     }
-    
+
     this._upgradeConnection((function(err, secured){
         if(err){
             this._onError(new Error("Error initiating TLS - "+(err.message || err)), "TLSError");
@@ -19842,7 +19323,7 @@ SMTPClient.prototype._actionSTARTTLS = function(str){
         if(this.options.debug){
             console.log("Connection secured");
         }
-        
+
         if(secured){
             // restart session
             this._currentAction = this._actionEHLO;
@@ -19857,7 +19338,7 @@ SMTPClient.prototype._actionSTARTTLS = function(str){
  * <p>Handle the response for AUTH LOGIN command. We are expecting
  * '334 VXNlcm5hbWU6' (base64 for 'Username:'). Data to be sent as
  * response needs to be base64 encoded username.</p>
- * 
+ *
  * @param {String} str Message from the server
  */
 SMTPClient.prototype._actionAUTH_LOGIN_USER = function(str){
@@ -19871,58 +19352,10 @@ SMTPClient.prototype._actionAUTH_LOGIN_USER = function(str){
 };
 
 /**
- * <p>Handle the response for AUTH CRAM-MD5 command. We are expecting
- * '334 <challenge string>'. Data to be sent as response needs to be
- * base64 decoded challenge string, MD5 hashed using the password as
- * a HMAC key, prefixed by the username and a space, and finally all
- * base64 encoded again.</p>
- *
- * @param {String} str Message from the server
- */
-SMTPClient.prototype._actionAUTH_CRAM_MD5 = function(str) {
-	var challengeMatch = str.match(/^334\s+(.+)$/),
-		challengeString = "";
-
-	if (!challengeMatch) {
-		this._onError(new Error("Invalid login sequence while waiting for server challenge string - "+str), false, str);
-		return;
-	} else {
-		challengeString = challengeMatch[1];
-	}
-
-	// Decode from base64
-	var base64decoded = new Buffer(challengeString, 'base64').toString('ascii'),
-		hmac_md5 = crypto.createHmac('md5', this.options.auth.pass);
-	hmac_md5.update(base64decoded);
-	var hex_hmac = hmac_md5.digest('hex'),
-		prepended = this.options.auth.user + " " + hex_hmac;
-
-    this._currentAction = this._actionAUTH_CRAM_MD5_PASS;
-
-	this.sendCommand(new Buffer(prepended).toString("base64"));
-};
-
-/**
- * <p>Handles the response to CRAM-MD5 authentication, if there's no error,
- * the user can be considered logged in. Emit 'idle' and start
- * waiting for a message to send</p>
- *
- * @param {String} str Message from the server
- */
-SMTPClient.prototype._actionAUTH_CRAM_MD5_PASS = function(str) {
-	if (!str.match(/^235\s+/)) {
-	    this._onError(new Error("Invalid login sequence while waiting for '235 go ahead' - "+str), false, str);
-	    return;
-	}
-	this._currentAction = this._actionIdle;
-	this.emit("idle"); // ready to take orders
-};
-
-/**
  * <p>Handle the response for AUTH LOGIN command. We are expecting
  * '334 UGFzc3dvcmQ6' (base64 for 'Password:'). Data to be sent as
  * response needs to be base64 encoded password.</p>
- * 
+ *
  * @param {String} str Message from the server
  */
 SMTPClient.prototype._actionAUTH_LOGIN_PASS = function(str){
@@ -19938,57 +19371,23 @@ SMTPClient.prototype._actionAUTH_LOGIN_PASS = function(str){
  * <p>Handles the response for authentication, if there's no error,
  * the user can be considered logged in. Emit 'idle' and start
  * waiting for a message to send</p>
- * 
+ *
  * @param {String} str Message from the server
  */
 SMTPClient.prototype._actionAUTHComplete = function(str){
-    var response;
-
-    if(this._xoauth2 && str.substr(0, 3) == "334"){
-        try{
-            response = str.split(" ");
-            response.shift();
-            response = JSON.parse(new Buffer(response.join(" "), "base64").toString("utf-8"));
-
-            if((!this._xoauth2.reconnectCount || this._xoauth2.reconnectCount < 2) && ['400','401'].indexOf(response.status)>=0){
-                this._xoauth2.reconnectCount = (this._xoauth2.reconnectCount || 0) + 1;
-                this._currentAction = this._actionXOAUTHRetry;
-            }else{
-                this._xoauth2.reconnectCount = 0;
-                this._currentAction = this._actionAUTHComplete;
-            }
-            this.sendCommand(new Buffer(0));
-            return;
-
-        }catch(E){}
-    }
-
-    this._xoauth2.reconnectCount = 0;
-
     if(str.charAt(0) != "2"){
         this._onError(new Error("Invalid login - "+str), "AuthError", str);
         return;
     }
-    
+
     this._currentAction = this._actionIdle;
     this.emit("idle"); // ready to take orders
 };
 
-SMTPClient.prototype._actionXOAUTHRetry = function(str){
-    this._xoauth2.generateToken((function(err, token){
-        if(err){
-            this._onError(err, "XOAUTH2Error");
-            return;
-        }
-        this._currentAction = this._actionAUTHComplete;
-        this.sendCommand("AUTH XOAUTH2 " + token);
-    }).bind(this));
-}
-
 /**
  * <p>This function is not expected to run. If it does then there's probably
  * an error (timeout etc.)</p>
- * 
+ *
  * @param {String} str Message from the server
  */
 SMTPClient.prototype._actionIdle = function(str){
@@ -19996,13 +19395,13 @@ SMTPClient.prototype._actionIdle = function(str){
         this._onError(new Error(str), false, str);
         return;
     }
-    
+
     // this line should never get called
 };
 
 /**
  * <p>Handle response for a <code>MAIL FROM:</code> command</p>
- * 
+ *
  * @param {String} str Message from the server
  */
 SMTPClient.prototype._actionMAIL = function(str){
@@ -20010,7 +19409,7 @@ SMTPClient.prototype._actionMAIL = function(str){
         this._onError(new Error("Mail from command failed - " + str), "SenderError", str);
         return;
     }
-    
+
     if(!this._envelope.rcptQueue.length){
         this._onError(new Error("Can't send mail - no recipients defined"), "RecipientError");
     }else{
@@ -20022,7 +19421,7 @@ SMTPClient.prototype._actionMAIL = function(str){
 
 /**
  * <p>Handle response for a <code>RCPT TO:</code> command</p>
- * 
+ *
  * @param {String} str Message from the server
  */
 SMTPClient.prototype._actionRCPT = function(str){
@@ -20030,7 +19429,7 @@ SMTPClient.prototype._actionRCPT = function(str){
         // this is a soft error
         this._envelope.rcptFailed.push(this._envelope.curRecipient);
     }
-    
+
     if(!this._envelope.rcptQueue.length){
         if(this._envelope.rcptFailed.length < this._envelope.to.length){
             this.emit("rcptFailed", this._envelope.rcptFailed);
@@ -20049,7 +19448,7 @@ SMTPClient.prototype._actionRCPT = function(str){
 
 /**
  * <p>Handle response for a <code>DATA</code> command</p>
- * 
+ *
  * @param {String} str Message from the server
  */
 SMTPClient.prototype._actionDATA = function(str){
@@ -20059,7 +19458,7 @@ SMTPClient.prototype._actionDATA = function(str){
         this._onError(new Error("Data command failed - " + str), false, str);
         return;
     }
-    
+
     // Emit that connection is set up for streaming
     this._dataMode = true;
     this._currentAction = this._actionIdle;
@@ -20068,7 +19467,7 @@ SMTPClient.prototype._actionDATA = function(str){
 
 /**
  * <p>Handle response for a <code>DATA</code> stream</p>
- * 
+ *
  * @param {String} str Message from the server
  */
 SMTPClient.prototype._actionStream = function(str){
@@ -20079,7 +19478,7 @@ SMTPClient.prototype._actionStream = function(str){
         // Message sent succesfully
         this.emit("ready", true, str);
     }
-    
+
     // Waiting for new connections
     this._currentAction = this._actionIdle;
     process.nextTick(this.emit.bind(this, "idle"));
@@ -20087,7 +19486,7 @@ SMTPClient.prototype._actionStream = function(str){
 
 });
 /**
- * SMTP probe logic.
+ *
  **/
 
 define('mailapi/smtp/probe',
@@ -20100,33 +19499,6 @@ define('mailapi/smtp/probe',
     exports
   ) {
 
-var setTimeoutFunc = window.setTimeout.bind(window),
-    clearTimeoutFunc = window.clearTimeout.bind(window);
-
-exports.TEST_useTimeoutFuncs = function(setFunc, clearFunc) {
-  setTimeoutFunc = setFunc;
-  clearTimeoutFunc = clearFunc;
-};
-
-exports.TEST_USE_DEBUG_MODE = false;
-
-/**
- * How many milliseconds should we wait before giving up on the connection?
- *
- * I have a whole essay on the rationale for this in the IMAP prober.  Us, we
- * just want to use the same value as the IMAP prober.  This is a candidate for
- * centralization.
- */
-exports.CONNECT_TIMEOUT_MS = 30000;
-
-/**
- * Validate that we find an SMTP server using the connection info and that it
- * seems to like our credentials.
- *
- * Because the SMTP client has no connection timeout support, use our own timer
- * to decide when to give up on the SMTP connection.  We use the timer for the
- * whole process, including even after the connection is established.
- */
 function SmtpProber(credentials, connInfo) {
   console.log("PROBE:SMTP attempting to connect to", connInfo.hostname);
   this._conn = $simplesmtp(
@@ -20135,56 +19507,35 @@ function SmtpProber(credentials, connInfo) {
       secureConnection: connInfo.crypto === true,
       ignoreTLS: connInfo.crypto === false,
       auth: { user: credentials.username, pass: credentials.password },
-      debug: exports.TEST_USE_DEBUG_MODE,
+      debug: false,
     });
-  // onIdle happens after successful login, and so is what our probing uses.
-  this._conn.on('idle', this.onResult.bind(this, null));
-  this._conn.on('error', this.onResult.bind(this));
-  this._conn.on('end', this.onResult.bind(this, 'unknown'));
-
-  this.timeoutId = setTimeoutFunc(
-                     this.onResult.bind(this, 'unresponsive-server'),
-                     exports.CONNECT_TIMEOUT_MS);
+  this._conn.on('idle', this.onIdle.bind(this));
+  this._conn.on('error', this.onBadness.bind(this));
+  this._conn.on('end', this.onBadness.bind(this));
 
   this.onresult = null;
-  this.error = null;
-  this.errorDetails = { server: connInfo.hostname };
 }
 exports.SmtpProber = SmtpProber;
 SmtpProber.prototype = {
-  onResult: function(err) {
-    if (!this.onresult)
-      return;
-    if (err && typeof(err) === 'object') {
-      // detect an nsISSLStatus instance by an unusual property.
-      if ('isNotValidAtThisTime' in err) {
-        err = 'bad-security';
-      }
-      else {
-        switch (err.name) {
-          case 'AuthError':
-            err = 'bad-user-or-pass';
-            break;
-          case 'UnknownAuthError':
-          default:
-            err = 'server-problem';
-            break;
-        }
-      }
-    }
-
-    this.error = err;
-    if (err)
-      console.warn('PROBE:SMTP sad. error: |' + err + '|');
-    else
+  /**
+   * onIdle happens after successful login, and so is what our probing uses.
+   */
+  onIdle: function() {
+    console.log('onIdle!');
+    if (this.onresult) {
       console.log('PROBE:SMTP happy');
-
-    clearTimeoutFunc(this.timeoutId);
-
-    this.onresult(this.error, this.errorDetails);
-    this.onresult = null;
-
+      this.onresult(true);
+      this.onresult = null;
+    }
     this._conn.close();
+  },
+
+  onBadness: function(err) {
+    if (this.onresult) {
+      console.warn('PROBE:SMTP sad. error: |' + err + '|');
+      this.onresult(false);
+      this.onresult = null;
+    }
   },
 };
 
@@ -20240,49 +19591,13 @@ SmtpProber.prototype = {
     LITERAL_AC:  0xC4,
   };
 
-  /**
-   * Create a constructor for a custom error type that works like a built-in
-   * Error.
-   *
-   * @param name the string name of the error
-   * @param parent (optional) a parent class for the error, defaults to Error
-   * @param extraArgs an array of extra arguments that can be passed to the
-   *        constructor of this error type
-   * @return the constructor for this error
-   */
-  function makeError(name, parent, extraArgs) {
-    function CustomError() {
-      // Try to let users call this as CustomError(...) without the "new". This
-      // is imperfect, and if you call this function directly and give it a
-      // |this| that's a CustomError, things will break. Don't do it!
-      var self = this instanceof CustomError ?
-                 this : Object.create(CustomError.prototype);
-      var tmp = Error();
-      var offset = 1;
-
-      self.stack = tmp.stack.substring(tmp.stack.indexOf('\n') + 1);
-      self.message = arguments[0] || tmp.message;
-      if (extraArgs) {
-        offset += extraArgs.length;
-        for (var i = 0; i < extraArgs.length; i++)
-          self[extraArgs[i]] = arguments[i+1];
-      }
-
-      var m = /@(.+):(.+)/.exec(self.stack);
-      self.fileName = arguments[offset] || (m && m[1]) || "";
-      self.lineNumber = arguments[offset + 1] || (m && m[2]) || 0;
-
-      return self;
-    }
-    CustomError.prototype = Object.create((parent || Error).prototype);
-    CustomError.prototype.name = name;
-    CustomError.prototype.constructor = CustomError;
-
-    return CustomError;
+  function ParseError(message) {
+      this.name = 'WBXML.ParseError';
+      this.message = message || '';
   }
-
-  var ParseError = makeError('WBXML.ParseError');
   exports.ParseError = ParseError;
+  ParseError.prototype = new Error();
+  ParseError.prototype.constructor = ParseError;
 
   function StringTable(data, decoder) {
     this.strings = [];
@@ -21135,9 +20450,8 @@ SmtpProber.prototype = {
     get bytes() { return new Uint8Array(this._rawbuf, 0, this._pos); },
   };
 
-  function EventParser() {
+  function EventParser(reader) {
     this.listeners = [];
-    this.onerror = function(e) { throw e; };
   }
   exports.EventParser = EventParser;
   EventParser.prototype = {
@@ -21168,13 +20482,7 @@ SmtpProber.prototype = {
           for (let [,listener] in Iterator(this.listeners)) {
             if (this._pathMatches(fullPath, listener.path)) {
               node.children = [];
-              try {
-                listener.callback(node);
-              }
-              catch (e) {
-                if (this.onerror)
-                  this.onerror(e);
-              }
+              listener.callback(node);
             }
           }
 
@@ -21193,13 +20501,7 @@ SmtpProber.prototype = {
           for (let [,listener] in Iterator(this.listeners)) {
             if (this._pathMatches(fullPath, listener.path)) {
               recording--;
-              try {
-                listener.callback(recPath[recPath.length-1]);
-              }
-              catch (e) {
-                if (this.onerror)
-                  this.onerror(e);
-              }
+              listener.callback(recPath[recPath.length-1]);
             }
           }
 
@@ -22401,56 +21703,30 @@ SmtpProber.prototype = {
 
   function nullCallback() {}
 
-  /**
-   * Create a constructor for a custom error type that works like a built-in
-   * Error.
-   *
-   * @param name the string name of the error
-   * @param parent (optional) a parent class for the error, defaults to Error
-   * @param extraArgs an array of extra arguments that can be passed to the
-   *        constructor of this error type
-   * @return the constructor for this error
-   */
-  function makeError(name, parent, extraArgs) {
-    function CustomError() {
-      // Try to let users call this as CustomError(...) without the "new". This
-      // is imperfect, and if you call this function directly and give it a
-      // |this| that's a CustomError, things will break. Don't do it!
-      var self = this instanceof CustomError ?
-                 this : Object.create(CustomError.prototype);
-      var tmp = Error();
-      var offset = 1;
-
-      self.stack = tmp.stack.substring(tmp.stack.indexOf('\n') + 1);
-      self.message = arguments[0] || tmp.message;
-      if (extraArgs) {
-        offset += extraArgs.length;
-        for (var i = 0; i < extraArgs.length; i++)
-          self[extraArgs[i]] = arguments[i+1];
-      }
-
-      var m = /@(.+):(.+)/.exec(self.stack);
-      self.fileName = arguments[offset] || (m && m[1]) || "";
-      self.lineNumber = arguments[offset + 1] || (m && m[2]) || 0;
-
-      return self;
-    }
-    CustomError.prototype = Object.create((parent || Error).prototype);
-    CustomError.prototype.name = name;
-    CustomError.prototype.constructor = CustomError;
-
-    return CustomError;
+  function AutodiscoverError(message) {
+    this.name = 'ActiveSync.AutodiscoverError';
+    this.message = message || '';
   }
-
-  var AutodiscoverError = makeError('ActiveSync.AutodiscoverError');
   exports.AutodiscoverError = AutodiscoverError;
+  AutodiscoverError.prototype = new Error();
+  AutodiscoverError.prototype.constructor = AutodiscoverError;
 
-  var AutodiscoverDomainError = makeError('ActiveSync.AutodiscoverDomainError',
-                                          AutodiscoverError);
+  function AutodiscoverDomainError(message) {
+    this.name = 'ActiveSync.AutodiscoverDomainError';
+    this.message = message || '';
+  }
   exports.AutodiscoverDomainError = AutodiscoverDomainError;
+  AutodiscoverDomainError.prototype = new AutodiscoverError();
+  AutodiscoverDomainError.prototype.constructor = AutodiscoverDomainError;
 
-  var HttpError = makeError('ActiveSync.HttpError', null, ['status']);
+  function HttpError(message, status) {
+    this.name = 'ActiveSync.HttpError';
+    this.message = message || '';
+    this.status = status || 0;
+  }
   exports.HttpError = HttpError;
+  HttpError.prototype = new Error();
+  HttpError.prototype.constructor = HttpError;
 
   function nsResolver(prefix) {
     const baseUrl = 'http://schemas.microsoft.com/exchange/autodiscover/';
@@ -22499,175 +21775,12 @@ SmtpProber.prototype = {
     },
   };
 
-  /**
-   * Set the Authorization header on an XMLHttpRequest.
-   *
-   * @param xhr the XMLHttpRequest
-   * @param username the username
-   * @param password the user's password
-   */
-  function setAuthHeader(xhr, username, password) {
-    let authorization = 'Basic ' + btoa(username + ':' + password);
-    xhr.setRequestHeader('Authorization', authorization);
-  }
-
-  /**
-   * Perform autodiscovery for the server associated with this account.
-   *
-   * @param aEmailAddress the user's email address
-   * @param aPassword the user's password
-   * @param aTimeout a timeout (in milliseconds) for the request
-   * @param aCallback a callback taking an error status (if any) and the
-   *        server's configuration
-   * @param aNoRedirect true if autodiscovery should *not* follow any
-   *        specified redirects (typically used when autodiscover has already
-   *        told us about a redirect)
-   */
-  function autodiscover(aEmailAddress, aPassword, aTimeout, aCallback,
-                        aNoRedirect) {
-    if (!aCallback) aCallback = nullCallback;
-    let domain = aEmailAddress.substring(aEmailAddress.indexOf('@') + 1);
-
-    // The first time we try autodiscovery, we should try to recover from
-    // AutodiscoverDomainErrors. The second time, *all* errors should be
-    // reported to the callback.
-    do_autodiscover(domain, aEmailAddress, aPassword, aTimeout, aNoRedirect,
-                    function(aError, aConfig) {
-      if (aError instanceof AutodiscoverDomainError)
-        do_autodiscover('autodiscover.' + domain, aEmailAddress, aPassword,
-                        aTimeout, aNoRedirect, aCallback);
-      else
-        aCallback(aError, aConfig);
-    });
-  }
-  exports.autodiscover = autodiscover;
-
-  /**
-   * Perform the actual autodiscovery process for a given URL.
-   *
-   * @param aHost the host name to attempt autodiscovery for
-   * @param aEmailAddress the user's email address
-   * @param aPassword the user's password
-   * @param aTimeout a timeout (in milliseconds) for the request
-   * @param aNoRedirect true if autodiscovery should *not* follow any
-   *        specified redirects (typically used when autodiscover has already
-   *        told us about a redirect)
-   * @param aCallback a callback taking an error status (if any) and the
-   *        server's configuration
-   */
-  function do_autodiscover(aHost, aEmailAddress, aPassword, aTimeout,
-                           aNoRedirect, aCallback) {
-    let xhr = new XMLHttpRequest({mozSystem: true, mozAnon: true});
-    xhr.open('POST', 'https://' + aHost + '/autodiscover/autodiscover.xml',
-             true);
-    setAuthHeader(xhr, aEmailAddress, aPassword);
-    xhr.setRequestHeader('Content-Type', 'text/xml');
-    xhr.timeout = aTimeout;
-
-    xhr.upload.onprogress = xhr.upload.onload = function() {
-      xhr.timeout = 0;
-    };
-
-    xhr.onload = function() {
-      if (xhr.status < 200 || xhr.status >= 300)
-        return aCallback(new HttpError(xhr.statusText, xhr.status));
-
-      let doc = new DOMParser().parseFromString(xhr.responseText, 'text/xml');
-
-      function getNode(xpath, rel) {
-        return doc.evaluate(xpath, rel, nsResolver,
-                            XPathResult.FIRST_ORDERED_NODE_TYPE, null)
-                  .singleNodeValue;
-      }
-      function getNodes(xpath, rel) {
-        return doc.evaluate(xpath, rel, nsResolver,
-                            XPathResult.ORDERED_NODE_ITERATOR_TYPE, null);
-      }
-      function getString(xpath, rel) {
-        return doc.evaluate(xpath, rel, nsResolver, XPathResult.STRING_TYPE,
-                            null).stringValue;
-      }
-
-      if (doc.documentElement.tagName === 'parsererror')
-        return aCallback(new AutodiscoverDomainError(
-          'Error parsing autodiscover response'));
-
-      let responseNode = getNode('/ad:Autodiscover/ms:Response', doc);
-      if (!responseNode)
-        return aCallback(new AutodiscoverDomainError(
-          'Missing Autodiscover Response node'));
-
-      let error = getNode('ms:Error', responseNode) ||
-                  getNode('ms:Action/ms:Error', responseNode);
-      if (error)
-        return aCallback(new AutodiscoverError(
-          getString('ms:Message/text()', error)));
-
-      let redirect = getNode('ms:Action/ms:Redirect', responseNode);
-      if (redirect) {
-        if (aNoRedirect)
-          return aCallback(new AutodiscoverError(
-            'Multiple redirects occurred during autodiscovery'));
-
-        let redirectedEmail = getString('text()', redirect);
-        return autodiscover(redirectedEmail, aPassword, aTimeout, aCallback,
-                            true);
-      }
-
-      let user = getNode('ms:User', responseNode);
-      let config = {
-        culture: getString('ms:Culture/text()', responseNode),
-        user: {
-          name:  getString('ms:DisplayName/text()',  user),
-          email: getString('ms:EMailAddress/text()', user),
-        },
-        servers: [],
-      };
-
-      let servers = getNodes('ms:Action/ms:Settings/ms:Server', responseNode);
-      let server;
-      while ((server = servers.iterateNext())) {
-        config.servers.push({
-          type:       getString('ms:Type/text()',       server),
-          url:        getString('ms:Url/text()',        server),
-          name:       getString('ms:Name/text()',       server),
-          serverData: getString('ms:ServerData/text()', server),
-        });
-      }
-
-      // Try to find a MobileSync server from Autodiscovery.
-      for (let [,server] in Iterator(config.servers)) {
-        if (server.type === 'MobileSync') {
-          config.mobileSyncServer = server;
-          break;
-        }
-      }
-      if (!config.mobileSyncServer) {
-        return aCallback(new AutodiscoverError('No MobileSync server found'),
-                         config);
-      }
-
-      aCallback(null, config);
-    };
-
-    xhr.ontimeout = xhr.onerror = function() {
-      aCallback(new Error('Error getting Autodiscover URL'));
-    };
-
-    // TODO: use something like
-    // http://ejohn.org/blog/javascript-micro-templating/ here?
-    let postdata =
-    '<?xml version="1.0" encoding="utf-8"?>\n' +
-    '<Autodiscover xmlns="' + nsResolver('rq') + '">\n' +
-    '  <Request>\n' +
-    '    <EMailAddress>' + aEmailAddress + '</EMailAddress>\n' +
-    '    <AcceptableResponseSchema>' + nsResolver('ms') +
-         '</AcceptableResponseSchema>\n' +
-    '  </Request>\n' +
-    '</Autodiscover>';
-
-    xhr.send(postdata);
-  }
+  // A mapping from domains to URLs appropriate for passing in to
+  // Connection.setServer(). Used for domains that don't support autodiscovery.
+  const hardcodedDomains = {
+    'gmail.com': 'https://m.google.com',
+    'googlemail.com': 'https://m.google.com',
+  };
 
   /**
    * Create a new ActiveSync connection.
@@ -22679,29 +21792,37 @@ SmtpProber.prototype = {
    * appearing if the user's credentials are wrong and 2) it allows us to
    * connect to the same server as multiple users.
    *
+   * @param aEmail the user's email address
+   * @param aPassword the user's password
    * @param aDeviceId (optional) a string identifying this device
    * @param aDeviceType (optional) a string identifying the type of this device
    */
-  function Connection(aDeviceId, aDeviceType) {
+  function Connection(aEmail, aPassword, aDeviceId, aDeviceType) {
+    this._email = aEmail;
+    this._password = aPassword;
     this._deviceId = aDeviceId || 'v140Device';
     this._deviceType = aDeviceType || 'SmartPhone';
     this.timeout = 0;
 
-    this._connected = false;
+    this._connection = 0;
     this._waitingForConnection = false;
-    this._connectionError = null;
     this._connectionCallbacks = [];
-
-    this.baseUrl = null;
-    this._username = null;
-    this._password = null;
-
-    this.versions = [];
-    this.supportedCommands = [];
-    this.currentVersion = null;
   }
   exports.Connection = Connection;
   Connection.prototype = {
+    /**
+     * Get the auth string to add to our XHR's headers.
+     *
+     * @return the auth string
+     */
+    _getAuth: function() {
+      return 'Basic ' + btoa(this._email + ':' + this._password);
+    },
+
+    get _emailDomain() {
+      return this._email.substring(this._email.indexOf('@') + 1);
+    },
+
     /**
      * Perform any callbacks added during the connection process.
      *
@@ -22722,79 +21843,132 @@ SmtpProber.prototype = {
      * @return true iff we are fully connected to the server
      */
     get connected() {
-      return this._connected;
-    },
-
-    /*
-     * Initialize the connection with a server and account credentials.
-     *
-     * @param aServer the ActiveSync server to connect to
-     * @param aUsername the account's username
-     * @param aPassword the account's password
-     */
-    open: function(aServer, aUsername, aPassword) {
-      this.baseUrl = aServer + '/Microsoft-Server-ActiveSync';
-      this._username = aUsername;
-      this._password = aPassword;
+      return this._connection === 2;
     },
 
     /**
-     * Connect to the server with this account by getting the OPTIONS from
-     * the server (and verifying the account's credentials).
+     * Perform autodiscovery and get the options for the server associated with
+     * this account.
      *
-     * @param aCallback a callback taking an error status (if any) and the
-     *        server's options.
+     * @param aCallback a callback taking an error status (if any), the
+     *        resulting autodiscovery settings, and the server's options.
      */
     connect: function(aCallback) {
-      // If we're already connected, just run the callback and return.
-      if (this.connected) {
-        if (aCallback)
-          aCallback(null);
-        return;
+      let conn = this;
+      if (aCallback) {
+        if (conn._connection === 2) {
+          aCallback(null, conn.config);
+          return;
+        }
+        conn._connectionCallbacks.push(aCallback);
       }
-
-      // Otherwise, queue this callback up to fire when we do connect.
-      if (aCallback)
-        this._connectionCallbacks.push(aCallback);
-
-      // Don't do anything else if we're already trying to connect.
-      if (this._waitingForConnection)
+      if (conn._waitingForConnection)
         return;
 
-      this._waitingForConnection = true;
-      this._connectionError = null;
+      function getAutodiscovery() {
+        // Check for hardcoded domains first.
+        let domain = conn._emailDomain.toLowerCase();
+        if (domain in hardcodedDomains)
+          conn.setServer(hardcodedDomains[domain]);
 
-      this.getOptions((function(aError, aOptions) {
-        this._waitingForConnection = false;
-        this._connectionError = aError;
-
-        if (aError) {
-          console.error('Error connecting to ActiveSync:', aError);
-          return this._notifyConnected(aError, aOptions);
+        if (conn._connection === 1) {
+          // Pass along minimal configuration info.
+          getOptions({ forced: true,
+                       selectedServer: { url: conn._forcedServer } });
+          return;
         }
 
-        this._connected = true;
-        this.versions = aOptions.versions;
-        this.supportedCommands = aOptions.commands;
-        this.currentVersion = new Version(aOptions.versions.slice(-1)[0]);
+        conn._waitingForConnection = true;
+        conn.autodiscover(function (aError, aConfig) {
+          conn._waitingForConnection = false;
 
-        return this._notifyConnected(null, aOptions);
-      }).bind(this));
+          if (aError)
+            return conn._notifyConnected(aError, aConfig);
+
+          // Try to find a MobileSync server from Autodiscovery.
+          for (let [,server] in Iterator(aConfig.servers)) {
+            if (server.type === 'MobileSync') {
+              aConfig.selectedServer = server;
+              break;
+            }
+          }
+          if (!aConfig.selectedServer) {
+            conn._connection = 0;
+            return conn._notifyConnected(
+              new AutodiscoverError('No MobileSync server found'), aConfig);
+          }
+
+          conn.setServer(aConfig.selectedServer.url);
+          getOptions(aConfig);
+        });
+      }
+
+      function getOptions(aConfig) {
+        if (conn._connection === 2)
+          return;
+
+        conn._waitingForConnection = true;
+        conn.options(function(aError, aOptions) {
+          conn._waitingForConnection = false;
+
+          if (aError)
+            return conn._notifyConnected(aError, aConfig, aOptions);
+
+          conn._connection = 2;
+          conn.versions = aOptions.versions;
+          conn.supportedCommands = aOptions.commands;
+          conn.currentVersion = new Version(aOptions.versions.slice(-1)[0]);
+
+          if (!conn.supportsCommand('Provision'))
+            return conn._notifyConnected(null, aConfig, aOptions);
+
+          conn.provision(function (aError, aResponse) {
+            conn._notifyConnected(aError, aConfig, aOptions);
+          });
+        });
+      }
+
+      getAutodiscovery();
     },
 
     /**
-     * Disconnect from the ActiveSync server, and reset the connection state.
-     * The server and credentials remain set however, so you can safely call
-     * connect() again immediately after.
+     * Disconnect from the ActiveSync server, and reset all local state.
      */
     disconnect: function() {
       if (this._waitingForConnection)
         throw new Error("Can't disconnect while waiting for server response");
 
-      this._connected = false;
+      this._connection = 0;
+
+      this.baseUrl = null;
+
       this.versions = [];
       this.supportedCommands = [];
       this.currentVersion = null;
+    },
+
+    /**
+     * Perform autodiscovery for the server associated with this account.
+     *
+     * @param aCallback a callback taking an error status (if any) and the
+     *        server's configuration
+     * @param aNoRedirect true if autodiscovery should *not* follow any
+     *        specified redirects (typically used when autodiscover has already
+     *        told us about a redirect)
+     */
+    autodiscover: function(aCallback, aNoRedirect) {
+      if (!aCallback) aCallback = nullCallback;
+      let domain = this._emailDomain;
+
+      // The first time we try autodiscovery, we should try to recover from
+      // AutodiscoverDomainErrors. The second time, *all* errors should be
+      // reported to the callback.
+      this._autodiscover(domain, aNoRedirect, (function(aError, aConfig) {
+        if (aError instanceof AutodiscoverDomainError)
+          this._autodiscover('autodiscover.' + domain, aNoRedirect, aCallback);
+        else
+          aCallback(aError, aConfig);
+      }).bind(this));
     },
 
     /**
@@ -22814,18 +21988,143 @@ SmtpProber.prototype = {
     },
 
     /**
+     * Manually set the server for the connection.
+     *
+     * @param aConfig a string representing the server URL for commands.
+     */
+    setServer: function(aServer) {
+      this._forcedServer = aServer;
+      this.baseUrl = aServer + '/Microsoft-Server-ActiveSync';
+      this._connection = 1;
+    },
+
+    /**
+     * Perform the actual autodiscovery process for a given URL.
+     *
+     * @param aHost the host name to attempt autodiscovery for
+     * @param aNoRedirect true if autodiscovery should *not* follow any
+     *        specified redirects (typically used when autodiscover has already
+     *        told us about a redirect)
+     * @param aCallback a callback taking an error status (if any) and the
+     *        server's configuration
+     */
+    _autodiscover: function(aHost, aNoRedirect, aCallback) {
+      let conn = this;
+      if (!aCallback) aCallback = nullCallback;
+
+      let xhr = new XMLHttpRequest({mozSystem: true, mozAnon: true});
+      xhr.open('POST', 'https://' + aHost + '/autodiscover/autodiscover.xml',
+               true);
+      xhr.setRequestHeader('Content-Type', 'text/xml');
+      xhr.setRequestHeader('Authorization', this._getAuth());
+      xhr.timeout = this.timeout;
+
+      xhr.upload.onprogress = xhr.upload.onload = function() {
+        xhr.timeout = 0;
+      };
+
+      xhr.onload = function() {
+        if (xhr.status < 200 || xhr.status >= 300)
+          return aCallback(new HttpError(xhr.statusText, xhr.status));
+
+        let doc = new DOMParser().parseFromString(xhr.responseText, 'text/xml');
+
+        function getNode(xpath, rel) {
+          return doc.evaluate(xpath, rel, nsResolver,
+                              XPathResult.FIRST_ORDERED_NODE_TYPE, null)
+                    .singleNodeValue;
+        }
+        function getNodes(xpath, rel) {
+          return doc.evaluate(xpath, rel, nsResolver,
+                              XPathResult.ORDERED_NODE_ITERATOR_TYPE, null);
+        }
+        function getString(xpath, rel) {
+          return doc.evaluate(xpath, rel, nsResolver, XPathResult.STRING_TYPE,
+                              null).stringValue;
+        }
+
+        if (doc.documentElement.tagName === 'parsererror')
+          return aCallback(new AutodiscoverDomainError(
+            'Error parsing autodiscover response'));
+
+        let responseNode = getNode('/ad:Autodiscover/ms:Response', doc);
+        if (!responseNode)
+          return aCallback(new AutodiscoverDomainError(
+            'Missing Autodiscover Response node'));
+
+        let error = getNode('ms:Error', responseNode) ||
+                    getNode('ms:Action/ms:Error', responseNode);
+        if (error)
+          return aCallback(new AutodiscoverError(
+            getString('ms:Message/text()', error)));
+
+        let redirect = getNode('ms:Action/ms:Redirect', responseNode);
+        if (redirect) {
+          if (aNoRedirect)
+            return aCallback(new AutodiscoverError(
+              'Multiple redirects occurred during autodiscovery'));
+
+          conn._email = getString('text()', redirect);
+          return conn.autodiscover(aCallback, true);
+        }
+
+        let user = getNode('ms:User', responseNode);
+        let config = {
+          culture: getString('ms:Culture/text()', responseNode),
+          user: {
+            name:  getString('ms:DisplayName/text()',  user),
+            email: getString('ms:EMailAddress/text()', user),
+          },
+          servers: [],
+        };
+
+        let servers = getNodes('ms:Action/ms:Settings/ms:Server', responseNode);
+        let server;
+        while ((server = servers.iterateNext())) {
+          config.servers.push({
+            type:       getString('ms:Type/text()',       server),
+            url:        getString('ms:Url/text()',        server),
+            name:       getString('ms:Name/text()',       server),
+            serverData: getString('ms:ServerData/text()', server),
+          });
+        }
+
+        aCallback(null, config);
+      };
+
+      xhr.ontimeout = xhr.onerror = function() {
+        aCallback(new Error('Error getting Autodiscover URL'));
+      };
+
+      // TODO: use something like
+      // http://ejohn.org/blog/javascript-micro-templating/ here?
+      let postdata =
+      '<?xml version="1.0" encoding="utf-8"?>\n' +
+      '<Autodiscover xmlns="' + nsResolver('rq') + '">\n' +
+      '  <Request>\n' +
+      '    <EMailAddress>' + this._email + '</EMailAddress>\n' +
+      '    <AcceptableResponseSchema>' + nsResolver('ms') +
+           '</AcceptableResponseSchema>\n' +
+      '  </Request>\n' +
+      '</Autodiscover>';
+
+      xhr.send(postdata);
+    },
+
+    /**
      * Get the options for the server associated with this account.
      *
      * @param aCallback a callback taking an error status (if any), and the
      *        resulting options.
      */
-    getOptions: function(aCallback) {
+    options: function(aCallback) {
       if (!aCallback) aCallback = nullCallback;
+      if (this._connection < 1)
+        throw new Error('Must have server info before calling options()');
 
       let conn = this;
       let xhr = new XMLHttpRequest({mozSystem: true, mozAnon: true});
       xhr.open('OPTIONS', this.baseUrl, true);
-      setAuthHeader(xhr, this._username, this._password);
       xhr.timeout = this.timeout;
 
       xhr.upload.onprogress = xhr.upload.onload = function() {
@@ -22834,8 +22133,8 @@ SmtpProber.prototype = {
 
       xhr.onload = function() {
         if (xhr.status < 200 || xhr.status >= 300) {
-          console.error('ActiveSync options request failed with response ' +
-                        xhr.status);
+          console.log('ActiveSync options request failed with response ' +
+                      xhr.status);
           aCallback(new HttpError(xhr.statusText, xhr.status));
           return;
         }
@@ -22849,9 +22148,7 @@ SmtpProber.prototype = {
       };
 
       xhr.ontimeout = xhr.onerror = function() {
-        let error = new Error('Error getting OPTIONS URL');
-        console.error(error);
-        aCallback(error);
+        aCallback(new Error('Error getting OPTIONS URL'));
       };
 
       // Set the response type to "text" so that we don't try to parse an empty
@@ -22947,7 +22244,7 @@ SmtpProber.prototype = {
       if (!this.supportsCommand(aCommand)) {
         let error = new Error("This server doesn't support the command " +
                               aCommand);
-        console.error(error);
+        console.log(error);
         aCallback(error);
         return;
       }
@@ -22974,9 +22271,9 @@ SmtpProber.prototype = {
       // Now it's time to make our request!
       let xhr = new XMLHttpRequest({mozSystem: true, mozAnon: true});
       xhr.open('POST', this.baseUrl + '?' + paramsStr, true);
-      setAuthHeader(xhr, this._username, this._password);
       xhr.setRequestHeader('MS-ASProtocolVersion', this.currentVersion);
       xhr.setRequestHeader('Content-Type', aContentType);
+      xhr.setRequestHeader('Authorization', this._getAuth());
 
       // Add extra headers if we have any.
       if (aExtraHeaders) {
@@ -23008,8 +22305,8 @@ SmtpProber.prototype = {
         }
 
         if (xhr.status < 200 || xhr.status >= 300) {
-          console.error('ActiveSync command ' + aCommand + ' failed with ' +
-                        'response ' + xhr.status);
+          console.log('ActiveSync command ' + aCommand + ' failed with ' +
+                      'response ' + xhr.status);
           aCallback(new HttpError(xhr.statusText, xhr.status));
           return;
         }
@@ -23021,9 +22318,7 @@ SmtpProber.prototype = {
       };
 
       xhr.ontimeout = xhr.onerror = function() {
-        let error = new Error('Error getting command URL');
-        console.error(error);
-        aCallback(error);
+        aCallback(new Error('Error getting command URL'));
       };
 
       xhr.responseType = 'arraybuffer';
@@ -23453,33 +22748,6 @@ const bsearchForInsert = $util.bsearchForInsert,
       makeDaysBefore = $date.makeDaysBefore,
       quantizeDate = $date.quantizeDate;
 
-// What do we think the post-snappy compression overhead of the structured clone
-// persistence rep will be for various things?  These are total guesses right
-// now.  Keep in mind we do want the pre-compression size of the data in all
-// cases and we just hope it will compress a bit.  For the attributes we are
-// including the attribute name as well as any fixed-overhead for its payload,
-// especially numbers which may or may not be zig-zag encoded/etc.
-const OBJ_OVERHEAD_EST = 2, STR_ATTR_OVERHEAD_EST = 5,
-      NUM_ATTR_OVERHEAD_EST = 10, LIST_ATTR_OVERHEAD_EST = 4,
-      NULL_ATTR_OVERHEAD_EST = 2, LIST_OVERHEAD_EST = 4,
-      NUM_OVERHEAD_EST = 8, STR_OVERHEAD_EST = 4;
-
-/**
- * Intersects two objects each defining tupled ranges of the type
- * { startTS, startUID, endTS, endUID }, like block infos and mail slices.
- * This is exported for unit testing purposes and because no state is closed
- * over.
- */
-const tupleRangeIntersectsTupleRange = exports.tupleRangeIntersectsTupleRange =
-    function tupleRangeIntersectsTupleRange(a, b) {
-  if (BEFORE(a.endTS, b.startTS) ||
-      STRICTLY_AFTER(a.startTS, b.endTS))
-    return false;
-  if ((a.endTS === b.startTS && a.endUID < b.startUID) ||
-      (a.startTS === b.endTS && a.startTS > b.endUID))
-    return false;
-  return true;
-};
 
 /**
  * What is the maximum number of bytes a block should store before we split
@@ -23498,6 +22766,13 @@ const MAX_BLOCK_SIZE = 96 * 1024,
  * How many bytes should we target for the large part when splitting 1:2?
  */
       BLOCK_SPLIT_LARGE_PART = 64 * 1024;
+
+/**
+ * The estimated size of a `HeaderInfo` structure.  We are using a constant
+ * since there is not a lot of variability in what we are storing and this
+ * is probably good enough.
+ */
+const HEADER_EST_SIZE_IN_BYTES = exports.HEADER_EST_SIZE_IN_BYTES = 200;
 
 /**
  * Book-keeping and limited agency for the slices.
@@ -23571,19 +22846,13 @@ function MailSlice(bridgeHandle, storage, _parentLog) {
 exports.MailSlice = MailSlice;
 MailSlice.prototype = {
   set atTop(val) {
-    if (this._bridgeHandle)
-      this._bridgeHandle.atTop = val;
-    return val;
+    this._bridgeHandle.atTop = val;
   },
   set atBottom(val) {
-    if (this._bridgeHandle)
-      this._bridgeHandle.atBottom = val;
-    return val;
+    this._bridgeHandle.atBottom = val;
   },
   set userCanGrowDownwards(val) {
-    if (this._bridgeHandle)
-      this._bridgeHandle.userCanGrowDownwards = val;
-    return val;
+    this._bridgeHandle.userCanGrowDownwards = val;
   },
 
   _updateSliceFlags: function() {
@@ -23612,9 +22881,6 @@ MailSlice.prototype = {
    * ]
    */
   _resetHeadersBecauseOfRefreshExplosion: function() {
-    if (!this._bridgeHandle)
-      return;
-
     if (this.headers.length) {
       // If we're accumulating, we were starting from zero to begin with, so
       // there is no need to send a nuking splice.
@@ -23637,9 +22903,6 @@ MailSlice.prototype = {
   },
 
   reqNoteRanges: function(firstIndex, firstSuid, lastIndex, lastSuid) {
-    if (!this._bridgeHandle)
-      return;
-
     var i;
     // - Fixup indices if required
     if (firstIndex >= this.headers.length ||
@@ -23689,8 +22952,6 @@ MailSlice.prototype = {
       this.endTS = firstHeader.date;
       this.endUID = firstHeader.id;
     }
-
-    this._storage.sliceShrunk(this);
   },
 
   reqGrow: function(dirMagnitude, userRequestsGrowth) {
@@ -23747,9 +23008,6 @@ MailSlice.prototype = {
   },
 
   batchAppendHeaders: function(headers, insertAt, moreComing) {
-    if (!this._bridgeHandle)
-      return;
-
     this._LOG.headersAppended(headers);
     if (insertAt === -1)
       insertAt = this.headers.length;
@@ -23909,76 +23167,29 @@ MailSlice.prototype = {
 };
 
 /**
- * Per-folder message caching/storage; issues per-folder `MailSlice`s and keeps
- * them up-to-date.  Access is mediated through the use of mutexes which must be
- * acquired for write access and are advisable for read access that requires
- * access to more than a single message.
- *
- * ## Naming and Ordering
- *
- * Messages in the folder are named and ordered by the tuple of the message's
- * received date and a "sufficiently unique identifier" (SUID) we allocate.
- *
- * The SUID is actually a concatenation of an autoincrementing per-folder 'id'
- * to our folder id, which in turn contains the account id.  Internally, we only
- * care about the 'id' since the rest is constant for the folder.  However, all
- * APIs layered above us need to deal in SUIDs since we will eventually have
- * `MailSlice` instances that aggregate the contents so it is important that the
- * extra information always be passed around.
- *
- * Because the SUID has no time component and for performance we want a total
- * ordering on the messages, messages are first ordered on their 'received'
- * date.  For IMAP this is the message's INTERNALDATE.  For ActiveSync this is
- * the email:DateReceived element.  Accordingly, when performing a lookup, we
- * either need the exact date of the message or a reasonable bounded time range
- * in which it could fall (which should be a given for date range scans).
- *
- * ## Storage, Caching, Cache Flushing
+ * Per-folder message caching/storage named by their UID.  Storage also relies
+ * on the IMAP internaldate of the message for efficiency.  Accordingly,
+ * when performing a lookup, we either need the exact date of the message or
+ * a reasonable bounded time range in which it could fall (which should be a
+ * given for date range scans).
  *
  * Storage is done using IndexedDB, with message header information and message
- * body information stored in separate blocks of information.  See the
- * `maildb.js` file and `MailDB` class for more detailed information.
+ * body information stored in separate blocks of information.  Blocks are
+ * loaded on demand, although preferably hints are received so we can pre-load
+ * information.
  *
- * Blocks are loaded from disk on demand and cached, although preferably hints
- * are received so we can pre-load information.  Blocks are discarded from the
- * cache automatically when a mutex is released or when explicitly invoked by
- * the code currently holding the mutex.  Code that can potentially cause a
- * large number of blocks to be loaded is responsible for periodically
- * triggering cache evictions and/or writing of dirty blocks to disk so that
- * cache evictions are possible.
- *
- * We avoid automatic cache eviction in order to avoid the class of complex bugs
- * that might arise.  While well-written code should not run afoul of automatic
- * cache eviction were it to exist, buggy code happens.  We can more reliably
- * detect potentially buggy code this way by simply reporting whenever the
- * number of loaded blocks exceeds some threshold.
- *
- * When evicting blocks from cache, we try and keep blocks around that contain
- * messages referenced by active `MailSlice` instances in order to avoid the
- * situation where we discard blocks just to reload them with the next user
- * action, and with added latency.
- *
- * If WeakMap were standardized, we would instead move blocks into a WeakMap,
- * but it's not, so we don't.
- *
- * ## Block Purging (IMAP)
- *
- * For account types like IMAP where we can incrementally grow the set of
- * messages we have synchronized from the server, our entire database is
- * effectively a cache of the server state.  This is in contrast to ActiveSync
- * where we synchronize a fixed time-window of messages and so the exact set of
- * messages we should know about is well-defined and bounded.  As a result, we
- * need to be able to purge old messages that the user no longer appears to
- * care about so that our disk usage does not grow without bound.
- *
- * We currently trigger block purging as the result of block growth in a folder.
- * Specifically
+ * Blocks are discarded from memory (and written back if mutated) when there are
+ * no longer live `ImapSlice` instances that care about the time range and we
+ * are experiencing memory pressure.  Dirty blocks are periodically written
+ * to storage even if there is no memory pressure at notable application and
+ * synchronization state milestones.  Since the server is the canonical message
+ * store, we are not exceedingly concerned about losing state.
  *
  * Messages are discarded from storage when experiencing storage pressure.  We
  * figure it's better to cache what we have until it's known useless (deleted
  * messages) or we definitely need the space for something else.
  *
- * ## Concurrency and I/O
+ * == Concurrency and I/O
  *
  * The logic in this class can operate synchronously as long as the relevant
  * header/body blocks are in-memory.  For simplicity, we (asynchronously) defer
@@ -23994,15 +23205,11 @@ MailSlice.prototype = {
  * we still have some state to synchronize to the server so the user does
  * not power-off their phone quite yet.
  *
- * ## Types
+ * == Types
  *
  * @typedef[AccuracyRangeInfo @dict[
- *   @key[endTS DateMS]{
- *     This value is exclusive in keeping with IMAP BEFORE semantics.
- *   }
- *   @key[startTS DateMS]{
- *     This value is inclusive in keeping with IMAP SINCE semantics.
- *   }
+ *   @key[endTS DateMS]
+ *   @key[startTS DateMS]
  *   @key[fullSync @dict[
  *     @key[highestModseq #:optional String]{
  *       The highest modseq for this range, if we have one.  This would be the
@@ -24025,7 +23232,8 @@ MailSlice.prototype = {
  * ]]{
  *   Describes the provenance of the data we have for a given time range.
  *   Tracked independently of the block data because there doesn't really seem
- *   to be an upside to coupling them.
+ *   to be an upside to coupling them.  The date ranges are inclusive; other
+ *   blocks should differ by at least 1 millisecond.
  *
  *   This lets us know when we have sufficiently valid data to display messages
  *   without needing to talk to the server, allows us to size checks for
@@ -24264,36 +23472,10 @@ function FolderStorage(account, folderId, persistedFolderInfo, dbConn,
   this._serverIdHeaderBlockMapping =
     persistedFolderInfo.serverIdHeaderBlockMapping;
 
-  /**
-   * @dictof[@key[BlockId] @value[HeaderBlock]]{
-   *   In-memory cache of header blocks.
-   * }
-   */
+  /** @dictof[@key[BlockId] @value[HeaderBlock]] */
   this._headerBlocks = {};
-  /**
-   * @listof[FolderBlockInfo]{
-   *   The block infos of all the header blocks in `_headerBlocks`.  Exists so
-   *   that we don't need to map blocks back to their block infos when we are
-   *   considering flushing things.  This could also be used for most recently
-   *   loaded tracking.
-   * }
-   */
-  this._loadedHeaderBlockInfos = [];
-  /**
-   * @dictof[@key[BlockId] @value[BodyBlock]]{
-   *   In-memory cache of body blocks.
-   * }
-   */
+  /** @dictof[@key[BlockId] @value[BodyBlock]] */
   this._bodyBlocks = {};
-  /**
-   * @listof[FolderBlockInfo]{
-   *   The block infos of all the body blocks in `_bodyBlocks`.  Exists so
-   *   that we don't need to map blocks back to their block infos when we are
-   *   considering flushing things.  This could also be used for most recently
-   *   loaded tracking.
-   * }
-   */
-  this._loadedBodyBlockInfos = [];
 
   this._bound_makeHeaderBlock = this._makeHeaderBlock.bind(this);
   this._bound_insertHeaderInBlock = this._insertHeaderInBlock.bind(this);
@@ -24362,8 +23544,6 @@ function FolderStorage(account, folderId, persistedFolderInfo, dbConn,
    */
   this._curSyncSlice = null;
 
-  this._messagePurgeScheduled = false;
-
   this.folderSyncer = FolderSyncer && new FolderSyncer(account, this,
                                                        this._LOG);
 }
@@ -24390,14 +23570,6 @@ FolderStorage.prototype = {
     }
   },
 
-  /**
-   * Called by our owning account to generate lists of dirty blocks to be
-   * persisted to the database if we have any dirty blocks.
-   *
-   * We trigger a cache flush after clearing the set of dirty blocks because
-   * this is the first time we can flush the no-longer-dirty blocks and this is
-   * an acceptable/good time to clear the cache since we must not be in a mutex.
-   */
   generatePersistenceInfo: function() {
     if (!this._dirty)
       return null;
@@ -24409,7 +23581,6 @@ FolderStorage.prototype = {
     this._dirtyHeaderBlocks = {};
     this._dirtyBodyBlocks = {};
     this._dirty = false;
-    this.flushExcessCachedBlocks('persist');
     return pinfo;
   },
 
@@ -24431,7 +23602,6 @@ FolderStorage.prototype = {
           return;
         }
         self._mutexQueue.shift();
-        self.flushExcessCachedBlocks('mutex');
         // Although everything should be async, avoid stack explosions by
         // deferring the execution to a future turn of the event loop.
         if (self._mutexQueue.length)
@@ -24545,7 +23715,7 @@ FolderStorage.prototype = {
     // - remove, update counts
     block.uids.splice(idx, 1);
     block.headers.splice(idx, 1);
-    info.estSize -= $sync.HEADER_EST_SIZE_IN_BYTES;
+    info.estSize -= HEADER_EST_SIZE_IN_BYTES;
     info.count--;
 
     this._dirty = true;
@@ -24575,8 +23745,7 @@ FolderStorage.prototype = {
   _splitHeaderBlock: function ifs__splitHeaderBlock(splinfo, splock,
                                                     newerTargetBytes) {
     // We currently assume a fixed size, so this is easy.
-    var numHeaders = Math.ceil(newerTargetBytes /
-                               $sync.HEADER_EST_SIZE_IN_BYTES);
+    var numHeaders = Math.ceil(newerTargetBytes / HEADER_EST_SIZE_IN_BYTES);
     if (numHeaders > splock.headers.length)
       throw new Error("No need to split!");
 
@@ -24589,13 +23758,13 @@ FolderStorage.prototype = {
                       // we change back to inserting after splitting.)
                       splinfo.startTS, splinfo.startUID,
                       olderEndHeader.date, olderEndHeader.id,
-                      olderNumHeaders * $sync.HEADER_EST_SIZE_IN_BYTES,
+                      olderNumHeaders * HEADER_EST_SIZE_IN_BYTES,
                       splock.uids.splice(numHeaders, olderNumHeaders),
                       splock.headers.splice(numHeaders, olderNumHeaders));
 
     var newerStartHeader = splock.headers[numHeaders - 1];
     splinfo.count = numHeaders;
-    splinfo.estSize = numHeaders * $sync.HEADER_EST_SIZE_IN_BYTES;
+    splinfo.estSize = numHeaders * HEADER_EST_SIZE_IN_BYTES;
     splinfo.startTS = newerStartHeader.date;
     splinfo.startUID = newerStartHeader.id;
     // this._dirty is already touched by makeHeaderBlock when it dirties the
@@ -24629,14 +23798,6 @@ FolderStorage.prototype = {
     this._dirty = true;
     this._bodyBlocks[blockId] = block;
     this._dirtyBodyBlocks[blockId] = block;
-
-    if (this._folderImpl.nextBodyBlock %
-          $sync.BLOCK_PURGE_EVERY_N_NEW_BODY_BLOCKS === 0 &&
-        !this._messagePurgeScheduled) {
-      this._messagePurgeScheduled = true;
-      this._account.scheduleMessagePurge(this.folderId);
-    }
-
     return blockInfo;
   },
 
@@ -24688,13 +23849,6 @@ FolderStorage.prototype = {
     }
   },
 
-  /**
-   * Split the contents of the given body block into a newer and older block.
-   * The newer info block will be mutated in place; the older block info will
-   * be created and returned.  The newer block is filled with data until it
-   * first overflows newerTargetBytes.  This method is responsible for updating
-   * the actual containing blocks as well.
-   */
   _splitBodyBlock: function ifs__splitBodyBlock(splinfo, splock,
                                                 newerTargetBytes) {
     // Save off the start timestamp/uid; these may have been extended beyond the
@@ -24703,29 +23857,23 @@ FolderStorage.prototype = {
     var savedStartTS = splinfo.startTS, savedStartUID = splinfo.startUID;
 
     var newerBytes = 0, uids = splock.uids, newDict = {}, oldDict = {},
-        inNew = true, numHeaders = null, i, uid, body,
-        idxLast = uids.length - 1;
-    // loop for new traversal; picking a split-point so that there is at least
-    // one item in each block.
-    for (i = 0; i < idxLast; i++) {
-      uid = uids[i],
-      body = splock.bodies[uid];
-      newerBytes += body.size;
-      newDict[uid] = body;
-      if (newerBytes >= newerTargetBytes) {
-        i++;
-        break;
+        inNew = true, numHeaders = null;
+    for (var i = 0; i < uids.length; i++) {
+      var uid = uids[i],
+          body = splock.bodies[uid];
+      if (inNew) {
+        newerBytes += body.size;
+        newDict[uid] = body;
+        if (newerBytes >= newerTargetBytes) {
+          inNew = false;
+          splinfo.count = numHeaders = i + 1;
+          splinfo.startTS = body.date;
+          splinfo.startUID = uid;
+        }
       }
-    }
-    // mark the breakpoint; i is pointing at the first old-block message
-    splinfo.count = numHeaders = i;
-    // and these values are from the last processed new-block message
-    splinfo.startTS = body.date;
-    splinfo.startUID = uid;
-    // loop for old traversal
-    for (; i < uids.length; i++) {
-      uid = uids[i];
-      oldDict[uid] = splock.bodies[uid];
+      else {
+        oldDict[uid] = body;
+      }
     }
 
     var oldEndUID = uids[numHeaders];
@@ -24733,8 +23881,6 @@ FolderStorage.prototype = {
       savedStartTS, savedStartUID,
       oldDict[oldEndUID].date, oldEndUID,
       splinfo.estSize - newerBytes,
-      // (the older block gets the uids the new/existing block does not want,
-      //  leaving `uids` containing only the d
       uids.splice(numHeaders, uids.length - numHeaders),
       oldDict);
     splinfo.estSize = newerBytes;
@@ -24743,240 +23889,6 @@ FolderStorage.prototype = {
     this._dirtyBodyBlocks[splinfo.blockId] = splock;
 
     return olderInfo;
-  },
-
-  /**
-   * Flush cached blocks that are unlikely to be used again soon.  Our
-   * heuristics for deciding what to keep is simple:
-   * - Dirty blocks are always kept; this is required for correctness.
-   * - Blocks that overlap with live `MailSlice` instances are kept.
-   *
-   * It could also make sense to support some type of MRU tracking, but the
-   * complexity is not currently justified since the live `MailSlice` should
-   * lead to a near-perfect hit rate on immediate actions and the UI's
-   * pre-emptive slice growing should insulate it from any foolish discards
-   * we might make.
-   */
-  flushExcessCachedBlocks: function(debugLabel) {
-    var slices = this._slices;
-    function blockIntersectsAnySlice(blockInfo) {
-      for (var i = 0; i < slices.length; i++) {
-        var slice = slices[i];
-        if (tupleRangeIntersectsTupleRange(slice, blockInfo)) {
-          // Here is some useful debug you can uncomment!
-          /*
-          console.log('  slice intersect. slice:',
-                      slice.startTS, slice.startUID,
-                      slice.endTS, slice.endUID, '  block:',
-                      blockInfo.startTS, blockInfo.startUID,
-                      blockInfo.endTS, blockInfo.endUID);
-           */
-          return true;
-        }
-      }
-      return false;
-    }
-    function maybeDiscard(blockType, blockInfoList, loadedBlockInfos,
-                          blockMap, dirtyMap) {
-      // console.warn('!! flushing', blockType, 'blocks because:', debugLabel);
-      for (var i = 0; i < loadedBlockInfos.length; i++) {
-        var blockInfo = loadedBlockInfos[i];
-        // do not discard dirty blocks
-        if (dirtyMap.hasOwnProperty(blockInfo.blockId)) {
-          // console.log('  dirty block:', blockInfo.blockId);
-          continue;
-        }
-        // do not discard blocks that overlap mail slices
-        if (blockIntersectsAnySlice(blockInfo))
-          continue;
-        // console.log('discarding', blockType, 'block', blockInfo.blockId);
-        delete blockMap[blockInfo.blockId];
-        loadedBlockInfos.splice(i--, 1);
-      }
-    }
-
-    maybeDiscard(
-      'header', this._headerBlockInfos, this._loadedHeaderBlockInfos,
-      this._headerBlocks, this._dirtyHeaderBlocks);
-    maybeDiscard(
-      'body', this._bodyBlockInfos, this._loadedBodyBlockInfos,
-      this._bodyBlocks, this._dirtyBodyBlocks);
-  },
-
-  /**
-   * Purge messages from disk storage for size and/or time reasons.  This is
-   * only used for IMAP folders and we fast-path out if invoked on ActiveSync.
-   *
-   * This method is invoked as a result of new block allocation as a job /
-   * operation run inside a mutex.  This means that we won't be run unless a
-   * synchronization job triggers us and that we won't run until that
-   * synchronization job completes.  This is important because it means that
-   * if a user doesn't use the mail app for a long time it's not like a cron
-   * process will purge our synchronized state for everything so that when they
-   * next use the mail app all the information will be gone.  Likewise, if the
-   * user is disconnected from the net, we won't purge their cached stuff that
-   * they are still looking at.  The non-obvious impact on 'archive' folders
-   * whose first messages are quite some way sin the past is that the accuracy
-   * range for archive folders will have been updated with the current date for
-   * at least whatever the UI needed, so we won't go completely purging archive
-   * folders.
-   *
-   * Our strategy is to pick cut points based on a few heuristics and then go
-   * with the deepest cut.  Cuts are time-based and always quantized to the
-   * subsequent local (timezone compensated) midnight for the server in order to
-   * line up with our sync boundaries.  The cut point defines an exclusive range
-   * of [0, cutTS).
-   *
-   * The heuristics are:
-   *
-   * - Last (online) access: scan accuracy ranges from the oldest until we run
-   *   into one that is less than `$sync.BLOCK_PURGE_ONLY_AFTER_UNSYNCED_MS`
-   *   milliseconds old.  We clip this against the 'syncRange' interval for the
-   *   account.
-   *
-   * - Hard block limits: If there are more than
-   *   `$sync.BLOCK_PURGE_HARD_MAX_BLOCK_LIMIT` header or body blocks, then we
-   *   issue a cut-point of the start date of the block at that index.  The date
-   *   will then be quantized, which may effectively result in more blocks being
-   *   discarded.
-   *
-   * Deletion is performed by asynchronously, iteratively:
-   * - Making sure the oldest header block is loaded.
-   * - Checking the oldest header in the block.  If it is more recent than our
-   *   cut point, then we are done.
-   *
-   * What we *do not* do:
-   * - We do not do anything about attachments saved to DeviceStorage.  We leave
-   *   those around and it's on the user to clean those up from the gallery.
-   * - We do not currently take the size of downloaded embedded images into
-   *   account
-   *
-   * @args[
-   *   @param[callback @func[
-   *     @args[
-   *       @param[numDeleted Number]{
-   *         The number of messages deleted.
-   *       }
-   *       @param[cutTS DateMS]
-   *     ]
-   *   ]]
-   * ]
-   */
-  purgeExcessMessages: function(callback) {
-    this._messagePurgeScheduled = false;
-    var cutTS = Math.max(
-      this._purge_findLastAccessCutPoint(),
-      this._purge_findHardBlockCutPoint(this._headerBlockInfos),
-      this._purge_findHardBlockCutPoint(this._bodyBlockInfos));
-
-    if (cutTS === 0) {
-      callback(0, cutTS);
-      return;
-    }
-
-    // Quantize to the subsequent UTC midnight, then apply the timezone
-    // adjustment that is what our IMAP database lookup does to account for
-    // skew.  (See `ImapFolderConn.syncDateRange`)
-    cutTS = quantizeDate(cutTS + DAY_MILLIS) - this._account.tzOffset;
-
-    // Update the accuracy ranges by nuking accuracy ranges that are no longer
-    // relevant and updating any overlapped range.
-    var aranges = this._accuracyRanges;
-    var splitInfo = this._findFirstObjIndexForDateRange(aranges, cutTS, cutTS);
-    // we only need to update a range if there was in fact some overlap.
-    if (splitInfo[1]) {
-      splitInfo[1].startTS = cutTS;
-      // then be sure not to splice ourselves...
-      aranges.splice(splitInfo[0] + 1, aranges.length - splitInfo[0]);
-    }
-    else {
-      // do splice things at/after
-      aranges.splice(splitInfo[0], aranges.length - splitInfo[0]);
-    }
-
-    var headerBlockInfos = this._headerBlockInfos,
-        headerBlocks = this._headerBlocks,
-        deletionCount = 0,
-        // These variables let us detect if the deletion happened fully
-        // synchronously and thereby avoid blowing up the stack.
-        callActive = false, deleteTriggered = false;
-    var deleteNextHeader = function deleteNextHeader() {
-      // if things are happening synchronously, bail out
-      if (callActive) {
-        deleteTriggered = true;
-        return;
-      }
-
-      while (true) {
-        // - bail if we ran out of blocks somehow
-        if (!headerBlockInfos.length) {
-          callback(deletionCount, cutTS);
-          return;
-        }
-        // - load the last header block if not currently loaded
-        var blockInfo = headerBlockInfos[headerBlockInfos.length - 1];
-        if (!this._headerBlocks.hasOwnProperty(blockInfo.blockId)) {
-          this._loadBlock('header', blockInfo, deleteNextHeader);
-          return;
-        }
-        // - get the last header, check it
-        var headerBlock = this._headerBlocks[blockInfo.blockId],
-            lastHeader = headerBlock.headers[headerBlock.headers.length - 1];
-        if (SINCE(lastHeader.date, cutTS)) {
-          // all done! header is more recent than the cut date
-          callback(deletionCount, cutTS);
-          return;
-        }
-        deleteTriggered = false;
-        callActive = true;
-        deletionCount++;
-        this.deleteMessageHeaderAndBody(lastHeader, deleteNextHeader);
-        callActive = false;
-        if (!deleteTriggered)
-          return;
-      }
-    }.bind(this);
-    deleteNextHeader();
-  },
-
-  _purge_findLastAccessCutPoint: function() {
-    var aranges = this._accuracyRanges,
-        cutoffDate = $date.NOW() - $sync.BLOCK_PURGE_ONLY_AFTER_UNSYNCED_MS;
-    // When the loop terminates, this is the block we should use to cut, so
-    // start with an invalid value.
-    var iCutRange;
-    for (iCutRange = aranges.length; iCutRange >= 1; iCutRange--) {
-      var arange = aranges[iCutRange - 1];
-      // We can destroy things that aren't fully synchronized.
-      // NB: this case was intended for search-on-server which is not yet
-      // implemented.
-      if (!arange.fullSync)
-        continue;
-      if (arange.fullSync.updated > cutoffDate)
-        break;
-    }
-    if (iCutRange === aranges.length)
-      return 0;
-
-    var cutTS = aranges[iCutRange].endTS,
-        syncRangeMS = $sync.SYNC_RANGE_ENUMS_TO_MS[
-                        this._account.accountDef.syncRange] ||
-                      $sync.SYNC_RANGE_ENUMS_TO_MS['auto'],
-        // Determine the sync horizon, but then subtract an extra day off so
-        // that the quantization does not take a bite out of the sync range
-        syncHorizonTS = $date.NOW() - syncRangeMS - DAY_MILLIS;
-
-    // If the proposed cut is more recent than our sync horizon, use the sync
-    // horizon.
-    if (STRICTLY_AFTER(cutTS, syncHorizonTS))
-      return syncHorizonTS;
-    return cutTS;
-  },
-
-  _purge_findHardBlockCutPoint: function(blockInfoList) {
-    if (blockInfoList.length <= $sync.BLOCK_PURGE_HARD_MAX_BLOCK_LIMIT)
-      return 0;
-    return blockInfoList[$sync.BLOCK_PURGE_HARD_MAX_BLOCK_LIMIT].startTS;
   },
 
   /**
@@ -25056,8 +23968,7 @@ FolderStorage.prototype = {
 
   /**
    * Find the first object that contains date ranges that overlaps the provided
-   * date range.  Scans from the present into the past.  If endTS is null, get
-   * treat it as being a date infinitely far in the future.
+   * date range.  Scans from the present into the past.
    */
   _findFirstObjIndexForDateRange: function ifs__findFirstObjIndexForDateRange(
       list, startTS, endTS) {
@@ -25079,7 +23990,7 @@ FolderStorage.prototype = {
 
       // nb: SINCE(endTS, info.startTS) is not right here because the equals
       // case does not result in overlap because endTS is exclusive.
-      if (endTS === null || STRICTLY_AFTER(endTS, info.startTS))
+      if (STRICTLY_AFTER(endTS, info.startTS))
         return [i, info];
       // (no overlap yet)
     }
@@ -25122,16 +24033,14 @@ FolderStorage.prototype = {
 
   /**
    * Find the first object in the list whose `date` falls inside the given
-   * IMAP style date range.  If `endTS` is null, find the first object whose
-   * `date` is at least `startTS`.
+   * IMAP style date range.
    */
   _findFirstObjForDateRange: function ifs__findFirstObjForDateRange(
       list, startTS, endTS) {
     var i;
-    var dateComparator = endTS === null ? SINCE : IN_BS_DATE_RANGE;
     for (i = 0; i < list.length; i++) {
       var date = list[i].date;
-      if (dateComparator(date, startTS, endTS))
+      if (IN_BS_DATE_RANGE(date, startTS, endTS))
         return [i, list[i]];
     }
     return [i, null];
@@ -25209,11 +24118,10 @@ FolderStorage.prototype = {
    */
   _insertIntoBlockUsingDateAndUID: function ifs__pickInsertionBlocks(
       type, date, uid, srvid, estSizeCost, thing, blockPickedCallback) {
-    var blockInfoList, loadedBlockInfoList, blockMap, makeBlock, insertInBlock,
-        splitBlock, serverIdBlockMapping;
+    var blockInfoList, blockMap, makeBlock, insertInBlock, splitBlock,
+        serverIdBlockMapping;
     if (type === 'header') {
       blockInfoList = this._headerBlockInfos;
-      loadedBlockInfoList = this._loadedHeaderBlockInfos;
       blockMap = this._headerBlocks;
       serverIdBlockMapping = this._serverIdHeaderBlockMapping;
       makeBlock = this._bound_makeHeaderBlock;
@@ -25222,7 +24130,6 @@ FolderStorage.prototype = {
     }
     else {
       blockInfoList = this._bodyBlockInfos;
-      loadedBlockInfoList = this._loadedBodyBlockInfos;
       blockMap = this._bodyBlocks;
       serverIdBlockMapping = null; // only headers have the mapping
       makeBlock = this._bound_makeBodyBlock;
@@ -25241,7 +24148,6 @@ FolderStorage.prototype = {
       if (blockInfoList.length === 0) {
         info = makeBlock(date, uid, date, uid);
         blockInfoList.splice(iInfo, 0, info);
-        loadedBlockInfoList.push(info);
       }
       // - Is there a trailing/older dude and we fit?
       else if (iInfo < blockInfoList.length &&
@@ -25320,7 +24226,7 @@ FolderStorage.prototype = {
       insertInBlock(thing, uid, info, block);
 
       // -- split if necessary
-      if (info.count > 1 && info.estSize >= MAX_BLOCK_SIZE) {
+      if (info.estSize >= MAX_BLOCK_SIZE) {
         // - figure the desired resulting sizes
         var firstBlockTarget;
         // big part to the center at the edges (favoring front edge)
@@ -25337,7 +24243,6 @@ FolderStorage.prototype = {
         var olderInfo;
         olderInfo = splitBlock(info, block, firstBlockTarget);
         blockInfoList.splice(iInfo + 1, 0, olderInfo);
-        loadedBlockInfoList.push(olderInfo);
 
         // - figure which of the blocks our insertion went in
         if (BEFORE(date, olderInfo.endTS) ||
@@ -25358,7 +24263,7 @@ FolderStorage.prototype = {
     if (blockMap.hasOwnProperty(info.blockId))
       processBlock.call(this, blockMap[info.blockId]);
     else
-      this._loadBlock(type, info, processBlock.bind(this));
+      this._loadBlock(type, info.blockId, processBlock.bind(this));
   },
 
   runAfterDeferredCalls: function(callback) {
@@ -25379,27 +24284,13 @@ FolderStorage.prototype = {
     }
   },
 
-  _findBlockInfoFromBlockId: function(type, blockId) {
-    var blockInfoList;
-    if (type === 'header')
-      blockInfoList = this._headerBlockInfos;
-    else
-      blockInfoList = this._bodyBlockInfos;
-
-    for (var i = 0; i < blockInfoList.length; i++) {
-      var blockInfo = blockInfoList[i];
-      if (blockInfo.blockId === blockId)
-        return blockInfo;
-    }
-    return null;
-  },
-
   /**
    * Request the load of the given block and the invocation of the callback with
    * the block when the load completes.
    */
-  _loadBlock: function ifs__loadBlock(type, blockInfo, callback) {
-    var blockId = blockInfo.blockId;
+  _loadBlock: function ifs__loadBlock(type, blockId, callback) {
+    if (blockId == null)
+      throw new Error('Bad block id!');
     var aggrId = type + blockId;
     if (this._pendingLoads.indexOf(aggrId) !== -1) {
       this._pendingLoadListeners[aggrId].push(callback);
@@ -25415,14 +24306,10 @@ FolderStorage.prototype = {
       if (!block)
         self._LOG.badBlockLoad(type, blockId);
       self._LOG.loadBlock_end(type, blockId, block);
-      if (type === 'header') {
+      if (type === 'header')
         self._headerBlocks[blockId] = block;
-        self._loadedHeaderBlockInfos.push(blockInfo);
-      }
-      else {
+      else
         self._bodyBlocks[blockId] = block;
-        self._loadedBodyBlockInfos.push(blockInfo);
-      }
       self._pendingLoads.splice(self._pendingLoads.indexOf(aggrId), 1);
       var listeners = self._pendingLoadListeners[aggrId];
       delete self._pendingLoadListeners[aggrId];
@@ -25447,17 +24334,15 @@ FolderStorage.prototype = {
   },
 
   _deleteFromBlock: function ifs__deleteFromBlock(type, date, uid, callback) {
-    var blockInfoList, loadedBlockInfoList, blockMap, deleteFromBlock;
+    var blockInfoList, blockMap, deleteFromBlock;
     this._LOG.deleteFromBlock(type, date, uid);
     if (type === 'header') {
       blockInfoList = this._headerBlockInfos;
-      loadedBlockInfoList = this._loadedHeaderBlockInfos;
       blockMap = this._headerBlocks;
       deleteFromBlock = this._bound_deleteHeaderFromBlock;
     }
     else {
       blockInfoList = this._bodyBlockInfos;
-      loadedBlockInfoList = this._loadedBodyBlockInfos;
       blockMap = this._bodyBlocks;
       deleteFromBlock = this._bound_deleteBodyFromBlock;
     }
@@ -25481,7 +24366,6 @@ FolderStorage.prototype = {
       if (info.count === 0) {
         blockInfoList.splice(iInfo, 1);
         delete blockMap[info.blockId];
-        loadedBlockInfoList.splice(loadedBlockInfoList.indexOf(info), 1);
 
         this._dirty = true;
         if (type === 'header')
@@ -25495,7 +24379,7 @@ FolderStorage.prototype = {
     if (blockMap.hasOwnProperty(info.blockId))
       processBlock.call(this, blockMap[info.blockId]);
     else
-      this._loadBlock(type, info, processBlock.bind(this));
+      this._loadBlock(type, info.blockId, processBlock.bind(this));
   },
 
   /**
@@ -25782,16 +24666,6 @@ FolderStorage.prototype = {
   },
 
   /**
-   * A notification from a slice that it is has reduced the span of time that it
-   * covers.  We use this to run a cache eviction if there is not currently a
-   * mutex held.
-   */
-  sliceShrunk: function fs_sliceShrunk(slice) {
-    if (this._mutexQueue.length === 0)
-      this.flushExcessCachedBlocks('shrunk');
-  },
-
-  /**
    * Refresh our understanding of the time range covered by the messages
    * contained in the slice, plus expansion to the bounds of our known sync
    * date boundaries if the messages are the first/last known message.
@@ -26001,13 +24875,7 @@ FolderStorage.prototype = {
     return syncTS;
   },
 
-  /**
-   * Are we synchronized as far back in time as we are able to synchronize?
-   */
   syncedToDawnOfTime: function() {
-    if (!this.folderSyncer.canGrowSync)
-      return true;
-
     var oldestSyncTS = this.getOldestFullSyncDate();
     return ON_OR_BEFORE(oldestSyncTS, $sync.OLDEST_SYNC_DATE);
   },
@@ -26032,11 +24900,10 @@ FolderStorage.prototype = {
    *
    * @args[
    *   @param[startTS DateMS]{
-   *     SINCE-evaluated start timestamp (inclusive).
+   *     SINCE-evaluated start timestamp. (inclusive)
    *   }
    *   @param[endTS DateMS]{
-   *     BEFORE-evaluated end timestamp (exclusive).  If endTS is null, get all
-   *     messages since startTS.
+   *     BEFORE-evaluated end timestamp. (exclusive)
    *   }
    *   @param[minDesired #:optional Number]{
    *     The minimum number of messages to return.  We will keep loading blocks
@@ -26062,6 +24929,8 @@ FolderStorage.prototype = {
         self = this,
         // header block info iteration
         iHeadBlockInfo = null, headBlockInfo;
+    if (endTS == null)
+      endTS = NOW(); // or just use a huge number?
 
     // find the first header block with the data we want
     var headerPair = this._findFirstObjIndexForDateRange(
@@ -26078,7 +24947,7 @@ FolderStorage.prototype = {
       while (true) {
         // - load the header block if required
         if (!self._headerBlocks.hasOwnProperty(headBlockInfo.blockId)) {
-          self._loadBlock('header', headBlockInfo, fetchMore);
+          self._loadBlock('header', headBlockInfo.blockId, fetchMore);
           return;
         }
         var headerBlock = self._headerBlocks[headBlockInfo.blockId];
@@ -26196,7 +25065,7 @@ FolderStorage.prototype = {
       while (true) {
         // - load the header block if required
         if (!self._headerBlocks.hasOwnProperty(headBlockInfo.blockId)) {
-          self._loadBlock('header', headBlockInfo, fetchMore);
+          self._loadBlock('header', headBlockInfo.blockId, fetchMore);
           return;
         }
         var headerBlock = self._headerBlocks[headBlockInfo.blockId];
@@ -26274,7 +25143,7 @@ FolderStorage.prototype = {
       while (true) {
         // - load the header block if required
         if (!self._headerBlocks.hasOwnProperty(headBlockInfo.blockId)) {
-          self._loadBlock('header', headBlockInfo, fetchMore);
+          self._loadBlock('header', headBlockInfo.blockId, fetchMore);
           return;
         }
         var headerBlock = self._headerBlocks[headBlockInfo.blockId];
@@ -26338,9 +25207,6 @@ FolderStorage.prototype = {
     // If our range was marked open-ended, it's really accurate through now.
     if (!endTS)
       endTS = NOW();
-    if (startTS > endTS)
-      throw new Error('Your timestamps are switched!');
-
     var aranges = this._accuracyRanges;
     function makeRange(start, end, modseq, updated) {
       return {
@@ -26456,7 +25322,7 @@ FolderStorage.prototype = {
     }
     var headerBlockInfo = posInfo[1], self = this;
     if (!(this._headerBlocks.hasOwnProperty(headerBlockInfo.blockId))) {
-      this._loadBlock('header', headerBlockInfo, function(headerBlock) {
+      this._loadBlock('header', headerBlockInfo.blockId, function(headerBlock) {
           var idx = headerBlock.uids.indexOf(id);
           var headerInfo = headerBlock.headers[idx] || null;
           if (!headerInfo)
@@ -26551,8 +25417,8 @@ FolderStorage.prototype = {
 
 
     this._insertIntoBlockUsingDateAndUID(
-      'header', header.date, header.id, header.srvid,
-      $sync.HEADER_EST_SIZE_IN_BYTES, header, callback);
+      'header', header.date, header.id, header.srvid, HEADER_EST_SIZE_IN_BYTES,
+      header, callback);
   },
 
   /**
@@ -26641,7 +25507,7 @@ FolderStorage.prototype = {
                         date + ' id: ' + id);
     }
     else if (!this._headerBlocks.hasOwnProperty(info.blockId))
-      this._loadBlock('header', info, doUpdateHeader);
+      this._loadBlock('header', info.blockId, doUpdateHeader);
     else
       doUpdateHeader(this._headerBlocks[info.blockId]);
   },
@@ -26677,13 +25543,10 @@ FolderStorage.prototype = {
       }
     }.bind(this);
 
-    if (this._headerBlocks.hasOwnProperty(blockId)) {
+    if (this._headerBlocks.hasOwnProperty(blockId))
       findInBlock(this._headerBlocks[blockId]);
-    }
-    else {
-      var blockInfo = this._findBlockInfoFromBlockId('header', blockId);
-      this._loadBlock('header', blockInfo, findInBlock);
-    }
+    else
+      this._loadBlock('header', blockId, findInBlock);
   },
 
   /**
@@ -26765,13 +25628,10 @@ FolderStorage.prototype = {
       }
     }.bind(this);
 
-    if (this._headerBlocks.hasOwnProperty(blockId)) {
+    if (this._headerBlocks.hasOwnProperty(blockId))
       findInBlock(this._headerBlocks[blockId]);
-    }
-    else {
-      var blockInfo = this._findBlockInfoFromBlockId('header', blockId);
-      this._loadBlock('header', blockInfo, findInBlock);
-    }
+    else
+      this._loadBlock('header', blockId, findInBlock);
   },
 
   /**
@@ -26784,79 +25644,6 @@ FolderStorage.prototype = {
                                  this, header, bodyInfo, callback));
       return;
     }
-
-    // crappy size estimates where we assume the world is ASCII and so a UTF-8
-    // encoding will take exactly 1 byte per character.
-    var sizeEst = OBJ_OVERHEAD_EST + NUM_ATTR_OVERHEAD_EST +
-                    4 * NULL_ATTR_OVERHEAD_EST;
-    function sizifyAddrs(addrs) {
-      sizeEst += LIST_ATTR_OVERHEAD_EST;
-      if (!addrs)
-        return;
-      for (var i = 0; i < addrs.length; i++) {
-        var addrPair = addrs[i];
-        sizeEst += OBJ_OVERHEAD_EST + 2 * STR_ATTR_OVERHEAD_EST +
-                     (addrPair.name ? addrPair.name.length : 0) +
-                     (addrPair.address ? addrPair.address.length : 0);
-      }
-    }
-    function sizifyAttachments(atts) {
-      sizeEst += LIST_ATTR_OVERHEAD_EST;
-      if (!atts)
-        return;
-      for (var i = 0; i < atts.length; i++) {
-        var att = atts[i];
-        sizeEst += OBJ_OVERHEAD_EST + 2 * STR_ATTR_OVERHEAD_EST +
-                     att.name.length + att.type.length +
-                     NUM_ATTR_OVERHEAD_EST;
-      }
-    }
-    function sizifyStr(str) {
-      sizeEst += STR_ATTR_OVERHEAD_EST + str.length;
-    }
-    function sizifyStringList(strings) {
-      sizeEst += LIST_OVERHEAD_EST;
-      if (!strings)
-        return;
-      for (var i = 0; i < strings.length; i++) {
-        sizeEst += STR_ATTR_OVERHEAD_EST + strings[i].length;
-      }
-    }
-    function sizifyBodyRep(rep) {
-      sizeEst += LIST_OVERHEAD_EST +
-                   NUM_OVERHEAD_EST * (rep.length / 2) +
-                   STR_OVERHEAD_EST * (rep.length / 2);
-      for (var i = 1; i < rep.length; i += 2) {
-        if (rep[i])
-          sizeEst += rep[i].length;
-      }
-    };
-    function sizifyBodyReps(reps) {
-      if (!reps)
-        return;
-      sizeEst += STR_OVERHEAD_EST * (reps.length / 2);
-      for (var i = 0; i < reps.length; i += 2) {
-        var type = reps[i], rep = reps[i + 1];
-        if (type === 'html')
-          sizeEst += STR_OVERHEAD_EST + rep.length;
-        else
-          sizifyBodyRep(rep);
-      }
-    };
-
-    if (bodyInfo.to)
-      sizifyAddrs(bodyInfo.to);
-    if (bodyInfo.cc)
-      sizifyAddrs(bodyInfo.cc);
-    if (bodyInfo.bcc)
-      sizifyAddrs(bodyInfo.bcc);
-    if (bodyInfo.replyTo)
-      sizifyStr(bodyInfo.replyTo);
-    sizifyAttachments(bodyInfo.attachments);
-    sizifyAttachments(bodyInfo.relatedParts);
-    sizifyStringList(bodyInfo.references);
-    sizifyBodyReps(bodyInfo.bodyReps);
-    bodyInfo.size = sizeEst;
 
     this._insertIntoBlockUsingDateAndUID(
       'body', header.date, header.id, header.srvid, bodyInfo.size, bodyInfo,
@@ -26879,7 +25666,7 @@ FolderStorage.prototype = {
     }
     var bodyBlockInfo = posInfo[1], self = this;
     if (!(this._bodyBlocks.hasOwnProperty(bodyBlockInfo.blockId))) {
-      this._loadBlock('body', bodyBlockInfo, function(bodyBlock) {
+      this._loadBlock('body', bodyBlockInfo.blockId, function(bodyBlock) {
           var bodyInfo = bodyBlock.bodies[id] || null;
           if (!bodyInfo)
             self._LOG.bodyNotFound();
@@ -28005,6 +26792,17 @@ exports.chewHeaderAndBodyStructure = function chewStructure(msg) {
   };
 };
 
+// What do we think the post-snappy compression overhead of the structured clone
+// persistence rep will be for various things?  These are total guesses right
+// now.  Keep in mind we do want the pre-compression size of the data in all
+// cases and we just hope it will compress a bit.  For the attributes we are
+// including the attribute name as well as any fixed-overhead for its payload,
+// especially numbers which may or may not be zig-zag encoded/etc.
+const OBJ_OVERHEAD_EST = 2, STR_ATTR_OVERHEAD_EST = 5,
+      NUM_ATTR_OVERHEAD_EST = 10, LIST_ATTR_OVERHEAD_EST = 4,
+      NULL_ATTR_OVERHEAD_EST = 2, LIST_OVERHEAD_EST = 4,
+      NUM_OVERHEAD_EST = 8, STR_OVERHEAD_EST = 4;
+
 const DESIRED_SNIPPET_LENGTH = 100;
 
 /**
@@ -28077,23 +26875,73 @@ exports.chewBodyParts = function chewBodyParts(rep, bodyPartContents,
     date: rep.msg.date,
     flags: rep.msg.flags,
     hasAttachments: rep.attachments.length > 0,
-    subject: rep.msg.msg.subject || null,
+    subject: rep.msg.msg.subject,
     snippet: snippet,
   };
 
 
+  // crappy size estimates where we assume the world is ASCII and so a UTF-8
+  // encoding will take exactly 1 byte per character.
+  var sizeEst = OBJ_OVERHEAD_EST + NUM_ATTR_OVERHEAD_EST +
+                  4 * NULL_ATTR_OVERHEAD_EST;
+  function sizifyAddrs(addrs) {
+    sizeEst += LIST_ATTR_OVERHEAD_EST;
+    for (var i = 0; i < addrs.length; i++) {
+      var addrPair = addrs[i];
+      sizeEst += OBJ_OVERHEAD_EST + 2 * STR_ATTR_OVERHEAD_EST +
+                   (addrPair.name ? addrPair.name.length : 0) +
+                   (addrPair.address ? addrPair.address.length : 0);
+    }
+    return addrs;
+  }
+  function sizifyAttachments(atts) {
+    sizeEst += LIST_ATTR_OVERHEAD_EST;
+    for (var i = 0; i < atts.length; i++) {
+      var att = atts[i];
+      sizeEst += OBJ_OVERHEAD_EST + 2 * STR_ATTR_OVERHEAD_EST +
+                   att.name.length + att.type.length +
+                   NUM_ATTR_OVERHEAD_EST;
+    }
+    return atts;
+  }
+  function sizifyStr(str) {
+    sizeEst += STR_ATTR_OVERHEAD_EST + str.length;
+    return str;
+  }
+  function sizifyBodyRep(rep) {
+    sizeEst += LIST_OVERHEAD_EST +
+                 NUM_OVERHEAD_EST * (rep.length / 2) +
+                 STR_OVERHEAD_EST * (rep.length / 2);
+    for (var i = 1; i < rep.length; i += 2) {
+      if (rep[i])
+        sizeEst += rep[i].length;
+    }
+    return rep;
+  };
+  function sizifyBodyReps(reps) {
+    sizeEst += STR_OVERHEAD_EST * (reps.length / 2);
+    for (var i = 0; i < reps.length; i += 2) {
+      var type = reps[i], rep = reps[i + 1];
+      if (type === 'html')
+        sizeEst += STR_OVERHEAD_EST + rep.length;
+      else
+        sizeEst += sizifyBodyRep(rep);
+    }
+    return reps;
+  };
+
   rep.bodyInfo = {
     date: rep.msg.date,
-    size: 0,
-    to: ('to' in rep.msg.msg) ? rep.msg.msg.to : null,
-    cc: ('cc' in rep.msg.msg) ? rep.msg.msg.cc : null,
-    bcc: ('bcc' in rep.msg.msg) ? rep.msg.msg.bcc : null,
+    size: sizeEst,
+    to: ('to' in rep.msg.msg) ? sizifyAddrs(rep.msg.msg.to) : null,
+    cc: ('cc' in rep.msg.msg) ? sizifyAddrs(rep.msg.msg.cc) : null,
+    bcc: ('bcc' in rep.msg.msg) ? sizifyAddrs(rep.msg.msg.bcc) : null,
     replyTo: ('reply-to' in rep.msg.msg.parsedHeaders) ?
-               rep.msg.msg.parsedHeaders['reply-to'] : null,
-    attachments: rep.attachments,
-    relatedParts: rep.relatedParts,
+               sizifyStr(rep.msg.msg.parsedHeaders['reply-to']) : null,
+    attachments: sizifyAttachments(rep.attachments),
+    relatedParts: sizifyAttachments(rep.relatedParts),
     references: rep.msg.msg.meta.references,
-    bodyReps: bodyReps,
+    bodyReps: sizifyBodyReps(bodyReps),
   };
 
   return true;
@@ -28247,13 +27095,6 @@ function ImapFolderConn(account, storage, _parentLog) {
   this.box = null;
 }
 ImapFolderConn.prototype = {
-  /**
-   * Can we grow this sync range?  IMAP always lets us do this.
-   */
-  get canGrowSync() {
-    return true;
-  },
-
   /**
    * Acquire a connection and invoke the callback once we have it and we have
    * entered the folder.  This method should only be called when running
@@ -29026,11 +27867,7 @@ ImapFolderSyncer.prototype = {
 
       // Perform a limited synchronization; do not issue additional syncs!
       syncCallback('limsync', iFirstNotToSend);
-      // Because we are refreshing a known time interval and growth is not
-      // particularly likely, we really do not want bisection to happen, so
-      // pass a super-high limit for the bisection cap.
-      this._startSync(syncStartTS, syncEndTS, doneCallback, progressCallback,
-                      $sync.TOO_MANY_MESSAGES);
+      this._startSync(syncStartTS, syncEndTS, doneCallback, progressCallback);
       return true;
     }
     // If growth was requested/is allowed or our accuracy range already covers
@@ -29045,7 +27882,7 @@ ImapFolderSyncer.prototype = {
   },
 
   _startSync: function ifs__startSync(startTS, endTS, doneCallback,
-                                      progressCallback, useBisectLimit) {
+                                      progressCallback) {
     if (startTS === null)
       startTS = endTS - ($sync.INITIAL_SYNC_DAYS * DAY_MILLIS);
     this._curSyncAccuracyStamp = NOW();
@@ -29055,8 +27892,7 @@ ImapFolderSyncer.prototype = {
     this._curSyncDoneCallback = doneCallback;
 
     this.folderConn.syncDateRange(startTS, endTS, this._curSyncAccuracyStamp,
-                                  useBisectLimit,
-                                  this.onSyncCompleted.bind(this),
+                                  null, this.onSyncCompleted.bind(this),
                                   progressCallback);
   },
 
@@ -29079,23 +27915,6 @@ ImapFolderSyncer.prototype = {
    * Whatever synchronization we last triggered has now completed; we should
    * either trigger another sync if we still want more data, or close out the
    * current sync.
-   *
-   * ## Block Flushing
-   *
-   * We only cause a call to `ImapAccount.__checkpointSyncCompleted` (via a call
-   * to `_doneSync`) to happen and cause dirty blocks to be written to disk when
-   * we are done with synchronization.  This is because this method declares
-   * victory once a non-trivial amount of work has been done.  In the event that
-   * the sync is encountering a lot of deleted messages and so keeps loading
-   * blocks, the memory burden is limited because we will be emptying those
-   * blocks out so actual memory usage (after GC) is commensurate with the
-   * number of (still-)existing messages.  And those are what this method uses
-   * to determine when it is done.
-   *
-   * In the cases where we are synchronizing a ton of messages on a single day,
-   * we could perform checkpoints during the process, but realistically any
-   * device we are operating on should probably have enough memory to deal with
-   * these surges, so we're not doing that yet.
    */
   onSyncCompleted: function ifs_onSyncCompleted(err, bisectInfo, messagesSeen) {
     // In the event the time range had to be bisected, update our info so if
@@ -29558,7 +28377,7 @@ exports.do_download = function(op, callback) {
           storeTo = storePartsTo[i];
 
       if (blob) {
-        partInfo.sizeEstimate = blob.size;
+        partInfo.sizeEstimate = blob.length;
         partInfo.type = blob.type;
         if (storeTo === 'idb')
           partInfo.file = blob;
@@ -29753,20 +28572,14 @@ exports._partitionAndAccessFoldersSequentially = function(
     var iNextServerId = serverIds.indexOf(null);
     for (var i = 0; i < headers.length; i++) {
       var header = headers[i];
-      // It's possible that by the time this job actually gets a chance to run
-      // that the header is no longer in the folder.  This is rare but not
-      // particularly exceptional.
-      if (header) {
-        var srvid = header.srvid;
-        serverIds[iNextServerId] = srvid;
-        // A header that exists but does not have a server id is exceptional and
-        // bad, although logic should handle it because of the above dead-header
-        // case.  suidToServerId should really have provided this information to
-        // us.
-        if (!srvid)
-          console.warn('Header', headers[i].suid, 'missing server id in job!');
-      }
+      if (!header)
+        console.warn('missing header!',
+                     JSON.stringify(folderMessageNamers[iNextServerId]));
+      var srvid = header.srvid;
+      serverIds[iNextServerId] = srvid;
       iNextServerId = serverIds.indexOf(null, iNextServerId + 1);
+      if (!srvid)
+        console.warn('Header', headers[i].suid, 'missing server id in job!');
     }
     try {
       callInFolder(folderConn, storage, serverIds, folderMessageNamers,
@@ -30104,15 +28917,10 @@ ImapJobDriver.prototype = {
         var uids = [];
         for (var i = 0; i < serverIds.length; i++) {
           var srvid = serverIds[i];
-          // The header may have disappeared from the server, in which case the
-          // header is moot.
+          // If the header is somehow an offline header, it will be zero and
+          // there is nothing we can really do for it.
           if (srvid)
             uids.push(srvid);
-        }
-        // Be done if all of the headers were moot.
-        if (!uids.length) {
-          callWhenDone();
-          return;
         }
         if (addTags) {
           modsToGo++;
@@ -30416,23 +29224,9 @@ ImapJobDriver.prototype = {
             perFolderDone();
           }
 
-          // Build a guid-to-namer map and deal with any messages that no longer
-          // exist on the server.  Do it backwards so we can splice.
-          for (var i = namers.length - 1; i >= 0; i--) {
-            var srvid = serverIds[i];
-            if (!srvid) {
-              serverIds.splice(i, 1);
-              namers.splice(i, 1);
-              continue;
-            }
+          for (var i = 0; i < namers.length; i++) {
             var namer = namers[i];
             guidToNamer[namer.guid] = namer;
-          }
-          // it's possible all the messages could be gone, in which case we
-          // are done with this folder already!
-          if (serverIds.length === 0) {
-            perFolderDone();
-            return;
           }
 
           folderConn._conn.copy(
@@ -30723,39 +29517,6 @@ ImapJobDriver.prototype = {
   },
 
   //////////////////////////////////////////////////////////////////////////////
-  // purgeExcessMessages
-
-  local_do_purgeExcessMessages: function(op, doneCallback) {
-    this._accessFolderForMutation(
-      op.folderId, false,
-      function withMutex(_ignoredConn, storage) {
-        storage.purgeExcessMessages(function(numDeleted, cutTS) {
-          // Indicate that we want a save performed if any messages got deleted.
-          doneCallback(null, null, numDeleted > 0);
-        });
-      },
-      null,
-      'purgeExcessMessages');
-  },
-
-  do_purgeExcessMessages: function(op, doneCallback) {
-    doneCallback(null);
-  },
-
-  check_purgeExcessMessages: function(op, doneCallback) {
-    // this is a local-only modification, so this doesn't really matter
-    return UNCHECKED_IDEMPOTENT;
-  },
-
-  local_undo_purgeExcessMessages: function(op, doneCallback) {
-    doneCallback(null);
-  },
-
-  undo_purgeExcessMessages: function(op, doneCallback) {
-    doneCallback(null);
-  },
-
-  //////////////////////////////////////////////////////////////////////////////
 };
 
 function HighLevelJobDriver() {
@@ -30830,7 +29591,6 @@ define('mailapi/imap/account',
     '../mailslice',
     '../searchfilter',
     '../util',
-    './probe',
     './folder',
     './jobs',
     'module',
@@ -30846,7 +29606,6 @@ define('mailapi/imap/account',
     $mailslice,
     $searchfilter,
     $util,
-    $imapprobe,
     $imapfolder,
     $imapjobs,
     $module,
@@ -30874,7 +29633,6 @@ function ImapAccount(universe, compositeAccount, accountId, credentials,
   this.universe = universe;
   this.compositeAccount = compositeAccount;
   this.id = accountId;
-  this.accountDef = compositeAccount.accountDef;
 
   this.enabled = true;
 
@@ -31095,7 +29853,7 @@ ImapAccount.prototype = {
    * that ever ends up not being the case that we need to cause mutating
    * operations to defer until after that snapshot has occurred.
    */
-  saveAccountState: function(reuseTrans, callback) {
+  saveAccountState: function(reuseTrans) {
     var perFolderStuff = [], self = this;
     for (var iFolder = 0; iFolder < this.folders.length; iFolder++) {
       var folderPub = this.folders[iFolder],
@@ -31104,16 +29862,12 @@ ImapAccount.prototype = {
       if (folderStuff)
         perFolderStuff.push(folderStuff);
     }
-    this._LOG.saveAccountState();
+    this._LOG.saveAccountState_begin();
     var trans = this._db.saveAccountFolderStates(
       this.id, this._folderInfos, perFolderStuff,
       this._deadFolderIds,
       function stateSaved() {
-        // NB: we used to log when the save completed, but it ended up being
-        // annoying to the unit tests since we don't block our actions on
-        // the completion of the save at this time.
-        if (callback)
-          callback();
+        self._LOG.saveAccountState_end();
       },
       reuseTrans);
     this._deadFolderIds = null;
@@ -31398,22 +30152,57 @@ ImapAccount.prototype = {
       connectCallbackTriggered = true;
       this._pendingConn = null;
       if (err) {
-        var normErr = $imapprobe.normalizeError(err);
-        console.error('Connect error:', normErr.name, 'formal:', err, 'on',
+        var errName, reachable = false, maybeRetry = true;
+        // We want to produce error-codes as defined in `MailApi.js` for
+        // tryToCreateAccount.  We have also tried to make imap.js produce
+        // error codes of the right type already, but for various generic paths
+        // (like saying 'NO'), there isn't currently a good spot for that.
+        switch (err.type) {
+          // dovecot says after a delay and does not terminate the connection:
+          //   NO [AUTHENTICATIONFAILED] Authentication failed.
+          // zimbra 7.2.x says after a delay and DOES terminate the connection:
+          //   NO LOGIN failed
+          //   * BYE Zimbra IMAP server terminating connection
+          // yahoo says after a delay and does not terminate the connection:
+          //   NO [AUTHENTICATIONFAILED] Incorrect username or password.
+          case 'NO':
+          case 'no':
+            // XXX: Should we check if it's GMail first?
+            if (err.serverResponse.indexOf('[ALERT] Application-specific password required') !== -1)
+              errName = 'needs-app-pass';
+            else if(err.serverResponse.indexOf('[ALERT] Your account is not enabled for IMAP use.') !== -1)
+              errName = 'imap-disabled';
+            else
+              errName = 'bad-user-or-pass';
+            reachable = true;
+            // go directly to the broken state; no retries
+            maybeRetry = false;
+            // tell the higher level to disable our account until we fix our
+            // credentials problem and ideally generate a UI prompt.
+            this.universe.__reportAccountProblem(this.compositeAccount,
+                                                 errName);
+            break;
+          // errors we can pass through directly:
+          case 'server-maintenance':
+            errName = err.type;
+            reachable = true;
+            break;
+          case 'timeout':
+            errName = 'unresponsive-server';
+            break;
+          default:
+            errName = 'unknown';
+            break;
+        }
+        console.error('Connect error:', errName, 'formal:', err, 'on',
                       this._connInfo.hostname, this._connInfo.port);
-        if (normErr.reportProblem)
-          this.universe.__reportAccountProblem(this.compositeAccount,
-                                               normErr.name);
-
-
         if (listener)
-          listener(normErr.name);
+          listener(errName);
         conn.die();
 
         // track this failure for backoff purposes
-        if (normErr.retry) {
-          if (this._backoffEndpoint.noteConnectFailureMaybeRetry(
-                                      normErr.reachable))
+        if (maybeRetry) {
+          if (this._backoffEndpoint.noteConnectFailureMaybeRetry(reachable))
             this._makeConnectionIfPossible();
           else
             this._killDieOnConnectFailureDemands();
@@ -31726,11 +30515,6 @@ ImapAccount.prototype = {
       callbacks.trash(null);
   },
 
-  scheduleMessagePurge: function(folderId, callback) {
-    this.universe.purgeExcessMessages(this.compositeAccount, folderId,
-                                      callback);
-  },
-
   //////////////////////////////////////////////////////////////////////////////
 
   runOp: $acctmixins.runOp,
@@ -31761,8 +30545,6 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
       deadConnection: {},
       connectionMismatch: {},
 
-      saveAccountState: {},
-
       /**
        * The maximum connection limit has been reached, we are intentionally
        * not creating an additional one.
@@ -31786,6 +30568,7 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
     },
     asyncJobs: {
       runOp: { mode: true, type: true, error: false, op: false },
+      saveAccountState: {},
     },
     TEST_ONLY_asyncJobs: {
     },
@@ -31914,7 +30697,7 @@ SmtpAccount.prototype = {
    *   ]
    * ]
    */
-  sendMessage: function(composer, callback) {
+  sendMessage: function(composedMessage, callback) {
     var conn = this._makeConnection(), bailed = false, sendingMessage = false;
     this._activeConnections.push(conn);
 
@@ -31922,17 +30705,15 @@ SmtpAccount.prototype = {
     // Send the envelope once the connection is ready (fires again after
     // ready too.)
     conn.once('idle', function() {
-        conn.useEnvelope(composer.getEnvelope());
+        conn.useEnvelope(composedMessage.getEnvelope());
       });
     // Then send the actual message if everything was cool
     conn.on('message', function() {
         if (bailed)
           return;
         sendingMessage = true;
-        composer.withMessageBuffer({ includeBcc: false }, function(buffer) {
-          conn.write(buffer);
-          conn.end();
-        });
+        conn.write(composedMessage._outputBuffer);
+        conn.end();
       });
     // And close the connection and be done once it has been sent
     conn.on('ready', function() {
@@ -32859,8 +31640,6 @@ const FILTER_TYPE = $ascp.AirSync.Enums.FilterType;
  * Map our built-in sync range values to their corresponding ActiveSync
  * FilterType values. We exclude 3 and 6 months, since they aren't valid for
  * email.
- *
- * Also see SYNC_RANGE_ENUMS_TO_MS in `syncbase.js`.
  */
 const SYNC_RANGE_TO_FILTER_TYPE = {
   'auto': null,
@@ -32928,8 +31707,7 @@ ActiveSyncFolderConn.prototype = {
   },
 
   /**
-   * Get the initial sync key for the folder so we can start getting data. We
-   * assume we have already negotiated a connection in the caller.
+   * Get the initial sync key for the folder so we can start getting data
    *
    * @param {string} filterType The filter type for our synchronization
    * @param {function} callback A callback to be run when the operation finishes
@@ -32963,17 +31741,11 @@ ActiveSyncFolderConn.prototype = {
         return;
       }
 
-      // Reset the SyncKey, just in case we don't see a sync key in the
-      // response.
-      folderConn.syncKey = '0';
-
       let e = new $wbxml.EventParser();
       e.addEventListener([as.Sync, as.Collections, as.Collection, as.SyncKey],
                          function(node) {
         folderConn.syncKey = node.children[0].textContent;
       });
-
-      e.onerror = function() {}; // Ignore errors.
       e.run(aResponse);
 
       if (folderConn.syncKey === '0') {
@@ -32990,8 +31762,7 @@ ActiveSyncFolderConn.prototype = {
   },
 
   /**
-   * Get an estimate of the number of messages to be synced.  We assume we have
-   * already negotiated a connection in the caller.
+   * Get an estimate of the number of messages to be synced.
    *
    * @param {string} filterType The filter type for our estimate
    * @param {function} callback A callback to be run when the operation finishes
@@ -33031,19 +31802,10 @@ ActiveSyncFolderConn.prototype = {
                          function(node) {
         estimate = parseInt(node.children[0].textContent);
       });
-
-      try {
-        e.run(aResponse);
-      }
-      catch (ex) {
-        console.error('Error parsing GetItemEstimate response', ex, '\n',
-                      ex.stack);
-        callback('unknown');
-        return;
-      }
+      e.run(aResponse);
 
       if (status !== $ascp.ItemEstimate.Enums.Status.Success) {
-        console.error('Error getting item estimate:', status);
+        console.log('Error getting item estimate:', status);
         callback('unknown');
       }
       else {
@@ -33139,36 +31901,38 @@ ActiveSyncFolderConn.prototype = {
   _enumerateFolderChanges: function asfc__enumerateFolderChanges(callback,
                                                                  progress) {
     let folderConn = this, storage = this._storage;
+    let account = this._account;
 
-    if (!this._account.conn.connected) {
-      this._account.conn.connect(function(error) {
+    if (!account.conn.connected) {
+      account.conn.connect(function(error, config) {
         if (error) {
           callback('aborted');
-          return;
+          console.error('Error connecting to ActiveSync:', error);
         }
-        folderConn._enumerateFolderChanges(callback, progress);
+        else {
+          folderConn._enumerateFolderChanges(callback, progress);
+        }
       });
       return;
     }
     if (!this.filterType) {
       this._inferFilterType(function(error, filterType) {
-        if (error) {
+        if (error)
           callback('unknown');
-          return;
+        else {
+          console.log('We want a filter of', FILTER_TYPE_TO_STRING[filterType]);
+          folderConn.folderMeta.filterType = filterType;
+          folderConn._enumerateFolderChanges(callback, progress);
         }
-        console.log('We want a filter of', FILTER_TYPE_TO_STRING[filterType]);
-        folderConn.folderMeta.filterType = filterType;
-        folderConn._enumerateFolderChanges(callback, progress);
       });
       return;
     }
     if (this.syncKey === '0') {
       this._getSyncKey(this.filterType, function(error) {
-        if (error) {
+        if (error)
           callback('aborted');
-          return;
-        }
-        folderConn._enumerateFolderChanges(callback, progress);
+        else
+          folderConn._enumerateFolderChanges(callback, progress);
       });
       return;
     }
@@ -33194,7 +31958,7 @@ ActiveSyncFolderConn.prototype = {
          .stag(as.Collections)
            .stag(as.Collection);
 
-      if (this._account.conn.currentVersion.lt('12.1'))
+      if (account.conn.currentVersion.lt('12.1'))
             w.tag(as.Class, 'Email');
 
             w.tag(as.SyncKey, this.syncKey)
@@ -33206,7 +31970,7 @@ ActiveSyncFolderConn.prototype = {
       // XXX: For some servers (e.g. Hotmail), we could be smart and get the
       // native body type (plain text or HTML), but Gmail doesn't seem to let us
       // do this. For now, let's keep it simple and always get HTML.
-      if (this._account.conn.currentVersion.gte('12.0'))
+      if (account.conn.currentVersion.gte('12.0'))
               w.stag(asb.BodyPreference)
                  .tag(asb.Type, asbEnum.Type.HTML)
                .etag();
@@ -33219,7 +31983,7 @@ ActiveSyncFolderConn.prototype = {
        .etag();
     }
 
-    this._account.conn.postCommand(w, function(aError, aResponse) {
+    account.conn.postCommand(w, function(aError, aResponse) {
       let added   = [];
       let changed = [];
       let deleted = [];
@@ -33262,7 +32026,9 @@ ActiveSyncFolderConn.prototype = {
 
       e.addEventListener(base.concat(as.Commands, [[as.Add, as.Change]]),
                          function(node) {
-        let id, guid, msg;
+        let id;
+        let guid;
+        let msg;
 
         for (let [,child] in Iterator(node.children)) {
           switch (child.tag) {
@@ -33270,14 +32036,7 @@ ActiveSyncFolderConn.prototype = {
             guid = child.children[0].textContent;
             break;
           case as.ApplicationData:
-            try {
-              msg = folderConn._parseMessage(child, node.tag === as.Add);
-            }
-            catch (ex) {
-              // If we get an error, just log it and skip this message.
-              console.error('Failed to parse a message:', ex, '\n', ex.stack);
-              return;
-            }
+            msg = folderConn._parseMessage(child, node.tag === as.Add);
             break;
           }
         }
@@ -33294,7 +32053,7 @@ ActiveSyncFolderConn.prototype = {
         collection.push(msg);
       });
 
-      e.addEventListener(base.concat(as.Commands, [[as.Delete, as.SoftDelete]]),
+      e.addEventListener(base.concat(as.Commands, [as.Delete, as.SoftDelete]),
                          function(node) {
         let guid;
 
@@ -33309,14 +32068,7 @@ ActiveSyncFolderConn.prototype = {
         deleted.push(guid);
       });
 
-      try {
-        e.run(aResponse);
-      }
-      catch (ex) {
-        console.error('Error parsing Sync response:', ex, '\n', ex.stack);
-        callback('unknown');
-        return;
-      }
+      e.run(aResponse);
 
       if (status === asEnum.Status.Success) {
         console.log('Sync completed: added ' + added.length + ', changed ' +
@@ -33378,7 +32130,7 @@ ActiveSyncFolderConn.prototype = {
 
       body = {
         date: null,
-        size: 0,
+        size: null,
         to: null,
         cc: null,
         bcc: null,
@@ -33619,19 +32371,8 @@ ActiveSyncFolderConn.prototype = {
   },
 
   performMutation: function(invokeWithWriter, callWhenDone) {
-    let folderConn = this;
-    if (!this._account.conn.connected) {
-      this._account.conn.connect(function(error) {
-        if (error) {
-          callback('unknown');
-          return;
-        }
-        folderConn.performMutation(invokeWithWriter, callWhenDone);
-      });
-      return;
-    }
-
-    const as = $ascp.AirSync.Tags;
+    const as = $ascp.AirSync.Tags,
+          folderConn = this;
 
     let w = new $wbxml.Writer('1.3', 1, 'UTF-8');
     w.stag(as.Sync)
@@ -33641,13 +32382,13 @@ ActiveSyncFolderConn.prototype = {
     if (this._account.conn.currentVersion.lt('12.1'))
           w.tag(as.Class, 'Email');
 
-          w.tag(as.SyncKey, this.syncKey)
-           .tag(as.CollectionId, this.serverId)
+          w.tag(as.SyncKey, this._storage.folderMeta.syncKey)
+           .tag(as.CollectionId, this._storage.folderMeta.serverId)
            // DeletesAsMoves defaults to true, so we can omit it
            // GetChanges defaults to true, so we must explicitly disable it to
            // avoid hearing about changes.
            .tag(as.GetChanges, '0')
-           .stag(as.Commands);
+             .stag(as.Commands);
 
     try {
       invokeWithWriter(w);
@@ -33684,16 +32425,9 @@ ActiveSyncFolderConn.prototype = {
 
       //console.warn('COMMAND RESULT:\n', aResponse.dump());
       //aResponse.rewind();
-      try {
-        e.run(aResponse);
-      }
-      catch (ex) {
-        console.error('Error parsing Sync reponse:', ex, '\n', ex.stack);
-        callWhenDone('unknown');
-        return;
-      }
+      e.run(aResponse);
 
-      if (status === $ascp.AirSync.Enums.Status.Success) {
+      if (status === '1') {
         folderConn.syncKey = syncKey;
         if (callWhenDone)
           callWhenDone(null);
@@ -33709,19 +32443,6 @@ ActiveSyncFolderConn.prototype = {
   // XXX: take advantage of multipart responses here.
   // See http://msdn.microsoft.com/en-us/library/ee159875%28v=exchg.80%29.aspx
   downloadMessageAttachments: function(uid, partInfos, callback, progress) {
-    let folderConn = this;
-    if (!this._account.conn.connected) {
-      this._account.conn.connect(function(error) {
-        if (error) {
-          callback('unknown');
-          return;
-        }
-        folderConn.downloadMessageAttachments(uid, partInfos, callback,
-                                              progress);
-      });
-      return;
-    }
-
     const io = $ascp.ItemOperations.Tags;
     const ioStatus = $ascp.ItemOperations.Enums.Status;
     const asb = $ascp.AirSyncBase.Tags;
@@ -33822,13 +32543,6 @@ ActiveSyncFolderSyncer.prototype = {
    */
   get syncable() {
     return this.folderConn.serverId !== null;
-  },
-
-  /**
-   * Can we grow this sync range?  Not in ActiveSync land!
-   */
-  get canGrowSync() {
-    return false;
   },
 
   syncDateRange: function(startTS, endTS, syncCallback, doneCallback,
@@ -33988,7 +32702,8 @@ ActiveSyncJobDriver.prototype = {
 
       var syncer = storage.folderSyncer;
       if (needConn && !self.account.conn.connected) {
-        self.account.conn.connect(function(error) {
+        // XXX will this connection automatically retry?
+        self.account.conn.connect(function(err, config) {
           try {
             callback(syncer.folderConn, storage);
           }
@@ -34194,8 +32909,10 @@ ActiveSyncJobDriver.prototype = {
               let srvid = serverIds[i];
               // If the header is somehow an offline header, it will be null and
               // there is nothing we can really do for it.
-              if (!srvid)
+              if (!srvid) {
+                console.log('AS message', namers[i].suid, 'lacks srvid!');
                 continue;
+              }
 
               w.stag(as.Delete)
                   .tag(as.ServerId, srvid)
@@ -34245,8 +32962,8 @@ ActiveSyncJobDriver.prototype = {
     var account = this.account, self = this;
     // establish a connection if we are not already connected
     if (!account.conn.connected) {
-      account.conn.connect(function(error) {
-        if (error) {
+      account.conn.connect(function(err, config) {
+        if (err) {
           doneCallback('aborted-retry');
           return;
         }
@@ -34258,10 +32975,12 @@ ActiveSyncJobDriver.prototype = {
     // The inbox needs to be resynchronized if there was no server id and we
     // have active slices displaying the contents of the folder.  (No server id
     // means the sync will not happen.)
-    var inboxFolder = account.getFirstFolderWithType('inbox'),
-        inboxStorage;
-    if (inboxFolder && inboxFolder.serverId === null)
-      inboxStorage = account.getFolderStorageForFolderId(inboxFolder.id);
+    var inboxFolder = this.account.getFirstFolderWithType('inbox'),
+        inboxStorage, inboxNeedsResync = false;
+    if (inboxFolder && inboxFolder.serverId === null) {
+      inboxStorage = this.account.getFolderStorageForFolderId(inboxFolder.id);
+      inboxNeedsResync = inboxStorage.hasActiveSlices;
+    }
 
     account.syncFolderList(function(err) {
       if (!err)
@@ -34269,10 +32988,8 @@ ActiveSyncJobDriver.prototype = {
       // save if it worked
       doneCallback(err ? 'aborted-retry' : null, null, !err);
 
-      if (inboxStorage && inboxStorage.hasActiveSlices) {
-        console.log("Refreshing fake inbox");
+      if (inboxNeedsResync)
         inboxStorage.resetAndRefreshActiveSlices();
-      }
     });
   },
 
@@ -34301,28 +33018,6 @@ ActiveSyncJobDriver.prototype = {
 
   undo_download: $jobmixins.undo_download,
 
-  //////////////////////////////////////////////////////////////////////////////
-  // purgeExcessMessages is a NOP for activesync
-
-  local_do_purgeExcessMessages: function(op, doneCallback) {
-    doneCallback(null);
-  },
-
-  do_purgeExcessMessages: function(op, doneCallback) {
-    doneCallback(null);
-  },
-
-  check_purgeExcessMessages: function(op, doneCallback) {
-    return 'idempotent';
-  },
-
-  local_undo_purgeExcessMessages: function(op, doneCallback) {
-    doneCallback(null);
-  },
-
-  undo_purgeExcessMessages: function(op, doneCallback) {
-    doneCallback(null);
-  },
 
   //////////////////////////////////////////////////////////////////////////////
 };
@@ -34391,13 +33086,25 @@ function ActiveSyncAccount(universe, accountDef, folderInfos, dbConn,
     this.conn = receiveProtoConn;
   }
   else {
-    this.conn = new $activesync.Connection();
-    this.conn.open(accountDef.connInfo.server, accountDef.credentials.username,
-                   accountDef.credentials.password);
+    this.conn = new $activesync.Connection(accountDef.credentials.username,
+                                           accountDef.credentials.password);
     this.conn.timeout = DEFAULT_TIMEOUT_MS;
 
     // XXX: We should check for errors during connection and alert the user.
-    this.conn.connect();
+    if (this.accountDef.connInfo) {
+      this.conn.setServer(this.accountDef.connInfo.server);
+      this.conn.connect();
+    }
+    else {
+      // This can happen with an older, broken version of the ActiveSync code.
+      // We can probably remove this eventually.
+      console.warning('ActiveSync connection info not found; ' +
+                      'attempting autodiscovery');
+      this.conn.connect(function (error, config, options) {
+        accountDef.connInfo = { server: config.selectedServer.url };
+        universe.saveAccountDef(accountDef, folderInfos);
+      });
+    }
   }
 
   this._db = dbConn;
@@ -34513,10 +33220,11 @@ ActiveSyncAccount.prototype = {
         perFolderStuff.push(folderStuff);
     }
 
-    this._LOG.saveAccountState(reason);
+    this._LOG.saveAccountState_begin(reason);
     let trans = this._db.saveAccountFolderStates(
       this.id, this._folderInfos, perFolderStuff, this._deadFolderIds,
       function stateSaved() {
+        account._LOG.saveAccountState_end(reason);
         if (callback)
          callback();
       }, reuseTrans);
@@ -34552,8 +33260,6 @@ ActiveSyncAccount.prototype = {
   },
 
   syncFolderList: function asa_syncFolderList(callback) {
-    // We can assume that we already have a connection here, since jobs.js
-    // ensures it.
     let account = this;
 
     const fh = $ascp.FolderHierarchy.Tags;
@@ -34590,15 +33296,7 @@ ActiveSyncAccount.prototype = {
         }
       });
 
-      try {
-        e.run(aResponse);
-      }
-      catch (ex) {
-        console.error('Error parsing FolderSync response:', ex, '\n',
-                      ex.stack);
-        callback('unknown');
-        return;
-      }
+      e.run(aResponse);
 
       // It's possible we got some folders in an inconvenient order (i.e. child
       // folders before their parents). Keep trying to add folders until we're
@@ -34823,18 +33521,6 @@ ActiveSyncAccount.prototype = {
   createFolder: function asa_createFolder(parentFolderId, folderName,
                                           containOnlyOtherFolders, callback) {
     let account = this;
-    if (!this.conn.connected) {
-      this.conn.connect(function(error) {
-        if (error) {
-          callback('unknown');
-          return;
-        }
-        account.createFolder(parentFolderId, folderName,
-                             containOnlyOtherFolders, callback);
-      });
-      return;
-    }
-
     let parentFolderServerId = parentFolderId ?
       this._folderInfos[parentFolderId] : '0';
 
@@ -34864,15 +33550,7 @@ ActiveSyncAccount.prototype = {
         serverId = node.children[0].textContent;
       });
 
-      try {
-        e.run(aResponse);
-      }
-      catch (ex) {
-        console.error('Error parsing FolderCreate response:', ex, '\n',
-                      ex.stack);
-        callback('unknown');
-        return;
-      }
+      e.run(aResponse);
 
       if (status === fhStatus.Success) {
         let folderMeta = account._addedFolder(serverId, parentFolderServerId,
@@ -34896,17 +33574,6 @@ ActiveSyncAccount.prototype = {
    */
   deleteFolder: function asa_deleteFolder(folderId, callback) {
     let account = this;
-    if (!this.conn.connected) {
-      this.conn.connect(function(error) {
-        if (error) {
-          callback('unknown');
-          return;
-        }
-        account.deleteFolder(folderId, callback);
-      });
-      return;
-    }
-
     let folderMeta = this._folderInfos[folderId].$meta;
 
     const fh = $ascp.FolderHierarchy.Tags;
@@ -34930,17 +33597,7 @@ ActiveSyncAccount.prototype = {
         account.meta.syncKey = node.children[0].textContent;
       });
 
-      try {
-
-        e.run(aResponse);
-      }
-      catch (ex) {
-        console.error('Error parsing FolderDelete response:', ex, '\n',
-                      ex.stack);
-        callback('unknown');
-        return;
-      }
-
+      e.run(aResponse);
       if (status === fhStatus.Success) {
         account._deletedFolder(folderMeta.serverId);
         callback(null, folderMeta);
@@ -34951,68 +33608,61 @@ ActiveSyncAccount.prototype = {
     });
   },
 
-  sendMessage: function asa_sendMessage(composer, callback) {
-    let account = this;
-    if (!this.conn.connected) {
-      this.conn.connect(function(error) {
-        if (error) {
+  sendMessage: function asa_sendMessage(composedMessage, callback) {
+    // XXX: This is very hacky and gross. Fix it to use pipes later.
+    composedMessage._cacheOutput = true;
+    process.immediate = true;
+    composedMessage._processBufferedOutput = function() {
+      // we are stopping the DKIM logic from firing.
+    };
+    composedMessage._composeMessage();
+    process.immediate = false;
+
+    // ActiveSync 14.0 has a completely different API for sending email. Make
+    // sure we format things the right way.
+    if (this.conn.currentVersion.gte('14.0')) {
+      const cm = $ascp.ComposeMail.Tags;
+      let w = new $wbxml.Writer('1.3', 1, 'UTF-8');
+      w.stag(cm.SendMail)
+         .tag(cm.ClientId, Date.now().toString()+'@mozgaia')
+         .tag(cm.SaveInSentItems)
+         .stag(cm.Mime)
+           .opaque(composedMessage._outputBuffer)
+         .etag()
+       .etag();
+
+      this.conn.postCommand(w, function(aError, aResponse) {
+        if (aError) {
+          console.error(aError);
           callback('unknown');
           return;
         }
-        account.sendMessage(composer, callback);
-      });
-      return;
-    }
 
-    // we want the bcc included because that's how we tell the server the bcc
-    // results.
-    composer.withMessageBuffer({ includeBcc: true }, function(mimeBuffer) {
-      // ActiveSync 14.0 has a completely different API for sending email. Make
-      // sure we format things the right way.
-      if (this.conn.currentVersion.gte('14.0')) {
-        const cm = $ascp.ComposeMail.Tags;
-        let w = new $wbxml.Writer('1.3', 1, 'UTF-8');
-        w.stag(cm.SendMail)
-           .tag(cm.ClientId, Date.now().toString()+'@mozgaia')
-           .tag(cm.SaveInSentItems)
-           .stag(cm.Mime)
-             .opaque(mimeBuffer)
-           .etag()
-         .etag();
-
-        this.conn.postCommand(w, function(aError, aResponse) {
-          if (aError) {
-            console.error(aError);
-            callback('unknown');
-            return;
-          }
-
-          if (aResponse === null) {
-            console.log('Sent message successfully!');
-            callback(null);
-          }
-          else {
-            console.error('Error sending message. XML dump follows:\n' +
-                          aResponse.dump());
-            callback('unknown');
-          }
-        });
-      }
-      else { // ActiveSync 12.x and lower
-        this.conn.postData('SendMail', 'message/rfc822',
-                           mimeBuffer,
-                           function(aError, aResponse) {
-          if (aError) {
-            console.error(aError);
-            callback('unknown');
-            return;
-          }
-
+        if (aResponse === null) {
           console.log('Sent message successfully!');
           callback(null);
-        }, { SaveInSent: 'T' });
-      }
-    }.bind(this));
+        }
+        else {
+          console.error('Error sending message. XML dump follows:\n' +
+                        aResponse.dump());
+          callback('unknown');
+        }
+      });
+    }
+    else { // ActiveSync 12.x and lower
+      this.conn.postData('SendMail', 'message/rfc822',
+                         composedMessage._outputBuffer,
+                         function(aError, aResponse) {
+        if (aError) {
+          console.error(aError);
+          callback('unknown');
+          return;
+        }
+
+        console.log('Sent message successfully!');
+        callback(null);
+      }, { SaveInSent: 'T' });
+    }
   },
 
   getFolderStorageForFolderId: function asa_getFolderStorageForFolderId(
@@ -35029,15 +33679,7 @@ ActiveSyncAccount.prototype = {
     // XXX I am assuming ActiveSync servers are smart enough to already come
     // with these folders.  If not, we should move IMAP's ensureEssentialFolders
     // into the mixins class.
-    if (callback)
-      callback();
-  },
-
-  scheduleMessagePurge: function(folderId, callback) {
-    // ActiveSync servers have no incremental folder growth, so message purging
-    // makes no sense for them.
-    if (callback)
-      callback();
+    callback();
   },
 
   runOp: $acctmixins.runOp,
@@ -35051,10 +33693,10 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
       createFolder: {},
       deleteFolder: {},
       recreateFolder: { id: false },
-      saveAccountState: { reason: false },
     },
     asyncJobs: {
       runOp: { mode: true, type: true, error: false, op: false },
+      saveAccountState: { reason: false },
     },
     errors: {
       opError: { mode: false, type: false, ex: $log.EXCEPTION },
@@ -35257,31 +33899,39 @@ CompositeAccount.prototype = {
     return this._receivePiece.syncFolderList(callback);
   },
 
-  sendMessage: function(composer, callback) {
+  sendMessage: function(composedMessage, callback) {
+    // Render the message to its output buffer.
+    composedMessage._cacheOutput = true;
+    process.immediate = true;
+    composedMessage._processBufferedOutput = function() {
+      // we are stopping the DKIM logic from firing.
+    };
+    composedMessage._composeMessage();
+    process.immediate = false;
+
     return this._sendPiece.sendMessage(
-      composer,
+      composedMessage,
       function(err, errDetails) {
         // We need to append the message to the sent folder if we think we sent
         // the message okay and this is not gmail.  gmail automatically crams
         // the message in the sent folder for us, so if we do it, we're just
         // going to create duplicates.
         if (!err && !this._receivePiece.isGmail) {
-          composer.withMessageBuffer({ includeBcc: true }, function(buffer) {
-            var message = {
-              messageText: buffer,
-              // do not specify date; let the server use its own timestamping
-              // since we want the approximate value of 'now' anyways.
-              flags: ['Seen'],
-            };
+          var message = {
+            messageText: composedMessage._outputBuffer,
+            // do not specify date; let the server use its own timestamping
+            // since we want the approximate value of 'now' anyways.
+            flags: ['Seen'],
+          };
 
-            var sentFolder = this.getFirstFolderWithType('sent');
-            if (sentFolder)
-              this.universe.appendMessages(sentFolder.id,
-                                           [message]);
-          }.bind(this));
+          var sentFolder = this.getFirstFolderWithType('sent');
+          if (sentFolder)
+            this.universe.appendMessages(sentFolder.id,
+                                         [message]);
         }
-        callback(err, errDetails, null);
+        callback(err, errDetails);
       }.bind(this));
+
   },
 
   getFolderStorageForFolderId: function(folderId) {
@@ -35351,7 +34001,6 @@ var autoconfigByDomain = exports._autoconfigByDomain = {
       // This string may be clobbered with the correct port number when
       // running as a unit test.
       server: 'http://localhost:8880',
-      username: '%EMAILADDRESS%',
     },
   },
   // Mapping for a nonexistent domain for testing a bad domain without it being
@@ -35420,23 +34069,23 @@ Configurators['imap+smtp'] = {
       ['imap', 'smtp'],
       function probesDone(results) {
         // -- both good?
-        if (results.imap[0] === null && results.smtp[0] === null) {
+        if (!results.imap[0] && results.smtp) {
           var account = self._defineImapAccount(
             universe,
             userDetails, credentials,
             imapConnInfo, smtpConnInfo, results.imap[1],
             results.imap[2]);
-          callback(null, account, null);
+          callback(null, account);
         }
         // -- either/both bad
         else {
           // clean up the imap connection if it was okay but smtp failed
-          if (results.imap[0] === null) {
+          if (!results.imap[0]) {
             results.imap[1].die();
             // Failure was caused by SMTP, but who knows why
-            callback(results.smtp[0], null, results.smtp[1]);
+            callback('smtp-unknown', null);
           } else {
-            callback(results.imap[0], null, results.imap[2]);
+            callback(results.imap[0], null); // Pass imap error type back
           }
           return;
         }
@@ -35492,7 +34141,7 @@ Configurators['imap+smtp'] = {
 
     var account = this._loadAccount(universe, accountDef,
                                     oldAccountInfo.folderInfo);
-    callback(null, account, null);
+    callback(null, account);
   },
 
   /**
@@ -35596,7 +34245,7 @@ Configurators['fake'] = {
     };
 
     var account = this._loadAccount(universe, accountDef);
-    callback(null, account, null);
+    callback(null, account);
   },
 
   recreateAccount: function cfg_fake_ra(universe, oldVersion, oldAccountInfo,
@@ -35626,7 +34275,7 @@ Configurators['fake'] = {
     };
 
     var account = this._loadAccount(universe, accountDef);
-    callback(null, account, null);
+    callback(null, account);
   },
 
   /**
@@ -35650,45 +34299,29 @@ Configurators['activesync'] = {
   tryToCreateAccount: function cfg_as_ttca(universe, userDetails, domainInfo,
                                            callback, _LOG) {
     var credentials = {
-      username: domainInfo.incoming.username,
+      username: userDetails.emailAddress,
       password: userDetails.password,
     };
 
     var self = this;
-    var conn = new $asproto.Connection();
-    conn.open(domainInfo.incoming.server, credentials.username,
-              credentials.password);
+    var conn = new $asproto.Connection(credentials.username,
+                                       credentials.password);
+    conn.setServer(domainInfo.incoming.server);
     conn.timeout = $asacct.DEFAULT_TIMEOUT_MS;
 
-    conn.connect(function(error, options) {
+    conn.connect(function(error, config, options) {
+      // XXX: Think about what to do with this error handling, since it's
+      // replicated in the autoconfig code.
       if (error) {
-        // This error is basically an indication of whether we were able to
-        // call getOptions or not.  If the XHR request completed, we get an
-        // HttpError.  If we timed out or an XHR error occurred, we get a
-        // general Error.
-        var failureType,
-            failureDetails = { server: domainInfo.incoming.server };
+        var failureType = 'unknown';
 
         if (error instanceof $asproto.HttpError) {
-          if (error.status === 401) {
+          if (error.status === 401)
             failureType = 'bad-user-or-pass';
-          }
-          else if (error.status === 403) {
+          else if (error.status === 403)
             failureType = 'not-authorized';
-          }
-          // Treat any other errors where we talked to the server as a problem
-          // with the server.
-          else {
-            failureType = 'server-problem';
-            failureDetails.status = error.status;
-          }
         }
-        else {
-          // We didn't talk to the server, so let's call it an unresponsive
-          // server.
-          failureType = 'unresponsive-server';
-        }
-        callback(failureType, null, failureDetails);
+        callback(failureType, null);
         return;
       }
 
@@ -35702,7 +34335,7 @@ Configurators['activesync'] = {
 
         credentials: credentials,
         connInfo: {
-          server: domainInfo.incoming.server
+          server: config.selectedServer.url
         },
 
         identities: [
@@ -35718,7 +34351,7 @@ Configurators['activesync'] = {
       };
 
       var account = self._loadAccount(universe, accountDef, conn);
-      callback(null, account, null);
+      callback(null, account);
     });
   },
 
@@ -35747,7 +34380,7 @@ Configurators['activesync'] = {
     };
 
     var account = this._loadAccount(universe, accountDef, null);
-    callback(null, account, null);
+    callback(null, account);
   },
 
   /**
@@ -35834,20 +34467,6 @@ function Autoconfigurator(_LOG) {
 }
 exports.Autoconfigurator = Autoconfigurator;
 Autoconfigurator.prototype = {
-  /**
-   * The list of fatal error codes.
-   *
-   * What's fatal and why:
-   * - bad-user-or-pass: We found a server, it told us the credentials were
-   *     bogus.  There is no point going on.
-   * - not-authorized: We found a server, it told us the credentials are fine
-   *     but the access rights are insufficient.  There is no point going on.
-   *
-   * Non-fatal and why:
-   * - unknown: If something failed we should keep checking other info sources.
-   * - no-config-info: The specific source had no details; we should keep
-   *     checking other sources.
-   */
   _fatalErrors: ['bad-user-or-pass', 'not-authorized'],
 
   /**
@@ -35879,9 +34498,7 @@ Autoconfigurator.prototype = {
 
     xhr.onload = function() {
       if (xhr.status < 200 || xhr.status >= 300) {
-        // Non-fatal failure to get the config info.  While a 404 is the
-        // expected case, this is the appropriate error for weirder cases too.
-        callback('no-config-info', null, { status: xhr.status });
+        callback('unknown');
         return;
       }
       // XXX: For reasons which are currently unclear (possibly a platform
@@ -35913,45 +34530,21 @@ Autoconfigurator.prototype = {
           config.type = 'imap+smtp';
           for (let [,child] in Iterator(outgoing.children))
             config.outgoing[child.tagName] = child.textContent;
-
-          // We do not support unencrypted connections outside of unit tests.
-          if (config.incoming.socketType !== 'SSL' ||
-              config.outgoing.socketType !== 'SSL') {
-            callback('no-config-info', null, { status: 'unsafe' });
-            return;
-          }
         }
         else {
-          callback('no-config-info', null, { status: 'no-outgoing' });
-          return;
+          callback('unknown');
         }
 
-        callback(null, config, null);
+        callback(null, config);
       }
       else {
-        callback('no-config-info', null, { status: 'no-incoming' });
+        callback('unknown');
       }
     };
 
-    xhr.ontimeout = xhr.onerror = function() {
-      // The effective result is a failure to get configuration info, but make
-      // sure the status conveys that a timeout occurred.
-      callback('no-config-info', null, { status: 'timeout' });
-    };
-    xhr.onerror = function() {
-      // The effective result is a failure to get configuration info, but make
-      // sure the status conveys that a timeout occurred.
-      callback('no-config-info', null, { status: 'error' });
-    };
+    xhr.ontimeout = xhr.onerror = function() { callback('unknown'); };
 
-    // Gecko currently throws in send() if the file we're opening doesn't exist.
-    // This is almost certainly wrong, but let's just work around it for now.
-    try {
-      xhr.send();
-    }
-    catch(e) {
-      callback('no-config-info', null, { status: 404 });
-    }
+    xhr.send();
   },
 
   /**
@@ -35975,33 +34568,44 @@ Autoconfigurator.prototype = {
    */
   _getConfigFromAutodiscover: function getConfigFromAutodiscover(userDetails,
                                                                  callback) {
-    $asproto.autodiscover(userDetails.emailAddress, userDetails.password,
-                          this.timeout, function(error, config) {
+    // XXX: We should think about how this function is implemented:
+    // 1) Should we really create a Connection here? Maybe we want
+    //    autodiscover() to be a free function.
+    // 2) We're reimplementing jsas's "find the MobileSync server" code. Maybe
+    //    that belongs in autodiscover() somehow.
+
+    let conn = new $asproto.Connection(userDetails.emailAddress,
+                                       userDetails.password);
+    conn.autodiscover(function(error, config) {
       if (error) {
-        var failureType = 'no-config-info',
-            failureDetails = {};
+        var failureType = 'unknown';
 
         if (error instanceof $asproto.HttpError) {
           if (error.status === 401)
             failureType = 'bad-user-or-pass';
           else if (error.status === 403)
             failureType = 'not-authorized';
-          else
-            failureDetails.status = error.status;
         }
-        callback(failureType, null, failureDetails);
+        callback(failureType);
         return;
       }
 
-      let autoconfig = {
-        type: 'activesync',
-        displayName: config.user.name,
-        incoming: {
-          server: config.mobileSyncServer.url,
-          username: config.user.email
-        },
-      };
-      callback(null, autoconfig, null);
+      // Try to find a MobileSync server from Autodiscovery.
+      for (let [,server] in Iterator(config.servers)) {
+        if (server.type === 'MobileSync') {
+          let autoconfig = {
+            type: 'activesync',
+            displayName: config.user.name,
+            incoming: {
+              server: server.url,
+            },
+          };
+
+          return callback(null, autoconfig);
+        }
+      }
+
+      return callback('unknown');
     });
   },
 
@@ -36022,19 +34626,15 @@ Autoconfigurator.prototype = {
     let url = 'http://autoconfig.' + domain + suffix;
     let self = this;
 
-    this._getXmlConfig(url, function(error, config, errorDetails) {
-      if (self._isSuccessOrFatal(error)) {
-        callback(error, config, errorDetails);
-        return;
-      }
+    this._getXmlConfig(url, function(error, config) {
+      if (self._isSuccessOrFatal(error))
+        return callback(error, config);
 
       // See <http://tools.ietf.org/html/draft-nottingham-site-meta-04>.
       let url = 'http://' + domain + '/.well-known/autoconfig' + suffix;
-      self._getXmlConfig(url, function(error, config, errorDetails) {
-        if (self._isSuccessOrFatal(error)) {
-          callback(error, config, errorDetails);
-          return;
-        }
+      self._getXmlConfig(url, function(error, config) {
+        if (self._isSuccessOrFatal(error))
+          return callback(error, config);
 
         console.log('  Trying domain autodiscover');
         self._getConfigFromAutodiscover(userDetails, callback);
@@ -36070,17 +34670,12 @@ Autoconfigurator.prototype = {
 
     xhr.onload = function() {
       if (xhr.status === 200)
-        callback(null, xhr.responseText.split('\n')[0], null);
+        callback(null, xhr.responseText.split('\n')[0]);
       else
-        callback('no-config-info', null, { status: 'mx' + xhr.status });
+        callback('unknown');
     };
 
-    xhr.ontimeout = function() {
-      callback('no-config-info', null, { status: 'mxtimeout' });
-    };
-    xhr.onerror = function() {
-      callback('no-config-info', null, { status: 'mxerror' });
-    };
+    xhr.ontimeout = xhr.onerror = function() { callback('unknown'); };
 
     xhr.send();
   },
@@ -36095,9 +34690,9 @@ Autoconfigurator.prototype = {
    */
   _getConfigFromMX: function getConfigFromMX(domain, callback) {
     let self = this;
-    this._getMX(domain, function(error, mxDomain, errorDetails) {
+    this._getMX(domain, function(error, mxDomain) {
       if (error)
-        return callback(error, null, errorDetails);
+        return callback(error);
 
       // XXX: We need to normalize the domain here to get the base domain, but
       // that's complicated because people like putting dots in TLDs. For now,
@@ -36106,19 +34701,15 @@ Autoconfigurator.prototype = {
       console.log('  Found MX for', mxDomain);
 
       if (domain === mxDomain)
-        return callback('no-config-info', null, { status: 'mxsame' });
+        return callback('unknown');
 
       // If we found a different domain after MX lookup, we should look in our
       // local file store (mostly to support Google Apps domains) and, if that
       // doesn't work, the Mozilla ISPDB.
       console.log('  Looking in local file store');
-      self._getConfigFromLocalFile(mxDomain, function(error, config,
-                                                      errorDetails) {
-        // (Local XML lookup should not have any fatal errors)
-        if (!error) {
-          callback(error, config, errorDetails);
-          return;
-        }
+      self._getConfigFromLocalFile(mxDomain, function(error, config) {
+        if (!error)
+          return callback(error, config);
 
         console.log('  Looking in the Mozilla ISPDB');
         self._getConfigFromDB(mxDomain, callback);
@@ -36152,7 +34743,7 @@ Autoconfigurator.prototype = {
                   .replace('%REALNAME%', userDetails.displayName);
     }
 
-    function onComplete(error, config, errorDetails) {
+    function onComplete(error, config) {
       console.log(error ? 'FAILURE' : 'SUCCESS');
 
       // Fill any placeholder strings in the configuration object we retrieved.
@@ -36169,7 +34760,7 @@ Autoconfigurator.prototype = {
         }
       }
 
-      callback(error, config, errorDetails);
+      callback(error, config);
     }
 
     console.log('  Looking in GELAM');
@@ -36180,26 +34771,19 @@ Autoconfigurator.prototype = {
 
     let self = this;
     console.log('  Looking in local file store');
-    this._getConfigFromLocalFile(domain, function(error, config, errorDetails) {
-      if (self._isSuccessOrFatal(error)) {
-        onComplete(error, config, errorDetails);
-        return;
-      }
+    this._getConfigFromLocalFile(domain, function(error, config) {
+      if (self._isSuccessOrFatal(error))
+        return onComplete(error, config);
 
       console.log('  Looking at domain');
-      self._getConfigFromDomain(userDetails, domain, function(error, config,
-                                                              errorDetails) {
-        if (self._isSuccessOrFatal(error)) {
-          onComplete(error, config, errorDetails);
-          return;
-        }
+      self._getConfigFromDomain(userDetails, domain, function(error, config) {
+        if (self._isSuccessOrFatal(error))
+          return onComplete(error, config);
 
         console.log('  Looking in the Mozilla ISPDB');
-        self._getConfigFromDB(domain, function(error, config, errorDetails) {
-          if (self._isSuccessOrFatal(error)) {
-            onComplete(error, config, errorDetails);
-            return;
-          }
+        self._getConfigFromDB(domain, function(error, config) {
+          if (self._isSuccessOrFatal(error))
+            return onComplete(error, config);
 
           console.log('  Looking up MX');
           self._getConfigFromMX(domain, onComplete);
@@ -36221,9 +34805,9 @@ Autoconfigurator.prototype = {
    */
   tryToCreateAccount: function(universe, userDetails, callback) {
     let self = this;
-    this.getConfig(userDetails, function(error, config, errorDetails) {
+    this.getConfig(userDetails, function(error, config) {
       if (error)
-        return callback(error, null, errorDetails);
+        return callback(error);
 
       var configurator = Configurators[config.type];
       configurator.tryToCreateAccount(universe, userDetails, config,
@@ -36570,13 +35154,13 @@ function MailUniverse(callAfterBigBang, testOptions) {
 
   this._bridges = [];
 
-  // We used to try and use navigator.connection, but it's not supported on B2G,
-  // so we have to use navigator.onLine like suckers.
+  // hookup network status indication
+  var connection = window.navigator.connection ||
+                     window.navigator.mozConnection ||
+                     window.navigator.webkitConnection;
   this.online = true; // just so we don't cause an offline->online transition
-  this._bound_onConnectionChange = this._onConnectionChange.bind(this);
-  window.addEventListener('online', this._bound_onConnectionChange);
-  window.addEventListener('offline', this._bound_onConnectionChange);
   this._onConnectionChange();
+  connection.addEventListener('change', this._onConnectionChange.bind(this));
 
   this._testModeDisablingLocalOps = false;
 
@@ -36789,37 +35373,29 @@ MailUniverse.prototype = {
 
   //////////////////////////////////////////////////////////////////////////////
   _onConnectionChange: function() {
+    var connection = window.navigator.connection ||
+                       window.navigator.mozConnection ||
+                       window.navigator.webkitConnection;
     var wasOnline = this.online;
     /**
      * Are we online?  AKA do we have actual internet network connectivity.
-     * This should ideally be false behind a captive portal.  This might also
-     * end up temporarily false if we move to a 2-phase startup process.
+     * This should ideally be false behind a captive portal.
      */
-    this.online = navigator.onLine;
-    // Knowing when the app thinks it is online/offline is going to be very
-    // useful for our console.log debug spew.
-    console.log('Email knows that it is:', this.online ? 'online' : 'offline',
-                'and previously was:', wasOnline ? 'online' : 'offline');
+    this.online = connection.bandwidth > 0;
     /**
      * Do we want to minimize network usage?  Right now, this is the same as
      * metered, but it's conceivable we might also want to set this if the
      * battery is low, we want to avoid stealing network/cpu from other
      * apps, etc.
-     *
-     * NB: We used to get this from navigator.connection.metered, but we can't
-     * depend on that.
      */
-    this.minimizeNetworkUsage = true;
+    this.minimizeNetworkUsage = connection.metered;
     /**
      * Is there a marginal cost to network usage?  This is intended to be used
      * for UI (decision) purposes where we may want to prompt before doing
      * things when bandwidth is metered, but not when the user is on comparably
      * infinite wi-fi.
-     *
-     * NB: We used to get this from navigator.connection.metered, but we can't
-     * depend on that.
      */
-    this.networkCostsMoney = true;
+    this.networkCostsMoney = connection.metered;
 
     if (!wasOnline && this.online) {
       // - check if we have any pending actions to run and run them if so.
@@ -37022,8 +35598,7 @@ MailUniverse.prototype = {
    * Self-reporting by an account that it is experiencing difficulties.
    *
    * We mutate its state for it, and generate a notification if this is a new
-   * problem.  For problems that require user action, we additionally generate
-   * a bad login notification.
+   * problem.
    */
   __reportAccountProblem: function(account, problem) {
     // nothing to do if the problem is already known
@@ -37140,9 +35715,6 @@ MailUniverse.prototype = {
       var account = this.accounts[iAcct];
       account.shutdown();
     }
-
-    window.removeEventListener('online', this._bound_onConnectionChange);
-    window.removeEventListener('offline', this._bound_onConnectionChange);
     this._cronSyncer.shutdown();
     this._db.close();
     this._LOG.__die();
@@ -37304,11 +35876,6 @@ MailUniverse.prototype = {
           op.localStatus = 'undone';
           break;
       }
-
-      // This is a suggestion; in the event of high-throughput on operations,
-      // we probably don't want to save the account every tick, etc.
-      if (accountSaveSuggested)
-        account.saveAccountState();
     }
     if (removeFromServerQueue) {
       var idx = serverQueue.indexOf(op);
@@ -37615,29 +36182,6 @@ MailUniverse.prototype = {
         serverStatus: null,
         tryCount: 0,
         humanOp: 'syncFolderList'
-      },
-      callback);
-  },
-
-  /**
-   * Schedule a purge of the excess messages from the given folder.  This
-   * currently only makes sense for IMAP accounts and will automatically be
-   * called by the FolderStorage and its owning account when a sufficient
-   * number of blocks have been allocated by the storage.
-   */
-  purgeExcessMessages: function(account, folderId, callback) {
-    this._queueAccountOp(
-      account,
-      {
-        type: 'purgeExcessMessages',
-        // no need to track this in the mutations list
-        longtermId: 'internal',
-        lifecycle: 'do',
-        localStatus: null,
-        serverStatus: null,
-        tryCount: 0,
-        humanOp: 'purgeExcessMessages',
-        folderId: folderId
       },
       callback);
   },

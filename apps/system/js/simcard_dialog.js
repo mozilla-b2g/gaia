@@ -4,6 +4,7 @@
 'use strict';
 
 var SimPinDialog = {
+  dialog: document.getElementById('simpin-dialog'),
   dialogTitle: document.querySelector('#simpin-dialog header h1'),
   dialogDone: document.querySelector('#simpin-dialog button[type="submit"]'),
   dialogClose: document.querySelector('#simpin-dialog button[type="reset"]'),
@@ -72,15 +73,10 @@ var SimPinDialog = {
       inputField.focus();
     }
 
-    function blur() {
-      inputField.blur();
-    }
-
     return {
       get value() { return valueEntered; },
       set value(value) { setValue(value) },
-      focus: setFocus,
-      blur: blur
+      focus: setFocus
     };
   },
 
@@ -177,8 +173,13 @@ var SimPinDialog = {
   },
 
   unlockCardLock: function spl_unlockCardLock(options) {
+    var self = this;
     var req = this.mobileConnection.unlockCardLock(options);
-    req.onsuccess = this.close.bind(this, 'success');
+    req.onsuccess = function sp_unlockSuccess() {
+      self.close();
+      if (self.onsuccess)
+        self.onsuccess();
+    };
   },
 
   enableLock: function spl_enableLock() {
@@ -214,8 +215,13 @@ var SimPinDialog = {
   },
 
   setCardLock: function spl_setCardLock(options) {
+    var self = this;
     var req = this.mobileConnection.setCardLock(options);
-    req.onsuccess = this.close.bind(this, 'success');
+    req.onsuccess = function spl_enableSuccess() {
+      self.close();
+      if (self.onsuccess)
+        self.onsuccess();
+    };
   },
   inputFieldControl: function spl_inputField(isPin,  isPuk, isNewPin) {
     this.pinArea.hidden = !isPin;
@@ -243,35 +249,22 @@ var SimPinDialog = {
     return false;
   },
 
-  onHide: function spl_onHide(reason) {
-    this.clear();
-    if (this.onclose)
-      this.onclose(reason);
-  },
 
   clear: function spl_clear() {
     this.errorMsg.hidden = true;
     this.pinInput.value = '';
-    this.pinInput.blur();
     this.pukInput.value = '';
-    this.pukInput.blur();
     this.newPinInput.value = '';
     this.confirmPinInput.value = '';
   },
 
-  onclose: null,
-  /**
-   * Show the SIM pin dialog
-   * @param {String}   action  Name of the action to execute,
-   *                           either: unlock, enable or changePin.
-   * @param {Function} title   Optional function called when dialog is closed.
-   *                           Receive a single argument being the reason of
-   *                           dialog closing: success, skip, home or holdhome.
-   */
-  show: function spl_show(action, onclose) {
+  onsuccess: null,
+  oncancel: null,
+  show: function spl_show(action, onsuccess, oncancel) {
     var _ = navigator.mozL10n.get;
 
     this.systemDialog.show();
+    this.dialog.classList.add('visible');
     this.dialogDone.disabled = true;
     this.action = action;
     this.lockType = 'pin';
@@ -291,23 +284,29 @@ var SimPinDialog = {
         break;
     }
 
-    if (onclose && typeof onclose === 'function')
-      this.onclose = onclose;
+    if (onsuccess && typeof onsuccess === 'function')
+      this.onsuccess = onsuccess;
+    if (oncancel && typeof oncancel === 'function')
+      this.oncancel = oncancel;
   },
 
-  close: function spl_close(reason) {
-    this.systemDialog.hide(reason);
+  close: function spl_close() {
+    this.clear();
+    this.systemDialog.hide();
+    this.dialog.hidden = true;
+    this.dialog.classList.remove('visible');
   },
 
   skip: function spl_skip() {
-    this.close('skip');
+    this.close();
+    if (this.oncancel)
+      this.oncancel();
+
     return false;
   },
 
   init: function spl_init() {
-    this.systemDialog = SystemDialog('simpin-dialog', {
-                                       onHide: this.onHide.bind(this)
-                                     });
+    this.systemDialog = SystemDialog('simpin-dialog');
 
     this.mobileConnection = window.navigator.mozMobileConnection;
     if (!this.mobileConnection)

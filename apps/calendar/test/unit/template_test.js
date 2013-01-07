@@ -54,7 +54,7 @@ suite('calendar/template', function() {
       { x: 7, y: 7 }
     ];
 
-    tpl = new Template(function() { return this.h('x') + 'x' + this.h('y'); });
+    tpl = new Template('{x}x{y}');
     result = tpl.renderEach(objects);
 
     assert.deepEqual(result, [
@@ -74,9 +74,9 @@ suite('calendar/template', function() {
   suite('#render', function() {
 
     test('single placeholder no flag', function() {
-      var tpl = new Template(function() {
-        return 'z ' + this.h('a') + ' foo';
-      });
+      var tpl = new Template(
+        'z {a} foo'
+      );
 
       assert.equal(tpl.render({a: 'baz'}), 'z baz foo');
       assert.equal(tpl.render({a: 'baz'}), 'z baz foo');
@@ -84,28 +84,28 @@ suite('calendar/template', function() {
     });
 
     test('when input is not an object', function() {
-      var tpl = new Template(function() { return 'foo ' + this.h('value') + '!'; });
+      var tpl = new Template('foo {value}!');
       var result = tpl.render(1);
 
       assert.equal(result, 'foo 1!');
     });
 
     test('without placeholders', function() {
-      var tpl = new Template(function() { return 'foo bar'; });
+      var tpl = new Template('foo bar');
       assert.equal(tpl.render(), 'foo bar');
     });
 
     test('multiple placeholders', function() {
-      var tpl = new Template(function() {
-        return this.h('2') + ' ! ' + this.h('1');
-      });
+      var tpl = new Template(
+        '{2} ! {1}'
+      );
       assert.equal(tpl.render({1: '1', 2: '2'}), '2 ! 1');
     });
 
     test('keys with dashes', function() {
-      var tpl = new Template(function() {
-        return this.h('foo-bar');
-      });
+      var tpl = new Template(
+        '{foo-bar}'
+      );
 
       assert.equal(tpl.render({'foo-bar': 'fo'}), 'fo');
     });
@@ -113,9 +113,9 @@ suite('calendar/template', function() {
     test('html escape', function() {
       var tpl, input, output;
 
-      tpl = new Template(function() {
-        return this.h('html');
-      });
+      tpl = new Template(
+        '{html}'
+      );
 
       input = '<div class="foo">\'zomg\'</div>';
       output = tpl.render({html: input});
@@ -124,29 +124,24 @@ suite('calendar/template', function() {
         output,
         '&lt;div class=&quot;foo&quot;&gt;&#x27;zomg&#x27;&lt;/div&gt;'
       );
-
-      assert.equal(
-        tpl.render({}),
-        ''
-      );
     });
 
     test('without arguments', function() {
-      var tpl = new Template(function() { return 'foo ' + this.h('value'); });
+      var tpl = new Template('foo {value}');
       assert.equal(tpl.render(), 'foo ');
     });
 
     test('with newlines in tpl', function() {
-      var tpl = new Template(function() { return '\nfoo ' + this.h('value'); });
+      var tpl = new Template('\nfoo {value}');
       assert.equal(tpl.render('bar'), '\nfoo bar');
     });
 
     test('no html escape', function() {
       var tpl, input, output;
 
-      tpl = new Template(function() {
-        return this.s('html');
-      });
+      tpl = new Template(
+        '{html|s}'
+      );
 
       input = '<div class="foo">\'zomg\'</div>';
       output = tpl.render({html: input});
@@ -159,7 +154,7 @@ suite('calendar/template', function() {
 
     test('bool handler', function() {
       var tpl, input, output;
-      tpl = new Template(function() { return this.bool('one', 'selected'); });
+      tpl = new Template('{one|bool=selected}');
       output = tpl.render({ one: true });
       assert.equal(output, 'selected');
 
@@ -191,9 +186,9 @@ suite('calendar/template', function() {
       });
 
       test('prefix', function() {
-        var tpl = new Template(function() {
-          return this.l10n('start', 'field-') + ' foo';
-        });
+        var tpl = new Template(
+          '{start|l10n=field-} foo'
+        );
 
         var result = tpl.render({
           'start': 'one'
@@ -203,9 +198,9 @@ suite('calendar/template', function() {
       });
 
       test('simple', function() {
-        var tpl = new Template(function() {
-          return this.l10n('one') + ' ' + this.l10n('two');
-        });
+        var tpl = new Template(
+          '{one|l10n} {two|l10n}'
+        );
 
         var result = tpl.render({
           one: 'foo',
@@ -275,11 +270,11 @@ suite('calendar/template', function() {
         },
 
         template: function() {
-          tpl = tpl || new Template(function() {
-            return '<div class="' + this.h('divClass') + '">' +
-              '<span class="' + this.h('spanClass') + '">' + this.h('content') + '</span>' +
-            '</div>';
-          });
+          tpl = tpl || new Template(
+            '<div class="{divClass}">' +
+              '<span class="{spanClass}">{content}</span>' +
+            '</div>'
+          );
           container.innerHTML = '';
           container.innerHTML = tpl.render({
             divClass: 'dynamic',

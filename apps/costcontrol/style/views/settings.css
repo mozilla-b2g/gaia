@@ -1,14 +1,6 @@
 /* TOPUP VIEW */
-#settings-view {
+.view {
   bottom: 0;
-}
-
-#settings-view .view-scroll {
-  top: 5rem;
-}
-
-#settings-view.view {
-  top: 0;
 }
 
 #settings-view .choose-plan {

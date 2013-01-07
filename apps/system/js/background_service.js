@@ -69,6 +69,16 @@ var BackgroundServiceManager = (function bsm() {
     // This bg service has just crashed, clean up the frame
     var name = target.dataset.frameName;
     close(manifestURL, name);
+
+    // Attempt to relaunch if we could find the info to do so
+    var app = Applications.getByManifestURL(manifestURL);
+    if (name != AUTO_OPEN_BG_PAGE_NAME || !app)
+      return;
+
+    // XXX: this work as if background_page is always a path not a full URL.
+    var url = origin + app.manifest.background_page;
+    open(manifestURL, AUTO_OPEN_BG_PAGE_NAME, url);
+
   }, true);
 
   /* OnInstall */
@@ -137,13 +147,6 @@ var BackgroundServiceManager = (function bsm() {
     frames[manifestURL][name] = frame;
 
     document.body.appendChild(frame);
-
-    // Background services should load in the background.
-    //
-    // (The funky setTimeout(0) is to work around
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=810431 .)
-    setTimeout(function() { frame.setVisible(false) }, 0);
-
     return true;
   };
 

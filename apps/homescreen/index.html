@@ -1,36 +1,35 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1.0">
-    <link rel="stylesheet" type="text/css" href="style/homescreen.css">
-    <link rel="stylesheet" type="text/css" href="style/grid.css">
-    <link rel="stylesheet" type="text/css" href="style/dragdrop.css">
-    <link rel="stylesheet" type="text/css" href="style/dock.css">
-    <link rel="stylesheet" type="text/css" href="style/landing.css">
-    <link rel="stylesheet" type="text/css" href="everything.me/css/everything.me.css">
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1.0"/>
+    <link rel="stylesheet" type="text/css" href="style/homescreen.css"/>
+    <link rel="stylesheet" type="text/css" href="style/grid.css"/>
+    <link rel="stylesheet" type="text/css" href="style/dragdrop.css"/>
+    <link rel="stylesheet" type="text/css" href="style/dock.css"/>
+    <link rel="stylesheet" type="text/css" href="style/landing.css"/>
+    <link rel="stylesheet" type="text/css" href="everything.me/css/everything.me.css"/>
 
     <!-- Shared code -->
     <script type="text/javascript" src="shared/js/l10n.js"></script>
     <script type="text/javascript" src="shared/js/l10n_date.js"></script>
-    <script type="text/javascript" defer src="shared/js/manifest_helper.js"></script>
-    <script type="text/javascript" src="shared/js/mouse_event_shim.js"></script>
 
     <link rel="stylesheet" type="text/css" href="shared/style_unstable/progress_activity.css">
     <link rel="stylesheet" type="text/css" href="shared/style/buttons.css">
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css">
     <link rel="stylesheet" type="text/css" href="shared/style/confirm.css">
-    <link rel="stylesheet" type="text/css" href="style/request.css">
+    <link rel="stylesheet" type="text/css" href="style/request.css"/>
 
     <!-- Specific code -->
-    <script type="text/javascript" defer src="js/message.js"></script>
-    <script type="text/javascript" defer src="js/landing.js"></script>
     <script type="text/javascript" defer src="js/request.js"></script>
     <script type="text/javascript" defer src="js/bookmark.js"></script>
+    <script type="text/javascript" defer src="js/appmanager.js"></script>
     <script type="text/javascript" defer src="js/state.js"></script>
     <script type="text/javascript" defer src="js/page.js"></script>
     <script type="text/javascript" defer src="js/pagbar.js"></script>
     <script type="text/javascript" defer src="js/dock.js"></script>
+    <script type="text/javascript" defer src="js/landing.js"></script>
     <script type="text/javascript" defer src="js/grid.js"></script>
     <script type="text/javascript" defer src="js/dragdrop.js"></script>
     <script type="text/javascript" defer src="everything.me/js/everything.me.js"></script>
@@ -46,15 +45,33 @@
     <div id="search-overlay"></div>
     <div id="landing-overlay"></div>
 
-    <section id="confirm-dialog">
+    <section id="bookmark-entry-sheet" role="region" class="skin-dark">
+      <header>
+        <button id="button-bookmark-cancel">
+          <span class="icon icon-close" data-l10n-id="cancel">Cancel</span>
+        </button>
+        <h1 data-l10n-id="add-to-home-screen">Add to Home Screen</h1>
+      </header>
+      <form id="bookmark-form">
+        <label data-l10n-id="website-name">
+          Website Name<input type="text" id="bookmark-title"></input>
+        </label>
+        <label data-l10n-id="address">
+          Address <input type="url" id="bookmark-url"></input>
+        </label>
+        <button id="button-bookmark-add" data-l10n-id="add-to-homescreen">Add to Home Screen</button>
+      </form>
+    </section>
+
+    <section id="delete-dialog">
       <form role="dialog" data-type="confirm">
         <section>
-          <h1 id="confirm-dialog-title"></h1>
-          <p id="confirm-dialog-message"></p>
+          <h1 id="delete-dialog-title"></h1>
+          <p id="delete-dialog-message"></p>
         </section>
         <menu>
-          <button id="confirm-dialog-cancel-button"></button>
-          <button id="confirm-dialog-confirm-button" class="danger"></button>
+          <button id="delete-dialog-cancel-button"></button>
+          <button id="delete-dialog-confirm-button" class="danger"></button>
         </menu>
       </form>
     </section>
@@ -67,8 +84,8 @@
       <div class="page" id="evmePage">
           <article id="loading-overlay">
             <section class="loading-container">
-              <header class="loading-header" data-l10n-id="loadingEvme2">
-                Loading&hellip;
+              <header class="loading-header" data-l10n-id="loadingEvme">
+                Everything.me
               </header>
               <p role="status">
                 <progress class="loading-icon frozen small"></progress>
@@ -82,12 +99,12 @@
                         <fieldset>
                             <div id="search-q-bg">
                                 <input type="text" id="search-q" name="search-q" maxlength="128" autocorrect="off" autocapitalize="off" />
-                                <span id="default-text" data-l10n-id="evme-searchbar-default"></span>
+                                <span id="default-text"></span>
                             </div>
                             <div id="helper-tip"><b></b></div>
                         </fieldset>
                     </form>
-                    <b id="button-clear" data-l10n-id="evme-searchbar-clear"></b>
+                    <b id="button-clear"></b>
                 </div>
                 <div id="header">
                     <div id="helper-header">
@@ -96,6 +113,7 @@
                             <div id="helper">
                                 <ul></ul>
                             </div>
+                            <span class="loading"></span>
                         </div>
                     </div>
                 </div>
@@ -110,15 +128,11 @@
                 </div>
                 <div id="shortcuts-loading"></div>
             </div>
-            <div id="evmeBanner" class="banner"></div>
           </div>
       </div>
       <div id="landing-page" data-current-page="true">
         <div id="landing-time">
-          <p id="landing-clock">
-            <span class="numbers"></span>
-            <span class="meridiem"></span>
-          </p>
+          <p id="landing-clock"></p>
           <p id="landing-date"></p>
         </div>
       </div>

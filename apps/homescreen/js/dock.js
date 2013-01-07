@@ -9,7 +9,7 @@ const DockManager = (function() {
   var maxNumAppInViewPort, numAppsBeforeDrag, maxOffsetLeft;
 
   var windowWidth = window.innerWidth;
-  var duration = 300;
+  var duration = .2;
 
   var initialOffsetLeft, initialOffsetRight, numApps, cellWidth;
   var isPanning = false, startX, currentX, deltaX;

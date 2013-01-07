@@ -2,30 +2,30 @@
  * Idle class
  * Triggers a callback after a specified amout of time gone idle
  */
-Evme.Idle = function Evme_Idle(){
-    var self = this,
+Evme.Idle = function(){
+    var _this = this,
         timer, delay, callback;
     
     this.isIdle = true;
     
     // init
-    this.init = function init(options){
+    this.init = function(options){
         // set params
         delay = options.delay;
         callback = options.callback;
         
         // start timer
-        self.reset();
+        _this.reset();
     };
     
     // reset timer
-    this.reset = function reset(_delay){
+    this.reset = function(_delay){
         // set timeout delay value
         if (_delay === undefined){
             _delay = delay;
         }
         
-        self.isIdle = false;
+        _this.isIdle = false;
         
         // stop previous timer
         clearTimeout(timer);
@@ -34,16 +34,16 @@ Evme.Idle = function Evme_Idle(){
         timer = setTimeout(onIdle, _delay);
     };
     
-    this.advanceBy = function advanceBy(ms){
-        self.reset(delay-ms);
+    this.advanceBy = function(ms){
+        _this.reset(delay-ms);
     };
     
-    this.flush = function flush(){
-        self.reset(0);
+    this.flush = function(){
+        _this.reset(0);
     };
     
     function onIdle(){
-        self.isIdle = true;
+        _this.isIdle = true;
         
         // call callback
         callback();

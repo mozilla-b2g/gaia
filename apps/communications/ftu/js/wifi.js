@@ -7,29 +7,8 @@ var WifiManager = {
       this.api = window.navigator.mozWifiManager;
       this.changeStatus();
       this.gCurrentNetwork = this.api.connection.network;
-      if (this.gCurrentNetwork !== null) {
-        this.api.forget(this.gCurrentNetwork);
-        this.gCurrentNetwork = null;
-      }
     }
   },
-
-  isConnectedTo: function wn_isConnectedTo(network) {
-    /**
-     * XXX the API should expose a 'connected' property on 'network',
-     * and 'gWifiManager.connection.network' should be comparable to 'network'.
-     * Until this is properly implemented, we just compare SSIDs and capabilities
-     * to tell wether the network is already connected or not.
-     */
-    var currentNetwork = this.api.connection.network;
-    if (!currentNetwork || this.api.connection.status != 'connected')
-      return false;
-    var key = network.ssid + '+' + network.capabilities.join('+');
-    var curkey = currentNetwork.ssid + '+' +
-        currentNetwork.capabilities.join('+');
-    return (key == curkey);
-  },
-
   scan: function wn_scan(callback) {
     if ('mozWifiManager' in window.navigator) {
       var req = WifiManager.api.getNetworks();
@@ -39,7 +18,7 @@ var WifiManager = {
         callback(self.networks);
       };
       req.onerror = function onScanError() {
-        console.log('Error reading networks: ' + req.error.name);
+        console.log('Error reading networks');
       };
     } else {
       var fakeNetworks = [
@@ -105,7 +84,6 @@ var WifiManager = {
           }
       } else {
         // Connect directly
-        this.gCurrentNetwork = network;
         this.api.associate(network);
         return;
       }
@@ -134,9 +112,9 @@ var WifiManager = {
     WifiManager.api.onstatuschange = function(event) {
       UIManager.updateNetworkStatus(self.ssid, event.status);
       if (event.status == 'connected') {
-        if (self.networks && self.networks.length) {
-          UIManager.renderNetworks(self.networks);
-        }
+        self.isConnected = true;
+      } else {
+        self.isConnected = false;
       }
     };
 
@@ -144,13 +122,13 @@ var WifiManager = {
 
   getSecurityType: function wn_gst(network) {
     var key = network.capabilities[0];
-    if (/WEP$/.test(key))
-      return 'WEP';
-    if (/PSK$/.test(key))
-      return 'WPA-PSK';
-    if (/EAP$/.test(key))
-      return 'WPA-EAP';
-    return false;
+        if (/WEP$/.test(key))
+          return 'WEP';
+        if (/PSK$/.test(key))
+          return 'WPA-PSK';
+        if (/EAP$/.test(key))
+          return 'WPA-EAP';
+        return false;
   },
   isUserMandatory: function wn_ium(ssid) {
     var network = this.getNetwork(ssid);

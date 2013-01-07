@@ -9,39 +9,26 @@
   <link rel="stylesheet" type="text/css" href="/shared/style/switches.css">
   <link rel="stylesheet" type="text/css" href="/shared/style/input_areas.css">
   <link rel="stylesheet" type="text/css" href="/shared/style/buttons.css">
-  <link rel="stylesheet" type="text/css" href="/shared/style/confirm.css">
   <link rel="stylesheet" type="text/css" href="/shared/style_unstable/lists.css">
-  <link rel="stylesheet" type="text/css" href="/shared/style_unstable/progress_activity.css">
 
   <!-- Specific style -->
-  <link rel="stylesheet" type="text/css" href="/contacts/style/overlay.css">
   <link rel="stylesheet" type="text/css" href="/ftu/css/style.css">
   <link rel="stylesheet" type="text/css" href="/ftu/css/fb_extensions.css">
   <link rel="stylesheet" type="text/css" href="/facebook/style/curtain_frame.css">
 
-  <title>Welcome to Browser OS</title>
+  <title>Welcome to Firefox OS</title>
 
   <!-- Localization -->
-  <link rel="resource" type="image/png" href="/shared/resources/branding/logosmall.png"/>
-  <link rel="resource" type="image/png" href="/shared/resources/branding/powered.png"/>
-  <link rel="resource" type="image/png" href="/shared/resources/branding/privacy_sprite.png"/>
-  <link rel="resource" type="application/l10n" href="/shared/locales/branding.ini"/>
   <link rel="resource" type="application/l10n" href="/ftu/locales/locales.ini"/>
   <link rel="resource" type="application/l10n" href="/shared/locales/date.ini"/>
-  <link rel="resource" type="application/l10n" href="/shared/locales/tz.ini"/>
-  <link rel="resource" type="application/json" href="/shared/resources/tz.json"/>
-  <link rel="resource" type="application/json" href="/shared/resources/languages.json"/>
-  <link rel="resource" type="application/json" href="/shared/resources/apn.json"/>
   <script type="text/javascript" src="/shared/js/l10n.js"></script>
   <script type="text/javascript" src="/shared/js/l10n_date.js"></script>
-  <script type="text/javascript" src="/shared/js/tz_select.js"></script>
 
-  <!-- Code for the FTU App -->
+  <!-- Code for FTU App -->
   <script defer type="text/javascript" src="/ftu/js/fb_launcher.js"></script>
   <script defer type="text/javascript" src="/contacts/js/utilities/config.js"></script>
   <script defer type="text/javascript" src="/contacts/js/fb/fb_utils.js"></script>
   <script defer type="text/javascript" src="/shared/js/async_storage.js"></script>
-  <script defer type="text/javascript" src="/ftu/js/sim_manager.js"></script>
   <script defer type="text/javascript" src="/ftu/js/wifi.js"></script>
   <script defer type="text/javascript" src="/ftu/js/facebook.js"></script>
   <script defer type="text/javascript" src="/ftu/js/tutorial.js"></script>
@@ -54,45 +41,42 @@
   <script defer type="text/javascript" src="/contacts/js/utilities/import_sim_contacts.js"></script>
 </head>
 <body>
-  <section id="splash-screen" role="region" class="show">
+  <section id="splash" role="region" class="show">
   </section>
 
-  <section id="pincode-screen" role="region" class="skin-organic">
+  <section id="pincode" role="region" class="skin-organic">
     <header>
       <h1 data-l10n-id="pincode">Pin code</h1>
     </header>
     <section class="pin_container">
       <header data-l10n-id="type_pin">Type your PIN code:</header>
       <section class="input-wrapper">
-        <input id="pin-input" name="simpin" type="password" size="8" maxlength="8" />
+        <input id="sim-pin" name="simpin" type="password" size="8" maxlength="8" />
         <input id="fake-sim-pin" name="fakesimpin" type="number" size="8" maxlength="8" />
-        <div id="pin-error"></div>
+        <div id="pin_error"></div>
       </section>
     </section>
-    <nav role="navigation">
-      <button id="skip-pin-button" class="button-left" data-l10n-id="skip">
-        Skip
-      </button>
-      <button id="unlock-sim-button" class="recommend" data-l10n-id="done">
+    <nav role="navigation" class="forward-only">
+      <button class="recommend fullsize" id="done" data-l10n-id="done">
         Done
       </button>
     </nav>
   </section>
 
-  <section id="activation-screen" role="region" class="skin-organic no-options">
+  <section id="activation" role="region" class="skin-organic no-options">
     <header>
       <menu type="toolbar">
-        <button id="wifi-refresh-button" data-l10n-id="refresh">Refresh</button>
+        <button id="wifi-refresh" data-l10n-id="refresh">Refresh</button>
       </menu>
-      <h1 id="main-title"></h1>
+      <h1 id="main_title"></h1>
     </header>
-    <ol id="progress-bar" class="step-state">
+    <ol id="activation_progress" class="step-state">
       <li>languages</li>
       <li>3g</li>
       <li>wifi</li>
       <li>configure network</li>
       <li>date and time</li>
-      <li>browser privacy</li>
+      <li>firefox privacy</li>
     </ol>
     <article role="main">
       <section role="region" id="languages">
@@ -108,7 +92,7 @@
             <li>
               <aside class="pack-end">
                 <label>
-                  <input type="checkbox" data-type="switch" id="data-connection-switch">
+                  <input type="checkbox" data-type="switch" id="dataSwitch">
                   <span></span>
                 </label>
               </aside>
@@ -131,15 +115,10 @@
         <section id="configure_network_params">
           <form>
             <input type="text" id="wifi_ssid" class="hidden" value=""></input>
-            <label id="label_wifi_user" for="wifi_user" data-l10n-id="identity">User</label>
-            <input type="text" id="wifi_user" data-l10n-id="identityInput" placeholder="User"></input>
+            <label id="label_wifi_user" for="wifi_user" data-l10n-id="identity">User (optional):</label>
+            <input type="text" id="wifi_user" placeholder="User (optional)"></input>
             <label for="wifi_password" data-l10n-id="password">Password</label>
-            <input type="password" id="wifi_password" data-l10n-id="passwordInput" placeholder="Password" value=""></input>
-            <label id="label_show_password">
-              <input type="checkbox" data-ignore name="show_password" />
-              <span></span>
-              <p id="wifi_show_password" data-l10n-id="showPassword">Show Password</p>
-            </label>
+            <input type="password" id="wifi_password" placeholder="Password" value=""></input>
           </form>
         </section>
       </section>
@@ -151,27 +130,40 @@
             Time zone
           </h1>
           <h2 id="time-zone-title">
-            UTC +00:00 Greenwich Mean Time
+            GMT +00:00 Greenwich Mean Time
           </h2>
         </section>
-        <form id="time-form" data-type="list">
+        <form data-type="list" onsubmit="return false;">
           <ul>
-            <!-- timezones -->
             <li>
-              <button class="change icon icon-dialog" data-l10n-id="change" type="button">
+              <button class="change icon icon-dialog" data-l10n-id="change">
                 Change
               </button>
-              <p id="tz-continent-label"></p>
-              <select id="tz-continent" class="invisible"></select>
+              <p id="timezone-configuration-label">GMT +00:00</p>
+              <select class="invisible" id="timezone-configuration">
+                <option value="-8">GMT -08:00</option>
+                <option value="-7">GMT -07:00</option>
+                <option value="-6">GMT -06:00</option>
+                <option value="-5">GMT -05:00</option>
+                <option value="-4">GMT -04:00</option>
+                <option value="-3">GMT -03:00</option>
+                <option value="-2">GMT -02:00</option>
+                <option value="-1">GMT -01:00</option>
+                <option value="0">GMT +00:00</option>
+                <option value="1">GMT +01:00</option>
+                <option value="2">GMT +02:00</option>
+                <option value="3">GMT +03:00</option>
+                <option value="4">GMT +04:00</option>
+                <option value="5">GMT +05:00</option>
+                <option value="6">GMT +06:00</option>
+                <option value="7">GMT +07:00</option>
+                <option value="8">GMT +08:00</option>
+                <option value="9">GMT +09:00</option>
+                <option value="10">GMT +10:00</option>
+                <option value="11">GMT +11:00</option>
+                <option value="12">GMT +12:00</option>
+               </select>
             </li>
-            <li>
-              <button class="change icon icon-dialog" data-l10n-id="change" type="button">
-                Change
-              </button>
-              <p id="tz-city-label">GMT</p>
-              <select id="tz-city" class="invisible"></select>
-            </li>
-            <!-- date/time -->
             <li>
               <button class="change icon icon-dialog" data-l10n-id="change">
                 Change
@@ -180,7 +172,7 @@
               <input id="date-configuration" class="invisible" type="date"></input>
             </li>
             <li>
-              <button class="change icon icon-dialog" data-l10n-id="change" type="button">
+              <button class="change icon icon-dialog" data-l10n-id="change">
                 Change
               </button>
               <p id="time-configuration-label">00:00</p>
@@ -192,9 +184,9 @@
       <section role="region" id="import_contacts">
         <article data-type="list">
           <ul>
-            <li id="sim-import-button">
-              <p data-l10n-id="importSim2">SIM card</p>
-              <p id="sim-import-feedback" data-l10n-id="notImportedYet">Not imported yet</p>
+            <li id="sim_import">
+              <p data-l10n-id="importSim">SIM card</p>
+              <p id="sim_import_feedback" data-l10n-id="notImportedYet">Not imported yet</p>
             </li>
           </ul>
         </article>
@@ -204,7 +196,7 @@
         <article data-type="list">
           <ul>
             <li id="fb_import" class="disabled">
-              <p data-l10n-id="importFb2">Facebook</p>
+              <p data-l10n-id="importFb">Facebook</p>
               <p id="fb_import_feedback" data-l10n-id="notImportedYet">Not imported yet</p>
             </li>
           </ul>
@@ -212,99 +204,40 @@
       </section>
       <section role="region" id="about-your-rights">
         <p data-l10n-id="about-your-rights-0">
-          Browser OS is built on free and open source software
-          by a community of thousands from all over the world.
-          There are a few things you should know:
+          Mozilla Firefox is free and open source software, built by a community
+          of thousands from all over the world. There are a few things you should
+          know:
         </p>
         <p data-l10n-id="about-your-rights-1">
-          Browser OS is made available to you under the terms of several
-          open source licenses including the Mozilla Public License.
-          A device running Browser OS may also contain proprietary
-          software from third parties. Any code provided under open licenses
-          give you the right to modify the source code and distribute your
-          modified versions as long as you comply with their terms.
+          Firefox is made available to you under the terms of the Mozilla Public
+          License. This means you may use, copy and distribute Firefox to others.
+          You are also welcome to modify the source code of Firefox as you want to
+          meet your needs. The Mozilla Public License also gives you the right to
+          distribute your modified versions.
         </p>
         <p data-l10n-id="about-your-rights-2">
           You are not granted any trademark rights or licenses to the trademarks
-          of the Mozilla Foundation or any party, including without limitation
-          the Browser OS name or logo.
+          of the Mozilla Foundation or any party, including without Temporary Text
+          limitation the Firefox name or logo. Additional information on
+          trademarks may be found Only here.
         </p>
         <p data-l10n-id="about-your-rights-3">
-          Some features in Browser OS, such as the Crash Reporter,
-          give you the option to provide feedback to Mozilla.
-          By choosing to submit feedback, you give Mozilla permission to use
-          the feedback to improve its products, to publish the feedback
-          on its websites, and to distribute the feedback.
+          Some features in Firefox, such as the Crash Reporter, give you the
+          option to provide feedback to Mozilla. By choosing to submit feedback,
+          you give Mozilla permission to use the feedback to improve its products,
+          to publish the feedback on its websites, and to distribute the feedback.
         </p>
       </section>
       <section role="region" id="about-your-privacy">
-        <i class='hack-first-child'></i> <!-- see Bug 819886 -->
-        <header>
-          <h2> Mozilla </h2>
-        </header>
-        <article data-type="list">
-          <ul>
-            <li>
-              <a class="privacy-menuitem privacy-browserOS external"
-                href="https://www.mozilla.org/legal/privacy/firefox.html"
-                data-l10n-id="privacy-b2g"
-                title="B2G OS">Browser OS</a>
-            </li>
-            <li>
-              <a class="privacy-menuitem privacy-marketPlace external"
-                 href="https://marketplace.firefox.com/privacy-policy"
-                 data-l10n-id="privacy-marketplace"
-                 title="Marketplace">
-                Marketplace
-              </a>
-            </li>
-          </ul>
-        </article>
-        <header>
-          <h2 data-l10n-id="about-other"> Other </h2>
-        </header>
-        <article data-type="list">
-          <ul>
-            <li>
-              <a class="privacy-menuitem privacy-everythingME external"
-                href="http://corp.everything.me/privacy"
-                data-l10n-id="privacy-e-me"
-                title="everything.me">everything.me</a>
-            </li>
-          </ul>
-        </article>
+        <p data-l10n-id="aboutYourPrivacy">About you privacy</p>
       </section>
-      <section role="region" id="sharing-performance-data">
-        <p data-l10n-id='telemetry-sends'>
-          Telemetry sends Mozilla data about performance, hardware,
-          configurations and customizations in your Browser OS device. We use
-          this to make our products better, faster and more responsive.
-        </p>
-        <!-- Links destinations are discussed in https://bugzilla.mozilla.org/show_bug.cgi?id=812956 -->
-        <p data-l10n-id='learn-more-at'>Learn more at
-        <a class='external'
-           data-l10n-id='external-telemetry'
-           href='http://www.mozilla.org/telemetry/'
-           title='Telemetry'>
-             www.mozilla.org/telemetry/
-        </a>
-        </p>
-        <p data-l10n-id='learn-about-information'>Learn how Mozilla handles your
-        information at
-          <a class='external'
-             data-l10n-id='external-privacy'
-             title='Privacy'
-             href='http://www.mozilla.org/privacy/'>
-               www.mozilla.org/privacy/
-          </a>
-        </p>
-      </section>
-      <section role="region" id="external-url-loader" class='external'>
-      </section>
-
-      <section role="region" id="browser_privacy">
-        <p data-l10n-id="mozillaCommunity2">
-          When you use Browser OS, you become
+      <section role="region" id="firefox_privacy">
+        <section class="logo_container">
+          <img src="css/images/firefox64.png">
+          <span class="logo_title">De todos. Para Todos.</span>
+        </section>
+        <p data-l10n-id="mozillaCommunity">
+          When you use Firefox OS, you become
           part of a global community helping to
           build a brighter future for the Web.
           If you’d like to know more about the
@@ -316,36 +249,33 @@
           <input type="email" data-l10n-id="emailAddress" placeholder="Email address"></input>
         </section>
         <p data-l10n-id="learnHow">
-          Learn how Mozilla handle your information in our
-          <a data-l10n-id="privacyPolicy" class="external"
-            href="https://www.mozilla.org/privacy/firefox-os/" title="Privacy policy">
-            privacy policy
-         </a>.
+         Learn how Mozilla handle your information in our <a>privacy policy</a>.
         </p>
       </section>
-      <section role="region" id="welcome_browser">
-        <section id="browser_logo_horizontal">
-          <img src="/shared/resources/branding/logosmall.png">
+      <section role="region" id="welcome_firefox">
+        <section id="firefox_logo_horizontal">
+          <img src="css/images/logosmall.png">
         </section>
-        <p data-l10n-id="welcomeBrowser">
-          Welcome to Browser OS, the free and
+        <p data-l10n-id="welcomeFirefox">
+          Welcome to Firefox OS, the free and
           open source operating system from
           Mozilla. Our mission is to promote
           openness, innovation and opportunity
           by keeping the power of the Web in
           your hands.
         </p>
-        <section id="browser_os_privacy_links">
-          <a href="#about-your-rights" data-l10n-id="aboutBrowser"> About Your Rights </a>
-          <a href="#about-your-privacy" data-l10n-id="aboutYourPrivacy2">Your Privacy</a>
+        <section id="firefox_os_privacy_links">
+          <a href="#about-your-rights" data-l10n-id="aboutYourRights"> About Your Rights </a>
+          <a href="#about-your-privacy" data-l10n-id="aboutYourPrivacy"> About Your Privacy </a>
         </section>
         <section id="form_share_statistics">
           <label>
-            <input type="checkbox" id="share-performance" name="debug.performance_data.shared"/>
+            <input type="checkbox" name="enable_statistic" />
             <span></span>
             <p data-l10n-id="collaborate">
-              I want to help improve Browser OS by sharing data about my phone.
-              <a href='#sharing-performance-data' data-l10n-id="learnMore">Learn more.</a>
+              I want to help make Firefox OS faster and
+              easier to use by sharing information about
+              my phone's performance. Learn more
             </p>
           </label>
         </section>
@@ -360,13 +290,13 @@
         next
         <span></span>
       </button>
-      <button class="recommend" id="wifi-join-button" data-l10n-id="join">
+      <button class="recommend" id="join" data-l10n-id="join">
         join
       </button>
     </menu>
   </section>
 
-  <section id="finish-screen" role="region">
+  <section id="finish" role="region">
     <section class="content">
       <h1 data-l10n-id="startYourPhone">
         Start your Phone Tour!
@@ -379,73 +309,106 @@
       </p>
       </section>
       <menu role="navigation">
-        <button id="skip-tutorial-button" class="button-left" data-l10n-id="skip">
+        <button id="skip" class="button-left" data-l10n-id="skip">
           Skip
         </button>
-        <button id="lets-go-button" class="recommend" data-l10n-id="startTour">
+        <button class="recommend" id="end" data-l10n-id="startTour">
           Start Tour!
         </button>
       </menu>
     </section>
   </section>
 
-  <section id="tutorial-screen" role="region">
-    <ol id="tutorial-progress" class="step-state">
-      <li>step 1</li>
-      <li>step 2</li>
-      <li>step 3</li>
-      <li>step 4</li>
-      <li>step 5</li>
-    </ol>
+  <section id="tutorial" role="region">
     <article role="main">
       <section role="region" id="step1">
         <div>
           <header id="step1Header">
-            Swipe from right to left to browse your apps.
           </header>
         </div>
         <section>
-          <img id="step1Img">
+          <img  id="step1Img" src="">
         </section>
       </section>
       <section role="region" id="step2">
         <div>
           <header id="step2Header">
-            Swipe from left to right to discover new apps.
           </header>
         </div>
         <section>
-          <img id="step2Img">
+          <img id="step2Img" src="">
         </section>
       </section>
       <section role="region" id="step3">
         <div>
           <header id="step3Header">
-            Tap and hold on an icon to delete or move it.
           </header>
         </div>
         <section>
-          <img id="step3Img">
+          <img  id="step3Img" src="">
         </section>
       </section>
       <section role="region" id="step4">
         <div>
           <header id="step4Header">
-            Swipe down to access recent notifications, credit information and settings.
           </header>
         </div>
         <section>
-          <img id="step4Img">
+          <img  id="step4Img" src="">
         </section>
       </section>
       <section role="region" id="step5">
         <div>
           <header id="step5Header">
-            Tap and hold the home button to browse and close recent apps.
           </header>
         </div>
         <section>
-          <img id="step5Img">
+          <img  id="step5Img" src="">
+        </section>
+      </section>
+      <section role="region" id="step6">
+        <div>
+          <header id="step6Header">
+          </header>
+        </div>
+        <section>
+          <img  id="step6Img" src="">
+        </section>
+      </section>
+      <section role="region" id="step7">
+        <div>
+          <header id="step7Header">
+          </header>
+        </div>
+        <section>
+          <img  id="step7Img" src="">
+        </section>
+      </section>
+      <section role="region" id="step8">
+        <div>
+          <header id="step8Header">
+          </header>
+        </div>
+        <section>
+          <img  id="step8Img" src="">
+        </section>
+      </section>
+      <section role="region" id="step9">
+        <div>
+          <header id="step9Header">
+          </header>
+        </div>
+        <section>
+          <img  id="step9Img" src="">
+        </section>
+      </section>
+      <section role="region" id="step10">
+        <div>
+          <header id="step10Header">
+          </header>
+        </div>
+        <section>
+          <img  id="step10Img" src="">
         </section>
       </section>
     </article>
@@ -460,6 +423,7 @@
       </button>
     </nav>
   </section>
+
   <section id="tutorialFinish" role="region">
     <section class="content">
       <h1 data-l10n-id="thatsIt">
@@ -476,31 +440,9 @@
     </section>
   </section>
 
-  <form role='dialog' data-type='confirm' id='offline-error-dialog'>
-    <section>
-      <h1 data-l10n-id='offline-dialog-title'>You must be connected to the Internet to view the page.</h1>
-      <p><small data-l10n-id='offline-dialog-text'>Please go back and connect to
-        the Internet. You can also view the page later from Settings or by
-        entering {{url}} in any browser.</small></p>
-      <menu>
-        <button class='full' data-l10n-id='OK'>OK</button>
-      </menu>
-    </section>
-  </form>
-
-  <section id="loading-overlay" role="region" class="view">
-    <article class="loading-container">
-      <header class="loading-header" data-l10n-id="simContacts-importing">
-        Importing SIM contacts…
-      </header>
-      <p class="loading-icon" role="status">
-        <progress></progress>
-      </p>
-    </article>
-  </section>
-
   <iframe id="fb-curtain" src="/facebook/curtain.html"></iframe>
   <iframe id="fb-oauth" hidden src="/facebook/fb_oauth.html"></iframe>
   <iframe id="fb-extensions"></iframe>
 </body>
 </html>
+

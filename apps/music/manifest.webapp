@@ -9,18 +9,7 @@
   },
   "permissions": {
     "device-storage:music":{ "access": "readwrite" },
-    "settings":{ "access": "readonly" },
-    "audio-channel-content":{}
-  },
-  "activities": {
-    "open": {
-      "filters": {
-        "type": ["audio/mpeg", "audio/ogg", "audio/mp4"]
-       },
-      "disposition": "inline",
-      "returnValue": true,
-      "href": "/open.html"
-    }
+    "settings":{ "access": "readonly" }
   },
   "locales": {
     "ar": {

@@ -5,7 +5,7 @@ function Scroll(el, options, hasFixedPositioning){
 }
 
 function NativeScroll(el, _options){
-    var self = this, onScrollEndTimeout, isScrolling = false,
+    var _this = this, onScrollEndTimeout, isScrolling = false,
         isTouch = ('ontouchstart' in window);
         
     var options = {
@@ -14,7 +14,7 @@ function NativeScroll(el, _options){
     };
         
     // init
-    (function NativeScrollClosure(){
+    (function(){
         // override defaults
         for (i in _options) { options[i] = _options[i] }
         
@@ -31,9 +31,9 @@ function NativeScroll(el, _options){
         options.onScrollMove && el.addEventListener("scroll", options.onScrollMove, false);
     })();
     
-    this.y = 0; // holds el.scrollTop
+    _this.y = 0; // holds el.scrollTop
     
-    this.refresh = function refresh(){};
+    this.refresh = function(){};
     
     function onScrollStart(){
         // save state
@@ -51,12 +51,12 @@ function NativeScroll(el, _options){
         !isScrolling && onScrollStart();
         
         // update y
-        self.y = el.scrollTop*-1;
+        _this.y = el.scrollTop*-1;
         
         // determine scrollEnd
         if (!isTouch){
             onScrollEndTimeout && clearTimeout(onScrollEndTimeout);        
-            onScrollEndTimeout = setTimeout(function onTimeout(){
+            onScrollEndTimeout = setTimeout(function(){
                 onScrollEnd();
             }, 100);
         }

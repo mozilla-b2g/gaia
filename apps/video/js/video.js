@@ -6,14 +6,11 @@ var ids = ['player', 'thumbnails', 'overlay', 'overlay-title',
            'overlay-text', 'videoControls', 'videoFrame', 'videoBar',
            'close', 'play', 'playHead', 'timeSlider', 'elapsedTime',
            'video-title', 'duration-text', 'elapsed-text', 'bufferedTime',
-           'slider-wrapper', 'throbber', 'delete-video-button',
-           'delete-confirmation-button'];
+           'slider-wrapper', 'throbber', 'delete-video-button'];
 
 ids.forEach(function createElementRef(name) {
   dom[toCamelCase(name)] = document.getElementById(name);
 });
-
-dom.player.mozAudioChannelType = 'content';
 
 var playing = false;
 
@@ -42,6 +39,10 @@ var THUMBNAIL_HEIGHT = 160;
 // Enumerating the readyState for html5 video api
 var HAVE_NOTHING = 0;
 
+var activityData; // From an activity call
+var pendingActivity;
+var appStarted = false;
+
 var storageState;
 var currentOverlay;
 
@@ -62,6 +63,9 @@ function init() {
     storageState = false;
     updateDialog();
     createThumbnailList();
+    if (activityData) {
+      startStream();
+    }
   };
 
   videodb.onscanstart = function() {
@@ -82,8 +86,7 @@ function init() {
     event.detail.forEach(videoDeleted);
   };
 
-  dom.deleteConfirmationButton.addEventListener('click',
-                                                deleteSelectedVideoFile, false);
+  appStarted = true;
 }
 
 function videoAdded(videodata) {
@@ -124,7 +127,7 @@ function videoAdded(videodata) {
 
   thumbnail.appendChild(title);
   thumbnail.appendChild(duration);
-  thumbnail.dataset.name = videodata.name;
+  thumbnail.setAttribute('data-name', videodata.name);
 
   var hr = document.createElement('hr');
   thumbnail.appendChild(hr);
@@ -140,26 +143,18 @@ function videoAdded(videodata) {
       ctxTriggered = false;
     }
   });
+
   dom.thumbnails.appendChild(thumbnail);
 }
 
-dom.thumbnails.addEventListener('contextmenu', function(evt) {
-  var node = evt.target;
-  var found = false;
-  while (!found && node) {
-    if (node.dataset.name) {
-      found = true;
-      selectedVideo = node.dataset.name;
-    } else {
-      node = node.parentNode;
-    }
-  }
+dom.thumbnails.addEventListener('contextmenu', function() {
   ctxTriggered = true;
 });
 
 function deleteSelectedVideoFile() {
   if (selectedVideo) {
     deleteFile(selectedVideo);
+    selectedVideo = null;
   }
 }
 
@@ -172,9 +167,8 @@ function deleteFile(file) {
 }
 
 function videoDeleted(filename) {
-  videoCount--;
+  videoCount -= 1;
   dom.thumbnails.removeChild(getThumbnailDom(filename));
-  updateDialog();
 }
 
 // Only called on startup to generate initial list of already
@@ -199,6 +193,11 @@ function updateDialog() {
   } else if (firstScanEnded && videoCount === 0) {
     showOverlay('empty');
   }
+}
+
+function startStream() {
+  showPlayer(activityData, true);
+  activityData = null;
 }
 
 function metaDataParser(videofile, callback, metadataError) {
@@ -237,37 +236,17 @@ function metaDataParser(videofile, callback, metadataError) {
     metadata.width = previewPlayer.videoWidth;
     metadata.height = previewPlayer.videoHeight;
 
-    function createThumbnail() {
-      captureFrame(previewPlayer, metadata, function(poster) {
-        metadata.poster = poster;
-        URL.revokeObjectURL(url);
-        completed = true;
-        previewPlayer.removeAttribute('src');
-        previewPlayer.load();
-        callback(metadata);
-      });
-    }
-
-    // If this is a .3gp video file, look for its rotation matrix and
-    // then create the thumbnail. Otherwise set rotation to 0 and
-    // create the thumbnail.
-    // getVideoRotation is defined in shared/js/media/get_video_rotation.js
-    if (/.3gp$/.test(videofile.name)) {
-      getVideoRotation(videofile, function(rotation) {
-        if (typeof rotation === 'number')
-          metadata.rotation = rotation;
-        else if (typeof rotation === 'string')
-          console.warn('Video rotation:', rotation);
-        createThumbnail();
-      });
-    } else {
-      metadata.rotation = 0;
-      createThumbnail();
-    }
+    captureFrame(previewPlayer, function(poster) {
+      metadata.poster = poster;
+      URL.revokeObjectURL(url);
+      previewPlayer.src = '';
+      completed = true;
+      callback(metadata);
+    });
   };
 }
 
-function captureFrame(player, metadata, callback) {
+function captureFrame(player, callback) {
   var skipped = false;
   var image = null;
   function doneSeeking() {
@@ -277,28 +256,7 @@ function captureFrame(player, metadata, callback) {
       var ctx = canvas.getContext('2d');
       canvas.width = THUMBNAIL_WIDTH;
       canvas.height = THUMBNAIL_HEIGHT;
-      // If a rotation is specified, rotate the canvas context
-      if ('rotation' in metadata) {
-        ctx.save();
-        switch (metadata.rotation) {
-        case 90:
-          ctx.translate(THUMBNAIL_WIDTH, 0);
-          ctx.rotate(Math.PI / 2);
-          break;
-        case 180:
-          ctx.translate(THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
-          ctx.rotate(Math.PI);
-          break;
-        case 270:
-          ctx.translate(0, THUMBNAIL_HEIGHT);
-          ctx.rotate(-Math.PI / 2);
-          break;
-        }
-      }
       ctx.drawImage(player, 0, 0, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
-      if (metadata.rotation) {
-        ctx.restore();
-      }
       image = canvas.mozGetAsFile('poster', 'image/jpeg');
     } catch (e) {
       console.error('Failed to create a poster image:', e);
@@ -360,6 +318,12 @@ function setVideoPlaying(playing) {
   }
 }
 
+function completeActivity(deleteVideo) {
+  pendingActivity.postResult({delete: deleteVideo});
+  pendingActivity = null;
+  dom.thumbnails.classList.remove('hidden');
+}
+
 function playerMousedown(event) {
   // If we interact with the controls before they fade away,
   // cancel the fade
@@ -385,69 +349,19 @@ function playerMousedown(event) {
   }
 }
 
-// Make the video fit the container
-function setPlayerSize() {
-  var containerWidth = window.innerWidth;
-  var containerHeight = window.innerHeight;
-
-  // Don't do anything if we don't know our size.
-  // This could happen if we get a resize event before our metadata loads
-  if (!dom.player.videoWidth || !dom.player.videoHeight)
-    return;
-
-  var width, height; // The size the video will appear, after rotation
-  var rotation = 'metadata' in currentVideo ?
-    currentVideo.metadata.rotation : 0;
-
-  switch (rotation) {
-  case 0:
-  case 180:
-    width = dom.player.videoWidth;
-    height = dom.player.videoHeight;
-    break;
-  case 90:
-  case 270:
-    width = dom.player.videoHeight;
-    height = dom.player.videoWidth;
-  }
-
-  var xscale = containerWidth / width;
-  var yscale = containerHeight / height;
+// Make the video fit the screen
+function setPlayerSize(videoWidth, videoHeight) {
+  var xscale = window.innerWidth / videoWidth;
+  var yscale = window.innerHeight / videoHeight;
   var scale = Math.min(xscale, yscale);
-
-  // scale large videos down and scale small videos up
-  // this might result in lower image quality for small videos
-  width *= scale;
-  height *= scale;
-
-  var left = ((containerWidth - width) / 2);
-  var top = ((containerHeight - height) / 2);
-
-  var transform;
-  switch (rotation) {
-  case 0:
-    transform = 'translate(' + left + 'px,' + top + 'px)';
-    break;
-  case 90:
-    transform =
-      'translate(' + (left + width) + 'px,' + top + 'px) ' +
-      'rotate(90deg)';
-    break;
-  case 180:
-    transform =
-      'translate(' + (left + width) + 'px,' + (top + height) + 'px) ' +
-      'rotate(180deg)';
-    break;
-  case 270:
-    transform =
-      'translate(' + left + 'px,' + (top + height) + 'px) ' +
-      'rotate(270deg)';
-    break;
-  }
-
-  transform += ' scale(' + scale + ')';
-
-  dom.player.style.transform = transform;
+  var width = videoWidth * scale;
+  var height = videoHeight * scale;
+  var left = (window.innerWidth - width) / 2;
+  var top = (window.innerHeight - height) / 2;
+  dom.player.style.width = width + 'px';
+  dom.player.style.height = height + 'px';
+  dom.player.style.left = left + 'px';
+  dom.player.style.top = top + 'px';
 }
 
 function setVideoUrl(player, video, callback) {
@@ -499,7 +413,7 @@ function showPlayer(data, autoPlay) {
     dom.videoFrame.classList.remove('hidden');
     dom.play.classList.remove('paused');
     playerShowing = true;
-    setPlayerSize();
+    setPlayerSize(dom.player.videoWidth, dom.player.videoHeight);
 
     if ('name' in currentVideo && /^DCIM/.test(currentVideo.name)) {
       dom.deleteVideoButton.classList.remove('hidden');
@@ -549,7 +463,7 @@ function hidePlayer() {
 
   // Record current information about played video
   video.metadata.currentTime = dom.player.currentTime;
-  captureFrame(dom.player, currentVideo.metadata, function(poster) {
+  captureFrame(dom.player, function(poster) {
     currentVideo.metadata.poster = poster;
     dom.player.currentTime = 0;
 
@@ -581,9 +495,14 @@ function playerEnded() {
     clearTimeout(endedTimer);
     endedTimer = null;
   }
-
-  dom.player.currentTime = 0;
-  document.mozCancelFullScreen();
+  if (pendingActivity) {
+    pause();
+    dom.player.currentTime = 0;
+    setControlsVisibility(true);
+  } else {
+    dom.player.currentTime = 0;
+    document.mozCancelFullScreen();
+  }
 }
 
 function play() {
@@ -682,8 +601,6 @@ function dragSlider(e) {
 
     dragging = false;
 
-    dom.playHead.classList.remove('active');
-
     if (dom.player.currentTime === dom.player.duration) {
       pause();
     } else if (!isPaused) {
@@ -694,7 +611,6 @@ function dragSlider(e) {
   function mousemoveHandler(event) {
     var pos = position(event);
     var percent = pos * 100 + '%';
-    dom.playHead.classList.add('active');
     dom.playHead.style.left = percent;
     dom.elapsedTime.style.width = percent;
     dom.player.currentTime = dom.player.duration * pos;
@@ -736,6 +652,33 @@ function formatDuration(duration) {
   return '';
 }
 
+function actHandle(activity) {
+  var data = activity.source.data;
+  var title = 'extras' in data ? (data.extras.title || '') : '';
+  switch (activity.source.name) {
+  case 'open':
+    // Activities are required to specify whether they are inline in the manifest
+    // so we know we are inline, dont bother showing thumbnails
+    dom.thumbnails.classList.add('hidden');
+    pendingActivity = activity;
+    var filename = data.src.replace(/^ds\:videos:\/\//, '');
+    activityData = {
+      fromMediaDB: false,
+      name: filename,
+      title: title
+    }
+    break;
+  case 'view':
+    activityData = {
+      url: data.url,
+      title: title
+    };
+    break;
+  }
+  if (appStarted) {
+    startStream();
+  }
+}
 
 // The mozRequestFullScreen can fail silently, so we keep asking
 // for full screen until we detect that it happens, We limit the
@@ -749,10 +692,18 @@ function requestFullScreen(callback) {
     if (++requests > MAX_FULLSCREEN_REQUESTS) {
       window.clearInterval(fullscreenTimer);
       fullscreenTimer = null;
+      if (pendingActivity) {
+        pendingActivity.postError('Could not play video');
+        pendingActivity = null;
+      }
       return;
     }
     dom.videoFrame.mozRequestFullScreen();
   }, 500);
+}
+
+if (window.navigator.mozSetMessageHandler) {
+  window.navigator.mozSetMessageHandler('activity', actHandle);
 }
 
 // When we exit fullscreen mode, stop playing the video.
@@ -763,7 +714,11 @@ function requestFullScreen(callback) {
 document.addEventListener('mozfullscreenchange', function() {
   // We have exited fullscreen
   if (document.mozFullScreenElement === null) {
-    hidePlayer();
+    if (pendingActivity) {
+      completeActivity(false);
+    } else {
+      hidePlayer();
+    }
     return;
   }
 
@@ -794,7 +749,7 @@ dom.videoControls.addEventListener('mousedown', playerMousedown);
 // orientation changes and when we go into fullscreen
 window.addEventListener('resize', function() {
   if (dom.player.readyState !== HAVE_NOTHING) {
-    setPlayerSize();
+    setPlayerSize(dom.player.videoWidth, dom.player.videoHeight);
   }
 });
 

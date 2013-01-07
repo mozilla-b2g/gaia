@@ -233,9 +233,6 @@ body {
   left: 0;
   top: 20px;
 
-  /* Need to leave this in here to prevent flickering. */
-  transform: scale(1);
-
 /*
  * Do not specify height/width here! They should go to
  * Window.prototype.resize() in window_manager.js
@@ -260,7 +257,7 @@ body {
 }
 
 #windows > iframe.appWindow:not(.homescreen).default-background {
-  background: url('/shared/resources/branding/splash_screen_generic.png') center center no-repeat #fff;
+  background: url('./images/splash_screen_generic.png') center center no-repeat #fff;
 }
 
 #windows > iframe.appWindow:not(.active):not(.homescreen):not(.opening):not(.closing) {
@@ -359,7 +356,6 @@ body {
   top: 0;
 }
 
-#screen.attention > #windows > iframe.appWindow.fullscreen-app,
 #screen.attention > #windowSprite,
 #screen.fullscreen-app.attention > #windowSprite {
   height: calc(100% - 40px);
@@ -535,8 +531,15 @@ iframe.backgroundWindow {
   Styles for FTU starting
 */
 
-#screen.ftu > [data-z-index-level="app"] > iframe.appWindow.homescreen,
-#screen.ftu > [data-z-index-level="app"] > iframe.appWindow.homescreen.active {
+#screen.ftu > [data-z-index-level="statusbar"]{
+  z-index: 1;
+}
+
+#screen.ftu > [data-z-index-level="lockscreen"]{
+  z-index: 1;
+}
+
+#screen.ftu > [data-z-index-level="app"] > iframe.appWindow.homescreen {
   opacity: 0;
 }
 

@@ -1,10 +1,12 @@
-Evme.Searchbar = new function Evme_Searchbar() {
-    var NAME = "Searchbar", self = this,
-        el = null, elForm = null, elClear = null, elDefaultText = null,
+Evme.Searchbar = new function() {
+    var _name = "Searchbar", _this = this,
+        $el = null, $form = null, $clear = null, $defaultText = null,
         value = "", isFocused = false,
         timeoutSearchOnBackspace = null, timeoutPause = null, timeoutIdle = null,
-        intervalPolling = null,
+        intervalPolling = null;
         
+    var DEFAULT_TEXT = "FROM CONFIG",
+        BUTTON_CLEAR = "FROM CONFIG",
         SEARCHBAR_POLLING_INTERVAL = 300,
         TIMEOUT_BEFORE_SEARCHING_ON_BACKSPACE = 500,
         TIMEOUT_BEFORE_SENDING_PAUSE_EVENT = "FROM CONFIG",
@@ -14,56 +16,67 @@ Evme.Searchbar = new function Evme_Searchbar() {
         BACKSPACE_KEY_CODE = 8,
         DELETE_KEY_CODE = 46;
 
-    this.init = function init(options) {
+    this.init = function(options) {
         !options && (options = {});
         
-        el = options.el;
-        elDefaultText = options.elDefaultText;
-        elForm = options.elForm;
+        $el = options.$el;
+        $defaultText = options.$defaultText;
+        $form = options.$form;
         
-        if (typeof options.setFocusOnClear === "boolean") {
+        if (typeof options.setFocusOnClear == "boolean") {
             SET_FOCUS_ON_CLEAR = options.setFocusOnClear;
         }
         
-        elForm.addEventListener("submit", function oSubmit(e){
+        $form.bind("submit", function(e){
             e.preventDefault();
             e.stopPropagation();
-            cbReturnPressed(e, el.value);
+            cbReturnPressed(e, $el.val());
         });
+        
+        DEFAULT_TEXT = options.texts.defaultText;
+        if (DEFAULT_TEXT) {
+            $defaultText.html(DEFAULT_TEXT);
+        }
+        BUTTON_CLEAR = options.texts.clear;
         
         TIMEOUT_BEFORE_SENDING_PAUSE_EVENT = options.timeBeforeEventPause;
         TIMEOUT_BEFORE_SENDING_IDLE_EVENT = options.timeBeforeEventIdle;
         
-        el.addEventListener("focus", cbFocus);
-        el.addEventListener("blur", cbBlur);
-        el.addEventListener("keydown", inputKeyDown);
-        el.addEventListener("keyup", inputKeyUp);
-        
-        var elButtonClear = Evme.$("#button-clear");
-        elButtonClear.addEventListener("touchstart", function onTouchStart(e){
+        $("#button-clear").html(BUTTON_CLEAR).bind("touchstart", function(e){
             e.preventDefault();
             e.stopPropagation();
             clearButtonClick();
-        });
+        }).bind("click", clearButtonClick);
         
-        Evme.EventHandler.trigger(NAME, "init");
+        _this.bindEvents($el, cbFocus, inputKeyDown, inputKeyUp);
+            
+        $el.bind("blur", cbBlur);
+
+        Evme.EventHandler.trigger(_name, "init");
     };
     
-    this.getValue = function getValue() {
+    this.bindEvents = function($el, cbFocus, inputKeyDown, inputKeyUp){
+        $el.bind("focus", cbFocus);
+        
+        $el.bind("keydown", inputKeyDown)
+           .bind("keyup", inputKeyUp);
+    };
+
+    this.getValue = function() {
         return value;
     };
     
-    this.setValue = function setValue(newValue, bPerformSearch, bDontBlur) {
-        if (newValue !== "") {
-            self.showClearButton();
+    this.setValue = function(_value, bPerformSearch, bDontBlur) {
+        if (_value != "") {
+            _this.showClearButton();
         }
         
-        if (value !== newValue) {
-            value = newValue;
-            el.value = value;
+        if (value !== _value) {
+            value = _value;
+            $el.val(value);
 
             if (bPerformSearch) {
-                if (value === "") {
+                if (value == "") {
                     cbEmpty();
                 } else {
                     cbValueChanged(value);
@@ -71,70 +84,68 @@ Evme.Searchbar = new function Evme_Searchbar() {
             }
 
             if (!bDontBlur) {
-                self.blur();
+                _this.blur();
             }
         }
     };
 
-    this.clear = function clear() {
-        self.hideClearButton();
+    this.clear = function() {
+        _this.hideClearButton();
         value = "";
-        el.value = "";
+        $el[0].value = "";
     };
 
-    this.focus = function focus() {
-        if (isFocused) {
-            return;
-        }
+    this.focus = function() {
+        if (isFocused) return;
         
-        el.focus();
+        $el[0].focus();
         cbFocus();
     };
 
-    this.blur = function blur(e) {
+    this.blur = function(e) {
         if (!isFocused) return;
         
-        el.blur();
+        $el[0].blur();
         cbBlur(e);
     };
     
-    this.getElement = function getElement() {
-        return el;
+    this.getElement = function() {
+        return $el;
     };
 
-    this.startRequest = function startRequest() {
+    this.startRequest = function() {
         pending = true;
     };
 
-    this.endRequest = function endRequest() {
+    this.endRequest = function() {
         pending = false;
     };
 
-    this.isWaiting = function isWaiting() {
+    this.isWaiting = function() {
         return pending;
     };
     
-    this.hideClearButton = function hideClearButton() {
-        Evme.$("#search-header").classList.remove("clear-visible");
+    this.hideClearButton = function() {
+        $("#search-header").removeClass("clear-visible");
     };
     
-    this.showClearButton = function showClearButton() {
-        Evme.$("#search-header").classList.add("clear-visible");
+    this.showClearButton = function() {
+        $("#search-header").addClass("clear-visible");
     };
     
     function clearButtonClick() {
-        self.setValue("", false, true);
+        _this.setValue("", false, true);
         
         if (SET_FOCUS_ON_CLEAR) {
-            el.focus();
+            $el.focus();
         }
         
-        window.setTimeout(function onTimeout(){
+        window.setTimeout(function(){
             cbClear();
             cbEmpty();
         }, 0);
         
-        Evme.EventHandler.trigger(NAME, "clearButtonClick");
+        Evme.EventHandler.trigger(_name, "clearButtonClick");
     }
     
     function inputKeyDown(e) {
@@ -150,19 +161,19 @@ Evme.Searchbar = new function Evme_Searchbar() {
     }
     
     function inputKeyUp(e) {
-        var currentValue = el.value;
+        var _value = $el.val();
         
-        if (currentValue !== value) {
-            value = currentValue;
+        if (_value !== value) {
+            value = _value;
 
-            if (value === "") {
+            if (value == "") {
                 timeoutSearchOnBackspace && window.clearTimeout(timeoutSearchOnBackspace);
                 cbEmpty();
             } else {
-                self.showClearButton();
-                if (e.keyCode === BACKSPACE_KEY_CODE) {
+                _this.showClearButton();
+                if (e.keyCode == BACKSPACE_KEY_CODE) {
                     timeoutSearchOnBackspace && window.clearTimeout(timeoutSearchOnBackspace);
-                    timeoutSearchOnBackspace = window.setTimeout(function onTimeout(){
+                    timeoutSearchOnBackspace = window.setTimeout(function(){
                         cbValueChanged(value);
                     }, TIMEOUT_BEFORE_SEARCHING_ON_BACKSPACE);
                 } else {
@@ -170,7 +181,7 @@ Evme.Searchbar = new function Evme_Searchbar() {
                 }
             }
         } else {
-            if (e.keyCode === RETURN_KEY_CODE) {
+            if (e.keyCode == RETURN_KEY_CODE) {
                 cbReturnPressed(e, value);
             }
         }
@@ -181,7 +192,7 @@ Evme.Searchbar = new function Evme_Searchbar() {
          // Setting timeout because otherwise the value of the input is the one
          // before the paste.
          //
-        window.setTimeout(function onTimeout(){
+        window.setTimeout(function(){
             inputKeyUp({
                 "keyCode": ""
             });
@@ -192,60 +203,55 @@ Evme.Searchbar = new function Evme_Searchbar() {
         timeoutPause = window.setTimeout(cbPause, TIMEOUT_BEFORE_SENDING_PAUSE_EVENT);
         timeoutIdle = window.setTimeout(cbIdle, TIMEOUT_BEFORE_SENDING_IDLE_EVENT);
         
-        Evme.EventHandler.trigger(NAME, "valueChanged", {
+        Evme.EventHandler.trigger(_name, "valueChanged", {
             "value": val
         });
     }
     
     function cbEmpty() {
-        self.hideClearButton();
-        Evme.EventHandler.trigger(NAME, "empty", {
-            "sourceObjectName": NAME
+        _this.hideClearButton();
+        Evme.EventHandler.trigger(_name, "empty", {
+            "sourceObjectName": _name
         });
     }
     
     function cbReturnPressed(e, val) {
-        Evme.EventHandler.trigger(NAME, "returnPressed", {
+        Evme.EventHandler.trigger(_name, "returnPressed", {
             "e": e,
             "value": val
         });
     }
     
     function cbClear() {
-        Evme.EventHandler.trigger(NAME, "clear");
+        Evme.EventHandler.trigger(_name, "clear");
     }
     
     function cbFocus(e) {
-        if (isFocused) {
-            return;
-        }
+        if (isFocused) return;
         isFocused = true;
         
-        Evme.Brain && Evme.Brain[NAME].onfocus({
+        Evme.Brain && Evme.Brain[_name].onfocus({
             "e": e
         });
     }
     
     function cbBlur(e) {
-        if (!isFocused) {
-            return;
-        }
-        
+        if (!isFocused) return;
         isFocused = false;
         
-        Evme.Brain && Evme.Brain[NAME].onblur({
+        Evme.Brain && Evme.Brain[_name].onblur({
             "e": e
         });
     }
     
     function cbPause(e) {
-        Evme.EventHandler.trigger(NAME, "pause", {
+        Evme.EventHandler.trigger(_name, "pause", {
             "query": value
         });
     }
     
     function cbIdle(e) {
-        Evme.EventHandler.trigger(NAME, "idle", {
+        Evme.EventHandler.trigger(_name, "idle", {
             "query": value
         });
     }

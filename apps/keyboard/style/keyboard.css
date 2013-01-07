@@ -17,10 +17,6 @@
   padding: 0;
 }
 
-html {
-  pointer-events: none;
-}
-
 body {
   overflow: hidden;
 }
@@ -39,7 +35,6 @@ button::-moz-focus-inner {
   overflow: hidden;
   width: 0;
   height: 0;
-  display: none;
 }
 
 /* Keyboard */
@@ -50,7 +45,11 @@ button::-moz-focus-inner {
   width: 100%;
   background: #6a6f73;
   border-top: solid 1px #000;
-  pointer-events: auto;
+  -moz-transition: -moz-transform 0.3s ease;
+}
+
+#keyboard.hide{
+  -moz-transform: translateY(100%);
 }
 
 /* Rows */
@@ -136,10 +135,6 @@ button::-moz-focus-inner {
   background: url(images/dark-alpha.png) repeat left top;
   border-radius: 0.6rem;
 }
-.keyboard-key:not(.special-key).highlighted:last-child > .visual-wrapper:after {
-  right: -0.2rem;
-  border-radius: 0.6rem 0 0 0.6rem; 
-}
 .keyboard-key:not(.special-key).highlighted > .visual-wrapper:before {
   content: "";
   position: absolute;
@@ -174,10 +169,6 @@ button::-moz-focus-inner {
   z-index: -1;
   background: url(images/dark-alpha.png) repeat left top;
   border-radius: 0.6rem;
-}
-.keyboard-key:not(.special-key).highlighted:last-child > .visual-wrapper > span:after {
-  right: -0.2rem;
-  border-radius: 0.6rem 0 0 0.6rem;
 }
 
 .keyboard-key:not(.special-key).highlighted:last-child  > .visual-wrapper > span {

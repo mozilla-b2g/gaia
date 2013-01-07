@@ -25,7 +25,7 @@ var Browser = {
   AWESOME_SCREEN: 'awesome-screen',
   SETTINGS_SCREEN: 'settings-screen',
   previousScreen: null,
-  currentScreen: 'page-screen',
+  currentScreen: this.PAGE_SCREEN,
 
   DEFAULT_SEARCH_PROVIDER_URL: 'm.bing.com',
   DEFAULT_SEARCH_PROVIDER_TITLE: 'Bing',
@@ -63,8 +63,9 @@ var Browser = {
     this.urlInput.addEventListener('mouseup', this.urlMouseUp.bind(this));
     this.urlInput.addEventListener('keyup',
       this.handleUrlInputKeypress.bind(this));
-    this.tabPanels.addEventListener('click', this.followLink.bind(this));
-    this.results.addEventListener('click', this.followLink.bind(this));
+    this.topSites.addEventListener('click', this.followLink.bind(this));
+    this.bookmarks.addEventListener('click', this.followLink.bind(this));
+    this.history.addEventListener('click', this.followLink.bind(this));
     this.urlButton.addEventListener('click',
       this.handleUrlFormSubmit.bind(this));
     this.tabsBadge.addEventListener('click',
@@ -79,7 +80,7 @@ var Browser = {
     this.newTabButton.addEventListener('click', this.handleNewTab.bind(this));
     this.settingsDoneButton.addEventListener('click',
       this.showPageScreen.bind(this));
-    this.aboutBrowserButton.addEventListener('click',
+    this.aboutFirefoxButton.addEventListener('click',
       this.showAboutPage.bind(this));
     this.clearHistoryButton.addEventListener('click',
       this.handleClearHistory.bind(this));
@@ -128,7 +129,7 @@ var Browser = {
 
     this.handleWindowResize();
 
-    ModalDialog.init();
+    ModalDialog.init(false);
     AuthenticationDialog.init(false);
 
     // Load homepage once Places is initialised
@@ -161,14 +162,14 @@ var Browser = {
       'bookmarks-tab', 'history-tab', 'back-button', 'forward-button',
       'bookmark-button', 'ssl-indicator', 'tabs-badge', 'throbber', 'frames',
       'tabs-list', 'main-screen', 'settings-button', 'settings-done-button',
-      'about-browser-button', 'clear-history-button', 'crashscreen',
+      'about-firefox-button', 'clear-history-button', 'crashscreen',
       'close-tab', 'try-reloading', 'bookmark-menu', 'bookmark-menu-add',
       'bookmark-menu-remove', 'bookmark-menu-cancel', 'bookmark-menu-edit',
       'bookmark-entry-sheet', 'bookmark-entry-sheet-cancel',
       'bookmark-entry-sheet-done', 'bookmark-title', 'bookmark-url',
       'bookmark-previous-url', 'bookmark-menu-add-home', 'new-tab-button',
       'awesomescreen-cancel-button', 'startscreen', 'top-site-thumbnails',
-      'no-top-sites', 'clear-private-data-button', 'results', 'tab-panels'];
+      'no-top-sites', 'clear-private-data-button', 'results'];
 
     // Loop and add element with camel style name to Modal Dialog attribute.
     elementIDs.forEach(function createElementRef(name) {
@@ -180,7 +181,7 @@ var Browser = {
     console.log('Populating default data.');
     // Fetch default data
     var xhr = new XMLHttpRequest();
-    xhr.open('GET', '/js/init.json', true);
+    xhr.open('GET', '/default_data/init.json', true);
     xhr.addEventListener('load', (function browser_defaultDataListener() {
       if (!(xhr.status === 200 | xhr.status === 0))
         return;
@@ -278,9 +279,7 @@ var Browser = {
           return;
         }
         // If address bar is hidden then show it
-        if (this.addressBarState === this.HIDDEN) {
-          this.showAddressBar();
-        }
+        this.mainScreen.classList.remove('address-hidden');
         tab.loading = true;
         if (isCurrentTab && this.currentScreen === this.PAGE_SCREEN) {
           this.throbber.classList.add('loading');
@@ -431,42 +430,34 @@ var Browser = {
 
   handleScroll: function browser_handleScroll(evt) {
     if (evt.detail.top < this.LOWER_SCROLL_THRESHOLD) {
-      if (this.addressBarState === this.VISIBLE ||
-          this.addressBarState === this.TRANSITIONING) {
+      if (this.addressBarState == this.VISIBLE ||
+        this.addressBarState == this.TRANSITIONING) {
         return;
       }
-      this.showAddressBar();
+      var addressBarVisible = (function browser_addressBarVisible() {
+        this.mainScreen.classList.remove('expanded');
+        this.addressBarState = this.VISIBLE;
+        this.mainScreen.removeEventListener('transitionend',
+          addressBarVisible);
+      }).bind(this);
+      this.mainScreen.addEventListener('transitionend', addressBarVisible);
+      this.addressBarState = this.TRANSITIONING;
+      this.mainScreen.classList.remove('address-hidden');
     } else if (evt.detail.top > this.UPPER_SCROLL_THRESHOLD) {
-      if (this.addressBarState === this.HIDDEN ||
-          this.addressBarState === this.TRANSITIONING) {
+      if (this.addressBarState == this.HIDDEN ||
+        this.addressBarState == this.TRANSITIONING) {
         return;
       }
-      this.hideAddressBar();
+      var addressBarHidden = (function browser_addressBarHidden() {
+        this.addressBarState = this.HIDDEN;
+        this.mainScreen.removeEventListener('transitionend',
+          addressBarHidden);
+      }).bind(this);
+      this.mainScreen.classList.add('expanded');
+      this.addressBarState = this.TRANSITIONING;
+      this.mainScreen.addEventListener('transitionend', addressBarHidden);
+      this.mainScreen.classList.add('address-hidden');
     }
-  },
-
-  hideAddressBar: function browser_hideAddressBar() {
-    var addressBarHidden = (function browser_addressBarHidden() {
-      this.addressBarState = this.HIDDEN;
-      this.mainScreen.removeEventListener('transitionend', addressBarHidden);
-    }).bind(this);
-    this.mainScreen.addEventListener('transitionend', addressBarHidden);
-    this.addressBarState = this.TRANSITIONING;
-    this.mainScreen.classList.add('expanded');
-    this.mainScreen.clientTop;
-    this.mainScreen.classList.add('address-hidden');
-  },
-
-  showAddressBar: function browser_showAddressBar() {
-    var addressBarVisible = (function browser_addressBarVisible() {
-      this.mainScreen.classList.remove('expanded');
-      this.addressBarState = this.VISIBLE;
-      this.mainScreen.removeEventListener('transitionend', addressBarVisible);
-    }).bind(this);
-    this.mainScreen.addEventListener('transitionend', addressBarVisible);
-    this.addressBarState = this.TRANSITIONING;
-    this.mainScreen.clientTop;
-    this.mainScreen.classList.remove('address-hidden');
   },
 
   handleUrlInputKeypress: function browser_handleUrlInputKeypress(evt) {
@@ -819,14 +810,31 @@ var Browser = {
     this.bookmarksTab.classList.remove('selected');
     this.history.classList.remove('selected');
     this.historyTab.classList.remove('selected');
+    this.results.classList.remove('selected');
+  },
+
+  showAwesomescreenTabs: function browser_showAwesomescreenTabs() {
+    this.topSites.style.display = '';
+    this.bookmarks.style.display = '';
+    this.history.style.display = '';
+    this.tabHeaders.style.display = '';
+  },
+
+  hideAwesomescreenTabs: function browser_hideAwesomescreenTabs() {
+    this.topSites.style.display = 'none';
+    this.bookmarks.style.display = 'none';
+    this.history.style.display = 'none';
+    this.tabHeaders.style.display = 'none';
   },
 
   updateAwesomeScreen: function browser_updateAwesomeScreen(filter) {
     if (!filter) {
-      this.results.classList.add('hidden');
+      this.showAwesomescreenTabs();
+      this.results.classList.remove('selected');
       filter = false;
     } else {
-      this.results.classList.remove('hidden');
+      this.hideAwesomescreenTabs();
+      this.results.classList.add('selected');
     }
     Places.getTopSites(20, filter, this.showResults.bind(this));
   },
@@ -969,7 +977,7 @@ var Browser = {
 
   drawHistoryHeading: function browser_drawHistoryHeading(threshold,
     timestamp) {
-    var LABELS = [
+    const LABELS = [
       'future',
       'today',
       'yesterday',
@@ -1323,6 +1331,7 @@ var Browser = {
     if (length == 1)
       places.push({uri: '', title: ''});
 
+    var self = this;
     places.forEach(function processPlace(place) {
       var thumbnail = document.createElement('li');
       var link = document.createElement('a');
@@ -1330,11 +1339,9 @@ var Browser = {
       link.href = place.uri;
       title.textContent = place.title ? place.title : place.uri;
 
-      if (place.screenshot) {
-        var objectURL = URL.createObjectURL(place.screenshot);
-        this._topSiteThumbnailObjectURLs.push(objectURL);
-        link.style.backgroundImage = 'url(' + objectURL + ')';
-      }
+      var objectURL = URL.createObjectURL(place.screenshot);
+      self._topSiteThumbnailObjectURLs.push(objectURL);
+      link.style.backgroundImage = 'url(' + objectURL + ')';
 
       thumbnail.appendChild(link);
       thumbnail.appendChild(title);
@@ -1343,7 +1350,6 @@ var Browser = {
   },
 
   showAwesomeScreen: function browser_showAwesomeScreen() {
-    this.results.classList.add('hidden');
     this.tabsBadge.innerHTML = '';
     // Ensure the user cannot interact with the browser until the
     // transition has ended, this will not be triggered unless the
@@ -1355,6 +1361,7 @@ var Browser = {
     this.mainScreen.addEventListener('transitionend', pageShown, true);
     this.switchScreen(this.AWESOME_SCREEN);
     this.setUrlButtonMode(this.GO);
+    this.showAwesomescreenTabs();
     this.showTopSitesTab();
   },
 
@@ -1409,8 +1416,8 @@ var Browser = {
     });
     this._tabScreenObjectURLs = [];
 
-    for (var tab in this.tabs) {
-      var li = this.generateTabLi(this.tabs[tab], multipleTabs);
+    for each(var tab in this.tabs) {
+      var li = this.generateTabLi(tab, multipleTabs);
       ul.appendChild(li);
     }
 
@@ -1484,17 +1491,16 @@ var Browser = {
           this.showTopSiteThumbnails.bind(this));
 
         var self = this;
-        var tabIds = Object.keys(this.tabs);
-        tabIds.forEach(function(tabId) {
-          var tab = self.tabs[tabId];
+        for each(var tab in this.tabs) {
           if (tab.dom.purgeHistory) {
-            tab.dom.purgeHistory().onsuccess = function(e) {
-              if (tab == self.currentTab) {
+            tab.dom.purgeHistory().onsuccess = (function(e) {
+              if (self.tabs[tabId] == self.currentTab) {
                 self.refreshButtons();
               }
-            };
+            });
           }
-        });
+        }
+
       }).bind(this));
 
       this.history.innerHTML = '';

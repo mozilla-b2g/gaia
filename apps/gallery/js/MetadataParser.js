@@ -26,7 +26,7 @@ var metadataParsers = (function() {
   // cropping the edges as needed to make it fit, and then extract the
   // thumbnail image as a blob and pass it to the callback.
   // This utility function is used by both the image and video metadata parsers
-  function createThumbnailFromElement(elt, video, rotation, callback) {
+  function createThumbnailFromElement(elt, video, callback) {
     // Create a thumbnail image
     var canvas = document.createElement('canvas');
     var context = canvas.getContext('2d');
@@ -47,33 +47,9 @@ var metadataParsers = (function() {
     var x = Math.round((eltwidth - w) / 2);
     var y = Math.round((eltheight - h) / 2);
 
-    // If a rotation is specified, rotate the canvas context
-    if (rotation) {
-      context.save();
-      switch (rotation) {
-      case 90:
-        context.translate(THUMBNAIL_WIDTH, 0);
-        context.rotate(Math.PI / 2);
-        break;
-      case 180:
-        context.translate(THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
-        context.rotate(Math.PI);
-        break;
-      case 270:
-        context.translate(0, THUMBNAIL_HEIGHT);
-        context.rotate(-Math.PI / 2);
-        break;
-      }
-    }
-
     // Draw that region of the image into the canvas, scaling it down
     context.drawImage(elt, x, y, w, h,
                       0, 0, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
-
-    // Restore the default rotation so the play arrow comes out correctly
-    if (rotation) {
-      context.restore();
-    }
 
     // If this is a video, superimpose a translucent play button over
     // the captured video frame to distinguish it from a still photo thumbnail
@@ -153,7 +129,7 @@ var metadataParsers = (function() {
                                      // preview blob, then fall back on
                                      // the full-size image
                                      console.warn('Error creating thumbnail' +
-                                                  ' from preview:', errmsg);
+                                                  'from preview:', errmsg);
                                      getImageSizeAndThumbnail(file,
                                                               metadataCallback,
                                                               metadataError);
@@ -192,8 +168,13 @@ var metadataParsers = (function() {
     offscreenImage.src = url;
 
     offscreenImage.onerror = function() {
+      // XXX When launched as an inline activity this gets into a failure
+      // loop where this function is called over and over. Unsetting
+      // onerror here works around it. I don't know why the error is
+      // happening in the first place..
+      offscreenImage.onerror = null;
       URL.revokeObjectURL(url);
-      offscreenImage.removeAttribute('src');
+      offscreenImage.src = null;
       error('getImageSizeAndThumbnail: Image failed to load');
     };
 
@@ -205,7 +186,7 @@ var metadataParsers = (function() {
       // If the image was already thumbnail size, it is its own thumbnail
       if (metadata.width <= THUMBNAIL_WIDTH &&
           metadata.height <= THUMBNAIL_HEIGHT) {
-        offscreenImage.removeAttribute('src');
+        offscreenImage.src = null;
         //
         // XXX
         // Because of a gecko bug, we can't just store the image file itself
@@ -217,10 +198,10 @@ var metadataParsers = (function() {
         callback(metadata);
       }
       else {
-        createThumbnailFromElement(offscreenImage, false, 0,
+        createThumbnailFromElement(offscreenImage, false,
                                    function(thumbnail) {
                                      metadata.thumbnail = thumbnail;
-                                     offscreenImage.removeAttribute('src');
+                                     offscreenImage.src = null;
                                      callback(metadata);
                                    });
       }
@@ -254,40 +235,19 @@ var metadataParsers = (function() {
         metadata.duration = offscreenVideo.duration;
         metadata.width = offscreenVideo.videoWidth;
         metadata.height = offscreenVideo.videoHeight;
-        metadata.rotation = 0;
 
-        // If this is a .3gp video file, look for its rotation matrix and
-        // then create the thumbnail. Otherwise set rotation to 0 and
-        // create the thumbnail.
-        // getVideoRotation is defined in shared/js/media/get_video_rotation.js
-        if (file.name.substring(file.name.lastIndexOf('.') + 1) === '3gp') {
-          getVideoRotation(file, function(rotation) {
-            if (typeof rotation === 'number')
-              metadata.rotation = rotation;
-            else if (typeof rotation === 'string')
-              console.warn('Video rotation:', rotation);
-            createThumbnail();
-          });
-        }
-        else {
-          createThumbnail();
-        }
-
-        function createThumbnail() {
-          offscreenVideo.currentTime = 1; // read 1 second into video
-          offscreenVideo.onseeked = function onseeked() {
-            createThumbnailFromElement(offscreenVideo, true, metadata.rotation,
-                                       function(thumbnail) {
-                                         URL.revokeObjectURL(url);
-                                         offscreenVideo.onerror = null;
-                                         offscreenVideo.onseeked = null;
-                                         offscreenVideo.removeAttribute('src');
-                                         offscreenVideo.load();
-                                         metadata.thumbnail = thumbnail;
-                                         metadataCallback(metadata);
-                                       });
-          };
-        }
+        offscreenVideo.currentTime = 1; // read 1 second into video
+        offscreenVideo.onseeked = function() {
+          createThumbnailFromElement(offscreenVideo, true,
+                                     function(thumbnail) {
+                                       URL.revokeObjectURL(url);
+                                       offscreenVideo.onerror = null;
+                                       offscreenVideo.onseeked = null;
+                                       offscreenVideo.src = null;
+                                       metadata.thumbnail = thumbnail;
+                                       metadataCallback(metadata);
+                                     });
+        };
       };
     }
     catch (e) {

@@ -3,14 +3,14 @@
     <head>
         <title>Gaia simulator</title>
         <script>
-            var Message = new function Message() {
+            var Message = new function () {
                 var el;
                 
-                this.init = function init() {
+                this.init = function() {
                     el = document.getElementById("msg");
                 };
                 
-                this.onMessage = function onMessage(msg) {
+                this.onMessage = function(msg) {
                     if (!msg || !msg.data) {
                         alert("bad message data");
                         return;
@@ -37,7 +37,7 @@
             }
             
             window.addEventListener("message", Message.onMessage, false);
-            window.addEventListener("load", function onLoad(){
+            window.addEventListener("load", function(){
                 Message.init();
                 document.getElementById("frame").src = "http://"+location.hostname;
             }, false);

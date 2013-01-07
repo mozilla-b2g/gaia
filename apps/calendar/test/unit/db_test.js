@@ -176,7 +176,7 @@ suite('db', function() {
           var item = calendarStore.cached[list[0]];
 
           assert.ok(item);
-          assert.equal(item.remote.name, 'Offline calendar');
+          assert.equal(item.remote.name, 'Offline Calendar');
 
           var acc = calendarStore.accountFor(item);
           assert.ok(acc, 'has account');
@@ -246,106 +246,6 @@ suite('db', function() {
         });
       });
 
-    });
-  });
-
-  suite('#_upgradeAccountUrls', function() {
-    var original;
-
-    function stageData(done) {
-      var trans = subject.transaction('accounts', 'readwrite');
-      var accountStore = trans.objectStore('accounts');
-
-      // not using factory for a reason we may never change
-      // this test but the factory will change at some point
-      // we are trying to emulate old data so it should not
-      // be updated along with the factory.
-      original = {
-        custom: {
-          _id: 'custom',
-          preset: 'caldav',
-          url: '/caldavfoo'
-        },
-        yahoo: {
-          _id: 'yahoo',
-          preset: 'yahoo',
-          url: '/foo'
-        }
-      };
-
-      accountStore.put(original.yahoo);
-      accountStore.put(original.custom);
-
-      trans.onerror = function(event) {
-        done(event.target.error.name);
-      };
-
-      trans.oncomplete = function() {
-        done();
-      };
-    }
-
-    // first setup is to ensure no database exists
-    // and set its version to # 9
-    setup(function(done) {
-      this.timeout(12000);
-      subject.deleteDatabase(function(err) {
-        if (err) {
-          done(err);
-          return;
-        }
-        subject.open(11, function() {
-          stageData(function() {
-            subject.close();
-            subject.open(12, done);
-          });
-        });
-      });
-    });
-
-    teardown(function() {
-      subject.close();
-    });
-
-    test('convert url to entrypoint/calendarHome', function(done) {
-      var accounts;
-
-      var trans = subject.transaction('accounts', 'readwrite');
-      var store = trans.objectStore('accounts');
-
-      store.mozGetAll().onsuccess = function(e) {
-        var all = e.target.result;
-        var accounts = {};
-
-        all.forEach(function(item) {
-          var id = item._id;
-          accounts[item._id] = item;
-
-          assert.ok(!item.url, 'should remove url for ' + id);
-          assert.ok(item.entrypoint, 'should have entrypoint for ' + id);
-          assert.ok(item.calendarHome, 'should have calendar home for ' + id);
-
-          assert.equal(
-            item.calendarHome,
-            original[id].url,
-            'should set calendar home for: ' + id
-          );
-        });
-
-        assert.equal(
-          accounts.yahoo.entrypoint,
-          Calendar.Presets.yahoo.options.entrypoint,
-          'should set entrypoint for known providers'
-        );
-
-        assert.equal(
-          accounts.custom.entrypoint,
-          original.custom.url,
-          'should keep url as entrypoint when ungrade is unavailable'
-        );
-
-        done();
-      };
     });
   });
 
@@ -517,7 +417,7 @@ suite('db', function() {
       this.timeout(12000);
 
       Calendar.App.syncController = {
-        all: function() {
+        sync: function() {
           syncCalled = true;
         }
       };

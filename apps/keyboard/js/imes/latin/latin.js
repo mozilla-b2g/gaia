@@ -143,13 +143,12 @@
   }
 
   function deactivate() {
-    if (!worker || idleTimer)
+    if (!worker)
       return;
     idleTimer = setTimeout(function onIdleTimeout() {
       // Let's terminate the worker.
       worker.terminate();
       worker = null;
-      idleTimer = null;
     }, workerTimeout);
   }
 

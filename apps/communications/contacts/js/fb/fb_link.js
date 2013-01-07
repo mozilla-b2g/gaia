@@ -59,7 +59,6 @@ if (!fb.link) {
     // State can be proposal or view All
     var state;
     var _ = navigator.mozL10n.get;
-    var imgLoader;
 
     // Builds the first query for finding a contact to be linked to
     function buildQuery(contact) {
@@ -274,7 +273,7 @@ if (!fb.link) {
         });
 
         utils.templates.append('#friends-list', data);
-        imgLoader.reload();
+        ImageLoader.reload();
 
         Curtain.hide(sendReadyEvent);
       }
@@ -363,12 +362,9 @@ if (!fb.link) {
         });
 
         clearList();
-        
-        var fragment = document.createDocumentFragment();
-        utils.templates.append(friendsList, response.data, fragment);
-        friendsList.appendChild(fragment);
 
-        imgLoader.reload();
+        utils.templates.append(friendsList, response.data);
+        ImageLoader.reload();
 
         Curtain.hide();
       }
@@ -400,8 +396,7 @@ if (!fb.link) {
 
       setCurtainHandlers();
       clearList();
-      imgLoader = new ImageLoader('#mainContent',
-                                  "li:not([data-uuid='#uid#'])");
+      ImageLoader.init('#mainContent', "li:not([data-uuid='#uid#'])");
 
       if (!acc_tk) {
         fb.oauth.getAccessToken(function proposal_new_token(new_acc_tk) {
@@ -534,7 +529,7 @@ if (!fb.link) {
 
       clearList();
       utils.templates.append(friendsList, currentRecommendation);
-      imgLoader.reload();
+      ImageLoader.reload();
 
       return false;
     }

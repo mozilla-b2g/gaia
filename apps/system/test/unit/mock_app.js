@@ -3,8 +3,7 @@ var idGen = 0;
 function MockApp(opts) {
   /* default values */
   this.origin = 'https://testapp.gaiamobile.org';
-  this.manifestURL = 'https://testapp.gaiamobile.org/manifest' +
-                      idGen + '.webapp';
+  this.manifestURL = 'https://testapp.gaiamobile.org/manifest.webapp';
   this.manifest = {
     name: 'Mock app'
   };
@@ -16,7 +15,6 @@ function MockApp(opts) {
   this.removable = true;
   this.installState = 'installed';
   this.downloadAvailable = false;
-  this.downloadError = null;
 
   this.mId = idGen++;
   this.mDownloadCalled = false;
@@ -56,13 +54,8 @@ MockApp.prototype.mTriggerDownloadSuccess = function() {
   }
 };
 
-MockApp.prototype.mTriggerDownloadError = function(error) {
+MockApp.prototype.mTriggerDownloadError = function() {
   this.downloadAvailable = true;
-
-  this.downloadError = {
-    name: error || 'UNKNOWN_ERROR'
-  };
-
   if (this.ondownloaderror) {
     this.ondownloaderror({
         application: this

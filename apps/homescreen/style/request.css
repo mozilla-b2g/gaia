@@ -2,12 +2,12 @@ form[role="dialog"][data-type="confirm"] {
   z-index: 20001; /* just below the sleep menu */
 }
 
-#confirm-dialog {
+#delete-dialog {
   visibility: hidden;
   pointer-events: none;
 }
 
-#confirm-dialog.visible {
+#delete-dialog.visible {
   visibility: visible;
   pointer-events: auto;
 }

@@ -134,6 +134,17 @@
     -moz-transition: -moz-transform .4s ease;
     transition: transform .4s ease;
 }
+    #helper-rapper .loading {
+        position: absolute;
+        top: 17px;
+        right: 16px;
+        width: 0;
+        height: 0;
+        display: none;
+    }
+    #helper-rapper .loading.visible {
+        display: block;
+    }
     #helper ul {
         position: absolute;
         top: -3px !important;
@@ -166,7 +177,7 @@
         #helper ul li:after {
             content: "";
             position: absolute;
-            top: 12px;
+            top: 14px;
             left: -3px;
             width: 4px;
             height: 4px;

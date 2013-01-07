@@ -1,13 +1,19 @@
-Evme.Helper = new function Evme_Helper() {
-    var NAME = "Helper", self = this,
-        el = null, elWrapper = null, elTitle = null, elList = null, elTip = null,
+Evme.Helper = new function() {
+    var _name = "Helper", _this = this,
+        $el = null, $wrapper = null, $elTitle = null, $list = null, $tip = null, $loading = null,
         _data = {}, defaultText = "", iscroll = null, currentDisplayedType = "", timeoutShowRefine = null,
         queryForSuggestions = "", lastVisibleItem, clicked = false, titleVisible = false,
-        TOTAL_WIDTH_ADDITION = 20, MIN_WIDTH = 308, TYPE_ELEMENT_OFFSET = 86,
+        ITEM_WIDTH_ADDITION = 0, TOTAL_WIDTH_ADDITION = 20, MIN_WIDTH = 308, TYPE_ELEMENT_OFFSET = 86,
+        TITLE_PREFIX = "FROM CONFIG",
+        TITLE_PREFIX_EMPTY = "FROM CONFIG",
+        TITLE_SHORTCUTS = "FROM CONFIG",
+        TITLE_HISTORY = "FROM CONFIG",
+        TITLE_DID_YOU_MEAN = "FROM CONFIG",
+        TITLE_REFINE = "FROM CONFIG";
         
-        bShouldAnimate = true, ftr = {};
+    var bShouldAnimate = true, ftr = {};
            
-    this.init = function init(options) {
+    this.init = function(options) {
         !options && (options = {});        
         
         // features
@@ -17,41 +23,49 @@ Evme.Helper = new function Evme_Helper() {
             }
         }
 
-        el = options.el;
-        elTitle = options.elTitle;
-        elTip = options.elTip;
+        defaultText = options.texts.defaultText;
+        $el = options.$el;
+        $wrapper = $el.parent();
+        $elTitle = options.$elTitle;
+        $tip = options.$tip;
+        $list = $el.find("ul");
+        $loading = $wrapper.find(".loading");
         
-        elWrapper = el.parentNode;
-        elList = Evme.$("ul", el)[0];
+        TITLE_SHORTCUTS = options.texts.titleShortcuts;
+        TITLE_HISTORY = options.texts.titleHistory;
+        TITLE_DID_YOU_MEAN = options.texts.titleDidYouMean;
+        TITLE_REFINE = options.texts.titleRefine;
         
-        elList.addEventListener("click", elementClick, false);
-        elTitle.addEventListener("click", titleClicked, false);
+        TITLE_PREFIX = options.texts.titlePrefix || "Everything";
+        TITLE_PREFIX_EMPTY = options.texts.titlePrefixEmpty || TITLE_PREFIX;
+
+        $list[0].addEventListener("click", elementClick, false);
+        $elTitle[0].addEventListener("click", titleClicked, false);
         
-        self.reset();
+        _this.reset();
 
         // iscroll options
         var iscrollOptions = {
             "vScroll": false,
-            "onBeforeScrollStart": function onBeforeScrollStart(e){ e.preventDefault(); e.stopPropagation(); }
+            "onBeforeScrollStart": function(e){ e.preventDefault(); e.stopPropagation(); }
         };
         
-        iscroll = new iScroll(el, iscrollOptions);
+        iscroll = new iScroll($el[0], iscrollOptions);
         
         // feature animation disable
         if (ftr.Animation === false){
-            elWrapper.classList.add("anim-disabled");
+            $wrapper.addClass("anim-disabled");
         }
         if (ftr.Suggestions && ftr.Suggestions.Animation !== undefined){
             var c = "anim-sugg-";
                 c += ftr.Suggestions.Animation ? "enabled" : "disabled";
-                
-            elWrapper.classList.add(c);
+            $wrapper.addClass(c);
         }
 
-        Evme.EventHandler.trigger(NAME, "init");
+        Evme.EventHandler.trigger(_name, "init");
     };
     
-    this.reset = function reset() {
+    this.reset = function() {
         _data = {
             "suggestions": [],
             "spelling": [],
@@ -63,83 +77,87 @@ Evme.Helper = new function Evme_Helper() {
             }
         };
         
-        self.setTitle();
+        _this.setTitle();
     };
     
-    this.empty = function empty() {
-        elList.innerHTML = '<li class="label" ' + Evme.Utils.l10nAttr(NAME, 'default') + '></li>';
-        elList.classList.remove("default");
+    this.empty = function() {
+        $list[0].innerHTML = "";
+        $list.removeClass("default");
     };
     
-    this.clear = function clear() {
-        self.empty();
+    this.clear = function() {
+        if (defaultText) {
+            _this.showText(defaultText);
+        } else {
+            _this.empty();
+        }
         
-        Evme.EventHandler.trigger(NAME, "clear");
+        Evme.EventHandler.trigger(_name, "clear");
     };
     
-    this.getElement = function getElement() {
-        return el;
+    this.getElement = function() {
+        return $el;
     };
-    this.getList = function getList() {
-        return elList;
+    this.getList = function() {
+        return $list;
     };
     
-    this.enableCloseAnimation = function enableCloseAnimation() {
-        elWrapper.classList.add("animate");
+    this.enableCloseAnimation = function() {
+        $wrapper.addClass("animate");
     };
-    this.disableCloseAnimation = function disableCloseAnimation() {
-        elWrapper.classList.remove("animate");
+    this.disableCloseAnimation = function() {
+        $wrapper.removeClass("animate");
     };
-    this.animateLeft = function animateLeft(callback) {
-        el.classList.add("animate");
-        window.setTimeout(function onTimeout(){
-            el.style.cssText += "; -moz-transform: translateX(" + -el.offsetWidth + "px)";
-            window.setTimeout(function onTimeout(){
-                el.classList.remove("animate");
-                window.setTimeout(function onTimeout(){
+    this.animateLeft = function(callback) {
+        $el.addClass("animate");
+        window.setTimeout(function(){
+            $el.css(Evme.Utils.cssPrefix() + "transform", "translateX(-" + $el.width() + "px)");
+            window.setTimeout(function(){
+                $el.removeClass("animate");
+                window.setTimeout(function(){
                     callback && callback();
                 }, 50);
             }, 400);
         }, 50);
     };
-    this.animateRight = function animateRight(callback) {
-        el.classList.add("animate");
-        window.setTimeout(function onTimeout(){
-            el.style.cssText += "; -moz-transform: translateX(" + el.offsetWidth + "px)";
-            window.setTimeout(function onTimeout(){
-                el.classList.remove("animate");
-                window.setTimeout(function onTimeout(){
+    this.animateRight = function(callback) {
+        $el.addClass("animate");
+        window.setTimeout(function(){
+            $el.css(Evme.Utils.cssPrefix() + "transform", "translateX(" + $el.width() + "px)");
+            window.setTimeout(function(){
+                $el.removeClass("animate");
+                window.setTimeout(function(){
                     callback && callback();
                 }, 50);
             }, 400);
         }, 50);
     };
-    this.animateFromRight = function animateFromRight() {
-        el.style.cssText += "; -moz-transform: translateX(" + el.offsetWidth + "px)";
-        window.setTimeout(function onTimeout(){
-            el.classList.add("animate");
-            window.setTimeout(function onTimeout(){
-                el.style.cssText += "; -moz-transform: translateX(0)";
-                window.setTimeout(function onTimeout(){
-                    el.classList.remove("animate");
+    this.animateFromRight = function() {
+        $el.css(Evme.Utils.cssPrefix() + "transform", "translateX(" + $el.width() + "px)");
+        window.setTimeout(function(){
+            $el.addClass("animate");
+            window.setTimeout(function(){
+                $el.css(Evme.Utils.cssPrefix() + "transform", "translateX(0)");
+                window.setTimeout(function(){
+                    $el.removeClass("animate");
                 }, 400);
             }, 20);
         }, 20);
     };
-    this.animateFromLeft = function animateFromLeft() {
-        el.style.cssText += "; -moz-transform: translateX(" + -el.offsetWidth + "px)";
-        window.setTimeout(function onTimeout(){
-            el.classList.add("animate");
-            window.setTimeout(function onTimeout(){
-                el.style.cssText += "; -moz-transform: translateX(0)";
-                window.setTimeout(function onTimeout(){
-                    el.classList.remove("animate");
+    this.animateFromLeft = function() {
+        $el.css(Evme.Utils.cssPrefix() + "transform", "translateX(-" + $el.width() + "px)");
+        window.setTimeout(function(){
+            $el.addClass("animate");
+            window.setTimeout(function(){
+                $el.css(Evme.Utils.cssPrefix() + "transform", "translateX(0)");
+                window.setTimeout(function(){
+                    $el.removeClass("animate");
                 }, 400);
             }, 20);
         }, 20);
     };
     
-    this.load = function load(inputQuery, parsedQuery, suggestions, spelling, types) {
+    this.load = function(inputQuery, parsedQuery, suggestions, spelling, types) {
         inputQuery = inputQuery || "";
         
         types = types || [];
@@ -157,170 +175,166 @@ Evme.Helper = new function Evme_Helper() {
         
          var _type = (_data.types && _data.types.length >= 1)? _data.types[0].name : "";
          
-        self.setTitle(parsedQuery, _type);
+        _this.setTitle(parsedQuery, _type);
         
-        self.empty();
+        _this.empty();
         
         cbLoaded(inputQuery, parsedQuery, suggestions, spelling, types);
     };
     
-    this.loadSuggestions = function loadSuggestions(suggestions) {
-        self.reset();
-        self.load("", "", suggestions);
+    this.loadSuggestions = function(suggestions) {
+        _this.reset();
+        _this.load("", "", suggestions);
     };
     
-    this.loadHistory = function loadHistory(history) {
+    this.loadHistory = function(history) {
         _data.history = history;
     };
     
-    this.showSuggestions = function showSuggestions(querySentWith) {
+    this.showSuggestions = function(querySentWith) {
         querySentWith && (queryForSuggestions = querySentWith);
+        
+        Evme.EventHandler.trigger(_name, "showSuggestions", {
+            "data": _data.suggestions
+        });
         
         if (_data.suggestions.length > 0) {
             if (_data.suggestions.length > 4) {
                 _data.suggestions = _data.suggestions.slice(0, 4);
             }
-            self.showList({
-                "data": _data.suggestions
-            });
+            _this.showList(_data.suggestions);
         }
-        
-        Evme.EventHandler.trigger(NAME, "showSuggestions", {
-            "data": _data.suggestions
-        });
     };
     
-    this.getSuggestionsQuery = function getSuggestionsQuery() {
+    this.getSuggestionsQuery = function() {
         return queryForSuggestions;
     };
     
-    this.showHistory = function showHistory() {
-        self.disableAnimation();
-        
-        self.showList({
-            "data": _data.history,
-            "l10nKey": 'history-title',
-            "className": "history"
-        });
-        
-        Evme.EventHandler.trigger(NAME, "showHistory", {
+    this.showHistory = function() {
+        _this.disableAnimation();
+        Evme.EventHandler.trigger(_name, "showHistory", {
             "data": _data.history
         });
+        _this.showList(_data.history, TITLE_HISTORY, "history");
     };
     
-    this.showSpelling = function showSpelling() {
-        self.disableAnimation();
+    this.showSpelling = function() {
+        _this.disableAnimation();
+        Evme.EventHandler.trigger(_name, "showSpelling", {
+            "data": _data.spelling
+        });
         
         var list = _data.spelling;
         if (list.length == 0) {
             list = _data.types;
         }
         
-        self.showList({
-            "data": list,
-            "l10nKey": 'didyoumean-title',
-            "className": "didyoumean"
-        });
+        _this.showList(list, TITLE_DID_YOU_MEAN, "didyoumean");
         
         if (list.length > 0) {
-            self.flash();
+            _this.flash();
         }
-        
-        Evme.EventHandler.trigger(NAME, "showSpelling", {
-            "data": _data.spelling
-        });
     };
     
-    this.loadRefinement = function loadRefinement(types) {
+    this.loadRefinement = function(types) {
         _data.types = types;
     };
     
-    this.showRefinement = function showRefinement() {
-        self.enableCloseAnimation();
-        self.disableAnimation();
+    this.showRefinement = function() {
+        _this.enableCloseAnimation();
+        _this.disableAnimation();
         
-        self.showList({
-            "data": _data.types,
-            "l10nKey": 'refine-title',
-            "className": "refine"
-        });
-        
-        Evme.EventHandler.trigger(NAME, "showRefinement", {
+        Evme.EventHandler.trigger(_name, "showRefinement", {
             "data": _data.types
         });
+        
+        _this.showList(_data.types, TITLE_REFINE, "refine");
     };
     
-    this.showList = function showList(data) {
-        var classToAdd = data.className || '',
-            label = data.l10nKey? Evme.Utils.l10nAttr(NAME, data.l10nKey) : '',
-            items = (data.data || []).slice(0);
-            
-        currentDisplayedType = classToAdd;
+    this.showText = function(text) {
+        _this.enableCloseAnimation();
+        _this.disableAnimation();
         
-        self.empty();
+        Evme.EventHandler.trigger(_name, "showText", {
+            "text": text
+        });
         
-        elList.className = classToAdd;
+        _this.showList([], text, "text");
+    };
+    
+    this.showList = function(_items, label, addClass) {
+        !addClass && (addClass = "");
+        currentDisplayedType = addClass;
         
-        var html = "";
+        var items = _items.slice(0);
+        _this.empty();
+        
+        if (_data.queries.input) {
+            $list.removeClass("default");
+        } else {
+            $list.addClass("default");
+        }
+        
+        $list.attr("class", addClass);
         
         if (label) {
-            html += '<li class="label" ' + label + '></li>';
+            items.splice(0, 0, label);
         }
         
+        var html = "";
         for (var i=0; i<items.length; i++) {
-            html += getElement(items[i], i, classToAdd);
+            html += getElement(items[i], i, addClass);
         }
-        elList.innerHTML = html;
+        $list[0].innerHTML = html;
         
-        window.setTimeout(self.refreshScroll, 0);
+        if (label) {
+            $($list.children()[0]).addClass("label");
+        }
+        
+        _this.refreshIScroll();
         
         if (bShouldAnimate) {
-            self.disableAnimation();
+            _this.disableAnimation();
             animateSuggestions();
         }
         
-        Evme.EventHandler.trigger(NAME, "show", {
-            "type": classToAdd,
+        _this.Loading.hide();
+        
+        Evme.EventHandler.trigger(_name, "show", {
+            "type": addClass,
             "data": items
         });
     };
     
-    this.flash = function flash() {
-        elWrapper.classList.remove("flash");
-        elTip.classList.remove("flash");
-        
-        window.setTimeout(function onTimeout() {
-            elWrapper.classList.add("flash");
-            elTip.classList.add("flash");
-            
-            window.setTimeout(function onTimeout(){
-                elWrapper.classList.remove("flash");
-                elTip.classList.remove("flash");
+    this.flash = function() {
+        $wrapper.removeClass("flash");
+        $tip.removeClass("flash");
+        window.setTimeout(function() {
+            $wrapper.addClass("flash");
+            $tip.addClass("flash");
+            window.setTimeout(function(){
+                $wrapper.removeClass("flash");
+                $tip.removeClass("flash");
             }, 4000);
         }, 0);
     };
     
-    this.refreshScroll = function refreshScroll() {
-        MIN_WIDTH = el.offsetWidth;
+    this.refreshIScroll = function() {
+        MIN_WIDTH = $el.width();
         setWidth();
         iscroll.refresh();
         iscroll.scrollTo(0,0);
     };
 
-    this.setTitle = function setTitle(title, type) {
+    this.setTitle = function(title, type) {
         if (!title) {
-            elTitle.innerHTML = '<b ' + Evme.Utils.l10nAttr(NAME, 'title-empty') + '></b>';
+            $elTitle[0].innerHTML = '<b>' + TITLE_PREFIX_EMPTY + '</b>';
             return false;
         }
         
-        
-        var currentTitle = Evme.$('.query', elTitle)[0],
-            currentType = Evme.$('.type', elTitle)[0];
-       
-        currentTitle = currentTitle? currentTitle.textContent : '';
-        currentType = currentType? currentType.textContent.replace(/\(\)/g, "") : '';
-        
         title = title.replace(/</g, "&lt;");
+        var currentTitle = $elTitle.find(".query").text();
+        var currentType = (""+$elTitle.find(".type").text()).replace(/\(\)/g, "");
         
         // if trying to set the title to the one already there, don't doanything
         if (currentTitle == title) {
@@ -329,124 +343,149 @@ Evme.Helper = new function Evme_Helper() {
             }
         }
         
-        var html =  '<b ' + Evme.Utils.l10nAttr(NAME, 'title-prefix') + '></b>' +
+        var html =  '<b>' + TITLE_PREFIX + '</b>' +
                     '<span class="query">' + title + '</span>' +
                     '<em class="type">(' + (type || "") + ')</em>';
         
-        elTitle.innerHTML = html;
+        $elTitle[0].innerHTML = html;
         
         if (type) {
-            elTitle.classList.remove("notype");
+            $elTitle.removeClass("notype");
         } else {
-            elTitle.classList.add("notype");
+            $elTitle.addClass("notype");
         }
         
         return html;
     };
     
-    this.showTitle = function showTitle() {
+    this.showTitle = function() {
         if (titleVisible) return;
         
-        elWrapper.classList.add("close");
-        elTitle.classList.remove("close");
-        self.hideTip();
-        window.setTimeout(self.disableCloseAnimation, 50);
+        $wrapper.addClass("close");
+        $elTitle.removeClass("close");
+        _this.hideTip();
+        window.setTimeout(_this.disableCloseAnimation, 50);
         
         titleVisible = true;
     };
     
-    this.hideTitle = function hideTitle() {
+    this.hideTitle = function() {
         if (!titleVisible) return;
         
-        elWrapper.classList.remove("close");
-        elTitle.classList.add("close");
-        window.setTimeout(self.disableCloseAnimation, 50);
-        self.refreshScroll();
+        $wrapper.removeClass("close");
+        $elTitle.addClass("close");
+        window.setTimeout(_this.disableCloseAnimation, 50);
+        _this.refreshIScroll();
         
         titleVisible = false;
     };
 
-    this.selectItem = function selectItem(index) {
-        elList.childNodes[index].click();
+    this.selectItem = function(index) {
+        $($list.children()[index]).click();
     };
     
-    this.getList = function getList() {
-        return elList;
+    this.getList = function() {
+        return $list;
     };
     
-    this.getData = function getData() {
+    this.getData = function() {
         return _data;
     };
     
-    this.enableAnimation = function enableAnimation() {
+    this.enableAnimation = function() {
         bShouldAnimate = true;
     };
-    this.disableAnimation = function disableAnimation() {
+    this.disableAnimation = function() {
         bShouldAnimate = false;
     };
     
-    this.showTip = function showTip() {
-        elTip.style.visibility = 'visible';
+    this.showTip = function() {
+        $tip.show();
     };
     
-    this.hideTip = function hideTip() {
-        elTip.style.visibility = 'hidden';
+    this.hideTip = function() {
+        $tip.hide();
     };
     
-    this.addLink = function addLink(l10Key, callback, isBefore) {
-        var elLink = Evme.$create('li', {
-            'class': "link",
-            'data-l10n-id': Evme.Utils.l10nKey(NAME, l10Key)
-        });
-        
-        elLink.addEventListener("click", function onClick(e) {
+    this.addLink = function(text, callback, isBefore) {
+        var $link = $('<li class="link">' + text + '</li>');
+        $link.bind("click", function(e) {
             e.stopPropagation();
             e.preventDefault();
             callback(e);
         });
         
         if (isBefore) {
-            elList.insertBefore(elLink, elList.firstChild);
+            $list.prepend($link);
         } else {
-            elList.appendChild(elLink);
+            $list.append($link);
         }
         
-        window.setTimeout(self.refreshScroll, 0);
+        _this.refreshIScroll();
         
-        return elLink;
+        return $link;
     };
     
-    this.addText = function addText(l10Key) {
-        var el = Evme.$create('li', {
-            'class': "text",
-            'data-l10n-id': Evme.Utils.l10nKey(NAME, l10Key)
-        });
-        
-        el.addEventListener("click", function onClick(e) {
+    this.addText = function(text) {
+        var $el = $('<li class="text">' + text + '</li>');
+        $el.bind("click", function(e) {
             e.stopPropagation();
             e.preventDefault();
         });
+        $list.append($el);
         
-        elList.appendChild(el);
+        _this.refreshIScroll();
+    };
+    
+    this.Loading = new function() {
+        var loading = null;
         
-        self.refreshScroll();
+        this.show = function() {
+            if (!$loading) {
+                return;
+            }
+            
+            if (!loading) {
+                var opts = {
+                  "lines": 8,
+                  "length": 3,
+                  "width": 2,
+                  "radius": 3,
+                  "color": "#333",
+                  "speed": 1,
+                  "trail": 60,
+                  "shadow": false
+                };
+                loading = new Spinner(opts).spin($loading[0]);
+            } else {
+                loading.spin();
+            }
+            
+            $loading.addClass("visible");
+        };
+        
+        this.hide = function() {
+            if (!$loading || !loading) {
+                return;
+            }
+            
+            $loading.removeClass("visible");
+            loading.stop();
+        };
     };
     
     function animateSuggestions() {
-        elList.classList.remove("anim");
-        elList.classList.add("start");
-        
-        window.setTimeout(function onTimeout(){
-            elList.classList.add("anim");
-            
-            window.setTimeout(function onTimeout(){
-                elList.classList.remove("start");
-                
-                window.setTimeout(function onTimeout(){
-                    elList.classList.remove("anim");
+        $list.removeClass("anim");
+        $list.addClass("start");
+        window.setTimeout(function(){
+            $list.addClass("anim");
+            window.setTimeout(function(){
+                $list.removeClass("start");
+                window.setTimeout(function(){
+                    $list.removeClass("anim");
                     
                     if (currentDisplayedType == "" && !Evme.Utils.Cookies.get("fs")) {
-                        self.flash();
+                        _this.flash();
                     }
                 }, 50);
             }, 50);
@@ -458,28 +497,28 @@ Evme.Helper = new function Evme_Helper() {
             return false;
         }
         
-        text = text.toLowerCase().replace(/\[\]/gi, "");
+        var removed = false;
+        var $items = $list.children();
         
-        var removed = false,
-            elItems = elList.childNodes;
-        
-        for (var i=0,el=elItems[i]; el; el=elItems[++i]) {
-            var sugg = (el.dataset.suggestion || "").toLowerCase().replace(/\[\]/gi, "");
+        text = text.toLowerCase();
+        for (var i=0; i<$items.length; i++) {
+            var $item = $($items[i]);
+            var sugg = ($item.data("suggestion") || "").toLowerCase();
             
-            if (sugg === text) {
-                Evme.$remove(el);
+            if (sugg.replace(/\[\]/gi, "") == text.replace(/\[\]/gi, "")) {
+                $item.remove();
                 removed = true;
             }
         }
-        
+
         return removed;
     }
 
     function getElement(item, index, source) {
-        var id = "",
-            isSmartObject = (typeof item === "object"),
-            text = item;
-            
+        var id = "";
+        var isSmartObject = (typeof item == "object");
+        
+        var text = item;
         if (isSmartObject) {
             id = item.id;
             text = item.name;
@@ -507,33 +546,33 @@ Evme.Helper = new function Evme_Helper() {
         e.preventDefault();
         
         clicked = true;
-        window.setTimeout(function onTimeout(){
+        window.setTimeout(function(){
             clicked = false;
         }, 500);
         
-        var elClicked = e.originalTarget || e.target;
+        var $li = e.originalTarget || e.target;
         
-        while (elClicked && elClicked.nodeName !== "LI") {
-            elClicked = elClicked.parentNode;
+        while ($li && $li.nodeName !== "LI") {
+            $li = $li.parentNode;
         }
-        
-        if (!elClicked) {
+        if (!$li) {
             clicked = false;
             return;
         }
         
-        if (elClicked.classList.contains("label") || elClicked.classList.contains("text")) {
+        $li = $($li);
+        if ($li.hasClass("label") || $li.hasClass("text")) {
             return;
         }
         
-        var val = elClicked.dataset.suggestion,
+        var val = $li.attr("data-suggestion"),
             valToSend = (val || "").replace(/[\[\]]/g, "").toLowerCase(),
-            index = elClicked.dataset.index,
-            source = elClicked.dataset.source, 
-            type = elClicked.dataset.type;
+            index = $li.attr("data-index"),
+            source = $li.attr("data-source"), 
+            type = $li.attr("data-type");
             
         if (val) {
-            cbClick(elClicked, index, isVisibleItem(index), val, valToSend, source, type);
+            cbClick($li, index, isVisibleItem(index), val, valToSend, source, type);
         }
     }
     
@@ -541,14 +580,14 @@ Evme.Helper = new function Evme_Helper() {
         e.preventDefault();
         e.stopPropagation();
         
-        if (Evme.$('.query', elTitle).length === 0) {
+        if ($elTitle.find(".query").length == 0) {
             return;
         }
         
-        window.setTimeout(function onTimeout(){
+        window.setTimeout(function(){
             if (!clicked) {
-                self.hideTitle();
-                self.showRefinement();
+                _this.hideTitle();
+                _this.showRefinement();
             }
         }, 100);
     }
@@ -558,29 +597,31 @@ Evme.Helper = new function Evme_Helper() {
     }
 
     function setWidth() {
-        elList.style.width = '5000px';
-        
         var width = 0,
-            elListItems = Evme.$('li', elList);
+            $children = $list.children();
+        
+        $list.css("width", "5000px");
         
         lastVisibleItem = 0;
-        for (var i=0,elItem=elListItems[i]; elItem; elItem=elListItems[++i]) {
+        for (var i=0; i<$children.length; i++) {
             if (width < MIN_WIDTH){
                 lastVisibleItem = i;
             }
             
-            if (!elItem.classList.contains("history")) {
-                width += elItem.offsetWidth;
+            if ($children[i].className.indexOf("history") == -1) {
+                width += $children[i].offsetWidth+ITEM_WIDTH_ADDITION;
             }
         }
         
-        width = Math.max(width + TOTAL_WIDTH_ADDITION, MIN_WIDTH);
+        width += TOTAL_WIDTH_ADDITION;
         
-        elList.style.width = width + 'px';
+        width = Math.max(MIN_WIDTH, width);
+        
+        $list.css("width", width + "px");
     }
 
     function cbLoaded(inputQuery, parsedQuery, suggestions, spelling, types) {
-        Evme.EventHandler.trigger(NAME, "load", {
+        Evme.EventHandler.trigger(_name, "load", {
             "suggestions": suggestions,
             "spelling": spelling,
             "types": types,
@@ -588,9 +629,9 @@ Evme.Helper = new function Evme_Helper() {
         });
     }
     
-    function cbClick(elClicked, index, isVisibleItem, originalValue, val, source, type) {
-        Evme.EventHandler.trigger(NAME, "click", {
-            "el": elClicked,
+    function cbClick($li, index, isVisibleItem, originalValue, val, source, type) {
+        Evme.EventHandler.trigger(_name, "click", {
+            "$element": $li,
             "originalValue": originalValue,
             "value": val,
             "source": source,

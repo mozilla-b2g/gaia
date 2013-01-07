@@ -5,11 +5,11 @@ const LandingPage = (function() {
 
   var _ = navigator.mozL10n.get;
   var dateTimeFormat = new navigator.mozL10n.DateTimeFormat();
-  var timeFormat, dateFormat;
+  var timeFormat = '%H:%M';
+  var dateFormat = '%A %e %B';
 
   var page = document.querySelector('#landing-page');
-  var clockElemNumbers = document.querySelector('#landing-clock .numbers');
-  var clockElemMeridiem = document.querySelector('#landing-clock .meridiem');
+  var clockElem = document.querySelector('#landing-clock');
   var dateElem = document.querySelector('#landing-date');
 
   page.addEventListener('gridpageshowstart', initTime);
@@ -20,8 +20,8 @@ const LandingPage = (function() {
   });
 
   window.addEventListener('localized', function localize() {
-    timeFormat = _('shortTimeFormat');
-    dateFormat = _('longDateFormat');
+    timeFormat = _('shortTimeFormat') || timeFormat;
+    dateFormat = _('longDateFormat') || dateFormat;
     initTime();
   });
 
@@ -58,13 +58,10 @@ const LandingPage = (function() {
   function updateUI() {
     var date = new Date();
 
-    var time = dateTimeFormat.localeFormat(date, timeFormat);
-    clockElemNumbers.textContent = time.match(/([012]?\d).[0-5]\d/g);
-    clockElemMeridiem.textContent = (time.match(/AM|PM/i) || []).join('');
+    clockElem.textContent = dateTimeFormat.localeFormat(date, timeFormat);
     dateElem.textContent = dateTimeFormat.localeFormat(date, dateFormat);
 
     return date;
   }
 
 }());
-

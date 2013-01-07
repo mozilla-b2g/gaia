@@ -6,12 +6,6 @@
     this.save = this.save.bind(this);
     this.deleteRecord = this.deleteRecord.bind(this);
     this.cancel = this.cancel.bind(this);
-
-    this.accountHandler = new Calendar.Utils.AccountCreation(
-      this.app
-    );
-
-    this.accountHandler.on('authorizeError', this);
   }
 
   ModifyAccount.prototype = {
@@ -70,16 +64,12 @@
       return this._fields;
     },
 
-    handleEvent: function(event) {
-      var type = event.type;
-      var data = event.data;
+    _clearErrors: function() {
+      this.errors.textContent = '';
+    },
 
-      switch (type) {
-        case 'authorizeError':
-          // we only expect one argument an error object.
-          this.showErrors(data[0]);
-          break;
-      }
+    _displayError: function(err) {
+      this.showErrors(err);
     },
 
     updateForm: function() {
@@ -132,14 +122,33 @@
 
       list.add(this.progressClass);
 
-      this.errors.textContent = '';
-      this.updateModel();
-
-      this.accountHandler.send(this.model, function(err) {
+      this._persistForm(function(err) {
         list.remove(self.progressClass);
         if (!err) {
           self.app.go(self.completeUrl);
         }
+      });
+    },
+
+    /**
+     * Persist the form
+     *
+     * @param {Function} callback node style.
+     */
+    _persistForm: function(callback) {
+      var self = this;
+      var store = self.app.store('Account');
+
+      this._clearErrors();
+      this.updateModel();
+
+      store.verifyAndPersist(this.model, function(err, id, model) {
+        if (err) {
+          self._displayError(err);
+          callback(err);
+          return;
+        }
+        callback(null, model);
       });
     },
 

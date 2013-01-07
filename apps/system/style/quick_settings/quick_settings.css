@@ -1,8 +1,3 @@
-html, body {
-  font-family: 'MozTT', sans-serif;
-  font-size: 10px;
-}
-
 #quick-settings {
   display: block;
   width: 100%;
@@ -22,12 +17,13 @@ html, body {
   height: 30px;
   margin: 15px 0;
   padding: 0;
+
   color: #fff;
   text-align: center;
   text-decoration: none;
   outline: none;
-  font-size: 1.4rem;
-  line-height: 1.8rem;
+  font-size: 14px;
+  line-height: 18px;
 
   border-right: 1px black solid;
   border-left: 1px gray solid;
@@ -47,36 +43,30 @@ html, body {
   background: center no-repeat;
   background-size: 25px 25px;
 }
-#quick-settings > *[data-initializing] {
-  opacity: 0.5;
-}
 #quick-settings > #quick-settings-wifi {
   background-image: url(images/wifi-off.svg);
 }
-#quick-settings > #quick-settings-wifi[data-enabled] {
+#quick-settings > #quick-settings-wifi[data-enabled="true"] {
   background-image: url(images/wifi-on.svg);
 }
 #quick-settings > #quick-settings-data {
   background-image: url(images/data-off.svg);
 }
-#quick-settings > #quick-settings-data[data-enabled] {
+#quick-settings > #quick-settings-data[data-enabled="true"] {
   background-image: url(images/data-on.svg);
 }
 #quick-settings > #quick-settings-bluetooth {
   background-image: url(images/bluetooth-off.svg);
 }
-#quick-settings > #quick-settings-bluetooth[data-enabled] {
+#quick-settings > #quick-settings-bluetooth[data-enabled="true"] {
   background-image: url(images/bluetooth-on.svg);
 }
 #quick-settings > #quick-settings-power-save {
   background-image: url(images/power-save-off.svg);
 }
-#quick-settings > #quick-settings-power-save[data-enabled] {
+#quick-settings > #quick-settings-power-save[data-enabled="true"] {
   background-image: url(images/power-save-on.svg);
 }
 #quick-settings > #quick-settings-full-app {
   background-image: url(images/settings.svg);
-}
-.quick-settings-airplane-mode {
-  opacity: 0.5;
 }

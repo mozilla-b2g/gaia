@@ -152,14 +152,15 @@ var MediaStorage = {
       if (!element)
         return;
 
+      if (!l10nId) {
+        l10nId = 'size-';
+      }
+
       // KB - 3 KB (nearest ones), MB, GB - 1.2 MB (nearest tenth)
       var fixedDigits = (size < 1024 * 1024) ? 0 : 1;
       var sizeInfo = FileSizeFormatter.getReadableFileSize(size, fixedDigits);
 
-      element.textContent = _(l10nId || 'storageSize', {
-        size: sizeInfo.size,
-        unit: _('byteUnit-' + sizeInfo.unit)
-      });
+      element.textContent = _(l10nId + sizeInfo.unit, { size: sizeInfo.size });
     }
 
     // Update the storage details
@@ -181,7 +182,7 @@ var MediaStorage = {
       formatSize(element, freeSize);
 
       element = document.getElementById('media-storage-desc');
-      formatSize(element, freeSize, 'availableSize');
+      formatSize(element, freeSize, 'available-size-');
     });
   }
 };

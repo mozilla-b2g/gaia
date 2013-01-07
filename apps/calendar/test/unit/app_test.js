@@ -32,49 +32,6 @@ suite('app', function() {
     router = subject.router;
   });
 
-  test('initialization', function() {
-    assert.ok(subject.startingURL, 'has startingURL');
-  });
-
-  suite('global events', function() {
-    var calledWith;
-    var realRestart;
-    var realTimeout;
-
-    setup(function() {
-      calledWith = 0;
-      realTimeout = subject._mozTimeRefreshTimeout;
-      realRestart = Calendar.App.forceRestart;
-
-      subject._mozTimeRefreshTimeout = 1;
-      subject.forceRestart = function() {
-        calledWith++;
-      }
-    });
-
-    teardown(function() {
-      subject.forceRestart = realRestart;
-      subject._mozTimeRefreshTimeout = realTimeout;
-    });
-
-    test('moztimechange', function(done) {
-      // dispatch multiple times to ensure it only fires callback
-      // once...
-      window.dispatchEvent(new Event('moztimechange'));
-      window.dispatchEvent(new Event('moztimechange'));
-
-      setTimeout(function() {
-        window.dispatchEvent(new Event('moztimechange'));
-      }, 0);
-
-      setTimeout(function() {
-        done(function() {
-          assert.equal(calledWith, 1);
-        });
-      }, 100);
-    });
-  });
-
   test('#configure', function() {
     assert.deepEqual(subject._routeViewFn, {});
 
@@ -97,48 +54,6 @@ suite('app', function() {
     assert.instanceOf(subject.router, Calendar.Router);
   });
 
-  suite('#forceRestart', function() {
-    var realLocation = window.location;
-
-    suiteSetup(function() {
-      assert.equal(subject._location, window.location);
-      subject._location = {};
-    });
-
-    suiteTeardown(function() {
-      subject._location = realLocation;
-    });
-
-    test('redirect to manifest url', function() {
-      subject.forceRestart();
-
-      assert.equal(
-        subject._location.href,
-        subject.startingURL,
-        'redirects to manifest entrypoint'
-      );
-    });
-
-    test('with pending restart', function() {
-      // begin the restart
-      subject.forceRestart();
-      var url = subject.startingURL = '/xxx';
-
-      // try again while restarting
-      subject.forceRestart();
-
-      // should fail
-      assert.notEqual(subject._location.href, url);
-
-      assert.isTrue(subject.restartPending);
-      subject.restartPending = false;
-
-      // works after pending is done
-      subject.forceRestart();
-      assert.equal(subject._location.href, url);
-    });
-  });
-
   suite('#go', function() {
     var calledWith;
 
@@ -154,14 +69,13 @@ suite('app', function() {
   });
 
   test('#view', function() {
-    subject.view('Mock', function(first) {
-      subject.view('Mock', function(second) {
-        assert.instanceOf(first, Calendar.Views.Mock);
-        assert.equal(first.app, subject);
+    var first = subject.view('Mock');
+    var second = subject.view('Mock');
 
-        assert.equal(first, second);
-      });
-    });
+    assert.instanceOf(first, Calendar.Views.Mock);
+    assert.equal(first.app, subject);
+
+    assert.equal(first, second);
   });
 
   test('#provider', function() {
@@ -177,46 +91,77 @@ suite('app', function() {
     );
   });
 
+  test('#_wrapViewObject', function() {
+    var result = subject._wrapViewObject('Mock');
+    var view;
+
+    assert.equal(subject._routeViewFn.Mock, result);
+
+    assert.ok(
+      !subject._views['Mock'],
+      'view should not be created by referencing it'
+    );
+    var nextCalled = false;
+
+    function next() {
+      nextCalled = true;
+    }
+
+    result({}, next);
+
+    view = subject._views['Mock'];
+    assert.ok(view, 'view should be created');
+    assert.ok(nextCalled);
+    assert.ok(view.active);
+
+    var second = subject._wrapViewObject('Mock');
+    assert.equal(result, second);
+  });
+
   test('#modifier', function() {
     var uniq = function() {};
     subject.modifier('/foo', 'Mock');
 
-    var route = page.routes[0];
+    var cb = subject._routeViewFn['Mock'];
+    assert.ok(cb);
 
-    assert.equal(route.length, 5);
+    var route = page.routes[0];
     assert.equal(route[0], '/foo');
-    assert.equal(route[4], subject.router._lastState, 'should add lastState fn');
+    assert.equal(route[1], cb, 'should set mock view');
   });
 
   suite('#route', function() {
 
-    test('singleRoute', function() {
+    test('object', function(done) {
       var mock = new Calendar.Views.Mock();
 
-      subject.state('/single', 'Mock');
+      subject.state('/obj', mock);
 
       var route = page.routes[0];
+      var cb = route[2];
+      var ctx = {
+        params: { hit: true}
+      };
 
-      assert.equal(route.length, 5);
-      assert.equal(route[0], '/single');
-      assert.instanceOf(route[1], Function, 'should add setPath');
-      assert.instanceOf(route[2], Function, 'should add loadAllViews');
-      assert.instanceOf(route[3], Function, 'should add handleView');
-      assert.equal(route[4], subject.router._lastState, 'should add lastState fn');
+      cb(ctx, function() {
+        done(function() {
+          assert.equal(mock.activeWith[0], ctx);
+        });
+      });
     });
 
-    test('twoRoutes', function() {
+    test('normal', function() {
       var uniq = function() {};
-      subject.state('/foo', ['Mock', 'Mock']);
+      subject.state('/foo', 'Mock', 'Mock', uniq);
+
+      var cb = subject._routeViewFn['Mock'];
+      assert.ok(cb);
 
       var route = page.routes[0];
-
-      assert.equal(route.length, 5);
       assert.equal(route[0], '/foo');
-      assert.instanceOf(route[1], Function, 'should add setPath');
-      assert.instanceOf(route[2], Function, 'should add loadAllViews');
-      assert.instanceOf(route[3], Function, 'should add handleView');
-      assert.equal(route[4], subject.router._lastState, 'should add lastState fn');
+      assert.equal(route[2], cb, 'should set mock view');
+      assert.equal(route[3], cb, 'should set second mock view');
+      assert.equal(route[4], uniq, 'should add normal fn');
     });
   });
 

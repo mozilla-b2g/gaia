@@ -1,6 +1,5 @@
-Evme.Dialog = function Evme_Dialog(_id) {
-    var NAME = "Dialog", self = this,
-        el = null, elBlackout = null,
+Evme.Dialog = function(_id) {
+    var _name = "Dialog", _this = this, $el = null, $elBlackout = null,
         id = _id, isBlackout = false, blackoutCallback = null, centered = false,
         waitingOnCloseTimeout = false, timeoutBeforeClickThrough = false;
     
@@ -8,26 +7,26 @@ Evme.Dialog = function Evme_Dialog(_id) {
         throw new Exception("Please provide an ID for the dialog");
     }
     
-    this.getId = function getId() {
+    this.getId = function() {
         return id;
     };
     
-    this.show = function show(options) {
-        if (el) {
-            window.setTimeout(function onTimeout(){
-                el.classList.add("visible");
-                elBlackout && elBlackout.classList.add("visible");
+    this.show = function(options) {
+        if ($el) {
+            window.setTimeout(function(){
+                $el.addClass("visible");
+                $elBlackout && $elBlackout.addClass("visible");
             }, 50);
             
             if (centered) {
-                self.center();
+                _this.center();
             }
             
             cbShow();
             
             if (timeoutBeforeClickThrough) {
                 waitingOnCloseTimeout = true;
-                window.setTimeout(function onTimeout() {
+                window.setTimeout(function() {
                     waitingOnCloseTimeout = false;
                 }, timeoutBeforeClickThrough);
             }
@@ -35,139 +34,140 @@ Evme.Dialog = function Evme_Dialog(_id) {
             createDialog(options);
         }
         
-        return self;
+        return _this;
     };
     
-    this.remove = function remove() {
-        Evme.$remove(el);
-        Evme.$remove(elBlackout);
-        
+    this.remove = function() {
+        $el && $el.remove();
+        $elBlackout && $elBlackout.remove();
         cbRemove();
     };
     
-    this.center = function center() {
-        el.style.cssText += 'top: 50%; margin-top: ' + -el.offsetHeight/2 + 'px;';
-    };
-    
-    this.getElement = function getElement() {
-        return el;
-    };
-    
-    this.clickOK = function clickOK() {
-        Evme.$('b.ok', el, function onElement(el){
-            //el.ontouchstart();
+    this.center = function() {
+        $el.css({
+            "top": "50%",
+            "margin-top": "-" + $el.height()/2 + "px"
         });
     };
     
-    this.clickCancel = function clickCancel() {
-        Evme.$('b.cancel', el, function onElement(el){
-            el.click();
-        });
+    this.getElement = function() {
+        return $el;
+    };
+    
+    this.clickOK = function() {
+        $el.find("b.ok").trigger("touchstart");
+    };
+    
+    this.clickCancel = function() {
+        $el.find("b.cancel").click();
     };
     
     function createDialog(options) {
         (!options.className) && (options.className = "");
         
-        el = Evme.$create('div', {'class': 'dialog ' + options.className, 'id': 'dialog_' + id},
+        $el = $('<div class="dialog ' + options.className + '" id="dialog_' + id + '">' +
                     ((options.title)? '<h2>' + options.title + '</h2>' : '') +
                     '<div class="content">' +
                         options.content +
-                    '</div>');
+                    '</div>' +
+                '</div>');
                 
-        el.addEventListener("touchstart", function onTouchStart(e){
+        $el.bind("touchstart", function(e){
             e.preventDefault();
             e.stopPropagation();
         });
         
         if (options.tip) {
-            el.appendChild(Evme.$create('span', {'class': "tiparrow"}));
+            $el.append($('<span class="tiparrow"></span>'));
         }
         
         if (options.buttons) {
             var buttons = options.buttons,
-                elButtons = Evme.$create('div', {'class': "buttons"});
+                $buttons = $('<div class="buttons"></div>');
                 
             for (var buttonId in buttons) {
-                elButtons.appendChild(createButton(buttonId, buttons[buttonId]));
+                $buttons.append(createButton(buttonId, buttons[buttonId]));
             }
             
-            el.appendChild(elButtons);
+            $el.append($buttons);
         }
         
         centered = options.centered;
         isBlackout = options.blackout;
         timeoutBeforeClickThrough = options.timeoutBeforeClickThrough;
         
-        var elContainer = options.elContainer || Evme.Utils.getContainer();
-        elContainer.appendChild(el);
+        var $container = options.$container || $("#" + Evme.Utils.getID());
+        $container.append($el);
         
         if (isBlackout) {
             createBlackoutScreen(options.blackoutCallback);
-            elContainer.append(elBlackout);
+            $container.append($elBlackout);
         }
         
         cbCreate();
-        self.show();
+        _this.show();
         
-        return self;
+        return _this;
     }
     
     function createBlackoutScreen(callback) {
-        elBlackout = Evme.$create('div', {'class': "dialog-blackout"});
-        elBlackout.addEventListener("touchstart", function onTouchStart(e){
+        $elBlackout = $('<div class="dialog-blackout"></div>');
+        $elBlackout.bind("touchstart", function(e){
             if (!waitingOnCloseTimeout) {
                 callback && callback(e);
                 cbBlackoutClick(e);
             }
         });
                     
-        return elBlackout;
+        return $elBlackout;
     }
     
     function createButton(buttonType, button) {
-        var elButton = Evme.$create('b', {'class': 'button ' + buttonType}, button.text);
+        $button = $('<b class="button ' + buttonType + '">' + button.text + '</b>');
         
-        function buttonCallback(e){
+        var buttonCallback = function(e){
             e.preventDefault();
             e.stopPropagation();
             
-            button.callback && button.callback(e, self);
+            button.callback && button.callback(e, _this);
             
             cbButtonClick(e, buttonType);
             
             if (button.remove) {
-                self.remove();
+                _this.remove();
             }
-        }
+        };
         
-        elButton.addEventListener("touchstart", buttonCallback);
+        var buttonClicked = false;
+        
+        $button.bind("touchstart", buttonCallback);
             
         if (button.entireDialog) {
-            el.addEventListener("touchstart", function onTouhStart(e){
-                if (!waitingOnCloseTimeout) {
+            $el.bind("touchstart", function(e){
+                if (!buttonClicked && !waitingOnCloseTimeout) {
                     buttonCallback(e);
                 }
             });
         }
         
-        return elButton;
+        return $button;
     }
     
     function cbCreate() {
-        Evme.EventHandler.trigger(NAME, "create", {
+        Evme.EventHandler.trigger(_name, "create", {
             "id": id,
-            "obj": self,
+            "obj": _this,
             "isBlackout": isBlackout,
-            "el": el
+            "$el": $el
         });
     }
     
     function cbShow() {
-        Evme.EventHandler.trigger(NAME, "show", {
+        Evme.EventHandler.trigger(_name, "show", {
             "id": id,
-            "obj": self,
+            "obj": _this,
             "isBlackout": isBlackout,
-            "el": el
+            "$el": $el
         });
     }
     
@@ -175,44 +175,43 @@ Evme.Dialog = function Evme_Dialog(_id) {
         e.preventDefault();
         e.stopPropagation();
         
-        Evme.EventHandler.trigger(NAME, "blackoutClick", {
+        Evme.EventHandler.trigger(_name, "blackoutClick", {
             "id": id
         });
     }
     
     function cbButtonClick(e, button) {
-        Evme.EventHandler.trigger(NAME, "buttonClick", {
+        Evme.EventHandler.trigger(_name, "buttonClick", {
             "e": e,
             "id": id,
-            "obj": self,
-            "el": el,
+            "obj": _this,
+            "$el": $el,
             "button": button
         });
     }
     
     function cbRemove() {
-        Evme.EventHandler.trigger(NAME, "remove", {
+        Evme.EventHandler.trigger(_name, "remove", {
             "id": id,
-            "obj": self,
+            "obj": _this,
             "isBlackout": isBlackout,
-            "el": el
+            "$el": $el
         });
     }
 };
 
-Evme.Prompt = function Evme_Prompt(_options) {
-    var NAME = "Prompt", self = this,
-        elParent = null, el = null,
-        id = "", text = "", className = "", storageKey = false,
+var Prompt = function(_options) {
+    var _name = "Prompt", _this = this,
+        $parent = null, $el = null, id = "", text = "", className = "", storageKey = false,
         onShow = null, onClick = null, onDismiss= null;
     
     var STORAGE_PREFIX = "prompt_";
     
-    this.show = function show(options) {
+    this.show = function(options) {
         id = options.id;
         text = options.text;
         className = options.className;
-        elParent = options.elParent;
+        $parent = options.$parent;
         onShow = options.onShow;
         onClick = options.onClick;
         onDismiss = options.onDismiss;
@@ -223,41 +222,40 @@ Evme.Prompt = function Evme_Prompt(_options) {
         if (shown) {
             return false;
         }
-        if (Evme.$("#" + storageKey)) {
+        if ($("#" + storageKey).length > 0) {
             return false;
         }
         
-        el = Evme.$create('div;', {'id': storageKey, 'class': 'prompt textpage ' + (className? className : '')}, text + '<b class="close"></b>');
-        el.addEventListener("touchstart", function onTouchStart(e) {
+        $el = $('<div id="' + storageKey + '" class="prompt textpage ' + (className? className : '') + '">' + text + '<b class="close"></b></div>');
+        $el.bind("touchstart", function(e) {
             e && e.preventDefault();
             e && e.stopPropagation();
             
             cbClick();
         });
-        
-        Evme.$(".close", el)[0].addEventListener("touchstart", function onTouchStart(e){
+        $el.find(".close").bind("touchstart", function(e){
             e && e.preventDefault();
             e && e.stopPropagation();
             
-            self.hide(true);
+            _this.hide(true);
         });
         
-        elParent.append(el);
+        $parent.append($el);
         
-        window.setTimeout(function onTimeout(){
-            el.classList.add("visible");
-            
+        window.setTimeout(function(){
+            $el.addClass("visible");
+            $container.addClass("prompt-visible");
             cbShow();
         }, 50);
         
         return true;
     };
     
-    this.hide = function hide(fireCallback) {
-        el.classList.remove("visible");
-        
-        window.setTimeout(function onTimeout(){
-            Evme.$remove(el);
+    this.hide = function(fireCallback) {
+        $el.removeClass("visible");
+        $container.removeClass("prompt-visible");
+        window.setTimeout(function(){
+            $el && $el.remove();
         }, 500);
         
         if (fireCallback) {
@@ -265,34 +263,31 @@ Evme.Prompt = function Evme_Prompt(_options) {
         }
     };
     
-    this.markAsShown = function markAsShown() {
+    this.markAsShown = function() {
         Evme.Storage.set(storageKey, true);
     };
     
     function cbShow() {
         onShow && onShow();
-        
-        Evme.EventHandler.trigger(NAME, "show", {
+        Evme.EventHandler.trigger(_name, "show", {
             "id": id,
             "text": text
         });
     }
     function cbClick() {
         onClick && onClick();
-        
-        Evme.EventHandler.trigger(NAME, "click", {
+        Evme.EventHandler.trigger(_name, "click", {
             "id": id,
             "text": text
         });
     }
     function cbDismiss() {
         onDismiss && onDismiss();
-        
-        Evme.EventHandler.trigger(NAME, "dismiss", {
+        Evme.EventHandler.trigger(_name, "dismiss", {
             "id": id,
             "text": text
         });
     }
     
-    _options && self.show(_options);
+    _options && _this.show(_options);
 };

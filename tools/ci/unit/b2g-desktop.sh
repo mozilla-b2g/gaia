@@ -20,7 +20,7 @@ echo "Starting B2G Desktop";
 echo "Test Agent URL: $DOMAIN"
 echo
 
-B2G=`which b2g-bin`;
+B2G=`which b2g`;
 
 if [ ! -x $B2G ];
 then

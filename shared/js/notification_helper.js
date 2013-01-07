@@ -11,13 +11,8 @@
 var NotificationHelper = {
   _referencesArray: [],
 
-  getIconURI: function nc_getIconURI(app, entryPoint) {
+  getIconURI: function nc_getIconURI(app) {
     var icons = app.manifest.icons;
-
-    if (entryPoint) {
-      icons = app.manifest.entry_points[entryPoint].icons;
-    }
-
     if (!icons)
       return null;
 

@@ -2,7 +2,7 @@ requireCommon('test/synthetic_gestures.js');
 
 requireApp('calendar/test/unit/helper.js', function() {
   requireApp('calendar/shared/js/gesture_detector.js');
-  requireLib('utils/ordered_map.js');
+  requireLib('ordered_map.js');
   requireLib('timespan.js');
   requireLib('templates/day.js');
   requireLib('views/time_parent.js');
@@ -144,6 +144,7 @@ suite('views/day', function() {
 
       // start in active state
       subject.onactive();
+      subject.currentFrame = true;
 
       // sanity check
       controller.selectedDay = new Date();
@@ -157,6 +158,7 @@ suite('views/day', function() {
       // event will not fire....
       controller.selectedDay = new Date(2012, 1, 2);
       assert.ok(!calledWith, 'should disable event listeners');
+      assert.ok(!subject.currentFrame, 'clears current frame');
     });
   });
 

@@ -7,16 +7,17 @@
 
 /* Global */
 html, body {
-  width: 100%;
   height: 100%;
-  margin: 0;
-  padding: 0;
+}
+
+html {
   font-size: 62.5%;
-  overflow: hidden;
-  position: relative;
 }
 
 body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
   background: #000;
   color: #fff;
   font: 1.6rem/2.2rem MozTT, Sans-serif;
@@ -184,29 +185,43 @@ menu, nav, section, video, audio, canvas, progress, meter, time {
 
 /* APP */
 /* view */
-
-.view {
-  position: absolute;
-  overflow: hidden;
-  top: 0;
+.view, .cache, .views {
+  position: fixed;
   left: 0;
+  top: 0;
   width: 100%;
   height: 100%;
-  transform: translate(0, 0);
-  transition: transform 0.5s ease;
 }
 
-.view:not(.view-noscroll) {
-  overflow-x: hidden;
-  overflow-y: auto;
+.view[data-state="active"], .cache[data-state="active"] {
+  z-index: 100;
+}
+
+.cache {
+  pointer-events: none;
+}
+
+.cache .view {
+  background-color: transparent;
+  background-repeat: no-repeat;
+  -moz-transition: all 0.5s ease;
+  position: fixed;
 }
 
 .view-right {
-  transform: translateX(100%);
+  -moz-transform: translateX(100%);
+}
+
+.view-left {
+  -moz-transform: translateX(-100%);
+}
+
+.view-top {
+  -moz-transform: translateY(-100%);
 }
 
 .view-bottom {
-  transform: translateY(100%);
+  -moz-transform: translateY(100%);
 }
 
 
@@ -339,6 +354,65 @@ form p + p {
   width: -moz-calc(100% + 0.8rem);
 }
 
+/* jumper: Goes directly to some point of a scrollable area */
+.view-jumper {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 1rem;
+  z-index: 10;
+}
+
+.view-jumper:active .view-jumper-inner, .view-jumper.active .view-jumper-inner  {
+  background: #999;
+}
+
+.view-jumper-current {
+  position: absolute;
+  right: 4rem;
+  top: 30%;
+  z-index: 100;
+  width: 10.5rem;
+  height: 10.5rem;
+  background: rgba(0, 0, 0, 0.7);
+  font: 400 6rem/10.5rem MozTT, Sans-serif;
+  color: #fff;
+  text-align: center;
+  -moz-transition: opacity;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.view-jumper-current img{
+  width: 4.6rem;
+  height: 4.6rem;
+  position: absolute;
+  left:50%;
+  top: 50%;
+  margin-left:-2.3rem;
+  margin-top:-2.3rem;
+}
+
+.view-jumper-inner {
+  padding: 0.3rem 0;
+  border-radius: 4rem;
+  opacity: 0.6;
+}
+
+.view-jumper li {
+  font-size: 1.1rem;
+  line-height: 1.25em;
+  text-align: center;
+  text-transform: uppercase;
+  width: 4.5rem;
+}
+
+.view-jumper-inner a, .view-jumper-inner abbr {
+  display: block;
+  color: #333;
+  width: 100%;
+  text-indent: 1.5rem;
+}
 
 /* LAYOUT */
 /* ITEM: The smallest complete structure; */
@@ -400,6 +474,25 @@ span[role="button"] {
 
 span[role="button"].icon-finish {
   background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* jumper */
+span[role="button"].icon-fav-dark {
+  background-image: url(/contacts/style/gphx/bitmap/default/vw-jumper/fav.png);
+  width: 1.2rem;
+  height: 1.1rem;
+}
+
+span[role="button"].icon-search {
+  background-image: url(/contacts/style/gphx/bitmap/default/vw-jumper/search.png);
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+span[role="button"].icon-fav-color {
+  background-image: url(/contacts/style/gphx/bitmap/default/block-list/fav.png);
+  width: 2rem;
+  height: 2rem;
 }
 
 /* selection list */
@@ -629,19 +722,158 @@ span[role="button"].icon-arrow.icon-arrow-right {
   background-size: cover;
 }
 
-/* JUMPER */
+/* LISTS */
 
-nav[data-type="scrollbar"] {
-  z-index: 6;
+/* BLOCK-LIST: vertical elements list */
+.block-list {
+  padding-left: 1rem;
+}
+.block-item {
+  border-bottom: solid 1px #dbdbdb;
+  min-height: 6rem;
+  position: relative;
 }
 
-nav[data-type="scrollbar"] ol > li > * {
-  pointer-events: none;
+.block-item:last-child {
+  border-bottom: none;
 }
 
-nav[data-type="scrollbar"] p img {
+.block-item.search:last-child {
+  border-bottom: solid 1px #dbdbdb;
+}
+
+/* Base set-up */
+.block-title {
+  font-size: 1.8rem;
+  color: #ff5f19;
+  border-bottom: solid 1px #ff5f19;
+}
+
+.block-name {
+  font-size: 1.8rem;
+  font-family: MozTT, Sans-serif;
+  color: #333;
+  display: block;
+  margin: 1.5rem 0 0;
+  font-weight: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.block-company {
+  margin: 0px 0px 1.5rem;
+  font-size: 1.1rem;
+  line-height: 1.1rem;
+  color: #666;
+}
+
+.block-category {
+  font-size: 1.4rem;
+  line-height: 1em;
+  font-style: normal;
+  color: #666;
+  display: block;
+  margin-bottom: 0.7rem;
+}
+
+.block-list .checkbox {
+  display: none;
+  pointer-events: all;
   position: absolute;
-  top: 25%;
-  left: 25%;
-  width: auto;
+  right: 100%;
+  top: 50%;
+  margin: -1.1rem 1.5rem 0 0;
+  width: 2.2rem;
+  height: 2.2rem;
+}
+.block-list .checkbox * {
+  pointer-events: all;
+}
+
+.block-list [type="checkbox"] {
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  z-index: 5;
+}
+
+.block-list .checkbox i {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  background: url("/contacts/style/gphx/bitmap/default/forms/check-default.png") no-repeat center top;
+  background-size: 100% auto;
+}
+
+.block-list [type="checkbox"]:checked + span[role="button"] {
+  background-position: center bottom;
+}
+
+
+/* Selection state */
+[data-state="selection"] .block-list {
+  padding-left: 1.9rem;
+}
+
+[data-state="selection"] .block-list .checkbox {
+  display: block;
+}
+
+/* Media crop */
+.block-media {
+  width: 6rem;
+  height: 6rem;
+  text-align: right;
+  overflow: hidden;
+}
+
+.block-media img {
+  width: 100%;
+  height: 100%;
+  background: transparent no-repeat center center;
+  background-size: 100% auto;
+}
+
+/* ----------------------------------
+ * PROGRESS + ACTIVITIES
+ * ---------------------------------- */
+
+/* Activity indicator */
+ body[role="application"] progress:not([value]) {
+   width: 2.9rem;
+   height: 2.9rem;
+   background: url(images/spinner.png) no-repeat left top;
+   border: none;
+   animation: 1s moveDefault infinite steps(10);
+   display: inline-block;
+   vertical-align: middle;
+ }
+
+ body[role="application"] progress:not([value])::-moz-progress-bar {
+   background: none;
+ }
+
+@keyframes moveDefault {
+  from {
+    background-position: 0 top;
+  }
+
+  to {
+    background-position: -390px top;
+  }
+}
+
+@keyframes moveSpinner {
+  from {
+    background-position: 0 top;
+  }
+
+  to {
+    background-position: -300px top;
+  }
 }

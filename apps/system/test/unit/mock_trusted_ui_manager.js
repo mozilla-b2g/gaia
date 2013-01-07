@@ -1,11 +1,9 @@
-'use strict';
-
 var MockTrustedUIManager = {
-  open: function(name, frame, chromeEventId) {
+  open: function(name, frame, origin) {
     this.mOpened = true;
     this.mName = name;
     this.mFrame = frame;
-    this.mChromeEventId = chromeEventId;
+    this.mOrigin = origin;
   },
 
   close: function() {
@@ -15,11 +13,11 @@ var MockTrustedUIManager = {
   mOpened: false,
   mName: null,
   mFrame: null,
-  mChromeEventId: null,
+  mOrigin: null,
   mTeardown: function teardown() {
     this.mOpened = false;
     this.mName = null;
     this.mFrame = null;
-    this.mChromeEventId = null;
+    this.mOrigin = null;
   }
 };

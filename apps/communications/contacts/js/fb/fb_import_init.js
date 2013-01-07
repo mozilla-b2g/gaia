@@ -36,10 +36,14 @@
       '#import-action': fb.importer.ui.importAll,
       '#done-search': contacts.Search.exitSearchMode,
       '#groups-list': fb.importer.ui.selection,
-      '#search-start': [
+      '#search-contact': [
         {
-          event: 'click',
+          event: 'focus',
           handler: contacts.Search.enterSearchMode
+        },
+        {
+          event: 'keyup',
+          handler: contacts.Search.search
         }
       ]
     });
@@ -72,3 +76,4 @@
     data: ''
   }, allowedOrigin);
 })(document);
+

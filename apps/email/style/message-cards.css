@@ -42,10 +42,6 @@
   margin: 0.5rem 0;
 }
 
-.msg-no-subject {
-  font-style: italic;
-}
-
 /* Sections horizontally chop up the item: unread, details, icons, avatar.
  * We have 320 horizontal pixels to play with.
  */
@@ -170,7 +166,6 @@
 .msg-envelope-bar {
   border-bottom: 1px solid gray;
   font-size: 1.5rem;
-  width: 100%;
 }
 
 .msg-envelope-date {

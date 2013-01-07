@@ -1,8 +1,8 @@
 /*
  * APIStatsEvents class
  */
-Evme.APIStatsEvents = function Evme_APIStatsEvents(Sandbox){
-    var self = this, config, logger, processedItems, tracker = Sandbox.DoATAPI, tempEventArr = [], templatesStr = "",
+Evme.APIStatsEvents = function(Sandbox){
+    var _this = this, config, logger, processedItems, tracker = Sandbox.DoATAPI, tempEventArr = [], templatesStr = "",
         templates = {
             "Results_search": {
                 "userEvent": "pageView",
@@ -47,10 +47,16 @@ Evme.APIStatsEvents = function Evme_APIStatsEvents(Sandbox){
                 "query": "{query}"
             },
             "ShortcutsCustomize_show": {
-                "userEvent": "shortcutsFavoritesShow"
+                "userEvent": "shortcutsFavoritesShow",
+                "numSelected": "{numSelected}",
+                "numSuggested": "{numSuggested}"
             },
             "ShortcutsCustomize_done": {
-                "userEvent": "shortcutsFavoritesDoneClick"
+                "userEvent": "shortcutsFavoritesDoneClick",
+                "numSelected": "{numSelected}",
+                "numSuggested": "{numSuggested}",
+                "numSelectedStartedWith": "{numSelectedStartedWith}",
+                "numSuggestedStartedWith": "{numSuggestedStartedWith}"
             },
             
             "HomepageTip_show": {
@@ -146,7 +152,7 @@ Evme.APIStatsEvents = function Evme_APIStatsEvents(Sandbox){
         
     this.name = "APIStatsEvents";
     
-    this.init = function init(_config, _logger){
+    this.init = function(_config, _logger){
         // set config
         config = _config;
         logger = _logger;
@@ -162,7 +168,7 @@ Evme.APIStatsEvents = function Evme_APIStatsEvents(Sandbox){
         templatesStr = stringify(templates);
 
         // log 
-        logger.debug(self.name+".init(",config,")");
+        logger.debug(_this.name+".init(",config,")");
     };
     
     function stringify(old){
@@ -178,7 +184,7 @@ Evme.APIStatsEvents = function Evme_APIStatsEvents(Sandbox){
     }
     
     // actual report
-    this.dispatch = function dispatch(items){
+    this.dispatch = function(items){
         // leave if no items
         if (!items.length) { return false;}
         
@@ -191,7 +197,7 @@ Evme.APIStatsEvents = function Evme_APIStatsEvents(Sandbox){
         });
     
         // log
-        logger.debug(self.name+".dispatch(", items,")");
+        logger.debug(_this.name+".dispatch(", items,")");
     };
     
     function process(items){
@@ -203,7 +209,7 @@ Evme.APIStatsEvents = function Evme_APIStatsEvents(Sandbox){
         }
         
         // process
-        items.forEach(function itemIteration(item){
+        items.forEach(function(item){
             
             // authenticate
             if (authenticate(item)) {

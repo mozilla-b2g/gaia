@@ -41,10 +41,7 @@ var ValuePicker = (function() {
       tunedIndex = this._upper;
     }
 
-    if (this._currentIndex != tunedIndex) {
-      this._currentIndex = tunedIndex;
-      this.onselectedindexchange(this._currentIndex);
-    }
+    this._currentIndex = tunedIndex;
     this.updateUI(tunedIndex, ignorePicker);
 
     return tunedIndex;
@@ -53,10 +50,7 @@ var ValuePicker = (function() {
   VP.prototype.setSelectedIndexByDisplayedText = function(displayedText) {
     var newIndex = this._valueDisplayedText.indexOf(displayedText);
     if (newIndex != -1) {
-      if (this._currentIndex != newIndex) {
-        this._currentIndex = newIndex;
-        this.onselectedindexchange(this._currentIndex);
-      }
+      this._currentIndex = newIndex;
       this.updateUI(newIndex);
     }
   };
@@ -112,28 +106,11 @@ var ValuePicker = (function() {
     this.element.removeEventListener('mousemove', this.mousemoveHandler, false);
   };
 
-  VP.prototype.uninit = function() {
-    this.element.removeEventListener('mousedown', this.mousedonwHandler, false);
-    this.element.removeEventListener('mouseup', this.mouseupHandler, false);
-    this.element.removeEventListener('mousemove', this.mousemoveHandler, false);
-    this.element.style.top = '0px';
-    this.onselectedindexchange = null;
-    empty(this.element);
-  };
-
-  VP.prototype.onselectedindexchange = function(index) {};
-
   function cloneEvent(evt) {
     if ('touches' in evt) {
       evt = evt.touches[0];
     }
     return { x: evt.pageX, y: evt.pageY, timestamp: evt.timeStamp };
-  }
-
-  function empty(element) {
-    while (element.hasChildNodes())
-      element.removeChild(element.lastChild);
-    element.innerHTML = '';
   }
 
   //

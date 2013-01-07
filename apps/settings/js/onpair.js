@@ -35,11 +35,10 @@ var PairView = {
   pinInput: document.getElementById('pin-input'),
   passkeyInput: document.getElementById('passkey-input'),
 
-  show: function pv_show() {
+  init: function pv_init() {
     var _ = navigator.mozL10n.get;
     this.pairButton.addEventListener('click', this);
     this.closeButton.addEventListener('click', this);
-    window.addEventListener('resize', this);
 
     this.nameLabel.textContent = this._device.name;
     this.deviceInfo.className = this._device.icon;
@@ -73,7 +72,7 @@ var PairView = {
     }
   },
 
-  init: function pv_init(mode, method, device, passkey) {
+  setUp: function pv_setDeviceInfo(mode, method, device, passkey) {
     this._pairMode = mode;
     this._pairMethod = method;
     this._device = device;
@@ -82,56 +81,37 @@ var PairView = {
       var zeros = (len < 6) ? (new Array((6 - len) + 1)).join('0') : '';
       this._passkey = zeros + passkey;
     }
-
-    // show() only until the page is localized.
-    onLocalized(PairView.show.bind(PairView));
-  },
-
-  close: function() {
-    window.opener.gDeviceList.setConfirmation(this._device.address, false);
-    window.close();
   },
 
   handleEvent: function pv_handleEvent(evt) {
     var _ = navigator.mozL10n.get;
-    if (!evt.target)
+    if (evt.type !== 'click' || !evt.target)
       return;
 
-    switch (evt.type) {
-      case 'click':
-        evt.preventDefault();
-        switch (evt.target.id) {
-          case 'button-pair':
-            this.pairDescription.textContent = _('device-status-waiting');
-            this.pairButton.disabled = true;
-            this.closeButton.disabled = true;
-            switch (this._pairMethod) {
-              case 'confirmation':
-                window.opener.gDeviceList.
-                  setConfirmation(this._device.address, true);
-                break;
-              case 'pincode':
-                var value = this.pinInput.value;
-                window.opener.gDeviceList.setPinCode(this._device.address,
-                  value);
-                break;
-              case 'passkey':
-                var value = this.passkeyInput.value;
-                window.opener.gDeviceList.setPasskey(this._device.address,
-                  value);
-                break;
-            }
-            window.close();
+    evt.preventDefault();
+    switch (evt.target.id) {
+      case 'button-pair':
+        this.pairDescription.textContent = _('device-status-waiting');
+        this.pairButton.disabled = true;
+        this.closeButton.disabled = true;
+        switch (this._pairMethod) {
+          case 'confirmation':
+            window.opener.gDeviceList.setConfirmation(this._device.address);
             break;
-          case 'button-close':
-            this.close();
+          case 'pincode':
+            var value = this.pinInput.value;
+            window.opener.gDeviceList.setPinCode(this._device.address, value);
+            break;
+          case 'passkey':
+            var value = this.passkeyInput.value;
+            window.opener.gDeviceList.setPasskey(this._device.address, value);
             break;
         }
+        window.close();
         break;
-      case 'resize':
-        this.close();
-        break;
-      default:
+
+      case 'button-close':
+        window.close();
         break;
     }
   }
@@ -144,11 +124,12 @@ var PairView = {
  */
 
 function onLocalized(callback) {
-  if (navigator.mozL10n.readyState == 'complete' ||
-      navigator.mozL10n.readyState == 'interactive') {
+  if (navigator.mozL10n.readyState == 'complete') {
     callback();
   } else {
     window.addEventListener('localized', callback);
   }
 }
+
+onLocalized(PairView.init.bind(PairView));
 

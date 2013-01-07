@@ -25,10 +25,6 @@
   background-image: -moz-image-rect(url(images/icons_sprite.png), 0, 90, 30, 60);
 }
 
-#menuItem-callSettings {
-  background-image: -moz-image-rect(url(images/icons_sprite.png), 150, 30, 180, 0);
-}
-
 #menuItem-cellularAndData {
   background-image: -moz-image-rect(url(images/icons_sprite.png), 0, 120, 30, 90);
 }
@@ -109,8 +105,8 @@
   background-image: -moz-image-rect(url(images/icons_sprite.png), 120, 90, 150, 60);
 }
 
-#menuItem-improveBrowserOS {
-  background-image: -moz-image-rect(url(images/icons_sprite.png), 150, 60, 180, 30);
+#menuItem-improveFirefoxOS {
+  background-image: -moz-image-rect(url(images/icons_sprite.png), 120, 120, 150, 90);
 }
 
 #menuItem-help {
@@ -159,17 +155,6 @@
   background-position: right 1.5rem top 50%;
   background-image: url(images/wifi_lock.png);
 }
-
-/******************************************************************************
- * Call Settings icons
- */
-
- #menuItem-callWaiting .alert-label > span {
-  position: absolute;
-  width: 3rem;
-  height: 3rem;
-  background-image: url(images/call_waiting_disabled.png);
- }
 
 
 /******************************************************************************
@@ -294,21 +279,16 @@
  */
 
 .privacy-menuitem {
-  padding-left: 5.5rem;
   background-repeat: no-repeat;
-  background-position: 1.4rem center;
+  background-position: right 3rem top 50%; /* same position as for Wi-Fi signal levels */
 }
 
-.privacy-browserOS {
+.privacy-firefoxOS {
   background-image: -moz-image-rect(url(images/privacy_sprite.png), 0, 32, 32, 0);
 }
 
 .privacy-everythingME {
   background-image: -moz-image-rect(url(images/privacy_sprite.png), 0, 64, 32, 32);
-}
-
-.privacy-marketPlace {
-  background-image: -moz-image-rect(url(images/privacy_sprite.png), 0, 96, 32, 64);
 }
 
 

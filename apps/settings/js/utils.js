@@ -46,9 +46,6 @@ function openLink(url) {
  */
 
 function openDialog(dialogID, onSubmit, onReset) {
-  if ('#' + dialogID == document.location.hash)
-    return;
-
   var origin = document.location.hash;
   var dialog = document.getElementById(dialogID);
 
@@ -78,17 +75,14 @@ function openDialog(dialogID, onSubmit, onReset) {
  * First click = play, second click = pause.
  */
 
-function audioPreview(element, type) {
+function audioPreview(element) {
   var audio = document.querySelector('#sound-selection audio');
   var source = audio.src;
   var playing = !audio.paused;
 
-  var url = '/shared/resources/media/' + type + '/' +
-            element.querySelector('input').value;
-  audio.src = url;
+  audio.src = 'resources/ringtones/' + element.querySelector('input').value;
   if (source === audio.src && playing) {
-    audio.pause();
-    audio.src = '';
+    audio.stop();
   } else {
     audio.play();
   }
@@ -272,8 +266,7 @@ function bug344618_polyfill() {
  */
 
 function onLocalized(callback) {
-  if (navigator.mozL10n.readyState == 'complete' ||
-      navigator.mozL10n.readyState == 'interactive') {
+  if (navigator.mozL10n.readyState == 'complete') {
     callback();
   } else {
     window.addEventListener('localized', callback);

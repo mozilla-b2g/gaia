@@ -42,18 +42,14 @@ iframe {
   top: 0;
   right: 0;
   bottom: 0;
-  z-index: 10;
   overflow: hidden;
 }
 
 .view {
-  top: 9.1rem;
+  bottom: 4.1rem;
+  z-index: 1;
   background: url(images/app/ui/pattern.png) repeat left top;
   -moz-transition: -moz-transform 0.3s ease;
-}
-
-.view.standalone {
-  top: 5rem;
 }
 
 .view-scroll {
@@ -61,7 +57,7 @@ iframe {
   overflow-y: auto;
   position: absolute;
   bottom: 0;
-  top: 0rem;
+  top: 5rem;
   left: 0;
   right: 0;
 }
@@ -102,7 +98,7 @@ iframe {
 body[role="application"] ul.filter[role="tablist"][data-position=bottom] {
   position: absolute;
   left: 0;
-  top: 5rem;
+  bottom: 0;
 }
 
 /* BB HEADER ICONS */
@@ -277,6 +273,3 @@ section.content .error-messages {
   text-align: right;
 }
 
-#message-handler {
-  visibility: hidden;
-}

@@ -1,53 +1,61 @@
-Evme.ShortcutsCustomize = new function Evme_ShortcutsCustomize() {
-    var NAME = 'ShortcutsCustomize', self = this,
-        elList = null, elParent = null,
-        savedIcons = null;
+Evme.ShortcutsCustomize = new function() {
+    var _name = 'ShortcutsCustomize', _this = this,
+        $list = null,
+        numSelectedStartedWith = 0, numSuggestedStartedWith = 0, savedIcons = null;
         
-    this.init = function init(options) {
-        elParent = options.elParent;
+    this.init = function(options) {
+        $parent = options.$parent;
         
-        elList = Evme.$create('select', {'multiple': "multiple", 'id': "shortcuts-select"});
-        elList.addEventListener('blur', onHide);
+        $list = $('<select multiple="multiple" id="shortcuts-select"></select>');
+        $list.bind('change', done);
+        $list.bind('blur', onHide);
         
-        elParent.appendChild(elList);
+        $parent.append($list);
         
-        Evme.EventHandler.trigger(NAME, 'init');
+        Evme.EventHandler.trigger(_name, 'init');
     };
     
-    this.show = function show() {
-        elList.focus();
+    this.show = function() {
+        $list.focus();
         
-        Evme.EventHandler.trigger(NAME, 'show');
+        Evme.EventHandler.trigger(_name, 'show', {
+            'numSelected': numSelectedStartedWith,
+            'numSuggested': numSuggestedStartedWith
+        });
     };
     
-    this.hide = function hide() {
-        window.focus();
-        elList.blur();
+    this.hide = function() {
+        $('window').focus();
+        $list.blur();
     };
     
-    this.get = function get() {
-        var shortcuts = [],
-            elShourtcuts = Evme.$('option', elList);
+    this.get = function() {
+        var $items = $list.find('option'),
+            shortcuts = [];
         
-        for (var i=0, elOption=elShourtcuts[i]; elOption; elOption=elShourtcuts[++i]) {
-            if (elOption.selected) {
-                shortcuts.push(elOption.value);
+        for (var i=0; i<$items.length; i++) {
+            if ($items[i].selected) {
+                shortcuts.push($items[i].value);
             }
         }
         
         return shortcuts;
     };
     
-    this.load = function load(data) {
+    this.load = function(data) {
+        var shortcuts = data.shortcuts;
+            
+        numSelectedStartedWith = 0;
+        numSuggestedStartedWith = 0;
         savedIcons = data.icons;
         
-        elList.innerHTML = '';
-        self.add(data.shortcuts);
+        $list.empty();
+        _this.add(shortcuts);
         
-        Evme.EventHandler.trigger(NAME, 'load');
+        Evme.EventHandler.trigger(_name, 'load');
     };
     
-    this.add = function add(shortcuts) {
+    this.add = function(shortcuts) {
         var html = '';
         
         for (var query in shortcuts) {
@@ -55,70 +63,60 @@ Evme.ShortcutsCustomize = new function Evme_ShortcutsCustomize() {
             
             if (shortcuts[query]) {
                 html += ' selected="selected"';
+                numSelectedStartedWith++;
+            } else {
+                numSuggestedStartedWith++;
             }
             
             html += '>' + query.replace(/</g, '&lt;') + '</option>';
         }
         
-        elList.innerHTML = html;
+        $list.append(html);
     };
     
-    this.Loading = new function Loading() {
+    this.Loading = new function() {
         var active = false,
-            ID = 'shortcuts-customize-loading';
+            ID = 'shortcuts-customize-loading',
+            TEXT_CANCEL = "Cancel";
         
-        this.show = function loadingShow() {
+        this.show = function() {
             if (active) return;
             
-            var el = Evme.$create('div',
-                        {'id': ID},
-                        '<b ' + Evme.Utils.l10nAttr(NAME, 'loading') + '></b>' +
-                        '<div class="loading-wrapper">' +
-                            '<progress class="loading-icon small"></progress>' +
-                        '</div>' +
-                        '<menu>' +
-                            '<button ' + Evme.Utils.l10nAttr(NAME, 'loading-cancel') + '></button>' +
-                        '</menu>');
-                      
-            Evme.$("button", el, function onItem(elButton) {
-                elButton.addEventListener("click", onLoadingCancel)
-            });
-            
-            Evme.Utils.getContainer().appendChild(el);
-            
+            var $el = $('<div id="' + ID + '"><menu><button>' + TEXT_CANCEL + '</button></menu></div>');
+            $('#' + Evme.Utils.getID()).append($el);
             active = true;
             
-            Evme.EventHandler.trigger(NAME, 'loadingShow');
+            $el.find("button").bind("click", onLoadingCancel);
         };
         
-        this.hide = function loadingHide() {
+        this.hide = function() {
             if (!active) return;
             
-            Evme.$remove('#' + ID);
+            $('#' + ID).remove();
             active = false;
-            
-            Evme.EventHandler.trigger(NAME, 'loadingHide');
         };
     };
     
     function onHide() {
-        Evme.EventHandler.trigger(NAME, 'hide');
-        
-        done();
+        Evme.EventHandler.trigger(_name, 'hide');
     }
     
     function onLoadingCancel(e) {
-        Evme.EventHandler.trigger(NAME, 'loadingCancel', {
+        Evme.EventHandler.trigger(_name, 'loadingCancel', {
             'e': e
         });
     }
     
     function done() {
-        var shortcuts = self.get();
+        var shortcuts = _this.get();
         
-        Evme.EventHandler.trigger(NAME, 'done', {
+        Evme.EventHandler.trigger(_name, 'done', {
             'shortcuts': shortcuts,
-            'icons': savedIcons
+            'icons': savedIcons,
+            'numSelectedStartedWith': numSelectedStartedWith,
+            'numSuggestedStartedWith': numSuggestedStartedWith,
+            'numSelected': shortcuts.length,
+            'numSuggested': $list.find('option').length - shortcuts.length
         });
     }
 };

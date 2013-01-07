@@ -13,8 +13,6 @@
     <script defer src="shared/js/custom_dialog.js"></script>
     <script defer src="shared/js/notification_helper.js"></script>
     <script defer src="shared/js/async_storage.js"></script>
-    <script defer src="shared/js/mobile_operator.js"></script>
-    <script defer src="shared/js/manifest_helper.js"></script>
 
     <!-- Wrapper -->
     <link rel="stylesheet" type="text/css" href="style/wrapper/wrapper.css">
@@ -23,19 +21,15 @@
     <!-- System -->
     <link rel="stylesheet" type="text/css" href="style/system/system.css">
     <link rel="stylesheet" type="text/css" href="style/system/keyboard.css">
-    <link rel="stylesheet" type="text/css" href="style/sound_manager/sound_manager.css">
 
     <!-- Include shared building blocks -->
     <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/switches.css"/>
-
     <link rel="stylesheet" type="text/css" href="style/fake-notification.css"/>
 
     <!-- Include shared resources
     <link rel="resource" type="application/json" href="shared/resources/apn.json"/>
-    <link rel="resource" type="image/png" href="shared/resources/branding/initlogo.png"/>
-    <link rel="resource" type="image/png" href="shared/resources/branding/splash_screen_generic.png"/>
     -->
 
     <!-- applications.js must not be deferred
@@ -55,6 +49,10 @@
     <script defer src="js/system_dialog.js"></script>
     <script defer src="js/icc_cache.js"></script>
 
+    <!-- Battery Manager -->
+    <link rel="stylesheet" type="text/css" href="style/battery_manager/battery_manager.css">
+    <script defer src="js/battery_manager.js"></script>
+
     <!-- Grid View -->
     <link rel="stylesheet" type="text/css" href="style/gridview/gridview.css">
     <script defer src="js/gridview.js"></script>
@@ -71,9 +69,9 @@
     <link rel="stylesheet" type="text/css" href="style/sleep_menu/sleep_menu.css">
     <script defer src="js/sleep_menu.js"></script>
 
-    <!-- Battery Manager -->
-    <link rel="stylesheet" type="text/css" href="style/battery_manager/battery_manager.css">
-    <script defer src="js/battery_manager.js"></script>
+    <!-- Cards View -->
+    <link rel="stylesheet" type="text/css" href="style/cards_view/cards_view.css">
+    <script defer src="js/cards_view/cards_view.js"></script>
 
     <!-- Keyboard -->
     <script defer src="js/keyboard_manager.js"></script>
@@ -99,6 +97,7 @@
 
     <!-- LockScreen -->
     <link rel="stylesheet" type="text/css" href="style/lockscreen/lockscreen.css">
+    <script defer src="js/mobile_info.js"></script>
     <script defer src="js/lockscreen.js"></script>
 
     <!-- PIN Unlocking -->
@@ -120,9 +119,9 @@
     <!-- Value selector -->
     <link rel="stylesheet" type="text/css" href="style/value_selector/value_selector.css">
     <link rel="stylesheet" type="text/css" href="style/value_selector/time_picker.css">
-    <link rel="stylesheet" type="text/css" href="style/value_selector/spin_date_picker.css">
+    <link rel="stylesheet" type="text/css" href="style/value_selector/date_picker.css">
     <script defer src="js/value_selector/value_picker.js"></script>
-    <script defer src="js/value_selector/spin_date_picker.js"></script>
+    <script defer src="js/value_selector/date_picker.js"></script>
     <script defer src="js/value_selector/value_selector.js"></script>
     <script defer src="js/value_selector/input_parser.js"></script>
 
@@ -180,7 +179,6 @@
     <link rel="stylesheet" type="text/css" href="style/themes/default/menus.css">
     <link rel="stylesheet" type="text/css" href="style/themes/default/buttons.css">
     <link rel="stylesheet" type="text/css" href="style/themes/default/banner.css">
-    <link rel="resource" type="application/l10n" href="shared/locales/branding.ini">
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
     <link rel="resource" type="application/l10n" href="shared/locales/date.ini">
     <link rel="resource" type="application/l10n" href="shared/locales/permissions.ini">
@@ -210,27 +208,36 @@
     <link rel="stylesheet" type="text/css" href="style/zindex.css">
 
     <style>
-      /* initlogo style is here to prevent flashing */
-      #initlogo {
-        position: absolute;
-        overflow: hidden;
-        width: 100%;
-        height: 100%;
+    /* initlogo style is here to prevent flashing */
 
-        background: #000 url('shared/resources/branding/initlogo.png') bottom right no-repeat;
+    #initlogo {
+      position: absolute;
+      overflow: hidden;
+      width: 100%;
+      height: 100%;
 
-        z-index: 65536;
+      background: #000 url('./resources/images/initlogo.png') bottom right no-repeat;
 
-        opacity: 1;
-        transition: opacity 1s ease 3s;
-        pointer-events: none;
-      }
+      z-index: 65536;
 
-      #initlogo.hide {
-        opacity: 0;
-      }
+      visibility: visible;
+      opacity: 1;
+      transition: visibility 3s ease, opacity 3s ease;
+      pointer-events: none;
+    }
+
+    #initlogo.hide {
+      visibility: hidden;
+      opacity: 0;
+    }
+
+    #initlogo > img {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+    }
+
     </style>
-
   </head>
 
   <body role="application">
@@ -272,7 +279,6 @@
         <div id="statusbar-sms" class="sb-icon sb-icon-sms" hidden></div>
         <div id="statusbar-geolocation" class="sb-icon sb-icon-geolocation" hidden></div>
         <div id="statusbar-usb" class="sb-icon sb-icon-usb" hidden></div>
-        <div id="statusbar-call-forwarding" class="sb-icon sb-icon-call-forwarding" hidden></div>
       </div>
 
       <div id="utility-tray" data-z-index-level="utility-tray">
@@ -406,7 +412,7 @@
             </section>
             <menu>
               <button id="dont-send-report" disabled="true" data-l10n-id="crash-dont-send">Don't Send</button>
-              <button id="send-report" class="recommend" data-l10n-id="crash-end">Send Report</button>
+              <button id="send-report" class="recommend" data-l10n-id="crash-send">Send Report</button>
             </menu>
           </form>
 
@@ -526,6 +532,19 @@
             </menu>
           </div>
 
+          <div id="modal-dialog-error" role="dialog">
+            <div class="modal-dialog-message-container inner">
+              <h3 data-l10n-id="error-title" id="modal-dialog-error-title">Hmm, the app is having problems.</h3>
+              <p>
+              <span data-l10n-id="error-message" id="modal-dialog-error-message">The app has encountered an error and is not loading properly.</span>
+              </p>
+            </div>
+            <menu data-items="2">
+              <button id="modal-dialog-error-back" data-l10n-id="close">Close</button>
+              <button id="modal-dialog-error-reload" data-l10n-id="try-again">Try again</button>
+            </menu>
+          </div>
+
           <div id="modal-dialog-select-one" role="dialog">
             <div class="modal-dialog-message-container inner">
               <h3 id="modal-dialog-select-one-title"></h3>
@@ -549,7 +568,8 @@
             </ol>
           </section>
           <menu id="select-options-buttons">
-            <button class="value-option-confirm affirmative full" data-type="ok" data-l10n-id="ok">Ok</button>
+            <button class="value-selector-cancel" data-type="cancel" data-l10n-id="cancel">Cancel</button>
+            <button class="value-option-confirm affirmative" data-type="ok" data-l10n-id="ok">Ok</button>
           </menu>
         </form>
 
@@ -582,42 +602,34 @@
           </div>
         </div>
 
-        <!-- Spin Date Picker -->
-        <div id="spin-date-picker-popup" hidden>
-          <div id="spin-date-picker" class="table-wrapper">
-            <div class="table-cell">
-              <div class="picker-bar">
-                <h3 data-l10n-id="select-day">Select day</h3>
-                <div class="picker-container">
-                  <div class="value-indicator-bottom"></div>
-                  <div class="picker-bar-background"></div>
-                  <div class="left-picker-separator"></div>
-                  <div class="right-picker-separator"></div>
-                  <div class="value-indicator-wrapper">
-                    <div class="value-indicator-hover"></div>
-                  </div>
-                  <div class="value-picker-date-wrapper">
-                    <div class="value-picker-date animation-on"></div>
-                    <div class="value-picker-date animation-on"></div>
-                    <div class="value-picker-date animation-on"></div>
-                    <div class="value-picker-date animation-on"></div>
-                  </div>
-                  <div class="value-picker-month-wrapper">
-                    <div class="value-picker-month" class="animation-on"></div>
-                  </div>
-                  <div class="value-picker-year-wrapper">
-                    <div class="value-picker-year" class="animation-on"></div>
-                  </div>
-                  <div class="picker-bar-gradient"></div>
-                </div>
-              </div>
-            </div>
+        <!-- Date Picker -->
+        <section role="dialog" id="date-picker-popup">
+          <div id="date-picker">
+            <h3 data-l10n-id="select-day">Select day</h3>
+            <header id="date-picker-controls">
+            <button class="previous">Previous</button>
+            <h1 id="current-month"></h1>
+            <button class="next">Next</button>
+            </header>
+
+            <ol id="date-picker-weekdays">
+              <li data-l10n-id="weekday-0-short">SUN</li>
+              <li data-l10n-id="weekday-1-short">MON</li>
+              <li data-l10n-id="weekday-2-short">TUE</li>
+              <li data-l10n-id="weekday-3-short">WED</li>
+              <li data-l10n-id="weekday-4-short">THU</li>
+              <li data-l10n-id="weekday-5-short">FRI</li>
+              <li data-l10n-id="weekday-6-short">SAT</li>
+            </ol>
+
+            <section id="date-picker-container">
+            </section>
           </div>
-          <menu id="spin-date-picker-buttons" data-items="2">
+          <menu id="date-picker-buttons" data-items="2">
             <button class="value-selector-cancel" data-type="cancel" data-l10n-id="cancel">Cancel</button>
             <button class="value-option-confirm affirmative" data-type="ok" data-l10n-id="ok">Ok</button>
           </menu>
-        </div>
+        </section>
       </div>
 
       <div id="permission-screen" data-z-index-level="permission-screen">
@@ -708,8 +720,8 @@
           <menu>
             <button id="updates-later-button" type="reset"
                     data-l10n-id="later">Later</button>
-            <button id="updates-download-button" type="submit"
-              data-l10n-id="download">Download</button>
+                  <button id="updates-download-button" type="submit"
+                    data-l10n-id="download">Download</button>
           </menu>
         </section>
       </form>
@@ -722,27 +734,43 @@
             <div id="lockscreen-header">
               <div id="lockscreen-connstate" hidden><span></span><span></span></div>
               <div id="lockscreen-mute" hidden></div>
-              <div class="lockscreen-clock">
-                <span id="lockscreen-clock-numbers"></span>
-                <span id="lockscreen-clock-meridiem"></span>
-              </div>
+              <div id="lockscreen-clock"></div>
               <div id="lockscreen-date"></div>
             </div>
             <div id="notifications-lockscreen-container">
             </div>
+            <svg id="lockscreen-curve" xmlns="http://www.w3.org/2000/svg" version="1.1">
+              <image id="lockscreen-area-handle" x="150" y="100" width="20" height="9"
+                xlink:href="style/lockscreen/images/handle.png">
+                <animate class="lockscreen-start-animation" attributeType="XML" attributeName="y" begin="indefinite" dur="0.2s" to="100" />
+                <animate class="lockscreen-start-animation" attributeType="XML" attributeName="opacity" begin="indefinite" dur="0.5s" to="1" />
+                <animate class="lockscreen-end-animation" attributeType="XML" attributeName="y" begin="indefinite" dur="0.2s" to="0" />
+                <animate class="lockscreen-end-animation" attributeType="XML" attributeName="opacity" begin="indefinite" dur="0.5s" to="0" />
+                <animate class="lockscreen-elastic-animation" attributeType="XML" attributeName="y" dur="2s" calcMode="spline"
+                    begin="indefinite" keySplines="0 .50 .50 1; .50 0 1 .50; 0 .50 .50 1; .50 0 1 .50"
+                    values="100; 0; 120; 80; 100" />
+              </image>
+              <path fill="none" id="lockscreen-curvepath" stroke-width="1" stroke="white"
+                d="M0,80 C100,150 220,150 320,80">
+                  <animate class="lockscreen-start-animation" attributeType="XML" attributeName="d" begin="indefinite" dur="0.2s" to="M0,80 C100,150 220,150 320,80" />
+                  <animate class="lockscreen-start-animation" attributeType="XML" attributeName="stroke-opacity" begin="indefinite" dur="0.2s" to="1.0" />
+                  <animate class="lockscreen-end-animation" attributeType="XML" attributeName="d" begin="indefinite" dur="0.5s" to="M0,80 C100,-20 220,-20 320,80" />
+                  <animate class="lockscreen-end-animation" attributeType="XML" attributeName="stroke-opacity" begin="indefinite" dur="0.5s" to="0" />
+                  <animate class="lockscreen-elastic-animation" attributeType="XML" attributeName="d" dur="2s" calcMode="spline"
+                    begin="indefinite" keySplines="0 .50 .50 1; .50 0 1 .50;0 .50 .50 1; .50 0 1 .50;"
+                    values="M0,80 C100,150 220,150 320,80;
+                            M0,80 C100,40 220,40 320,80; M0,80 C100,150 220,150 320,80;
+                            M0,80 C100,100 220,100 320,80; M0,80 C100,150 220,150 320,80" />
+              </path>
+            </svg>
             <div id="lockscreen-area"></div>
             <div id="lockscreen-icon-container">
-              <div id="lockscreen-area-handle"></div>
-              <div id="lockscreen-area-camera" class="lockscreen-icon-area lockscreen-icon-left">
-                <div class="lockscreen-icon">
-                  <div id="lockscreen-accessibility-camera" role="button" class="lockscreen-icon-a11y-button" data-l10n-id="camera-a11y-button" aria-label="Camera"></div>
-                </div>
-              </div>
-              <div id="lockscreen-area-unlock" class="lockscreen-icon-area lockscreen-icon-right">
-                <div class="lockscreen-icon">
-                    <div id="lockscreen-accessibility-unlock" role="button" class="lockscreen-icon-a11y-button" data-l10n-id="unlock-a11y-button" aria-label="Unlock"></div>
-                </div>
-              </div>
+              <button id="lockscreen-area-camera" class="lockscreen-icon lockscreen-icon-left">
+                <div id="lockscreen-accessibility-camera" role="button" class="lockscreen-icon-a11y-button" data-l10n-id="camera-a11y-button" aria-label="Camera"></div>
+              </button>
+              <button id="lockscreen-area-unlock" class="lockscreen-icon lockscreen-icon-right">
+                <div id="lockscreen-accessibility-unlock" role="button" class="lockscreen-icon-a11y-button" data-l10n-id="unlock-a11y-button" aria-label="Unlock"></div>
+              </button>
             </div>
           </div>
 
@@ -791,6 +819,8 @@
         <menu class="actions">
         </menu>
       </div>
+
+      <div id="keyboard-overlay" data-z-index-level="keyboard-overlay"></div>
 
       <!-- keyboard -->
       <div id="keyboard-frame" class="hide" data-z-index-level="keyboard-frame"></div>

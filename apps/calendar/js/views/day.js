@@ -66,6 +66,7 @@ Calendar.ns('Views').Day = (function() {
 
     oninactive: function() {
       Parent.prototype.oninactive.apply(this, arguments);
+      this.currentFrame = null;
 
       /**
        * We disable events here because this view

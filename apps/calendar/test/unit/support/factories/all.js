@@ -43,9 +43,7 @@
       name: 'my calendar',
       color: '#333',
       description: 'description',
-      syncToken: '1',
-      // read, write, delete
-      privilegeSet: ['read', 'write-content', 'unbind']
+      syncToken: '1'
     },
 
     onbuild: function(obj) {
@@ -93,12 +91,7 @@
       name: 'name',
       color: '#333',
       ctag: 'token',
-      description: '1',
-      privilegeSet: [
-        'read',
-        'write',
-        'write-content'
-      ]
+      description: '1'
     }
 
   });
@@ -108,8 +101,7 @@
       user: 'user',
       password: 'password',
       domain: 'http://google.com',
-      entrypoint: '/dav/',
-      calendarHome: '/dav/my/foobar'
+      url: '/'
     }
   });
 
@@ -132,7 +124,7 @@
       user: 'user',
       password: 'password',
       domain: 'http://google.com',
-      entrypoint: '/',
+      url: '/',
       preset: 'local'
     }
   });

@@ -1,4 +1,4 @@
-/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
+/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 'use strict';
@@ -16,13 +16,14 @@
  * planned in the ES-i18n spec:
  *   - a `toLocaleFormat()' that really works (i.e. fully translated);
  *   - a `fromNow()' method to handle relative dates ("pretty dates").
- *
- * WARNING: this library relies on the non-standard `toLocaleFormat()' method,
- * which is specific to Firefox -- no other browser is supported.
  */
 
 navigator.mozL10n.DateTimeFormat = function(locales, options) {
   var _ = navigator.mozL10n.get;
+
+  function zeroPad(number) {
+    return (number < 10) ? ('0' + number) : number;
+  }
 
   // https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Date/toLocaleFormat
   function localeFormat(d, format) {
@@ -48,16 +49,6 @@ navigator.mozL10n.DateTimeFormat = function(locales, options) {
           value = _('month-' + d.getMonth() + '-long');
           break;
 
-        // like %H, but in 12-hour format and without any leading zero
-        case '%I':
-          value = d.getHours() % 12 || 12;
-          break;
-
-        // like %d, without any leading zero
-        case '%e':
-          value = d.getDate();
-          break;
-
         // localized date/time strings
         case '%c':
         case '%x':
@@ -79,7 +70,7 @@ navigator.mozL10n.DateTimeFormat = function(locales, options) {
   }
 
   // variant of John Resig's PrettyDate.js
-  function prettyDate(time, useCompactFormat) {
+  function prettyDate(time) {
     switch (time.constructor) {
       case String: // timestamp
         time = parseInt(time);
@@ -94,16 +85,14 @@ navigator.mozL10n.DateTimeFormat = function(locales, options) {
       return _('incorrectDate');
     }
 
-    var f = useCompactFormat ? '-short' : '-long';
-
     if (secDiff >= 0) { // past
       var dayDiff = Math.floor(secDiff / 86400);
       if (secDiff < 3600) {
-        return _('minutesAgo' + f, { m: Math.floor(secDiff / 60) });
+        return _('minutesAgo', { m: Math.floor(secDiff / 60) });
       } else if (dayDiff === 0) {
-        return _('hoursAgo' + f, { h: Math.floor(secDiff / 3600) });
+        return _('hoursAgo', { h: Math.floor(secDiff / 3600) });
       } else if (dayDiff < 10) {
-        return _('daysAgo' + f, { d: dayDiff });
+        return _('daysAgo', { d: dayDiff });
       }
     }
 
@@ -111,11 +100,11 @@ navigator.mozL10n.DateTimeFormat = function(locales, options) {
       secDiff = -secDiff;
       dayDiff = Math.floor(secDiff / 86400);
       if (secDiff < 3600) {
-        return _('inMinutes' + f, { m: Math.floor(secDiff / 60) });
+        return _('inMinutes', { m: Math.floor(secDiff / 60) });
       } else if (dayDiff === 0) {
-        return _('inHours' + f, { h: Math.floor(secDiff / 3600) });
+        return _('inHours', { h: Math.floor(secDiff / 3600) });
       } else if (dayDiff < 10) {
-        return _('inDays' + f, { d: dayDiff });
+        return _('inDays', { d: dayDiff });
       }
     }
 

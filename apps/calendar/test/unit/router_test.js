@@ -54,7 +54,35 @@ suite('router', function() {
 
   });
 
-  test('#clearObjects', function() {
+  test('#modifer', function() {
+    function uniq() {};
+
+    subject.modifier('/foo', uniq);
+    assert.equal(page.routes[0][0], '/foo');
+    assert.equal(page.routes[0][1], uniq);
+  });
+
+
+  suite('#state', function() {
+    function uniq() {};
+
+    function hasClear() {
+      assert.equal(page.routes[0].length, 4);
+      assert.equal(page.routes[0][1], subject._clearObjects);
+      assert.equal(page.routes[0][3], subject._lastState);
+    }
+
+    test('without objects', function() {
+      subject.state('/foo', uniq);
+
+      hasClear();
+      assert.equal(page.routes[0][0], '/foo');
+      assert.equal(page.routes[0][2], uniq);
+    });
+  });
+
+
+  test('#_clearObjects', function() {
     var calledNext = false;
 
     var one = new View();
@@ -65,8 +93,11 @@ suite('router', function() {
     subject._activeObjects.push(one);
     subject._activeObjects.push(two);
 
-    subject.clearObjects({});
+    subject._clearObjects({}, function() {
+      calledNext = true;
+    });
 
+    assert.isTrue(calledNext);
     assert.isFalse(one.active);
     assert.isFalse(two.active);
   });

@@ -8,11 +8,8 @@ var BatteryManager = {
   TRANSITION_SPEED: 1.8,
   TRANSITION_FRACTION: 0.30,
 
-  AUTO_SHUTDOWN_LEVEL: 0.02,
-
   _notification: null,
   _screenOn: true,
-  _previousLevel: 0,
 
   getAllElements: function bm_getAllElements() {
     this.screen = document.getElementById('screen');
@@ -20,23 +17,10 @@ var BatteryManager = {
     this.notification = document.getElementById('battery');
   },
 
-  checkBatteryDrainage: function bm_checkBatteryDrainage() {
-    var battery = window.navigator.battery;
-    if (!battery)
-      return;
-
-    if (battery.level <= this.AUTO_SHUTDOWN_LEVEL)
-      SleepMenu.startPowerOff(false);
-  },
-
   init: function bm_init() {
     this.getAllElements();
     var battery = window.navigator.battery;
     if (battery) {
-      // When the device is booted, check if the battery is drained.
-      // If so, SleepMenu.startPowerOff() would be called.
-      this.checkBatteryDrainage();
-
       battery.addEventListener('levelchange', this);
       battery.addEventListener('chargingchange', this);
     }
@@ -58,18 +42,12 @@ var BatteryManager = {
         if (!battery)
           return;
 
-        this.checkBatteryDrainage();
-
-        var level = Math.min(100, Math.round(battery.level * 100));
-
         if (this._screenOn) {
+          var level = Math.floor(battery.level * 10) * 10;
           this.notification.dataset.level = level;
-
-          if (!battery.charging && this._previousLevel != level && level == 10)
+          if (level == 10 || level == 30 || level == 100)
             this.display();
         }
-
-        this._previousLevel = level;
 
         PowerSaveHandler.onBatteryChange();
         break;
@@ -232,7 +210,7 @@ var PowerSaveHandler = (function PowerSaveHandler() {
           return;
         }
 
-        if (value != 0 && battery.level > value && _powerSaveEnabled) {
+        if (battery.level > value && _powerSaveEnabled) {
           setMozSettings({'powersave.enabled' : false});
           return;
         }

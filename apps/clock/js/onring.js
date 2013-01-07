@@ -34,17 +34,12 @@ var RingView = {
   },
 
   init: function rv_init() {
-    document.addEventListener('mozvisibilitychange', this);
-    // If mozHidden is true in init state,
-    // it means that the incoming call happens before the alarm.
-    // We should just put a "silent" alarm screen
-    // underneath the oncall screen
-    if (!document.mozHidden) {
-      this.startAlarmNotification();
-    }
-
     this.setAlarmTime();
     this.setAlarmLabel();
+    this.setWakeLockEnabled(true);
+    this.ring();
+    this.vibrate();
+    document.addEventListener('mozvisibilitychange', this);
     this.snoozeButton.addEventListener('click', this);
     this.closeButton.addEventListener('click', this);
   },
@@ -79,10 +74,9 @@ var RingView = {
   ring: function rv_ring() {
     this._ringtonePlayer = new Audio();
     var ringtonePlayer = this._ringtonePlayer;
-    ringtonePlayer.addEventListener('mozinterruptbegin', this);
     ringtonePlayer.mozAudioChannelType = 'alarm';
     ringtonePlayer.loop = true;
-    var selectedAlarmSound = 'shared/resources/media/alarms/' +
+    var selectedAlarmSound = 'style/ringtones/' +
                              window.opener.AlarmManager.getAlarmSound();
     ringtonePlayer.src = selectedAlarmSound;
     ringtonePlayer.play();
@@ -110,31 +104,17 @@ var RingView = {
     }
   },
 
-  startAlarmNotification: function rv_startAlarmNotification() {
-    this.setWakeLockEnabled(true);
-    this.ring();
-    this.vibrate();
-  },
-
   stopAlarmNotification: function rv_stopAlarmNotification(action) {
     switch (action) {
     case 'ring':
-      if (this._ringtonePlayer)
-        this._ringtonePlayer.pause();
-
+      this._ringtonePlayer.pause();
       break;
     case 'vibrate':
-      if (this._vibrateInterval)
-        window.clearInterval(this._vibrateInterval);
-
+      window.clearInterval(this._vibrateInterval);
       break;
     default:
-      if (this._ringtonePlayer)
-        this._ringtonePlayer.pause();
-
-      if (this._vibrateInterval)
-        window.clearInterval(this._vibrateInterval);
-
+      this._ringtonePlayer.pause();
+      window.clearInterval(this._vibrateInterval);
       break;
     }
     this.setWakeLockEnabled(false);
@@ -142,46 +122,38 @@ var RingView = {
 
   handleEvent: function rv_handleEvent(evt) {
     switch (evt.type) {
-    case 'mozvisibilitychange':
-      // https://bugzilla.mozilla.org/show_bug.cgi?id=810431
-      // Since Bug 810431 is not fixed yet,
-      // be carefull to use the event here during alarm goes off.
-      break;
-    case 'mozinterruptbegin':
-      // Only ringer/telephony channel audio could trigger 'mozinterruptbegin'
-      // event on the 'alarm' channel audio element.
-      // If the incoming call happens after the alarm rings,
-      // we need to close ourselves.
-      this.stopAlarmNotification();
-      window.opener.AlarmManager.cancelHandler();
-      window.close();
-      break;
-    case 'click':
-      var input = evt.target;
-      if (!input)
-        return;
+      case 'mozvisibilitychange':
+        if (document.mozHidden) {
+          // XXX: https://bugzilla.mozilla.org/show_bug.cgi?id=809087
+          // TODO: Receive mozvisibilitychange to turn off
+          // alarm's ringtone and vibration
+          return;
+        }
+        break;
 
-      switch (input.id) {
-      case 'ring-button-snooze':
-        this.stopAlarmNotification();
-        window.opener.AlarmManager.snoozeHandler();
-        window.close();
+      case 'click':
+        var input = evt.target;
+        if (!input)
+          return;
+
+        switch (input.id) {
+          case 'ring-button-snooze':
+            this.stopAlarmNotification();
+            window.opener.AlarmManager.snoozeHandler();
+            window.close();
+            break;
+
+          case 'ring-button-close':
+            this.stopAlarmNotification();
+            window.opener.AlarmManager.cancelHandler();
+            window.close();
+            break;
+        }
         break;
-      case 'ring-button-close':
-        this.stopAlarmNotification();
-        window.opener.AlarmManager.cancelHandler();
-        window.close();
-        break;
-      }
-      break;
     }
   }
 
 };
 
-window.addEventListener('localized', function showBody() {
-  window.removeEventListener('localized', showBody);
-  RingView.init();
-});
-
+RingView.init();
 

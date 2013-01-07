@@ -3,7 +3,6 @@
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 var GaiaApps = {
-
   normalizeName: function(name) {
     return name.replace(/[- ]+/g, '').toLowerCase();
   },
@@ -70,7 +69,9 @@ var GaiaApps = {
     }
   },
 
-  // Returns the number of running apps.
+  /**
+   * Returns the number of running apps.
+   */
   numRunningApps: function() {
     let count = 0;
     let runningApps = window.wrappedJSObject.WindowManager.getRunningApps();
@@ -80,66 +81,42 @@ var GaiaApps = {
     return count;
   },
 
-  // Kills the specified app.
-  kill: function(aOrigin, aCallback) {
-    var callback = aCallback || marionetteScriptFinished;
-    let runningApps = window.wrappedJSObject.WindowManager.getRunningApps();
-    if (!runningApps.hasOwnProperty(aOrigin)) {
-      callback(false);
-    }
-    else {
-      window.addEventListener('appterminated', function gt_onAppTerminated() {
-        window.removeEventListener('appterminated', gt_onAppTerminated);
-        waitFor(
-          function() {
-            console.log("app with origin '" + aOrigin + "' has terminated");
-            callback(true);
-          },
-          function() {
-            let runningApps =
-              window.wrappedJSObject.WindowManager.getRunningApps();
-            return !runningApps.hasOwnProperty(aOrigin);
-          }
-        );
-      });
-      console.log("terminating app with origin '" + aOrigin + "'");
-      window.wrappedJSObject.WindowManager.kill(aOrigin);
-    }
-  },
-
-  // Kills all running apps, except the homescreen.
+  /**
+   * Kills all running apps, except the homescreen.
+   */
   killAll: function() {
     let originsToClose = [];
     let that = this;
-
+    window.addEventListener('appterminated', function gt_onAppTerminated(evt) {
+      let index = originsToClose.indexOf(evt.detail.origin);
+      if (index > -1) {
+        originsToClose.splice(index, 1);
+      }
+      if (!originsToClose.length) {
+        window.removeEventListener('appterminated', gt_onAppTerminated);
+        // Even after the 'appterminated' event has been fired for an app,
+        // it can still exist in the apps list, so wait until 1 or fewer
+        // apps are running (since we don't close the homescreen app).
+        waitFor(
+          function() { marionetteScriptFinished(true); },
+          function() { return that.numRunningApps() <= 1; }
+        );
+      }
+    });
     let runningApps = window.wrappedJSObject.WindowManager.getRunningApps();
     for (let origin in runningApps) {
       if (origin.indexOf('homescreen') == -1) {
         originsToClose.push(origin);
+        window.wrappedJSObject.WindowManager.kill(origin);
       }
     }
-
-    if (!originsToClose.length) {
-      marionetteScriptFinished(true);
-      return;
-    }
-
-    originsToClose.slice(0).forEach(function(origin) {
-      GaiaApps.kill(origin, function() {});
-    });
-
-    // Even after the 'appterminated' event has been fired for an app,
-    // it can still exist in the apps list, so wait until 1 or fewer
-    // apps are running (since we don't close the homescreen app).
-    waitFor(
-      function() { marionetteScriptFinished(true); },
-      function() { return that.numRunningApps() <= 1; }
-    );
   },
 
-  // Launches app with the specified name (e.g., 'Calculator'); returns the
-  // app frame's id if successful, false if the app can't be found, or times
-  // out if the app frame can't be found after launching the app.
+  /**
+   * Launches app with the specified name (e.g., 'Calculator'); returns the
+   * app frame's id if successful, false if the app can't be found, or times
+   * out if the app frame can't be found after launching the app.
+   */
   launchWithName: function(name) {
     GaiaApps.locateWithName(name, function(app, appName, entryPoint) {
       if (app) {
@@ -167,10 +144,8 @@ var GaiaApps = {
               // wait until the new iframe sends the mozbrowserfirstpaint event
               let frame = runningApps[origin].frame;
               if (frame.dataset.unpainted) {
-                window.addEventListener('mozbrowserfirstpaint',
-                                        function firstpaint() {
-                  window.removeEventListener('mozbrowserfirstpaint',
-                                             firstpaint);
+                window.addEventListener('appopen', function firstpaint() {
+                  window.removeEventListener('appopen', firstpaint);
                   sendResponse(origin);
                 });
               }
@@ -189,16 +164,5 @@ var GaiaApps = {
         marionetteScriptFinished(false);
       }
     });
-  },
-
-  /**
-   * Uninstalls the app with the speciifed name.
-   */
-  uninstallWithName: function(name) {
-    GaiaApps.locateWithName(name, function uninstall(app) {
-      app.uninstall();
-      marionetteScriptFinished(false);
-    });
   }
-
 };

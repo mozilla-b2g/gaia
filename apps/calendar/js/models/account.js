@@ -40,13 +40,7 @@
     /**
      * url/path for account
      */
-    entrypoint: '',
-
-    /**
-     * Location where calendars can be found.
-     * May be the same as entrypoint.
-     */
-    calendarHome: '',
+    url: '',
 
     /**
      * username for authentication
@@ -59,14 +53,14 @@
     password: '',
 
     get fullUrl() {
-      return this.domain + this.entrypoint;
+      return this.domain + this.url;
     },
 
     set fullUrl(value) {
       var protocolIdx = value.indexOf('://');
 
       this.domain = value;
-      this.entrypoint = '/';
+      this.url = '/';
 
       if (protocolIdx !== -1) {
         protocolIdx += 3;
@@ -78,7 +72,7 @@
         if (pathIdx !== -1) {
           pathIdx = pathIdx + protocolIdx;
 
-          this.entrypoint = value.substr(pathIdx);
+          this.url = value.substr(pathIdx);
           this.domain = value.substr(0, pathIdx);
         }
 
@@ -94,8 +88,7 @@
     toJSON: function() {
       var output = {};
       var fields = [
-        'entrypoint',
-        'calendarHome',
+        'url',
         'domain',
         'password',
         'user',

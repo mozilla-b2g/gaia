@@ -1,10 +1,9 @@
 requireApp('calendar/test/unit/helper.js', function() {
-  requireLib('templates/account.js');
-  requireLib('presets.js');
-  requireLib('provider/local.js');
-  requireLib('models/account.js');
-  requireLib('utils/account_creation.js');
-  requireLib('views/modify_account.js');
+  requireApp('calendar/js/templates/account.js');
+  requireApp('calendar/js/presets.js');
+  requireApp('calendar/js/provider/local.js');
+  requireApp('calendar/js/models/account.js');
+  requireApp('calendar/js/views/modify_account.js');
 });
 
 suite('views/modify_account', function() {
@@ -75,11 +74,6 @@ suite('views/modify_account', function() {
         model: account,
         type: 'new'
       });
-
-      assert.instanceOf(
-        subject.accountHandler,
-        Calendar.Utils.AccountCreation
-      );
     });
 
   });
@@ -100,28 +94,6 @@ suite('views/modify_account', function() {
     assert.ok(subject.form);
   });
 
-  suite('#handleEvent', function() {
-    var handler;
-    var showErrorCall;
-
-    setup(function() {
-      handler = subject.accountHandler;
-      subject.showErrors = function() {
-        showErrorCall = arguments;
-      };
-    });
-
-    test('authorizeError', function() {
-      var sentErr = new Error();
-      handler.emit('authorizeError', sentErr);
-
-      assert.deepEqual(
-        showErrorCall,
-        [sentErr]
-      );
-    });
-  });
-
   test('#fields', function() {
     var result = subject.fields;
 
@@ -133,6 +105,48 @@ suite('views/modify_account', function() {
     hasName('user');
     hasName('password');
     hasName('fullUrl');
+  });
+
+  suite('#_persistForm', function() {
+    var calledSetup;
+    var calledPersist;
+
+    var store = {
+      // mock out persist
+      // we are not trying to
+      // test db functionality here.
+      verifyAndPersist: function(obj, callback) {
+        calledPersist = arguments;
+        setTimeout(function() {
+          callback(null, obj);
+        }, 0);
+      }
+    };
+
+    setup(function() {
+      calledPersist = null;
+      // mock out account store
+      app.db._stores.Account = store;
+    });
+
+    suite('success', function() {
+
+      test('result', function(done) {
+        getField('user').value = 'user';
+        getField('password').value = 'pass';
+
+        subject._persistForm(function() {
+          done(function() {
+            assert.equal(calledPersist[0], subject.model);
+
+            var model = subject.model;
+
+            assert.equal(model.user, 'user');
+            assert.equal(model.password, 'pass');
+          });
+        });
+      });
+    });
   });
 
   suite('#deleteRecord', function() {
@@ -186,64 +200,57 @@ suite('views/modify_account', function() {
     setup(function() {
       calledWith = null;
       subject.completeUrl = '/settings';
-      Calendar.Test.FakePage.shown = null;
-
-      subject.accountHandler.send = function() {
-        calledWith = arguments;
-      };
     });
 
-    test('clears errors', function() {
-      subject.errors.textContent = 'foo';
-      subject.save();
-      assert.ok(!subject.errors.textContent, 'clears text');
-    });
+    test('on success', function(done) {
+      subject._persistForm = function(callback) {
+        setTimeout(function() {
+          callback(null, true);
+          done(function() {
+            assert.equal(Calendar.Test.FakePage.shown, subject.completeUrl);
+            assert.isFalse(hasClass(subject.progressClass));
+          });
+        }, 0);
+      }
 
-    test('updates form', function() {
-      subject.fields['user'].value = 'iupdatedu';
-      subject.save();
-      assert.equal(subject.model.user, 'iupdatedu');
-    });
-
-    test('on success', function() {
       subject.save();
       assert.isTrue(hasClass(subject.progressClass));
-
-      assert.equal(calledWith[0], subject.model);
-      calledWith[1]();
-
-      assert.equal(
-        Calendar.Test.FakePage.shown,
-        subject.completeUrl,
-        'redirects to complete url'
-      );
-
-      assert.isFalse(
-        hasClass(subject.progressClass),
-        'disabled progress class'
-      );
     });
 
-    test('on failure', function() {
+    test('on failure', function(done) {
+      subject._persistForm = function(callback) {
+        setTimeout(function() {
+          callback(new Error('ouch'));
+          done(function() {
+            assert.ok(!calledWith);
+            assert.isFalse(hasClass(subject.progressClass));
+          });
+        }, 0);
+      }
+
       subject.save();
-      assert.ok(calledWith, 'sends request');
-      assert.equal(calledWith[0], subject.model);
-
       assert.isTrue(hasClass(subject.progressClass));
-      calledWith[1](new Error());
-
-      assert.ok(
-        !hasClass(subject.progressClass),
-        'hides progress'
-      );
-
-      assert.notEqual(
-        Calendar.Test.FakePage.shown,
-        subject.completeUrl,
-        'does not redirect on complete'
-      );
     });
 
+  });
+
+  test('#_clearErrors', function() {
+    subject.errors.textContent = 'foo';
+
+    subject._clearErrors();
+
+    assert.equal(subject.errors.textContent, '');
+  });
+
+  test('#_displayError', function() {
+    subject.errors.textContent = '';
+    var error = new Error();
+    error.name = 'default';
+    subject._displayError(error);
+    // mozL10n library has it's own tests,
+    // we only check if the field has the error
+    // identifier added
+    assert.equal(subject.errors.textContent, 'default');
   });
 
   test('#_createModel', function() {
@@ -394,7 +401,7 @@ suite('views/modify_account', function() {
     test('save button', function() {
       var called;
 
-      subject.accountHandler.send = function() {
+      subject._persistForm = function() {
         called = true;
       }
 

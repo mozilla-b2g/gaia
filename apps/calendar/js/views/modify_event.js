@@ -1,6 +1,6 @@
 Calendar.ns('Views').ModifyEvent = (function() {
 
-  var InputParser = Calendar.Utils.InputParser;
+  var InputParser = Calendar.InputParser;
 
   function ModifyEvent(options) {
     Calendar.View.apply(this, arguments);
@@ -127,16 +127,6 @@ Calendar.ns('Views').ModifyEvent = (function() {
     _updateCalendarId: function(id, calendar) {
       var element = this.getField('calendarId');
       var option = element.querySelector('[value="' + id + '"]');
-      var store = this.app.store('Calendar');
-      var provider = store.providerFor(calendar);
-      var caps = provider.calendarCapabilities(
-        calendar
-      );
-
-      if (!caps.canCreateEvent) {
-        this._removeCalendarId(id);
-        return;
-      }
 
       if (option) {
         option.text = calendar.name;
@@ -152,9 +142,9 @@ Calendar.ns('Views').ModifyEvent = (function() {
     _addCalendarId: function(id, calendar) {
       var store = this.app.store('Calendar');
       var provider = store.providerFor(calendar);
-      var caps = provider.calendarCapabilities(
-        calendar
-      );
+
+      if (!provider.canCreateEvent)
+        return;
 
       var option;
       var element = this.getField('calendarId');

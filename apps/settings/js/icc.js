@@ -18,7 +18,6 @@
   var iccLastCommandProcessed = false;
   var stkOpenAppName = null;
   var stkLastSelectedTest = null;
-  var displayTextTimeout = 10000;
   var icc;
 
   init();
@@ -49,13 +48,7 @@
       }, true);
     };
 
-    icc.addEventListener('stkcommand', function do_handleSTKCmd(event) {
-      handleSTKCommand(event.command);
-    });
-    window.addEventListener('stkasynccommand',
-        function do_handleAsyncSTKCmd(event) {
-      handleSTKCommand(event.detail.command);
-    });
+    icc.addEventListener('stkcommand', handleSTKCommand);
 
     /**
      * Open STK main application
@@ -66,32 +59,6 @@
 
     // Load STK apps
     updateMenu();
-
-    // Check if async message has arrived
-    var reqIccData = window.navigator.mozSettings.createLock().get('icc.data');
-    reqIccData.onsuccess = function icc_getIccData() {
-      var cmd = reqIccData.result['icc.data'];
-      if (cmd) {
-        var iccCommand = JSON.parse(cmd);
-        debug('ICC async command: ', iccCommand);
-        reqIccData = window.navigator.mozSettings.createLock().set({
-          'icc.data': ''
-        });
-        if (iccCommand) {        // Open ICC section
-          var event = new CustomEvent('stkasynccommand', {
-            detail: { 'command': iccCommand }
-          });
-          window.dispatchEvent(event);
-        }
-      }
-    }
-
-    // Update displayTextTimeout with settings parameter
-    var reqDisplayTimeout =
-      window.navigator.mozSettings.createLock().get('icc.displayTextTimeout');
-    reqDisplayTimeout.onsuccess = function icc_getDisplayTimeout() {
-      displayTextTimeout = reqDisplayTimeout.result['icc.displayTextTimeout'];
-    };
   }
 
   /**
@@ -114,7 +81,8 @@
   /**
    * Handle ICC Commands
    */
-  function handleSTKCommand(command) {
+  function handleSTKCommand(event) {
+    var command = event.command;
     debug('STK Proactive Command:', command);
     iccLastCommand = command;
     var options = command.options;
@@ -208,7 +176,7 @@
         responseSTKCommand({
           resultCode: icc.STK_RESULT_OK
         });
-        if (!options.confirmMessage || confirm(options.confirmMessage)) {
+        if (confirm(options.confirmMessage)) {
           openLink(options.url);
         }
         break;
@@ -378,10 +346,15 @@
       document.getElementById('icc-stk-exit').classList.remove('hidden');
       document.getElementById('icc-stk-app-back').classList.add('hidden');
 
-      if (!menu || (menu.items.length == 1 && menu.items[0] === null)) {
-        debug('No STK available - hide & exit');
-        document.getElementById('icc-mainheader').hidden = true;
-        document.getElementById('icc-mainentry').hidden = true;
+      if (!menu) {
+        var _ = window.navigator.mozL10n.get;
+        debug('STK Main App Menu not available.');
+        var li = document.createElement('li');
+        var p = document.createElement('p');
+        p.textContent = _('stkAppsNotAvailable');
+        p.className = 'description';
+        li.appendChild(p);
+        iccStkList.appendChild(li);
         return;
       }
 
@@ -525,7 +498,7 @@
   function displayText(command, cb) {
     var options = command.options;
     if (!options.userClear) {
-      var timeoutId = setTimeout(function() {
+    var timeoutId = setTimeout(function() {
         alertbox.classList.add('hidden');
         if (cb) {
           cb(false);

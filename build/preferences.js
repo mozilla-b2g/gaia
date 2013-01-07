@@ -1,10 +1,6 @@
 
 'use strict';
 
-function debug(msg) {
-  //dump('-*- preferences.js ' + msg + '\n');
-}
-
 const prefs = [];
 
 let homescreen = HOMESCREEN + (GAIA_PORT ? GAIA_PORT : '');
@@ -69,9 +65,6 @@ if (DEBUG) {
                      webapp.sourceDirectoryName);
   });
   prefs.push(["extensions.gaia.app_relative_path", appPathList.join(' ')]);
-
-  // Identity debug messages
-  prefs.push(["toolkit.identity.debug", true]);
 }
 
 function writePrefs() {
@@ -80,7 +73,7 @@ function writePrefs() {
     return 'user_pref("' + entry[0] + '", ' + JSON.stringify(entry[1]) + ');';
   }).join('\n');
   writeContent(userJs, content + "\n");
-  debug("\n" + content);
+  dump("\n" + content + "\n");
 }
 
 function setPrefs() {

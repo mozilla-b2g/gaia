@@ -15,6 +15,8 @@ var ModalDialog = {
   // DOM
   elements: {},
 
+  boundToWindow: false,
+
   // Get all elements when inited.
   getAllElements: function md_getAllElements() {
     var elementsID = ['alert', 'alert-ok', 'alert-message',
@@ -34,6 +36,8 @@ var ModalDialog = {
       this.elements[toCamelCase(name)] =
       document.getElementById(this.prefix + name);
     }, this);
+
+    this.screen = document.getElementById('screen');
   },
 
   // Save the events returned by mozbrowsershowmodalprompt for later use.
@@ -41,10 +45,19 @@ var ModalDialog = {
   // e.g., 'http://uitest.gaiamobile.org': evt
   currentEvents: {},
 
-  init: function md_init() {
+  init: function md_init(bindToWindow) {
     // Get all elements initially.
     this.getAllElements();
     var elements = this.elements;
+
+    this.boundToWindow = bindToWindow || false;
+
+    // Bind events
+    if (this.boundToWindow) {
+      window.addEventListener('mozbrowsershowmodalprompt', this);
+      window.addEventListener('appopen', this);
+      window.addEventListener('appwillclose', this);
+    }
 
     for (var id in elements) {
       if (elements[id].tagName.toLowerCase() == 'button') {
@@ -70,16 +83,25 @@ var ModalDialog = {
         break;
 
       case 'click':
-        if (evt.currentTarget.nodeName == "BUTTON" ||
-            evt.currentTarget == elements.customPromptButtons) {
-          evt.preventDefault();
-        }
         if (evt.currentTarget === elements.confirmCancel ||
             evt.currentTarget === elements.promptCancel) {
           this.cancelHandler();
         } else {
           this.confirmHandler(evt.target);
         }
+        break;
+
+      case 'appopen':
+        this.show(evt.detail.origin);
+        break;
+
+      case 'appwillclose':
+        // Do nothing if the app is closed at background.
+        if (evt.detail.origin !== this.currentOrigin)
+          return;
+
+        // Reset currentOrigin
+        this.hide();
         break;
     }
   },
@@ -91,6 +113,7 @@ var ModalDialog = {
 
     var message = evt.detail.message;
     var elements = this.elements;
+    this.screen.classList.add('modal-dialog');
 
     function escapeHTML(str) {
       var span = document.createElement('span');
@@ -107,18 +130,18 @@ var ModalDialog = {
     switch (type) {
       case 'alert':
         elements.alertMessage.innerHTML = message;
-        elements.alert.hidden = false;
+        elements.alert.classList.add('visible');
         break;
 
       case 'prompt':
-        elements.prompt.hidden = false;
+        elements.prompt.classList.add('visible');
         elements.promptInput.value = evt.detail.initialValue;
         elements.promptMessage.innerHTML = message;
         break;
 
       case 'custom-prompt':
         var prompt = evt.detail;
-        elements.customPrompt.hidden = false;
+        elements.customPrompt.classList.add('visible');
         elements.customPromptMessage.innerHTML = prompt.message;
 
         // Display custom list of buttons
@@ -151,12 +174,12 @@ var ModalDialog = {
             checkbox.removeAttribute('checked');
           }
           // We assume that checkbox custom message is already translated
-          checkbox.nextElementSibling.textContent = prompt.checkboxMessage;
+          checkbox.nextSibling.textContent = prompt.checkboxMessage;
         }
         break;
 
       case 'confirm':
-        elements.confirm.hidden = false;
+        elements.confirm.classList.add('visible');
         elements.confirmMessage.innerHTML = message;
         break;
     }
@@ -167,11 +190,14 @@ var ModalDialog = {
     if (!evt)
       return;
     var type = evt.detail.promptType;
+    this.elements[type].classList.remove('visible');
     this.currentOrigin = null;
+    this.screen.classList.remove('modal-dialog');
   },
 
   // When user clicks OK button on alert/confirm/prompt
   confirmHandler: function md_confirmHandler(target) {
+    this.screen.classList.remove('modal-dialog');
     var elements = this.elements;
 
     var evt = this.currentEvents[this.currentOrigin];
@@ -179,27 +205,27 @@ var ModalDialog = {
 
     switch (type) {
       case 'alert':
-        elements.alert.hidden = true;
+        elements.alert.classList.remove('visible');
         break;
 
       case 'prompt':
         evt.detail.returnValue = elements.promptInput.value;
-        elements.prompt.hidden = true;
+        elements.prompt.classList.remove('visible');
         break;
 
       case 'custom-prompt':
         var returnValue = {
           selectedButton: target.dataset.buttonIndex
         };
-        if (evt.detail.showCheckbox)
+        if (evt.showCheckbox)
           returnValue.checked = elements.customPromptCheckbox.checked;
         evt.detail.returnValue = returnValue;
-        elements.customPrompt.hidden = true;
+        elements.customPrompt.classList.remove('visible');
         break;
 
       case 'confirm':
         evt.detail.returnValue = true;
-        elements.confirm.hidden = true;
+        elements.confirm.classList.remove('visible');
         break;
     }
 
@@ -213,24 +239,25 @@ var ModalDialog = {
   // when the user try to escape the dialog with the escape key
   cancelHandler: function md_cancelHandler() {
     var evt = this.currentEvents[this.currentOrigin];
+    this.screen.classList.remove('modal-dialog');
     var elements = this.elements;
     var type = evt.detail.promptType;
 
     switch (type) {
       case 'alert':
-        elements.alert.hidden = true;
+        elements.alert.classList.remove('visible');
         break;
 
       case 'prompt':
         /* return null when click cancel */
         evt.detail.returnValue = null;
-        elements.prompt.hidden = true;
+        elements.prompt.classList.remove('visible');
         break;
 
       case 'confirm':
         /* return false when click cancel */
         evt.detail.returnValue = false;
-        elements.confirm.hidden = true;
+        elements.confirm.classList.remove('visible');
         break;
     }
 
