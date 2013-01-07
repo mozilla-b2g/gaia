@@ -6,7 +6,7 @@ const DockManager = (function() {
   var container, dock;
 
   var MAX_NUM_ICONS = 7;
-  var maxNumAppInViewPort, numAppsBeforeDrag, maxOffsetLeft;
+  var maxNumAppInViewPort = 4, numAppsBeforeDrag, maxOffsetLeft;
 
   var windowWidth = window.innerWidth;
   var duration = 300;
@@ -150,6 +150,17 @@ const DockManager = (function() {
     });
   }
 
+  function calculateDimentions(numIcons) {
+    if (numIcons <= maxNumAppInViewPort) {
+      container.classList.remove('scrollable');
+    } else {
+      container.classList.add('scrollable');
+    }
+
+    cellWidth = dock.getWidth() / numIcons;
+    maxOffsetLeft = windowWidth - numIcons * cellWidth;
+  }
+
   return {
     /*
      * Initializes the dock
@@ -166,9 +177,12 @@ const DockManager = (function() {
       dock = this.page = page;
 
       var numIcons= dock.getNumIcons();
-      cellWidth = dock.getWidth() / numIcons;
-      maxNumAppInViewPort = Math.floor(windowWidth / cellWidth);
-      maxOffsetLeft = windowWidth - numIcons * cellWidth;
+      if (numIcons > maxNumAppInViewPort) {
+        container.classList.add('scrollable');
+      }
+
+      calculateDimentions(numIcons);
+
       if (numIcons <= maxNumAppInViewPort) {
         dock.moveBy(maxOffsetLeft / 2);
       }
@@ -176,7 +190,8 @@ const DockManager = (function() {
 
     onDragStop: function dm_onDragStop() {
       var numApps = dock.getNumIcons();
-      maxOffsetLeft = windowWidth - numApps * cellWidth;
+      calculateDimentions(numApps);
+
       if (numApps === numAppsBeforeDrag ||
           numApps > maxNumAppInViewPort &&
           (numApps < numAppsBeforeDrag && dock.getRight() >= windowWidth ||
