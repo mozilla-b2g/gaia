@@ -7,8 +7,13 @@ var WifiManager = {
       this.api = window.navigator.mozWifiManager;
       this.changeStatus();
       this.gCurrentNetwork = this.api.connection.network;
+      if (this.gCurrentNetwork !== null) {
+        this.api.forget(this.gCurrentNetwork);
+        this.gCurrentNetwork = null;
+      }
     }
   },
+
   isConnectedTo: function wn_isConnectedTo(network) {
     /**
      * XXX the API should expose a 'connected' property on 'network',
@@ -24,6 +29,7 @@ var WifiManager = {
         currentNetwork.capabilities.join('+');
     return (key == curkey);
   },
+
   scan: function wn_scan(callback) {
     if ('mozWifiManager' in window.navigator) {
       var req = WifiManager.api.getNetworks();
@@ -128,12 +134,9 @@ var WifiManager = {
     WifiManager.api.onstatuschange = function(event) {
       UIManager.updateNetworkStatus(self.ssid, event.status);
       if (event.status == 'connected') {
-        self.isConnected = true;
         if (self.networks && self.networks.length) {
           UIManager.renderNetworks(self.networks);
         }
-      } else {
-        self.isConnected = false;
       }
     };
 
