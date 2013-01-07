@@ -38,8 +38,8 @@ var CallHandler = (function callHandler() {
     if (document.readyState == 'complete') {
       fillNumber();
     } else {
-      window.addEventListener('localized', function loadWait() {
-        window.removeEventListener('localized', loadWait);
+      window.addEventListener('load', function loadWait() {
+        window.removeEventListener('load', loadWait);
         fillNumber();
       });
     }
