@@ -39,6 +39,7 @@ var PairView = {
     var _ = navigator.mozL10n.get;
     this.pairButton.addEventListener('click', this);
     this.closeButton.addEventListener('click', this);
+    window.addEventListener('resize', this);
 
     this.nameLabel.textContent = this._device.name;
     this.deviceInfo.className = this._device.icon;
@@ -86,37 +87,51 @@ var PairView = {
     onLocalized(PairView.show.bind(PairView));
   },
 
+  close: function() {
+    window.opener.gDeviceList.setConfirmation(this._device.address, false);
+    window.close();
+  },
+
   handleEvent: function pv_handleEvent(evt) {
     var _ = navigator.mozL10n.get;
-    if (evt.type !== 'click' || !evt.target)
+    if (!evt.target)
       return;
 
-    evt.preventDefault();
-    switch (evt.target.id) {
-      case 'button-pair':
-        this.pairDescription.textContent = _('device-status-waiting');
-        this.pairButton.disabled = true;
-        this.closeButton.disabled = true;
-        switch (this._pairMethod) {
-          case 'confirmation':
-            window.opener.gDeviceList.
-                   setConfirmation(this._device.address, true);
+    switch (evt.type) {
+      case 'click':
+        evt.preventDefault();
+        switch (evt.target.id) {
+          case 'button-pair':
+            this.pairDescription.textContent = _('device-status-waiting');
+            this.pairButton.disabled = true;
+            this.closeButton.disabled = true;
+            switch (this._pairMethod) {
+              case 'confirmation':
+                window.opener.gDeviceList.
+                  setConfirmation(this._device.address, true);
+                break;
+              case 'pincode':
+                var value = this.pinInput.value;
+                window.opener.gDeviceList.setPinCode(this._device.address,
+                  value);
+                break;
+              case 'passkey':
+                var value = this.passkeyInput.value;
+                window.opener.gDeviceList.setPasskey(this._device.address,
+                  value);
+                break;
+            }
+            window.close();
             break;
-          case 'pincode':
-            var value = this.pinInput.value;
-            window.opener.gDeviceList.setPinCode(this._device.address, value);
-            break;
-          case 'passkey':
-            var value = this.passkeyInput.value;
-            window.opener.gDeviceList.setPasskey(this._device.address, value);
+          case 'button-close':
+            this.close();
             break;
         }
-        window.close();
         break;
-
-      case 'button-close':
-        window.opener.gDeviceList.setConfirmation(this._device.address, false);
-        window.close();
+      case 'resize':
+        this.close();
+        break;
+      default:
         break;
     }
   }
