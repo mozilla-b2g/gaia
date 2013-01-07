@@ -198,7 +198,7 @@ var Navigation = {
           simOption.classList.add('disabled');
         }
         // If we have 3G or Wifi activate FB import
-        if (WifiManager.isConnected || DataMobile.isDataAvailable) {
+        if (WifiManager.api.connection.status === 'connected' || DataMobile.isDataAvailable) {
           fbOption.classList.remove('disabled');
         } else {
           fbOption.classList.add('disabled');
