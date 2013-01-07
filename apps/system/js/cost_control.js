@@ -52,26 +52,34 @@
   }
 
   function _showWidget() {
-    if (widgetFrame)
-      widgetFrame.setVisible(true);
+    if (!widgetFrame) {
+      _ensureWidget();
+    }
+    widgetFrame.setVisible(true);
   }
 
   function _hideWidget() {
-    if (widgetFrame)
+    if (widgetFrame) {
       widgetFrame.setVisible(false);
+    }
   }
 
   // Listen to utilitytray show
-  window.addEventListener('utilitytrayshow', _ensureWidget);
   window.addEventListener('utilitytrayshow', _showWidget);
   window.addEventListener('utilitytrayhide', _hideWidget);
 
   window.addEventListener('applicationready', function _onReady() {
     asyncStorage.getItem('ftu.enabled', function _onValue(enabled) {
-      if (enabled !== false)
-        window.addEventListener('ftudone', _ensureWidget);
-      else
+      if (enabled !== false) {
+        window.addEventListener('ftudone', function ftudone(e) {
+          window.removeEventListener('ftudone', ftudone);
+          _ensureWidget();
+          widgetFrame.setVisible(false);
+        });
+      } else {
         _ensureWidget();
+        widgetFrame.setVisible(false);
+      }
     });
   });
 }());
