@@ -257,8 +257,7 @@ suite('system/UpdateManager', function() {
 
         installedApp = new MockApp();
         installedApp.downloadAvailable = true;
-        MockAppsMgmt.mLastApp = installedApp;
-        MockAppsMgmt.mTriggerOninstall();
+        MockAppsMgmt.mTriggerOninstall(installedApp);
       });
 
       test('should instantiate an updatable app', function() {
@@ -269,32 +268,35 @@ suite('system/UpdateManager', function() {
     });
 
     suite('app uninstall', function() {
-      var installedApp;
+      var partialApp;
 
       setup(function() {
         UpdateManager.init();
         UpdateManager.updatableApps = updatableApps;
         UpdateManager.addToUpdatesQueue(uAppWithDownloadAvailable);
 
-        MockAppsMgmt.mLastApp = appWithDownloadAvailable;
+        partialApp = {
+          origin: appWithDownloadAvailable.origin,
+          manifestURL: appWithDownloadAvailable.manifestURL
+        };
       });
 
       test('should remove the updatable app', function() {
         var initialLength = UpdateManager.updatableApps.length;
-        MockAppsMgmt.mTriggerOnuninstall();
+        MockAppsMgmt.mTriggerOnuninstall(partialApp);
         assert.equal(initialLength - 1, UpdateManager.updatableApps.length);
       });
 
       test('should remove from the update queue', function() {
         var initialLength = UpdateManager.updatesQueue.length;
-        MockAppsMgmt.mTriggerOnuninstall();
+        MockAppsMgmt.mTriggerOnuninstall(partialApp);
         assert.equal(initialLength - 1, UpdateManager.updatesQueue.length);
       });
 
       test('should call uninit on the updatable', function() {
         var lastIndex = UpdateManager.updatesQueue.length - 1;
         var updatableApp = UpdateManager.updatesQueue[lastIndex];
-        MockAppsMgmt.mTriggerOnuninstall();
+        MockAppsMgmt.mTriggerOnuninstall(partialApp);
         assert.isTrue(updatableApp.mUninitCalled);
       });
     });

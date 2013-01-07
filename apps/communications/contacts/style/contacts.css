@@ -473,3 +473,11 @@ section[role="region"] > header .icon.icon-settings
 .remark {
   color: #d20000;
 }
+
+.valueselector {
+  position: fixed;
+  top: -100%;
+  left: -100%;
+  opacity: 0;
+}
+
