@@ -32,8 +32,8 @@ var Activities = {
       // event are synchronous make sure to exit the event loop before
       // showing the list.
       setTimeout((function nextTick() {
-        // XXX: l10n issue of activity name
-        ListMenu.request(this._listItems(choices), detail.name,
+        var activityName = navigator.mozL10n.get('activity-' + detail.name);
+        ListMenu.request(this._listItems(choices), activityName,
                          this.choose.bind(this), this.cancel.bind(this));
       }).bind(this));
     }
