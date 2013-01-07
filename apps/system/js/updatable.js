@@ -111,6 +111,7 @@ function SystemUpdatable() {
   this.name = _('systemUpdate');
   this.size = 0;
   this.downloading = false;
+  this.paused = false;
   window.addEventListener('mozChromeEvent', this);
 }
 
@@ -120,6 +121,7 @@ SystemUpdatable.prototype.download = function() {
   }
 
   this.downloading = true;
+  this.paused = false;
   this._dispatchEvent('update-available-result', 'download');
   UpdateManager.addToDownloadsQueue(this);
   this.progress = 0;
@@ -129,6 +131,7 @@ SystemUpdatable.prototype.cancelDownload = function() {
   this._dispatchEvent('update-download-cancel');
   UpdateManager.removeFromDownloadsQueue(this);
   this.downloading = false;
+  this.paused = false;
 };
 
 SystemUpdatable.prototype.uninit = function() {
@@ -147,16 +150,22 @@ SystemUpdatable.prototype.handleEvent = function(evt) {
     case 'update-error':
       this.errorCallBack();
       break;
-    case 'update-progress':
-      if (detail.progress === detail.total) {
-        UpdateManager.startedUncompressing();
-        break;
-      }
-
+    case 'update-download-started':
+      // TODO UpdateManager glue
+      this.paused = false;
+      break;
+    case 'update-download-progress':
       var delta = detail.progress - this.progress;
       this.progress = detail.progress;
 
       UpdateManager.downloadProgressed(delta);
+      break;
+    case 'update-download-stopped':
+      // TODO UpdateManager glue
+      this.paused = detail.paused;
+      if (!this.paused) {
+        UpdateManager.startedUncompressing();
+      }
       break;
     case 'update-downloaded':
       this.downloading = false;
