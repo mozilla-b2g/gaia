@@ -1327,55 +1327,57 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   //Credit: mocha -
   //https://github.com/visionmedia/mocha/blob/master/lib/reporters/base.js#L194
   function Base(runner) {
-    var self = this
-      , stats = this.stats = { suites: 0, tests: 0, passes: 0, pending: 0, failures: 0 }
-      , failures = this.failures = [];
+    var self = this,
+        stats,
+        failures = this.failures = [];
+
+    stats = this.stats = {
+      suites: 0, tests: 0, passes: 0, pending: 0, failures: 0
+    };
 
     if (!runner) return;
     this.runner = runner;
 
-    runner.stats = stats;
-
-    runner.on('start', function(){
+    runner.on('start', function onStart() {
       stats.start = new Date;
     });
 
-    runner.on('suite', function(suite){
+    runner.on('suite', function onSuite(suite) {
       stats.suites = stats.suites || 0;
       suite.root || stats.suites++;
     });
 
-    runner.on('test end', function(test){
+    runner.on('test end', function onTestEnd(test) {
       stats.tests = stats.tests || 0;
       stats.tests++;
     });
 
-    runner.on('pass', function(test){
+    runner.on('pass', function onPass(test) {
       stats.passes = stats.passes || 0;
 
-      var medium = test.slow() / 2;
-      test.speed = test.duration > test.slow()
-        ? 'slow'
-        : test.duration > medium
-          ? 'medium'
-          : 'fast';
+      var medium = Base.slow / 2;
+      //reformatted for gjslint
+      test.speed =
+        (test.duration > Base.slow) ?
+        'slow' : test.duration > medium ?
+         'medium' : 'fast';
 
       stats.passes++;
     });
 
-    runner.on('fail', function(test, err){
+    runner.on('fail', function onFail(test, err) {
       stats.failures = stats.failures || 0;
       stats.failures++;
       test.err = err;
       failures.push(test);
     });
 
-    runner.on('end', function(){
+    runner.on('end', function onEnd() {
       stats.end = new Date;
       stats.duration = new Date - stats.start;
     });
 
-    runner.on('pending', function(){
+    runner.on('pending', function onPending() {
       stats.pending++;
     });
   }
@@ -1512,7 +1514,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         self.stats.testAgentEnvId = MochaReporter.testAgentEnvId;
       }
 
-      console.log(self.stats);
       MochaReporter.send(JSON.stringify(['end', self.stats]));
     });
   }
@@ -1524,8 +1525,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     'root',
     'duration',
     'state',
-    'type',
-    'slow'
+    'type'
   ];
 
   function jsonExport(object, additional) {
@@ -1624,21 +1624,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     return this.__test__.fullTitle;
   };
 
-
   RunnerStreamProxy.Test = function Test(test) {
     this.__test__ = test;
-    copy.call(this, test, ['fullTitle', 'slow']);
+    copy.call(this, test, ['fullTitle']);
     wrapWithEnvId(this);
   };
 
-  RunnerStreamProxy.Test.prototype = {
-    fullTitle: function() {
-      return this.__test__.fullTitle;
-    },
-
-    slow: function() {
-      return this.__test__.slow;
-    }
+  RunnerStreamProxy.Test.prototype.fullTitle = function() {
+    return this.__test__.fullTitle;
   };
 
   function RunnerStreamProxy(runner) {
@@ -2022,7 +2015,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     if (isNode) {
       Mocha = require('mocha');
     } else {
-      Mocha = window.Mocha;
+      Mocha = window.mocha;
     }
 
     this.envs = [];
@@ -2845,17 +2838,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         TestAgent.Mocha.JsonStreamReporter.testAgentEnvId = this.worker.env;
       }
 
-
       if(this.reporter) {
         return MochaDriver.createMutliReporter(
           TestAgent.Mocha.JsonStreamReporter,
-          box.Mocha.reporters[this.reporter]
+          box.mocha.reporters[this.reporter]
         );
       } else {
         return TestAgent.Mocha.JsonStreamReporter;
       }
-
-      return result;
     },
 
     _testRunner: function _testRunner(worker, tests, done) {
@@ -2867,15 +2857,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       });
 
       box.require(this.mochaUrl, function onRequireMocha() {
-        if (!box.process) {
-          box.process = {
-            stdout: {
-              write: console.log
-            },
-            write: console.log
-          };
-        }
-
         //setup mocha
         box.mocha.setup({
           ui: self.ui,
@@ -3145,3 +3126,4 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   };
 
 }(this));
+

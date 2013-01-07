@@ -81,10 +81,6 @@ body, html {
   bottom: 2px;
 }
 
-#screen.locked #statusbar-time {
-  display: none;
-}
-
 .sb-icon {
   width: 16px;
   height: 16px;
@@ -230,7 +226,6 @@ body, html {
   background-position: -21px -40px;
 }
 
-.sb-icon-signal[data-emergency="true"],
 .sb-icon-signal[data-level="0"] {
   background-position: -42px -40px;
 }
@@ -256,8 +251,6 @@ body, html {
 }
 
 .sb-icon-signal {
-  /* default icon is the "no sim" icon */
-  background-position: -147px -80px;
   position: relative;
 }
 
@@ -321,10 +314,6 @@ body, html {
   background-position: -273px -60px;
 }
 
-.sb-icon-mute.vibration {
-  background-position: -210px -60px;
-}
-
 .sb-icon-usb {
   background-position: -294px -60px;
 }
@@ -362,7 +351,7 @@ body, html {
   color: #666;
   width: 16px;
   height: 16px;
-  top: -2px;
+  top: 0;
   right: 0;
   padding: 0 1px;
   font-size: 1.49rem; /* 6.5pt */
@@ -397,11 +386,5 @@ body, html {
 .sb-icon-system-downloads {
   /* JW: waiting for the correct icon; in the mean time I made this one */
   background: url('images/system-downloads.gif') no-repeat;
-  background-position: 0 0;
-}
-
-.sb-icon-call-forwarding {
-  /* Waiting for the correct icon. In the mean time we use this one. */
-  background: url('images/call-forwarding.png') no-repeat;
   background-position: 0 0;
 }

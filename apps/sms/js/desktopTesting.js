@@ -5,39 +5,36 @@
 *********************************************************** */
 if (!navigator.mozSms) {
 
+  if (!navigator.mozSettings) {
+    window.addEventListener('load', function loadWithoutSettings() {
+      ThreadUI.init();
+      ThreadListUI.init();
+    });
+  }
+
   // We made up a fake database on
   var messagesHack = [];
   (function() {
     var messages = [
       {
         sender: null,
-        receiver: '1977',
-        body: 'Alo, how are you today, my friend? :)',
+        receiver: '1-977',
+        body: 'Nothing :)',
         delivery: 'sent',
         id: 52,
-        read: true,
-        timestamp: new Date(Date.now())
+        timestamp: new Date(Date.now() - 86400000)
       },
       {
         sender: null,
-        receiver: '1977',
-        body: 'arr :)',
+        receiver: '1-97743-6797',
+        body: 'Nothing :)',
         delivery: 'sent',
-        id: 511,
-        read: true,
-        timestamp: new Date(Date.now() - 8400000000)
-      },
-      {
-        sender: null,
-        receiver: '436797',
-        body: 'Sending :)',
-        delivery: 'sending',
         id: 51,
         timestamp: new Date(Date.now() - 172800000)
       },
       {
         sender: null,
-        receiver: '197743797',
+        receiver: '1-97743-797',
         body: 'Nothing :)',
         delivery: 'sent',
         id: 50,
@@ -45,7 +42,7 @@ if (!navigator.mozSms) {
       },
       {
         sender: null,
-        receiver: '16797',
+        receiver: '1-6797',
         body: 'Nothing :)',
         delivery: 'sent',
         id: 49,
@@ -53,7 +50,7 @@ if (!navigator.mozSms) {
       },
       {
         sender: null,
-        receiver: '197743697',
+        receiver: '197-743-697',
         body: 'Nothing :)',
         delivery: 'sent',
         id: 48,
@@ -61,16 +58,15 @@ if (!navigator.mozSms) {
       },
       {
         sender: null,
-        receiver: '436797',
-        body: 'Error message:)',
-        delivery: 'sending',
-        error: true,
+        receiver: '1-9777436797',
+        body: 'Nothing :)',
+        delivery: 'sent',
         id: 47,
         timestamp: new Date(Date.now() - 822800000)
       },
       {
         sender: null,
-        receiver: '197746797',
+        receiver: '1-97-74-6797',
         body: 'Nothing :)',
         delivery: 'sent',
         id: 46,
@@ -78,7 +74,7 @@ if (!navigator.mozSms) {
       },
       {
         sender: null,
-        receiver: '177743697',
+        receiver: '1-77-743-697',
         body: 'Nothing :)',
         delivery: 'sent',
         id: 45,
@@ -86,7 +82,7 @@ if (!navigator.mozSms) {
       },
       {
         sender: null,
-        receiver: '1977743',
+        receiver: '1-977-743',
         body: 'Nothing :)',
         delivery: 'sent',
         id: 44,
@@ -94,7 +90,7 @@ if (!navigator.mozSms) {
       },
       {
         sender: null,
-        receiver: '19776797',
+        receiver: '1-977-6797',
         body: 'Nothing :)',
         delivery: 'sent',
         id: 43,
@@ -102,8 +98,8 @@ if (!navigator.mozSms) {
       },
       {
         sender: null,
-        receiver: '436797',
-        body: 'Enviado :)',
+        receiver: '977-743-6797',
+        body: 'Nothing :)',
         delivery: 'sent',
         id: 42,
         timestamp: new Date(Date.now() - 230000000)
@@ -111,15 +107,15 @@ if (!navigator.mozSms) {
 
       {
         sender: null,
-        receiver: '436797',
-        body: 'Enviado 2 :)',
+        receiver: '1-977-743-6797',
+        body: 'Nothing :)',
         delivery: 'sent',
         id: 41,
         timestamp: new Date(Date.now() - 44000000)
       },
       {
-        sender: '436797',
-        body: 'Recibido!',
+        sender: '1-977-743-6797',
+        body: 'Hey! What\s up?',
         delivery: 'received',
         id: 40,
         timestamp: new Date(Date.now() - 50000000)
@@ -128,7 +124,7 @@ if (!navigator.mozSms) {
 
     for (var i = 0; i < 15; i++) {
       messages.push({
-        sender: '14886783487',
+        sender: '1-488-678-3487',
         body: 'Hello world!',
         delivery: 'received',
         id: 39 - i,
@@ -152,21 +148,9 @@ if (!navigator.mozSms) {
         });
       }
 
-      if (!invert) {
-        msgs.sort(function(a,b){
-          return b.timestamp - a.timestamp;
-        });
-      } else {
-        msgs.sort(function(a,b){
-          return a.timestamp - b.timestamp;
-        });
-      }
       return msgs;
     }
 
-    messagesHack.sort(function(a,b){
-      return b.timestamp - a.timestamp;
-    });
     var msg = messagesHack.slice();
     if (invert)
       msg.reverse();

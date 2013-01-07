@@ -4,24 +4,26 @@
  * Icon constructor
  *
  * @param {Object} descriptor
- *                 An object that contains the data necessary to draw this
- *                 icon.
+ *                 An object that contains the data necessary to draw this icon.
  * @param {Application} app [optional]
- *                      The Application or Bookmark object corresponding to
- *                      this icon.
+ *                      The Application or Bookmark object corresponding to this icon.
  */
 function Icon(descriptor, app) {
   this.descriptor = descriptor;
   this.app = app;
-  this.updateAppStatus(app);
-}
+  if (app) {
+    this.downloading = app.installState === 'pending' && app.downloading;
+    this.cancelled = app.installState === 'pending' && !app.downloading;
+  } else {
+    this.downloading = false;
+    this.cancelled = false;
+  }
+};
 
 Icon.prototype = {
   MIN_ICON_SIZE: 52,
   MAX_ICON_SIZE: 60,
 
-  DEFAULT_BOOKMARK_ICON_URL: window.location.protocol + '//' + window.location.host +
-                    '/style/images/default_favicon.png',
   DEFAULT_ICON_URL: window.location.protocol + '//' + window.location.host +
                     '/style/images/default.png',
   DOWNLOAD_ICON_URL: window.location.protocol + '//' + window.location.host +
@@ -29,9 +31,8 @@ Icon.prototype = {
   CANCELED_ICON_URL: window.location.protocol + '//' + window.location.host +
                     '/style/images/app_paused.png',
 
-  // These properties will be copied from the descriptor onto the icon's HTML
-  // element dataset and allow us to uniquely look up the Icon object from
-  // the HTML element.
+  // These properties will be copied from the descriptor onto the icon's HTML element
+  // dataset and allow us to uniquely look up the Icon object from the HTML element.
   _descriptorIdentifiers: ['manifestURL', 'entry_point', 'bookmarkURL'],
 
   /**
@@ -77,6 +78,9 @@ Icon.prototype = {
 
     // Icon container
     var icon = this.icon = document.createElement('div');
+    if (this.downloading) {
+      icon.classList.add('loading');
+    }
 
     // Image
     var img = this.img = new Image();
@@ -114,25 +118,17 @@ Icon.prototype = {
       // Menu button to delete the app
       var options = document.createElement('span');
       options.className = 'options';
-      options.dataset.isIcon = true;
       container.appendChild(options);
     }
 
     target.appendChild(container);
-
-    if (this.downloading) {
-      //XXX: Bug 816043 We need to force the repaint to show the span
-      // with the label and the animation (associated to the span)
-      container.style.visibility = 'visible';
-      icon.classList.add('loading');
-    }
   },
 
   fetchImageData: function icon_fetchImageData() {
     var descriptor = this.descriptor;
     var icon = descriptor.icon;
     if (!icon) {
-      this.loadImageData();
+      self.loadImageData();
       return;
     }
 
@@ -146,14 +142,7 @@ Icon.prototype = {
     var xhr = new XMLHttpRequest({mozAnon: true, mozSystem: true});
     xhr.open('GET', icon, true);
     xhr.responseType = 'blob';
-    try {
-      xhr.send(null);
-    } catch (e) {
-      console.error('Got an exception when trying to load icon "' + icon +
-          '", falling back to default icon. Exception is:', e);
-      this.loadImageData();
-      return;
-    }
+    xhr.send(null);
 
     xhr.onreadystatechange = function saveIcon_readyStateChange(evt) {
       if (xhr.readyState != xhr.DONE)
@@ -183,54 +172,27 @@ Icon.prototype = {
 
     if (this.icon && !this.downloading) {
       this.icon.classList.remove('loading');
-    }
+    } 
 
     img.onload = function icon_loadSuccess() {
       if (blob)
         window.URL.revokeObjectURL(img.src);
+
       self.renderImage(img);
     };
 
     img.onerror = function icon_loadError() {
       if (blob)
         window.URL.revokeObjectURL(img.src);
-      img.src = getDefaultIcon(self.app);
+
+      img.src = self.DEFAULT_ICON_URL;
       img.onload = function icon_errorIconLoadSucess() {
         self.renderImage(img);
       };
     };
   },
 
-  renderImageForBookMark: function icon_renderImageForBookmark(img){
-    var self = this;
-    var canvas = document.createElement('canvas');
-    canvas.width = 64;
-    canvas.height = 64;
-    var ctx = canvas.getContext('2d');
-
-    // Draw the background
-    var background = new Image();
-    background.src = 'style/images/default_background.png';
-    background.onload = function icon_loadBackgroundSuccess(){
-      ctx.shadowColor = 'rgba(0,0,0,0.8)';
-      ctx.shadowBlur = 2;
-      ctx.shadowOffsetY = 2;
-      ctx.drawImage(background,2,2);
-      // Disable smoothing on icon resize
-      ctx.shadowBlur = 0;
-      ctx.shadowOffsetY = 0;
-      ctx.mozImageSmoothingEnabled = false;
-      ctx.drawImage(img,16,16,32,32);
-      canvas.toBlob(self.renderBlob.bind(self));
-    };
-  },
-
   renderImage: function icon_renderImage(img) {
-    if( this.app && this.app.iconable ) {
-      this.renderImageForBookMark(img);
-      return;
-    }
-
     var canvas = document.createElement('canvas');
     canvas.width = 64;
     canvas.height = 64;
@@ -255,13 +217,12 @@ Icon.prototype = {
                   width, height);
     ctx.fill();
 
-    canvas.toBlob(this.renderBlob.bind(this));
-  },
-
-  renderBlob: function icon_renderBlob(blob) {
-    this.descriptor.renderedIcon = blob;
-    GridManager.markDirtyState();
-    this.displayRenderedIcon();
+    var self = this;
+    canvas.toBlob(function canvasAsBlob(blob) {
+      self.descriptor.renderedIcon = blob;
+      GridManager.markDirtyState();
+      self.displayRenderedIcon();
+    });
   },
 
   displayRenderedIcon: function icon_displayRenderedIcon(img, skipRevoke) {
@@ -294,46 +255,22 @@ Icon.prototype = {
     });
   },
 
-  updateAppStatus: function icon_updateAppStatus(app) {
-    if (app) {
-      this.downloading = app.downloading;
-      this.cancelled = (app.installState === 'pending') && !app.downloading;
-    } else {
-      this.downloading = false;
-      this.cancelled = false;
-    }
-  },
-
   update: function icon_update(descriptor, app) {
     this.app = app;
-    this.updateAppStatus(app);
+    this.downloading = app.installState === 'pending' && app.downloading;
+    this.cancelled = app.installState === 'pending' && !app.downloading;
     var oldDescriptor = this.descriptor;
     this.descriptor = descriptor;
 
-    if (descriptor.updateTime == oldDescriptor.updateTime &&
-        descriptor.icon == oldDescriptor.icon) {
+    if (descriptor.icon == oldDescriptor.icon) {
       this.descriptor.renderedIcon = oldDescriptor.renderedIcon;
     } else {
       this.fetchImageData();
     }
-    if (descriptor.updateTime != oldDescriptor.updateTime ||
-        descriptor.name != oldDescriptor.name ||
+    if (descriptor.name != oldDescriptor.name ||
         descriptor.localizedName != oldDescriptor.localizedName) {
       this.translate();
     }
-  },
-
-  showDownloading: function icon_showDownloading() {
-    this.img.src = this.DOWNLOAD_ICON_URL;
-    this.container.style.visibility = 'visible';
-    this.icon.classList.add('loading');
-  },
-
-  showCancelled: function icon_showCancelled() {
-    this.img.src = this.CANCELED_ICON_URL;
-    this.container.style.visibility = 'visible';
-    this.icon.classList.remove('loading');
-    this.fetchImageData();
   },
 
   remove: function icon_remove() {
@@ -352,7 +289,7 @@ Icon.prototype = {
     if (!app)
       return;
 
-    var manifest = app.manifest || app.updateManifest;
+    var manifest = app.manifest;
     if (!manifest)
       return;
 
@@ -361,7 +298,14 @@ Icon.prototype = {
     if (entryPoint)
       iconsAndNameHolder = manifest.entry_points[entryPoint];
 
-    var localizedName = new ManifestHelper(iconsAndNameHolder).name;
+    var localizedName = iconsAndNameHolder.name;
+    var locales = iconsAndNameHolder.locales;
+    if (locales) {
+      var locale = locales[document.documentElement.lang];
+      if (locale && locale.name) {
+        localizedName = locale.name;
+      }
+    }
 
     this.label.textContent = localizedName;
     if (descriptor.localizedName != localizedName) {
@@ -484,7 +428,7 @@ function Page(container, icons) {
   this.container = this.movableContainer = container;
   if (icons)
     this.render(icons);
-}
+};
 
 Page.prototype = {
 
@@ -512,7 +456,7 @@ Page.prototype = {
     var container = this.movableContainer;
     var style = container.style;
     style.MozTransform = 'translateX(' + scrollX + 'px)';
-    style.MozTransition = '-moz-transform ' + duration + 'ms ease';
+    style.MozTransition = '-moz-transform ' + duration + 's ease';
   },
 
   /*
@@ -615,11 +559,6 @@ Page.prototype = {
 
       if (icon.descriptor.entry_point) {
         icon.app.launch(icon.descriptor.entry_point);
-        return;
-      }
-
-      if (icon.cancelled) {
-        GridManager.showRestartDownloadDialog(icon);
         return;
       }
       icon.app.launch();
@@ -729,14 +668,6 @@ Page.prototype = {
   }
 };
 
-function getDefaultIcon(app){
-  if (app && app.iconable) {
-    return Icon.prototype.DEFAULT_BOOKMARK_ICON_URL;
-  } else {
-    return Icon.prototype.DEFAULT_ICON_URL;
-  }
-}
-
 function extend(subClass, superClass) {
   var F = function() {};
   F.prototype = superClass.prototype;
@@ -747,7 +678,7 @@ function extend(subClass, superClass) {
 
 function Dock(container, icons) {
   Page.call(this, container, icons);
-}
+};
 
 extend(Dock, Page);
 
@@ -764,14 +695,14 @@ dockProto.moveByWithEffect = function dk_moveByWithEffect(scrollX, duration) {
   var container = this.movableContainer;
   var style = container.style;
   style.MozTransform = 'translateX(' + scrollX + 'px)';
-  style.MozTransition = '-moz-transform ' + duration + 'ms ease';
+  style.MozTransition = '-moz-transform ' + duration + 's ease';
 };
 
 dockProto.moveByWithDuration = function dk_moveByWithDuration(scrollX,
                                                               duration) {
   var style = this.movableContainer.style;
   style.MozTransform = 'translateX(' + scrollX + 'px)';
-  style.MozTransition = '-moz-transform ' + duration + 'ms ease';
+  style.MozTransition = '-moz-transform ' + duration + 's ease';
 };
 
 

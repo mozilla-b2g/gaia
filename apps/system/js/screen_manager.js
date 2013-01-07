@@ -154,55 +154,27 @@ var ScreenManager = {
         break;
 
       case 'userproximity':
-        this._screenOffByProximity = evt.near;
         if (evt.near) {
           this.turnScreenOff(true);
         } else {
           this.turnScreenOn();
         }
+        this._screenOffByProximity = evt.near;
         break;
 
       case 'callschanged':
         var telephony = window.navigator.mozTelephony;
         if (!telephony.calls.length) {
+          window.removeEventListener('userproximity', this);
           if (this._screenOffByProximity) {
             this.turnScreenOn();
           }
-
-          window.removeEventListener('userproximity', this);
-          this._screenOffByProximity = false;
-
           if (this._cpuWakeLock) {
            this._cpuWakeLock.unlock();
            this._cpuWakeLock = null;
           }
           break;
         }
-
-        // If the _cpuWakeLock is already set we are in a multiple
-        // call setup, turning the screen on to let user see the
-        // notification.
-        if (this._cpuWakeLock) {
-          this.turnScreenOn();
-
-          break;
-        }
-
-        // Enable the user proximity sensor once the call is connected.
-        var call = telephony.calls[0];
-        call.addEventListener('statechange', this);
-
-        break;
-
-      case 'statechange':
-        var call = evt.target;
-        if (call.state !== 'connected') {
-          break;
-        }
-
-        // The call is connected. Remove the statechange listener
-        // and enable the user proximity sensor.
-        call.removeEventListener('statechange', this);
 
         this._cpuWakeLock = navigator.requestWakeLock('cpu');
         window.addEventListener('userproximity', this);
@@ -221,20 +193,12 @@ var ScreenManager = {
   turnScreenOff: function scm_turnScreenOff(instant) {
     if (!this.screenEnabled)
       return false;
-
+    
     var self = this;
 
     // Remember the current screen brightness. We will restore it when
     // we turn the screen back on.
     self._savedBrightness = navigator.mozPower.screenBrightness;
-
-    // Remove the cpuWakeLock if screen is not turned off by
-    // userproximity event.
-    if (!this._screenOffByProximity && this._cpuWakeLock) {
-      window.removeEventListener('userproximity', this);
-      this._cpuWakeLock.unlock();
-      this._cpuWakeLock = null;
-    }
 
     var screenOff = function scm_screenOff() {
       self._setIdleTimeout(0);
@@ -246,14 +210,6 @@ var ScreenManager = {
       self.screen.classList.add('screenoff');
       setTimeout(function realScreenOff() {
         self.setScreenBrightness(0, true);
-        // Sometimes the ScreenManager.screenEnabled and mozPower.screenEnabled
-        // values are out of sync. Since the rest of the world relies only on
-        // the value of ScreenManager.screenEnabled it can be some situations
-        // where the screen is off but ScreenManager think it is on... (see
-        // bug 822463). Ideally a callback should have been used, like
-        // ScreenManager.getScreenState(function(value) { ...} ); but there
-        // are too many places to change that for now.
-        self.screenEnabled = false;
         navigator.mozPower.screenEnabled = false;
       }, 20);
 
@@ -293,20 +249,6 @@ var ScreenManager = {
     // Set the brightness before the screen is on.
     this.setScreenBrightness(this._savedBrightness, instant);
 
-    // If we are in a call and there is no cpuWakeLock,
-    // we would have to get one here.
-    var telephony = window.navigator.mozTelephony;
-    if (!this._cpuWakeLock && telephony && telephony.calls.length) {
-      telephony.calls.some(function checkCallConnection(call) {
-        if (call.state == 'connected') {
-          this._cpuWakeLock = navigator.requestWakeLock('cpu');
-          window.addEventListener('userproximity', this);
-          return true;
-        }
-        return false;
-      }, this);
-    }
-
     // Actually turn the screen on.
     var power = navigator.mozPower;
     if (power)
@@ -323,7 +265,6 @@ var ScreenManager = {
 
     this._reconfigScreenTimeout();
     this.fireScreenChangeEvent();
-
     return true;
   },
 

@@ -1,7 +1,7 @@
 Calendar.ns('Views').WeekChild = (function() {
 
   var template = Calendar.Templates.Week;
-  var OrderedMap = Calendar.Utils.OrderedMap;
+  var OrderedMap = Calendar.OrderedMap;
   var _super = Calendar.Views.DayBased.prototype;
 
   function Week(options) {
@@ -46,11 +46,7 @@ Calendar.ns('Views').WeekChild = (function() {
      */
     _assignHeight: function(element, hoursDuration) {
       var percHeight = hoursDuration * 100;
- 
-      // TODO: This is a magic calculation based on current CSS. Fix this so
-      // that it can be dynamic based on CSS, or fix CSS to not need this.
-      var pxHeight = (hoursDuration * 2) - 5;
-
+      var pxHeight = hoursDuration * 2;
       element.style.height = 'calc(' + percHeight + '% + ' + pxHeight + 'px)';
     },
 

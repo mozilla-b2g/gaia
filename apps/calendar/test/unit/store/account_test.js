@@ -89,14 +89,16 @@ suite('store/account', function() {
     });
 
     test('persist + url change', function(done) {
-      result = Factory('caldav.account');
+      result = {
+        domain: 'new domain',
+        url: 'new url'
+      };
 
       subject.verifyAndPersist(model, function(err, id, data) {
         done(function() {
           assert.instanceOf(data, Calendar.Models.Account);
           assert.equal(data.domain, result.domain);
-          assert.equal(data.entrypoint, result.entrypoint);
-          assert.equal(data.calendarHome, result.calendarHome);
+          assert.equal(data.url, result.url);
           assert.equal(subject.cached[id], data);
         });
       });
@@ -109,7 +111,7 @@ suite('store/account', function() {
         done(function() {
           assert.instanceOf(data, Calendar.Models.Account);
           assert.equal(data.domain, modelParams.domain);
-          assert.equal(data.calendarHome, modelParams.calendarHome);
+          assert.equal(data.url, modelParams.url);
           assert.equal(subject.cached[id], data);
         });
       });

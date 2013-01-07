@@ -13,6 +13,7 @@ var FbLauncher = (function(document) {
     }
 
     function load() {
+      extensionFrame.dataset.animFrom = 'left';
       window.addEventListener('message', messageHandler);
       oauthFrame.contentWindow.postMessage({
         type: 'start',

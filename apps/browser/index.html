@@ -5,21 +5,16 @@
     <meta http-equiv="pragma" content="no-cache">
     <title>Browser</title>
     <link rel="stylesheet" href="style/browser.css" type="text/css">
-    <link rel="stylesheet" href="shared/style/confirm.css" type="text/css">
+    <link rel="stylesheet" href="style/modal_dialog.css" type="text/css">
     <link rel="stylesheet" href="style/action_menu.css" type="text/css">
     <link rel="stylesheet" href="shared/style/headers.css">
     <link rel="stylesheet" href="style/authentication_dialog.css" type="text/css">
     <!-- Localization -->
-    <link rel="resource" type="application/l10n" href="shared/locales/branding.ini">
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
     <!-- Shared code -->
     <link rel="stylesheet" type="text/css" href="shared/style/buttons.css">
     <script type="application/javascript" src="shared/js/l10n.js"></script>
     <script type="application/javascript" defer src="shared/js/gesture_detector.js"></script>
-
-    <!-- Resources -->
-    <link rel="resource" type="image/png" href="shared/resources/branding/Browser.png"/>
-    <link rel="resource" type="image/png" href="shared/resources/branding/about_logo.png"/>
   </head>
 
   <body class="page-screen" role="application">
@@ -30,7 +25,7 @@
         <form id="url-bar" novalidate>
           <input type="image" id="ssl-indicator" value="" />
           <input type="text" id="url-input" placeholder="Enter Search or Address"
-                 data-l10n-id="enter-search-or-address" x-inputmode="verbatim"/>
+                 data-l10n-id="enter-search-or-address" />
           <input type="image" id="url-button" value="" />
         </form>
         <span id="tabs-badge"></span>
@@ -41,7 +36,7 @@
       <div id="frames">
 
         <div id="startscreen" class="hidden">
-          <h1 data-l10n-id="browser">Browser</h1>
+          <h1 data-l10n-id="firefox">Firefox</h1>
           <h2 data-l10n-id="top-sites">Top Sites</h2>
           <div id="start-screen-top-sites">
             <ul id="top-site-thumbnails">
@@ -69,15 +64,13 @@
               </li>
             </ul>
           </nav>
-          <div id="tab-panels">
-            <section id="top-sites" role="tabpanel" class="selected">
-            </section>
-            <section id="bookmarks" role="tabpanel">
-            </section>
-            <section id="history" role="tabpanel">
-            </section>
-          </div>
-          <section id="results" class="hidden">
+          <section id="top-sites" role="tabpanel" class="selected">
+          </section>
+          <section id="bookmarks" role="tabpanel">
+          </section>
+          <section id="history" role="tabpanel">
+          </section>
+          <section id="results">
           </section>
         </div>
 
@@ -93,6 +86,53 @@
           </menu>
         </div>
 
+        <div id="screen">
+          <div id="modal-dialog">
+            <div id="modal-dialog-table">
+              <div id="modal-dialog-tablecell">
+                <div id="modal-dialog-alert">
+                  <div class="modal-dialog-message-container">
+                    <span id="modal-dialog-alert-message"></span>
+                  </div>
+                  <button id="modal-dialog-alert-ok" data-l10n-id="ok">OK</button>
+                </div>
+
+                <div id="modal-dialog-confirm">
+                  <div class="modal-dialog-message-container">
+                    <span id="modal-dialog-confirm-message"></span>
+                  </div>
+                  <button id="modal-dialog-confirm-ok" data-l10n-id="ok">OK</button>
+                  <button id="modal-dialog-confirm-cancel" data-l10n-id="cancel">
+                    Cancel
+                  </button>
+                </div>
+
+                <div id="modal-dialog-prompt">
+                  <div class="modal-dialog-message-container">
+                    <span id="modal-dialog-prompt-message"></span>
+                    <input id="modal-dialog-prompt-input" />
+                  </div>
+                  <button id="modal-dialog-prompt-ok" data-l10n-id="ok">OK</button>
+                  <button id="modal-dialog-prompt-cancel" data-l10n-id="cancel">
+                    Cancel
+                  </button>
+                </div>
+
+                <div id="modal-dialog-custom-prompt">
+                  <div class="modal-dialog-message-container">
+                    <span id="modal-dialog-custom-prompt-message"></span>
+                  </div>
+                  <label>
+                    <input id="modal-dialog-custom-prompt-checkbox" type="checkbox" hidden />
+                    <span></span>
+                  </label>
+                  <div id="modal-dialog-custom-prompt-buttons"></div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -164,60 +204,15 @@
       </label>
     </section>
 
-    <form role="dialog" id="modal-dialog-confirm" data-type="confirm" hidden>
-      <section>
-        <p><span id="modal-dialog-confirm-message"></span></p>
-      </section>
-      <menu>
-        <button id="modal-dialog-confirm-cancel" data-l10n-id="cancel">Cancel</button>
-        <button id="modal-dialog-confirm-ok" data-l10n-id="ok">OK</button>
-      </menu>
-    </form>
-
-    <form role="dialog" id="modal-dialog-alert" data-type="confirm" hidden>
-      <section>
-        <p><span id="modal-dialog-alert-message"></span></p>
-      </section>
-      <menu>
-        <button id="modal-dialog-alert-ok" class="full" data-l10n-id="ok">OK</button>
-      </menu>
-    </form>
-
-    <form role="dialog" id="modal-dialog-prompt" data-type="confirm" hidden>
-      <section>
-        <p>
-          <span id="modal-dialog-prompt-message"></span>
-          <input id="modal-dialog-prompt-input" />
-        </p>
-      </section>
-      <menu>
-        <button id="modal-dialog-prompt-cancel" data-l10n-id="cancel">
-          Cancel
-        </button>
-        <button id="modal-dialog-prompt-ok" data-l10n-id="ok">OK</button>
-      </menu>
-    </form>
-
-    <form role="dialog" id="modal-dialog-custom-prompt" data-type="confirm" hidden>
-      <section>
-        <p><span id="modal-dialog-custom-prompt-message"></span></p>
-        <label>
-          <input id="modal-dialog-custom-prompt-checkbox" type="checkbox" />
-          <span></span>
-        </label>
-      </section>
-      <menu id="modal-dialog-custom-prompt-buttons"></menu>
-    </form>
-
     <section role="region" id="settings" class="skin-organic">
       <header id="settings-header">
         <button id="settings-done-button"><span class="icon icon-back"></span></button>
-        <h1 data-l10n-id="browser-settings">Browser Settings</h1>
+        <h1 data-l10n-id="firefox-settings">Firefox Settings</h1>
       </header>
       <ul>
         <li>
-          <button id="about-browser-button"
-                  data-l10n-id="about-browser" class="icon icon-view">About Browser</button>
+          <button id="about-firefox-button"
+                  data-l10n-id="about-firefox" class="icon icon-view">About Firefox</button>
         </li>
       </ul>
       <header>
@@ -244,3 +239,4 @@
   </body>
 
 </html>
+

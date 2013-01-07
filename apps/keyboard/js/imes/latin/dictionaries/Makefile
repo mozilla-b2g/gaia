@@ -1,4 +1,4 @@
-DICTIONARY_PATH =../../../../../../dictionaries
+DICTIONARY_PATH =../../../dictionaries
 
 # Available:
 # cs.dict, de.dict, en_gb.dict, en_us.dict, es.dict, fr.dict,
@@ -8,8 +8,7 @@ WHITELIST = \
  de.dict \
  en_us.dict \
  pt_br.dict \
- fr.dict \
- es.dict
+ fr.dict
 
 VPATH = $(DICTIONARY_PATH)
 

@@ -11,8 +11,7 @@
     "webapps-manage":{},
     "systemXHR":{},
     "settings":{ "access": "readwrite" },
-    "device-storage:pictures":{ "access": "readonly" },
-    "open-remote-window":{}
+    "device-storage:pictures":{ "access": "readonly" }
   },
   "locales": {
     "ar": {
@@ -37,12 +36,8 @@
   "activities": {
     "save-bookmark": {
       "filters": {
-        "type": "url",
-        "url": { "required":true, "regexp":"/^https?:/" }
-      },
-      "disposition": "inline",
-      "href": "/save-bookmark.html",
-      "returnValue": true
+        "type": "url"
+      }
     }
   }
 }

@@ -10,22 +10,12 @@ var SimLock = {
     if (!conn)
       return;
 
-    this.onClose = this.onClose.bind(this);
-
     // Watch for apps that need a mobile connection
-    window.addEventListener('appwillopen', this);
-
-    // Display the dialog only after lockscreen is unlocked
-    // To prevent keyboard being displayed behind it.
-    window.addEventListener('unlock', this);
+    window.addEventListener('appopen', this);
   },
-
   handleEvent: function sl_handleEvent(evt) {
     switch (evt.type) {
-      case 'unlock':
-        this.showIfLocked();
-        break;
-      case 'appwillopen':
+      case 'appopen':
         // if an app needs telephony or sms permission,
         // we will launch the unlock screen if needed.
 
@@ -43,20 +33,7 @@ var SimLock = {
               'sms' in app.manifest.permissions))
           return;
 
-        // Ignore second `appwillopen` event when showIfLocked ends up
-        // eventually opening the app on valid pin code
-        var origin = evt.target.dataset.frameOrigin;
-        if (origin == this._lastOrigin) {
-          delete this._lastOrigin;
-          return;
-        }
-        this._lastOrigin = origin;
-
-        // if sim is locked, cancel app opening in order to display
-        // it after PIN dialog
-        if (this.showIfLocked())
-          evt.preventDefault();
-
+        this.showIfLocked();
         break;
     }
   },
@@ -64,37 +41,18 @@ var SimLock = {
   showIfLocked: function sl_showIfLocked() {
     var conn = window.navigator.mozMobileConnection;
     if (!conn)
-      return false;
-
-    if (LockScreen.locked)
-      return false;
+      return;
 
     switch (conn.cardState) {
-      // If the phone is in airplane mode then the state will be 'absent' before
-      // going to null.
-      case null:
-      case 'absent':
-        conn.addEventListener('cardstatechange', function stateChange(e) {
-          conn.removeEventListener(e.type, stateChange);
-          this.showIfLocked();
-        }.bind(this));
-        break;
       case 'pukRequired':
       case 'pinRequired':
-        SimPinDialog.show('unlock', this.onClose);
-        return true;
+        SimPinDialog.show('unlock');
+        break;
+      case 'ready':
+      default:
+        break;
     }
-    return false;
-  },
-
-  onClose: function sl_onClose(reason) {
-    // Display the app only when PIN code is valid and when we click
-    // on `X` button
-    if (this._lastOrigin && (reason == 'success' || reason == 'skip'))
-      WindowManager.setDisplayedApp(this._lastOrigin);
-    delete this._lastOrigin;
   }
-
 };
 
 SimLock.init();

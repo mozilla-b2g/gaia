@@ -16,9 +16,7 @@ function AppUpdatable(app) {
   this._mgmt = navigator.mozApps.mgmt;
   this.app = app;
 
-  var manifest = app.manifest ? app.manifest : app.updateManifest;
-  this.name = new ManifestHelper(manifest).name;
-
+  this.name = app.manifest.name;
   this.size = app.updateManifest ? app.updateManifest.size : null;
   app.ondownloadavailable = this.availableCallBack.bind(this);
 }
@@ -86,9 +84,7 @@ AppUpdatable.prototype.appliedCallBack = function() {
   this.cleanCallbacks();
 };
 
-AppUpdatable.prototype.errorCallBack = function(e) {
-  var errorName = e.application.downloadError.name;
-  console.info('downloadError event, error code is', errorName);
+AppUpdatable.prototype.errorCallBack = function() {
   UpdateManager.requestErrorBanner();
   UpdateManager.removeFromDownloadsQueue(this);
   this.cleanCallbacks();
@@ -101,34 +97,22 @@ AppUpdatable.prototype.progressCallBack = function() {
   UpdateManager.downloadProgressed(delta);
 };
 
-/*
- * System Updates
- * Will be instanciated only once by the UpdateManager
- *
- */
-function SystemUpdatable() {
+/* === System Updates === */
+function SystemUpdatable(downloadSize) {
   var _ = navigator.mozL10n.get;
   this.name = _('systemUpdate');
-  this.size = 0;
-  this.downloading = false;
+  this.size = downloadSize;
   window.addEventListener('mozChromeEvent', this);
 }
 
 SystemUpdatable.prototype.download = function() {
-  if (this.downloading) {
-    return;
-  }
-
-  this.downloading = true;
   this._dispatchEvent('update-available-result', 'download');
   UpdateManager.addToDownloadsQueue(this);
   this.progress = 0;
 };
 
 SystemUpdatable.prototype.cancelDownload = function() {
-  this._dispatchEvent('update-download-cancel');
-  UpdateManager.removeFromDownloadsQueue(this);
-  this.downloading = false;
+  // Not implemented yet https://bugzilla.mozilla.org/show_bug.cgi?id=804571
 };
 
 SystemUpdatable.prototype.uninit = function() {
@@ -148,18 +132,12 @@ SystemUpdatable.prototype.handleEvent = function(evt) {
       this.errorCallBack();
       break;
     case 'update-progress':
-      if (detail.progress === detail.total) {
-        UpdateManager.startedUncompressing();
-        break;
-      }
-
       var delta = detail.progress - this.progress;
-      this.progress = detail.progress;
 
+      this.progress = detail.progress;
       UpdateManager.downloadProgressed(delta);
       break;
     case 'update-downloaded':
-      this.downloading = false;
     case 'update-prompt-apply':
       this.showApplyPrompt();
       break;
@@ -169,7 +147,6 @@ SystemUpdatable.prototype.handleEvent = function(evt) {
 SystemUpdatable.prototype.errorCallBack = function() {
   UpdateManager.requestErrorBanner();
   UpdateManager.removeFromDownloadsQueue(this);
-  this.downloading = false;
 };
 
 SystemUpdatable.prototype.showApplyPrompt = function() {
@@ -193,8 +170,6 @@ SystemUpdatable.prototype.showApplyPrompt = function() {
 SystemUpdatable.prototype.declineInstall = function() {
   CustomDialog.hide();
   this._dispatchEvent('update-prompt-apply-result', 'wait');
-
-  UpdateManager.removeFromDownloadsQueue(this);
 };
 
 SystemUpdatable.prototype.acceptInstall = function() {

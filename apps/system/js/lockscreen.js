@@ -80,6 +80,23 @@ var LockScreen = {
   elasticIntervalId: 0,
 
   /*
+  * start/end curve path data (position, curve control point)
+  */
+  CURVE_START_DATA: 'M0,80 C100,150 220,150 320,80',
+  CURVE_END_DATA: 'M0,80 C100,-20 220,-20 320,80',
+
+  /*
+  * curve transform const parameters
+  */
+  CURVE_TRANSFORM_DATA: ['M0,80 C100,', '0', ' 220,', '0', ' 320,80'],
+
+  /*
+  * control points coordinate y for CURVE_TRANSFORM_DATA
+  */
+  CURVE_TRANSFORM_Y1_INDEX: 1,
+  CURVE_TRANSFORM_Y2_INDEX: 3,
+
+  /*
   * elastic animation interval
   */
   ELASTIC_INTERVAL: 5000,
@@ -88,11 +105,6 @@ var LockScreen = {
   * timeout for triggered state after swipe up
   */
   TRIGGERED_TIMEOUT: 7000,
-
-  /*
-  * Max value for handle swiper up
-  */
-  HANDLE_MAX: 70,
 
   /* init */
   init: function ls_init() {
@@ -128,21 +140,8 @@ var LockScreen = {
     if (conn && conn.voice) {
       conn.addEventListener('voicechange', this);
       conn.addEventListener('cardstatechange', this);
-      conn.addEventListener('iccinfochange', this);
       this.updateConnState();
       this.connstate.hidden = false;
-    }
-    if (navigator && navigator.mozCellBroadcast) {
-      var self = this;
-      navigator.mozCellBroadcast.onreceived = function onReceived(event) {
-        var msg = event.message;
-        if (conn &&
-            conn.voice.network.mcc === MobileOperator.BRAZIL_MCC &&
-            msg.messageId === MobileOperator.BRAZIL_CELLBROADCAST_CHANNEL) {
-          self.cellbroadcastLabel = msg.body;
-          self.updateConnState();
-        }
-      };
     }
 
     var self = this;
@@ -150,19 +149,12 @@ var LockScreen = {
       self.setEnabled(value);
     });
 
-    SettingsListener.observe('ring.enabled', true, function(value) {
-      self.mute.hidden = value;
+    SettingsListener.observe('audio.volume.master', 5, function(volume) {
+      self.mute.hidden = !!volume;
     });
 
-    SettingsListener.observe('vibration.enabled', true, function(value) {
-      if (value) {
-        self.mute.classList.add('vibration');
-      } else {
-        self.mute.classList.remove('vibration');
-      }
-    });
-
-    SettingsListener.observe('ril.radio.disabled', false, function(value) {
+    SettingsListener.observe(
+      'ril.radio.disabled', false, function(value) {
       self.airplaneMode = value;
       self.updateConnState();
     });
@@ -240,11 +232,6 @@ var LockScreen = {
           if (!this.locked) {
             this._screenOffTime = new Date().getTime();
           }
-
-          // Remove camera once screen turns off
-          if (this.camera.firstElementChild)
-            this.camera.removeChild(this.camera.firstElementChild);
-
         } else {
           var _screenOffInterval = new Date().getTime() - this._screenOffTime;
           if (_screenOffInterval > this.passCodeRequestTimeout * 1000) {
@@ -258,7 +245,6 @@ var LockScreen = {
         break;
       case 'voicechange':
       case 'cardstatechange':
-      case 'iccinfochange':
         this.updateConnState();
 
       case 'click':
@@ -282,16 +268,21 @@ var LockScreen = {
         var overlay = this.overlay;
         var target = evt.target;
 
-        // Reset timer when touch while overlay triggered
-        if (overlay.classList.contains('triggered')) {
-          clearTimeout(this.triggeredTimeoutId);
-          this.triggeredTimeoutId = setTimeout(this.unloadPanel.bind(this),
-                                               this.TRIGGERED_TIMEOUT);
+        if (target === leftTarget || target === rightTarget) {
           break;
         }
 
-        overlay.classList.remove('elastic');
+        if (overlay.classList.contains('triggered') &&
+            target != leftTarget && target != rightTarget) {
+          this.unloadPanel();
+          break;
+        }
+
+        this.iconContainer.classList.remove('elastic');
         this.setElasticEnabled(false);
+        Array.prototype.forEach.call(this.startAnimation, function(el) {
+          el.endElement();
+        });
 
         this._touch = {
           touched: false,
@@ -316,6 +307,7 @@ var LockScreen = {
         break;
 
       case 'mouseup':
+        var handle = this.areaHandle;
         window.removeEventListener('mousemove', this);
         window.removeEventListener('mouseup', this);
 
@@ -373,45 +365,52 @@ var LockScreen = {
     }
 
     var dy = pageY - touch.initY;
-    var ty = Math.max(- this.HANDLE_MAX, dy);
-    var base = - ty / this.HANDLE_MAX;
-    // mapping position 20-100 to opacity 0.1-0.5
-    var opacity = base <= 0.2 ? 0.1 : base * 0.5;
-    touch.ty = ty;
+    var handleMax = window.innerHeight / 4;
+    var ty = Math.max(- handleMax, dy);
+    var opacity = - ty / handleMax;
+    // Curve control point coordinate Y
+    var cy = 150 - opacity * 150;
+    touch.cy = cy;
+    var curvedata = [].concat(this.CURVE_TRANSFORM_DATA);
+    curvedata[this.CURVE_TRANSFORM_Y1_INDEX] = cy;
+    curvedata[this.CURVE_TRANSFORM_Y2_INDEX] = cy;
 
-    this.iconContainer.style.transform = 'translateY(' + ty + 'px)';
-    this.areaCamera.style.opacity =
-      this.areaUnlock.style.opacity = opacity;
+    this.iconContainer.style.transform = 'translateY(' + ty / 1.5 + 'px)';
+    this.curvepath.setAttribute('d', curvedata.join(''));
+    this.areaHandle.setAttribute('y', 100 - opacity * 100);
   },
 
   handleGesture: function ls_handleGesture() {
+    var handleMax = window.innerHeight / 4;
     var touch = this._touch;
-    if (touch.ty < -50) {
+
+    if (touch.cy < 80) {
+      Array.prototype.forEach.call(this.endAnimation, function(el) {
+        el.setAttribute('fill', 'freeze');
+        el.beginElement();
+      });
+      var self = this;
+      this.curvepath.addEventListener('endEvent', function endEvent() {
+        self.curvepath.removeEventListener('endEvent', endEvent);
+        self.curvepath.setAttribute('d', self.CURVE_END_DATA);
+        self.curvepath.setAttribute('stroke-opacity', 0);
+        self.areaHandle.setAttribute('y', 0);
+        self.areaHandle.setAttribute('opacity', 0);
+
+        Array.prototype.forEach.call(self.endAnimation, function(el) {
+          el.removeAttribute('fill');
+        });
+      });
       this.areaHandle.style.transform =
         this.areaHandle.style.opacity =
         this.iconContainer.style.transform =
-        this.iconContainer.style.opacity =
-        this.areaCamera.style.transform =
-        this.areaCamera.style.opacity =
-        this.areaUnlock.style.transform =
-        this.areaUnlock.style.opacity = '';
+        this.iconContainer.style.opacity = '';
       this.overlay.classList.add('triggered');
 
       this.triggeredTimeoutId =
         setTimeout(this.unloadPanel.bind(this), this.TRIGGERED_TIMEOUT);
-    } else if (touch.ty > -10) {
-      touch.touched = false;
-      this.unloadPanel();
-      this.playElastic();
-
-      var self = this;
-      var container = this.iconContainer;
-      container.addEventListener('animationend', function prompt() {
-        container.removeEventListener('animationend', prompt);
-        self.overlay.classList.remove('elastic');
-        self.setElasticEnabled(true);
-      });
-    } else {
+    }
+    else {
       this.unloadPanel();
       this.setElasticEnabled(true);
     }
@@ -628,6 +627,21 @@ var LockScreen = {
       default:
         var self = this;
         var unload = function unload() {
+          Array.prototype.forEach.call(self.startAnimation, function(el) {
+            el.setAttribute('fill', 'freeze');
+            el.beginElement();
+          });
+          self.curvepath.addEventListener('endEvent', function eventend() {
+            self.curvepath.removeEventListener('endEvent', eventend);
+            self.curvepath.setAttribute('d', self.CURVE_START_DATA);
+            self.curvepath.setAttribute('stroke-opacity', '1.0');
+            self.areaHandle.setAttribute('y', 100);
+            self.areaHandle.setAttribute('opacity', 1);
+            Array.prototype.forEach.call(self.startAnimation, function(el) {
+              el.removeAttribute('fill');
+            });
+          });
+
           self.areaHandle.style.transform =
             self.areaUnlock.style.transform =
             self.areaCamera.style.transform =
@@ -642,7 +656,6 @@ var LockScreen = {
           self.areaUnlock.classList.remove('triggered');
 
           clearTimeout(self.triggeredTimeoutId);
-          self.setElasticEnabled(false);
         };
 
         if (toPanel !== 'camera') {
@@ -694,9 +707,7 @@ var LockScreen = {
 
     var timeFormat = _('shortTimeFormat') || '%H:%M';
     var dateFormat = _('longDateFormat') || '%A %e %B';
-    var time = f.localeFormat(d, timeFormat);
-    this.clockNumbers.textContent = time.match(/([012]?\d).[0-5]\d/g);
-    this.clockMeridiem.textContent = (time.match(/AM|PM/i) || []).join('');
+    this.clock.textContent = f.localeFormat(d, timeFormat);
     this.date.textContent = f.localeFormat(d, dateFormat);
 
     var self = this;
@@ -711,7 +722,6 @@ var LockScreen = {
       return;
 
     var voice = conn.voice;
-    var iccInfo = conn.iccInfo;
     var connstateLine1 = this.connstate.firstElementChild;
     var connstateLine2 = this.connstate.lastElementChild;
     var _ = navigator.mozL10n.get;
@@ -781,18 +791,25 @@ var LockScreen = {
 
       return;
     }
-    var operatorInfos = MobileOperator.userFacingInfo(conn);
-    if (this.cellbroadcastLabel) {
-      connstateLine2.textContent = this.cellbroadcastLabel;
-    } else if (operatorInfos.carrier) {
-      connstateLine2.textContent = operatorInfos.carrier + ' ' +
-        operatorInfos.region;
+
+    if (voice.network.mcc == 724 &&
+        voice.cell && voice.cell.gsmLocationAreaCode) {
+      // We are in Brazil, It is legally required to show local info
+      // about current registered GSM network in a legally specified way.
+      var lac = voice.cell.gsmLocationAreaCode % 100;
+      var carriers = MobileInfo.brazil.carriers;
+      var regions = MobileInfo.brazil.regions;
+
+      connstateLine2.textContent =
+        (carriers[voice.network.mnc] || ('724' + voice.network.mnc)) +
+        ' ' +
+        (regions[lac] ? regions[lac] + ' ' + lac : '');
     }
 
-    var operator = operatorInfos.operator;
+    var carrierName = voice.network.shortName || voice.network.longName;
 
     if (voice.roaming) {
-      var l10nArgs = { operator: operator };
+      var l10nArgs = { operator: carrierName };
       connstateLine1.dataset.l10nId = 'roaming';
       connstateLine1.dataset.l10nArgs = JSON.stringify(l10nArgs);
       connstateLine1.textContent = _('roaming', l10nArgs);
@@ -801,7 +818,7 @@ var LockScreen = {
     }
 
     delete connstateLine1.dataset.l10nId;
-    connstateLine1.textContent = operator;
+    connstateLine1.textContent = carrierName;
   },
 
   updatePassCodeUI: function lockscreen_updatePassCodeUI() {
@@ -854,11 +871,13 @@ var LockScreen = {
 
   getAllElements: function ls_getAllElements() {
     // ID of elements to create references
-    var elements = ['connstate', 'mute', 'clock-numbers', 'clock-meridiem',
-        'date', 'area', 'area-unlock', 'area-camera', 'icon-container',
-        'area-handle', 'passcode-code',
+    var elements = ['connstate', 'mute', 'clock', 'date',
+        'area', 'area-unlock', 'area-camera', 'icon-container',
+        'area-handle', 'passcode-code', 'curvepath',
         'passcode-pad', 'camera', 'accessibility-camera',
         'accessibility-unlock', 'panel-emergency-call'];
+    var elementsForClass = ['start-animation', 'end-animation',
+        'elastic-animation'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {
@@ -868,6 +887,11 @@ var LockScreen = {
 
     elements.forEach((function createElementRef(name) {
       this[toCamelCase(name)] = document.getElementById('lockscreen-' + name);
+    }).bind(this));
+
+    elementsForClass.forEach((function createElementsRef(name) {
+      this[toCamelCase(name)] =
+        document.querySelectorAll('.lockscreen-' + name);
     }).bind(this));
 
     this.overlay = document.getElementById('lockscreen');
@@ -890,32 +914,32 @@ var LockScreen = {
   },
 
   setElasticEnabled: function ls_setElasticEnabled(value) {
-    clearInterval(this.elasticIntervalId);
-    if (value) {
+    if (value && !this.elasticIntervalId) {
       this.elasticIntervalId =
         setInterval(this.playElastic.bind(this), this.ELASTIC_INTERVAL);
+    }
+    else if (!value && this.elasticIntervalId) {
+      clearInterval(this.elasticIntervalId);
+      this.elasticIntervalId = 0;
     }
   },
 
   playElastic: function ls_playElastic() {
     if (this._touch && this._touch.touched)
       return;
-
-    var overlay = this.overlay;
-    var container = this.iconContainer;
-
-    overlay.classList.add('elastic');
-    container.addEventListener('animationend', function animationend(e) {
-      container.removeEventListener(e.type, animationend);
-      overlay.classList.remove('elastic');
+    var forEach = Array.prototype.forEach;
+    forEach.call(this.elasticAnimation, function(el) {
+      el.beginElement();
     });
+    this.overlay.classList.add('elastic');
+
+    this.iconContainer.addEventListener('animationend',
+      function animationend() {
+        this.iconContainer.removeEventListener('animationend', animationend);
+        this.overlay.classList.remove('elastic');
+      }.bind(this));
   }
 };
 
-if (navigator.mozL10n.readyState == 'complete' ||
-    navigator.mozL10n.readyState == 'interactive') {
-  LockScreen.init();
-} else {
-  window.addEventListener('localized', LockScreen.init.bind(LockScreen));
-}
+LockScreen.init();
 

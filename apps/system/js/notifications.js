@@ -39,7 +39,7 @@
 }());
 
 var NotificationScreen = {
-  TOASTER_TIMEOUT: 2000,
+  TOASTER_TIMEOUT: 1200,
   TRANSITION_SPEED: 1.8,
   TRANSITION_FRACTION: 0.30,
 
@@ -49,9 +49,6 @@ var NotificationScreen = {
   _toasterGD: null,
 
   lockscreenPreview: true,
-  silent: false,
-  alerts: true,
-  vibrates: true,
 
   init: function ns_init() {
     window.addEventListener('mozChromeEvent', this);
@@ -79,14 +76,6 @@ var NotificationScreen = {
 
     window.addEventListener('utilitytrayshow', this);
     window.addEventListener('unlock', this.clearLockScreen.bind(this));
-    window.addEventListener('mozvisibilitychange', this);
-
-    this._sound = 'style/notifications/ringtones/notifier_exclamation.ogg';
-
-    var self = this;
-    SettingsListener.observe('notification.ringtone', '', function(value) {
-      self._sound = value;
-    });
   },
 
   handleEvent: function ns_handleEvent(evt) {
@@ -109,14 +98,7 @@ var NotificationScreen = {
         this.swipe(evt);
         break;
       case 'utilitytrayshow':
-        this.updateTimestamps();
         StatusBar.updateNotificationUnread(false);
-        break;
-      case 'mozvisibilitychange':
-        //update timestamps in lockscreen notifications
-        if (!document.mozHidden) {
-          this.updateTimestamps();
-        }
         break;
     }
   },
@@ -129,6 +111,9 @@ var NotificationScreen = {
     evt.preventDefault();
     this._notification = evt.target;
     this._containerWidth = this.container.clientWidth;
+
+    this._notification.style.MozTransition = '';
+    this._notification.style.width = evt.target.parentNode.clientWidth + 'px';
   },
 
   swipe: function ns_swipe(evt) {
@@ -138,11 +123,7 @@ var NotificationScreen = {
     var farEnough = Math.abs(distance) >
       this._containerWidth * this.TRANSITION_FRACTION;
 
-    // We only remove the notification if the swipe was
-    // - left to right
-    // - far or fast enough
-    if ((distance > 0) ||
-        !(farEnough || fastEnough)) {
+    if (!(farEnough || fastEnough)) {
       // Werent far or fast enough to delete, restore
       delete this._notification;
       return;
@@ -169,7 +150,6 @@ var NotificationScreen = {
         toaster.style.MozTransition = '';
         toaster.style.MozTransform = '';
         toaster.classList.remove('displayed');
-        toaster.classList.remove('disappearing');
 
         setTimeout(function nextLoop() {
           toaster.style.display = 'block';
@@ -197,14 +177,6 @@ var NotificationScreen = {
     }
   },
 
-  updateTimestamps: function ns_updateTimestamps() {
-    var timestamps = document.getElementsByClassName('timestamp');
-    for (var i = 0, l = timestamps.length; i < l; i++) {
-      timestamps[i].textContent = navigator.mozL10n.DateTimeFormat()
-        .fromNow(new Date(timestamps[i].dataset.timestamp), true);
-    }
-  },
-
   addNotification: function ns_addNotification(detail) {
     var notificationNode = document.createElement('div');
     notificationNode.className = 'notification';
@@ -215,16 +187,9 @@ var NotificationScreen = {
       var icon = document.createElement('img');
       icon.src = detail.icon;
       notificationNode.appendChild(icon);
+
       this.toasterIcon.src = detail.icon;
     }
-
-    var time = document.createElement('span');
-    var timestamp = new Date();
-    time.classList.add('timestamp');
-    time.dataset.timestamp = timestamp;
-    time.textContent = navigator.mozL10n.DateTimeFormat()
-      .fromNow(timestamp, true);
-    notificationNode.appendChild(time);
 
     var title = document.createElement('div');
     title.textContent = detail.title;
@@ -273,28 +238,6 @@ var NotificationScreen = {
       var lockScreenNode = notificationNode.cloneNode(true);
       this.lockScreenContainer.insertBefore(lockScreenNode,
                                this.lockScreenContainer.firstElementChild);
-    }
-
-    if (this.alerts && !this.silent) {
-      var ringtonePlayer = new Audio();
-      ringtonePlayer.src = this._sound;
-      ringtonePlayer.mozAudioChannelType = 'notification';
-      ringtonePlayer.play();
-      window.setTimeout(function smsRingtoneEnder() {
-        ringtonePlayer.pause();
-        ringtonePlayer.src = '';
-      }, 2000);
-    }
-
-    if (this.vibrates) {
-      if (document.mozHidden) {
-        window.addEventListener('mozvisibilitychange', function waitOn() {
-          window.removeEventListener('mozvisibilitychange', waitOn);
-          navigator.vibrate([200, 200, 200, 200]);
-        });
-      } else {
-        navigator.vibrate([200, 200, 200, 200]);
-      }
     }
 
     return notificationNode;
@@ -364,16 +307,4 @@ SettingsListener.observe(
     'lockscreen.notifications-preview.enabled', true, function(value) {
 
   NotificationScreen.lockscreenPreview = value;
-});
-
-SettingsListener.observe('alert-sound.enabled', true, function(value) {
-  NotificationScreen.alerts = value;
-});
-
-SettingsListener.observe('ring.enabled', true, function(value) {
-  NotificationScreen.silent = !value;
-});
-
-SettingsListener.observe('alert-vibration.enabled', true, function(value) {
-  NotificationScreen.vibrates = value;
 });

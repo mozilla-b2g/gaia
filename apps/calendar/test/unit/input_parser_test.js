@@ -1,12 +1,12 @@
 requireApp('calendar/test/unit/helper.js', function() {
-  requireLib('utils/input_parser.js');
+  requireLib('input_parser.js');
 });
 
 suite('input_parser', function() {
   var subject;
 
   setup(function() {
-    subject = Calendar.Utils.InputParser;
+    subject = Calendar.InputParser;
   });
 
   suite('#importTime', function() {

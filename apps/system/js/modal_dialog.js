@@ -20,8 +20,9 @@ var ModalDialog = {
     var elementsID = ['alert', 'alert-ok', 'alert-message',
       'prompt', 'prompt-ok', 'prompt-cancel', 'prompt-input', 'prompt-message',
       'confirm', 'confirm-ok', 'confirm-cancel', 'confirm-message',
-      'select-one', 'select-one-cancel', 'select-one-menu', 'select-one-title',
-      'alert-title', 'confirm-title', 'prompt-title'];
+      'error', 'error-back', 'error-reload', 'select-one', 'select-one-cancel',
+      'select-one-menu', 'select-one-title', 'alert-title', 'confirm-title',
+      'prompt-title', 'error-title', 'error-message'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {
@@ -80,11 +81,7 @@ var ModalDialog = {
           return;
 
         /* fatal case (App crashing) is handled in Window Manager */
-        // XXX: Before https://bugzilla.mozilla.org/show_bug.cgi?id=816452 is
-        // confirmed and fixed, display the gecko error page instead of
-        // customized error page.
-        if (evt.type === 'mozbrowsererror' &&
-            evt.detail.type === 'fatal')
+        if (evt.type == 'mozbrowsererror' && evt.detail.type == 'fatal')
           return;
 
         evt.preventDefault();
@@ -95,11 +92,17 @@ var ModalDialog = {
         // the frame is currently displayed.
         if (origin == WindowManager.getDisplayedApp() ||
             frameType == 'inline-activity')
-          this.show(evt.target, origin);
+          this.show(origin);
         break;
 
       case 'click':
-        if (evt.currentTarget === elements.confirmCancel ||
+        if (evt.currentTarget === elements.errorBack) {
+          this.cancelHandler();
+          WindowManager.kill(this.currentOrigin);
+        } else if (evt.currentTarget === elements.errorReload) {
+          this.cancelHandler();
+          WindowManager.reload(this.currentOrigin);
+        } else if (evt.currentTarget === elements.confirmCancel ||
           evt.currentTarget === elements.promptCancel ||
           evt.currentTarget === elements.selectOneCancel) {
           this.cancelHandler();
@@ -111,7 +114,7 @@ var ModalDialog = {
         break;
 
       case 'appopen':
-        this.show(evt.target, evt.detail.origin);
+        this.show(evt.detail.origin);
         break;
 
       case 'home':
@@ -158,7 +161,7 @@ var ModalDialog = {
   },
 
   // Show relative dialog and set message/input value well
-  show: function md_show(target, origin) {
+  show: function md_show(origin) {
     if (!(origin in this.currentEvents))
       return;
 
@@ -217,33 +220,29 @@ var ModalDialog = {
 
       // Error
       case 'other':
-        this.showErrorDialog(target);
+        this.showErrorDialog();
         break;
     }
 
     this.setHeight(window.innerHeight - StatusBar.height);
   },
 
-  showErrorDialog: function md_showErrorDialog(target) {
-    var type = 'other';
+  showErrorDialog: function md_showErrorDialog() {
+    var _ = navigator.mozL10n.get;
+    var elements = this.elements;
+    var appName = WindowManager.getCurrentDisplayedApp().name;
     if (AirplaneMode.enabled) {
-      type = 'airplane';
+      elements.errorTitle.textContent = _('airplane-is-on');
+      elements.errorMessage.textContent = _('airplane-is-turned-on',
+          {name: appName});
     } else if (!navigator.onLine) {
-      type = 'offline';
+      elements.errorTitle.textContent = _('network-connection-unavailable');
+      elements.errorMessage.textContent = _('network-error', {name: appName});
+    } else {
+      elements.errorTitle.textContent = _('error-title', {name: appName});
+      elements.errorMessage.textContent = _('error-message', {name: appName});
     }
-
-    var name = encodeURIComponent(WindowManager.getCurrentDisplayedApp().name);
-
-    var host = document.location.host;
-    var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-    var protocol = document.location.protocol + '//';
-    var origin = protocol + 'system.' + domain;
-    var errorURL = origin + '/error.html?' +
-                   'name=' + name + '&' +
-                   'type=' + type;
-    if (target.src.indexOf(errorURL) == -1 || type != 'other') {
-      target.src = errorURL + '&origin=' + target.dataset.frameURL;
-    }
+    this.elements.error.classList.add('visible');
   },
 
   hide: function md_hide() {
@@ -474,7 +473,7 @@ var ModalDialog = {
     // Create a virtual mapping in this.currentEvents,
     // since system-app uses the different way to call ModalDialog.
     this.currentEvents['system'] = pseudoEvt;
-    this.show(null, 'system');
+    this.show('system');
     if (config.title)
       this.setTitle(config.type, config.title);
   },

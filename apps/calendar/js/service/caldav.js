@@ -65,7 +65,6 @@ Calendar.ns('Service').Caldav = (function() {
       req.addResource('calendar', Resource);
       req.prop(['ical', 'calendar-color']);
       req.prop(['caldav', 'calendar-description']);
-      req.prop('current-user-privilege-set');
       req.prop('displayname');
       req.prop('resourcetype');
       req.prop(['calserver', 'getctag']);
@@ -103,19 +102,12 @@ Calendar.ns('Service').Caldav = (function() {
     },
 
     getAccount: function(account, callback) {
-      var url = account.entrypoint;
+      var url = account.url;
       var connection = new Caldav.Connection(account);
 
       var request = this._requestHome(connection, url);
-      return request.send(function(err, data) {
-        if (err) {
-          callback(err);
-          return;
-        }
-
-        callback(null, {
-          calendarHome: data.url
-        });
+      return request.send(function() {
+        callback.apply(this, arguments);
       });
     },
 
@@ -128,14 +120,13 @@ Calendar.ns('Service').Caldav = (function() {
       result.color = cal.color;
       result.description = cal.description;
       result.syncToken = cal.ctag;
-      result.privilegeSet = cal.privilegeSet;
 
       return result;
     },
 
     findCalendars: function(account, callback) {
       var self = this;
-      var url = account.calendarHome;
+      var url = account.url;
       var connection = new Caldav.Connection(
         account
       );
@@ -160,20 +151,9 @@ Calendar.ns('Service').Caldav = (function() {
         for (key in calendars) {
           if (calendars.hasOwnProperty(key)) {
             item = calendars[key];
-            var formattedCal = self._formatCalendar(
+            results[key] = self._formatCalendar(
               item
             );
-
-            // If privilegeSet is not present we will assume full permissions.
-            // Its highly unlikey that it is missing however.
-            if (('privilegeSet' in formattedCal) &&
-                (formattedCal.privilegeSet.indexOf('read') === -1)) {
-
-              // skip calendars without read permissions
-              continue;
-            }
-
-            results[key] = formattedCal;
           }
         }
         callback(null, results);
@@ -311,7 +291,7 @@ Calendar.ns('Service').Caldav = (function() {
      */
     formatICALTime: function(time) {
       var zone = time.zone;
-      var offset = time.utcOffset() * 1000;
+      var offset = zone.utc_offset() * 1000;
       var utc = time.toUnixTime() * 1000;
 
       utc += offset;
@@ -345,14 +325,14 @@ Calendar.ns('Service').Caldav = (function() {
       var offset = time.offset;
       var result;
 
-      if (tzid === ICAL.Timezone.localTimezone.tzid) {
+      if (tzid === ICAL.Timezone.local_timezone.tzid) {
         result = new ICAL.Time();
         result.fromUnixTime(utc / 1000);
-        result.zone = ICAL.Timezone.localTimezone;
+        result.zone = ICAL.Timezone.local_timezone;
       } else {
         result = new ICAL.Time();
         result.fromUnixTime((utc - offset) / 1000);
-        result.zone = ICAL.Timezone.utcTimezone;
+        result.zone = ICAL.Timezone.utc_timezone;
       }
 
       return result;
@@ -377,14 +357,6 @@ Calendar.ns('Service').Caldav = (function() {
       var parser = new ICAL.ComponentParser();
       var primaryEvent;
       var exceptions = [];
-
-      parser.ontimezone = function(zone) {
-        var id = zone.tzid;
-
-        if (!ICAL.TimezoneService.has(id)) {
-          ICAL.TimezoneService.register(id, zone);
-        }
-      }
 
       parser.onevent = function(item) {
         if (item.isRecurrenceException()) {
@@ -645,11 +617,6 @@ Calendar.ns('Service').Caldav = (function() {
       }
 
       function handleResponse(url, data) {
-        if (!data) {
-          // throw some error;
-          console.log('Could not sync: ', url);
-          return;
-        }
         var etag = data.getetag.value;
         if (url in cache) {
           // don't need to track this for missing events.
@@ -788,7 +755,7 @@ Calendar.ns('Service').Caldav = (function() {
         target.endDate = self.formatInputTime(event.end);
 
         var vcal = target.component.parent.toString();
-        event.icalComponent = vcal;
+        event.icalComponent = target.component.parent.toJSON();
 
         req.put({ etag: etag }, vcal, function(err, data, xhr) {
           var token = xhr.getResponseHeader('Etag');

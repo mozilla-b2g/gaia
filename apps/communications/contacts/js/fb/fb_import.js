@@ -49,7 +49,7 @@ if (typeof fb.importer === 'undefined') {
     var FRIENDS_QUERY = [
       'SELECT uid, name, first_name, last_name, pic_big, current_location, ' ,
       'middle_name, birthday_date, email, profile_update_time, ' ,
-      ' work, education, phones, hometown_location' ,
+      ' work, education, cell, other_phone, hometown_location' ,
       ' FROM user' ,
       ' WHERE uid ',
       'IN (SELECT uid1 FROM friend WHERE uid2=me())' ,
@@ -68,24 +68,25 @@ if (typeof fb.importer === 'undefined') {
     var headerElement = document.querySelector('header');
     var friendsMsgElement = document.querySelector('#friends-msg');
     var scrollableElement = document.querySelector('#mainContent');
-    var imgLoader;
+
+    var BLOCK_SIZE = 5;
 
     UI.init = function() {
-      var overlay;
+      var overlay, overlayContent;
 
-      overlay = document.querySelector('nav[data-type="scrollbar"] p');
-      var jumper = document.querySelector('nav[data-type="scrollbar"] ol');
+      overlay = overlayContent = document.querySelector('#shortcuts #current');
+      var jumper = document.querySelector('#shortcuts ol');
 
       var params = {
         overlay: overlay,
+        overlayContent: overlayContent,
         jumper: jumper,
         groupSelector: '#group-',
         scrollToCb: scrollToCb
       };
 
       utils.alphaScroll.init(params);
-      contacts.Search.init(document.getElementById('content'), null,
-                           onSearchResultCb);
+      contacts.Search.init(document.getElementById('content'));
     }
 
     UI.end = function(event) {
@@ -101,21 +102,6 @@ if (typeof fb.importer === 'undefined') {
 
     function scrollToCb(groupContainer) {
       scrollableElement.scrollTop = groupContainer.offsetTop;
-    }
-
-    function onSearchResultCb(e) {
-      var target = e.target;
-      var uid = target.dataset.uuid;
-      var checkbox = target.querySelector('input[type="checkbox"]');
-      checkbox.checked = !checkbox.checked;
-
-      var realNode = contactList.querySelector(
-                          '[data-uuid=' + '"' + uid + '"' + ']');
-      var realCheckbox = realNode.querySelector('input[type="checkbox"]');
-
-      UI.selection({
-        target: realNode
-      });
     }
 
     /**
@@ -182,24 +168,15 @@ if (typeof fb.importer === 'undefined') {
      *
      */
     function friendsAvailable() {
-      imgLoader = new ImageLoader('#mainContent',
-                                ".block-item:not([data-uuid='#uid#'])");
+      Curtain.hide(sendReadyEvent);
 
       friendsLoaded = true;
 
       if (contactsLoaded) {
-        window.addEventListener('message', function importOnViewPort(e) {
-          var data = e.data;
+        window.setTimeout(startSync, 0);
 
-          if (data && data.type === 'dom_transition_end') {
-            window.removeEventListener('message', importOnViewPort);
-            window.setTimeout(startSync, 0);
-          }
-        });
         markExisting(existingFbContacts);
       }
-
-      Curtain.hide(sendReadyEvent);
     }
 
     function sendReadyEvent() {
@@ -588,53 +565,23 @@ if (typeof fb.importer === 'undefined') {
       }
     }
 
-    function getCleaner(mode, contacts, cb) {
-      if (mode === 'update') {
-        var cleaner = new fb.utils.FbContactsCleaner(contacts, mode);
-        window.setTimeout(cleaner.start, 0);
-        cb(cleaner);
-      }
-      else {
-        // Mode === clear
-        var req = fb.utils.clearFbData();
-        req.onsuccess = function() {
-          cb(req.result);
-        }
-
-        req.onerror = function(e) {
-          window.console.error('Error while starting cleaning: ',
-                               e.target.error.name);
-          cb(null);
-        }
-      }
-    }
-
     function cleanContacts(onsuccess, progress) {
       var contacts = [];
-      var unSelectedKeys = Object.keys(unSelectedContacts);
       // FbContactsCleaner expects an Array object
-      unSelectedKeys.forEach(function iterator(uid) {
+      Object.keys(unSelectedContacts).forEach(function iterator(uid) {
         var deviceContacts = unSelectedContacts[uid];
         for (var i = 0; i < deviceContacts.length; i++) {
           contacts.push(deviceContacts[i]);
         }
       });
 
-      // To optimize if the user wishes to unselect all
-      var mode = 'update';
-      if (unSelectedKeys.length === existingFbContacts.length) {
-        mode = 'clear';
-      }
+      var cleaner = new fb.utils.FbContactsCleaner(contacts);
 
-      getCleaner(mode, contacts, function got_cleaner(cleaner) {
-        if (cleaner) {
-          cleaner.oncleaned = progress.update;
-          cleaner.onsuccess = onsuccess;
-        }
-        else {
-          Importer.errorHandler();
-        }
-      });
+      cleaner.oncleaned = progress.update;
+      cleaner.onsuccess = onsuccess;
+
+      // The cleaning activity should be starting immediately
+      window.setTimeout(cleaner.start, 0);
     }
 
     function getTotalUnselected() {
@@ -966,3 +913,4 @@ if (typeof fb.importer === 'undefined') {
 
   })(document);
 }
+

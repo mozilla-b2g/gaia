@@ -1,140 +1,170 @@
+/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/*
- * The application is in charge of display detailed information about the usage.
- * Application has three tabs configured independently plus a settings view.
- *
- * This module is only in charge of manage the different tabs but the specific
- * behaviour is delegated to each tab (in /js/views directory).
- */
+'use strict';
 
-var CostControlApp = (function() {
+// Request the application icon.
+// XXX: It is only used in balance view but I prefer to leave it here as
+// balance is a subview of the cost control application.
+var APP_ICON;
+navigator.mozApps.getSelf().onsuccess = function ccapp_getSelf(evt) {
+  var app = evt.target.result;
+  var icons = app.manifest.icons;
+  if (!icons)
+    return null;
 
-  'use strict';
-
-  var costcontrol, initialized = false;
-  window.addEventListener('DOMContentLoaded', function _onDOMReady() {
-    checkSIMChange();
-
-    CostControl.getInstance(function _onCostControlReady(instance) {
-      if (ConfigManager.option('fte')) {
-        window.location = '/fte.html';
-        return;
-      }
-      costcontrol = instance;
-      setupApp();
-    });
+  var sizes = Object.keys(icons).map(function parse(str) {
+    return parseInt(str, 10);
   });
+  sizes.sort(function(x, y) { return y - x; });
 
-  window.addEventListener('localized', function _onLocalize() {
-    if (initialized)
-      updateUI();
-  });
+  var HVGA = document.documentElement.clientWidth < 480;
+  var index = sizes[HVGA ? sizes.length - 1 : 0];
 
-  var tabmanager, vmanager, settingsVManager;
-  function setupApp() {
-    // View managers for dialogs and settings
-    tabmanager = new ViewManager(
-      ['balance-tab', 'telephony-tab', 'datausage-tab']
-    );
-    vmanager = new ViewManager();
-    settingsVManager = new ViewManager();
+  APP_ICON = app.installOrigin + icons[index];
+};
 
-    // Configure settings
-    var settingsButtons = document.querySelectorAll('.settings-button');
-    Array.prototype.forEach.call(settingsButtons,
-      function _eachSettingsButton(button) {
-        button.addEventListener('click', function _showSettings() {
-          settingsVManager.changeViewTo('settings-view');
-        });
-      }
-    );
+// Retrieve Service
+var Service = getService(function ccapp_onServiceReady(evt) {
+  // If the service is not ready, when ready it sets the Service object
+  // again and setup the application.
+  Service = evt.detail.service;
+  setupApp();
+});
+if (Service)
+  setupApp();
 
-    var close = document.getElementById('close-settings');
-    close.addEventListener('click', function _onClose() {
-      settingsVManager.closeCurrentView();
-    });
+var SETTINGS_VIEW = 'settings-view';
 
-    Settings.initialize();
+// Cost Control application is in charge of offer detailed information
+// about cost control and data ussage. At the same time it allows the user
+// to configure some aspects about consumption limits and monitoring.
+function setupApp() {
 
-    // Configure dialogs
+  // Set the left tab depending on plantype
+  function _setLeftTab(plantype) {
+
+    // Return true if the tab is one of those placed on the left
+    function isLeftTab(tab) {
+      return [TAB_BALANCE, TAB_TELEPHONY].indexOf(tab) !== -1;
+    }
+
+    var balance = (plantype === Service.PLAN_PREPAID);
+    var telephony = !balance;
+
+    // Enable / disable the filter
+    document.getElementById('balance-tab-filter')
+      .setAttribute('aria-hidden', !balance);
+    document.getElementById('telephony-tab-filter')
+      .setAttribute('aria-hidden', !telephony);
+
+    // If the current tab is the left one, enable it
+    var currentTab = viewManager.getCurrentTab();
+    if (currentTab === null || isLeftTab(currentTab))
+      viewManager.changeViewTo(balance ? TAB_BALANCE : TAB_TELEPHONY);
+
+  }
+
+  // Configure close dialog to close the current dialog. Dialog includes
+  // prompts and settings.
+  function _configureCloseDialog() {
     var closeButtons = document.querySelectorAll('.close-dialog');
-    [].forEach.call(closeButtons, function(closeButton) {
-      closeButton.addEventListener('click', function() {
-        vmanager.closeCurrentView();
+    [].forEach.call(closeButtons, function ccapp_eachCloseButton(button) {
+      button.addEventListener('click', function ccapp_onCloseView() {
+        viewManager.closeCurrentView();
       });
     });
+  }
 
-    // Handle open sent by the user via the widget
+  // Configure close dialog to close the current setting's  dialog.
+  // Settings dialogs include all of them related with selecting values from
+  // settings and warning prompts arising from the settings view.
+  function _configureCloseSettingsDialog() {
+    var closeButtons = document.querySelectorAll('.close-settings-dialog');
+    [].forEach.call(closeButtons, function ccapp_eachCloseButton(button) {
+      button.addEventListener('click', function ccapp_onCloseView() {
+        settingsVManager.closeCurrentView();
+      });
+    });
+  }
+
+  // Configure configuration buttons to display the application's settings
+  function _configureSettingsButtons() {
+    var configButtons = document.querySelectorAll('.settings-button');
+    [].forEach.call(configButtons, function ccapp_eachConfigButton(button) {
+      button.addEventListener('click', function ccapp_onConfig() {
+        settingsVManager.changeViewTo(SETTINGS_VIEW);
+      });
+    });
+  }
+
+  // Initializes the cost control module: basic parameters, automatic and manual
+  // updates.
+  function _init() {
+    var status = Service.getServiceStatus();
+    if (status.fte) {
+      var fteIframe = document.getElementById('fte-view');
+      fteIframe.src = 'fte.html';
+      settingsVManager.changeViewTo('fte-view');
+    }
+
+    _configureSettingsButtons();
+    _configureCloseDialog();
+    _configureCloseSettingsDialog();
+
+    // Initialize each tab (XXX: see them in /js/views/ )
+    for (var viewId in Views)
+      Views[viewId].init();
+
+    var settingsIframe = document.getElementById('settings-view');
+    settingsIframe.src = 'settings.html';
+
+    // Handle web activity
     navigator.mozSetMessageHandler('activity',
-      function _handleActivity(activityRequest) {
+      function settings_handleActivity(activityRequest) {
+        var status = Service.getServiceStatus();
+        if (status.fte)
+          return;
+
         var name = activityRequest.source.name;
+        settingsVManager.closeCurrentView();
         switch (name) {
           case 'costcontrol/balance':
-            tabmanager.changeViewTo('balance-tab');
+            viewManager.changeViewTo(TAB_BALANCE);
             break;
           case 'costcontrol/telephony':
-            tabmanager.changeViewTo('telephony-tab');
+            viewManager.changeViewTo(TAB_TELEPHONY);
             break;
           case 'costcontrol/data_usage':
-            tabmanager.changeViewTo('datausage-tab');
+            viewManager.changeViewTo(TAB_DATA_USAGE);
             break;
         }
       }
     );
 
-    updateUI();
-    ConfigManager.observe('plantype', updateUI, true);
+    // Keep the left tab synchronized with the plantype
+    Service.settings.observe('plantype', _setLeftTab);
 
-    initialized = true;
+    // Adapt tab visibility according to available functionality
+    if (!status.enabledFunctionalities.balance &&
+        !status.enabledFunctionalities.telephony) {
+
+      // Hide any other
+      var tabs = document.getElementById('tabs');
+      tabs.setAttribute('aria-hidden', true);
+
+      // Show the data tab in standalone mode
+      var dataUsageTab = document.getElementById('datausage-tab');
+      viewManager.changeViewTo(TAB_DATA_USAGE);
+      dataUsageTab.classList.add('standalone');
+    }
   }
 
+  // Update UI when localized
+  window.addEventListener('localized', function ccapp_onLocalized() {
+    for (var viewid in Views) if (Views.hasOwnProperty(viewid))
+      Views[viewid].localize();
+  });
 
-  var currentMode;
-  function updateUI() {
-    ConfigManager.requestSettings(function _onSettings(settings) {
-      var mode = costcontrol.getApplicationMode(settings);
-      debug('App UI mode: ' + mode);
-
-      // Layout
-      if (mode !== currentMode) {
-        currentMode = mode;
-
-        // Initialize on demand
-        DataUsageTab.initialize(tabmanager);
-        if (mode === 'PREPAID')
-          TelephonyTab.finalize();
-          BalanceTab.initialize(tabmanager, vmanager);
-        if (mode === 'POSTPAID') {
-          BalanceTab.finalize();
-          TelephonyTab.initialize(tabmanager);
-        }
-
-        // Stand alone mode when data usage only
-        if (mode === 'DATA_USAGE_ONLY') {
-          var tabs = document.getElementById('tabs');
-          tabs.setAttribute('aria-hidden', true);
-
-          var dataUsageTab = document.getElementById('datausage-tab');
-          vmanager.changeViewTo('datausage-tab');
-          dataUsageTab.classList.add('standalone');
-
-        // Two tabs mode
-        } else {
-          document.getElementById('balance-tab-filter')
-            .setAttribute('aria-hidden', (mode !== 'PREPAID'));
-
-          document.getElementById('telephony-tab-filter')
-            .setAttribute('aria-hidden', (mode !== 'POSTPAID'));
-
-          // If it was showing the left tab, force changing to the
-          // proper left view
-          if (tabmanager.getCurrentTab() !== 'datausage-tab')
-            tabmanager.changeViewTo(mode === 'PREPAID' ? 'balance-tab' :
-                                                         'telephony-tab');
-        }
-
-      }
-    });
-  }
-
-}());
+  _init();
+}

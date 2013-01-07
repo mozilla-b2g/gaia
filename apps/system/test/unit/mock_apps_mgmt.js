@@ -24,18 +24,19 @@ var MockAppsMgmt = {
   },
 
   mApps: [],
+  mLastApp: null,
   mLastAppApplied: null,
   mNext: null,
   mTeardown: function mam_mTeardown() {
     this.mLastAppApplied = null;
     this.mApps = [];
+    this.mLastApp = null;
     this.mNext = null;
   },
-
-  mTriggerOninstall: function mam_mTriggerOninstall(app) {
+  mTriggerOninstall: function mam_mTriggerOninstall() {
     if (this.oninstall) {
       var evt = {
-        application: app
+        application: this.mLastApp
       };
       this.oninstall(evt);
     }
@@ -43,14 +44,13 @@ var MockAppsMgmt = {
     var evt = document.createEvent('CustomEvent');
     evt.initCustomEvent('applicationinstall',
       true, false,
-      { application: app });
+      { application: this.mLastApp });
     window.dispatchEvent(evt);
   },
-
-  mTriggerOnuninstall: function mam_mTriggerOnuninstall(app) {
+  mTriggerOnuninstall: function mam_mTriggerOnuninstall() {
     if (this.onuninstall) {
       var evt = {
-        application: app
+        application: this.mLastApp
       };
       this.onuninstall(evt);
     }
@@ -58,7 +58,7 @@ var MockAppsMgmt = {
     var evt = document.createEvent('CustomEvent');
     evt.initCustomEvent('applicationuninstall',
       true, false,
-      { application: app });
+      { application: this.mLastApp });
     window.dispatchEvent(evt);
   }
 };

@@ -149,8 +149,8 @@ Calendar.ns('Controllers').Time = (function() {
 
       // handle cache pause/resume
       var sync = this.app.syncController;
-      sync.on('syncStart', this);
-      sync.on('syncComplete', this);
+      sync.on('sync start', this);
+      sync.on('sync complete', this);
 
       // XXX: case that the event name is so generic
       //      we handle it here directly.
@@ -454,10 +454,10 @@ Calendar.ns('Controllers').Time = (function() {
       var type;
 
       switch (event.type) {
-        case 'syncStart':
+        case 'sync start':
           this.cacheLocked = true;
           break;
-        case 'syncComplete':
+        case 'sync complete':
           this.cacheLocked = false;
           this.purgeCache();
           break;

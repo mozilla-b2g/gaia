@@ -23,7 +23,7 @@ var ValueSelector = {
 
     window.navigator.mozKeyboard.onfocuschange = function onfocuschange(evt) {
       var typeToHandle = ['select-one', 'select-multiple', 'date',
-        'time', 'datetime', 'datetime-local', 'blur'];
+        'time', 'datetime', 'datetime-local'];
 
       var type = evt.detail.type;
       // handle the <select> element and inputs with type of date/time
@@ -53,11 +53,9 @@ var ValueSelector = {
         case 'datetime-local':
           // TODO
           break;
-        case 'blur':
-          self.hide();
-          break;
       }
     };
+
 
     this._element = document.getElementById('value-selector');
     this._element.addEventListener('mousedown', this);
@@ -72,19 +70,19 @@ var ValueSelector = {
     this._popups['time'] =
       document.getElementById('time-picker-popup');
     this._popups['date'] =
-      document.getElementById('spin-date-picker-popup');
+      document.getElementById('date-picker-popup');
 
     this._buttons['select'] = document.getElementById('select-options-buttons');
     this._buttons['select'].addEventListener('click', this);
 
     this._buttons['time'] = document.getElementById('time-picker-buttons');
     this._buttons['time'].addEventListener('click', this);
-    this._buttons['date'] = document.getElementById('spin-date-picker-buttons');
 
+    this._buttons['date'] = document.getElementById('date-picker-buttons');
     this._buttons['date'].addEventListener('click', this);
 
     this._containers['time'] = document.getElementById('picker-bar');
-    this._containers['date'] = document.getElementById('spin-date-picker');
+    this._containers['date'] = document.getElementById('date-picker-container');
 
     ActiveEffectHelper.enableActive(this._buttons['select']);
     ActiveEffectHelper.enableActive(this._buttons['time']);
@@ -103,14 +101,6 @@ var ValueSelector = {
 
     window.addEventListener('appopen', this);
     window.addEventListener('appwillclose', this);
-
-    // invalidate the current spin date picker when language setting changes
-    navigator.mozSettings.addObserver('language.current',
-      (function language_change(e) {
-        if (this._datePicker) {
-          this._datePicker.uninit();
-          this._datePicker = null;
-      }}).bind(this));
   },
 
   handleEvent: function vs_handleEvent(evt) {
@@ -173,32 +163,6 @@ var ValueSelector = {
     } else {
       target.setAttribute('aria-checked', 'true');
     }
-
-    // setValue here to trigger change event
-    var singleOptionIndex;
-    var optionIndices = [];
-
-    var selectee = this._containers['select'].
-          querySelectorAll('[aria-checked="true"]');
-
-    if (this._currentPickerType === 'select-one') {
-
-      if (selectee.length > 0)
-        singleOptionIndex = selectee[0].dataset.optionIndex;
-
-      window.navigator.mozKeyboard.setSelectedOption(singleOptionIndex);
-
-    } else if (this._currentPickerType === 'select-multiple') {
-      // Multiple select case
-      for (var i = 0; i < selectee.length; i++) {
-
-        var index = parseInt(selectee[i].dataset.optionIndex);
-        optionIndices.push(index);
-      }
-
-      window.navigator.mozKeyboard.setSelectedOptions(optionIndices);
-    }
-
   },
 
   show: function vs_show(detail) {
@@ -227,7 +191,25 @@ var ValueSelector = {
 
   confirm: function vs_confirm() {
 
-    if (this._currentPickerType === 'time') {
+    var singleOptionIndex;
+    var optionIndices = [];
+
+    var selectee = this._containers['select'].querySelectorAll('.selected');
+
+    if (this._currentPickerType === 'select-one' ||
+        this._currentPickerType === 'select-multiple') {
+      var selectee = this._containers['select'].
+          querySelectorAll('[aria-checked="true"]');
+    }
+
+    if (this._currentPickerType === 'select-one') {
+
+      if (selectee.length > 0)
+        singleOptionIndex = selectee[0].dataset.optionIndex;
+
+      window.navigator.mozKeyboard.setSelectedOption(singleOptionIndex);
+
+    } else if (this._currentPickerType === 'time') {
 
       var timeValue = TimePicker.getTimeValue();
       this.debug('output value: ' + timeValue);
@@ -239,6 +221,15 @@ var ValueSelector = {
       dateValue = dateValue.toLocaleFormat('%Y-%m-%d');
       this.debug('output value: ' + dateValue);
       window.navigator.mozKeyboard.setValue(dateValue);
+    } else {
+      // Multiple select case
+      for (var i = 0; i < selectee.length; i++) {
+
+        var index = parseInt(selectee[i].dataset.optionIndex);
+        optionIndices.push(index);
+      }
+
+      window.navigator.mozKeyboard.setSelectedOptions(optionIndices);
     }
 
     window.navigator.mozKeyboard.removeFocus();
@@ -341,6 +332,7 @@ var ValueSelector = {
     var timePicker = TimePicker.timePicker;
     // Set the value of time picker according to the current value
     if (timePicker.is12hFormat) {
+
       var hour = (time.hours % 12);
       hour = (hour == 0) ? 12 : hour;
       // 24-hour state value selector: AM = 0, PM = 1
@@ -360,7 +352,28 @@ var ValueSelector = {
     this.showPanel('date');
 
     if (!this._datePicker) {
-      this._datePicker = new SpinDatePicker(this._containers['date']);
+      var picker = new DatePicker(this._containers['date']);
+      this._datePicker = picker;
+
+      var nextEl = document.querySelector('.next');
+      var prevEl = document.querySelector('.previous');
+      var accept = document.querySelector('#date-picker-confirm');
+
+      nextEl.onclick = function() {
+        picker.next();
+      }
+
+      prevEl.onclick = function() {
+        picker.previous();
+      }
+
+      var currentMonth = document.getElementById('current-month');
+      var updateMonth = function updateMonth(date) {
+        picker.value = null;
+        currentMonth.textContent = date.toLocaleFormat('%B %Y');
+      }
+      picker.onmonthchange = updateMonth;
+
     }
 
     // Show current date as default value
@@ -372,9 +385,10 @@ var ValueSelector = {
 
       date = inputParser.formatInputDate(currentValue, '');
     }
-    this._datePicker.value = date;
-  }
 
+    this._datePicker.display(date.getFullYear(), date.getMonth(),
+                             date.getDate());
+  }
 };
 
 var TimePicker = {
@@ -468,18 +482,11 @@ var TimePicker = {
 
 var ActiveEffectHelper = (function() {
 
-  var lastActiveElement = null;
-
   function _setActive(element, isActive) {
     if (isActive) {
       element.classList.add('active');
-      lastActiveElement = element;
     } else {
       element.classList.remove('active');
-      if (lastActiveElement) {
-        lastActiveElement.classList.remove('active');
-        lastActiveElement = null;
-      }
     }
   }
 
@@ -524,3 +531,4 @@ var ActiveEffectHelper = (function() {
 })();
 
 ValueSelector.init();
+

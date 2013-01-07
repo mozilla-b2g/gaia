@@ -12,7 +12,8 @@ ul {
   margin: 0;
   height: 100%;
   overflow-y: scroll;
-  background: linear-gradient(to bottom, #222 0%,#000 100%);
+  background: -moz-linear-gradient(top, #222 0%,#000 100%);
+  background: linear-gradient(top, #222 0%,#000 100%);
 }
 li {
   margin: 0;
@@ -49,13 +50,13 @@ li p {
 }
 li p.name {
   color: #fff;
-  font-weight: 500;
-  font-size: 1.4rem;
+  font-weight: bold;
+  font-size: 16px;
 }
 li p.time {
   margin-top: 4px;
-  font-size: 1.4rem;
-  color: #95a3a6;
+  font-size: 16px;
+  color: #bbb;
 }
 li:last-child hr {
   display: none;
@@ -95,9 +96,6 @@ li hr {
   /* size and position are set in JS depending on*/
   /* video size and screen orientation */
   position: absolute;
-  top: 0;
-  left: 0;
-  transform-origin: 0 0;
 }
 
 /*
@@ -124,41 +122,26 @@ li hr {
  * the overlay text shows up more clearly
  */
 #overlay-content {
-  background:
-  url(images/ui/pattern.png) repeat left top,
-  url(images/ui/gradient.png) no-repeat left top;
-  background-size: auto auto, 100% 100%;
-  /* We can't use shortand with background size because is not implemented yet:
-  https://bugzilla.mozilla.org/show_bug.cgi?id=570326; */
-  overflow: hidden;
-  position: absolute;
-  z-index: 100;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  font-family: "MozTT", Sans-serif;
-  font-size: 0;
-  /* Using font-size: 0; we avoid the unwanted visual space (about 3px)
-  created by white-spaces and break lines in the code betewen inline-block elements */
+  margin-top: 30%;
+  margin-left: 10%;
+  margin-right: 10%;
+  padding: 10%;
+  border: solid black 4px;
+  border-radius: 10px;
+  background-color: rgba(0, 0, 0, 0.6);
+  font-family: "MozTT", sans-serif;
   color: #fff;
-  padding: 110px 25px 0px 25px;
+  -moz-user-select: none;
 }
 
 #overlay-title {
-  font-weight: normal;
-  text-transform:capitalize;
-  font-size: 1.9rem;
-  color: #fff;
-  margin: 0 5px -10px 5px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 26px;
 }
 
 #overlay-text {
-  padding: 10px 5px 0 5px;
-  border-top: 1px solid #686868;	
-  font-weight: 300;
-  font-size: 2.5rem;
-  color: #ebebeb;
+  font-size: 18px;
 }
 
 /* localization */
@@ -177,23 +160,16 @@ body.hidden *[data-l10n-id] {
   outline: none;
 }
 
-#h1 {
+#close, #h1 {
   background: none !important;
 }
 
 .icon-back {
   pointer-events: none;
-  width: 2.3rem !important;
 }
 
 header {
-  background: rgba(0, 0, 0, 0.6) !important;
-}
-
-header h1 {
-  font-size: 2.5rem !important;
-  line-height: 5rem !important;
-  margin: 0px 0px 0px 3.4rem !important;
+  background: rgba(0, 0, 0, 0.3) !important;
 }
 
 
@@ -248,42 +224,37 @@ header .icon:after {
 
 /* main control bar: play|pause, timeupdate, rwd|fwd */
 #videoBar {
-  background-image: url(images/scroll_bar_bg.png);
-  background-color: rgba(0, 0, 0, 0.75);
-  background-position: center right;
-  background-repeat: no-repeat;
   position: absolute;
-  overflow: hidden;
   left: 0px;
   right: 0px;
   bottom: 0px;
-  height: 4.5rem;
+  height: 50px;
   margin: 0;
   padding: 0;
+  background-color: rgba(0, 0, 0, 0.3);
+  overflow: hidden;
 }
 
 #play, #play:after {
-  width: 8rem;
-  height: 4.5rem;
+  width: 100px;
+  height: 100px;
 }
 
 #play {
-  background: url(images/button_bg_normal.png) no-repeat;
   position: absolute;
   border: none;
   padding: 0;
   margin: 0;
-  left: 0.5rem;
-  top: 0;
+  background: -moz-linear-gradient(top, #000 0%,#222 100%);
+  border-radius: 100px;
+  top: -23px;
+  left: 10px;
   z-index: 20;
 }
 
-#play:active {
-  background: url(images/button_bg_pressed.png) no-repeat;
-}
-
 #play:after {
-  background-position: 2.3rem 0.8rem;
+  background-position: center center;
+  background-size: 75%;
   background-repeat: no-repeat;
   content: " ";
   display: block;
@@ -293,16 +264,22 @@ header .icon:after {
 
 /* play/pause button */
 #play:after {
-  background-image: url("images/pause.png");
+  background-image: url("images/btn_pause_off.png");
+}
+#play:active:after {
+  background-image: url("images/btn_pause_press.png");
 }
 #play.paused:after {
-  background-image: url("images/play.png");
+  background-image: url("images/btn_play_off.png");
+}
+#play.paused:active:after {
+  background-image: url("images/btn_play_press.png");
 }
 
 /* time slider */
 #timeSlider {
   position: absolute;
-  left: 8.5rem;
+  left: 110px;
   top: 0px;
   right: 0px;
   height: 100%;
@@ -310,24 +287,27 @@ header .icon:after {
 
 #timeSlider span {
   display: block;
-  width: 5.9rem;
+  width: 45px;
   position: absolute;
-  color: #A1AFB2;
+  color: white;
   height: 100%;
-  line-height: 4.6rem;
+  line-height: 50px;
   text-align: center;
-  font-size: 1.4rem;
+  font-size: 15px;
 }
 
+#elapsed-text {
+  left: 10px;
+}
 #duration-text {
-  right: 0.5rem;
+  right: 10px;
 }
 
 #slider-wrapper {
   position: absolute;
   top: 0px;
-  left: 7rem;
-  right: 7rem;
+  left: 70px;
+  right: 70px;
   height: 100%;
 }
 
@@ -341,10 +321,11 @@ header .icon:after {
   width: 0%;
   top: 50%;
   margin-top: -2px;
+  border-radius: 6px;
 }
 
 #elapsedTime {
-  background: url(images/timeline_filled.png) no-repeat left center;
+  background-color: #fff;
   z-index: 30;
 }
 
@@ -354,59 +335,19 @@ header .icon:after {
 }
 
 #timeBackground {
-  background: url(images/timeline.png);
+  background-color: #333;
   z-index: 10;
   width: 100%;
 }
 
 #playHead {
-  -moz-transition: background 1s linear;
-  background: url(images/scrubber.png);
-  margin: -1.1rem 0 0 -1.2rem;
-  position: absolute;
-  pointer-events: none;
-  border: none;
   display: block;
-  height: 2.4rem;
-  width: 2.7rem;
+  height: 20px;
+  width: 25px;
+  border-radius: 25px;
+  border: 0;
+  background-color: white;
   z-index: 100;
-  top: 49%;
+  top: 50%;
+  margin: -10px 0 0 -12px;
 }
-
-#playHead.active {
-  background: url(images/scrubber_pressed.png);
-  width: 8.1rem;
-  height: 4.5rem;
-  margin: -1rem 0 0 -3.93rem;
-  top: 1rem;
-}
-
-@media screen and (width: 320px) {
-  #play, #play:after {
-    width: 5.6rem;
-  }
-
-  #play {
-    background-image: url(images/portrait/button_bg_normal.png);
-  }
-
-  #play:active {
-    background-image: url(images/portrait/button_bg_pressed.png);
-  }
-
-  #play:after {
-    background-position: 1.1rem 0.8rem;
-  }
-
-  #timeSlider {
-    left: 6.1rem;
-  }
-
-  #videoBar {
-    background-image: url(images/portrait/scroll_bar_bg.png);
-    background-position: 6rem center;
-  }
-}
-
-:focus { outline:none; }
-::-moz-focus-inner { border:0; }

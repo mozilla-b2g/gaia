@@ -74,6 +74,30 @@ fb.Contact = function(deviceContact, cid) {
     }
   }
 
+  // The contact is now totally unlinked
+  // [...,facebook, fb_not_linked, 123456,....]
+  function markAsUnlinked(dcontact) {
+    var category = dcontact.category;
+    var updatedCategory = [];
+
+    if (category) {
+      var idx = category.indexOf(fb.CATEGORY);
+      if (idx !== -1) {
+        for (var c = 0; c < idx; c++) {
+          updatedCategory.push(category[c]);
+        }
+        // The facebook category, the linked mark and the UID are skipped
+        for (var c = idx + 3; c < category.length; c++) {
+           updatedCategory.push(category[c]);
+        }
+      }
+    }
+
+    dcontact.category = updatedCategory;
+
+    return dcontact;
+  }
+
   // Sets the data for an imported FB Contact
   this.setData = function(data) {
     contactData = data;
@@ -284,8 +308,6 @@ fb.Contact = function(deviceContact, cid) {
 
     if (fbdata) {
       out = Object.create(devContact);
-      out.updated = devContact.updated;
-      out.published = devContact.published;
 
       Object.keys(devContact).forEach(function(prop) {
         if (devContact[prop] && Array.isArray(devContact[prop])) {
@@ -323,8 +345,6 @@ fb.Contact = function(deviceContact, cid) {
       dcontact[field] = fbdata[field];
     });
 
-    // To support the case in which the contact does not have a local name
-    fb.mergeNames(dcontact, fbdata);
   }
 
   // Gets the data
@@ -526,7 +546,7 @@ fb.Contact = function(deviceContact, cid) {
     var theType = type || 'soft';
     var uid = doGetFacebookUid(dContact);
 
-    fb.markAsUnlinked(dContact);
+    markAsUnlinked(dContact);
     var req = navigator.mozContacts.save(dContact);
 
     req.onsuccess = function(e) {

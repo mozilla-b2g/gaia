@@ -7,6 +7,7 @@
 
     this.page = page;
     this._activeObjects = [];
+    this._clearObjects = this._clearObjects.bind(this);
 
     for (; i < len; i++) {
       this[COPY_METHODS[i]] = this.page[COPY_METHODS[i]].bind(this.page);
@@ -41,7 +42,7 @@
      * Clears active objects, calls oninactive
      * on object if available.
      */
-    clearObjects: function(ctx) {
+    _clearObjects: function(ctx, next) {
       var item;
       while ((item = this._activeObjects.pop())) {
         // intentionally using 'in'
@@ -49,6 +50,7 @@
           item.oninactive();
         }
       }
+      next();
     },
 
     /**
@@ -63,12 +65,25 @@
       this.last = ctx;
     },
 
-    resetState: function() {
-      if (!this.currentPath) {
-        this.currentPath = '/month/';
-      }
+    _route: function() {
+      var args = Array.prototype.slice.call(arguments);
 
-      this.show(this.currentPath);
+      //add noop so next works correctly...
+      args.push(this._lastState);
+
+      var len = args.length;
+      var i = 0;
+      var item;
+
+      this.page.apply(this.page, args);
+    },
+
+    /**
+     * Adds a state modifier
+     *
+     */
+    modifier: function() {
+      this._route.apply(this, arguments);
     },
 
     /**
@@ -81,80 +96,16 @@
      * of a given state (without exiting it)
      *
      * @param {String} path path as defined by page.js.
-     * @param {String|Array} one or multiple view identifiers
-     * @param {Object} options: (clear, path)
+     * @param {Function|Object...} args unlimited number of objects or function
+     *                                  callbacks.
      */
-    state: function(path, views, options) {
+    state: function() {
+      var args = Array.prototype.slice.call(arguments);
+      args.splice(1, 0, this._clearObjects);
 
-      options = options || {};
-      if (!Array.isArray(views)) {
-        views = [views];
-      }
-
-      var self = this;
-      var viewObjs = [];
-
-      function setPath(ctx, next) {
-
-        // Reset our views
-        viewObjs = [];
-
-        if (options.path !== false) {
-          document.body.dataset.path = ctx.canonicalPath;
-        }
-        next();
-      }
-
-      function loadAllViews(ctx, next) {
-        var len = views.length;
-        var numViews = len;
-        var i;
-
-        for (i = 0; i < numViews; i++) {
-          Calendar.App.view(views[i], function(view) {
-            viewObjs.push(view);
-            len--;
-
-            if (!len) {
-              next();
-            }
-          });
-        }
-      }
-
-      function handleViews(ctx, next) {
-
-        // Clear views if needed
-        if (options.clear !== false) {
-          self.clearObjects();
-        }
-
-        // Activate objects
-        for (var i = 0,view; view = viewObjs[i]; i++) {
-          self.mangeObject(view, ctx);
-        }
-
-        // Set the current path
-        if (options.appPath !== false) {
-          self.currentPath = ctx.canonicalPath;
-        }
-
-        next();
-      }
-
-      this.page(path, setPath, loadAllViews, handleViews, this._lastState);
-    },
-
-    /**
-     * Adds a modifier route
-     * Modifiers are eseentially views, without the currentPath updating
-     */
-    modifier: function(path, view, options) {
-      options = options || {};
-      options.appPath = false;
-      options.clear = false;
-      this.state(path, view, options)
+      this._route.apply(this, args);
     }
+
   };
 
   Calendar.Router = Router;

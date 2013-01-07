@@ -38,8 +38,6 @@ var AppManager = {
           UIManager.pincodeScreen.classList.add('show');
           document.getElementById('fake-sim-pin').focus();
         } else {
-          // Set the unlocked status so we can still import
-          SimManager.unlocked = true;
           UIManager.activationScreen.classList.add('show');
           window.location.hash = '#languages';
         }

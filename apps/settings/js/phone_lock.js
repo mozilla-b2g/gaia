@@ -31,7 +31,6 @@ var PhoneLock = {
     this.phonelockDesc = document.getElementById('phoneLock-desc');
     this.lockscreenEnable = document.getElementById('lockscreen-enable');
     this.passcodeInput = document.getElementById('passcode-input');
-    this.passcodeContainer = document.getElementById('passcode-container');
     this.passcodeDigits = document.querySelectorAll('.passcode-digit');
     this.passcodeEnable = document.getElementById('passcode-enable');
     this.passcodeEditButton = document.getElementById('passcode-edit');
@@ -48,15 +47,7 @@ var PhoneLock = {
     this.passcodeEditButton.addEventListener('click', this);
     this.createPasscodeButton.addEventListener('click', this);
     this.changePasscodeButton.addEventListener('click', this);
-
-    // If the pseudo-input loses focus, then allow the user to restore focus
-    // by touching the container around the pseudo-input.
-    var self = this;
-    this.passcodeContainer.addEventListener('mousedown', function(evt) {
-      self.passcodeInput.focus();
-      evt.preventDefault();
-    });
-
+    this.passcodePanel.addEventListener('mousedown', this, true);
     this.fetchSettings();
   },
 
@@ -127,22 +118,21 @@ var PhoneLock = {
     this.hideErrorMessage();
     this.MODE = mode;
     this.passcodePanel.dataset.mode = mode;
-    if (document.location.hash != 'phoneLock-passcode') {
-      document.location.hash = 'phoneLock-passcode'; // show dialog box
-
-      // Open the keyboard after the UI transition. We can't listen for the
-      // ontransitionend event because some of the passcode mode changes, such
-      // as edit->new, do not trigger transition events.
-      setTimeout(function(self) { self.passcodeInput.focus(); }, 0, this);
-    }
+    document.location.hash = 'phoneLock-passcode'; // show dialog box
+    this.passcodeInput.focus();
     this.updatePassCodeUI();
   },
 
   handleEvent: function pl_handleEvent(evt) {
+    // Prevent mousedown event to avoid the keypad losing focus.
+    if (evt.type == 'mousedown') {
+      evt.preventDefault();
+      return;
+    }
+
     switch (evt.target) {
       case this.passcodeEnable:
         evt.preventDefault();
-        this._passcodeBuffer = '';
         if (this.settings.passcodeEnable) {
           this.changeMode('confirm');
         } else {
@@ -154,11 +144,7 @@ var PhoneLock = {
         if (this._passcodeBuffer === '')
           this.hideErrorMessage();
 
-        var code = evt.charCode;
-        if (code !== 0 && (code < 0x30 || code > 0x39))
-          return;
-
-        var key = String.fromCharCode(code);
+        var key = String.fromCharCode(evt.charCode);
         if (evt.charCode === 0) {
           if (this._passcodeBuffer.length > 0) {
             this._passcodeBuffer = this._passcodeBuffer.substring(0,
@@ -261,5 +247,7 @@ var PhoneLock = {
 };
 
 // startup
-onLocalized(PhoneLock.init.bind(PhoneLock));
+onLocalized(function() {
+  PhoneLock.init();
+});
 

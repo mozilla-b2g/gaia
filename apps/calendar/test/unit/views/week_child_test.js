@@ -1,6 +1,6 @@
 requireApp('calendar/test/unit/helper.js', function() {
   requireLib('timespan.js');
-  requireLib('utils/ordered_map.js');
+  requireLib('ordered_map.js');
   requireLib('templates/day.js');
   requireLib('templates/week.js');
   requireLib('views/day_based.js');
@@ -69,7 +69,7 @@ suite('views/week_child', function() {
       subject.date = new Date(2012, 0, 1);
       subject._assignPosition(busy, el);
 
-      assert.equal(el.style.height, 'calc(325% + 1.5px)', 'height');
+      assert.equal(el.style.height, 'calc(325% + 6.5px)', 'height');
   });
 
   test('#create', function() {

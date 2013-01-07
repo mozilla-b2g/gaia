@@ -1,13 +1,16 @@
 'use strict';
 
 var CallHandler = (function callHandler() {
+  var telephony = navigator.mozTelephony;
+  var conn = navigator.mozMobileConnection;
+  var _ = navigator.mozL10n.get;
+
   var callScreenWindow = null;
-  var callScreenWindowLoaded = false;
   var currentActivity = null;
 
   /* === Settings === */
-  var screenState = null;
-  SettingsListener.observe('lockscreen.locked', null, function(value) {
+  var screenState = 'locked';
+  SettingsListener.observe('lockscreen.locked', false, function(value) {
     if (value) {
       screenState = 'locked';
     } else {
@@ -38,8 +41,8 @@ var CallHandler = (function callHandler() {
     if (document.readyState == 'complete') {
       fillNumber();
     } else {
-      window.addEventListener('load', function loadWait() {
-        window.removeEventListener('load', loadWait);
+      window.addEventListener('localized', function loadWait() {
+        window.removeEventListener('localized', loadWait);
         fillNumber();
       });
     }
@@ -48,70 +51,16 @@ var CallHandler = (function callHandler() {
   }
   window.navigator.mozSetMessageHandler('activity', handleActivity);
 
-  /* === Notifications support === */
-  function handleNotification() {
-    navigator.mozApps.getSelf().onsuccess = function gotSelf(evt) {
-      var app = evt.target.result;
-      app.launch('dialer');
-      window.location.hash = '#recents-view';
-    };
-  }
-  window.navigator.mozSetMessageHandler('notification', handleNotification);
-
-  function handleNotificationRequest(number) {
-    Contacts.findByNumber(number, function lookup(contact) {
-      LazyL10n.get(function localized(_) {
-        var title = _('missedCall');
-        var sender = (number && number.length) ? number : _('unknown');
-
-        if (contact && contact.name) {
-          sender = contact.name;
-        }
-
-        var body = _('from', {sender: sender});
-
-        navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
-          var app = evt.target.result;
-
-          var iconURL = NotificationHelper.getIconURI(app, 'dialer');
-
-          var clickCB = function() {
-            app.launch('dialer');
-            window.location.hash = '#recents-view';
-          };
-
-          NotificationHelper.send(title, body, iconURL, clickCB);
-        };
-      });
-    });
-  }
-
-  /* === Recents support === */
-  function handleRecentAddRequest(entry) {
-    Recents.load(function recentsLoaded() {
-      RecentsDBManager.init(function() {
-        RecentsDBManager.add(entry, function() {
-          RecentsDBManager.close();
-          Recents.refresh();
-        });
-      });
-    });
-  }
-
   /* === Incoming and STK calls === */
   function newCall() {
-    // We need to query mozTelephony a first time here
-    // see bug 823958
-    var telephony = navigator.mozTelephony;
-
     openCallScreen();
   }
   window.navigator.mozSetMessageHandler('telephony-new-call', newCall);
 
   /* === Bluetooth Support === */
   function btCommandHandler(message) {
-    var command = message['command'];
-    var partialCommand = command.substring(0, 3);
+    var command = message['bluetooth-dialer-command'];
+
     if (command === 'BLDN') {
       RecentsDBManager.init(function() {
         RecentsDBManager.getLast(function(lastRecent) {
@@ -121,65 +70,19 @@ var CallHandler = (function callHandler() {
         });
       });
       return;
-    } else if (partialCommand === 'ATD') {
-      var phoneNumber = command.substring(3);
-      CallHandler.call(phoneNumber);
-      return;
     }
 
     // Other commands needs to be handled from the call screen
-    sendCommandToCallScreen('BT', command);
+    if (!callScreenWindow)
+      return;
+
+    var origin = document.location.protocol + '//' +
+      document.location.host;
+
+    callScreenWindow.postMessage(command, origin);
   }
   window.navigator.mozSetMessageHandler('bluetooth-dialer-command',
                                          btCommandHandler);
-
-  /* === Headset Support === */
-  function headsetCommandHandler(message) {
-    sendCommandToCallScreen('HS', message);
-  }
-  window.navigator.mozSetMessageHandler('headset-button',
-                                        headsetCommandHandler);
-
-  /*
-    Send commands to the callScreen via post message.
-    @type: Handler to be used in the CallHandler. Currently managing to
-           kind of commands:
-           'BT': bluetooth
-           'HS': headset
-           '*' : for general cases, not specific to hardware control
-    @command: The specific message to each kind of type
-  */
-  function sendCommandToCallScreen(type, command) {
-    if (!callScreenWindow) {
-      return;
-    }
-
-    var origin = document.location.protocol + '//' +
-        document.location.host;
-    var message = {
-      type: type,
-      command: command
-    };
-
-    callScreenWindow.postMessage(message, origin);
-  }
-
-  // Receiving messages from the callscreen via post message
-  //   - when the call screen is closing
-  //   - when we need to send a missed call notification
-  function handleMessage(evt) {
-    var data = evt.data;
-
-    if (data === 'closing') {
-      handleCallScreenClosing();
-    } else if (data.type && data.type === 'notification') {
-      // We're being asked to send a missed call notification
-      handleNotificationRequest(data.number);
-    } else if (data.type && data.type === 'recent') {
-      handleRecentAddRequest(data.entry);
-    }
-  }
-  window.addEventListener('message', handleMessage);
 
   /* === Calls === */
   function call(number) {
@@ -207,8 +110,6 @@ var CallHandler = (function callHandler() {
 
   function startDial(number) {
     var sanitizedNumber = number.replace(/-/g, '');
-
-    var telephony = navigator.mozTelephony;
     if (telephony) {
       var call = telephony.dial(sanitizedNumber);
 
@@ -227,65 +128,47 @@ var CallHandler = (function callHandler() {
   }
 
   function handleFlightMode() {
-    LazyL10n.get(function localized(_) {
-      ConfirmDialog.show(
-        _('callAirplaneModeTitle'),
-        _('callAirplaneModeMessage'),
-        {
-          title: _('cancel'),
-          callback: function() {
-            ConfirmDialog.hide();
+    ConfirmDialog.show(
+      _('callAirplaneModeTitle'),
+      _('callAirplaneModeBody'),
+      {
+        title: _('callAirplaneModeBtnOk'),
+        callback: function() {
+          ConfirmDialog.hide();
 
-            if (currentActivity) {
-              currentActivity.postError('canceled');
-              currentActivity = null;
-            }
+          if (currentActivity) {
+            currentActivity.postError('canceled');
+            currentActivity = null;
           }
-        },
+        }
+      }
+    );
+  }
+
+  function handleError(event) {
+    var erName = event.call.error.name, emgcyDialogBody,
+        errorRecognized = false;
+
+    if (erName === 'BadNumberError') {
+      errorRecognized = true;
+      emgcyDialogBody = 'emergencyDialogBodyBadNumber';
+    } else if (erName === 'DeviceNotAcceptedError') {
+      errorRecognized = true;
+      emgcyDialogBody = 'emergencyDialogBodyDeviceNotAccepted';
+    }
+
+    if (errorRecognized) {
+      ConfirmDialog.show(
+        _('emergencyDialogTitle'),
+        _(emgcyDialogBody),
         {
-          title: _('settings'),
+          title: _('emergencyDialogBtnOk'),
           callback: function() {
-            var activity = new MozActivity({
-              name: 'configure',
-                data: {
-                  target: 'device',
-                  section: 'root'
-                }
-              }
-            );
             ConfirmDialog.hide();
           }
         }
       );
-    });
-  }
-
-  function handleError(event) {
-    LazyL10n.get(function localized(_) {
-      var erName = event.call.error.name, emgcyDialogBody,
-          errorRecognized = false;
-
-      if (erName === 'BadNumberError') {
-        errorRecognized = true;
-        emgcyDialogBody = 'emergencyDialogBodyBadNumber';
-      } else if (erName === 'DeviceNotAcceptedError') {
-        errorRecognized = true;
-        emgcyDialogBody = 'emergencyDialogBodyDeviceNotAccepted';
-      }
-
-      if (errorRecognized) {
-        ConfirmDialog.show(
-          _('emergencyDialogTitle'),
-          _(emgcyDialogBody),
-          {
-            title: _('emergencyDialogBtnOk'),
-            callback: function() {
-              ConfirmDialog.hide();
-            }
-          }
-        );
-      }
-    });
+    }
   }
 
   /* === Attention Screen === */
@@ -296,55 +179,20 @@ var CallHandler = (function callHandler() {
     var host = document.location.host;
     var protocol = document.location.protocol;
     var urlBase = protocol + '//' + host + '/dialer/oncall.html';
+    callScreenWindow = window.open(urlBase + '#' + screenState,
+                'call_screen', 'attention');
+  }
 
-    var openWindow = function dialer_openCallScreen(state) {
-      callScreenWindow = window.open(urlBase + '#' + state,
-                  'call_screen', 'attention');
-      callScreenWindow.onload = function onload() {
-        callScreenWindowLoaded = true;
-
-        var telephony = navigator.mozTelephony;
-        if (telephony.calls.length === 0) {
-          // Calls might be ended before callscreen is comletedly loaded,
-          // so that callscreen will miss call-related events. We send a
-          // message to notify callscreen of exiting when there are no calls.
-          sendCommandToCallScreen('*', 'exitCallScreen');
-        }
-      };
-    };
-
-    // if screenState was initialized, use this value directly to openWindow()
-    // else if mozSettings doesn't exist, use default value 'unlocked'
-    if (screenState || !navigator.mozSettings) {
-      screenState = screenState || 'unlocked';
-      openWindow(screenState);
-      return;
-    }
-
-    var req = navigator.mozSettings.createLock().get('lockscreen.locked');
-    req.onsuccess = function dialer_onsuccess() {
-      if (req.result['lockscreen.locked']) {
-        screenState = 'locked';
-      } else {
-        screenState = 'unlocked';
+  // We use a simple postMessage protocol to know when the call screen is closed
+  function handleMessage(evt) {
+    if (evt.data == 'closing') {
+      callScreenWindow = null;
+      if (Recents) {
+        Recents.refresh();
       }
-      openWindow(screenState);
-    };
-    req.onerror = function dialer_onerror() {
-      // fallback to default value 'unlocked'
-      screenState = 'unlocked';
-      openWindow(screenState);
-    };
+    }
   }
-
-  function handleCallScreenClosing() {
-    callScreenWindow = null;
-    callScreenWindowLoaded = false;
-  }
-
-  /* === USSD === */
-  window.navigator.mozSetMessageHandler('ussd-received',
-                                        UssdManager.openUI.bind(UssdManager));
+  window.addEventListener('message', handleMessage);
 
   return {
     call: call
@@ -390,15 +238,9 @@ var NavbarManager = {
         checkContactsTab();
         Recents.updateContactDetails();
         recent.classList.add('toolbar-option-selected');
-        Recents.load();
         Recents.updateLatestVisit();
         break;
       case '#contacts-view':
-        var frame = document.getElementById('iframe-contacts');
-        if (!frame.src) {
-          frame.src = '/contacts/index.html';
-        }
-
         contacts.classList.add('toolbar-option-selected');
         Recents.updateHighlighted();
         break;
@@ -411,11 +253,17 @@ var NavbarManager = {
   }
 };
 
-window.addEventListener('load', function startup(evt) {
-  window.removeEventListener('load', startup);
-
+window.addEventListener('localized', function startup(evt) {
+  window.removeEventListener('localized', startup);
   KeypadManager.init();
   NavbarManager.init();
+
+  // Set the 'lang' and 'dir' attributes to <html> when the page is translated
+  document.documentElement.lang = navigator.mozL10n.language.code;
+  document.documentElement.dir = navigator.mozL10n.language.direction;
+
+  // <body> children are hidden until the UI is translated
+  document.body.classList.remove('hidden');
 });
 
 // Listening to the keyboard being shown
@@ -434,3 +282,4 @@ document.addEventListener('mozvisibilitychange', function visibility(e) {
     Recents.refresh();
   }
 });
+

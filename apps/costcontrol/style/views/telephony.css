@@ -1,10 +1,10 @@
 /* TELEPHONY VIEW */
-#reset-date {
+#telephony-tab .settings li time {
   font-weight: bold;
   color: black;
 }
 
-#reset-date,
+#telephony-tab .settings li time ,
 #telephony-tab .settings li dd {
   float: right;
   font-size: 1.6rem;
@@ -12,7 +12,7 @@
   text-align: right;
 }
 
-#reset-date,
+#telephony-tab .settings li time,
 #telephony-tab .settings li dd sub {
   text-transform: uppercase;
   font-size: 1.4rem;

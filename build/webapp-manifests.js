@@ -1,7 +1,7 @@
-const INSTALL_TIME = 132333986000; // Match this to value in applications-data.js
 
 function debug(msg) {
-  //dump('-*- webapp-manifest.js: ' + msg + '\n');
+  if (DEBUG)
+    dump('-*- ' + msg + '\n');
 }
 
 let webappsTargetDir = Cc['@mozilla.org/file/local;1']
@@ -51,30 +51,14 @@ Gaia.webapps.forEach(function (webapp) {
 
   // Add webapp's entry to the webapps global manifest.
   // appStatus == 3 means this is a certified app.
-  // appStatus == 2 means this is a privileged app.
-  // appStatus == 1 means this is an installed (unprivileged) app
-  
-  let appStatus = 1; // By default, apps are installed
-  switch (webapp.manifest.type) {
-    case "certified":
-      appStatus = 3;
-      break;
-    case "privileged":
-      appStatus = 2;
-      break;
-    case "web":
-    default:
-      appStatus = 1;
-      break;
-  }
   let url = webapp.url;
   manifests[webappTargetDirName] = {
     origin:        url,
     installOrigin: url,
     receipt:       null,
-    installTime:   INSTALL_TIME,
+    installTime:   132333986000,
     manifestURL:   url + '/manifest.webapp',
-    appStatus:     appStatus,
+    appStatus:     3,
     localId:       id++
   };
 
@@ -86,87 +70,50 @@ Gaia.externalWebapps.forEach(function (webapp) {
   if (BUILD_APP_NAME != '*' && webapp.sourceDirectoryName != BUILD_APP_NAME)
     return;
 
-  if (!webapp.metaData) {
-    return;
-  }
-
   // Compute webapp folder name in profile
   let webappTargetDirName = webapp.sourceDirectoryName;
 
   // Copy webapp's manifest to the profile
   let webappTargetDir = webappsTargetDir.clone();
   webappTargetDir.append(webappTargetDirName);
+  webapp.manifestFile.copyTo(webappTargetDir, 'manifest.webapp');
 
-  let origin;
-  let installOrigin;
-  let manifestURL;
+  let origin = webapp.sourceDirectoryFile.clone();
+  origin.append('origin');
 
-  let removable;
-
-  // In case of packaged app, just copy `application.zip` and `update.webapp`
-  let appPackage = webapp.sourceDirectoryFile.clone();
-  appPackage.append('application.zip');
-  if (appPackage.exists()) {
-    let updateManifest = webapp.sourceDirectoryFile.clone();
-    updateManifest.append('update.webapp');
-    if (!updateManifest.exists()) {
-      throw new Error('External packaged webapp `' + webapp.domain + '  is ' +
-                      'missing an `update.webapp` file. This JSON file ' +
-                      'contains a `package_path` attribute specifying where ' +
-                      'to download the application zip package from the origin ' +
-                      'specified in `metadata.json` file.');
-    }
-    appPackage.copyTo(webappTargetDir, 'application.zip');
-    updateManifest.copyTo(webappTargetDir, 'update.webapp');
-    removable = true;
-    origin = webapp.metaData.origin;
-    installOrigin = webapp.metaData.installOrigin;
-    manifestURL = webapp.metaData.manifestURL;
-  } else {
-    webapp.manifestFile.copyTo(webappTargetDir, 'manifest.webapp');
-    origin = webapp.metaData.origin;
-    installOrigin = webapp.metaData.origin;
-    manifestURL = webapp.metaData.origin + 'manifest.webapp';
-
-    // This is an hosted app. Check if there is an offline cache.
-    let srcCacheFolder = webapp.sourceDirectoryFile.clone();
-    srcCacheFolder.append('cache');
-    if (srcCacheFolder.exists()) {
-      let cacheManifest = srcCacheFolder.clone();
-      cacheManifest.append('manifest.appcache');
-      if (!cacheManifest.exists())
-        throw new Error('External webapp `' + webapp.domain + '` has a cache ' +
-                        'directory without `manifest.appcache` file.');
-
-      // Copy recursively the whole cache folder to webapp folder
-      let targetCacheFolder = webappTargetDir.clone();
-      targetCacheFolder.append('cache');
-      copyRec(srcCacheFolder, targetCacheFolder);
-    }
-  }
-
-  let etag = webapp.metaData.etag || null;
-  let packageEtag = webapp.metaData.packageEtag || null;
+  let url = webapp.origin;
+  if (!origin)
+    throw new Error('External webapp `' + webapp.domain + '` doesn\'t have an' +
+                    '`origin` file.');
 
   // Add webapp's entry to the webapps global manifest
   manifests[webappTargetDirName] = {
-    origin:        origin,
-    installOrigin: installOrigin,
+    origin:        url,
+    installOrigin: url,
     receipt:       null,
     installTime:   132333986000,
-    manifestURL:   manifestURL,
-    removable:     removable,
-    localId:       id++,
-    etag:          etag,
-    packageEtag:   packageEtag
+    manifestURL:   url + 'manifest.webapp',
+    localId:       id++
   };
 
+  let srcCacheFolder = webapp.sourceDirectoryFile.clone();
+  srcCacheFolder.append("cache");
+  if (srcCacheFolder.exists()) {
+    let cacheManifest = srcCacheFolder.clone();
+    cacheManifest.append("manifest.appcache");
+    if (!cacheManifest.exists())
+      throw new Error('External webapp `' + webapp.domain + '` has a cache ' +
+                      'directory without `manifest.appcache` file.');
+
+    // Copy recursively the whole cache folder to webapp folder
+    let targetCacheFolder = webappTargetDir.clone();
+    targetCacheFolder.append("cache");
+    copyRec(srcCacheFolder, targetCacheFolder);
+  }
 });
 
 // Write webapps global manifest
 let manifestFile = webappsTargetDir.clone();
 manifestFile.append('webapps.json');
-
 // stringify json with 2 spaces indentation
 writeContent(manifestFile, JSON.stringify(manifests, null, 2) + '\n');
-

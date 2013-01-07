@@ -6,7 +6,6 @@
     bottom: 0;
     z-index: 1;
     opacity: 0;
-    transition: opacity .3s linear;
 }
 .evme-displayed #search-overlay {
     opacity: 1;
@@ -14,6 +13,7 @@
 #evmeContainer #search-header.animate,
 #evmeContainer #header.animate,
 #evmeContainer #evmeApps.animate {
+    -moz-transition: opacity .3s linear;
     transition: opacity .3s linear;
 }
     #search-overlay .img {
@@ -26,8 +26,10 @@
         z-index: 1;
         background-position: 50% 0;
         background-size: cover;
+
     }
     #search-overlay .img {
+        -moz-transition: opacity .3s linear;
         transition: opacity .3s linear;
         -moz-transform: translate3d(0px, 0px, 0px) rotate(0deg) scale(1);
     }
@@ -51,6 +53,7 @@
     right: 0;
     bottom: 0;
     opacity: 0;
+    -moz-transition: opacity .5s linear;
     transition: opacity .5s linear;
     z-index: 1;
 }
@@ -106,6 +109,7 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            -ms-text-overflow: ellipsis;
         }
             #bgimage-overlay .content .source span {
                 text-decoration: underline;

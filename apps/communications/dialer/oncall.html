@@ -6,19 +6,11 @@
     <title>Dialer</title>
     <link rel="stylesheet" type="text/css" href="/dialer/style/oncall.css">
     <link rel="stylesheet" type="text/css" href="/dialer/style/keypad.css">
-
     <!-- Localization -->
-    <script defer type="application/javascript" src="/dialer/js/lazy_l10n.js"></script>
     <link rel="resource" type="application/l10n" href="/dialer/locales/locales.ini">
-    <link rel="resource" type="application/l10n" href="/shared/locales/date.ini">
-    <!-- Making sure the shared resources will be copy into the zip
     <script type="application/javascript" src="/shared/js/l10n.js"></script>
-    <script type="application/javascript" src="/shared/js/l10n_date.js"></script>
-    -->
-
     <script defer type="application/javascript" src="/shared/js/settings_listener.js"></script>
-    <script defer type="application/javascript" src="/shared/js/async_storage.js"></script>
-    <script defer type="application/javascript" src="/shared/js/mouse_event_shim.js"></script>
+    <script defer type="text/javascript" src="/shared/js/notification_helper.js"></script>
 
     <script defer type="application/javascript" src="/shared/js/simple_phone_matcher.js"></script>
     <script defer type="application/javascript" src="/dialer/js/contacts.js"></script>
@@ -26,17 +18,15 @@
     <script defer type="application/javascript" src="/dialer/js/utils.js"></script>
     <script defer type="application/javascript" src="/dialer/js/oncall.js"></script>
     <script defer type="application/javascript" src="/dialer/js/handled_call.js"></script>
-
-    <script defer type="application/javascript" src="/contacts/js/fb/fb_data.js"></script>
-    <script defer type="application/javascript" src="/contacts/js/fb/fb_contact_utils.js"></script>
+    <script defer type="application/javascript" src="/dialer/js/recents_db.js"></script>
 
     <!-- incoming call / swiper on locked screen-->
     <link rel="stylesheet" type="text/css" href="/dialer/style/swiper.css">
     <script defer src="/dialer/js/swiper.js"></script>
+
   </head>
-  <body>
-    <article id="call-screen" data-layout>
-      <div id="locked-contact-photo"></div>
+  <body class="hidden">
+    <article id="call-screen" class="grid">
       <article id="calls" data-count="0">
         <section>
           <div class="numberWrapper">
@@ -72,60 +62,152 @@
           </div>
         </section>
       </article>
-      <article id="main-container">
-        <div id="actions-container">
+      <article id="main-container" class="grid-row">
+        <div id="actions-container" class="grid-wrapper grid">
           <div id="swiper-wrapper">
+            <svg id="swiper-curve" xmlns="http://www.w3.org/2000/svg" version="1.1">
+              <defs>
+                <linearGradient id="swiper-curve-gradient">
+                  <stop style="stop-color:#FFFFFF;stop-opacity:1;" offset="0.00" />
+                  <stop style="stop-color:#FFFFFF;stop-opacity:1;" offset="0.07" />
+                  <stop style="stop-color:#ff0000;stop-opacity:1;" offset="0.07" />
+                  <stop style="stop-color:#ff0000;stop-opacity:1;" offset="0.35" />
+                  <stop style="stop-color:#FFFFFF;stop-opacity:1;" offset="0.35" />
+                  <stop style="stop-color:#FFFFFF;stop-opacity:1;" offset="0.65" />
+                  <stop style="stop-color:#00ff00;stop-opacity:1;" offset="0.65" />
+                  <stop style="stop-color:#00ff00;stop-opacity:1;" offset="0.93" />
+                  <stop style="stop-color:#FFFFFF;stop-opacity:1;" offset="0.93" />
+                  <stop style="stop-color:#FFFFFF;stop-opacity:1;" offset="1.00" />
+                </linearGradient>
+                <linearGradient id="gradient-green" y2="0" x2="0" y1="150" x1="0" gradientUnits="userSpaceOnUse" >
+                  <stop style="stop-color:#00ff00;stop-opacity:0" offset="0.2" />
+                  <stop style="stop-color:#00ff1c;stop-opacity:0.5" offset="1" />
+                </linearGradient>
+                <linearGradient id="gradient-red" y2="0" x2="0" y1="150" x1="0" gradientUnits="userSpaceOnUse" >
+                  <stop offset="0.2" style="stop-color:#ff0000;stop-opacity:0" />
+                  <stop offset="1" style="stop-color:#ff0000;stop-opacity:0.5" />
+                </linearGradient>
+                <clipPath clipPathUnits="userSpaceOnUse" id="clip-pickup">
+                  <rect style="fill:#000000;fill-opacity:1;stroke:none" width="89" height="130" x="207" y="0" />
+                </clipPath>
+                <clipPath clipPathUnits="userSpaceOnUse" id="clip-hangup">
+                  <rect style="fill:#000000;fill-opacity:1;stroke:none" width="89" height="130" x="23" y="0" />
+                </clipPath>
+
+                <animate id="swiper-curve-elastic-animation" class="swiper-elastic-animation" attributeType="XML" attributeName="d" dur="2s" calcMode="spline"
+                  begin="indefinite" keySplines="0 .50 .50 1; .50 0 1 .50;0 .50 .50 1; .50 0 1 .50;"
+                  values="M0,80 C100,150 220,150 320,80;
+                          M0,80 C100,40 220,40 320,80; M0,80 C100,150 220,150 320,80;
+                          M0,80 C100,100 220,100 320,80; M0,80 C100,150 220,150 320,80" />
+                <animate id="swiper-spotlight-elastic-animation" class="swiper-elastic-animation"
+                  attributeType="XML" attributeName="d" dur="2s" calcMode="spline"
+                  begin="indefinite" keySplines="0 .50 .50 1; .50 0 1 .50;0 .50 .50 1; .50 0 1 .50;"
+                  values="M0,80 C100,150 220,150 320,80 V 150 H 0 Z;
+                          M0,80 C100,40 220,40 320,80 V 150 H 0 Z; M0,80 C100,150 220,150 320,80 V 150 H 0 Z;
+                          M0,80 C100,100 220,100 320,80 V 150 H 0 Z; M0,80 C100,150 220,150 320,80 V 150 H 0 Z" />
+              </defs>
+              <image id="swiper-area-handle" x="150" y="100" width="20" height="9"
+                xlink:href="style/images/handle.png">
+                <animate class="swiper-start-animation" attributeType="XML" attributeName="y" begin="indefinite" dur="0.2s" to="100" />
+                <animate class="swiper-start-animation" attributeType="XML" attributeName="opacity" begin="indefinite" dur="0.5s" to="1" />
+                <animate class="swiper-end-animation" attributeType="XML" attributeName="y" begin="indefinite" dur="0.2s" to="0" />
+                <animate class="swiper-end-animation" attributeType="XML" attributeName="opacity" begin="indefinite" dur="0.5s" to="0" />
+                <animate class="swiper-elastic-animation" attributeType="XML" attributeName="y" dur="2s" calcMode="spline"
+                    begin="indefinite" keySplines="0 .50 .50 1; .50 0 1 .50; 0 .50 .50 1; .50 0 1 .50"
+                    values="100; 0; 120; 80; 100" />
+              </image>
+              <path fill="none" id="swiper-curvepath" stroke-width="1" stroke="url(#swiper-curve-gradient)"
+                d="M0,80 C100,150 220,150 320,80">
+                <animate class="swiper-start-animation" attributeType="XML" attributeName="d" begin="indefinite" dur="0.2s" to="M0,80 C100,150 220,150 320,80" />
+                <animate class="swiper-start-animation" attributeType="XML" attributeName="stroke-opacity" begin="indefinite" dur="0.2s" to="1.0" />
+                <animate class="swiper-end-animation" attributeType="XML" attributeName="d" begin="indefinite" dur="0.5s" to="M0,80 C100,-20 220,-20 320,80" />
+                <animate class="swiper-end-animation" attributeType="XML" attributeName="stroke-opacity" begin="indefinite" dur="0.5s" to="0" />
+                <animate id="swiper-curve-elastic-animation" class="swiper-elastic-animation"
+                  attributeType="XML" attributeName="d" dur="2s" calcMode="spline"
+                  begin="indefinite" keySplines="0 .50 .50 1; .50 0 1 .50;0 .50 .50 1; .50 0 1 .50;"
+                  values="M0,80 C100,150 220,150 320,80;
+                          M0,80 C100,40 220,40 320,80; M0,80 C100,150 220,150 320,80;
+                          M0,80 C100,100 220,100 320,80; M0,80 C100,150 220,150 320,80" />
+              </path>
+              <path id="swiper-hangup-mask" style="fill: url(#gradient-red);" id="swiper-curvepath-red" stroke="none"
+                clip-path="url(#clip-hangup)"
+                d="M0,80 C100,150 220,150 320,80 V 150 H 0 Z">
+                <animate class="swiper-start-animation" attributeType="XML" attributeName="d" begin="indefinite" dur="0.2s" to="M0,80 C100,150 220,150 320,80  V 150 H 0 Z" />
+                <animate class="swiper-start-animation" attributeType="XML" attributeName="fill-opacity" begin="indefinite" dur="0.2s" to="1.0" />
+                <animate class="swiper-end-animation" attributeType="XML" attributeName="d" begin="indefinite" dur="0.5s" to="M0,80 C100,-20 220,-20 320,80 V 150 H 0 Z" />
+                <animate class="swiper-end-animation" attributeType="XML" attributeName="fill-opacity" begin="indefinite" dur="0.5s" to="0" />
+                <animate id="swiper-spotlight-elastic-animation" class="swiper-elastic-animation"
+                  attributeType="XML" attributeName="d" dur="2s" calcMode="spline"
+                  begin="indefinite" keySplines="0 .50 .50 1; .50 0 1 .50;0 .50 .50 1; .50 0 1 .50;"
+                  values="M0,80 C100,150 220,150 320,80 V 150 H 0 Z;
+                          M0,80 C100,40 220,40 320,80 V 150 H 0 Z; M0,80 C100,150 220,150 320,80 V 150 H 0 Z;
+                          M0,80 C100,100 220,100 320,80 V 150 H 0 Z; M0,80 C100,150 220,150 320,80 V 150 H 0 Z" />
+              </path>
+              <path id="swiper-pickup-mask" style="fill: url(#gradient-green);" id="swiper-curvepath-green" stroke="none"
+                clip-path="url(#clip-pickup)"
+                d="M0,80 C100,150 220,150 320,80 V 150 H 0 Z">
+                <!-- <use> tag in SVG doesn't support <animate> for reuse
+                     so we need to copy animations from swiper-hangup-mask. -->
+                <animate class="swiper-start-animation" attributeType="XML" attributeName="d" begin="indefinite" dur="0.2s" to="M0,80 C100,150 220,150 320,80  V 150 H 0 Z" />
+                <animate class="swiper-start-animation" attributeType="XML" attributeName="fill-opacity" begin="indefinite" dur="0.2s" to="1.0" />
+                <animate class="swiper-end-animation" attributeType="XML" attributeName="d" begin="indefinite" dur="0.5s" to="M0,80 C100,-20 220,-20 320,80 V 150 H 0 Z" />
+                <animate class="swiper-end-animation" attributeType="XML" attributeName="fill-opacity" begin="indefinite" dur="0.5s" to="0" />
+                <animate id="swiper-spotlight-elastic-animation" class="swiper-elastic-animation"
+                  attributeType="XML" attributeName="d" dur="2s" calcMode="spline"
+                  begin="indefinite" keySplines="0 .50 .50 1; .50 0 1 .50;0 .50 .50 1; .50 0 1 .50;"
+                  values="M0,80 C100,150 220,150 320,80 V 150 H 0 Z;
+                          M0,80 C100,40 220,40 320,80 V 150 H 0 Z; M0,80 C100,150 220,150 320,80 V 150 H 0 Z;
+                                          M0,80 C100,100 220,100 320,80 V 150 H 0 Z; M0,80 C100,150 220,150 320,80 V 150 H 0 Z" />
+              </path>
+            </svg>
             <div id="swiper-area"></div>
             <div id="swiper-icon-container">
-              <div id="swiper-area-handle"></div>
-              <div id="swiper-area-hangup" class="swiper-icon-area swiper-icon-left">
-                <div class="swiper-icon">
-                  <div id="swiper-accessibility-hangup" role="button" class="swiper-icon-a11y-button" data-l10n-id="hangup-a11y-button" aria-label="Hangup"></div>
-                </div>
-              </div>
-              <div id="swiper-area-pickup" class="swiper-icon-area swiper-icon-right">
-                <div class="swiper-icon">
-                    <div id="swiper-accessibility-pickup" role="button" class="swiper-icon-a11y-button" data-l10n-id="pickup-a11y-button" aria-label="Pickup"></div>
-                </div>
-              </div>
+              <button id="swiper-area-hangup" class="swiper-icon swiper-icon-left">
+                <div id="swiper-accessibility-hangup" role="button" class="swiper-icon-a11y-button" data-l10n-id="camera-a11y-button" aria-label="Hangup"></div>
+              </button>
+              <button id="swiper-area-pickup" class="swiper-icon swiper-icon-right">
+                <div id="swiper-accessibility-pickup" role="button" class="swiper-icon-a11y-button" data-l10n-id="unlock-a11y-button" aria-label="Pickup"></div>
+              </button>
             </div>
           </div>
-          <footer id="call-options">
-            <section id="co-advanced">
-              <div class="grid-wrapper grid">
-                <span class="grid-cell options-column">
-                  <button id="mute" class="co-advanced-option grid-wraper grid center">
-                    <span class="icon-mute">
-                    </span>
-                  </button>
-                </span>
-                <span class="grid-cell options-column">
-                  <button id="keypad-visibility" class="co-advanced-option grid-wraper grid center">
-                    <span class="icon-keypad-visibility">
-                    </span>
-                  </button>
-                </span>
-                <span class="grid-cell options-column">
-                  <button id="speaker" class="co-advanced-option grid-wraper grid">
-                    <span>
-                    </span>
-                  </button>
-                </span>
-            </section>
-            <footer id="callbar">
-              <div id="callbar-hang-up">
-                <span role="button" id="callbar-hang-up-action" class="callbar-button">
-                  <div>
-                  </div>
-                </span>
-              </div>
-              <div id="callbar-answer">
-                <span role="button" id="callbar-start-call-action" class="callbar-button">
-                  <div>
-                  </div>
-                </span>
-              </div>
-            </footer>
+          <footer id="call-options" class="grid-row">
+            <div class="grid-wrapper grid">
+              <section id="co-advanced" class="grid-row">
+                <div class="grid-wrapper grid">
+                  <span class="grid-cell options-column">
+                    <button id="mute" class="co-advanced-option grid-wraper grid center">
+                      <span class="icon-mute">
+                      </span>
+                    </button>
+                  </span>
+                  <span class="grid-cell options-column">
+                    <button id="keypad-visibility" class="co-advanced-option grid-wraper grid center">
+                      <span class="icon-keypad-visibility">
+                      </span>
+                    </button>
+                  </span>
+                  <span class="grid-cell options-column">
+                    <button id="speaker" class="co-advanced-option grid-wraper grid">
+                      <span>
+                      </span>
+                    </button>
+                  </span>
+              </section>
+              <footer id="callbar">
+                <div id="callbar-hang-up">
+                  <span role="button" id="callbar-hang-up-action" class="callbar-button">
+                    <div>
+                    </div>
+                  </span>
+                </div>
+                <div id="callbar-answer">
+                  <span role="button" id="callbar-start-call-action" class="callbar-button">
+                    <div>
+                    </div>
+                  </span>
+                </div>
+              </footer>
+            </div>
           </footer>
         </div>
       </article>
@@ -165,33 +247,33 @@
         <article id="keyboard-container">
           <section id="keypad">
             <div class="keypad-cell">
-              <div class="keypad-key" data-value="1">
+              <div class="keypad-key">
                 <div class="keypad-key-label-container">
-                  <div class="keypad-key-label">
+                  <div class="keypad-key-label" data-value="1">
                     <span class="keypad-number font-regular">1</span>
                     <span  class="keypad-text font-regular"></span>
                   </div>
                 </div>
               </div>
-              <div class="keypad-key" data-value="4">
+              <div class="keypad-key">
                 <div class="keypad-key-label-container">
-                  <div class="keypad-key-label">
+                  <div class="keypad-key-label" data-value="4">
                     <span class="keypad-number font-regular">4</span>
                     <span  class="keypad-text font-regular">GHI</span>
                   </div>
                 </div>
               </div>
-              <div class="keypad-key" data-value="7">
+              <div class="keypad-key">
                 <div class="keypad-key-label-container">
-                  <div class="keypad-key-label">
+                  <div class="keypad-key-label" data-value="7">
                     <span class="keypad-number font-regular">7</span>
                     <span class="keypad-text font-regular">PQRS</span>
                   </div>
                 </div>
               </div>
-              <div class="keypad-key" data-value="*">
+              <div class="keypad-key">
                 <div class="keypad-key-label-container">
-                  <div class="keypad-key-label keypad-key-label-centered">
+                  <div class="keypad-key-label keypad-key-label-centered" data-value="*">
                     <span>
                       <div class="asterisk"></div>
                     </span>
@@ -200,33 +282,33 @@
               </div>
             </div>
             <div class="keypad-cell">
-              <div class="keypad-key" data-value="2">
+              <div class="keypad-key">
                 <div class="keypad-key-label-container">
-                  <div class="keypad-key-label">
+                  <div class="keypad-key-label" data-value="2">
                     <span class="keypad-number font-regular">2</span>
                     <span class="keypad-text font-regular">ABC</span>
                   </div>
                 </div>
               </div>
-              <div class="keypad-key" data-value="5">
+              <div class="keypad-key">
                 <div class="keypad-key-label-container">
-                  <div class="keypad-key-label">
+                  <div class="keypad-key-label" data-value="5">
                     <span class="keypad-number font-regular">5</span>
                     <span class="keypad-text font-regular">JKL</span>
                   </div>
                 </div>
               </div>
-              <div class="keypad-key" data-value="8">
+              <div class="keypad-key">
                 <div class="keypad-key-label-container">
-                  <div class="keypad-key-label">
+                  <div class="keypad-key-label" data-value="8">
                     <span class="keypad-number font-regular">8</span>
                     <span  class="keypad-text font-regular">TUV</span>
                   </div>
                 </div>
               </div>
-              <div class="keypad-key" data-value="0">
+              <div class="keypad-key">
                 <div class="keypad-key-label-container">
-                  <div class="keypad-key-label">
+                  <div class="keypad-key-label" data-value="0">
                     <span class="keypad-number font-regular">0</span>
                     <span class="keypad-text font-size-plus"></span>
                   </div>
@@ -234,33 +316,33 @@
               </div>
             </div>
             <div class="keypad-cell">
-              <div class="keypad-key" data-value="3">
+              <div class="keypad-key">
                 <div class="keypad-key-label-container">
-                  <div class="keypad-key-label">
+                  <div class="keypad-key-label" data-value="3">
                     <span class="keypad-number font-regular">3</span>
                     <span  class="keypad-text font-regular">DEF</span>
                   </div>
                 </div>
               </div>
-              <div class="keypad-key" data-value="6">
+              <div class="keypad-key">
                 <div class="keypad-key-label-container">
-                  <div class="keypad-key-label">
+                  <div class="keypad-key-label" data-value="6">
                     <span class="keypad-number font-regular">6</span>
                     <span  class="keypad-text font-regular">MNO</span>
                   </div>
                 </div>
               </div>
-              <div class="keypad-key" data-value="9">
+              <div class="keypad-key">
                 <div class="keypad-key-label-container">
-                  <div class="keypad-key-label">
+                  <div class="keypad-key-label" data-value="9">
                     <span class="keypad-number font-regular">9</span>
                     <span  class="keypad-text font-regular">WXYZ</span>
                   </div>
                 </div>
               </div>
-              <div class="keypad-key" data-type="dial" data-value="#">
+              <div class="keypad-key">
                 <div class="keypad-key-label-container">
-                  <div class="keypad-key-label  keypad-key-label-centered">
+                  <div class="keypad-key-label  keypad-key-label-centered" data-type="dial" data-value="#">
                     <span>
                       <div class="sharp"></div>
                     </span>

@@ -14,11 +14,9 @@
 var UpdateManager = {
   _mgmt: null,
   _downloading: false,
-  _uncompressing: false,
   _downloadedBytes: 0,
   _errorTimeout: null,
   _wifiLock: null,
-  _systemUpdateDisplayed: false,
   NOTIFICATION_BUFFERING_TIMEOUT: 30 * 1000,
   TOASTER_TIMEOUT: 1200,
 
@@ -33,7 +31,6 @@ var UpdateManager = {
   downloadDialogList: null,
 
   updatableApps: [],
-  systemUpdatable: null,
   updatesQueue: [],
   downloadsQueue: [],
 
@@ -53,8 +50,6 @@ var UpdateManager = {
       }, this);
     }).bind(this);
 
-    this.systemUpdatable = new SystemUpdatable();
-
     this.container = document.getElementById('update-manager-container');
     this.message = this.container.querySelector('.message');
 
@@ -69,8 +64,7 @@ var UpdateManager = {
 
     this.container.onclick = this.containerClicked.bind(this);
     this.laterButton.onclick = this.cancelPrompt.bind(this);
-    this.downloadButton.onclick = this.startDownloads.bind(this);
-    this.downloadDialogList.onchange = this.updateDownloadButton.bind(this);
+    this.downloadButton.onclick = this.startAllDownloads.bind(this);
 
     window.addEventListener('mozChromeEvent', this);
     window.addEventListener('applicationinstall', this);
@@ -80,27 +74,14 @@ var UpdateManager = {
                              this.checkForUpdates.bind(this));
   },
 
-  startDownloads: function um_startDownloads(evt) {
+  startAllDownloads: function um_startAllDownloads(evt) {
     evt.preventDefault();
 
     this.downloadDialog.classList.remove('visible');
     UtilityTray.show();
 
-    var checkValues = {};
-    var dialog = this.downloadDialogList;
-    var checkboxes = dialog.querySelectorAll('input[type="checkbox"]');
-    for (var i = 0; i < checkboxes.length; i++) {
-      var checkbox = checkboxes[i];
-      checkValues[checkbox.dataset.position] = checkbox.checked;
-    }
-
-    this.updatesQueue.forEach(function(updatable, index) {
-      // The user opted out of the download
-      if (updatable.app && !checkValues[index]) {
-        return;
-      }
-
-      updatable.download();
+    this.updatesQueue.forEach(function(updatableApp) {
+      updatableApp.download();
     });
 
     this._downloadedBytes = 0;
@@ -153,8 +134,7 @@ var UpdateManager = {
   showDownloadPrompt: function um_showDownloadPrompt() {
     var _ = navigator.mozL10n.get;
 
-    this._systemUpdateDisplayed = false;
-    this.downloadDialogTitle.textContent = _('numberOfUpdates', {
+    this.downloadDialogTitle.textContent = _('updates', {
                                               n: this.updatesQueue.length
                                            });
 
@@ -175,65 +155,20 @@ var UpdateManager = {
     });
 
     this.downloadDialogList.innerHTML = '';
-    this.updatesQueue.forEach(function updatableIterator(updatable, index) {
+    this.updatesQueue.forEach(function updatableIterator(updatable) {
       var listItem = document.createElement('li');
-
-      // The user can choose not to update an app
-      var checkContainer = document.createElement('label');
-      if (updatable instanceof SystemUpdatable) {
-        checkContainer.textContent = _('required');
-        checkContainer.classList.add('required');
-        this._systemUpdateDisplayed = true;
-      } else {
-        var checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.dataset.position = index;
-        checkbox.checked = true;
-
-        var span = document.createElement('span');
-
-        checkContainer.appendChild(checkbox);
-        checkContainer.appendChild(span);
-      }
-      listItem.appendChild(checkContainer);
-
-      var name = document.createElement('div');
-      name.classList.add('name');
-      name.textContent = updatable.name;
-      listItem.appendChild(name);
+      listItem.textContent = updatable.name;
 
       if (updatable.size) {
-        var sizeItem = document.createElement('div');
+        var sizeItem = document.createElement('span');
         sizeItem.textContent = this._humanizeSize(updatable.size);
         listItem.appendChild(sizeItem);
-      } else {
-        listItem.classList.add('nosize');
       }
 
       this.downloadDialogList.appendChild(listItem);
     }, this);
 
     this.downloadDialog.classList.add('visible');
-  },
-
-  updateDownloadButton: function() {
-    if (this._systemUpdateDisplayed) {
-      this.downloadButton.disabled = false;
-      return;
-    }
-
-    var disabled = true;
-
-    var dialog = this.downloadDialogList;
-    var checkboxes = dialog.querySelectorAll('input[type="checkbox"]');
-    for (var i = 0; i < checkboxes.length; i++) {
-      if (checkboxes[i].checked) {
-        disabled = false;
-        break;
-      }
-    }
-
-    this.downloadButton.disabled = disabled;
   },
 
   cancelPrompt: function um_cancelPrompt() {
@@ -248,37 +183,25 @@ var UpdateManager = {
     }
   },
 
-  startedUncompressing: function um_startedUncompressing() {
-    this._uncompressing = true;
-    this.render();
-  },
-
   render: function um_render() {
     var _ = navigator.mozL10n.get;
+
+    if (this._downloading) {
+      this.container.classList.add('downloading');
+      var humanProgress = this._humanizeSize(this._downloadedBytes);
+      this.message.innerHTML = _('downloadingUpdateMessage', {
+                                  progress: humanProgress
+                                });
+    } else {
+      this.message.innerHTML = _('updatesAvailableMessage', {
+                                 n: this.updatesQueue.length
+                               });
+      this.container.classList.remove('downloading');
+    }
 
     this.toasterMessage.innerHTML = _('updatesAvailableMessage', {
                                       n: this.updatesQueue.length
                                     });
-
-    var message = '';
-    if (this._downloading) {
-      if (this._uncompressing && this.downloadsQueue.length === 1) {
-        message = _('uncompressingMessage');
-      } else {
-        var humanProgress = this._humanizeSize(this._downloadedBytes);
-        message = _('downloadingUpdateMessage', {
-                    progress: humanProgress
-                  });
-      }
-    } else {
-      message = _('updatesAvailableMessage', {
-                 n: this.updatesQueue.length
-                });
-    }
-
-    this.message.innerHTML = message;
-    var css = this.container.classList;
-    this._downloading ? css.add('downloading') : css.remove('downloading');
   },
 
   addToUpdatableApps: function um_addtoUpdatableapps(updatableApp) {
@@ -301,11 +224,6 @@ var UpdateManager = {
   addToUpdatesQueue: function um_addToUpdatesQueue(updatable) {
     if (this._downloading)
       return;
-
-    if (updatable.app &&
-        updatable.app.installState !== 'installed') {
-      return;
-    }
 
     if (updatable.app &&
         this.updatableApps.indexOf(updatable) === -1) {
@@ -392,14 +310,7 @@ var UpdateManager = {
       this.checkStatuses();
 
       if (this._wifiLock) {
-        try {
-          this._wifiLock.unlock();
-        } catch (e) {
-          // this can happen if the lock is already unlocked
-          console.error('error during unlock', e);
-        }
-
-        this._wifiLock = null;
+        this._wifiLock.unlock();
       }
 
       this.render();
@@ -409,7 +320,7 @@ var UpdateManager = {
   checkStatuses: function um_checkStatuses() {
     this.updatableApps.forEach(function(updatableApp) {
       var app = updatableApp.app;
-      if (app.downloadAvailable) {
+      if (app.installState === 'installed' && app.downloadAvailable) {
         this.addToUpdatesQueue(updatableApp);
       }
     }, this);
@@ -423,9 +334,7 @@ var UpdateManager = {
 
   onuninstall: function um_onuninstall(evt) {
     this.updatableApps.some(function appIterator(updatableApp, index) {
-      // The application object we get from the event
-      // has only origin and manifestURL properties
-      if (updatableApp.app.manifestURL === evt.application.manifestURL) {
+      if (updatableApp.app === evt.application) {
         this.removeFromAll(updatableApp);
         return true;
       }
@@ -451,10 +360,13 @@ var UpdateManager = {
       return;
 
     var detail = evt.detail;
+    if (!detail.type)
+      return;
 
-    if (detail.type && detail.type === 'update-available') {
-      this.systemUpdatable.size = detail.size;
-      this.addToUpdatesQueue(this.systemUpdatable);
+    switch (detail.type) {
+      case 'update-available':
+        this.addToUpdatesQueue(new SystemUpdatable(detail.size));
+        break;
     }
   },
 
@@ -464,16 +376,6 @@ var UpdateManager = {
     }
 
     this._dispatchEvent('force-update-check');
-
-    var settings = navigator.mozSettings;
-    if (!settings) {
-      return;
-    }
-
-    var lock = settings.createLock();
-    lock.set({
-      'gaia.system.checkForUpdates': false
-    });
   },
 
   _dispatchEvent: function um_dispatchEvent(type, result) {

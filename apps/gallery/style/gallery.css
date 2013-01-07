@@ -26,11 +26,7 @@ section {
   margin: 0;
   padding: 0;
   overflow: hidden;
-  font-size: 1.4rem;
-}
-
-.hidden {
-  display: none;
+  font-size: 10px;
 }
 
 /* All of the main views fill the screen */
@@ -43,7 +39,7 @@ section {
   padding: 0px;
   margin: 0px;
   overflow: hidden;
-  font-size: 2.1rem;
+  font-size: 20px;
 }
 
 /*
@@ -70,76 +66,28 @@ section {
  * the overlay text shows up more clearly
  */
 #overlay-content {
-  background:
-  url(images/ui/pattern.png) repeat left top,
-  url(images/ui/gradient.png) no-repeat left top;
-  background-size: auto auto, 100% 100%;
-  /* We can't use shortand with background size because is not implemented yet:
-  https://bugzilla.mozilla.org/show_bug.cgi?id=570326; */
-  overflow: hidden;
-  position: absolute;
-  z-index: 100;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  font-family: "MozTT", Sans-serif;
-  font-size: 0;
-  /* Using font-size: 0; we avoid the unwanted visual space (about 3px)
-  created by white-spaces and break lines in the code betewen inline-block elements */
+  margin-top: 30%;
+  margin-left: 10%;
+  margin-right: 10%;
+  padding: 10%;
+  border: solid black 4px;
+  border-radius: 10px;
+  background-color: rgba(0, 0, 0, 0.6);
+  font-family: "MozTT", sans-serif;
   color: #fff;
-  padding: 110px 25px 0px 25px;
+  -moz-user-select: none;
 }
 
 #overlay-title {
-  font-weight: normal;
-  text-transform:capitalize;
-  font-size: 1.9rem;
-  color: #fff;
-  margin: 0 5px -10px 5px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 26px;
 }
 
 #overlay-text {
-  padding: 10px 5px 0 5px;
-  border-top: 1px solid #686868;	
-  font-weight: 300;
-  font-size: 2.5rem;
-  color: #ebebeb;
+  font-size: 18px;
 }
 
-/* Spinner */
-#spinner-overlay { /* just like the #overlay element above */
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.4);
-}
-
-/*
- * spinner animation styles copied from 
- * shared/style_unstable/progress_activity.css 
- */
-#spinner {
-  position: absolute;
-  top: calc(50% - 15px);
-  left: calc(50% - 15px);
-  width: 29px;
-  height: 29px;
-  background: url(images/spinner.png) no-repeat center center;
-  animation: 0.9s spinner-animation infinite steps(30);
-  border: none;
-}
-
-@keyframes spinner-animation {
-  from {
-    transform: rotate(1deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
 
 /*
  * Thumbnails are implemented as <li> elements in a <ul> with background-image
@@ -151,37 +99,12 @@ section {
 
 #thumbnails {
   position: absolute;
-  left: 0;
-  width: calc(100% + 1px); /* one extra pixel for the right margin */
-  /* top and bottom are set depending on view below */
   padding: 0;
   margin: 0;
   overflow-y: scroll;
   overflow-x: hidden;
-}
-
-/* thumbnails in regular thumbnail list view */
-#thumbnails.list {
-  top: 0;
-  bottom: 0;
-}
-
-/* thumbnails in thumbnail select view where there is a top bar */
-#thumbnails.select {
-  top: 50px;
-  bottom: 0;
-}
-
-/* thumbnails in pick view where there is a top bar and no bottom */
-#thumbnails.pick {
-  top: 50px;
-  bottom: 0;
-}
-
-#thumbnails.offscreen {
-  top: 0;
-  bottom: 0;
-  visibility: hidden;
+  /* Cheating! Due to margins to the right, a row of 3 thumbnails is be thicker than 100% */
+  width: 104%;
 }
 
 .thumbnail {
@@ -199,28 +122,12 @@ section {
   background-size: cover;        /* allow some cropping */
   background-position: center;   /* keep the cropping at the edges */
   background-repeat: no-repeat;
-  /*
-   * When we have a background image it will cover the whole thumbnail
-   * but when we're swapping that image in it might be visible before
-   * the image. So we want a color that contrasts with the border so we
-   * at least get the effect of a grid rather than a black screen
-   */
-  background-color: #444;
 }
 
 .thumbnail.selected {
   outline: solid #00aacc 3px;
   outline-offset: -3px;
 }
-
-/*
- * give the very last thumbnail a large bottom margin so that it doesn't
- * get stuck hidden behind the overlaid toolbar.
- */
-.thumbnail:last-child {
-  margin-bottom: 40px;
-}
-
 
 /* 320x480 phones */
 @media (orientation: portrait) and (width: 320px) {
@@ -232,8 +139,8 @@ section {
 
 @media (orientation: landscape) and (width: 480px) {
   .thumbnail {
-    width: 119px;
-    height: 119px;
+    width: 120px;
+    height: 120px;
   }
 }
 
@@ -241,9 +148,33 @@ section {
 @media (orientation: portrait) and (width: 480px),
        (orientation: landscape) and (width: 800px) {
     .thumbnail {
-        width: 159px;
-        height: 159px;
+        width: 160px;
+        height: 160px;
     }
+}
+
+/* thumbnails in regular thumbnail list view */
+#thumbnail-list-view > #thumbnails {
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0px;
+}
+
+/* thumbnails in thumbnail select view where there is a top bar */
+#thumbnail-select-view > #thumbnails {
+  top: 50px;
+  left: 0;
+  right: 0;
+  bottom: 0px;
+}
+
+/* thumbnails in pick view where there is a top bar and no bottom */
+#pick-view > #thumbnails {
+  top: 50px;
+  left: 0;
+  right: 0;
+  bottom: 0;
 }
 
 /* since fullscreen-view is fullscreen, it needs its own background color */
@@ -302,6 +233,10 @@ section {
   transform-origin: 0px 0px;
 }
 
+.hidden {
+  display: none;
+}
+
 /* localization */
 body.hidden *[data-l10n-id] {
   visibility: hidden;
@@ -320,7 +255,6 @@ body.hidden *[data-l10n-id] {
   height: 3px;
   border: none;
   overflow: hidden;
-  z-index: 3; /* has to be higher than pick-top */
 }
 
 #throbber {
@@ -351,7 +285,7 @@ a.button {
   background-repeat: no-repeat;
 
   /* for buttons that display text */
-  font-size: 1.4rem;
+  font-size: smaller;
   text-align: center;
   line-height: 40px;
 }
@@ -377,7 +311,7 @@ footer {
 }
 
 .icon.icon-done {
-  background-image: url('images/iconaction_done_30x30.png') !important;
+  background-image: url('images/actionicon_done.png') !important;
 }
 
 #thumbnails-camera-button {
@@ -385,7 +319,7 @@ footer {
   width: 50%;
   height: 100%;
   left: 0;
-  background-image: url('images/iconaction_camera_30x30.png');
+  background-image: url('images/camera.png');
   border-right: 1px solid #000;
 }
 
@@ -394,7 +328,7 @@ footer {
   width: 50%;
   height: 100%;
   left: 50%;
-  background-image: url('images/iconaction_select_30x30.png');
+  background-image: url('images/select.png');
 }
 
 #thumbnails-delete-button {
@@ -402,7 +336,7 @@ footer {
   width: 50%;
   height: 100%;
   left: 0;
-  background-image: url('images/iconaction_delete_30x30.png');
+  background-image: url('images/delete.png');
   border-right: 1px solid #000;
 }
 
@@ -411,7 +345,7 @@ footer {
   width: 50%;
   height: 100%;
   left: 50%;
-  background-image: url('images/iconaction_share_30x30.png');
+  background-image: url('images/share.png');
 }
 
 #fullscreen-toolbar {
@@ -432,7 +366,7 @@ footer {
   width: 20%;
   height: 100%;
   left: 0;
-  background-image: url('images/iconaction_camera_gridview_30x30.png');
+  background-image: url('images/actionicon_grid_view.png');
 }
 
 #fullscreen-camera-button {
@@ -440,7 +374,7 @@ footer {
   width: 20%;
   height: 100%;
   left: 20%;
-  background-image: url('images/iconaction_camera_30x30.png');
+  background-image: url('images/camera.png');
 }
 
 #fullscreen-edit-button {
@@ -448,7 +382,7 @@ footer {
   width: 20%;
   height: 100%;
   left: 40%;
-  background-image: url('images/iconaction_edit_30x30.png');
+  background-image: url('images/edit.png');
 }
 
 #fullscreen-share-button {
@@ -456,7 +390,7 @@ footer {
   width: 20%;
   height: 100%;
   left: 60%;
-  background-image: url('images/iconaction_share_30x30.png');
+  background-image: url('images/share.png');
 }
 
 #fullscreen-delete-button {
@@ -464,7 +398,7 @@ footer {
   width: 20%;
   height: 100%;
   left: 80%;
-  background-image: url('images/iconaction_delete_30x30.png');
+  background-image: url('images/delete.png');
 }
 
 #pick-top {
@@ -576,7 +510,7 @@ footer {
   border-right: solid black 1px;
   overflow: hidden;
   padding-top: 16px;
-  font-size: 1.4rem;
+  font-size: 12px;
   background-position: center;
 }
 
@@ -587,23 +521,23 @@ footer {
 
 #edit-crop-none {
   left: 0;
-  background-image: url('images/iconaction_undo_30x30.png');
+  background-image: url('images/actionicon_undo.png');
 }
 #edit-crop-aspect-free {
   left: 20%;
-  background-image: url('images/iconaction_camera_freecrop_30x30.png');
+  background-image: url('images/actionicon_cropfree.png');
 }
 #edit-crop-aspect-portrait {
   left: 40%;
-  background-image: url('images/iconaction_camera_crop2x3_30x30.png');
+  background-image: url('images/actionicon_crop23.png');
 }
 #edit-crop-aspect-landscape {
   left: 60%;
-  background-image: url('images/iconaction_camera_crop3x2_30x30.png');
+  background-image: url('images/actionicon_crop32.png');
 }
 #edit-crop-aspect-square {
   left: 80%;
-  background-image: url('images/iconaction_camera_crop1x1_30x30.png');
+  background-image: url('images/actionicon_crop11.png');
 }
 
 /* instead of using images inside the buttons above, just draw boxes */
@@ -716,7 +650,7 @@ a.filter-faded {
   position: absolute;
   width: 25%;
   height: 100%;
-  font-size: 1.4rem;
+  font-size: 15px;
 }
 
 /* If the button is selected, it has a different background */
@@ -752,7 +686,7 @@ a.filter-faded {
   width: 100%;
   height: 50px;
   background-color: #444;
-  font-size: 1.4rem;
+  font-size: smaller;
 }
 
 #sliderbar {
@@ -782,7 +716,7 @@ a.filter-faded {
   background-color: #eee;
   text-align: center;
   padding-top: 12px;
-  font-size: 1.4rem;
+  font-size: smaller;
   color: black;
 }
 

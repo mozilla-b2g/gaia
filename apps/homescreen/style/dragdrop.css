@@ -11,7 +11,7 @@
 	margin-top: .4rem;
 	margin-bottom: .4rem;
   -moz-transform: scale(1.25);
-  -moz-transition: -moz-transform .3s;
+  -moz-transition: -moz-transform .4s;
 }
 
 /* label wrapper */
@@ -22,7 +22,7 @@
 
 /* text label */
 .draggable > div > span > span {
-  font-size: -moz-calc(5.75 * 0.226rem);
+  font-size: -moz-calc(5 * 0.226rem); /* 5pt */
   text-shadow: 1px 1px 3px rgba(0,0,0,0.6);
   /* shift left edge of text half distance to left */
   margin-left: -106%;
@@ -60,10 +60,6 @@ body[data-mode = 'normal'] ol > li span.options {
   display: none;
 }
 
-body[data-dragging] ol > li span.options {
-  pointer-events: none;
-}
-
 body[data-mode = 'edit'] ol > li[data-dragging] {
   opacity: 0;
 }
@@ -73,7 +69,7 @@ body[data-dragging] ol > li {
 }
 
 body[data-mode = 'edit'] ol > li {
-  -moz-animation-duration: .3s;
+  -moz-animation-duration: .4s;
 }
 
 @-moz-keyframes jumpNextCell {

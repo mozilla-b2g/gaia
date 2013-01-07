@@ -34,7 +34,6 @@ var AirplaneMode = {
     var wifiManager = window.navigator.mozWifiManager;
     var mobileData = window.navigator.mozMobileConnection &&
       window.navigator.mozMobileConnection.data;
-    var fmRadio = window.navigator.mozFMRadio;
 
     var restoreMobileData = false;
     var restoreBluetooth = false;
@@ -52,7 +51,7 @@ var AirplaneMode = {
 
         // Turn off mobile data
         // We toggle the mozSettings value here just for the sake of UI,
-        // platform ril disconnects mobile data when
+        // platform ril dissconnects mobile data when
         // 'ril.radio.disabled' is true.
         if (mobileData) {
           restoreMobileData = mobileDataEnabled;
@@ -96,10 +95,6 @@ var AirplaneMode = {
           });
         }
 
-        // Turn off FM Radio.
-        if (fmRadio && fmRadio.enabled)
-          fmRadio.disable();
-
       } else {
         self.enabled = false;
         // Don't attempt to turn on mobile data if it's already on
@@ -129,8 +124,6 @@ var AirplaneMode = {
             'geolocation.enabled': true
           });
         }
-
-        SimLock.showIfLocked();
       }
     });
   }

@@ -39,28 +39,6 @@ contacts.Form = (function() {
   var PHOTO_WIDTH = 320;
   var PHOTO_HEIGHT = 320;
 
-  var textFieldsCache = {
-    _textFields: null,
-
-    get: function textFieldsCache_get() {
-      if (!this._textFields) {
-        var form = dom.getElementById('contact-form');
-        var fields = form.querySelectorAll('input.textfield');
-        var removedFields =
-          Array.slice(form.querySelectorAll('.removed input.textfield'));
-        this._textFields = Array.filter(fields, function(field) {
-          return removedFields.indexOf(field) == -1;
-        });
-      }
-
-      return this._textFields;
-    },
-
-    clear: function textFieldsCache_clear() {
-      this._textFields = null;
-    }
-  };
-
   var initContainers = function cf_initContainers() {
     deleteContactButton = dom.querySelector('#delete-contact');
     thumb = dom.querySelector('#thumbnail-photo');
@@ -129,6 +107,7 @@ contacts.Form = (function() {
     dom.addEventListener('cancelInput', function() {
       checkDisableButton();
     });
+
   };
 
   var render = function cf_render(contact, callback, pFbContactData) {
@@ -246,7 +225,6 @@ contacts.Form = (function() {
     var type = evt.target.dataset['fieldType'];
     evt.preventDefault();
     contacts.Form.insertField(type);
-    textFieldsCache.clear();
     return false;
   };
 
@@ -270,7 +248,6 @@ contacts.Form = (function() {
       var def = (currentElem === 'type') ? default_type : '';
       var defObj = (typeof(obj) === 'string') ? obj : obj[currentElem];
       var value = currField[currentElem] = defObj || def;
-      currField[currentElem] = utils.text.escapeHTML(value, true);
       if (!infoFromFB && value && nonEditableValues[value]) {
         infoFromFB = true;
       }
@@ -586,8 +563,6 @@ contacts.Form = (function() {
       'adr': 0,
       'note': 0
     };
-    textFieldsCache.clear();
-		formView.scrollTop = 0;
   };
 
   var resetRemoved = function cf_resetRemoved() {
@@ -602,19 +577,20 @@ contacts.Form = (function() {
     }
   };
 
-  var checkDisableButton = function checkDisableButton() {
+  var checkDisableButton = function checkDisable() {
     var saveButton = dom.getElementById('save-button');
-    if (emptyForm()) {
+    if (emptyForm('contact-form')) {
       saveButton.setAttribute('disabled', 'disabled');
     } else {
       saveButton.removeAttribute('disabled');
     }
   };
 
-  var emptyForm = function emptyForm() {
-    var textFields = textFieldsCache.get();
-    for (var i = textFields.length - 1; i >= 0; i--) {
-      if (textFields[i].value)
+  var emptyForm = function emptyForm(id) {
+    var form = dom.getElementById(id);
+    var inputs = form.querySelectorAll('input.textfield');
+    for (var i = 0; i < inputs.length; i++) {
+      if (inputs[i].value != '')
         return false;
     }
     return true;
@@ -637,7 +613,6 @@ contacts.Form = (function() {
       event.preventDefault();
       var elem = document.getElementById(selector);
       elem.classList.toggle(REMOVED_CLASS);
-      textFieldsCache.clear();
       checkDisableButton();
       return false;
     };
@@ -667,9 +642,7 @@ contacts.Form = (function() {
     var activity = new MozActivity({
       name: 'pick',
       data: {
-        type: 'image/jpeg',
-        width: PHOTO_WIDTH, // The desired width of the image
-        height: PHOTO_HEIGHT // The desired height of the image
+        type: 'image/jpeg'
       }
     });
 

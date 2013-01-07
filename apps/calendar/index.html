@@ -4,12 +4,17 @@
   <meta charset="utf-8">
   <meta http-equiv="pragma" content="no-cache">
   <title>Calendar</title>
+  <link rel="stylesheet" type="text/css" href="/style/fonts.css">
   <link rel="stylesheet" type="text/css" href="/style/calendar.css">
   <link rel="stylesheet" type="text/css" href="/style/ui.css">
   <link rel="stylesheet" type="text/css" href="/style/day_views.css">
+  <link rel="stylesheet" type="text/css" href="/style/week_view.css">
+  <link rel="stylesheet" type="text/css" href="/style/modify_event_view.css">
   <link rel="stylesheet" type="text/css" href="/style/forms.css">
+  <link rel="stylesheet" type="text/css" href="/style/settings.css">
   <link rel="stylesheet" type="text/css" href="/style/overlay.css">
   <link rel="stylesheet" type="text/css" href="/style/building_blocks.css" />
+
 
   <!-- localization -->
   <link rel="resource" type="application/l10n" href="/locales/locales.ini">
@@ -20,7 +25,6 @@
   <link rel="stylesheet" type="text/css" href="/shared/style/confirm.css" />
   <link rel="stylesheet" type="text/css" href="/shared/style/switches.css" />
   <link rel="stylesheet" type="text/css" href="/shared/style/status.css" />
-  <link rel="stylesheet" type="text/css" href="/shared/style_unstable/progress_activity.css" />
 
   <script src="/js/mozalarm_shim.js" type="text/javascript" charset="utf-8"></script>
 
@@ -39,6 +43,7 @@
 
   <!--- utils -->
   <script defer src="/js/presets.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/ordered_map.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/calc.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/template.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/responder.js" type="text/javascript" charset="utf-8"></script>
@@ -48,26 +53,21 @@
   <script defer src="/js/timespan.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/time_observer.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/interval_tree.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/overlap.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/input_parser.js" type="text/javascript" charset="utf-8"></script>
+
+  <!--- templates -->
+  <script defer src="/js/templates/month.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/templates/day.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/templates/week.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/templates/account.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/templates/calendar.js" type="text/javascript" charset="utf-8"></script>
 
   <!--- providers -->
   <script defer src="/js/provider/abstract.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/provider/local.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/provider/caldav.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/provider/caldav_pull_events.js" type="text/javascript" charset="utf-8"></script>
-
-  <!-- It's possible to lazy load these, but we include them here to reduce flickering -->
-  <script defer src="/js/views/calendar_colors.js" type="text/javascript" charset="utf-8"></script>
-  <script defer src="/js/views/time_header.js" type="text/javascript" charset="utf-8"></script>
-  <script defer src="/js/templates/month.js" type="text/javascript" charset="utf-8"></script>
-  <script defer src="/js/templates/day.js" type="text/javascript" charset="utf-8"></script>
-  <script defer src="/js/views/month_child.js" type="text/javascript" charset="utf-8"></script>
-  <script defer src="/js/utils/ordered_map.js" type="text/javascript" charset="utf-8"></script>
-  <script defer src="/js/utils/overlap.js" type="text/javascript" charset="utf-8"></script>
-  <script defer src="/js/views/time_parent.js" type="text/javascript" charset="utf-8"></script>
-  <script defer src="/js/views/day_based.js" type="text/javascript" charset="utf-8"></script>
-  <script defer src="/js/views/month.js" type="text/javascript" charset="utf-8"></script>
-  <script defer src="/js/views/day_child.js" type="text/javascript" charset="utf-8"></script>
-  <script defer src="/js/views/months_day.js" type="text/javascript" charset="utf-8"></script>
 
   <!--- store -->
   <script defer src="/js/store/abstract.js" type="text/javascript" charset="utf-8"></script>
@@ -84,6 +84,24 @@
   <script defer src="/js/models/account.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/models/calendar.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/models/event.js" type="text/javascript" charset="utf-8"></script>
+
+  <!--- views -->
+  <script defer src="/js/views/calendar_colors.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/views/time_header.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/views/day_based.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/views/month_child.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/views/day_child.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/views/week_child.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/views/months_day.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/views/time_parent.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/views/month.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/views/day.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/views/week.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/views/settings.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/views/advanced_settings.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/views/create_account.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/views/modify_account.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/views/modify_event.js" type="text/javascript" charset="utf-8"></script>
 
   <!-- workers / main / controller -->
   <script defer src="/js/worker/manager.js" type="text/javascript" charset="utf-8"></script>
@@ -220,8 +238,8 @@
 
   <header>
     <menu type="toolbar">
-      <a href="/settings/">
-        <span data-l10n-id="done">Done</span>
+      <a href="/settings/" data-l10n-id="done">
+        <span>Done</span>
       </a>
     </menu>
     <h1 data-l10n-id="advanced-settings-header">Calendar Settings</h1>
@@ -351,12 +369,6 @@
 
     <h1 data-l10n-id="account-header">Account</h1>
   </header>
-
-  <section class="during-progress">
-    <p data-l10n-id="modify-account-setting-up">SeTtiNg uP ACcOunt</p>
-    <progress class="small"></progress>
-  </section>
-
   <form>
     <fieldset>
       <ol>
@@ -376,11 +388,13 @@
       </ol>
     </fieldset>
   </form>
-
-  <section role="status">
-    <p class="errors"></p>
-  </section>
-
+	
+	<section role="status">
+ 	  <p class="errors"></p>
+	</section>
+	
+  <div class="during-progress">
+  </div>
 
   <a data-l10n-id="remove-account-data" role="button" href="#remove-account-dialog" class="danger delete-record">
     Remove Local Data

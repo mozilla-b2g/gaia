@@ -30,7 +30,6 @@ contacts.Settings = (function() {
     // Ordering
     asyncStorage.getItem(ORDER_KEY, (function orderValue(value) {
       orderByLastName = value || false;
-      newOrderByLastName = null;
       updateOrderingUI();
     }).bind(this));
 
@@ -89,28 +88,6 @@ contacts.Settings = (function() {
     }
     else {
       document.querySelector('#settings-article').dataset.state = 'fb-disabled';
-    }
-  };
-
-  var checkSIMCard = function checkSIMCard() {
-    var conn = window.navigator.mozMobileConnection;
-
-    if (!conn) {
-      enableSIMImport(false);
-      return;
-    }
-
-    enableSIMImport(conn.cardState == 'ready');
-  };
-
-  // Disables/Enables the actions over the sim import functionality
-  var enableSIMImport = function enableSIMImport(enable) {
-    var importSim = document.getElementById('settingsSIM');
-    if (enable) {
-      importSim.removeAttribute('aria-disabled');
-    }
-    else {
-      importSim.setAttribute('aria-disabled', 'true');
     }
   };
 
@@ -261,22 +238,14 @@ contacts.Settings = (function() {
     }
   };
 
-  function resetWait(wakeLock) {
-    Contacts.hideOverlay();
-    if (wakeLock) {
-      wakeLock.unlock();
-    }
-  }
-
   function doFbUnlink() {
     Contacts.showOverlay(_('cleaningFbData'));
-    var wakeLock = navigator.requestWakeLock('cpu');
 
     var req = fb.utils.clearFbData();
 
     req.onsuccess = function() {
-      var cleaner = req.result;
-      cleaner.onsuccess = function() {
+      req.result.onsuccess = function() {
+
         Contacts.showOverlay(_('loggingOutFb'));
         var logoutReq = fb.utils.logout();
 
@@ -294,33 +263,26 @@ contacts.Settings = (function() {
           window.asyncStorage.removeItem(fb.utils.CACHE_FRIENDS_KEY);
 
           contacts.List.load();
-          resetWait(wakeLock);
+          Contacts.hideOverlay();
         };
 
         logoutReq.onerror = function(e) {
           contacts.List.load();
-          resetWait(wakeLock);
+          Contacts.hideOverlay();
           window.console.error('Contacts: Error while FB logout: ',
-                              e.target.error.name);
+                              e.target.error);
         };
       };
 
-      cleaner.oncleaned = function(num) {
+      req.result.oncleaned = function(num) {
         // Nothing done here for the moment
       };
 
-      cleaner.onerror = function(contactid, error) {
-        window.console.error('Contacts: Error while FB cleaning contact: ',
-                             contactid, 'Error: ', error.name);
-        // Wait state is not resetted because the cleaning process will continue
+      req.result.onerror = function(error) {
+        window.console.error('Contacts: Error while FB cleaning');
+        Contacts.hideOverlay();
       };
     };
-
-    req.onerror = function(e) {
-      window.console.error('Error while starting the cleaning operations',
-                           req.error.name);
-      resetWait(wakeLock);
-    }
   }
 
   // Listens for any change in the ordering preferences
@@ -343,10 +305,8 @@ contacts.Settings = (function() {
 
       },
       function onimport(num) {
-        if (num > 0) {
-          contacts.List.load();
-        }
-        addMessage(_('simContacts-imported3', {n: num}), after);
+        addMessage(_('simContacts-imported2', {n: num}), after);
+        contacts.List.load();
         Contacts.hideOverlay();
       },
       function onerror() {
@@ -357,8 +317,7 @@ contacts.Settings = (function() {
 
   // Dismiss settings window and execute operations if values got modified
   var close = function close() {
-    if (newOrderByLastName != null &&
-        newOrderByLastName != orderByLastName && contacts.List) {
+    if (newOrderByLastName != orderByLastName && contacts.List) {
       contacts.List.setOrderByLastName(newOrderByLastName);
       orderByLastName = newOrderByLastName;
     }
@@ -386,7 +345,6 @@ contacts.Settings = (function() {
   var refresh = function refresh() {
     getData();
     checkOnline();
-    checkSIMCard();
   };
 
   return {

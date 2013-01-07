@@ -34,16 +34,7 @@
     var startTimestamp = Date.now();
     var idleFired = false;
 
-    var idleTimer = {
-      timer: undefined,
-      resetStartTimestamp: function resetStartTimestamp() {
-        startTimestamp = Date.now();
-      }
-    };
-
-    // If the system unix time changes, we would need to update
-    // the number we kept in startTimestamp, or bad things will happen.
-    window.addEventListener('moztimechange', idleTimer.resetStartTimestamp);
+    var idleTimer = { timer: undefined };
 
     // Create an idle observer with a very short time as
     // we are not interested in when onidle fires (since it's inaccuate),
@@ -119,7 +110,6 @@
     // Properly clean it up, make sure we will never heard from
     // those callbacks ever again.
     navigator.removeIdleObserver(idleTimer.observer);
-    window.removeEventListener('moztimechange', idleTimer.resetStartTimestamp);
     if (idleTimer.timer)
       clearTimeout(idleTimer.timer);
   };

@@ -26,27 +26,10 @@ var Settings = {
     // register web activity handler
     navigator.mozSetMessageHandler('activity', this.webActivityHandler);
 
-    // update corresponding setting when it changes
+    // update <input> values when the corresponding setting is changed
     settings.onsettingchange = function settingChanged(event) {
       var key = event.settingName;
       var value = event.settingValue;
-
-      // update <span> values when the corresponding setting is changed
-      var rule = '[data-name="' + key + '"]:not([data-ignore])';
-      var spanField = document.querySelector(rule);
-      if (spanField) {
-        // check whether this setting comes from a select option
-        rule = '[data-setting="' + key + '"] [value="' + value + '"]';
-        var option = document.querySelector(rule);
-        if (option) {
-          spanField.dataset.l10nId = option.dataset.l10nId;
-          spanField.textContent = option.textContent;
-        } else {
-          spanField.textContent = value;
-        }
-      }
-
-      // update <input> values when the corresponding setting is changed
       var input = document.querySelector('input[name="' + key + '"]');
       if (!input)
         return;
@@ -108,8 +91,7 @@ var Settings = {
 
     // activate all links
     var self = this;
-    var rule = 'a[href^="http"], a[href^="tel"], [data-href]';
-    var links = panel.querySelectorAll(rule);
+    var links = panel.querySelectorAll('a[href^="http"], a[href^="tel"], [data-href]');
     for (i = 0; i < links.length; i++) {
       var link = links[i];
       if (!link.dataset.href) {
@@ -133,6 +115,9 @@ var Settings = {
         };
       }
     }
+
+    // display panel if required
+    panel.hidden = false;
   },
 
   presetPanel: function settings_presetPanel(panel) {
@@ -202,41 +187,12 @@ var Settings = {
       }
 
       // preset all span with data-name fields
-      rule = '[data-name]:not([data-ignore])';
+      rule = 'span[data-name]:not([data-ignore])';
       var spanFields = panel.querySelectorAll(rule);
       for (i = 0; i < spanFields.length; i++) {
         var key = spanFields[i].dataset.name;
-
-        if (key && request.result[key] != undefined) {
-          // check whether this setting comes from a select option
-          // (it may be in a different panel, so query the whole document)
-          rule = '[data-setting="' + key + '"] ' +
-            '[value="' + request.result[key] + '"]';
-          var option = document.querySelector(rule);
-          if (option) {
-            spanFields[i].dataset.l10nId = option.dataset.l10nId;
-            spanFields[i].textContent = option.textContent;
-          } else {
-            spanFields[i].textContent = request.result[key];
-          }
-        } else { // request.result[key] is undefined
-          switch (key) {
-            //XXX bug 816899 will also provide 'deviceinfo.software' from Gecko
-            //  which is {os name + os version}
-            case 'deviceinfo.software':
-              var _ = navigator.mozL10n.get;
-              var text = _('brandShortName') + ' ' +
-                request.result['deviceinfo.os'];
-              spanFields[i].textContent = text;
-              break;
-
-            //XXX workaround request from bug 808892 comment 22
-            //  hide this field if it's undefined/empty.
-            case 'deviceinfo.firmware_revision':
-              spanFields[i].parentNode.hidden = true;
-              break;
-          }
-        }
+        if (key && request.result[key] != undefined)
+          spanFields[i].textContent = request.result[key];
       }
     };
   },
@@ -273,12 +229,6 @@ var Settings = {
     if (!key || !settings || event.type != 'change')
       return;
 
-    // Not touching <input> with data-setting attribute here
-    // because they would have to be committed with a explicit "submit"
-    // of their own dialog.
-    if (input.dataset.setting)
-      return;
-
     var value;
     switch (type) {
       case 'checkbox':
@@ -293,7 +243,7 @@ var Settings = {
       case 'text':
       case 'password':
         value = input.value; // default as text
-        if (input.dataset.valueType === 'integer') // integer
+        if (input.dataset.valueType === "integer") // integer
           value = parseInt(value);
         break;
     }
@@ -302,11 +252,51 @@ var Settings = {
     settings.createLock().set(cset);
   },
 
+  loadGaiaCommit: function settings_loadGaiaCommit() {
+    var GAIA_COMMIT = 'resources/gaia_commit.txt';
+    var dispDate = document.getElementById('gaia-commit-date');
+    var dispHash = document.getElementById('gaia-commit-hash');
+    if (dispHash.textContent)
+      return; // `gaia-commit.txt' has already been loaded
+
+    function dateToUTC(d) {
+      var arr = [];
+      [
+        d.getUTCFullYear(), (d.getUTCMonth() + 1), d.getUTCDate(),
+        d.getUTCHours(), d.getUTCMinutes(), d.getUTCSeconds()
+      ].forEach(function(n) {
+        arr.push((n >= 10) ? n : '0' + n);
+      });
+      return arr.splice(0, 3).join('-') + ' ' + arr.join(':');
+    }
+
+    var req = new XMLHttpRequest();
+    req.onreadystatechange = (function(e) {
+      if (req.readyState === 4) {
+        if (req.status === 0 || req.status === 200) {
+          var data = req.responseText.split('\n');
+          // XXX it would be great to pop a link to the github page
+          // showing the commit but there doesn't seem to be any way
+          // to tell the browser to do it.
+          var d = new Date(parseInt(data[1] + '000', 10));
+          dispDate.textContent = dateToUTC(d);
+          dispHash.textContent = data[0];
+        } else {
+          console.error('Failed to fetch gaia commit: ', req.statusText);
+        }
+      }
+    }).bind(this);
+
+    req.open('GET', GAIA_COMMIT, true); // async
+    req.responseType = 'text';
+    req.send();
+  },
+
   openDialog: function settings_openDialog(dialogID) {
     var settings = this.mozSettings;
     var dialog = document.getElementById(dialogID);
     var fields =
-        dialog.querySelectorAll('[data-setting]:not([data-ignore])');
+        dialog.querySelectorAll('input[data-setting]:not([data-ignore])');
 
     /**
      * In Settings dialog boxes, we don't want the input fields to be preset
@@ -318,13 +308,10 @@ var Settings = {
      * explicitely when the dialog is shown.  If the dialog is validated
      * (submit), their values are stored into B2G settings.
      *
-     * XXX warning:
-     * this only supports text/password/radio/select/radio input types.
+     * XXX warning, this only supports text/password/radio input types.
      */
 
     // initialize all setting fields in the dialog box
-    // XXX for fields being added by lazily loaded script,
-    // it would have to initialize the fields again themselves.
     function reset() {
       if (settings) {
         var lock = settings.createLock();
@@ -333,17 +320,7 @@ var Settings = {
             var key = input.dataset.setting;
             var request = lock.get(key);
             request.onsuccess = function() {
-              switch (input.type) {
-                case 'radio':
-                  input.checked = (input.value == request.result[key]);
-                  break;
-                case 'checkbox':
-                  input.checked = request.result[key] || false;
-                  break;
-                default:
-                  input.value = request.result[key] || '';
-                  break;
-              }
+              input.value = request.result[key] || '';
             };
           })(fields[i]);
         }
@@ -353,9 +330,6 @@ var Settings = {
     // validate all settings in the dialog box
     function submit() {
       if (settings) {
-        // Update the fields node list to include dynamically added fields
-        fields = dialog.querySelectorAll('[data-setting]:not([data-ignore])');
-
         // mozSettings does not support multiple keys in the cset object
         // with one set() call,
         // see https://bugzilla.mozilla.org/show_bug.cgi?id=779381
@@ -364,18 +338,7 @@ var Settings = {
           var input = fields[i];
           var cset = {};
           var key = input.dataset.setting;
-          switch (input.type) {
-            case 'radio':
-              if (input.checked)
-                cset[key] = input.value;
-              break;
-            case 'checkbox':
-                cset[key] = input.checked;
-              break;
-            default:
-              cset[key] = input.value;
-              break;
-          }
+          cset[key] = input.value;
           lock.set(cset);
         }
       }
@@ -386,8 +349,136 @@ var Settings = {
   },
 
   getUserGuide: function settings_getUserGuide(callback) {
-    var url = 'http://support.mozilla.org/products/firefox-os';
-    callback(url);
+    var settings = this.mozSettings;
+    if (!settings)
+      return;
+
+    var key = 'deviceinfo.os';
+    var req = settings.createLock().get(key);
+    req.onsuccess = function userGuide() {
+      var url = 'http://support.mozilla.org/1/firefox-os/' +
+        req.result[key] + '/gonk/' + document.documentElement.lang + '/';
+      callback(url);
+    };
+  },
+
+  launchFTU: function settings_launchFTU() {
+    var settings = this.mozSettings;
+    if (!settings)
+      return;
+
+    var key = 'ftu.manifestURL';
+    var req = settings.createLock().get(key);
+    req.onsuccess = function ftuManifest() {
+      var ftuManifestURL = req.result[key];
+
+      // Fallback if no settings present
+      if (!ftuManifestURL) {
+        ftuManifestURL = document.location.protocol +
+          '//communications.gaiamobile.org' + (location.port ? ':' +
+            location.port : '/manifest.webapp');
+      }
+
+      var ftuApp = null;
+      navigator.mozApps.mgmt.getAll().onsuccess = function gotApps(evt) {
+        var apps = evt.target.result;
+        for (var i = 0; i < apps.length && ftuApp == null; i++) {
+          var app = apps[i];
+          if (app.manifestURL == ftuManifestURL) {
+            ftuApp = app;
+          }
+        }
+
+        if (ftuApp) {
+          ftuApp.launch('ftu');
+        } else {
+          alert(_('no-ftu'));
+        }
+      }
+    }
+  },
+
+  checkForUpdates: function settings_checkForUpdates() {
+    var settings = this.mozSettings;
+    if (!settings) {
+      return;
+    }
+
+    var _ = navigator.mozL10n.get;
+    var updateStatus = document.getElementById('update-status'),
+        systemStatus = updateStatus.querySelector('.system-update-status');
+
+    function onUpdateStatus(setting, event) {
+      var value = event.settingValue;
+      checkStatus[setting].value = value;
+
+      /* possible return values:
+       * for system updates:
+       * - no-updates
+       * - already-latest-version
+       * - check-complete
+       * - retry-when-online
+       *
+       * for apps updates:
+       * - check-complete
+       *
+       * use
+       * http://mxr.mozilla.org/mozilla-central/ident?i=setUpdateStatus&tree=mozilla-central&filter=&strict=1
+       * to check if this is still current
+       */
+      if (value !== 'check-complete') {
+        systemStatus.textContent = _(value, null, value);
+      }
+
+      checkIfStatusComplete();
+
+      settings.removeObserver(setting, checkStatus[setting].cb);
+      checkStatus[setting].cb = null;
+    }
+
+    function checkIfStatusComplete() {
+      var hasAllCheckComplete =
+        Object.keys(checkStatus).every(function(setting) {
+          return checkStatus[setting].value === 'check-complete';
+        });
+
+      var hasAllResponses =
+        Object.keys(checkStatus).every(function(setting) {
+          return !!checkStatus[setting].value;
+        });
+
+      if (hasAllCheckComplete) {
+        updateStatus.classList.remove('visible');
+        systemStatus.textContent = '';
+      }
+
+      if (hasAllResponses) {
+        updateStatus.classList.remove('checking');
+      }
+    }
+
+    /* Firefox currently doesn't implement adding 2 classes in one call */
+    /* see Bug 814014 */
+    updateStatus.classList.add('checking');
+    updateStatus.classList.add('visible');
+
+    /* remove whatever was there before */
+    systemStatus.textContent = '';
+
+    var checkStatus = {
+      'gecko.updateStatus': {},
+      'apps.updateStatus': {}
+    };
+
+    for (var setting in checkStatus) {
+      checkStatus[setting].cb = onUpdateStatus.bind(null, setting);
+      settings.addObserver(setting, checkStatus[setting].cb);
+    }
+
+    var lock = settings.createLock();
+    lock.set({
+      'gaia.system.checkForUpdates': true
+    });
   },
 
   getSupportedLanguages: function settings_getLanguages(callback) {
@@ -434,7 +525,6 @@ window.addEventListener('load', function loadSettings() {
   window.addEventListener('change', Settings);
   window.addEventListener('click', Settings); // XXX really needed?
   Settings.init();
-  handleDataConnectivity();
 
   // panel lazy-loading
   function lazyLoad(panel) {
@@ -484,6 +574,13 @@ window.addEventListener('load', function loadSettings() {
         });
         Settings.updateLanguagePanel();
         break;
+      case 'about':               // handle specific link + load gaia_commit.txt
+        document.getElementById('check-update-now').onclick =
+          Settings.checkForUpdates.bind(Settings);
+        document.getElementById('ftuLauncher').onclick =
+          Settings.launchFTU.bind(Settings);
+        Settings.loadGaiaCommit();
+        break;
       case 'help':                // handle specific link
         Settings.getUserGuide(function userGuideCallback(url) {
           document.querySelector('[data-l10n-id="user-guide"]').onclick =
@@ -511,7 +608,6 @@ window.addEventListener('load', function loadSettings() {
 
     // load panel (+ dependencies) if necessary -- this should be synchronous
     lazyLoad(newPanel);
-    newPanel.hidden = false;
 
     // switch previous/current classes -- the timeout is required to make the
     // transition smooth after lazy-loading a panel
@@ -531,52 +627,6 @@ window.addEventListener('load', function loadSettings() {
       if ((window.scrollX !== 0) || (window.scrollY !== 0)) {
         window.scrollTo(0, 0);
       }
-
-      setTimeout(function setInit() {
-        document.body.classList.remove('uninit');
-      });
-
-      // Bug 818056 - When multiple visible panels are present,
-      // they are not painted correctly. This appears to fix the issue.
-      // Only do this after the first load
-      if (oldPanel.className === 'current')
-        return;
-
-      oldPanel.addEventListener('transitionend', function onTransitionEnd() {
-        oldPanel.removeEventListener('transitionend', onTransitionEnd);
-        oldPanel.hidden = true;
-      });
-    });
-  }
-
-  function handleDataConnectivity() {
-    function updateDataConnectivity(disabled) {
-      var item = document.querySelector('#data-connectivity');
-      var link = document.querySelector('#menuItem-cellularAndData');
-      if (!item || !link)
-        return;
-
-      if (disabled) {
-        item.classList.add('carrier-disabled');
-        link.onclick = function() { return false; }
-      } else {
-        item.classList.remove('carrier-disabled');
-        link.onclick = null;
-      }
-    }
-
-    var key = 'ril.radio.disabled';
-
-    var settings = Settings.mozSettings;
-    if (!settings)
-      return;
-
-    var req = settings.createLock().get(key);
-    req.onsuccess = function() {
-      updateDataConnectivity(req.result[key]);
-    };
-    settings.addObserver(key, function(evt) {
-      updateDataConnectivity(evt.settingValue);
     });
   }
 

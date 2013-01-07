@@ -10,12 +10,11 @@
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "permissions": {
-    "device-storage:pictures":{ "access": "readwrite" },
-    "device-storage:videos":{ "access": "readwrite" },
+    "device-storage:pictures":{ "access": "readcreate" },
+    "device-storage:videos":{ "access": "readcreate" },
     "settings":{ "access": "readonly" },
     "camera":{},
-    "geolocation":{},
-    "audio-channel-publicnotification":{}
+    "geolocation":{}
   },
   "activities": {
     "record": {
@@ -29,8 +28,7 @@
         "type": ["image/jpeg"]
        },
       "returnValue": true,
-      "disposition": "inline",
-      "href": "/index.html#pick"
+      "disposition": "inline"
     }
   },
   "locales": {

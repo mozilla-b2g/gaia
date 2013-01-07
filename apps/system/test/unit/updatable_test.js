@@ -1,5 +1,3 @@
-'use strict';
-
 requireApp('system/js/updatable.js');
 
 requireApp('system/test/unit/mock_app.js');
@@ -9,51 +7,64 @@ requireApp('system/test/unit/mock_apps_mgmt.js');
 requireApp('system/test/unit/mock_chrome_event.js');
 requireApp('system/test/unit/mock_custom_dialog.js');
 requireApp('system/test/unit/mock_utility_tray.js');
-requireApp('system/test/unit/mock_manifest_helper.js');
-requireApp('system/test/unit/mocks_helper.js');
 
-
-var mocksForUpdatable = [
-  'CustomDialog',
-  'UpdateManager',
-  'WindowManager',
-  'UtilityTray',
-  'ManifestHelper'
-];
-
-mocksForUpdatable.forEach(function(mockName) {
-  if (!window[mockName]) {
-    window[mockName] = null;
-  }
-});
+// We're going to swap those with mock objects
+// so we need to make sure they are defined.
+if (!this.CustomDialog) {
+  this.CustomDialog = null;
+}
+if (!this.UpdateManager) {
+  this.UpdateManager = null;
+}
+if (!this.WindowManager) {
+  this.WindowManager = null;
+}
+if (!this.UtilityTray) {
+  this.UtilityTray = null;
+}
 
 suite('system/Updatable', function() {
   var subject;
   var mockApp;
 
+  var realUpdateManager;
+  var realWindowManager;
+  var realUtilityTray;
   var realDispatchEvent;
+  var realCustomDialog;
   var realL10n;
-
-  var mocksHelper;
 
   var lastDispatchedEvent = null;
   var fakeDispatchEvent;
 
   suiteSetup(function() {
+    realUpdateManager = window.UpdateManager;
+    window.UpdateManager = MockUpdateManager;
+
+    realWindowManager = window.WindowManager;
+    window.WindowManager = MockWindowManager;
+
+    realCustomDialog = window.CustomDialog;
+    window.CustomDialog = MockCustomDialog;
+
+    realUtilityTray = window.UtilityTray;
+    window.UtilityTray = MockUtilityTray;
+
     realL10n = navigator.mozL10n;
     navigator.mozL10n = {
       get: function get(key) {
         return key;
       }
     };
-
-    mocksHelper = new MocksHelper(mocksForUpdatable);
-    mocksHelper.suiteSetup();
   });
 
   suiteTeardown(function() {
+    window.UpdateManager = realUpdateManager;
+    window.WindowManager = realWindowManager;
+    window.CustomDialog = realCustomDialog;
+    window.UtilityTray = realUtilityTray;
+
     navigator.mozL10n = realL10n;
-    mocksHelper.suiteTeardown();
   });
 
   setup(function() {
@@ -68,13 +79,14 @@ suite('system/Updatable', function() {
       };
     };
     subject._dispatchEvent = fakeDispatchEvent;
-
-    mocksHelper.setup();
   });
 
   teardown(function() {
+    MockUpdateManager.mTeardown();
     MockAppsMgmt.mTeardown();
-    mocksHelper.teardown();
+    MockCustomDialog.mTeardown();
+    MockWindowManager.mTeardown();
+    MockUtilityTray.mTeardown();
 
     subject._dispatchEvent = realDispatchEvent;
     lastDispatchedEvent = null;
@@ -83,13 +95,6 @@ suite('system/Updatable', function() {
   suite('init', function() {
     test('should keep a reference to the app', function() {
       assert.equal(mockApp, subject.app);
-    });
-
-    test('should handle fresh app with just an updateManifest', function() {
-      var freshApp = new MockApp();
-      freshApp.manifest = undefined;
-      subject = new AppUpdatable(freshApp);
-      assert.equal(freshApp, subject.app);
     });
   });
 
@@ -106,6 +111,11 @@ suite('system/Updatable', function() {
     });
 
     suite('size', function() {
+      test('should give system update size', function() {
+        subject = new SystemUpdatable(433567);
+        assert.equal(433567, subject.size);
+      });
+
       test('should give packaged app update size', function() {
         assert.equal(42, subject.size);
       });
@@ -167,30 +177,15 @@ suite('system/Updatable', function() {
         assert.equal(subject, MockUpdateManager.mLastDownloadsAdd);
       });
 
-      suite('when starting a system update', function() {
-        setup(function() {
-          subject = new SystemUpdatable(42);
-          subject._dispatchEvent = fakeDispatchEvent;
-          subject.progress = 42;
-          subject.download();
-        });
-
-        test('should start system updates with progress 0 too', function() {
-          assert.equal(subject.progress, 0);
-        });
-
-        test('should do nothing if already downloading', function() {
-          lastDispatchedEvent = null;
-          subject.progress = 42;
-          subject.download();
-
-          assert.equal(subject.progress, 42);
-          assert.isNull(lastDispatchedEvent);
-        });
+      test('should start system updates with progress 0 too', function() {
+        subject = new SystemUpdatable(42);
+        subject.progress = 42;
+        subject.download();
+        assert.equal(0, subject.progress);
       });
     });
 
-    suite('cancel app update download', function() {
+    suite('cancel download', function() {
       setup(function() {
         subject.cancelDownload();
       });
@@ -203,28 +198,6 @@ suite('system/Updatable', function() {
 
       test('should call cancelDownload on the app', function() {
         assert.isTrue(mockApp.mCancelCalled);
-      });
-    });
-
-    suite('cancel system update download', function() {
-      setup(function() {
-        subject = new SystemUpdatable(42);
-        subject.download();
-        subject._dispatchEvent = fakeDispatchEvent;
-        subject.cancelDownload();
-      });
-
-      test('should remove self from active downloads', function() {
-        assert.isNotNull(MockUpdateManager.mLastDownloadsRemoval);
-        assert.equal(subject, MockUpdateManager.mLastDownloadsRemoval);
-      });
-
-      test('should send cancel message', function() {
-        assert.equal('update-download-cancel', lastDispatchedEvent.type);
-      });
-
-      test('should remove the downloading flag', function() {
-        assert.isFalse(subject.downloading);
       });
     });
   });
@@ -367,7 +340,6 @@ suite('system/Updatable', function() {
       setup(function() {
         subject = new SystemUpdatable(42);
         subject._dispatchEvent = fakeDispatchEvent;
-        subject.download();
       });
 
       suite('update-downloaded', function() {
@@ -376,10 +348,6 @@ suite('system/Updatable', function() {
             type: 'update-downloaded'
           });
           subject.handleEvent(event);
-        });
-
-        test('should reset the downloading flag', function() {
-          assert.isFalse(subject.downloading);
         });
 
         testSystemApplyPrompt();
@@ -414,10 +382,6 @@ suite('system/Updatable', function() {
           assert.isNotNull(MockUpdateManager.mLastDownloadsRemoval);
           assert.equal(subject, MockUpdateManager.mLastDownloadsRemoval);
         });
-
-        test('should remove the downloading flag', function() {
-          assert.isFalse(subject.downloading);
-        });
       });
 
       suite('update-progress', function() {
@@ -442,21 +406,6 @@ suite('system/Updatable', function() {
           event.detail.progress = 2234;
           subject.handleEvent(event);
           assert.equal(1000, MockUpdateManager.mProgressCalledWith);
-        });
-
-        suite('when the download is complete', function() {
-          setup(function() {
-            event = new MockChromeEvent({
-              type: 'update-progress',
-              progress: 98734,
-              total: 98734
-            });
-            subject.handleEvent(event);
-          });
-
-          test('should signal the UpdateManager', function() {
-            assert.isTrue(MockUpdateManager.mStartedUncompressingCalled);
-          });
         });
       });
     });
@@ -486,13 +435,6 @@ suite('system/Updatable', function() {
 
       assert.equal('update-prompt-apply-result', lastDispatchedEvent.type);
       assert.equal('wait', lastDispatchedEvent.value);
-    });
-
-    test('canceling should remove from downloads queue', function() {
-      subject.declineInstall();
-
-      assert.isNotNull(MockUpdateManager.mLastDownloadsRemoval);
-      assert.equal(subject, MockUpdateManager.mLastDownloadsRemoval);
     });
 
     test('apply prompt confirm callback', function() {

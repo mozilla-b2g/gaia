@@ -31,8 +31,7 @@ manifest.appcache
 /tools/test-agent/node_modules
 /test-output.xml
 /mocha-test-results.html
-/build/custom-prefs.js
-/build/custom-settings.json
+/custom-prefs.js
 /local.mk
 
 /tools/xpcwindow/vendor/

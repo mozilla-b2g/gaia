@@ -40,6 +40,9 @@ To run all the unit tests with B2G Desktop:
    or `make test-agent-test APP=<APP>` to run unit tests for a
    specific app
 
+   or `make test-agent-test TESTS=<PATH/TO/TESTFILE.JS>` to run unit
+   tests in a specific file
+
 More importantly, you can use test-agent-server to watch the files
 on the filesystem and execute relevant tests when they change:
 
@@ -83,15 +86,6 @@ To run integration tests:
    or `make test-integration REPORTER=<REPORTER>` to run integration
    tests with the specified reporter, for example `XUnit`
 
-   or `make test-integration TESTVARS=<PATH/TO/TESTVARS.json>` to run
-   tests with variables in the testvars file (this defaults to
-   testvars.json)
-
 Note: If you're using a FirefoxOS Device, it must have been flashed
 with a build with marionette enabled. If it doesn't have marionette
 enabled, then running `make test-integration` will time out.
-
-The testvars file is a JSON file that maps app names to objects
-holding key/values as required by that app's integration tests.  See
-that app's integration test code and/or README for which key/values
-are required.

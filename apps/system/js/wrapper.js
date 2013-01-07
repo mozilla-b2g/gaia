@@ -140,14 +140,21 @@ var Launcher = (function() {
       if (value === 'origin') {
         name = dataset.originName;
         url = dataset.originURL;
+        delete currentAppFrame().dataset.originURL;
       }
 
       if (value === 'search') {
         name = dataset.searchName;
         url = dataset.searchURL;
+        delete currentAppFrame().dataset.searchURL;
       }
 
-      var activity = new MozActivity({
+      if (!currentAppFrame().dataset.originURL &&
+          !currentAppFrame().dataset.searchURL) {
+        bookmarkButton.dataset.disabled = true;
+      }
+
+      new MozActivity({
         name: 'save-bookmark',
         data: {
           type: 'url',
@@ -156,21 +163,6 @@ var Launcher = (function() {
           icon: dataset.icon
         }
       });
-
-      activity.onsuccess = function onsuccess() {
-        if (value === 'origin') {
-          delete currentAppFrame().dataset.originURL;
-        }
-
-        if (value === 'search') {
-          delete currentAppFrame().dataset.searchURL;
-        }
-
-        if (!currentAppFrame().dataset.originURL &&
-          !currentAppFrame().dataset.searchURL) {
-          bookmarkButton.dataset.disabled = true;
-        }
-      }
     }
 
     var data = {

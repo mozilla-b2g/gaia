@@ -13,10 +13,13 @@
 <html>
   <head>
     <meta charset="UTF-8">
-    <script src="js/parameters.js"></script>
-    <script src="js/dialogs_end_init.js"></script>
+    <script src="oauth2/js/parameters.js"></script>
   </head>
 
   <body>
-  </body>
+    <script>
+      window.opener.postMessage('closed',
+                                fb.oauthflow.params['contactsAppOrigin']);
+      window.close();
+    </script>
 </html>

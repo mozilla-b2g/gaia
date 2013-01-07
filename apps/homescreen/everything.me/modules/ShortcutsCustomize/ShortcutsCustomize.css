@@ -34,12 +34,12 @@
       url(../../images/shared/pattern.png) repeat left top,
       url(../../images/shared/gradient.png) no-repeat left top / 100% 100%;
 }
-    #shortcuts-customize-loading b {
+    #shortcuts-customize-loading:before {
+        content: "Loading...";
         position: absolute;
         top: 50%;
         left: 0;
         right: 0;
-        text-align: center;
         color: #fff;
         height: 40px;
         line-height: 40px;
@@ -47,12 +47,17 @@
         font-weight: 300;
         font-size: 38px;
     }
-    #shortcuts-customize-loading .loading-wrapper {
+    #shortcuts-customize-loading:after {
+        content: "";
+        background: transparent url(../../images/spin.png) 50% 50% no-repeat;
         position: absolute;
         top: 50%;
-        left: 0;
-        right: 0;
-        margin-top: 40px;
+        left: 50%;
+        height: 18px;
+        width: 18px;
+        margin: 36px 0 0 -9px;
+        -moz-animation: spin 1500ms infinite linear;
+        animation: spin 1500ms infinite linear;
     }
     
     
@@ -123,4 +128,24 @@
   border: solid 1px #008aaa;
   background: #008aaa;
   color: #333;
+}
+
+
+    
+@-moz-keyframes spin {
+    from {
+        -moz-transform: rotate(0deg) translateZ(0px);
+    }
+    to {
+        -moz-transform: rotate(360deg) translateZ(0px);
+    }
+}
+
+@keyframes spin {
+    from {
+        -moz-transform: rotate(0deg) translateZ(0px);
+    }
+    to {
+        -moz-transform: rotate(360deg) translateZ(0px);
+    }
 }

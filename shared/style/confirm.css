@@ -43,8 +43,6 @@ form[role="dialog"][data-type="confirm"] > section {
   -moz-box-sizing: padding-box;
   width: 100%;
   display: inline-block;
-  overflow-y: scroll;
-  max-height: 100%;
   vertical-align: middle;
   white-space: normal;
 }
@@ -169,7 +167,7 @@ form[role="dialog"][data-type="confirm"] menu button.full {
 
 /* Specific component code */
 form[role="dialog"][data-type="confirm"] p {
-  word-wrap: break-word;
+  overflow: hidden;
   margin: 1rem 0 0;
   padding-top: 1rem;
   border-top: 0.1rem solid #686868;

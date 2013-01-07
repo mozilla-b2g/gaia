@@ -9,10 +9,6 @@ Calendar.ns('Store').IcalComponent = (function() {
 
     _store: 'icalComponents',
 
-    /** disable caching */
-    _addToCache: function() {},
-    _removeFromCache: function() {},
-
     _createModel: function(object) {
       return object;
     },

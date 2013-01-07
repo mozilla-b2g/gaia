@@ -26,7 +26,7 @@ var CrashReporter = (function() {
 
   // This function should only ever be called once.
   function showDialog(crashID, isChrome) {
-    var title = isChrome ? _('crash-dialog-os2') :
+    var title = isChrome ? _('crash-dialog-os') :
       _('crash-dialog-app', { name: crashedAppName });
     document.getElementById('crash-dialog-title').textContent = title;
 
@@ -58,8 +58,7 @@ var CrashReporter = (function() {
     var crashInfoLink = document.getElementById('crash-info-link');
     crashInfoLink.addEventListener('click', function onLearnMoreClick() {
       var dialog = document.getElementById('crash-dialog');
-      document.getElementById('crash-reports-done').
-               addEventListener('click', function onDoneClick() {
+      document.getElementById('crash-reports-done').addEventListener('click', function onDoneClick() {
         this.removeEventListener('click', onDoneClick);
         dialog.classList.remove('learn-more');
       });
@@ -77,7 +76,7 @@ var CrashReporter = (function() {
   }
 
   function showBanner(crashID, isChrome) {
-    var message = isChrome ? _('crash-banner-os2') :
+    var message = isChrome ? _('crash-banner-os') :
       _('crash-banner-app', { name: crashedAppName });
 
     var button = null;

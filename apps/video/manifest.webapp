@@ -9,9 +9,7 @@
   },
   "permissions": {
     "device-storage:videos":{ "access": "readwrite" },
-    "settings":{ "access": "readonly" },
-    "deprecated-hwvideo":{},
-    "audio-channel-content":{}
+    "deprecated-hwvideo":{}
   },
   "locales": {
     "ar": {
@@ -37,13 +35,17 @@
     "60": "/style/icons/60/Video.png"
   },
   "activities": {
-    "view" : {
+    "open" : {
       "filters": {
         "type": ["video/webm", "video/mp4", "video/3gpp"]
       },
-      "href": "view.html",
-      "disposition": "inline",
-      "returnValue": true
+      "returnValue": true,
+      "disposition": "inline"
+    },
+    "view" : {
+      "filters": {
+        "type": ["video/webm", "video/mp4", "video/3gpp"]
+      }
     }
   }
 }

@@ -24,8 +24,7 @@
         "type": "application/pdf"
       },
       "disposition": "inline",
-      "href": "/content/web/viewer.html",
-      "returnValue": true
+      "href": "/content/web/viewer.html"
     }
   },
   "permissions": {

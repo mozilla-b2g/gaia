@@ -14,25 +14,6 @@ const SCROLL_MIN_BUFFER_SCREENS = 2;
 const SCROLL_MAX_RETENTION_SCREENS = 7;
 
 /**
- * Format the message subject appropriately.  This means ensuring that if the
- * subject is empty, we use a placeholder string instead.
- *
- * @param subjectNode the DOM node for the message's subject
- * @param message the message object
- */
-function displaySubject(subjectNode, message) {
-  var subject = message.subject && message.subject.trim();
-  if (subject) {
-    subjectNode.textContent = subject;
-    subjectNode.classList.remove('msg-no-subject');
-  }
-  else {
-    subjectNode.textContent = mozL10n.get('message-no-subject');
-    subjectNode.classList.add('msg-no-subject');
-  }
-}
-
-/**
  * List messages for listing the contents of folders ('nonsearch' mode) and
  * searches ('search' mode).  Multi-editing is just a state of the card.
  *
@@ -401,7 +382,6 @@ MessageListCard.prototype = {
     if (newStatus === 'synchronizing') {
       this.syncingNode.classList.remove('collapsed');
       this.syncMoreNode.classList.add('collapsed');
-      this.hideEmptyLayout();
 
       this.progressNode.value = this.messagesSlice ?
                                 this.messagesSlice.syncProgress : 0;
@@ -602,8 +582,8 @@ MessageListCard.prototype = {
       dateNode.dataset.time = message.date.valueOf();
       dateNode.textContent = prettyDate(message.date);
       // subject
-      displaySubject(msgNode.getElementsByClassName('msg-header-subject')[0],
-                     message);
+      msgNode.getElementsByClassName('msg-header-subject')[0]
+        .textContent = message.subject;
       // snippet
       msgNode.getElementsByClassName('msg-header-snippet')[0]
         .textContent = message.snippet;
@@ -658,7 +638,7 @@ MessageListCard.prototype = {
       if (matches.subject)
         appendMatchItemTo(matches.subject[0], subjectNode);
       else
-        displaySubject(subjectNode, message);
+        subjectNode.textContent = message.subject;
 
       // snippet
       var snippetNode = msgNode.getElementsByClassName('msg-header-snippet')[0];
@@ -863,9 +843,6 @@ function MessageReaderCard(domNode, mode, args) {
   domNode.getElementsByClassName('msg-forward-btn')[0]
     .addEventListener('click', this.onForward.bind(this), false);
 
-  this.scrollContainer =
-    domNode.getElementsByClassName('scrollregion-below-header')[0];
-
   this.envelopeNode = domNode.getElementsByClassName('msg-envelope-bar')[0];
   this.envelopeNode
     .addEventListener('click', this.onEnvelopeClick.bind(this), false);
@@ -1013,8 +990,7 @@ MessageReaderCard.prototype = {
           return;
 
         for (var i = 0; i < self.htmlBodyNodes.length; i++) {
-          self.body.showEmbeddedImages(self.htmlBodyNodes[i],
-                                       self.iframeResizeHandler);
+          self.body.showEmbeddedImages(self.htmlBodyNodes[i]);
         }
       });
       // XXX really we should check for external images to display that load
@@ -1023,8 +999,7 @@ MessageReaderCard.prototype = {
     }
     else {
       for (var i = 0; i < this.htmlBodyNodes.length; i++) {
-        this.body.showExternalImages(this.htmlBodyNodes[i],
-                                     this.iframeResizeHandler);
+        this.body.showExternalImages(this.htmlBodyNodes[i]);
       }
       loadBar.classList.add('collapsed');
     }
@@ -1127,9 +1102,8 @@ MessageReaderCard.prototype = {
         node.setAttribute('class', cname);
 
       var subnodes = MailAPI.utils.linkifyPlain(rep[i + 1], document);
-      for (var iNode = 0; iNode < subnodes.length; iNode++) {
-        node.appendChild(subnodes[iNode]);
-      }
+      for (var i in subnodes)
+        node.appendChild(subnodes[i]);
 
       bodyNode.appendChild(node);
     }
@@ -1171,10 +1145,10 @@ MessageReaderCard.prototype = {
     dateNode.dataset.time = header.date.valueOf();
     dateNode.textContent = prettyDate(header.date);
 
-    displaySubject(domNode.getElementsByClassName('msg-reader-header-label')[0],
-                   header);
-    displaySubject(domNode.getElementsByClassName('msg-envelope-subject')[0],
-                   header);
+    domNode.getElementsByClassName('msg-reader-header-label')[0]
+      .textContent = header.subject;
+    domNode.getElementsByClassName('msg-envelope-subject')[0]
+      .textContent = header.subject;
 
     // -- Bodies
     var rootBodyNode = domNode.getElementsByClassName('msg-body-container')[0],
@@ -1192,12 +1166,10 @@ MessageReaderCard.prototype = {
         this._populatePlaintextBodyNode(rootBodyNode, rep);
       }
       else if (repType === 'html') {
-        var iframeShim = createAndInsertIframeForContent(
-          rep, this.scrollContainer, rootBodyNode, null,
+        var iframe = createAndInsertIframeForContent(
+          rep, rootBodyNode, null,
           'interactive', this.onHyperlinkClick.bind(this));
-        var iframe = iframeShim.iframe;
         var bodyNode = iframe.contentDocument.body;
-        this.iframeResizeHandler = iframeShim.resizeHandler;
         MailAPI.utils.linkifyHTML(iframe.contentDocument);
         this.htmlBodyNodes.push(bodyNode);
         if (body.checkForExternalImages(bodyNode))

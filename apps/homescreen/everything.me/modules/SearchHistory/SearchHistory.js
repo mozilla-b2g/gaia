@@ -1,19 +1,19 @@
-Evme.SearchHistory = new function Evme_SearchHistory() {
-    var NAME = "SearchHistory", self = this, history = [],
-        STORAGE_KEY = "userHistory",
+Evme.SearchHistory = new function() {
+    var _name = "SearchHistory", _this = this, history = [];
+    var STORAGE_KEY = "userHistory",
         MAXIMUM_ENTRIES = "FROM CONFIG";
     
-    this.init = function init(options) {
+    this.init = function(options) {
         !options && (options = {});
         
         MAXIMUM_ENTRIES = options.maxEntries;
         
         populate();
         
-        Evme.EventHandler.trigger(NAME, "init");
+        Evme.EventHandler.trigger(_name, "init");
     };
     
-    this.save = function save(query, type) {
+    this.save = function(query, type) {
         !type && (type = "");
         query = query.toLowerCase();
         type = type.toLowerCase();
@@ -23,7 +23,7 @@ Evme.SearchHistory = new function Evme_SearchHistory() {
             "type": type
         };
         
-        var removed = self.remove(obj);
+        var removed = _this.remove(obj);
         
         history.push(obj);
         trim();
@@ -33,7 +33,7 @@ Evme.SearchHistory = new function Evme_SearchHistory() {
         return removed;
     };
     
-    this.remove = function remove(obj) {
+    this.remove = function(obj) {
         var itemPosition = -1;
         
         for (var i=0,l=history.length; i<l; i++) {
@@ -50,16 +50,16 @@ Evme.SearchHistory = new function Evme_SearchHistory() {
         return (itemPosition != -1);
     }
     
-    this.get = function get() {
+    this.get = function() {
         // use slice(0) to clone the array (return val and not ref)
         return history.slice(0).reverse();
     };
     
-    this.clear = function clear() {
+    this.clear = function() {
         history = [];
         Evme.Storage.remove(STORAGE_KEY);
         
-        Evme.EventHandler.trigger(NAME, "clear");
+        Evme.EventHandler.trigger(_name, "clear");
     };
     
     function trim() {

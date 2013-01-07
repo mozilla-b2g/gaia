@@ -6,7 +6,7 @@
       options: {
         providerType: 'Caldav',
         domain: 'https://calendar.google.com',
-        entrypoint: '/calendar/dav/',
+        url: '/calendar/dav/',
         user: '@gmail.com'
       }
     },
@@ -16,7 +16,7 @@
       options: {
         domain: 'https://caldav.calendar.yahoo.com',
         providerType: 'Caldav',
-        entrypoint: '/',
+        url: '/',
         user: '@yahoo.com'
       }
     },
@@ -27,7 +27,7 @@
       options: {
         domain: '',
         providerType: 'Caldav',
-        entrypoint: ''
+        url: ''
       }
     },
 
@@ -38,7 +38,19 @@
       options: {
         providerType: 'Local'
       }
+    },
+
+    'mozilla': {
+      providerType: 'Caldav',
+      group: 'testing',
+      options: {
+        domain: 'https://mail.mozilla.com',
+        providerType: 'Caldav',
+        url: '',
+        user: '@mozilla.com'
+      }
     }
+
   };
 
   Calendar.Presets = Presets;

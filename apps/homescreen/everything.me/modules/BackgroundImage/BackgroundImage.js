@@ -1,29 +1,33 @@
-Evme.BackgroundImage = new function Evme_BackgroundImage() {
-    var NAME = "BackgroundImage", self = this,
-        el = null, elFullScreen = null, elementsToFade = null, elDefault = null, elStyle = null,
-        currentImage = null, elCurrentImage = null, active = false, changeOpacityTransitionCallback = null,
-        defaultImage = "",
+Evme.BackgroundImage = new function() {
+    var _name = "BackgroundImage", _this = this,
+            $el = null, $elFullScreen = null, $fullScreenFade = null, $default = null, elStyle = null,
+            currentImage = null, $currentImage = null, active = false, changeOpacityTransitionCallback = null,
+            defaultImage = "";
+
+    var SOURCE_LABEL = "FROM CONFIG",
         TIMEOUT_BEFORE_REMOVING_OLD_IMAGE = 1500;
 
-    this.init = function init(options) {
+    this.init = function(options) {
         !options && (options = {});
 
         defaultImage = options.defaultImage || "";
-        el = options.el;
-        elementsToFade = options.elementsToFade;
-        elStyle = el.style;
+        $el = options.$el;
+        $fullScreenFade = options.$elementsToFade;
+        elStyle = $el[0].style;
         
-        elDefault = Evme.$create('div',  {'class': 'img default-image visible'});
+        SOURCE_LABEL = options.texts.sourceLabel;
+        
+        $default = $('<div class="img default-image visible"></div>');
         if (defaultImage) {
-            elDefault.style.backgroundImage = defaultImage;
+            $default.css('background-image', defaultImage);
         }
-        el.appendChild(elDefault);
-
-        Evme.EventHandler.trigger(NAME, "init");
+        $el.append($default);
+        
+        Evme.EventHandler.trigger(_name, "init");
     };
 
-    this.update = function update(oImage, isDefault) {
-        if (typeof oImage === "string") {
+    this.update = function(oImage, isDefault) {
+        if (typeof oImage == "string") {
             oImage = {
                 "image": oImage,
                 "source": "",
@@ -35,19 +39,17 @@ Evme.BackgroundImage = new function Evme_BackgroundImage() {
             removeCurrent();
 
             if (isDefault) {
-                el.classList.add("default");
+                $el.addClass("default");
             } else {
                 currentImage = oImage;
 
-                elCurrentImage = Evme.$create('div',{'class': 'img'});
-                elCurrentImage.style.backgroundImage = 'url(' + currentImage.image + ')';
-                el.appendChild(elCurrentImage);
+                $currentImage = $('<div style="background-image: url(' + currentImage.image + ')" class="img"></div>');
+                $el.append($currentImage);
 
-                window.setTimeout(function onTimeout(){
-                    elCurrentImage.classList.add("visible");
-
-                    window.setTimeout(function onTimeout(){
-                        elCurrentImage.classList.remove("default");
+                window.setTimeout(function(){
+                    $currentImage.addClass("visible");
+                    window.setTimeout(function(){
+                        $el.removeClass("default");
                     }, 300);
                 }, 10);
             }
@@ -56,116 +58,94 @@ Evme.BackgroundImage = new function Evme_BackgroundImage() {
         }
     };
 
-    this.loadDefault = function loadDefault() {
-        self.update(defaultImage, true);
+    this.loadDefault = function() {
+        _this.update(defaultImage, true);
     };
 
-    this.clear = function clear() {
+    this.clear = function() {
         removeCurrent();
     };
 
-    function onElementsToFade(cb) {
-        for (var i=0, el=elementsToFade[i]; el; el=elementsToFade[++i]) {
-            cb.call(el);
-        }
-    }
-
-    this.fadeFullScreen = function fadeFullScreen(per) {
+    this.fadeFullScreen = function(per) {
         per = 1 - (Math.round(per*100)/100);
-        onElementsToFade(function onElement(){
-            this.style.opacity = per;
-        });
+        $fullScreenFade.css("opacity", per);
     };
 
-    this.cancelFullScreenFade = function cancelFullScreenFade() {
-        onElementsToFade(function onElement(){
-            this.classList.add('animate');
-        });
+    this.cancelFullScreenFade = function() {
+        $fullScreenFade.addClass("animate");
 
-        window.setTimeout(function onTimeout(){
-            onElementsToFade(function onElement(){
-                this.style.cssText = this.style.cssText.replace(/opacity: .*;/, "");
-            });
+        window.setTimeout(function(){
+            for (var i=0; i<$fullScreenFade.length; i++) {
+                var el = $fullScreenFade[i];
+                el.style.cssText = el.style.cssText.replace(/opacity: .*;/, "");
+            }
 
-            window.setTimeout(function onTimeout(){
-                onElementsToFade(function onElement(){
-                    this.classList.remove('animate');
-                });
+            window.setTimeout(function(){
+                $fullScreenFade.removeClass("animate");
             }, 500);
         }, 0);
 
     };
 
-    this.showFullScreen = function showFullScreen() {
-        Evme.$remove(elFullScreen);
-        elFullScreen = null;
+    this.showFullScreen = function() {
+        if ($elFullScreen) {
+            $elFullScreen.remove();
+            $elFullScreen = null;
+        }
 
-        onElementsToFade(function onElement(){
-            this.classList.add('animate');
-        });
-        window.setTimeout(function onTimeout(){
-            onElementsToFade(function onElement(){
-                this.style.opacity = 0;
-            });
+        $fullScreenFade.addClass("animate");
+        window.setTimeout(function(){
+            $fullScreenFade.css("opacity", 0);
         }, 0);
+        $elFullScreen = _this.getFullscreenElement(currentImage, _this.closeFullScreen);
 
-        elFullScreen = self.getFullscreenElement(currentImage, self.closeFullScreen);
+        $el.parent().append($elFullScreen);
 
-        el.parentNode.appendChild(elFullScreen);
-
-        window.setTimeout(function onTimeout(){
-            elFullScreen.classList.add("ontop");
-            elFullScreen.classList.add("active");
+        window.setTimeout(function(){
+            $elFullScreen.addClass("ontop").addClass("active");
         }, 0);
 
         active = true;
 
         cbShowFullScreen();
     };
-
-    this.getFullscreenElement = function getFullscreenElement(data, onClose) {
+    
+    this.getFullscreenElement = function(data, onClose) {
         !data && (data = currentImage);
-
-        var el = Evme.$create('div', {'id': "bgimage-overlay"},
+        
+        var $el = $('<div id="bgimage-overlay">' +
                         '<div class="img" style="background-image: url(' + data.image + ')"></div>' +
                         '<div class="content">' +
                             ((data.query)? '<h2>' + data.query + '</h2>' : '') +
-                            ((data.source)? '<div class="source"><b ' + Evme.Utils.l10nAttr(NAME, 'source-label') + '></b> <span>' + data.source + '</span></div>' : '') +
+                            ((data.source)? '<div class="source">' + SOURCE_LABEL + ' <span>' + data.source + '</span></div>' : '') +
                             '<b class="close"></b>' +
-                        '</div>');
-
-
-
-        Evme.$(".close, .img", el, function onElement(el) {
-            el.addEventListener("touchstart", function onTouchStart(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                onClose && onClose();
-            });
+                        '</div>' +
+                    '</div>');
+                    
+        $el.find(".close, .img").bind("touchstart", function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            onClose && onClose();
         });
-
+        
         if (data.source) {
-            Evme.$(".content", el)[0].addEventListener("touchstart", function onTouchEnd(e){
-                Evme.Utils.sendToOS(Evme.Utils.OSMessages.OPEN_URL, {
-                    "url": data.source
-                });
+            $el.find(".content").bind("touchstart", function(e){
+                window.location.href = data.source;
             });
         } else {
-            el.classList.add("nosource");
+            $el.addClass("nosource");
         }
-
-        return el;
+        
+        return $el;
     };
 
-    this.closeFullScreen = function closeFullScreen(e) {
-        if (elFullScreen && active) {
-            self.cancelFullScreenFade();
-            elFullScreen.classList.remove("active");
-
-            window.setTimeout(function onTimeout(){
-                Evme.$remove(elFullScreen);
+    this.closeFullScreen = function(e) {
+        if ($elFullScreen && active) {
+            _this.cancelFullScreenFade();
+            $elFullScreen.removeClass("active");
+            window.setTimeout(function(){
+                $elFullScreen && $elFullScreen.remove();
             }, 700);
-
             e && e.preventDefault();
             cbHideFullScreen();
         }
@@ -173,42 +153,41 @@ Evme.BackgroundImage = new function Evme_BackgroundImage() {
         active = false;
     };
 
-    this.isFullScreen = function isFullScreen() {
+    this.isFullScreen = function() {
         return active;
     };
 
-    this.get = function get() {
+    this.get = function() {
         return currentImage || {"image": defaultImage};
     };
 
-    this.changeOpacity = function changeOpacity(value, duration, cb) {
+    this.changeOpacity = function(value, duration, cb) {
         if (duration) {
             changeOpacityTransitionCallback = cb;
             elStyle.MozTransition = 'opacity ' + duration + 'ms linear';
-            el.addEventListener('transitionend', transitionEnd);
+            $el[0].addEventListener('transitionend', transitionEnd);
         }
         this.closeFullScreen();
         elStyle.opacity = value;
     };
 
     function transitionEnd(e) {
-        el.removeEventListener('transitionend', transitionEnd);
+        $el[0].removeEventListener('transitionend', transitionEnd);
         elStyle.MozTransition = '';
-        window.setTimeout(function onTimeout(){
+        window.setTimeout(function(){
             changeOpacityTransitionCallback && changeOpacityTransitionCallback();
             changeOpacityTransitionCallback = null;
         }, 0);
     }
 
     function removeCurrent() {
-        if (elCurrentImage) {
+        if ($currentImage) {
             // Keep it as a local var cause it might change during this timeout
-            var elRemove = elCurrentImage;
-            elRemove.classList.remove("visible");
+            var $remove = $currentImage;
+            $remove.removeClass("visible");
             currentImage = {};
-
-            window.setTimeout(function onTimeout(){
-                Evme.$remove(elRemove);
+            window.setTimeout(function(){
+                $remove && $remove.remove();
             }, TIMEOUT_BEFORE_REMOVING_OLD_IMAGE);
         }
     }
@@ -218,22 +197,22 @@ Evme.BackgroundImage = new function Evme_BackgroundImage() {
     }
 
     function cbUpdated(image) {
-        Evme.EventHandler.trigger(NAME, "updated", {
+        Evme.EventHandler.trigger(_name, "updated", {
             "image": image
         });
     }
 
     function cbLoaded() {
-        Evme.EventHandler.trigger(NAME, "load", {
+        Evme.EventHandler.trigger(_name, "load", {
             "image": currentImage
         });
     }
 
     function cbShowFullScreen() {
-        Evme.EventHandler.trigger(NAME, "showFullScreen");
+        Evme.EventHandler.trigger(_name, "showFullScreen");
     }
 
     function cbHideFullScreen() {
-        Evme.EventHandler.trigger(NAME, "hideFullScreen");
+        Evme.EventHandler.trigger(_name, "hideFullScreen");
     }
 }

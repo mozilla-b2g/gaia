@@ -14,19 +14,7 @@ Calendar.ns('Models').Event = (function() {
 
     this.data = data;
     /** shortcut */
-    var remote = this.remote = this.data.remote;
-
-    if ('start' in remote && !('startDate' in remote)) {
-      remote.startDate = Calendar.Calc.dateFromTransport(
-        remote.start
-      );
-    }
-
-    if ('end' in remote && !('endDate' in remote)) {
-      remote.endDate = Calendar.Calc.dateFromTransport(
-        remote.end
-      );
-    }
+    this.remote = this.data.remote;
 
     if (isNew)
       this.resetToDefaults();

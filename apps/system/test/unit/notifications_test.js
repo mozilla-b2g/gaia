@@ -1,14 +1,10 @@
-'use strict';
-
 requireApp('system/test/unit/mock_statusbar.js');
 requireApp('system/test/unit/mock_gesture_detector.js');
-requireApp('system/test/unit/mock_settings_listener.js');
 requireApp('system/test/unit/mocks_helper.js');
 
 requireApp('system/js/notifications.js');
 
-var mocksForNotificationScreen = ['StatusBar', 'GestureDetector',
-                                  'SettingsListener'];
+var mocksForNotificationScreen = ['StatusBar', 'GestureDetector'];
 
 mocksForNotificationScreen.forEach(function(mockName) {
   if (! window[mockName]) {

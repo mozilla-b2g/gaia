@@ -190,8 +190,7 @@ var frequencyDialer = {
       if ('touches' in evt) {
         evt = evt.touches[0];
       }
-      return { x: evt.clientX, y: evt.clientX,
-               timestamp: MouseEventShim.getEventTimestamp(evt) };
+      return { x: evt.clientX, y: evt.clientX, timestamp: evt.timeStamp };
     }
 
     var self = this;

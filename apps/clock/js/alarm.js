@@ -4,10 +4,15 @@ var _ = navigator.mozL10n.get;
 
 var ClockView = {
 
-  _clockMode: 'analog', /* digital or analog */
+  _clockMode: '', /* digital or analog */
 
   _analogGestureDetector: null,
   _digitalGestureDetector: null,
+
+  get clockView() {
+    delete this.clockView;
+    return this.clockView = document.getElementById('clock-view');
+  },
 
   get digitalClock() {
     delete this.digitalClock;
@@ -17,6 +22,12 @@ var ClockView = {
   get analogClock() {
     delete this.analogClock;
     return this.analogClock = document.getElementById('analog-clock');
+  },
+
+  get analogClockSVGBody() {
+    delete this.analogClockSVGBody;
+    return this.analogClockSVGBody =
+      document.getElementById('analog-clock-svg-body');
   },
 
   get time() {
@@ -46,13 +57,11 @@ var ClockView = {
   },
 
   init: function cv_init() {
-    this.container = document.getElementById('analog-clock-container');
-
-    this.resizeAnalogClock();
-
     this.updateDaydate();
     this.updateAnalogClock();
 
+    this._clockMode = 'analog';
+    this.resizeAnalogClock();
     this.analogClock.classList.add('visible'); /* analog clock is default */
     this.digitalClock.classList.remove('visible');
     this.digitalClockBackground.classList.remove('visible');
@@ -70,8 +79,7 @@ var ClockView = {
     var d = new Date();
     var f = new navigator.mozL10n.DateTimeFormat();
     var format = navigator.mozL10n.get('dateFormat');
-    var formated = f.localeFormat(d, format);
-    this.dayDate.innerHTML = formated.replace(/([0-9]+)/, '<b>$1</b>');
+    this.dayDate.textContent = f.localeFormat(d, format);
 
     var self = this;
     var remainMillisecond = (24 - d.getHours()) * 3600 * 1000 -
@@ -102,11 +110,10 @@ var ClockView = {
     var sec = now.getSeconds(); // Seconds
     var min = now.getMinutes(); // Minutes
     var hour = (now.getHours() % 12) + min / 60; // Fractional hours
-    var lastHour = (now.getHours() - 1 % 12) + min / 60;
-    this.setTransform('secondhand', sec * 6, (sec - 1) * 6); // 6 degrees per second
+    this.setTransform('secondhand', sec * 6); // 6 degrees per second
     // Inverse angle 180 degrees for rect hands
-    this.setTransform('minutehand', min * 6 - 180, (min - 1) * 6 - 180); // 6 degrees per minute
-    this.setTransform('hourhand', hour * 30 - 180, (lastHour) * 30 - 180); // 30 degrees per hour
+    this.setTransform('minutehand', min * 6 - 180); // 6 degrees per minute
+    this.setTransform('hourhand', hour * 30 - 180); // 30 degrees per hour
 
     // Update the clock again in 1 minute
     var self = this;
@@ -116,30 +123,11 @@ var ClockView = {
     }, (1000 - now.getMilliseconds()));
   },
 
-  setTransform: function cv_setTransform(id, angle, from) {
-    !this.rotation && (this.rotation = {});
+  setTransform: function cv_setTransform(id, angle) {
     // Get SVG elements for the hands of the clock
     var hand = document.getElementById(id);
     // Set an SVG attribute on them to move them around the clock face
-    if (!this.rotation[id]) {
-      this.rotation[id] = document.createElementNS('http://www.w3.org/2000/svg', 'animateTransform');
-    }
-    if (!hand) { return; }
-
-    // In order to repaint once see, i use this trick. See Bug 817993
-    var rotate = this.rotation[id];
-    // don't repaint unless hand has changed
-    if (rotate.getAttribute('to') == angle + ',135,135')
-      return;
-
-    rotate.setAttribute('attributeName', 'transform');
-    rotate.setAttribute('attributeType', 'xml');
-    rotate.setAttribute('type', 'rotate');
-    rotate.setAttribute('from', from + ',135,135');
-    rotate.setAttribute('to', angle + ',135,135');
-    rotate.setAttribute('dur', '0.001s');
-    rotate.setAttribute('fill', 'freeze');
-    hand.appendChild(rotate);
+    hand.setAttribute('transform', 'rotate(' + angle + ',0,0)');
   },
 
   handleEvent: function cv_handleEvent(evt) {
@@ -203,9 +191,29 @@ var ClockView = {
   },
 
   resizeAnalogClock: function cv_resizeAnalogClock() {
+    this.resizeAnalogClockBackground();
+    // Remove previous style
+    for (var i = 1; i <= 4; i++) {
+      var oldStyle = 'alarm' + i;
+      if (this.analogClockSVGBody.classList.contains(oldStyle))
+        this.analogClockSVGBody.classList.remove(oldStyle);
+    }
     var type = this.calAnalogClockType(AlarmList.getAlarmCount());
-    this.container.className = 'marks' + type;
-    document.getElementById('alarms').className = 'tableView count' + type;
+    var newStyle = 'alarm' + type;
+    this.analogClockSVGBody.classList.add(newStyle);
+  },
+
+  resizeAnalogClockBackground: function cv_resizeAnalogClockBackground() {
+    // Disable previous background
+    for (var i = 1; i <= 4; i++) {
+      var id = 'analog-clock-background-cache' + i;
+      var element = document.getElementById(id);
+      if (element.classList.contains('visible'))
+        element.classList.remove('visible');
+    }
+    var type = this.calAnalogClockType(AlarmList.getAlarmCount());
+    var id = 'analog-clock-background-cache' + type;
+    document.getElementById(id).classList.add('visible');
   },
 
   showHideAlarmSetIndicator: function cv_showHideAlarmSetIndicator(enabled) {
@@ -214,29 +222,7 @@ var ClockView = {
     } else {
       this.hourState.classList.remove('alarm-set-indicator');
     }
-  },
-
-  hide: function cv_hide() {
-    var self = this;
-    // Set a time out to add a delay so the clock is hidden
-    // after the edit mode is shown
-    setTimeout(function() {
-      self.digitalClock.className = '';
-      self.analogClock.className = '';
-    }, 500);
-  },
-
-  show: function cv_show() {
-    var self = this;
-    self.digitalClock.className = '';
-    self.analogClock.className = '';
-    if (self._clockMode == 'analog') {
-      self.analogClock.className = 'visible';
-    } else {
-      self.digitalClock.className = 'visible';
-    }
   }
-
 };
 
 var BannerView = {
@@ -314,7 +300,6 @@ var AlarmList = {
   },
 
   handleEvent: function al_handleEvent(evt) {
-
     var link = evt.target;
     var currentTarget = evt.currentTarget;
     if (!link)
@@ -324,7 +309,6 @@ var AlarmList = {
       case 'click':
         switch (link.id) {
           case 'alarm-new':
-            ClockView.hide();
             AlarmEditView.load();
             break;
 
@@ -334,7 +318,6 @@ var AlarmList = {
             break;
 
           case 'alarm-item':
-            ClockView.hide();
             AlarmEditView.load(this.getAlarmFromList(
               parseInt(link.dataset.id)));
         }
@@ -371,7 +354,7 @@ var AlarmList = {
       var time = getLocaleTime(d);
       content += '<li>' +
                  '  <label class="alarmList">' +
-                 '    <input id="input-enable"' +
+                 '    <input id="input-enable" data-type="switch"' +
                         '" data-id="' + alarm.id +
                         '" type="checkbox"' + isChecked + '>' +
                  '    <span></span>' +
@@ -384,15 +367,16 @@ var AlarmList = {
                  '        <span class="hour24-state">' + time.p + '</span>' +
                  '      </div>' +
                  '      <div class="alarmList-detail">' +
-                 '        <div class="label">' +
+                 '        <div class="label ' + paddingTop + '">' +
                             escapeHTML(alarm.label) + '</div>' +
-                 '        <div class="repeat">' +
+                 '        <div class="repeat ' + hiddenSummary + '">' +
                             summaryRepeat + '</div>' +
                  '      </div>' +
                  '    </div>' +
                  '  </a>' +
                  '</li>';
     });
+
     this.alarms.innerHTML = content;
     if (this._previousAlarmCount != this.getAlarmCount()) {
       this._previousAlarmCount = this.getAlarmCount();
@@ -479,8 +463,6 @@ var AlarmManager = {
     } else {
       nextAlarmFireTime = getNextAlarmFireTime(alarm);
     }
-    if (!navigator.mozAlarms)
-      return;
     var request = navigator.mozAlarms.add(nextAlarmFireTime, 'ignoreTimezone',
                   { id: alarm.id }); // give the alarm id for the request
     var self = this;
@@ -572,8 +554,7 @@ var AlarmManager = {
   updateAlarmStatusBar: function am_updateAlarmStatusBar() {
     if (!('mozSettings' in navigator))
       return;
-    if (!navigator.mozAlarms)
-      return;
+
     var request = navigator.mozAlarms.getAll();
     request.onsuccess = function(e) {
       var hasAlarmEnabled = !!e.target.result.length;
@@ -612,7 +593,6 @@ var AlarmEditView = {
     hour24State: null,
     is12hFormat: false
   },
-  previewRingtonePlayer: null,
 
   get element() {
     delete this.element;
@@ -688,23 +668,15 @@ var AlarmEditView = {
     return this.deleteElement = document.getElementById('alarm-delete-button');
   },
 
-  get backButton() {
-    delete this.backElement;
-    return this.backElement = document.getElementById('alarm-back');
-  },
-
   init: function aev_init() {
     document.getElementById('alarm-done').addEventListener('click', this);
-    document.getElementById('alarm-clock-container').addEventListener('click', this);
     this.repeatMenu.addEventListener('click', this);
     this.repeatSelect.addEventListener('change', this);
     this.soundMenu.addEventListener('click', this);
     this.soundSelect.addEventListener('change', this);
-    this.soundSelect.addEventListener('blur', this);
     this.snoozeMenu.addEventListener('click', this);
     this.snoozeSelect.addEventListener('change', this);
     this.deleteButton.addEventListener('click', this);
-    this.backButton.addEventListener('click', this);
   },
 
   initTimePicker: function aev_initTimePicker() {
@@ -753,21 +725,19 @@ var AlarmEditView = {
   },
 
   handleEvent: function aev_handleEvent(evt) {
-
     var input = evt.target;
     if (!input)
       return;
 
     switch (input.id) {
       case 'alarm-done':
-        ClockView.show();
         if (!this.save()) {
           evt.preventDefault();
           return false;
         }
         break;
       case 'repeat-menu':
-        setTimeout(function(self) { self.repeatSelect.focus(); }, 0, this);
+        this.repeatSelect.focus();
         break;
       case 'repeat-select':
         switch (evt.type) {
@@ -777,21 +747,17 @@ var AlarmEditView = {
         }
         break;
       case 'sound-menu':
-        setTimeout(function(self) { self.soundSelect.focus(); }, 0, this);
+        this.soundSelect.focus();
         break;
       case 'sound-select':
         switch (evt.type) {
           case 'change':
             this.refreshSoundMenu(this.getSoundSelect());
-            this.previewSound();
-            break;
-          case 'blur':
-            this.stopPreviewSound();
             break;
         }
         break;
       case 'snooze-menu':
-        setTimeout(function(self) { self.snoozeSelect.focus(); }, 0, this);
+        this.snoozeSelect.focus();
         break;
       case 'snooze-select':
         switch (evt.type) {
@@ -801,12 +767,7 @@ var AlarmEditView = {
         }
         break;
       case 'alarm-delete':
-        ClockView.show();
         this.delete();
-        break;
-      case 'alarm-clock-container':
-      case 'alarm-back':
-        ClockView.show();
         break;
     }
   },
@@ -822,7 +783,7 @@ var AlarmEditView = {
       minute: now.getMinutes(), // use current minute
       enabled: true,
       repeat: '0000000',
-      sound: 'ac_classic_clock_alarm.opus',
+      sound: 'classic_buzz.ogg',
       snooze: 5,
       color: 'Darkorange'
     };
@@ -896,30 +857,9 @@ var AlarmEditView = {
   },
 
   refreshSoundMenu: function aev_refreshSoundMenu(sound) {
-    // Refresh and parse the name of sound file for sound menu.
+    // XXX: Refresh and paser the name of sound file for sound menu.
     var sound = (sound) ? this.getSoundSelect() : this.alarm.sound;
-    this.soundMenu.innerHTML = _(sound.replace('.', '_'));
-  },
-
-  previewSound: function aev_previewSound() {
-    var ringtonePlayer = this.previewRingtonePlayer;
-    if (!ringtonePlayer) {
-      this.previewRingtonePlayer = new Audio();
-      ringtonePlayer = this.previewRingtonePlayer;
-    } else {
-      ringtonePlayer.pause();
-    }
-
-    var ringtoneName = this.getSoundSelect();
-    var previewRingtone = 'shared/resources/media/alarms/' + ringtoneName;
-    ringtonePlayer.mozAudioChannelType = 'alarm';
-    ringtonePlayer.src = previewRingtone;
-    ringtonePlayer.play();
-  },
-
-  stopPreviewSound: function aev_stopPreviewSound() {
-    if (this.previewRingtonePlayer)
-      this.previewRingtonePlayer.pause();
+    this.soundMenu.innerHTML = _(sound.slice(0, sound.lastIndexOf('.')));
   },
 
   initSnoozeSelect: function aev_initSnoozeSelect() {

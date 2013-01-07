@@ -19,12 +19,6 @@ var gMobileConnection = (function newMobileConnection(window) {
   var initialized = false;
   var fakeICCInfo = { shortName: 'Fake Free-Mobile', mcc: 208, mnc: 15 };
   var fakeNetwork = { shortName: 'Fake Orange F', mcc: 208, mnc: 1 };
-  var fakeVoice = {
-    state: 'notSearching',
-    roaming: true,
-    connected: true,
-    emergencyCallsOnly: false
-  };
 
   function fakeEventListener(type, callback, bubble) {
     if (initialized)
@@ -37,14 +31,13 @@ var gMobileConnection = (function newMobileConnection(window) {
     }, 5000);
   }
 
+  //var automaticNetworkSelection = true;
+
   return {
     addEventListener: fakeEventListener,
     iccInfo: fakeICCInfo,
     get data() {
       return initialized ? { network: fakeNetwork } : null;
-    },
-    get voice() {
-      return initialized ? fakeVoice : null;
     }
   };
 })(this);
@@ -112,7 +105,6 @@ var gWifiManager = (function(window) {
   return {
     // true if the wifi is enabled
     enabled: false,
-    macAddress: 'xx:xx:xx:xx:xx:xx',
 
     // enables/disables the wifi
     setEnabled: function fakeSetEnabled(bool) {
@@ -210,7 +202,6 @@ var gBluetooth = (function(window) {
 // display connectivity status on the main panel
 var Connectivity = (function(window, document, undefined) {
   var _ = navigator.mozL10n.get;
-  var settings = Settings.mozSettings;
 
   function init() {
     // these listeners are replaced when wifi.js is loaded
@@ -220,122 +211,34 @@ var Connectivity = (function(window, document, undefined) {
     updateWifi();
 
     // this event listener is not cleared by carrier.js
-    kCardState = {
-      'pinRequired' : _('simCardLockedMsg'),
-      'pukRequired' : _('simCardLockedMsg'),
-      'absent' : _('noSimCard')
-    };
     gMobileConnection.addEventListener('datachange', updateCarrier);
     updateCarrier();
 
     // this listener is replaced when bluetooth.js is loaded
     gBluetooth.onadapteradded = updateBluetooth;
+    // these listeners are not cleared by bluetooth.js
+    gBluetooth.onenabled = updateBluetooth;
     gBluetooth.ondisabled = updateBluetooth;
     updateBluetooth();
     initSystemMessageHandler();
   }
 
-  /**
-   * Wifi Manager
-   */
-
-  var wifiDesc = document.getElementById('wifi-desc');
-
   function updateWifi() {
     // network.connection.status has one of the following values:
     // connecting, associated, connected, connectingfailed, disconnected.
-    wifiDesc.textContent = _('fullStatus-' +
+    document.getElementById('wifi-desc').textContent = _('fullStatus-' +
         gWifiManager.connection.status,
         gWifiManager.connection.network);
-
-    // record the MAC address here because the "Device Information" panel
-    // has to display it as well
-    if (settings) {
-      settings.createLock().set({ 'deviceinfo.mac': gWifiManager.macAddress });
-    }
   }
-
-  /**
-   * Mobile Connection Manager
-   */
-
-  var kCardState; // see init()
-  var kDataType = {
-    'lte' : '4G LTE',
-    'ehrpd': 'CDMA',
-    'hspa+': '3.5G HSPA+',
-    'hsdpa': '3.5G HSDPA',
-    'hsupa': '3.5G HSDPA',
-    'hspa' : '3.5G HSDPA',
-    'evdo0': '3G CDMA',
-    'evdoa': '3G CDMA',
-    'evdob': '3G CDMA',
-    '1xrtt': '3G CDMA',
-    'umts' : '3G UMTS',
-    'edge' : '2G EDGE',
-    'is95a': '2G CDMA',
-    'is95b': '2G CDMA',
-    'gprs' : '2G GPRS'
-  };
-
-  var dataDesc = document.getElementById('data-desc');
 
   function updateCarrier() {
-    var setCarrierStatus = function(msg) {
-      var operator = msg.operator || '';
-      var data = msg.data || '';
-      var text = msg.error ||
-        ((data && operator) ? (operator + ' - ' + data) : operator);
-      dataDesc.textContent = text;
-
-      /**
-       * XXX italic style for specifying state change is not a ideal solution
-       * for non-Latin alphabet scripts in terms of typography, e.g. Chinese,
-       * Japanese, etc.
-       * We might have to switch to labels with parenthesis for these languages.
-       */
-      dataDesc.style.fontStyle = msg.error ? 'italic' : 'normal';
-
-      // in case the "Carrier & Data" panel is displayed...
-      var dataNetwork = document.getElementById('dataNetwork-desc');
-      var dataConnection = document.getElementById('dataConnection-desc');
-      if (dataNetwork && dataConnection) {
-        dataNetwork.textContent = operator;
-        dataConnection.textContent = data;
-      }
-    }
-
-    if (!gMobileConnection)
-      return setCarrierStatus({});
-
-    // ensure the SIM card is present and unlocked
-    var cardState = kCardState[gMobileConnection.cardState];
-    if (cardState)
-      return setCarrierStatus({ error: cardState });
-
-    // operator name & data connection type
-    if (!gMobileConnection.data || !gMobileConnection.data.network)
-      return setCarrierStatus({ error: '???'}); // XXX should never happen
-    var operatorInfos = MobileOperator.userFacingInfo(gMobileConnection);
-    var operator = operatorInfos.operator;
-    if (operatorInfos.region) {
-      operator += ' ' + operatorInfos.region;
-    }
-    var data = gMobileConnection.data;
-    var dataType = (data.connected && data.type) ? kDataType[data.type] : '';
-    setCarrierStatus({
-      operator: operator,
-      data: dataType
-    });
+    var data = gMobileConnection.data ? gMobileConnection.data.network : null;
+    var name = data ? (data.shortName || data.longName) : '';
+    document.getElementById('data-desc').textContent = name;
   }
 
-  /**
-   * Bluetooth Manager
-   */
-
-  var bluetoothDesc = document.getElementById('bluetooth-desc');
-
   function updateBluetooth() {
+    var bluetoothDesc = document.getElementById('bluetooth-desc');
     bluetoothDesc.textContent = gBluetooth.enabled ?
       _('bt-status-nopaired') : _('bt-status-turnoff');
     if (!gBluetooth.enabled) {
@@ -365,13 +268,12 @@ var Connectivity = (function(window, document, undefined) {
   }
 
   function initSystemMessageHandler() {
-    var handlePairingRequest = function(message, method) {
+    function handlePairingRequest(message, method) {
       window.location.hash = '#bluetooth';
       setTimeout(function() {
         gDeviceList.onRequestPairing(message, method);
       }, 1500);
     }
-
     // Bind message handler for incoming pairing requests
     navigator.mozSetMessageHandler('bluetooth-requestconfirmation',
       function bt_gotConfirmationMessage(message) {
@@ -392,15 +294,10 @@ var Connectivity = (function(window, document, undefined) {
     );
   }
 
-  /**
-   * Public API, in case a "Connectivity" sub-panel needs it
-   */
-
   return {
     init: init,
     updateWifi: updateWifi,
     updateCarrier: updateCarrier,
-    updateBluetooth: updateBluetooth,
     get statusText() {
       return {
         wifi: document.getElementById('wifi-desc').textContent,

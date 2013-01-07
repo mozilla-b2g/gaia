@@ -39,6 +39,9 @@
         bottom: 0;
         left: 0;
     }
+    #evmeContainer.ffos-menu-visible #shortcuts #shortcuts-list {
+        bottom: 75px;
+    }
     #evmeContainer #shortcuts #shortcuts-list ul {
         padding-bottom: 50px;
     }
@@ -53,7 +56,6 @@
         vertical-align: top;
         z-index: 10;
         padding: 5px 0 8px 0;
-        width: 25%;
         height: 80px;
         text-align: center;
         cursor: pointer;

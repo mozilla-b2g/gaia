@@ -1,7 +1,7 @@
 
 "use strict";
 
-var EvmeManager = (function EvmeManager() {
+var EvmeManager = (function() {
     var currentWindow = null;
     var currentURL = null;
 
@@ -12,7 +12,10 @@ var EvmeManager = (function EvmeManager() {
             icon: params.icon
         });
 
-        evmeApp.launch(params.url, params.urlTitle);
+        if (currentWindow && currentURL !== params.url) {
+            currentWindow.close();
+        }
+        currentWindow = evmeApp.launch(params.url, params.urlTitle);
         currentURL = params.url;
     }
 
@@ -20,8 +23,7 @@ var EvmeManager = (function EvmeManager() {
         GridManager.install(new Bookmark({
           bookmarkURL: params.originUrl,
           name: params.title,
-          icon: params.icon,
-          iconable: false
+          icon: params.icon
         }));
     }
 
@@ -76,10 +78,6 @@ var EvmeManager = (function EvmeManager() {
         return manifest.name;
     }
 
-    function getIconSize() {
-        return Icon.prototype.MAX_ICON_SIZE;
-    }
-
     return {
         openApp: openApp,
 
@@ -97,9 +95,7 @@ var EvmeManager = (function EvmeManager() {
 
         menuShow: menuShow,
         menuHide: menuHide,
-        getMenuHeight: getMenuHeight,
-
-        getIconSize: getIconSize
+        getMenuHeight: getMenuHeight
     };
 }());
 
@@ -112,8 +108,7 @@ extend(EvmeApp, Bookmark);
 EvmeApp.prototype.launch = function evmeapp_launch(url, name) {
     var features = {
       name: this.manifest.name.replace(/\s/g, '&nbsp;'),
-      icon: this.manifest.icons['60'],
-      remote: true
+      icon: this.manifest.icons['60']
     };
 
     if (!GridManager.getIconForBookmark(this.origin)) {
@@ -138,7 +133,5 @@ EvmeApp.prototype.launch = function evmeapp_launch(url, name) {
 
     // The third parameter is received in window_manager without whitespaces
     // so we decice replace them for &nbsp;
-    // We use `e.me` name in order to always reuse the same window
-    // so that we can only open one e.me app at a time
-    return window.open(url || this.origin, 'e.me', JSON.stringify(features));
+    return window.open(url || this.origin, '_blank', JSON.stringify(features));
 };

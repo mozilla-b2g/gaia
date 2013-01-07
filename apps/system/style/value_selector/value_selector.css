@@ -18,8 +18,7 @@
 }
 
 #select-options-buttons,
-#time-picker-buttons,
-#spin-date-picker-buttons {
+#time-picker-buttons {
   /* from building blocks, core.css - menu:not([type="toolbar"]*/
   white-space: nowrap;
   margin: 0;
@@ -41,8 +40,7 @@
 }
 
 #select-options-buttons button,
-#time-picker-buttons button,
-#spin-date-picker-buttons button{
+#time-picker-buttons button{
   /* from building block - other/buttons/style.css*/
   width: calc((100% - 4.5rem) / 2);  /*overridden for 2 buttons*/
 
@@ -75,11 +73,6 @@
   border-color: #00acce;
 }
 
-#select-options-buttons button.full {
-    width: calc(100% - 4.5rem);
-    margin: 1.5rem;
-}
-
 /*active class used to complement the "return false" in onmousedown effect */
 #value-selector button.active,
 button.affirmative.active {
@@ -97,8 +90,7 @@ button.affirmative.active {
     color: #FFFFFF !important;
 }
 
-#time-picker-popup,
-#spin-date-picker-popup {
+#time-picker-popup {
   top: 0px;
   padding: 0 0 7rem;  /*remove the top padding*/
 
@@ -117,8 +109,7 @@ button.affirmative.active {
   color: #fff;
 }
 
-#time-picker-popup h3,
-#spin-date-picker-popup h3 {
+#time-picker-popup h3 {
     font-family: 'MozTT', Sans-serif;
     font-weight: normal;
     font-size: 1.6rem;

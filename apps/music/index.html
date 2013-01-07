@@ -11,14 +11,12 @@
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
     <!-- Shared code -->
     <script type="text/javascript" src="shared/js/l10n.js"></script>
-    <script type="text/javascript" defer src="shared/js/mouse_event_shim.js"></script>
     <script type="text/javascript" defer src="shared/js/mediadb.js"></script>
     <script type="text/javascript" defer src="shared/js/blobview.js"></script>
     <script type="text/javascript" defer src="shared/js/async_storage.js"></script>
     <!-- Specific code -->
     <script type="text/javascript" defer src="js/metadata.js"></script>
     <script type="text/javascript" defer src="js/utils.js"></script>
-    <script type="text/javascript" defer src="js/Player.js"></script>
     <script type="text/javascript" defer src="js/music.js"></script>
   </head>
 
@@ -77,7 +75,7 @@
           <button id="player-controls-play" class="player-controls-button is-pause"></button>
           <button id="player-controls-next" class="player-controls-button"></button>
         </div>
-        <audio id="player-audio" class="hidden"></audio>
+        <audio id="player-audio" class="hidden" controls autoplay></audio>
       </div>
     </div>
     <div id="tabs">
