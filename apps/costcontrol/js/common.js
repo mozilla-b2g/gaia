@@ -3,17 +3,24 @@
 
 // Checks for a SIM change
 function checkSIMChange() {
-  asyncStorage.getItem('lastSIM', function _compareWithCurrent(lastSIM) {
-    var currentSIM = window.navigator.mozMobileConnection.iccInfo.iccid;
-    if (lastSIM !== currentSIM) {
-      debug('SIM change!');
-      MindGap.updateTagList(currentSIM);
-    }
-    ConfigManager.requestSettings(function _onSettings(settings) {
-      if (settings.nextReset)
-        setNextReset(settings.nextReset);
+  window.navigator.mozMobileConnection.removeEventListener('iccinfochange', checkSIMChange);
+  // We don't want to check the SIM status befire unlocking the PINcode,
+  // so we wait for 'iccinfochange' event
+  if (window.navigator.mozMobileConnection.iccInfo.iccid !== null) {
+    asyncStorage.getItem('lastSIM', function _compareWithCurrent(lastSIM) {
+      var currentSIM = window.navigator.mozMobileConnection.iccInfo.iccid;
+      if (lastSIM !== currentSIM) {
+        debug('SIM change!');
+        MindGap.updateTagList(currentSIM);
+      }
+      ConfigManager.requestSettings(function _onSettings(settings) {
+        if (settings.nextReset)
+          setNextReset(settings.nextReset);
+      });
     });
-  });
+  } else {
+    window.navigator.mozMobileConnection.addEventListener('iccinfochange', checkSIMChange);
+  }
 }
 
 function addAlarmTimeout(type, delay) {
@@ -81,30 +88,31 @@ function resetData() {
       connectionType: 'mobile'
     });
     request.onsuccess = function _onMobileForToday() {
-      var data = request.result.data;
-      debug('Data length should be 1 and it is ' + data.length);
-      var currentDataUsage = 0;
-      if (data[0].rxBytes)
-        currentDataUsage += data[0].rxBytes;
-      if (data[0].txBytes)
-        currentDataUsage += data[0].txBytes;
+       var data = request.result.data;
+       dabug('costco Data length should be 1 and it is ' + data.length);
+       var currentDataUsage = 0;
+       if (data[0].rxBytes)
+         currentDataUsage += data[0].rxBytes;
+       if (data[0].txBytes)
+         currentDataUsage += data[0].txBytes;
 
-      // Adds the fixing
-      var tag = tags[tags.length - 1];
-      tag.fixing = currentDataUsage;
+       // Adds the fixing
+       var tag = tags[tags.length - 1];
+       tag.fixing = currentDataUsage;
 
-      // Remove the previous ones
-      for (var i = tags.length - 2; i >= 0; i--) {
-        var ctag = tags[i];
-        if (ctag.sim === tag.sim)
-          tags.splice(i, 1);
-      }
-      debug('After reset ' + JSON.stringify(tags));
+       // Remove the previous ones
+       for (var i = tags.length - 2; i >= 0; i--) {
+         var ctag = tags[i];
+         if (ctag.sim === tag.sim)
+           tags.splice(i, 1);
+       }
 
-      asyncStorage.setItem('dataUsageTags', tags, function _done() {
-        ConfigManager.setOption({ lastDataReset: now });
-      });
-    };
+       debug('After reset ' + JSON.stringify(tags));
+
+       asyncStorage.setItem('dataUsageTags', tags, function _done() {
+         ConfigManager.setOption({ lastDataReset: now });
+       });
+     };
   });
 }
 
