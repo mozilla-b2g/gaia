@@ -1425,6 +1425,10 @@ function write (chunk) {
       return this._parse.write(chunk);
     },
 
+    close: function() {
+      this._parse.close();
+    },
+
     get closed() {
       return this._parse.closed;
     },
@@ -2096,10 +2100,35 @@ function write (chunk) {
         }
       }
 
+
+      var hasProgressEvents = false;
+
+      // check for progress event support.
+      if ('onprogress' in xhr) {
+        hasProgressEvents = true;
+        var last = 0;
+        xhr.onprogress = function onProgress(event) {
+          var chunk = xhr.responseText.substr(last, event.loaded);
+          last = event.loaded;
+          if (this.ondata) {
+            this.ondata(chunk);
+          }
+        }.bind(this);
+      }
+
       xhr.onreadystatechange = function onReadyStateChange() {
         var data;
         if (xhr.readyState === 4) {
           data = xhr.responseText;
+
+          // emulate progress events for node...
+          // this really lame we should probably just
+          // use a real http request for node but this
+          // will let us do some testing via node for now.
+          if (!hasProgressEvents && this.ondata) {
+            this.ondata(data);
+          }
+
           this.waiting = false;
           callback(null, xhr);
         }
@@ -2666,12 +2695,16 @@ function write (chunk) {
       var req = this.xhr;
       req.data = this._createPayload();
 
+      req.ondata = function xhrOnData(chunk) {
+        self.sax.write(chunk);
+      };
+
       // in the future we may stream data somehow
       req.send(function xhrResult() {
         var xhr = req.xhr;
         if (xhr.status > 199 && xhr.status < 300) {
           // success
-          self.sax.write(xhr.responseText).close();
+          self.sax.close();
           self._processResult(req, callback);
         } else {
           // fail
@@ -2988,7 +3021,8 @@ function write (chunk) {
         content += this.filter.toString();
       }
 
-      return this.template.render(content);
+      var out = this.template.render(content);
+      return out;
     }
 
   };
@@ -3076,7 +3110,6 @@ function write (chunk) {
         if (!principal) {
           principal = findProperty('principal-URL', data, true);
         }
-        
         if ('unauthenticated' in principal) {
           callback(new Errors.UnauthenticatedError());          
         } else if (principal.href){
@@ -3438,3 +3471,4 @@ function write (chunk) {
     [Caldav, Caldav] :
     [module, require('./caldav')]
 ));
+
