@@ -17,6 +17,10 @@ section[role="region"] > header:first-child sup {
   top: 0;
 }
 
+section[role="region"] > header:first-child .icon.icon-edit-contact {
+  background: url(images/edit-contact.png) no-repeat center center;
+}
+
 .contact-header img {
   width: 100%;
   height: 7.6rem;
