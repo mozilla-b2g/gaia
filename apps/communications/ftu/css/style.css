@@ -322,7 +322,7 @@ html, body {
 #finish-screen h1, #tutorialFinish h1 {
   margin: 0;
   color: white;
-  font-size: 4.1rem;
+  font-size: 3rem;
   padding: 4rem 0 0 0;
   font-weight: 200;
   line-height: 4rem;
@@ -331,7 +331,7 @@ html, body {
 #finish-screen h2, #tutorialFinish h2 {
   margin: 0;
   color: white;
-  font-size: 1.8rem;
+  font-size: 1.9rem;
   padding: .5rem 0 2rem 0;
   font-weight: 200;
   line-height: 2rem;
