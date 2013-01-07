@@ -673,7 +673,7 @@ var Contacts = (function() {
 })();
 
 window.addEventListener('localized', function initContacts(evt) {
-
+  window.removeEventListener('localized', initContacts);
   fb.init(function contacts_init() {
     Contacts.onLocalized();
 
