@@ -47,7 +47,7 @@ Evme.BackgroundImage = new function Evme_BackgroundImage() {
                     elCurrentImage.classList.add("visible");
 
                     window.setTimeout(function onTimeout(){
-                        elCurrentImage.classList.remove("default");
+                        el.classList.remove("default");
                     }, 300);
                 }, 10);
             }

@@ -93,7 +93,6 @@ var EverythingME = {
                     'modules/SmartFolder/SmartFolder.js',
                     'js/helpers/Storage.js',
                     'js/plugins/Scroll.js',
-                    'js/external/iscroll.js',
                     'js/external/uuid.js',
                     'js/api/apiv2.js',
                     'js/api/DoATAPI.js',

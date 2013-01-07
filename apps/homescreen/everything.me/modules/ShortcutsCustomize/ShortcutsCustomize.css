@@ -6,6 +6,7 @@
     height: 0;
     z-index: 0;
     pointer-events: none;
+    border: 0;
 }
 
 #evmeContainer.shortcuts-customizing #search {
