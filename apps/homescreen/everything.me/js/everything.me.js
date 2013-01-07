@@ -92,7 +92,6 @@ var EverythingME = {
                     'js/helpers/Storage.js',
                     'js/developer/utils.1.3.js',
                     'js/plugins/Scroll.js',
-                    'js/external/iscroll.js',
                     'js/external/uuid.js',
                     'js/api/apiv2.js',
                     'js/api/DoATAPI.js',

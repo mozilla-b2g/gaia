@@ -12,12 +12,7 @@ Evme.Shortcuts = new function Evme_Shortcuts() {
         
         elList = Evme.$("#shortcuts-items", el);
         
-        scroll = new Scroll(Evme.$("#shortcuts-list", el), {
-            "hScroll": false,
-            "checkDOMChanges": false,
-            "onBeforeScrollMove": function onBeforeScrollMove(e){ swiped = true; el.classList.add("swiping"); },
-            "onBeforeScrollEnd": function onBeforeScrollEnd(){ swiped = false; el.classList.remove("swiping"); }
-        });
+        scroll = new Scroll(Evme.$("#shortcuts-list", el));
         
         Evme.EventHandler.trigger(NAME, "init");
     };
@@ -89,8 +84,6 @@ Evme.Shortcuts = new function Evme_Shortcuts() {
         }
         
         elList.appendChild(docFrag);
-        
-        self.refreshScroll();
     };
     
     this.get = function get() {
@@ -134,9 +127,6 @@ Evme.Shortcuts = new function Evme_Shortcuts() {
         return false;
     };
     
-    this.refreshScroll = function refreshScroll() {
-        scroll && scroll.refresh();
-    };
     this.enableScroll = function enableScroll() {
         scroll && scroll.enable();
     };
@@ -181,7 +171,6 @@ Evme.Shortcuts = new function Evme_Shortcuts() {
 
     this.show = function show(bReport) {
         visible = true;
-        window.setTimeout(self.refreshScroll, 100);
         cbShow(bReport);
     };
 
