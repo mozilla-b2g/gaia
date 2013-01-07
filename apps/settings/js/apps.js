@@ -229,7 +229,7 @@ var ApplicationsList = {
 
     var item = document.createElement('li');
     var content = document.createElement('span');
-    content.textContent = _('perm-' + perm);
+    content.textContent = _('perm-' + perm.replace(':', '-'));
 
     var select = document.createElement('select');
     select.dataset.perm = perm;
