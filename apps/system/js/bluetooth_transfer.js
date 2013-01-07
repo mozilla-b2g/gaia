@@ -261,8 +261,8 @@ var BluetoothTransfer = {
       (evt.received == true) ?
       _('bluetooth-receiving-progress') : _('bluetooth-sending-progress');
     var content =
+      '<img src="style/bluetooth_transfer/images/transfer.png" />' +
       '<div class="bluetooth-transfer-progress">' + transferMode + '</div>' +
-      '<div class="icon"></div>' +
       // XXX: Bug 804533 - [Bluetooth]
       // Need sending/receiving icon for Bluetooth file transfer
       '<progress value="0" max="1"></progress>';
