@@ -4,6 +4,8 @@
 'use strict';
 
 (function() {
+  var _ = navigator.mozL10n.get;
+
   /**
    * Init
    */
@@ -465,7 +467,7 @@
 
     var li = document.createElement('li');
     var p = document.createElement('p');
-    p.id = 'stk-item-' + 'title';
+    p.id = 'stk-item-title';
     p.textContent = options.text;
     if (options.minLength && options.maxLength) {
       p.textContent += ' [' + options.minLength + '-' + options.maxLength + ']';
@@ -496,7 +498,7 @@
     li = document.createElement('li');
     var label = document.createElement('label');
     var button = document.createElement('button');
-    button.id = 'stk-item-' + 'ok';
+    button.id = 'stk-item-ok';
     button.textContent = 'Ok';
     if (options.minLength) {
       button.disabled = true;
@@ -517,6 +519,23 @@
     label.appendChild(button);
     li.appendChild(label);
     iccStkList.appendChild(li);
+
+    // Help
+    if (options.isHelpAvailable) {
+      li = document.createElement('li');
+      label = document.createElement('label');
+      var buttonHelp = document.createElement('button');
+      buttonHelp.id = 'stk-item-help';
+      buttonHelp.textContent = _('operatorServices-help');
+      buttonHelp.onclick = function(event) {
+        responseSTKCommand({
+          resultCode: icc.STK_RESULT_HELP_INFO_REQUIRED
+        });
+      };
+      label.appendChild(buttonHelp);
+      li.appendChild(label);
+      iccStkList.appendChild(li);
+    }
   }
 
   /**
