@@ -356,8 +356,6 @@ body.player-mode #title-player {
 .tile-title-album {
   color: rgba(255, 255, 255, 0.65);
   font-size: 1.4rem;
-  position: relative;
-  top: -5px;
 }
 
 .main-tile-title {
@@ -630,7 +628,8 @@ button::-moz-focus-inner {
   height: 4.5rem;
   background: url('./images/scroll_bar_bg.png');
   background-position: center center;
-  background-repeat: repeat-x;
+  background-repeat: no-repeat;
+  background-size: 100% 2.1rem;
   background-color: #151515;
   overflow: hidden;
 }
@@ -672,14 +671,16 @@ button::-moz-focus-inner {
   box-shadow: 1px 1px rgba(255, 255, 255, 0.2);
   background: url("./images/timeline.png");
   background-position: center center;
-  background-repeat: repeat-x;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
 }
 
 #player-seek-bar-progress::-moz-progress-bar {
   border-radius: 5px;
   background: url("./images/timeline_filled.png");
   background-position: center center;
-  background-repeat: repeat-x;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
 }
 
 #player-seek-bar-indicator {
