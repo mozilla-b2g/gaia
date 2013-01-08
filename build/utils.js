@@ -50,23 +50,27 @@ function ls(dir, recursive, exclude) {
 }
 
 function getFileContent(file) {
-  let fileStream = Cc['@mozilla.org/network/file-input-stream;1']
-                   .createInstance(Ci.nsIFileInputStream);
-  fileStream.init(file, 1, 0, false);
+  try {
+    let fileStream = Cc['@mozilla.org/network/file-input-stream;1']
+                     .createInstance(Ci.nsIFileInputStream);
+    fileStream.init(file, 1, 0, false);
 
-  let converterStream = Cc['@mozilla.org/intl/converter-input-stream;1']
-                          .createInstance(Ci.nsIConverterInputStream);
-  converterStream.init(fileStream, 'utf-8', fileStream.available(),
-      Ci.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER);
+    let converterStream = Cc['@mozilla.org/intl/converter-input-stream;1']
+                            .createInstance(Ci.nsIConverterInputStream);
+    converterStream.init(fileStream, 'utf-8', fileStream.available(),
+        Ci.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER);
 
-  let out = {};
-  let count = fileStream.available();
-  converterStream.readString(count, out);
+    let out = {};
+    let count = fileStream.available();
+    converterStream.readString(count, out);
 
-  let content = out.value;
-  converterStream.close();
-  fileStream.close();
-
+    var content = out.value;
+    converterStream.close();
+    fileStream.close();
+  } catch (e) {
+    let msg = (file && file.path) ? '\nfile not found: ' + file.path : '';
+    throw new Error(' -*- build/utils.js: ' + e + msg + '\n');
+  }
   return content;
 }
 
