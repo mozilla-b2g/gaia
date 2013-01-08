@@ -503,7 +503,9 @@ lint:
 #     let us remove the update-offline-manifests target dependancy of the
 #     default target.
 stamp-commit-hash:
-	@(if [ -d ./.git ]; then \
+	@(if [ -e gaia_commit_override.txt ]; then \
+		cp gaia_commit_override.txt apps/settings/resources/gaia_commit.txt; \
+	elif [ -d ./.git ]; then \
 		git log -1 --format="%H%n%at" HEAD > apps/settings/resources/gaia_commit.txt; \
 	else \
 		echo 'Unknown Git commit; build date shown here.' > apps/settings/resources/gaia_commit.txt; \
