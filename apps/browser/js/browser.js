@@ -733,7 +733,8 @@ var Browser = {
           type: 'url',
           url: this.currentTab.url,
           name: this.currentTab.title,
-          icon: place.iconUri
+          icon: place.iconUri,
+          useAsyncPanZoom: true
         }
       });
     }).bind(this));
