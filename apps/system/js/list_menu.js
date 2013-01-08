@@ -124,12 +124,15 @@ var ListMenu = {
       return;
 
     var self = this;
-    this.container.addEventListener('transitionend',
-      function onTransitionEnd() {
-        self.element.classList.remove('visible');
-        self.container.removeEventListener('transitionend', onTransitionEnd);
-      });
-    this.container.classList.add('slidedown');
+    var container = this.container;
+    container.addEventListener('transitionend', function list_hide() {
+      container.removeEventListener('transitionend', list_hide);
+      self.element.classList.remove('visible');
+    });
+
+    setTimeout(function() {
+      container.classList.add('slidedown');
+    });
   },
 
   handleEvent: function lm_handleEvent(evt) {
@@ -162,10 +165,11 @@ var ListMenu = {
         break;
 
       case 'home':
-        if (this.visible) {
-          this.hide();
-          this.oncancel();
-        }
+        if (!this.visible)
+          return;
+
+        this.hide();
+        this.oncancel();
         break;
     }
   }

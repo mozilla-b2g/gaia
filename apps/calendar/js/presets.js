@@ -38,19 +38,7 @@
       options: {
         providerType: 'Local'
       }
-    },
-
-    'mozilla': {
-      providerType: 'Caldav',
-      group: 'testing',
-      options: {
-        domain: 'https://mail.mozilla.com',
-        providerType: 'Caldav',
-        entrypoint: '',
-        user: '@mozilla.com'
-      }
     }
-
   };
 
   Calendar.Presets = Presets;
