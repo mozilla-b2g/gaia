@@ -31,6 +31,13 @@ var Support = {
     xhr.send();
   },
 
+  createLinkNode: function support_createLinkNode(data) {
+    var link = document.createElement('a');
+    link.setAttribute('href', data.href);
+    link.textContent = data.title;
+    return link;
+  },
+
   loadSupportInfo: function support_loadSupportInfo() {
     var self = this;
     this.getSupportInfo(function displaySupportInfo(supportInfo) {
@@ -42,19 +49,13 @@ var Support = {
       var callSupportInfo = supportInfo.callsupport;
       var numbers = document.getElementById('call-support-numbers');
       if (callSupportInfo.length < 2) {
-        numbers.innerHTML = navigator.mozL10n
-          .get('call-support-numbers1',
-               { 'link': callSupportInfo[0].href,
-                 'title': callSupportInfo[0].title
-               });
+        numbers.appendChild(self.createLinkNode(callSupportInfo[0]));
       } else {
+        var link1 = self.createLinkNode(callSupportInfo[0]);
+        var link2 = self.createLinkNode(callSupportInfo[1]);
         numbers.innerHTML = navigator.mozL10n
-          .get('call-support-numbers2',
-               { 'link1': callSupportInfo[0].href,
-                 'title1': callSupportInfo[0].title,
-                 'link2': callSupportInfo[1].href,
-                 'title2': callSupportInfo[1].title
-               });
+          .get('call-support-numbers', { 'link1': link1.outerHTML,
+                                         'link2': link2.outerHTML });
       }
     });
   }
