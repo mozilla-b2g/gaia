@@ -204,7 +204,8 @@
       ConfigManager.requestSettings(function _onSettings(settings) {
         debug('SMS sent!');
         var manager = window.navigator.mozSms;
-        var realCount = manager.getNumberOfMessagesForText(sms.body);
+        var smsInfo = manager.getSegmentInfoForText(sms.body);
+        var realCount = smsInfo.segments;
         settings.lastTelephonyActivity.timestamp = new Date();
         settings.lastTelephonyActivity.smscount += realCount;
         ConfigManager.setOption({
