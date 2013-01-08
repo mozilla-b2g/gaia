@@ -212,7 +212,7 @@ var Browser = {
   },
 
   handleTryReloading: function browser_handleTryReloading() {
-    this.navigate(this.currentTab.url);
+      this.reviveCrashedTab(this.currentTab);
   },
 
   handleCloseTab: function browser_handleCloseTab() {
@@ -412,14 +412,8 @@ var Browser = {
         break;
 
       case 'mozbrowsererror':
-        if (evt.detail.type === 'fatal') {
-          // A background crash usually means killed to save memory
-          if (document.mozHidden) {
-            this.handleKilledTab(tab);
-          } else {
-            this.handleCrashedTab(tab);
-          }
-        }
+        if (evt.detail.type === 'fatal')
+          this.handleCrashedTab(tab);
         break;
 
       case 'mozbrowserscroll':
@@ -493,37 +487,32 @@ var Browser = {
   },
 
   handleCrashedTab: function browser_handleCrashedTab(tab) {
-    if (tab.id === this.currentTab.id) {
+    // No need to show the crash screen for background tabs,
+    // they will be revived when selected
+    if (tab.id === this.currentTab.id && !document.mozHidden) {
       this.showCrashScreen();
     }
-
     tab.loading = false;
     tab.crashed = true;
+    ModalDialog.clear(tab.id);
+    AuthenticationDialog.clear(tab.id);
     this.frames.removeChild(tab.dom);
     delete tab.dom;
     delete tab.screenshot;
     tab.loading = false;
-    this.createTab(null, null, tab);
-    this.refreshButtons();
-  },
-
-  handleKilledTab: function browser_handleKilledTab(tab) {
-    tab.killed = true;
-    this.frames.removeChild(tab.dom);
-    delete tab.dom;
-    tab.loading = false;
   },
 
   handleVisibilityChange: function browser_handleVisibilityChange() {
-    if (!document.mozHidden && this.currentTab.killed)
-      this.reviveKilledTab(this.currentTab);
+    if (!document.mozHidden && this.currentTab.crashed)
+      this.reviveCrashedTab(this.currentTab);
   },
 
-  reviveKilledTab: function browser_reviveKilledTab(tab) {
+  reviveCrashedTab: function browser_reviveCrashedTab(tab) {
     this.createTab(null, null, tab);
+    this.setTabVisibility(tab, true);
     this.refreshButtons();
     this.navigate(tab.url);
-    tab.killed = false;
+    tab.crashed = false;
   },
 
   handleWindowOpen: function browser_handleWindowOpen(evt) {
@@ -1130,6 +1119,9 @@ var Browser = {
   },
 
   setTabVisibility: function(tab, visible) {
+    if (!tab.dom)
+      return;
+
     if (ModalDialog.originHasEvent(tab.id)) {
       if (visible) {
         ModalDialog.show(tab.id);
@@ -1145,18 +1137,17 @@ var Browser = {
         AuthenticationDialog.hide();
       }
     }
+
     // We put loading tabs off screen as we want to screenshot
     // them when loaded
     if (tab.loading && !visible) {
       tab.dom.style.top = '-999px';
       return;
     }
-    if (tab.dom.setVisible) {
+
+    if (tab.dom.setVisible)
       tab.dom.setVisible(visible);
-    }
-    if (tab.crashed) {
-      this.showCrashScreen();
-    }
+
     tab.dom.style.display = visible ? 'block' : 'none';
     tab.dom.style.top = '0px';
   },
@@ -1214,8 +1205,11 @@ var Browser = {
 
   deleteTab: function browser_deleteTab(id) {
     var tabIds = Object.keys(this.tabs);
-    this.tabs[id].dom.parentNode.removeChild(this.tabs[id].dom);
+    if (this.tabs[id].dom)
+      this.tabs[id].dom.parentNode.removeChild(this.tabs[id].dom);
     delete this.tabs[id];
+    ModalDialog.clear(id);
+    AuthenticationDialog.clear(id);
     if (this.currentTab && this.currentTab.id === id) {
       // The tab to be selected when the current one is deleted
       var newTab = tabIds.indexOf(id);
@@ -1255,9 +1249,9 @@ var Browser = {
 
   selectTab: function browser_selectTab(id) {
     this.currentTab = this.tabs[id];
-    // If the tab was killed, bring it back to life
-    if (this.currentTab.killed)
-      this.reviveKilledTab(this.currentTab);
+    // If the tab crashed, bring it back to life
+    if (this.currentTab.crashed)
+      this.reviveCrashedTab(this.currentTab);
     // We may have picked a currently loading background tab
     // that was positioned off screen
     this.setUrlBar(this.currentTab.title);
