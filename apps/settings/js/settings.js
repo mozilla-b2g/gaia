@@ -432,7 +432,17 @@ var Settings = {
 window.addEventListener('load', function loadSettings() {
   window.removeEventListener('load', loadSettings);
   window.addEventListener('change', Settings);
-  window.addEventListener('click', Settings); // XXX really needed?
+
+  var isInTransition = false;
+  // Bug 823862 - Tapping multiple times results in white screen. There is
+  // likely an underlying issue that could be the same root cause as bug
+  // 825622. Let's workaround it (sigh) for now (welcome deadlines)!
+  window.addEventListener('mousedown', function checkIfIsTransition() {
+    if (isInTransition)
+      return;
+    evt.preventDefault();
+  });
+
   Settings.init();
   handleDataConnectivity();
 
@@ -516,6 +526,8 @@ window.addEventListener('load', function loadSettings() {
     // switch previous/current classes -- the timeout is required to make the
     // transition smooth after lazy-loading a panel
     setTimeout(function switchPanel() {
+      isInTransition = true;
+
       oldPanel.className = newPanel.className ? '' : 'previous';
       newPanel.className = 'current';
       oldHash = hash;
@@ -545,6 +557,7 @@ window.addEventListener('load', function loadSettings() {
       oldPanel.addEventListener('transitionend', function onTransitionEnd() {
         oldPanel.removeEventListener('transitionend', onTransitionEnd);
         oldPanel.hidden = true;
+        isInTransition = false;
       });
     });
   }
