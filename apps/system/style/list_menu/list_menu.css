@@ -6,17 +6,14 @@
   visibility: visible;
 }
 
-#listmenu menu {
+#listmenu menu,
+#listmenu.visible menu.slidedown {
   transition: transform 0.3s ease;
   transform: translateY(100%);
 }
 
 #listmenu.visible menu {
   transform: translateY(0);
-}
-
-#listmenu menu.slidedown {
-  transform: translateY(100%);
 }
 
 #listmenu menu button.icon,
