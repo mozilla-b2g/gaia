@@ -448,13 +448,7 @@ var Contacts = (function() {
     if (ActivityHandler.currentlyHandling) {
       ActivityHandler.postPickSuccess({ number: number });
     } else {
-      var telephony = navigator.mozTelephony;
-      if (telephony) {
-        var sanitizedNumber = number.replace(/-/g, '');
-        var call = telephony.dial(sanitizedNumber);
-      } else {
-        console.log('Telephony unavailable? : ' + e);
-      }
+      TelephonyHelper.call(number);
     }
   };
 

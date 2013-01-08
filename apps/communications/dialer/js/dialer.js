@@ -188,104 +188,16 @@ var CallHandler = (function callHandler() {
       return;
     }
 
-    var settings = window.navigator.mozSettings, req;
-    if (settings) {
-      var settingsLock = settings.createLock();
-      req = settingsLock.get('ril.radio.disabled');
-      req.addEventListener('success', function onsuccess() {
-        var status = req.result['ril.radio.disabled'];
-        if (!status) {
-          startDial(number);
-        } else {
-          handleFlightMode();
-        }
-      });
-    } else {
-      startDial(number);
-    }
-  }
+    var oncall = function t_oncall() {
+      if (!callScreenWindow)
+        openCallScreen();
+    }.bind(this);
 
-  function startDial(number) {
-    var sanitizedNumber = number.replace(/-/g, '');
+    var connected, disconnected = function clearPhoneView() {
+      KeypadManager.updatePhoneNumber('');
+    };
 
-    var telephony = navigator.mozTelephony;
-    if (telephony) {
-      var call = telephony.dial(sanitizedNumber);
-
-      if (call) {
-        var cb = function clearPhoneView() {
-          KeypadManager.updatePhoneNumber('');
-        };
-        call.onconnected = cb;
-        call.ondisconnected = cb;
-        call.onerror = handleError;
-
-         if (!callScreenWindow)
-          openCallScreen();
-      }
-    }
-  }
-
-  function handleFlightMode() {
-    LazyL10n.get(function localized(_) {
-      ConfirmDialog.show(
-        _('callAirplaneModeTitle'),
-        _('callAirplaneModeMessage'),
-        {
-          title: _('cancel'),
-          callback: function() {
-            ConfirmDialog.hide();
-
-            if (currentActivity) {
-              currentActivity.postError('canceled');
-              currentActivity = null;
-            }
-          }
-        },
-        {
-          title: _('settings'),
-          callback: function() {
-            var activity = new MozActivity({
-              name: 'configure',
-                data: {
-                  target: 'device',
-                  section: 'root'
-                }
-              }
-            );
-            ConfirmDialog.hide();
-          }
-        }
-      );
-    });
-  }
-
-  function handleError(event) {
-    LazyL10n.get(function localized(_) {
-      var erName = event.call.error.name, emgcyDialogBody,
-          errorRecognized = false;
-
-      if (erName === 'BadNumberError') {
-        errorRecognized = true;
-        emgcyDialogBody = 'emergencyDialogBodyBadNumber';
-      } else if (erName === 'DeviceNotAcceptedError') {
-        errorRecognized = true;
-        emgcyDialogBody = 'emergencyDialogBodyDeviceNotAccepted';
-      }
-
-      if (errorRecognized) {
-        ConfirmDialog.show(
-          _('emergencyDialogTitle'),
-          _(emgcyDialogBody),
-          {
-            title: _('emergencyDialogBtnOk'),
-            callback: function() {
-              ConfirmDialog.hide();
-            }
-          }
-        );
-      }
-    });
+    TelephonyHelper.call(number, oncall, connected, disconnected);
   }
 
   /* === Attention Screen === */
