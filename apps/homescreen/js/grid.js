@@ -702,7 +702,8 @@ const GridManager = (function() {
       updateTime: app.updateTime,
       removable: app.removable,
       name: iconsAndNameHolder.name,
-      icon: bestMatchingIcon(app, iconsAndNameHolder)
+      icon: bestMatchingIcon(app, iconsAndNameHolder),
+      useAsyncPanZoom: app.useAsyncPanZoom
     };
     if (haveLocale && !app.isBookmark) {
       descriptor.localizedName = iconsAndNameHolder.name;

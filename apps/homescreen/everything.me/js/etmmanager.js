@@ -21,7 +21,8 @@ var EvmeManager = (function EvmeManager() {
           bookmarkURL: params.originUrl,
           name: params.title,
           icon: params.icon,
-          iconable: false
+          iconable: false,
+          useAsyncPanZoom: false
         }));
     }
 
@@ -113,7 +114,8 @@ EvmeApp.prototype.launch = function evmeapp_launch(url, name) {
     var features = {
       name: this.manifest.name.replace(/\s/g, '&nbsp;'),
       icon: this.manifest.icons['60'],
-      remote: true
+      remote: true,
+      useAsyncPanZoom: false
     };
 
     if (!GridManager.getIconForBookmark(this.origin)) {
