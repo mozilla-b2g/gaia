@@ -99,15 +99,13 @@
     case 'text':
     case 'textarea':
     case 'search':
-      switch (mode) {
-      case 'verbatim':
-      case 'latin':
-      case 'latin-prose':
+      if(mode.indexOf('verbatim') !== -1 || mode.indexOf('latin') !== -1 ||
+         mode.indexOf('latin-prose') !== -1) {
         return mode;
-      default:
+      }
+      else {
         return (type === 'textarea') ? 'latin-prose' : 'latin';
       }
-
     default:
       return 'verbatim';
     }
@@ -127,8 +125,8 @@
 
     // Figure out what kind of input assistance we're providing for this
     // activation.
-    capitalizing = punctuating = (inputMode === 'latin-prose');
-    suggesting = (suggestionsEnabled && inputMode !== 'verbatim');
+    capitalizing = punctuating = (inputMode.indexOf('latin-prose') !== -1);
+    suggesting = (suggestionsEnabled && inputMode.indexOf('verbatim') === -1);
 
     // If we are going to offer suggestions, set up the worker thread.
     if (suggesting)
