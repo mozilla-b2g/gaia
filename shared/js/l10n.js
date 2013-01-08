@@ -86,10 +86,10 @@
     return { id: l10nId, args: args };
   }
 
-  function fireL10nReadyEvent(lang) {
+  function fireL10nReadyEvent() {
     var evtObject = document.createEvent('Event');
     evtObject.initEvent('localized', false, false);
-    evtObject.language = lang;
+    evtObject.language = gLanguage;
     window.dispatchEvent(evtObject);
   }
 
@@ -858,7 +858,7 @@
       consoleWarn('#' + l10n.id + ' is undefined.');
       return;
     }
-    
+
     // translate element (TODO: security checks?)
     if (data[gTextProp]) { // XXX
       if (element.children.length === 0) {

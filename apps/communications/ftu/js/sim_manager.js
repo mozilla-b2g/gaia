@@ -1,4 +1,4 @@
-'use strict'
+'use strict';
 
 var SimManager = {
   unlocked: false,
@@ -72,5 +72,5 @@ var SimManager = {
       window.location.hash = '#languages';
     }.bind(this);
   }
-
 };
+

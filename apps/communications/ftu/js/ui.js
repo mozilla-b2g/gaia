@@ -72,10 +72,7 @@ var UIManager = {
 
     this.timeConfiguration.addEventListener('input', this);
     this.dateConfiguration.addEventListener('input', this);
-    // Initialize the timezone selector, see /shared/js/tz_select.js
-    var tzCont = document.getElementById('tz-continent');
-    var tzCity = document.getElementById('tz-city');
-    tzSelect(tzCont, tzCity, this.setTimeZone);
+    this.initTZ();
     // Prevent form submit in case something tries to send it
     this.timeForm.addEventListener('submit', function(event) {
       event.preventDefault();
@@ -94,8 +91,15 @@ var UIManager = {
     // Enable sharing performance data (saving to settings)
     this.sharePerformance.addEventListener('click', this);
     var button = this.offlineErrorDialog.querySelector('button');
-    button.addEventListener('click', this.onOfflineDialogButtonClick.bind(this));
+    button.addEventListener('click',
+        this.onOfflineDialogButtonClick.bind(this));
+  },
 
+  initTZ: function ui_initTZ() {
+    // Initialize the timezone selector, see /shared/js/tz_select.js
+    var tzRegion = document.getElementById('tz-region');
+    var tzCity = document.getElementById('tz-city');
+    tzSelect(tzRegion, tzCity, this.setTimeZone);
   },
 
   handleEvent: function ui_handleEvent(event) {
@@ -199,7 +203,8 @@ var UIManager = {
     var currentTime = now.toLocaleFormat('%H:%M');
     var timeToSet = new Date(currentDate + 'T' + currentTime);
     TimeManager.set(timeToSet);
-    this.dateConfigurationLabel.innerHTML = timeToSet.toLocaleFormat('%Y-%m-%d');
+    this.dateConfigurationLabel.innerHTML =
+      timeToSet.toLocaleFormat('%Y-%m-%d');
   },
 
   setTime: function ui_st() {
@@ -230,8 +235,7 @@ var UIManager = {
       utc.replace(/[+:]/g, '');
     document.getElementById('time-zone-title').textContent =
       utc + ' ' + timezone.id;
-    document.getElementById('tz-continent-label').textContent =
-      timezone.id.replace(/\/.*$/, '');
+    document.getElementById('tz-region-label').textContent = timezone.region;
     document.getElementById('tz-city-label').textContent = timezone.city;
 
     var f = new navigator.mozL10n.DateTimeFormat();
