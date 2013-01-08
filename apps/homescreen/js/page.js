@@ -32,7 +32,8 @@ Icon.prototype = {
   // These properties will be copied from the descriptor onto the icon's HTML
   // element dataset and allow us to uniquely look up the Icon object from
   // the HTML element.
-  _descriptorIdentifiers: ['manifestURL', 'entry_point', 'bookmarkURL'],
+  _descriptorIdentifiers: ['manifestURL', 'entry_point', 'bookmarkURL',
+                           'useAsyncPanZoom'],
 
   /**
    * The Application (or Bookmark) object corresponding to this icon.
