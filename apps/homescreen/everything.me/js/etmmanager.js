@@ -56,9 +56,9 @@ var EvmeManager = (function EvmeManager() {
     }
 
     function getAppIcon(app) {
-        var iconsForApp = GridManager.getIconsForApp(app);
-        for (var entryPoint in iconsForApp) {
-          return iconsForApp[entryPoint].descriptor.icon;
+        var object = GridManager.getIcon(app);
+        if (object && 'descriptor' in object && 'icon' in object.descriptor) {
+            return object.descriptor.icon;
         }
     }
     function getAppName(app) {
