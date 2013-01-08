@@ -5,9 +5,9 @@
 
 'use strict';
 
-const kIdentityScreen = 'https://native-persona.org/sign_in#NATIVE';
+const kIdentityScreen = 'https://login.native-persona.org/sign_in#NATIVE';
 const kIdentityFrame =
-    'https://native-persona.org/communication_iframe';
+    'https://login.native-persona.org/communication_iframe';
 
 var Identity = (function() {
   var iframe;
