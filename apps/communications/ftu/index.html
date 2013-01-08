@@ -37,6 +37,7 @@
   <script type="text/javascript" src="/shared/js/tz_select.js"></script>
 
   <!-- Code for the FTU App -->
+  <script defer type="text/javascript" src="/ftu/js/basket-client.js"></script>
   <script defer type="text/javascript" src="/ftu/js/fb_launcher.js"></script>
   <script defer type="text/javascript" src="/contacts/js/utilities/config.js"></script>
   <script defer type="text/javascript" src="/contacts/js/fb/fb_utils.js"></script>
@@ -312,8 +313,14 @@
           and events near you, please enter your
           email address below.
         </p>
-        <section>
-          <input type="email" data-l10n-id="emailAddress" placeholder="Email address"></input>
+        <section id="newsletter-form">
+          <input type="email" data-l10n-id="emailAddress" placeholder="Email address" id="newsletter-input"></input>
+          <button class="recommend" data-l10n-id="done" id="newsletter-button">Done</butto>
+        </section>
+        <section id="newsletter-success-screen">
+          <p data-l10n-id="email-successfully-added">
+            Email successfully added!
+          </p>
         </section>
         <p data-l10n-id="learnHow">
           Learn how Mozilla handle your information in our
@@ -488,10 +495,31 @@
     </section>
   </form>
 
+  <form role='dialog' data-type='confirm' id='offline-newsletter-error-dialog'>
+    <section>
+      <h1 data-l10n-id='offline-newsletter-dialog-title'>You must be connected to the Internet to subscribe to the newsletter.</h1>
+      <p><small data-l10n-id='offline-newsletter-dialog-text'>Please go back and connect to
+        the Internet.</small></p>
+      <menu>
+        <button class='full' data-l10n-id='OK'>OK</button>
+      </menu>
+    </section>
+  </form>
+  
+  <form role='dialog' data-type='confirm' id='invalid-email-error-dialog'>
+    <section>
+      <h1 data-l10n-id='invalid-email-dialog-title'>Your email is not valid</h1>
+      <p><small data-l10n-id='invalid-email-dialog-text'>Please go back and correct your entry.</small></p>
+      <menu>
+        <button class='full' data-l10n-id='OK'>OK</button>
+      </menu>
+    </section>
+  </form>
+  
   <section id="loading-overlay" role="region" class="view">
     <article class="loading-container">
-      <header class="loading-header" data-l10n-id="simContacts-importing">
-        Importing SIM contacts…
+      <header class="loading-header" id="loading-header">
+        Loading
       </header>
       <p class="loading-icon" role="status">
         <progress></progress>

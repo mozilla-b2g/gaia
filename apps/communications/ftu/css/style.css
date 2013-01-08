@@ -741,11 +741,17 @@ i.hack-first-child {
   background-image: -moz-image-rect(url(/shared/resources/branding/privacy_sprite.png), 0, 96, 32, 64);
 }
 
-/* no connection error dialog */
+#newsletter-form.hidden,
+#newsletter-success-screen,
+#invalid-email-error-dialog,
+#offline-newsletter-error-dialog,
 #offline-error-dialog {
   display: none;
 }
 
+#newsletter-success-screen.visible,
+#invalid-email-error-dialog.visible,
+#offline-newsletter-error-dialog.visible,
 #offline-error-dialog.visible {
   display: block;
 }

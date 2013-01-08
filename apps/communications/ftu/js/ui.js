@@ -14,6 +14,7 @@ var UIManager = {
     'nav-bar',
     'main-title',
     'loading-overlay',
+    'loading-header',
     // PIN Screen
     'pincode-screen',
     'pin-input',
@@ -42,7 +43,14 @@ var UIManager = {
     'skip-tutorial-button',
     // Privacy Settings
     'share-performance',
-    'offline-error-dialog'
+    'offline-error-dialog',
+    // Browser privacy newsletter subscription
+    'newsletter-form',
+    'newsletter-button',
+    'newsletter-input',
+    'newsletter-success-screen',
+    'offline-newsletter-error-dialog',
+    'invalid-email-error-dialog'
   ],
 
   init: function ui_init() {
@@ -77,6 +85,56 @@ var UIManager = {
     this.timeForm.addEventListener('submit', function(event) {
       event.preventDefault();
     });
+
+    // Browser privacy newsletter subscription
+    var basketCallback = function(err, data) {
+      this.loadingOverlay.classList.remove('show-overlay');
+      if (err || data.status !== 'ok') {
+        // We don't have any error numbers etc, so we are looking for
+        // 'email address' string in the error description.
+        if (err.desc.indexOf('email address') > -1) {
+          this.invalidEmailErrorDialog.classList.add('visible');
+        } else {
+          // Display 'no connection' dialog on error
+          this.offlineNewsletterErrorDialog.classList.add('visible');
+        }
+
+        return;
+      }
+      this.newsletterForm.classList.add('hidden');
+      this.newsletterSuccessScreen.classList.add('visible');
+    }
+
+    this.newsletterButton.addEventListener('click', function() {
+        if (WifiManager.isConnected || DataMobile.isDataAvailable) {
+          if (
+            this.newsletterInput.checkValidity() &&
+            this.newsletterInput.value.length > 0
+          ) {
+            this.loadingHeader.innerHTML = _('email-loading');
+            this.loadingOverlay.classList.add('show-overlay');
+            Basket.send(this.newsletterInput.value, basketCallback.bind(this));
+          } else {
+            this.invalidEmailErrorDialog.classList.add('visible');
+          }
+        } else {
+          this.offlineNewsletterErrorDialog.classList.add('visible');
+        }
+    }.bind(this));
+
+    this.offlineNewsletterErrorDialog
+      .querySelector('button')
+      .addEventListener('click',
+        function offlineDialogClick() {
+          this.offlineNewsletterErrorDialog.classList.remove('visible');
+        }.bind(this));
+
+    this.invalidEmailErrorDialog
+      .querySelector('button')
+      .addEventListener('click',
+        function invalidEmailDialogClick() {
+          this.invalidEmailErrorDialog.classList.remove('visible');
+        }.bind(this));
 
     this.skipTutorialButton.addEventListener('click', function() {
       WifiManager.finish();
