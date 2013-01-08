@@ -60,6 +60,7 @@ window.addEventListener('localized', function showBody() {
   if (!AppManager.isLocalized) {
     AppManager.init();
   } else {
+    UIManager.initTZ();
     UIManager.mainTitle.innerHTML = _('language');
   }
 });
