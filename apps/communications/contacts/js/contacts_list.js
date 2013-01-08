@@ -383,6 +383,8 @@ contacts.List = (function() {
     var container = document.getElementById(group);
     var newContact = renderContact(c);
     container.appendChild(newContact);
+
+    imgLoader.reload();
   }
 
   var getContactsByGroup = function gCtByGroup(errorCb, contacts) {

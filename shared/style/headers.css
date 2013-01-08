@@ -179,6 +179,10 @@ section[role="region"] > header:first-child .icon.icon-add {
   background-image: url(headers/images/icons/add.png);
 }
 
+section[role="region"] > header:first-child .icon.icon-compose {
+  background-image: url(headers/images/icons/compose.png);
+}
+
 section[role="region"] > header:first-child .icon.icon-edit {
   background-image: url(headers/images/icons/edit.png);
 }

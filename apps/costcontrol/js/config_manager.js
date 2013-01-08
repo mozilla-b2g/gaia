@@ -99,20 +99,20 @@ var ConfigManager = (function() {
   function requestSettings(callback) {
     asyncStorage.getItem(currentICCID, function _wrapGetItem(localSettings) {
       // No entry: set defaults
-      settings = JSON.parse(localSettings, settingsReviver);
-      if (settings !== null) {
-        if (callback)
-          callback(settings);
-        return;
+      try {
+        settings = JSON.parse(localSettings, settingsReviver);
+      } catch(e) {
+        // If we can't parse the settings, use the default ones
       }
 
-      settings = deepCopy(DEFAULT_SETTINGS);
-      asyncStorage.setItem(currentICCID, JSON.stringify(settings),
-        function _onceSettingsSet() {
-          if (callback)
-            callback(settings);
-        }
-      );
+      if (settings === null) {
+        settings = deepCopy(DEFAULT_SETTINGS);
+        asyncStorage.setItem(currentICCID, JSON.stringify(settings));
+      }
+
+      if (callback) {
+        callback(settings);
+      }
     });
   }
 

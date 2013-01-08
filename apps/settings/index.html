@@ -38,8 +38,11 @@
     <link rel="resource" type="application/l10n" href="locales/locales.ini"/>
     <script type="application/javascript" src="shared/js/l10n.js"></script>
     <script type="application/javascript" src="shared/js/l10n_date.js"></script>
+
+    <!-- shared helper library -->
     <script type="application/javascript" defer src="shared/js/mouse_event_shim.js"></script>
     <script type="application/javascript" defer src="shared/js/manifest_helper.js"></script>
+    <script type="application/javascript" defer src="shared/js/async_storage.js"></script>
 
     <!-- Specific code -->
     <script type="application/javascript" defer src="js/utils.js"></script>
@@ -1244,7 +1247,7 @@
       </ul>
 
       <dl>
-        <dt> Sample Format </dt>
+        <dt data-l10n-id="sample-format"> Sample Format </dt>
         <dd id="region-date">Friday, September 28 2012</dd>
         <dd id="region-time">06:54 PM</dd>
       </dl>
