@@ -59,6 +59,38 @@ p.meta {
   float: none;
 }
 
+/* FTE */
+.widget-authed-sim {
+  background: url(images/widget/sim/authed-sim.png);
+}
+
+.widget-nonauthed-sim {
+  background: url(images/widget/sim/nonauthed-sim.png);  
+}
+
+.widget-no-sim {
+  background: url(images/widget/sim/no-sim.png);
+}
+
+#fte-view .icon {
+  float:left;
+  margin-left: 0.5rem;
+  width: 3.75rem;
+  height: 4.5rem;
+  vertical-align: middle;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+#fte-view p.meta {
+  font-size:1.4em;
+}
+
+#fte-view p:not(.meta) {
+  font-weight: bold;
+  font-size: 1.5em;
+}
+
 /* Credit & Data structure */
 .credit,
 .data {
