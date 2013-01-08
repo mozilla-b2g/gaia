@@ -190,7 +190,10 @@ if (GAIA_INLINE_LOCALES) {
   l10nLocales = [];
   l10nDictionary.locales = {};
 
-  let file = getFile(GAIA_DIR + '/' + LOCALES_FILE);
+  let file = getFile(LOCALES_FILE);
+  if (!file.exists()) {
+    getFile(GAIA_DIR + '/' + LOCALES_FILE);
+  }
   let locales = JSON.parse(getFileContent(file));
 
   // we keep the default locale order for `l10nDictionary.locales',
