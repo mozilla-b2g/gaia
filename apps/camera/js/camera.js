@@ -557,7 +557,13 @@ var Camera = {
         }
       }).bind(this);
       camera.onRecorderStateChange = this.recordingStateChanged.bind(this);
-      camera.getPreviewStream(this._previewConfig, gotPreviewScreen.bind(this));
+      if (this.captureMode === this.CAMERA) {
+        camera.getPreviewStream(this._previewConfig, gotPreviewScreen.bind(this));
+      } else {
+        this._previewConfigVideo.rotation = this._phoneOrientation;
+        this._cameraObj.getPreviewStreamVideoMode(this._previewConfigVideo,
+                                                  gotPreviewScreen.bind(this));
+      }
     }
 
     // If there is already a camera, we would have to release it first.
