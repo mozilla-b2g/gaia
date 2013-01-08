@@ -285,7 +285,9 @@ var StatusBar = {
       this._clockTimer =
         window.setTimeout((this.update.time).bind(this), (59 - sec) * 1000);
 
-      this.icons.time.textContent = f.localeFormat(now, _('shortTimeFormat'));
+      var formated = f.localeFormat(now, _('shortTimeFormat'));
+      formated = formated.replace(/\s?(AM|PM)\s?/i, '<span>$1</span>');
+      this.icons.time.innerHTML = formated;
 
       var label = this.icons.label;
       var l10nArgs = JSON.parse(label.dataset.l10nArgs || '{}');
