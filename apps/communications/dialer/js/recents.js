@@ -361,7 +361,7 @@ var Recents = {
     if (end > limit) {
       for (var i = limit; i < end; i++) {
         var visibleCallParentNode = visibleCalls[i].parentNode;
-        visibleCallParentNode.removeChild(visibleCalls[i]);
+        visibleCalls[i].classList.add('hide');
         // Remove the day header if no more entries.
         if (visibleCallParentNode.getElementsByTagName('*').length === 0) {
           visibleCallParentNode.parentNode.parentNode.
@@ -846,7 +846,7 @@ var Recents = {
   },
 
   groupCalls: function re_groupCalls(olderCallEl, newerCallEl, count, inc) {
-    olderCallEl.parentNode.removeChild(olderCallEl);
+    olderCallEl.classList.add('hide');
     count += inc;
     var entryCountNode = newerCallEl.querySelector('.entry-count');
     entryCountNode.innerHTML = '&#160;(' + count + ')';
