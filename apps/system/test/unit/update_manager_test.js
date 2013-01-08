@@ -370,7 +370,7 @@ suite('system/UpdateManager', function() {
       test('should show the available message if not downloading', function() {
         UpdateManager.updatesQueue = updatableApps;
         UpdateManager.render();
-        assert.equal('updatesAvailableMessage{"n":3}',
+        assert.equal('updateAvailableInfo{"n":3}',
                      UpdateManager.message.textContent);
       });
     });
@@ -512,7 +512,7 @@ suite('system/UpdateManager', function() {
         test('should display an updated count', function(done) {
           UpdateManager.addToUpdatesQueue(updatableApps[1]);
           setTimeout(function() {
-            assert.equal('updatesAvailableMessage{"n":2}',
+            assert.equal('updateAvailableInfo{"n":2}',
                          UpdateManager.message.textContent);
             done();
           }, tinyTimeout * 2);
@@ -525,7 +525,7 @@ suite('system/UpdateManager', function() {
             setTimeout(function() {
               var css = UpdateManager.toaster.classList;
               assert.isTrue(css.contains('displayed'));
-              assert.equal('updatesAvailableMessage{"n":1}',
+              assert.equal('updateAvailableInfo{"n":1}',
                            UpdateManager.message.textContent);
               done();
             }, tinyTimeout * 1.5);
@@ -534,7 +534,7 @@ suite('system/UpdateManager', function() {
           test('should display an updated count', function(done) {
             UpdateManager.addToUpdatesQueue(updatableApps[1]);
             setTimeout(function() {
-              assert.equal('updatesAvailableMessage{"n":2}',
+              assert.equal('updateAvailableInfo{"n":2}',
                            UpdateManager.message.textContent);
               done();
             }, tinyTimeout * 2);
@@ -542,7 +542,7 @@ suite('system/UpdateManager', function() {
 
           test('should show the right message', function(done) {
             setTimeout(function() {
-              assert.equal('updatesAvailableMessage{"n":1}',
+              assert.equal('updateAvailableInfo{"n":1}',
                            UpdateManager.toasterMessage.textContent);
               done();
             }, tinyTimeout * 2);
@@ -981,7 +981,7 @@ suite('system/UpdateManager', function() {
           var updatableApp = UpdateManager.updatableApps[0];
 
           UpdateManager.addToUpdatesQueue(updatableApp);
-          assert.equal('updatesAvailableMessage{"n":1}',
+          assert.equal('updateAvailableInfo{"n":1}',
                        UpdateManager.message.textContent);
         });
 
@@ -1057,7 +1057,7 @@ suite('system/UpdateManager', function() {
 
         test('should render', function() {
           UpdateManager.removeFromUpdatesQueue(updatableApp);
-          assert.equal('updatesAvailableMessage{"n":0}',
+          assert.equal('updateAvailableInfo{"n":0}',
                        UpdateManager.message.textContent);
         });
 
