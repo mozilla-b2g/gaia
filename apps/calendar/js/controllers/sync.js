@@ -41,6 +41,11 @@ Calendar.ns('Controllers').Sync = (function() {
      *
      */
     all: function() {
+      if (this.app.offline()) {
+        this.emit('offline');
+        return;
+      }
+
       var account = this.app.store('Account');
 
       for (var key in account.cached) {

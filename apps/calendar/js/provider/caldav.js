@@ -107,6 +107,10 @@ Calendar.ns('Provider').Caldav = (function() {
     },
 
     getAccount: function(account, callback) {
+      if (this.bailWhenOffline(callback)) {
+        return;
+      }
+
       this.service.request(
         'caldav',
         'getAccount',
@@ -155,6 +159,9 @@ Calendar.ns('Provider').Caldav = (function() {
     },
 
     findCalendars: function(account, callback) {
+      if (this.bailWhenOffline(callback)) {
+        return;
+      }
       this.service.request('caldav', 'findCalendars', account, callback);
     },
 
@@ -242,6 +249,10 @@ Calendar.ns('Provider').Caldav = (function() {
     syncEvents: function(account, calendar, callback) {
       var self = this;
 
+      if (this.bailWhenOffline(callback)) {
+        return;
+      }
+
       if (!calendar._id) {
         throw new Error('calendar must be assigned an _id');
       }
@@ -279,6 +290,10 @@ Calendar.ns('Provider').Caldav = (function() {
       var self = this;
       var calendar = this.events.calendarFor(event);
       var account = this.events.accountFor(event);
+
+      if (this.bailWhenOffline(callback)) {
+        return;
+      }
 
       this.service.request(
         'caldav',
@@ -326,6 +341,10 @@ Calendar.ns('Provider').Caldav = (function() {
       if (typeof(busytime) === 'function') {
         callback = busytime;
         busytime = null;
+      }
+
+      if (this.bailWhenOffline(callback)) {
+        return;
       }
 
       var calendar = this.events.calendarFor(event);
@@ -390,6 +409,10 @@ Calendar.ns('Provider').Caldav = (function() {
         busytime = null;
       }
 
+      if (this.bailWhenOffline(callback)) {
+        return;
+      }
+
       var store = this.app.store('Event');
 
       var calendar = store.calendarFor(event);
@@ -411,6 +434,21 @@ Calendar.ns('Provider').Caldav = (function() {
           Local.deleteEvent.call(self, event, busytime, callback);
         }
       );
+    },
+
+    bailWhenOffline: function(callback) {
+      if (!this.offlineMessage && 'mozL10n' in window.navigator) {
+        this.offlineMessage = window.navigator.mozL10n.get('error-offline');
+      }
+
+      var ret = this.app.offline() && callback;
+      if (ret) {
+        var error = new Error();
+        error.name = 'offline';
+        error.message = this.offlineMessage;
+        callback(error);
+      }
+      return ret;
     }
 
   };

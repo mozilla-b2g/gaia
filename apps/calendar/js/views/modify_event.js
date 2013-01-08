@@ -288,8 +288,13 @@ Calendar.ns('Views').ModifyEvent = (function() {
         var moveDate = this.event.startDate;
         var redirect = this.returnTo();
 
-        provider[method](this.event.data, function() {
+        provider[method](this.event.data, function(err) {
           list.remove(self.PROGRESS);
+
+          if (err) {
+            self.showErrors(err);
+            return;
+          }
 
           // move the position in the calendar to the added/edited day
           self.app.timeController.move(moveDate);
@@ -316,8 +321,14 @@ Calendar.ns('Views').ModifyEvent = (function() {
         // action to remove the event from the display instantly
         // then queue a async action to actually remove the whole event.
         if (caps.canDelete) {
-          this.provider.deleteEvent(this.event.data);
-          this.app.go(this.returnTo());
+          var self = this;
+          this.provider.deleteEvent(this.event.data, function(err) {
+            if (err) {
+              self.showErrors(err);
+              return;
+            }
+            self.app.go(self.returnTo());
+          });
         }
       }
     },

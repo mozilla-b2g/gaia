@@ -582,6 +582,8 @@ suite('views/modify_event', function() {
     test('with valid provider', function() {
       subject.deleteRecord();
       assert.equal(calledWith[0], subject.event.data, 'delete event');
+      var cb = calledWith[calledWith.length - 1];
+      cb();
       assert.equal(redirectTo, '/foo', 'redirect');
     });
   });

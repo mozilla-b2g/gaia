@@ -220,6 +220,17 @@ suite('provider/caldav', function() {
           });
         });
       });
+
+      test('offline handling', function(done) {
+        var realOffline = app.offline;
+        app.offline = function() { return true };
+        subject.getAccount(input, function cb(cbError, cbResult) {
+          done(function() {
+            app.offline = realOffline;
+            assert.equal(cbError.name, 'offline');
+          })
+        })
+      });
     });
 
     suite('#findCalendars', function() {
@@ -236,6 +247,17 @@ suite('provider/caldav', function() {
             assert.equal(cbError, error);
           });
         });
+      });
+
+      test('offline handling', function(done) {
+        var realOffline = app.offline;
+        app.offline = function() { return true };
+        subject.findCalendars(input, function cb(cbError, cbResult) {
+          done(function() {
+            app.offline = realOffline;
+            assert.equal(cbError.name, 'offline');
+          })
+        })
       });
     });
 
@@ -276,6 +298,17 @@ suite('provider/caldav', function() {
           assert.equal(remote.syncToken, 'hit');
           assert.ok(!remote.icalComponent, 'does not have icalComponent');
           done();
+        });
+      });
+
+      test('offline handling', function(done) {
+        var realOffline = app.offline;
+        app.offline = function() { return true };
+        subject.createEvent(event, function cb(cbError, cbResult) {
+          done(function() {
+            app.offline = realOffline;
+            assert.equal(cbError.name, 'offline');
+          })
         });
       });
 
@@ -347,6 +380,17 @@ suite('provider/caldav', function() {
 
       });
 
+      test('offline handling', function(done) {
+        var realOffline = app.offline;
+        app.offline = function() { return true };
+        subject.updateEvent(event, function cb(cbError, cbResult) {
+          done(function() {
+            app.offline = realOffline;
+            assert.equal(cbError.name, 'offline');
+          })
+        });
+      });
+
     });
 
     suite('#deleteEvent', function() {
@@ -364,6 +408,20 @@ suite('provider/caldav', function() {
               [account, calendar.remote, event.remote]
             );
           });
+        });
+      });
+
+      test('offline handling', function(done) {
+        var realOffline = app.offline;
+        var event = Factory('event', {
+          calendarId: calendar._id
+        });
+        app.offline = function() { return true };
+        subject.deleteEvent(event, function cb(cbError, cbResult) {
+          done(function() {
+            app.offline = realOffline;
+            assert.equal(cbError.name, 'offline');
+          })
         });
       });
     });
@@ -482,6 +540,17 @@ suite('provider/caldav', function() {
           });
         });
       });
+
+      test('offline handling', function(done) {
+        var realOffline = app.offline;
+        app.offline = function() { return true };
+        subject.syncEvents(account, calendar, function cb(cbError, cbResult) {
+          done(function() {
+            app.offline = realOffline;
+            assert.equal(cbError.name, 'offline');
+          })
+        })
+      });
     });
 
     suite('sync tokens match', function() {
@@ -498,6 +567,16 @@ suite('provider/caldav', function() {
         });
       });
 
+      test('offline handling', function(done) {
+        var realOffline = app.offline;
+        app.offline = function() { return true };
+        subject.syncEvents(account, calendar, function cb(cbError, cbResult) {
+          done(function() {
+            app.offline = realOffline;
+            assert.equal(cbError.name, 'offline');
+          })
+        })
+      });
     });
 
   });
