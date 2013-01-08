@@ -75,9 +75,27 @@
   word-wrap: break-word;
 }
 
+.apps ol > li > div > span.mask {
+	mask: url('app_name_mask.svg#fade_right_mask');
+	text-overflow: '';
+}
+
 /* text label */
 .apps ol > li > div > span > span {
   font-size: -moz-calc(5.75 * 0.226rem); /* was 5pt */
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.6);
+}
+
+/* These classes detect text overflow from JS code */
+#fake-icon {
+  width: 8rem; /* Like li items */
+  position: fixed;
+  top: 200%; /* Outside viewport */
+  display: block;
+}
+
+#fake-icon-name {
+  font-size: -moz-calc(5.75 * 0.226rem);
   text-shadow: 1px 1px 3px rgba(0,0,0,0.6);
 }
 
