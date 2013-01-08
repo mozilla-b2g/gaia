@@ -10,6 +10,7 @@
     <!-- Shared styles -->
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
     <link rel="stylesheet" type="text/css" href="shared/style/switches.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/status.css">
 
     <!-- Shared sounds -->
     <link rel="resources" type="directory" href="shared/resources/media/alarms/">
@@ -62,11 +63,11 @@
           <a id="alarm-new" href="#alarm" class="right button plus"></a>
           <ul id="alarms" class="tableView"></ul>
         </div>
-        <div id="banner-countdown" class="banner">
+        <section id="banner-countdown" role="status">
           <p> <!-- this will be replaced dynamically -->
             The alarm is set for <strong>8 hours</strong> and <strong>45 minutes</strong> from now.
           </p>
-        </div>
+        </section>
       </div>
 
       <div id="stopwatch-view" class="active view" hidden="true">
