@@ -1,5 +1,5 @@
 window.Evme = new function Evme_Core() {
-    var NAME = "Core", self = this, logger,
+    var NAME = "Core", self = this,
         recalculateHeightRetries = 1,
         TIMEOUT_BEFORE_INIT_SESSION = "FROM CONFIG",
         OPACITY_CHANGE_DURATION = 300,
@@ -10,8 +10,6 @@ window.Evme = new function Evme_Core() {
     this.init = function init() {
         data = Evme.__config;
 
-        logger = (typeof Logger !== "undefined") ? new Logger() : console;
-
         var apiHost = Evme.Utils.getUrlParam("apiHost") || data.apiHost;
         apiHost && Evme.api.setHost(apiHost);
 
@@ -19,7 +17,6 @@ window.Evme = new function Evme_Core() {
 
         Evme.Brain.init({
             "numberOfAppsToLoad": data.numberOfAppsToLoad,
-            "logger": logger,
             "minimumLettersForSearch": data.minimumLettersForSearch,
             "timeBeforeAllowingDialogsRemoval": data.timeBeforeAllowingDialogsRemoval,
             "tips": data.tips,
@@ -140,7 +137,6 @@ window.Evme = new function Evme_Core() {
 
         Evme.Analytics.init({
             "config": data.analytics,
-            "logger": logger,
             "namespace": Evme,
             "DoATAPI": Evme.DoATAPI,
             "getCurrentAppsRowsCols": Evme.Apps.getCurrentRowsCols,
