@@ -1,7 +1,6 @@
 'use strict';
 
 var WifiManager = {
-
   init: function wn_init() {
     if ('mozWifiManager' in window.navigator) {
       this.api = window.navigator.mozWifiManager;
@@ -23,8 +22,8 @@ var WifiManager = {
     /**
      * XXX the API should expose a 'connected' property on 'network',
      * and 'gWifiManager.connection.network' should be comparable to 'network'.
-     * Until this is properly implemented, we just compare SSIDs and capabilities
-     * to tell wether the network is already connected or not.
+     * Until this is properly implemented, we just compare SSIDs and
+     * capabilities to tell wether the network is already connected or not.
      */
     var currentNetwork = this.api.connection.network;
     if (!currentNetwork || this.api.connection.status != 'connected')
@@ -183,5 +182,5 @@ var WifiManager = {
     }
     return true;
   }
-
 };
+
