@@ -79,7 +79,6 @@ var EverythingME = {
                     'modules/BackgroundImage/BackgroundImage.js',
                     'modules/Banner/Banner.js',
                     'modules/Dialog/Dialog.js',
-                    'modules/Location/Location.js',
                     'modules/Shortcuts/Shortcuts.js',
                     'modules/ShortcutsCustomize/ShortcutsCustomize.js',
                     'modules/Searchbar/Searchbar.js',

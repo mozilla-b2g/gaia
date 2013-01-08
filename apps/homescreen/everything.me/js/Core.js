@@ -81,10 +81,6 @@ window.Evme = new function Evme_Core() {
         Evme.ConnectionMessage.init({
         });
 
-        Evme.Location.init({
-
-        });
-
         Evme.Shortcuts.init({
             "el": Evme.$("#shortcuts"),
             "elLoading": Evme.$("#shortcuts-loading"),
