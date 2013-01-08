@@ -85,7 +85,7 @@ section[role="region"]:not(#root) > header:first-child + * {
   white-space: normal;
 }
 
-.link-text, .tel-text {
+.link-text, .tel-text a {
   font-size: 1.4rem;
   color: #336699;
   text-decoration: underline;
