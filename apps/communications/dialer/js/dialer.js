@@ -28,7 +28,7 @@ var CallHandler = (function callHandler() {
     var number = activity.source.data.number;
     var fillNumber = function actHandleDisplay() {
       if (number) {
-        KeypadManager.updatePhoneNumber(number);
+        KeypadManager.updatePhoneNumber(number, 'begin', false);
         if (window.location.hash != '#keyboard-view') {
           window.location.hash = '#keyboard-view';
         }
@@ -194,7 +194,7 @@ var CallHandler = (function callHandler() {
     }.bind(this);
 
     var connected, disconnected = function clearPhoneView() {
-      KeypadManager.updatePhoneNumber('');
+      KeypadManager.updatePhoneNumber('', 'begin', true);
     };
 
     TelephonyHelper.call(number, oncall, connected, disconnected);

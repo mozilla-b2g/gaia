@@ -116,6 +116,7 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
   Contacts.findByNumber(number, function lookupContact(contact, matchingTel) {
     if (contact && contact.name) {
       node.textContent = contact.name;
+      KeypadManager.formatPhoneNumber('end', true);
       var additionalInfo = Utils.getPhoneNumberAdditionalInfo(matchingTel,
                                                               contact);
       KeypadManager.updateAdditionalContactInfo(additionalInfo);
@@ -127,6 +128,7 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
     }
 
     node.textContent = number;
+    KeypadManager.formatPhoneNumber('end', true);
   });
 };
 
