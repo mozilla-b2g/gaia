@@ -42,7 +42,12 @@ onLocalized(function wifiSettings() {
 
   // toggle wifi on/off
   gWifiCheckBox.onchange = function toggleWifi() {
-    settings.createLock().set({'wifi.enabled': this.checked});
+    var req = settings.createLock().set({'wifi.enabled': this.checked});
+    this.disabled = true;
+    req.onerror = function() {
+      // Fail to write mozSettings, return toggle control to the user.
+      gWifiCheckBox.disabled = false;
+    };
   };
 
   /**
