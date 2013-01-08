@@ -212,7 +212,7 @@ var Browser = {
   },
 
   handleTryReloading: function browser_handleTryReloading() {
-      this.reviveCrashedTab(this.currentTab);
+    this.reviveCrashedTab(this.currentTab);
   },
 
   handleCloseTab: function browser_handleCloseTab() {
