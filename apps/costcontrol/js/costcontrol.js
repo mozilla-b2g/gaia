@@ -80,7 +80,7 @@ var CostControl = (function() {
   // specific handler.
   function request(requestObj, callback) {
     ConfigManager.requestAll(function _onInfo(configuration, settings) {
-      debug('Request for: ' + requestObj.type);
+      debug('Request for:', requestObj.type);
 
       var force = requestObj.force;
       var result = {};
@@ -228,8 +228,7 @@ var CostControl = (function() {
 
       newAlarm.onsuccess = function _alarmSet(evt) {
         var id = evt.target.result;
-        debug('Timeout for balance (' + id +
-              ') update set to: ' + BALANCE_TIMEOUT);
+        debug('Timeout for balance (', id, ') update set to:', BALANCE_TIMEOUT);
 
         ConfigManager.setOption(
           {
@@ -264,7 +263,7 @@ var CostControl = (function() {
   // Send a top up SMS and set timeouts for interrupting waiting for response
   var TOPUP_TIMEOUT = 5 * 60 * 1000; // Should be 5 min
   function requestTopUp(configuration, settings, code, callback, result) {
-    debug('Requesting TopUp with code ' + code + '...');
+    debug('Requesting TopUp with code', code, '...');
 
     // TODO: Ensure is free
     var newSMS = sms.send(
@@ -280,8 +279,7 @@ var CostControl = (function() {
 
       newAlarm.onsuccess = function _alarmSet(evt) {
         var id = evt.target.result;
-        debug('Timeout for TopUp (' + id +
-              ') update set to: ' + TOPUP_TIMEOUT);
+        debug('Timeout for TopUp (', id, ') update set to:', TOPUP_TIMEOUT);
 
         // XXX: waitingForTopUp can be null if no waiting or distinct
         // than null to indicate the unique id of the timeout waiting
@@ -321,9 +319,9 @@ var CostControl = (function() {
     debug('Statistics out of date. Requesting fresh data...');
 
     // If settings.lastDataReset is not set let's use the past week. This is
-    // only for not breaking dogfooders build and this can be remove at some point
-    // in the future (and since this sentence has been said multiple times this
-    // code will probably stay here for a while).
+    // only for not breaking dogfooders build and this can be remove at some
+    // point in the future (and since this sentence has been said multiple times
+    // this code will probably stay here for a while).
     var start = toMidnight(new Date(settings.lastDataReset ||
                                     Date.now() - 7 * DAY));
 
@@ -357,10 +355,13 @@ var CostControl = (function() {
 
         // Finally, store the result and continue
         mobileRequest.onsuccess = function _onMobileData() {
-          var wifiData = adaptData(wifiRequest.result);
-          debug('WIFI: ' + JSON.stringify(wifiData));
+          var fakeTag = {
+            sim: connection.iccInfo.iccid,
+            start: settings.lastDataReset,
+            fixing: [[settings.lastDataReset, settings.wifiFixing || 0]]
+          };
+          var wifiData = adaptData(wifiRequest.result, [fakeTag]);
           var mobileData = adaptData(mobileRequest.result, tags);
-          debug('MOBILE: ' + JSON.stringify(mobileData));
           var lastDataUsage = {
             timestamp: new Date() ,
             start: start,
@@ -375,7 +376,7 @@ var CostControl = (function() {
           };
           ConfigManager.setOption({ 'lastDataUsage': lastDataUsage },
             function _onSetItem() {
-              debug('Statistics up to date and stored');
+              debug('Statistics up to date and stored.');
             }
           );
           // XXX: Enrich with the samples because I can not store them
@@ -397,7 +398,6 @@ var CostControl = (function() {
     var output = [];
     var totalData, accum = 0;
     for (var i = 0, item; item = data[i]; i++) {
-      debug('Tag: ' + JSON.stringify(item));
       totalData = 0;
       if (item.rxBytes)
         totalData += item.rxBytes;

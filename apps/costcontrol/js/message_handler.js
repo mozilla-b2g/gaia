@@ -33,7 +33,7 @@
   // https://bugzilla.mozilla.org/show_bug.cgi?id=800431
   function setNextReset(when) {
     asyncStorage.getItem('nextResetAlarm', function(id) {
-      debug('Current nextResetAlarm ' + id + (id ? '. Removing.' : ''));
+      debug('Current nextResetAlarm', id + '.', id ? 'Removing.' : '');
       if (id)
         navigator.mozAlarms.remove(id);
 
@@ -48,7 +48,7 @@
         ConfigManager.setOption({ nextReset: when }, function _sync() {
             localStorage['sync'] = 'nextReset#' + Math.random();
         });
-        debug('Setting nextResetAlarm ' + request.result + ' to ' + when);
+        debug('Setting nextResetAlarm', request.result, 'to', when);
         asyncStorage.setItem('nextResetAlarm', request.result);
       };
     });
@@ -113,8 +113,7 @@
 
           // Remove the timeout
           navigator.mozAlarms.remove(settings.waitingForBalance);
-          debug('Balance timeout: ' + settings.waitingForBalance +
-                ' removed');
+          debug('Balance timeout:', settings.waitingForBalance, 'removed');
 
           // Store new balance and sync
           ConfigManager.setOption(
@@ -129,7 +128,7 @@
         } else if (isConfirmation) {
           // Store SUCCESS for TopIp and sync
           navigator.mozAlarms.remove(settings.waitingForTopUp);
-          debug('TopUp timeout: ' + settings.waitingForTopUp + ' removed');
+          debug('TopUp timeout:', settings.waitingForTopUp, 'removed');
           ConfigManager.setOption(
             { 'waitingForTopUp': null },
             function _onSet() {
@@ -143,7 +142,7 @@
           // Store ERROR for TopUp and sync
           settings.errors['INCORRECT_TOPUP_CODE'] = true;
           navigator.mozAlarms.remove(settings.waitingForTopUp);
-          debug('TopUp timeout: ' + settings.waitingForTopUp + ' removed');
+          debug('TopUp timeout: ', settings.waitingForTopUp, 'removed');
           ConfigManager.setOption(
             { 'errors': settings.errors, 'waitingForTopUp': null },
             function _onSet() {

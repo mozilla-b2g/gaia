@@ -14,13 +14,33 @@
 
   var costcontrol;
   window.addEventListener('DOMContentLoaded', function _onDOMReady() {
-    checkSIMChange();
+    var mobileConnection = window.navigator.mozMobileConnection;
 
+    // No SIM
+    if (!mobileConnection || mobileConnection.cardState === 'absent') {
+      //TODO: Put the NO SIM message
+      return;
+
+    // SIM is not ready
+    } else if (mobileConnection.cardState !== 'ready') {
+      debug('SIM not ready:', mobileConnection.cardState);
+      mobileConnection.oniccinfochange = _onDOMReady;
+
+    // SIM is ready
+    } else {
+      debug('SIM ready. ICCID:', mobileConnection.iccInfo.iccid);
+      mobileConnection.oniccinfochange = undefined;
+      _startWidget();
+    }
+  });
+
+  function _startWidget() {
+    checkSIMChange();
     CostControl.getInstance(function _onCostControlReady(instance) {
       costcontrol = instance;
       setupWidget();
     });
-  });
+  }
 
   window.addEventListener('localized', function _onLocalize() {
     if (initialized)
@@ -42,6 +62,8 @@
     ConfigManager.observe('lastBalance', onBalance, true);
     ConfigManager.observe('waitingForBalance', onErrors, true);
     ConfigManager.observe('errors', onErrors, true);
+    ConfigManager.observe('lastDataReset', onReset, true);
+    ConfigManager.observe('lastTelephonyReset', onReset, true);
 
     // Update UI when visible
     document.addEventListener('mozvisibilitychange',
@@ -76,7 +98,7 @@
 
   // On balance update received
   function onBalance(balance, old, key, settings) {
-    debug('Balance received: ' + JSON.stringify(balance) + '!');
+    debug('Balance received:', balance);
     setBalanceMode('default');
     updateBalance(balance, settings.lowLimit && settings.lowLimitThreshold);
     debug('Balance updated!');
@@ -93,13 +115,18 @@
     ConfigManager.setOption({errors: errors});
   }
 
+  // On reset telephony or data usage
+  function onReset(value, old, key, settings) {
+    updateUI();
+  }
+
   // USER INTERFACE
 
   var currentMode;
   function updateUI() {
     ConfigManager.requestAll(function _onInfo(configuration, settings) {
       var mode = costcontrol.getApplicationMode(settings);
-      debug('Widget UI mode: ' + mode);
+      debug('Widget UI mode:', mode);
 
       var isPrepaid = (mode === 'PREPAID');
       var isDataUsageOnly = (mode === 'DATA_USAGE_ONLY');
@@ -194,7 +221,7 @@
 
           requestObj = { type: 'balance' };
           costcontrol.request(requestObj, function _onRequest(result) {
-            debug(JSON.stringify(result));
+            debug(result);
             var status = result.status;
             var balance = result.data;
             setBalanceMode(status === 'error' ? 'warning' : 'updating');
@@ -231,7 +258,7 @@
 
     // Balance not available
     if (balance === null) {
-      debug('Balance not available');
+      debug('Balance not available.');
       document.getElementById('balance-credit').innerHTML = _('not-available');
       views.balance.querySelector('.meta').innerHTML = '';
       return;
