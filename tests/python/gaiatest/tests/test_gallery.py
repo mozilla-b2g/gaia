@@ -36,11 +36,3 @@ class TestGallery(GaiaTestCase):
         # Add steps to view picture full screen
         # TODO
         # Repeat test with landscape orientation
-
-    def tearDown(self):
-
-        # close the app
-        if self.app:
-            self.apps.kill(self.app)
-
-        GaiaTestCase.tearDown(self)

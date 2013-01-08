@@ -80,13 +80,7 @@ class TestSearchMarketplaceAndInstallApp(GaiaTestCase):
         self.wait_for_element_present(*self._app_icon_locator)
 
     def tearDown(self):
-
-        # close the app
-        if self.app:
-            self.apps.kill(self.app)
-
         if self.wifi:
             self.data_layer.disable_wifi()
-
         self.apps.uninstall(APP_NAME)
         GaiaTestCase.tearDown(self)

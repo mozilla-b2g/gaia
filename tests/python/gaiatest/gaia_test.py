@@ -2,8 +2,10 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import base64
 import json
 import os
+import sys
 import time
 
 from marionette import MarionetteTestCase
@@ -65,6 +67,7 @@ class GaiaApps(object):
         return app
 
     def uninstall(self, name):
+        self.marionette.switch_to_frame()
         self.marionette.execute_async_script("GaiaApps.uninstallWithName('%s')" % name)
 
     def kill(self, app):
@@ -116,16 +119,18 @@ class GaiaData(object):
     def remove_contact(self, contact):
         self.marionette.execute_script("GaiaDataLayer.findAndRemoveContact(%s)" % contact.json())
 
+    def get_setting(self, name):
+        self.marionette.switch_to_frame()
+        return self.marionette.execute_async_script('return GaiaDataLayer.getSetting("%s")' % name)
+
     @property
     def all_settings(self):
-        return self.marionette.execute_async_script('return GaiaDataLayer.getSetting("*")')
-
-    def get_setting(self, name):
-        return self.marionette.execute_async_script('return GaiaDataLayer.getSetting("%s")' % name)
+        return self.get_setting('*')
 
     def set_setting(self, name, value):
         import json
         value = json.dumps(value)
+        self.marionette.switch_to_frame()
         result = self.marionette.execute_async_script('return GaiaDataLayer.setSetting("%s", %s)' % (name, value))
         assert result, "Unable to change setting with name '%s' to '%s'" % (name, value)
 
@@ -133,10 +138,12 @@ class GaiaData(object):
         self.set_setting('audio.volume.master', value)
 
     def enable_cell_data(self):
+        self.marionette.switch_to_frame()
         result = self.marionette.execute_async_script("return GaiaDataLayer.enableCellData()")
         assert result, 'Unable to enable cell data'
 
     def disable_cell_data(self):
+        self.marionette.switch_to_frame()
         result = self.marionette.execute_async_script("return GaiaDataLayer.disableCellData()")
         assert result, 'Unable to disable cell data'
 
@@ -147,10 +154,12 @@ class GaiaData(object):
         self.set_setting('ril.data.roaming_enabled', False)
 
     def enable_wifi(self):
+        self.marionette.switch_to_frame()
         result = self.marionette.execute_async_script("return GaiaDataLayer.enableWiFi()")
         assert result, 'Unable to enable WiFi'
 
     def disable_wifi(self):
+        self.marionette.switch_to_frame()
         result = self.marionette.execute_async_script("return GaiaDataLayer.disableWiFi()")
         assert result, 'Unable to disable WiFi'
 
@@ -174,12 +183,17 @@ class GaiaData(object):
         return self.marionette.execute_script("return GaiaDataLayer.getMozTelephonyState()")
 
     @property
-    def fm_state(self):
-        return self.marionette.execute_script("return GaiaDataLayer.getFMHardwareState()")
+    def is_antenna_available(self):
+        return self.marionette.execute_script('return window.navigator.mozFMRadio.antennaAvailable')
 
     @property
-    def fm_frequency(self):
-        return self.marionette.execute_script("return GaiaDataLayer.getFMHardwareFrequency()")
+    def is_fm_radio_enabled(self):
+        return self.marionette.execute_script('return window.navigator.mozFMRadio.enabled')
+
+    @property
+    def fm_radio_frequency(self):
+        return self.marionette.execute_script('return window.navigator.mozFMRadio.frequency')
+
 
 class GaiaTestCase(MarionetteTestCase):
 
@@ -196,8 +210,8 @@ class GaiaTestCase(MarionetteTestCase):
 
         # wifi is true if testvars includes wifi details and wifi manager is defined
         self.wifi = self.testvars and \
-                    'wifi' in self.testvars and \
-                    self.marionette.execute_script('return window.navigator.mozWifiManager !== undefined')
+            'wifi' in self.testvars and \
+            self.marionette.execute_script('return window.navigator.mozWifiManager !== undefined')
 
         self.cleanUp()
 
@@ -290,7 +304,27 @@ class GaiaTestCase(MarionetteTestCase):
         else:
             raise TimeoutException(message)
 
+    def is_element_present(self, by, locator):
+        try:
+            self.marionette.find_element(by, locator)
+            return True
+        except:
+            return False
+
     def tearDown(self):
+        if any(sys.exc_info()):
+            # test has failed, gather debug
+            test_name = self.marionette.test_name.split()[-1]
+            debug_path = os.path.join('debug', *test_name.split('.'))
+            if not os.path.exists(debug_path):
+                os.makedirs(debug_path)
+
+            # screenshot
+            with open(os.path.join(debug_path, 'screenshot.png'), 'w') as f:
+                # TODO: Bug 818287 - Screenshots include data URL prefix
+                screenshot = self.marionette.screenshot()[22:]
+                f.write(base64.decodestring(screenshot))
+
         self.lockscreen = None
         self.apps = None
         self.data_layer = None

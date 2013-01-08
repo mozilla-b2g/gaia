@@ -50,6 +50,19 @@ class TestDialer(GaiaTestCase):
         # Now press call!
         self.marionette.find_element(*self._call_bar_locator).click()
 
+        outgoing_number = self.marionette.execute_async_script("""
+            waitFor(
+                function() {
+                    let call = window.navigator.mozTelephony.calls[0];
+                    marionetteScriptFinished(call.number);
+                },
+                function() {
+                    return window.navigator.mozTelephony.calls.length > 0;
+                }
+            );
+        """)
+        self.assertEqual(outgoing_number, self._test_phone_number)
+
         # Switch to top level frame
         self.marionette.switch_to_frame()
 
@@ -70,6 +83,11 @@ class TestDialer(GaiaTestCase):
 
         # hang up before the person answers ;)
         self.marionette.find_element(*self._hangup_bar_locator).click()
+
+    def tearDown(self):
+
+        self.apps.kill_all()
+        GaiaTestCase.tearDown(self)
 
     def _dial_number(self, phone_number):
         '''
