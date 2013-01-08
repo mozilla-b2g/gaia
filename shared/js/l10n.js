@@ -821,7 +821,7 @@
 
   // replace {{arguments}} with their values
   function substArguments(str, args, key) {
-    var reArgs = /\{\{\s*([a-zA-Z\.:-]+)\s*\}\}/;
+    var reArgs = /\{\{\s*(.+?)\s*\}\}/;
     var match = reArgs.exec(str);
     while (match) {
       if (!match || match.length < 2)

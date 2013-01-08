@@ -14,9 +14,9 @@ var Support = {
       return;
     }
     var self = this;
-    var SUPPORT_INFO = 'js/support.json';
+    var SUPPORT_INFO = 'resources/support.json';
     var xhr = new XMLHttpRequest();
-    xhr.onerror = function () {
+    xhr.onerror = function() {
       console.error('Failed to fetch support.json: ',
                     xhr.statusText);
     };
@@ -31,34 +31,30 @@ var Support = {
     xhr.send();
   },
 
-  setLink: function support_setLink(node, data) {
-    node.setAttribute('href', data['href']);
-    node.textContent = data['text'];
-  },
-
   loadSupportInfo: function support_loadSupportInfo() {
     var self = this;
     this.getSupportInfo(function displaySupportInfo(supportInfo) {
       document.getElementById('online-support-link')
-        .setAttribute('href', supportInfo['online-support']['href']);
+        .setAttribute('href', supportInfo.onlinesupport.href);
       document.getElementById('online-support-text')
-        .textContent = supportInfo['online-support']['text'];
+        .textContent = supportInfo.onlinesupport.title;
 
-      var callSupportInfo = supportInfo['call-support'];
-      if (callSupportInfo.length == 2) {
-        self.setLink(document.getElementById('call-support-link-1'),
-                        callSupportInfo[0]);
-        self.setLink(document.getElementById('call-support-link-2'),
-                        callSupportInfo[1]);
-      }
-      else {
-        var link1 = document.getElementById('call-support-link-1')
-          .cloneNode(true);
-        self.setLink(link1, callSupportInfo[0]);
-
-        var numbers = document.getElementById('call-support-numbers');
-        numbers.innerHTML = '';
-        numbers.appendChild(link1);
+      var callSupportInfo = supportInfo.callsupport;
+      var numbers = document.getElementById('call-support-numbers');
+      if (callSupportInfo.length < 2) {
+        numbers.innerHTML = navigator.mozL10n
+          .get('call-support-numbers1',
+               { 'link': callSupportInfo[0].href,
+                 'title': callSupportInfo[0].title
+               });
+      } else {
+        numbers.innerHTML = navigator.mozL10n
+          .get('call-support-numbers2',
+               { 'link1': callSupportInfo[0].href,
+                 'title1': callSupportInfo[0].title,
+                 'link2': callSupportInfo[1].href,
+                 'title2': callSupportInfo[1].title
+               });
       }
     });
   }

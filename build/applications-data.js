@@ -181,21 +181,21 @@ content = {
 writeContent(init, JSON.stringify(content));
 
 // Support
-init = getFile(GAIA_DIR, 'apps', 'settings', 'js', 'support.json');
+init = getFile(GAIA_DIR, 'apps', 'settings', 'resources', 'support.json');
 content = {
-    "online-support": {
-        "href": "http://www.vivo.com.br/portalweb/appmanager/env/web?_nfls=false&_nfpb=true&_pageLabel=vcAtendMovelBook&WT.ac=portal.atendimento.movel",
-        "text": "Vivo"
+  "onlinesupport": {
+    "href": "http://www.vivo.com.br/portalweb/appmanager/env/web?_nfls=false&_nfpb=true&_pageLabel=vcAtendMovelBook&WT.ac=portal.atendimento.movel",
+    "title": "Vivo"
+  },
+  "callsupport": [
+    {
+      "href": "tel:*8486",
+      "title": "*8486"
     },
-    "call-support": [
-        {
-            "href": "tel:*8486",
-            "text": "*8486"
-        },
-        {
-            "href": "tel:1058",
-            "text": "1058"
-        }
-    ]
+    {
+      "href": "tel:1058",
+      "title": "1058"
+    }
+  ]
 }
 writeContent(init, JSON.stringify(content));
