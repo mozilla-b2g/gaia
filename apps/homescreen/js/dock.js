@@ -169,7 +169,7 @@ const DockManager = (function() {
       cellWidth = dock.getWidth() / numIcons;
       maxNumAppInViewPort = Math.floor(windowWidth / cellWidth);
       maxOffsetLeft = windowWidth - numIcons * cellWidth;
-      if (numIcons <= maxNumAppInViewPort) {
+      if (HomeState.firstTime || numIcons <= maxNumAppInViewPort) {
         dock.moveBy(maxOffsetLeft / 2);
       }
     },

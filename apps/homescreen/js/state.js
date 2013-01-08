@@ -9,7 +9,10 @@ const HomeState = (function() {
   var database = null;
   var initQueue = [];
 
+  var firstTime = false;
+
   function loadInitialState(iterator, success, error) {
+    firstTime = true;
     var xhr = new XMLHttpRequest();
     xhr.overrideMimeType('application/json');
     xhr.open('GET', 'js/init.json', true);
@@ -165,6 +168,10 @@ const HomeState = (function() {
           cursor.continue();
         };
       }, function() { success(); }, error);
+    },
+
+    get firstTime() {
+      return firstTime;
     }
   };
 })();
