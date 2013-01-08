@@ -41,6 +41,14 @@ contacts.Search = (function() {
 
     favoriteGroup = _groupFavorites;
     searchBox = document.getElementById('search-contact');
+    var resetButton = searchBox.nextElementSibling;
+    resetButton.addEventListener('mousedown', function() {
+      searchBox.value = '';
+      searchBox.focus();
+      resetState();
+      window.setTimeout(fillInitialSearchPage, 0);
+    });
+
     searchList = document.getElementById('search-list');
     if (typeof _clickHandler === 'function') {
       searchList.addEventListener('click', _clickHandler);
@@ -367,13 +375,6 @@ contacts.Search = (function() {
     searchNoResult.classList.add('hide');
     searchProgress.classList.add('hidden');
   }
-
-  // When the cancel button inside the input is clicked
-  document.addEventListener('cancelInput', function() {
-    searchBox.focus();
-    resetState();
-    window.setTimeout(fillInitialSearchPage, 0);
-  });
 
   return {
     'init': init,
