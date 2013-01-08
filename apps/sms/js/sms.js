@@ -663,6 +663,11 @@ var ThreadUI = {
     return this.contactInput = document.getElementById('receiver-input');
   },
 
+  get backButton() {
+    delete this.backButton;
+    return this.backButton = document.getElementById('go-to-threadlist');
+  },
+
   get clearButton() {
     delete this.clearButton;
     return this.clearButton = document.getElementById('clear-search');
@@ -751,7 +756,8 @@ var ThreadUI = {
         event.target.classList.remove('active');
       }
     );
-
+    this.backButton.addEventListener('click',
+      this.onBackAction.bind(this));
     this.pickButton.addEventListener('click', this.pickContact.bind(this));
     this.selectAllButton.addEventListener('click',
       this.selectAllMessages.bind(this));
@@ -770,6 +776,18 @@ var ThreadUI = {
     this.editForm.addEventListener('submit', this);
     this.telForm.addEventListener('submit', this);
     this.sendForm.addEventListener('submit', this);
+  },
+
+  onBackAction: function thui_onBackAction() {
+    if (ThreadUI.input.value.length == 0) {
+      window.location.hash = '#thread-list';
+      return;
+    }
+    var response = window.confirm(_('discard-sms'));
+    if (response) {
+      ThreadUI.cleanFields(true);
+      window.location.hash = '#thread-list';
+    }
   },
 
   enableSend: function thui_enableSend() {
@@ -1170,12 +1188,25 @@ var ThreadUI = {
     }
   },
 
-  cleanFields: function thui_cleanFields() {
-    this.sendButton.disabled = true;
-    this.sendButton.dataset.counter = '';
-    this.contactInput.value = '';
-    this.input.value = '';
-    this.updateInputHeight();
+  cleanFields: function thui_cleanFields(forceClean) {
+    var self = this;
+    var clean = function clean() {
+      self.input.value = '';
+      self.sendButton.disabled = true;
+      self.sendButton.dataset.counter = '';
+      self.contactInput.value = '';
+      self.updateInputHeight();
+    };
+    if (window.location.hash == this.previousHash ||
+          this.previousHash == '#new') {
+      if (forceClean) {
+        clean();
+      }
+    } else {
+      clean();
+    }
+    this.enableSend();
+    this.previousHash = window.location.hash;
   },
 
   sendMessage: function thui_sendMessage(resendText) {
@@ -1204,7 +1235,7 @@ var ThreadUI = {
       }
     }
     // Clean fields (this lock any repeated click in 'send' button)
-    this.cleanFields();
+    this.cleanFields(true);
 
     // Retrieve normalized phone number
     // TODO Remove with
