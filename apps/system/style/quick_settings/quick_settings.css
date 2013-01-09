@@ -112,11 +112,11 @@ html, body {
 #quick-settings-bluetooth[data-enabled] {
   background-image: url(images/bluetooth-on.png);
 }
-#quick-settings-power-save {
-  background-image: url(images/power-save-off.png);
+#quick-settings-airplane-mode {
+  background-image: url(images/airplane-mode-off.png);
 }
-#quick-settings-power-save[data-enabled] {
-  background-image: url(images/power-save-on.png);
+#quick-settings-airplane-mode[data-enabled] {
+  background-image: url(images/airplane-mode-on.png);
 }
 #quick-settings-full-app {
   background-image: url(images/settings-off.png);
