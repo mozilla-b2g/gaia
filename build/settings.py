@@ -25,7 +25,6 @@ settings = {
  "audio.volume.telephony": 5,
  "bluetooth.enabled": False,
  "camera.shutter.enabled": True,
- "debug.dev-mode": False,
  "debug.grid.enabled": False,
  "debug.oop.disabled": False,
  "debug.fps.enabled": False,
