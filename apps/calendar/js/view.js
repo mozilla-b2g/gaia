@@ -84,7 +84,7 @@
         var context = handler;
         handler = function() {
           context.handleEvent.apply(context, arguments);
-        }
+        };
       }
 
       element.addEventListener(type, function(e) {

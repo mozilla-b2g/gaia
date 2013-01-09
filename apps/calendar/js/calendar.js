@@ -1,8 +1,20 @@
 (function(window) {
 
+  const NEXT_TICK = 'calendar-next-tick';
+  var nextTickStack = [];
+
   window.Calendar = {
 
     DEBUG: false,
+
+    /**
+     * Very similar to node's nextTick.
+     * Much faster then setTimeout.
+     */
+    nextTick: function(callback) {
+      nextTickStack.push(callback);
+      window.postMessage(NEXT_TICK, '*');
+    },
 
     /**
      * Creates a calendar namespace.
@@ -115,8 +127,20 @@
           return mid;
       }
     }
-
   };
+
+  /**
+   * next tick inspired by http://dbaron.org/log/20100309-faster-timeouts.
+   */
+  window.addEventListener('message', function handleNextTick(event) {
+    if (event.source === window && event.data == NEXT_TICK) {
+      event.stopPropagation();
+      if (nextTickStack.length) {
+        (nextTickStack.shift())();
+      }
+    }
+  });
+
 
 }(this));
 

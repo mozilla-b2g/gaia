@@ -31,11 +31,11 @@ suite('store/abstract', function() {
 
     res.onerror = function() {
       done(new Error('could not wipe accounts db'));
-    }
+    };
 
     res.onsuccess = function() {
       done();
-    }
+    };
   });
 
   teardown(function() {
@@ -112,7 +112,7 @@ suite('store/abstract', function() {
 
       subject._addDependents = function() {
         addDepsCalled = arguments;
-      }
+      };
 
       if (this.persist !== false) {
         subject.persist(object, function(err, key) {
@@ -299,7 +299,7 @@ suite('store/abstract', function() {
 
       trans.oncomplete = function() {
         done();
-      }
+      };
 
       subject.persist(Factory('account'), trans);
       subject.persist(Factory('account'), trans);
@@ -391,7 +391,7 @@ suite('store/abstract', function() {
       var obj = {};
       obj.toJSON = function() {
         return 'foo';
-      }
+      };
 
       assert.equal(subject._objectData(obj), 'foo');
     });

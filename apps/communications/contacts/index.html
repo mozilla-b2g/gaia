@@ -19,7 +19,6 @@
     <link href="/contacts/style/contacts.css" rel="stylesheet">
     <link href="/contacts/style/overlay.css" rel="stylesheet">
     <link href="/contacts/style/search.css" rel="stylesheet">
-    <link href="/contacts/style/input_cancel_button.css" rel="stylesheet">
     <link href="/contacts/style/fixed_header.css" rel="stylesheet">
     <link href="/facebook/style/curtain_frame.css" rel="stylesheet">
 
@@ -55,6 +54,7 @@
 
     <script defer type="text/javascript" src="/contacts/js/utilities/image_loader.js"></script>
 
+    <script defer type="text/javascript" src="/dialer/js/telephony_helper.js"></script>
     <script defer type="text/javascript" src="/contacts/js/navigation.js"></script>
     <script defer type="text/javascript" src="/contacts/js/contacts_list.js"></script>
     <script defer type="text/javascript" src="/contacts/js/search.js"></script>
@@ -63,7 +63,6 @@
     <script defer type="text/javascript" src="/contacts/js/contacts_shortcuts.js"></script>
     <script defer type="text/javascript" src="/contacts/js/contacts.js"></script>
     <script defer type="text/javascript" src="/contacts/js/sms_integration.js"></script>
-    <script defer type="text/javascript" src="/contacts/js/input_cancel_button.js"></script>
     <script defer type="text/javascript" src="/contacts/js/fixed_header.js"></script>
 
     <!-- Needed to deal with FB Contacts -->
@@ -147,9 +146,9 @@
           <button id='cancel-search' data-l10n-id="cancel" type="submit">Cancel</button>
           <p>
             <label for="search-contact">
-              <input data-cancelable required type="search" name="search" class="textfield" placeholder="Search"
+              <input type="search" name="search" class="textfield" placeholder="Search"
                      id="search-contact" data-l10n-id="search-contact">
-              <button type="reset" class="hide">Clear</button>
+              <button type="reset">Clear</button>
             </label>
           </p>
         </form>
@@ -295,12 +294,12 @@
             </legend>
             <section>
               <p class="setbox-item">
-                <input data-cancelable placeholder="Phone" data-field="value" data-l10n-id="tel" name="tel[#i#][value]" class="textfield" type="tel" value="#value#" id="number_#i#">
-                <button type="reset" class="hide">Clear</button>
+                <input placeholder="Phone" data-field="value" data-l10n-id="tel" name="tel[#i#][value]" class="textfield" type="tel" value="#value#" id="number_#i#">
+                <button type="reset">Clear</button>
               </p>
               <p class="setbox-item">
-                <input data-cancelable placeholder="Carrier" data-field="carrier" data-l10n-id="carrier" name="tel[#i#][carrier]" class="textfield" type="text" x-inputmode="latin-prose" value="#carrier#" id="carrier_#i#">
-                <button type="reset" class="hide">Clear</button>
+                <input placeholder="Carrier" data-field="carrier" data-l10n-id="carrier" name="tel[#i#][carrier]" class="textfield" type="text" x-inputmode="latin-prose" value="#carrier#" id="carrier_#i#">
+                <button type="reset">Clear</button>
               </p>
             </section>
           </fieldset>
@@ -314,8 +313,8 @@
             </legend>
             <section>
               <p class="setbox-item">
-                <input data-cancelable placeholder="Email" data-l10n-id="email" name="email[#i#][value]" class="textfield" type="email" value="#value#" id="email_#i#">
-                <button type="reset" class="hide">Clear</button>
+                <input placeholder="Email" data-l10n-id="email" name="email[#i#][value]" class="textfield" type="email" value="#value#" id="email_#i#">
+                <button type="reset">Clear</button>
               </p>
             </section>
           </fieldset>
@@ -329,20 +328,20 @@
             </legend>
             <section>
               <p class="setbox-item">
-                <input data-cancelable placeholder="Street" data-field="streetAddress" data-l10n-id="streetAddress" name="adr[#i#][streetAddress]" class="textfield" type="text" x-inputmode="latin-prose" value="#streetAddress#" id="streetAddress_#i#">
-                <button type="reset" class="hide">Clear</button>
+                <input placeholder="Street" data-field="streetAddress" data-l10n-id="streetAddress" name="adr[#i#][streetAddress]" class="textfield" type="text" x-inputmode="latin-prose" value="#streetAddress#" id="streetAddress_#i#">
+                <button type="reset">Clear</button>
               </p>
               <p class="setbox-item">
-                <input data-cancelable placeholder="Zip Code" data-field="postalCode" data-l10n-id="postalCode" name="adr[#i#][postalCode]" class="textfield" type="text" value="#postalCode#" id="postalCode_#i#">
-                <button type="reset" class="hide">Clear</button>
+                <input placeholder="Zip Code" data-field="postalCode" data-l10n-id="postalCode" name="adr[#i#][postalCode]" class="textfield" type="text" value="#postalCode#" id="postalCode_#i#">
+                <button type="reset">Clear</button>
               </p>
               <p class="setbox-item">
-                <input data-cancelable placeholder="City" data-field="locality" data-l10n-id="locality" name="adr[#i#][locality]" class="textfield" type="text" x-inputmode="latin-prose" value="#locality#" id="locality_#i#">
-                <button type="reset" class="hide">Clear</button>
+                <input placeholder="City" data-field="locality" data-l10n-id="locality" name="adr[#i#][locality]" class="textfield" type="text" x-inputmode="latin-prose" value="#locality#" id="locality_#i#">
+                <button type="reset">Clear</button>
               </p>
               <p class="setbox-item">
-                <input data-cancelable placeholder="Country" data-field="countryName" data-l10n-id="countryName" name="adr[#i#][countryName]" class="textfield" type="text" x-inputmode="latin-prose" value="#countryName#" id="countryName_#i#">
-                <button type="reset" class="hide">Clear</button>
+                <input placeholder="Country" data-field="countryName" data-l10n-id="countryName" name="adr[#i#][countryName]" class="textfield" type="text" x-inputmode="latin-prose" value="#countryName#" id="countryName_#i#">
+                <button type="reset">Clear</button>
               </p>
             </section>
           </fieldset>
@@ -353,8 +352,8 @@
           <dl class="setbox fillflow-row">
             <dd class="setbox-body">
               <p class="setbox-item">
-               <input data-cancelable placeholder="Comment" data-l10n-id="comment" name="comment[#i#]" class="textfield" type="text" x-inputmode="latin-prose" value="#note#" id="note_#i#">
-               <button type="reset" class="hide">Clear</button>
+               <input placeholder="Comment" data-l10n-id="comment" name="comment[#i#]" class="textfield" type="text" x-inputmode="latin-prose" value="#note#" id="note_#i#">
+               <button type="reset">Clear</button>
               </p>
             </dd>
           </dl>
@@ -378,17 +377,17 @@
                 </a>
                 <div class="item-body-exp">
                   <p class="fillflow-row">
-                    <input data-cancelable placeholder="Name" data-l10n-id="givenName" name="givenName" class="textfield" type="text" x-inputmode="latin-prose" value="#givenName#" id="givenName">
-                    <button type="reset" class="hide">Clear</button>
+                    <input placeholder="Name" data-l10n-id="givenName" name="givenName" class="textfield" type="text" x-inputmode="latin-prose" value="" id="givenName">
+                    <button type="reset">Clear</button>
                   </p>
                   <p class="fillflow-row">
-                    <input data-cancelable placeholder="Last name" data-l10n-id="familyName" name="familyName" class="textfield" type="text" x-inputmode="latin-prose" value="#familyName#" id="familyName">
-                    <button type="reset" class="hide">Clear</button>
+                    <input placeholder="Last name" data-l10n-id="familyName" name="familyName" class="textfield" type="text" x-inputmode="latin-prose" value="" id="familyName">
+                    <button type="reset">Clear</button>
                   </p>
                 </div>
                 <p class="fillflow-row">
-                  <input data-cancelable placeholder="Company Name" data-l10n-id="org" name="org" class="textfield" type="text" x-inputmode="latin-prose" value="" id="org">
-                  <button type="reset" class="hide">Clear</button>
+                  <input placeholder="Company Name" data-l10n-id="org" name="org" class="textfield" type="text" x-inputmode="latin-prose" value="" id="org">
+                  <button type="reset">Clear</button>
                 </p>
               </section>
 
@@ -466,8 +465,8 @@
             <ul id="tags-list" class="selection-list compact">
             </ul>
             <p>
-              <input data-cancelable class="textfield" type="text" placeholder="Custom Tag" value="" id='custom-tag' data-l10n-id="custom">
-              <button type="reset" class="hide">Clear</button>
+              <input class="textfield" type="text" placeholder="Custom Tag" value="" id='custom-tag' data-l10n-id="custom">
+              <button type="reset">Clear</button>
             </p>
           </form>
         </article>

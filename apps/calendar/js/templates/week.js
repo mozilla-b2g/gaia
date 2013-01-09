@@ -5,7 +5,9 @@
     },
 
     sidebarHour: function() {
-      return '<li class="hour-' + this.h('hour') + '">' + this.h('displayHour') + '</li>';
+      return '<li class="hour-' + this.h('hour') + '">' +
+                this.h('displayHour') +
+             '</li>';
     },
 
     hour: function() {

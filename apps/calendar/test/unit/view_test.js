@@ -209,7 +209,7 @@ suite('view', function() {
     assert.isFalse(subject.seen);
     subject.dispatch = function() {
       dispatched = arguments;
-    }
+    };
     subject.onfirstseen = function() {
       seen += 1;
     };

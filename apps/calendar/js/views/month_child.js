@@ -19,6 +19,8 @@
 
     ACTIVE: 'active',
 
+    hasBeenActive: false,
+
     busyPrecision: (24 / 12),
 
     //Override parent view...
@@ -363,6 +365,26 @@
      */
     activate: function() {
       this.element.classList.add(this.ACTIVE);
+
+
+      /**
+       * The first time we "activate" a view we initialize its
+       * events and query th cache for related records.
+       * We do this async so to minimally effect swipes.
+       */
+      if (this.hasBeenActive)
+        return;
+
+      Calendar.nextTick(function() {
+        this.controller.queryCache(this.timespan).forEach(
+          this._renderBusytime,
+          this
+        );
+
+        this._initEvents();
+      }.bind(this));
+
+      this.hasBeenActive = true;
     },
 
     /**
@@ -390,13 +412,6 @@
       element.innerHTML = html;
 
       this.element = element;
-
-      controller.queryCache(this.timespan).forEach(
-        this._renderBusytime,
-        this
-      );
-
-      this._initEvents();
 
       return element;
     },

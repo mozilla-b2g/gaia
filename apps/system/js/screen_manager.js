@@ -41,6 +41,41 @@ var ScreenManager = {
   _savedBrightness: 1,
 
   /*
+   * The auto-brightness algorithm will never set the screen brightness
+   * to a value smaller than this. 0.1 seems like a good screen brightness
+   * in a completely dark room on a Unagi.
+   */
+  AUTO_BRIGHTNESS_MINIMUM: 0.1,
+
+  /*
+   * This constant is used in the auto brightness algorithm. We take
+   * the base 10 logarithm of the incoming lux value from the light
+   * sensor and multiplied it by this constant. That value is used to
+   * compute a weighted average with the current brightness and
+   * finally that average brightess is and then clamped to the range
+   * [AUTO_BRIGHTNESS_MINIMUM, 1.0].
+   *
+   * Making this value larger will increase the brightness for a given
+   * ambient light level. At a value of about .25, the screen will be
+   * at full brightness in sunlight or in a well-lighted work area.
+   * At a value of about .3, the screen will typically be at maximum
+   * brightness in outdoor daylight conditions, even when overcast.
+   */
+  AUTO_BRIGHTNESS_CONSTANT: .27,
+
+  /*
+   * When we change brightness we animate it smoothly.
+   * This constant is the number of milliseconds between adjustments
+   */
+  BRIGHTNESS_ADJUST_INTERVAL: 20,
+
+  /*
+   * When brightening or dimming the screen, this is how much we adjust
+   * the brightness value at a time.
+   */
+  BRIGHTNESS_ADJUST_STEP: 0.04,
+
+  /*
    * Wait for _dimNotice milliseconds during idle-screen-off
    */
   _dimNotice: 10 * 1000,
@@ -131,18 +166,36 @@ var ScreenManager = {
     }
   },
 
+  //
+  // Automatically adjust the screen brightness based on the ambient
+  // light (in lux) measured by the device light sensor
+  //
+  autoAdjustBrightness: function scm_adjustBrightness(lux) {
+    var currentBrightness = this._targetBrightness;
+
+    if (lux < 1)  // Can't take the log of 0 or negative numbers
+      lux = 1;
+
+    var computedBrightness =
+      Math.log(lux) / Math.LN10 * this.AUTO_BRIGHTNESS_CONSTANT;
+
+    var clampedBrightness = Math.max(this.AUTO_BRIGHTNESS_MINIMUM,
+                                     Math.min(1.0, computedBrightness));
+
+    // If nothing changed, we're done.
+    if (clampedBrightness === currentBrightness)
+      return;
+
+    this.setScreenBrightness(clampedBrightness, false);
+  },
+
   handleEvent: function scm_handleEvent(evt) {
     switch (evt.type) {
       case 'devicelight':
         if (!this._deviceLightEnabled || !this.screenEnabled ||
             this._inTransition)
           return;
-
-        // This is a rather naive but pretty effective heuristic
-        var brightness =
-          Math.max(Math.min((evt.value / 1100), this._userBrightness), 0.1);
-        if (Math.abs(this._targetBrightness - brightness) > 0.3)
-          this.setScreenBrightness(brightness, false);
+        this.autoAdjustBrightness(evt.value);
         break;
 
       case 'sleep':
@@ -284,7 +337,7 @@ var ScreenManager = {
       if (this._inTransition) {
         // Cancel the dim out
         this._inTransition = false;
-        this.setScreenBrightness(this._userBrightness, true);
+        this.setScreenBrightness(this._savedBrightness, true);
         this._reconfigScreenTimeout();
       }
       return false;
@@ -311,8 +364,6 @@ var ScreenManager = {
     var power = navigator.mozPower;
     if (power)
       power.screenEnabled = true;
-
-    this._lastScreenOnTimestamp = Date.now();
     this.screenEnabled = true;
     this.screen.classList.remove('screenoff');
 
@@ -355,6 +406,12 @@ var ScreenManager = {
     if (!power)
       return;
 
+    // Make sure we don't have another brightness change scheduled
+    if (this._transitionBrightnessTimer) {
+      clearTimeout(this._transitionBrightnessTimer);
+      this._transitionBrightnessTimer = null;
+    }
+
     if (typeof instant !== 'boolean')
       instant = true;
 
@@ -372,27 +429,25 @@ var ScreenManager = {
     var self = this;
     var power = navigator.mozPower;
     var screenBrightness = power.screenBrightness;
+    var delta = this.BRIGHTNESS_ADJUST_STEP;
 
-    // We can never set the brightness to the exact number of
-    // target brightness, so if the difference is close enough,
-    // we stop the loop and set it for the last time.
-    if (Math.abs(this._targetBrightness - screenBrightness) < 0.05) {
+    // Is this the last time adjustment we need to make?
+    if (Math.abs(this._targetBrightness - screenBrightness) <= delta) {
       power.screenBrightness = this._targetBrightness;
+      this._transitionBrightnessTimer = null;
       return;
     }
 
-    var dalta = 0.02;
     if (screenBrightness > this._targetBrightness)
-      dalta *= -1;
+      delta *= -1;
 
-    screenBrightness += dalta;
+    screenBrightness += delta;
     power.screenBrightness = screenBrightness;
 
-    clearTimeout(this._transitionBrightnessTimer);
     this._transitionBrightnessTimer =
       setTimeout(function transitionBrightnessTimeout() {
         self.transitionBrightness();
-      }, 10);
+      }, this.BRIGHTNESS_ADJUST_INTERVAL);
   },
 
   setDeviceLightEnabled: function scm_setDeviceLightEnabled(enabled) {
@@ -405,7 +460,7 @@ var ScreenManager = {
     if (!this.screenEnabled)
       return;
 
-    // Disable/enable device light censor accordingly.
+    // Disable/enable device light sensor accordingly.
     // This will also toggle the actual hardware, which
     // must be done while the screen is on.
     if (enabled) {

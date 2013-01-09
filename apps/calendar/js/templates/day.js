@@ -2,9 +2,12 @@
 
   var Day = Calendar.Template.create({
     hour: function() {
-      return '<section class="hour hour-' + this.h('hour') + ' ' + this.h('classes') + ' calendar-display">' +
+      return '<section class="hour hour-' + this.h('hour') +
+                ' ' + this.h('classes') + ' calendar-display">' +
           '<h4>' +
-            '<span class="display-hour ' + this.h('hour') + '">' + this.h('displayHour') + '</span>' +
+            '<span class="display-hour ' + this.h('hour') + '">' +
+              this.h('displayHour') +
+            '</span>' +
           '</h4>' +
           /** has no semantic value - re-evaluate */
           '<div class="events">' + this.s('items') + '</div>' +
@@ -18,7 +21,8 @@
     event: function() {
       return '<section class="event calendar-id-' + this.h('calendarId') + ' ' +
              'calendar-display" data-id="' + this.h('busytimeId') + '">' +
-          '<div class="container calendar-id-' + this.h('calendarId') + ' calendar-color">' +
+          '<div class="container calendar-id-' +
+            this.h('calendarId') + ' calendar-color">' +
             '<h5>' + this.h('title') + '</h5>' +
             '<span class="details">' +
               '<span class="location">' +

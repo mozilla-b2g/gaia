@@ -1,4 +1,4 @@
-'use strict'
+'use strict';
 
 var SimManager = {
   unlocked: false,
@@ -25,6 +25,7 @@ var SimManager = {
     var feedback = UIManager.simImportFeedback;
     feedback.innerHTML = _('simContacts-importing');
     UIManager.navBar.setAttribute('aria-disabled', 'true');
+    UIManager.loadingHeader.innerHTML = _('simContacts-importing');
     UIManager.loadingOverlay.classList.add('show-overlay');
     var importButton = UIManager.simImportButton;
     importButton.classList.add('disabled');
@@ -72,5 +73,5 @@ var SimManager = {
       window.location.hash = '#languages';
     }.bind(this);
   }
-
 };
+

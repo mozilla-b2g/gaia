@@ -67,7 +67,7 @@ suite('views/months_day', function() {
         );
 
         calledWith = arguments;
-      }
+      };
 
       subject.controller.selectedDay = date;
       assert.equal(

@@ -101,7 +101,7 @@ suite('store/alarm', function() {
       subject.autoQueue = true;
       subject.workQueue = function() {
         worksQueue++;
-      }
+      };
     });
 
     test('after persist transaction', function(done) {

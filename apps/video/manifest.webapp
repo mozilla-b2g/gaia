@@ -11,7 +11,8 @@
     "device-storage:videos":{ "access": "readwrite" },
     "settings":{ "access": "readonly" },
     "deprecated-hwvideo":{},
-    "audio-channel-content":{}
+    "audio-channel-content":{},
+    "systemXHR":{}
   },
   "locales": {
     "ar": {
@@ -39,7 +40,7 @@
   "activities": {
     "view" : {
       "filters": {
-        "type": ["video/webm", "video/mp4", "video/3gpp"]
+        "type": ["video/webm", "video/mp4", "video/3gpp", "video/youtube"]
       },
       "href": "view.html",
       "disposition": "inline",

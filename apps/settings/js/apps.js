@@ -219,9 +219,7 @@ var ApplicationsList = {
     var isExplicit = mozPerms.isExplicit(perm, app.manifestURL,
                                          app.origin, false);
 
-    return (isExplicit &&
-            ((manifest.permissions && perm in manifest.permissions) ||
-              value === 'allow'));
+    return (isExplicit && value !== 'unknown');
   },
 
   _insertPermissionSelect: function al_insertPermissionSelect(perm, value) {

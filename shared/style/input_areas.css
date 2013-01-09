@@ -81,18 +81,16 @@ textarea {
   padding: 0.8rem;
 }
 
-form p input:valid,
-form p input:valid:focus {
+form p input:focus {
   padding-right: 3.5rem;
 }
 
-form p textarea:valid,
-form p textarea:valid:focus {
+form p textarea:focus {
   padding-right: 3rem;
 }
 
-form p input:valid + button[type="reset"],
-form p textarea:valid + button[type="reset"] {
+form p input:focus + button[type="reset"],
+form p textarea:focus + button[type="reset"] {
   opacity: 1;
   pointer-events: all;
 }

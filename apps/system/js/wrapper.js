@@ -153,7 +153,8 @@ var Launcher = (function() {
           type: 'url',
           url: url,
           name: name,
-          icon: dataset.icon
+          icon: dataset.icon,
+          useAsyncPanZoom: dataset.useAsyncPanZoom
         }
       });
 

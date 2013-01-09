@@ -67,11 +67,11 @@ suite('utils/account_creation', function() {
 
       accountStore.verifyAndPersist = function() {
         verifyCall = arguments;
-      }
+      };
 
       accountStore.sync = function() {
         syncCall = arguments;
-      }
+      };
 
       calendarStore.remotesByAccount = function() {
         return calendars;

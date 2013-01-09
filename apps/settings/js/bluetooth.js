@@ -33,7 +33,11 @@ onLocalized(function bluetoothSettings() {
 
   // activate main button
   gBluetoothCheckBox.onchange = function changeBluetooth() {
-    settings.createLock().set({'bluetooth.enabled': this.checked});
+    var req = settings.createLock().set({'bluetooth.enabled': this.checked});
+    this.disabled = true;
+    req.onerror = function() {
+      gBluetoothCheckBox.disabled = false;
+    };
   };
 
   function initialDefaultAdapter() {
