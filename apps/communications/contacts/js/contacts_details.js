@@ -165,7 +165,7 @@ contacts.Details = (function() {
   };
 
   var isFavorite = function isFavorite(contact) {
-    return contact != null & contact.category != null &&
+    return contact != null && contact.category != null &&
               contact.category.indexOf('favorite') != -1;
   };
 
