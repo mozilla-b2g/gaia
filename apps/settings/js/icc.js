@@ -45,6 +45,8 @@
       });
     };
 
+    document.getElementById('icc-stk-help-exit').onclick = updateMenu;
+
     window.onunload = function() {
       responseSTKCommand({
         resultCode: icc.STK_RESULT_NO_RESPONSE_FROM_USER
@@ -379,6 +381,7 @@
 
       document.getElementById('icc-stk-exit').classList.remove('hidden');
       document.getElementById('icc-stk-app-back').classList.add('hidden');
+      document.getElementById('icc-stk-help-exit').classList.add('hidden');
 
       if (!menu || (menu.items.length == 1 && menu.items[0] === null)) {
         debug('No STK available - hide & exit');
@@ -402,6 +405,16 @@
           attributes: [['stk-menu-item-identifier', menuItem.identifier]]
         }));
       });
+
+      // Optional Help menu
+      if (menu.isHelpAvailable) {
+        iccStkList.appendChild(buildMenuEntry({
+          id: 'stk-helpmenuitem',
+          text: _('operatorServices-helpmenu'),
+          onclick: showHelpMenu,
+          attributes: []
+        }));
+      }
     };
   }
 
@@ -409,6 +422,43 @@
     var identifier = event.target.getAttribute('stk-menu-item-identifier');
     debug('sendStkMenuSelection: ', identifier);
     icc.sendStkMenuSelection(identifier, false);
+    stkLastSelectedTest = event.target.textContent;
+    stkOpenAppName = stkLastSelectedTest;
+  }
+
+  function showHelpMenu(event) {
+    debug('Showing STK help menu');
+    stkOpenAppName = null;
+
+    var reqApplications =
+      window.navigator.mozSettings.createLock().get('icc.applications');
+    reqApplications.onsuccess = function icc_getApplications() {
+      var menu = JSON.parse(reqApplications.result['icc.applications']);
+      clearList();
+
+      document.getElementById('icc-stk-exit').classList.add('hidden');
+      document.getElementById('icc-stk-app-back').classList.add('hidden');
+      document.getElementById('icc-stk-help-exit').classList.remove('hidden');
+
+      iccMenuItem.textContent = menu.title;
+      showTitle(_('operatorServices-helpmenu'));
+      menu.items.forEach(function(menuItem) {
+        debug('STK Main App Help item: ' + menuItem.text + ' # ' +
+              menuItem.identifier);
+        iccStkList.appendChild(buildMenuEntry({
+          id: 'stk-helpitem-' + menuItem.identifier,
+          text: menuItem.text,
+          onclick: onMainMenuHelpItemClick,
+          attributes: [['stk-help-item-identifier', menuItem.identifier]]
+        }));
+      });
+    };
+  }
+
+  function onMainMenuHelpItemClick(event) {
+    var identifier = event.target.getAttribute('stk-help-item-identifier');
+    debug('sendStkHelpMenuSelection: ', identifier);
+    icc.sendStkMenuSelection(identifier, true);
     stkLastSelectedTest = event.target.textContent;
     stkOpenAppName = stkLastSelectedTest;
   }
@@ -424,6 +474,7 @@
 
     document.getElementById('icc-stk-exit').classList.add('hidden');
     document.getElementById('icc-stk-app-back').classList.remove('hidden');
+    document.getElementById('icc-stk-help-exit').classList.add('hidden');
 
     debug('STK App Menu title: ' + menu.title);
     debug('STK App Menu default item: ' + menu.defaultItem);
