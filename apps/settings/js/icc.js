@@ -611,6 +611,10 @@
     };
 
     input.onkeyup = function(event) {
+      if (inputTimeOutID) {
+        clearTimeout(inputTimeOutID);
+        inputTimeOutID = null;
+      }
       button.disabled = !checkInputLengthValid(input.value.length,
                                               options.minLength,
                                               options.maxLength);
