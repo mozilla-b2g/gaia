@@ -32,7 +32,7 @@ const GridManager = (function() {
     right: 0
   };
 
-  var startEvent, isPanning = false;
+  var startEvent, isPanning = false, deltaX;
 
   function handleEvent(evt) {
     switch (evt.type) {
@@ -40,6 +40,7 @@ const GridManager = (function() {
         touchStartTimestamp = MouseEventShim.getEventTimestamp(evt);
         evt.stopPropagation();
         startEvent = evt;
+        deltaX = 0;
         attachEvents();
         break;
 
@@ -48,7 +49,7 @@ const GridManager = (function() {
 
         // Start panning immediately but only disable
         // the tap when we've moved far enough.
-        var deltaX = evt.clientX - startEvent.clientX;
+        deltaX = evt.clientX - startEvent.clientX;
         if (deltaX == 0)
           return;
         document.body.dataset.transitioning = 'true';
@@ -170,6 +171,11 @@ const GridManager = (function() {
         break;
 
       case 'contextmenu':
+        if (deltaX !== 0) {
+          evt.stopImmediatePropagation();
+          return;
+        }
+
         if (currentPage > 1 && 'isIcon' in evt.target.dataset) {
           evt.stopImmediatePropagation();
           Homescreen.setMode('edit');
