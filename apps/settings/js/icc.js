@@ -21,6 +21,7 @@
   var stkOpenAppName = null;
   var stkLastSelectedTest = null;
   var displayTextTimeout = 10000;
+  var inputTimeout = 10000;
   var icc;
 
   init();
@@ -96,6 +97,14 @@
     reqDisplayTimeout.onsuccess = function icc_getDisplayTimeout() {
       displayTextTimeout = reqDisplayTimeout.result['icc.displayTextTimeout'];
     };
+
+    // Update inputTimeout with settings parameter
+    var reqInputTimeout =
+      window.navigator.mozSettings.createLock().get('icc.inputTextTimeout');
+    reqInputTimeout.onsuccess = function icc_getInputTimeout() {
+      inputTimeout = reqInputTimeout.result['icc.inputTextTimeout'];
+    };
+
   }
 
   /**
@@ -501,6 +510,22 @@
     stkLastSelectedTest = event.target.textContent;
   }
 
+  function calculateDurationInMS(duration) {
+    var timeout = duration.timeInterval;
+    switch (duration.timeUnit) {
+      case icc.STK_TIME_UNIT_MINUTE:
+        timeout *= 3600000;
+        break;
+      case icc.STK_TIME_UNIT_SECOND:
+        timeout *= 1000;
+        break;
+      case icc.STK_TIME_UNIT_TENTH_SECOND:
+        timeout *= 100;
+        break;
+    }
+    return timeout;
+  }
+
   /**
    * Show an INPUT box requiring data
    * Command options like:
@@ -546,6 +571,14 @@
     li.appendChild(input);
     iccStkList.appendChild(li);
 
+    var timeoutInUse = options.duration;
+    var inputTimeOutID = setTimeout(function() {
+      debug('No response from user (Timeout)');
+      responseSTKCommand({
+        resultCode: icc.STK_RESULT_NO_RESPONSE_FROM_USER
+      });
+    }, timeoutInUse ? calculateDurationInMS(options.duration) : inputTimeout);
+
     li = document.createElement('li');
     var label = document.createElement('label');
     var button = document.createElement('button');
@@ -555,6 +588,10 @@
       button.disabled = true;
     }
     button.onclick = function(event) {
+      if (inputTimeOutID) {
+        clearTimeout(inputTimeOutID);
+        inputTimeOutID = null;
+      }
       var value = document.getElementById('stk-item-input').value;
       responseSTKCommand({
         resultCode: icc.STK_RESULT_OK,
@@ -660,18 +697,7 @@
     tonePlayer.loop = true;
     tonePlayer.play();
 
-    var timeout = options.duration.timeInterval;
-    switch (options.duration.timeUnit) {
-      case icc.STK_TIME_UNIT_MINUTE:
-        timeout *= 3600000;
-        break;
-      case icc.STK_TIME_UNIT_SECOND:
-        timeout *= 1000;
-        break;
-      case icc.STK_TIME_UNIT_TENTH_SECOND:
-        timeout *= 100;
-        break;
-    }
+    timeout = calculateDurationInMS(options.duration);
     setTimeout(function() {
       tonePlayer.pause();
     },timeout);
