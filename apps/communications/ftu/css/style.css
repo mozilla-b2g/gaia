@@ -199,45 +199,54 @@ html, body {
 /*
   Pin code screen
 */
+#unlock-sim-screen {
+  z-index: 2000;
+}
 
-#pincode-screen .pin_container {
+#unlock-sim-screen .unlock_container {
   height: calc(100% - 10rem);
 }
 
-#pincode-screen section header {
+#unlock-sim-screen section label {
   padding: 1.5rem 3rem 0.5rem 3rem;
   color: black;
   font-size: 1.5rem;
+  width: auto;
+  height: 2rem;
 }
 
-#pincode-screen .input-wrapper {
+#unlock-sim-screen .input-wrapper {
   padding: 0 1.5rem;
   position: relative;
 }
 
-#pincode-screen #pin-error {
+#unlock-sim-screen .info {
+  font-size: 1.5rem;
+  padding: 1rem 1.5rem;
+}
+
+#unlock-sim-screen .error {
   padding: 1rem 2rem;
   font-size: 1.5rem;
   color: red;
 }
 
-#pincode-screen #pin-input.onerror {
-  border-color: red;
+#unlock-sim-screen .onerror {
+  border: 0.1rem solid red;
 }
 
-#pincode-screen .input-wrapper input {
+#unlock-sim-screen .input-wrapper input {
   font-size: 2rem;
   padding-left: 1.5rem;
-  pointer-events: none;
 }
 
-#pincode-screen #fake-sim-pin {
+#unlock-sim-screen .fake-input {
   margin-top: -4rem;
   opacity: 0;
-  pointer-events: auto;
+
 }
 
-#pincode-screen input[type="number"] {
+#unlock-sim-screen input[type="number"] {
     -moz-box-sizing: border-box;
     display: block;
     overflow: hidden;
@@ -245,6 +254,11 @@ html, body {
     height: 4rem;
     resize: none;
     padding: 0 0.8rem;
+    pointer-events: auto;
+}
+
+#unlock-sim-screen input[type="password"] {
+  pointer-events: none;
 }
 
 /*
