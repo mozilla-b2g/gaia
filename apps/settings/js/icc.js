@@ -212,8 +212,19 @@
         responseSTKCommand({
           resultCode: icc.STK_RESULT_OK
         });
-        if (!options.confirmMessage || confirm(options.confirmMessage)) {
-          openLink(options.url);
+        var url = options.url;
+        if (url !== null && url.length !== 0) {
+          if (!options.confirmMessage || confirm(options.confirmMessage)) {
+            // Sanitise url just in case it doesn't start with http or https
+            // the web activity won't work, so add by default the http protocol
+            if (url.search("^https?://") == -1) {
+              // Our url doesn't contains the protocol
+              url = 'http://' + url;
+            }
+            openLink(url);
+          }
+        } else {
+          alert(_('operatorService-invalid-url'));
         }
         break;
 
