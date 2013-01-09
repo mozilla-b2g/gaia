@@ -41,10 +41,11 @@ var Support = {
   loadSupportInfo: function support_loadSupportInfo() {
     var self = this;
     this.getSupportInfo(function displaySupportInfo(supportInfo) {
-      document.getElementById('online-support-link')
-        .setAttribute('href', supportInfo.onlinesupport.href);
-      document.getElementById('online-support-text')
-        .textContent = supportInfo.onlinesupport.title;
+      var link = document.getElementById('online-support-link');
+      var text = document.getElementById('online-support-text');
+      link.href = supportInfo.onlinesupport.href;
+      link.target = 'blank';
+      text.textContent = supportInfo.onlinesupport.title;
 
       var callSupportInfo = supportInfo.callsupport;
       var numbers = document.getElementById('call-support-numbers');
