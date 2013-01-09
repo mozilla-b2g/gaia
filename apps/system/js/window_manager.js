@@ -842,10 +842,6 @@ var WindowManager = (function() {
     document.getElementById('screen').classList.remove('ftuStarting');
     handleInitlogo();
     setDisplayedApp(homescreen);
-    // Eventually ask for SIM code, but only when we do not show FTU,
-    // which already asks for it! Note that it has to be done
-    // after setDisplayedApp which is going to mess with focus.
-    SimLock.showIfLocked();
   }
 
   // Check if the FTU was executed or not, if not, get a
