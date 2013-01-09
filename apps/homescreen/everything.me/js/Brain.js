@@ -476,26 +476,6 @@ Evme.Brain = new function Evme_Brain() {
         }
     };
 
-    // modules/Location/
-    this.Location = new function Location() {
-        var self = this;
-
-        // Location is being requested
-        this.requesting = function requesting() {
-            elContainer.classList.add("requesting-location");
-        };
-
-        // location retrieved successfully
-        this.success = function success(data) {
-            elContainer.classList.remove("requesting-location");
-        };
-
-        // location request error has occured
-        this.error = function error(data) {
-            elContainer.classList.remove("requesting-location");
-        };
-    };
-
     // modules/Apps/
     this.Apps = new function Apps() {
         var bShouldGetHighResIcons = false;
@@ -557,7 +537,6 @@ Evme.Brain = new function Evme_Brain() {
     // modules/Apps/
     this.App = new function App() {
         var self = this,
-            bNeedsLocation = false,
             isKeyboardOpenWhenClicking = false,
             loadingApp = null,
             loadingAppAnalyticsData,
@@ -644,7 +623,6 @@ Evme.Brain = new function Evme_Brain() {
 
             loadingApp = data.app;
             loadingAppId = data.data.id;
-            bNeedsLocation = data.data.requiresLocation && !Evme.DoATAPI.hasLocation();
             loadingAppAnalyticsData = {
                 "index": data.index,
                 "keyboardVisible": data.keyboardVisible,
@@ -688,9 +666,6 @@ Evme.Brain = new function Evme_Brain() {
             elPseudo.style.cssText += 'position: absolute; top: ' + oldPos.top + 'px; left: ' + oldPos.left + 'px; -moz-transform: translate3d(0,0,0);';
 
             var appName = Evme.Utils.l10n('apps', 'loading-app');
-            if (bNeedsLocation) {
-                appName = "";
-            }
 
             Evme.$('b', elPseudo, function itemIteration(el) {
                 el.innerHTML = appName;
@@ -705,23 +680,7 @@ Evme.Brain = new function Evme_Brain() {
 
                 elPseudo.style.cssText += "; -moz-transform: translate3d(" + x + "px, " + y + "px, 0);";
 
-                if (bNeedsLocation) {
-                    Evme.Location.requestUserLocation(function onSuccess(data) {
-                        if (Brain.SmartFolder.get()) {
-                            Brain.SmartFolder.loadAppsIntoFolder(function onAppsReloaded(apps) {
-                                updateLoadingAppData(apps);
-                                goToApp(loadingAppAnalyticsData);
-                            });
-                        } else {
-                            Evme.DoATAPI.setLocation(data.coords.latitude, data.coords.longitude);
-                            Searcher.searchAgain(SEARCH_SOURCES.LOCATION_REFRESH);
-                        }
-                    }, function onError(data) {
-                        goToApp(loadingAppAnalyticsData);
-                    });
-                } else {
-                    goToApp(loadingAppAnalyticsData, 500);
-                }
+                goToApp(loadingAppAnalyticsData, 500);
             }, 10);
         };
 
@@ -742,12 +701,7 @@ Evme.Brain = new function Evme_Brain() {
          * @_data (object)  : data sent with the event
          */
         this.handleEvents = function handleEvents(_class, _event, _data){
-            if (bNeedsLocation && _class == "Apps" && _event == "loadComplete") {
-                bNeedsLocation = false;
 
-                updateLoadingAppData(_data.data);
-                goToApp(loadingAppAnalyticsData);
-            }
         };
 
         // continue flow of redirecting to app
@@ -787,7 +741,6 @@ Evme.Brain = new function Evme_Brain() {
             if (loadingApp) {
                 loadingApp = null;
 
-                bNeedsLocation = false;
                 loadingAppAnalyticsData = null;
                 loadingAppId = false;
 
