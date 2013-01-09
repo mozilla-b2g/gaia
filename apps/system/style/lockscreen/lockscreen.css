@@ -382,7 +382,6 @@ button::-moz-focus-inner {
   margin: 1.5rem 0.5rem;
   height: calc(100% - 3rem);
   text-align: center;
-  box-shadow: 0 0 0.8rem #999 inset;
   background-color: #fff;
   border-radius: 0.5rem;
 
@@ -390,11 +389,11 @@ button::-moz-focus-inner {
 }
 
 [data-passcode-status="error"] #lockscreen-passcode-code > span {
-  box-shadow: 0 0 0.8rem #f00 inset;
+  border: 0.1rem #B70404 solid;
 }
 
 [data-passcode-status="error"] #lockscreen-passcode-code > span[data-dot]::before {
-  background-color: #f00;
+    background-color: #B70404;
 }
 
 [data-passcode-status="success"] #lockscreen-passcode-code > span {
