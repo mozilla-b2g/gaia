@@ -2040,15 +2040,6 @@ function write (chunk) {
     },
 
     /**
-     * Aborts request if its in progress.
-     */
-    abort: function abort() {
-      if (this.xhr) {
-        this.xhr.abort();
-      }
-    },
-
-    /**
      * @param {String} user basic auth user.
      * @param {String} password basic auth pass.
      * @return {String} basic auth token.
@@ -2077,9 +2068,6 @@ function write (chunk) {
       } else {
         xhr = new this.xhrClass();
       }
-
-      this.xhr = xhr;
-
       // This hack is in place due to some platform
       // bug in gecko when using mozSystem xhr
       // the credentials only seem to work as expected
@@ -2092,6 +2080,12 @@ function write (chunk) {
           this.user,
           this.password
         ));
+      }
+
+      var useMozChunkedText = false;
+      if (this.globalXhrOptions && this.globalXhrOptions.useMozChunkedText) {
+        useMozChunkedText = true;
+        xhr.responseType = 'moz-chunked-text';
       }
 
       for (header in this.headers) {
@@ -2107,13 +2101,20 @@ function write (chunk) {
       if ('onprogress' in xhr) {
         hasProgressEvents = true;
         var last = 0;
-        xhr.onprogress = function onProgress(event) {
-          var chunk = xhr.responseText.substr(last, event.loaded);
-          last = event.loaded;
-          if (this.ondata) {
-            this.ondata(chunk);
-          }
-        }.bind(this);
+
+        if (useMozChunkedText) {
+          xhr.onprogress = function onChunkedProgress(event) {
+            this.ondata(xhr.responseText);
+          }.bind(this);
+        } else {
+          xhr.onprogress = function onProgress(event) {
+            var chunk = xhr.responseText.substr(last, event.loaded);
+            last = event.loaded;
+            if (this.ondata) {
+              this.ondata(chunk);
+            }
+          }.bind(this);
+        }
       }
 
       xhr.onreadystatechange = function onReadyStateChange() {
@@ -2136,6 +2137,8 @@ function write (chunk) {
 
       this.waiting = true;
       xhr.send(this._seralize());
+
+      return xhr;
     }
   };
 
@@ -2602,26 +2605,26 @@ function write (chunk) {
       default:
         message = this.code;
     }
-    
     Error.call(this, message);
   }
+
   CaldavHttpError.prototype = {
     __proto__: Error.prototype,
     constructor: CaldavHttpError
   }
-  
+
   // Unauthenticated error for 
   // Google Calendar
   function UnauthenticatedError() {
     var message = "Wrong username or/and password";
     Error.call(this, message);
   }
-  
+
   UnauthenticatedError.prototype = {
     __proto__: Error.prototype,
     constructor: UnauthenticatedError
   }
-  
+
   module.exports = {
     CaldavHttpError: CaldavHttpError,
     UnauthenticatedError: UnauthenticatedError
@@ -2700,8 +2703,7 @@ function write (chunk) {
       };
 
       // in the future we may stream data somehow
-      req.send(function xhrResult() {
-        var xhr = req.xhr;
+      req.send(function xhrResult(err, xhr) {
         if (xhr.status > 199 && xhr.status < 300) {
           // success
           self.sax.close();
@@ -3021,8 +3023,7 @@ function write (chunk) {
         content += this.filter.toString();
       }
 
-      var out = this.template.render(content);
-      return out;
+      return this.template.render(content);
     }
 
   };
@@ -3110,6 +3111,7 @@ function write (chunk) {
         if (!principal) {
           principal = findProperty('principal-URL', data, true);
         }
+        
         if ('unauthenticated' in principal) {
           callback(new Errors.UnauthenticatedError());          
         } else if (principal.href){
