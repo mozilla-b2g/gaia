@@ -519,7 +519,6 @@ li img {
 
 .alarmList-detail .repeat {
   font: 1.4rem 'MozTT', sans-serif;
-  text-transform: capitalize;
   text-overflow: ellipsis;
   position: absolute;
   overflow: hidden;

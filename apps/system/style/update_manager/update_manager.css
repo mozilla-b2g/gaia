@@ -126,7 +126,6 @@ html, body {
 }
 
 #updates-download-dialog h1 {
-  text-transform:capitalize;
   font-size: 1.9rem;
   color: #fff;
   padding: 1.5rem 1rem 1.1rem 1rem;
