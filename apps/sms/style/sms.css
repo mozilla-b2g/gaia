@@ -48,6 +48,10 @@ section[role="region"] > header:first-child .icon.icon-clear {
   right: 0;
 }
 
+section[role="region"] > header:first-child .icon.icon-edit {
+  background-image: url(images/icons/edit-mode.png);
+}
+
 section[role="region"] > header:first-child form {
   display: none;
 }
