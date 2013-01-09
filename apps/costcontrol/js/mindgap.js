@@ -92,10 +92,11 @@
  *   c) date is latter then tag's start and there is no tag's end
  *
  * Now passing through this subset in reverse order we look for the first tag
- * with the SIM required. Two cases can occur:
- *   a) if the tag has no end or the end is not the goal date, -> usage =
+ * with the SIM required. Three cases can occur:
+ *   a) if there is a fixing value -> usage = curentUsage - fixing
+ *   b) if the tag has no end or the end is not the goal date, -> usage =
  *      (actual - <previous tag's current>) + <last tag with same SIM's offset>
- *   b) else -> usage = tag's offset
+ *   c) else -> usage = tag's offset
  *
  * Conclussions
  * ============
@@ -193,8 +194,11 @@ var MindGap = (function() {
       var ctag = todayTags[i];
       if (ctag.sim === tag.sim) {
 
-        // Opened tag
-        if (ctag.end === undefined || !sameDate(date, ctag.end)) {
+        // There is a fixing value
+        if ('fixing' in ctag) {
+          usage = currentUsage - ctag.fixing;
+        } else if (ctag.end === undefined || !sameDate(date, ctag.end)) {
+          // Opened tag
           var prevUsage = tags[i - 1] === undefined ? 0 : tags[i - 1].actual;
           usage = currentUsage - prevUsage + getLastOffset(sim, todayTags);
 
