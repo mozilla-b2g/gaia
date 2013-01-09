@@ -900,16 +900,27 @@ var WindowManager = (function() {
     }
   }
 
-  function restoreCurrentApp() {
-    toggleHomescreen(false);
-    var frame = getAppFrame(displayedApp);
-    frame.style.visibility = 'visible';
-    frame.classList.remove('back');
-    frame.classList.add('restored');
-    frame.addEventListener('transitionend', function removeRestored() {
-      frame.removeEventListener('transitionend', removeRestored);
-      frame.classList.remove('restored');
-    });
+  // If app parameter is passed,
+  // it means there's a specific app needs to be restored
+  // instead of current app
+  function restoreCurrentApp(app) {
+    if (app) {
+      // Restore app visibility immediately but don't open it.
+      var frame = getAppFrame(app);
+      frame.style.visibility = 'visible';
+      frame.classList.remove('back');
+    } else {
+      app = displayedApp;
+      toggleHomescreen(false);
+      var frame = getAppFrame(app);
+      frame.style.visibility = 'visible';
+      frame.classList.remove('back');
+      frame.classList.add('restored');
+      frame.addEventListener('transitionend', function removeRestored() {
+        frame.removeEventListener('transitionend', removeRestored);
+        frame.classList.remove('restored');
+      });
+    }
   }
 
   function toggleHomescreen(visible) {
@@ -1253,7 +1264,7 @@ var WindowManager = (function() {
           wrapperFooter.classList.add('visible');
         }
       }
-      screenElement.classList.remove('inline-activity');  
+      screenElement.classList.remove('inline-activity');
     }
   }
 
