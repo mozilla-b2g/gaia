@@ -383,14 +383,6 @@ button::-moz-focus-inner {
   background-color: #f00;
 }
 
-[data-passcode-status="success"] #lockscreen-passcode-code > span {
-  box-shadow: 0 0 0.8rem #0c0 inset;
-}
-
-[data-passcode-status="success"] #lockscreen-passcode-code > span[data-dot]::before {
-  background-color: #0c0;
-}
-
 #lockscreen-passcode-code > span[data-dot]::before {
   content: '';
   display: block;
