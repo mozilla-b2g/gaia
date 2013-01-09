@@ -163,12 +163,12 @@
 
       trans.onerror = function(event) {
         callback(event);
-      }
+      };
 
       trans.oncomplete = function() {
         callback(null, self._cached);
         self.emit('load', self._cached);
-      }
+      };
     },
 
     _addDependents: function() {},
@@ -282,11 +282,11 @@
         }
 
         callback(null, model);
-      }
+      };
 
       req.onerror = function(event) {
         callback(e);
-      }
+      };
     },
 
     /**
@@ -348,11 +348,11 @@
 
       req.onsuccess = function() {
         callback(null, req.result);
-      }
+      };
 
       req.onerror = function(e) {
         callback(e);
-      }
+      };
     },
 
     _objectData: function(data) {

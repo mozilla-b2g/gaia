@@ -24,6 +24,7 @@ Calendar.ns('Provider').Caldav = (function() {
     useUrl: true,
     useCredentials: true,
     canSync: true,
+    canExpandRecurringEvents: true,
 
     /**
      * Number of dates in the past to sync.
@@ -167,11 +168,20 @@ Calendar.ns('Provider').Caldav = (function() {
 
     _syncEvents: function(account, calendar, cached, callback) {
 
+      var startDate;
       // calculate the first date we want to sync
-      var startDate = calendar.firstEventSyncDate;
-      if (!startDate) {
+      if (!calendar.firstEventSyncDate) {
         startDate = Calendar.Calc.createDay(new Date());
+
+        // will be persisted if sync is successful (clone is required)
+        calendar.firstEventSyncDate = new Date(
+          startDate.valueOf()
+        );
+      } else {
+        startDate = new Date(calendar.firstEventSyncDate.valueOf());
       }
+
+      // start date - the amount of days is the sync range
       startDate.setDate(startDate.getDate() - this.daysToSyncInPast);
 
       var options = {
@@ -191,19 +201,27 @@ Calendar.ns('Provider').Caldav = (function() {
         calendar: calendar
       });
 
+      var calendarStore = this.app.store('Calendar');
+      var syncStart = new Date();
+
       stream.request(function(err) {
         if (err) {
           callback(err);
           return;
         }
 
-        pull.commit(function(commitErr) {
+        var trans = pull.commit(function(commitErr) {
           if (commitErr) {
             callback(err);
             return;
           }
           callback(null);
         });
+
+        calendar.lastEventSyncToken = calendar.remote.syncToken;
+        calendar.lastEventSyncDate = syncStart;
+
+        calendarStore.persist(calendar, trans);
 
       });
 
@@ -278,7 +296,116 @@ Calendar.ns('Provider').Caldav = (function() {
           callback
         );
       });
+    },
 
+    /**
+     * See abstract for contract details...
+     *
+     * Finds all ical components that have not been expanded
+     * beyond the given point and expands / persists them.
+     *
+     * @param {Date} maxDate maximum date to expand to.
+     * @param {Function} callback [err, didExpand].
+     */
+    ensureRecurrencesExpanded: function(maxDate, callback) {
+      var self = this;
+      this.icalComponents.findRecurrencesBefore(maxDate,
+                                                function(err, results) {
+        if (err) {
+          callback(err);
+          return;
+        }
+
+        if (!results.length) {
+          callback(null, false);
+          return;
+        }
+
+        // CaldavPullRequest is based on a calendar/account combination
+        // so we must group all of the outstanding components into
+        // their calendars before we can begin expanding them.
+        var groups = Object.create(null);
+        results.forEach(function(comp) {
+          var calendarId = comp.calendarId;
+          if (!(calendarId in groups)) {
+            groups[calendarId] = [];
+          }
+
+          groups[calendarId].push(comp);
+        });
+
+        var pullGroups = [];
+        var pending = 0;
+        var options = {
+          maxDate: Calendar.Calc.dateToTransport(maxDate)
+        };
+
+        function next(err, pull) {
+          pullGroups.push(pull);
+          if (!(--pending)) {
+            var trans = self.app.db.transaction(
+              ['icalComponents', 'alarms', 'busytimes'],
+              'readwrite'
+            );
+
+            trans.oncomplete = function() {
+              callback(null, true);
+            };
+
+            trans.onerror = function(event) {
+              callback(event.result.error.name);
+            };
+
+            pullGroups.forEach(function(pull) {
+              pull.commit(trans);
+            });
+          }
+        }
+
+        for (var calendarId in groups) {
+          pending++;
+          self._expandComponents(
+            calendarId,
+            groups[calendarId],
+            options,
+            next
+          );
+        }
+
+      });
+    },
+
+    _expandComponents: function(calendarId, comps, options, callback) {
+      var calStore = this.app.store('Calendar');
+      var calendar = calStore.cached[calendarId];
+      var account = calStore.accountFor(calendar);
+
+      var stream = this.service.stream(
+        'caldav',
+        'expandComponents',
+        comps,
+        options
+      );
+
+      var pull = new Calendar.Provider.CaldavPullEvents(
+        stream,
+        {
+          account: account,
+          calendar: calendar,
+          app: this.app,
+          stores: [
+            'busytimes', 'alarms', 'icalComponents'
+          ]
+        }
+      );
+
+      stream.request(function(err) {
+        if (err) {
+          callback(err);
+          return;
+        }
+        callback(null, pull);
+      });
     },
 
     createEvent: function(event, busytime, callback) {
@@ -314,7 +441,7 @@ Calendar.ns('Provider').Caldav = (function() {
 
           var component = {
             eventId: event._id,
-            data: remote.icalComponent
+            ical: remote.icalComponent
           }
 
           delete remote.icalComponent;
@@ -359,7 +486,7 @@ Calendar.ns('Provider').Caldav = (function() {
 
         var component = {
           eventId: event._id,
-          data: remote.icalComponent
+          ical: remote.icalComponent
         }
 
         delete remote.icalComponent;
@@ -389,7 +516,7 @@ Calendar.ns('Provider').Caldav = (function() {
 
         var details = {
           event: event.remote,
-          icalComponent: ical.data
+          icalComponent: ical.ical
         };
 
         self.service.request(
@@ -430,7 +557,6 @@ Calendar.ns('Provider').Caldav = (function() {
             callback(err);
             return;
           }
-
           Local.deleteEvent.call(self, event, busytime, callback);
         }
       );

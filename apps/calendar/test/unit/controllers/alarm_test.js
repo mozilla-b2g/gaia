@@ -77,7 +77,7 @@ suite('controllers/alarm', function() {
       realApi = navigator.mozSetMessageHandler;
       navigator.mozSetMessageHandler = function() {
         calledWith = arguments;
-      }
+      };
 
       realAlarmApi = navigator.mozAlarms;
       navigator.mozAlarms = {
@@ -86,7 +86,7 @@ suite('controllers/alarm', function() {
             currentAlarmTime = endTime;
 
           return mockRequest;
-        }, 
+        },
         remove: function(id) {
           removed = id;
           currentAlarmTime = null;
@@ -94,7 +94,7 @@ suite('controllers/alarm', function() {
       };
 
       wakeLock = {
-        done: null, 
+        done: null,
 
         unlock: function() {
           wakeLock.done();
@@ -120,7 +120,7 @@ suite('controllers/alarm', function() {
       worksQueue = false;
       alarmStore.workQueue = function() {
         worksQueue = true;
-      }
+      };
 
       subject.observe();
     });
@@ -133,7 +133,7 @@ suite('controllers/alarm', function() {
         done(function() {
           assert.equal(msg, 'foo');
         });
-      }
+      };
 
       calledWith[1]('foo');
     });
@@ -179,7 +179,7 @@ suite('controllers/alarm', function() {
 
         app.router.show = function(url) {
           sentTo = url;
-        }
+        };
 
         onsend = function() {
           done(function() {
@@ -189,7 +189,7 @@ suite('controllers/alarm', function() {
             assert.ok(sentTo);
             assert.include(sentTo, busytime._id);
           });
-        }
+        };
 
         subject._sendAlarmNotification({}, event, busytime);
       });
@@ -230,7 +230,7 @@ suite('controllers/alarm', function() {
 
         subject._sendAlarmNotification = function() {
           sent.push(arguments);
-        }
+        };
       });
 
       function setupAlarms(cb) {
@@ -328,7 +328,7 @@ suite('controllers/alarm', function() {
       });
 
     });
-    
+
     test('sync alarm', function() {
       function sendId(id) {
         mockRequest.onsuccess({
@@ -352,7 +352,7 @@ suite('controllers/alarm', function() {
       assert.equal(difference, 30);
       sendId(1);
       assert.equal(removed, null);
-      
+
       // Test setting sync to 15 minutes
       settingStore.set('syncFrequency', 15);
       var difference = Math.round((currentAlarmTime - new Date()) / 1000 / 60);

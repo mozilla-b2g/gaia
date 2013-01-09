@@ -61,7 +61,7 @@ suite('views/day', function() {
       calledTime = null;
       subject.changeDate = function() {
         calledTime = arguments;
-      }
+      };
 
       // events are only listened to when
       // activated...
@@ -124,7 +124,7 @@ suite('views/day', function() {
 
     subject.changeDate = function() {
       calledWith = arguments;
-    }
+    };
 
     subject.render();
 
@@ -140,7 +140,7 @@ suite('views/day', function() {
 
       subject.changeDate = function() {
         calledWith = arguments;
-      }
+      };
 
       // start in active state
       subject.onactive();

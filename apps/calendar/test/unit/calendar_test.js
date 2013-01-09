@@ -17,6 +17,19 @@ suite('calendar', function() {
     assert.equal(subject.compare(10, 10), 0);
   });
 
+  test('#nextTick', function(done) {
+    var inc = 0;
+    subject.nextTick(function() {
+      assert.equal(inc, 1);
+      subject.nextTick(function() {
+        assert.equal(inc, 2);
+        subject.nextTick(done);
+      });
+      inc++;
+    });
+    inc = 1;
+  });
+
   // quick sanity check
   suite('binsearch', function() {
     suite('.insert', function() {

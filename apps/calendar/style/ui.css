@@ -103,7 +103,7 @@ ol.link-list a {
   display: none;
 }
 
-.sync-in-progress #progress-indicator {
+.pending-operation #progress-indicator {
   display: block
 }
 

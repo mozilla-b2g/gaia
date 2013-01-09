@@ -38,7 +38,7 @@ suite('router', function() {
       object.onactive = function() {
         calledWith = arguments;
         object.onactiveCalled = true;
-      }
+      };
       subject.mangeObject(object, 'foo');
       assert.ok(object.onactiveCalled);
       assert.equal(subject._activeObjects[0], object);

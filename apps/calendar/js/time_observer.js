@@ -12,7 +12,7 @@ Calendar.TimeObserver = (function() {
         given[key] = proto[key];
       }
     }
-  }
+  };
 
   TimeObserver.prototype = {
    /**

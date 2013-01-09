@@ -85,7 +85,7 @@ suite('views/month', function() {
 
       subject._clearSelectedDay = function() {
         calledClear = true;
-      }
+      };
 
       subject.changeDate = function(month) {
         calledActivateTime = month;
@@ -104,7 +104,7 @@ suite('views/month', function() {
 
       subject._selectDay = function() {
         calledWith = arguments;
-      }
+      };
 
       controller.selectedDay = date;
       assert.deepEqual(calledWith[0], date);

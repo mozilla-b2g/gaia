@@ -8,15 +8,15 @@ Calendar.ns('Test').FakePage = (function() {
 
   page.show = function(item) {
     this.shown = item;
-  }
+  };
 
   page.start = function() {
     this.started = true;
-  }
+  };
 
   page.stop = function() {
     this.started = false;
-  }
+  };
 
   return page;
 }());

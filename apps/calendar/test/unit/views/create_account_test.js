@@ -56,7 +56,7 @@ suite('views/create_account', function() {
       var renderCalled = false;
       subject.render = function() {
         renderCalled = true;
-      }
+      };
 
       store.emit('add');
 
@@ -68,7 +68,7 @@ suite('views/create_account', function() {
       var renderCalled = false;
       subject.render = function() {
         renderCalled = true;
-      }
+      };
 
       store.emit('remove');
 

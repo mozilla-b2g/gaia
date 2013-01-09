@@ -323,7 +323,7 @@ suite('store/busytime', function() {
 
       trans.oncomplete = function() {
         done();
-      }
+      };
     });
 
     setup(function(done) {

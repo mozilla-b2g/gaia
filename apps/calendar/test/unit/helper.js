@@ -35,7 +35,7 @@
             cb(null, xhr.responseText);
           }
         }
-      }
+      };
       xhr.send(null);
     },
 
@@ -71,6 +71,13 @@
     },
 
     app: function() {
+      if (Calendar.App._pendingManger) {
+        // hack to ensure clean tests
+        Calendar.App._pendingManger.objects.forEach(function(item) {
+          Calendar.App._pendingManger.unregister(item);
+        });
+      }
+
       Calendar.App.configure(
         this.db(),
         new Calendar.Router(Calendar.Test.FakePage)
@@ -150,7 +157,7 @@
         );
       }
     }
-  }
+  };
 
   /* require most of the coupled / util objects */
 
