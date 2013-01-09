@@ -82,12 +82,16 @@ var WindowManager = (function() {
   // {
   //    name: the app's name
   //    manifest: the app's manifest object
-  //    frame: the iframe element that the app is displayed in
+  //    appWindow: an object contains:
+  //                {
+  //                  frame: the iframe element that the app is displayed in
+  //                  container: the div element that the app frame is contained
+  //                }
   //    launchTime: last time when app gets active
   // }
   //
   var runningApps = {};
-  var numRunningApps = 0; // appendFrame() and removeFrame() maintain this count
+  var numRunningApps = 0; // appendFrame() and removeWindow() maintain this count
   var nextAppId = 0;      // to give each app's iframe a unique id attribute
 
   // The origin of the currently displayed app, or null if there isn't one
@@ -157,7 +161,16 @@ var WindowManager = (function() {
 
   function getAppFrame(origin) {
     if (isRunning(origin))
-      return runningApps[origin].frame;
+      return runningApps[origin].appWindow.frame;
+    else
+      return null;
+  }
+
+
+  // For internally use of window manager now
+  function getAppWindow(origin) {
+    if (isRunning(origin))
+      return runningApps[origin].appWindow;
     else
       return null;
   }
@@ -172,7 +185,8 @@ var WindowManager = (function() {
     if (!app)
       return;
 
-    var frame = app.frame;
+    var frame = app.appWindow.frame;
+    var container = app.appWindow.container;
     var manifest = app.manifest;
 
     var cssWidth = window.innerWidth + 'px';
@@ -187,8 +201,8 @@ var WindowManager = (function() {
       cssHeight = window.innerHeight + 'px';
     }
 
-    frame.style.width = cssWidth;
-    frame.style.height = cssHeight;
+    container.style.width = cssWidth;
+    container.style.height = cssHeight;
 
     // We will call setInlineActivityFrameSize()
     // if changeActivityFrame is not explicitly set to false.
@@ -202,8 +216,9 @@ var WindowManager = (function() {
     if (!app)
       return;
 
-    var frame = app.frame;
-    var manifest = app.manifest;
+    var frame = app.appWindow.frame;
+    var manifest = app.appWindow.manifest;
+    var container = app.container;
 
     var cssHeight =
       window.innerHeight - StatusBar.height - keyboardHeight + 'px';
@@ -213,7 +228,7 @@ var WindowManager = (function() {
       cssHeight = window.innerHeight - keyboardHeight + 'px';
     }
 
-    frame.style.height = cssHeight;
+    container.style.height = cssHeight;
 
     setInlineActivityFrameSize();
   }
@@ -224,21 +239,23 @@ var WindowManager = (function() {
       return;
 
     var app = runningApps[displayedApp];
-    var appFrame = app.frame;
+    var appFrame = app.appWindow.frame;
+    var appContainer = app.appWindow.container;
     var frame = inlineActivityFrames[inlineActivityFrames.length - 1];
+    var inlineFrameContainer = frame.parentNode;
 
-    frame.style.width = appFrame.style.width;
+    inlineFrameContainer.style.width = appContainer.style.width;
 
     if (document.mozFullScreen) {
-      frame.style.height = window.innerHeight + 'px';
-      frame.style.top = '0px';
+      inlineFrameContainer.style.height = window.innerHeight + 'px';
+      inlineFrameContainer.style.top = '0px';
     } else {
       if ('wrapper' in appFrame.dataset) {
-        frame.style.height = window.innerHeight - StatusBar.height + 'px';
+        inlineFrameContainer.style.height = window.innerHeight - StatusBar.height + 'px';
       } else {
-        frame.style.height = appFrame.style.height;
+        inlineFrameContainer.style.height = appContainer.style.height;
       }
-      frame.style.top = appFrame.offsetTop + 'px';
+      inlineFrameContainer.style.top = appContainer.offsetTop + 'px';
     }
   }
 
@@ -265,64 +282,70 @@ var WindowManager = (function() {
     frame.style.background = '';
   }
 
-  var openFrame = null;
-  var closeFrame = null;
+  var openWindow = null;
+  var closeWindow = null;
   var openCallback = null;
   var closeCallback = null;
   var transitionOpenCallback = null;
   var transitionCloseCallback = null;
 
-  // Use setOpenFrame() to reset the CSS classes set
+  // Use setOpenWindow() to reset the CSS classes set
   // to the current openFrame (before overwriting the reference)
-  function setOpenFrame(frame) {
-    if (openFrame) {
-      removeFrameClasses(openFrame);
+  function setOpenWindow(appWindow) {
+    if (openWindow) {
+      removeWindowClasses(openWindow.container);
     }
 
-    openFrame = frame;
+    openWindow = appWindow;
   }
 
-  // Use setCloseFrame() to reset the CSS classes set
+  // Use setCloseWindow() to reset the CSS classes set
   // to the current closeFrame (before overwriting the reference)
-  function setCloseFrame(frame) {
-    if (closeFrame) {
-      removeFrameClasses(closeFrame);
+  function setCloseWindow(appWindow) {
+    if (closeWindow) {
+      removeWindowClasses(closeWindow.container);
       // closeFrame should not be set to active
-      closeFrame.classList.remove('active');
+      closeWindow.container.classList.remove('active');
     }
 
-    closeFrame = frame;
+    closeWindow = appWindow;
   }
 
   // Remove these visible className from frame so we will not ended
   // up having a frozen frame in the middle of the transition
-  function removeFrameClasses(frame) {
+  function removeWindowClasses(container) {
     var classNames = ['opening', 'closing', 'opening-switching',
       'opening-card', 'closing-card'];
 
-    var classList = frame.classList;
+    var classList = container.classList;
 
     classNames.forEach(function removeClass(className) {
       classList.remove(className);
     });
   }
 
-  windows.addEventListener('transitionend', function frameTransitionend(evt) {
+  windows.addEventListener('transitionend', function windowTransitionend(evt) {
     var prop = evt.propertyName;
-    var frame = evt.target;
+    var container = evt.target;
     if (prop !== 'transform')
       return;
+    var appWindow = {
+      container: container,
+      // XXX: fix this in the future.
+      frame: container.querySelector('iframe')
+    };
+    
 
-    var classList = frame.classList;
+    var classList = container.classList;
 
     if (classList.contains('inlineActivity')) {
       if (classList.contains('active')) {
-        if (openFrame)
-          openFrame.focus();
+        if (openWindow)
+          openWindow.frame.focus();
 
-        setOpenFrame(null);
+        setOpenWindow(null);
       } else {
-        windows.removeChild(frame);
+        windows.removeChild(container);
       }
 
       return;
@@ -333,12 +356,12 @@ var WindowManager = (function() {
         classList.remove('closing');
         classList.add('closing-card');
 
-        if (openFrame) {
-          openFrame.classList.remove('opening-card');
-          openFrame.classList.add('opening-switching');
+        if (openWindow) {
+          openWindow.container.classList.remove('opening-card');
+          openWindow.container.classList.add('opening-switching');
         }
       } else if (classList.contains('closing-card')) {
-        windowClosed(frame);
+        windowClosed(appWindow);
         setTimeout(closeCallback);
         closeCallback = null;
 
@@ -356,13 +379,13 @@ var WindowManager = (function() {
           classList.add('opening');
         });
       } else if (classList.contains('opening')) {
-        windowOpened(frame);
+        windowOpened(appWindow);
 
         setTimeout(openCallback);
         openCallback = null;
 
-        setCloseFrame(null);
-        setOpenFrame(null);
+        setCloseWindow(null);
+        setOpenWindow(null);
         screenElement.classList.remove('switch-app');
       }
 
@@ -370,39 +393,38 @@ var WindowManager = (function() {
     }
 
     if (classList.contains('opening')) {
-      windowOpened(frame);
+      windowOpened(appWindow);
 
       setTimeout(openCallback);
       openCallback = null;
 
-      setOpenFrame(null);
+      setOpenWindow(null);
     } else if (classList.contains('closing')) {
-      windowClosed(frame);
+      windowClosed(appWindow);
 
       setTimeout(closeCallback);
       closeCallback = null;
 
-      setCloseFrame(null);
+      setCloseWindow(null);
     }
   });
 
   // Executes when the opening transition scale the app
   // to full size.
-  function windowOpened(frame) {
-    frame.classList.add('active');
-    windows.classList.add('active');
+  function windowOpened(appWindow) {
+    appWindow.container.classList.add('active');
 
-    if ('wrapper' in frame.dataset) {
+    if ('wrapper' in appWindow.frame.dataset) {
       wrapperFooter.classList.add('visible');
     }
 
     // Take the focus away from the currently displayed app
     var app = runningApps[displayedApp];
-    if (app && app.frame)
-      app.frame.blur();
+    if (app && app.appWindow.frame)
+      app.appWindow.frame.blur();
 
     // Give the focus to the frame
-    frame.focus();
+    appWindow.frame.focus();
 
     if (!TrustedUIManager.isVisible() && !isRunningFirstRunApp) {
       // Set homescreen visibility to false
@@ -410,7 +432,7 @@ var WindowManager = (function() {
     }
 
     // Set displayedApp to the new value
-    displayedApp = frame.dataset.frameOrigin;
+    displayedApp = appWindow.frame.dataset.frameOrigin;
 
     // Set orientation for the new app
     setOrientationForApp(displayedApp);
@@ -418,13 +440,13 @@ var WindowManager = (function() {
     // Dispatch an 'appopen' event.
     var evt = document.createEvent('CustomEvent');
     evt.initCustomEvent('appopen', true, false, { origin: displayedApp });
-    frame.dispatchEvent(evt);
+    appWindow.frame.dispatchEvent(evt);
   }
 
   // Executes when app closing transition finishes.
-  function windowClosed(frame) {
+  function windowClosed(appWindow) {
     // If the FTU is closing, make sure we save this state
-    if (frame.src == ftuURL) {
+    if (appWindow.frame.src == ftuURL) {
       isRunningFirstRunApp = false;
       document.getElementById('screen').classList.remove('ftu');
       window.asyncStorage.setItem('ftu.enabled', false);
@@ -435,12 +457,11 @@ var WindowManager = (function() {
       window.dispatchEvent(evt);
     }
 
-    frame.classList.remove('active');
-    windows.classList.remove('active');
+    appWindow.container.classList.remove('active');
 
     // set the closed frame visibility to false
-    if ('setVisible' in frame)
-      frame.setVisible(false);
+    if ('setVisible' in appWindow.frame)
+      appWindow.frame.setVisible(false);
 
     screenElement.classList.remove('fullscreen-app');
   }
@@ -628,9 +649,9 @@ var WindowManager = (function() {
   }
 
   // Perform an "open" animation for the app's iframe
-  function openWindow(origin, callback) {
+  function openAppWindow(origin, callback) {
     var app = runningApps[origin];
-    setOpenFrame(app.frame);
+    setOpenWindow(app.appWindow);
 
     openCallback = callback || function() {};
 
@@ -648,15 +669,15 @@ var WindowManager = (function() {
 
       // Call the openCallback only once. We have to use tmp var as
       // openCallback can be a method calling the callback
-      // (like the `removeFrame` callback in `kill()` ).
+      // (like the `removeWindow` callback in `kill()` ).
       var tmpCallback = openCallback;
       openCallback = null;
       tmpCallback();
-
-      windows.classList.add('active');
-      openFrame.classList.add('homescreen');
-      openFrame.focus();
-      setOpenFrame(null);
+      
+      openWindow.container.classList.add('homescreen');
+      openWindow.frame.classList.add('homescreen');
+      openWindow.frame.focus();
+      setOpenWindow(null);
       displayedApp = origin;
 
       return;
@@ -667,31 +688,31 @@ var WindowManager = (function() {
 
     transitionOpenCallback = function startOpeningTransition() {
       // We have been canceled by another transition.
-      if (!openFrame || transitionOpenCallback != startOpeningTransition)
+      if (!openWindow || transitionOpenCallback != startOpeningTransition)
         return;
 
       // Make sure we're not called twice.
       transitionOpenCallback = null;
 
       if (!screenElement.classList.contains('switch-app')) {
-        openFrame.classList.add('opening');
+        openWindow.container.classList.add('opening');
       } else {
-        openFrame.classList.add('opening-card');
+        openWindow.container.classList.add('opening-card');
       }
     };
 
-    if ('unpainted' in openFrame.dataset) {
-      waitForNextPaintOrBackground(openFrame, transitionOpenCallback);
+    if ('unpainted' in openWindow.frame.dataset) {
+      waitForNextPaintOrBackground(openWindow, transitionOpenCallback);
     } else {
-      waitForNextPaint(openFrame, transitionOpenCallback);
+      waitForNextPaint(openWindow, transitionOpenCallback);
     }
 
     // Set the frame to be visible.
-    if ('setVisible' in openFrame)
-      openFrame.setVisible(true);
+    if ('setVisible' in openWindow.frame)
+      openWindow.frame.setVisible(true);
   }
 
-  function waitForNextPaintOrBackground(frame, callback) {
+  function waitForNextPaintOrBackground(appWindow, callback) {
     var waiting = true;
     function proceed() {
       if (waiting) {
@@ -700,8 +721,8 @@ var WindowManager = (function() {
       }
     }
 
-    waitForNextPaint(frame, proceed);
-    setFrameBackground(frame, proceed);
+    waitForNextPaint(appWindow.frame, proceed);
+    setFrameBackground(appWindow.frame, proceed);
   }
 
   function waitForNextPaint(frame, callback) {
@@ -723,9 +744,9 @@ var WindowManager = (function() {
   }
 
   // Perform a "close" animation for the app's iframe
-  function closeWindow(origin, callback) {
+  function closeAppWindow(origin, callback) {
     var app = runningApps[origin];
-    setCloseFrame(app.frame);
+    setCloseWindow(app.appWindow);
     closeCallback = callback || function() {};
 
     // Animate the window close.  Ensure the homescreen is in the
@@ -733,10 +754,10 @@ var WindowManager = (function() {
     var homescreenFrame = ensureHomescreen();
 
     // invoke openWindow to show homescreen here
-    openWindow(homescreen, null);
+    openAppWindow(homescreen, null);
 
     // Take keyboard focus away from the closing window
-    closeFrame.blur();
+    closeWindow.frame.blur();
 
     // set orientation for homescreen app
     setOrientationForApp(homescreen);
@@ -751,20 +772,24 @@ var WindowManager = (function() {
     // See https://github.com/andreasgal/gaia/issues/832
     var evt = document.createEvent('CustomEvent');
     evt.initCustomEvent('appwillclose', true, false, { origin: origin });
-    closeFrame.dispatchEvent(evt);
+    closeWindow.frame.dispatchEvent(evt);
+
+    if ('wrapper' in closeWindow.frame.dataset) {
+      wrapperHeader.classList.remove('visible');
+      wrapperFooter.classList.remove('visible');
+    }
 
     transitionCloseCallback = function startClosingTransition() {
       // We have been canceled by another transition.
-      if (!closeFrame || transitionCloseCallback != startClosingTransition)
+      if (!closeWindow || transitionCloseCallback != startClosingTransition)
         return;
 
       // Make sure we're not called twice.
       transitionCloseCallback = null;
-
       // Start the transition
-      closeFrame.classList.add('closing');
-      closeFrame.classList.remove('active');
-      if ('wrapper' in closeFrame.dataset) {
+      closeWindow.container.classList.add('closing');
+      closeWindow.container.classList.remove('active');
+      if ('wrapper' in closeWindow.frame.dataset) {
         wrapperHeader.classList.remove('visible');
         wrapperFooter.classList.remove('visible');
       }
@@ -775,21 +800,21 @@ var WindowManager = (function() {
 
   // Perform a "switching" animation for the closing frame and the opening frame
   function switchWindow(origin, callback) {
-    // This will trigger different transition to both openWindow()
-    // and closeWindow() transition.
+    // This will trigger different transition to both openAppWindow()
+    // and closeAppWindow() transition.
     screenElement.classList.add('switch-app');
 
-    // Ask closeWindow() to start closing the displayedApp
-    closeWindow(displayedApp, callback);
+    // Ask closeAppWindow() to start closing the displayedApp
+    closeAppWindow(displayedApp, callback);
 
-    // Ask openWindow() to show a card on the right waiting to be opened
-    openWindow(origin);
+    // Ask openAppWindow() to show a card on the right waiting to be opened
+    openAppWindow(origin);
   }
 
   // Ensure the homescreen is loaded and return its frame.  Restarts
   // the homescreen app if it was killed in the background.
-  // Note: this function would not invoke openWindow(homescreen),
-  // which should be handled in setDisplayedApp and in closeWindow()
+  // Note: this function would not invoke openAppWindow(homescreen),
+  // which should be handled in setDisplayedApp and in closeAppWindow()
   function ensureHomescreen(reset) {
     // If the url of the homescreen is not known at this point do nothing.
     if (!homescreen || !homescreenManifestURL) {
@@ -801,14 +826,14 @@ var WindowManager = (function() {
       appendFrame(null, homescreen, homescreenURL,
                   app.manifest.name, app.manifest, app.manifestURL);
     } else if (reset) {
-      runningApps[homescreen].frame.src = homescreenURL;
+      runningApps[homescreen].appWindow.frame.src = homescreenURL;
     }
 
     // need to setAppSize or for the first time, or from FTU to homescreen
     // the dock position would be incorrect.
     setAppSize(homescreen);
 
-    return runningApps[homescreen].frame;
+    return runningApps[homescreen].appWindow.frame;
   }
 
   function retrieveHomescreen(callback) {
@@ -887,28 +912,39 @@ var WindowManager = (function() {
       return;
 
     toggleHomescreen(true);
-    var frame = getAppFrame(displayedApp);
-    frame.classList.add('back');
-    frame.classList.remove('restored');
+    var appWindow = getAppWindow(displayedApp);
+    appWindow.container.classList.add('back');
+    appWindow.container.classList.remove('restored');
     if (callback) {
-      frame.addEventListener('transitionend', function execCallback() {
-        frame.style.visibility = 'hidden';
-        frame.removeEventListener('transitionend', execCallback);
+      appWindow.container.addEventListener('transitionend', function execCallback() {
+        appWindow.container.style.visibility = 'hidden';
+        appWindow.container.removeEventListener('transitionend', execCallback);
         callback();
       });
     }
   }
 
-  function restoreCurrentApp() {
-    toggleHomescreen(false);
-    var frame = getAppFrame(displayedApp);
-    frame.style.visibility = 'visible';
-    frame.classList.remove('back');
-    frame.classList.add('restored');
-    frame.addEventListener('transitionend', function removeRestored() {
-      frame.removeEventListener('transitionend', removeRestored);
-      frame.classList.remove('restored');
-    });
+  // If app parameter is passed,
+  // it means there's a specific app needs to be restored
+  // instead of current app
+  function restoreCurrentApp(app) {
+    if (app) {
+      // Restore app visibility immediately but don't open it.
+      var appWindow = getAppWindow(app);
+      appWindow.container.style.visibility = 'visible';
+      appWindow.container.classList.remove('back');
+    } else {
+      app = displayedApp;
+      toggleHomescreen(false);
+      var appWindow = getAppWindow(app);
+      appWindow.container.style.visibility = 'visible';
+      appWindow.container.classList.remove('back');
+      appWindow.container.classList.add('restored');
+      appWindow.container.addEventListener('transitionend', function removeRestored() {
+        appWindow.container.removeEventListener('transitionend', removeRestored);
+        appWindow.container.classList.remove('restored');
+      });
+    }
   }
 
   function toggleHomescreen(visible) {
@@ -939,17 +975,17 @@ var WindowManager = (function() {
     // Before starting a new transition, let's make sure current transitions
     // are stopped and the state classes are cleaned up.
     // visibility status should also be reset.
-    if (openFrame && 'setVisible' in openFrame)
-      openFrame.setVisible(false);
-    if (closeFrame && 'setVisible' in closeFrame)
-      closeFrame.setVisible(false);
+    if (openWindow && 'setVisible' in openWindow.frame)
+      openWindow.frame.setVisible(false);
+    if (closeWindow && 'setVisible' in closeWindow.frame)
+      closeWindow.frame.setVisible(false);
 
     if (!isFirstRunApplication) {
       toggleHomescreen(true);
     }
 
-    setOpenFrame(null);
-    setCloseFrame(null);
+    setOpenWindow(null);
+    setCloseWindow(null);
     screenElement.classList.remove('switch-app');
     screenElement.classList.remove('fullscreen-app');
 
@@ -958,7 +994,7 @@ var WindowManager = (function() {
       var evt = document.createEvent('CustomEvent');
       evt.initCustomEvent('appwillopen', true, true, { origin: newApp });
       // Allows listeners to cancel app opening and so stay on homescreen
-      if (!runningApps[newApp].frame.dispatchEvent(evt)) {
+      if (!runningApps[newApp].appWindow.frame.dispatchEvent(evt)) {
         if (typeof(callback) == 'function')
           callback();
         return;
@@ -969,7 +1005,7 @@ var WindowManager = (function() {
     if (currentApp && currentApp == newApp) {
       if (newApp == homescreen) {
         // relaunch homescreen
-        openWindow(homescreen, callback);
+        openAppWindow(homescreen, callback);
       } else if (callback) {
         // Just run the callback right away if it is not homescreen
         callback();
@@ -978,7 +1014,7 @@ var WindowManager = (function() {
     // Case 2: null --> app
     else if (isFirstRunApplication) {
       isRunningFirstRunApp = true;
-      openWindow(newApp, function windowOpened() {
+      openAppWindow(newApp, function windowOpened() {
         handleInitlogo(function() {
           var mainScreen = document.getElementById('screen');
           mainScreen.classList.add('ftu');
@@ -989,12 +1025,12 @@ var WindowManager = (function() {
     // Case 3: null->homescreen || homescreen->app
     else if ((!currentApp && newApp == homescreen) ||
              (currentApp == homescreen && newApp)) {
-      openWindow(newApp, callback);
+      openAppWindow(newApp, callback);
     }
     // Case 4: app->homescreen
     else if (currentApp && currentApp != homescreen && newApp == homescreen) {
       // For screenshot to catch current window size
-      closeWindow(currentApp, callback);
+      closeAppWindow(currentApp, callback);
     }
     // Case 5: app-to-app transition
     else {
@@ -1003,9 +1039,9 @@ var WindowManager = (function() {
     // Set homescreen as active,
     // to control the z-index between homescreen & keyboard iframe
     if ((newApp == homescreen) && homescreenFrame) {
-      homescreenFrame.classList.add('active');
+      homescreenFrame.parentNode.classList.add('active');
     } else {
-      homescreenFrame.classList.remove('active');
+      homescreenFrame.parentNode.classList.remove('active');
     }
 
     // Record the time when app was launched,
@@ -1112,8 +1148,13 @@ var WindowManager = (function() {
       frame.setAttribute('mozapptype', 'homescreen');
     }
 
+    var frameContainer = document.createElement('div');
+    frameContainer.id = 'appWindow' + nextAppId;
+    frameContainer.classList.add('windowContainer');
+
     // Add the iframe to the document
-    windows.appendChild(frame);
+    frameContainer.appendChild(frame);
+    windows.appendChild(frameContainer);
 
     // And map the app origin to the info we need for the app
     var app = {
@@ -1127,18 +1168,21 @@ var WindowManager = (function() {
       },
       _name: name,
       manifest: manifest,
-      frame: frame,
+      appWindow: {
+        frame: frame,
+        container: frameContainer
+      },
       launchTime: 0
     };
     runningApps[origin] = app;
 
     if (requireFullscreen(origin)) {
-      frame.classList.add('fullscreen-app');
+      frameContainer.classList.add('fullscreen-app');
     }
     if (origin === ftuURL) {
       // Add a way to identify ftu app
       // (Used by SimLock)
-      frame.classList.add('ftu');
+      frameContainer.classList.add('ftu');
     }
 
     // A frame should start with visible false
@@ -1163,43 +1207,52 @@ var WindowManager = (function() {
     // Set the size
     setInlineActivityFrameSize();
 
+    var frameContainer = document.createElement('div');
+    frameContainer.classList.add('inlineActivity');
+    frameContainer.classList.add('windowContainer');
+
     // Add the iframe to the document
-    windows.appendChild(frame);
+    frameContainer.appendChild(frame);
+    windows.appendChild(frameContainer);
 
     // Open the frame, first, store the reference
-    openFrame = frame;
+    openWindow = {
+      frame: frame,
+      container: frameContainer
+    };
 
     // set the frame to visible state
-    openFrame.setVisible(true);
+    frame.setVisible(true);
 
-    setFrameBackground(openFrame, function gotBackground() {
+    setFrameBackground(openWindow, function gotBackground() {
       // Start the transition when this async/sync callback is called.
-      openFrame.classList.add('active');
+      openWindow.container.classList.add('active');
       if (inlineActivityFrames.length == 1)
         activityCallerOrigin = displayedApp;
-      if ('wrapper' in runningApps[displayedApp].frame.dataset) {
+      if ('wrapper' in runningApps[displayedApp].appWindow.frame.dataset) {
         wrapperFooter.classList.remove('visible');
         wrapperHeader.classList.remove('visible');
       }
     });
   }
 
-  function removeFrame(origin) {
+  function removeWindow(origin) {
     var app = runningApps[origin];
     var frame = app.frame;
+    var container = app.container;
 
-    if (frame) {
-      windows.removeChild(frame);
+    if (container) {
+      windows.removeChild(container);
       clearFrameBackground(frame);
     }
 
-    if (openFrame == frame) {
-      setOpenFrame(null);
+    if (openWindow.frame == frame) {
+      setOpenWindow(null);
       setTimeout(openCallback);
       openCallback = null;
     }
-    if (closeFrame == frame) {
-      setCloseFrame(null);
+    if (closeWindow.frame == frame) {
+      setCloseWindow(null);
       setTimeout(closeCallback);
       closeCallback = null;
     }
@@ -1210,19 +1263,19 @@ var WindowManager = (function() {
 
   function removeInlineFrame(frame) {
     // If frame is transitioning we should remove the reference
-    if (openFrame == frame)
-      setOpenFrame(null);
+    if (openWindow.frame == frame)
+      setOpenWindow(null);
 
     // If frame is never set visible, we can remove the frame directly
     // without closing transition
-    if (!frame.classList.contains('active')) {
-      windows.removeChild(frame);
+    if (!frame.parentNode.classList.contains('active')) {
+      windows.removeChild(frame.parentNode);
       return;
     }
     // Take keyboard focus away from the closing window
     frame.blur();
     // Remove the active class and start the closing transition
-    frame.classList.remove('active');
+    frame.parentNode.classList.remove('active');
   }
 
   // If all is not specified,
@@ -1252,7 +1305,7 @@ var WindowManager = (function() {
           wrapperFooter.classList.add('visible');
         }
       }
-      screenElement.classList.remove('inline-activity');  
+      screenElement.classList.remove('inline-activity');
     }
   }
 
@@ -1468,7 +1521,7 @@ var WindowManager = (function() {
             // Immediatly blur the frame in order to ensure hiding the keyboard
             var app = runningApps[displayedApp];
             if (app)
-              app.frame.blur();
+              app.appWindow.frame.blur();
         }
         break;
     }
@@ -1482,15 +1535,15 @@ var WindowManager = (function() {
     var app = runningApps[displayedApp];
     if (!app)
       return;
-    if ('setVisible' in app.frame)
-      app.frame.setVisible(visible);
+    if ('setVisible' in app.appWindow.frame)
+      app.appWindow.frame.setVisible(visible);
 
     // Restore/give away focus on visiblity change
     // so that the app can take back its focus
     if (visible)
-      app.frame.focus();
+      app.appWindow.frame.focus();
     else
-      app.frame.blur();
+      app.appWindow.frame.blur();
   }
 
   function handleAppCrash(origin, manifestURL) {
@@ -1591,7 +1644,7 @@ var WindowManager = (function() {
     var callerFrame = evt.target;
     var manifestURL = callerFrame.getAttribute('mozapp');
     var callerApp = Applications.getByManifestURL(manifestURL);
-    if (!callerApp || !callerFrame.classList.contains('homescreen'))
+    if (!callerApp || !callerFrame.parentNode.classList.contains('homescreen'))
       return;
     var callerOrigin = callerApp.origin;
 
@@ -1633,7 +1686,7 @@ var WindowManager = (function() {
       }
     }
 
-    var title = '', icon = ''; var remote = false;
+    var title = '', icon = '', remote = false, useAsyncPanZoom = false;
     var originName, originURL, searchName, searchURL;
 
     try {
@@ -1652,6 +1705,9 @@ var WindowManager = (function() {
         searchName = features.search.name.replace(regExp, ' ');
         searchURL = decodeURIComponent(features.search.url);
       }
+
+      if (features.useAsyncPanZoom)
+        useAsyncPanZoom = true;
     } catch (ex) { }
 
     // If we don't reuse an existing app, open a brand new one
@@ -1676,6 +1732,13 @@ var WindowManager = (function() {
         wrapperHeader.classList.remove('visible');
       });
 
+      // `mozasyncpanzoom` only works when added before attaching the iframe
+      // node to the document.
+      if (useAsyncPanZoom) {
+        frame.dataset.useAsyncPanZoom = true;
+        frame.setAttribute('mozasyncpanzoom', 'true');
+      }
+
       var app = appendFrame(frame, origin, url, title, {
         'name': title
       }, null);
@@ -1684,7 +1747,7 @@ var WindowManager = (function() {
       // a new window with same name
       app.windowName = name;
     } else {
-      frame = app.frame;
+      frame = app.appWindow.frame;
 
       // Update app name for the card view
       app.manifest.name = title;
@@ -1727,7 +1790,7 @@ var WindowManager = (function() {
       // when the homescreen is displayed and being
       // killed we need to forcibly restart it...
       if (origin === homescreen) {
-        removeFrame(origin);
+        removeWindow(origin);
 
         // XXX workaround bug 810431.
         // we need this here and not in other situations
@@ -1741,14 +1804,14 @@ var WindowManager = (function() {
         });
       } else {
         setDisplayedApp(homescreen, function() {
-          removeFrame(origin);
+          removeWindow(origin);
           if (callback)
             setTimeout(callback);
         });
       }
 
     } else {
-      removeFrame(origin);
+      removeWindow(origin);
     }
 
     // Send a synthentic 'appterminated' event.
@@ -1765,7 +1828,7 @@ var WindowManager = (function() {
       return;
 
     var app = runningApps[origin];
-    app.frame.reload(true);
+    app.appWindow.frame.reload(true);
   }
 
   // When a resize event occurs, resize the running app, if there is one
@@ -1797,7 +1860,7 @@ var WindowManager = (function() {
 
     // If we are currently transitioning, the user would like to cancel
     // it instead of toggling homescreen panels.
-    var inTransition = !!(openFrame || closeFrame);
+    var inTransition = !!(openWindow || closeWindow);
 
     if (document.mozFullScreen) {
       document.mozCancelFullScreen();

@@ -177,7 +177,7 @@ var CardsView = (function() {
 
     // If there is a displayed app, take keyboard focus away
     if (displayedApp)
-      runningApps[displayedApp].frame.blur();
+      runningApps[displayedApp].appWindow.frame.blur();
 
     function addCard(origin, app, displayedAppCallback) {
       // Display card switcher background first to make user focus on the
@@ -186,7 +186,7 @@ var CardsView = (function() {
         setTimeout(displayedAppCallback);
       }
       // Not showing homescreen
-      if (app.frame.classList.contains('homescreen')) {
+      if (app.appWindow.frame.classList.contains('homescreen')) {
         return;
       }
 
@@ -211,7 +211,7 @@ var CardsView = (function() {
       title.textContent = app.name;
       card.appendChild(title);
 
-      var frameForScreenshot = app.frame;
+      var frameForScreenshot = app.appWindow.frame;
 
       if (PopupManager.getPopupFromOrigin(origin)) {
         var popupFrame = PopupManager.getPopupFromOrigin(origin);
@@ -222,11 +222,11 @@ var CardsView = (function() {
           PopupManager.getOpenedOriginFromOpener(origin);
         card.appendChild(subtitle);
         card.classList.add('popup');
-      } else if (getOffOrigin(app.frame.dataset.url ?
-            app.frame.dataset.url : app.frame.src, origin)) {
+      } else if (getOffOrigin(app.appWindow.frame.dataset.url ?
+            app.appWindow.frame.dataset.url : app.appWindow.frame.src, origin)) {
         var subtitle = document.createElement('p');
         subtitle.textContent = getOffOrigin(app.frame.dataset.url ?
-            app.frame.dataset.url : app.frame.src, origin);
+            app.appWindow.frame.dataset.url : app.appWindow.frame.src, origin);
         card.appendChild(subtitle);
       }
 
