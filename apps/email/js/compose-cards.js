@@ -46,11 +46,17 @@ function ComposeCard(domNode, mode, args) {
     addBtns[i].addEventListener('click', this.onContactAdd.bind(this));
   }
   // Add input focus:
-  var containerList = domNode.getElementsByClassName('cmp-bubble-container');
+  var containerList = domNode.getElementsByClassName('cmp-combo');
   for (var i = 0; i < containerList.length; i++) {
     containerList[i].addEventListener('click',
       this.onContainerClick.bind(this));
   }
+
+  // Add subject focus for larger hitbox
+  var subjectContainer = domNode.querySelector('.cmp-subject');
+  subjectContainer.addEventListener('click', function subjectFocus() {
+    subjectContainer.querySelector('input').focus();
+  });
 
   // Add attachments
   var attachmentsContainer =
