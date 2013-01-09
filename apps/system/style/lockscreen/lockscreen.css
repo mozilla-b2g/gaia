@@ -449,7 +449,7 @@ button::-moz-focus-inner {
   text-shadow: 0 0 3px #000;
 }
 
-#lockscreen-passcode-pad > a:nth-child(3n+1) {
+#lockscreen-passcode-pad > a:nth-child(3n+1):not([data-key="b"]) {
   border-left: none;
 }
 
@@ -468,20 +468,15 @@ button::-moz-focus-inner {
   display: none;
 }
 
-@font-face {
-  font-family: 'Keyboard Symbols';
-  font-weight: bold;
-  src: url('fonts/Keyboard-Symbols.woff');
-}
-
 #lockscreen-passcode-pad > a[data-key="b"] {
   display: none;
-  text-align: center;
-  font-family: 'Keyboard Symbols', sans-serif;
+  background: url(images/icon-clear.png) no-repeat center center;
 }
 
 .passcode-entered #lockscreen-passcode-pad > a[data-key="b"] {
   display: block;
+  text-align: left;
+  text-indent: -9999px; 
 }
 
 #lockscreen-passcode-pad > a:active {
