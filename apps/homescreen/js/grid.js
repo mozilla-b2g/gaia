@@ -815,6 +815,13 @@ const GridManager = (function() {
         url.indexOf('https://') == 0)
       return url;
 
+    if (url.charAt(0) != '/') {
+      console.warn('`' + manifest.name + '` app icon is invalid. ' +
+                   'Manifest `icons` attribute should contain URLs -or- ' +
+                   'absolute paths from the origin field.');
+      return getDefaultIcon(app);
+    }
+
     if (app.origin.slice(-1) == '/')
       return app.origin.slice(0, -1) + url;
 
