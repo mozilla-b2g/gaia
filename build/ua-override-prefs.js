@@ -46,3 +46,4 @@ pref("general.useragent.override.hao123.com", "\(Mobile#(Android; Mobile"); // b
 pref("general.useragent.override.imdb.com", "\(Mobile#(Android; Mobile"); // bug 827634
 pref("general.useragent.override.lancenet.com.br", "\(Mobile#(Android; Mobile"); // bug 827576
 pref("general.useragent.override.webmotors.com.br", "\(Mobile#(Android; Mobile"); // bug 827573
+pref("general.useragent.override.mail.google.com", "\(Mobile#(Android; Mobile"); // bug 827869
