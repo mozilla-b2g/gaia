@@ -76,6 +76,20 @@
 #lockscreen-container {
   width: 100%;
   height: 100%;
+
+  /**
+   * Workaround bug 823418 by trigger a repaint as soon as .screenoff class
+   * is removed, remove me when the bug is fixed.
+   */
+  transition: opacity 0.1s ease;
+}
+
+/**
+ * Workaround bug 823418 by trigger a repaint as soon as .screenoff class
+ * is removed, remove me when the bug is fixed.
+ */
+.screenoff #lockscreen-container {
+  opacity: 0.99;
 }
 
 .lockscreen-panel {
