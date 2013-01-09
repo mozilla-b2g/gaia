@@ -70,7 +70,7 @@ var ModalDialog = {
         break;
 
       case 'click':
-        if (evt.currentTarget.nodeName == "BUTTON" ||
+        if (evt.currentTarget.nodeName == 'BUTTON' ||
             evt.currentTarget == elements.customPromptButtons) {
           evt.preventDefault();
         }
@@ -242,5 +242,10 @@ var ModalDialog = {
 
   originHasEvent: function(origin) {
     return origin in this.currentEvents;
+  },
+
+  clear: function ad_clear(origin) {
+    if (this.currentEvents[origin])
+      delete this.currentEvents[origin];
   }
 };
