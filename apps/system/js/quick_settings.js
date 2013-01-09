@@ -20,16 +20,6 @@ var QuickSettings = {
 
     var self = this;
 
-    // Disable data button if airplane mode is enabled
-    SettingsListener.observe('ril.radio.disabled', true, function(value) {
-      self.data.dataset.airplaneMode = value;
-      if (value) {
-        self.data.classList.add('quick-settings-airplane-mode');
-      } else {
-        self.data.classList.remove('quick-settings-airplane-mode');
-      }
-    });
-
     /*
       * Monitor data network icon
       */
@@ -124,12 +114,15 @@ var QuickSettings = {
       self.geolocationEnabled = value;
     });
 
-    // monitor power save mode
-    SettingsListener.observe('powersave.enabled', false, function(value) {
+    // monitor airplane mode
+    SettingsListener.observe('ril.radio.disabled', false, function(value) {
+      self.data.dataset.airplaneMode = value;
       if (value) {
-        self.powerSave.dataset.enabled = 'true';
+        self.data.classList.add('quick-settings-airplane-mode');
+        self.airplaneMode.dataset.enabled = 'true';
       } else {
-        delete self.powerSave.dataset.enabled;
+        self.data.classList.remove('quick-settings-airplane-mode');
+        delete self.airplaneMode.dataset.enabled;
       }
     });
   },
@@ -181,10 +174,10 @@ var QuickSettings = {
             });
             break;
 
-          case this.powerSave:
-            var enabled = !!this.powerSave.dataset.enabled;
+          case this.airplaneMode:
+            var enabled = !!this.airplaneMode.dataset.enabled;
             SettingsListener.getSettingsLock().set({
-              'powersave.enabled': !enabled
+              'ril.radio.disabled': !enabled
             });
             break;
 
@@ -219,7 +212,7 @@ var QuickSettings = {
 
   getAllElements: function qs_getAllElements() {
     // ID of elements to create references
-    var elements = ['wifi', 'data', 'bluetooth', 'power-save', 'full-app'];
+    var elements = ['wifi', 'data', 'bluetooth', 'airplane-mode', 'full-app'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {
