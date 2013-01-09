@@ -1,6 +1,8 @@
-/* 
- * Contact Manager
-*/
+/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
+'use strict';
+
 var ContactDataManager = {
   contactData: {},
 
@@ -9,26 +11,12 @@ var ContactDataManager = {
     if (!navigator.mozContacts) {
       return;
     }
-    var numNormalized = PhoneNumberManager.getNormalizedNumber(number);
-    // Based on E.164 (http://en.wikipedia.org/wiki/E.164)
-    if (number.length < 8) {
-      var options = {
-        filterBy: ['tel'],
-        filterOp: 'equals',
-        filterValue: number
-      };
-    } else {
-      // Based on E.164 (http://en.wikipedia.org/wiki/E.164)
-      // Some locals added a '0' at the beggining (UK, Sweden...)
-      if (numNormalized[0] == 0 || numNormalized[0] == '0') {
-        var numNormalized = Number(numNormalized.toString().substr(1));
-      }
-      var options = {
-        filterBy: ['tel'],
-        filterOp: 'contains',
-        filterValue: numNormalized
-      };
-    }
+    // Get contacts given a number
+    var options = {
+      filterBy: ['tel'],
+      filterOp: 'contains',
+      filterValue: number
+    };
     var self = this;
     var req = window.navigator.mozContacts.find(options);
     req.onsuccess = function onsuccess() {
