@@ -100,7 +100,9 @@ contacts.Settings = (function() {
       return;
     }
 
-    enableSIMImport(conn.cardState == 'ready');
+    // Card should either be "ready" (connected to network) or "null" (card in
+    // phone but cannot connect to network for some reason).
+    enableSIMImport(conn.cardState == 'ready' || conn.cardState == null);
   };
 
   // Disables/Enables the actions over the sim import functionality
