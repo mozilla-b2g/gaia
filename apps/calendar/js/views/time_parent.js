@@ -46,7 +46,7 @@ Calendar.ns('Views').TimeParent = (function() {
 
     _onswipe: function(data) {
       if (Math.abs(data.dx) < this.swipeThreshold)
-        return;
+        return false;
 
       var dir = data.direction;
       var controller = this.app.timeController;
@@ -57,6 +57,8 @@ Calendar.ns('Views').TimeParent = (function() {
       } else {
         controller.move(this._previousTime(this.date));
       }
+
+      return true;
     },
 
     handleEvent: function(e) {

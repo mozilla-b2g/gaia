@@ -61,6 +61,23 @@ Calendar.ns('Views').Month = (function() {
       this.delegate(this.element, 'click', '[data-date]', this);
     },
 
+    _onswipe: function() {
+      var didSwipe = Parent.prototype._onswipe.apply(this, arguments);
+      /**
+       * UX consideration:
+       *
+       * When we swipe the month view we want to hide
+       * the months day view. We do this by overriding
+       * _onswipe which returns true when it actually
+       * changes views. When we change views it means
+       * this class has caused a monthChange and we should
+       * hide the selectedDay.
+       */
+      if (didSwipe) {
+        this.controller.selectedDay = null;
+      }
+    },
+
     handleEvent: function(e, target) {
       Parent.prototype.handleEvent.apply(this, arguments);
 
@@ -70,7 +87,12 @@ Calendar.ns('Views').Month = (function() {
           this.controller.selectedDay = date;
           break;
         case 'selectedDayChange':
-          this._selectDay(e.data[0]);
+          // when the value is null clear the selected day.
+          if (!e.data[0]) {
+            this._clearSelectedDay();
+          } else {
+            this._selectDay(e.data[0]);
+          }
           break;
 
         case 'monthChange':

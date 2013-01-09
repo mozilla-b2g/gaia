@@ -9,6 +9,8 @@ Calendar.ns('Views').MonthsDay = (function() {
   MonthsDay.prototype = {
     __proto__: Parent.prototype,
 
+    inactiveClass: 'inactive',
+
     selectors: {
       element: '#months-day-view',
       events: '.day-events',
@@ -45,10 +47,12 @@ Calendar.ns('Views').MonthsDay = (function() {
         'agenda-date-format'
       );
 
+      template = template || '%A %e %B %Y';
+
       // maybe we should localize this output ?
       var format = this.app.dateFormat.localeFormat(
         this.date,
-        template || '%A %e %B %Y'
+        template
       );
 
       header.textContent = format;
@@ -56,15 +60,31 @@ Calendar.ns('Views').MonthsDay = (function() {
       header.dataset.l10nDateFormat = template;
     },
 
-    handleEvent: function(e) {
-      Parent.prototype.handleEvent.apply(this, arguments);
+    changeDate: function(date) {
+      if (date) {
+        this.element.classList.remove(this.inactiveClass);
+      } else {
+        this.element.classList.add(this.inactiveClass);
+        return;
+      }
 
+      return Parent.prototype.changeDate.apply(this, arguments);
+    },
+
+    handleEvent: function(e) {
       switch (e.type) {
         case 'selectedDayChange':
           this.changeDate(e.data[0], true);
           this._updateHeader();
           break;
+        default:
+          // selectedDayChange is handled in the parent and does
+          // virtually the same thing but can slow down rendering
+          // since we need to fetch things twice....
+          Parent.prototype.handleEvent.apply(this, arguments);
+          break;
       }
+
     },
 
     create: function() {},
