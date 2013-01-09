@@ -2676,7 +2676,7 @@ ICAL.Binary = (function() {
       if (aData instanceof ICAL.Component) {
         this.component = aData;
         this.tzid = this.component.getFirstPropertyValue('tzid');
-        return;
+        return null;
       }
 
       for (var key in OPTIONS) {
@@ -2729,7 +2729,6 @@ ICAL.Binary = (function() {
 
       // TODO: replace with bin search?
       for (;;) {
-        //console.log(change_num, change_num_to_use);
         var change = ICAL.helpers.clone(this.changes[change_num], true);
         if (change.utcOffset < change.prevUtcOffset) {
           ICAL.helpers.dumpn("Adjusting " + change.utcOffset);
@@ -3480,16 +3479,37 @@ ICAL.TimezoneService = (function() {
     addDuration: function icaltime_add(aDuration) {
       var mult = (aDuration.isNegative ? -1 : 1);
 
-      this.second += mult * aDuration.seconds;
-      this.minute += mult * aDuration.minutes;
-      this.hour += mult * aDuration.hours;
-      this.day += mult * aDuration.days;
-      this.day += mult * 7 * aDuration.weeks;
+      // because of the duration optimizations it is much
+      // more efficient to grab all the values up front
+      // then set them directly (which will avoid a normalization call).
+      // So we don't actually normalize until we need it.
+      var second = this.second;
+      var minute = this.minute;
+      var hour = this.hour;
+      var day = this.day;
+
+      second += mult * aDuration.seconds;
+      minute += mult * aDuration.minutes;
+      hour += mult * aDuration.hours;
+      day += mult * aDuration.days;
+      day += mult * 7 * aDuration.weeks;
+
+      this.second = second;
+      this.minute = minute;
+      this.hour = hour;
+      this.day = day;
     },
 
+    /**
+     * Subtract the date details (_excluding_ timezone).
+     * Useful for finding the relative difference between
+     * two time objects excluding their timezone differences.
+     *
+     * @return {ICAL.Duration} difference in duration.
+     */
     subtractDate: function icaltime_subtract(aDate) {
-      var unixTime = this.toUnixTime();
-      var other = aDate.toUnixTime();
+      var unixTime = this.toUnixTime() + this.utcOffset();
+      var other = aDate.toUnixTime() + aDate.utcOffset();
       var diff = (unixTime - other);
 
       return ICAL.Duration.fromSeconds(
@@ -3585,13 +3605,6 @@ ICAL.TimezoneService = (function() {
         }
       } else {
         return new Date(this.toUnixTime() * 1000);
-        var utcDate = this.convertToZone(ICAL.Timezone.utcTimezone);
-        if (this.isDate) {
-          return Date.UTC(this.year, this.month - 1, this.day);
-        } else {
-          return Date.UTC(this.year, this.month - 1, this.day,
-                          this.hour, this.minute, this.second, 0);
-        }
       }
     },
 
@@ -3694,10 +3707,16 @@ ICAL.TimezoneService = (function() {
     },
 
     fromUnixTime: function fromUnixTime(seconds) {
+      this.zone = ICAL.Timezone.utcTimezone;
       var epoch = ICAL.Time.epochTime.clone();
       epoch.adjust(0, 0, 0, seconds);
-      this.fromData(epoch);
-      this.zone = ICAL.Timezone.utcTimezone;
+
+      this.year = epoch.year;
+      this.month = epoch.month;
+      this.day = epoch.day;
+      this.hour = epoch.hour;
+      this.minute = epoch.minute;
+      this.second = epoch.second;
     },
 
     toUnixTime: function toUnixTime() {
@@ -5925,6 +5944,12 @@ ICAL.RecurExpansion = (function() {
 }());
 ICAL.Event = (function() {
 
+  function compareRangeException(a, b) {
+    if (a[0] > b[0]) return 1;
+    if (b[0] > a[0]) return -1;
+    return 0;
+  }
+
   function Event(component, options) {
     if (!(component instanceof ICAL.Component)) {
       options = component;
@@ -5937,7 +5962,9 @@ ICAL.Event = (function() {
       this.component = new ICAL.Component('vevent');
     }
 
+    this._rangeExceptionCache = Object.create(null);
     this.exceptions = Object.create(null);
+    this.rangeExceptions = [];
 
     if (options && options.strictExceptions) {
       this.strictExceptions = options.strictExceptions;
@@ -5949,6 +5976,8 @@ ICAL.Event = (function() {
   }
 
   Event.prototype = {
+
+    THISANDFUTURE: 'THISANDFUTURE',
 
     /**
      * List of related event exceptions.
@@ -5988,9 +6017,74 @@ ICAL.Event = (function() {
         throw new Error('attempted to relate unrelated exception');
       }
 
+      var id = obj.recurrenceId.toString();
+
       // we don't sort or manage exceptions directly
       // here the recurrence expander handles that.
-      this.exceptions[obj.recurrenceId.toString()] = obj;
+      this.exceptions[id] = obj;
+
+      // index RANGE=THISANDFUTURE exceptions so we can
+      // look them up later in getOccurrenceDetails.
+      if (obj.modifiesFuture()) {
+        var item = [
+          obj.recurrenceId.toUnixTime(), id
+        ];
+
+        // we keep them sorted so we can find the nearest
+        // value later on...
+        var idx = ICAL.helpers.binsearchInsert(
+          this.rangeExceptions,
+          item,
+          compareRangeException
+        );
+
+        this.rangeExceptions.splice(idx, 0, item);
+      }
+    },
+
+    /**
+     * If this record is an exception and has the RANGE=THISANDFUTURE value.
+     *
+     * @return {Boolean} true when is exception with range.
+     */
+    modifiesFuture: function() {
+      var range = this.component.getFirstPropertyValue('range');
+      return range === this.THISANDFUTURE;
+    },
+
+    /**
+     * Finds the range exception nearest to the given date.
+     *
+     * @param {ICAL.Time} time usually an occurrence time of an event.
+     * @return {ICAL.Event|Null} the related event/exception or null.
+     */
+    findRangeException: function(time) {
+      if (!this.rangeExceptions.length) {
+        return null;
+      }
+
+      var utc = time.toUnixTime();
+      var idx = ICAL.helpers.binsearchInsert(
+        this.rangeExceptions,
+        [utc],
+        compareRangeException
+      );
+
+      idx -= 1;
+
+      // occurs before
+      if (idx < 0) {
+        return null;
+      }
+
+      var rangeItem = this.rangeExceptions[idx];
+
+      // sanity check
+      if (utc < rangeItem[0]) {
+        return null;
+      }
+
+      return rangeItem[1];
     },
 
     /**
@@ -6016,12 +6110,52 @@ ICAL.Event = (function() {
         result.endDate = item.endDate;
         result.item = item;
       } else {
-        var end = occurrence.clone();
-        end.addDuration(this.duration);
+        // range exceptions (RANGE=THISANDFUTURE) have a
+        // lower priority then direct exceptions but
+        // must be accounted for first. Their item is
+        // always the first exception with the range prop.
+        var rangeExceptionId = this.findRangeException(
+          occurrence
+        );
 
-        result.endDate = end;
-        result.startDate = occurrence;
-        result.item = this;
+        if (rangeExceptionId) {
+          var exception = this.exceptions[rangeExceptionId];
+
+          // range exception must modify standard time
+          // by the difference (if any) in start/end times.
+          result.item = exception;
+
+          var startDiff = this._rangeExceptionCache[rangeExceptionId];
+
+          if (!startDiff) {
+            var original = exception.recurrenceId.clone();
+            var newStart = exception.startDate.clone();
+
+            // zones must be same otherwise subtract may be incorrect.
+            original.zone = newStart.zone;
+            var startDiff = newStart.subtractDate(original);
+
+            this._rangeExceptionCache[rangeExceptionId] = startDiff;
+          }
+
+          var start = occurrence.clone();
+          start.zone = exception.startDate.zone;
+          start.addDuration(startDiff);
+
+          var end = start.clone();
+          end.addDuration(exception.duration);
+
+          result.startDate = start;
+          result.endDate = end;
+        } else {
+          // no range exception standard expansion
+          var end = occurrence.clone();
+          end.addDuration(this.duration);
+
+          result.endDate = end;
+          result.startDate = occurrence;
+          result.item = this;
+        }
       }
 
       return result;
@@ -6102,15 +6236,7 @@ ICAL.Event = (function() {
     },
 
     get duration() {
-      // cached because its dynamically calculated
-      // and may be frequently used. This could be problematic
-      // later if we modify the underlying start/endDate.
-      //
-      // When do add that functionality it should expire this cache...
-      if (typeof(this._duration) === 'undefined') {
-        this._duration = this.endDate.subtractDate(this.startDate);
-      }
-      return this._duration;
+      return this.endDate.subtractDate(this.startDate);
     },
 
     get location() {

@@ -83,7 +83,7 @@ var Factory = (function() {
 
   Factory.get = function(name) {
     return Factory._defined[name];
-  }
+  };
 
   Factory.define = function(name, options) {
     if (options.extend) {

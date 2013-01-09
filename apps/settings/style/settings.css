@@ -11,7 +11,6 @@ html, body {
   font-size: 10px;
   font-family: "MozTT", sans-serif;
   overflow: hidden;
-  position: relative;
 }
 
 
@@ -28,8 +27,7 @@ section[role="region"] {
   height: 100%;
   border: 0;
   background: url(images/document_bg.png);
-  overflow-x: hidden;
-  overflow-y: scroll;
+  overflow: hidden;
 }
 
 /**
@@ -52,7 +50,7 @@ section[role="region"].previous {
 
 section[role="region"].current {
   transform: translateX(0);
-  /*overflow-y: scroll; [> https://bugzilla.mozilla.org/show_bug.cgi?id=797411 <]*/
+  overflow-y: scroll;
 }
 
 /**
@@ -85,7 +83,7 @@ section[role="region"]:not(#root) > header:first-child + * {
   white-space: normal;
 }
 
-.link-text, .tel-text {
+.link-text, .tel-text a {
   font-size: 1.4rem;
   color: #336699;
   text-decoration: underline;

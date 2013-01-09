@@ -72,7 +72,7 @@ suite('views/modify_event', function() {
 
     TestProvider = function() {
       Calendar.Provider.Abstract.apply(this, arguments);
-    }
+    };
 
     TestProvider.prototype = {
       __proto__: Calendar.Provider.Abstract.prototype,
@@ -92,7 +92,7 @@ suite('views/modify_event', function() {
   teardown(function() {
     var el = document.getElementById('test');
     el.parentNode.removeChild(el);
-    delete app._providers.Test
+    delete app._providers.Test;
   });
 
   setup(function() {
@@ -582,6 +582,8 @@ suite('views/modify_event', function() {
     test('with valid provider', function() {
       subject.deleteRecord();
       assert.equal(calledWith[0], subject.event.data, 'delete event');
+      var cb = calledWith[calledWith.length - 1];
+      cb();
       assert.equal(redirectTo, '/foo', 'redirect');
     });
   });

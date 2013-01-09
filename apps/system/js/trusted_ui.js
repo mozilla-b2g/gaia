@@ -110,11 +110,16 @@ var TrustedUIManager = {
       // only one dialog, so transition back to main app
       var self = this;
       var container = this.popupContainer;
-      WindowManager.restoreCurrentApp();
-      container.addEventListener('transitionend', function wait(event) {
-        this.removeEventListener('transitionend', wait);
-        self._closeTopDialog();
-      });
+      if (!CardsView.cardSwitcherIsShown()) {
+        WindowManager.restoreCurrentApp();
+        container.addEventListener('transitionend', function wait(event) {
+          this.removeEventListener('transitionend', wait);
+          self._closeTopDialog();
+        });
+      } else {
+        WindowManager.restoreCurrentApp(this._lastDisplayedApp);
+        this._closeTopDialog();
+      }
 
       // The css transition caused by the removal of the trustedui
       // class by the hide() method will trigger a 'transitionend'
@@ -259,6 +264,9 @@ var TrustedUIManager = {
         this._destroyDialog(evt.detail.origin);
         break;
       case 'appwillopen':
+        // Ignore homescreen
+        if (evt.target.classList.contains('homescreen'))
+          return;
         this._lastDisplayedApp = evt.detail.origin;
         if (this.currentStack.length) {
           // Reopening an app with trustedUI

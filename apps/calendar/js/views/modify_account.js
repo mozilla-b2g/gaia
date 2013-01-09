@@ -130,6 +130,11 @@
       var list = this.element.classList;
       var self = this;
 
+      if (this.app.offline()) {
+        this.showErrors([{name: 'offline'}]);
+        return;
+      }
+
       list.add(this.progressClass);
 
       this.errors.textContent = '';

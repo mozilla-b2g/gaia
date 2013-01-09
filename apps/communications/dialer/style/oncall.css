@@ -634,7 +634,7 @@ button[disabled] .icon-keypad-visibility {
   width: 100%;
   background-repeat: no-repeat;
   background-position: center center;
-  background-color: black;
+  background-color: transparent;
 }
 
 #locked-contact-photo.masked {

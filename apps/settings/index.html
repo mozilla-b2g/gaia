@@ -1197,8 +1197,8 @@
       </header>
       <ul id="timezone">
         <li>
-          <span data-l10n-id="tz-continent">Continent
-            <select id="timezone-continent"></select>
+          <span data-l10n-id="tz-region">Region
+            <select id="timezone-region"></select>
           </span>
         </li>
         <li>
@@ -2224,7 +2224,7 @@
             <span data-l10n-id="performanceDataInfo">
               Help us improve Browser OS by sharing data about your phone.
             </span>
-            <a href="https://support.mozilla.org/kb/how-can-i-help-submitting-mobile-performance-data" data-l10n-id="learn-more" class="link-text">Learn More</a>
+            <a href="http://mozilla.org/telemetry" data-l10n-id="learn-more" class="link-text">Learn More</a>
           </label>
         </li>
         <li>
@@ -2284,17 +2284,13 @@
 
       <ul>
         <li>
-          <a data-l10n-id="online-support"> Online Support:
-            <span class="link-text" data-l10n-id="online-support-link-text"></span>
+          <a data-l10n-id="online-support" id="online-support-link"> Online Support:
+            <span class="link-text" id="online-support-text"></span>
           </a>
         </li>
         <li>
           <span data-l10n-id="call-support"> Call Support:
-            <span id="call-support-numbers">
-              <a class="tel-text" data-l10n-id="call-support-link-1"></a>
-              <span data-l10n-id="call-support-link-or"></span>
-              <a class="tel-text" data-l10n-id="call-support-link-2"></a>
-            </span>
+            <span class="tel-text" id="call-support-numbers"></span>
           </span>
         </li>
         <li>
@@ -2303,6 +2299,7 @@
           </label>
         </li>
       </ul>
+      <script type="application/javascript" src="js/support.js"></script>
       -->
     </section>
 
@@ -2311,6 +2308,9 @@
       <!--
       <header>
         <button id="icc-stk-app-back" class="hidden">
+          <span data-l10n-id="back" class="icon icon-back">Back</span>
+        </button>
+        <button id="icc-stk-help-exit" class="hidden">
           <span data-l10n-id="back" class="icon icon-back">Back</span>
         </button>
         <a href="#root" id="icc-stk-exit"><span data-l10n-id="back" class="icon icon-back">Back</span></a>

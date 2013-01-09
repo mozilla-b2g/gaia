@@ -84,33 +84,49 @@ function iconDescriptor(directory, app_name, entry_point) {
   };
 }
 
-let content = [
-  // zeroth grid page is the dock
+// zeroth grid page is the dock
+let customize = {"homescreens": [
   [
-    iconDescriptor(GAIA_CORE_APP_SRCDIR, 'communications', 'dialer'),
-    iconDescriptor(GAIA_CORE_APP_SRCDIR, 'sms'),
-    iconDescriptor(GAIA_CORE_APP_SRCDIR, 'communications', 'contacts'),
-    iconDescriptor(GAIA_CORE_APP_SRCDIR, 'browser'),
-    iconDescriptor(GAIA_CORE_APP_SRCDIR, 'feedback')
+    ["apps", "communications", "dialer"],
+    ["apps", "sms"],
+    ["apps", "communications", "contacts"],
+    ["apps", "browser"],
+    ["apps", "feedback"]
   ], [
-    iconDescriptor(GAIA_CORE_APP_SRCDIR, 'camera'),
-    iconDescriptor(GAIA_CORE_APP_SRCDIR, 'gallery'),
-    iconDescriptor(GAIA_CORE_APP_SRCDIR, 'fm'),
-    iconDescriptor(GAIA_CORE_APP_SRCDIR, 'settings'),
-    iconDescriptor(GAIA_EXTERNAL_APP_SRCDIR, 'marketplace'),
-    iconDescriptor(GAIA_EXTERNAL_APP_SRCDIR, 'maps')
+    ["apps", "camera"],
+    ["apps", "gallery"],
+    ["apps", "fm"],
+    ["apps", "settings"],
+    ["external-apps", "marketplace"],
+    ["external-apps", "maps"]
   ], [
-    iconDescriptor(GAIA_CORE_APP_SRCDIR, 'calendar'),
-    iconDescriptor(GAIA_CORE_APP_SRCDIR, 'clock'),
-    iconDescriptor(GAIA_CORE_APP_SRCDIR, 'costcontrol'),
-    iconDescriptor(GAIA_CORE_APP_SRCDIR, 'email'),
-    iconDescriptor(GAIA_CORE_APP_SRCDIR, 'music'),
-    iconDescriptor(GAIA_CORE_APP_SRCDIR, 'video'),
-    iconDescriptor(GAIA_EXTERNAL_APP_SRCDIR, 'marketplace-dev')
+    ["apps", "calendar"],
+    ["apps", "clock"],
+    ["apps", "costcontrol"],
+    ["apps", "email"],
+    ["apps", "music"],
+    ["apps", "video"]
   ]
-];
+]};
 
-let init = getFile(GAIA_DIR, GAIA_CORE_APP_SRCDIR, 'homescreen', 'js', 'init.json');
+let init = getFile(GAIA_DIR, 'customize.json');
+if (init.exists()) {
+  customize = getJSON(init);
+}
+
+let content = customize.homescreens.map(
+  function map_homescreens(applist) {
+    var output = [];
+    for (var i = 0; i < applist.length; i++) {
+      if (applist[i] !== null) {
+        output.push(iconDescriptor.apply(null, applist[i]));
+      }
+    }
+    return output;
+  }
+);
+
+init = getFile(GAIA_DIR, GAIA_CORE_APP_SRCDIR, 'homescreen', 'js', 'init.json');
 writeContent(init, JSON.stringify(content));
 
 // Apps that should never appear as icons in the homescreen grid or dock.
@@ -178,4 +194,24 @@ content = {
   ]
 }
 
+writeContent(init, JSON.stringify(content));
+
+// Support
+init = getFile(GAIA_DIR, 'apps', 'settings', 'resources', 'support.json');
+content = {
+  "onlinesupport": {
+    "href": "http://www.vivo.com.br/portalweb/appmanager/env/web?_nfls=false&_nfpb=true&_pageLabel=vcAtendMovelBook&WT.ac=portal.atendimento.movel",
+    "title": "Vivo"
+  },
+  "callsupport": [
+    {
+      "href": "tel:*8486",
+      "title": "*8486"
+    },
+    {
+      "href": "tel:1058",
+      "title": "1058"
+    }
+  ]
+}
 writeContent(init, JSON.stringify(content));

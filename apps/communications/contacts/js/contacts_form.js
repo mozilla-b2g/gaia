@@ -125,9 +125,15 @@ contacts.Form = (function() {
       checkDisableButton();
     });
 
-    // When the cancel button inside the input is clicked
-    dom.addEventListener('cancelInput', function() {
-      checkDisableButton();
+    var form = dom.getElementById('contact-form');
+    form.addEventListener('mousedown', function click(event) {
+      var tgt = event.target;
+      if (tgt.tagName == 'BUTTON' && tgt.getAttribute('type') == 'reset') {
+        event.preventDefault();
+        var input = tgt.previousElementSibling;
+        input.value = '';
+        checkDisableButton();
+      }
     });
   };
 
@@ -587,7 +593,7 @@ contacts.Form = (function() {
       'note': 0
     };
     textFieldsCache.clear();
-		formView.scrollTop = 0;
+    formView.scrollTop = 0;
   };
 
   var resetRemoved = function cf_resetRemoved() {

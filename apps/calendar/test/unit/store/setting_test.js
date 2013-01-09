@@ -47,7 +47,7 @@ suite('store/account', function() {
     var store = trans.objectStore('settings');
     store.get(id).onsuccess = function(e) {
       callback(e.target.result);
-    }
+    };
   }
 
   suite('#set', function() {

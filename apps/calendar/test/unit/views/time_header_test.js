@@ -114,7 +114,7 @@ suite('views/time_header', function() {
 
       subject._updateTitle = function() {
         calledWith = arguments;
-      }
+      };
       // setup initial scale
       subject.render();
       calledWith = null;

@@ -14,7 +14,7 @@ form.search {
   z-index: 1;
 }
 
-#search-view:not(.insearchmode) form.search {
+#search-view:not(.insearchmode) form.search * {
   pointer-events: none;
 }
 

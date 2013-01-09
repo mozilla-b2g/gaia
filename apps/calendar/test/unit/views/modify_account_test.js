@@ -146,7 +146,7 @@ suite('views/modify_account', function() {
       // in the test just confirm that it does
       app.router.show = function() {
         calledShow = arguments;
-      }
+      };
 
       // again fake model so we do a fake remove
       store.remove = function() {
@@ -320,7 +320,7 @@ suite('views/modify_account', function() {
 
         subject.save = function() {
           calledSave = true;
-        }
+        };
 
         model = new Calendar.Models.Account({
           providerType: 'Local'
@@ -329,7 +329,7 @@ suite('views/modify_account', function() {
 
         subject._createModel = function() {
           return model;
-        }
+        };
       });
 
       test('result', function() {
@@ -344,7 +344,7 @@ suite('views/modify_account', function() {
       subject._createModel = function() {
         calledWith = arguments;
         return model;
-      }
+      };
 
       subject.dispatch({
         params: { preset: 'local' }
@@ -363,12 +363,12 @@ suite('views/modify_account', function() {
       subject.model = {};
       subject.destroy = function() {
         destroyed = true;
-      }
+      };
 
       subject._updateModel = function() {
         calledWith = arguments;
         return model;
-      }
+      };
 
       subject.dispatch({
         params: { id: '1' }
@@ -396,7 +396,7 @@ suite('views/modify_account', function() {
 
       subject.accountHandler.send = function() {
         called = true;
-      }
+      };
 
       triggerEvent(subject.saveButton, 'click');
       assert.ok(called);
@@ -434,7 +434,7 @@ suite('views/modify_account', function() {
 
       subject._persistForm = function() {
         called = true;
-      }
+      };
 
       triggerEvent(subject.saveButton, 'click');
       assert.ok(!called);

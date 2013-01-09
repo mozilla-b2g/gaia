@@ -25,17 +25,27 @@ const Homescreen = (function() {
     Wallpaper.init();
   });
 
+  function exitFromEditMode() {
+    Homescreen.setMode('normal');
+    GridManager.markDirtyState();
+    ConfirmDialog.hide();
+    GridManager.goToPage(GridManager.pageHelper.getCurrentPageNumber());
+  }
+
   window.addEventListener('hashchange', function() {
     if (document.location.hash != '#root')
       return;
 
     if (Homescreen.isInEditMode()) {
-      Homescreen.setMode('normal');
-      GridManager.markDirtyState();
-      ConfirmDialog.hide();
-      GridManager.goToPage(GridManager.pageHelper.getCurrentPageNumber());
+      exitFromEditMode();
     } else {
       GridManager.goToPage(1);
+    }
+  });
+
+  document.addEventListener('mozvisibilitychange', function mozVisChange() {
+    if (document.mozHidden && Homescreen.isInEditMode()) {
+      exitFromEditMode();
     }
   });
 

@@ -69,7 +69,7 @@ suite('mozAlarms shim', function() {
           };
         };
       };
-    }
+    };
   });
 
   test('alarm in the future', function(done) {
@@ -87,7 +87,7 @@ suite('mozAlarms shim', function() {
       setTimeout(function() {
         subject.remove(id).onsuccess = function() {
           done();
-        }
+        };
       }, subject._interval * 3);
     };
   });
@@ -130,7 +130,7 @@ suite('mozAlarms shim', function() {
           assert.length(e.target.result, 0, 'does not add alarms');
         });
       };
-    }
+    };
   });
 
 });

@@ -6,7 +6,8 @@
                 'busytime-' + this.h('_id') +
                 ' busy-length-' + this.h('length') +
                 ' busy-' + this.h('start') +
-                ' calendar-id-' + this.h('calendarId') + ' calendar-color calendar-display' +
+                ' calendar-id-' + this.h('calendarId') +
+                ' calendar-color calendar-display' +
               '">' +
               '&nbsp;' +
             '</span>';
@@ -33,7 +34,9 @@
     },
 
     day: function() {
-      return '<li id="' + this.s('id') + '" data-date="' + this.s('dateString') + '" class="' + this.s('state') + '">' +
+      return '<li id="' + this.s('id') +
+                  '" data-date="' + this.s('dateString') +
+                  '" class="' + this.s('state') + '">' +
           '<span class="day">' + this.h('date') + '</span>' +
           '<div class="busy-indicator">' + this.s('busy') + '</div>' +
         '</li>';

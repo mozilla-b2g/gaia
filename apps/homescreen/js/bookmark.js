@@ -19,6 +19,8 @@ var Bookmark = function Bookmark(params) {
     },
     default_locale: 'en-US'
   };
+
+  this.useAsyncPanZoom = 'useAsyncPanZoom' in params && params.useAsyncPanZoom;
 };
 
 Bookmark.prototype = {
@@ -26,7 +28,8 @@ Bookmark.prototype = {
     var features = {
       name: this.manifest.name.replace(/\s/g, '&nbsp;'),
       icon: this.manifest.icons['60'],
-      remote: true
+      remote: true,
+      useAsyncPanZoom: this.useAsyncPanZoom
     };
 
     // The third parameter is received in window_manager without whitespaces

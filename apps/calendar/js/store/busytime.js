@@ -5,27 +5,6 @@ Calendar.ns('Store').Busytime = (function() {
 
   function Busytime() {
     Calendar.Store.Abstract.apply(this, arguments);
-
-    /*
-    this._times = [
-      time,
-      time,
-      time
-    ]
-    */
-
-    /*
-    this._eventTimes = {
-      eventId: [200, 100]
-    }
-    */
-
-    /*
-    this._timeRecords = {
-      //time: [result, result]
-      20122: [result]
-    }
-    */
     this._setupCache();
   }
 
@@ -101,7 +80,7 @@ Calendar.ns('Store').Busytime = (function() {
         }
 
         success(e);
-      }
+      };
 
       this._transactionCallback(trans, callback);
     },

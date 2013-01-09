@@ -41,6 +41,14 @@ contacts.Search = (function() {
 
     favoriteGroup = _groupFavorites;
     searchBox = document.getElementById('search-contact');
+    var resetButton = searchBox.nextElementSibling;
+    resetButton.addEventListener('mousedown', function() {
+      searchBox.value = '';
+      searchBox.focus();
+      resetState();
+      window.setTimeout(fillInitialSearchPage, 0);
+    });
+
     searchList = document.getElementById('search-list');
     if (typeof _clickHandler === 'function') {
       searchList.addEventListener('click', _clickHandler);
@@ -195,13 +203,15 @@ contacts.Search = (function() {
 
     if (!inSearchMode) {
       window.addEventListener('input', onInput);
+      window.addEventListener('MozAfterPaint', function afterpaint() {
+        // And now that everything is ready let's paint the keyboard
+        searchBox.focus();
+        window.removeEventListener('MozAfterPaint', afterpaint);
+      });
       searchView.classList.add('insearchmode');
       fillInitialSearchPage();
       inSearchMode = true;
       emptySearch = true;
-
-      // And now that everything is ready let's paint the keyboard
-      searchBox.focus();
     }
   };
 
@@ -367,13 +377,6 @@ contacts.Search = (function() {
     searchNoResult.classList.add('hide');
     searchProgress.classList.add('hidden');
   }
-
-  // When the cancel button inside the input is clicked
-  document.addEventListener('cancelInput', function() {
-    searchBox.focus();
-    resetState();
-    window.setTimeout(fillInitialSearchPage, 0);
-  });
 
   return {
     'init': init,

@@ -17,10 +17,15 @@
   var wizard, vmanager;
   var toStep2, step = 0;
   function setupFTE() {
-    ConfigManager.requestSettings(function _onSettings(settings) {
+    ConfigManager.requestAll(function _onSettings(configuration, settings) {
       wizard = document.getElementById('firsttime-view');
       vmanager = new ViewManager();
       AutoSettings.addType('data-limit', dataLimitConfigurer);
+
+      // Currency is set by config as well
+      if (configuration && configuration.credit && configuration.credit.currency) {
+        document.getElementById('currency').textContent = configuration.credit.currency;
+      }
 
       var mode = costcontrol.getApplicationMode(settings);
       if (mode === 'DATA_USAGE_ONLY') {

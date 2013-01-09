@@ -30,6 +30,10 @@
   text-align: center;
 }
 
+#footer > div.scrollable li {
+	width: 7.2rem;
+}
+
 /* Container -> icon + label */
 #footer li > div {
   width: 100%;
@@ -40,12 +44,12 @@
 /* Option to delete apps */
 #footer li span.options {
   position: absolute;
-  top: 4.6rem;
-  left: 0;
-  width: 90%;
+  top: .1rem;
+  left: .5rem;
+  width: calc(100% - .5rem);
   height: 2.6rem;
   z-index: 2;
-  background: url(../resources/images/delete.png) no-repeat right top;
+  background: url(../resources/images/delete.png) no-repeat left top;
 }
 
 #footer li > div > *:not(img) {
