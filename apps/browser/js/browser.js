@@ -845,20 +845,20 @@ var Browser = {
     }
   },
 
-  showTopSitesTab: function browser_showTopSitesTab(filter) {
+  showTopSitesTab: function browser_showTopSitesTab() {
     this.deselectAwesomescreenTabs();
     this.topSitesTab.classList.add('selected');
     this.topSites.classList.add('selected');
-    Places.getTopSites(20, filter, this.showTopSites.bind(this));
+    Places.getTopSites(20, null, this.showTopSites.bind(this));
   },
 
-  showTopSites: function browser_showTopSites(topSites, filter) {
+  showTopSites: function browser_showTopSites(topSites) {
     this.topSites.innerHTML = '';
     var list = document.createElement('ul');
     list.setAttribute('role', 'listbox');
     this.topSites.appendChild(list);
     topSites.forEach(function browser_processTopSite(data) {
-      this.drawAwesomescreenListItem(list, data, filter);
+      this.drawAwesomescreenListItem(list, data);
     }, this);
   },
 
