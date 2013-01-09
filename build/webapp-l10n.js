@@ -190,9 +190,11 @@ if (GAIA_INLINE_LOCALES) {
   l10nLocales = [];
   l10nDictionary.locales = {};
 
-  let file = getFile(LOCALES_FILE);
+  // LOCALES_FILE is a relative path by default: shared/resources/languages.json
+  // -- but it can be an absolute path when doing a multilocale build.
+  let file = getFile(GAIA_DIR + '/' + LOCALES_FILE);
   if (!file.exists()) {
-    getFile(GAIA_DIR + '/' + LOCALES_FILE);
+    file = getFile(LOCALES_FILE);
   }
   let locales = JSON.parse(getFileContent(file));
 
