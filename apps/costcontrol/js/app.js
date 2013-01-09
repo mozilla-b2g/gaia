@@ -13,8 +13,29 @@ var CostControlApp = (function() {
 
   var costcontrol, initialized = false;
   window.addEventListener('DOMContentLoaded', function _onDOMReady() {
-    checkSIMChange();
+    var mobileConnection = window.navigator.mozMobileConnection;
 
+    // No SIM
+    if (!mobileConnection || mobileConnection.cardState === 'absent') {
+      //TODO: Add a message saying there is no functionality when no SIM
+      // then close
+      window.close();
+      return;
+
+    // SIM is not ready
+    } else if (mobileConnection.cardState !== 'ready') {
+      debug('SIM not ready:', mobileConnection.cardState);
+      mobileConnection.oniccinfochange = _onDOMReady;
+
+    // SIM is ready
+    } else {
+      mobileConnection.oniccinfochange = undefined;
+      _startApp();
+    }
+  });
+
+  function _startApp() {
+    checkSIMChange();
     CostControl.getInstance(function _onCostControlReady(instance) {
       if (ConfigManager.option('fte')) {
         window.location = '/fte.html';
@@ -23,7 +44,7 @@ var CostControlApp = (function() {
       costcontrol = instance;
       setupApp();
     });
-  });
+  }
 
   window.addEventListener('localized', function _onLocalize() {
     if (initialized)
@@ -93,7 +114,7 @@ var CostControlApp = (function() {
   function updateUI() {
     ConfigManager.requestSettings(function _onSettings(settings) {
       var mode = costcontrol.getApplicationMode(settings);
-      debug('App UI mode: ' + mode);
+      debug('App UI mode: ', mode);
 
       // Layout
       if (mode !== currentMode) {
