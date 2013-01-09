@@ -267,27 +267,88 @@ suite('system/AppInstallManager >', function() {
           'install-app{"name":"Fake app"}');
       });
 
-      test('should fill the developer infos', function() {
-        assert.equal('Fake dev', AppInstallManager.authorName.textContent);
-        assert.equal('http://fakesoftware.com',
-          AppInstallManager.authorUrl.textContent);
-      });
-
-      test('should tell if the developer is unknown', function() {
-        var evt = new MockChromeEvent({
-          type: 'webapps-ask-install',
-          id: 42,
-          app: {
-            updateManifest: {
-              name: 'Fake app',
-              size: 5245678
-            }
-          }
+      suite('developer infos >', function() {
+        test('should fill the developer infos', function() {
+          assert.equal('Fake dev', AppInstallManager.authorName.textContent);
+          assert.equal('http://fakesoftware.com',
+                       AppInstallManager.authorUrl.textContent);
         });
 
-        AppInstallManager.handleAppInstallPrompt(evt.detail);
-        assert.equal('unknown', AppInstallManager.authorName.textContent);
-        assert.equal('', AppInstallManager.authorUrl.textContent);
+        test('should tell if the developer is unknown', function() {
+          var evt = new MockChromeEvent({
+            type: 'webapps-ask-install',
+            id: 42,
+            app: {
+              updateManifest: {
+                name: 'Fake app',
+                size: 5245678
+              }
+            }
+          });
+
+          AppInstallManager.handleAppInstallPrompt(evt.detail);
+          assert.equal('unknown', AppInstallManager.authorName.textContent);
+          assert.equal('', AppInstallManager.authorUrl.textContent);
+        });
+
+        test('should handle empty developer object properly', function() {
+          var evt = new MockChromeEvent({
+            type: 'webapps-ask-install',
+            id: 42,
+            app: {
+              updateManifest: {
+                name: 'Fake app',
+                size: 5245678,
+                developer: {}
+              }
+            }
+          });
+
+          AppInstallManager.handleAppInstallPrompt(evt.detail);
+          assert.equal('unknown', AppInstallManager.authorName.textContent);
+          assert.equal('', AppInstallManager.authorUrl.textContent);
+        });
+
+        test('should tell if the developer name is unknown', function() {
+          var evt = new MockChromeEvent({
+            type: 'webapps-ask-install',
+            id: 42,
+            app: {
+              updateManifest: {
+                name: 'Fake app',
+                size: 5245678,
+                developer: {
+                  url: 'http://example.com'
+                }
+              }
+            }
+          });
+
+          AppInstallManager.handleAppInstallPrompt(evt.detail);
+          assert.equal('unknown', AppInstallManager.authorName.textContent);
+          assert.equal('http://example.com',
+            AppInstallManager.authorUrl.textContent);
+        });
+
+        test('the developer url should default to blank', function() {
+          var evt = new MockChromeEvent({
+            type: 'webapps-ask-install',
+            id: 42,
+            app: {
+              updateManifest: {
+                name: 'Fake app',
+                size: 5245678,
+                developer: {
+                  name: 'Fake dev'
+                }
+              }
+            }
+          });
+
+          AppInstallManager.handleAppInstallPrompt(evt.detail);
+          assert.equal('Fake dev', AppInstallManager.authorName.textContent);
+          assert.equal('', AppInstallManager.authorUrl.textContent);
+        });
       });
 
       suite('install size >', function() {
