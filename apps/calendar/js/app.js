@@ -1,5 +1,82 @@
 Calendar.App = (function(window) {
 
+  function PendingManager() {
+    this.objects = [];
+    this.pending = 0;
+
+    this.onstart = this.onstart.bind(this);
+    this.onend = this.onend.bind(this);
+  }
+
+  PendingManager.prototype = {
+
+    onpending: function() {},
+    oncomplete: function() {},
+
+    register: function(object) {
+      object.on(object.startEvent, this.onstart);
+      object.on(object.completeEvent, this.onend);
+
+      var wasPending = this.isPending();
+
+      this.objects.push(object);
+
+      if (object.pending) {
+        this.pending++;
+
+        if (!wasPending) {
+          this.onpending();
+        }
+      }
+    },
+
+    /**
+     * Unregister an object.
+     * Note it is intended that objects that
+     * are unregistered are never in a state
+     * where we are waiting for their pending
+     * status to complete. If an incomplete
+     * object is removed it will break .pending.
+     */
+    unregister: function(object) {
+      var idx = this.objects.indexOf(object);
+
+      if (idx !== -1) {
+        var object = this.objects[idx];
+        this.objects.splice(idx, 1);
+        return true;
+      }
+      return false;
+    },
+
+    isPending: function() {
+      var len = this.objects.length;
+      var i = 0;
+
+      for (; i < len; i++) {
+        if (this.objects[i].pending)
+          return true;
+      }
+
+      return false;
+    },
+
+    onstart: function() {
+      if (!this.pending) {
+        this.onpending();
+      }
+
+      this.pending++;
+    },
+
+    onend: function() {
+      this.pending--;
+      if (!this.pending) {
+        this.oncomplete();
+      }
+    }
+  };
+
   /**
    * Focal point for state management
    * within calendar application.
@@ -8,12 +85,16 @@ Calendar.App = (function(window) {
    * location to reference database.
    */
   var App = {
+    PendingManager: PendingManager,
+
     //XXX: always assumes that app is never lazy loaded
     startingURL: window.location.href,
 
     _location: window.location,
 
     _mozTimeRefreshTimeout: 3000,
+
+    pendingClass: 'pending-operation',
 
     // Dependency map for loading
     cssBase: '/style/',
@@ -23,6 +104,10 @@ Calendar.App = (function(window) {
       Style: {},
       Templates: {},
       Utils: {},
+      Controllers: {
+        RecurringEvents: []
+      },
+
       Views: {
         AdvancedSettings: [
           {type: 'Templates', name: 'Account'}
@@ -96,11 +181,44 @@ Calendar.App = (function(window) {
       this._providers = Object.create(null);
       this._views = Object.create(null);
       this._routeViewFn = Object.create(null);
+      this._pendingManger = new PendingManager();
+
+      var self = this;
+      this._pendingManger.oncomplete = function onpending() {
+        document.body.classList.remove(self.pendingClass);
+      };
+
+      this._pendingManger.onpending = function oncomplete() {
+        document.body.classList.add(self.pendingClass);
+      };
 
       this.timeController = new Calendar.Controllers.Time(this);
       this.syncController = new Calendar.Controllers.Sync(this);
       this.serviceController = new Calendar.Controllers.Service(this);
       this.alarmController = new Calendar.Controllers.Alarm(this);
+
+      // observe sync events
+      this.observePendingObject(this.syncController);
+    },
+
+    /**
+     * Adds observers to objects capable of being pending.
+     *
+     * Object must emit some kind of start/complete events
+     * and have the following properties:
+     *
+     *  - startEvent (used to register an observer)
+     *  - endEvent ( ditto )
+     *  - pending
+     *
+     * @param {Object} object to observe.
+     */
+    observePendingObject: function(object) {
+      this._pendingManger.register(object);
+    },
+
+    isPending: function() {
+      return this._pendingManger.isPending();
     },
 
     /**
@@ -195,6 +313,18 @@ Calendar.App = (function(window) {
       this.store('Alarm').autoQueue = true;
 
       this.timeController.move(new Date());
+
+      // lazy load recurring event expander so as not to impact initial load.
+      this.loadResource('Controllers', 'RecurringEvents', function() {
+        self.recurringEventsController =
+          new Calendar.Controllers.RecurringEvents(self);
+
+        self.observePendingObject(
+          self.recurringEventsController
+        );
+
+        self.recurringEventsController.observe();
+      });
 
       this.view('TimeHeader', function(header) {
           header.render();

@@ -267,7 +267,7 @@ suite('views/time_parent', function() {
       var calledWith;
       subject.purgeFrames = function() {
         calledWith = arguments;
-      }
+      };
 
       subject.app.timeController.emit('purge', span);
       assert.equal(calledWith[0], span);

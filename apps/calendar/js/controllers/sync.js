@@ -18,9 +18,13 @@ Calendar.ns('Controllers').Sync = (function() {
   Sync.prototype = {
     __proto__: Calendar.Responder.prototype,
 
+    startEvent: 'syncStart',
+    completeEvent: 'syncComplete',
+
     _incrementPending: function() {
-      if (!this.pending)
+      if (!this.pending) {
         this.emit('syncStart');
+      }
 
       this.pending++;
     },

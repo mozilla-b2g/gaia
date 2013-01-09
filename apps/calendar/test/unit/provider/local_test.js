@@ -117,7 +117,7 @@ suite('provider/local', function() {
 
       index.get(eventId).onsuccess = function(e) {
         busytime = e.target.result;
-      }
+      };
     }
 
     suite('#createEvent', function() {

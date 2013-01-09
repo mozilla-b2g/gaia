@@ -6,6 +6,7 @@ requireApp('calendar/test/unit/helper.js', function() {
   requireLib('service/caldav.js');
   requireLib('store/ical_component.js');
   requireLib('provider/caldav_pull_events.js');
+  requireLib('service/ical_recur_expansion.js');
   requireLib('models/account.js');
   requireLib('models/calendar.js');
 });
@@ -53,9 +54,15 @@ suite('provider/caldav_pull_events', function() {
     ical.onready = done;
     fixtures = {};
 
+    ServiceSupport.setExpansionLimit(10);
+
     service = new Calendar.Service.Caldav(
       new Calendar.Responder()
     );
+  });
+
+  suiteTeardown(function() {
+    ServiceSupport.resetExpansionLimit();
   });
 
   ['singleEvent', 'dailyEvent', 'recurringEvent'].forEach(function(item) {
@@ -131,11 +138,6 @@ suite('provider/caldav_pull_events', function() {
     assert.instanceOf(subject.calendar, Calendar.Models.Calendar, '.calendar');
     assert.instanceOf(subject.account, Calendar.Models.Account, '.account');
     assert.equal(subject.app, app);
-
-    assert.instanceOf(
-      subject.syncStart,
-      Date
-    );
   });
 
   suite('#eventIdFromRemote', function() {
@@ -237,10 +239,11 @@ suite('provider/caldav_pull_events', function() {
     var times = [];
     var event;
 
-    function expand(event, limit=5) {
+    function expand(name, limit) {
       setup(function(done) {
         times.length = 0;
-        event = serviceEvent(event);
+
+        event = serviceEvent(name);
         var stream = new Calendar.Responder();
 
         stream.on('occurrence', function(item) {
@@ -248,12 +251,10 @@ suite('provider/caldav_pull_events', function() {
         });
 
         service.expandRecurringEvent(
-          event.icalComponent,
-          { limit: limit },
+          ical[name],
+          {},
           stream,
-          function() {
-            done();
-          }
+          done
         );
       });
     }
@@ -333,6 +334,7 @@ suite('provider/caldav_pull_events', function() {
     var newEvent;
     var newBusytime;
     var alarm;
+    var addedComponent;
 
     setup(function() {
       removed.length = 0;
@@ -341,15 +343,17 @@ suite('provider/caldav_pull_events', function() {
 
       eventStore.remove = function(id) {
         removed.push(id);
-      }
+      };
 
       newEvent = serviceEvent('singleEvent');
       newEvent = subject.formatEvent(newEvent);
 
-      subject.icalQueue.push({
-        data: newEvent.remote.icalComponent,
-        eventId: newEvent._id
-      });
+      addedComponent = {
+        eventId: newEvent._id,
+        ical: 'foo'
+      };
+
+      subject.icalQueue.push(addedComponent);
 
       subject.eventQueue.push(newEvent);
       subject.removeList = ['1'];
@@ -394,7 +398,7 @@ suite('provider/caldav_pull_events', function() {
             assert.ok(data, 'has alarm');
             assert.hasProperties(data, alarm, 'alarm matches');
           });
-        }
+        };
       });
 
       test('busytimes', function(done) {
@@ -429,71 +433,6 @@ suite('provider/caldav_pull_events', function() {
       });
     });
 
-    suite('tokens', function() {
-      suite('first sync', function() {
-        var date = new Date(2012, 0, 1);
-
-        setup(function() {
-          calendar.firstEventSyncDate = date;
-        });
-
-        commit();
-
-        test('result', function() {
-          var expectedToken = calendar.remote.syncToken;
-          var expectedDate = subject.syncStart;
-
-          assert.deepEqual(removed, ['1'], 'removed');
-
-          assert.deepEqual(
-            calendar.lastEventSyncToken,
-            expectedToken,
-            'sync token'
-          );
-
-          assert.deepEqual(
-            calendar.firstEventSyncDate,
-            date,
-            'calendar first event sync date'
-          );
-
-          assert.deepEqual(
-            calendar.lastEventSyncDate,
-            expectedDate,
-            'calendar sync date'
-          );
-        });
-      });
-
-      suite('without firstEventSyncDate', function() {
-        commit();
-        test('result', function() {
-          var expectedToken = calendar.remote.syncToken;
-          var expectedDate = subject.syncStart;
-
-          assert.deepEqual(removed, ['1'], 'removed');
-
-          assert.deepEqual(
-            calendar.lastEventSyncToken,
-            expectedToken,
-            'sync token'
-          );
-
-          assert.deepEqual(
-            calendar.firstEventSyncDate,
-            expectedDate,
-            'calendar first event sync date'
-          );
-
-          assert.deepEqual(
-            calendar.lastEventSyncDate,
-            expectedDate,
-            'calendar sync date'
-          );
-        });
-      });
-    });
-
     suite('event/component', function() {
       commit();
 
@@ -505,7 +444,7 @@ suite('provider/caldav_pull_events', function() {
           }
           done(function() {
             assert.ok(record, 'has records');
-            assert.deepEqual(record.data, newEvent.remote.icalComponent);
+            assert.deepEqual(record, addedComponent);
           });
         });
       });
@@ -543,12 +482,10 @@ suite('provider/caldav_pull_events', function() {
       });
 
       service.expandRecurringEvent(
-        event.icalComponent,
-        { limit: 10 },
+        ical.dailyEvent,
+        {},
         stream,
-        function() {
-          done();
-        }
+        done
       );
     });
 
@@ -588,8 +525,52 @@ suite('provider/caldav_pull_events', function() {
   });
 
   test('#handleMissingEvents', function() {
-    stream.emit('missing events', ['1', '2']);
+    stream.emit('missingEvents', ['1', '2']);
     assert.deepEqual(subject.removeList, ['1', '2']);
+  });
+
+  suite('#handleComponentSync', function() {
+    test('incomplete recurrence', function() {
+      var data = {
+        eventId: 'foo',
+        lastRecurrenceId: { year: 2012 },
+        ical: 'ical'
+      };
+
+      var expected = {};
+      for (var key in data) {
+        expected[key] = data[key];
+      }
+
+      expected.eventId = subject.eventIdFromRemote(
+        data
+      );
+
+      expected.calendarId = calendar._id;
+
+      stream.emit('component', data);
+      assert.length(subject.icalQueue, 1);
+
+      assert.deepEqual(
+        subject.icalQueue[0],
+        expected
+      );
+    });
+
+    test('complete recurrence', function() {
+      var data = {
+        lastRecurrenceId: false,
+        ical: 'ical'
+      };
+
+      stream.emit('component', data);
+      assert.length(subject.icalQueue, 1);
+
+      assert.ok(
+        !('lastRecurrenceId' in subject.icalQueue[0]),
+        'has not lastRecurrenceId'
+      );
+    });
   });
 
   suite('#handleEventSync', function() {
@@ -643,10 +624,6 @@ suite('provider/caldav_pull_events', function() {
       subject = createSubject();
 
       var newEvent = serviceEvent('singleEvent');
-      var expectedComponent = newEvent.icalComponent;
-
-      assert.ok(expectedComponent);
-      expectedComponent = JSON.parse(JSON.stringify(expectedComponent));
 
       newEvent.syncToken = 'bbx1';
       assert.notEqual(
@@ -660,23 +637,6 @@ suite('provider/caldav_pull_events', function() {
       assert.length(
         subject.eventQueue,
         1
-      );
-
-      var savedEvent = subject.eventQueue[0];
-
-      assert.ok(
-        !savedEvent.remote.icalComponent,
-        'does not save the ical component'
-      );
-
-      assert.length(
-        subject.icalQueue,
-        1
-      );
-
-      assert.deepEqual(
-        subject.icalQueue[0],
-        { data: expectedComponent, eventId: savedEvent._id }
       );
     });
 

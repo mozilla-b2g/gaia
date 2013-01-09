@@ -233,7 +233,7 @@ Calendar.ns('Worker').Manager = (function(global) {
 
         try {
           var worker = self._ensureActiveWorker(role);
-        } catch(e) {
+        } catch (e) {
           callback(e);
           return;
         }
