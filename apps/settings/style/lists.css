@@ -120,7 +120,7 @@ ul li > label:not([for]) ~ a {
 
 
 /******************************************************************************
- * Text inputs
+ * Field inputs
  */
 
 ul li p {
@@ -136,6 +136,7 @@ ul li p + label:not([for]) {
 }
 
 ul li p + input[type="text"],
+ul li p + input[type="tel"],
 ul li p + input[type="password"] {
   width: calc(100% - 6rem);
   margin: -1rem auto 1rem;
