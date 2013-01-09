@@ -133,7 +133,8 @@ settings = {
  "wifi.enabled": True,
  "wifi.disabled_by_wakelock": False,
  "wifi.notification": False,
- "icc.displayTextTimeout": 10000
+ "icc.displayTextTimeout": 10000,
+ "icc.inputTextTimeout": 30000
 }
 
 def main():
