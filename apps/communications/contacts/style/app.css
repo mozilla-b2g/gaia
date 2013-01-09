@@ -467,7 +467,12 @@ li button.icon-link:before {
 
 /* Extending icons */
 li button.icon-fav:before {
-  background-image: url(/contacts/style/images/icon-fav-button.png);
+  background-image: url(/contacts/style/images/icon-fav-button-off.png);
+  right: 0.5rem;
+}
+
+li button.icon-fav.on:before {
+  background-image: url(/contacts/style/images/icon-fav-button-on.png);
 }
 
 li button.icon-fb-profile:before {

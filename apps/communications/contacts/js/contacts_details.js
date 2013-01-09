@@ -187,6 +187,9 @@ contacts.Details = (function() {
       }
     }
 
+    // Disabling button while saving the contact
+    favoriteMessage.style.pointerEvents = 'none';
+
     var request = navigator.mozContacts.save(contact);
     request.onsuccess = function onsuccess() {
       var cList = contacts.List;
@@ -207,19 +210,23 @@ contacts.Details = (function() {
           cList.refresh(contact);
         }
         renderFavorite(contactData);
+        favoriteMessage.style.pointerEvents = 'auto';
       }, function onError() {
         console.error('Error reloading contact');
+        favoriteMessage.style.pointerEvents = 'auto';
       });
     };
     request.onerror = function onerror() {
+      favoriteMessage.style.pointerEvents = 'auto';
       console.error('Error saving favorite');
     };
   };
 
   var toggleFavoriteMessage = function toggleFavMessage(isFav) {
-    favoriteMessage.textContent = !isFav ?
-                    _('addFavorite') :
-                    _('removeFavorite');
+    var cList = favoriteMessage.classList;
+    var text = isFav ? _('removeFavorite') : _('addFavorite');
+    favoriteMessage.textContent = text;
+    isFav ? cList.add('on') : cList.remove('on');
   };
 
   var renderOrg = function cd_renderOrg(contact) {
