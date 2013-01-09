@@ -18,44 +18,51 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
   var controlFadeTimeout = null;
   var dragging = false;
   var data = activity.source.data;
+  var type = data.type;
   var url = data.url;
   var title = data.title || '';
 
-  if (data.status === 'fail' || data.errorcode) {
-    // This only happens when we're invoked for youtube videos
-    // Display an error message, but make sure we're localized first
-    if (navigator.mozL10n.readyState === 'complete') {
-      handleError(data.reason);
-    }
-    else {
-      window.addEventListener('localized', function handleLocalized() {
-        window.removeEventListener('localized', handleLocalized);
-        handleError(data.reason);
-      });
-    }
+  initUI();
+
+  if (type !== 'video/youtube') {
+    showPlayer(url, title);
+    return;
+  }
+
+  // This is the youtube case. We need to ensure that we have been
+  // localized before trying to fetch the youtube video so youtube
+  // knows what language to send errors to us in.
+  // XXX: show a loading spinner here?
+  if (navigator.mozL10n.readyState === 'complete') {
+    getYoutubeVideo(url, showPlayer, handleError);
   }
   else {
-    initUI();
-    showPlayer(url, title);
+    window.addEventListener('localized', function handleLocalized() {
+      window.removeEventListener('localized', handleLocalized);
+      getYoutubeVideo(url, showPlayer, handleError);
+    });
   }
 
   function handleError(message) {
-    // Remove any HTML tags from the youtube error message
-    var div = document.createElement('div');
-    div.innerHTML = message;
-    message = div.textContent;
+    // Start with a localized error message prefix
+    var error = navigator.mozL10n.get('youtube-error-prefix');
 
-    // Get a localized error message prefix
-    var prefix = navigator.mozL10n.get('youtube-error-prefix');
+    if (message) {
+      // Remove any HTML tags from the youtube error message
+      var div = document.createElement('div');
+      div.innerHTML = message;
+      message = div.textContent;
+      error += '\n\n' + message;
+    }
 
     // Display the error message to the user
     // XXX Using alert() is simple but ugly.
-    alert(prefix + '\n\n' + message);
+    alert(error);
 
     // When the user clicks okay, end the activity.
     // Do this on a timer so the alert has time to go away.
     // Otherwise it appears to remain up over the caller and the user
-    // has to dismiss it twice.
+    // has to dismiss it twice. See bug 825435.
     setTimeout(function() { activity.postResult({}); }, 50);
   }
 
@@ -67,7 +74,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     var ids = ['player', 'videoFrame', 'videoControls',
                'close', 'play', 'playHead',
                'elapsedTime', 'video-title', 'duration-text', 'elapsed-text',
-               'slider-wrapper'];
+               'slider-wrapper', 'spinner-overlay'];
 
     ids.forEach(function createElementRef(name) {
       dom[toCamelCase(name)] = document.getElementById(name);
@@ -176,6 +183,9 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
 
   // show video player
   function showPlayer(url, title) {
+    // Dismiss the spinner
+    dom.spinnerOverlay.classList.add('hidden');
+
     dom.videoTitle.textContent = title || '';
     dom.player.src = url;
     dom.player.onloadedmetadata = function() {
