@@ -513,6 +513,7 @@ var Browser = {
     this.refreshButtons();
     this.navigate(tab.url);
     tab.crashed = false;
+    this.hideCrashScreen();
   },
 
   handleWindowOpen: function browser_handleWindowOpen(evt) {
@@ -551,10 +552,6 @@ var Browser = {
   },
 
   navigate: function browser_navigate(url) {
-    if (this.currentTab.crashed) {
-      this.currentTab.crashed = false;
-      this.hideCrashScreen();
-    }
     this.hideStartscreen();
     this.showPageScreen();
     this.currentTab.title = null;
@@ -590,30 +587,37 @@ var Browser = {
       e.preventDefault();
     }
 
-    if (this.currentTab.crashed && this.urlButtonMode == this.REFRESH) {
+    if (this.urlButtonMode == this.REFRESH && this.currentTab.crashed) {
       this.setUrlBar(this.currentTab.url);
-      this.navigate(this.currentTab.url);
+      this.reviveCrashedTab(this.currentTab);
       return;
     }
 
-    if (this.urlButtonMode == this.REFRESH) {
+    if (this.urlButtonMode == this.REFRESH && !this.currentTab.crashed) {
       this.currentTab.dom.reload(true);
       return;
     }
 
-    if (this.urlButtonMode == this.STOP) {
+    if (this.urlButtonMode == this.STOP && !this.currentTab.crashed) {
       this.currentTab.dom.stop();
       return;
     }
 
     var url = this.getUrlFromInput(this.urlInput.value);
 
-    if (url !== this.currentTab.url && !this.currentTab.crashed) {
+    if (url !== this.currentTab.url) {
       this.setUrlBar(url);
       this.currentTab.url = url;
     }
-    this.navigate(url);
+
     this.urlInput.blur();
+
+    if (this.currentTab.crashed) {
+      this.reviveCrashedTab(this.currentTab);
+      return;
+    }
+
+    this.navigate(url);
   },
 
   goBack: function browser_goBack() {
