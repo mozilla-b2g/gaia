@@ -111,11 +111,6 @@
   visibility: inherit;
 }
 
-[data-panel="main"] #lockscreen-panel-main,
-[data-panel="passcode"] #lockscreen-panel-main {
-  transition: transform 0.5s ease;
-}
-
 [data-panel="emergency-call"] #lockscreen-panel-main {
   transform: translateX(-100%);
 }
@@ -135,7 +130,7 @@
   text-shadow: 0 0 3px #333;
 
   transform: translateY(-10rem);
-  transition: transform 0.2s ease;
+  transition: transform 0.3s ease;
 }
 
 #lockscreen-header {
@@ -149,7 +144,13 @@
   color: #fff;
   text-shadow: 0 0 3px #333;
   transform: translateY(-10rem);
-  transition: transform 0.2s ease;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  opacity: 1;
+}
+
+[data-panel="passcode"] #lockscreen-header {
+  transform: translateY(0);
+  opacity: 0;
 }
 
 [data-panel="main"] #lockscreen-header {
@@ -349,6 +350,15 @@ button::-moz-focus-inner {
   visibility: hidden;
   transform: translateY(calc(21.4rem + 7.2rem));
   transition: visibility 0.3s ease, transform 0.3s ease;
+}
+
+[data-passcode-status="success"] #lockscreen-passcode-pad,
+[data-passcode-status="success"] #lockscreen-passcode-code {
+  transform: translateY(calc(21.4rem + 7.2rem)) !important;
+}
+
+[data-passcode-status="success"] #lockscreen-passcode-status {
+  transform: translateY(-10rem) !important;
 }
 
 [data-panel="passcode"] #lockscreen-passcode-code {
