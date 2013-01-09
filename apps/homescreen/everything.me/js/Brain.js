@@ -873,8 +873,8 @@ Evme.Brain = new function Evme_Brain() {
         
         // cancel the current outgoing smart folder requests
         this.cancelRequests = function cancelRequests() {
-            requestSmartFolderApps && requestSmartFolderApps.abort();
-            requestSmartFolderImage && requestSmartFolderImage.abort();
+            requestSmartFolderApps && requestSmartFolderApps.abort && requestSmartFolderApps.abort();
+            requestSmartFolderImage && requestSmartFolderImage.abort && requestSmartFolderImage.abort();
         };
         
         // load the folder's background image
@@ -1213,7 +1213,7 @@ Evme.Brain = new function Evme_Brain() {
             data && data.e.preventDefault();
             data && data.e.stopPropagation();
 
-            requestSuggest && requestSuggest.abort();
+            requestSuggest && requestSuggest.abort && requestSuggest.abort();
             window.setTimeout(Evme.ShortcutsCustomize.Loading.hide, 50);
             isRequesting = false;
         };
@@ -1528,6 +1528,13 @@ Evme.Brain = new function Evme_Brain() {
         };
 
         function getAppsComplete(data, options) {
+            if (data.errorCode !== Evme.DoATAPI.ERROR_CODES.SUCCESS) {
+                return false;
+            }
+            if (!requestSearch) {
+                return;
+            }
+            
             var _query = options.query,
                 _type = options.type,
                 _source = options.source,
@@ -1538,10 +1545,6 @@ Evme.Brain = new function Evme_Brain() {
                 queryTyped = options.queryTyped, // used for searching for exact results if user stopped typing for X seconds
                 onlyDidYouMean = options.onlyDidYouMean,
                 hasInstalledApps = options.hasInstalledApps;
-
-            if (data.errorCode !== Evme.DoATAPI.ERROR_CODES.SUCCESS) {
-                return false;
-            }
 
             window.clearTimeout(timeoutHideHelper);
 
@@ -1663,7 +1666,7 @@ Evme.Brain = new function Evme_Brain() {
 
             setTimeoutForShowingDefaultImage();
 
-            requestImage && requestImage.abort();
+            requestImage && requestImage.abort && requestImage.abort();
             requestImage = Evme.DoATAPI.bgimage({
                 "query": query,
                 "typeHint": type,
@@ -1678,6 +1681,9 @@ Evme.Brain = new function Evme_Brain() {
 
         function getBackgroundImageComplete(data) {
             if (data.errorCode !== Evme.DoATAPI.ERROR_CODES.SUCCESS) {
+                return;
+            }
+            if (!requestImage) {
                 return;
             }
 
@@ -1753,10 +1759,15 @@ Evme.Brain = new function Evme_Brain() {
                 var items = data.response || [];
                 autocompleteCache[query] = items;
                 getAutocompleteComplete(items, query);
+                requestAutocomplete = null;
             });
         };
 
         function getAutocompleteComplete(items, querySentWith) {
+            if (!requestAutocomplete) {
+                return;
+            }
+            
             window.clearTimeout(timeoutAutocomplete);
             timeoutAutocomplete = window.setTimeout(function onTimeout(){
                 if (Evme.Utils.isKeyboardVisible && !requestSearch) {
@@ -1906,13 +1917,13 @@ Evme.Brain = new function Evme_Brain() {
                 "source": source
             };
 
-            requestSearch && requestSearch.abort();
+            requestSearch && requestSearch.abort && requestSearch.abort();
             window.clearTimeout(timeoutSearchWhileTyping);
             timeoutSearchWhileTyping = window.setTimeout(function onTimeout(){
                 Searcher.getApps(searchOptions);
             }, TIMEOUT_BEFORE_RUNNING_APPS_SEARCH);
 
-            requestImage && requestImage.abort();
+            requestImage && requestImage.abort && requestImage.abort();
             window.clearTimeout(timeoutSearchImageWhileTyping);
             timeoutSearchImageWhileTyping = window.setTimeout(function onTimeout(){
                 Searcher.getBackgroundImage(searchOptions);
@@ -1921,23 +1932,28 @@ Evme.Brain = new function Evme_Brain() {
 
         this.cancelRequests = function cancelRequests() {
             cancelSearch();
+            cancelAutocomplete();
 
             Searcher.clearTimeoutForShowingDefaultImage();
             window.clearTimeout(timeoutSearchImageWhileTyping);
-            requestImage && requestImage.abort();
-
-            requestIcons && requestIcons.abort();
+            requestImage && requestImage.abort && requestImage.abort();
+            requestImage = null;
+            
+            requestIcons && requestIcons.abort && requestIcons.abort();
+            requestIcons = null;
         };
 
         function cancelSearch() {
             window.clearTimeout(timeoutSearchWhileTyping);
             window.clearTimeout(timeoutSearch);
-            requestSearch && requestSearch.abort();
+            requestSearch && requestSearch.abort && requestSearch.abort();
+            requestSearch = null;
         };
 
         function cancelAutocomplete() {
-            requestAutocomplete && requestAutocomplete.abort();
             window.clearTimeout(timeoutAutocomplete);
+            requestAutocomplete && requestAutocomplete.abort && requestAutocomplete.abort();
+            requestAutocomplete = null;
         };
 
         this.setLastQuery = function setLastQuery() {

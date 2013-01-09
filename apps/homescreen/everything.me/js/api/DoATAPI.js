@@ -685,8 +685,10 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
             if (!ignoreCache) {
                 var fromCache = getFromCache(cacheKey);
                 if (fromCache) {
-                    callback && callback(fromCache);
-                    return false;
+                    callback && window.setTimeout(function() {
+                        callback(fromCache);
+                    }, 10);
+                    return true;
                 }
             }
         }
