@@ -36,11 +36,47 @@ var ApplicationsList = {
         var table = xhr.response;
         this._permissionsTable = table;
 
-        // then load the apps
-        this.loadApps();
+        this.initExplicitPermissionsTable();
       }
     }).bind(this);
     xhr.send();
+  },
+
+  initExplicitPermissionsTable: function al_initExplicitPermissionsTable() {
+    var self = this;
+
+    var table = this._permissionsTable;
+    table.explicitCertifiedPermissions = [];
+
+    var mozPerms = navigator.mozPermissionSettings;
+
+    // we need _any_ certified app in order to build the
+    // explicitCertifiedPermissions list so we use the Settings app itself.
+    window.navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+      var app = evt.target.result;
+
+      table.plainPermissions.forEach(function permIterator(perm) {
+        var isExplicit = mozPerms.isExplicit(perm, app.manifestURL,
+                                             app.origin, false);
+        if (isExplicit) {
+          table.explicitCertifiedPermissions.push(perm);
+        }
+      });
+
+      table.composedPermissions.forEach(function permIterator(perm) {
+        table.accessModes.some(function modeIterator(mode) {
+          var composedPerm = perm + '-' + mode;
+          var isExplicit = mozPerms.isExplicit(composedPerm, app.manifestURL,
+                                               app.origin, false);
+          if (isExplicit) {
+            table.explicitCertifiedPermissions.push(composedPerm);
+          }
+        });
+      });
+
+      // then load the apps
+      self.loadApps();
+    };
   },
 
   handleEvent: function al_handleEvent(evt) {
@@ -58,17 +94,29 @@ var ApplicationsList = {
 
   loadApps: function al_loadApps() {
     var self = this;
+    var table = this._permissionsTable;
+    var mozPerms = navigator.mozPermissionSettings;
 
     navigator.mozApps.mgmt.getAll().onsuccess = function mozAppGotAll(evt) {
       var apps = evt.target.result;
 
       apps.forEach(function(app) {
-        // Ignore certified apps
-        var manifest = app.manifest ? app.manifest : app.updateManifest;
-        if (manifest.type == 'certified')
+        if (HIDDEN_APPS.indexOf(app.manifestURL) != -1)
           return;
 
-        self._apps.push(app);
+        var manifest = app.manifest ? app.manifest : app.updateManifest;
+        if (manifest.type != 'certified') {
+          self._apps.push(app);
+          return;
+        }
+
+        var display = table.explicitCertifiedPermissions.some(function iterator(perm) {
+          return mozPerms.get(perm, app.manifestURL, app.origin, false) != 'unknown';
+        });
+
+        if (display) {
+          self._apps.push(app);
+        }
       });
 
       self._sortApps();
@@ -212,9 +260,6 @@ var ApplicationsList = {
   },
 
   _shouldDisplayPerm: function al_shouldDisplayPerm(app, perm, value) {
-    // We display permissions declared in the manifest
-    // and any other granted permission.
-    var manifest = app.manifest ? app.manifest : app.updateManifest;
     var mozPerms = navigator.mozPermissionSettings;
     var isExplicit = mozPerms.isExplicit(perm, app.manifestURL,
                                          app.origin, false);
