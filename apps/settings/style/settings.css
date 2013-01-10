@@ -32,25 +32,36 @@ section[role="region"] {
 
 /**
  * Panel targets -- transitions
- * the `.previous' and '.current' classes are set by settings.js
+ * the `.previous', '.current' and '.forward' classes are set by settings.js
+ * we use the '.peek' class to force the rendering of the panel before
+ * starting the transition, thus avoiding an ugly flickering with gecko 18
  */
-
-.uninit section[role="region"] {
-  transition: none;
-}
 
 section[role="region"] {
   transform: translateX(+100%);
   transition: transform .4s ease;
 }
+section[role="region"].peek {
+  transition: transform 1ms linear;
+  transform: translateX(+0.1%);
+}
 
 section[role="region"].previous {
   transform: translateX(-100%);
+}
+section[role="region"].previous.peek {
+  transform: translateX(-0.1%);
 }
 
 section[role="region"].current {
   transform: translateX(0);
   overflow-y: scroll;
+}
+section[role="region"].current.peek.forward {
+  transform: translateX(99.9%);
+}
+section[role="region"].current.peek {
+  transform: translateX(-99.9%);
 }
 
 /**
