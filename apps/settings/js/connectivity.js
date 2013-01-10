@@ -210,13 +210,16 @@ var gBluetooth = (function(window) {
 // display connectivity status on the main panel
 var Connectivity = (function(window, document, undefined) {
   var _ = navigator.mozL10n.get;
+  var wifiEnabledListeners = [updateWifi];
+  var wifiDisabledListeners = [updateWifi];
+  var wifiStatusChangeListeners = [updateWifi];
   var settings = Settings.mozSettings;
 
+  gWifiManager.onenabled = wifiEnabled;
+  gWifiManager.ondisabled = wifiDisabled;
+  gWifiManager.onstatuschange = wifiStatusChange;
+
   function init() {
-    // these listeners are replaced when wifi.js is loaded
-    gWifiManager.onenabled = updateWifi;
-    gWifiManager.ondisabled = updateWifi;
-    gWifiManager.onstatuschange = updateWifi;
     updateWifi();
 
     // this event listener is not cleared by carrier.js
@@ -253,6 +256,18 @@ var Connectivity = (function(window, document, undefined) {
     if (settings) {
       settings.createLock().set({ 'deviceinfo.mac': gWifiManager.macAddress });
     }
+  }
+
+  function wifiEnabled() {
+    wifiEnabledListeners.forEach(function(listener) { listener(); });
+  }
+
+  function wifiDisabled() {
+    wifiDisabledListeners.forEach(function(listener) { listener(); });
+  }
+
+  function wifiStatusChange(event) {
+    wifiStatusChangeListeners.forEach(function(listener) { listener(event); });
   }
 
   /**
@@ -408,7 +423,10 @@ var Connectivity = (function(window, document, undefined) {
         hotspot: document.getElementById('hotspot-desc').textContent,
         bluetooth: document.getElementById('bluetooth-desc').textContent
       };
-    }
+    },
+    set wifiEnabled(listener) { wifiEnabledListeners.push(listener) },
+    set wifiDisabled(listener) { wifiDisabledListeners.push(listener); },
+    set wifiStatusChange(listener) { wifiStatusChangeListeners.push(listener); }
   };
 })(this, document);
 
