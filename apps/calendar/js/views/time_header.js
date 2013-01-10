@@ -130,7 +130,16 @@ Calendar.ns('Views').TimeHeader = (function() {
 
     _updateTitle: function() {
       var con = this.app.timeController;
-      this.title.textContent = this.getScale(
+      var date = this.getScale(con.scale);
+
+      var title = this.title;
+
+      title.dataset.l10nDateFormat =
+        this.scales[con.scale] || this.scales.month;
+
+      title.dataset.date = con.position.toString();
+
+      title.textContent = this.getScale(
         con.scale
       );
     },

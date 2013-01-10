@@ -40,12 +40,20 @@ Calendar.ns('Views').MonthsDay = (function() {
     },
 
     _updateHeader: function() {
+      var header = this.header;
+      var template = navigator.mozL10n.get(
+        'agenda-date-format'
+      );
+
       // maybe we should localize this output ?
       var format = this.app.dateFormat.localeFormat(
         this.date,
-        '%A %B %Y'
+        template || '%A %e %B %Y'
       );
-      this.header.textContent = format;
+
+      header.textContent = format;
+      header.dataset.date = this.date.toString();
+      header.dataset.l10nDateFormat = template;
     },
 
     handleEvent: function(e) {
