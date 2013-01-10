@@ -13,13 +13,14 @@
   'use strict';
 
   var costcontrol;
+  var hasSim = true;
   window.addEventListener('DOMContentLoaded', function _onDOMReady() {
     var mobileConnection = window.navigator.mozMobileConnection;
 
     // No SIM
     if (!mobileConnection || mobileConnection.cardState === 'absent') {
-      //TODO: Put the NO SIM message
-      return;
+      hasSim = false;
+      _startWidget();
 
     // SIM is not ready
     } else if (mobileConnection.cardState !== 'ready') {
@@ -47,12 +48,13 @@
       updateUI();
   });
 
-  var initialized, widget, leftPanel, rightPanel, views = {};
+  var initialized, widget, leftPanel, rightPanel, fte, views = {};
   function setupWidget() {
     // HTML entities
     widget = document.getElementById('cost-control');
     leftPanel = document.getElementById('left-panel');
     rightPanel = document.getElementById('right-panel');
+    fte = document.getElementById('fte-view');
     views.dataUsage = document.getElementById('datausage-view');
     views.limitedDataUsage = document.getElementById('datausage-limit-view');
     views.telephony = document.getElementById('telephony-view');
@@ -122,11 +124,47 @@
 
   // USER INTERFACE
 
+  function setupFte(provider, mode) {
+
+    fte.setAttribute('aria-hidden', false);
+
+    fte.addEventListener('click', function launchFte() {
+      fte.removeEventListener('click', launchFte);
+      var activity = new MozActivity({ name: 'costcontrol/balance' });
+    });
+
+    leftPanel.setAttribute('aria-hidden', true);
+    rightPanel.setAttribute('aria-hidden', true);
+
+    var keyLookup = {
+        PREPAID: 'widget-authed-sim',
+        POSTPAID: 'widget-authed-sim',
+        DATA_USAGE_ONLY: 'widget-nonauthed-sim'
+    };
+
+    var simKey = hasSim ? keyLookup[mode] : 'widget-no-sim';
+
+    document.getElementById('fte-icon').className = 'icon ' + simKey;
+
+    fte.querySelector('p:first-child').innerHTML = navigator.mozL10n.get(simKey + '-heading', { provider: provider });
+    fte.querySelector('p:last-child').innerHTML = navigator.mozL10n.get(simKey + '-meta');
+  }
+
   var currentMode;
   function updateUI() {
+
     ConfigManager.requestAll(function _onInfo(configuration, settings) {
       var mode = costcontrol.getApplicationMode(settings);
       debug('Widget UI mode:', mode);
+
+      // Show 'fte' widget
+      if (ConfigManager.option('fte')) {
+        setupFte(configuration.provider, mode);
+        return;
+      }
+      fte.setAttribute('aria-hidden', true);
+      leftPanel.setAttribute('aria-hidden', false);
+      rightPanel.setAttribute('aria-hidden', false);
 
       var isPrepaid = (mode === 'PREPAID');
       var isDataUsageOnly = (mode === 'DATA_USAGE_ONLY');

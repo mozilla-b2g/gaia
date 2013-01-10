@@ -34,6 +34,10 @@ body[role="application"] [role="dialog"] {
   transition: all 0.35s cubic-bezier(0.000, 1.000, 0.535, 1.110);
 }
 
+#firsttime-view[data-steps="4"] .step-state:before {
+  width: calc(100% / 4);
+}
+
 /* STATES */
 #firsttime-view.step-1 .step-state:before {
   transform: translateX(0);
@@ -47,12 +51,25 @@ body[role="application"] [role="dialog"] {
   transform: translateX(200%);
 }
 
+#firsttime-view.step-4 .step-state:before {
+  transform: translateX(300%);
+}
+
 /* Content */
-  #firsttime-view .content {
-    padding: 2.5rem 1.5rem 0;
-    list-style: none;
-    margin: 0;
-  }
+#firsttime-view .content {
+  padding: 3.5rem 1.5rem 0;
+  list-style: none;
+  margin: 0;
+}
+
+#firsttime-view .content h2 {
+  font-size: 1.9rem;
+  margin-bottom: 1.6rem;
+}
+
+#firsttime-view .content p {
+  font-size: 1.6rem;
+}
 
 /* General menu */
 #firsttime-view .step menu {
