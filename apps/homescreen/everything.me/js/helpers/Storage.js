@@ -1,11 +1,18 @@
 Evme.Storage = new function Evme_Storage() {
-    var self = this, CURRENT_VERSION = "1.4",
+    var NAME = 'Storage', self = this,
+        CURRENT_VERSION = "1.4",
         localCache = {},
         isEnabled,
         
         KEY_VALUE = '_v',
         KEY_EXPIRE = '_e',
         KEY_VERSION = '_ver';
+    
+    this.init = function init(options) {
+        populate();
+        
+        Evme.EventHandler.trigger(NAME, 'init');
+    };
         
     this.set = function set(key, val, ttl) {
         self.remove(key, true);
@@ -140,6 +147,4 @@ Evme.Storage = new function Evme_Storage() {
         
         ("ErrorHandler" in window) && ErrorHandler.add(ex);
     }
-    
-    populate();
 };
