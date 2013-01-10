@@ -1186,29 +1186,32 @@ Evme.Brain = new function Evme_Brain() {
                 }
                 
                 Evme.ShortcutsCustomize.Loading.show();
-
+    
                 // load user/default shortcuts from API
                 Evme.DoATAPI.Shortcuts.get(null, function onSuccess(data){
                     var loadedResponse = data.response,
                         currentIcons = loadedResponse.icons,
-                        arrShortcuts = [],
-                        shortcutsToFavorite = {};
-                        
+                        arrCurrentShortcuts = [],
+                        shortcutsToSelect = {};
+    
                     for (var i=0, shortcut, query; shortcut=loadedResponse.shortcuts[i++];) {
                         query = shortcut.query;
                         if (!query && shortcut.experienceId) {
                             query = Evme.Utils.l10n('shortcut', 'id-' + Evme.Utils.shortcutIdToKey(shortcut.experienceId));
                         }
-                        arrShortcuts.push(query.toLowerCase());
+                        
+                        if (query) {
+                            arrCurrentShortcuts.push(query.toLowerCase());
+                        }
                     }
-
+    
                     // load suggested shortcuts from API
                     requestSuggest = Evme.DoATAPI.Shortcuts.suggest({
-                        "existing": arrShortcuts
+                        "existing": arrCurrentShortcuts
                     }, function onSuccess(data) {
                         var suggestedShortcuts = data.response.shortcuts,
                             icons = data.response.icons;
-                            
+    
                         for (var id in icons) {
                             currentIcons[id] = icons[id];
                         }
@@ -1217,11 +1220,13 @@ Evme.Brain = new function Evme_Brain() {
                             "shortcuts": suggestedShortcuts,
                             "icons": currentIcons
                         });
-                        
+    
                         isFirstShow = false;
                         isRequesting = false;
                         Evme.ShortcutsCustomize.show();
-                        Evme.ShortcutsCustomize.Loading.hide();
+                        // setting timeout to give the select box enough time to show
+                        // otherwise there's visible flickering
+                        window.setTimeout(Evme.ShortcutsCustomize.Loading.hide, 300);
                     });
                 });
             });

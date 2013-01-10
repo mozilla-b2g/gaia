@@ -51,17 +51,23 @@ Evme.ShortcutsCustomize = new function Evme_ShortcutsCustomize() {
     };
     
     this.add = function add(shortcuts) {
-        var html = '';
+        var html = '',
+            shortcutsAdded = {};
         
-        for (var i=0,shortcut,query; shortcut=shortcuts[i++];) {
+        for (var i=0,shortcut,query,queryKey; shortcut=shortcuts[i++];) {
             query = shortcut.query;
+            queryKey = query.toLowerCase();
             
-            html += '<option ' +
-                        'value="' + query.replace(/"/g, '&quot;') + '" ' +
-                        'data-experience="' + (shortcut.experienceId || '') + '"' +
-                    '>' +
-                        query.replace(/</g, '&lt;') +
-                    '</option>';
+            if (!shortcutsAdded[queryKey]) {
+                html += '<option ' +
+                            'value="' + query.replace(/"/g, '&quot;') + '" ' +
+                            'data-experience="' + (shortcut.experienceId || '') + '"' +
+                        '>' +
+                            query.replace(/</g, '&lt;') +
+                        '</option>';
+                
+                shortcutsAdded[queryKey] = true;
+            }
         }
         
         elList.innerHTML = html;
