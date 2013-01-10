@@ -657,6 +657,10 @@ Evme.App = function Evme_App(__cfg, __index, __isMore, parent) {
                     '<b>' + cfg.name + '</b>' +
                 '</div>';
     };
+
+    this.getCurrentHtml = function getCurrentHTML() {
+        return el.innerHTML;
+    };
     
     this.goTo = function goTo() {
         cbClick();
@@ -683,6 +687,11 @@ Evme.App = function Evme_App(__cfg, __index, __isMore, parent) {
         }
         if (el) {
             el.innerHTML = self.getHtml();
+
+            Evme.Utils.blobToDataURI(cfg.icon, function(result) {
+                var iconEl = el.querySelector(".thumb");
+                iconEl.style.backgroundImage = 'url(\''+result+'\')';
+            });
         }
     };
 

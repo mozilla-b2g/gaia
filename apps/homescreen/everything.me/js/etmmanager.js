@@ -56,11 +56,10 @@ var EvmeManager = (function EvmeManager() {
     }
 
     function getAppIcon(app) {
-        var iconsForApp = GridManager.getIconsForApp(app);
-        for (var entryPoint in iconsForApp) {
-          return iconsForApp[entryPoint].descriptor.icon;
-        }
+        var iconObject = GridManager.getIcon(app);
+        return iconObject.descriptor.renderedIcon;
     }
+
     function getAppName(app) {
         var manifest = app.manifest;
         if (!manifest) {
