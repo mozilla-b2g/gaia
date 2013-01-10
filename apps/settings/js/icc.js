@@ -116,23 +116,27 @@
    * Updates the STK header buttons
    */
   function setSTKScreenType(type) {
+    var exit = document.getElementById('icc-stk-exit');
+    var back = document.getElementById('icc-stk-app-back');
+    var helpExit = document.getElementById('icc-stk-help-exit');
+
     switch (type) {
       case STK_SCREEN_MAINMENU:
-        document.getElementById('icc-stk-exit').classList.remove('hidden');
-        document.getElementById('icc-stk-app-back').classList.add('hidden');
-        document.getElementById('icc-stk-help-exit').classList.add('hidden');
+        exit.classList.remove('hidden');
+        back.classList.add('hidden');
+        helpExit.classList.add('hidden');
         break;
 
       case STK_SCREEN_HELP:
-        document.getElementById('icc-stk-exit').classList.add('hidden');
-        document.getElementById('icc-stk-app-back').classList.add('hidden');
-        document.getElementById('icc-stk-help-exit').classList.remove('hidden');
+        exit.classList.add('hidden');
+        back.classList.add('hidden');
+        helpExit.classList.remove('hidden');
         break;
 
       default:  // STK_SCREEN_DEFAULT
-        document.getElementById('icc-stk-exit').classList.add('hidden');
-        document.getElementById('icc-stk-app-back').classList.remove('hidden');
-        document.getElementById('icc-stk-help-exit').classList.add('hidden');
+        exit.classList.add('hidden');
+        back.classList.remove('hidden');
+        helpExit.classList.add('hidden');
     }
   }
 
