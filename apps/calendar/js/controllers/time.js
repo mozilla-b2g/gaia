@@ -132,7 +132,14 @@ Calendar.ns('Controllers').Time = (function() {
     set selectedDay(value) {
       var day = this._selectedDay;
       this._mostRecentDayType = 'selectedDay';
-      if (!day || !Calendar.Calc.isSameDate(day, value)) {
+
+      if (
+          // going from null -> null
+          (!day && day !== value) ||
+          (!value && value !== day) ||
+          // neither value can be null at this point
+          (value && !Calendar.Calc.isSameDate(day, value))
+      ) {
         this._selectedDay = value;
         this.emit('selectedDayChange', value, day);
       }

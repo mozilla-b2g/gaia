@@ -419,6 +419,15 @@ Indicators are in units of 12
 .rtl .busy-indicator .busy-12 { right: 91.63%; }
 
 /* sub: months day view */
+#months-day-view.inactive h1,
+#months-day-view.inactive {
+  color: transparent;
+  border-bottom-color: transparent;
+}
+
+#months-day-view.inactive .day-events {
+  display: none;
+}
 
 #months-day-view  h1 {
   letter-spacing: 0.05rem;

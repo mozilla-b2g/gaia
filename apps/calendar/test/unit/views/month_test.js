@@ -99,15 +99,26 @@ suite('views/month', function() {
     });
 
     test('controller: selectedDayChange', function() {
-      var calledWith;
+      var selected;
+      var cleared;
       var date = new Date();
 
+      subject._clearSelectedDay = function() {
+        cleared = true;
+      };
+
       subject._selectDay = function() {
-        calledWith = arguments;
+        selected = arguments;
       };
 
       controller.selectedDay = date;
-      assert.deepEqual(calledWith[0], date);
+      assert.deepEqual(selected[0], date);
+      controller.selectedDay = date;
+
+      // verify we can set it to null
+      selected = null;
+      controller.selectedDay = null;
+      assert.isTrue(cleared, 'clears selected day');
     });
   });
 

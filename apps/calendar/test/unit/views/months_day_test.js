@@ -51,6 +51,27 @@ suite('views/months_day', function() {
 
   suite('#handleEvent', function() {
 
+    test('selectedDayChange hide/show', function() {
+      var date = new Date(2012, 1, 1);
+
+      subject.date = new Date(2012, 1, 1);
+      subject.render();
+
+      subject.controller.selectedDay = date;
+
+      assert.isFalse(
+        subject.element.classList.contains('inactive'),
+        'is active'
+      );
+
+      subject.controller.selectedDay = null;
+
+      assert.isTrue(
+        subject.element.classList.contains('inactive'),
+        'is inactive'
+      );
+    });
+
     test('selectedDayChange', function() {
       var date = new Date(2012, 1, 1);
       var calledWith;

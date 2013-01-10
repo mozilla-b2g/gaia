@@ -448,6 +448,15 @@ suite('controllers/time', function() {
     assert.equal(subject.selectedDay, newDate);
     assert.equal(calledWith[0], newDate);
     assert.equal(calledWith[1], date);
+
+    // set it to null
+    subject.selectedDay = null;
+    assert.equal(calledWith[0], null, 'sends event even when null');
+
+    // try to set it to null twice
+    calledWith = null;
+    subject.selectedDay = null;
+    assert.equal(calledWith, null, 'does not fire twice');
   });
 
   suite('#purgeCache', function() {
