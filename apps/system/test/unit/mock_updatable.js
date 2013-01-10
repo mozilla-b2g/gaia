@@ -41,6 +41,7 @@ function MockSystemUpdatable(downloadSize) {
 MockSystemUpdatable.mInstancesCount = 0;
 MockSystemUpdatable.mTeardown = function() {
   MockSystemUpdatable.mInstancesCount = 0;
+  delete MockSystemUpdatable.mKnownUpdate;
 };
 
 
@@ -54,4 +55,18 @@ MockSystemUpdatable.prototype.download = function() {
 
 MockSystemUpdatable.prototype.cancelDownload = function() {
   this.mCancelCalled = true;
+};
+
+MockSystemUpdatable.prototype.rememberKnownUpdate = function() {
+  this.mKnownUpdate = true;
+};
+
+MockSystemUpdatable.prototype.forgetKnownUpdate = function() {
+  delete this.mKnownUpdate;
+};
+
+MockSystemUpdatable.prototype.checkKnownUpdate = function(callback) {
+  if (this.mKnownUpdate && typeof callback === 'function') {
+    callback();
+  }
 };
