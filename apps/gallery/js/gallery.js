@@ -98,6 +98,7 @@ var languageDirection;
 var files = [];
 
 var currentFileIndex = 0;       // What file is currently displayed
+var pendingFileDeletion = null; // Name of file currently being deleted
 
 // In thumbnailSelectView, we allow the user to select thumbnails.
 // These variables hold the names of the selected files, and map those
@@ -528,6 +529,13 @@ function fileDeleted(filename) {
     if (currentView !== pickView)
       setView(thumbnailListView);
     showOverlay('emptygallery');
+  }
+
+  // Now that the UI has been updated, it is safe to re-enable the
+  // delete button, if it was disabled.
+  if (filename === pendingFileDeletion) {
+    $('fullscreen-delete-button').classList.remove('disabled');
+    pendingFileDeletion = null;
   }
 }
 
@@ -986,12 +994,18 @@ function deleteSelectedItems() {
       selected[i].classList.toggle('selected');
       deleteFile(parseInt(selected[i].dataset.index));
     }
+    // Calling clearSelection() disables the delete button, until the user
+    // selects more photos. So the user is not likely to delete more photos
+    // while this batch is being deleted. Still theoretically possible, though.
     clearSelection();
   }
 }
 
 // Clicking the delete button while viewing a single item deletes that item
 function deleteSingleItem() {
+  if (pendingFileDeletion) // Don't delete a new item if we're still deleting
+    return;                // another one.
+
   var msg;
   if (files[currentFileIndex].metadata.video) {
     msg = navigator.mozL10n.get('delete-video?');
@@ -1000,6 +1014,13 @@ function deleteSingleItem() {
     msg = navigator.mozL10n.get('delete-photo?');
   }
   if (confirm(msg)) {
+    // We don't want the user to be able to delete the same photo twice
+    // So disable the button until the file is fully deleted. deleteFile()
+    // just deletes the file, but the UI isn't updated until we get the
+    // device storage event, so we can't re-enable the button until we
+    // see the name of this file turn up in fileDeleted().
+    $('fullscreen-delete-button').classList.add('disabled');
+    pendingFileDeletion = files[currentFileIndex].name;
     deleteFile(currentFileIndex);
   }
 }
