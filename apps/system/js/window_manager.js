@@ -1139,21 +1139,14 @@ var WindowManager = (function() {
     windows.appendChild(frame);
 
     // And map the app origin to the info we need for the app
-    var app = {
-      get name() {
-        var name = getAppName(origin, this.manifest);
-        if (!name) {
-          return this._name;
-        } else {
-          return name;
-        }
-      },
-      _name: name,
+    var app = new AppWindow({
+      origin: origin,
+      name: name,
       manifest: manifest,
       frame: frame,
       iframe: iframe,
       launchTime: 0
-    };
+    });
     runningApps[origin] = app;
 
     if (requireFullscreen(origin)) {
@@ -1802,7 +1795,7 @@ var WindowManager = (function() {
       return;
 
     var app = runningApps[origin];
-    app.frame.reload(true);
+    app.reload();
   }
 
   // When a resize event occurs, resize the running app, if there is one
