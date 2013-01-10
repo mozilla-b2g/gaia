@@ -46,7 +46,8 @@ Evme.Brain = new function Evme_Brain() {
 
         timeoutSetUrlAsActive = null,
         timeoutHashChange = null,
-        _ = navigator.mozL10n.get;
+        _ = navigator.mozL10n.get,
+        mozL10nTranslate = navigator.mozL10n.translate;
 
     /*
         Init sequense triggered by Core.js
@@ -86,12 +87,13 @@ Evme.Brain = new function Evme_Brain() {
     
     // callback for "node added" mutation observer
     // this translates all the new nodes added
+    // the mozL10nTranslate method is defined above, it's a reference to the mozilla l10n function
     this.l10nMutationObserver = function onMutationEventNodeAdded(mutations) {
         for (var i=0, mutation; mutation=mutations[i++];) {
             var children = mutation.addedNodes || [];
             for (var j=0, node; node=children[j++];) {
                 if (node instanceof HTMLElement) {
-                    node && navigator.mozL10n.translate(node);
+                    node && mozL10nTranslate(node);
                 }
             }
         }
@@ -106,11 +108,13 @@ Evme.Brain = new function Evme_Brain() {
      */
     function catchCallback(_class, _event, _data) {
         logger.debug(_class + "." + _event + "(", (_data || ""), ")");
-        Evme.Utils.log('Callback: ' + _class + '.' + _event);
+        
+        Evme.Utils.log(_class + '.' + _event);
+        
         try {
             self[_class] && self[_class][_event] && self[_class][_event](_data || {});
         } catch(ex){
-            Evme.Utils.log('Evme CB Error: ' + ex.message);
+            Evme.Utils.log('CB Error! ' + ex.message);
             logger.error(ex);
         }
     }
@@ -537,7 +541,7 @@ Evme.Brain = new function Evme_Brain() {
             Searcher.loadMoreApps();
         };
 
-        this.clearIfHas = function() {
+        this.clearIfHas = function clearIfHas() {
             var hadApps = Evme.Apps.clear();
             if (!hadApps) {
                 return false;
@@ -549,9 +553,9 @@ Evme.Brain = new function Evme_Brain() {
     };
 
     // modules/Apps/
-    this.AppsMore = new function() {
+    this.AppsMore = new function AppsMore() {
         // more button was clicked
-        this.buttonClick = function() {
+        this.buttonClick = function buttonClick() {
             Searcher.loadMoreApps();
         };
     };
@@ -833,7 +837,7 @@ Evme.Brain = new function Evme_Brain() {
             requestSmartFolderApps = null,
             requestSmartFolderImage = null;
         
-        // shortcut was clicked
+        // a folder is shown
         this.show = function show(data) {
             elContainer.classList.add("smart-folder-visible");
 
@@ -883,10 +887,12 @@ Evme.Brain = new function Evme_Brain() {
         this.loadBGImage = function loadBGImage() {
             if (!currentFolder) return;
             
-            var query = currentFolder.getName();
+            var experienceId = currentFolder.getExperience(),
+                query = currentFolder.getQuery();
             
             requestSmartFolderImage = Evme.DoATAPI.bgimage({
-                "query": query,
+                "query": experienceId? '' : query,
+                "experienceId": experienceId,
                 "feature": SEARCH_SOURCES.SHORTCUT_SMART_FOLDER,
                 "exact": true,
                 "width": screen.width,
@@ -906,17 +912,18 @@ Evme.Brain = new function Evme_Brain() {
         this.loadAppsIntoFolder = function loadAppsIntoFolder(onAppsLoaded) {
             if (!currentFolder) return;
 
-            var query = currentFolder.getName();
+            var experienceId = currentFolder.getExperience(),
+                query = currentFolder.getQuery(),
+                iconsFormat = Evme.Utils.getIconsFormat(),
+                
+                installedApps = Searcher.getInstalledApps({
+                    "query": query
+                });
 
             currentFolder.appsPaging = {
                 "offset": 0,
                 "limit": NUMBER_OF_APPS_TO_LOAD_IN_FOLDER
             };
-
-            var iconsFormat = Evme.Utils.getIconsFormat(),
-                installedApps = Searcher.getInstalledApps({
-                    "query": query
-                });
 
             currentFolder.clear();
             currentFolder.loadApps({
@@ -926,7 +933,8 @@ Evme.Brain = new function Evme_Brain() {
                 "installed": true
             }, function onDone() {
                 requestSmartFolderApps = Evme.DoATAPI.search({
-                    "query": query,
+                    "query": experienceId? '' : query,
+                    "experienceId": experienceId,
                     "feature": SEARCH_SOURCES.SHORTCUT_SMART_FOLDER,
                     "exact": true,
                     "spellcheck": false,
@@ -976,10 +984,13 @@ Evme.Brain = new function Evme_Brain() {
 
             currentFolder.MoreIndicator.show();
 
-            var iconsFormat = Evme.Utils.getIconsFormat();
+            var experienceId = currentFolder.getExperience(),
+                query = currentFolder.getQuery(),
+                iconsFormat = Evme.Utils.getIconsFormat();
 
             requestSmartFolderApps = Evme.DoATAPI.search({
-                "query": currentFolder.getName(),
+                "query": experienceId? '' : query,
+                "experienceId": experienceId,
                 "feature": SEARCH_SOURCES.SHORTCUT_SMART_FOLDER,
                 "exact": true,
                 "spellcheck": false,
@@ -1040,16 +1051,6 @@ Evme.Brain = new function Evme_Brain() {
             });
         };
         
-        // shortcut is clicked
-        this.showSmartFolder = function showSmartFolder(options) {
-            new Evme.SmartFolder({
-                "name": options.query,
-                "bgImage": (Evme.BackgroundImage.get() || {}).image,
-                "elParent": elContainer,
-                "onScrollEnd": Evme.Brain.SmartFolder.loadMoreApps
-            }).show();
-        };
-
         // shortcuts loaded. add + icon
         this.load = function load() {
             Brain.ShortcutsCustomize.addCustomizeButton();
@@ -1099,13 +1100,13 @@ Evme.Brain = new function Evme_Brain() {
         // item clicked
         this.click = function click(data) {
             if(!Evme.Shortcuts.isEditing && !Evme.Shortcuts.isSwiping()) {
-                var query = data.data.query;
-
-                data.query = query;
-
-                Brain.Shortcuts.showSmartFolder({
-                    "query": data.query
-                });
+                new Evme.SmartFolder({
+                    "query": data.shortcut.getQuery(),
+                    "experienceId": data.shortcut.getExperience(),
+                    "bgImage": (Evme.BackgroundImage.get() || {}).image,
+                    "elParent": elContainer,
+                    "onScrollEnd": Evme.Brain.SmartFolder.loadMoreApps
+                }).show();
             }
         };
 
@@ -1113,7 +1114,7 @@ Evme.Brain = new function Evme_Brain() {
         this.remove = function remove(data) {
             Evme.Shortcuts.remove(data.shortcut);
             Evme.Shortcuts.refreshScroll();
-            Evme.DoATAPI.Shortcuts.remove(data.data.query);
+            Evme.DoATAPI.Shortcuts.remove(data.data);
         };
     };
 
@@ -1180,9 +1181,10 @@ Evme.Brain = new function Evme_Brain() {
                     window.setTimeout(function() {
                         isRequesting = false;
                     }, 200);
+                    
                     return;
                 }
-
+                
                 Evme.ShortcutsCustomize.Loading.show();
 
                 // load user/default shortcuts from API
@@ -1191,9 +1193,13 @@ Evme.Brain = new function Evme_Brain() {
                         currentIcons = loadedResponse.icons,
                         arrShortcuts = [],
                         shortcutsToFavorite = {};
-
-                    for (var i=0, len=loadedResponse.shortcuts.length; i<len; i++) {
-                        arrShortcuts.push(loadedResponse.shortcuts[i].query);
+                        
+                    for (var i=0, shortcut, query; shortcut=loadedResponse.shortcuts[i++];) {
+                        query = shortcut.query;
+                        if (!query && shortcut.experienceId) {
+                            query = Evme.Utils.l10n('shortcut', 'id-' + Evme.Utils.shortcutIdToKey(shortcut.experienceId));
+                        }
+                        arrShortcuts.push(query.toLowerCase());
                     }
 
                     // load suggested shortcuts from API
@@ -1202,24 +1208,16 @@ Evme.Brain = new function Evme_Brain() {
                     }, function onSuccess(data) {
                         var suggestedShortcuts = data.response.shortcuts,
                             icons = data.response.icons;
-
-                        for (var i=0; i<suggestedShortcuts.length; i++) {
-                            var query = suggestedShortcuts[i].query.toLowerCase();
-
-                            if (!shortcutsToFavorite[query] && arrShortcuts.indexOf(query.toLowerCase()) == -1) {
-                                shortcutsToFavorite[query] = false;
-                            }
-                        }
-
+                            
                         for (var id in icons) {
                             currentIcons[id] = icons[id];
                         }
-
+    
                         Evme.ShortcutsCustomize.load({
-                            "shortcuts": shortcutsToFavorite,
+                            "shortcuts": suggestedShortcuts,
                             "icons": currentIcons
                         });
-
+                        
                         isFirstShow = false;
                         isRequesting = false;
                         Evme.ShortcutsCustomize.show();
@@ -1352,10 +1350,15 @@ Evme.Brain = new function Evme_Brain() {
 
     // api/DoATAPI.js
     this.DoATAPI = new function DoATAPI() {
+        // a request was made to the API
+        this.request = function request(data) {
+            Evme.Utils.log("DoATAPI.request " + getRequestUrl(data));
+        };
+        
         // trigger message when request fails
         this.cantSendRequest = function cantSendRequest() {
             var folder = Brain.SmartFolder.get(),
-                query = Evme.Searchbar.getElement().value || (folder && folder.getName()) || '',
+                query = Evme.Searchbar.getElement().value || (folder && folder.getQuery()) || '',
                 elTo = folder? Evme.$(".evme-apps", folder.getElement())[0] : Evme.Apps.getList().parentNode,
                 bHasInstalled = folder? folder.hasInstalled() : Evme.Apps.hasInstalled(),
                 textKey = bHasInstalled? 'apps-has-installed' : 'apps';
@@ -1363,10 +1366,28 @@ Evme.Brain = new function Evme_Brain() {
             Evme.ConnectionMessage.show(elTo, textKey, { 'query': query });
         };
         
-        // an API callback method had en error
-        this.clientError = function(data) {
-            Evme.Utils.log('API Exception! ' + data.exception.message);
+        // an API callback method had an error
+        this.clientError = function onClientError(data) {
+            Evme.Utils.log('API clientError: ' + data.exception.message);
         };
+        
+        // the API returned an error!
+        this.error = function onError(data) {
+            Evme.Utils.log('API error: ' + data.method + ': ' + JSON.stringify(data.response));
+        };
+        
+        // construct a valid API url- for debugging purposes
+        function getRequestUrl(eventData) {
+            var params = eventData.params || {},
+                urlParams = [];
+                
+            for (var p in params) {
+                urlParams.push(p + '=' + encodeURIComponent(params[p]));
+            }
+            urlParams = urlParams.join('&');
+            
+            return Evme.api.getBaseURL() + eventData.method + '?' + urlParams;
+        }
     };
 
     // Searcher object to handle all search events
@@ -1481,7 +1502,7 @@ Evme.Brain = new function Evme_Brain() {
                     if (!exact && query.length < MINIMUM_LETTERS_TO_SEARCH) {
                         return;
                     }
-
+                    
                     requestSearch = Evme.DoATAPI.search({
                         "query": query,
                         "typeHint": type,
