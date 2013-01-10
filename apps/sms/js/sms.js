@@ -70,9 +70,18 @@ var MessageManager = {
 
   slide: function mm_slide(callback) {
     var mainWrapper = document.getElementById('main-wrapper');
-    mainWrapper.classList.toggle('to-left');
-    mainWrapper.addEventListener('transitionend', function slideTransition() {
-      mainWrapper.removeEventListener('transitionend', slideTransition);
+    if (!mainWrapper.classList.contains('to-left')) {
+      mainWrapper.classList.remove('to-right');
+      mainWrapper.classList.add('to-left');
+    } else {
+      mainWrapper.classList.remove('to-left');
+      mainWrapper.classList.add('to-right');
+      
+    }
+    mainWrapper.addEventListener('animationend', function slideTransition() {
+      mainWrapper.removeEventListener('animationend', slideTransition);
+      mainWrapper.classList.toggle('to-left-fixed');
+
       if (callback) {
         callback();
       }
