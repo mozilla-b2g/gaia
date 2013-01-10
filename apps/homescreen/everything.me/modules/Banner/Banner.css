@@ -1,57 +1,13 @@
-/* from building blocks, core.css - [role=dialog]*/
-#evmeContainer .banner {
-  position: absolute;
-  background: orange;
-  width: 100%;
-  height: 8.13rem;
-  bottom: 0;
-  vertical-align: middle;
-  text-align: center;
-  background-attachment: scroll, scroll;
-  background-clip: border-box, border-box;
-  background-color: transparent;
-  background-image: url("/everything.me/images/shared/pattern.png"), url("/everything.me/images/shared/gradient.png");
-  background-origin: padding-box, padding-box;
-  background-position: left top, left top;
-  background-repeat: repeat, no-repeat;
-  background-size: auto auto, 100% 100%;
-  font-family: "MozTT",Sans-serif;
-  -moz-transition: all 600ms ease;
+#evmeBanner {
   z-index: -1;
   opacity: 0;
+  -moz-transition: all 600ms ease;
 }
-#evmeContainer .banner.visible {
+#evmeBanner.visible {
   z-index: 10001;
   opacity: 1;
   -moz-transition: all 600ms ease;
 }
-#evmeContainer .banner:before {
-  content: "";
-  display: inline-block;
-  height: 100%;
-  vertical-align: middle;
-  width: 1px;
-}
-#evmeContainer .banner:after {
-  content: "";
-  display: inline-block;
-  height: 100%;
-  vertical-align: middle;
-  width: 1px;
-}
-#evmeContainer .banner > p {
-  display: inline-block;
-  font-size: 1.56rem;
-  line-height: 2.34rem;
-  max-width: 75%;
-  vertical-align: middle;
-  white-space: normal;
-  color: #FFFFFF;
-  font-family: "MozTT",Sans-serif;
-}
-#evmeContainer .banner > p > strong {
-  color: #0995B0;
-  font-weight: normal;
-  text-transform: uppercase;
+#evmeBanner > p > strong {
   white-space: nowrap;
 }
