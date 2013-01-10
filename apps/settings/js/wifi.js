@@ -68,7 +68,7 @@ onLocalized(function wifiSettings() {
    */
 
   var gScanStates = new Set(['connected', 'connectingfailed', 'disconnected']);
-  gWifiManager.onstatuschange = function(event) {
+  Connectivity.wifiStatusChange = function(event) {
     updateNetworkState();
 
     if (gScanStates.has(event.status)) {
@@ -80,7 +80,7 @@ onLocalized(function wifiSettings() {
     }
   };
 
-  gWifiManager.onenabled = function onWifiEnabled() {
+  Connectivity.wifiEnabled = function onWifiEnabled() {
     // enable UI toggle
     if (!lastMozSettingValue) {
       // Wifi just came up, but the last known value of the setting was false.
@@ -99,7 +99,7 @@ onLocalized(function wifiSettings() {
     gNetworkList.scan();
   };
 
-  gWifiManager.ondisabled = function onWifiDisabled() {
+  Connectivity.wifiDisabled = function onWifiDisabled() {
     // enable UI toggle
     if (lastMozSettingValue) {
       // See the comment in onWifiEnabled for why we do this.
