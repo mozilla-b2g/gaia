@@ -2,31 +2,33 @@
 
 var LanguageManager = {
   init: function init() {
-    var panel = document.getElementById('languages');
-    this.buildLanguageList(panel.querySelector('ul'));
-    panel.addEventListener('change', this);
+    this.getCurrentLanguage(this.buildLanguageList.bind(this));
+    document.getElementById('languages').addEventListener('change', this);
   },
 
   handleEvent: function handleEvent(evt) {
-    if (evt.target.name != 'language.current') {
-      return true;
-    }
-
     var settings = window.navigator.mozSettings;
-    if (!settings.createLock) {
+    if (!settings || evt.target.name != 'language.current')
       return true;
-    }
+
+    settings.createLock().set({'language.current': evt.target.value});
+    return false;
+  },
+
+  getCurrentLanguage: function settings_getCurrent(callback) {
+    var settings = window.navigator.mozSettings;
+    if (!settings || !settings.createLock || !callback)
+      return;
+
     var req = settings.createLock().get('language.current');
 
-    req.onsuccess = function() {
-      settings.createLock().set({'language.current': evt.target.value});
+    req.onsuccess = function _onsuccess() {
+      callback(req.result['language.current']);
     };
 
-    req.onerror = function() {
-      console.error('Error changing language');
+    req.onerror = function _onerror() {
+      console.error('Error checking language');
     };
-
-    return false;
   },
 
   getSupportedLanguages: function settings_getLanguages(callback) {
@@ -55,9 +57,9 @@ var LanguageManager = {
     }
   },
 
-  buildLanguageList: function settings_buildLanguageList(container) {
+  buildLanguageList: function settings_buildLanguageList(uiLanguage) {
+    var container = document.querySelector('#languages ul');
     container.innerHTML = '';
-    var uiLanguage = document.documentElement.lang || 'en-US';
     this.getSupportedLanguages(function fillLanguageList(languages) {
       for (var lang in languages) {
         var input = document.createElement('input');
