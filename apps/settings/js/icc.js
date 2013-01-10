@@ -45,12 +45,8 @@
       updateMenu();
     };
 
-    document.getElementById('icc-stk-app-back').onclick = function goBack() {
-      responseSTKCommand({
-        resultCode: icc.STK_RESULT_BACKWARD_MOVE_BY_USER
-      });
-    };
-
+    document.getElementById('icc-stk-app-back').onclick = stkResGoBack;
+    document.getElementById('icc-stk-alert-btn_back').onclick = stkResGoBack;
     document.getElementById('icc-stk-help-exit').onclick = updateMenu;
 
     window.onunload = function() {
@@ -111,6 +107,14 @@
     };
 
   }
+
+  function stkResGoBack() {
+    alertbox.classList.add('hidden');
+    iccLastCommandProcessed = true;
+    responseSTKCommand({
+      resultCode: icc.STK_RESULT_BACKWARD_MOVE_BY_USER
+    });
+  };
 
   /**
    * Updates the STK header buttons
