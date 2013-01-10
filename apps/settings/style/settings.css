@@ -65,7 +65,6 @@ section[role="region"] > header:first-child + * {
   margin-top: 5rem;
 }
 
-
 /******************************************************************************
  * Explanation texts
  */
@@ -220,18 +219,6 @@ section li.password > p {
 
 .apnSettings-advanced {
   padding-bottom: 1em;
-}
-
-
-/******************************************************************************
- * Sound settings
- */
-
-.tone-select {
-  width: 50%;
-  position: absolute;
-  right: 1rem;
-  left: auto;
 }
 
 

@@ -187,18 +187,37 @@ var Settings = {
         }
       }
 
+      // use a <button> instead of the <select> element
+      var fakeSelector = function(select) {
+        var parent = select.parentElement;
+        var button = select.previousElementSibling;
+        // link the button with the select element
+        var index = select.selectedIndex;
+        if (index >= 0) {
+          button.textContent = select.options[index].textContent;
+        }
+        if (parent.classList.contains('fake-select')) {
+          select.addEventListener('change', function() {
+            var newSelect = this.options[this.selectedIndex].textContent;
+            button.textContent = newSelect;
+          });
+        }
+      };
+
       // preset all select
       var selects = panel.querySelectorAll('select');
-      for (i = 0; i < selects.length; i++) {
-        var key = selects[i].name;
+      for (var i = 0, count = selects.length; i < count; i++) {
+        var select = selects[i];
+        var key = select.name;
         if (key && request.result[key] != undefined) {
           var value = request.result[key];
           var option = 'option[value="' + value + '"]';
-          var selectOption = selects[i].querySelector(option);
+          var selectOption = select.querySelector(option);
           if (selectOption) {
             selectOption.selected = true;
           }
         }
+        fakeSelector(select);
       }
 
       // preset all span with data-name fields
