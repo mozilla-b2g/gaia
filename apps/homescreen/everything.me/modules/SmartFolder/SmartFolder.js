@@ -243,8 +243,12 @@ Evme.SmartFolder = function Evme_SartFolder(_options) {
         return isTrue;
     };
     
-    this.addInstalledSeparator = function() {
+    this.addInstalledSeparator = function addInstalledSeparator() {
         elApps.appendChild(Evme.$create('li', {'class': "installed-separator"}));
+    };
+    
+    this.refreshScroll = function refreshScroll() {
+        scroll.refresh();
     };
     
     this.MoreIndicator = new function MoreIndicator() {
@@ -269,7 +273,7 @@ Evme.SmartFolder = function Evme_SartFolder(_options) {
             el = Evme.$create('li',
                     {'class': "loadmore"},
                     '<progress class="small skin-dark"></progress>' +
-                    '<b ' + Evme.Utils.l10nAttr(NAME, 'loading-more') + '></b>');
+                    '<b class="label" ' + Evme.Utils.l10nAttr(NAME, 'loading-more') + '></b>');
                     
             elParent.appendChild(el);
             

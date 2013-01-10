@@ -196,7 +196,7 @@ Evme.Utils = new function Evme_Utils() {
     };
 
     this.isOnline = function isOnline(callback) {
-        Connection.online(callback);
+       Connection.online(callback);
     };
 
     this.getUrlParam = function getUrlParam(key) {
