@@ -202,6 +202,55 @@ Calendar.App = (function(window) {
     },
 
     /**
+     * Observes localized events and localizes elements
+     * with data-l10n-date-format should be registered
+     * after the first localized event.
+     *
+     *
+     * Example:
+     *
+     *
+     *    <span
+     *      data-date="Wed Jan 09 2013 19:25:38 GMT+0100 (CET)"
+     *      data-l10n-date-format="%x">
+     *
+     *      2013/9/19
+     *
+     *    </span>
+     *
+     */
+    observeDateLocalization: function() {
+      function localize() {
+        var elements = document.querySelectorAll(
+          '[data-l10n-date-format]'
+        );
+
+        var len = elements.length;
+        var i = 0;
+
+        var date;
+        var format;
+        var el;
+
+        for (; i < len; i++) {
+          el = elements[i];
+
+          date = el.dataset.date;
+          format = el.dataset.l10nDateFormat;
+
+          if (date) {
+            el.textContent = Calendar.App.dateFormat.localeFormat(
+              new Date(date),
+              format
+            );
+          }
+        }
+      }
+
+      window.addEventListener('localized', localize);
+    },
+
+    /**
      * Adds observers to objects capable of being pending.
      *
      * Object must emit some kind of start/complete events
@@ -303,6 +352,9 @@ Calendar.App = (function(window) {
       });
 
       this.dateFormat = navigator.mozL10n.DateTimeFormat();
+
+      // re-localize dates on screen
+      this.observeDateLocalization();
 
       this.timeController.observe();
       this.alarmController.observe();

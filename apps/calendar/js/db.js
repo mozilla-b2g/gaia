@@ -379,6 +379,7 @@
       account._id = uuid();
 
       var calendar = {
+        _id: Calendar.Provider.Local.calendarId,
         accountId: account._id,
         remote: Calendar.Provider.Local.defaultCalendar()
       };

@@ -93,8 +93,21 @@ suite('views/months_day', function() {
     subject.date = date;
     subject._updateHeader();
 
+    var format = '%A %e %B %Y';
     var expected = date.toLocaleFormat(
-      '%A %B %Y'
+      format
+    );
+
+    assert.equal(
+      el.dataset.date,
+      date.toString(),
+      'sets element\'s date'
+    );
+
+    assert.equal(
+      el.dataset.l10nDateFormat,
+      format,
+      'sets element\'s l10nDateFormat'
     );
 
     assert.ok(el.innerHTML, 'has contents');
