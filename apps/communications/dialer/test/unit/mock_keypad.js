@@ -5,7 +5,7 @@ var MockKeypadManager = {
   },
   mFormatPhoneNumberCalled: false,
   updateAdditionalContactInfo:
-    function khm_updateAdditionalContactInfo(ellipsisSide) {
+    function khm_updateAdditionalContactInfo(ellipsisSide, maxFontSize) {
     this.mUpdateAdditionalContactInfo = true;
   },
   mUpdateAdditionalContactInfo: false,

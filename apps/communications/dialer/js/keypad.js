@@ -141,6 +141,10 @@ var TonePlayer = {
 };
 
 var KeypadManager = {
+
+  _MAX_FONT_SIZE_DIAL_PAD: 18,
+  _MAX_FONT_SIZE_ON_CALL: 16,
+
   _phoneNumber: '',
   _onCall: false,
 
@@ -223,7 +227,11 @@ var KeypadManager = {
     var defaultFontSize = window.getComputedStyle(document.body, null)
                                 .getPropertyValue('font-size');
     this.minFontSize = parseInt(parseInt(defaultFontSize) * 10 * 0.226);
-    this.maxFontSize = parseInt(parseInt(defaultFontSize) * 18 * 0.226);
+    this.maxFontSize = this._onCall ?
+      parseInt(parseInt(defaultFontSize) * this._MAX_FONT_SIZE_ON_CALL
+        * 0.226) :
+      parseInt(parseInt(defaultFontSize) * this._MAX_FONT_SIZE_DIAL_PAD
+        * 0.226);
 
     this.phoneNumberView.value = '';
     this._phoneNumber = '';
@@ -355,7 +363,7 @@ var KeypadManager = {
     OnCallHandler.end();
   },
 
-  formatPhoneNumber: function kh_formatPhoneNumber(ellipsisSide) {
+  formatPhoneNumber: function kh_formatPhoneNumber(ellipsisSide, maxFontSize) {
     if (this._onCall) {
       var fakeView = CallScreen.activeCall.querySelector('.fake-number');
       var view = CallScreen.activeCall.querySelector('.number');
@@ -371,47 +379,60 @@ var KeypadManager = {
       }
     }
 
-    var newFontSize = this.getNextFontSize(view, fakeView);
+    var newFontSize;
+    if (maxFontSize) {
+      newFontSize = this.maxFontSize;
+    } else {
+      newFontSize = this.getNextFontSize(view, fakeView);
+    }
     view.style.fontSize = newFontSize + 'px';
     this.addEllipsis(view, fakeView, ellipsisSide);
   },
 
   addEllipsis: function kh_addEllipsis(view, fakeView, ellipsisSide) {
-    var side = ellipsisSide || 'left';
-    var computedStyle = window.getComputedStyle(view, null);
-    var currentFontSize = parseInt(computedStyle.getPropertyValue('font-size'));
-    var viewWidth = view.getBoundingClientRect().width;
-    fakeView.style.fontSize = currentFontSize + 'px';
-    fakeView.innerHTML = view.value ? view.value : view.innerHTML;
-
-    var value = fakeView.innerHTML;
-
-    // Guess the possible position of the ellipsis in order to minimize
-    // the following while loop iterations:
-    var counter = value.length -
-      (viewWidth *
-       (fakeView.textContent.length / fakeView.getBoundingClientRect().width));
-
-    var newPhoneNumber;
-    while (fakeView.getBoundingClientRect().width > viewWidth) {
-
-      if (side == 'left') {
-        newPhoneNumber = '\u2026' + value.substr(-value.length + counter);
-      } else if (side == 'right') {
-        newPhoneNumber = value.substr(0, value.length - counter) + '\u2026';
-      }
-
-      fakeView.innerHTML = newPhoneNumber;
-      counter++;
-    }
-
-    if (newPhoneNumber) {
-      if (view.value) {
-        view.value = newPhoneNumber;
+    var side = ellipsisSide || 'begin';
+    LazyL10n.get(function localized(_) {
+      var localizedSide;
+      if (navigator.mozL10n.language.direction === 'rtl') {
+        localizedSide = (side === 'begin' ? 'right' : 'left');
       } else {
-        view.innerHTML = newPhoneNumber;
+        localizedSide = (side === 'begin' ? 'left' : 'right');
       }
-    }
+      var computedStyle = window.getComputedStyle(view, null);
+      var currentFontSize = parseInt(computedStyle.getPropertyValue('font-size'));
+      var viewWidth = view.getBoundingClientRect().width;
+      fakeView.style.fontSize = currentFontSize + 'px';
+      fakeView.innerHTML = view.value ? view.value : view.innerHTML;
+
+      var value = fakeView.innerHTML;
+
+      // Guess the possible position of the ellipsis in order to minimize
+      // the following while loop iterations:
+      var counter = value.length -
+        (viewWidth *
+         (fakeView.textContent.length / fakeView.getBoundingClientRect().width));
+
+      var newPhoneNumber;
+      while (fakeView.getBoundingClientRect().width > viewWidth) {
+
+        if (localizedSide == 'left') {
+          newPhoneNumber = '\u2026' + value.substr(-value.length + counter);
+        } else if (localizedSide == 'right') {
+          newPhoneNumber = value.substr(0, value.length - counter) + '\u2026';
+        }
+
+        fakeView.innerHTML = newPhoneNumber;
+        counter++;
+      }
+
+      if (newPhoneNumber) {
+        if (view.value) {
+          view.value = newPhoneNumber;
+        } else {
+          view.innerHTML = newPhoneNumber;
+        }
+      }
+    });
   },
 
   getNextFontSize: function kh_getNextFontSize(view, fakeView) {
@@ -486,7 +507,7 @@ var KeypadManager = {
 
           self._longPress = true;
           self.updateAddContactStatus();
-          self._updatePhoneNumberView();
+          self._updatePhoneNumberView('begin', false);
         }, 400, this);
       }
 
@@ -515,7 +536,7 @@ var KeypadManager = {
         this._phoneNumber += key;
         this.updateAddContactStatus();
       }
-      this._updatePhoneNumberView();
+      this._updatePhoneNumberView('begin', false);
     } else if (event.type == 'mouseup' || event.type == 'mouseleave') {
       // Stop playing the DTMF/tone after a small delay
       // or right away if this is a long press
@@ -540,8 +561,6 @@ var KeypadManager = {
 
       if (this._holdTimer)
         clearTimeout(this._holdTimer);
-
-      this._updatePhoneNumberView();
     }
   },
 
@@ -552,12 +571,14 @@ var KeypadManager = {
       this.callBarAddContact.classList.remove('disabled');
   },
 
-  updatePhoneNumber: function kh_updatePhoneNumber(number) {
+  updatePhoneNumber: function kh_updatePhoneNumber(number, ellipsisSide,
+    maxFontSize) {
     this._phoneNumber = number;
-    this._updatePhoneNumberView();
+    this._updatePhoneNumberView(ellipsisSide, maxFontSize);
   },
 
-  _updatePhoneNumberView: function kh_updatePhoneNumberview() {
+  _updatePhoneNumberView: function kh_updatePhoneNumberview(ellipsisSide,
+    maxFontSize) {
     var phoneNumber = this._phoneNumber;
 
     // If there are digits in the phone number, show the delete button.
@@ -573,16 +594,18 @@ var KeypadManager = {
       this.phoneNumberView.value = phoneNumber;
       this.moveCaretToEnd(this.phoneNumberView);
     }
-
-    this.formatPhoneNumber();
+    
+    this.formatPhoneNumber(ellipsisSide, maxFontSize);
   },
 
-  restorePhoneNumber: function kh_restorePhoneNumber() {
-    this.updatePhoneNumber(this._originalPhoneNumber);
+  restorePhoneNumber: function kh_restorePhoneNumber(ellipsisSide,
+    maxFontSize) {
+    this.updatePhoneNumber(this._originalPhoneNumber, ellipsisSide,
+      maxFontSize);
   },
 
   updateAdditionalContactInfo:
-    function kh_updatePhoneNumber(additionalContactInfo) {
+    function kh_updateAdditionalContactInfo(additionalContactInfo) {
     this._additionalContactInfo = additionalContactInfo;
     this._updateAdditionalContactInfoView();
   },
@@ -592,7 +615,8 @@ var KeypadManager = {
     var phoneNumberView = CallScreen.activeCall.querySelector('.number');
     var additionalview = CallScreen.activeCall.querySelector(
       '.additionalContactInfo');
-    if (!this._additionalContactInfo || this._additionalContactInfo === '') {
+    if (!this._additionalContactInfo ||
+      this._additionalContactInfo.trim() === '') {
       additionalview.textContent = '';
       additionalview.classList.add('noAdditionalContactInfo');
       phoneNumberView.classList.add('noAdditionalContactInfo');
