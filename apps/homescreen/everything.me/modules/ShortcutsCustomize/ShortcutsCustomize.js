@@ -26,16 +26,19 @@ Evme.ShortcutsCustomize = new function Evme_ShortcutsCustomize() {
     };
     
     this.get = function get() {
-        var shortcuts = [],
+        var selectedShortcuts = [],
             elShourtcuts = Evme.$('option', elList);
         
-        for (var i=0, elOption=elShourtcuts[i]; elOption; elOption=elShourtcuts[++i]) {
+        for (var i=0, elOption; elOption=elShourtcuts[i++];) {
             if (elOption.selected) {
-                shortcuts.push(elOption.value);
+                selectedShortcuts.push({
+                    "query": elOption.value,
+                    "experienceId": elOption.dataset.experience || ''
+                });
             }
         }
         
-        return shortcuts;
+        return selectedShortcuts;
     };
     
     this.load = function load(data) {
@@ -50,14 +53,15 @@ Evme.ShortcutsCustomize = new function Evme_ShortcutsCustomize() {
     this.add = function add(shortcuts) {
         var html = '';
         
-        for (var query in shortcuts) {
-            html += '<option value="' + query.replace(/"/g, '&quot;') + '"';
+        for (var i=0,shortcut,query; shortcut=shortcuts[i++];) {
+            query = shortcut.query;
             
-            if (shortcuts[query]) {
-                html += ' selected="selected"';
-            }
-            
-            html += '>' + query.replace(/</g, '&lt;') + '</option>';
+            html += '<option ' +
+                        'value="' + query.replace(/"/g, '&quot;') + '" ' +
+                        'data-experience="' + (shortcut.experienceId || '') + '"' +
+                    '>' +
+                        query.replace(/</g, '&lt;') +
+                    '</option>';
         }
         
         elList.innerHTML = html;
@@ -114,10 +118,8 @@ Evme.ShortcutsCustomize = new function Evme_ShortcutsCustomize() {
     }
     
     function done() {
-        var shortcuts = self.get();
-        
         Evme.EventHandler.trigger(NAME, 'done', {
-            'shortcuts': shortcuts,
+            'shortcuts': self.get(),
             'icons': savedIcons
         });
     }
