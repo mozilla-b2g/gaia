@@ -86,6 +86,16 @@
   z-index: 0;
 }
 
+/* Prompote level 5 elements to attention screen level when
+ * there is an active attention screen not minimized in
+ * the status bar */
+#screen.attention:not(.active-statusbar) > [data-z-index-level="statusbar"] {
+  z-index: 16386;
+}
+#screen.attention:not(.active-statusbar) > [data-z-index-level="utility-tray"] {
+  z-index: 16385;
+}
+
 /* Level 6: Lock Screen */
 #screen > [data-z-index-level="lockscreen"] {
   z-index: 2048;
