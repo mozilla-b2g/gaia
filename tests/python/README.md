@@ -1,4 +1,3 @@
-
 Introduction
 ============
 
@@ -85,14 +84,16 @@ Variables:
 }
 `
 
-` WPA-EAP:
-"wifi": {
-    "ssid": "MyNetwork",
-    "keyManagement": "WPA-EAP",
-    "password": "MyPassword",
-    "identity": "MyIdentity"
-}
-`
+__Note__: Due to [Bug 775499](http://bugzil.la/775499), WiFi connections via WPA-EAP are not capable at this time.
+
+Test data Prerequisites
+=======================
+
+Occasionally a test will need data on the hardware that cannot be set during the test setUp.
+The following tests need data set up before they can be run successfully:
+
+`test_ftu` Requires a single record/contact saved onto the SIM card to test the SIM contact import
+
 
 Writing Tests
 =============

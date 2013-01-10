@@ -109,5 +109,4 @@ class TestContacts(GaiaTestCase):
             self.marionette.switch_to_frame(self.app.frame_id)
             self.data_layer.remove_contact(self.contact)
 
-        # close all apps
-        self.apps.kill_all()
+        GaiaTestCase.tearDown(self)

@@ -21,6 +21,7 @@
   var stkOpenAppName = null;
   var stkLastSelectedTest = null;
   var displayTextTimeout = 10000;
+  var inputTimeout = 10000;
   var icc;
 
   init();
@@ -96,6 +97,14 @@
     reqDisplayTimeout.onsuccess = function icc_getDisplayTimeout() {
       displayTextTimeout = reqDisplayTimeout.result['icc.displayTextTimeout'];
     };
+
+    // Update inputTimeout with settings parameter
+    var reqInputTimeout =
+      window.navigator.mozSettings.createLock().get('icc.inputTextTimeout');
+    reqInputTimeout.onsuccess = function icc_getInputTimeout() {
+      inputTimeout = reqInputTimeout.result['icc.inputTextTimeout'];
+    };
+
   }
 
   /**
@@ -212,8 +221,19 @@
         responseSTKCommand({
           resultCode: icc.STK_RESULT_OK
         });
-        if (!options.confirmMessage || confirm(options.confirmMessage)) {
-          openLink(options.url);
+        var url = options.url;
+        if (url !== null && url.length !== 0) {
+          if (!options.confirmMessage || confirm(options.confirmMessage)) {
+            // Sanitise url just in case it doesn't start with http or https
+            // the web activity won't work, so add by default the http protocol
+            if (url.search("^https?://") == -1) {
+              // Our url doesn't contains the protocol
+              url = 'http://' + url;
+            }
+            openLink(url);
+          }
+        } else {
+          alert(_('operatorService-invalid-url'));
         }
         break;
 
@@ -501,6 +521,22 @@
     stkLastSelectedTest = event.target.textContent;
   }
 
+  function calculateDurationInMS(duration) {
+    var timeout = duration.timeInterval;
+    switch (duration.timeUnit) {
+      case icc.STK_TIME_UNIT_MINUTE:
+        timeout *= 3600000;
+        break;
+      case icc.STK_TIME_UNIT_SECOND:
+        timeout *= 1000;
+        break;
+      case icc.STK_TIME_UNIT_TENTH_SECOND:
+        timeout *= 100;
+        break;
+    }
+    return timeout;
+  }
+
   /**
    * Show an INPUT box requiring data
    * Command options like:
@@ -546,15 +582,27 @@
     li.appendChild(input);
     iccStkList.appendChild(li);
 
+    var timeoutInUse = options.duration;
+    var inputTimeOutID = setTimeout(function() {
+      debug('No response from user (Timeout)');
+      responseSTKCommand({
+        resultCode: icc.STK_RESULT_NO_RESPONSE_FROM_USER
+      });
+    }, timeoutInUse ? calculateDurationInMS(options.duration) : inputTimeout);
+
     li = document.createElement('li');
     var label = document.createElement('label');
     var button = document.createElement('button');
     button.id = 'stk-item-ok';
     button.textContent = 'Ok';
-    if (options.minLength) {
-      button.disabled = true;
-    }
+    button.disabled = !checkInputLengthValid(input.value.length,
+                                              options.minLength,
+                                              options.maxLength);
     button.onclick = function(event) {
+      if (inputTimeOutID) {
+        clearTimeout(inputTimeOutID);
+        inputTimeOutID = null;
+      }
       var value = document.getElementById('stk-item-input').value;
       responseSTKCommand({
         resultCode: icc.STK_RESULT_OK,
@@ -563,8 +611,13 @@
     };
 
     input.onkeyup = function(event) {
-      button.disabled = (input.value.length < options.minLength) ||
-                        (input.value.length > options.maxLength);
+      if (inputTimeOutID) {
+        clearTimeout(inputTimeOutID);
+        inputTimeOutID = null;
+      }
+      button.disabled = !checkInputLengthValid(input.value.length,
+                                              options.minLength,
+                                              options.maxLength);
     };
 
     label.appendChild(button);
@@ -587,6 +640,17 @@
       li.appendChild(label);
       iccStkList.appendChild(li);
     }
+  }
+
+  /**
+   * Check the length of the input is valid.
+   *
+   * @param inputLen    The length of the input.
+   * @param minLen      Minimum length required of the input.
+   * @param maxLen      Maximum length required of the input.
+   */
+  function checkInputLengthValid(inputLen, minLen, maxLen) {
+    return (inputLen >= minLen) && (inputLen <= maxLen);
   }
 
   /**
@@ -660,18 +724,7 @@
     tonePlayer.loop = true;
     tonePlayer.play();
 
-    var timeout = options.duration.timeInterval;
-    switch (options.duration.timeUnit) {
-      case icc.STK_TIME_UNIT_MINUTE:
-        timeout *= 3600000;
-        break;
-      case icc.STK_TIME_UNIT_SECOND:
-        timeout *= 1000;
-        break;
-      case icc.STK_TIME_UNIT_TENTH_SECOND:
-        timeout *= 100;
-        break;
-    }
+    timeout = calculateDurationInMS(options.duration);
     setTimeout(function() {
       tonePlayer.pause();
     },timeout);

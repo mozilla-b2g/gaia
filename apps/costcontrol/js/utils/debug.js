@@ -1,4 +1,4 @@
-var debug = (function () {
+var debug = (function() {
   var DEBUG_ID = 0;
 
   var DEBUGGING = false;
@@ -20,7 +20,8 @@ var debug = (function () {
 
     var uId = DEBUG_ID++;
     var message = ['(' + uId + ')', DEBUG_PREFIX, parents];
-    for (var i = 0, obj; obj = arguments[i]; i++) {
+    for (var i = 0, len = arguments.length, obj; i < len; i++) {
+      obj = arguments[i];
       message.push(typeof obj === 'object' ? JSON.stringify(obj) : obj);
     }
     if (window.dump)

@@ -367,15 +367,15 @@ var Camera = {
                                      onsuccess, onerror);
     }).bind(this);
 
-    this.createDCFFilename('video', '3gp', (function(filename) {
-      this._videoPath = filename;
+    this.createDCFFilename('video', '3gp', (function(path, name) {
+      this._videoPath = path + name;
 
       // The CameraControl API will not automatically create directories
       // for the new file if they do not exist, so write a dummy file
       // to the same directory via DeviceStorage to ensure that the directory
       // exists before recording starts.
       var dummyblob = new Blob([''], {type: 'video/3gpp'});
-      var dummyfilename = filename + '.dummy.3gp';
+      var dummyfilename = path + '.' + name;
       var req = this._videoStorage.addNamed(dummyblob, dummyfilename);
       req.onerror = onerror;
       req.onsuccess = (function fileCreated() {
@@ -634,7 +634,7 @@ var Camera = {
     var self = this;
     var dcf = this._dcfConfig;
     var filename = dcf[type].prefix + this.padLeft(dcf.seq.file, 4) + '.' + ext;
-    var path = 'DCIM/' + dcf.seq.dir + dcf.postFix + '/' + filename;
+    var path = 'DCIM/' + dcf.seq.dir + dcf.postFix + '/';
     var storage = type === 'video' ? this._videoStorage : this._pictureStorage;
 
     // A file with this name may have been written by the user or
@@ -661,7 +661,7 @@ var Camera = {
         dcf.seq.dir += 1;
       }
       asyncStorage.setItem(dcf.key, dcf.seq, function() {
-        callback(path);
+        callback(path, filename);
       });
     };
   },
@@ -670,8 +670,8 @@ var Camera = {
     this._manuallyFocused = false;
     this.hideFocusRing();
     this.restartPreview();
-    this.createDCFFilename('image', 'jpg', (function(name) {
-      var addreq = this._pictureStorage.addNamed(blob, name);
+    this.createDCFFilename('image', 'jpg', (function(path, name) {
+      var addreq = this._pictureStorage.addNamed(blob, path + name);
       addreq.onsuccess = (function() {
         if (this._pendingPick) {
           // XXX: https://bugzilla.mozilla.org/show_bug.cgi?id=806503
@@ -679,7 +679,7 @@ var Camera = {
           // But there seems to be a bug with blob lifetimes and activities.
           // So we'll get a new blob back out of device storage to ensure
           // that we've got a file-backed blob instead of a memory-backed blob.
-          var getreq = this._pictureStorage.get(name);
+          var getreq = this._pictureStorage.get(path + name);
           getreq.onsuccess = (function() {
             this._pendingPick.postResult({
               type: 'image/jpeg',
@@ -691,7 +691,7 @@ var Camera = {
           return;
         }
 
-        Filmstrip.addImage(name, blob);
+        Filmstrip.addImage(path + name, blob);
         Filmstrip.show(Camera.FILMSTRIP_DURATION);
         this.checkStorageSpace();
 

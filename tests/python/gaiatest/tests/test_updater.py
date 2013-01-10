@@ -28,11 +28,3 @@ class TestUpdater(GaiaTestCase):
         # wait for 'Checking for updates' to clear
 
         # Confirm that ui journey is complete
-
-    def tearDown(self):
-
-        # close the app
-        if hasattr(self, 'app'):
-            self.apps.kill(self.app)
-
-        GaiaTestCase.tearDown(self)

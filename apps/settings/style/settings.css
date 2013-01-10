@@ -56,12 +56,12 @@ section[role="region"].current {
 /**
  * Headers should not scroll with the rest of the page, except for #root.
  */
-section[role="region"]:not(#root) > header:first-child {
+section[role="region"] > header:first-child {
   position: fixed;
   width: 100%;
 }
 
-section[role="region"]:not(#root) > header:first-child + * {
+section[role="region"] > header:first-child + * {
   margin-top: 5rem;
 }
 

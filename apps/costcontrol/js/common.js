@@ -75,14 +75,14 @@ function resetData() {
 
     // Get current mobile data
     var now = new Date();
-    var request = window.navigator.mozNetworkStats.getNetworkStats({
+    var mobileRequest = window.navigator.mozNetworkStats.getNetworkStats({
       start: now,
       end: now,
       connectionType: 'mobile'
     });
-    request.onsuccess = function _onMobileForToday() {
-      var data = request.result.data;
-      debug('Data length should be 1 and it is ' + data.length);
+    mobileRequest.onsuccess = function _onMobileForToday() {
+      var data = mobileRequest.result.data;
+      debug('Data length should be 1 and it is', data.length);
       var currentDataUsage = 0;
       if (data[0].rxBytes)
         currentDataUsage += data[0].rxBytes;
@@ -91,7 +91,7 @@ function resetData() {
 
       // Adds the fixing
       var tag = tags[tags.length - 1];
-      tag.fixing = currentDataUsage;
+      tag.fixing.push([now, currentDataUsage]);
 
       // Remove the previous ones
       for (var i = tags.length - 2; i >= 0; i--) {
@@ -99,12 +99,29 @@ function resetData() {
         if (ctag.sim === tag.sim)
           tags.splice(i, 1);
       }
-      debug('After reset ' + JSON.stringify(tags));
+      debug('After reset', tags);
 
       asyncStorage.setItem('dataUsageTags', tags, function _done() {
         ConfigManager.setOption({ lastDataReset: now });
       });
     };
+
+    var wifiRequest = window.navigator.mozNetworkStats.getNetworkStats({
+      start: now,
+      end: now,
+      connectionType: 'wifi'
+    });
+    wifiRequest.onsuccess = function _onWiFiForToday() {
+      var data = wifiRequest.result.data;
+      debug('Data length should be 1 and it is', data.length);
+      var currentWifiUsage = 0;
+      if (data[0].rxBytes)
+        currentWifiUsage += data[0].rxBytes;
+      if (data[0].txBytes)
+        currentWifiUsage += data[0].txBytes;
+      ConfigManager.setOption({ wifiFixing: currentWifiUsage });
+    };
+
   });
 }
 

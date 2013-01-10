@@ -2,6 +2,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+'use strict';
+
 var GaiaApps = {
 
   normalizeName: function(name) {
@@ -21,7 +23,8 @@ var GaiaApps = {
     return origin;
   },
 
-  locateWithName: function(name, callback=marionetteScriptFinished) {
+  locateWithName: function(name, aCallback) {
+    var callback = aCallback || marionetteScriptFinished;
     function sendResponse(app, appName, entryPoint) {
       if (callback === marionetteScriptFinished) {
         if (typeof(app) === 'object') {
@@ -149,33 +152,31 @@ var GaiaApps = {
 
         app.launch(entryPoint || null);
 
-        function sendResponse(origin) {
-          let app = runningApps[origin];
-          marionetteScriptFinished({frame: app.frame.id,
-                                    src: app.frame.src,
-                                    name: app.name,
-                                    origin: origin});
-        }
-
         waitFor(
           function() {
+            let app = runningApps[origin];
+            let result = {frame: app.frame.id,
+                          src: app.frame.src,
+                          name: app.name,
+                          origin: origin};
+
             if (alreadyRunning) {
               // return the app's frame id
-              sendResponse(origin);
+              marionetteScriptFinished(result);
             }
             else {
               // wait until the new iframe sends the mozbrowserfirstpaint event
               let frame = runningApps[origin].frame;
               if (frame.dataset.unpainted) {
                 window.addEventListener('mozbrowserfirstpaint',
-                                        function firstpaint() {
-                  window.removeEventListener('mozbrowserfirstpaint',
-                                             firstpaint);
-                  sendResponse(origin);
+                    function firstpaint() {
+                      window.removeEventListener('mozbrowserfirstpaint',
+                                                 firstpaint);
+                      marionetteScriptFinished(result);
                 });
               }
               else {
-                sendResponse(origin);
+                marionetteScriptFinished(result);
               }
             }
           },

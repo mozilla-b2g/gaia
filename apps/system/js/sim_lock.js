@@ -18,6 +18,9 @@ var SimLock = {
     // Display the dialog only after lockscreen is unlocked
     // To prevent keyboard being displayed behind it.
     window.addEventListener('unlock', this);
+
+    // always monitor card state change
+    conn.addEventListener('cardstatechange', this.showIfLocked.bind(this));
   },
 
   handleEvent: function sl_handleEvent(evt) {
@@ -70,14 +73,9 @@ var SimLock = {
       return false;
 
     switch (conn.cardState) {
-      // If the phone is in airplane mode then the state will be 'absent' before
-      // going to null.
+      // do nothing in absent and null card states
       case null:
       case 'absent':
-        conn.addEventListener('cardstatechange', function stateChange(e) {
-          conn.removeEventListener(e.type, stateChange);
-          this.showIfLocked();
-        }.bind(this));
         break;
       case 'pukRequired':
       case 'pinRequired':

@@ -18917,6 +18917,26 @@ var normalizeError = exports.normalizeError = function normalizeError(err) {
  */
 const DEFAULT_TZ_OFFSET = -7 * 60 * 60 * 1000;
 
+var extractTZFromHeaders = exports._extractTZFromHeaders =
+    function extractTZFromHeaders(allHeaders) {
+  for (var i = 0; i < allHeaders.length; i++) {
+    var hpair = allHeaders[i];
+    if (hpair.key !== 'received')
+      continue;
+    var tzMatch = /([+-]\d{4})/.exec(hpair.value);
+    if (tzMatch) {
+      var tz =
+        parseInt(tzMatch[1].substring(1, 3), 10) * 60 * 60 * 1000 +
+        parseInt(tzMatch[1].substring(3, 5), 10) * 60 * 1000;
+      if (tzMatch[1].substring(0, 1) === '-')
+        tz *= -1;
+      return tz;
+    }
+  }
+
+  return null;
+};
+
 /**
  * Try and infer the current effective timezone of the server by grabbing the
  * most recent message as implied by UID (may be inaccurate), and then looking
@@ -18965,21 +18985,10 @@ var getTZOffset = exports.getTZOffset = function getTZOffset(conn, callback) {
       });
     fetcher.on('message', function onMsg(msg) {
         msg.on('end', function onMsgEnd() {
-            var allHeaders = msg.msg.headers;
-            for (var i = 0; i < allHeaders.length; i++) {
-              var hpair = allHeaders[i];
-              if (hpair.key !== 'received')
-                continue;
-              var tzMatch = /([+-]\d{4})/.exec(hpair.value);
-              if (tzMatch) {
-                var tz =
-                  parseInt(tzMatch[1].substring(1, 3)) * 60 * 60 * 1000+
-                  parseInt(tzMatch[1].substring(3, 5)) * 60 * 1000;
-                if (tzMatch[1].substring(0, 1) === '-')
-                  tz *= -1;
-                callback(null, tz);
-                return;
-              }
+            var tz = extractTZFromHeaders(msg.msg.headers);
+            if (tz !== null) {
+              callback(null, tz);
+              return;
             }
             // If we are here, the message somehow did not have a Received
             // header.  Try again with another known UID or fail out if we
@@ -25600,11 +25609,17 @@ FolderStorage.prototype = {
 
     var progressCallback = slice.setSyncProgress.bind(slice);
 
-    // If we're offline or the folder can't be synchronized right now, then
-    // there's nothing to look into; use the DB.
-    if (!this._account.universe.online ||
-        !this.folderSyncer.syncable) {
+    // If we're offline, then there's nothing to look into; use the DB.
+    if (!this._account.universe.online) {
       existingDataGood = true;
+    }
+    // If the folder can't be synchronized right now, just report the sync as
+    // blocked. We'll update it soon enough.
+    else if (!this.folderSyncer.syncable) {
+      console.log('Synchronization is currently blocked; waiting...');
+      slice.setStatus('syncblocked', false, true, false, 0.0);
+      releaseMutex();
+      return;
     }
     else if (this._accuracyRanges.length && !forceDeepening) {
       ainfo = this._accuracyRanges[0];
@@ -33041,7 +33056,7 @@ ActiveSyncFolderConn.prototype = {
       });
       e.addEventListener(base.concat(ie.Collection, ie.Estimate),
                          function(node) {
-        estimate = parseInt(node.children[0].textContent);
+        estimate = parseInt(node.children[0].textContent, 10);
       });
 
       try {
@@ -33538,7 +33553,7 @@ ActiveSyncFolderConn.prototype = {
               break;
             case asb.EstimatedDataSize:
             case em.AttSize:
-              attachment.sizeEstimate = parseInt(attachDataText);
+              attachment.sizeEstimate = parseInt(attachDataText, 10);
               break;
             case asb.ContentId:
               attachment.contentId = attachDataText;
@@ -34312,8 +34327,15 @@ ActiveSyncJobDriver.prototype = {
       doneCallback(err ? 'aborted-retry' : null, null, !err);
 
       if (inboxStorage && inboxStorage.hasActiveSlices) {
-        console.log("Refreshing fake inbox");
-        inboxStorage.resetAndRefreshActiveSlices();
+        if (!err) {
+          console.log("Refreshing fake inbox");
+          inboxStorage.resetAndRefreshActiveSlices();
+        }
+        // XXX: If we do have an error here, we should probably report
+        // syncfailed on the slices to let the user retry. However, what needs
+        // retrying is syncFolderList, not syncing the messages in a folder.
+        // Since that's complicated to handle, and syncFolderList will retry
+        // automatically, we can ignore that case for now.
       }
     });
   },

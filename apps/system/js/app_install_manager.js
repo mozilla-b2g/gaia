@@ -115,8 +115,8 @@ var AppInstallManager = {
     this.msg.textContent = msg;
 
     if (manifest.developer) {
-      this.authorName.textContent = manifest.developer.name;
-      this.authorUrl.textContent = manifest.developer.url;
+      this.authorName.textContent = manifest.developer.name || _('unknown');
+      this.authorUrl.textContent = manifest.developer.url || '';
     } else {
       this.authorName.textContent = _('unknown');
       this.authorUrl.textContent = '';

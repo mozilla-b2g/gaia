@@ -243,35 +243,25 @@ button::-moz-focus-inner {
 }
 
 /* Spacebar exceptions */
-.keyboard-key[data-keycode="32"] > .visual-wrapper {
-background-position: center 2.2rem; 
-}
-
 .keyboard-key.highlighted[data-keycode="32"] > .visual-wrapper {
-  border: solid 1px #000;
+  background: #4AB6CB;
   border-radius: 0.3rem;
-  background: #252220 url(images/key-bg.png) no-repeat center 2.2rem;
-  background-size: 100% 100%;
-  opacity: 0.5;
-  margin: 0;
+  border: solid 1px #3f5459;
   height: 4rem;
 }
-
-.keyboard-key.highlighted[data-keycode="32"] > .visual-wrapper > span  {
-  border: none;
-  border-top: solid 1px #514e4d;
-  background: none;
+.keyboard-key.highlighted[data-keycode="32"] > .visual-wrapper:after {
+  content: "";
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 1;
-  height: 100%;
+  left: -0.2rem;
+  right: -0.2rem;
+  top: -0.2rem;
+  bottom: -0.25rem;
+  z-index: -1;
+  background: #4495A8;
+  border-radius: 0.3rem;
 }
-
-.keyboard-key.highlighted[data-keycode="32"] > .visual-wrapper:after,
 .keyboard-key.highlighted[data-keycode="32"] > .visual-wrapper:before,
+.keyboard-key.highlighted[data-keycode="32"] > .visual-wrapper > span,
 .keyboard-key.highlighted[data-keycode="32"] > .visual-wrapper > span:after {
   display: none;
 }

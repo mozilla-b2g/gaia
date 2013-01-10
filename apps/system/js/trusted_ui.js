@@ -76,19 +76,19 @@ var TrustedUIManager = {
     this.popupContainer.classList.remove('closing');
   },
 
-  open: function trui_open(name, frame, chromeEventId) {
+  open: function trui_open(name, frame, chromeEventId, onCancelCB) {
     screen.mozLockOrientation('portrait');
     this._hideAllFrames();
     if (this.currentStack.length) {
       this._makeDialogHidden(this._getTopDialog());
-      this._pushNewDialog(name, frame, chromeEventId);
+      this._pushNewDialog(name, frame, chromeEventId, onCancelCB);
     } else {
       // first time, spin back to home screen first
       this.popupContainer.classList.add('up');
       this.popupContainer.classList.remove('closing');
       WindowManager.hideCurrentApp(function openTrustedUI() {
         this.popupContainer.classList.remove('up');
-        this._pushNewDialog(name, frame, chromeEventId);
+        this._pushNewDialog(name, frame, chromeEventId, onCancelCB);
       }.bind(this));
     }
   },
@@ -141,6 +141,7 @@ var TrustedUIManager = {
     var event = document.createEvent('customEvent');
     var details = {
       id: eventId,
+      type: 'cancel',
       errorMsg: _('dialog-closed')
     };
     event.initCustomEvent('mozContentEvent', true, true, details);
@@ -152,7 +153,7 @@ var TrustedUIManager = {
     return this.currentStack[this.currentStack.length - 1];
   },
 
-  _pushNewDialog: function trui_PushNewDialog(name, frame, chromeEventId) {
+  _pushNewDialog: function trui_PushNewDialog(name, frame, chromeEventId, onCancelCB) {
     // add some data attributes to the frame
     var dataset = frame.dataset;
     dataset.frameType = 'popup';
@@ -163,7 +164,8 @@ var TrustedUIManager = {
     var dialog = {
       name: name,
       frame: frame,
-      chromeEventId: chromeEventId
+      chromeEventId: chromeEventId,
+      onCancelCB: onCancelCB
     };
 
     // push and show
@@ -200,7 +202,6 @@ var TrustedUIManager = {
 
     var dialog = this.currentStack.pop();
     this.container.removeChild(dialog.frame);
-    this._dispatchCloseEvent(dialog.chromeEventId);
 
     if (this.currentStack.length) {
       this._makeDialogVisible(this._getTopDialog());
@@ -223,6 +224,11 @@ var TrustedUIManager = {
     this.overlay.style.height = height + 'px';
   },
 
+  /*
+   * _destroyDialog: internal method called when the dialog is closed
+   * by user action (canceled), or when 'appterminated' is received.
+   * In either case, notify the caller.
+   */
   _destroyDialog: function trui_destroyDialog(origin) {
     var stack = this.currentStack;
     if (origin)
@@ -234,7 +240,13 @@ var TrustedUIManager = {
     // If the user closed a trusty UI dialog, they probably meant
     // to close every dialog.
     for (var i = 0, toClose = stack.length; i < toClose; i++) {
-      this.close();
+      var dialog = this._getTopDialog();
+
+      // First, send a chrome event saying we've been canceled
+      this._dispatchCloseEvent(dialog.chromeEventId);
+
+      // Now close and fire the cancel callback, if it exists
+      this.close(dialog.onCancelCB);
     }
     this.hide();
     this.popupContainer.classList.remove('closing');

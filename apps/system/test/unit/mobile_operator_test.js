@@ -52,6 +52,21 @@ suite('shared/MobileOperator', function() {
       assert.isUndefined(infos.carrier);
       assert.isUndefined(infos.region);
     });
+    test('Connection with roaming', function() {
+      MockMobileConnection.voice.roaming = true;
+      var infos = MobileOperator.userFacingInfo(MockMobileConnection);
+      assert.equal(infos.operator, 'Fake short');
+      assert.isUndefined(infos.carrier);
+      assert.isUndefined(infos.region);
+    });
+    test('Connection with roaming and SPN display', function() {
+      MockMobileConnection.voice.roaming = true;
+      MockMobileConnection.iccInfo.isDisplaySpnRequired = true;
+      var infos = MobileOperator.userFacingInfo(MockMobileConnection);
+      assert.equal(infos.operator, 'Fake short');
+      assert.isUndefined(infos.carrier);
+      assert.isUndefined(infos.region);
+    });
   });
   suite('Brazilian connection', function() {
     test('Connection ', function() {
