@@ -6,8 +6,7 @@ var ids = ['player', 'thumbnails', 'overlay', 'overlay-title',
            'overlay-text', 'videoControls', 'videoFrame', 'videoBar',
            'close', 'play', 'playHead', 'timeSlider', 'elapsedTime',
            'video-title', 'duration-text', 'elapsed-text', 'bufferedTime',
-           'slider-wrapper', 'throbber', 'delete-video-button',
-           'delete-confirmation-button'];
+           'slider-wrapper', 'throbber', 'delete-video-button'];
 
 ids.forEach(function createElementRef(name) {
   dom[toCamelCase(name)] = document.getElementById(name);
@@ -20,8 +19,7 @@ var playing = false;
 // if this is true then the video tag is showing
 // if false, then the gallery is showing
 var playerShowing = false;
-var ctxTriggered = false;
-var selectedVideo;
+var ctxTriggered = false; // Workaround for bug 766813
 
 // keep the screen on when playing
 var screenLock;
@@ -82,8 +80,14 @@ function init() {
     event.detail.forEach(videoDeleted);
   };
 
-  dom.deleteConfirmationButton.addEventListener('click',
-                                                deleteSelectedVideoFile, false);
+  // We can't do this in the mouse down handler below because
+  // calling confirm() from the mousedown generates a contextmenu
+  // event when the alert goes away.
+  // See https://bugzilla.mozilla.org/show_bug.cgi?id=829214
+  dom.deleteVideoButton.onclick = function() {
+    document.mozCancelFullScreen();
+    deleteFile(currentVideo.name);
+  };
 }
 
 function videoAdded(videodata) {
@@ -130,10 +134,11 @@ function videoAdded(videodata) {
   thumbnail.appendChild(hr);
 
   thumbnail.addEventListener('click', function(e) {
-    selectedVideo = videodata.name;
-  });
-
-  thumbnail.addEventListener('click', function(e) {
+    // When the user presses and holds to delete a video, we get a
+    // contextmenu event, but still apparently get a click event after
+    // they lift their finger. This ctxTriggered flag prevents us from
+    // playing a video after a contextmenu event.
+    // See https://bugzilla.mozilla.org/show_bug.cgi?id=766813
     if (!ctxTriggered) {
       showPlayer(videodata, true);
     } else {
@@ -145,29 +150,20 @@ function videoAdded(videodata) {
 
 dom.thumbnails.addEventListener('contextmenu', function(evt) {
   var node = evt.target;
-  var found = false;
-  while (!found && node) {
+  while (node) {
     if (node.dataset.name) {
-      found = true;
-      selectedVideo = node.dataset.name;
-    } else {
-      node = node.parentNode;
+      ctxTriggered = true;
+      deleteFile(node.dataset.name);
+      return;
     }
+    node = node.parentNode;
   }
-  ctxTriggered = true;
 });
-
-function deleteSelectedVideoFile() {
-  if (selectedVideo) {
-    deleteFile(selectedVideo);
-  }
-}
 
 function deleteFile(file) {
   var msg = navigator.mozL10n.get('confirm-delete');
   if (confirm(msg + ' ' + file)) {
     videodb.deleteFile(file);
-    selectedVideo = null;
   }
 }
 
@@ -377,9 +373,6 @@ function playerMousedown(event) {
     document.mozCancelFullScreen();
   } else if (event.target == dom.sliderWrapper) {
     dragSlider(event);
-  } else if (event.target == dom.deleteVideoButton) {
-    document.mozCancelFullScreen();
-    deleteFile(currentVideo.name);
   } else {
     setControlsVisibility(false);
   }
