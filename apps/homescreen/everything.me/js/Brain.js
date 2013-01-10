@@ -597,11 +597,12 @@ Evme.Brain = new function Evme_Brain() {
             var appIcon = Evme.Utils.formatImageData(data.app.getIcon());
             // make it round
             Evme.Utils.getRoundIcon(appIcon, function onIconReady(roundedAppIcon) {
-                // bookmark
+                // bookmark - add to homescreen
                 Evme.Utils.sendToOS(Evme.Utils.OSMessages.APP_INSTALL, {
                     'originUrl': data.app.getFavLink(),
                     'title': data.data.name,
-                    'icon': roundedAppIcon
+                    'icon': roundedAppIcon,
+                    'useAsyncPanZoom': data.app.isExternal()
                 });
                 // display system banner
                 Evme.Banner.show('app-install-success', {
@@ -759,7 +760,8 @@ Evme.Brain = new function Evme_Brain() {
         // continue flow of redirecting to app
         function goToApp(data, delay) {
             !delay && (delay = 0);
-            data["appUrl"] = loadingApp.getLink();
+            data.appUrl = loadingApp.getLink();
+            data.isExternal = loadingApp.isExternal();
 
             Evme.EventHandler.trigger("Core", "redirectedToApp", data);
 
@@ -780,7 +782,8 @@ Evme.Brain = new function Evme_Brain() {
                         "originUrl": data.favUrl,
                         "title": data.name,
                         "icon": roundedAppIcon,
-                        "urlTitle": Evme.Searchbar.getValue()
+                        "urlTitle": Evme.Searchbar.getValue(),
+                        "useAsyncPanZoom": data.isExternal
                     });
                 });
             }
