@@ -18,6 +18,10 @@ ul li {
   min-height: 6rem;
 }
 
+ul li:last-child {
+  border-bottom-color: transparent;
+}
+
 ul li.active,
 ul li:active {
   background-color: #b2f2ff;
