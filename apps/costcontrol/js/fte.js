@@ -23,8 +23,11 @@
       AutoSettings.addType('data-limit', dataLimitConfigurer);
 
       // Currency is set by config as well
-      if (configuration && configuration.credit && configuration.credit.currency) {
-        document.getElementById('currency').textContent = configuration.credit.currency;
+      if (configuration && configuration.credit
+          && configuration.credit.currency) {
+
+        document.getElementById('currency').textContent =
+          configuration.credit.currency;
       }
 
       var mode = costcontrol.getApplicationMode(settings);

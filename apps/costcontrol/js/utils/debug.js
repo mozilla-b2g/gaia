@@ -1,25 +1,25 @@
 var debug = (function() {
-  var DEBUG_ID = 0;
+  var SEQ_ID = 0;
+  var PROCESS_ID = Date.now();
 
   var DEBUGGING = false;
   var DEBUG_PREFIX = 'CC';
 
-  var currentWindow = window;
-
-  return function() {
+  return function _debug() {
     if (!DEBUGGING)
       return;
 
-    var parents = [currentWindow.location.pathname];
-    while (currentWindow.location.pathname !==
-           currentWindow.parent.location.pathname) {
+    var currentWindow = window;
+    var parents = [];
+    while (currentWindow !== currentWindow.parent) {
       parents.push(currentWindow.location.pathname);
       currentWindow = currentWindow.parent;
     }
+    parents.push(currentWindow.location.pathname);
     parents = parents.reverse().join('>') + ':';
 
-    var uId = DEBUG_ID++;
-    var message = ['(' + uId + ')', DEBUG_PREFIX, parents];
+    var uId = PROCESS_ID;
+    var message = ['(' + uId + '-' + (SEQ_ID++) + ')', DEBUG_PREFIX, parents];
     for (var i = 0, len = arguments.length, obj; i < len; i++) {
       obj = arguments[i];
       message.push(typeof obj === 'object' ? JSON.stringify(obj) : obj);

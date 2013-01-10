@@ -6,16 +6,31 @@
   function inStandAloneMode() {
     return window.parent.location.pathname === '/message_handler.html';
   }
+  // XXX: This case implies that message handler triggered by system
+  // (inStandAlone check) has replaced CC application (history's length check).
+  //
+  // This only occurs when the system (window manager) has detected there is
+  // already an iframe for CC application, it is in background and it is
+  // not the message handler. So, as the CC index.html uses the this file
+  // inside an iframe (no standalone mode), all the messages should be attended
+  // so we can conclude **there is nothing to do**.
+  if (inStandAloneMode() && window.history.length > 1) {
+    debug('Nothing to do, closing...')
+    window.history.back();
+  }
 
   function inApplicationMode() {
     return window.parent.location.pathname === '/index.html';
   }
 
   // Close if in standalone mode
-  function closeIfProceed() {
+  function closeIfProceeds() {
+    debug('Trying to close...');
     if (inStandAloneMode()) {
-      setTimeout(window.close, 1000);
-      debug('Closing message handler');
+      setTimeout(function _close() {
+        window.close();
+        debug('Closing message handler');
+      }, 500);
     }
   }
 
@@ -65,7 +80,7 @@
         // Non expected SMS
         if (configuration.balance.senders.indexOf(sms.sender) === -1 &&
             configuration.topup.senders.indexOf(sms.sender) === -1) {
-          closeIfProceed();
+          closeIfProceeds();
           return;
         }
 
@@ -122,7 +137,7 @@
               debug('Balance up to date and stored');
               debug('Trying to synchronize!');
               localStorage['sync'] = 'lastBalance#' + Math.random();
-              closeIfProceed();
+              closeIfProceeds();
             }
           );
         } else if (isConfirmation) {
@@ -135,7 +150,7 @@
               debug('TopUp confirmed!');
               debug('Trying to synchronize!');
               localStorage['sync'] = 'waitingForTopUp#' + Math.random();
-              closeIfProceed();
+              closeIfProceeds();
             }
           );
         } else if (isError) {
@@ -149,7 +164,7 @@
               debug('Balance up to date and stored');
               debug('Trying to synchronize!');
               localStorage['sync'] = 'errors#' + Math.random();
-              closeIfProceed();
+              closeIfProceeds();
             }
           );
         }
@@ -168,7 +183,7 @@
                 debug('Timeout for balance');
                 debug('Trying to synchronize!');
                 localStorage['sync'] = 'errors#' + Math.random();
-                closeIfProceed();
+                closeIfProceeds();
               }
             );
           });
@@ -183,7 +198,7 @@
                 debug('Timeout for topup');
                 debug('Trying to synchronize!');
                 localStorage['sync'] = 'errors#' + Math.random();
-                closeIfProceed();
+                closeIfProceeds();
               }
             );
           });
@@ -193,6 +208,7 @@
           ConfigManager.requestSettings(function _onSettings(settings) {
             resetAll();
             updateNextReset(settings.trackingPeriod, settings.resetTime);
+            closeIfProceeds();
           });
           break;
       }
@@ -208,9 +224,10 @@
         settings.lastTelephonyActivity.timestamp = new Date();
         settings.lastTelephonyActivity.smscount += realCount;
         ConfigManager.setOption({
-          lastDataUsage: settings.lastTelephonyActivity
+          lastTelephonyActivity: settings.lastTelephonyActivity
         }, function _sync() {
           localStorage['sync'] = 'lastTelephonyActivity#' + Math.random();
+          closeIfProceeds();
         });
       });
     });
@@ -226,9 +243,10 @@
           settings.lastTelephonyActivity.timestamp = new Date();
           settings.lastTelephonyActivity.calltime += tcall.duration;
           ConfigManager.setOption({
-            lastDataUsage: settings.lastTelephonyActivity
+            lastTelephonyActivity: settings.lastTelephonyActivity
           }, function _sync() {
             localStorage['sync'] = 'lastTelephonyActivity#' + Math.random();
+            closeIfProceeds();
           });
         });
       }
