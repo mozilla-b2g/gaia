@@ -8,7 +8,7 @@ from gaiatest import GaiaTestCase
 class TestKillAll(GaiaTestCase):
 
     def test_kill_all(self):
-        for app in ['Calculator', 'Clock']:
+        for app in ['Calendar', 'Clock']:
             self.apps.launch(app)
 
         self.apps.kill_all()
@@ -20,7 +20,7 @@ class TestKillAll(GaiaTestCase):
         self.check_no_apps_running()
 
     def test_kill_all_twice(self):
-        apps = ['Calculator', 'Clock']
+        apps = ['Calendar', 'Clock']
         for app in apps:
             self.apps.launch(app)
 

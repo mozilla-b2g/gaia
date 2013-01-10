@@ -878,6 +878,9 @@ li[role="listitem"] small {
 
 #settings li button {
   margin: 0;
+  height: auto;
+  line-height: 2rem;
+  padding: 1rem 1.5rem;
 }
 
 

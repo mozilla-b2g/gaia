@@ -84,7 +84,7 @@ var Navigation = {
         self.currentStep--;
         if (self.currentStep > 0) {
           var followingStep = steps[self.currentStep];
-          if (followingStep.requireSIM && !SimManager.unlocked) {
+          if (followingStep.requireSIM && !SimManager.available()) {
             goToStep();
           } else {
             self.manageStep();
@@ -115,7 +115,7 @@ var Navigation = {
         return;
       }
       var followingStep = steps[self.currentStep];
-      if (followingStep.requireSIM && !SimManager.unlocked) {
+      if (followingStep.requireSIM && !SimManager.available()) {
         goToStepForward();
       } else {
         self.manageStep();
@@ -192,13 +192,14 @@ var Navigation = {
         var fbOption = document.getElementById('fb_import');
         var simOption = document.getElementById('sim-import-button');
         // If there is an unlocked SIM we activate import from SIM
-        if (AppManager.thereIsSIM && SimManager.unlocked) {
+        if (SimManager.available()) {
           simOption.classList.remove('disabled');
         } else {
           simOption.classList.add('disabled');
         }
         // If we have 3G or Wifi activate FB import
-        if (WifiManager.api.connection.status === 'connected' || DataMobile.isDataAvailable) {
+        if (WifiManager.api.connection.status === 'connected' ||
+            DataMobile.isDataAvailable) {
           fbOption.classList.remove('disabled');
         } else {
           fbOption.classList.add('disabled');

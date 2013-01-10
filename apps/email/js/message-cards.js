@@ -398,26 +398,30 @@ MessageListCard.prototype = {
   },
 
   onStatusChange: function(newStatus) {
-    if (newStatus === 'synchronizing') {
-      this.syncingNode.classList.remove('collapsed');
-      this.syncMoreNode.classList.add('collapsed');
-      this.hideEmptyLayout();
+    switch (newStatus) {
+      case 'synchronizing':
+      case 'syncblocked':
+        this.syncingNode.classList.remove('collapsed');
+        this.syncMoreNode.classList.add('collapsed');
+        this.hideEmptyLayout();
 
-      this.progressNode.value = this.messagesSlice ?
-                                this.messagesSlice.syncProgress : 0;
-      this.progressNode.classList.remove('hidden');
-    }
-    // (cover both 'synced' and 'syncfailed')
-    else {
-      this.syncingNode.classList.add('collapsed');
-      this.progressNode.classList.add('hidden');
-    }
+        this.progressNode.value = this.messagesSlice ?
+                                  this.messagesSlice.syncProgress : 0;
+        this.progressNode.classList.remove('hidden');
+        break;
+      case 'syncfailed':
+        // If there was a problem talking to the server, notify the user and
+        // provide a means to attempt to talk to the server again.  We have made
+        // onRefresh pretty clever, so it can do all the legwork on
+        // accomplishing this goal.
+        Toaster.logRetryable(newStatus, this.onRefresh.bind(this));
 
-    // If there was a problem talking to the server, notify the user and provide
-    // a means to attempt to talk to the server again.  We have made onRefresh
-    // pretty clever, so it can do all the legwork on accomplishing this goal.
-    if (newStatus === 'syncfailed')
-      Toaster.logRetryable(newStatus, this.onRefresh.bind(this));
+        // Fall through...
+      case 'synced':
+        this.syncingNode.classList.add('collapsed');
+        this.progressNode.classList.add('hidden');
+        break;
+    }
   },
 
   showEmptyLayout: function() {

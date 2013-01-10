@@ -98,6 +98,19 @@ suite('views/time_header', function() {
 
   test('#_updateTitle', function() {
     subject._updateTitle();
+
+    assert.equal(
+      subject.title.dataset.date,
+      controller.position.toString(),
+      'sets element date'
+    );
+
+    assert.equal(
+      subject.title.dataset.l10nDateFormat,
+      subject.scales.month,
+      'sets element scale'
+    );
+
     assert.equal(
       subject.title.textContent,
       subject.getScale('month')

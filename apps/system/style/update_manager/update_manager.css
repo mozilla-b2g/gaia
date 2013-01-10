@@ -201,3 +201,35 @@ html, body {
   height: 3rem;
   line-height: 2.9rem;
 }
+
+#updates-download-dialog p {
+  display: none;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 6.8rem;
+  height: 6.6rem;
+  padding: 0.5rem 1.8rem;
+  margin: 0;
+
+  background-color: rgba(0, 0, 0, 0.4);
+  border-top: solid 1px rgba(255, 255, 255, 0.2);
+  overflow-y: scroll;
+
+  font-size: 1.6rem;
+  white-space: normal;
+}
+
+#updates-download-dialog[data-nowifi="true"] section {
+  /* Fixing at the top of the screen to properly make room for the warning */
+  position: absolute;
+  top: 20px;
+  max-height: calc(100% - 15rem - 20px);
+}
+#updates-download-dialog[data-nowifi="true"] #updates-no-wifi-warning,
+#updates-download-dialog[data-nowifi="true"][data-edge="true"] #updates-edge-warning {
+  display: block;
+}
+#updates-download-dialog[data-nowifi="true"][data-edge="true"] #updates-no-wifi-warning {
+  display: none;
+}

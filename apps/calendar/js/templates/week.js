@@ -5,9 +5,20 @@
     },
 
     sidebarHour: function() {
-      return '<li class="hour-' + this.h('hour') + '">' +
-                this.h('displayHour') +
-             '</li>';
+      var l10n = '';
+      var hour = this.h('hour');
+      var displayHour;
+
+      if (hour === Calendar.Calc.ALLDAY) {
+        l10n = ' data-l10n-id="hour-allday" ';
+        displayHour = navigator.mozL10n.get('hour-allday');
+      } else {
+        displayHour = this.h('displayHour');
+      }
+
+      return '<li ' + hour + ' class="hour-' + this.h('hour') + '">' +
+                displayHour +
+              '</li>';
     },
 
     hour: function() {
@@ -18,7 +29,7 @@
 
     event: function() {
       return '<li class="event" data-id="' + this.h('busytimeId') + '">' +
-          '<div class="container calendar-id-' + this.h('calendarId') + ' ' +
+          '<div class="container calend +ar-id-' + this.h('calendarId') + ' ' +
                       'calendar-display calendar-color">' +
             this.h('title') +
           '</div>' +

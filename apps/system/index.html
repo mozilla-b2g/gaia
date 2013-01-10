@@ -206,6 +206,9 @@
     <!-- homescreen from being displayed must come before this script. -->
     <script defer src="js/window_manager.js"></script>
 
+    <!-- Remote Debugger -->
+    <script defer src="js/remote_debugger.js"></script>
+
     <!-- z-indexes of all the overlays in the system -->
     <link rel="stylesheet" type="text/css" href="style/zindex.css">
 
@@ -702,20 +705,26 @@
       </form>
 
       <form id="updates-download-dialog" data-type="confirm" role="dialog"
-            data-z-index-level="updates-download-dialog">
+            data-z-index-level="updates-download-dialog" data-nowifi="false" data-edge="false">
         <section>
           <h1>
             Updates
           </h1>
           <ul>
           </ul>
-          <menu>
-            <button id="updates-later-button" type="reset"
-                    data-l10n-id="later">Later</button>
-            <button id="updates-download-button" type="submit"
-              data-l10n-id="download">Download</button>
-          </menu>
         </section>
+        <p id="updates-no-wifi-warning"
+            data-l10n-id="downloadNoWifiWarning">
+        </p>
+        <p id="updates-edge-warning"
+            data-l10n-id="downloadEdgeWarning">
+        </p>
+        <menu>
+          <button id="updates-later-button" type="reset"
+                  data-l10n-id="later">Later</button>
+          <button id="updates-download-button" type="submit"
+            data-l10n-id="download">Download</button>
+        </menu>
       </form>
 
       <div id="lockscreen-camera" data-z-index-level="lockscreen-camera"></div>

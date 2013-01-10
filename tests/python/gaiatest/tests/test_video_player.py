@@ -57,11 +57,3 @@ class TestVideoPlayer(GaiaTestCase):
         # Check the name too. This will only work if the toolbar is visible
         self.assertEqual(first_video_name,
                         self.marionette.find_element(*self._video_title_locator).text)
-
-    def tearDown(self):
-
-        # close the app
-        if self.app:
-            self.apps.kill(self.app)
-
-        GaiaTestCase.tearDown(self)

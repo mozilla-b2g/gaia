@@ -126,5 +126,10 @@ var AuthenticationDialog = {
 
   originHasEvent: function(origin) {
     return origin in this.currentEvents;
+  },
+
+  clear: function ad_clear(origin) {
+    if (this.currentEvents[origin])
+      delete this.currentEvents[origin];
   }
 };

@@ -129,8 +129,6 @@ var AirplaneMode = {
             'geolocation.enabled': true
           });
         }
-
-        SimLock.showIfLocked();
       }
     });
   }

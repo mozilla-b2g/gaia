@@ -71,11 +71,6 @@ class TestDialer(GaiaTestCase):
         # hang up before the person answers ;)
         self.marionette.find_element(*self._hangup_bar_locator).click()
 
-    def tearDown(self):
-
-        self.apps.kill_all()
-        GaiaTestCase.tearDown(self)
-
     def _dial_number(self, phone_number):
         '''
         Dial a number using the keypad

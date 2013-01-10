@@ -51,17 +51,13 @@ class TestCalendar(GaiaTestCase):
         month_title = self.marionette.find_element(
             *self._current_month_year_locator)
 
-        # Get today's date - month, year, weekday
-        today = datetime.datetime.today()
-        month = calendar.month_name[today.month]
-        year = today.year
-        weekday = DAYS_OF_WEEK[today.weekday()]
+        # Get today's date from the phone
+        today = self.marionette.execute_script('return new Date().toUTCString();')
+        date = datetime.datetime.strptime(today, "%a, %d %b %Y %H:%M:%S %Z")
 
         # validate month title and selected day aligns with today's date
-        self.assertEquals(month_title.text, '%s %s' % (month, year),
-            "wrong month title for today");
-        self.assertEquals(selected_day.text, '%s %s %s' % (weekday,
-            month.upper(), year), "wrong selected day for today")
+        self.assertEquals(month_title.text, date.strftime('%B %Y'))
+        self.assertEquals(selected_day.text, date.strftime('%A %B %Y').upper())
 
     def test_that_new_event_appears_on_all_calendar_views(self):
         # https://github.com/mozilla/gaia-ui-tests/issues/102
@@ -99,7 +95,7 @@ class TestCalendar(GaiaTestCase):
         self.marionette.find_element(*self._save_event_button_locator).click()
 
         # wait for the default calendar display
-        self.wait_for_element_displayed(*self._event_list_locator)
+        self.wait_for_element_displayed(*this_event_time_slot_locator)
 
         # assert that the event is displayed as expected
         self.assertTrue(self.marionette.find_element(*this_event_time_slot_locator).is_displayed(),
@@ -110,13 +106,13 @@ class TestCalendar(GaiaTestCase):
 
         # switch to the week display
         self.marionette.find_element(*self._week_display_button_locator).click()
-        self.wait_for_element_displayed(*self._week_view_locator)
+        self.wait_for_element_displayed(*week_view_time_slot_all_events_locator)
         displayed_events = self.marionette.find_element(*week_view_time_slot_all_events_locator).text
         self.assertIn(event_title, displayed_events)
 
         # switch to the day display
         self.marionette.find_element(*self._day_display_button_locator).click()
-        self.wait_for_element_displayed(*self._day_view_locator)
+        self.wait_for_element_displayed(*day_view_time_slot_all_events_locator)
         displayed_events = self.marionette.find_element(*day_view_time_slot_all_events_locator).text
         self.assertIn(event_title, displayed_events)
         self.assertIn(event_location, displayed_events)
@@ -129,12 +125,3 @@ class TestCalendar(GaiaTestCase):
             self.marionette.find_element(*self._delete_event_button_locator).click()
             self.wait_for_element_displayed(*self._day_view_locator)
             all_events = self.marionette.find_elements(*day_view_time_slot_individual_events_locator)
-
-    def tearDown(self):
-
-        # close the app
-        if hasattr(self, 'app'):
-            self.apps.kill(self.app)
-
-        GaiaTestCase.tearDown(self)
-

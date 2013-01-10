@@ -192,7 +192,7 @@ var DataUsageTab = (function() {
   function changeLastReset(value) {
     model.axis.X.lower = value ? new Date(value) : new Date(yesterday);
     expandModel(model);
-    updateUI();
+    requestDataUsage();
   }
 
   function changeNextReset(value, old, key, settings) {

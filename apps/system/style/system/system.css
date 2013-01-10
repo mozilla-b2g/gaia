@@ -273,7 +273,7 @@ body {
 }
 
 #windows > iframe.appWindow.opening {
-  transition: transform 0.5s ease, opacity 0.3s ease;
+  transition: transform 0.25s ease, opacity 0.15s ease;
 }
 
 #windows.slow-transition > iframe.appWindow.opening {
@@ -284,7 +284,7 @@ body {
 #screen.cards-view > #windows > iframe.appWindow.closing,
 #screen.switch-app > #windows > iframe.appWindow.opening,
 #screen.switch-app > #windows > iframe.appWindow.closing {
-  transition: transform 0.5s ease;
+  transition: transform 0.25s ease;
   visibility: inherit;
   opacity: 1;
 }
@@ -302,7 +302,7 @@ body {
 
 #screen.switch-app > #windows > iframe.appWindow.opening-switching {
   transform: scale(0.6);
-  transition: transform 0.5s ease;
+  transition: transform 0.25s ease;
   visibility: inherit;
   opacity: 1;
 }
@@ -313,7 +313,7 @@ body {
 
 #screen.switch-app > #windows > iframe.appWindow.closing-card {
   transform: translateX(-70%) scale(0.6);
-  transition: transform 0.5s ease;
+  transition: transform 0.25s ease;
   visibility: inherit;
   opacity: 1;
 }
@@ -323,7 +323,7 @@ body {
 }
 
 #windows > iframe.appWindow.closing {
-  transition: transform 0.5s ease, opacity 0.3s ease 0.2s;
+  transition: transform 0.25s ease, opacity 0.15s ease 0.1s;
 }
 
 #windows.slow-transition > iframe.appWindow.closing {
@@ -333,7 +333,7 @@ body {
 #windows > iframe.appWindow.inlineActivity,
 #windows > iframe.appWindow.hideBottom {
   transform: translateY(100%);
-  transition: transform 0.5s ease, visibility 0.5s ease;
+  transition: transform 0.25s ease, visibility 0.25s ease;
 }
 
 #windows.slow-transition > iframe.appWindow.inlineActivity,
@@ -342,13 +342,13 @@ body {
 }
 
 #windows > iframe.appWindow.back {
-  transition: transform 0.5s ease, visibility 0.5s ease;
+  transition: transform 0.25s ease, visibility 0.25s ease;
   transform: scale(0.86);
 }
 
 #windows > iframe.appWindow.restored {
   transform: none;
-  transition: transform 0.5s ease;
+  transition: transform 0.25s ease;
 }
 
 #windows > iframe.appWindow.inlineActivity.active {
@@ -373,14 +373,14 @@ body {
 }
 
 #windowSprite.inline-activity-opening {
-  transition: transform 0.5s ease;
+  transition: transform 0.25s ease;
   transform: translateY(0);
   opacity: 1;
   visibility: visible;
 }
 
 #windowSprite.inline-activity-opened {
-  transition: opacity 0.3s ease;
+  transition: opacity 0.15s ease;
 
   transform: translateY(0);
   opacity: 0;
@@ -396,7 +396,7 @@ body {
 }
 
 #windowSprite.opening {
-  transition: transform 0.5s ease, opacity 0.3s ease;
+  transition: transform 0.25s ease, opacity 0.15s ease;
 
   transform: scale(1);
   opacity: 1;
@@ -408,7 +408,7 @@ body {
 }
 
 #windowSprite.opened {
-  transition: opacity 0.3s ease;
+  transition: opacity 0.15s ease;
 
   transform: scale(1);
   opacity: 0;
@@ -424,7 +424,7 @@ body {
 }
 
 #windowSprite.closing {
-  transition: opacity 0.1s ease;
+  transition: opacity 0.05s ease;
 
   transform: scale(1);
   opacity: 1;
@@ -432,7 +432,7 @@ body {
 }
 
 #windowSprite.closed {
-  transition: transform 0.5s ease, opacity 0.3s ease;
+  transition: transform 0.25s ease, opacity 0.15s ease;
 
   transform: scale(0.6);
   opacity: 0;

@@ -131,9 +131,9 @@ var SimPinDialog = {
 
     if (retry !== 1) {
       var l10nArgs = { n: retry };
-      this.errorMsgBody.dataset.l10nId = type + 'AttemptMsg';
+      this.errorMsgBody.dataset.l10nId = type + 'AttemptMsg2';
       this.errorMsgBody.dataset.l10nArgs = JSON.stringify(l10nArgs);
-      this.errorMsgBody.textContent = _(type + 'AttemptMsg', l10nArgs);
+      this.errorMsgBody.textContent = _(type + 'AttemptMsg2', l10nArgs);
     } else {
       this.errorMsgBody.dataset.l10nId = type + 'LastChanceMsg';
       this.errorMsgBody.textContent = _(type + 'LastChanceMsg');

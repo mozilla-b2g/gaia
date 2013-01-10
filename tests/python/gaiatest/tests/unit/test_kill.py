@@ -15,7 +15,7 @@ class TestKill(GaiaTestCase):
     def test_kill_multiple(self):
         running_apps = []
 
-        for app in ['Calculator', 'Clock']:
+        for app in ['Calendar', 'Clock']:
             running_apps.append(self.apps.launch(app))
 
         for app in running_apps:

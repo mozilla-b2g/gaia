@@ -15,15 +15,33 @@ var UIManager = {
     'main-title',
     'loading-overlay',
     'loading-header',
+    // Unlock SIM Screen
+    'unlock-sim-screen',
+    'unlock-sim-header',
     // PIN Screen
     'pincode-screen',
+    'pin-label',
     'pin-input',
-    'fake-sim-pin',
+    'fake-pin-input',
     'pin-error',
-    'sim-import-button',
-    'sim-import-feedback',
     'skip-pin-button',
     'unlock-sim-button',
+    // PUK Screen
+    'pukcode-screen',
+    'puk-label',
+    'puk-input',
+    'puk-info',
+    'fake-puk-input',
+    'puk-error',
+    'newpin-input',
+    'fake-newpin-input',
+    'newpin-error',
+    'confirm-newpin-input',
+    'fake-confirm-newpin-input',
+    'confirm-newpin-error',
+    // Import contacts
+    'sim-import-button',
+    'sim-import-feedback',
     // Wifi
     'networks',
     'wifi-refresh-button',
@@ -54,7 +72,6 @@ var UIManager = {
   ],
 
   init: function ui_init() {
-
     // Initialization of the DOM selectors
     this.domSelectors.forEach(function createElementRef(name) {
       this[toCamelCase(name)] = document.getElementById(name);
@@ -67,7 +84,13 @@ var UIManager = {
     this.dateConfigurationLabel.innerHTML = currentDate.
       toLocaleFormat('%Y-%m-%d');
     // Add events to DOM
-    this.fakeSimPin.addEventListener('input', this);
+    this.fakePinInput.addEventListener('keypress', this.fakeInputValues.bind(this));
+    this.fakePukInput.addEventListener('keypress', this.fakeInputValues.bind(this));
+    this.fakeNewpinInput.addEventListener('keypress',
+                                          this.fakeInputValues.bind(this));
+    this.fakeConfirmNewpinInput.addEventListener('keypress',
+                                                 this.fakeInputValues.bind(this));
+
     this.simImportButton.addEventListener('click', this);
     this.skipPinButton.addEventListener('click', this);
     this.unlockSimButton.addEventListener('click', this);
@@ -81,6 +104,7 @@ var UIManager = {
     this.timeConfiguration.addEventListener('input', this);
     this.dateConfiguration.addEventListener('input', this);
     this.initTZ();
+
     // Prevent form submit in case something tries to send it
     this.timeForm.addEventListener('submit', function(event) {
       event.preventDefault();
@@ -150,7 +174,7 @@ var UIManager = {
     this.sharePerformance.addEventListener('click', this);
     var button = this.offlineErrorDialog.querySelector('button');
     button.addEventListener('click',
-        this.onOfflineDialogButtonClick.bind(this));
+                            this.onOfflineDialogButtonClick.bind(this));
   },
 
   initTZ: function ui_initTZ() {
@@ -158,6 +182,23 @@ var UIManager = {
     var tzRegion = document.getElementById('tz-region');
     var tzCity = document.getElementById('tz-city');
     tzSelect(tzRegion, tzCity, this.setTimeZone);
+  },
+
+  fakeInputValues: function ui_fakeInputValues(event) {
+    var fakeInput = event.target;
+    var code = event.charCode;
+    if (code === 0 || (code >= 0x30 && code <= 0x39)) {
+      var displayInput =
+              document.getElementById(fakeInput.id.substr(5, fakeInput.length));
+      var content = displayInput.value;
+      if (code === 0) { // backspace
+        content = content.substr(0, content.length - 1);
+      } else {
+        content += String.fromCharCode(code);
+      }
+      displayInput.value = content;
+    }
+    fakeInput.value = '';
   },
 
   handleEvent: function ui_handleEvent(event) {
@@ -168,10 +209,6 @@ var UIManager = {
         break;
       case 'unlock-sim-button':
         SimManager.unlock();
-        break;
-      // workaround for a number-passsword input
-      case 'fake-sim-pin':
-        this.pinInput.value = this.fakeSimPin.value;
         break;
       case 'sim-import-button':
         SimManager.importContacts();

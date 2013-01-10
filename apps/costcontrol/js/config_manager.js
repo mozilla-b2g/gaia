@@ -44,7 +44,8 @@ var ConfigManager = (function() {
     'nextReset': null,
     'plantype': 'prepaid',
     'resetTime': 1,
-    'trackingPeriod': 'never'
+    'trackingPeriod': 'never',
+    'wifiFixing': 0
   };
 
   // Load the vendor configuration provided in <GAIA>/build/application-data.js
@@ -89,24 +90,23 @@ var ConfigManager = (function() {
     return new Date(v['__date__']);
   }
 
-  var currentICCID = 'NOICCID';
-  if ('mozMobileConnection' in window.navigator) {
-    currentICCID = window.navigator.mozMobileConnection.iccInfo.iccid || 'NOICCID';
-  }
-
   // Load stored settings
+  var NO_ICCID = 'NOICCID';
   var settings;
   function requestSettings(callback) {
+    var currentICCID = window.navigator.mozMobileConnection.iccInfo.iccid ||
+                       NO_ICCID;
     asyncStorage.getItem(currentICCID, function _wrapGetItem(localSettings) {
       // No entry: set defaults
       try {
         settings = JSON.parse(localSettings, settingsReviver);
-      } catch(e) {
+      } catch (e) {
         // If we can't parse the settings, use the default ones
       }
 
       if (settings === null) {
         settings = deepCopy(DEFAULT_SETTINGS);
+        debug('Storing default settings for ICCID:', currentICCID);
         asyncStorage.setItem(currentICCID, JSON.stringify(settings));
       }
 
@@ -135,7 +135,7 @@ var ConfigManager = (function() {
       settings: settings
     } });
     window.dispatchEvent(event);
-    debug('Event optionchange dispatched for ' + name);
+    debug('Event optionchange dispatched for', name);
   }
 
   // Set setting options asynchronously and dispatch an event for every
@@ -159,6 +159,8 @@ var ConfigManager = (function() {
     }
 
     // Set items and dispatch the events
+    var currentICCID = window.navigator.mozMobileConnection.iccInfo.iccid ||
+                       NO_ICCID;
     asyncStorage.setItem(currentICCID, JSON.stringify(settings),
       function _onSet() {
         requestSettings(function _onSettings(settings) {
@@ -189,7 +191,7 @@ var ConfigManager = (function() {
   var callbacks;
   // Function in charge of dispatch the events to the observers
   function callCallbacks(evt) {
-    debug('Option ' + evt.detail.name + ' has changed!');
+    debug('Option', evt.detail.name, 'has changed!');
     var callbackCollection = callbacks[evt.detail.name] || [];
     for (var i = 0, callback; callback = callbackCollection[i]; i++) {
       callback(evt.detail.value, evt.detail.oldValue, evt.detail.name,
@@ -201,7 +203,7 @@ var ConfigManager = (function() {
   // an initial call to the callback unless you provide true as the last
   // parameter.
   function syncObserve(name, callback, avoidInitialCall) {
-    debug('Installing observer for ' + name);
+    debug('Installing observer for', name);
 
     // XXX: initialize this only if an observer is added
     if (callbacks === undefined) {
@@ -215,7 +217,7 @@ var ConfigManager = (function() {
         if (evt.key === 'sync') {
           var name = evt.newValue.split('#')[0];
           var oldValue = settings ? settings[name] : undefined;
-          debug('Synchronization request for ' + name + ' received!');
+          debug('Synchronization request for', name, 'received!');
           requestSettings(function _onSettings(newSettings) {
             settings = newSettings;
             dispatchOptionChange(name, settings[name], oldValue, settings);

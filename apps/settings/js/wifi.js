@@ -68,7 +68,7 @@ onLocalized(function wifiSettings() {
    */
 
   var gScanStates = new Set(['connected', 'connectingfailed', 'disconnected']);
-  gWifiManager.onstatuschange = function(event) {
+  Connectivity.wifiStatusChange = function(event) {
     updateNetworkState();
 
     if (gScanStates.has(event.status)) {
@@ -80,15 +80,34 @@ onLocalized(function wifiSettings() {
     }
   };
 
-  gWifiManager.onenabled = function onWifiEnabled() {
-    // enable UI toogle
+  Connectivity.wifiEnabled = function onWifiEnabled() {
+    // enable UI toggle
+    if (!lastMozSettingValue) {
+      // Wifi just came up, but the last known value of the setting was false.
+      // This either means that some external force turned it on (in which
+      // case we need to update the setting) or we simply haven't received the
+      // settings change event. Do that now and update our
+      // lastMozSettingValue. This will have the side-effect of not disabling
+      // the checkbox.
+      settings.createLock().set({ 'wifi.enabled': true });
+      lastMozSettingValue = true;
+      setMozSettingsEnabled(lastMozSettingValue);
+    }
+
     gWifiCheckBox.disabled = false;
     updateNetworkState();
     gNetworkList.scan();
   };
 
-  gWifiManager.ondisabled = function onWifiDisabled() {
-    // enable UI toogle
+  Connectivity.wifiDisabled = function onWifiDisabled() {
+    // enable UI toggle
+    if (lastMozSettingValue) {
+      // See the comment in onWifiEnabled for why we do this.
+      settings.createLock().set({ 'wifi.enabled': false });
+      lastMozSettingValue = false;
+      setMozSettingsEnabled(lastMozSettingValue);
+    }
+
     gWifiCheckBox.disabled = false;
     gWifiInfoBlock.textContent = _('disabled');
     gNetworkList.clear(false);

@@ -66,7 +66,7 @@ var Utils = {
       }
 
       if (multipleNumbersSameCarrier) {
-        additionalInfo = additionalInfo + ', ' + phoneNumber;
+        additionalInfo = additionalInfo + ', ' + contactPhoneNumber;
       } else {
         additionalInfo = additionalInfo + ', ' + phoneCarrier;
       }

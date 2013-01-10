@@ -64,6 +64,14 @@ var Wifi = {
       window.dispatchEvent(evt);
     };
 
+    // when wifi status change, emit event to notify StatusBar/UpdateManager
+    wifiManager.onstatuschange = function onWifiDisabled() {
+      var evt = document.createEvent('CustomEvent');
+      evt.initCustomEvent('wifi-statuschange',
+        /* canBubble */ true, /* cancelable */ false, null);
+      window.dispatchEvent(evt);
+    };
+
     // Track the wifi.enabled mozSettings value
     SettingsListener.observe('wifi.enabled', true, function(value) {
       if (!wifiManager && value) {

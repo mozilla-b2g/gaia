@@ -433,16 +433,6 @@ window.addEventListener('load', function loadSettings() {
   window.removeEventListener('load', loadSettings);
   window.addEventListener('change', Settings);
 
-  var isInTransition = false;
-  // Bug 823862 - Tapping multiple times results in white screen. There is
-  // likely an underlying issue that could be the same root cause as bug
-  // 825622. Let's workaround it (sigh) for now (welcome deadlines)!
-  window.addEventListener('mousedown', function checkIfIsTransition() {
-    if (isInTransition)
-      return;
-    evt.preventDefault();
-  });
-
   Settings.init();
   handleDataConnectivity();
 
@@ -521,13 +511,10 @@ window.addEventListener('load', function loadSettings() {
 
     // load panel (+ dependencies) if necessary -- this should be synchronous
     lazyLoad(newPanel);
-    newPanel.hidden = false;
 
     // switch previous/current classes -- the timeout is required to make the
     // transition smooth after lazy-loading a panel
     setTimeout(function switchPanel() {
-      isInTransition = true;
-
       oldPanel.className = newPanel.className ? '' : 'previous';
       newPanel.className = 'current';
       oldHash = hash;
@@ -556,8 +543,11 @@ window.addEventListener('load', function loadSettings() {
 
       oldPanel.addEventListener('transitionend', function onTransitionEnd() {
         oldPanel.removeEventListener('transitionend', onTransitionEnd);
-        oldPanel.hidden = true;
-        isInTransition = false;
+        // Workaround for bug 825622, remove when fixed
+        if (newPanel.id == 'about-licensing') {
+          var iframe = document.getElementById('os-license');
+          iframe.src = iframe.dataset.src;
+        }
       });
     });
   }

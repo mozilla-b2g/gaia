@@ -25,7 +25,6 @@ settings = {
  "audio.volume.telephony": 5,
  "bluetooth.enabled": False,
  "camera.shutter.enabled": True,
- "debug.dev-mode": False,
  "debug.grid.enabled": False,
  "debug.oop.disabled": False,
  "debug.fps.enabled": False,
@@ -133,7 +132,8 @@ settings = {
  "wifi.enabled": True,
  "wifi.disabled_by_wakelock": False,
  "wifi.notification": False,
- "icc.displayTextTimeout": 10000
+ "icc.displayTextTimeout": 10000,
+ "icc.inputTextTimeout": 30000
 }
 
 def main():
@@ -146,6 +146,7 @@ def main():
     parser.add_option("-w", "--wallpaper", help="specify the name of the wallpaper file")
     parser.add_option("-v", "--verbose", help="increase output verbosity", action="store_true")
     parser.add_option(      "--noftu", help="bypass the ftu app")
+    parser.add_option(      "--locale", help="specify the default locale to use")
     (options, args) = parser.parse_args(sys.argv[1:])
 
     verbose = options.verbose
@@ -187,6 +188,10 @@ def main():
     # Set the ftu manifest URL
     if not options.noftu:
         settings["ftu.manifestURL"] = ftu_url
+
+    # Set the default locale
+    if options.locale:
+        settings["language.current"] = options.locale
 
     # Grab wallpaper.jpg and convert it into a base64 string
     wallpaper_file = open(wallpaper_filename, "rb")

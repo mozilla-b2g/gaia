@@ -658,6 +658,7 @@ button::-moz-focus-inner {
 }
 
 #player-seek-bar-progress {
+  pointer-events: none;
   -moz-appearance: none;
   position: absolute;
   top: calc(50% - 0.15rem);

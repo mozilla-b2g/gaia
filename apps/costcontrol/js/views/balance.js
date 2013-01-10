@@ -110,7 +110,7 @@ var BalanceTab = (function() {
 
   // On balance update received
   function onBalance(balance, old, key, settings) {
-    debug('Balance received: ' + JSON.stringify(balance) + '!');
+    debug('Balance received:', balance);
     setBalanceMode('default');
     updateBalance(balance, settings.lowLimit && settings.lowLimitThreshold);
     debug('Balance updated!');
@@ -162,7 +162,7 @@ var BalanceTab = (function() {
     var code = topUpCodeInput.value.trim();
     var requestObj = { type: 'topup', data: code };
     costcontrol.request(requestObj, function _onTopUpRequest(result) {
-      debug(JSON.stringify(result));
+      debug(result);
       sendCode.disabled = false;
 
       var status = result.status;
@@ -192,7 +192,7 @@ var BalanceTab = (function() {
 
   // On top up timeout or incorrect code
   function onTopUpErrors(errors) {
-    debug('ERRORS: ' + JSON.stringify(errors));
+    debug('ERRORS:', errors);
 
     var mode;
     if (errors['TOPUP_TIMEOUT']) {
@@ -203,7 +203,7 @@ var BalanceTab = (function() {
       errors['INCORRECT_TOPUP_CODE'] = false;
       mode = 'incorrect_code';
     }
-    debug('Most important error: ' + mode);
+    debug('Most important error: ', mode);
 
     // XXX: Very important to call this only if something has changed. If not,
     // infinite events are triggered.
@@ -224,14 +224,14 @@ var BalanceTab = (function() {
 
       var requestObj = { type: 'balance', force: !!force };
       costcontrol.request(requestObj, function _onRequest(result) {
-        debug(JSON.stringify(result));
+        debug(result);
         updateButton.disabled = false;
         var status = result.status;
         var balance = result.data;
         setBalanceMode(status === 'error' ? 'warning' : 'updating');
         if (status === 'error')
           setErrors(status.details);
-        debug(JSON.stringify(settings));
+        debug(settings);
         updateBalance(balance,
                       settings.lowLimit && settings.lowLimitThreshold);
       });
@@ -345,7 +345,7 @@ var BalanceTab = (function() {
 
   // Decide which error should be shown taking in count error priorities
   function setErrors(error) {
-    debug('TODO: Error for ' + error);
+    debug('TODO: Error for', error);
   }
 
   return {

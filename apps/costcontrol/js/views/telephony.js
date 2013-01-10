@@ -37,7 +37,7 @@ var TelephonyTab = (function() {
       // Configure updates
       document.addEventListener('mozvisibilitychange', updateWhenVisible, true);
       ConfigManager.observe('lastTelephonyActivity', updateCounters, true);
-      ConfigManager.observe('lastTelephonyReset', updateTimePeriod, true);
+      ConfigManager.observe('lastTelephonyReset', updateUI, true);
       ConfigManager.observe('nextReset', updateNextReset, true);
 
       updateUI();
@@ -56,7 +56,7 @@ var TelephonyTab = (function() {
 
     document.removeEventListener('mozvisibilitychange', updateWhenVisible);
     ConfigManager.removeObserver('lastTelephonyActivity', updateCounters);
-    ConfigManager.removeObserver('lastTelephonyReset', updateTimePeriod);
+    ConfigManager.removeObserver('lastTelephonyReset', updateUI);
     ConfigManager.removeObserver('nextReset', updateNextReset);
 
     initialized = false;
