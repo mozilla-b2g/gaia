@@ -2,6 +2,11 @@
   var template = Calendar.Templates.Month;
   var Calc = Calendar.Calc;
 
+  // horrible hack to clear cache when we re-localize
+  window.addEventListener('localized', function clearHeaderCache() {
+    Child._dayHeaders = null;
+  });
+
   function Child() {
     Calendar.View.apply(this, arguments);
 
@@ -192,9 +197,22 @@
         var html = '';
 
         for (; i < days; i++) {
-          name = navigator.mozL10n.get('weekday-' + i + '-short');
+          var day = i;
+          // localization updates this value
+          if (Calendar.Calc.startsOnMonday) {
+            // 0 is monday which is 1 in l10n (based on js engine's getDay)
+            day += 1;
+
+            // 6th day of the week which Sunday (and 0 in js engine).
+            if (day === 7) {
+              day = 0;
+            }
+          }
+          var l10n = 'weekday-' + day + '-short';
+
+          name = navigator.mozL10n.get(l10n);
           html += template.weekDaysHeaderDay.render({
-            day: String(i),
+            day: String(day),
             dayName: name
           });
         }

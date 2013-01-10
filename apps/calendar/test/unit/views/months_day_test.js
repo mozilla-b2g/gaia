@@ -106,7 +106,7 @@ suite('views/months_day', function() {
 
     assert.equal(
       el.dataset.l10nDateFormat,
-      format,
+      'agenda-date-format',
       'sets element\'s l10nDateFormat'
     );
 
