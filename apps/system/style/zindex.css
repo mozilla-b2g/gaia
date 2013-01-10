@@ -42,9 +42,9 @@
 
 /* Promote the transitioning appWindow to this level as the entry and exiting transition
   of the cards view. */
-#screen.cards-view > [data-z-index-level="app"] > iframe.appWindow.active,
-#screen.cards-view > [data-z-index-level="app"] > iframe.appWindow.opening,
-#screen.cards-view > [data-z-index-level="app"] > iframe.appWindow.closing {
+#screen.cards-view > [data-z-index-level="app"] > .appWindow.active,
+#screen.cards-view > [data-z-index-level="app"] > .appWindow.opening,
+#screen.cards-view > [data-z-index-level="app"] > .appWindow.closing {
   z-index: 65536;
 }
 #screen.cards-view > [data-z-index-level="cards-view"] {
@@ -120,14 +120,14 @@
 #screen > [data-z-index-level="permission-screen"],
 #screen > [data-z-index-level="app-install-dialog"],
 #screen > [data-z-index-level="updates-download-dialog"],
-#screen > [data-z-index-level="app"] > iframe.appWindow.inlineActivity {
+#screen > [data-z-index-level="app"] > .appWindow.inlineActivity {
   z-index: 1024;
 }
 
 /* Level 8 */
-#screen.switch-app [data-z-index-level="app"] > iframe.appWindow.opening,
-#screen.switch-app [data-z-index-level="app"] > iframe.appWindow.closing,
-#screen.switch-app [data-z-index-level="app"] > iframe.appWindow:not(.homescreen).active {
+#screen.switch-app [data-z-index-level="app"] > .appWindow.opening,
+#screen.switch-app [data-z-index-level="app"] > .appWindow.closing,
+#screen.switch-app [data-z-index-level="app"] > .appWindow:not(.homescreen).active {
   z-index: 6;
 }
 
@@ -135,7 +135,7 @@
   /**
    * Should not specify z-index here
    * Keyboard should be kept upon #windows
-   * and beneath #windows > iframe.appWindow
+   * and beneath #windows > .appWindow
    */
 }
 
@@ -153,8 +153,8 @@
   z-index: 1;
 }
 
-#screen.ftu > [data-z-index-level="app"] > iframe.appWindow.homescreen,
-#screen.ftu > [data-z-index-level="app"] > iframe.appWindow.homescreen.active {
+#screen.ftu > [data-z-index-level="app"] > .appWindow.homescreen,
+#screen.ftu > [data-z-index-level="app"] > .appWindow.homescreen.active {
   z-index: 0;
 }
 
@@ -172,27 +172,27 @@
   z-index: 5;
 }
 
-#screen > [data-z-index-level="app"] > iframe.appWindow.active,
-#screen > [data-z-index-level="app"] > iframe.appWindow.opening,
-#screen > [data-z-index-level="app"] > iframe.appWindow.closing {
+#screen > [data-z-index-level="app"] > .appWindow.active,
+#screen > [data-z-index-level="app"] > .appWindow.opening,
+#screen > [data-z-index-level="app"] > .appWindow.closing {
   z-index: 4;
 }
 
-#screen > [data-z-index-level="app"] > iframe.appWindow.homescreen.active {
+#screen > [data-z-index-level="app"] > .appWindow.homescreen.active {
   z-index: 3;
 }
 
-#screen > [data-z-index-level="app"] > iframe.appWindow {
+#screen > [data-z-index-level="app"] > .appWindow {
   z-index: 1;
 }
 
-#screen > [data-z-index-level="app"] > iframe.appWindow.homescreen {
+#screen > [data-z-index-level="app"] > .appWindow.homescreen {
   z-index: 0;
 }
 
 /* We promotes the following overlays on top of the fullscreen web content. */
 
-#screen:-moz-full-screen-ancestor > [data-z-index-level="app"] > iframe.appWindow.inlineActivity,
+#screen:-moz-full-screen-ancestor > [data-z-index-level="app"] > .appWindow.inlineActivity,
 #screen:-moz-full-screen-ancestor > [data-z-index-level="sleep-menu"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="list-menu"],
 #screen.locked:-moz-full-screen-ancestor > [data-z-index-level="statusbar"],
