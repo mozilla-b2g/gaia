@@ -772,7 +772,8 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
                     requestsToPerformOnOnline.push(_request);
                     
                     Evme.EventHandler.trigger(NAME, "cantSendRequest", {
-                        "request": request,
+                        "method": methodNamespace + '/' + methodName,
+                        "request": _request,
                         "queue": requestsToPerformOnOnline
                     });
                 }

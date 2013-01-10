@@ -558,6 +558,16 @@ Evme.Brain = new function Evme_Brain() {
         this.buttonClick = function buttonClick() {
             Searcher.loadMoreApps();
         };
+        
+        // indication of loading more apps is shown
+        this.show = function AppsMore_show() {
+            Evme.Apps.getElement().classList.add('loading-more');
+        };
+        
+        // indication of loading more apps is hidden
+        this.hide = function AppsMore_hide() {
+            Evme.Apps.getElement().classList.remove('loading-more');
+        };
     };
 
     // modules/Apps/
@@ -1363,25 +1373,29 @@ Evme.Brain = new function Evme_Brain() {
             Evme.Utils.log("DoATAPI.request " + getRequestUrl(data));
         };
         
-        // trigger message when request fails
-        this.cantSendRequest = function cantSendRequest() {
-            var folder = Brain.SmartFolder.get(),
-                query = Evme.Searchbar.getElement().value || (folder && folder.getQuery()) || '',
-                elTo = folder? Evme.$(".evme-apps", folder.getElement())[0] : Evme.Apps.getList().parentNode,
-                bHasInstalled = folder? folder.hasInstalled() : Evme.Apps.hasInstalled(),
-                textKey = bHasInstalled? 'apps-has-installed' : 'apps';
-                
-            Evme.ConnectionMessage.show(elTo, textKey, { 'query': query });
+        this.cantSendRequest = function cantSendRequest(data) {
+            if (data.method === 'Search/apps'){
+                var folder = Brain.SmartFolder.get(),
+                    query = Evme.Searchbar.getElement().value || (folder && folder.getQuery()) || '',
+                    elTo = folder? Evme.$(".evme-apps ul", folder.getElement())[0] : Evme.Apps.getList(),
+                    bHasInstalled = folder? folder.hasInstalled() : Evme.Apps.hasInstalled(),
+                    textKey = bHasInstalled? 'apps-has-installed' : 'apps';
+                    
+                Evme.ConnectionMessage.show(elTo, textKey, { 'query': query });
+                window.setTimeout(folder?
+                                    folder.refreshScroll :
+                                    Evme.Apps.refreshScroll, 0);
+            }
         };
         
-        // an API callback method had an error
-        this.clientError = function onClientError(data) {
-            Evme.Utils.log('API clientError: ' + data.exception.message);
+        // an API callback method had en error
+        this.clientError = function onAPIClientError(data) {
+            Evme.Utils.log('API Client Error! ' + data.exception.message);
         };
         
-        // the API returned an error!
-        this.error = function onError(data) {
-            Evme.Utils.log('API error: ' + data.method + ': ' + JSON.stringify(data.response));
+        // an API callback method had en error
+        this.error = function onAPIError(data) {
+            Evme.Utils.log('API Server Error! ' + JSON.stringify(data.response));
         };
         
         // construct a valid API url- for debugging purposes
@@ -1827,7 +1841,7 @@ Evme.Brain = new function Evme_Brain() {
         };
 
         this.loadMoreApps = function loadMoreApps() {
-            if (hasMoreApps) {
+            if (hasMoreApps && !requestSearch) {
                 Evme.Apps.More.show();
                 Searcher.nextAppsPage(hasMoreApps.query, hasMoreApps.type, hasMoreApps.isExact);
             }
