@@ -1131,6 +1131,15 @@ Evme.Brain = new function Evme_Brain() {
             Evme.ShortcutsCustomize.Loading.hide();
             isOpen = false;
         };
+        
+        this.hideIfOpen = function hideIfOpen() {
+            if (isOpen) {
+                Evme.ShortcutsCustomize.hide();
+                return true;
+            }
+            
+            return false;
+        };
 
         this.hideIfRequesting = function hideIfRequesting() {
             if (isRequesting) {
@@ -1139,7 +1148,7 @@ Evme.Brain = new function Evme_Brain() {
             }
 
             return false;
-        }
+        };
 
         this.isOpen = function _isOpen() {
             return isOpen;
