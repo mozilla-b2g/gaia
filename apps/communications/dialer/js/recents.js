@@ -144,7 +144,7 @@ var Recents = {
 
       // All the scripts are now loaded
       if (scriptLoadCount === scripts.length) {
-        var headerSelector = '#recents-container h2';
+        var headerSelector = '#recents-container header';
         FixedHeader.init('#recents-container',
                          '#fixed-container', headerSelector);
 
