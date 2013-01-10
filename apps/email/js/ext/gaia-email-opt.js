@@ -25600,11 +25600,17 @@ FolderStorage.prototype = {
 
     var progressCallback = slice.setSyncProgress.bind(slice);
 
-    // If we're offline or the folder can't be synchronized right now, then
-    // there's nothing to look into; use the DB.
-    if (!this._account.universe.online ||
-        !this.folderSyncer.syncable) {
+    // If we're offline, then there's nothing to look into; use the DB.
+    if (!this._account.universe.online) {
       existingDataGood = true;
+    }
+    // If the folder can't be synchronized right now, just report the sync as
+    // blocked. We'll update it soon enough.
+    else if (!this.folderSyncer.syncable) {
+      console.log('Synchronization is currently blocked; waiting...');
+      slice.setStatus('syncblocked', false, true, false, 0.0);
+      releaseMutex();
+      return;
     }
     else if (this._accuracyRanges.length && !forceDeepening) {
       ainfo = this._accuracyRanges[0];
@@ -34312,8 +34318,15 @@ ActiveSyncJobDriver.prototype = {
       doneCallback(err ? 'aborted-retry' : null, null, !err);
 
       if (inboxStorage && inboxStorage.hasActiveSlices) {
-        console.log("Refreshing fake inbox");
-        inboxStorage.resetAndRefreshActiveSlices();
+        if (!err) {
+          console.log("Refreshing fake inbox");
+          inboxStorage.resetAndRefreshActiveSlices();
+        }
+        // XXX: If we do have an error here, we should probably report
+        // syncfailed on the slices to let the user retry. However, what needs
+        // retrying is syncFolderList, not syncing the messages in a folder.
+        // Since that's complicated to handle, and syncFolderList will retry
+        // automatically, we can ignore that case for now.
       }
     });
   },
