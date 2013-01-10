@@ -29,7 +29,7 @@
     },
     "open": {
       "filters": {
-        "type": ["image/jpeg", "image/png"]
+        "type": ["image/jpeg", "image/png", "image/gif"]
        },
       "disposition": "inline",
       "returnValue": true,
