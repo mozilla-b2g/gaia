@@ -12,17 +12,20 @@
     font: normal 12px 'MozTT', Sans-Serif;
     text-align: left;
 }
-#evmeContainer.ffos-menu-visible {
-    bottom: 75px;
-}
 
-#evmeContainer *:not([role]) {
+#evmeContainer div, #evmeContainer p, #evmeContainer span,
+#evmeContainer h1, #evmeContainer h2, #evmeContainer h3, #evmeContainer h4,
+#evmeContainer a, #evmeContainer em, #evmeContainer img, #evmeContainer b,
+#evmeContainer ol, #evmeContainer ul, #evmeContainer li,
+#evmeContainer fieldset, #evmeContainer form, #evmeContainer label, #evmeContainer legend,
+#evmeContainer input, #evmeContainer textarea,
+#evmeContainer table, #evmeContainer tr, #evmeContainer th, #evmeContainer td,
+#evmeContainer canvas {
     margin: 0;
     padding: 0;
+    border: 0;
 }
-#evmeContainer fieldset {
-    border-width: 0;
-}
+
 #evmeContainer a {
     text-decoration: none;
     color: inherit;
