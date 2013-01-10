@@ -57,6 +57,12 @@
        },          
       "disposition": "window",
       "returnValue": true
+    },
+    "view": {
+      "filters": {
+        "type": "url",
+        "url": { "required":true, "regexp":"/^mailto:/" }
+      }
     }
   },
   "orientation": "portrait-primary"
