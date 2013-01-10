@@ -124,13 +124,39 @@ section[data-security*="EAP"] li.identity {
   display: block;
 }
 
-/* 'show password' checkboxes */
-label[for^="pwd"] {
-  margin-top: -1rem;
-  padding-left: 3rem;
+section li.password {
+  display: block; /*asf*/
+  height: 12rem;
+  padding-right: 0;
+}
+
+section li.password > label {
+  top: 8.6rem;
+  left: 3rem;
+  width: calc(100% - 6rem);
   height: 3rem;
-  line-height: 3rem;
+  z-index: 1;
+}
+
+section li.password > label > span {
+  left: 1.1rem;
+  right: auto;
+}
+
+section li.password > span {
+  position: absolute;
+  top: 8.6rem;
+  left: 6rem;
+  padding: 0;
+  height: 3rem;
+  color: #848484;
   font-size: 1.7rem;
+  line-height: 3rem;
+}
+
+section li.password > p {
+  padding: 0 3rem;
+  line-height: 4.4rem;
 }
 
 
