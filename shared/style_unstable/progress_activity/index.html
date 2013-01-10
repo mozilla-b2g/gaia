@@ -6,6 +6,7 @@
     <title>Progress & Activity Indicators</title>
     <meta name="description" content="Providing user with visual feedback that a process is active">
 
+    <link rel="stylesheet" href="../../style/headers.css">
     <link rel="stylesheet" href="../progress_activity.css">
 
     <!--
@@ -31,37 +32,65 @@
         padding: 0.4rem 0.4rem 0.4rem 3rem;
         border: solid 1px #e8e8e8;
       }
+      
+      section[role="region"] > div {
+        text-align: center;
+      }
+
+      p[role="status"] {
+        background: #414141;
+      }
     </style>
 </head>
 
 <body role="application">
 
   <section role="region">
-    <h2 class="bb-docs">Progress tag without 'value' property ( Activity indicator )</h2>
-    <progress></progress>
-    <progress class="opposite"></progress>
+    <h2 class="bb-docs">Spinner</h2>
+    <div>
+      <progress></progress>
+    </div>
 
-    <h2 class="bb-docs">Progress tag with 'value' property</h2>
+    <h2 class="bb-docs">Activity bar</h2>
+    <progress class="pack-activity" value="0" max="100"></progress>
+
+    <h2 class="bb-docs">Progress bar</h2>
     <progress value="80" max="100"></progress>
 
-    <h2 class="bb-docs">Progress with labels</h2>
+    <h2 class="bb-docs">Progress + activity bar</h2>
+    <progress class="pack-activity" value="80" max="100"></progress>
+
+    <h2 class="bb-docs">Progress bar with number (used in modal windows)</h2>
     <p role="status">
-      <progress></progress>
-      <span>Loading messages from server</span>
-    </p>
-    <p role="status">
-      <span>80%</span>
-      <progress value="80" max="100"></progress>
-    </p>
-    <p role="status" class="skin-dark">
-      <progress></progress>
-      <span>Loading messages from server</span>
-    </p>
-    <p role="status" class="skin-dark">
       <span>80%</span>
       <progress value="80" max="100"></progress>
     </p>
   </section>
+
+  <h2 class="bb-docs">Progress bar in headers</h2>
+  <section role="region">
+    <header>
+      <a href="#"><span class="icon icon-back">back</span></a>
+      <h1>Song title</h1>
+    </header>
+    <progress value="80" max="100"></progress>
+    <header>
+      <h2>Subheader text</h2>
+    </header>
+  </section>
+
+  <h2 class="bb-docs">Activity bar in headers</h2>
+  <section role="region">
+    <header>
+      <a href="#"><span class="icon icon-back">back</span></a>
+      <h1>Song title</h1>
+    </header>
+    <progress class="pack-activity" value="0" max="100"></progress>
+    <header>
+      <h2>Subheader text</h2>
+    </header>
+  </section>
+
 
 </body>
 </html>
