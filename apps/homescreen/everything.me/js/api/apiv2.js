@@ -1,148 +1,134 @@
 Evme.api = new function Evme_api() {
     var self = this,
-        DEFAULT_API_HOST = "api.everything.me",
-        API_VERSION = "2.1",
-        API_HOST = DEFAULT_API_HOST,
-        BASE_URL = "/everything/" + API_VERSION + "/",
-        USE_POST = true;
+        API_VERSION = 'FROM CONFIG',
+        API_HOST = 'FROM CONFIG',
+        BASE_URL = '/everything/';
     
-    this.init = function init() {
-    };
-    
-    this.setHost = function setHost(hostName) {
-        if (hostName) {
-            API_HOST = hostName;
-        }
+    this.init = function init(options) {
+        API_HOST = options.host;
+        API_VERSION = options.version;
+        
+        BASE_URL = 'https://' + API_HOST + BASE_URL + API_VERSION + '/';
     };
     
     this.getHost = function getHost() {
         return API_HOST;
     };
     
-    this.App = new function App() {
-        this.close = function close(options, callback) {
+    this.App = {
+        close: function close(options, callback) {
             return request("App/close", options, callback);
-        };
-        this.icons = function icons(options, callback) {
+        },
+        icons: function icons(options, callback) {
             return request("App/icons", options, callback);
-        };
+        }
     };
     
-    this.Device = new function Device() {
-        this.update = function update(options, callback) {
+    this.Device = {
+        update: function update(options, callback) {
             return request("Device/update", options, callback);
-        };
+        }
     };
     
-    this.Location = new function Location() {
-        this.search = function search(options, callback) {
+    this.Location = {
+        search: function search(options, callback) {
             return request("Location/search", options, callback);
-        };
-        this.set = function set(options, callback) {
+        },
+        set: function set(options, callback) {
             return request("Location/set", options, callback);
-        };
+        }
     };
     
-    this.Logger = new function Logger() {
-        this.error = function error(options, callback) {
+    this.Logger = {
+        error: function error(options, callback) {
             return request("Logger/error", options, callback);
-        };
-        this.info = function info(options, callback) {
+        },
+        info: function info(options, callback) {
             return request("Logger/info", options, callback);
-        };
-        this.warn = function warn(options, callback) {
+        },
+        warn: function warn(options, callback) {
             return request("Logger/warn", options, callback);
-        };
+        }
     };
     
-    this.Search = new function Search() {
-        this.apps = function apps(options, callback) {
+    this.Search = {
+        apps: function apps(options, callback) {
             return request("Search/apps", options, callback);
-        };
-        this.suggestions = function suggestions(options, callback) {
+        },
+        suggestions: function suggestions(options, callback) {
             return request("Search/suggestions", options, callback);
-        };
-        this.external = function external(options, callback) {
+        },
+        external: function external(options, callback) {
             return request("Search/external", options, callback);
-        };
-        this.bgimage = function bgimage(options, callback) {
+        },
+        bgimage: function bgimage(options, callback) {
             return request("Search/bgimage", options, callback);
-        };
-        this.trending = function trending(options, callback) {
+        },
+        trending: function trending(options, callback) {
             return request("Search/trending", options, callback);
-        };
-        this.disambiguate = function disambiguate(options, callback) {
+        },
+        disambiguate: function disambiguate(options, callback) {
             return request("Search/disambiguate", options, callback);
-        };
+        }
     };
     
-    this.Session = new function Session() {
-        this.init = function init(options, callback) {
+    this.Session = {
+        init: function init(options, callback) {
             return request("Session/init", options, callback, false);
-        };
+        }
     };
     
-    this.Shortcuts = new function Shortcuts() {
-        this.get = function get(options, callback) {
+    this.Shortcuts = {
+        get: function get(options, callback) {
             return request("Shortcuts/get", options, callback);
-        };
-        this.set = function set(options, callback) {
+        },
+        set: function set(options, callback) {
             return request("Shortcuts/set", options, callback);
-        };
-        this.suggestions = function suggestions(options, callback) {
+        },
+        suggestions: function suggestions(options, callback) {
             return request("Shortcuts/suggestions", options, callback);
-        };
+        }
     };
     
-    this.User = new function User() {
-        this.apps = function apps(options, callback) {
+    this.User = {
+        apps: function apps(options, callback) {
             return request("User/apps", options, callback);
-        };
-        this.clearApps = function clearApps(options, callback) {
+        },
+        clearApps: function clearApps(options, callback) {
             return request("User/clearApps", options, callback);
-        };
+        }
     };
     
-    this.Stats = new function Stats() {
-        this.report = function report(options, callback) {
+    this.Stats = {
+        report: function report(options, callback) {
             return request("Stats/report", options, callback);
-        };
+        }
     };
     
-    function request(method, options, callback, isSecured) {
-        !options && (options = {});
-        
-        var protocol = (isSecured)? "https" : "http",
-            url = protocol + "://" + API_HOST + BASE_URL + method,
+    function request(method, options, callback) {
+        var url = BASE_URL + method,
             params = "",
-            request = new XMLHttpRequest();
+            httpRequest = new XMLHttpRequest();
         
-        for (var k in options) {
-            if (typeof options[k] !== "undefined") {
-                params += k + "=" + encodeURIComponent(options[k]) + "&";
+        if (options) {
+            for (var k in options) {
+                if (typeof options[k] !== "undefined") {
+                    params += k + "=" + encodeURIComponent(options[k]) + "&";
+                }
             }
         }
         
-        request.open("POST", url, true);
-        request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-        request.onreadystatechange = function onReadyStateChange(e) {
-            if (request.readyState == 4) {
-                var response = null;
-                
-                try {
-                    response = JSON.parse(request.responseText);
-                } catch(ex){}
-                
-                if (response) {
-                    callback(response, url + "?" + params);
-                }
+        httpRequest.open('POST', url, true);
+        httpRequest.responseType = 'json';
+        httpRequest.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        httpRequest.onreadystatechange = function onReadyStateChange(e) {
+            if (httpRequest.readyState === 4) {
+                callback(httpRequest.response, url + '?' + params);
             }
         };
-        request.withCredentials = true;
-        request.send(params);
+        httpRequest.withCredentials = true;
+        httpRequest.send(params);
         
-        return request;
+        return httpRequest;
     }
-    
-    self.init();
 }
