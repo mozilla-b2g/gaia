@@ -211,7 +211,7 @@ var CardsView = (function() {
       title.textContent = app.name;
       card.appendChild(title);
 
-      var frameForScreenshot = app.frame;
+      var frameForScreenshot = app.iframe;
 
       if (PopupManager.getPopupFromOrigin(origin)) {
         var popupFrame = PopupManager.getPopupFromOrigin(origin);
