@@ -134,15 +134,22 @@ ul[role="tablist"][data-type="filter"] > [role="tab"].selected > a {
   pointer-events: none;
 }
 
+.log-item:not(.hasPhoto) .pack-end {
+  width: 0;
+}
+
 .log-item .primary-info {
   text-overflow: clip;
 }
 
-.log-item.hasPhoto .primary-info {
+
+.log-item.hasPhoto .primary-info,
+.log-item.hasPhoto .secondary-info {
   width: 19rem;
 }
 
-.log-item:not(.hasPhoto) .primary-info {
+.log-item:not(.hasPhoto) .primary-info,
+.log-item:not(.hasPhoto) .secondary-info {
   width: 25rem;
 }
 
@@ -185,9 +192,15 @@ ul[role="tablist"][data-type="filter"] > [role="tab"].selected > a {
   transition: all 0.4s ease;
 }
 
+.recents-edit .log-item.hasPhoto .pack-end {
+  width: 0;
+}
+
 .recents-edit .log-item.hasPhoto .primary-info,
-  .recents-edit .log-item:not(.hasPhoto) .primary-info {
-  width: 22rem; 
+.recents-edit .log-item.hasPhoto .secondary-info,
+.recents-edit .log-item:not(.hasPhoto) .primary-info,
+.recents-edit .log-item:not(.hasPhoto) .secondary-info {
+  width: 22rem;
 }
 
 .recents-edit .pack-end {
