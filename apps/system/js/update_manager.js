@@ -256,7 +256,7 @@ var UpdateManager = {
   render: function um_render() {
     var _ = navigator.mozL10n.get;
 
-    this.toasterMessage.innerHTML = _('updatesAvailableMessage', {
+    this.toasterMessage.innerHTML = _('updateAvailableInfo', {
                                       n: this.updatesQueue.length
                                     });
 
@@ -271,7 +271,7 @@ var UpdateManager = {
                   });
       }
     } else {
-      message = _('updatesAvailableMessage', {
+      message = _('updateAvailableInfo', {
                  n: this.updatesQueue.length
                 });
     }
