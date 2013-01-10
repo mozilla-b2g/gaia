@@ -421,7 +421,7 @@ Indicators are in units of 12
 /* sub: months day view */
 #months-day-view.inactive h1,
 #months-day-view.inactive {
-  color: transparent !important;
+  color: transparent;
   border-bottom-color: transparent;
 }
 
