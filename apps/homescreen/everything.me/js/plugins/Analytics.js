@@ -37,8 +37,8 @@ Evme.Analytics = new function Evme_Analytics() {
         
         // if enabled
         if (options.enabled){
-            // bind to event handler (js/EventHandler.js)
-            Evme.EventHandler && Evme.EventHandler.bind(catchCallback);
+            // we send data according to the settings flag (Submit performance data)
+            SettingsListener.observe('debug.performance_data.shared', false, onSettingChange);
         
             getCurrentAppsRowsCols = options.getCurrentAppsRowsCols;
             getCurrentSearchQuery = options.getCurrentSearchQuery;
@@ -83,6 +83,14 @@ Evme.Analytics = new function Evme_Analytics() {
     };
     
     /**** PRIVATE METHODS ****/
+   
+   function onSettingChange(value) {
+        if (value) {
+            Evme.EventHandler.bind(catchCallback);
+        } else {
+            Evme.EventHandler.unbind(catchCallback);
+        }
+    }
 
     // event handler execution
     function catchCallback(_class, _event, _data) {
