@@ -114,6 +114,8 @@ var About = {
        *   - already-latest-version
        *   - check-complete
        *   - retry-when-online
+       *   - check-error-$nsresult
+       *   - check-error-http-$code
        *
        * - for apps updates:
        *   - check-complete
@@ -124,7 +126,8 @@ var About = {
        */
 
       if (value !== 'check-complete') {
-        systemStatus.textContent = _(value, null, value);
+        systemStatus.textContent = _(value, null, _('check-error'));
+        console.error('Error checking for system update:', value);
       }
 
       checkIfStatusComplete();
