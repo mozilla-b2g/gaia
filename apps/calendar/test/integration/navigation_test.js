@@ -13,7 +13,7 @@ suite('calendar - navigation', function() {
       var len = input.length;
 
       for (; inputIdx < len; inputIdx++) {
-        if(checkDates(all, input[inputIdx])) {
+        if (checkDates(all, input[inputIdx])) {
           return true;
         }
       }

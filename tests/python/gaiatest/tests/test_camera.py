@@ -35,7 +35,9 @@ class TestCamera(GaiaTestCase):
         # The focus state will be either 'focused' or 'fail'
         self.assertEqual(focus_state, 'focused', "Camera failed to focus with error: %s" % focus_state)
 
-        self.wait_for_element_displayed(*self._film_strip_image_locator) #wait for image to be added in to filmstrip
+        # Wait for image to be added in to filmstrip
+        # TODO investigate lowering this timeout in the future
+        self.wait_for_element_displayed(*self._film_strip_image_locator, timeout=20)
 
         # Find the new picture in the film strip
         self.assertTrue(self.marionette.find_element(*self._film_strip_image_locator).is_displayed())
@@ -61,8 +63,12 @@ class TestCamera(GaiaTestCase):
 
         self.wait_for_element_not_displayed(*self._video_timer_locator)
 
-        # TODO
-        # Validate the recorded video somehow
+        # Wait for image to be added in to filmstrip
+        self.wait_for_element_displayed(*self._film_strip_image_locator)
+
+        # Find the new film thumbnail in the film strip
+        self.assertTrue(self.marionette.find_element(*self._film_strip_image_locator).is_displayed())
+
 
     def wait_for_capture_ready(self):
         self.marionette.set_script_timeout(10000)
@@ -72,11 +78,3 @@ class TestCamera(GaiaTestCase):
                 function () { return document.getElementById('viewfinder').readyState > 1; }
             );
         """)
-
-    def tearDown(self):
-
-        # close the app
-        if hasattr(self, 'app'):
-            self.apps.kill(self.app)
-
-        GaiaTestCase.tearDown(self)

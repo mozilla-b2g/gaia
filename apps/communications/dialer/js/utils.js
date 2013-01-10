@@ -47,7 +47,7 @@ var Utils = {
     if (matchingTel.carrier) {
       phoneCarrier = matchingTel.carrier;
     } else {
-      additionalInfo = additionalInfo + ', ' + matchingTel.value;
+      additionalInfo = additionalInfo + ', ' + contactPhoneNumber;
     }
 
     if (phoneType && phoneCarrier) {
@@ -66,7 +66,7 @@ var Utils = {
       }
 
       if (multipleNumbersSameCarrier) {
-        additionalInfo = additionalInfo + ', ' + phoneNumber;
+        additionalInfo = additionalInfo + ', ' + contactPhoneNumber;
       } else {
         additionalInfo = additionalInfo + ', ' + phoneCarrier;
       }

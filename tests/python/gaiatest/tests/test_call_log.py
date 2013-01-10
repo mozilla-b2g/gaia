@@ -77,11 +77,3 @@ class TestCallLog(GaiaTestCase):
 
         # Check that the first one is displayed. this is only a smoke test after all
         self.assertTrue(missed_calls[0].is_displayed())
-
-    def tearDown(self):
-
-        # close the app
-        if self.app:
-            self.apps.kill(self.app)
-
-        GaiaTestCase.tearDown(self)

@@ -20,17 +20,18 @@
     <link rel="stylesheet" type="text/css" href="shared/style/buttons.css">
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
     <link rel="stylesheet" type="text/css" href="shared/style/confirm.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/status.css">
     <link rel="stylesheet" type="text/css" href="style/request.css">
 
     <!-- Specific code -->
     <script type="text/javascript" defer src="js/message.js"></script>
+    <script type="text/javascript" defer src="js/landing.js"></script>
     <script type="text/javascript" defer src="js/request.js"></script>
     <script type="text/javascript" defer src="js/bookmark.js"></script>
     <script type="text/javascript" defer src="js/state.js"></script>
     <script type="text/javascript" defer src="js/page.js"></script>
     <script type="text/javascript" defer src="js/pagbar.js"></script>
     <script type="text/javascript" defer src="js/dock.js"></script>
-    <script type="text/javascript" defer src="js/landing.js"></script>
     <script type="text/javascript" defer src="js/grid.js"></script>
     <script type="text/javascript" defer src="js/dragdrop.js"></script>
     <script type="text/javascript" defer src="everything.me/js/everything.me.js"></script>
@@ -45,6 +46,13 @@
   <body data-mode="normal">
     <div id="search-overlay"></div>
     <div id="landing-overlay"></div>
+    <!-- This markup is just to detect text overflow with app names
+         because of pages are hidden after rendering -->
+    <div id="fake-icon">
+      <span id="fake-icon-name-wrapper" class="labelWrapper">
+        <span id="fake-icon-name"></span>
+      </span>
+    </div>
 
     <section id="confirm-dialog">
       <form role="dialog" data-type="confirm">
@@ -110,7 +118,7 @@
                 </div>
                 <div id="shortcuts-loading"></div>
             </div>
-            <div id="evmeBanner" class="banner"></div>
+            <section id="evmeBanner" role="status"></section>
           </div>
       </div>
       <div id="landing-page" data-current-page="true">

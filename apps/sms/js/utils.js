@@ -107,21 +107,24 @@ var Utils = {
 
   getPhoneDetails: function ut_getPhoneDetails(number, contact, callback) {
     var details = {};
-
     if (contact) { // we have a contact
-      //TODO what if there are more contacts?
       var name = contact.name,
           phone = contact.tel[0],
           carrierToShow = phone.carrier;
 
       // Check which of the contacts phone number are we using
       for (var i = 0; i < contact.tel.length; i++) {
-        if (PhoneNumberManager.getOptionalNumbers(
-                          contact.tel[i].value).indexOf(number) != -1) {
+        // Based on E.164 (http://en.wikipedia.org/wiki/E.164)
+        var tempPhoneNumber = contact.tel[i].value;
+        if (number.length > 7) {
+          var rootPhoneNumber = number.substr(-8);
+        } else {
+          var rootPhoneNumber = number;
+        }
+        if (tempPhoneNumber.indexOf(rootPhoneNumber) != -1) {
           phone = contact.tel[i];
           carrierToShow = phone.carrier;
           break;
-
         }
       }
 
@@ -144,11 +147,14 @@ var Utils = {
           }
         }
         details.title = name;
-        details.carrier = phone.type + ' | ' +
-                          (carrierToShow || phone.value);
+        details.carrier = (carrierToShow || phone.value);
       } else { // no name of contact
         details.title = number;
-        details.carrier = phone.type + ' | ' + (phone.carrier || '');
+        details.carrier = (phone.carrier || '');
+      }
+
+      if (phone.type) {
+        details.carrier = phone.type + ' | ' + details.carrier;
       }
 
     } else { // we don't have a contact

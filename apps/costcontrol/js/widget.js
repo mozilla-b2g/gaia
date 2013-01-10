@@ -13,26 +13,48 @@
   'use strict';
 
   var costcontrol;
+  var hasSim = true;
   window.addEventListener('DOMContentLoaded', function _onDOMReady() {
-    checkSIMChange();
+    var mobileConnection = window.navigator.mozMobileConnection;
 
+    // No SIM
+    if (!mobileConnection || mobileConnection.cardState === 'absent') {
+      hasSim = false;
+      _startWidget();
+
+    // SIM is not ready
+    } else if (mobileConnection.cardState !== 'ready') {
+      debug('SIM not ready:', mobileConnection.cardState);
+      mobileConnection.oniccinfochange = _onDOMReady;
+
+    // SIM is ready
+    } else {
+      debug('SIM ready. ICCID:', mobileConnection.iccInfo.iccid);
+      mobileConnection.oniccinfochange = undefined;
+      _startWidget();
+    }
+  });
+
+  function _startWidget() {
+    checkSIMChange();
     CostControl.getInstance(function _onCostControlReady(instance) {
       costcontrol = instance;
       setupWidget();
     });
-  });
+  }
 
   window.addEventListener('localized', function _onLocalize() {
     if (initialized)
       updateUI();
   });
 
-  var initialized, widget, leftPanel, rightPanel, views = {};
+  var initialized, widget, leftPanel, rightPanel, fte, views = {};
   function setupWidget() {
     // HTML entities
     widget = document.getElementById('cost-control');
     leftPanel = document.getElementById('left-panel');
     rightPanel = document.getElementById('right-panel');
+    fte = document.getElementById('fte-view');
     views.dataUsage = document.getElementById('datausage-view');
     views.limitedDataUsage = document.getElementById('datausage-limit-view');
     views.telephony = document.getElementById('telephony-view');
@@ -42,6 +64,8 @@
     ConfigManager.observe('lastBalance', onBalance, true);
     ConfigManager.observe('waitingForBalance', onErrors, true);
     ConfigManager.observe('errors', onErrors, true);
+    ConfigManager.observe('lastDataReset', onReset, true);
+    ConfigManager.observe('lastTelephonyReset', onReset, true);
 
     // Update UI when visible
     document.addEventListener('mozvisibilitychange',
@@ -76,7 +100,7 @@
 
   // On balance update received
   function onBalance(balance, old, key, settings) {
-    debug('Balance received: ' + JSON.stringify(balance) + '!');
+    debug('Balance received:', balance);
     setBalanceMode('default');
     updateBalance(balance, settings.lowLimit && settings.lowLimitThreshold);
     debug('Balance updated!');
@@ -93,13 +117,54 @@
     ConfigManager.setOption({errors: errors});
   }
 
+  // On reset telephony or data usage
+  function onReset(value, old, key, settings) {
+    updateUI();
+  }
+
   // USER INTERFACE
+
+  function setupFte(provider, mode) {
+
+    fte.setAttribute('aria-hidden', false);
+
+    fte.addEventListener('click', function launchFte() {
+      fte.removeEventListener('click', launchFte);
+      var activity = new MozActivity({ name: 'costcontrol/balance' });
+    });
+
+    leftPanel.setAttribute('aria-hidden', true);
+    rightPanel.setAttribute('aria-hidden', true);
+
+    var keyLookup = {
+        PREPAID: 'widget-authed-sim',
+        POSTPAID: 'widget-authed-sim',
+        DATA_USAGE_ONLY: 'widget-nonauthed-sim'
+    };
+
+    var simKey = hasSim ? keyLookup[mode] : 'widget-no-sim';
+
+    document.getElementById('fte-icon').className = 'icon ' + simKey;
+
+    fte.querySelector('p:first-child').innerHTML = navigator.mozL10n.get(simKey + '-heading', { provider: provider });
+    fte.querySelector('p:last-child').innerHTML = navigator.mozL10n.get(simKey + '-meta');
+  }
 
   var currentMode;
   function updateUI() {
+
     ConfigManager.requestAll(function _onInfo(configuration, settings) {
       var mode = costcontrol.getApplicationMode(settings);
-      debug('Widget UI mode: ' + mode);
+      debug('Widget UI mode:', mode);
+
+      // Show 'fte' widget
+      if (ConfigManager.option('fte')) {
+        setupFte(configuration.provider, mode);
+        return;
+      }
+      fte.setAttribute('aria-hidden', true);
+      leftPanel.setAttribute('aria-hidden', false);
+      rightPanel.setAttribute('aria-hidden', false);
 
       var isPrepaid = (mode === 'PREPAID');
       var isDataUsageOnly = (mode === 'DATA_USAGE_ONLY');
@@ -194,7 +259,7 @@
 
           requestObj = { type: 'balance' };
           costcontrol.request(requestObj, function _onRequest(result) {
-            debug(JSON.stringify(result));
+            debug(result);
             var status = result.status;
             var balance = result.data;
             setBalanceMode(status === 'error' ? 'warning' : 'updating');
@@ -231,7 +296,7 @@
 
     // Balance not available
     if (balance === null) {
-      debug('Balance not available');
+      debug('Balance not available.');
       document.getElementById('balance-credit').innerHTML = _('not-available');
       views.balance.querySelector('.meta').innerHTML = '';
       return;

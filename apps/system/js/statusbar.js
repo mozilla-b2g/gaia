@@ -213,12 +213,9 @@ var StatusBar = {
         this.update.data.call(this);
       }
 
-      var wifiManager = window.navigator.mozWifiManager;
-      if (wifiManager) {
-        wifiManager.onstatuschange =
-          wifiManager.connectionInfoUpdate = (this.update.wifi).bind(this);
-        this.update.wifi.call(this);
-      }
+      window.addEventListener('wifi-statuschange',
+                              this.update.wifi.bind(this));
+      this.update.wifi.call(this);
 
       window.addEventListener('moznetworkupload', this);
       window.addEventListener('moznetworkdownload', this);
@@ -285,7 +282,9 @@ var StatusBar = {
       this._clockTimer =
         window.setTimeout((this.update.time).bind(this), (59 - sec) * 1000);
 
-      this.icons.time.textContent = f.localeFormat(now, _('shortTimeFormat'));
+      var formated = f.localeFormat(now, _('shortTimeFormat'));
+      formated = formated.replace(/\s?(AM|PM)\s?/i, '<span>$1</span>');
+      this.icons.time.innerHTML = formated;
 
       var label = this.icons.label;
       var l10nArgs = JSON.parse(label.dataset.l10nArgs || '{}');

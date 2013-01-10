@@ -21,6 +21,7 @@ contacts.Details = (function() {
       isFbLinked,
       editContactButton,
       cover,
+      wrapper,
       favoriteMessage,
       detailsInner,
       TAG_OPTIONS,
@@ -53,6 +54,7 @@ contacts.Details = (function() {
     favoriteMessage = dom.querySelector('#toggle-favorite');
     notesTemplate = dom.querySelector('#note-details-template-\\#i\\#');
 
+    wrapper = dom.querySelector('#contact-detail-wrapper');
     initPullEffect(cover);
   };
 
@@ -65,8 +67,17 @@ contacts.Details = (function() {
   };
 
   var initPullEffect = function cd_initPullEffect(cover) {
-    cover.addEventListener('mousedown', function(event) {
-      if (event.target != cover || contactDetails.classList.contains('no-photo'))
+    wrapper.addEventListener('touchstart', function(event) {
+
+      // Avoiding repaint (at least when no scroll is needed)
+      if (cover.style.overflow == 'hidden') {
+        var headerHeight = 5;
+        contactDetails.style.top = headerHeight + 'rem';
+        contactDetails.style.position = 'fixed';
+      }
+
+      var event = event.changedTouches[0];
+      if (contactDetails.classList.contains('no-photo'))
         return;
 
       var startPosition = event.clientY;
@@ -74,6 +85,7 @@ contacts.Details = (function() {
       cover.classList.add('up');
 
       var onMouseMove = function onMouseMove(event) {
+        var event = event.changedTouches[0];
         var newMargin = event.clientY - startPosition;
         if (newMargin > 0 && newMargin < 150) {
           contactDetails.classList.remove('up');
@@ -87,16 +99,22 @@ contacts.Details = (function() {
       };
 
       var onMouseUp = function onMouseUp(event) {
+        var event = event.changedTouches[0];
         contactDetails.classList.add('up');
         cover.classList.add('up');
         contactDetails.style.transform = null;
         cover.style.transform = null;
-        removeEventListener('mousemove', onMouseMove);
-        removeEventListener('mouseup', onMouseUp);
+        removeEventListener('touchmove', onMouseMove);
+        removeEventListener('touchend', onMouseUp);
+        contactDetails.addEventListener('transitionend', function transEnd() {
+          contactDetails.style.position = 'relative';
+          contactDetails.style.top = '0';
+          this.removeEventListener('transitionend', transEnd);
+        });
       };
 
-      addEventListener('mousemove', onMouseMove);
-      addEventListener('mouseup', onMouseUp);
+      addEventListener('touchmove', onMouseMove);
+      addEventListener('touchend', onMouseUp);
     });
   };
 
@@ -165,7 +183,7 @@ contacts.Details = (function() {
   };
 
   var isFavorite = function isFavorite(contact) {
-    return contact != null & contact.category != null &&
+    return contact != null && contact.category != null &&
               contact.category.indexOf('favorite') != -1;
   };
 
@@ -187,6 +205,9 @@ contacts.Details = (function() {
       }
     }
 
+    // Disabling button while saving the contact
+    favoriteMessage.style.pointerEvents = 'none';
+
     var request = navigator.mozContacts.save(contact);
     request.onsuccess = function onsuccess() {
       var cList = contacts.List;
@@ -207,19 +228,23 @@ contacts.Details = (function() {
           cList.refresh(contact);
         }
         renderFavorite(contactData);
+        favoriteMessage.style.pointerEvents = 'auto';
       }, function onError() {
         console.error('Error reloading contact');
+        favoriteMessage.style.pointerEvents = 'auto';
       });
     };
     request.onerror = function onerror() {
+      favoriteMessage.style.pointerEvents = 'auto';
       console.error('Error saving favorite');
     };
   };
 
   var toggleFavoriteMessage = function toggleFavMessage(isFav) {
-    favoriteMessage.textContent = !isFav ?
-                    _('addFavorite') :
-                    _('removeFavorite');
+    var cList = favoriteMessage.classList;
+    var text = isFav ? _('removeFavorite') : _('addFavorite');
+    favoriteMessage.textContent = text;
+    isFav ? cList.add('on') : cList.remove('on');
   };
 
   var renderOrg = function cd_renderOrg(contact) {
@@ -339,7 +364,7 @@ contacts.Details = (function() {
       var telField = {
         value: utils.text.escapeHTML(currentTel.value, true) || '',
         type: escapedType || TAG_OPTIONS['phone-type'][0].value,
-        carrier: utils.text.escapeHTML(currentTel.carrier, true) || '',
+        carrier: utils.text.escapeHTML(currentTel.carrier || '', true) || '',
         i: tel
       };
       var template = utils.templates.render(phonesTemplate, telField);

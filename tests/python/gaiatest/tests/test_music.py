@@ -64,10 +64,3 @@ class TestMusic(GaiaTestCase):
 
       # validate stopped playback
       self.assertEqual(audiotag.get_attribute('paused'), 'true')
-
-  def tearDown(self):
-      # close the app
-      if hasattr(self, 'app'):
-          self.apps.kill(self.app)
-
-      GaiaTestCase.tearDown(self)

@@ -2,12 +2,21 @@
 
   var Cal = Calendar.Template.create({
     item: function() {
-      return '<li id="calendar-' + this.h('_id') + '">' +
-          '<div class="calendar-id-' + this.h('_id') + ' calendar-color"></div>' +
+      var id = this.h('_id');
+      var l10n = '';
+
+      // hack localize the only default calendar
+      if (id && Calendar.Provider.Local.calendarId === id) {
+        // localize the default calendar name
+        l10n = 'data-l10n-id="calendar-local"';
+      }
+
+      return '<li id="calendar-' + id + '">' +
+          '<div class="calendar-id-' + id + ' calendar-color"></div>' +
           '<label>' +
-            '<span class="name">' + this.h('name') + '</span>' +
+            '<span ' + l10n + ' class="name">' + this.h('name') + '</span>' +
             '<input ' +
-              'value="' + this.h('_id') + '" ' +
+              'value="' + id + '" ' +
               'type="checkbox" ' +
               this.bool('localDisplayed', 'checked') + ' />' +
             '<span></span>' +

@@ -1,7 +1,6 @@
 var ServiceSupport = (function() {
 
   var support = testSupport.calendar;
-  var ServiceSupport = {};
 
   function request(file, cb) {
     var xhr = new XMLHttpRequest();
@@ -14,7 +13,7 @@ var ServiceSupport = (function() {
           cb(null, xhr.responseText);
         }
       }
-    }
+    };
     xhr.send(null);
   }
 
@@ -72,13 +71,33 @@ var ServiceSupport = (function() {
         }
         next();
       });
-    }
+    };
 
     return this;
   }
 
-  ServiceSupport.Fixtures = Fixtures;
+  var Helper = {
+    Fixtures: Fixtures,
 
-  return ServiceSupport;
+    _originalExpansionLimit: null,
+
+    resetExpansionLimit: function() {
+      if (!Helper._originalExpansionLimit) {
+          Calendar.Service.IcalRecurExpansion.forEachLimit =
+            Helper._originalExpansionLimit;
+      }
+    },
+
+    setExpansionLimit: function(newLimit) {
+      if (!Helper._originalExpansionLimit) {
+        Helper._originalExpansionLimit =
+          Calendar.Service.IcalRecurExpansion.forEachLimit;
+      }
+
+      Calendar.Service.IcalRecurExpansion.forEachLimit = newLimit;
+    }
+  };
+
+  return Helper;
 
 }());

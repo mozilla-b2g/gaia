@@ -5,7 +5,20 @@
     },
 
     sidebarHour: function() {
-      return '<li class="hour-' + this.h('hour') + '">' + this.h('displayHour') + '</li>';
+      var l10n = '';
+      var hour = this.h('hour');
+      var displayHour;
+
+      if (hour === Calendar.Calc.ALLDAY) {
+        l10n = ' data-l10n-id="hour-allday" ';
+        displayHour = navigator.mozL10n.get('hour-allday');
+      } else {
+        displayHour = this.h('displayHour');
+      }
+
+      return '<li ' + hour + ' class="hour-' + this.h('hour') + '">' +
+                displayHour +
+              '</li>';
     },
 
     hour: function() {

@@ -6,8 +6,6 @@
 var MessageManager = {
   init: function mm_init() {
     this.initialized = true;
-    // Init PhoneNumberManager for solving country code issue.
-    PhoneNumberManager.init();
     MessageManager.getThreads(ThreadListUI.renderThreads);
     // Init UI Managers
     ThreadUI.init();
@@ -26,7 +24,14 @@ var MessageManager = {
 
   onMessageSending: function mm_onMessageSending(e) {
     var message = e.message;
-    ThreadUI.appendMessage(message);
+    var num = message.receiver;
+    if (window.location.hash == '#new') {
+      // If we are in 'new' we go to the right thread
+      // 'num' has been internationalized by Gecko
+      window.location.hash = '#num=' + num;
+    } else {
+      ThreadUI.appendMessage(message);
+    }
     MessageManager.getThreads(ThreadListUI.renderThreads);
   },
 
@@ -65,9 +70,18 @@ var MessageManager = {
 
   slide: function mm_slide(callback) {
     var mainWrapper = document.getElementById('main-wrapper');
-    mainWrapper.classList.toggle('to-left');
-    mainWrapper.addEventListener('transitionend', function slideTransition() {
-      mainWrapper.removeEventListener('transitionend', slideTransition);
+    if (!mainWrapper.classList.contains('to-left')) {
+      mainWrapper.classList.remove('to-right');
+      mainWrapper.classList.add('to-left');
+    } else {
+      mainWrapper.classList.remove('to-left');
+      mainWrapper.classList.add('to-right');
+      
+    }
+    mainWrapper.addEventListener('animationend', function slideTransition() {
+      mainWrapper.removeEventListener('animationend', slideTransition);
+      mainWrapper.classList.toggle('to-left-fixed');
+
       if (callback) {
         callback();
       }
@@ -85,9 +99,7 @@ var MessageManager = {
         var contactButton = document.getElementById('icon-contact');
         contactButton.parentNode.appendChild(contactButton);
         document.getElementById('messages-container').innerHTML = '';
-        messageInput.value = '';
-        receiverInput.value = '';
-        ThreadUI.sendButton.disabled = true;
+        ThreadUI.cleanFields();
         MessageManager.currentNum = null;
         threadMessages.classList.add('new');
         MessageManager.slide(function() {
@@ -131,14 +143,11 @@ var MessageManager = {
         if (num) {
           var filter = this.createFilter(num);
           var messageInput = document.getElementById('message-to-send');
-          var numNormalized =
-            PhoneNumberManager.getNormalizedInternationalNumber(num);
-          MessageManager.currentNum = numNormalized;
+          MessageManager.currentNum = num;
           if (mainWrapper.classList.contains('edit')) {
-            this.getMessages(ThreadUI.renderMessages, filter);
             mainWrapper.classList.remove('edit');
           } else if (threadMessages.classList.contains('new')) {
-            this.getMessages(ThreadUI.renderMessages, filter, true);
+            this.getMessages(ThreadUI.renderMessages, filter, false);
             threadMessages.classList.remove('new');
             messageInput.focus();
 
@@ -150,8 +159,9 @@ var MessageManager = {
               threadRead.getElementsByTagName('a')[0].classList
                     .remove('unread');
             }
+
             this.getMessages(ThreadUI.renderMessages,
-              filter, true, function() {
+              filter, false, function() {
                 MessageManager.slide(function() {
                   messageInput.focus();
                 });
@@ -173,7 +183,7 @@ var MessageManager = {
         if (num) {
           var filter = this.createFilter(num);
           var typedText = ThreadUI.input.value;
-          this.getMessages(ThreadUI.renderMessages, filter, true,
+          this.getMessages(ThreadUI.renderMessages, filter, false,
             function() {
               // Restored previous typed text.
               ThreadUI.input.value = typedText;
@@ -187,13 +197,7 @@ var MessageManager = {
 
   createFilter: function mm_createFilter(num) {
     var filter = new MozSmsFilter();
-    if (num) {
-      num = PhoneNumberManager.getNormalizedInternationalNumber(num);
-    } else {
-      num = '';
-    }
-
-    filter.numbers = [num];
+    filter.numbers = [num || ''];
     return filter;
   },
 
@@ -507,56 +511,36 @@ var ThreadListUI = {
                        'header');
       // Edit mode available
       ThreadListUI.iconEdit.classList.remove('disabled');
-      var threadIds = [],
-          dayHeaderIndex = 0,
-          unreadThreads = [];
-
-      for (var i = threads.length - 1; i >= 0; i--) {
-        var thread = threads[i];
-        var time = thread.timestamp.getTime();
-        var num = thread.senderOrReceiver;
-
-        var numNormalized =
-          PhoneNumberManager.getNormalizedInternationalNumber(num);
-
-        if (thread.unreadCount) {
-          unreadThreads.push(numNormalized);
-        }
-
-        if (threadIds.indexOf(numNormalized) == -1) {
-          var thread = {
-            'body': thread.body,
-            'name': numNormalized,
-            'num': numNormalized,
-            'timestamp': time,
-            'unreadCount': thread.unreadCount,
-            'id': numNormalized
-          };
-
-          if (threadIds.length == 0) {
-            dayHeaderIndex = Utils.getDayDate(time);
-            ThreadListUI.createNewHeader(time);
-          } else {
-            var tmpDayIndex = Utils.getDayDate(time);
-            if (tmpDayIndex < dayHeaderIndex) {
-              ThreadListUI.createNewHeader(time);
-              dayHeaderIndex = tmpDayIndex;
-            }
+      var dayHeaderIndex;
+      var appendThreads = function(threads, callback) {
+        if (threads.length === 0) {
+          if (callback) {
+            callback();
           }
-
-          threadIds.push(numNormalized);
-          ThreadListUI.appendThread(thread);
+          return;
         }
+        var thread = threads.pop();
+        var time = thread.timestamp.getTime();
+        if (!dayHeaderIndex) {
+          dayHeaderIndex = Utils.getDayDate(time);
+          ThreadListUI.createNewHeader(time);
+        } else {
+          var tmpDayIndex = Utils.getDayDate(time);
+          if (tmpDayIndex < dayHeaderIndex) {
+            ThreadListUI.createNewHeader(time);
+            dayHeaderIndex = tmpDayIndex;
+          }
+        }
+        setTimeout(function() {
+          ThreadListUI.appendThread(thread);
+          appendThreads(threads, callback);
+        });
       }
 
-      // Update threads with 'unread' if some was missing
-      for (var i = 0; i < unreadThreads.length; i++) {
-         document.getElementById('thread_' + unreadThreads[i]).
-                    getElementsByTagName('a')[0].classList.add('unread');
-      }
-
-      // Boot update of headers
-      Utils.updateTimeHeaderScheduler();
+      appendThreads(threads, function at_callback() {
+        // Boot update of headers
+        Utils.updateTimeHeaderScheduler();
+      });
 
     } else {
       document.getElementById('threads-fixed-container').classList.add('hide');
@@ -586,25 +570,26 @@ var ThreadListUI = {
       return;
     }
     // Create DOM element
+    var num = thread.senderOrReceiver;
     var threadDOM = document.createElement('li');
-    threadDOM.id = 'thread_' + thread.num;
+    threadDOM.id = 'thread_' + num;
 
     // Retrieving params from thread
     var bodyText = (thread.body || '').split('\n')[0];
-    var formattedDate = Utils.getFormattedHour(thread.timestamp);
+    var formattedDate = Utils.getFormattedHour(thread.timestamp.getTime());
     // Create HTML Structure
     var structureHTML = '<label class="danger">' +
-                          '<input type="checkbox" value="' + thread.num + '">' +
+                          '<input type="checkbox" value="' + num + '">' +
                           '<span></span>' +
                         '</label>' +
-                        '<a href="#num=' + thread.num +
+                        '<a href="#num=' + num +
                           '" class="' +
                           (thread.unreadCount > 0 ? 'unread' : '') + '">' +
                           '<aside class="icon icon-unread">unread</aside>' +
                           '<aside class="pack-end">' +
                             '<img src="">' +
                           '</aside>' +
-                          '<p class="name">' + thread.num + '</p>' +
+                          '<p class="name">' + num + '</p>' +
                           '<p><time>' + formattedDate +
                           '</time>' + bodyText + '</p>' +
                         '</a>';
@@ -616,7 +601,7 @@ var ThreadListUI = {
     threadsContainer.appendChild(threadDOM);
 
     // Update info given a number
-    ThreadListUI.updateThreadWithContact(thread.num, threadDOM);
+    ThreadListUI.updateThreadWithContact(num, threadDOM);
   },
 
   // Adds a new grouping header if necessary (today, tomorrow, ...)
@@ -663,6 +648,11 @@ var ThreadUI = {
   get contactInput() {
     delete this.contactInput;
     return this.contactInput = document.getElementById('receiver-input');
+  },
+
+  get backButton() {
+    delete this.backButton;
+    return this.backButton = document.getElementById('go-to-threadlist');
   },
 
   get clearButton() {
@@ -733,9 +723,6 @@ var ThreadUI = {
     return this.sendForm = document.getElementById('new-sms-form');
   },
 
-  // Does the operator force 7-bit encoding
-  is7BitEncoding: false,
-
   init: function thui_init() {
     this.sendButton.addEventListener('click', this.sendMessage.bind(this));
 
@@ -756,7 +743,8 @@ var ThreadUI = {
         event.target.classList.remove('active');
       }
     );
-
+    this.backButton.addEventListener('click',
+      this.onBackAction.bind(this));
     this.pickButton.addEventListener('click', this.pickContact.bind(this));
     this.selectAllButton.addEventListener('click',
       this.selectAllMessages.bind(this));
@@ -775,23 +763,30 @@ var ThreadUI = {
     this.editForm.addEventListener('submit', this);
     this.telForm.addEventListener('submit', this);
     this.sendForm.addEventListener('submit', this);
+  },
 
-    var self = this;
-    SettingsListener.observe('ril.sms.strict7BitEncoding.enabled',
-                             function onSMSEncodingChange(value) {
-      self.is7BitEncoding = !!value;
-    });
+  onBackAction: function thui_onBackAction() {
+    if (ThreadUI.input.value.length == 0) {
+      window.location.hash = '#thread-list';
+      return;
+    }
+    var response = window.confirm(_('discard-sms'));
+    if (response) {
+      ThreadUI.cleanFields(true);
+      window.location.hash = '#thread-list';
+    }
   },
 
   enableSend: function thui_enableSend() {
+    if (this.input.value.length > 0) {
+      this.updateCounter();
+    }
     if (window.location.hash == '#new' && this.contactInput.value.length == 0) {
       this.sendButton.disabled = true;
-      this.updateCounter();
       return;
     }
 
     this.sendButton.disabled = !(this.input.value.length > 0);
-    this.updateCounter();
   },
 
   scrollViewToBottom: function thui_scrollViewToBottom(animateFromPos) {
@@ -813,50 +808,22 @@ var ThreadUI = {
     }).bind(this), 100);
   },
 
-  has7BitOnlyCharacters: function thui_has7BitOnluCharacter(value) {
-    for (var i = 0; i < value.length; i++) {
-      if (value.charCodeAt(i) >= 128) {
-        return false;
-      }
-    }
-
-    return true;
-  },
-
   updateCounter: function thui_updateCount(evt) {
     var value = this.input.value;
+    // We set maximum concatenated number of our SMS app to 10 based on:
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=813686#c0
+    var kMaxConcatenatedMessages = 10;
 
-    // In theory the maximum concatenated number of SMS is 255.
-    var kMaxConcatenatedMessages = 255;
-    var excessive = false;
-
-    // A sms can hold 140 bytes of data or 134 bytes of data depending
-    // if it is a single or concatenated sms. To be fun the numbers of
-    // sms also depends on the character encoding of the message.
-    if (this.is7BitEncoding || this.has7BitOnlyCharacters(value)) {
-      var kMaxCharsIfSingle = 160; // (140 * 8) / 7 = 160.
-      var kMaxCharsIfMultiple = 153; // ((140 - 6) / 7 ~= 153.
-    } else {
-      var kMaxCharsIfSingle = 70; // (140 * 8) / 16 = 70.
-      var kMaxCharsIfMultiple = 67; // ((140 - 6) / 16 = 67.
-    }
-
+    // Use backend api for precise sms segmetation information.
+    var smsInfo = navigator.mozSms.getSegmentInfoForText(value);
+    var segments = smsInfo.segments;
+    var availableChars = smsInfo.charsAvailableInLastSegment;
     var counter = '';
-    var length = value.length;
-    if ((length / kMaxCharsIfSingle) > 1) {
-      var charsLeft = kMaxCharsIfMultiple - (length % kMaxCharsIfMultiple);
-      var smsCount = Math.ceil(length / kMaxCharsIfMultiple);
-      counter = charsLeft + '/' + smsCount;
-
-      // Make sure the current number of sms is not bigger than the maximum
-      // theorical number of sms that can be concatenate.
-      if (smsCount > kMaxConcatenatedMessages) {
-        excessive = true;
-      }
+    if (segments > 1) {
+      counter = availableChars + '/' + segments;
     }
-
     this.sendButton.dataset.counter = counter;
-    this.sendButton.disabled = excessive;
+    this.sendButton.disabled = (segments > kMaxConcatenatedMessages);
   },
 
   updateInputHeight: function thui_updateInputHeight() {
@@ -977,21 +944,36 @@ var ThreadUI = {
     ThreadUI.timeHeaderIndex = 0;
     // Init readMessages array
     ThreadUI.readMessages = [];
-    // Per each message I will append DOM element
-    messages.forEach(ThreadUI.appendMessage);
-    // Update read messages if necessary
-    if (ThreadUI.readMessages.length > 0) {
-      MessageManager.markMessagesRead(ThreadUI.readMessages, 'true',
-        function() {
-        MessageManager.getThreads(ThreadListUI.renderThreads);
+    // We append messages in a non-blocking way
+    var appendMessages = function(messages, callback) {
+      if (messages.length == 0) {
+        if (callback) {
+          callback();
+        }
+        return;
+      }
+      var message = messages.pop();
+      setTimeout(function() {
+        ThreadUI.appendMessage(message);
+        appendMessages(messages, callback);
       });
-    }
-    // Boot update of headers
-    Utils.updateTimeHeaderScheduler();
-    // Callback when every message is appended
-    if (callback) {
-      callback();
-    }
+    };
+
+    appendMessages(messages, function am_callback() {
+      // Update read messages if necessary
+      if (ThreadUI.readMessages.length > 0) {
+        MessageManager.markMessagesRead(ThreadUI.readMessages, 'true',
+          function() {
+          MessageManager.getThreads(ThreadListUI.renderThreads);
+        });
+      }
+      // Boot update of headers
+      Utils.updateTimeHeaderScheduler();
+      // Callback when every message is appended
+      if (callback) {
+        callback();
+      }
+    });
   },
 
   appendMessage: function thui_appendMessage(message) {
@@ -1208,11 +1190,25 @@ var ThreadUI = {
     }
   },
 
-  cleanFields: function thui_cleanFields() {
-    this.sendButton.disabled = true;
-    this.contactInput.value = '';
-    this.input.value = '';
-    this.updateInputHeight();
+  cleanFields: function thui_cleanFields(forceClean) {
+    var self = this;
+    var clean = function clean() {
+      self.input.value = '';
+      self.sendButton.disabled = true;
+      self.sendButton.dataset.counter = '';
+      self.contactInput.value = '';
+      self.updateInputHeight();
+    };
+    if (window.location.hash == this.previousHash ||
+          this.previousHash == '#new') {
+      if (forceClean) {
+        clean();
+      }
+    } else {
+      clean();
+    }
+    this.enableSend();
+    this.previousHash = window.location.hash;
   },
 
   sendMessage: function thui_sendMessage(resendText) {
@@ -1241,23 +1237,13 @@ var ThreadUI = {
       }
     }
     // Clean fields (this lock any repeated click in 'send' button)
-    this.cleanFields();
-
-    // Retrieve normalized phone number
-    // TODO Remove with
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=811539
-    var numNormalized =
-      PhoneNumberManager.getNormalizedInternationalNumber(num);
-
-    MessageManager.currentNum = numNormalized;
+    this.cleanFields(true);
+    // Remove when
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=825604 landed
+    MessageManager.currentNum = num;
     this.updateHeaderData();
-
-    MessageManager.send(numNormalized, text);
-
-    if (window.location.hash == '#new') {
-      // If we are in 'new' we go to the right thread
-      window.location.hash = '#num=' + numNormalized;
-    }
+    // Send the SMS
+    MessageManager.send(num, text);
   },
 
   onMessageSent: function thui_onMessageSent(message) {
@@ -1276,10 +1262,14 @@ var ThreadUI = {
 
     // Remove 'sending' style and add 'error' style
     var aElement = messageDOM.querySelector('a');
+    // Check if it was painted as 'error' before
+    if (!aElement.classList.contains('sending')) {
+      return;
+    }
     aElement.classList.remove('sending');
     aElement.classList.add('error');
 
-    // remove only the spinner
+    // Remove only the spinner
     var spinnerContainer = aElement.querySelector('aside');
     spinnerContainer.innerHTML = '';
 
@@ -1638,33 +1628,31 @@ if (!window.location.hash.length) {
       }
     }
 
-    PhoneNumberManager.init(function phoneNMReady() {
-      navigator.mozApps.getSelf().onsuccess = function(evt) {
-        var app = evt.target.result;
-        var iconURL = NotificationHelper.getIconURI(app);
+    navigator.mozApps.getSelf().onsuccess = function(evt) {
+      var app = evt.target.result;
+      var iconURL = NotificationHelper.getIconURI(app);
 
-        // Stashing the number at the end of the icon URL to make sure
-        // we get it back even via system message
-        iconURL += '?sms-received?' + number;
+      // Stashing the number at the end of the icon URL to make sure
+      // we get it back even via system message
+      iconURL += '?sms-received?' + number;
 
-        var goToMessage = function() {
-          app.launch();
-          showThreadFromSystemMessage(number);
-        };
-
-        ContactDataManager.getContactData(message.sender,
-        function gotContact(contact) {
-          var sender;
-          if (contact.length && contact[0].name) {
-            sender = contact[0].name;
-          } else {
-            sender = message.sender;
-          }
-
-          NotificationHelper.send(sender, message.body, iconURL, goToMessage);
-        });
+      var goToMessage = function() {
+        app.launch();
+        showThreadFromSystemMessage(number);
       };
-    });
+
+      ContactDataManager.getContactData(message.sender,
+      function gotContact(contact) {
+        var sender;
+        if (contact.length && contact[0].name) {
+          sender = contact[0].name;
+        } else {
+          sender = message.sender;
+        }
+
+        NotificationHelper.send(sender, message.body, iconURL, goToMessage);
+      });
+    };
   });
 
   window.navigator.mozSetMessageHandler('notification',

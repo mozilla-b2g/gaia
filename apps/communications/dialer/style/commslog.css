@@ -16,7 +16,7 @@ form[role="dialog"][data-type="edit"] header .icon {
 /* Override Building Block [Edit mode] styles */
 form[role="dialog"][data-type="edit"] header,
 form[role="dialog"][data-type="edit"] > menu {
-  transition: all 0.4s ease;
+  transition: all 0.3s ease;
 }
 
 form[role="dialog"][data-type="edit"] header {
@@ -134,15 +134,26 @@ ul[role="tablist"][data-type="filter"] > [role="tab"].selected > a {
   pointer-events: none;
 }
 
+.log-item .pack-end {
+  position: absolute;
+  right: 0;
+}
+
+.log-item:not(.hasPhoto) .pack-end {
+  width: 0;
+}
+
 .log-item .primary-info {
   text-overflow: clip;
 }
 
-.log-item.hasPhoto .primary-info {
+.log-item.hasPhoto .primary-info,
+.log-item.hasPhoto .secondary-info {
   width: 19rem;
 }
 
-.log-item:not(.hasPhoto) .primary-info {
+.log-item:not(.hasPhoto) .primary-info,
+.log-item:not(.hasPhoto) .secondary-info {
   width: 25rem;
 }
 
@@ -177,21 +188,23 @@ ul[role="tablist"][data-type="filter"] > [role="tab"].selected > a {
 
 .recents-edit label:not([for]).call-log-selection {
   transform: translateX(4rem);
-  transition: transform 0.4s ease;
+  transition: transform 0.3s ease;
 }
 
 .recents-edit .log-item a {
   transform: translateX(3rem);
-  transition: all 0.4s ease;
+  transition: all 0.3s ease;
 }
 
 .recents-edit .log-item.hasPhoto .primary-info,
-  .recents-edit .log-item:not(.hasPhoto) .primary-info {
-  width: 22rem; 
+.recents-edit .log-item.hasPhoto .secondary-info,
+.recents-edit .log-item:not(.hasPhoto) .primary-info,
+.recents-edit .log-item:not(.hasPhoto) .secondary-info {
+  width: 22rem;
 }
 
 .recents-edit .pack-end {
-  transition: all 0.4s ease;
+  transition: all 0.3s ease;
   transform: translateX(6rem);
 }
 

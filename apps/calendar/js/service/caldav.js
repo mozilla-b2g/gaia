@@ -5,7 +5,8 @@ Calendar.ns('Service').Caldav = (function() {
   /* TODO: ugly hack to enable system XHR fix upstream in Caldav lib */
   var xhrOpts = {
     mozSystem: true,
-    mozAnon: true
+    mozAnon: true,
+    useMozChunkedText: true
   };
 
   Caldav.Xhr.prototype.globalXhrOptions = xhrOpts;
@@ -21,12 +22,6 @@ Calendar.ns('Service').Caldav = (function() {
 
     __proto__: Calendar.Responder.prototype,
 
-    /**
-     * Default number of occurrences to find
-     * when expanding a recurring event.
-     */
-    _defaultOccurrenceLimit: 500,
-
     _initEvents: function() {
       var events = [
         'noop',
@@ -34,6 +29,7 @@ Calendar.ns('Service').Caldav = (function() {
         'findCalendars',
         'getCalendar',
         'streamEvents',
+        'expandComponents',
         'expandRecurringEvent',
         'deleteEvent',
         'updateEvent',
@@ -188,15 +184,10 @@ Calendar.ns('Service').Caldav = (function() {
      * @param {String} url caldav url.
      * @param {String} ical raw ical string.
      * @param {ICAL.Event} event ical event.
-     * @param {Object} [component] parsed VCALENDAR component.
      */
-    _formatEvent: function(etag, url, ical, event, component) {
+    _formatEvent: function(etag, url, ical, event) {
       var exceptions = null;
       var key;
-
-      if (typeof(component) === 'undefined') {
-        component = event.component.parent.toJSON();
-      }
 
       if (event.exceptions) {
         exceptions = [];
@@ -205,8 +196,7 @@ Calendar.ns('Service').Caldav = (function() {
             etag,
             url,
             ical,
-            event.exceptions[key],
-            component
+            event.exceptions[key]
           ));
         }
 
@@ -234,12 +224,6 @@ Calendar.ns('Service').Caldav = (function() {
         end: this.formatICALTime(event.endDate),
         exceptions: exceptions
       };
-
-      // only send icalComponent for primary events
-      // exceptions use the same icalComponent data anyway.
-      if (!result.recurrenceId) {
-        result.icalComponent = ical;
-      }
 
       return result;
     },
@@ -307,7 +291,6 @@ Calendar.ns('Service').Caldav = (function() {
      *      // to the current local time.
      *      tzid: ''
      *    };
-     *
      */
     formatICALTime: function(time) {
       var zone = time.zone;
@@ -384,7 +367,7 @@ Calendar.ns('Service').Caldav = (function() {
         if (!ICAL.TimezoneService.has(id)) {
           ICAL.TimezoneService.register(id, zone);
         }
-      }
+      };
 
       parser.onevent = function(item) {
         if (item.isRecurrenceException()) {
@@ -392,7 +375,7 @@ Calendar.ns('Service').Caldav = (function() {
         } else {
           primaryEvent = item;
         }
-      }
+      };
 
       parser.oncomplete = function() {
         if (!primaryEvent) {
@@ -404,7 +387,7 @@ Calendar.ns('Service').Caldav = (function() {
         }
         exceptions.forEach(primaryEvent.relateException, primaryEvent);
         callback(null, primaryEvent);
-      }
+      };
 
       //XXX: Right now ICAL.js is all sync so we
       //     can catch the errors this way in the future
@@ -429,12 +412,71 @@ Calendar.ns('Service').Caldav = (function() {
     },
 
     /**
+     * Expands a list recurring events by their component.
+     *
+     * It is expected for this function to receive an array
+     * of items each structured as a icalComponent.
+     *
+     *    [
+     *      { ical: '...', lastRecurrenceId: '..', iterator: '...' },
+     *      ...
+     *    ]
+     *
+     * @param {Array[icalComponent]} components list of icalComponents.
+     * @param {Calendar.Responder} stream to emit events.
+     * @param {Object} options list of options.
+     * @param {Object} options.maxDate maximum date to expand to.
+     * @param {Function} callback only sends an error if fatal.
+     */
+    expandComponents: function(components, options, stream, callback) {
+      var pending = components.length;
+
+      function next() {
+        if (!(--pending)) {
+          callback();
+        }
+      }
+
+
+      components.forEach(function(component) {
+        var ical = component.ical;
+        var localOpts = {
+          maxDate: options.maxDate,
+          iterator: component.iterator
+        };
+
+        if (component.lastRecurrenceId) {
+          localOpts.minDate = component.lastRecurrenceId;
+        }
+
+        // expand each component
+        this.expandRecurringEvent(ical, localOpts, stream,
+                                  function(err, iter, lastRecurId, uid) {
+
+          if (err) {
+            stream.emit('error', err);
+            next();
+            return;
+          }
+
+          stream.emit('component', {
+            eventId: uid,
+            lastRecurrenceId: lastRecurId,
+            ical: ical,
+            iterator: iter
+          });
+
+          next();
+        });
+      }, this);
+    },
+
+    /**
      * Options:
      *
      *  - iterator: (ICAL.RecurExpander) optional recurrence expander
      *              used to resume the iterator state for existing events.
      *
-     *  - limit: maximum number to expand to
      *  - maxDate: if instance ends after this date stop expansion.
      *
      *
@@ -454,10 +496,13 @@ Calendar.ns('Service').Caldav = (function() {
     expandRecurringEvent: function(component, options, stream, callback) {
       var self = this;
       var startDate = options.startDate;
-      var limit = options.limit || Infinity;
 
       var maxDate;
+      var minDate = null;
       var now;
+
+      if (options.minDate)
+        minDate = this.formatInputTime(options.minDate);
 
       if (options.maxDate)
         maxDate = this.formatInputTime(options.maxDate);
@@ -474,57 +519,17 @@ Calendar.ns('Service').Caldav = (function() {
           return;
         }
 
-        if (!startDate) {
-          // default time needs to processing...
-          startDate = event.startDate;
-        } else {
-          // when we have gotten a start date
-          // from a different thread we may need
-          // to process it.
-          startDate = self.formatInputTime(startDate);
-        }
+        var iter = Calendar.Service.IcalRecurExpansion.forEach(
+          event,
+          options.iterator,
+          occuranceHandler,
+          minDate,
+          maxDate
+        );
 
-        var iter;
-
-        if (options.iterator) {
-          iter = new ICAL.RecurExpansion(options.iterator);
-        } else {
-          iter = event.iterator(startDate);
-        }
-
-        var sent = 0;
-        var lastStart;
-
-        function isDone() {
-          if (sent >= limit) {
-            return true;
-          }
-
-          if (lastStart && maxDate && lastStart.compare(maxDate) >= 0) {
-            return true;
-          }
-
-          return false;
-        }
-
-        var next;
-        var details;
-        var occurrence;
-        var last;
-
-        while (!isDone()) {
-          next = iter.next();
-
-          if (!next) {
-            stream.emit('occurrences end');
-            break;
-          }
-
-
-          details = event.getOccurrenceDetails(next);
-          lastStart = details.startDate;
-
-
+        function occuranceHandler(next) {
+          var details = event.getOccurrenceDetails(next);
+          var lastStart = details.startDate;
           var inFuture = details.endDate.compare(now);
 
           if (Calendar.DEBUG) {
@@ -536,13 +541,14 @@ Calendar.ns('Service').Caldav = (function() {
                   'now:', now.toJSDate().toString());
           }
 
-          occurrence = {
+          var occurrence = {
             start: self.formatICALTime(details.startDate),
             end: self.formatICALTime(details.endDate),
-            recurrenceId: self.formatICALTime(details.recurrenceId),
+            recurrenceId: self.formatICALTime(next),
             eventId: details.item.uid,
             isException: details.item.isRecurrenceException()
           };
+
           // only set alarms for those dates in the future...
           if (inFuture >= 0) {
             var alarms = self._displayAlarms(details);
@@ -551,12 +557,33 @@ Calendar.ns('Service').Caldav = (function() {
             }
           }
 
-          last = next;
           stream.emit('occurrence', occurrence);
-          sent++;
         }
 
-        callback(null, iter.toJSON());
+        var lastRecurrence;
+
+        if (iter.complete) {
+          // when the iterator is complete
+          // last recurrence is false.
+          // We use this to signify the end
+          // of the iteration cycle.
+          lastRecurrence = false;
+        } else {
+          // its very important all times used
+          // for comparison are based on the recurrence id
+          // and not the start date as those can change
+          // with exceptions...
+          lastRecurrence = self.formatICALTime(
+            iter.last
+          );
+        }
+
+        callback(
+          null,
+          iter.toJSON(),
+          lastRecurrence,
+          event.uid
+        );
       });
     },
 
@@ -591,22 +618,30 @@ Calendar.ns('Service').Caldav = (function() {
         stream.emit('event', result);
 
         var options = {
-          limit: self._defaultOccurrenceLimit,
           maxDate: self._defaultMaxDate(),
           now: ICAL.Time.now()
         };
 
         self.expandRecurringEvent(event, options, stream,
-                                  function(err, iter) {
+                                  function(err, iter, lastRecurrenceId) {
 
           if (err) {
             callback(err);
             return;
           }
 
-          if (!iter.complete) {
-            stream.emit('recurring iterator', {
-              id: event.uid, iterator: iter
+          if (!event.isRecurring()) {
+            stream.emit('component', {
+              eventId: result.id,
+              isRecurring: false,
+              ical: ical
+            });
+          } else {
+            stream.emit('component', {
+              eventId: result.id,
+              lastRecurrenceId: lastRecurrenceId,
+              ical: ical,
+              iterator: iter
             });
           }
 
@@ -683,7 +718,7 @@ Calendar.ns('Service').Caldav = (function() {
           }
 
           // send missing events
-          stream.emit('missing events', missing);
+          stream.emit('missingEvents', missing);
 
           // notify the requester that we have completed.
           callback(err);

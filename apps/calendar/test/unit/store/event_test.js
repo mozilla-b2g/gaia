@@ -216,7 +216,7 @@ suite('store/event', function() {
 
         trans.oncomplete = function() {
           done();
-        }
+        };
 
         subject.persist(event, trans);
         componentStore.persist(component, trans);

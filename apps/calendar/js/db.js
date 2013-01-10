@@ -1,6 +1,6 @@
 (function(window) {
   var idb = window.indexedDB;
-  const VERSION = 12;
+  const VERSION = 13;
   var debug = Calendar.debug('database');
 
   var store = {
@@ -298,6 +298,22 @@
           if (this.oldVersion !== 0) {
             this._upgradeOperations.push(this._upgradeAccountUrls);
           }
+        } else if (curVersion === 12) {
+          db.deleteObjectStore(store.icalComponents);
+
+          var icalComponents = db.createObjectStore(
+            store.icalComponents, { keyPath: 'eventId', autoIncrement: false }
+          );
+
+          icalComponents.createIndex(
+            'lastRecurrenceId',
+            'lastRecurrenceId.utc',
+            { unique: false, multiEntry: false }
+          );
+
+          if (this.oldVersion !== 0) {
+            this._upgradeOperations.push(this._resetCaldavAccounts);
+          }
         }
       }
     },
@@ -363,6 +379,7 @@
       account._id = uuid();
 
       var calendar = {
+        _id: Calendar.Provider.Local.calendarId,
         accountId: account._id,
         remote: Calendar.Provider.Local.defaultCalendar()
       };
@@ -478,12 +495,12 @@
 
       trans.oncomplete = function() {
         callback();
-      }
+      };
 
       trans.onerror = function(event) {
         console.error('Error updating account urls');
         callback(event.error.name);
-      }
+      };
 
       var accountStore = trans.objectStore(store.accounts);
       var req = accountStore.openCursor();

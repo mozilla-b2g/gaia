@@ -1425,6 +1425,10 @@ function write (chunk) {
       return this._parse.write(chunk);
     },
 
+    close: function() {
+      this._parse.close();
+    },
+
     get closed() {
       return this._parse.closed;
     },
@@ -2036,15 +2040,6 @@ function write (chunk) {
     },
 
     /**
-     * Aborts request if its in progress.
-     */
-    abort: function abort() {
-      if (this.xhr) {
-        this.xhr.abort();
-      }
-    },
-
-    /**
      * @param {String} user basic auth user.
      * @param {String} password basic auth pass.
      * @return {String} basic auth token.
@@ -2073,9 +2068,6 @@ function write (chunk) {
       } else {
         xhr = new this.xhrClass();
       }
-
-      this.xhr = xhr;
-
       // This hack is in place due to some platform
       // bug in gecko when using mozSystem xhr
       // the credentials only seem to work as expected
@@ -2090,9 +2082,38 @@ function write (chunk) {
         ));
       }
 
+      var useMozChunkedText = false;
+      if (this.globalXhrOptions && this.globalXhrOptions.useMozChunkedText) {
+        useMozChunkedText = true;
+        xhr.responseType = 'moz-chunked-text';
+      }
+
       for (header in this.headers) {
         if (Object.hasOwnProperty.call(this.headers, header)) {
           xhr.setRequestHeader(header, this.headers[header]);
+        }
+      }
+
+
+      var hasProgressEvents = false;
+
+      // check for progress event support.
+      if ('onprogress' in xhr) {
+        hasProgressEvents = true;
+        var last = 0;
+
+        if (useMozChunkedText) {
+          xhr.onprogress = function onChunkedProgress(event) {
+            this.ondata(xhr.responseText);
+          }.bind(this);
+        } else {
+          xhr.onprogress = function onProgress(event) {
+            var chunk = xhr.responseText.substr(last, event.loaded);
+            last = event.loaded;
+            if (this.ondata) {
+              this.ondata(chunk);
+            }
+          }.bind(this);
         }
       }
 
@@ -2100,6 +2121,15 @@ function write (chunk) {
         var data;
         if (xhr.readyState === 4) {
           data = xhr.responseText;
+
+          // emulate progress events for node...
+          // this really lame we should probably just
+          // use a real http request for node but this
+          // will let us do some testing via node for now.
+          if (!hasProgressEvents && this.ondata) {
+            this.ondata(data);
+          }
+
           this.waiting = false;
           callback(null, xhr);
         }
@@ -2107,6 +2137,8 @@ function write (chunk) {
 
       this.waiting = true;
       xhr.send(this._seralize());
+
+      return xhr;
     }
   };
 
@@ -2573,26 +2605,26 @@ function write (chunk) {
       default:
         message = this.code;
     }
-    
     Error.call(this, message);
   }
+
   CaldavHttpError.prototype = {
     __proto__: Error.prototype,
     constructor: CaldavHttpError
   }
-  
+
   // Unauthenticated error for 
   // Google Calendar
   function UnauthenticatedError() {
     var message = "Wrong username or/and password";
     Error.call(this, message);
   }
-  
+
   UnauthenticatedError.prototype = {
     __proto__: Error.prototype,
     constructor: UnauthenticatedError
   }
-  
+
   module.exports = {
     CaldavHttpError: CaldavHttpError,
     UnauthenticatedError: UnauthenticatedError
@@ -2666,12 +2698,15 @@ function write (chunk) {
       var req = this.xhr;
       req.data = this._createPayload();
 
+      req.ondata = function xhrOnData(chunk) {
+        self.sax.write(chunk);
+      };
+
       // in the future we may stream data somehow
-      req.send(function xhrResult() {
-        var xhr = req.xhr;
+      req.send(function xhrResult(err, xhr) {
         if (xhr.status > 199 && xhr.status < 300) {
           // success
-          self.sax.write(xhr.responseText).close();
+          self.sax.close();
           self._processResult(req, callback);
         } else {
           // fail
@@ -3438,3 +3473,4 @@ function write (chunk) {
     [Caldav, Caldav] :
     [module, require('./caldav')]
 ));
+

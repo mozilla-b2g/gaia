@@ -26,6 +26,11 @@ Calendar.ns('Provider').Abstract = (function() {
     canSync: false,
 
     /**
+     * Can expand recurring events?
+     */
+    canExpandRecurringEvents: false,
+
+    /**
      *  - domain: (String)
      *  - password: (String)
      *  - user: (String)
@@ -52,6 +57,20 @@ Calendar.ns('Provider').Abstract = (function() {
      *
      */
     syncEvents: function(account, calendar, callback) {},
+
+    /**
+     * Ensures recurring events are expanded up to the given date.
+     *
+     * Its very important to correctly return the second callback arg
+     * in the subclasses callback. When requiredExpansion is returned as true a
+     * second call will likely be made to ensureRecurrencesExpanded to verify
+     * there are no more pending events for the date (controller handles this).
+     *
+     * @param {Date} date to expand recurring events to.
+     * @param {Function} callback [err, requiredExpansion].
+     *  first argument is error, second indicates if any expansion was done.
+     */
+    ensureRecurrencesExpanded: function(date, callback) {},
 
     /**
      * Update an event

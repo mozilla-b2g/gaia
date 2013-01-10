@@ -420,38 +420,78 @@ suite('system/Updatable', function() {
         });
       });
 
-      suite('update-progress', function() {
+      suite('update download events', function() {
         var event;
         setup(function() {
           subject = new SystemUpdatable(98734);
           subject.download();
-          event = new MockChromeEvent({
-            type: 'update-progress',
-            progress: 1234,
-            total: 98734
+        });
+
+        suite('when the download starts', function() {
+          setup(function() {
+            event = new MockChromeEvent({
+              type: 'update-download-started',
+              total: 98734
+            });
+          });
+
+          test('should clear paused flag', function() {
+            subject.paused = true;
+            subject.handleEvent(event);
+            assert.isFalse(subject.paused);
           });
         });
 
-        test('should send progress to update manager', function() {
-          subject.handleEvent(event);
-          assert.equal(1234, MockUpdateManager.mProgressCalledWith);
+        suite('when the download receives progress', function() {
+          setup(function() {
+            event = new MockChromeEvent({
+              type: 'update-download-progress',
+              progress: 1234,
+              total: 98734
+            });
+          })
+
+          test('should send progress to update manager', function() {
+            subject.handleEvent(event);
+            assert.equal(1234, MockUpdateManager.mProgressCalledWith);
+          });
+
+          test('should send progress delta to update manager', function() {
+            subject.handleEvent(event);
+            event.detail.progress = 2234;
+            subject.handleEvent(event);
+            assert.equal(1000, MockUpdateManager.mProgressCalledWith);
+          });
         });
 
-        test('should send progress delta to update manager', function() {
-          subject.handleEvent(event);
-          event.detail.progress = 2234;
-          subject.handleEvent(event);
-          assert.equal(1000, MockUpdateManager.mProgressCalledWith);
+        suite('when the download is paused', function() {
+          setup(function() {
+            event = new MockChromeEvent({
+              type: 'update-download-stopped',
+              paused: true
+            });
+            subject.handleEvent(event);
+          });
+
+          test('should set the paused flag', function() {
+            assert.isTrue(subject.paused);
+          });
+          test('shouldn\'t signal "started uncompressing"', function() {
+            assert.isFalse(MockUpdateManager.mStartedUncompressingCalled);
+          });
         });
 
         suite('when the download is complete', function() {
           setup(function() {
             event = new MockChromeEvent({
-              type: 'update-progress',
-              progress: 98734,
-              total: 98734
+              type: 'update-download-stopped',
+              paused: false
             });
             subject.handleEvent(event);
+          });
+
+          test('should clear the paused flag', function() {
+            assert.isFalse(subject.paused);
           });
 
           test('should signal the UpdateManager', function() {

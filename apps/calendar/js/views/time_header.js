@@ -28,12 +28,12 @@ Calendar.ns('Views').TimeHeader = (function() {
     },
 
     scales: {
-      month: '%B %Y',
-      day: '%A %B %e',
+      month: 'month-view-header-format',
+      day: 'day-view-header-format',
       // when week starts in one month and ends
       // in another, we need both of them
       // in the header
-      singleMonth: '%B '
+      singleMonth: 'single-month-view-header-format'
     },
 
     handleEvent: function(e) {
@@ -112,25 +112,34 @@ Calendar.ns('Views').TimeHeader = (function() {
         if (firstWeekday.getMonth() !== lastWeekday.getMonth()) {
           scale = this.app.dateFormat.localeFormat(
             firstWeekday,
-            this.scales.singleMonth
+            navigator.mozL10n.get(this.scales.singleMonth)
           );
         }
 
         return scale + this.app.dateFormat.localeFormat(
             lastWeekday,
-            this.scales.month
+            navigator.mozL10n.get(this.scales.month)
         );
       }
 
       return this.app.dateFormat.localeFormat(
         this.controller.position,
-        this.scales[type] || this.scales.month
+        navigator.mozL10n.get(this.scales[type] || this.scales.month)
       );
     },
 
     _updateTitle: function() {
       var con = this.app.timeController;
-      this.title.textContent = this.getScale(
+      var date = this.getScale(con.scale);
+
+      var title = this.title;
+
+      title.dataset.l10nDateFormat =
+        this.scales[con.scale] || this.scales.month;
+
+      title.dataset.date = con.position.toString();
+
+      title.textContent = this.getScale(
         con.scale
       );
     },

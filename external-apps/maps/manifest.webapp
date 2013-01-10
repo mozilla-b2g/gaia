@@ -10,5 +10,8 @@
   "developer": {
     "url": "http://maps.nokia.com",
     "name": "Nokia"
+  },
+  "permissions": {
+    "geolocation": { }
   }
 }

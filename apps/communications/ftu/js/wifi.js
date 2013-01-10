@@ -1,20 +1,29 @@
 'use strict';
 
 var WifiManager = {
-
   init: function wn_init() {
     if ('mozWifiManager' in window.navigator) {
       this.api = window.navigator.mozWifiManager;
       this.changeStatus();
+      // Ensure that wifi is on.
+      var lock = window.navigator.mozSettings.createLock();
+      this.enable(lock);
+      this.enableDebugging(lock);
+
       this.gCurrentNetwork = this.api.connection.network;
+      if (this.gCurrentNetwork !== null) {
+        this.api.forget(this.gCurrentNetwork);
+        this.gCurrentNetwork = null;
+      }
     }
   },
+
   isConnectedTo: function wn_isConnectedTo(network) {
     /**
      * XXX the API should expose a 'connected' property on 'network',
      * and 'gWifiManager.connection.network' should be comparable to 'network'.
-     * Until this is properly implemented, we just compare SSIDs and capabilities
-     * to tell wether the network is already connected or not.
+     * Until this is properly implemented, we just compare SSIDs and
+     * capabilities to tell wether the network is already connected or not.
      */
     var currentNetwork = this.api.connection.network;
     if (!currentNetwork || this.api.connection.status != 'connected')
@@ -24,6 +33,7 @@ var WifiManager = {
         currentNetwork.capabilities.join('+');
     return (key == curkey);
   },
+
   scan: function wn_scan(callback) {
     if ('mozWifiManager' in window.navigator) {
       var req = WifiManager.api.getNetworks();
@@ -70,9 +80,24 @@ var WifiManager = {
       callback(fakeNetworks);
     }
   },
-  enable: function wn_enable(firstTime) {
-    var settings = window.navigator.mozSettings;
-    settings.createLock().set({'wifi.enabled': true});
+  enable: function wn_enable(lock) {
+    lock.set({'wifi.enabled': true});
+  },
+  enableDebugging: function wn_enableDebugging(lock) {
+    // For bug 819947: turn on wifi debugging output to help track down a bug
+    // in wifi. We turn on wifi output only while the FTU app is active.
+    this._prevDebuggingValue = false;
+    var req = lock.get('wifi.debugging.enabled');
+    req.onsuccess = function wn_getDebuggingSuccess() {
+      this._prevDebuggingValue = req.result['wifi.debugging.enabled'];
+    };
+    lock.set({ 'wifi.debugging.enabled': true });
+  },
+  finish: function wn_finish() {
+    if (!this._prevDebuggingValue) {
+      var resetLock = window.navigator.mozSettings.createLock();
+      resetLock.set({'wifi.debugging.enabled': false});
+    }
   },
   getNetwork: function wm_gn(ssid) {
     var network;
@@ -128,12 +153,9 @@ var WifiManager = {
     WifiManager.api.onstatuschange = function(event) {
       UIManager.updateNetworkStatus(self.ssid, event.status);
       if (event.status == 'connected') {
-        self.isConnected = true;
         if (self.networks && self.networks.length) {
           UIManager.renderNetworks(self.networks);
         }
-      } else {
-        self.isConnected = false;
       }
     };
 
@@ -160,5 +182,5 @@ var WifiManager = {
     }
     return true;
   }
-
 };
+

@@ -209,6 +209,11 @@ Calendar.ns('Views').TimeParent = (function() {
       for (; i < len; i++) {
         child = this.frames.items[i - offset][1];
         if (span.contains(child.timespan)) {
+          // Bug 827249 - remove current frame when its purged.
+          if (this.currentFrame === child) {
+            this.currentFrame = null;
+          }
+
           child.destroy();
           this.frames.items.splice(i - offset, 1);
           offset += 1;

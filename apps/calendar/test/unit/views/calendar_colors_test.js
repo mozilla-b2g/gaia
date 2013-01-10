@@ -55,7 +55,7 @@ suite('views/calendar_colors', function() {
       calledWith = [];
       subject.updateRule = function(item) {
         calledWith.push(item);
-      }
+      };
 
       store.cached[0] = first;
       store.cached[1] = second;
@@ -80,11 +80,11 @@ suite('views/calendar_colors', function() {
 
       subject.updateRule = function(item) {
         calls.add.push(item);
-      }
+      };
 
       subject.removeRule = function(item) {
         calls.remove.push(item);
-      }
+      };
     });
 
     test('type: persist', function() {

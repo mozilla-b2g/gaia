@@ -36,7 +36,7 @@ suite('batch', function() {
       subject.verify = function() {
         calledWith = arguments;
         return false;
-      }
+      };
 
       add();
 
@@ -117,7 +117,7 @@ suite('batch', function() {
       subject.waitTime = 1;
       subject.handler = function() {
         throw new Error('should not fire handler');
-      }
+      };
       add();
 
       assert.ok(subject._timer);

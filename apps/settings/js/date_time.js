@@ -86,7 +86,7 @@ onLocalized(function SettingsDateAndTime() {
     return;
 
   var gTimeAutoSwitch = document.getElementById('time-auto');
-  var gTimezoneCont = document.getElementById('timezone-continent');
+  var gTimezoneRegion = document.getElementById('timezone-region');
   var gTimezoneCity = document.getElementById('timezone-city');
   var gDatePicker = document.getElementById('date-picker');
   var gTimePicker = document.getElementById('time-picker');
@@ -122,7 +122,7 @@ onLocalized(function SettingsDateAndTime() {
   updateClock();
 
   // monitor time.timezone changes, see /shared/js/tz_select.js
-  tzSelect(gTimezoneCont, gTimezoneCity);
+  tzSelect(gTimezoneRegion, gTimezoneCity);
 
   gDatePicker.addEventListener('input', function datePickerChange() {
     setTime('date');

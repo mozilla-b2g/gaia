@@ -62,7 +62,110 @@ suite('calendar/calc', function() {
       var result = subject.formatHour(23);
       assert.equal(result, '11 PM');
     });
+  });
 
+  test('#dayOfWeekFromSunday', function() {
+    var expected = [
+      ['sun', 0, 0],
+      ['mon', 1, 1],
+      ['tue', 2, 2],
+      ['wed', 3, 3],
+      ['thu', 4, 4],
+      ['fri', 5, 5],
+      ['sat', 6, 6]
+    ];
+
+    expected.forEach(function(line) {
+      var [name, date, numeric] = line;
+      assert.equal(
+        subject.dayOfWeekFromSunday(date),
+        numeric,
+        name
+      );
+    });
+  });
+
+  test('#dayOfWeekFromMonday', function() {
+    var expected = [
+      ['mon', 1, 0],
+      ['tue', 2, 1],
+      ['wed', 3, 2],
+      ['thu', 4, 3],
+      ['fri', 5, 4],
+      ['sat', 6, 5],
+      ['sun', 0, 6]
+    ];
+
+    expected.forEach(function(line) {
+      var [name, date, numeric] = line;
+      assert.equal(
+        subject.dayOfWeekFromMonday(date),
+        numeric,
+        name
+      );
+    });
+  });
+
+  suite('#dayOfWeek', function() {
+    var realStartDay;
+    var date = new Date(2012, 0, 1);
+
+    suiteSetup(function() {
+      realStartDay = subject.startsOnMonday;
+    });
+
+    suiteTeardown(function() {
+      subject.startsOnMonday = realStartDay;
+    });
+
+    test('weekStartOnMonday = 0', function() {
+      subject.startsOnMonday = 0;
+      assert.equal(
+        subject.dayOfWeek(date),
+        0
+      );
+    });
+
+    test('weekStartsOnMonday = 1', function() {
+      subject.startsOnMonday = 1;
+      assert.equal(
+        subject.dayOfWeek(date),
+        6
+      );
+    });
+  });
+
+  suite('handle localization events', function() {
+    var reaL10n;
+    var weekStartsOnMonday = 0;
+
+    suiteSetup(function() {
+      reaL10n = navigator.mozL10n;
+      navigator.mozL10n = {
+        get: function(name) {
+          if (name === 'weekStartsOnMonday') {
+            return weekStartsOnMonday;
+          }
+          return reaL10n.get.apply(this, arguments);
+        }
+      };
+    });
+
+    suiteTeardown(function() {
+      navigator.mozL10n = reaL10n;
+    });
+
+    test('weekStartsOnMonday = 1', function() {
+      weekStartsOnMonday = 1;
+      window.dispatchEvent(new Event('localized'));
+      assert.ok(subject.startsOnMonday, 'week starts on monday');
+    });
+
+    test('weekStartsOnMonday = 0', function() {
+      weekStartsOnMonday = 0;
+      window.dispatchEvent(new Event('localized'));
+      assert.ok(!subject.startsOnMonday, 'week starts on sunday');
+    });
   });
 
   suite('#spanOfMonth', function() {

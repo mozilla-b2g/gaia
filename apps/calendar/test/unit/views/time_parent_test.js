@@ -267,7 +267,7 @@ suite('views/time_parent', function() {
       var calledWith;
       subject.purgeFrames = function() {
         calledWith = arguments;
-      }
+      };
 
       subject.app.timeController.emit('purge', span);
       assert.equal(calledWith[0], span);
@@ -329,6 +329,10 @@ suite('views/time_parent', function() {
         subject.frames.set(items[key].id, items[key]);
       }
 
+      // set current frame to a frame
+      // that will be deleted...
+      subject.currentFrame = items.contains;
+
       subject.purgeFrames(purgeSpan);
     });
 
@@ -341,6 +345,11 @@ suite('views/time_parent', function() {
 
       assert.ok(!frames.get(items.same.id), 'removed same');
       assert.ok(!frames.get(items.contains.id), 'removed contains');
+
+      assert.ok(
+        !subject.currentFrame,
+        'removes current frame when it is deleted'
+      );
 
       assert.isTrue(items.same.destroyed);
       assert.isTrue(items.contains.destroyed);

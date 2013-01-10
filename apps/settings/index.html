@@ -38,8 +38,11 @@
     <link rel="resource" type="application/l10n" href="locales/locales.ini"/>
     <script type="application/javascript" src="shared/js/l10n.js"></script>
     <script type="application/javascript" src="shared/js/l10n_date.js"></script>
+
+    <!-- shared helper library -->
     <script type="application/javascript" defer src="shared/js/mouse_event_shim.js"></script>
     <script type="application/javascript" defer src="shared/js/manifest_helper.js"></script>
+    <script type="application/javascript" defer src="shared/js/async_storage.js"></script>
 
     <!-- Specific code -->
     <script type="application/javascript" defer src="js/utils.js"></script>
@@ -56,7 +59,7 @@
 
     <!-- all non-#root panels will lazy-load their own scripts -->
   </head>
-  <body class="skin-organic uninit">
+  <body class="skin-organic">
 
     <!--
       - Lazy-Loading: to avoid parsing all settings panels before necessary, the
@@ -78,7 +81,7 @@
       -->
 
     <!-- Connectivity :: Wi-Fi :: Network Status -->
-    <section role="region" hidden id="wifi-status">
+    <section role="region" id="wifi-status">
       <!--
       <header>
         <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
@@ -114,7 +117,7 @@
     </section>
 
     <!-- Connectivity :: Wi-Fi :: Network Authentication -->
-    <section role="region" hidden id="wifi-auth">
+    <section role="region" id="wifi-auth">
       <!--
       <header>
         <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
@@ -140,19 +143,20 @@
           <input type="text" data-ignore name="identity" />
         </li>
         <li class="password">
+          <label>
+            <input type="checkbox" data-ignore name="show-pwd" id="pwd-auth" />
+            <span></span>
+          </label>
+          <span data-l10n-id="showPassword">show password</span>
           <p data-l10n-id="password">password</p>
           <input type="password" data-ignore name="password" maxlength="63" x-inputmode="verbatim" />
-          <label for="pwd-auth">
-            <input type="checkbox" data-ignore name="show-pwd" id="pwd-auth" />
-            <span data-l10n-id="showPassword">show password</span>
-          </label>
         </li>
       </ul>
       -->
     </section>
 
     <!-- Connectivity :: Wi-Fi :: Join Hidden Network -->
-    <section role="region" hidden id="wifi-joinHidden">
+    <section role="region" id="wifi-joinHidden">
       <!--
       <header>
         <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
@@ -168,33 +172,36 @@
           <input type="text" data-ignore name="ssid" />
         </li>
         <li>
-          <span data-l10n-id="security">security
+          <p data-l10n-id="security">Security</p>
+          <p class="fake-select">
+            <button class="icon icon-dialog">empty</button>
             <select>
               <option data-l10n-id="securityNone">none</option>
               <option>WEP</option>
               <option selected>WPA-PSK</option>
               <option>WPA-EAP</option>
             </select>
-          </span>
+          </p>
         </li>
         <li class="identity">
           <p data-l10n-id="identity">identity</p>
           <input type="text" data-ignore name="identity" />
         </li>
         <li class="password">
+          <label>
+            <input type="checkbox" data-ignore name="show-pwd" id="pwd-joinHidden" />
+            <span></span>
+          </label>
+          <span data-l10n-id="showPassword">show password</span>
           <p data-l10n-id="password">password</p>
           <input type="password" data-ignore name="password" maxlength="63" />
-          <label for="pwd-joinHidden">
-            <input type="checkbox" data-ignore name="show-pwd" id="pwd-joinHidden" />
-            <span data-l10n-id="showPassword">show password</span>
-          </label>
         </li>
       </ul>
       -->
     </section>
 
     <!-- Connectivity :: Wi-Fi :: WPS -->
-    <section role="region" hidden id="wifi-wps">
+    <section role="region" id="wifi-wps">
       <!--
       <header>
         <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
@@ -238,7 +245,7 @@
     </section>
 
     <!-- Connectivity :: Wi-Fi :: Saved Networks -->
-    <section role="region" hidden id="wifi-manageNetworks">
+    <section role="region" id="wifi-manageNetworks">
       <!--
       <header>
         <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
@@ -280,7 +287,7 @@
     </section>
 
     <!-- Connectivity :: Wi-Fi -->
-    <section role="region" hidden id="wifi">
+    <section role="region" id="wifi">
       <!--
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
@@ -342,7 +349,7 @@
     </section>
 
     <!-- Connectivity :: Call :: Call Forwarding Not Reachable -->
-    <section role="region" hidden id="call-cf-notReachableSettings">
+    <section role="region" id="call-cf-notReachableSettings">
       <!--
       <header>
         <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
@@ -355,7 +362,7 @@
       <ul id="cf-notreachable-advanced">
         <li>
           <p data-l10n-id="cf-numberWhenUnreachable">Number when unreachable</p>
-          <input type="text" id="cf-notreachable-number" data-setting="ril.cf.notreachable.number" disabled/>
+          <input type="tel" id="cf-notreachable-number" data-setting="ril.cf.notreachable.number" disabled/>
         </li>
         <li>
           <label>
@@ -369,7 +376,7 @@
     </section>
 
     <!-- Connectivity :: Call :: Call Forwarding No Reply -->
-    <section role="region" hidden id="call-cf-noReplySettings">
+    <section role="region" id="call-cf-noReplySettings">
       <!--
       <header>
         <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
@@ -382,7 +389,7 @@
       <ul id="cf-noreply-advanced">
         <li>
           <p data-l10n-id="cf-numberWhenUnanswered">Number when unanswered</p>
-          <input type="text" id="cf-noreply-number" data-setting="ril.cf.noreply.number" disabled/>
+          <input type="tel" id="cf-noreply-number" data-setting="ril.cf.noreply.number" disabled/>
         </li>
         <li>
           <label>
@@ -396,7 +403,7 @@
     </section>
 
     <!-- Connectivity :: Call :: Call Forwarding Mobile Busy -->
-    <section role="region" hidden id="call-cf-mobileBusySettings">
+    <section role="region" id="call-cf-mobileBusySettings">
       <!--
       <header>
         <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
@@ -409,7 +416,7 @@
       <ul id="cf-mobilebusy-advanced">
         <li>
           <p data-l10n-id="cf-numberWhenBusy">Number when busy</p>
-          <input type="text" id="cf-mobilebusy-number" data-setting="ril.cf.mobilebusy.number" disabled/>
+          <input type="tel" id="cf-mobilebusy-number" data-setting="ril.cf.mobilebusy.number" disabled/>
         </li>
         <li>
           <label>
@@ -423,7 +430,7 @@
     </section>
 
     <!-- Connectivity :: Call :: Call Forwarding Unconditional -->
-    <section role="region" hidden id="call-cf-unconditionalSettings">
+    <section role="region" id="call-cf-unconditionalSettings">
       <!--
       <header>
         <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
@@ -436,7 +443,7 @@
       <ul id="cf-unconditional-advanced">
         <li>
           <p data-l10n-id="cf-alwaysUseThisNumber">Always use this number</p>
-          <input type="text" id="cf-unconditional-number" data-setting="ril.cf.unconditional.number" disabled/>
+          <input type="tel" id="cf-unconditional-number" data-setting="ril.cf.unconditional.number" disabled/>
         </li>
         <li>
           <label>
@@ -450,7 +457,7 @@
     </section>
 
     <!-- Connectivity :: Call -->
-    <section role="region" hidden id="call">
+    <section role="region" id="call">
       <!--
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
@@ -517,7 +524,7 @@
     </section>
 
     <!-- Connectivity :: Cellular & Data :: Network Operator -->
-    <section role="region" hidden id="carrier-operatorSettings">
+    <section role="region" id="carrier-operatorSettings">
       <!--
       <header>
         <a href="#carrier"><span class="icon icon-back">back</span></a>
@@ -526,13 +533,15 @@
 
       <ul>
         <li>
-          <span data-l10n-id="operator-networkType">Network Type
+          <p data-l10n-id="operator-networkType">Network Type</p>
+          <p class="fake-select">
+            <button class="icon icon-dialog">empty</button>
             <select name="ril.radio.preferredNetworkType" id="preferredNetworkType">
               <option data-l10n-id="operator-networkType-auto" value="wcdma/gsm">Automatic</option>
               <option data-l10n-id="operator-networkType-2G" value="gsm">2G only</option>
               <option data-l10n-id="operator-networkType-3G" value="wcdma">3G only</option>
             </select>
-          </span>
+          </p>
         </li>
         <li id="operator-autoSelect">
           <label>
@@ -564,7 +573,7 @@
     </section>
 
     <!-- Connectivity :: Cellular & Data :: Data Settings -->
-    <section role="region" hidden id="carrier-dataSettings">
+    <section role="region" id="carrier-dataSettings">
       <!--
       <header>
         <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
@@ -613,7 +622,7 @@
     </section>
 
     <!-- Connectivity :: Cellular & Data :: MMS Settings -->
-    <section role="region" hidden id="carrier-mmsSettings">
+    <section role="region" id="carrier-mmsSettings">
       <!--
       <header>
         <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
@@ -674,7 +683,7 @@
     </section>
 
     <!-- Connectivity :: Cellular & Data :: A-GPS Settings -->
-    <section role="region" hidden id="carrier-suplSettings">
+    <section role="region" id="carrier-suplSettings">
       <!--
       <header>
         <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
@@ -723,7 +732,7 @@
     </section>
 
     <!-- Connectivity :: Cellular & Data -->
-    <section role="region" hidden id="carrier">
+    <section role="region" id="carrier">
       <!--
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
@@ -807,7 +816,7 @@
     </section>
 
     <!-- Connectivity :: Bluetooth -->
-    <section role="region" hidden id="bluetooth">
+    <section role="region" id="bluetooth">
       <!--
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
@@ -877,7 +886,7 @@
     </section>
 
     <!-- Connectivity :: Internet Sharing :: Portable Wi-Fi Hotspot -->
-    <section role="region" hidden id="hotspot-wifiSettings">
+    <section role="region" id="hotspot-wifiSettings">
       <!--
       <header>
         <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
@@ -897,20 +906,22 @@
           <input type="text" data-setting="tethering.wifi.security.password" />
         </li>
         <li>
-          <span data-l10n-id="wifi-security">Security
+          <p data-l10n-id="wifi-security">Security</p>
+          <p class="fake-select">
+            <button class="icon icon-dialog">Security</button>
             <select data-setting="tethering.wifi.security.type">
               <option value="open" data-l10n-id="hotspot-open">open</option>
               <option value="wpa-psk" data-l10n-id="hotspot-wpa-psk">WPA (TKIP)</option>
               <option value="wpa2-psk" data-l10n-id="hotspot-wpa2-psk">WPA2 (AES)</option>
             </select>
-          </span>
+          </p>
         </li>
       </ul>
       -->
     </section>
 
     <!-- Connectivity :: Internet Sharing -->
-    <section role="region" hidden id="hotspot">
+    <section role="region" id="hotspot">
       <!--
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
@@ -975,7 +986,7 @@
     </section>
 
     <!-- Personalization :: Sound :: Sound Selection -->
-    <section role="region" hidden id="sound-selection">
+    <section role="region" id="sound-selection">
       <!--
       <header>
         <button type="reset">
@@ -1004,7 +1015,7 @@
     </section>
 
     <!-- Personalization :: Sound -->
-    <section role="region" hidden id="sound">
+    <section role="region" id="sound">
       <!--
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
@@ -1046,9 +1057,10 @@
       </header>
       <ul>
         <li>
-          <span data-l10n-id="ringer">Ringer
+          <p data-l10n-id="ringer">Ringer</p>
+          <p class="fake-select">
             <button id="call-tone-selection" class="tone-select" data-l10n-id="change"></button>
-          </span>
+          </p>
         </li>
       </ul>
 
@@ -1084,7 +1096,7 @@
     </section>
 
     <!-- Personalization :: Display -->
-    <section role="region" hidden id="display">
+    <section role="region" id="display">
       <!--
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
@@ -1117,13 +1129,16 @@
         </li>
         <li id="screen-timeout">
           <p data-l10n-id="screen-timeout">Screen Timeout</p>
-          <select name="screen.timeout" data-value-type="integer">
-            <option value="60"  data-l10n-id="one-minute" selected>1 minute</option>
-            <option value="120" data-l10n-id="two-minutes"> 2 minutes</option>
-            <option value="300" data-l10n-id="five-minutes">5 minutes</option>
-            <option value="600" data-l10n-id="ten-minutes">10 minutes</option>
-            <option value="0"   data-l10n-id="never">Never</option>
-          </select>
+          <p class="fake-select">
+            <button class="icon icon-dialog">empty</button>
+            <select name="screen.timeout" data-value-type="integer">
+              <option value="60"  data-l10n-id="one-minute" selected>1 minute</option>
+              <option value="120" data-l10n-id="two-minutes"> 2 minutes</option>
+              <option value="300" data-l10n-id="five-minutes">5 minutes</option>
+              <option value="600" data-l10n-id="ten-minutes">10 minutes</option>
+              <option value="0"   data-l10n-id="never">Never</option>
+            </select>
+          </p>
         </li>
       </ul>
 
@@ -1132,7 +1147,7 @@
     </section>
 
     <!-- Personalization :: Notifications -->
-    <section role="region" hidden id="notifications">
+    <section role="region" id="notifications">
       <!--
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
@@ -1166,7 +1181,7 @@
     </section>
 
     <!-- Personalization :: Date & Time -->
-    <section role="region" hidden id="dateTime">
+    <section role="region" id="dateTime">
       <!--
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
@@ -1206,14 +1221,18 @@
       </header>
       <ul id="timezone">
         <li>
-          <span data-l10n-id="tz-continent">Continent
-            <select id="timezone-continent"></select>
-          </span>
+          <p data-l10n-id="tz-region">Region</p>
+          <p class="fake-select">
+            <button class="icon icon-dialog">empty</button>
+            <select id="timezone-region"></select>
+          </p>
         </li>
         <li>
-          <span data-l10n-id="tz-city">City
+          <p data-l10n-id="tz-city">City</p>
+          <p class="fake-select">
+            <button class="icon icon-dialog">empty</button>
             <select id="timezone-city"></select>
-          </span>
+          </p>
         </li>
       </ul>
 
@@ -1225,7 +1244,7 @@
     <!-- Personalization :: Language & Region -->
     <!-- We should remove 'hidden' on the region selector and set
       -  data-l10n-id to languageAndRegion after being implemented in v2. -->
-    <section role="region" hidden id="languages">
+    <section role="region" id="languages">
       <!--
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
@@ -1234,12 +1253,16 @@
 
       <ul>
         <li>
-          <span data-l10n-id="language">Language
+          <p data-l10n-id="language">Language</p>
+          <p class="fake-select">
+            <button class="icon icon-dialog">Language</button>
             <select name="language.current"></select>
-          </span>
+          </p>
         </li>
         <li hidden>
-          <span data-l10n-id="region">Region
+          <p data-l10n-id="region">Region</p>
+          <p class="fake-select">
+            <button class="icon icon-dialog">empty</button>
             <select name="region.current">
               <option value="BR">Brasil</option>
               <option value="CO">Columbia</option>
@@ -1251,12 +1274,12 @@
               <option value="US">United States</option>
               <option value="VZ">Venezuela</option>
             </select>
-          </span>
+          </p>
         </li>
       </ul>
 
       <dl>
-        <dt> Sample Format </dt>
+        <dt data-l10n-id="sample-format"> Sample Format </dt>
         <dd id="region-date">Friday, September 28 2012</dd>
         <dd id="region-time">06:54 PM</dd>
       </dl>
@@ -1264,7 +1287,7 @@
     </section>
 
     <!-- Personalization :: Keyboard -->
-    <section role="region" hidden id="keyboard">
+    <section role="region" id="keyboard">
       <!--
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
@@ -1369,7 +1392,7 @@
     </section>
 
     <!-- Security :: Phone Lock :: PIN Input -->
-    <section role="region" hidden id="phoneLock-passcode">
+    <section role="region" id="phoneLock-passcode">
       <!--
       <header>
         <a href="#phoneLock"><span class="icon icon-back">back</span></a>
@@ -1410,7 +1433,7 @@
     </section>
 
     <!-- Security :: Phone Lock -->
-    <section role="region" hidden id="phoneLock" data-passcode-enabled="false" data-lockscreen-enabled="false">
+    <section role="region" id="phoneLock" data-passcode-enabled="false" data-lockscreen-enabled="false">
       <!--
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
@@ -1434,14 +1457,17 @@
         </li>
         <li class="passcode-enabled" id="passcode-timeout-row">
           <p data-l10n-id="require-passcode">Require passcode</p>
-          <select name="lockscreen.passcode-lock.timeout">
-            <option value="0" data-l10n-id="immediately" selected>Immediately</option>
-            <option value="60" data-l10n-id="after-one-minute">After 1 minute</option>
-            <option value="300" data-l10n-id="after-five-minutes">After 5 minutes</option>
-            <option value="900" data-l10n-id="after-fifteen-minutes">After 15 minutes</option>
-            <option value="3600" data-l10n-id="after-one-hour">After 1 hour</option>
-            <option value="14400" data-l10n-id="after-four-hours">After 4 hours</option>
-          </select>
+          <p class="fake-select">
+            <button class="icon icon-dialog">empty</button>
+            <select name="lockscreen.passcode-lock.timeout">
+              <option value="0" data-l10n-id="immediately" selected>Immediately</option>
+              <option value="60" data-l10n-id="after-one-minute">After 1 minute</option>
+              <option value="300" data-l10n-id="after-five-minutes">After 5 minutes</option>
+              <option value="900" data-l10n-id="after-fifteen-minutes">After 15 minutes</option>
+              <option value="3600" data-l10n-id="after-one-hour">After 1 hour</option>
+              <option value="14400" data-l10n-id="after-four-hours">After 4 hours</option>
+            </select>
+          </p>
         </li>
         <li class="passcode-enabled">
           <label>
@@ -1455,7 +1481,7 @@
     </section>
 
     <!-- Security :: SIM Security :: SIM PIN Input -->
-    <section role="region" hidden id="simpin-dialog">
+    <section role="region" id="simpin-dialog">
       <!--
       <header>
         <button type="reset">
@@ -1513,7 +1539,7 @@
     </section>
 
     <!-- Security :: SIM Security -->
-    <section role="region" hidden id="simpin">
+    <section role="region" id="simpin">
       <!--
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
@@ -1556,7 +1582,7 @@
     </section>
 
     <!-- Security :: Application Permissions :: Details -->
-    <section role="region" hidden id="appPermissions-details">
+    <section role="region" id="appPermissions-details">
       <!--
       <header>
         <a href="#appPermissions"><span class="icon icon-back">back</span></a>
@@ -1587,7 +1613,7 @@
     </section>
 
     <!-- Security :: Application Permissions -->
-    <section role="region" hidden id="appPermissions">
+    <section role="region" id="appPermissions">
       <!--
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
@@ -1598,12 +1624,13 @@
       <ul>
       </ul>
 
+      <script type="application/javascript" src="js/hiddenapps.js"></script>
       <script type="application/javascript" src="js/apps.js"></script>
       -->
     </section>
 
     <!-- Security :: Do Not Track -->
-    <section role="region" hidden id="doNotTrack">
+    <section role="region" id="doNotTrack">
       <!--
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
@@ -1640,7 +1667,7 @@
     </section>
 
     <!-- Device :: Information :: More Information :: Developer -->
-    <section role="region" hidden id="about-moreInfo-developer">
+    <section role="region" id="about-moreInfo-developer">
       <!--
       <header>
         <button type="reset">
@@ -1687,13 +1714,6 @@
             <span></span>
           </label>
           <a data-l10n-id="ttl-monitor">Show time to load</a>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" name="debug.dev-mode"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="dev-mode">Developer Mode</a>
         </li>
         <li>
           <label>
@@ -1748,7 +1768,7 @@
     </section>
 
     <!-- Device :: Information :: More Information -->
-    <section role="region" hidden id="about-moreInfo">
+    <section role="region" id="about-moreInfo">
       <!--
       <header>
         <button type="reset">
@@ -1828,7 +1848,7 @@
     </section>
 
     <!-- Device :: Information :: Your Rights -->
-    <section role="region" hidden id="about-yourRights">
+    <section role="region" id="about-yourRights">
       <!--
       <header>
         <button type="reset">
@@ -1868,7 +1888,7 @@
     </section>
 
     <!-- Device :: Information :: Your Privacy -->
-    <section role="region" hidden id="about-yourPrivacy">
+    <section role="region" id="about-yourPrivacy">
       <!--
       <header>
         <button type="reset">
@@ -1900,7 +1920,7 @@
     </section>
 
     <!-- Device :: Information :: Legal :: Open Source Notices -->
-    <section role="region" hidden id="about-licensing">
+    <section role="region" id="about-licensing">
       <!--
       <header>
         <a href="#about-legal">
@@ -1910,12 +1930,12 @@
           Open Source Notices
         </h1>
       </header>
-      <iframe src="resources/open_source_license.html" id="os-license"></iframe>
+      <iframe data-src="resources/open_source_license.html" id="os-license"></iframe>
       -->
     </section>
 
     <!-- Device :: Information :: Legal -->
-    <section role="region" hidden id="about-legal">
+    <section role="region" id="about-legal">
       <!--
       <header>
         <a href="#about">
@@ -1942,7 +1962,7 @@
     </section>
 
     <!-- Device :: Information -->
-    <section role="region" hidden id="about">
+    <section role="region" id="about">
       <!--
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
@@ -1979,11 +1999,14 @@
       <ul>
         <li>
           <p data-l10n-id="check-for-updates">Check for Updates</p>
-          <select name="app.update.interval">
-            <option value="86400"   data-l10n-id="check-update-daily" selected>Daily</option>
-            <option value="604800"  data-l10n-id="check-update-weekly">Weekly</option>
-            <option value="2592000" data-l10n-id="check-update-monthly">Monthly</option>
-          </select>
+          <p class="fake-select">
+            <button class="icon icon-dialog">empty</button>
+            <select name="app.update.interval">
+              <option value="86400"   data-l10n-id="check-update-daily" selected>Daily</option>
+              <option value="604800"  data-l10n-id="check-update-weekly">Weekly</option>
+              <option value="2592000" data-l10n-id="check-update-monthly">Monthly</option>
+            </select>
+          </p>
         </li>
         <li>
           <label>
@@ -2032,7 +2055,7 @@
     </section>
 
     <!-- Device :: Battery -->
-    <section role="region" hidden id="battery">
+    <section role="region" id="battery">
       <!--
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
@@ -2060,12 +2083,15 @@
         </li>
         <li>
           <p data-l10n-id="turnOnAuto">Turn on automatically</p>
-          <select name="powersave.threshold">
-            <option value="0.05" data-l10n-id="powerSave-threshold" data-l10n-args='{"level":  "5"}'> 5% battery left</option>
-            <option value="0.15" data-l10n-id="powerSave-threshold" data-l10n-args='{"level": "15"}'>15% battery left</option>
-            <option value="0.25" data-l10n-id="powerSave-threshold" data-l10n-args='{"level": "25"}'>25% battery left</option>
-            <option value="0" data-l10n-id="never">Never</option>
-          </select>
+          <p class="fake-select">
+            <button class="icon icon-dialog">empty</button>
+            <select name="powersave.threshold">
+              <option value="0.05" data-l10n-id="powerSave-threshold" data-l10n-args='{"level":  "5"}'> 5% battery left</option>
+              <option value="0.15" data-l10n-id="powerSave-threshold" data-l10n-args='{"level": "15"}'>15% battery left</option>
+              <option value="0.25" data-l10n-id="powerSave-threshold" data-l10n-args='{"level": "25"}'>25% battery left</option>
+              <option value="0" data-l10n-id="never">Never</option>
+            </select>
+          </p>
         </li>
         <li class="description" data-l10n-id="powerSave-expl">
           Turning on Power Save Mode turns off the phone’s Data, Bluetooth, and
@@ -2077,7 +2103,7 @@
     </section>
 
     <!-- Device :: Device Storage -->
-    <section role="region" hidden id="deviceStorage">
+    <section role="region" id="deviceStorage">
       <!--
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
@@ -2116,7 +2142,7 @@
     </section>
 
     <!-- Device :: Media Storage -->
-    <section role="region" hidden id="mediaStorage">
+    <section role="region" id="mediaStorage">
       <!--
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
@@ -2162,7 +2188,7 @@
     </section>
 
     <!-- Device :: Accessibility -->
-    <section role="region" hidden id="accessibility">
+    <section role="region" id="accessibility">
       <!--
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
@@ -2189,7 +2215,7 @@
     </section>
 
     <!-- Device :: Improve Browser OS :: Crash Reports-->
-    <section role="region" hidden id="crashReports">
+    <section role="region" id="crashReports">
       <!--
       <header>
         <a href="#improveBrowserOS"><span class="icon icon-back">back</span></a>
@@ -2209,7 +2235,7 @@
     </section>
 
     <!-- Device :: Improve Browser OS -->
-    <section role="region" hidden id="improveBrowserOS">
+    <section role="region" id="improveBrowserOS">
       <!--
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
@@ -2233,7 +2259,7 @@
             <span data-l10n-id="performanceDataInfo">
               Help us improve Browser OS by sharing data about your phone.
             </span>
-            <a href="https://support.mozilla.org/kb/how-can-i-help-submitting-mobile-performance-data" data-l10n-id="learn-more" class="link-text">Learn More</a>
+            <a href="http://mozilla.org/telemetry" data-l10n-id="learn-more" class="link-text">Learn More</a>
           </label>
         </li>
         <li>
@@ -2284,7 +2310,7 @@
     </section>
 
     <!-- Device :: Help -->
-    <section role="region" hidden id="help">
+    <section role="region" id="help">
       <!--
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
@@ -2293,17 +2319,13 @@
 
       <ul>
         <li>
-          <a data-l10n-id="online-support"> Online Support:
-            <span class="link-text" data-l10n-id="online-support-link-text"></span>
+          <a data-l10n-id="online-support" id="online-support-link"> Online Support:
+            <span class="link-text" id="online-support-text"></span>
           </a>
         </li>
         <li>
           <span data-l10n-id="call-support"> Call Support:
-            <span id="call-support-numbers">
-              <a class="tel-text" data-l10n-id="call-support-link-1"></a>
-              <span data-l10n-id="call-support-link-or"></span>
-              <a class="tel-text" data-l10n-id="call-support-link-2"></a>
-            </span>
+            <span class="tel-text" id="call-support-numbers"></span>
           </span>
         </li>
         <li>
@@ -2312,14 +2334,18 @@
           </label>
         </li>
       </ul>
+      <script type="application/javascript" src="js/support.js"></script>
       -->
     </section>
 
     <!-- SIM Toolkit -->
-    <section role="region" hidden id="icc">
+    <section role="region" id="icc">
       <!--
       <header>
         <button id="icc-stk-app-back" class="hidden">
+          <span data-l10n-id="back" class="icon icon-back">Back</span>
+        </button>
+        <button id="icc-stk-help-exit" class="hidden">
           <span data-l10n-id="back" class="icon icon-back">Back</span>
         </button>
         <a href="#root" id="icc-stk-exit"><span data-l10n-id="back" class="icon icon-back">Back</span></a>

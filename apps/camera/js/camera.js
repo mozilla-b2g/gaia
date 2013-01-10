@@ -85,12 +85,9 @@ var Camera = {
     image: {prefix: 'IMG_'}
   },
 
-  // Because we dont want to wait for the geolocation query
-  // before we can take a photo, we keep a track of the users
-  // position, when the camera jumps into foreground or every
-  // 10 minutes
-  POSITION_TIMEOUT: 1000 * 60 * 10,
-  _positionTimer: null,
+  PROMPT_DELAY: 2000,
+
+  _watchId: null,
   _position: null,
 
   _pendingPick: null,
@@ -166,7 +163,6 @@ var Camera = {
     this._shutterSound.mozAudioChannelType = 'publicnotification';
     this._storageState = this.STORAGE_INIT;
     this.setCaptureMode(this.CAMERA);
-    this.initPositionUpdate();
 
     // We lock the screen orientation and deal with rotating
     // the icons manually
@@ -367,15 +363,15 @@ var Camera = {
                                      onsuccess, onerror);
     }).bind(this);
 
-    this.createDCFFilename('video', '3gp', (function(filename) {
-      this._videoPath = filename;
+    this.createDCFFilename('video', '3gp', (function(path, name) {
+      this._videoPath = path + name;
 
       // The CameraControl API will not automatically create directories
       // for the new file if they do not exist, so write a dummy file
       // to the same directory via DeviceStorage to ensure that the directory
       // exists before recording starts.
       var dummyblob = new Blob([''], {type: 'video/3gpp'});
-      var dummyfilename = filename + '.dummy.3gp';
+      var dummyfilename = path + '.' + name;
       var req = this._videoStorage.addNamed(dummyblob, dummyfilename);
       req.onerror = onerror;
       req.onsuccess = (function fileCreated() {
@@ -541,6 +537,7 @@ var Camera = {
       viewfinder.mozSrcObject = stream;
       viewfinder.play();
       this.checkStorageSpace();
+      setTimeout(this.initPositionUpdate.bind(this), this.PROMPT_DELAY);
     }
 
     function gotCamera(camera) {
@@ -557,7 +554,13 @@ var Camera = {
         }
       }).bind(this);
       camera.onRecorderStateChange = this.recordingStateChanged.bind(this);
-      camera.getPreviewStream(this._previewConfig, gotPreviewScreen.bind(this));
+      if (this.captureMode === this.CAMERA) {
+        camera.getPreviewStream(this._previewConfig, gotPreviewScreen.bind(this));
+      } else {
+        this._previewConfigVideo.rotation = this._phoneOrientation;
+        this._cameraObj.getPreviewStreamVideoMode(this._previewConfigVideo,
+                                                  gotPreviewScreen.bind(this));
+      }
     }
 
     // If there is already a camera, we would have to release it first.
@@ -597,7 +600,6 @@ var Camera = {
     this.viewfinder.play();
     this.setSource(this._camera);
     this._previewActive = true;
-    this.initPositionUpdate();
   },
 
   stopPreview: function camera_stopPreview() {
@@ -608,8 +610,6 @@ var Camera = {
     this.viewfinder.pause();
     this._previewActive = false;
     this.viewfinder.mozSrcObject = null;
-    this.cancelPositionUpdate();
-
     this.release();
   },
 
@@ -628,7 +628,7 @@ var Camera = {
     var self = this;
     var dcf = this._dcfConfig;
     var filename = dcf[type].prefix + this.padLeft(dcf.seq.file, 4) + '.' + ext;
-    var path = 'DCIM/' + dcf.seq.dir + dcf.postFix + '/' + filename;
+    var path = 'DCIM/' + dcf.seq.dir + dcf.postFix + '/';
     var storage = type === 'video' ? this._videoStorage : this._pictureStorage;
 
     // A file with this name may have been written by the user or
@@ -655,7 +655,7 @@ var Camera = {
         dcf.seq.dir += 1;
       }
       asyncStorage.setItem(dcf.key, dcf.seq, function() {
-        callback(path);
+        callback(path, filename);
       });
     };
   },
@@ -664,8 +664,8 @@ var Camera = {
     this._manuallyFocused = false;
     this.hideFocusRing();
     this.restartPreview();
-    this.createDCFFilename('image', 'jpg', (function(name) {
-      var addreq = this._pictureStorage.addNamed(blob, name);
+    this.createDCFFilename('image', 'jpg', (function(path, name) {
+      var addreq = this._pictureStorage.addNamed(blob, path + name);
       addreq.onsuccess = (function() {
         if (this._pendingPick) {
           // XXX: https://bugzilla.mozilla.org/show_bug.cgi?id=806503
@@ -673,7 +673,7 @@ var Camera = {
           // But there seems to be a bug with blob lifetimes and activities.
           // So we'll get a new blob back out of device storage to ensure
           // that we've got a file-backed blob instead of a memory-backed blob.
-          var getreq = this._pictureStorage.get(name);
+          var getreq = this._pictureStorage.get(path + name);
           getreq.onsuccess = (function() {
             this._pendingPick.postResult({
               type: 'image/jpeg',
@@ -685,7 +685,7 @@ var Camera = {
           return;
         }
 
-        Filmstrip.addImage(name, blob);
+        Filmstrip.addImage(path + name, blob);
         Filmstrip.show(Camera.FILMSTRIP_DURATION);
         this.checkStorageSpace();
 
@@ -844,29 +844,25 @@ var Camera = {
   },
 
   initPositionUpdate: function camera_initPositionUpdate() {
-    if (this._positionTimer) {
+    if (this._watchId || document.mozHidden) {
       return;
     }
-    this._positionTimer = setInterval(this.updatePosition.bind(this),
-                                      this.POSITION_TIMEOUT);
-    this.updatePosition();
+    this._watchId = navigator.geolocation
+      .watchPosition(this.updatePosition.bind(this));
   },
 
-  updatePosition: function camera_updatePosition() {
-    var self = this;
-    navigator.geolocation.getCurrentPosition(function(position) {
-      self._position = {
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude
-      };
-    }, function() {
-      console.warn('Camera: Could not fetch location');
-    });
+  updatePosition: function camera_updatePosition(position) {
+    this._position = {
+      timestamp: position.timestamp,
+      altitude: position.coords.altitude,
+      latitude: position.coords.latitude,
+      longitude: position.coords.longitude
+    };
   },
 
   cancelPositionUpdate: function camera_cancelPositionUpdate() {
-    window.clearInterval(this._positionTimer);
-    this._positionTimer = null;
+    navigator.geolocation.clearWatch(this._watchId);
+    this._watchId = null;
   },
 
   release: function camera_release(callback) {
@@ -893,6 +889,7 @@ document.addEventListener('mozvisibilitychange', function() {
   if (document.mozHidden) {
     Camera.stopPreview();
     Camera.cancelPick();
+    Camera.cancelPositionUpdate();
     if (this._secureMode) // If the lockscreen is locked
       Filmstrip.clear();  // then forget everything when closing camera
   } else {

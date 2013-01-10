@@ -17,12 +17,14 @@ Calendar.ns('Controllers').Alarm = (function() {
 
       this._wifiLock = null;
       this.app.syncController.on('syncComplete', function() {
-        if (self._wifiLock !== null)
+        if (self._wifiLock !== null) {
           self._wifiLock.unlock();
+          self._wifiLock = null;
+        }
       });
 
       this._nextPeriodicSync = this.settings.syncAlarm;
-      
+
       if (this._nextPeriodicSync.alarmId === null)
         this._resetSyncAlarm(false);
 
@@ -172,21 +174,25 @@ Calendar.ns('Controllers').Alarm = (function() {
       var start = new Date();
       var end = new Date(start.getTime() + duration);
 
-      // We're resetting the sync alarm after a settings change and times are still in range
+      // We're resetting the sync alarm after a settings
+      // change and times are still in range
       if (!triggered &&
           this._nextPeriodicSync.end > start &&
           this._nextPeriodicSync.start.getTime() + duration > start) {
         start = this._nextPeriodicSync.start;
         end = new Date(start.getTime() + duration);
       }
-      
-      var request = navigator.mozAlarms.add(end, 'ignoreTimezone', {type: 'sync'});
+
+      var request = navigator.mozAlarms.add(
+        end, 'ignoreTimezone', {type: 'sync'}
+      );
+
       var self = this;
       request.onsuccess = function(e) {
         self._nextPeriodicSync.alarmId = e.target.result;
         self._nextPeriodicSync.start = start;
         self._nextPeriodicSync.end = end;
-        self.settings.set('syncAlarm', self._nextPeriodicSync)
+        self.settings.set('syncAlarm', self._nextPeriodicSync);
       };
       request.onerror = function(e) {
         debug('Error setting alarm:', e.target.error.name);

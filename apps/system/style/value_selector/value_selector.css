@@ -150,10 +150,21 @@ button.affirmative.active {
 }
 
 #value-selector li span {
-  padding: 1rem 2rem 1rem 1.5rem;
+  padding: 1rem 1.5rem;
+  line-height: 4rem;
+  word-wrap: break-word;
 }
 
 #value-selector li input:checked + span,
 #value-selector li[aria-checked="true"] span {
-  background: url("../bb/value_selector/images/icons/checked.png") no-repeat scroll right center border-box transparent;
+  padding-right: 2.6rem;
+  margin-right: 1.2rem;
+  background: transparent url("../bb/value_selector/images/icons/checked.png") no-repeat 100% 50%;
 }
+
+html[dir="rtl"] #value-selector li input:checked + span,
+html[dir="rtl"] #value-selector li[aria-checked="true"] span {
+  padding-left: 2.6rem;
+  margin-left: 1.2rem;
+}
+

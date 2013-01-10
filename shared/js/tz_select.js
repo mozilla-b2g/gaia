@@ -3,7 +3,7 @@
 
 'use strict';
 
-function tzSelect(contSelector, citySelector, onchange) {
+function tzSelect(regionSelector, citySelector, onchange) {
   var TIMEZONE_FILE = '/shared/resources/tz.json';
 
 
@@ -12,7 +12,7 @@ function tzSelect(contSelector, citySelector, onchange) {
    */
 
   function newTZSelector(onchangeTZ, currentID) {
-    var gContinent = currentID.replace(/\/.*/, '');
+    var gRegion = currentID.replace(/\/.*/, '');
     var gCity = currentID.replace(/.*?\//, '');
     var gTZ = null;
 
@@ -31,48 +31,71 @@ function tzSelect(contSelector, citySelector, onchange) {
       xhr.send();
     }
 
-    function fillContinents() {
-      var _ = navigator.mozL10n.get;
-      contSelector.innerHTML = '';
-      for (var c in gTZ) {
+    function fillSelectElement(selector, options) {
+      selector.innerHTML = '';
+      options.sort(function(a, b) {
+        return (a.text > b.text);
+      });
+      for (var i = 0; i < options.length; i++) {
         var option = document.createElement('option');
-        option.textContent = _('tz-' + c) || c;
-        option.selected = (c == gContinent);
-        contSelector.appendChild(option);
+        option.textContent = options[i].text;
+        option.selected = options[i].selected;
+        option.value = options[i].value;
+        selector.appendChild(option);
       }
+    }
+
+    function getSelectedText(selector) {
+      var options = selector.querySelectorAll('option');
+      return options[selector.selectedIndex].textContent;
+    }
+
+    function fillRegions() {
+      var _ = navigator.mozL10n.get;
+      var options = [];
+      for (var c in gTZ) {
+        options.push({
+          text: _('tzRegion-' + c) || c,
+          value: c,
+          selected: (c == gRegion)
+        });
+      }
+      fillSelectElement(regionSelector, options);
       fillCities();
     }
 
     function fillCities() {
-      gContinent = contSelector.value;
-      citySelector.innerHTML = '';
-      var list = gTZ[gContinent];
+      gRegion = regionSelector.value;
+      var list = gTZ[gRegion];
+      var options = [];
       for (var i = 0; i < list.length; i++) {
-        var option = document.createElement('option');
-        option.value = i;
-        option.textContent = list[i].name || list[i].city.replace(/_/g, ' ');
-        option.selected = (list[i].city == gCity);
-        citySelector.appendChild(option);
+        options.push({
+          text: list[i].name || list[i].city.replace(/_/g, ' '),
+          value: i,
+          selected: (list[i].city == gCity)
+        });
       }
+      fillSelectElement(citySelector, options);
       setTimezone();
     }
 
     function setTimezone() {
-      var res = gTZ[gContinent][citySelector.value];
+      var res = gTZ[gRegion][citySelector.value];
       gCity = res.city;
       var offset = res.offset.split(',');
       onchangeTZ({
-        id: res.id || gContinent + '/' + res.city,
-        city: res.name || res.city.replace(/_/g, ' '),
+        id: res.id || gRegion + '/' + res.city,
+        region: getSelectedText(regionSelector),
+        city: getSelectedText(citySelector),
         cc: res.cc,
         utcOffset: offset[0],
         dstOffset: offset[1]
       });
     }
 
-    contSelector.onchange = fillCities;
+    regionSelector.onchange = fillCities;
     citySelector.onchange = setTimezone;
-    loadTZ(fillContinents);
+    loadTZ(fillRegions);
   }
 
 
@@ -103,7 +126,12 @@ function tzSelect(contSelector, citySelector, onchange) {
         var req = settings.createLock().set({ 'time.timezone': tz.id });
         if (onchange) {
           req.onsuccess = function updateTZ_callback() {
-            onchange(tz);
+            // Wait until the timezone is actually set
+            // before calling the callback.
+            window.addEventListener('moztimechange', function timeChanged() {
+              window.removeEventListener('moztimechange', timeChanged);
+              onchange(tz);
+            });
           }
         }
       }, lastMozSettingValue);
@@ -112,7 +140,7 @@ function tzSelect(contSelector, citySelector, onchange) {
     };
 
     function setTimezoneDescription(timezoneID) {
-      contSelector.value = timezoneID.replace(/\/.*/, '');
+      regionSelector.value = timezoneID.replace(/\/.*/, '');
       citySelector.value = timezoneID.replace(/.*?\//, '');
     }
   }

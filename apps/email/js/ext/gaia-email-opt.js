@@ -18917,6 +18917,26 @@ var normalizeError = exports.normalizeError = function normalizeError(err) {
  */
 const DEFAULT_TZ_OFFSET = -7 * 60 * 60 * 1000;
 
+var extractTZFromHeaders = exports._extractTZFromHeaders =
+    function extractTZFromHeaders(allHeaders) {
+  for (var i = 0; i < allHeaders.length; i++) {
+    var hpair = allHeaders[i];
+    if (hpair.key !== 'received')
+      continue;
+    var tzMatch = /([+-]\d{4})/.exec(hpair.value);
+    if (tzMatch) {
+      var tz =
+        parseInt(tzMatch[1].substring(1, 3), 10) * 60 * 60 * 1000 +
+        parseInt(tzMatch[1].substring(3, 5), 10) * 60 * 1000;
+      if (tzMatch[1].substring(0, 1) === '-')
+        tz *= -1;
+      return tz;
+    }
+  }
+
+  return null;
+};
+
 /**
  * Try and infer the current effective timezone of the server by grabbing the
  * most recent message as implied by UID (may be inaccurate), and then looking
@@ -18965,21 +18985,10 @@ var getTZOffset = exports.getTZOffset = function getTZOffset(conn, callback) {
       });
     fetcher.on('message', function onMsg(msg) {
         msg.on('end', function onMsgEnd() {
-            var allHeaders = msg.msg.headers;
-            for (var i = 0; i < allHeaders.length; i++) {
-              var hpair = allHeaders[i];
-              if (hpair.key !== 'received')
-                continue;
-              var tzMatch = /([+-]\d{4})/.exec(hpair.value);
-              if (tzMatch) {
-                var tz =
-                  parseInt(tzMatch[1].substring(1, 3)) * 60 * 60 * 1000+
-                  parseInt(tzMatch[1].substring(3, 5)) * 60 * 1000;
-                if (tzMatch[1].substring(0, 1) === '-')
-                  tz *= -1;
-                callback(null, tz);
-                return;
-              }
+            var tz = extractTZFromHeaders(msg.msg.headers);
+            if (tz !== null) {
+              callback(null, tz);
+              return;
             }
             // If we are here, the message somehow did not have a Received
             // header.  Try again with another known UID or fail out if we
@@ -25600,11 +25609,17 @@ FolderStorage.prototype = {
 
     var progressCallback = slice.setSyncProgress.bind(slice);
 
-    // If we're offline or the folder can't be synchronized right now, then
-    // there's nothing to look into; use the DB.
-    if (!this._account.universe.online ||
-        !this.folderSyncer.syncable) {
+    // If we're offline, then there's nothing to look into; use the DB.
+    if (!this._account.universe.online) {
       existingDataGood = true;
+    }
+    // If the folder can't be synchronized right now, just report the sync as
+    // blocked. We'll update it soon enough.
+    else if (!this.folderSyncer.syncable) {
+      console.log('Synchronization is currently blocked; waiting...');
+      slice.setStatus('syncblocked', false, true, false, 0.0);
+      releaseMutex();
+      return;
     }
     else if (this._accuracyRanges.length && !forceDeepening) {
       ainfo = this._accuracyRanges[0];
@@ -26697,6 +26712,19 @@ FolderStorage.prototype = {
     // (no block update required)
     if (this._curSyncSlice && !this._curSyncSlice.ignoreHeaders)
       this._curSyncSlice.onHeaderAdded(header, true, false);
+  },
+
+  hasMessageWithServerId: function(srvid) {
+    if (!this._serverIdHeaderBlockMapping)
+      throw new Error('Server ID mapping not supported for this storage!');
+
+    var blockId = this._serverIdHeaderBlockMapping[srvid];
+    if (srvid === undefined) {
+      this._LOG.serverIdMappingMissing(srvid);
+      return false;
+    }
+
+    return !!blockId;
   },
 
   deleteMessageHeaderAndBody: function(header, callback) {
@@ -28248,13 +28276,6 @@ function ImapFolderConn(account, storage, _parentLog) {
 }
 ImapFolderConn.prototype = {
   /**
-   * Can we grow this sync range?  IMAP always lets us do this.
-   */
-  get canGrowSync() {
-    return true;
-  },
-
-  /**
    * Acquire a connection and invoke the callback once we have it and we have
    * entered the folder.  This method should only be called when running
    * inside `runMutexed`.
@@ -28933,6 +28954,13 @@ ImapFolderSyncer.prototype = {
    * synchronize.  The errbackoff is just a question of when we will retry.
    */
   syncable: true,
+
+  /**
+   * Can we grow this sync range?  IMAP always lets us do this.
+   */
+  get canGrowSync() {
+    return true;
+  },
 
   syncDateRange: function(startTS, endTS, syncCallback, doneCallback,
                           progressCallback) {
@@ -32707,7 +32735,6 @@ function FakeAccount(universe, accountDef, folderInfo, receiveProtoConn, _LOG) {
 
   this.meta = folderInfo.$meta;
   this.mutations = folderInfo.$mutations;
-  this.deferredMutations = folderInfo.$deferredMutations;
 }
 exports.FakeAccount = FakeAccount;
 FakeAccount.prototype = {
@@ -33029,7 +33056,7 @@ ActiveSyncFolderConn.prototype = {
       });
       e.addEventListener(base.concat(ie.Collection, ie.Estimate),
                          function(node) {
-        estimate = parseInt(node.children[0].textContent);
+        estimate = parseInt(node.children[0].textContent, 10);
       });
 
       try {
@@ -33526,7 +33553,7 @@ ActiveSyncFolderConn.prototype = {
               break;
             case asb.EstimatedDataSize:
             case em.AttSize:
-              attachment.sizeEstimate = parseInt(attachDataText);
+              attachment.sizeEstimate = parseInt(attachDataText, 10);
               break;
             case asb.ContentId:
               attachment.contentId = attachDataText;
@@ -33588,29 +33615,53 @@ ActiveSyncFolderConn.prototype = {
         return;
       }
 
+      let addedMessages = 0;
       for (let [,message] in Iterator(added)) {
+        // If we already have this message, it's probably because we moved it as
+        // part of a local op, so let's assume that the data we already have is
+        // ok. XXX: We might want to verify this, to be safe.
+        if (storage.hasMessageWithServerId(message.header.srvid))
+          continue;
+
         storage.addMessageHeader(message.header);
         storage.addMessageBody(message.header, message.body);
+        addedMessages++;
       }
 
+      let changedMessages = 0;
       for (let [,message] in Iterator(changed)) {
+        // If we don't know about this message, just bail out.
+        if (!storage.hasMessageWithServerId(message.header.srvid))
+          continue;
+
         storage.updateMessageHeaderByServerId(message.header.srvid, true,
                                               function(oldHeader) {
           message.header.mergeInto(oldHeader);
           return true;
         });
+        changedMessages++;
         // XXX: update bodies
       }
 
+      let deletedMessages = 0;
       for (let [,messageGuid] in Iterator(deleted)) {
+        // If we don't know about this message, it's probably because we already
+        // deleted it.
+        if (!storage.hasMessageWithServerId(messageGuid))
+          continue;
+
         storage.deleteMessageByServerId(messageGuid);
+        deletedMessages++;
       }
 
-      messagesSeen += added.length + changed.length + deleted.length;
+      messagesSeen += addedMessages + changedMessages + deletedMessages;
 
       if (!moreAvailable) {
-        folderConn._LOG.syncDateRange_end(added.length, changed.length,
-                                          deleted.length, startTS, endTS);
+        // Note: For the second argument here, we report the number of messages
+        // we saw that *changed*. This differs from IMAP, which reports the
+        // number of messages it *saw*.
+        folderConn._LOG.syncDateRange_end(addedMessages, changedMessages,
+                                          deletedMessages, startTS, endTS);
         storage.markSyncRange(startTS, endTS, 'XXX', accuracyStamp);
         doneCallback(null, null, messagesSeen);
       }
@@ -33688,7 +33739,7 @@ ActiveSyncFolderConn.prototype = {
         e.run(aResponse);
       }
       catch (ex) {
-        console.error('Error parsing Sync reponse:', ex, '\n', ex.stack);
+        console.error('Error parsing Sync response:', ex, '\n', ex.stack);
         callWhenDone('unknown');
         return;
       }
@@ -34051,17 +34102,21 @@ ActiveSyncJobDriver.prototype = {
           if (--modsToGo === 0)
             callWhenDone();
         }
+
+        // Filter out any offline headers, since the server naturally can't do
+        // anything for them. If this means we have no headers at all, just bail
+        // out.
+        serverIds = serverIds.filter(function(srvid) { return !!srvid; });
+        if (!serverIds.length) {
+          callWhenDone();
+          return;
+        }
+
         folderConn.performMutation(
           function withWriter(w) {
             for (let i = 0; i < serverIds.length; i++) {
-              let srvid = serverIds[i];
-              // If the header is somehow an offline header, it will be null and
-              // there is nothing we can really do for it.
-              if (!srvid)
-                continue;
-
               w.stag(as.Change)
-                 .tag(as.ServerId, srvid)
+                 .tag(as.ServerId, serverIds[i])
                  .stag(as.ApplicationData);
 
               if (markRead !== undefined)
@@ -34124,8 +34179,6 @@ ActiveSyncJobDriver.prototype = {
     let aggrErr = null, account = this.account,
         targetFolderStorage = this.account.getFolderStorageForFolderId(
                                 op.targetFolder);
-    const as = $ascp.AirSync.Tags;
-    const em = $ascp.Email.Tags;
     const mo = $ascp.Move.Tags;
 
     this._partitionAndAccessFoldersSequentially(
@@ -34134,17 +34187,21 @@ ActiveSyncJobDriver.prototype = {
         let w = new $wbxml.Writer('1.3', 1, 'UTF-8');
         w.stag(mo.MoveItems);
 
+        // Filter out any offline headers, since the server naturally can't do
+        // anything for them. If this means we have no headers at all, just bail
+        // out.
+        serverIds = serverIds.filter(function(srvid) { return !!srvid; });
+        if (!serverIds.length) {
+          callWhenDone();
+          return;
+        }
+
         for (let i = 0; i < serverIds.length; i++) {
-          let srvid = serverIds[i];
-          // If the header is somehow an offline header, it will be null and
-          // there is nothing we can really do for it.
-          if (!srvid)
-            continue;
           w.stag(mo.Move)
-              .tag(mo.SrcMsgId, srvid)
-              .tag(mo.SrcFldId, storage.folderMeta.serverId)
-              .tag(mo.DstFldId, targetFolderStorage.folderMeta.serverId)
-            .etag(mo.Move);
+             .tag(mo.SrcMsgId, serverIds[i])
+             .tag(mo.SrcFldId, storage.folderMeta.serverId)
+             .tag(mo.DstFldId, targetFolderStorage.folderMeta.serverId)
+           .etag(mo.Move);
         }
         w.etag(mo.MoveItems);
 
@@ -34270,8 +34327,15 @@ ActiveSyncJobDriver.prototype = {
       doneCallback(err ? 'aborted-retry' : null, null, !err);
 
       if (inboxStorage && inboxStorage.hasActiveSlices) {
-        console.log("Refreshing fake inbox");
-        inboxStorage.resetAndRefreshActiveSlices();
+        if (!err) {
+          console.log("Refreshing fake inbox");
+          inboxStorage.resetAndRefreshActiveSlices();
+        }
+        // XXX: If we do have an error here, we should probably report
+        // syncfailed on the slices to let the user retry. However, what needs
+        // retrying is syncFolderList, not syncing the messages in a folder.
+        // Since that's complicated to handle, and syncFolderList will retry
+        // automatically, we can ignore that case for now.
       }
     });
   },
@@ -37237,7 +37301,7 @@ MailUniverse.prototype = {
    * and transferred across to the non-deferred queue at account-load time.
    */
   _deferOp: function(account, op) {
-    account.deferredMutations.push(op.longtermId);
+    this._opsByAccount[account.id].deferred.push(op.longtermId);
     if (this._deferredOpTimeout !== null)
       this._deferredOpTimeout = window.setTimeout(
         this._boundQueueDeferredOps, $syncbase.DEFERRED_OP_DELAY_MS);

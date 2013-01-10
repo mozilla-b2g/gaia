@@ -278,8 +278,9 @@ var Recents = {
       return;
     }
     var action = event.target.dataset.action;
-    var noMissedCallsSelector = '.log-item[data-type^=dialing],' +
-      '.log-item[data-type=incoming-connected]';
+    var noMissedCallsSelector = '.log-item[data-type^=dialing]' +
+      ':not(.collapsed), ' +
+      '.log-item[data-type=incoming-connected]:not(.collapsed)';
     var noMissedCallsItems = document.querySelectorAll(noMissedCallsSelector);
     var noMissedCallsLength = noMissedCallsItems.length;
     var i;
@@ -361,7 +362,7 @@ var Recents = {
     if (end > limit) {
       for (var i = limit; i < end; i++) {
         var visibleCallParentNode = visibleCalls[i].parentNode;
-        visibleCallParentNode.removeChild(visibleCalls[i]);
+        visibleCalls[i].classList.add('hide');
         // Remove the day header if no more entries.
         if (visibleCallParentNode.getElementsByTagName('*').length === 0) {
           visibleCallParentNode.parentNode.parentNode.
@@ -670,6 +671,7 @@ var Recents = {
         '</div>';
       navigator.mozL10n.translate(this.recentsContainer);
       this.recentsIconEdit.parentNode.setAttribute('aria-disabled', 'true');
+      this.allFilter.classList.add('selected');
       return;
     }
 
@@ -846,7 +848,8 @@ var Recents = {
   },
 
   groupCalls: function re_groupCalls(olderCallEl, newerCallEl, count, inc) {
-    olderCallEl.parentNode.removeChild(olderCallEl);
+    olderCallEl.classList.add('hide');
+    olderCallEl.classList.add('collapsed');
     count += inc;
     var entryCountNode = newerCallEl.querySelector('.entry-count');
     entryCountNode.innerHTML = '&#160;(' + count + ')';

@@ -81,6 +81,11 @@ body, html {
   bottom: 2px;
 }
 
+#statusbar-time span {
+  margin: 0 0.3rem;
+  font-size: 1rem;
+}
+
 #screen.locked #statusbar-time {
   display: none;
 }

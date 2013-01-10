@@ -13,17 +13,8 @@ section[role="status"] {
   white-space: nowrap;
   font-family: "MozTT", Sans-serif;
   color: #fff;
-  height: 8rem;
-  padding: 0;
+  padding: 1rem 0 0.6rem;
   text-align: center;
-}
-
-section[role="status"]:after {
-  content: "";
-  display: inline-block;
-  vertical-align: middle;
-  width: 1px;
-  height: 100%;
 }
 
 section[role="status"] p {
