@@ -81,6 +81,15 @@ Evme.Searchbar = new function Evme_Searchbar() {
         value = "";
         el.value = "";
     };
+    
+    this.clearIfHasQuery = function clearIfHasQuery() {
+        if (value) {
+            self.setValue('', true);
+            return true;
+        }
+        
+        return false;
+    };
 
     this.focus = function focus() {
         if (isFocused) {
