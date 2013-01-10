@@ -21,6 +21,7 @@ contacts.Details = (function() {
       isFbLinked,
       editContactButton,
       cover,
+      wrapper,
       favoriteMessage,
       detailsInner,
       TAG_OPTIONS,
@@ -53,6 +54,7 @@ contacts.Details = (function() {
     favoriteMessage = dom.querySelector('#toggle-favorite');
     notesTemplate = dom.querySelector('#note-details-template-\\#i\\#');
 
+    wrapper = dom.querySelector('#contact-detail-wrapper');
     initPullEffect(cover);
   };
 
@@ -65,8 +67,17 @@ contacts.Details = (function() {
   };
 
   var initPullEffect = function cd_initPullEffect(cover) {
-    cover.addEventListener('mousedown', function(event) {
-      if (event.target != cover || contactDetails.classList.contains('no-photo'))
+    wrapper.addEventListener('touchstart', function(event) {
+
+      // Avoiding repaint (at least when no scroll is needed)
+      if (cover.style.overflow == 'hidden') {
+        var headerHeight = 5;
+        contactDetails.style.top = headerHeight + 'rem';
+        contactDetails.style.position = 'fixed';
+      }
+
+      var event = event.changedTouches[0];
+      if (contactDetails.classList.contains('no-photo'))
         return;
 
       var startPosition = event.clientY;
@@ -74,6 +85,7 @@ contacts.Details = (function() {
       cover.classList.add('up');
 
       var onMouseMove = function onMouseMove(event) {
+        var event = event.changedTouches[0];
         var newMargin = event.clientY - startPosition;
         if (newMargin > 0 && newMargin < 150) {
           contactDetails.classList.remove('up');
@@ -87,16 +99,22 @@ contacts.Details = (function() {
       };
 
       var onMouseUp = function onMouseUp(event) {
+        var event = event.changedTouches[0];
         contactDetails.classList.add('up');
         cover.classList.add('up');
         contactDetails.style.transform = null;
         cover.style.transform = null;
-        removeEventListener('mousemove', onMouseMove);
-        removeEventListener('mouseup', onMouseUp);
+        removeEventListener('touchmove', onMouseMove);
+        removeEventListener('touchend', onMouseUp);
+        contactDetails.addEventListener('transitionend', function transEnd() {
+          contactDetails.style.position = 'relative';
+          contactDetails.style.top = '0';
+          this.removeEventListener('transitionend', transEnd);
+        });
       };
 
-      addEventListener('mousemove', onMouseMove);
-      addEventListener('mouseup', onMouseUp);
+      addEventListener('touchmove', onMouseMove);
+      addEventListener('touchend', onMouseUp);
     });
   };
 
