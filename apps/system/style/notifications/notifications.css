@@ -141,6 +141,7 @@ html, body {
   color: #bfbfbf;
   font-size: 1.4rem;
   line-height: 1.9rem;
+  min-height: 1.9rem;
   font-weight: 400;
   overflow: hidden;
   text-overflow: ellipsis;
