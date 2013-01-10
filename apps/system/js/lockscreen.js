@@ -728,71 +728,77 @@ var LockScreen = {
     var connstateLine2 = this.connstate.lastElementChild;
     var _ = navigator.mozL10n.get;
 
-    // Reset line 2
-    connstateLine2.textContent = '';
-
     var updateConnstateLine1 = function updateConnstateLine1(l10nId) {
       connstateLine1.dataset.l10nId = l10nId;
       connstateLine1.textContent = _(l10nId) || '';
     };
+
+    var self = this;
+    var updateConnstateLine2 = function updateConnstateLine2(l10nId) {
+      if (l10nId) {
+        self.connstate.classList.add('twolines');
+        connstateLine2.dataset.l10nId = l10nId;
+        connstateLine2.textContent = _(l10nId) || '';
+      } else {
+        self.connstate.classList.remove('twolines');
+        delete(connstateLine2.dataset.l10nId);
+        connstateLine2.textContent = '';
+      }
+    };
+
+    // Reset line 2
+    updateConnstateLine2();
 
     if (this.airplaneMode) {
       updateConnstateLine1('airplaneMode');
       return;
     }
 
-    // Possible value of voice.state are
+    // Possible value of voice.state are:
     // 'notSearching', 'searching', 'denied', 'registered',
-    // where the later three means the phone is trying to grabbing
-    // the network. See
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=777057
+    // where the latter three mean the phone is trying to grab the network.
+    // See https://bugzilla.mozilla.org/show_bug.cgi?id=777057
     if (voice.state == 'notSearching') {
-      // "No Network"
       updateConnstateLine1('noNetwork');
-
       return;
     }
 
     if (!voice.connected && !voice.emergencyCallsOnly) {
       // "Searching"
-      // voice.state can be any of the later three value.
-      // (it's possible, briefly that the phone is 'registered'
+      // voice.state can be any of the latter three values.
+      // (it's possible that the phone is briefly 'registered'
       // but not yet connected.)
       updateConnstateLine1('searching');
-
       return;
     }
 
     if (voice.emergencyCallsOnly) {
+      updateConnstateLine1('emergencyCallsOnly');
+
       switch (conn.cardState) {
         case 'absent':
-          updateConnstateLine1('emergencyCallsOnlyNoSIM');
-
+          updateConnstateLine2('emergencyCallsOnly-noSIM');
           break;
 
         case 'pinRequired':
-          updateConnstateLine1('emergencyCallsOnlyPinRequired');
-
+          updateConnstateLine2('emergencyCallsOnly-pinRequired');
           break;
 
         case 'pukRequired':
-          updateConnstateLine1('emergencyCallsOnlyPukRequired');
-
+          updateConnstateLine2('emergencyCallsOnly-pukRequired');
           break;
 
         case 'networkLocked':
-          updateConnstateLine1('emergencyCallsOnlyNetworkLocked');
-
+          updateConnstateLine2('emergencyCallsOnly-networkLocked');
           break;
 
         default:
-          updateConnstateLine1('emergencyCallsOnly');
-
+          updateConnstateLine2();
           break;
       }
-
       return;
     }
+
     var operatorInfos = MobileOperator.userFacingInfo(conn);
     if (this.cellbroadcastLabel) {
       connstateLine2.textContent = this.cellbroadcastLabel;
