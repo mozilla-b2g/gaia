@@ -21,6 +21,8 @@ Evme.Brain = new function Evme_Brain() {
         TIPS = {},
         ICON_SIZE = null,
 
+        L10N_SYSTEM_ALERT="alert",
+
         // whether to show shortcuts customize on startup or not
         ENABLE_FAVORITES_SHORTCUTS_SCREEN = false,
         
@@ -578,11 +580,11 @@ Evme.Brain = new function Evme_Brain() {
             );
 
             if (isAppInstalled) {
-                window.alert(Evme.Utils.l10n('alert', 'app-install-exists', {'name': data.data.name}));
+                window.alert(Evme.Utils.l10n(L10N_SYSTEM_ALERT, 'app-install-exists', {'name': data.data.name}));
                 return;
             }
             
-            var msg = Evme.Utils.l10n('alert', 'app-install-confirm', {'name': data.data.name});
+            var msg = Evme.Utils.l10n(L10N_SYSTEM_ALERT, 'app-install-confirm', {'name': data.data.name});
             if (!window.confirm(msg)) {
                 return;
             }
@@ -1172,47 +1174,57 @@ Evme.Brain = new function Evme_Brain() {
 
             isRequesting = true;
 
-            Evme.ShortcutsCustomize.Loading.show();
-
-            // load user/default shortcuts from API
-            Evme.DoATAPI.Shortcuts.get(null, function onSuccess(data){
-                var loadedResponse = data.response,
-                    currentIcons = loadedResponse.icons,
-                    arrShortcuts = [],
-                    shortcutsToFavorite = {};
-
-                for (var i=0, len=loadedResponse.shortcuts.length; i<len; i++) {
-                    arrShortcuts.push(loadedResponse.shortcuts[i].query);
+            Evme.Utils.isOnline(function(isOnline) {
+                if (!isOnline) {
+                    window.alert(Evme.Utils.l10n(L10N_SYSTEM_ALERT, 'offline-shortcuts-more'));
+                    window.setTimeout(function() {
+                        isRequesting = false;
+                    }, 200);
+                    return;
                 }
 
-                // load suggested shortcuts from API
-                requestSuggest = Evme.DoATAPI.Shortcuts.suggest({
-                    "existing": arrShortcuts
-                }, function onSuccess(data) {
-                    var suggestedShortcuts = data.response.shortcuts,
-                        icons = data.response.icons;
+                Evme.ShortcutsCustomize.Loading.show();
 
-                    for (var i=0; i<suggestedShortcuts.length; i++) {
-                        var query = suggestedShortcuts[i].query.toLowerCase();
+                // load user/default shortcuts from API
+                Evme.DoATAPI.Shortcuts.get(null, function onSuccess(data){
+                    var loadedResponse = data.response,
+                        currentIcons = loadedResponse.icons,
+                        arrShortcuts = [],
+                        shortcutsToFavorite = {};
 
-                        if (!shortcutsToFavorite[query] && arrShortcuts.indexOf(query.toLowerCase()) == -1) {
-                            shortcutsToFavorite[query] = false;
+                    for (var i=0, len=loadedResponse.shortcuts.length; i<len; i++) {
+                        arrShortcuts.push(loadedResponse.shortcuts[i].query);
+                    }
+
+                    // load suggested shortcuts from API
+                    requestSuggest = Evme.DoATAPI.Shortcuts.suggest({
+                        "existing": arrShortcuts
+                    }, function onSuccess(data) {
+                        var suggestedShortcuts = data.response.shortcuts,
+                            icons = data.response.icons;
+
+                        for (var i=0; i<suggestedShortcuts.length; i++) {
+                            var query = suggestedShortcuts[i].query.toLowerCase();
+
+                            if (!shortcutsToFavorite[query] && arrShortcuts.indexOf(query.toLowerCase()) == -1) {
+                                shortcutsToFavorite[query] = false;
+                            }
                         }
-                    }
 
-                    for (var id in icons) {
-                        currentIcons[id] = icons[id];
-                    }
+                        for (var id in icons) {
+                            currentIcons[id] = icons[id];
+                        }
 
-                    Evme.ShortcutsCustomize.load({
-                        "shortcuts": shortcutsToFavorite,
-                        "icons": currentIcons
+                        Evme.ShortcutsCustomize.load({
+                            "shortcuts": shortcutsToFavorite,
+                            "icons": currentIcons
+                        });
+
+                        isFirstShow = false;
+                        isRequesting = false;
+                        Evme.ShortcutsCustomize.show();
+                        Evme.ShortcutsCustomize.Loading.hide();
                     });
-
-                    isFirstShow = false;
-                    isRequesting = false;
-                    Evme.ShortcutsCustomize.show();
-                    Evme.ShortcutsCustomize.Loading.hide();
                 });
             });
         };
