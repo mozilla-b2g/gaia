@@ -16,7 +16,7 @@
     bottom: 75px;
 }
 
-#evmeContainer * {
+#evmeContainer *:not([role]) {
     margin: 0;
     padding: 0;
 }
