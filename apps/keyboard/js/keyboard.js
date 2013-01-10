@@ -526,6 +526,15 @@ function modifyLayout(keyboardName) {
     layout = Keyboards[keyboardName];
   }
 
+  // Handle special cases for the keyboard alternative keyboard
+  if (currentInputType === 'email' &&
+      layoutPage === LAYOUT_PAGE_SYMBOLS_I &&
+      layout.keys[1][0].value === '@') {
+
+    layout.keys[1].splice(0, 1);
+    layout.keys[1].push({ value: '_' });
+  }
+
   // Look for the space key in the layout. We're going to insert
   // meta keys before it or after it.
   var where = false;
