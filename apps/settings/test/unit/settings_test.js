@@ -1,6 +1,7 @@
 requireApp('settings/test/unit/mock_l10n.js');
 requireApp('settings/test/unit/mock_navigator_settings.js');
 requireApp('settings/js/settings.js');
+requireApp('settings/js/about.js');
 
 suite('settings >', function() {
   var realL10n, realNavigatorSettings;
@@ -57,7 +58,7 @@ suite('settings >', function() {
         geckoUpdateHandlers, appsUpdateHandlers;
 
     setup(function() {
-      Settings.checkForUpdates();
+      About.checkForUpdates();
 
       geckoUpdateSetting = 'gecko.updateStatus';
       appsUpdateSetting = 'apps.updateStatus';
@@ -130,6 +131,17 @@ suite('settings >', function() {
         assert.equal(systemStatus.textContent, 'retry-when-online');
       });
 
+      test('check-error', function() {
+        var errors = ['check-error-http-200', 'check-error-http-403',
+                      'check-error-http-404', 'check-error-http-500',
+                      'check-error-2152398878'];
+        for (var i = 0; i < errors.length; i++) {
+          MockNavigatorSettings.mTriggerObservers(geckoUpdateSetting, {
+            settingValue: errors[i]
+          });
+          assert.equal(systemStatus.textContent, errors[i]);
+        }
+      });
     });
 
     suite('getting response for app update >', function() {
@@ -201,7 +213,7 @@ suite('settings >', function() {
 
         suite('starting an update again >', function() {
           setup(function() {
-            Settings.checkForUpdates();
+            About.checkForUpdates();
           });
 
           test('should remove the text', function() {
