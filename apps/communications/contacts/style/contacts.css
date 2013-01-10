@@ -215,6 +215,12 @@ hr {
 }
 
 /* Overriding Input areas BB */
+form p input + button[type="reset"].hide,
+form p textarea + button[type="reset"].hide {
+  display: block!important;
+  opacity: 0;
+  pointer-events: none;
+}
 
 fieldset legend.action {
   padding-right: 1.8rem;
@@ -336,6 +342,11 @@ section[role="region"] > header .icon.icon-settings
   padding: 0;
 }
 
+/* Order switch */
+#view-settings [data-type="list"] li#settingsOrder aside {
+  pointer-events: none;
+}
+
 /* Cutom FB item */
 #view-settings [data-type="list"] .fb-item {
   height: auto;
@@ -356,14 +367,29 @@ section[role="region"] > header .icon.icon-settings
 }
 
 #view-settings [data-type="list"] .fb-item aside {
-  position: static;
   width: 6.5rem;
+  height: 6rem;
+  pointer-events: none;
 }
 
 #view-settings [data-type="list"] .fb-item aside label {
   position: absolute;
   right: 0;
 }
+
+#view-settings [data-type="list"] .fb-item[aria-disabled="true"] {
+  pointer-events: none;
+}
+
+#view-settings [data-type="list"] .fb-item[aria-disabled="true"]:after {
+  display: none;
+}
+
+#view-settings [data-type="list"] .fb-item[aria-disabled="true"] aside {
+  opacity: 0.3;
+}
+
+
 
 /* Extending BB lists components*/
 #view-settings [data-type="list"] li aside {
@@ -392,6 +418,7 @@ section[role="region"] > header .icon.icon-settings
 /* Extending icon types*/
 #view-settings [data-type="list"] li button.icon-sim:before {
   background-image: url(/contacts/style/images/import_SIM.png);
+  background-size: 1.6rem;
 }
 
 
@@ -478,3 +505,4 @@ section[role="region"] > header .icon.icon-settings
   left: -100%;
   opacity: 0;
 }
+
