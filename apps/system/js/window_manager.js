@@ -350,11 +350,6 @@ var WindowManager = (function() {
 
         classList.remove('opening-switching');
 
-        // XXX: without this setTimeout() there will be no opening transition.
-        // See https://bugzilla.mozilla.org/show_bug.cgi?id=780692#c111
-        setTimeout(function continueTransition() {
-          classList.add('opening');
-        });
       } else if (classList.contains('opening')) {
         windowOpened(frame);
 
