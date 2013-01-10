@@ -8,7 +8,7 @@ var contacts = window.contacts || {};
 **/
 contacts.Settings = (function() {
 
-  var orderCheckbox,
+  var orderItem,
       orderByLastName,
       simImportLink,
       fbImportOption,
@@ -42,7 +42,7 @@ contacts.Settings = (function() {
   var updateOrderingUI = function updateOrderingUI() {
     var value = newOrderByLastName === null ? orderByLastName :
       newOrderByLastName;
-    orderCheckbox.checked = value;
+    orderItem.checked = value;
   };
 
   var cleanMessage = function cleanMessage() {
@@ -54,8 +54,8 @@ contacts.Settings = (function() {
 
   // Initialises variables and listener for the UI
   var initContainers = function initContainers() {
-    orderCheckbox = document.querySelector('[name="order.lastname"]');
-    orderCheckbox.addEventListener('change', onOrderingChange.bind(this));
+    orderItem = document.getElementById('settingsOrder');
+    orderItem.addEventListener('click', onOrderingChange.bind(this));
 
     simImportLink = document.querySelector('[data-l10n-id="importSim"]');
     simImportLink.addEventListener('click',
@@ -327,7 +327,9 @@ contacts.Settings = (function() {
 
   // Listens for any change in the ordering preferences
   var onOrderingChange = function onOrderingChange(evt) {
-    newOrderByLastName = evt.target.checked;
+    var checkBox = evt.target.querySelector('[name="order.lastname"]');
+    checkBox.checked = !checkBox.checked;
+    newOrderByLastName = checkBox.checked;
     asyncStorage.setItem(ORDER_KEY, newOrderByLastName);
     updateOrderingUI();
   };
