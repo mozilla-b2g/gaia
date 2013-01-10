@@ -416,7 +416,7 @@ var Browser = {
           this.handleCrashedTab(tab);
         break;
 
-      case 'mozbrowserscroll':
+      case 'mozbrowserasyncscroll':
         this.handleScroll(evt);
         break;
       }
@@ -1161,7 +1161,7 @@ var Browser = {
     var browserEvents = ['loadstart', 'loadend', 'locationchange',
                          'titlechange', 'iconchange', 'contextmenu',
                          'securitychange', 'openwindow', 'close',
-                         'showmodalprompt', 'error', 'scroll',
+                         'showmodalprompt', 'error', 'asyncscroll',
                          'usernameandpasswordrequired'];
     browserEvents.forEach(function attachBrowserEvent(type) {
       iframe.addEventListener('mozbrowser' + type,
