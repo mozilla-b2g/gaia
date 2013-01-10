@@ -316,6 +316,10 @@ contacts.Form = (function() {
   var deleteContact = function deleteContact(contact) {
     var deleteSuccess = function deleteSuccess() {
       contacts.List.remove(contact.id);
+      if (contacts.Search.isInSearchMode()) {
+        contacts.Search.invalidateCache();
+        contacts.Search.removeContact(contact.id);
+      }
       Contacts.setCurrent({});
       Contacts.navigation.home();
     };
