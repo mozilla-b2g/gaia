@@ -67,7 +67,7 @@ window.Evme = new function Evme_Core() {
                 Evme.Brain.ShortcutsCustomize.hideIfOpen() ||
                 Evme.Brain.ShortcutsCustomize.hideIfRequesting() ||
                 Evme.Brain.SmartFolder.hideIfOpen() ||
-                Evme.Brain.Apps.clearIfHas()
+                Evme.Searchbar.clearIfHasQuery()
             ) {
                 return true;
             }
