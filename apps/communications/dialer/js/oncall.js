@@ -387,29 +387,18 @@ var OnCallHandler = (function onCallHandler() {
     animating = true;
 
     var callScreen = CallScreen.screen;
-    callScreen.classList.remove('animate');
-    callScreen.classList.toggle('prerender');
+    callScreen.classList.toggle('displayed');
 
-    window.addEventListener('MozAfterPaint', function ch_finishAfterPaint() {
-      window.removeEventListener('MozAfterPaint', ch_finishAfterPaint);
+    callScreen.addEventListener('transitionend', function trWait() {
+      callScreen.removeEventListener('transitionend', trWait);
 
-      window.setTimeout(function cs_transitionNextLoop() {
-        callScreen.classList.add('animate');
-        callScreen.classList.toggle('displayed');
-        callScreen.classList.toggle('prerender');
+      animating = false;
 
-        callScreen.addEventListener('transitionend', function trWait() {
-          callScreen.removeEventListener('transitionend', trWait);
-
-          animating = false;
-
-          // We did animate the call screen off the viewport
-          // now closing the window.
-          if (!displayed) {
-            closeWindow();
-          }
-        });
-      });
+      // We did animate the call screen off the viewport
+      // now closing the window.
+      if (!displayed) {
+        closeWindow();
+      }
     });
   }
 
