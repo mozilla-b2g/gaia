@@ -12,6 +12,7 @@ class TestBrowserLAN(GaiaTestCase):
     _url_button_locator = ("id", "url-button")
     _throbber_locator = ("id", "throbber")
     _browser_frame_locator = ('css selector', 'iframe[mozbrowser]')
+    _page_title_locator = ("id", "page-title")
 
     def setUp(self):
         GaiaTestCase.setUp(self)
@@ -32,25 +33,21 @@ class TestBrowserLAN(GaiaTestCase):
 
         self.marionette.find_element(*self._url_button_locator).click()
 
-        self.wait_for_condition(lambda m: not self.is_throbber_visible())
+        # TODO see if we can reduce this timeout in the future. >10 seconds is poor UX
+        self.wait_for_condition(lambda m: not self.is_throbber_visible(), timeout=20)
 
         browser_frame = self.marionette.find_element(
             *self._browser_frame_locator)
 
         self.marionette.switch_to_frame(browser_frame)
 
-        heading = self.marionette.find_element('id', 'page-title')
+        self.wait_for_element_present(*self._page_title_locator)
+        heading = self.marionette.find_element(*self._page_title_locator)
         self.assertEqual(heading.text, 'We believe that the internet should be public, open and accessible.')
 
     def tearDown(self):
-
-        # close the app
-        if hasattr(self, 'app'):
-            self.apps.kill(self.app)
-
         if self.wifi:
             self.data_layer.disable_wifi()
-
         GaiaTestCase.tearDown(self)
 
     def is_throbber_visible(self):

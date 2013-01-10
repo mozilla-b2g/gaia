@@ -11,7 +11,7 @@ class TestSms(GaiaTestCase):
     # Summary page
     _summary_header_locator = ('xpath', "//h1[text()='Messages']")
     _create_new_message_locator = ('id', 'icon-add')
-    _unread_message_locator = ('css selector', 'div.item > a.unread')
+    _unread_message_locator = ('css selector', 'li > a.unread')
 
     # Message composition
     _receiver_input_locator = ('id', 'receiver-input')
@@ -22,9 +22,8 @@ class TestSms(GaiaTestCase):
         "img[src='style/images/spinningwheel_small_animation.gif']")
 
     # Conversation view
-    _all_messages_locator = ('css selector', 'div.message-block')
-    _received_message_content_locator = ('xpath',
-         "//div[@class='message-block'][span[@class='bubble-container received']]")
+    _all_messages_locator = ('css selector', 'li.bubble')
+    _received_message_content_locator = ('xpath', "//li[@class='bubble'][a[@class='received']]")
 
     def setUp(self):
         GaiaTestCase.setUp(self)
@@ -88,11 +87,3 @@ class TestSms(GaiaTestCase):
         # Check that most recent message is also the most recent received message
         self.assertEqual(received_message.get_attribute('id'),
             last_message.get_attribute('id'))
-
-    def tearDown(self):
-
-        # close the app
-        if self.app:
-            self.apps.kill(self.app)
-
-        GaiaTestCase.tearDown(self)
