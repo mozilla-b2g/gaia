@@ -18917,6 +18917,26 @@ var normalizeError = exports.normalizeError = function normalizeError(err) {
  */
 const DEFAULT_TZ_OFFSET = -7 * 60 * 60 * 1000;
 
+var extractTZFromHeaders = exports._extractTZFromHeaders =
+    function extractTZFromHeaders(allHeaders) {
+  for (var i = 0; i < allHeaders.length; i++) {
+    var hpair = allHeaders[i];
+    if (hpair.key !== 'received')
+      continue;
+    var tzMatch = /([+-]\d{4})/.exec(hpair.value);
+    if (tzMatch) {
+      var tz =
+        parseInt(tzMatch[1].substring(1, 3), 10) * 60 * 60 * 1000 +
+        parseInt(tzMatch[1].substring(3, 5), 10) * 60 * 1000;
+      if (tzMatch[1].substring(0, 1) === '-')
+        tz *= -1;
+      return tz;
+    }
+  }
+
+  return null;
+};
+
 /**
  * Try and infer the current effective timezone of the server by grabbing the
  * most recent message as implied by UID (may be inaccurate), and then looking
@@ -18965,21 +18985,10 @@ var getTZOffset = exports.getTZOffset = function getTZOffset(conn, callback) {
       });
     fetcher.on('message', function onMsg(msg) {
         msg.on('end', function onMsgEnd() {
-            var allHeaders = msg.msg.headers;
-            for (var i = 0; i < allHeaders.length; i++) {
-              var hpair = allHeaders[i];
-              if (hpair.key !== 'received')
-                continue;
-              var tzMatch = /([+-]\d{4})/.exec(hpair.value);
-              if (tzMatch) {
-                var tz =
-                  parseInt(tzMatch[1].substring(1, 3)) * 60 * 60 * 1000+
-                  parseInt(tzMatch[1].substring(3, 5)) * 60 * 1000;
-                if (tzMatch[1].substring(0, 1) === '-')
-                  tz *= -1;
-                callback(null, tz);
-                return;
-              }
+            var tz = extractTZFromHeaders(msg.msg.headers);
+            if (tz !== null) {
+              callback(null, tz);
+              return;
             }
             // If we are here, the message somehow did not have a Received
             // header.  Try again with another known UID or fail out if we
@@ -33047,7 +33056,7 @@ ActiveSyncFolderConn.prototype = {
       });
       e.addEventListener(base.concat(ie.Collection, ie.Estimate),
                          function(node) {
-        estimate = parseInt(node.children[0].textContent);
+        estimate = parseInt(node.children[0].textContent, 10);
       });
 
       try {
@@ -33544,7 +33553,7 @@ ActiveSyncFolderConn.prototype = {
               break;
             case asb.EstimatedDataSize:
             case em.AttSize:
-              attachment.sizeEstimate = parseInt(attachDataText);
+              attachment.sizeEstimate = parseInt(attachDataText, 10);
               break;
             case asb.ContentId:
               attachment.contentId = attachDataText;
