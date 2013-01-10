@@ -6,6 +6,11 @@
 (function() {
   var _ = navigator.mozL10n.get;
 
+  // Consts
+  const STK_SCREEN_DEFAULT = 0x00;
+  const STK_SCREEN_MAINMENU = 0x01;
+  const STK_SCREEN_HELP = 0x02;
+
   /**
    * Init
    */
@@ -108,6 +113,30 @@
   }
 
   /**
+   * Updates the STK header buttons
+   */
+  function setSTKScreenType(type) {
+    switch (type) {
+      case STK_SCREEN_MAINMENU:
+        document.getElementById('icc-stk-exit').classList.remove('hidden');
+        document.getElementById('icc-stk-app-back').classList.add('hidden');
+        document.getElementById('icc-stk-help-exit').classList.add('hidden');
+        break;
+
+      case STK_SCREEN_HELP:
+        document.getElementById('icc-stk-exit').classList.add('hidden');
+        document.getElementById('icc-stk-app-back').classList.add('hidden');
+        document.getElementById('icc-stk-help-exit').classList.remove('hidden');
+        break;
+
+      default:  // STK_SCREEN_DEFAULT
+        document.getElementById('icc-stk-exit').classList.add('hidden');
+        document.getElementById('icc-stk-app-back').classList.remove('hidden');
+        document.getElementById('icc-stk-help-exit').classList.add('hidden');
+    }
+  }
+
+  /**
    * Response ICC Command
    */
   function responseSTKCommand(response, force) {
@@ -131,6 +160,9 @@
     debug('STK Proactive Command:', command);
     iccLastCommand = command;
     var options = command.options;
+
+    // By default a generic screen
+    setSTKScreenType(STK_SCREEN_DEFAULT);
 
     switch (command.typeOfCommand) {
       case icc.STK_CMD_SELECT_ITEM:
@@ -399,9 +431,7 @@
       var menu = JSON.parse(reqApplications.result['icc.applications']);
       clearList();
 
-      document.getElementById('icc-stk-exit').classList.remove('hidden');
-      document.getElementById('icc-stk-app-back').classList.add('hidden');
-      document.getElementById('icc-stk-help-exit').classList.add('hidden');
+      setSTKScreenType(STK_SCREEN_MAINMENU);
 
       if (!menu || (menu.items.length == 1 && menu.items[0] === null)) {
         debug('No STK available - hide & exit');
@@ -456,9 +486,7 @@
       var menu = JSON.parse(reqApplications.result['icc.applications']);
       clearList();
 
-      document.getElementById('icc-stk-exit').classList.add('hidden');
-      document.getElementById('icc-stk-app-back').classList.add('hidden');
-      document.getElementById('icc-stk-help-exit').classList.remove('hidden');
+      setSTKScreenType(STK_SCREEN_HELP);
 
       iccMenuItem.textContent = menu.title;
       showTitle(_('operatorServices-helpmenu'));
@@ -491,10 +519,6 @@
 
     debug('Showing STK menu');
     clearList();
-
-    document.getElementById('icc-stk-exit').classList.add('hidden');
-    document.getElementById('icc-stk-app-back').classList.remove('hidden');
-    document.getElementById('icc-stk-help-exit').classList.add('hidden');
 
     debug('STK App Menu title: ' + menu.title);
     debug('STK App Menu default item: ' + menu.defaultItem);
@@ -807,4 +831,3 @@
     };
   };
 })();
-
