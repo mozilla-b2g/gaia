@@ -33,6 +33,10 @@ var MockUpdateManager = {
     this.mErrorBannerRequested = true;
   },
 
+  checkForUpdates: function mum_checkForUpdate(forced) {
+    this.mCheckForUpdatesCalledWith = forced;
+  },
+
   mErrorBannerRequested: false,
   mLastUpdatesAdd: null,
   mLastUpdatableAdd: null,
@@ -40,6 +44,7 @@ var MockUpdateManager = {
   mLastDownloadsAdd: null,
   mLastDownloadsRemoval: null,
   mProgressCalledWith: null,
+  mCheckForUpdatesCalledWith: null,
   mStartedUncompressingCalled: false,
   mTeardown: function mum_mTeardown() {
     this.mErrorBannerRequested = false;
@@ -49,6 +54,7 @@ var MockUpdateManager = {
     this.mLastDownloadsAdd = null;
     this.mLastDownloadsRemoval = null;
     this.mProgressCalledWith = null;
+    this.mCheckForUpdatesCalledWith = null;
     this.mStartedUncompressingCalled = false;
   }
 };
