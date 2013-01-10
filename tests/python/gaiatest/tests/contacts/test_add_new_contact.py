@@ -74,9 +74,3 @@ class TestContacts(GaiaTestCase):
 
         contact_locator = self.create_contact_locator(self.contact['givenName'])
         self.wait_for_element_displayed(*contact_locator)
-
-
-    def tearDown(self):
-
-        # close all apps
-        self.apps.kill_all()

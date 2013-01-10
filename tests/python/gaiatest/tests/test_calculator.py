@@ -38,11 +38,3 @@ class TestCalculator(GaiaTestCase):
         # verify the result
         display = self.marionette.find_element(*self._display_locator)
         self.assertEquals(display.text, '15', 'wrong calculated value!')
-
-    def tearDown(self):
-
-        # close the app
-        if hasattr(self, 'app'):
-            self.apps.kill(self.app)
-
-        GaiaTestCase.tearDown(self)
