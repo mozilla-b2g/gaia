@@ -2,7 +2,7 @@
 
 (function() {
 
-  var props = ['voice', 'cardState', 'iccInfo'];
+  var props = ['voice', 'cardState', 'iccInfo', 'data'];
 
   function mnmmc_init() {
     props.forEach(function(prop) {
