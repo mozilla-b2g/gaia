@@ -77,6 +77,40 @@ Calendar.App = (function(window) {
     }
   };
 
+  var DateL10n = {
+    /**
+     * Localizes all elements with data-l10n-date-format.
+     */
+    localizeElements: function(parent) {
+      var elements = document.querySelectorAll(
+        '[data-l10n-date-format]'
+      );
+
+      var len = elements.length;
+      var i = 0;
+
+      for (; i < len; i++) {
+        DateL10n.localizeElement(elements[i]);
+      }
+    },
+
+    /**
+     * Localize a single element expected to have data-l10n-date-format.
+     */
+    localizeElement: function(element) {
+      var date = element.dataset.date;
+      var formatKey = element.dataset.l10nDateFormat;
+      var format = navigator.mozL10n.get(formatKey);
+
+      if (date) {
+        element.textContent = Calendar.App.dateFormat.localeFormat(
+          new Date(date),
+          format
+        );
+      }
+    }
+  };
+
   /**
    * Focal point for state management
    * within calendar application.
@@ -86,6 +120,8 @@ Calendar.App = (function(window) {
    */
   var App = {
     PendingManager: PendingManager,
+
+    DateL10n: DateL10n,
 
     //XXX: always assumes that app is never lazy loaded
     startingURL: window.location.href,
@@ -220,34 +256,7 @@ Calendar.App = (function(window) {
      *
      */
     observeDateLocalization: function() {
-      function localize() {
-        var elements = document.querySelectorAll(
-          '[data-l10n-date-format]'
-        );
-
-        var len = elements.length;
-        var i = 0;
-
-        var date;
-        var format;
-        var el;
-
-        for (; i < len; i++) {
-          el = elements[i];
-
-          date = el.dataset.date;
-          format = el.dataset.l10nDateFormat;
-
-          if (date) {
-            el.textContent = Calendar.App.dateFormat.localeFormat(
-              new Date(date),
-              format
-            );
-          }
-        }
-      }
-
-      window.addEventListener('localized', localize);
+      window.addEventListener('localized', DateL10n.localizeElements);
     },
 
     /**

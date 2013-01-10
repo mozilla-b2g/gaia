@@ -8,6 +8,8 @@ Calendar.Calc = (function() {
 
     _hourDate: new Date(),
 
+    startsOnMonday: false,
+
     FLOATING: 'floating',
 
     ALLDAY: 'allday',
@@ -75,6 +77,24 @@ Calendar.Calc = (function() {
     daysInWeek: function() {
       //XXX: We need to localize this...
       return 7;
+    },
+
+    /**
+     * Calculates day of week when starting day is Monday.
+     */
+    dayOfWeekFromMonday: function(numeric) {
+      var day = numeric - 1;
+      if (day < 0)
+        return 6;
+
+      return day;
+    },
+
+    /**
+     * Calculates day of week when starting day is Sunday.
+     */
+    dayOfWeekFromSunday: function(numeric) {
+      return numeric;
     },
 
     /**
@@ -403,10 +423,20 @@ Calendar.Calc = (function() {
 
     /**
      * Returns localized day of week.
+     *
+     * @param {Date|Number} date numeric or date object.
      */
     dayOfWeek: function(date) {
-      // XXX: we need to localize this further.
-      return date.getDay();
+      var number = date;
+
+      if (typeof(date) !== 'number') {
+        number = date.getDay();
+      }
+
+      if (Calc.startsOnMonday) {
+        return this.dayOfWeekFromMonday(number);
+      }
+      return this.dayOfWeekFromSunday(number);
     },
 
     /**
@@ -417,7 +447,7 @@ Calendar.Calc = (function() {
      */
     getWeekStartDate: function(date) {
       var currentDay = Calc.dayOfWeek(date);
-      var startDay = date.getDate() - currentDay;
+      var startDay = (date.getDate() - currentDay);
 
       return Calc.createDay(date, startDay);
     },
@@ -577,6 +607,16 @@ Calendar.Calc = (function() {
     }
 
   };
+
+  window.addEventListener('localized', function changeStartDay() {
+    var startDay = navigator.mozL10n.get('weekStartsOnMonday');
+
+    if (startDay && parseInt(startDay, 10)) {
+      Calc.startsOnMonday = true;
+    } else {
+      Calc.startsOnMonday = false;
+    }
+  });
 
   return Calc;
 
