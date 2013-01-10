@@ -1,6 +1,8 @@
 /**
  * The IdentityTests are meant to be exercised from marionette as part of the
  * gaia-ui-tests suites.
+ *
+ * In these tests, we exercise the native navigator.mozId directly.
  */
 
 function getUnverifiedOk() {
@@ -20,46 +22,17 @@ function unpackAssertion(assertion) {
   };
 }
 
-var testElementHandlers = {
-  't-request': function() {
-    navigator.id.request();
-  },
-
-  't-request-allowUnverified': function() {
-    navigator.id.request({ 
-      allowUnverified: getUnverifiedOk() 
-    });
-  },
-
-  't-request-forceIssuer': function() {
-    navigator.id.request({ 
-      forceIssuer: getIssuerName()
-    });
-  },
-
-  't-request-forceIssuer-allowUnverified': function() {
-    navigator.id.request({
-      allowUnverified: getUnverifiedOk(),
-      forceIssuer: getIssuerName()
-    });
-  },
-
-  't-logout': function() {
-    navigator.id.logout();
-  }
-};
-
-var IdentityTests = {
-  _eventNum: 1,
+function IdentityTests() {
 
   /**
-   * make a note in the event stream
+   * recordEvent: make a note in the event stream
    *
    * message is the main text of the note
    * cklass is the css class to apply to the enclosing li
    * params is an optional dictionary of strings to append as divs
    */
-  recordEvent: function id_recordEvent(message, cklass, params) {
+  this._eventNum = 1;
+  this.recordEvent = function id_recordEvent(message, cklass, params) {
     var li = document.createElement('li');
     if (cklass) {
       li.classList.add(cklass);
@@ -78,47 +51,90 @@ var IdentityTests = {
     li.innerHTML = html;
     events.appendChild(li);
     this._eventNum += 1;
-  },
-
-  init: function id_init() {
+  };
+  
+  this._setupCallbacks = function id__setupCallbacks() {
+    if (this._running) return;
     var self = this;
-    window.addEventListener("DOMContentLoaded", function() {
-      // Set up identity calbacks
-      try {
-        navigator.id.watch({
-          loggedInUser: null,
+    try {
+      navigator.mozId.watch({
+        loggedInUser: null,
 
-          onlogin: function(assertion) {
-            var unpacked = JSON.stringify(unpackAssertion(assertion), null, 2);
-            self.recordEvent("login", 'login', {assertion: assertion, unpacked: unpacked});
-          },
+        onlogin: function(assertion) {
+          var unpacked = JSON.stringify(unpackAssertion(assertion), null, 2);
+          self.recordEvent("login", 'login', {assertion: assertion, unpacked: unpacked});
+        },
 
-          onlogout: function() {
-            self.recordEvent("logout", 'logout');
-          },
+        onlogout: function() {
+          self.recordEvent("logout", 'logout');
+        },
 
-          onready: function() {
-            self.recordEvent("ready", 'ready');
-          },
+        onready: function() {
+          self.recordEvent("ready", 'ready');
+        }
 
-          oncancel: function() {
-            self.recordEvent("cancel", 'cancel');
-          }
-        });
-      } catch (err) {
-        self.recordEvent("Error: " + err, 'error');
-      }
-
-      // Bind selectors and onclick callbacks
-      Object.keys(testElementHandlers).forEach(function(selector) {
-        document.getElementById(selector).addEventListener(
-          'click', testElementHandlers[selector]);
       });
+    } catch (err) {
+      this.recordEvent("Error: " + err, 'error');
+    }
+  };
 
-      self.recordEvent("Ready to rock");
+  /**
+   * Bind UI components
+   */
+  this._bindEvents = function id__bindEvents() {
+    if (this._running) return;
+    var self = this;
+    var testElementHandlers = {
+      't-request': function() {
+        navigator.mozId.request();
+      },
+
+      't-request-withOnCancel': function() {
+        navigator.mozId.request({oncancel: function() { self.recordEvent("cancel", 'cancel') }});
+      },
+
+      't-request-allowUnverified': function() {
+        navigator.mozId.request({
+          allowUnverified: getUnverifiedOk()
+        });
+      },
+
+      't-request-forceIssuer': function() {
+        navigator.mozId.request({
+          forceIssuer: getIssuerName()
+        });
+      },
+
+      't-request-forceIssuer-allowUnverified': function() {
+        navigator.mozId.request({
+          allowUnverified: getUnverifiedOk(),
+          forceIssuer: getIssuerName()
+        });
+      },
+
+      't-logout': function() {
+        navigator.mozId.logout();
+      }
+    };
+
+    Object.keys(testElementHandlers).forEach(function(selector) {
+      document.getElementById(selector).addEventListener(
+        'click', testElementHandlers[selector]);
     });
-  }
-};
+  };
 
-IdentityTests.init();
+  this.init = function id_init() {
+    this._setupCallbacks();
+    this._bindEvents();
+    this._running = true;
+
+    this.recordEvent("Ready to rock");
+  }
+}
+
+window.addEventListener('DOMContentLoaded', function() {
+  var identityTests = new IdentityTests();
+  identityTests.init();
+}, false);
 
