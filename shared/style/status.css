@@ -10,10 +10,11 @@ section[role="status"] {
   left: 0;
   right: 0;
   bottom: 0;
+  height: 1rem;
+  min-height: 6.2rem;
   white-space: nowrap;
   font-family: "MozTT", Sans-serif;
   color: #fff;
-  padding: 1rem 0 0.6rem;
   text-align: center;
 }
 
@@ -24,7 +25,15 @@ section[role="status"] p {
   font-size: 1.6rem;
   line-height: 1.4em;
   max-width: 75%;
-  margin: 0;
+  margin: 1rem 0;
+  text-align: left;
+}
+
+section[role="status"]:before {
+  content: "";
+  height: 100%;
+  display: inline-block;
+  vertical-align: middle;
 }
 
 section[role="status"] p strong {
