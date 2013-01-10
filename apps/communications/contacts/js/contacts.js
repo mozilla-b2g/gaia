@@ -633,9 +633,11 @@ var Contacts = (function() {
       console.error('Error getting first contacts');
     };
     contacts.List.getAllContacts(onerror, function(contacts) {
+      // Skip the overlay if the user is adding/editing a contact
+      var overlay = !window.location.hash.contains('view-contact-form');
       firstContacts = contacts;
       if (readyToPaint) {
-        loadList(true, contacts);
+        loadList(overlay, contacts);
         firstContacts = null;
       }
     });
