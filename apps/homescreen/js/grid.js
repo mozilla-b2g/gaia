@@ -67,10 +67,11 @@ const GridManager = (function() {
         // target are set visible.
         togglePagesVisibility(currentPage - 1, currentPage + 1);
 
+	var rtl = (document.documentElement.dir == 'rtl')? -1:1;
         var index = currentPage;
         var previous = index ? pages[index - 1].container.style : {};
         previous.MozTransition = '';
-        previous.MozTransform = 'translateX(' + (-windowWidth) + 'px)';
+        previous.MozTransform = 'translateX(' + (rtl*-windowWidth) + 'px)';
 
         var current = pages[index].container.style;
         current.MozTransition = '';
@@ -78,7 +79,7 @@ const GridManager = (function() {
         var next =
           index < pages.length - 1 ? pages[index + 1].container.style : {};
         next.MozTransition = '';
-        next.MozTransform = 'translateX(' + windowWidth + 'px)';
+        next.MozTransform = 'translateX(' + rtl*windowWidth + 'px)';
 
         var translate = 'translateX($px)';
         var startX = startEvent.clientX;
@@ -87,16 +88,16 @@ const GridManager = (function() {
         var refresh;
         if (index === 0) {
           refresh = function(e) {
-            if (deltaX <= 0) {
-              next.MozTransform = translate.replace('$', windowWidth + deltaX);
+            if ((rtl > 0 && deltaX <= 0) || (rtl < 0 && deltaX >= 0)) {
+              next.MozTransform = translate.replace('$', rtl*windowWidth + deltaX);
               current.MozTransform = translate.replace('$', deltaX);
             }
           };
         } else if (index === pages.length - 1) {
           refresh = function(e) {
-            if (deltaX >= 0) {
+            if ((rtl > 0 && deltaX >= 0) || (rtl < 0 && deltaX <= 0)) {
               previous.MozTransform =
-                translate.replace('$', -windowWidth + deltaX);
+                translate.replace('$', rtl*-windowWidth + deltaX);
               current.MozTransform = translate.replace('$', deltaX);
             }
           };
@@ -104,22 +105,22 @@ const GridManager = (function() {
           refresh = function(e) {
             if (deltaX >= 0) {
               previous.MozTransform =
-                translate.replace('$', -windowWidth + deltaX);
+                translate.replace('$', rtl*-windowWidth + deltaX);
 
               // If we change direction make sure there isn't any part
               // of the page on the other side that stays visible.
               if (!forward) {
                 forward = true;
-                next.MozTransform = translate.replace('$', windowWidth);
+                next.MozTransform = translate.replace('$', rtl*windowWidth);
               }
             } else {
-              next.MozTransform = translate.replace('$', windowWidth + deltaX);
+              next.MozTransform = translate.replace('$', rtl*windowWidth + deltaX);
 
               // If we change direction make sure there isn't any part
               // of the page on the other side that stays visible.
               if (forward) {
                 forward = false;
-                previous.MozTransform = translate.replace('$', -windowWidth);
+                previous.MozTransform = translate.replace('$', rtl*-windowWidth);
               }
             }
 
@@ -300,7 +301,7 @@ const GridManager = (function() {
 
     previousPage.container.dispatchEvent(new CustomEvent('gridpagehidestart'));
     newPage.container.dispatchEvent(new CustomEvent('gridpageshowstart'));
-    previousPage.moveByWithEffect(-forward * windowWidth, duration);
+    previousPage.moveByWithEffect(GridManager.dirCtrl.offsetPrev* -forward * windowWidth, duration);
     newPage.moveByWithEffect(0, duration);
 
     container.addEventListener('transitionend', function transitionEnd(e) {
