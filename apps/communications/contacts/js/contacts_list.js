@@ -68,7 +68,10 @@ contacts.List = (function() {
 
   var load = function load(contacts, overlay) {
     if (overlay) {
-      Contacts.showOverlay();
+      setTimeout((function showOverlay() {
+        if (!this.loaded)
+          Contacts.showOverlay();
+      }).bind(this), 1000);
     }
     var onError = function() {
       console.log('ERROR Retrieving contacts');
