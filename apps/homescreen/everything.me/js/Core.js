@@ -64,10 +64,10 @@ window.Evme = new function Evme_Core() {
         if (source === "homeButtonClick") {
             if (
                 Evme.Brain.Shortcuts.hideIfEditing() ||
-                Evme.Brain.ShortcutsCustomize.isOpen() ||
+                Evme.Brain.ShortcutsCustomize.hideIfOpen() ||
                 Evme.Brain.ShortcutsCustomize.hideIfRequesting() ||
                 Evme.Brain.SmartFolder.hideIfOpen() ||
-                Evme.Brain.Apps.clearIfHas()
+                Evme.Searchbar.clearIfHasQuery()
             ) {
                 return true;
             }

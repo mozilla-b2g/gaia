@@ -1,9 +1,10 @@
 Evme.api = new function Evme_api() {
     var self = this,
-        DEFAULT_API_HOST = "api.everything.me",
-        API_VERSION = "2.1",
+        PROTOCOL = 'https',
+        DEFAULT_API_HOST = 'api.everything.me',
+        API_VERSION = '2.1',
         API_HOST = DEFAULT_API_HOST,
-        BASE_URL = "/everything/" + API_VERSION + "/",
+        BASE_URL = PROTOCOL + '://' + API_HOST + '/everything/' + API_VERSION + '/',
         USE_POST = true;
     
     this.init = function init() {
@@ -17,6 +18,10 @@ Evme.api = new function Evme_api() {
     
     this.getHost = function getHost() {
         return API_HOST;
+    };
+    
+    this.getBaseURL = function getBaseURL() {
+        return BASE_URL;
     };
     
     this.App = new function App() {
@@ -112,10 +117,9 @@ Evme.api = new function Evme_api() {
     function request(method, options, callback, isSecured) {
         !options && (options = {});
         
-        var protocol = (isSecured)? "https" : "http",
-            url = protocol + "://" + API_HOST + BASE_URL + method,
+        var url = BASE_URL + method,
             params = "",
-            request = new XMLHttpRequest();
+            httpRequest = new XMLHttpRequest();
         
         for (var k in options) {
             if (typeof options[k] !== "undefined") {
@@ -123,14 +127,14 @@ Evme.api = new function Evme_api() {
             }
         }
         
-        request.open("POST", url, true);
-        request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-        request.onreadystatechange = function onReadyStateChange(e) {
-            if (request.readyState == 4) {
+        httpRequest.open("POST", url, true);
+        httpRequest.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+        httpRequest.onreadystatechange = function onReadyStateChange(e) {
+            if (httpRequest.readyState == 4) {
                 var response = null;
                 
                 try {
-                    response = JSON.parse(request.responseText);
+                    response = JSON.parse(httpRequest.responseText);
                 } catch(ex){}
                 
                 if (response) {
@@ -138,10 +142,10 @@ Evme.api = new function Evme_api() {
                 }
             }
         };
-        request.withCredentials = true;
-        request.send(params);
+        httpRequest.withCredentials = true;
+        httpRequest.send(params);
         
-        return request;
+        return httpRequest;
     }
     
     self.init();

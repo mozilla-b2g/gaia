@@ -38,7 +38,19 @@ Evme.Utils = new function Evme_Utils() {
     };
     
     this.log = function log(message) {
-        dump("(" + (new Date().getTime()) + ") DOAT: " + message);
+        var t = new Date(),
+            h = t.getHours(),
+            m = t.getMinutes(),
+            s = t.getSeconds(),
+            ms = t.getMilliseconds();
+        
+        h < 10 && (h = '0' + h);
+        m < 10 && (m = '0' + m);
+        s < 10 && (s = '0' + s);
+        ms < 10 && (ms = '00' + ms) ||
+        ms < 100 && (ms = '0' + ms);
+        
+        dump("[" + [h, m, s, ms].join(':') + " EVME]: " + message);
     };
     
     this.l10n = function l10n(module, key, args) {
@@ -70,6 +82,11 @@ Evme.Utils = new function Evme_Utils() {
             translation = text[currentLang] || text[firstLanguage] || '';
         
         return translation;
+    };
+    
+    this.shortcutIdToKey = function l10nShortcutKey(experienceId) {
+        var map = Evme.__config.shortcutIdsToL10nKeys || {};
+        return map[experienceId.toString()] || experienceId;
     };
     
     this.sendToOS = function sendToOS(type, data) {
@@ -179,7 +196,7 @@ Evme.Utils = new function Evme_Utils() {
     };
 
     this.isOnline = function isOnline(callback) {
-        Connection.online(callback);
+       Connection.online(callback);
     };
 
     this.getUrlParam = function getUrlParam(key) {

@@ -32,25 +32,36 @@ section[role="region"] {
 
 /**
  * Panel targets -- transitions
- * the `.previous' and '.current' classes are set by settings.js
+ * the `.previous', '.current' and '.forward' classes are set by settings.js
+ * we use the '.peek' class to force the rendering of the panel before
+ * starting the transition, thus avoiding an ugly flickering with gecko 18
  */
-
-.uninit section[role="region"] {
-  transition: none;
-}
 
 section[role="region"] {
   transform: translateX(+100%);
   transition: transform .4s ease;
 }
+section[role="region"].peek {
+  transition: transform 1ms linear;
+  transform: translateX(+0.1%);
+}
 
 section[role="region"].previous {
   transform: translateX(-100%);
+}
+section[role="region"].previous.peek {
+  transform: translateX(-0.1%);
 }
 
 section[role="region"].current {
   transform: translateX(0);
   overflow-y: scroll;
+}
+section[role="region"].current.peek.forward {
+  transform: translateX(99.9%);
+}
+section[role="region"].current.peek {
+  transform: translateX(-99.9%);
 }
 
 /**
@@ -64,7 +75,6 @@ section[role="region"] > header:first-child {
 section[role="region"] > header:first-child + * {
   margin-top: 5rem;
 }
-
 
 /******************************************************************************
  * Explanation texts
@@ -124,13 +134,39 @@ section[data-security*="EAP"] li.identity {
   display: block;
 }
 
-/* 'show password' checkboxes */
-label[for^="pwd"] {
-  margin-top: -1rem;
-  padding-left: 3rem;
+section li.password {
+  display: block; /*asf*/
+  height: 12rem;
+  padding-right: 0;
+}
+
+section li.password > label {
+  top: 8.6rem;
+  left: 3rem;
+  width: calc(100% - 6rem);
   height: 3rem;
-  line-height: 3rem;
+  z-index: 1;
+}
+
+section li.password > label > span {
+  left: 1.1rem;
+  right: auto;
+}
+
+section li.password > span {
+  position: absolute;
+  top: 8.6rem;
+  left: 6rem;
+  padding: 0;
+  height: 3rem;
+  color: #848484;
   font-size: 1.7rem;
+  line-height: 3rem;
+}
+
+section li.password > p {
+  padding: 0 3rem;
+  line-height: 4.4rem;
 }
 
 
@@ -194,18 +230,6 @@ label[for^="pwd"] {
 
 .apnSettings-advanced {
   padding-bottom: 1em;
-}
-
-
-/******************************************************************************
- * Sound settings
- */
-
-.tone-select {
-  width: 50%;
-  position: absolute;
-  right: 1rem;
-  left: auto;
 }
 
 

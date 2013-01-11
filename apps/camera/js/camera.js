@@ -85,12 +85,9 @@ var Camera = {
     image: {prefix: 'IMG_'}
   },
 
-  // Because we dont want to wait for the geolocation query
-  // before we can take a photo, we keep a track of the users
-  // position, when the camera jumps into foreground or every
-  // 10 minutes
-  POSITION_TIMEOUT: 1000 * 60 * 10,
-  _positionTimer: null,
+  PROMPT_DELAY: 2000,
+
+  _watchId: null,
   _position: null,
 
   _pendingPick: null,
@@ -166,7 +163,6 @@ var Camera = {
     this._shutterSound.mozAudioChannelType = 'publicnotification';
     this._storageState = this.STORAGE_INIT;
     this.setCaptureMode(this.CAMERA);
-    this.initPositionUpdate();
 
     // We lock the screen orientation and deal with rotating
     // the icons manually
@@ -541,6 +537,7 @@ var Camera = {
       viewfinder.mozSrcObject = stream;
       viewfinder.play();
       this.checkStorageSpace();
+      setTimeout(this.initPositionUpdate.bind(this), this.PROMPT_DELAY);
     }
 
     function gotCamera(camera) {
@@ -603,7 +600,6 @@ var Camera = {
     this.viewfinder.play();
     this.setSource(this._camera);
     this._previewActive = true;
-    this.initPositionUpdate();
   },
 
   stopPreview: function camera_stopPreview() {
@@ -614,8 +610,6 @@ var Camera = {
     this.viewfinder.pause();
     this._previewActive = false;
     this.viewfinder.mozSrcObject = null;
-    this.cancelPositionUpdate();
-
     this.release();
   },
 
@@ -850,29 +844,25 @@ var Camera = {
   },
 
   initPositionUpdate: function camera_initPositionUpdate() {
-    if (this._positionTimer) {
+    if (this._watchId || document.mozHidden) {
       return;
     }
-    this._positionTimer = setInterval(this.updatePosition.bind(this),
-                                      this.POSITION_TIMEOUT);
-    this.updatePosition();
+    this._watchId = navigator.geolocation
+      .watchPosition(this.updatePosition.bind(this));
   },
 
-  updatePosition: function camera_updatePosition() {
-    var self = this;
-    navigator.geolocation.getCurrentPosition(function(position) {
-      self._position = {
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude
-      };
-    }, function() {
-      console.warn('Camera: Could not fetch location');
-    });
+  updatePosition: function camera_updatePosition(position) {
+    this._position = {
+      timestamp: position.timestamp,
+      altitude: position.coords.altitude,
+      latitude: position.coords.latitude,
+      longitude: position.coords.longitude
+    };
   },
 
   cancelPositionUpdate: function camera_cancelPositionUpdate() {
-    window.clearInterval(this._positionTimer);
-    this._positionTimer = null;
+    navigator.geolocation.clearWatch(this._watchId);
+    this._watchId = null;
   },
 
   release: function camera_release(callback) {
@@ -899,6 +889,7 @@ document.addEventListener('mozvisibilitychange', function() {
   if (document.mozHidden) {
     Camera.stopPreview();
     Camera.cancelPick();
+    Camera.cancelPositionUpdate();
     if (this._secureMode) // If the lockscreen is locked
       Filmstrip.clear();  // then forget everything when closing camera
   } else {

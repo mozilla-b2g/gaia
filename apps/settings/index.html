@@ -59,7 +59,7 @@
 
     <!-- all non-#root panels will lazy-load their own scripts -->
   </head>
-  <body class="skin-organic uninit">
+  <body class="skin-organic">
 
     <!--
       - Lazy-Loading: to avoid parsing all settings panels before necessary, the
@@ -143,12 +143,13 @@
           <input type="text" data-ignore name="identity" />
         </li>
         <li class="password">
+          <label>
+            <input type="checkbox" data-ignore name="show-pwd" id="pwd-auth" />
+            <span></span>
+          </label>
+          <span data-l10n-id="showPassword">show password</span>
           <p data-l10n-id="password">password</p>
           <input type="password" data-ignore name="password" maxlength="63" x-inputmode="verbatim" />
-          <label for="pwd-auth">
-            <input type="checkbox" data-ignore name="show-pwd" id="pwd-auth" />
-            <span data-l10n-id="showPassword">show password</span>
-          </label>
         </li>
       </ul>
       -->
@@ -171,26 +172,29 @@
           <input type="text" data-ignore name="ssid" />
         </li>
         <li>
-          <span data-l10n-id="security">security
+          <p data-l10n-id="security">Security</p>
+          <p class="fake-select">
+            <button class="icon icon-dialog">empty</button>
             <select>
               <option data-l10n-id="securityNone">none</option>
               <option>WEP</option>
               <option selected>WPA-PSK</option>
               <option>WPA-EAP</option>
             </select>
-          </span>
+          </p>
         </li>
         <li class="identity">
           <p data-l10n-id="identity">identity</p>
           <input type="text" data-ignore name="identity" />
         </li>
         <li class="password">
+          <label>
+            <input type="checkbox" data-ignore name="show-pwd" id="pwd-joinHidden" />
+            <span></span>
+          </label>
+          <span data-l10n-id="showPassword">show password</span>
           <p data-l10n-id="password">password</p>
           <input type="password" data-ignore name="password" maxlength="63" />
-          <label for="pwd-joinHidden">
-            <input type="checkbox" data-ignore name="show-pwd" id="pwd-joinHidden" />
-            <span data-l10n-id="showPassword">show password</span>
-          </label>
         </li>
       </ul>
       -->
@@ -529,13 +533,15 @@
 
       <ul>
         <li>
-          <span data-l10n-id="operator-networkType">Network Type
+          <p data-l10n-id="operator-networkType">Network Type</p>
+          <p class="fake-select">
+            <button class="icon icon-dialog">empty</button>
             <select name="ril.radio.preferredNetworkType" id="preferredNetworkType">
               <option data-l10n-id="operator-networkType-auto" value="wcdma/gsm">Automatic</option>
               <option data-l10n-id="operator-networkType-2G" value="gsm">2G only</option>
               <option data-l10n-id="operator-networkType-3G" value="wcdma">3G only</option>
             </select>
-          </span>
+          </p>
         </li>
         <li id="operator-autoSelect">
           <label>
@@ -888,13 +894,15 @@
           <input type="text" data-setting="tethering.wifi.security.password" />
         </li>
         <li>
-          <span data-l10n-id="wifi-security">Security
+          <p data-l10n-id="wifi-security">Security</p>
+          <p class="fake-select">
+            <button class="icon icon-dialog">Security</button>
             <select data-setting="tethering.wifi.security.type">
               <option value="open" data-l10n-id="hotspot-open">open</option>
               <option value="wpa-psk" data-l10n-id="hotspot-wpa-psk">WPA (TKIP)</option>
               <option value="wpa2-psk" data-l10n-id="hotspot-wpa2-psk">WPA2 (AES)</option>
             </select>
-          </span>
+          </p>
         </li>
       </ul>
       -->
@@ -1037,9 +1045,10 @@
       </header>
       <ul>
         <li>
-          <span data-l10n-id="ringer">Ringer
+          <p data-l10n-id="ringer">Ringer</p>
+          <p class="fake-select">
             <button id="call-tone-selection" class="tone-select" data-l10n-id="change"></button>
-          </span>
+          </p>
         </li>
       </ul>
 
@@ -1108,13 +1117,16 @@
         </li>
         <li id="screen-timeout">
           <p data-l10n-id="screen-timeout">Screen Timeout</p>
-          <select name="screen.timeout" data-value-type="integer">
-            <option value="60"  data-l10n-id="one-minute" selected>1 minute</option>
-            <option value="120" data-l10n-id="two-minutes"> 2 minutes</option>
-            <option value="300" data-l10n-id="five-minutes">5 minutes</option>
-            <option value="600" data-l10n-id="ten-minutes">10 minutes</option>
-            <option value="0"   data-l10n-id="never">Never</option>
-          </select>
+          <p class="fake-select">
+            <button class="icon icon-dialog">empty</button>
+            <select name="screen.timeout" data-value-type="integer">
+              <option value="60"  data-l10n-id="one-minute" selected>1 minute</option>
+              <option value="120" data-l10n-id="two-minutes"> 2 minutes</option>
+              <option value="300" data-l10n-id="five-minutes">5 minutes</option>
+              <option value="600" data-l10n-id="ten-minutes">10 minutes</option>
+              <option value="0"   data-l10n-id="never">Never</option>
+            </select>
+          </p>
         </li>
       </ul>
 
@@ -1197,14 +1209,18 @@
       </header>
       <ul id="timezone">
         <li>
-          <span data-l10n-id="tz-region">Region
+          <p data-l10n-id="tz-region">Region</p>
+          <p class="fake-select">
+            <button class="icon icon-dialog">empty</button>
             <select id="timezone-region"></select>
-          </span>
+          </p>
         </li>
         <li>
-          <span data-l10n-id="tz-city">City
+          <p data-l10n-id="tz-city">City</p>
+          <p class="fake-select">
+            <button class="icon icon-dialog">empty</button>
             <select id="timezone-city"></select>
-          </span>
+          </p>
         </li>
       </ul>
 
@@ -1225,12 +1241,16 @@
 
       <ul>
         <li>
-          <span data-l10n-id="language">Language
+          <p data-l10n-id="language">Language</p>
+          <p class="fake-select">
+            <button class="icon icon-dialog">Language</button>
             <select name="language.current"></select>
-          </span>
+          </p>
         </li>
         <li hidden>
-          <span data-l10n-id="region">Region
+          <p data-l10n-id="region">Region</p>
+          <p class="fake-select">
+            <button class="icon icon-dialog">empty</button>
             <select name="region.current">
               <option value="BR">Brasil</option>
               <option value="CO">Columbia</option>
@@ -1242,7 +1262,7 @@
               <option value="US">United States</option>
               <option value="VZ">Venezuela</option>
             </select>
-          </span>
+          </p>
         </li>
       </ul>
 
@@ -1425,14 +1445,17 @@
         </li>
         <li class="passcode-enabled" id="passcode-timeout-row">
           <p data-l10n-id="require-passcode">Require passcode</p>
-          <select name="lockscreen.passcode-lock.timeout">
-            <option value="0" data-l10n-id="immediately" selected>Immediately</option>
-            <option value="60" data-l10n-id="after-one-minute">After 1 minute</option>
-            <option value="300" data-l10n-id="after-five-minutes">After 5 minutes</option>
-            <option value="900" data-l10n-id="after-fifteen-minutes">After 15 minutes</option>
-            <option value="3600" data-l10n-id="after-one-hour">After 1 hour</option>
-            <option value="14400" data-l10n-id="after-four-hours">After 4 hours</option>
-          </select>
+          <p class="fake-select">
+            <button class="icon icon-dialog">empty</button>
+            <select name="lockscreen.passcode-lock.timeout">
+              <option value="0" data-l10n-id="immediately" selected>Immediately</option>
+              <option value="60" data-l10n-id="after-one-minute">After 1 minute</option>
+              <option value="300" data-l10n-id="after-five-minutes">After 5 minutes</option>
+              <option value="900" data-l10n-id="after-fifteen-minutes">After 15 minutes</option>
+              <option value="3600" data-l10n-id="after-one-hour">After 1 hour</option>
+              <option value="14400" data-l10n-id="after-four-hours">After 4 hours</option>
+            </select>
+          </p>
         </li>
         <li class="passcode-enabled">
           <label>
@@ -1964,11 +1987,14 @@
       <ul>
         <li>
           <p data-l10n-id="check-for-updates">Check for Updates</p>
-          <select name="app.update.interval">
-            <option value="86400"   data-l10n-id="check-update-daily" selected>Daily</option>
-            <option value="604800"  data-l10n-id="check-update-weekly">Weekly</option>
-            <option value="2592000" data-l10n-id="check-update-monthly">Monthly</option>
-          </select>
+          <p class="fake-select">
+            <button class="icon icon-dialog">empty</button>
+            <select name="app.update.interval">
+              <option value="86400"   data-l10n-id="check-update-daily" selected>Daily</option>
+              <option value="604800"  data-l10n-id="check-update-weekly">Weekly</option>
+              <option value="2592000" data-l10n-id="check-update-monthly">Monthly</option>
+            </select>
+          </p>
         </li>
         <li>
           <label>
@@ -2045,12 +2071,15 @@
         </li>
         <li>
           <p data-l10n-id="turnOnAuto">Turn on automatically</p>
-          <select name="powersave.threshold">
-            <option value="0.05" data-l10n-id="powerSave-threshold" data-l10n-args='{"level":  "5"}'> 5% battery left</option>
-            <option value="0.15" data-l10n-id="powerSave-threshold" data-l10n-args='{"level": "15"}'>15% battery left</option>
-            <option value="0.25" data-l10n-id="powerSave-threshold" data-l10n-args='{"level": "25"}'>25% battery left</option>
-            <option value="0" data-l10n-id="never">Never</option>
-          </select>
+          <p class="fake-select">
+            <button class="icon icon-dialog">empty</button>
+            <select name="powersave.threshold">
+              <option value="0.05" data-l10n-id="powerSave-threshold" data-l10n-args='{"level":  "5"}'> 5% battery left</option>
+              <option value="0.15" data-l10n-id="powerSave-threshold" data-l10n-args='{"level": "15"}'>15% battery left</option>
+              <option value="0.25" data-l10n-id="powerSave-threshold" data-l10n-args='{"level": "25"}'>25% battery left</option>
+              <option value="0" data-l10n-id="never">Never</option>
+            </select>
+          </p>
         </li>
         <li class="description" data-l10n-id="powerSave-expl">
           Turning on Power Save Mode turns off the phone’s Data, Bluetooth, and

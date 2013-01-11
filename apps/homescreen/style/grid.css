@@ -80,6 +80,10 @@
 	text-overflow: '';
 }
 
+li:active > div > img {
+  filter: url('app_tapped_filter.svg#blur');
+}
+
 /* text label */
 .apps ol > li > div > span > span {
   font-size: -moz-calc(5.75 * 0.226rem); /* was 5pt */

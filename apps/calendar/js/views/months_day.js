@@ -41,9 +41,8 @@ Calendar.ns('Views').MonthsDay = (function() {
 
     _updateHeader: function() {
       var header = this.header;
-      var template = navigator.mozL10n.get(
-        'agenda-date-format'
-      );
+      var formatName = 'agenda-date-format';
+      var template = navigator.mozL10n.get(formatName);
 
       // maybe we should localize this output ?
       var format = this.app.dateFormat.localeFormat(
@@ -53,7 +52,7 @@ Calendar.ns('Views').MonthsDay = (function() {
 
       header.textContent = format;
       header.dataset.date = this.date.toString();
-      header.dataset.l10nDateFormat = template;
+      header.dataset.l10nDateFormat = formatName;
     },
 
     handleEvent: function(e) {

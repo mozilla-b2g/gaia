@@ -37,17 +37,21 @@ var AttentionScreen = {
     this.bar.addEventListener('click', this.show.bind(this));
     window.addEventListener('home', this.hide.bind(this));
     window.addEventListener('holdhome', this.hide.bind(this));
+    window.addEventListener('appwillopen', this.hide.bind(this));
   },
 
   resize: function as_resize(evt) {
-    if (!this.isFullyVisible())
-      return;
-
     if (evt.type == 'keyboardchange') {
+      if (!this.isFullyVisible())
+        return;
+
       this.attentionScreen.style.height =
         window.innerHeight - evt.detail.height + 'px';
     } else if (evt.type == 'keyboardhide') {
-      this.attentionScreen.style.height = window.innerHeight + 'px';
+      // We still need to reset the height property even when the attention
+      // screen is not fully visible, or it will overrides the height
+      // we defined with #attention-screen.status-mode
+      this.attentionScreen.style.height = '';
     }
   },
 

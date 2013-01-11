@@ -129,8 +129,14 @@ var PairView = {
         }
         break;
       case 'resize':
-        this.close();
+      // XXX: this is hack that we have to close the attention in this case,
+      // while in most other cases, we would just change it into an active
+      // status bar
+        if (window.innerHeight < 200) {
+          this.close();
+        }
         break;
+
       default:
         break;
     }

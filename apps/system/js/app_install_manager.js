@@ -75,6 +75,7 @@ var AppInstallManager = {
     var apps = e.detail.applications;
 
     Object.keys(apps)
+      .filter(function(key) { return apps[key].installState === 'pending'; })
       .map(function(key) { return apps[key]; })
       .forEach(this.prepareForDownload, this);
   },
