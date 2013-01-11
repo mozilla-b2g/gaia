@@ -1,43 +1,63 @@
 Evme.Location = new function Evme_Location() {
-    var NAME = "Location", self = this;
+    var NAME = 'Location', self = this,
+        lastUpdateTime = 0,
+        requestTimeout = 'FROM CONFIG',
+        refreshInterval = 'FROM CONFIG';
     
     this.init = function init(options) {
         options || (options = {});
         
-        Evme.EventHandler.trigger(NAME, "init");
+        refreshInterval = options.refreshInterval;
+        requestTimeout = options.requestTimeout;
+        
+        Evme.EventHandler.trigger(NAME, 'init');
     };
     
-    this.requestUserLocation = function requestUserLocation(onSuccess, onError) {
+    this.requestUserLocation = function requestUserLocation() {
         var hadError = false;
         
+        // this method prevents double error-reporting
+        // in case we get both error and timeout, for example
         function reportError(data) {
             if (!hadError) {
                 hadError = true;
                 cbError(data);
-                onError && onError(data);
             }
         }
         
-        cbLocationRequest();
+        cbRequest();
         
         navigator.geolocation.getCurrentPosition(function onLocationSuccess(data){
             if (!data || !data.coords) {
                 reportError(data);
             } else if (!hadError) {
-                onSuccess && onSuccess(data);
-                cbLocationSuccess(data);
+                cbSuccess(data);
             }
         }, reportError,
-        { timeout: 2000 });
+        { "timeout": requestTimeout });
     };
     
-    function cbLocationRequest() {
-        Evme.EventHandler.trigger(NAME, "requesting");
+    this.updateIfNeeded = function updateIfNeeded() {
+        if (self.shouldUpdate()) {
+            self.requestUserLocation();
+            return true;
+        }
+        return false;
+    };
+    
+    this.shouldUpdate = function shouldUpdate() {
+        return Date.now() - lastUpdateTime > refreshInterval;
+    };
+    
+    function cbRequest() {
+        Evme.EventHandler.trigger(NAME, "request");
     }
     
-    function cbLocationSuccess(data) {
+    function cbSuccess(data) {
+        lastUpdateTime = Date.now();
+        
         Evme.EventHandler.trigger(NAME, "success", {
-            "data": data
+            "position": data
         });
     }
     
