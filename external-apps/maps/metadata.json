@@ -1,4 +1,6 @@
 {
-  "origin": "http://m.here.com/",
-  "launch_path": "/welcome.html"
+  "origin": "http://m.here.com",
+  "installOrigin": "https://marketplace.firefox.com",
+  "manifestURL": "http://m.here.com/update.manifest",
+  "type": "web"
 }

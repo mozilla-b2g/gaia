@@ -97,8 +97,7 @@ let customize = {"homescreens": [
     ["apps", "gallery"],
     ["apps", "fm"],
     ["apps", "settings"],
-    ["external-apps", "marketplace"],
-    ["external-apps", "maps"]
+    ["external-apps", "marketplace"]
   ], [
     ["apps", "calendar"],
     ["apps", "clock"],
