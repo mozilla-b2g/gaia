@@ -218,7 +218,9 @@ const GridManager = (function() {
         page = page - 1;
       }
     }
-    goToPage(page);
+    if (currentPage !== page) {
+      goToPage(page);
+    }
   }
 
   function attachEvents() {
