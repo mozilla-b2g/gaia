@@ -31,6 +31,10 @@ var KeyboardManager = (function() {
   // Listen for mozbrowserlocationchange of keyboard iframe.
   var previousHash = '';
 
+  // Track current state of keyboard.
+  // There're only two states: show or hide.
+  var state = '#hide';
+
   var urlparser = document.createElement('a');
   keyboard.addEventListener('mozbrowserlocationchange', function(e) {
     urlparser.href = e.detail;
@@ -39,6 +43,7 @@ var KeyboardManager = (function() {
     previousHash = urlparser.hash;
 
     var type = urlparser.hash.split('=');
+    state = type[0];
     switch (type[0]) {
       case '#show':
         var updateHeight = function updateHeight() {
@@ -49,12 +54,16 @@ var KeyboardManager = (function() {
             return;
           }
 
+          // Only dispatch change event when current state is #show.
+          if (state == '#show')
+            return;
+
           var detail = {
             'detail': {
               'height': parseInt(type[1])
             }
           };
-
+          
           dispatchEvent(new CustomEvent('keyboardchange', detail));
         }
 
