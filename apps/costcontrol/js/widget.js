@@ -273,7 +273,7 @@
             var activity = result.data;
             document.getElementById('telephony-calltime').innerHTML =
               _('magnitude', {
-                value: (activity.calltime / 60).toFixed(0),
+                value: computeTelephonyMinutes(activity),
                 unit: 'min'
               }
             );
