@@ -149,8 +149,8 @@ Icon.prototype = {
 
     // If we already have locally cached data, load the image right away.
     if (icon.indexOf('data:') == 0) {
-       this.loadImageData();
-       return;
+      this.loadImageData();
+      return;
     }
 
     var self = this;
@@ -162,7 +162,7 @@ Icon.prototype = {
     } catch (e) {
       console.error('Got an exception when trying to load icon "' + icon +
           '", falling back to default icon. Exception is:', e);
-      this.loadImageData();
+      this.loadCachedIcon();
       return;
     }
 
@@ -171,15 +171,23 @@ Icon.prototype = {
         return;
 
       if (xhr.status != 0 && xhr.status != 200) {
-        self.loadImageData();
+        self.loadCachedIcon();
         return;
       }
       self.loadImageData(xhr.response);
     };
 
     xhr.onerror = function saveIcon_onerror() {
-      self.loadImageData();
+      self.loadCachedIcon();
     };
+  },
+
+  loadCachedIcon: function icon_loadCachedImage() {
+    if ('oldRenderedIcon' in this.descriptor) {
+      this.renderBlob(this.descriptor.oldRenderedIcon);
+    } else {
+      this.loadImageData();
+    }
   },
 
   loadImageData: function icon_loadImageData(blob) {
@@ -325,6 +333,7 @@ Icon.prototype = {
         descriptor.icon == oldDescriptor.icon) {
       this.descriptor.renderedIcon = oldDescriptor.renderedIcon;
     } else {
+      this.descriptor.oldRenderedIcon = oldDescriptor.renderedIcon;
       this.fetchImageData();
     }
     if (descriptor.updateTime != oldDescriptor.updateTime ||
