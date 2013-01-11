@@ -525,9 +525,6 @@ window.addEventListener('load', function loadSettings() {
   var oldHash = window.location.hash || '#root';
   function showPanel() {
     var hash = window.location.hash;
-    if (oldHash == hash) {
-      return;
-    }
 
     var oldPanel = document.querySelector(oldHash);
     var newPanel = document.querySelector(hash);
