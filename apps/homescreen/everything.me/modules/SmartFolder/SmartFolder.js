@@ -101,7 +101,7 @@ Evme.SmartFolder = function Evme_SartFolder(_options) {
                 "isMore": offset > 0,
                 "iconsFormat": iconsFormat,
                 "elList": elApps,
-                "onDone": function onAppsPrintComplete(group, appsList) {
+                "onDone": function onAppsPrintComplete(appsList) {
                     if (areInstalledApps && apps && apps.length) {
                         self.addInstalledSeparator();
                     }
