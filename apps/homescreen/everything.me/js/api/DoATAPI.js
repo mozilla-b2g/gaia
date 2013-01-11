@@ -446,7 +446,7 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         }, options._NOCACHE);
     };
     
-    this.setLocation = function setLocation(lat, lon, callback) {
+    this.setLocation = function setLocation(lat, lon) {
         userLat = lat;
         userLon = lon;
         
