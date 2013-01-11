@@ -6,7 +6,7 @@
 if (!navigator.mozSms) {
 
   // We made up a fake database on
-  var messagesHack = [];
+  var messagesHack = [], threadsHack = [];
   (function() {
     var messages = [
       {
@@ -37,22 +37,6 @@ if (!navigator.mozSms) {
       },
       {
         sender: null,
-        receiver: '197743797',
-        body: 'Nothing :)',
-        delivery: 'sent',
-        id: 50,
-        timestamp: new Date(Date.now() - 322800000)
-      },
-      {
-        sender: null,
-        receiver: '16797',
-        body: 'Nothing :)',
-        delivery: 'sent',
-        id: 49,
-        timestamp: new Date(Date.now() - 482800000)
-      },
-      {
-        sender: null,
         receiver: '197743697',
         body: 'Nothing :)',
         delivery: 'sent',
@@ -61,7 +45,7 @@ if (!navigator.mozSms) {
       },
       {
         sender: null,
-        receiver: '436797',
+        receiver: '197746797',
         body: 'Error message:)',
         delivery: 'sending',
         error: true,
@@ -77,48 +61,7 @@ if (!navigator.mozSms) {
         timestamp: new Date(Date.now() - 1002800000)
       },
       {
-        sender: null,
-        receiver: '177743697',
-        body: 'Nothing :)',
-        delivery: 'sent',
-        id: 45,
-        timestamp: new Date(Date.now() - 1172800000)
-      },
-      {
-        sender: null,
-        receiver: '1977743',
-        body: 'Nothing :)',
-        delivery: 'sent',
-        id: 44,
-        timestamp: new Date(Date.now() - 1352800000)
-      },
-      {
-        sender: null,
-        receiver: '19776797',
-        body: 'Nothing :)',
-        delivery: 'sent',
-        id: 43,
-        timestamp: new Date(Date.now() - 200000000)
-      },
-      {
-        sender: null,
-        receiver: '436797',
-        body: 'Enviado :)',
-        delivery: 'sent',
-        id: 42,
-        timestamp: new Date(Date.now() - 230000000)
-      },
-
-      {
-        sender: null,
-        receiver: '436797',
-        body: 'Enviado 2 :)',
-        delivery: 'sent',
-        id: 41,
-        timestamp: new Date(Date.now() - 44000000)
-      },
-      {
-        sender: '436797',
+        sender: '197746797',
         body: 'Recibido!',
         delivery: 'received',
         id: 40,
@@ -137,6 +80,40 @@ if (!navigator.mozSms) {
     }
 
     messagesHack = messages;
+
+    // Creating threads:
+    threadsHack = [
+      {
+        senderOrReceiver: '1977',
+        body: 'Alo, how are you today, my friend? :)',
+        timestamp: new Date(Date.now()),
+        unreadCount: 0
+      },
+      {
+        senderOrReceiver: '436797',
+        body: 'Sending :)',
+        timestamp: new Date(Date.now() - 172800000),
+        unreadCount: 0
+      },
+      {
+        senderOrReceiver: '197743697',
+        body: 'Nothing :)',
+        timestamp: new Date(Date.now() - 652800000),
+        unreadCount: 0
+      },
+      {
+        senderOrReceiver: '197746797',
+        body: 'Recibido!',
+        timestamp: new Date(Date.now() - 50000000),
+        unreadCount: 0
+      },
+      {
+        senderOrReceiver: '14886783487',
+        body: 'Hello world!',
+        timestamp: new Date(Date.now() - 60000000),
+        unreadCount: 2
+      }
+    ] 
   })();
 
   var GetMessagesHack = function gmhack(callback, filter, invert, cllbckArgs) {
@@ -175,6 +152,14 @@ if (!navigator.mozSms) {
 
   MessageManager.getMessages = function(callback, filter, invert, cllbckArgs) {
     GetMessagesHack(callback, filter, invert, cllbckArgs);
+    return;
+  };
+
+  MessageManager.getThreads = function(callback, extraArg) {
+    threadsHack.sort(function(a,b){
+      return a.timestamp - b.timestamp;
+    });
+    callback(threadsHack, extraArg);
     return;
   };
 
