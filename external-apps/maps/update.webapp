@@ -1,0 +1,24 @@
+{
+  "name": "HERE Maps",
+  "description": "Get HERE and feel at home any place, no matter where you are. Know the places to go, get reviews and uncover new destinations with tips from locals and trusted guides. Discover places nearby in a snap. Getting to where you want to be is easy with smart routing for public transport, walking or driving. Life is too short to spend in traffic, Live traffic flow shows where not to go.",
+  "package_path": "/application.zip",
+  "developer": {
+    "name": "Nokia",
+    "url": "http://www.nokia.com"
+  },
+  "locales": {
+    "en-US": {
+      "name": "HERE Maps",
+      "description": "Get HERE and feel at home any place, no matter where you are. Know the places to go, get reviews and uncover new destinations with tips from locals and trusted guides. Discover places nearby in a snap. Getting to where you want to be is easy with smart routing for public transport, walking or driving. Life is too short to spend in traffic, Live traffic flow shows where not to go."
+    },
+    "es": {
+        "name": "HERE Maps",
+        "description": "Descargue la applicación HERE y siéntase como en casa en cualquier lugar, sin importar dónde se encuentre. Sepa dónde ir, lea reseñas y descubra destinos nuevos con consejos de lugareños y de guías de confianza. Descubra lugares cercanos en sólo un instante. Es fácil encontrar la forma de llegar con las rutas inteligentes para coche, transporte público o a pie. La vida es muy corta como para pasarla en un atasco, la información actual de tráfico le muestra dónde no ir."
+    },
+    "pt-BR": {
+      "name": "HERE Maps",
+      "description": "Obtenha HERE e sinta-se em casa em qualquer lugar, onde quer que você esteja. Saiba os melhores locais para ir, veja comentários e descubra novos destinos com dicas de residentes e guias reconhecidos. Descubra locais ao seu redor em um estalo. Chegar aonde você quer é fácil com as rotas de transporte público, pedestres ou carros. A vida é muito curta para ser desperdiçada em engarrafamentos, com o fluxo de tráfego em tempo real você também vê onde não ir."
+    }
+  },
+  "default_locale": "en-US"
+}
