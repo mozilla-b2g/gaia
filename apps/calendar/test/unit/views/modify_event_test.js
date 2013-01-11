@@ -141,13 +141,15 @@ suite('views/modify_event', function() {
     event = Factory('event', {
       calendarId: 'foo',
       remote: {
-        startDate: new Date(2012, 1, 1),
-        endDate: new Date(2012, 1, 5)
+        startDate: new Date(2012, 1, 1, 1),
+        endDate: new Date(2012, 1, 5, 1)
       }
     });
 
     busytime = Factory('busytime', {
-      eventId: event._id
+      eventId: event._id,
+      startDate: new Date(2012, 1, 1, 1),
+      endDate: new Date(2012, 1, 5, 1)
     });
 
     // add account & calendar to cache
@@ -264,7 +266,7 @@ suite('views/modify_event', function() {
       list = subject.element.classList;
     });
 
-    function updatesValues() {
+    function updatesValues(overrides) {
       // just to verify we actually clear fields...
       getField('title').value = 'foo';
       event.remote.description = '<span>foo</span>';
@@ -280,6 +282,12 @@ suite('views/modify_event', function() {
       };
 
       var key;
+
+      if (overrides) {
+        for (key in overrides) {
+          expected[key] = overrides[key];
+        }
+      }
 
       subject.onfirstseen();
       subject.useModel(busytime, event);
@@ -340,14 +348,14 @@ suite('views/modify_event', function() {
         calendarId: 'foo',
         remote: {
           isRecurring: true,
-          startDate: new Date(2012, 1, 1),
-          endDate: new Date(2012, 1, 5)
+          startDate: new Date(2012, 1, 1, 1),
+          endDate: new Date(2012, 1, 5, 1)
         }
       });
       var busytimeRecurring = Factory('busytime', {
         eventId: eventRecurring._id,
-        startDate: new Date(2012, 10, 30),
-        endDate: new Date(2012, 10, 31)
+        startDate: new Date(2012, 10, 30, 1),
+        endDate: new Date(2012, 10, 31, 1)
       });
 
       subject.useModel(busytimeRecurring, eventRecurring);
@@ -366,7 +374,9 @@ suite('views/modify_event', function() {
     test('when start & end times are 00:00:00', function() {
       remote.startDate = new Date(2012, 0, 1);
       remote.endDate = new Date(2012, 0, 2);
-      updatesValues();
+      updatesValues({
+        endDate: '2012-01-01'
+      });
 
       var allday = subject.getField('allday');
       assert.isTrue(allday.checked, 'checks all day');
@@ -495,7 +505,7 @@ suite('views/modify_event', function() {
 
       assert.hasProperties(subject.formData(), {
         startDate: new Date(2012, 0, 1),
-        endDate: new Date(2012, 0, 2)
+        endDate: new Date(2012, 0, 3)
       });
     });
 
@@ -879,7 +889,7 @@ suite('views/modify_event', function() {
         assert.ok(!list.contains(subject.ALLDAY), 'has allday');
       });
 
-      test('when start & end are same dates', function() {
+      test('when start & end are same dates (all day)', function() {
         var model = subject.event;
         var date = new Date(2012, 0, 1);
         var value = InputParser.exportDate(date);
