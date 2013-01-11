@@ -277,6 +277,10 @@ var TrustedUIManager = {
         this._destroyDialog(evt.detail.origin);
         break;
       case 'appwillopen':
+        // Hiding trustedUI when coming from Activity
+        if (this.isVisible())
+          this.hideTrustedApp();
+
         // Ignore homescreen
         if (evt.target.classList.contains('homescreen'))
           return;
