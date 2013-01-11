@@ -73,6 +73,10 @@ Calendar.ns('Views').MonthsDay = (function() {
       var date = Calendar.Calc.createDay(new Date());
       this.changeDate(date);
       this._updateHeader();
+      
+      // calendar tooltip message
+      var tooltipMessage = "Swipe to navigate between calendar dates";
+	  TINY.box.show(tooltipMessage,0,0,0,0,3);
     }
   };
 
