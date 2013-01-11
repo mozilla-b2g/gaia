@@ -36,6 +36,25 @@ function copyRec(source, target) {
   }
 }
 
+// Returns the nsIPrincipal compliant integer
+// from the "type" property in manifests.
+function getAppStatus(status) {
+  let appStatus = 1; // By default, apps are installed
+  switch (status) {
+    case "certified":
+      appStatus = 3;
+      break;
+    case "privileged":
+      appStatus = 2;
+      break;
+    case "web":
+    default:
+      appStatus = 1;
+      break;
+  }
+  return appStatus;
+}
+
 Gaia.webapps.forEach(function (webapp) {
   // If BUILD_APP_NAME isn't `*`, we only accept one webapp
   if (BUILD_APP_NAME != '*' && webapp.sourceDirectoryName != BUILD_APP_NAME)
@@ -53,20 +72,7 @@ Gaia.webapps.forEach(function (webapp) {
   // appStatus == 3 means this is a certified app.
   // appStatus == 2 means this is a privileged app.
   // appStatus == 1 means this is an installed (unprivileged) app
-  
-  let appStatus = 1; // By default, apps are installed
-  switch (webapp.manifest.type) {
-    case "certified":
-      appStatus = 3;
-      break;
-    case "privileged":
-      appStatus = 2;
-      break;
-    case "web":
-    default:
-      appStatus = 1;
-      break;
-  }
+
   let url = webapp.url;
   manifests[webappTargetDirName] = {
     origin:        url,
@@ -74,7 +80,7 @@ Gaia.webapps.forEach(function (webapp) {
     receipt:       null,
     installTime:   INSTALL_TIME,
     manifestURL:   url + '/manifest.webapp',
-    appStatus:     appStatus,
+    appStatus:     getAppStatus(webapp.manifest.type),
     localId:       id++
   };
 
@@ -158,7 +164,8 @@ Gaia.externalWebapps.forEach(function (webapp) {
     removable:     removable,
     localId:       id++,
     etag:          etag,
-    packageEtag:   packageEtag
+    packageEtag:   packageEtag,
+    appStatus:     getAppStatus(webapp.metaData.type || "web"),
   };
 
 });
