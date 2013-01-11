@@ -76,11 +76,13 @@ var Settings = (function() {
     var mode;
     var dialog = document.getElementById('reset-confirmation-dialog');
 
-    var resetTelephony = document.getElementById('reset-telephony');
-    resetTelephony.addEventListener('click', function _onTelephonyReset() {
-      mode = 'telephony';
-      vmanager.changeViewTo(dialog.id);
-    });
+    var resetTelephonyButton = document.getElementById('reset-telephony');
+    resetTelephonyButton.addEventListener('click',
+      function _onTelephonyReset() {
+        mode = 'telephony';
+        vmanager.changeViewTo(dialog.id);
+      }
+    );
 
     var resetDataUsage = document.getElementById('reset-data-usage');
     resetDataUsage.addEventListener('click', function _onTelephonyReset() {
