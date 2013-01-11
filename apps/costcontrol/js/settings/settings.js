@@ -191,7 +191,7 @@ var Settings = (function() {
     var calltimeSpan = document.getElementById('calltime');
     var smscountSpan = document.getElementById('smscount');
     calltimeSpan.innerHTML = _('magnitude', {
-      value: Math.ceil(activity.calltime / 60000),
+      value: computeTelephonyMinutes(activity),
       unit: 'min.'
     });
     smscountSpan.innerHTML = _('magnitude', {
