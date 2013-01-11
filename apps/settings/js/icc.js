@@ -108,6 +108,16 @@
   }
 
   /**
+   * Send Terminal Response : UICC SESSION TERMINATED BY USER
+   */
+  function sendSessionEndTROnFocusLose() {
+    if (document.mozHidden)
+      responseSTKCommand({
+        resultCode: icc.STK_RESULT_UICC_SESSION_TERM_BY_USER
+      });
+  }
+
+  /**
    * Response ICC Command
    */
   function responseSTKCommand(response, force) {
@@ -552,6 +562,7 @@
 
     debug('STK Input title: ' + options.text);
 
+    document.addEventListener('mozvisibilitychange', sendSessionEndTROnFocusLose, true);
     var li = document.createElement('li');
     var p = document.createElement('p');
     p.id = 'stk-item-title';
