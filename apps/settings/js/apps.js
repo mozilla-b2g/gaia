@@ -323,7 +323,7 @@ var ApplicationsList = {
     var name = new ManifestHelper(this._displayedApp.manifest).name;
 
     if (confirm(_('uninstallConfirm', {app: name}))) {
-      this._displayedApp.uninstall();
+      navigator.mozApps.mgmt.uninstall(this._displayedApp);
       this._displayedApp = null;
     }
   },
