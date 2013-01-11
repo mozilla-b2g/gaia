@@ -65,32 +65,6 @@ Calendar.ns('Views').ModifyEvent = (function() {
       if (allday) {
         // enable case
         this.element.classList.add(this.ALLDAY);
-
-        var start = this.getField('startDate').value;
-        var end = this.getField('endDate').value;
-
-        // parse dates so we can determine if they match
-        start = InputParser.importDate(start);
-        end = InputParser.importDate(end);
-
-        // if the dates match then the end date
-        // needs to be incremented by one otherwise
-        // the times are exactly the same.
-        if (start.year === end.year &&
-            start.month === end.month &&
-            start.date === end.date) {
-
-          // XXX: ideally we could pass a non-date
-          // object into the input parser ?
-          end = InputParser.exportDate(new Date(
-            end.year,
-            end.month,
-            end.date + 1
-          ));
-
-          this.getField('endDate').value = end;
-        }
-
       } else {
         // disable case
         this.element.classList.remove(this.ALLDAY);
@@ -426,6 +400,16 @@ Calendar.ns('Views').ModifyEvent = (function() {
         endTime
       );
 
+      if (allday) {
+        // when the event is all day we display the same
+        // day that the entire event spans but we must actually
+        // end the event at the first second, minute hour of the next
+        // day. This will ensure the server handles it as an all day event.
+        fields.endDate.setDate(
+          fields.endDate.getDate() + 1
+        );
+      }
+
       return fields;
     },
 
@@ -449,16 +433,46 @@ Calendar.ns('Views').ModifyEvent = (function() {
 
       var dateSrc = model;
       if (model.remote.isRecurring && this.busytime) {
-          dateSrc = this.busytime;
+        dateSrc = this.busytime;
       }
+
+      var startDate = dateSrc.startDate;
+      var endDate = dateSrc.endDate;
+
+      // update the allday status of the view
+      var allday = this.getField('allday');
+      if (allday && (allday.checked = model.isAllDay)) {
+        this._toggleAllDay();
+
+        // when the event is something like this:
+        // 2012-01-02 and we detect this is an all day event
+        // we want to display the end date like this 2012-01-02.
+        if (
+          endDate.getHours() === 0 &&
+          endDate.getSeconds() === 0 &&
+          endDate.getMinutes() === 0
+        ) {
+          // subtract the date to give the user a better
+          // idea of which dates the event spans...
+          endDate = new Date(
+            endDate.getFullYear(),
+            endDate.getMonth(),
+            endDate.getDate() - 1
+          );
+        }
+      }
+
       this.getField('startDate').value =
-        InputParser.exportDate(dateSrc.startDate);
+        InputParser.exportDate(startDate);
+
       this.getField('endDate').value =
-        InputParser.exportDate(dateSrc.endDate);
+        InputParser.exportDate(endDate);
+
       this.getField('startTime').value =
-        InputParser.exportTime(dateSrc.startDate);
+        InputParser.exportTime(startDate);
+
       this.getField('endTime').value =
-        InputParser.exportTime(dateSrc.endDate);
+        InputParser.exportTime(endDate);
 
       this.getField('description').textContent =
         model.description;
@@ -482,15 +496,6 @@ Calendar.ns('Views').ModifyEvent = (function() {
 
       // calendar display
       var currentCalendar = this.getField('currentCalendar');
-
-      // update the allday status of the view
-      var allday = this.getField('allday');
-      if (allday) {
-        allday.checked = model.isAllDay;
-        if (allday.checked) {
-          this.element.classList.add(this.ALLDAY);
-        }
-      }
 
       currentCalendar.value = calendar.name;
       currentCalendar.readOnly = true;
