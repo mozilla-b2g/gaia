@@ -197,7 +197,7 @@ var GaiaApps = {
    */
   uninstallWithName: function(name) {
     GaiaApps.locateWithName(name, function uninstall(app) {
-      app.uninstall();
+      navigator.mozApps.mgmt.uninstall(app);
       marionetteScriptFinished(false);
     });
   }
