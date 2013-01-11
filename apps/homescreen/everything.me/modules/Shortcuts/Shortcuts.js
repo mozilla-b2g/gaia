@@ -125,7 +125,7 @@ Evme.Shortcuts = new function Evme_Shortcuts() {
         var id = shortcut.getId();
         
         for (var i=0; i<shortcuts.length; i++) {
-            if (shortcuts[i].getId() == id) {
+            if (shortcuts[i].getId() === id) {
                 shortcuts.splice(i, 1);
                 return true;
             }
@@ -241,28 +241,35 @@ Evme.Shortcuts = new function Evme_Shortcuts() {
 }
 
 Evme.Shortcut = function Evme_Shortcut() {
-    var NAME = "Shortcut", self = this, cfg = null, id = "id"+Math.round(Math.random()*10000),
-        el = null, elThumb = null,  index = -1, query = "", image = "", imageLoadingRetry = 0,
+    var NAME = "Shortcut", self = this, cfg = null, id = 'id' + Math.round(Math.random()*10000),
+        el = null, elThumb = null,  index = -1, experienceId = '', query = '', image = '', imageLoadingRetry = 0,
         timeoutHold = null, removed = false,
-        posStart = [0, 0], timeStart = 0, fingerMoved = true;
+        posStart = [0, 0], timeStart = 0, fingerMoved = true,
         
-    var THRESHOLD = 5,
+        THRESHOLD = 5,
         TIME_BEFORE_CONTEXT = 600;
     
     this.init = function init(_cfg, _index) {
         cfg = _cfg;
         index = _index;
+        experienceId = cfg.experienceId;
         query = cfg.query;
         
-        if (!cfg.query) {
+        if (!query && !experienceId) {
             return null;
         }
         
-        el = Evme.$create('li', {'class': "shortcut", 'query': query}, 
+        el = Evme.$create('li', {'class': "shortcut", 'query': query},
                             '<span class="thumb"></span>' +
-                            '<b>' + cfg.query + '</b>' +
                             '<span class="remove"></span>'
                         );
+                        
+        var elName = Evme.$create('b', null, query);
+        if (experienceId) {
+            var l10nkey = 'id-' + Evme.Utils.shortcutIdToKey(experienceId);
+            elName.setAttribute('data-l10n-id', Evme.Utils.l10nKey(NAME, l10nkey));
+        }
+        el.appendChild(elName);
                         
         elThumb = Evme.$(".thumb", el)[0];
         
@@ -279,14 +286,12 @@ Evme.Shortcut = function Evme_Shortcut() {
             });
         }
         
-        Evme.$(".remove", el, function onItem(elRemove) {
-            elRemove.addEventListener("touchstart", function onClick(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                self.remove(e, false);
-                onRemove(e);
-            });
+        Evme.$(".remove", el)[0].addEventListener("touchstart", function onClick(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            self.remove(e, false);
+            onRemove(e);
         });
         
         return el;
@@ -313,6 +318,7 @@ Evme.Shortcut = function Evme_Shortcut() {
     this.getThumb = function getThumb() { return elThumb; };
     this.getId = function getId() { return id; };
     this.getQuery = function getQuery() { return query; };
+    this.getExperience = function getExperience() { return experienceId; };
     this.isCustom = function isCustom() { return cfg.isCustom; };
     
     function onRemove(e) {

@@ -56,8 +56,33 @@
       <li>Set data report and alert</li>
     </ol>
 
-    <!-- Step 1 -->
+   <!-- Global Step 1 -->
     <section role="region" class="view step" data-viewport="" id="step-1">
+      <header>
+        <h1 data-l10n-id="fte-welcome-title">Welcome</h1>
+      </header>
+      <section class="content">
+        <div class="authed-sim" aria-hidden="true">
+          <h2 data-l10n-id="fte-authed-sim">Save money by keeping track of your phone and internet usage.</h2>
+        </div>
+        <div class="nonauthed-sim" aria-hidden="true">
+          <h2 data-l10n-id="fte-nonauthed-sim">Save money by keeping track of your internet usage.</h2>
+        </div>
+        <div class="no-sim" aria-hidden="true">
+          <h2 data-l10n-id="fte-no-sim">Get clear information about how much internet you're using.</h2>
+        </div>
+        <p data-l10n-id="fte-sim-info" class="info">Information shown on usage comes directly from this device. Check with your mobile service provider for detailed account information.</p>
+      </section>
+      <menu>
+        <button class="recommend" data-navigation="next">
+          <span></span>
+          <span data-l10n-id="next">Next</span>
+        </button>
+      </menu>
+    </section>
+
+    <!-- Step 2 -->
+    <section role="region" class="view step" data-viewport="right" id="step-2">
       <header>
         <h1 data-l10n-id="select-plan-type">Select your plan type</h1>
       </header>
@@ -75,7 +100,11 @@
           </label>
         </li>
       </ul>
-      <menu>
+      <menu data-items="2">
+        <button data-navigation="back">
+          <span></span>
+          <span data-l10n-id="back">Back</span>
+        </button>
         <button id="to-step-2" class="recommend" data-navigation="next">
           <span></span>
           <span data-l10n-id="next">Next</span>
@@ -97,7 +126,8 @@
           <p data-l10n-id="low-balance-alert">Low Balance alert</p>
         </li>
         <li>
-          <label id="currency" class="end" for="ft-balance-alert-value">
+          <label class="end" for="ft-balance-alert-value">
+            <span id="currency"></span>
             <input class="settings-option" data-option="lowLimitThreshold" data-disable-on="lowLimit=false" type="number" id="ft-balance-alert-value">
           </label>
           <p data-l10n-id="low-balance-explanation">Alert me when I’m under</p>
@@ -281,7 +311,11 @@
           <p data-l10n-id="starting-on">Starting on</p>
         </li>
       </ul>
-      <menu data-items="1">
+      <menu data-items="2">
+        <button data-navigation="back">
+          <span></span>
+          <span data-l10n-id="back">Back</span>
+        </button>
         <button class="recommend" data-navigation="next">
           <span></span>
           <span data-l10n-id="next">Next</span>

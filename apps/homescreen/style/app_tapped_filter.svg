@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+ <filter id="blur">
+  <feColorMatrix type="matrix" values="0 0 0 0 0
+                                       0 1 0 0.1 0
+                                       0 0 1 0.2 0
+                                       0 0 0 1 0"/>
+ </filter>
+</svg>

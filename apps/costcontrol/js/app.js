@@ -11,19 +11,13 @@ var CostControlApp = (function() {
 
   'use strict';
 
+
   var costcontrol, initialized = false;
   window.addEventListener('DOMContentLoaded', function _onDOMReady() {
     var mobileConnection = window.navigator.mozMobileConnection;
 
-    // No SIM
-    if (!mobileConnection || mobileConnection.cardState === 'absent') {
-      //TODO: Add a message saying there is no functionality when no SIM
-      // then close
-      window.close();
-      return;
-
     // SIM is not ready
-    } else if (mobileConnection.cardState !== 'ready') {
+    if (mobileConnection.cardState !== 'ready') {
       debug('SIM not ready:', mobileConnection.cardState);
       mobileConnection.oniccinfochange = _onDOMReady;
 

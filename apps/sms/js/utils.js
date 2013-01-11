@@ -147,11 +147,14 @@ var Utils = {
           }
         }
         details.title = name;
-        details.carrier = phone.type + ' | ' +
-                          (carrierToShow || phone.value);
+        details.carrier = (carrierToShow || phone.value);
       } else { // no name of contact
         details.title = number;
-        details.carrier = phone.type + ' | ' + (phone.carrier || '');
+        details.carrier = (phone.carrier || '');
+      }
+
+      if (phone.type) {
+        details.carrier = phone.type + ' | ' + details.carrier;
       }
 
     } else { // we don't have a contact

@@ -617,6 +617,10 @@ Evme.App = function Evme_App(__cfg, __index, __isMore, parent) {
         
     };
     
+    this.isExternal = function isExternal() {
+        return cfg.isWeblink;
+    };
+    
     this.draw = function draw(_cfg) {
         if (_cfg) {
             self.init(_cfg);

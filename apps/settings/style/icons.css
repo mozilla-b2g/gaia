@@ -156,7 +156,7 @@
 /* secured networks */
 .wifi-secure {
   background-repeat: no-repeat;
-  background-position: right 1.5rem top 50%;
+  background-position: right 1.8rem top 50%;
   background-image: url(images/wifi_lock.png);
 }
 

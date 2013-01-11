@@ -49,6 +49,19 @@ suite('app', function() {
     var expected;
     var fmt;
     var id = 0;
+    var realL10n;
+    var l10nMap;
+
+    suiteSetup(function() {
+      realL10n = navigator.mozL10n.get;
+      navigator.mozL10n.get = function(name) {
+        return l10nMap[name] || '';
+      };
+    });
+
+    suiteTeardown(function() {
+      navigator.mozL10n.get = realL10n;
+    });
 
     function dateElement(date, format) {
       var el = document.createElement('span');
@@ -61,24 +74,26 @@ suite('app', function() {
       return el;
     }
 
-    function addExpect(date, format) {
+    function addExpect(date, formatName, formatValue) {
       var elId = 'dateId-' + (++id);
-      dateElement(date, format).id = elId;
+      l10nMap[formatName] = formatValue;
+      dateElement(date, formatName).id = elId;
 
       expected.push(
-        [elId, fmt.localeFormat(date, format)]
+        [elId, fmt.localeFormat(date, formatValue)]
       );
     }
 
     setup(function() {
+      l10nMap = {};
       fmt = Calendar.App.dateFormat = navigator.mozL10n.DateTimeFormat();
       expected = [];
 
       var formatXDate = new Date(2012, 1, 1);
       var formatCDate = new Date(2012, 1, 1, 7, 2, 9);
 
-      addExpect(formatCDate, '%x');
-      addExpect(formatCDate, '%c');
+      addExpect(formatCDate, 'myl10nKey', '%x');
+      addExpect(formatCDate, 'otherl10nKey', '%c');
 
       subject.observeDateLocalization();
       window.dispatchEvent(new Event('localized'));

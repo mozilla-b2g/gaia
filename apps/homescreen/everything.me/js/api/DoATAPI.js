@@ -72,6 +72,7 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         
         var params = {
             "query": options.query,
+            "experienceId": options.experienceId,
             "typeHint": options.typeHint,
             "feature": options.feature,
             "cachedIcons": options.cachedIcons,
@@ -159,6 +160,7 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
 
         var params = {
             "query": options.query,
+            "experienceId": options.experienceId,
             "typeHint": options.typeHint,
             "feature": options.feature,
             "exact": options.exact,
@@ -200,7 +202,7 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         this.get = function get(options, callback) {
             var shortcuts = Evme.Storage.get(STORAGE_KEY_SHORTCUTS),
                 icons = Evme.Storage.get(STORAGE_KEY_ICONS);
-                
+            
             if (!shortcuts) {
                 shortcuts = Evme.__config["_" + STORAGE_KEY_SHORTCUTS];
                 icons = Evme.__config["_" + STORAGE_KEY_ICONS];
@@ -216,15 +218,17 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
             
             var shortcuts = options.shortcuts || [],
                 icons = options.icons || {};
-            
-            for (var i=0; i<shortcuts.length; i++) {
-                if (typeof shortcuts[i] == "string") {
-                    var query = shortcuts[i];
-                    shortcuts[i] = {
-                        "query": query,
-                        "appIds": queriesToAppIds[query.toLowerCase()] || []
+                
+            for (var i=0,shortcut; shortcut=shortcuts[i++];) {
+                if (typeof shortcut === "string") {
+                    shortcut = {
+                        "query": shortcut
                     };
                 }
+                
+                shortcut.appIds = getAppIds(shortcut);
+                
+                shortcuts[i-1] = shortcut;
             }
             
             Evme.Storage.set(STORAGE_KEY_SHORTCUTS, shortcuts);
@@ -241,12 +245,12 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
                 var currentShortcuts = data.response.shortcuts,
                     currentIcons = data.response.icons;
                 
-                for (var i=0; i<shortcuts.length; i++) {
-                    if (currentShortcuts.indexOf(shortcuts[i]) == -1) {
-                        currentShortcuts.push(shortcuts[i]);
+                for (var i=0,shortcut; shortcut=shortcuts[i++];) {
+                    if (contains(currentShortcuts, shortcut) === false) {
+                        currentShortcuts.push(shortcut);
                     }
                 }
-                    
+                
                 for (var appId in icons) {
                     currentIcons[appId] = icons[appId];
                 }
@@ -260,29 +264,34 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         }
         
         this.remove = function remove(shortcutToRemove) {
-            shortcutToRemove = shortcutToRemove.toLowerCase();
-            
             self.get({}, function onGetSuccess(data){
                 var shortcuts = data.response.shortcuts,
                     icons = data.response.icons,
-                    allAppIds = {};
+                    allAppIds = {},
+                    shortcutIndex = contains(shortcuts, shortcutToRemove);
                     
-                for (var i=0,shortcut=shortcuts[i]; shortcut; shortcut=shortcuts[++i]) {
+                if (shortcutIndex === false) {
+                    return;
+                }
+                    
+                for (var i=0,shortcut; shortcut=shortcuts[i++];) {
                     var needToRemoveIcons = false;
                     
-                    if (shortcut.query.toLowerCase() === shortcutToRemove) {
-                        shortcuts.splice(i, 1);
+                    if (i-1 === shortcutIndex) {
+                        shortcuts.splice(i-1, 1);
                         needToRemoveIcons = true;
                     }
                     
-                    for (var j=0; j<shortcut.appIds.length; j++) {
-                        if (!allAppIds[shortcut.appIds[j].id]) {
-                            allAppIds[shortcut.appIds[j].id] = {
+                    for (var j=0,app,appId; app=shortcut.appIds[j++];) {
+                        appId = app.id || app;
+                        
+                        if (!allAppIds[appId]) {
+                            allAppIds[appId] = {
                                 "num": 0,
                                 "needToRemove": needToRemoveIcons
                             };
                         }
-                        allAppIds[shortcut.appIds[j].id].num++;
+                        allAppIds[appId].num++;
                     }   
                 }
                 
@@ -319,10 +328,34 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
             }, options._NOCACHE);
         };
         
-        function saveAppIds(shortcuts) {
-            for (var i=0; i<shortcuts.length; i++) {
-                queriesToAppIds[shortcuts[i].query.toLowerCase()] = shortcuts[i].appIds;
+        // check if a list of shortcuts contain the given shortcut
+        // not a simple indexOf since a shortcut is either a query or an experienceId
+        function contains(shortcuts, shortcut) {
+            for (var i=0,shortcutToCheck; shortcutToCheck=shortcuts[i++];) {
+                var experienceId1 = shortcutToCheck.experienceId,
+                    experienceId2 = shortcut.experienceId,
+                    query1 = shortcutToCheck.query,
+                    query2 = shortcut.query;
+                    
+                if ((experienceId1 && experienceId2 && experienceId1 === experienceId2) ||
+                    (query1 && query2 && query1 === query2)) {
+                    return i-1;
+                }
             }
+            
+            return false;
+        }
+        
+        function saveAppIds(shortcuts) {
+            for (var i=0,shortcut,value; shortcut=shortcuts[i++];) {
+                value = (shortcut.experienceId || shortcut.query).toString().toLowerCase();
+                queriesToAppIds[value] = shortcut.appIds;
+            }
+        }
+        
+        function getAppIds(shortcut) {
+            var value = (shortcut.experienceId || shortcut.query).toString().toLowerCase();
+            return queriesToAppIds[value] || [];
         }
         
         function createResponse(shortcuts, icons) {
@@ -685,8 +718,10 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
             if (!ignoreCache) {
                 var fromCache = getFromCache(cacheKey);
                 if (fromCache) {
-                    callback && callback(fromCache);
-                    return false;
+                    callback && window.setTimeout(function() {
+                        callback(fromCache);
+                    }, 10);
+                    return true;
                 }
             }
         }
@@ -724,6 +759,7 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
             "error": cbError,
             "success": cbSuccess,
             "clientError": cbClientError,
+            "onAbort": cbRequestAbort,
             "cacheKey": cacheKey,
             "cacheTTL": (typeof useCache == "number")? useCache : CACHE_EXPIRATION_IN_MINUTES
         });
@@ -738,7 +774,8 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
                     requestsToPerformOnOnline.push(_request);
                     
                     Evme.EventHandler.trigger(NAME, "cantSendRequest", {
-                        "request": request,
+                        "method": methodNamespace + '/' + methodName,
+                        "request": _request,
                         "queue": requestsToPerformOnOnline
                     });
                 }
@@ -867,6 +904,14 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         });
     }
     
+    function cbRequestAbort(methodNamespace, method, params, retryNumber) {
+        Evme.EventHandler.trigger(NAME, "abort", {
+            "method": methodNamespace + "/" + method,
+            "params": params,
+            "retryNumber": retryNumber
+        });
+    }
+    
     function cbSuccess(methodNamespace, method, url, params, retryNumber, data, requestDuration) {
         Evme.EventHandler.trigger(NAME, "success", {
             "method": methodNamespace + "/" + method,
@@ -940,7 +985,8 @@ Evme.Request = function Evme_Request() {
         cbRequest = null,
         cbError = null,
         cbSuccess = null,
-        cbClientError = null;
+        cbClientError = null,
+        cbAbort = null;
         
         
     this.init = function init(options) {
@@ -957,6 +1003,7 @@ Evme.Request = function Evme_Request() {
         cbClientError = options.clientError;
         cbSuccess = options.success;
         cbShouldRetry = options.retryCheck;
+        cbAbort = options.onAbort;
         
         cacheKey = options.cacheKey;
         cacheTTL = options.cacheTTL;
@@ -986,9 +1033,15 @@ Evme.Request = function Evme_Request() {
     };
     
     this.abort = function abort() {
+        if (aborted) {
+            return;
+        }
+        
         aborted = true;
         clearTimeouts();
         request && request.abort();
+        
+        cbAbort(methodNamespace, methodName, params, retryNumber);
     };
     
     function clearTimeouts() {

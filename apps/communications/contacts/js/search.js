@@ -363,6 +363,18 @@ contacts.Search = (function() {
     return inSearchMode;
   }
 
+  var invalidateCache = function s_invalidate() {
+    canReuseSearchables = false;
+    searchableNodes = null;
+    contactNodes = null;
+    currentSet = {};
+  }
+
+  var removeContact = function s_removeContact(id) {
+    var contact = searchList.querySelector('li[data-uuid=\"' + id + '\"]');
+    searchList.removeChild(contact);
+  }
+
   function showProgress() {
     searchNoResult.classList.add('hide');
     searchProgress.classList.remove('hidden');
@@ -380,6 +392,8 @@ contacts.Search = (function() {
 
   return {
     'init': init,
+    'invalidateCache': invalidateCache,
+    'removeContact': removeContact,
     'search': search,
     'enterSearchMode': enterSearchMode,
     'exitSearchMode': exitSearchMode,

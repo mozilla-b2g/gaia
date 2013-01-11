@@ -5,6 +5,11 @@
 
 var LockScreen = {
   /*
+  * Boolean return true when initialized.
+  */
+  ready: false,
+
+  /*
   * Boolean return the status of the lock screen.
   * Must not multate directly - use unlock()/lockIfEnabled()
   * Listen to 'lock' and 'unlock' event to properly handle status changes
@@ -96,6 +101,13 @@ var LockScreen = {
 
   /* init */
   init: function ls_init() {
+    if (this.ready) { // already initialized: just trigger a translation
+      this.updateTime();
+      this.updateConnState();
+      return;
+    }
+    this.ready = true;
+
     this.getAllElements();
 
     this.lockIfEnabled(true);

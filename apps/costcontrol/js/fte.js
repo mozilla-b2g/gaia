@@ -7,11 +7,37 @@
   'use strict';
 
   var costcontrol;
+  var hasSim = true;
   window.addEventListener('DOMContentLoaded', function _onDOMReady() {
+    var mobileConnection = window.navigator.mozMobileConnection;
+    var stepsLeft = 2;
+
+    // No SIM
+    if (!mobileConnection || mobileConnection.cardState === 'absent') {
+      hasSim = false;
+      trySetup();
+
+    // SIM is not ready
+    } else if (mobileConnection.cardState !== 'ready') {
+      debug('SIM not ready:', mobileConnection.cardState);
+      mobileConnection.oniccinfochange = _onDOMReady;
+
+    // SIM is ready
+    } else {
+      mobileConnection.oniccinfochange = undefined;
+      trySetup();
+    }
+
     CostControl.getInstance(function _onCostControl(instance) {
       costcontrol = instance;
-      setupFTE();
+      trySetup();
     });
+
+    function trySetup() {
+      if (!(--stepsLeft)) {
+        setupFTE();
+      }
+    }
   });
 
   var wizard, vmanager;
@@ -23,18 +49,37 @@
       AutoSettings.addType('data-limit', dataLimitConfigurer);
 
       // Currency is set by config as well
-      if (configuration && configuration.credit && configuration.credit.currency) {
-        document.getElementById('currency').textContent = configuration.credit.currency;
+      if (configuration && configuration.credit
+          && configuration.credit.currency) {
+
+        document.getElementById('currency').textContent =
+          configuration.credit.currency;
       }
 
       var mode = costcontrol.getApplicationMode(settings);
+
+      // Handle welcome screen
+      var selectors = {
+          PREPAID: '.authed-sim',
+          POSTPAID: '.authed-sim',
+          DATA_USAGE_ONLY: '.nonauthed-sim'
+      };
+
+      var selector = hasSim ? selectors[mode] : '.no-sim';
+      wizard.querySelector(selector).setAttribute('aria-hidden', false);
+      if (!hasSim) {
+        wizard.querySelector('p.info').setAttribute('aria-hidden', true);
+      }
+
       if (mode === 'DATA_USAGE_ONLY') {
         debug('FTE for non supported SIM');
-        reset(['non-vivo-step-1', 'non-vivo-step-2']);
+        wizard.dataset.steps = '3';
+        reset(['step-1', 'non-vivo-step-1', 'non-vivo-step-2']);
         AutoSettings.initialize(ConfigManager, vmanager, '#non-vivo-step-1');
         AutoSettings.initialize(ConfigManager, vmanager, '#non-vivo-step-2');
 
       } else {
+        wizard.dataset.steps = '4';
         AutoSettings.initialize(ConfigManager, vmanager, '#step-1');
 
         // Plantype selection
@@ -67,15 +112,15 @@
 
   // TRACK SETUP
 
-  var currentTrack = ['step-1'];
+  var currentTrack = ['step-1', 'step-2'];
   function selectTrack(evt) {
     if (evt.target.value === 'prepaid') {
-      currentTrack = ['step-1', 'prepaid-step-2', 'prepaid-step-3'];
+      currentTrack = ['step-1', 'step-2', 'prepaid-step-2', 'prepaid-step-3'];
       AutoSettings.initialize(ConfigManager, vmanager, '#prepaid-step-2');
       AutoSettings.initialize(ConfigManager, vmanager, '#prepaid-step-3');
       ConfigManager.setOption({ dataLimitValue: 40, dataLimitUnit: 'MB' });
     } else if (evt.target.value === 'postpaid') {
-      currentTrack = ['step-1', 'postpaid-step-2', 'postpaid-step-3'];
+      currentTrack = ['step-1', 'step-2', 'postpaid-step-2', 'postpaid-step-3'];
       AutoSettings.initialize(ConfigManager, vmanager, '#postpaid-step-2');
       AutoSettings.initialize(ConfigManager, vmanager, '#postpaid-step-3');
       ConfigManager.setOption({ dataLimitValue: 2, dataLimitUnit: 'GB' });

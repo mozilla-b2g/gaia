@@ -45,7 +45,7 @@ ul li.disabled > a {
 /* description + value on the same line */
 ul li > a span {
   position: absolute;
-  right: 2rem;
+  right: 3rem;
   color: #505859;
 }
 
@@ -87,12 +87,9 @@ ul li > small:not(:empty) + a {
 ul li button,
 ul li a[role="button"] {
   position: relative;
-  top: 1rem;
-  left: 2rem;
-  font-size: 1.7rem;
-  line-height: 1em;
-  width: calc(100% - 5rem);
-  height: calc(100% - 2rem);
+  top: 1.1rem;
+  left: 3rem;
+  width: calc(100% - 6rem);
 }
 
 /* custom styles for boolean inputs (see /shared/style/switches.css) */
@@ -111,7 +108,7 @@ ul li > label:not([for]) {
 ul li > label:not([for]) > span,
 ul li > label:not([for]) > input[data-type="switch"] + span {
   left: auto;
-  right: 2rem;
+  right: 3rem;
 }
 
 ul li > label:not([for]) ~ a {
@@ -259,6 +256,47 @@ ul li p + select {
   margin: -1rem 3rem 1rem 12rem;
 }
 
+/******************************************************************************
+ * Fake select boxes
+ */
+.fake-select {
+  position: relative;
+  display: block;
+  padding: 1.1rem 3rem;
+  margin: 0;
+  height: 3.8rem;
+}
+
+.fake-select.small {
+  display: inline-block;
+  vertical-align: top;
+}
+
+.fake-select > button {
+  display: block;
+  top: 0;
+  left: 0;
+  width: 100%;
+}
+
+.fake-select > select {
+  position: absolute;
+  top: 0;
+  left: 3rem;
+  width: calc(100% - 6rem);
+  height: 3.8rem;
+  border: none;
+  background: red;
+  opacity: 0;
+}
+
+/* */
+section[role="region"] > ul > li > p + .fake-select {
+  padding-top: 0;
+  margin-top: -0.8rem;
+}
+
+
 
 /******************************************************************************
  * Progress, Meter
@@ -319,12 +357,12 @@ html[dir="rtl"] ul li p + select {
 html[dir="rtl"] ul li button,
 html[dir="rtl"] ul li a[role="button"] {
   left: inherit;
-  right: 2rem;
+  right: 3rem;
 }
 
 html[dir="rtl"] ul li > label:not([for]) > span,
 html[dir="rtl"] ul li > label:not([for]) > input[data-type="switch"] + span {
-  left: 4rem; /* XXX we use "right: 2rem" for LTR layouts... */
+  left: 6rem; /* XXX we use "right: 3rem" for LTR layouts... */
   right: inherit;
 }
 
@@ -335,7 +373,7 @@ html[dir="rtl"] ul li > label:not([for]) ~ a {
 
 /* description + value on the same line */
 html[dir="rtl"] ul li > a span {
-  left: 2rem;
+  left: 3rem;
   right: inherit;
 }
 

@@ -21,10 +21,18 @@ Evme.ConnectionMessage = new function Evme_ConnectionMessage() {
             });
             
         elParent.appendChild(el);
-        el.style.cssText = "margin-top: " + (-el.offsetHeight/2) + "px";
-        elParent.classList.add(CLASS_NO_CONNECTION);
+        window.setTimeout(function onElReady() {
+            var elTop = window.getComputedStyle(el).top,
+                isCentered = elTop !== '0px' && elTop !== 'auto';
+            
+            if (isCentered) {
+                el.style.cssText = "margin-top: " + (-el.offsetHeight/2) + "px";
+            }
+            
+            elParent.classList.add(CLASS_NO_CONNECTION);
         
-        Evme.EventHandler.trigger(NAME, "show");
+            Evme.EventHandler.trigger(NAME, "show");
+        }, 0);
     };
     
     this.hide = function hide() {

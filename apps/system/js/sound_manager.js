@@ -94,7 +94,8 @@
           return;
 
         var max = MAX_VOLUME[channel];
-        currentVolume[channel] = parseInt(Math.max(0, Math.min(max, volume)), 10);
+        currentVolume[channel] =
+            parseInt(Math.max(0, Math.min(max, volume)), 10);
       });
     })(channel);
   }

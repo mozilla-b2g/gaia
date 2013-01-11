@@ -6,6 +6,8 @@
 var MailAPI = null;
 
 var App = {
+  initialized: false,
+
   /**
    * Bind any global notifications, relay localizations to the back-end.
    */
@@ -53,6 +55,7 @@ var App = {
         archives: mozL10n.get('folder-archives')
       }
     });
+    this.initialized = true;
   },
 
   /**
@@ -122,7 +125,9 @@ var App = {
 };
 
 function hookStartup() {
-  var gotLocalized = false, gotMailAPI = false;
+  var gotLocalized = (mozL10n.readyState === 'interactive') ||
+                     (mozL10n.readystate === 'complete'),
+      gotMailAPI = false;
   function doInit() {
     try {
       populateTemplateNodes();
@@ -135,12 +140,15 @@ function hookStartup() {
     }
   }
 
-  window.addEventListener('localized', function() {
-    console.log('got localized!');
-    gotLocalized = true;
-    if (gotMailAPI)
-      doInit();
-  }, false);
+  if (!gotLocalized) {
+    window.addEventListener('localized', function localized() {
+      console.log('got localized!');
+      gotLocalized = true;
+      window.removeEventListener('localized', localized);
+      if (gotMailAPI)
+        doInit();
+    });
+  }
   window.addEventListener('mailapi', function(event) {
     console.log('got MailAPI!');
     MailAPI = event.mailAPI;
@@ -198,13 +206,18 @@ if ('mozSetMessageHandler' in window.navigator) {
   window.navigator.mozSetMessageHandler('activity',
                                         function actHandle(activity) {
     var activityName = activity.source.name;
+    // To assist in bug analysis, log the start of the activity here.
+    console.log('activity!', activityName);
     if (activityName === 'share') {
       var attachmentBlobs = activity.source.data.blobs,
           attachmentNames = activity.source.data.filenames;
-    } else if (activityName === 'new') {
-      var [to, subject, body, cc, bcc] = queryURI(activity.source.data.URI);
-      if (!to)
-        return;
+    }
+    else if (activityName === 'new' ||
+             activityName === 'view') {
+      // new uses URI, view uses url
+      var [to, subject, body, cc, bcc] = queryURI(
+        activity.source.data.url ||
+        activity.source.data.URI);
     }
     var sendMail = function actHandleMail() {
       var folderToUse;
@@ -212,18 +225,15 @@ if ('mozSetMessageHandler' in window.navigator) {
         folderToUse = Cards._cardStack[Cards
           ._findCard(['folder-picker', 'navigation'])].cardImpl.curFolder;
       } catch (e) {
+        console.log('no navigation found:', e);
         var req = confirm(mozL10n.get('setup-empty-account-prompt'));
         // TODO: Since we can not switch back to previous app if activity type
         //       is "window", both buttons in confirm dialog will enter
         //       setup page now(or caller app need to control launch by itself).
         //
         if (!req) {
-          // TODO: Since dialog is not working under inline mode, we disable the
-          //       postError now or it will switch back to previous app every
-          //       time while no account.
-
-          // activity.postError('cancelled');
-          // return false;
+          activity.postError('cancelled');
+          return false;
         }
         return true;
       }
@@ -252,16 +262,20 @@ if ('mozSetMessageHandler' in window.navigator) {
           }
           Cards.pushCard('compose',
             'default', 'immediate', { composer: composer,
-            activity: (activityName == 'share' ? activity : null) });
+            activity: activity });
           activityLock = false;
         });
     };
 
-    if (document.readyState == 'complete') {
+    if (App.initialized) {
+      console.log('activity', activityName, 'triggering compose now');
       sendMail();
     } else {
+      console.log('activity', activityName, 'waiting for callback');
       activityCallback = sendMail;
     }
-
   });
+}
+else {
+  console.warn('Activity support disabled!');
 }

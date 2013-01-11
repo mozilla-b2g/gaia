@@ -1,3 +1,5 @@
+'use strict';
+
 var idGen = 0;
 
 function MockApp(opts) {
@@ -72,6 +74,7 @@ MockApp.prototype.mTriggerDownloadError = function(error) {
 
 MockApp.prototype.mTriggerDownloadProgress = function(progress) {
   this.progress = progress;
+
   if (this.onprogress) {
     this.onprogress({
         application: this

@@ -95,9 +95,8 @@ var CallScreen = {
   },
 
   hideKeypad: function cs_hideKeypad() {
-    KeypadManager.restorePhoneNumber();
+    KeypadManager.restorePhoneNumber('end', true);
     KeypadManager.restoreAdditionalContactInfo();
-    KeypadManager.formatPhoneNumber();
     this.body.classList.remove('showKeypad');
   },
 

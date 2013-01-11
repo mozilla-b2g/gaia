@@ -1,3 +1,4 @@
 {
-  "origin": "http://m.here.com/welcome.html"
+  "origin": "http://m.here.com/",
+  "launch_path": "/welcome.html"
 }
