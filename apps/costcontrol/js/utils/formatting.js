@@ -100,3 +100,9 @@ function padData(v) {
   return rounded;
 }
 
+// Given the API information compute the human friendly minutes
+function computeTelephonyMinutes(activity) {
+  // Right now the activity for telephony is computed in milliseconds
+  return Math.ceil(activity.calltime / 60000);
+}
+
