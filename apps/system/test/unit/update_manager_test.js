@@ -335,7 +335,22 @@ suite('system/UpdateManager', function() {
         assert.equal(UpdateManager.updatesQueue.length, initialLength);
         assert.equal(MockSystemUpdatable.mInstancesCount, 1);
       });
+
+      test('should remember that update is available', function() {
+        assert.isTrue(UpdateManager.systemUpdatable.mKnownUpdate);
+      });
     });
+
+    suite('no system update available', function() {
+      setup(function() {
+        UpdateManager.init();
+      });
+
+      test('should not remember about the update', function() {
+          assert.isUndefined(UpdateManager.systemUpdatable.mKnownUpdate);
+      });
+    });
+
   });
 
   suite('UI', function() {
