@@ -20,6 +20,7 @@ var MessageManager = {
     window.addEventListener('hashchange', this.onHashChange.bind(this));
     document.addEventListener('mozvisibilitychange',
         this.onVisibilityChange.bind(this));
+    this.initialHeight = ThreadListUI.view.offsetHeight;
   },
 
   onMessageSending: function mm_onMessageSending(e) {
@@ -72,20 +73,25 @@ var MessageManager = {
     var mainWrapper = document.getElementById('main-wrapper');
     if (!mainWrapper.classList.contains('to-left')) {
       mainWrapper.classList.remove('to-right');
+      mainWrapper.classList.add('to-left-boot');
       mainWrapper.classList.add('to-left');
+      mainWrapper.addEventListener('transitionend', function slideTransition() {
+        mainWrapper.removeEventListener('transitionend', slideTransition);
+        if (callback) {
+          callback();
+        }
+      });
     } else {
       mainWrapper.classList.remove('to-left');
       mainWrapper.classList.add('to-right');
+      mainWrapper.addEventListener('animationend', function slideAnimation() {
+        mainWrapper.removeEventListener('animationend', slideAnimation);
+        if (callback) {
+          callback();
+        }
+      });
       
     }
-    mainWrapper.addEventListener('animationend', function slideTransition() {
-      mainWrapper.removeEventListener('animationend', slideTransition);
-      mainWrapper.classList.toggle('to-left-fixed');
-
-      if (callback) {
-        callback();
-      }
-    });
   },
 
   onHashChange: function mm_onHashChange(e) {
@@ -766,14 +772,31 @@ var ThreadUI = {
   },
 
   onBackAction: function thui_onBackAction() {
-    if (ThreadUI.input.value.length == 0) {
-      window.location.hash = '#thread-list';
-      return;
+    // Hide Keyboard if present
+    var backHandler = function() {
+      if (ThreadUI.input.value.length == 0) {
+        window.location.hash = '#thread-list';
+        return;
+      }
+      var response = window.confirm(_('discard-sms'));
+      if (response) {
+        ThreadUI.cleanFields(true);
+        window.location.hash = '#thread-list';
+      }
     }
-    var response = window.confirm(_('discard-sms'));
-    if (response) {
-      ThreadUI.cleanFields(true);
-      window.location.hash = '#thread-list';
+    if(MessageManager.initialHeight != ThreadUI.view.offsetHeight) {
+      window.addEventListener('resize', function keyboardHidden() {
+        if(MessageManager.initialHeight == ThreadUI.view.offsetHeight) {
+          window.removeEventListener('resize',keyboardHidden);
+          window.mozRequestAnimationFrame(function(){
+             backHandler();
+          });
+        }
+      });
+      this.input.blur();
+      this.contactInput.blur();
+    } else {
+      backHandler();
     }
   },
 

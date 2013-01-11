@@ -180,26 +180,6 @@ form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
   height: 100%;
 }
 
-@keyframes slideLeftPrimary {
-  from {
-    transform: translateX(-1%);
-  }
- 
-  to {
-    transform: translateX(-100%);
-  }
-}
-
-@keyframes slideLeftSecondary {
-  from {
-    transform: translateX(99%);
-  }
- 
-  to {
-    transform: translateX(0%);
-  }
-}
-
 @keyframes slideRightSecondary {
   from {
     transform: translateX(1%);
@@ -223,15 +203,22 @@ form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
 .panel:nth-child(2) {
   transform: translateX(100%);
 }
+.to-left-boot > .panel:first-child {
+  transform: translateX(-0.1%);
+}
+
+.to-left-boot > .panel:nth-child(2) {
+  transform: translateX(99.9%);
+}
 
 .to-left > .panel:first-child {
-  animation-duration: .3s;
-  animation-name: slideLeftPrimary;
+  transition: transform .3s linear;
+  transform: translateX(-100%);
 }
 
 .to-left > .panel:nth-child(2) {
-  animation-duration: .3s;
-  animation-name: slideLeftSecondary;
+  transition: transform .3s linear;
+  transform: translateX(0%);
 }
 
 .to-left-fixed > .panel:first-child {
@@ -243,12 +230,12 @@ form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
 }
 
 .to-right > .panel:first-child {
-  animation-duration: .3s;
+  animation-duration: .4s;
   animation-name: slideRightPrimary;
 }
 
 .to-right > .panel:nth-child(2) {
-  animation-duration: .3s;
+  animation-duration: .4s;
   animation-name: slideRightSecondary;
 }
 
