@@ -1,0 +1,7 @@
+
+
+
+#tinybox {font-size:19px; color:#fff; position:absolute; display:none; padding:5px; background:#000 no-repeat 50% 50%; border:2px solid #e3e3e3; z-index:2000}
+/*#tinymask {position:absolute; display:none; top:0; left:0; height:100%; width:100%; background:#000; z-index:1500}*/
+#tinycontent { width:250px; height:50px; background:#000;font-size:19px; color:#fff; line-height:20px; left:15px; padding:2px;}
+
