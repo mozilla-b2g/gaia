@@ -20,8 +20,8 @@
   var iccLastCommandProcessed = false;
   var stkOpenAppName = null;
   var stkLastSelectedTest = null;
-  var displayTextTimeout = 10000;
-  var inputTimeout = 10000;
+  var displayTextTimeout = 5000;
+  var inputTimeout = 5000;
   var icc;
 
   init();
