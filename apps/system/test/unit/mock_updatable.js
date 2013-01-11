@@ -6,7 +6,14 @@ function MockAppUpdatable(aApp) {
   this.mDownloadCalled = false;
   this.mCancelCalled = false;
   this.mUninitCalled = false;
+  MockAppUpdatable.mCount++;
 }
+
+MockAppUpdatable.mTeardown = function() {
+  MockAppUpdatable.mCount = 0;
+};
+
+MockAppUpdatable.mCount = 0;
 
 MockAppUpdatable.prototype.uninit = function() {
   this.mUninitCalled = true;

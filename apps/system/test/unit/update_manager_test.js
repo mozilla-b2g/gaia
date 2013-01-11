@@ -200,31 +200,16 @@ suite('system/UpdateManager', function() {
   suite('init', function() {
     test('should get all applications', function(done) {
       MockAppsMgmt.mNext = function() {
-        assert.equal(3, UpdateManager.updatableApps.length);
-        assert.equal(apps[0].mId, UpdateManager.updatableApps[0].app.mId);
         done();
       };
       UpdateManager.init();
     });
 
-    test('should add apps with downloadAvailable on init', function(done) {
-      MockAppsMgmt.mNext = function() {
-        assert.equal(appWithDownloadAvailable.mId,
-                     UpdateManager.updatesQueue[0].app.mId);
-        done();
-      };
-      UpdateManager.init();
-    });
-
-    test('should not add downloadAvailable apps pending', function(done) {
-      var pendingApp = new MockApp({
-        installState: 'pending',
-        downloadAvailable: true
-      });
-      MockAppsMgmt.mApps = [pendingApp];
+    test('should create AppUpdatable on init', function(done) {
+      MockAppUpdatable.mTeardown();
 
       MockAppsMgmt.mNext = function() {
-        assert.equal(UpdateManager.updatesQueue.length, 0);
+        assert.equal(MockAppUpdatable.mCount, apps.length);
         done();
       };
       UpdateManager.init();
@@ -263,6 +248,8 @@ suite('system/UpdateManager', function() {
       var installedApp;
 
       setup(function() {
+        MockAppUpdatable.mTeardown();
+
         UpdateManager.init();
 
         installedApp = new MockApp();
@@ -271,9 +258,7 @@ suite('system/UpdateManager', function() {
       });
 
       test('should instantiate an updatable app', function() {
-        var lastIndex = UpdateManager.updatableApps.length - 1;
-        var lastUApp = UpdateManager.updatableApps[lastIndex];
-        assert.equal(installedApp.mId, lastUApp.app.mId);
+        assert.equal(MockAppUpdatable.mCount, 1);
       });
     });
 
@@ -298,6 +283,14 @@ suite('system/UpdateManager', function() {
       });
 
       test('should remove from the update queue', function() {
+        var initialLength = UpdateManager.updatesQueue.length;
+        MockAppsMgmt.mTriggerOnuninstall(partialApp);
+        assert.equal(initialLength - 1, UpdateManager.updatesQueue.length);
+      });
+
+      test('should remove from the update queue even if no downloadavailable',
+      function() {
+        uAppWithDownloadAvailable.app.downloadAvailable = false;
         var initialLength = UpdateManager.updatesQueue.length;
         MockAppsMgmt.mTriggerOnuninstall(partialApp);
         assert.equal(initialLength - 1, UpdateManager.updatesQueue.length);
@@ -377,6 +370,21 @@ suite('system/UpdateManager', function() {
                      UpdateManager.message.textContent);
       });
 
+      test('should not show the toaster if downloading', function(done) {
+        UpdateManager.NOTIFICATION_BUFFERING_TIMEOUT = tinyTimeout;
+        UpdateManager.TOASTER_TIMEOUT = tinyTimeout;
+        UpdateManager._downloading = true;
+        UpdateManager.addToUpdatesQueue(uAppWithDownloadAvailable);
+
+        setTimeout(function() {
+          var css = UpdateManager.toaster.classList;
+          assert.isFalse(css.contains('displayed'));
+          UpdateManager.NOTIFICATION_BUFFERING_TIMEOUT = 0;
+          UpdateManager.TOASTER_TIMEOUT = 0;
+          done();
+        }, tinyTimeout * 1.5);
+      });
+
       test('should show the available message if not downloading', function() {
         UpdateManager.updatesQueue = updatableApps;
         UpdateManager.render();
@@ -407,6 +415,16 @@ suite('system/UpdateManager', function() {
                      UpdateManager.message.textContent);
       });
 
+      test('downloadedBytes should be reset when stopping the download',
+          function() {
+
+        UpdateManager.removeFromDownloadsQueue(uAppWithDownloadAvailable);
+        UpdateManager.addToDownloadsQueue(uAppWithDownloadAvailable);
+
+        assert.equal('downloadingUpdateMessage{"progress":"0.00 bytes"}',
+                     UpdateManager.message.textContent);
+      });
+
       test('should increment the downloadedBytes', function() {
         UpdateManager.downloadProgressed(100);
         assert.equal('downloadingUpdateMessage{"progress":"1.30 kB"}',
@@ -417,6 +435,10 @@ suite('system/UpdateManager', function() {
         UpdateManager.downloadProgressed(-100);
         assert.equal('downloadingUpdateMessage{"progress":"1.21 kB"}',
                      UpdateManager.message.textContent);
+      });
+
+      test('should display the notification', function() {
+        assert.isTrue(fakeNode.classList.contains('displayed'));
       });
     });
 
@@ -569,6 +591,7 @@ suite('system/UpdateManager', function() {
               }, tinyTimeout * 2);
             }, tinyTimeout * 2);
           });
+
         });
 
         test('should add a new statusbar notification', function(done) {

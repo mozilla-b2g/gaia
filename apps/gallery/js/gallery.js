@@ -619,51 +619,6 @@ function binarysearch(array, element, comparator, from, to) {
     return binarysearch(array, element, comparator, mid + 1, to);
 }
 
-// Fullscreen mode is flaky. When we enter and leave it we get a resize event
-// because of the new window size. But sometimes we get an extra resize event
-// with the window sized to 0. If this happens, then our list of thumbnails
-// gets sized to 0 and loses its scroll position.
-// See https://bugzilla.mozilla.org/show_bug.cgi?id=820571
-//
-// This self-executing function is here to workaround that issue.
-// In addition, it ensures that when we leave full screen mode, the
-// thumbnail for whatever image we were just viewing is visible on the
-// screen. (That is something that we cannot do in setView() because
-// it has to happen after the resize event arrives, and that is
-// asynchronous and does not occur until after setView() has
-// returned.)
-(function fullscreenWorkaround() {
-  var savedScrollTop, leavingFullScreenMode = false;
-
-  document.addEventListener('mozfullscreenchange', function() {
-    if (document.mozFullScreenElement) {
-      // We're entering fullscreen mode: remember our scroll position before
-      // we get a resize event.
-      savedScrollTop = thumbnails.scrollTop;
-      leavingFullScreenMode = false;
-    }
-    else {
-      // We're leaving fullscreen. We can't restore the scroll position
-      // yet... We have to wait until after the resize event or events.
-      leavingFullScreenMode = true;
-    }
-  });
-
-  window.addEventListener('resize', function() {
-    // If we've just left fullscreen mode, and we get a resize event where
-    // the window height is not zero, then restore the scroll position
-    // in case it got lost.
-    if (window.innerHeight !== 0 && leavingFullScreenMode) {
-      thumbnails.scrollTop = savedScrollTop;
-      leavingFullScreenMode = false; // Just do it once
-
-      // If we're leaving fullscreen, then we were just viewing a photo
-      // or video, so make sure its thumbnail is fully on the screen
-      scrollToShowThumbnail(currentFileIndex);
-    }
-  });
-}());
-
 // Make the thumbnail for image n visible
 function scrollToShowThumbnail(n) {
   var selector = 'li[data-index="' + n + '"]';
@@ -700,13 +655,6 @@ function setView(view) {
                   function(elt) { elt.classList.remove('selected'); });
     break;
   case fullscreenView:
-    // Leave full-screen mode, if we're still in it. But first remove
-    // the event handler so we don't transition out of the mode twice
-    document.removeEventListener('mozfullscreenchange', fullscreenExitHandler);
-    if (document.mozFullScreenElement === fullscreenView) {
-      document.mozCancelFullScreen();
-    }
-
     // Clear the frames to release the memory they're holding and
     // so that we don't see a flash of the old image when we return
     // to fullscreen view
@@ -716,6 +664,12 @@ function setView(view) {
     delete previousFrame.filename;
     delete currentFrame.filename;
     delete nextFrame.filename;
+
+    // If we're leaving fullscreen, then we were just viewing a photo
+    // or video, so make sure its thumbnail is fully on the screen.
+    // XXX: do we need to defer this?
+    scrollToShowThumbnail(currentFileIndex);
+
     break;
   }
 
@@ -746,11 +700,6 @@ function setView(view) {
     thumbnails.className = 'offscreen';
     // Show the toolbar
     fullscreenView.classList.remove('toolbarhidden');
-    // Enter fullscreen mode
-    fullscreenView.mozRequestFullScreen();
-    // Add a handler to take us back to thumbnail view if the user
-    // clicks home to exit fullscreen
-    document.addEventListener('mozfullscreenchange', fullscreenExitHandler);
     break;
   default:
     thumbnails.className = 'offscreen';
@@ -759,16 +708,6 @@ function setView(view) {
 
   // Remember the current view
   currentView = view;
-
-  // The event handler we use above. The user can exit fullscreen mode with
-  // the home button. If they do this, we treat it like a click on the gallery
-  // button and return to thumbnail list mode
-  function fullscreenExitHandler() {
-    // If we exited fullscreen, display the thumbnails
-    if (currentView === fullscreenView &&
-        document.mozFullScreenElement !== fullscreenView)
-      setView(thumbnailListView);
-  }
 }
 
 //
@@ -874,8 +813,7 @@ function cleanupPick() {
   setView(thumbnailListView);
 }
 
-// XXX
-// If the user goes to the homescreen or switches to another app
+// XXX If the user goes to the homescreen or switches to another app
 // the pick request is implicitly cancelled
 // Remove this code when https://github.com/mozilla-b2g/gaia/issues/2916
 // is fixed and replace it with an onerror handler on the activity to
@@ -1074,13 +1012,15 @@ function share(blobs) {
   };
 }
 
-// This happens when we enter or exit fullscreen mode and also when
-// the user rotates the phone.
+// This happens when the user rotates the phone.
+// When we used mozRequestFullscreen, it would also happen
+// when we entered or left fullscreen mode.
 function resizeHandler() {
   //
   // When we enter or leave fullscreen mode, we get two resize events.
-  // When we get the first one, we don't know what our new size is,
-  // so we just ignore it.
+  // When we get the first one, we don't know what our new size is, so
+  // we just ignore it. XXX: we're not using fullscreen mode anymore,
+  // but it seems safer to leave this code in.
   //
   if (fullscreenView.offsetWidth === 0 && fullscreenView.offsetHeight === 0)
     return;

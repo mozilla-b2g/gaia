@@ -449,40 +449,46 @@ onLocalized(function bluetoothSettings() {
     function showDevicePaired(paired, errorMessage) {
       // if we are in a pairing process, update found device list
       // or do error handling.
-      if (pairingAddress) {
-        if (paired) {
-          // if the device is on the list, remove it.
-          // it will show on paired list later.
-          if (openList.index[pairingAddress]) {
-            var device = openList.index[pairingAddress][0];
-            var item = openList.index[pairingAddress][1];
-            openList.list.removeChild(item);
-            connectingAddress = pairingAddress;
-          }
-        } else {
-          // if the attention screen still open, close it
-          if (childWindow)
-            childWindow.close();
-          // display failure only when active request
-          if (pairingMode === 'active' && !userCanceledPairing) {
-            // show pair process fail.
-            var msg = _('error-pair-title');
-            if (errorMessage === 'Repeated Attempts') {
-              msg = msg + '\n' + _('error-pair-toofast');
-            } else if (errorMessage === 'Authentication Failed') {
-              msg = msg + '\n' + _('error-pair-pincode');
-            }
-            window.alert(msg);
-          }
-          userCanceledPairing = false;
-          // rollback device status
-          if (openList.index[pairingAddress]) {
-            var item = openList.index[pairingAddress][1];
-            item.querySelector('small').textContent =
-              _('device-status-tap-connect');
-          }
+      if (!pairingAddress) {
+        // acquire a new paired list no matter paired or unpaired
+        getPairedDevice();
+        return;
+      }
+      // clear pairingAddress first to prevent execute
+      // the same status update twice.
+      var workingAddress = pairingAddress;
+      pairingAddress = null;
+      if (paired) {
+        // if the device is on the list, remove it.
+        // it will show on paired list later.
+        if (openList.index[workingAddress]) {
+          var device = openList.index[workingAddress][0];
+          var item = openList.index[workingAddress][1];
+          openList.list.removeChild(item);
+          connectingAddress = workingAddress;
         }
-        pairingAddress = null;
+      } else {
+        // if the attention screen still open, close it
+        if (childWindow)
+          childWindow.close();
+        // display failure only when active request
+        if (pairingMode === 'active' && !userCanceledPairing) {
+          // show pair process fail.
+          var msg = _('error-pair-title');
+          if (errorMessage === 'Repeated Attempts') {
+            msg = msg + '\n' + _('error-pair-toofast');
+          } else if (errorMessage === 'Authentication Failed') {
+            msg = msg + '\n' + _('error-pair-pincode');
+          }
+          window.alert(msg);
+        }
+        userCanceledPairing = false;
+        // rollback device status
+        if (openList.index[workingAddress]) {
+          var item = openList.index[workingAddress][1];
+          item.querySelector('small').textContent =
+            _('device-status-tap-connect');
+        }
       }
       // acquire a new paired list no matter paired or unpaired
       getPairedDevice();

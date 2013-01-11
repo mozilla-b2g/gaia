@@ -61,13 +61,13 @@
         #evmeContainer .shortcut .remove {
             position: absolute;
             top: -5px;
-            left: 0;
+            left: .5rem;
             right: 0;
             height: 25px;
             z-index: 100;
             display: none;
             cursor: pointer;
-            background: transparent url('/resources/images/delete.png') 50% 0 no-repeat;
+            background: transparent url('/resources/images/delete.png') no-repeat left top;
         }
     #evmeContainer .shortcut.disabled {
         opacity: 0;
@@ -123,7 +123,6 @@
             display: block;
             font-size: 12px;
             margin-top: 12px;
-            text-transform: capitalize;
             z-index: 50;
             color: #fff;
             font-weight: 600;
@@ -140,10 +139,6 @@
             -moz-transform: scale(.7) !important;
             transform: scale(.7) !important;
         }
-
-    #evmeContainer #category-page-name {
-        text-transform: capitalize;
-    }
 
 #evmeContainer #category-page-screen {
     position: absolute;
