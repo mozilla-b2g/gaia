@@ -128,8 +128,15 @@ function SystemUpdatable() {
   this.size = 0;
   this.downloading = false;
   this.paused = false;
+
+  this.checkKnownUpdate(function checkCallback() {
+    UpdateManager.checkForUpdates(true);
+  });
+
   window.addEventListener('mozChromeEvent', this);
 }
+
+SystemUpdatable.KNOWN_UPDATE_FLAG = 'known-sysupdate';
 
 SystemUpdatable.prototype.download = function() {
   if (this.downloading) {
@@ -202,6 +209,9 @@ SystemUpdatable.prototype.errorCallBack = function() {
 SystemUpdatable.prototype.showApplyPrompt = function() {
   var _ = navigator.mozL10n.get;
 
+  // Update will be completed after restart
+  this.forgetKnownUpdate();
+
   var cancel = {
     title: _('later'),
     callback: this.declineInstall.bind(this)
@@ -227,6 +237,25 @@ SystemUpdatable.prototype.declineInstall = function() {
 SystemUpdatable.prototype.acceptInstall = function() {
   CustomDialog.hide();
   this._dispatchEvent('update-prompt-apply-result', 'restart');
+};
+
+SystemUpdatable.prototype.rememberKnownUpdate = function() {
+  asyncStorage.setItem(SystemUpdatable.KNOWN_UPDATE_FLAG, true);
+};
+
+SystemUpdatable.prototype.checkKnownUpdate = function(callback) {
+  if (typeof callback !== 'function') {
+    return;
+  }
+  asyncStorage.getItem(SystemUpdatable.KNOWN_UPDATE_FLAG, function(value) {
+    if (value) {
+      callback();
+    }
+  });
+};
+
+SystemUpdatable.prototype.forgetKnownUpdate = function() {
+  asyncStorage.removeItem(SystemUpdatable.KNOWN_UPDATE_FLAG);
 };
 
 SystemUpdatable.prototype._dispatchEvent = function(type, result) {
