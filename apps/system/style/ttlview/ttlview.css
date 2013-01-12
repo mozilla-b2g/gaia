@@ -1,16 +1,16 @@
 #debug-ttl {
   position: absolute;
   top: 0;
-  right: 0;
+  left: 0;
   display: block;
-  height: 22px;
-  width: 58px;
+  height: 20px;
   background-color: darkgreen;
   pointer-events: none;
-  font-size: 20px;
+  font-size: 14px;
   line-height: 20px;
   text-align: right;
   font-weight: bold;
   overflow: hidden;
+  padding-left: 3px;
   padding-right: 3px;
 }
