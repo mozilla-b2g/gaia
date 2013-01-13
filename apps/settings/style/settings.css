@@ -56,7 +56,6 @@ section[role="region"].previous.peek {
 
 section[role="region"].current {
   transform: translateX(0);
-  overflow-y: scroll;
 }
 section[role="region"].current.peek.forward {
   transform: translateX(99.9%);
@@ -68,13 +67,19 @@ section[role="region"].current.peek {
 /**
  * Headers should not scroll with the rest of the page, except for #root.
  */
-section[role="region"] > header:first-child {
-  position: fixed;
-  width: 100%;
+section[role="region"] > header {
+  position: absolute;
 }
 
-section[role="region"] > header:first-child + * {
-  margin-top: 5rem;
+section[role="region"] > div {
+  position: absolute;
+  top: 5rem;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: calc(100% - 5rem);
+  overflow-y: scroll;
 }
 
 
