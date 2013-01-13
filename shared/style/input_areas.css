@@ -92,7 +92,7 @@ form p textarea:focus {
 form p input:focus + button[type="reset"],
 form p textarea:focus + button[type="reset"] {
   opacity: 1;
-  pointer-events: all;
+  pointer-events: auto;
 }
 
 /* Fieldset */
