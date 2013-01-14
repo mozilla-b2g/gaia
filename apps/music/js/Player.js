@@ -56,11 +56,15 @@ var PlayerView = {
   set dataSource(source) {
     this._dataSource = source;
 
-    // At the same time we also check how many songs in an album
-    // Shuffle button is not necessary when an album only contains one song
-    // or playing a blob
     if (this.sourceType != TYPE_BLOB)
+      // Shuffle button is not necessary when an album only contains one song
+      // or playing a blob
       this.shuffleButton.disabled = (this._dataSource.length < 2);
+
+      // Also, show or hide the Now Playing button depending on
+      // whether content is queued
+      TitleBar.playerIcon.hidden = (this._dataSource.length < 1);
+
   },
 
   init: function pv_init(needSettings) {
