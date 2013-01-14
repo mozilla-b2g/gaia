@@ -172,7 +172,8 @@ const Gaia = {
   engine: GAIA_ENGINE,
   sharedFolder: getFile(GAIA_DIR, 'shared'),
   webapps: makeWebappsObject(GAIA_APP_SRCDIRS),
-  externalWebapps: makeWebappsObject('external-apps')
+  externalWebapps: makeWebappsObject('external-apps'),
+  aggregatePrefix: 'gaia_build_'
 };
 
 function registerProfileDirectory() {
