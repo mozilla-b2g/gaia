@@ -638,8 +638,10 @@ const GridManager = (function() {
       // navigator.mozApps backed app will objects will be handled
       // asynchronously and therefore at a later time.
       var app = null;
-      if (descriptor.bookmarkURL)
+      if (descriptor.bookmarkURL) {
         app = new Bookmark(descriptor);
+        appsByOrigin[app.origin] = app;
+      }
 
       var icon = icons[i] = new Icon(descriptor, app);
       rememberIcon(icon);
