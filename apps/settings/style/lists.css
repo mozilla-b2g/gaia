@@ -18,8 +18,8 @@ ul li {
   min-height: 6rem;
 }
 
-ul li.active,
-ul li:active {
+ul li.active:not(.unclickable):not(.description):not(.explanation),
+ul li:active:not(.unclickable):not(.description):not(.explanation) {
   background-color: #b2f2ff;
   color: #222;
 }
