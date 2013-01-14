@@ -28,9 +28,8 @@ var MediaStorage = {
   initUI: function mediaStorage_initUI() {
     this.umsEnabledCheckBox = document.querySelector('[name="ums.enabled"]');
     this.umsEnabledInfoBlock = document.getElementById('ums-desc');
-    if (!this.umsEnabledCheckBox || !this.umsEnabledInfoBlock) {
+    if (!this.umsEnabledCheckBox || !this.umsEnabledInfoBlock)
       return;
-    }
 
     // The normal handling of the checkboxes in the settings is done through a
     // 'change' event listener in settings.js
@@ -83,25 +82,26 @@ var MediaStorage = {
 
     var statreq = this.deviceStorage.stat();
     statreq.onsuccess = function mediaStorage_statSuccess(evt) {
+      var _ = navigator.mozL10n.get;
       var state = evt.target.result.state;
 
-      // show/hide the 'Unplug USB cable to disable' message when available
-      if (self.umsEnabledInfoBlock) {
-        if ((state === 'shared') && !self.umsEnabledCheckBox.checked) {
-          self.umsEnabledInfoBlock.style.display = 'block';
-        } else {
-          self.umsEnabledInfoBlock.style.display = 'none';
-        }
+      var infoBlock = self.umsEnabledInfoBlock;
+      if (infoBlock) {
+         if (self.umsEnabledCheckBox.checked) {
+           infoBlock.textContent = _('enabled');
+         } else if (state === 'shared') {
+           infoBlock.textContent = _('umsUnplugToDisable');
+         } else {
+           infoBlock.textContent = _('disabled');
+         }
       }
 
       var mediaSubtitle = document.getElementById('media-storage-desc');
-      var _ = navigator.mozL10n.get;
-
       switch (state) {
         case 'shared':
           mediaSubtitle.textContent = '';
-          // Keep the media storage enabled, so that the user go inside to
-          // toggle USB Mass storage
+          // Keep the media storage enabled,
+          // so that the user goes inside to toggle USB Mass storage.
           self.setEnabledState(true);
           self.setInfoInvalid();
           break;
@@ -152,6 +152,11 @@ var MediaStorage = {
       if (!element)
         return;
 
+      if (size === undefined || isNaN(size)) {
+        element.textContent = '';
+        return;
+      }
+
       // KB - 3 KB (nearest ones), MB, GB - 1.2 MB (nearest tenth)
       var fixedDigits = (size < 1024 * 1024) ? 0 : 1;
       var sizeInfo = FileSizeFormatter.getReadableFileSize(size, fixedDigits);
@@ -186,5 +191,5 @@ var MediaStorage = {
   }
 };
 
-MediaStorage.init();
+onLocalized(MediaStorage.init.bind(MediaStorage));
 
