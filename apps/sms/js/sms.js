@@ -76,7 +76,6 @@ var MessageManager = {
     } else {
       mainWrapper.classList.remove('to-left');
       mainWrapper.classList.add('to-right');
-      
     }
     mainWrapper.addEventListener('animationend', function slideTransition() {
       mainWrapper.removeEventListener('animationend', slideTransition);
@@ -149,8 +148,6 @@ var MessageManager = {
           } else if (threadMessages.classList.contains('new')) {
             this.getMessages(ThreadUI.renderMessages, filter, false);
             threadMessages.classList.remove('new');
-            messageInput.focus();
-
           } else {
             // As soon as we click in the thread, we visually mark it
             // as read.
@@ -161,11 +158,7 @@ var MessageManager = {
             }
 
             this.getMessages(ThreadUI.renderMessages,
-              filter, false, function() {
-                MessageManager.slide(function() {
-                  messageInput.focus();
-                });
-              });
+              filter, false, MessageManager.slide);
           }
         }
       break;
