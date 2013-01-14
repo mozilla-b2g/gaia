@@ -110,6 +110,18 @@ var UIManager = {
       event.preventDefault();
     });
 
+    // Input scroll workaround
+    var top = this.newsletterInput.offsetTop;
+    this.newsletterInput.addEventListener('focus', function() {
+      window.addEventListener('resize', function resize() {
+        window.removeEventListener('resize', resize);
+        // Need to wait till resize is done
+        setTimeout(function() {
+          document.getElementById('browser_privacy').scrollTop = top;
+        }, 30);
+      });
+    });
+
     // Browser privacy newsletter subscription
     var basketCallback = function(err, data) {
       this.loadingOverlay.classList.remove('show-overlay');
