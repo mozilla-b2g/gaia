@@ -155,8 +155,8 @@ var GaiaApps = {
         waitFor(
           function() {
             let app = runningApps[origin];
-            let result = {frame: app.frame.id,
-                          src: app.frame.src,
+            let result = {frame: app.frame.firstChild.id,
+                          src: app.iframe.src,
                           name: app.name,
                           origin: origin};
 
