@@ -5,9 +5,9 @@
 
 'use strict';
 
-const kIdentityScreen = 'https://notoriousb2g.personatest.org/sign_in#NATIVE';
+const kIdentityScreen = 'https://login.native-persona.org/sign_in#NATIVE';
 const kIdentityFrame =
-    'https://notoriousb2g.personatest.org/communication_iframe';
+    'https://login.native-persona.org/communication_iframe';
 
 var Identity = (function() {
   var iframe;
