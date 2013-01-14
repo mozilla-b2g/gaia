@@ -173,7 +173,6 @@ input.msg-search-text-tease {
 
 
 .msg-envelope-bar {
-  border-bottom: 1px solid gray;
   font-size: 1.5rem;
   width: 100%;
 }
@@ -181,13 +180,16 @@ input.msg-search-text-tease {
 .msg-envelope-date {
   font-size: 1rem;
   text-align: right;
+  margin: 0.3rem 1.5rem;
 }
 .msg-envelope-line {
   display: block;
-  margin: 0.8rem;
+  margin: 0 1.5rem;
+  min-height: 3rem;
+  padding: 0.4rem 0;
 }
 .msg-envelope-key {
-
+  color: #888888;
 }
 
 .msg-envelope-key::after {
@@ -195,7 +197,6 @@ input.msg-search-text-tease {
 }
 
 .msg-envelope-from-line {
-  margin-top: 0;
 }
 .msg-envelope-to-line {
 }
@@ -206,7 +207,9 @@ input.msg-search-text-tease {
 
 .msg-envelope-subject {
   font-weight: bold;
-  margin: 0.8rem;
+  margin: 0rem 1.5rem;
+  padding: 0.4rem 0 1rem 0;
+  border-bottom: 1px solid lightgray;
 }
 
 .msg-body-container {
@@ -214,22 +217,25 @@ input.msg-search-text-tease {
   white-space: pre-wrap;
   font-size: 1.9rem;
   line-height: 2.6rem;
+  margin: 1rem 1.5rem;
 }
 
 .msg-attachments-container {
-  padding: 0 1rem;
+  padding: 0 1.5rem;
   font-size: 1.2rem;
   line-height: 4rem;
 }
 
 .msg-peep-bubble {
+  position: relative;
+  margin: calc(0.5rem - 1px) 0;
+  min-height: 1.6rem;
   display: inline-block;
   background: #F2F2F2;
   border: 0.5px solid #CCCCCC;
   border-radius: 1rem;
-  margin: 1px 0;
-  padding: 2px 0.8rem;
-  font-size: 80%;
+  padding: 0.2rem 0.8rem;
+  font-size: 1.2rem;
 }
 .msg-peep-bubble * {
   pointer-events: none;
