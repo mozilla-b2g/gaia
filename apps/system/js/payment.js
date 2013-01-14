@@ -10,6 +10,7 @@ const kPaymentConfirmationScreen = '../payment.html';
 
 var Payment = {
   chromeEventId: null,
+  trustedUILayerID: null,
 
   init: function init() {
     window.addEventListener('mozChromeEvent', this);
@@ -93,6 +94,9 @@ var Payment = {
         // TODO: For now, known payment providers (BlueVia and Mozilla Market)
         //       only accepts the JWT by GET, so we just add it to the URI.
         e.detail.uri += e.detail.jwt;
+
+        this.trustedUILayerID = this.chromeEventId;
+
         var frame = document.createElement('iframe');
         frame.setAttribute('mozbrowser', 'true');
         frame.classList.add('screen');
@@ -111,7 +115,7 @@ var Payment = {
         break;
 
       case 'close-payment-flow-dialog':
-        TrustedUIManager.close((function dialogClosed() {
+        TrustedUIManager.close(this.trustedUILayerID, (function dialogClosed() {
           this._dispatchEvent({ id: this.chromeEventId });
         }).bind(this));
         break;

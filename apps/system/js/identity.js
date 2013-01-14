@@ -13,25 +13,27 @@ var Identity = (function() {
   var iframe;
 
   return {
-    chromeEventId: null,
+    trustedUILayerID: null,
 
     init: function() {
       window.addEventListener('mozChromeEvent', this);
     },
 
     handleEvent: function onMozChromeEvent(e) {
-      // We save the mozChromeEvent identifiers to send replies back from
-      // content with this exact value.
-      this.chromeEventId = e.detail.id;
-      if (!this.chromeEventId)
-        return;
-
+      var chromeEventId = e.detail.id;
       switch (e.detail.type) {
         // Chrome asks Gaia to show the identity dialog.
         case 'open-id-dialog':
+          // When opening the dialog, we record the chrome event id, which
+          // we will need to send back to the TrustedUIManager when asking
+          // to close.
+          this.trustedUILayerID = chromeEventId;
+          if (!this.trustedUILayerID)
+            return;
+
           if (!e.detail.showUI && iframe) {
             this._dispatchEvent({
-              id: this.chromeEventId,
+              id: chromeEventId,
               frame: iframe
             });
             return;
@@ -46,7 +48,7 @@ var Identity = (function() {
             // After creating the new frame containing the identity flow, we
             // send it back to chrome so the identity callbacks can be injected.
             this._dispatchEvent({
-              id: this.chromeEventId,
+              id: chromeEventId,
               frame: evt.target
             });
           }.bind(this));
@@ -54,7 +56,7 @@ var Identity = (function() {
 
           if (e.detail.showUI) {
             // The identity flow is shown within the trusted UI.
-            TrustedUIManager.open(navigator.mozL10n.get('persona-signin'), frame, this.chromeEventId);
+            TrustedUIManager.open(navigator.mozL10n.get('persona-signin'), frame, this.trustedUILayerID);
           } else {
             var container = document.getElementById('screen');
             container.appendChild(frame);
@@ -65,9 +67,9 @@ var Identity = (function() {
 
         case 'received-id-assertion':
           if (e.detail.showUI) {
-            TrustedUIManager.close(null);
+            TrustedUIManager.close(this.trustedUILayerID, null);
           }
-          this._dispatchEvent({ id: this.chromeEventId });
+          this._dispatchEvent({ id: chromeEventId });
           break;
       }
     },
