@@ -263,14 +263,16 @@ const GridManager = (function() {
     var duration = delay < kPageTransitionDuration ?
                    delay : kPageTransitionDuration;
 
-    var goToPageCallback = function() {
+    var goToPageCallback = function(dispatchEvents) {
       delete document.body.dataset.transitioning;
       if (callback) {
         callback();
       }
 
-      previousPage.container.dispatchEvent(new CustomEvent('gridpagehideend'));
-      newPage.container.dispatchEvent(new CustomEvent('gridpageshowend'));
+      if (dispatchEvents) {
+        previousPage.container.dispatchEvent(new CustomEvent('gridpagehideend'));
+        newPage.container.dispatchEvent(new CustomEvent('gridpageshowend'));
+      }
       overlayStyle.MozTransition = '';
       togglePagesVisibility(index, index);
     };
@@ -335,7 +337,7 @@ const GridManager = (function() {
 
     container.addEventListener('transitionend', function transitionEnd(e) {
       container.removeEventListener('transitionend', transitionEnd);
-      goToPageCallback();
+      goToPageCallback(true);
     });
   }
 
