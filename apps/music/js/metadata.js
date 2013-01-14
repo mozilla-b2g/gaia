@@ -125,10 +125,21 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
         // parse metadata from an Ogg Vorbis file
         parseOggMetadata(header);
       }
-      else if (magic.substring(4, 8) === 'ftyp' &&
-               magic.substring(8, 12) in MP4Types) {
-        // parse metadata from an MP4 file
-        parseMP4Metadata(header);
+      else if (magic.substring(4, 8) === 'ftyp') {
+        // This is an MP4 file
+        if (magic.substring(8, 12) in MP4Types) {
+          // It is a type of MP4 file that we support
+          parseMP4Metadata(header);
+        }
+        else {
+          // The MP4 file might be a video or it might be some
+          // kind of audio that we don't support. We used to treat
+          // files like these as unknown files and see (in the code below)
+          // whether the <audio> tag could play them. But we never parsed
+          // metadata from them, so even if playable, we didn't have a title.
+          // And, the <audio> tag was treating videos as playable.
+          errorCallback('Unknown MP4 file type');
+        }
       }
       else if ((header.getUint16(0, false) & 0xFFFE) === 0xFFFA) {
         // If this looks like an MP3 file, then look for ID3v1 metadata
