@@ -157,6 +157,16 @@
   }
 
   /**
+   * Send Terminal Response : UICC SESSION TERMINATED BY USER
+   */
+  function sendSessionEndTROnFocusLose() {
+    if (document.mozHidden)
+      responseSTKCommand({
+        resultCode: icc.STK_RESULT_UICC_SESSION_TERM_BY_USER
+      });
+  }
+
+  /**
    * Response ICC Command
    */
   function responseSTKCommand(response, force) {
