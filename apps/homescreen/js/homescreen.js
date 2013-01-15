@@ -84,7 +84,11 @@ const Homescreen = (function() {
       var confirm = {
         callback: function onAccept() {
           ConfirmDialog.hide();
-          navigator.mozApps.mgmt.uninstall(app);
+          if (app.isBookmark) {
+            app.uninstall();
+          } else {
+            navigator.mozApps.mgmt.uninstall(app);
+          }
         },
         applyClass: 'danger'
       };

@@ -769,7 +769,7 @@ var Recents = {
       logItem.classList.add('isContact');
       logItem.dataset['contactId'] = contact.id;
     } else {
-      contactPhoto.classList.add('unknownContact');
+      logItem.classList.remove('hasPhoto');
       delete logItem.dataset['contactId'];
       var isContact = logItem.classList.contains('isContact');
       if (isContact) {
