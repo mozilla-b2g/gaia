@@ -119,9 +119,12 @@ var UpdateManager = {
   cancelAllDownloads: function um_cancelAllDownloads() {
     CustomDialog.hide();
 
-    this.downloadsQueue.forEach(function(updatableApp) {
-      updatableApp.cancelDownload();
-    });
+    // We're emptying the array while iterating
+    while (this.downloadsQueue.length) {
+      var updatable = this.downloadsQueue[0];
+      updatable.cancelDownload();
+      this.removeFromDownloadsQueue(updatable);
+    }
   },
 
   requestErrorBanner: function um_requestErrorBanner() {
