@@ -60,12 +60,13 @@ window.Evme = new function Evme_Core() {
     };
 
     this.onHideStart = function onHideStart(source) {
+        Evme.Brain.SmartFolder.hideIfOpen();
+        
         if (source === "homeButtonClick") {
             if (
                 Evme.Brain.Shortcuts.hideIfEditing() ||
                 Evme.Brain.ShortcutsCustomize.hideIfOpen() ||
                 Evme.Brain.ShortcutsCustomize.hideIfRequesting() ||
-                Evme.Brain.SmartFolder.hideIfOpen() ||
                 Evme.Searchbar.clearIfHasQuery()
             ) {
                 return true;
