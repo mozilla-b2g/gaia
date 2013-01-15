@@ -54,17 +54,28 @@ Evme.ShortcutsCustomize = new function Evme_ShortcutsCustomize() {
         var html = '',
             shortcutsAdded = {};
         
-        for (var i=0,shortcut,query,queryKey; shortcut=shortcuts[i++];) {
+        for (var i=0,shortcut,query,queryKey,experienceId,name; shortcut=shortcuts[i++];) {
             query = shortcut.query;
             queryKey = query.toLowerCase();
+            experienceId = shortcut.experienceId || '';
+            name = query;
+            
+            if (experienceId) {
+                var l10nkey = 'id-' + Evme.Utils.shortcutIdToKey(experienceId),
+                    translatedName = Evme.Utils.l10n('shortcut', l10nkey);
+                
+                if (translatedName) {
+                    name = translatedName;
+                }
+            }
+            
+            name = name.replace(/</g, '&lt;');
             
             if (!shortcutsAdded[queryKey]) {
                 html += '<option ' +
                             'value="' + query.replace(/"/g, '&quot;') + '" ' +
-                            'data-experience="' + (shortcut.experienceId || '') + '"' +
-                        '>' +
-                            query.replace(/</g, '&lt;') +
-                        '</option>';
+                            'data-experience="' + experienceId + '"' +
+                        '>' + name + '</option>';
                 
                 shortcutsAdded[queryKey] = true;
             }
