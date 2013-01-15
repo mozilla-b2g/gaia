@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+
+  <title>Data Connection Warning</title>
+  <meta name="description" content="Prompts user to take action, first time data connection is enabled">
+
+  <!-- Common style -->
+  <link rel="stylesheet" type="text/css" href="shared/style/confirm.css">
+
+  <!-- Specific style -->
+  <link rel="stylesheet" type="text/css" href="style/ondataconnect.css"/>
+
+  <!-- Localization -->
+  <link rel="resource" type="application/l10n" href="locales/locales.ini"/>
+  <script type="application/javascript" src="shared/js/l10n.js"></script>
+
+  <!-- Specific code -->
+  <script type="application/javascript" defer src="js/ondataconnect.js"></script>
+
+</head>
+
+<body role="application">
+
+  <form role="dialog" data-type="confirm" id="pair-view">
+    <section>
+      <h1 class="heading" data-l10n-id="dataConnection-warning-head">Turn ON data connection?</h1>
+      <p class="message" data-l10n-id="dataConnection-warning-message">Applications will automatically fetch data via data connection when required. Additional data charges may apply.</p>
+    </section>
+    <menu>
+      <button id="button-canncel" data-l10n-id="dataConnection-warning-cancel">Not now</button>
+      <button id="button-ok" class="recommend" data-l10n-id="dataConnection-warning-ok">Turn ON</button>
+    </menu>
+  </form>
+
+</body>
+</html>
