@@ -11,7 +11,6 @@ var CostControlApp = (function() {
 
   'use strict';
 
-
   var costcontrol, initialized = false;
   window.addEventListener('DOMContentLoaded', function _onDOMReady() {
     var mobileConnection = window.navigator.mozMobileConnection;
@@ -103,7 +102,6 @@ var CostControlApp = (function() {
 
     initialized = true;
   }
-
 
   var currentMode;
   function updateUI() {
