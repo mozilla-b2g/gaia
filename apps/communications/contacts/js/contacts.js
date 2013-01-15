@@ -614,6 +614,12 @@ var Contacts = (function() {
     contacts.Details.onLineChanged();
   };
 
+
+  var cardStateChanged = function() {
+    contacts.Settings.cardStateChanged();
+  };
+
+
   var getFirstContacts = function c_getFirstContacts() {
     var onerror = function() {
       console.error('Error getting first contacts');
@@ -654,7 +660,8 @@ var Contacts = (function() {
     'showContactDetail': contactListClickHandler,
     'updateContactDetail': updateContactDetail,
     'onLineChanged': onLineChanged,
-    'showStatus': utils.status.show
+    'showStatus': utils.status.show,
+    'cardStateChanged': cardStateChanged
   };
 })();
 
@@ -667,6 +674,10 @@ window.addEventListener('localized', function initContacts(evt) {
 
     window.addEventListener('online', Contacts.onLineChanged);
     window.addEventListener('offline', Contacts.onLineChanged);
+
+    // To listen to card state changes is needed for enabling import from SIM
+    var mobileConn = navigator.mozMobileConnection;
+    mobileConn.oncardstatechange = Contacts.cardStateChanged;
 
     if (window.navigator.mozSetMessageHandler && window.self == window.top) {
       var actHandler = ActivityHandler.handle.bind(ActivityHandler);
