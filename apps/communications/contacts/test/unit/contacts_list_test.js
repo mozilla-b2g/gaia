@@ -272,7 +272,7 @@ suite('Render contacts list', function() {
       assertNoGroup(groupFav, containerFav);
       assertGroup(groupA, containerA, 1);
       assertGroup(groupB, containerB, 1);
-      assertGroup(groupB, containerC, 1);
+      assertGroup(groupC, containerC, 1);
       assertNoGroup(groupD, containerD);
 
     });
@@ -309,13 +309,33 @@ suite('Render contacts list', function() {
       assertTotal(3, 4);
     });
 
-    test('rendering one with no name and phone', function() {
+    test('rendering one with no name nor phone and company', function() {
       var newContact = new MockContactAllFields();
       newContact.id = '4';
       newContact.familyName = null;
       newContact.givenName = null;
       newContact.name = null;
       newContact.category = null;
+      newContact.org = 'AD';
+      var newList = mockContacts.concat([newContact]);
+      subject.load(newList);
+      assert.isTrue(noContacts.classList.contains('hide'));
+      assertNoGroup(groupFav, containerFav);
+      var cContacts = assertGroup(groupC, containerC, 1);
+      assert.isTrue(cContacts[0].innerHTML.indexOf('CC') > -1);
+      var aContacts = assertGroup(groupA, containerA, 2);
+      assert.isTrue(aContacts[0].innerHTML.indexOf('AD') > -1);
+      assertTotal(3, 4);
+    });
+
+    test('rendering one with no name nor company and phone', function() {
+      var newContact = new MockContactAllFields();
+      newContact.id = '4';
+      newContact.familyName = null;
+      newContact.givenName = null;
+      newContact.name = null;
+      newContact.category = null;
+      newContact.org = null;
       var newList = mockContacts.concat([newContact]);
       subject.load(newList);
       assert.isTrue(noContacts.classList.contains('hide'));
@@ -328,7 +348,7 @@ suite('Render contacts list', function() {
       assertTotal(4, 4);
     });
 
-    test('rendering one with no name and email', function() {
+    test('rendering one with no name nor company and email', function() {
       var newContact = new MockContactAllFields();
       newContact.id = '4';
       newContact.familyName = null;
@@ -336,6 +356,7 @@ suite('Render contacts list', function() {
       newContact.name = null;
       newContact.category = null;
       newContact.tel = null;
+      newContact.org = null;
       newContact.email[0].value = 'CZ@CZ.com';
       var newList = mockContacts.concat([newContact]);
       subject.load(newList);
@@ -348,7 +369,7 @@ suite('Render contacts list', function() {
       assertTotal(3, 4);
     });
 
-    test('rendering one with no name nor email', function() {
+    test('rendering one with no name nor email nor company', function() {
       var newContact = new MockContactAllFields();
       newContact.id = '4';
       newContact.familyName = null;
@@ -356,6 +377,7 @@ suite('Render contacts list', function() {
       newContact.name = null;
       newContact.category = null;
       newContact.tel = null;
+      newContact.org = null;
       newContact.email = null;
       var newList = mockContacts.concat([newContact]);
       subject.load(newList);
@@ -368,7 +390,7 @@ suite('Render contacts list', function() {
       assertTotal(4, 4);
     });
 
-    test('rendering one with no name nor email and favorite', function() {
+    test('rendering one with no name nor email nor company and favorite', function() {
       var newContact = new MockContactAllFields();
       newContact.id = '4';
       newContact.familyName = null;
@@ -376,6 +398,7 @@ suite('Render contacts list', function() {
       newContact.name = null;
       newContact.category = ['favorite'];
       newContact.tel = null;
+      newContact.org = null;
       newContact.email = null;
       var newList = mockContacts.concat([newContact]);
       subject.load(newList);

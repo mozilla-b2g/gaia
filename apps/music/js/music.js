@@ -305,6 +305,11 @@ var TitleBar = {
     return this._titleText = document.getElementById('title-text');
   },
 
+  get playerIcon() {
+    delete this._playerIcon;
+    return this._playerIcon = document.getElementById('title-player');
+  },
+
   init: function tb_init() {
     this.view.addEventListener('click', this);
   },
@@ -325,7 +330,7 @@ var TitleBar = {
             changeMode(fromMode);
 
             break;
-          case 'title-text':
+          case 'title-player':
             // We cannot to switch to player mode
             // when there is no song in the dataSource of player
             if (PlayerView.dataSource.length != 0)

@@ -634,7 +634,7 @@ var Camera = {
     // A file with this name may have been written by the user or
     // our indexeddb sequence tracker was cleared, check we wont overwrite
     // anything
-    var req = storage.get(path);
+    var req = storage.get(path + filename);
 
     // A file existed, we bump the directory then try to generate a
     // new filename

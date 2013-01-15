@@ -5,9 +5,9 @@
 
 'use strict';
 
-const kIdentityScreen = 'https://notoriousb2g.personatest.org/sign_in#NATIVE';
+const kIdentityScreen = 'https://login.native-persona.org/sign_in#NATIVE';
 const kIdentityFrame =
-    'https://notoriousb2g.personatest.org/communication_iframe';
+    'https://login.native-persona.org/communication_iframe';
 
 var Identity = (function() {
   var iframe;
@@ -54,7 +54,7 @@ var Identity = (function() {
 
           if (e.detail.showUI) {
             // The identity flow is shown within the trusted UI.
-            TrustedUIManager.open('IdentityFlow', frame, this.chromeEventId);
+            TrustedUIManager.open(navigator.mozL10n.get('persona-signin'), frame, this.chromeEventId);
           } else {
             var container = document.getElementById('screen');
             container.appendChild(frame);
@@ -79,5 +79,11 @@ var Identity = (function() {
   };
 })();
 
-Identity.init();
+// Make sure L10n is ready before init
+if (navigator.mozL10n.readyState == 'complete' ||
+    navigator.mozL10n.readyState == 'interactive') {
+  Identity.init();
+} else {
+  window.addEventListener('localized', Identity.init.bind(Identity));
+}
 
