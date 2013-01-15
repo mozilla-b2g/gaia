@@ -290,7 +290,6 @@ html, body {
   display: block;
   padding: 1.5rem 1.5rem 0.5rem 1.5rem ;
   font-size: 1.5rem;
-  text-transform: capitalize;
 }
 
 #configure_network_params form input {
