@@ -167,6 +167,7 @@ suite('system/UpdateManager', function() {
     // timeouts finish (they are all set to 0)
     setTimeout(function() {
       UpdateManager.updatableApps = [];
+      UpdateManager.systemUpdatable = null;
       UpdateManager.updatesQueue = [];
       UpdateManager.downloadsQueue = [];
       UpdateManager._downloading = false;
@@ -461,7 +462,7 @@ suite('system/UpdateManager', function() {
       var systemUpdatable;
 
       setup(function() {
-        systemUpdatable = new MockSystemUpdatable(42);
+        systemUpdatable = new MockSystemUpdatable();
       });
 
       suite('when we only have the system update', function() {
@@ -732,7 +733,7 @@ suite('system/UpdateManager', function() {
       setup(function() {
         UpdateManager.init();
 
-        systemUpdatable = new MockSystemUpdatable(5296345);
+        systemUpdatable = new MockSystemUpdatable();
 
         appUpdatable = new MockAppUpdatable(new MockApp());
         appUpdatable.name = 'Angry birds';
@@ -889,19 +890,41 @@ suite('system/UpdateManager', function() {
     });
 
     suite('cancel all downloads', function() {
-      test('should call cancelDownload on all the updatables', function() {
+      var systemUpdatable;
+
+      setup(function() {
+        systemUpdatable = new MockSystemUpdatable();
         UpdateManager.updatableApps = updatableApps;
-        UpdateManager.downloadsQueue = [uAppWithDownloadAvailable];
+        [systemUpdatable, uAppWithDownloadAvailable].forEach(function(updatable) {
+          UpdateManager.addToUpdatesQueue(updatable);
+          UpdateManager.addToDownloadsQueue(updatable);
+        });
 
         UpdateManager.cancelAllDownloads();
+      });
+
+      test('should call cancelDownload on the app updatables', function() {
         assert.isTrue(uAppWithDownloadAvailable.mCancelCalled);
+      });
+
+      test('should call cancelDownload on the system updatable', function() {
+        assert.isTrue(systemUpdatable.mCancelCalled);
+      });
+
+      test('should empty the downloads queue', function() {
+        assert.equal(UpdateManager.downloadsQueue.length, 0);
+      });
+
+      test('should leave the updates available', function() {
+        assert.equal(UpdateManager.updatesQueue.length, 2);
       });
     });
 
     suite('download prompt', function() {
       setup(function() {
         MockUtilityTray.show();
-        var systemUpdatable = new MockSystemUpdatable(5296345);
+        var systemUpdatable = new MockSystemUpdatable();
+        systemUpdatable.size = 5296345;
         var appUpdatable = new MockAppUpdatable(new MockApp());
         appUpdatable.name = 'Angry birds';
         appUpdatable.size = '423459';
@@ -1094,17 +1117,17 @@ suite('system/UpdateManager', function() {
         });
 
         test('should add a system update to the array', function() {
-          var systemUpdate = new MockSystemUpdatable(42);
+          var systemUpdate = new MockSystemUpdatable();
 
           var initialLength = UpdateManager.updatesQueue.length;
           UpdateManager.addToUpdatesQueue(systemUpdate);
           assert.equal(initialLength + 1, UpdateManager.updatesQueue.length);
         });
 
-        test('should not add more than on system update', function() {
-          var systemUpdate = new MockSystemUpdatable(42);
+        test('should not add more than one system update', function() {
+          var systemUpdate = new MockSystemUpdatable();
 
-          UpdateManager.updatesQueue.push(new MockSystemUpdatable(42));
+          UpdateManager.updatesQueue.push(new MockSystemUpdatable());
           var initialLength = UpdateManager.updatesQueue.length;
           UpdateManager.addToUpdatesQueue(systemUpdate);
           assert.equal(initialLength, UpdateManager.updatesQueue.length);
@@ -1163,7 +1186,7 @@ suite('system/UpdateManager', function() {
         });
 
         test('should remove system updates too', function() {
-          var systemUpdate = new MockSystemUpdatable(42);
+          var systemUpdate = new MockSystemUpdatable();
           UpdateManager.updatesQueue.push(systemUpdate);
 
           var initialLength = UpdateManager.updatesQueue.length;
@@ -1192,14 +1215,14 @@ suite('system/UpdateManager', function() {
 
         test('should add system updates too', function() {
           var initialLength = UpdateManager.downloadsQueue.length;
-          UpdateManager.addToDownloadsQueue(new MockSystemUpdatable(42));
+          UpdateManager.addToDownloadsQueue(new MockSystemUpdatable());
           assert.equal(initialLength + 1, UpdateManager.downloadsQueue.length);
         });
 
         test('should not add more than one system updates', function() {
           var initialLength = UpdateManager.downloadsQueue.length;
-          UpdateManager.addToDownloadsQueue(new MockSystemUpdatable(42));
-          UpdateManager.addToDownloadsQueue(new MockSystemUpdatable(42));
+          UpdateManager.addToDownloadsQueue(new MockSystemUpdatable());
+          UpdateManager.addToDownloadsQueue(new MockSystemUpdatable());
           assert.equal(initialLength + 1, UpdateManager.downloadsQueue.length);
         });
 

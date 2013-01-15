@@ -38,7 +38,6 @@ AppUpdatable.prototype.download = function() {
 
 AppUpdatable.prototype.cancelDownload = function() {
   this.app.cancelDownload();
-  UpdateManager.removeFromDownloadsQueue(this);
 };
 
 AppUpdatable.prototype.uninit = function() {
@@ -129,9 +128,9 @@ function SystemUpdatable() {
   this.downloading = false;
   this.paused = false;
 
-  this.checkKnownUpdate(function checkCallback() {
-    UpdateManager.checkForUpdates(true);
-  });
+  // XXX: this state should be kept on the platform side
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=827090
+  this.checkKnownUpdate(UpdateManager.checkForUpdates.bind(UpdateManager));
 
   window.addEventListener('mozChromeEvent', this);
 }
@@ -152,7 +151,6 @@ SystemUpdatable.prototype.download = function() {
 
 SystemUpdatable.prototype.cancelDownload = function() {
   this._dispatchEvent('update-download-cancel');
-  UpdateManager.removeFromDownloadsQueue(this);
   this.downloading = false;
   this.paused = false;
 };
@@ -247,10 +245,9 @@ SystemUpdatable.prototype.checkKnownUpdate = function(callback) {
   if (typeof callback !== 'function') {
     return;
   }
+
   asyncStorage.getItem(SystemUpdatable.KNOWN_UPDATE_FLAG, function(value) {
-    if (value) {
-      callback();
-    }
+    callback(!!value);
   });
 };
 
