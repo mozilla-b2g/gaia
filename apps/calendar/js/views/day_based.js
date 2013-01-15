@@ -544,11 +544,7 @@ Calendar.ns('Views').DayBased = (function() {
 
       if (this.renderAllHours) {
         var hour = 0;
-
-        if (this.outsideAllDay) {
-          this.createHour('allday');
-        }
-
+        this.createHour('allday');
         for (; hour < 24; hour++) {
           this.createHour(hour);
         }
