@@ -34,10 +34,6 @@
         border: solid 1px #e8e8e8;
       }
 
-      section[role="region"] > div {
-        text-align: center;
-      }
-
       form[role="dialog"][data-type="confirm"] {
         position: relative;
         height: 30rem;
@@ -63,9 +59,7 @@
 
   <section role="region">
     <h2 class="bb-docs">Spinner</h2>
-    <div>
-      <progress></progress>
-    </div>
+    <progress></progress>
 
     <h2 class="bb-docs">Activity bar</h2>
     <progress class="pack-activity" value="0" max="100"></progress>
@@ -78,6 +72,20 @@
   </section>
 
   <h2 class="bb-docs">Progress bar + Confirm BB</h2>
+  <form role="dialog" data-type="confirm">
+    <section>
+      <h1>Name of the action</h1>
+      <p style="text-align: center">
+        <progress></progress>
+      </p>      
+    </section>
+    <menu>
+      <button class="full">Cancel</button>
+    </menu>
+  </form>
+
+  <br/>
+
   <form role="dialog" data-type="confirm">
     <section>
       <h1>Name of the action</h1>
