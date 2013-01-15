@@ -61,13 +61,13 @@
         #evmeContainer .shortcut .remove {
             position: absolute;
             top: -5px;
-            left: 0;
+            left: .5rem;
             right: 0;
             height: 25px;
             z-index: 100;
             display: none;
             cursor: pointer;
-            background: transparent url('/resources/images/delete.png') 50% 0 no-repeat;
+            background: transparent url('/resources/images/delete.png') no-repeat left top;
         }
     #evmeContainer .shortcut.disabled {
         opacity: 0;

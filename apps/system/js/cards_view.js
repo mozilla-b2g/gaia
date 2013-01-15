@@ -211,7 +211,7 @@ var CardsView = (function() {
       title.textContent = app.name;
       card.appendChild(title);
 
-      var frameForScreenshot = app.frame;
+      var frameForScreenshot = app.iframe;
 
       if (PopupManager.getPopupFromOrigin(origin)) {
         var popupFrame = PopupManager.getPopupFromOrigin(origin);
@@ -241,6 +241,10 @@ var CardsView = (function() {
         header.innerHTML += '</h1></header>';
         card.appendChild(header);
         card.classList.add('trustedui');
+      } else {
+        var closeButton = document.createElement('div');
+        closeButton.classList.add('close-card');
+        card.appendChild(closeButton);
       }
 
       cardsList.appendChild(card);
@@ -264,11 +268,34 @@ var CardsView = (function() {
     }
   }
 
-  function runApp() {
+  function runApp(e) {
+    // Handle close events
+    if (e.target.classList.contains('close-card')) {
+      var element = e.target.parentNode;
+      cardsList.removeChild(element);
+      closeApp(element, true);
+      return;
+    }
+
     var origin = this.dataset.origin;
     alignCard(currentDisplayed, function cardAligned() {
       WindowManager.launch(origin);
     });
+  }
+
+  function closeApp(element, removeImmediately) {
+    // Stop the app itself
+    WindowManager.kill(element.dataset.origin);
+
+    // Fix for non selectable cards when we remove the last card
+    // Described in https://bugzilla.mozilla.org/show_bug.cgi?id=825293
+    if (cardsList.children.length === currentDisplayed) {
+      currentDisplayed--;
+    }
+
+    // If there are no cards left, then dismiss the task switcher.
+    if (!cardsList.children.length)
+      hideCardSwitcher(removeImmediately);
   }
 
   function getOriginObject(url) {
@@ -311,7 +338,7 @@ var CardsView = (function() {
 
   getOffOrigin.cache = {};
 
-  function hideCardSwitcher() {
+  function hideCardSwitcher(removeImmediately) {
     if (!cardSwitcherIsShown())
       return;
 
@@ -329,14 +356,19 @@ var CardsView = (function() {
     screenshotObjectURLs = [];
 
     // And remove all the cards from the document after the transition
-    cardsView.addEventListener('transitionend', function removeCards() {
+    function removeCards() {
       cardsView.removeEventListener('transitionend', removeCards);
       screenElement.classList.remove('cards-view');
 
       while (cardsList.firstElementChild) {
         cardsList.removeChild(cardsList.firstElementChild);
       }
-    });
+    }
+    if (removeImmediately) {
+      removeCards();
+    } else {
+      cardsView.addEventListener('transitionend', removeCards);
+    }
   }
 
   function cardSwitcherIsShown() {
@@ -516,18 +548,7 @@ var CardsView = (function() {
         // Remove the icon from the task list
         cardsList.removeChild(element);
 
-        // Stop the app itself
-        WindowManager.kill(element.dataset.origin);
-
-        // Fix for non selectable cards when we remove the last card
-        // Described in https://bugzilla.mozilla.org/show_bug.cgi?id=825293
-        if (cardsList.children.length === currentDisplayed) {
-          currentDisplayed--;
-        }
-
-        // If there are no cards left, then dismiss the task switcher.
-        if (!cardsList.children.length)
-          hideCardSwitcher();
+        closeApp(element);
 
         return;
       } else {

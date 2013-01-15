@@ -838,10 +838,15 @@ var LockScreen = {
 
   checkPassCode: function lockscreen_checkPassCode() {
     if (this.passCodeEntered === this.passCode) {
+      var self = this;
       this.overlay.dataset.passcodeStatus = 'success';
       this.passCodeError = 0;
 
-      this.unlock();
+      var transitionend = function() {
+        self.passcodeCode.removeEventListener('transitionend', transitionend);
+        self.unlock();
+      };
+      this.passcodeCode.addEventListener('transitionend', transitionend);
     } else {
       this.overlay.dataset.passcodeStatus = 'error';
       if ('vibrate' in navigator)

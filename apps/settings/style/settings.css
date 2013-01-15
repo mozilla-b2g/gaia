@@ -30,6 +30,12 @@ section[role="region"] {
   overflow: hidden;
 }
 
+/* Without this hack, we get a white screen at launch on gecko21 */
+.uninit section[role="region"],
+.uninit section[role="region"].peek {
+  transition: none;
+}
+
 /**
  * Panel targets -- transitions
  * the `.previous', '.current' and '.forward' classes are set by settings.js

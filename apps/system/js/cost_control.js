@@ -43,12 +43,7 @@
     widgetFrame.src = origin + '/widget.html';
     widgetContainer.appendChild(widgetFrame);
 
-    // TODO: Remove this when weird bug #809031 (Bugzilla) is solved
-    // See cost_control.css as well to remove the last rule
-    var offsetY = document.getElementById('notification-bar').clientHeight;
-    offsetY +=
-      document.getElementById('notifications-container').clientHeight;
-    widgetFrame.style.transform = 'translate(0, ' + offsetY + 'px)';
+    _adjustWidgetPosition();
   }
 
   function _showWidget() {
@@ -60,6 +55,15 @@
     if (widgetFrame) {
       widgetFrame.setVisible(false);
     }
+  }
+
+  function _adjustWidgetPosition() {
+    // TODO: Remove this when weird bug #809031 (Bugzilla) is solved
+    // See cost_control.css as well to remove the last rule
+    var offsetY = document.getElementById('notification-bar').clientHeight;
+    offsetY +=
+      document.getElementById('notifications-container').clientHeight;
+    widgetFrame.style.transform = 'translate(0, ' + offsetY + 'px)';
   }
 
   // Listen to utilitytray show
@@ -80,4 +84,6 @@
       }
     });
   });
+
+  window.addEventListener('resize', _adjustWidgetPosition);
 }());

@@ -29,7 +29,6 @@ window.Evme = new function Evme_Core() {
         });
 
         Evme.DoATAPI.init({
-            "env": data.env.server,
             "apiKey": data.apiKey,
             "appVersion": data.appVersion,
             "authCookieName": data.authCookieName
@@ -80,11 +79,12 @@ window.Evme = new function Evme_Core() {
     function initObjects(data) {
         Evme.ConnectionMessage.init({
         });
-
+        
         Evme.Location.init({
-
+            "refreshInterval": data.locationInterval,
+            "requestTimeout": data.locationRequestTimeout
         });
-
+        
         Evme.Shortcuts.init({
             "el": Evme.$("#shortcuts"),
             "elLoading": Evme.$("#shortcuts-loading"),
@@ -144,7 +144,6 @@ window.Evme = new function Evme_Core() {
             "DoATAPI": Evme.DoATAPI,
             "getCurrentAppsRowsCols": Evme.Apps.getCurrentRowsCols,
             "Brain": Evme.Brain,
-            "env": data.env.server,
             "connectionLow": Evme.Utils.connection().speed != Evme.Utils.connection().SPEED_HIGH,
             "sessionObj": Evme.DoATAPI.Session.get(),
             "pageRenderStartTs": head_ts,

@@ -51,7 +51,6 @@ var ModalDialog = {
 
     // Bind events
     window.addEventListener('mozbrowsershowmodalprompt', this);
-    window.addEventListener('mozbrowsererror', this);
     window.addEventListener('appopen', this);
     window.addEventListener('appwillclose', this);
     window.addEventListener('appterminated', this);
@@ -73,18 +72,9 @@ var ModalDialog = {
   handleEvent: function md_handleEvent(evt) {
     var elements = this.elements;
     switch (evt.type) {
-      case 'mozbrowsererror':
       case 'mozbrowsershowmodalprompt':
         var frameType = evt.target.dataset.frameType;
         if (frameType != 'window' && frameType != 'inline-activity')
-          return;
-
-        /* fatal case (App crashing) is handled in Window Manager */
-        // XXX: Before https://bugzilla.mozilla.org/show_bug.cgi?id=816452 is
-        // confirmed and fixed, display the gecko error page instead of
-        // customized error page.
-        if (evt.type === 'mozbrowsererror' &&
-            evt.detail.type === 'fatal')
           return;
 
         evt.preventDefault();
@@ -214,41 +204,14 @@ var ModalDialog = {
         this.buildSelectOneDialog(message);
         elements.selectOne.classList.add('visible');
         break;
-
-      // Error
-      case 'other':
-        this.showErrorDialog(target);
-        break;
     }
 
     this.setHeight(window.innerHeight - StatusBar.height);
   },
 
-  showErrorDialog: function md_showErrorDialog(target) {
-    var type = 'other';
-    if (AirplaneMode.enabled) {
-      type = 'airplane';
-    } else if (!navigator.onLine) {
-      type = 'offline';
-    }
-
-    var name = encodeURIComponent(WindowManager.getCurrentDisplayedApp().name);
-
-    var host = document.location.host;
-    var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-    var protocol = document.location.protocol + '//';
-    var origin = protocol + 'system.' + domain;
-    var errorURL = origin + '/error.html?' +
-                   'name=' + name + '&' +
-                   'type=' + type;
-    if (target.src.indexOf(errorURL) == -1 || type != 'other') {
-      target.src = errorURL + '&origin=' + target.dataset.frameURL;
-    }
-  },
-
   hide: function md_hide() {
     var evt = this.currentEvents[this.currentOrigin];
-    var type = evt.detail.promptType || 'error';
+    var type = evt.detail.promptType;
     if (type == 'prompt') {
       this.elements.promptInput.blur();
     }
@@ -282,10 +245,6 @@ var ModalDialog = {
       case 'confirm':
         evt.detail.returnValue = true;
         elements.confirm.classList.remove('visible');
-        break;
-
-      case 'other':
-        elements.error.classList.remove('visible');
         break;
     }
 
@@ -328,10 +287,6 @@ var ModalDialog = {
         /* return null when click cancel */
         evt.detail.returnValue = null;
         elements.selectOne.classList.remove('visible');
-        break;
-
-      case 'other':
-        elements.error.classList.remove('visible');
         break;
     }
 
