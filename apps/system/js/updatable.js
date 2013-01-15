@@ -19,7 +19,7 @@ function AppUpdatable(app) {
   var manifest = app.manifest ? app.manifest : app.updateManifest;
   this.name = new ManifestHelper(manifest).name;
 
-  this.size = app.updateManifest ? app.updateManifest.size : null;
+  this.size = app.downloadSize;
   this.progress = null;
 
   UpdateManager.addToUpdatableApps(this);
@@ -56,8 +56,7 @@ AppUpdatable.prototype.clean = function() {
 };
 
 AppUpdatable.prototype.availableCallBack = function() {
-  this.size = this.app.updateManifest ?
-    this.app.updateManifest.size : null;
+  this.size = this.app.downloadSize;
 
   if (this.app.installState === 'installed') {
     UpdateManager.addToUpdatesQueue(this);

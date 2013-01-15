@@ -16,6 +16,7 @@ function MockApp(opts) {
   this.installState = 'installed';
   this.downloadAvailable = false;
   this.downloadError = null;
+  this.downloadSize = null;
 
   this.mId = idGen++;
   this.mDownloadCalled = false;
@@ -39,6 +40,7 @@ MockApp.prototype.cancelDownload = function() {
 
 MockApp.prototype.mTriggerDownloadAvailable = function() {
   this.downloadAvailable = true;
+  this.downloadSize = 42;
   if (this.ondownloadavailable) {
     this.ondownloadavailable({
         application: this
@@ -48,6 +50,7 @@ MockApp.prototype.mTriggerDownloadAvailable = function() {
 
 MockApp.prototype.mTriggerDownloadSuccess = function() {
   this.downloadAvailable = false;
+  this.downloadSize = null;
   if (this.ondownloadsuccess) {
     this.ondownloadsuccess({
         application: this
@@ -57,6 +60,7 @@ MockApp.prototype.mTriggerDownloadSuccess = function() {
 
 MockApp.prototype.mTriggerDownloadError = function(error) {
   this.downloadAvailable = true;
+  this.downloadSize = null;
 
   this.downloadError = {
     name: error || 'NETWORK_ERROR'
@@ -80,6 +84,8 @@ MockApp.prototype.mTriggerDownloadProgress = function(progress) {
 
 MockApp.prototype.mTriggerDownloadApplied = function() {
   this.downloadAvailable = false;
+  this.downloadSize = null;
+
   if (this.ondownloadapplied) {
     this.ondownloadapplied({
         application: this
