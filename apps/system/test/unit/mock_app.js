@@ -10,15 +10,12 @@ function MockApp(opts) {
   this.manifest = {
     name: 'Mock app'
   };
-  this.updateManifest = {
-    size: 42,
-    name: 'Mock packaged app'
-  };
 
   this.removable = true;
   this.installState = 'installed';
   this.downloadAvailable = false;
   this.downloadError = null;
+  this.downloadSize = null;
 
   this.mId = idGen++;
   this.mDownloadCalled = false;
@@ -40,8 +37,9 @@ MockApp.prototype.cancelDownload = function() {
   this.mCancelCalled = true;
 };
 
-MockApp.prototype.mTriggerDownloadAvailable = function() {
+MockApp.prototype.mTriggerDownloadAvailable = function(size) {
   this.downloadAvailable = true;
+  this.downloadSize = size;
   if (this.ondownloadavailable) {
     this.ondownloadavailable({
         application: this
@@ -51,6 +49,7 @@ MockApp.prototype.mTriggerDownloadAvailable = function() {
 
 MockApp.prototype.mTriggerDownloadSuccess = function() {
   this.downloadAvailable = false;
+  this.downloadSize = null;
   if (this.ondownloadsuccess) {
     this.ondownloadsuccess({
         application: this
@@ -60,6 +59,7 @@ MockApp.prototype.mTriggerDownloadSuccess = function() {
 
 MockApp.prototype.mTriggerDownloadError = function(error) {
   this.downloadAvailable = true;
+  this.downloadSize = null;
 
   this.downloadError = {
     name: error || 'UNKNOWN_ERROR'
@@ -84,6 +84,7 @@ MockApp.prototype.mTriggerDownloadProgress = function(progress) {
 
 MockApp.prototype.mTriggerDownloadApplied = function() {
   this.downloadAvailable = false;
+  this.downloadSize = null;
   if (this.ondownloadapplied) {
     this.ondownloadapplied({
         application: this
