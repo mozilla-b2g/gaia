@@ -80,7 +80,7 @@ var StatusBar = {
       'ring.enabled': ['mute'],
       'alarm.enabled': ['alarm'],
       'vibration.enabled': ['vibration'],
-      'ril.cf.unconditional.enabled': ['callForwarding']
+      'ril.cf.enabled': ['callForwarding']
     };
 
     var self = this;
@@ -534,7 +534,7 @@ var StatusBar = {
 
     callForwarding: function sb_updateCallForwarding() {
       var icon = this.icons.callForwarding;
-      icon.hidden = !this.settingValues['ril.cf.unconditional.enabled'];
+      icon.hidden = !this.settingValues['ril.cf.enabled'];
     }
   },
 
