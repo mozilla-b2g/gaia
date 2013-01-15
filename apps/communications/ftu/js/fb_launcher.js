@@ -48,7 +48,6 @@ var FbLauncher = (function(document) {
     // That's why we cannot call notifySettings outside the switch block
     function messageHandler(e) {
       var data = e.data;
-
       switch (data.type) {
         case 'ready':
           open();
@@ -58,6 +57,7 @@ var FbLauncher = (function(document) {
           unload();
           break;
 
+        case 'fb_updated': // no 'break' for purpose
         case 'window_close':
           close();
           break;

@@ -563,29 +563,29 @@ if (typeof fb.importer === 'undefined') {
               'Closing FB Import');
           UI.end();
         }
-      } else {
-        parent.postMessage({
-          type: 'fb_updated',
-          data: ''
-        }, fb.CONTACTS_APP_ORIGIN);
-
-        window.addEventListener('message', function finished(e) {
-          if (e.data.type === 'contacts_loaded') {
-            // When the list of contacts is loaded and it's the current view
-            Curtain.hide(function onhide() {
-              // Please close me and display the number of friends updated
-              parent.postMessage({
-                type: 'window_close',
-                data: '',
-                message: _('friendsUpdated', {
-                  numFriends: numFriends
-                })
-              }, fb.CONTACTS_APP_ORIGIN);
-            });
-            window.removeEventListener('message', finished);
-          }
-        });
       }
+       
+      parent.postMessage({
+        type: 'fb_updated',
+        data: ''
+      }, fb.CONTACTS_APP_ORIGIN);
+
+      window.addEventListener('message', function finished(e) {
+        if (e.data.type === 'contacts_loaded') {
+          // When the list of contacts is loaded and it's the current view
+          Curtain.hide(function onhide() {
+            // Please close me and display the number of friends updated
+            parent.postMessage({
+              type: 'window_close',
+              data: '',
+              message: _('friendsUpdated', {
+                numFriends: numFriends
+              })
+            }, fb.CONTACTS_APP_ORIGIN);
+          });
+          window.removeEventListener('message', finished);
+        }
+      });
     }
 
     function getCleaner(mode, contacts, cb) {
