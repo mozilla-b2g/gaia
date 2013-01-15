@@ -7,9 +7,6 @@ Calendar.ns('Views').WeekChild = (function() {
   function Week(options) {
     Calendar.Views.DayBased.apply(this, arguments);
     this.hourEventsSelector = null;
-
-    this.allDayElement = document.createElement('section');
-    this.allDayElement.classList.add('week-events')
   }
 
   Week.prototype = {
@@ -60,12 +57,10 @@ Calendar.ns('Views').WeekChild = (function() {
     create: function() {
       var el = _super.create.apply(this, arguments);
 
-      this.stickyFrame.insertAdjacentHTML(
+      el.insertAdjacentHTML(
         'afterbegin',
         this._renderHeader()
       );
-
-      this.stickyFrame.appendChild(this.allDayElement);
 
       return el;
     }
