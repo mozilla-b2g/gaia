@@ -172,11 +172,11 @@ def main():
         wallpaper_filename = "build/wallpaper.jpg"
 
     if verbose:
-        print "Console:", options.console
-        print "Homescreen URL:", homescreen_url
-        print "Ftu URL:", ftu_url
-        print "Setting Filename:",settings_filename
-        print "Wallpaper Filename:", wallpaper_filename
+        print("Console:", options.console)
+        print("Homescreen URL:", homescreen_url)
+        print("Ftu URL:", ftu_url)
+        print("Setting Filename:",settings_filename)
+        print("Wallpaper Filename:", wallpaper_filename)
 
     # Set the default console output
     if options.console:
@@ -217,10 +217,10 @@ def main():
         overrides = json.load(open(options.override))
         for key, val in overrides.items():
           settings[key] = val
-      except Exception, e:
-        print "Error while applying override setting file: %s\n%s" % (options.override, e)
+      except Exception as e:
+        print("Error while applying override setting file: %s\n%s" % (options.override, e))
 
-    json.dump(settings, open(settings_filename, "wb"))
+    json.dump(settings, open(settings_filename, "w"))
 
 if __name__ == "__main__":
   main()
