@@ -521,6 +521,8 @@ const GridManager = (function() {
   var appIcons = Object.create(null);
   // Map 'origin' -> app object.
   var appsByOrigin = Object.create(null);
+  // Map 'origin' for bookmarks -> bookmark object.
+  var bookmarksByOrigin = Object.create(null);
 
   function rememberIcon(icon) {
     var descriptor = icon.descriptor;
@@ -638,6 +640,11 @@ const GridManager = (function() {
         processApp(app);
       });
 
+      for (var origin in bookmarksByOrigin) {
+        appsByOrigin[origin] = bookmarksByOrigin[origin];
+      }
+      bookmarksByOrigin = null;
+
       for (var manifestURL in iconsByManifestURL) {
         var iconsForApp = iconsByManifestURL[manifestURL];
         for (var entryPoint in iconsForApp) {
@@ -664,7 +671,7 @@ const GridManager = (function() {
       var app = null;
       if (descriptor.bookmarkURL) {
         app = new Bookmark(descriptor);
-        appsByOrigin[app.origin] = app;
+        bookmarksByOrigin[app.origin] = app;
       }
 
       var icon = icons[i] = new Icon(descriptor, app);
