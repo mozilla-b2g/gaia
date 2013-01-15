@@ -152,7 +152,7 @@ suite('system/Updatable', function() {
 
     suite('size', function() {
       test('should give packaged app update size', function() {
-        assert.equal(42, subject.size);
+        assert.equal(null, subject.size);
       });
 
       test('should return null for hosted apps', function() {
@@ -166,10 +166,7 @@ suite('system/Updatable', function() {
         subject = new AppUpdatable(mockApp);
         assert.isNull(subject.size);
 
-        mockApp.updateManifest = {
-          size: 45678
-        };
-        mockApp.mTriggerDownloadAvailable();
+        mockApp.mTriggerDownloadAvailable(45678);
         assert.equal(45678, subject.size);
       });
     });
