@@ -73,6 +73,8 @@ var UpdateManager = {
     window.addEventListener('mozChromeEvent', this);
     window.addEventListener('applicationinstall', this);
     window.addEventListener('applicationuninstall', this);
+    window.addEventListener('online', this);
+    window.addEventListener('offline', this);
 
     SettingsListener.observe('gaia.system.checkForUpdates', false,
                              this.checkForUpdates.bind(this));
@@ -81,6 +83,7 @@ var UpdateManager = {
     // a warning on the download dialog
     window.addEventListener('wifi-statuschange', this);
     this.updateWifiStatus();
+    this.updateOnlineStatus();
 
     this._conn = window.navigator.mozMobileConnection;
     if (this._conn) {
@@ -460,6 +463,12 @@ var UpdateManager = {
       case 'datachange':
         this.updateEdgeStatus();
         break;
+      case 'offline':
+        this.updateOnlineStatus();
+        break;
+      case 'online':
+        this.updateOnlineStatus();
+        break;
       case 'wifi-statuschange':
         this.updateWifiStatus();
         break;
@@ -474,6 +483,17 @@ var UpdateManager = {
       this.systemUpdatable.size = detail.size;
       this.systemUpdatable.rememberKnownUpdate();
       this.addToUpdatesQueue(this.systemUpdatable);
+    }
+  },
+
+  updateOnlineStatus: function su_updateOnlineStatus() {
+    var online = (navigator && 'onLine' in navigator) ? navigator.onLine : true;
+    this.downloadDialog.dataset.online = online;
+
+    if (online) {
+      this.laterButton.classList.remove('full');
+    } else {
+      this.laterButton.classList.add('full');
     }
   },
 
