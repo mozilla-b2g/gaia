@@ -88,6 +88,23 @@ var BluetoothTransfer = {
     console.log('[System Bluetooth Transfer]: ' + msg);
   },
 
+  humanizeSize: function bt_humanizeSize(bytes) {
+    var _ = navigator.mozL10n.get;
+    var units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+    var size, e;
+    if (bytes) {
+      e = Math.floor(Math.log(bytes) / Math.log(1024));
+      size = (bytes / Math.pow(1024, e)).toFixed(2);
+    } else {
+      e = 0;
+      size = '0.00';
+    }
+    return _('fileSize', {
+      size: size,
+      unit: _('byteUnit-' + units[e])
+    });
+  },
+
   onReceivingFileConfirmation: function bt_onReceivingFileConfirmation(evt) {
     // Prompt appears when a transfer request from a paired device is received.
     var fileSize = evt.fileLength;
@@ -109,7 +126,7 @@ var BluetoothTransfer = {
 
     var address = evt.address;
     var fileName = evt.fileName;
-    var fileSize = evt.fileLength;
+    var fileSize = this.humanizeSize(evt.fileLength);
     var cancel = {
       title: _('deny'),
       callback: this.declineReceive.bind(this, address)
@@ -125,7 +142,7 @@ var BluetoothTransfer = {
     this.getPairedDevice(function getPairedDeviceComplete() {
       deviceName = self.getDeviceName(address);
       CustomDialog.show(_('acceptFileTransfer'),
-                        _('wantToReceive',
+                        _('wantToReceiveFile',
                         { deviceName: deviceName,
                           fileName: fileName,
                           fileSize: fileSize }),
