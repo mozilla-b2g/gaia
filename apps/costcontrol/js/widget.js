@@ -36,10 +36,11 @@
   });
 
   function _startWidget() {
-    checkSIMChange();
-    CostControl.getInstance(function _onCostControlReady(instance) {
-      costcontrol = instance;
-      setupWidget();
+    checkSIMChange(function _onSIMChecked() {
+      CostControl.getInstance(function _onCostControlReady(instance) {
+        costcontrol = instance;
+        setupWidget();
+      });
     });
   }
 
@@ -92,8 +93,8 @@
       }
     );
 
-    updateUI();
     initialized = true;
+    updateUI();
   }
 
   // BALANCE ACTIONS
@@ -146,8 +147,10 @@
 
     document.getElementById('fte-icon').className = 'icon ' + simKey;
 
-    fte.querySelector('p:first-child').innerHTML = navigator.mozL10n.get(simKey + '-heading', { provider: provider });
-    fte.querySelector('p:last-child').innerHTML = navigator.mozL10n.get(simKey + '-meta');
+    fte.querySelector('p:first-child').innerHTML =
+      navigator.mozL10n.get(simKey + '-heading', { provider: provider });
+    fte.querySelector('p:last-child').innerHTML =
+      navigator.mozL10n.get(simKey + '-meta');
   }
 
   var currentMode;
@@ -156,15 +159,6 @@
     ConfigManager.requestAll(function _onInfo(configuration, settings) {
       var mode = costcontrol.getApplicationMode(settings);
       debug('Widget UI mode:', mode);
-
-      // Show 'fte' widget
-      if (ConfigManager.option('fte')) {
-        setupFte(configuration.provider, mode);
-        return;
-      }
-      fte.setAttribute('aria-hidden', true);
-      leftPanel.setAttribute('aria-hidden', false);
-      rightPanel.setAttribute('aria-hidden', false);
 
       var isPrepaid = (mode === 'PREPAID');
       var isDataUsageOnly = (mode === 'DATA_USAGE_ONLY');
@@ -175,6 +169,15 @@
       views.limitedDataUsage.setAttribute('aria-hidden', !isLimited);
 
       if (currentMode !== mode) {
+
+        // Show fte mode widget
+        if (settings.fte) {
+          setupFte(configuration.provider, mode);
+          return;
+        } else {
+          fte.setAttribute('aria-hidden', true)
+        }
+
         // Always data usage
         leftPanel.setAttribute('aria-hidden', isDataUsageOnly);
 
