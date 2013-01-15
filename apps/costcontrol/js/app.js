@@ -43,6 +43,7 @@ var CostControlApp = (function() {
   window.addEventListener('localized', function _onLocalize() {
     if (initialized)
       updateUI();
+    updateWeekdaySelector();
   });
 
   var tabmanager, vmanager, settingsVManager;
