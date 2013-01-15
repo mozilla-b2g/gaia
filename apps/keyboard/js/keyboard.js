@@ -800,6 +800,28 @@ function setMenuTimeout(target, coords, touchId) {
     if (isShowingAlternativesMenu || touchCount > 1)
       return;
 
+    // The telLayout and numberLayout do not show an alternative key
+    // menu, instead they send the alternative key and ignore the endPress.
+    if (currentInputType === 'number' || currentInputType === 'tel') {
+
+      // Does the key have an altKey?
+      var r = target.dataset.row, c = target.dataset.column;
+      var keyChar = currentLayout.keys[r][c].value;
+      var altKey = currentLayout.alt[keyChar] || null;
+
+      if (!altKey)
+        return;
+
+      // Attach a dataset property that will be used to ignore
+      // keypress in endPress
+      target.dataset.ignoreEndPress = true;
+
+      var keyCode = altKey.charCodeAt(0);
+      sendKey(keyCode);
+
+      return;
+    }
+
     showAlternatives(target);
 
     // If we successfuly showed the alternatives menu, redirect the
@@ -1145,6 +1167,13 @@ function endPress(target, coords, touchId) {
   }
 
   IMERender.unHighlightKey(target);
+
+  // The alternate keys of telLayout and numberLayout do not
+  // trigger keypress on key release.
+  if (target.dataset.ignoreEndPress) {
+    delete target.dataset.ignoreEndPress;
+    return;
+  }
 
   var keyCode = parseInt(target.dataset.keycode);
 
