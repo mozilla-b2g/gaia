@@ -12,6 +12,11 @@ var Launcher = (function() {
     return WindowManager.getAppFrame(WindowManager.getDisplayedApp());
   }
 
+
+  function currentAppIframe() {
+    return currentAppFrame().firstChild;
+  }
+
   var _ = navigator.mozL10n.get;
 
   var BUTTONBAR_TIMEOUT = 5000;
@@ -77,23 +82,23 @@ var Launcher = (function() {
   var reload = document.getElementById('reload-button');
   reload.addEventListener('click', function doReload(evt) {
     clearButtonBarTimeout();
-    currentAppFrame().reload(true);
+    currentAppIframe().reload(true);
   });
 
   var back = document.getElementById('back-button');
   back.addEventListener('click', function goBack() {
     clearButtonBarTimeout();
-    currentAppFrame().goBack();
+    currentAppIframe().goBack();
   });
 
   var forward = document.getElementById('forward-button');
   forward.addEventListener('click', function goForward() {
     clearButtonBarTimeout();
-    currentAppFrame().goForward();
+    currentAppIframe().goForward();
   });
 
   function onLocationChange() {
-    currentAppFrame().getCanGoForward().onsuccess = function forwardSuccess(e) {
+    currentAppIframe().getCanGoForward().onsuccess = function forwardSuccess(e) {
       if (e.target.result === true) {
         delete forward.dataset.disabled;
       } else {
@@ -101,7 +106,7 @@ var Launcher = (function() {
       }
     }
 
-    currentAppFrame().getCanGoBack().onsuccess = function backSuccess(e) {
+    currentAppIframe().getCanGoBack().onsuccess = function backSuccess(e) {
       if (e.target.result === true) {
         delete back.dataset.disabled;
       } else {
@@ -116,7 +121,7 @@ var Launcher = (function() {
   function onDisplayedApplicationChange() {
     toggleButtonBar(BUTTONBAR_INITIAL_OPEN_TIMEOUT);
 
-    var dataset = currentAppFrame().dataset;
+    var dataset = currentAppIframe().dataset;
     if (dataset.originURL || dataset.searchURL) {
       delete bookmarkButton.dataset.disabled;
       return;
@@ -130,7 +135,7 @@ var Launcher = (function() {
       return;
 
     clearButtonBarTimeout();
-    var dataset = currentAppFrame().dataset;
+    var dataset = currentAppIframe().dataset;
 
     function selected(value) {
       if (!value)
@@ -160,15 +165,15 @@ var Launcher = (function() {
 
       activity.onsuccess = function onsuccess() {
         if (value === 'origin') {
-          delete currentAppFrame().dataset.originURL;
+          delete currentAppIframe().dataset.originURL;
         }
 
         if (value === 'search') {
-          delete currentAppFrame().dataset.searchURL;
+          delete currentAppIframe().dataset.searchURL;
         }
 
-        if (!currentAppFrame().dataset.originURL &&
-          !currentAppFrame().dataset.searchURL) {
+        if (!currentAppIframe().dataset.originURL &&
+          !currentAppIframe().dataset.searchURL) {
           bookmarkButton.dataset.disabled = true;
         }
       }

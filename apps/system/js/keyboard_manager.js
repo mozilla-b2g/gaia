@@ -43,6 +43,11 @@ var KeyboardManager = (function() {
       case '#show':
         var updateHeight = function updateHeight() {
           container.removeEventListener('transitionend', updateHeight);
+          if (container.classList.contains('hide')) {
+            // The keyboard has been closed already, let's not resize the
+            // application and ends up with half apps.
+            return;
+          }
 
           var detail = {
             'detail': {

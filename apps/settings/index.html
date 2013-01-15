@@ -59,7 +59,7 @@
 
     <!-- all non-#root panels will lazy-load their own scripts -->
   </head>
-  <body class="skin-organic">
+  <body class="skin-organic uninit">
 
     <!--
       - Lazy-Loading: to avoid parsing all settings panels before necessary, the
@@ -2168,8 +2168,8 @@
             <input type="checkbox" name="ums.enabled"/>
             <span></span>
           </label>
-          <small id="ums-desc" data-l10n-id="umsUnplugToDisable">Unplug USB cable to disable</small>
-          <a data-l10n-id="umsEnabled">USB Mass Storage Enabled</a>
+          <small id="ums-desc"> </small>
+          <a data-l10n-id="usbMassStorage">USB mass storage</a>
         </li>
       </ul>
       -->
@@ -2353,7 +2353,8 @@
           </p>
         </section>
         <menu>
-          <button data-l10n-id="ok" id="icc-stk-alert-btn" class="full recommend">Ok</button>
+          <button data-l10n-id="back" id="icc-stk-alert-btn_back">Back</button>
+          <button data-l10n-id="ok" id="icc-stk-alert-btn" class="recommend">Ok</button>
         </menu>
       </form>
 

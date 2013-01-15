@@ -92,7 +92,7 @@ var TelephonyTab = (function() {
       unit: 'SMS'
     });
     calltime.innerHTML = _('magnitude', {
-      value: Math.ceil(activity.calltime / 60000),
+      value: computeTelephonyMinutes(activity),
       unit: 'min.'
     });
   }
