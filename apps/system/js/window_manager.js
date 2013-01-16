@@ -422,8 +422,12 @@ var WindowManager = (function() {
     setOrientationForApp(displayedApp);
 
     // Dispatch an 'appopen' event.
+    var manifestURL = runningApps[displayedApp].manifestURL;
     var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent('appopen', true, false, { origin: displayedApp });
+    evt.initCustomEvent('appopen', true, false, {
+      manifestURL: manifestURL,
+      origin: displayedApp
+    });
     frame.dispatchEvent(evt);
   }
 
@@ -1149,6 +1153,7 @@ var WindowManager = (function() {
       origin: origin,
       name: name,
       manifest: manifest,
+      manifestURL: manifestURL,
       frame: frame,
       iframe: iframe,
       launchTime: 0
