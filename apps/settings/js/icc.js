@@ -249,8 +249,11 @@
         responseSTKCommand({
           resultCode: icc.STK_RESULT_OK
         });
-        // TODO: Show a spinner instead the message (UX decission).
-        // Stop it on any other command
+        if(options.text) {
+          debug("display text" + options.text)
+          command.options.userClear = true;
+          displayText(command);
+        }
         break;
 
       case icc.STK_CMD_SET_UP_CALL:
