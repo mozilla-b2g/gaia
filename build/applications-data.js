@@ -163,7 +163,8 @@ content = {
     senders: ['1515', '7000'],
     confirmation_regexp: 'Voce recarregou R\\$\\s*([0-9]+)(?:[,\\.]([0-9]+))?',
     incorrect_code_regexp: '(Favor enviar|envie novamente|Verifique) o codigo de recarga'
-  }
+  },
+  default_low_limit_threshold: 3
 };
 
 writeContent(init, JSON.stringify(content));
