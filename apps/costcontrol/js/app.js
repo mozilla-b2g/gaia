@@ -29,14 +29,15 @@ var CostControlApp = (function() {
   });
 
   function _startApp() {
-    checkSIMChange();
-    CostControl.getInstance(function _onCostControlReady(instance) {
-      if (ConfigManager.option('fte')) {
-        window.location = '/fte.html';
-        return;
-      }
-      costcontrol = instance;
-      setupApp();
+    checkSIMChange(function _onSIMChecked() {
+      CostControl.getInstance(function _onCostControlReady(instance) {
+        if (ConfigManager.option('fte')) {
+          window.location = '/fte.html';
+          return;
+        }
+        costcontrol = instance;
+        setupApp();
+      });
     });
   }
 

@@ -69,3 +69,8 @@ p.facebook.removed input {
 #settingsFb[data-state="logged-in"] > #fb-update-option > #import-fb:before {
   background-image: url(/contacts/style/images/sync_icon.png);
 }
+
+#no-connection {
+  white-space: normal;
+  margin-top: 1rem;
+}

@@ -705,7 +705,7 @@ Evme.Brain = new function Evme_Brain() {
 
             Evme.$remove("#loading-app");
 
-            var elPseudo = Evme.$create('li', {'class': "inplace", 'id': "loading-app"}, loadingApp.getHtml()),
+            var elPseudo = Evme.$create('li', {'class': "inplace", 'id': "loading-app"}, loadingApp.getCurrentHtml()),
                 useClass = !data.isFolder;
 
             if (data.data.installed) {

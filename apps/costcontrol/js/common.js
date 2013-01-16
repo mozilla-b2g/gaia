@@ -2,7 +2,7 @@
 'use strict';
 
 // Checks for a SIM change
-function checkSIMChange() {
+function checkSIMChange(callback) {
   asyncStorage.getItem('lastSIM', function _compareWithCurrent(lastSIM) {
     var currentSIM = window.navigator.mozMobileConnection.iccInfo.iccid;
     if (lastSIM !== currentSIM) {
@@ -10,8 +10,13 @@ function checkSIMChange() {
       MindGap.updateTagList(currentSIM);
     }
     ConfigManager.requestSettings(function _onSettings(settings) {
-      if (settings.nextReset)
+      if (settings.nextReset) {
         setNextReset(settings.nextReset);
+      }
+
+      if (callback) {
+        callback();
+      }
     });
   });
 }
