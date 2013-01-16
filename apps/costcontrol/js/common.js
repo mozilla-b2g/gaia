@@ -22,6 +22,26 @@ function checkSIMChange(callback) {
   });
 }
 
+// Waits for DOMContentLoaded and messagehandlerready, then call the callback
+function waitForDOMAndMessageHandler(window, callback) {
+  var remainingSteps = 2;
+  function checkReady(evt) {
+    debug(evt.type, 'event received!');
+    remainingSteps--;
+
+    // Once all events are received, execute the callback
+    if (!remainingSteps) {
+      window.removeEventListener('DOMContentLoaded', checkReady);
+      window.removeEventListener('messagehandlerready', checkReady);
+      debug('DOMContentLoaded and messagehandlerready received. Starting');
+      callback();
+    }
+  }
+
+  window.addEventListener('DOMContentLoaded', checkReady);
+  window.addEventListener('messagehandlerready', checkReady);
+}
+
 function addAlarmTimeout(type, delay) {
   var proxy = document.getElementById('message-handler').contentWindow;
   return proxy.addAlarmTimeout(type, delay);

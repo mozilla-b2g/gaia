@@ -275,4 +275,8 @@
     );
 
   }
+
+  // Notify message handler is ready
+  var readyEvent = new CustomEvent('messagehandlerready');
+  window.parent.dispatchEvent(readyEvent);
 }());
