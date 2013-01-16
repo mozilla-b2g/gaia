@@ -603,6 +603,8 @@
     var li = document.createElement('li');
     var p = document.createElement('p');
     p.id = 'stk-item-title';
+    p.setAttribute('style',
+      'text-overflow: clip; white-space: normal; word-wrap: break-word;');
     p.textContent = options.text;
     li.appendChild(p);
 
