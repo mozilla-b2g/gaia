@@ -42,3 +42,11 @@ manifest.appcache
 /locales/*
 
 /outoftree_apps/
+
+*.sublime-project
+
+*.sublime-workspace
+
+make_and_run.sh
+
+run.sh

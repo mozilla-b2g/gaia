@@ -102,6 +102,7 @@ contacts.Form = (function() {
           'streetAddress',
           'postalCode',
           'locality',
+          'region',
           'countryName'
         ],
         container: addressContainer
@@ -530,12 +531,14 @@ contacts.Form = (function() {
       var locality = dom.getElementById(selector).value || '';
       selector = 'postalCode_' + arrayIndex;
       var postalCode = dom.getElementById(selector).value || '';
+      selector = 'region_' + arrayIndex;
+      var region = dom.getElementById(selector).value || '';
       selector = 'countryName_' + arrayIndex;
       var countryName = dom.getElementById(selector).value || '';
 
       // Sanity check for pameters, check all params but the typeField
       if (addressValue == '' && locality == '' &&
-          postalCode == '' && countryName == '') {
+          postalCode == '' && region == '' && countryName == '') {
         continue;
       }
 
@@ -544,6 +547,7 @@ contacts.Form = (function() {
         streetAddress: addressValue,
         postalCode: postalCode,
         locality: locality,
+        region: region,
         countryName: countryName,
         type: typeField
       };
