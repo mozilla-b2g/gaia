@@ -14,6 +14,7 @@ contacts.Settings = (function() {
       fbImportOption,
       fbImportCheck,
       fbUpdateButton,
+      fbOfflineMsg,
       fbTotalsMsg,
       fbPwdRenewMsg,
       fbImportedValue,
@@ -68,6 +69,7 @@ contacts.Settings = (function() {
       fbImportCheck = document.querySelector('[name="fb.imported"]');
 
       fbUpdateButton = document.querySelector('#import-fb');
+      fbOfflineMsg = document.querySelector('#no-connection');
       fbUpdateButton.onclick = Contacts.extFb.importFB;
       fbTotalsMsg = document.querySelector('#fb-totals');
       fbPwdRenewMsg = document.querySelector('#renew-pwd-msg');
@@ -322,7 +324,7 @@ contacts.Settings = (function() {
       window.console.error('Error while starting the cleaning operations',
                            req.error.name);
       resetWait(wakeLock);
-    }
+    };
   }
 
   // Listens for any change in the ordering preferences
@@ -376,13 +378,13 @@ contacts.Settings = (function() {
     if (fb.isEnabled) {
       if (navigator.onLine === true) {
         fbImportOption.querySelector('li').removeAttribute('aria-disabled');
-        fbUpdateButton.removeAttribute('disabled');
-      }
-      else {
+        fbUpdateButton.classList.remove('hide');
+        fbOfflineMsg.classList.add('hide');
+      } else {
         fbImportOption.querySelector('li.fb-item').setAttribute('aria-disabled',
                                                               'true');
-        fbUpdateButton.removeAttribute('disabled');
-        fbUpdateButton.setAttribute('disabled', 'disabled');
+        fbUpdateButton.classList.add('hide');
+        fbOfflineMsg.classList.remove('hide');
       }
     }
   };

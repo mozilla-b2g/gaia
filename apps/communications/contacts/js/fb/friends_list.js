@@ -26,7 +26,10 @@ fbFriends.List = (function() {
     // For each group
     agroups.forEach(function(group) {
       // New element appended
-      var ele = utils.templates.append(groupsList, {group: group}, fragment);
+      var ele = utils.templates.append(groupsList, {
+        group: group,
+        letter: getGroupLetter(group)
+      }, fragment);
       // This is the <ol> and <header> is children[0]
       var list = ele.children[1];
 
@@ -92,6 +95,10 @@ fbFriends.List = (function() {
       ret = 'und';
     }
     return ret;
+  }
+
+  function getGroupLetter(group) {
+    return group === 'und' ? '#' : group;
   }
 
   return {

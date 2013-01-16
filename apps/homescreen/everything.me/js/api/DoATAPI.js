@@ -23,6 +23,11 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         requestsToPerformOnOnline = [],
         sessionInitRequest = null,
         
+        // here we will save the actual params to pass
+        savedParamsToPass = {},
+        // which param to pass from normal requests to stats and logs
+        PARAM_TO_PASS_FROM_REQUEST_TO_STATS = "requestId",
+        
         requestsToCache = {
             "Search.apps": true,
             "Search.bgimage": true,
@@ -37,6 +42,14 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         doesntNeedSession = {
             "Session.init": true,
             "Search.trending": true
+        },
+        
+        /*
+         * config of params to pass from requests to reports
+         * "Search.apps": ["appClick", "returnFromApp"]
+         */
+        paramsToPassBetweenRequests = {
+            "Search.apps": ["appClick", "loadMore", "addToHomeScreen"]
         };
       
     this.ERROR_CODES = {
@@ -395,6 +408,7 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         methodArr.forEach(function oggerMethodIteration(method){
             self[method] = function report(options, callback){
                 options = addGlobals(options);
+                options = addSavedParams(options);
                 
                 return request({
                     "methodNamespace": "Logger",
@@ -408,6 +422,7 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
     
     this.report = function report(options, callback) {
         options = addGlobals(options);
+        options = addSavedParams(options);
         
         return request({
             "methodNamespace": "Stats",
@@ -428,6 +443,46 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         }
         
         return options;
+    }
+    
+    // add the saved params from earlier responses to the event's data
+    function addSavedParams(options) {
+        var events = options.data;
+        if (events) {
+            try {
+                events = JSON.parse(events);
+            } catch(ex) {
+                events = null;
+            }
+            
+            if (events && typeof events === "object") {
+                for (var i=0,e; e=events[i++];) {
+                    var savedValue = savedParamsToPass[e.userEvent];
+                    if (savedValue) {
+                        e[PARAM_TO_PASS_FROM_REQUEST_TO_STATS] = savedValue;
+                    }
+                }
+                
+                options.data = JSON.stringify(events);
+            }
+        }
+        return options;
+    }
+    
+    // takes a method's response, and saves data according to paramsToPassBetweenRequests
+    function saveParamFromRequest(method, response) {
+        var events = paramsToPassBetweenRequests[method],
+            paramValue = response && response[PARAM_TO_PASS_FROM_REQUEST_TO_STATS];
+            
+        if (!paramValue || !events) {
+            return;
+        }
+        
+        // this will create a map of userEvents => requestId
+        // to be added to the actual event request later
+        for (var i=0,ev; ev=events[i++];) {
+            savedParamsToPass[ev] = paramValue;
+        }
     }
     
     this.searchLocations = function searchLocations(options, callback) {
@@ -718,6 +773,7 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
             if (!ignoreCache) {
                 var fromCache = getFromCache(cacheKey);
                 if (fromCache) {
+                    saveParamFromRequest(methodNamespace + '.' + methodName, fromCache);
                     callback && window.setTimeout(function() {
                         callback(fromCache);
                     }, 10);
@@ -913,6 +969,8 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
     }
     
     function cbSuccess(methodNamespace, method, url, params, retryNumber, data, requestDuration) {
+        saveParamFromRequest(methodNamespace + '.' + method, data);
+        
         Evme.EventHandler.trigger(NAME, "success", {
             "method": methodNamespace + "/" + method,
             "params": params,
