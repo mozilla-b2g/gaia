@@ -384,19 +384,12 @@ contacts.Form = (function() {
     myContact['photo'] = currentContact['photo'] || [];
     myContact['photo'][0] = getCurrentPhoto();
 
-    if (myContact.givenName || myContact.familyName) {
-      var name = myContact.givenName || '';
-      name += ' ';
-      if (myContact.familyName) {
-        name += myContact.familyName;
-      }
-      myContact.name = [name];
-    }
-
     getPhones(myContact);
     getEmails(myContact);
     getAddresses(myContact);
     getNotes(myContact);
+
+    resetName(myContact);
 
     // Use the isEmpty function to check fields but address
     // and inspect address by it self.
@@ -564,6 +557,25 @@ contacts.Form = (function() {
 
       contact['note'] = contact['note'] || [];
       contact['note'].push(noteValue);
+    }
+  };
+
+  var resetName = function resetName(contact){
+    if (contact['givenName'] || contact['familyName'] || contact['org'] || contact['tel']) {
+      var name = contact['givenName'] || '';
+  
+      if (contact['familyName']) {
+        name += ' ' + contact['familyName'];
+      } else if (contact['org']) {
+        name = contact['org'];
+      } else if (contact['tel']) {
+        var telLength = Contacts.getLength(contact['tel']);
+        if (telLength > 0){
+          name = contact['tel'][0].value;
+        }
+      }
+
+      contact['name'] = [name];
     }
   };
 
