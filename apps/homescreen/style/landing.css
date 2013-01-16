@@ -5,15 +5,28 @@
   font-family: 'MozTT', sans-serif;
 }
 
+html[dir=rtl] #landing-time {
+  text-align: right;
+  padding: 4.4rem 2.5rem 0 0;
+}
+
 #landing-clock, #landing-date {
   text-shadow: 2px 2px 3px #000000;
   margin: 0;
   padding: 0;
 }
 
+html[dir=rtl] #landing-clock, #landing-date {
+  text-shadow: 2px 0 3px 2px #000000;
+}
+
 #landing-clock {
   margin: 0 0 -1rem -0.4rem;
   font-weight: 300;
+}
+
+html[dir=rtl] #landing-clock {
+  margin: 0 -0.4rem -1rem 0;
 }
 
 .numbers {
