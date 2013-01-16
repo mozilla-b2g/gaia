@@ -175,7 +175,7 @@
           setupFte(configuration.provider, mode);
           return;
         } else {
-          fte.setAttribute('aria-hidden', true)
+          fte.setAttribute('aria-hidden', true);
         }
 
         // Always data usage

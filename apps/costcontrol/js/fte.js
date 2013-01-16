@@ -59,8 +59,8 @@
       AutoSettings.addType('data-limit', dataLimitConfigurer);
 
       // Currency is set by config as well
-      if (configuration && configuration.credit
-          && configuration.credit.currency) {
+      if (configuration && configuration.credit &&
+          configuration.credit.currency) {
 
         document.getElementById('currency').textContent =
           configuration.credit.currency;
@@ -214,11 +214,15 @@
     step -= 1;
   }
 
-  function onFinish() {
+  function onFinish(evt) {
+    evt.target.disabled = true;
     ConfigManager.requestSettings(function _onSettings(settings) {
-      updateNextReset(settings.trackingPeriod, settings.resetTime);
       ConfigManager.setOption({ fte: false }, function _returnToApp() {
-        window.location = 'index.html';
+        updateNextReset(settings.trackingPeriod, settings.resetTime,
+          function _returnToTheApplication() {
+            window.location = 'index.html';
+          }
+        );
       });
     });
   }
