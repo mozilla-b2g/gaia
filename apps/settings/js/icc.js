@@ -604,9 +604,6 @@
     var p = document.createElement('p');
     p.id = 'stk-item-title';
     p.textContent = options.text;
-    if (options.minLength && options.maxLength) {
-      p.textContent += ' [' + options.minLength + '-' + options.maxLength + ']';
-    }
     li.appendChild(p);
 
     var input = document.createElement('input');
