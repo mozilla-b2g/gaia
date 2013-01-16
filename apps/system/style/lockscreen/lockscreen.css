@@ -1,9 +1,8 @@
 #lockscreen {
   position: absolute;
-  /* 20px = height of status bar */
-  top: 20px;
-  width: calc(100%);
-  height: calc(100% - 20px);
+  top: 0;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
   background-color: #000;
 
@@ -93,9 +92,9 @@
 }
 
 .lockscreen-panel {
+  position: absolute;
   width: 100%;
   height: 100%;
-  position: absolute;
 
   background-color: #000;
   background-size: cover;
@@ -150,7 +149,7 @@
 #lockscreen-header {
   z-index: 9999;
   position: absolute;
-  top: 0;
+  top: 2rem;   /* 2rem = height of status bar */
   left: 0;
   width: 100%;
   -moz-box-sizing: border-box;
@@ -496,7 +495,7 @@ button::-moz-focus-inner {
 .passcode-entered #lockscreen-passcode-pad > a[data-key="b"] {
   display: block;
   text-align: left;
-  text-indent: -9999px; 
+  text-indent: -9999px;
 }
 
 #lockscreen-passcode-pad > a:active {
