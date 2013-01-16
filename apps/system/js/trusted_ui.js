@@ -93,9 +93,7 @@ var TrustedUIManager = {
     }
   },
 
-  close: function trui_close(callback) {
-    // XXX this assumes that close() will only be called from the
-    // topmost element in the frame stack.  woooog.
+  close: function trui_close(chromeEventId, callback) {
     var stackSize = this.currentStack.length;
 
     this._restoreOrientation();
@@ -114,11 +112,11 @@ var TrustedUIManager = {
         WindowManager.restoreCurrentApp();
         container.addEventListener('transitionend', function wait(event) {
           this.removeEventListener('transitionend', wait);
-          self._closeTopDialog();
+          self._closeDialog(chromeEventId);
         });
       } else {
         WindowManager.restoreCurrentApp(this._lastDisplayedApp);
-        this._closeTopDialog();
+        this._closeDialog(chromeEventId);
       }
 
       // The css transition caused by the removal of the trustedui
@@ -128,9 +126,7 @@ var TrustedUIManager = {
 
       window.focus();
     } else {
-      // there are two or more dialogs, so remove the top one
-      // (which reveals the one beneath it)
-      this._closeTopDialog();
+      this._closeDialog(chromeEventId);
     }
   },
 
@@ -197,14 +193,24 @@ var TrustedUIManager = {
     WindowManager.setOrientationForApp(app);
   },
 
-  _closeTopDialog: function trui_closeTopDialog() {
+  /**
+   * close the dialog identified by the chromeEventId
+   */
+  _closeDialog: function trui_closeDialog(chromeEventId) {
     if (this.currentStack.length === 0)
       return;
 
-    var dialog = this.currentStack.pop();
-    this.container.removeChild(dialog.frame);
+    var found = false;
+    for (var i = 0; i < this.currentStack.length; i++) {
+      if (this.currentStack[i].chromeEventId === chromeEventId) {
+        var dialog = this.currentStack.splice(i, 1)[0];
+        this.container.removeChild(dialog.frame);
+        found = true;
+        break;
+      }
+    }
 
-    if (this.currentStack.length) {
+    if (found && this.currentStack.length) {
       this._makeDialogVisible(this._getTopDialog());
     }
   },
@@ -247,7 +253,7 @@ var TrustedUIManager = {
       this._dispatchCloseEvent(dialog.chromeEventId);
 
       // Now close and fire the cancel callback, if it exists
-      this.close(dialog.onCancelCB);
+      this.close(dialog.chromeEventId, dialog.onCancelCB);
     }
     this.hide();
     this.popupContainer.classList.remove('closing');

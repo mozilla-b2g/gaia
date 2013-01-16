@@ -10,6 +10,7 @@ const kPaymentConfirmationScreen = '../payment.html';
 
 var Payment = (function Payment() {
   var chromeEventId = null;
+  var trustedUILayerID = null;
 
   window.addEventListener('mozChromeEvent', function onMozChromeEvent(e) {
     // We save the mozChromeEvent identifiers to send replies back from content
@@ -92,6 +93,8 @@ var Payment = (function Payment() {
         //       only accepts the JWT by GET, so we just add it to the URI.
         e.detail.uri += e.detail.jwt;
 
+        trustedUILayerID = chromeEventId;
+
         var frame = document.createElement('iframe');
         frame.setAttribute('mozbrowser', 'true');
         frame.classList.add('screen');
@@ -109,11 +112,11 @@ var Payment = (function Payment() {
         });
 
         // The payment flow is shown within the trusted UI.
-        TrustedUIManager.open('PaymentFlow', frame, chromeEventId);
+        TrustedUIManager.open('PaymentFlow', frame, trustedUILayerID);
         break;
 
       case 'close-payment-flow-dialog':
-        TrustedUIManager.close(function dialogClosed() {
+        TrustedUIManager.close(trustedUILayerID, function dialogClosed() {
           var event = document.createEvent('customEvent');
           event.initCustomEvent('mozContentEvent', true, true,
                                 { id: chromeEventId });
