@@ -247,8 +247,9 @@
                       <span role="button" class="icon-address" data-l10n-id="legendAddress">Address</span>
                       <b>
                       <span>#streetAddress#</span>
-                        #postalCode#
                         #locality#
+                        #region#
+                        #postalCode#
                         #countryName#
                       </b>
                     </a>
@@ -337,6 +338,10 @@
               </p>
               <p class="setbox-item">
                 <input placeholder="City" data-field="locality" data-l10n-id="locality" name="adr[#i#][locality]" class="textfield" type="text" x-inputmode="latin-prose" value="#locality#" id="locality_#i#">
+                <button type="reset">Clear</button>
+              </p>
+              <p class="setbox-item">
+                <input placeholder="State" data-field="region" data-l10n-id="region" name="adr[#i#][region]" class="textfield" type="text" x-inputmode="latin-prose" value="#region#" id="region_#i#">
                 <button type="reset">Clear</button>
               </p>
               <p class="setbox-item">

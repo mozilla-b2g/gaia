@@ -441,6 +441,8 @@ contacts.Details = (function() {
       var escapedType = utils.text.escapeHTML(currentAddress['type'], true);
       var country = currentAddress['countryName'] || '';
       var escapedCountry = utils.text.escapeHTML(country, true);
+      var region = currentAddress['region'] || '';
+      var escapedRegion = utils.text.escapeHTML(region, true);
       var postalCode = currentAddress['postalCode'] || '';
       var escapedPostalCode = utils.text.escapeHTML(postalCode, true);
 
@@ -448,6 +450,7 @@ contacts.Details = (function() {
         streetAddress: escapedStreet,
         postalCode: escapedPostalCode,
         locality: escapedLocality || '',
+        region: escapedRegion || '',
         countryName: escapedCountry,
         type: escapedType || TAG_OPTIONS['address-type'][0].value,
         i: i
