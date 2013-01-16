@@ -75,7 +75,7 @@ settings = {
  "powersave.enabled": False,
  "powersave.threshold": 0,
  "privacy.donottrackheader.enabled": False,
- "ril.callwaiting.enabled": True,
+ "ril.callwaiting.enabled": None,
  "ril.data.enabled": False,
  "ril.data.apn": "",
  "ril.data.carrier": "",
