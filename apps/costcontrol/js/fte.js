@@ -8,6 +8,10 @@
 
   var costcontrol;
   var hasSim = true;
+
+  // Fallback from some values, just in case they are missed from configuration
+  var DEFAULT_LOW_LIMIT_THRESHOLD = 3;
+  var defaultLowLimitThreshold = DEFAULT_LOW_LIMIT_THRESHOLD;
   window.addEventListener('DOMContentLoaded', function _onDOMReady() {
     var mobileConnection = window.navigator.mozMobileConnection;
     var stepsLeft = 2;
@@ -46,6 +50,12 @@
     ConfigManager.requestAll(function _onSettings(configuration, settings) {
       wizard = document.getElementById('firsttime-view');
       vmanager = new ViewManager();
+
+      // Getting some values from config
+      if (configuration && configuration.default_low_limit_threshold) {
+        defaultLowLimitThreshold = configuration.default_low_limit_threshold;
+      }
+      
       AutoSettings.addType('data-limit', dataLimitConfigurer);
 
       // Currency is set by config as well
@@ -118,7 +128,12 @@
       currentTrack = ['step-1', 'step-2', 'prepaid-step-2', 'prepaid-step-3'];
       AutoSettings.initialize(ConfigManager, vmanager, '#prepaid-step-2');
       AutoSettings.initialize(ConfigManager, vmanager, '#prepaid-step-3');
-      ConfigManager.setOption({ dataLimitValue: 40, dataLimitUnit: 'MB' });
+      
+      ConfigManager.setOption({
+        dataLimitValue: 40, 
+        dataLimitUnit: 'MB',
+        lowLimit: true,
+        lowLimitThreshold: defaultLowLimitThreshold });
     } else if (evt.target.value === 'postpaid') {
       currentTrack = ['step-1', 'step-2', 'postpaid-step-2', 'postpaid-step-3'];
       AutoSettings.initialize(ConfigManager, vmanager, '#postpaid-step-2');
