@@ -722,7 +722,7 @@
 
     var tonePlayer = new Audio();
     var selectedPhoneSound;
-    if(typeof options.tone == "string") {
+    if (typeof options.tone == "string") {
       options.tone = options.tone.charCodeAt(0);
     }
     switch (options.tone) {
@@ -761,11 +761,11 @@
     tonePlayer.loop = true;
     tonePlayer.play();
 
-    if(options.duration) {
+    if (options.duration) {
       timeout = calculateDurationInMS(options.duration);
       setTimeout(function() {
         tonePlayer.pause();
-      },timeout);
+      }, timeout);
     }
 
     if (options.isVibrate == true) {
