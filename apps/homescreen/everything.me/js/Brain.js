@@ -7,7 +7,6 @@ Evme.Brain = new function Evme_Brain() {
     var self = this,
         Brain = this,
         _config = {},
-        logger = null,
         elContainer = null,
         QUERIES_TO_NOT_CACHE = "",
         DEFAULT_NUMBER_OF_APPS_TO_LOAD = 16,
@@ -70,8 +69,6 @@ Evme.Brain = new function Evme_Brain() {
 
         DISPLAY_INSTALLED_APPS = _config.displayInstalledApps;
 
-        logger = _config && _config.logger || console;
-
         ICON_SIZE = Evme.Utils.sendToOS(Evme.Utils.OSMessages.GET_ICON_SIZE);
     };
     
@@ -106,16 +103,13 @@ Evme.Brain = new function Evme_Brain() {
      * @_event (string) : the event that the class sent
      * @_data (object)  : data sent with the event
      */
-    function catchCallback(_class, _event, _data) {
-        logger.debug(_class + "." + _event + "(", (_data || ""), ")");
-        
-        Evme.Utils.log(_class + '.' + _event);
+    function catchCallback(_class, _event, _data) {       
+        Evme.Utils.log('Callback: ' + _class + '.' + _event);
         
         try {
             self[_class] && self[_class][_event] && self[_class][_event](_data || {});
         } catch(ex){
             Evme.Utils.log('CB Error! ' + ex.message);
-            logger.error(ex);
         }
     }
 
@@ -631,6 +625,11 @@ Evme.Brain = new function Evme_Brain() {
                 Evme.Banner.show('app-install-success', {
                     'name': data.data.name
                 });
+
+                Evme.EventHandler.trigger("App", "addToHomeScreen", {
+                    "id": data.data.id,
+                    "name": data.data.name
+                });
             });
         };
 
@@ -682,6 +681,7 @@ Evme.Brain = new function Evme_Brain() {
                 "favUrl": data.app.getFavLink(),
                 "name": data.data.name,
                 "id": data.appId,
+                "appType": data.data.appType || "cloud",
                 "query": Searcher.getDisplayedQuery(),
                 "source": Searcher.getDisplayedSource(),
                 "icon": data.data.icon,
@@ -689,6 +689,7 @@ Evme.Brain = new function Evme_Brain() {
             };
 
             var elApp = data.el,
+                appGridPosition = data.app.getPositionOnGrid(),
                 appBounds = elApp.getBoundingClientRect(),
 
                 elAppsList = elApp.parentNode.parentNode,
@@ -702,6 +703,12 @@ Evme.Brain = new function Evme_Brain() {
                     "top": (appsListBounds.height - appBounds.height)/2 - ((data.isFolder? elAppsList.dataset.scrollOffset*1 : Evme.Apps.getScrollPosition()) || 0),
                     "left": (appsListBounds.width - appBounds.width)/2
                 };
+
+            // update analytics data
+            loadingAppAnalyticsData.rowIndex = appGridPosition.row;
+            loadingAppAnalyticsData.colIndex = appGridPosition.col;
+            loadingAppAnalyticsData.totalRows = appGridPosition.rows;
+            loadingAppAnalyticsData.totalCols = appGridPosition.cols;
 
             Evme.$remove("#loading-app");
 
@@ -1559,6 +1566,7 @@ Evme.Brain = new function Evme_Brain() {
                        'name': name,
                        'installed': true,
                        'appUrl': app.origin,
+                       'appType': app.isBookmark ? 'bookmark' : 'installed',
                        'preferences': '',
                        'icon': Evme.Utils.sendToOS(Evme.Utils.OSMessages.GET_APP_ICON, app),
                        'requiresLocation': false,

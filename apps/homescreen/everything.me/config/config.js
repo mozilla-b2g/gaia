@@ -60,7 +60,6 @@ Evme.__config = {
             }
         }
     },
-    "infoLogger": false,
     "maxHistoryEntries": "10",
     "iconsGroupSettings": [
         {
