@@ -153,6 +153,7 @@ contacts.Details = (function() {
   var doReloadContactDetails = function doReloadContactDetails(contact) {
 
     detailsName.textContent = contact.name;
+
     contactDetails.classList.remove('no-photo');
     contactDetails.classList.remove('up');
     listContainer.innerHTML = '';
@@ -248,7 +249,7 @@ contacts.Details = (function() {
   };
 
   var renderOrg = function cd_renderOrg(contact) {
-    if (contact.org && contact.org.length > 0 && contact.org[0] != '') {
+    if (contact.org && contact.org.length > 0 && contact.org[0] != '' && contact.org[0] != contact.name) {
       orgTitle.textContent = contact.org[0];
       orgTitle.className = '';
     } else {
@@ -476,6 +477,8 @@ contacts.Details = (function() {
       listContainer.appendChild(container);
     }
   };
+
+
 
   var renderPhoto = function cd_renderPhoto(contact) {
     contactDetails.classList.remove('up');
