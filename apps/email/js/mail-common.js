@@ -793,6 +793,9 @@ var Cards = {
       cardsNode.clientWidth;
     }
 
+    // XXX: Add class 'left/right-to-center' workaround to avoid an black
+    // flickering when transitioning (gecko 18). We adjust the position to
+    // force the page rendered on the screen before animation.
     if (this.activeCardIndex === cardIndex) {
       // same node, no transition, just bootstrapping UI.
       removeClass(beginNode, 'before');
@@ -800,18 +803,44 @@ var Cards = {
       addClass(beginNode, 'center');
     } else if (this.activeCardIndex > cardIndex) {
       // back
-      removeClass(beginNode, 'center');
-      addClass(beginNode, 'after');
-
       removeClass(endNode, 'before');
-      addClass(endNode, 'center');
+      if (!beginNode) {
+        addClass(endNode, 'center');
+      } else {
+        var callback = function () {
+          endNode.removeEventListener('transitionend', callback);
+          removeClass(beginNode, 'center');
+          addClass(beginNode, 'after');
+
+          removeClass(endNode, 'left-to-center');
+          addClass(endNode, 'center');
+
+        }
+        addClass(endNode, 'left-to-center');
+        endNode.addEventListener('transitionend', callback);
+      }
     } else {
       // forward
-      removeClass(beginNode, 'center');
-      addClass(beginNode, 'before');
-
       removeClass(endNode, 'after');
-      addClass(endNode, 'center');
+
+      // From folder-picker to message-list : Since the message-list is already
+      // visible, we don't adjust the page's position before animation.
+      if (this._trayActive || showMethod !== 'animate' || !endNode) {
+        removeClass(beginNode, 'center');
+        addClass(beginNode, 'before');
+        addClass(endNode, 'center');
+      } else {
+        addClass(endNode, 'right-to-center');
+        var callback = function () {
+          endNode.removeEventListener('transitionend', callback);
+          removeClass(beginNode, 'center');
+          addClass(beginNode, 'before');
+
+          removeClass(endNode, 'right-to-center');
+          addClass(endNode, 'center');
+        }
+        endNode.addEventListener('transitionend', callback);
+      }
     }
 
     if (showMethod === 'immediate') {

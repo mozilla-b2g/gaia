@@ -63,6 +63,14 @@ body {
 .card.center {
   transform: translateX(0);
 }
+.card.left-to-center {
+  -moz-transition-duration: 0.01s;
+  transform: translateX(-99.9%);
+}
+.card.right-to-center {
+  -moz-transition-duration: 0.01s;
+  transform: translateX(99.9%);
+}
 
 .card.center.anim-vertical {
   transform: translateY(0);
