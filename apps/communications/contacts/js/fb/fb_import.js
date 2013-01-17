@@ -86,7 +86,7 @@ if (typeof fb.importer === 'undefined') {
       utils.alphaScroll.init(params);
       contacts.Search.init(document.getElementById('content'), null,
                            onSearchResultCb);
-    }
+    };
 
     UI.end = function(event) {
       var msg = {
@@ -97,7 +97,7 @@ if (typeof fb.importer === 'undefined') {
       parent.postMessage(msg, fb.CONTACTS_APP_ORIGIN);
       // uncomment this to make it work on B2G-Desktop
       // parent.postMessage(msg, '*');
-    }
+    };
 
     function scrollToCb(groupContainer) {
       scrollableElement.scrollTop = groupContainer.offsetTop;
@@ -135,7 +135,7 @@ if (typeof fb.importer === 'undefined') {
           Importer.getFriends(new_acc_tk);
         }, 'friends');
       }
-    }
+    };
 
     /**
      *  Invoked when the existing FB contacts on the Address Book are ready
@@ -256,7 +256,7 @@ if (typeof fb.importer === 'undefined') {
     // Only needed for testing purposes
     Importer.setSelected = function(friends) {
       selectedContacts = friends;
-    }
+    };
 
     function setCurtainHandlers() {
       Curtain.oncancel = cancelCb;
@@ -284,8 +284,8 @@ if (typeof fb.importer === 'undefined') {
 
       req.onerror = function(e) {
         window.console.error('Error while retrieving FB Contacts' ,
-                                  e.target.error.name); }
-    }
+                                  e.target.error.name); };
+    };
 
     function friendImportTimeout() {
       if (currentRequest) {
@@ -312,7 +312,7 @@ if (typeof fb.importer === 'undefined') {
       },0);
 
       return currentRequest;
-    }
+    };
 
     // Invoked when friend data to be imported is ready
     Importer.importDataReady = function(response) {
@@ -347,10 +347,10 @@ if (typeof fb.importer === 'undefined') {
                 });
               }
             });
-          } // onsuccess
+          }; // onsuccess
           cimp.onPhotoTimeout = function() {
             photoTimeout = true;
-          }
+          };
         } // if friend
         else {
           window.console.error('FB: No Friend data found');
@@ -361,7 +361,7 @@ if (typeof fb.importer === 'undefined') {
         // Post error to link we don't need to check here
         currentRequest.failed(response.error);
       }
-    }
+    };
 
     function buildFriendQuery(uid) {
       var aquery1 = [].concat(FRIENDS_QUERY);
@@ -439,7 +439,7 @@ if (typeof fb.importer === 'undefined') {
           });
         } // else
       } // else
-    }
+    };
 
     function cancelCb() {
       if (currentNetworkRequest) {
@@ -463,14 +463,14 @@ if (typeof fb.importer === 'undefined') {
             type: 'abort',
             data: ''
           }, fb.CONTACTS_APP_ORIGIN);
-        }
+        };
 
       Curtain.onretry = function get_friends() {
         Curtain.oncancel = cancelCb;
         Curtain.show('wait', 'friends');
 
         Importer.getFriends(access_token);
-      }
+      };
     }
 
     function checkDisabledButtons() {
@@ -515,15 +515,15 @@ if (typeof fb.importer === 'undefined') {
     Importer.baseHandler = function(type) {
       setCurtainHandlersErrorFriends();
       Curtain.show(type, 'friends');
-    }
+    };
 
     Importer.timeoutHandler = function() {
       Importer.baseHandler('timeout');
-    }
+    };
 
     Importer.errorHandler = function() {
       Importer.baseHandler('error');
-    }
+    };
 
     function fillData(f) {
       fb.friend2mozContact(f);
@@ -534,35 +534,20 @@ if (typeof fb.importer === 'undefined') {
      *  finished
      */
     function onUpdate(numFriends) {
+      function notifyParent(numFriends) {
+        parent.postMessage({
+          type: 'window_close',
+          data: '',
+          message: _('friendsUpdated', {
+            numFriends: numFriends
+          })
+        }, fb.CONTACTS_APP_ORIGIN);
+      }
+
       if (Importer.getContext() === 'ftu') {
-        // Once all contacts have been updated, they are unselected
-        // Reset all hashes
-        selectedContacts = {};
-        unSelectedContacts = {};
-        existingFbContactsByUid = {};
-
-        // Selectable friends needs to be reseted to its original state
-        selectableFriends = {};
-        myFriends.forEach(function(friend) {
-          selectableFriends[friend.uid] = friend;
+        Curtain.hide(function onhide() {
+          notifyParent(numFriends);
         });
-
-        var req = fb.utils.getAllFbContacts();
-        req.onsuccess = function() {
-          existingFbContacts = req.result;
-          markExisting(existingFbContacts);
-          Curtain.hide(function onhide() {
-            showStatus(_('friendsUpdated', {
-              numFriends: numFriends
-            }));
-          });
-        }
-
-        req.onerror = function() {
-          window.console.error('Facebook: error while refreshing list. ' +
-              'Closing FB Import');
-          UI.end();
-        }
       } else {
         parent.postMessage({
           type: 'fb_updated',
@@ -574,13 +559,7 @@ if (typeof fb.importer === 'undefined') {
             // When the list of contacts is loaded and it's the current view
             Curtain.hide(function onhide() {
               // Please close me and display the number of friends updated
-              parent.postMessage({
-                type: 'window_close',
-                data: '',
-                message: _('friendsUpdated', {
-                  numFriends: numFriends
-                })
-              }, fb.CONTACTS_APP_ORIGIN);
+              notifyParent(numFriends);
             });
             window.removeEventListener('message', finished);
           }
@@ -599,13 +578,13 @@ if (typeof fb.importer === 'undefined') {
         var req = fb.utils.clearFbData();
         req.onsuccess = function() {
           cb(req.result);
-        }
+        };
 
         req.onerror = function(e) {
           window.console.error('Error while starting cleaning: ',
                                e.target.error.name);
           cb(null);
-        }
+        };
       }
     }
 
@@ -684,7 +663,7 @@ if (typeof fb.importer === 'undefined') {
           onUpdate(total);
         }, progress);
       }
-    }
+    };
 
     /**
      *  Invoked when the user selects all his friends
@@ -703,7 +682,7 @@ if (typeof fb.importer === 'undefined') {
       checkDisabledButtons();
 
       return false;
-    }
+    };
 
     /**
      *  Invoked when the user unselects all her contacts
@@ -721,7 +700,7 @@ if (typeof fb.importer === 'undefined') {
       checkDisabledButtons();
 
       return false;
-    }
+    };
 
     /**
      *   Clears the list of contacts
@@ -783,7 +762,7 @@ if (typeof fb.importer === 'undefined') {
       }
 
       return out;
-    }
+    };
 
     /**
      *   Implements a Contacts Importer which imports Contacts in chunk sizes
@@ -829,7 +808,7 @@ if (typeof fb.importer === 'undefined') {
             (importSlice.bind(this))();
           }
         }
-      }
+      };
 
       /**
        *  Starts a new import process
@@ -839,7 +818,7 @@ if (typeof fb.importer === 'undefined') {
         pointer = 0;
         this.pending = kcontacts.length;
         (importSlice.bind(this))();
-      }
+      };
 
       function updateProgress() {
         if (mprogress) {
@@ -931,7 +910,7 @@ if (typeof fb.importer === 'undefined') {
         }, access_token);  // getContactPhoto
       }); //forEach
     } // persistContactGroup
-  } //contactsImporter
+  }; //contactsImporter
 
     Importer.getContext = function() {
       var out = 'contacts';
@@ -941,7 +920,7 @@ if (typeof fb.importer === 'undefined') {
       }
 
       return out;
-    }
+    };
 
     /**
      *  Imports all the selected contacts on the address book
@@ -962,7 +941,7 @@ if (typeof fb.importer === 'undefined') {
       };
 
       cImporter.start();
-    }
+    };
 
   })(document);
 }

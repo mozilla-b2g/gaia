@@ -614,20 +614,6 @@ var Contacts = (function() {
     contacts.Details.onLineChanged();
   };
 
-  var STATUS_TIME = 2000;
-  var statusMsg = document.querySelector('#statusMsg');
-
-  var showStatus = function(text) {
-    statusMsg.querySelector('p').textContent = text;
-    statusMsg.classList.add('visible');
-    statusMsg.addEventListener('transitionend', function tend() {
-      statusMsg.removeEventListener('transitionend', tend);
-      setTimeout(function hide() {
-        statusMsg.classList.remove('visible');
-      }, STATUS_TIME);
-    });
-  };
-
   var getFirstContacts = function c_getFirstContacts() {
     var onerror = function() {
       console.error('Error getting first contacts');
@@ -668,7 +654,7 @@ var Contacts = (function() {
     'showContactDetail': contactListClickHandler,
     'updateContactDetail': updateContactDetail,
     'onLineChanged': onLineChanged,
-    'showStatus': showStatus
+    'showStatus': utils.status.show
   };
 })();
 
