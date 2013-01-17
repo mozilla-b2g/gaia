@@ -241,7 +241,7 @@ var CardsView = (function() {
         header.innerHTML += '</h1></header>';
         card.appendChild(header);
         card.classList.add('trustedui');
-      } else {
+      } else if (attentionScreenApps.indexOf(origin) == -1) {
         var closeButton = document.createElement('div');
         closeButton.classList.add('close-card');
         card.appendChild(closeButton);

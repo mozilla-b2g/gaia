@@ -10,6 +10,23 @@ var GaiaApps = {
     return name.replace(/[- ]+/g, '').toLowerCase();
   },
 
+  getRunningApps: function() {
+    let runningApps = window.wrappedJSObject.WindowManager.getRunningApps();
+    // Return a simplified version of the runningApps object which can be
+    // JSON-serialized.
+    let apps = {};
+    for (let app in runningApps) {
+        let anApp = {};
+        for (let key in runningApps[app]) {
+            if (['name', 'origin', 'manifest'].indexOf(key) > -1) {
+                anApp[key] = runningApps[app][key];
+            }
+        }
+        apps[app] = anApp;
+    }
+    return apps;
+  },
+
   getRunningAppOrigin: function(name) {
     let runningApps = window.wrappedJSObject.WindowManager.getRunningApps();
     let origin;
@@ -155,7 +172,7 @@ var GaiaApps = {
         waitFor(
           function() {
             let app = runningApps[origin];
-            let result = {frame: app.frame.firstChild.id,
+            let result = {frame: app.frame.firstChild,
                           src: app.iframe.src,
                           name: app.name,
                           origin: origin};
@@ -166,7 +183,7 @@ var GaiaApps = {
             }
             else {
               // wait until the new iframe sends the mozbrowserfirstpaint event
-              let frame = runningApps[origin].frame;
+              let frame = runningApps[origin].frame.firstChild;
               if (frame.dataset.unpainted) {
                 window.addEventListener('mozbrowserfirstpaint',
                     function firstpaint() {
@@ -193,7 +210,7 @@ var GaiaApps = {
   },
 
   /**
-   * Uninstalls the app with the speciifed name.
+   * Uninstalls the app with the specified name.
    */
   uninstallWithName: function(name) {
     GaiaApps.locateWithName(name, function uninstall(app) {
