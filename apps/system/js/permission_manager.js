@@ -31,21 +31,18 @@ var PermissionManager = (function() {
     }
     if (detail.fullscreenorigin != WindowManager.getDisplayedApp()) {
       // The message to be displayed on the approval UI.
-      var message = detail.fullscreenorigin + ' is now fullscreen';
+      var message = _('fullscreen-request', { 'origin': detail.fullscreenorigin });
       fullscreenRequest = requestPermission(message,
                                             /* yesCallback */ null,
                                             /* noCallback */ function() {
                                               document.mozCancelFullScreen();
-                                            },
-                                            'OK',
-                                            'Cancel');
+                                            });
     }
   };
 
   var handlePermissionPrompt = function pm_handlePermissionPrompt(detail) {
     remember.checked = detail.remember ? true : false;
     var str = '';
-    var _ = navigator.mozL10n.get;
 
     var permissionID = 'perm-' + detail.permission.replace(':', '-');
     if (detail.isApp) { // App
@@ -116,9 +113,7 @@ var PermissionManager = (function() {
     showPermissionPrompt(request.id,
                          request.message,
                          request.yescallback,
-                         request.nocallback,
-                         request.yesText,
-                         request.noText);
+                         request.nocallback);
   };
 
   // This is the event listener function for the yes/no buttons.
@@ -139,8 +134,7 @@ var PermissionManager = (function() {
   };
 
   var requestPermission = function(msg,
-                                   yescallback, nocallback,
-                                   yesText, noText) {
+                                   yescallback, nocallback) {
     var id = nextRequestID;
     nextRequestID = (nextRequestID + 1) % 1000000;
 
@@ -150,21 +144,18 @@ var PermissionManager = (function() {
         id: id,
         message: msg,
         yescallback: yescallback,
-        nocallback: nocallback,
-        yesText: yesText,
-        noText: noText
+        nocallback: nocallback
       });
       return id;
     }
 
-    showPermissionPrompt(id, msg, yescallback, nocallback, yesText, noText);
+    showPermissionPrompt(id, msg, yescallback, nocallback);
 
     return id;
   };
 
   var showPermissionPrompt = function(id, msg,
-                                      yescallback, nocallback,
-                                      yesText, noText) {
+                                      yescallback, nocallback) {
     // Put the message in the dialog.
     // Note plain text since this may include text from
     // untrusted app manifests, for example.
