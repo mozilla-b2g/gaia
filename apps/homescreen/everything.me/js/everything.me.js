@@ -93,7 +93,6 @@ var EverythingME = {
                     'js/developer/utils.1.3.js',
                     'js/plugins/Scroll.js',
                     'js/external/iscroll.js',
-                    'js/developer/log4js2.js',
                     'js/api/apiv2.js',
                     'js/api/DoATAPI.js',
                     'js/helpers/Utils.js',

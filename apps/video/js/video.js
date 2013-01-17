@@ -460,6 +460,8 @@ function setVideoUrl(player, video, callback) {
 function showPlayer(data, autoPlay) {
   currentVideo = data;
 
+  dom.thumbnails.classList.add('hidden');
+
   // switch to the video player view
   updateDialog();
   dom.player.preload = 'metadata';
@@ -528,6 +530,7 @@ function hidePlayer() {
     // switch to the video gallery view
     dom.videoFrame.classList.add('hidden');
     dom.videoBar.classList.remove('paused');
+    dom.thumbnails.classList.remove('hidden');
     playerShowing = false;
     updateDialog();
   }

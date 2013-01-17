@@ -89,48 +89,6 @@ function trim(str){
     }
 }
 
-function Logger(){
-    function getLoggerLevel(){
-    	if (/http:\/\/.+\.(loc)\.flyapps\.me\//.test(location.href) || /http:\/\/loc\.flyapps\.me\//.test(location.href) || /http:\/\/.+test\.flyapps\.me\//.test(location.href)){
-            return Log.DEBUG;
-        }
-        else if (/http:\/\/.+\.(stg|test)\.flyapps\.me\//.test(location.href)){
-            return Log.INFO;
-        }
-        else if (/http:\/\/.+\.flyapps\.me\//.test(location.href) || /http:\/\/everything\.me\//.test(location.href)){
-            return Log.ERROR;
-        }
-        return Log.DEBUG;
-    }
-
-    function getLoggerOutput(){
-        var loggerOutput = parseQuery()['doatloggeroutput'];
-        if (loggerOutput){
-            switch (loggerOutput){
-                case 'console':
-                    return Log.consoleLogger;
-                    break;
-                case 'inline':
-                    return Log.writeLogger;
-                    break;
-                case 'alert':
-                    return Log.alertLogger;
-                    break;
-                case 'popup':
-                    return Log.popupLogger;
-                    break;
-                default:
-                    if (window[loggerOutput]){
-                        return window[loggerOutput]
-                    }
-            }
-        }
-        return Log.consoleLogger;
-    }
-
-    return new Log(getLoggerLevel(), getLoggerOutput());
-}
-
 function addListener(){
     if (typeof arguments[0] === 'string'){
         arguments[2] = arguments[1];

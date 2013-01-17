@@ -604,9 +604,6 @@
     var p = document.createElement('p');
     p.id = 'stk-item-title';
     p.textContent = options.text;
-    if (options.minLength && options.maxLength) {
-      p.textContent += ' [' + options.minLength + '-' + options.maxLength + ']';
-    }
     li.appendChild(p);
 
     var input = document.createElement('input');
@@ -736,6 +733,9 @@
 
     var tonePlayer = new Audio();
     var selectedPhoneSound;
+    if (typeof options.tone == "string") {
+      options.tone = options.tone.charCodeAt(0);
+    }
     switch (options.tone) {
       case icc.STK_TONE_TYPE_DIAL_TONE:
         selectedPhoneSound = 'resources/dtmf_tones/350Hz+440Hz_200ms.ogg';
@@ -772,10 +772,12 @@
     tonePlayer.loop = true;
     tonePlayer.play();
 
-    timeout = calculateDurationInMS(options.duration);
-    setTimeout(function() {
-      tonePlayer.pause();
-    },timeout);
+    if (options.duration) {
+      timeout = calculateDurationInMS(options.duration);
+      setTimeout(function() {
+        tonePlayer.pause();
+      }, timeout);
+    }
 
     if (options.isVibrate == true) {
       window.navigator.vibrate([200]);
