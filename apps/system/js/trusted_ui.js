@@ -177,8 +177,9 @@ var TrustedUIManager = {
     this.popupContainer.classList.remove('closing');
     this.show();
 
-    // ensure the frame is visible
+    // ensure the frame is visible and the dialog title is correct.
     dialog.frame.classList.add('selected');
+    this.dialogTitle.textContent = dialog.name;
   },
 
   _makeDialogHidden: function trui_makeDialogHidden(dialog) {
