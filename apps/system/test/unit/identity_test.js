@@ -3,6 +3,7 @@
 requireApp('system/js/identity.js');
 requireApp('system/test/unit/mock_chrome_event.js');
 requireApp('system/test/unit/mock_trusted_ui_manager.js');
+requireApp('system/test/unit/mock_l10n.js');
 
 // ensure its defined as a global so mocha will not complain about us
 // leaking new global variables during the test
@@ -12,6 +13,7 @@ if (!window.TrustedUIManager) {
 
 suite('identity', function() {
   var subject;
+  var realL10n;
   var realTrustedUIManager;
   var realDispatchEvent;
 
@@ -22,6 +24,9 @@ suite('identity', function() {
     realTrustedUIManager = window.TrustedUIManager;
     window.TrustedUIManager = MockTrustedUIManager;
 
+    realL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
+
     realDispatchEvent = subject._dispatchEvent;
     subject._dispatchEvent = function (obj) {
       lastDispatchedEvent = obj;
@@ -31,6 +36,8 @@ suite('identity', function() {
   suiteTeardown(function() {
     window.TrustedUIManager = realTrustedUIManager;
     subject._dispatchEvent = realDispatchEvent;
+
+    navigator.mozL10n = realL10n;
   });
 
   setup(function() {});
@@ -51,7 +58,7 @@ suite('identity', function() {
 
     test('popup parameters', function() {
       assert.equal(MockTrustedUIManager.mOpened, true);
-      assert.equal(MockTrustedUIManager.mName, 'IdentityFlow');
+      assert.equal(MockTrustedUIManager.mName, 'persona-signin');
       assert.equal(MockTrustedUIManager.mChromeEventId, 'test-open-event-id');
     });
 

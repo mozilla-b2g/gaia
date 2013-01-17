@@ -1,8 +1,6 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-'use strict';
-
 //
 // This file calls getElementById without waiting for an onload event, so it
 // must have a defer attribute or be included at the end of the <body>.
@@ -49,6 +47,12 @@
 //
 
 var WindowManager = (function() {
+  'use strict';
+
+  function debug(str) {
+    dump('WindowManager: ' + str + '\n');
+  }
+
   // Holds the origin of the home screen, which should be the first
   // app we launch through web activity during boot
   var homescreen = null;
@@ -811,13 +815,11 @@ var WindowManager = (function() {
       var app = Applications.getByManifestURL(homescreenManifestURL);
       appendFrame(null, homescreen, homescreenURL,
                   app.manifest.name, app.manifest, app.manifestURL);
+      setAppSize(homescreen);
     } else if (reset) {
       runningApps[homescreen].iframe.src = homescreenURL;
+      setAppSize(homescreen);
     }
-
-    // need to setAppSize or for the first time, or from FTU to homescreen
-    // the dock position would be incorrect.
-    setAppSize(homescreen);
 
     return runningApps[homescreen].frame;
   }
@@ -1832,6 +1834,7 @@ var WindowManager = (function() {
     if (document.mozFullScreen) {
       document.mozCancelFullScreen();
     }
+
     if (displayedApp !== homescreen || inTransition) {
       if (displayedApp != ftuURL) {
         setDisplayedApp(homescreen);

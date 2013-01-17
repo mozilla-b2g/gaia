@@ -2,7 +2,7 @@
  * APIStatsEvents class
  */
 Evme.APIStatsEvents = function Evme_APIStatsEvents(Sandbox){
-    var self = this, config, logger, processedItems, tracker = Sandbox.DoATAPI, tempEventArr = [], templatesStr = "",
+    var self = this, config, processedItems, tracker = Sandbox.DoATAPI, tempEventArr = [], templatesStr = "",
         templates = {
             "Results_search": {
                 "userEvent": "pageView",
@@ -12,67 +12,9 @@ Evme.APIStatsEvents = function Evme_APIStatsEvents(Sandbox){
                 "feature": "{feature}",
                 "src": "{source}"
             },
-            
-            "Searchbar_returnPressed": {
-                "userEvent": "keyboardReturnClick"
-            },
-            
-            "suggestions_click": {
-                "userEvent":"suggestionsClick",
-                "idx": "{index}",
-                "visible": "{visible}"
-            },
-            
-            "history_click": {
-                "userEvent":"historyClick",
-                "idx": "{index}"
-            },
-            
-            "didyoumean_click": {
-                "userEvent":"spellingClick",
-                "idx": "{index}"
-            },
-            
-            "refine_click": {
-                "userEvent":"disambiguationClick",
-                "idx": "{index}"
-            },
-
-            "Shortcut_click": {
-                "userEvent": "shortcutsClick",
-                "idx": "{index}"
-            },
-            "Shortcuts_categoryPageShow": {
-                "userEvent": "shortcutsCategoryPageShow",
-                "query": "{query}"
-            },
-            "ShortcutsCustomize_show": {
-                "userEvent": "shortcutsFavoritesShow"
-            },
-            "ShortcutsCustomize_done": {
-                "userEvent": "shortcutsFavoritesDoneClick"
-            },
-            
-            "HomepageTip_show": {
-                "userEvent": "hptipShow"
-            },
-            "HomepageTip_buttonClick": {
-                "userEvent": "hptipHide",
-                "src": "button"
-            },
-            "HomepageTip_backgroundClick": {
-                "userEvent": "hptipHide",
-                "src": "background"
-            },
-            
-            "BackgroundImage_showFullScreen": {
-                "userEvent":"imageFullScreen"
-            },
-            
             "AppsMore_show": {
                 "userEvent":"loadMore"
             },
-            
             "Core_redirectedToApp": {
                 "userEvent": "appClick",
                 "url": "{url}",
@@ -84,72 +26,22 @@ Evme.APIStatsEvents = function Evme_APIStatsEvents(Sandbox){
                 "more": "{more}",
                 "appName": "{appName}",
                 "appId": "{appId}",
+                "appType": "{appType}",
                 "query": "{query}",
                 "feature": "{source}"
             },
-            
-            "Core_returnedFromApp": {
-                "userEvent": "returnedFromApp",
-                "lengthInSeconds": "{elapsedTime}",
-                "query": "{query}",
-                "feature": "{source}",
-                "appName": "{appName}",
-                "appId": "{appId}"
-            },
-            
-            "DoATAPI_sessionInitOnPageLoad": {
-                "userEvent": "sessionInitOnPageLoad"
-            },
-            
-            "Tips_show": {
-                "userEvent": "tipImpression",
-                "tipId": "{id}"
-            },
-            "Tips_hide": {
-                "userEvent": "tipHide",
-                "tipId": "{id}",
-                "source": "{source}"
-            },
-            "Tips_click": {
-                "userEvent": "tipClick",
-                "tipId": "{id}"
-            },
-            
-            "Prompt_show": {
-                "userEvent": "promptShow",
-                "prompt": "{id}",
-                "text": "{text}"
-            },
-            "Prompt_click": {
-                "userEvent": "promptClick",
-                "prompt": "{id}",
-                "text": "{text}"
-            },
-            "Prompt_dismiss": {
-                "userEvent": "promptDismiss",
-                "prompt": "{id}",
-                "text": "{text}"
-            },
-            "Core_requestInvite": {
-                "userEvent": "promptRequestInvite",
-                "text": "{promptText}",
-                "systemText": "{systemText}",
-                "email": "{email}",
-            },
-
-            "Url_goTo": {
-                "userEvent": "pageView",
-                "page": "{page}",
-                "src": "{source}"
+            "App_addToHomeScreen": {
+                "userEvent": "addToHomeScreen",
+                "appName": "{name}",
+                "appId": "{id}"
             }
         };
         
     this.name = "APIStatsEvents";
     
-    this.init = function init(_config, _logger){
+    this.init = function init(_config){
         // set config
         config = _config;
-        logger = _logger;
         
         // add common params
         for (var k in templates){
@@ -160,9 +52,6 @@ Evme.APIStatsEvents = function Evme_APIStatsEvents(Sandbox){
         
         // stringify templates
         templatesStr = stringify(templates);
-
-        // log 
-        logger.debug(self.name+".init(",config,")");
     };
     
     function stringify(old){
@@ -189,9 +78,6 @@ Evme.APIStatsEvents = function Evme_APIStatsEvents(Sandbox){
         items.length && tracker.report({
             "data": "["+ items.toString()+"]"
         });
-    
-        // log
-        logger.debug(self.name+".dispatch(", items,")");
     };
     
     function process(items){

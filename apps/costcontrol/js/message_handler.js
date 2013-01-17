@@ -6,6 +6,12 @@
   function inStandAloneMode() {
     return window.parent.location.pathname === '/message_handler.html';
   }
+
+  // Redirect global objects to parent versions to avoid conflicts
+  if (!inStandAloneMode()) {
+    ConfigManager = window.parent.ConfigManager;
+  }
+
   // XXX: This case implies that message handler triggered by system
   // (inStandAlone check) has replaced CC application (history's length check).
   //
@@ -15,7 +21,7 @@
   // inside an iframe (no standalone mode), all the messages should be attended
   // so we can conclude **there is nothing to do**.
   if (inStandAloneMode() && window.history.length > 1) {
-    debug('Nothing to do, closing...')
+    debug('Nothing to do, closing...');
     window.history.back();
   }
 
@@ -46,29 +52,45 @@
 
   // XXX: Remove from here when this is solved
   // https://bugzilla.mozilla.org/show_bug.cgi?id=800431
-  function setNextReset(when) {
-    asyncStorage.getItem('nextResetAlarm', function(id) {
-      debug('Current nextResetAlarm', id + '.', id ? 'Removing.' : '');
-      if (id)
-        navigator.mozAlarms.remove(id);
+  function setNextReset(when, callback) {
 
+    // XXX: This is not part of configuration by SIM so we bypass ConfigManager
+    asyncStorage.getItem('nextResetAlarm', function(id) {
+      // There is already an alarm, remove it
+      debug('Current nextResetAlarm', id + '.', id ? 'Removing.' : '');
+      if (id) {
+        navigator.mozAlarms.remove(id);
+      }
+
+      // If no when, disable alarms passing null
       if (!when) {
-        ConfigManager.setOption({ nextReset: null });
+        debug('Automatic reset disabled');
+        updateResetAttributes(null, null, callback);
         return;
       }
 
-      var request = navigator.mozAlarms.add(when, 'ignoreTimezone',
-                                            {type: 'nextReset' });
+      // If when is provided, request an alarm an set the new values
+      var alarms = navigator.mozAlarms;
+      var request = alarms.add(when, 'ignoreTimezone', {type: 'nextReset' });
       request.onsuccess = function _onSuccess() {
-        ConfigManager.setOption({ nextReset: when }, function _sync() {
-            localStorage['sync'] = 'nextReset#' + Math.random();
-        });
         debug('Setting nextResetAlarm', request.result, 'to', when);
-        asyncStorage.setItem('nextResetAlarm', request.result);
+        updateResetAttributes(request.result, when, callback);
       };
     });
-  };
+  }
   window.setNextReset = setNextReset;
+
+  // Update the nextResetAlarm and nextReset values and request for
+  // synchronization.
+  function updateResetAttributes(alarmId, date, callback) {
+    asyncStorage.setItem('nextResetAlarm', alarmId, function _updateOption() {
+      ConfigManager.setOption({ nextReset: date }, function _sync() {
+        localStorage['sync'] = 'nextReset#' + Math.random();
+        if (callback)
+          callback();
+      });
+    });
+  }
 
   // Register in standalone or for application
   if (inStandAloneMode() || inApplicationMode()) {
@@ -253,4 +275,8 @@
     );
 
   }
+
+  // Notify message handler is ready
+  var readyEvent = new CustomEvent('messagehandlerready');
+  window.parent.dispatchEvent(readyEvent);
 }());
