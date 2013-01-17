@@ -511,6 +511,11 @@ function Page(container, icons) {
 Page.prototype = {
 
   /*
+   * It defines the threshold in pixels to consider a gesture like a tap event
+   */
+  tapThreshold: 10,
+
+  /*
    * Renders a page for a list of apps
    *
    * @param{Array} icons
