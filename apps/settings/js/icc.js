@@ -603,8 +603,7 @@
     var li = document.createElement('li');
     var p = document.createElement('p');
     p.id = 'stk-item-title';
-    p.setAttribute('style',
-      'text-overflow: clip; white-space: normal; word-wrap: break-word;');
+    p.classList.add('multiline_title');
     p.textContent = options.text;
     li.appendChild(p);
 
