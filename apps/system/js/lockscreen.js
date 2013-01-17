@@ -935,10 +935,6 @@ var LockScreen = {
   }
 };
 
-if (navigator.mozL10n.readyState == 'complete' ||
-    navigator.mozL10n.readyState == 'interactive') {
-  LockScreen.init();
-} else {
-  window.addEventListener('localized', LockScreen.init.bind(LockScreen));
-}
+LockScreen.init();
+window.addEventListener('localized', LockScreen.init.bind(LockScreen));
 

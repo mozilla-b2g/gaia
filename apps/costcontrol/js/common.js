@@ -11,7 +11,8 @@ function checkSIMChange(callback) {
     }
     ConfigManager.requestSettings(function _onSettings(settings) {
       if (settings.nextReset) {
-        setNextReset(settings.nextReset);
+        setNextReset(settings.nextReset, callback);
+        return;
       }
 
       if (callback) {
@@ -21,21 +22,41 @@ function checkSIMChange(callback) {
   });
 }
 
+// Waits for DOMContentLoaded and messagehandlerready, then call the callback
+function waitForDOMAndMessageHandler(window, callback) {
+  var remainingSteps = 2;
+  function checkReady(evt) {
+    debug(evt.type, 'event received!');
+    remainingSteps--;
+
+    // Once all events are received, execute the callback
+    if (!remainingSteps) {
+      window.removeEventListener('DOMContentLoaded', checkReady);
+      window.removeEventListener('messagehandlerready', checkReady);
+      debug('DOMContentLoaded and messagehandlerready received. Starting');
+      callback();
+    }
+  }
+
+  window.addEventListener('DOMContentLoaded', checkReady);
+  window.addEventListener('messagehandlerready', checkReady);
+}
+
 function addAlarmTimeout(type, delay) {
   var proxy = document.getElementById('message-handler').contentWindow;
   return proxy.addAlarmTimeout(type, delay);
 }
 
-function setNextReset(when) {
+function setNextReset(when, callback) {
   var proxy = document.getElementById('message-handler');
-  return proxy ? proxy.contentWindow.setNextReset(when) : setNextReset(when);
+  return proxy ? proxy.contentWindow.setNextReset(when, callback) :
+                 setNextReset(when, callback);
 }
 
 // Next automatic reset date based on user preferences
-function updateNextReset(trackingPeriod, value) {
+function updateNextReset(trackingPeriod, value, callback) {
   if (trackingPeriod === 'never') {
-    setNextReset(null); // remove oldAlarm
-    debug('Automatic reset disabled');
+    setNextReset(null, callback); // remove any alarm
     return;
   }
 
@@ -63,10 +84,11 @@ function updateNextReset(trackingPeriod, value) {
       daysToTarget = 7 + daysToTarget;
     nextReset = new Date();
     nextReset.setTime(nextReset.getTime() + oneDay * daysToTarget);
+    toMidnight(nextReset);
   }
 
   // remove oldAlarm and set the new one
-  setNextReset(nextReset);
+  setNextReset(nextReset, callback);
 }
 
 function resetData() {

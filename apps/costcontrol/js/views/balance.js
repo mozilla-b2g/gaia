@@ -231,7 +231,6 @@ var BalanceTab = (function() {
         setBalanceMode(status === 'error' ? 'warning' : 'updating');
         if (status === 'error')
           setErrors(status.details);
-        debug(settings);
         updateBalance(balance,
                       settings.lowLimit && settings.lowLimitThreshold);
       });

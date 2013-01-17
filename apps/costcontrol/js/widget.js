@@ -12,30 +12,33 @@
 
   'use strict';
 
+  // XXX: This is the point of entry, check common.js for more info
+  waitForDOMAndMessageHandler(window, onReady);
+
   var costcontrol;
   var hasSim = true;
-  window.addEventListener('DOMContentLoaded', function _onDOMReady() {
+  function onReady() {
     var mobileConnection = window.navigator.mozMobileConnection;
 
     // No SIM
     if (!mobileConnection || mobileConnection.cardState === 'absent') {
       hasSim = false;
-      _startWidget();
+      startWidget();
 
     // SIM is not ready
     } else if (mobileConnection.cardState !== 'ready') {
       debug('SIM not ready:', mobileConnection.cardState);
-      mobileConnection.oniccinfochange = _onDOMReady;
+      mobileConnection.oniccinfochange = onReady;
 
     // SIM is ready
     } else {
       debug('SIM ready. ICCID:', mobileConnection.iccInfo.iccid);
       mobileConnection.oniccinfochange = undefined;
-      _startWidget();
+      startWidget();
     }
-  });
+  };
 
-  function _startWidget() {
+  function startWidget() {
     checkSIMChange(function _onSIMChecked() {
       CostControl.getInstance(function _onCostControlReady(instance) {
         costcontrol = instance;
@@ -175,7 +178,7 @@
           setupFte(configuration.provider, mode);
           return;
         } else {
-          fte.setAttribute('aria-hidden', true)
+          fte.setAttribute('aria-hidden', true);
         }
 
         // Always data usage

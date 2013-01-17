@@ -2,7 +2,7 @@
  * Analytics class
  */
 Evme.Analytics = new function Evme_Analytics() {
-    var self = this, logger, ga, idle, providers = [], immediateProviders = [], queueArr = [], maxQueueCount, getCurrentAppsRowsCols, STORAGE_QUERY = "analyticsLastSearchQuery",
+    var self = this, ga, idle, providers = [], immediateProviders = [], queueArr = [], maxQueueCount, getCurrentAppsRowsCols, STORAGE_QUERY = "analyticsLastSearchQuery",
         // Google Analytics load props
         GAScriptLoadStatus, GAScriptLoadSubscribers = [];
     
@@ -28,12 +28,6 @@ Evme.Analytics = new function Evme_Analytics() {
         if (_options.config){
             for (i in _options.config){ options[i] = _options.config[i]; }
         }
-        
-        // logger object passed from common.js
-        logger = options && options.logger || console;
-        
-        // log
-        logger.debug("Analytics.init(",options,")"); 
         
         // if enabled
         if (options.enabled){
@@ -97,20 +91,17 @@ Evme.Analytics = new function Evme_Analytics() {
         try {
             self[_class] && self[_class][_event] && self[_class][_event](_data || {});
         } catch(ex){
-            logger.error(ex);
         }
     }
     
     function registerProvider(object, params){
         var provider = new object(self.Sandbox);
-        provider.init(params, logger);
+        provider.init(params);
         providers.push(provider);
         
         if (provider.immediateDispatch){
             immediateProviders.push(provider);
         }
-        
-        logger.debug("Analytics.registerProvider(", object.name, params, ")");
     }
     
     function getProviderByName(name){
@@ -133,8 +124,6 @@ Evme.Analytics = new function Evme_Analytics() {
         immediateProviders.forEach(function itemIterator(provider){
             provider.dispatch([params]);
         });
-        
-        logger.debug("Analytics.queue(", params, ") (", queueArr.length,")");
     }
     
     function processItem(params){
@@ -149,13 +138,10 @@ Evme.Analytics = new function Evme_Analytics() {
     function dispatch(){
         // leave if not idle or there are no items to dispatch
         if (!idle.isIdle || !queueArr.length) {
-            logger.debug("Analytics.dispatch aborted", idle.isIdle, queueArr.length); 
             return false;
         }
         
         var dispatchedItems = queueArr.splice(0, maxQueueCount);
-        
-        logger.debug("Analytics.dispatch(", dispatchedItems, ")", queueArr.length); 
         
         providers.forEach(function itemIterator(provider){
             !provider.immediateDispatch && provider.dispatch(dispatchedItems);
@@ -190,8 +176,6 @@ Evme.Analytics = new function Evme_Analytics() {
         });
         Evme.Storage.add("analyticsQueue", str);
         Evme.Storage.add("analyticsQueueTimestamp", new Date().getTime());
-        
-        logger.debug("Analytics.storeQueue", Evme.Storage.get("analyticsQueue"));
     }
     
     // Restore queueArr from localStorage
@@ -209,11 +193,6 @@ Evme.Analytics = new function Evme_Analytics() {
             tempArr.forEach(function itemIterator(item){
                 queueArr.push(JSON.parse(item));
             });
-        
-            logger.debug("Analytics.restoreQueue", queueArr, elapsed);
-        }
-        else{
-            logger.debug("Analytics.restoreQueue - storage ttl exceeded", elapsed);
         }
         
         Evme.Storage.add("analyticsQueue", null);
@@ -409,17 +388,18 @@ Evme.Analytics = new function Evme_Analytics() {
             
             var queueData = {
                 "url": data.appUrl,
-                "rowIndex": rowIndex+1,
-                "colIndex": colIndex+1,
-                "totalRows": total[ROWS],
-                "totalCols": total[COLS],
                 "more": data.isMore ? 1 : 0,
                 "appName": data.name,
                 "appId": data.id,
+                "appType": data.appType,
                 "appIdName": data.id+":"+data.name,
                 "keyboardVisible": data.keyboardVisible,
                 "query": data.query,
-                "source": data.source
+                "source": data.source,
+                "rowIndex": data.rowIndex,
+                "colIndex": data.colIndex,
+                "totalRows": data.totalRows,
+                "totalCols": data.totalCols
             };
 
             queue({
@@ -458,13 +438,9 @@ Evme.Analytics = new function Evme_Analytics() {
                 "appName": queueData.appName,
                 "appId": queueData.appId
             };
-            
-            //storeQueue();
         };
         
         this.returnedFromApp = function returnedFromApp() {
-            // onunload restore queueArr from localStorage
-            //restoreQueue();
 
             if (redirectData){
                 // end timer
@@ -734,6 +710,16 @@ Evme.Analytics = new function Evme_Analytics() {
             queue({
                 "class": "Tips",
                 "event": "click",
+                "data": data
+            });
+        };
+    };
+
+    this.App = new function App() {
+        this.addToHomeScreen = function addToHomeScreen(data) {
+            queue({
+                "class": "App",
+                "event": "addToHomeScreen",
                 "data": data
             });
         };
