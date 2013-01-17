@@ -597,6 +597,8 @@ var Recents = {
     if (contactId) {
       src += '#view-contact-details?id=' + contactId;
       src += '&tel=' + phoneNumber;
+      // enable the function of receiving the messages posted from the iframe
+      src += '&send_message_from_iframe=1';
       var timestamp = new Date().getTime();
       contactsIframe.src = src + '&timestamp=' + timestamp;
       window.location.hash = '#contacts-view';

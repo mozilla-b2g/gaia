@@ -98,6 +98,17 @@ var CallHandler = (function callHandler() {
     });
   }
 
+  /* === Handle messages recevied from iframe === */
+  function handleIframeRequest(message) {
+    switch (message) {
+      case 'back':
+        // disable the function of receiving the messages posted from the iframe
+        window.frames['iframe-contacts'].window.history.pushState(null, null, '/contacts/index.html');
+        window.location.hash = '#recents-view';
+        break;
+    }
+  }
+
   /* === Incoming and STK calls === */
   function newCall() {
     // We need to query mozTelephony a first time here
@@ -177,6 +188,8 @@ var CallHandler = (function callHandler() {
       handleNotificationRequest(data.number);
     } else if (data.type && data.type === 'recent') {
       handleRecentAddRequest(data.entry);
+    } else if (data.type && data.type === 'iframe') {
+      handleIframeRequest(data.message);
     }
   }
   window.addEventListener('message', handleMessage);
