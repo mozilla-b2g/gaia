@@ -785,6 +785,12 @@ var Cards = {
     else {
       this._transitionCount = (beginNode && endNode) ? 2 : 1;
       this._eatingEventsUntilNextCard = true;
+
+      // Show a sliver of the next card, to kickstart
+      // platform for a smooth, non-black transition: 828266
+      addClass(endNode, 'start');
+      // Kick the reflow
+      cardsNode.clientWidth;
     }
 
     if (this.activeCardIndex === cardIndex) {
@@ -857,6 +863,9 @@ var Cards = {
       if (endNode.classList.contains('disabled-anim-vertical')) {
         removeClass(endNode, 'disabled-anim-vertical');
         addClass(endNode, 'anim-vertical');
+      } else {
+        // Remove hack for 828266
+        removeClass(endNode, 'start');
       }
     }
   },
