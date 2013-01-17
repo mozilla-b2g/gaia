@@ -44,6 +44,11 @@
     }
   });
 
+  // Make sure the weekday order is correct for every locale
+  window.addEventListener('localized', function _onLocalized() {
+    updateWeekdaySelector();
+  });
+
   var wizard, vmanager;
   var toStep2, step = 0;
   function setupFTE() {

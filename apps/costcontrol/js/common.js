@@ -193,3 +193,25 @@ function formatTimeHTML(timestampA, timestampB) {
   return '<time>' + formatTime(timestampA) + '</time> – ' +
          '<time>' + formatTime(timestampB) + '</time>';
 }
+
+function updateWeekdaySelector() {
+  var weekStartsOnMonday = navigator.mozL10n.get('weekStartsOnMonday');
+  if (weekStartsOnMonday && parseInt(weekStartsOnMonday, 10) == 0) {
+    // The weekday listbox looks like this:
+    // <listbox>
+    //   <li><label><monday  value="1"/></label></li>
+    //   <li><label><tuesday value="2"/></label></li>
+    //   etc…
+    //   <li><label><sunday  value="0"/></label></li>
+    // </listbox>
+    //
+    // What we do here is move the last <li> to the first position.
+    var weekdayDialog = document.getElementById('selectdialog-weekday');
+    var listbox = weekdayDialog.querySelector('ul');
+    var lastListElem = listbox.lastElementChild;
+    listbox.removeChild(lastListElem);
+    listbox.insertBefore(lastListElem, listbox.firstElementChild);
+    weekdayDialog.querySelector('[value=1]').removeAttribute("checked");
+    weekdayDialog.querySelector('[value=0]').setAttribute("checked", "checked");
+  }
+}
