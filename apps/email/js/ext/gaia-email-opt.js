@@ -29400,69 +29400,90 @@ exports.local_do_move = function(op, doneCallback, targetFolderId) {
   op.guids = {};
   const nukeServerIds = !this.resilientServerIds;
 
-  var stateDelta = this._stateDelta, addWait = 0;
+  var stateDelta = this._stateDelta, addWait = 0, self = this;
   if (!stateDelta.moveMap)
     stateDelta.moveMap = {};
   if (!stateDelta.serverIdMap)
     stateDelta.serverIdMap = {};
-  var perSourceFolder = function perSourceFolder(ignoredConn, targetStorage) {
-    this._partitionAndAccessFoldersSequentially(
-      op.messages, false,
-      function perFolder(ignoredConn, sourceStorage, headers, namers,
-                         perFolderDone) {
-        // -- get the body for the next header (or be done)
-        function processNext() {
-          if (iNextHeader >= headers.length) {
-            perFolderDone();
-            return;
+  if (!targetFolderId)
+    targetFolderId = op.targetFolder;
+
+  this._partitionAndAccessFoldersSequentially(
+    op.messages, false,
+    function perFolder(ignoredConn, sourceStorage, headers, namers,
+                       perFolderDone) {
+      // -- get the body for the next header (or be done)
+      function processNext() {
+        if (iNextHeader >= headers.length) {
+          perFolderDone();
+          return;
+        }
+        header = headers[iNextHeader++];
+        sourceStorage.getMessageBody(header.suid, header.date,
+                                     gotBody_nowDelete);
+      }
+      // -- delete the header and body from the source
+      function gotBody_nowDelete(_body) {
+        body = _body;
+
+        // We need an entry in the server id map if we are moving/deleting it.
+        // We don't need this if we're moving a message to the folder it's
+        // already in, but it doesn't hurt anything.
+        if (header.srvid)
+          stateDelta.serverIdMap[header.suid] = header.srvid;
+
+        if (sourceStorage.folderId === targetFolderId) {
+          if (op.type === 'move') {
+            // A move from a folder to itself is a no-op.
+            processNext();
           }
-          header = headers[iNextHeader++];
-          sourceStorage.getMessageBody(header.suid, header.date,
-                                       gotBody_nowDelete);
+          else { // op.type === 'delete'
+            // If the op is a delete and the source and destination folders
+            // match, we're deleting from trash, so just perma-delete it.
+            sourceStorage.deleteMessageHeaderAndBody(header, processNext);
+          }
         }
-        // -- delete the header and body from the source
-        function gotBody_nowDelete(_body) {
-          body = _body;
-          sourceStorage.deleteMessageHeaderAndBody(header, deleted_nowAdd);
+        else {
+          sourceStorage.deleteMessageHeaderAndBody(
+            header, deleted_nowOpenTarget);
         }
-        // -- add the header/body to the target folder
-        function deleted_nowAdd() {
-          var sourceSuid = header.suid;
+      }
+      // -- open the target folder
+      function deleted_nowOpenTarget() {
+        self._accessFolderForMutation(targetFolderId, false,
+                                      targetOpened_nowAdd, null,
+                                      'local move target');
+      }
+      // -- add the header/body to the target folder
+      function targetOpened_nowAdd(ignoredConn, targetStorage) {
+        var sourceSuid = header.suid;
 
-          // We need an entry in the server id map if we are moving it.
-          if (header.srvid)
-            stateDelta.serverIdMap[sourceSuid] = header.srvid;
+        // - update id fields
+        header.id = targetStorage._issueNewHeaderId();
+        header.suid = targetStorage.folderId + '/' + header.id;
+        if (nukeServerIds)
+          header.srvid = null;
 
-          // - update id fields
-          header.id = targetStorage._issueNewHeaderId();
-          header.suid = targetStorage.folderId + '/' + header.id;
-          if (nukeServerIds)
-            header.srvid = null;
+        stateDelta.moveMap[sourceSuid] = header.suid;
 
-          stateDelta.moveMap[sourceSuid] = header.suid;
-
-          addWait = 2;
-          targetStorage.addMessageHeader(header, added);
-          targetStorage.addMessageBody(header, body, added);
-        }
-        function added() {
-          if (--addWait !== 0)
-            return;
-          processNext();
-        }
-        var iNextHeader = 0, header = null, body = null, addWait = 0;
+        addWait = 2;
+        targetStorage.addMessageHeader(header, added);
+        targetStorage.addMessageBody(header, body, added);
+      }
+      function added() {
+        if (--addWait !== 0)
+          return;
         processNext();
-      },
-      function() {
-        doneCallback(null, null, true);
-      },
-      null,
-      false,
-      'local move source');
-  }.bind(this);
-  this._accessFolderForMutation(
-    targetFolderId || op.targetFolder, false,
-    perSourceFolder, null, 'local move target');
+      }
+      var iNextHeader = 0, header = null, body = null, addWait = 0;
+      processNext();
+    },
+    function() {
+      doneCallback(null, null, true);
+    },
+    null,
+    false,
+    'local move source');
 };
 
 // XXX implement!
@@ -30344,20 +30365,22 @@ ImapJobDriver.prototype = {
     var state = this._state, stateDelta = this._stateDelta, aggrErr = null;
     if (!stateDelta.serverIdMap)
       stateDelta.serverIdMap = {};
-    // resolve the target folder again
-    this._accessFolderForMutation(
-      targetFolderId || op.targetFolder, true,
-      function gotTargetConn(targetConn, targetStorage) {
-        var uidnext = targetConn.box._uidnext;
+    if (!targetFolderId)
+      targetFolderId = op.targetFolder;
 
-      this._partitionAndAccessFoldersSequentially(
-        op.messages, true,
-        function perFolder(folderConn, sourceStorage, serverIds, namers,
-                           perFolderDone){
-          // - copies are done, find the UIDs
-          // XXX process UIDPLUS output when present, avoiding this step.
-          var guidToNamer = {}, waitingOnHeaders = namers.length,
-              reportedHeaders = 0, retriesLeft = 3;
+    this._partitionAndAccessFoldersSequentially(
+      op.messages, true,
+      function perFolder(folderConn, sourceStorage, serverIds, namers,
+                         perFolderDone){
+        // XXX process UIDPLUS output when present, avoiding this step.
+        var guidToNamer = {}, waitingOnHeaders = namers.length,
+            reportedHeaders = 0, retriesLeft = 3, targetConn;
+
+        // - got the target folder conn, now do the copies
+        function gotTargetConn(targetConn, targetStorage) {
+          var uidnext = targetConn.box._uidnext;
+          folderConn._conn.copy(serverIds, targetStorage.folderMeta.path,
+                                copiedMessages_reselect);
 
           function copiedMessages_reselect() {
             // Force a re-select of the folder to try and force the server to
@@ -30371,6 +30394,7 @@ ImapJobDriver.prototype = {
             // selection and lose.
             targetConn.reselectBox(copiedMessages_findNewUIDs);
           }
+          // - copies are done, find the UIDs
           function copiedMessages_findNewUIDs() {
             var fetcher = targetConn._conn.fetch(
               uidnext + ':*',
@@ -30434,54 +30458,61 @@ ImapJobDriver.prototype = {
                 return true;
               });
           }
-          function foundUIDs_deleteOriginals() {
-            folderConn._conn.addFlags(serverIds, ['\\Deleted'],
-                                      deletedMessages);
-          }
-          function deletedMessages(err) {
-            if (err)
-              aggrErr = true;
-            perFolderDone();
-          }
+        }
 
-          // Build a guid-to-namer map and deal with any messages that no longer
-          // exist on the server.  Do it backwards so we can splice.
-          for (var i = namers.length - 1; i >= 0; i--) {
-            var srvid = serverIds[i];
-            if (!srvid) {
-              serverIds.splice(i, 1);
-              namers.splice(i, 1);
-              continue;
-            }
-            var namer = namers[i];
-            guidToNamer[namer.guid] = namer;
-          }
-          // it's possible all the messages could be gone, in which case we
-          // are done with this folder already!
-          if (serverIds.length === 0) {
-            perFolderDone();
-            return;
-          }
+        function foundUIDs_deleteOriginals() {
+          folderConn._conn.addFlags(serverIds, ['\\Deleted'],
+                                    deletedMessages);
+        }
+        function deletedMessages(err) {
+          if (err)
+            aggrErr = true;
+          perFolderDone();
+        }
 
-          folderConn._conn.copy(
-            serverIds,
-            targetStorage.folderMeta.path,
-            copiedMessages_reselect);
-        },
-        function() {
-          jobDoneCallback(aggrErr);
-        },
-        null,
-        false,
-        'local move source');
-      // get a connection in the source folder, uid validity is asserted
-      // issue the (potentially bulk) copy
-      // wait for copy success
-      // mark the source messages deleted
-    }.bind(this),
-    function targetFolderDead() {
-    },
-    'move target');
+        // Build a guid-to-namer map and deal with any messages that no longer
+        // exist on the server.  Do it backwards so we can splice.
+        for (var i = namers.length - 1; i >= 0; i--) {
+          var srvid = serverIds[i];
+          if (!srvid) {
+            serverIds.splice(i, 1);
+            namers.splice(i, 1);
+            continue;
+          }
+          var namer = namers[i];
+          guidToNamer[namer.guid] = namer;
+        }
+        // it's possible all the messages could be gone, in which case we
+        // are done with this folder already!
+        if (serverIds.length === 0) {
+          perFolderDone();
+          return;
+        }
+
+        if (sourceStorage.folderId === targetFolderId) {
+          if (op.type === 'move') {
+            // A move from a folder to itself is a no-op.
+            processNext();
+          }
+          else { // op.type === 'delete'
+            // If the op is a delete and the source and destination folders
+            // match, we're deleting from trash, so just perma-delete it.
+            foundUIDs_deleteOriginals();
+          }
+        }
+        else {
+          // Resolve the target folder again.
+          this._accessFolderForMutation(targetFolderId, true, gotTargetConn,
+                                        function targetFolderDead() {},
+                                        'move target');
+        }
+      }.bind(this),
+      function() {
+        jobDoneCallback(aggrErr);
+      },
+      null,
+      false,
+      'local move source');
   },
 
   /**
@@ -33694,7 +33725,9 @@ ActiveSyncFolderConn.prototype = {
 
           w.tag(as.SyncKey, this.syncKey)
            .tag(as.CollectionId, this.serverId)
-           // DeletesAsMoves defaults to true, so we can omit it
+           // Use DeletesAsMoves in non-trash folders. Don't use it in trash
+           // folders because that doesn't make any sense.
+           .tag(as.DeletesAsMoves, this.folderMeta.type === 'trash' ? '0' : '1')
            // GetChanges defaults to true, so we must explicitly disable it to
            // avoid hearing about changes.
            .tag(as.GetChanges, '0')
@@ -33733,8 +33766,6 @@ ActiveSyncFolderConn.prototype = {
         status = node.children[0].textContent;
       });
 
-      //console.warn('COMMAND RESULT:\n', aResponse.dump());
-      //aResponse.rewind();
       try {
         e.run(aResponse);
       }
@@ -34184,8 +34215,14 @@ ActiveSyncJobDriver.prototype = {
     this._partitionAndAccessFoldersSequentially(
       op.messages, true,
       function perFolder(folderConn, storage, serverIds, namers, callWhenDone) {
-        let w = new $wbxml.Writer('1.3', 1, 'UTF-8');
-        w.stag(mo.MoveItems);
+        // Filter out any offline headers, since the server naturally can't do
+        // anything for them. If this means we have no headers at all, just bail
+        // out.
+        serverIds = serverIds.filter(function(srvid) { return !!srvid; });
+        if (!serverIds.length) {
+          callWhenDone();
+          return;
+        }
 
         // Filter out any offline headers, since the server naturally can't do
         // anything for them. If this means we have no headers at all, just bail
@@ -34196,6 +34233,8 @@ ActiveSyncJobDriver.prototype = {
           return;
         }
 
+        let w = new $wbxml.Writer('1.3', 1, 'UTF-8');
+        w.stag(mo.MoveItems);
         for (let i = 0; i < serverIds.length; i++) {
           w.stag(mo.Move)
              .tag(mo.SrcMsgId, serverIds[i])
@@ -34245,18 +34284,21 @@ ActiveSyncJobDriver.prototype = {
     this._partitionAndAccessFoldersSequentially(
       op.messages, true,
       function perFolder(folderConn, storage, serverIds, namers, callWhenDone) {
+        // Filter out any offline headers, since the server naturally can't do
+        // anything for them. If this means we have no headers at all, just bail
+        // out.
+        serverIds = serverIds.filter(function(srvid) { return !!srvid; });
+        if (!serverIds.length) {
+          callWhenDone();
+          return;
+        }
+
         folderConn.performMutation(
           function withWriter(w) {
             for (let i = 0; i < serverIds.length; i++) {
-              let srvid = serverIds[i];
-              // If the header is somehow an offline header, it will be null and
-              // there is nothing we can really do for it.
-              if (!srvid)
-                continue;
-
               w.stag(as.Delete)
-                  .tag(as.ServerId, srvid)
-                .etag(as.Delete);
+                 .tag(as.ServerId, serverIds[i])
+               .etag(as.Delete);
             }
           },
           function mutationPerformed(err) {

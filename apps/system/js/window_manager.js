@@ -422,8 +422,12 @@ var WindowManager = (function() {
     setOrientationForApp(displayedApp);
 
     // Dispatch an 'appopen' event.
+    var manifestURL = runningApps[displayedApp].manifestURL;
     var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent('appopen', true, false, { origin: displayedApp });
+    evt.initCustomEvent('appopen', true, false, {
+      manifestURL: manifestURL,
+      origin: displayedApp
+    });
     frame.dispatchEvent(evt);
   }
 
@@ -1125,7 +1129,11 @@ var WindowManager = (function() {
     var iframe = frame.firstChild;
     frame.id = 'appframe' + nextAppId++;
     iframe.dataset.frameType = 'window';
-    frame.name = 'main';
+
+    // Give a name to the frame for differentiating between main frame and 
+    // inline frame. With the name we can get frames of the same app using the
+    // window.open method. 
+    iframe.name = 'main';
 
     // If this frame corresponds to the homescreen, set mozapptype=homescreen
     // so we're less likely to kill this frame's process when we're running low
@@ -1145,6 +1153,7 @@ var WindowManager = (function() {
       origin: origin,
       name: name,
       manifest: manifest,
+      manifestURL: manifestURL,
       frame: frame,
       iframe: iframe,
       launchTime: 0
@@ -1175,6 +1184,10 @@ var WindowManager = (function() {
     var iframe = frame.firstChild;
     frame.classList.add('inlineActivity');
     iframe.dataset.frameType = 'inline-activity';
+
+    // Give a name to the frame for differentiating between main frame and 
+    // inline frame. With the name we can get frames of the same app using the
+    // window.open method.
     iframe.name = 'inline';
 
     // Save the reference
