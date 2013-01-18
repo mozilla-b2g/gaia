@@ -80,6 +80,7 @@ var NotificationScreen = {
     window.addEventListener('utilitytrayshow', this);
     window.addEventListener('unlock', this.clearLockScreen.bind(this));
     window.addEventListener('mozvisibilitychange', this);
+    window.addEventListener('appopen', this.handleAppopen.bind(this));
 
     this._sound = 'style/notifications/ringtones/notifier_exclamation.ogg';
 
@@ -118,6 +119,17 @@ var NotificationScreen = {
           this.updateTimestamps();
         }
         break;
+    }
+  },
+
+  handleAppopen: function ns_handleAppopen(evt) {
+    var manifestURL = evt.detail.manifestURL,
+        selector = '[data-manifest-u-r-l="' + manifestURL + '"]';
+
+    var nodes = this.container.querySelectorAll(selector);
+
+    for (var i = nodes.length - 1; i >= 0; i--) {
+      this.closeNotification(nodes[i]);
     }
   },
 
@@ -210,6 +222,7 @@ var NotificationScreen = {
     notificationNode.className = 'notification';
 
     notificationNode.dataset.notificationID = detail.id;
+    notificationNode.dataset.manifestURL = detail.manifestURL;
 
     if (detail.icon) {
       var icon = document.createElement('img');

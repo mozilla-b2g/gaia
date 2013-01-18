@@ -128,15 +128,23 @@ let content = customize.homescreens.map(
 init = getFile(GAIA_DIR, GAIA_CORE_APP_SRCDIR, 'homescreen', 'js', 'init.json');
 writeContent(init, JSON.stringify(content));
 
-// Apps that should never appear as icons in the homescreen grid or dock.
+// Apps that should never appear in settings > app permissions
+// bug 830659: We want homescreen to appear in order to remove e.me geolocation permission
 let hidden_apps = [
-  gaiaManifestURL('homescreen'),
   gaiaManifestURL('keyboard'),
   gaiaManifestURL('wallpaper'),
   gaiaManifestURL('bluetooth'),
-  gaiaManifestURL('system'),
   gaiaManifestURL('pdfjs')
 ];
+
+init = getFile(GAIA_DIR, GAIA_CORE_APP_SRCDIR, 'settings', 'js', 'hiddenapps.js');
+writeContent(init, "var HIDDEN_APPS = " + JSON.stringify(hidden_apps));
+
+// Apps that should never appear as icons in the homescreen grid or dock
+hidden_apps = hidden_apps.concat([
+  gaiaManifestURL('homescreen'),
+  gaiaManifestURL('system')
+]);
 
 init = getFile(GAIA_DIR, GAIA_CORE_APP_SRCDIR, 'homescreen', 'js', 'hiddenapps.js');
 writeContent(init, "var HIDDEN_APPS = " + JSON.stringify(hidden_apps));
