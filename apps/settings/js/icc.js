@@ -33,6 +33,26 @@
   init();
 
   /**
+   * Recover application data
+   */
+  function getIccInfo() {
+    var SUPPORT_INFO = 'resources/icc.json';
+    var xhr = new XMLHttpRequest();
+    xhr.onerror = function() {
+      debug('Failed to fetch icc.json: ', xhr.statusText);
+    };
+    xhr.onload = function loadIccInfo() {
+      if (xhr.status === 0 || xhr.status === 200) {
+        defaultURL = xhr.response.defaultURL;
+        debug('default URL: ', defaultURL);
+      }
+    };
+    xhr.open('GET', SUPPORT_INFO, true); // async
+    xhr.responseType = 'json';
+    xhr.send();
+  }
+
+  /**
    * Init STK UI
    */
   function init() {
@@ -91,12 +111,7 @@
       inputTimeout = reqInputTimeout.result['icc.inputTextTimeout'];
     };
 
-    // Update defaultURL with settings parameter
-    var reqDefaultURL =
-      window.navigator.mozSettings.createLock().get('icc.defaultURL');
-    reqDefaultURL.onsuccess = function icc_getDefaultURL() {
-      defaultURL = reqDefaultURL.result['icc.defaultURL'];
-    };
+    getIccInfo();
 
     // Check if async message has arrived
     var reqIccData = window.navigator.mozSettings.createLock().get('icc.data');

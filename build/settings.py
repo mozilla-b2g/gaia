@@ -133,8 +133,7 @@ settings = {
  "wifi.disabled_by_wakelock": False,
  "wifi.notification": False,
  "icc.displayTextTimeout": 5000,
- "icc.inputTextTimeout": 5000,
- "icc.defaultURL": "http://openwebdevice.com/"
+ "icc.inputTextTimeout": 5000
 }
 
 def main():
