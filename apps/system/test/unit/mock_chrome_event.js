@@ -1,4 +1,5 @@
+'use strict';
+
 function MockChromeEvent(detail) {
-  this.type = 'mozChromeEvent';
-  this.detail = detail;
+  return new CustomEvent('mozChromeEvent', { detail: detail });
 }

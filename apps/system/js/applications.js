@@ -67,6 +67,19 @@ var Applications = {
     return null;
   },
 
+  getByOrigin: function a_getByOrigin(origin) {
+    var apps = this.installedApps;
+    var result = Object.keys(apps)
+      .filter(function(key) {
+        return (apps[key].origin === origin);
+      })
+      .map(function(key) {
+        return apps[key];
+      });
+
+    return result;
+  },
+
   fireApplicationReadyEvent: function a_fireAppReadyEvent() {
     var evt = document.createEvent('CustomEvent');
     evt.initCustomEvent('applicationready',

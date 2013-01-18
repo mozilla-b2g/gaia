@@ -42,6 +42,8 @@ suite('system/AppInstallManager >', function() {
   var lastL10nParams = null;
   var lastDispatchedResponse = null;
 
+  var tinyTimeout = 10;
+
   var mocksHelper;
 
   suiteSetup(function() {
@@ -216,6 +218,47 @@ suite('system/AppInstallManager >', function() {
   });
 
   suite('events >', function() {
+    suite('webapps-ask-install same origin >', function() {
+      setup(function() {
+        var app = new MockApp({ origin: 'http://www.mozilla.com' });
+        Applications.mRegisterMockApp(app);
+
+        var evt = new MockChromeEvent({
+          type: 'webapps-ask-install',
+          id: 42,
+          app: {
+            manifest: {
+              name: 'Fake app',
+              size: 5245678,
+              developer: {
+                name: 'Fake dev',
+                url: 'http://fakesoftware.com'
+              }
+            },
+            origin: 'http://www.mozilla.com'
+          }
+        });
+
+        window.dispatchEvent(evt);
+      });
+
+      test('should get an error', function() {
+        var expectedErrorMsg = 'app-install-install-failed' +
+                               '{"appName":"Fake app"}';
+
+        assert.equal(MockSystemBanner.mMessage, expectedErrorMsg);
+      });
+
+      test('should dispatch a webapps-install-denied', function(done) {
+        setTimeout(function() {
+          assert.equal(lastDispatchedResponse.id, 42);
+          assert.equal(lastDispatchedResponse.type, 'webapps-install-denied');
+
+          done();
+        }, tinyTimeout);
+      });
+    });
+
     suite('webapps-ask-install >', function() {
       setup(function() {
         var evt = new MockChromeEvent({
@@ -233,7 +276,7 @@ suite('system/AppInstallManager >', function() {
           }
         });
 
-        AppInstallManager.handleAppInstallPrompt(evt.detail);
+        window.dispatchEvent(evt);
       });
 
       test('should display the dialog', function() {
