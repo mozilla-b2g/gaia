@@ -64,6 +64,11 @@ var LockScreen = {
   */
   passCodeEntered: '',
 
+  /**
+   * Are we currently switching panels ?
+   */
+  _switchingPanel: false,
+
   /*
   * Timeout after incorrect attempt
   */
@@ -144,8 +149,9 @@ var LockScreen = {
       this.updateConnState();
       this.connstate.hidden = false;
     }
+
+    var self = this;
     if (navigator && navigator.mozCellBroadcast) {
-      var self = this;
       navigator.mozCellBroadcast.onreceived = function onReceived(event) {
         var msg = event.message;
         if (conn &&
@@ -157,7 +163,6 @@ var LockScreen = {
       };
     }
 
-    var self = this;
     SettingsListener.observe('lockscreen.enabled', true, function(value) {
       self.setEnabled(value);
     });
@@ -588,11 +593,12 @@ var LockScreen = {
   },
 
   loadPanel: function ls_loadPanel(panel, callback) {
+    this._loadingPanel = true;
     switch (panel) {
       case 'passcode':
       case 'main':
         if (callback)
-          callback();
+          setTimeout(callback);
         break;
 
       case 'emergency-call':
@@ -616,12 +622,12 @@ var LockScreen = {
         var mainScreen = this.mainScreen;
         frame.onload = function cameraLoaded() {
           mainScreen.classList.add('lockscreen-camera');
+          if (callback)
+            callback();
         };
         this.overlay.classList.remove('no-transition');
         this.camera.appendChild(frame);
 
-        if (callback)
-          callback();
         break;
     }
   },
@@ -691,14 +697,19 @@ var LockScreen = {
     }
 
     if (callback)
-      callback();
+      setTimeout(callback);
   },
 
   switchPanel: function ls_switchPanel(panel) {
+    if (this._switchingPanel) {
+      return;
+    }
+
     var overlay = this.overlay;
     var self = this;
     panel = panel || 'main';
 
+    this._switchingPanel = true;
     this.loadPanel(panel, function panelLoaded() {
       self.unloadPanel(overlay.dataset.panel, panel,
         function panelUnloaded() {
@@ -706,6 +717,7 @@ var LockScreen = {
             self.dispatchEvent('lockpanelchange');
 
           overlay.dataset.panel = panel;
+          self._switchingPanel = false;
         });
     });
   },
