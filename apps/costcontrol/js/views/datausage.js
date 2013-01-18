@@ -21,11 +21,15 @@ var DataUsageTab = (function() {
   var wifiOverview, mobileOverview;
   var wifiToggle, mobileToggle;
   var wifiItem, mobileItem;
+  var dateFormat, dateFormatter;
 
   var tabmanager, costcontrol, initialized, model;
   function setupTab(tmgr) {
     if (initialized)
       return;
+
+    dateFormat = _('chart-date-format') || '%b %e';
+    dateFormatter = new navigator.mozL10n.DateTimeFormat();
 
     CostControl.getInstance(function _onCostControl(instance) {
       costcontrol = instance;
@@ -322,7 +326,8 @@ var DataUsageTab = (function() {
     // Configure Centered today text
     var fontsize = 14;
     var marginTop = 10;
-    var todayTag = model.axis.X.today.toLocaleFormat('%b %d').toUpperCase();
+    
+    var todayTag = dateFormatter.localeFormat(model.axis.X.today, dateFormat);
 
     // Render the text
     ctx.font = '600 ' + fontsize + 'px Arial';
@@ -389,8 +394,7 @@ var DataUsageTab = (function() {
     var marginTop = 10;
 
     // Left tag
-    var leftTag =
-      model.axis.X.lower.toLocaleFormat('%b %d').toUpperCase();
+    var leftTag = dateFormatter.localeFormat(model.axis.X.lower, dateFormat);
     ctx.font = '600 ' + fontsize + 'px Arial';
     ctx.textBaseline = 'top';
     ctx.textAlign = 'start';
@@ -401,8 +405,7 @@ var DataUsageTab = (function() {
       ctx.fillText(leftTag, model.originX, model.originY + marginTop);
 
     // Right tag
-    var rightTag =
-      model.axis.X.upper.toLocaleFormat('%b %d').toUpperCase();
+    var rightTag = dateFormatter.localeFormat(model.axis.X.upper, dateFormat);
     ctx.textAlign = 'end';
 
     isBelowToday = todayLabel.x1 >=
