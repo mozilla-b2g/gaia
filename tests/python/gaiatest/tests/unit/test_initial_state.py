@@ -7,12 +7,17 @@ from gaiatest import GaiaTestCase
 
 class TestInitialState(GaiaTestCase):
 
-    homescreen_frame_locator = ('css selector', 'iframe.homescreen')
+    homescreen_frame_locator = ('css selector', 'div.homescreen iframe')
 
     def test_initial_state(self):
         self.check_initial_state()
 
     def test_state_after_reset(self):
+        # push media files
+        self.push_resource('IMG_0001.jpg', 'DCIM/100MZLLA')
+        self.push_resource('VID_0001.3gp', 'DCIM/100MZLLA')
+        self.push_resource('MUS_0001.mp3')
+
         # change volume
         self.data_layer.set_volume(5)
 
@@ -43,6 +48,8 @@ class TestInitialState(GaiaTestCase):
             self.data_layer.disable_wifi()
 
         self.assertEqual(self.data_layer.get_setting('audio.volume.master'), 0)
+
+        self.assertEqual(self.data_layer.media_files, [])
 
         # check we're on the home screen
         self.marionette.switch_to_frame(

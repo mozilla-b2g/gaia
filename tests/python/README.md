@@ -27,10 +27,6 @@ depending on what device you're using.  The general format is:
 
     gaiatest [options] /path/to/test_foo.py
 
-If you are running tests directly in the repository, you will instead want to run (assuming you are in the gaia-ui-tests directory):
-
-    python gaiatest/runtests.py /path/to/test_foo.py
-
 Options:
 
     --emulator arm --homedir /path/to/emulator:  use these options to 
@@ -41,15 +37,15 @@ Options:
         you'd specify --address localhost:2828
     --testvars= (see section below)
 
-If you use the --address localhost:2828 option, you must additionally setup
-port forwarding from the device to your local machine.  You can do this by
-running the command:
+If you are running the tests on a device connected via ADB (Android Debug 
+Bridge), you must additionally setup port forwarding from the device to your 
+local machine. You can do this by running the command:
 
     adb forward tcp:2828 tcp:2828
 
-adb is the 'android debug bridge', and is available in emulator packages under
-out/host/linux_x86/bin.  Alternatively, it may be downloaded as part of the
-Android SDK, at http://developer.android.com/sdk/index.html.
+ADB is available in emulator packages under out/host/linux_x86/bin. 
+Alternatively, it may be downloaded as part of the 
+[Android SDK](http://developer.android.com/sdk/index.html).
 
 Testvars
 ========
@@ -83,6 +79,14 @@ Variables:
     "psk": "MyPassword"
 }
 `
+
+` Marketplace:
+"marketplace": {
+    "username": "MyUsername",
+    "password": "MyPassword"
+}
+`
+
 
 __Note__: Due to [Bug 775499](http://bugzil.la/775499), WiFi connections via WPA-EAP are not capable at this time.
 

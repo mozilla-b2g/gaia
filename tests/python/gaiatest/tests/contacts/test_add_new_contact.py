@@ -26,7 +26,6 @@ class TestContacts(GaiaTestCase):
     _country_field_locator = ('id', 'countryName_0')
     _comment_field_locator = ('id', 'note_0')
 
-
     def setUp(self):
         GaiaTestCase.setUp(self)
 
@@ -44,8 +43,9 @@ class TestContacts(GaiaTestCase):
         #click Create new contact
 
         self.wait_for_element_displayed(*self._add_new_contact_button_locator)
-        self.marionette.find_element(
-            *self._add_new_contact_button_locator).click()
+        add_new_contact = self.marionette.find_element(*self._add_new_contact_button_locator)
+        self.marionette.tap(add_new_contact)
+
         self.wait_for_element_displayed(*self._given_name_field_locator)
 
         # Enter data into fields
@@ -70,7 +70,7 @@ class TestContacts(GaiaTestCase):
             *self._comment_field_locator).send_keys(self.contact['comment'])
 
         done_button = self.marionette.find_element(*self._done_button_locator)
-        done_button.click()
+        self.marionette.tap(done_button)
 
         contact_locator = self.create_contact_locator(self.contact['givenName'])
         self.wait_for_element_displayed(*contact_locator)

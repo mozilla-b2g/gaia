@@ -18,7 +18,8 @@ class TestSms(GaiaTestCase):
     _message_field_locator = ('id', 'message-to-send')
     _send_message_button_locator = ('id', 'send-message')
     _back_header_link_locator = ('xpath', '//header/a[1]')
-    _message_sending_spinner_locator = ('css selector',
+    _message_sending_spinner_locator = (
+        'css selector',
         "img[src='style/images/spinningwheel_small_animation.gif']")
 
     # Conversation view
@@ -44,7 +45,8 @@ class TestSms(GaiaTestCase):
         self.wait_for_element_displayed(*self._summary_header_locator)
 
         # click new message
-        self.marionette.find_element(*self._create_new_message_locator).click()
+        create_new_message = self.marionette.find_element(*self._create_new_message_locator)
+        self.marionette.tap(create_new_message)
 
         self.wait_for_element_present(*self._receiver_input_locator)
         # type phone number
@@ -57,20 +59,23 @@ class TestSms(GaiaTestCase):
         message_field.send_keys(_text_message_content)
 
         #click send
-        self.marionette.find_element(
-            *self._send_message_button_locator).click()
+        send_message_button = self.marionette.find_element(
+            *self._send_message_button_locator)
+        self.marionette.tap(send_message_button)
 
         self.wait_for_element_not_present(
             *self._message_sending_spinner_locator, timeout=120)
 
         # go back
-        self.marionette.find_element(*self._back_header_link_locator).click()
+        back_header_button = self.marionette.find_element(*self._back_header_link_locator)
+        self.marionette.tap(back_header_button)
 
         # now wait for the return message to arrive.
         self.wait_for_element_displayed(*self._unread_message_locator, timeout=180)
 
         # go into the new message
-        self.marionette.find_element(*self._unread_message_locator).click()
+        unread_message = self.marionette.find_element(*self._unread_message_locator)
+        self.marionette.tap(unread_message)
 
         # TODO Due to displayed bugs I cannot find a good wait for switch btw views
         time.sleep(5)
@@ -86,4 +91,4 @@ class TestSms(GaiaTestCase):
 
         # Check that most recent message is also the most recent received message
         self.assertEqual(received_message.get_attribute('id'),
-            last_message.get_attribute('id'))
+                         last_message.get_attribute('id'))
