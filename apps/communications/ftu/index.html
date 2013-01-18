@@ -12,9 +12,11 @@
   <link rel="stylesheet" type="text/css" href="/shared/style/confirm.css">
   <link rel="stylesheet" type="text/css" href="/shared/style_unstable/lists.css">
   <link rel="stylesheet" type="text/css" href="/shared/style_unstable/progress_activity.css">
+  <link  rel="stylesheet"type="text/css" href="/shared/style/status.css" rel="stylesheet">
 
   <!-- Specific style -->
   <link rel="stylesheet" type="text/css" href="/contacts/style/overlay.css">
+  <link rel="stylesheet" type="text/css" href="/contacts/style/status.css" rel="stylesheet">
   <link rel="stylesheet" type="text/css" href="/ftu/css/style.css">
   <link rel="stylesheet" type="text/css" href="/ftu/css/fb_extensions.css">
   <link rel="stylesheet" type="text/css" href="/facebook/style/curtain_frame.css">
@@ -40,6 +42,7 @@
 
   <!-- Code for the FTU App -->
   <script defer type="text/javascript" src="/ftu/js/basket-client.js"></script>
+  <script defer type="text/javascript" src="/contacts/js/utilities/status.js"></script>
   <script defer type="text/javascript" src="/ftu/js/fb_launcher.js"></script>
   <script defer type="text/javascript" src="/contacts/js/utilities/config.js"></script>
   <script defer type="text/javascript" src="/contacts/js/fb/fb_data.js"></script>
@@ -555,6 +558,10 @@
         <progress></progress>
       </p>
     </article>
+  </section>
+
+  <section id="statusMsg" role="status">
+    <p></p>
   </section>
 
   <iframe id="fb-curtain" src="/facebook/curtain.html"></iframe>

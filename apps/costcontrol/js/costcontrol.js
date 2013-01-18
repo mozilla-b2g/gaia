@@ -198,11 +198,11 @@ var CostControl = (function() {
 
   // Check cost issues and return
   function getCostIssues(configuration) {
-    var inRoaming = connection.voice.roamin;
-    if (inRoaming && !configuration.is_roaming_free)
+    var inRoaming = connection.voice.roaming;
+    if (inRoaming && configuration.is_roaming_free !== true)
       return 'non_free_in_roaming';
 
-    if (!inRoaming && !configuration.is_free)
+    if (!inRoaming && configuration.is_free !== true)
       return 'non_free';
 
     return '';

@@ -246,8 +246,8 @@ if ('mozSetMessageHandler' in window.navigator) {
             composer.to = to;
           if (subject)
             composer.subject = subject;
-          if (body)
-            composer.body = body;
+          if (body && typeof body === 'string')
+            composer.body = { text: body };
           if (cc)
             composer.cc = cc;
           if (bcc)
