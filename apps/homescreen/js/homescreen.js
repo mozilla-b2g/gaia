@@ -47,6 +47,13 @@ const Homescreen = (function() {
     if (document.mozHidden && Homescreen.isInEditMode()) {
       exitFromEditMode();
     }
+
+    if (document.mozHidden == false) {
+      setTimeout(function forceRepaint() {
+        var helper = document.getElementById('repaint-helper');
+        helper.classList.toggle('displayed');
+      });
+    }
   });
 
   window.addEventListener('message', function hs_onMessage(event) {

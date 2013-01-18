@@ -510,36 +510,50 @@ var LockScreen = {
   },
 
   unlock: function ls_unlock(instant) {
+    var currentApp = WindowManager.getDisplayedApp();
+    WindowManager.setOrientationForApp(currentApp);
+
+    var currentFrame = WindowManager.getAppFrame(currentApp).firstChild;
     var wasAlreadyUnlocked = !this.locked;
     this.locked = false;
     this.setElasticEnabled(false);
-
     this.mainScreen.focus();
-    if (instant) {
-      this.overlay.classList.add('no-transition');
-      this.switchPanel();
-    } else {
-      this.overlay.classList.remove('no-transition');
-    }
 
-    this.mainScreen.classList.remove('locked');
+    var repaintTimeout = 0;
+    var nextPaint= function() {
+      clearTimeout(repaintTimeout);
+      currentFrame.removeNextPaintListener(nextPaint);
 
-    WindowManager.setOrientationForApp(WindowManager.getDisplayedApp());
-
-    if (!wasAlreadyUnlocked) {
-      // Any changes made to this,
-      // also need to be reflected in apps/system/js/storage.js
-      this.dispatchEvent('unlock');
-      this.writeSetting(false);
-
-      if (instant)
-        return;
-
-      if (this.unlockSoundEnabled) {
-        var unlockAudio = new Audio('./resources/sounds/unlock.ogg');
-        unlockAudio.play();
+      if (instant) {
+        this.overlay.classList.add('no-transition');
+        this.switchPanel();
+      } else {
+        this.overlay.classList.remove('no-transition');
       }
-    }
+
+      this.mainScreen.classList.remove('locked');
+
+      if (!wasAlreadyUnlocked) {
+        // Any changes made to this,
+        // also need to be reflected in apps/system/js/storage.js
+        this.dispatchEvent('unlock');
+        this.writeSetting(false);
+
+        if (instant)
+          return;
+
+        if (this.unlockSoundEnabled) {
+          var unlockAudio = new Audio('./resources/sounds/unlock.ogg');
+          unlockAudio.play();
+        }
+      }
+    }.bind(this);
+
+    this.dispatchEvent('will-unlock');
+    currentFrame.addNextPaintListener(nextPaint);
+    repaintTimeout = setTimeout(function ensureUnlock() {
+      nextPaint();
+    }, 400);
   },
 
   lock: function ls_lock(instant) {
