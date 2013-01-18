@@ -43,18 +43,20 @@ class TestContacts(GaiaTestCase):
         contact_locator = self.create_contact_locator(self.contact['givenName'])
         self.wait_for_element_displayed(*contact_locator)
 
-        self.marionette.find_element(*contact_locator).click()
+        contact_listing = self.marionette.find_element(*contact_locator)
+        self.marionette.tap(contact_listing)
 
         self.wait_for_element_present(*self._send_sms_button_locator)
-        self.marionette.find_element(*self._send_sms_button_locator).click()
+        send_sms_button = self.marionette.find_element(*self._send_sms_button_locator)
+        self.marionette.tap(send_sms_button)
 
         self.marionette.switch_to_frame()
 
         sms_iframe = self.marionette.find_element(*self._sms_app_iframe_locator)
         self.marionette.switch_to_frame(sms_iframe)
 
-        self.wait_for_condition(lambda m: m.find_element(*self._contact_carrier_locator).text
-                                    != "Carrier unknown")
+        self.wait_for_condition(
+            lambda m: m.find_element(*self._contact_carrier_locator).text != "Carrier unknown")
 
         header_element = self.marionette.find_element(*self._sms_app_header_locator)
         expected_name = self.contact['givenName'] + " " + self.contact['familyName']
@@ -69,7 +71,7 @@ class TestContacts(GaiaTestCase):
         if hasattr(self, 'contact'):
             # Have to switch back to Contacts frame to remove the contact
             self.marionette.switch_to_frame()
-            self.marionette.switch_to_frame(self.app.frame_id)
+            self.marionette.switch_to_frame(self.app.frame)
             self.data_layer.remove_contact(self.contact)
 
         GaiaTestCase.tearDown(self)

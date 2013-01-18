@@ -36,7 +36,9 @@ class TestFMRadioFindStations(GaiaTestCase):
         self.assertEqual(current_frequency, str(self.data_layer.fm_radio_frequency))
 
         # search next station
-        self.marionette.find_element(*self._next_button_locator).click()
+        next_button = self.marionette.find_element(*self._next_button_locator)
+        self.marionette.tap(next_button)
+
         self.wait_for_condition(lambda m: m.find_element(*self._frequency_display_locator).text != current_frequency)
 
         next_frequency = self.marionette.find_element(*self._frequency_display_locator).text
@@ -66,9 +68,10 @@ class TestFMRadioFindStations(GaiaTestCase):
         self.assertEqual(current_frequency, str(self.data_layer.fm_radio_frequency))
 
         # search next station
-        self.marionette.find_element(*self._prev_button_locator).click()
-        self.wait_for_condition(lambda m: m.find_element(*self._frequency_display_locator).text != current_frequency)
+        prev_button = self.marionette.find_element(*self._prev_button_locator)
+        self.marionette.tap(prev_button)
 
+        self.wait_for_condition(lambda m: m.find_element(*self._frequency_display_locator).text != current_frequency)
         prev_frequency = self.marionette.find_element(*self._frequency_display_locator).text
 
         # check the ui value and the system value
@@ -76,10 +79,3 @@ class TestFMRadioFindStations(GaiaTestCase):
 
         # check the change of the frequency
         self.assertNotEqual(current_frequency, prev_frequency)
-
-    def tearDown(self):
-        # close the app
-        if self.app:
-            self.apps.kill(self.app)
-
-        GaiaTestCase.tearDown(self)

@@ -5,54 +5,52 @@
 from gaiatest import GaiaTestCase
 
 
-class TestBrowserWifi(GaiaTestCase):
+class TestBrowserLAN(GaiaTestCase):
 
     # Firefox/chrome locators
     _awesome_bar_locator = ("id", "url-input")
     _url_button_locator = ("id", "url-button")
     _throbber_locator = ("id", "throbber")
     _browser_frame_locator = ('css selector', 'iframe[mozbrowser]')
+    _page_title_locator = ("id", "page-title")
 
     def setUp(self):
         GaiaTestCase.setUp(self)
 
-        # unlock the lockscreen if it's locked
-        self.lockscreen.unlock()
-
-        self.data_layer.enable_wifi()
-        self.data_layer.connect_to_wifi(self.testvars['wifi'])
+        if self.wifi:
+            self.data_layer.enable_wifi()
+            self.data_layer.connect_to_wifi(self.testvars['wifi'])
 
         # launch the app
         self.app = self.apps.launch('Browser')
 
-    def test_browser_wifi(self):
+        self.wait_for_condition(lambda m: m.execute_script("return window.wrappedJSObject.Browser.hasLoaded;"))
+
+    def test_browser_lan(self):
         # https://moztrap.mozilla.org/manage/case/1327/
 
         awesome_bar = self.marionette.find_element(*self._awesome_bar_locator)
-        awesome_bar.click()
         awesome_bar.send_keys('http://mozqa.com/data/firefox/layout/mozilla.html')
 
-        self.marionette.find_element(*self._url_button_locator).click()
+        url_button = self.marionette.find_element(*self._url_button_locator)
+        self.marionette.tap(url_button)
 
-        self.wait_for_condition(lambda m: not self.is_throbber_visible())
+        # TODO see if we can reduce this timeout in the future. >10 seconds is poor UX
+        self.wait_for_condition(lambda m: not self.is_throbber_visible(), timeout=20)
 
         browser_frame = self.marionette.find_element(
             *self._browser_frame_locator)
 
         self.marionette.switch_to_frame(browser_frame)
 
-        heading = self.marionette.find_element('id', 'page-title')
+        self.wait_for_element_present(*self._page_title_locator)
+        heading = self.marionette.find_element(*self._page_title_locator)
         self.assertEqual(heading.text, 'We believe that the internet should be public, open and accessible.')
 
     def tearDown(self):
-
-        # close the app
-        if hasattr(self, 'app'):
-            self.apps.kill(self.app)
-
-        self.data_layer.disable_wifi()
-
+        if self.wifi:
+            self.data_layer.disable_wifi()
         GaiaTestCase.tearDown(self)
 
     def is_throbber_visible(self):
-        return self.marionette.find_element(*self._throbber_locator).size['height'] == 4
+        return self.marionette.find_element(*self._throbber_locator).get_attribute('class') == 'loading'
