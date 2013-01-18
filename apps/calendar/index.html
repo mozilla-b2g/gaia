@@ -92,6 +92,48 @@
   <script defer src="/js/controllers/sync.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/controllers/alarm.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/app.js" type="text/javascript" charset="utf-8"></script>
+
+  <style type="text/css">
+  @font-face {
+    font-family: 'MozTT Regular';
+    font-weight: 600;	  
+    src: url('style/fonts/MozTT Regular.ttf');
+  }
+  @font-face {
+    font-family: 'MozTT Light';
+    font-weight: 600;
+    src: url('style/fonts/MozTT Light.ttf');
+  }
+		
+  .popup {
+    background-color: rgba(40, 40, 40, 0.90);
+    color: #FFFFFF;
+    display: block;
+    height: 95px;
+    line-height: 20px;
+    overflow: hidden;
+    padding-left: 30px;    
+    padding-right: 30px;
+    padding-top: 30px;
+    padding-bottom:15px;
+    position: absolute;
+    text-align: left;
+    top: 37%;
+    vertical-align: middle;
+    width: 326px;
+    z-index: 1000;
+    float: left;
+  }
+  #swipe {
+    font-size: 12pt;
+    font-family: 'MozTT Regular', sans-serif;  		
+  }
+  #swipe_rest {
+    font-size: 11.5pt;
+    font-family: 'MozTT Light', sans-serif;    	
+  }
+  </style>
+
 </head>
 
 <body role="application" class="loading">
@@ -154,6 +196,10 @@
     <img id="throbber" src="/style/ui/progress.png">
   </div>
 
+  <div id="popup" class="popup">
+   <div style="width:73%; float:left;"><span id="swipe">Swipe</span><span id="swipe_rest"> to navigate between calendar dates.</span></div>
+   <div style="float:right;"><img src="/style/ui/swipe_left.png" /></div>
+  </div>
 
   <section id="month-view">
   </section>
