@@ -27,6 +27,7 @@
   var stkLastSelectedTest = null;
   var displayTextTimeout = 5000;
   var inputTimeout = 5000;
+  var defaultURL = null;
   var icc;
 
   init();
@@ -76,6 +77,27 @@
     // Load STK apps
     updateMenu();
 
+    // Update displayTextTimeout with settings parameter
+    var reqDisplayTimeout =
+      window.navigator.mozSettings.createLock().get('icc.displayTextTimeout');
+    reqDisplayTimeout.onsuccess = function icc_getDisplayTimeout() {
+      displayTextTimeout = reqDisplayTimeout.result['icc.displayTextTimeout'];
+    };
+
+    // Update inputTimeout with settings parameter
+    var reqInputTimeout =
+      window.navigator.mozSettings.createLock().get('icc.inputTextTimeout');
+    reqInputTimeout.onsuccess = function icc_getInputTimeout() {
+      inputTimeout = reqInputTimeout.result['icc.inputTextTimeout'];
+    };
+
+    // Update defaultURL with settings parameter
+    var reqDefaultURL =
+      window.navigator.mozSettings.createLock().get('icc.defaultURL');
+    reqDefaultURL.onsuccess = function icc_getDefaultURL() {
+      defaultURL = reqDefaultURL.result['icc.defaultURL'];
+    };
+
     // Check if async message has arrived
     var reqIccData = window.navigator.mozSettings.createLock().get('icc.data');
     reqIccData.onsuccess = function icc_getIccData() {
@@ -94,21 +116,6 @@
         }
       }
     }
-
-    // Update displayTextTimeout with settings parameter
-    var reqDisplayTimeout =
-      window.navigator.mozSettings.createLock().get('icc.displayTextTimeout');
-    reqDisplayTimeout.onsuccess = function icc_getDisplayTimeout() {
-      displayTextTimeout = reqDisplayTimeout.result['icc.displayTextTimeout'];
-    };
-
-    // Update inputTimeout with settings parameter
-    var reqInputTimeout =
-      window.navigator.mozSettings.createLock().get('icc.inputTextTimeout');
-    reqInputTimeout.onsuccess = function icc_getInputTimeout() {
-      inputTimeout = reqInputTimeout.result['icc.inputTextTimeout'];
-    };
-
   }
 
   function stkResGoBack() {
@@ -276,20 +283,7 @@
         responseSTKCommand({
           resultCode: icc.STK_RESULT_OK
         });
-        var url = options.url;
-        if (url !== null && url.length !== 0) {
-          if (!options.confirmMessage || confirm(options.confirmMessage)) {
-            // Sanitise url just in case it doesn't start with http or https
-            // the web activity won't work, so add by default the http protocol
-            if (url.search("^https?://") == -1) {
-              // Our url doesn't contains the protocol
-              url = 'http://' + url;
-            }
-            openLink(url);
-          }
-        } else {
-          alert(_('operatorService-invalid-url'));
-        }
+        showURL(options);
         break;
 
       case icc.STK_CMD_SET_UP_EVENT_LIST:
@@ -806,6 +800,30 @@
    */
   function clearNotification() {
     // TO-DO
+  }
+
+  /**
+   * Open URL
+   */
+  function showURL(options) {
+    var url = options.url;
+    if(url == null || url.length == 0) {
+      url = defaultURL;
+    }
+    debug("Final URL to open: " + url);
+    if(url !== null && url.length !== 0) {
+      if (!options.confirmMessage || confirm(options.confirmMessage)) {
+        // Sanitise url just in case it doesn't start with http or https
+        // the web activity won't work, so add by default the http protocol
+        if (url.search("^https?://") == -1) {
+          // Our url doesn't contains the protocol
+          url = 'http://' + url;
+        }
+        openLink(url);
+      }
+    } else {
+      alert(_('operatorService-invalid-url'));
+    }
   }
 
   /**
