@@ -27,10 +27,13 @@ var FbLauncher = (function(document) {
       extensionFrame.src = null;
     }
 
-    function close() {
+    function close(message) {
       extensionFrame.addEventListener('transitionend', function tclose() {
         extensionFrame.removeEventListener('transitionend', tclose);
         extensionFrame.src = null;
+        if (message) {
+          utils.status.show(message);
+        }
       });
       extensionFrame.className = 'closing';
       window.removeEventListener('message', messageHandler);
@@ -59,7 +62,7 @@ var FbLauncher = (function(document) {
           break;
 
         case 'window_close':
-          close();
+          close(data.message);
           break;
 
         case 'authenticated':

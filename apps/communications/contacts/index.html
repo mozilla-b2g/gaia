@@ -21,6 +21,7 @@
     <link href="/contacts/style/search.css" rel="stylesheet">
     <link href="/contacts/style/fixed_header.css" rel="stylesheet">
     <link href="/facebook/style/curtain_frame.css" rel="stylesheet">
+    <link href="/contacts/style/status.css" rel="stylesheet">
 
     <link href="/contacts/style/fb_extensions.css" rel="stylesheet">
 
@@ -51,6 +52,7 @@
     <script defer type="text/javascript" src="/contacts/js/utilities/templates.js"></script>
     <script defer type="text/javascript" src="/contacts/js/utilities/event_listeners.js"></script>
     <script defer type="text/javascript" src="/contacts/js/utilities/import_sim_contacts.js"></script>
+    <script defer type="text/javascript" src="/contacts/js/utilities/status.js"></script>
 
     <script defer type="text/javascript" src="/contacts/js/utilities/image_loader.js"></script>
 
@@ -497,15 +499,17 @@
             <header>
               <h2>SIM</h2>
             </header>
-            <ul  data-type="list">
+            <ul data-type="list">
               <li id="settingsSIM">
                 <button class="icon icon-sim" data-l10n-id="importSim">
                   Import from SIM
                 </button>
+                <p id="no-sim" data-l10n-id="noSimMsg"></p>
               </li>
             </ul>
-             <header id="fb-header">
-              <h2 data-l10n-id="facebook">Facebook</h2>
+
+            <header id="fb-header">
+              <h2 data-l10n-id="otherAccount">Other accounts</h2>
             </header>
             <ul id="settingsFb" data-type="list" data-state="logged-out">
               <li class="fb-item">
@@ -515,7 +519,7 @@
                       <span id="span-check-fb"></span>
                   </label>
                 </aside>
-                <p data-l10n-id="importFb2">Enable Facebook</p>
+                <p data-l10n-id="facebook">Facebook</p>
                 <p id="fb-totals"></p>
               </li>
               <li id="fb-update-option">

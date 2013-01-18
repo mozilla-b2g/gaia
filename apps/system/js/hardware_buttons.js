@@ -141,6 +141,7 @@
     enter: function() {
       this.timer = setTimeout(function() {
         fire('holdhome');
+        navigator.vibrate(50);
         setState(baseState);
       }, HOLD_INTERVAL);
     },
@@ -154,6 +155,7 @@
       switch (type) {
       case 'home-button-release':
         fire('home');
+        navigator.vibrate(50);
         setState(baseState, type);
         return;
       case 'sleep-button-press':
