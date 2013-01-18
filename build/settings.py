@@ -121,7 +121,7 @@ settings = {
  "tethering.wifi.dhcpserver.endip": "192.168.1.30",
  "tethering.wifi.ssid": "FirefoxHotspot",
  "tethering.wifi.security.type": "open",
- "tethering.wifi.security.password": "1234567890",
+ "tethering.wifi.security.password": None,
  "tethering.wifi.connectedClients": 0,
  "tethering.usb.connectedClients": 0,
  "time.nitz.automatic-update.enabled": True,

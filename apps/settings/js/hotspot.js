@@ -10,14 +10,17 @@ onLocalized(function hotspot() {
       document.getElementById('hotspot-settings-section');
 
   // If this is the first time that the Hotspot settings are looked
-  // at, the password will be set to the default 1234567890 since that
-  // is hardcoded in the build. If that is the case then we generate a
-  // random but friendly password.
+  // at, the password will be set to null since that is hardcoded in
+  // the build. If that is the case then we generate a random but
+  // friendly password.
 
   function generateHotspotPassword() {
     var words = ["guava", "apple", "pear", "banana",
                  "currant", "kiwi", "mango", "raisin",
-                 "tomato", "papaya", "grape", "apricot"];
+                 "tomato", "papaya", "grape", "apricot",
+                 "cherry", "durian", "lemon", "pomelo",
+                 "peach", "melon", "coconut", "avocado",
+                 "lime", "mandarine", "orange", "plum"];
     var password = words[Math.floor(Math.random()*words.length)];
     for (var i = 0; i < 4; i++) {
       password += Math.floor(Math.random()*10);
@@ -29,7 +32,7 @@ onLocalized(function hotspot() {
   var req = lock.get('tethering.wifi.security.password');
   req.onsuccess = function onTetheringPasswordSuccess() {
     var pwd = req.result['tethering.wifi.security.password'];
-    if (pwd === "1234567890") {
+    if (!pwd) {
       pwd = generateHotspotPassword();
       lock.set({ 'tethering.wifi.security.password': pwd });
     }
