@@ -594,7 +594,9 @@ var Browser = {
     }
 
     if (this.urlButtonMode == this.REFRESH && !this.currentTab.crashed) {
-      this.currentTab.dom.reload(true);
+      // Switch the hard-reload to soft-reload since hard-reload still has
+      // some issue to be fixed (bug 831153).
+      this.currentTab.dom.reload(false);
       return;
     }
 
