@@ -568,9 +568,9 @@
     stkLastSelectedTest = event.target.textContent;
   }
 
-  function calculateDurationInMS(duration) {
-    var timeout = duration.timeInterval;
-    switch (duration.timeUnit) {
+  function calculateDurationInMS(timeUnit, timeInterval) {
+    var timeout = timeInterval;
+    switch (timeUnit) {
       case icc.STK_TIME_UNIT_MINUTE:
         timeout *= 3600000;
         break;
@@ -771,10 +771,16 @@
     }
     tonePlayer.src = selectedPhoneSound;
     tonePlayer.loop = true;
-    tonePlayer.play();
 
-    if (options.duration) {
-      timeout = calculateDurationInMS(options.duration);
+    if (options.duration || (options.timeUnit && options.timeInterval)) {
+      var timeout = 0;
+      if (options.duration) {
+        timeout = calculateDurationInMS(options.duration.timeUnit,
+          options.duration.timeInterval);
+      } else {
+        timeout = calculateDurationInMS(options.timeUnit, options.timeInterval);
+      }
+      debug("Tone stop in (ms): ", timeout);
       setTimeout(function() {
         tonePlayer.pause();
       }, timeout);
@@ -791,6 +797,8 @@
       alertbox_msg.textContent = options.text;
       alertbox.classList.remove('hidden');
     }
+
+    tonePlayer.play();
   }
 
   /**
