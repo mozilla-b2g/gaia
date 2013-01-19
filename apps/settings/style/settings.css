@@ -341,6 +341,12 @@ ul li > label .range-icons.brightness {
   position: fixed;
 }
 
+.multiline_title {
+  text-overflow: clip;
+  white-space: normal;
+  word-wrap: break-word;
+}
+
 
 /******************************************************************************
  * Date & Time

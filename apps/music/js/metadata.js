@@ -125,10 +125,21 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
         // parse metadata from an Ogg Vorbis file
         parseOggMetadata(header);
       }
-      else if (magic.substring(4, 8) === 'ftyp' &&
-               magic.substring(8, 12) in MP4Types) {
-        // parse metadata from an MP4 file
-        parseMP4Metadata(header);
+      else if (magic.substring(4, 8) === 'ftyp') {
+        // This is an MP4 file
+        if (magic.substring(8, 12) in MP4Types) {
+          // It is a type of MP4 file that we support
+          parseMP4Metadata(header);
+        }
+        else {
+          // The MP4 file might be a video or it might be some
+          // kind of audio that we don't support. We used to treat
+          // files like these as unknown files and see (in the code below)
+          // whether the <audio> tag could play them. But we never parsed
+          // metadata from them, so even if playable, we didn't have a title.
+          // And, the <audio> tag was treating videos as playable.
+          errorCallback('Unknown MP4 file type');
+        }
       }
       else if ((header.getUint16(0, false) & 0xFFFE) === 0xFFFA) {
         // If this looks like an MP3 file, then look for ID3v1 metadata
@@ -173,11 +184,15 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
 
           player.onerror = function() {
             URL.revokeObjectURL(url);
+            player.removeAttribute('src');
+            player.load();
             errorCallback('Unplayable music file');
           };
 
           player.oncanplay = function() {
             URL.revokeObjectURL(url);
+            player.removeAttribute('src');
+            player.load();
             metadataCallback(metadata);
           };
         }
@@ -314,7 +329,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
         // Wrap it in try so we don't crash the whole thing on one bad tag
         try {
           // Now get the tag value
-          var tagvalue;
+          var tagvalue = null;
 
           switch (tagid) {
           case 'TIT2':
@@ -322,6 +337,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
           case 'TPE1':
           case 'TP1':
           case 'TALB':
+          case 'TAL':
             tagvalue = readText(id3, tagsize);
             break;
           case 'TRCK':
@@ -334,7 +350,8 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
             break;
           }
 
-          metadata[tagname] = tagvalue;
+          if (tagvalue !== null)
+            metadata[tagname] = tagvalue;
         }
         catch (e) {
           console.warn('Error parsing mp3 metadata tag', tagid, ':', e);
@@ -719,8 +736,8 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
     offscreenImage.src = url;
 
     offscreenImage.onerror = function() {
-      console.warn('Album image failed to load');
-      offscreenImage.src = null;
+      console.warn('Album image failed to load', blob.name);
+      offscreenImage.removeAttribute('src');
       URL.revokeObjectURL(url);
       metadataCallback(metadata);
     };
@@ -741,7 +758,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
 
       // If the image was already thumbnail size, it is its own thumbnail
       if (scale >= 1) {
-        offscreenImage.src = null;
+        offscreenImage.removeAttribute('src');
         metadata[THUMBNAIL] = imageblob;
         metadataCallback(metadata);
         return;
@@ -759,7 +776,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
                         0, 0, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
 
       // We're done with the image now
-      offscreenImage.src = null;
+      offscreenImage.removeAttribute('src');
 
       canvas.toBlob(function(blob) {
         metadata[THUMBNAIL] = blob;

@@ -224,7 +224,8 @@ var PopupManager = {
       return;
     }
 
-    var contentOrigin = this._currentPopup[this._currentOrigin].dataset.url;
+    var contentOrigin =
+      this.getTitleFromUrl(this._currentPopup[this._currentOrigin].dataset.url);
     var _ = navigator.mozL10n.get;
 
     if (AirplaneMode.enabled) {

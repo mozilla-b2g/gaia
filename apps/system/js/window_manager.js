@@ -1,8 +1,6 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-'use strict';
-
 //
 // This file calls getElementById without waiting for an onload event, so it
 // must have a defer attribute or be included at the end of the <body>.
@@ -49,6 +47,12 @@
 //
 
 var WindowManager = (function() {
+  'use strict';
+
+  function debug(str) {
+    dump('WindowManager: ' + str + '\n');
+  }
+
   // Holds the origin of the home screen, which should be the first
   // app we launch through web activity during boot
   var homescreen = null;
@@ -67,12 +71,11 @@ var WindowManager = (function() {
   var screenElement = document.getElementById('screen');
   var wrapperHeader = document.querySelector('#wrapper-activity-indicator');
   var wrapperFooter = document.querySelector('#wrapper-footer');
-  var kTransitionTimeout = 300;
+  var kTransitionTimeout = 1000;
 
   // Set this to true to debugging the transitions and state change
   var slowTransition = false;
   if (slowTransition) {
-    kTransitionTimeout = 1000;
     windows.classList.add('slow-transition');
   }
 
@@ -418,8 +421,12 @@ var WindowManager = (function() {
     setOrientationForApp(displayedApp);
 
     // Dispatch an 'appopen' event.
+    var manifestURL = runningApps[displayedApp].manifestURL;
     var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent('appopen', true, false, { origin: displayedApp });
+    evt.initCustomEvent('appopen', true, false, {
+      manifestURL: manifestURL,
+      origin: displayedApp
+    });
     frame.dispatchEvent(evt);
   }
 
@@ -811,13 +818,11 @@ var WindowManager = (function() {
       var app = Applications.getByManifestURL(homescreenManifestURL);
       appendFrame(null, homescreen, homescreenURL,
                   app.manifest.name, app.manifest, app.manifestURL);
+      setAppSize(homescreen);
     } else if (reset) {
       runningApps[homescreen].iframe.src = homescreenURL;
+      setAppSize(homescreen);
     }
-
-    // need to setAppSize or for the first time, or from FTU to homescreen
-    // the dock position would be incorrect.
-    setAppSize(homescreen);
 
     return runningApps[homescreen].frame;
   }
@@ -1123,7 +1128,11 @@ var WindowManager = (function() {
     var iframe = frame.firstChild;
     frame.id = 'appframe' + nextAppId++;
     iframe.dataset.frameType = 'window';
-    frame.name = 'main';
+
+    // Give a name to the frame for differentiating between main frame and 
+    // inline frame. With the name we can get frames of the same app using the
+    // window.open method. 
+    iframe.name = 'main';
 
     // If this frame corresponds to the homescreen, set mozapptype=homescreen
     // so we're less likely to kill this frame's process when we're running low
@@ -1143,6 +1152,7 @@ var WindowManager = (function() {
       origin: origin,
       name: name,
       manifest: manifest,
+      manifestURL: manifestURL,
       frame: frame,
       iframe: iframe,
       launchTime: 0
@@ -1173,6 +1183,10 @@ var WindowManager = (function() {
     var iframe = frame.firstChild;
     frame.classList.add('inlineActivity');
     iframe.dataset.frameType = 'inline-activity';
+
+    // Give a name to the frame for differentiating between main frame and 
+    // inline frame. With the name we can get frames of the same app using the
+    // window.open method.
     iframe.name = 'inline';
 
     // Save the reference
@@ -1448,7 +1462,7 @@ var WindowManager = (function() {
 
   var overlayEvents = [
     'lock',
-    'unlock',
+    'will-unlock',
     'attentionscreenshow',
     'attentionscreenhide',
     'status-active',
@@ -1461,7 +1475,7 @@ var WindowManager = (function() {
     switch (evt.type) {
       case 'status-active':
       case 'attentionscreenhide':
-      case 'unlock':
+      case 'will-unlock':
         if (LockScreen.locked)
           return;
         setVisibilityForCurrentApp(true);
@@ -1832,6 +1846,7 @@ var WindowManager = (function() {
     if (document.mozFullScreen) {
       document.mozCancelFullScreen();
     }
+
     if (displayedApp !== homescreen || inTransition) {
       if (displayedApp != ftuURL) {
         setDisplayedApp(homescreen);

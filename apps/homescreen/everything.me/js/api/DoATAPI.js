@@ -23,6 +23,19 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         requestsToPerformOnOnline = [],
         sessionInitRequest = null,
         
+        // here we will save the actual params to pass
+        savedParamsToPass = {},
+        // which param to pass from normal requests to stats and logs
+        PARAM_TO_PASS_FROM_REQUEST_TO_STATS = "requestId",
+        
+        // client info- saved in cookie and sent to API
+        currentClientInfo = {
+            'lc': navigator.language,
+            'tz': (new Date().getTimezoneOffset()/-60).toString(),
+            'kb': ''
+        },
+        CLIENT_INFO_COOKIE_NAME = 'clientInfo',
+        
         requestsToCache = {
             "Search.apps": true,
             "Search.bgimage": true,
@@ -37,6 +50,14 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         doesntNeedSession = {
             "Session.init": true,
             "Search.trending": true
+        },
+        
+        /*
+         * config of params to pass from requests to reports
+         * "Search.apps": ["appClick", "returnFromApp"]
+         */
+        paramsToPassBetweenRequests = {
+            "Search.apps": ["appClick", "loadMore", "addToHomeScreen"]
         };
       
     this.ERROR_CODES = {
@@ -54,14 +75,16 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         
         manualCredentials = Evme.Storage.get(STORAGE_KEY_CREDS);
         
-        
-        // listen to locale and timezone changes, and update the user cookie accordingly
+        // make sure our client info cookie is always updated according to phone ettings
         navigator.mozSettings.addObserver('language.current', function onLanguageChange(e) {
-            setClientInfoCookie({
-                "locale": e.settingValue
-            });
+            self.setClientInfoLocale(e.settingValue);
         });
-        navigator.mozSettings.addObserver('time.timezone', setClientInfoCookie);
+        navigator.mozSettings.addObserver('time.timezone', function onTimeZoneChange(e) {
+            self.setClientInfoTimeZone();
+        });
+        navigator.mozSettings.addObserver('keyboard.current', function onKeyboardLayoutChange(e) {
+            self.setKeyboardLanguage(e.settingValue);
+        });
         setClientInfoCookie();
         
         self.Session.init();
@@ -395,6 +418,7 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         methodArr.forEach(function oggerMethodIteration(method){
             self[method] = function report(options, callback){
                 options = addGlobals(options);
+                options = addSavedParams(options);
                 
                 return request({
                     "methodNamespace": "Logger",
@@ -408,6 +432,7 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
     
     this.report = function report(options, callback) {
         options = addGlobals(options);
+        options = addSavedParams(options);
         
         return request({
             "methodNamespace": "Stats",
@@ -428,6 +453,46 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         }
         
         return options;
+    }
+    
+    // add the saved params from earlier responses to the event's data
+    function addSavedParams(options) {
+        var events = options.data;
+        if (events) {
+            try {
+                events = JSON.parse(events);
+            } catch(ex) {
+                events = null;
+            }
+            
+            if (events && typeof events === "object") {
+                for (var i=0,e; e=events[i++];) {
+                    var savedValue = savedParamsToPass[e.userEvent];
+                    if (savedValue) {
+                        e[PARAM_TO_PASS_FROM_REQUEST_TO_STATS] = savedValue;
+                    }
+                }
+                
+                options.data = JSON.stringify(events);
+            }
+        }
+        return options;
+    }
+    
+    // takes a method's response, and saves data according to paramsToPassBetweenRequests
+    function saveParamFromRequest(method, response) {
+        var events = paramsToPassBetweenRequests[method],
+            paramValue = response && response[PARAM_TO_PASS_FROM_REQUEST_TO_STATS];
+            
+        if (!paramValue || !events) {
+            return;
+        }
+        
+        // this will create a map of userEvents => requestId
+        // to be added to the actual event request later
+        for (var i=0,ev; ev=events[i++];) {
+            savedParamsToPass[ev] = paramValue;
+        }
     }
     
     this.searchLocations = function searchLocations(options, callback) {
@@ -672,21 +737,29 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         requestsToPerformOnOnline = [];
     };
     
-    // set locale and timezone cookies
-    function setClientInfoCookie(changedValues) {
-        !changedValues && (changedValues = {});
+    this.setClientInfoLocale = function setClientInfoLocale(newLocale) {
+        currentClientInfo.lc = newLocale || navigator.language || '';
+        setClientInfoCookie();
+    };
+    this.setClientInfoTimeZone = function setClientInfoTimeZone(newTimeZone) {
+        currentClientInfo.tz = newTimeZone || (new Date().getTimezoneOffset()/-60).toString();
+        setClientInfoCookie();
+    };
+    this.setKeyboardLanguage = function setKeyboardLanguage(newKeyboardLanguage) {
+        currentClientInfo.kb = newKeyboardLanguage || '';
+        setClientInfoCookie();
+    };
+    
+    // save the current client info in a cookie, for the server to read
+    // format: lc=<locale code>,tz=<timezone offset>,kb=<keyboard language>
+    function setClientInfoCookie() {
+        var cookieVal = [];
+        for (var key in currentClientInfo) {
+            cookieVal.push(key + '=' + encodeURIComponent(currentClientInfo[key]));
+        }
+        cookieVal = cookieVal.join(',');
         
-        var locale = changedValues.locale || navigator.language || "",
-            timezone = changedValues.timezone || (new Date().getTimezoneOffset()/-60).toString(),
-            val = [
-                "lc="+encodeURIComponent(locale),
-                "tz="+encodeURIComponent(timezone)
-            ];
-            
-        // to backend's request
-        val = val.join(",");
-        
-        Evme.Utils.Cookies.set("clientInfo", val, null, ".everything.me");  
+        Evme.Utils.Cookies.set(CLIENT_INFO_COOKIE_NAME, cookieVal, null, '.everything.me');  
     }
     
     function request(options, ignoreCache, dontRetryIfNoSession) {
@@ -718,6 +791,7 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
             if (!ignoreCache) {
                 var fromCache = getFromCache(cacheKey);
                 if (fromCache) {
+                    saveParamFromRequest(methodNamespace + '.' + methodName, fromCache);
                     callback && window.setTimeout(function() {
                         callback(fromCache);
                     }, 10);
@@ -913,6 +987,8 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
     }
     
     function cbSuccess(methodNamespace, method, url, params, retryNumber, data, requestDuration) {
+        saveParamFromRequest(methodNamespace + '.' + method, data);
+        
         Evme.EventHandler.trigger(NAME, "success", {
             "method": methodNamespace + "/" + method,
             "params": params,

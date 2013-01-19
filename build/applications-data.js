@@ -128,15 +128,23 @@ let content = customize.homescreens.map(
 init = getFile(GAIA_DIR, GAIA_CORE_APP_SRCDIR, 'homescreen', 'js', 'init.json');
 writeContent(init, JSON.stringify(content));
 
-// Apps that should never appear as icons in the homescreen grid or dock.
+// Apps that should never appear in settings > app permissions
+// bug 830659: We want homescreen to appear in order to remove e.me geolocation permission
 let hidden_apps = [
-  gaiaManifestURL('homescreen'),
   gaiaManifestURL('keyboard'),
   gaiaManifestURL('wallpaper'),
   gaiaManifestURL('bluetooth'),
-  gaiaManifestURL('system'),
   gaiaManifestURL('pdfjs')
 ];
+
+init = getFile(GAIA_DIR, GAIA_CORE_APP_SRCDIR, 'settings', 'js', 'hiddenapps.js');
+writeContent(init, "var HIDDEN_APPS = " + JSON.stringify(hidden_apps));
+
+// Apps that should never appear as icons in the homescreen grid or dock
+hidden_apps = hidden_apps.concat([
+  gaiaManifestURL('homescreen'),
+  gaiaManifestURL('system')
+]);
 
 init = getFile(GAIA_DIR, GAIA_CORE_APP_SRCDIR, 'homescreen', 'js', 'hiddenapps.js');
 writeContent(init, "var HIDDEN_APPS = " + JSON.stringify(hidden_apps));
@@ -163,7 +171,8 @@ content = {
     senders: ['1515', '7000'],
     confirmation_regexp: 'Voce recarregou R\\$\\s*([0-9]+)(?:[,\\.]([0-9]+))?',
     incorrect_code_regexp: '(Favor enviar|envie novamente|Verifique) o codigo de recarga'
-  }
+  },
+  default_low_limit_threshold: 3
 };
 
 writeContent(init, JSON.stringify(content));
@@ -213,5 +222,12 @@ content = {
       "title": "1058"
     }
   ]
+}
+writeContent(init, JSON.stringify(content));
+
+// ICC / STK
+init = getFile(GAIA_DIR, 'apps', 'settings', 'resources', 'icc.json');
+content = {
+  "defaultURL": "http://www.mozilla.org/en-US/firefoxos/"
 }
 writeContent(init, JSON.stringify(content));

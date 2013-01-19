@@ -283,15 +283,39 @@ const GridManager = (function() {
     }
     applyEffectOverlay(index);
 
-    togglePagesVisibility(start, end);
-
     currentPage = index;
     updatePaginationBar();
 
-    if (previousPage == newPage) {
-      goToPageCallback();
+    if (previousPage === newPage) {
+      var borderingPagesToBeTranslated = false;
+
+      if (index > 0 && pages[index - 1].container.style.display === 'block') {
+        // Previous one displayed
+        pages[index - 1].moveByWithEffect(-windowWidth, duration);
+        borderingPagesToBeTranslated = true;
+      }
+
       newPage.moveByWithEffect(0, duration);
+
+      if (index < pages.length - 1 &&
+          pages[index + 1].container.style.display === 'block') {
+        // Next one displayed
+        pages[index + 1].moveByWithEffect(windowWidth, duration);
+        borderingPagesToBeTranslated = true;
+      }
+
+      if (borderingPagesToBeTranslated) {
+        container.addEventListener('transitionend', function transitionEnd(e) {
+          container.removeEventListener('transitionend', transitionEnd);
+          goToPageCallback();
+        });
+      } else {
+        goToPageCallback();
+      }
+
       return;
+    } else {
+      togglePagesVisibility(start, end);
     }
 
     // Force a reflow otherwise the newPage appears immediately because it is
@@ -497,6 +521,8 @@ const GridManager = (function() {
   var appIcons = Object.create(null);
   // Map 'origin' -> app object.
   var appsByOrigin = Object.create(null);
+  // Map 'origin' for bookmarks -> bookmark object.
+  var bookmarksByOrigin = Object.create(null);
 
   function rememberIcon(icon) {
     var descriptor = icon.descriptor;
@@ -614,6 +640,11 @@ const GridManager = (function() {
         processApp(app);
       });
 
+      for (var origin in bookmarksByOrigin) {
+        appsByOrigin[origin] = bookmarksByOrigin[origin];
+      }
+      bookmarksByOrigin = null;
+
       for (var manifestURL in iconsByManifestURL) {
         var iconsForApp = iconsByManifestURL[manifestURL];
         for (var entryPoint in iconsForApp) {
@@ -638,8 +669,10 @@ const GridManager = (function() {
       // navigator.mozApps backed app will objects will be handled
       // asynchronously and therefore at a later time.
       var app = null;
-      if (descriptor.bookmarkURL)
+      if (descriptor.bookmarkURL) {
         app = new Bookmark(descriptor);
+        bookmarksByOrigin[app.origin] = app;
+      }
 
       var icon = icons[i] = new Icon(descriptor, app);
       rememberIcon(icon);
@@ -665,7 +698,7 @@ const GridManager = (function() {
       return;
 
     var entryPoints = manifest.entry_points;
-    if (!entryPoints || manifest.type != "certified") {
+    if (!entryPoints || manifest.type != 'certified') {
       createOrUpdateIconForApp(app);
       return;
     }

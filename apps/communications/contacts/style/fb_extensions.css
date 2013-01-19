@@ -54,13 +54,11 @@ p.facebook.removed input {
   display: none;
 }
 
-#settingsFb[data-state="logged-out"]   #fb-totals,
 #settingsFb[data-state="logged-out"] > #fb-update-option > #import-fb,
 #settingsFb[data-state="logged-out"] > #fb-update-option > #renew-pwd-msg,
 #settingsFb[data-state="logged-in"]  > #fb-update-option > #renew-pwd-msg {
   display: none;
 }
-
 
 #settingsFb[data-state="renew-pwd"] > #fb-update-option > #import-fb:before {
   background-image: url(/contacts/style/images/error_icon.png);
@@ -68,4 +66,9 @@ p.facebook.removed input {
 
 #settingsFb[data-state="logged-in"] > #fb-update-option > #import-fb:before {
   background-image: url(/contacts/style/images/sync_icon.png);
+}
+
+#no-connection {
+  white-space: normal;
+  margin-top: 1rem;
 }

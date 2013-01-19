@@ -69,7 +69,10 @@ body {
 }
 
 .card.before {
-  transform: translateX(-100%);
+  /* Show a sliver of the before card, to kickstart
+  platform for a smooth, non-black transition: 828266.
+  Otherwise, this would just be -100% */
+  transform: translateX(calc(-100% + 0.5px));
 }
 
 .card.before.anim-vertical {
@@ -77,12 +80,16 @@ body {
 }
 
 .card.after {
-  transform: translateX(100%);
+  /* Show a sliver of the after card, to kickstart
+  platform for a smooth, non-black transition: 828266.
+  Otherwise, this would just be 100% */
+  transform: translateX(calc(100% - 0.5px));
 }
 
 .card.after.anim-vertical {
   transform: translateY(-100%);
 }
+
 
 .card.center.card-folder-picker {
   width: calc(100% - 4.3em);

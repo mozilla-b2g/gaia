@@ -69,6 +69,11 @@ onLocalized(function SettingsAppStorage() {
       if (!element)
         return;
 
+      if (size === undefined || isNaN(size)) {
+        element.textContent = '';
+        return;
+      }
+
       // KB - 3 KB (nearest ones), MB, GB - 1.2 MB (nearest tenth)
       var fixedDigits = (size < 1024 * 1024) ? 0 : 1;
       var sizeInfo = FileSizeFormatter.getReadableFileSize(size, fixedDigits);

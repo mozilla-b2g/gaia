@@ -938,7 +938,7 @@
         (gAsyncResourceLoading ? 'asynchronously.' : 'synchronously.'));
     // load the default locale and translate the document if required
     if (document.documentElement.lang === navigator.language) {
-      loadLocale(navigator.language, fireL10nReadyEvent);
+      loadLocale(navigator.language);
     } else {
       loadLocale(navigator.language, translateFragment);
     }

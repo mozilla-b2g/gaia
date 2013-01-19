@@ -683,9 +683,11 @@ function modifyLayout(keyboardName) {
 // layout for keyboardName
 //
 function renderKeyboard(keyboardName) {
-
   // Add meta keys and type-specific keys to the base layout
   currentLayout = modifyLayout(keyboardName);
+
+  // update settings with keyboard layout, e.me uses this to improve searches
+  updateSettings('current', keyboardName);
 
   // And draw the layout
   IMERender.draw(currentLayout, {
@@ -727,6 +729,16 @@ function setUpperCase(upperCase, upperCaseLocked) {
   });
   // And make sure the caps lock key is highlighted correctly
   IMERender.setUpperCaseLock(isUpperCaseLocked ? 'locked' : isUpperCase);
+}
+
+function updateSettings(key, value) {
+  var settings = {};
+  settings['keyboard.' + key] = value;
+
+  try {
+    var lock = navigator.mozSettings.createLock();
+    lock.set(settings);
+  } catch (ex) {}
 }
 
 function resetUpperCase() {
@@ -799,6 +811,28 @@ function setMenuTimeout(target, coords, touchId) {
     // or if there's more than one touch on the screen.
     if (isShowingAlternativesMenu || touchCount > 1)
       return;
+
+    // The telLayout and numberLayout do not show an alternative key
+    // menu, instead they send the alternative key and ignore the endPress.
+    if (currentInputType === 'number' || currentInputType === 'tel') {
+
+      // Does the key have an altKey?
+      var r = target.dataset.row, c = target.dataset.column;
+      var keyChar = currentLayout.keys[r][c].value;
+      var altKey = currentLayout.alt[keyChar] || null;
+
+      if (!altKey)
+        return;
+
+      // Attach a dataset property that will be used to ignore
+      // keypress in endPress
+      target.dataset.ignoreEndPress = true;
+
+      var keyCode = altKey.charCodeAt(0);
+      sendKey(keyCode);
+
+      return;
+    }
 
     showAlternatives(target);
 
@@ -1145,6 +1179,13 @@ function endPress(target, coords, touchId) {
   }
 
   IMERender.unHighlightKey(target);
+
+  // The alternate keys of telLayout and numberLayout do not
+  // trigger keypress on key release.
+  if (target.dataset.ignoreEndPress) {
+    delete target.dataset.ignoreEndPress;
+    return;
+  }
 
   var keyCode = parseInt(target.dataset.keycode);
 

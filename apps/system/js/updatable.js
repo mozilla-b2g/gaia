@@ -19,7 +19,7 @@ function AppUpdatable(app) {
   var manifest = app.manifest ? app.manifest : app.updateManifest;
   this.name = new ManifestHelper(manifest).name;
 
-  this.size = app.updateManifest ? app.updateManifest.size : null;
+  this.size = app.downloadSize;
   this.progress = null;
 
   UpdateManager.addToUpdatableApps(this);
@@ -38,7 +38,6 @@ AppUpdatable.prototype.download = function() {
 
 AppUpdatable.prototype.cancelDownload = function() {
   this.app.cancelDownload();
-  UpdateManager.removeFromDownloadsQueue(this);
 };
 
 AppUpdatable.prototype.uninit = function() {
@@ -56,8 +55,7 @@ AppUpdatable.prototype.clean = function() {
 };
 
 AppUpdatable.prototype.availableCallBack = function() {
-  this.size = this.app.updateManifest ?
-    this.app.updateManifest.size : null;
+  this.size = this.app.downloadSize;
 
   if (this.app.installState === 'installed') {
     UpdateManager.addToUpdatesQueue(this);
@@ -129,9 +127,9 @@ function SystemUpdatable() {
   this.downloading = false;
   this.paused = false;
 
-  this.checkKnownUpdate(function checkCallback() {
-    UpdateManager.checkForUpdates(true);
-  });
+  // XXX: this state should be kept on the platform side
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=827090
+  this.checkKnownUpdate(UpdateManager.checkForUpdates.bind(UpdateManager));
 
   window.addEventListener('mozChromeEvent', this);
 }
@@ -152,7 +150,6 @@ SystemUpdatable.prototype.download = function() {
 
 SystemUpdatable.prototype.cancelDownload = function() {
   this._dispatchEvent('update-download-cancel');
-  UpdateManager.removeFromDownloadsQueue(this);
   this.downloading = false;
   this.paused = false;
 };
@@ -247,10 +244,9 @@ SystemUpdatable.prototype.checkKnownUpdate = function(callback) {
   if (typeof callback !== 'function') {
     return;
   }
+
   asyncStorage.getItem(SystemUpdatable.KNOWN_UPDATE_FLAG, function(value) {
-    if (value) {
-      callback();
-    }
+    callback(!!value);
   });
 };
 

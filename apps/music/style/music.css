@@ -66,7 +66,6 @@ body {
 
 #overlay-title {
   font-weight: normal;
-  text-transform:capitalize;
   font-size: 1.9rem;
   color: #fff;
   margin: 0 5px -10px 5px;
@@ -141,9 +140,12 @@ body.player-mode #views {
   z-index: 30;
 }
 
-#title-text:active {
-  color: rgb(0, 138, 170);
-  transition: color 200ms ease;
+body.player-mode #title-player {
+  display: none;
+}
+
+#title-player > .icon-player {
+  background-image: url("./images/now_playing.png");
 }
 
 #search {

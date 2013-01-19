@@ -4,17 +4,18 @@
 
 from gaiatest import GaiaTestCase
 
+
 class TestWallpaper(GaiaTestCase):
 
     _display_locator = ('id', 'menuItem-display')
     _wallpaper_preview_locator = ('id', 'wallpaper-preview')
     _wallpaper_button_locator = ('css selector', "a[data-value='0']")
     _wallpaper_title_locator = ('css selector', "h1[data-l10n-id='select-wallpaper']")
-    _pick_wallpapers_locator = ('css selector', "img[class='wallpaper']")
+    _pick_wallpapers_locator = ('css selector', "div[class='wallpaper']")
     _wallpaper_frame_locator = ('css selector', "iframe[src='app://wallpaper.gaiamobile.org/pick.html']")
     _settings_frame_locator = ('css selector', "iframe[src='app://settings.gaiamobile.org/index.html#root']")
 
-    # default wallpaper 
+    # default wallpaper
     _default_wallpaper_src = None
 
     def setUp(self):
@@ -29,7 +30,8 @@ class TestWallpaper(GaiaTestCase):
         self.app = self.apps.launch('Settings')
 
         self.wait_for_element_displayed(*self._display_locator)
-        self.marionette.find_element(*self._display_locator).click()
+        display_item = self.marionette.find_element(*self._display_locator)
+        self.marionette.tap(display_item)
 
         self.wait_for_element_displayed(*self._wallpaper_preview_locator)
 
@@ -38,15 +40,15 @@ class TestWallpaper(GaiaTestCase):
         self._default_wallpaper_src = wallpaper_preview.get_attribute('src')
 
         # Send the pick event to system
-        wallpaper_preview.click()
-        
+        self.marionette.tap(wallpaper_preview)
+
         # switch to the system app
         self.marionette.switch_to_frame()
 
         # choose the source as wallpaper app
         self.wait_for_element_displayed(*self._wallpaper_button_locator)
-        self.marionette.find_element(*self._wallpaper_button_locator).click()
-        
+        self.marionette.tap(self.marionette.find_element(*self._wallpaper_button_locator))
+
         # switch to the wallpaper app
         self.wait_for_element_displayed(*self._wallpaper_frame_locator)
         self.marionette.switch_to_frame(self.marionette.find_element(*self._wallpaper_frame_locator))
@@ -55,11 +57,11 @@ class TestWallpaper(GaiaTestCase):
         self.wait_for_condition(lambda m: m.find_element(*self._wallpaper_title_locator).text != "")
         pick_wallpapers = self.marionette.find_elements(*self._pick_wallpapers_locator)
         self.wait_for_element_displayed(*self._pick_wallpapers_locator)
-        pick_wallpapers[3].click()
+        self.marionette.tap(pick_wallpapers[3])
 
         # switch to the system app
         self.marionette.switch_to_frame()
-        
+
         # switch to the setting app
         self.marionette.switch_to_frame(self.marionette.find_element(*self._settings_frame_locator))
         self.wait_for_element_displayed(*self._wallpaper_preview_locator)

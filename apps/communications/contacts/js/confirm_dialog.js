@@ -22,7 +22,7 @@ var ConfirmDialog = (function() {
       ev.preventDefault();
       return false;
     }
-  }
+  };
 
   return {
     hide: function dialog_hide() {
@@ -67,6 +67,9 @@ var ConfirmDialog = (function() {
         if (action1.isDanger) {
           action1Node.classList.add('danger');
         }
+        if (action1.isRecommend) {
+          action1Node.classList.add('recommend');
+        }
         if (action1.callback) {
           action1Callback = action1.callback;
           action1Node.onclick = callBackAndPreventDefault;
@@ -82,6 +85,9 @@ var ConfirmDialog = (function() {
         }
         if (action2.isDanger) {
           action2Node.classList.add('danger');
+        }
+        if (action2.isRecommend) {
+          action2Node.classList.add('recommend');
         }
         if (action2.callback) {
           action2Callback = action2.callback;

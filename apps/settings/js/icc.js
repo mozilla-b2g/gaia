@@ -27,9 +27,30 @@
   var stkLastSelectedTest = null;
   var displayTextTimeout = 5000;
   var inputTimeout = 5000;
+  var defaultURL = null;
   var icc;
 
   init();
+
+  /**
+   * Recover application data
+   */
+  function getIccInfo() {
+    var SUPPORT_INFO = 'resources/icc.json';
+    var xhr = new XMLHttpRequest();
+    xhr.onerror = function() {
+      debug('Failed to fetch icc.json: ', xhr.statusText);
+    };
+    xhr.onload = function loadIccInfo() {
+      if (xhr.status === 0 || xhr.status === 200) {
+        defaultURL = xhr.response.defaultURL;
+        debug('default URL: ', defaultURL);
+      }
+    };
+    xhr.open('GET', SUPPORT_INFO, true); // async
+    xhr.responseType = 'json';
+    xhr.send();
+  }
 
   /**
    * Init STK UI
@@ -76,6 +97,22 @@
     // Load STK apps
     updateMenu();
 
+    // Update displayTextTimeout with settings parameter
+    var reqDisplayTimeout =
+      window.navigator.mozSettings.createLock().get('icc.displayTextTimeout');
+    reqDisplayTimeout.onsuccess = function icc_getDisplayTimeout() {
+      displayTextTimeout = reqDisplayTimeout.result['icc.displayTextTimeout'];
+    };
+
+    // Update inputTimeout with settings parameter
+    var reqInputTimeout =
+      window.navigator.mozSettings.createLock().get('icc.inputTextTimeout');
+    reqInputTimeout.onsuccess = function icc_getInputTimeout() {
+      inputTimeout = reqInputTimeout.result['icc.inputTextTimeout'];
+    };
+
+    getIccInfo();
+
     // Check if async message has arrived
     var reqIccData = window.navigator.mozSettings.createLock().get('icc.data');
     reqIccData.onsuccess = function icc_getIccData() {
@@ -94,21 +131,6 @@
         }
       }
     }
-
-    // Update displayTextTimeout with settings parameter
-    var reqDisplayTimeout =
-      window.navigator.mozSettings.createLock().get('icc.displayTextTimeout');
-    reqDisplayTimeout.onsuccess = function icc_getDisplayTimeout() {
-      displayTextTimeout = reqDisplayTimeout.result['icc.displayTextTimeout'];
-    };
-
-    // Update inputTimeout with settings parameter
-    var reqInputTimeout =
-      window.navigator.mozSettings.createLock().get('icc.inputTextTimeout');
-    reqInputTimeout.onsuccess = function icc_getInputTimeout() {
-      inputTimeout = reqInputTimeout.result['icc.inputTextTimeout'];
-    };
-
   }
 
   function stkResGoBack() {
@@ -144,6 +166,16 @@
         back.classList.remove('hidden');
         helpExit.classList.add('hidden');
     }
+  }
+
+  /**
+   * Send Terminal Response : UICC SESSION TERMINATED BY USER
+   */
+  function sendSessionEndTROnFocusLose() {
+    if (document.mozHidden)
+      responseSTKCommand({
+        resultCode: icc.STK_RESULT_UICC_SESSION_TERM_BY_USER
+      });
   }
 
   /**
@@ -239,8 +271,11 @@
         responseSTKCommand({
           resultCode: icc.STK_RESULT_OK
         });
-        // TODO: Show a spinner instead the message (UX decission).
-        // Stop it on any other command
+        if(options.text) {
+          debug("display text" + options.text)
+          command.options.userClear = true;
+          displayText(command);
+        }
         break;
 
       case icc.STK_CMD_SET_UP_CALL:
@@ -263,20 +298,7 @@
         responseSTKCommand({
           resultCode: icc.STK_RESULT_OK
         });
-        var url = options.url;
-        if (url !== null && url.length !== 0) {
-          if (!options.confirmMessage || confirm(options.confirmMessage)) {
-            // Sanitise url just in case it doesn't start with http or https
-            // the web activity won't work, so add by default the http protocol
-            if (url.search("^https?://") == -1) {
-              // Our url doesn't contains the protocol
-              url = 'http://' + url;
-            }
-            openLink(url);
-          }
-        } else {
-          alert(_('operatorService-invalid-url'));
-        }
+        showURL(options);
         break;
 
       case icc.STK_CMD_SET_UP_EVENT_LIST:
@@ -586,13 +608,12 @@
 
     debug('STK Input title: ' + options.text);
 
+    document.addEventListener('mozvisibilitychange', sendSessionEndTROnFocusLose, true);
     var li = document.createElement('li');
     var p = document.createElement('p');
     p.id = 'stk-item-title';
+    p.classList.add('multiline_title');
     p.textContent = options.text;
-    if (options.minLength && options.maxLength) {
-      p.textContent += ' [' + options.minLength + '-' + options.maxLength + ']';
-    }
     li.appendChild(p);
 
     var input = document.createElement('input');
@@ -722,6 +743,9 @@
 
     var tonePlayer = new Audio();
     var selectedPhoneSound;
+    if (typeof options.tone == "string") {
+      options.tone = options.tone.charCodeAt(0);
+    }
     switch (options.tone) {
       case icc.STK_TONE_TYPE_DIAL_TONE:
         selectedPhoneSound = 'resources/dtmf_tones/350Hz+440Hz_200ms.ogg';
@@ -758,10 +782,12 @@
     tonePlayer.loop = true;
     tonePlayer.play();
 
-    timeout = calculateDurationInMS(options.duration);
-    setTimeout(function() {
-      tonePlayer.pause();
-    },timeout);
+    if (options.duration) {
+      timeout = calculateDurationInMS(options.duration);
+      setTimeout(function() {
+        tonePlayer.pause();
+      }, timeout);
+    }
 
     if (options.isVibrate == true) {
       window.navigator.vibrate([200]);
@@ -789,6 +815,30 @@
    */
   function clearNotification() {
     // TO-DO
+  }
+
+  /**
+   * Open URL
+   */
+  function showURL(options) {
+    var url = options.url;
+    if(url == null || url.length == 0) {
+      url = defaultURL;
+    }
+    debug("Final URL to open: " + url);
+    if(url !== null && url.length !== 0) {
+      if (!options.confirmMessage || confirm(options.confirmMessage)) {
+        // Sanitise url just in case it doesn't start with http or https
+        // the web activity won't work, so add by default the http protocol
+        if (url.search("^https?://") == -1) {
+          // Our url doesn't contains the protocol
+          url = 'http://' + url;
+        }
+        openLink(url);
+      }
+    } else {
+      alert(_('operatorService-invalid-url'));
+    }
   }
 
   /**

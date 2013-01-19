@@ -14,6 +14,7 @@ from marionette import MarionetteTouchMixin
 from marionette.errors import NoSuchElementException
 from marionette.errors import ElementNotVisibleException
 from marionette.errors import TimeoutException
+import mozdevice
 
 
 class LockScreen(object):
@@ -38,8 +39,9 @@ class LockScreen(object):
 
 class GaiaApp(object):
 
-    def __init__(self, origin=None, name=None, frame_id=None, src=None):
-        self.frame_id = frame_id
+    def __init__(self, origin=None, name=None, frame=None, src=None):
+        self.frame = frame
+        self.frame_id = frame
         self.src = src
         self.name = name
         self.origin = origin
@@ -52,11 +54,18 @@ class GaiaApps(object):
         js = os.path.abspath(os.path.join(__file__, os.path.pardir, 'atoms', "gaia_apps.js"))
         self.marionette.import_script(js)
 
+    def get_permission(self, app_name, permission_name):
+        return self.marionette.execute_async_script("return GaiaApps.getPermission('%s', '%s')" % (app_name, permission_name))
+
+    def set_permission(self, app_name, permission_name, value):
+        return self.marionette.execute_async_script("return GaiaApps.setPermission('%s', '%s', '%s')" %
+                                                    (app_name, permission_name, value))
+
     def launch(self, name, switch_to_frame=True, url=None):
         self.marionette.switch_to_frame()
         result = self.marionette.execute_async_script("GaiaApps.launchWithName('%s')" % name)
         assert result, "Failed to launch app with name '%s'" % name
-        app = GaiaApp(frame_id=result.get('frame'),
+        app = GaiaApp(frame=result.get('frame'),
                       src=result.get('src'),
                       name=result.get('name'),
                       origin=result.get('origin'))
@@ -84,10 +93,7 @@ class GaiaApps(object):
         self.marionette.execute_async_script("GaiaApps.killAll()")
 
     def runningApps(self):
-        apps = self.marionette.execute_script("""
-return window.wrappedJSObject.WindowManager.getRunningApps();
-            """)
-        return apps
+        return self.marionette.execute_script("return GaiaApps.getRunningApps()")
 
     def switch_to_frame(self, app_frame, url=None, timeout=30):
         self.marionette.switch_to_frame(app_frame)
@@ -112,6 +118,11 @@ class GaiaData(object):
         js = os.path.abspath(os.path.join(__file__, os.path.pardir, 'atoms', "gaia_data_layer.js"))
         self.marionette.import_script(js)
         self.marionette.set_search_timeout(10000)
+
+    def set_time(self, date_number):
+        self.marionette.set_context(self.marionette.CONTEXT_CHROME)
+        self.marionette.execute_script("window.navigator.mozTime.set(%s);" % date_number)
+        self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
 
     def insert_contact(self, contact):
         self.marionette.execute_script("GaiaDataLayer.insertContact(%s)" % contact.json())
@@ -194,6 +205,10 @@ class GaiaData(object):
     def fm_radio_frequency(self):
         return self.marionette.execute_script('return window.navigator.mozFMRadio.frequency')
 
+    @property
+    def media_files(self):
+        return self.marionette.execute_async_script('return GaiaDataLayer.getAllMediaFiles();')
+
 
 class GaiaTestCase(MarionetteTestCase):
 
@@ -204,9 +219,11 @@ class GaiaTestCase(MarionetteTestCase):
 
         # the emulator can be really slow!
         self.marionette.set_script_timeout(60000)
+        self.marionette.set_search_timeout(10000)
         self.lockscreen = LockScreen(self.marionette)
         self.apps = GaiaApps(self.marionette)
         self.data_layer = GaiaData(self.marionette)
+        self.keyboard = Keyboard(self.marionette)
 
         # wifi is true if testvars includes wifi details and wifi manager is defined
         self.wifi = self.testvars and \
@@ -215,7 +232,35 @@ class GaiaTestCase(MarionetteTestCase):
 
         self.cleanUp()
 
+    @property
+    def is_android_build(self):
+        return 'Android' in self.marionette.session_capabilities['platform']
+
+    @property
+    def device_manager(self):
+        if not self.is_android_build:
+            raise Exception('Device manager is only available for devices.')
+        if hasattr(self, '_device_manager') and self._device_manager:
+            return self._device_manager
+        else:
+            dm_type = os.environ.get('DM_TRANS', 'adb')
+            if dm_type == 'adb':
+                self._device_manager = mozdevice.DeviceManagerADB()
+            elif dm_type == 'sut':
+                host = os.environ.get('TEST_DEVICE')
+                if not host:
+                    raise Exception('Must specify host with SUT!')
+                self._device_manager = mozdevice.DeviceManagerSUT(host=host)
+            else:
+                raise Exception('Unknown device manager type: %s' % dm_type)
+            return self._device_manager
+
     def cleanUp(self):
+        # remove media
+        if self.is_android_build and self.data_layer.media_files:
+            for filename in self.data_layer.media_files:
+                self.device_manager.removeFile('/'.join(['sdcard', filename]))
+
         # unlock
         self.lockscreen.unlock()
 
@@ -233,6 +278,12 @@ class GaiaTestCase(MarionetteTestCase):
 
         # reset to home screen
         self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('home'));")
+
+    def push_resource(self, filename, destination=''):
+        local = os.path.abspath(os.path.join(os.path.dirname(__file__), 'resources', filename))
+        remote = '/'.join(['sdcard', destination, filename])
+        self.device_manager.mkDirs(remote)
+        self.device_manager.pushFile(local, remote)
 
     def wait_for_element_present(self, by, locator, timeout=10):
         timeout = float(timeout) + time.time()
@@ -314,13 +365,14 @@ class GaiaTestCase(MarionetteTestCase):
     def tearDown(self):
         if any(sys.exc_info()):
             # test has failed, gather debug
-            test_name = self.marionette.test_name.split()[-1]
-            debug_path = os.path.join('debug', *test_name.split('.'))
+            test_class, test_name = self.marionette.test_name.split()[-1].split('.')
+            xml_output = self.testvars.get('xml_output', None)
+            debug_path = os.path.join(xml_output and os.path.dirname(xml_output) or 'debug', test_class)
             if not os.path.exists(debug_path):
                 os.makedirs(debug_path)
 
             # screenshot
-            with open(os.path.join(debug_path, 'screenshot.png'), 'w') as f:
+            with open(os.path.join(debug_path, '%s_screenshot.png' % test_name), 'w') as f:
                 # TODO: Bug 818287 - Screenshots include data URL prefix
                 screenshot = self.marionette.screenshot()[22:]
                 f.write(base64.decodestring(screenshot))
@@ -329,3 +381,71 @@ class GaiaTestCase(MarionetteTestCase):
         self.apps = None
         self.data_layer = None
         MarionetteTestCase.tearDown(self)
+
+
+class Keyboard(object):
+    _upper_case_key = '20'
+    _numeric_sign_key = '-2'
+    _alpha_key = '-1'
+    _alt_key = '18'
+
+    # Keyboard app
+    _keyboard_frame_locator = ('css selector', '#keyboard-frame iframe')
+
+    _button_locator = ('css selector', 'button.keyboard-key[data-keycode="%s"]')
+
+    def __init__(self, marionette):
+        self.marionette = marionette
+
+    def _switch_to_keyboard(self):
+        self.marionette.switch_to_frame()
+
+        keybframe = self.marionette.find_element(*self._keyboard_frame_locator)
+        self.marionette.switch_to_frame(keybframe, focus=False)
+
+    def _key_locator(self, val):
+        if len(val) == 1:
+            val = ord(val)
+        return (self._button_locator[0], self._button_locator[1] % val)
+
+    def _press(self, val):
+        self.marionette.find_element(*self._key_locator(val)).click()
+
+    def is_element_present(self, by, locator):
+        try:
+            self.marionette.set_search_timeout(500)
+            self.marionette.find_element(by, locator)
+            return True
+        except:
+            return False
+        finally:
+            # set the search timeout to the default value
+            self.marionette.set_search_timeout(10000)
+
+    def send(self, string):
+        self._switch_to_keyboard()
+
+        for val in string:
+            if val.isalnum():
+                if val.islower():
+                    self._press(val)
+                elif val.isupper():
+                    self._press(self._upper_case_key)
+                    self._press(val)
+                elif val.isdigit():
+                    self._press(self._numeric_sign_key)
+                    self._press(val)
+                    self._press(self._alpha_key)
+            else:
+                self._press(self._numeric_sign_key)
+                if self.is_element_present(*self._key_locator(val)):
+                    self._press(val)
+                else:
+                    self._press(self._alt_key)
+                    if self.is_element_present(*self._key_locator(val)):
+                        self._press(val)
+                    else:
+                        assert False, 'Key %s not found on the keyboard' % val
+                self._press(self._alpha_key)
+
+        self.marionette.switch_to_frame()

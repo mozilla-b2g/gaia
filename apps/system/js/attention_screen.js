@@ -217,15 +217,15 @@ var AttentionScreen = {
     if (!this.isFullyVisible())
       return;
 
+    // entering "active-statusbar" mode,
+    // with a transform: translateY() slide up transition.
+    this.mainScreen.classList.add('active-statusbar');
+
     // The only way to hide attention screen is the home/holdhome event.
     // So we don't fire any origin information here.
     // The expected behavior is restore homescreen visibility to 'true'
     // in the Window Manager.
     this.dispatchEvent('status-active');
-
-    // entering "active-statusbar" mode,
-    // with a transform: translateY() slide up transition.
-    this.mainScreen.classList.add('active-statusbar');
 
     var attentionScreen = this.attentionScreen;
     attentionScreen.addEventListener('transitionend', function trWait() {

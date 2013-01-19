@@ -47,6 +47,13 @@ const Homescreen = (function() {
     if (document.mozHidden && Homescreen.isInEditMode()) {
       exitFromEditMode();
     }
+
+    if (document.mozHidden == false) {
+      setTimeout(function forceRepaint() {
+        var helper = document.getElementById('repaint-helper');
+        helper.classList.toggle('displayed');
+      });
+    }
   });
 
   window.addEventListener('message', function hs_onMessage(event) {
@@ -84,7 +91,11 @@ const Homescreen = (function() {
       var confirm = {
         callback: function onAccept() {
           ConfirmDialog.hide();
-          navigator.mozApps.mgmt.uninstall(app);
+          if (app.isBookmark) {
+            app.uninstall();
+          } else {
+            navigator.mozApps.mgmt.uninstall(app);
+          }
         },
         applyClass: 'danger'
       };

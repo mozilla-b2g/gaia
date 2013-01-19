@@ -92,8 +92,8 @@ body {
 }
 
 /*active class used to complement the "return false" in onmousedown effect */
-#value-selector button.active,
-button.affirmative.active {
+#value-selector button:active,
+button.affirmative:active {
     border-color: #008aaa;
     background: #008aaa;
     color: #333;

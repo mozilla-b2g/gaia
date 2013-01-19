@@ -215,6 +215,16 @@ var Connectivity = (function(window, document, undefined) {
   var wifiStatusChangeListeners = [updateWifi];
   var settings = Settings.mozSettings;
 
+  //
+  // Set wifi.enabled so that it mirrors the state of the hardware.
+  // wifi.enabled is not an ordinary user setting because the system
+  // turns it on and off when wifi goes up and down.
+  //
+  settings.createLock().set({'wifi.enabled': gWifiManager.enabled});
+
+  //
+  // Now register callbacks to track the state of the wifi hardware
+  //
   gWifiManager.onenabled = wifiEnabled;
   gWifiManager.ondisabled = wifiDisabled;
   gWifiManager.onstatuschange = wifiStatusChange;
@@ -259,10 +269,16 @@ var Connectivity = (function(window, document, undefined) {
   }
 
   function wifiEnabled() {
+    // Keep the setting in sync with the hardware state.
+    // We need to do this because b2g/dom/wifi/WifiWorker.js can turn
+    // the hardware on and off
+    settings.createLock().set({'wifi.enabled': true});
     wifiEnabledListeners.forEach(function(listener) { listener(); });
   }
 
   function wifiDisabled() {
+    // Keep the setting in sync with the hardware state.
+    settings.createLock().set({'wifi.enabled': false});
     wifiDisabledListeners.forEach(function(listener) { listener(); });
   }
 

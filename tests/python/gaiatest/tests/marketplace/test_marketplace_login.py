@@ -5,6 +5,7 @@
 from gaiatest import GaiaTestCase
 import time
 
+
 class TestMarketplaceLogin(GaiaTestCase):
 
     # Marketplace locators
@@ -33,11 +34,11 @@ class TestMarketplaceLogin(GaiaTestCase):
         self.marionette.find_element(*self._login_button).click()
 
         self._login_to_persona(self.testvars['marketplace']['username'],
-                                self.testvars['marketplace']['password'])
+                               self.testvars['marketplace']['password'])
 
         # Switch back to marketplace and verify that user is logged in
         self.marionette.switch_to_frame()
-        self.marionette.switch_to_frame(self.app.frame_id)
+        self.marionette.switch_to_frame(self.app.frame)
 
         # If you go too fast here marionette seems to crash the marketplace app
         time.sleep(5)
@@ -49,11 +50,10 @@ class TestMarketplaceLogin(GaiaTestCase):
         self.wait_for_element_displayed(*self._settings_form_locator)
 
         self.assertEqual(self.testvars['marketplace']['username'],
-            self.marionette.find_element(*self._email_account_field_locator).get_attribute('value'))
+                         self.marionette.find_element(*self._email_account_field_locator).get_attribute('value'))
 
         self.marionette.find_element(*self._logout_button).click()
         self.wait_for_element_not_present(*self._logged_in_locator)
-
 
     def _login_to_persona(self, username, password):
 
@@ -93,12 +93,11 @@ class TestMarketplaceLogin(GaiaTestCase):
             # Persona remembers your username and password
             self.marionette.find_element(*sign_in_button_locator).click()
 
-
     def tearDown(self):
         # In the event that the test fails, a 2nd attempt
         # switch to marketplace frame and if we are logged in attempt to log out again
         self.marionette.switch_to_frame()
-        self.marionette.switch_to_frame(self.app.frame_id)
+        self.marionette.switch_to_frame(self.app.frame)
 
         if self.is_element_present(*self._logged_in_locator):
             # Refresh to get back to the marketplace main page
