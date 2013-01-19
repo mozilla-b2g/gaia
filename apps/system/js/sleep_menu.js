@@ -246,14 +246,13 @@ var SleepMenu = {
 
     div.className = 'step1';
 
-    var nextAnimation = function nextAnimation(e) {
-      // Switch to next class
-      if (e.target == div)
-        div.className = 'step2';
+    // Switch CSS class after first animation step.
+    this.waitForAnimationEnd(div, function () {
+      div.className = 'step2';
+    });
 
-      if (e.target != inner)
-        return;
-
+    // Start the actual poweroff/reboot after the second animation step.
+    this.waitForAnimationEnd(inner, function () {
       // Actual poweroff/reboot
       setTimeout(function powerOffAnimated() {
         if (reboot) {
@@ -265,11 +264,18 @@ var SleepMenu = {
 
       // Paint screen to black before reboot/poweroff
       ScreenManager.turnScreenOff(true);
-    };
-
-    div.addEventListener('animationend', nextAnimation);
+    });
 
     document.getElementById('screen').appendChild(div);
+  },
+
+  waitForAnimationEnd: function sm_waitForAnimationEnd(element, callback) {
+    element.addEventListener('animationend', function onAnimationEnd(e) {
+      if (e.target == element) {
+        element.removeEventListener('animationend', onAnimationEnd);
+        callback();
+      }
+    });
   }
 };
 
