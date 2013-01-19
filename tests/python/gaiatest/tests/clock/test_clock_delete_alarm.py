@@ -5,6 +5,7 @@ from gaiatest import GaiaTestCase
 from gaiatest.tests.clock import clock_object
 import time
 
+
 class TestClockDeleteAlarm(GaiaTestCase):
 
     def setUp(self):
@@ -15,32 +16,35 @@ class TestClockDeleteAlarm(GaiaTestCase):
 
         # launch the Clock app
         self.app = self.apps.launch('Clock')
-        
+
         # create a new alarm for test
         clock_object.create_alarm(self)
 
-    
     def test_clock_delete_alarm(self):
-        """ Delete alarm 
-        
+        """ Delete alarm
+
         https://moztrap.mozilla.org/manage/case/1783/
-        
+
         """
         self.wait_for_element_displayed(*clock_object._alarm_create_new_locator)
 
         # find the origin alarms' number
         initial_alarms_count = len(self.marionette.find_elements(*clock_object._all_alarms))
-        
+
         # edit alarm
-        self.marionette.find_element(*clock_object._alarm_item).click()
+        alarm_item = self.marionette.find_element(*clock_object._alarm_item)
+        self.marionette.tap(alarm_item)
+
         # delete alarm
-        self.marionette.find_element(*clock_object._alarm_delete_button).click()
-        
+        self.wait_for_element_displayed(*clock_object._alarm_delete_button)
+        alarm_delete = self.marionette.find_element(*clock_object._alarm_delete_button)
+        self.marionette.tap(alarm_delete)
+
         # wait alarm item not displayed
         self.wait_for_element_displayed(*clock_object._alarm_create_new_locator)
         self.wait_for_condition(lambda m: len(m.find_elements(*clock_object._all_alarms)) != initial_alarms_count)
 
         # find the new alarms' number
         new_alarms_count = len(self.marionette.find_elements(*clock_object._all_alarms))
-        
-        self.assertEqual(initial_alarms_count, new_alarms_count+1, "delete alarm failed.")
+
+        self.assertEqual(initial_alarms_count, new_alarms_count + 1, "delete alarm failed.")
