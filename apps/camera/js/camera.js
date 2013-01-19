@@ -67,10 +67,10 @@ var Camera = {
   },
 
   _previewConfigVideo: {
-    profile: 'cif',
+    profile: '480p',
     rotation: 0,
-    width: 352,
-    height: 288
+    width: 480,
+    height: 800
   },
 
   _shutterKey: 'camera.shutter.enabled',
