@@ -131,6 +131,7 @@ var mozFMRadio = navigator.mozFM || navigator.mozFMRadio || {
 };
 
 function updateFreqUI() {
+  historyList.add(mozFMRadio.frequency);
   frequencyDialer.setFrequency(mozFMRadio.frequency);
   var frequency = frequencyDialer.getFrequency();
   favoritesList.select(frequency);
@@ -149,6 +150,8 @@ function updateAntennaUI() {
 
 /**
  * If the FM radio is seeking currently, cancel it and then set frequency.
+ *
+ * @param {freq} frequency set.
  */
 function cancelSeekAndSetFreq(frequency) {
   function setFreq() {
@@ -251,7 +254,6 @@ var frequencyDialer = {
 
       // Add animation back
       $('frequency-dialer').classList.add('animation-on');
-
       // Add momentum if speed is higher than a given threshold.
       if (Math.abs(currentSpeed) > SPEED_THRESHOLD) {
         var direction = currentSpeed > 0 ? 1 : -1;
@@ -401,6 +403,72 @@ var frequencyDialer = {
   }
 };
 
+var historyList = {
+
+  _historyList: [],
+
+  /**
+   * Storage key name.
+   * @const
+   * @type {string}
+   */
+  KEYNAME: 'historylist',
+
+  /**
+   * Maximum size of the history
+   * @const
+   * @type {integer}
+   */
+  SIZE: 1,
+
+  init: function hl_init(callback) {
+    var self = this;
+    window.asyncStorage.getItem(this.KEYNAME, function storage_getItem(value) {
+      self._historyList = value || [];
+      if (typeof callback == 'function') {
+        callback();
+      }
+    });
+  },
+
+  _save: function hl_save() {
+    window.asyncStorage.setItem(this.KEYNAME, this._historyList);
+  },
+
+  /**
+   * Add frequency to history list.
+   *
+   * @param {freq} frequency to add.
+   */
+  add: function hl_add(freq) {
+    if (freq == null)
+      return;
+    var self = this;
+    self._historyList.push({
+      name: freq + '',
+      frequency: freq
+    });
+    if (self._historyList.length > self.SIZE)
+      self._historyList.shift();
+    self._save();
+  },
+
+  /**
+   * Get the last frequency tuned
+   *
+   * @return {freq} the last frequency tuned.
+   */
+  last: function hl_last() {
+    if (this._historyList.length == 0) {
+      return null;
+    }
+    else {
+      return this._historyList[this._historyList.length - 1];
+    }
+  }
+
+};
+
 var favoritesList = {
   _favList: null,
 
@@ -511,7 +579,11 @@ var favoritesList = {
   },
 
   /**
-   *  Check if frequency is in fav list.
+   * Check if frequency is in fav list.
+   *
+   * @param {number} frequence to check.
+   *
+   * @return {boolean} True if freq is in fav list.
    */
   contains: function(freq) {
     if (!this._favList) {
@@ -539,6 +611,10 @@ var favoritesList = {
 
   /**
    * Remove frequency from fav list.
+   *
+   * @param {number} freq to remove.
+   *
+   * @return {boolean} True if freq to remove is in fav list.
    */
   remove: function(freq) {
     var exists = this.contains(freq);
@@ -562,7 +638,6 @@ var favoritesList = {
 };
 
 function init() {
-  favoritesList.init(updateFreqUI);
   frequencyDialer.init();
 
   var seeking = false;
@@ -636,17 +711,23 @@ function init() {
       mozFMRadio.disable();
     }
   };
-
-  if (mozFMRadio.antennaAvailable) {
-    // Enable FM immediately
-    mozFMRadio.enable(mozFMRadio.frequencyLowerBound);
-  } else {
-    // Mark the previous state as True, so the FM radio be enabled automatically
-    // when the headset is plugged.
-    window._previousFMRadioState = true;
-    updateAntennaUI();
-  }
-  updatePowerUI();
+  historyList.init(function hl_ready() {
+    if (mozFMRadio.antennaAvailable) {
+      // Enable FM immediately
+      if (historyList.last() && historyList.last().frequency)
+        mozFMRadio.enable(historyList.last().frequency);
+      else
+        mozFMRadio.enable(mozFMRadio.frequencyLowerBound);
+      favoritesList.init(updateFreqUI);
+    } else {
+      // Mark the previous state as True,
+      // so the FM radio be enabled automatically
+      // when the headset is plugged.
+      window._previousFMRadioState = true;
+      updateAntennaUI();
+    }
+    updatePowerUI();
+  });
 }
 
 window.addEventListener('load', function(e) {
