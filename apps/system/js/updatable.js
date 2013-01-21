@@ -223,7 +223,7 @@ SystemUpdatable.prototype.showApplyPrompt = function() {
   };
 
   UtilityTray.hide();
-  CustomDialog.show(_('updateReady'), _('wantToInstall'),
+  CustomDialog.show(_('systemUpdateReady'), _('wantToInstall'),
                     cancel, confirm);
 };
 
