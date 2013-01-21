@@ -1,14 +1,14 @@
 #simpin-dialog .container {
-  padding-left: 20px;
+  padding-left: 2rem;
   font-size: 1.4em;
 }
 
 #simpin-dialog .container > div {
-  padding-top: 10px;
+  padding-top: 1rem;
 }
 
 #simpin-dialog .error #messageHeader {
-  color: red; 
+  color: red;
 }
 
 #simpin-dialog .input-wrapper {
