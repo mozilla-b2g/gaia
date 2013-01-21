@@ -1,10 +1,11 @@
 'use strict';
 
 var _ = navigator.mozL10n.get;
+var settings = window.navigator.mozSettings;
 
 var ClockView = {
 
-  _clockMode: 'analog', /* digital or analog */
+  _clockMode: null, /* is read from settings */
 
   _analogGestureDetector: null,
   _digitalGestureDetector: null,
@@ -46,24 +47,34 @@ var ClockView = {
   },
 
   init: function cv_init() {
+    var self = this;
+
     this.container = document.getElementById('analog-clock-container');
 
-    this.resizeAnalogClock();
-
-    this.updateDaydate();
-    this.updateAnalogClock();
-
-    this.analogClock.classList.add('visible'); /* analog clock is default */
-    this.digitalClock.classList.remove('visible');
-    this.digitalClockBackground.classList.remove('visible');
     document.addEventListener('mozvisibilitychange', this);
 
     this._analogGestureDetector = new GestureDetector(this.analogClock);
-    this._analogGestureDetector.startDetecting();
     this.analogClock.addEventListener('tap', this);
 
     this._digitalGestureDetector = new GestureDetector(this.digitalClock);
     this.digitalClock.addEventListener('tap', this);
+
+    var cmReq = navigator.mozSettings.createLock().get('alarm.clockmode');
+    cmReq.onsuccess = function() {
+      self._clockMode = cmReq.result['alarm.clockmode'];
+      switch (self._clockMode) {
+        case 'digital':
+          self.showDigitalClock();
+          break;
+        // default to analog
+        default:
+          self.showAnalogClock();
+          break;
+      }
+    };
+    cmReq.onerror = function(err) {
+      self.showAnalogClock();
+    };
   },
 
   updateDaydate: function cv_updateDaydate() {
@@ -158,9 +169,9 @@ var ClockView = {
         } else if (!document.mozHidden) {
           // Refresh the view when app return to foreground.
           this.updateDaydate();
-          if (this._clockMode == 'digital') {
+          if (this._clockMode === 'digital') {
             this.updateDigitalClock();
-          } else if (this._clockMode == 'analog') {
+          } else if (this._clockMode === 'analog') {
             this.updateAnalogClock();
           }
         }
@@ -173,29 +184,44 @@ var ClockView = {
 
         switch (input.id) {
           case 'digital-clock-display':
-            window.clearTimeout(this._updateDigitalClockTimeout);
-            this.digitalClock.classList.remove('visible');
-            this.digitalClockBackground.classList.remove('visible');
-            this.updateAnalogClock();
-            this._clockMode = 'analog';
-            this.analogClock.classList.add('visible');
-            this._analogGestureDetector.startDetecting();
-            this._digitalGestureDetector.stopDetecting();
+            this.showAnalogClock();
             break;
 
           case 'analog-clock-svg':
-            window.clearTimeout(this._updateAnalogClockTimeout);
-            this.analogClock.classList.remove('visible');
-            this.updateDigitalClock();
-            this._clockMode = 'digital';
-            this.digitalClock.classList.add('visible');
-            this.digitalClockBackground.classList.add('visible');
-            this._digitalGestureDetector.startDetecting();
-            this._analogGestureDetector.stopDetecting();
+            this.showDigitalClock();
             break;
         }
         break;
     }
+  },
+
+  showAnalogClock: function cv_showAnalogClock() {
+    if (this._clockMode !== 'analog')
+      settings.createLock().set({'alarm.clockmode': 'analog'});
+
+    window.clearTimeout(this._updateDigitalClockTimeout);
+    this.digitalClock.classList.remove('visible');
+    this.digitalClockBackground.classList.remove('visible');
+    this.resizeAnalogClock();
+    this.updateAnalogClock();
+    this._clockMode = 'analog';
+    this.analogClock.classList.add('visible');
+    this._analogGestureDetector.startDetecting();
+    this._digitalGestureDetector.stopDetecting();
+  },
+
+  showDigitalClock: function cv_showDigitalClock() {
+    if (this._clockMode !== 'digital')
+      settings.createLock().set({'alarm.clockmode': 'digital'});
+
+    window.clearTimeout(this._updateAnalogClockTimeout);
+    this.analogClock.classList.remove('visible');
+    this.updateDigitalClock();
+    this._clockMode = 'digital';
+    this.digitalClock.classList.add('visible');
+    this.digitalClockBackground.classList.add('visible');
+    this._digitalGestureDetector.startDetecting();
+    this._analogGestureDetector.stopDetecting();
   },
 
   calAnalogClockType: function cv_calAnalogClockType(count) {
