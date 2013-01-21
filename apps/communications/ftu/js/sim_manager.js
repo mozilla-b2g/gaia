@@ -79,9 +79,12 @@ var SimManager = {
     UIManager.pincodeScreen.classList.remove('show');
     UIManager.pukcodeScreen.classList.remove('show');
     UIManager.activationScreen.classList.add('show');
-    window.location.hash = '#languages';
-    Navigation.currentStep = 1;
-    Navigation.manageStep();
+    if (Navigation.currentStep == 1) {
+      // Ensure first screen after pin unlock
+      window.location.hash = '#languages';
+      Navigation.currentStep = 1;
+      Navigation.manageStep();
+    }
   },
 
   skip: function sm_skip() {
