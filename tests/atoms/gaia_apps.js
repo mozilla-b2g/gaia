@@ -40,6 +40,29 @@ var GaiaApps = {
     return origin;
   },
 
+  getPermission: function(appName, permissionName) {
+    GaiaApps.locateWithName(appName, function(app) {
+      console.log("Getting permission '" + permissionName + "' for " + appName);
+      var mozPerms = navigator.mozPermissionSettings;
+      var result = mozPerms.get(
+        permissionName, app.manifestURL, app.origin, false
+      );
+      marionetteScriptFinished(result);
+    });
+  },
+
+  setPermission: function(appName, permissionName, value) {
+    GaiaApps.locateWithName(appName, function(app) {
+      console.log("Setting permission '" + permissionName + "' for " +
+        appName + "to '" + value + "'");
+      var mozPerms = navigator.mozPermissionSettings;
+      mozPerms.set(
+        permissionName, value, app.manifestURL, app.origin, false
+      );
+      marionetteScriptFinished();
+    });
+  },
+
   locateWithName: function(name, aCallback) {
     var callback = aCallback || marionetteScriptFinished;
     function sendResponse(app, appName, entryPoint) {

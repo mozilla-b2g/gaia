@@ -15,7 +15,8 @@ class TestClockTestAllItemsPresentNewAlarm(GaiaTestCase):
     def test_all_items_present_new_alarm(self):
         # Wait for the new alarm screen to load
         self.wait_for_element_displayed(*clock_object._alarm_create_new_locator)
-        self.marionette.find_element(*clock_object._alarm_create_new_locator).click()
+        alarm_create_new = self.marionette.find_element(*clock_object._alarm_create_new_locator)
+        self.marionette.tap(alarm_create_new)
 
         # Ensure the picker is displayed
         picker = self.marionette.find_element(*clock_object._picker_container)
