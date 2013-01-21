@@ -131,13 +131,17 @@
         }
       }
     }
-  }
+  };
 
   function stkResGoBack() {
     iccLastCommandProcessed = true;
     responseSTKCommand({
       resultCode: icc.STK_RESULT_BACKWARD_MOVE_BY_USER
     });
+    var page = document.location.protocol + '//' +
+      document.location.host + '/index.html#root';
+    debug('page: ', page);
+    window.location.replace(page);
   };
 
   /**
