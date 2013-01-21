@@ -59,7 +59,10 @@ var ClockView = {
     this._digitalGestureDetector = new GestureDetector(this.digitalClock);
     this.digitalClock.addEventListener('tap', this);
 
-    var cmReq = navigator.mozSettings.createLock().get('alarm.clockmode');
+    if (!settings)
+      return this.showAnalogClock();
+
+    var cmReq = settings.createLock().get('alarm.clockmode');
     cmReq.onsuccess = function() {
       self._clockMode = cmReq.result['alarm.clockmode'];
       switch (self._clockMode) {
@@ -196,7 +199,7 @@ var ClockView = {
   },
 
   showAnalogClock: function cv_showAnalogClock() {
-    if (this._clockMode !== 'analog')
+    if (this._clockMode !== 'analog' && settings)
       settings.createLock().set({'alarm.clockmode': 'analog'});
 
     window.clearTimeout(this._updateDigitalClockTimeout);
@@ -211,7 +214,7 @@ var ClockView = {
   },
 
   showDigitalClock: function cv_showDigitalClock() {
-    if (this._clockMode !== 'digital')
+    if (this._clockMode !== 'digital' && settings)
       settings.createLock().set({'alarm.clockmode': 'digital'});
 
     window.clearTimeout(this._updateAnalogClockTimeout);
