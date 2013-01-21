@@ -86,7 +86,7 @@ var TrustedUIManager = {
       // first time, spin back to home screen first
       this.popupContainer.classList.add('up');
       this.popupContainer.classList.remove('closing');
-      WindowManager.hideCurrentApp(function openTrustedUI() {
+      this.hideApp(this._lastDisplayedApp, function openTrustedUI() {
         this.popupContainer.classList.remove('up');
         this._pushNewDialog(name, frame, chromeEventId, onCancelCB);
       }.bind(this));
@@ -94,39 +94,19 @@ var TrustedUIManager = {
   },
 
   close: function trui_close(chromeEventId, callback) {
-    var stackSize = this.currentStack.length;
-
     this._restoreOrientation();
 
     if (callback)
       callback();
 
-    if (stackSize === 0) {
-      // nothing to close.  what are you doing?
-      return;
-    } else if (stackSize === 1) {
-      // only one dialog, so transition back to main app
-      var self = this;
-      var container = this.popupContainer;
-      if (!CardsView.cardSwitcherIsShown()) {
-        WindowManager.restoreCurrentApp();
-        container.addEventListener('transitionend', function wait(event) {
-          this.removeEventListener('transitionend', wait);
-          self._closeDialog(chromeEventId);
-        });
-      } else {
-        WindowManager.restoreCurrentApp(this._lastDisplayedApp);
-        this._closeDialog(chromeEventId);
+    var origin = this._closeDialog(chromeEventId);
+    if (origin) {
+      var stack = this._dialogStacks[origin];
+      if (stack.length === 0) {
+        this.restoreApp(origin);
+        this.hide();
+        window.focus();
       }
-
-      // The css transition caused by the removal of the trustedui
-      // class by the hide() method will trigger a 'transitionend'
-      // event ultimately to be fired.
-      this.hide();
-
-      window.focus();
-    } else {
-      this._closeDialog(chromeEventId);
     }
   },
 
@@ -144,9 +124,13 @@ var TrustedUIManager = {
     window.dispatchEvent(event);
   },
 
-  _getTopDialog: function trui_getTopDialog() {
+  _getTopDialog: function trui_getTopDialog(origin) {
     // get the topmost dialog for the _lastDisplayedApp or null
-    return this.currentStack[this.currentStack.length - 1];
+    var stack = this.currentStack;
+    if (origin) {
+      stack = this._dialogStacks[origin];
+    }
+    return stack[stack.length - 1];
   },
 
   _pushNewDialog: function trui_PushNewDialog(name, frame, chromeEventId,
@@ -198,22 +182,25 @@ var TrustedUIManager = {
    * close the dialog identified by the chromeEventId
    */
   _closeDialog: function trui_closeDialog(chromeEventId) {
-    if (this.currentStack.length === 0)
-      return;
-
-    var found = false;
-    for (var i = 0; i < this.currentStack.length; i++) {
-      if (this.currentStack[i].chromeEventId === chromeEventId) {
-        var dialog = this.currentStack.splice(i, 1)[0];
-        this.container.removeChild(dialog.frame);
-        found = true;
-        break;
+    var closingOrigin = '';
+    for (var origin in this._dialogStacks) {
+      for (var i = 0; i < this._dialogStacks[origin].length; i++) {
+        if (this._dialogStacks[origin][i].chromeEventId === chromeEventId) {
+          var dialog = this.currentStack.splice(i, 1)[0];
+          this.container.removeChild(dialog.frame);
+          closingOrigin = origin;
+          break;
+        }
       }
+      if (closingOrigin)
+        break;
     }
 
-    if (found && this.currentStack.length) {
-      this._makeDialogVisible(this._getTopDialog());
+    if (closingOrigin && this._dialogStacks[closingOrigin].length) {
+      this._makeDialogVisible(this._getTopDialog(closingOrigin));
     }
+
+    return closingOrigin;
   },
 
   hide: function trui_hide() {
@@ -267,6 +254,47 @@ var TrustedUIManager = {
     }
   },
 
+  // Hide app
+  // XXX: This should be controlled by AppWindow itself
+  hideApp: function trui_hideApp(origin, callback) {
+    var app = WindowManager.getRunningApps()[origin];
+    if (app == null ||
+        app.isHomescreen)
+      return;
+
+    // XXX: Should be replaced with
+    // WindowManager.getHomescreen().setVisibility() in the future
+    WindowManager.toggleHomescreen(true);
+    var frame = app.frame;
+    frame.classList.add('back');
+    frame.classList.remove('restored');
+    if (callback) {
+      frame.addEventListener('transitionend', function execCallback() {
+        frame.style.visibility = 'hidden';
+        frame.removeEventListener('transitionend', execCallback);
+        callback();
+      });
+    }
+  },
+
+  // Restore app
+  // XXX: Should be moved into AppWindow in the future
+  restoreApp: function trui_restoreApp(origin) {
+    var frame = WindowManager.getAppFrame(origin);
+    frame.style.visibility = 'visible';
+    frame.classList.remove('back');
+    if (!WindowManager.getCurrentDisplayedApp().isHomescreen) {
+      WindowManager.toggleHomescreen(false);
+    }
+    if (WindowManager.getDisplayedApp() == origin) {
+      frame.classList.add('restored');
+      frame.addEventListener('transitionend', function removeRestored() {
+        frame.removeEventListener('transitionend', removeRestored);
+        frame.classList.remove('restored');
+      });
+    }
+  },
+
   handleEvent: function trui_handleEvent(evt) {
     switch (evt.type) {
       case 'home':
@@ -289,14 +317,14 @@ var TrustedUIManager = {
           this.hideTrustedApp();
 
         // Ignore homescreen
-        if (evt.target.classList.contains('homescreen'))
+        if (WindowManager.getRunningApps()[evt.detail.origin].isHomescreen)
           return;
         this._lastDisplayedApp = evt.detail.origin;
         if (this.currentStack.length) {
           // Reopening an app with trustedUI
           this.popupContainer.classList.remove('up');
           this._makeDialogVisible(this._getTopDialog());
-          WindowManager.hideCurrentApp();
+          this.hideApp(evt.detail.origin);
           this.reopenTrustedApp();
         }
         break;
