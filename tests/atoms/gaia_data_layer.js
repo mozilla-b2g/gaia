@@ -254,5 +254,42 @@ var GaiaDataLayer = {
       console.log('cell data already disabled');
       marionetteScriptFinished(true);
     }
+  },
+
+  getAllMediaFiles: function(aCallback) {
+    var callback = aCallback || marionetteScriptFinished;
+    var mediaTypes = ['pictures', 'videos', 'music'];
+    var remainingMediaTypes = mediaTypes.length;
+    var media = [];
+    mediaTypes.forEach(function(aType) {
+      console.log('getting', aType);
+      var storage = navigator.getDeviceStorage(aType);
+      var req = storage.enumerate();
+      req.onsuccess = function() {
+        var file = req.result;
+        if (file) {
+          if (aType === 'music' && file.name.slice(0, 5) === 'DCIM/' &&
+              file.name.slice(-4) === '.3gp') {
+            req.continue();
+          }
+          else {
+            media.push(file.name);
+            req.continue();
+          }
+        }
+        else {
+          remainingMediaTypes--;
+        }
+      };
+      req.onerror = function() {
+        console.error('failed to enumerate ' + aType, req.error.name);
+        callback(false);
+      };
+    });
+
+    waitFor(
+      function() { callback(media); },
+      function() { return remainingMediaTypes === 0; }
+    );
   }
 };

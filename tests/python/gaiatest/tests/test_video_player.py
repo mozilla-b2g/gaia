@@ -19,9 +19,11 @@ class TestVideoPlayer(GaiaTestCase):
     _video_title_locator = ('id', 'video-title')
     _elapsed_text_locator = ('id', 'elapsed-text')
 
-
     def setUp(self):
         GaiaTestCase.setUp(self)
+
+        # add video to storage
+        self.push_resource('VID_0001.3gp', 'DCIM/100MZLLA')
 
         # launch the Video app
         self.app = self.apps.launch('Video')
@@ -39,7 +41,7 @@ class TestVideoPlayer(GaiaTestCase):
         first_video_name = first_video.find_element(*self._video_name_locator).text
 
         # click on the first video
-        first_video.click()
+        self.marionette.tap(first_video)
 
         # Video will play automatically
         self.wait_for_element_displayed(*self._video_frame_locator)
@@ -56,4 +58,4 @@ class TestVideoPlayer(GaiaTestCase):
 
         # Check the name too. This will only work if the toolbar is visible
         self.assertEqual(first_video_name,
-                        self.marionette.find_element(*self._video_title_locator).text)
+                         self.marionette.find_element(*self._video_title_locator).text)

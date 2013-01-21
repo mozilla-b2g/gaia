@@ -12,7 +12,7 @@ except (OSError, IOError):
     description = ''
 
 # dependencies
-deps = ['marionette_client']
+deps = ['marionette_client', 'mozdevice']
 
 # copy atoms directory over
 setupdir = os.path.dirname(__file__)
@@ -34,7 +34,7 @@ setup(name='gaiatest',
       version=version,
       description="Marionette test automation client for Gaia",
       long_description=description,
-      classifiers=[], # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
+      classifiers=[],  # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
       keywords='mozilla',
       author='Jonathan Griffin',
       author_email='jgriffin@mozilla.com',

@@ -101,7 +101,9 @@ var TelephonyTab = (function() {
     if (settings.trackingPeriod === 'never') {
       resetDate.innerHTML = _('never');
     } else {
-      var content = settings.nextReset.toLocaleFormat(_('short-date-format'));
+      var dateFormatter = new navigator.mozL10n.DateTimeFormat();
+      var content = dateFormatter.localeFormat(settings.nextReset,
+        _('short-date-format'));
       resetDate.innerHTML = content;
     }
   }

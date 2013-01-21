@@ -55,7 +55,14 @@ function SetupAccountInfoCard(domNode, mode, args) {
   var manualConfig = domNode.getElementsByClassName('sup-manual-config-btn')[0];
   manualConfig.addEventListener('click', this.onClickManualConfig.bind(this),
                                 false);
+
+  new FormNavigation({
+    formElem: domNode.getElementsByTagName('form')[0],
+    checkFormValidity: this.checkFormValidity.bind(this),
+    onLast: this.onNext.bind(this)
+  });
 }
+
 SetupAccountInfoCard.prototype = {
   onBack: function(event) {
     // If we are the only card, we need to remove ourselves and tell the app
@@ -88,14 +95,9 @@ SetupAccountInfoCard.prototype = {
       },
       'right');
   },
+
   onInfoInput: function(event) {
-    var nameValid = this.nameNode.classList.contains('collapsed') ||
-                    this.nameNode.checkValidity();
-    var emailValid = this.emailNode.classList.contains('collapsed') ||
-                     this.emailNode.checkValidity();
-    var passwordValid = this.passwordNode.classList.contains('collapsed') ||
-                        this.passwordNode.checkValidity();
-    this.nextButton.disabled = !(nameValid && emailValid && passwordValid);
+    this.checkFormValidity();
   },
 
   onClickManualConfig: function() {
@@ -107,6 +109,18 @@ SetupAccountInfoCard.prototype = {
         password: this.passwordNode.value
       },
       'right');
+  },
+
+  checkFormValidity: function() {
+    var nameValid = this.nameNode.classList.contains('collapsed') ||
+                    this.nameNode.checkValidity();
+    var emailValid = this.emailNode.classList.contains('collapsed') ||
+                     this.emailNode.checkValidity();
+    var passwordValid = this.passwordNode.classList.contains('collapsed') ||
+                        this.passwordNode.checkValidity();
+    this.nextButton.disabled = !(nameValid && emailValid && passwordValid);
+
+    return !this.nextButton.disabled;
   },
 
   // note: this method is also reused by the manual config card
@@ -199,7 +213,31 @@ function SetupManualConfig(domNode, mode, args) {
     'sup-manual-activesync-hostname')[0];
   this.activeSyncUsernameNode = domNode.getElementsByClassName(
     'sup-manual-activesync-username')[0];
+
+  var forms = domNode.getElementsByTagName('form');
+  var infoFormNav = new FormNavigation({
+    formElem: forms[0],
+    onLast: function() {
+      var accountType = this.accountTypeNode.value;
+      if (accountType === 'imap+smtp') {
+        imapFormNav.focus();
+      } else {
+        activeSyncFormNav.focus();
+      }
+    }.bind(this)
+  });
+
+  var imapFormNav = new FormNavigation({
+    formElem: forms[1],
+    onLast: this.onNext.bind(this)
+  });
+
+  var activeSyncFormNav = new FormNavigation({
+    formElem: forms[2],
+    onLast: this.onNext.bind(this)
+  });
 }
+
 SetupManualConfig.prototype = {
   onBack: function(event) {
     Cards.removeCardAndSuccessors(this.domNode, 'animate', 1);

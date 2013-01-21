@@ -16,7 +16,7 @@ class TestLaunchEntrypoint(GaiaTestCase):
     def test_launch_entrypoint(self):
         # Launch contacts
         app = self.apps.launch('Clock')
-        self.assertTrue(app.frame_id)
+        self.assertTrue(app.frame)
 
         url = self.marionette.get_url()
 

@@ -184,11 +184,15 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
 
           player.onerror = function() {
             URL.revokeObjectURL(url);
+            player.removeAttribute('src');
+            player.load();
             errorCallback('Unplayable music file');
           };
 
           player.oncanplay = function() {
             URL.revokeObjectURL(url);
+            player.removeAttribute('src');
+            player.load();
             metadataCallback(metadata);
           };
         }
@@ -325,7 +329,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
         // Wrap it in try so we don't crash the whole thing on one bad tag
         try {
           // Now get the tag value
-          var tagvalue;
+          var tagvalue = null;
 
           switch (tagid) {
           case 'TIT2':
@@ -333,6 +337,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
           case 'TPE1':
           case 'TP1':
           case 'TALB':
+          case 'TAL':
             tagvalue = readText(id3, tagsize);
             break;
           case 'TRCK':
@@ -345,7 +350,8 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
             break;
           }
 
-          metadata[tagname] = tagvalue;
+          if (tagvalue !== null)
+            metadata[tagname] = tagvalue;
         }
         catch (e) {
           console.warn('Error parsing mp3 metadata tag', tagid, ':', e);
@@ -730,8 +736,8 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
     offscreenImage.src = url;
 
     offscreenImage.onerror = function() {
-      console.warn('Album image failed to load');
-      offscreenImage.src = null;
+      console.warn('Album image failed to load', blob.name);
+      offscreenImage.removeAttribute('src');
       URL.revokeObjectURL(url);
       metadataCallback(metadata);
     };
@@ -752,7 +758,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
 
       // If the image was already thumbnail size, it is its own thumbnail
       if (scale >= 1) {
-        offscreenImage.src = null;
+        offscreenImage.removeAttribute('src');
         metadata[THUMBNAIL] = imageblob;
         metadataCallback(metadata);
         return;
@@ -770,7 +776,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
                         0, 0, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
 
       // We're done with the image now
-      offscreenImage.src = null;
+      offscreenImage.removeAttribute('src');
 
       canvas.toBlob(function(blob) {
         metadata[THUMBNAIL] = blob;
