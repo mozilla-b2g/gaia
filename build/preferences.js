@@ -75,9 +75,7 @@ if (DEBUG) {
 }
 
 if (!!WEINRE) {
-  debug("building without scp\n")
-  prefs.push(["capability.policy.open.HTMLDocument.contentDocument", "allAccess"]);
-  prefs.push(["capability.policy.open.HTMLDocument.documentElement", "allAccess"]);
+  debug("building without scp\n");
   prefs.push(["security.csp.enable", false]);
 }
 
