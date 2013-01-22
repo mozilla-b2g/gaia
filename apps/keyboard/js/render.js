@@ -122,6 +122,14 @@ const IMERender = (function() {
         }
 
         var className = isSpecialKey(key) ? 'special-key' : '';
+
+        // telLayout and numberLayout keys works like special-keys without
+        // popups
+        if (!isSpecialKey(key) &&
+            (inputType === 'tel' || inputType === 'number')) {
+          className = 'special-key big-key';
+        }
+
         var ratio = key.ratio || 1;
 
         var keyWidth = placeHolderWidth * ratio;

@@ -152,7 +152,7 @@ suite('system/Updatable', function() {
 
     suite('size', function() {
       test('should give packaged app update size', function() {
-        assert.equal(42, subject.size);
+        assert.equal(null, subject.size);
       });
 
       test('should return null for hosted apps', function() {
@@ -166,10 +166,7 @@ suite('system/Updatable', function() {
         subject = new AppUpdatable(mockApp);
         assert.isNull(subject.size);
 
-        mockApp.updateManifest = {
-          size: 45678
-        };
-        mockApp.mTriggerDownloadAvailable();
+        mockApp.mTriggerDownloadAvailable(45678);
         assert.equal(45678, subject.size);
       });
     });
@@ -224,12 +221,6 @@ suite('system/Updatable', function() {
         subject.cancelDownload();
       });
 
-      test('should remove self from active downloads', function() {
-        assert.isNotNull(MockUpdateManager.mLastDownloadsRemoval);
-        assert.equal(MockUpdateManager.mLastDownloadsRemoval.app.mId,
-                     mockApp.mId);
-      });
-
       test('should call cancelDownload on the app', function() {
         assert.isTrue(mockApp.mCancelCalled);
       });
@@ -242,11 +233,6 @@ suite('system/Updatable', function() {
         subject.download();
         subject._dispatchEvent = fakeDispatchEvent;
         subject.cancelDownload();
-      });
-
-      test('should remove self from active downloads', function() {
-        assert.isNotNull(MockUpdateManager.mLastDownloadsRemoval);
-        assert.equal(subject, MockUpdateManager.mLastDownloadsRemoval);
       });
 
       test('should send cancel message', function() {

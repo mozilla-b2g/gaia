@@ -142,6 +142,8 @@ Evme.__config = {
         "282": "fashion",
         "277": "funny",
         "207": "games",
+        "307": "government",
+        "275": "health",
         "274": "jobs",
         "296": "local",
         "278": "maps",

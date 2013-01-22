@@ -99,3 +99,4 @@ pref("general.useragent.override.laverdad.com", "\(Mobile#(Android; Mobile"); //
 pref("general.useragent.override.despegar.com.ve", "\(Mobile#(Android; Mobile"); // bug 828443
 pref("general.useragent.override.bumeran.com.ve", "\(Mobile#(Android; Mobile"); // bug 828445
 pref("general.useragent.override.petardas.com", "\(Mobile#(Android; Mobile"); // bug 828448
+pref("general.useragent.override.mail.google.com", "\(Mobile#(Android; Mobile"); // bug 827869
