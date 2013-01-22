@@ -1,3 +1,5 @@
+'use strict';
+
 requireApp('homescreen/test/unit/mock_app.js');
 requireApp('homescreen/test/unit/mock_xmlhttprequest.js');
 requireApp('homescreen/test/unit/mock_grid_manager.js');
@@ -19,7 +21,7 @@ mocksForHomescreenPageTest.forEach(function(mockName) {
 suite('page.js >', function() {
   var mocksHelper;
 
-  var SMALL_TIMEOUT = 100;
+  var containerNode;
 
   suiteSetup(function() {
     mocksHelper = new MocksHelper(mocksForHomescreenPageTest);
@@ -28,10 +30,23 @@ suite('page.js >', function() {
 
   setup(function() {
     mocksHelper.setup();
+
+    var fakeIconMarkup =
+      '<div id="fake-icon">' +
+        '<span id="fake-icon-name-wrapper" class="labelWrapper">' +
+          '<span id="fake-icon-name"></span>' +
+        '</span>' +
+      '</div>';
+
+    containerNode = document.createElement('div');
+    containerNode.innerHTML = fakeIconMarkup;
+    document.body.appendChild(containerNode);
   });
 
   teardown(function() {
     mocksHelper.teardown();
+
+    containerNode.parentNode.removeChild(containerNode);
   });
 
   suiteTeardown(function() {
@@ -101,6 +116,51 @@ suite('page.js >', function() {
             manifestURL: app.manifestURL,
             name: app.name,
             icon: anIconAsHttpUrl
+          };
+
+          icon = new Icon(descriptor, app);
+        });
+
+        suite('XHR works fine >', function() {
+          setup(function() {
+            icon.render(iconsContainer);
+          });
+
+          test('icon should be rendered', function() {
+            // note: this doesn't test if the icon is actually displayed
+            // but merely that we don't fail somewhere
+            assert.equal(iconsContainer.querySelectorAll('li').length, 1);
+          });
+
+          test('should load the icon with XHR', function() {
+            assert.equal(MockXMLHttpRequest.mLastOpenedUrl, anIconAsHttpUrl);
+          });
+        });
+
+
+        suite('XHR throws an exception >', function() {
+          setup(function() {
+            MockXMLHttpRequest.mThrowAtNextSend();
+            icon.render(iconsContainer);
+          });
+          test('icon should still be rendered', function() {
+            // note: this doesn't test if the icon is actually displayed
+            // but merely that we don't fail somewhere
+            assert.equal(iconsContainer.querySelectorAll('li').length, 1);
+          });
+        });
+      });
+
+      suite('http url icon, wrong old rendered icon >', function() {
+        var anIconAsHttpUrl = 'http://some.icon.name/icon.png';
+
+        setup(function() {
+          var app = new MockApp();
+          descriptor = {
+            manifestURL: app.manifestURL,
+            name: app.name,
+            icon: anIconAsHttpUrl,
+            oldRenderedIcon: undefined
           };
 
           icon = new Icon(descriptor, app);
