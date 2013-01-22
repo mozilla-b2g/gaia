@@ -42,6 +42,9 @@ endif
 HOMESCREEN?=$(SCHEME)system.$(GAIA_DOMAIN)
 
 BUILD_APP_NAME?=*
+ifneq ($(APP),)
+BUILD_APP_NAME=$(APP)
+endif
 
 REPORTER?=Spec
 
@@ -566,10 +569,18 @@ update-offline-manifests:
 # phone, and you have adb in your path, then you can use the install-gaia
 # target to update the gaia files and reboot b2g
 TARGET_FOLDER = webapps/$(BUILD_APP_NAME).$(GAIA_DOMAIN)
+APP_NAME = $(shell cat apps/${BUILD_APP_NAME}/manifest.webapp | grep name | head -1 | cut -d '"' -f 4)
+APP_PID = $(shell adb shell b2g-ps | grep '${APP_NAME}' | tr -s '${APP_NAME}' ' ' | tr -s ' ' ' ' | cut -f 3 -d' ')
 install-gaia: profile
 	$(ADB) start-server
 	@echo 'Stopping b2g'
+ifeq ($(BUILD_APP_NAME),*)
 	$(ADB) shell stop b2g
+else ifeq ($(BUILD_APP_NAME), system)
+	$(ADB) shell stop b2g
+else ifneq (${APP_PID},)
+	$(ADB) shell kill ${APP_PID}
+endif
 	$(ADB) shell rm -r $(MSYS_FIX)/cache/*
 
 ifeq ($(ADB_REMOUNT),1)
