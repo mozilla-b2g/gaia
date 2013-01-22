@@ -1,7 +1,6 @@
 'use strict';
 
 var SimManager = {
-
   init: function sm_init() {
     this.mobConn = window.navigator.mozMobileConnection;
     if (!this.mobConn)
@@ -44,7 +43,18 @@ var SimManager = {
     return (this.mobConn.cardState == 'ready');
   },
 
-  handleCardState: function sm_handleCardState() {
+ /**
+  * Possible values:
+  *   null,
+  *   'absent',
+  *   'pinRequired',
+  *   'pukRequired',
+  *   'networkLocked',
+  *   'ready'.
+  */
+  handleCardState: function sm_handleCardState(callback) {
+    if (callback)
+      this.accessCallback = callback;
     switch (this.mobConn.cardState) {
       case 'pinRequired':
         this.showPinScreen();
@@ -52,11 +62,14 @@ var SimManager = {
       case 'pukRequired':
         this.showPukScreen();
         break;
-      default:
-        this.skip();
+      case 'ready':
+        if (this.accessCallback) {
+          this.accessCallback(true);
+        }
         break;
     }
   },
+  accessCallback: null,
 
   showPinScreen: function sm_showScreen() {
     UIManager.activationScreen.classList.remove('show');
@@ -79,13 +92,11 @@ var SimManager = {
     UIManager.pincodeScreen.classList.remove('show');
     UIManager.pukcodeScreen.classList.remove('show');
     UIManager.activationScreen.classList.add('show');
-    window.location.hash = '#languages';
-    Navigation.currentStep = 1;
-    Navigation.manageStep();
   },
 
   skip: function sm_skip() {
     this.hideScreen();
+    this.accessCallback(false);
   },
 
   unlock: function sm_unlock() {
