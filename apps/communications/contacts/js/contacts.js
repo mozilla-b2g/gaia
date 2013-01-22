@@ -257,7 +257,7 @@ var Contacts = (function() {
         for (var i = 0; i < dataSet.length; i++) {
           var data = dataSet[i].value,
               carrier = dataSet[i].carrier || '';
-          prompt1.addToList(data + ' ' + carrier);
+          prompt1.addToList(data + ' ' + carrier, data);
         }
 
         prompt1.onchange = function onchange(itemData) {
