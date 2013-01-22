@@ -55,7 +55,7 @@
       if (configuration && configuration.default_low_limit_threshold) {
         defaultLowLimitThreshold = configuration.default_low_limit_threshold;
       }
-      
+
       AutoSettings.addType('data-limit', dataLimitConfigurer);
 
       // Currency is set by config as well
@@ -128,9 +128,9 @@
       currentTrack = ['step-1', 'step-2', 'prepaid-step-2', 'prepaid-step-3'];
       AutoSettings.initialize(ConfigManager, vmanager, '#prepaid-step-2');
       AutoSettings.initialize(ConfigManager, vmanager, '#prepaid-step-3');
-      
+
       ConfigManager.setOption({
-        dataLimitValue: 40, 
+        dataLimitValue: 40,
         dataLimitUnit: 'MB',
         lowLimit: true,
         lowLimitThreshold: defaultLowLimitThreshold });
