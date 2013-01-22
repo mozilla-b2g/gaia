@@ -181,6 +181,7 @@ suite('system/UpdateManager', function() {
       UpdateManager.downloadDialog = null;
       UpdateManager.downloadDialogTitle = null;
       UpdateManager.downloadDialogList = null;
+      UpdateManager.lastUpdatesAvailable = 0;
 
       MockAppsMgmt.mTeardown();
 
@@ -617,16 +618,16 @@ suite('system/UpdateManager', function() {
               var css = UpdateManager.toaster.classList;
               assert.isTrue(css.contains('displayed'));
               assert.equal('updateAvailableInfo{"n":1}',
-                           UpdateManager.message.textContent);
+                           UpdateManager.toasterMessage.textContent);
               done();
             }, tinyTimeout * 1.5);
           });
 
-          test('should display an updated count', function(done) {
-            UpdateManager.addToUpdatesQueue(updatableApps[1]);
+          test('should reset toaster value when notification was activated', function(done) {
             setTimeout(function() {
-              assert.equal('updateAvailableInfo{"n":2}',
-                           UpdateManager.message.textContent);
+              UpdateManager.addToUpdatesQueue(updatableApps[1]);
+              assert.equal('updateAvailableInfo{"n":1}',
+                          UpdateManager.toasterMessage.textContent);
               done();
             }, tinyTimeout * 2);
           });
