@@ -259,7 +259,7 @@ function bug344618_polyfill() {
   };
 
   // apply to all input[type="range"] elements
-  var ranges = document.querySelectorAll('label > input[type="range"]');
+  var ranges = document.querySelectorAll('label:not(.bug344618_polyfill) > input[type="range"]');
   for (var i = 0; i < ranges.length; i++) {
     polyfill(ranges[i]);
   }

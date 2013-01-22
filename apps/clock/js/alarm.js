@@ -710,7 +710,7 @@ var AlarmEditView = {
 
   get backButton() {
     delete this.backElement;
-    return this.backElement = document.getElementById('alarm-back');
+    return this.backElement = document.getElementById('alarm-close');
   },
 
   get clockContainer() {
@@ -831,7 +831,7 @@ var AlarmEditView = {
         this.delete();
         break;
       case 'alarm-clock-container':
-      case 'alarm-back':
+      case 'alarm-close':
         ClockView.show();
         break;
     }

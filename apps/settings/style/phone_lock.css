@@ -45,10 +45,10 @@
 
 #phoneLock-passcode .passcode-container > span {
   width: 100%;
-  color: rgb(0, 0, 0);
+  color: #000;
   -moz-box-sizing: border-box;
   font-size: 1.9rem;
-  padding: 0px 2rem;
+  padding: 0 2rem;
 }
 
 #phoneLock-passcode [data-mode] {
