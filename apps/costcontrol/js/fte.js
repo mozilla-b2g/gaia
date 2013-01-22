@@ -173,8 +173,9 @@
   }
 
   function onNext() {
-    if (step === currentTrack.length - 1)
+    if (step === currentTrack.length - 1) {
       return;
+    }
 
     var currentId = currentTrack[step];
     var currentScreen = document.getElementById(currentId);
@@ -194,8 +195,9 @@
   }
 
   function onBack() {
-    if (step === 0)
+    if (step === 0) {
       return;
+    }
 
     var currentId = currentTrack[step];
     var currentScreen = document.getElementById(currentId);

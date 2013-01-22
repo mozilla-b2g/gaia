@@ -159,8 +159,9 @@ var MindGap = (function() {
 
   // Adds fields end, actual and offset to current open tag
   function closeLastTag(tags, currentDataUsage, when) {
-    if (!tags.length)
+    if (!tags.length) {
       return;
+    }
 
     var tag = tags[tags.length - 1];
     tag.actual = currentDataUsage;
@@ -187,8 +188,9 @@ var MindGap = (function() {
   function getLastClosedOffset(referenceSIM, tags) {
     for (var i = tags.length - 1; i >= 0; i--) {
       var ctag = tags[i];
-      if (ctag.sim === referenceSIM && ctag.end !== undefined)
+      if (ctag.sim === referenceSIM && ctag.end !== undefined) {
         return ctag.offset;
+      }
     }
     return 0;
   };
@@ -250,18 +252,19 @@ var MindGap = (function() {
       var tag = tags[i];
       if (sameDate(date, tag.start) || tag.end && sameDate(date, tag.end) ||
           tag.start.getTime() < time && tag.end === undefined ||
-          tag.start.getTime() < time && time < tag.end.getTime())
+          tag.start.getTime() < time && time < tag.end.getTime()) {
 
         dateTags.push(tag);
+      }
     }
     return dateTags;
   }
 
   // Return true is dateA and dateB refer to the same day
   function sameDate(dateA, dateB) {
-    return dateA.getYear() === dateB.getYear() &&
+    return dateA.getFullYear() === dateB.getFullYear() &&
            dateA.getMonth() === dateB.getMonth() &&
-           dateA.getDay() === dateB.getDay();
+           dateA.getDate() === dateB.getDate();
   }
 
   // Return the fixing value for a date given a list of fixing pairs
@@ -269,8 +272,9 @@ var MindGap = (function() {
     fixingList = fixingList || [];
     for (var i = fixingList.length - 1; i >= 0; i--) {
       var cfixing = fixingList[i];
-      if (sameDate(cfixing[0], date))
+      if (sameDate(cfixing[0], date)) {
         return cfixing[1];
+      }
     }
     return null;
   }
