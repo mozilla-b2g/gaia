@@ -48,8 +48,18 @@ var Wifi = {
 
     var self = this;
     var wifiManager = window.navigator.mozWifiManager;
+
+    // Set wifi.enabled so that it mirrors the state of the hardware.
+    // wifi.enabled is not an ordinary user setting because the system
+    // turns it on and off when wifi goes up and down.
+    SettingsListener.getSettingsLock().set({'wifi.enabled': wifiManager.enabled});
+
     // when wifi is really enabled, emit event to notify QuickSettings
     wifiManager.onenabled = function onWifiEnabled() {
+      // Keep the setting in sync with the hardware state.
+      // We need to do this because b2g/dom/wifi/WifiWorker.js can turn
+      // the hardware on and off
+      SettingsListener.getSettingsLock().set({'wifi.enabled': true});
       var evt = document.createEvent('CustomEvent');
       evt.initCustomEvent('wifi-enabled',
         /* canBubble */ true, /* cancelable */ false, null);
@@ -58,6 +68,8 @@ var Wifi = {
 
     // when wifi is really disabled, emit event to notify QuickSettings
     wifiManager.ondisabled = function onWifiDisabled() {
+      // Keep the setting in sync with the hardware state.
+      SettingsListener.getSettingsLock().set({'wifi.enabled': false});
       var evt = document.createEvent('CustomEvent');
       evt.initCustomEvent('wifi-disabled',
         /* canBubble */ true, /* cancelable */ false, null);
