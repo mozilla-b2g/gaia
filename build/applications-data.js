@@ -231,3 +231,13 @@ content = {
   "defaultURL": "http://www.mozilla.org/en-US/firefoxos/"
 }
 writeContent(init, JSON.stringify(content));
+
+// Weinre
+init = getFile(GAIA_DIR, 'apps', 'system', 'resources', 'settings.json');
+content = {
+  weinre: {
+    enabled: !!WEINRE,
+    host: WEINRE
+  }
+}
+writeContent(init, JSON.stringify(content));

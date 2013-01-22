@@ -74,6 +74,13 @@ if (DEBUG) {
   prefs.push(["toolkit.identity.debug", true]);
 }
 
+if (!!WEINRE) {
+  debug("building without scp\n")
+  prefs.push(["capability.policy.open.HTMLDocument.contentDocument", "allAccess"]);
+  prefs.push(["capability.policy.open.HTMLDocument.documentElement", "allAccess"]);
+  prefs.push(["security.csp.enable", false]);
+}
+
 function writePrefs() {
   let userJs = getFile(GAIA_DIR, 'profile', 'user.js');
   let content = prefs.map(function (entry) {

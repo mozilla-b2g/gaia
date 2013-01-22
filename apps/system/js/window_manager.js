@@ -1118,6 +1118,10 @@ var WindowManager = (function() {
 
     iframe.setAttribute('mozapp', manifestURL);
     iframe.src = url;
+    iframe.onload = function () { 
+      // todo: inject weinre script if required
+      // cant do due to CORS atm have to find where is handled
+    };
     return frame;
   }
 
