@@ -1,10 +1,8 @@
 'use strict';
 
 var _ = navigator.mozL10n.get;
-var settings = window.navigator.mozSettings;
 
 var ClockView = {
-
   _clockMode: null, /* is read from settings */
 
   _analogGestureDetector: null,
@@ -59,25 +57,17 @@ var ClockView = {
     this._digitalGestureDetector = new GestureDetector(this.digitalClock);
     this.digitalClock.addEventListener('tap', this);
 
-    if (!settings)
-      return this.showAnalogClock();
-
-    var cmReq = settings.createLock().get('alarm.clockmode');
-    cmReq.onsuccess = function() {
-      self._clockMode = cmReq.result['alarm.clockmode'];
+    ClockSettingsDB.getMode(function(mode) {
+      self._clockMode = mode;
       switch (self._clockMode) {
         case 'digital':
           self.showDigitalClock();
           break;
-        // default to analog
         default:
           self.showAnalogClock();
           break;
       }
-    };
-    cmReq.onerror = function(err) {
-      self.showAnalogClock();
-    };
+    });
   },
 
   updateDaydate: function cv_updateDaydate() {
@@ -199,8 +189,8 @@ var ClockView = {
   },
 
   showAnalogClock: function cv_showAnalogClock() {
-    if (this._clockMode !== 'analog' && settings)
-      settings.createLock().set({'alarm.clockmode': 'analog'});
+    if (this._clockMode !== 'analog')
+      ClockSettingsDB.setMode('analog');
 
     window.clearTimeout(this._updateDigitalClockTimeout);
     this.digitalClock.classList.remove('visible');
@@ -214,8 +204,8 @@ var ClockView = {
   },
 
   showDigitalClock: function cv_showDigitalClock() {
-    if (this._clockMode !== 'digital' && settings)
-      settings.createLock().set({'alarm.clockmode': 'digital'});
+    if (this._clockMode !== 'digital')
+      ClockSettingsDB.setMode('digital');
 
     window.clearTimeout(this._updateAnalogClockTimeout);
     this.analogClock.classList.remove('visible');
@@ -1061,4 +1051,3 @@ window.addEventListener('localized', function showBody() {
   AlarmEditView.init();
   ActiveAlarmController.init();
 });
-
