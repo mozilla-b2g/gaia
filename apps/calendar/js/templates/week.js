@@ -1,20 +1,12 @@
 (function(window) {
   var Week = Calendar.Template.create({
     header: function() {
-      return '<h1 class="date">' + this.h('value') + '</h1>';
+      return '<h1>' + this.h('value') + '</h1>';
     },
 
     sidebarHour: function() {
-      var l10n = '';
       var hour = this.h('hour');
-      var displayHour;
-
-      if (hour === Calendar.Calc.ALLDAY) {
-        l10n = ' data-l10n-id="hour-allday" ';
-        displayHour = navigator.mozL10n.get('hour-allday');
-      } else {
-        displayHour = this.h('displayHour');
-      }
+      var displayHour = this.h('displayHour');
 
       return '<li ' + hour + ' class="hour-' + this.h('hour') + '">' +
                 displayHour +
