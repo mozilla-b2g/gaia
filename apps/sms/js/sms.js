@@ -177,7 +177,7 @@ var MessageManager = {
   },
 
   getNumFromHash: function mm_getNumFromHash() {
-    var num = /\bnum=(.+)(&|$)/.exec(window.location.hash);
+    var num = /\bnum=(\S+)(\s|&|$)/.exec(window.location.hash);
     return num ? num[1] : null;
   },
 
@@ -510,7 +510,7 @@ var ThreadListUI = {
           ThreadListUI.appendThread(thread);
           appendThreads(threads, callback);
         });
-      }
+      };
 
       appendThreads(threads, function at_callback() {
         // Boot update of headers
