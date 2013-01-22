@@ -69,12 +69,10 @@ body {
 }
 
 .card.before {
-  transform: translateX(-100%);
-}
-/* Show a sliver of the next card, to kickstart
-platform for a smooth, non-black transition: 828266 */
-.card.before.start {
-  transform: translateX(-99%);
+  /* Show a sliver of the before card, to kickstart
+  platform for a smooth, non-black transition: 828266.
+  Otherwise, this would just be -100% */
+  transform: translateX(calc(-100% + 0.5px));
 }
 
 .card.before.anim-vertical {
@@ -82,12 +80,10 @@ platform for a smooth, non-black transition: 828266 */
 }
 
 .card.after {
-  transform: translateX(100%);
-}
-/* Show a sliver of the next card, to kickstart
-platform for a smooth, non-black transition: 828266 */
-.card.after.start {
-  transform: translateX(99%);
+  /* Show a sliver of the after card, to kickstart
+  platform for a smooth, non-black transition: 828266.
+  Otherwise, this would just be 100% */
+  transform: translateX(calc(100% - 0.5px));
 }
 
 .card.after.anim-vertical {

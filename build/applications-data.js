@@ -224,3 +224,10 @@ content = {
   ]
 }
 writeContent(init, JSON.stringify(content));
+
+// ICC / STK
+init = getFile(GAIA_DIR, 'apps', 'settings', 'resources', 'icc.json');
+content = {
+  "defaultURL": "http://www.mozilla.org/en-US/firefoxos/"
+}
+writeContent(init, JSON.stringify(content));

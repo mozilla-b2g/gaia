@@ -7,11 +7,12 @@ function formatTime(timestamp) {
   if (!timestamp)
     return _('never');
 
-  var time = timestamp.toLocaleFormat('%H:%M');
-  var date = timestamp.toLocaleFormat('%a');
-  var dateDay = parseInt(timestamp.toLocaleFormat('%u'), 10);
+  var dateFormatter = new navigator.mozL10n.DateTimeFormat();
+  var time = dateFormatter.localeFormat(timestamp, _('shortTimeFormat'));
+  var date = dateFormatter.localeFormat(timestamp, '%a');
+  var dateDay = parseInt(dateFormatter.localeFormat(timestamp, '%u'), 10);
   var now = new Date();
-  var nowDateDay = parseInt(now.toLocaleFormat('%u'), 10);
+  var nowDateDay = parseInt(dateFormatter.localeFormat(now, '%u'), 10);
 
   if (nowDateDay === dateDay) {
     date = _('today');
@@ -20,7 +21,11 @@ function formatTime(timestamp) {
     date = _('yesterday');
   }
 
-  return date + ', ' + time;
+  return navigator.mozL10n.get('day-hour-format', {
+    day: date,
+    time: time
+  });
+
 }
 
 // Return a balance string in format DD.XX or -- if balance is null

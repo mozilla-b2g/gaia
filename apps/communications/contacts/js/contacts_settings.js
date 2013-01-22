@@ -15,6 +15,7 @@ contacts.Settings = (function() {
       fbImportCheck,
       fbUpdateButton,
       fbOfflineMsg,
+      noSimMsg,
       fbTotalsMsg,
       fbPwdRenewMsg,
       fbImportedValue,
@@ -46,13 +47,6 @@ contacts.Settings = (function() {
     orderItem.checked = value;
   };
 
-  var cleanMessage = function cleanMessage() {
-    var msg = document.getElementById('taskResult');
-    if (msg) {
-      msg.parentNode.removeChild(msg);
-    }
-  };
-
   // Initialises variables and listener for the UI
   var initContainers = function initContainers() {
     orderItem = document.getElementById('settingsOrder');
@@ -61,6 +55,8 @@ contacts.Settings = (function() {
     simImportLink = document.querySelector('[data-l10n-id="importSim"]');
     simImportLink.addEventListener('click',
       onSimImport);
+
+    noSimMsg = document.querySelector('#no-sim');
 
     if (fb.isEnabled) {
       fbImportOption = document.querySelector('#settingsFb');
@@ -104,17 +100,20 @@ contacts.Settings = (function() {
 
     // Card should either be "ready" (connected to network) or "null" (card in
     // phone but cannot connect to network for some reason).
-    enableSIMImport(conn.cardState == 'ready' || conn.cardState == null);
+    enableSIMImport(conn.cardState);
   };
 
   // Disables/Enables the actions over the sim import functionality
-  var enableSIMImport = function enableSIMImport(enable) {
-    var importSim = document.getElementById('settingsSIM');
+  var enableSIMImport = function enableSIMImport(cardState) {
+    var enable = (cardState === 'ready' || cardState === null);
+    var importSim = document.getElementById('settingsSIM').firstElementChild;
     if (enable) {
-      importSim.removeAttribute('aria-disabled');
+      importSim.removeAttribute('disabled');
+      noSimMsg.classList.add('hide');
     }
     else {
-      importSim.setAttribute('aria-disabled', 'true');
+      importSim.setAttribute('disabled', 'disabled');
+      noSimMsg.classList.remove('hide');
     }
   };
 
@@ -130,6 +129,7 @@ contacts.Settings = (function() {
     }
     else if (fbImportedValue === 'logged-out') {
       fbSetDisabledState();
+      fbTotalsMsg.textContent = _('notEnabledYet');
     }
     else if (fbImportedValue === 'renew-pwd') {
       fbSetEnabledState();
@@ -202,17 +202,6 @@ contacts.Settings = (function() {
   var onFbImport = function onFbImportClick(evt) {
     Contacts.extFb.importFB();
   };
-
-   var addMessage = function addMessage(message, after) {
-      var li = document.createElement('li');
-      li.id = 'taskResult';
-      li.classList.add('result');
-      var span = document.createElement('span');
-      span.innerHTML = message;
-      li.appendChild(span);
-
-      after.parentNode.insertBefore(li, after.nextSibling);
-    };
 
   var onFbEnable = function onFbEnable(evt) {
     var WAIT_UNCHECK = 400;
@@ -338,9 +327,6 @@ contacts.Settings = (function() {
 
   // Import contacts from SIM card and updates ui
   var onSimImport = function onSimImport(evt) {
-    // Auto remove previous message if present
-    cleanMessage();
-
     Contacts.showOverlay(_('simContacts-importing'));
     var after = document.getElementById('settingsSIM');
 
@@ -352,11 +338,27 @@ contacts.Settings = (function() {
         if (num > 0) {
           contacts.List.load();
         }
-        addMessage(_('simContacts-imported3', {n: num}), after);
         Contacts.hideOverlay();
+        Contacts.navigation.home();
+        Contacts.showStatus(_('simContacts-imported3', {n: num}));
       },
       function onerror() {
-        addMessage(_('simContacts-error'), after);
+        var cancel = {
+          title: _('cancel'),
+          callback: function() {
+            ConfirmDialog.hide();
+          }
+        };
+        var retry = {
+          title: _('retry'),
+          isRecommend: true,
+          callback: function() {
+            ConfirmDialog.hide();
+            // And now the action is reproduced one more time
+            simImportLink.click();
+          }
+        };
+        ConfirmDialog.show(null, _('simContacts-error'), cancel, retry);
         Contacts.hideOverlay();
       });
   };
@@ -369,8 +371,6 @@ contacts.Settings = (function() {
       orderByLastName = newOrderByLastName;
     }
 
-    // Clean possible messages
-    cleanMessage();
     Contacts.goBack();
   };
 
@@ -399,6 +399,7 @@ contacts.Settings = (function() {
     'init': init,
     'close': close,
     'refresh': refresh,
-    'onLineChanged': checkOnline
+    'onLineChanged': checkOnline,
+    'cardStateChanged': checkSIMCard
   };
 })();

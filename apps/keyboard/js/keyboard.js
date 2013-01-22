@@ -683,9 +683,11 @@ function modifyLayout(keyboardName) {
 // layout for keyboardName
 //
 function renderKeyboard(keyboardName) {
-
   // Add meta keys and type-specific keys to the base layout
   currentLayout = modifyLayout(keyboardName);
+
+  // update settings with keyboard layout, e.me uses this to improve searches
+  updateSettings('current', keyboardName);
 
   // And draw the layout
   IMERender.draw(currentLayout, {
@@ -727,6 +729,16 @@ function setUpperCase(upperCase, upperCaseLocked) {
   });
   // And make sure the caps lock key is highlighted correctly
   IMERender.setUpperCaseLock(isUpperCaseLocked ? 'locked' : isUpperCase);
+}
+
+function updateSettings(key, value) {
+  var settings = {};
+  settings['keyboard.' + key] = value;
+
+  try {
+    var lock = navigator.mozSettings.createLock();
+    lock.set(settings);
+  } catch (ex) {}
 }
 
 function resetUpperCase() {
