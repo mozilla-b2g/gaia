@@ -132,10 +132,12 @@
 
     fte.setAttribute('aria-hidden', false);
 
-    fte.addEventListener('click', function launchFte() {
-      fte.removeEventListener('click', launchFte);
-      var activity = new MozActivity({ name: 'costcontrol/balance' });
-    });
+    if (hasSim) {
+      fte.addEventListener('click', function launchFte() {
+        fte.removeEventListener('click', launchFte);
+        var activity = new MozActivity({ name: 'costcontrol/balance' });
+      });
+    }
 
     leftPanel.setAttribute('aria-hidden', true);
     rightPanel.setAttribute('aria-hidden', true);
@@ -146,14 +148,14 @@
         DATA_USAGE_ONLY: 'widget-nonauthed-sim'
     };
 
-    var simKey = hasSim ? keyLookup[mode] : 'widget-no-sim';
+    var simKey = hasSim ? keyLookup[mode] : 'widget-no-sim2';
 
     document.getElementById('fte-icon').className = 'icon ' + simKey;
 
-    fte.querySelector('p:first-child').innerHTML =
-      navigator.mozL10n.get(simKey + '-heading', { provider: provider });
-    fte.querySelector('p:last-child').innerHTML =
-      navigator.mozL10n.get(simKey + '-meta');
+    fte.querySelector('p:first-child').innerHTML = _(simKey + '-heading',
+                                                     { provider: provider });
+
+    fte.querySelector('p:last-child').innerHTML = _(simKey + '-meta');
   }
 
   var currentMode;
