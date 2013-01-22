@@ -56,7 +56,7 @@ var PlayerView = {
   set dataSource(source) {
     this._dataSource = source;
 
-    if (this.sourceType != TYPE_BLOB)
+    if (this.sourceType && this.sourceType != TYPE_BLOB) {
       // Shuffle button is not necessary when an album only contains one song
       // or playing a blob
       this.shuffleButton.disabled = (this._dataSource.length < 2);
@@ -64,7 +64,7 @@ var PlayerView = {
       // Also, show or hide the Now Playing button depending on
       // whether content is queued
       TitleBar.playerIcon.hidden = (this._dataSource.length < 1);
-
+    }
   },
 
   init: function pv_init(needSettings) {
@@ -610,7 +610,7 @@ var PlayerView = {
       case 'mousemove':
         if (evt.type === 'mousedown') {
           target.setCapture(false);
-          MouseEventShim.setCapture()
+          MouseEventShim.setCapture();
           this.isSeeking = true;
           this.seekIndicator.classList.add('highlight');
         }

@@ -127,7 +127,8 @@ html, body {
 }
 
 .notification > div:first-of-type {
-  margin: 10px 0 0 50px;
+  width: 19.5rem;
+  margin: 1rem 0 0 5rem;
   font-size: 1.5rem;
   font-weight: 500;
   line-height: 1.9rem;
@@ -151,9 +152,9 @@ html, body {
 .notification > .timestamp {
   position: absolute;
   right: 0;
-  top: 0;
+  top: -.2rem;
   color: #52B6CC;
-  margin: 12px 15px 0 0;
+  margin: 13px 15px 0 0;
   padding: 0;
   display: inline;
   line-height: 16px;
@@ -162,8 +163,8 @@ html, body {
 .notification > img {
   float: left;
   display: block;
-  width: 30px;
-  height: 30px;
+  width: 24px;
+  height: 24px;
   margin: 15px 10px;
   pointer-events: none;
 }

@@ -4,8 +4,8 @@
 
 #pair-view #pair-description {
   font-size: 1.4rem;
-  margin-top: 10px;
-  margin-bottom: 10px;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
 }
 
 #pair-view #device-info #label-name {
@@ -44,6 +44,7 @@
   padding-left: 3rem;
 }
 
-.bluetooth-default { 
+.bluetooth-default {
   background-image: -moz-image-rect(url(images/icons_sprite.png), 0, 150, 30, 120);
 }
+

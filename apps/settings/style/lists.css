@@ -205,7 +205,7 @@ ul li > label.bug344618_polyfill div span:first-child {
   top: calc(50% - 0.15rem);
   width: 4rem;
   height: 0.3rem;
-  background: #01c5ed;
+  background-color: #01c5ed;
 }
 
 /* throbber */
