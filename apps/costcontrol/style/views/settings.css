@@ -18,3 +18,9 @@
 #settings-view .buttons-list button {
   margin: 0;
 }
+
+input.error {
+  background-color: rgba(219, 113, 95, 0.2) !important;
+  border-color: #db715f !important;
+  color: #c3503c;
+}

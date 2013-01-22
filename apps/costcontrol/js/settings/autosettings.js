@@ -122,7 +122,7 @@ var AutoSettings = (function() {
       );
 
       // Add an event listener to switch the option
-      guiWidget.addEventListener('input', function _onContentChange() {
+      guiWidget.addEventListener('change', function _onContentChange() {
         var value = guiWidget.value;
         if (guiWidget.type === 'number')
           value = parseFloat(value);

@@ -326,7 +326,7 @@ var DataUsageTab = (function() {
     // Configure Centered today text
     var fontsize = 14;
     var marginTop = 10;
-    
+
     var todayTag = dateFormatter.localeFormat(model.axis.X.today, dateFormat);
 
     // Render the text
