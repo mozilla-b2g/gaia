@@ -161,3 +161,11 @@ body[role="application"] [role="dialog"] {
 #firsttime-view .settings li > .end {
   right: 0;
 }
+
+.step-hint {
+  color: #999;
+  font-size: 1.6rem;
+  font-weight: bold;
+  margin: 2rem;
+  text-shadow: 0px 2px 0px #FFF;
+}
