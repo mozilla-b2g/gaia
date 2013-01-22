@@ -10,7 +10,7 @@ const kPaymentConfirmationScreen = '../payment.html';
 
 var Payment = {
   chromeEventId: null,
-  trustedUILayerID: null,
+  trustedUILayers: {},
 
   init: function init() {
     window.addEventListener('mozChromeEvent', this);
@@ -22,6 +22,8 @@ var Payment = {
     this.chromeEventId = e.detail.id;
     if (!this.chromeEventId)
       return;
+
+    var requestId = e.detail.requestId;
 
     switch (e.detail.type) {
       // Chrome asks Gaia to show the payment request confirmation dialog.
@@ -95,7 +97,7 @@ var Payment = {
         //       only accepts the JWT by GET, so we just add it to the URI.
         e.detail.uri += e.detail.jwt;
 
-        this.trustedUILayerID = this.chromeEventId;
+        this.trustedUILayers[requestId] = this.chromeEventId;
 
         var frame = document.createElement('iframe');
         frame.setAttribute('mozbrowser', 'true');
@@ -116,8 +118,10 @@ var Payment = {
         break;
 
       case 'close-payment-flow-dialog':
-        TrustedUIManager.close(this.trustedUILayerID, (function dialogClosed() {
+        TrustedUIManager.close(this.trustedUILayers[requestId],
+                               (function dialogClosed() {
           this._dispatchEvent({ id: this.chromeEventId });
+          delete this.trustedUILayers[requestId];
         }).bind(this));
         break;
     }
