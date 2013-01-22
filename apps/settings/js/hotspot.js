@@ -15,12 +15,18 @@ onLocalized(function hotspot() {
   // friendly password.
 
   function generateHotspotPassword() {
-    var words = ['guava', 'apple', 'pear', 'banana',
-                 'currant', 'kiwi', 'mango', 'raisin',
-                 'tomato', 'papaya', 'grape', 'apricot',
-                 'cherry', 'durian', 'lemon', 'pomelo',
-                 'peach', 'melon', 'coconut', 'avocado',
-                 'lime', 'mandarine', 'orange', 'plum'];
+    var words = ['alberta', 'amsterdam', 'ankara',
+                 'auckland', 'belfast', 'berlin',
+                 'boston', 'calgary', 'caracas',
+                 'chicago', 'dakar', 'delhi',
+                 'dubai', 'dublin', 'houston',
+                 'jakarta', 'lagos', 'lima',
+                 'madrid', 'manila', 'moscow',
+                 'mumbai', 'newyork', 'osaka',
+                 'oslo', 'paris', 'porto',
+                 'santiago', 'saopauolo', 'seattle',
+                 'stockholm', 'sydney', 'taipei',
+                 'tokyo', 'toronto', 'warsaw'];
     var password = words[Math.floor(Math.random() * words.length)];
     for (var i = 0; i < 4; i++) {
       password += Math.floor(Math.random() * 10);
