@@ -89,14 +89,21 @@ var LanguageManager = {
     }
   },
 
-  getSupportedKbLayouts: function settings_getSupportedKbLayouts() {
-    var KEYBOARDS = 'keyboard_layouts.json';
-    var self = this;
-    this.readSharedFile(KEYBOARDS, function getKeyboardLayouts(data) {
-      if (data) {
-        self._kbLayoutList = data;
-      }
-    });
+  getSupportedKbLayouts: function settings_getSupportedKbLayouts(callback) {
+    if (this._kbLayoutList) {
+      if (callback)
+        callback(this._kbLayoutList);
+    } else {
+      var KEYBOARDS = 'keyboard_layouts.json';
+      var self = this;
+      this.readSharedFile(KEYBOARDS, function getKeyboardLayouts(data) {
+        if (data) {
+          self._kbLayoutList = data;
+          if (callback)
+            callback(self._kbLayoutList);
+        }
+      });
+    }
   },
 
   readSharedFile: function settings_readSharedFile(file, callback) {

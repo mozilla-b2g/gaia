@@ -23,20 +23,26 @@ var DataMobile = {
       console.log('Error retrieving ril.data.enabled');
     };
   },
-  toggle: function dm_toggle(status) {
+  toggle: function dm_toggle(status, callback) {
     var options = {};
     options[this.key] = status;
     if (!this.apnRetrieved) {
       // I need to retrieve APN
-      this.getAPN(function() {
-        DataMobile.settings.createLock().set(options);
-        DataMobile.apnRetrieved = true;
-        DataMobile.isDataAvailable = status;
+      var self = this;
+      this.getAPN(function apn_recovered() {
+        self.settings.createLock().set(options);
+        self.apnRetrieved = true;
+        self.isDataAvailable = status;
+        if (callback)
+          callback();
       });
       return;
     }
     this.settings.createLock().set(options);
+    self.apnRetrieved = true;
     this.isDataAvailable = status;
+    if (callback)
+      callback();
   },
   getAPN: function dm_getapn(callback) {
     // TODO Use 'shared' version
