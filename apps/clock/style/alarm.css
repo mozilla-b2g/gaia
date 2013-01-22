@@ -422,11 +422,6 @@ input.right {
   padding: 0.4rem 1rem;
   background: #FFFFFF;
   height: 2.8rem;
-  color: black;
-}
-
-input.right:-moz-placeholder {
-  color: gray;
 }
 /* ----------- Input Error ---------- */
 input ~ * {
