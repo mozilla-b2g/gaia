@@ -27,7 +27,7 @@ body[role="application"] [role="dialog"] .calendar {
 	body[role="application"] [role="dialog"] .calendar > a[role="button"] {
 		float: none;
 		width: auto;
-		text-overflow: none;
+		text-overflow: clip;
 		font: 0/0 a;
 		position: absolute;
 		top: 0.5rem;
