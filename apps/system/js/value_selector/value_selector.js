@@ -462,7 +462,7 @@ var TimePicker = {
     }
     var minute = this.timePicker.minute.getSelectedDisplayedText();
 
-    return hour + ':' + minute;
+    return (hour < 10 ? '0' : '') + hour + ':' + minute;
   }
 };
 
