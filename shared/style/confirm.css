@@ -191,3 +191,46 @@ form[role="dialog"][data-type="confirm"] p small {
   display: block;
 }
 
+/* RTL **/
+html[dir="rtl"] form[role="dialog"][data-type="confirm"] menu button:last-child {
+  margin-right: 1rem;
+}
+
+html[dir="rtl"] form[role="dialog"][data-type="confirm"]:before {
+  content: "";
+  display: inline-block;
+  vertical-align: middle;
+  width: 1px;
+  height: 100%;
+  margin-right: -1px;
+}
+
+html[dir="rtl"] form[role="dialog"][data-type="confirm"] {
+  background:
+    url(confirm/images/ui/pattern.png) repeat right top,
+    url(confirm/images/ui/gradient.png) no-repeat right top;
+  background-size: auto auto, 100% 100%;
+  /* We can't use shortand with background size because is not implemented yet:
+  https://bugzilla.mozilla.org/show_bug.cgi?id=570326; */
+  overflow: hidden;
+  position: absolute;
+  z-index: 100;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 1.5rem 0 7rem;
+  font-family: "MozTT", Sans-serif;
+  font-size: 0;
+  /* Using font-size: 0; we avoid the unwanted visual space (about 3px)
+  created by white-spaces and break lines in the code betewen inline-block elements */
+  color: #fff;
+  text-align: right;
+}
+
+html[dir="rtl"] form[role="dialog"][data-type="confirm"] p img {
+  float: right;
+  margin-left: 2rem;
+}
+
+
