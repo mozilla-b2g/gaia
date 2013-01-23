@@ -77,9 +77,11 @@ var Camera = {
   _shutterSound: new Audio('./resources/sounds/shutter.ogg'),
   _shutterSoundEnabled: true,
 
+  _dcfConfigLoaded: false,
+  _deferredDCFArgs: null,
   _dcfConfig: {
     key: 'dcf_key',
-    seq: {file: 1, dir: 100},
+    seq: null,
     postFix: 'MZLLA',
     video: {prefix: 'VID_'},
     image: {prefix: 'IMG_'}
@@ -206,26 +208,34 @@ var Camera = {
     this._pictureStorage
       .addEventListener('change', this.deviceStorageChangeHandler.bind(this));
 
+    this.setToggleCameraStyle();
+    this.setSource(this._camera);
+
+    navigator.mozSetMessageHandler('activity', function(activity) {
+      var name = activity.source.name;
+      if (name === 'pick') {
+        Camera.initPick(activity);
+      }
+      else {
+        // We got another activity. Perhaps we were launched from gallery
+        // So show our usual buttons
+        Camera.galleryButton.classList.remove('hidden');
+        Camera.switchButton.classList.remove('hidden');
+      }
+    });
+
     asyncStorage.getItem(this._dcfConfig.key, (function(value) {
       if (value) {
         this._dcfConfig.seq = value;
+      } else {
+        this._dcfConfig.seq = {file: 1, dir: 100};
       }
-
-      this.setToggleCameraStyle();
-      this.setSource(this._camera);
-
-      navigator.mozSetMessageHandler('activity', function(activity) {
-        var name = activity.source.name;
-        if (name === 'pick') {
-          Camera.initPick(activity);
-        }
-        else {
-          // We got another activity. Perhaps we were launched from gallery
-          // So show our usual buttons
-          Camera.galleryButton.classList.remove('hidden');
-          Camera.switchButton.classList.remove('hidden');
-        }
-      });
+      this._dcfConfigLoaded = true;
+      if (this._deferredDCFArgs) {
+        var args = this._deferredDCFArgs;
+        this.createDCFFilename(args.type, args.ext, args.callback);
+        this._deferredDCFArgs = null;
+      }
     }).bind(this));
   },
 
@@ -625,6 +635,12 @@ var Camera = {
   },
 
   createDCFFilename: function camera_createDCFFilename(type, ext, callback) {
+
+    if (!this._dcfConfigLoaded) {
+      this._deferredDCFArgs = {type: type, ext: ext, callback: callback};
+      return;
+    }
+
     var self = this;
     var dcf = this._dcfConfig;
     var filename = dcf[type].prefix + this.padLeft(dcf.seq.file, 4) + '.' + ext;
