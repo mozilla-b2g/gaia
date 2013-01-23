@@ -247,6 +247,7 @@ section.content .error-messages {
   width: 10.0rem;
   margin: 0;
   padding-left: 0.5rem;
+  overflow: hidden;
 }
 
 .settings li > .end button .tag {
@@ -279,4 +280,8 @@ section.content .error-messages {
 
 #message-handler {
   visibility: hidden;
+}
+
+.debug-only {
+  display: none !important;
 }

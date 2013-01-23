@@ -183,8 +183,9 @@ Icon.prototype = {
   },
 
   loadCachedIcon: function icon_loadCachedImage() {
-    if ('oldRenderedIcon' in this.descriptor) {
-      this.renderBlob(this.descriptor.oldRenderedIcon);
+    var oldRenderedIcon = this.descriptor.oldRenderedIcon;
+    if (oldRenderedIcon && oldRenderedIcon instanceof Blob) {
+      this.renderBlob(oldRenderedIcon);
     } else {
       this.loadImageData();
     }
@@ -823,14 +824,25 @@ dockProto.getChildren = function dk_getChildren() {
 HTMLCollection.prototype.indexOf = Array.prototype.indexOf;
 
 const TextOverflowDetective = (function() {
-  var iconFakeWrapperWidht = document.querySelector('#fake-icon-name-wrapper').
-                                                                    offsetWidth;
-  var iconFakeLabel = document.querySelector('#fake-icon-name');
+
+  var iconFakeWrapperWidth;
+  var iconFakeLabel;
+
+  function init() {
+    var fakeIconName = document.querySelector('#fake-icon-name-wrapper');
+    iconFakeWrapperWidth = fakeIconName.offsetWidth;
+    iconFakeLabel = document.querySelector('#fake-icon-name');
+  }
+
+  function check(text) {
+    if (! iconFakeLabel || ! iconFakeWrapperWidth) {
+      init();
+    }
+    iconFakeLabel.textContent = text;
+    return iconFakeLabel.offsetWidth >= iconFakeWrapperWidth;
+  }
 
   return {
-    check: function od_check(text) {
-      iconFakeLabel.textContent = text;
-      return iconFakeLabel.offsetWidth >= iconFakeWrapperWidht;
-    }
-  }
+    check: check
+  };
 })();

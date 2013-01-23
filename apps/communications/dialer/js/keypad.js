@@ -349,6 +349,18 @@ var KeypadManager = {
           }
         }
       });
+      // If we created the contact let's invalidated the contacts
+      // tab within the dialer.
+      activity.onsuccess = function contactCreated() {
+        var contactsIframe = document.getElementById('iframe-contacts');
+        var src = contactsIframe.src;
+        // Only perform this refresh if we DID open the contacts tab
+        if (src && src.length > 0) {
+          var timestamp = new Date().getTime();  
+          contactsIframe.contentWindow.location.search =
+            '?timestamp=' + timestamp;
+        }
+      }
     } catch (e) {
       console.log('WebActivities unavailable? : ' + e);
     }

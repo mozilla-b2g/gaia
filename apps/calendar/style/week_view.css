@@ -1,6 +1,5 @@
 #week-view {
-  overflow-x: hidden;
-  overflow-y: scroll;
+  overflow: hidden;
   user-select: -moz-none;
 }
 
@@ -29,17 +28,9 @@
    text-align: center;
    text-transform: uppercase;
    font-size: 1.3rem;
-   padding: 0.185rem 0;
-   border: 1px solid #131314;
    border-left: none;
    border-top: none;
    float: left;
-   position: relative;
-   top: 1.8rem;
-}
-
-#week-view .sidebar:first-child {
-  border-top: 1px solid #131314;
 }
 
 #week-view .sidebar li:last-child {
@@ -50,16 +41,21 @@
   transform: rotate(-90deg);
   line-height: 120%;
   width: 6rem;
+  padding: 0.4rem 0.3rem 0 0;
   float: left;
-  height: 6.1rem;
+  height: 6rem;
   text-align: right;
   border-left: 1px solid #CCC;
   padding: 0.2rem
   overflow: hidden;
 }
 
+#week-view > .scroll {
+  height: calc(100% - 8rem);
+  overflow-y: scroll;
+}
 
-#week-view .children {
+#week-view > .scroll > .children {
   position: relative;
   height: 100%;
   float: left;
@@ -92,24 +88,19 @@
   display: block;
 }
 
-#week-view .week-events > ol {
+#week-view .week-events > ol,
+#week-view .sticky .week-events {
   border-bottom: 1px solid #ccc;
-  border-right: 1px solid #ccc;
+  border-left: 1px solid #ccc;
   text-align: center;
   color: white;
   font-size: 120%;
-  margin: 1px;
   height: 6rem;
-  width: 7rem;
   position: relative;
 }
 
 #week-view .week-events > ol {
-  width: 7rem;
-}
-
-#week-view .days-3 .week-events > ol {
-  width: 9.5rem;
+  width: 100%;
 }
 
 #week-view .week-events > ol li.event {
@@ -118,12 +109,7 @@
   z-index: 10;
 }
 
-#week-view .week-events > ol.hour-allday li.event {
-  position: relative;
-}
-
 #week-view .week-events .container {
-  height: 6rem;
   height: 100%;
   margin: 1px;
   line-height: 120%;
@@ -152,3 +138,72 @@
 .weekday .event[data-overlaps="8"] { padding: 24px; }
 .weekday .event[data-overlaps="9"] { padding: 27px; }
 .weekday .event[data-overlaps="10"] { padding: 30px; }
+
+/* Sticky All Day Events */
+#week-view .sticky {
+  border-bottom: 1px solid #2A2A2A;
+  height: 8rem;
+  overflow: hidden;
+}
+
+#week-view .all-day {
+  transform: rotate(-90deg);
+  line-height: 120%;
+  float: left;
+  position: absolute;
+  top: 4rem;
+  left: -1rem;
+  font-size: 1.3rem;
+}
+
+#week-view .sticky .children {
+  width: 100%;
+}
+
+#week-view .sticky ul {
+  display: none;
+  list-style-type: none;
+  margin: 0;
+  padding: 0 0 0 2rem;
+  height: 2rem;
+  background: #2A2A2A;
+}
+
+#week-view .sticky ul.active {
+  display:block;
+}
+
+#week-view .sticky li {
+  float: left;
+}
+
+#week-view .sticky ul > li {
+  height: 6rem;
+}
+
+#week-view .sticky .week-events {
+  border-bottom: 0;
+  height: 100%;
+  overflow-y: scroll;
+}
+
+#week-view .sticky .week-events li.event {
+  position: static;
+}
+
+#week-view .sticky .days-3 li {
+  width: 33%;
+}
+
+#week-view .sticky .days-4 li {
+  width: 25%;
+}
+
+#week-view .week-events {
+  height: 6rem;
+}
+
+#week-view .sticky ol {
+  border-bottom: 0;
+  border-left: 0;
+}

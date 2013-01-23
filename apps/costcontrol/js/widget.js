@@ -131,29 +131,27 @@
   function setupFte(provider, mode) {
 
     fte.setAttribute('aria-hidden', false);
-
-    fte.addEventListener('click', function launchFte() {
-      fte.removeEventListener('click', launchFte);
-      var activity = new MozActivity({ name: 'costcontrol/balance' });
-    });
-
     leftPanel.setAttribute('aria-hidden', true);
     rightPanel.setAttribute('aria-hidden', true);
+
+    if (hasSim) {
+      fte.addEventListener('click', function launchFte() {
+        fte.removeEventListener('click', launchFte);
+        var activity = new MozActivity({ name: 'costcontrol/balance' });
+      });
+    }
 
     var keyLookup = {
         PREPAID: 'widget-authed-sim',
         POSTPAID: 'widget-authed-sim',
         DATA_USAGE_ONLY: 'widget-nonauthed-sim'
     };
-
-    var simKey = hasSim ? keyLookup[mode] : 'widget-no-sim';
+    var simKey = hasSim ? keyLookup[mode] : 'widget-no-sim2';
 
     document.getElementById('fte-icon').className = 'icon ' + simKey;
-
-    fte.querySelector('p:first-child').innerHTML =
-      navigator.mozL10n.get(simKey + '-heading', { provider: provider });
-    fte.querySelector('p:last-child').innerHTML =
-      navigator.mozL10n.get(simKey + '-meta');
+    fte.querySelector('p:first-child').innerHTML = _(simKey + '-heading',
+                                                     { provider: provider });
+    fte.querySelector('p:last-child').innerHTML = _(simKey + '-meta');
   }
 
   var currentMode;
@@ -166,20 +164,23 @@
       var isPrepaid = (mode === 'PREPAID');
       var isDataUsageOnly = (mode === 'DATA_USAGE_ONLY');
 
+      // Show fte mode widget
+      if (settings.fte) {
+        setupFte(configuration.provider, mode);
+        debug('Widget in FTE mode');
+        return;
+      }
+
       // Layout
+      fte.setAttribute('aria-hidden', true);
+      leftPanel.setAttribute('aria-hidden', false);
+      rightPanel.setAttribute('aria-hidden', false);
+
       var isLimited = settings.dataLimit;
       views.dataUsage.setAttribute('aria-hidden', isLimited);
       views.limitedDataUsage.setAttribute('aria-hidden', !isLimited);
 
       if (currentMode !== mode) {
-
-        // Show fte mode widget
-        if (settings.fte) {
-          setupFte(configuration.provider, mode);
-          return;
-        } else {
-          fte.setAttribute('aria-hidden', true);
-        }
 
         // Always data usage
         leftPanel.setAttribute('aria-hidden', isDataUsageOnly);
