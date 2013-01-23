@@ -539,10 +539,12 @@ contacts.List = (function() {
 
   var hideGroup = function hideGroup(group) {
     groupsList.querySelector('#group-' + group).classList.add('hide');
+    FixedHeader.refresh();
   }
 
   var showGroup = function showGroup(group) {
     groupsList.querySelector('#group-' + group).classList.remove('hide');
+    FixedHeader.refresh();
   }
 
   var remove = function remove(id) {

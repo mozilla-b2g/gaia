@@ -67,6 +67,10 @@ html, body {
   height: 3.5rem;
 }
 
+#nav-bar {
+  z-index: 1;
+}
+
 [role=navigation] button {
   width: calc((100% - 1rem) / 2);
   float: left;
@@ -296,7 +300,8 @@ html, body {
   padding-left: 1.5rem;
 }
 
-.hidden {
+/* The hide class is needed by the custom_dialog.js library */
+.hidden, .hide {
   display: none !important;
 }
 
@@ -507,6 +512,25 @@ html, body {
   Import
 */
 
+#import_contacts li#sim_import {
+  padding: 0;
+  height: auto;
+}
+
+/* Needed due to the .icon class which is overriding this property */
+#import_contacts #sim-import-button:active {
+  background-color: #008aaa !important;
+}
+
+#no-sim {
+ 	color: #5B5B5B;
+ 	font-size: 1.5rem;
+ 	line-height: 2rem;
+ 	margin: -0.2rem 0 0.6rem;
+ 	padding: 0;
+ 	white-space: normal;
+}
+
 #import_contacts li {
   padding: 0 3.5rem;
 }
@@ -514,7 +538,7 @@ html, body {
   padding: 0 1.5rem;
 }
 
-#import_contacts li:after,
+#import_contacts li#fb_import:after,
 #wifi li:after {
   content: "";
   transition: opacity 0.2s ease;
@@ -528,7 +552,7 @@ html, body {
   z-index: 0;
 }
 
-#import_contacts li:active:after,
+#import_contacts li#fb_import:active:after,
 #wifi li:active:after {
   opacity: 0.6;
 }
@@ -537,11 +561,11 @@ html, body {
   pointer-events: none;
 }
 
-#import_contacts li.disabled p{
-    pointer-events: none;
+#import_contacts li.disabled p {
+  pointer-events: none;
 }
 
-#import_contacts li.disabled:after {
+#import_contacts li#fb_import.disabled:after {
   content: "";
   background-color: #e6e6e6;
   opacity: 0.7;
@@ -551,12 +575,39 @@ html, body {
   margin-bottom: 0;
 }
 
-#sim-import-button {
-  background: url('images/import_sim.png') center left no-repeat;
-}
-
 #fb_import {
   background: url('images/import_fb.png') center left no-repeat;
+}
+
+/* Extending icon types*/
+#import_contacts [data-type="list"] li button.icon-sim:before {
+  background-image: url(/contacts/style/images/import_SIM.png);
+  background-size: 1.6rem;
+}
+
+#import_contacts li button.icon {
+  padding-left: 3rem;
+  text-indent: 1rem;
+}
+
+#import_contacts li button.icon:before {
+  right: auto;
+  left: 0.5rem;
+}
+
+#import_contacts article:first-child ul {
+  margin-top: 1.6rem;
+}
+
+#statusMsg.ftu {
+  bottom: 6.5rem;
+  z-index: 0;
+  opacity: 0;
+}
+
+#statusMsg.ftu.bannerStart {
+  z-index: 2;
+  opacity: 1;
 }
 
 /*
@@ -638,6 +689,7 @@ html, body {
   padding: 1.5rem 3rem 0 3rem;
   width: calc(100% - 6rem);
   height: calc(100% - 3.5rem);
+  margin-top: 2rem;
 }
 
 #browser_privacy img {
@@ -651,9 +703,7 @@ html, body {
   font-size: 1.35rem;
   line-height: 1.8rem;
 }
-#browser_privacy p:first-child {
-  margin-top: 2rem;
-}
+
 
 #browser_privacy p a {
   margin-left: 0.3rem;
@@ -880,6 +930,7 @@ i.hack-first-child {
 .wifi-signal4 {
   background-image: -moz-image-rect(url(images/wifi_sprite.png), 0, 160, 32, 128) !important;
 }
+
 
 .icon {
   background-color: transparent !important;

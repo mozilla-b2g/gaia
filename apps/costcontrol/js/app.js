@@ -14,12 +14,23 @@ var CostControlApp = (function() {
   // XXX: This is the point of entry, check common.js for more info
   waitForDOMAndMessageHandler(window, onReady);
 
+  var vmanager;
   var costcontrol, initialized = false;
   function onReady() {
+    vmanager = new ViewManager();
     var mobileConnection = window.navigator.mozMobileConnection;
 
+    // SIM is absent
+    if (mobileConnection.cardState === 'absent') {
+      debug('There is no SIM');
+      document.getElementById('no-sim-info-dialog')
+        .addEventListener('click', function _close() {
+        window.close();
+      });
+      vmanager.changeViewTo('no-sim-info-dialog');
+
     // SIM is not ready
-    if (mobileConnection.cardState !== 'ready') {
+    } else if (mobileConnection.cardState !== 'ready') {
       debug('SIM not ready:', mobileConnection.cardState);
       mobileConnection.oniccinfochange = onReady;
 
@@ -48,13 +59,12 @@ var CostControlApp = (function() {
       updateUI();
   });
 
-  var tabmanager, vmanager, settingsVManager;
+  var tabmanager, settingsVManager;
   function setupApp() {
     // View managers for dialogs and settings
     tabmanager = new ViewManager(
       ['balance-tab', 'telephony-tab', 'datausage-tab']
     );
-    vmanager = new ViewManager();
     settingsVManager = new ViewManager();
 
     // Configure settings

@@ -41,7 +41,7 @@ var UIManager = {
     'confirm-newpin-error',
     // Import contacts
     'sim-import-button',
-    'sim-import-feedback',
+    'no-sim',
     // Wifi
     'networks',
     'wifi-refresh-button',
@@ -110,6 +110,18 @@ var UIManager = {
       event.preventDefault();
     });
 
+    // Input scroll workaround
+    var top = this.newsletterInput.offsetTop;
+    this.newsletterInput.addEventListener('focus', function() {
+      window.addEventListener('resize', function resize() {
+        window.removeEventListener('resize', resize);
+        // Need to wait till resize is done
+        setTimeout(function() {
+          document.getElementById('browser_privacy').scrollTop = top;
+        }, 30);
+      });
+    });
+
     // Browser privacy newsletter subscription
     var basketCallback = function(err, data) {
       this.loadingOverlay.classList.remove('show-overlay');
@@ -127,7 +139,7 @@ var UIManager = {
       }
       this.newsletterForm.classList.add('hidden');
       this.newsletterSuccessScreen.classList.add('visible');
-    }
+    };
 
     this.newsletterButton.addEventListener('click', function() {
         if (WifiManager.isConnected || DataMobile.isDataAvailable) {
@@ -211,7 +223,9 @@ var UIManager = {
         SimManager.unlock();
         break;
       case 'sim-import-button':
-        SimManager.importContacts();
+        // Needed to give the browser the opportunity to properly refresh the UI
+        // Particularly the button toggling cycle (from inactive to active)
+        window.setTimeout(SimManager.importContacts, 0);
         break;
       // 3G
       case 'data-connection-switch':
