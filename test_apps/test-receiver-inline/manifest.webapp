@@ -1,5 +1,5 @@
 {
-  "name": "Test reciever (inline)",
+  "name": "Test receiver (inline)",
   "description": "Dummy app to respond to Test web activities",
   "launch_path": "/index.html",
   "developer": {
