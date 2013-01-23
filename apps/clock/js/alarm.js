@@ -266,14 +266,21 @@ var BannerView = {
     this.calRemainTime(nextAlarmFireTime);
 
     var innerHTML = '';
-    if (this._remainHours == 0) {
+    if (this._remainHours === 0) {
       innerHTML = _('countdown-lessThanAnHour', {
         minutes: _('nMinutes', { n: this._remainMinutes })
       });
-    } else {
+    } else if (this._remainHours < 24) {
       innerHTML = _('countdown-moreThanAnHour', {
-        hours: _('nRemainHours', { n: this._remainHours }),
+        hours: _('nHours', { n: this._remainHours }),
         minutes: _('nRemainMinutes', { n: this._remainMinutes })
+      });
+    } else {
+      var remainDays = Math.floor(this._remainHours / 24);
+      var remainHours = this._remainHours - (remainDays * 24);
+      innerHTML = _('countdown-moreThanADay', {
+        days: _('nRemainDays', { n: remainDays }),
+        hours: _('nRemainHours', { n: remainHours })
       });
     }
     this.bannerCountdown.innerHTML = '<p>' + innerHTML + '</p>';
@@ -321,7 +328,6 @@ var AlarmList = {
   handleEvent: function al_handleEvent(evt) {
 
     var link = evt.target;
-    var currentTarget = evt.currentTarget;
     if (!link)
       return;
 
@@ -368,8 +374,6 @@ var AlarmList = {
     var id = 'a[data-id="' + alarm.id + '"]';
     var alarmItem = this.alarms.querySelector(id);
     var summaryRepeat = summarizeDaysOfWeek(alarm.repeat);
-    var paddingTop = (summaryRepeat == 'Never') ? 'paddingTop' : '';
-    var hiddenSummary = (summaryRepeat == 'Never') ? 'hiddenSummary' : '';
     var isChecked = alarm.enabled ? ' checked="true"' : '';
     var d = new Date();
     d.setHours(alarm.hour);
@@ -409,8 +413,6 @@ var AlarmList = {
 
     alarmDataList.forEach(function al_fillEachList(alarm) {
       var summaryRepeat = summarizeDaysOfWeek(alarm.repeat);
-      var paddingTop = (summaryRepeat == 'Never') ? 'paddingTop' : '';
-      var hiddenSummary = (summaryRepeat == 'Never') ? 'hiddenSummary' : '';
       var isChecked = alarm.enabled ? ' checked="true"' : '';
       var d = new Date();
       d.setHours(alarm.hour);
@@ -710,7 +712,7 @@ var AlarmEditView = {
 
   get backButton() {
     delete this.backElement;
-    return this.backElement = document.getElementById('alarm-close');
+    return this.backElement = document.getElementById('alarm-back');
   },
 
   get clockContainer() {
@@ -831,7 +833,7 @@ var AlarmEditView = {
         this.delete();
         break;
       case 'alarm-clock-container':
-      case 'alarm-close':
+      case 'alarm-back':
         ClockView.show();
         break;
     }
