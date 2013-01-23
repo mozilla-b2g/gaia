@@ -343,15 +343,12 @@ var UpdateManager = {
 
   displayNotificationAndToaster: function um_displayNotificationAndToaster() {
     if (this.updatesQueue.length && !this._downloading) {
-      this.container.classList.add('displayed');
+      this.displayNotificationIfHidden();
       this.toaster.classList.add('displayed');
-
       var self = this;
       setTimeout(function waitToHide() {
         self.toaster.classList.remove('displayed');
       }, this.TOASTER_TIMEOUT);
-
-      NotificationScreen.incExternalNotifications();
     }
   },
 
@@ -362,9 +359,7 @@ var UpdateManager = {
 
     this.updatesQueue.splice(removeIndex, 1);
     if (this.updatesQueue.length === 0) {
-      this.container.classList.remove('displayed');
-
-      NotificationScreen.decExternalNotifications();
+      this.hideNotificationIfDisplayed();
     }
 
     this.render();
@@ -390,7 +385,7 @@ var UpdateManager = {
       StatusBar.incSystemDownloads();
       this._wifiLock = navigator.requestWakeLock('wifi');
 
-      this.container.classList.add('displayed');
+      this.displayNotificationIfHidden();
       this.render();
     }
   },
@@ -420,6 +415,20 @@ var UpdateManager = {
       }
 
       this.render();
+    }
+  },
+
+  hideNotificationIfDisplayed: function() {
+    if (this.container.classList.contains('displayed')) {
+      this.container.classList.remove('displayed');
+      NotificationScreen.decExternalNotifications();
+    }
+  },
+
+  displayNotificationIfHidden: function() {
+    if (!this.container.classList.contains('displayed')) {
+      this.container.classList.add('displayed');
+      NotificationScreen.incExternalNotifications();
     }
   },
 
