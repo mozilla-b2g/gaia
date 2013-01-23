@@ -27,23 +27,43 @@ var TTLView = {
       document.getElementById('screen').appendChild(element);
 
       var start = 0;
+
+      // this is fired when the app launching is initialized
       window.addEventListener('appwillopen', function willopen(e) {
         var frame = e.target;
+        var iframe = frame.firstChild;
 
-        frame.dataset.lastStart = Date.now();
+        frame.dataset.lastStart = performance.now();
         element.innerHTML = '00000';
 
-        if (!('unpainted' in frame.dataset)) {
-          frame.addEventListener('appopen', function open(e) {
-            frame.removeEventListener(e.type, open);
-            element.innerHTML = Date.now() - frame.dataset.lastStart;
-          });
-          return;
+        // unpainted means that the app is cold booting
+        // if it is, we're going to listen for Browser API's loadend event
+        // which indicates that the iframe's document load is complete
+        //
+        // if the app is not cold booting (is in memory) we will listen
+        // to appopen event, which is fired when the transition to the
+        // app window is complete.
+        //
+        // [w] - warm boot (app is in memory, just transition to it)
+        // [c] - cold boot (app has to be booted, we show it's document load
+        // time)
+        var ev;
+        if ('unpainted' in iframe.dataset) {
+          ev = 'mozbrowserloadend';
+        } else {
+          ev = 'appopen';
         }
 
-        frame.addEventListener('mozbrowserfirstpaint', function paint(e) {
+        frame.addEventListener(ev, function paint(e) {
           frame.removeEventListener(e.type, paint);
-          element.innerHTML = Date.now() - frame.dataset.lastStart;
+          var prefix;
+          if (e.type == 'appopen') {
+            prefix = ' [w]';
+          } else {
+            prefix = ' [c]';
+          }
+          var time = parseInt(performance.now() - frame.dataset.lastStart);
+          element.innerHTML = time + prefix;
         });
       });
     }
