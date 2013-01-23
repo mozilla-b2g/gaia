@@ -209,6 +209,7 @@
 
     <!-- Remote Debugger -->
     <script defer src="js/remote_debugger.js"></script>
+    <script defer src="js/weinre_system.js"></script>
 
     <!-- z-indexes of all the overlays in the system -->
     <link rel="stylesheet" type="text/css" href="style/zindex.css">
@@ -868,30 +869,5 @@
       </div>
 
     </div> <!-- end of #screen -->
-    <script>
-      // so here is quite a timing issue,
-      // don't know where it comes from but f.e. the wifiManager
-      // doesn't like it without the timeout... Anyone has solution?
-      setTimeout(function() {
-        // read settings file and if weinre is enabled then go with the flow
-        var req = new XMLHttpRequest();
-        req.open('GET', 'resources/settings.json', true);
-        req.onreadystatechange = function() {
-          if (req.readyState === 4 && req.status === 200) {
-            try {
-              var config = JSON.parse(req.responseText);
-              if (config.weinre.enabled) {
-                (function(e){
-                  e.setAttribute("src","http://" + config.weinre.host + "/target/target-script-min.js#anonymous");
-                  document.getElementsByTagName("body")[0].appendChild(e);
-                })(document.createElement("script"));
-              }
-            }
-            catch(ex) {}
-          }
-        };
-        req.send(null);
-      }, 2000);
-    </script>
   </body>
 </html>
