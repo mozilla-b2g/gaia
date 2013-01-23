@@ -34,24 +34,19 @@ class TestFMRadioRemoveFromFavorite(GaiaTestCase):
 
         # add the current frequency to favorite list
         self.wait_for_element_displayed(*self._favorite_button_locator)
-        self.marionette.find_element(*self._favorite_button_locator).click()
+        favorite_button = self.marionette.find_element(*self._favorite_button_locator)
+        self.marionette.tap(favorite_button)
+        self.wait_for_element_displayed(*self._favorite_remove_locator)
 
         # verify the change of favorite list after add
         after_add_favorite_count = len(self.marionette.find_elements(*self._favorite_list_locator))
         self.assertEqual(initial_favorite_count, after_add_favorite_count - 1)
 
         # remove the station from favorite list
-        self.wait_for_element_displayed(*self._favorite_remove_locator)
-        self.marionette.find_element(*self._favorite_remove_locator).click()
+        favorite_remove = self.marionette.find_element(*self._favorite_remove_locator)
+        self.marionette.tap(favorite_remove)
 
-        # verify the chage of favorite after remove
+        # verify the change of favorite after remove
         self.wait_for_element_not_displayed(*self._favorite_remove_locator)
         after_remove_favorite_count = len(self.marionette.find_elements(*self._favorite_list_locator))
         self.assertEqual(after_add_favorite_count - 1, after_remove_favorite_count)
-
-    def tearDown(self):
-        # close the app
-        if self.app:
-            self.apps.kill(self.app)
-
-        GaiaTestCase.tearDown(self)

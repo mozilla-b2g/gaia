@@ -638,6 +638,7 @@ html, body {
   padding: 1.5rem 3rem 0 3rem;
   width: calc(100% - 6rem);
   height: calc(100% - 3.5rem);
+  margin-top: 2rem;
 }
 
 #browser_privacy img {
@@ -651,9 +652,7 @@ html, body {
   font-size: 1.35rem;
   line-height: 1.8rem;
 }
-#browser_privacy p:first-child {
-  margin-top: 2rem;
-}
+
 
 #browser_privacy p a {
   margin-left: 0.3rem;

@@ -1105,3 +1105,97 @@ function prettyDate(time) {
 })();
 
 ////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Class to handle form input navigation.
+ *
+ * If 'Enter' is hit, next input element will be focused,
+ * and if the input element is the last one, trigger 'onLast' callback.
+ *
+ * options:
+ *   {
+ *     formElem: element,             // The form element
+ *     checkFormValidity: function    // Function to check form validity
+ *     onLast: function               // Callback when 'Enter' in the last input
+ *   }
+ */
+function FormNavigation(options) {
+  this.initialize(options);
+}
+
+FormNavigation.prototype = {
+  initialize: function formNav_init(options) {
+    this.options = this.extend({
+      formElem: null,
+      checkFormValidity: function checkFormValidity() {
+        return true;
+      },
+      onLast: function() {}
+    }, options);
+
+    if (!this.options.formElem) {
+      throw new Error('The form element should be defined.');
+    }
+
+    this.options.formElem.addEventListener('keypress',
+      this.onKeyPress.bind(this));
+  },
+
+  /**
+   * Focus the first input
+   */
+  focus: function formNav_focus() {
+    var inputElems = this.options.formElem.getElementsByTagName('input');
+    for (var i = 0; i < inputElems.length; i++) {
+      var input = inputElems[i];
+      if (input.type === 'hidden' || input.type === 'button') {
+        continue;
+      }
+      input.focus();
+      return;
+    }
+  },
+
+  onKeyPress: function formNav_onKeyPress(event) {
+    if (event.keyCode === 13) {
+      // Focus the next input
+      var nextInput = this.getNextInput(event);
+      if (nextInput) {
+        nextInput.focus();
+      } else if (this.options.checkFormValidity()) {
+        this.options.onLast();
+      }
+    }
+  },
+
+  getNextInput: function formNav_getNextInput(event) {
+    var currentInput = event.target;
+    var inputElems = this.options.formElem.getElementsByTagName('input');
+    var currentInputFound = false;
+
+    for (var i = 0; i < inputElems.length; i++) {
+      var input = inputElems[i];
+      if (currentInput === input) {
+        currentInputFound = true;
+        continue;
+      } else if (!currentInputFound) {
+        continue;
+      }
+
+      if (input.type === 'hidden' || input.type === 'button') {
+        continue;
+      }
+
+      return input;
+    }
+
+    return null;
+  },
+
+  extend: function formNav_extend(destination, source) {
+    for (var property in source)
+      destination[property] = source[property];
+    return destination;
+  }
+};
+

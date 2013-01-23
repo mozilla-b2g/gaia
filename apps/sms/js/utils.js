@@ -10,7 +10,7 @@ var dtf = new navigator.mozL10n.DateTimeFormat();
 var Utils = {
   updateTimeHeaders: function ut_updateTimeHeaders() {
     var elementsToUpdate =
-        document.querySelectorAll('h2[data-time-update]');
+        document.querySelectorAll('header[data-time-update]');
     if (elementsToUpdate.length > 0) {
       for (var i = 0; i < elementsToUpdate.length; i++) {
         var ts = elementsToUpdate[i].dataset.time;
@@ -28,19 +28,14 @@ var Utils = {
           elementsToUpdate[i].innerHTML = tmpHeaderDate;
         }
       }
-    } else {
-      clearInterval(Utils.updateTimer);
-      Utils.updating = false;
     }
   },
-  updateTimeHeaderScheduler: function ut_updateTimeHeaderScheduler() {
-    if (!Utils.updating) {
-      Utils.updating = true;
-      Utils.updateTimeHeaders();
-      Utils.updateTimer = setInterval(function() {
-        Utils.updateTimeHeaders();
-      },5000);
-    }
+  startTimeHeaderScheduler: function ut_startTimeHeaderScheduler() {
+    this.updateTimeHeaders();
+    clearInterval(this.updateTimer);
+    this.updateTimer = setInterval(function(self) {
+      self.updateTimeHeaders();
+    }, 50000, this);
   },
   escapeHTML: function ut_escapeHTML(str, escapeQuotes) {
     var stringHTML = str;

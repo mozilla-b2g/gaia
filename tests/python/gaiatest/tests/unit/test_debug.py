@@ -24,9 +24,15 @@ class TestDebug(GaiaTestCase):
 
     def tearDown(self):
         GaiaTestCase.tearDown(self)
-        debug_path = os.path.join('debug', self.__class__.__name__, self._testMethodName)
+        xml_output = self.testvars.get('xml_output')
+        debug_path = os.path.join(
+            xml_output and os.path.dirname(xml_output) or 'debug',
+            self.__class__.__name__)
         for file_name in ['screenshot.png']:
-            file_exists = os.path.isfile(os.path.join(debug_path, file_name))
+            file_exists = os.path.isfile(
+                os.path.join(
+                    debug_path,
+                    '%s_%s' % (self._testMethodName, file_name)))
             if self.expect_debug:
                 self.assertTrue(file_exists)
             else:

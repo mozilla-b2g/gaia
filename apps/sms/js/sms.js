@@ -68,6 +68,11 @@ var MessageManager = {
     }
   },
 
+  onVisibilityChange: function mm_onVisibilityChange(e) {
+    ThreadListUI.updateContactsInfo();
+    ThreadUI.updateHeaderData();
+  },
+
   slide: function mm_slide(callback) {
     var mainWrapper = document.getElementById('main-wrapper');
     if (!mainWrapper.classList.contains('to-left')) {
@@ -162,29 +167,6 @@ var MessageManager = {
           }
         }
       break;
-    }
-  },
-
-  onVisibilityChange: function mm_onVisibilityChange(e) {
-    if (!document.mozHidden) {
-      if (window.location.hash == '#edit') {
-        return;
-      }
-      this.getThreads(ThreadListUI.renderThreads);
-      if (!MessageManager.lockActivity) {
-        var num = this.currentNum;
-        if (num) {
-          var filter = this.createFilter(num);
-          var typedText = ThreadUI.input.value;
-          this.getMessages(ThreadUI.renderMessages, filter, false,
-            function() {
-              // Restored previous typed text.
-              ThreadUI.input.value = typedText;
-              ThreadUI.input.focus();
-              ThreadUI.enableSend();
-          });
-        }
-      }
     }
   },
 
@@ -532,7 +514,7 @@ var ThreadListUI = {
 
       appendThreads(threads, function at_callback() {
         // Boot update of headers
-        Utils.updateTimeHeaderScheduler();
+        Utils.updateTimeHeaders();
       });
 
     } else {
@@ -604,6 +586,7 @@ var ThreadListUI = {
     // Append 'time-update' state
     headerDOM.dataset.timeUpdate = true;
     headerDOM.dataset.time = timestamp;
+    headerDOM.dataset.isThread = true;
 
     // Create UL DOM Element
     var threadsContainerDOM = document.createElement('ul');
@@ -756,6 +739,8 @@ var ThreadUI = {
     this.editForm.addEventListener('submit', this);
     this.telForm.addEventListener('submit', this);
     this.sendForm.addEventListener('submit', this);
+
+    Utils.startTimeHeaderScheduler();
   },
 
   onBackAction: function thui_onBackAction() {
@@ -876,11 +861,14 @@ var ThreadUI = {
 
     // Append to DOM
     ThreadUI.view.appendChild(messagesContainerDOM);
-
   },
   // Method for updating the header with the info retrieved from Contacts API
   updateHeaderData: function thui_updateHeaderData() {
     var number = MessageManager.currentNum;
+    if (!number) {
+      return;
+    }
+
     var self = this;
     // Add data to contact activity interaction
     this.title.dataset.phoneNumber = number;
@@ -961,7 +949,7 @@ var ThreadUI = {
         });
       }
       // Boot update of headers
-      Utils.updateTimeHeaderScheduler();
+      Utils.updateTimeHeaders();
       // Callback when every message is appended
       if (callback) {
         callback();
