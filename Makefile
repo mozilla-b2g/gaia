@@ -258,13 +258,13 @@ ifneq ($(DEBUG),1)
 	@$(call run-js-command, webapp-zip)
 endif
 
-# Precompile l10n
-webapp-l10n: install-xulrunner-sdk
-	@$(call run-js-command, webapp-l10n)
+# Web app optimization steps (like precompling l10n, concatenating js files, etc..).
+webapp-optimize: install-xulrunner-sdk
+	@$(call run-js-command, webapp-optimize)
 
 # Remove temporary l10n files
-l10n-clean: install-xulrunner-sdk
-	@$(call run-js-command, l10n-clean)
+optimize-clean: install-xulrunner-sdk
+	@$(call run-js-command, optimize-clean)
 
 # Populate appcache
 offline-cache: webapp-manifests install-xulrunner-sdk
@@ -280,7 +280,7 @@ contacts: install-xulrunner-sdk
 	@echo "Done"
 
 # Create webapps
-offline: webapp-manifests webapp-l10n webapp-zip l10n-clean
+offline: webapp-manifests webapp-optimize webapp-zip optimize-clean
 
 
 # The install-xulrunner target arranges to get xulrunner downloaded and sets up
