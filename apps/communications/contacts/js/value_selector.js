@@ -83,7 +83,7 @@ function ValueSelector(list) {
     select.setAttribute('size', totalOptions);
 
     for (var i = 0; i < totalOptions; i++) {
-      var option = new Option(data.list[i].label, data.list[i].label);
+      var option = new Option(data.list[i].label, data.list[i].value);
       select.add(option);
     }
   }
@@ -92,9 +92,10 @@ function ValueSelector(list) {
     data.list = [];
   }
 
-  this.addToList = function(label) {
+  this.addToList = function(label, value) {
     data.list.push({
-      label: label
+      label: label,
+      value: value
     });
   };
 

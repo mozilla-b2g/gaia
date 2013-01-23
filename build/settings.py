@@ -66,6 +66,7 @@ settings = {
  "lockscreen.enabled": True,
  "lockscreen.locked": True,
  "lockscreen.unlock-sound.enabled": False,
+ "mail.sent-sound.enabled": True,
  "operatorvariant.mcc": 0,
  "operatorvariant.mnc": 0,
  "ril.iccInfo.mbdn":"",
@@ -133,8 +134,8 @@ settings = {
  "wifi.enabled": True,
  "wifi.disabled_by_wakelock": False,
  "wifi.notification": False,
- "icc.displayTextTimeout": 5000,
- "icc.inputTextTimeout": 5000
+ "icc.displayTextTimeout": 40000,
+ "icc.inputTextTimeout": 40000
 }
 
 def main():
