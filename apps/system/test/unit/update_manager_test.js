@@ -456,6 +456,7 @@ suite('system/UpdateManager', function() {
       test('should display the notification', function() {
         assert.isTrue(fakeNode.classList.contains('displayed'));
       });
+
     });
 
     suite('uncompress display', function() {
@@ -531,6 +532,47 @@ suite('system/UpdateManager', function() {
         }, tinyTimeout * 2);
       });
 
+      suite('notification behavior after addToDownloadsQueue', function() {
+        setup(function() {
+          var css = UpdateManager.container.classList;
+          assert.isFalse(css.contains('displayed'));
+          UpdateManager.addToDownloadsQueue(uAppWithDownloadAvailable);
+        });
+
+        test('should be displayed only once', function() {
+          var css = UpdateManager.container.classList;
+          assert.isTrue(css.contains('displayed'));
+          assert.equal(MockNotificationScreen.wasMethodCalled['incExternalNotifications'], 1);
+        });
+
+        test('should not be displayed after timeout', function(done) {
+          setTimeout(function() {
+            var css = UpdateManager.container.classList;
+            assert.isTrue(css.contains('displayed'));
+            assert.equal(MockNotificationScreen.wasMethodCalled['incExternalNotifications'], 1);
+            done();
+          }, tinyTimeout * 2);
+
+        });
+      });
+
+      suite('notification behavior after addToDownloadsQueue after timeout', function() {
+        setup(function(done) {
+          setTimeout(function() {
+            var css = UpdateManager.container.classList;
+            assert.isFalse(css.contains('displayed'));
+            UpdateManager.addToDownloadsQueue(uAppWithDownloadAvailable);
+            done();
+          });
+        });
+
+        test('should not increment the counter if already displayed', function() {
+          var css = UpdateManager.container.classList;
+          assert.isTrue(css.contains('displayed'));
+          assert.equal(MockNotificationScreen.wasMethodCalled['incExternalNotifications'], 1);
+        });
+      });
+
       suite('displaying the container after a timeout', function() {
         setup(function() {
           var css = UpdateManager.container.classList;
@@ -541,6 +583,7 @@ suite('system/UpdateManager', function() {
           setTimeout(function() {
             var css = UpdateManager.container.classList;
             assert.isTrue(css.contains('displayed'));
+            assert.equal(MockNotificationScreen.wasMethodCalled['incExternalNotifications'], 1);
             done();
           }, tinyTimeout * 2);
         });
