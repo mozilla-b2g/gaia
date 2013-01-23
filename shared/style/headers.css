@@ -354,7 +354,7 @@ section[role="region"].skin-organic > header,
 
 html[dir="rtl"] section[role="region"] > header:first-child h1 {
   text-align: right;
-  margin: 0 3rem 0 0;
+  margin: 0 3.5rem 0 0;
 }
 
 html[dir="rtl"] section[role="region"] > header:first-child button,
@@ -366,7 +366,8 @@ html[dir="rtl"] section[role="region"] > header:first-child a {
 html[dir="rtl"] section[role="region"] > header:first-child > button .icon,
 html[dir="rtl"] section[role="region"] > header:first-child > a .icon {
   margin-left: 0;
-  margin-right: -2rem;
+  margin-right: 4px;
+  padding-left:0;
 }
 
 html[dir="rtl"] section[role="region"] > header:first-child > button .icon:after,
@@ -378,4 +379,69 @@ html[dir="rtl"] section[role="region"] > header:first-child > a .icon:after {
 html[dir="rtl"] section[role="region"] > header:first-child .icon.icon-back {
   background-image: url(headers/images/icons/back-rtl.png);
 }
+html[dir="rtl"] section[role="region"] > header:first-child > button,
+html[dir="rtl"] section[role="region"] > header:first-child > a {
+  position: absolute;
+  right: 0;
+  width: 5rem;
+  height: 5rem;
+  background: url(headers/images/ui/separator-large.png) no-repeat 2rem center;
+  overflow: hidden;
+}
+/* Generic set of actions in toolbar (for RTL mode) */
+html[dir="rtl"] section[role="region"] > header:first-child menu[type="toolbar"] {
+  height: 100%;
+  float: left;
+}
 
+html[dir="rtl"] section[role="region"] > header:first-child menu[type="toolbar"] a,
+html[dir="rtl"] section[role="region"] > header:first-child menu[type="toolbar"] button {
+  height: 5rem;
+  min-width: 5rem;
+  width: auto;
+  margin-bottom: 0;
+  border-radius: 0;
+  line-height: 5rem;
+  float: left;
+  background: none;
+  padding: 0 1.75rem;
+  -moz-box-sizing: border-box;
+  text-align: center;
+  text-shadow: none;
+  position: relative;
+  z-index: 5;
+}
+
+html[dir="rtl"] section[role="region"] > header:first-child menu[type="toolbar"] a:last-child,
+html[dir="rtl"] section[role="region"] > header:first-child menu[type="toolbar"] button:last-child {
+  background: url(headers/images/ui/separator.png) no-repeat right center;
+  margin-right: -0.3rem;
+  z-index: 1;
+}
+
+html[dir="rtl"] section[role="region"] > header:first-child menu[type="toolbar"] {
+  padding: 0;
+  margin: 0;
+}
+html[dir="rtl"] section[role="region"] > header:first-child > button .icon:after,
+html[dir="rtl"] section[role="region"] > header:first-child > a .icon:after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: -1;
+  width: 3rem;
+  height: 4.9rem;
+  background: #9d3d26 url(headers/images/ui/negative.png) repeat-x 0 0;
+}
+html[dir="rtl"] section[role="region"] > header > a .icon.icon-menu,
+html[dir="rtl"] section[role="region"] > header > button .icon.icon-menu {
+  background-position:center;
+}
+html[dir="rtl"] section[role="region"] > header:first-child form {
+  display: block;
+  overflow: hidden;
+  position: relative;
+  padding: 1rem 1rem 0 0.5rem ;
+  margin-right: 2.5rem;
+}
