@@ -225,8 +225,14 @@ var Connectivity = (function(window, document, undefined) {
   //
   // Now register callbacks to track the state of the wifi hardware
   //
-  gWifiManager.onenabled = wifiEnabled;
-  gWifiManager.ondisabled = wifiDisabled;
+  gWifiManager.onenabled = function() {
+    dispatchEvent(new CustomEvent('wifi-enabled'));
+    wifiEnabled();
+  };
+  gWifiManager.ondisabled = function() {
+    dispatchEvent(new CustomEvent('wifi-disabled'));
+    wifiDisabled();
+  };
   gWifiManager.onstatuschange = wifiStatusChange;
 
   function init() {
@@ -241,9 +247,15 @@ var Connectivity = (function(window, document, undefined) {
     gMobileConnection.addEventListener('datachange', updateCarrier);
     updateCarrier();
 
-    // this listener is replaced when bluetooth.js is loaded
-    gBluetooth.onadapteradded = updateBluetooth;
-    gBluetooth.ondisabled = updateBluetooth;
+    // these listeners are replaced when bluetooth.js is loaded
+    gBluetooth.onadapteradded = function() {
+      dispatchEvent(new CustomEvent('bluetooth-adapter-added'));
+      updateBluetooth();
+    };
+    gBluetooth.ondisabled = function() {
+      dispatchEvent(new CustomEvent('bluetooth-disabled'));
+      updateBluetooth();
+    };
     updateBluetooth();
     initSystemMessageHandler();
   }
