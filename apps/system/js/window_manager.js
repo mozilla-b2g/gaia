@@ -592,7 +592,7 @@ var WindowManager = (function() {
       }
 
       callback(req.result.screenshot, true);
-    }
+    };
     req.onerror = function(evt) {
       console.warn('Window Manager: get screenshot from database failed.');
       callback();
@@ -850,7 +850,7 @@ var WindowManager = (function() {
 
         callback(app);
       }
-    }
+    };
   }
 
   function skipFTU() {
@@ -1118,10 +1118,13 @@ var WindowManager = (function() {
 
     iframe.setAttribute('mozapp', manifestURL);
     iframe.src = url;
-    iframe.onload = function () { 
-      // todo: inject weinre script if required
-      // cant do due to CORS atm have to find where is handled
-    };
+
+    var evt = document.createEvent('CustomEvent');
+    evt.initCustomEvent('createappframe', true, false, {
+      frame: iframe
+    });
+    window.dispatchEvent(evt);
+
     return frame;
   }
 
@@ -1133,9 +1136,9 @@ var WindowManager = (function() {
     frame.id = 'appframe' + nextAppId++;
     iframe.dataset.frameType = 'window';
 
-    // Give a name to the frame for differentiating between main frame and 
+    // Give a name to the frame for differentiating between main frame and
     // inline frame. With the name we can get frames of the same app using the
-    // window.open method. 
+    // window.open method.
     iframe.name = 'main';
 
     // If this frame corresponds to the homescreen, set mozapptype=homescreen
@@ -1188,7 +1191,7 @@ var WindowManager = (function() {
     frame.classList.add('inlineActivity');
     iframe.dataset.frameType = 'inline-activity';
 
-    // Give a name to the frame for differentiating between main frame and 
+    // Give a name to the frame for differentiating between main frame and
     // inline frame. With the name we can get frames of the same app using the
     // window.open method.
     iframe.name = 'inline';
