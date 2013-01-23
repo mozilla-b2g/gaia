@@ -15,7 +15,10 @@ Gaia.webapps.forEach(function(webapp) {
   let re = new RegExp('\\.html\\.' + GAIA_DEFAULT_LOCALE + '$');
   let files = ls(webapp.sourceDirectoryFile, true);
   files.forEach(function(file) {
-    if (re.test(file.leafName)) {
+    if (
+      re.test(file.leafName) ||
+      file.leafName.indexOf(Gaia.aggregatePrefix) === 0
+    ) {
       file.remove(false);
     }
   });

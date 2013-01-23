@@ -225,10 +225,14 @@ html, body {
   top: 20px;
   max-height: calc(100% - 15rem - 20px);
 }
+#updates-download-dialog[data-online="false"] #updates-offline-warning,
 #updates-download-dialog[data-nowifi="true"] #updates-no-wifi-warning,
 #updates-download-dialog[data-nowifi="true"][data-edge="true"] #updates-edge-warning {
   display: block;
 }
+#updates-download-dialog[data-online="false"] #updates-download-button,
+#updates-download-dialog[data-edge="true"] #updates-offline-warning,
+#updates-download-dialog[data-nowifi="true"][data-online="false"] #updates-no-wifi-warning,
 #updates-download-dialog[data-nowifi="true"][data-edge="true"] #updates-no-wifi-warning {
   display: none;
 }
