@@ -436,6 +436,7 @@ ComposeCard.prototype = {
   },
 
   onContactAdd: function(event) {
+    event.stopPropagation();
     var contactBtn = event.target;
     var self = this;
     contactBtn.classList.remove('show');
