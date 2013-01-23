@@ -180,18 +180,21 @@ var UssdManager = {
     this._popup.ready = true;
     if (this._closedOnVisibilityChange) {
       this.notifyLast();
+    } else {
+      this.notifyPending();
     }
-    this.notifyPending();
   },
 
   notifyPending: function um_notifyPending() {
-    if (this._pendingNotification)
+    if (this._pendingNotification) {
       this.postMessage(this._pendingNotification);
+    }
   },
 
-  notifyLast: function um_notifyPending() {
-    if (this._lastMessage)
+  notifyLast: function um_notifyLast() {
+    if (this._lastMessage) {
       this.postMessage(this._lastMessage);
+    }
   },
 
   isUSSD: function um_isUSSD(number) {
@@ -201,7 +204,11 @@ var UssdManager = {
 
   postMessage: function um_postMessage(message) {
     if (this._popup && this._popup.ready) {
-      this._popup.postMessage(this._lastMessage = message, this._origin);
+      this._popup.postMessage(message, this._origin);
+      this._pendingNotification = null;
+      if (message.type !== 'voicechange') {
+        this._lastMessage = message;
+      }
     } else {
       this._pendingNotification = message;
     }

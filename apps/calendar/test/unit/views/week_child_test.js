@@ -14,6 +14,7 @@ suite('views/week_child', function() {
   var events;
   var template;
   var viewDate = new Date(2012, 1, 15);
+  var stubStickyFrame = document.createElement('section');
 
   setup(function() {
     app = testSupport.calendar.app();
@@ -22,7 +23,8 @@ suite('views/week_child', function() {
 
     subject = new Calendar.Views.WeekChild({
       app: app,
-      date: viewDate
+      date: viewDate,
+      stickyFrame: stubStickyFrame
     });
 
     template = Calendar.Templates.Day;
@@ -76,7 +78,7 @@ suite('views/week_child', function() {
     var element = subject.create();
     var html = element.innerHTML;
     assert.ok(html);
-    assert.include(html, subject._renderHeader());
+    assert.include(stubStickyFrame.innerHTML, subject._renderHeader());
   });
 
 });

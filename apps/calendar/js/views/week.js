@@ -11,9 +11,10 @@ Calendar.ns('Views').Week = (function() {
    * @param {String} id frame id.
    * @param {Array[Object]} children array of child views.
    */
-  function Frame(id, children) {
+  function Frame(id, children, stickyList) {
     this.id = id;
     this.children = children;
+    this.stickyList = stickyList;
     // frame element - mostly here for positioning
     this.element = document.createElement('section');
 
@@ -65,6 +66,9 @@ Calendar.ns('Views').Week = (function() {
       this.element.classList.add(
         Calendar.View.ACTIVE
       );
+      this.stickyList.classList.add(
+        Calendar.View.ACTIVE
+      );
     },
 
     /**
@@ -73,6 +77,9 @@ Calendar.ns('Views').Week = (function() {
     deactivate: function() {
       this._childMethod('deactivate');
       this.element.classList.remove(
+        Calendar.View.ACTIVE
+      );
+      this.stickyList.classList.remove(
         Calendar.View.ACTIVE
       );
     },
@@ -109,8 +116,9 @@ Calendar.ns('Views').Week = (function() {
 
     selectors: {
       element: '#week-view',
-      sidebar: '#week-view > .sidebar',
-      container: '#week-view > .children'
+      sidebar: '#week-view > .scroll > .sidebar',
+      container: '#week-view > .scroll > .children',
+      stickyChildren: '#week-view > .sticky > .children'
     },
 
     get sidebar() {
@@ -119,6 +127,14 @@ Calendar.ns('Views').Week = (function() {
 
     get frameContainer() {
       return this._findElement('container');
+    },
+
+    get delegateParent() {
+      return this._findElement('element');
+    },
+
+    get stickyChildren() {
+      return this._findElement('stickyChildren');
     },
 
     /**
@@ -226,37 +242,37 @@ Calendar.ns('Views').Week = (function() {
       var id = start.valueOf();
       var len = details.length;
       var children = [];
+      var stickyList = document.createElement('ul');
 
       var i = 0;
       for (; i < len; i++) {
         var date = new Date(start.valueOf());
         date.setDate(date.getDate() + i);
+
+        var stickyFrame = document.createElement('li');
+        stickyList.appendChild(stickyFrame);
+
         children.push(new Calendar.Views.WeekChild({
           date: date,
-          app: this.app
+          app: this.app,
+          stickyFrame: stickyFrame
         }));
       }
 
-      var frame = new Frame(id, children);
+      var frame = new Frame(id, children, stickyList);
       var list = frame.element.classList;
 
       list.add('days-' + len);
       list.add('weekday');
+
+      this.stickyChildren.appendChild(frame.stickyList);
+      frame.stickyList.classList.add('days-' + len);
 
       return frame;
     },
 
     _appendSidebarHours: function() {
       var element = this.sidebar;
-      var allday = template.sidebarHour.render({
-        hour: Calendar.Calc.ALLDAY,
-        displayHour: Calendar.Calc.ALLDAY
-      });
-
-      element.insertAdjacentHTML(
-        'beforeend',
-        allday
-      );
 
       var i = 0;
       var hour;
