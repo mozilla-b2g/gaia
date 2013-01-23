@@ -17,7 +17,7 @@
       var src = 'http://' + host + '/target/target-script-min.js#anonymous';
       e.setAttribute('src', src);
       document.getElementsByTagName('body')[0].appendChild(e);
-    })(document.createElement('script', host));
+    })(document.createElement('script'), host);
   };
 
   // already loaded, then inject, otherwise wait...

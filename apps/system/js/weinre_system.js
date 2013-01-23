@@ -46,9 +46,10 @@
 
       // append the weinre host to all app frames (to be read by weinre_app.js)
       window.addEventListener('createappframe', function(ev) {
-        if (ev.detail.frame)
+        if (ev.detail.frame) {
           var hash = '#weinre=' + encodeURIComponent(config.weinre.host);
           ev.detail.frame.src += hash;
+        }
       });
     });
   }
