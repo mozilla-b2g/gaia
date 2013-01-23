@@ -755,14 +755,28 @@ suite('system/UpdateManager', function() {
           downloadDialog = UpdateManager.downloadDialog;
         });
 
-        test('should swith the nowifi data attribute when connected',
+        test('should switch the online data attribute when online',
+        function() {
+          downloadDialog.dataset.online = false;
+          window.dispatchEvent(new CustomEvent('online'));
+          assert.equal(downloadDialog.dataset.online, 'true');
+        });
+
+        test('should leave the online data attribute true when online',
+        function() {
+          downloadDialog.dataset.online = true;
+          window.dispatchEvent(new CustomEvent('online'));
+          assert.equal(downloadDialog.dataset.online, 'true');
+        });
+
+        test('should switch the nowifi data attribute when connected',
         function() {
           downloadDialog.dataset.nowifi = true;
           window.dispatchEvent(new CustomEvent('wifi-statuschange'));
           assert.equal(downloadDialog.dataset.nowifi, 'false');
         });
 
-        test('should swith the nowifi data attribute when disconnected',
+        test('should switch the nowifi data attribute when disconnected',
         function() {
           downloadDialog.dataset.nowifi = false;
           navigator.mozWifiManager.connection.status = 'disconnected';
@@ -779,7 +793,7 @@ suite('system/UpdateManager', function() {
             MockNavigatorMozMobileConnection.mTeardown();
           });
 
-          test('should swith the edge data attribute when type is not edge',
+          test('should switch the edge data attribute when type is not edge',
           function() {
             downloadDialog.dataset.edge = true;
             MockNavigatorMozMobileConnection.data = {
@@ -789,7 +803,7 @@ suite('system/UpdateManager', function() {
             assert.equal(downloadDialog.dataset.edge, 'false');
           });
 
-          test('should swith the edge data attribute when type is edge',
+          test('should switch the edge data attribute when type is edge',
           function() {
             downloadDialog.dataset.edge = false;
             MockNavigatorMozMobileConnection.data = {
