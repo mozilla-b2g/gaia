@@ -817,7 +817,9 @@
    */
   function displayNotification(command) {
     var options = command.options;
-    NotificationHelper.send('STK', options.text);
+    NotificationHelper.send('STK', options.text, '',function() {
+      alert(options.text);
+    });
   }
 
   /**
