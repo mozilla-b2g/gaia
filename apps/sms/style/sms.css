@@ -164,94 +164,51 @@ form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
 }
 
 /* Panel handling */
-.wrapper {
-  position: relative;
+#main-wrapper {
+  position: absolute;
   overflow: hidden;
   width: 100%;
   height: 100%;
   left: 0;
   top: 0;
+
+  background-image: url(/shared/style/headers/images/ui/header.png),
+                    url(/shared/style/headers/images/ui/shadow.png);
+  background-repeat: repeat-x;
+  background-position: 0 0, 0 5rem;
+  background-size: 100% 5rem, 100% 0.3rem;
+}
+
+.panel:first-child {
+  left: 0;
 }
 
 .panel {
   position: absolute;
-  float: left;
+  left: 100%;
   width: 100%;
   height: 100%;
+
+  transition: transform .4s ease;
 }
 
-@keyframes slideLeftPrimary {
-  from {
-    transform: translateX(-1%);
-  }
- 
-  to {
-    transform: translateX(-100%);
-  }
+#main-wrapper.peek .panel {
+  transition: transform 1ms linear;
 }
 
-@keyframes slideLeftSecondary {
-  from {
-    transform: translateX(99%);
-  }
- 
-  to {
-    transform: translateX(0%);
-  }
+#main-wrapper[data-position='left'].peek .panel {
+  transform: translateX(-1px);
 }
-
-@keyframes slideRightSecondary {
-  from {
-    transform: translateX(1%);
-  }
- 
-  to {
-    transform: translateX(100%);
-  }
-}
-
-@keyframes slideRightPrimary {
-  from {
-    transform: translateX(-99%);
-  }
- 
-  to {
-    transform: translateX(0%);
-  }
-}
-
-.panel:nth-child(2) {
-  transform: translateX(100%);
-}
-
-.to-left > .panel:first-child {
-  animation-duration: .3s;
-  animation-name: slideLeftPrimary;
-}
-
-.to-left > .panel:nth-child(2) {
-  animation-duration: .3s;
-  animation-name: slideLeftSecondary;
-}
-
-.to-left-fixed > .panel:first-child {
+#main-wrapper[data-position='left'] .panel {
   transform: translateX(-100%);
 }
 
-.to-left-fixed > .panel:nth-child(2) {
-  transform: translateX(0);
+#main-wrapper[data-position='right'].peek .panel {
+  transform: translateX(calc(-100% + 1px));
 }
-
-.to-right > .panel:first-child {
-  animation-duration: .3s;
-  animation-name: slideRightPrimary;
+#main-wrapper[data-position='right'] .panel {
+  transform: translateX(0%);
 }
-
-.to-right > .panel:nth-child(2) {
-  animation-duration: .3s;
-  animation-name: slideRightSecondary;
-}
-
 
 #thread-list,#thread-messages {
   z-index: 10;

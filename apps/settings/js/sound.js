@@ -35,14 +35,14 @@
       debug('success: get list for ' + type + '(' + url + ')');
 
       callback(xhr.response);
-    }
+    };
 
     xhr.onerror = function errorGetSoundsFor() {
       debug('error: get list for ' + type + '(' + url + ')');
 
       // Something wrong happens, let's return an empty list.
       callback({});
-    }
+    };
   }
 
   function getBase64For(type, name, callback) {
@@ -62,7 +62,7 @@
         binary += String.fromCharCode(xhr.responseText.charCodeAt(i) & 0xff);
       }
       callback(window.btoa(binary));
-    }
+    };
 
     xhr.onerror = function errorGetBase64For() {
       debug('error: get base64 for ' + type + '(' + name + ')');
@@ -71,13 +71,26 @@
       // exists. For now there is no feedback but I guess one should
       // be added one day.
       callback('');
-    }
+    };
   }
 
   function generateList(sounds, type) {
     debug('generating list for ' + type + '\n');
 
     var list = '';
+
+    // Add 'None' option which should be at the top.
+    if (type == 'notifications') {
+      list +=
+        '<li>' +
+        '  <label>' +
+        '    <input type="radio" name="notifications-option" data-ignore' +
+        ' value="none" data-label="none" />' +
+        '    <span></span>' +
+        '  </label>' +
+        '  <a data-l10n-id="none">None</a>' +
+        '</li>';
+    }
     for (var sound in sounds) {
       var text = navigator.mozL10n.get(sound.replace('.', '_'));
       list +=
@@ -115,7 +128,7 @@
 
     request.onerror = function errorGetCurrentSound() {
       debug('error get current sound: ' + key);
-    }
+    };
   }
 
   function generateSoundsLists() {
@@ -130,8 +143,12 @@
           activateCurrentElementFor(list);
 
           list.element.onclick = function onListClick(evt) {
-            if (evt.target.tagName == 'LABEL')
-              audioPreview(evt.target, key);
+            if (evt.target.tagName == 'LABEL') {
+              if (evt.target.querySelector('input').value == 'none')
+                stopAudioPreview();
+              else
+                audioPreview(evt.target, key);
+            }
           };
         });
       })(list, key);
@@ -154,15 +171,19 @@
           continue;
 
         (function(key, settingName, value) {
-          getBase64For(key, value, function onData(data) {
+          function setSound(data) {
             var setting = {};
-            setting[settingName] = 'data:audio/ogg;base64,' + data;
+            setting[settingName] = data ? 'data:audio/ogg;base64,' + data : '';
             navigator.mozSettings.createLock().set(setting);
 
             var setting2 = {};
             setting2[settingName + '.name'] = value;
             navigator.mozSettings.createLock().set(setting2);
-          });
+          }
+          if (value == 'none')
+            setSound();
+          else
+            getBase64For(key, value, setSound);
         })(key, list.settingName, selected.value);
       }
 
