@@ -12,6 +12,7 @@
   ],
   "permissions": {
     "alarms":{},
+    "audio-channel-notification":{},
     "contacts":{ "access": "readcreate" },
     "desktop-notification":{},
     "device-storage:music":{ "access": "readcreate" },
