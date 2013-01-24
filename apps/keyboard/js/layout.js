@@ -118,7 +118,8 @@ const Keyboards = {
       ], [
         { value: 'a' }, { value: 's' }, { value: 'd' }, { value: 'f' },
         { value: 'g' } , { value: 'h' }, { value: 'j' }, { value: 'k' },
-        { value: 'l' }, { value: "'", keyCode: 39 }
+        { value: 'l' }, { value: "'", keyCode: 39, hidden: ['email', 'url'] },
+        { value: ":", visible: ['url']}, { value: "_", visible: ['email']}
       ], [
         { value: '⇪', ratio: 1.5, keyCode: KeyEvent.DOM_VK_CAPS_LOCK },
         { value: 'z' }, { value: 'x' }, { value: 'c' }, { value: 'v' },
@@ -129,12 +130,6 @@ const Keyboards = {
         { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
       ]
     ],
-    urlOverrides: {
-      "'": ':'
-    },
-    emailOverrides: {
-      "'": '_'
-    },
     alternateLayout: {
       alt: {
         '0': 'º',
@@ -157,9 +152,9 @@ const Keyboards = {
           { value: '5' } , { value: '6' }, { value: '7' } , { value: '8' },
           { value: '9' }, { value: '0' }
         ], [
-          { value: '@' }, { value: '#' }, { value: '$' }, { value: '%' },
+          { value: '@', hidden: ['email'] }, { value: '#' }, { value: '$' }, { value: '%' },
           { value: '&' } , { value: '*' }, { value: '-' }, { value: '+' },
-          { value: '(' }, { value: ')' }
+          { value: '(' }, { value: ')' }, { value: '_', visible: ['email'] }
         ], [
           { value: 'ALT', ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT },
           { value: '!' }, { value: '\"' }, { value: "'" }, { value: ':' },
@@ -200,7 +195,8 @@ const Keyboards = {
       ], [
         { value: 'a' }, { value: 's' }, { value: 'd' }, { value: 'f' },
         { value: 'g' } , { value: 'h' }, { value: 'j' }, { value: 'k' },
-        { value: 'l' }, { value: 'ñ' }
+        { value: 'l' }, { value: 'ñ', hidden: ['email', 'url'] },
+        { value: ':', visible: ['url'] }, { value: '_', visible: ['email'] }
       ], [
         { value: '⇪', ratio: 1.5, keyCode: KeyEvent.DOM_VK_CAPS_LOCK },
         { value: 'z' }, { value: 'x' }, { value: 'c' }, { value: 'v' },
@@ -212,12 +208,6 @@ const Keyboards = {
         { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
       ]
     ],
-    urlOverrides: {
-      'ñ': ':'
-    },
-    emailOverrides: {
-      'ñ': '_'
-    },
     alternateLayout: {
       alt: {
         '€': '$ £ ¥ R$',
@@ -301,7 +291,8 @@ const Keyboards = {
       ], [
         { value: 'a' }, { value: 's' }, { value: 'd' }, { value: 'f' },
         { value: 'g' } , { value: 'h' }, { value: 'j' }, { value: 'k' },
-        { value: 'l' }, { value: 'ç' }
+        { value: 'l' }, { value: 'ç', hidden: ['email', 'url'] },
+        { value: ':', visible: ['url'] }, { value: '_', visible: ['email'] }
       ], [
         { value: '⇪', ratio: 1.5, keyCode: KeyEvent.DOM_VK_CAPS_LOCK },
         { value: 'z' }, { value: 'x' }, { value: 'c' }, { value: 'v' },
@@ -312,12 +303,6 @@ const Keyboards = {
         { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
       ]
     ],
-    urlOverrides: {
-      'ç': ':'
-    },
-    emailOverrides: {
-      'ç': '_'
-    },
     alternateLayout: {
       alt: {
         'R$': '€$£¥',

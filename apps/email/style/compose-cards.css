@@ -34,7 +34,7 @@
   overflow: hidden;
 }
 
-input.cmp-addr-text, input.cmp-subject-text, input.cmp-dot-text {
+input.cmp-addr-text, input.cmp-subject-text {
   border: 0;
   background: none;
   padding: 0;
@@ -42,13 +42,9 @@ input.cmp-addr-text, input.cmp-subject-text, input.cmp-dot-text {
   margin-left: 0.5rem;
 }
 
-input.cmp-addr-text, input.cmp-dot-text {
+input.cmp-addr-text {
   margin-top: 2px;
   float: left;
-  width: 0.5rem;
-}
-
-input.cmp-dot-text {
   width: 0.5rem;
 }
 
