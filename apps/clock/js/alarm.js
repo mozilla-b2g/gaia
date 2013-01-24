@@ -66,7 +66,6 @@ var ClockView = {
     this.digitalClock.addEventListener('tap', this);
 
     asyncStorage.getItem(SETTINGS_CLOCKMODE, function(mode) {
-      alert('asyncStorage.getItem ' + mode)
       switch (mode) {
         case 'digital':
           self.showDigitalClock();
