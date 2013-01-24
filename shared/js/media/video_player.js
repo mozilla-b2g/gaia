@@ -44,6 +44,7 @@ function VideoPlayer(container) {
 
   this.load = function(url, rotate) {
     rotation = rotate || 0;
+    player.mozAudioChannelType = 'content';
     player.src = url;
   };
 

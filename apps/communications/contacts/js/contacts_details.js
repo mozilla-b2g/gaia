@@ -165,11 +165,11 @@ contacts.Details = (function() {
     renderEmails(contact);
     renderAddresses(contact);
     renderNotes(contact);
-    renderPhoto(contact);
-
     if (fb.isEnabled) {
       renderSocial(contact);
     }
+
+    renderPhoto(contact);
   };
 
   var renderFavorite = function cd_renderFavorite(contact) {

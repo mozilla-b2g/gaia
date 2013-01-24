@@ -107,14 +107,23 @@ var BluetoothTransfer = {
 
   onReceivingFileConfirmation: function bt_onReceivingFileConfirmation(evt) {
     // Prompt appears when a transfer request from a paired device is received.
+    var _ = navigator.mozL10n.get;
+
     var fileSize = evt.fileLength;
     var self = this;
+    var icon = 'style/bluetooth_transfer/images/icon_bluetooth.png';
+
     // Check storage is available or not before the prompt.
     this.checkStorageSpace(fileSize,
       function checkStorageSpaceComplete(isStorageAvailable, errorMessage) {
-        UtilityTray.hide();
         if (isStorageAvailable) {
-          self.showReceivePrompt(evt);
+          NotificationHelper.send(_('notification-fileTransfer-title'),
+                                  _('notification-fileTransfer-description'),
+                                  icon,
+                                  function() {
+                                    UtilityTray.hide();
+                                    self.showReceivePrompt(evt);
+                                  });
         } else {
           self.showStorageUnavaliablePrompt(errorMessage);
         }
