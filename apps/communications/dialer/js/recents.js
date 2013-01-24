@@ -303,7 +303,7 @@ var Recents = {
         var selectedCalls = this.recentsContainer.
           querySelectorAll('.log-item:not(.hide) input:checked');
         var selectedCallsLength = selectedCalls.length;
-        if (selectedCallsLength == 0) {
+        if (selectedCallsLength === 0) {
           this.headerEditModeText.textContent = this._('edit');
         } else {
           this.headerEditModeText.textContent = this._('edit-selected',
@@ -322,13 +322,13 @@ var Recents = {
         var noMissedCallsItemParent = noMissedCallsItem.parentNode;
         var notHiddenCalls = noMissedCallsItemParent.
           querySelectorAll('.log-item:not(.hide)');
-        if (notHiddenCalls.length == 0) {
+        if (notHiddenCalls.length === 0) {
           var notHiddenCallsDay = noMissedCallsItemParent.parentNode;
           notHiddenCallsDay.classList.add('hide');
         }
         var visibleCalls = this.recentsContainer.
           querySelectorAll('.log-item:not(.hide)');
-        if (visibleCalls.length == 0) {
+        if (visibleCalls.length === 0) {
           this.recentsIconEdit.parentNode.setAttribute('aria-disabled', 'true');
         } else {
           this.recentsIconEdit.parentNode.removeAttribute('aria-disabled');
@@ -337,7 +337,7 @@ var Recents = {
           var selectedCalls = this.recentsContainer.
             querySelectorAll('.log-item:not(.hide) input:checked');
           var selectedCallsLength = selectedCalls.length;
-          if (selectedCallsLength == 0) {
+          if (selectedCallsLength === 0) {
             this.headerEditModeText.textContent = this._('edit');
           } else {
             this.headerEditModeText.textContent = this._('edit-selected',
@@ -536,7 +536,7 @@ var Recents = {
         event.stopPropagation();
       }
       var count = this.getSelectedEntries().length;
-      if (count == 0) {
+      if (count === 0) {
         this.headerEditModeText.textContent = this._('edit');
         this.recentsIconDelete.classList.add('disabled');
         this.deselectAllThreads.setAttribute('disabled', 'disabled');
@@ -661,7 +661,7 @@ var Recents = {
     if (!this.recentsContainer)
       return;
 
-    if (recents.length == 0) {
+    if (recents.length === 0) {
       this.recentsContainer.innerHTML =
         '<div id="no-result-container">' +
         ' <div id="no-result-message">' +
@@ -678,6 +678,12 @@ var Recents = {
     this.recentsIconEdit.parentNode.removeAttribute('aria-disabled');
 
     var self = this;
+    Contacts.getCount(function(total) {
+      if (!total) {
+        self.addToExistingContactMenuItem.style.display = "none";
+      }
+    });
+
     window.asyncStorage.getItem('latestCallLogVisit', function getItem(value) {
       var content = '',
         currentDay = '';
