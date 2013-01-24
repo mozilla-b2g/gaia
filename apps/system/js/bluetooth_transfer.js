@@ -349,6 +349,9 @@ var BluetoothTransfer = {
     var _ = navigator.mozL10n.get;
     // Remove transferring progress
     this.removeProgress(transferInfo);
+    var fileName =
+      (transferInfo.fileName) ? transferInfo.fileName : _('unknown-file');
+    var icon = 'style/bluetooth_transfer/images/icon_bluetooth.png';
     // Show banner and notification
     if (transferInfo.success == true) {
        // Show completed message of transferred result on the banner
@@ -356,26 +359,26 @@ var BluetoothTransfer = {
       if (transferInfo.received) {
         // Received file can be opened only
         // TODO: Need to modify the icon after visual provide
-        NotificationHelper.send(_('transferFinished-receivedCompletedTitle'),
-                                _('transferFinished-completedBody'),
-                                'style/bluetooth_transfer/images/icon_bluetooth.png',
+        NotificationHelper.send(_('transferFinished-receivedSuccessful-title'),
+                                fileName,
+                                icon,
                                 this.openReceivedFile.bind(this, transferInfo));
       } else {
-        NotificationHelper.send(_('transferFinished-sendingCompletedTitle'),
-                                _('transferFinished-completedBody'),
-                                'style/bluetooth_transfer/images/icon_bluetooth.png');
+        NotificationHelper.send(_('transferFinished-sentSuccessful-title'),
+                                fileName,
+                                icon);
       }
     } else {
       // Show failed message of transferred result on the banner
       this.showBanner(false);
       if (transferInfo.received) {
-        NotificationHelper.send(_('transferFinished-sendingFailedTitle'),
-                                _('transferFinished-failedBody'),
-                                'style/bluetooth_transfer/images/icon_bluetooth.png');
+        NotificationHelper.send(_('transferFinished-receivedFailed-title'),
+                                fileName,
+                                icon);
       } else {
-        NotificationHelper.send(_('transferFinished-receivedFailedTitle'),
-                                _('transferFinished-failedBody'),
-                                'style/bluetooth_transfer/images/icon_bluetooth.png');
+        NotificationHelper.send(_('transferFinished-sentFailed-title'),
+                                fileName,
+                                icon);
       }
     }
   },
