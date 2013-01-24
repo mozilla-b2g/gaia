@@ -1,3 +1,24 @@
+Building multilocale Gaia
+=========================
+
+You can build a multilocale Gaia profile with the following `make` command:
+
+    make profile \
+      LOCALE_BASEDIR=locales/ \
+      LOCALES_FILE=locales/languages_basecamp.json \
+      GAIA_DEFAULT_LOCALE=pt-BR
+
+Use `make multilocale-clean` to clean the working directory after the above.
+
+Use `GAIA_INLINE_LOCALES=1` to precompile all HTML to include text content in 
+the deafult locale.
+
+See `build/multilocale.py --help` for other l10n-related tasks that you may be 
+interested in (e.g., modifying the \*.ini files).
+
+The full documentation on building multilocale Gaia and B2G is avaiable on MDN: https://developer.mozilla.org/en-US/docs/Mozilla/Firefox_OS/Building#Building_multilocale
+
+
 Localization Testing
 ====================
 
@@ -48,7 +69,7 @@ Create Gaia's profile with:
 
 And launch it in a desktop build:
 
-    $ b2g -profile profile/
+    $ b2g-bin -profile profile/
 
 ...or in Firefox:
 
