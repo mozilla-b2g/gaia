@@ -356,8 +356,8 @@ html[dir="rtl"] ul li p + select {
 
 html[dir="rtl"] ul li button,
 html[dir="rtl"] ul li a[role="button"] {
-  left: inherit;
-  right: 3rem;
+  right: inherit;
+  left: 2rem;
 }
 
 html[dir="rtl"] ul li > label:not([for]) > span,
