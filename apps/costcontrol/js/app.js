@@ -92,7 +92,7 @@ var CostControlApp = (function() {
       });
     });
 
-    // Handle open sent by the user via the widget
+    // Handle 'open activity' sent by the user via the widget
     navigator.mozSetMessageHandler('activity',
       function _handleActivity(activityRequest) {
         var name = activityRequest.source.name;
@@ -110,10 +110,35 @@ var CostControlApp = (function() {
       }
     );
 
+    // When a notification is received
+    window.navigator.mozSetMessageHandler('notification',
+      function _onNotification(notification) {
+        debug('Notification received!');
+        navigator.mozApps.getSelf().onsuccess = function _onAppReady(evt) {
+          var app = evt.target.result;
+          app.launch();
+
+          var type = notification.imageURL.split('?')[1];
+          debug('Notification type:', type);
+          handleNotification(type);
+        };
+      }
+    );
+
     updateUI();
     ConfigManager.observe('plantype', updateUI, true);
 
     initialized = true;
+  }
+
+  function handleNotification(type) {
+    // XXX: Probably more types coming. Let's leave this switch and remove the
+    // comment when more types added.
+    switch (type) {
+      case 'topUpError':
+        BalanceTab.topUpWithCode(true);
+        break;
+    }
   }
 
   var currentMode;
