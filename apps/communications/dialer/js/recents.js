@@ -682,6 +682,9 @@ var Recents = {
       if (!total) {
         self.addToExistingContactMenuItem.style.display = "none";
       }
+      else {
+        self.addToExistingContactMenuItem.style.display = null;
+      }
     });
 
     window.asyncStorage.getItem('latestCallLogVisit', function getItem(value) {
