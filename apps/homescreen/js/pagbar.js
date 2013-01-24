@@ -46,6 +46,8 @@ const PaginationBar = (function() {
         previousTotal = total;
       }
 
+      var rtl = (document.documentElement.dir == 'rtl');
+      dir = rtl ? -100 : 100;
       style.MozTransform = 'translateX(' + current * dir + '%)';
     },
 
