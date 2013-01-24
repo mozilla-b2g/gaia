@@ -11,13 +11,15 @@ if (!window.fb.contacts) {
 
     var database;
     var DB_NAME = 'Gaia_Facebook_Friends';
-    var OLD_DB_VERSION = 1.0;
-    var DB_VERSION = 2.0;
-    var OLD_STORE_NAME = 'FBFriends';
-    var STORE_NAME = 'FBFriendsV2';
-    var INDEX_NAME = 'byTelephone';
+    var OLD_DB_VERSIONS = [1.0, 2.0];
+    var DB_VERSION = 3.0;
+    var OLD_STORE_NAMES = ['FBFriends', 'FBFriendsV2'];
+    var STORE_NAME = 'FBFriendsV3';
+    var INDEX_LONG_PHONE = 'byTelephone';
+    var INDEX_SHORT_PHONE = 'byShortTelephone';
     var isInitialized = false;
     var migrationNeeded = false;
+    var oldStoreName;
 
     function DatabaseMigrator(items) {
       var pointer = 0;
@@ -50,7 +52,7 @@ if (!window.fb.contacts) {
             self.onfinish();
           }
         }
-      }
+      };
 
       function migrateSlice(from) {
         for (var i = from; i < from + CHUNK_SIZE
@@ -61,11 +63,11 @@ if (!window.fb.contacts) {
           req.onsuccess = function saveSuccess() {
             console.log('FB Cache: Success migrating ', item.uid);
             continueCb();
-          }
+          };
           req.onerror = function saveError() {
             console.error('FB Cache: Error migrating ', item.uid);
             continueCb();
-          }
+          };
         }
       }
     }
@@ -84,16 +86,22 @@ if (!window.fb.contacts) {
 
     function createStoreAndIndex(e) {
       var store = createStore(e);
-      store.createIndex(INDEX_NAME, 'telephone', {
+      store.createIndex(INDEX_LONG_PHONE, 'telephone', {
+        unique: true,
+        multiEntry: true
+      });
+      store.createIndex(INDEX_SHORT_PHONE, 'shortTelephone', {
         unique: true,
         multiEntry: true
       });
     }
 
     function upgradeDB(e) {
-      if (e.oldVersion === OLD_DB_VERSION && e.newVersion === DB_VERSION) {
+      var oldDbSearch = OLD_DB_VERSIONS.indexOf(e.oldVersion);
+      if (oldDbSearch !== -1 && e.newVersion === DB_VERSION) {
         window.console.warn('Upgrading Facebook Cache!!!!!');
         migrationNeeded = true;
+        oldStoreName = OLD_STORE_NAMES[oldDbSearch];
         createStoreAndIndex(e);
       }
       else if (e.newVersion === 1.0) {
@@ -105,8 +113,8 @@ if (!window.fb.contacts) {
     }
 
     function clearOldObjStore(cb) {
-      var transaction = database.transaction([OLD_STORE_NAME], 'readwrite');
-      var objectStore = transaction.objectStore(OLD_STORE_NAME);
+      var transaction = database.transaction([oldStoreName], 'readwrite');
+      var objectStore = transaction.objectStore(oldStoreName);
 
       var req = objectStore.clear();
       req.onsuccess = cb;
@@ -114,17 +122,17 @@ if (!window.fb.contacts) {
         window.console.error('FB Cache. Error while clearing old Obj Store',
                              e.target.error.name);
         cb();
-      }
+      };
     }
 
     function migrateData(onfinishCb) {
-      if (!database.objectStoreNames.contains(OLD_STORE_NAME)) {
+      if (!database.objectStoreNames.contains(oldStoreName)) {
         onfinishCb();
         return;
       }
 
-      var transaction = database.transaction([OLD_STORE_NAME], 'readonly');
-      var objectStore = transaction.objectStore(OLD_STORE_NAME);
+      var transaction = database.transaction([oldStoreName], 'readonly');
+      var objectStore = transaction.objectStore(oldStoreName);
 
       var req = objectStore.mozGetAll();
 
@@ -143,7 +151,7 @@ if (!window.fb.contacts) {
       req.onerror = function(e) {
         window.console.error('FB Cache: Data migration failed !!!! ');
         onfinishCb();
-      }
+      };
     }
 
     function initError(outRequest, error) {
@@ -161,7 +169,7 @@ if (!window.fb.contacts) {
 
       areq.onerror = function(e) {
         outRequest.failed(e.target.error);
-      }
+      };
     }
 
     /**
@@ -181,23 +189,33 @@ if (!window.fb.contacts) {
       },0);
 
       return retRequest;
-    }
+    };
 
     function doGetByPhone(tel, outRequest) {
       var transaction = database.transaction([STORE_NAME], 'readonly');
       var objectStore = transaction.objectStore(STORE_NAME);
 
-      var index = objectStore.index(INDEX_NAME);
-
+      var index = objectStore.index(INDEX_LONG_PHONE);
       var areq = index.get(tel);
-
       areq.onsuccess = function(e) {
-        outRequest.done(e.target.result);
-      }
+        if (e.target.result) {
+          outRequest.done(e.target.result);
+        }
+        else {
+          var otherIndex = objectStore.index(INDEX_SHORT_PHONE);
+          var otherReq = otherIndex.get(tel);
+          otherReq.onsuccess = function(e) {
+            outRequest.done(e.target.result);
+          };
+          otherReq.onerror = function(e) {
+            outRequest.failed(e.target.error);
+          };
+        }
+      };
 
       areq.onerror = function(e) {
         outRequest.failed(e.target.error);
-      }
+      };
     }
 
     contacts.getByPhone = function(tel) {
@@ -213,14 +231,14 @@ if (!window.fb.contacts) {
       }, 0);
 
       return outRequest;
-    }
+    };
 
     function doSave(obj,outRequest) {
       var transaction = database.transaction([STORE_NAME], 'readwrite');
 
       transaction.onerror = function(e) {
         outRequest.failed(e.target.error);
-      }
+      };
 
       var objectStore = transaction.objectStore(STORE_NAME);
 
@@ -234,11 +252,11 @@ if (!window.fb.contacts) {
       var req = objectStore.put(obj);
       req.onsuccess = function(e) {
         outRequest.done(e.target.result);
-      }
+      };
 
       req.onerror = function(e) {
         outRequest.failed(e.target.error);
-      }
+      };
     }
 
     /**
@@ -259,7 +277,7 @@ if (!window.fb.contacts) {
       },0);
 
       return retRequest;
-    }
+    };
 
     function doGetAll(outRequest) {
       var transaction = database.transaction([STORE_NAME], 'readonly');
@@ -278,7 +296,7 @@ if (!window.fb.contacts) {
 
       req.onerror = function(e) {
         outRequest.failed(e.target.error);
-      }
+      };
     }
 
     contacts.getAll = function() {
@@ -294,17 +312,17 @@ if (!window.fb.contacts) {
       },0);
 
       return retRequest;
-    }
+    };
 
     function doRemove(uid,outRequest) {
       var transaction = database.transaction([STORE_NAME], 'readwrite');
       transaction.oncomplete = function(e) {
         outRequest.done(e.target.result);
-      }
+      };
 
       transaction.onerror = function(e) {
         outRequest.failed(e.target.error);
-      }
+      };
       var objectStore = transaction.objectStore(STORE_NAME);
 
       objectStore.delete(uid);
@@ -328,7 +346,7 @@ if (!window.fb.contacts) {
       },0);
 
       return retRequest;
-    }
+    };
 
     contacts.clear = function() {
       var outRequest = new fb.utils.Request();
@@ -343,17 +361,17 @@ if (!window.fb.contacts) {
       },0);
 
       return outRequest;
-    }
+    };
 
     function doClear(outRequest) {
       var transaction = database.transaction([STORE_NAME], 'readwrite');
       transaction.oncomplete = function(e) {
         outRequest.done(e.target.result);
-      }
+      };
 
       transaction.onerror = function(e) {
         outRequest.failed(e.target.error);
-      }
+      };
       var objectStore = transaction.objectStore(STORE_NAME);
 
       objectStore.clear();
@@ -395,7 +413,7 @@ if (!window.fb.contacts) {
       };
 
       req.onupgradeneeded = upgradeDB;
-    }
+    };
 
   }) (document);
 }
