@@ -514,10 +514,12 @@ onLocalized(function wifiSettings() {
     function wifiConnect() {
       gCurrentNetwork = network;
       gWifiManager.associate(network);
+      settings.createLock().set({'wifi.connect_via_settings': true});
       gNetworkList.display(network, _('shortStatus-connecting'));
     }
 
     function wifiDisconnect() {
+      settings.createLock().set({'wifi.connect_via_settings': false});
       gWifiManager.forget(network);
       gNetworkList.display(network, _('shortStatus-disconnected'));
       // get available network list
@@ -682,6 +684,7 @@ onLocalized(function wifiSettings() {
         _('fullStatus-' + networkStatus, gWifiManager.connection.network);
 
     if (networkStatus === 'connectingfailed' && gCurrentNetwork) {
+      settings.createLock().set({'wifi.connect_via_settings': false});
       // connection has failed, probably an authentication issue...
       delete(gCurrentNetwork.password);
       gWifiManager.forget(gCurrentNetwork); // force a new authentication dialog
