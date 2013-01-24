@@ -1,8 +1,9 @@
+var DEBUGGING = false;
+
 var debug = (function() {
   var SEQ_ID = 0;
   var PROCESS_ID = Date.now();
 
-  var DEBUGGING = false;
   var DEBUG_PREFIX = 'CC';
 
   return function _debug() {

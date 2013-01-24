@@ -205,11 +205,6 @@ ComposeCard.prototype = {
     var container = node.parentNode;
     var bubble = this.createBubbleNode(name, address);
     container.insertBefore(bubble, node);
-    var dotInput = document.createElement('input');
-    dotInput.value = ',';
-    dotInput.classList.add('cmp-dot-text');
-    dotInput.size = 1;
-    container.insertBefore(dotInput, node);
   },
   /**
    * deleteBubble: Delete the bubble from the parent container.
@@ -218,11 +213,7 @@ ComposeCard.prototype = {
     if (!node) {
       return;
     }
-    var dot = node.nextSibling;
     var container = node.parentNode;
-    if (dot.classList.contains('cmp-dot-text')) {
-      container.removeChild(dot);
-    }
     if (node.classList.contains('cmp-peep-bubble')) {
       container.removeChild(node);
     }
@@ -253,7 +244,7 @@ ComposeCard.prototype = {
 
     if (evt.keyCode == 8 && node.value == '') {
       //delete bubble
-      var previousBubble = node.previousSibling.previousSibling;
+      var previousBubble = node.previousSibling;
       this.deleteBubble(previousBubble);
       if (this.isEmptyAddress()) {
         this.sendButton.setAttribute('aria-disabled', 'true');

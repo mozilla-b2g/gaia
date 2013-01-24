@@ -182,17 +182,13 @@ var Navigation = {
         break;
       case '#import_contacts':
         UIManager.progressBar.className = 'step-state step-5';
-        UIManager.mainTitle.innerHTML = _('importContacts2');
+        UIManager.mainTitle.innerHTML = _('importContacts3');
         var fbOption = document.getElementById('fb_import');
-        var simOption = document.getElementById('sim-import-button');
-        // If there is an unlocked SIM we activate import from SIM
-        if (SimManager.available()) {
-          simOption.classList.remove('disabled');
-        } else {
-          simOption.classList.add('disabled');
-        }
+        // Enabling or disabling SIM import depending on card status
+        SimManager.checkSIMButton();
+
         // If we have 3G or Wifi activate FB import
-        if(!WifiManager.api){
+        if (!WifiManager.api) {
           // Desktop
           fbOption.classList.remove('disabled');
           return;

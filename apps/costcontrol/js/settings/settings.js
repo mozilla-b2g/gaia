@@ -67,6 +67,14 @@ var Settings = (function() {
 
       initialized = true;
 
+      // Debug options
+      if (DEBUGGING) {
+        var debugOnlyItems = document.querySelectorAll('.debug-only');
+        [].forEach.call(debugOnlyItems, function _showItem(item) {
+          item.classList.remove('debug-only');
+        });
+      }
+
       updateUI();
     });
   }

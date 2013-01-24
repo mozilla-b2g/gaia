@@ -10,6 +10,8 @@ var SimManager = {
                                   this.handleUnlockError.bind(this));
     this.mobConn.addEventListener('cardstatechange',
                                   this.handleCardState.bind(this));
+
+    this.alreadyImported = false;
   },
 
   handleUnlockError: function sm_handleUnlockError(data) {
@@ -40,7 +42,11 @@ var SimManager = {
   available: function sm_available() {
     if (!this.mobConn)
       return false;
-    return (this.mobConn.cardState == 'ready');
+    // Card should either be "ready" (connected to network) or "null" (card in
+    // phone but cannot connect to network for some reason).
+    // See https://bugzilla.mozilla.org/show_bug.cgi?id=822522
+    return (this.mobConn.cardState === 'ready' ||
+            this.mobConn.cardState === null);
   },
 
  /**
@@ -67,6 +73,22 @@ var SimManager = {
           this.accessCallback(true);
         }
         break;
+    }
+
+    SimManager.checkSIMButton();
+  },
+
+  checkSIMButton: function sm_checkSIMButton() {
+    var simOption = UIManager.simImportButton;
+    // If there is an unlocked SIM we activate import from SIM
+    if (!this.alreadyImported && SimManager.available()) {
+      simOption.removeAttribute('disabled');
+      UIManager.noSim.classList.add('hidden');
+    } else {
+      simOption.setAttribute('disabled', 'disabled');
+      if (!this.alreadyImported) {
+        UIManager.noSim.classList.remove('hidden');
+      }
     }
   },
   accessCallback: null,
@@ -181,27 +203,43 @@ var SimManager = {
   },
 
   importContacts: function sm_importContacts() {
-    var feedback = UIManager.simImportFeedback;
-    feedback.innerHTML = _('simContacts-importing');
     UIManager.navBar.setAttribute('aria-disabled', 'true');
     UIManager.loadingHeader.innerHTML = _('simContacts-importing');
     UIManager.loadingOverlay.classList.add('show-overlay');
     var importButton = UIManager.simImportButton;
-    importButton.classList.add('disabled');
+    importButton.setAttribute('disabled', 'disabled');
 
     importSIMContacts(
       function() {
-        feedback.innerHTML = _('simContacts-reading');
-      }, function(n) {
-        feedback.innerHTML = _('simContacts-imported3', {n: n});
+      }, function onsuccess(n) {
+        SimManager.alreadyImported = true;
         UIManager.navBar.removeAttribute('aria-disabled');
         UIManager.loadingOverlay.classList.remove('show-overlay');
-      }, function() {
-        feedback.innerHTML = _('simContacts-error');
+        utils.status.show(_('simContacts-imported3', {n: n}));
+      }.bind(this),
+      function onerror() {
         UIManager.navBar.removeAttribute('aria-disabled');
         UIManager.loadingOverlay.classList.remove('show-overlay');
-        importButton.classList.remove('disabled');
+        // Just in case the user decides to do so later
+        importButton.removeAttribute('disabled');
+
+        // Showing error message allowing user to retry
+        var cancel = {
+          title: _('cancel'),
+          callback: function() {
+            ConfirmDialog.hide();
+          }
+        };
+        var retry = {
+          title: _('retry'),
+          isRecommend: true,
+          callback: function() {
+            ConfirmDialog.hide();
+            // And now the action is reproduced one more time
+            importButton.click();
+          }
+        };
+        ConfirmDialog.show(null, _('simContacts-error'), cancel, retry);
     }.bind(this));
   }
 };
-

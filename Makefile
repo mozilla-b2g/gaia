@@ -28,6 +28,7 @@ GAIA_DOMAIN?=gaiamobile.org
 
 DEBUG?=0
 PRODUCTION?=0
+DOGFOOD?=0
 
 LOCAL_DOMAINS?=1
 
@@ -57,6 +58,10 @@ GAIA_ALL_APP_SRCDIRS=$(GAIA_APP_SRCDIRS)
 ifeq ($(MAKECMDGOALS), demo)
 GAIA_DOMAIN=thisdomaindoesnotexist.org
 GAIA_APP_SRCDIRS=apps showcase_apps
+else ifeq ($(MAKECMDGOALS), dogfood)
+DOGFOOD=1
+PRODUCTION=1
+B2G_SYSTEM_APPS=1
 else ifeq ($(MAKECMDGOALS), production)
 PRODUCTION=1
 B2G_SYSTEM_APPS=1
@@ -66,6 +71,10 @@ endif
 ifeq ($(PRODUCTION), 1)
 GAIA_APP_SRCDIRS=apps
 ADB_REMOUNT=1
+endif
+
+ifeq ($(MAKECMDGOALS), dogfood)
+GAIA_APP_SRCDIRS=apps dogfood_apps
 endif
 
 ifeq ($(B2G_SYSTEM_APPS), 1)
@@ -240,13 +249,13 @@ ifneq ($(DEBUG),1)
 	@$(call run-js-command, webapp-zip)
 endif
 
-# Precompile l10n
-webapp-l10n: install-xulrunner-sdk
-	@$(call run-js-command, webapp-l10n)
+# Web app optimization steps (like precompling l10n, concatenating js files, etc..).
+webapp-optimize: install-xulrunner-sdk
+	@$(call run-js-command, webapp-optimize)
 
 # Remove temporary l10n files
-l10n-clean: install-xulrunner-sdk
-	@$(call run-js-command, l10n-clean)
+optimize-clean: install-xulrunner-sdk
+	@$(call run-js-command, optimize-clean)
 
 # Populate appcache
 offline-cache: webapp-manifests install-xulrunner-sdk
@@ -255,7 +264,7 @@ offline-cache: webapp-manifests install-xulrunner-sdk
 	@echo "Done"
 
 # Create webapps
-offline: webapp-manifests webapp-l10n webapp-zip l10n-clean
+offline: webapp-manifests webapp-optimize webapp-zip optimize-clean
 
 
 # The install-xulrunner target arranges to get xulrunner downloaded and sets up
@@ -323,6 +332,7 @@ define run-js-command
 	const LOCALES_FILE = "$(LOCALES_FILE)";                                     \
 	const BUILD_APP_NAME = "$(BUILD_APP_NAME)";                                 \
 	const PRODUCTION = "$(PRODUCTION)";                                         \
+	const DOGFOOD = "$(DOGFOOD)";                                               \
 	const OFFICIAL = "$(MOZILLA_OFFICIAL)";                                     \
 	const GAIA_DEFAULT_LOCALE = "$(GAIA_DEFAULT_LOCALE)";                       \
 	const GAIA_INLINE_LOCALES = "$(GAIA_INLINE_LOCALES)";                       \
@@ -623,6 +633,7 @@ dialer-demo:
 demo: install-media-samples install-gaia
 
 production: reset-gaia
+dogfood: reset-gaia
 
 # Remove everything and install a clean profile
 reset-gaia: purge install-gaia install-settings-defaults
