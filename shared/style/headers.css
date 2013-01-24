@@ -366,7 +366,7 @@ html[dir="rtl"] section[role="region"] > header:first-child a {
 html[dir="rtl"] section[role="region"] > header:first-child > button .icon,
 html[dir="rtl"] section[role="region"] > header:first-child > a .icon {
   margin-left: 0;
-  margin-right: 4px;
+  margin-right: 0.4rem;
   padding-left:0;
 }
 
