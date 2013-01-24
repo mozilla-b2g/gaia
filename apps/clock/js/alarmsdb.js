@@ -137,22 +137,3 @@ var AlarmsDB = {
 };
 
 extend(AlarmsDB, new BaseIndexDB({keyPath: 'id', autoIncrement: true}));
-
-var ClockSettingsDB = {
-  DBNAME: 'clocksettings',
-  STORENAME: 'clocksettings',
-
-  getMode: function ad_getMode(callback) {
-    this.query(this.DBNAME, this.STORENAME, this.get, function(view) {
-      if (typeof callback === 'function')
-        callback(view && view.value);
-    }, 'view');
-  },
-
-  setMode: function ad_setMode(value, callback) {
-    this.query(this.DBNAME, this.STORENAME, this.put, callback,
-      {id: 'view', value: value});
-  }
-};
-
-extend(ClockSettingsDB, new BaseIndexDB({keyPath: 'id'}));
