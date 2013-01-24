@@ -214,12 +214,15 @@ var CallHandler = (function callHandler() {
                   'call_screen', 'attention');
       callScreenWindow.onload = function onload() {
         callScreenWindowLoaded = true;
+      };
 
-        var telephony = navigator.mozTelephony;
-        if (telephony.calls.length === 0) {
+      var telephony = navigator.mozTelephony;
+      telephony.oncallschanged = function (evt) {
+        if (callScreenWindowLoaded && telephony.calls.length === 0) {
           // Calls might be ended before callscreen is comletedly loaded,
           // so that callscreen will miss call-related events. We send a
-          // message to notify callscreen of exiting when there are no calls.
+          // message to notify callscreen of exiting when we got notified
+          // there are no calls.
           sendCommandToCallScreen('*', 'exitCallScreen');
         }
       };
