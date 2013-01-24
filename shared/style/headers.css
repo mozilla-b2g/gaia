@@ -393,11 +393,6 @@ html[dir="rtl"] section[role="region"] > header:first-child menu[type="toolbar"]
   margin-right: -0.3rem;
 }
 
-html[dir="rtl"] section[role="region"] > header:first-child menu[type="toolbar"] {
-  padding: 0;
-  margin: 0;
-}
-
 html[dir="rtl"] section[role="region"] > header:first-child > button .icon:after,
 html[dir="rtl"] section[role="region"] > header:first-child > a .icon:after {
   width: 3rem;
@@ -412,4 +407,3 @@ html[dir="rtl"] section[role="region"] > header:first-child form {
   padding: 1rem 1rem 0 0.5rem ;
   margin-right: 2.5rem;
 }
-
