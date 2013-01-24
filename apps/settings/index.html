@@ -758,6 +758,8 @@
           <small id="dataConnection-desc"></small>
           <a data-l10n-id="dataConnection">Data Connection</a>
         </li>
+        <li id="dataConnection-expl" class="explanation" hidden>
+        </li>
         <li>
           <label>
             <input type="checkbox" data-type="switch" name="ril.data.roaming_enabled"/>
@@ -798,6 +800,23 @@
           </label>
         </li>
       </ul>
+
+      <form role="dialog" data-type="confirm" class="dc-warning" hidden>
+        <section>
+          <h1>
+            <span data-l10n-id="dataConnection-warning-head">Turn ON data connection?</span>
+          </h1>
+          <p>
+            <small data-l10n-id="dataConnection-warning-message">
+              Applications will automatically fetch data via data connection when required. Additional data charges may apply.
+            </small>
+          </p>
+        </section>
+        <menu>
+          <button class="cancelBtn" data-l10n-id="dataConnection-warning-cancel">Not now</button>
+          <button class="okBtn recommend" data-l10n-id="dataConnection-warning-ok">Turn ON</button>
+        </menu>
+      </form>
 
       <script type="application/javascript" defer src="js/carrier.js"></script>
       -->

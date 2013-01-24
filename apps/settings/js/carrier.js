@@ -173,31 +173,97 @@ var Carrier = (function newCarrier(window, document, undefined) {
     };
   }
 
-  // 'Data Roaming' message
-  var settings = Settings.mozSettings;
-  if (settings) {
-    var _ = window.navigator.mozL10n.get;
-    var dataRoamingSetting = 'ril.data.roaming_enabled';
+  // initialize 'Data Connection' warnings
+  function initDataConnectionWarning() {
+    // 'Data Roaming' message and data connection messaging
+    var settings = Settings.mozSettings;
+    if (settings) {
+      var _ = window.navigator.mozL10n.get;
+      var dataRoamingSetting = 'ril.data.roaming_enabled';
+      var dataConnectionSetting = 'ril.data.enabled';
+      var dataConnectionSettingWarning = 'ril.data.enabled.warning.shown';
 
-    var displayDataRoamingMessage = function(enabled) {
-      var messageID = 'dataRoaming-' + (enabled ? 'enabled' : 'disabled');
-      document.getElementById('dataRoaming-expl').textContent = _(messageID);
+      var okBtn = document.querySelector('#carrier .dc-warning .okBtn');
+      var cancelBtn = document.querySelector('#carrier .dc-warning .cancelBtn');
+      var warningDialog = document.querySelector('#carrier .dc-warning');
+
+      var dcExplanation = document.getElementById('dataConnection-expl');
+      var drExplanation = document.getElementById('dataRoaming-expl');
+
+      var setDataConnectionState = function(state) {
+        var cset = {};
+        cset[dataConnectionSetting] = !!state;
+        settings.createLock().set(cset);
+      };
+
+      var displayDataRoamingMessage = function(enabled) {
+        var messageID = 'dataRoaming-' + (enabled ? 'enabled' : 'disabled');
+        drExplanation.textContent = _(messageID);
+      };
+
+      var displayDataConnectionMessage = function(enabled) {
+        window.asyncStorage.getItem(dataConnectionSettingWarning,
+          function(warningIsShown) {
+            warningIsShown = warningIsShown || false;
+            if (enabled && warningIsShown) {
+              dcExplanation.hidden = false;
+              dcExplanation.textContent = _('dataConnection-warning-message');
+            } else if (enabled) {
+              dcExplanation.hidden = true;
+              warningDialog.hidden = false;
+            } else {
+              dcExplanation.hidden = true;
+            }
+        });
+      };
+
+      okBtn.addEventListener('click', function onOnBtnClicked() {
+        var warningIsShown = true;
+        window.asyncStorage.setItem(dataConnectionSettingWarning,
+          warningIsShown);
+        warningDialog.hidden = true;
+      });
+      cancelBtn.addEventListener('click', function onOffBtnClicked() {
+        var warningIsShown = false;
+        window.asyncStorage.setItem(dataConnectionSettingWarning,
+          warningIsShown);
+        setDataConnectionState(false);
+        warningDialog.hidden = true;
+      });
+
+      // register an observer to monitor setting changes
+      settings.addObserver(dataRoamingSetting, function(event) {
+        displayDataRoamingMessage(event.settingValue);
+      });
+
+      settings.addObserver(dataConnectionSetting, function(event) {
+        displayDataConnectionMessage(event.settingValue);
+      });
+
+      // get the initial setting value
+      var req = settings.createLock().get(dataRoamingSetting);
+      req.onsuccess = function roaming_getStatusSuccess() {
+        var enabled = req.result && req.result[dataRoamingSetting];
+        displayDataRoamingMessage(enabled);
+      };
+
+      var dataConnectionSettingRequest =
+          settings.createLock().get(dataConnectionSetting);
+      dataConnectionSettingRequest.onsuccess =
+          function connection_getStatusSuccess() {
+        var enabled = dataConnectionSettingRequest.result &&
+            dataConnectionSettingRequest.result[dataConnectionSetting];
+        displayDataConnectionMessage(enabled);
+      };
+    } else {
+      drExplanation.hidden = true;
+      dcExplanation.hidden = true;
     }
-
-    // register an observer to monitor setting changes
-    settings.addObserver(dataRoamingSetting, function(event) {
-      displayDataRoamingMessage(event.settingValue);
-    });
-
-    // get the initial setting value
-    var req = settings.createLock().get(dataRoamingSetting);
-    req.onsuccess = function roaming_getStatusSuccess() {
-      var enabled = req.result && req.result[dataRoamingSetting];
-      displayDataRoamingMessage(enabled);
-    };
-  } else {
-    document.getElementById('dataRoaming-expl').hidden = true;
   }
+
+  // 2G|3G network selection
+  document.getElementById('preferredNetworkType').onchange =
+    restartDataConnection;
 
   // network operator selection: auto/manual
   var opAutoSelect = document.getElementById('operator-autoSelect');
@@ -324,6 +390,7 @@ var Carrier = (function newCarrier(window, document, undefined) {
     init: function carrier_init() {
       Connectivity.updateCarrier(); // see connectivity.js
       updateSelectionMode();
+      initDataConnectionWarning();
       // XXX this should be done later -- not during init()
       this.fillAPNList('data');
       this.fillAPNList('mms');
