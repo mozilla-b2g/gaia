@@ -79,34 +79,107 @@ body {
   color: #ebebeb;
 }
 
-/* the indeterminate progress bar displayed while scanning */
-#progress {
+/* Spinner */
+#spinner-overlay { /* just like the #overlay element above */
   position: absolute;
-  top: 5rem;
-  left: 0px;
+  top: 0;
+  left: 0;
   width: 100%;
-  height: 3px;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+/*
+ * spinner animation styles copied from 
+ * shared/style_unstable/progress_activity.css 
+ */
+#spinner {
+  position: absolute;
+  top: calc(50% - 15px);
+  left: calc(50% - 15px);
+  width: 29px;
+  height: 29px;
+  background: url(images/spinner.png) no-repeat center center;
+  animation: 0.9s spinner-animation infinite steps(30);
+  border: none;
+}
+
+@keyframes spinner-animation {
+  from {
+    transform: rotate(1deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Display the names of the songs we scan here */
+#scan-progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5rem;
   border: none;
   overflow: hidden;
   z-index: 31;
+  background-color: #333;
+  color: #fff;
 }
 
-#throbber {
-  height: 24px;
-  background-image: url(images/progress.png);
+#scan-spinner {
+  position: absolute;
+  top: 1rem;
+  left: 1rem; 
+  width: 29px;
+  height: 29px;
+  background: url(images/spinner.png) no-repeat center center;
+  animation: 0.9s spinner-animation infinite steps(30);
+  border: none;
 }
 
-#throbber.throb {
-  animation: 1s throb infinite steps(7);
+#scan-count {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 5rem;
+  height: 5rem;
+  border: none;
+  background-color: rgba(0,0,0,0);
+  font-size: 1.2rem;
+  font-weight: bold;
+  text-align: center;
+  padding-top: 1.6rem;
 }
 
-@keyframes throb {
-  from {
-    transform: translateY(0px);
-  }
-  to {
-    transform: translateY(-21px);
-  }
+#scan-artist {
+  position: absolute;
+  top: 0;
+  left: 5rem;
+  right: 0;
+  height: 3rem;
+  line-height: 3rem;
+  padding-left: .5rem;
+  font-size: 1.9rem;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#scan-title {
+  position: absolute;
+  top: 3rem;
+  left: 5rem;
+  right: 0;
+  height: 2rem;
+  line-height: 1.9rem;
+  padding-left: .5rem;
+  font-size: 1.4rem;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 body.tiles-mode #title-back {

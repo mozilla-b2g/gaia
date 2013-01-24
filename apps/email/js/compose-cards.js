@@ -83,6 +83,23 @@ function ComposeCard(domNode, mode, args) {
   else {
     attachmentsContainer.classList.add('collapsed');
   }
+
+  // Sent sound init
+  this.sentAudioKey = 'mail.sent-sound.enabled';
+  this.sentAudio = new Audio('/sounds/sent.ogg');
+  this.sentAudio.mozAudioChannelType = 'notification';
+  this.sentAudioEnabled = false;
+
+  if ('mozSettings' in navigator) {
+    var req = navigator.mozSettings.createLock().get(this.sentAudioKey);
+    req.onsuccess = (function onsuccess() {
+      this.sentAudioEnabled = req.result[this.sentAudioKey];
+    }).bind(this);
+
+    navigator.mozSettings.addObserver(this.sentAudioKey, (function(e) {
+      this.sentAudioEnabled = e.settingValue;
+    }).bind(this));
+  }
 }
 ComposeCard.prototype = {
   postInsert: function() {
@@ -406,7 +423,7 @@ ComposeCard.prototype = {
 
     // XXX well-formedness-check (ideally just handle by not letting you send
     // if you haven't added anyone...)
-
+    var self = this;
     var activity = this.activity;
     var domNode = this.domNode;
     var sendingTemplate = cmpNodes['sending-container'];
@@ -422,6 +439,10 @@ ComposeCard.prototype = {
             }
             activity = null;
           }
+        }
+
+        if (self.sentAudioEnabled) {
+          self.sentAudio.play();
         }
 
         domNode.removeChild(sendingTemplate);
@@ -445,6 +466,7 @@ ComposeCard.prototype = {
   },
 
   onContactAdd: function(event) {
+    event.stopPropagation();
     var contactBtn = event.target;
     var self = this;
     contactBtn.classList.remove('show');
