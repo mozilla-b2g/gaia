@@ -83,6 +83,23 @@ function ComposeCard(domNode, mode, args) {
   else {
     attachmentsContainer.classList.add('collapsed');
   }
+
+  // Sent sound init
+  this.sentAudioKey = 'mail.sent-sound.enabled';
+  this.sentAudio = new Audio('/sounds/sent.ogg');
+  this.sentAudio.mozAudioChannelType = 'notification';
+  this.sentAudioEnabled = false;
+
+  if ('mozSettings' in navigator) {
+    var req = navigator.mozSettings.createLock().get(this.sentAudioKey);
+    req.onsuccess = (function onsuccess() {
+      this.sentAudioEnabled = req.result[this.sentAudioKey];
+    }).bind(this);
+
+    navigator.mozSettings.addObserver(this.sentAudioKey, (function(e) {
+      this.sentAudioEnabled = e.settingValue;
+    }).bind(this));
+  }
 }
 ComposeCard.prototype = {
   postInsert: function() {
@@ -188,11 +205,6 @@ ComposeCard.prototype = {
     var container = node.parentNode;
     var bubble = this.createBubbleNode(name, address);
     container.insertBefore(bubble, node);
-    var dotInput = document.createElement('input');
-    dotInput.value = ',';
-    dotInput.classList.add('cmp-dot-text');
-    dotInput.size = 1;
-    container.insertBefore(dotInput, node);
   },
   /**
    * deleteBubble: Delete the bubble from the parent container.
@@ -201,11 +213,7 @@ ComposeCard.prototype = {
     if (!node) {
       return;
     }
-    var dot = node.nextSibling;
     var container = node.parentNode;
-    if (dot.classList.contains('cmp-dot-text')) {
-      container.removeChild(dot);
-    }
     if (node.classList.contains('cmp-peep-bubble')) {
       container.removeChild(node);
     }
@@ -236,7 +244,7 @@ ComposeCard.prototype = {
 
     if (evt.keyCode == 8 && node.value == '') {
       //delete bubble
-      var previousBubble = node.previousSibling.previousSibling;
+      var previousBubble = node.previousSibling;
       this.deleteBubble(previousBubble);
       if (this.isEmptyAddress()) {
         this.sendButton.setAttribute('aria-disabled', 'true');
@@ -406,7 +414,7 @@ ComposeCard.prototype = {
 
     // XXX well-formedness-check (ideally just handle by not letting you send
     // if you haven't added anyone...)
-
+    var self = this;
     var activity = this.activity;
     var domNode = this.domNode;
     var sendingTemplate = cmpNodes['sending-container'];
@@ -422,6 +430,10 @@ ComposeCard.prototype = {
             }
             activity = null;
           }
+        }
+
+        if (self.sentAudioEnabled) {
+          self.sentAudio.play();
         }
 
         domNode.removeChild(sendingTemplate);
@@ -445,6 +457,7 @@ ComposeCard.prototype = {
   },
 
   onContactAdd: function(event) {
+    event.stopPropagation();
     var contactBtn = event.target;
     var self = this;
     contactBtn.classList.remove('show');
