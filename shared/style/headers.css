@@ -445,3 +445,16 @@ html[dir="rtl"] section[role="region"] > header:first-child form {
   padding: 1rem 1rem 0 0.5rem ;
   margin-right: 2.5rem;
 }
+
+html[dir="rtl"] section[role="region"].skin-dark > header:first-child > a .icon:after,
+html[dir="rtl"] .skin-dark section[role="region"] > header:first-child > a .icon:after,
+html[dir="rtl"] section[role="region"].skin-dark > header:first-child > button .icon:after,
+html[dir="rtl"] .skin-dark section[role="region"] > header:first-child > button .icon:after {
+  background: #26272c url(headers/images/ui/dark/negative.png) repeat-x 0 0;
+}
+html[dir="rtl"] section[role="region"].skin-organic > header:first-child > a .icon:after,
+html[dir="rtl"] .skin-organic section[role="region"] > header:first-child > a .icon:after,
+html[dir="rtl"] section[role="region"].skin-organic > header:first-child > button .icon:after,
+html[dir="rtl"] .skin-organic section[role="region"] > header > button .icon:after {
+  background: url(headers/images/ui/organic/negative.png) repeat-x 0 0;
+}
