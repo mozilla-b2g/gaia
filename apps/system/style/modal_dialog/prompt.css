@@ -14,9 +14,12 @@
 }
 
 [role="dialog"] p:last-child {
-  display: -moz-box;
-  -moz-box-flex: 1;
-  -moz-box-orient: vertical;
+  overflow-x: hidden;
+  overflow-y: auto;
+  word-wrap: break-word;
+  /*screen height - menu data-items - dialog padding - title height*/
+  /*almost 60% screen height*/
+  max-height: 28rem;
 }
 
 [role="dialog"] .content {
