@@ -772,14 +772,16 @@
     tonePlayer.src = selectedPhoneSound;
     tonePlayer.loop = true;
 
-    if (options.duration || (options.timeUnit && options.timeInterval)) {
-      var timeout = 0;
-      if (options.duration) {
-        timeout = calculateDurationInMS(options.duration.timeUnit,
-          options.duration.timeInterval);
-      } else {
-        timeout = calculateDurationInMS(options.timeUnit, options.timeInterval);
-      }
+    var timeout = 0;
+    if (options.duration &&
+        options.duration.timeUnit &&
+        options.duration.timeInterval) {
+      timeout = calculateDurationInMS(options.duration.timeUnit,
+        options.duration.timeInterval);
+    } else if (options.timeUnit && options.timeInterval) {
+      timeout = calculateDurationInMS(options.timUnit, options.timeInterval);
+    }
+    if (timeout) {
       debug("Tone stop in (ms): ", timeout);
       setTimeout(function() {
         tonePlayer.pause();
