@@ -28,6 +28,10 @@
   var displayTextTimeout = 5000;
   var inputTimeout = 5000;
   var defaultURL = null;
+  var goBackTimer = {
+    timer: null,
+    timeout: 1000
+  };
   var icc;
 
   init();
@@ -138,11 +142,21 @@
     responseSTKCommand({
       resultCode: icc.STK_RESULT_BACKWARD_MOVE_BY_USER
     });
-    var page = document.location.protocol + '//' +
-      document.location.host + '/index.html#root';
-    debug('page: ', page);
-    window.location.replace(page);
+    // We'll return to settings if no STK response received in a grace period
+    goBackTimer.timer = setTimeout(function() {
+      var page = document.location.protocol + '//' +
+        document.location.host + '/index.html#root';
+      debug('page: ', page);
+      window.location.replace(page);
+    }, goBackTimer.timeout);
   };
+
+  function stkCancelGoBack() {
+    if (goBackTimer.timer) {
+      window.clearTimeout(goBackTimer.timer);
+      goBackTimer.timer = null;
+    }
+  }
 
   /**
    * Updates the STK header buttons
@@ -206,6 +220,8 @@
     debug('STK Proactive Command:', command);
     iccLastCommand = command;
     var options = command.options;
+
+    stkCancelGoBack();
 
     // By default a generic screen
     setSTKScreenType(STK_SCREEN_DEFAULT);
@@ -460,6 +476,8 @@
   function updateMenu() {
     debug('Showing STK main menu');
     stkOpenAppName = null;
+
+    stkCancelGoBack();
 
     var reqApplications =
       window.navigator.mozSettings.createLock().get('icc.applications');
