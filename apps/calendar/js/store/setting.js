@@ -15,6 +15,7 @@ Calendar.ns('Store').Setting = (function() {
     defaults: {
       syncFrequency: 15,
       syncAlarm: {
+        enabled: false, 
         alarmId: null,
         start: null,
         end: null
