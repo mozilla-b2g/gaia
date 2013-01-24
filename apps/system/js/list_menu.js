@@ -23,6 +23,7 @@ var ListMenu = {
     window.addEventListener('click', this, true);
     window.addEventListener('screenchange', this, true);
     window.addEventListener('home', this);
+    window.addEventListener('holdhome', this);
   },
 
   // Pass an array of list items and handler for clicking on the items
@@ -165,6 +166,7 @@ var ListMenu = {
         break;
 
       case 'home':
+      case 'holdhome':
         if (!this.visible)
           return;
 
