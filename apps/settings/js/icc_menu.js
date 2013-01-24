@@ -4,6 +4,23 @@
 'use strict';
 
 (function() {
+  function executeICCCmd(iccCommand) {
+    if (iccCommand) {        // Open ICC section
+      debug('ICC command to execute: ', iccCommand);
+      var page = document.location.protocol + '//' +
+        document.location.host + '/index.html#icc';
+      debug('page: ', page);
+      window.location.replace(page);
+
+      setTimeout(function() {
+        var event = new CustomEvent('stkasynccommand', {
+          detail: { 'command': iccCommand }
+        });
+        window.dispatchEvent(event);
+      });
+    }
+  }
+
   setTimeout(function updateStkMenu() {
     debug('Showing STK main menu');
     var reqApplications =
@@ -30,16 +47,15 @@
     reqIccData.onsuccess = function icc_getIccData() {
       var cmd = reqIccData.result['icc.data'];
       if (cmd) {
-        var iccCommand = JSON.parse(cmd);
-        debug('ICC async command (launcher): ', iccCommand);
-        if (iccCommand) {        // Open ICC section
-          var page = document.location.protocol + '//' +
-            document.location.host + '/index.html#icc';
-          debug('page: ', page);
-          window.location.replace(page);
-        }
+        debug('ICC async command (launcher)');
+        executeICCCmd(JSON.parse(cmd));
       }
     }
+
+    window.navigator.mozSettings.addObserver('icc.data', function(data) {
+      debug('ICC async command while settings running');
+      executeICCCmd(JSON.parse(data.settingValue));
+    });
   });
 })();
 
