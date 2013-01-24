@@ -261,7 +261,9 @@ function bug344618_polyfill() {
   // apply to all input[type="range"] elements
   var ranges = document.querySelectorAll('label:not(.bug344618_polyfill) > input[type="range"]');
   for (var i = 0; i < ranges.length; i++) {
-    polyfill(ranges[i]);
+    // If the element has been invoked with polyfill, no need to do it again
+    if (ranges[i].dataset.type !== 'range')
+      polyfill(ranges[i]);
   }
 }
 
