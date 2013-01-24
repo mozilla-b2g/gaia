@@ -386,6 +386,7 @@ const GridManager = (function() {
     }
 
     haveLocale = true;
+    updatePaginationBar();
   }
 
   function getFirstPageWithEmptySpace() {
