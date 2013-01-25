@@ -147,10 +147,12 @@ var DeviceStorageHelper = (function DeviceStorageHelper() {
       return;
     }
 
-    var request = deviceStorage.stat();
-    request.onsuccess = function(e) {
-      var totalSize = e.target.result.totalBytes;
-      callback(e.target.result.totalBytes, e.target.result.freeBytes);
+    deviceStorage.freeSpace().onsuccess = function(e) {
+      var freeSpace = e.target.result;
+      deviceStorage.usedSpace().onsuccess = function(e) {
+        var usedSpace = e.target.result;
+        callback(usedSpace, freeSpace);
+      };
     };
   }
 

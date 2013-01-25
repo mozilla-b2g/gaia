@@ -80,10 +80,10 @@ var MediaStorage = {
   updateInfo: function mediaStorage_updateInfo() {
     var self = this;
 
-    var statreq = this.deviceStorage.stat();
-    statreq.onsuccess = function mediaStorage_statSuccess(evt) {
+    var availreq = this.deviceStorage.available();
+    availreq.onsuccess = function mediaStorage_availSuccess(evt) {
       var _ = navigator.mozL10n.get;
-      var state = evt.target.result.state;
+      var state = evt.target.result;
 
       var infoBlock = self.umsEnabledInfoBlock;
       if (infoBlock) {
