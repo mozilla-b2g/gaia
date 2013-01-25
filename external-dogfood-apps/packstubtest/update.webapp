@@ -1,0 +1,23 @@
+{
+  "name": "PackStubTest",
+  "description": "a packaged app for testing stub updates",
+  "version": "0.1",
+  "developer": {
+    "name": "Myk Melez",
+    "url": "https://github.com/mykmelez/packaged-app-stub"
+  },
+  "locales": {
+    "en-US": {
+    "name": "PackStubTest",
+    "description": "a packaged app for testing stub updates",
+      "developer": {
+      "name": "Myk Melez",
+        "url": "https://github.com/mykmelez/packaged-app-stub"
+      }
+    }
+  },
+  "default_locale": "en-US",
+  "icons": {
+    "128": "/style/icons/Blank.png"
+  }
+}

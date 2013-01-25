@@ -8,5 +8,12 @@
   },
   "permissions": {
     "settings":{ "access": "readwrite" }
-  }
+  },
+  "locales": {
+    "en-US": {
+      "name": "Keyboard",
+      "description": "Gaia Keyboard"
+    }
+  },
+  "default_locale": "en-US"
 }

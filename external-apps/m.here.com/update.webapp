@@ -1,0 +1,24 @@
+{
+  "name": "HERE Maps",
+  "description": "Get HERE and feel at home any place, no matter where you are. Know the places to go, get reviews and uncover new destinations with tips from locals and trusted guides. Discover places nearby in a snap.",
+  "package_path": "/application.zip",
+  "developer": {
+    "name": "Nokia",
+    "url": "http://www.nokia.com"
+  },
+  "locales": {
+    "en-US": {
+      "name": "HERE Maps",
+      "description": "Get HERE and feel at home any place, no matter where you are. Know the places to go, get reviews and uncover new destinations with tips from locals and trusted guides."
+    },
+    "es": {
+        "name": "HERE Maps",
+        "description": "Descargue la applicación HERE y siéntase como en casa en cualquier lugar, sin importar dónde se encuentre. Sepa dónde ir, lea reseñas y descubra destinos nuevos con consejos de lugareños y de guías de confianza."
+    },
+    "pt-BR": {
+      "name": "HERE Maps",
+      "description": "Obtenha HERE e sinta-se em casa em qualquer lugar, onde quer que você esteja. Saiba os melhores locais para ir, veja comentários e descubra novos destinos com dicas de residentes e guias reconhecidos."
+    }
+  },
+  "default_locale": "en-US"
+}
