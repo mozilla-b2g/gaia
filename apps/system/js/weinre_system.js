@@ -62,5 +62,5 @@
       inject();
     else
       document.addEventListener('DOMContentLoaded', inject);
-  }, 2000);
+  }, 10000);
 })();
