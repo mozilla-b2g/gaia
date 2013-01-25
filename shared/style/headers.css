@@ -354,18 +354,19 @@ section[role="region"].skin-organic > header,
 
 html[dir="rtl"] section[role="region"] > header:first-child h1 {
   text-align: right;
-  margin: 0 3.5rem 0 0;
+  margin: 0 3rem 0 0;
 }
 
 html[dir="rtl"] section[role="region"] > header:first-child button,
 html[dir="rtl"] section[role="region"] > header:first-child a {
   left: inherit;
   right: 0;
+  width: 4.5rem;
 }
 
 html[dir="rtl"] section[role="region"] > header:first-child > button .icon,
 html[dir="rtl"] section[role="region"] > header:first-child > a .icon {
-  margin-right: 4px;
+  margin-right: 0.4rem;
 }
 
 html[dir="rtl"] section[role="region"] > header:first-child > button .icon:after,
@@ -390,12 +391,12 @@ html[dir="rtl"] section[role="region"] > header:first-child menu[type="toolbar"]
 html[dir="rtl"] section[role="region"] > header:first-child menu[type="toolbar"] a:last-child,
 html[dir="rtl"] section[role="region"] > header:first-child menu[type="toolbar"] button:last-child {
   background: url(headers/images/ui/separator.png) no-repeat right center;
-  margin-right: -0.3rem;
+  margin-right: -0.2rem;
 }
 
 html[dir="rtl"] section[role="region"] > header:first-child > button .icon:after,
 html[dir="rtl"] section[role="region"] > header:first-child > a .icon:after {
-  width: 3rem;
+  width: 2.5rem;
 }
 
 html[dir="rtl"] section[role="region"] > header > a .icon.icon-menu,
@@ -405,5 +406,5 @@ html[dir="rtl"] section[role="region"] > header > button .icon.icon-menu {
 
 html[dir="rtl"] section[role="region"] > header:first-child form { 
   padding: 1rem 1rem 0 0.5rem ;
-  margin-right: 2.5rem;
+  margin-right: 1rem;
 }
