@@ -53,6 +53,7 @@ var ClockView = {
 
     document.addEventListener('mozvisibilitychange', this);
 
+    this.updateDaydate();
     this.initClockface();
   },
 
