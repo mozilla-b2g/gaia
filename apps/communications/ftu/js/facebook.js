@@ -20,14 +20,36 @@ var FacebookIntegration = {
     return this.fbImport = document.getElementById('fb_import');
   },
 
+  get fbImportButton() {
+    delete this.fbImportButton;
+    return this.fbImportButton = document.getElementById('fb-import-button');
+  },
+
+  get noNetworkMsg() {
+    delete this.noNetworkMsg;
+    return this.noNetworkMsg = document.getElementById('no-network');
+  },
+
   get fbImportFeedback() {
     delete this.fbImportFeedback;
     return this.fbImportFeedback = document.getElementById(
       'fb_import_feedback');
   },
 
+  get fbAfterImport1() {
+    delete this.fbAfterImport1;
+    return this.fbAfterImport1 = document.getElementById(
+      'fb_after_import1');
+  },
+
+  get fbAfterImport2() {
+    delete this.fbAfterImport2;
+    return this.fbAfterImport2 = document.getElementById(
+      'fb_after_import2');
+  },
+
   init: function fb_init() {
-    this.fbImport.addEventListener('click', this);
+    this.fbImportButton.addEventListener('click', this);
     document.addEventListener('fb_imported', this);
   },
 
@@ -37,9 +59,31 @@ var FacebookIntegration = {
         FbLauncher.start();
         break;
       case 'fb_imported':
+        this.toggleToImportedState();
         this.updateContactsNumber();
         break;
     }
+  },
+
+  checkFbImport: function fb_check(nextState) {
+    var fbOption = this.fbImportButton;
+    var noNetMsg = this.noNetworkMsg;
+
+    if(nextState === 'disabled') {
+      fbOption.setAttribute('disabled','disabled');
+      noNetMsg.classList.remove('hidden');
+    }
+    else if(nextState === 'enabled') {
+      fbOption.removeAttribute('disabled');
+      noNetMsg.classList.add('hidden');
+    }
+  },
+
+  toggleToImportedState: function fb_tg_imported() {
+    this.fbImport.classList.add('hidden');
+    this.fbAfterImport1.classList.remove('hidden');
+    this.fbAfterImport2.classList.remove('hidden');
+    this.fbImport.parentNode.classList.remove('importOption');
   },
 
   updateContactsNumber: function fb_ucn() {

@@ -175,22 +175,23 @@ var Navigation = {
         break;
       case '#import_contacts':
         UIManager.mainTitle.innerHTML = _('importContacts3');
-        var fbOption = document.getElementById('fb_import');
         // Enabling or disabling SIM import depending on card status
         SimManager.checkSIMButton();
 
         // If we have 3G or Wifi activate FB import
+        var fbState;
         if (!WifiManager.api) {
           // Desktop
-          fbOption.classList.remove('disabled');
+          FacebookIntegration.checkFbImport('enabled');
           return;
         }
         if (WifiManager.api.connection.status === 'connected' ||
             DataMobile.isDataAvailable) {
-          fbOption.classList.remove('disabled');
+          fbState = 'enabled';
         } else {
-          fbOption.classList.add('disabled');
+          fbState = 'disabled';
         }
+        FacebookIntegration.checkFbImport(fbState);
         break;
       case '#welcome_browser':
         UIManager.mainTitle.innerHTML = _('browserPrivacyChoices');

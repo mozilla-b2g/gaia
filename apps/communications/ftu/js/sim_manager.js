@@ -59,9 +59,11 @@ var SimManager = {
   *   'networkLocked',
   *   'ready'.
   */
+
   handleCardState: function sm_handleCardState(callback) {
     SimManager.checkSIMButton();
     this.accessCallback = (typeof callback === 'function') ? callback : null;
+
     switch (this.mobConn.cardState) {
       case 'pinRequired':
         this.showPinScreen();
@@ -80,17 +82,16 @@ var SimManager = {
   checkSIMButton: function sm_checkSIMButton() {
     var simOption = UIManager.simImportButton;
     // If there is an unlocked SIM we activate import from SIM
-    if (!this.alreadyImported && SimManager.available()) {
+    if (!SimManager.alreadyImported && SimManager.available()) {
       simOption.removeAttribute('disabled');
       UIManager.noSim.classList.add('hidden');
     } else {
       simOption.setAttribute('disabled', 'disabled');
-      if (!this.alreadyImported) {
+      if (!SimManager.alreadyImported) {
         UIManager.noSim.classList.remove('hidden');
       }
     }
   },
-  accessCallback: null,
 
   showPinScreen: function sm_showScreen() {
     UIManager.activationScreen.classList.remove('show');
