@@ -206,6 +206,8 @@
     // By default a generic screen
     setSTKScreenType(STK_SCREEN_DEFAULT);
 
+    reopenSettings();
+
     switch (command.typeOfCommand) {
       case icc.STK_CMD_SELECT_ITEM:
         updateSelection(command);
