@@ -32,7 +32,9 @@ var Utils = {
   },
   startTimeHeaderScheduler: function ut_startTimeHeaderScheduler() {
     this.updateTimeHeaders();
-    clearInterval(this.updateTimer);
+    if (this.updateTimer) {
+      clearInterval(this.updateTimer);
+    }
     this.updateTimer = setInterval(function(self) {
       self.updateTimeHeaders();
     }, 50000, this);
