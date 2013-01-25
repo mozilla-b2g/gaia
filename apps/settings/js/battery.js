@@ -58,7 +58,7 @@ var Battery = (function Battery() {
   };
 })();
 
-onLocalized(function SettingsBattery() {
+navigator.mozL10n.ready(function SettingsBattery() {
   function updateInfo(battery) {
     var _ = navigator.mozL10n.get;
 

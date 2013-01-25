@@ -413,5 +413,5 @@ var Calls = (function(window, document, undefined) {
 })(this, document);
 
 // Startup.
-onLocalized(Calls.init.bind(Calls));
+navigator.mozL10n.ready(Calls.init.bind(Calls));
 

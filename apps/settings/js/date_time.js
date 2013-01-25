@@ -24,7 +24,7 @@ var SetTime = (function SetTime() {
   };
 })();
 
-onLocalized(function SettingsDateAndTime() {
+navigator.mozL10n.ready(function SettingsDateAndTime() {
   var _ = navigator.mozL10n.get;
 
   function updateDate() {
