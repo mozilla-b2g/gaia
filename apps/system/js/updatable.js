@@ -27,6 +27,9 @@ function AppUpdatable(app) {
   if (app.downloadAvailable) {
     this.availableCallBack();
   }
+  if (app.readyToApplyDownload) {
+    this.applyUpdate();
+  }
 }
 
 AppUpdatable.prototype.download = function() {

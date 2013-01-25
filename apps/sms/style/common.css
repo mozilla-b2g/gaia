@@ -18,7 +18,7 @@
 
 .carrier-wrapper {
   font-size: -moz-calc(6 * 0.226rem);
-  width: 100%;
+  width: calc(100% - 3rem);
   position: absolute;
   background: rgba(255,255,255,0.7);
   color: black;

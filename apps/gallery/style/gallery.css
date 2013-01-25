@@ -78,7 +78,7 @@ section {
   https://bugzilla.mozilla.org/show_bug.cgi?id=570326; */
   overflow: hidden;
   position: absolute;
-  z-index: 100;
+  z-index: 1;
   top: 0;
   left: 0;
   right: 0;
