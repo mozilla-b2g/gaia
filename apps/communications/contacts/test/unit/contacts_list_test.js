@@ -85,6 +85,7 @@ suite('Render contacts list', function() {
       searchBox,
       noResults,
       settings,
+      searchSection,
       noContacts;
 
   function assertNoGroup(title, container) {
@@ -180,9 +181,18 @@ suite('Render contacts list', function() {
     document.body.appendChild(settings);
     document.body.appendChild(noContacts);
 
-    var searchSection = document.createElement('section');
+    searchSection = document.createElement('section');
     searchSection.id = 'search-view';
-    searchSection.innerHTML = '<input type="text" id="search-contact"/>';
+    searchSection.innerHTML = '<form id="searchview-container" class="search" role="search">' +
+          '<button id="cancel-search" data-l10n-id="cancel" type="submit">Cancel</button>' +
+          '<p>' +
+            '<label for="search-contact">' +
+              '<input type="search" name="search" class="textfield" placeholder="Search"' +
+                     'id="search-contact" data-l10n-id="search-contact">' +
+              '<button type="reset">Clear</button>' +
+            '</label>' +
+          '</p>' +
+        '</form>';
     searchSection.innerHTML += '<section id="groups-list-search">';
     searchSection.innerHTML += '<ol id="search-list" data-type="list"></ol>';
     searchSection.innerHTML += '</section>';
@@ -679,7 +689,7 @@ suite('Render contacts list', function() {
 
     });
 
-    test('Search  by name and surname with trailing whitespaces', function() {
+    test('Search  by name and surname with trailing whitespaces', function(done) {
       mockContacts = new MockContactsList();
       var contactIndex = Math.floor(Math.random() * mockContacts.length);
       var contact = mockContacts[contactIndex];
@@ -696,17 +706,14 @@ suite('Render contacts list', function() {
   });
 
   suite('Contacts order', function() {
-    suiteSetup(function() {
+    test('Order by lastname', function() {
+      resetDom(document);
+      subject.init(list);
+
       mockContacts = new MockContactsList();
       subject.load(mockContacts);
-    });
-
-    suiteTeardown(function() {
-      subject.setOrderByLastName(true);
-    });
-
-    test('Order by lastname', function() {
       var names = document.querySelectorAll('[data-search]');
+      
       assert.length(names, mockContacts.length);
       for (var i = 0; i < names.length; i++) {
         var printed = names[i];
@@ -738,6 +745,8 @@ suite('Render contacts list', function() {
            window.utils.text.escapeHTML(mockContact.givenName[0], true) + '</strong> ' +
            window.utils.text.escapeHTML(mockContact.familyName[0], true);
       assert.equal(name.innerHTML.indexOf(highlight), 0);
+
+      subject.setOrderByLastName(true);
     });
   });
 });
