@@ -362,7 +362,7 @@ html[dir="rtl"] ul li a[role="button"] {
 
 html[dir="rtl"] ul li > label:not([for]) > span,
 html[dir="rtl"] ul li > label:not([for]) > input[data-type="switch"] + span {
-  left: 3rem; /* XXX we use "right: 3rem" for LTR layouts... */
+  left: 6rem; /* XXX we use "right: 3rem" for LTR layouts... */
   right: inherit;
 }
 
