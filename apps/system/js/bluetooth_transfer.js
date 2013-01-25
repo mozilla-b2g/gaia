@@ -195,43 +195,45 @@ var BluetoothTransfer = {
   },
 
   checkStorageSpace: function bt_checkStorageSpace(fileSize, callback) {
+    if (!callback)
+      return;
+
     var _ = navigator.mozL10n.get;
-    var statreq = this._deviceStorage.stat();
+    var storage = this._deviceStorage;
 
-    statreq.onsuccess = function(e) {
-      var isStorageAvailable = false;
-      var MAX_MEDIA_SIZE = fileSize;
-      var stats = e.target.result;
-      var errorMessage = '';
-
-      switch (stats.state) {
+    var availreq = storage.available();
+    availreq.onsuccess = function(e) {
+      switch (availreq.result) {
       case 'available':
-        if (stats.freeBytes >= fileSize) {
-          isStorageAvailable = true;
-        } else {
-          errorMessage = _('sdcard-no-space2');
-        }
+        // skip down to the code below
         break;
       case 'unavailable':
-        errorMessage = _('sdcard-not-exist');
-        break;
+        callback(false, _('sdcard-not-exist'));
+        return;
       case 'shared':
-        errorMessage = _('sdcard-in-use');
-        break;
+        callback(false, _('sdcard-in-use'));
+        return;
       default:
-        errorMessage = _('unknown-error');
+        callback(false, _('unknown-error'));
+        return;
       }
 
-      if (callback) {
-        callback(isStorageAvailable, errorMessage);
-      }
+      // If we get here, then the sdcard is available, so we need to find out
+      // if there is enough free space on it
+      var freereq = storage.freeSpace();
+      freereq.onsuccess = function() {
+        if (freereq.result >= fileSize)
+          callback(true, '');
+        else
+          callback(false, _('sdcard-no-space2'));
+      };
+      freereq.onerror = function() {
+        callback(false, _('cannotGetStorageState'));
+      };
     };
 
-    statreq.onerror = function(e) {
-      if (callback) {
-        var errorMessage = _('cannotGetStorageState');
-        callback(false, errorMessage);
-      }
+    availreq.onerror = function(e) {
+      callback(false, _('cannotGetStorageState'));
     };
   },
 
