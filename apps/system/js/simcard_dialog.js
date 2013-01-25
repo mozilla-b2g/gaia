@@ -35,6 +35,7 @@ var SimPinDialog = {
     var valueEntered = '';
     var inputField = document.querySelector('input[name="' + name + '"]');
     var displayField = document.querySelector('input[name="' + name + 'Vis"]');
+    var codeMaxLength = parseInt(inputField.getAttribute('maxlength'), 10);
     var self = this;
 
     inputField.addEventListener('keypress', function(evt) {
@@ -49,7 +50,7 @@ var SimPinDialog = {
       if (code === 0) { // backspace
         valueEntered = valueEntered.substr(0, valueEntered.length - 1);
       } else {
-        if (valueEntered.length >= 8)
+        if (valueEntered.length >= codeMaxLength)
           return;
         valueEntered += String.fromCharCode(code);
       }
