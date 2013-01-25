@@ -36,19 +36,14 @@
   display: none;
 }
 
-#permission-message {
-  background-image: none;
-  background-repeat: no-repeat no-repeat;
-  min-height: 64px;
+#permission-message,
+#permission-remember-label {
+  font-weight: normal;
+  font-size: 2rem;
 }
 
-#permission-screen[data-type] #permission-remember-section,
-#permission-screen[data-type] #permission-icon {
+#permission-screen[data-type] #permission-remember-section {
   display: inherit;
-}
-
-#permission-screen[data-type] #permission-message {
-  padding-left: 64px;
 }
 
 #permission-remember-section label {
@@ -57,29 +52,6 @@
 }
 
 #permission-remember-label {
+  font-size: 1.8rem;
   line-height: 5rem;
-}
-
-#permission-screen[data-type="geolocation"] #permission-message {
-  background-image: url('images/PermissionsDialogIcons_Geolocation.png');
-}
-
-#permission-screen[data-type="fmradio"] #permission-message {
-  background-image: url('images/PermissionsDialogIcons_FMRadio.png');
-}
-
-#permission-screen[data-type*="camera"] #permission-message {
-  background-image: url('images/PermissionsDialogIcons_Camera.png');
-}
-
-#permission-screen[data-type*="wifi"] #permission-message {
-  background-image: url('images/PermissionsDialogIcons_WifiInformation.png');
-}
-
-#permission-screen[data-type="contacts"] #permission-message {
-  background-image: url('images/PermissionsDialogIcons_Contacts.png');
-}
-
-#permission-screen[data-type*="device-storage"] #permission-message {
-  background-image: url('images/PermissionsDialogIcons_DeviceStorage.png');
 }
