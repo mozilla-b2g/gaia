@@ -391,5 +391,5 @@ var Carrier = (function newCarrier(window, document, undefined) {
 })(this, document);
 
 // startup
-onLocalized(Carrier.init.bind(Carrier));
+navigator.mozL10n.ready(Carrier.init.bind(Carrier));
 

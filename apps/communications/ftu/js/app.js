@@ -41,7 +41,7 @@ var AppManager = {
   }
 };
 
-window.addEventListener('localized', function showBody() {
+navigator.mozL10n.ready(function showBody() {
   document.documentElement.lang = navigator.mozL10n.language.code;
   document.documentElement.dir = navigator.mozL10n.language.direction;
   if (!AppManager.isLocalized) {

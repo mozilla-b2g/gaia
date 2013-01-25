@@ -47,5 +47,5 @@ var Security = {
 };
 
 // startup
-onLocalized(Security.init);
+navigator.mozL10n.ready(Security.init);
 
