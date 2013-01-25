@@ -45,10 +45,6 @@ var MessageManager = {
   },
 
   onMessageReceived: function mm_onMessageReceived(e) {
-    if (window.location.hash === '#edit') {
-      return;
-    }
-
     var message = e.message;
 
     var num;
