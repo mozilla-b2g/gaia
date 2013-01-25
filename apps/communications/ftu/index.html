@@ -35,6 +35,7 @@
   <link rel="resource" type="application/l10n" href="/shared/locales/tz.ini"/>
   <link rel="resource" type="application/json" href="/shared/resources/tz.json"/>
   <link rel="resource" type="application/json" href="/shared/resources/languages.json"/>
+  <link rel="resource" type="application/json" href="/shared/resources/keyboard_layouts.json"/>
   <link rel="resource" type="application/json" href="/shared/resources/apn.json"/>
   <script type="text/javascript" src="/shared/js/l10n.js"></script>
   <script type="text/javascript" src="/shared/js/l10n_date.js"></script>
@@ -228,9 +229,9 @@
       <section role="region" id="import_contacts">
         <article data-type="list">
           <ul>
-            <li id="sim_import">
+            <li id="sim_import" class="importOption">
               <button id="sim-import-button" class="icon icon-sim" data-l10n-id="importSim2">
-                  Import from SIM
+                  SIM card
               </button>
               <p id="no-sim" data-l10n-id="noSimMsg">To import insert a SIM card</p>
             </li>
@@ -240,10 +241,21 @@
           <h2 data-l10n-id="otherAccount">Other accounts</h2>
         </header>
         <article data-type="list">
-          <ul>
-            <li id="fb_import" class="disabled">
+          <ul id="fb_container">
+            <li id="fb_import" class="importOption">
+              <button id="fb-import-button" class="icon icon-fb" data-l10n-id="importFb2">
+                  Facebook
+              </button>
+              <p id="no-network" class="hidden" data-l10n-id="noConnection">
+                To import Facebook friends connect to Wi-Fi or data network
+              </p>
+            </li>
+            <li id="fb_after_import1" class="hidden">
               <p data-l10n-id="importFb2">Facebook</p>
-              <p id="fb_import_feedback" data-l10n-id="notImportedYet">Not imported yet</p>
+              <p id="fb_import_feedback"></p>
+            </li>
+            <li class="importOption hidden" id="fb_after_import2">
+              <p data-l10n-id="afterFbImport"></p>
             </li>
           </ul>
         </article>
@@ -284,7 +296,7 @@
           <ul>
             <li>
               <a class="privacy-menuitem privacy-browserOS external"
-                href="https://www.mozilla.org/legal/privacy/firefox.html"
+                href="https://www.mozilla.org/privacy/firefox-os/"
                 data-l10n-id="privacy-b2g"
                 title="B2G OS">Browser OS</a>
             </li>

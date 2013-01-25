@@ -183,22 +183,23 @@ var Navigation = {
       case '#import_contacts':
         UIManager.progressBar.className = 'step-state step-5';
         UIManager.mainTitle.innerHTML = _('importContacts3');
-        var fbOption = document.getElementById('fb_import');
         // Enabling or disabling SIM import depending on card status
         SimManager.checkSIMButton();
 
         // If we have 3G or Wifi activate FB import
+        var fbState;
         if (!WifiManager.api) {
           // Desktop
-          fbOption.classList.remove('disabled');
+          FacebookIntegration.checkFbImport('enabled');
           return;
         }
         if (WifiManager.api.connection.status === 'connected' ||
             DataMobile.isDataAvailable) {
-          fbOption.classList.remove('disabled');
+          fbState = 'enabled';
         } else {
-          fbOption.classList.add('disabled');
+          fbState = 'disabled';
         }
+        FacebookIntegration.checkFbImport(fbState);
         break;
       case '#welcome_browser':
         UIManager.progressBar.className = 'step-state step-6';
@@ -221,7 +222,7 @@ var Navigation = {
 
   skipStep: function n_skipStep() {
     this.currentStep = this.currentStep + (this.currentStep - this.previousStep);
-    if (this.currentStep < 1){
+    if (this.currentStep < 1) {
       this.previousStep = this.currentStep = 1;
     }
     if (this.currentStep > numSteps) {
@@ -242,11 +243,12 @@ var Navigation = {
     window.location.hash = steps[self.currentStep].hash;
     // SIM card management
     if (steps[this.currentStep].requireSIM) {
-      SimManager.handleCardState(function (response) {
+      SimManager.oncardstatechange = function card_state_change(response) {
         if (!response) {
           self.skipStep();
         }
-      });
+      };
+      SimManager.handleCardState();
     }
   }
 };

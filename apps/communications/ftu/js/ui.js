@@ -84,12 +84,14 @@ var UIManager = {
     this.dateConfigurationLabel.innerHTML = currentDate.
       toLocaleFormat('%Y-%m-%d');
     // Add events to DOM
-    this.fakePinInput.addEventListener('keypress', this.fakeInputValues.bind(this));
-    this.fakePukInput.addEventListener('keypress', this.fakeInputValues.bind(this));
+    this.fakePinInput.addEventListener('keypress',
+                                       this.fakeInputValues.bind(this));
+    this.fakePukInput.addEventListener('keypress',
+                                       this.fakeInputValues.bind(this));
     this.fakeNewpinInput.addEventListener('keypress',
                                           this.fakeInputValues.bind(this));
     this.fakeConfirmNewpinInput.addEventListener('keypress',
-                                                 this.fakeInputValues.bind(this));
+                                              this.fakeInputValues.bind(this));
 
     this.simImportButton.addEventListener('click', this);
     this.skipPinButton.addEventListener('click', this);

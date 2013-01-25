@@ -947,9 +947,8 @@
 
   // the B2G build system doesn't expose any `document'...
   if (typeof(document) !== 'undefined') {
-    if (document.readyState === 'interactive' ||
-        document.readyState === 'complete') {
-      l10nStartup();
+    if (document.readyState === 'complete') {
+      window.setTimeout(l10nStartup);
     } else {
       document.addEventListener('DOMContentLoaded', l10nStartup);
     }
@@ -997,7 +996,16 @@
     get dictionary() { return JSON.parse(JSON.stringify(gL10nData)); },
 
     // this can be used to prevent race conditions
-    get readyState() { return gReadyState; }
+    get readyState() { return gReadyState; },
+    ready: function l10n_ready(callback) {
+      if (!callback) {
+        return;
+      } else if (gReadyState == 'complete' || gReadyState == 'interactive') {
+        window.setTimeout(callback);
+      } else {
+        window.addEventListener('localized', callback);
+      }
+    }
   };
 
   consoleLog('library loaded.');

@@ -58,9 +58,7 @@ var SimManager = {
   *   'networkLocked',
   *   'ready'.
   */
-  handleCardState: function sm_handleCardState(callback) {
-    if (callback)
-      this.accessCallback = callback;
+  handleCardState: function sm_handleCardState() {
     switch (this.mobConn.cardState) {
       case 'pinRequired':
         this.showPinScreen();
@@ -69,29 +67,27 @@ var SimManager = {
         this.showPukScreen();
         break;
       case 'ready':
-        if (this.accessCallback) {
-          this.accessCallback(true);
+        if (typeof this.oncardstatechange === 'function') {
+          this.oncardstatechange(true);
         }
         break;
     }
-
     SimManager.checkSIMButton();
   },
 
   checkSIMButton: function sm_checkSIMButton() {
     var simOption = UIManager.simImportButton;
     // If there is an unlocked SIM we activate import from SIM
-    if (!this.alreadyImported && SimManager.available()) {
+    if (!SimManager.alreadyImported && SimManager.available()) {
       simOption.removeAttribute('disabled');
       UIManager.noSim.classList.add('hidden');
     } else {
       simOption.setAttribute('disabled', 'disabled');
-      if (!this.alreadyImported) {
+      if (!SimManager.alreadyImported) {
         UIManager.noSim.classList.remove('hidden');
       }
     }
   },
-  accessCallback: null,
 
   showPinScreen: function sm_showScreen() {
     UIManager.activationScreen.classList.remove('show');
@@ -118,7 +114,9 @@ var SimManager = {
 
   skip: function sm_skip() {
     this.hideScreen();
-    this.accessCallback(false);
+    if (typeof this.oncardstatechange === 'function') {
+        this.oncardstatechange(false);
+    }
   },
 
   unlock: function sm_unlock() {

@@ -28,7 +28,7 @@ var ConfirmDialog = (function() {
 
       if (cancel.applyClass) {
         cancelButton.classList.add(cancel.applyClass);
-      } 
+      }
       if (confirm.applyClass) {
         confirmButton.classList.add(confirm.applyClass);
       }

@@ -175,7 +175,7 @@ var OnCallHandler = (function onCallHandler() {
 
   // Setting up the SimplePhoneMatcher
   var conn = window.navigator.mozMobileConnection;
-  if (conn) {
+  if (conn && conn.voice && conn.voice.network) {
     SimplePhoneMatcher.mcc = conn.voice.network.mcc.toString();
   }
 
@@ -481,7 +481,7 @@ var OnCallHandler = (function onCallHandler() {
   function handleHSCommand(message) {
     // We will receive the message for button released,
     // we will ignore it
-    if (message == 'headset-button-release') {
+    if (message != 'headset-button-press') {
       return;
     }
 

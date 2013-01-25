@@ -89,10 +89,12 @@
       <button class="tabs-button" id="tabs-artists" data-option="artist"></button>
       <button class="tabs-button" id="tabs-albums" data-option="album"></button>
     </div>
-    <!-- A thin indeterminate progress bar to indicate scanning -->
-    <!-- set class to "throb" to make it go, or hidden" to make it stop -->
-    <div id="progress" class="hidden">
-      <div id="throbber"></div>
+    <!-- display scanning progress over the titlebar -->
+    <div id="scan-progress" class="hidden">
+      <div id="scan-spinner"></div>
+      <div id="scan-count"></div>
+      <div id="scan-artist"></div>
+      <div id="scan-title"></div>
     </div>
     <!-- display messages like "Scanning", "No Songs" and "No SD Card" here -->
     <div id="overlay" class="hidden">
@@ -101,6 +103,8 @@
         <p id="overlay-text"><p>
       </div>
     </div>
+    <!-- display this at startup while we load music -->
+    <div id="spinner-overlay"><div id="spinner"></div></div>
   </body>
 </html>
 

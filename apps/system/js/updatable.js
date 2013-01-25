@@ -27,6 +27,9 @@ function AppUpdatable(app) {
   if (app.downloadAvailable) {
     this.availableCallBack();
   }
+  if (app.readyToApplyDownload) {
+    this.applyUpdate();
+  }
 }
 
 AppUpdatable.prototype.download = function() {
@@ -220,7 +223,7 @@ SystemUpdatable.prototype.showApplyPrompt = function() {
   };
 
   UtilityTray.hide();
-  CustomDialog.show(_('updateReady'), _('wantToInstall'),
+  CustomDialog.show(_('systemUpdateReady'), _('wantToInstall'),
                     cancel, confirm);
 };
 

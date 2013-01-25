@@ -460,5 +460,5 @@ var Connectivity = (function(window, document, undefined) {
 
 
 // startup
-onLocalized(Connectivity.init.bind(Connectivity));
+navigator.mozL10n.ready(Connectivity.init.bind(Connectivity));
 
