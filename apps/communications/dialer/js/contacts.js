@@ -157,5 +157,16 @@ var Contacts = {
     request.onerror = function findError() {
       callback(null);
     };
+  },
+
+  getCount: function getCount(callback) {
+    var request = navigator.mozContacts.find({});
+    request.onsuccess = function getCountCallback() {
+      callback(request.result.length);
+    };
+
+    request.onerror = function getCountError() {
+      callback(null);
+    };
   }
 };
