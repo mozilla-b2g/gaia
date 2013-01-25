@@ -43,13 +43,11 @@ var Contacts = (function() {
     var hash = hasParams[0];
     var sectionId = hash.substr(1, hash.length) || '';
     var cList = contacts.List;
-    var overlay = true;
     var params = hasParams.length > 1 ?
       extractParams(hasParams[1]) : -1;
 
     switch (sectionId) {
       case 'view-contact-details':
-        overlay = false;
         if (params == -1 || !('id' in params)) {
           console.log('Param missing');
           return;
@@ -67,7 +65,6 @@ var Contacts = (function() {
         break;
 
       case 'view-contact-form':
-        overlay = false;
         if (params == -1 || !('id' in params)) {
           contactsForm.render(params, goToForm);
         } else {
@@ -102,7 +99,7 @@ var Contacts = (function() {
       checkCancelableActivity();
       readyToPaint = true;
       if (firstContacts) {
-        loadList(overlay, firstContacts);
+        loadList(firstContacts);
         readyToPaint = false;
       }
     }
@@ -291,8 +288,8 @@ var Contacts = (function() {
     });
   };
 
-  var loadList = function loadList(overlay, contacts) {
-    contactsList.load(contacts, overlay);
+  var loadList = function loadList(contacts) {
+    contactsList.load(contacts);
     contactsList.handleClick(contactListClickHandler);
   };
 
@@ -627,7 +624,7 @@ var Contacts = (function() {
     contacts.List.getAllContacts(onerror, function(contacts) {
       firstContacts = contacts;
       if (readyToPaint) {
-        loadList(true, contacts);
+        loadList(contacts);
         firstContacts = null;
       }
     });

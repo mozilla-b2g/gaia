@@ -22,9 +22,6 @@ var leastPlayedTitle;
 // See init()
 var musicdb;
 
-var scanning = false;
-var scanningFoundChanges = false;
-
 // We get a localized event when the application is launched and when
 // the user switches languages.
 window.addEventListener('localized', function onlocalized() {
@@ -55,13 +52,19 @@ window.addEventListener('localized', function onlocalized() {
     init();
 });
 
+// We use this flag when switching views. We want to hide the scan progress
+// bar (to show the titlebar) when we enter sublist mode or player mode
+var displayingScanProgress = false;
+
 function init() {
   // Here we use the mediadb.js which gallery is using (in shared/js/)
   // to index our music contents with metadata parsed.
   // So the behaviors of musicdb are the same as the MediaDB in gallery
   musicdb = new MediaDB('music', parseAudioMetadata, {
     indexes: ['metadata.album', 'metadata.artist', 'metadata.title',
-              'metadata.rated', 'metadata.played', 'date']
+              'metadata.rated', 'metadata.played', 'date'],
+    batchSize: 1,
+    autoscan: false // We call scan() explicitly after listing music we know
   });
 
   // This is called when DeviceStorage becomes unavailable because the
@@ -84,52 +87,88 @@ function init() {
     if (currentOverlay === 'nocard' || currentOverlay === 'pluggedin')
       showOverlay(null);
 
-    showCurrentView();  // Display song covers we know about
+    // Display music that we already know about
+    showCurrentView(function() {
+      // Hide the  spinner once we've displayed the initial screen
+      document.getElementById('spinner-overlay').classList.add('hidden');
+    });
+
+    // Concurrently, start scanning for new music
+    musicdb.scan();
   };
+
+  var filesDeletedWhileScanning = 0;
+  var filesFoundWhileScanning = 0;
+  var filesFoundBatch = 0;
+  var scanning = false;
+  var SCAN_UPDATE_BATCH_SIZE = 25; // Redisplay after this many new files
+
+  var scanProgress = document.getElementById('scan-progress');
+  var scanCount = document.getElementById('scan-count');
+  var scanArtist = document.getElementById('scan-artist');
+  var scanTitle = document.getElementById('scan-title');
 
   // When musicdb scans, let the user know
   musicdb.onscanstart = function() {
     scanning = true;
-    scanningFoundChanges = false;
-    showScanProgress();
+    displayingScanProgress = false;
+    filesFoundWhileScanning = 0;
+    filesFoundBatch = 0;
+    filesDeletedWhileScanning = 0;
   };
 
   // And hide the throbber when scanning is done
   musicdb.onscanend = function() {
     scanning = false;
-    hideScanProgress();
-
-    // if the scan found any changes, update the UI now
-    if (scanningFoundChanges) {
-      scanningFoundChanges = false;
+    if (displayingScanProgress) {
+      scanProgress.classList.add('hidden');
+      displayingScanProgress = false;
+    }
+    if (filesFoundBatch > 0 || filesDeletedWhileScanning > 0) {
+      filesFoundWhileScanning = 0;
+      filesFoundBatch = 0;
+      filesDeletedWhileScanning = 0;
       showCurrentView();
     }
   };
 
-  // When MediaDB finds new or deleted files, it sends created and deleted
-  // events. During scanning we may get lots of them. Bluetooth file transfer
-  // can also result in created events. The way the app is currently
-  // structured, all we can do is rebuild the entire UI with the updated
-  // list of files. We don't want to do this while scanning, though because
-  // it we may end up rebuilding it over and over. So we defer the rebuild
-  // until the scan ends
-  musicdb.oncreated = musicdb.ondeleted = function(event) {
-    if (scanning)
-      scanningFoundChanges = true;
-    else
+  // When MediaDB finds new files, it sends created events. During
+  // scanning we may get lots of them. Bluetooth file transfer can
+  // also result in created events. The way the app is currently
+  // structured, all we can do is rebuild the entire UI with the
+  // updated list of files. We don't want to do this for every new file
+  // but we do want to redisplay every so often.
+  musicdb.oncreated = function(event) {
+    if (scanning && !displayingScanProgress &&
+        (currentMode === MODE_TILES || currentMode === MODE_LIST))
+    {
+      displayingScanProgress = true;
+      scanProgress.classList.remove('hidden');
+    }
+    var n = event.detail.length;
+
+    filesFoundWhileScanning += n;
+    filesFoundBatch += n;
+
+    scanCount.textContent = filesFoundWhileScanning;
+
+    var metadata = event.detail[0].metadata;
+    scanArtist.textContent = metadata.artist || '';
+    scanTitle.textContent = metadata.title || '';
+
+    if (filesFoundBatch > SCAN_UPDATE_BATCH_SIZE) {
+      filesFoundBatch = 0;
       showCurrentView();
+    }
   };
-}
 
-// show and hide scanning progress
-function showScanProgress() {
-  document.getElementById('progress').classList.remove('hidden');
-  document.getElementById('throbber').classList.add('throb');
-}
-
-function hideScanProgress() {
-  document.getElementById('progress').classList.add('hidden');
-  document.getElementById('throbber').classList.remove('throb');
+  // For deletions, we just set a flag and redisplay when the scan is done.
+  // This means that there is a longer window of time when the app might
+  // display music that is no longer available.  But the only way to prevent
+  // this is to refuse to display any music until the scan completes.
+  musicdb.ondeleted = function(event) {
+    filesDeletedWhileScanning += event.detail.length;
+  };
 }
 
 //
@@ -202,28 +241,33 @@ var listHandle = null;
 var sublistHandle = null;
 var playerHandle = null;
 
-function showCurrentView() {
-  TilesView.clean();
+function showCurrentView(callback) {
   // Enumerate existing song entries in the database
-  // List the all, and sort them in ascending order by album.
-  var option = 'metadata.album';
-
-  tilesHandle = musicdb.enumerate(option, null, 'nextunique',
-                                  TilesView.update.bind(TilesView));
-  switch (TabBar.option) {
-    case 'playlist':
-      // TODO update the predefined playlists
-      break;
-    case 'artist':
-    case 'album':
-      changeMode(MODE_LIST);
-      ListView.clean();
-
-      listHandle =
-        musicdb.enumerate('metadata.' + TabBar.option, null, 'nextunique',
-                          ListView.update.bind(ListView, TabBar.option));
-      break;
+  // List them all, and sort them in ascending order by album.
+  // Use enumerateAll() here so that we get all the results we want
+  // and then pass them synchronously to the update() functions.
+  // If we do it asynchronously, then we'll get one redraw for
+  // every song.
+  if (currentMode === MODE_LIST) {
+    listHandle =
+      musicdb.enumerateAll('metadata.' + TabBar.option, null, 'nextunique',
+                           function(songs) {
+                             ListView.clean();
+                             songs.forEach(function(song) {
+                               ListView.update(TabBar.option, song);
+                             });
+                           });
   }
+
+  tilesHandle = musicdb.enumerateAll('metadata.album', null, 'nextunique',
+                                     function(songs) {
+                                       TilesView.clean();
+                                       songs.forEach(function(song) {
+                                         TilesView.update(song);
+                                       });
+                                       if (callback)
+                                         callback();
+                                    });
 
 }
 
@@ -291,6 +335,16 @@ function changeMode(mode) {
   });
 
   document.body.classList.add(modeClasses[mode - 1]);
+
+  // Don't display scan progress if we're in sublist or player mode.
+  // In these modes the user needs to see the regular titlebar so they
+  // can use the back button. If the user returns to tiles or list
+  // mode and we get more scan results we'll resume the progress display.
+  if (displayingScanProgress &&
+      (mode === MODE_SUBLIST || mode === MODE_PLAYER)) {
+    document.getElementById('scan-progress').classList.add('hidden');
+    displayingScanProgress = false;
+  }
 }
 
 // Title Bar
