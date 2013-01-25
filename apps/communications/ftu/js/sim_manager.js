@@ -1,6 +1,9 @@
 'use strict';
 
 var SimManager = {
+  // Leave the length of PIN to be configurable,
+  pinMaxLength: 16,
+
   init: function sm_init() {
     this.mobConn = window.navigator.mozMobileConnection;
     if (!this.mobConn)
@@ -134,7 +137,7 @@ var SimManager = {
 
   unlockPin: function sm_unlockPin() {
     var pin = UIManager.pinInput.value;
-    if (pin.length < 4 || pin.length > 8) {
+    if (pin.length < 4 || pin.length > this.pinMaxLength) {
       UIManager.pinError.innerHTML = _('pinValidation');
       UIManager.pinInput.classList.add('onerror');
       UIManager.pinError.classList.remove('hidden');
@@ -178,7 +181,7 @@ var SimManager = {
     }
     var newpinCode = UIManager.newpinInput.value;
     var confirmNewpin = UIManager.confirmNewpinInput.value;
-    if (newpinCode.length < 4 || newpinCode.length > 8) {
+    if (newpinCode.length < 4 || newpinCode.length > this.pinMaxLength) {
       UIManager.newpinError.innerHTML = _('pinValidation');
       UIManager.newpinError.classList.remove('hidden');
       UIManager.newpinInput.classList.add('onerror');
