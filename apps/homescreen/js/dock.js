@@ -177,7 +177,7 @@ const DockManager = (function() {
       container.addEventListener('touchstart', handleEvent);
       dock = this.page = page;
 
-      var numIcons= dock.getNumIcons();
+      var numIcons = dock.getNumIcons();
       if (numIcons > maxNumAppInViewPort) {
         container.classList.add('scrollable');
       }

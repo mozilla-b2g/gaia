@@ -48,7 +48,7 @@ var AppStorage = (function AppStorage() {
   };
 })();
 
-onLocalized(function SettingsAppStorage() {
+navigator.mozL10n.ready(function SettingsAppStorage() {
   function updateInfo(usedSize, freeSize) {
     var _ = navigator.mozL10n.get;
 

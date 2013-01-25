@@ -11,7 +11,7 @@
 var gDeviceList = null;
 
 // handle Bluetooth settings
-onLocalized(function bluetoothSettings() {
+navigator.mozL10n.ready(function bluetoothSettings() {
   var _ = navigator.mozL10n.get;
   var settings = window.navigator.mozSettings;
   var bluetooth = window.navigator.mozBluetooth;
@@ -361,9 +361,9 @@ onLocalized(function bluetoothSettings() {
 
     function restoreConnection() {
       window.asyncStorage.getItem('device.connected', function(value) {
-        if(!value || !pairList.index[value]) 
+        if (!value || !pairList.index[value])
           return;
-        var device = pairList.index[value][0]; 
+        var device = pairList.index[value][0];
         setDeviceConnect(device);
       });
     }
@@ -721,7 +721,7 @@ onLocalized(function bluetoothSettings() {
   bluetooth.ondisabled = function bt_onDisabled() {
     gBluetoothCheckBox.disabled = false;  // enable UI toggle
     defaultAdapter = null;  // clear defaultAdapter
-    dispatchEvent(new CustomEvent('bluetooth-disabled'));    
+    dispatchEvent(new CustomEvent('bluetooth-disabled'));
   };
 });
 
