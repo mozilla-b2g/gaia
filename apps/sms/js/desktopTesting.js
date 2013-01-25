@@ -61,6 +61,14 @@ if (!navigator.mozSms) {
         timestamp: new Date(Date.now() - 1002800000)
       },
       {
+        sender: null,
+        receiver: '197746797',
+        body: 'Nothing :)',
+        delivery: 'error',
+        id: 460,
+        timestamp: new Date(Date.now() - 1002800000)
+      },
+      {
         sender: '197746797',
         body: 'Recibido!',
         delivery: 'received',
