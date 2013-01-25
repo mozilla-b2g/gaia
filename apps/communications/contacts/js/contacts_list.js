@@ -16,7 +16,7 @@ contacts.List = (function() {
       orderByLastName = null,
       emptyList = true;
 
-  var init = function load(element, overlay) {
+  var init = function load(element) {
     _ = navigator.mozL10n.get;
 
     cancel = document.getElementById('cancel-search'),
@@ -66,10 +66,7 @@ contacts.List = (function() {
     scrollable.scrollTop = domTarget.offsetTop;
   }
 
-  var load = function load(contacts, overlay) {
-    if (overlay) {
-      Contacts.showOverlay();
-    }
+  var load = function load(contacts) {
     var onError = function() {
       console.log('ERROR Retrieving contacts');
     }
@@ -239,7 +236,6 @@ contacts.List = (function() {
         cleanLastElements(counter);
         FixedHeader.refresh();
         imgLoader.reload();
-        Contacts.hideOverlay();
         emptyList = false;
         return;
       }
@@ -247,10 +243,6 @@ contacts.List = (function() {
       for (var i = 0; i < CHUNK_SIZE; i++) {
         var current = (index * CHUNK_SIZE) + i;
         buildContact(contacts[current], fbContacts, counter, favorites);
-      }
-
-      if (index === 0) {
-        Contacts.hideOverlay();
       }
 
       window.setTimeout(function() {

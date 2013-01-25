@@ -127,11 +127,14 @@ fb.friend2mozContact = function(f) {
 
   if (Array.isArray(f.phones) && f.phones.length > 0) {
     f.tel = [];
+    f.shortTelephone = [];
     f.phones.forEach(function(aphone) {
       f.tel.push({
         type: [privateType],
         value: normalizeFbPhoneNumber(aphone)
       });
+      // Enabling to find FB phones by short number
+      f.shortTelephone.push(aphone.number);
     });
   }
 
@@ -325,7 +328,7 @@ fb.utils.Request = function() {
         this.onsuccess(ev);
       }.bind(this), 0);
     }
-  }
+  };
 
   this.failed = function(error) {
     this.error = error;
@@ -336,5 +339,5 @@ fb.utils.Request = function() {
         this.onerror(ev);
       }.bind(this), 0);
     }
-  }
+  };
 };

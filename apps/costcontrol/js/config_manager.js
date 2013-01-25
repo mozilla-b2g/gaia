@@ -44,7 +44,7 @@ var ConfigManager = (function() {
     'nextReset': null,
     'plantype': 'prepaid',
     'resetTime': 1,
-    'trackingPeriod': 'never',
+    'trackingPeriod': 'monthly',
     'wifiFixing': 0
   };
 

@@ -713,15 +713,12 @@
    */
   function displayText(command, cb) {
     var options = command.options;
-    if (!options.userClear) {
-      var timeoutId = setTimeout(function() {
-        alertbox.classList.add('hidden');
-        if (cb) {
-          cb(false);
-        }
-      },
-      displayTextTimeout);
-    }
+    var timeoutId = setTimeout(function() {
+      alertbox.classList.add('hidden');
+      if (cb) {
+        cb(false);
+      }
+    }, displayTextTimeout);
 
     alertbox_btn.onclick = function() {
       clearTimeout(timeoutId);
@@ -807,7 +804,9 @@
    */
   function displayNotification(command) {
     var options = command.options;
-    NotificationHelper.send('STK', options.text);
+    NotificationHelper.send('STK', options.text, '',function() {
+      alert(options.text);
+    });
   }
 
   /**

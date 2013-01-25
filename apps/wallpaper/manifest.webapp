@@ -32,5 +32,12 @@
   },
   "icons": {
     "64": "/style/icons/64/Wallpaper.png"
-  }
+  },
+  "locales": {
+    "en-US": {
+      "name": "Wallpaper",
+      "description": "Gaia Wallpaper Picker"
+    }
+  },
+  "default_locale": "en-US"
 }

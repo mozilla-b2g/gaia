@@ -25,6 +25,7 @@ settings = {
  "audio.volume.telephony": 5,
  "bluetooth.enabled": False,
  "camera.shutter.enabled": True,
+ "clear.remote-windows.data": False,
  "debug.grid.enabled": False,
  "debug.oop.disabled": False,
  "debug.fps.enabled": False,
