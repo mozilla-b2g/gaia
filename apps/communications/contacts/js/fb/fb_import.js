@@ -862,6 +862,12 @@ if (typeof fb.importer === 'undefined') {
             fbInfo.adr = [address];
           }
 
+          // This is the short telephone number to enable indexing
+          if (cfdata.shortTelephone) {
+            fbInfo.shortTelephone = cfdata.shortTelephone;
+            delete cfdata.shortTelephone;
+          }
+
           // Check whether we were able to get the photo or not
           fbInfo.url = [];
 

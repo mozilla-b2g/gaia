@@ -577,9 +577,9 @@
     stkLastSelectedTest = event.target.textContent;
   }
 
-  function calculateDurationInMS(duration) {
-    var timeout = duration.timeInterval;
-    switch (duration.timeUnit) {
+  function calculateDurationInMS(timeUnit, timeInterval) {
+    var timeout = timeInterval;
+    switch (timeUnit) {
       case icc.STK_TIME_UNIT_MINUTE:
         timeout *= 3600000;
         break;
@@ -713,15 +713,12 @@
    */
   function displayText(command, cb) {
     var options = command.options;
-    if (!options.userClear) {
-      var timeoutId = setTimeout(function() {
-        alertbox.classList.add('hidden');
-        if (cb) {
-          cb(false);
-        }
-      },
-      displayTextTimeout);
-    }
+    var timeoutId = setTimeout(function() {
+      alertbox.classList.add('hidden');
+      if (cb) {
+        cb(false);
+      }
+    }, displayTextTimeout);
 
     alertbox_btn.onclick = function() {
       clearTimeout(timeoutId);
@@ -780,10 +777,18 @@
     }
     tonePlayer.src = selectedPhoneSound;
     tonePlayer.loop = true;
-    tonePlayer.play();
 
-    if (options.duration) {
-      timeout = calculateDurationInMS(options.duration);
+    var timeout = 0;
+    if (options.duration &&
+        options.duration.timeUnit &&
+        options.duration.timeInterval) {
+      timeout = calculateDurationInMS(options.duration.timeUnit,
+        options.duration.timeInterval);
+    } else if (options.timeUnit && options.timeInterval) {
+      timeout = calculateDurationInMS(options.timUnit, options.timeInterval);
+    }
+    if (timeout) {
+      debug("Tone stop in (ms): ", timeout);
       setTimeout(function() {
         tonePlayer.pause();
       }, timeout);
@@ -800,6 +805,8 @@
       alertbox_msg.textContent = options.text;
       alertbox.classList.remove('hidden');
     }
+
+    tonePlayer.play();
   }
 
   /**
@@ -807,7 +814,9 @@
    */
   function displayNotification(command) {
     var options = command.options;
-    NotificationHelper.send('STK', options.text);
+    NotificationHelper.send('STK', options.text, '',function() {
+      alert(options.text);
+    });
   }
 
   /**

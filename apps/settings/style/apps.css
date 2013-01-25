@@ -39,3 +39,7 @@
   height: calc(6rem - 2rem);
 }
 
+#appPermissions .cb-alert {
+  position: fixed;
+}
+

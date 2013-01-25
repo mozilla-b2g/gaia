@@ -19,6 +19,13 @@ var ApplicationsList = {
   detailPermissionsHeader: document.getElementById('permissionsListHeader'),
   uninstallButton: document.getElementById('uninstall-app'),
 
+  bookmarksClear: {
+    dialog: document.querySelector('#appPermissions .cb-alert'),
+    goButton: document.querySelector('#appPermissions .cb-alert-clear'),
+    cancelButton: document.querySelector('#appPermissions .cb-alert-cancel'),
+    mainButton: document.getElementById('clear-bookmarks-app')
+  },
+
   init: function al_init() {
     var appsMgmt = navigator.mozApps.mgmt;
     appsMgmt.oninstall = this.oninstall.bind(this);
@@ -40,6 +47,25 @@ var ApplicationsList = {
       }
     }).bind(this);
     xhr.send();
+
+    // Implement clear bookmarks apps button and its confirm dialog
+    var confirmDialog = this.bookmarksClear.dialog;
+    this.bookmarksClear.goButton.onclick = function cb_confirmGoClicked(event) {
+      var settings = navigator.mozSettings;
+      var lock = settings.createLock();
+      lock.set({'clear.remote-windows.data': true});
+
+      confirmDialog.hidden = true;
+    };
+
+    this.bookmarksClear.cancelButton.onclick =
+      function cb_confirmCancelClicked(event) {
+        confirmDialog.hidden = true;
+      };
+
+    this.bookmarksClear.mainButton.onclick = function clearBookmarksData() {
+      confirmDialog.hidden = false;
+    };
   },
 
   initExplicitPermissionsTable: function al_initExplicitPermissionsTable() {
@@ -163,6 +189,10 @@ var ApplicationsList = {
     }, this);
 
     this.container.appendChild(listFragment);
+
+    // Unhide clear bookmarks button only after app list is populated
+    // otherwise it would appear solely during loading
+    this.bookmarksClear.mainButton.style.visibility = '';
   },
 
   oninstall: function al_oninstall(evt) {
