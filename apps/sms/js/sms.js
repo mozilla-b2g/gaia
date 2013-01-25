@@ -798,6 +798,10 @@ var ThreadUI = {
   },
 
   updateCounter: function thui_updateCount(evt) {
+    if (!navigator.mozSms) {
+      return;
+    }
+    
     var value = this.input.value;
     // We set maximum concatenated number of our SMS app to 10 based on:
     // https://bugzilla.mozilla.org/show_bug.cgi?id=813686#c0
