@@ -55,6 +55,12 @@
   margin-right: 2px;
 }
 
+/* Confirm dialog */
+.modal-dialog-message-container p {
+  display:inline !important;
+  word-wrap: break-word;
+}
+
 /* Select one dialog */
 
 #modal-dialog-select-one .modal-dialog-message-container {
