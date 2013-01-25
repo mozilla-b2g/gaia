@@ -84,7 +84,7 @@ var PairView = {
     }
 
     // show() only until the page is localized.
-    onLocalized(PairView.show.bind(PairView));
+    navigator.mozL10n.ready(PairView.show.bind(PairView));
   },
 
   close: function() {
@@ -142,19 +142,4 @@ var PairView = {
     }
   }
 };
-
-/**
- * Fire a callback when as soon as all l10n resources are ready and the UI has
- * been translated.
- * Note: this could be exposed as `navigator.mozL10n.onload'...
- */
-
-function onLocalized(callback) {
-  if (navigator.mozL10n.readyState == 'complete' ||
-      navigator.mozL10n.readyState == 'interactive') {
-    callback();
-  } else {
-    window.addEventListener('localized', callback);
-  }
-}
 

@@ -8,7 +8,8 @@ var LanguageManager = {
     this.getCurrentKeyboardLayout();
     this.getSupportedKbLayouts();
     document.getElementById('languages').addEventListener('change', this);
-    this.settings.addObserver('language.current', this.changeDefaultKb.bind(this));
+    this.settings.addObserver('language.current',
+        this.changeDefaultKb.bind(this));
   },
 
   handleEvent: function handleEvent(evt) {
@@ -31,7 +32,7 @@ var LanguageManager = {
       lock.set(settingOldKB);
       lock.set(settingNewKB);
       lock.set({'keyboard.current': event.settingValue});
-      console.log('Keyboard layout changed to '+event.settingValue);
+      console.log('Keyboard layout changed to ' + event.settingValue);
 
       this._currentLanguage = event.settingValue;
     }

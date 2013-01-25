@@ -249,7 +249,7 @@ const DragDropManager = (function() {
       var rectObject = overlapElem.getBoundingClientRect();
       if (overlapElem.classList.contains('page') ||
           x < rectObject.left || x > rectObject.right ||
-          y < rectObject.top  || y > rectObject.bottom) {
+          y < rectObject.top || y > rectObject.bottom) {
         overlapElem = document.elementFromPoint(x, y);
       }
     }
