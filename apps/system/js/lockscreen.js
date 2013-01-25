@@ -525,7 +525,7 @@ var LockScreen = {
     this.mainScreen.focus();
 
     var repaintTimeout = 0;
-    var nextPaint= function() {
+    var nextPaint = (function() {
       clearTimeout(repaintTimeout);
       currentFrame.removeNextPaintListener(nextPaint);
 
@@ -552,7 +552,7 @@ var LockScreen = {
           unlockAudio.play();
         }
       }
-    }.bind(this);
+    }).bind(this);
 
     this.dispatchEvent('will-unlock');
     currentFrame.addNextPaintListener(nextPaint);
@@ -893,11 +893,55 @@ var LockScreen = {
     }
   },
 
-  updateBackground: function ls_updateBackground(value) {
-    var panels = document.querySelectorAll('.lockscreen-panel');
-    var url = 'url(' + value + ')';
-    for (var i = 0; i < panels.length; i++) {
-      panels[i].style.backgroundImage = url;
+  updateBackground: function ls_updateBackground(background_datauri) {
+    this._imgPreload([background_datauri, 'style/lockscreen/images/mask.png'],
+                     function(images) {
+
+      // Bug 829075 : We need a <canvas> in the DOM to prevent banding on
+      // Otoro-like devices
+      var canvas = document.createElement('canvas');
+      canvas.classList.add('lockscreen-wallpaper');
+      canvas.width = images[0].width;
+      canvas.height = images[0].height;
+
+      var ctx = canvas.getContext('2d');
+      ctx.drawImage(images[0], 0, 0);
+      ctx.drawImage(images[1], 0, 0);
+
+      var panels_selector = '.lockscreen-panel[data-wallpaper]';
+      var panels = document.querySelectorAll(panels_selector);
+      for (var i = 0, il = panels.length; i < il; i++) {
+        var copied_canvas;
+
+        // For the first panel, we can use the existing <canvas>
+        if (!copied_canvas) {
+          copied_canvas = canvas;
+        } else {
+          // Otherwise, copy the node and content
+          copied_canvas = canvas.cloneNode();
+          copied_canvas.getContext('2d').drawImage(canvas, 0, 0);
+        }
+
+        var panel = panels[i];
+        panel.insertBefore(copied_canvas, panel.firstChild);
+      }
+    });
+  },
+
+  _imgPreload: function ls_imgPreload(img_paths, callback) {
+    var loaded = 0;
+    var images = [];
+    var il = img_paths.length;
+    var inc = function() {
+      loaded += 1;
+      if (loaded === il && callback) {
+        callback(images);
+      }
+    };
+    for (var i = 0; i < il; i++) {
+      images[i] = new Image();
+      images[i].onload = inc;
+      images[i].src = img_paths[i];
     }
   },
 
