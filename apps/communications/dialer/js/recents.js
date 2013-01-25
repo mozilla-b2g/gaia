@@ -230,7 +230,7 @@ var Recents = {
 
     // Setting up the SimplePhoneMatcher
     var conn = window.navigator.mozMobileConnection;
-    if (conn) {
+    if (conn && conn.voice && conn.voice.network) {
       SimplePhoneMatcher.mcc = conn.voice.network.mcc.toString();
     }
 
