@@ -3,9 +3,9 @@
 var TelephonyHelper = (function() {
 
   var telephony = navigator.mozTelephony;
+  var conn = window.navigator.mozMobileConnection;
 
-  var call = function t_call(number, oncall, onconnected, ondisconnected) {
-
+  var call = function(number, oncall, onconnected, ondisconnected, onerror) {
     var settings = window.navigator.mozSettings, req;
     if (settings) {
       var settingsLock = settings.createLock();
@@ -13,17 +13,23 @@ var TelephonyHelper = (function() {
       req.addEventListener('success', function onsuccess() {
         var status = req.result['ril.radio.disabled'];
         if (!status) {
-          startDial(number, oncall, onconnected, ondisconnected);
+          if (!conn || !conn.voice.network) {
+            // No voice connection, the call won't make it
+            handleError(null, true /* generic */);
+            return;
+          }
+
+          startDial(number, oncall, onconnected, ondisconnected, onerror);
         } else {
           handleFlightMode();
         }
       });
     } else {
-      startDial(number, oncall, onconnected, ondisconnected);
+      startDial(number, oncall, onconnected, ondisconnected, onerror);
     }
   };
 
-  var startDial = function t_start(number, oncall, connected, disconnected) {
+  var startDial = function(number, oncall, connected, disconnected, onerror) {
     var sanitizedNumber = number.replace(/-/g, '');
 
     if (telephony) {
@@ -34,7 +40,13 @@ var TelephonyHelper = (function() {
           oncall();
         call.onconnected = connected;
         call.ondisconnected = disconnected;
-        call.onerror = handleError;
+        call.onerror = function errorCB(evt) {
+          handleError(evt);
+
+          if (onerror) {
+            onerror();
+          }
+        }
       }
     }
   };
@@ -62,10 +74,11 @@ var TelephonyHelper = (function() {
     }
   };
 
-  var handleError = function t_handleError(event) {
+  var handleError = function t_handleError(event, generic) {
     var showError = function he_showError(_) {
-      var erName = event.call.error.name, emgcyDialogBody,
-          errorRecognized = false;
+      var emgcyDialogBody, errorRecognized = false;
+
+      var erName = generic ? 'BadNumberError' : event.call.error.name;
 
       if (erName === 'BadNumberError') {
         errorRecognized = true;

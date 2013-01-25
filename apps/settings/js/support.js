@@ -63,4 +63,4 @@ var Support = {
 };
 
 // startup
-onLocalized(Support.init.bind(Support));
+navigator.mozL10n.ready(Support.init.bind(Support));

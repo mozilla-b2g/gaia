@@ -136,6 +136,15 @@ suite('system/Updatable', function() {
       mockApp.downloadAvailable = true;
       subject = new AppUpdatable(mockApp);
     });
+
+    test('should apply update if downloaded', function() {
+      mockApp.readyToApplyDownload = true;
+      subject = new AppUpdatable(mockApp);
+      // We cannot test for this._mgmt methods because it's created in
+      // a constructor, so we check if the window is killed because
+      // WindowManager.kill() is also called in applyUpdate() method
+      assert.equal(MockWindowManager.mLastKilledOrigin, subject.app.origin);
+    });
   });
 
   suite('infos', function() {
@@ -578,7 +587,7 @@ suite('system/Updatable', function() {
   function testSystemApplyPrompt() {
     test('apply prompt shown', function() {
       assert.isTrue(MockCustomDialog.mShown);
-      assert.equal('updateReady', MockCustomDialog.mShowedTitle);
+      assert.equal('systemUpdateReady', MockCustomDialog.mShowedTitle);
       assert.equal('wantToInstall', MockCustomDialog.mShowedMsg);
 
       assert.equal('later', MockCustomDialog.mShowedCancel.title);

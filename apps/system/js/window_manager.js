@@ -1606,6 +1606,25 @@ var WindowManager = (function() {
     return (value === 'allow');
   }
 
+  // Use a setting in order to be "called" by settings app
+  navigator.mozSettings.addObserver(
+    'clear.remote-windows.data',
+    function clearRemoteWindowsData(setting) {
+      var shouldClear = setting.settingValue;
+      if (!shouldClear)
+        return;
+
+      // Delete all storage and cookies from our content processes
+      var request = navigator.mozApps.getSelf();
+      request.onsuccess = function() {
+        request.result.clearBrowserData();
+      };
+
+      // Reset the setting value to false
+      var lock = navigator.mozSettings.createLock();
+      lock.set({'clear.remote-windows.data': false});
+    });
+
   // Watch for window.open usages in order to open wrapper frames
   window.addEventListener('mozbrowseropenwindow', function handleWrapper(evt) {
     var detail = evt.detail;

@@ -7,7 +7,7 @@ const Homescreen = (function() {
     document.location.host.replace(/(^[\w\d]+.)?([\w\d]+.[a-z]+)/, '$2');
   var _ = navigator.mozL10n.get;
   setLocale();
-  window.addEventListener('localized', function localize() {
+  navigator.mozL10n.ready(function localize() {
     setLocale();
     GridManager.localize();
   });

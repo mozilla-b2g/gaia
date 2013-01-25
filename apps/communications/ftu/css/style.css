@@ -512,17 +512,26 @@ html, body {
   Import
 */
 
-#import_contacts li#sim_import {
-  padding: 0;
-  height: auto;
+#import_contacts li {
+  padding: 0 3.5rem;
+}
+
+#import_contacts li.importOption {
+  padding: 0 !important;
+  height: auto !important;
+  border-bottom: none;
+}
+
+#import_contacts #fb_import, #import_contacts #fb_after_import2 {
+  margin-top: 1rem;
 }
 
 /* Needed due to the .icon class which is overriding this property */
-#import_contacts #sim-import-button:active {
+#import_contacts button:active {
   background-color: #008aaa !important;
 }
 
-#no-sim {
+#no-sim, #no-network, #fb_after_import2 p {
  	color: #5B5B5B;
  	font-size: 1.5rem;
  	line-height: 2rem;
@@ -531,52 +540,14 @@ html, body {
  	white-space: normal;
 }
 
-#import_contacts li {
-  padding: 0 3.5rem;
-}
-#wifi li {
-  padding: 0 1.5rem;
-}
-
-#import_contacts li#fb_import:after,
-#wifi li:after {
-  content: "";
-  transition: opacity 0.2s ease;
-  background: #b1f1ff;
-  opacity: 0;
-  position: absolute;
-  left: 0;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 0;
-}
-
-#import_contacts li#fb_import:active:after,
-#wifi li:active:after {
-  opacity: 0.6;
-}
-
-#import_contacts li.disabled {
-  pointer-events: none;
-}
-
-#import_contacts li.disabled p {
-  pointer-events: none;
-}
-
-#import_contacts li#fb_import.disabled:after {
-  content: "";
-  background-color: #e6e6e6;
-  opacity: 0.7;
-}
 
 #import_contacts ul:first-child li:last-child {
   margin-bottom: 0;
 }
 
-#fb_import {
-  background: url('images/import_fb.png') center left no-repeat;
+/* Extending icon types*/
+#import_contacts [data-type="list"] li button.icon-fb:before {
+  background-image: url('images/import_fb.png');
 }
 
 /* Extending icon types*/
@@ -599,6 +570,11 @@ html, body {
   margin-top: 1.6rem;
 }
 
+
+#fb_after_import1 {
+  background: url('images/import_fb.png') center left no-repeat;
+}
+
 #statusMsg.ftu {
   bottom: 6.5rem;
   z-index: 0;
@@ -608,6 +584,28 @@ html, body {
 #statusMsg.ftu.bannerStart {
   z-index: 2;
   opacity: 1;
+}
+
+
+#wifi li {
+  padding: 0 1.5rem;
+}
+
+#wifi li:after {
+  content: "";
+  transition: opacity 0.2s ease;
+  background: #b1f1ff;
+  opacity: 0;
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+}
+
+#wifi li:active:after {
+  opacity: 0.6;
 }
 
 /*

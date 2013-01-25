@@ -3,7 +3,7 @@
 
 'use strict';
 
-onLocalized(function SettingsFactoryReset() {
+navigator.mozL10n.ready(function SettingsFactoryReset() {
   var _ = navigator.mozL10n.get;
 
   function factoryReset() {
