@@ -33,7 +33,6 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
   var ALBUM = 'album';
   var TRACKNUM = 'tracknum';
   var IMAGE = 'picture';
-  var THUMBNAIL = 'thumbnail';
 
   // These two properties are for playlist functionalities
   // not originally metadata from the files
@@ -80,14 +79,6 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
     'M4B ' : true,  // iTunes audio book. Note space.
     'mp42' : true   // MP4 version 2
   };
-
-  // If we generate our own thumbnails, aim for this size
-  // Here we choice the size of main tile which is 210px * 210px
-  var THUMBNAIL_WIDTH = 210;
-  var THUMBNAIL_HEIGHT = 210;
-  // To save memory (because of gecko bugs) we want to create only one
-  // offscreen image and reuse it.
-  var offscreenImage = new Image();
 
   // Start off with some default metadata
   var metadata = {};
@@ -718,70 +709,152 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
     }
   }
 
-  // Load an image from a blob into an <img> tag, and then use that
-  // to get its dimensions and create a thumbnail. Store these values in
-  // the metadata object if they are not already there, and then continue
-  // to the callback function
+  // Before we call the metadataCallback, we create a thumbnail
+  // for the song, if there is not already one cached.  In the normal
+  // (cache hit) case, this happens synchronously.
   function handleCoverArt(metadata) {
-    if (!metadata[IMAGE]) {
+    var fileinfo = {
+      name: blob.name,
+      blob: blob,
+      metadata: metadata
+    };
+    // We call getThumbnailURL here even though we don't need the url yet.
+    // We do it here to force the thumbnail to be cached now while
+    // we know there is just going to be one file at a time.
+    getThumbnailURL(fileinfo, function(url) {
       metadataCallback(metadata);
+    });
+  }
+}
+
+// When we generate our own thumbnails, aim for this size
+var THUMBNAIL_WIDTH = 300;
+var THUMBNAIL_HEIGHT = 300;
+var offscreenImage = new Image();
+var thumbnailCache = {};  // maps keys to blob urls
+
+// Get a thumbnail image for the specified song (reading from the
+// cache if possible and storing to the cache if necessary) and pass a
+// blob URL for it it to the specified callback. fileinfo is an object
+// with metadata from the MediaDB.
+function getThumbnailURL(fileinfo, callback) {
+  function cacheThumbnail(key, blob, url) {
+    asyncStorage.setItem(key, blob);
+    thumbnailCache[key] = url;
+  }
+
+  var metadata = fileinfo.metadata;
+
+  // If the file doesn't have an embedded image, just pass null
+  if (!metadata.picture) {
+    callback(null);
+    return;
+  }
+
+  // We cache thumbnails based on the song artist, album, and image size.
+  // If there is no album name, we use the directory name instead.
+  var key = 'thumbnail';
+  var album = metadata.album;
+  var artist = metadata.artist;
+  var size = metadata.picture.end - metadata.picture.start;
+
+  if (album || artist) {
+    key = 'thumbnail.' + album + '.' + artist + '.' + size;
+  }
+  else {
+    key = 'thumbnail.' + (fileinfo.name || fileinfo.blob.name);
+  }
+
+  // If we have the thumbnail url locally, just call the callback
+  var url = thumbnailCache[key];
+  if (url) {
+    callback(url);
+    return;
+  }
+
+  // Otherwise, see if we've saved a blob in asyncStorage
+  asyncStorage.getItem(key, function(blob) {
+    if (blob) {
+      // If we get a blob, save the URL locally and return the url.
+      var url = URL.createObjectURL(blob);
+      thumbnailCache[key] = url;
+      callback(url);
       return;
     }
+    else {
+      // Otherwise, create the thumbnail image
+      createAndCacheThumbnail();
+    }
+  });
 
-    var imageblob = blob.slice(metadata[IMAGE].start,
-                               metadata[IMAGE].end,
-                               metadata[IMAGE].type);
+  function createAndCacheThumbnail() {
+    if (fileinfo.blob) {       // this can happen for the open activity
+      getImage(fileinfo.blob);
+    }
+    else {                     // this is the normal case
+      musicdb.getFile(fileinfo.name, function(file) {
+        getImage(file);
+      });
+    }
 
-    var url = URL.createObjectURL(imageblob);
-    offscreenImage.src = url;
-
-    offscreenImage.onerror = function() {
-      console.warn('Album image failed to load', blob.name);
-      offscreenImage.removeAttribute('src');
-      URL.revokeObjectURL(url);
-      metadataCallback(metadata);
-    };
-
-    offscreenImage.onload = function() {
-      URL.revokeObjectURL(url);
-
-      // Create a thumbnail image
-      var canvas = document.createElement('canvas');
-      var context = canvas.getContext('2d');
-      canvas.width = THUMBNAIL_WIDTH;
-      canvas.height = THUMBNAIL_HEIGHT;
-      var scalex = canvas.width / offscreenImage.width;
-      var scaley = canvas.height / offscreenImage.height;
-
-      // Take the larger of the two scales: we crop the image to the thumbnail
-      var scale = Math.max(scalex, scaley);
-
-      // If the image was already thumbnail size, it is its own thumbnail
-      if (scale >= 1) {
+    function getImage(file) {
+      // Get the embedded image from the music file
+      var embedded = file.slice(metadata.picture.start,
+                                metadata.picture.end,
+                                metadata.picture.type);
+      // Convert to a blob url
+      var embeddedURL = URL.createObjectURL(embedded);
+      // Load it into an image element
+      offscreenImage.src = embeddedURL;
+      offscreenImage.onerror = function() {
+        URL.revokeObjectURL(embeddedURL);
         offscreenImage.removeAttribute('src');
-        metadata[THUMBNAIL] = imageblob;
-        metadataCallback(metadata);
-        return;
+        // Something went wrong reading the embedded image.
+        // Return a default one instead
+        console.warn('Album cover art failed to load', file.name);
+        callback(null);
       }
+      offscreenImage.onload = function() {
+        // We've loaded the image, now copy it to a canvas
+        var canvas = document.createElement('canvas');
+        canvas.width = THUMBNAIL_WIDTH;
+        canvas.height = THUMBNAIL_HEIGHT;
+        var context = canvas.getContext('2d');
+        var scalex = canvas.width / offscreenImage.width;
+        var scaley = canvas.height / offscreenImage.height;
 
-      // Calculate the region of the image that will be copied to the
-      // canvas to create the thumbnail
-      var w = Math.round(THUMBNAIL_WIDTH / scale);
-      var h = Math.round(THUMBNAIL_HEIGHT / scale);
-      var x = Math.round((offscreenImage.width - w) / 2);
-      var y = Math.round((offscreenImage.height - h) / 2);
+        // Take the larger of the two scales: we crop the image to the thumbnail
+        var scale = Math.max(scalex, scaley);
 
-      // Draw that region of the image into the canvas, scaling it down
-      context.drawImage(offscreenImage, x, y, w, h,
-                        0, 0, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
+        // If the image was already thumbnail size, it is its own thumbnail
+        if (scale >= 1) {
+          offscreenImage.removeAttribute('src');
+          cacheThumbnail(key, embedded, embeddedURL);
+          callback(embeddedURL);
+          return;
+        }
 
-      // We're done with the image now
-      offscreenImage.removeAttribute('src');
+        // Calculate the region of the image that will be copied to the
+        // canvas to create the thumbnail
+        var w = Math.round(THUMBNAIL_WIDTH / scale);
+        var h = Math.round(THUMBNAIL_HEIGHT / scale);
+        var x = Math.round((offscreenImage.width - w) / 2);
+        var y = Math.round((offscreenImage.height - h) / 2);
 
-      canvas.toBlob(function(blob) {
-        metadata[THUMBNAIL] = blob;
-        metadataCallback(metadata);
-      }, 'image/jpeg');
+        // Draw that region of the image into the canvas, scaling it down
+        context.drawImage(offscreenImage, x, y, w, h,
+                          0, 0, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
+
+        // We're done with the image now
+        offscreenImage.removeAttribute('src');
+        URL.revokeObjectURL(embeddedURL);
+
+        canvas.toBlob(function(blob) {
+          var url = URL.createObjectURL(blob);
+          cacheThumbnail(key, blob, url);
+          callback(url);
+        }, 'image/jpeg');
+      };
     }
   }
 }
