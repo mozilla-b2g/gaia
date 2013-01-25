@@ -22,6 +22,16 @@ function debug(msg, optObject) {
 }
 
 /**
+ * Move settings to foreground
+ */
+function reopenSettings() {
+  navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+    var app = evt.target.result;
+    app.launch('settings');
+  };
+}
+
+/**
  * Open a link with a web activity
  */
 
