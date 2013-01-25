@@ -64,7 +64,8 @@ function init() {
     indexes: ['metadata.album', 'metadata.artist', 'metadata.title',
               'metadata.rated', 'metadata.played', 'date'],
     batchSize: 1,
-    autoscan: false // We call scan() explicitly after listing music we know
+    autoscan: false, // We call scan() explicitly after listing music we know
+    version: 2
   });
 
   // This is called when DeviceStorage becomes unavailable because the
@@ -438,15 +439,6 @@ var TilesView = {
     this.view.scrollTop = 0;
   },
 
-  setItemImage: function tv_setItemImage(item, fileinfo) {
-    // Set source to image and crop it to be fitted when it's onloded
-    if (!fileinfo.metadata.thumbnail)
-      return;
-
-    item.addEventListener('load', cropImage);
-    createAndSetCoverURL(item, fileinfo, true);
-  },
-
   update: function tv_update(result) {
     // if no songs in dataSource
     // disable the TabBar to prevent users switch to other page
@@ -487,7 +479,7 @@ var TilesView = {
     var img = document.createElement('img');
     img.className = 'tile-image';
 
-    this.setItemImage(img, result);
+    displayAlbumArt(img, result);
 
     // There are 6 tiles in one group
     // and the first tile is the main-tile
@@ -545,7 +537,6 @@ var TilesView = {
       var index = target.dataset.index;
       var data = this.dataSource[index];
       var backgroundIndex = index % 10;
-
       var key = 'metadata.album';
       var range = IDBKeyRange.only(data.metadata.album);
       var direction = 'next';
@@ -618,8 +609,7 @@ function createListElement(option, data, index) {
 
       if (data.metadata.picture) {
         parent.appendChild(img);
-        img.addEventListener('load', cropImage);
-        createAndSetCoverURL(img, data, true);
+        displayAlbumArt(img, data);
       }
 
       if (option === 'artist') {
@@ -866,14 +856,13 @@ var SubListView = {
 
   setAlbumSrc: function slv_setAlbumSrc(fileinfo) {
     // Set source to image and crop it to be fitted when it's onloded
-    createAndSetCoverURL(this.albumImage, fileinfo, true);
+    displayAlbumArt(this.albumImage, fileinfo);
     this.albumImage.classList.remove('fadeIn');
     this.albumImage.addEventListener('load', slv_showImage.bind(this));
 
     function slv_showImage(evt) {
       // Don't register multiple copies
       evt.target.removeEventListener('load', slv_showImage);
-      cropImage(evt);
       this.albumImage.classList.add('fadeIn');
     };
   },
