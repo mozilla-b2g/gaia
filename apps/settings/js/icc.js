@@ -75,6 +75,12 @@
       alertbox.classList.add('hidden');
       stkResGoBack();
     }
+    document.getElementById('icc-stk-alert-btn_close').onclick = function() {
+      alertbox.classList.add('hidden');
+      responseSTKCommand({
+        resultCode: icc.STK_RESULT_UICC_SESSION_TERM_BY_USER
+      });
+    };
     document.getElementById('icc-stk-help-exit').onclick = updateMenu;
 
     window.onunload = function() {
