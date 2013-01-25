@@ -191,5 +191,5 @@ var MediaStorage = {
   }
 };
 
-onLocalized(MediaStorage.init.bind(MediaStorage));
+navigator.mozL10n.ready(MediaStorage.init.bind(MediaStorage));
 

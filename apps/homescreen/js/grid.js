@@ -193,10 +193,11 @@ const GridManager = (function() {
 
   function setOverlayPanning(index, deltaX, forward) {
     if (index === 1) {
-      overlayStyle.opacity = (Math.abs(deltaX) / windowWidth) * opacityOnAppGridPageMax;
+      overlayStyle.opacity = (Math.abs(deltaX) / windowWidth) *
+        opacityOnAppGridPageMax;
     } else if (index === 0 && !forward || index === 2 && forward) {
-      overlayStyle.opacity = opacityOnAppGridPageMax - (Math.abs(deltaX) / windowWidth)
-                              * opacityOnAppGridPageMax;
+      overlayStyle.opacity = opacityOnAppGridPageMax -
+          (Math.abs(deltaX) / windowWidth) * opacityOnAppGridPageMax;
     }
   }
 
@@ -635,8 +636,8 @@ const GridManager = (function() {
         iconsByManifestURL[manifestURL] = appIcons[manifestURL];
       }
 
-      // Add an empty page where we drop the icons for any extra apps we discover
-      // at this stage.
+      // Add an empty page where we drop the icons for any extra apps we
+      // discover at this stage.
       pageHelper.addPage([]);
 
       var apps = event.target.result;
@@ -753,8 +754,8 @@ const GridManager = (function() {
       descriptor.localizedName = iconsAndNameHolder.name;
     }
 
-    // If there's an existing icon for this bookmark/app/entry point already, let
-    // it update itself.
+    // If there's an existing icon for this bookmark/app/entry point already,
+    // let it update itself.
     var existingIcon = getIcon(descriptor);
     if (existingIcon) {
       existingIcon.update(descriptor, app);
@@ -883,7 +884,8 @@ const GridManager = (function() {
         // First 'page' is the dock.
         if (pageState.index == 0) {
           var dockContainer = document.querySelector(dockSelector);
-          var dock = new Dock(dockContainer, convertDescriptorsToIcons(pageState));
+          var dock = new Dock(dockContainer,
+            convertDescriptorsToIcons(pageState));
           DockManager.init(dockContainer, dock);
           return;
         }

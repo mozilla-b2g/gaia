@@ -949,6 +949,5 @@ var LockScreen = {
   }
 };
 
-LockScreen.init();
-window.addEventListener('localized', LockScreen.init.bind(LockScreen));
+navigator.mozL10n.ready(LockScreen.init.bind(LockScreen));
 

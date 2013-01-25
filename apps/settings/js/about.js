@@ -220,5 +220,5 @@ var About = {
 };
 
 // startup
-onLocalized(About.init.bind(About));
+navigator.mozL10n.ready(About.init.bind(About));
 
