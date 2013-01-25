@@ -1,101 +1,101 @@
 'use strict';
 
-var MockDetailsDom = '<div class="view-inner">';
-    MockDetailsDom += '  <header role="toolbar" id="details-view-header" class="view-header">';
-    MockDetailsDom += '    <button class="negative"><span data-icon="back" data-l10n-id="back">back</span></button>';
-    MockDetailsDom += '    <menu type="toolbar" role="menu">';
-    MockDetailsDom += '      <button role="menuitem" id="edit-contact-button"><span data-icon="edit" data-l10n-id="edit" data-l10n-id="edit">edit</span></button>';
-    MockDetailsDom += '    </menu>';
-    MockDetailsDom += '    <h1 id="contact-name-title"></h1>';
-    MockDetailsDom += '    <sup id="favorite-star" class="hide"></sup>';
-    MockDetailsDom += '  </header>';
-    MockDetailsDom += '  <article class="view-body">';
-    MockDetailsDom += '    <div class="view-body-inner" id="cover-img">';
-    MockDetailsDom += '      <section id="contact-detail">';
-    MockDetailsDom += '        <!-- Phone Template -->';
-    MockDetailsDom += '        <li id="phone-details-template-#i#" data-template>';
-    MockDetailsDom += '          <h2>#type#</h2>';
-    MockDetailsDom += '          <div class="item">';
-    MockDetailsDom += '            <div class="item-media pull-right">';
-    MockDetailsDom += '              <button id="send-sms-button-#i#" class="action"><span role="button" class="icon-message">Message</span></button>';
-    MockDetailsDom += '            </div>';
-    MockDetailsDom += '            <div class="item-body-exp">';
-    MockDetailsDom += '              <button class="action" id="call-or-pick-#i#">';
-    MockDetailsDom += '                <span role="button" class="icon-call" data-l10n-id="call">Call</span>';
-    MockDetailsDom += '                <b>#value#</b>';
-    MockDetailsDom += '                <em>#carrier#</em>';
-    MockDetailsDom += '              </button>';
-    MockDetailsDom += '            </div>';
-    MockDetailsDom += '          </div>';
-    MockDetailsDom += '        </li>';
-    MockDetailsDom += '        <li id="birthday-template-#i#" data-template>';
-    MockDetailsDom += '          <h2 data-l10n-id="birthday">Birthday</h2>';
-    MockDetailsDom += '          <p><strong>#bday#</strong></p>';
-    MockDetailsDom += '        </li>';
-    MockDetailsDom += '        <!-- Email Template -->';
-    MockDetailsDom += '        <li id="email-details-template-#i#" data-template>';
-    MockDetailsDom += '          <h2>#type#</h2>';
-    MockDetailsDom += '          <div class="item">';
-    MockDetailsDom += '            <div class="item-body-exp">';
-    MockDetailsDom += '              <button class="action" id="email-or-pick-#i#">';
-    MockDetailsDom += '                <span role="button" class="icon-email">E-mail</span>';
-    MockDetailsDom += '                <b>#value#</b>';
-    MockDetailsDom += '              </button>';
-    MockDetailsDom += '            </div>';
-    MockDetailsDom += '          </div>';
-    MockDetailsDom += '        </li>';
-    MockDetailsDom += '        <li id="social-template-#i#" data-template>';
-    MockDetailsDom += '          <h2 data-l10n-id="social-network">Social Network</h2>';
-    MockDetailsDom += '            <div class="item">';
-    MockDetailsDom += '              <div class="item-body-exp">';
-    MockDetailsDom += '                <button id="link_button" class="fillflow-row action action-add">';
-    MockDetailsDom += '                  #action#';
-    MockDetailsDom += '                </button>';
-    MockDetailsDom += '                <button id="profile_button" data-l10n-id="show-fb-profile"';
-    MockDetailsDom += '                        class="fillflow-row action action-add">';
-    MockDetailsDom += '                        View Facebook profile';
-    MockDetailsDom += '                </button>';
-    MockDetailsDom += '                <button id="msg_button" data-l10n-id="msg-send"';
-    MockDetailsDom += '                         class="fillflow-row action action-add fillflow-twocols fillflow-left">';
-    MockDetailsDom += '                         Message';
-    MockDetailsDom += '                </button>';
-    MockDetailsDom += '                <button id="wall_button" data-l10n-id="wall-post"';
-    MockDetailsDom += '                         class="fillflow-row action action-add fillflow-twocols">';
-    MockDetailsDom += '                         Wall Post';
-    MockDetailsDom += '                </button>';
-    MockDetailsDom += '              </div>';
-    MockDetailsDom += '            </div>';
-    MockDetailsDom += '        </li>';
-    MockDetailsDom += '        <!-- Address Template -->';
-    MockDetailsDom += '        <li id="address-details-template-#i#" data-template>';
-    MockDetailsDom += '          <h2>#type#</h2>';
-    MockDetailsDom += '          <div class="item">';
-    MockDetailsDom += '            <div class="item-body-exp">';
-    MockDetailsDom += '              <a href="javascript: void(0);" class="action action-block">';
-    MockDetailsDom += '                <span role="button" class="icon-address" data-l10n-id="legendAddress">Address</span>';
-    MockDetailsDom += '                <b>';
-    MockDetailsDom += '                <span>#streetAddress#</span>';
-    MockDetailsDom += '                  #postalCode#';
-    MockDetailsDom += '                  #locality#';
-    MockDetailsDom += '                  #countryName#';
-    MockDetailsDom += '                </b>';
-    MockDetailsDom += '              </a>';
-    MockDetailsDom += '            </div>';
-    MockDetailsDom += '          </div>';
-    MockDetailsDom += '        </li>';
-    MockDetailsDom += '        <!-- Comment Template -->';
-    MockDetailsDom += '        <p id="note-details-template-#i#" data-template class="comment-notes">#note#</p>';
-    MockDetailsDom += '        <div id="contact-detail-inner">';
-    MockDetailsDom += '          <h1 id="org-title"></h1>';
-    MockDetailsDom += '          <ul id="details-list">';
-    MockDetailsDom += '            <!-- Iterating mails, phones, addresses adn comments here -->';
-    MockDetailsDom += '          </ul>';
-    MockDetailsDom += '        </div>';
-    MockDetailsDom += '        <hr/>';
-    MockDetailsDom += '        <button id="toggle-favorite" class="fillflow-row action action-add">';
-    MockDetailsDom += '          <b>Add as favorite</b>';
-    MockDetailsDom += '        </button>';
-    MockDetailsDom += '      </section>';
-    MockDetailsDom += '    </div>';
-    MockDetailsDom += '  </article>';
-    MockDetailsDom += '</div>';
+var MockDetailsDom = '<section id="view-contact-details" role="region" class="view view-right view-contact-profile">' +
+        '<header id="details-view-header">' +
+          '<button id="details-back" class="negative"><span class="icon icon-back" data-l10n-id="back">back</span></button>' +
+          '<menu type="toolbar">' +
+            '<button role="menuitem" id="edit-contact-button"><span class="icon icon-edit-contact"' +
+                                                                   ' +data-l10n-id="edit" data-l10n-id="edit">edit</span></button>' +
+          '</menu>' +
+          '<h1 id="contact-name-title"></h1>' +
+          '<sup id="favorite-star" class="hide"></sup>' +
+        '</header>' +
+        '<article id="contact-detail-wrapper" class="view-body">' +
+          '<div id="cover-img"></div>' +
+            '<section id="contact-detail" class="view-body-inner">' +
+              '<!-- Phone Template -->' +
+              '<li data-phone id="phone-details-template-#i#" data-template>' +
+                '<h2>#type#</h2>' +
+                '<div class="item">' +
+                  '<div class="item-media pull-right">' +
+                    '<button id="send-sms-button-#i#" class="activity send-sms icon icon-message"></button>' +
+                  '</div>' +
+                  '<div class="item-body-exp">' +
+                    '<button class="activity icon icon-call" id="call-or-pick-#i#">' +
+                      '<b>' +
+                        '#value#' +
+                        '<em>#carrier#</em>' +
+                      '</b>' +
+                    '</button>' +
+                  '</div>' +
+                '</div>' +
+              '</li>' +
+
+              '<li id="birthday-template-#i#" data-template>' +
+                '<h2 data-l10n-id="birthday">Birthday</h2>' +
+                '<p><strong>#bday#</strong></p>' +
+              '</li>' +
+              '<!-- Email Template -->' +
+              '<li data-mail id="email-details-template-#i#" data-template>' +
+                '<h2>#type#</h2>' +
+                '<div class="item">' +
+                  '<div class="item-body-exp">' +
+                    '<button id="email-or-pick-#i#" class="activity icon icon-email">' +
+                      '<b>#value#</b>' +
+                    '</button>' +
+                  '</div>' +
+                '</div>' +
+              '</li>' +
+              '<!-- Social Template -->' +
+              '<li data-social class="social-actions" id="social-template-#i#" data-template>' +
+                '<h2 data-l10n-id="social-network" id="social-label">Social Network</h2>' +
+                  '<div class="fillflow-twocols">' +
+                    '<button id="msg_button" data-l10n-id="msg-send" class="activity icon icon-message">' +
+                      'Message' +
+                    '</button>' +
+                    '<button id="wall_button" data-l10n-id="wall-post" class="activity icon icon-email">' +
+                      'Wall Post' +
+                    '</button>' +
+                  '</div>' +
+                  '<button id="profile_button" data-l10n-id="show-fb-profile" class="fillflow-row activity icon icon-fb-profile">' +
+                    'View Facebook profile' +
+                  '</button>' +
+                  '<button id="link_button" class="activity icon icon-link">' +
+                    '#action#' +
+                  '</button>' +
+              '</li>' +
+              '<!-- Address Template -->' +
+              '<li data-address id="address-details-template-#i#" data-template>' +
+                '<h2>#type#</h2>' +
+                '<div class="item">' +
+                  '<div class="item-body-exp">' +
+                    '<a href="#" class="action action-block">' +
+                      '<span role="button" class="icon-address" data-l10n-id="legendAddress">Address</span>' +
+                      '<b>' +
+                      '<span>#streetAddress#</span>' +
+                        '#postalCode#' +
+                        '#locality#' +
+                        '#countryName#' +
+                      '</b>' +
+                    '</a>' +
+                  '</div>' +
+                '</div>' +
+              '</li>' +
+              '<!-- Comment Template -->' +
+              '<p data-comment id="note-details-template-#i#" data-template class="comment-notes">#note#</p>' +
+              '<div id="contact-detail-inner">' +
+                '<h1 id="org-title"></h1>' +
+                '<ul id="details-list">' +
+                  '<!-- Iterating mails, phones, addresses adn comments here -->' +
+                '</ul>' +
+                '<ul>' +
+                  '<li>' +
+                    '<button id="toggle-favorite" class="fillflow-row icon icon-fav">' +
+                      'Add as favorite' +
+                    '</button>' +
+                  '</li>' +
+                '</ul>' +
+              '</div>' +
+            '</section>' +
+        '</article>' +
+      '</section>';
