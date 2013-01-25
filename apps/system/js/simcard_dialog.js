@@ -4,6 +4,9 @@
 'use strict';
 
 var SimPinDialog = {
+  // Leave the length of PIN to be configurable,
+  pinMaxLength: 16,
+
   dialogTitle: document.querySelector('#simpin-dialog header h1'),
   dialogDone: document.querySelector('#simpin-dialog button[type="submit"]'),
   dialogClose: document.querySelector('#simpin-dialog button[type="reset"]'),
@@ -49,7 +52,7 @@ var SimPinDialog = {
       if (code === 0) { // backspace
         valueEntered = valueEntered.substr(0, valueEntered.length - 1);
       } else {
-        if (valueEntered.length >= 8)
+        if (valueEntered.length >= self.pinMaxLength)
           return;
         valueEntered += String.fromCharCode(code);
       }
