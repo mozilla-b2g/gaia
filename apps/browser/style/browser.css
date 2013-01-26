@@ -617,19 +617,19 @@ li[role="tab"] {
 }
 
 li[role="tab"] a {
-  display: block;
   float: left;
-  height: 36px;
+  max-width: calc(33% - 3.9rem);
+  height: 3.6rem;
+  margin-left: -3rem;
+  padding: 0 3rem;
   text-decoration: none;
   color: #000;
-  line-height: 36px;
+  font-size: 1.3rem;
+  line-height: 3.6rem;
+  letter-spacing: -0.02rem;
   text-align: center;
-  padding: 0 30px;
-  font-size: 1.4rem;
-  outline: none;
-  margin-left: -30px;
   text-overflow: ellipsis;
-  max-width: calc(33% - 39px);
+  outline: none;
   overflow: hidden;
 }
 
