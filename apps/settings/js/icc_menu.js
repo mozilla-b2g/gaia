@@ -54,9 +54,12 @@
       }
     }
 
-    window.navigator.mozSettings.addObserver('icc.data', function(data) {
-      debug('ICC async command while settings running');
-      executeICCCmd(JSON.parse(data.settingValue));
+    SettingsListener.observe('icc.data', null, function(value) {
+      if(!value)
+        return;
+
+      debug('ICC async command while settings running: ', value);
+      executeICCCmd(JSON.parse(value));
     });
   });
 })();
