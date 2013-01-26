@@ -205,6 +205,10 @@ var Navigation = {
         UIManager.progressBar.className = 'step-state step-6';
         UIManager.mainTitle.innerHTML = _('browserPrivacyChoices');
         break;
+      case '#browser_privacy':
+        UIManager.progressBar.className = 'step-state step-7';
+        UIManager.mainTitle.innerHTML = _('browserPrivacyChoices');
+        break;
       case '#about-your-rights':
       case '#about-your-privacy':
       case '#sharing-performance-data':
@@ -239,6 +243,17 @@ var Navigation = {
     } else {
       UIManager.navBar.classList.remove('forward-only');
     }
+    // Substitute button content on last step
+    var nextButton = document.getElementById('forward');
+    var innerNode = nextButton.childNodes[1];
+    if (this.currentStep == numSteps) {
+      nextButton.dataset.l10nId = 'done';
+      nextButton.textContent = _('done');
+    } else {
+      nextButton.dataset.l10nId = 'navbar-next';
+      nextButton.textContent = _('navbar-next');
+    }
+    nextButton.appendChild(innerNode);
 
     window.location.hash = steps[self.currentStep].hash;
     // SIM card management
