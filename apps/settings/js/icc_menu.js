@@ -5,20 +5,22 @@
 
 (function() {
   function executeICCCmd(iccCommand) {
-    if (iccCommand) {        // Open ICC section
-      debug('ICC command to execute: ', iccCommand);
-      var page = document.location.protocol + '//' +
-        document.location.host + '/index.html#icc';
-      debug('page: ', page);
-      window.location.replace(page);
+    if (!iccCommand)
+      return;
 
-      setTimeout(function() {
-        var event = new CustomEvent('stkasynccommand', {
-          detail: { 'command': iccCommand }
-        });
-        window.dispatchEvent(event);
+    // Open ICC section
+    debug('ICC command to execute: ', iccCommand);
+    var page = document.location.protocol + '//' +
+      document.location.host + '/index.html#icc';
+    debug('page: ', page);
+    window.location.replace(page);
+
+    setTimeout(function() {
+      var event = new CustomEvent('stkasynccommand', {
+        detail: { 'command': iccCommand }
       });
-    }
+      window.dispatchEvent(event);
+    });
   }
 
   setTimeout(function updateStkMenu() {
