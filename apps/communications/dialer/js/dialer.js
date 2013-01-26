@@ -471,7 +471,8 @@ window.addEventListener('load', function startup(evt) {
     loader.load(['/contacts/js/fb/fb_data.js',
                  '/contacts/js/fb/fb_contact_utils.js',
                  '/shared/style/confirm.css',
-                 '/contacts/js/confirm_dialog.js']);
+                 '/contacts/js/confirm_dialog.js',
+                 '/dialer/js/newsletter_manager.js']);
   });
 });
 
