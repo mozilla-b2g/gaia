@@ -136,8 +136,10 @@ var ApplicationsList = {
           return;
         }
 
-        var display = table.explicitCertifiedPermissions.some(function iterator(perm) {
-          return mozPerms.get(perm, app.manifestURL, app.origin, false) != 'unknown';
+        var display = table.explicitCertifiedPermissions.
+                            some(function iterator(perm) {
+          var permInfo = mozPerms.get(perm, app.manifestURL, app.origin, false);
+          return permInfo != 'unknown';
         });
 
         if (display) {
@@ -156,7 +158,8 @@ var ApplicationsList = {
     var listFragment = document.createDocumentFragment();
     this._apps.forEach(function appIterator(app, index) {
       var icon = null;
-      var manifest = new ManifestHelper(app.manifest ? app.manifest : app.updateManifest);
+      var manifest = new ManifestHelper(app.manifest ?
+          app.manifest : app.updateManifest);
       if (manifest.icons &&
           Object.keys(manifest.icons).length) {
 
@@ -229,7 +232,8 @@ var ApplicationsList = {
   showAppDetails: function al_showAppDetail(app) {
     this._displayedApp = app;
 
-    var manifest = new ManifestHelper(app.manifest ? app.manifest : app.updateManifest);
+    var manifest = new ManifestHelper(app.manifest ?
+        app.manifest : app.updateManifest);
     var developer = manifest.developer;
     this.detailTitle.textContent = manifest.name;
 
@@ -397,5 +401,5 @@ var ApplicationsList = {
   }
 };
 
-onLocalized(ApplicationsList.init.bind(ApplicationsList));
+navigator.mozL10n.ready(ApplicationsList.init.bind(ApplicationsList));
 

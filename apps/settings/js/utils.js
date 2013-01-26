@@ -22,6 +22,16 @@ function debug(msg, optObject) {
 }
 
 /**
+ * Move settings to foreground
+ */
+function reopenSettings() {
+  navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+    var app = evt.target.result;
+    app.launch('settings');
+  };
+}
+
+/**
  * Open a link with a web activity
  */
 
@@ -259,24 +269,10 @@ function bug344618_polyfill() {
   };
 
   // apply to all input[type="range"] elements
-  var ranges = document.querySelectorAll('label:not(.bug344618_polyfill) > input[type="range"]');
+  var selector = 'label:not(.bug344618_polyfill) > input[type="range"]';
+  var ranges = document.querySelectorAll(selector);
   for (var i = 0; i < ranges.length; i++) {
     polyfill(ranges[i]);
-  }
-}
-
-/**
- * Fire a callback when as soon as all l10n resources are ready and the UI has
- * been translated.
- * Note: this could be exposed as `navigator.mozL10n.onload'...
- */
-
-function onLocalized(callback) {
-  if (navigator.mozL10n.readyState == 'complete' ||
-      navigator.mozL10n.readyState == 'interactive') {
-    callback();
-  } else {
-    window.addEventListener('localized', callback);
   }
 }
 

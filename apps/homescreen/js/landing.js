@@ -12,17 +12,16 @@ const LandingPage = (function() {
   var clockElemMeridiem = document.querySelector('#landing-clock .meridiem');
   var dateElem = document.querySelector('#landing-date');
 
-  page.addEventListener('gridpageshowstart', initTime);
-
   var updateInterval;
   page.addEventListener('gridpagehideend', function onPageHideEnd() {
     window.clearInterval(updateInterval);
   });
 
-  window.addEventListener('localized', function localize() {
+  navigator.mozL10n.ready(function localize() {
     timeFormat = _('shortTimeFormat');
     dateFormat = _('longDateFormat');
     initTime();
+    page.addEventListener('gridpageshowstart', initTime);
   });
 
   var clockOrigin = document.location.protocol + '//clock.' +

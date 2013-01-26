@@ -163,13 +163,12 @@ var PlayerView = {
 
     // Set source to image and crop it to be fitted when it's onloded
     if (fileinfo.metadata.picture) {
-      createAndSetCoverURL(this.coverImage, fileinfo);
+      displayAlbumArt(this.coverImage, fileinfo);
       this.coverImage.addEventListener('load', pv_showImage);
     }
 
     function pv_showImage(evt) {
       evt.target.removeEventListener('load', pv_showImage);
-      cropImage(evt);
       evt.target.classList.add('fadeIn');
     };
   },
