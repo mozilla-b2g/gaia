@@ -33,6 +33,7 @@ var Settings = (function() {
       AutoSettings.addType('data-limit', dataLimitConfigurer);
       AutoSettings.initialize(ConfigManager, vmanager, '#settings-view');
       configureResets();
+      addDoneConstrains();
 
       // Update layout when changing plantype
       ConfigManager.observe('plantype', updateUI, true);
@@ -119,6 +120,26 @@ var Settings = (function() {
     });
   }
 
+  // Add particular constrains to the "Done" button
+  function addDoneConstrains() {
+    var lowLimit = document.getElementById('low-limit');
+    lowLimit.addEventListener('click', checkSettings);
+    var lowLimitInput = document.getElementById('low-limit-input');
+    lowLimitInput.addEventListener('input', checkSettings);
+  }
+
+  // Check settings and enable / disable done button
+  function checkSettings() {
+    var closeSettings = document.getElementById('close-settings');
+    var lowLimit = document.getElementById('low-limit');
+    var lowLimitInput = document.getElementById('low-limit-input');
+    var lowLimitError = currentMode === 'PREPAID' && lowLimit.checked &&
+                        lowLimitInput.value.trim() === '';
+
+    lowLimitInput.classList[lowLimitError ? 'add' : 'remove']('error');
+    closeSettings.disabled = lowLimitError;
+  }
+
   window.addEventListener('localized', function _onLocalize() {
     if (initialized) {
       updateUI();
@@ -163,6 +184,8 @@ var Settings = (function() {
                           settings.lastTelephonyReset);
           break;
       }
+
+      checkSettings();
     });
   }
 

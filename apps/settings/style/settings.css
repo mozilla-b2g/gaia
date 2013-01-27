@@ -82,6 +82,7 @@ section[role="region"] > header:first-child + * {
   margin-top: 5rem;
 }
 
+
 /******************************************************************************
  * Explanation texts
  */
@@ -322,7 +323,6 @@ ul li > label .range-icons.brightness {
     url(images/range_icons_brightness_max.png) no-repeat 100% 50%;
   left: 2.5rem;
   right: auto;
-
 }
 
 #brightness-manual div {
@@ -366,6 +366,10 @@ ul li > label .range-icons.brightness {
 
 #dateTime ul[data-state="auto"] ~ * {
   display: none;
+}
+
+#dateTime ul[hidden] + header {
+  margin-top: 5rem;
 }
 
 #time-manual span {
