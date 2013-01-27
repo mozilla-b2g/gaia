@@ -3,8 +3,7 @@
 
 'use strict';
 
-onLocalized(function hotspot() {
-
+navigator.mozL10n.ready(function hotspot() {
   var settings = window.navigator.mozSettings;
   var hotspotSettingsSection =
       document.getElementById('hotspot-settings-section');

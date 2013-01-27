@@ -20,8 +20,8 @@ Icon.prototype = {
   MIN_ICON_SIZE: 52,
   MAX_ICON_SIZE: 60,
 
-  DEFAULT_BOOKMARK_ICON_URL: window.location.protocol + '//' + window.location.host +
-                    '/style/images/default_favicon.png',
+  DEFAULT_BOOKMARK_ICON_URL: window.location.protocol + '//' +
+                    window.location.host + '/style/images/default_favicon.png',
   DEFAULT_ICON_URL: window.location.protocol + '//' + window.location.host +
                     '/style/images/default.png',
   DOWNLOAD_ICON_URL: window.location.protocol + '//' + window.location.host +
@@ -183,8 +183,9 @@ Icon.prototype = {
   },
 
   loadCachedIcon: function icon_loadCachedImage() {
-    if ('oldRenderedIcon' in this.descriptor) {
-      this.renderBlob(this.descriptor.oldRenderedIcon);
+    var oldRenderedIcon = this.descriptor.oldRenderedIcon;
+    if (oldRenderedIcon && oldRenderedIcon instanceof Blob) {
+      this.renderBlob(oldRenderedIcon);
     } else {
       this.loadImageData();
     }
@@ -220,7 +221,7 @@ Icon.prototype = {
     };
   },
 
-  renderImageForBookMark: function icon_renderImageForBookmark(img){
+  renderImageForBookMark: function icon_renderImageForBookmark(img) {
     var self = this;
     var canvas = document.createElement('canvas');
     canvas.width = 64;
@@ -230,22 +231,22 @@ Icon.prototype = {
     // Draw the background
     var background = new Image();
     background.src = 'style/images/default_background.png';
-    background.onload = function icon_loadBackgroundSuccess(){
+    background.onload = function icon_loadBackgroundSuccess() {
       ctx.shadowColor = 'rgba(0,0,0,0.8)';
       ctx.shadowBlur = 2;
       ctx.shadowOffsetY = 2;
-      ctx.drawImage(background,2,2);
+      ctx.drawImage(background, 2, 2);
       // Disable smoothing on icon resize
       ctx.shadowBlur = 0;
       ctx.shadowOffsetY = 0;
       ctx.mozImageSmoothingEnabled = false;
-      ctx.drawImage(img,16,16,32,32);
+      ctx.drawImage(img, 16, 16, 32, 32);
       canvas.toBlob(self.renderBlob.bind(self));
     };
   },
 
   renderImage: function icon_renderImage(img) {
-    if( this.app && this.app.iconable ) {
+    if (this.app && this.app.iconable) {
       this.renderImageForBookMark(img);
       return;
     }
@@ -511,6 +512,11 @@ function Page(container, icons) {
 Page.prototype = {
 
   /*
+   * It defines the threshold in pixels to consider a gesture like a tap event
+   */
+  tapThreshold: 10,
+
+  /*
    * Renders a page for a list of apps
    *
    * @param{Array} icons
@@ -751,7 +757,7 @@ Page.prototype = {
   }
 };
 
-function getDefaultIcon(app){
+function getDefaultIcon(app) {
   if (app && app.iconable) {
     return Icon.prototype.DEFAULT_BOOKMARK_ICON_URL;
   } else {
@@ -823,14 +829,25 @@ dockProto.getChildren = function dk_getChildren() {
 HTMLCollection.prototype.indexOf = Array.prototype.indexOf;
 
 const TextOverflowDetective = (function() {
-  var iconFakeWrapperWidht = document.querySelector('#fake-icon-name-wrapper').
-                                                                    offsetWidth;
-  var iconFakeLabel = document.querySelector('#fake-icon-name');
+
+  var iconFakeWrapperWidth;
+  var iconFakeLabel;
+
+  function init() {
+    var fakeIconName = document.querySelector('#fake-icon-name-wrapper');
+    iconFakeWrapperWidth = fakeIconName.offsetWidth;
+    iconFakeLabel = document.querySelector('#fake-icon-name');
+  }
+
+  function check(text) {
+    if (!iconFakeLabel || !iconFakeWrapperWidth) {
+      init();
+    }
+    iconFakeLabel.textContent = text;
+    return iconFakeLabel.offsetWidth >= iconFakeWrapperWidth;
+  }
 
   return {
-    check: function od_check(text) {
-      iconFakeLabel.textContent = text;
-      return iconFakeLabel.offsetWidth >= iconFakeWrapperWidht;
-    }
-  }
+    check: check
+  };
 })();

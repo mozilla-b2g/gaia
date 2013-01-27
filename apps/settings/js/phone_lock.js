@@ -261,5 +261,5 @@ var PhoneLock = {
 };
 
 // startup
-onLocalized(PhoneLock.init.bind(PhoneLock));
+navigator.mozL10n.ready(PhoneLock.init.bind(PhoneLock));
 

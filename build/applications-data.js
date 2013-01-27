@@ -90,8 +90,7 @@ let customize = {"homescreens": [
     ["apps", "communications", "dialer"],
     ["apps", "sms"],
     ["apps", "communications", "contacts"],
-    ["apps", "browser"],
-    ["apps", "feedback"]
+    ["apps", "browser"]
   ], [
     ["apps", "camera"],
     ["apps", "gallery"],
@@ -107,6 +106,10 @@ let customize = {"homescreens": [
     ["apps", "video"]
   ]
 ]};
+
+if (DOGFOOD == 1) {
+  customize.homescreens[0].push(["dogfood_apps", "feedback"]);
+}
 
 let init = getFile(GAIA_DIR, 'customize.json');
 if (init.exists()) {
@@ -222,5 +225,12 @@ content = {
       "title": "1058"
     }
   ]
+}
+writeContent(init, JSON.stringify(content));
+
+// ICC / STK
+init = getFile(GAIA_DIR, 'apps', 'settings', 'resources', 'icc.json');
+content = {
+  "defaultURL": "http://www.mozilla.org/en-US/firefoxos/"
 }
 writeContent(init, JSON.stringify(content));

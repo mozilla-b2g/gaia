@@ -71,12 +71,11 @@ var WindowManager = (function() {
   var screenElement = document.getElementById('screen');
   var wrapperHeader = document.querySelector('#wrapper-activity-indicator');
   var wrapperFooter = document.querySelector('#wrapper-footer');
-  var kTransitionTimeout = 300;
+  var kTransitionTimeout = 1000;
 
   // Set this to true to debugging the transitions and state change
   var slowTransition = false;
   if (slowTransition) {
-    kTransitionTimeout = 1000;
     windows.classList.add('slow-transition');
   }
 
@@ -1463,7 +1462,7 @@ var WindowManager = (function() {
 
   var overlayEvents = [
     'lock',
-    'unlock',
+    'will-unlock',
     'attentionscreenshow',
     'attentionscreenhide',
     'status-active',
@@ -1476,7 +1475,7 @@ var WindowManager = (function() {
     switch (evt.type) {
       case 'status-active':
       case 'attentionscreenhide':
-      case 'unlock':
+      case 'will-unlock':
         if (LockScreen.locked)
           return;
         setVisibilityForCurrentApp(true);
@@ -1606,6 +1605,25 @@ var WindowManager = (function() {
 
     return (value === 'allow');
   }
+
+  // Use a setting in order to be "called" by settings app
+  navigator.mozSettings.addObserver(
+    'clear.remote-windows.data',
+    function clearRemoteWindowsData(setting) {
+      var shouldClear = setting.settingValue;
+      if (!shouldClear)
+        return;
+
+      // Delete all storage and cookies from our content processes
+      var request = navigator.mozApps.getSelf();
+      request.onsuccess = function() {
+        request.result.clearBrowserData();
+      };
+
+      // Reset the setting value to false
+      var lock = navigator.mozSettings.createLock();
+      lock.set({'clear.remote-windows.data': false});
+    });
 
   // Watch for window.open usages in order to open wrapper frames
   window.addEventListener('mozbrowseropenwindow', function handleWrapper(evt) {

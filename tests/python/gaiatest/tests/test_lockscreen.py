@@ -15,13 +15,12 @@ class TestLockScreen(GaiaTestCase):
     _camera_button_locator = ('id', 'lockscreen-area-camera')
 
     # Homescreen locators
-    _homescreen_frame_locator = ('css selector', 'iframe.homescreen')
+    _homescreen_frame_locator = ('css selector', 'div.homescreen iframe')
     _homescreen_landing_locator = ('id', 'landing-page')
 
     # Camera locators
     _camera_frame_locator = ('css selector', 'iframe[src="app://camera.gaiamobile.org/index.html"]')
     _capture_button_locator = ('id', 'capture-button')
-
 
     def setUp(self):
         GaiaTestCase.setUp(self)
@@ -50,7 +49,6 @@ class TestLockScreen(GaiaTestCase):
 
         self.assertTrue(landing_element.is_displayed(), "Landing element not displayed after unlocking")
 
-
     def test_unlock_swipe_to_camera(self):
         # https://moztrap.mozilla.org/manage/case/2460/
         self._swipe_and_unlock()
@@ -71,12 +69,11 @@ class TestLockScreen(GaiaTestCase):
         # Wait fot the capture button displayed. no need to take a photo.
         self.wait_for_element_displayed(*self._capture_button_locator)
 
-
     def _swipe_and_unlock(self):
 
         unlock_handle = self.marionette.find_element(*self._lockscreen_handle_locator)
-        unlock_handle_x_centre = int(unlock_handle.size['width']/2)
-        unlock_handle_y_centre = int(unlock_handle.size['height']/2)
+        unlock_handle_x_centre = int(unlock_handle.size['width'] / 2)
+        unlock_handle_y_centre = int(unlock_handle.size['height'] / 2)
 
         # Get the end position from the demo animation
         lockscreen_area = self.marionette.find_element(*self._lockscreen_area_locator)

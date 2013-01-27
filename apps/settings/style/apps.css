@@ -4,15 +4,15 @@
 
 #appPermissions ul li img {
   float: left;
-  margin-top: calc(3rem - 15px);
+  margin-top: calc(3rem - 1.5rem);
   margin-right: 1.4rem;
-  width: 30px;
-  height: 30px;
+  width: 3rem;
+  height: 3rem;
 }
 
 #permissionsListHeader + ul li select {
   width: 25%;
-  padding: 5px;
+  padding: 0.5rem;
   border: 0;
   background: #367fa2;
   text-align: center;
@@ -21,11 +21,11 @@
 }
 
 #permissionsListHeader + ul li select[value='allow'] {
-  background: #22aa22;
+  background-color: #22aa22;
 }
 
 #permissionsListHeader + ul li select[value='deny'] {
-  background: #da4e49;
+  background-color: #da4e49;
 }
 
 #uninstall-app {
@@ -36,6 +36,10 @@
   font-size: 1.4rem;
   line-height: 1em;
   width: calc(100% - 5rem);
-  height: calc(60px - 2rem);
+  height: calc(6rem - 2rem);
+}
+
+#appPermissions .cb-alert {
+  position: fixed;
 }
 

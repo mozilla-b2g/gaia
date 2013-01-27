@@ -27,7 +27,8 @@ const HomeState = (function() {
       try {
         grid = xhr.response;
       } catch (e) {
-        console.log('Failed parsing homescreen configuration file: ' + e + '\n');
+        console.log('Failed parsing homescreen configuration file: ' +
+            e + '\n');
       }
       if (!grid)
         grid = [];
@@ -118,7 +119,7 @@ const HomeState = (function() {
      * success callback.
      */
     init: function st_init(iterator, success, error) {
-      openDB(function (emptyDB) {
+      openDB(function(emptyDB) {
         if (emptyDB) {
           loadInitialState(iterator, success, error);
           return;
@@ -168,3 +169,4 @@ const HomeState = (function() {
     }
   };
 })();
+

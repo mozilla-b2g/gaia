@@ -19,7 +19,6 @@ class TestDialer(GaiaTestCase):
     _hangup_bar_locator = ('id', 'callbar-hang-up-action')
     _call_screen_locator = ('css selector', "iframe[name='call_screen']")
 
-
     def setUp(self):
         GaiaTestCase.setUp(self)
 
@@ -66,7 +65,7 @@ class TestDialer(GaiaTestCase):
 
         # Check the number displayed is the one we dialed
         self.assertEqual(self._test_phone_number,
-            self.marionette.find_element(*self._calling_number_locator).text)
+                         self.marionette.find_element(*self._calling_number_locator).text)
 
         # hang up before the person answers ;)
         self.marionette.find_element(*self._hangup_bar_locator).click()
@@ -78,12 +77,12 @@ class TestDialer(GaiaTestCase):
 
         for i in phone_number:
             if i == "+":
-                zero_button = self.marionette.find_element('css selector', 'div.keypad-key div[data-value="0"]')
+                zero_button = self.marionette.find_element('css selector', 'div.keypad-key[data-value="0"]')
                 self.marionette.long_press(zero_button, 1200)
                 # Wait same time as the long_press to bust the asynchronous
                 # TODO https://bugzilla.mozilla.org/show_bug.cgi?id=815115
                 time.sleep(2)
 
             else:
-                self.marionette.find_element('css selector', 'div.keypad-key div[data-value="%s"]' % i).click()
+                self.marionette.find_element('css selector', 'div.keypad-key[data-value="%s"]' % i).click()
                 time.sleep(0.25)

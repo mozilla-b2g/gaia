@@ -7,6 +7,13 @@
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "permissions": {
-    "settings":{ "access": "readonly" }
-  }
+    "settings":{ "access": "readwrite" }
+  },
+  "locales": {
+    "en-US": {
+      "name": "Keyboard",
+      "description": "Gaia Keyboard"
+    }
+  },
+  "default_locale": "en-US"
 }

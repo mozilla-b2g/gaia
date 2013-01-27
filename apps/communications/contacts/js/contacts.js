@@ -43,13 +43,11 @@ var Contacts = (function() {
     var hash = hasParams[0];
     var sectionId = hash.substr(1, hash.length) || '';
     var cList = contacts.List;
-    var overlay = true;
     var params = hasParams.length > 1 ?
       extractParams(hasParams[1]) : -1;
 
     switch (sectionId) {
       case 'view-contact-details':
-        overlay = false;
         if (params == -1 || !('id' in params)) {
           console.log('Param missing');
           return;
@@ -67,7 +65,6 @@ var Contacts = (function() {
         break;
 
       case 'view-contact-form':
-        overlay = false;
         if (params == -1 || !('id' in params)) {
           contactsForm.render(params, goToForm);
         } else {
@@ -102,7 +99,7 @@ var Contacts = (function() {
       checkCancelableActivity();
       readyToPaint = true;
       if (firstContacts) {
-        loadList(overlay, firstContacts);
+        loadList(firstContacts);
         readyToPaint = false;
       }
     }
@@ -257,7 +254,7 @@ var Contacts = (function() {
         for (var i = 0; i < dataSet.length; i++) {
           var data = dataSet[i].value,
               carrier = dataSet[i].carrier || '';
-          prompt1.addToList(data + ' ' + carrier);
+          prompt1.addToList(data + ' ' + carrier, data);
         }
 
         prompt1.onchange = function onchange(itemData) {
@@ -291,8 +288,8 @@ var Contacts = (function() {
     });
   };
 
-  var loadList = function loadList(overlay, contacts) {
-    contactsList.load(contacts, overlay);
+  var loadList = function loadList(contacts) {
+    contactsList.load(contacts);
     contactsList.handleClick(contactListClickHandler);
   };
 
@@ -614,6 +611,12 @@ var Contacts = (function() {
     contacts.Details.onLineChanged();
   };
 
+
+  var cardStateChanged = function() {
+    contacts.Settings.cardStateChanged();
+  };
+
+
   var getFirstContacts = function c_getFirstContacts() {
     var onerror = function() {
       console.error('Error getting first contacts');
@@ -621,7 +624,7 @@ var Contacts = (function() {
     contacts.List.getAllContacts(onerror, function(contacts) {
       firstContacts = contacts;
       if (readyToPaint) {
-        loadList(true, contacts);
+        loadList(contacts);
         firstContacts = null;
       }
     });
@@ -654,7 +657,8 @@ var Contacts = (function() {
     'showContactDetail': contactListClickHandler,
     'updateContactDetail': updateContactDetail,
     'onLineChanged': onLineChanged,
-    'showStatus': utils.status.show
+    'showStatus': utils.status.show,
+    'cardStateChanged': cardStateChanged
   };
 })();
 
@@ -667,6 +671,10 @@ window.addEventListener('localized', function initContacts(evt) {
 
     window.addEventListener('online', Contacts.onLineChanged);
     window.addEventListener('offline', Contacts.onLineChanged);
+
+    // To listen to card state changes is needed for enabling import from SIM
+    var mobileConn = navigator.mozMobileConnection;
+    mobileConn.oncardstatechange = Contacts.cardStateChanged;
 
     if (window.navigator.mozSetMessageHandler && window.self == window.top) {
       var actHandler = ActivityHandler.handle.bind(ActivityHandler);

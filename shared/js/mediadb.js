@@ -72,8 +72,8 @@
  *
  *       batchHoldTime:
  *          How long (in ms) to wait after finding a new file during a scan
- *          before reporting it.  Longer hold times allow more batching of
- *          changes the default is 100ms.
+ *          before reporting it. Longer hold times allow more batching of
+ *          changes. The default is 100ms.
  *
  *       batchSize:
  *          When batching changes, don't allow the batches to exceed this
@@ -935,13 +935,9 @@ var MediaDB = (function() {
 
     // First, scan for new files since the last scan, if there was one
     // When the quickScan is done it will begin a full scan.  If we don't
-    // have a last scan date, then we just begin a full scan immediately
-    if (media.details.newestFileModTime > 0) {
-      quickScan(media.details.newestFileModTime);
-    }
-    else {
-      fullScan();
-    }
+    // have a last scan date, then the database is empty and we don't
+    // have to do a full scan, since there will be no changes or deletions.
+    quickScan(media.details.newestFileModTime);
 
     //
     // Return true if media db should ignore this file.
@@ -964,10 +960,16 @@ var MediaDB = (function() {
 
     // Do a quick scan and then follow with a full scan
     function quickScan(timestamp) {
-      var cursor = media.storage.enumerate(media.directory, {
-        // add 1 so we don't find the same newest file again
-        since: new Date(timestamp + 1)
-      });
+      var cursor;
+      if (timestamp > 0) {
+        cursor = media.storage.enumerate(media.directory, {
+          // add 1 so we don't find the same newest file again
+          since: new Date(timestamp + 1)
+        });
+      }
+      else {
+        cursor = media.storage.enumerate(media.directory);
+      }
 
       cursor.onsuccess = function() {
         var file = cursor.result;
@@ -982,7 +984,17 @@ var MediaDB = (function() {
           // more thorough full scan.
           whenDoneProcessing(media, function() {
             sendNotifications(media);
-            fullScan();
+            if (timestamp > 0) {
+              // If we were just scanning for new files, then we still
+              // have to go check that all of the old files still exist
+              // and have not changed.
+              fullScan();
+            }
+            else {
+              // If we didn't have any files stored in the database when
+              // we started the scan, then we're done.
+              endscan(media);
+            }
           });
         }
       };
