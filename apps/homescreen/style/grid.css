@@ -22,6 +22,7 @@
 /* Here users can view the clock while grid is loading -> better experience */
 #landing-page {
   display: block;
+  overflow: hidden;
 }
 
 .apps ol {

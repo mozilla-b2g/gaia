@@ -1,8 +1,9 @@
-#evmeContainer .connection-message {
+#evmeContainer .connection-message,
+#evme-search .connection-message {
     width: 100%;
-    padding: 0 50px;
+    padding: 0 5rem;
     color: #fff;
-    font-size: 16px;
+    font-size: 1.6rem;
     text-align: center;
     -moz-box-sizing: border-box;
 }

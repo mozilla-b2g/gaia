@@ -1,160 +1,213 @@
-#evmeContainer #header {
-    position: relative;
-    z-index: 50;
-    min-height: 80px;
-}
-#evmeContainer:not(.empty-query) #header,
-#evmeContainer.keyboard-visible #header {
-    background: rgba(0, 0, 0, .3);
-}
-#evmeContainer #search-header {
+#evme-search {
     position: absolute;
     top: 0;
-    left: 6px;
-    right: 6px;
-    height: 31px;
-    z-index: 51;
-    padding-top: 9px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 100;
+    transition: opacity 300ms linear;
 }
-    #evmeContainer #search-rapper {
-        position: absolute;
-        top: 9px;
-        left: 0;
-        right: 0;
-        z-index: 25;
-        vertical-align: middle;
-        height: 28px;
-        line-height: 30px;
-    }
-    #evmeContainer.empty-query:not(.keyboard-visible) #search-rapper {
-        -moz-transform: translate3d(0, 23px, 0);
-        height: 36px;
-        line-height: 36px;
-        left: 5px;
-        right: 5px;
-    }
-    #evmeContainer.empty-query:not(.keyboard-visible) #search-q {
-        height: 36px;
-        line-height: 36px;
-    }
-    #evmeContainer.empty-query:not(.keyboard-visible) #search-q-bg {
-        background-position: 98% 10px;
-    }
-    
-    #evmeContainer #search-q,
-    #evmeContainer #search-q-bg,
-    #evmeContainer #search-selection {
-        position: relative;
-        font-size: 15px;
-        vertical-align: middle;
-        padding: 0 4px;
-        text-transform: lowercase;
-        height: 100%;
-        -moz-box-sizing: border-box;
-    }
-    #evmeContainer #search-header fieldset {
-        height: 100%;
-        line-height: inherit;
-        background: none;
-		border-radius: 0;
-		border: none;
-    }
-    #evmeContainer #search-q {
-        border: none;
-        z-index: 10;
-        padding: 2px 18px 4px 0;
-        width: 100%;
-        height: 26px;
-        top: -1px;
-        display: inline;
-        background: transparent;
-    }
-    #evmeContainer #search-q-bg {
-        border-radius: 2px;
-        box-shadow: 1px 1px 0 0 #ccc inset, 0 0 0 1px rgba(0, 0, 0, .3);
-        background: #fff;
-        border: none;
-        z-index: 5;
-        width: 100%;
-        top: 0;
-        background-image: url('/everything.me/images/search-icon.png');
-        background-repeat: no-repeat;
-        background-position: 98% 7px;
-    }
-    #evmeContainer .clear-visible #search-q-bg {
-        background-image: none;
-    }
-    #evmeContainer #search-q:focus {
-        outline: none;
-    }
-        
-    #evmeContainer #button-clear {
-        position: absolute;
-        top: 14px;
-        right: 4px;
-        z-index: 30;
-        width: 20px;
-        height: 20px;
-        cursor: pointer;
-        font-size: 0;
-        background-position: -38px -78px;
-        -moz-user-select: none;
-        display: none;
-    }
-    #evmeContainer .clear-visible #button-clear {
-        display: block;
-    }
-        #evmeContainer .clear-visible #button-clear:before {
-            content: "";
-            position: absolute;
-            top: -15px;
-            right: -15px;
-            left: -8px;
-            bottom: -8px;
-        }
-    
-    #evmeContainer #default-text {
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        left: 7px;
-        color: #bbb;
-        text-transform: none;
-        display: none;
-    }
-    #evmeContainer.empty-query #default-text {
-        display: block;
-    }
-    
-#evmeContainer #homepage-search-text {
-    position: absolute;
-    top: 88px;
-    left: 16px;
-    cursor: pointer;
-    text-indent: 6px;
-    z-index: 305;
-    font-size: 13px;
-    color: #444;
+.evme-shortcuts-visible #evmeContainer #evme-search {
+    opacity: 0;
     pointer-events: none;
-    display: none;
-    -moz-transition: all .2s linear;
-    transition: all .2s linear;
 }
-#evmeContainer #homepage-search-text:before {
+
+.evme-hide-os #evme-search:before {
     content: "";
     position: absolute;
-    top: -20px;
-    left: -20px;
-    right: -20px;
-    bottom: -20px;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 500;
+    background: #000;
+    opacity: .25;
+    pointer-events: none;
 }
+    #evme-search .header {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 590;
+        padding: 0 0 0 1rem;
+        height: 11rem;
+        text-align: center;
+    }
+    .evme-loading-app #evme-search .header {
+        transition: all .2s linear;
+        opacity: 0 !important;
+    }
+        #evme-search .header .cursor {
+            position: absolute;
+            top: 3.4rem;
+            left: 86%;
+            margin-left: 0.4rem;
+            width: 0.1rem;
+            height: 2.3rem;
+            opacity: .9;
+            background: #fff;
+            -moz-animation: blink 1.2s linear infinite;
+        }
+        @-moz-keyframes blink {
+            0% {
+                visibility: visible;
+            }
+            50% {
+                visibility: hidden;
+            }
+            100% {
+                visibility: hidden;
+            }
+        }
+        #evme-search .header .font-size-test,
+        #evme-search .header input {
+            position: relative;
+            z-index: 100;
+            color: #fff;
+            text-shadow: 0 0.2rem 0.3rem rgb( 0, 0, 0 );
+            text-align: left;
+            margin: 2.5rem 0 0 1.4rem;
+            width: 89%;
+            font-size: 2.4rem;
+            padding: 0.7rem 1rem 0.6rem 0.8rem;
+            background: transparent url('../../images/searchbar.png') 0 0 no-repeat;
+            background-size: 100% 100%;
+            border: none;
+            -moz-box-sizing: border-box;
+        }
+        #evme-search .header .font-size-test {
+            position: absolute;
+            left: 43px;
+            top: 31px;
+            margin: 0;
+            padding: 0;
+            width: auto;
+            opacity: 0;
+            background: transparent;
+            z-index: 1000;
+            white-space: nowrap;
+        }
+        .evme-hide-os #evme-search .header input {
+            font-size: 2.3rem;
+            width: 95%;
+            color: #aae8ff;
+            text-shadow: 0 0.1rem 0.1rem rgba(0, 0, 0, .4);
+            margin: 0 0 0 5%;
+            padding: 1.6rem 1rem 0.4rem 0.2rem;
+            border-radius: 0;
+            background: transparent;
+        }
+        #evme-search .header .title {
+            position: absolute;
+            top: 18%;
+            left: 9%;
+            color: #fff;
+            font-size: 1.6rem;
+            z-index: 10;
+            pointer-events: none;
+            opacity: 0;
+            /* delay the change to match the input movement */
+            transition: opacity 0ms linear 100ms;
+        }
+        
+        /* keyboard down but no os chrome - exact search */
+        .evme-hide-os:not(.evme-keyboard-visible) #evme-search .header input {
+            /* delay the padding change so that helper taps won't hit the input */
+            transition: padding 0ms linear 100ms;
+            padding-right: 0;
+            width: 80%;
+            margin-right: 15%;
+        }
+        
+        .evme-hide-os:not(.evme-keyboard-visible) #evme-search:not(.didyoumean) .header input {
+            padding: 4.1rem 0 1.5rem 0.2rem;
+            height: auto;
+        }
+        
+        .evme-hide-os:not(.evme-keyboard-visible) #evme-search:not(.didyoumean) .header .title {
+            opacity: 1;
+        }
+        .evme-hide-os #evme-search .header .cursor {
+            display: none;
+            -moz-animation: none;
+        }
+    #evme-search .shortcuts {
+        position: absolute;
+        top: 1.6rem;
+        left: 0;
+        width: 2.6rem;
+        height: 5.4rem;
+        background:
+            url('../../images/actionbar_sep.png') no-repeat 100% 50%,
+            url('../../images/icon-shortcuts.png') no-repeat 50% 55% / 1.3rem 1.8rem;
+        transition: opacity 200ms linear;
+    }
+        /* used to increase clickable area of button */
+        #evme-search .shortcuts:before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: -2rem;
+            bottom: 0;
+        }
+    .evme-hide-os #evme-search .shortcuts {
+        opacity: 0;
+        pointer-events: none;
+    }
+    
+    #evme-search .clear {
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 30;
+        width: 7%;
+        height: 55%;
+        font-size: 0;
+        background: transparent url('../../images/imageclose.png') 50% 50% no-repeat;
+        background-size: 1.7rem;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 200ms linear;
+        box-shadow: -0.1rem 0 0 0 rgba(0, 0, 0, .5) inset, 0.1rem 0 0 0 rgba(255, 255, 255, .5);
+        mask: url('../../css/masks.svg#clearButton');
+    }
+    .evme-hide-os #evme-search .clear {
+        opacity: 1;
+        pointer-events: inherit;
+    }
+        #evme-search .clear:before {
+            content: "";
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: -2rem;
+        }
 
-#evmeContainer.screen-homepage #homepage-search-text {
-    display: block;
-}
-
-#evmeContainer.loading-app #search-header  {
-    -moz-transition: all .2s linear;
-    transition: all .2s linear;
-    opacity: 0 !important;
-}
+    #evme-search .save {
+        position: absolute;
+        top: 0;
+        right: 1.2rem;
+        z-index: 150;
+        width: 4.2rem;
+        height: 4.2rem;
+        font-size: 0;
+        background: transparent url('../../images/imagesave.png') 50% 50% no-repeat;
+        background-size: 2.5rem 2.4rem;
+        opacity: 0;
+        transform: translateY(2.8rem);
+        pointer-events: none;
+        transition: all 150ms linear;
+    }
+    .evme-hide-os:not(.evme-keyboard-visible) #evme-search .save {
+        opacity: 1;
+        pointer-events: inherit;
+    }
+    .evme-hide-os:not(.evme-keyboard-visible) #evme-search.didyoumean .save {
+        transform: translateY(1.1rem);
+    }
+    .evme-offline #evme-search .save {
+        display: none;
+    }

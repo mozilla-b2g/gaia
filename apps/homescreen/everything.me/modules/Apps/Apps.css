@@ -1,164 +1,196 @@
-#evmeContainer .evme-apps {
+.evme-apps {
     position: absolute;
-    top: 81px;
+    top: 0;
     left: 0;
-    right: -20px;
+    right: -2rem;
     bottom: 0;
-    z-index: 50;
+    text-align: left;
+    z-index: 500;
     overflow: hidden;
+    display: none;
 }
-#evmeContainer.loading-app .evme-apps {
+.evme-hide-os .evme-apps {
+    display: block;
+}
+.evme-loading-app .evme-apps {
     pointer-events: none;
 }
 
-#evmeContainer.empty-query #evmeApps {
-    display: none;
+#evme-search .evme-apps {
+    top: 8.1rem;
 }
 
+#evme-search .evme-apps ul,
 #evmeContainer .evme-apps ul {
     position: absolute;
     left: 0;
-    right: 20px;
+    right: 2rem;
     min-height: 100%;
-    padding-bottom: 10px;
+    padding-bottom: 1rem;
 }
+#evme-search .evme-apps.has-more ul:not(.connection-error),
 #evmeContainer .evme-apps.has-more ul:not(.connection-error) {
-    padding-bottom: 45px;
+    padding-bottom: 5.6rem;
 }
+#evme-search .evme-apps ul li,
 #evmeContainer .evme-apps ul li {
-    clear: both;
+    position: relative;
     width: 25%;
-    height: 89px;
-    padding-top: 10px;
+    height: 8.9rem;
+    padding-top: 1rem;
     text-align: center;
     cursor: pointer;
     display: inline-block;
     vertical-align: top;
     transition: transform .2s linear;
 }
-
-#evmeContainer .evme-apps ul .installed-separator {
-    display: block;
-    width: 100%;
-    height: 1px;
-    padding: 0;
-    margin: .2rem 0 0;
-    box-shadow: 0 -1px 0 0 rgba(255, 255, 255, .3), 0 1px 0 0 rgba(0, 0, 0, .3) inset;
+#evme-search .evme-apps ul li.installed,
+#evmeContainer .evme-apps ul li.installed {
+    padding-top: 0;
+    height: 10.3rem;
 }
 
-#evmeContainer .evme-apps:not(.has-installed) .has-installed-visible {
-    display: none;
-}
+    #evme-search .evme-apps ul li canvas,
     #evmeContainer .evme-apps ul li canvas {
         transition: transform .2s linear;
     }
+    
+    #evme-search .evme-apps ul li.new canvas,
+    #evmeContainer .evme-apps ul li.new canvas {
+        transform: scale(0);
+    }
+#evme-search .evme-apps ul .installed-separator,
+#evmeContainer .evme-apps ul .installed-separator {
+    display: block;
+    width: 100%;
+    height: 0.1rem;
+    padding: 0;
+    margin: .2rem 0 0;
+    box-shadow: 0 -0.1rem 0 0 rgba(255, 255, 255, .3), 0 0.1rem 0 0 rgba(0, 0, 0, .3) inset;
+}
+
+.evme-apps:not(.has-installed) .has-installed-visible {
+    display: none;
+}
+    #evme-search .evme-apps ul li canvas,
+    #evmeContainer .evme-apps ul li canvas {
+        transition: transform .2s linear;
+    }
+    
+#evme-search .evme-apps ul #button-more,
 #evmeContainer .evme-apps ul #button-more {
     position: absolute;
     top: auto;
-    bottom: 15px;
+    bottom: 1.5rem;
     left: 0;
     height: auto;
     color: #b4dae7;
-    font-size: 15px;
+    font-size: 1.5rem;
     font-weight: 600;
-    text-shadow: 0 1px 1px #000;
+    text-shadow: 0 0.1rem 0.1rem #000;
     cursor: pointer;
     z-index: 100;
     opacity: 0;
 }
+#evme-search .evme-apps ul #button-more.visible,
 #evmeContainer .evme-apps ul #button-more.visible {
     opacity: 1;
 }
 
-#evmeContainer .evme-apps ul li:nth-child(4n+1) {
-    clear: both;
-}
+#evme-search .evme-apps ul li.new:not(.installed) canvas,
 #evmeContainer .evme-apps ul li.new:not(.installed) canvas {
     transform: scale(0);
 }
 
+#evme-search .evme-apps ul li .close,
+#evmeContainer .evme-apps ul li .close {
+    position: absolute;
+    top: -0.4rem;
+    left: 50%;
+    margin-left: -3rem;
+    border: 0.2rem solid #fff;
+    box-shadow: 0 0 0.2rem 0 #000;
+    width: 1.8rem;
+    height: 1.8rem;
+    line-height: 1.6rem;
+    background: #000;
+    color: #fff;
+    cursor: pointer;
+    text-align: center;
+    border-radius: 1.8rem;
+    font-weight: 600;
+    font-size: 1.4rem;
+    z-index: 0;
+    opacity: 0;
+    display: none;
+    transition: opacity .2s linear;
+}
+#evme-search .evme-apps ul li#more-apps,
 #evmeContainer .evme-apps ul li#more-apps {
     position: absolute;
     left: 0;
     right: 0;
-    bottom: 5px;
+    bottom: 0;
     width: 100%;
-    height: 40px;
-    line-height: 40px;
+    height: 5rem;
+    line-height: 5rem;
     color: #fff;
-    font-size: 16px;
+    font-size: 1.6rem;
     font-weight: 600;
     padding: 0;
+    margin: 0;
     z-index: 50;
     cursor: default;
-    box-shadow: 0 -1px 0 0 rgba(255, 255, 255, .6), 0 -2px 0 0 rgba(0, 0, 0, .5);
+    box-shadow: 0 -0.1rem 0 0 rgba(255, 255, 255, .6), 0 -0.2rem 0 0 rgba(0, 0, 0, .5);
     transition: none;
 }
-#evmeContainer .evme-apps ul.connection-error #more-apps {
+.evme-apps ul.connection-error #more-apps {
     display: none;
 }
 
-#evmeContainer #evmeApps .connection-message {
+#evmeApps .connection-message {
     width: 100%;
 }
-#evmeContainer #evmeApps.has-installed .connection-message,
-#evmeContainer #evmeApps .connection-message:first-child:last-child {
+#evmeApps.has-installed .connection-message,
+#evmeApps .connection-message:first-child:last-child {
     position: absolute;
     top: 50%;
     left: 0;
     right: 0;
 }
-#evmeContainer #evmeApps.has-installed .connection-message {
-    transform: translateY(35px);
+#evmeApps.has-installed .connection-message {
+    transform: translateY(3.5rem);
 }   
-#evmeContainer #evmeApps.loading-more .connection-message {
+#evmeApps.loading-more .connection-message {
     position: static;
     top: auto;
     left: auto;
     right: auto;
-    margin-top: 10px;
-    padding-top: 10px;
-    padding-bottom: 10px;
-    box-shadow: 0 -1px 0 0 rgba(255, 255, 255, .4), 0 -2px 0 0 rgba(0, 0, 0, .4);
+    margin-top: 1rem;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+    box-shadow: 0 -0.1rem 0 0 rgba(255, 255, 255, .4), 0 -0.2rem 0 0 rgba(0, 0, 0, .4);
     transform: translateY(0);
 }
-#evmeContainer.loading-app .connection-message {
+.evme-loading-app .connection-message {
     opacity: 0;
-}
-
-body:not(.istouch) .evme-apps {
-
-}
-body:not(.istouch) .evme-apps ul {
-    overflow: hidden;
-}
-body:not(.istouch) .evme-apps ul li:nth-child(4n+1) {
-    clear: both;
-}
-body:not(.istouch) .evme-apps ul li:nth-child(5n+1) {
-    clear: none;
 }
 
 /* Loading an app */
-#evmeContainer.loading-app .evme-apps ul li, #evmeContainer.loading-app .evme-apps ul #button-more.visible, #evmeContainer.loading-app .evme-apps.has-installed ul:before {
+.evme-loading-app .evme-apps ul li,
+.evme-loading-app .evme-apps ul #button-more.visible,
+.evme-loading-app .evme-apps.has-installed ul:before {
     opacity: 0;
 }
-#evmeContainer.loading-app .evme-apps ul li.inplace {
+
+.evme-loading-app #evme-search .evme-apps ul li.inplace,
+.evme-loading-app #evmeContainer .evme-apps ul li.inplace {
     position: absolute;
     top: 0;
     left: 0;
     opacity: 1;
     overflow: visible;
     margin-top: 0 !important;
-    transition: transform .2s linear;
-}
-#evmeContainer.loading-app .evme-apps ul li.inplace .doat-loading {
-    position: absolute;
-    top: -8px;
-    left: 50%;
-    margin-left: -30px;
-}
-
-#evmeContainer.loading-app .evme-apps ul {
-    min-height: 100%;
+    transform: translate3d(0,0,0);
+    transition: transform .3s ease-in-out;
 }
