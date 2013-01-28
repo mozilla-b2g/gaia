@@ -1,23 +1,19 @@
-/*
- *  The code is being shared between system/emergency-call/js/keypad.js
- *  and dialer/js/keypad.js. Be sure to update both file when you commit!
- *
- */
-
 'use strict';
 
-var TonePlayer = new BaseTonePlayer({
-  sampleRate: 4000
-});
+function _TonePlayer(config) {
+  BaseTonePlayer.call(this, config);
+}
 
-TonePlayer.prototype.ensureAudio = function tp_ensureAudio() {
+extend(_TonePlayer, BaseTonePlayer);
+
+_TonePlayer.prototype.ensureAudio = function tp_ensureAudio() {
   if (this._audio) return;
 
   this._audio = new Audio();
   this._audio.mozSetup(2, this._sampleRate);
 };
 
-TonePlayer.prototype.generateFrames = function tp_generateFrames(soundData, freqRow, freqCol) {
+_TonePlayer.prototype.generateFrames = function tp_generateFrames(soundData, freqRow, freqCol) {
   var currentSoundSample = 0;
   var kr = 2 * Math.PI * freqRow / this._sampleRate;
   var kc = 2 * Math.PI * freqCol / this._sampleRate;
@@ -31,18 +27,24 @@ TonePlayer.prototype.generateFrames = function tp_generateFrames(soundData, freq
   }
 };
 
-TonePlayer.prototype.play = function tp_play(frequencies) {
+_TonePlayer.prototype.play = function tp_play(frequencies) {
   var soundDataSize = this._sampleRate / 4;
   var soundData = new Float32Array(soundDataSize);
   this.generateFrames(soundData, frequencies[0], frequencies[1]);
   this._audio.mozWriteAudio(soundData);
 };
 
-var KeypadManager = new BaseKeypadManager({
-  phoneNumber: ''
+var TonePlayer = new _TonePlayer({
+  sampleRate: 4000
 });
 
-KeypadManager.prototype.init = function kh_init() {
+function _KeypadManager(config) {
+  BaseKeypadManager.call(this, config);
+}
+
+extend(_KeypadManager, BaseKeypadManager);
+
+_KeypadManager.prototype.init = function kh_init() {
   this.phoneNumberView.value = '';
   this._phoneNumber = '';
 
@@ -90,7 +92,7 @@ KeypadManager.prototype.init = function kh_init() {
   this.render();
 };
 
-KeypadManager.prototype.render = function hk_render(layoutType) {
+_KeypadManager.prototype.render = function hk_render(layoutType) {
   if (layoutType == 'oncall') {
     this._onCall = true;
     var numberNode = CallScreen.activeCall.querySelector('.number');
@@ -120,15 +122,15 @@ KeypadManager.prototype.render = function hk_render(layoutType) {
   }
 };
 
-KeypadManager.prototype.makeCall = function hk_makeCall(event) {
+_KeypadManager.prototype.makeCall = function hk_makeCall(event) {
   event.stopPropagation();
 
   if (this._phoneNumber != '') {
-    CallHandler.call(KeypadManager._phoneNumber);
+    CallHandler.call(this._phoneNumber);
   }
 };
 
-KeypadManager.prototype.addContact = function hk_addContact(event) {
+_KeypadManager.prototype.addContact = function hk_addContact(event) {
   var number = this._phoneNumber;
   if (!number) return;
 
@@ -148,16 +150,16 @@ KeypadManager.prototype.addContact = function hk_addContact(event) {
   }
 };
 
-KeypadManager.prototype.callbarBackAction = function hk_callbarBackAction(event) {
+_KeypadManager.prototype.callbarBackAction = function hk_callbarBackAction(event) {
   CallScreen.hideKeypad();
 };
 
-KeypadManager.prototype.hangUpCallFromKeypad = function hk_hangUpCallFromKeypad(event) {
+_KeypadManager.prototype.hangUpCallFromKeypad = function hk_hangUpCallFromKeypad(event) {
   CallScreen.views.classList.remove('show');
   OnCallHandler.end();
 };
 
-KeypadManager.prototype.formatPhoneNumber = function kh_formatPhoneNumber(mode) {
+_KeypadManager.prototype.formatPhoneNumber = function kh_formatPhoneNumber(mode) {
   switch (mode) {
   case 'dialpad':
     var fakeView = this.fakePhoneNumberView;
@@ -183,14 +185,12 @@ KeypadManager.prototype.formatPhoneNumber = function kh_formatPhoneNumber(mode) 
     view.dataset.size = currentFontSize;
   }
 
-  var newFontSize = this.getNextFontSize(view, fakeView,
-  parseInt(view.dataset.size),
-  parseInt(currentFontSize));
+  var newFontSize = this.getNextFontSize(view, fakeView, parseInt(view.dataset.size), parseInt(currentFontSize));
   view.style.fontSize = newFontSize + 'px';
   this.addEllipsis(view, fakeView, newFontSize);
 };
 
-KeypadManager.prototype.addEllipsis = function kh_addEllipsis(view, fakeView, currentFontSize) {
+_KeypadManager.prototype.addEllipsis = function kh_addEllipsis(view, fakeView, currentFontSize) {
   var viewWidth = view.getBoundingClientRect().width;
   fakeView.style.fontSize = currentFontSize + 'px';
   fakeView.innerHTML = view.value;
@@ -210,7 +210,7 @@ KeypadManager.prototype.addEllipsis = function kh_addEllipsis(view, fakeView, cu
   }
 };
 
-KeypadManager.prototype.getNextFontSize = function kh_getNextFontSize(view, fakeView,
+_KeypadManager.prototype.getNextFontSize = function kh_getNextFontSize(view, fakeView,
 fontSize, initialFontSize) {
   var viewWidth = view.getBoundingClientRect().width;
   fakeView.style.fontSize = fontSize + 'px';
@@ -233,7 +233,7 @@ fontSize, initialFontSize) {
   return fontSize;
 };
 
-KeypadManager.prototype.keyHandler = function kh_keyHandler(event) {
+_KeypadManager.prototype.keyHandler = function kh_keyHandler(event) {
   var key = event.target.dataset.value;
 
   if (!key) return;
@@ -244,7 +244,7 @@ KeypadManager.prototype.keyHandler = function kh_keyHandler(event) {
 
     if (key != 'delete') {
       if (keypadSoundIsEnabled) {
-        TonePlayer.play(gTonesFrequencies[key]);
+        TonePlayer.play(BaseKeypadManager.gTonesFrequencies[key]);
       }
 
       // Sending the DTMF tone if on a call
@@ -302,12 +302,12 @@ KeypadManager.prototype.keyHandler = function kh_keyHandler(event) {
   }
 };
 
-KeypadManager.prototype.updatePhoneNumber = function kh_updatePhoneNumber(number) {
+_KeypadManager.prototype.updatePhoneNumber = function kh_updatePhoneNumber(number) {
   this._phoneNumber = number;
   this._updatePhoneNumberView();
 };
 
-KeypadManager.prototype._updatePhoneNumberView = function kh_updatePhoneNumberview() {
+_KeypadManager.prototype._updatePhoneNumberView = function kh_updatePhoneNumberview() {
   var phoneNumber = this._phoneNumber;
 
   // If there are digits in the phone number, show the delete button.
@@ -326,9 +326,21 @@ KeypadManager.prototype._updatePhoneNumberView = function kh_updatePhoneNumbervi
   }
 };
 
-KeypadManager.prototype._callVoicemail = function kh_callVoicemail() {
+_KeypadManager.prototype._callVoicemail = function kh_callVoicemail() {
   var voicemail = navigator.mozVoicemail;
   if (voicemail && voicemail.number) {
     CallHandler.call(voicemail.number);
   }
 };
+
+var KeypadManager = new _KeypadManager({
+  phoneNumber: ''
+});
+
+function extend(subClass, superClass) {
+  var F = function() {};
+  F.prototype = superClass.prototype;
+  subClass.prototype = new F();
+  subClass.prototype.constructor = subClass;
+  subClass.uber = superClass.prototype;
+}

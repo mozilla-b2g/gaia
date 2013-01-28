@@ -214,7 +214,7 @@ _KeypadManager.prototype.keyHandler = function kh_keyHandler(event) {
     if (key != 'delete') {
       if (keypadSoundIsEnabled) {
         // We do not support long press if not on a call
-        TonePlayer.start(gTonesFrequencies[key], !this._onCall);
+        TonePlayer.start(BaseKeypadManager.gTonesFrequencies[key], !this._onCall);
       }
 
       // Sending the DTMF tone if on a call
