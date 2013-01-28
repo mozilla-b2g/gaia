@@ -680,7 +680,7 @@ Calendar.ns('Service').Caldav = (function() {
       }
 
       function handleResponse(url, data) {
-        if (!data) {
+        if (!data || !data['calendar-data']) {
           // throw some error;
           console.log('Could not sync: ', url);
           return;
