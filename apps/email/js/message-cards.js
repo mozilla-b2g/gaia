@@ -966,40 +966,41 @@ MessageReaderCard.prototype = {
 
   onPeepClick: function(target) {
     var contents = msgNodes['contact-menu'].cloneNode(true);
-    Cards.popupMenuForNode(contents, target, ['menu-item'],
-      function(clickedNode) {
-        if (!clickedNode)
-          return;
-
-        switch (clickedNode.classList[0]) {
-          // All of these mutations are immediately reflected, easily observed
-          // and easily undone, so we don't show them as toaster actions.
-          case 'msg-contact-menu-view':
-            try {
-              //TODO: Provide correct params for contact activiy handler.
-              var email = target.querySelector('.msg-peep-address').textContent;
-              var activity = new MozActivity({
-                name: 'new',
-                data: {
-                  type: 'webcontacts/contact',
-                  params: {
-                    'email': email
-                  }
+    var email = target.getAttribute('data-email');
+    contents.getElementsByTagName('header')[0].textContent = email;
+    document.body.appendChild(contents);
+    var formSubmit = function(evt) {
+      document.body.removeChild(contents);
+      switch (evt.explicitOriginalTarget.className) {
+        // All of these mutations are immediately reflected, easily observed
+        // and easily undone, so we don't show them as toaster actions.
+        case 'msg-contact-menu-view':
+          try {
+            //TODO: Provide correct params for contact activiy handler.
+            var activity = new MozActivity({
+              name: 'new',
+              data: {
+                type: 'webcontacts/contact',
+                params: {
+                  'email': email
                 }
-              });
-            } catch (e) {
-              console.log('WebActivities unavailable? : ' + e);
-            }
-            break;
-          case 'msg-contact-menu-reply':
-            //TODO: We need to enter compose view with specific email address.
-            var composer = this.header.replyToMessage(null, function() {
-              Cards.pushCard('compose', 'default', 'animate',
-                             { composer: composer });
+              }
             });
-            break;
-        }
-      }.bind(this));
+          } catch (e) {
+            console.log('WebActivities unavailable? : ' + e);
+          }
+          break;
+        case 'msg-contact-menu-reply':
+          //TODO: We need to enter compose view with specific email address.
+          var composer = this.header.replyToMessage(null, function() {
+            Cards.pushCard('compose', 'default', 'animate',
+                           { composer: composer });
+          });
+          break;
+      }
+      return false;
+    }.bind(this);
+    contents.addEventListener('submit', formSubmit);
   },
 
   onLoadBarClick: function(event) {
@@ -1154,14 +1155,34 @@ MessageReaderCard.prototype = {
       // Because we can avoid having to do multiple selector lookups, we just
       // mutate the template in-place...
       var peepTemplate = msgNodes['peep-bubble'],
-          nameTemplate =
-            peepTemplate.getElementsByClassName('msg-peep-name')[0],
-          addressTemplate =
-            peepTemplate.getElementsByClassName('msg-peep-address')[0];
+          contentTemplate =
+            peepTemplate.getElementsByClassName('msg-peep-content')[0];
+
+      // If the address field is "From", We only show the address and display
+      // name in the message header.
+      if (lineClass == 'msg-envelope-from-line') {
+        var peep = peeps[0];
+        // TODO: Display peep name if the address is not exist.
+        //       Do we nee to deal with that scenario?
+        contentTemplate.textContent = peep.address || peep.name;
+        peepTemplate.setAttribute('data-email', peep.address);
+        if (peep.address) {
+          contentTemplate.classList.add('msg-peep-address');
+        }
+        lineNode.appendChild(peepTemplate.cloneNode(true));
+        domNode.getElementsByClassName('msg-reader-header-label')[0]
+          .textContent = peep.name || peep.address;
+        return;
+      }
       for (var i = 0; i < peeps.length; i++) {
         var peep = peeps[i];
-        nameTemplate.textContent = peep.name || '';
-        addressTemplate.textContent = peep.address;
+        contentTemplate.textContent = peep.name || peep.address;
+        peepTemplate.setAttribute('data-email', peep.address);
+        if (!peep.name && peep.address) {
+          contentTemplate.classList.add('msg-peep-address');
+        } else {
+          contentTemplate.classList.remove('msg-peep-address');
+        }
         lineNode.appendChild(peepTemplate.cloneNode(true));
       }
     }
@@ -1175,8 +1196,6 @@ MessageReaderCard.prototype = {
     dateNode.dataset.time = header.date.valueOf();
     dateNode.textContent = prettyDate(header.date);
 
-    displaySubject(domNode.getElementsByClassName('msg-reader-header-label')[0],
-                   header);
     displaySubject(domNode.getElementsByClassName('msg-envelope-subject')[0],
                    header);
 
