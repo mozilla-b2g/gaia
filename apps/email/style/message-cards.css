@@ -229,7 +229,7 @@
 .msg-peep-bubble * {
   pointer-events: none;
 }
-.msg-peep-name {
+.msg-peep-content {
 }
 .msg-peep-address {
   font-style: italic;
