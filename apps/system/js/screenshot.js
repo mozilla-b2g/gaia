@@ -50,26 +50,32 @@
   // Or, if device storage is not available, display a notification.
   function getDeviceStorage(callback) {
     var storage = navigator.getDeviceStorage('pictures');
-    var statreq = storage.stat();
-    statreq.onsuccess = function() {
-      var stats = statreq.result;
-      if (stats.state === 'unavailable') {
+    var availreq = storage.available();
+    availreq.onsuccess = function() {
+      var state = availreq.result;
+      if (state === 'unavailable') {
         notify('screenshotFailed', null, 'screenshotNoSDCard');
       }
-      else if (stats.state === 'shared') {
+      else if (state === 'shared') {
         notify('screenshotFailed', null, 'screenshotSDCardInUse');
       }
-      else if (stats.state === 'available') {
-        if (stats.freeBytes < MAX_SCREENSHOT_SIZE) {
-          notify('screenshotFailed', null, 'screenshotSDCardLow');
-        }
-        else {
-          callback(storage);
-        }
+      else if (state === 'available') {
+        var freereq = storage.freeSpace();
+        freereq.onsuccess = function() {
+          if (freereq.result < MAX_SCREENSHOT_SIZE) {
+            notify('screenshotFailed', null, 'screenshotSDCardLow');
+          }
+          else {
+            callback(storage);
+          }
+        };
+        freereq.onerror = function() {
+          notify('screenshotFailed', freereq.error && freereq.error.name);
+        };
       }
     }
-    statreq.onerror = function() {
-      notify('screenshotFailed', statreq.error && statreq.error.name);
+    availreq.onerror = function() {
+      notify('screenshotFailed', availreq.error && availreq.error.name);
     }
   }
 
