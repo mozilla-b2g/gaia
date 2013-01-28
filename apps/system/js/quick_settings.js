@@ -7,7 +7,7 @@ var QuickSettings = {
   // Indicate setting status of geolocation.enabled
   geolocationEnabled: false,
 
-  init: function qs_init() {
+  init: function qs_init() {    
     var settings = window.navigator.mozSettings;
     var conn = window.navigator.mozMobileConnection;
     if (!settings || !conn)
@@ -21,8 +21,8 @@ var QuickSettings = {
     var self = this;
 
     /*
-      * Monitor data network icon
-      */
+     * Monitor data network icon
+     */
     conn.addEventListener('datachange', function qs_onDataChange() {
       var label = {
         'lte': '4G', // 4G LTE
@@ -140,15 +140,8 @@ var QuickSettings = {
             SettingsListener.getSettingsLock().set({
               'wifi.enabled': !enabled
             });
-            if (!enabled) {
-              var activity = new MozActivity({
-                name: 'configure',
-                data: {
-                  target: 'device',
-                  section: 'wifi'
-                }
-              });
-            }
+            if (!enabled)
+              this.toggleAutoConfigWifi = true;
             break;
 
           case this.data:
@@ -204,6 +197,12 @@ var QuickSettings = {
         break;
       // unlock wifi toggle
       case 'wifi-enabled':
+        delete this.wifi.dataset.initializing;
+        if (this.toggleAutoConfigWifi) {
+          this.autoConfigWifi();
+          this.toggleAutoConfigWifi = false;
+        }
+        break;
       case 'wifi-disabled':
         delete this.wifi.dataset.initializing;
         break;
@@ -238,6 +237,77 @@ var QuickSettings = {
       obj[key] = keypairs[key];
       setlock.set(obj);
     }
+  },
+
+  // Check wifi status.
+  // If we confirmed there's no known networks around,
+  // wifi settings page will be opened.
+  // Otherwise nothing will be done.
+  autoConfigWifi : function qs_autoConfigWifi() {
+    function openWifiSetting() {
+      var activity = new MozActivity({
+        name : 'configure',
+        data : {
+          target : 'device',
+          section : 'wifi'
+        }
+      });
+    };
+    var wifiManager = window.navigator.mozWifiManager;
+    var req = wifiManager.getKnownNetworks();
+    req.onsuccess = function() {
+      //There's no any known networks saved in phone.
+      if (req.result.length == 0) {
+        openWifiSetting();
+        return;
+      }
+
+      console.log("*****original onstatuschange:" + wifiManager.onstatuschange);
+
+      wifiManager.onstatuschange = function (evt) {
+        console.log("*****" + evt.status);
+        if (evt.status == 'connecting') {
+          console.log("******onstatuschange:connecting");
+          wifiManager.onstatuschange = null;
+        } else if (evt.status == 'disconnected') {
+          console.log("******onstatuschange:disconnected");
+          openWifiSetting();
+          wifiManager.onstatuschange = null;
+        }
+      };
+    }
+/*       var retries = 3;
+      var scan_interval = 2000;
+      function scanKnownNetworks() {
+        if (wifiManager.connection.status != 'disconnected') {
+          //Already connecting to an known networks.  Do nothing.
+          return;
+        }
+
+
+       var reqNetwork = wifiManager.getNetworks();
+        reqNetwork.onerror = function() {
+          //If we failed getting networks around, retry for certain times.
+          retries--;
+          if (retries > 0)
+            setTimeout(scanKnownNetworks, scan_interval);
+          else
+            openWifiSetting();
+        }
+
+        reqNetwork.onsuccess = function() {
+          //After retriving networks around,
+          //check if there are known networks included.
+          for (var i = 0; i < reqNetwork.result.length; i++) {
+            if (reqNetwork.result[i].known)
+              return;
+          }
+          //No known networks.
+          openWifiSetting();
+        }
+      }
+      setTimeout(scanKnownNetworks, scan_interval);
+    };*/
   }
 };
 
