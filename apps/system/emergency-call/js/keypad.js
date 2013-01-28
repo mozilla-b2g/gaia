@@ -6,11 +6,12 @@ function _TonePlayer(config) {
 
 extend(_TonePlayer, BaseTonePlayer);
 
-_TonePlayer.prototype.ensureAudio = function tp_ensureAudio() {
-  if (this._audio) return;
-
-  this._audio = new Audio();
+_TonePlayer.prototype.start = function tp_start(frequencies) {
   this._audio.mozSetup(2, this._sampleRate);
+  var soundDataSize = this._sampleRate / 4;
+  var soundData = new Float32Array(soundDataSize);
+  this.generateFrames(soundData, frequencies[0], frequencies[1]);
+  this._audio.mozWriteAudio(soundData);
 };
 
 _TonePlayer.prototype.generateFrames = function tp_generateFrames(soundData, freqRow, freqCol) {
@@ -27,13 +28,6 @@ _TonePlayer.prototype.generateFrames = function tp_generateFrames(soundData, fre
   }
 };
 
-_TonePlayer.prototype.play = function tp_play(frequencies) {
-  var soundDataSize = this._sampleRate / 4;
-  var soundData = new Float32Array(soundDataSize);
-  this.generateFrames(soundData, frequencies[0], frequencies[1]);
-  this._audio.mozWriteAudio(soundData);
-};
-
 var TonePlayer = new _TonePlayer({
   sampleRate: 4000
 });
@@ -43,54 +37,6 @@ function _KeypadManager(config) {
 }
 
 extend(_KeypadManager, BaseKeypadManager);
-
-_KeypadManager.prototype.init = function kh_init() {
-  this.phoneNumberView.value = '';
-  this._phoneNumber = '';
-
-  var keyHandler = this.keyHandler.bind(this);
-  this.keypad.addEventListener('mousedown', keyHandler, true);
-  this.keypad.addEventListener('mouseup', keyHandler, true);
-  this.deleteButton.addEventListener('mousedown', keyHandler);
-  this.deleteButton.addEventListener('mouseup', keyHandler);
-
-  // The keypad add contact bar is only included in the normal version of
-  // the keypad.
-  if (this.callBarAddContact) {
-    this.callBarAddContact.addEventListener('mouseup',
-    this.addContact.bind(this));
-  }
-
-  // The keypad add contact bar is only included in the normal version and
-  // the emergency call version of the keypad.
-  if (this.callBarCallAction) {
-    this.callBarCallAction.addEventListener('mouseup',
-    this.makeCall.bind(this));
-  }
-
-  // The keypad cancel bar is only the emergency call version of the keypad.
-  if (this.callBarCancelAction) {
-    this.callBarCancelAction.addEventListener('mouseup', function() {
-      window.parent.LockScreen.switchPanel();
-    });
-  }
-
-  // The keypad hide bar is only included in the on call version of the
-  // keypad.
-  if (this.hideBarHideAction) {
-    this.hideBarHideAction.addEventListener('mouseup',
-    this.callbarBackAction);
-  }
-
-  if (this.hideBarHangUpAction) {
-    this.hideBarHangUpAction.addEventListener('mouseup',
-    this.hangUpCallFromKeypad);
-  }
-
-  TonePlayer.init();
-
-  this.render();
-};
 
 _KeypadManager.prototype.render = function hk_render(layoutType) {
   if (layoutType == 'oncall') {
@@ -107,8 +53,7 @@ _KeypadManager.prototype.render = function hk_render(layoutType) {
     }
 
     this.deleteButton.classList.add('hide');
-  }
-  else {
+  } else {
     this.phoneNumberViewContainer.classList.remove('keypad-visible');
     if (this.callBar) {
       this.callBar.classList.remove('hide');
@@ -119,34 +64,6 @@ _KeypadManager.prototype.render = function hk_render(layoutType) {
     }
 
     this.deleteButton.classList.remove('hide');
-  }
-};
-
-_KeypadManager.prototype.makeCall = function hk_makeCall(event) {
-  event.stopPropagation();
-
-  if (this._phoneNumber != '') {
-    CallHandler.call(this._phoneNumber);
-  }
-};
-
-_KeypadManager.prototype.addContact = function hk_addContact(event) {
-  var number = this._phoneNumber;
-  if (!number) return;
-
-  try {
-    new MozActivity({
-      name: 'new',
-      data: {
-        type: 'webcontacts/contact',
-        params: {
-          'tel': number
-        }
-      }
-    });
-  }
-  catch (e) {
-    console.log('WebActivities unavailable? : ' + e);
   }
 };
 
@@ -244,7 +161,7 @@ _KeypadManager.prototype.keyHandler = function kh_keyHandler(event) {
 
     if (key != 'delete') {
       if (keypadSoundIsEnabled) {
-        TonePlayer.play(BaseKeypadManager.gTonesFrequencies[key]);
+        TonePlayer.start(BaseKeypadManager.gTonesFrequencies[key]);
       }
 
       // Sending the DTMF tone if on a call
@@ -264,8 +181,7 @@ _KeypadManager.prototype.keyHandler = function kh_keyHandler(event) {
       this._holdTimer = setTimeout(function(self) {
         if (key == 'delete') {
           self._phoneNumber = '';
-        }
-        else {
+        } else {
           self._phoneNumber += '+';
         }
 
@@ -281,8 +197,7 @@ _KeypadManager.prototype.keyHandler = function kh_keyHandler(event) {
         self._callVoicemail();
       }, 3000, this);
     }
-  }
-  else if (event.type == 'mouseup') {
+  } else if (event.type == 'mouseup') {
     // If it was a long press our work is already done
     if (this._longPress) {
       this._longPress = false;
@@ -291,8 +206,7 @@ _KeypadManager.prototype.keyHandler = function kh_keyHandler(event) {
     }
     if (key == 'delete') {
       this._phoneNumber = this._phoneNumber.slice(0, - 1);
-    }
-    else {
+    } else {
       this._phoneNumber += key;
     }
 
@@ -318,8 +232,7 @@ _KeypadManager.prototype._updatePhoneNumberView = function kh_updatePhoneNumberv
     var view = CallScreen.activeCall.querySelector('.number');
     view.textContent = phoneNumber;
     this.formatPhoneNumber('on-call');
-  }
-  else {
+  } else {
     this.phoneNumberView.value = phoneNumber;
     this.moveCaretToEnd(this.phoneNumberView);
     this.formatPhoneNumber('dialpad');

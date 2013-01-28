@@ -1,14 +1,8 @@
-/**
- *  This code is shared between system/emergency-call/js/keypad.js
- *  and communications/dialer/js/keypad.js.
- *  Be sure to update both files when you commit!
- */
-
 'use strict';
 
 var keypadSoundIsEnabled = true;
 SettingsListener.observe('phone.ring.keypad', true, function(value) {
-  keypadSoundIsEnabled = !!value;
+  keypadSoundIsEnabled = !! value;
 });
 
 var BaseTonePlayer = function(config) {
@@ -22,12 +16,15 @@ var BaseTonePlayer = function(config) {
 BaseTonePlayer.prototype = {
   init: function tp_init() {
     document.addEventListener('mozvisibilitychange',
-                              this.visibilityChange.bind(this));
+    this.visibilityChange.bind(this));
     this.ensureAudio();
   },
 
   ensureAudio: function tp_ensureAudio() {
-    // To be implemented by a derived class
+    if (this._audio) return;
+
+    this._audio = new Audio();
+    this._audio.mozAudioChannelType = 'ringer';
   },
 
   generateFrames: function tp_generateFrames(soundData, shortPress) {
@@ -35,6 +32,7 @@ BaseTonePlayer.prototype = {
   },
 
   start: function tp_start(frequencies, shortPress) {
+    // To be implemented by a derived class
   },
 
   stop: function tp_stop() {
@@ -43,8 +41,7 @@ BaseTonePlayer.prototype = {
     clearInterval(this._intervalID);
     this._intervalID = null;
 
-    if (this._audio !== null)
-      this._audio.src = '';
+    if (this._audio !== null) this._audio.src = '';
   },
 
   // If the app loses focus, close the audio stream. This works around an
@@ -134,21 +131,16 @@ BaseKeypadManager.prototype = {
   },
 
   init: function kh_init(oncall) {
-    this._onCall = !!oncall;
+    this._onCall = !! oncall;
 
     // Update the minimum phone number phone size.
     // The UX team states that the minimum font size should be
     // 10pt. First off, we convert it to px multiplying it 0.226 times,
     // then we convert it to rem multiplying it a number of times equal
     // to the font-size property of the body element.
-    var defaultFontSize = window.getComputedStyle(document.body, null)
-                                .getPropertyValue('font-size');
+    var defaultFontSize = window.getComputedStyle(document.body, null).getPropertyValue('font-size');
     this.minFontSize = parseInt(parseInt(defaultFontSize) * 10 * 0.226);
-    this.maxFontSize = this._onCall ?
-      parseInt(parseInt(defaultFontSize) * this._MAX_FONT_SIZE_ON_CALL
-        * 0.226) :
-      parseInt(parseInt(defaultFontSize) * this._MAX_FONT_SIZE_DIAL_PAD
-        * 0.226);
+    this.maxFontSize = this._onCall ? parseInt(parseInt(defaultFontSize) * this._MAX_FONT_SIZE_ON_CALL * 0.226) : parseInt(parseInt(defaultFontSize) * this._MAX_FONT_SIZE_DIAL_PAD * 0.226);
 
     this.phoneNumberView.value = '';
     this._phoneNumber = '';
@@ -164,14 +156,14 @@ BaseKeypadManager.prototype = {
     // the keypad.
     if (this.callBarAddContact) {
       this.callBarAddContact.addEventListener('click',
-                                              this.addContact.bind(this));
+      this.addContact.bind(this));
     }
 
     // The keypad call bar is only included in the normal version and
     // the emergency call version of the keypad.
     if (this.callBarCallAction) {
       this.callBarCallAction.addEventListener('click',
-                                              this.makeCall.bind(this));
+      this.makeCall.bind(this));
     }
 
     // The keypad cancel bar is only the emergency call version of the keypad.
@@ -185,12 +177,12 @@ BaseKeypadManager.prototype = {
     // keypad.
     if (this.hideBarHideAction) {
       this.hideBarHideAction.addEventListener('click',
-                                              this.callbarBackAction);
+      this.callbarBackAction);
     }
 
     if (this.hideBarHangUpAction) {
       this.hideBarHangUpAction.addEventListener('click',
-                                                this.hangUpCallFromKeypad);
+      this.hangUpCallFromKeypad);
     }
 
     TonePlayer.init();
@@ -223,8 +215,7 @@ BaseKeypadManager.prototype = {
 
   addContact: function hk_addContact(event) {
     var number = this._phoneNumber;
-    if (!number)
-      return;
+    if (!number) return;
 
     try {
       new MozActivity({
@@ -281,6 +272,6 @@ BaseKeypadManager.prototype = {
   },
 
   _callVoicemail: function kh_callVoicemail() {
-     // To be implemented by a derived class
+    // To be implemented by a derived class
   }
 };

@@ -6,13 +6,6 @@ function _TonePlayer(config) {
 
 extend(_TonePlayer, BaseTonePlayer);
 
-_TonePlayer.prototype.ensureAudio = function tp_ensureAudio() {
-  if (this._audio) return;
-
-  this._audio = new Audio();
-  this._audio.mozAudioChannelType = 'ringer';
-};
-
 _TonePlayer.prototype.start = function tp_start(frequencies, shortPress) {
   this._frequencies = frequencies;
   this._position = 0;
@@ -44,6 +37,40 @@ _TonePlayer.prototype.start = function tp_start(frequencies, shortPress) {
   }).bind(this), 60); // Avoiding under-run issues by keeping this low
 };
 
+// Generating audio frames for the 2 given frequencies
+_TonePlayer.prototype.generateFrames = function tp_generateFrames(soundData, shortPress) {
+  var position = this._position;
+
+  var kr = 2 * Math.PI * this._frequencies[0] / this._sampleRate;
+  var kc = 2 * Math.PI * this._frequencies[1] / this._sampleRate;
+
+  for (var i = 0; i < soundData.length; i++) {
+    // Poor man's ADSR
+    // Only short press have a release phase because we don't know
+    // when the long press will end
+    var factor;
+    if (position < 200) {
+      // Attack
+      factor = position / 200;
+    } else if (position > 200 && position < 400) {
+      // Decay
+      factor = 1 - ((position - 200) / 200) * 0.3; // Decay factor
+    } else if (shortPress && position > 800) {
+      // Release, short press only
+      factor = 0.7 - ((position - 800) / 400 * 0.7);
+    } else {
+      // Sustain
+      factor = 0.7;
+    }
+
+    soundData[i] = (Math.sin(kr * position) + Math.sin(kc * position)) / 2 * factor;
+    position++;
+  }
+
+  this._position += soundData.length;
+}
+
+
 var TonePlayer = new _TonePlayer({
   sampleRate: 8000
 });
@@ -74,8 +101,7 @@ _KeypadManager.prototype.render = function hk_render(layoutType) {
     }
 
     this.deleteButton.classList.add('hide');
-  }
-  else {
+  } else {
     this.phoneNumberViewContainer.classList.remove('keypad-visible');
     if (this.callBar) {
       this.callBar.classList.remove('hide');
@@ -99,8 +125,7 @@ _KeypadManager.prototype.formatPhoneNumber = function kh_formatPhoneNumber(ellip
   if (this._onCall) {
     fakeView = CallScreen.activeCall.querySelector('.fake-number');
     view = CallScreen.activeCall.querySelector('.number');
-  }
-  else {
+  } else {
     fakeView = this.fakePhoneNumberView;
     view = this.phoneNumberView;
 
@@ -115,8 +140,7 @@ _KeypadManager.prototype.formatPhoneNumber = function kh_formatPhoneNumber(ellip
   var newFontSize;
   if (maxFontSize) {
     newFontSize = this.maxFontSize;
-  }
-  else {
+  } else {
     newFontSize = this.getNextFontSize(view, fakeView);
   }
   view.style.fontSize = newFontSize + 'px';
@@ -129,8 +153,7 @@ _KeypadManager.prototype.addEllipsis = function kh_addEllipsis(view, fakeView, e
     var localizedSide;
     if (navigator.mozL10n.language.direction === 'rtl') {
       localizedSide = (side === 'begin' ? 'right' : 'left');
-    }
-    else {
+    } else {
       localizedSide = (side === 'begin' ? 'left' : 'right');
     }
     var computedStyle = window.getComputedStyle(view, null);
@@ -150,8 +173,7 @@ _KeypadManager.prototype.addEllipsis = function kh_addEllipsis(view, fakeView, e
 
       if (localizedSide == 'left') {
         newPhoneNumber = '\u2026' + value.substr(-value.length + counter);
-      }
-      else if (localizedSide == 'right') {
+      } else if (localizedSide == 'right') {
         newPhoneNumber = value.substr(0, value.length - counter) + '\u2026';
       }
 
@@ -162,8 +184,7 @@ _KeypadManager.prototype.addEllipsis = function kh_addEllipsis(view, fakeView, e
     if (newPhoneNumber) {
       if (view.value) {
         view.value = newPhoneNumber;
-      }
-      else {
+      } else {
         view.innerHTML = newPhoneNumber;
       }
     }
@@ -230,8 +251,7 @@ _KeypadManager.prototype.keyHandler = function kh_keyHandler(event) {
       this._holdTimer = setTimeout(function(self) {
         if (key == 'delete') {
           self._phoneNumber = '';
-        }
-        else {
+        } else {
           var index = self._phoneNumber.length - 1;
           //Remove last 0, this is a long press and we want to add the '+'
           if (index >= 0 && self._phoneNumber[index] === '0') {
@@ -257,26 +277,22 @@ _KeypadManager.prototype.keyHandler = function kh_keyHandler(event) {
     if (key == 'delete') {
       this._phoneNumber = this._phoneNumber.slice(0, - 1);
       this.updateAddContactStatus();
-    }
-    else if (this.phoneNumberViewContainer.classList.
+    } else if (this.phoneNumberViewContainer.classList.
     contains('keypad-visible')) {
       if (!this._isKeypadClicked) {
         this._isKeypadClicked = true;
         this._phoneNumber = key;
         this._additionalContactInfo = '';
         this._updateAdditionalContactInfoView();
-      }
-      else {
+      } else {
         this._phoneNumber += key;
       }
-    }
-    else {
+    } else {
       this._phoneNumber += key;
       this.updateAddContactStatus();
     }
     this._updatePhoneNumberView('begin', false);
-  }
-  else if (event.type == 'mouseup' || event.type == 'mouseleave') {
+  } else if (event.type == 'mouseup' || event.type == 'mouseleave') {
     // Stop playing the DTMF/tone after a small delay
     // or right away if this is a long press
 
@@ -320,8 +336,7 @@ maxFontSize) {
   if (this._onCall) {
     var view = CallScreen.activeCall.querySelector('.number');
     view.textContent = phoneNumber;
-  }
-  else {
+  } else {
     this.phoneNumberView.value = phoneNumber;
     this.moveCaretToEnd(this.phoneNumberView);
   }
@@ -347,8 +362,7 @@ _KeypadManager.prototype._updateAdditionalContactInfoView = function kh__updateA
     additionalview.textContent = '';
     additionalview.classList.add('noAdditionalContactInfo');
     phoneNumberView.classList.add('noAdditionalContactInfo');
-  }
-  else {
+  } else {
     phoneNumberView.classList.remove('noAdditionalContactInfo');
     additionalview.classList.remove('noAdditionalContactInfo');
     additionalview.textContent = this._additionalContactInfo;
