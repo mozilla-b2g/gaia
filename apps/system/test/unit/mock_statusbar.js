@@ -25,6 +25,7 @@ var MockStatusBar = {
     this.mNotificationUnread = false;
     this.wasMethodCalled = {};
   },
+
   incSystemDownloads: function msb_incSystemDownloads() {
     this.methodCalled('incSystemDownloads');
   },
