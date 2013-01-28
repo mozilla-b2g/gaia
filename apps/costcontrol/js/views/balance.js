@@ -144,8 +144,11 @@ var BalanceTab = (function() {
   }
 
   // On tapping Top Up with code
-  function topUpWithCode() {
+  function topUpWithCode(lastWasError) {
     vmanager.changeViewTo('topup-dialog');
+    if (lastWasError)
+      setTopUpMode('incorrect_code');
+
     topUpCodeInput.focus();
   }
 
@@ -348,6 +351,7 @@ var BalanceTab = (function() {
   }
 
   return {
+    topUpWithCode: topUpWithCode,
     initialize: setupTab,
     finalize: finalize
   };
