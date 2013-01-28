@@ -33,6 +33,8 @@ var UpdateManager = {
   downloadDialog: null,
   downloadDialogTitle: null,
   downloadDialogList: null,
+  lastUpdatesAvailable: 0,
+  _notificationTimeout: null,
 
   updatableApps: [],
   systemUpdatable: null,
@@ -271,9 +273,10 @@ var UpdateManager = {
   render: function um_render() {
     var _ = navigator.mozL10n.get;
 
-    this.toasterMessage.innerHTML = _('updateAvailableInfo', {
-                                      n: this.updatesQueue.length
-                                    });
+    this.toasterMessage.innerHTML =
+      _('updateAvailableInfo', {
+        n: this.updatesQueue.length - this.lastUpdatesAvailable
+      });
 
     var message = '';
     if (this._downloading) {
@@ -336,16 +339,18 @@ var UpdateManager = {
 
     this.updatesQueue.push(updatable);
 
-    if (this.updatesQueue.length === 1) {
-      setTimeout(this.displayNotificationAndToaster.bind(this),
-          this.NOTIFICATION_BUFFERING_TIMEOUT);
+    if (this._notificationTimeout === null) {
+      this._notificationTimeout = setTimeout(this.displayNotificationAndToaster.bind(this),
+        this.NOTIFICATION_BUFFERING_TIMEOUT);
     }
-
     this.render();
   },
 
   displayNotificationAndToaster: function um_displayNotificationAndToaster() {
+    this._notificationTimeout = null;
     if (this.updatesQueue.length && !this._downloading) {
+      this.lastUpdatesAvailable = this.updatesQueue.length;
+      StatusBar.updateNotificationUnread(true);
       this.displayNotificationIfHidden();
       this.toaster.classList.add('displayed');
       var self = this;
@@ -361,6 +366,8 @@ var UpdateManager = {
       return;
 
     this.updatesQueue.splice(removeIndex, 1);
+    this.lastUpdatesAvailable = this.updatesQueue.length;
+
     if (this.updatesQueue.length === 0) {
       this.hideNotificationIfDisplayed();
     }
