@@ -324,8 +324,8 @@
  *     DeviceStorage events. This permanently puts the MediaDB object into
  *     the MediaDB.CLOSED state in which it is unusable.
  *
- * - stat(): call the DeviceStorage stat() method and pass an the stats
- *     object to the specified callback
+ * - freeSpace(): call the DeviceStorage freeSpace() method and pass the
+ *     result to the specified callback
  */
 var MediaDB = (function() {
 
@@ -481,12 +481,11 @@ var MediaDB = (function() {
       media.storage.addEventListener('change', deviceStorageChangeHandler);
       media.details.dsEventListener = deviceStorageChangeHandler;
 
-      // Use stat() to figure out if there is actually an sdcard there
+      // Use available() to figure out if there is actually an sdcard there
       // and emit a ready or unavailable event
-      var statreq = media.storage.stat();
-      statreq.onsuccess = function(e) {
-        var stats = e.target.result;
-        switch (stats.state) {
+      var availreq = media.storage.available();
+      availreq.onsuccess = function(e) {
+        switch (e.target.result) {
         case 'available':
           changeState(media, MediaDB.READY);
           if (media.autoscan)
@@ -500,11 +499,9 @@ var MediaDB = (function() {
           break;
         }
       };
-      statreq.onerror = function(e) {
-        // XXX stat fails for unavailable and shared,
-        // https://bugzilla.mozilla.org/show_bug.cgi?id=782351
-        // No way to distinguish these cases so just guess
-        console.error('stat() failed', statreq.error && statreq.error.name);
+      availreq.onerror = function(e) {
+        console.error('available() failed',
+                      availreq.error && availreq.error.name);
         changeState(media, MediaDB.UNMOUNTED);
       };
     }
@@ -871,16 +868,15 @@ var MediaDB = (function() {
       scan(this);
     },
 
-    // Use the device storage stat() method and pass the resulting
-    // stats object to the callback. The stats object has properties
-    // totalBytes, freeBytes and state.
-    stat: function stat(callback) {
+    // Use the device storage freeSpace() method and pass the returned
+    // value to the callback.
+    freeSpace: function freeSpace(callback) {
       if (this.state !== MediaDB.READY)
         throw Error('MediaDB is not ready. State: ' + this.state);
 
-      var statreq = this.storage.stat();
-      statreq.onsuccess = function() {
-        callback(statreq.result);
+      var freereq = this.storage.freeSpace();
+      freereq.onsuccess = function() {
+        callback(freereq.result);
       }
     }
   };

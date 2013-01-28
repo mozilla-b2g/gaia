@@ -377,10 +377,10 @@ var Camera = {
       req.onsuccess = (function fileCreated() {
         this._videoStorage.delete(dummyfilename); // No need to wait for success
         // Determine the number of bytes available on disk.
-        var stat = this._videoStorage.stat();
-        stat.onerror = onerror;
-        stat.onsuccess = function() {
-          startRecording(stat.result.freeBytes);
+        var spaceReq = this._videoStorage.freeSpace();
+        spaceReq.onerror = onerror;
+        spaceReq.onsuccess = function() {
+          startRecording(spaceReq.result);
         }
       }).bind(this);
     }).bind(this));
@@ -706,25 +706,39 @@ var Camera = {
     if (this.updateOverlay()) {
       return;
     }
-    var MAX_IMAGE_SIZE = this._pictureSize.width * this._pictureSize.height *
-      4 + 4096;
-    this._pictureStorage.stat().onsuccess = (function(e) {
-      var stats = e.target.result;
 
-      // If we have not yet checked the state of the storage, do so
-      if (this._storageState === this.STORAGE_INIT) {
-        this.updateStorageState(stats.state);
+    // The first time we're called, we need to make sure that there
+    // is an sdcard and that it is mounted. (Subsequently the device
+    // storage change handler will track that.)
+    if (this._storageState === this.STORAGE_INIT) {
+      this._pictureStorage.available().onsuccess = (function(e) {
+        this.updateStorageState(e.target.result);
         this.updateOverlay();
-      }
+        // Now call the parent method again, so that if the sdcard is
+        // available we will actually verify that there is enough space on it
+        this.checkStorageSpace();
+      }.bind(this));
+      return;
+    }
 
-      if (this._storageState !== this.STORAGE_AVAILABLE) {
-        return;
-      }
-      if (stats.freeBytes < MAX_IMAGE_SIZE) {
+    // Now verify that there is enough space to store a picture
+    // 4 bytes per pixel plus some room for a header should be more
+    // than enough for a JPEG image.
+    var MAX_IMAGE_SIZE =
+      (this._pictureSize.width * this._pictureSize.height * 4) + 4096;
+
+    this._pictureStorage.freeSpace().onsuccess = (function(e) {
+      // XXX
+      // If we ever enter this out-of-space condition, it looks like
+      // this code will never be able to exit. The user will have to
+      // quit the app and start it again. Just deleting files will
+      // not be enough to get back to the STORAGE_AVAILABLE state.
+      // To fix this, we need an else clause here, and also a change
+      // in the updateOverlay() method.
+      if (e.target.result < MAX_IMAGE_SIZE) {
         this._storageState = this.STORAGE_CAPACITY;
       }
       this.updateOverlay();
-
     }).bind(this);
   },
 
