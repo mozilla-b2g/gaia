@@ -30,13 +30,14 @@
   }
 
   // Close if in standalone mode
+  var closing;
   function closeIfProceeds() {
     debug('Trying to close...');
     if (inStandAloneMode()) {
-      setTimeout(function _close() {
+      closing = setTimeout(function _close() {
         window.close();
         debug('Closing message handler');
-      }, 500);
+      }, 1000);
     }
   }
 
@@ -92,12 +93,40 @@
     });
   }
 
+  function sendIncorrectTopUpNotification(callback) {
+    // XXX: Hack hiding the message class in the icon URL
+    // Should use the tag element of the notification once the final spec
+    // lands:
+    // See: https://bugzilla.mozilla.org/show_bug.cgi?id=782211
+    navigator.mozApps.getSelf().onsuccess = function _onAppReady(evt) {
+      var app = evt.target.result;
+      var iconURL = NotificationHelper.getIconURI(app);
+
+      var goToTopUpCode;
+      if (!inStandAloneMode()) {
+        goToTopUpCode = function _goToTopUpCode() {
+          app.launch();
+          window.parent.BalanceTab.topUpWithCode(true);
+        };
+      }
+
+      iconURL += '?topUpError';
+      NotificationHelper.send(_('topup-incorrectcode-title2'),
+                              _('topup-incorrectcode-message2'), iconURL,
+                              goToTopUpCode);
+
+      if (callback)
+        callback();
+    };
+  }
+
   // Register in standalone or for application
   if (inStandAloneMode() || inApplicationMode()) {
     debug('Installing handlers');
 
     // When receiving an SMS, recognize and parse
     window.navigator.mozSetMessageHandler('sms-received', function _onSMS(sms) {
+      clearTimeout(closing);
       ConfigManager.requestAll(function _onInfo(configuration, settings) {
         // Non expected SMS
         if (configuration.balance.senders.indexOf(sms.sender) === -1 &&
@@ -128,7 +157,8 @@
             description = new RegExp(configuration.topup.incorrect_code_regexp);
             isError = !!sms.body.match(description);
             if (!isError)
-              console.warn('Impossible to parse TopUp confirmation message.');
+              console.warn('Impossible to parse TopUp error message.');
+
           }
 
         }
@@ -162,6 +192,7 @@
               closeIfProceeds();
             }
           );
+
         } else if (isConfirmation) {
           // Store SUCCESS for TopIp and sync
           navigator.mozAlarms.remove(settings.waitingForTopUp);
@@ -175,6 +206,7 @@
               closeIfProceeds();
             }
           );
+
         } else if (isError) {
           // Store ERROR for TopUp and sync
           settings.errors['INCORRECT_TOPUP_CODE'] = true;
@@ -186,7 +218,7 @@
               debug('Balance up to date and stored');
               debug('Trying to synchronize!');
               localStorage['sync'] = 'errors#' + Math.random();
-              closeIfProceeds();
+              sendIncorrectTopUpNotification(closeIfProceeds);
             }
           );
         }
@@ -195,6 +227,7 @@
 
     // Whan receiving an alarm, differenciate by type and act
     window.navigator.mozSetMessageHandler('alarm', function _onAlarm(alarm) {
+      clearTimeout(closing);
       switch (alarm.data.type) {
         case 'balanceTimeout':
           ConfigManager.requestSettings(function _onSettings(settings) {
@@ -238,6 +271,7 @@
 
     // Count a new SMS
     window.navigator.mozSetMessageHandler('sms-sent', function _onSMSSent(sms) {
+      clearTimeout(closing);
       ConfigManager.requestSettings(function _onSettings(settings) {
         debug('SMS sent!');
         var manager = window.navigator.mozSms;
@@ -257,6 +291,8 @@
     // When a call ends
     window.navigator.mozSetMessageHandler('telephony-call-ended',
       function _onCall(tcall) {
+        clearTimeout(closing);
+
         if (tcall.direction !== 'outgoing')
           return;
 
