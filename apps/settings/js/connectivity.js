@@ -222,6 +222,16 @@ var Connectivity = (function(window, document, undefined) {
   //
   settings.createLock().set({'wifi.enabled': gWifiManager.enabled});
 
+  // airplaneModeEnabled is used when updating the carrier status.
+  var airplaneModeEnabled = false;
+  var req = settings.createLock().get('ril.radio.disabled');
+  req.onsuccess = function() {
+    airplaneModeEnabled = req.result['ril.radio.disabled'];
+  };
+  settings.addObserver('ril.radio.disabled', function(evt) {
+    airplaneModeEnabled = evt.settingValue;
+  });
+
   //
   // Now register callbacks to track the state of the wifi hardware
   //
@@ -347,6 +357,9 @@ var Connectivity = (function(window, document, undefined) {
         dataConnection.textContent = data;
       }
     }
+
+    if (airplaneModeEnabled)
+      return setCarrierStatus({});
 
     if (!gMobileConnection)
       return setCarrierStatus({});
