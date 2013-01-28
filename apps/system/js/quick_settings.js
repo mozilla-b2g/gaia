@@ -7,7 +7,7 @@ var QuickSettings = {
   // Indicate setting status of geolocation.enabled
   geolocationEnabled: false,
 
-  init: function qs_init() {
+  init: function qs_init() {    
     var settings = window.navigator.mozSettings;
     var conn = window.navigator.mozMobileConnection;
     if (!settings || !conn)
@@ -262,7 +262,21 @@ var QuickSettings = {
         return;
       }
 
-      var retries = 3;
+      console.log("*****original onstatuschange:" + wifiManager.onstatuschange);
+
+      wifiManager.onstatuschange = function (evt) {
+        console.log("*****" + evt.status);
+        if (evt.status == 'connecting') {
+          console.log("******onstatuschange:connecting");
+          wifiManager.onstatuschange = null;
+        } else if (evt.status == 'disconnected') {
+          console.log("******onstatuschange:disconnected");
+          openWifiSetting();
+          wifiManager.onstatuschange = null;
+        }
+      };
+    }
+/*       var retries = 3;
       var scan_interval = 2000;
       function scanKnownNetworks() {
         if (wifiManager.connection.status != 'disconnected') {
@@ -270,7 +284,8 @@ var QuickSettings = {
           return;
         }
 
-        var reqNetwork = wifiManager.getNetworks();
+
+       var reqNetwork = wifiManager.getNetworks();
         reqNetwork.onerror = function() {
           //If we failed getting networks around, retry for certain times.
           retries--;
@@ -292,7 +307,7 @@ var QuickSettings = {
         }
       }
       setTimeout(scanKnownNetworks, scan_interval);
-    };
+    };*/
   }
 };
 
