@@ -930,10 +930,10 @@ Evme.Brain = new function Evme_Brain() {
                 });
 
             currentFolder.appsPaging = {
-                "offset": 0,
-                "limit": NUMBER_OF_APPS_TO_LOAD_IN_FOLDER
+              "offset": 0,
+              "limit": NUMBER_OF_APPS_TO_LOAD_IN_FOLDER
             };
-
+            
             currentFolder.clear();
             currentFolder.loadApps({
                 "apps": installedApps,
@@ -961,6 +961,9 @@ Evme.Brain = new function Evme_Brain() {
                     } else {
                         currentFolder.MoreIndicator.set(false);
                     }
+                    
+                    // remove the already installed apps from the cloud apps
+                    apps = Evme.Utils.dedupInstalledApps(apps, installedApps);
                     
                     currentFolder.loadApps({
                         "apps": apps,
@@ -1538,7 +1541,7 @@ Evme.Brain = new function Evme_Brain() {
                         "prevQuery": prevQuery,
                         "_NOCACHE": _NOCACHE
                     }, function onSuccess(data) {
-                        getAppsComplete(data, options);
+                        getAppsComplete(data, options, installedApps);
                         requestSearch = null;
                         NUMBER_OF_APPS_TO_LOAD = DEFAULT_NUMBER_OF_APPS_TO_LOAD;
                         
@@ -1577,6 +1580,7 @@ Evme.Brain = new function Evme_Brain() {
                        'name': name,
                        'installed': true,
                        'appUrl': app.origin,
+                       'favUrl': app.origin,
                        'appType': app.isBookmark ? 'bookmark' : 'installed',
                        'preferences': '',
                        'icon': Evme.Utils.sendToOS(Evme.Utils.OSMessages.GET_APP_ICON, app),
@@ -1595,13 +1599,15 @@ Evme.Brain = new function Evme_Brain() {
             return apps;
         };
 
-        function getAppsComplete(data, options) {
+        function getAppsComplete(data, options, installedApps) {
             if (data.errorCode !== Evme.DoATAPI.ERROR_CODES.SUCCESS) {
                 return false;
             }
             if (!requestSearch) {
                 return;
             }
+            
+            window.clearTimeout(timeoutHideHelper);
             
             var _query = options.query,
                 _type = options.type,
@@ -1612,20 +1618,19 @@ Evme.Brain = new function Evme_Brain() {
                 iconsFormat = options.iconsFormat,
                 queryTyped = options.queryTyped, // used for searching for exact results if user stopped typing for X seconds
                 onlyDidYouMean = options.onlyDidYouMean,
-                hasInstalledApps = options.hasInstalledApps;
-
-            window.clearTimeout(timeoutHideHelper);
-
-            var searchResults = data.response;
-            var query = searchResults.query || _query;
-            var disambig = searchResults.disambiguation || [];
-            var suggestions = searchResults.suggestions || [];
-            var apps = searchResults.apps || [];
-            var spelling = searchResults.spellingCorrection || [];
-            var isMore = (appsCurrentOffset > 0);
-            var bSameQuery = (lastSearch.query === query);
+                hasInstalledApps = options.hasInstalledApps,
+                
+                searchResults = data.response,
+                query = searchResults.query || _query,
+                disambig = searchResults.disambiguation || [],
+                suggestions = searchResults.suggestions || [],
+                apps = searchResults.apps || [],
+                spelling = searchResults.spellingCorrection || [],
+                isMore = (appsCurrentOffset > 0),
+                bSameQuery = (lastSearch.query === query);
+            
             var tipShownOnHelper = false;
-
+            
             // searching after a timeout while user it typing
             if (onlyDidYouMean || options.automaticSearch) {
                 // show only spelling or disambiguation, and only if the query is the same as what the user typed
@@ -1663,6 +1668,9 @@ Evme.Brain = new function Evme_Brain() {
 
             if (isMore || !bSameQuery) {
                 if (apps) {
+                    // remove the already installed apps from the cloud apps
+                    apps = Evme.Utils.dedupInstalledApps(apps, installedApps);
+
                     lastSearch.query = query;
                     lastSearch.source = _source;
                     lastSearch.type = _type;
