@@ -802,24 +802,22 @@
         <h2 data-l10n-id="dataConnectivity"> Data Connectivity </h2>
       </header>
       <ul>
-        <li>
+        <li class="hint">
           <label>
             <input type="checkbox" data-type="switch" name="ril.data.enabled" class="uninit"/>
             <span></span>
           </label>
           <small id="dataConnection-desc"></small>
           <a data-l10n-id="dataConnection">Data Connection</a>
+          <p id="dataConnection-expl" class="explanation" data-l10n-id="dataConnection-warning-message" hidden></p>
         </li>
-        <li id="dataConnection-expl" class="explanation" data-l10n-id="dataConnection-warning-message" hidden>
-        </li>
-        <li>
+        <li class="hint">
           <label>
             <input type="checkbox" data-type="switch" name="ril.data.roaming_enabled" class="uninit"/>
             <span></span>
           </label>
           <a data-l10n-id="dataRoaming">Data Roaming</a>
-        </li>
-        <li id="dataRoaming-expl" class="explanation" data-l10n-id="dataRoaming-warning-message" hidden>
+          <p id="dataRoaming-expl" class="explanation" data-l10n-id="dataRoaming-warning-message" hidden></p>
         </li>
       </ul>
 
@@ -868,12 +866,15 @@
       </header>
 
       <ul>
-        <li id="bluetooth-status">
+        <li id="bluetooth-status" class="hint">
           <label>
             <input type="checkbox" data-type="switch" data-ignore/>
             <span></span>
           </label>
           <a data-l10n-id="bluetooth">Bluetooth</a>
+          <p data-l10n-id="bluetooth-enable-msg" id="bluetooth-enable-msg" class="explanation">
+            Turn Bluetooth on to view devices in the area.
+          </p>
         </li>
         <li hidden id="device-visible">
           <label>
@@ -889,10 +890,6 @@
           </label>
         </li>
       </ul>
-
-      <div data-l10n-id="bluetooth-enable-msg" id="bluetooth-enable-msg" class="explanation">
-        Turn Bluetooth on to view devices in the area.
-      </div>
 
       <header id="bluetooth-paired-title">
         <h2 data-l10n-id="bluetooth-paired-devices">Paired Devices</h2>
