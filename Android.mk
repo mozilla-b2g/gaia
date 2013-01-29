@@ -5,7 +5,9 @@ LOCAL_PATH:= $(call my-dir)
 #
 
 include $(CLEAR_VARS)
-GAIA_PATH := $(abspath $(LOCAL_PATH))
+GAIA_PATH ?= $(abspath $(LOCAL_PATH))
+# This is for gonk-misc/Android.mk, otherwise LOCAL_PATH would be different.
+GAIA_PATH := $(GAIA_PATH)
 
 LOCAL_MODULE := gaia
 LOCAL_MODULE_CLASS := DATA
@@ -55,8 +57,8 @@ gaia-tests-zip:
 	@(cd $(GAIA_PATH)/tests/atoms && tar -chf - *) | (cd $(GAIA_TESTS_STAGE)/gaiatest/gaiatest/atoms && tar -xf -)
 	(cd $(GAIA_TESTS_STAGE) && zip -r $(GAIA_PATH)/gaia-tests.zip *)
 
-.PHONY: $(LOCAL_PATH)/profile.tar.gz
-$(LOCAL_PATH)/profile.tar.gz:
+.PHONY: $(GAIA_PATH)/profile.tar.gz
+$(GAIA_PATH)/profile.tar.gz:
 ifeq ($(CLEAN_PROFILE), 1)
 	rm -rf $(GAIA_PATH)/profile $(GAIA_PATH)/profile.tar.gz
 endif
