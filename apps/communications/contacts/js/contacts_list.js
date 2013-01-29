@@ -222,7 +222,13 @@ contacts.List = (function() {
     toggleNoContactsScreen(showNoContacs);
 
     var numberOfChunks = Math.floor(length / CHUNK_SIZE);
+
+    // Performance testing
     function renderChunks(index) {
+      if (index === 0) {
+        PerformanceHelper.dispatchPerfEvent('contacts-first-chunk');
+      }
+
       if (numberOfChunks === index) {
         // Last round. Rendering remaining
         var remaining = length % CHUNK_SIZE;
@@ -232,11 +238,15 @@ contacts.List = (function() {
             buildContact(contacts[current], fbContacts, counter, favorites);
           }
         }
+
+        PerformanceHelper.dispatchPerfEvent('contacts-last-chunk');
+
         renderFavorites(favorites);
         cleanLastElements(counter);
         FixedHeader.refresh();
         imgLoader.reload();
         emptyList = false;
+
         return;
       }
 
