@@ -92,13 +92,30 @@ var AppInstallManager = {
   },
 
   handleAppInstallPrompt: function ai_handleInstallPrompt(detail) {
-    var _ = navigator.mozL10n.get;
     var app = detail.app;
     // updateManifest is used by packaged apps until they are installed
     var manifest = app.manifest ? app.manifest : app.updateManifest;
 
     if (!manifest)
       return;
+
+    var appWithSameOrigin = Applications.getByOrigin(app.origin);
+    if (appWithSameOrigin.length) {
+      var _ = navigator.mozL10n.get;
+      var msg = _('app-install-install-failed', { appName: manifest.name });
+      SystemBanner.show(msg);
+      console.log('Cannot install application', manifest.name,
+          'because application', appWithSameOrigin[0].manifest.name,
+          'share the same origin.');
+      setTimeout(this.dispatchResponse.bind(this,
+            detail.id, 'webapps-install-denied'));
+    } else {
+      this.displayAppInstallPrompt(detail, manifest);
+    }
+  },
+
+  displayAppInstallPrompt: function ai_displayAppInstallPrompt(detail, manifest) {
+    var _ = navigator.mozL10n.get;
 
     this.dialog.classList.add('visible');
 
