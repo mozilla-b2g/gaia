@@ -580,11 +580,11 @@ Page.prototype = {
 
     this.setReady(false);
 
-    if (originIcon && targetIcon) {
+    if (originIcon && targetIcon && this.olist.children.length > 1) {
       this.animate(this.olist.children, originIcon.container,
                    targetIcon.container);
     } else {
-      this.setReady(true);
+      setTimeout(this.setReady.bind(this, true));
     }
   },
 
@@ -592,36 +592,45 @@ Page.prototype = {
     var beforeNode = targetNode;
     var initialIndex = children.indexOf(originNode);
     var endIndex = children.indexOf(targetNode);
+
     var upward = initialIndex < endIndex;
     if (upward) {
       beforeNode = targetNode.nextSibling;
       initialIndex++;
     } else {
+      // this exchanges initialIndex and endIndex
       initialIndex = initialIndex + endIndex;
       endIndex = initialIndex - endIndex;
       initialIndex = initialIndex - endIndex;
       endIndex--;
     }
 
+    // keep the elements that we animate because "children" is a live NodeList
+    var slice = Array.prototype.slice;
+    var animatedChildren = slice.call(children, initialIndex, endIndex + 1);
+
     var self = this;
-    var lastNode = children[endIndex];
-    this.setAnimation(children, initialIndex, endIndex, upward);
+    this.setAnimation(animatedChildren, initialIndex, upward);
+
+    var lastNode = animatedChildren[animatedChildren.length - 1];
     lastNode.addEventListener('animationend', function animationEnd(e) {
-      for (var i = initialIndex; i <= endIndex; i++) {
-        children[i].style.MozAnimationName = '';
-      }
+      animatedChildren.forEach(function(iconContainer) {
+        iconContainer.style.MozAnimationName = '';
+      });
       self.olist.insertBefore(originNode, beforeNode);
+      var lastNode = e.target;
       lastNode.removeEventListener('animationend', animationEnd);
       self.setReady(true);
     });
   },
 
-  setAnimation: function pg_setAnimation(children, init, end, upward) {
-    for (var i = init; i <= end; i++) {
-      children[i].style.MozAnimationName = upward ?
+  setAnimation: function pg_setAnimation(elts, init, upward) {
+    elts.forEach(function(elt, i) {
+      i += init;
+      elt.style.MozAnimationName = upward ?
         (i % 4 === 0 ? 'jumpPrevRow' : 'jumpPrevCell') :
         (i % 4 === 3 ? 'jumpNextRow' : 'jumpNextCell');
-    }
+    });
   },
 
   /*
@@ -723,6 +732,22 @@ Page.prototype = {
     this.setReady(true);
   },
 
+  /**
+   * Appends an icon to the end of the page
+   * If the page is already full, then we insert the icon at the last place, and
+   * the icon that was at the last place and will be hidden will eventually flow
+   * to the next page. This is done in GridManager's ensurePagesOverflow
+   *
+   * @param{Object} icon the icon to be added.
+   */
+  appendIconVisible: function pg_appendIconVisible(icon) {
+    if (this.getNumIcons() >= GridManager.pageHelper.maxIconsPerPage) {
+      this.insertBeforeLastIcon(icon);
+    } else {
+      this.appendIcon(icon);
+    }
+  },
+
   containsIcon: function pg_containsIcon(icon) {
     return icon.container.parentNode === this.olist;
   },
@@ -803,11 +828,11 @@ dockProto.moveByWithDuration = function dk_moveByWithDuration(scrollX,
 };
 
 
-dockProto.setAnimation = function dk_setAnimation(children, init, end, upward) {
+dockProto.setAnimation = function dk_setAnimation(elts, init, upward) {
   var animation = upward ? 'jumpPrevCell' : 'jumpNextCell';
-  for (var i = init; i <= end; i++) {
-    children[i].style.MozAnimationName = animation;
-  }
+  elts.forEach(function(elt) {
+    elt.style.MozAnimationName = animation;
+  });
 };
 
 dockProto.getLeft = function dk_getLeft() {
