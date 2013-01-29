@@ -22,7 +22,8 @@ var SimManager = {
         UIManager.pinInput.classList.add('onerror');
         UIManager.pinError.innerHTML = _('pinErrorMsg');
         UIManager.pinError.classList.remove('hidden');
-        UIManager.pinLabel.innerHTML = _('pinAttemptMsg2', {n: data.retryCount});
+        UIManager.pinLabel.innerHTML = _('pinAttemptMsg2',
+                                         {n: data.retryCount});
         if (data.retryCount == 1)
           UIManager.pinError.innerHTML += _('pinLastChanceMsg');
         break;
@@ -58,7 +59,9 @@ var SimManager = {
   *   'networkLocked',
   *   'ready'.
   */
-  handleCardState: function sm_handleCardState() {
+  handleCardState: function sm_handleCardState(callback) {
+    SimManager.checkSIMButton();
+    this.accessCallback = (typeof callback === 'function') ? callback : null;
     switch (this.mobConn.cardState) {
       case 'pinRequired':
         this.showPinScreen();
@@ -66,13 +69,12 @@ var SimManager = {
       case 'pukRequired':
         this.showPukScreen();
         break;
-      case 'ready':
-        if (typeof this.oncardstatechange === 'function') {
-          this.oncardstatechange(true);
+      default:
+        if (this.accessCallback) {
+          this.accessCallback(this.mobConn.cardState === 'ready');
         }
         break;
     }
-    SimManager.checkSIMButton();
   },
 
   checkSIMButton: function sm_checkSIMButton() {
@@ -114,8 +116,8 @@ var SimManager = {
 
   skip: function sm_skip() {
     this.hideScreen();
-    if (typeof this.oncardstatechange === 'function') {
-        this.oncardstatechange(false);
+    if (this.accessCallback) {
+      this.accessCallback(false);
     }
   },
 
