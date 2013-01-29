@@ -337,6 +337,10 @@ section.month li.present {
   border-top: none;
 }
 
+section.month li.future {
+  background-color: #E6E6E6;
+}
+
 section.month li.selected {
   color: white !important;
   background-color: #1BA8C6 !important;
@@ -345,6 +349,12 @@ section.month li.selected {
 section.month li.past.other-month {
   background-color: #C1C1C1;
 }
+
+section.month li.future.other-month {
+  background-color: #C1C1C1;
+}
+
+
 
 /* sub day rows: busy indicators */
 
