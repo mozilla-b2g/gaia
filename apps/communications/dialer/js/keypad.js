@@ -38,7 +38,8 @@ _TonePlayer.prototype.start = function tp_start(frequencies, shortPress) {
 };
 
 // Generating audio frames for the 2 given frequencies
-_TonePlayer.prototype.generateFrames = function tp_generateFrames(soundData, shortPress) {
+_TonePlayer.prototype.generateFrames =
+    function tp_generateFrames(soundData, shortPress) {
   var position = this._position;
 
   var kr = 2 * Math.PI * this._frequencies[0] / this._sampleRate;
@@ -63,13 +64,13 @@ _TonePlayer.prototype.generateFrames = function tp_generateFrames(soundData, sho
       factor = 0.7;
     }
 
-    soundData[i] = (Math.sin(kr * position) + Math.sin(kc * position)) / 2 * factor;
+    soundData[i] = (Math.sin(kr * position) +
+                    Math.sin(kc * position)) / 2 * factor;
     position++;
   }
 
   this._position += soundData.length;
-}
-
+};
 
 var TonePlayer = new _TonePlayer({
   sampleRate: 8000
@@ -115,12 +116,14 @@ _KeypadManager.prototype.render = function hk_render(layoutType) {
   }
 };
 
-_KeypadManager.prototype.hangUpCallFromKeypad = function hk_hangUpCallFromKeypad(event) {
+_KeypadManager.prototype.hangUpCallFromKeypad =
+    function hk_hangUpCallFromKeypad(event) {
   CallScreen.body.classList.remove('showKeypad');
   OnCallHandler.end();
 };
 
-_KeypadManager.prototype.formatPhoneNumber = function kh_formatPhoneNumber(ellipsisSide, maxFontSize) {
+_KeypadManager.prototype.formatPhoneNumber =
+    function kh_formatPhoneNumber(ellipsisSide, maxFontSize) {
   var view, fakeView;
   if (this._onCall) {
     fakeView = CallScreen.activeCall.querySelector('.fake-number');
@@ -147,7 +150,8 @@ _KeypadManager.prototype.formatPhoneNumber = function kh_formatPhoneNumber(ellip
   this.addEllipsis(view, fakeView, ellipsisSide);
 };
 
-_KeypadManager.prototype.addEllipsis = function kh_addEllipsis(view, fakeView, ellipsisSide) {
+_KeypadManager.prototype.addEllipsis =
+    function kh_addEllipsis(view, fakeView, ellipsisSide) {
   var side = ellipsisSide || 'begin';
   LazyL10n.get(function localized(_) {
     var localizedSide;
@@ -166,7 +170,8 @@ _KeypadManager.prototype.addEllipsis = function kh_addEllipsis(view, fakeView, e
 
     // Guess the possible position of the ellipsis in order to minimize
     // the following while loop iterations:
-    var counter = value.length - (viewWidth * (fakeView.textContent.length / fakeView.getBoundingClientRect().width));
+    var counter = value.length - (viewWidth *
+      (fakeView.textContent.length / fakeView.getBoundingClientRect().width));
 
     var newPhoneNumber;
     while (fakeView.getBoundingClientRect().width > viewWidth) {
@@ -191,7 +196,8 @@ _KeypadManager.prototype.addEllipsis = function kh_addEllipsis(view, fakeView, e
   });
 };
 
-_KeypadManager.prototype.getNextFontSize = function kh_getNextFontSize(view, fakeView) {
+_KeypadManager.prototype.getNextFontSize =
+    function kh_getNextFontSize(view, fakeView) {
   var computedStyle = window.getComputedStyle(view, null);
   var fontSize = parseInt(computedStyle.getPropertyValue('font-size'));
   var viewWidth = view.getBoundingClientRect().width;
@@ -213,7 +219,7 @@ _KeypadManager.prototype.getNextFontSize = function kh_getNextFontSize(view, fak
   }
 
   return fontSize;
-},
+};
 
 _KeypadManager.prototype.keyHandler = function kh_keyHandler(event) {
   var key = event.target.dataset.value;
@@ -235,7 +241,8 @@ _KeypadManager.prototype.keyHandler = function kh_keyHandler(event) {
     if (key != 'delete') {
       if (keypadSoundIsEnabled) {
         // We do not support long press if not on a call
-        TonePlayer.start(BaseKeypadManager.gTonesFrequencies[key], !this._onCall);
+        TonePlayer.start(BaseKeypadManager.gTonesFrequencies[key],
+                            !this._onCall);
       }
 
       // Sending the DTMF tone if on a call
@@ -318,13 +325,14 @@ _KeypadManager.prototype.keyHandler = function kh_keyHandler(event) {
   }
 };
 
-_KeypadManager.prototype.updatePhoneNumber = function kh_updatePhoneNumber(number, ellipsisSide, maxFontSize) {
+_KeypadManager.prototype.updatePhoneNumber =
+    function kh_updatePhoneNumber(number, ellipsisSide, maxFontSize) {
   this._phoneNumber = number;
   this._updatePhoneNumberView(ellipsisSide, maxFontSize);
 };
 
-_KeypadManager.prototype._updatePhoneNumberView = function kh_updatePhoneNumberview(ellipsisSide,
-maxFontSize) {
+_KeypadManager.prototype._updatePhoneNumberView =
+    function kh_updatePhoneNumberview(ellipsisSide, maxFontSize) {
   var phoneNumber = this._phoneNumber;
 
   // If there are digits in the phone number, show the delete button.
@@ -342,23 +350,28 @@ maxFontSize) {
   }
 
   this.formatPhoneNumber(ellipsisSide, maxFontSize);
-},
+};
 
-_KeypadManager.prototype.restorePhoneNumber = function kh_restorePhoneNumber(ellipsisSide,
-maxFontSize) {
+_KeypadManager.prototype.restorePhoneNumber =
+    function kh_restorePhoneNumber(ellipsisSide, maxFontSize) {
   this.updatePhoneNumber(this._originalPhoneNumber, ellipsisSide,
   maxFontSize);
 };
 
-_KeypadManager.prototype.updateAdditionalContactInfo = function kh_updateAdditionalContactInfo(additionalContactInfo) {
+_KeypadManager.prototype.updateAdditionalContactInfo =
+    function kh_updateAdditionalContactInfo(additionalContactInfo) {
   this._additionalContactInfo = additionalContactInfo;
   this._updateAdditionalContactInfoView();
 };
 
-_KeypadManager.prototype._updateAdditionalContactInfoView = function kh__updateAdditionalContactInfoView() {
+_KeypadManager.prototype._updateAdditionalContactInfoView =
+    function kh__updateAdditionalContactInfoView() {
   var phoneNumberView = CallScreen.activeCall.querySelector('.number');
-  var additionalview = CallScreen.activeCall.querySelector('.additionalContactInfo');
-  if (!this._additionalContactInfo || this._additionalContactInfo.trim() === '') {
+  var additionalview =
+      CallScreen.activeCall.querySelector('.additionalContactInfo');
+
+  if (!this._additionalContactInfo ||
+      this._additionalContactInfo.trim() === '') {
     additionalview.textContent = '';
     additionalview.classList.add('noAdditionalContactInfo');
     phoneNumberView.classList.add('noAdditionalContactInfo');
@@ -369,7 +382,8 @@ _KeypadManager.prototype._updateAdditionalContactInfoView = function kh__updateA
   }
 };
 
-_KeypadManager.prototype.restoreAdditionalContactInfo = function kh_restoreAdditionalContactInfo() {
+_KeypadManager.prototype.restoreAdditionalContactInfo =
+    function kh_restoreAdditionalContactInfo() {
   this.updateAdditionalContactInfo(this._originalAdditionalContactInfo);
 };
 

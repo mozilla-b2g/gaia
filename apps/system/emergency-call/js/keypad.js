@@ -14,7 +14,8 @@ _TonePlayer.prototype.start = function tp_start(frequencies) {
   this._audio.mozWriteAudio(soundData);
 };
 
-_TonePlayer.prototype.generateFrames = function tp_generateFrames(soundData, freqRow, freqCol) {
+_TonePlayer.prototype.generateFrames =
+    function tp_generateFrames(soundData, freqRow, freqCol) {
   var currentSoundSample = 0;
   var kr = 2 * Math.PI * freqRow / this._sampleRate;
   var kc = 2 * Math.PI * freqCol / this._sampleRate;
@@ -67,16 +68,19 @@ _KeypadManager.prototype.render = function hk_render(layoutType) {
   }
 };
 
-_KeypadManager.prototype.callbarBackAction = function hk_callbarBackAction(event) {
+_KeypadManager.prototype.callbarBackAction =
+    function hk_callbarBackAction(event) {
   CallScreen.hideKeypad();
 };
 
-_KeypadManager.prototype.hangUpCallFromKeypad = function hk_hangUpCallFromKeypad(event) {
+_KeypadManager.prototype.hangUpCallFromKeypad =
+    function hk_hangUpCallFromKeypad(event) {
   CallScreen.views.classList.remove('show');
   OnCallHandler.end();
 };
 
-_KeypadManager.prototype.formatPhoneNumber = function kh_formatPhoneNumber(mode) {
+_KeypadManager.prototype.formatPhoneNumber =
+    function kh_formatPhoneNumber(mode) {
   switch (mode) {
   case 'dialpad':
     var fakeView = this.fakePhoneNumberView;
@@ -102,12 +106,14 @@ _KeypadManager.prototype.formatPhoneNumber = function kh_formatPhoneNumber(mode)
     view.dataset.size = currentFontSize;
   }
 
-  var newFontSize = this.getNextFontSize(view, fakeView, parseInt(view.dataset.size), parseInt(currentFontSize));
+  var newFontSize = this.getNextFontSize(view, fakeView,
+                     parseInt(view.dataset.size), parseInt(currentFontSize));
   view.style.fontSize = newFontSize + 'px';
   this.addEllipsis(view, fakeView, newFontSize);
 };
 
-_KeypadManager.prototype.addEllipsis = function kh_addEllipsis(view, fakeView, currentFontSize) {
+_KeypadManager.prototype.addEllipsis =
+    function kh_addEllipsis(view, fakeView, currentFontSize) {
   var viewWidth = view.getBoundingClientRect().width;
   fakeView.style.fontSize = currentFontSize + 'px';
   fakeView.innerHTML = view.value;
@@ -127,8 +133,8 @@ _KeypadManager.prototype.addEllipsis = function kh_addEllipsis(view, fakeView, c
   }
 };
 
-_KeypadManager.prototype.getNextFontSize = function kh_getNextFontSize(view, fakeView,
-fontSize, initialFontSize) {
+_KeypadManager.prototype.getNextFontSize =
+    function kh_getNextFontSize(view, fakeView, fontSize, initialFontSize) {
   var viewWidth = view.getBoundingClientRect().width;
   fakeView.style.fontSize = fontSize + 'px';
   fakeView.innerHTML = view.value;
@@ -166,7 +172,8 @@ _KeypadManager.prototype.keyHandler = function kh_keyHandler(event) {
 
       // Sending the DTMF tone if on a call
       var telephony = navigator.mozTelephony;
-      if (telephony && telephony.active && telephony.active.state == 'connected') {
+      if (telephony && telephony.active &&
+          telephony.active.state == 'connected') {
 
         telephony.startTone(key);
         window.setTimeout(function ch_stopTone() {
@@ -216,12 +223,14 @@ _KeypadManager.prototype.keyHandler = function kh_keyHandler(event) {
   }
 };
 
-_KeypadManager.prototype.updatePhoneNumber = function kh_updatePhoneNumber(number) {
+_KeypadManager.prototype.updatePhoneNumber =
+    function kh_updatePhoneNumber(number) {
   this._phoneNumber = number;
   this._updatePhoneNumberView();
 };
 
-_KeypadManager.prototype._updatePhoneNumberView = function kh_updatePhoneNumberview() {
+_KeypadManager.prototype._updatePhoneNumberView =
+    function kh_updatePhoneNumberview() {
   var phoneNumber = this._phoneNumber;
 
   // If there are digits in the phone number, show the delete button.

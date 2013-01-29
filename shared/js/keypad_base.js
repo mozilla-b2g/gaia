@@ -9,7 +9,8 @@ var BaseTonePlayer = function(config) {
   this._frequencies = config.frequencies || null; // from gTonesFrequencies
   this._sampleRate = config.sampleRate || 8000; // number of frames/sec
   this._position = config.position || null; // number of frames generated
-  this._intervalID = config.intervalID || null; // id for the audio loop's setInterval
+  // id for the audio loop's setInterval
+  this._intervalID = config.intervalID || null;
   this._stopping = config.stopping || false;
 };
 
@@ -138,9 +139,16 @@ BaseKeypadManager.prototype = {
     // 10pt. First off, we convert it to px multiplying it 0.226 times,
     // then we convert it to rem multiplying it a number of times equal
     // to the font-size property of the body element.
-    var defaultFontSize = window.getComputedStyle(document.body, null).getPropertyValue('font-size');
+    var defaultFontSize = window.getComputedStyle(document.body, null)
+        .getPropertyValue('font-size');
     this.minFontSize = parseInt(parseInt(defaultFontSize) * 10 * 0.226);
-    this.maxFontSize = this._onCall ? parseInt(parseInt(defaultFontSize) * this._MAX_FONT_SIZE_ON_CALL * 0.226) : parseInt(parseInt(defaultFontSize) * this._MAX_FONT_SIZE_DIAL_PAD * 0.226);
+    if (this._onCall) {
+        this.maxFontSize = parseInt(parseInt(defaultFontSize) *
+                                    this._MAX_FONT_SIZE_ON_CALL * 0.226);
+    } else {
+        this.maxFontSize = parseInt(parseInt(defaultFontSize) *
+                                    this._MAX_FONT_SIZE_DIAL_PAD * 0.226);
+    }
 
     this.phoneNumberView.value = '';
     this._phoneNumber = '';
