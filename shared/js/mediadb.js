@@ -958,12 +958,18 @@ var MediaDB = (function() {
     function quickScan(timestamp) {
       var cursor;
       if (timestamp > 0) {
+        media.details.firstscan = false;
         cursor = media.storage.enumerate(media.directory, {
           // add 1 so we don't find the same newest file again
           since: new Date(timestamp + 1)
         });
       }
       else {
+        // If there is no timestamp then this is the first time we've
+        // scanned and we don't have any files in the database, which
+        // allows important optimizations during the scanning process
+        media.details.firstscan = true;
+        media.details.records = [];
         cursor = media.storage.enumerate(media.directory);
       }
 
@@ -980,16 +986,14 @@ var MediaDB = (function() {
           // more thorough full scan.
           whenDoneProcessing(media, function() {
             sendNotifications(media);
-            if (timestamp > 0) {
-              // If we were just scanning for new files, then we still
-              // have to go check that all of the old files still exist
-              // and have not changed.
-              fullScan();
+            if (media.details.firstscan) {
+              // If this was the first scan, then we're done
+              endscan(media);
             }
             else {
-              // If we didn't have any files stored in the database when
-              // we started the scan, then we're done.
-              endscan(media);
+              // If this was not the first scan, then we need to go
+              // ensure that all of the old files we know about are still there
+              fullScan();
             }
           });
         }
@@ -1332,50 +1336,69 @@ var MediaDB = (function() {
     }
 
     function storeRecord(fileinfo) {
-      var transaction = media.db.transaction('files', 'readwrite');
-      var store = transaction.objectStore('files');
-      var request = store.add(fileinfo);
-      request.onsuccess = function() {
-        // Remember to send an event about this new file
-        if (!fileinfo.fail)
+      if (media.details.firstscan) {
+        // If this is the first scan then we know this is a new file and
+        // we can assume that adding it to the db will succeed.
+        // So we can just queue a notification about the new file without
+        // waiting for a db operation.
+        media.details.records.push(fileinfo);
+        if (!fileinfo.fail) {
           queueCreateNotification(media, fileinfo);
+        }
         // And go on to the next
         next();
-      };
-      request.onerror = function(event) {
-        // If the error name is 'ConstraintError' it means that the
-        // file already exists in the database. So try again, using put()
-        // instead of add(). If that succeeds, then queue a delete
-        // notification along with the insert notification.  If the
-        // second try fails, or if the error was something different
-        // then issue a warning and continue with the next.
-        if (request.error.name === 'ConstraintError') {
-          // Don't let the higher-level DB error handler report the error
-          event.stopPropagation();
-          // And don't spew a default error message to the console either
-          event.preventDefault();
-          var putrequest = store.put(fileinfo);
-          putrequest.onsuccess = function() {
-            queueDeleteNotification(media, fileinfo.name);
-            if (!fileinfo.fail)
-              queueCreateNotification(media, fileinfo);
-            next();
-          };
-          putrequest.onerror = function() {
-            // Report and move on
-            console.error('MediaDB: unexpected ConstraintError',
-                          'in insertRecord for file:', fileinfo.name);
-            next();
-          };
-        }
-        else {
-          // Something unexpected happened!
-          // All we can do is report it and move on
-          console.error('MediaDB: unexpected error in insertRecord:',
-                        request.error, 'for file:', fileinfo.name);
+      }
+      else {
+        // If this is not the first scan, then we may already have a db
+        // record for this new file. In that case, the call to add() above
+        // is going to fail. We need to handle that case, so we can't send
+        // out the new file notification until we get a response to the add().
+        var transaction = media.db.transaction('files', 'readwrite');
+        var store = transaction.objectStore('files');
+        var request = store.add(fileinfo);
+
+        request.onsuccess = function() {
+          // Remember to send an event about this new file
+          if (!fileinfo.fail)
+            queueCreateNotification(media, fileinfo);
+          // And go on to the next
           next();
-        }
-      };
+        };
+        request.onerror = function(event) {
+          // If the error name is 'ConstraintError' it means that the
+          // file already exists in the database. So try again, using put()
+          // instead of add(). If that succeeds, then queue a delete
+          // notification along with the insert notification.  If the
+          // second try fails, or if the error was something different
+          // then issue a warning and continue with the next.
+          if (request.error.name === 'ConstraintError') {
+            // Don't let the higher-level DB error handler report the error
+            event.stopPropagation();
+            // And don't spew a default error message to the console either
+            event.preventDefault();
+            var putrequest = store.put(fileinfo);
+            putrequest.onsuccess = function() {
+              queueDeleteNotification(media, fileinfo.name);
+              if (!fileinfo.fail)
+                queueCreateNotification(media, fileinfo);
+              next();
+            };
+            putrequest.onerror = function() {
+              // Report and move on
+              console.error('MediaDB: unexpected ConstraintError',
+                            'in insertRecord for file:', fileinfo.name);
+              next();
+            };
+          }
+          else {
+            // Something unexpected happened!
+            // All we can do is report it and move on
+            console.error('MediaDB: unexpected error in insertRecord:',
+                          request.error, 'for file:', fileinfo.name);
+            next();
+          }
+        };
+      }
     }
   }
 
@@ -1422,6 +1445,17 @@ var MediaDB = (function() {
     }
 
     if (details.pendingCreateNotifications.length > 0) {
+
+      // If this is a first scan, and we have records that are not
+      // in the db yet, write them to the db now
+      if (details.firstscan && details.records.length > 0) {
+        var transaction = media.db.transaction('files', 'readwrite');
+        var store = transaction.objectStore('files');
+        for (var i = 0; i < details.records.length; i++)
+          store.add(details.records[i]);
+        details.records.length = 0;
+      }
+
       var creations = details.pendingCreateNotifications;
       details.pendingCreateNotifications = [];
       dispatchEvent(media, 'created', creations);
