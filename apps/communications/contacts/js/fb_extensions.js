@@ -4,6 +4,7 @@ var Contacts = window.Contacts || {};
 
 if (typeof Contacts.extFb === 'undefined') {
   (function(document) {
+    loadFrames();
     var extFb = Contacts.extFb = {};
     var contactId;
 
@@ -28,6 +29,23 @@ if (typeof Contacts.extFb === 'undefined') {
       canClose = false;
       load('fb_import.html', 'friends');
     };
+
+    function loadFrames() {
+      var fragment = document.createDocumentFragment();
+      var iframe1 = document.createElement('iframe');
+      iframe1.src = 'fb-curtain';
+      iframe1.src = '/facebook/curtain.html';
+      fragment.appendChild(iframe1);
+
+      var iframe2 = document.createElement('iframe');
+      iframe2.id = 'fb-oauth';
+      iframe2.setAttribute('hidden', true);
+      iframe2.src = '/facebook/fb_oauth.html';
+      fragment.appendChild(iframe2);
+
+      document.body.appendChild(fragment);
+    }
+
 
     function load(uri, from) {
       window.addEventListener('message', messageHandler);

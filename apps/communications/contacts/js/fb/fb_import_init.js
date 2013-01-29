@@ -55,10 +55,8 @@
     });
   }
 
-  window.addEventListener('localized', function fb_localized(evt) {
-    document.documentElement.lang = navigator.mozL10n.language.code;
-    document.documentElement.dir = navigator.mozL10n.language.direction;
-  });
+  document.documentElement.lang = navigator.mozL10n.language.code;
+  document.documentElement.dir = navigator.mozL10n.language.direction;
 
   window.addEventListener('message', function getAccessToken(e) {
     window.removeEventListener('message', getAccessToken);
