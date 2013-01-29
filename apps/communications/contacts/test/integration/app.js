@@ -1,3 +1,5 @@
+'use strict';
+
 require('/tests/js/app_integration.js');
 require('/tests/js/integration_helper.js');
 
@@ -9,6 +11,8 @@ ContactsIntegration.prototype = {
   __proto__: AppIntegration.prototype,
 
   appName: 'Contacts',
+  manifestURL: 'app://communications.gaiamobile.org/manifest.webapp',
+  entryPoint: 'contacts',
 
   /** selector tables */
   selectors: {
@@ -67,6 +71,31 @@ ContactsIntegration.prototype = {
       var isEqual = (elements.length === expectedNum);
       done(null, isEqual);
     }, callback);
-  }
+  },
 
+  observeRendering: function() {
+    var self = this;
+
+    this.task(function (app, next, done) {
+      yield IntegrationHelper.importScript(
+        app.device,
+        'apps/communications/contacts/test/atoms/contacts_rendering_performance.js',
+        next
+      );
+
+      yield app.device.executeAsyncScript(
+        'window.wrappedJSObject.ContactsRenderingPerformance.register();'
+      );
+
+      var results = yield app.device.executeAsyncScript(
+        'window.wrappedJSObject.ContactsRenderingPerformance.waitForResults();'
+      );
+
+      yield app.device.executeAsyncScript(
+        'window.wrappedJSObject.ContactsRenderingPerformance.unregister();'
+      );
+
+      done(null, results);
+    });
+  }
 };

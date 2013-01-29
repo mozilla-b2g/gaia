@@ -418,9 +418,22 @@ ifeq ($(TESTS),)
 		TESTS=$(shell find apps -name "*_test.js" -type f | grep integration)
 	endif
 endif
+
+ifneq ($(APP),)
+	TESTS_PERF=$(shell find apps/$(APP)/test/performance/ -name "*_test.js" -type f )
+else
+	TESTS_PERF=$(shell find apps -name "*_test.js" -type f | grep performance)
+endif
+
 .PHONY: test-integration
 test-integration:
+	adb forward tcp:2828 tcp:2828
 	@./tests/js/bin/runner $(TESTS)
+
+.PHONY: test-perf
+test-perf:
+	adb forward tcp:2828 tcp:2828
+	REPORTER=JSONMozPerf ./tests/js/bin/runner $(TESTS_PERF)
 
 .PHONY: tests
 tests: webapp-manifests offline

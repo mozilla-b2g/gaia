@@ -327,6 +327,10 @@ contacts.List = (function() {
 
     // Performance testing
     function renderChunks(index) {
+      if (index === 0) {
+        PerformanceHelper.dispatchPerfEvent('contacts-first-chunk');
+      }
+
       if (numberOfChunks === index) {
         // Last round. Rendering remaining
         var remaining = length % CHUNK_SIZE;
@@ -338,7 +342,6 @@ contacts.List = (function() {
           }
 
         }
-
         window.setTimeout(onListRendered);
         dispatchCustomEvent('listRendered');
         return;
@@ -373,6 +376,7 @@ contacts.List = (function() {
     FixedHeader.refresh();
     lazyLoadImages();
     loaded = true;
+    PerformanceHelper.dispatchPerfEvent('contacts-last-chunk');
   };
 
   // Method that fills non-visible datasets
