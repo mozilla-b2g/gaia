@@ -7,6 +7,29 @@
 
   var _ = navigator.mozL10n.get;
 
+  var ENABLE_LOG = false;
+
+  // Use mutation observer to monitor appWindow status change
+  window.AppLog = function AppLog(app) {
+    // select the target node
+    var target = app.frame;
+
+    // create an observer instance
+    var observer = new MutationObserver(function(mutations) {
+      mutations.forEach(function(mutation) {
+        console.log(mutation.target.id,
+                    mutation.target.className,
+                    mutation.attributeName);
+      });
+    });
+
+    // configuration of the observer:
+    var config = { attributes: true };
+
+    // pass in the target node, as well as the observer options
+    observer.observe(target, config);
+  }
+
   window.AppError = function AppError(app) {
     var self = this;
     this.app = app;
@@ -108,6 +131,8 @@
     // we may need to export the error state of AppWindow instance to the other module
     // in the future.
     this.appError = new AppError(this);
+    if (ENABLE_LOG)
+      this.appLog = new AppLog(this);
 
     return this;
   };
