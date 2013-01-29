@@ -1052,55 +1052,42 @@ function prettyDate(time) {
  *   }
  */
 function FormNavigation(options) {
-  this.initialize(options);
+  function extend(destination, source) {
+    for (var property in source)
+      destination[property] = source[property];
+    return destination;
+  }
+
+  if (!options.formElem) {
+    throw new Error('The form element should be defined.');
+  }
+
+  var self = this;
+  this.options = extend({
+    formElem: null,
+    checkFormValidity: function checkFormValidity() {
+      return self.options.formElem.checkValidity();
+    },
+    onLast: function() {}
+  }, options);
+
+  this.options.formElem.addEventListener('keypress',
+    this.onKeyPress.bind(this));
 }
 
 FormNavigation.prototype = {
-  initialize: function formNav_init(options) {
-    this.options = this.extend({
-      formElem: null,
-      checkFormValidity: function checkFormValidity() {
-        return true;
-      },
-      onLast: function() {}
-    }, options);
-
-    if (!this.options.formElem) {
-      throw new Error('The form element should be defined.');
-    }
-
-    this.options.formElem.addEventListener('keypress',
-      this.onKeyPress.bind(this));
-  },
-
-  /**
-   * Focus the first input
-   */
-  focus: function formNav_focus() {
-    var inputElems = this.options.formElem.getElementsByTagName('input');
-    for (var i = 0; i < inputElems.length; i++) {
-      var input = inputElems[i];
-      if (input.type === 'hidden' || input.type === 'button') {
-        continue;
-      }
-      input.focus();
-      return;
-    }
-  },
-
   onKeyPress: function formNav_onKeyPress(event) {
     if (event.keyCode === 13) {
-      // Focus the next input
-      var nextInput = this.getNextInput(event);
-      if (nextInput) {
-        nextInput.focus();
-      } else if (this.options.checkFormValidity()) {
+      // If the user hit enter, focus the next form element, or, if the current
+      // element is the last one and the form is valid, submit the form.
+      var nextInput = this.focusNextInput(event);
+      if (!nextInput && this.options.checkFormValidity()) {
         this.options.onLast();
       }
     }
   },
 
-  getNextInput: function formNav_getNextInput(event) {
+  focusNextInput: function formNav_focusNextInput(event) {
     var currentInput = event.target;
     var inputElems = this.options.formElem.getElementsByTagName('input');
     var currentInputFound = false;
@@ -1118,16 +1105,16 @@ FormNavigation.prototype = {
         continue;
       }
 
+      input.focus();
+      if (document.activeElement !== input) {
+        // We couldn't focus the element we wanted.  Try with the next one.
+        continue;
+      }
       return input;
     }
 
+    // If we couldn't find anything to focus, just blur the initial element.
+    currentInput.blur();
     return null;
-  },
-
-  extend: function formNav_extend(destination, source) {
-    for (var property in source)
-      destination[property] = source[property];
-    return destination;
   }
 };
-
