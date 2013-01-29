@@ -30,11 +30,6 @@ section[role="region"] {
   overflow: hidden;
 }
 
-/* Without this hack, we get a white screen at launch on gecko21 */
-.uninit section[role="region"],
-.uninit section[role="region"].peek {
-  transition: none;
-}
 
 /**
  * Panel targets -- transitions
@@ -68,6 +63,14 @@ section[role="region"].current.peek.forward {
 }
 section[role="region"].current.peek {
   transform: translateX(-99.9%);
+}
+
+/* Without this hack, we get a white screen at launch on gecko21 */
+.uninit section[role="region"],
+.uninit section[role="region"].peek,
+.uninit section[role="region"].current {
+  transition: none;
+  transform: none;
 }
 
 /**
