@@ -630,9 +630,7 @@ var Contacts = (function() {
     });
   };
 
-  window.addEventListener('load', function() {
-    getFirstContacts();
-  });
+  getFirstContacts();
 
   return {
     'doneTag': doneTag,
@@ -662,8 +660,6 @@ var Contacts = (function() {
   };
 })();
 
-window.addEventListener('localized', function initContacts(evt) {
-  window.removeEventListener('localized', initContacts);
   fb.init(function contacts_init() {
     Contacts.onLocalized();
 
@@ -674,7 +670,9 @@ window.addEventListener('localized', function initContacts(evt) {
 
     // To listen to card state changes is needed for enabling import from SIM
     var mobileConn = navigator.mozMobileConnection;
-    mobileConn.oncardstatechange = Contacts.cardStateChanged;
+    if (mobileConn) {
+      mobileConn.oncardstatechange = Contacts.cardStateChanged;
+    }
 
     if (window.navigator.mozSetMessageHandler && window.self == window.top) {
       var actHandler = ActivityHandler.handle.bind(ActivityHandler);
@@ -691,4 +689,3 @@ window.addEventListener('localized', function initContacts(evt) {
       Contacts.checkCancelableActivity();
     });
   }); // fb.init
-}); // addEventListener
