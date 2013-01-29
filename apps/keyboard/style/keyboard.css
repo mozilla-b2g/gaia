@@ -96,7 +96,7 @@ button::-moz-focus-inner {
     top - begin | top - end
     bottom - begin  | bottom - end
   */
-  background: 
+  background:
     url(images/key-radius-tb.png) no-repeat left top,
     url(images/key-radius-te.png) no-repeat right top,
     url(images/key-radius-bb.png) no-repeat left bottom,
@@ -140,7 +140,7 @@ button::-moz-focus-inner {
 }
 .keyboard-key:not(.special-key).highlighted:last-child > .visual-wrapper:after {
   right: -0.2rem;
-  border-radius: 0.6rem 0 0 0.6rem; 
+  border-radius: 0.6rem 0 0 0.6rem;
 }
 .keyboard-key:not(.special-key).highlighted > .visual-wrapper:before {
   content: "";
@@ -151,7 +151,7 @@ button::-moz-focus-inner {
   height: 0.5rem;
   background: #6ec5d5;
   z-index: 1;
-} 
+}
 
 .keyboard-key:not(.special-key).highlighted > .visual-wrapper > span {
   font: 3.8rem/4.5rem MozTT, Sans-serif;
@@ -205,7 +205,7 @@ button::-moz-focus-inner {
   border-color: #2a2c2e;
   background: #43474a;
 }
-.keyboard-key.special-key > .visual-wrapper > span { 
+.keyboard-key.special-key > .visual-wrapper > span {
    /*
     top - begin | top - end
     bottom - begin  | bottom - end
@@ -380,7 +380,7 @@ and displays the list of alternatives. */
   background: none;
 }
 
-#keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper:after, 
+#keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper:after,
 #keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper:before,
 #keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper > span:after {
   display: none;
@@ -463,7 +463,7 @@ bubble above the key when you tap and hold. */
   right: 0;
   height: 0.5rem;
   z-index: 1;
-} 
+}
 
 #keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key {
   padding: 0;
@@ -488,8 +488,8 @@ bubble above the key when you tap and hold. */
   right: 0;
 }
 
-#keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key > .visual-wrapper > span { 
-  font-family: 'MozTT', Sans-serif;  
+#keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key > .visual-wrapper > span {
+  font-family: 'MozTT', Sans-serif;
   font-weight: 500;
   font-size: 1.8rem;
   line-height: 4rem;
@@ -499,14 +499,9 @@ bubble above the key when you tap and hold. */
   margin-bottom: 0.8rem;
 }
 
-
 #keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key.kbr-key-hold > .visual-wrapper {
-  background: #333;
+  background: #6EC5D5;
 }
-#keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key.kbr-key-hold > .visual-wrapper > span {
-  color: #fff;
-}
-
 
 /* IMEs */
 #keyboard-pending-symbol-panel {
@@ -645,7 +640,7 @@ bubble above the key when you tap and hold. */
 
 /*
  * Don't display the toggle button for latin suggestions.
- * For now, at least, we only ever get 3 at a time 
+ * For now, at least, we only ever get 3 at a time
  */
 #keyboard.candidate-panel #keyboard-candidate-panel-toggle-button.latin {
   display: none;
