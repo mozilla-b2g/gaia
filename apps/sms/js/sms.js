@@ -1410,8 +1410,8 @@ var ThreadUI = {
 
 
         var contactDOM = document.createElement('li');
-        var noResultHTML = '<a><p data-10ln-id="no-results">' +
-                           'No results returned' +
+        var noResultHTML = '<a><p data-l10n-id="no-results">' +
+                           _('no-results') +
                            '</p></a>';
         contactDOM.innerHTML = noResultHTML;
         contactsContainer.appendChild(contactDOM);
