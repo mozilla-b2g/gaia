@@ -702,8 +702,16 @@ var WindowManager = (function() {
     }
 
     // Set the frame to be visible.
-    if ('setVisible' in openFrame.firstChild)
-      openFrame.firstChild.setVisible(true);
+    if ('setVisible' in openFrame.firstChild) {
+      if (!AttentionScreen.isFullyVisible()) {
+        openFrame.firstChild.setVisible(true);
+      } else {
+        // If attention screen is fully visible now,
+        // don't give the open frame visible.
+        // This is the case that homescreen is restarted behind attention screen
+        openFrame.firstChild.setVisible(false);
+      }
+    }
   }
 
   function waitForNextPaintOrBackground(frame, callback) {
@@ -968,7 +976,7 @@ var WindowManager = (function() {
     if (closeFrame && 'setVisible' in closeFrame.firstChild)
       closeFrame.firstChild.setVisible(false);
 
-    if (!isFirstRunApplication) {
+    if (!isFirstRunApplication && newApp == homescreen && !AttentionScreen.isFullyVisible()) {
       toggleHomescreen(true);
     }
 
