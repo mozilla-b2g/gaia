@@ -16,8 +16,9 @@ function toMidnight(date) {
 
 // Deep copy algorithm with Data support
 function deepCopy(object) {
-  if (object === null || !(object instanceof Object))
+  if (object === null || !(object instanceof Object)) {
     return object;
+  }
 
   var clone, constructor = object.constructor;
   switch (constructor) {
@@ -29,8 +30,9 @@ function deepCopy(object) {
       break;
   }
   for (var key in object) {
-    if (object.hasOwnProperty(key))
+    if (object.hasOwnProperty(key)) {
       clone[key] = deepCopy(object[key]);
+    }
   }
 
   return clone;
@@ -51,8 +53,9 @@ Object.prototype.extend = function _extend() {
 var NOP = function() {};
 
 function checkEnoughDelay(threshold, dateA, dateB) {
-  if (!dateA)
+  if (!dateA) {
     return true;
+  }
 
   var end = dateB || new Date();
   return (end.getTime() - dateA.getTime()) > threshold;
