@@ -1172,6 +1172,7 @@ var WindowManager = (function() {
     var frame =
         createFrame(origFrame, origin, url, name, manifest, manifestURL);
     var iframe = frame.firstChild;
+
     frame.id = 'appframe' + nextAppId++;
     iframe.dataset.frameType = 'window';
 

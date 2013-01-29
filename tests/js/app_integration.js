@@ -182,6 +182,16 @@ var AppIntegration = (function() {
       instance.next();
     },
 
+    createCommand: function(func) {
+      var command = func + '(' + this.manifestURL.quote();
+      if (this.entryPoint) {
+        command += ', ' + this.entryPoint.quote();
+      }
+      command += ')';
+
+      return command;
+    },
+
     /**
      * Closes the app and switches focus back to system.
      */
@@ -195,12 +205,8 @@ var AppIntegration = (function() {
         // will switch back to the main frame.
         yield device.switchToFrame();
 
-        var script = 'window.wrappedJSObject.WindowManager.kill("' +
-                        self.origin +
-                      '")';
-
-        // Function.toString is busted (804404)
-        yield device.executeScript(script);
+        var closeCommand = self.createCommand('GaiaApps.closeWithManifestURL');
+        var result = yield device.executeAsyncScript(closeCommand);
 
         done();
       }, callback);
@@ -240,9 +246,8 @@ var AppIntegration = (function() {
           MochaTask.nodeNext
         );
 
-        var result = yield device.executeAsyncScript(
-          'GaiaApps.launchWithName("' + self.appName + '");'
-        );
+        var launchCommand = self.createCommand('GaiaApps.launchWithManifestURL');
+        var result = yield device.executeAsyncScript(launchCommand);
 
         yield device.switchToFrame(result.frame);
 
@@ -251,8 +256,10 @@ var AppIntegration = (function() {
         self.name = result.name;
         self.frame = result.frame;
 
-        var body = yield device.findElement('body');
-        yield app.waitUntilElement(body, 'displayed');
+        if (waitForBody) {
+          var body = yield device.findElement('body');
+          yield app.waitUntilElement(body, 'displayed');
+        }
 
         done(null, self);
 

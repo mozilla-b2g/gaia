@@ -63,26 +63,26 @@ var GaiaApps = {
     });
   },
 
-  locateWithName: function(name, aCallback) {
-    var callback = aCallback || marionetteScriptFinished;
-    function sendResponse(app, appName, entryPoint) {
-      if (callback === marionetteScriptFinished) {
-        if (typeof(app) === 'object') {
-          var result = {
-            name: app.manifest.name,
-            origin: app.origin,
-            entryPoint: entryPoint || null,
-            normalizedName: appName
-          };
-          callback(result);
-        } else {
-          callback(false);
-        }
-      } else {
-        callback(app, appName, entryPoint);
-      }
+  sendLocateResponse: function (aCallback, app, appName, entryPoint) {
+    if (aCallback) {
+      aCallback(app, appName, entryPoint);
+      return;
     }
 
+    var result = false;
+    if (typeof(app) === 'object') {
+      result = {
+        name: app.manifest.name,
+        origin: app.origin,
+        entryPoint: entryPoint || null,
+        normalizedName: appName
+      };
+    }
+
+    marionetteScriptFinished(result);
+  },
+
+  locateWithName: function(name, aCallback) {
     let appsReq = navigator.mozApps.mgmt.getAll();
     appsReq.onsuccess = function() {
       let apps = appsReq.result;
@@ -98,19 +98,38 @@ var GaiaApps = {
             let appName = currentEntryPoint.name;
 
             if (normalizedSearchName === GaiaApps.normalizeName(appName)) {
-              return sendResponse(app, appName, ep);
+              return GaiaApps.sendLocateResponse(aCallback, app, appName, ep);
             }
           }
         } else {
           let appName = app.manifest.name;
 
           if (normalizedSearchName === GaiaApps.normalizeName(appName)) {
-            return sendResponse(app, appName);
+            return GaiaApps.sendLocateResponse(aCallback, app, appName);
           }
         }
       }
-      callback(false);
+
+      GaiaApps.sendLocateResponse(aCallback, false);
     };
+  },
+
+  locateWithManifestURL: function(manifestURL, entryPoint, aCallback) {
+
+    var app = window.wrappedJSObject.Applications.getByManifestURL(manifestURL);
+    var appName;
+
+    if (entryPoint) {
+      if (app.manifest.entry_points[entryPoint]) {
+        appName = app.manifest.entry_points[entryPoint].name;
+      } else {
+        app = null;
+      }
+    } else {
+      appName = app.manifest.name;
+    }
+
+    GaiaApps.sendLocateResponse(aCallback, app, appName, entryPoint);
   },
 
   // Returns the number of running apps.
@@ -180,56 +199,90 @@ var GaiaApps = {
     );
   },
 
-  // Launches app with the specified name (e.g., 'Calculator'); returns the
-  // app frame's id if successful, false if the app can't be found, or times
-  // out if the app frame can't be found after launching the app.
-  launchWithName: function(name) {
-    GaiaApps.locateWithName(name, function(app, appName, entryPoint) {
-      if (app) {
+  launch: function(app, appName, entryPoint) {
+    if (!app) {
+      marionetteScriptFinished(false);
+      return;
+    }
+
+    let origin = GaiaApps.getRunningAppOrigin();
+    let alreadyRunning = !!origin;
+
+    app.launch(entryPoint || null);
+
+    waitFor(
+      function() {
         let runningApps = window.wrappedJSObject.WindowManager.getRunningApps();
-        let origin = GaiaApps.getRunningAppOrigin(appName);
-        let alreadyRunning = !!origin;
+        let app = runningApps[origin];
+        let result = {frame: app.iframe,
+                      src: app.iframe.src,
+                      name: app.name,
+                      origin: origin};
 
-        app.launch(entryPoint || null);
-
-        waitFor(
-          function() {
-            let app = runningApps[origin];
-            let result = {frame: app.frame.firstChild,
-                          src: app.iframe.src,
-                          name: app.name,
-                          origin: origin};
-
-            if (alreadyRunning) {
-              // return the app's frame id
-              marionetteScriptFinished(result);
-            }
-            else {
-              // wait until the new iframe sends the mozbrowserfirstpaint event
-              let frame = runningApps[origin].frame.firstChild;
-              if (frame.dataset.unpainted) {
-                window.addEventListener('mozbrowserfirstpaint',
-                    function firstpaint() {
-                      window.removeEventListener('mozbrowserfirstpaint',
-                                                 firstpaint);
-                      marionetteScriptFinished(result);
-                });
-              }
-              else {
-                marionetteScriptFinished(result);
-              }
-            }
-          },
-          // wait until the app is found in the running apps list
-          function() {
-            origin = GaiaApps.getRunningAppOrigin(appName);
-            return !!origin;
-          }
-        );
-      } else {
-        marionetteScriptFinished(false);
+        if (alreadyRunning) {
+          // return the app's frame
+          marionetteScriptFinished(result);
+        }
+        else {
+          // wait until the new iframe sends the apploadtime event
+          window.addEventListener('apploadtime', function launched() {
+            window.removeEventListener('apploadtime', launched);
+            marionetteScriptFinished(result);
+          });
+        }
+      },
+      // wait until the app is found in the running apps list
+      function() {
+        origin = GaiaApps.getRunningAppOrigin(appName);
+        return !!origin;
       }
-    });
+    );
+  },
+
+  // Launches app with the specified name (e.g., 'Calculator'); returns the
+  // an object with the app frame if successful, false if the app can't be
+  // found, or times out if the app frame can't be found after launching the app.
+  launchWithName: function(name) {
+    GaiaApps.locateWithName(name, this.launch);
+  },
+
+  // Launches app with the specified manifestURL. returns the
+  // an object with the app frame if successful, false if the app can't be
+  // found, or times out if the app frame can't be found after launching the app.
+  //
+  // This is prefered over launchWithName because localized builds have
+  // different names
+  launchWithManifestURL: function(manifestURL, entryPoint) {
+    GaiaApps.locateWithManifestURL(manifestURL, entryPoint, this.launch);
+  },
+
+  close: function(app, appName, entryPoint) {
+    if (!app) {
+      marionetteScriptFinished(false);
+      return;
+    }
+
+    let origin = GaiaApps.getRunningAppOrigin(appName);
+
+    waitFor(
+      function() {
+        window.wrappedJSObject.WindowManager.kill(origin, marionetteScriptFinished);
+      },
+      // wait until the app is found in the running apps list
+      function() {
+        origin = GaiaApps.getRunningAppOrigin(appName);
+        return !!origin;
+      }
+    );
+  },
+
+  // Closes app with the specified name (e.g., 'Calculator'); returns nothing
+  closeWithName: function(name) {
+    GaiaApps.locateWithName(name, this.close);
+  },
+
+  closeWithManifestURL: function(manifestURL, entryPoint) {
+    GaiaApps.locateWithManifestURL(manifestURL, entryPoint, this.close);
   },
 
   /**
