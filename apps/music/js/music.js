@@ -262,6 +262,10 @@ function showCurrentView(callback) {
 
   tilesHandle = musicdb.enumerateAll('metadata.album', null, 'nextunique',
                                      function(songs) {
+                                       // Add null to the array of songs
+                                       // this is a flag that tells update()
+                                       // to show or hide the 'empy' overlay
+                                       songs.push(null);
                                        TilesView.clean();
                                        songs.forEach(function(song) {
                                          TilesView.update(song);
