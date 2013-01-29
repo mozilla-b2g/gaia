@@ -10,11 +10,8 @@ var DataUsageTab = (function() {
   'use strict';
 
   var DAY = 24 * 60 * 60 * 1000;
-  var today = new Date();
-  var tomorrow = new Date(today.getTime() + 1000 * 60 * 60 * 24);
-  toMidnight(tomorrow);
-  var yesterday = new Date(today.getTime() - 1000 * 60 * 60 * 24);
-  toMidnight(yesterday);
+  var NEVER_PERIOD = 30 * DAY;
+  var NEVER_ANCHOR = 21 * DAY;
 
   var graphicArea, graphicPattern;
   var wifiLayer, mobileLayer;
@@ -25,8 +22,9 @@ var DataUsageTab = (function() {
 
   var tabmanager, costcontrol, initialized, model;
   function setupTab(tmgr) {
-    if (initialized)
+    if (initialized) {
       return;
+    }
 
     dateFormat = _('chart-date-format') || '%b %e';
     dateFormatter = new navigator.mozL10n.DateTimeFormat();
@@ -65,7 +63,6 @@ var DataUsageTab = (function() {
         debug('First time setup for model');
         var lastDataReset = settings.lastDataReset;
         var nextReset = settings.nextReset;
-        trackingPeriod = settings.trackingPeriod;
         model = {
           height: graphicArea.clientHeight,
           width: graphicArea.clientWidth,
@@ -77,11 +74,8 @@ var DataUsageTab = (function() {
               margin: 0.20
             },
             X: {
-              lower: lastDataReset ? new Date(lastDataReset) :
-                                     new Date(yesterday),
-              upper: nextReset ? new Date(nextReset.getTime()) :
-                                 new Date(tomorrow),
-              today: today
+              lower: calculateLowerDate(settings),
+              upper: calculateUpperDate(settings)
             }
           },
           limits: {
@@ -97,16 +91,13 @@ var DataUsageTab = (function() {
             }
           }
         };
-
         ConfigManager.observe('dataLimit', toggleDataLimit, true);
         ConfigManager.observe('dataLimitValue', setDataLimit, true);
         ConfigManager.observe('lastDataReset', changeLastReset, true);
         ConfigManager.observe('nextReset', changeNextReset, true);
 
-        expandModel(model);
-        requestDataUsage();
-
         initialized = true;
+        requestDataUsage();
       });
     });
   }
@@ -121,8 +112,9 @@ var DataUsageTab = (function() {
   }
 
   function finalize() {
-    if (!initialized)
+    if (!initialized) {
       return;
+    }
 
     document.removeEventListener('mozvisibilitychange', updateWhenVisible);
     wifiToggle.removeEventListener('click', toggleWifi);
@@ -137,8 +129,9 @@ var DataUsageTab = (function() {
 
   function getLimitInBytes(settings) {
     var multiplier = 1000000; // MB
-    if (settings.dataLimitUnit === 'GB')
+    if (settings.dataLimitUnit === 'GB') {
       multiplier = 1000000000; // GB
+    }
 
     var value = settings.dataLimitValue;
     return (value && value !== 0) ? value * multiplier : null;
@@ -148,8 +141,9 @@ var DataUsageTab = (function() {
 
   // On visibility change
   function updateWhenVisible(evt) {
-    if (!document.mozHidden)
+    if (!document.mozHidden) {
       requestDataUsage();
+    }
   }
 
   function requestDataUsage() {
@@ -159,23 +153,24 @@ var DataUsageTab = (function() {
 
   function updateCharts(result) {
     if (result.status === 'success') {
-      debug('Updating model');
-      var modelData = result.data;
-      model.axis.X = {
-        lower: modelData.start,
-        upper: modelData.end,
-        today: modelData.today
-      };
-      model.data.wifi.samples = modelData.wifi.samples;
-      model.data.wifi.total = modelData.wifi.total;
-      model.data.mobile.samples = modelData.mobile.samples;
-      model.data.mobile.total = modelData.mobile.total;
+      ConfigManager.requestSettings(function _onSettings(settings) {
+        debug('Updating model');
+        var modelData = result.data;
+        model.data.wifi.samples = modelData.wifi.samples;
+        model.data.wifi.total = modelData.wifi.total;
+        model.data.mobile.samples = modelData.mobile.samples;
+        model.data.mobile.total = modelData.mobile.total;
+        model.axis.X.upper = calculateUpperDate(settings);
+        model.axis.X.lower = calculateLowerDate(settings);
+        expandModel(model);
 
-      expandModel(model);
+        debug('Rendering');
+        updateUI();
+      });
+
+    } else {
+      console.error('Error requesting data usage. This should not happen.');
     }
-
-    debug('Rendering');
-    updateUI();
   }
 
   // OBSERVERS
@@ -194,17 +189,64 @@ var DataUsageTab = (function() {
   }
 
   function changeLastReset(value) {
-    model.axis.X.lower = value ? new Date(value) : new Date(yesterday);
-    expandModel(model);
     requestDataUsage();
   }
 
   function changeNextReset(value, old, key, settings) {
-    trackingPeriod = settings.trackingPeriod;
-    model.axis.X.upper = value ? new Date(value.getTime() - DAY) :
-                                 new Date(tomorrow);
+    model.axis.X.upper = calculateUpperDate(settings);
+    model.axis.X.lower = calculateLowerDate(settings);
     expandModel(model);
     updateUI();
+  }
+
+  function calculateUpperDate(settings) {
+    var trackingPeriod = settings.trackingPeriod;
+    var nextReset = settings.nextReset;
+    if (trackingPeriod !== 'never') {
+      return new Date(nextReset.getTime() - DAY);
+    }
+
+    var lastReset = settings.lastDataReset;
+    var offset = today.getTime() - lastReset.getTime();
+    var upperDate = new Date(lastReset.getTime() + NEVER_PERIOD);
+    if (offset >= NEVER_ANCHOR) {
+      upperDate = new Date(today.getTime() + (NEVER_PERIOD - NEVER_ANCHOR));
+    }
+
+    debug('Upper date:', upperDate);
+    return upperDate;
+  }
+
+  function calculateLowerDate(settings) {
+    var lowerDate = toMidnight(new Date());
+    var nextReset = settings.nextReset;
+    var trackingPeriod = settings.trackingPeriod;
+
+    if (trackingPeriod === 'weekly') {
+      lowerDate.setTime(nextReset.getTime() - (7 * DAY));
+
+    } else if (trackingPeriod === 'monthly') {
+      var newMonth = nextReset.getMonth() - 1;
+      var newYear = nextReset.getFullYear();
+      if (newMonth < 0) {
+        newMonth = 11;
+        newYear--;
+      }
+
+      lowerDate.setDate(nextReset.getDate());
+      lowerDate.setMonth(newMonth);
+      lowerDate.setYear(newYear);
+
+    } else {
+      var lastReset = lowerDate = settings.lastDataReset;
+      var offset = today.getTime() - lastReset.getTime();
+      if (offset >= NEVER_ANCHOR) {
+        lowerDate = new Date(today.getTime() - NEVER_ANCHOR);
+      }
+    }
+
+    debug('Lower date:', lowerDate);
+    return lowerDate;
   }
 
   // USER INTERFACE
@@ -222,10 +264,17 @@ var DataUsageTab = (function() {
   }
 
   // Expand the model with some computed values
+  var today = toMidnight(new Date());
   function expandModel(base) {
+
+    // Update today
+    today = toMidnight(new Date());
 
     // Graphic settings
     base.originY = Math.floor(base.height * 5 / 6);
+
+    // Today value
+    base.axis.X.today = today;
 
     // Normalize today
     toMidnight(base.axis.X.today);
@@ -300,8 +349,7 @@ var DataUsageTab = (function() {
     }
 
     // Vertical lines every day
-    var day = 1000 * 60 * 60 * 24; // milliseconds in a day
-    var days = (model.axis.X.upper - model.axis.X.lower) / day;
+    var days = (model.axis.X.upper - model.axis.X.lower) / DAY;
     var step = model.axis.X.len / days;
     ctx.beginPath();
     ctx.strokeStyle = '#e0e0e0';
@@ -321,7 +369,7 @@ var DataUsageTab = (function() {
     var ctx = canvas.getContext('2d');
 
     // Compute the X offset
-    var offsetX = model.axis.X.get(model.axis.X.today) + 0.5;
+    var offsetX = model.axis.X.get(model.axis.X.today);
 
     // Configure Centered today text
     var fontsize = 14;
@@ -338,14 +386,14 @@ var DataUsageTab = (function() {
     var metrics = ctx.measureText(todayTag);
     todayLabel.x0 = offsetX - metrics.width / 2;
     todayLabel.x1 = offsetX + metrics.width / 2;
-    if (todayLabel.x1 > model.endX)
+    if (todayLabel.x1 > model.endX) {
       ctx.textAlign = 'right';
+    }
 
     ctx.fillStyle = 'black';
     ctx.fillText(todayTag, offsetX, model.originY + marginTop);
   }
 
-  var trackingPeriod;
   function drawAxisLayer(model) {
 
     var canvas = document.getElementById('axis-layer');
@@ -376,8 +424,9 @@ var DataUsageTab = (function() {
       var v = rounded[0];
       var u = rounded[1][0];
       var label = v;
-      if (lastUnit !== u)
+      if (lastUnit !== u) {
         label = formatData([v, u]);
+      }
 
       lastUnit = u;
       ctx.textBaseline = 'middle';
@@ -387,9 +436,6 @@ var DataUsageTab = (function() {
     }
 
     // Now the X axis
-    if (trackingPeriod === 'never')
-      return;
-
     ctx.fillStyle = '#6a6a6a';
     var marginTop = 10;
 
@@ -401,8 +447,9 @@ var DataUsageTab = (function() {
 
     var isBelowToday = todayLabel.x0 <=
                        model.originX + ctx.measureText(leftTag).width;
-    if (!isBelowToday)
+    if (!isBelowToday) {
       ctx.fillText(leftTag, model.originX, model.originY + marginTop);
+    }
 
     // Right tag
     var rightTag = dateFormatter.localeFormat(model.axis.X.upper, dateFormat);
@@ -447,15 +494,16 @@ var DataUsageTab = (function() {
 
   function drawWifiGraphic(model) {
     var samples = model.data.wifi.samples;
-    if (!samples)
+    if (!samples) {
       return;
+    }
 
     var canvas = document.getElementById('wifi-layer');
     var height = canvas.height = model.height;
     var width = canvas.width = model.width;
     var ctx = canvas.getContext('2d');
 
-    // Fill
+    // Style
     ctx.fillStyle = '#cbd936';
     ctx.strokeStyle = '#8b9052';
     ctx.lineWidth = 2;
@@ -471,25 +519,15 @@ var DataUsageTab = (function() {
         continue;
       }
 
+      if (i === 0) {
+        lastX = model.axis.X.get(sample.date);
+      }
+
       sum += sample.value;
       x = model.axis.X.get(sample.date);
-      slopeX = x + 0.5; // Used instead of x, avoid some graphic errors
       y = model.axis.Y.get(sum);
 
-      // Fill
-      ctx.beginPath();
-      ctx.lineTo(slopeX, y);
-      ctx.lineTo(slopeX, model.originY);
-      ctx.lineTo(lastX, model.originY);
-      ctx.lineTo(lastX, lastY);
-      ctx.moveTo(slopeX, y);
-      ctx.fill();
-
-      // Stroke
-      ctx.beginPath();
-      ctx.moveTo(lastX, lastY);
-      ctx.lineTo(x, y);
-      ctx.stroke();
+      clipAndDrawSegment(ctx, model, lastX, lastY, x, y);
 
       lastX = x;
       lastY = y;
@@ -504,10 +542,36 @@ var DataUsageTab = (function() {
     ctx.fill();
   }
 
+  // Check if the segment of the graph is inside chart area. If so, draw it
+  function clipAndDrawSegment(ctx, model, x0, y0, x1, y1) {
+    if (x0 >= model.originX && x1 < model.endX) {
+      var x0Fixed = Math.floor(x0) - 0.5;
+      var x1Fixed = Math.floor(x1) + 0.5;
+
+      // Fill
+      ctx.globalCompositeOperation = 'destination-over';
+      ctx.beginPath();
+      ctx.lineTo(x1Fixed, y1);
+      ctx.lineTo(x1Fixed, model.originY);
+      ctx.lineTo(x0Fixed, model.originY);
+      ctx.lineTo(x0Fixed, y0);
+      ctx.moveTo(x1Fixed, y0);
+      ctx.fill();
+
+      // Stroke
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.beginPath();
+      ctx.moveTo(x0Fixed, y0);
+      ctx.lineTo(x1Fixed, y1);
+      ctx.stroke();
+    }
+  }
+
   function drawMobileGraphic(model) {
     var samples = model.data.mobile.samples;
-    if (!samples)
+    if (!samples) {
       return;
+    }
 
     var canvas = document.getElementById('mobile-layer');
     var height = canvas.height = model.height;
@@ -528,25 +592,15 @@ var DataUsageTab = (function() {
         continue;
       }
 
+      if (i === 0) {
+        lastX = model.axis.X.get(sample.date);
+      }
+
       sum += sample.value;
       x = model.axis.X.get(sample.date);
-      slopeX = x + 0.5;
       y = model.axis.Y.get(sum);
 
-      // Fill
-      ctx.beginPath();
-      ctx.lineTo(slopeX, y);
-      ctx.lineTo(slopeX, model.originY);
-      ctx.lineTo(lastX, model.originY);
-      ctx.lineTo(lastX, lastY);
-      ctx.moveTo(slopeX, y);
-      ctx.fill();
-
-      // Stroke
-      ctx.beginPath();
-      ctx.moveTo(lastX, lastY);
-      ctx.lineTo(x, y);
-      ctx.stroke();
+      clipAndDrawSegment(ctx, model, lastX, lastY, x, y);
 
       lastX = x;
       lastY = y;
@@ -573,13 +627,15 @@ var DataUsageTab = (function() {
     var width = canvas.width = model.width;
     var ctx = canvas.getContext('2d');
 
-    if (!model.limits.enabled || model.limits.value === null)
+    if (!model.limits.enabled || model.limits.value === null) {
       return;
+    }
 
     // No problem here
     var mobileUsage = model.data.mobile.total;
-    if (mobileUsage <= model.limits.warningValue)
+    if (mobileUsage <= model.limits.warningValue) {
       return;
+    }
 
     // Warning mode
     if (mobileUsage <= model.limits.value) {

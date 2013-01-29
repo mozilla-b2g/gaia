@@ -55,8 +55,9 @@ var CostControlApp = (function() {
   }
 
   window.addEventListener('localized', function _onLocalize() {
-    if (initialized)
+    if (initialized) {
       updateUI();
+    }
   });
 
   var tabmanager, settingsVManager;
@@ -155,10 +156,10 @@ var CostControlApp = (function() {
 
         // Initialize on demand
         DataUsageTab.initialize(tabmanager);
-        if (mode === 'PREPAID')
+        if (mode === 'PREPAID') {
           TelephonyTab.finalize();
           BalanceTab.initialize(tabmanager, vmanager);
-        if (mode === 'POSTPAID') {
+        } else if (mode === 'POSTPAID') {
           BalanceTab.finalize();
           TelephonyTab.initialize(tabmanager);
         }
@@ -182,9 +183,10 @@ var CostControlApp = (function() {
 
           // If it was showing the left tab, force changing to the
           // proper left view
-          if (tabmanager.getCurrentTab() !== 'datausage-tab')
+          if (tabmanager.getCurrentTab() !== 'datausage-tab') {
             tabmanager.changeViewTo(mode === 'PREPAID' ? 'balance-tab' :
                                                          'telephony-tab');
+          }
         }
 
       }

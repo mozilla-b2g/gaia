@@ -12,8 +12,9 @@ var AutoSettings = (function() {
         settings.option(optionName, guiWidget.value);
       });
       settings.observe(optionName, function _onOptionChange(value) {
-        if (value === undefined)
+        if (value === undefined) {
           value = settings.defaultValue(optionName);
+        }
         guiWidget.value = value;
       });
     },
@@ -57,8 +58,9 @@ var AutoSettings = (function() {
         function _onOptionChange(value) {
 
           // Use default value if no value
-          if (value === null || value === undefined)
+          if (value === null || value === undefined) {
             value = getDefaultValue(optionName);
+          }
 
           var radio =
             dialog.querySelector('input[type="radio"][value="' + value + '"]');
@@ -94,8 +96,9 @@ var AutoSettings = (function() {
       settings.observe(
         optionName,
         function _onOptionChange(value) {
-          if (value === null || value === undefined)
+          if (value === null || value === undefined) {
             value = getDefaultValue(optionName);
+          }
           guiWidget.checked = value;
         }
       );
@@ -115,8 +118,9 @@ var AutoSettings = (function() {
       settings.observe(
         optionName,
         function _onOptionChange(value) {
-          if (value === null || value === undefined)
+          if (value === null || value === undefined) {
             value = getDefaultValue(optionName);
+          }
           guiWidget.value = value;
         }
       );
@@ -124,8 +128,9 @@ var AutoSettings = (function() {
       // Add an event listener to switch the option
       guiWidget.addEventListener('change', function _onContentChange() {
         var value = guiWidget.value;
-        if (guiWidget.type === 'number')
+        if (guiWidget.type === 'number') {
           value = parseFloat(value);
+        }
         settings.option(optionName, value);
       });
     }
@@ -166,27 +171,34 @@ var AutoSettings = (function() {
     // Return the type of configurer needed based on the properties of
     // the HTML element marked as the option.
     function getWidgetType(widget) {
-      if (widget.dataset.widgetType)
+      if (widget.dataset.widgetType) {
         return widget.dataset.widgetType;
+      }
 
       var customType;
-      if (customRecognizer === 'function')
+      if (customRecognizer === 'function') {
         customType = customRecognizer(widget, settings, vmanager);
+      }
 
-      if (customType)
+      if (customType) {
         return customType;
+      }
 
-      if (widget.tagName === 'SELECT')
+      if (widget.tagName === 'SELECT') {
         return 'select';
+      }
 
-      if (typeof widget.dataset.selectdialog !== 'undefined')
+      if (typeof widget.dataset.selectdialog !== 'undefined') {
         return 'customselect';
+      }
 
-      if (widget.type === 'checkbox')
+      if (widget.type === 'checkbox') {
         return 'switch';
+      }
 
-      if (['text', 'number'].indexOf(widget.type) !== -1)
+      if (['text', 'number'].indexOf(widget.type) !== -1) {
         return 'input';
+      }
     }
 
     // Install a dependency based on an expression. When expression is true
@@ -218,8 +230,9 @@ var AutoSettings = (function() {
       var type = getWidgetType(guiWidget);
       var entry = getEntryParent(guiWidget);
       var configurer = OPTION_CONFIGURERS[type];
-      if (configurer)
+      if (configurer) {
         configurer(guiWidget, settings, vmanager);
+      }
 
       // Simple dependency resolution:
 
@@ -228,8 +241,9 @@ var AutoSettings = (function() {
       if (disableOn) {
         installDependency(disableOn, function _disable(passed) {
           guiWidget.disabled = passed;
-          if (entry)
+          if (entry) {
             entry.setAttribute('aria-disabled', passed + '');
+          }
         });
       }
 
@@ -238,8 +252,9 @@ var AutoSettings = (function() {
       if (hideOn) {
         installDependency(hideOn, function _hide(passed) {
           guiWidget.setAttribute('aria-hidden', passed + '');
-          if (entry)
+          if (entry) {
             entry.setAttribute('aria-hidden', passed + '');
+          }
         });
       }
 

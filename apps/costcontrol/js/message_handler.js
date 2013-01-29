@@ -87,8 +87,9 @@
     asyncStorage.setItem('nextResetAlarm', alarmId, function _updateOption() {
       ConfigManager.setOption({ nextReset: date }, function _sync() {
         localStorage['sync'] = 'nextReset#' + Math.random();
-        if (callback)
+        if (callback) {
           callback();
+        }
       });
     });
   }
@@ -219,15 +220,16 @@
             debug('Trying to recognize TopUp error SMS');
             description = new RegExp(configuration.topup.incorrect_code_regexp);
             isError = !!sms.body.match(description);
-            if (!isError)
-              console.warn('Impossible to parse TopUp error message.');
-
+            if (!isError) {
+              console.warn('Impossible to parse TopUp confirmation message.');
+            }
           }
 
         }
 
-        if (!isBalance && !isConfirmation && !isError)
+        if (!isBalance && !isConfirmation && !isError) {
           return;
+        }
 
         // TODO: Remove the SMS
 
@@ -256,7 +258,6 @@
                                                closeIfProceeds);
             }
           );
-
         } else if (isConfirmation) {
           // Store SUCCESS for TopIp and sync
           navigator.mozAlarms.remove(settings.waitingForTopUp);
@@ -274,7 +275,6 @@
               closeIfProceeds();
             }
           );
-
         } else if (isError) {
           // Store ERROR for TopUp and sync
           settings.errors['INCORRECT_TOPUP_CODE'] = true;
@@ -366,8 +366,9 @@
       function _onCall(tcall) {
         clearTimeout(closing);
 
-        if (tcall.direction !== 'outgoing')
+        if (tcall.direction !== 'outgoing') {
           return;
+        }
 
         debug('Outgoing call finished!');
         ConfigManager.requestSettings(function _onSettings(settings) {
