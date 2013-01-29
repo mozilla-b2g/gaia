@@ -295,6 +295,11 @@ var PlayerView = {
     // due to b2g cannot get some mp3's duration
     // and the seekBar can still show 00:00 to -00:00
     this.setSeekBar(0, 0, 0);
+
+    if (this.endedTimer) {
+      clearTimeout(this.endedTimer);
+      this.endedTimer = null;
+    }
   },
 
   play: function pv_play(targetIndex, backgroundIndex) {
@@ -304,10 +309,6 @@ var PlayerView = {
     if (!cpuLock)
       cpuLock = navigator.requestWakeLock('cpu');
 
-    if (this.endedTimer) {
-      clearTimeout(this.endedTimer);
-      this.endedTimer = null;
-    }
 
     this.showInfo();
 
@@ -651,7 +652,6 @@ var PlayerView = {
             this.endedTimer == null) {
           var timeToNext = (this.audio.duration - this.audio.currentTime + 1);
           this.endedTimer = setTimeout(function() {
-                                         this.endedTimer = null;
                                          this.next(true);
                                        }.bind(this),
                                        timeToNext * 1000);
