@@ -44,14 +44,17 @@ var CostControl = (function() {
 
   var sms, connection, telephony, statistics;
   function loadAPIs() {
-    if ('mozSms' in window.navigator)
+    if ('mozSms' in window.navigator) {
       sms = window.navigator.mozSms;
+    }
 
-    if ('mozMobileConnection' in window.navigator)
+    if ('mozMobileConnection' in window.navigator) {
       connection = window.navigator.mozMobileConnection;
+    }
 
-    if ('mozNetworkStats' in window.navigator)
+    if ('mozNetworkStats' in window.navigator) {
       statistics = window.navigator.mozNetworkStats;
+    }
 
     debug('APIs loaded!');
   }
@@ -65,8 +68,9 @@ var CostControl = (function() {
     var simMNC = connection.iccInfo.mnc;
     var enabledNetworks = ConfigManager.configuration.enable_on;
     if (!(simMCC in enabledNetworks) ||
-        (enabledNetworks[simMCC].indexOf(simMNC) === -1))
+        (enabledNetworks[simMCC].indexOf(simMNC) === -1)) {
       return 'DATA_USAGE_ONLY';
+    }
 
     return settings.plantype.toUpperCase();
   }
@@ -178,20 +182,24 @@ var CostControl = (function() {
 
   // Check service status and return the most representative issue if there is
   function getServiceIssues(settings) {
-    if (!connection || !connection.voice || !connection.data)
+    if (!connection || !connection.voice || !connection.data) {
       return 'no_service';
+    }
 
     var mode = getApplicationMode(settings);
-    if (mode !== 'PREPAID')
+    if (mode !== 'PREPAID') {
       return 'no_service';
+    }
 
     var data = connection.data;
-    if (!data.network.shortName && !data.network.longName)
+    if (!data.network.shortName && !data.network.longName) {
       return 'no_service';
+    }
 
     var voice = connection.voice;
-    if (voice.signalStrength === null)
+    if (voice.signalStrength === null) {
       return 'no_coverage';
+    }
 
     return '';
   }
@@ -199,11 +207,13 @@ var CostControl = (function() {
   // Check cost issues and return
   function getCostIssues(configuration) {
     var inRoaming = connection.voice.roaming;
-    if (inRoaming && configuration.is_roaming_free !== true)
+    if (inRoaming && configuration.is_roaming_free !== true) {
       return 'non_free_in_roaming';
+    }
 
-    if (!inRoaming && configuration.is_free !== true)
+    if (!inRoaming && configuration.is_free !== true) {
       return 'non_free';
+    }
 
     return '';
   }
@@ -399,17 +409,21 @@ var CostControl = (function() {
     var totalData, accum = 0;
     for (var i = 0, item; item = data[i]; i++) {
       totalData = 0;
-      if (item.rxBytes)
+      if (item.rxBytes) {
         totalData += item.rxBytes;
-      if (item.txBytes)
+      }
+      if (item.txBytes) {
         totalData += item.txBytes;
+      }
 
       var usage = totalData;
-      if (tags)
+      if (tags) {
         usage = MindGap.getUsage(tags, totalData, item.date);
+      }
 
-      if (usage === undefined)
+      if (usage === undefined) {
         continue;
+      }
 
       accum += usage;
 
