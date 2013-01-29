@@ -121,6 +121,69 @@
     };
   }
 
+  function sendBalanceThresholdNotification(remaining, settings, callback) {
+    // XXX: Hack hiding the message class in the icon URL
+    // Should use the tag element of the notification once the final spec
+    // lands:
+    // See: https://bugzilla.mozilla.org/show_bug.cgi?id=782211
+    navigator.mozApps.getSelf().onsuccess = function _onAppReady(evt) {
+      var app = evt.target.result;
+      var iconURL = NotificationHelper.getIconURI(app);
+
+      var goToBalance;
+      if (!inStandAloneMode()) {
+        goToBalance = function _goToBalance() {
+          app.launch();
+          window.parent.CostControlApp.showBalanceTab();
+        };
+      }
+
+      debug('Low limit already notified:', settings.lowLimitNotified);
+      debug('Zero balance already notified:', settings.lowLimitNotified);
+
+      // Zero reached notification
+      var type;
+      if (remaining.balance === 0 && !settings.zeroBalanceNotified) {
+        type = 'zeroBalance';
+
+      // There is a limit an we are below that limit and we did not notified yet
+      } else if (settings.lowLimit &&
+                 remaining.balance < settings.lowLimitThreshold &&
+                 !settings.lowLimitNotified) {
+        type = 'lowBalance';
+
+      // No need for notification
+      } else {
+        return;
+      }
+      debug('Notification type:', type);
+      iconURL += '?' + type;
+
+      // Get l10n for remaining balance
+      var remainingBalance = _('currency', {
+        currency: remaining.currency,
+        value: remaining.balance
+      });
+
+      // Compose notification and send it
+      var title = _('low-balance-notification-title');
+      var message = _('low-balance-notification-text',
+                      { remaining: remainingBalance });
+      if (type === 'zeroBalance') {
+        title = _('usage');
+        message = _('zero-balance-message');
+      }
+      NotificationHelper.send(title, message, iconURL, goToBalance);
+
+      // Finally mark the notification as sent
+      var update = {};
+      var notified = (type === 'lowBalance') ? 'lowLimitNotified' :
+                                               'zeroBalanceNotified';
+      update[notified] = true;
+      ConfigManager.setOption(update, callback);
+    };
+  }
+
   // Register in standalone or for application
   if (inStandAloneMode() || inApplicationMode()) {
     debug('Installing handlers');
@@ -191,7 +254,8 @@
               debug('Balance up to date and stored');
               debug('Trying to synchronize!');
               localStorage['sync'] = 'lastBalance#' + Math.random();
-              closeIfProceeds();
+              sendBalanceThresholdNotification(newBalance, settings,
+                                               closeIfProceeds);
             }
           );
         } else if (isConfirmation) {
@@ -199,7 +263,11 @@
           navigator.mozAlarms.remove(settings.waitingForTopUp);
           debug('TopUp timeout:', settings.waitingForTopUp, 'removed');
           ConfigManager.setOption(
-            { 'waitingForTopUp': null },
+            {
+              'waitingForTopUp': null,
+              'lowLimitNotified': false,
+              'zeroBalanceNotified': false
+            },
             function _onSet() {
               debug('TopUp confirmed!');
               debug('Trying to synchronize!');
@@ -213,7 +281,12 @@
           navigator.mozAlarms.remove(settings.waitingForTopUp);
           debug('TopUp timeout: ', settings.waitingForTopUp, 'removed');
           ConfigManager.setOption(
-            { 'errors': settings.errors, 'waitingForTopUp': null },
+            {
+              'errors': settings.errors,
+              'waitingForTopUp': null,
+              'lowLimitNotified': false,
+              'zeroBalanceNotified': false
+            },
             function _onSet() {
               debug('Balance up to date and stored');
               debug('Trying to synchronize!');
