@@ -131,6 +131,42 @@ Evme.Utils = new function Evme_Utils() {
     this.cloneObject = function cloneObject(obj) {
         return JSON.parse(JSON.stringify(obj));
     };
+    
+    // remove installed apps from clouds apps
+    this.dedupInstalledApps = function dedupInstalledApps(apps, installedApps) {
+      var dedupCloudAppsBy = [];
+      
+      // first construct the data to filter by (an array of objects)
+      // currently only the URL is relevant
+      for (var i=0, appData; appData=installedApps[i++];) {
+        dedupCloudAppsBy.push({
+          'favUrl': appData.favUrl,
+          'appUrl': appData.favUrl
+        });
+      }
+      
+      return self.dedup(apps, dedupCloudAppsBy);
+    };
+    
+    // remove from arrayOrigin according to rulesToRemove
+    // both arguments are arrays of objects
+    this.dedup = function dedup(arrayOrigin, rulesToRemove) {
+      for (var i=0,item; item=arrayOrigin[i++];) {
+        for (var j=0,rule; rule=rulesToRemove[j++];) {
+          for (var property in rule) {
+            // if one of the conditions was met,
+            // remove the item and continue to next item
+            if (item[property] === rule[property]) {
+              arrayOrigin.splice(i-1, 1);
+              j = rulesToRemove.length;
+              break;
+            }
+          }
+        }
+      }
+      
+      return arrayOrigin;
+    };
 
     this.getRoundIcon = function getRoundIcon(imageSrc, callback) {
         var size = self.sendToOS(self.OSMessages.GET_ICON_SIZE) - 2,
