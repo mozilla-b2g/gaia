@@ -26,25 +26,13 @@ var TTLView = {
       this.element = element;
       document.getElementById('screen').appendChild(element);
 
-      var start = 0;
+      // this is fired when the app launching is initialized
       window.addEventListener('appwillopen', function willopen(e) {
-        var frame = e.target;
-
-        frame.dataset.lastStart = Date.now();
         element.innerHTML = '00000';
+      });
 
-        if (!('unpainted' in frame.dataset)) {
-          frame.addEventListener('appopen', function open(e) {
-            frame.removeEventListener(e.type, open);
-            element.innerHTML = Date.now() - frame.dataset.lastStart;
-          });
-          return;
-        }
-
-        frame.addEventListener('mozbrowserfirstpaint', function paint(e) {
-          frame.removeEventListener(e.type, paint);
-          element.innerHTML = Date.now() - frame.dataset.lastStart;
-        });
+      window.addEventListener('apploadtime', function apploadtime(e) {
+        element.innerHTML = e.detail.time + ' [' + e.detail.type + ']';
       });
     }
 
