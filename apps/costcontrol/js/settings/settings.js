@@ -18,6 +18,11 @@ var Settings = (function() {
     CostControl.getInstance(function _onCostControl(instance) {
       costcontrol = instance;
 
+      // Debug options
+      if (DEBUGGING) {
+        loadDeveloperAids();
+      }
+
       // HTML entities
       plantypeSelector = document.getElementById('plantype-settings');
       phoneActivityTitle = document.getElementById('phone-activity-settings');
@@ -68,16 +73,26 @@ var Settings = (function() {
 
       initialized = true;
 
-      // Debug options
-      if (DEBUGGING) {
-        var debugOnlyItems = document.querySelectorAll('.debug-only');
-        [].forEach.call(debugOnlyItems, function _showItem(item) {
-          item.classList.remove('debug-only');
-        });
-      }
-
       updateUI();
     });
+  }
+
+  // Loads extra HTML useful for debugging
+  function loadDeveloperAids() {
+    var xhr = new XMLHttpRequest();
+    xhr.overrideMimeType('text/plain');
+    xhr.open('GET', '/debug.html', false);
+    xhr.send();
+
+    if (xhr.status === 200) {
+      var src = document.createElement('DIV');
+      src.innerHTML = xhr.responseText;
+      var reference = document.getElementById('plantype-settings');
+      var parent = reference.parentNode;
+      [].forEach.call(src.childNodes, function (node) {
+        reference = parent.insertBefore(node, reference.nextSibling);
+      });
+    }
   }
 
   // Configure reset dialogs for telephony and data usage
