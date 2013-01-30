@@ -13,8 +13,6 @@ var UIManager = {
     'finish-screen',
     'nav-bar',
     'main-title',
-    'loading-overlay',
-    'loading-header',
     // Unlock SIM Screen
     'unlock-sim-screen',
     'unlock-sim-header',
@@ -126,7 +124,7 @@ var UIManager = {
 
     // Browser privacy newsletter subscription
     var basketCallback = function(err, data) {
-      this.loadingOverlay.classList.remove('show-overlay');
+      utils.overlay.hide();
       if (err || data.status !== 'ok') {
         // We don't have any error numbers etc, so we are looking for
         // 'email address' string in the error description.
@@ -149,8 +147,7 @@ var UIManager = {
             this.newsletterInput.checkValidity() &&
             this.newsletterInput.value.length > 0
           ) {
-            this.loadingHeader.innerHTML = _('email-loading');
-            this.loadingOverlay.classList.add('show-overlay');
+            utils.overlay.show(_('email-loading'));
             Basket.send(this.newsletterInput.value, basketCallback.bind(this));
           } else {
             this.invalidEmailErrorDialog.classList.add('visible');

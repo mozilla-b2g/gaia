@@ -53,8 +53,9 @@ contacts.Settings = (function() {
     orderItem.addEventListener('click', onOrderingChange.bind(this));
 
     simImportLink = document.querySelector('[data-l10n-id="importSim"]');
-    simImportLink.addEventListener('click',
-      onSimImport);
+    simImportLink.addEventListener('click', function onSimImportHandler() {
+      window.setTimeout(onSimImport, 0);
+    });
 
     noSimMsg = document.querySelector('#no-sim');
 
@@ -262,7 +263,7 @@ contacts.Settings = (function() {
   }
 
   function doFbUnlink() {
-    Contacts.showOverlay(_('cleaningFbData'));
+    utils.overlay.show(_('cleaningFbData'));
     var wakeLock = navigator.requestWakeLock('cpu');
 
     var req = fb.utils.clearFbData();
@@ -327,23 +328,39 @@ contacts.Settings = (function() {
 
   // Import contacts from SIM card and updates ui
   var onSimImport = function onSimImport(evt) {
-    Contacts.showOverlay(_('simContacts-importing'));
-    var after = document.getElementById('settingsSIM');
+    var progress = Contacts.showOverlay(_('simContacts-importing'), true);
+    var wakeLock = navigator.requestWakeLock('cpu');
 
-    importSIMContacts(
-      function onread() {
+    var importer = new SimContactsImporter();
+    var totalContactsToImport;
+    var importedContacts = 0;
+    // Delay for showing feedback to the user after importing
+    var DELAY_FEEDBACK = 200;
 
-      },
-      function onimport(num) {
-        if (num > 0) {
+    importer.onread = function import_read(n) {
+      totalContactsToImport = n;
+      progress.setTotal(totalContactsToImport);
+    };
+
+    importer.onfinish = function import_finish() {
+      window.setTimeout(function onfinish_import() {
+        if (totalContactsToImport > 0) {
           contacts.List.load();
         }
-        Contacts.hideOverlay();
+        resetWait(wakeLock);
         Contacts.navigation.home();
-        Contacts.showStatus(_('simContacts-imported3', {n: num}));
-      },
-      function onerror() {
-        var cancel = {
+        Contacts.showStatus(_('simContacts-imported3',
+                              {n: importedContacts}));
+      }, DELAY_FEEDBACK);
+    };
+
+    importer.onimported = function imported_contact() {
+      importedContacts++;
+      progress.update();
+    };
+
+    importer.onerror = function import_error() {
+      var cancel = {
           title: _('cancel'),
           callback: function() {
             ConfirmDialog.hide();
@@ -360,7 +377,9 @@ contacts.Settings = (function() {
         };
         ConfirmDialog.show(null, _('simContacts-error'), cancel, retry);
         Contacts.hideOverlay();
-      });
+    };
+
+    importer.start();
   };
 
   // Dismiss settings window and execute operations if values got modified

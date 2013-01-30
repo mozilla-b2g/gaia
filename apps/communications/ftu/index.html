@@ -16,7 +16,7 @@
 
   <!-- Specific style -->
   <link rel="stylesheet" type="text/css" href="/contacts/style/overlay.css">
-  <link rel="stylesheet" type="text/css" href="/contacts/style/status.css" rel="stylesheet">
+  <link rel="stylesheet" type="text/css" href="/contacts/style/status.css">
   <link rel="stylesheet" type="text/css" href="/ftu/css/style.css">
   <link rel="stylesheet" type="text/css" href="/ftu/css/fb_extensions.css">
   <link rel="stylesheet" type="text/css" href="/facebook/style/curtain_frame.css">
@@ -44,6 +44,7 @@
   <!-- Code for the FTU App -->
   <script defer type="text/javascript" src="/ftu/js/basket-client.js"></script>
   <script defer type="text/javascript" src="/contacts/js/utilities/status.js"></script>
+  <script defer type="text/javascript" src="/contacts/js/utilities/overlay.js"></script>
   <script defer type="text/javascript" src="/ftu/js/fb_launcher.js"></script>
   <script defer type="text/javascript" src="/contacts/js/utilities/config.js"></script>
   <script defer type="text/javascript" src="/contacts/js/fb/fb_data.js"></script>
@@ -577,7 +578,7 @@
   </form>
 
   <section id="loading-overlay" role="region" class="view">
-    <article class="loading-container">
+    <article id="spinner-progress" class="loading-container hide">
       <header class="loading-header" id="loading-header">
         Loading
       </header>
@@ -585,6 +586,17 @@
         <progress></progress>
       </p>
     </article>
+    <section id="progressbar" role="region" class="hide">
+      <form role="dialog" data-type="confirm">
+        <section>
+          <h1 id="progress-title"></h1>
+          <p role="status">
+            <span id="progress-msg"></span>
+            <progress id="progress-element" value="0" max="100"></progress>
+          </p>
+        </section>
+      </form>
+    </section>
   </section>
 
   <section id="statusMsg" role="status" class="ftu">
