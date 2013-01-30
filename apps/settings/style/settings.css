@@ -356,6 +356,15 @@ ul li > label .range-icons.brightness {
   position: fixed;
 }
 
+#icc #icc-stk-alert menu button:first-child {
+  margin: 0;
+}
+
+#icc #icc-stk-alert menu button {
+  width: calc((100% - 2rem) / 3);
+  margin-left: 1rem;
+}
+
 .multiline_title {
   text-overflow: clip;
   white-space: normal;
