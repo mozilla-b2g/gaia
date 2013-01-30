@@ -417,7 +417,7 @@ var BluetoothTransfer = {
       // use the file.type to replace the empty fileType which is given by API
       var fileType = '';
       var fileName = file.name;
-      if (contentType != '') {
+      if (contentType != '' && contentType != 'image/*') {
         fileType = contentType;
       } else {
         var fileNameExtension =
