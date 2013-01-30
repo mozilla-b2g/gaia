@@ -227,12 +227,13 @@ if ('mozSetMessageHandler' in window.navigator) {
       } catch (e) {
         console.log('no navigation found:', e);
         var req = confirm(mozL10n.get('setup-empty-account-prompt'));
-        // TODO: Since we can not switch back to previous app if activity type
-        //       is "window", both buttons in confirm dialog will enter
-        //       setup page now(or caller app need to control launch by itself).
-        //
         if (!req) {
+          // We want to do the right thing, but currently this won't even dump
+          // us in the home-screen app.  This is because our activity has
+          // disposition: window rather than inline.
           activity.postError('cancelled');
+          // So our workaround is to close our window.
+          window.close();
           return false;
         }
         return true;
