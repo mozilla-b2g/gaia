@@ -281,7 +281,3 @@ section.content .error-messages {
 #message-handler {
   visibility: hidden;
 }
-
-.debug-only {
-  display: none !important;
-}
