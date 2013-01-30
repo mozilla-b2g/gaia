@@ -12,6 +12,7 @@
     "contacts":{ "access": "readonly" },
     "mobileconnection":{},
     "settings":{ "access": "readonly" },
+    "audio-channel-notification":{},
     "desktop-notification":{}
   },
   "locales": {

@@ -138,6 +138,23 @@ var ThreadUI = {
 
     // We add the infinite scroll effect for increasing performance
     this.view.addEventListener('scroll', this.manageScroll.bind(this));
+
+    // Sent sound init
+    this.sentAudioKey = 'message.sent-sound.enabled';
+    this.sentAudio = new Audio('/sounds/sent.ogg');
+    this.sentAudio.mozAudioChannelType = 'notification';
+    this.sentAudioEnabled = false;
+
+    if ('mozSettings' in navigator) {
+      var req = navigator.mozSettings.createLock().get(this.sentAudioKey);
+      req.onsuccess = (function onsuccess() {
+        this.sentAudioEnabled = req.result[this.sentAudioKey];
+      }).bind(this);
+
+      navigator.mozSettings.addObserver(this.sentAudioKey, (function(e) {
+        this.sentAudioEnabled = e.settingValue;
+      }).bind(this));
+    }
   },
   // We define an edge for showing the following chunk of elements
   manageScroll: function thui_manageScroll(oEvent) {
@@ -785,6 +802,11 @@ var ThreadUI = {
     // Remove the 'spinner'
     var spinnerContainer = aElement.querySelector('aside');
     aElement.removeChild(spinnerContainer);
+
+    // Play the audio notification
+    if (this.sentAudioEnabled) {
+      this.sentAudio.play();
+    }
   },
 
   onMessageFailed: function thui_onMessageFailed(message) {
