@@ -730,7 +730,19 @@ suite('service/caldav', function() {
       };
     });
 
-    test('result', function(done) {
+    test('empty response', function(done) {
+      var stream = new Calendar.Responder();
+      var options = {
+        startDate: new Date(2012, 0, 1),
+        cached: {}
+      };
+
+      // should not crash on empty responses...
+      subject.streamEvents(givenAcc, givenCal, options, stream, done);
+      query.sax.emit('DAV:/response', 'one/', {});
+    });
+
+    test('success', function(done) {
       var stream = new Calendar.Responder();
       var events = [];
       var cals = {

@@ -134,7 +134,7 @@ html, body {
   border-top: solid 0.1rem #b7b7b7;
   border-bottom: solid 0.1rem #fff;
   position: absolute;
-  top: 6.5rem;
+  top: 5.5rem;
   left: 1.5rem;
   right: 1.5rem;
   z-index: 100;
@@ -143,12 +143,12 @@ html, body {
  .step-state:before {
   content: "";
   width: calc(100% / 6);
-  height: 0.6rem;
+  height: 0.3rem;
   position: absolute;
   top: 50%;
   left: 0;
-  margin-top: -0.3rem;
-  background: #00a5c6;
+  margin-top: -0.2rem;
+  background: #858585;
   transition: all 0.35s cubic-bezier(0.000, 1.000, 0.535, 1.110);
 }
 
@@ -994,7 +994,5 @@ i.hack-first-child {
 
 #tutorial-screen .step-state:before {
   width: calc(100% / 5);
-  height: 0.3rem;
-  margin-top: -0.2rem;
   background: #FFFFFF;
 }

@@ -1,3 +1,24 @@
+section[role="region"].skin-organic {
+  background: url("images/pattern.png") repeat left top #ffffff;
+}
+
+/* Make it so that invalid input areas only show up as red when they're focused.
+   This keeps the redness to a minimum in the setup cards. */
+
+input:invalid {
+  border: 0.1rem solid #ccc;
+  color: -moz-initial;
+}
+
+input:-moz-placeholder {
+  color: #666;
+}
+
+input:focus:invalid {
+  border: 0.1rem solid #820000;
+  color: #b90000;
+}
+
 
 .sup-form {
   margin: 1rem 2rem;
@@ -7,9 +28,26 @@
   font: 1.1rem "MozTT", Sans-serif;
 }
 
+.sup-form-item {
+  font-size: 1.4rem;
+  line-height: 3.8rem;
+  vertical-align: middle;
+}
+
+.sup-form-item .end {
+  float: right;
+}
+
 .sup-form-btn {
   margin: 1.5rem 3rem;
   width: calc(100% - 6rem);
+}
+
+.sup-form-link {
+  color: black;
+  font-size: 1.4rem;
+  line-height: 3.8rem;
+  margin: 1.5rem 3rem;
 }
 
 .sup-error-region {
@@ -23,7 +61,6 @@
 }
 .sup-error-code {
   color: #aaa;
-  font-size: 80%;
   margin-top: 0.4rem;
   text-align: right;
 }
@@ -43,28 +80,13 @@
   text-align: center;
 }
 .sup-progress-spinner {
-  width: 2.9rem;
-  height: 2.9rem;
-  background: url("images/spinner.png") no-repeat scroll left top transparent;
-  border: medium none;
-  animation: 1s steps(10, end) 0s normal none infinite moveDefault;
-  display: block;
-  margin: 2rem calc((100% - 2.9rem) / 2);
+  display: block !important;
+  margin: 2rem auto;
 }
 .sup-progress-label {
   margin-bottom: 0.5rem;
   font-weight: 600;
   font-size: 1.5rem;
-}
-
-@keyframes moveDefault {
-  from {
-    background-position: 0 top;
-  }
-
-  to {
-    background-position: -390px top;
-  }
 }
 
 .sup-account-done-label {
@@ -154,8 +176,18 @@ li.align-center {
 }
 
 .mail-select {
-  font-size: 2rem;
   vertical-align: middle;
+  height: 3.8rem;
+  background: none repeat scroll 0% 0% rgb(231, 231, 231);
+  border: 0.1rem solid rgb(182, 182, 182);
+  border-radius: 0.3rem 0.3rem 0.3rem 0.3rem;
+  font-size: 1.4rem;
+  font-weight: 600;
+  padding: 0.9rem 1rem;
+  color: rgb(51, 51, 51);
+  text-shadow: 0.1rem 0.1rem 0px rgba(255, 255, 255, 0.3);
+  text-decoration: none;
+  outline: medium none;
 }
 
 .settings-input-title {

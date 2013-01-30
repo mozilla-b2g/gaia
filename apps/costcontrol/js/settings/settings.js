@@ -102,8 +102,9 @@ var Settings = (function() {
     ok.addEventListener('click', function _onAcceptReset() {
 
       // Reset data usage, take in count spent offsets to fix the charts
-      if (mode === 'data-usage')
+      if (mode === 'data-usage') {
         resetData();
+      }
 
       // Reset telephony counters
       else if (mode === 'telephony')

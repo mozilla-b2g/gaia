@@ -48,8 +48,9 @@
   }
 
   window.addEventListener('localized', function _onLocalize() {
-    if (initialized)
+    if (initialized) {
       updateUI();
+    }
   });
 
   var initialized, widget, leftPanel, rightPanel, fte, views = {};
@@ -74,8 +75,9 @@
     // Update UI when visible
     document.addEventListener('mozvisibilitychange',
       function _onVisibilityChange(evt) {
-        if (!document.mozHidden && initialized)
+        if (!document.mozHidden && initialized) {
           updateUI();
+        }
       }
     );
 
@@ -112,8 +114,9 @@
 
   // On balance update fail
   function onErrors(errors, old, key, settings) {
-    if (!errors['BALANCE_TIMEOUT'])
+    if (!errors['BALANCE_TIMEOUT']) {
       return;
+    }
     debug('Balance timeout!');
 
     setBalanceMode('warning');
@@ -317,8 +320,9 @@
 
     // Timestamp
     var timeContent = formatTimeHTML(balance.timestamp);
-    if (views.balance.classList.contains('updating'))
+    if (views.balance.classList.contains('updating')) {
       timeContent = _('updating') + '...';
+    }
     views.balance.querySelector('.meta').innerHTML = timeContent;
 
     // Limits: reaching zero / low limit
@@ -328,10 +332,11 @@
     } else {
       views.balance.classList.remove('no-credit');
 
-      if (limit && balance.balance < limit)
+      if (limit && balance.balance < limit) {
         views.balance.classList.add('low-credit');
-      else
+      } else {
         views.balance.classList.remove('low-credit');
+      }
     }
   }
 
@@ -339,18 +344,21 @@
   // Set warning / updating modes
   var lastBalanceMode;
   function setBalanceMode(mode) {
-    if (mode === lastBalanceMode)
+    if (mode === lastBalanceMode) {
       return;
+    }
 
     lastBalanceMode = mode;
     views.balance.classList.remove('updating');
     views.balance.classList.remove('warning');
 
-    if (mode === 'warning')
+    if (mode === 'warning') {
       views.balance.classList.add('warning');
+    }
 
-    if (mode === 'updating')
+    if (mode === 'updating') {
       views.balance.classList.add('updating');
+    }
   }
 
 }());
