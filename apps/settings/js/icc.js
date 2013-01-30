@@ -116,6 +116,13 @@
     getIccInfo();
   }
 
+  function stkResTerminate() {
+    iccLastCommandProcessed = true;
+    responseSTKCommand({
+      resultCode: icc.STK_RESULT_UICC_SESSION_TERM_BY_USER
+    });
+  }
+
   function stkResGoBack() {
     iccLastCommandProcessed = true;
     responseSTKCommand({
@@ -741,10 +748,7 @@
     alertbox_btnclose.onclick = function() {
       clearTimeout(timeoutId);
       alertbox.classList.add('hidden');
-      iccLastCommandProcessed = true;
-      responseSTKCommand({
-        resultCode: icc.STK_RESULT_UICC_SESSION_TERM_BY_USER
-      });
+      stkResTerminate();
     };
 
     alertbox_msg.textContent = options.text;
@@ -755,6 +759,11 @@
    * Play tones
    */
   function playTone(options) {
+    function closeToneAlert() {
+      tonePlayer.pause();
+      alertbox.classList.add('hidden');
+    }
+
     debug('playTone: ', options);
 
     var tonePlayer = new Audio();
@@ -818,8 +827,14 @@
     }
 
     if (options.text) {
-      alertbox_btn.onclick = function() {
-        alertbox.classList.add('hidden');
+      alertbox_btn.onclick = closeToneAlert;
+      alertbox_btnback.onclick = function() {
+        closeToneAlert();
+        stkResGoBack();
+      };
+      alertbox_btnclose.onclick = function() {
+        closeToneAlert();
+        stkResTerminate();
       };
       alertbox_msg.textContent = options.text;
       alertbox.classList.remove('hidden');
