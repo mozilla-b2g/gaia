@@ -20,6 +20,8 @@
   var iccStkSubheader = document.getElementById('icc-stk-subheader');
   var alertbox = document.getElementById('icc-stk-alert');
   var alertbox_btn = document.getElementById('icc-stk-alert-btn');
+  var alertbox_btnback = document.getElementById('icc-stk-alert-btn_back');
+  var alertbox_btnclose = document.getElementById('icc-stk-alert-btn_close');
   var alertbox_msg = document.getElementById('icc-stk-alert-msg');
   var iccLastCommand = null;
   var iccLastCommandProcessed = false;
@@ -71,16 +73,6 @@
     };
 
     document.getElementById('icc-stk-app-back').onclick = stkResGoBack;
-    document.getElementById('icc-stk-alert-btn_back').onclick = function() {
-      alertbox.classList.add('hidden');
-      stkResGoBack();
-    }
-    document.getElementById('icc-stk-alert-btn_close').onclick = function() {
-      alertbox.classList.add('hidden');
-      responseSTKCommand({
-        resultCode: icc.STK_RESULT_UICC_SESSION_TERM_BY_USER
-      });
-    };
     document.getElementById('icc-stk-help-exit').onclick = updateMenu;
 
     window.onunload = function() {
@@ -738,6 +730,21 @@
       if (cb) {
         cb(true);
       }
+    };
+
+    alertbox_btnback.onclick = function() {
+      clearTimeout(timeoutId);
+      alertbox.classList.add('hidden');
+      stkResGoBack();
+    }
+
+    alertbox_btnclose.onclick = function() {
+      clearTimeout(timeoutId);
+      alertbox.classList.add('hidden');
+      iccLastCommandProcessed = true;
+      responseSTKCommand({
+        resultCode: icc.STK_RESULT_UICC_SESSION_TERM_BY_USER
+      });
     };
 
     alertbox_msg.textContent = options.text;
