@@ -17041,8 +17041,9 @@ ImapConnection.prototype.connect = function(loginCb) {
               box.parent = parent;
             }
             box.displayName = decodeModifiedUtf7(name);
-            if (!curChildren[name])
-              curChildren[name] = box;
+            if (curChildren[name])
+              box.children = curChildren[name].children;
+            curChildren[name] = box;
           }
         break;
         // QRESYNC (when successful) generates a "VANISHED (EARLIER) uids"
