@@ -35,21 +35,31 @@ const GridManager = (function() {
   var startEvent, isPanning = false, deltaX, removePanHandler,
       dummy = function() {};
 
+  var isTouch = 'ontouchstart' in window;
+  var touchstart = isTouch ? 'touchstart' : 'mousedown';
+  var touchmove = isTouch ? 'touchmove' : 'mousemove';
+  var touchend = isTouch ? 'touchend' : 'mouseup';
+
+  var getX = (function getXWrapper() {
+    return isTouch ? function(e) { return e.touches[0].pageX } :
+                     function(e) { return e.pageX };
+  })();
+
   function handleEvent(evt) {
     switch (evt.type) {
-      case 'touchstart':
+      case touchstart:
         touchStartTimestamp = evt.timeStamp;
-        startEvent = evt.touches[0];
+        startEvent = isTouch ? evt.touches[0] : evt;
         deltaX = 0;
         attachEvents();
         removePanHandler = dummy;
         isPanning = false;
         break;
 
-      case 'touchmove':
+      case touchmove:
         // Start panning immediately but only disable
         // the tap when we've moved far enough.
-        deltaX = evt.touches[0].pageX - startEvent.pageX;
+        deltaX = getX(evt).pageX - startEvent.pageX;
         if (deltaX === 0)
           return;
 
@@ -59,7 +69,7 @@ const GridManager = (function() {
         // method for panning only the 2 relevants pages based on the
         // direction of the inputs. The code here is carefully written
         // to avoid as much as possible allocations while panning.
-        window.removeEventListener('touchmove', handleEvent);
+        window.removeEventListener(touchmove, handleEvent);
 
         // Before panning pages that are directly next to the current
         // target are set visible.
@@ -128,7 +138,7 @@ const GridManager = (function() {
         // Generate a function accordingly to the current page position.
         if (Homescreen.isInEditMode() || currentPage > 2) {
           var pan = function(e) {
-            deltaX = e.touches[0].pageX - startX;
+            deltaX = getX(e) - startX;
             if (!isPanning && Math.abs(deltaX) >= tapThreshold) {
               isPanning = true;
             }
@@ -136,7 +146,7 @@ const GridManager = (function() {
           };
         } else {
           var pan = function(e) {
-            deltaX = e.touches[0].pageX - startX;
+            deltaX = getX(e) - startX;
             if (!isPanning && Math.abs(deltaX) >= tapThreshold) {
               isPanning = true;
             }
@@ -148,25 +158,25 @@ const GridManager = (function() {
         }
 
         var container = pages[index].container;
-        container.addEventListener('touchmove', pan, true);
+        container.addEventListener(touchmove, pan, true);
 
         removePanHandler = function removePanHandler(e) {
           touchEndTimestamp = e ? e.timeStamp : Number.MAX_VALUE;
-          window.removeEventListener('touchend', removePanHandler, true);
+          window.removeEventListener(touchend, removePanHandler, true);
 
-          container.removeEventListener('touchmove', pan, true);
+          container.removeEventListener(touchmove, pan, true);
 
           window.mozRequestAnimationFrame(function panTouchEnd() {
             onTouchEnd(deltaX, e);
           });
         };
 
-        window.addEventListener('touchend', removePanHandler, true);
-        window.removeEventListener('touchend', handleEvent);
+        window.addEventListener(touchend, removePanHandler, true);
+        window.removeEventListener(touchend, handleEvent);
 
         break;
 
-      case 'touchend':
+      case touchend:
         releaseEvents();
         pageHelper.getCurrent().tap(evt.target);
         break;
@@ -228,13 +238,13 @@ const GridManager = (function() {
   }
 
   function attachEvents() {
-    window.addEventListener('touchmove', handleEvent);
-    window.addEventListener('touchend', handleEvent);
+    window.addEventListener(touchmove, handleEvent);
+    window.addEventListener(touchend, handleEvent);
   }
 
   function releaseEvents() {
-    window.removeEventListener('touchmove', handleEvent);
-    window.removeEventListener('touchend', handleEvent);
+    window.removeEventListener(touchmove, handleEvent);
+    window.removeEventListener(touchend, handleEvent);
   }
 
   function togglePagesVisibility(start, end) {
@@ -597,7 +607,7 @@ const GridManager = (function() {
 
     container = document.querySelector(selector);
     container.addEventListener('contextmenu', handleEvent);
-    container.addEventListener('touchstart', handleEvent, true);
+    container.addEventListener(touchstart, handleEvent, true);
 
     limits.left = container.offsetWidth * 0.05;
     limits.right = container.offsetWidth * 0.95;
@@ -904,7 +914,7 @@ const GridManager = (function() {
 
     onDragStart: function gm_onDragSart() {
       releaseEvents();
-      container.removeEventListener('touchstart', handleEvent, true);
+      container.removeEventListener(touchstart, handleEvent, true);
       dragging = document.body.dataset.dragging = true;
     },
 
@@ -912,7 +922,7 @@ const GridManager = (function() {
       delete document.body.dataset.dragging;
       dragging = false;
       delete document.body.dataset.transitioning;
-      container.addEventListener('touchstart', handleEvent, true);
+      container.addEventListener(touchstart, handleEvent, true);
       ensurePagesOverflow();
       removeEmptyPages();
     },
