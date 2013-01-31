@@ -91,6 +91,10 @@ Evme.Utils = new function Evme_Utils() {
         return map[experienceId.toString()] || experienceId;
     };
     
+    this.uuid = function generateUUID() {
+        return Evme.uuid();
+    };
+    
     this.sendToOS = function sendToOS(type, data) {
         switch (type) {
             case OSMessages.APP_CLICK:
