@@ -63,7 +63,7 @@ form[role="dialog"][data-type="confirm"] menu {
   white-space: nowrap;
   margin: 0;
   padding: 1.5rem;
-  border-top: solid 1px rgba(255, 255, 255, 0.1);
+  border-top: solid 0.1rem rgba(255, 255, 255, 0.1);
   background: #2d2d2d url(confirm/images/ui/pattern.png) repeat left top;
   display: block;
   overflow: hidden;
@@ -89,9 +89,9 @@ form[role="dialog"][data-type="confirm"] menu button {
   white-space: nowrap;
   overflow: hidden;
   background: #fafafa url(buttons/images/ui/default.png) repeat-x left bottom;
-  border: 0.1rem solid #9f9f9f;
+  border: 0.1rem solid #a6a6a6;
   border-radius: 0.3rem;
-  font: 600 1.6rem/3.8rem 'MozTT', Sans-serif;
+  font: 500 1.6rem/3.8rem 'MozTT', Sans-serif;
   color: #333;
   text-align: center;
   text-shadow: 0.1rem 0.1rem 0 rgba(255,255,255,0.3);
@@ -112,7 +112,7 @@ a.recommend[role="button"]:active  {
 form[role="dialog"][data-type="confirm"] menu button.recommend {
   background-image: url(buttons/images/ui/recommend.png);
   background-color: #00caf2;
-  border-color: #00acce;
+  border-color: #008eab;
 }
 
 /* Danger */
@@ -121,8 +121,8 @@ a.danger[role="button"] {
   background-image: url(buttons/images/ui/danger.png);
   background-color: #b70404;
   color: #fff;
-  text-shadow: -0.1rem -0.1rem 0 #830b0b;
-  border: none;
+  text-shadow: none;
+  border-color: #820000;
 }
 
 /* Danger Press */
@@ -131,21 +131,12 @@ form[role="dialog"][data-type="confirm"] menu button.danger:active {
   background-color: #890707;
 }
 
-/* Disabled (default & recommend) */
-form[role="dialog"][data-type="confirm"] menu button[disabled],
-form[role="dialog"][data-type="confirm"] menu button[disabled].recommend {
-  background-image: url(buttons/images/ui/disabled.png);
-  background-color: transparent;
-  border-color: #dadada;
-  color: #bcbcbc;
-  pointer-events: none;
-}
-
-/* Danger disabled */
-form[role="dialog"][data-type="confirm"] menu button[disabled].danger {
-  background-image: url(buttons/images/ui/danger-disabled.png);
-  color: #fff;
+/* Disabled */
+form[role="dialog"][data-type="confirm"] > menu > button[disabled] {
+  background: #5f5f5f;
+  color: #4d4d4d;
   text-shadow: none;
+  border-color: #4d4d4d;
   pointer-events: none;
 }
 
