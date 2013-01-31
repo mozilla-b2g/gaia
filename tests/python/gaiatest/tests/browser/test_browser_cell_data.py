@@ -33,14 +33,18 @@ class TestBrowserCellData(GaiaTestCase):
         url_button = self.marionette.find_element(*self._url_button_locator)
         self.marionette.tap(url_button)
 
+        # Wait for throbber
+        self.wait_for_element_displayed(*self._throbber_locator)
+
         # Bump up the timeout due to slower cell data speeds
-        self.wait_for_condition(lambda m: not self.is_throbber_visible(), timeout=40)
+        self.wait_for_condition(lambda m: not self.is_throbber_visible(), timeout=120)
 
         browser_frame = self.marionette.find_element(
             *self._browser_frame_locator)
 
         self.marionette.switch_to_frame(browser_frame)
 
+        self.wait_for_element_present('id', 'page-title', 120)
         heading = self.marionette.find_element('id', 'page-title')
         self.assertEqual(heading.text, 'We believe that the internet should be public, open and accessible.')
 

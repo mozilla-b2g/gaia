@@ -2,8 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from gaiatest import GaiaTestCase
 import time
+from gaiatest import GaiaTestCase
 
 
 class TestDialer(GaiaTestCase):
@@ -28,26 +28,19 @@ class TestDialer(GaiaTestCase):
     def test_dialer_make_call(self):
         # https://moztrap.mozilla.org/manage/case/1298/
 
-        self.assertTrue(self.testvars, 'Test variables file not provided')
-        self.assertTrue('remote_phone_number' in self.testvars,
-                        'No remote phone number present in test variables file')
-        self._test_phone_number = self.testvars['remote_phone_number']
-        self.assertTrue(self._test_phone_number,
-                        'Remote phone number in test variables file is empty')
+        test_phone_number = self.testvars['twilio']['phone_number']
 
         self.wait_for_element_displayed(*self._keyboard_container_locator)
 
-        self._dial_number(self._test_phone_number)
+        self._dial_number(test_phone_number)
 
         # Assert that the number was entered correctly.
-        phone_view = self.marionette.find_element(
-            *self._phone_number_view_locator)
+        phone_view = self.marionette.find_element(*self._phone_number_view_locator)
 
-        self.assertEqual(
-            phone_view.get_attribute('value'), self._test_phone_number)
+        self.assertEqual(phone_view.get_attribute('value'), test_phone_number)
 
-        # Now press call!
-        self.marionette.find_element(*self._call_bar_locator).click()
+        # Click the call button
+        self.marionette.tap(self.marionette.find_element(*self._call_bar_locator))
 
         # Switch to top level frame
         self.marionette.switch_to_frame()
@@ -64,11 +57,11 @@ class TestDialer(GaiaTestCase):
         self.wait_for_condition(lambda m: self.data_layer.active_telephony_state == "alerting", timeout=30)
 
         # Check the number displayed is the one we dialed
-        self.assertEqual(self._test_phone_number,
-                         self.marionette.find_element(*self._calling_number_locator).text)
+        self.assertEqual(test_phone_number,
+            self.marionette.find_element(*self._calling_number_locator).text)
 
         # hang up before the person answers ;)
-        self.marionette.find_element(*self._hangup_bar_locator).click()
+        self.marionette.tap(self.marionette.find_element(*self._hangup_bar_locator))
 
     def _dial_number(self, phone_number):
         '''
@@ -84,5 +77,6 @@ class TestDialer(GaiaTestCase):
                 time.sleep(2)
 
             else:
-                self.marionette.find_element('css selector', 'div.keypad-key[data-value="%s"]' % i).click()
+                self.marionette.tap(self.marionette.find_element('css selector', 'div.keypad-key[data-value="%s"]' % i))
                 time.sleep(0.25)
+

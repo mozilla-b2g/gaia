@@ -3,6 +3,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from gaiatest import GaiaTestCase
+from gaiatest.mocks.mock_contact import MockContact
 
 
 class TestInitialState(GaiaTestCase):
@@ -27,6 +28,10 @@ class TestInitialState(GaiaTestCase):
             self.data_layer.connect_to_wifi(self.testvars['wifi'])
             self.data_layer.disable_wifi()
 
+        # insert contacts
+        self.data_layer.insert_contact(MockContact())
+        self.data_layer.insert_contact(MockContact())
+
         # move away from home screen
         self.marionette.switch_to_frame(
             self.marionette.find_element(*self.homescreen_frame_locator))
@@ -50,6 +55,8 @@ class TestInitialState(GaiaTestCase):
         self.assertEqual(self.data_layer.get_setting('audio.volume.master'), 0)
 
         self.assertEqual(self.data_layer.media_files, [])
+
+        self.assertEqual(self.data_layer.all_contacts, [])
 
         # check we're on the home screen
         self.marionette.switch_to_frame(
