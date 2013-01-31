@@ -196,17 +196,14 @@ var AttentionScreen = {
     this.attentionScreen.style.transition = 'none';
 
     var self = this;
-    window.addEventListener('MozAfterPaint', function finishAfterPaint() {
-      window.removeEventListener('MozAfterPaint', finishAfterPaint);
-      setTimeout(function nextLoop() {
-        self.attentionScreen.style.transition = '';
+    setTimeout(function nextTick() {
+      self.attentionScreen.style.transition = '';
 
-        // leaving "active-statusbar" mode,
-        // with a transform: translateY() slide down transition.
-        self.mainScreen.classList.remove('active-statusbar');
-        self.dispatchEvent('status-inactive', {
-          origin: self.attentionScreen.lastElementChild.dataset.frameOrigin
-        });
+      // leaving "active-statusbar" mode,
+      // with a transform: translateY() slide down transition.
+      self.mainScreen.classList.remove('active-statusbar');
+      self.dispatchEvent('status-inactive', {
+        origin: self.attentionScreen.lastElementChild.dataset.frameOrigin
       });
     });
   },

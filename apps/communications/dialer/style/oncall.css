@@ -138,10 +138,7 @@ body.hidden *[data-l10n-id] {
 
 #call-screen:not([data-layout="incoming-locked"]) {
   transform: translateY(-100%);
-}
-
-#call-screen:not([data-layout="incoming-locked"]).animate {
-  -moz-transition: transform 0.5s ease;
+  transition: transform 0.5s ease;
 }
 
 #call-screen:not([data-layout="incoming-locked"]).displayed {
@@ -150,10 +147,7 @@ body.hidden *[data-l10n-id] {
 
 #call-screen[data-layout="incoming-locked"] {
   opacity: 0;
-}
-
-#call-screen[data-layout="incoming-locked"].animate {
-  -moz-transition: opacity 1s ease;
+  transition: opacity 1s ease;
 }
 
 #call-screen[data-layout="incoming-locked"].displayed {
@@ -162,16 +156,6 @@ body.hidden *[data-l10n-id] {
 
 #call-screen:before {
   background: url("images/mask.png") no-repeat scroll 50% 50% / cover transparent;
-}
-
-#call-screen.prerender {
-  transform: translateY(-moz-calc(-100% + 1px));
-  opacity: 0.05;
-}
-
-#call-screen.displayed.prerender {
-  transform: translateY(-1px);
-  opacity: 0.95;
 }
 
 #main-container {
