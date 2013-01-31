@@ -27326,8 +27326,12 @@ exports.SubjectFilter = SubjectFilter;
 SubjectFilter.prototype = {
   needsBody: false,
   testMessage: function(header, body, match) {
+    const subject = header.subject;
+    // Empty subjects can't match *anything*; no empty regexes allowed, etc.
+    if (!subject)
+      return false;
     const phrase = this.phrase,
-          subject = header.subject, slen = subject.length,
+          slen = subject.length,
           stopAfter = this.stopAfter,
           contextBefore = this.contextBefore, contextAfter = this.contextAfter,
           matches = [];
@@ -27520,10 +27524,15 @@ MessageFilterer.prototype = {
     //            header.subject, 'body?', !!body, ')');
     var matched = false, matchObj = {};
     const filters = this.filters;
-    for (var i = 0; i < filters.length; i++) {
-      var filter = filters[i];
-      if (filter.testMessage(header, body, matchObj))
-        matched = true;
+    try {
+      for (var i = 0; i < filters.length; i++) {
+        var filter = filters[i];
+        if (filter.testMessage(header, body, matchObj))
+          matched = true;
+      }
+    }
+    catch (ex) {
+      console.error('filter exception', ex, '\n', ex.stack);
     }
     //console.log('   =>', matched, JSON.stringify(matchObj));
     if (matched)
