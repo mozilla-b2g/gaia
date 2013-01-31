@@ -21,10 +21,6 @@ Gaia.webapps.forEach(function (webapp) {
   domains.push(webapp.domain);
 });
 
-
-// Probably wont be needed when https://bugzilla.mozilla.org/show_bug.cgi?id=768440 lands
-prefs.push(["dom.send_after_paint_to_content", true]);
-
 prefs.push(["network.http.max-connections-per-server", 15]);
 
 // for https://bugzilla.mozilla.org/show_bug.cgi?id=811605 to let user know what prefs is for ril debugging

@@ -40,7 +40,6 @@ settings = {
  "deviceinfo.platform_version": "",
  "deviceinfo.software": "",
  "deviceinfo.update_channel": "",
- "devtools.debugger.remote-enabled": False,
  "gaia.system.checkForUpdates": False,
  "geolocation.enabled": True,
  "keyboard.layouts.english": True,
@@ -149,8 +148,9 @@ def main():
     parser.add_option("-o", "--output", help="specify the name of the output file")
     parser.add_option("-w", "--wallpaper", help="specify the name of the wallpaper file")
     parser.add_option("-v", "--verbose", help="increase output verbosity", action="store_true")
-    parser.add_option(      "--noftu", help="bypass the ftu app")
+    parser.add_option(      "--noftu", help="bypass the ftu app", action="store_true")
     parser.add_option(      "--locale", help="specify the default locale to use")
+    parser.add_option(      "--enable-debugger", help="enable remote debugger and ADB", action="store_true")
     (options, args) = parser.parse_args(sys.argv[1:])
 
     verbose = options.verbose
@@ -175,12 +175,15 @@ def main():
     else:
         wallpaper_filename = "build/wallpaper.jpg"
 
+    enable_debugger = (options.enable_debugger == True)
+
     if verbose:
         print "Console:", options.console
         print "Homescreen URL:", homescreen_url
         print "Ftu URL:", ftu_url
         print "Setting Filename:",settings_filename
         print "Wallpaper Filename:", wallpaper_filename
+        print "Enable Debugger:", enable_debugger
 
     # Set the default console output
     if options.console:
@@ -196,6 +199,8 @@ def main():
     # Set the default locale
     if options.locale:
         settings["language.current"] = options.locale
+
+    settings["devtools.debugger.remote-enabled"] = enable_debugger;
 
     # Grab wallpaper.jpg and convert it into a base64 string
     wallpaper_file = open(wallpaper_filename, "rb")

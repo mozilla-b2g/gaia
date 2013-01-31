@@ -43,12 +43,21 @@ var MessageManager = {
   onMessageSent: function mm_onMessageSent(e) {
     ThreadUI.onMessageSent(e.message);
   },
+  // This method fills the gap while we wait for next 'getThreadList' request,
+  // letting us rendering the new thread with a better performance.
+  createThreadMockup: function mm_createThreadMockup(message) {
+    // Given a message we create a thread as a mockup. This let us render the
+    // thread without requesting Gecko, so we increase the performance and we
+    // reduce Gecko requests.
+    return {
+        senderOrReceiver: message.sender,
+        body: message.body,
+        timestamp: message.timestamp,
+        unreadCount: 1
+      };
+  },
 
   onMessageReceived: function mm_onMessageReceived(e) {
-    if (window.location.hash === '#edit') {
-      return;
-    }
-
     var message = e.message;
 
     var num;
@@ -65,7 +74,39 @@ var MessageManager = {
       ThreadUI.appendMessage(message);
       Utils.updateTimeHeaders();
     } else {
-      this.getThreads(ThreadListUI.renderThreads);
+      var threadMockup = this.createThreadMockup(message);
+      if (ThreadListUI.view.getElementsByTagName('ul').length === 0) {
+        ThreadListUI.renderThreads([threadMockup]);
+      } else {
+        var num = threadMockup.senderOrReceiver;
+        var timestamp = threadMockup.timestamp.getTime();
+        var previousThread = document.getElementById('thread_' + num);
+        if (previousThread && previousThread.dataset.time > timestamp) {
+          // If the received SMS it's older that the latest one
+          // We need only to update the 'unread status'
+          previousThread.getElementsByTagName('a')[0].classList
+                    .add('unread');
+          return;
+        }
+        // We remove the previous one in order to place the new one properly
+        if (previousThread) {
+          var threadsInContainer = previousThread.parentNode.children.length;
+          if (threadsInContainer === 1) {
+            // If it's the last one we should remove the container
+            var oldThreadContainer = previousThread.parentNode;
+            var oldHeaderContainer = oldThreadContainer.previousSibling;
+            ThreadListUI.view.removeChild(oldThreadContainer);
+            ThreadListUI.view.removeChild(oldHeaderContainer);
+          } else {
+            var threadsContainerID = 'threadsContainer_' +
+                              Utils.getDayDate(threadMockup.timestamp);
+            var threadsContainer =
+              document.getElementById(threadsContainerID);
+            threadsContainer.removeChild(previousThread);
+          }
+        }
+        ThreadListUI.appendThread(threadMockup);
+      }
     }
   },
 
@@ -500,31 +541,22 @@ var ThreadListUI = {
                        'header');
       // Edit mode available
       ThreadListUI.iconEdit.classList.remove('disabled');
-      var dayHeaderIndex;
       var appendThreads = function(threads, callback) {
         if (threads.length === 0) {
+          // Refresh fixed header logic
+          FixedHeader.refresh();
+
           if (callback) {
             callback();
           }
           return;
         }
         var thread = threads.pop();
-        var time = thread.timestamp.getTime();
-        if (!dayHeaderIndex) {
-          dayHeaderIndex = Utils.getDayDate(time);
-          ThreadListUI.createNewHeader(time);
-        } else {
-          var tmpDayIndex = Utils.getDayDate(time);
-          if (tmpDayIndex < dayHeaderIndex) {
-            ThreadListUI.createNewHeader(time);
-            dayHeaderIndex = tmpDayIndex;
-          }
-        }
         setTimeout(function() {
           ThreadListUI.appendThread(thread);
           appendThreads(threads, callback);
         });
-      }
+      };
 
       appendThreads(threads, function at_callback() {
         // Boot update of headers
@@ -549,23 +581,17 @@ var ThreadListUI = {
     }
   },
 
-  appendThread: function thlui_appendThread(thread) {
-    // Retrieve ThreadsContainer
-    var threadsContainerID = 'threadsContainer_' +
-                              Utils.getDayDate(thread.timestamp);
-    var threadsContainer = document.getElementById(threadsContainerID);
-
-    if (!threadsContainer) {
-      return;
-    }
+  createThread: function thlui_createThread(thread) {
     // Create DOM element
     var num = thread.senderOrReceiver;
+    var timestamp = thread.timestamp.getTime();
     var threadDOM = document.createElement('li');
     threadDOM.id = 'thread_' + num;
+    threadDOM.dataset.time = timestamp;
 
     // Retrieving params from thread
     var bodyText = (thread.body || '').split('\n')[0];
-    var formattedDate = Utils.getFormattedHour(thread.timestamp.getTime());
+    var formattedDate = Utils.getFormattedHour(timestamp);
     // Create HTML Structure
     var structureHTML = '<label class="danger">' +
                           '<input type="checkbox" value="' + num + '">' +
@@ -586,15 +612,64 @@ var ThreadListUI = {
     // Update HTML
     threadDOM.innerHTML = structureHTML;
 
-    // Append Element
-    threadsContainer.appendChild(threadDOM);
-
+    return threadDOM;
+  },
+  insertThreadContainer:
+    function thlui_insertThreadContainer(fragment, timestamp) {
+    // We look for placing the group in the right place.
+    var headers = ThreadListUI.view.getElementsByTagName('header');
+    var groupFound = false;
+    for (var i = 0; i < headers.length; i++) {
+      if (timestamp >= headers[i].dataset.time) {
+        groupFound = true;
+        ThreadListUI.view.insertBefore(fragment, headers[i]);
+        break;
+      }
+    }
+    if (!groupFound) {
+      ThreadListUI.view.appendChild(fragment);
+    }
+  },
+  appendThread: function thlui_appendThread(thread) {
+    var num = thread.senderOrReceiver;
+    var timestamp = thread.timestamp.getTime();
+    // We create the DOM element of the thread
+    var threadDOM = this.createThread(thread);
     // Update info given a number
     ThreadListUI.updateThreadWithContact(num, threadDOM);
-  },
 
+    // Is there any container already?
+    var threadsContainerID = 'threadsContainer_' +
+                              Utils.getDayDate(thread.timestamp);
+    var threadsContainer = document.getElementById(threadsContainerID);
+    // If there is no container we create & insert it to the DOM
+    if (!threadsContainer) {
+      // We create the fragment with groul 'header' & 'ul'
+      var threadsContainerFragment =
+        ThreadListUI.createThreadContainer(timestamp);
+      // Update threadsContainer with the new value
+      threadsContainer = threadsContainerFragment.childNodes[1];
+      // Place our new fragment in the DOM
+      ThreadListUI.insertThreadContainer(threadsContainerFragment, timestamp);
+    }
+
+    // Where have I to place the new thread?
+    var threads = ThreadListUI.view.getElementsByTagName('li');
+    var threadFound = false;
+    for (var i = 0; i < threads.length; i++) {
+      if (timestamp > threads[i].dataset.time) {
+        threadFound = true;
+        threadsContainer.insertBefore(threadDOM, threads[i]);
+        break;
+      }
+    }
+    if (!threadFound) {
+      threadsContainer.appendChild(threadDOM);
+    }
+  },
   // Adds a new grouping header if necessary (today, tomorrow, ...)
-  createNewHeader: function thlui_createNewHeader(timestamp) {
+  createThreadContainer: function thlui_createThreadContainer(timestamp) {
+    var threadContainer = document.createDocumentFragment();
     // Create Header DOM Element
     var headerDOM = document.createElement('header');
     // Append 'time-update' state
@@ -610,11 +685,9 @@ var ThreadListUI = {
     headerDOM.innerHTML = Utils.getHeaderDate(timestamp);
 
     // Add to DOM all elements
-    ThreadListUI.view.appendChild(headerDOM);
-    ThreadListUI.view.appendChild(threadsContainerDOM);
-
-    // Refresh fixed header logic
-    FixedHeader.refresh();
+    threadContainer.appendChild(headerDOM);
+    threadContainer.appendChild(threadsContainerDOM);
+    return threadContainer;
   },
   // Method for updating all contact info after creating a contact
   updateContactsInfo: function mm_updateContactsInfo() {
@@ -801,7 +874,6 @@ var ThreadUI = {
     if (!navigator.mozSms) {
       return;
     }
-    
     var value = this.input.value;
     // We set maximum concatenated number of our SMS app to 10 based on:
     // https://bugzilla.mozilla.org/show_bug.cgi?id=813686#c0
@@ -879,6 +951,15 @@ var ThreadUI = {
   },
   // Method for updating the header with the info retrieved from Contacts API
   updateHeaderData: function thui_updateHeaderData(callback) {
+    // For Desktop Testing, mozContacts it's mockuped but it's not working
+    // completely. So in the case of Desktop testing we are going to execute
+    // the callback directly in order to make it works!
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=836733
+    if (!navigator.mozSms && callback) {
+      setTimeout(callback);
+      return;
+    }
+
     var number = MessageManager.currentNum;
     if (!number) {
       return;
@@ -1251,7 +1332,9 @@ var ThreadUI = {
 
   onMessageSent: function thui_onMessageSent(message) {
     var messageDOM = document.getElementById('message-' + message.id);
-
+    if (!messageDOM) {
+      return;
+    }
     // Remove 'sending' style
     var aElement = messageDOM.querySelector('a');
     aElement.classList.remove('sending');
@@ -1262,7 +1345,9 @@ var ThreadUI = {
 
   onMessageFailed: function thui_onMessageFailed(message) {
     var messageDOM = document.getElementById('message-' + message.id);
-
+    if (!messageDOM) {
+      return;
+    }
     // Remove 'sending' style and add 'error' style
     var aElement = messageDOM.querySelector('a');
     // Check if it was painted as 'error' before

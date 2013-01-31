@@ -105,12 +105,7 @@ function parseJPEGMetadata(file, metadataCallback, metadataError) {
   }
 
   function parseAPP1(data) {
-    if (data.getUint8(4) === 0x45 && // E
-        data.getUint8(5) === 0x78 && // x
-        data.getUint8(6) === 0x69 && // i
-        data.getUint8(7) === 0x66 && // f
-        data.getUint8(8) === 0) {    // NUL
-
+    if (data.getUint32(4, false) === 0x45786966) { // "Exif"
       var exif = parseEXIFData(data);
 
       if (exif.THUMBNAIL && exif.THUMBNAILLENGTH) {
@@ -143,6 +138,11 @@ function parseJPEGMetadata(file, metadataCallback, metadataError) {
 
     var offset = data.getUint32(14, byteorder);
 
+    /*
+     * This is how we would parse all EXIF metadata more generally.
+     * I'm leaving this code in as a comment in case we need other EXIF
+     * data in the future.
+     *
     parseIFD(data, offset + 10, byteorder, exif);
 
     if (exif.EXIFIFD) {
@@ -154,19 +154,33 @@ function parseJPEGMetadata(file, metadataCallback, metadataError) {
       parseIFD(data, exif.GPSIFD + 10, byteorder, exif);
       delete exif.GPSIFD;
     }
+   */
+
+    // Instead of a general purpose EXIF parse, we're going to drill
+    // down directly to the thumbnail image.
+    // We're in IFD0 here. We want the offset of IFD1
+    var ifd0entries = data.getUint16(offset + 10, byteorder);
+    var ifd1 = data.getUint32(offset + 12 + 12 * ifd0entries, byteorder);
+    // If there is an offset for IFD1, parse that
+    if (ifd1 !== 0)
+      parseIFD(data, ifd1 + 10, byteorder, exif, true);
 
     return exif;
   }
 
-  function parseIFD(data, offset, byteorder, exif) {
+  function parseIFD(data, offset, byteorder, exif, onlyParseOne) {
     var numentries = data.getUint16(offset, byteorder);
     for (var i = 0; i < numentries; i++) {
       parseEntry(data, offset + 2 + 12 * i, byteorder, exif);
     }
 
+    if (onlyParseOne)
+      return;
+
     var next = data.getUint32(offset + 2 + 12 * numentries, byteorder);
-    if (next !== 0)
+    if (next !== 0 && next < file.size) {
       parseIFD(data, next + 10, byteorder, exif);
+    }
   }
 
   // size, in bytes, of each TIFF data type
@@ -221,12 +235,12 @@ function parseJPEGMetadata(file, metadataCallback, metadataError) {
      '41992': 'Contrast',
      '41993': 'Saturation',
      '41994': 'Sharpness',
-    */
     // These are special tags that we handle internally
-    '34665': 'EXIFIFD',         // Offset of EXIF data
-    // '34853': 'GPSIFD',          // Offset of GPS data
+     '34665': 'EXIFIFD',         // Offset of EXIF data
+     '34853': 'GPSIFD',          // Offset of GPS data
+    */
     '513': 'THUMBNAIL',         // Offset of thumbnail
-    '514': 'THUMBNAILLENGTH'   // Length of thumbnail
+    '514': 'THUMBNAILLENGTH'    // Length of thumbnail
   };
 
   function parseEntry(data, offset, byteorder, exif) {
