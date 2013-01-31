@@ -337,8 +337,17 @@ var WindowManager = (function() {
         classList.add('closing-card');
 
         if (openFrame) {
-          openFrame.classList.remove('opening-card');
-          openFrame.classList.add('opening-switching');
+          if (openFrame.classList.contains('opening-card')) {
+            openFrame.classList.remove('opening-card');
+            openFrame.classList.add('opening-switching');
+          } else {
+            // Skip the opening-card and opening-switching transition
+            // because the closing-card transition had already finished here.
+            if (openFrame.classList.contains('fullscreen-app')) {
+              screenElement.classList.add('fullscreen-app');
+            }
+            openFrame.classList.add('opening');
+          }
         }
       } else if (classList.contains('closing-card')) {
         windowClosed(frame);
@@ -352,12 +361,7 @@ var WindowManager = (function() {
         }
 
         classList.remove('opening-switching');
-
-        // XXX: without this setTimeout() there will be no opening transition.
-        // See https://bugzilla.mozilla.org/show_bug.cgi?id=780692#c111
-        setTimeout(function continueTransition() {
-          classList.add('opening');
-        });
+        classList.add('opening');
       } else if (classList.contains('opening')) {
         windowOpened(frame);
 
@@ -690,7 +694,7 @@ var WindowManager = (function() {
 
       if (!screenElement.classList.contains('switch-app')) {
         openFrame.classList.add('opening');
-      } else {
+      } else if (!openFrame.classList.contains('opening')) {
         openFrame.classList.add('opening-card');
       }
     };
