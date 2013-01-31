@@ -64,3 +64,16 @@
 #modify-event-view.readonly .delete-record {
   display: none;
 }
+
+#modify-event-view.create .save .done-text {
+  display: none;
+}
+#modify-event-view.create .save .save-text {
+  display: inline;
+}
+#modify-event-view.update .save .done-text {
+  display: inline;
+}
+#modify-event-view.update .save .save-text {
+  display: none;
+}
