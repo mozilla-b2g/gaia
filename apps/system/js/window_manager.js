@@ -1150,9 +1150,6 @@ var WindowManager = (function() {
         outOfProcessBlackList.indexOf(name) === -1) {
       // FIXME: content shouldn't control this directly
       iframe.setAttribute('remote', 'true');
-      console.info('%%%%% Launching', name, 'as remote (OOP)');
-    } else {
-      console.info('%%%%% Launching', name, 'as local');
     }
 
     iframe.setAttribute('mozapp', manifestURL);
