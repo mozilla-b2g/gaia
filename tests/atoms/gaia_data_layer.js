@@ -6,40 +6,75 @@
 
 var GaiaDataLayer = {
 
-  insertContact: function(cdata) {
+  insertContact: function(aContact) {
+    SpecialPowers.addPermission('contacts-create', true, document);
     contact = new mozContact();
-    contact.init(cdata);
-    var request = window.navigator.mozContacts.save(contact);
-
-    request.onerror = function onerror() {
-      console.log('Error saving contact', request.error.name);
+    contact.init(aContact);
+    var req = window.navigator.mozContacts.save(contact);
+    req.onsuccess = function() {
+      console.log('success saving contact');
+      SpecialPowers.removePermission('contacts-create', document);
+      marionetteScriptFinished(true);
     };
-
-    request.onsuccess = function onsuccess() {
-      console.log('Success saving contact', request);
+    req.onerror = function() {
+      console.error('error saving contact', req.error.name);
+      SpecialPowers.removePermission('contacts-create', document);
+      marionetteScriptFinished(false);
     };
-    return request;
   },
 
-  findAndRemoveContact: function(cdata) {
-    var options = {
-      filterBy: ['familyName'],
-      filterOp: 'contains',
-      filterValue: cdata['familyName']
+  getAllContacts: function(aCallback) {
+    var callback = aCallback || marionetteScriptFinished;
+    SpecialPowers.addPermission('contacts-read', true, document);
+    var req = window.navigator.mozContacts.find({});
+    req.onsuccess = function() {
+      console.log('success finding contacts');
+      SpecialPowers.removePermission('contacts-read', document);
+      callback(req.result);
     };
-
-    contact = window.navigator.mozContacts.find(options);
-
-    contact.onerror = function onerror() {
-      console.log('Could not find contact', contact.error.name);
+    req.onerror = function() {
+      console.error('error finding contacts', req.error.name);
+      SpecialPowers.removePermission('contacts-read', document);
+      callback(false);
     };
+  },
 
-    contact.onsuccess = function onsuccess() {
-      console.log('Success finding contact', contact);
-      if (contact.result.length > 0) {
-        return window.navigator.mozContacts.remove(contact.result[0]);
+  removeAllContacts: function() {
+    var self = this;
+    this.getAllContacts(function(aContacts) {
+      if (aContacts.length > 0) {
+        var contactsLength = aContacts.length;
+        var done = 0;
+        for (var i = 0; i < contactsLength; i++) {
+          self.removeContact(aContacts[i], function() {
+            if (++done === contactsLength) {
+              marionetteScriptFinished(true);
+            }
+          });
+        }
       }
-    }
+      else {
+        console.log('no contacts to remove');
+          marionetteScriptFinished(true);
+      }
+    });
+  },
+
+  removeContact: function(aContact, aCallback) {
+    var callback = aCallback || marionetteScriptFinished;
+    SpecialPowers.addPermission('contacts-write', true, document);
+    console.log("removing contact with id '" + aContact.id + "'");
+    var req = window.navigator.mozContacts.remove(aContact);
+    req.onsuccess = function() {
+      console.log("success removing contact with id '" + aContact.id + "'");
+      SpecialPowers.removePermission('contacts-write', document);
+      callback(true);
+    };
+    req.onerror = function() {
+      console.error("error removing contact with id '" + aContacts[i].id + "'");
+      SpecialPowers.removePermission('contacts-write', document);
+      callback(false);
+    };
   },
 
   getSetting: function(aName) {
@@ -51,7 +86,7 @@ var GaiaDataLayer = {
     };
     req.onerror = function() {
       console.log('error getting setting', req.error.name);
-    }
+    };
   },
 
   setSetting: function(aName, aValue, aReturnOnSuccess) {
@@ -69,7 +104,7 @@ var GaiaDataLayer = {
     req.onerror = function() {
       console.log('error changing setting', req.error.name);
       marionetteScriptFinished(false);
-    }
+    };
   },
 
   connectToWiFi: function(aNetwork, aCallback) {
@@ -102,7 +137,7 @@ var GaiaDataLayer = {
       req.onerror = function() {
         console.log('error connecting to network', req.error.name);
         callback(false);
-      }
+      };
     }
   },
 
@@ -173,7 +208,7 @@ var GaiaDataLayer = {
     req.onerror = function() {
       console.log('error getting known networks', req.error.name);
       callback([]);
-    }
+    };
   },
 
   forgetWiFi: function(aNetwork, aCallback, aWaitForStatus) {
@@ -205,7 +240,7 @@ var GaiaDataLayer = {
       console.log("error forgetting network with ssid '" + aNetwork.ssid + "'",
                   req.error.name);
       callback(false);
-    }
+    };
   },
 
   isWiFiConnected: function(aNetwork) {
@@ -269,7 +304,7 @@ var GaiaDataLayer = {
         var file = req.result;
         if (file) {
           if (aType === 'music' && file.name.slice(0, 5) === 'DCIM/' &&
-              file.name.slice(-4) === '.3gp') {
+             file.name.slice(-4) === '.3gp') {
             req.continue();
           }
           else {
@@ -291,5 +326,14 @@ var GaiaDataLayer = {
       function() { callback(media); },
       function() { return remainingMediaTypes === 0; }
     );
+  },
+
+  deleteAllAlarms: function() {
+    window.wrappedJSObject.AlarmManager.getAlarmList(function(aList) {
+      aList.forEach(function(aAlarm) {
+         console.log("Deleting alarm with id  '" + aAlarm.id + "'");
+         window.wrappedJSObject.AlarmManager.delete(aAlarm);
+      });
+    });
   }
 };
