@@ -1,21 +1,32 @@
 <!DOCTYPE html>
 <html>
-
   <head>
     <meta charset="utf-8">
     <meta http-equiv="pragma" content="no-cache">
     <title>Packaged Stub Test</title>
-
-    <style>
-    </style>
-
+    <link rel="stylesheet" type="text/css" href="style/app.css">
+    <link rel="resource" type="application/l10n" href="locales/locales.ini">
+    <script src="js/l10n.js" defer></script>
+    <script src="js/app.js" defer></script>
   </head>
-
   <body>
-    <h1>Packaged Stub Test 0.1</h1>
-    <button id="updateButton">Update</button>
-    <div id="console"></div>
-    <script type="text/javascript" src="js/app.js"></script>
+    <div id="main">
+      <img src="style/icons/icon.png" alt="logo">
+      <h3 class="center">Packaged Stub Test</h3>
+      <h4 class="center" id="updateRequired"></h4>
+      <div id="checking">
+        <p id="updateCheck" class="center">
+          <img src="style/images/loading.gif" alt="checking">
+        </p>
+      </div>
+      <div id="notifications">
+        <p id="updateSize" class="center"></p>
+        <div class="center">
+          <button id="updateButton"></button>
+          <progress id="progressBar" value="0"></progress>
+        </div>
+      </div>
+      <div id="errors" class="center"></div>
+    </div>
   </body>
-
 </html>
