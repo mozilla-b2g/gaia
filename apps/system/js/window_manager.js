@@ -1520,7 +1520,11 @@ var WindowManager = (function() {
       case 'will-unlock':
         if (LockScreen.locked)
           return;
-        setVisibilityForCurrentApp(true);
+        if (inlineActivityFrames.length) {
+          setVisibilityForInlineActivity(true);
+        } else {
+          setVisibilityForCurrentApp(true);
+        }
         break;
       case 'lock':
         setVisibilityForCurrentApp(false);
@@ -1537,8 +1541,12 @@ var WindowManager = (function() {
         if (evt.detail && evt.detail.origin &&
           evt.detail.origin != displayedApp) {
             attentionScreenTimer = setTimeout(function setVisibility() {
-              setVisibilityForCurrentApp(false);
-            }, 5000);
+              if (inlineActivityFrames.length) {
+                setVisibilityForInlineActivity(false);
+              } else {
+                setVisibilityForCurrentApp(false);
+              }
+            }, 3000);
 
             // Immediatly blur the frame in order to ensure hiding the keyboard
             var app = runningApps[displayedApp];
@@ -1552,6 +1560,24 @@ var WindowManager = (function() {
   overlayEvents.forEach(function overlayEventIterator(event) {
     window.addEventListener(event, overlayEventHandler);
   });
+
+  function setVisibilityForInlineActivity(visible) {
+    if (!inlineActivityFrames.length)
+      return;
+
+    var topFrame = inlineActivityFrames[inlineActivityFrames.length - 1].firstChild;
+    if ('setVisible' in topFrame) {
+      topFrame.setVisible(visible);
+    }
+
+    // Restore/give away focus on visiblity change
+    // so that the app can take back its focus
+    if (visible) {
+      topFrame.focus();
+    } else {
+      topFrame.blur();
+    }
+  }
 
   function setVisibilityForCurrentApp(visible) {
     var app = runningApps[displayedApp];
