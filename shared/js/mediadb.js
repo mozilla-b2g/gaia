@@ -525,6 +525,8 @@ var MediaDB = (function() {
       case 'modified':
       case 'deleted':
         filename = e.path;
+        if (ignoreName(filename))
+          break;
         if (media.directory) {
           // Ignore changes outside of our directory
           if (filename.substring(0, media.directory.length) !==
@@ -902,6 +904,32 @@ var MediaDB = (function() {
 
   /* Details of helper functions follow */
 
+  //
+  // Return true if media db should ignore this file.
+  //
+  // If any components of the path begin with a . we'll ignore the file.
+  // The '.' prefix indicates hidden files and directories on Unix and
+  // when files are "moved to trash" during a USB Mass Storage session they
+  // are sometimes not actually deleted, but moved to a hidden directory.
+  //
+  // If an array of media types was specified when the MediaDB was created
+  // and the type of this file is not a member of that list, then ignore it.
+  //
+  function ignore(media, file) {
+    if (ignoreName(file.name))
+      return true;
+    if (media.mimeTypes && media.mimeTypes.indexOf(file.type) === -1)
+      return true;
+    return false;
+  }
+
+  // Test whether this filename is one we ignore.
+  // This is a separate function because device storage change events
+  // give us a name only, not the file object.
+  function ignoreName(filename) {
+    return (filename[0] === '.' || filename.indexOf('/.') !== -1);
+  }
+
   // Tell the db to start a manual scan. I think we don't do
   // this automatically from the constructor, but most apps will start
   // a scan right after calling the constructor and then will proceed to
@@ -935,25 +963,6 @@ var MediaDB = (function() {
     // have to do a full scan, since there will be no changes or deletions.
     quickScan(media.details.newestFileModTime);
 
-    //
-    // Return true if media db should ignore this file.
-    //
-    // If any components of the path begin with a . we'll ignore the file.
-    // The '.' prefix indicates hidden files and directories on Unix and
-    // when files are "moved to trash" during a USB Mass Storage session they
-    // are sometimes not actually deleted, but moved to a hidden directory.
-    //
-    // If an array of media types was specified when the MediaDB was created
-    // and the type of this file is not a member of that list, then ignore it.
-    //
-    function ignore(file) {
-      if (file.name[0] === '.' || file.name.indexOf('/.') !== -1)
-        return true;
-      if (media.mimeTypes && media.mimeTypes.indexOf(file.type) === -1)
-        return true;
-      return false;
-    }
-
     // Do a quick scan and then follow with a full scan
     function quickScan(timestamp) {
       var cursor;
@@ -976,7 +985,7 @@ var MediaDB = (function() {
       cursor.onsuccess = function() {
         var file = cursor.result;
         if (file) {
-          if (!ignore(file))
+          if (!ignore(media, file))
             insertRecord(media, file);
           cursor.continue();
         }
@@ -1028,7 +1037,7 @@ var MediaDB = (function() {
       cursor.onsuccess = function() {
         var file = cursor.result;
         if (file) {
-          if (!ignore(file)) {
+          if (!ignore(media, file)) {
             dsfiles.push(file);
           }
           cursor.continue();
