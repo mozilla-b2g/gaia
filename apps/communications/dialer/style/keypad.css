@@ -4,11 +4,6 @@
  *
  */
 
-.keypad-text {
-  font-size: 1.5rem;
-  color: #96AAB4;
-}
-
 #keyboard-view {
   height: 100%;
 }
@@ -97,53 +92,52 @@ article:not(:target) #keypad-delete {
   border: solid 0.1rem rgba(255, 255, 255, 0.2);
   border-right-color: rgba(0, 0, 0, 0.4);
   border-bottom-color: rgba(0, 0, 0, 0.4);
+  padding:0.2rem 0 0 1.5rem;
   -moz-box-sizing: border-box;
   height: 7rem;
   vertical-align: middle;
-  position: relative;
   color: white;
+  font-family: 'MozTT';
+  font-weight: 400;
+  font-size: 5rem;
+}
+
+.keypad-key em {
+  margin-left: 0.3rem;
+  font-weight: 300;
+  font-size: 1.5rem;
+  color: #96AAB4;
+  font-style: normal;
 }
 
 .keypad-key:active {
   background: #00aacc;
 }
 
-.keypad-key:active .keypad-text {
-  color: white;
+.keypad-key:active em {
+  color: #FFF;
 }
 
 .keypad-key:active .voicemail {
   background-image: url('images/voicemail_.png');
 }
 
-.keypad-key-label-container {
-  width: 100%;
-  height: 100%;
-  display: table;
-}
-
-.keypad-key-label {
-  display: table-cell;
-  padding-left: 1.5rem;
-  vertical-align: middle;
-}
-
 .keypad-key * {
   pointer-events: none;
 }
 
-.keypad-key-label *,
 #keypad-delete * {
   pointer-events: none;
 }
 
-.keypad-key-label-centered {
-  padding-left: 0;
+.keypad-key-centered {
+  padding: 1.9rem 0 0 0;
   text-align: center;
 }
 
-.font-size-plus {
-  font-size: 2rem !important;
+.keypad-key .font-size-plus {
+  font-size: 2rem;
+  font-weight: normal;
 }
 
 .keypad-subicon {
@@ -153,10 +147,7 @@ article:not(:target) #keypad-delete {
   -moz-user-select: none;
   pointer-events: none;
 
-  position: absolute;
-  left: 4rem;
-  bottom: 1.77rem;
-
+  display: inline-block;
   width: 2.2rem;
   height: 1.1rem;
 }
@@ -342,8 +333,4 @@ article:not(:target) #keypad-delete {
   font-size: 4rem;
   color: white;
   font-family:'MozTT';
-}
-
-.keypad-number {
-  font-size: 5rem;
 }
