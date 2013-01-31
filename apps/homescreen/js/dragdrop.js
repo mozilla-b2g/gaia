@@ -55,6 +55,15 @@ const DragDropManager = (function() {
     }
   }
 
+  var isTouch = 'ontouchstart' in window;
+  var touchmove = isTouch ? 'touchmove' : 'mousemove';
+  var touchend = isTouch ? 'touchend' : 'mouseup';
+
+  var getTouch = (function getTouchWrapper() {
+    return isTouch ? function(e) { return e.touches[0] } :
+                     function(e) { return e };
+  })();
+
   var transitioning = false;
 
   function onNavigationEnd() {
@@ -213,8 +222,8 @@ const DragDropManager = (function() {
    * @param {Object} DOMElement behind draggable icon
    */
   function onMove(evt) {
-    var x = currentEvent.x = evt.touches[0].pageX;
-    var y = currentEvent.y = evt.touches[0].pageY;
+    var x = currentEvent.x = getTouch(evt).pageX;
+    var y = currentEvent.y = getTouch(evt).pageY;
 
     draggableIcon.onDragMove(x, y);
 
@@ -279,8 +288,8 @@ const DragDropManager = (function() {
       return;
 
     clearTimeout(overlapingTimeout);
-    window.removeEventListener('touchmove', onMove);
-    window.removeEventListener('touchend', onEnd);
+    window.removeEventListener(touchmove, onMove);
+    window.removeEventListener(touchend, onEnd);
     stop(function dg_stop() {
       GridManager.onDragStop();
       DockManager.onDragStop();
@@ -308,8 +317,8 @@ const DragDropManager = (function() {
      * @param {Object} DOM event
      */
     start: function ddm_start(evt, initCoords) {
-      window.addEventListener('touchmove', onMove);
-      window.addEventListener('touchend', onEnd);
+      window.addEventListener(touchmove, onMove);
+      window.addEventListener(touchend, onEnd);
       GridManager.onDragStart();
       DockManager.onDragStart();
       startEvent = initCoords;
