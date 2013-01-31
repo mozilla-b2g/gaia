@@ -912,6 +912,13 @@ var LockScreen = {
       var panels = document.querySelectorAll(panels_selector);
       for (var i = 0, il = panels.length; i < il; i++) {
         var copied_canvas;
+        var panel = panels[i];
+
+        // Remove previous <canvas> if they exist
+        var old_canvas = panel.querySelector('canvas');
+        if (old_canvas) {
+          old_canvas.parentNode.removeChild(old_canvas);
+        }
 
         // For the first panel, we can use the existing <canvas>
         if (!copied_canvas) {
@@ -922,7 +929,6 @@ var LockScreen = {
           copied_canvas.getContext('2d').drawImage(canvas, 0, 0);
         }
 
-        var panel = panels[i];
         panel.insertBefore(copied_canvas, panel.firstChild);
       }
     });
