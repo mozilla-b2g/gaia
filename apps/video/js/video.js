@@ -809,3 +809,13 @@ window.addEventListener('localized', function showBody() {
   if (!videodb)
     init();
 });
+
+// We get headphoneschange event when the headphones is plugged or unplugged
+var acm = navigator.mozAudioChannelManager;
+if (acm) {
+  acm.addEventListener('headphoneschange', function onheadphoneschange() {
+    if (!acm.headphones && playing) {
+      setVideoPlaying(false);
+    }
+  });
+}
