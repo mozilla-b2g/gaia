@@ -36,8 +36,9 @@
       // XXX localize this name somewhere
       name: name,
       id: LOCAL_CALENDAR_ID,
-      color: '#D2642A'
+      color: Local.prototype.defaultColor
     };
+
   };
 
   Local.prototype = {
