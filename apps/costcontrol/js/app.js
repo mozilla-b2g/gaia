@@ -133,11 +133,13 @@ var CostControlApp = (function() {
   }
 
   function handleNotification(type) {
-    // XXX: Probably more types coming. Let's leave this switch and remove the
-    // comment when more types added.
     switch (type) {
       case 'topUpError':
         BalanceTab.topUpWithCode(true);
+        break;
+      case 'lowBalance':
+      case 'zeroBalance':
+        tabmanager.changeViewTo('balance-tab');
         break;
     }
   }
@@ -190,5 +192,11 @@ var CostControlApp = (function() {
       }
     });
   }
+
+  return {
+    showBalanceTab: function _showBalanceTab () {
+      tabmanager.changeViewTo('balance-tab');
+    }
+  };
 
 }());
