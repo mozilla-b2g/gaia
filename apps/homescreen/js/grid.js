@@ -48,7 +48,6 @@ const GridManager = (function() {
   function handleEvent(evt) {
     switch (evt.type) {
       case touchstart:
-        evt.stopPropagation();
         touchStartTimestamp = evt.timeStamp;
         startEvent = isTouch ? evt.touches[0] : evt;
         deltaX = 0;
