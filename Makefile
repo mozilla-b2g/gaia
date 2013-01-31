@@ -654,6 +654,10 @@ ifeq ($(NOFTU), 1)
 SETTINGS_ARG=--noftu
 endif
 
+ifneq ($(TARGET_BUILD_VARIANT),user)
+SETTINGS_ARG += --enable-debugger
+endif
+
 profile/settings.json: build/settings.py build/wallpaper.jpg
 	python build/settings.py $(SETTINGS_ARG) --console --locale $(GAIA_DEFAULT_LOCALE) --homescreen $(SCHEME)homescreen.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --ftu $(SCHEME)communications.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --wallpaper build/wallpaper.jpg --override build/custom-settings.json --output $@
 
