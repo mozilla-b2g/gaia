@@ -241,7 +241,8 @@ Evme.Shortcuts = new function Evme_Shortcuts() {
 }
 
 Evme.Shortcut = function Evme_Shortcut() {
-    var NAME = "Shortcut", self = this, cfg = null, id = 'id' + Math.round(Math.random()*10000),
+    var NAME = "Shortcut", self = this,
+        cfg = null, id = '',
         el = null, elThumb = null,  index = -1, experienceId = '', query = '', image = '', imageLoadingRetry = 0,
         timeoutHold = null, removed = false,
         posStart = [0, 0], timeStart = 0, fingerMoved = true,
@@ -251,6 +252,7 @@ Evme.Shortcut = function Evme_Shortcut() {
     
     this.init = function init(_cfg, _index) {
         cfg = _cfg;
+        id = 'shrt-' + Evme.Utils.uuid();
         index = _index;
         experienceId = cfg.experienceId;
         query = cfg.query;

@@ -603,12 +603,10 @@ Evme.App = function Evme_App(__cfg, __index, __isMore, parent) {
     this.init = function init(_cfg) {
         cfg = normalize(_cfg);
 
-
-        
         // generate id if there was none
         if (!cfg.id) {
             hadID = false;
-            cfg.id = Math.round(Math.random()*1221221) + 1;
+            cfg.id = 'app-' + Evme.Utils.uuid();
         }
         
         // fill in default icon
