@@ -26,13 +26,16 @@ class LockScreen(object):
 
     @property
     def is_locked(self):
+        self.marionette.switch_to_frame()
         return self.marionette.execute_script('window.wrappedJSObject.LockScreen.locked')
 
     def lock(self):
+        self.marionette.switch_to_frame()
         result = self.marionette.execute_async_script('GaiaLockScreen.lock()')
         assert result, 'Unable to lock screen'
 
     def unlock(self):
+        self.marionette.switch_to_frame()
         result = self.marionette.execute_async_script('GaiaLockScreen.unlock()')
         assert result, 'Unable to unlock screen'
 
@@ -124,11 +127,20 @@ class GaiaData(object):
         self.marionette.execute_script("window.navigator.mozTime.set(%s);" % date_number)
         self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
 
-    def insert_contact(self, contact):
-        self.marionette.execute_script("GaiaDataLayer.insertContact(%s)" % contact.json())
+    @property
+    def all_contacts(self):
+        self.marionette.switch_to_frame()
+        return self.marionette.execute_async_script('return GaiaDataLayer.getAllContacts();', special_powers=True)
 
-    def remove_contact(self, contact):
-        self.marionette.execute_script("GaiaDataLayer.findAndRemoveContact(%s)" % contact.json())
+    def insert_contact(self, contact):
+        self.marionette.switch_to_frame()
+        result = self.marionette.execute_async_script('return GaiaDataLayer.insertContact(%s);' % contact.json(), special_powers=True)
+        assert result, 'Unable to insert contact %s' % contact
+
+    def remove_all_contacts(self):
+        self.marionette.switch_to_frame()
+        result = self.marionette.execute_async_script('return GaiaDataLayer.removeAllContacts();', special_powers=True)
+        assert result, 'Unable to remove all contacts'
 
     def get_setting(self, name):
         self.marionette.switch_to_frame()
@@ -238,22 +250,23 @@ class GaiaTestCase(MarionetteTestCase):
 
     @property
     def device_manager(self):
-        if not self.is_android_build:
-            raise Exception('Device manager is only available for devices.')
         if hasattr(self, '_device_manager') and self._device_manager:
             return self._device_manager
+
+        if not self.is_android_build:
+            raise Exception('Device manager is only available for devices.')
+
+        dm_type = os.environ.get('DM_TRANS', 'adb')
+        if dm_type == 'adb':
+            self._device_manager = mozdevice.DeviceManagerADB()
+        elif dm_type == 'sut':
+            host = os.environ.get('TEST_DEVICE')
+            if not host:
+                raise Exception('Must specify host with SUT!')
+            self._device_manager = mozdevice.DeviceManagerSUT(host=host)
         else:
-            dm_type = os.environ.get('DM_TRANS', 'adb')
-            if dm_type == 'adb':
-                self._device_manager = mozdevice.DeviceManagerADB()
-            elif dm_type == 'sut':
-                host = os.environ.get('TEST_DEVICE')
-                if not host:
-                    raise Exception('Must specify host with SUT!')
-                self._device_manager = mozdevice.DeviceManagerSUT(host=host)
-            else:
-                raise Exception('Unknown device manager type: %s' % dm_type)
-            return self._device_manager
+            raise Exception('Unknown device manager type: %s' % dm_type)
+        return self._device_manager
 
     def cleanUp(self):
         # remove media
@@ -276,11 +289,17 @@ class GaiaTestCase(MarionetteTestCase):
             self.data_layer.forget_all_networks()
             self.data_layer.disable_wifi()
 
+        # remove data
+        self.data_layer.remove_all_contacts()
+
         # reset to home screen
         self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('home'));")
 
+    def local_resource_path(self, filename):
+        return os.path.abspath(os.path.join(os.path.dirname(__file__), 'resources', filename))
+
     def push_resource(self, filename, destination=''):
-        local = os.path.abspath(os.path.join(os.path.dirname(__file__), 'resources', filename))
+        local = self.local_resource_path(filename)
         remote = '/'.join(['sdcard', destination, filename])
         self.device_manager.mkDirs(remote)
         self.device_manager.pushFile(local, remote)
@@ -384,13 +403,18 @@ class GaiaTestCase(MarionetteTestCase):
 
 
 class Keyboard(object):
-    _upper_case_key = '20'
+    _language_key = '-3'
     _numeric_sign_key = '-2'
     _alpha_key = '-1'
+    _backspace_key = '8'
+    _enter_key = '13'
     _alt_key = '18'
+    _upper_case_key = '20'
+    _space_key = '32'
 
     # Keyboard app
     _keyboard_frame_locator = ('css selector', '#keyboard-frame iframe')
+    _keyboard_locator = ('css selector', '#keyboard')
 
     _button_locator = ('css selector', 'button.keyboard-key[data-keycode="%s"]')
 
@@ -399,7 +423,6 @@ class Keyboard(object):
 
     def _switch_to_keyboard(self):
         self.marionette.switch_to_frame()
-
         keybframe = self.marionette.find_element(*self._keyboard_frame_locator)
         self.marionette.switch_to_frame(keybframe, focus=False)
 
@@ -408,8 +431,9 @@ class Keyboard(object):
             val = ord(val)
         return (self._button_locator[0], self._button_locator[1] % val)
 
-    def _press(self, val):
-        self.marionette.find_element(*self._key_locator(val)).click()
+    def _tap(self, val):
+        key = self.marionette.find_element(*self._key_locator(val))
+        self.marionette.tap(key)
 
     def is_element_present(self, by, locator):
         try:
@@ -426,26 +450,83 @@ class Keyboard(object):
         self._switch_to_keyboard()
 
         for val in string:
-            if val.isalnum():
-                if val.islower():
-                    self._press(val)
-                elif val.isupper():
-                    self._press(self._upper_case_key)
-                    self._press(val)
-                elif val.isdigit():
-                    self._press(self._numeric_sign_key)
-                    self._press(val)
-                    self._press(self._alpha_key)
+            # alpha is in on keyboard
+            if val.isalpha():
+                if self.is_element_present(*self._key_locator(self._alpha_key)):
+                    self._tap(self._alpha_key)
+                if not self.is_element_present(*self._key_locator(val)):
+                    self._tap(self._upper_case_key)
+            # numbers and symbols are in another keyboard
             else:
-                self._press(self._numeric_sign_key)
-                if self.is_element_present(*self._key_locator(val)):
-                    self._press(val)
-                else:
-                    self._press(self._alt_key)
-                    if self.is_element_present(*self._key_locator(val)):
-                        self._press(val)
-                    else:
-                        assert False, 'Key %s not found on the keyboard' % val
-                self._press(self._alpha_key)
+                if self.is_element_present(*self._key_locator(self._numeric_sign_key)):
+                    self._tap(self._numeric_sign_key)
+                if not self.is_element_present(*self._key_locator(val)):
+                    self._tap(self._alt_key)
+
+            # after switching to correct keyboard, tap/click if the key is there
+            if self.is_element_present(*self._key_locator(val)):
+                self._tap(val)
+            else:
+                assert False, 'Key %s not found on the keyboard' % val
+
+            # after tap/click space key, it might get screwed up due to timing issue. adding 0.7sec for it.
+            if ord(val) == int(self._space_key):
+                time.sleep(0.7)
 
         self.marionette.switch_to_frame()
+
+    def switch_to_number_keyboard(self):
+        self._switch_to_keyboard()
+        self._tap(self._numeric_sign_key)
+        self.marionette.switch_to_frame()
+
+    def switch_to_alpha_keyboard(self):
+        self._switch_to_keyboard()
+        self._tap(self._alpha_key)
+        self.marionette.switch_to_frame()
+
+    def tap_shift(self):
+        self._switch_to_keyboard()
+        if self.is_element_present(*self._key_locator(self._alpha_key)):
+            self._tap(self._alpha_key)
+        self._tap(self._upper_case_key)
+        self.marionette.switch_to_frame()
+
+    def tap_backspace(self):
+        self._switch_to_keyboard()
+        bs = self.marionette.find_element(self._button_locator[0], self._button_locator[1] % self._backspace_key)
+        self.marionette.tap(bs)
+        self.marionette.switch_to_frame()
+
+    def tap_space(self):
+        self._switch_to_keyboard()
+        self._tap(self._space_key)
+        self.marionette.switch_to_frame()
+
+    def tap_enter(self):
+        self._switch_to_keyboard()
+        self._tap(self._enter_key)
+        self.marionette.switch_to_frame()
+
+    def tap_alt(self):
+        self._switch_to_keyboard()
+        if self.is_element_present(*self._key_locator(self._numeric_sign_key)):
+            self._tap(self._numeric_sign_key)
+        self._tap(self._alt_key)
+        self.marionette.switch_to_frame()
+
+    def enable_caps_lock(self):
+        self._switch_to_keyboard()
+        if self.is_element_present(*self._key_locator(self._alpha_key)):
+            self._tap(self._alpha_key)
+        key_obj = self.marionette.find_element(*self._key_locator(self._upper_case_key))
+        self.marionette.double_tap(key_obj)
+        self.marionette.switch_to_frame()
+
+    def long_press(self, key, timeout=2000):
+        if len(key) == 1:
+            self._switch_to_keyboard()
+            key_obj = self.marionette.find_element(*self._key_locator(key))
+            self.marionette.long_press(key_obj, timeout)
+            time.sleep(timeout / 1000 + 1)
+            self.marionette.switch_to_frame()
