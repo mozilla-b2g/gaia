@@ -256,15 +256,31 @@ suiteGroup('Provider.Caldav', function() {
 
     suite('#findCalendars', function() {
       test('success', function(done) {
-        result = [{ id: 'wow' }];
+        result = {
+          one: Factory.build('caldav.calendar'),
+          two: Factory.build('caldav.calendar', { color: null })
+        };
+
         error = null;
 
         subject.findCalendars(input, function cb(cbError, cbResult) {
           done(function() {
-            assert.deepEqual(calledWith, [
-              'caldav', 'findCalendars', input, cb
-            ]);
-            assert.equal(cbResult, result);
+            assert.equal(
+              cbResult.one,
+              result.one,
+              'does not process events with color'
+            );
+
+            // hack clone
+            var withColor = JSON.parse(JSON.stringify(result.two));
+            withColor.color = subject.defaultColor;
+
+            assert.deepEqual(
+              cbResult.two,
+              withColor,
+              'adds color'
+            );
+
             assert.equal(cbError, error);
           });
         });

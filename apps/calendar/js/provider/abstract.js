@@ -10,6 +10,9 @@ Calendar.ns('Provider').Abstract = (function() {
   }
 
   Abstract.prototype = {
+
+    defaultColor: '#D2642A',
+
     /**
      * Does this provider require credentials.
      */

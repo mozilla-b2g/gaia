@@ -171,11 +171,34 @@ Calendar.ns('Provider').Caldav = (function() {
       );
     },
 
+    /**
+     * Hook to format remote data if needed.
+     */
+    formatRemoteCalendar: function(calendar) {
+      if (!calendar.color)
+        calendar.color = this.defaultColor;
+
+      return calendar;
+    },
+
     findCalendars: function(account, callback) {
       if (this.bailWhenOffline(callback)) {
         return;
       }
-      this.service.request('caldav', 'findCalendars', account, callback);
+
+      var self = this;
+      function formatCalendars(err, data) {
+        // format calendars if needed
+        if (data) {
+          for (var key in data) {
+            data[key] = self.formatRemoteCalendar(data[key]);
+          }
+        }
+
+        callback(err, data);
+      }
+
+      this.service.request('caldav', 'findCalendars', account, formatCalendars);
     },
 
     _syncEvents: function(account, calendar, cached, callback) {

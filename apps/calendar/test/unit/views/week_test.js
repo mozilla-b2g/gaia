@@ -23,6 +23,13 @@ suiteGroup('Views.Week', function() {
     testEl.id = 'test';
     testEl.innerHTML = [
       '<div id="week-view">',
+        '<div class="scroll">',
+          '<section class="sidebar">a</section>',
+          '<section class="children">a</section>',
+        '</div>',
+        '<section class="sticky">',
+          '<div class="children"></div>',
+        '</section>',
       '</div>'
     ].join('');
 
@@ -44,8 +51,11 @@ suiteGroup('Views.Week', function() {
 
     // constructor shortcut
     function child(date) {
+      var el = document.createElement('li');
       return new Calendar.Views.WeekChild({
-        app: app, date: date
+        app: app,
+        date: date,
+        stickyFrame: el
       });
     }
 
@@ -67,7 +77,12 @@ suiteGroup('Views.Week', function() {
       children.push(child(new Date(2012, 0, 2)));
       children.push(child(new Date(2012, 0, 3)));
 
-      subject = new Calendar.Views.Week.Frame(id, children);
+      var list = document.createElement('ul');
+      subject = new Calendar.Views.Week.Frame(
+        id,
+        children,
+        list
+      );
     });
 
     test('initializer', function() {
@@ -282,8 +297,6 @@ suiteGroup('Views.Week', function() {
     test('#_appendSidebarHours', function() {
       var html = subject.element.querySelector('.sidebar').outerHTML;
       assert.ok(html, 'has contents');
-
-      assert.include(html, Calendar.Calc.ALLDAY);
 
       var i = 0;
       for (; i < 24; i++) {
