@@ -254,7 +254,16 @@ var OnCallHandler = (function onCallHandler() {
       return;
     }
 
-    var node = CallScreen.calls.children[handledCalls.length];
+    var node = null;
+    // Find an available node for displaying the call
+    var children = CallScreen.calls.children;
+    for (var i = 0; i < children.length; i++) {
+      var n = children[i];
+      if (n.dataset.occupied === 'false') {
+        node = n;
+        break;
+      }
+    }
     var hc = new HandledCall(call, node);
     handledCalls.push(hc);
 
@@ -295,7 +304,7 @@ var OnCallHandler = (function onCallHandler() {
         setTimeout(function nextTick() {
           if (remainingCall.call.state == 'incoming') {
             CallScreen.render('incoming');
-          };
+          }
         });
 
         return;

@@ -175,6 +175,10 @@ suite('dialer/handled_call', function() {
       assert.equal(subject.directionNode.className,
                    'direction outgoing ongoing-out');
     });
+
+    test('occupied', function() {
+      assert.equal(fakeNode.dataset.occupied, 'true');
+    });
   });
 
   suite('on connect', function() {
@@ -245,6 +249,10 @@ suite('dialer/handled_call', function() {
 
     test('clear the ticker', function() {
       assert.equal(subject._ticker, null);
+    });
+
+    test('occupied', function() {
+      assert.equal(fakeNode.dataset.occupied, 'false');
     });
   });
 
