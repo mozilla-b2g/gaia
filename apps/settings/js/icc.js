@@ -847,10 +847,19 @@
    * Display text on the notifications bar and Idle screen
    */
   function displayNotification(command) {
-    var options = command.options;
-    NotificationHelper.send('STK', options.text, '', function() {
-      alert(options.text);
-    });
+    navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+      var app = evt.target.result;
+      var iconURL = NotificationHelper.getIconURI(app);
+
+      function showNotificationCB() {
+        app.launch();
+        alert(options.text);
+      }
+
+      var options = command.options;
+      NotificationHelper.send('STK', options.text, iconURL,
+      showNotificationCB, showNotificationCB);
+    }
   }
 
   /**
