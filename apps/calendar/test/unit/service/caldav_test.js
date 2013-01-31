@@ -1415,6 +1415,20 @@ suite('service/caldav', function() {
       test('server request', function(done) {
         subject.parseEvent(putCall[1], function(err, icalEvent) {
           done(function() {
+            var vcalendar = icalEvent.component.parent;
+
+            assert.equal(
+              vcalendar.getFirstPropertyValue('prodid'),
+              subject.icalProductId,
+              'has product id'
+            );
+
+            assert.equal(
+              vcalendar.getFirstPropertyValue('version'),
+              subject.icalVersion,
+              'has version'
+            );
+
             assert.hasProperties(icalEvent, {
               summary: event.title,
               description: event.description,
@@ -1499,10 +1513,18 @@ suite('service/caldav', function() {
                              function(parseErr, newEvent) {
 
             done(function() {
+              var vcalendar = newEvent.component.parent;
+
               assert.ok(!parseErr, parseErr);
               assert.ok(
                 typeof(result.icalComponent) === 'string',
                 'updated result is returned as a string'
+              );
+
+              assert.equal(
+                vcalendar.getFirstPropertyValue('prodid'),
+                subject.icalProductId,
+                'update the prodid'
               );
 
               assert.equal(
@@ -1558,7 +1580,9 @@ suite('service/caldav', function() {
         assert.equal(assetReq.url, event.url);
         assert.ok(assetReq.connection);
         assert.deepEqual(options, {
-          etag: event.syncToken
+          // we will re-implement this correctly when
+          // we have real queues
+          //etag: event.syncToken
         });
 
         cb();

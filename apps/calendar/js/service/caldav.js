@@ -21,6 +21,16 @@ Calendar.ns('Service').Caldav = (function() {
 
     __proto__: Calendar.Responder.prototype,
 
+    /**
+     * See: http://tools.ietf.org/html/rfc5545#section-3.7.3
+     */
+    icalProductId: '-//Mozilla//FirefoxOS',
+
+    /**
+     * See: http://tools.ietf.org/html/rfc5545#section-3.7.4
+     */
+    icalVersion: '2.0',
+
     _initEvents: function() {
       var events = [
         'noop',
@@ -107,9 +117,9 @@ Calendar.ns('Service').Caldav = (function() {
 
       query.prop('getetag');
 
-      // only return VEVENT
-      var filterEvent = query.filter.setComp('VCALENDAR').
-                                     comp('VEVENT');
+      // only return VEVENT & VTIMEZONE
+      var filterQuery = query.filter.setComp('VCALENDAR');
+      var filterEvent = filterQuery.comp('VEVENT');
 
       if (options && options.startDate) {
         // convert startDate to unix ical time.
@@ -120,8 +130,9 @@ Calendar.ns('Service').Caldav = (function() {
         filterEvent.setTimeRange({ start: icalDate.toICALString() });
       }
 
-      // include only the VEVENT in the data
-      query.data.setComp('VCALENDAR').comp('VEVENT');
+      // include only the VEVENT/VTIMEZONE in the data
+      query.data.setComp('VCALENDAR');
+
       return query;
     },
 
@@ -812,7 +823,7 @@ Calendar.ns('Service').Caldav = (function() {
 
       var req = this._assetRequest(connection, event.url);
 
-      req.delete({ etag: event.syncToken }, function(err, data, xhr) {
+      req.delete({}, function(err, data, xhr) {
         callback(err);
       });
     },
@@ -865,6 +876,10 @@ Calendar.ns('Service').Caldav = (function() {
       var vcalendar = new ICAL.Component('vcalendar');
       var icalEvent = new ICAL.Event();
 
+      // vcalendar details
+      vcalendar.addPropertyWithValue('prodid', this.icalProductId);
+      vcalendar.addPropertyWithValue('version', this.icalVersion);
+
       // text fields
       icalEvent.uid = uuid();
       icalEvent.summary = event.title;
@@ -904,8 +919,6 @@ Calendar.ns('Service').Caldav = (function() {
      * @param {Object} account full account details.
      * @param {Object} calendar full calendar details.
      * @param {Object} eventDetails details to update the event.
-     * @param {Object} eventDetails.event modified remote event details.
-     * @param {Object} eventDetails.icalComponent
      *  unmodified parsed ical component. (VCALENDAR).
      */
     updateEvent: function(account, calendar, eventDetails, callback) {
@@ -920,7 +933,13 @@ Calendar.ns('Service').Caldav = (function() {
 
       // parse event
       this.parseEvent(icalComponent, function(err, icalEvent) {
+        if (err) {
+          callback(err);
+          return;
+        }
+
         var target = icalEvent;
+        var vcalendar = icalEvent.component.parent;
 
         // find correct event
         if (event.recurrenceId) {
@@ -931,15 +950,28 @@ Calendar.ns('Service').Caldav = (function() {
           }
         }
 
+        // vcalendar pieces
+        vcalendar.updatePropertyWithValue('prodid', self.icalProductId);
+
         // text fields
         target.summary = event.title;
         target.description = event.description;
         target.location = event.location;
+
+        if (!target.sequence) {
+          target.sequence = 0;
+        }
+
         target.sequence = parseInt(target.sequence, 10) + 1;
 
         // time fields
-        target.startDate = self.formatInputTime(event.start);
-        target.endDate = self.formatInputTime(event.end);
+        target.startDate = self.formatInputTime(
+          event.start
+        );
+
+        target.endDate = self.formatInputTime(
+          event.end
+        );
 
         // alarms
         // We generally want to remove all 'DISPLAY' alarms
@@ -957,7 +989,7 @@ Calendar.ns('Service').Caldav = (function() {
         var vcal = target.component.parent.toString();
         event.icalComponent = vcal;
 
-        req.put({ etag: etag }, vcal, function(err, data, xhr) {
+        req.put({}, vcal, function(err, data, xhr) {
           var token = xhr.getResponseHeader('Etag');
           event.syncToken = token;
           // TODO: error handling
