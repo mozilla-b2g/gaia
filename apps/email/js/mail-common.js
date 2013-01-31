@@ -402,7 +402,7 @@ var Cards = {
     if (!placement) {
       cardIndex = this._cardStack.length;
       insertBuddy = null;
-      domNode.classList.add(cardIndex === 0 ? 'before': 'after');
+      domNode.classList.add(cardIndex === 0 ? 'before' : 'after');
     }
     else if (placement === 'left') {
       cardIndex = this.activeCardIndex++;
@@ -774,7 +774,7 @@ var Cards = {
         this._eatingEventsUntilNextCard = false;
       if (this._animatingDeadDomNodes.length) {
         // Use a setTimeout to give the animation some space to settle.
-        setTimeout(function () {
+        setTimeout(function() {
           this._animatingDeadDomNodes.forEach(function(domNode) {
             if (domNode.parentNode)
               domNode.parentNode.removeChild(domNode);
@@ -992,6 +992,35 @@ var Toaster = {
   }
 };
 
+/**
+ * Confirm dialog helper function. Display the dialog by providing dialog body
+ * element and button id/handler function.
+ *
+ */
+var ConfirmDialog = {
+  dialog: null,
+  show: function(dialog, confirm, cancel) {
+    this.dialog = dialog;
+    var formSubmit = function(evt) {
+      this.hide();
+      switch (evt.explicitOriginalTarget.id) {
+        case confirm.id:
+          confirm.handler();
+          break;
+        case cancel.id:
+          if (cancel.handler)
+            cancel.handler();
+          break;
+      }
+      return false;
+    };
+    dialog.addEventListener('submit', formSubmit.bind(this));
+    document.body.appendChild(dialog);
+  },
+  hide: function() {
+    document.body.removeChild(this.dialog);
+  }
+};
 ////////////////////////////////////////////////////////////////////////////////
 // Attachment Formatting Helpers
 
