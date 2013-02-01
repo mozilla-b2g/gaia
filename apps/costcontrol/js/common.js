@@ -201,3 +201,21 @@ function formatTimeHTML(timestampA, timestampB) {
   return '<time>' + formatTime(timestampA) + '</time> – ' +
          '<time>' + formatTime(timestampB) + '</time>';
 }
+
+function localizeWeekdaySelector(selector) {
+  var weekStartsOnMonday =
+    !!parseInt(navigator.mozL10n.get('weekStartsOnMonday'), 10);
+  debug('Week starts on monday?', weekStartsOnMonday);
+  var monday = selector.querySelector('.monday');
+  var sunday = selector.querySelector('.sunday');
+  var list = monday.parentNode;
+  if (weekStartsOnMonday) {
+    debug('Monday, Tuesday...');
+    list.insertBefore(monday, list.childNodes[0]); // monday is the first
+    list.appendChild(sunday); // sunday is the last
+  } else {
+    debug('Sunday, Monday...');
+    list.insertBefore(sunday, list.childNodes[0]); // sunday is the first
+    list.insertBefore(monday, sunday.nextSibling); // monday is the second
+  }
+}

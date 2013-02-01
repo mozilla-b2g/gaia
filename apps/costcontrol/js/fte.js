@@ -120,6 +120,10 @@
     });
   }
 
+  window.addEventListener('localized', function _onLocalize() {
+    localizeWeekdaySelector(document.getElementById('selectdialog-weekday'));
+  });
+
   // TRACK SETUP
 
   var currentTrack = ['step-1', 'step-2'];
