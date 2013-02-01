@@ -222,6 +222,7 @@ var UIManager = {
         SimManager.skip();
         break;
       case 'unlock-sim-button':
+        Navigation.skipped = false;
         SimManager.unlock();
         break;
       case 'sim-import-button':
