@@ -18,7 +18,8 @@ mocksForNotificationScreen.forEach(function(mockName) {
 
 
 suite('system/NotificationScreen >', function() {
-  var fakeNotifContainer, fakeLockScreenContainer, fakeToaster, fakeButton;
+  var fakeNotifContainer, fakeLockScreenContainer, fakeToaster,
+    fakeButton, fakeToasterIcon, fakeToasterTitle, fakeToasterDetail;
 
   var mocksHelper;
 
@@ -38,20 +39,28 @@ suite('system/NotificationScreen >', function() {
     fakeNotifContainer.appendChild(document.createElement('div'));
     fakeNotifContainer.appendChild(document.createElement('div'));
 
+    function createFakeElement(tag, id) {
+      var obj = document.createElement(tag);
+      obj.id = id;
+      return obj;
+    };
 
-    fakeLockScreenContainer = document.createElement('div');
-    fakeLockScreenContainer.id = 'notifications-lockscreen-container';
+    fakeLockScreenContainer = createFakeElement('div',
+      'notifications-lockscreen-container');
+    fakeToaster = createFakeElement('div', 'notification-toaster');
+    fakeButton = createFakeElement('button', 'notification-clear');
+    fakeToasterIcon = createFakeElement('img', 'toaster-icon');
+    fakeToasterTitle = createFakeElement('div', 'toaster-title');
+    fakeToasterDetail = createFakeElement('div', 'toaster-detail');
 
-    fakeToaster = document.createElement('div');
-    fakeToaster.id = 'notification-toaster';
-
-    fakeButton = document.createElement('button');
-    fakeButton.id = 'notification-clear';
-
-    document.body.appendChild(fakeToaster);
     document.body.appendChild(fakeNotifContainer);
+
     document.body.appendChild(fakeLockScreenContainer);
+    document.body.appendChild(fakeToaster);
     document.body.appendChild(fakeButton);
+    document.body.appendChild(fakeToasterIcon);
+    document.body.appendChild(fakeToasterTitle);
+    document.body.appendChild(fakeToasterDetail);
 
     mocksHelper.setup();
 
@@ -105,6 +114,18 @@ suite('system/NotificationScreen >', function() {
     test('should change the read status', function() {
       NotificationScreen.updateStatusBarIcon(true);
       assert.isTrue(MockStatusBar.mNotificationUnread);
+    });
+
+    test('calling addNotification without icon', function() {
+      var toasterIcon = NotificationScreen.toasterIcon;
+      var imgpath = 'http://example.com/test.png';
+      var detail = {icon: imgpath, title: 'title', detail: 'detail'};
+      NotificationScreen.addNotification(detail);
+      assert.equal(imgpath, toasterIcon.src);
+      assert.isFalse(toasterIcon.hidden);
+      delete detail.icon;
+      NotificationScreen.addNotification(detail);
+      assert.isTrue(toasterIcon.hidden);
     });
   });
 

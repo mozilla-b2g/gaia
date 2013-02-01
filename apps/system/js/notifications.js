@@ -212,9 +212,22 @@ var NotificationScreen = {
   updateTimestamps: function ns_updateTimestamps() {
     var timestamps = document.getElementsByClassName('timestamp');
     for (var i = 0, l = timestamps.length; i < l; i++) {
-      timestamps[i].textContent = navigator.mozL10n.DateTimeFormat()
-        .fromNow(new Date(timestamps[i].dataset.timestamp), true);
+      timestamps[i].textContent =
+        this.prettyDate(new Date(timestamps[i].dataset.timestamp));
     }
+  },
+
+  /**
+   * Display a human-readable relative timestamp.
+   */
+  prettyDate: function prettyDate(time) {
+    var date;
+    if (navigator.mozL10n) {
+      date = navigator.mozL10n.DateTimeFormat().fromNow(time, true);
+    } else {
+      date = time.toLocaleFormat();
+    }
+    return date;
   },
 
   addNotification: function ns_addNotification(detail) {
@@ -229,14 +242,16 @@ var NotificationScreen = {
       icon.src = detail.icon;
       notificationNode.appendChild(icon);
       this.toasterIcon.src = detail.icon;
+      this.toasterIcon.hidden = false;
+    } else {
+      this.toasterIcon.hidden = true
     }
 
     var time = document.createElement('span');
     var timestamp = new Date();
     time.classList.add('timestamp');
     time.dataset.timestamp = timestamp;
-    time.textContent = navigator.mozL10n.DateTimeFormat()
-      .fromNow(timestamp, true);
+    time.textContent = this.prettyDate(timestamp);
     notificationNode.appendChild(time);
 
     var title = document.createElement('div');
@@ -252,12 +267,14 @@ var NotificationScreen = {
 
     this.toasterDetail.textContent = detail.text;
 
-    this.container.insertBefore(notificationNode, this.container.firstElementChild);
+    this.container.insertBefore(notificationNode,
+      this.container.firstElementChild);
     new GestureDetector(notificationNode).startDetecting();
 
     // We turn the screen on if needed in order to let
     // the user see the notification toaster
-    if (!ScreenManager.screenEnabled) {
+    if (typeof(ScreenManager) !== 'undefined' &&
+      !ScreenManager.screenEnabled) {
       ScreenManager.turnScreenOn();
     }
 
@@ -282,7 +299,8 @@ var NotificationScreen = {
 
     // Adding it to the lockscreen if locked and the privacy setting
     // does not prevent it.
-    if (LockScreen.locked && this.lockscreenPreview) {
+    if (typeof(LockScreen) !== 'undefined' &&
+        LockScreen.locked && this.lockscreenPreview) {
       var lockScreenNode = notificationNode.cloneNode(true);
       this.lockScreenContainer.insertBefore(lockScreenNode,
                                this.lockScreenContainer.firstElementChild);

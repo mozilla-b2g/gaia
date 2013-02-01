@@ -140,7 +140,7 @@ html, body {
   z-index: 100;
 }
 
- .step-state:before {
+.step-state:before {
   content: "";
   height: 0.3rem;
   width: calc(100% / 7);
@@ -150,6 +150,10 @@ html, body {
   margin-top: -0.2rem;
   background: #858585;
   transition: all 0.35s cubic-bezier(0.000, 1.000, 0.535, 1.110);
+}
+
+.less-steps.step-state:before {
+  width: calc(100% / 6) !important;
 }
 
 /* STATES */
@@ -536,12 +540,12 @@ html, body {
 }
 
 #no-sim, #no-network, #fb_after_import2 p {
- 	color: #5B5B5B;
- 	font-size: 1.5rem;
- 	line-height: 2rem;
- 	margin: -0.2rem 0 0.6rem;
- 	padding: 0;
- 	white-space: normal;
+  color: #5B5B5B;
+  font-size: 1.5rem;
+  line-height: 2rem;
+  margin: -0.2rem 0 0.6rem;
+  padding: 0;
+  white-space: normal;
 }
 
 

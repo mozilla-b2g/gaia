@@ -440,6 +440,16 @@ contacts.List = (function() {
       sortBy: sortBy,
       sortOrder: 'ascending'
     };
+
+    // We use an empty string here for now because the WebContacts API
+    // is really performing a "startswith" instead of "contains".
+    // We should look at implementing a "nonempty" filter in the future.
+    if (ActivityHandler.activityDataType === 'webcontacts/email') {
+      options.filterBy = ['email'];
+      options.filterOp = 'contains';
+      options.filterValue = '';
+    }
+
     var request = navigator.mozContacts.find(options);
     request.onsuccess = function findCallback() {
       successCb(request.result);

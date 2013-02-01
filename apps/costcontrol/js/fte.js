@@ -120,6 +120,10 @@
     });
   }
 
+  window.addEventListener('localized', function _onLocalize() {
+    localizeWeekdaySelector(document.getElementById('selectdialog-weekday'));
+  });
+
   // TRACK SETUP
 
   var currentTrack = ['step-1', 'step-2'];
@@ -128,12 +132,13 @@
       currentTrack = ['step-1', 'step-2', 'prepaid-step-2', 'prepaid-step-3'];
       AutoSettings.initialize(ConfigManager, vmanager, '#prepaid-step-2');
       AutoSettings.initialize(ConfigManager, vmanager, '#prepaid-step-3');
-
+      addLowLimitStepConstrains();
       ConfigManager.setOption({
         dataLimitValue: 40,
         dataLimitUnit: 'MB',
         lowLimit: true,
-        lowLimitThreshold: defaultLowLimitThreshold });
+        lowLimitThreshold: defaultLowLimitThreshold
+      });
     } else if (evt.target.value === 'postpaid') {
       currentTrack = ['step-1', 'step-2', 'postpaid-step-2', 'postpaid-step-3'];
       AutoSettings.initialize(ConfigManager, vmanager, '#postpaid-step-2');
@@ -227,6 +232,25 @@
         );
       });
     });
+  }
+
+  // Add particular constrains to the page where setting low limit button
+  function addLowLimitStepConstrains() {
+    var lowLimit = document.getElementById('low-limit');
+    lowLimit.addEventListener('click', checkLowLimitStep);
+    var lowLimitInput = document.getElementById('low-limit-input');
+    lowLimitInput.addEventListener('input', checkLowLimitStep);
+  }
+
+  // Check settings and enable / disable done button
+  function checkLowLimitStep() {
+    var next = document.getElementById('low-limit-next-button');
+    var lowLimit = document.getElementById('low-limit');
+    var lowLimitInput = document.getElementById('low-limit-input');
+    var lowLimitError = lowLimit.checked && lowLimitInput.value.trim() === '';
+
+    lowLimitInput.classList[lowLimitError ? 'add' : 'remove']('error');
+    next.disabled = lowLimitError;
   }
 
 }());
