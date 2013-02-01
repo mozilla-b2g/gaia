@@ -1,5 +1,98 @@
 'use strict';
 
+// Utility functions
+function padLeft(num, length) {
+  var r = String(num);
+  while (r.length < length) {
+    r = '0' + r;
+  }
+  return r;
+}
+
+
+// This handles the logic pertaining to the naming of files according
+// to the Design rule for Camera File System
+// * http://en.wikipedia.org/wiki/Design_rule_for_Camera_File_system
+var DCFApi = (function() {
+
+  var api = {};
+
+  var dcfConfigLoaded = false;
+  var deferredArgs = null;
+  var defaultSeq = {file: 1, dir: 100};
+
+  var dcfConfig = {
+    key: 'dcf_key',
+    seq: null,
+    postFix: 'MZLLA',
+    prefix: {video: 'VID_', image: 'IMG_'},
+    ext: {video: '3gp', image: 'jpg'}
+  };
+
+  api.init = function() {
+
+    asyncStorage.getItem(dcfConfig.key, function(value) {
+
+      dcfConfigLoaded = true;
+      dcfConfig.seq = value ? value : defaultSeq;
+
+      // We have a previous call to createDCFFilename that is waiting for
+      // a response, fire it again
+      if (deferredArgs) {
+        var args = deferredArgs;
+        api.createDCFFilename(args.storage, args.type, args.callback);
+        deferredArgs = null;
+      }
+    });
+  };
+
+  api.createDCFFilename = function(storage, type, callback) {
+
+    // We havent loaded the current counters from indexedDB yet, defer
+    // the call
+    if (!dcfConfigLoaded) {
+      deferredArgs = {storage: storage, type: type, callback: callback};
+      return;
+    }
+
+    var filepath = 'DCIM/' + dcfConfig.seq.dir + dcfConfig.postFix + '/';
+    var filename = dcfConfig.prefix[type] +
+      padLeft(dcfConfig.seq.file, 4) + '.' +
+      dcfConfig.ext[type];
+
+    // A file with this name may have been written by the user or
+    // our indexeddb sequence tracker was cleared, check we wont overwrite
+    // anything
+    var req = storage.get(filepath + filename);
+
+    // A file existed, we bump the directory then try to generate a
+    // new filename
+    req.onsuccess = function() {
+      dcfConfig.seq.file = 1;
+      dcfConfig.seq.dir += 1;
+      asyncStorage.setItem(dcfConfig.key, dcfConfig.seq, function() {
+        api.createDCFFilename(storage, type, callback);
+      });
+    };
+
+    // No file existed, we are good to go
+    req.onerror = function() {
+      if (dcfConfig.seq.file < 9999) {
+        dcfConfig.seq.file += 1;
+      } else {
+        dcfConfig.seq.file = 1;
+        dcfConfig.seq.dir += 1;
+      }
+      asyncStorage.setItem(dcfConfig.key, dcfConfig.seq, function() {
+        callback(filepath, filename);
+      });
+    };
+  };
+
+  return api;
+
+})();
+
 var Camera = {
   _cameras: null,
   _camera: 0,
@@ -16,7 +109,6 @@ var Camera = {
   _videoTimer: null,
   _videoStart: null,
   _videoPath: null,
-  _videoPreview: document.createElement('video'),
 
   _autoFocusSupported: 0,
   _manuallyFocused: false,
@@ -34,8 +126,8 @@ var Camera = {
   _orientationRule: null,
   _phoneOrientation: 0,
 
-  _pictureStorage: navigator.getDeviceStorage('pictures'),
-  _videoStorage: navigator.getDeviceStorage('videos'),
+  _pictureStorage: null,
+  _videoStorage: null,
   _storageState: null,
 
   STORAGE_INIT: 0,
@@ -74,16 +166,8 @@ var Camera = {
   },
 
   _shutterKey: 'camera.shutter.enabled',
-  _shutterSound: new Audio('./resources/sounds/shutter.ogg'),
+  _shutterSound: null,
   _shutterSoundEnabled: true,
-
-  _dcfConfig: {
-    key: 'dcf_key',
-    seq: {file: 1, dir: 100},
-    postFix: 'MZLLA',
-    video: {prefix: 'VID_'},
-    image: {prefix: 'IMG_'}
-  },
 
   PROMPT_DELAY: 2000,
 
@@ -145,13 +229,23 @@ var Camera = {
     return document.getElementById('toggle-flash');
   },
 
-  init: function camera_init() {
+  // We have seperated init and delayedInit as we want to make sure
+  // that on first launch we dont interfere and load the camera
+  // previewStream as fast as possible, once the previewStream is
+  // active we do the rest of the initialisation.
+  init: function() {
+    this.setCaptureMode(this.CAMERA);
+    this.loadCameraPreview(this._camera, this.delayedInit.bind(this));
+  },
+
+  delayedInit: function camera_delayedInit() {
     // If we don't have any pending messages, show the usual UI
     // Otherwise, determine which buttons to show once we get our
     // activity message
     if (!navigator.mozHasPendingMessage('activity')) {
       this.galleryButton.classList.remove('hidden');
       this.switchButton.classList.remove('hidden');
+      this.enableButtons();
     }
 
     // Dont let the phone go to sleep while the camera is
@@ -160,9 +254,7 @@ var Camera = {
       navigator.requestWakeLock('screen');
     }
 
-    this._shutterSound.mozAudioChannelType = 'publicnotification';
-    this._storageState = this.STORAGE_INIT;
-    this.setCaptureMode(this.CAMERA);
+    this.setToggleCameraStyle();
 
     // We lock the screen orientation and deal with rotating
     // the icons manually
@@ -192,6 +284,9 @@ var Camera = {
       this.galleryButton.setAttribute('disabled', 'disabled');
     }
 
+    this._shutterSound = new Audio('./resources/sounds/shutter.ogg');
+    this._shutterSound.mozAudioChannelType = 'publicnotification';
+
     if ('mozSettings' in navigator) {
       var req = navigator.mozSettings.createLock().get(this._shutterKey);
       req.onsuccess = (function onsuccess() {
@@ -203,30 +298,29 @@ var Camera = {
       }).bind(this));
     }
 
+    this._storageState = this.STORAGE_INIT;
+
+    this._pictureStorage = navigator.getDeviceStorage('pictures');
+    this._videoStorage = navigator.getDeviceStorage('videos'),
+
     this._pictureStorage
       .addEventListener('change', this.deviceStorageChangeHandler.bind(this));
 
-    asyncStorage.getItem(this._dcfConfig.key, (function(value) {
-      if (value) {
-        this._dcfConfig.seq = value;
+    navigator.mozSetMessageHandler('activity', function(activity) {
+      var name = activity.source.name;
+      if (name === 'pick') {
+        Camera.initPick(activity);
       }
+      else {
+        // We got another activity. Perhaps we were launched from gallery
+        // So show our usual buttons
+        Camera.galleryButton.classList.remove('hidden');
+        Camera.switchButton.classList.remove('hidden');
+      }
+      Camera.enableButtons();
+    });
 
-      this.setToggleCameraStyle();
-      this.setSource(this._camera);
-
-      navigator.mozSetMessageHandler('activity', function(activity) {
-        var name = activity.source.name;
-        if (name === 'pick') {
-          Camera.initPick(activity);
-        }
-        else {
-          // We got another activity. Perhaps we were launched from gallery
-          // So show our usual buttons
-          Camera.galleryButton.classList.remove('hidden');
-          Camera.switchButton.classList.remove('hidden');
-        }
-      });
-    }).bind(this));
+    DCFApi.init();
   },
 
   enableButtons: function camera_enableButtons() {
@@ -289,7 +383,7 @@ var Camera = {
 
   toggleCamera: function camera_toggleCamera() {
     this._camera = 1 - this._camera;
-    this.setSource(this._camera);
+    this.loadCameraPreview(this._camera, this.enableButtons.bind(this));
     this.setToggleCameraStyle();
   },
 
@@ -363,7 +457,7 @@ var Camera = {
                                      onsuccess, onerror);
     }).bind(this);
 
-    this.createDCFFilename('video', '3gp', (function(path, name) {
+    DCFApi.createDCFFilename(this._videoStorage, 'video', (function(path, name) {
       this._videoPath = path + name;
 
       // The CameraControl API will not automatically create directories
@@ -425,17 +519,9 @@ var Camera = {
     var minutes = Math.floor(time / 60);
     var seconds = Math.round(time % 60);
     if (minutes < 60) {
-      return this.padLeft(minutes, 2) + ':' + this.padLeft(seconds, 2);
+      return padLeft(minutes, 2) + ':' + padLeft(seconds, 2);
     }
     return '';
-  },
-
-  padLeft: function camera_padLeft(num, length) {
-    var r = String(num);
-    while (r.length < length) {
-      r = '0' + r;
-    }
-    return r;
   },
 
   capturePressed: function camera_doCapture(e) {
@@ -500,7 +586,7 @@ var Camera = {
       Filmstrip.show();
   },
 
-  setSource: function camera_setSource(camera) {
+  loadCameraPreview: function camera_loadCameraPreview(camera, callback) {
 
     this.viewfinder.mozSrcObject = null;
     this._timeoutId = 0;
@@ -532,10 +618,14 @@ var Camera = {
     var options = {camera: this._cameras[this._camera]};
 
     function gotPreviewScreen(stream) {
-      this.enableButtons();
-      this._previewActive = true;
       viewfinder.mozSrcObject = stream;
       viewfinder.play();
+
+      if (callback) {
+        callback();
+      }
+
+      this._previewActive = true;
       this.checkStorageSpace();
       setTimeout(this.initPositionUpdate.bind(this), this.PROMPT_DELAY);
     }
@@ -598,7 +688,7 @@ var Camera = {
 
   startPreview: function camera_startPreview() {
     this.viewfinder.play();
-    this.setSource(this._camera);
+    this.loadCameraPreview(this._camera, this.enableButtons.bind(this));
     this._previewActive = true;
   },
 
@@ -624,47 +714,11 @@ var Camera = {
       window.setTimeout(this.resumePreview.bind(this), this.PREVIEW_PAUSE);
   },
 
-  createDCFFilename: function camera_createDCFFilename(type, ext, callback) {
-    var self = this;
-    var dcf = this._dcfConfig;
-    var filename = dcf[type].prefix + this.padLeft(dcf.seq.file, 4) + '.' + ext;
-    var path = 'DCIM/' + dcf.seq.dir + dcf.postFix + '/';
-    var storage = type === 'video' ? this._videoStorage : this._pictureStorage;
-
-    // A file with this name may have been written by the user or
-    // our indexeddb sequence tracker was cleared, check we wont overwrite
-    // anything
-    var req = storage.get(path + filename);
-
-    // A file existed, we bump the directory then try to generate a
-    // new filename
-    req.onsuccess = function() {
-      dcf.seq.file = 1;
-      dcf.seq.dir += 1;
-      asyncStorage.setItem(dcf.key, dcf.seq, function() {
-        self.createDCFFilename(type, ext, callback);
-      });
-    };
-
-    // No file existed, we are good to go
-    req.onerror = function() {
-      if (dcf.seq.file < 9999) {
-        dcf.seq.file += 1;
-      } else {
-        dcf.seq.file = 1;
-        dcf.seq.dir += 1;
-      }
-      asyncStorage.setItem(dcf.key, dcf.seq, function() {
-        callback(path, filename);
-      });
-    };
-  },
-
   takePictureSuccess: function camera_takePictureSuccess(blob) {
     this._manuallyFocused = false;
     this.hideFocusRing();
     this.restartPreview();
-    this.createDCFFilename('image', 'jpg', (function(path, name) {
+    DCFApi.createDCFFilename(this._pictureStorage, 'image', (function(path, name) {
       var addreq = this._pictureStorage.addNamed(blob, path + name);
       addreq.onsuccess = (function() {
         if (this._pendingPick) {
@@ -895,9 +949,7 @@ var Camera = {
   }
 };
 
-window.addEventListener('DOMContentLoaded', function CameraInit() {
-  Camera.init();
-});
+Camera.init();
 
 document.addEventListener('mozvisibilitychange', function() {
   if (document.mozHidden) {
