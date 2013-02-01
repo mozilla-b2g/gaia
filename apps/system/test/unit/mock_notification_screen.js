@@ -4,7 +4,9 @@ var MockNotificationScreen = {
   mockMethods: [
     'incExternalNotifications',
     'decExternalNotifications',
-    'updateStatusBarIcon'
+    'updateStatusBarIcon',
+    'addNotification',
+    'removeNotification'
   ],
 
   mockPopulate: function mockPopulate() {
@@ -12,6 +14,13 @@ var MockNotificationScreen = {
       // we could probably put this method outside if we had a closure
       this[methodName] = function mns_method() {
         this.methodCalled(methodName);
+
+        if (methodName == 'addNotification' || methodName == 'removeNotification') {
+          return {
+            addEventListener: function() {},
+            removeEventListener: function() {}
+          }
+        }
       };
     }, this);
   },
