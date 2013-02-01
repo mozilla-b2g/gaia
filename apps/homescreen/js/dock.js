@@ -82,7 +82,9 @@ const DockManager = (function() {
           return;
         }
 
-        if (GridManager.pageHelper.getCurrentPageNumber() > 1) {
+        if (GridManager.pageHelper.getCurrentPageNumber() >
+            GridManager.landingPage) {
+
           Homescreen.setMode('edit');
 
           if ('isIcon' in evt.target.dataset) {
