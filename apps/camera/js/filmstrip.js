@@ -94,6 +94,11 @@ var Filmstrip = (function() {
     if (!target || !target.classList.contains('thumbnail'))
       return;
 
+    // Recording and previewing should be mutually exclusive
+    // so we should just stop if Camera is recording
+    if (Camera._recording)
+      Camera.stopRecording();
+
     var index = parseInt(target.dataset.index);
     previewItem(index);
     // If we're showing previews be sure we're showing the filmstrip
