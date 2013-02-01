@@ -428,6 +428,12 @@ var Camera = {
       captureButton.removeAttribute('disabled');
       this._recording = true;
       this.startRecordingTimer();
+
+      // Hide the filmstrip to prevent the users from
+      // entering the preview mode after Camera starts recording
+      if (Filmstrip.isShown())
+        Filmstrip.hide();
+
       // User closed app while recording was trying to start
       if (document.mozHidden) {
         this.stopRecording();
@@ -580,6 +586,12 @@ var Camera = {
   },
 
   toggleFilmStrip: function camera_toggleFilmStrip(ev) {
+    // We will just ignore
+    // because the filmstrip shouldn't be shown
+    // while Camera is recording
+    if (this._recording)
+      return;
+
     if (Filmstrip.isShown())
       Filmstrip.hide();
     else
