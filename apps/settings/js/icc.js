@@ -851,14 +851,37 @@
       var app = evt.target.result;
       var iconURL = NotificationHelper.getIconURI(app);
 
-      function showNotificationCB() {
-        app.launch();
-        alert(options.text);
+      function onClick() {
+        // If the document is already visible, just display the message.
+        if (document.mozHidden == false) {
+          alert(options.text); 
+          return;
+        }
+
+        // The application is not currently focused, let's move it on the foreground
+        navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+          var app =  evt.target.result;
+          app.launch();
+          alert(options.text);
+        }
+      }
+
+      function onCancel() {
+        if (document.mozHidden == false) {
+          alert(options.text);
+          return;
+        }
+
+        // The notification has been closed and the message could not have been seen.
+        // This is an important message so let's show it once the application goes visible again.
+        window.addEventListener('mozvisibilitychange', function showClosedNotification(e) {
+          window.removeEventListener(e.type, showClosedNotification);
+          alert(options.text);
+        });
       }
 
       var options = command.options;
-      NotificationHelper.send('STK', options.text, iconURL,
-      showNotificationCB, showNotificationCB);
+      NotificationHelper.send('STK', options.text, iconURL, onClick, onCancel);
     }
   }
 
