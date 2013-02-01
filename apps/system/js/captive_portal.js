@@ -23,6 +23,15 @@ var CaptivePortal = {
     var networkName = (currentNetwork && currentNetwork.ssid) ?
         currentNetwork.ssid : '';
     var message = _('captive-wifi-available', { networkName: networkName });
+
+    if (WindowManager.isFtuRunning()) {
+      settings.createLock().set({'wifi.connect_via_settings': false});
+
+      this.entrySheet = new EntrySheet(document.getElementById('screen'), url, new BrowserFrame(url));
+      this.entrySheet.open();
+      return;
+    }
+
     if (!this.isManualConnect) {
       this.notification = NotificationScreen.addNotification({
         id: id, title: '', text: message, icon: icon
@@ -51,14 +60,19 @@ var CaptivePortal = {
     var _ = window.navigator.mozL10n.get;
     var settings = window.navigator.mozSettings;
 
-    if (id === this.eventId && this.notification) {
-      if (this.notification.parentNode) {
+    if (id === this.eventId) {
+      if (this.notification && this.notification.parentNode) {
         if (this.captiveNotification_onTap) {
           this.notification.removeEventListener('tap', this.captiveNotification_onTap);
           this.captiveNotification_onTap = null;
         }
         NotificationScreen.removeNotification(id);
         this.notification = null;
+      }
+
+      if (this.entrySheet) {
+        this.entrySheet.close();
+        this.entrySheet = null;
       }
     }
   },
@@ -74,10 +88,10 @@ var CaptivePortal = {
     }
   },
 
-  init: function cp_init() {    
+  init: function cp_init() {
     var self = this;
     window.addEventListener('mozChromeEvent', this);
-    
+
     // Using settings API to know whether user is manually selecting
     // wifi AP from settings app.
     SettingsListener.observe('wifi.connect_via_settings', true, function(value) {
