@@ -203,15 +203,14 @@ contacts.Search = (function() {
 
     if (!inSearchMode) {
       window.addEventListener('input', onInput);
-      window.addEventListener('MozAfterPaint', function afterpaint() {
-        // And now that everything is ready let's paint the keyboard
-        searchBox.focus();
-        window.removeEventListener('MozAfterPaint', afterpaint);
-      });
       searchView.classList.add('insearchmode');
       fillInitialSearchPage();
       inSearchMode = true;
       emptySearch = true;
+
+      setTimeout(function nextTick() {
+        searchBox.focus();
+      });
     }
   };
 

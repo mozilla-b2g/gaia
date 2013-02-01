@@ -30,11 +30,6 @@ section[role="region"] {
   overflow: hidden;
 }
 
-/* Without this hack, we get a white screen at launch on gecko21 */
-.uninit section[role="region"],
-.uninit section[role="region"].peek {
-  transition: none;
-}
 
 /**
  * Panel targets -- transitions
@@ -70,6 +65,14 @@ section[role="region"].current.peek {
   transform: translateX(-99.9%);
 }
 
+/* Without this hack, we get a white screen at launch on gecko21 */
+.uninit section[role="region"],
+.uninit section[role="region"].peek,
+.uninit section[role="region"].current {
+  transition: none;
+  transform: none;
+}
+
 /**
  * Headers should not scroll with the rest of the page, except for #root.
  */
@@ -81,6 +84,7 @@ section[role="region"] > header:first-child {
 section[role="region"] > header:first-child + * {
   margin-top: 5rem;
 }
+
 
 /******************************************************************************
  * Explanation texts
@@ -367,7 +371,6 @@ ul li > label .range-icons.brightness {
     url(images/range_icons_brightness_max.png) no-repeat 100% 50%;
   left: 2.5rem;
   right: auto;
-
 }
 
 #brightness-manual div {
@@ -398,6 +401,15 @@ ul li > label .range-icons.brightness {
   position: fixed;
 }
 
+#icc #icc-stk-alert menu button:first-child {
+  margin: 0;
+}
+
+#icc #icc-stk-alert menu button {
+  width: calc((100% - 2rem) / 3);
+  margin-left: 1rem;
+}
+
 .multiline_title {
   text-overflow: clip;
   white-space: normal;
@@ -411,6 +423,10 @@ ul li > label .range-icons.brightness {
 
 #dateTime ul[data-state="auto"] ~ * {
   display: none;
+}
+
+#dateTime ul[hidden] + header {
+  margin-top: 5rem;
 }
 
 #time-manual span {
@@ -440,6 +456,7 @@ ul li > label .range-icons.brightness {
  * OS License
  */
 
+#obtain-sc,
 #os-license {
   width: 100%;
   height: calc(100% - 5rem);

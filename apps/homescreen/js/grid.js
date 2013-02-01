@@ -18,7 +18,7 @@ const GridManager = (function() {
   var overlay, overlayStyle;
   var overlayTransition = 'opacity ' + kPageTransitionDuration + 'ms ease';
 
-  var numberOfSpecialPages = 0;
+  var numberOfSpecialPages = 0, landingPage, prevLandingPage, nextLandingPage;
   var pages = [];
   var currentPage = 1;
 
@@ -35,21 +35,32 @@ const GridManager = (function() {
   var startEvent, isPanning = false, deltaX, removePanHandler,
       dummy = function() {};
 
+  var isTouch = 'ontouchstart' in window;
+  var touchstart = isTouch ? 'touchstart' : 'mousedown';
+  var touchmove = isTouch ? 'touchmove' : 'mousemove';
+  var touchend = isTouch ? 'touchend' : 'mouseup';
+
+  var getX = (function getXWrapper() {
+    return isTouch ? function(e) { return e.touches[0].pageX } :
+                     function(e) { return e.pageX };
+  })();
+
   function handleEvent(evt) {
     switch (evt.type) {
-      case 'touchstart':
+      case touchstart:
+        evt.stopPropagation();
         touchStartTimestamp = evt.timeStamp;
-        startEvent = evt.touches[0];
+        startEvent = isTouch ? evt.touches[0] : evt;
         deltaX = 0;
         attachEvents();
         removePanHandler = dummy;
         isPanning = false;
         break;
 
-      case 'touchmove':
+      case touchmove:
         // Start panning immediately but only disable
         // the tap when we've moved far enough.
-        deltaX = evt.touches[0].pageX - startEvent.pageX;
+        deltaX = getX(evt).pageX - startEvent.pageX;
         if (deltaX === 0)
           return;
 
@@ -59,7 +70,7 @@ const GridManager = (function() {
         // method for panning only the 2 relevants pages based on the
         // direction of the inputs. The code here is carefully written
         // to avoid as much as possible allocations while panning.
-        window.removeEventListener('touchmove', handleEvent);
+        window.removeEventListener(touchmove, handleEvent);
 
         // Before panning pages that are directly next to the current
         // target are set visible.
@@ -128,7 +139,7 @@ const GridManager = (function() {
         // Generate a function accordingly to the current page position.
         if (Homescreen.isInEditMode() || currentPage > 2) {
           var pan = function(e) {
-            deltaX = e.touches[0].pageX - startX;
+            deltaX = getX(e) - startX;
             if (!isPanning && Math.abs(deltaX) >= tapThreshold) {
               isPanning = true;
             }
@@ -136,7 +147,7 @@ const GridManager = (function() {
           };
         } else {
           var pan = function(e) {
-            deltaX = e.touches[0].pageX - startX;
+            deltaX = getX(e) - startX;
             if (!isPanning && Math.abs(deltaX) >= tapThreshold) {
               isPanning = true;
             }
@@ -148,25 +159,25 @@ const GridManager = (function() {
         }
 
         var container = pages[index].container;
-        container.addEventListener('touchmove', pan, true);
+        container.addEventListener(touchmove, pan, true);
 
         removePanHandler = function removePanHandler(e) {
           touchEndTimestamp = e ? e.timeStamp : Number.MAX_VALUE;
-          window.removeEventListener('touchend', removePanHandler, true);
+          window.removeEventListener(touchend, removePanHandler, true);
 
-          container.removeEventListener('touchmove', pan, true);
+          container.removeEventListener(touchmove, pan, true);
 
           window.mozRequestAnimationFrame(function panTouchEnd() {
             onTouchEnd(deltaX, e);
           });
         };
 
-        window.addEventListener('touchend', removePanHandler, true);
-        window.removeEventListener('touchend', handleEvent);
+        window.addEventListener(touchend, removePanHandler, true);
+        window.removeEventListener(touchend, handleEvent);
 
         break;
 
-      case 'touchend':
+      case touchend:
         releaseEvents();
         pageHelper.getCurrent().tap(evt.target);
         break;
@@ -177,7 +188,7 @@ const GridManager = (function() {
           return;
         }
 
-        if (currentPage > 1 && 'isIcon' in evt.target.dataset) {
+        if (currentPage > landingPage && 'isIcon' in evt.target.dataset) {
           evt.stopImmediatePropagation();
           removePanHandler();
           Homescreen.setMode('edit');
@@ -192,18 +203,20 @@ const GridManager = (function() {
   }
 
   function setOverlayPanning(index, deltaX, forward) {
-    if (index === 1) {
+    if (index === landingPage && landingPage > 0) {
       overlayStyle.opacity = (Math.abs(deltaX) / windowWidth) *
-        opacityOnAppGridPageMax;
-    } else if (index === 0 && !forward || index === 2 && forward) {
+                              opacityOnAppGridPageMax;
+    } else if (index === prevLandingPage && !forward ||
+               index === nextLandingPage && forward) {
       overlayStyle.opacity = opacityOnAppGridPageMax -
-          (Math.abs(deltaX) / windowWidth) * opacityOnAppGridPageMax;
+                     (Math.abs(deltaX) / windowWidth) * opacityOnAppGridPageMax;
     }
   }
 
   function applyEffectOverlay(index) {
     overlayStyle.MozTransition = overlayTransition;
-    overlayStyle.opacity = index === 1 ? 0 : opacityOnAppGridPageMax;
+    overlayStyle.opacity = index === landingPage ?
+                           prevLandingPage : opacityOnAppGridPageMax;
   }
 
   function onTouchEnd(deltaX, evt) {
@@ -215,8 +228,8 @@ const GridManager = (function() {
       if (forward && currentPage < pages.length - 1) {
         page = page + 1;
       } else if (!forward &&
-                  (page === 1 || page >= 3 ||
-                    (page === 2 && !Homescreen.isInEditMode()))) {
+                 (page === landingPage || page >= nextLandingPage + 1 ||
+                    (page === nextLandingPage && !Homescreen.isInEditMode()))) {
         page = page - 1;
       }
     } else if (!isPanning && evt) {
@@ -228,13 +241,13 @@ const GridManager = (function() {
   }
 
   function attachEvents() {
-    window.addEventListener('touchmove', handleEvent);
-    window.addEventListener('touchend', handleEvent);
+    window.addEventListener(touchmove, handleEvent);
+    window.addEventListener(touchend, handleEvent);
   }
 
   function releaseEvents() {
-    window.removeEventListener('touchmove', handleEvent);
-    window.removeEventListener('touchend', handleEvent);
+    window.removeEventListener(touchmove, handleEvent);
+    window.removeEventListener(touchend, handleEvent);
   }
 
   function togglePagesVisibility(start, end) {
@@ -253,7 +266,7 @@ const GridManager = (function() {
   var lastGoingPageTimestamp = 0;
 
   function goToPage(index, callback) {
-    document.location.hash = (index == 1 ? 'root' : '');
+    document.location.hash = (index === landingPage ? 'root' : '');
     if (index < 0 || index >= pages.length)
       return;
 
@@ -263,14 +276,16 @@ const GridManager = (function() {
     var duration = delay < kPageTransitionDuration ?
                    delay : kPageTransitionDuration;
 
-    var goToPageCallback = function() {
+    var goToPageCallback = function(dispatchEvents) {
       delete document.body.dataset.transitioning;
       if (callback) {
         callback();
       }
 
-      previousPage.container.dispatchEvent(new CustomEvent('gridpagehideend'));
-      newPage.container.dispatchEvent(new CustomEvent('gridpageshowend'));
+      if (dispatchEvents) {
+        previousPage.container.dispatchEvent(new CustomEvent('gridpagehideend'));
+        newPage.container.dispatchEvent(new CustomEvent('gridpageshowend'));
+      }
       overlayStyle.MozTransition = '';
       togglePagesVisibility(index, index);
     };
@@ -335,7 +350,7 @@ const GridManager = (function() {
 
     container.addEventListener('transitionend', function transitionEnd(e) {
       container.removeEventListener('transitionend', transitionEnd);
-      goToPageCallback();
+      goToPageCallback(true);
     });
   }
 
@@ -597,7 +612,7 @@ const GridManager = (function() {
 
     container = document.querySelector(selector);
     container.addEventListener('contextmenu', handleEvent);
-    container.addEventListener('touchstart', handleEvent, true);
+    container.addEventListener(touchstart, handleEvent, true);
 
     limits.left = container.offsetWidth * 0.05;
     limits.right = container.offsetWidth * 0.95;
@@ -609,6 +624,9 @@ const GridManager = (function() {
     // offset between these indexes here and the ones in the DB.
     // See also pageHelper.saveAll().
     numberOfSpecialPages = container.children.length;
+    landingPage = numberOfSpecialPages - 1;
+    prevLandingPage = landingPage - 1;
+    nextLandingPage = landingPage + 1;
     for (var i = 0; i < container.children.length; i++) {
       var pageElement = container.children[i];
       var page = new Page(pageElement, null);
@@ -904,7 +922,7 @@ const GridManager = (function() {
 
     onDragStart: function gm_onDragSart() {
       releaseEvents();
-      container.removeEventListener('touchstart', handleEvent, true);
+      container.removeEventListener(touchstart, handleEvent, true);
       dragging = document.body.dataset.dragging = true;
     },
 
@@ -912,7 +930,7 @@ const GridManager = (function() {
       delete document.body.dataset.dragging;
       dragging = false;
       delete document.body.dataset.transitioning;
-      container.addEventListener('touchstart', handleEvent, true);
+      container.addEventListener(touchstart, handleEvent, true);
       ensurePagesOverflow();
       removeEmptyPages();
     },
@@ -996,6 +1014,10 @@ const GridManager = (function() {
     dirCtrl: dirCtrl,
 
     pageHelper: pageHelper,
+
+    get landingPage() {
+      return landingPage;
+    },
 
     showRestartDownloadDialog: showRestartDownloadDialog
   };

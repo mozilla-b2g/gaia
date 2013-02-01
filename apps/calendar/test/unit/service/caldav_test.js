@@ -730,7 +730,19 @@ suite('service/caldav', function() {
       };
     });
 
-    test('result', function(done) {
+    test('empty response', function(done) {
+      var stream = new Calendar.Responder();
+      var options = {
+        startDate: new Date(2012, 0, 1),
+        cached: {}
+      };
+
+      // should not crash on empty responses...
+      subject.streamEvents(givenAcc, givenCal, options, stream, done);
+      query.sax.emit('DAV:/response', 'one/', {});
+    });
+
+    test('success', function(done) {
       var stream = new Calendar.Responder();
       var events = [];
       var cals = {
@@ -1213,6 +1225,20 @@ suite('service/caldav', function() {
       test('server request', function(done) {
         subject.parseEvent(putCall[1], function(err, icalEvent) {
           done(function() {
+            var vcalendar = icalEvent.component.parent;
+
+            assert.equal(
+              vcalendar.getFirstPropertyValue('prodid'),
+              subject.icalProductId,
+              'has product id'
+            );
+
+            assert.equal(
+              vcalendar.getFirstPropertyValue('version'),
+              subject.icalVersion,
+              'has version'
+            );
+
             assert.hasProperties(icalEvent, {
               summary: event.title,
               description: event.description,
@@ -1293,10 +1319,18 @@ suite('service/caldav', function() {
                              function(parseErr, newEvent) {
 
             done(function() {
+              var vcalendar = newEvent.component.parent;
+
               assert.ok(!parseErr, parseErr);
               assert.ok(
                 typeof(result.icalComponent) === 'string',
                 'updated result is returned as a string'
+              );
+
+              assert.equal(
+                vcalendar.getFirstPropertyValue('prodid'),
+                subject.icalProductId,
+                'update the prodid'
               );
 
               assert.equal(
@@ -1336,7 +1370,9 @@ suite('service/caldav', function() {
         assert.equal(assetReq.url, event.url);
         assert.ok(assetReq.connection);
         assert.deepEqual(options, {
-          etag: event.syncToken
+          // we will re-implement this correctly when
+          // we have real queues
+          //etag: event.syncToken
         });
 
         cb();

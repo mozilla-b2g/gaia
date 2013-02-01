@@ -55,8 +55,9 @@ var CostControlApp = (function() {
   }
 
   window.addEventListener('localized', function _onLocalize() {
-    if (initialized)
+    if (initialized) {
       updateUI();
+    }
   });
 
   var tabmanager, settingsVManager;
@@ -92,7 +93,7 @@ var CostControlApp = (function() {
       });
     });
 
-    // Handle open sent by the user via the widget
+    // Handle 'open activity' sent by the user via the widget
     navigator.mozSetMessageHandler('activity',
       function _handleActivity(activityRequest) {
         var name = activityRequest.source.name;
@@ -110,10 +111,37 @@ var CostControlApp = (function() {
       }
     );
 
+    // When a notification is received
+    window.navigator.mozSetMessageHandler('notification',
+      function _onNotification(notification) {
+        debug('Notification received!');
+        navigator.mozApps.getSelf().onsuccess = function _onAppReady(evt) {
+          var app = evt.target.result;
+          app.launch();
+
+          var type = notification.imageURL.split('?')[1];
+          debug('Notification type:', type);
+          handleNotification(type);
+        };
+      }
+    );
+
     updateUI();
     ConfigManager.observe('plantype', updateUI, true);
 
     initialized = true;
+  }
+
+  function handleNotification(type) {
+    switch (type) {
+      case 'topUpError':
+        BalanceTab.topUpWithCode(true);
+        break;
+      case 'lowBalance':
+      case 'zeroBalance':
+        tabmanager.changeViewTo('balance-tab');
+        break;
+    }
   }
 
   var currentMode;
@@ -128,10 +156,10 @@ var CostControlApp = (function() {
 
         // Initialize on demand
         DataUsageTab.initialize(tabmanager);
-        if (mode === 'PREPAID')
+        if (mode === 'PREPAID') {
           TelephonyTab.finalize();
           BalanceTab.initialize(tabmanager, vmanager);
-        if (mode === 'POSTPAID') {
+        } else if (mode === 'POSTPAID') {
           BalanceTab.finalize();
           TelephonyTab.initialize(tabmanager);
         }
@@ -155,13 +183,20 @@ var CostControlApp = (function() {
 
           // If it was showing the left tab, force changing to the
           // proper left view
-          if (tabmanager.getCurrentTab() !== 'datausage-tab')
+          if (tabmanager.getCurrentTab() !== 'datausage-tab') {
             tabmanager.changeViewTo(mode === 'PREPAID' ? 'balance-tab' :
                                                          'telephony-tab');
+          }
         }
 
       }
     });
   }
+
+  return {
+    showBalanceTab: function _showBalanceTab () {
+      tabmanager.changeViewTo('balance-tab');
+    }
+  };
 
 }());

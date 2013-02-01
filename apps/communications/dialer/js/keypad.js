@@ -39,7 +39,7 @@ var TonePlayer = {
      return;
 
    this._audio = new Audio();
-   this._audio.mozAudioChannelType = 'ringer';
+   this._audio.volume = 0.5;
   },
 
   // Generating audio frames for the 2 given frequencies

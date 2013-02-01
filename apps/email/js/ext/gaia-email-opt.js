@@ -17041,8 +17041,9 @@ ImapConnection.prototype.connect = function(loginCb) {
               box.parent = parent;
             }
             box.displayName = decodeModifiedUtf7(name);
-            if (!curChildren[name])
-              curChildren[name] = box;
+            if (curChildren[name])
+              box.children = curChildren[name].children;
+            curChildren[name] = box;
           }
         break;
         // QRESYNC (when successful) generates a "VANISHED (EARLIER) uids"
@@ -27325,8 +27326,12 @@ exports.SubjectFilter = SubjectFilter;
 SubjectFilter.prototype = {
   needsBody: false,
   testMessage: function(header, body, match) {
+    const subject = header.subject;
+    // Empty subjects can't match *anything*; no empty regexes allowed, etc.
+    if (!subject)
+      return false;
     const phrase = this.phrase,
-          subject = header.subject, slen = subject.length,
+          slen = subject.length,
           stopAfter = this.stopAfter,
           contextBefore = this.contextBefore, contextAfter = this.contextAfter,
           matches = [];
@@ -27519,10 +27524,15 @@ MessageFilterer.prototype = {
     //            header.subject, 'body?', !!body, ')');
     var matched = false, matchObj = {};
     const filters = this.filters;
-    for (var i = 0; i < filters.length; i++) {
-      var filter = filters[i];
-      if (filter.testMessage(header, body, matchObj))
-        matched = true;
+    try {
+      for (var i = 0; i < filters.length; i++) {
+        var filter = filters[i];
+        if (filter.testMessage(header, body, matchObj))
+          matched = true;
+      }
+    }
+    catch (ex) {
+      console.error('filter exception', ex, '\n', ex.stack);
     }
     //console.log('   =>', matched, JSON.stringify(matchObj));
     if (matched)
@@ -32948,7 +32958,6 @@ function ActiveSyncFolderConn(account, storage, _parentLog) {
   this._LOG = LOGFAB.ActiveSyncFolderConn(this, _parentLog, storage.folderId);
 
   this.folderMeta = storage.folderMeta;
-  this.serverId = this.folderMeta.serverId;
 
   if (!this.syncKey)
     this.syncKey = '0';
@@ -32960,6 +32969,10 @@ ActiveSyncFolderConn.prototype = {
 
   set syncKey(value) {
     return this.folderMeta.syncKey = value;
+  },
+
+  get serverId() {
+    return this.folderMeta.serverId;
   },
 
   /**
@@ -33628,16 +33641,22 @@ ActiveSyncFolderConn.prototype = {
 
   syncDateRange: function asfc_syncDateRange(startTS, endTS, accuracyStamp,
                                              doneCallback, progressCallback) {
-    let storage = this._storage;
-    let folderConn = this;
-    let messagesSeen = 0;
+    let folderConn = this,
+        addedMessages = 0,
+        changedMessages = 0,
+        deletedMessages = 0;
 
     this._LOG.syncDateRange_begin(null, null, null, startTS, endTS);
     this._enumerateFolderChanges(function (error, added, changed, deleted,
                                            moreAvailable) {
+      let storage = folderConn._storage;
+
       if (error === 'badkey') {
         folderConn._account._recreateFolder(storage.folderId, function(s) {
-          folderConn.storage = s;
+          // If we got a bad sync key, we'll end up creating a new connection,
+          // so just clear out the old storage to make this connection unusable.
+          folderConn._storage = null;
+          folderConn._LOG.syncDateRange_end(null, null, null, startTS, endTS);
         });
         return;
       }
@@ -33646,7 +33665,6 @@ ActiveSyncFolderConn.prototype = {
         return;
       }
 
-      let addedMessages = 0;
       for (let [,message] in Iterator(added)) {
         // If we already have this message, it's probably because we moved it as
         // part of a local op, so let's assume that the data we already have is
@@ -33659,7 +33677,6 @@ ActiveSyncFolderConn.prototype = {
         addedMessages++;
       }
 
-      let changedMessages = 0;
       for (let [,message] in Iterator(changed)) {
         // If we don't know about this message, just bail out.
         if (!storage.hasMessageWithServerId(message.header.srvid))
@@ -33674,7 +33691,6 @@ ActiveSyncFolderConn.prototype = {
         // XXX: update bodies
       }
 
-      let deletedMessages = 0;
       for (let [,messageGuid] in Iterator(deleted)) {
         // If we don't know about this message, it's probably because we already
         // deleted it.
@@ -33685,9 +33701,9 @@ ActiveSyncFolderConn.prototype = {
         deletedMessages++;
       }
 
-      messagesSeen += addedMessages + changedMessages + deletedMessages;
-
       if (!moreAvailable) {
+        let messagesSeen = addedMessages + changedMessages + deletedMessages;
+
         // Note: For the second argument here, we report the number of messages
         // we saw that *changed*. This differs from IMAP, which reports the
         // number of messages it *saw*.
@@ -34779,10 +34795,6 @@ ActiveSyncAccount.prototype = {
         existingInboxMeta.name = displayName;
         existingInboxMeta.path = path;
         existingInboxMeta.depth = depth;
-        // Its folder connection needs to know the updated server id since it
-        // copied it out.
-        let folderStorage = this._folderStorages[existingInboxMeta.id];
-        folderStorage.folderSyncer.folderConn.serverId = serverId;
         return existingInboxMeta;
       }
     }
@@ -34799,6 +34811,7 @@ ActiveSyncAccount.prototype = {
         lastSyncedAt: 0,
         syncKey: '0',
       },
+      // any changes to the structure here must be reflected in _recreateFolder!
       $impl: {
         nextId: 0,
         nextHeaderBlock: 0,
@@ -34864,9 +34877,15 @@ ActiveSyncAccount.prototype = {
   _recreateFolder: function asa__recreateFolder(folderId, callback) {
     this._LOG.recreateFolder(folderId);
     let folderInfo = this._folderInfos[folderId];
+    folderInfo.$impl = {
+      nextId: 0,
+      nextHeaderBlock: 0,
+      nextBodyBlock: 0,
+    };
     folderInfo.accuracy = [];
     folderInfo.headerBlocks = [];
     folderInfo.bodyBlocks = [];
+    folderInfo.serverIdHeaderBlockMapping = {};
 
     if (this._deadFolderIds === null)
       this._deadFolderIds = [];

@@ -2878,21 +2878,23 @@ ICAL.Binary = (function() {
         var props = aComponent.getAllProperties("rdate");
         for (var rdatekey in props) {
           var rdate = props[rdatekey];
+          var time = rdate.getFirstValue();
           var change = init_changes();
-          change.year = rdate.time.year;
-          change.month = rdate.time.month;
-          change.day = rdate.time.day;
 
-          if (rdate.time.isDate) {
+          change.year = time.year;
+          change.month = time.month;
+          change.day = time.day;
+
+          if (time.isDate) {
             change.hour = dtstart.hour;
             change.minute = dtstart.minute;
             change.second = dtstart.second;
           } else {
-            change.hour = rdate.time.hour;
-            change.minute = rdate.time.minute;
-            change.second = rdate.time.second;
+            change.hour = time.hour;
+            change.minute = time.minute;
+            change.second = time.second;
 
-            if (rdate.time.zone == ICAL.Timezone.utcTimezone) {
+            if (time.zone == ICAL.Timezone.utcTimezone) {
               ICAL.Timezone.adjust_change(change, 0, 0, 0,
                                               -change.prevUtcOffset);
             }
@@ -2901,36 +2903,38 @@ ICAL.Binary = (function() {
           changes.push(change);
         }
 
-        var rrule = aComponent.getFirstProperty("rrule").getFirstValue();
-        // TODO multiple rrules?
+        var rrule = aComponent.getFirstProperty("rrule");
 
-        var change = init_changes();
-
-        if (rrule.until && rrule.until.zone == ICAL.Timezone.utcTimezone) {
-          rrule.until.adjust(0, 0, 0, change.prevUtcOffset);
-          rrule.until.zone = ICAL.Timezone.localTimezone;
-        }
-
-        var iterator = rrule.iterator(dtstart);
-
-        var occ;
-        while ((occ = iterator.next())) {
+        if (rrule) {
+          rrule = rrule.getFirstValue();
           var change = init_changes();
-          if (occ.year > aYear || !occ) {
-            break;
+
+          if (rrule.until && rrule.until.zone == ICAL.Timezone.utcTimezone) {
+            rrule.until.adjust(0, 0, 0, change.prevUtcOffset);
+            rrule.until.zone = ICAL.Timezone.localTimezone;
           }
 
-          change.year = occ.year;
-          change.month = occ.month;
-          change.day = occ.day;
-          change.hour = occ.hour;
-          change.minute = occ.minute;
-          change.second = occ.second;
-          change.isDate = occ.isDate;
+          var iterator = rrule.iterator(dtstart);
 
-          ICAL.Timezone.adjust_change(change, 0, 0, 0,
-                                          -change.prevUtcOffset);
-          changes.push(change);
+          var occ;
+          while ((occ = iterator.next())) {
+            var change = init_changes();
+            if (occ.year > aYear || !occ) {
+              break;
+            }
+
+            change.year = occ.year;
+            change.month = occ.month;
+            change.day = occ.day;
+            change.hour = occ.hour;
+            change.minute = occ.minute;
+            change.second = occ.second;
+            change.isDate = occ.isDate;
+
+            ICAL.Timezone.adjust_change(change, 0, 0, 0,
+                                            -change.prevUtcOffset);
+            changes.push(change);
+          }
         }
       }
 

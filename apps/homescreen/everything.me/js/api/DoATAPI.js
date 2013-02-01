@@ -4,7 +4,7 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         cached = [],
         
         apiKey = '',
-        deviceId = getDeviceId(),
+        deviceId = '',
         NUMBER_OF_RETRIES = 3,                          // number of retries before returning error
         RETRY_TIMEOUT = {"from": 1000, "to": 3000},     // timeout before retrying a failed request
         MAX_REQUEST_TIME = 10000,                       // timeout before declaring a request as failed (if server isn't responding)
@@ -73,6 +73,7 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         authCookieName = options.authCookieName;
         manualCampaignStats = options.manualCampaignStats;
         
+        deviceId = getDeviceId();
         manualCredentials = Evme.Storage.get(STORAGE_KEY_CREDS);
         
         // make sure our client info cookie is always updated according to phone ettings
@@ -611,8 +612,8 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
     };
     
     this.Session = new function Session() {
-        var self = this, _key = "session", _session = null;
-        var SESSION_PREFIX = "id",
+        var self = this,
+            _key = "session", _session = null,
             DEFAULT_TTL = -1;
             
         this.INIT_CAUSE = {
@@ -696,7 +697,7 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         };
         
         this.generateId = function generateId() {
-            return SESSION_PREFIX + Math.round(Math.random()*1234567890);
+            return Evme.Utils.uuid();
         };
         
         this.creds = function creds() {
@@ -967,7 +968,7 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
     function generateDeviceId() {
         var queryString = {};
         (location.search || '').replace(/(?:[?&]|^)([^=]+)=([^&]*)/g, function regexmatch(ig, k, v) {queryString[k] = v;})
-        return queryString["did"] || "web_" + (new Date()).getTime() + "" + Math.round(Math.random()*1234567890);
+        return queryString['did'] || 'fxos-' + Evme.Utils.uuid();
     }
 
     function cbRequest(methodNamespace, method, params, retryNumber) {

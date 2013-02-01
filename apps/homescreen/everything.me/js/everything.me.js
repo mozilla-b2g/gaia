@@ -93,6 +93,7 @@ var EverythingME = {
                     'js/developer/utils.1.3.js',
                     'js/plugins/Scroll.js',
                     'js/external/iscroll.js',
+                    'js/external/uuid.js',
                     'js/api/apiv2.js',
                     'js/api/DoATAPI.js',
                     'js/helpers/Utils.js',
@@ -172,6 +173,15 @@ var EverythingME = {
         EverythingME.initEvme(success);
       });
     }
+  },
+
+  destroy: function EverythingME_destroy() {
+    // Deleting all resources of everything.me from DOM
+    var list = document.querySelectorAll('head > [href*="everything.me"]');
+    for (var i = 0; i < list.length; i++) {
+      var resource = list[i];
+      resource.parentNode.removeChild(resource);
+    }
   }
 };
 
@@ -180,5 +190,3 @@ var EvmeFacade = {
     return false;
   }
 };
-
-EverythingME.init();

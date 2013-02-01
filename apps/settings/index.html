@@ -28,6 +28,7 @@
     <link rel="resource" type="application/json" href="shared/resources/languages.json"/>
     <link rel="resource" type="application/json" href="shared/resources/media/ringtones/"/>
     <link rel="resource" type="application/json" href="shared/resources/media/notifications/"/>
+    <link rel="resource" type="image/png" href="shared/resources/branding/privacy_sprite.png"/>
     -->
 
     <!-- Localization -->
@@ -56,6 +57,7 @@
     <script type="application/javascript" defer src="shared/js/mobile_operator.js"></script>
     <script type="application/javascript" defer src="js/connectivity.js"></script>
     <script type="application/javascript" defer src="js/security_privacy.js"></script>
+    <script defer type="application/javascript" src="shared/js/settings_listener.js"></script>
     <script type="application/javascript" defer src="js/icc_menu.js"></script>
 
     <!-- all non-#root panels will lazy-load their own scripts -->
@@ -1213,7 +1215,7 @@
         <h1 data-l10n-id="dateAndTime"> Date &amp; Time </h1>
       </header>
 
-      <ul id="time-auto" data-state="auto">
+      <ul id="time-auto" data-state="auto" hidden>
         <li>
           <label>
             <input type="checkbox" data-type="switch" name="time.nitz.automatic-update.enabled"/>
@@ -1982,6 +1984,21 @@
       -->
     </section>
 
+    <!-- Device :: Information :: Legal :: Obtaining Source Code -->
+    <section role="region" id="about-source-code">
+      <!--
+      <header>
+        <a href="#about-legal">
+          <span class="icon icon-back">back</span>
+        </a>
+        <h1 data-l10n-id="obtaining-source-code">
+          Obtaining Source Code
+        </h1>
+      </header>
+      <iframe src="resources/obtaining_source_code.html" id="obtain-sc"></iframe>
+      -->
+    </section>
+
     <!-- Device :: Information :: Legal -->
     <section role="region" id="about-legal">
       <!--
@@ -1999,6 +2016,11 @@
         <li>
           <a href="#about-licensing" data-l10n-id="open-source-notices">
             Open Source Notices
+          </a>
+        </li>
+        <li>
+          <a href="#about-source-code" data-l10n-id="obtaining-source-code">
+            Obtaining Source Code
           </a>
         </li>
       </ul>
@@ -2418,9 +2440,9 @@
           <h1 data-l10n-id="message">Message</h1>
           <p id="icc-stk-alert-msg">
           </p>
-          <button data-l10n-id="close" id="icc-stk-alert-btn_close">Close</button>
         </section>
         <menu>
+          <button data-l10n-id="close" id="icc-stk-alert-btn_close">Close</button>
           <button data-l10n-id="back" id="icc-stk-alert-btn_back">Back</button>
           <button data-l10n-id="ok" id="icc-stk-alert-btn" class="recommend">Ok</button>
         </menu>
