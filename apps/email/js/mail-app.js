@@ -124,41 +124,6 @@ var App = {
   }
 };
 
-function hookStartup() {
-  var gotLocalized = (mozL10n.readyState === 'interactive') ||
-                     (mozL10n.readystate === 'complete'),
-      gotMailAPI = false;
-  function doInit() {
-    try {
-      populateTemplateNodes();
-      Cards._init();
-      App._init();
-      App.showMessageViewOrSetup();
-    }
-    catch (ex) {
-      console.error('Problem initializing', ex, '\n', ex.stack);
-    }
-  }
-
-  if (!gotLocalized) {
-    window.addEventListener('localized', function localized() {
-      console.log('got localized!');
-      gotLocalized = true;
-      window.removeEventListener('localized', localized);
-      if (gotMailAPI)
-        doInit();
-    });
-  }
-  window.addEventListener('mailapi', function(event) {
-    console.log('got MailAPI!');
-    MailAPI = event.mailAPI;
-    gotMailAPI = true;
-    if (gotLocalized)
-      doInit();
-  }, false);
-}
-hookStartup();
-
 var queryURI = function _queryURI(uri) {
   function addressesToArray(addresses) {
     if (!addresses)
@@ -200,6 +165,41 @@ var queryURI = function _queryURI(uri) {
   }
 
 };
+
+function hookStartup() {
+  var gotLocalized = (mozL10n.readyState === 'interactive') ||
+                     (mozL10n.readystate === 'complete'),
+      gotMailAPI = false;
+  function doInit() {
+    try {
+      populateTemplateNodes();
+      Cards._init();
+      App._init();
+      App.showMessageViewOrSetup();
+    }
+    catch (ex) {
+      console.error('Problem initializing', ex, '\n', ex.stack);
+    }
+  }
+
+  if (!gotLocalized) {
+    window.addEventListener('localized', function localized() {
+      console.log('got localized!');
+      gotLocalized = true;
+      window.removeEventListener('localized', localized);
+      if (gotMailAPI)
+        doInit();
+    });
+  }
+  window.addEventListener('mailapi', function(event) {
+    console.log('got MailAPI!');
+    MailAPI = event.mailAPI;
+    gotMailAPI = true;
+    if (gotLocalized)
+      doInit();
+  }, false);
+}
+hookStartup();
 
 var activityCallback = null;
 if ('mozSetMessageHandler' in window.navigator) {
