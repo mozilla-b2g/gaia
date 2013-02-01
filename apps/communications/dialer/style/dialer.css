@@ -16,16 +16,6 @@ a:hover, a:active, a:focus {
   outline: 0;
 }
 
-.font-regular {
-  font-family: 'MozTT';
-  font-weight: 400;
-}
-
-.font-light {
-  font-family: 'MozTT';
-  font-weight: 300;
-}
-
 .hide {
   display: none !important;
 }

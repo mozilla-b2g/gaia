@@ -18,16 +18,6 @@ button::-moz-focus-inner {
   border: 0;
 }
 
-.font-regular {
-  font-family: 'MozTT';
-  font-weight: 400;
-}
-
-.font-light {
-  font-family: 'MozTT';
-  font-weight: 300;
-}
-
 #phone-number-view {
   width:100%;
   border:0;
