@@ -157,9 +157,7 @@
     fte.querySelector('p:last-child').innerHTML = _(simKey + '-meta');
   }
 
-  var currentMode;
   function updateUI() {
-
     ConfigManager.requestAll(function _onInfo(configuration, settings) {
       var mode = costcontrol.getApplicationMode(settings);
       debug('Widget UI mode:', mode);
@@ -183,21 +181,17 @@
       views.dataUsage.setAttribute('aria-hidden', isLimited);
       views.limitedDataUsage.setAttribute('aria-hidden', !isLimited);
 
-      if (currentMode !== mode) {
+      // Always data usage
+      leftPanel.setAttribute('aria-hidden', isDataUsageOnly);
 
-        // Always data usage
-        leftPanel.setAttribute('aria-hidden', isDataUsageOnly);
+      // And the other view if applies...
+      if (isDataUsageOnly) {
+        widget.classList.add('full');
 
-        // And the other view if applies...
-        if (isDataUsageOnly) {
-          widget.classList.add('full');
-
-        } else {
-          widget.classList.remove('full');
-          views.balance.setAttribute('aria-hidden', !isPrepaid);
-          views.telephony.setAttribute('aria-hidden', isPrepaid);
-        }
-        currentMode = mode;
+      } else {
+        widget.classList.remove('full');
+        views.balance.setAttribute('aria-hidden', !isPrepaid);
+        views.telephony.setAttribute('aria-hidden', isPrepaid);
       }
 
       // Content for data statistics
@@ -263,7 +257,7 @@
 
       // Content for balance or telephony
       if (!isDataUsageOnly) {
-        if (currentMode === 'PREPAID') {
+        if (mode === 'PREPAID') {
           updateBalance(settings.lastBalance,
                         settings.lowLimit && settings.lowLimitThreshold);
 
@@ -277,7 +271,7 @@
                           settings.lowLimit && settings.lowLimitThreshold);
           });
 
-        } else if (currentMode === 'POSTPAID') {
+        } else if (mode === 'POSTPAID') {
           requestObj = { type: 'telephony' };
           costcontrol.request(requestObj, function _onRequest(result) {
             var activity = result.data;
