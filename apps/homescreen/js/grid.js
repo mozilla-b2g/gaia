@@ -18,7 +18,7 @@ const GridManager = (function() {
   var overlay, overlayStyle;
   var overlayTransition = 'opacity ' + kPageTransitionDuration + 'ms ease';
 
-  var numberOfSpecialPages = 0;
+  var numberOfSpecialPages = 0, landingPage, prevLandingPage, nextLandingPage;
   var pages = [];
   var currentPage = 1;
 
@@ -190,7 +190,7 @@ const GridManager = (function() {
           return;
         }
 
-        if (currentPage > 1 && 'isIcon' in evt.target.dataset) {
+        if (currentPage > landingPage && 'isIcon' in evt.target.dataset) {
           evt.stopImmediatePropagation();
           removePanHandler();
           Homescreen.setMode('edit');
@@ -205,18 +205,20 @@ const GridManager = (function() {
   }
 
   function setOverlayPanning(index, deltaX, forward) {
-    if (index === 1) {
+    if (index === landingPage && landingPage > 0) {
       overlayStyle.opacity = (Math.abs(deltaX) / windowWidth) *
-        opacityOnAppGridPageMax;
-    } else if (index === 0 && !forward || index === 2 && forward) {
+                              opacityOnAppGridPageMax;
+    } else if (index === prevLandingPage && !forward ||
+               index === nextLandingPage && forward) {
       overlayStyle.opacity = opacityOnAppGridPageMax -
-          (Math.abs(deltaX) / windowWidth) * opacityOnAppGridPageMax;
+                     (Math.abs(deltaX) / windowWidth) * opacityOnAppGridPageMax;
     }
   }
 
   function applyEffectOverlay(index) {
     overlayStyle.MozTransition = overlayTransition;
-    overlayStyle.opacity = index === 1 ? 0 : opacityOnAppGridPageMax;
+    overlayStyle.opacity = index === landingPage ?
+                           prevLandingPage : opacityOnAppGridPageMax;
   }
 
   function onTouchEnd(deltaX, evt) {
@@ -228,8 +230,8 @@ const GridManager = (function() {
       if (forward && currentPage < pages.length - 1) {
         page = page + 1;
       } else if (!forward &&
-                  (page === 1 || page >= 3 ||
-                    (page === 2 && !Homescreen.isInEditMode()))) {
+                 (page === landingPage || page >= nextLandingPage + 1 ||
+                    (page === nextLandingPage && !Homescreen.isInEditMode()))) {
         page = page - 1;
       }
     } else if (!isPanning && evt) {
@@ -266,7 +268,7 @@ const GridManager = (function() {
   var lastGoingPageTimestamp = 0;
 
   function goToPage(index, callback) {
-    document.location.hash = (index == 1 ? 'root' : '');
+    document.location.hash = (index === landingPage ? 'root' : '');
     if (index < 0 || index >= pages.length)
       return;
 
@@ -624,6 +626,9 @@ const GridManager = (function() {
     // offset between these indexes here and the ones in the DB.
     // See also pageHelper.saveAll().
     numberOfSpecialPages = container.children.length;
+    landingPage = numberOfSpecialPages - 1;
+    prevLandingPage = landingPage - 1;
+    nextLandingPage = landingPage + 1;
     for (var i = 0; i < container.children.length; i++) {
       var pageElement = container.children[i];
       var page = new Page(pageElement, null);
@@ -1011,6 +1016,10 @@ const GridManager = (function() {
     dirCtrl: dirCtrl,
 
     pageHelper: pageHelper,
+
+    get landingPage() {
+      return landingPage;
+    },
 
     showRestartDownloadDialog: showRestartDownloadDialog
   };
