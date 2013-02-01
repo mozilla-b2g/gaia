@@ -21,11 +21,10 @@ var SpinDatePicker = (function SpinDatePicker() {
 
   function getYearText() {
     var yearText = [];
-    var date = new Date();
     var dateTimeFormat = navigator.mozL10n.DateTimeFormat();
 
     for (var i = FIRST_YEAR; i <= LAST_YEAR; i++) {
-      date.setFullYear(i);
+      var date = new Date(i, 0, 1);
       yearText.push(dateTimeFormat.localeFormat(date, '%Y'));
     }
 
@@ -34,7 +33,7 @@ var SpinDatePicker = (function SpinDatePicker() {
 
   function getMonthText() {
     var monthText = [];
-    var date = new Date();
+    var date = new Date(0);
     var dateTimeFormat = navigator.mozL10n.DateTimeFormat();
 
     for (var i = 0; i < 12; i++) {
@@ -47,7 +46,7 @@ var SpinDatePicker = (function SpinDatePicker() {
 
   function getDateText(days) {
     var dateText = [];
-    var date = new Date();
+    var date = new Date(0);
     var dateTimeFormat = navigator.mozL10n.DateTimeFormat();
 
     for (var i = 1; i <= days; i++) {
@@ -148,7 +147,7 @@ var SpinDatePicker = (function SpinDatePicker() {
       var selectedMonth = this.monthPicker.getSelectedIndex();
       var days = getDaysInMonth(selectedYear, selectedMonth);
       var datePicker = this.datePickers[days];
-      var selectedDate = this._currentSelectedDateIndex + 1;
+      var selectedDate = datePicker.getSelectedIndex() + 1;
 
       this._value = new Date(selectedYear, selectedMonth, selectedDate);
     };
