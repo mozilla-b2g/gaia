@@ -6,7 +6,7 @@ LOCAL_PATH:= $(call my-dir)
 
 include $(CLEAR_VARS)
 GAIA_PATH ?= $(abspath $(LOCAL_PATH))
-# This is for gonk-misc/Android.mk, otherwise LOCAL_PATH would be different.
+# We need to assign using := because there is no ?:= and LOCAL_PATH can take on multiple values.
 GAIA_PATH := $(GAIA_PATH)
 
 LOCAL_MODULE := gaia
