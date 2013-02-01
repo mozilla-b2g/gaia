@@ -3,7 +3,6 @@
 var TelephonyHelper = (function() {
 
   var telephony = navigator.mozTelephony;
-  var conn = window.navigator.mozMobileConnection;
 
   var call = function(number, oncall, onconnected, ondisconnected, onerror) {
     var settings = window.navigator.mozSettings, req;
@@ -13,6 +12,7 @@ var TelephonyHelper = (function() {
       req.addEventListener('success', function onsuccess() {
         var status = req.result['ril.radio.disabled'];
         if (!status) {
+          var conn = window.navigator.mozMobileConnection;
           if (!conn || !conn.voice.network) {
             // No voice connection, the call won't make it
             handleError(null, true /* generic */);
