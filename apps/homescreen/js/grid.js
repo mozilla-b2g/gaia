@@ -8,8 +8,7 @@ const GridManager = (function() {
   var container;
 
   var windowWidth = window.innerWidth;
-  var panningThreshold = window.innerWidth / 4;
-  var tapThreshold = Page.prototype.tapThreshold;
+  var panningThreshold = window.innerWidth / 4, tapThreshold;
 
   var dragging = false;
 
@@ -894,9 +893,10 @@ const GridManager = (function() {
      *                 Specifies the HTML container element for the pages.
      *
      */
-    init: function gm_init(gridSelector, dockSelector, callback) {
+    init: function gm_init(gridSelector, dockSelector, pTapThreshold, callback) {
       initUI(gridSelector);
 
+      tapThreshold = pTapThreshold;
       // Initialize the grid from the state saved in IndexedDB.
       HomeState.init(function eachPage(pageState) {
         // First 'page' is the dock.
@@ -904,7 +904,7 @@ const GridManager = (function() {
           var dockContainer = document.querySelector(dockSelector);
           var dock = new Dock(dockContainer,
             convertDescriptorsToIcons(pageState));
-          DockManager.init(dockContainer, dock);
+          DockManager.init(dockContainer, dock, tapThreshold);
           return;
         }
         pageHelper.addPage(convertDescriptorsToIcons(pageState));
@@ -914,7 +914,7 @@ const GridManager = (function() {
       }, function onError(error) {
         var dockContainer = document.querySelector(dockSelector);
         var dock = new Dock(dockContainer, []);
-        DockManager.init(dockContainer, dock);
+        DockManager.init(dockContainer, dock, tapThreshold);
         initApps();
         callback();
       });
