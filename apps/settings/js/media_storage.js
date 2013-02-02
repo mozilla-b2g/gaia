@@ -11,7 +11,6 @@
  * In this case, the user has to unplug the USB cable in order to actually turn
  * off UMS, and we put some text to that effect on the settings screen.
  */
-
 var MediaStorage = {
   init: function mediaStorage_init() {
     this.deviceStorage = navigator.getDeviceStorage('pictures');
@@ -36,7 +35,7 @@ var MediaStorage = {
     this.umsEnabledCheckBox.onchange = function umsEnabledChanged() {
       MediaStorage.updateInfo();
     };
-
+    stackedBar.init('space-stackedbar');
     this.updateInfo();
   },
 
@@ -166,30 +165,79 @@ var MediaStorage = {
         unit: _('byteUnit-' + sizeInfo.unit)
       });
     }
-
+    
     // Update the storage details
-    DeviceStorageHelper.getStat('music', function(size) {
-      var element = document.getElementById('music-space');
-      formatSize(element, size);
-    });
-
-    DeviceStorageHelper.getStat('pictures', function(size) {
-      var element = document.getElementById('pictures-space');
-      formatSize(element, size);
-    });
-
-    DeviceStorageHelper.getStat('videos', function(size, freeSize) {
-      var element = document.getElementById('videos-space');
-      formatSize(element, size);
-
-      element = document.getElementById('media-free-space');
-      formatSize(element, freeSize);
-
+    stackedBar.reset();
+    
+    DeviceStorageHelper.getStats(['music', 'pictures', 'videos'], function(sizes) {
+      var element = document.querySelector('#music-space .size');
+      formatSize(element, sizes['music']);
+      stackedBar.add(new StackBarItem('music', sizes['music']));
+      element = document.querySelector('#pictures-space .size');
+      formatSize(element, sizes['pictures']);
+      stackedBar.add(new StackBarItem('pictures', sizes['pictures']));
+      element = document.querySelector('#videos-space .size');
+      formatSize(element, sizes['videos']);
+      stackedBar.add(new StackBarItem('videos', sizes['videos']));
+      element = document.querySelector('#media-free-space .size');
+      formatSize(element, sizes['music']);
+      stackedBar.add(new StackBarItem('free', sizes['free']));
       element = document.getElementById('media-storage-desc');
-      formatSize(element, freeSize, 'availableSize');
+      formatSize(element, sizes['free'], 'availableSize');
+      stackedBar.refreshUI();
     });
   }
 };
 
-navigator.mozL10n.ready(MediaStorage.init.bind(MediaStorage));
+function StackBarItem(id, value) {
 
+  this.id = id;
+
+  this.value = value;
+
+}
+
+var stackedBar = {
+  
+  _targetId: null,
+  
+  _items: [],
+  
+  _total: 0,
+  
+  _initUI: function sb_initui(targetId) {
+    this._targetId = targetId
+  },
+  
+  init: function sb_init(targetId) {
+    this._initUI(targetId);
+  },
+  
+  add: function sb_add(item) {
+    this._total = this._total + item.value;
+    this._items.push(item);
+  },
+  
+  refreshUI: function sb_refreshUI() {
+    var container = document.getElementById(this._targetId);
+    if(!container)
+      return;
+    for (var i = 0; i < this._items.length; i++) {
+      var item = document.getElementById('stackedbar-item-' + this._items[i].id);
+      if(!item)
+        item = document.createElement('span');
+      item.className = 'stackedbar-item';
+      item.id = 'stackedbar-item-' + this._items[i].id;
+      item.style.width = (this._items[i].value * 100) / this._total + '%';
+      container.appendChild(item);
+    }
+  },
+  
+  reset: function sb_reset() {
+    this._items = [];
+    this._total = 0;
+  }
+  
+}
+
+navigator.mozL10n.ready(MediaStorage.init.bind(MediaStorage));
