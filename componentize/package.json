@@ -13,6 +13,10 @@
     "type": "git",
     "url": "git://github.com/sebsmyt/gaia.git"
   },
+  "devDependencies": {
+    "grunt": "~0.4.0",
+    "wrench": "1.4.4"
+  },
   "author": "",
   "license": "BSD",
   "gitHead": "4e5b4b1e696ca210be2168ec27d25eb7b610443b",
