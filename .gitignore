@@ -42,5 +42,4 @@ manifest.appcache
 
 /outoftree_apps/
 
-componentize/gaia-bower/
-componentize/node_modules/
+build/componentize/node_modules
