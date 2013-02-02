@@ -30,10 +30,18 @@ var TelephonyHelper = (function() {
   };
 
   var startDial = function(number, oncall, connected, disconnected, onerror) {
-    var sanitizedNumber = number.replace(/-/g, '');
-
     if (telephony) {
-      var call = telephony.dial(sanitizedNumber);
+      var conn = window.navigator.mozMobileConnection;
+      var call;
+      var cardState = conn.cardState;
+      var sanitizedNumber = number.replace(/-/g, '');
+
+      if (cardState === 'pinRequired' || cardState === 'pukRequired') {
+        call = telephony.dialEmergency(sanitizedNumber);
+      }
+      else {
+        call = telephony.dial(sanitizedNumber);
+      }
 
       if (call) {
         if (oncall)
@@ -46,7 +54,7 @@ var TelephonyHelper = (function() {
           if (onerror) {
             onerror();
           }
-        }
+        };
       }
     }
   };
