@@ -146,17 +146,39 @@ var DeviceStorageHelper = (function DeviceStorageHelper() {
       console.error('Cannot get DeviceStorage for: ' + type);
       return;
     }
-
     deviceStorage.freeSpace().onsuccess = function(e) {
       var freeSpace = e.target.result;
       deviceStorage.usedSpace().onsuccess = function(e) {
         var usedSpace = e.target.result;
-        callback(usedSpace, freeSpace);
+        callback(usedSpace, freeSpace, type);
       };
     };
   }
 
-  return { getStat: getStat };
+  function getStats(types, callback) {
+    var results = {};
+
+    var current = types.length;
+
+    for (var i = 0; i < types.length; i++) {
+      getStat(types[i], function(totalBytes, freeBytes, type) {
+
+        results[type] = totalBytes;
+        results['free'] = freeBytes;
+        current--;
+        if(current == 0)
+          callback(results);
+          
+      });
+    }
+
+  }
+
+  return {
+    getStat: getStat,
+    getStats: getStats
+  };
+
 })();
 
 /**
