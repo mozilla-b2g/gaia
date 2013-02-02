@@ -99,16 +99,18 @@
     // Load STK apps
     updateMenu();
 
+    // XXX https://bugzilla.mozilla.org/show_bug.cgi?id=844727
+    // We should use Settings.settingsCache first
+    var settings = Settings.mozSettings;
+    var lock = settings.createLock();
     // Update displayTextTimeout with settings parameter
-    var reqDisplayTimeout =
-      window.navigator.mozSettings.createLock().get('icc.displayTextTimeout');
+    var reqDisplayTimeout = lock.get('icc.displayTextTimeout');
     reqDisplayTimeout.onsuccess = function icc_getDisplayTimeout() {
       displayTextTimeout = reqDisplayTimeout.result['icc.displayTextTimeout'];
     };
 
     // Update inputTimeout with settings parameter
-    var reqInputTimeout =
-      window.navigator.mozSettings.createLock().get('icc.inputTextTimeout');
+    var reqInputTimeout = lock.get('icc.inputTextTimeout');
     reqInputTimeout.onsuccess = function icc_getInputTimeout() {
       inputTimeout = reqInputTimeout.result['icc.inputTextTimeout'];
     };

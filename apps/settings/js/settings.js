@@ -189,6 +189,10 @@ var Settings = {
   // without these, so we keep this around most of the time.
   _settingsCache: null,
 
+  get settingsCache() {
+    return this._settingsCache;
+  },
+
   // True when a request has already been made to fill the settings
   // cache.  When this is true, no further get("*") requests should be
   // made; instead, pending callbacks should be added to
@@ -249,6 +253,16 @@ var Settings = {
           checkboxes[i].checked = !!result[key];
         }
       }
+
+      // remove initial class so the swich animation will apply
+      // on these toggles if user interact with it.
+      setTimeout(function() {
+        for (var i = 0; i < checkboxes.length; i++) {
+          if (checkboxes[i].classList.contains('initial')) {
+            checkboxes[i].classList.remove('initial');
+          }
+        }
+      }, 0);
 
       // preset all radio buttons
       rule = 'input[type="radio"]:not([data-ignore])';
@@ -555,7 +569,6 @@ window.addEventListener('load', function loadSettings() {
       'shared/js/mobile_operator.js',
       'js/connectivity.js',
       'js/security_privacy.js',
-      'shared/js/settings_listener.js',
       'js/icc_menu.js'
     ];
     scripts.forEach(function attachScripts(src) {
@@ -777,3 +790,5 @@ window.addEventListener('localized', function showLanguages() {
 // Do initialization work that doesn't depend on the DOM, as early as
 // possible in startup.
 Settings.preInit();
+
+MouseEventShim.trackMouseMoves = false;
