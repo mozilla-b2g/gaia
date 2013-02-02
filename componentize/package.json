@@ -1,0 +1,20 @@
+{
+  "name": "gaia",
+  "version": "0.0.0",
+  "description": "Gaia Componentized version for bower, buildstack ",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/sebsmyt/gaia.git"
+  },
+  "author": "",
+  "license": "BSD",
+  "gitHead": "4e5b4b1e696ca210be2168ec27d25eb7b610443b",
+  "readmeFilename": "README.md"
+}
