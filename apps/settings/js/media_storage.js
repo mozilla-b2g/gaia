@@ -36,7 +36,7 @@ var MediaStorage = {
     this.umsEnabledCheckBox.onchange = function umsEnabledChanged() {
       MediaStorage.updateInfo();
     };
-
+    stackedBar.init('space-stackedbar');
     this.updateInfo();
   },
 
@@ -147,7 +147,6 @@ var MediaStorage = {
 
   updateStorageInfo: function mediaStorage_updateStorageInfo() {
     var _ = navigator.mozL10n.get;
-
     function formatSize(element, size, l10nId) {
       if (!element)
         return;
@@ -167,29 +166,88 @@ var MediaStorage = {
       });
     }
 
-    // Update the storage details
-    DeviceStorageHelper.getStat('music', function(size) {
-      var element = document.getElementById('music-space');
-      formatSize(element, size);
-    });
-
-    DeviceStorageHelper.getStat('pictures', function(size) {
-      var element = document.getElementById('pictures-space');
-      formatSize(element, size);
-    });
-
-    DeviceStorageHelper.getStat('videos', function(size, freeSize) {
-      var element = document.getElementById('videos-space');
-      formatSize(element, size);
-
-      element = document.getElementById('media-free-space');
-      formatSize(element, freeSize);
-
-      element = document.getElementById('media-storage-desc');
+    DeviceStorageHelper.getFreeSpace(function(freeSize) {
+      var element = document.getElementById('media-storage-desc');
       formatSize(element, freeSize, 'availableSize');
+    });
+
+    // XXX https://bugzilla.mozilla.org/show_bug.cgi?id=844709
+    // if the sub-menu hasn't been loaded because of lazy-loading
+    // we don't need to update these fields
+    var element = document.querySelector('#music-space .size');
+    if (!element)
+      return;
+
+    // Update the storage details
+    stackedBar.reset();
+    DeviceStorageHelper.getStats(['music', 'pictures', 'videos'],
+      function(sizes) {
+        formatSize(element, sizes['music']);
+        stackedBar.add(new StackBarItem('music', sizes['music']));
+
+        element = document.querySelector('#pictures-space .size');
+        formatSize(element, sizes['pictures']);
+        stackedBar.add(new StackBarItem('pictures', sizes['pictures']));
+
+        element = document.querySelector('#videos-space .size');
+        formatSize(element, sizes['videos']);
+        stackedBar.add(new StackBarItem('videos', sizes['videos']));
+
+        element = document.querySelector('#media-free-space .size');
+        formatSize(element, sizes['free']);
+        stackedBar.add(new StackBarItem('free', sizes['free']));
+
+        stackedBar.refreshUI();
     });
   }
 };
 
-navigator.mozL10n.ready(MediaStorage.init.bind(MediaStorage));
+function StackBarItem(id, value) {
 
+  this.id = id;
+
+  this.value = value;
+
+}
+
+var stackedBar = {
+  _targetId: null,
+  _items: [],
+  _total: 0,
+
+  _initUI: function sb_initui(targetId) {
+    this._targetId = targetId;
+  },
+
+  init: function sb_init(targetId) {
+    this._initUI(targetId);
+  },
+
+  add: function sb_add(item) {
+    this._total = this._total + item.value;
+    this._items.push(item);
+  },
+
+  refreshUI: function sb_refreshUI() {
+    var container = document.getElementById(this._targetId);
+    if (!container)
+      return;
+    for (var i = 0; i < this._items.length; i++) {
+      var item = document.getElementById('stackedbar-item-' +
+          this._items[i].id);
+      if (!item)
+        item = document.createElement('span');
+      item.className = 'stackedbar-item';
+      item.id = 'stackedbar-item-' + this._items[i].id;
+      item.style.width = (this._items[i].value * 100) / this._total + '%';
+      container.appendChild(item);
+    }
+  },
+
+  reset: function sb_reset() {
+    this._items = [];
+    this._total = 0;
+  }
+};
+
+navigator.mozL10n.ready(MediaStorage.init.bind(MediaStorage));

@@ -125,3 +125,8 @@ label input[data-type="switch"]:checked + span:after {
   transform: translateX(0);
 }
 
+label input[type="checkbox"][data-type="switch"].uninit + span,
+label input[type="checkbox"][data-type="switch"].uninit + span:before,
+label input[type="checkbox"][data-type="switch"].uninit + span:after {
+  transition: none;
+}
