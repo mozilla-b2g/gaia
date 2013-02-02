@@ -1,6 +1,6 @@
 var fs = require('fs');
 var wrench = require('wrench');      
-var source = '../shared/style';
+var source = '../../shared/style';
 var target = '/tmp/build';
 var targetCheckout = '/gaia-bower';
 var exec = require('child_process').exec;
