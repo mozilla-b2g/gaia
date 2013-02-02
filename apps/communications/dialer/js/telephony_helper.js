@@ -23,18 +23,32 @@ var TelephonyHelper = (function() {
     }
   };
 
-  var startDial = function t_start(number, oncall, connected, disconnected) {
-    var sanitizedNumber = number.replace(/-/g, '');
-
+  var startDial = function(number, oncall, connected, disconnected, onerror) {
     if (telephony) {
-      var call = telephony.dial(sanitizedNumber);
+      var conn = window.navigator.mozMobileConnection;
+      var call;
+      var cardState = conn.cardState;
+      var sanitizedNumber = number.replace(/-/g, '');
+
+      if (cardState === 'pinRequired' || cardState === 'pukRequired') {
+        call = telephony.dialEmergency(sanitizedNumber);
+      }
+      else {
+        call = telephony.dial(sanitizedNumber);
+      }
 
       if (call) {
         if (oncall)
           oncall();
         call.onconnected = connected;
         call.ondisconnected = disconnected;
-        call.onerror = handleError;
+        call.onerror = function errorCB(evt) {
+          handleError(evt);
+
+          if (onerror) {
+            onerror();
+          }
+        };
       }
     }
   };
