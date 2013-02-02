@@ -1,13 +1,14 @@
 var fs = require('fs');
 var wrench = require('wrench');      
+var exec = require('child_process').exec;
 var source = '../../shared/style';
 var target = '/tmp/build';
 var targetCheckout = '/gaia-bower';
-var exec = require('child_process').exec;
+var repo = 'git@github.com:sebs/gaia-bower.git';
+
 
 module.exports = function(grunt) {
-  grunt.initConfig({
-  });
+  grunt.initConfig({});
   grunt.registerTask('clean', function() {
       util = require('util');
       wrench.rmdirSyncRecursive(target, true);
@@ -16,9 +17,10 @@ module.exports = function(grunt) {
   });
   grunt.registerTask('checkout', function() {
     var done = this.async();
-    child = exec("git clone git@github.com:sebs/gaia-bower.git "+target+targetCheckout, function (error, stdout, stderr) {
+    child = exec("git clone "+repo+" "+target+targetCheckout, function (error, stdout, stderr) {
       console.log(stdout);
-      done();
+      console.log(stderr);
+      done(); 
     });
   });
   grunt.registerTask('copy', function() {
