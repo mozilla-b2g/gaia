@@ -23,6 +23,7 @@ The Gruntfile works as follows
 * create a folder /tmp/build
 * checkout the target repo that can be used by the bower users 
 * copy all files to build
+* Create a overview Styles.md document 
 * push to the targetRepo
 
 
