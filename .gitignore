@@ -41,3 +41,5 @@ manifest.appcache
 /tools/xpcwindow/vendor/
 
 /outoftree_apps/
+
+build/componentize/node_modules
