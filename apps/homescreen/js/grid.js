@@ -60,7 +60,7 @@ const GridManager = (function() {
       case touchmove:
         // Start panning immediately but only disable
         // the tap when we've moved far enough.
-        deltaX = getX(evt).pageX - startEvent.pageX;
+        deltaX = getX(evt) - startEvent.pageX;
         if (deltaX === 0)
           return;
 
