@@ -30,7 +30,8 @@
     reqApplications.onsuccess = function icc_getApplications() {
       var json = reqApplications.result['icc.applications'];
       var menu = json && JSON.parse(json);
-      if (!menu || (menu.items.length == 1 && menu.items[0] === null)) {
+      if (!menu || !menu.items ||
+        (menu.items.length == 1 && menu.items[0] === null)) {
         debug('No STK available - exit');
         document.getElementById('icc-mainheader').hidden = true;
         document.getElementById('icc-mainentry').hidden = true;
