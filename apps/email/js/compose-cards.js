@@ -378,20 +378,16 @@ ComposeCard.prototype = {
       return;
     }
     var dialog = cmpNodes['discard-confirm'].cloneNode(true);
-    document.body.appendChild(dialog);
-    var formSubmit = function(evt) {
-      document.body.removeChild(dialog);
-      switch (evt.explicitOriginalTarget.id) {
-        case 'cmp-discard-ok':
-          discardHandler();
-          break;
-        case 'cmp-discard-cancel':
-          // Do nothing here.
-          break;
+    ConfirmDialog.show(dialog,
+      { // Confirm
+        id: 'cmp-discard-ok',
+        handler: discardHandler
+      },
+      { // Cancel
+        id: 'cmp-discard-cancel',
+        handler: null
       }
-      return false;
-    };
-    dialog.addEventListener('submit', formSubmit);
+    );
   },
 
   onSend: function() {

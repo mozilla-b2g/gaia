@@ -712,23 +712,23 @@ SettingsAccountCard.prototype = {
 
   onDelete: function() {
     var account = this.account;
-    CustomDialog.show(
-      null,
-      mozL10n.get('settings-account-delete-prompt', { account: account.name }),
-      {
-        title: mozL10n.get('settings-account-delete-cancel'),
-        callback: function() {
-          CustomDialog.hide();
-        }
-      },
-      {
-        title: mozL10n.get('settings-account-delete-confirm'),
-        callback: function() {
+
+    var dialog = tngNodes['account-delete-confirm'].cloneNode(true);
+    var content = dialog.getElementsByTagName('p')[0];
+    content.textContent = mozL10n.get('settings-account-delete-prompt',
+                                      { account: account.name });
+    ConfirmDialog.show(dialog,
+      { // Confirm
+        id: 'account-delete-ok',
+        handler: function() {
           account.deleteAccount();
-          CustomDialog.hide();
           Cards.removeCardAndSuccessors(null, 'none');
           App.showMessageViewOrSetup();
         }
+      },
+      { // Cancel
+        id: 'account-delete-cancel',
+        handler: null
       }
     );
   },
