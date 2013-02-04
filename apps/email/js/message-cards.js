@@ -602,7 +602,7 @@ MessageListCard.prototype = {
 
     addedItems.forEach(function(message) {
       var domMessage;
-      domMessage = message.element = msgNodes['header-item'].cloneNode(true);
+      domMessage = message.element = App.Template.get('msg', 'header-item').cloneNode(true);
 
       if (self.mode === 'nonsearch') {
         domMessage.message = message;
@@ -1014,7 +1014,7 @@ MessageReaderCard.prototype = {
   },
 
   onPeepClick: function(target) {
-    var contents = msgNodes['contact-menu'].cloneNode(true);
+    var contents = App.Template.get('msg', 'contact-menu').cloneNode(true);
     var email = target.getAttribute('data-email');
     contents.getElementsByTagName('header')[0].textContent = email;
     document.body.appendChild(contents);
@@ -1203,7 +1203,7 @@ MessageReaderCard.prototype = {
 
       // Because we can avoid having to do multiple selector lookups, we just
       // mutate the template in-place...
-      var peepTemplate = msgNodes['peep-bubble'],
+      var peepTemplate = App.Template.get('msg', 'peep-bubble'),
           contentTemplate =
             peepTemplate.getElementsByClassName('msg-peep-content')[0];
 
@@ -1309,7 +1309,7 @@ MessageReaderCard.prototype = {
       domNode.getElementsByClassName('msg-attachments-container')[0];
     if (body.attachments && body.attachments.length) {
       this.attachmentBlobs = {};
-      var attTemplate = msgNodes['attachment-item'],
+      var attTemplate = App.Template.get('msg', 'attachment-item'),
           filenameTemplate =
             attTemplate.getElementsByClassName('msg-attachment-filename')[0],
           filesizeTemplate =

@@ -558,7 +558,7 @@ SettingsMainCard.prototype = {
         self = this;
     addedItems.forEach(function(account) {
       var accountNode = account.element =
-        tngNodes['account-item'].cloneNode(true);
+        App.Template.get('tng', 'account-item').cloneNode(true);
       accountNode.account = account;
       self.updateAccountDom(account, true);
       accountsContainer.insertBefore(accountNode, insertBuddy);
@@ -659,7 +659,7 @@ function SettingsAccountCard(domNode, mode, args) {
     'change', this.onChangeSynchronize.bind(this), false);
 
   this.account.servers.forEach(function(server, index) {
-    var serverNode = tngNodes['account-settings-server'].cloneNode(true);
+    var serverNode = App.Template.get('tng', 'account-settings-server').cloneNode(true);
     var serverLabel =
       serverNode.getElementsByClassName('tng-account-server-label')[0];
 
@@ -713,7 +713,7 @@ SettingsAccountCard.prototype = {
   onDelete: function() {
     var account = this.account;
 
-    var dialog = tngNodes['account-delete-confirm'].cloneNode(true);
+    var dialog = App.Template.get('tng', 'account-delete-confirm').cloneNode(true);
     var content = dialog.getElementsByTagName('p')[0];
     content.textContent = mozL10n.get('settings-account-delete-prompt',
                                       { account: account.name });

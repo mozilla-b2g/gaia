@@ -62,7 +62,7 @@ function ComposeCard(domNode, mode, args) {
   var attachmentsContainer =
     domNode.getElementsByClassName('cmp-attachments-container')[0];
   if (this.composer.attachments && this.composer.attachments.length) {
-    var attTemplate = cmpNodes['attachment-item'],
+    var attTemplate = App.Template.get('cmp', 'attachment-item'),
         filenameTemplate =
           attTemplate.getElementsByClassName('cmp-attachment-filename')[0],
         filesizeTemplate =
@@ -184,7 +184,7 @@ ComposeCard.prototype = {
   },
 
   createBubbleNode: function(name, address) {
-    var bubble = cmpNodes['peep-bubble'].cloneNode(true);
+    var bubble = App.Template.get('cmp', 'peep-bubble').cloneNode(true);
     bubble.classList.add('msg-peep-bubble');
     bubble.setAttribute('data-address', address);
     bubble.setAttribute('data-name', name);
@@ -315,7 +315,7 @@ ComposeCard.prototype = {
     var target = evt.target;
     // Popup the context menu if clicked target is peer bubble.
     if (target.classList.contains('cmp-peep-bubble')) {
-      var contents = cmpNodes['contact-menu'].cloneNode(true);
+      var contents = App.Template.get('cmp', 'contact-menu').cloneNode(true);
       var email = target.querySelector('.cmp-peep-address').textContent;
       contents.getElementsByTagName('header')[0].textContent = email;
       document.body.appendChild(contents);
@@ -396,7 +396,8 @@ ComposeCard.prototype = {
       discardHandler();
       return;
     }
-    var dialog = cmpNodes['discard-confirm'].cloneNode(true);
+
+    var dialog = App.Template.get('cmp', 'discard-confirm').cloneNode(true);
     ConfirmDialog.show(dialog,
       { // Confirm
         id: 'cmp-discard-ok',
@@ -417,7 +418,7 @@ ComposeCard.prototype = {
     var self = this;
     var activity = this.activity;
     var domNode = this.domNode;
-    var sendingTemplate = cmpNodes['sending-container'];
+    var sendingTemplate = App.Template.get('cmp', 'sending-container');
     domNode.appendChild(sendingTemplate);
 
     this.composer.finishCompositionSendMessage(
@@ -440,7 +441,7 @@ ComposeCard.prototype = {
         if (error) {
           // TODO: We don't have the resend now, so we use alert dialog
           //       before resend is enabled.
-          // var dialog = cmpNodes['send-failed-confirm'].cloneNode(true);
+          // var dialog = App.Template.get('cmp', 'send-failed-confirm').cloneNode(true);
           // document.body.appendChild(dialog);
           // var formSubmit = function(evt) {
           //   document.body.removeChild(dialog);
