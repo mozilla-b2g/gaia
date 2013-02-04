@@ -947,7 +947,7 @@
           <p data-l10n-id="ssid-name">SSID Network Name</p>
           <input type="text" data-setting="tethering.wifi.ssid" />
         </li>
-        <li>
+        <li class="password-item">
           <p data-l10n-id="wifi-password">Password</p>
           <input type="text" data-setting="tethering.wifi.security.password" />
         </li>
@@ -955,7 +955,7 @@
           <p data-l10n-id="wifi-security">Security</p>
           <p class="fake-select">
             <button class="icon icon-dialog">Security</button>
-            <select data-setting="tethering.wifi.security.type">
+            <select class="security-selector" data-setting="tethering.wifi.security.type">
               <option value="open" data-l10n-id="hotspot-open">open</option>
               <option value="wpa-psk" data-l10n-id="hotspot-wpa-psk">WPA (TKIP)</option>
               <option value="wpa2-psk" data-l10n-id="hotspot-wpa2-psk">WPA2 (AES)</option>
@@ -995,7 +995,7 @@
             <span data-name="tethering.wifi.ssid"></span>
           </a>
         </li>
-        <li>
+        <li class="password-item" hidden>
           <a data-l10n-id="wifi-password">Password
             <span data-name="tethering.wifi.security.password"></span>
           </a>
@@ -1007,7 +1007,7 @@
         </li>
         <li id="hotspot-settings-section">
           <label>
-            <button data-href="#hotspot-wifiSettings"
+            <button class="hotspot-wifiSettings-btn"
               data-l10n-id="hotspotSettings">Hotspot Settings</button>
           </label>
         </li>
