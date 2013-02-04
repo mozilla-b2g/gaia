@@ -319,8 +319,6 @@
       case icc.STK_CMD_PLAY_TONE:
         debug(' STK:Play Tone: ', options);
         playTone(options);
-        iccLastCommandProcessed = true;
-        responseSTKCommand({ resultCode: icc.STK_RESULT_OK });
         break;
 
       default:
@@ -470,12 +468,14 @@
     var reqApplications =
       window.navigator.mozSettings.createLock().get('icc.applications');
     reqApplications.onsuccess = function icc_getApplications() {
-      var menu = JSON.parse(reqApplications.result['icc.applications']);
+      var json = reqApplications.result['icc.applications'];
+      var menu = json && JSON.parse(json);
       clearList();
 
       setSTKScreenType(STK_SCREEN_MAINMENU);
 
-      if (!menu || (menu.items.length == 1 && menu.items[0] === null)) {
+      if (!menu || !menu.items ||
+        (menu.items.length == 1 && menu.items[0] === null)) {
         debug('No STK available - hide & exit');
         document.getElementById('icc-mainheader').hidden = true;
         document.getElementById('icc-mainentry').hidden = true;
@@ -827,7 +827,11 @@
     }
 
     if (options.text) {
-      alertbox_btn.onclick = closeToneAlert;
+      alertbox_btn.onclick = function() {
+        closeToneAlert();
+        iccLastCommandProcessed = true;
+        responseSTKCommand({ resultCode: icc.STK_RESULT_OK });
+      }
       alertbox_btnback.onclick = function() {
         closeToneAlert();
         stkResGoBack();
@@ -838,6 +842,10 @@
       };
       alertbox_msg.textContent = options.text;
       alertbox.classList.remove('hidden');
+    } else {
+      // If no dialog is showed, we answer the STK command
+      iccLastCommandProcessed = true;
+      responseSTKCommand({ resultCode: icc.STK_RESULT_OK });
     }
 
     tonePlayer.play();
