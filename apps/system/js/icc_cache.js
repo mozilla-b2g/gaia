@@ -29,7 +29,7 @@
   var icc = window.navigator.mozMobileConnection.icc;
   // Remove previous menu
   var resetApplications = window.navigator.mozSettings.createLock().set({
-    'icc.applications': {}
+    'icc.applications': '{}'
   });
   resetApplications.onsuccess = function icc_resetApplications() {
     debug('STK Cache Reseted');

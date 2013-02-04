@@ -48,7 +48,6 @@ const GridManager = (function() {
   function handleEvent(evt) {
     switch (evt.type) {
       case touchstart:
-        evt.stopPropagation();
         touchStartTimestamp = evt.timeStamp;
         startEvent = isTouch ? evt.touches[0] : evt;
         deltaX = 0;
@@ -60,7 +59,7 @@ const GridManager = (function() {
       case touchmove:
         // Start panning immediately but only disable
         // the tap when we've moved far enough.
-        deltaX = getX(evt).pageX - startEvent.pageX;
+        deltaX = getX(evt) - startEvent.pageX;
         if (deltaX === 0)
           return;
 

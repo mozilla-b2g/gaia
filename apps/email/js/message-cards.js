@@ -770,14 +770,24 @@ MessageListCard.prototype = {
   onDeleteMessages: function() {
     // TODO: Batch delete back-end mail api is not ready for IMAP now.
     //       Please verify this function under IMAP when api completed.
-    var req = confirm(mozL10n.get('message-multiedit-delete-confirm',
-                      { n: this.selectedMessages.length }));
-    if (!req) {
-      return;
-    }
-    var op = MailAPI.deleteMessages(this.selectedMessages);
-    Toaster.logMutation(op);
-    this.setEditMode(false);
+    var dialog = msgNodes['delete-confirm'].cloneNode(true);
+    var content = dialog.getElementsByTagName('p')[0];
+    content.textContent = mozL10n.get('message-multiedit-delete-confirm',
+                                      { n: this.selectedMessages.length });
+    ConfirmDialog.show(dialog,
+      { // Confirm
+        id: 'msg-delete-ok',
+        handler: function() {
+          var op = MailAPI.deleteMessages(this.selectedMessages);
+          Toaster.logMutation(op);
+          this.setEditMode(false);
+        }.bind(this)
+      },
+      { // Cancel
+        id: 'msg-delete-cancel',
+        handler: null
+      }
+    );
   },
 
   onMoveMessages: function() {
@@ -924,13 +934,21 @@ MessageReaderCard.prototype = {
   },
 
   onDelete: function() {
-    var req = confirm(mozL10n.get('message-edit-delete-confirm'));
-    if (!req) {
-      return;
-    }
-    Cards.removeCardAndSuccessors(this.domNode, 'animate');
-    var op = this.header.deleteMessage();
-    Toaster.logMutation(op, true);
+    var dialog = msgNodes['delete-confirm'].cloneNode(true);
+    ConfirmDialog.show(dialog,
+      { // Confirm
+        id: 'msg-delete-ok',
+        handler: function() {
+          Cards.removeCardAndSuccessors(this.domNode, 'animate');
+          var op = this.header.deleteMessage();
+          Toaster.logMutation(op, true);
+        }.bind(this)
+      },
+      { // Cancel
+        id: 'msg-delete-cancel',
+        handler: null
+      }
+    );
   },
 
   onToggleStar: function() {
