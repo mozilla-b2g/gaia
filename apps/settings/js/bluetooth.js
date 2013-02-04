@@ -447,10 +447,10 @@ navigator.mozL10n.ready(function bluetoothSettings() {
     }
 
     function showDevicePaired(paired, errorMessage) {
-      // if we are in a pairing process, update found device list
-      // or do error handling.
+      // If we don't know the pairing device address, 
+      // it means the pair request is handled by interface level. 
+      // So we just need to update paired list.
       if (!pairingAddress) {
-        // acquire a new paired list no matter paired or unpaired
         getPairedDevice();
         return;
       }
@@ -465,6 +465,7 @@ navigator.mozL10n.ready(function bluetoothSettings() {
           var device = openList.index[workingAddress][0];
           var item = openList.index[workingAddress][1];
           openList.list.removeChild(item);
+          delete openList.index[workingAddress];
           connectingAddress = workingAddress;
         }
       } else {
@@ -524,13 +525,14 @@ navigator.mozL10n.ready(function bluetoothSettings() {
     function setDeviceConnect(device) {
       // we only support audio-card device to connect now
       if (!bluetooth.enabled || !defaultAdapter ||
-          device.icon !== 'audio-card') {
+          device.icon !== 'audio-card' ||
+          device.address === connectedAddress) {
         connectingAddress = null;
         return;
       }
 
       // disconnect current connected device first
-      if (connectedAddress && device.address !== connectedAddress) {
+      if (connectedAddress) {
         setDeviceDisconnect(pairList.index[connectedAddress][0]);
       }
 
