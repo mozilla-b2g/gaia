@@ -34,6 +34,7 @@ var CostControl = (function() {
           return 0.8;
         }
       };
+
       debug('Cost Control ready!');
       onready(costcontrol);
     }
@@ -180,8 +181,19 @@ var CostControl = (function() {
     });
   }
 
+  var airplaneMode = false;
+  SettingsListener.observe('ril.radio.disabled', false,
+    function _onValue(value) {
+      airplaneMode = value;
+    }
+  );
+
   // Check service status and return the most representative issue if there is
   function getServiceIssues(settings) {
+    if (airplaneMode) {
+      return 'airplane_mode';
+    }
+
     if (!connection || !connection.voice || !connection.data) {
       return 'no_service';
     }

@@ -37,6 +37,7 @@
   <script type="text/javascript" src="shared/js/l10n.js"></script>
   <script type="text/javascript" src="shared/js/l10n_date.js"></script>
   <script type="text/javascript" src="shared/js/async_storage.js"></script>
+  <script type="text/javascript" src="shared/js/settings_listener.js"></script>
 
   <!-- Specific code -->
   <script type="text/javascript" src="js/utils/debug.js"></script>
@@ -89,14 +90,7 @@
 
         <!-- Error messages -->
         <div id="cost-control-message-area" class="error-messages" aria-hidden="true">
-          <section id="on-roaming-message" aria-hidden="true">
-            <p data-l10n-id="on-roaming-message">Roaming: Automatic balance update are off. Additional charges may apply for update.</p>
-          </section>
-          <section id="on-topup-not-confirmed" aria-hidden="true">
-            <p data-l10n-id="on-topup-not-confirmed-title">Top up not confirmed.</p>
-            <p data-l10n-id="on-topup-not-confirmed-message">Try updating your balance or retry Top up.</p>
-          </section>
-          <p id="balance-error-message" data-l10n-id="balance-error-message" aria-hidden="true">Balance updating error, try again manually.</p>
+          <p id="error-message-placeholder"></p>
         </div>
 
         <!-- Show balance zone -->
