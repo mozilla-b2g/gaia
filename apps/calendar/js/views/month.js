@@ -59,6 +59,7 @@ Calendar.ns('Views').Month = (function() {
       this.controller.on('selectedDayChange', this);
       this.controller.on('monthChange', this);
       this.delegate(this.element, 'click', '[data-date]', this);
+      this.delegate(this.element, 'dbltap', '[data-date]', this);
     },
 
     handleEvent: function(e, target) {
@@ -68,6 +69,9 @@ Calendar.ns('Views').Month = (function() {
         case 'click':
           var date = Calc.dateFromId(target.dataset.date);
           this.controller.selectedDay = date;
+          break;
+        case 'dbltap':
+          this.app.go('/day/');
           break;
         case 'selectedDayChange':
           this._selectDay(e.data[0]);

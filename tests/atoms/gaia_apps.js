@@ -110,7 +110,7 @@ var GaiaApps = {
         }
       }
       callback(false);
-    }
+    };
   },
 
   // Returns the number of running apps.

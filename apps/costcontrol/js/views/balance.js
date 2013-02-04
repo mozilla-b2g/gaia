@@ -17,8 +17,9 @@ var BalanceTab = (function() {
   var costcontrol, tabmanager, vmanager, initialized;
 
   function setupTab(tmgr, vmgr) {
-    if (initialized)
+    if (initialized) {
       return;
+    }
 
     CostControl.getInstance(function _onCostControl(instance) {
       costcontrol = instance;
@@ -64,13 +65,15 @@ var BalanceTab = (function() {
   }
 
   function localize() {
-    if (initialized)
+    if (initialized) {
       updateUI();
+    }
   }
 
   function finalize() {
-    if (!initialized)
+    if (!initialized) {
       return;
+    }
 
     document.removeEventListener('mozvisibilitychange', updateWhenVisible);
     updateButton.removeEventListener('click', lockAndUpdateUI);
@@ -92,8 +95,9 @@ var BalanceTab = (function() {
 
   // On showing the application
   function updateWhenVisible() {
-    if (!document.mozHidden && initialized)
+    if (!document.mozHidden && initialized) {
       updateUI();
+    }
   }
 
   // On tapping update
@@ -118,8 +122,9 @@ var BalanceTab = (function() {
 
   // On balance timeout
   function onBalanceTimeout(errors) {
-    if (!errors['BALANCE_TIMEOUT'])
+    if (!errors['BALANCE_TIMEOUT']) {
       return;
+    }
     debug('Balance timeout!');
 
     setBalanceMode('warning');
@@ -144,8 +149,11 @@ var BalanceTab = (function() {
   }
 
   // On tapping Top Up with code
-  function topUpWithCode() {
+  function topUpWithCode(lastWasError) {
     vmanager.changeViewTo('topup-dialog');
+    if (lastWasError)
+      setTopUpMode('incorrect_code');
+
     topUpCodeInput.focus();
   }
 
@@ -169,8 +177,9 @@ var BalanceTab = (function() {
       if (status === 'success' || status === 'in_progress') {
         setTopUpMode('in_progress');
         setTimeout(function _hideDialog() {
-          if (vmanager.isCurrentView(topUpDialog.id))
+          if (vmanager.isCurrentView(topUpDialog.id)) {
             vmanager.closeCurrentView();
+          }
         }, DIALOG_TIMEOUT);
 
       } else if (status === 'error') {
@@ -181,8 +190,9 @@ var BalanceTab = (function() {
 
   // On confirmation SMS for top up received
   function onConfirmation(isWaiting) {
-    if (isWaiting !== null)
+    if (isWaiting !== null) {
       return;
+    }
 
     debug('TopUp confirmed!');
     setTopUpMode('default');
@@ -229,8 +239,9 @@ var BalanceTab = (function() {
         var status = result.status;
         var balance = result.data;
         setBalanceMode(status === 'error' ? 'warning' : 'updating');
-        if (status === 'error')
+        if (status === 'error') {
           setErrors(status.details);
+        }
         updateBalance(balance,
                       settings.lowLimit && settings.lowLimitThreshold);
       });
@@ -258,8 +269,9 @@ var BalanceTab = (function() {
 
     // Timestamp
     var timeContent = formatTimeHTML(balance.timestamp);
-    if (view.classList.contains('updating'))
+    if (view.classList.contains('updating')) {
       timeContent = _('updating') + '...';
+    }
     document.getElementById('balance-tab-time').innerHTML = timeContent;
 
     // Limits: reaching zero / low limit
@@ -280,26 +292,30 @@ var BalanceTab = (function() {
   // Set warning / updating modes
   var lastBalanceMode;
   function setBalanceMode(mode) {
-    if (mode === lastBalanceMode)
+    if (mode === lastBalanceMode) {
       return;
+    }
 
     lastBalanceMode = mode;
     view.classList.remove('updating');
     view.classList.remove('warning');
 
-    if (mode === 'warning')
+    if (mode === 'warning') {
       view.classList.add('warning');
+    }
 
-    if (mode === 'updating')
+    if (mode === 'updating') {
       view.classList.add('updating');
+    }
   }
 
   // Control info messages in the top up dialog as well as the top up countdown
   // and error messages in the error area
   var lastTopUpMode;
   function setTopUpMode(mode) {
-    if (lastTopUpMode === mode)
+    if (lastTopUpMode === mode) {
       return;
+    }
 
     lastTopUpMode = mode;
 
@@ -348,6 +364,7 @@ var BalanceTab = (function() {
   }
 
   return {
+    topUpWithCode: topUpWithCode,
     initialize: setupTab,
     finalize: finalize
   };

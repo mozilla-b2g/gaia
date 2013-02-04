@@ -175,7 +175,7 @@ var OnCallHandler = (function onCallHandler() {
 
   // Setting up the SimplePhoneMatcher
   var conn = window.navigator.mozMobileConnection;
-  if (conn) {
+  if (conn && conn.voice && conn.voice.network) {
     SimplePhoneMatcher.mcc = conn.voice.network.mcc.toString();
   }
 
@@ -254,7 +254,16 @@ var OnCallHandler = (function onCallHandler() {
       return;
     }
 
-    var node = CallScreen.calls.children[handledCalls.length];
+    var node = null;
+    // Find an available node for displaying the call
+    var children = CallScreen.calls.children;
+    for (var i = 0; i < children.length; i++) {
+      var n = children[i];
+      if (n.dataset.occupied === 'false') {
+        node = n;
+        break;
+      }
+    }
     var hc = new HandledCall(call, node);
     handledCalls.push(hc);
 
@@ -295,7 +304,7 @@ var OnCallHandler = (function onCallHandler() {
         setTimeout(function nextTick() {
           if (remainingCall.call.state == 'incoming') {
             CallScreen.render('incoming');
-          };
+          }
         });
 
         return;
@@ -387,29 +396,18 @@ var OnCallHandler = (function onCallHandler() {
     animating = true;
 
     var callScreen = CallScreen.screen;
-    callScreen.classList.remove('animate');
-    callScreen.classList.toggle('prerender');
+    callScreen.classList.toggle('displayed');
 
-    window.addEventListener('MozAfterPaint', function ch_finishAfterPaint() {
-      window.removeEventListener('MozAfterPaint', ch_finishAfterPaint);
+    callScreen.addEventListener('transitionend', function trWait() {
+      callScreen.removeEventListener('transitionend', trWait);
 
-      window.setTimeout(function cs_transitionNextLoop() {
-        callScreen.classList.add('animate');
-        callScreen.classList.toggle('displayed');
-        callScreen.classList.toggle('prerender');
+      animating = false;
 
-        callScreen.addEventListener('transitionend', function trWait() {
-          callScreen.removeEventListener('transitionend', trWait);
-
-          animating = false;
-
-          // We did animate the call screen off the viewport
-          // now closing the window.
-          if (!displayed) {
-            closeWindow();
-          }
-        });
-      });
+      // We did animate the call screen off the viewport
+      // now closing the window.
+      if (!displayed) {
+        closeWindow();
+      }
     });
   }
 
@@ -481,7 +479,7 @@ var OnCallHandler = (function onCallHandler() {
   function handleHSCommand(message) {
     // We will receive the message for button released,
     // we will ignore it
-    if (message == 'headset-button-release') {
+    if (message != 'headset-button-press') {
       return;
     }
 

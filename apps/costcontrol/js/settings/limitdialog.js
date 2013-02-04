@@ -54,13 +54,23 @@ function dataLimitConfigurer(guiWidget, settings, viewManager) {
     }
   );
 
+  // Prevent to loose the focus when tapping on switch unit button
+  // TODO: Replace with 'focusout' on dataLimitInput when fixing bug:
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=687787
+  switchUnitButton.addEventListener('mousedown',
+    function _preventFocusLost(evt) {
+      evt.preventDefault();
+    }
+  );
+
   // Keep the widget and the dialog synchronized
   settings.observe('dataLimitValue',
     function ccld_onValueChange(value) {
 
       // Use default value if no value
-      if (value === null || typeof value === 'undefined')
+      if (value === null || typeof value === 'undefined') {
         value = settings.defaultValue('dataLimitValue');
+      }
 
       // Set dialog
       dataLimitInput.value = value;
@@ -74,8 +84,9 @@ function dataLimitConfigurer(guiWidget, settings, viewManager) {
     function ccld_onUnitChange(value) {
 
       // Use default value if no value
-      if (value === null || typeof value === 'undefined')
+      if (value === null || typeof value === 'undefined') {
         value = settings.defaultValue('dataLimitUnit');
+      }
 
       // Set dialog
       switchUnitButton.querySelector('span.tag').textContent = value;

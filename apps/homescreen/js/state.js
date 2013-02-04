@@ -10,36 +10,19 @@ const HomeState = (function() {
   var initQueue = [];
 
   function loadInitialState(iterator, success, error) {
-    var xhr = new XMLHttpRequest();
-    xhr.overrideMimeType('application/json');
-    xhr.open('GET', 'js/init.json', true);
-    xhr.responseType = 'json';
-    xhr.send(null);
+    var grid = Configurator.getSection('grid') || [];
 
-    xhr.onreadystatechange = function renderFromMozApps_init(evt) {
-      if (xhr.readyState != 4)
-        return;
+    for (var i = 0; i < grid.length; i++) {
+      grid[i] = {
+        index: i,
+        icons: grid[i]
+      };
+    }
 
-      if (xhr.status != 0 && xhr.status != 200)
-        return;
-
-      var grid;
-      try {
-        grid = xhr.response;
-      } catch (e) {
-        console.log('Failed parsing homescreen configuration file: ' + e + '\n');
-      }
-      if (!grid)
-        grid = [];
-
-      for (var i = 0; i < grid.length; i++) {
-        grid[i] = {index: i, icons: grid[i]};
-      }
-      HomeState.saveGrid(grid, function onSaveGrid() {
-        grid.forEach(iterator);
-        success();
-      }, error);
-    };
+    HomeState.saveGrid(grid, function onSaveGrid() {
+      grid.forEach(iterator);
+      success();
+    }, error);
   }
 
   function openDB(success, error) {
@@ -118,7 +101,7 @@ const HomeState = (function() {
      * success callback.
      */
     init: function st_init(iterator, success, error) {
-      openDB(function (emptyDB) {
+      openDB(function(emptyDB) {
         if (emptyDB) {
           loadInitialState(iterator, success, error);
           return;

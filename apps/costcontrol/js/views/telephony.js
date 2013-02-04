@@ -12,8 +12,9 @@ var TelephonyTab = (function() {
   var costcontrol, tabmanager, initialized = false;
   var view, smscount, calltime, time, resetDate;
   function setupTab(tmgr) {
-    if (initialized)
+    if (initialized) {
       return;
+    }
 
     CostControl.getInstance(function _onCostControl(instance) {
       costcontrol = instance;
@@ -46,13 +47,15 @@ var TelephonyTab = (function() {
   }
 
   function localize() {
-    if (initialized)
+    if (initialized) {
       updateUI();
+    }
   }
 
   function finalize() {
-    if (!initialized)
+    if (!initialized) {
       return;
+    }
 
     document.removeEventListener('mozvisibilitychange', updateWhenVisible);
     ConfigManager.removeObserver('lastTelephonyActivity', updateCounters);
@@ -63,8 +66,9 @@ var TelephonyTab = (function() {
   }
 
   function updateWhenVisible() {
-    if (!document.mozHidden && initialized)
+    if (!document.mozHidden && initialized) {
       updateUI();
+    }
   }
 
   function updateUI() {

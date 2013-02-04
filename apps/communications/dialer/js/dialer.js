@@ -98,6 +98,18 @@ var CallHandler = (function callHandler() {
     });
   }
 
+  /* === Handle messages recevied from iframe === */
+  function handleContactsIframeRequest(message) {
+    switch (message) {
+      case 'back':
+        var contactsIframe = document.getElementById('iframe-contacts');
+        // disable the function of receiving the messages posted from the iframe
+        contactsIframe.contentWindow.history.pushState(null, null, '/contacts/index.html');
+        window.location.hash = '#recents-view';
+        break;
+    }
+  }
+
   /* === Incoming and STK calls === */
   function newCall() {
     // We need to query mozTelephony a first time here
@@ -177,6 +189,8 @@ var CallHandler = (function callHandler() {
       handleNotificationRequest(data.number);
     } else if (data.type && data.type === 'recent') {
       handleRecentAddRequest(data.entry);
+    } else if (data.type && data.type === 'contactsiframe') {
+      handleContactsIframeRequest(data.message);
     }
   }
   window.addEventListener('message', handleMessage);
@@ -189,19 +203,32 @@ var CallHandler = (function callHandler() {
     }
 
     var oncall = function t_oncall() {
-      if (!callScreenWindow)
-        openCallScreen();
-    }.bind(this);
+      if (!callScreenWindow) {
+        openCallScreen(opened);
+      }
+    };
 
     var connected, disconnected = function clearPhoneView() {
       KeypadManager.updatePhoneNumber('', 'begin', true);
     };
 
-    TelephonyHelper.call(number, oncall, connected, disconnected);
+    var shouldCloseCallScreen = false;
+
+    var error = function() {
+      shouldCloseCallScreen = true;
+    };
+
+    var opened = function() {
+      if (shouldCloseCallScreen) {
+        sendCommandToCallScreen('*', 'exitCallScreen');
+      }
+    };
+
+    TelephonyHelper.call(number, oncall, connected, disconnected, error);
   }
 
   /* === Attention Screen === */
-  function openCallScreen() {
+  function openCallScreen(openCallback) {
     if (callScreenWindow)
       return;
 
@@ -214,12 +241,18 @@ var CallHandler = (function callHandler() {
                   'call_screen', 'attention');
       callScreenWindow.onload = function onload() {
         callScreenWindowLoaded = true;
+        if (openCallback) {
+          openCallback();
+        }
+      };
 
-        var telephony = navigator.mozTelephony;
-        if (telephony.calls.length === 0) {
+      var telephony = navigator.mozTelephony;
+      telephony.oncallschanged = function (evt) {
+        if (callScreenWindowLoaded && telephony.calls.length === 0) {
           // Calls might be ended before callscreen is comletedly loaded,
           // so that callscreen will miss call-related events. We send a
-          // message to notify callscreen of exiting when there are no calls.
+          // message to notify callscreen of exiting when we got notified
+          // there are no calls.
           sendCommandToCallScreen('*', 'exitCallScreen');
         }
       };

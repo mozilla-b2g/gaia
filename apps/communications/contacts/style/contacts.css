@@ -69,11 +69,21 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
   padding-bottom: 1rem;
 }
 
+.fb-contact:not(.no-photo):before {
+  content: "";
+  width: 2rem;
+  height: 2rem;
+  position: absolute;
+  top: -3rem;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
 .view-contact-profile .view-body-inner {
   position: relative;
   padding: 0 2rem;
   background: #f5f5f5;
-  overflow: hidden;
+  overflow: visible;
   width: 100%;
   min-height: calc(100% - 8rem);
   -moz-box-sizing: border-box;
@@ -271,7 +281,8 @@ fieldset legend.action:after {
   margin: -0.2rem 1rem 0 0;
 }
 
-.icon-social.icon-fb {
+.icon-social.icon-fb,
+.fb-contact:not(.no-photo):before {
   background-image: url(images/f_logo.png) !important;
 }
 

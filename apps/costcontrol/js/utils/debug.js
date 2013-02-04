@@ -1,13 +1,15 @@
+var DEBUGGING = false;
+
 var debug = (function() {
   var SEQ_ID = 0;
   var PROCESS_ID = Date.now();
 
-  var DEBUGGING = false;
   var DEBUG_PREFIX = 'CC';
 
   return function _debug() {
-    if (!DEBUGGING)
+    if (!DEBUGGING) {
       return;
+    }
 
     var currentWindow = window;
     var parents = [];
@@ -24,9 +26,10 @@ var debug = (function() {
       obj = arguments[i];
       message.push(typeof obj === 'object' ? JSON.stringify(obj) : obj);
     }
-    if (window.dump)
+    if (window.dump) {
       window.dump(message.join(' '));
-    else if (console && console.log)
+    } else if (console && console.log) {
       console.log(message.join(' '));
+    }
   };
 }());

@@ -298,7 +298,7 @@
             </li>
             <li>
               <label class="end">
-                <input class="settings-option" data-option="lowLimit" type="checkbox" data-type="switch" />
+                <input class="settings-option" data-option="lowLimit" type="checkbox" data-type="switch" id="low-limit" />
                 <span></span>
               </label>
               <p data-l10n-id="low-balance-alert">Low Balance alert</p>
@@ -468,7 +468,7 @@
         <div class="center">
           <h3 data-l10n-id="weekday-reset-setup-title">Select period start day</h3>
           <ul role="listbox">
-            <li>
+            <li class="monday">
               <label for="reset-weekday-option-monday">
                 <input type="radio" id="reset-weekday-option-monday" name="reset-weekday-option" checked="checked" value="1" />
                 <span data-l10n-id="monday">Monday</span>
@@ -504,7 +504,7 @@
                 <span data-l10n-id="saturday">Saturday</span>
               </label>
             </li>
-            <li>
+            <li class="sunday">
               <label for="reset-weekday-option-sunday">
                 <input type="radio" id="reset-weekday-option-sunday" name="reset-weekday-option" value="0" />
                 <span data-l10n-id="sunday">Sunday</span>

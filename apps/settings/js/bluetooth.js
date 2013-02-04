@@ -11,7 +11,7 @@
 var gDeviceList = null;
 
 // handle Bluetooth settings
-onLocalized(function bluetoothSettings() {
+navigator.mozL10n.ready(function bluetoothSettings() {
   var _ = navigator.mozL10n.get;
   var settings = window.navigator.mozSettings;
   var bluetooth = window.navigator.mozBluetooth;
@@ -361,9 +361,9 @@ onLocalized(function bluetoothSettings() {
 
     function restoreConnection() {
       window.asyncStorage.getItem('device.connected', function(value) {
-        if(!value || !pairList.index[value]) 
+        if (!value || !pairList.index[value])
           return;
-        var device = pairList.index[value][0]; 
+        var device = pairList.index[value][0];
         setDeviceConnect(device);
       });
     }
@@ -447,10 +447,10 @@ onLocalized(function bluetoothSettings() {
     }
 
     function showDevicePaired(paired, errorMessage) {
-      // if we are in a pairing process, update found device list
-      // or do error handling.
+      // If we don't know the pairing device address, 
+      // it means the pair request is handled by interface level. 
+      // So we just need to update paired list.
       if (!pairingAddress) {
-        // acquire a new paired list no matter paired or unpaired
         getPairedDevice();
         return;
       }
@@ -465,6 +465,7 @@ onLocalized(function bluetoothSettings() {
           var device = openList.index[workingAddress][0];
           var item = openList.index[workingAddress][1];
           openList.list.removeChild(item);
+          delete openList.index[workingAddress];
           connectingAddress = workingAddress;
         }
       } else {
@@ -524,13 +525,14 @@ onLocalized(function bluetoothSettings() {
     function setDeviceConnect(device) {
       // we only support audio-card device to connect now
       if (!bluetooth.enabled || !defaultAdapter ||
-          device.icon !== 'audio-card') {
+          device.icon !== 'audio-card' ||
+          device.address === connectedAddress) {
         connectingAddress = null;
         return;
       }
 
       // disconnect current connected device first
-      if (connectedAddress && device.address !== connectedAddress) {
+      if (connectedAddress) {
         setDeviceDisconnect(pairList.index[connectedAddress][0]);
       }
 
@@ -716,10 +718,12 @@ onLocalized(function bluetoothSettings() {
     // enable UI toggle
     gBluetoothCheckBox.disabled = false;
     initialDefaultAdapter();
+    dispatchEvent(new CustomEvent('bluetooth-adapter-added'));
   };
   bluetooth.ondisabled = function bt_onDisabled() {
     gBluetoothCheckBox.disabled = false;  // enable UI toggle
     defaultAdapter = null;  // clear defaultAdapter
+    dispatchEvent(new CustomEvent('bluetooth-disabled'));
   };
 });
 

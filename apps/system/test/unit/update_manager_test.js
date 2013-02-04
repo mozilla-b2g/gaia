@@ -181,6 +181,7 @@ suite('system/UpdateManager', function() {
       UpdateManager.downloadDialog = null;
       UpdateManager.downloadDialogTitle = null;
       UpdateManager.downloadDialogList = null;
+      UpdateManager.lastUpdatesAvailable = 0;
 
       MockAppsMgmt.mTeardown();
 
@@ -456,6 +457,7 @@ suite('system/UpdateManager', function() {
       test('should display the notification', function() {
         assert.isTrue(fakeNode.classList.contains('displayed'));
       });
+
     });
 
     suite('uncompress display', function() {
@@ -531,6 +533,47 @@ suite('system/UpdateManager', function() {
         }, tinyTimeout * 2);
       });
 
+      suite('notification behavior after addToDownloadsQueue', function() {
+        setup(function() {
+          var css = UpdateManager.container.classList;
+          assert.isFalse(css.contains('displayed'));
+          UpdateManager.addToDownloadsQueue(uAppWithDownloadAvailable);
+        });
+
+        test('should be displayed only once', function() {
+          var css = UpdateManager.container.classList;
+          assert.isTrue(css.contains('displayed'));
+          assert.equal(MockNotificationScreen.wasMethodCalled['incExternalNotifications'], 1);
+        });
+
+        test('should not be displayed after timeout', function(done) {
+          setTimeout(function() {
+            var css = UpdateManager.container.classList;
+            assert.isTrue(css.contains('displayed'));
+            assert.equal(MockNotificationScreen.wasMethodCalled['incExternalNotifications'], 1);
+            done();
+          }, tinyTimeout * 2);
+
+        });
+      });
+
+      suite('notification behavior after addToDownloadsQueue after timeout', function() {
+        setup(function(done) {
+          setTimeout(function() {
+            var css = UpdateManager.container.classList;
+            assert.isFalse(css.contains('displayed'));
+            UpdateManager.addToDownloadsQueue(uAppWithDownloadAvailable);
+            done();
+          });
+        });
+
+        test('should not increment the counter if already displayed', function() {
+          var css = UpdateManager.container.classList;
+          assert.isTrue(css.contains('displayed'));
+          assert.equal(MockNotificationScreen.wasMethodCalled['incExternalNotifications'], 1);
+        });
+      });
+
       suite('displaying the container after a timeout', function() {
         setup(function() {
           var css = UpdateManager.container.classList;
@@ -541,6 +584,7 @@ suite('system/UpdateManager', function() {
           setTimeout(function() {
             var css = UpdateManager.container.classList;
             assert.isTrue(css.contains('displayed'));
+            assert.equal(MockNotificationScreen.wasMethodCalled['incExternalNotifications'], 1);
             done();
           }, tinyTimeout * 2);
         });
@@ -574,16 +618,16 @@ suite('system/UpdateManager', function() {
               var css = UpdateManager.toaster.classList;
               assert.isTrue(css.contains('displayed'));
               assert.equal('updateAvailableInfo{"n":1}',
-                           UpdateManager.message.textContent);
+                           UpdateManager.toasterMessage.textContent);
               done();
             }, tinyTimeout * 1.5);
           });
 
-          test('should display an updated count', function(done) {
-            UpdateManager.addToUpdatesQueue(updatableApps[1]);
+          test('should reset toaster value when notification was activated', function(done) {
             setTimeout(function() {
-              assert.equal('updateAvailableInfo{"n":2}',
-                           UpdateManager.message.textContent);
+              UpdateManager.addToUpdatesQueue(updatableApps[1]);
+              assert.equal('updateAvailableInfo{"n":1}',
+                          UpdateManager.toasterMessage.textContent);
               done();
             }, tinyTimeout * 2);
           });
@@ -755,14 +799,28 @@ suite('system/UpdateManager', function() {
           downloadDialog = UpdateManager.downloadDialog;
         });
 
-        test('should swith the nowifi data attribute when connected',
+        test('should switch the online data attribute when online',
+        function() {
+          downloadDialog.dataset.online = false;
+          window.dispatchEvent(new CustomEvent('online'));
+          assert.equal(downloadDialog.dataset.online, 'true');
+        });
+
+        test('should leave the online data attribute true when online',
+        function() {
+          downloadDialog.dataset.online = true;
+          window.dispatchEvent(new CustomEvent('online'));
+          assert.equal(downloadDialog.dataset.online, 'true');
+        });
+
+        test('should switch the nowifi data attribute when connected',
         function() {
           downloadDialog.dataset.nowifi = true;
           window.dispatchEvent(new CustomEvent('wifi-statuschange'));
           assert.equal(downloadDialog.dataset.nowifi, 'false');
         });
 
-        test('should swith the nowifi data attribute when disconnected',
+        test('should switch the nowifi data attribute when disconnected',
         function() {
           downloadDialog.dataset.nowifi = false;
           navigator.mozWifiManager.connection.status = 'disconnected';
@@ -779,7 +837,7 @@ suite('system/UpdateManager', function() {
             MockNavigatorMozMobileConnection.mTeardown();
           });
 
-          test('should swith the edge data attribute when type is not edge',
+          test('should switch the edge data attribute when type is not edge',
           function() {
             downloadDialog.dataset.edge = true;
             MockNavigatorMozMobileConnection.data = {
@@ -789,7 +847,7 @@ suite('system/UpdateManager', function() {
             assert.equal(downloadDialog.dataset.edge, 'false');
           });
 
-          test('should swith the edge data attribute when type is edge',
+          test('should switch the edge data attribute when type is edge',
           function() {
             downloadDialog.dataset.edge = false;
             MockNavigatorMozMobileConnection.data = {

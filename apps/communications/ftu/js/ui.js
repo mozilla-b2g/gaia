@@ -41,7 +41,7 @@ var UIManager = {
     'confirm-newpin-error',
     // Import contacts
     'sim-import-button',
-    'sim-import-feedback',
+    'no-sim',
     // Wifi
     'networks',
     'wifi-refresh-button',
@@ -84,12 +84,14 @@ var UIManager = {
     this.dateConfigurationLabel.innerHTML = currentDate.
       toLocaleFormat('%Y-%m-%d');
     // Add events to DOM
-    this.fakePinInput.addEventListener('keypress', this.fakeInputValues.bind(this));
-    this.fakePukInput.addEventListener('keypress', this.fakeInputValues.bind(this));
+    this.fakePinInput.addEventListener('keypress',
+                                       this.fakeInputValues.bind(this));
+    this.fakePukInput.addEventListener('keypress',
+                                       this.fakeInputValues.bind(this));
     this.fakeNewpinInput.addEventListener('keypress',
                                           this.fakeInputValues.bind(this));
     this.fakeConfirmNewpinInput.addEventListener('keypress',
-                                                 this.fakeInputValues.bind(this));
+                                              this.fakeInputValues.bind(this));
 
     this.simImportButton.addEventListener('click', this);
     this.skipPinButton.addEventListener('click', this);
@@ -139,7 +141,7 @@ var UIManager = {
       }
       this.newsletterForm.classList.add('hidden');
       this.newsletterSuccessScreen.classList.add('visible');
-    }
+    };
 
     this.newsletterButton.addEventListener('click', function() {
         if (WifiManager.isConnected || DataMobile.isDataAvailable) {
@@ -220,10 +222,13 @@ var UIManager = {
         SimManager.skip();
         break;
       case 'unlock-sim-button':
+        Navigation.skipped = false;
         SimManager.unlock();
         break;
       case 'sim-import-button':
-        SimManager.importContacts();
+        // Needed to give the browser the opportunity to properly refresh the UI
+        // Particularly the button toggling cycle (from inactive to active)
+        window.setTimeout(SimManager.importContacts, 0);
         break;
       // 3G
       case 'data-connection-switch':

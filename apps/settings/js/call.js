@@ -99,25 +99,6 @@ var Calls = (function(window, document, undefined) {
             what;
   };
 
-  // Check whether call forwaring is enabled for that specific reason.
-  function checkForCallForwardingReasonEnabled(reason, callback) {
-    var req = gMobileConnection.getCallForwardingOption(reason);
-    req.onsuccess = function() {
-      var rules = req.result;
-      for (var i = 0; i < rules.length; i++) {
-        if (rules[i].active &&
-            ((_voiceServiceClassMask & rules[i].serviceClass) != 0)) {
-          callback(true);
-          return;
-        }
-      }
-      callback(false);
-    };
-    req.onerror = function() {
-      callback(false);
-    };
-  };
-
   // Get current call forwarding rules.
   function getCallForwardingOption(callback) {
     var onerror = function call_getCWOptionError() {
@@ -176,21 +157,6 @@ var Calls = (function(window, document, undefined) {
     displayRule(cfOptions['mobilebusy'], 'cfmb-desc', 'mobilebusy');
     displayRule(cfOptions['noreply'], 'cfnrep-desc', 'noreply');
     displayRule(cfOptions['notreachable'], 'cfnrea-desc', 'notreachable');
-
-    // Hide call forwarding icon if neccesary
-    checkForCallForwardingReasonEnabled(
-      _cfReason.CALL_FORWARD_REASON_UNCONDITIONAL,
-      function onsuccess(enabled) {
-        var settings = window.navigator.mozSettings;
-        var lock = settings.createLock();
-        var key = 'ril.cf.unconditional.enabled';
-        var request = lock.get(key);
-        request.onsuccess = function() {
-          if (!enabled && request.result[key]) {
-            setToSettingsDB(key, false);
-          }
-        };
-    });
   }
 
   function updateCallForwardingEntryWithOption(cfOptions) {
@@ -413,5 +379,5 @@ var Calls = (function(window, document, undefined) {
 })(this, document);
 
 // Startup.
-onLocalized(Calls.init.bind(Calls));
+navigator.mozL10n.ready(Calls.init.bind(Calls));
 

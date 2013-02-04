@@ -90,7 +90,7 @@ function ComposeCard(domNode, mode, args) {
   this.sentAudio.mozAudioChannelType = 'notification';
   this.sentAudioEnabled = false;
 
-  if ('mozSettings' in navigator) {
+  if (navigator.mozSettings) {
     var req = navigator.mozSettings.createLock().get(this.sentAudioKey);
     req.onsuccess = (function onsuccess() {
       this.sentAudioEnabled = req.result[this.sentAudioKey];
@@ -205,11 +205,6 @@ ComposeCard.prototype = {
     var container = node.parentNode;
     var bubble = this.createBubbleNode(name, address);
     container.insertBefore(bubble, node);
-    var dotInput = document.createElement('input');
-    dotInput.value = ',';
-    dotInput.classList.add('cmp-dot-text');
-    dotInput.size = 1;
-    container.insertBefore(dotInput, node);
   },
   /**
    * deleteBubble: Delete the bubble from the parent container.
@@ -218,11 +213,7 @@ ComposeCard.prototype = {
     if (!node) {
       return;
     }
-    var dot = node.nextSibling;
     var container = node.parentNode;
-    if (dot.classList.contains('cmp-dot-text')) {
-      container.removeChild(dot);
-    }
     if (node.classList.contains('cmp-peep-bubble')) {
       container.removeChild(node);
     }
@@ -253,7 +244,7 @@ ComposeCard.prototype = {
 
     if (evt.keyCode == 8 && node.value == '') {
       //delete bubble
-      var previousBubble = node.previousSibling.previousSibling;
+      var previousBubble = node.previousSibling;
       this.deleteBubble(previousBubble);
       if (this.isEmptyAddress()) {
         this.sendButton.setAttribute('aria-disabled', 'true');
@@ -323,17 +314,21 @@ ComposeCard.prototype = {
     // Popup the context menu if clicked target is peer bubble.
     if (target.classList.contains('cmp-peep-bubble')) {
       var contents = cmpNodes['contact-menu'].cloneNode(true);
-      Cards.popupMenuForNode(contents, target, ['menu-item'],
-        function(clickedNode) {
-          if (!clickedNode)
-            return;
-
-          switch (clickedNode.classList[0]) {
-            case 'cmp-contact-menu-delete':
-              this.deleteBubble(target);
-              break;
-          }
-        }.bind(this));
+      var email = target.querySelector('.cmp-peep-address').textContent;
+      contents.getElementsByTagName('header')[0].textContent = email;
+      document.body.appendChild(contents);
+      var formSubmit = function(evt) {
+        document.body.removeChild(contents);
+        switch (evt.explicitOriginalTarget.className) {
+          case 'cmp-contact-menu-delete':
+            this.deleteBubble(target);
+            break;
+          case 'cmp-contact-menu-cancel':
+            break;
+        }
+        return false;
+      }.bind(this);
+      contents.addEventListener('submit', formSubmit);
       return;
     }
     // While user clicks on the container, focus on input to triger
@@ -399,21 +394,15 @@ ComposeCard.prototype = {
       discardHandler();
       return;
     }
-    CustomDialog.show(
-      null,
-      mozL10n.get('compose-discard-message'),
-      {
-        title: mozL10n.get('message-multiedit-cancel'),
-        callback: function() {
-          CustomDialog.hide();
-        }
+    var dialog = cmpNodes['discard-confirm'].cloneNode(true);
+    ConfirmDialog.show(dialog,
+      { // Confirm
+        id: 'cmp-discard-ok',
+        handler: discardHandler
       },
-      {
-        title: mozL10n.get('compose-discard-confirm'),
-        callback: function() {
-          discardHandler();
-          CustomDialog.hide();
-        }
+      { // Cancel
+        id: 'cmp-discard-cancel',
+        handler: null
       }
     );
   },
@@ -447,16 +436,16 @@ ComposeCard.prototype = {
 
         domNode.removeChild(sendingTemplate);
         if (error) {
-          CustomDialog.show(
-            null,
-            mozL10n.get('compose-send-message-failed'),
-            {
-              title: mozL10n.get('dialog-button-ok'),
-              callback: function() {
-                CustomDialog.hide();
-              }
-            }
-          );
+          // TODO: We don't have the resend now, so we use alert dialog
+          //       before resend is enabled.
+          // var dialog = cmpNodes['send-failed-confirm'].cloneNode(true);
+          // document.body.appendChild(dialog);
+          // var formSubmit = function(evt) {
+          //   document.body.removeChild(dialog);
+          //   return false;
+          // };
+          // dialog.addEventListener('submit', formSubmit);
+          alert(mozL10n.get('compose-send-message-failed'));
           return;
         }
         activityHandler();

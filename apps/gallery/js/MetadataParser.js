@@ -168,7 +168,7 @@ var metadataParsers = (function() {
       }, function(errmsg) {
         // If we couldn't parse the JPEG file, then try again with
         // an <img> element. This will probably fail, too.
-        console.warn('In parseJPEGMetadata:', errmsg);
+        console.warn('In parseJPEGMetadata: for file', file.name, errmsg);
         getImageSizeAndThumbnail(file, metadataCallback, metadataError);
       });
     }

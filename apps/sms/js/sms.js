@@ -19,7 +19,8 @@ var MessageManager = {
     }
     window.addEventListener('hashchange', this.onHashChange.bind(this));
     document.addEventListener('mozvisibilitychange',
-        this.onVisibilityChange.bind(this));
+                              this.onVisibilityChange.bind(this));
+    this.fullHeight = ThreadListUI.view.offsetHeight;
   },
 
   onMessageSending: function mm_onMessageSending(e) {
@@ -42,12 +43,21 @@ var MessageManager = {
   onMessageSent: function mm_onMessageSent(e) {
     ThreadUI.onMessageSent(e.message);
   },
+  // This method fills the gap while we wait for next 'getThreadList' request,
+  // letting us rendering the new thread with a better performance.
+  createThreadMockup: function mm_createThreadMockup(message) {
+    // Given a message we create a thread as a mockup. This let us render the
+    // thread without requesting Gecko, so we increase the performance and we
+    // reduce Gecko requests.
+    return {
+        senderOrReceiver: message.sender,
+        body: message.body,
+        timestamp: message.timestamp,
+        unreadCount: 1
+      };
+  },
 
   onMessageReceived: function mm_onMessageReceived(e) {
-    if (window.location.hash === '#edit') {
-      return;
-    }
-
     var message = e.message;
 
     var num;
@@ -64,7 +74,39 @@ var MessageManager = {
       ThreadUI.appendMessage(message);
       Utils.updateTimeHeaders();
     } else {
-      this.getThreads(ThreadListUI.renderThreads);
+      var threadMockup = this.createThreadMockup(message);
+      if (ThreadListUI.view.getElementsByTagName('ul').length === 0) {
+        ThreadListUI.renderThreads([threadMockup]);
+      } else {
+        var num = threadMockup.senderOrReceiver;
+        var timestamp = threadMockup.timestamp.getTime();
+        var previousThread = document.getElementById('thread_' + num);
+        if (previousThread && previousThread.dataset.time > timestamp) {
+          // If the received SMS it's older that the latest one
+          // We need only to update the 'unread status'
+          previousThread.getElementsByTagName('a')[0].classList
+                    .add('unread');
+          return;
+        }
+        // We remove the previous one in order to place the new one properly
+        if (previousThread) {
+          var threadsInContainer = previousThread.parentNode.children.length;
+          if (threadsInContainer === 1) {
+            // If it's the last one we should remove the container
+            var oldThreadContainer = previousThread.parentNode;
+            var oldHeaderContainer = oldThreadContainer.previousSibling;
+            ThreadListUI.view.removeChild(oldThreadContainer);
+            ThreadListUI.view.removeChild(oldHeaderContainer);
+          } else {
+            var threadsContainerID = 'threadsContainer_' +
+                              Utils.getDayDate(threadMockup.timestamp);
+            var threadsContainer =
+              document.getElementById(threadsContainerID);
+            threadsContainer.removeChild(previousThread);
+          }
+        }
+        ThreadListUI.appendThread(threadMockup);
+      }
     }
   },
 
@@ -75,19 +117,26 @@ var MessageManager = {
 
   slide: function mm_slide(callback) {
     var mainWrapper = document.getElementById('main-wrapper');
-    if (!mainWrapper.classList.contains('to-left')) {
-      mainWrapper.classList.remove('to-right');
-      mainWrapper.classList.add('to-left');
-    } else {
-      mainWrapper.classList.remove('to-left');
-      mainWrapper.classList.add('to-right');
-    }
-    mainWrapper.addEventListener('animationend', function slideTransition() {
-      mainWrapper.removeEventListener('animationend', slideTransition);
-      mainWrapper.classList.toggle('to-left-fixed');
 
-      if (callback) {
-        callback();
+    mainWrapper.classList.add('peek');
+    mainWrapper.dataset.position = (mainWrapper.dataset.position == 'left') ?
+                                   'right' : 'left';
+
+    // We have 2 panels, so we get 2 transitionend for each step
+    var trEndCount = 0;
+    mainWrapper.addEventListener('transitionend', function trWait() {
+      trEndCount++;
+
+      switch (trEndCount) {
+        case 2:
+          mainWrapper.classList.remove('peek');
+          break;
+        case 4:
+          mainWrapper.removeEventListener('transitionend', trWait);
+          if (callback) {
+            callback();
+          }
+          break;
       }
     });
   },
@@ -153,6 +202,7 @@ var MessageManager = {
           } else if (threadMessages.classList.contains('new')) {
             this.getMessages(ThreadUI.renderMessages, filter, false);
             threadMessages.classList.remove('new');
+            ThreadUI.updateHeaderData();
           } else {
             // As soon as we click in the thread, we visually mark it
             // as read.
@@ -162,8 +212,13 @@ var MessageManager = {
                     .remove('unread');
             }
 
-            this.getMessages(ThreadUI.renderMessages,
-              filter, false, MessageManager.slide);
+            var self = this;
+            // Update Header
+            ThreadUI.updateHeaderData(function headerReady() {
+              MessageManager.slide(function slided() {
+                self.getMessages(ThreadUI.renderMessages, filter, false);
+              });
+            });
           }
         }
       break;
@@ -486,31 +541,22 @@ var ThreadListUI = {
                        'header');
       // Edit mode available
       ThreadListUI.iconEdit.classList.remove('disabled');
-      var dayHeaderIndex;
       var appendThreads = function(threads, callback) {
         if (threads.length === 0) {
+          // Refresh fixed header logic
+          FixedHeader.refresh();
+
           if (callback) {
             callback();
           }
           return;
         }
         var thread = threads.pop();
-        var time = thread.timestamp.getTime();
-        if (!dayHeaderIndex) {
-          dayHeaderIndex = Utils.getDayDate(time);
-          ThreadListUI.createNewHeader(time);
-        } else {
-          var tmpDayIndex = Utils.getDayDate(time);
-          if (tmpDayIndex < dayHeaderIndex) {
-            ThreadListUI.createNewHeader(time);
-            dayHeaderIndex = tmpDayIndex;
-          }
-        }
         setTimeout(function() {
           ThreadListUI.appendThread(thread);
           appendThreads(threads, callback);
         });
-      }
+      };
 
       appendThreads(threads, function at_callback() {
         // Boot update of headers
@@ -535,23 +581,17 @@ var ThreadListUI = {
     }
   },
 
-  appendThread: function thlui_appendThread(thread) {
-    // Retrieve ThreadsContainer
-    var threadsContainerID = 'threadsContainer_' +
-                              Utils.getDayDate(thread.timestamp);
-    var threadsContainer = document.getElementById(threadsContainerID);
-
-    if (!threadsContainer) {
-      return;
-    }
+  createThread: function thlui_createThread(thread) {
     // Create DOM element
     var num = thread.senderOrReceiver;
+    var timestamp = thread.timestamp.getTime();
     var threadDOM = document.createElement('li');
     threadDOM.id = 'thread_' + num;
+    threadDOM.dataset.time = timestamp;
 
     // Retrieving params from thread
     var bodyText = (thread.body || '').split('\n')[0];
-    var formattedDate = Utils.getFormattedHour(thread.timestamp.getTime());
+    var formattedDate = Utils.getFormattedHour(timestamp);
     // Create HTML Structure
     var structureHTML = '<label class="danger">' +
                           '<input type="checkbox" value="' + num + '">' +
@@ -572,15 +612,64 @@ var ThreadListUI = {
     // Update HTML
     threadDOM.innerHTML = structureHTML;
 
-    // Append Element
-    threadsContainer.appendChild(threadDOM);
-
+    return threadDOM;
+  },
+  insertThreadContainer:
+    function thlui_insertThreadContainer(fragment, timestamp) {
+    // We look for placing the group in the right place.
+    var headers = ThreadListUI.view.getElementsByTagName('header');
+    var groupFound = false;
+    for (var i = 0; i < headers.length; i++) {
+      if (timestamp >= headers[i].dataset.time) {
+        groupFound = true;
+        ThreadListUI.view.insertBefore(fragment, headers[i]);
+        break;
+      }
+    }
+    if (!groupFound) {
+      ThreadListUI.view.appendChild(fragment);
+    }
+  },
+  appendThread: function thlui_appendThread(thread) {
+    var num = thread.senderOrReceiver;
+    var timestamp = thread.timestamp.getTime();
+    // We create the DOM element of the thread
+    var threadDOM = this.createThread(thread);
     // Update info given a number
     ThreadListUI.updateThreadWithContact(num, threadDOM);
-  },
 
+    // Is there any container already?
+    var threadsContainerID = 'threadsContainer_' +
+                              Utils.getDayDate(thread.timestamp);
+    var threadsContainer = document.getElementById(threadsContainerID);
+    // If there is no container we create & insert it to the DOM
+    if (!threadsContainer) {
+      // We create the fragment with groul 'header' & 'ul'
+      var threadsContainerFragment =
+        ThreadListUI.createThreadContainer(timestamp);
+      // Update threadsContainer with the new value
+      threadsContainer = threadsContainerFragment.childNodes[1];
+      // Place our new fragment in the DOM
+      ThreadListUI.insertThreadContainer(threadsContainerFragment, timestamp);
+    }
+
+    // Where have I to place the new thread?
+    var threads = ThreadListUI.view.getElementsByTagName('li');
+    var threadFound = false;
+    for (var i = 0; i < threads.length; i++) {
+      if (timestamp > threads[i].dataset.time) {
+        threadFound = true;
+        threadsContainer.insertBefore(threadDOM, threads[i]);
+        break;
+      }
+    }
+    if (!threadFound) {
+      threadsContainer.appendChild(threadDOM);
+    }
+  },
   // Adds a new grouping header if necessary (today, tomorrow, ...)
-  createNewHeader: function thlui_createNewHeader(timestamp) {
+  createThreadContainer: function thlui_createThreadContainer(timestamp) {
+    var threadContainer = document.createDocumentFragment();
     // Create Header DOM Element
     var headerDOM = document.createElement('header');
     // Append 'time-update' state
@@ -596,11 +685,9 @@ var ThreadListUI = {
     headerDOM.innerHTML = Utils.getHeaderDate(timestamp);
 
     // Add to DOM all elements
-    ThreadListUI.view.appendChild(headerDOM);
-    ThreadListUI.view.appendChild(threadsContainerDOM);
-
-    // Refresh fixed header logic
-    FixedHeader.refresh();
+    threadContainer.appendChild(headerDOM);
+    threadContainer.appendChild(threadsContainerDOM);
+    return threadContainer;
   },
   // Method for updating all contact info after creating a contact
   updateContactsInfo: function mm_updateContactsInfo() {
@@ -744,14 +831,26 @@ var ThreadUI = {
   },
 
   onBackAction: function thui_onBackAction() {
-    if (ThreadUI.input.value.length == 0) {
-      window.location.hash = '#thread-list';
-      return;
-    }
-    var response = window.confirm(_('discard-sms'));
-    if (response) {
-      ThreadUI.cleanFields(true);
-      window.location.hash = '#thread-list';
+    var goBack = function() {
+      if (ThreadUI.input.value.length == 0) {
+        window.location.hash = '#thread-list';
+        return;
+      }
+      var response = window.confirm(_('discard-sms'));
+      if (response) {
+        ThreadUI.cleanFields(true);
+        window.location.hash = '#thread-list';
+      }
+    };
+
+    // We're waiting for the keyboard to disappear before animating back
+    if (MessageManager.fullHeight !== this.view.offsetHeight) {
+      window.addEventListener('resize', function keyboardHidden() {
+        window.removeEventListener('resize', keyboardHidden);
+        goBack();
+      });
+    } else {
+      goBack();
     }
   },
 
@@ -767,26 +866,14 @@ var ThreadUI = {
     this.sendButton.disabled = !(this.input.value.length > 0);
   },
 
-  scrollViewToBottom: function thui_scrollViewToBottom(animateFromPos) {
-    if (!animateFromPos) {
-      this.view.scrollTop = this.view.scrollHeight;
-      return;
-    }
-
-    clearInterval(this.viewScrollingTimer);
-    this.view.scrollTop = animateFromPos;
-    this.viewScrollingTimer = setInterval((function scrollStep() {
-      var view = this.view;
-      var height = view.scrollHeight - view.offsetHeight;
-      if (view.scrollTop === height) {
-        clearInterval(this.viewScrollingTimer);
-        return;
-      }
-      view.scrollTop += Math.ceil((height - view.scrollTop) / 2);
-    }).bind(this), 100);
+  scrollViewToBottom: function thui_scrollViewToBottom() {
+    this.view.scrollTop = this.view.scrollHeight;
   },
 
   updateCounter: function thui_updateCount(evt) {
+    if (!navigator.mozSms) {
+      return;
+    }
     var value = this.input.value;
     // We set maximum concatenated number of our SMS app to 10 based on:
     // https://bugzilla.mozilla.org/show_bug.cgi?id=813686#c0
@@ -837,33 +924,42 @@ var ThreadUI = {
     this.scrollViewToBottom();
   },
   // Adds a new grouping header if necessary (today, tomorrow, ...)
-  createTimeHeader: function thui_createTimeHeader(timestamp, hourOnly) {
+  createTimeHeader: function thui_createTimeHeader(time, hourOnly, fragment) {
     // Create DOM Element for header
     var headerDOM = document.createElement('header');
     // Append 'time-update' state
     headerDOM.dataset.timeUpdate = true;
-    headerDOM.dataset.time = timestamp;
+    headerDOM.dataset.time = time;
     // Add text
     var content;
     if (!hourOnly) {
-      content = Utils.getHeaderDate(timestamp) + ' ' +
-                Utils.getFormattedHour(timestamp);
+      content = Utils.getHeaderDate(time) + ' ' +
+                Utils.getFormattedHour(time);
     } else {
-      content = Utils.getFormattedHour(timestamp);
+      content = Utils.getFormattedHour(time);
       headerDOM.dataset.hourOnly = 'true';
     }
     headerDOM.innerHTML = content;
     // Append to DOM
-    ThreadUI.view.appendChild(headerDOM);
+    fragment.appendChild(headerDOM);
 
     // Create list element for ul
     var messagesContainerDOM = document.createElement('ul');
 
     // Append to DOM
-    ThreadUI.view.appendChild(messagesContainerDOM);
+    fragment.appendChild(messagesContainerDOM);
   },
   // Method for updating the header with the info retrieved from Contacts API
-  updateHeaderData: function thui_updateHeaderData() {
+  updateHeaderData: function thui_updateHeaderData(callback) {
+    // For Desktop Testing, mozContacts it's mockuped but it's not working
+    // completely. So in the case of Desktop testing we are going to execute
+    // the callback directly in order to make it works!
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=836733
+    if (!navigator.mozSms && callback) {
+      setTimeout(callback);
+      return;
+    }
+
     var number = MessageManager.currentNum;
     if (!number) {
       return;
@@ -907,6 +1003,10 @@ var ThreadUI = {
           }
         });
       }
+
+      if (callback) {
+        callback();
+      }
     });
   },
 
@@ -916,8 +1016,6 @@ var ThreadUI = {
     // Reset vars for 'Deleting'
     ThreadUI.delNumList = [];
     ThreadUI.checkInputs();
-    // Update Header
-    ThreadUI.updateHeaderData();
     // Clean list of messages
     ThreadUI.view.innerHTML = '';
     // Update header index
@@ -925,97 +1023,102 @@ var ThreadUI = {
     ThreadUI.timeHeaderIndex = 0;
     // Init readMessages array
     ThreadUI.readMessages = [];
-    // We append messages in a non-blocking way
-    var appendMessages = function(messages, callback) {
-      if (messages.length == 0) {
-        if (callback) {
-          callback();
-        }
-        return;
-      }
-      var message = messages.pop();
-      setTimeout(function() {
-        ThreadUI.appendMessage(message);
-        appendMessages(messages, callback);
+    // We append messages in a fast way
+    ThreadUI.appendMessages(messages);
+    // Update read messages if necessary
+    if (ThreadUI.readMessages.length > 0) {
+      MessageManager.markMessagesRead(ThreadUI.readMessages, 'true',
+        function() {
+        MessageManager.getThreads(ThreadListUI.renderThreads);
       });
-    };
-
-    appendMessages(messages, function am_callback() {
-      // Update read messages if necessary
-      if (ThreadUI.readMessages.length > 0) {
-        MessageManager.markMessagesRead(ThreadUI.readMessages, 'true',
-          function() {
-          MessageManager.getThreads(ThreadListUI.renderThreads);
-        });
-      }
-      // Boot update of headers
-      Utils.updateTimeHeaders();
-      // Callback when every message is appended
-      if (callback) {
+    }
+    // Boot update of headers
+    Utils.updateTimeHeaders();
+    // Callback when every message is appended
+    if (callback) {
+      setTimeout(function() {
         callback();
-      }
-    });
+      });
+    }
   },
 
   appendMessage: function thui_appendMessage(message) {
-    if (!message.read) {
-      ThreadUI.readMessages.push(message.id);
-    }
-    // Retrieve all data from message
-    var id = message.id;
-    var bodyText = message.body;
-    var bodyHTML = Utils.escapeHTML(bodyText);
+    this.appendMessages([message]);
+  },
 
-    var messageClass = message.delivery;
+  appendMessages: function thui_appendMessages(messages) {
+    var fragment = document.createDocumentFragment();
+    var lastChild = fragment.lastChild;
+    for (var i = messages.length - 1; i >= 0; i--) {
+      var message = messages[i];
+      if (!message.read) {
+        ThreadUI.readMessages.push(message.id);
+      }
+      // Retrieve all data from message
+      var id = message.id;
+      var bodyText = message.body;
+      var bodyHTML = Utils.escapeHTML(bodyText);
 
-    var messageDOM = document.createElement('li');
-    messageDOM.classList.add('bubble');
-    messageDOM.id = 'message-' + id;
+      var messageClass = message.delivery;
 
-    var inputValue = id;
+      var messageDOM = document.createElement('li');
+      messageDOM.classList.add('bubble');
+      messageDOM.id = 'message-' + id;
 
-    var asideHTML = '';
-    // Do we have to add some error/sending icon?
-    switch (message.delivery) {
-      case 'error':
-        asideHTML = '<aside class="pack-end"></aside>';
-        ThreadUI.addResendHandler(message, messageDOM);
-        break;
-      case 'sending':
-        asideHTML = '<aside class="pack-end">' +
-                        '<progress></progress></aside>';
-        break;
-    }
+      var inputValue = id;
 
-    // Create HTML content
-    var messageHTML = '<label class="danger">' +
+      var asideHTML = '';
+      // Do we have to add some error/sending icon?
+      switch (message.delivery) {
+        case 'error':
+          asideHTML = '<aside class="pack-end"></aside>';
+          ThreadUI.addResendHandler(message, messageDOM);
+          break;
+        case 'sending':
+          asideHTML = '<aside class="pack-end">' +
+                      '<progress></progress></aside>';
+          break;
+      }
+
+      // Create HTML content
+      var messageHTML = '<label class="danger">' +
                         '<input type="checkbox" value="' + inputValue + '">' +
                         '<span></span>' +
-                      '</label>' +
+                        '</label>' +
                       '<a class="' + messageClass + '">';
-    messageHTML += asideHTML;
-    messageHTML += '<p>' + bodyHTML + '</p></a>';
+      messageHTML += asideHTML;
+      messageHTML += '<p>' + bodyHTML + '</p></a>';
 
-    // Add structure to DOM element
-    messageDOM.innerHTML = messageHTML;
+      // Add structure to DOM element
+      messageDOM.innerHTML = messageHTML;
 
-    //Check if we need a new header
-    var timestamp = message.timestamp.getTime();
-    var tmpDayIndex = Utils.getDayDate(timestamp);
-    var tmpHourIndex = timestamp;
+      //Check if we need a new header
+      var timestamp = message.timestamp.getTime();
+      var tmpDayIndex = Utils.getDayDate(timestamp);
+      var tmpHourIndex = timestamp;
 
-    if (tmpDayIndex > ThreadUI.dayHeaderIndex) { // Different day
-      ThreadUI.createTimeHeader(timestamp);
-      ThreadUI.dayHeaderIndex = tmpDayIndex;
-      ThreadUI.timeHeaderIndex = tmpHourIndex;
-    } else { // Same day
-      if (tmpHourIndex > ThreadUI.timeHeaderIndex + 10 * 60 * 1000) { // 10min
-        ThreadUI.createTimeHeader(timestamp, true);
+      if (tmpDayIndex > ThreadUI.dayHeaderIndex) { // Different day
+        ThreadUI.createTimeHeader(timestamp, false, fragment);
+        ThreadUI.dayHeaderIndex = tmpDayIndex;
         ThreadUI.timeHeaderIndex = tmpHourIndex;
+        lastChild = fragment.lastChild;
+      } else { // Same day
+        if (tmpHourIndex > ThreadUI.timeHeaderIndex + 10 * 60 * 1000) { // 10min
+          ThreadUI.createTimeHeader(timestamp, true, fragment);
+          ThreadUI.timeHeaderIndex = tmpHourIndex;
+          lastChild = fragment.lastChild;
+        } else if (!lastChild) {
+          // Appending 1 message only so no ul in the fragment
+          lastChild = fragment;
+        }
       }
+      // Append element
+      lastChild.appendChild(messageDOM);
     }
-    // Append element
-    ThreadUI.view.lastChild.appendChild(messageDOM);
+
+    (fragment === lastChild) ? ThreadUI.view.lastChild.appendChild(fragment) :
+                               ThreadUI.view.appendChild(fragment);
+
     // Scroll to bottom
     ThreadUI.scrollViewToBottom();
   },
@@ -1229,7 +1332,9 @@ var ThreadUI = {
 
   onMessageSent: function thui_onMessageSent(message) {
     var messageDOM = document.getElementById('message-' + message.id);
-
+    if (!messageDOM) {
+      return;
+    }
     // Remove 'sending' style
     var aElement = messageDOM.querySelector('a');
     aElement.classList.remove('sending');
@@ -1240,7 +1345,9 @@ var ThreadUI = {
 
   onMessageFailed: function thui_onMessageFailed(message) {
     var messageDOM = document.getElementById('message-' + message.id);
-
+    if (!messageDOM) {
+      return;
+    }
     // Remove 'sending' style and add 'error' style
     var aElement = messageDOM.querySelector('a');
     // Check if it was painted as 'error' before
@@ -1388,8 +1495,8 @@ var ThreadUI = {
 
 
         var contactDOM = document.createElement('li');
-        var noResultHTML = '<a><p data-10ln-id="no-results">' +
-                           'No results returned' +
+        var noResultHTML = '<a><p data-l10n-id="no-results">' +
+                           _('no-results') +
                            '</p></a>';
         contactDOM.innerHTML = noResultHTML;
         contactsContainer.appendChild(contactDOM);
@@ -1479,8 +1586,8 @@ var WaitingScreen = {
 };
 
 window.addEventListener('resize', function resize() {
-   // Scroll to bottom
-    ThreadUI.scrollViewToBottom();
+  // Scroll to bottom
+  ThreadUI.scrollViewToBottom();
 });
 
 window.addEventListener('localized', function showBody() {

@@ -25,7 +25,7 @@ var WifiManager = {
      * Until this is properly implemented, we just compare SSIDs and
      * capabilities to tell wether the network is already connected or not.
      */
-    if(!this.api){
+    if (!this.api) {
       return false;
     }
     var currentNetwork = this.api.connection.network;

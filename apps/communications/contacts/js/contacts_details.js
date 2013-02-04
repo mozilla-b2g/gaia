@@ -154,6 +154,7 @@ contacts.Details = (function() {
 
     detailsName.textContent = contact.name;
     contactDetails.classList.remove('no-photo');
+    contactDetails.classList.remove('fb-contact');
     contactDetails.classList.remove('up');
     listContainer.innerHTML = '';
 
@@ -165,11 +166,11 @@ contacts.Details = (function() {
     renderEmails(contact);
     renderAddresses(contact);
     renderNotes(contact);
-    renderPhoto(contact);
-
     if (fb.isEnabled) {
       renderSocial(contact);
     }
+
+    renderPhoto(contact);
   };
 
   var renderFavorite = function cd_renderFavorite(contact) {
@@ -479,6 +480,9 @@ contacts.Details = (function() {
 
   var renderPhoto = function cd_renderPhoto(contact) {
     contactDetails.classList.remove('up');
+    if (isFbContact) {
+      contactDetails.classList.add('fb-contact');
+    }
     if (contact.photo && contact.photo.length > 0) {
       contactDetails.classList.add('up');
       var clientHeight = contactDetails.clientHeight - (initMargin * 10);

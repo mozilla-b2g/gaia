@@ -28,6 +28,7 @@
     <link rel="resource" type="application/json" href="shared/resources/languages.json"/>
     <link rel="resource" type="application/json" href="shared/resources/media/ringtones/"/>
     <link rel="resource" type="application/json" href="shared/resources/media/notifications/"/>
+    <link rel="resource" type="image/png" href="shared/resources/branding/privacy_sprite.png"/>
     -->
 
     <!-- Localization -->
@@ -47,6 +48,7 @@
     <!-- Specific code -->
     <script type="application/javascript" defer src="js/utils.js"></script>
     <script type="application/javascript" defer src="js/settings.js"></script>
+    <script type="application/javascript" defer src="js/airplane_mode.js"></script>
 
     <!-- Required to update the status of the root panel -->
     <script type="application/javascript" defer src="js/battery.js"></script>
@@ -55,6 +57,7 @@
     <script type="application/javascript" defer src="shared/js/mobile_operator.js"></script>
     <script type="application/javascript" defer src="js/connectivity.js"></script>
     <script type="application/javascript" defer src="js/security_privacy.js"></script>
+    <script defer type="application/javascript" src="shared/js/settings_listener.js"></script>
     <script type="application/javascript" defer src="js/icc_menu.js"></script>
 
     <!-- all non-#root panels will lazy-load their own scripts -->
@@ -369,7 +372,8 @@
             <input type="checkbox" data-type="switch" data-setting="ril.cf.notreachable.enabled"/>
             <span></span>
           </label>
-          <a data-l10n-id="callForwardingNotReachable"> Forward when unreachable </a>
+          <small data-l10n-id="callForwardingNotReachableShort">When unreachable</small>
+          <a data-l10n-id="callForwardingForward">Forward</a>
         </li>
       </ul>
       -->
@@ -396,7 +400,8 @@
             <input type="checkbox" data-type="switch" data-setting="ril.cf.noreply.enabled"/>
             <span></span>
           </label>
-          <a data-l10n-id="callForwardingNoReply"> Forward when unanswered </a>
+          <small data-l10n-id="callForwardingNoReplyShort">When unanswered</small>
+          <a data-l10n-id="callForwardingForward">Forward</a>
         </li>
       </ul>
       -->
@@ -423,7 +428,8 @@
             <input type="checkbox" data-type="switch" data-setting="ril.cf.mobilebusy.enabled"/>
             <span></span>
           </label>
-          <a data-l10n-id="callForwardingMobileBusy"> Forward when busy </a>
+          <small data-l10n-id="callForwardingMobileBusyShort">When busy</small>
+          <a data-l10n-id="callForwardingForward">Forward</a>
         </li>
       </ul>
       -->
@@ -450,7 +456,8 @@
             <input type="checkbox" data-type="switch" data-setting="ril.cf.unconditional.enabled"/>
             <span></span>
           </label>
-          <a data-l10n-id="callForwardingUnconditional">Always forward</a>
+          <small data-l10n-id="callForwardingUnconditionalShort">Always</small>
+          <a data-l10n-id="callForwardingForward">Forward</a>
         </li>
       </ul>
       -->
@@ -731,6 +738,29 @@
       -->
     </section>
 
+    <!-- Connectivity :: Cellular & Data :: Data Connection Warnings -->
+    <section role="region" id="carrier-dc-warning">
+      <!--
+      <form role="dialog" data-type="confirm">
+        <section>
+          <h1>
+            <span data-l10n-id="dataConnection-warning-head">Turn ON data connection?</span>
+          </h1>
+          <p>
+            <small data-l10n-id="dataConnection-warning-message">
+              Applications will automatically fetch data via data connection
+               when required. Additional data charges may apply.
+            </small>
+          </p>
+        </section>
+        <menu>
+          <button type="reset" data-l10n-id="dataConnection-warning-notNow">Not now</button>
+          <button type="submit" class="recommend" data-l10n-id="dataConnection-warning-turnOn">Turn ON</button>
+        </menu>
+      </form>
+      -->
+    </section>
+
     <!-- Connectivity :: Cellular & Data -->
     <section role="region" id="carrier">
       <!--
@@ -757,6 +787,8 @@
           </label>
           <small id="dataConnection-desc"></small>
           <a data-l10n-id="dataConnection">Data Connection</a>
+        </li>
+        <li id="dataConnection-expl" class="explanation" hidden>
         </li>
         <li>
           <label>
@@ -798,7 +830,7 @@
           </label>
         </li>
       </ul>
-
+      
       <script type="application/javascript" defer src="js/carrier.js"></script>
       -->
     </section>
@@ -889,7 +921,7 @@
           <p data-l10n-id="ssid-name">SSID Network Name</p>
           <input type="text" data-setting="tethering.wifi.ssid" />
         </li>
-        <li>
+        <li class="password-item">
           <p data-l10n-id="wifi-password">Password</p>
           <input type="text" data-setting="tethering.wifi.security.password" />
         </li>
@@ -897,7 +929,7 @@
           <p data-l10n-id="wifi-security">Security</p>
           <p class="fake-select">
             <button class="icon icon-dialog">Security</button>
-            <select data-setting="tethering.wifi.security.type">
+            <select class="security-selector" data-setting="tethering.wifi.security.type">
               <option value="open" data-l10n-id="hotspot-open">open</option>
               <option value="wpa-psk" data-l10n-id="hotspot-wpa-psk">WPA (TKIP)</option>
               <option value="wpa2-psk" data-l10n-id="hotspot-wpa2-psk">WPA2 (AES)</option>
@@ -935,7 +967,7 @@
             <span data-name="tethering.wifi.ssid"></span>
           </a>
         </li>
-        <li>
+        <li class="password-item" hidden>
           <a data-l10n-id="wifi-password">Password
             <span data-name="tethering.wifi.security.password"></span>
           </a>
@@ -947,7 +979,7 @@
         </li>
         <li id="hotspot-settings-section">
           <label>
-            <button data-href="#hotspot-wifiSettings"
+            <button class="hotspot-wifiSettings-btn"
               data-l10n-id="hotspotSettings">Hotspot Settings</button>
           </label>
         </li>
@@ -1183,7 +1215,7 @@
         <h1 data-l10n-id="dateAndTime"> Date &amp; Time </h1>
       </header>
 
-      <ul id="time-auto" data-state="auto">
+      <ul id="time-auto" data-state="auto" hidden>
         <li>
           <label>
             <input type="checkbox" data-type="switch" name="time.nitz.automatic-update.enabled"/>
@@ -1616,8 +1648,31 @@
           App permissions
         </h1>
       </header>
+
+      <ul></ul>
+
       <ul>
+        <li>
+          <button id="clear-bookmarks-app" class="icon icon-dialog"
+                  style="visibility: hidden"
+                  data-l10n-id="clearBookmarkAppsData">
+            Clear bookmarks data
+          </button>
+        </li>
       </ul>
+
+      <form role="dialog" data-type="confirm" hidden class="cb-alert">
+        <section>
+          <h1 data-l10n-id="confirmClearBookmarkAppsDataTitle">Clear private data from bookmarks</h1>
+          <p>
+            <strong data-l10n-id="confirmClearBookmarkAppsDataDesc">This clear private data from bookmarks that have been added to the home screen. This cannot be undone.</strong>
+          </p>
+        </section>
+        <menu>
+          <button class="cb-alert-cancel" data-l10n-id="cancel">Cancel</button>
+          <button class="cb-alert-clear recommend danger" data-l10n-id="clear">Clear</button>
+        </menu>
+      </form>
 
       <script type="application/javascript" src="js/hiddenapps.js"></script>
       <script type="application/javascript" src="js/apps.js"></script>
@@ -1897,7 +1952,7 @@
       </header>
       <ul>
         <li>
-          <a class="privacy-menuitem privacy-browserOS" href="https://www.mozilla.org/legal/privacy/firefox.html" data-l10n-id="brandShortName">B2G OS</a>
+          <a class="privacy-menuitem privacy-browserOS" href="https://www.mozilla.org/privacy/firefox-os/" data-l10n-id="brandShortName">B2G OS</a>
         </li>
         <li>
           <a class="privacy-menuitem privacy-marketPlace" href="https://marketplace.firefox.com/privacy-policy">Marketplace</a>
@@ -1929,6 +1984,21 @@
       -->
     </section>
 
+    <!-- Device :: Information :: Legal :: Obtaining Source Code -->
+    <section role="region" id="about-source-code">
+      <!--
+      <header>
+        <a href="#about-legal">
+          <span class="icon icon-back">back</span>
+        </a>
+        <h1 data-l10n-id="obtaining-source-code">
+          Obtaining Source Code
+        </h1>
+      </header>
+      <iframe src="resources/obtaining_source_code.html" id="obtain-sc"></iframe>
+      -->
+    </section>
+
     <!-- Device :: Information :: Legal -->
     <section role="region" id="about-legal">
       <!--
@@ -1946,6 +2016,11 @@
         <li>
           <a href="#about-licensing" data-l10n-id="open-source-notices">
             Open Source Notices
+          </a>
+        </li>
+        <li>
+          <a href="#about-source-code" data-l10n-id="obtaining-source-code">
+            Obtaining Source Code
           </a>
         </li>
       </ul>
@@ -2145,23 +2220,30 @@
       </header>
       <ul>
         <li>
+          <div id="space-stackedbar"></div>
+        </li>
+        <li id="music-space">
+          <span class="stackedbar-color"></span>
           <a data-l10n-id="music-space"> Music
-            <span id="music-space"></span>
+            <span class="size"></span>
           </a>
         </li>
-        <li>
+        <li id="pictures-space">
+          <span class="stackedbar-color"></span>
           <a data-l10n-id="pictures-space"> Pictures
-            <span id="pictures-space"></span>
+            <span class="size"></span>
           </a>
         </li>
-        <li>
+        <li id="videos-space">
+          <span class="stackedbar-color"></span>
           <a data-l10n-id="videos-space"> Movies
-            <span id="videos-space"></span>
+            <span class="size"></span>
           </a>
         </li>
-        <li>
+        <li id="media-free-space">
+          <span class="stackedbar-color"></span>
           <a data-l10n-id="left-space"> Space Left
-            <span id="media-free-space"></span>
+            <span class="size"></span>
           </a>
         </li>
       </ul>
@@ -2360,6 +2442,7 @@
           </p>
         </section>
         <menu>
+          <button data-l10n-id="close" id="icc-stk-alert-btn_close">Close</button>
           <button data-l10n-id="back" id="icc-stk-alert-btn_back">Back</button>
           <button data-l10n-id="ok" id="icc-stk-alert-btn" class="recommend">Ok</button>
         </menu>

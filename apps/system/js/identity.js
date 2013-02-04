@@ -13,7 +13,7 @@ var Identity = (function() {
   var iframe;
 
   return {
-    trustedUILayerID: null,
+    trustedUILayers: {},
 
     init: function() {
       window.addEventListener('mozChromeEvent', this);
@@ -21,15 +21,17 @@ var Identity = (function() {
 
     handleEvent: function onMozChromeEvent(e) {
       var chromeEventId = e.detail.id;
+      var requestId = e.detail.requestId;
       switch (e.detail.type) {
         // Chrome asks Gaia to show the identity dialog.
         case 'open-id-dialog':
+          if (!chromeEventId)
+            return;
+
           // When opening the dialog, we record the chrome event id, which
           // we will need to send back to the TrustedUIManager when asking
           // to close.
-          this.trustedUILayerID = chromeEventId;
-          if (!this.trustedUILayerID)
-            return;
+          this.trustedUILayers[requestId] = chromeEventId;
 
           if (!e.detail.showUI && iframe) {
             this._dispatchEvent({
@@ -56,7 +58,9 @@ var Identity = (function() {
 
           if (e.detail.showUI) {
             // The identity flow is shown within the trusted UI.
-            TrustedUIManager.open(navigator.mozL10n.get('persona-signin'), frame, this.trustedUILayerID);
+            TrustedUIManager.open(navigator.mozL10n.get('persona-signin'),
+                                  frame,
+                                  this.trustedUILayers[requestId]);
           } else {
             var container = document.getElementById('screen');
             container.appendChild(frame);
@@ -67,7 +71,10 @@ var Identity = (function() {
 
         case 'received-id-assertion':
           if (e.detail.showUI) {
-            TrustedUIManager.close(this.trustedUILayerID, null);
+            TrustedUIManager.close(this.trustedUILayers[requestId],
+                                   (function dialogClosed() {
+              delete this.trustedUILayers[requestId];
+            }).bind(this));
           }
           this._dispatchEvent({ id: chromeEventId });
           break;

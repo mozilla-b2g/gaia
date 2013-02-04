@@ -90,8 +90,7 @@ let customize = {"homescreens": [
     ["apps", "communications", "dialer"],
     ["apps", "sms"],
     ["apps", "communications", "contacts"],
-    ["apps", "browser"],
-    ["apps", "feedback"]
+    ["apps", "browser"]
   ], [
     ["apps", "camera"],
     ["apps", "gallery"],
@@ -108,22 +107,33 @@ let customize = {"homescreens": [
   ]
 ]};
 
+if (DOGFOOD == 1) {
+  customize.homescreens[0].push(["dogfood_apps", "feedback"]);
+}
+
 let init = getFile(GAIA_DIR, 'customize.json');
 if (init.exists()) {
   customize = getJSON(init);
 }
 
-let content = customize.homescreens.map(
-  function map_homescreens(applist) {
-    var output = [];
-    for (var i = 0; i < applist.length; i++) {
-      if (applist[i] !== null) {
-        output.push(iconDescriptor.apply(null, applist[i]));
+let content = {
+  search_page: {
+    provider: 'EverythingME',
+    enabled: true
+  },
+
+  grid: customize.homescreens.map(
+    function map_homescreens(applist) {
+      var output = [];
+      for (var i = 0; i < applist.length; i++) {
+        if (applist[i] !== null) {
+          output.push(iconDescriptor.apply(null, applist[i]));
+        }
       }
+      return output;
     }
-    return output;
-  }
-);
+  )
+};
 
 init = getFile(GAIA_DIR, GAIA_CORE_APP_SRCDIR, 'homescreen', 'js', 'init.json');
 writeContent(init, JSON.stringify(content));
@@ -158,7 +168,7 @@ content = {
   is_free: true,
   is_roaming_free: true,
   credit: { currency : 'R$' },
-  balance: { 
+  balance: {
     destination: '8000',
     text: 'SALDO',
     senders: ['1515'],

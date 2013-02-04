@@ -152,20 +152,15 @@ var Navigation = {
 
     switch (actualHash) {
       case '#languages':
-        UIManager.progressBar.className = 'step-state step-1';
         UIManager.mainTitle.innerHTML = _('language');
         // Hide refresh button in case we end up here coming back from wifi
-        UIManager.activationScreen.classList.add('no-options');
         break;
       case '#data_3g':
-        UIManager.progressBar.className = 'step-state step-2';
         UIManager.mainTitle.innerHTML = _('3g');
         DataMobile.
           getStatus(UIManager.updateDataConnectionStatus.bind(UIManager));
-        UIManager.activationScreen.classList.add('no-options');
         break;
       case '#wifi':
-        UIManager.progressBar.className = 'step-state step-3';
         UIManager.mainTitle.innerHTML = _('wifi');
         UIManager.activationScreen.classList.remove('no-options');
         if (UIManager.navBar.classList.contains('secondary-menu')) {
@@ -176,36 +171,33 @@ var Navigation = {
         WifiManager.scan(UIManager.renderNetworks);
         break;
       case '#date_and_time':
-        UIManager.progressBar.className = 'step-state step-4';
         UIManager.mainTitle.innerHTML = _('dateAndTime');
-        UIManager.activationScreen.classList.add('no-options');
         break;
       case '#import_contacts':
-        UIManager.progressBar.className = 'step-state step-5';
-        UIManager.mainTitle.innerHTML = _('importContacts2');
-        var fbOption = document.getElementById('fb_import');
-        var simOption = document.getElementById('sim-import-button');
-        // If there is an unlocked SIM we activate import from SIM
-        if (SimManager.available()) {
-          simOption.classList.remove('disabled');
-        } else {
-          simOption.classList.add('disabled');
-        }
+        UIManager.mainTitle.innerHTML = _('importContacts3');
+        // Enabling or disabling SIM import depending on card status
+        SimManager.checkSIMButton();
+
         // If we have 3G or Wifi activate FB import
-        if(!WifiManager.api){
+        var fbState;
+        if (!WifiManager.api) {
           // Desktop
-          fbOption.classList.remove('disabled');
+          FacebookIntegration.checkFbImport('enabled');
           return;
         }
         if (WifiManager.api.connection.status === 'connected' ||
             DataMobile.isDataAvailable) {
-          fbOption.classList.remove('disabled');
+          fbState = 'enabled';
         } else {
-          fbOption.classList.add('disabled');
+          fbState = 'disabled';
         }
+        FacebookIntegration.checkFbImport(fbState);
         break;
       case '#welcome_browser':
-        UIManager.progressBar.className = 'step-state step-6';
+        UIManager.mainTitle.innerHTML = _('browserPrivacyChoices');
+        break;
+      case '#browser_privacy':
+        UIManager.progressBar.className = 'step-state step-7';
         UIManager.mainTitle.innerHTML = _('browserPrivacyChoices');
         break;
       case '#about-your-rights':
@@ -217,6 +209,21 @@ var Navigation = {
         UIManager.navBar.classList.add('back-only');
         break;
     }
+    // Manage step state (dinamically change)
+    var className = 'step-state step-';
+    if (this.skipped && this.currentStep > 2) {
+      className += (this.currentStep - 1) + ' less-steps';
+    } else {
+      className += this.currentStep;
+    }
+    UIManager.progressBar.className = className;
+
+    // Managing options button
+    if (this.currentStep != 3) { //wifi
+      UIManager.activationScreen.classList.add('no-options');
+    }
+
+    // Managing nav buttons when coming back from out-of-steps (privacy)
     if (this.currentStep <= numSteps &&
         steps[this.currentStep].hash === actualHash) {
       UIManager.navBar.classList.remove('back-only');
@@ -224,13 +231,15 @@ var Navigation = {
   },
 
   skipStep: function n_skipStep() {
-    this.currentStep = this.currentStep + (this.currentStep - this.previousStep);
-    if (this.currentStep < 1){
+    this.currentStep = this.currentStep +
+                      (this.currentStep - this.previousStep);
+    if (this.currentStep < 1) {
       this.previousStep = this.currentStep = 1;
     }
     if (this.currentStep > numSteps) {
       this.previousStep = this.currentStep = numSteps;
     }
+    this.skipped = true;
     this.manageStep();
   },
 
@@ -242,11 +251,23 @@ var Navigation = {
     } else {
       UIManager.navBar.classList.remove('forward-only');
     }
+    // Substitute button content on last step
+    var nextButton = document.getElementById('forward');
+    var innerNode = nextButton.childNodes[1];
+    if (this.currentStep == numSteps) {
+      nextButton.dataset.l10nId = 'done';
+      nextButton.textContent = _('done');
+    } else {
+      nextButton.dataset.l10nId = 'navbar-next';
+      nextButton.textContent = _('navbar-next');
+    }
+    nextButton.appendChild(innerNode);
 
     window.location.hash = steps[self.currentStep].hash;
     // SIM card management
     if (steps[this.currentStep].requireSIM) {
-      SimManager.handleCardState(function (response) {
+      SimManager.handleCardState(function check_cardState(response) {
+        self.skipped = false;
         if (!response) {
           self.skipStep();
         }

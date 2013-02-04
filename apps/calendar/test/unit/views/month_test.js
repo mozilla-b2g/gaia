@@ -79,6 +79,29 @@ suite('views/month', function() {
       );
     });
 
+    test('dom: dbltap', function() {
+      var calledWith;
+      app.router.show = function(url) {
+        calledWith = url;
+      };
+
+      subject.render();
+
+      // find something with [data-date];
+      var el = subject.element.querySelector(
+        '[data-date]'
+      );
+
+      triggerEvent(el, 'dbltap');
+
+      assert.equal(
+        calledWith,
+        '/day/',
+        'double tapping on date should activate day view'
+      );
+
+    });
+
     test('controller: monthChange', function() {
       var calledClear = null;
       var calledActivateTime = null;

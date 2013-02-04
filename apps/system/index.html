@@ -201,6 +201,9 @@
     <link rel="stylesheet" type="text/css" href="style/crash_reporter/crash_reporter.css">
     <script defer src="js/crash_reporter.js"></script>
 
+    <!-- Captive Portal Login -->
+    <script defer src="js/captive_portal.js"></script>
+
     <!-- Windows -->
     <!-- Any module that wants to intercept the Home button and prevent the -->
     <!-- homescreen from being displayed must come before this script. -->
@@ -209,6 +212,9 @@
 
     <!-- Remote Debugger -->
     <script defer src="js/remote_debugger.js"></script>
+
+    <!-- Call Forwarding  -->
+    <script defer src="js/call_forwarding.js"></script>
 
     <!-- z-indexes of all the overlays in the system -->
     <link rel="stylesheet" type="text/css" href="style/zindex.css">
@@ -384,8 +390,8 @@
               <div id="nckArea" hidden>
                 <div data-l10n-id="nckCode">NCK Code</div>
                 <div class="input-wrapper">
-                  <input name="nckpin" type="number" size="8" maxlength="8" />
-                  <input name="nckpinVis" type="text" size="8" maxlength="8" />
+                  <input name="nckpin" type="number" size="16" maxlength="16" />
+                  <input name="nckpinVis" type="text" size="16" maxlength="16" />
                 </div>
               </div>
               <!-- new sim pin input field -->
@@ -726,9 +732,15 @@
         </section>
         <p id="updates-no-wifi-warning"
             data-l10n-id="downloadNoWifiWarning">
+          Wi-Fi unavailable. Updating over current connection may incur additional charges.
         </p>
         <p id="updates-edge-warning"
             data-l10n-id="downloadEdgeWarning">
+          Wi-Fi unavailable. Updating over current connection will block incoming calls, and may incur additional charges.
+        </p>
+        <p id="updates-offline-warning"
+            data-l10n-id="downloadOfflineWarning">
+          Connection unavailable. Connect to a network to download updates.
         </p>
         <menu>
           <button id="updates-later-button" type="reset"
@@ -742,7 +754,7 @@
 
       <div id="lockscreen" class="uninit" data-panel="main" data-z-index-level="lockscreen">
         <div id="lockscreen-container">
-          <div id="lockscreen-panel-main" class="lockscreen-panel">
+          <div id="lockscreen-panel-main" class="lockscreen-panel" data-wallpaper>
             <div id="lockscreen-header">
               <div id="lockscreen-connstate" hidden><span></span><span></span></div>
               <div id="lockscreen-mute" hidden></div>
@@ -770,7 +782,7 @@
             </div>
           </div>
 
-          <div id="lockscreen-panel-passcode" class="lockscreen-panel">
+          <div id="lockscreen-panel-passcode" class="lockscreen-panel" data-wallpaper>
             <h2 id="lockscreen-passcode-status" data-l10n-id="enter-security-code">Enter Security&nbsp;Code</h2>
             <p id="lockscreen-passcode-code"><span></span><span></span><span></span><span></span></p>
             <div id="lockscreen-passcode-pad">
