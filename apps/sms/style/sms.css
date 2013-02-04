@@ -59,6 +59,7 @@ form.bottom[role="search"] {
 
 #receiver-input {
   padding-right: 3rem;
+  font-size: -moz-calc(8 * 0.226rem);
 }
 
 /* Override Building Block [Edit mode] styles */
@@ -342,10 +343,10 @@ section[role="region"].new > header:first-child form {
   border: 0.2rem solid #2c393b;
   background: #fff;
   margin-right: 0.7rem;
-  font-size: 1.4rem;
-  line-height: 1.8rem;
+  font-size: -moz-calc(8.5 * 0.226rem);
+  line-height: 2.2rem;
   -moz-box-sizing: border-box;
-  max-width: 20rem;
+  max-width: 22rem;
   padding: 1rem;
   position: relative;
   text-align: left;
@@ -493,8 +494,9 @@ form.bottom[role="search"].new-sms-form {
 }
 
 #message-to-send {
-  padding: 0.4rem 0 0.4rem 0.4rem;
-  line-height: 2rem;
+  padding: 0.4rem 0.2rem 0.2rem 0.6rem;
+  line-height: -moz-calc(8 * 0.226rem) !important;
+  font-size: -moz-calc(8 * 0.226rem);
 }
 
 #send-message-container {
