@@ -49,6 +49,8 @@
   text-align: left;
   font-size: 3.5rem;
   font-weight: 300;
+  text-overflow: ellipsis;
+  overflow-x: hidden;
 }
 
 #cards-view .card header {
