@@ -752,8 +752,15 @@ var Recents = {
         phoneNumber = logItem.dataset.num.trim(),
         count = logItem.dataset.count;
     if (contact !== null) {
-      primaryInfoMainNode.textContent = (contact.name && contact.name !== '') ?
-        contact.name : this._('unknown');
+      var primaryInfo = Utils.getPhoneNumberPrimaryInfo(
+        matchingTel, contact);
+      if (primaryInfo) {
+        primaryInfoMainNode.textContent = primaryInfo;
+      } else {
+        LazyL10n.get(function (_) {
+          primaryInfoMainNode.textContent = _('unknown');
+        });
+      }
       manyContactsNode.innerHTML = contactsWithSameNumber ?
         '&#160;' + this._('contactNameWithOthersSuffix',
           {n: contactsWithSameNumber}) : '';
