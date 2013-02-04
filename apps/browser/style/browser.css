@@ -59,7 +59,7 @@ input[type="image"] {
 }
 
 .settings-screen #settings {
-  display: block;
+  -moz-transform: translateY(0%);
 }
 
 .current {
@@ -863,7 +863,8 @@ li[role="listitem"] small {
   width: 100%;
   height: 100%;
   z-index: 150;
-  display: none;
+  -moz-transition: 0.2s ease-in-out;
+  -moz-transform: translateY(100%);
 }
 
 #settings ul {
