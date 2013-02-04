@@ -466,6 +466,18 @@ var Contacts = (function() {
     }
   };
 
+  var handleDetailsBack = function handleDetailsBack() {
+    var hasParams = window.location.hash.split('?');
+    var params = hasParams.length > 1 ?
+      extractParams(hasParams[1]) : -1;
+
+    navigation.back();
+    // post message to parent page included Contacts app.
+    if (params['back_to_previous_tab'] === '1') {
+      window.parent.postMessage({ 'type': 'contactsiframe', 'message': 'back' }, '*');
+    }
+  };
+
   var sendEmailOrPick = function sendEmailOrPick(address) {
     if (ActivityHandler.currentlyHandling) {
       // Placeholder for the email app if we want to
@@ -640,7 +652,7 @@ var Contacts = (function() {
           handler: contacts.Search.enterSearchMode
         }
       ],
-      '#details-back': handleBack, // Details
+      '#details-back': handleDetailsBack, // Details
       '#edit-contact-button': showEditContact,
       '#contact-form button[data-field-type]': newField,
       '#settings-close': hideSettings,
