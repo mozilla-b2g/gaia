@@ -119,7 +119,7 @@ const Keyboards = {
         { value: 'a' }, { value: 's' }, { value: 'd' }, { value: 'f' },
         { value: 'g' } , { value: 'h' }, { value: 'j' }, { value: 'k' },
         { value: 'l' }, { value: "'", keyCode: 39, hidden: ['email', 'url'] },
-        { value: ":", visible: ['url']}, { value: "_", visible: ['email']}
+        { value: ':', visible: ['url']}, { value: '_', visible: ['email']}
       ], [
         { value: '⇪', ratio: 1.5, keyCode: KeyEvent.DOM_VK_CAPS_LOCK },
         { value: 'z' }, { value: 'x' }, { value: 'c' }, { value: 'v' },
@@ -168,9 +168,10 @@ const Keyboards = {
     }
   },
   es: {
-    type: 'keyboard',
     label: 'Spanish',
     menuLabel: 'Español',
+    imEngine: 'latin',
+    needsCandidatePanel: 'true',
     alt: {
       a: 'áªàâäåãāæ',
       c: 'ç',
@@ -265,7 +266,6 @@ const Keyboards = {
     }
   },
   pt_BR: {
-    type: 'keyboard',
     label: 'Portuguese',
     menuLabel: 'Português',
     imEngine: 'latin',
@@ -810,7 +810,6 @@ const Keyboards = {
     ]
   },
   'zh-Hans-Pinyin-number': {
-    type: 'keyboard',
     disableAlternateLayout: true,
     hidesSwitchKey: true,
     typeInsensitive: true,
@@ -836,7 +835,6 @@ const Keyboards = {
     ]
   },
   'zh-Hans-Pinyin-symbol0': {
-    type: 'keyboard',
     disableAlternateLayout: true,
     hidesSwitchKey: true,
     typeInsensitive: true,
@@ -862,7 +860,6 @@ const Keyboards = {
     ]
   },
   'zh-Hans-Pinyin-symbol1': {
-    type: 'keyboard',
     disableAlternateLayout: true,
     hidesSwitchKey: true,
     typeInsensitive: true,
@@ -888,7 +885,6 @@ const Keyboards = {
     ]
   },
   'zh-Hans-Pinyin-symbol2': {
-    type: 'keyboard',
     disableAlternateLayout: true,
     hidesSwitchKey: true,
     typeInsensitive: true,
@@ -914,7 +910,6 @@ const Keyboards = {
     ]
   },
   ar: {
-    type: 'keyboard',
     label: 'Arabic',
     menuLabel: 'العربية',
     alternateLayoutKey: '123',
@@ -979,7 +974,6 @@ const Keyboards = {
     }
   },
   el: {
-    type: 'keyboard',
     label: 'Greek',
     menuLabel: 'Greek',
     alt: {
