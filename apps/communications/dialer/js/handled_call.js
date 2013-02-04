@@ -115,8 +115,15 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
 
   var self = this;
   Contacts.findByNumber(number, function lookupContact(contact, matchingTel) {
-    if (contact && contact.name) {
-      node.textContent = contact.name;
+    if (contact) {
+      var primaryInfo = Utils.getPhoneNumberPrimaryInfo(matchingTel, contact);
+      if (primaryInfo) {
+        node.textContent = primaryInfo;
+      } else {
+        LazyL10n.get(function (_) {
+          node.textContent = _('unknown');
+        });
+      }
       KeypadManager.formatPhoneNumber('end', true);
       var additionalInfo = Utils.getPhoneNumberAdditionalInfo(matchingTel,
                                                               contact);
