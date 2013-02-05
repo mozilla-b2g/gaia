@@ -8,6 +8,10 @@ var _ = navigator.mozL10n.get;
 var dtf = new navigator.mozL10n.DateTimeFormat();
 
 var Utils = {
+  sanitizePhoneNumber: function ut_sanitizePhoneNumber(phonenumber) {
+    var pattern = /[^+\-()#*0-9A-Za-z]/ig;
+    return phonenumber.replace(pattern, '');
+  },
   updateTimeHeaders: function ut_updateTimeHeaders() {
     var elementsToUpdate =
         document.querySelectorAll('header[data-time-update]');
