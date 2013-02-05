@@ -17,7 +17,7 @@
 
 #loading-overlay.show-overlay {
   display: block;
-  visibility: visible;
+  visibility: visible !important;
 }
 
 .loading-container {
@@ -40,4 +40,13 @@
 
 .loading-icon {
   text-align: center;
+}
+
+#progress-msg {
+  font-size: 1.8rem;
+  padding: 1.5rem 0 1rem 0;
+}
+
+#progressbar {
+  visibility: visible !important;
 }
