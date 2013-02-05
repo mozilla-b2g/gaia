@@ -931,7 +931,9 @@ MessageReaderCard.prototype = {
   postInsert: function() {
     // iframes need to be linked into the DOM tree before their contentDocument
     // can be instantiated.
-    this.buildBodyDom(this.domNode);
+    App.loader.load('js/iframe-shims.js', function() {
+      this.buildBodyDom(this.domNode);
+    }.bind(this));
   },
 
   onBack: function(event) {

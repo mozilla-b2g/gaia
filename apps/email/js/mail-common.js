@@ -4,6 +4,15 @@
 
 var mozL10n = navigator.mozL10n;
 
+// Dependcy handling for Cards
+// We match the first section of each card type to the key
+// E.g., setup-progress, would load the 'setup' lazyCards.setup
+var lazyCards = {
+    compose: ['js/compose-cards.js', 'style/compose-cards.css'],
+    settings: ['js/setup-cards.js', 'style/setup-cards.css'],
+    setup: ['js/setup-cards.js', 'style/setup-cards.css']
+};
+
 function dieOnFatalError(msg) {
   console.error('FATAL:', msg);
   throw new Error(msg);
@@ -383,8 +392,21 @@ var Cards = {
    */
   pushCard: function(type, mode, showMethod, args, placement) {
     var cardDef = this._cardDefs[type];
-    if (!cardDef)
+    var typePrefix = type.split('-')[0]; 
+
+    if (!cardDef && lazyCards[typePrefix]) {
+      var args = Array.slice(arguments);
+      var resources = lazyCards[typePrefix];
+      resources.push(function() {
+        this.pushCard.apply(this, args);
+      }.bind(this));
+
+      this.eatEventsUntilNextCard();
+      App.loader.load.apply(App.loader, resources);
+      return;
+    } else if (!cardDef)
       throw new Error('No such card def type: ' + type);
+
     var modeDef = cardDef.modes[mode];
     if (!modeDef)
       throw new Error('No such card mode: ' + mode);
@@ -472,27 +494,31 @@ var Cards = {
   },
 
   folderSelector: function(callback) {
-    // XXX: Unified folders will require us to make sure we get the folder list
-    //      for the account the message originates from.
-    if (!this.folderPrompt) {
-      var selectorTitle = mozL10n.get('messages-folder-select');
-      this.folderPrompt = new ValueSelector(selectorTitle);
-    }
     var self = this;
-    var folderCardObj = Cards.findCardObject(['folder-picker', 'navigation']);
-    var folderImpl = folderCardObj.cardImpl;
-    var folders = folderImpl.foldersSlice.items;
-    for (var i = 0; i < folders.length; i++) {
-      var folder = folders[i];
-      this.folderPrompt.addToList(folder.name, folder.depth, function(folder) {
-        return function() {
-          self.folderPrompt.hide();
-          callback(folder);
-        }
-      }(folder));
 
-    }
-    this.folderPrompt.show();
+    App.loader.load('style/value_selector.css', 'js/value_selector.js', function() {
+      // XXX: Unified folders will require us to make sure we get the folder list
+      //      for the account the message originates from.
+      if (!self.folderPrompt) {
+        var selectorTitle = mozL10n.get('messages-folder-select');
+        self.folderPrompt = new ValueSelector(selectorTitle);
+      }
+
+      var folderCardObj = Cards.findCardObject(['folder-picker', 'navigation']);
+      var folderImpl = folderCardObj.cardImpl;
+      var folders = folderImpl.foldersSlice.items;
+      for (var i = 0; i < folders.length; i++) {
+        var folder = folders[i];
+        self.folderPrompt.addToList(folder.name, folder.depth, function(folder) {
+          return function() {
+            self.folderPrompt.hide();
+            callback(folder);
+          }
+        }(folder));
+
+      }
+      self.folderPrompt.show();
+    });
   },
 
   moveToCard: function(query, showMethod) {
