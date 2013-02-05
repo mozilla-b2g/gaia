@@ -297,10 +297,17 @@ var BannerView = {
       innerHTML = _('countdown-lessThanAnHour', {
         minutes: _('nMinutes', { n: this._remainMinutes })
       });
-    } else {
+    } else if (this._remainHours < 24) {
       innerHTML = _('countdown-moreThanAnHour', {
-        hours: _('nRemainHours', { n: this._remainHours }),
+        hours: _('nHours', { n: this._remainHours }),
         minutes: _('nRemainMinutes', { n: this._remainMinutes })
+      });
+    } else {
+      var remainDays = Math.floor(this._remainHours / 24);
+      var remainHours = this._remainHours - (remainDays * 24);
+      innerHTML = _('countdown-moreThanADay', {
+        days: _('nRemainDays', { n: remainDays }),
+        hours: _('nRemainHours', { n: remainHours })
       });
     }
     this.bannerCountdown.innerHTML = '<p>' + innerHTML + '</p>';
