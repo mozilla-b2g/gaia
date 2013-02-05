@@ -167,27 +167,9 @@ fb.getWorksAt = function(fbdata) {
   *
   */
 fb.getBirthDate = function getBirthDate(sbday) {
-  var out = new Date();
-
-  var imonth = sbday.indexOf('/');
-  var smonth = sbday.substring(0, imonth);
-
-  var iyear = sbday.lastIndexOf('/');
-  if (iyear === imonth) {
-    iyear = sbday.length;
-  }
-  var sday = sbday.substring(imonth + 1, iyear);
-
-  var syear = sbday.substring(iyear + 1, sbday.length);
-
-  out.setDate(parseInt(sday));
-  out.setMonth(parseInt(smonth) - 1, parseInt(sday));
-
-  if (syear && syear.length > 0) {
-    out.setYear(parseInt(syear));
-  }
-
-  return out;
+  // http://developers.facebook.com/docs/reference/api/user/
+  // Date string in MM/DD/YYYY format
+  return new Date(sbday);
 };
 
 fb.getAddress = function(fbdata) {
