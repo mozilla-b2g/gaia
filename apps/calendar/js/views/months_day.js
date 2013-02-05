@@ -73,6 +73,11 @@ Calendar.ns('Views').MonthsDay = (function() {
       var date = Calendar.Calc.createDay(new Date());
       this.changeDate(date);
       this._updateHeader();
+
+      /* Calendar tooltip hint */
+      var popup = document.getElementById('popup'); 
+      setInterval(function(){popup.style.display = 'none';},3000);
+      popup.onclick=function(){popup.style.display = 'none';};
     }
   };
 
