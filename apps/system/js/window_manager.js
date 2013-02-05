@@ -1173,9 +1173,9 @@ var WindowManager = (function() {
     frame.id = 'appframe' + nextAppId++;
     iframe.dataset.frameType = 'window';
 
-    // Give a name to the frame for differentiating between main frame and 
+    // Give a name to the frame for differentiating between main frame and
     // inline frame. With the name we can get frames of the same app using the
-    // window.open method. 
+    // window.open method.
     iframe.name = 'main';
 
     // If this frame corresponds to the homescreen, set mozapptype=homescreen
@@ -1228,7 +1228,7 @@ var WindowManager = (function() {
     frame.classList.add('inlineActivity');
     iframe.dataset.frameType = 'inline-activity';
 
-    // Give a name to the frame for differentiating between main frame and 
+    // Give a name to the frame for differentiating between main frame and
     // inline frame. With the name we can get frames of the same app using the
     // window.open method.
     iframe.name = 'inline';
@@ -1744,18 +1744,16 @@ var WindowManager = (function() {
     } else {
       origin = 'window:' + name + ',source:' + callerOrigin;
 
-      for (var appOrigin in runningApps) {
-        var a = runningApps[appOrigin];
-        if (a.windowName == name) {
-          app = a;
-          break;
+      var runningApp = runningApps[origin];
+      if (runningApp && runningApp.windowName === name) {
+        if (runningApp.iframe.src === url) {
+          // If the url is already loaded, just display the app
+          setDisplayedApp(origin);
+          return;
+        } else {
+          // Wrapper context shouldn't be shared between two apps -> killing
+          kill(origin);
         }
-      }
-
-      // If the url is already loaded, just display the app
-      if (app && app.iframe.src == url) {
-        setDisplayedApp(origin);
-        return;
       }
     }
 
