@@ -36,8 +36,6 @@ var Contacts = (function() {
   var contactsDetails = contacts.Details;
   var contactsForm = contacts.Form;
 
-  var loading = document.getElementById('loading-overlay');
-
   var checkUrl = function checkUrl() {
     var hasParams = window.location.hash.split('?');
     var hash = hasParams[0];
@@ -577,17 +575,6 @@ var Contacts = (function() {
     navigation.go('view-settings', 'popup');
   };
 
-  var showOverlay = function showOverlay(message) {
-    var text = message || _('loadingContacts');
-
-    loading.querySelector('[data-l10n-id="loadingContacts"]').innerHTML = text;
-    loading.classList.add('show-overlay');
-  };
-
-  var hideOverlay = function hideOverlay() {
-    loading.classList.remove('show-overlay');
-  };
-
   var stopPropagation = function stopPropagation(evt) {
     evt.preventDefault();
   };
@@ -664,8 +651,8 @@ var Contacts = (function() {
     'setCurrent': setCurrent,
     'getTags': TAG_OPTIONS,
     'onLocalized': onLocalized,
-    'showOverlay': showOverlay,
-    'hideOverlay': hideOverlay,
+    'showOverlay': utils.overlay.show,
+    'hideOverlay': utils.overlay.hide,
     'showContactDetail': contactListClickHandler,
     'updateContactDetail': updateContactDetail,
     'onLineChanged': onLineChanged,

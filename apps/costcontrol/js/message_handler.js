@@ -345,18 +345,27 @@
     // Count a new SMS
     window.navigator.mozSetMessageHandler('sms-sent', function _onSMSSent(sms) {
       clearTimeout(closing);
-      ConfigManager.requestSettings(function _onSettings(settings) {
-        debug('SMS sent!');
-        var manager = window.navigator.mozSms;
-        var smsInfo = manager.getSegmentInfoForText(sms.body);
-        var realCount = smsInfo.segments;
-        settings.lastTelephonyActivity.timestamp = new Date();
-        settings.lastTelephonyActivity.smscount += realCount;
-        ConfigManager.setOption({
-          lastTelephonyActivity: settings.lastTelephonyActivity
-        }, function _sync() {
-          localStorage['sync'] = 'lastTelephonyActivity#' + Math.random();
-          closeIfProceeds();
+      debug('SMS sent!');
+
+      ConfigManager.requestAll(function _onInfo(configuration, settings) {
+        CostControl.getInstance(function _onInstance(costcontrol) {
+          var mode = costcontrol.getApplicationMode(settings);
+          if (mode === 'PREPAID' &&
+              !costcontrol.isBalanceRequestSMS(sms, configuration)) {
+            costcontrol.request({ type: 'balance' });
+          }
+
+          var manager = window.navigator.mozSms;
+          var smsInfo = manager.getSegmentInfoForText(sms.body);
+          var realCount = smsInfo.segments;
+          settings.lastTelephonyActivity.timestamp = new Date();
+          settings.lastTelephonyActivity.smscount += realCount;
+          ConfigManager.setOption({
+            lastTelephonyActivity: settings.lastTelephonyActivity
+          }, function _sync() {
+            localStorage['sync'] = 'lastTelephonyActivity#' + Math.random();
+            closeIfProceeds();
+          });
         });
       });
     });
@@ -365,20 +374,26 @@
     window.navigator.mozSetMessageHandler('telephony-call-ended',
       function _onCall(tcall) {
         clearTimeout(closing);
-
         if (tcall.direction !== 'outgoing') {
           return;
         }
-
         debug('Outgoing call finished!');
+
         ConfigManager.requestSettings(function _onSettings(settings) {
-          settings.lastTelephonyActivity.timestamp = new Date();
-          settings.lastTelephonyActivity.calltime += tcall.duration;
-          ConfigManager.setOption({
-            lastTelephonyActivity: settings.lastTelephonyActivity
-          }, function _sync() {
-            localStorage['sync'] = 'lastTelephonyActivity#' + Math.random();
-            closeIfProceeds();
+          CostControl.getInstance(function _onInstance(costcontrol) {
+            var mode = costcontrol.getApplicationMode(settings);
+            if (mode === 'PREPAID') {
+              costcontrol.request({ type: 'balance' });
+            }
+
+            settings.lastTelephonyActivity.timestamp = new Date();
+            settings.lastTelephonyActivity.calltime += tcall.duration;
+            ConfigManager.setOption({
+              lastTelephonyActivity: settings.lastTelephonyActivity
+            }, function _sync() {
+              localStorage['sync'] = 'lastTelephonyActivity#' + Math.random();
+              closeIfProceeds();
+            });
           });
         });
       }
