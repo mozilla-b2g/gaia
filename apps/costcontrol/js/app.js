@@ -141,6 +141,9 @@ var CostControlApp = (function() {
       case 'zeroBalance':
         tabmanager.changeViewTo('balance-tab');
         break;
+      case 'dataUsage':
+        tabmanager.changeViewTo('datausage-tab');
+        break;
     }
   }
 
@@ -194,8 +197,11 @@ var CostControlApp = (function() {
   }
 
   return {
-    showBalanceTab: function _showBalanceTab () {
+    showBalanceTab: function _showBalanceTab() {
       tabmanager.changeViewTo('balance-tab');
+    },
+    showDataUsageTab: function _showDataUsageTab() {
+      tabmanager.changeViewTo('datausage-tab');
     }
   };
 
