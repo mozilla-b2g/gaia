@@ -349,6 +349,10 @@ EXTENDED_PREF_FILES = \
   payment-prefs.js \
   ua-override-prefs.js \
 
+ifeq ($(DOGFOOD),1)
+EXTENDED_PREF_FILES += dogfood-prefs.js
+endif
+
 # Generate profile/prefs.js
 preferences: install-xulrunner-sdk
 	@test -d profile || mkdir -p profile
