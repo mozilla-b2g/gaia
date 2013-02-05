@@ -182,7 +182,7 @@ var CardsView = (function() {
     }
 
     // Make sure we're in portrait mode
-    screen.mozLockOrientation('portrait');
+    screen.mozLockOrientation('portrait-primary');
 
     // If there is a displayed app, take keyboard focus away
     if (displayedApp)
