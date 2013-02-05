@@ -393,7 +393,8 @@ var AlarmList = {
     var content = '';
     var id = 'a[data-id="' + alarm.id + '"]';
     var alarmItem = this.alarms.querySelector(id);
-    var summaryRepeat = summarizeDaysOfWeek(alarm.repeat);
+    var summaryRepeat =
+      (alarm.repeat === '0000000') ? '' : summarizeDaysOfWeek(alarm.repeat);
     var isChecked = alarm.enabled ? ' checked="true"' : '';
     var d = new Date();
     d.setHours(alarm.hour);
@@ -432,7 +433,8 @@ var AlarmList = {
     var content = '';
 
     alarmDataList.forEach(function al_fillEachList(alarm) {
-      var summaryRepeat = summarizeDaysOfWeek(alarm.repeat);
+      var summaryRepeat =
+        (alarm.repeat === '0000000') ? '' : summarizeDaysOfWeek(alarm.repeat);
       var isChecked = alarm.enabled ? ' checked="true"' : '';
       var d = new Date();
       d.setHours(alarm.hour);
