@@ -654,8 +654,13 @@ ifeq ($(NOFTU), 1)
 SETTINGS_ARG=--noftu
 endif
 
+# We want the console to be disabled for device builds using the user variant.
+ifneq ($(TARGET_BUILD_VARIANT),user)
+SETTINGS_ARG += --console
+endif
+
 profile/settings.json: build/settings.py build/wallpaper.jpg
-	python build/settings.py $(SETTINGS_ARG) --console --locale $(GAIA_DEFAULT_LOCALE) --homescreen $(SCHEME)homescreen.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --ftu $(SCHEME)communications.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --wallpaper build/wallpaper.jpg --override build/custom-settings.json --output $@
+	python build/settings.py $(SETTINGS_ARG) --locale $(GAIA_DEFAULT_LOCALE) --homescreen $(SCHEME)homescreen.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --ftu $(SCHEME)communications.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --wallpaper build/wallpaper.jpg --override build/custom-settings.json --output $@
 
 # push profile/settings.json to the phone
 install-settings-defaults: profile/settings.json
