@@ -23,6 +23,10 @@ Evme.Helper = new function Evme_Helper() {
         
         elWrapper = el.parentNode;
         elList = Evme.$("ul", el)[0];
+
+        elList.addEventListener("touchmove", function cancelPanning(e) {
+          e.stopPropagation();
+        });
         
         elList.addEventListener("click", elementClick, false);
         elTitle.addEventListener("click", titleClicked, false);
