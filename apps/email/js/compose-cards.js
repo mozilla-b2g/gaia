@@ -88,7 +88,9 @@ ComposeCard.prototype = {
   postInsert: function() {
     // the HTML bit needs us linked into the DOM so the iframe can be linked in,
     // hence this happens in postInsert.
-    this._loadStateFromComposer();
+    App.loader.load('js/iframe-shims.js', function() {
+      this._loadStateFromComposer();
+    }.bind(this));
   },
 
   _loadStateFromComposer: function() {

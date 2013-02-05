@@ -10,9 +10,6 @@
   <link rel="stylesheet" type="text/css" href="style/mail.css">
   <link rel="stylesheet" type="text/css" href="style/message-cards.css">
   <link rel="stylesheet" type="text/css" href="style/folder-cards.css">
-  <link rel="stylesheet" type="text/css" href="style/compose-cards.css">
-  <link rel="stylesheet" type="text/css" href="style/setup-cards.css">
-  <link rel="stylesheet" type="text/css" href="style/value_selector.css">
   <!-- Include shared building blocks -->
   <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
   <link rel="stylesheet" type="text/css" href="shared/style/switches.css"/>
@@ -35,16 +32,21 @@
   <script type="text/javascript" src="js/input_areas.js"></script>
   <script type="text/javascript" src="js/console-hook.js"></script>
   <script type="text/javascript" src="js/mail-common.js"></script>
-  <script type="text/javascript" src="js/iframe-shims.js"></script>
   <script type="text/javascript" src="js/message-cards.js"></script>
   <script type="text/javascript" src="js/folder-cards.js"></script>
-  <script type="text/javascript" src="js/compose-cards.js"></script>
-  <script type="text/javascript" src="js/setup-cards.js"></script>
-  <script type="text/javascript" src="js/value_selector.js"></script>
   <!-- This one is an optimized vendor library containing our mail backend. -->
   <script type="application/javascript;version=1.8"
           src="js/ext/gaia-email-opt.js"></script>
   <script type="text/javascript" src="js/mail-app.js"></script>
+  <!-- Lazy Loaded Resources. See: App.loader.load()
+  <link rel="stylesheet" type="text/css" href="style/value_selector.css>
+  <link rel="stylesheet" type="text/css" href="style/compose-cards.css">
+  <link rel="stylesheet" type="text/css" href="style/setup-cards.css">
+  <script type="text/javascript" src="js/value_selector.js"></script>
+  <script type="text/javascript" src="js/iframe-shims.js"></script>
+  <script type="text/javascript" src="js/setup-cards.js"></script>
+  <script type="text/javascript" src="js/compose-cards.js"></script>
+  -->
 </head>
 
 <body role="application">
