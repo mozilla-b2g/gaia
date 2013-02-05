@@ -87,8 +87,9 @@
     asyncStorage.setItem('nextResetAlarm', alarmId, function _updateOption() {
       ConfigManager.setOption({ nextReset: date }, function _sync() {
         localStorage['sync'] = 'nextReset#' + Math.random();
-        if (callback)
+        if (callback) {
           callback();
+        }
       });
     });
   }
@@ -219,15 +220,16 @@
             debug('Trying to recognize TopUp error SMS');
             description = new RegExp(configuration.topup.incorrect_code_regexp);
             isError = !!sms.body.match(description);
-            if (!isError)
-              console.warn('Impossible to parse TopUp error message.');
-
+            if (!isError) {
+              console.warn('Impossible to parse TopUp confirmation message.');
+            }
           }
 
         }
 
-        if (!isBalance && !isConfirmation && !isError)
+        if (!isBalance && !isConfirmation && !isError) {
           return;
+        }
 
         // TODO: Remove the SMS
 
@@ -256,7 +258,6 @@
                                                closeIfProceeds);
             }
           );
-
         } else if (isConfirmation) {
           // Store SUCCESS for TopIp and sync
           navigator.mozAlarms.remove(settings.waitingForTopUp);
@@ -274,7 +275,6 @@
               closeIfProceeds();
             }
           );
-
         } else if (isError) {
           // Store ERROR for TopUp and sync
           settings.errors['INCORRECT_TOPUP_CODE'] = true;
@@ -345,18 +345,27 @@
     // Count a new SMS
     window.navigator.mozSetMessageHandler('sms-sent', function _onSMSSent(sms) {
       clearTimeout(closing);
-      ConfigManager.requestSettings(function _onSettings(settings) {
-        debug('SMS sent!');
-        var manager = window.navigator.mozSms;
-        var smsInfo = manager.getSegmentInfoForText(sms.body);
-        var realCount = smsInfo.segments;
-        settings.lastTelephonyActivity.timestamp = new Date();
-        settings.lastTelephonyActivity.smscount += realCount;
-        ConfigManager.setOption({
-          lastTelephonyActivity: settings.lastTelephonyActivity
-        }, function _sync() {
-          localStorage['sync'] = 'lastTelephonyActivity#' + Math.random();
-          closeIfProceeds();
+      debug('SMS sent!');
+
+      ConfigManager.requestAll(function _onInfo(configuration, settings) {
+        CostControl.getInstance(function _onInstance(costcontrol) {
+          var mode = costcontrol.getApplicationMode(settings);
+          if (mode === 'PREPAID' &&
+              !costcontrol.isBalanceRequestSMS(sms, configuration)) {
+            costcontrol.request({ type: 'balance' });
+          }
+
+          var manager = window.navigator.mozSms;
+          var smsInfo = manager.getSegmentInfoForText(sms.body);
+          var realCount = smsInfo.segments;
+          settings.lastTelephonyActivity.timestamp = new Date();
+          settings.lastTelephonyActivity.smscount += realCount;
+          ConfigManager.setOption({
+            lastTelephonyActivity: settings.lastTelephonyActivity
+          }, function _sync() {
+            localStorage['sync'] = 'lastTelephonyActivity#' + Math.random();
+            closeIfProceeds();
+          });
         });
       });
     });
@@ -365,19 +374,26 @@
     window.navigator.mozSetMessageHandler('telephony-call-ended',
       function _onCall(tcall) {
         clearTimeout(closing);
-
-        if (tcall.direction !== 'outgoing')
+        if (tcall.direction !== 'outgoing') {
           return;
-
+        }
         debug('Outgoing call finished!');
+
         ConfigManager.requestSettings(function _onSettings(settings) {
-          settings.lastTelephonyActivity.timestamp = new Date();
-          settings.lastTelephonyActivity.calltime += tcall.duration;
-          ConfigManager.setOption({
-            lastTelephonyActivity: settings.lastTelephonyActivity
-          }, function _sync() {
-            localStorage['sync'] = 'lastTelephonyActivity#' + Math.random();
-            closeIfProceeds();
+          CostControl.getInstance(function _onInstance(costcontrol) {
+            var mode = costcontrol.getApplicationMode(settings);
+            if (mode === 'PREPAID') {
+              costcontrol.request({ type: 'balance' });
+            }
+
+            settings.lastTelephonyActivity.timestamp = new Date();
+            settings.lastTelephonyActivity.calltime += tcall.duration;
+            ConfigManager.setOption({
+              lastTelephonyActivity: settings.lastTelephonyActivity
+            }, function _sync() {
+              localStorage['sync'] = 'lastTelephonyActivity#' + Math.random();
+              closeIfProceeds();
+            });
           });
         });
       }
