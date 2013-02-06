@@ -120,6 +120,7 @@
 #screen > [data-z-index-level="permission-screen"],
 #screen > [data-z-index-level="app-install-dialog"],
 #screen > [data-z-index-level="updates-download-dialog"],
+#screen > [data-z-index-level="updates-viaDataConnection-dialog"],
 #screen > [data-z-index-level="app"] > .appWindow.inlineActivity {
   z-index: 1024;
 }

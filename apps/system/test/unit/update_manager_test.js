@@ -16,6 +16,7 @@ requireApp('system/test/unit/mock_navigator_settings.js');
 requireApp('system/test/unit/mock_navigator_wake_lock.js');
 requireApp('system/test/unit/mock_navigator_moz_mobile_connection.js');
 requireApp('system/test/unit/mock_l10n.js');
+requireApp('system/test/unit/mock_asyncStorage.js');
 
 requireApp('system/test/unit/mocks_helper.js');
 
@@ -27,7 +28,8 @@ var mocksForUpdateManager = [
   'CustomDialog',
   'SystemUpdatable',
   'AppUpdatable',
-  'SettingsListener'
+  'SettingsListener',
+  'asyncStorage'
 ];
 
 mocksForUpdateManager.forEach(function(mockName) {
@@ -50,6 +52,7 @@ suite('system/UpdateManager', function() {
   var fakeNode;
   var fakeToaster;
   var fakeDialog;
+  var fakeWarning;
 
   var tinyTimeout = 10;
   var lastDispatchedEvent = null;
@@ -155,9 +158,30 @@ suite('system/UpdateManager', function() {
       '</section>'
     ].join('');
 
+    fakeWarning = document.createElement('form');
+    fakeWarning.id = 'updates-viaDataConnection-dialog';
+    fakeWarning.innerHTML = [
+      '<section>',
+        '<h1>',
+          'Updates',
+        '</h1>',
+        '<p>',
+        '</p>',
+        '<menu>',
+          '<button id="updates-viaDataConnection-notnow-button" type="reset">',
+            'Not Now',
+          '</button>',
+          '<button id="updates-viaDataConnection-download-button" type="submit">',
+            'Download',
+          '</button>',
+        '</menu>',
+      '</section>'
+    ].join('');
+
     document.body.appendChild(fakeNode);
     document.body.appendChild(fakeToaster);
     document.body.appendChild(fakeDialog);
+    document.body.appendChild(fakeWarning);
 
     mocksHelper.setup();
   });
@@ -228,6 +252,12 @@ suite('system/UpdateManager', function() {
       assert.equal('updates-later-button', UpdateManager.laterButton.id);
       assert.equal('updates-download-button', UpdateManager.downloadButton.id);
       assert.equal('updates-download-dialog', UpdateManager.downloadDialog.id);
+      assert.equal('updates-viaDataConnection-dialog',
+        UpdateManager.downloadViaDataConnectionDialog.id);
+      assert.equal('updates-viaDataConnection-notnow-button',
+        UpdateManager.notnowButton.id);
+      assert.equal('updates-viaDataConnection-download-button',
+        UpdateManager.downloadViaDataConnectionButton.id);
       assert.equal('H1', UpdateManager.downloadDialogTitle.tagName);
       assert.equal('UL', UpdateManager.downloadDialogList.tagName);
     });
@@ -237,11 +267,17 @@ suite('system/UpdateManager', function() {
       assert.equal(UpdateManager.containerClicked.name,
                    UpdateManager.container.onclick.name);
 
-      assert.equal(UpdateManager.startDownloads.name,
+      assert.equal(UpdateManager.requestDownloads.name,
                    UpdateManager.downloadButton.onclick.name);
 
       assert.equal(UpdateManager.cancelPrompt.name,
                    UpdateManager.laterButton.onclick.name);
+
+      assert.equal(UpdateManager.cancelDataConnectionUpdatesPrompt.name,
+                  UpdateManager.notnowButton.onclick.name);
+
+      assert.equal(UpdateManager.requestDownloads.name,
+                   UpdateManager.downloadViaDataConnectionButton.onclick.name);
     });
   });
 
@@ -827,37 +863,6 @@ suite('system/UpdateManager', function() {
           window.dispatchEvent(new CustomEvent('wifi-statuschange'));
           assert.equal(downloadDialog.dataset.nowifi, 'true');
         });
-
-        suite('edge detection', function() {
-          setup(function() {
-            UpdateManager._conn = MockNavigatorMozMobileConnection;
-          });
-
-          teardown(function() {
-            MockNavigatorMozMobileConnection.mTeardown();
-          });
-
-          test('should switch the edge data attribute when type is not edge',
-          function() {
-            downloadDialog.dataset.edge = true;
-            MockNavigatorMozMobileConnection.data = {
-              type: 'lte'
-            };
-            UpdateManager.updateEdgeStatus();
-            assert.equal(downloadDialog.dataset.edge, 'false');
-          });
-
-          test('should switch the edge data attribute when type is edge',
-          function() {
-            downloadDialog.dataset.edge = false;
-            MockNavigatorMozMobileConnection.data = {
-              type: 'gprs'
-            };
-            UpdateManager.updateEdgeStatus();
-            assert.equal(downloadDialog.dataset.edge, 'true');
-          });
-
-        });
       });
 
       test('should enable the download button', function() {
@@ -991,6 +996,8 @@ suite('system/UpdateManager', function() {
         UpdateManager.updatesQueue = [hostedAppUpdatable, appUpdatable,
                                       systemUpdatable];
         UpdateManager.containerClicked();
+        UpdateManager._isDataConnectionWarningDialogEnabled = true;
+        UpdateManager.downloadDialog.dataset.nowifi = false;
       });
 
       suite('download prompt', function() {
@@ -1049,6 +1056,63 @@ suite('system/UpdateManager', function() {
         });
       });
 
+      test('should handle clicking download in the data connection warning dialog', function() {
+        UpdateManager.downloadDialog.dataset.nowifi = true;
+
+        var evt = {
+          preventDefault: function() {},
+          type: 'click',
+          target: UpdateManager.downloadViaDataConnectionButton
+        };
+
+        UpdateManager.requestDownloads(evt);
+        MockasyncStorage.getItem('gaia.system.isDataConnectionWarningDialogEnabled', function(value) {
+          assert.isFalse(value);
+        });
+        assert.isFalse(UpdateManager._isDataConnectionWarningDialogEnabled);
+        assert.equal(UpdateManager.downloadDialog.dataset.dataConnectionInlineWarning, 'true');
+
+        MockasyncStorage.mTeardown();
+      });
+
+      test('should handle clicking download when using data connection in the first time', function() {
+        UpdateManager.downloadDialog.dataset.nowifi = true;
+
+        var evt = document.createEvent('MouseEvents');
+        evt.initEvent('click', true, true);
+
+        UpdateManager.requestDownloads(evt);
+        var css = UpdateManager.downloadViaDataConnectionDialog.classList;
+        assert.isTrue(css.contains('visible'));
+      });
+
+      test('should handle clicking download when using wifi', function() {
+        UpdateManager._isDataConnectionWarningDialogEnabled = false;
+
+        var calledToMockStartDownloads = false;
+        var realStartDownloadsFunc = UpdateManager.startDownloads;
+        UpdateManager.startDownloads = function() {
+          calledToMockStartDownloads = true;
+        };
+
+        var evt = document.createEvent('MouseEvents');
+        evt.initEvent('click', true, true);
+
+        UpdateManager.requestDownloads(evt);
+        assert.isTrue(calledToMockStartDownloads);
+
+        UpdateManager.startDownloads = realStartDownloadsFunc;
+      });
+
+      test('should handle cancellation on the data connection warning dialog', function() {
+        UpdateManager.cancelDataConnectionUpdatesPrompt();
+
+        var css = UpdateManager.downloadViaDataConnectionDialog.classList;
+        assert.isFalse(css.contains('visible'));
+        css = UpdateManager.downloadDialog.classList;
+        assert.isFalse(css.contains('visible'));
+      });
+
       test('should handle cancellation', function() {
         UpdateManager.cancelPrompt();
 
@@ -1057,11 +1121,15 @@ suite('system/UpdateManager', function() {
       });
 
       test('should handle confirmation', function() {
+        UpdateManager._isDataConnectionWarningDialogEnabled = false;
+
         var evt = document.createEvent('MouseEvents');
         evt.initEvent('click', true, true);
 
-        UpdateManager.startDownloads(evt);
+        UpdateManager.requestDownloads(evt);
         var css = UpdateManager.downloadDialog.classList;
+        assert.isFalse(css.contains('visible'));
+        css = UpdateManager.downloadViaDataConnectionDialog.classList;
         assert.isFalse(css.contains('visible'));
         assert.isTrue(MockUtilityTray.mShown);
         assert.isTrue(evt.defaultPrevented);
