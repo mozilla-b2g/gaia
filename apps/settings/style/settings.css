@@ -275,7 +275,8 @@ section li.password > p {
   color: #797e80;
 }
 
-#carrier-dc-warning h1 > span:before {
+#carrier-dc-warning h1 > span:before,
+#carrier-dr-warning h1 > span:before {
   content: "";
   position: relative;
   display: inline-block;

@@ -777,12 +777,6 @@ var Cards = {
 
     // Hide toaster while active card index changed:
     Toaster.hide();
-    // Popup toaster that pended for previous card view.
-    var pendingToaster = Toaster.pendingStack.slice(-1)[0];
-    if (pendingToaster && showMethod == 'immediate') {
-      pendingToaster();
-      Toaster.pendingStack.pop();
-    }
 
     this.activeCardIndex = cardIndex;
     if (cardInst)
@@ -815,6 +809,13 @@ var Cards = {
       if (endNode.classList.contains('disabled-anim-vertical')) {
         removeClass(endNode, 'disabled-anim-vertical');
         addClass(endNode, 'anim-vertical');
+      }
+
+      // Popup toaster that pended for previous card view.
+      var pendingToaster = Toaster.pendingStack.slice(-1)[0];
+      if (pendingToaster) {
+        pendingToaster();
+        Toaster.pendingStack.pop();
       }
     }
   },

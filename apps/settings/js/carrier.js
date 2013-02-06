@@ -173,86 +173,99 @@ var Carrier = (function newCarrier(window, document, undefined) {
     };
   }
 
-  // initialize 'Data Connection' warnings
-  function initDataConnectionWarning() {
-    // 'Data Roaming' message and data connection messaging
+  function initDataConnectionAndRoamingWarnings() {
     var settings = Settings.mozSettings;
-    if (settings) {
-      var _ = window.navigator.mozL10n.get;
-      var dataRoamingSetting = 'ril.data.roaming_enabled';
-      var dataConnectionSetting = 'ril.data.enabled';
-      var dataConnectionSettingWarning = 'ril.data.enabled.warning.shown';
 
-      var dcExplanation = document.getElementById('dataConnection-expl');
-      var drExplanation = document.getElementById('dataRoaming-expl');
+    /*
+     * settingKey        : The key of the setting
+     * dialogID          : The ID of the warning dialog
+     * explanationItemID : The ID of the explanation item
+     */
+    var initWarnings =
+      function initWarnings(settingKey, dialogID, explanationItemID) {
+        if (settings) {
+          var _ = window.navigator.mozL10n.get;
+          var warningDialogEnabledKey = settingKey + '.warningDialog.enabled';
+          var explanationItem = document.getElementById(explanationItemID);
 
-      var setDataConnectionState = function(state) {
-        var cset = {};
-        cset[dataConnectionSetting] = !!state;
-        settings.createLock().set(cset);
-      };
+          var getWarningEnabled = function(callback) {
+            window.asyncStorage.getItem(warningDialogEnabledKey,
+              function(warningEnabled) {
+                if (warningEnabled == null) {
+                  warningEnabled = true;
+                }
+                callback(warningEnabled);
+            });
+          };
 
-      var displayDataRoamingMessage = function(enabled) {
-        var messageID = 'dataRoaming-' + (enabled ? 'enabled' : 'disabled');
-        drExplanation.textContent = _(messageID);
-      };
+          var setState = function(state) {
+            var cset = {};
+            cset[settingKey] = !!state;
+            settings.createLock().set(cset);
+          };
 
-      var onSubmit = function() {
-        var warningIsShown = true;
-        window.asyncStorage.setItem(dataConnectionSettingWarning,
-          warningIsShown);
-      };
+          var onSubmit = function() {
+            window.asyncStorage.setItem(warningDialogEnabledKey, false);
+            explanationItem.hidden = false;
+          };
 
-      var onReset = function() {
-        var warningIsShown = false;
-        window.asyncStorage.setItem(dataConnectionSettingWarning,
-          warningIsShown);
-        setDataConnectionState(false);
-      };
+          var onReset = function() {
+            window.asyncStorage.setItem(warningDialogEnabledKey, true);
+            setState(false);
+          };
 
-      var displayDataConnectionMessage = function(enabled) {
-        window.asyncStorage.getItem(dataConnectionSettingWarning,
-          function(warningIsShown) {
-            warningIsShown = warningIsShown || false;
-            if (enabled && warningIsShown) {
-              dcExplanation.hidden = false;
-              dcExplanation.textContent = _('dataConnection-warning-message');
-            } else if (enabled) {
-              dcExplanation.hidden = true;
-              openDialog('carrier-dc-warning', onSubmit, onReset);
+          // register an observer to monitor setting changes
+          settings.addObserver(settingKey, function(event) {
+            getWarningEnabled(function gotWarningEnabled(warningEnabled) {
+              var enabled = event.settingValue;
+              if (warningEnabled) {
+                if (enabled) {
+                  openDialog(dialogID, onSubmit, onReset);
+                }
+              } else {
+                explanationItem.hidden = false;
+              }
+            });
+          });
+
+          // initialize the visibility of the warning message
+          getWarningEnabled(function gotWarningEnabled(warningEnabled) {
+            if (warningEnabled) {
+              var request = settings.createLock().get(settingKey);
+              request.onsuccess = function() {
+                var enabled = false;
+                if (request.result[settingKey] !== undefined) {
+                  enabled = request.result[settingKey];
+                }
+
+                if (enabled) {
+                  window.asyncStorage.setItem(warningDialogEnabledKey, false);
+                  explanationItem.hidden = false;
+                }
+              };
             } else {
-              dcExplanation.hidden = true;
+              explanationItem.hidden = false;
             }
-        });
+          });
+        } else {
+          explanationItem.hidden = true;
+        }
       };
 
-      // register an observer to monitor setting changes
-      settings.addObserver(dataRoamingSetting, function(event) {
-        displayDataRoamingMessage(event.settingValue);
+    initWarnings('ril.data.enabled', 'carrier-dc-warning',
+      'dataConnection-expl');
+    initWarnings('ril.data.roaming_enabled', 'carrier-dr-warning',
+      'dataRoaming-expl');
+
+    // Turn off data roaming automatically when users turn off data connection
+    if (settings) {
+      settings.addObserver('ril.data.enabled', function(event) {
+        if (!event.settingValue) {
+          var cset = {};
+          cset['ril.data.roaming_enabled'] = false;
+          settings.createLock().set(cset);
+        }
       });
-
-      settings.addObserver(dataConnectionSetting, function(event) {
-        displayDataConnectionMessage(event.settingValue);
-      });
-
-      // get the initial setting value
-      var req = settings.createLock().get(dataRoamingSetting);
-      req.onsuccess = function roaming_getStatusSuccess() {
-        var enabled = req.result && req.result[dataRoamingSetting];
-        displayDataRoamingMessage(enabled);
-      };
-
-      var dataConnectionSettingRequest =
-          settings.createLock().get(dataConnectionSetting);
-      dataConnectionSettingRequest.onsuccess =
-          function connection_getStatusSuccess() {
-        var enabled = dataConnectionSettingRequest.result &&
-            dataConnectionSettingRequest.result[dataConnectionSetting];
-        displayDataConnectionMessage(enabled);
-      };
-    } else {
-      drExplanation.hidden = true;
-      dcExplanation.hidden = true;
     }
   }
 
@@ -381,7 +394,8 @@ var Carrier = (function newCarrier(window, document, undefined) {
     init: function carrier_init() {
       Connectivity.updateCarrier(); // see connectivity.js
       updateSelectionMode();
-      initDataConnectionWarning();
+      initDataConnectionAndRoamingWarnings();
+
       // XXX this should be done later -- not during init()
       this.fillAPNList('data');
       this.fillAPNList('mms');

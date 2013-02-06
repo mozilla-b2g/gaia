@@ -37,7 +37,6 @@
 //   volumeup    volume up pressed and released or autorepeated
 //   volumedown  volume down pressed and released or autorepeated
 //   home+sleep  home and sleep pressed at same time (used for screenshots)
-//   home+volume home and either volume key at the same time (view source)
 //
 // Because these events are fired at the window object, they cannot be
 // captured.  Many modules listen for the home event. Those that want
@@ -164,7 +163,6 @@
         return;
       case 'volume-up-button-press':
       case 'volume-down-button-press':
-        fire('home+volume');
         setState(baseState, type);
         return;
       }
@@ -239,7 +237,6 @@
     process: function(type) {
       switch (type) {
       case 'home-button-press':
-        fire('home+volume');
         setState(baseState, type);
         return;
       case 'sleep-button-press':

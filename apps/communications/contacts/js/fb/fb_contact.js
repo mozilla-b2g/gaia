@@ -303,6 +303,39 @@ fb.Contact = function(deviceContact, cid) {
     return out;
   };
 
+
+  // Checks whether there is a duplicate for the field value
+  // both in FB and in the local device Contact data
+  // Returns an array with the values which are duplicated or empty if
+  // no duplicates were found
+  // Parameters are: field on which to search, the corresponding fbItem
+  // the local device items, and extra FB Items which correspond to the short
+  // telephone numbers allowing to filter out duplicates with intl-ed numbers
+  function checkDuplicates(field, fbItem, devContactItems, extraFbItems) {
+    var potentialDuplicatesFields = ['email', 'tel'];
+    var out = [];
+
+    if (devContactItems && potentialDuplicatesFields.indexOf(field) !== -1) {
+      var total = devContactItems.length;
+      for (var i = 0; i < total; i++) {
+        var localValue = devContactItems[i].value;
+        var fbValue = fbItem.value;
+        // Checking for telephone international number matching
+        if (localValue) {
+          var trimedLocal = localValue.trim();
+          if (trimedLocal === fbValue ||
+             (field === 'tel' && extraFbItems.indexOf(trimedLocal) !== -1)) {
+            out.push(trimedLocal);
+            out.push(fbValue);
+          }
+        } // if(localValue)
+      } // for
+    } // if(devContactItems)
+
+    return out;
+  }
+
+
   function mergeFbData(dcontact, fbdata) {
     var multipleFields = ['email', 'tel', 'photo', 'org', 'adr'];
 
@@ -313,7 +346,12 @@ fb.Contact = function(deviceContact, cid) {
       var items = fbdata[field];
       if (items) {
         items.forEach(function(item) {
-          dcontact[field].push(item);
+          // If there are no duplicates the merge is done
+          var dupList = checkDuplicates(field, item, dcontact[field],
+                                        fbdata.shortTelephone);
+          if (dupList.length === 0) {
+            dcontact[field].push(item);
+          }
         });
       }
     });
@@ -374,12 +412,21 @@ fb.Contact = function(deviceContact, cid) {
 
           var out2 = {};
 
+          var duplicates = {};
           Object.keys(fbdata).forEach(function(key) {
             var dataElement = fbdata[key];
 
             if (dataElement && Array.isArray(dataElement) && key !== 'photo') {
               dataElement.forEach(function(item) {
                 if (item.value && item.value.length > 0) {
+                  // Check for duplicates. Those duplicates are annotated to
+                  // be later removed from the out2 array
+                  var dupList = checkDuplicates(key, item, devContact[key],
+                                                      fbdata.shortTelephone);
+                  dupList.forEach(function(aDup) {
+                    duplicates[aDup] = true;
+                  });
+
                   out2[item.value] = true;
                 }
                 else if (typeof item === 'string' && item.length > 0) {
@@ -401,6 +448,10 @@ fb.Contact = function(deviceContact, cid) {
             else if (dataElement) {
               out2[dataElement] = true;
             }
+          });
+
+          Object.keys(duplicates).forEach(function(aDup) {
+            delete out2[aDup];
           });
 
           outReq.done([out1, out2]);

@@ -193,7 +193,7 @@ var ValuePicker = (function() {
   VP.prototype.init = function() {
     this.initUI();
     this.setSelectedIndex(0); // Default Index is zero
-    this.mousedonwHandler = vp_mousedown.bind(this);
+    this.mousedownHandler = vp_mousedown.bind(this);
     this.mousemoveHandler = vp_mousemove.bind(this);
     this.mouseupHandler = vp_mouseup.bind(this);
     this.transitionendHandler = vp_transitionend.bind(this);
@@ -232,7 +232,7 @@ var ValuePicker = (function() {
   };
 
   VP.prototype.addEventListeners = function() {
-    this.element.addEventListener('mousedown', this.mousedonwHandler, false);
+    this.element.addEventListener('mousedown', this.mousedownHandler, false);
   };
 
   VP.prototype.removeEventListeners = function() {
