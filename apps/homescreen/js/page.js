@@ -640,12 +640,12 @@ Page.prototype = {
    */
   tap: function pg_tap(elem) {
     if (Homescreen.isInEditMode()) {
-      if (elem.className === 'options') {
+      if (elem.classList.contains('options')) {
         var icon = GridManager.getIcon(elem.parentNode.dataset);
         if (icon.app)
           Homescreen.showAppDialog(icon.app);
       }
-    } else if (elem.className === 'icon') {
+    } else if ('isIcon' in elem.dataset) {
       var icon = GridManager.getIcon(elem.dataset);
       if (!icon.app)
         return;
