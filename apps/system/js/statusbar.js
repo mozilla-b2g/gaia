@@ -61,7 +61,8 @@ var StatusBar = {
     } else if (this.screen.classList.contains('active-statusbar')) {
       return this.attentionBar.offsetHeight;
     } else {
-      return this.element.offsetHeight;
+      return this._cacheHeight ||
+             (this._cacheHeight = this.element.getBoundingClientRect().height);
     }
   },
 
