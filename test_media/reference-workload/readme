@@ -1,0 +1,36 @@
+
+Reference Workload
+
+Questions: jhylands@mozilla.com
+
+To generate these files:
+
+  Contacts:
+    - generate CSV file from http://www.fakenamegenerator.com/
+      - include: GivenName,MiddleInitial,Surname,StreetAddress,City,State,ZipCode,CountryFull,EmailAddress,TelephoneNumber,Birthday,Occupation,Company
+    - convert CSV to JSON
+    - move JSON file to: gaia/test_apps/uitest/data/fakecontacts/fakecontacts.json
+      - works best if you use b2g-desktop
+    - if you're using b2g-desktop, cd gaia and run make
+    - if you're using a real phone, rebuild, flash
+    - run 'UI tests' app on phone/b2g-desktop
+      - 'Contact tests'
+        - 'Insert fake contacts'
+    - once its done, and contacts are there, from terminal on desktop (in gaia directory):
+      - abd pull /data/local/indexedDB/chrome/3406066227csotncta.sqlite test_media/reference-workload/contactsDb-XXX.sqlite
+        - XXX is # of contacts
+    - if you're using b2g-desktop:
+      - cp profile/indexedDB/chrome/3406066227csotncta.sqlite test_media/reference-workload/contactsDb-XXX.sqlite
+
+  SMS
+    - import patch associated with bug 806598 to your device repository
+    - ensure you have b2g-desktop repository set up, with XULRunner built with RIL enabled (see mozconfig)
+    - ensure your device is plugged in via usb and ready for adb
+    - flash the phone fresh
+    - ensure the sms database in gaia/profile/indexedDB/chrome is empty (should be ~524.3 kB)
+    - from terminal on desktop (in gaia directory):
+      - make fake-sms
+      - adb pull /data/local/indexedDB/chrome/226660312ssm.sqlite test_media/reference-workload/smsDb-XXX.sqlite
+        - XXX is # of messaged generated
+
+
