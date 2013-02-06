@@ -1,4 +1,4 @@
-requireApp('communications/dialer/js/lazy_l10n.js');
+requireApp('communications/dialer/js/lazy_loader.js');
 
 suite('LazyL10n', function() {
   var realL10n;
