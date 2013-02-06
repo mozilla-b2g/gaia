@@ -1,5 +1,16 @@
 'use strict';
 
+// Regular Expression for URL validation
+//
+// Author: Diego Perini
+// Updated: 2010/12/05
+//
+//  Tests: http://mathiasbynens.be/demo/url-regex
+//
+//  NOTE: This modified expression will capture the protocol
+//
+var rurl = /^((https?|ftp):\/\/)(?:\S+(?::\S*)?@)?(?:(?!10(?:\.\d{1,3}){3})(?!127(?:\.\d{1,3}){3})(?!169\.254(?:\.\d{1,3}){2})(?!192\.168(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]+-?)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]+-?)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})))(?::\d{2,5})?(?:\/[^\s]*)?$/i
+
 var _ = navigator.mozL10n.get;
 
 var Browser = {
@@ -560,26 +571,43 @@ var Browser = {
     this.setUrlBar(url);
   },
 
-  isSearch: function browser_isSearch(url) {
-    url = url.trim();
-    // If the address entered starts with a quote then search, if it
-    // contains a . or : then treat as a url, else search
-    return /^"|\'/.test(url) || !(/\.|\:/.test(url)); //"
+  isLikeURL: function browser_isLikeURL(input) {
+    // Explicitly trim when testing for URL-ness
+    input = input.trim();
+    // First test the input as-is, then double check by
+    // 'faking' the appearance of a URL. This will smoke out
+    // many edge cases as well as backing up the primary cases
+    // like 'foo.com', which is likely legal, but doesn't validate
+    return rurl.test(input) || rurl.test('http://' + input);
   },
 
-  getUrlFromInput: function browser_getUrlFromInput(url) {
-    url = url.trim();
-    var isSearch = this.isSearch(url);
-    var protocolRegexp = /^([a-z]+:)(\/\/)?/i;
-    var protocol = protocolRegexp.exec(url);
+  isSearch: function browser_isSearch(input) {
+    // The input value is likely a search term if:
+    //
+    //  1. It contains a double or single quote
+    //  2. It has a space anywhere
+    //
+    // Otherwise, it might be a url...
+    //
+    return /"|\'|\s/.test(input) || !this.isLikeURL(input);
+  },
 
-    if (isSearch) {
-      return 'http://' + this.DEFAULT_SEARCH_PROVIDER_URL + '/search?q=' + url;
+  getUrlFromInput: function browser_getUrlFromInput(input) {
+    var hasProtocol = !!(rurl.exec(input) || [])[1];
+
+    // Return ASAP if the 'input' has a protocol. Assume a clear
+    // indication that this is a url and not a search term.
+    if (hasProtocol) {
+      return input;
     }
-    if (!protocol) {
-      return 'http://' + url;
+
+    // No protocol, could be a search term
+    if (this.isSearch(input)) {
+      return 'http://' + this.DEFAULT_SEARCH_PROVIDER_URL + '/search?q=' + input;
     }
-    return url;
+
+    // No protocol, prepend basic and return
+    return 'http://' + input;
   },
 
   handleUrlFormSubmit: function browser_handleUrlFormSubmit(e) {
@@ -1755,4 +1783,3 @@ function actHandle(activity) {
 if (window.navigator.mozSetMessageHandler) {
   window.navigator.mozSetMessageHandler('activity', actHandle);
 }
-
