@@ -887,7 +887,17 @@ var AlarmEditView = {
   },
 
   load: function aev_load(alarm) {
-    if (this.timePicker.hour === null)
+    // For faster page load the second section of the clock is inserted as
+    // a comment. If this is the case let's convert it to HTML first.
+    if (this.element.hidden) {
+      this.element.innerHTML = this.element.childNodes[1].data;
+      this.element.hidden = false;
+      this.init();
+      // translate content
+      navigator.mozL10n.translate(this.element);
+    }
+
+    if (this.timePicker.hour == null)
       this.initTimePicker();
 
     if (!alarm) {
@@ -1042,24 +1052,3 @@ var AlarmEditView = {
 
 };
 
-window.addEventListener('keyup', function goBack(evt) {
-  if (document.location.hash != '#root' &&
-      evt.keyCode === evt.DOM_VK_ESCAPE) {
-
-    evt.preventDefault();
-    evt.stopPropagation();
-
-    document.location.hash = 'root';
-  }
-});
-
-window.addEventListener('localized', function showBody() {
-  document.documentElement.lang = navigator.mozL10n.language.code;
-  document.documentElement.dir = navigator.mozL10n.language.direction;
-  // <body> children are hidden until the UI is translated
-  document.body.classList.remove('hidden');
-  ClockView.init();
-  AlarmList.init();
-  AlarmEditView.init();
-  ActiveAlarmController.init();
-});
