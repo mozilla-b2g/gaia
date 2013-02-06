@@ -19,19 +19,17 @@
     <link rel="resource" type="application/l10n" href="/shared/locales/date.ini">
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
     <script type="application/javascript" src="/shared/js/l10n.js"></script>
-    <script type="application/javascript" src="/shared/js/l10n_date.js"></script>
+    <script defer type="application/javascript" src="/shared/js/l10n_date.js"></script>
 
     <!-- Specific code -->
-    <script type="application/javascript" src="shared/js/gesture_detector.js"></script>
-    <script type="application/javascript" src="shared/js/mouse_event_shim.js"></script>
-    <script type="application/javascript" src="shared/js/async_storage.js"></script>
-    <script type="application/javascript" src="js/utils.js"></script>
-    <script type="application/javascript" src="js/alarmsdb.js"></script>
-    <script type="application/javascript" src="js/clock.js"></script>
-    <script type="application/javascript" src="js/alarm.js"></script>
-    <script type="application/javascript" src="js/alarmManager.js"></script>
-    <script type="application/javascript" src="js/stopwatch.js"></script>
-    <script type="application/javascript" src="js/timer.js"></script>
+    <script defer type="application/javascript" src="shared/js/gesture_detector.js"></script>
+    <script defer type="application/javascript" src="shared/js/mouse_event_shim.js"></script>
+    <script defer type="application/javascript" src="shared/js/async_storage.js"></script>
+    <script defer type="application/javascript" src="js/utils.js"></script>
+    <script defer type="application/javascript" src="js/alarmsdb.js"></script>
+    <script defer type="application/javascript" src="js/clock.js"></script>
+    <script defer type="application/javascript" src="js/alarm.js"></script>
+    <script defer type="application/javascript" src="js/alarmManager.js"></script>
   </head>
 
   <body>
@@ -71,65 +69,11 @@
           </p>
         </section>
       </div>
-
-      <div id="stopwatch-view" class="active view" hidden="true">
-        <div class="chrono-view-container">
-          <div>
-            <div class="chrono-view" id="stopwatch-chrono-view">00:00</div>
-          </div>
-          <div class="ticker-view" id="stopwatch-ticker-view">
-          </div>
-        </div>
-
-        <div id="reset-button" class="button-container">
-          <div>
-            <span data-l10n-id="reset">Reset</span>
-          </div>
-        </div>
-
-        <div id="stopwatch-action-button" class="button-container">
-          <div>
-            <span data-l10n-id="start">Start</span>
-            <span data-l10n-id="stop">Stop</span>
-          </div>
-        </div>
-      </div>
-
-      <div id="timer-view" class="active view" hidden="true">
-        <div class="chrono-view-container">
-          <div>
-            <div class="chrono-view" id="timer-chrono-view">00:00</div>
-          </div>
-          <div class="ticker-view" id="timer-ticker-view">
-          </div>
-        </div>
-
-        <div class="button-container">
-          <div>
-            <input id="duration-field" type="text" value="02:00" required pattern="([0-9]{1,2}\:)+[0-5][0-9]" />
-          </div>
-        </div>
-
-        <div id="timer-action-button" class="button-container">
-          <div>
-            <span data-l10n-id="start">Start</span>
-            <span data-l10n-id="cancel">Cancel</span>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div id="tabs-container">
-      <div id="tabs">
-        <fieldset>
-          <label id="alarm-label" for="alarm-choice" data-choice="alarm" data-active="true"><input id="alarm-choice" type="radio" name="tabs" checked="true" /></label>
-          <label id="stopwatch-label" for="stopwatch-choice" data-choice="stopwatch"><input id="stopwatch-choice" type="radio" name="tabs" checked="" /></label>
-          <label id="timer-label" for="timer-choice" data-choice="timer"><input id="timer-choice" type="radio" name="tabs" checked="" /></label>
-        </fieldset>
-      </div>
     </div>
 
     <!-- Alarm -->
-    <section id="alarm" class="view skin-organic" role="region" data-title="Alarm">
+    <section id="alarm" class="view skin-organic" role="region" data-title="Alarm" hidden>
+      <!--
       <header>
         <a href="#alarm-view" id="alarm-clock-container"><span class="icon icon-close" id="alarm-close" >close</span></a>
         <menu type="toolbar">
@@ -208,6 +152,7 @@
           <a id="alarm-delete" href="#alarm-view" data-l10n-id="delete">Delete</a>
         </li>
       </ul>
+      -->
     </section>
   </body>
 </html>
