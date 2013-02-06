@@ -596,7 +596,7 @@ var WindowManager = (function() {
       }
 
       callback(req.result.screenshot, true);
-    }
+    };
     req.onerror = function(evt) {
       console.warn('Window Manager: get screenshot from database failed.');
       callback();
@@ -863,7 +863,7 @@ var WindowManager = (function() {
 
         callback(app);
       }
-    }
+    };
   }
 
   function skipFTU() {
@@ -1162,6 +1162,13 @@ var WindowManager = (function() {
 
     iframe.setAttribute('mozapp', manifestURL);
     iframe.src = url;
+
+    var evt = document.createEvent('CustomEvent');
+    evt.initCustomEvent('createappframe', true, false, {
+      frame: iframe
+    });
+    window.dispatchEvent(evt);
+
     return frame;
   }
 
