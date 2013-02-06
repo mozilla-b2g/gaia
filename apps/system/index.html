@@ -722,7 +722,8 @@
       </form>
 
       <form id="updates-download-dialog" data-type="confirm" role="dialog"
-            data-z-index-level="updates-download-dialog" data-nowifi="false" data-edge="false">
+            data-z-index-level="updates-download-dialog" data-nowifi="false" 
+            data-data-connection-inline-warning="false">
         <section>
           <h1>
             Updates
@@ -730,16 +731,10 @@
           <ul>
           </ul>
         </section>
-        <p id="updates-no-wifi-warning"
-            data-l10n-id="downloadNoWifiWarning">
-          Wi-Fi unavailable. Updating over current connection may incur additional charges.
+        <p id="updates-data-connection-warning" data-l10n-id="downloadDataConnectionWarning">
+          Updates are downloaded via data connection when Wi-Fi is not available. Additional data charges may apply.    
         </p>
-        <p id="updates-edge-warning"
-            data-l10n-id="downloadEdgeWarning">
-          Wi-Fi unavailable. Updating over current connection will block incoming calls, and may incur additional charges.
-        </p>
-        <p id="updates-offline-warning"
-            data-l10n-id="downloadOfflineWarning">
+        <p id="updates-offline-warning" data-l10n-id="downloadOfflineWarning">
           Connection unavailable. Connect to a network to download updates.
         </p>
         <menu>
@@ -747,6 +742,21 @@
                   data-l10n-id="later">Later</button>
           <button id="updates-download-button" type="submit"
             data-l10n-id="download">Download</button>
+        </menu>
+      </form>
+
+      <form id="updates-viaDataConnection-dialog" data-type="confirm" role="dialog" data-z-index-level="updates-viaDataConnection-dialog">
+        <section>
+          <h1 data-l10n-id="downloadUpdatesViaDataConnection">
+            Download updates via data connection?
+          </h1>
+          <p data-l10n-id="downloadUpdatesViaDataConnectionMessage">
+            Updates are downloaded via data connection when Wi-Fi is not available. When using data connection, phone calls may be blocked and additional charges may also apply.
+          </p>
+        </section>
+        <menu>
+          <button id="updates-viaDataConnection-notnow-button" type="reset" data-l10n-id="notNow">Not Now</button>
+          <button id="updates-viaDataConnection-download-button" type="submit" data-l10n-id="download">Download</button>
         </menu>
       </form>
 
