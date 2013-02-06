@@ -114,7 +114,12 @@ var CostControlApp = (function() {
     // When a notification is received
     window.navigator.mozSetMessageHandler('notification',
       function _onNotification(notification) {
-        debug('Notification received!');
+        if (!notification.clicked) {
+          return;
+        }
+
+        debug('Notification was clicked!');
+
         navigator.mozApps.getSelf().onsuccess = function _onAppReady(evt) {
           var app = evt.target.result;
           app.launch();

@@ -1745,23 +1745,28 @@ if (!window.location.hash.length) {
 
   window.navigator.mozSetMessageHandler('notification',
     function notificationClick(message) {
-    navigator.mozApps.getSelf().onsuccess = function(evt) {
-      var app = evt.target.result;
-      app.launch();
-
-      // Getting back the number form the icon URL
-      var notificationType = message.imageURL.split('?')[1];
-      // Case regular 'sms-received'
-      if (notificationType == 'sms-received') {
-        var number = message.imageURL.split('?')[2];
-        showThreadFromSystemMessage(number);
+      if (!message.clicked) {
         return;
       }
-      var number = message.title;
-      // Class 0 message
-      var messageBody = number + '\n' + message.body;
-      alert(messageBody);
-    };
-  });
+
+      navigator.mozApps.getSelf().onsuccess = function(evt) {
+        var app = evt.target.result;
+        app.launch();
+
+        // Getting back the number form the icon URL
+        var notificationType = message.imageURL.split('?')[1];
+        // Case regular 'sms-received'
+        if (notificationType == 'sms-received') {
+          var number = message.imageURL.split('?')[2];
+          showThreadFromSystemMessage(number);
+          return;
+        }
+        var number = message.title;
+        // Class 0 message
+        var messageBody = number + '\n' + message.body;
+        alert(messageBody);
+      };
+    }
+  );
 }
 
