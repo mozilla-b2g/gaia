@@ -4,6 +4,12 @@
   top: 20px;
   left: 0;
   position: absolute;
+  transition: transform 0.5s;
+  display: block;
+}
+
+#value-selector[hidden] {
+  transform: translateY(100%);
 }
 
 #screen.active-statusbar #value-selector {
