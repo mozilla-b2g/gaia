@@ -135,6 +135,9 @@ const GridManager = (function() {
           };
         }
 
+        // We should move the pages with the first touchmove event
+        window.mozRequestAnimationFrame(refresh);
+
         // Generate a function accordingly to the current page position.
         if (Homescreen.isInEditMode() || currentPage > 2) {
           var pan = function(e) {
