@@ -49,7 +49,11 @@ var CallHandler = (function callHandler() {
   window.navigator.mozSetMessageHandler('activity', handleActivity);
 
   /* === Notifications support === */
-  function handleNotification() {
+  function handleNotification(evt) {
+    if (!evt.clicked) {
+      return;
+    }
+
     navigator.mozApps.getSelf().onsuccess = function gotSelf(evt) {
       var app = evt.target.result;
       app.launch('dialer');
