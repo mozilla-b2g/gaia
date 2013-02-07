@@ -12,8 +12,8 @@ var EverythingME = {
     page.addEventListener('gridpageshowend', function onpageshow() {
       page.removeEventListener('gridpageshowend', onpageshow);
 
-      document.querySelector('#loading-overlay .loading-icon').
-                                                    classList.remove('frozen');
+      document.querySelector('#loading-overlay > section').style.visibility =
+                                                                      'visible';
 
       EverythingME.displayed = true;
       footerStyle.MozTransform = "translateY(75px)";
@@ -119,7 +119,18 @@ var EverythingME = {
     var scriptLoadCount = 0;
     var cssLoadCount = 0;
 
+    var progressLabel = document.querySelector('#loading-overlay span');
+    var progressElement = document.querySelector('#loading-overlay progress');
+    var total = js_files.length + css_files.length, counter = 0;
+
+    function updateProgress() {
+      var value = Math.floor(((++counter) / total) * 100);
+      progressLabel.textContent = value + '%';
+      progressElement.value = value;
+    }
+
     function onScriptLoad(event) {
+      updateProgress();
       event.target.removeEventListener('load', onScriptLoad);
       if (++scriptLoadCount == js_files.length) {
         EverythingME.start(success);
@@ -129,6 +140,7 @@ var EverythingME = {
     }
 
     function onCSSLoad(event) {
+      updateProgress();
       event.target.removeEventListener('load', onCSSLoad);
       if (++cssLoadCount === css_files.length) {
         loadScript(js_files[scriptLoadCount]);
