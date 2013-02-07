@@ -784,11 +784,22 @@ var Browser = {
   },
 
   setUrlBar: function browser_setUrlBar(data) {
-    if (this.currentTab.url == this.ABOUT_PAGE_URL) {
-      this.urlInput.value = '';
-    } else {
-      this.urlInput.value = data;
+    // Naively assign any value passed to urlInput
+    var urlInput = data;
+
+    // 'urlInput' is assigned to the 'data' arg's value by default.
+    // In the case where either:
+    //
+    //  1. The current tab url and the about page url are the same
+    //  2. 'data' wasn't a string
+    //
+    //  ...
+    if (this.currentTab.url === this.ABOUT_PAGE_URL || typeof data !== 'string') {
+      // ...Override the value of urlInput with an empty string.
+      urlInput = '';
     }
+
+    this.urlInput.value = urlInput;
   },
 
   setUrlButtonMode: function browser_setUrlButtonMode(mode) {
