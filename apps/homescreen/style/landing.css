@@ -6,7 +6,6 @@
 }
 
 #landing-clock, #landing-date {
-  text-shadow: 2px 2px 3px #000000;
   margin: 0;
   padding: 0;
 }
@@ -17,14 +16,17 @@
 }
 
 .numbers {
+  text-shadow: 0 0.1rem 0.4rem #000000;
   font-size: calc(28 * 0.226rem);
 }
 
 .meridiem {
+  text-shadow: 0 0.1rem 0.3rem #000000;
   font-size: calc(17 * 0.226rem);
 }
 
 #landing-date {
+  text-shadow: 0 0.1rem 0.2rem #000000;
   font-size: calc(7 * 0.226rem);
   font-weight: 400;
 }
