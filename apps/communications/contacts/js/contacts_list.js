@@ -231,6 +231,7 @@ contacts.List = (function() {
             var current = (numberOfChunks * CHUNK_SIZE) + i;
             buildContact(contacts[current], fbContacts, counter, favorites);
           }
+
         }
         renderFavorites(favorites);
         cleanLastElements(counter);
