@@ -287,7 +287,7 @@ suite('Render contacts list', function() {
 
     });
 
-    test('adding one at the beginning', function() {
+    test('adding one at the beginning', function(done) {
       var newContact = new MockContactAllFields();
       newContact.id = '4';
       newContact.familyName = ['AA'];
@@ -295,15 +295,18 @@ suite('Render contacts list', function() {
       newContact.category = null;
       var newList = [newContact].concat(mockContacts);
       subject.load(newList);
-      assertNoGroup(groupFav, containerFav);
-      var aContacts = assertGroup(groupA, containerA, 2);
-      assert.isTrue(noContacts.classList.contains('hide'));
-      assert.isTrue(aContacts[0].innerHTML.indexOf('AA') > -1);
-      assert.isTrue(aContacts[1].innerHTML.indexOf('AD') > -1);
-      assertTotal(3, 4);
+      window.setTimeout(function() {
+        assertNoGroup(groupFav, containerFav);
+        var aContacts = assertGroup(groupA, containerA, 2);
+        assert.isTrue(noContacts.classList.contains('hide'));
+        assert.isTrue(aContacts[0].innerHTML.indexOf('AA') > -1);
+        assert.isTrue(aContacts[1].innerHTML.indexOf('AD') > -1);
+        assertTotal(3, 4);
+        done();
+      }, 500);
     });
 
-    test('adding one at the end', function() {
+    test('adding one at the end', function(done) {
       var newContact = new MockContactAllFields();
       newContact.id = '4';
       newContact.familyName = ['CZ'];
@@ -311,15 +314,18 @@ suite('Render contacts list', function() {
       newContact.category = null;
       var newList = mockContacts.concat([newContact]);
       subject.load(newList);
-      assertNoGroup(groupFav, containerFav);
-      var cContacts = assertGroup(groupC, containerC, 2);
-      assert.isTrue(noContacts.classList.contains('hide'));
-      assert.isTrue(cContacts[0].innerHTML.indexOf('CC') > -1);
-      assert.isTrue(cContacts[1].innerHTML.indexOf('CZ') > -1);
-      assertTotal(3, 4);
+      window.setTimeout(function() {
+        assertNoGroup(groupFav, containerFav);
+        var cContacts = assertGroup(groupC, containerC, 2);
+        assert.isTrue(noContacts.classList.contains('hide'));
+        assert.isTrue(cContacts[0].innerHTML.indexOf('CC') > -1);
+        assert.isTrue(cContacts[1].innerHTML.indexOf('CZ') > -1);
+        assertTotal(3, 4);
+        done();
+      }, 500);
     });
 
-    test('rendering one with no name nor phone and company', function() {
+    test('rendering one with no name nor phone and company', function(done) {
       var newContact = new MockContactAllFields();
       newContact.id = '4';
       newContact.familyName = null;
@@ -329,16 +335,19 @@ suite('Render contacts list', function() {
       newContact.org = 'AD';
       var newList = mockContacts.concat([newContact]);
       subject.load(newList);
-      assert.isTrue(noContacts.classList.contains('hide'));
-      assertNoGroup(groupFav, containerFav);
-      var cContacts = assertGroup(groupC, containerC, 1);
-      assert.isTrue(cContacts[0].innerHTML.indexOf('CC') > -1);
-      var aContacts = assertGroup(groupA, containerA, 2);
-      assert.isTrue(aContacts[0].innerHTML.indexOf('AD') > -1);
-      assertTotal(3, 4);
+      window.setTimeout(function() {
+        assert.isTrue(noContacts.classList.contains('hide'));
+        assertNoGroup(groupFav, containerFav);
+        var cContacts = assertGroup(groupC, containerC, 1);
+        assert.isTrue(cContacts[0].innerHTML.indexOf('CC') > -1);
+        var aContacts = assertGroup(groupA, containerA, 2);
+        assert.isTrue(aContacts[0].innerHTML.indexOf('AD') > -1);
+        assertTotal(3, 4);
+        done();
+      }, 500);
     });
 
-    test('rendering one with no name nor company and phone', function() {
+    test('rendering one with no name nor company and phone', function(done) {
       var newContact = new MockContactAllFields();
       newContact.id = '4';
       newContact.familyName = null;
@@ -348,17 +357,20 @@ suite('Render contacts list', function() {
       newContact.org = null;
       var newList = mockContacts.concat([newContact]);
       subject.load(newList);
-      assert.isTrue(noContacts.classList.contains('hide'));
-      assertNoGroup(groupFav, containerFav);
-      var cContacts = assertGroup(groupC, containerC, 1);
-      assert.isTrue(cContacts[0].innerHTML.indexOf('CC') > -1);
-      var undContacts = assertGroup(groupUnd, containerUnd, 1);
-      var isUnd = undContacts[0].innerHTML.indexOf(newContact.tel[0].value);
-      assert.isTrue(isUnd > -1);
-      assertTotal(4, 4);
+      window.setTimeout(function() {
+        assert.isTrue(noContacts.classList.contains('hide'));
+        assertNoGroup(groupFav, containerFav);
+        var cContacts = assertGroup(groupC, containerC, 1);
+        assert.isTrue(cContacts[0].innerHTML.indexOf('CC') > -1);
+        var undContacts = assertGroup(groupUnd, containerUnd, 1);
+        var isUnd = undContacts[0].innerHTML.indexOf(newContact.tel[0].value);
+        assert.isTrue(isUnd > -1);
+        assertTotal(4, 4);
+        done();
+      }, 500);
     });
 
-    test('rendering one with no name nor company and email', function() {
+    test('rendering one with no name nor company and email', function(done) {
       var newContact = new MockContactAllFields();
       newContact.id = '4';
       newContact.familyName = null;
@@ -370,16 +382,19 @@ suite('Render contacts list', function() {
       newContact.email[0].value = 'CZ@CZ.com';
       var newList = mockContacts.concat([newContact]);
       subject.load(newList);
-      assert.isTrue(noContacts.classList.contains('hide'));
-      assertNoGroup(groupFav, containerFav);
-      var cContacts = assertGroup(groupC, containerC, 2);
-      assert.notEqual(cContacts[0].innerHTML.indexOf('CC'), -1);
-      assert.notEqual(cContacts[1].innerHTML.indexOf('CZ@'), -1);
-      assertNoGroup(groupUnd, containerUnd);
-      assertTotal(3, 4);
+      window.setTimeout(function() {
+        assert.isTrue(noContacts.classList.contains('hide'));
+        assertNoGroup(groupFav, containerFav);
+        var cContacts = assertGroup(groupC, containerC, 2);
+        assert.notEqual(cContacts[0].innerHTML.indexOf('CC'), -1);
+        assert.notEqual(cContacts[1].innerHTML.indexOf('CZ@'), -1);
+        assertNoGroup(groupUnd, containerUnd);
+        assertTotal(3, 4);
+        done();
+      }, 500);
     });
 
-    test('rendering one with no name nor email nor company', function() {
+    test('rendering one with no name nor email nor company', function(done) {
       var newContact = new MockContactAllFields();
       newContact.id = '4';
       newContact.familyName = null;
@@ -391,16 +406,19 @@ suite('Render contacts list', function() {
       newContact.email = null;
       var newList = mockContacts.concat([newContact]);
       subject.load(newList);
-      assert.isTrue(noContacts.classList.contains('hide'));
-      assertNoGroup(groupFav, containerFav);
-      var cContacts = assertGroup(groupC, containerC, 1);
-      assert.notEqual(cContacts[0].innerHTML.indexOf('CC') > -1);
-      var undContacts = assertGroup(groupUnd, containerUnd, 1);
-      assert.notEqual(undContacts[0].innerHTML.indexOf('noName') > -1);
-      assertTotal(4, 4);
+      window.setTimeout(function() {
+        assert.isTrue(noContacts.classList.contains('hide'));
+        assertNoGroup(groupFav, containerFav);
+        var cContacts = assertGroup(groupC, containerC, 1);
+        assert.notEqual(cContacts[0].innerHTML.indexOf('CC') > -1);
+        var undContacts = assertGroup(groupUnd, containerUnd, 1);
+        assert.notEqual(undContacts[0].innerHTML.indexOf('noName') > -1);
+        assertTotal(4, 4);
+        done();
+      }, 500);
     });
 
-    test('rendering one with no name nor email nor company and favorite', function() {
+    test('rendering one with no name nor email nor company and favorite', function(done) {
       var newContact = new MockContactAllFields();
       newContact.id = '4';
       newContact.familyName = null;
@@ -412,17 +430,20 @@ suite('Render contacts list', function() {
       newContact.email = null;
       var newList = mockContacts.concat([newContact]);
       subject.load(newList);
-      assert.isTrue(noContacts.classList.contains('hide'));
-      var favContacts = assertGroup(groupFav, containerFav, 1);
-      assert.notEqual(favContacts[0].innerHTML.indexOf('noName'), -1);
-      var cContacts = assertGroup(groupC, containerC, 1);
-      assert.notEqual(cContacts[0].innerHTML.indexOf('CC'), -1);
-      var undContacts = assertGroup(groupUnd, containerUnd, 1);
-      assert.notEqual(undContacts[0].innerHTML.indexOf('noName'), -1);
-      assertTotal(5, 5);
+      window.setTimeout(function() {
+        assert.isTrue(noContacts.classList.contains('hide'));
+        var favContacts = assertGroup(groupFav, containerFav, 1);
+        assert.notEqual(favContacts[0].innerHTML.indexOf('noName'), -1);
+        var cContacts = assertGroup(groupC, containerC, 1);
+        assert.notEqual(cContacts[0].innerHTML.indexOf('CC'), -1);
+        var undContacts = assertGroup(groupUnd, containerUnd, 1);
+        assert.notEqual(undContacts[0].innerHTML.indexOf('noName'), -1);
+        assertTotal(5, 5);
+        done();
+      }, 500);
     });
 
-    test('adding one in the middle of a group', function() {
+    test('adding one in the middle of a group', function(done) {
       var newContact = new MockContactAllFields();
       newContact.id = '4';
       newContact.familyName = ['CV'];
@@ -435,16 +456,19 @@ suite('Render contacts list', function() {
       newContact2.category = null;
       var newList = mockContacts.concat([newContact, newContact2]);
       subject.load(newList);
-      assert.isTrue(noContacts.classList.contains('hide'));
-      assertNoGroup(groupFav, containerFav);
-      var cContacts = assertGroup(groupC, containerC, 3);
-      assert.notEqual(cContacts[0].innerHTML.indexOf('CC'), -1);
-      assert.notEqual(cContacts[1].innerHTML.indexOf('CV'), -1);
-      assert.notEqual(cContacts[2].innerHTML.indexOf('CZ'), -1);
-      assertTotal(3, 5);
+      window.setTimeout(function() {
+        assert.isTrue(noContacts.classList.contains('hide'));
+        assertNoGroup(groupFav, containerFav);
+        var cContacts = assertGroup(groupC, containerC, 3);
+        assert.notEqual(cContacts[0].innerHTML.indexOf('CC'), -1);
+        assert.notEqual(cContacts[1].innerHTML.indexOf('CV'), -1);
+        assert.notEqual(cContacts[2].innerHTML.indexOf('CZ'), -1);
+        assertTotal(3, 5);
+        done();
+      }, 500);
     });
 
-    test('changing contact familyName', function() {
+    test('changing contact familyName', function(done) {
       var newContact = new MockContactAllFields();
       newContact.id = '4';
       newContact.familyName = ['BV'];
@@ -452,16 +476,19 @@ suite('Render contacts list', function() {
       newContact.category = null;
       var newList = mockContacts.concat([newContact]);
       subject.load(newList);
-      assert.isTrue(noContacts.classList.contains('hide'));
-      assertNoGroup(groupFav, containerFav);
-      var cContacts = assertGroup(groupC, containerC, 1);
-      var bContacts = assertGroup(groupB, containerB, 2);
-      assert.notEqual(bContacts[0].innerHTML.indexOf('BA'), -1);
-      assert.notEqual(bContacts[1].innerHTML.indexOf('BV'), -1);
-      assertTotal(3, 4);
+      window.setTimeout(function() {
+        assert.isTrue(noContacts.classList.contains('hide'));
+        assertNoGroup(groupFav, containerFav);
+        var cContacts = assertGroup(groupC, containerC, 1);
+        var bContacts = assertGroup(groupB, containerB, 2);
+        assert.notEqual(bContacts[0].innerHTML.indexOf('BA'), -1);
+        assert.notEqual(bContacts[1].innerHTML.indexOf('BV'), -1);
+        assertTotal(3, 4);
+        done();
+      }, 500);
     });
 
-    test('adding first element of a group', function() {
+    test('adding first element of a group', function(done) {
       var newContact = new MockContactAllFields();
       newContact.id = '4';
       newContact.familyName = ['DD'];
@@ -470,23 +497,29 @@ suite('Render contacts list', function() {
       var newList = mockContacts.concat([newContact]);
       assertNoGroup(groupD, containerD);
       subject.load(newList);
-      assert.isTrue(noContacts.classList.contains('hide'));
-      assertNoGroup(groupFav, containerFav);
-      var dContacts = assertGroup(groupD, containerD, 1);
-      assert.notEqual(dContacts[0].innerHTML.indexOf('DD'), -1);
-      assertTotal(4, 4);
+      window.setTimeout(function() {
+        assert.isTrue(noContacts.classList.contains('hide'));
+        assertNoGroup(groupFav, containerFav);
+        var dContacts = assertGroup(groupD, containerD, 1);
+        assert.notEqual(dContacts[0].innerHTML.indexOf('DD'), -1);
+        assertTotal(4, 4);
+        done();
+      }, 500);
     });
 
-    test('removing last element of a group', function() {
+    test('removing last element of a group', function(done) {
       var newList = mockContacts.slice(1);
       assertGroup(groupA, containerA, 1);
       subject.load(newList);
-      assertNoGroup(groupFav, containerFav);
-      assertNoGroup(groupA, containerA);
-      assertTotal(2, 2);
+      window.setTimeout(function() {
+        assertNoGroup(groupFav, containerFav);
+        assertNoGroup(groupA, containerA);
+        assertTotal(2, 2);
+        done();
+      }, 500);
     });
 
-    test('with favorites', function() {
+    test('with favorites', function(done) {
       var newContact = new MockContactAllFields();
       newContact.id = '4';
       newContact.familyName = ['DD'];
@@ -496,14 +529,17 @@ suite('Render contacts list', function() {
       assertNoGroup(groupFav, containerFav);
       assertNoGroup(groupD, containerD);
       subject.load(newList);
-      assert.isTrue(noContacts.classList.contains('hide'));
-      var dContacts = assertGroup(groupD, containerD, 1);
-      assertGroup(groupFav, containerFav, 1);
-      assert.notEqual(dContacts[0].innerHTML.indexOf('DD'), -1);
-      assertTotal(5, 5);
+      window.setTimeout(function() {
+        assert.isTrue(noContacts.classList.contains('hide'));
+        var dContacts = assertGroup(groupD, containerD, 1);
+        assertGroup(groupFav, containerFav, 1);
+        assert.notEqual(dContacts[0].innerHTML.indexOf('DD'), -1);
+        assertTotal(5, 5);
+        done();
+      }, 500);
     });
 
-    test('adding one favorite', function() {
+    test('adding one favorite', function(done) {
       var newContact = new MockContactAllFields();
       newContact.id = '4';
       newContact.familyName = ['DD'];
@@ -514,109 +550,135 @@ suite('Render contacts list', function() {
       assertGroup(groupD, containerD, 1);
       assertGroup(groupFav, containerFav, 1);
       subject.load(newList);
-      assert.isTrue(noContacts.classList.contains('hide'));
-      var dContacts = assertGroup(groupD, containerD, 1);
-      assertGroup(groupFav, containerFav, 2);
-      assert.notEqual(dContacts[0].innerHTML.indexOf('DD'), -1);
-      var aContacts = assertGroup(groupA, containerA, 1);
-      assert.notEqual(aContacts[0].innerHTML.indexOf('AD'), -1);
-      assertTotal(5, 6);
+      window.setTimeout(function() {
+        assert.isTrue(noContacts.classList.contains('hide'));
+        var dContacts = assertGroup(groupD, containerD, 1);
+        assertGroup(groupFav, containerFav, 2);
+        assert.notEqual(dContacts[0].innerHTML.indexOf('DD'), -1);
+        var aContacts = assertGroup(groupA, containerA, 1);
+        assert.notEqual(aContacts[0].innerHTML.indexOf('AD'), -1);
+        assertTotal(5, 6);
+        done();
+      }, 500);
     });
 
-    test('removing all favorites', function() {
+    test('removing all favorites', function(done) {
       assertGroup(groupFav, containerFav, 2);
       mockContacts[0].category = null;
       subject.load(mockContacts);
-      assertNoGroup(groupFav, containerFav);
-      assertGroup(groupA, containerA, 1);
-      assertGroup(groupB, containerB, 1);
-      assertGroup(groupC, containerC, 1);
-      assertTotal(3, 3);
+      window.setTimeout(function() {
+        assertNoGroup(groupFav, containerFav);
+        assertGroup(groupA, containerA, 1);
+        assertGroup(groupB, containerB, 1);
+        assertGroup(groupC, containerC, 1);
+        assertTotal(3, 3);
+        done();
+      }, 500);
     });
 
-    test('removing all contacts', function() {
+    test('removing all contacts', function(done) {
       subject.load([]);
-      assert.isFalse(noContacts.classList.contains('hide'));
-      assertNoGroup(groupFav, containerFav);
-      assertTotal(0, 0);
+      window.setTimeout(function() {
+        assert.isFalse(noContacts.classList.contains('hide'));
+        assertNoGroup(groupFav, containerFav);
+        assertTotal(0, 0);
+        done();
+      }, 500);
     });
 
-    test('removing one contact', function() {
+    test('removing one contact', function(done) {
       subject.load([]);
-      var newList = new MockContactsList();
-      subject.load(newList);
-      var originalNumber = container.querySelectorAll('.contact-item').length;
-      assert.isNotNull(container.querySelector('[data-uuid="2"]'));
+      window.setTimeout(function() {
+        var newList = new MockContactsList();
+        subject.load(newList);
+        window.setTimeout(function() {
+          var originalNumber = container.querySelectorAll('.contact-item').length;
+          assert.isNotNull(container.querySelector('[data-uuid="2"]'));
+          subject.remove('2');
 
-      subject.remove('2');
+          var afterDelNumber = container.querySelectorAll('.contact-item').length;
+          assert.equal(originalNumber, afterDelNumber + 1);
+          assert.isNotNull(container.querySelector('[data-uuid="1"]'));
+          assert.isNull(container.querySelector('[data-uuid="2"]'));
+          assert.isNotNull(container.querySelector('[data-uuid="3"]'));
 
-      var afterDelNumber = container.querySelectorAll('.contact-item').length;
-      assert.equal(originalNumber, afterDelNumber + 1);
-      assert.isNotNull(container.querySelector('[data-uuid="1"]'));
-      assert.isNull(container.querySelector('[data-uuid="2"]'));
-      assert.isNotNull(container.querySelector('[data-uuid="3"]'));
-
-      // There are contacts on the list so no contacts should be hidden
-      assert.isTrue(noContacts.classList.contains('hide'));
+          // There are contacts on the list so no contacts should be hidden
+          assert.isTrue(noContacts.classList.contains('hide'));
+          done();
+        }, 500);
+      }, 500);
     });
 
-    test('checking no contacts when coming from activity', function() {
+    test('checking no contacts when coming from activity', function(done) {
       MockActivities.currentlyHandling = true;
       subject.load([]);
-      assert.isTrue(noContacts.classList.contains('hide'));
-      assertNoGroup(groupFav, containerFav);
-      assertTotal(0, 0);
-      MockActivities.currentlyHandling = false;
+      window.setTimeout(function() {
+        assert.isTrue(noContacts.classList.contains('hide'));
+        assertNoGroup(groupFav, containerFav);
+        assertTotal(0, 0);
+        MockActivities.currentlyHandling = false;
+        done();
+      }, 500);
     });
 
-    test('updating photo for a contact already rendered', function() {
+    test('updating photo for a contact already rendered', function(done) {
       mockContacts = new MockContactsList();
       subject.load(mockContacts);
-      assertTotal(3, 3);
+      window.setTimeout(function() {
+        assertTotal(3, 3);
 
-      var selectorContact1 = 'li[data-uuid = "1"]';
-      var contact = container.querySelector(selectorContact1);
+        var selectorContact1 = 'li[data-uuid = "1"]';
+        var contact = container.querySelector(selectorContact1);
 
-      var img = contact.querySelector('img');
+        var img = contact.querySelector('img');
 
-      assert.equal(img.dataset.src, 'test.png',
-                    'At the begining contact 1 img === "test.png"');
-      var prevUpdated = contact.dataset.updated;
+        assert.equal(img.dataset.src, 'test.png',
+                      'At the begining contact 1 img === "test.png"');
+        var prevUpdated = contact.dataset.updated;
 
-      mockContacts[0].updated = new Date(); // This is the key!
-      mockContacts[0].photo = ['one.png'];
-      subject.load(mockContacts);
-      assertTotal(3, 3);
+        mockContacts[0].updated = new Date(); // This is the key!
+        mockContacts[0].photo = ['one.png'];
+        subject.load(mockContacts);
+        window.setTimeout(function() {
+          assertTotal(3, 3);
 
-      contact = container.querySelector(selectorContact1);
-      img = contact.querySelector('img');
+          contact = container.querySelector(selectorContact1);
+          img = contact.querySelector('img');
 
-      assert.equal(img.dataset.src, 'one.png',
-                    'After updating contact 1 img === "one.png"');
+          assert.equal(img.dataset.src, 'one.png',
+                        'After updating contact 1 img === "one.png"');
 
-      assert.isTrue(prevUpdated < contact.dataset.updated,
-                    'Updated date is wrong. It should be changed!');
+          assert.isTrue(prevUpdated < contact.dataset.updated,
+                        'Updated date is wrong. It should be changed!');
+          done();
+        }, 500);
+      }, 500);
     });
 
-    test('reloading list of contacts without updating', function() {
+    test('reloading list of contacts without updating', function(done) {
       mockContacts = new MockContactsList();
       subject.load(mockContacts);
-      assertTotal(3, 3);
+      window.setTimeout(function() {
+        assertTotal(3, 3);
 
-      var selectorContact1 = 'li[data-uuid = "1"]';
-      var contact = container.querySelector(selectorContact1);
+        var selectorContact1 = 'li[data-uuid = "1"]';
+        var contact = container.querySelector(selectorContact1);
 
-      var img = contact.querySelector('img');
-      assert.equal(img.dataset.src, 'test.png',
-                    'At the begining contact 1 img === "test.png"');
+        var img = contact.querySelector('img');
+        assert.equal(img.dataset.src, 'test.png',
+                      'At the begining contact 1 img === "test.png"');
 
-      subject.load(mockContacts);
-      assertTotal(3, 3);
+        subject.load(mockContacts);
+        window.setTimeout(function() {
+          assertTotal(3, 3);
 
-      contact = container.querySelector(selectorContact1);
-      img = contact.querySelector('img');
-      assert.equal(img.dataset.src, 'test.png',
-                    'At the begining contact 1 img === "test.png"');
+          contact = container.querySelector(selectorContact1);
+          img = contact.querySelector('img');
+          assert.equal(img.dataset.src, 'test.png',
+                        'At the begining contact 1 img === "test.png"');
+          done();
+        }, 500);
+      }, 500);
     });
   });  // suite ends
 
@@ -665,28 +727,30 @@ suite('Render contacts list', function() {
       var contact = mockContacts[contactIndex];
 
       subject.load(mockContacts);
-
-      searchBox.value = contact.familyName[0];
-      contacts.Search.search(function search_finished() {
-        assertContactFound(contact);
-        done();
-      });
+      window.setTimeout(function() {
+        searchBox.value = contact.familyName[0];
+        contacts.Search.search(function search_finished() {
+          assertContactFound(contact);
+          done();
+        });
+      }, 1000);
     });
 
     test('check empty search', function(done) {
       mockContacts = new MockContactsList();
       subject.load(mockContacts);
-      searchBox.value = 'YYY';
-      contacts.Search.search(function search_finished() {
-        var selectorStr = 'li.contact-item';
-        var contacts = searchList.querySelectorAll(selectorStr);
+      window.setTimeout(function() {
+        searchBox.value = 'YYY';
+        contacts.Search.search(function search_finished() {
+          var selectorStr = 'li.contact-item';
+          var contacts = searchList.querySelectorAll(selectorStr);
 
-        assert.length(contacts, 0);
-        assert.isFalse(noResults.classList.contains('hide'));
+          assert.length(contacts, 0);
+          assert.isFalse(noResults.classList.contains('hide'));
 
-        done();
-      });
-
+          done();
+        });
+      }, 1000);
     });
 
     test('Search  by name and surname with trailing whitespaces', function(done) {
@@ -695,58 +759,65 @@ suite('Render contacts list', function() {
       var contact = mockContacts[contactIndex];
 
       subject.load(mockContacts);
-
-      searchBox.value = contact.givenName[0] + ' ' +
+      window.setTimeout(function() {
+        searchBox.value = contact.givenName[0] + ' ' +
                                                   contact.familyName[0] + '  ';
-      contacts.Search.search(function search_finished() {
-        assertContactFound(contact);
-        done();
-      });
+        contacts.Search.search(function search_finished() {
+          assertContactFound(contact);
+          done();
+        });
+      }, 1000);
     });
   });
 
   suite('Contacts order', function() {
-    test('Order by lastname', function() {
+    test('Order by lastname', function(done) {
       resetDom(document);
       subject.init(list);
 
       mockContacts = new MockContactsList();
       subject.load(mockContacts);
-      var names = document.querySelectorAll('[data-search]');
-      
-      assert.length(names, mockContacts.length);
-      for (var i = 0; i < names.length; i++) {
-        var printed = names[i];
-        var mockContact = mockContacts[i];
-        var expected = getSearchStringFromContact(mockContact);
-        assert.equal(printed.dataset['search'], window.utils.text.escapeHTML(expected, true));
+      window.setTimeout(function() {
+        var names = document.querySelectorAll('[data-search]');
+        assert.length(names, mockContacts.length);
+        for (var i = 0; i < names.length; i++) {
+          var printed = names[i];
+          var mockContact = mockContacts[i];
+          var expected = getSearchStringFromContact(mockContact);
+          assert.equal(printed.dataset['search'], window.utils.text.escapeHTML(expected, true));
 
-        // Check as well the correct highlight
-        // familyName to be in bold
-        var highlight =  window.utils.text.escapeHTML(mockContact.givenName[0], true) + ' <strong>' +
-           window.utils.text.escapeHTML(mockContact.familyName[0], true) + '</strong>';
-        assert.isTrue(printed.innerHTML.indexOf(highlight) == 0);
-      }
+          // Check as well the correct highlight
+          // familyName to be in bold
+          var highlight =  window.utils.text.escapeHTML(mockContact.givenName[0], true) + ' <strong>' +
+             window.utils.text.escapeHTML(mockContact.familyName[0], true) + '</strong>';
+          assert.isTrue(printed.innerHTML.indexOf(highlight) == 0);
+        }
+        done();
+      }, 500);
     });
-    test('NOT order by lastname', function() {
+
+    test('NOT order by lastname', function(done) {
       subject.setOrderByLastName(false);
       subject.load(mockContacts);
 
-      // First one should be the last one from the list, with the current names
-      var name = document.querySelector('[data-search]');
-      var mockContact = mockContacts[mockContacts.length - 1];
-      var expected = getSearchStringFromContact(mockContact);
+      window.setTimeout(function() {
+        // First one should be the last one from the list, with the current names
+        var name = document.querySelector('[data-search]');
+        var mockContact = mockContacts[mockContacts.length - 1];
+        var expected = getSearchStringFromContact(mockContact);
 
-      assert.equal(name.dataset['search'],  window.utils.text.escapeHTML(expected, true));
+        assert.equal(name.dataset['search'],  window.utils.text.escapeHTML(expected, true));
 
-      // Check highlight
-      // Given name to be in bold
-      var highlight = '<strong>' +
-           window.utils.text.escapeHTML(mockContact.givenName[0], true) + '</strong> ' +
-           window.utils.text.escapeHTML(mockContact.familyName[0], true);
-      assert.equal(name.innerHTML.indexOf(highlight), 0);
+        // Check highlight
+        // Given name to be in bold
+        var highlight = '<strong>' +
+             window.utils.text.escapeHTML(mockContact.givenName[0], true) + '</strong> ' +
+             window.utils.text.escapeHTML(mockContact.familyName[0], true);
+        assert.equal(name.innerHTML.indexOf(highlight), 0);
 
-      subject.setOrderByLastName(true);
+        subject.setOrderByLastName(true);
+        done();
+      }, 500);
     });
   });
 });

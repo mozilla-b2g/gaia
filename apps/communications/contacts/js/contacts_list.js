@@ -14,7 +14,9 @@ contacts.List = (function() {
       noContacts,
       imgLoader,
       orderByLastName = null,
-      emptyList = true;
+      emptyList = true,
+      groupsCache = {},
+      headers = {};
 
   var init = function load(element) {
     _ = navigator.mozL10n.get;
@@ -96,6 +98,11 @@ contacts.List = (function() {
     contactsContainer.dataset.group = group;
     letteredSection.appendChild(title);
     letteredSection.appendChild(contactsContainer);
+    headers[group] = contactsContainer;
+    groupsCache[group] = {
+      element: title,
+      visible: false
+    };
     groupsList.appendChild(letteredSection);
   }
 
@@ -215,22 +222,25 @@ contacts.List = (function() {
     var counter = {};
     var favorites = [];
     var length = contacts.length;
-    var CHUNK_SIZE = 20;
+    // Only rendering in chunks first time
+    var CHUNK_SIZE = emptyList ? 6 : 1;
 
     counter['favorites'] = 0;
     var showNoContacs = length === 0;
     toggleNoContactsScreen(showNoContacs);
 
-    var numberOfChunks = Math.floor(length / CHUNK_SIZE);
+    var numberOfChunks = Math.floor(length / CHUNK_SIZE) || 1;
     function renderChunks(index) {
-      if (numberOfChunks === index) {
+      if (numberOfChunks === index + 1) {
         // Last round. Rendering remaining
         var remaining = length % CHUNK_SIZE;
-        if (remaining > 0) {
-          for (var i = 0; i < remaining; i++) {
-            var current = (numberOfChunks * CHUNK_SIZE) + i;
-            buildContact(contacts[current], fbContacts, counter, favorites);
-          }
+        if (remaining === 0)
+          remaining = length;
+        for (var i = 0; i < remaining; i++) {
+          var current = (index * CHUNK_SIZE) + i;
+          if (!contacts[current])
+            break;
+          buildContact(contacts[current], fbContacts, counter, favorites);
         }
         renderFavorites(favorites);
         cleanLastElements(counter);
@@ -288,8 +298,24 @@ contacts.List = (function() {
 
     var group = getGroupName(contact);
     counter[group] = counter.hasOwnProperty(group) ? counter[group] + 1 : 0;
-    var listContainer = document.getElementById('contacts-list-' + group);
+    var listContainer = headers[group];
     var newContact = renderContact(refillContactData(contact));
+    showGroup(group);
+    if (contact.category && contact.category.indexOf('favorite') != -1) {
+      counter['favorites']++;
+      favorites.push(contact);
+      if (emptyList) {
+        showGroup('favorites');
+        addToFavoriteList(contact);
+      }
+    }
+
+    // Firts time rendering, so just append it
+    if (emptyList) {
+      listContainer.appendChild(newContact);
+      return;
+    }
+
     var contactSelector = '[data-uuid="' + contact.id + '"]';
     var alreadyRendered = listContainer.querySelector(contactSelector);
     var index = counter[group];
@@ -317,15 +343,6 @@ contacts.List = (function() {
         resetGroup(listContainer, counter[group]);
       }
       listContainer.appendChild(newContact);
-    }
-    showGroup(group);
-    if (contact.category && contact.category.indexOf('favorite') != -1) {
-      counter['favorites']++;
-      favorites.push(contact);
-      if (emptyList) {
-        showGroup('favorites');
-        addToFavoriteList(contact);
-      }
     }
   };
 
@@ -540,12 +557,34 @@ contacts.List = (function() {
   }
 
   var hideGroup = function hideGroup(group) {
-    groupsList.querySelector('#group-' + group).classList.add('hide');
-    FixedHeader.refresh();
+    toggleGroup(group, false);
   }
 
   var showGroup = function showGroup(group) {
-    groupsList.querySelector('#group-' + group).classList.remove('hide');
+    toggleGroup(group, true);
+  }
+
+  var toggleGroup = function cl_toggleGroup(group, visible) {
+    var header;
+    if (!groupsCache[group]) {
+      header = groupsList.querySelector('#group-' + group);
+      dotoggleGroup(header, visible);
+      groupsCache[group] = {
+        element: header,
+        visible: visible
+      };
+    } else if (groupsCache[group].visible != visible) {
+      groupsCache[group].visible = visible;
+      header = groupsCache[group].element;
+      dotoggleGroup(header, visible);
+    }
+  }
+
+  var dotoggleGroup = function cl_dotoggleGroup(element, visible) {
+    if (visible)
+      element.classList.remove('hide');
+    else
+      element.classList.add('hide');
     FixedHeader.refresh();
   }
 
@@ -642,7 +681,6 @@ contacts.List = (function() {
 
   var setOrderByLastName = function setOrderByLastName(value) {
     orderByLastName = value;
-    this.load();
   };
 
   return {
