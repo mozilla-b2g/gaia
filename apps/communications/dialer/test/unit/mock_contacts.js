@@ -15,15 +15,18 @@ var MockContacts = {
       photo: [this.mPhoto]
     }, tel);
   },
+  findListByNumber: function cm_getContactData(number, maxitems, callback) {
+    callback(this.mResult);
+  },
   mPhoto: null,
   mName: null,
   mCalledWith: null,
   mCarrier: 'carrier',
   mType: 'type',
+  mResult: null,
   mTearDown: function tearDown() {
     this._calledWith = null;
     this.mCarrier = 'carrier';
     this.mType = 'type';
   }
 };
-

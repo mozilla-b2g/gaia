@@ -248,6 +248,7 @@ var CallHandler = (function callHandler() {
       // Clearing the code from the dialer screen gives the user immediate
       // feedback.
       KeypadManager.updatePhoneNumber('', 'begin', true);
+      SuggestionBar.clear();
       return;
     }
 
@@ -263,6 +264,8 @@ var CallHandler = (function callHandler() {
 
     var oncall = function() {
       if (!callScreenWindow) {
+        SuggestionBar.hideOverlay();
+        SuggestionBar.clear();
         openCallScreen(opened);
       }
     };
