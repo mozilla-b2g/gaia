@@ -290,8 +290,6 @@ if (typeof Contacts.extFb === 'undefined') {
         break;
 
         case 'fb_updated':
-          contacts.List.load();
-
           Contacts.navigation.home(function fb_finished() {
             extensionFrame.contentWindow.postMessage({
               type: 'contacts_loaded',

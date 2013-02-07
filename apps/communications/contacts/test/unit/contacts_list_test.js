@@ -208,6 +208,17 @@ suite('Render contacts list', function() {
     searchList = document.getElementById('search-list');
     noResults = document.getElementById('no-result');
     noContacts = document.getElementById('no-contacts');
+
+    groupFav = container.querySelector('#group-favorites');
+    containerFav = container.querySelector('#contacts-list-favorites');
+    groupA = container.querySelector('#group-A');
+    containerA = container.querySelector('#contacts-list-A');
+    groupB = container.querySelector('#group-B');
+    containerB = container.querySelector('#contacts-list-B');
+    groupC = container.querySelector('#group-C');
+    containerC = container.querySelector('#contacts-list-C');
+    groupD = container.querySelector('#group-D');
+    containerD = container.querySelector('#contacts-list-D');
   }
 
   suiteSetup(function() {
@@ -277,7 +288,6 @@ suite('Render contacts list', function() {
       groupUnd = container.querySelector('#group-und');
       containerUnd = container.querySelector('#contacts-list-und');
 
-      assert.isTrue(subject.loaded);
       assert.isTrue(noContacts.classList.contains('hide'));
       assertNoGroup(groupFav, containerFav);
       assertGroup(groupA, containerA, 1);
@@ -293,8 +303,8 @@ suite('Render contacts list', function() {
       newContact.familyName = ['AA'];
       newContact.name = [newContact.givenName + ' ' + newContact.familyName];
       newContact.category = null;
-      var newList = [newContact].concat(mockContacts);
-      subject.load(newList);
+      subject.refresh(newContact);
+
       assertNoGroup(groupFav, containerFav);
       var aContacts = assertGroup(groupA, containerA, 2);
       assert.isTrue(noContacts.classList.contains('hide'));
@@ -309,8 +319,7 @@ suite('Render contacts list', function() {
       newContact.familyName = ['CZ'];
       newContact.name = [newContact.givenName + ' ' + newContact.familyName];
       newContact.category = null;
-      var newList = mockContacts.concat([newContact]);
-      subject.load(newList);
+      subject.refresh(newContact);
       assertNoGroup(groupFav, containerFav);
       var cContacts = assertGroup(groupC, containerC, 2);
       assert.isTrue(noContacts.classList.contains('hide'));
@@ -327,8 +336,7 @@ suite('Render contacts list', function() {
       newContact.name = null;
       newContact.category = null;
       newContact.org = 'AD';
-      var newList = mockContacts.concat([newContact]);
-      subject.load(newList);
+      subject.refresh(newContact);
       assert.isTrue(noContacts.classList.contains('hide'));
       assertNoGroup(groupFav, containerFav);
       var cContacts = assertGroup(groupC, containerC, 1);
@@ -346,8 +354,7 @@ suite('Render contacts list', function() {
       newContact.name = null;
       newContact.category = null;
       newContact.org = null;
-      var newList = mockContacts.concat([newContact]);
-      subject.load(newList);
+      subject.refresh(newContact);
       assert.isTrue(noContacts.classList.contains('hide'));
       assertNoGroup(groupFav, containerFav);
       var cContacts = assertGroup(groupC, containerC, 1);
@@ -369,7 +376,7 @@ suite('Render contacts list', function() {
       newContact.org = null;
       newContact.email[0].value = 'CZ@CZ.com';
       var newList = mockContacts.concat([newContact]);
-      subject.load(newList);
+      subject.refresh(newContact);
       assert.isTrue(noContacts.classList.contains('hide'));
       assertNoGroup(groupFav, containerFav);
       var cContacts = assertGroup(groupC, containerC, 2);
@@ -389,8 +396,7 @@ suite('Render contacts list', function() {
       newContact.tel = null;
       newContact.org = null;
       newContact.email = null;
-      var newList = mockContacts.concat([newContact]);
-      subject.load(newList);
+      subject.refresh(newContact);
       assert.isTrue(noContacts.classList.contains('hide'));
       assertNoGroup(groupFav, containerFav);
       var cContacts = assertGroup(groupC, containerC, 1);
@@ -410,8 +416,7 @@ suite('Render contacts list', function() {
       newContact.tel = null;
       newContact.org = null;
       newContact.email = null;
-      var newList = mockContacts.concat([newContact]);
-      subject.load(newList);
+      subject.refresh(newContact);
       assert.isTrue(noContacts.classList.contains('hide'));
       var favContacts = assertGroup(groupFav, containerFav, 1);
       assert.notEqual(favContacts[0].innerHTML.indexOf('noName'), -1);
@@ -433,8 +438,8 @@ suite('Render contacts list', function() {
       newContact2.familyName = ['CZ'];
       newContact2.name = [newContact2.givenName + ' ' + newContact2.familyName];
       newContact2.category = null;
-      var newList = mockContacts.concat([newContact, newContact2]);
-      subject.load(newList);
+      subject.refresh(newContact2);
+      subject.refresh(newContact);
       assert.isTrue(noContacts.classList.contains('hide'));
       assertNoGroup(groupFav, containerFav);
       var cContacts = assertGroup(groupC, containerC, 3);
@@ -450,12 +455,13 @@ suite('Render contacts list', function() {
       newContact.familyName = ['BV'];
       newContact.name = [newContact.givenName + ' ' + newContact.familyName];
       newContact.category = null;
-      var newList = mockContacts.concat([newContact]);
-      subject.load(newList);
+      subject.refresh(newContact);
+      subject.remove(5); // We are removing the element from previous test
       assert.isTrue(noContacts.classList.contains('hide'));
       assertNoGroup(groupFav, containerFav);
       var cContacts = assertGroup(groupC, containerC, 1);
       var bContacts = assertGroup(groupB, containerB, 2);
+
       assert.notEqual(bContacts[0].innerHTML.indexOf('BA'), -1);
       assert.notEqual(bContacts[1].innerHTML.indexOf('BV'), -1);
       assertTotal(3, 4);
@@ -469,7 +475,7 @@ suite('Render contacts list', function() {
       newContact.category = null;
       var newList = mockContacts.concat([newContact]);
       assertNoGroup(groupD, containerD);
-      subject.load(newList);
+      subject.refresh(newContact);
       assert.isTrue(noContacts.classList.contains('hide'));
       assertNoGroup(groupFav, containerFav);
       var dContacts = assertGroup(groupD, containerD, 1);
@@ -478,24 +484,25 @@ suite('Render contacts list', function() {
     });
 
     test('removing last element of a group', function() {
-      var newList = mockContacts.slice(1);
       assertGroup(groupA, containerA, 1);
-      subject.load(newList);
+      subject.remove('4'); // Removing previously added contact
+      subject.remove('1'); // Removing last 'A' element
       assertNoGroup(groupFav, containerFav);
       assertNoGroup(groupA, containerA);
       assertTotal(2, 2);
     });
 
     test('with favorites', function() {
+      // Restoring expected estate
+      subject.refresh(mockContacts[0]);
       var newContact = new MockContactAllFields();
       newContact.id = '4';
       newContact.familyName = ['DD'];
       newContact.name = [newContact.givenName + ' ' + newContact.familyName];
       newContact.category = ['favorite'];
-      var newList = mockContacts.concat([newContact]);
       assertNoGroup(groupFav, containerFav);
       assertNoGroup(groupD, containerD);
-      subject.load(newList);
+      subject.refresh(newContact);
       assert.isTrue(noContacts.classList.contains('hide'));
       var dContacts = assertGroup(groupD, containerD, 1);
       assertGroup(groupFav, containerFav, 1);
@@ -503,30 +510,31 @@ suite('Render contacts list', function() {
       assertTotal(5, 5);
     });
 
-    test('adding one favorite', function() {
+    test('check more than one favorite', function() {
       var newContact = new MockContactAllFields();
-      newContact.id = '4';
-      newContact.familyName = ['DD'];
+      newContact.id = '5';
+      newContact.familyName = ['DA'];
       newContact.name = [newContact.givenName + ' ' + newContact.familyName];
       newContact.category = ['favorite'];
-      var newList = mockContacts.concat([newContact]);
-      newList[0].category = ['favorite'];
-      assertGroup(groupD, containerD, 1);
-      assertGroup(groupFav, containerFav, 1);
-      subject.load(newList);
+      subject.refresh(newContact);
+      var dContacts = assertGroup(groupD, containerD, 2);
+      var fContacts = assertGroup(groupFav, containerFav, 2);
       assert.isTrue(noContacts.classList.contains('hide'));
-      var dContacts = assertGroup(groupD, containerD, 1);
       assertGroup(groupFav, containerFav, 2);
-      assert.notEqual(dContacts[0].innerHTML.indexOf('DD'), -1);
+      assert.notEqual(dContacts[0].innerHTML.indexOf('DA'), -1);
+      assert.notEqual(dContacts[1].innerHTML.indexOf('DD'), -1);
+
+      assert.notEqual(fContacts[0].innerHTML.indexOf('DA'), -1);
+      assert.notEqual(fContacts[1].innerHTML.indexOf('DD'), -1);
       var aContacts = assertGroup(groupA, containerA, 1);
-      assert.notEqual(aContacts[0].innerHTML.indexOf('AD'), -1);
-      assertTotal(5, 6);
+      assertTotal(5, 7);
     });
 
     test('removing all favorites', function() {
       assertGroup(groupFav, containerFav, 2);
       mockContacts[0].category = null;
-      subject.load(mockContacts);
+      subject.remove('4');
+      subject.remove('5');
       assertNoGroup(groupFav, containerFav);
       assertGroup(groupA, containerA, 1);
       assertGroup(groupB, containerB, 1);
@@ -535,16 +543,18 @@ suite('Render contacts list', function() {
     });
 
     test('removing all contacts', function() {
-      subject.load([]);
+      subject.remove('1');
+      subject.remove('2');
+      subject.remove('3');
       assert.isFalse(noContacts.classList.contains('hide'));
       assertNoGroup(groupFav, containerFav);
       assertTotal(0, 0);
     });
 
     test('removing one contact', function() {
-      subject.load([]);
       var newList = new MockContactsList();
       subject.load(newList);
+      console.log(container.innerHTML);
       var originalNumber = container.querySelectorAll('.contact-item').length;
       assert.isNotNull(container.querySelector('[data-uuid="2"]'));
 
