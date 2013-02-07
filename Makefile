@@ -180,7 +180,7 @@ TEST_DIRS ?= $(CURDIR)/tests
 
 # Generate profile/
 
-profile: multilocale applications-data preferences app-makefiles test-agent-config offline extensions install-xulrunner-sdk profile/settings.json
+profile: multilocale applications-data preferences app-makefiles test-agent-config offline contacts extensions install-xulrunner-sdk profile/settings.json
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)profile"
 
 LANG=POSIX # Avoiding sort order differences between OSes
@@ -261,6 +261,13 @@ optimize-clean: install-xulrunner-sdk
 offline-cache: webapp-manifests install-xulrunner-sdk
 	@echo "Populate external apps appcache"
 	@$(call run-js-command, offline-cache)
+	@echo "Done"
+
+# Create contacts DB
+contacts: install-xulrunner-sdk
+	@echo "Generate contacts database"
+	@rm -rf profile/indexedDB
+	@$(call run-js-command, contacts)
 	@echo "Done"
 
 # Create webapps
@@ -348,6 +355,10 @@ EXTENDED_PREF_FILES = \
   custom-prefs.js \
   payment-prefs.js \
   ua-override-prefs.js \
+
+ifeq ($(DOGFOOD),1)
+EXTENDED_PREF_FILES += dogfood-prefs.js
+endif
 
 # Generate profile/prefs.js
 preferences: install-xulrunner-sdk
