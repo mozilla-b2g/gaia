@@ -14,7 +14,9 @@ var CaptivePortal = {
     var _ = window.navigator.mozL10n.get;
     var settings = window.navigator.mozSettings;
     var self = this;
-  
+    var icon = window.location.protocol + '//' + window.location.hostname +
+      '/style/icons/captivePortal.png';
+
     //captive portal login needed
     this.eventId = id;
     var currentNetwork = wifiManager.connection.network;
@@ -23,7 +25,7 @@ var CaptivePortal = {
     var message = _('captive-wifi-available', { networkName: networkName });
     if (!this.isManualConnect) {
       this.notification = NotificationScreen.addNotification({
-        id: id, title: '', text: message, icon: null
+        id: id, title: '', text: message, icon: icon
       });
       this.captiveNotification_onTap = function() {
         self.notification.removeEventListener('tap', self.captiveNotification_onTap);
