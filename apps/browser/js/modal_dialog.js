@@ -114,6 +114,7 @@ var ModalDialog = {
         elements.prompt.hidden = false;
         elements.promptInput.value = evt.detail.initialValue;
         elements.promptMessage.innerHTML = message;
+        elements.promptInput.focus();
         break;
 
       case 'custom-prompt':
