@@ -1424,12 +1424,19 @@ var Browser = {
   },
 
   generateTabLi: function browser_generateTabLi(tab, multipleTabs) {
-    var title = tab.title || tab.url || _('new-tab');
     var a = document.createElement('a');
     var li = document.createElement('li');
     var span = document.createElement('span');
     var preview = document.createElement('div');
-    var text = document.createTextNode(title);
+
+    // #838672 Certain browser event (ie. mozbrowsertitlechange) objects
+    // will have an object as the value of the 'detail' property. Avoid
+    // naively assigning an object (as the displayed text) where a string is expected.
+    // TODO: Investigate whether or not to isolate and abstract this logic
+    // for reuse throughout the Browser application.
+    span.innerHTML = tab.title && typeof tab.title === 'string' ?
+      tab.title :  ( tab.url ? tab.url : _('new-tab') );
+
 
     if (multipleTabs) {
       var close = document.createElement('button');
@@ -1442,7 +1449,6 @@ var Browser = {
     a.setAttribute('data-id', tab.id);
     preview.classList.add('preview');
 
-    span.appendChild(text);
     a.appendChild(preview);
     a.appendChild(span);
     li.appendChild(a);
@@ -1755,4 +1761,3 @@ function actHandle(activity) {
 if (window.navigator.mozSetMessageHandler) {
   window.navigator.mozSetMessageHandler('activity', actHandle);
 }
-
