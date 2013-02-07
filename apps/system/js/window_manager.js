@@ -2005,7 +2005,8 @@ var WindowManager = (function() {
     hideCurrentApp: hideCurrentApp,
     restoreCurrentApp: restoreCurrentApp,
     retrieveHomescreen: retrieveHomescreen,
-    retrieveFTU: retrieveFTU
+    retrieveFTU: retrieveFTU,
+    stopInlineActivity: stopInlineActivity
   };
 }());
 
