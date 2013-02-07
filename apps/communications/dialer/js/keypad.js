@@ -227,6 +227,12 @@ var KeypadManager = {
       document.getElementById('keypad-hidebar-hide-keypad-action');
   },
 
+  get suggestionBar() {
+    delete this.suggestionBar;
+    return this.suggestionBar =
+      document.getElementById('suggestion-bar');
+  },
+
   init: function kh_init(oncall) {
     this._onCall = !!oncall;
 
@@ -253,6 +259,9 @@ var KeypadManager = {
     this.keypad.addEventListener('mouseleave', keyHandler, true);
     this.deleteButton.addEventListener('mousedown', keyHandler);
     this.deleteButton.addEventListener('mouseup', keyHandler);
+
+    this.suggestionBar.addEventListener('click',
+                                        this.suggestionHandler.bind(this));
 
     // The keypad add contact bar is only included in the normal version of
     // the keypad.
@@ -290,6 +299,7 @@ var KeypadManager = {
     TonePlayer.init();
 
     this.render();
+
   },
 
   moveCaretToEnd: function hk_util_moveCaretToEnd(el) {
@@ -338,7 +348,8 @@ var KeypadManager = {
   },
 
   makeCall: function hk_makeCall(event) {
-    event.stopPropagation();
+    if (event)
+      event.stopPropagation();
 
     if (this._phoneNumber != '') {
       CallHandler.call(KeypadManager._phoneNumber);
@@ -606,6 +617,7 @@ var KeypadManager = {
     }
 
     this.formatPhoneNumber(ellipsisSide, maxFontSize);
+    this.updateSuggestions();
   },
 
   restorePhoneNumber: function kh_restorePhoneNumber(ellipsisSide,
@@ -659,6 +671,141 @@ var KeypadManager = {
        }
      };
      request.onerror = function() {};
+  },
+
+  suggestionHandler: function kh_suggestionHandler(event) {
+    var typeTag = this.suggestionBar.querySelector('.tel-type');
+    var telTag = this.suggestionBar.querySelector('.tel');
+    if (this.suggestionBar.className == 'not-exist') {
+      this.addContact();
+    } else if (this.suggestionBar.className == 'call-log' &&
+      event.target.className == 'avatar') {
+      this.updatePhoneNumber(telTag.textContent, 'begin', false);
+      this.addContact();
+    } else {
+      this.updatePhoneNumber(telTag.textContent, 'begin', false);
+      this.makeCall();
+    }
+    event.stopPropagation();
+
+  },
+
+  updateSuggestions: function kh_updateSuggestions() {
+    var self = this;
+    LazyLoader.load(['/dialer/js/contact_data_manager.js',
+    '/dialer/js/recents_db.js'], function() {
+      if (!self._phoneNumber) {
+        self._clearSuggestionBar();
+        return;
+      }
+
+      self._updateSuggestionsByContacts(function() {
+        self._updateSuggestionsByRecents();
+      });
+    });
+  },
+
+  _updateSuggestionsByContacts:
+  function kh_updateSuggestionsByContacts(onempty) {
+    var self = this;
+    //Search Contact first.
+    ContactDataManager.getContactData(self._phoneNumber, function(contacts) {
+      if (!contacts || ! Array.isArray(contacts) || contacts.length < 1) {
+        self.suggestionBar.dataset.lastId = '';
+
+        if (onempty)
+          onempty();
+        return;
+      }
+
+      var contact = contacts[0];
+
+      // Update suggestions by contact API
+      var tel = contact.tel;
+      for (var i = 0; i < tel.length; i++) {
+        if (tel[i].value.contains(self._phoneNumber)) {
+          var photo = contact.photo ? contact.photo[0] : null;
+          var markedNumber = self._markMatched(tel[i].value,
+            self._phoneNumber);
+
+          self._setSuggestionText(markedNumber, tel[i].type, contact.name[0]);
+
+          // If the matched contact doesn't change, don't update photo
+          // to prevent flashing.
+          if (contact.id !== self.suggestionBar.dataset.lastId) {
+            self._setSuggestionAvatar(photo);
+          }
+          break;
+        }
+      }
+      self.suggestionBar.dataset.lastId = contact.id;
+    });
+  },
+
+  _updateSuggestionsByRecents: function kh_updateSuggestionsByRecents() {
+    var self = this;
+    RecentsDBManager.init(function() {
+      RecentsDBManager.getBeginWith(self._phoneNumber, function(recentMatch) {
+        LazyL10n.get(function localized(_) {
+          self._setSuggestionAvatar();
+          if (!!recentMatch) {
+            var markedNumber = self._markMatched(recentMatch.number,
+              self._phoneNumber);
+            self._setSuggestionText(markedNumber, _('callLog'));
+          }
+          else {
+            //No match found.  Set to add contacts mode.
+            var addContactText = _('addToContacts', {
+              number: '<span>' + self._phoneNumber + '</span>'});
+            self._setSuggestionText(addContactText);
+          }
+        });
+      });
+    });
+  },
+
+  // content setter of suggestion bar.
+  // only "tel":                  "Add to contact" mode.
+  // "tel" and "type":            "Call log" mode.
+  // "tel" and "type" and "name": "Contact" mode.
+  _setSuggestionText: function kh_setSuggestionText(tel, type, name) {
+    var typeTag = this.suggestionBar.querySelector('.tel-type');
+    var telTag = this.suggestionBar.querySelector('.tel');
+    var nameTag = this.suggestionBar.querySelector('.name');
+    var avatarTag = this.suggestionBar.querySelector('.avatar');
+
+    if (tel && type && name) {
+      // Contact mode
+      this.suggestionBar.className = 'contact';
+    } else if (tel && type) {
+      // Call log mode 
+      this.suggestionBar.className = 'call-log';
+    } else if (tel) {
+      // Add to contact mode
+      this.suggestionBar.className = 'not-exist';
+    } else {
+      // Empty
+      this.suggestionBar.className = '';
+    }
+
+    nameTag.textContent = name ? name : null;
+    typeTag.textContent = type ? type : null;
+    telTag.innerHTML = tel ? tel : null;
+  },
+
+  _setSuggestionAvatar: function kh_setAvatar(avatar) {
+    var avatarTag = this.suggestionBar.querySelector('.avatar');
+    avatarTag.style.backgroundImage = avatar ?
+      'url(' + URL.createObjectURL(avatar) + ')' : null;
+  },
+
+  _clearSuggestionBar: function kh_clearSuggestionBar() {
+    this._setSuggestionText();
+    this._setSuggestionAvatar();
+    delete this.suggestionBar.dataset.lastId;
+  },
+
+  _markMatched: function kh_markMatched(str, substr) {
+    return str.replace(substr, '<span>' + substr + '</span>');
   }
 };
-
