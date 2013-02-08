@@ -74,16 +74,15 @@
 
     <div id="icongrid" class="apps" role="main">
       <div class="page" id="evmePage" role="search-page">
-          <article id="loading-overlay">
-            <section class="loading-container">
-              <header class="loading-header" data-l10n-id="loadingEvme2">
-                Loading&hellip;
-              </header>
+          <form id="loading-overlay" role="dialog" data-type="confirm">
+            <section>
+              <h1 data-l10n-id="loadingEvme2">Loading&hellip;</h1>
               <p role="status">
-                <progress class="loading-icon frozen small"></progress>
+                <span>0%</span>
+                <progress value="0" max="100"></progress>
               </p>
             </section>
-          </article>
+          </form>
           <div id="evmeContainer">
             <div id="search" class="active">
                 <div id="search-header">
