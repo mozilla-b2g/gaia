@@ -1,5 +1,6 @@
 'use strict';
 
+var rscheme = /^(?:[a-z\u00a1-\uffff0-9-+]+)(?::|:\/\/)/i;
 var _ = navigator.mozL10n.get;
 
 var Browser = {
@@ -465,11 +466,11 @@ var Browser = {
 
   handleUrlInputKeypress: function browser_handleUrlInputKeypress(evt) {
     var input = this.urlInput.value;
-    if (this.isSearch(input)) {
-      this.setUrlButtonMode(this.SEARCH);
-    } else {
-      this.setUrlButtonMode(this.GO);
-    }
+
+    this.setUrlButtonMode(
+      this.isNotURL(input) ? this.SEARCH : this.GO
+    );
+
     this.updateAwesomeScreen(input);
   },
 
@@ -560,26 +561,20 @@ var Browser = {
     this.setUrlBar(url);
   },
 
-  isSearch: function browser_isSearch(url) {
-    url = url.trim();
-    // If the address entered starts with a quote then search, if it
-    // contains a . or : then treat as a url, else search
-    return /^"|\'/.test(url) || !(/\.|\:/.test(url)); //"
-  },
+  getUrlFromInput: function browser_getUrlFromInput(input) {
+    var hasScheme = !!(rscheme.exec(input) || [])[0];
 
-  getUrlFromInput: function browser_getUrlFromInput(url) {
-    url = url.trim();
-    var isSearch = this.isSearch(url);
-    var protocolRegexp = /^([a-z]+:)(\/\/)?/i;
-    var protocol = protocolRegexp.exec(url);
+    // No protocol, could be a search term
+    if (this.isNotURL(input)) {
+      return 'http://' + this.DEFAULT_SEARCH_PROVIDER_URL + '/search?q=' + input;
+    }
 
-    if (isSearch) {
-      return 'http://' + this.DEFAULT_SEARCH_PROVIDER_URL + '/search?q=' + url;
+    // No scheme, prepend basic protocol and return
+    if (!hasScheme) {
+      return 'http://' + input;
     }
-    if (!protocol) {
-      return 'http://' + url;
-    }
-    return url;
+
+    return input;
   },
 
   handleUrlFormSubmit: function browser_handleUrlFormSubmit(e) {
@@ -1755,4 +1750,3 @@ function actHandle(activity) {
 if (window.navigator.mozSetMessageHandler) {
   window.navigator.mozSetMessageHandler('activity', actHandle);
 }
-
