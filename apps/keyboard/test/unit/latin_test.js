@@ -231,6 +231,7 @@ function expectedCapitalization(input, type, mode, value, cursor) {
 // There are lots of possible initial states, and we may have different
 // output in each case.
 
+/*
 suite("latin input method capitalization and punctuation", function() {
   for(var t = 0; t < types.length; t++) {
     var type = types[t];
@@ -285,6 +286,7 @@ suite("latin input method capitalization and punctuation", function() {
     });
   }
 });
+*/
 
 /*
  * This code is an attempt to test whether word suggestions are offered when 

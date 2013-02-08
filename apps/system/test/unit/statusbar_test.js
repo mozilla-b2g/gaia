@@ -52,6 +52,9 @@ suite('system/Statusbar', function() {
 
     StatusBar.ELEMENTS.forEach(function testAddElement(elementName) {
       var elt = document.createElement('div');
+      if (elementName === "network-activity" || elementName === "system-downloads") {
+        elt = document.createElement('canvas');
+      }
       elt.id = 'statusbar-' + elementName;
       elt.hidden = true;
       fakeStatusBarNode.appendChild(elt);

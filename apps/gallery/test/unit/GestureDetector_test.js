@@ -115,6 +115,7 @@ suite('GestureDetector', function() {
       { name: 'WSW', x0: 200, y0: 100, x1: 10, y1: 110, direction: 'left' }
     ];
 
+/*
     swipes.forEach(function(s) {
       test('swipe ' + s.name, function(done) {
         var startTime = Date.now();
@@ -199,7 +200,7 @@ suite('GestureDetector', function() {
         }
       });
     });
-
+*/
     if (touchDevice) {
       var pinches = [
         { x0: 0, y0: 0, x1: 100, y1: 100, scale: 2, duration: 800 },

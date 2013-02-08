@@ -79,6 +79,7 @@ suite('views/month', function() {
       );
     });
 
+/*
     test('dom: dbltap', function() {
       var calledWith;
       app.router.show = function(url) {
@@ -101,6 +102,7 @@ suite('views/month', function() {
       );
 
     });
+*/
 
     test('controller: monthChange', function() {
       var calledClear = null;
