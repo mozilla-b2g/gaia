@@ -500,43 +500,6 @@ var Contacts = (function() {
       (contact1.updated - contact2.updated) == 0;
   };
 
-  // When a visiblity change is sent, handles and updates the
-  // different views according to the app state
-  var handleVisibilityChange = function handleVisibilityChange() {
-    switch (navigation.currentView()) {
-      case 'view-contact-details':
-        if (!currentContact) {
-          return;
-        }
-        contacts.List.load();
-        contacts.List.getContactById(currentContact.id, function(contact) {
-          if (isUpdated(contact, currentContact)) {
-            return;
-          }
-          currentContact = contact;
-          contactsDetails.render(currentContact, TAG_OPTIONS);
-        });
-        break;
-      case 'view-contact-form':
-        if (!currentContact) {
-          return;
-        }
-        contacts.List.load();
-        contacts.List.getContactById(currentContact.id, function(contact) {
-          if (!contact || isUpdated(contact, currentContact)) {
-            return;
-          }
-          currentContact = contact;
-          contactsDetails.render(currentContact, TAG_OPTIONS);
-          navigation.back();
-        });
-        break;
-      case 'view-contacts-list':
-        contacts.List.load();
-        break;
-    }
-  };
-
   var showAddContact = function showAddContact() {
     showForm();
   };
@@ -633,6 +596,31 @@ var Contacts = (function() {
     getFirstContacts();
   });
 
+  navigator.mozContacts.oncontactchange = function(event) {
+    var currView = navigation.currentView();
+    switch (event.reason) {
+      case 'update':
+      case 'create':
+        if (currView == 'view-contact-details') {
+          contactsList.getContactById(event.contactID, function success(contact, enrichedContact) {
+            currentContact= enrichedContact || contact;
+            contactsDetails.render(currentContact);
+          });
+        }
+        contactsList.refresh(event.contactID);
+        break;
+      case 'remove':
+        if (currentContact != null && currentContact.id == event.contactID
+          && (currView == 'view-contact-details' || currView == 'view-contact-form')) {
+          navigation.home();
+        }
+        contactsList.remove(event.contactID);
+        currentContact = {};
+
+        break;
+    }
+  }
+
   return {
     'doneTag': doneTag,
     'goBack' : handleBack,
@@ -646,7 +634,6 @@ var Contacts = (function() {
     'checkCancelableActivity': checkCancelableActivity,
     'isEmpty': isEmpty,
     'getLength': getLength,
-    'handleVisibilityChange': handleVisibilityChange,
     'showForm': showForm,
     'setCurrent': setCurrent,
     'getTags': TAG_OPTIONS,
@@ -683,9 +670,6 @@ window.addEventListener('localized', function initContacts(evt) {
       if (ActivityHandler.currentlyHandling && document.mozHidden) {
         ActivityHandler.postCancel();
         return;
-      }
-      if (!ActivityHandler.currentlyHandling && !document.mozHidden) {
-        Contacts.handleVisibilityChange();
       }
       Contacts.checkCancelableActivity();
     });
