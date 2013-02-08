@@ -34,6 +34,7 @@ l10nDictionary.locales[GAIA_DEFAULT_LOCALE] = {};
  * whitelist by app name for javascript asset aggregation.
  */
 const JS_AGGREGATION_BLACKLIST = [
+  'communications'
 ];
 
 /**
@@ -395,4 +396,3 @@ Gaia.webapps.forEach(function(webapp) {
 });
 
 debug('End');
-
