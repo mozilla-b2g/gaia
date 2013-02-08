@@ -832,6 +832,8 @@ var WindowManager = (function() {
                   app.manifest.name, app.manifest, app.manifestURL);
       runningApps[homescreen].iframe.dataset.start = Date.now();
       setAppSize(homescreen);
+      if (displayedApp != homescreen && 'setVsibile' in runningApps[homescreen].iframe)
+        runningApps[homescreen].iframe.setVisible(false);
     } else if (reset) {
       runningApps[homescreen].iframe.src = homescreenURL;
       setAppSize(homescreen);
@@ -1212,10 +1214,6 @@ var WindowManager = (function() {
       frame.classList.add('ftu');
     }
 
-    // A frame should start with visible false
-    if ('setVisible' in iframe)
-      iframe.setVisible(false);
-
     numRunningApps++;
 
     return app;
@@ -1441,13 +1439,16 @@ var WindowManager = (function() {
         } else if (origin !== homescreen) {
           // XXX: We could ended opening URls not for the app frame
           // in the app frame. But we don't care.
-          appendFrame(null, origin, e.detail.url,
+          var app = appendFrame(null, origin, e.detail.url,
                       name, manifest, app.manifestURL);
 
           // set the size of the iframe
           // so Cards View will get a correct screenshot of the frame
-          if (!e.detail.isActivity)
+          if (!e.detail.isActivity) {
             setAppSize(origin, false);
+            if ('setVisible' in app.iframe)
+              app.iframe.setVisible(false);
+          }
         } else {
           ensureHomescreen();
         }
