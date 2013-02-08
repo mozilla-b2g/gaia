@@ -404,11 +404,6 @@ var Settings = {
     openDialog(dialogID, submit);
   },
 
-  getUserGuide: function settings_getUserGuide(callback) {
-    var url = 'http://support.mozilla.org/products/firefox-os';
-    callback(url);
-  },
-
   getSupportedLanguages: function settings_getLanguages(callback) {
     var LANGUAGES = 'shared/resources/languages.json';
 
@@ -502,12 +497,6 @@ window.addEventListener('load', function loadSettings() {
           }
         });
         Settings.updateLanguagePanel();
-        break;
-      case 'help':                // handle specific link
-        Settings.getUserGuide(function userGuideCallback(url) {
-          document.querySelector('[data-l10n-id="user-guide"]').onclick =
-            function openUserGuide() { openLink(url) };
-        });
         break;
       case 'mediaStorage':        // full media storage status + panel startup
         MediaStorage.initUI();

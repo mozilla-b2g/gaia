@@ -433,6 +433,10 @@ html[dir="rtl"] #call-support-numbers {
   left: 2rem;
 }
 
+#help[data-has-support-info] .no-support-info,
+#help:not([data-has-support-info]) .support-info {
+  display: none;
+}
 
 /******************************************************************************
  * Right-To-Left layout
