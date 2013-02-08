@@ -102,9 +102,11 @@ var TelephonyTab = (function() {
   }
 
   function updateNextReset(reset, old, key, settings) {
+    var billingCycle = document.getElementById('billing-cycle');
     if (settings.trackingPeriod === 'never') {
-      resetDate.innerHTML = _('never');
+      billingCycle.setAttribute('aria-hidden', true);
     } else {
+      billingCycle.setAttribute('aria-hidden', false);
       var dateFormatter = new navigator.mozL10n.DateTimeFormat();
       var content = dateFormatter.localeFormat(settings.nextReset,
         _('short-date-format'));
