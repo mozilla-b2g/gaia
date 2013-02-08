@@ -85,6 +85,17 @@ var CardsView = (function() {
     return iconPath;
   }
 
+  function escapeHTML(str, escapeQuotes) {
+    var stringHTML = str;
+    stringHTML = stringHTML.replace(/\</g, '&#60;');
+    stringHTML = stringHTML.replace(/(\r\n|\n|\r)/gm, '<br/>');
+    stringHTML = stringHTML.replace(/\s\s/g, ' &nbsp;');
+
+    if (escapeQuotes)
+      return stringHTML.replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
+    return stringHTML;
+  }
+
   // Build and display the card switcher overlay
   // Note that we rebuild the switcher each time we need it rather
   // than trying to keep it in sync with app launches.  Performance is
@@ -237,7 +248,7 @@ var CardsView = (function() {
         header.setAttribute('role', 'region');
         header.classList.add('skin-organic');
         header.innerHTML = '<header><button><span class="icon icon-close">';
-        header.innerHTML += '</span></button><h1>' + popupFrame.name;
+        header.innerHTML += '</span></button><h1>' + escapeHTML(popupFrame.name, true);
         header.innerHTML += '</h1></header>';
         card.appendChild(header);
         card.classList.add('trustedui');
@@ -664,7 +675,8 @@ var CardsView = (function() {
     showCardSwitcher: showCardSwitcher,
     hideCardSwitcher: hideCardSwitcher,
     cardSwitcherIsShown: cardSwitcherIsShown,
-    handleEvent: cv_handleEvent
+    handleEvent: cv_handleEvent,
+    _escapeHTML: escapeHTML
   };
 })();
 

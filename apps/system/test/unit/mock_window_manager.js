@@ -3,13 +3,30 @@ var MockWindowManager = {
     return this.mDisplayedApp;
   },
 
+  getRunningApps: function mwm_getRunningApps() {
+    return this.mRunningApps;
+  },
+
+  setDisplayedApp: function mwm_setDisplayedApp(app) {
+    this.mDisplayedApp = app;
+  },
+
+  launch: function mwm_launch(origin) {
+    this.mDisplayedApp[origin] = {
+      origin: origin
+    };
+    this.setDisplayedApp(origin);
+  },
+
   kill: function mwm_kill(origin) {
     this.mLastKilledOrigin = origin;
   },
 
+  mRunningApps: [],
   mDisplayedApp: '',
   mLastKilledOrigin: '',
   mTeardown: function() {
+    this.mRunningApps = [];
     this.mDisplayedApp = '';
     this.mLastKilledOrigin = '';
   }
