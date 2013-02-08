@@ -55,6 +55,7 @@ suite('controllers/recurring_event', function() {
       app.syncController.emit('syncComplete');
     });
 
+/*
     test('monthChange', function(done) {
       var expectedDate = new Date(2012, 10, 1);
       // modify wait before move for faster tests.
@@ -72,6 +73,7 @@ suite('controllers/recurring_event', function() {
         timeController.move(expectedDate);
       });
     });
+*/
   });
 
   suite('#queueExpand', function() {

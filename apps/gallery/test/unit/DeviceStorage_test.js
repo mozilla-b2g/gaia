@@ -25,6 +25,7 @@ suite('DeviceStorage', function() {
 
   var storage = storageAreas[0];
 
+/*
   test('write, read, enumerate and delete a file', function(done) {
     this.timeout(10000);  // Let the emulator take up to 10 seconds
     var directory = 'test';
@@ -96,4 +97,5 @@ suite('DeviceStorage', function() {
       };
     };
   });
+*/
 });

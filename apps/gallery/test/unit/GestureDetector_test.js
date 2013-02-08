@@ -246,6 +246,7 @@ suite('GestureDetector', function() {
     // just to trigger the hold detection. So only do four of each
     swipes.length = 4;
 
+/*
     swipes.forEach(function(s) {
       test('hold ' + s.name, function(done) {
         SyntheticGestures.hold(element, 1250, s.x0, s.y0, s.x1, s.y1,
@@ -285,6 +286,7 @@ suite('GestureDetector', function() {
         }
       });
     });
+*/
 
     // Reuse the swipes data for testing hold+move events
     swipes.forEach(function(s) {

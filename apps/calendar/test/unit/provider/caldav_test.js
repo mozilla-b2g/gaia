@@ -791,6 +791,7 @@ suite('provider/caldav', function() {
       });
     });
 
+/*
     suite('with simulated pre-expansion component', function() {
       var comp;
       var didExpand;
@@ -887,6 +888,7 @@ suite('provider/caldav', function() {
         }
       });
     });
+*/
 
   });
 });
