@@ -77,7 +77,7 @@ if (!navigator.mozSms) {
       }
     ];
 
-    for (var i = 0; i < 15; i++) {
+    for (var i = 0; i < 150; i++) {
       messages.push({
         sender: '14886783487',
         body: 'Hello world!',
@@ -121,10 +121,10 @@ if (!navigator.mozSms) {
         timestamp: new Date(Date.now() - 60000000),
         unreadCount: 2
       }
-    ] 
+    ];
   })();
 
-  var GetMessagesHack = function gmhack(callback, filter, invert, cllbckArgs) {
+  var GetMessagesHack = function gmhack(stepCB, filter, invert, endCB, cllbckArgs) {
     function applyFilter(msgs) {
       if (!filter)
         return msgs;
@@ -138,37 +138,50 @@ if (!navigator.mozSms) {
       }
 
       if (!invert) {
-        msgs.sort(function(a,b){
+        msgs.sort(function(a, b) {
           return b.timestamp - a.timestamp;
         });
       } else {
-        msgs.sort(function(a,b){
+        msgs.sort(function(a, b) {
           return a.timestamp - b.timestamp;
         });
       }
       return msgs;
     }
 
-    messagesHack.sort(function(a,b){
+    messagesHack.sort(function(a, b) {
       return b.timestamp - a.timestamp;
     });
     var msg = messagesHack.slice();
-    if (invert)
+    if (invert) 
       msg.reverse();
-    callback(applyFilter(msg), cllbckArgs);
+    var messagesToRender = applyFilter(msg);
+    for (var i = 0, l = messagesToRender.length; i < l; i++) {
+      if (stepCB) {
+        stepCB(messagesToRender[i]);
+      }
+    }
+    if (endCB) {
+      endCB(cllbckArgs);
+    }
   };
 
-  MessageManager.getMessages = function(callback, filter, invert, cllbckArgs) {
-    GetMessagesHack(callback, filter, invert, cllbckArgs);
-    return;
+  MessageManager.getMessages = function(options) {
+    var stepCB = options.stepCB, // CB which manage every message
+        filter = options.filter, // mozMessageFilter
+        invert = options.invert, // invert selection
+        endCB = options.endCB,   // CB when all messages retrieved
+        endCBArgs = options.endCBArgs; //Args for endCB
+
+    GetMessagesHack(stepCB, filter, invert, endCB, endCBArgs);
   };
+  
 
   MessageManager.getThreads = function(callback, extraArg) {
-    threadsHack.sort(function(a,b){
+    threadsHack.sort(function(a, b) {
       return a.timestamp - b.timestamp;
     });
     callback(threadsHack, extraArg);
-    return;
   };
 
   MessageManager.send = function(number, text, callback) {
