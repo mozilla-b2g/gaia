@@ -21,7 +21,6 @@ var UpdateManager = {
   _systemUpdateDisplayed: false,
   _isDataConnectionWarningDialogEnabled: true,
   _settings: null,
-  _conn: null,
   NOTIFICATION_BUFFERING_TIMEOUT: 30 * 1000,
   TOASTER_TIMEOUT: 1200,
 
@@ -103,12 +102,6 @@ var UpdateManager = {
     this.updateWifiStatus();
     this.updateOnlineStatus();
 
-    this._conn = window.navigator.mozMobileConnection;
-    if (this._conn) {
-      this._conn.addEventListener('datachange', this);
-      this.updateDataStatus();
-    }
-
     window.asyncStorage.
       getItem('gaia.system.isDataConnectionWarningDialogEnabled',
       (function(value) {
@@ -129,7 +122,7 @@ var UpdateManager = {
       this.startDownloads();
     } else {
       if (this._isDataConnectionWarningDialogEnabled &&
-          this.downloadDialog.dataset.nowifi) {
+          this.downloadDialog.dataset.nowifi === 'true') {
         this.downloadViaDataConnectionDialog.classList.add('visible');
       } else {
         this.startDownloads();
@@ -527,9 +520,6 @@ var UpdateManager = {
         break;
       case 'applicationuninstall':
         this.onuninstall(evt.detail);
-        break;
-      case 'datachange':
-        this.updateDataStatus();
         break;
       case 'offline':
         this.updateOnlineStatus();
