@@ -11,6 +11,7 @@
 
 function AnimatedIcon(element, path, frames, delay) {
   var context = element.getContext('2d');
+  var loaded = false, startPending = false;
 
   this.frame = 1;
   this.frames = frames;
@@ -22,25 +23,36 @@ function AnimatedIcon(element, path, frames, delay) {
   image.onload = function() {
     var w = image.width;
     var h = image.height / frames;
-
+    loaded = true;
     context.drawImage(image, 0, 0, w, h, 0, 0, w, h);
+    if (startPending) {
+      start();
+    }
   }
 
+  var self = this;
+  var start = function() {
+    startPending = false;
+    this.timerId = setInterval(function() {
+        var w = image.width;
+        var h = image.height / frames;
+
+        context.drawImage(image, 0, self.frame * h, w, h, 0, 0, w, h);
+        self.frame++;
+
+        if (self.frame == self.frames) {
+          self.frame = 0;
+        }
+    }, delay);
+  };
   this.start = function() {
     var self = this;
+    startPending = true;
 
     if (this.timerId == null) {
-      this.timerId = setInterval(function() {
-          var w = image.width;
-          var h = image.height / frames;
-
-          context.drawImage(image, 0, self.frame * h, w, h, 0, 0, w, h);
-          self.frame++;
-
-          if (self.frame == self.frames) {
-            self.frame = 0;
-          }
-      }, delay);
+      if (loaded) {
+       start();
+      }
     }
   }
 
