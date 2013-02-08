@@ -13,10 +13,13 @@ requireApp('system/test/unit/mock_navigator_settings.js');
 requireApp('system/test/unit/mock_wifi_manager.js');
 requireApp('system/test/unit/mock_activity.js');
 requireApp('system/test/unit/mock_notification_screen.js');
+requireApp('system/test/unit/mock_window_manager.js');
 
+requireApp('system/js/browser_frame.js');
+requireApp('system/js/entry_sheet.js');
 requireApp('system/js/captive_portal.js');
 
-var mocksForCaptivePortal = ['SettingsListener', 'NotificationScreen'];
+var mocksForCaptivePortal = ['SettingsListener', 'NotificationScreen', 'WindowManager'];
 
 mocksForCaptivePortal.forEach(function(mockName) {
   if (! window[mockName]) {
@@ -33,6 +36,8 @@ suite('captive portal > ', function() {
 	var mocksHelper;
 	var timeout = 10;
 	var subject;
+	var event;
+	var fakeScreenNode;
 
 	suiteSetup(function() {
 		mocksHelper = new MocksHelper(mocksForCaptivePortal);
@@ -45,6 +50,10 @@ suite('captive portal > ', function() {
     navigator.mozL10n = MockL10n;
     realActivity = window.MozActivity;
     window.MozActivity = MockMozActivity;
+
+    fakeScreenNode = document.createElement('div');
+    fakeScreenNode.id = 'screen';
+    document.body.appendChild(fakeScreenNode);
 	});
 
 	suiteTeardown(function() {
@@ -54,26 +63,35 @@ suite('captive portal > ', function() {
 		window.MozActivity = realActivity;
 		navigator.mozL10n = realL10n;
 		navigator.mozSettings = realSettings;
+		document.body.appendChild(fakeScreenNode);
 	});
 
 	setup(function() {
 		mocksHelper.setup();
-		var event = new MockChromeEvent({
+		event = new MockChromeEvent({
 			type: 'captive-portal-login',
 			url: 'http://developer.mozilla.org'
 		});
 		CaptivePortal.init();
-		CaptivePortal.handleEvent(event);
 	});
 
 	test('system/captive portal login w manual enable wifi', function() {
+		CaptivePortal.handleEvent(event);
 		MockSettingsListener.mCallback(true);
 		assert.ok(MockNotificationScreen.wasMethodCalled['addNotification']);
 	});
 
 	test('system/captive portal login w/o manual enable wifi', function() {
+		CaptivePortal.handleEvent(event);
 		MockSettingsListener.mCallback(true);
 		assert.equal(mockMozActivityInstance.name, 'view');
+	});
+
+	test('system/captive portal while FTU running..', function() {
+		MockWindowManager.mFtuRunning = true;
+
+		CaptivePortal.handleEvent(event);
+		assert.equal(CaptivePortal.hasOwnProperty('entrySheet'), true);
 	});
 });
 

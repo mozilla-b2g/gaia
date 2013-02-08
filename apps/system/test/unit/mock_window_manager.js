@@ -25,9 +25,15 @@ var MockWindowManager = {
   mRunningApps: [],
   mDisplayedApp: '',
   mLastKilledOrigin: '',
+  isFtuRunning: function mwm_isFtuRunning() {
+    return this.mFtuRunning;
+  },
+
+  mFtuRunning: false,
   mTeardown: function() {
     this.mRunningApps = [];
     this.mDisplayedApp = '';
     this.mLastKilledOrigin = '';
+    this.mFtuRunning = false;
   }
 };
