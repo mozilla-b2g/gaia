@@ -161,11 +161,12 @@ var ModalDialog = {
     this.screen.classList.add('modal-dialog');
 
     function escapeHTML(str) {
-      var span = document.createElement('span');
-      span.textContent = str;
-      // Escape space for displaying multiple space in message.
-      span.innerHTML = span.innerHTML.replace(/\n/g, '<br/>');
-      return span.innerHTML;
+      var stringHTML = str;
+      stringHTML = stringHTML.replace(/\</g, '&#60;');
+      stringHTML = stringHTML.replace(/(\r\n|\n|\r)/gm, '<br/>');
+      stringHTML = stringHTML.replace(/\s\s/g, ' &nbsp;');
+
+      return stringHTML.replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
     }
 
     var type = evt.detail.promptType || evt.detail.type;
