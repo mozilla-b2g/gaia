@@ -273,7 +273,7 @@ function captureFrame(player, metadata, callback) {
       canvas.width = THUMBNAIL_WIDTH;
       canvas.height = THUMBNAIL_HEIGHT;
       // If a rotation is specified, rotate the canvas context
-      if ('rotation' in metadata) {
+      if (metadata.rotation !== undefined) {
         ctx.save();
         switch (metadata.rotation) {
         case 90:
@@ -388,8 +388,8 @@ function setPlayerSize() {
   if (!dom.player.videoWidth || !dom.player.videoHeight)
     return;
 
-  var width, height; // The size the video will appear, after rotation
-  var rotation = 'metadata' in currentVideo ?
+  var width, height, rotation; // The size the video will appear, after rotation
+  var rotation = currentVideo.metadata !== undefined ?
     currentVideo.metadata.rotation : 0;
 
   switch (rotation) {
@@ -444,13 +444,13 @@ function setPlayerSize() {
 }
 
 function setVideoUrl(player, video, callback) {
-  if ('name' in video) {
+  if (video.name !== undefined) {
     videodb.getFile(video.name, function(file) {
       var url = URL.createObjectURL(file);
       player.onloadedmetadata = callback;
       player.src = url;
     });
-  } else if ('url' in video) {
+  } else if (video.url !== undefined) {
     player.onloadedmetadata = callback;
     player.src = video.url;
   }
@@ -479,7 +479,7 @@ function showPlayer(data, autoPlay) {
         play();
       }
 
-      if ('metadata' in currentVideo) {
+      if (currentVideo.metadata !== undefined) {
         currentVideo.metadata.watched = true;
         videodb.updateMetadata(currentVideo.name, currentVideo.metadata);
       }
@@ -487,6 +487,7 @@ function showPlayer(data, autoPlay) {
   }
 
   setVideoUrl(dom.player, currentVideo, function() {
+    var title;
 
     dom.durationText.textContent = formatDuration(dom.player.duration);
     timeUpdated();
@@ -496,20 +497,19 @@ function showPlayer(data, autoPlay) {
     playerShowing = true;
     setPlayerSize();
 
-    if ('name' in currentVideo && /^DCIM/.test(currentVideo.name)) {
+    if (currentVideo.name !== undefined && /^DCIM/.test(currentVideo.name)) {
       dom.deleteVideoButton.classList.remove('hidden');
     }
 
-    if ('metadata' in currentVideo) {
-      if (currentVideo.metadata.currentTime === dom.player.duration) {
-        currentVideo.metadata.currentTime = 0;
-      }
-      dom.videoTitle.textContent = currentVideo.metadata.title;
-      dom.player.currentTime = currentVideo.metadata.currentTime || 0;
+    if (currentVideo.metadata !== undefined) {
+      title = currentVideo.metadata.title;
     } else {
-      dom.videoTitle.textContent = currentVideo.title || '';
-      dom.player.currentTime = 0;
+      title = currentVideo.title;
     }
+
+    // Always start the video at 0s. #839600
+    dom.player.currentTime = 0;
+    dom.videoTitle.textContent = title;
 
     if (dom.player.seeking) {
       dom.player.onseeked = doneSeeking;
@@ -535,7 +535,7 @@ function hidePlayer() {
     updateDialog();
   }
 
-  if (!('metadata' in currentVideo)) {
+  if (currentVideo.metadata === undefined) {
     completeHidingPlayer();
     return;
   }
