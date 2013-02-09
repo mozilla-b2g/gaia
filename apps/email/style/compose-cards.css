@@ -35,7 +35,7 @@
 }
 
 input.cmp-addr-text, input.cmp-subject-text {
-  border: 0;
+  border: 0 !important;
   background: none;
   padding: 0;
   height: auto;
@@ -91,28 +91,6 @@ input.cmp-subject-text {
   background: #fff;
 }
 
-.cmp-sending-container {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 20;
-  background: rgba(0,0,0,.8);
-}
-
-.cmp-messages-sending {
-  position: absolute;
-  top:40%;
-  width: 80%;
-  padding: 0 10% !important;
-}
-
-.cmp-sending-text {
-  color: white;
-  font: 600 2.3rem/1em "MozTT",Sans-serif;
-  padding: 0 1rem;
-}
 /* Attachment */
 .cmp-attachments-container {
   padding: 0 1rem;
