@@ -42,6 +42,8 @@ var AppInstallManager = {
     window.addEventListener('applicationinstall',
       this.handleApplicationInstall.bind(this));
 
+    window.addEventListener('applicationuninstall',
+      this.handleApplicationUninstall.bind(this));
 
     this.installButton.onclick = this.handleInstall.bind(this);
     this.cancelButton.onclick = this.showInstallCancelDialog.bind(this);
@@ -89,6 +91,13 @@ var AppInstallManager = {
     }
 
     this.prepareForDownload(app);
+  },
+
+  handleApplicationUninstall: function ai_handleApplicationUninstall(e) {
+    var app = e.detail.application;
+
+    this.onDownloadStop(app);
+    this.onDownloadFinish(app);
   },
 
   handleAppInstallPrompt: function ai_handleInstallPrompt(detail) {
