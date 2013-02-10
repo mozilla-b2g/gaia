@@ -729,7 +729,8 @@ reset-restore: reset-gaia
 			$(ADB) shell mv $(MSYS_FIX)/$(BACKUP_DATABASES)/chrome/$$db $(MSYS_FIX)/$(BACKUP_DATABASES)/chrome/$$db.reset ;\
 		done; \
 	fi;
-	$(ADB) push $(BACKUP_DIR) $(MSYS_FIX)/$(BACKUP_DATABASES)/
+	$(ADB) push $(BACKUP_DIR)/indexedDB/ $(MSYS_FIX)/$(BACKUP_DATABASES)/
+	$(ADB) push $(BACKUP_DIR)/webapps/ $(MSYS_FIX)/$(BACKUP_WEBAPPS)/
 	# Copy-back reset-gaia database before restarting
 	if [ ! -z "$(RESET_DATABASES)" ]; then \
 		for db in $(RESET_DATABASES); do \
