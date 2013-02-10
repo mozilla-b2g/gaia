@@ -70,15 +70,17 @@ ViewManager.prototype.changeViewTo = function _changeViewTo(viewId, callback) {
     view.dataset.viewport = '';
   }
 
-  if (callback)
+  if (callback) {
     callback(isTab, viewId, isTab ? currentViewId : previousViewId);
+  }
 };
 
 // Close the current view returning to the previous one
 ViewManager.prototype.closeCurrentView = function _closeCurrentView() {
   // Tabs can not be closed
-  if (!this._currentView || this._isTab(this._currentView.id))
+  if (!this._currentView || this._isTab(this._currentView.id)) {
     return;
+  }
 
   var view = document.getElementById(this._currentView.id);
 

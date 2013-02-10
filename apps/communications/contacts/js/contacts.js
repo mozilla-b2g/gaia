@@ -36,8 +36,6 @@ var Contacts = (function() {
   var contactsDetails = contacts.Details;
   var contactsForm = contacts.Form;
 
-  var loading = document.getElementById('loading-overlay');
-
   var checkUrl = function checkUrl() {
     var hasParams = window.location.hash.split('?');
     var hash = hasParams[0];
@@ -463,6 +461,18 @@ var Contacts = (function() {
     }
   };
 
+  var handleDetailsBack = function handleDetailsBack() {
+    var hasParams = window.location.hash.split('?');
+    var params = hasParams.length > 1 ?
+      extractParams(hasParams[1]) : -1;
+
+    navigation.back();
+    // post message to parent page included Contacts app.
+    if (params['back_to_previous_tab'] === '1') {
+      window.parent.postMessage({ 'type': 'contactsiframe', 'message': 'back' }, '*');
+    }
+  };
+
   var sendEmailOrPick = function sendEmailOrPick(address) {
     if (ActivityHandler.currentlyHandling) {
       // Placeholder for the email app if we want to
@@ -565,17 +575,6 @@ var Contacts = (function() {
     navigation.go('view-settings', 'popup');
   };
 
-  var showOverlay = function showOverlay(message) {
-    var text = message || _('loadingContacts');
-
-    loading.querySelector('[data-l10n-id="loadingContacts"]').innerHTML = text;
-    loading.classList.add('show-overlay');
-  };
-
-  var hideOverlay = function hideOverlay() {
-    loading.classList.remove('show-overlay');
-  };
-
   var stopPropagation = function stopPropagation(evt) {
     evt.preventDefault();
   };
@@ -598,7 +597,7 @@ var Contacts = (function() {
           handler: contacts.Search.enterSearchMode
         }
       ],
-      '#details-back': handleBack, // Details
+      '#details-back': handleDetailsBack, // Details
       '#edit-contact-button': showEditContact,
       '#toggle-favorite': contacts.Details.toggleFavorite,
       '#contact-form button[data-field-type]': contacts.Form.onNewFieldClicked,
@@ -652,8 +651,8 @@ var Contacts = (function() {
     'setCurrent': setCurrent,
     'getTags': TAG_OPTIONS,
     'onLocalized': onLocalized,
-    'showOverlay': showOverlay,
-    'hideOverlay': hideOverlay,
+    'showOverlay': utils.overlay.show,
+    'hideOverlay': utils.overlay.hide,
     'showContactDetail': contactListClickHandler,
     'updateContactDetail': updateContactDetail,
     'onLineChanged': onLineChanged,

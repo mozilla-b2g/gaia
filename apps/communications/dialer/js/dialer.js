@@ -49,7 +49,11 @@ var CallHandler = (function callHandler() {
   window.navigator.mozSetMessageHandler('activity', handleActivity);
 
   /* === Notifications support === */
-  function handleNotification() {
+  function handleNotification(evt) {
+    if (!evt.clicked) {
+      return;
+    }
+
     navigator.mozApps.getSelf().onsuccess = function gotSelf(evt) {
       var app = evt.target.result;
       app.launch('dialer');
@@ -96,6 +100,18 @@ var CallHandler = (function callHandler() {
         });
       });
     });
+  }
+
+  /* === Handle messages recevied from iframe === */
+  function handleContactsIframeRequest(message) {
+    switch (message) {
+      case 'back':
+        var contactsIframe = document.getElementById('iframe-contacts');
+        // disable the function of receiving the messages posted from the iframe
+        contactsIframe.contentWindow.history.pushState(null, null, '/contacts/index.html');
+        window.location.hash = '#recents-view';
+        break;
+    }
   }
 
   /* === Incoming and STK calls === */
@@ -177,6 +193,8 @@ var CallHandler = (function callHandler() {
       handleNotificationRequest(data.number);
     } else if (data.type && data.type === 'recent') {
       handleRecentAddRequest(data.entry);
+    } else if (data.type && data.type === 'contactsiframe') {
+      handleContactsIframeRequest(data.message);
     }
   }
   window.addEventListener('message', handleMessage);

@@ -22,7 +22,8 @@ var SimManager = {
         UIManager.pinInput.classList.add('onerror');
         UIManager.pinError.innerHTML = _('pinErrorMsg');
         UIManager.pinError.classList.remove('hidden');
-        UIManager.pinLabel.innerHTML = _('pinAttemptMsg2', {n: data.retryCount});
+        UIManager.pinLabel.innerHTML = _('pinAttemptMsg2',
+                                         {n: data.retryCount});
         if (data.retryCount == 1)
           UIManager.pinError.innerHTML += _('pinLastChanceMsg');
         break;
@@ -58,7 +59,9 @@ var SimManager = {
   *   'networkLocked',
   *   'ready'.
   */
-  handleCardState: function sm_handleCardState() {
+  handleCardState: function sm_handleCardState(callback) {
+    SimManager.checkSIMButton();
+    this.accessCallback = (typeof callback === 'function') ? callback : null;
     switch (this.mobConn.cardState) {
       case 'pinRequired':
         this.showPinScreen();
@@ -66,13 +69,12 @@ var SimManager = {
       case 'pukRequired':
         this.showPukScreen();
         break;
-      case 'ready':
-        if (typeof this.oncardstatechange === 'function') {
-          this.oncardstatechange(true);
+      default:
+        if (this.accessCallback) {
+          this.accessCallback(this.mobConn.cardState === 'ready');
         }
         break;
     }
-    SimManager.checkSIMButton();
   },
 
   checkSIMButton: function sm_checkSIMButton() {
@@ -114,8 +116,8 @@ var SimManager = {
 
   skip: function sm_skip() {
     this.hideScreen();
-    if (typeof this.oncardstatechange === 'function') {
-        this.oncardstatechange(false);
+    if (this.accessCallback) {
+      this.accessCallback(false);
     }
   },
 
@@ -201,43 +203,60 @@ var SimManager = {
   },
 
   importContacts: function sm_importContacts() {
+    // Delay for showing feedback to the user after importing
+    var DELAY_FEEDBACK = 300;
     UIManager.navBar.setAttribute('aria-disabled', 'true');
-    UIManager.loadingHeader.innerHTML = _('simContacts-importing');
-    UIManager.loadingOverlay.classList.add('show-overlay');
+    var progress = utils.overlay.show(_('simContacts-importing'), true);
+
     var importButton = UIManager.simImportButton;
     importButton.setAttribute('disabled', 'disabled');
 
-    importSIMContacts(
-      function() {
-      }, function onsuccess(n) {
+    var importer = new SimContactsImporter();
+    var importedContacts = 0;
+
+    importer.onread = function sim_import_read(n) {
+      progress.setTotal(n);
+    };
+
+    importer.onimported = function imported_contact() {
+      importedContacts++;
+      progress.update();
+    };
+
+    importer.onfinish = function sim_import_finish() {
+      window.setTimeout(function do_sim_import_finish() {
         SimManager.alreadyImported = true;
         UIManager.navBar.removeAttribute('aria-disabled');
-        UIManager.loadingOverlay.classList.remove('show-overlay');
-        utils.status.show(_('simContacts-imported3', {n: n}));
-      }.bind(this),
-      function onerror() {
-        UIManager.navBar.removeAttribute('aria-disabled');
-        UIManager.loadingOverlay.classList.remove('show-overlay');
-        // Just in case the user decides to do so later
-        importButton.removeAttribute('disabled');
+        utils.overlay.hide();
+        utils.status.show(_('simContacts-imported3', {n: importedContacts}));
+      }, DELAY_FEEDBACK);
+    };
 
-        // Showing error message allowing user to retry
-        var cancel = {
-          title: _('cancel'),
-          callback: function() {
-            ConfirmDialog.hide();
-          }
-        };
-        var retry = {
-          title: _('retry'),
-          isRecommend: true,
-          callback: function() {
-            ConfirmDialog.hide();
-            // And now the action is reproduced one more time
-            importButton.click();
-          }
-        };
-        ConfirmDialog.show(null, _('simContacts-error'), cancel, retry);
-    }.bind(this));
+    importer.onerror = function sim_import_error() {
+      UIManager.navBar.removeAttribute('aria-disabled');
+      utils.overlay.hide();
+      // Just in case the user decides to do so later
+      importButton.removeAttribute('disabled');
+
+      // Showing error message allowing user to retry
+      var cancel = {
+        title: _('cancel'),
+        callback: function() {
+          ConfirmDialog.hide();
+        }
+      };
+      var retry = {
+        title: _('retry'),
+        isRecommend: true,
+        callback: function() {
+          ConfirmDialog.hide();
+          // And now the action is reproduced one more time
+          importButton.click();
+        }
+      };
+      ConfirmDialog.show(null, _('simContacts-error'), cancel, retry);
+    }; // importer.onerror
+
+    importer.start();
   }
 };

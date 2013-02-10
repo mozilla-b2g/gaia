@@ -193,9 +193,10 @@ var ValuePicker = (function() {
   VP.prototype.init = function() {
     this.initUI();
     this.setSelectedIndex(0); // Default Index is zero
-    this.mousedonwHandler = vp_mousedown.bind(this);
+    this.mousedownHandler = vp_mousedown.bind(this);
     this.mousemoveHandler = vp_mousemove.bind(this);
     this.mouseupHandler = vp_mouseup.bind(this);
+    this.transitionendHandler = vp_transitionend.bind(this);
     this.addEventListeners();
   };
 
@@ -231,7 +232,7 @@ var ValuePicker = (function() {
   };
 
   VP.prototype.addEventListeners = function() {
-    this.element.addEventListener('mousedown', this.mousedonwHandler, false);
+    this.element.addEventListener('mousedown', this.mousedownHandler, false);
   };
 
   VP.prototype.removeEventListeners = function() {
@@ -240,7 +241,7 @@ var ValuePicker = (function() {
   };
 
   VP.prototype.resetUI = function() {
-    var actives = this.element.querySelectorAll(".active");
+    var actives = this.element.querySelectorAll('.active');
     for (var i = 0; i < actives.length; i++) {
       actives[i].classList.remove('active');
     }
@@ -286,6 +287,12 @@ var ValuePicker = (function() {
     return reValue;
   }
 
+  function vp_transitionend() {
+    this.element.classList.remove('animation-on');
+    this.element.removeEventListener('transitionend',
+                                     this.transitionendHandler);
+  }
+
   function vp_mousemove(event) {
     event.stopPropagation();
     currentEvent = cloneEvent(event);
@@ -311,6 +318,7 @@ var ValuePicker = (function() {
     this.removeEventListeners();
 
     // Add animation back
+    this.element.addEventListener('transitionend', this.transitionendHandler);
     this.element.classList.add('animation-on');
 
     // Add momentum if speed is higher than a given threshold.

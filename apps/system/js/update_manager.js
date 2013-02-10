@@ -19,8 +19,8 @@ var UpdateManager = {
   _errorTimeout: null,
   _wifiLock: null,
   _systemUpdateDisplayed: false,
-  _conn: null,
-  _edgeTypes: ['edge', 'is95a', 'is95b', 'gprs'],
+  _isDataConnectionWarningDialogEnabled: true,
+  _settings: null,
   NOTIFICATION_BUFFERING_TIMEOUT: 30 * 1000,
   TOASTER_TIMEOUT: 1200,
 
@@ -29,10 +29,15 @@ var UpdateManager = {
   toaster: null,
   toasterMessage: null,
   laterButton: null,
+  notnowButton: null,
   downloadButton: null,
+  downloadViaDataConnectionButton: null,
   downloadDialog: null,
+  downloadViaDataConnectionDialog: null,
   downloadDialogTitle: null,
   downloadDialogList: null,
+  lastUpdatesAvailable: 0,
+  _notificationTimeout: null,
 
   updatableApps: [],
   systemUpdatable: null,
@@ -51,6 +56,8 @@ var UpdateManager = {
       });
     }).bind(this);
 
+    this._settings = navigator.mozSettings;
+
     this.systemUpdatable = new SystemUpdatable();
 
     this.container = document.getElementById('update-manager-container');
@@ -60,15 +67,25 @@ var UpdateManager = {
     this.toasterMessage = this.toaster.querySelector('.message');
 
     this.laterButton = document.getElementById('updates-later-button');
+    this.notnowButton =
+      document.getElementById('updates-viaDataConnection-notnow-button');
     this.downloadButton = document.getElementById('updates-download-button');
+    this.downloadViaDataConnectionButton =
+      document.getElementById('updates-viaDataConnection-download-button');
     this.downloadDialog = document.getElementById('updates-download-dialog');
     this.downloadDialogTitle = this.downloadDialog.querySelector('h1');
     this.downloadDialogList = this.downloadDialog.querySelector('ul');
+    this.downloadViaDataConnectionDialog =
+      document.getElementById('updates-viaDataConnection-dialog');
 
     this.container.onclick = this.containerClicked.bind(this);
     this.laterButton.onclick = this.cancelPrompt.bind(this);
-    this.downloadButton.onclick = this.startDownloads.bind(this);
+    this.downloadButton.onclick = this.requestDownloads.bind(this);
     this.downloadDialogList.onchange = this.updateDownloadButton.bind(this);
+    this.notnowButton.onclick =
+      this.cancelDataConnectionUpdatesPrompt.bind(this);
+    this.downloadViaDataConnectionButton.onclick =
+      this.requestDownloads.bind(this);
 
     window.addEventListener('mozChromeEvent', this);
     window.addEventListener('applicationinstall', this);
@@ -85,17 +102,38 @@ var UpdateManager = {
     this.updateWifiStatus();
     this.updateOnlineStatus();
 
-    this._conn = window.navigator.mozMobileConnection;
-    if (this._conn) {
-      this._conn.addEventListener('datachange', this);
-      this.updateEdgeStatus();
+    window.asyncStorage.
+      getItem('gaia.system.isDataConnectionWarningDialogEnabled',
+      (function(value) {
+        value = value || true;
+        this._isDataConnectionWarningDialogEnabled = true;
+        this.downloadDialog.dataset.dataConnectionInlineWarning = !value;
+    }).bind(this));
+  },
+
+  requestDownloads: function um_requestDownloads(evt) {
+    evt.preventDefault();
+
+    if (evt.target == this.downloadViaDataConnectionButton) {
+      window.asyncStorage.
+        setItem('gaia.system.isDataConnectionWarningDialogEnabled', false);
+      this._isDataConnectionWarningDialogEnabled = false;
+      this.downloadDialog.dataset.dataConnectionInlineWarning = true;
+      this.startDownloads();
+    } else {
+      if (this._isDataConnectionWarningDialogEnabled &&
+          this.downloadDialog.dataset.nowifi === 'true') {
+        this.downloadViaDataConnectionDialog.classList.add('visible');
+      } else {
+        this.startDownloads();
+      }
     }
   },
 
-  startDownloads: function um_startDownloads(evt) {
-    evt.preventDefault();
-
+  startDownloads: function um_startDownloads() {
     this.downloadDialog.classList.remove('visible');
+    this.downloadViaDataConnectionDialog.classList.remove('visible');
+
     UtilityTray.show();
 
     var checkValues = {};
@@ -256,6 +294,12 @@ var UpdateManager = {
     this.downloadDialog.classList.remove('visible');
   },
 
+  cancelDataConnectionUpdatesPrompt: function um_cancelDCUpdatesPrompt() {
+    CustomDialog.hide();
+    this.downloadViaDataConnectionDialog.classList.remove('visible');
+    this.downloadDialog.classList.remove('visible');
+  },
+
   downloadProgressed: function um_downloadProgress(bytes) {
     if (bytes > 0) {
       this._downloadedBytes += bytes;
@@ -271,9 +315,10 @@ var UpdateManager = {
   render: function um_render() {
     var _ = navigator.mozL10n.get;
 
-    this.toasterMessage.innerHTML = _('updateAvailableInfo', {
-                                      n: this.updatesQueue.length
-                                    });
+    this.toasterMessage.innerHTML =
+      _('updateAvailableInfo', {
+        n: this.updatesQueue.length - this.lastUpdatesAvailable
+      });
 
     var message = '';
     if (this._downloading) {
@@ -336,16 +381,18 @@ var UpdateManager = {
 
     this.updatesQueue.push(updatable);
 
-    if (this.updatesQueue.length === 1) {
-      setTimeout(this.displayNotificationAndToaster.bind(this),
-          this.NOTIFICATION_BUFFERING_TIMEOUT);
+    if (this._notificationTimeout === null) {
+      this._notificationTimeout = setTimeout(this.displayNotificationAndToaster.bind(this),
+        this.NOTIFICATION_BUFFERING_TIMEOUT);
     }
-
     this.render();
   },
 
   displayNotificationAndToaster: function um_displayNotificationAndToaster() {
+    this._notificationTimeout = null;
     if (this.updatesQueue.length && !this._downloading) {
+      this.lastUpdatesAvailable = this.updatesQueue.length;
+      StatusBar.updateNotificationUnread(true);
       this.displayNotificationIfHidden();
       this.toaster.classList.add('displayed');
       var self = this;
@@ -361,6 +408,8 @@ var UpdateManager = {
       return;
 
     this.updatesQueue.splice(removeIndex, 1);
+    this.lastUpdatesAvailable = this.updatesQueue.length;
+
     if (this.updatesQueue.length === 0) {
       this.hideNotificationIfDisplayed();
     }
@@ -472,9 +521,6 @@ var UpdateManager = {
       case 'applicationuninstall':
         this.onuninstall(evt.detail);
         break;
-      case 'datachange':
-        this.updateEdgeStatus();
-        break;
       case 'offline':
         this.updateOnlineStatus();
         break;
@@ -509,15 +555,6 @@ var UpdateManager = {
     }
   },
 
-  updateEdgeStatus: function su_updateEdgeStatus() {
-    if (!this._conn)
-      return;
-
-    var data = this._conn.data;
-    this.downloadDialog.dataset.edge =
-      (this._edgeTypes.indexOf(data.type) !== -1);
-  },
-
   updateWifiStatus: function su_updateWifiStatus() {
     var wifiManager = window.navigator.mozWifiManager;
     if (!wifiManager)
@@ -534,12 +571,11 @@ var UpdateManager = {
 
     this._dispatchEvent('force-update-check');
 
-    var settings = navigator.mozSettings;
-    if (!settings) {
+    if (!this._settings) {
       return;
     }
 
-    var lock = settings.createLock();
+    var lock = this._settings.createLock();
     lock.set({
       'gaia.system.checkForUpdates': false
     });

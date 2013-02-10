@@ -30,13 +30,14 @@
   }
 
   // Close if in standalone mode
+  var closing;
   function closeIfProceeds() {
     debug('Trying to close...');
     if (inStandAloneMode()) {
-      setTimeout(function _close() {
+      closing = setTimeout(function _close() {
         window.close();
         debug('Closing message handler');
-      }, 500);
+      }, 1000);
     }
   }
 
@@ -86,10 +87,101 @@
     asyncStorage.setItem('nextResetAlarm', alarmId, function _updateOption() {
       ConfigManager.setOption({ nextReset: date }, function _sync() {
         localStorage['sync'] = 'nextReset#' + Math.random();
-        if (callback)
+        if (callback) {
           callback();
+        }
       });
     });
+  }
+
+  function sendIncorrectTopUpNotification(callback) {
+    // XXX: Hack hiding the message class in the icon URL
+    // Should use the tag element of the notification once the final spec
+    // lands:
+    // See: https://bugzilla.mozilla.org/show_bug.cgi?id=782211
+    navigator.mozApps.getSelf().onsuccess = function _onAppReady(evt) {
+      var app = evt.target.result;
+      var iconURL = NotificationHelper.getIconURI(app);
+
+      var goToTopUpCode;
+      if (!inStandAloneMode()) {
+        goToTopUpCode = function _goToTopUpCode() {
+          app.launch();
+          window.parent.BalanceTab.topUpWithCode(true);
+        };
+      }
+
+      iconURL += '?topUpError';
+      NotificationHelper.send(_('topup-incorrectcode-title2'),
+                              _('topup-incorrectcode-message2'), iconURL,
+                              goToTopUpCode);
+
+      if (callback)
+        callback();
+    };
+  }
+
+  function sendBalanceThresholdNotification(remaining, settings, callback) {
+    // XXX: Hack hiding the message class in the icon URL
+    // Should use the tag element of the notification once the final spec
+    // lands:
+    // See: https://bugzilla.mozilla.org/show_bug.cgi?id=782211
+    navigator.mozApps.getSelf().onsuccess = function _onAppReady(evt) {
+      var app = evt.target.result;
+      var iconURL = NotificationHelper.getIconURI(app);
+
+      var goToBalance;
+      if (!inStandAloneMode()) {
+        goToBalance = function _goToBalance() {
+          app.launch();
+          window.parent.CostControlApp.showBalanceTab();
+        };
+      }
+
+      debug('Low limit already notified:', settings.lowLimitNotified);
+      debug('Zero balance already notified:', settings.lowLimitNotified);
+
+      // Zero reached notification
+      var type;
+      if (remaining.balance === 0 && !settings.zeroBalanceNotified) {
+        type = 'zeroBalance';
+
+      // There is a limit an we are below that limit and we did not notified yet
+      } else if (settings.lowLimit &&
+                 remaining.balance < settings.lowLimitThreshold &&
+                 !settings.lowLimitNotified) {
+        type = 'lowBalance';
+
+      // No need for notification
+      } else {
+        return;
+      }
+      debug('Notification type:', type);
+      iconURL += '?' + type;
+
+      // Get l10n for remaining balance
+      var remainingBalance = _('currency', {
+        currency: remaining.currency,
+        value: remaining.balance
+      });
+
+      // Compose notification and send it
+      var title = _('low-balance-notification-title');
+      var message = _('low-balance-notification-text',
+                      { remaining: remainingBalance });
+      if (type === 'zeroBalance') {
+        title = _('usage');
+        message = _('zero-balance-message');
+      }
+      NotificationHelper.send(title, message, iconURL, goToBalance);
+
+      // Finally mark the notification as sent
+      var update = {};
+      var notified = (type === 'lowBalance') ? 'lowLimitNotified' :
+                                               'zeroBalanceNotified';
+      update[notified] = true;
+      ConfigManager.setOption(update, callback);
+    };
   }
 
   // Register in standalone or for application
@@ -98,6 +190,7 @@
 
     // When receiving an SMS, recognize and parse
     window.navigator.mozSetMessageHandler('sms-received', function _onSMS(sms) {
+      clearTimeout(closing);
       ConfigManager.requestAll(function _onInfo(configuration, settings) {
         // Non expected SMS
         if (configuration.balance.senders.indexOf(sms.sender) === -1 &&
@@ -127,14 +220,16 @@
             debug('Trying to recognize TopUp error SMS');
             description = new RegExp(configuration.topup.incorrect_code_regexp);
             isError = !!sms.body.match(description);
-            if (!isError)
+            if (!isError) {
               console.warn('Impossible to parse TopUp confirmation message.');
+            }
           }
 
         }
 
-        if (!isBalance && !isConfirmation && !isError)
+        if (!isBalance && !isConfirmation && !isError) {
           return;
+        }
 
         // TODO: Remove the SMS
 
@@ -159,7 +254,8 @@
               debug('Balance up to date and stored');
               debug('Trying to synchronize!');
               localStorage['sync'] = 'lastBalance#' + Math.random();
-              closeIfProceeds();
+              sendBalanceThresholdNotification(newBalance, settings,
+                                               closeIfProceeds);
             }
           );
         } else if (isConfirmation) {
@@ -167,7 +263,11 @@
           navigator.mozAlarms.remove(settings.waitingForTopUp);
           debug('TopUp timeout:', settings.waitingForTopUp, 'removed');
           ConfigManager.setOption(
-            { 'waitingForTopUp': null },
+            {
+              'waitingForTopUp': null,
+              'lowLimitNotified': false,
+              'zeroBalanceNotified': false
+            },
             function _onSet() {
               debug('TopUp confirmed!');
               debug('Trying to synchronize!');
@@ -181,12 +281,17 @@
           navigator.mozAlarms.remove(settings.waitingForTopUp);
           debug('TopUp timeout: ', settings.waitingForTopUp, 'removed');
           ConfigManager.setOption(
-            { 'errors': settings.errors, 'waitingForTopUp': null },
+            {
+              'errors': settings.errors,
+              'waitingForTopUp': null,
+              'lowLimitNotified': false,
+              'zeroBalanceNotified': false
+            },
             function _onSet() {
               debug('Balance up to date and stored');
               debug('Trying to synchronize!');
               localStorage['sync'] = 'errors#' + Math.random();
-              closeIfProceeds();
+              sendIncorrectTopUpNotification(closeIfProceeds);
             }
           );
         }
@@ -195,6 +300,7 @@
 
     // Whan receiving an alarm, differenciate by type and act
     window.navigator.mozSetMessageHandler('alarm', function _onAlarm(alarm) {
+      clearTimeout(closing);
       switch (alarm.data.type) {
         case 'balanceTimeout':
           ConfigManager.requestSettings(function _onSettings(settings) {
@@ -238,18 +344,28 @@
 
     // Count a new SMS
     window.navigator.mozSetMessageHandler('sms-sent', function _onSMSSent(sms) {
-      ConfigManager.requestSettings(function _onSettings(settings) {
-        debug('SMS sent!');
-        var manager = window.navigator.mozSms;
-        var smsInfo = manager.getSegmentInfoForText(sms.body);
-        var realCount = smsInfo.segments;
-        settings.lastTelephonyActivity.timestamp = new Date();
-        settings.lastTelephonyActivity.smscount += realCount;
-        ConfigManager.setOption({
-          lastTelephonyActivity: settings.lastTelephonyActivity
-        }, function _sync() {
-          localStorage['sync'] = 'lastTelephonyActivity#' + Math.random();
-          closeIfProceeds();
+      clearTimeout(closing);
+      debug('SMS sent!');
+
+      ConfigManager.requestAll(function _onInfo(configuration, settings) {
+        CostControl.getInstance(function _onInstance(costcontrol) {
+          var mode = costcontrol.getApplicationMode(settings);
+          if (mode === 'PREPAID' &&
+              !costcontrol.isBalanceRequestSMS(sms, configuration)) {
+            costcontrol.request({ type: 'balance' });
+          }
+
+          var manager = window.navigator.mozSms;
+          var smsInfo = manager.getSegmentInfoForText(sms.body);
+          var realCount = smsInfo.segments;
+          settings.lastTelephonyActivity.timestamp = new Date();
+          settings.lastTelephonyActivity.smscount += realCount;
+          ConfigManager.setOption({
+            lastTelephonyActivity: settings.lastTelephonyActivity
+          }, function _sync() {
+            localStorage['sync'] = 'lastTelephonyActivity#' + Math.random();
+            closeIfProceeds();
+          });
         });
       });
     });
@@ -257,18 +373,27 @@
     // When a call ends
     window.navigator.mozSetMessageHandler('telephony-call-ended',
       function _onCall(tcall) {
-        if (tcall.direction !== 'outgoing')
+        clearTimeout(closing);
+        if (tcall.direction !== 'outgoing') {
           return;
-
+        }
         debug('Outgoing call finished!');
+
         ConfigManager.requestSettings(function _onSettings(settings) {
-          settings.lastTelephonyActivity.timestamp = new Date();
-          settings.lastTelephonyActivity.calltime += tcall.duration;
-          ConfigManager.setOption({
-            lastTelephonyActivity: settings.lastTelephonyActivity
-          }, function _sync() {
-            localStorage['sync'] = 'lastTelephonyActivity#' + Math.random();
-            closeIfProceeds();
+          CostControl.getInstance(function _onInstance(costcontrol) {
+            var mode = costcontrol.getApplicationMode(settings);
+            if (mode === 'PREPAID') {
+              costcontrol.request({ type: 'balance' });
+            }
+
+            settings.lastTelephonyActivity.timestamp = new Date();
+            settings.lastTelephonyActivity.calltime += tcall.duration;
+            ConfigManager.setOption({
+              lastTelephonyActivity: settings.lastTelephonyActivity
+            }, function _sync() {
+              localStorage['sync'] = 'lastTelephonyActivity#' + Math.random();
+              closeIfProceeds();
+            });
           });
         });
       }

@@ -52,17 +52,18 @@
 
 .fld-folders-container {
   -moz-transform: translateX(100%);
+  height: calc(100% - 4.8rem);
 }
 
 .fld-accounts-container {
   position: absolute;
   width: 100%;
   -moz-transform: translateX(-100%);
+  height: calc(100% - 9.8rem);
 }
 
-.fld-accounts-container.show, .fld-folders-container.show{
+.folder-scoller-region .show {
   -moz-transform: translateX(0px);
-  height: calc(100% - 4.8rem);
 }
 
 .fld-accounts-btn {

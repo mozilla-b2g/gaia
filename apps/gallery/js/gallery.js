@@ -1385,9 +1385,7 @@ function editPhotoIfCardNotFull(n) {
   var fileinfo = files[n];
   var imagesize = fileinfo.size;
 
-  photodb.stat(function(stats) {
-    var freespace = stats.freeBytes;
-
+  photodb.freeSpace(function(freespace) {
     // the edited image might take up more space on the disk, but
     // not all that much more
     if (freespace > imagesize * 2) {

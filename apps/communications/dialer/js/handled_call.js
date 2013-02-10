@@ -26,6 +26,7 @@ function HandledCall(aCall, aNode) {
   this.numberNode = aNode.querySelector('.numberWrapper .number');
   this.additionalInfoNode = aNode.querySelector('.additionalContactInfo');
 
+  this.node.dataset.occupied = 'true';
 
   this.updateCallNumber();
 
@@ -84,7 +85,7 @@ HandledCall.prototype.startTimer = function hc_startTimer() {
         h: padNumber(elapsed.getUTCHours()),
         m: padNumber(elapsed.getUTCMinutes()),
         s: padNumber(elapsed.getUTCSeconds())
-      }
+      };
       self.durationChildNode.textContent = _(elapsed.getUTCHours() > 0 ?
         'callDurationHours' : 'callDurationMinutes', duration);
     }, 1000, this, Date.now());
@@ -114,8 +115,15 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
 
   var self = this;
   Contacts.findByNumber(number, function lookupContact(contact, matchingTel) {
-    if (contact && contact.name) {
-      node.textContent = contact.name;
+    if (contact) {
+      var primaryInfo = Utils.getPhoneNumberPrimaryInfo(matchingTel, contact);
+      if (primaryInfo) {
+        node.textContent = primaryInfo;
+      } else {
+        LazyL10n.get(function (_) {
+          node.textContent = _('unknown');
+        });
+      }
       KeypadManager.formatPhoneNumber('end', true);
       var additionalInfo = Utils.getPhoneNumberAdditionalInfo(matchingTel,
                                                               contact);
@@ -149,6 +157,7 @@ HandledCall.prototype.remove = function hc_remove() {
   if (!this.node)
     return;
 
+  this.node.dataset.occupied = 'false';
   clearInterval(this._ticker);
   this._ticker = null;
 };

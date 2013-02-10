@@ -8,6 +8,81 @@ var MailAPI = null;
 var App = {
   initialized: false,
 
+  loader: {
+    _loaded: {},
+
+    js: function(file, cb) {
+      var script = document.createElement('script');
+      script.type = 'text/javascript';
+      script.src = file;
+      if (cb) script.onload = cb;
+      document.querySelector('head').appendChild(script);
+    },
+
+    style: function(file, cb) {
+      var script = document.createElement('link');
+      script.type = 'text/css';
+      script.rel = 'stylesheet';
+      script.href = file;
+      document.querySelector('head').appendChild(script);
+      cb();
+    },
+
+    /**
+     * Loads all resources passed to it
+     * Calls the callback when all resources are loaded
+     * The DOM injection is handled by one of the methods in this object.
+     * This is determined by the first resource segment, E.g., js/, style/...
+     */
+    load: function() {
+      var self = this;
+      var ops = arguments.length-1;
+      var callback = arguments[arguments.length-1];
+
+      function loadedCallback(resource) {
+        return function() {
+          self._loaded[resource] = true;
+          ops--;
+          done();
+        }
+      }
+
+      for (var i = 0; i < arguments.length-1;  i++) {
+        var resource = arguments[i];
+        if (!this._loaded[resource]) {
+          this[resource.split('/')[0]](resource, loadedCallback(resource));
+        } else {
+          ops--;
+          done();
+        }
+      }
+
+      function done() {
+        if (ops > 0)
+          return;
+        callback();
+      }
+    },
+
+    /**
+     * Preloads all remaining resources
+     */
+    preloadAll: function(cb) {
+      cb = cb || function() {};
+
+      App.loader.load(
+        'style/value_selector.css',
+        'style/compose-cards.css',
+        'style/setup-cards.css',
+        'js/value_selector.js',
+        'js/iframe-shims.js',
+        'js/setup-cards.js',
+        'js/compose-cards.js',
+        cb
+      );
+    }
+  },
+
   /**
    * Bind any global notifications, relay localizations to the back-end.
    */
@@ -120,44 +195,14 @@ var App = {
             allowBack: false
           });
       }
+
+      // Preload all resources after 2s
+      setTimeout(function preloadTimeout() {
+        App.loader.preloadAll();
+      }, 2000);
     };
   }
 };
-
-function hookStartup() {
-  var gotLocalized = (mozL10n.readyState === 'interactive') ||
-                     (mozL10n.readystate === 'complete'),
-      gotMailAPI = false;
-  function doInit() {
-    try {
-      populateTemplateNodes();
-      Cards._init();
-      App._init();
-      App.showMessageViewOrSetup();
-    }
-    catch (ex) {
-      console.error('Problem initializing', ex, '\n', ex.stack);
-    }
-  }
-
-  if (!gotLocalized) {
-    window.addEventListener('localized', function localized() {
-      console.log('got localized!');
-      gotLocalized = true;
-      window.removeEventListener('localized', localized);
-      if (gotMailAPI)
-        doInit();
-    });
-  }
-  window.addEventListener('mailapi', function(event) {
-    console.log('got MailAPI!');
-    MailAPI = event.mailAPI;
-    gotMailAPI = true;
-    if (gotLocalized)
-      doInit();
-  }, false);
-}
-hookStartup();
 
 var queryURI = function _queryURI(uri) {
   function addressesToArray(addresses) {
@@ -201,6 +246,41 @@ var queryURI = function _queryURI(uri) {
 
 };
 
+function hookStartup() {
+  var gotLocalized = (mozL10n.readyState === 'interactive') ||
+                     (mozL10n.readystate === 'complete'),
+      gotMailAPI = false;
+  function doInit() {
+    try {
+      populateTemplateNodes();
+      Cards._init();
+      App._init();
+      App.showMessageViewOrSetup();
+    }
+    catch (ex) {
+      console.error('Problem initializing', ex, '\n', ex.stack);
+    }
+  }
+
+  if (!gotLocalized) {
+    window.addEventListener('localized', function localized() {
+      console.log('got localized!');
+      gotLocalized = true;
+      window.removeEventListener('localized', localized);
+      if (gotMailAPI)
+        doInit();
+    });
+  }
+  window.addEventListener('mailapi', function(event) {
+    console.log('got MailAPI!');
+    MailAPI = event.mailAPI;
+    gotMailAPI = true;
+    if (gotLocalized)
+      doInit();
+  }, false);
+}
+hookStartup();
+
 var activityCallback = null;
 if ('mozSetMessageHandler' in window.navigator) {
   window.navigator.mozSetMessageHandler('activity',
@@ -227,12 +307,13 @@ if ('mozSetMessageHandler' in window.navigator) {
       } catch (e) {
         console.log('no navigation found:', e);
         var req = confirm(mozL10n.get('setup-empty-account-prompt'));
-        // TODO: Since we can not switch back to previous app if activity type
-        //       is "window", both buttons in confirm dialog will enter
-        //       setup page now(or caller app need to control launch by itself).
-        //
         if (!req) {
+          // We want to do the right thing, but currently this won't even dump
+          // us in the home-screen app.  This is because our activity has
+          // disposition: window rather than inline.
           activity.postError('cancelled');
+          // So our workaround is to close our window.
+          window.close();
           return false;
         }
         return true;

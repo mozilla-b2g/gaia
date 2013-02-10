@@ -14,7 +14,7 @@ requireApp('calendar/test/unit/helper.js', function() {
   requireLib('views/week.js');
 });
 
-suite('views/day', function() {
+suite('views/week', function() {
   var subject;
   var app;
   var controller;
@@ -35,8 +35,13 @@ suite('views/day', function() {
     testEl.id = 'test';
     testEl.innerHTML = [
       '<div id="week-view">',
-        '<section class="sidebar">a</section>',
-        '<section class="children">a</section>',
+        '<div class="scroll">',
+          '<section class="sidebar">a</section>',
+          '<section class="children">a</section>',
+        '</div>',
+        '<section class="sticky">',
+          '<div class="children"></div>',
+        '</section>',
       '</div>'
     ].join('');
 
@@ -58,8 +63,11 @@ suite('views/day', function() {
 
     // constructor shortcut
     function child(date) {
+      var el = document.createElement('li');
       return new Calendar.Views.WeekChild({
-        app: app, date: date
+        app: app,
+        date: date,
+        stickyFrame: el
       });
     }
 
@@ -81,7 +89,12 @@ suite('views/day', function() {
       children.push(child(new Date(2012, 0, 2)));
       children.push(child(new Date(2012, 0, 3)));
 
-      subject = new Calendar.Views.Week.Frame(id, children);
+      var list = document.createElement('ul');
+      subject = new Calendar.Views.Week.Frame(
+        id,
+        children,
+        list
+      );
     });
 
     test('initializer', function() {
@@ -300,8 +313,6 @@ suite('views/day', function() {
     test('#_appendSidebarHours', function() {
       var html = subject.sidebar.outerHTML;
       assert.ok(html, 'has contents');
-
-      assert.include(html, Calendar.Calc.ALLDAY);
 
       var i = 0;
       for (; i < 24; i++) {

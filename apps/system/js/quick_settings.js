@@ -6,6 +6,9 @@
 var QuickSettings = {
   // Indicate setting status of geolocation.enabled
   geolocationEnabled: false,
+  WIFI_STATUSCHANGE_TIMEOUT: 2000,
+  // ID of elements to create references
+  ELEMENTS: ['wifi', 'data', 'bluetooth', 'airplane-mode', 'full-app'],
 
   init: function qs_init() {
     var settings = window.navigator.mozSettings;
@@ -21,8 +24,8 @@ var QuickSettings = {
     var self = this;
 
     /*
-      * Monitor data network icon
-      */
+     * Monitor data network icon
+     */
     conn.addEventListener('datachange', function qs_onDataChange() {
       var label = {
         'lte': '4G', // 4G LTE
@@ -106,6 +109,7 @@ var QuickSettings = {
     });
     window.addEventListener('wifi-enabled', this);
     window.addEventListener('wifi-disabled', this);
+    window.addEventListener('wifi-statuschange', this);
 
     /* monitor geolocation setting
      * TODO prevent quickly tapping on it
@@ -140,15 +144,11 @@ var QuickSettings = {
             SettingsListener.getSettingsLock().set({
               'wifi.enabled': !enabled
             });
-            if (!enabled) {
-              var activity = new MozActivity({
-                name: 'configure',
-                data: {
-                  target: 'device',
-                  section: 'wifi'
-                }
-              });
-            }
+            SettingsListener.getSettingsLock().set({
+              'wifi.connect_via_settings': !enabled
+            });
+            if (!enabled)
+              this.toggleAutoConfigWifi = true;
             break;
 
           case this.data:
@@ -204,23 +204,37 @@ var QuickSettings = {
         break;
       // unlock wifi toggle
       case 'wifi-enabled':
+        delete this.wifi.dataset.initializing;
+        if (this.toggleAutoConfigWifi) {
+          // Check whether it found a wifi to connect after a timeout.
+          this.wifiStatusTimer = setTimeout(this.autoConfigWifi.bind(this),
+            this.WIFI_STATUSCHANGE_TIMEOUT);
+        }
+        break;
       case 'wifi-disabled':
         delete this.wifi.dataset.initializing;
+        if (this.toggleAutoConfigWifi) {
+          clearTimeout(this.wifiStatusTimer);
+          this.wifiStatusTimer = null;
+          this.toggleAutoConfigWifi = false;
+        }
+        break;
+
+      case 'wifi-statuschange':
+        if (this.toggleAutoConfigWifi && !this.wifi.dataset.initializing)
+          this.autoConfigWifi();
         break;
     }
   },
 
   getAllElements: function qs_getAllElements() {
-    // ID of elements to create references
-    var elements = ['wifi', 'data', 'bluetooth', 'airplane-mode', 'full-app'];
-
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {
         return p1.toUpperCase();
       });
     };
 
-    elements.forEach(function createElementRef(name) {
+    this.ELEMENTS.forEach(function createElementRef(name) {
       this[toCamelCase(name)] =
         document.getElementById('quick-settings-' + name);
     }, this);
@@ -238,7 +252,44 @@ var QuickSettings = {
       obj[key] = keypairs[key];
       setlock.set(obj);
     }
+  },
+
+  /* Auto-config wifi if user enabled wifi from quick settings bar.
+   * If there are no known networks around, wifi settings page
+   * will be opened. Otherwise nothing will be done.
+   */
+  autoConfigWifi: function qs_autoConfigWifi() {
+    clearTimeout(this.wifiStatusTimer);
+    this.wifiStatusTimer = null;
+    this.toggleAutoConfigWifi = false;
+
+    var wifiManager = window.navigator.mozWifiManager;
+    var status = wifiManager.connection.status;
+
+    if (status == 'disconnected') {
+      SettingsListener.getSettingsLock().set({
+        'wifi.connect_via_settings': false
+      });
+      var activity = new MozActivity({
+        name: 'configure',
+        data: {
+          target: 'device',
+          section: 'wifi'
+        }
+      });
+    } else if (status == 'connectingfailed') {
+      SettingsListener.getSettingsLock().set({
+        'wifi.connect_via_settings': false
+      });
+    }
   }
 };
 
-QuickSettings.init();
+if (navigator.mozL10n &&
+    (navigator.mozL10n.readyState == 'complete' ||
+      navigator.mozL10n.readyState == 'interactive')) {
+  QuickSettings.init();
+} else {
+  window.addEventListener('localized', QuickSettings.init.bind(QuickSettings));
+}
+

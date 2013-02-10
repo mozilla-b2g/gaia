@@ -337,8 +337,17 @@ var WindowManager = (function() {
         classList.add('closing-card');
 
         if (openFrame) {
-          openFrame.classList.remove('opening-card');
-          openFrame.classList.add('opening-switching');
+          if (openFrame.classList.contains('opening-card')) {
+            openFrame.classList.remove('opening-card');
+            openFrame.classList.add('opening-switching');
+          } else {
+            // Skip the opening-card and opening-switching transition
+            // because the closing-card transition had already finished here.
+            if (openFrame.classList.contains('fullscreen-app')) {
+              screenElement.classList.add('fullscreen-app');
+            }
+            openFrame.classList.add('opening');
+          }
         }
       } else if (classList.contains('closing-card')) {
         windowClosed(frame);
@@ -352,12 +361,7 @@ var WindowManager = (function() {
         }
 
         classList.remove('opening-switching');
-
-        // XXX: without this setTimeout() there will be no opening transition.
-        // See https://bugzilla.mozilla.org/show_bug.cgi?id=780692#c111
-        setTimeout(function continueTransition() {
-          classList.add('opening');
-        });
+        classList.add('opening');
       } else if (classList.contains('opening')) {
         windowOpened(frame);
 
@@ -690,7 +694,7 @@ var WindowManager = (function() {
 
       if (!screenElement.classList.contains('switch-app')) {
         openFrame.classList.add('opening');
-      } else {
+      } else if (!openFrame.classList.contains('opening')) {
         openFrame.classList.add('opening-card');
       }
     };
@@ -702,8 +706,16 @@ var WindowManager = (function() {
     }
 
     // Set the frame to be visible.
-    if ('setVisible' in openFrame.firstChild)
-      openFrame.firstChild.setVisible(true);
+    if ('setVisible' in openFrame.firstChild) {
+      if (!AttentionScreen.isFullyVisible()) {
+        openFrame.firstChild.setVisible(true);
+      } else {
+        // If attention screen is fully visible now,
+        // don't give the open frame visible.
+        // This is the case that homescreen is restarted behind attention screen
+        openFrame.firstChild.setVisible(false);
+      }
+    }
   }
 
   function waitForNextPaintOrBackground(frame, callback) {
@@ -818,7 +830,10 @@ var WindowManager = (function() {
       var app = Applications.getByManifestURL(homescreenManifestURL);
       appendFrame(null, homescreen, homescreenURL,
                   app.manifest.name, app.manifest, app.manifestURL);
+      runningApps[homescreen].iframe.dataset.start = Date.now();
       setAppSize(homescreen);
+      if (displayedApp != homescreen && 'setVsibile' in runningApps[homescreen].iframe)
+        runningApps[homescreen].iframe.setVisible(false);
     } else if (reset) {
       runningApps[homescreen].iframe.src = homescreenURL;
       setAppSize(homescreen);
@@ -967,7 +982,7 @@ var WindowManager = (function() {
     if (closeFrame && 'setVisible' in closeFrame.firstChild)
       closeFrame.firstChild.setVisible(false);
 
-    if (!isFirstRunApplication) {
+    if (!isFirstRunApplication && newApp == homescreen && !AttentionScreen.isFullyVisible()) {
       toggleHomescreen(true);
     }
 
@@ -980,12 +995,46 @@ var WindowManager = (function() {
     if (newApp != currentApp) {
       var evt = document.createEvent('CustomEvent');
       evt.initCustomEvent('appwillopen', true, true, { origin: newApp });
+
+      var app = runningApps[newApp];
       // Allows listeners to cancel app opening and so stay on homescreen
-      if (!runningApps[newApp].frame.dispatchEvent(evt)) {
+      if (!app.frame.dispatchEvent(evt)) {
         if (typeof(callback) == 'function')
           callback();
         return;
       }
+
+      var iframe = app.iframe;
+
+      // unpainted means that the app is cold booting
+      // if it is, we're going to listen for Browser API's loadend event
+      // which indicates that the iframe's document load is complete
+      //
+      // if the app is not cold booting (is in memory) we will listen
+      // to appopen event, which is fired when the transition to the
+      // app window is complete.
+      //
+      // [w] - warm boot (app is in memory, just transition to it)
+      // [c] - cold boot (app has to be booted, we show it's document load
+      // time)
+      var type;
+      if ('unpainted' in iframe.dataset) {
+        type = 'mozbrowserloadend';
+      } else {
+        iframe.dataset.start = Date.now();
+        type = 'appopen';
+      }
+
+      app.frame.addEventListener(type, function apploaded(e) {
+        e.target.removeEventListener(e.type, apploaded);
+
+        var evt = document.createEvent('CustomEvent');
+        evt.initCustomEvent('apploadtime', true, false, {
+          time: parseInt(Date.now() - iframe.dataset.start),
+          type: (e.type == 'appopen') ? 'w' : 'c'
+        });
+        iframe.dispatchEvent(evt);
+      });
     }
 
     // Case 1: the app is already displayed
@@ -1111,9 +1160,6 @@ var WindowManager = (function() {
         outOfProcessBlackList.indexOf(name) === -1) {
       // FIXME: content shouldn't control this directly
       iframe.setAttribute('remote', 'true');
-      console.info('%%%%% Launching', name, 'as remote (OOP)');
-    } else {
-      console.info('%%%%% Launching', name, 'as local');
     }
 
     iframe.setAttribute('mozapp', manifestURL);
@@ -1129,9 +1175,9 @@ var WindowManager = (function() {
     frame.id = 'appframe' + nextAppId++;
     iframe.dataset.frameType = 'window';
 
-    // Give a name to the frame for differentiating between main frame and 
+    // Give a name to the frame for differentiating between main frame and
     // inline frame. With the name we can get frames of the same app using the
-    // window.open method. 
+    // window.open method.
     iframe.name = 'main';
 
     // If this frame corresponds to the homescreen, set mozapptype=homescreen
@@ -1168,10 +1214,6 @@ var WindowManager = (function() {
       frame.classList.add('ftu');
     }
 
-    // A frame should start with visible false
-    if ('setVisible' in iframe)
-      iframe.setVisible(false);
-
     numRunningApps++;
 
     return app;
@@ -1184,7 +1226,7 @@ var WindowManager = (function() {
     frame.classList.add('inlineActivity');
     iframe.dataset.frameType = 'inline-activity';
 
-    // Give a name to the frame for differentiating between main frame and 
+    // Give a name to the frame for differentiating between main frame and
     // inline frame. With the name we can get frames of the same app using the
     // window.open method.
     iframe.name = 'inline';
@@ -1305,6 +1347,8 @@ var WindowManager = (function() {
   // There are two types of mozChromeEvent we need to handle
   // in order to launch the app for Gecko
   window.addEventListener('mozChromeEvent', function(e) {
+    var startTime = Date.now();
+
     var manifestURL = e.detail.manifestURL;
     if (!manifestURL)
       return;
@@ -1353,6 +1397,7 @@ var WindowManager = (function() {
             appendFrame(null, origin, e.detail.url,
                         name, app.manifest, app.manifestURL);
           }
+          runningApps[origin].iframe.dataset.start = startTime;
           setDisplayedApp(origin, null, 'window');
         }
         break;
@@ -1394,13 +1439,16 @@ var WindowManager = (function() {
         } else if (origin !== homescreen) {
           // XXX: We could ended opening URls not for the app frame
           // in the app frame. But we don't care.
-          appendFrame(null, origin, e.detail.url,
+          var app = appendFrame(null, origin, e.detail.url,
                       name, manifest, app.manifestURL);
 
           // set the size of the iframe
           // so Cards View will get a correct screenshot of the frame
-          if (!e.detail.isActivity)
+          if (!e.detail.isActivity) {
             setAppSize(origin, false);
+            if ('setVisible' in app.iframe)
+              app.iframe.setVisible(false);
+          }
         } else {
           ensureHomescreen();
         }
@@ -1478,7 +1526,11 @@ var WindowManager = (function() {
       case 'will-unlock':
         if (LockScreen.locked)
           return;
-        setVisibilityForCurrentApp(true);
+        if (inlineActivityFrames.length) {
+          setVisibilityForInlineActivity(true);
+        } else {
+          setVisibilityForCurrentApp(true);
+        }
         break;
       case 'lock':
         setVisibilityForCurrentApp(false);
@@ -1495,8 +1547,12 @@ var WindowManager = (function() {
         if (evt.detail && evt.detail.origin &&
           evt.detail.origin != displayedApp) {
             attentionScreenTimer = setTimeout(function setVisibility() {
-              setVisibilityForCurrentApp(false);
-            }, 5000);
+              if (inlineActivityFrames.length) {
+                setVisibilityForInlineActivity(false);
+              } else {
+                setVisibilityForCurrentApp(false);
+              }
+            }, 3000);
 
             // Immediatly blur the frame in order to ensure hiding the keyboard
             var app = runningApps[displayedApp];
@@ -1510,6 +1566,24 @@ var WindowManager = (function() {
   overlayEvents.forEach(function overlayEventIterator(event) {
     window.addEventListener(event, overlayEventHandler);
   });
+
+  function setVisibilityForInlineActivity(visible) {
+    if (!inlineActivityFrames.length)
+      return;
+
+    var topFrame = inlineActivityFrames[inlineActivityFrames.length - 1].firstChild;
+    if ('setVisible' in topFrame) {
+      topFrame.setVisible(visible);
+    }
+
+    // Restore/give away focus on visiblity change
+    // so that the app can take back its focus
+    if (visible) {
+      topFrame.focus();
+    } else {
+      topFrame.blur();
+    }
+  }
 
   function setVisibilityForCurrentApp(visible) {
     var app = runningApps[displayedApp];
@@ -1671,18 +1745,16 @@ var WindowManager = (function() {
     } else {
       origin = 'window:' + name + ',source:' + callerOrigin;
 
-      for (var appOrigin in runningApps) {
-        var a = runningApps[appOrigin];
-        if (a.windowName == name) {
-          app = a;
-          break;
+      var runningApp = runningApps[origin];
+      if (runningApp && runningApp.windowName === name) {
+        if (runningApp.iframe.src === url) {
+          // If the url is already loaded, just display the app
+          setDisplayedApp(origin);
+          return;
+        } else {
+          // Wrapper context shouldn't be shared between two apps -> killing
+          kill(origin);
         }
-      }
-
-      // If the url is already loaded, just display the app
-      if (app && app.iframe.src == url) {
-        setDisplayedApp(origin);
-        return;
       }
     }
 

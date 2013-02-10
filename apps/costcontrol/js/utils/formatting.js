@@ -4,8 +4,9 @@
 // Return a time string in format Today|Yesterday|<WeekDay>, hh:mm
 // if timestamp is a valid date. If not, it returns Never.
 function formatTime(timestamp) {
-  if (!timestamp)
+  if (!timestamp) {
     return _('never');
+  }
 
   var dateFormatter = new navigator.mozL10n.DateTimeFormat();
   var time = dateFormatter.localeFormat(timestamp, _('shortTimeFormat'));
@@ -49,30 +50,36 @@ function formatData(dataArray) {
 // Return a fixed point data value in KB/MB/GB
 function roundData(value, positions) {
   positions = (typeof positions === 'undefined') ? 2 : positions;
-  if (value < 1000)
+  if (value < 1000) {
     return [value.toFixed(positions), 'B'];
+  }
 
-  if (value < 1000000)
+  if (value < 1000000) {
     return [(value / 1000).toFixed(positions), 'KB'];
+  }
 
-  if (value < 1000000000)
+  if (value < 1000000000) {
     return [(value / 1000000).toFixed(positions), 'MB'];
+  }
 
   return [(value / 1000000000).toFixed(positions), 'GB'];
 }
 
 function getPositions(value) {
-  if (value < 10)
+  if (value < 10) {
     return 2;
-  if (value < 100)
+  }
+  if (value < 100) {
     return 1;
+  }
   return 0;
 }
 
 function smartRound(value) {
   var positions;
-  if (value < 1000)
+  if (value < 1000) {
     return [value.toFixed(getPositions(value)), 'B'];
+  }
 
   if (value < 1000000) {
     var kbytes = value / 1000;

@@ -28,6 +28,7 @@
     <link rel="resource" type="application/json" href="shared/resources/languages.json"/>
     <link rel="resource" type="application/json" href="shared/resources/media/ringtones/"/>
     <link rel="resource" type="application/json" href="shared/resources/media/notifications/"/>
+    <link rel="resource" type="image/png" href="shared/resources/branding/privacy_sprite.png"/>
     -->
 
     <!-- Localization -->
@@ -56,6 +57,7 @@
     <script type="application/javascript" defer src="shared/js/mobile_operator.js"></script>
     <script type="application/javascript" defer src="js/connectivity.js"></script>
     <script type="application/javascript" defer src="js/security_privacy.js"></script>
+    <script defer type="application/javascript" src="shared/js/settings_listener.js"></script>
     <script type="application/javascript" defer src="js/icc_menu.js"></script>
 
     <!-- all non-#root panels will lazy-load their own scripts -->
@@ -752,8 +754,31 @@
           </p>
         </section>
         <menu>
-          <button type="reset" data-l10n-id="dataConnection-warning-notNow">Not now</button>
-          <button type="submit" class="recommend" data-l10n-id="dataConnection-warning-turnOn">Turn ON</button>
+          <button type="reset" data-l10n-id="notNow">Not now</button>
+          <button type="submit" class="recommend" data-l10n-id="turnOn">Turn ON</button>
+        </menu>
+      </form>
+      -->
+    </section>
+
+    <!-- Connectivity :: Cellular & Data :: Data Roaming Warnings -->
+    <section role="region" id="carrier-dr-warning">
+      <!--
+      <form role="dialog" data-type="confirm">
+        <section>
+          <h1>
+            <span data-l10n-id="dataRoaming-warning-head">Turn ON data roaming?</span>
+          </h1>
+          <p>
+            <small data-l10n-id="dataRoaming-warning-message">
+              Depending on your service agreement, significant roaming charges 
+              may apply for data usage when you are in the roaming area.
+            </small>
+          </p>
+        </section>
+        <menu>
+          <button type="reset" data-l10n-id="notNow">Not now</button>
+          <button type="submit" class="recommend" data-l10n-id="turnOn">Turn ON</button>
         </menu>
       </form>
       -->
@@ -786,7 +811,7 @@
           <small id="dataConnection-desc"></small>
           <a data-l10n-id="dataConnection">Data Connection</a>
         </li>
-        <li id="dataConnection-expl" class="explanation" hidden>
+        <li id="dataConnection-expl" class="explanation" data-l10n-id="dataConnection-warning-message" hidden>
         </li>
         <li>
           <label>
@@ -795,7 +820,7 @@
           </label>
           <a data-l10n-id="dataRoaming">Data Roaming</a>
         </li>
-        <li id="dataRoaming-expl" class="explanation">
+        <li id="dataRoaming-expl" class="explanation" data-l10n-id="dataRoaming-warning-message" hidden>
         </li>
         <li>
           <small id="msisdn-desc"></small>
@@ -931,7 +956,7 @@
           <p data-l10n-id="ssid-name">SSID Network Name</p>
           <input type="text" data-setting="tethering.wifi.ssid" />
         </li>
-        <li>
+        <li class="password-item">
           <p data-l10n-id="wifi-password">Password</p>
           <input type="text" data-setting="tethering.wifi.security.password" />
         </li>
@@ -939,7 +964,7 @@
           <p data-l10n-id="wifi-security">Security</p>
           <p class="fake-select">
             <button class="icon icon-dialog">Security</button>
-            <select data-setting="tethering.wifi.security.type">
+            <select class="security-selector" data-setting="tethering.wifi.security.type">
               <option value="open" data-l10n-id="hotspot-open">open</option>
               <option value="wpa-psk" data-l10n-id="hotspot-wpa-psk">WPA (TKIP)</option>
               <option value="wpa2-psk" data-l10n-id="hotspot-wpa2-psk">WPA2 (AES)</option>
@@ -977,7 +1002,7 @@
             <span data-name="tethering.wifi.ssid"></span>
           </a>
         </li>
-        <li>
+        <li class="password-item" hidden>
           <a data-l10n-id="wifi-password">Password
             <span data-name="tethering.wifi.security.password"></span>
           </a>
@@ -989,7 +1014,7 @@
         </li>
         <li id="hotspot-settings-section">
           <label>
-            <button data-href="#hotspot-wifiSettings"
+            <button class="hotspot-wifiSettings-btn"
               data-l10n-id="hotspotSettings">Hotspot Settings</button>
           </label>
         </li>
@@ -1791,6 +1816,13 @@
         </li>
         <li>
           <label>
+            <input type="checkbox" name="bluetooth.debugging.enabled" />
+            <span></span>
+          </label>
+          <a data-l10n-id="bluetooth-debugging">Bluetooth output in adb</a>
+        </li>
+        <li>
+          <label>
             <input type="checkbox" name="debug.console.enabled"/>
             <span></span>
           </label>
@@ -1994,6 +2026,21 @@
       -->
     </section>
 
+    <!-- Device :: Information :: Legal :: Obtaining Source Code -->
+    <section role="region" id="about-source-code">
+      <!--
+      <header>
+        <a href="#about-legal">
+          <span class="icon icon-back">back</span>
+        </a>
+        <h1 data-l10n-id="obtaining-source-code">
+          Obtaining Source Code
+        </h1>
+      </header>
+      <iframe src="resources/obtaining_source_code.html" id="obtain-sc"></iframe>
+      -->
+    </section>
+
     <!-- Device :: Information :: Legal -->
     <section role="region" id="about-legal">
       <!--
@@ -2011,6 +2058,11 @@
         <li>
           <a href="#about-licensing" data-l10n-id="open-source-notices">
             Open Source Notices
+          </a>
+        </li>
+        <li>
+          <a href="#about-source-code" data-l10n-id="obtaining-source-code">
+            Obtaining Source Code
           </a>
         </li>
       </ul>
@@ -2210,23 +2262,30 @@
       </header>
       <ul>
         <li>
+          <div id="space-stackedbar"></div>
+        </li>
+        <li id="music-space">
+          <span class="stackedbar-color"></span>
           <a data-l10n-id="music-space"> Music
-            <span id="music-space"></span>
+            <span class="size"></span>
           </a>
         </li>
-        <li>
+        <li id="pictures-space">
+          <span class="stackedbar-color"></span>
           <a data-l10n-id="pictures-space"> Pictures
-            <span id="pictures-space"></span>
+            <span class="size"></span>
           </a>
         </li>
-        <li>
+        <li id="videos-space">
+          <span class="stackedbar-color"></span>
           <a data-l10n-id="videos-space"> Movies
-            <span id="videos-space"></span>
+            <span class="size"></span>
           </a>
         </li>
-        <li>
+        <li id="media-free-space">
+          <span class="stackedbar-color"></span>
           <a data-l10n-id="left-space"> Space Left
-            <span id="media-free-space"></span>
+            <span class="size"></span>
           </a>
         </li>
       </ul>
@@ -2423,9 +2482,9 @@
           <h1 data-l10n-id="message">Message</h1>
           <p id="icc-stk-alert-msg">
           </p>
-          <button data-l10n-id="close" id="icc-stk-alert-btn_close">Close</button>
         </section>
         <menu>
+          <button data-l10n-id="close" id="icc-stk-alert-btn_close">Close</button>
           <button data-l10n-id="back" id="icc-stk-alert-btn_back">Back</button>
           <button data-l10n-id="ok" id="icc-stk-alert-btn" class="recommend">Ok</button>
         </menu>

@@ -30,11 +30,6 @@ section[role="region"] {
   overflow: hidden;
 }
 
-/* Without this hack, we get a white screen at launch on gecko21 */
-.uninit section[role="region"],
-.uninit section[role="region"].peek {
-  transition: none;
-}
 
 /**
  * Panel targets -- transitions
@@ -68,6 +63,14 @@ section[role="region"].current.peek.forward {
 }
 section[role="region"].current.peek {
   transform: translateX(-99.9%);
+}
+
+/* Without this hack, we get a white screen at launch on gecko21 */
+.uninit section[role="region"],
+.uninit section[role="region"].peek,
+.uninit section[role="region"].current {
+  transition: none;
+  transform: none;
 }
 
 /**
@@ -178,6 +181,51 @@ section li.password > p {
 
 
 /******************************************************************************
+* Media Storage settings
+*/
+ 
+#mediaStorage #space-stackedbar {
+  border: solid 0px green;
+  display: inline-block;
+  height: 30px;
+  margin: 0.8rem 5%;
+  padding: 0;
+  width: 90%;
+}
+
+#mediaStorage #space-stackedbar .stackedbar-item {
+  display: inline-block;
+  height: 30px;
+}
+
+#mediaStorage #space-stackedbar .stackedbar-item#stackedbar-item-music, #mediaStorage #music-space .stackedbar-color {
+  background-color: #ff7517;
+}
+
+#mediaStorage #space-stackedbar .stackedbar-item#stackedbar-item-pictures, #mediaStorage #pictures-space .stackedbar-color {
+  background-color: #5da31d;
+}
+
+#mediaStorage #space-stackedbar .stackedbar-item#stackedbar-item-videos, #mediaStorage #videos-space .stackedbar-color {
+  background-color: #5917ba;
+}
+
+#mediaStorage #space-stackedbar .stackedbar-item#stackedbar-item-free, #mediaStorage #media-free-space .stackedbar-color {
+  background-color: #fff;
+}
+
+#mediaStorage .stackedbar-color {
+  display: inline-block;
+  height: 2rem;
+  left: 0.5rem;
+  padding: 0px;
+  position: absolute;
+  top: 2.1rem;
+  width: 2rem;
+}
+
+
+/******************************************************************************
  * Call settings
  */
 
@@ -227,7 +275,8 @@ section li.password > p {
   color: #797e80;
 }
 
-#carrier-dc-warning h1 > span:before {
+#carrier-dc-warning h1 > span:before,
+#carrier-dr-warning h1 > span:before {
   content: "";
   position: relative;
   display: inline-block;
@@ -353,6 +402,15 @@ ul li > label .range-icons.brightness {
   position: fixed;
 }
 
+#icc #icc-stk-alert menu button:first-child {
+  margin: 0;
+}
+
+#icc #icc-stk-alert menu button {
+  width: calc((100% - 2rem) / 3);
+  margin-left: 1rem;
+}
+
 .multiline_title {
   text-overflow: clip;
   white-space: normal;
@@ -399,6 +457,7 @@ ul li > label .range-icons.brightness {
  * OS License
  */
 
+#obtain-sc,
 #os-license {
   width: 100%;
   height: calc(100% - 5rem);

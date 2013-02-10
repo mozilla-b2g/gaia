@@ -324,8 +324,8 @@
  *     DeviceStorage events. This permanently puts the MediaDB object into
  *     the MediaDB.CLOSED state in which it is unusable.
  *
- * - stat(): call the DeviceStorage stat() method and pass an the stats
- *     object to the specified callback
+ * - freeSpace(): call the DeviceStorage freeSpace() method and pass the
+ *     result to the specified callback
  */
 var MediaDB = (function() {
 
@@ -481,12 +481,11 @@ var MediaDB = (function() {
       media.storage.addEventListener('change', deviceStorageChangeHandler);
       media.details.dsEventListener = deviceStorageChangeHandler;
 
-      // Use stat() to figure out if there is actually an sdcard there
+      // Use available() to figure out if there is actually an sdcard there
       // and emit a ready or unavailable event
-      var statreq = media.storage.stat();
-      statreq.onsuccess = function(e) {
-        var stats = e.target.result;
-        switch (stats.state) {
+      var availreq = media.storage.available();
+      availreq.onsuccess = function(e) {
+        switch (e.target.result) {
         case 'available':
           changeState(media, MediaDB.READY);
           if (media.autoscan)
@@ -500,11 +499,9 @@ var MediaDB = (function() {
           break;
         }
       };
-      statreq.onerror = function(e) {
-        // XXX stat fails for unavailable and shared,
-        // https://bugzilla.mozilla.org/show_bug.cgi?id=782351
-        // No way to distinguish these cases so just guess
-        console.error('stat() failed', statreq.error && statreq.error.name);
+      availreq.onerror = function(e) {
+        console.error('available() failed',
+                      availreq.error && availreq.error.name);
         changeState(media, MediaDB.UNMOUNTED);
       };
     }
@@ -528,6 +525,8 @@ var MediaDB = (function() {
       case 'modified':
       case 'deleted':
         filename = e.path;
+        if (ignoreName(filename))
+          break;
         if (media.directory) {
           // Ignore changes outside of our directory
           if (filename.substring(0, media.directory.length) !==
@@ -871,16 +870,15 @@ var MediaDB = (function() {
       scan(this);
     },
 
-    // Use the device storage stat() method and pass the resulting
-    // stats object to the callback. The stats object has properties
-    // totalBytes, freeBytes and state.
-    stat: function stat(callback) {
+    // Use the device storage freeSpace() method and pass the returned
+    // value to the callback.
+    freeSpace: function freeSpace(callback) {
       if (this.state !== MediaDB.READY)
         throw Error('MediaDB is not ready. State: ' + this.state);
 
-      var statreq = this.storage.stat();
-      statreq.onsuccess = function() {
-        callback(statreq.result);
+      var freereq = this.storage.freeSpace();
+      freereq.onsuccess = function() {
+        callback(freereq.result);
       }
     }
   };
@@ -905,6 +903,32 @@ var MediaDB = (function() {
   MediaDB.CLOSED = 'closed';       // Unavailalbe because MediaDB has closed
 
   /* Details of helper functions follow */
+
+  //
+  // Return true if media db should ignore this file.
+  //
+  // If any components of the path begin with a . we'll ignore the file.
+  // The '.' prefix indicates hidden files and directories on Unix and
+  // when files are "moved to trash" during a USB Mass Storage session they
+  // are sometimes not actually deleted, but moved to a hidden directory.
+  //
+  // If an array of media types was specified when the MediaDB was created
+  // and the type of this file is not a member of that list, then ignore it.
+  //
+  function ignore(media, file) {
+    if (ignoreName(file.name))
+      return true;
+    if (media.mimeTypes && media.mimeTypes.indexOf(file.type) === -1)
+      return true;
+    return false;
+  }
+
+  // Test whether this filename is one we ignore.
+  // This is a separate function because device storage change events
+  // give us a name only, not the file object.
+  function ignoreName(filename) {
+    return (filename[0] === '.' || filename.indexOf('/.') !== -1);
+  }
 
   // Tell the db to start a manual scan. I think we don't do
   // this automatically from the constructor, but most apps will start
@@ -939,42 +963,29 @@ var MediaDB = (function() {
     // have to do a full scan, since there will be no changes or deletions.
     quickScan(media.details.newestFileModTime);
 
-    //
-    // Return true if media db should ignore this file.
-    //
-    // If any components of the path begin with a . we'll ignore the file.
-    // The '.' prefix indicates hidden files and directories on Unix and
-    // when files are "moved to trash" during a USB Mass Storage session they
-    // are sometimes not actually deleted, but moved to a hidden directory.
-    //
-    // If an array of media types was specified when the MediaDB was created
-    // and the type of this file is not a member of that list, then ignore it.
-    //
-    function ignore(file) {
-      if (file.name[0] === '.' || file.name.indexOf('/.') !== -1)
-        return true;
-      if (media.mimeTypes && media.mimeTypes.indexOf(file.type) === -1)
-        return true;
-      return false;
-    }
-
     // Do a quick scan and then follow with a full scan
     function quickScan(timestamp) {
       var cursor;
       if (timestamp > 0) {
+        media.details.firstscan = false;
         cursor = media.storage.enumerate(media.directory, {
           // add 1 so we don't find the same newest file again
           since: new Date(timestamp + 1)
         });
       }
       else {
+        // If there is no timestamp then this is the first time we've
+        // scanned and we don't have any files in the database, which
+        // allows important optimizations during the scanning process
+        media.details.firstscan = true;
+        media.details.records = [];
         cursor = media.storage.enumerate(media.directory);
       }
 
       cursor.onsuccess = function() {
         var file = cursor.result;
         if (file) {
-          if (!ignore(file))
+          if (!ignore(media, file))
             insertRecord(media, file);
           cursor.continue();
         }
@@ -984,16 +995,14 @@ var MediaDB = (function() {
           // more thorough full scan.
           whenDoneProcessing(media, function() {
             sendNotifications(media);
-            if (timestamp > 0) {
-              // If we were just scanning for new files, then we still
-              // have to go check that all of the old files still exist
-              // and have not changed.
-              fullScan();
+            if (media.details.firstscan) {
+              // If this was the first scan, then we're done
+              endscan(media);
             }
             else {
-              // If we didn't have any files stored in the database when
-              // we started the scan, then we're done.
-              endscan(media);
+              // If this was not the first scan, then we need to go
+              // ensure that all of the old files we know about are still there
+              fullScan();
             }
           });
         }
@@ -1028,7 +1037,7 @@ var MediaDB = (function() {
       cursor.onsuccess = function() {
         var file = cursor.result;
         if (file) {
-          if (!ignore(file)) {
+          if (!ignore(media, file)) {
             dsfiles.push(file);
           }
           cursor.continue();
@@ -1336,50 +1345,69 @@ var MediaDB = (function() {
     }
 
     function storeRecord(fileinfo) {
-      var transaction = media.db.transaction('files', 'readwrite');
-      var store = transaction.objectStore('files');
-      var request = store.add(fileinfo);
-      request.onsuccess = function() {
-        // Remember to send an event about this new file
-        if (!fileinfo.fail)
+      if (media.details.firstscan) {
+        // If this is the first scan then we know this is a new file and
+        // we can assume that adding it to the db will succeed.
+        // So we can just queue a notification about the new file without
+        // waiting for a db operation.
+        media.details.records.push(fileinfo);
+        if (!fileinfo.fail) {
           queueCreateNotification(media, fileinfo);
+        }
         // And go on to the next
         next();
-      };
-      request.onerror = function(event) {
-        // If the error name is 'ConstraintError' it means that the
-        // file already exists in the database. So try again, using put()
-        // instead of add(). If that succeeds, then queue a delete
-        // notification along with the insert notification.  If the
-        // second try fails, or if the error was something different
-        // then issue a warning and continue with the next.
-        if (request.error.name === 'ConstraintError') {
-          // Don't let the higher-level DB error handler report the error
-          event.stopPropagation();
-          // And don't spew a default error message to the console either
-          event.preventDefault();
-          var putrequest = store.put(fileinfo);
-          putrequest.onsuccess = function() {
-            queueDeleteNotification(media, fileinfo.name);
-            if (!fileinfo.fail)
-              queueCreateNotification(media, fileinfo);
-            next();
-          };
-          putrequest.onerror = function() {
-            // Report and move on
-            console.error('MediaDB: unexpected ConstraintError',
-                          'in insertRecord for file:', fileinfo.name);
-            next();
-          };
-        }
-        else {
-          // Something unexpected happened!
-          // All we can do is report it and move on
-          console.error('MediaDB: unexpected error in insertRecord:',
-                        request.error, 'for file:', fileinfo.name);
+      }
+      else {
+        // If this is not the first scan, then we may already have a db
+        // record for this new file. In that case, the call to add() above
+        // is going to fail. We need to handle that case, so we can't send
+        // out the new file notification until we get a response to the add().
+        var transaction = media.db.transaction('files', 'readwrite');
+        var store = transaction.objectStore('files');
+        var request = store.add(fileinfo);
+
+        request.onsuccess = function() {
+          // Remember to send an event about this new file
+          if (!fileinfo.fail)
+            queueCreateNotification(media, fileinfo);
+          // And go on to the next
           next();
-        }
-      };
+        };
+        request.onerror = function(event) {
+          // If the error name is 'ConstraintError' it means that the
+          // file already exists in the database. So try again, using put()
+          // instead of add(). If that succeeds, then queue a delete
+          // notification along with the insert notification.  If the
+          // second try fails, or if the error was something different
+          // then issue a warning and continue with the next.
+          if (request.error.name === 'ConstraintError') {
+            // Don't let the higher-level DB error handler report the error
+            event.stopPropagation();
+            // And don't spew a default error message to the console either
+            event.preventDefault();
+            var putrequest = store.put(fileinfo);
+            putrequest.onsuccess = function() {
+              queueDeleteNotification(media, fileinfo.name);
+              if (!fileinfo.fail)
+                queueCreateNotification(media, fileinfo);
+              next();
+            };
+            putrequest.onerror = function() {
+              // Report and move on
+              console.error('MediaDB: unexpected ConstraintError',
+                            'in insertRecord for file:', fileinfo.name);
+              next();
+            };
+          }
+          else {
+            // Something unexpected happened!
+            // All we can do is report it and move on
+            console.error('MediaDB: unexpected error in insertRecord:',
+                          request.error, 'for file:', fileinfo.name);
+            next();
+          }
+        };
+      }
     }
   }
 
@@ -1426,6 +1454,17 @@ var MediaDB = (function() {
     }
 
     if (details.pendingCreateNotifications.length > 0) {
+
+      // If this is a first scan, and we have records that are not
+      // in the db yet, write them to the db now
+      if (details.firstscan && details.records.length > 0) {
+        var transaction = media.db.transaction('files', 'readwrite');
+        var store = transaction.objectStore('files');
+        for (var i = 0; i < details.records.length; i++)
+          store.add(details.records[i]);
+        details.records.length = 0;
+      }
+
       var creations = details.pendingCreateNotifications;
       details.pendingCreateNotifications = [];
       dispatchEvent(media, 'created', creations);

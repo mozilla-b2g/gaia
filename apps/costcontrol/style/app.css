@@ -35,6 +35,12 @@ iframe {
 
 [aria-hidden="true"] { display: none !important; }
 
+input.error {
+  background-color: rgba(219, 113, 95, 0.2) !important;
+  border-color: #db715f !important;
+  color: #c3503c;
+}
+
 /* WINDOW & VIEWS */
 .window, .view {
   position: fixed;
@@ -280,8 +286,4 @@ section.content .error-messages {
 
 #message-handler {
   visibility: hidden;
-}
-
-.debug-only {
-  display: none !important;
 }

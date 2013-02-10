@@ -7,8 +7,9 @@ var debug = (function() {
   var DEBUG_PREFIX = 'CC';
 
   return function _debug() {
-    if (!DEBUGGING)
+    if (!DEBUGGING) {
       return;
+    }
 
     var currentWindow = window;
     var parents = [];
@@ -25,9 +26,10 @@ var debug = (function() {
       obj = arguments[i];
       message.push(typeof obj === 'object' ? JSON.stringify(obj) : obj);
     }
-    if (window.dump)
+    if (window.dump) {
       window.dump(message.join(' '));
-    else if (console && console.log)
+    } else if (console && console.log) {
       console.log(message.join(' '));
+    }
   };
 }());

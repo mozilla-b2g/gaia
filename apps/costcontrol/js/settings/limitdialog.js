@@ -68,8 +68,9 @@ function dataLimitConfigurer(guiWidget, settings, viewManager) {
     function ccld_onValueChange(value) {
 
       // Use default value if no value
-      if (value === null || typeof value === 'undefined')
+      if (value === null || typeof value === 'undefined') {
         value = settings.defaultValue('dataLimitValue');
+      }
 
       // Set dialog
       dataLimitInput.value = value;
@@ -83,8 +84,9 @@ function dataLimitConfigurer(guiWidget, settings, viewManager) {
     function ccld_onUnitChange(value) {
 
       // Use default value if no value
-      if (value === null || typeof value === 'undefined')
+      if (value === null || typeof value === 'undefined') {
         value = settings.defaultValue('dataLimitUnit');
+      }
 
       // Set dialog
       switchUnitButton.querySelector('span.tag').textContent = value;

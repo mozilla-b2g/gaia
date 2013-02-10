@@ -17,8 +17,9 @@ var BalanceTab = (function() {
   var costcontrol, tabmanager, vmanager, initialized;
 
   function setupTab(tmgr, vmgr) {
-    if (initialized)
+    if (initialized) {
       return;
+    }
 
     CostControl.getInstance(function _onCostControl(instance) {
       costcontrol = instance;
@@ -64,13 +65,15 @@ var BalanceTab = (function() {
   }
 
   function localize() {
-    if (initialized)
+    if (initialized) {
       updateUI();
+    }
   }
 
   function finalize() {
-    if (!initialized)
+    if (!initialized) {
       return;
+    }
 
     document.removeEventListener('mozvisibilitychange', updateWhenVisible);
     updateButton.removeEventListener('click', lockAndUpdateUI);
@@ -92,8 +95,9 @@ var BalanceTab = (function() {
 
   // On showing the application
   function updateWhenVisible() {
-    if (!document.mozHidden && initialized)
+    if (!document.mozHidden && initialized) {
       updateUI();
+    }
   }
 
   // On tapping update
@@ -118,12 +122,13 @@ var BalanceTab = (function() {
 
   // On balance timeout
   function onBalanceTimeout(errors) {
-    if (!errors['BALANCE_TIMEOUT'])
+    if (!errors['BALANCE_TIMEOUT']) {
       return;
+    }
     debug('Balance timeout!');
 
     setBalanceMode('warning');
-    setErrors('balance_timeout');
+    setError('balance_error');
 
     // Error handled, disabling
     errors['BALANCE_TIMEOUT'] = false;
@@ -144,8 +149,11 @@ var BalanceTab = (function() {
   }
 
   // On tapping Top Up with code
-  function topUpWithCode() {
+  function topUpWithCode(lastWasError) {
     vmanager.changeViewTo('topup-dialog');
+    if (lastWasError)
+      setTopUpMode('incorrect_code');
+
     topUpCodeInput.focus();
   }
 
@@ -169,8 +177,9 @@ var BalanceTab = (function() {
       if (status === 'success' || status === 'in_progress') {
         setTopUpMode('in_progress');
         setTimeout(function _hideDialog() {
-          if (vmanager.isCurrentView(topUpDialog.id))
+          if (vmanager.isCurrentView(topUpDialog.id)) {
             vmanager.closeCurrentView();
+          }
         }, DIALOG_TIMEOUT);
 
       } else if (status === 'error') {
@@ -181,8 +190,9 @@ var BalanceTab = (function() {
 
   // On confirmation SMS for top up received
   function onConfirmation(isWaiting) {
-    if (isWaiting !== null)
+    if (isWaiting !== null) {
       return;
+    }
 
     debug('TopUp confirmed!');
     setTopUpMode('default');
@@ -197,7 +207,7 @@ var BalanceTab = (function() {
     var mode;
     if (errors['TOPUP_TIMEOUT']) {
       errors['TOPUP_TIMEOUT'] = false;
-      mode = 'timeout';
+      mode = 'topup_timeout';
     }
     if (errors['INCORRECT_TOPUP_CODE']) {
       errors['INCORRECT_TOPUP_CODE'] = false;
@@ -229,8 +239,9 @@ var BalanceTab = (function() {
         var status = result.status;
         var balance = result.data;
         setBalanceMode(status === 'error' ? 'warning' : 'updating');
-        if (status === 'error')
-          setErrors(status.details);
+        if (status === 'error') {
+          setError(result.details);
+        }
         updateBalance(balance,
                       settings.lowLimit && settings.lowLimitThreshold);
       });
@@ -258,8 +269,9 @@ var BalanceTab = (function() {
 
     // Timestamp
     var timeContent = formatTimeHTML(balance.timestamp);
-    if (view.classList.contains('updating'))
+    if (view.classList.contains('updating')) {
       timeContent = _('updating') + '...';
+    }
     document.getElementById('balance-tab-time').innerHTML = timeContent;
 
     // Limits: reaching zero / low limit
@@ -280,26 +292,34 @@ var BalanceTab = (function() {
   // Set warning / updating modes
   var lastBalanceMode;
   function setBalanceMode(mode) {
-    if (mode === lastBalanceMode)
+    if (mode === lastBalanceMode) {
       return;
+    }
 
     lastBalanceMode = mode;
     view.classList.remove('updating');
     view.classList.remove('warning');
 
-    if (mode === 'warning')
+    if (mode === 'warning') {
       view.classList.add('warning');
+    }
 
-    if (mode === 'updating')
+    if (mode === 'updating') {
       view.classList.add('updating');
+    }
+
+    if (mode === 'default') {
+      setError(); // remove errors
+    }
   }
 
   // Control info messages in the top up dialog as well as the top up countdown
   // and error messages in the error area
   var lastTopUpMode;
   function setTopUpMode(mode) {
-    if (lastTopUpMode === mode)
+    if (lastTopUpMode === mode) {
       return;
+    }
 
     lastTopUpMode = mode;
 
@@ -310,7 +330,7 @@ var BalanceTab = (function() {
     var errorMessage = document.getElementById('topup-error');
     var incorrectCodeMessage = document.getElementById('topup-incorrect-code');
 
-    isShown = (mode === 'default' || mode === 'timeout');
+    isShown = (mode === 'default' || mode === 'topup_timeout');
     defaultMessage.setAttribute('aria-hidden', !isShown);
 
     isShown = (mode === 'in_progress');
@@ -329,25 +349,42 @@ var BalanceTab = (function() {
     // TODO: Set the clock
 
     // Messages in error message area
-    if (mode === 'timeout') {
-      var errorMessageArea =
-        document.getElementById('cost-control-message-area');
-      errorMessageArea.setAttribute('aria-hidden', false);
-      document.getElementById('on-roaming-message')
-        .setAttribute('aria-hidden', true);
-      document.getElementById('on-topup-not-confirmed')
-        .setAttribute('aria-hidden', false);
-      document.getElementById('balance-error-message')
-        .setAttribute('aria-hidden', true);
+    if (mode === 'topup_timeout') {
+      setError(mode);
     }
   }
 
+  var ERRORS = {
+    'airplane_mode': { priority: 1, string: 'airplane-mode-error-message' },
+    'no_service': { priority: 2, string: 'no-coverage-error-message' },
+    'no_coverage': { priority: 2, string: 'no-coverage-error-message' },
+    'topup_timeout': { priority: 3, string: 'top-up-timed-out' },
+    'balance_error': { priority: 4, string: 'balance-error-message' },
+    'non_free_in_roaming': { priority: 4, string: 'on-roaming-message' },
+  };
+  var currentError = '';
+
   // Decide which error should be shown taking in count error priorities
-  function setErrors(error) {
-    debug('TODO: Error for', error);
+  function setError(error) {
+    debug('Error mode:', error);
+    var messageArea = document.getElementById('cost-control-message-area');
+    var message = document.getElementById('error-message-placeholder');
+
+    if (!error) {
+      messageArea.setAttribute('aria-hidden', true);
+    } else {
+      messageArea.setAttribute('aria-hidden', false);
+      var curPriority = currentError ? ERRORS[currentError].priority : 0;
+      var newPriority = ERRORS[error] ? ERRORS[error].priority : 0;
+      if (newPriority >= curPriority) {
+        message.textContent = _(ERRORS[error].string);
+        currentError = error;
+      }
+    }
   }
 
   return {
+    topUpWithCode: topUpWithCode,
     initialize: setupTab,
     finalize: finalize
   };

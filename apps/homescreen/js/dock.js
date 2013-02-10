@@ -12,21 +12,31 @@ const DockManager = (function() {
   var duration = 300;
 
   var initialOffsetLeft, initialOffsetRight, numApps, cellWidth;
-  var isPanning = false, startX, currentX, deltaX;
+  var isPanning = false, startEvent, currentX, deltaX;
   var tapThreshold = Page.prototype.tapThreshold;
+
+  var isTouch = 'ontouchstart' in window;
+  var touchstart = isTouch ? 'touchstart' : 'mousedown';
+  var touchmove = isTouch ? 'touchmove' : 'mousemove';
+  var touchend = isTouch ? 'touchend' : 'mouseup';
+
+  var getX = (function getXWrapper() {
+    return isTouch ? function(e) { return e.touches[0].pageX } :
+                     function(e) { return e.pageX };
+  })();
 
   function handleEvent(evt) {
     switch (evt.type) {
-      case 'touchstart':
+      case touchstart:
         initialOffsetLeft = dock.getLeft();
         initialOffsetRight = dock.getRight();
         numApps = dock.getNumIcons();
-        startX = evt.touches[0].pageX;
+        startEvent = isTouch ? evt.touches[0] : evt;
         attachEvents();
         break;
 
-      case 'touchmove':
-        deltaX = evt.touches[0].pageX - startX;
+      case touchmove:
+        deltaX = getX(evt) - startEvent.pageX;
         if (!isPanning) {
           if (Math.abs(deltaX) < tapThreshold) {
             return;
@@ -64,7 +74,7 @@ const DockManager = (function() {
         dock.moveBy(initialOffsetLeft + deltaX);
         break;
 
-      case 'touchend':
+      case touchend:
         releaseEvents();
 
         if (!isPanning) {
@@ -82,11 +92,16 @@ const DockManager = (function() {
           return;
         }
 
-        if (GridManager.pageHelper.getCurrentPageNumber() > 1) {
+        if (GridManager.pageHelper.getCurrentPageNumber() >
+            GridManager.landingPage) {
+
           Homescreen.setMode('edit');
 
           if ('isIcon' in evt.target.dataset) {
-            DragDropManager.start(evt, {x: evt.clientX, y: evt.clientY});
+            DragDropManager.start(evt, {
+              'x': startEvent.pageX,
+              'y': startEvent.pageY
+            });
           }
         }
         break;
@@ -126,14 +141,14 @@ const DockManager = (function() {
 
   function releaseEvents() {
     container.removeEventListener('contextmenu', handleEvent);
-    window.removeEventListener('touchmove', handleEvent);
-    window.removeEventListener('touchend', handleEvent);
+    window.removeEventListener(touchmove, handleEvent);
+    window.removeEventListener(touchend, handleEvent);
   }
 
   function attachEvents() {
     container.addEventListener('contextmenu', handleEvent);
-    window.addEventListener('touchmove', handleEvent);
-    window.addEventListener('touchend', handleEvent);
+    window.addEventListener(touchmove, handleEvent);
+    window.addEventListener(touchend, handleEvent);
   }
 
   function placeAfterRemovingApp(numApps, centering) {
@@ -174,7 +189,7 @@ const DockManager = (function() {
      */
     init: function dm_init(containerEl, page) {
       container = containerEl;
-      container.addEventListener('touchstart', handleEvent);
+      container.addEventListener(touchstart, handleEvent);
       dock = this.page = page;
 
       var numIcons = dock.getNumIcons();
@@ -190,7 +205,7 @@ const DockManager = (function() {
     },
 
     onDragStop: function dm_onDragStop() {
-      container.addEventListener('touchstart', handleEvent);
+      container.addEventListener(touchstart, handleEvent);
       var numApps = dock.getNumIcons();
       calculateDimentions(numApps);
 
@@ -207,7 +222,7 @@ const DockManager = (function() {
 
     onDragStart: function dm_onDragStart() {
       releaseEvents();
-      container.removeEventListener('touchstart', handleEvent);
+      container.removeEventListener(touchstart, handleEvent);
       numAppsBeforeDrag = dock.getNumIcons();
     },
 

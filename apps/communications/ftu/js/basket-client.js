@@ -5,7 +5,7 @@
 var Basket = {
 
   basketUrl: 'http://basket.mozilla.org/news/subscribe/',
-  newsletterId: 'mozilla-and-you',
+  newsletterId: 'firefox-os',
   callback: null,
   xhr: null,
 

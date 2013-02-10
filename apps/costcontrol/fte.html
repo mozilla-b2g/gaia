@@ -32,6 +32,7 @@
   <script type="text/javascript" src="shared/js/l10n.js"></script>
   <script type="text/javascript" src="shared/js/l10n_date.js"></script>
   <script type="text/javascript" src="shared/js/async_storage.js"></script>
+  <script type="text/javascript" src="shared/js/settings_listener.js"></script>
 
   <!-- Specific code -->
   <script type="text/javascript" src="js/utils/debug.js"></script>
@@ -85,7 +86,7 @@
     <!-- Step 2 -->
     <section role="region" class="view step" data-viewport="right" id="step-2">
       <header>
-        <h1 data-l10n-id="select-plan-type">Select your plan type</h1>
+        <h1 data-l10n-id="fte-plantype-title">Type of contract</h1>
       </header>
       <ul class="content choices">
         <li>
@@ -101,6 +102,7 @@
           </label>
         </li>
       </ul>
+      <p class="step-hint" data-l10n-id="fte-plantype-hint">Select the type of contract you have with your mobile service provider.</p>
       <menu data-items="2">
         <button data-navigation="back">
           <span></span>
@@ -116,12 +118,12 @@
     <!-- Prepaid step 2 -->
     <section role="region" class="view step" data-viewport="right" id="prepaid-step-2">
       <header>
-        <h1 data-l10n-id="set-balance-reminders">Set balance reminders</h1>
+        <h1 data-l10n-id="fte-prepaid2-title">Low balance alert</h1>
       </header>
       <ul class="content settings">
         <li>
           <label class="end">
-            <input class="settings-option" data-option="lowLimit" type="checkbox" checked="checked" data-type="switch">
+            <input id="low-limit" class="settings-option" data-option="lowLimit" type="checkbox" checked="checked" data-type="switch">
             <span></span>
           </label>
           <p data-l10n-id="low-balance-alert">Low Balance alert</p>
@@ -129,17 +131,18 @@
         <li>
           <label class="end" for="ft-balance-alert-value">
             <span id="currency"></span>
-            <input class="settings-option" data-option="lowLimitThreshold" data-disable-on="lowLimit=false" type="number" id="ft-balance-alert-value">
+            <input id="low-limit-input" class="settings-option" data-option="lowLimitThreshold" data-disable-on="lowLimit=false" type="number" id="ft-balance-alert-value">
           </label>
           <p data-l10n-id="low-balance-explanation">Alert me when I’m under</p>
         </li>
       </ul>
+      <p class="step-hint" data-l10n-id="fte-prepaid2-hint">Set an alert to avoid running out of credit.</p>
       <menu data-items="2">
         <button data-navigation="back">
           <span></span>
           <span data-l10n-id="back">Back</span>
         </button>
-        <button class="recommend" data-navigation="next">
+        <button id="low-limit-next-button" class="recommend" data-navigation="next">
           <span></span>
           <span data-l10n-id="next">Next</span>
         </button>
@@ -149,7 +152,7 @@
     <!-- Prepaid step 3 -->
     <section role="region" class="view step" data-viewport="right" id="prepaid-step-3">
       <header>
-        <h1 data-l10n-id="set-data-report-and-reminder">Set data report and reminder</h1>
+        <h1 data-l10n-id="fte-prepaid3-title">Data Report and Alert</h1>
       </header>
       <ul class="content settings">
         <li>
@@ -192,6 +195,7 @@
           <p data-l10n-id="data-limit-value">Alert me when used</p>
         </li>
       </ul>
+      <p class="step-hint" data-l10n-id="fte-prepaid3-hint">Receive reports about your Internet usage and set an alert to avoid using too much.</p>
       <menu data-items="2">
         <button data-navigation="back">
           <span></span>
@@ -207,7 +211,7 @@
     <!-- Postpaid step 2 -->
     <section role="region" class="view step" data-viewport="right" id="postpaid-step-2">
       <header>
-        <h1>Set phone and internet report</h1>
+        <h1 data-l10n-id="fte-postpaid2-title">Phone and Data Report</h1>
       </header>
        <ul class="content settings">
         <li>
@@ -235,6 +239,7 @@
           <p data-l10n-id="starting-on">Starting on</p>
         </li>
       </ul>
+      <p class="step-hint" data-l10n-id="fte-postpaid2-hint">Receive reports about your phone and Internet usage.</p>
       <menu data-items="2">
         <button data-navigation="back">
           <span></span>
@@ -250,7 +255,7 @@
     <!-- Postpaid step 3 -->
     <section role="region" class="view step" data-viewport="right" id="postpaid-step-3">
       <header>
-        <h1 data-l10n-id="set-internet-reminders">Set internet reminders</h1>
+        <h1 data-l10n-id="fte-postpaid3-title">Data Alert</h1>
       </header>
       <ul class="content settings">
         <li>
@@ -269,6 +274,7 @@
           <p data-l10n-id="data-limit-value">Alert me when used</p>
         </li>
       </ul>
+      <p class="step-hint" data-l10n-id="fte-postpaid3-hint">Set an alert to avoid using too much data.</p>
       <menu data-items="2">
         <button data-navigation="back">
           <span></span>
@@ -281,10 +287,10 @@
       </menu>
     </section>
 
-    <!-- Non VIVO step 1 -->
+    <!-- Non VIVO step 2 -->
     <section role="region" class="view step" data-viewport="right" id="non-vivo-step-1">
       <header>
-        <h1 data-l10n-id="set-internet-data-report">Set internet data report</h1>
+        <h1 data-l10n-id="fte-onlydata2-title">Data Report</h1>
       </header>
       <ul class="content settings">
         <li>
@@ -312,6 +318,7 @@
           <p data-l10n-id="starting-on">Starting on</p>
         </li>
       </ul>
+      <p class="step-hint" data-l10n-id="fte-onlydata2-hint">Set an alert to avoid using too much data.</p>
       <menu data-items="2">
         <button data-navigation="back">
           <span></span>
@@ -324,10 +331,10 @@
       </menu>
     </section>
 
-    <!-- Non VIVO step 2 -->
+    <!-- Non VIVO step 3 -->
     <section role="region" class="view step" data-viewport="right" id="non-vivo-step-2">
       <header>
-        <h1 data-l10n-id="set-internet-reminders">Set internet reminders</h1>
+        <h1 data-l10n-id="fte-onlydata3-title">Data Alert</h1>
       </header>
       <ul class="content settings">
         <li>
@@ -346,6 +353,7 @@
           <p data-l10n-id="data-limit-value">Alert me when used</p>
         </li>
       </ul>
+      <p class="step-hint" data-l10n-id="fte-onlydata3-hint">Set an alert to avoid using too much data.</p>
       <menu data-items="2">
         <button data-navigation="back">
           <span></span>
@@ -427,7 +435,7 @@
     <div class="center">
       <h3 data-l10n-id="weekday-reset-setup-title">Select period start day</h3>
       <ul role="listbox">
-        <li>
+        <li class="monday">
           <label for="reset-weekday-option-monday">
             <input type="radio" id="reset-weekday-option-monday" name="reset-weekday-option" checked="checked" value="1" />
             <span data-l10n-id="monday">Monday</span>
@@ -463,7 +471,7 @@
             <span data-l10n-id="saturday">Saturday</span>
           </label>
         </li>
-        <li>
+        <li class="sunday">
           <label for="reset-weekday-option-sunday">
             <input type="radio" id="reset-weekday-option-sunday" name="reset-weekday-option" value="0" />
             <span data-l10n-id="sunday">Sunday</span>

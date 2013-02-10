@@ -85,13 +85,13 @@ var SimLock = {
         // XXXX: After unlocking the SIM the cardState is
         //       'networkLocked' but it changes inmediately to 'ready'
         //       if the phone is not SIM-locked. If the cardState
-        //       is still 'networkLocked' after two seconds we unlock
+        //       is still 'networkLocked' after 20 seconds we unlock
         //       the network control key lock (network personalization).
         setTimeout(function checkState() {
           if (conn.cardState == 'networkLocked') {
             SimPinDialog.show('unlock', SimLock.onClose);
           }
-        }, 5000);
+        }, 20000);
         break;
     }
     return false;
