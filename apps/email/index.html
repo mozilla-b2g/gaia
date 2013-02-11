@@ -19,7 +19,7 @@
   <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css">
   <!-- Unstable building blocks -->
   <link rel="stylesheet" type="text/css" href="shared/style_unstable/progress_activity.css"/>
-  <link rel="stylesheet" type="text/css" href="shared/style_unstable/tabs.css"/>  
+  <link rel="stylesheet" type="text/css" href="shared/style_unstable/tabs.css"/>
   <!-- Localization -->
   <link rel="resource" type="application/l10n" href="locales/locales.ini">
   <link rel="resource" type="application/l10n" href="shared/locales/date.ini">
@@ -91,7 +91,7 @@
         <section class="fld-folders-header skin-organic" role="region">
           <header>
             <a href="#" class="fld-accounts-btn">
-              <span class="icon icon-user"></span>
+              <span class="icon icon-back"></span>
             </a>
             <h1 class="fld-folders-header-account-label"></h1>
           </header>
@@ -195,11 +195,11 @@
                  regardless of their displayed status so we don't scroll them
                  out of the way -->
             <div class="msg-messages-sync-container">
-              <p role="status" class="msg-messages-syncing collapsed">
+              <p class="msg-messages-syncing collapsed">
                 <progress class="small"></progress>
                 <span data-l10n-id="messages-syncing">Message loadinG</span>
               </p>
-              <p role="status" class="msg-messages-sync-more collapsed">
+              <p class="msg-messages-sync-more collapsed">
                 <span data-l10n-id="messages-sync-more">SynC MorE</span>
               </p>
             </div>
@@ -1031,13 +1031,14 @@
         <span class="cmp-attachment-filesize"></span>
         <button class="cmp-attachment-remove">X</span>
       </li>
-      <div class="cmp-sending-container">
-        <p role="status" class="cmp-messages-sending">
-          <progress></progress>
-          <span class="cmp-sending-text" data-l10n-id="compose-sending-message">Sending messagE
-          </span>
-        </p>
-      </div>
+      <form role="dialog" data-type="confirm" class="cmp-sending-container">
+        <section class="cmp-messages-sending">
+          <h1 data-l10n-id="compose-sending-message">Sending messagE</h1>
+          <p style="text-align: center">
+            <progress></progress>
+          </p>   
+        </section>
+      </form>
     </div>
     <!-- Widget nodes for the setup cards; styles use the sup prefix -->
     <div id="templ-sup">

@@ -5,6 +5,10 @@
 
 var Support = {
   init: function support_init() {
+    var url = 'http://support.mozilla.org/products/firefox-os';
+    document.querySelector('[data-l10n-id="user-guide"]').onclick =
+      function openUserGuide() { openLink(url) };
+
     this.loadSupportInfo();
   },
 
@@ -41,6 +45,12 @@ var Support = {
   loadSupportInfo: function support_loadSupportInfo() {
     var self = this;
     this.getSupportInfo(function displaySupportInfo(supportInfo) {
+      if (!supportInfo) {
+        return;
+      }
+
+      document.getElementById('help').setAttribute('data-has-support-info', true);
+
       var link = document.getElementById('online-support-link');
       var text = document.getElementById('online-support-text');
       link.href = supportInfo.onlinesupport.href;

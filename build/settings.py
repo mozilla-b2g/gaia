@@ -136,6 +136,7 @@ settings = {
  "wifi.enabled": True,
  "wifi.disabled_by_wakelock": False,
  "wifi.notification": False,
+ "wifi.connect_via_settings": False,
  "icc.displayTextTimeout": 40000,
  "icc.inputTextTimeout": 40000
 }
