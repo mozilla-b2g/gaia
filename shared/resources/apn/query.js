@@ -104,7 +104,7 @@ document.addEventListener('DOMContentLoaded', function onload() {
     for (var mcc = 1; mcc < 999; mcc++) {
       var country = {};
       var result = queryAndroidDB(mcc);
- 
+
      if (result && result.length) {
         result.sort(function(a, b) {
           return parseInt(result.mnc, 10) < parseInt(result.mnc, 10);
@@ -123,7 +123,13 @@ document.addEventListener('DOMContentLoaded', function onload() {
           var otherSettings = queryOperatorVariantDB(mcc, mnc);
           if (otherSettings) {
             if (DEBUG) {
-              console.log("Other operator settng: " + JSON.stringify(otherSettings));
+              console.log("Other operator settings: " + JSON.stringify(otherSettings));
+            }
+            if (!operatorVariantSettings.voicemail) {
+              voicemail = otherSettings['voicemail'];
+              if (voicemail) {
+                operatorVariantSettings.voicemail = voicemail;
+              }
             }
             var enableStrict7BitEncodingForSms =
               otherSettings['enableStrict7BitEncodingForSms'];
@@ -285,4 +291,3 @@ document.addEventListener('DOMContentLoaded', function onload() {
   document.querySelector('form').oninput = update;
   loadDB(document.querySelector('textarea'), update);
 });
-
