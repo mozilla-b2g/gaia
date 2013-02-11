@@ -183,7 +183,7 @@ section li.password > p {
 /******************************************************************************
 * Media Storage settings
 */
- 
+
 #mediaStorage #space-stackedbar {
   border: solid 0px green;
   display: inline-block;
@@ -478,6 +478,10 @@ html[dir="rtl"] #call-support-numbers {
   left: 2rem;
 }
 
+#help[data-has-support-info] .no-support-info,
+#help:not([data-has-support-info]) .support-info {
+  display: none;
+}
 
 /******************************************************************************
  * Right-To-Left layout
