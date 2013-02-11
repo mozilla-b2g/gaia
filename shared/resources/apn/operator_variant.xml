@@ -496,4 +496,10 @@
        mnc="10"
        enableStrict7BitEncodingForSms="true"
    />
+  <operator
+      name="T-Mobile Internet"
+      mcc="262"
+      mnc="01"
+      voicemail="3311"
+  />
 </variant>
