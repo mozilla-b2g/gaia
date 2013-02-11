@@ -12,6 +12,7 @@ requireApp('communications/contacts/test/unit/mock_fb.js');
 requireApp('communications/contacts/test/unit/mock_extfb.js');
 requireApp('communications/contacts/test/unit/mock_activities.js');
 requireApp('communications/contacts/test/unit/mock_utils.js');
+requireApp('communications/contacts/test/unit/mock_performance_helper.js');
 
 // We're going to swap those with mock objects
 // so we need to make sure they are defined.
@@ -295,6 +296,8 @@ suite('Render contacts list', function() {
     realImageLoader = window.ImageLoader;
     window.ImageLoader = MockImageLoader;
     realURL = window.URL || {};
+    realPerformanceHelper = window.PerformanceHelper;
+    window.PerformanceHelper = MockPerformanceHelper;
     window.URL = MockURL;
     window.utils = window.utils || {};
     window.utils.alphaScroll = MockAlphaScroll;
@@ -318,7 +321,6 @@ suite('Render contacts list', function() {
     window.mozL10n = realL10n;
     window.ActivityHandler = realActivities;
     window.ImageLoader = realActivities;
-    window.URL = MockURL;
     window.PerformanceHelper = realPerformanceHelper;
     window.asyncStorage = realAsyncStorage;
   });
