@@ -858,7 +858,9 @@ var ThreadUI = {
     if (this.input.value.length > 0) {
       this.updateCounter();
     }
-    if (window.location.hash == '#new' && this.contactInput.value.length == 0) {
+    var sanitizedPhoneNumber =
+      Utils.sanitizePhoneNumber(this.contactInput.value);
+    if (window.location.hash == '#new' && sanitizedPhoneNumber.length == 0) {
       this.sendButton.disabled = true;
       return;
     }
@@ -1306,7 +1308,7 @@ var ThreadUI = {
       var hash = window.location.hash;
       // Depending where we are, we get different num
       if (hash == '#new') {
-        num = this.contactInput.value;
+        num = Utils.sanitizePhoneNumber(this.contactInput.value);
         if (!num) {
           return;
         }
@@ -1516,7 +1518,8 @@ var ThreadUI = {
         }
       });
       activity.onsuccess = function success() {
-        var number = this.result.number;
+        var number =
+          Utils.sanitizePhoneNumber(this.result.number);
         if (number) {
           window.location.hash = '#num=' + number;
         }
@@ -1662,7 +1665,8 @@ window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
     return;
   MessageManager.lockActivity = true;
   activity.postResult({ status: 'accepted' });
-  var number = activity.source.data.number;
+  var number =
+    Utils.sanitizePhoneNumber(activity.source.data.number);
   showThreadFromSystemMessage(number);
 });
 
