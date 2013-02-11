@@ -2,6 +2,7 @@
  * Buttons
  * ---------------------------------- */
 
+.button::-moz-focus-inner,
 a[role="button"]::-moz-focus-inner,
 button::-moz-focus-inner {
   border: none;
@@ -9,7 +10,8 @@ button::-moz-focus-inner {
 }
 
 button,
-a[role="button"] {
+a[role="button"],
+.button {
   width: 100%;
   height: 3.8rem;
   margin: 0 0 1rem;
@@ -51,7 +53,8 @@ a[role="button"].recommend {
 
 /* Danger */
 button.danger,
-a.danger[role="button"] {
+a.danger[role="button"],
+span.danger[role="button"] {
   background-image: url(buttons/images/ui/danger.png);
   background-color: #b70404;
   color: #fff;
@@ -61,7 +64,8 @@ a.danger[role="button"] {
 
 /* Danger Press */
 button.danger:active,
-a[role="button"].danger:active {
+a[role="button"].danger:active,
+.button.danger:active {
   background-image: url(buttons/images/ui/danger-press.png);
   background-color: #890707;
 }
@@ -69,8 +73,10 @@ a[role="button"].danger:active {
 /* Disabled (default & recommend) */
 button[disabled],
 a[role="button"][aria-disabled="true"],
+.button[aria-disabled="true"],
 button[disabled].recommend,
-a[role="button"][aria-disabled="true"].recommend {
+a[role="button"][aria-disabled="true"].recommend,
+.button[aria-disabled="true"].recommend {
   background: #e7e7e7;
   border-color: #c7c7c7;
   color: #c7c7c7;
@@ -80,6 +86,7 @@ a[role="button"][aria-disabled="true"].recommend {
 
 /* Danger disabled */
 button[disabled].danger,
+.button[aria-disabled="true"].danger,
 a[role="button"][aria-disabled="true"].danger {
   background: #c68484;
   border-color: #a56464;
@@ -90,6 +97,7 @@ a[role="button"][aria-disabled="true"].danger {
 
 /* Disabled with dark background */
 .dark button[disabled],
+.dark .button[aria-disabled="true"],
 .dark a[role="button"][aria-disabled="true"] {
   background: #5f5f5f;
   color: #4d4d4d;
@@ -104,7 +112,8 @@ a[role="button"][aria-disabled="true"].danger {
  * ---------------------------------- */
 
 li button,
-li a[role="button"] {
+li a[role="button"],
+li .button {
   position: relative;
   background: #e7e7e7;
   text-align: left;
@@ -115,7 +124,8 @@ li a[role="button"] {
 
 /* Hacking box-shadow */
 li button:after,
-li a[role="button"]:after {
+li a[role="button"]:after,
+li .button:after {
   content: "";
   position: absolute;
   bottom: -0.3rem;
@@ -127,24 +137,28 @@ li a[role="button"]:after {
 
 /* Press */
 li a[role="button"]:active:after,
+li .button:active:after,
 li button:active:after {
   opacity: 0;
 }
 
 /* Disabled */
 li button[disabled]:after,
-li a[role="button"][aria-disabled="true"]:after {
+li a[role="button"][aria-disabled="true"]:after,
+li .button[aria-disabled="true"]:after {
   background: none;
 }
 
 /* Icons */
 li button.icon,
-li a[role="button"].icon {
+li a[role="button"].icon,
+li .button.icon {
   padding-right: 3rem;
 }
 
 li button.icon:before,
-li a[role="button"].icon:before {
+li a[role="button"].icon:before,
+li .button.icon:before {
   content: "";
   width: 3rem;
   height: 3rem;
@@ -172,19 +186,22 @@ li a[role="button"][aria-disabled="true"].icon-view:before {
 }
 
 li button.icon-dialog:before,
-li a[role="button"].icon-dialog:before {
+li a[role="button"].icon-dialog:before,
+li .button.icon-dialog:before {
   background: url(buttons/images/icons/dialog.png) no-repeat 1.6rem 0 / 1rem 9rem;
   top: 100%;
   margin-top: -2.4rem;
 }
 
 li button.icon-dialog:active:before,
-li a[role="button"].icon-dialog:active:before {
+li a[role="button"].icon-dialog:active:before,
+li .button.icon-dialog:active:before {
   background-position: 1.6rem -3rem;
 }
 
 li button.icon-dialog:disabled:before,
-li a[role="button"][aria-disabled="true"].icon-dialog:before {
+li a[role="button"][aria-disabled="true"].icon-dialog:before,
+li .button[aria-disabled="true"].icon-dialog:before {
   background-position: 1.6rem -6rem;
 }
 
@@ -227,4 +244,16 @@ ol.compact {
 .compact > li a[role="button"][aria-disabled="true"] {
   color: #a6a6a6;
   border-color: #a6a6a6;
+}
+
+/* Inputs inside of .button */
+.button input,
+body[role="application"] .button input {
+  border: 0;
+  background: none;
+}
+
+/* Hides dropdown arrow until bug #649849 is fixed */
+.button.icon select {
+   width: 130%;
 }
