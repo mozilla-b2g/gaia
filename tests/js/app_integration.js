@@ -228,8 +228,6 @@ var AppIntegration = (function() {
       this.task(function(app, next, done) {
         var device = app.device;
 
-        yield device.setScriptTimeout(15000);
-
         yield IntegrationHelper.importScript(
           device,
           '/tests/atoms/gaia_lock_screen.js',
@@ -582,8 +580,34 @@ var AppIntegration = (function() {
         }
       }
       return toUpdate;
-    }
+    },
 
+    observePerfEvents: function(stopEventName) {
+      var self = this;
+
+      this.task(function (app, next, done) {
+        yield IntegrationHelper.importScript(
+          app.device,
+          'tests/performance/performance_helper_atom.js',
+          next
+        );
+
+        var helperObject = 'window.wrappedJSObject.PerformanceHelperAtom';
+        yield app.device.executeAsyncScript(
+          helperObject + '.register();'
+        );
+
+        var results = yield app.device.executeAsyncScript(
+          helperObject + '.waitForEvent("' + stopEventName + '");'
+        );
+
+        yield app.device.executeAsyncScript(
+          helperObject + '.unregister();'
+        );
+
+        done(null, results);
+      });
+    }
   };
 
   return AppIntegration;

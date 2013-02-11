@@ -328,7 +328,7 @@ contacts.List = (function() {
     // Performance testing
     function renderChunks(index) {
       if (index === 0) {
-        PerformanceHelper.dispatchPerfEvent('contacts-first-chunk');
+        PerformanceTestingHelper.dispatch('contacts-first-chunk');
       }
 
       if (numberOfChunks === index) {
@@ -376,7 +376,7 @@ contacts.List = (function() {
     FixedHeader.refresh();
     lazyLoadImages();
     loaded = true;
-    PerformanceHelper.dispatchPerfEvent('contacts-last-chunk');
+    PerformanceTestingHelper.dispatch('contacts-last-chunk');
   };
 
   // Method that fills non-visible datasets
