@@ -219,16 +219,7 @@ contacts.Details = (function() {
       */
        cList.getContactById(contact.id,
                            function onSuccess(savedContact, enrichedContact) {
-
-        contactData = savedContact;
-        Contacts.setCurrent(contactData);
-
-        if (enrichedContact) {
-          cList.refresh(enrichedContact);
-        } else {
-          cList.refresh(contact);
-        }
-        renderFavorite(contactData);
+        renderFavorite(savedContact);
         favoriteMessage.style.pointerEvents = 'auto';
       }, function onError() {
         console.error('Error reloading contact');

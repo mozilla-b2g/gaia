@@ -503,43 +503,6 @@ var Contacts = (function() {
       (contact1.updated - contact2.updated) == 0;
   };
 
-  // When a visiblity change is sent, handles and updates the
-  // different views according to the app state
-  var handleVisibilityChange = function handleVisibilityChange() {
-    switch (navigation.currentView()) {
-      case 'view-contact-details':
-        if (!currentContact) {
-          return;
-        }
-        contacts.List.load();
-        contacts.List.getContactById(currentContact.id, function(contact) {
-          if (isUpdated(contact, currentContact)) {
-            return;
-          }
-          currentContact = contact;
-          contactsDetails.render(currentContact, TAG_OPTIONS);
-        });
-        break;
-      case 'view-contact-form':
-        if (!currentContact) {
-          return;
-        }
-        contacts.List.load();
-        contacts.List.getContactById(currentContact.id, function(contact) {
-          if (!contact || isUpdated(contact, currentContact)) {
-            return;
-          }
-          currentContact = contact;
-          contactsDetails.render(currentContact, TAG_OPTIONS);
-          navigation.back();
-        });
-        break;
-      case 'view-contacts-list':
-        contacts.List.load();
-        break;
-    }
-  };
-
   var showAddContact = function showAddContact() {
     showForm();
   };
@@ -777,6 +740,76 @@ var Contacts = (function() {
     document.head.appendChild(fragment);
   };
 
+  var pendingChanges = {};
+
+  // This function is called when we finish a oncontactchange operation to 
+  // remove the op of the pending changes and check if we need to apply more
+  // changes request over the same id.
+  var checkPendingChanges = function checkPendingChanges(id) {
+    var changes = pendingChanges[id];
+
+    if(!changes) {
+      return;
+    }
+
+    pendingChanges[id].shift();
+
+    if (pendingChanges[id].length >= 1) {
+      performOnContactChange(pendingChanges[id][0]);
+    }
+  }
+
+  navigator.mozContacts.oncontactchange = function oncontactchange(event) {
+    if (typeof pendingChanges[event.contactID] !== 'undefined') {
+      pendingChanges[event.contactID].push({
+        contactID: event.contactID,
+        reason: event.reason
+      });
+    } else {
+      pendingChanges[event.contactID] = [{
+        contactID: event.contactID,
+        reason: event.reason
+      }];
+    }
+
+    // If there is already a pending request, don't do anything, just wait to finish it in order
+    if(pendingChanges[event.contactID].length > 1) {
+      return;
+    }
+
+    performOnContactChange(event);
+  }
+
+  var performOnContactChange = function performOnContactChange(event) {
+    var currView = navigation.currentView();
+    switch (event.reason) {
+      case 'update':
+        if (currView == 'view-contact-details' && currentContact != null &&
+          currentContact.id == event.contactID) {
+          contactsList.getContactById(event.contactID, function success(contact, enrichedContact) {
+            currentContact = enrichedContact || contact;
+            contactsDetails.render(currentContact);
+            contactsList.refresh(currentContact, checkPendingChanges, event.reason);
+          });
+        } else {
+          contactsList.refresh(event.contactID, checkPendingChanges, event.reason);
+        }
+        break;
+      case 'create':
+        contactsList.refresh(event.contactID, checkPendingChanges, event.reason);
+        break;
+      case 'remove':
+        if (currentContact != null && currentContact.id == event.contactID
+          && (currView == 'view-contact-details' || currView == 'view-contact-form')) {
+          navigation.home();
+        }
+        contactsList.remove(event.contactID, event.reason);
+        currentContact = {};
+        checkPendingChanges(event.contactID);
+        break;
+    }
+  }
+
   return {
     'doneTag': doneTag,
     'goBack' : handleBack,
@@ -790,7 +823,6 @@ var Contacts = (function() {
     'checkCancelableActivity': checkCancelableActivity,
     'isEmpty': isEmpty,
     'getLength': getLength,
-    'handleVisibilityChange': handleVisibilityChange,
     'showForm': showForm,
     'setCurrent': setCurrent,
     'getTags': TAG_OPTIONS,
@@ -826,9 +858,6 @@ window.addEventListener('localized', function initContacts(evt) {
       if (ActivityHandler.currentlyHandling && document.mozHidden) {
         ActivityHandler.postCancel();
         return;
-      }
-      if (!ActivityHandler.currentlyHandling && !document.mozHidden) {
-        Contacts.handleVisibilityChange();
       }
       Contacts.checkCancelableActivity();
     });

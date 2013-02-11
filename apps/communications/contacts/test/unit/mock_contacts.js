@@ -34,5 +34,8 @@ var MockContactsApp = {
     };
   },
   hideOverlay: function() {
+  },
+  loadFacebook: function(cb) {
+    cb();
   }
 };
