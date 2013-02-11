@@ -13,7 +13,7 @@
     text-align: left;
 }
 
-#evmeContainer div, #evmeContainer p, #evmeContainer span,
+#evmeContainer div, #evmeContainer p:not(.building-block), #evmeContainer span,
 #evmeContainer h1, #evmeContainer h2, #evmeContainer h3, #evmeContainer h4,
 #evmeContainer a, #evmeContainer em, #evmeContainer img, #evmeContainer b,
 #evmeContainer ol, #evmeContainer ul, #evmeContainer li,
