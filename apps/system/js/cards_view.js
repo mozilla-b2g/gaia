@@ -233,11 +233,11 @@ var CardsView = (function() {
           PopupManager.getOpenedOriginFromOpener(origin);
         card.appendChild(subtitle);
         card.classList.add('popup');
-      } else if (getOffOrigin(app.frame.dataset.url ?
-            app.frame.dataset.url : app.frame.src, origin)) {
+      } else if (getOffOrigin(app.iframe.dataset.url ?
+            app.iframe.dataset.url : app.iframe.src, origin)) {
         var subtitle = document.createElement('p');
-        subtitle.textContent = getOffOrigin(app.frame.dataset.url ?
-            app.frame.dataset.url : app.frame.src, origin);
+        subtitle.textContent = getOffOrigin(app.iframe.dataset.url ?
+            app.iframe.dataset.url : app.iframe.src, origin);
         card.appendChild(subtitle);
       }
 
