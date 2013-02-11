@@ -12,6 +12,7 @@ requireApp('communications/contacts/test/unit/mock_fb.js');
 requireApp('communications/contacts/test/unit/mock_extfb.js');
 requireApp('communications/contacts/test/unit/mock_activities.js');
 requireApp('communications/contacts/test/unit/mock_utils.js');
+requireApp('communications/contacts/test/unit/mock_performance_helper.js');
 
 // We're going to swap those with mock objects
 // so we need to make sure they are defined.
@@ -42,6 +43,10 @@ if (!this.ImageLoader) {
   this.ImageLoader = null;
 }
 
+if (!this.PerformanceHelper) {
+  this.PerformanceHelper = null;
+}
+
 var URL = null;
 
 
@@ -54,6 +59,7 @@ suite('Render contacts list', function() {
       realContacts,
       realFb,
       realImageLoader,
+      realPerformanceHelper,
       Contacts,
       fb,
       FixedHeader,
@@ -236,6 +242,8 @@ suite('Render contacts list', function() {
     realImageLoader = window.ImageLoader;
     window.ImageLoader = MockImageLoader;
     realURL = window.URL || {};
+    realPerformanceHelper = window.PerformanceHelper;
+    window.PerformanceHelper = MockPerformanceHelper;
     window.URL = MockURL;
     window.utils = window.utils || {};
     window.utils.alphaScroll = MockAlphaScroll;
@@ -256,7 +264,7 @@ suite('Render contacts list', function() {
     window.mozL10n = realL10n;
     window.ActivityHandler = realActivities;
     window.ImageLoader = realActivities;
-    window.URL = MockURL;
+    window.PerformanceHelper = realPerformanceHelper;
   });
 
   suite('Render list', function() {
@@ -713,7 +721,7 @@ suite('Render contacts list', function() {
       mockContacts = new MockContactsList();
       subject.load(mockContacts);
       var names = document.querySelectorAll('[data-search]');
-      
+
       assert.length(names, mockContacts.length);
       for (var i = 0; i < names.length; i++) {
         var printed = names[i];
