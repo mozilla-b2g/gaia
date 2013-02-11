@@ -80,9 +80,9 @@ input.cmp-subject-text {
   -moz-box-sizing: border-box;
   width: calc(100% - 4rem);
   min-height: 10rem;
+  max-height: none !important;
   margin: 1.5rem 2rem;
   display: block;
-  overflow: hidden;
   padding: 0rem;
   font: 1.4rem/2rem "MozTT", Sans-serif;
   font-weight: normal;
