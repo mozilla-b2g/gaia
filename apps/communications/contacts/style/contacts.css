@@ -89,6 +89,17 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
   margin-top: 0;
 }
 
+.view-contact-profile .view-body-inner:not(.no-photo):after {
+  background: url(images/shadow_1px.png) repeat-x;
+  content: "";
+  display: block;
+  height: 0.8rem;
+  top: -0.8rem;
+  left: 0;
+  position: absolute;
+  width: 100%;
+}
+
 .view-contact-profile .view-body-inner.no-photo {
   transform: translateY(0);
   min-height: 100%;
