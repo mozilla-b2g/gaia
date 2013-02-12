@@ -80,7 +80,7 @@
 	text-overflow: '';
 }
 
-li:active > div > img {
+li.active > div > img {
   filter: url('app_tapped_filter.svg#blur');
 }
 

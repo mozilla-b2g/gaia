@@ -45,15 +45,31 @@ const GridManager = (function() {
                      function(e) { return e.pageX };
   })();
 
+  function addActive(target) {
+    if ('isIcon' in target.dataset) {
+      target.classList.add('active');
+      removeActive = function _removeActive() {
+        target.classList.remove('active');
+      }
+    } else {
+      removeActive = function() {};
+    }
+  }
+
+  var removeActive = function() {};
+
   function handleEvent(evt) {
     switch (evt.type) {
       case touchstart:
+        if (currentPage || numberOfSpecialPages === 1)
+          evt.stopPropagation();
         touchStartTimestamp = evt.timeStamp;
         startEvent = isTouch ? evt.touches[0] : evt;
         deltaX = 0;
         attachEvents();
         removePanHandler = dummy;
         isPanning = false;
+        addActive(evt.target);
         break;
 
       case touchmove:
@@ -171,6 +187,7 @@ const GridManager = (function() {
 
           window.mozRequestAnimationFrame(function panTouchEnd() {
             onTouchEnd(deltaX, e);
+            removeActive();
           });
         };
 
@@ -182,6 +199,7 @@ const GridManager = (function() {
       case touchend:
         releaseEvents();
         pageHelper.getCurrent().tap(evt.target);
+        removeActive();
         break;
 
       case 'contextmenu':
@@ -194,6 +212,7 @@ const GridManager = (function() {
           evt.stopImmediatePropagation();
           removePanHandler();
           Homescreen.setMode('edit');
+          removeActive();
           DragDropManager.start(evt, {
             'x': startEvent.pageX,
             'y': startEvent.pageY
