@@ -89,7 +89,7 @@ var Settings = (function() {
       src.innerHTML = xhr.responseText;
       var reference = document.getElementById('plantype-settings');
       var parent = reference.parentNode;
-      [].forEach.call(src.childNodes, function (node) {
+      [].forEach.call(src.childNodes, function(node) {
         reference = parent.insertBefore(node, reference.nextSibling);
       });
     }

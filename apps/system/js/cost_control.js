@@ -25,11 +25,8 @@
     // Create the widget
     if (!widgetFrame) {
       widgetFrame = document.createElement('iframe');
-      widgetFrame.addEventListener('mozbrowsererror',
-        function ccdriver_onError(e) {
-          e.target.dataset.killed = true;
-        }
-      );
+      widgetFrame.addEventListener('mozbrowsererror', _onError);
+      widgetFrame.addEventListener('mozbrowserclose', _onError);
     }
 
     widgetFrame.dataset.frameType = 'widget';
@@ -43,7 +40,42 @@
     widgetFrame.src = origin + '/widget.html';
     widgetContainer.appendChild(widgetFrame);
 
+    _attachNetworkEvents();
     _adjustWidgetPosition();
+  }
+
+  function _onError(e) {
+    e.target.dataset.killed = true;
+  }
+
+  function _attachNetworkEvents() {
+    window.removeEventListener('moznetworkupload', _onNetworkActivity);
+    window.removeEventListener('moznetworkdownload', _onNetworkActivity);
+    window.addEventListener('moznetworkupload', _onNetworkActivity);
+    window.addEventListener('moznetworkdownload', _onNetworkActivity);
+  }
+
+  var hashMark = 0;
+  var activityCounter = 0;
+  var ACTIVITY_THRESHOLD = 250;
+  function _onNetworkActivity() {
+    activityCounter++;
+    if (activityCounter === ACTIVITY_THRESHOLD) {
+      activityCounter = 0;
+      window.removeEventListener('moznetworkupload', _onNetworkActivity);
+      window.removeEventListener('moznetworkdownload', _onNetworkActivity);
+      widgetFrame.addEventListener('mozbrowserlocationchange', _onUpdateDone);
+      widgetFrame.src = origin + '/widget.html#update#' + hashMark;
+      hashMark = 1 - hashMark; // toogle between 0 and 1
+    }
+  }
+
+  function _onUpdateDone(evt) {
+    if (evt.detail.split('#')[1] === 'updateDone') {
+      widgetFrame.removeEventListener('mozbrowserlocationchange',
+                                      _onUpdateDone);
+      _attachNetworkEvents();
+    }
   }
 
   function _showWidget() {

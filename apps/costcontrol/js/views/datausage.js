@@ -147,8 +147,10 @@ var DataUsageTab = (function() {
   }
 
   function requestDataUsage() {
-    var requestObj = { type: 'datausage' };
-    costcontrol.request(requestObj, updateCharts);
+    ConfigManager.requestSettings(function _onSettings(settings) {
+      var requestObj = { type: 'datausage' };
+      costcontrol.request(requestObj, updateCharts);
+    });
   }
 
   function updateCharts(result) {
@@ -166,6 +168,7 @@ var DataUsageTab = (function() {
 
         debug('Rendering');
         updateUI();
+        checkDataUsageNotification(settings, modelData.mobile.total);
       });
 
     } else {
