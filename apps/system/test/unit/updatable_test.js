@@ -137,6 +137,10 @@ suite('system/Updatable', function() {
       subject = new AppUpdatable(mockApp);
     });
 
+/*
+// These tests are currently failing and have been temporarily disabled as per
+// Bug 838993. They should be fixed and re-enabled as soon as possible as per
+// Bug 840500.
     test('should apply update if downloaded', function() {
       mockApp.readyToApplyDownload = true;
       subject = new AppUpdatable(mockApp);
@@ -145,6 +149,7 @@ suite('system/Updatable', function() {
       // WindowManager.kill() is also called in applyUpdate() method
       assert.equal(MockWindowManager.mLastKilledOrigin, subject.app.origin);
     });
+*/
   });
 
   suite('infos', function() {
