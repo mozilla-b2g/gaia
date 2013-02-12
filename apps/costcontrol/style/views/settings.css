@@ -18,3 +18,15 @@
 #settings-view .buttons-list button {
   margin: 0;
 }
+
+#mobile-data-usage span,
+#wifi-data-usage span {
+  font-size: 1.3rem;
+  font-weight: normal;
+}
+
+#mobile-data-usage span.usage,
+#wifi-data-usage span.usage {
+  font-size: 1.7rem;
+  font-weight: bold;
+}
