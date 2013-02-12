@@ -14748,6 +14748,105 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
 
 }); // end define
 ;
+/**
+ * Make our TCPSocket implementation look like node's net library.
+ *
+ * We make sure to support:
+ *
+ * Attributes:
+ * - encrypted (false, this is not the tls byproduct)
+ * - destroyed
+ *
+ * Methods:
+ * - setKeepAlive(Boolean)
+ * - write(Buffer)
+ * - end
+ *
+ * Events:
+ * - "connect"
+ * - "close"
+ * - "end"
+ * - "data"
+ * - "error"
+ **/
+define('net',['require','exports','module','util','events'],function(require, exports, module) {
+
+var util = require('util'),
+    EventEmitter = require('events').EventEmitter;
+
+function NetSocket(port, host, crypto) {
+  this._host = host;
+  this._port = port;
+  this._actualSock = navigator.mozTCPSocket.open(
+    host, port, { useSSL: crypto, binaryType: 'arraybuffer' });
+  EventEmitter.call(this);
+
+  this._actualSock.onopen = this._onconnect.bind(this);
+  this._actualSock.onerror = this._onerror.bind(this);
+  this._actualSock.ondata = this._ondata.bind(this);
+  this._actualSock.onclose = this._onclose.bind(this);
+
+  this.destroyed = false;
+}
+exports.NetSocket = NetSocket;
+util.inherits(NetSocket, EventEmitter);
+NetSocket.prototype.setTimeout = function() {
+};
+NetSocket.prototype.setKeepAlive = function(shouldKeepAlive) {
+};
+NetSocket.prototype.write = function(buffer) {
+  this._actualSock.send(buffer);
+};
+NetSocket.prototype.end = function() {
+  this._actualSock.close();
+  this.destroyed = true;
+};
+
+NetSocket.prototype._onconnect = function(event) {
+  this.emit('connect', event.data);
+};
+NetSocket.prototype._onerror = function(event) {
+  this.emit('error', event.data);
+};
+NetSocket.prototype._ondata = function(event) {
+  var buffer = Buffer(event.data);
+  this.emit('data', buffer);
+};
+NetSocket.prototype._onclose = function(event) {
+  this.emit('close', event.data);
+  this.emit('end', event.data);
+};
+
+
+exports.connect = function(port, host) {
+  return new NetSocket(port, host, false);
+};
+
+}); // end define
+;
+/**
+ *
+ **/
+
+define('tls',
+  [
+    'net',
+    'exports'
+  ],
+  function(
+    $net,
+    exports
+  ) {
+
+exports.connect = function(port, host, wuh, onconnect) {
+  var socky = new $net.NetSocket(port, host, true);
+  if (onconnect)
+    socky.on('connect', onconnect);
+  return socky;
+};
+
+}); // end define
+;
 define('mailparser/datetime',['require','exports','module'],function (require, exports, module) {
 /* 
  * More info at: http://phpjs.org
@@ -16478,8 +16577,9 @@ MailParser.prototype._detectHTMLCharset = function(html){
 };
 
 });
-define('imap',['require','exports','module','util','rdcommon/log','events','mailparser/mailparser'],function(require, exports, module) {
+define('imap',['require','exports','module','util','rdcommon/log','net','tls','events','mailparser/mailparser'],function(require, exports, module) {
 var util = require('util'), $log = require('rdcommon/log'),
+    net = require('net'), tls = require('tls'),
     EventEmitter = require('events').EventEmitter,
     mailparser = require('mailparser/mailparser');
 
@@ -16690,11 +16790,6 @@ ImapConnection.prototype.hasCapability = function(name) {
 ImapConnection.prototype.connect = function(loginCb) {
   var self = this,
       fnInit = function() {
-        if (self._options.crypto === 'starttls') {
-          self._send('STARTTLS', function() {
-            self._state.conn.startTLS();
-          });
-        }
         // First get pre-auth capabilities, including server-supported auth
         // mechanisms
         self._send('CAPABILITY', null, function() {
@@ -16723,31 +16818,36 @@ ImapConnection.prototype.connect = function(loginCb) {
   loginCb = loginCb || emptyFn;
   this._reset();
 
-
-  var socketOptions = {
-    binaryType: 'arraybuffer',
-    useSSL: Boolean(this._options.crypto),
-  };
-  if (this._options.crypto === 'starttls')
-    socketOptions.useSSL = 'starttls';
-
   if (this._LOG) this._LOG.connect(this._options.host, this._options.port);
-  this._state.conn = navigator.mozTCPSocket.open(
-    this._options.host, this._options.port, socketOptions);
 
-  // XXX rely on mozTCPSocket for this?
+  this._state.conn = (this._options.crypto ? tls : net).connect(
+                       this._options.port, this._options.host);
   this._state.tmrConn = setTimeoutFunc(this._fnTmrConn.bind(this, loginCb),
                                        this._options.connTimeout);
 
-  this._state.conn.onopen = function(evt) {
+  this._state.conn.on('connect', function() {
     if (self._LOG) self._LOG.connected();
     clearTimeoutFunc(self._state.tmrConn);
     self._state.status = STATES.NOAUTH;
+    /*
+    We will need to add support for node-like starttls emulation on top of TCPSocket
+    once TCPSocket supports starttls (see also bug 784816).
+
+    if (self._options.crypto === 'starttls') {
+      self._send('STARTTLS', function() {
+        starttls(self, function() {
+	  if (!self.authorized)
+	    throw new Error("starttls failed");
+	  fnInit();
+        });
+      });
+      return;
+    }
+    */
     fnInit();
-  };
-  this._state.conn.ondata = function(evt) {
+  });
+  this._state.conn.on('data', function(buffer) {
     try {
-      var buffer = Buffer(evt.data);
       processData(buffer);
     }
     catch (ex) {
@@ -16756,7 +16856,7 @@ ImapConnection.prototype.connect = function(loginCb) {
         console.error('Stack:', ex.stack);
       throw ex;
     }
-  };
+  });
   /**
    * Process up to one thing.  Generally:
    * - If we are processing a literal, we make sure we have the data for the
@@ -16920,7 +17020,7 @@ ImapConnection.prototype.connect = function(loginCb) {
         } else if (data[1] === 'NO' || data[1] === 'BAD' || data[1] === 'BYE') {
           if (self._LOG && data[1] === 'BAD')
             self._LOG.bad(data[2]);
-          self._state.conn.close();
+          self._state.conn.end();
           return;
         }
         if (!self._state.isReady)
@@ -17223,14 +17323,14 @@ ImapConnection.prototype.connect = function(loginCb) {
     }
   };
 
-  this._state.conn.onclose = function onClose() {
+  this._state.conn.on('close', function onClose() {
     self._reset();
     if (this._LOG) this._LOG.closed();
     self.emit('close');
-  };
-  this._state.conn.onerror = function(evt) {
+  });
+  this._state.conn.on('error', function(err) {
     try {
-      var err = evt.data, errType;
+      var errType;
       // (only do error probing on things we can safely use 'in' on)
       if (err && typeof(err) === 'object') {
         // detect an nsISSLStatus instance by an unusual property.
@@ -17253,7 +17353,7 @@ ImapConnection.prototype.connect = function(loginCb) {
       console.error("Error in imap onerror:", ex);
       throw ex;
     }
-  };
+  });
 };
 
 /**
@@ -17264,9 +17364,8 @@ ImapConnection.prototype.die = function() {
   // NB: there's still a lot of events that could happen, but this is only
   // being used by unit tests right now.
   if (this._state.conn) {
-    this._state.conn.onclose = null;
-    this._state.conn.onerror = null;
-    this._state.conn.close();
+    this._state.conn.removeAllListeners();
+    this._state.conn.end();
   }
   this._reset();
   this._LOG.__die();
@@ -17475,8 +17574,8 @@ ImapConnection.prototype.append = function(data, options, cb) {
       self._state.conn.send(Buffer(data + CRLF));
     }
     else {
-      self._state.conn.send(data);
-      self._state.conn.send(CRLF_BUFFER);
+      self._state.conn.write(data);
+      self._state.conn.write(CRLF_BUFFER);
     }
     if (this._LOG) this._LOG.sendData(data.length, data);
   });
@@ -17510,7 +17609,7 @@ ImapConnection.prototype.multiappend = function(messages, cb) {
     if (err || done)
       return cb(err, iNextMessage - 1);
 
-    self._state.conn.send(typeof(data) === 'string' ? Buffer(data) : data);
+    self._state.conn.write(typeof(data) === 'string' ? Buffer(data) : data);
     // The message literal itself should end with a newline.  We don't want to
     // send an extra one because then that terminates the command.
     if (self._LOG) self._LOG.sendData(data.length, data);
@@ -17521,12 +17620,12 @@ ImapConnection.prototype.multiappend = function(messages, cb) {
       data = message.messageText;
       buildAppendClause(message);
       cmd += CRLF;
-      self._state.conn.send(Buffer(cmd));
+      self._state.conn.write(Buffer(cmd));
       if (self._LOG) self._LOG.sendData(cmd.length, cmd);
     }
     else {
       // This terminates the command.
-      self._state.conn.send(CRLF_BUFFER);
+      self._state.conn.write(CRLF_BUFFER);
       if (self._LOG) self._LOG.sendData(2, CRLF);
       done = true;
     }
@@ -17702,7 +17801,7 @@ ImapConnection.prototype._fnTmrConn = function(loginCb) {
   var err = new Error('Connection timed out');
   err.type = 'timeout';
   loginCb(err);
-  this._state.conn.close();
+  this._state.conn.end();
 };
 
 ImapConnection.prototype._store = function(which, uids, flags, isAdding, cb) {
@@ -17912,12 +18011,12 @@ ImapConnection.prototype._send = function(cmdstr, cmddata, cb, dispatchFunc,
       }
       // does not fit in buffer, just do separate writes...
       else {
-        this._state.conn.send(gSendBuf.subarray(0, iWrite));
+        this._state.conn.write(gSendBuf.subarray(0, iWrite));
         if (typeof(data) === 'string')
-          this._state.conn.send(Buffer(data));
+          this._state.conn.write(Buffer(data));
         else
-          this._state.conn.send(data);
-        this._state.conn.send(CRLF_BUFFER);
+          this._state.conn.write(data);
+        this._state.conn.write(CRLF_BUFFER);
         // set to zero to tell ourselves we don't need to send...
         iWrite = 0;
       }
@@ -17925,7 +18024,7 @@ ImapConnection.prototype._send = function(cmdstr, cmddata, cb, dispatchFunc,
     if (iWrite) {
       gSendBuf[iWrite++] = 13;
       gSendBuf[iWrite++] = 10;
-      this._state.conn.send(gSendBuf.subarray(0, iWrite));
+      this._state.conn.write(gSendBuf.subarray(0, iWrite));
     }
 
     if (this._LOG) { if (!bypass) this._LOG.cmd_begin(prefix, cmd, /^LOGIN$/.test(cmd) ? '***BLEEPING OUT LOGON***' : data); else this._LOG.bypassCmd(prefix, cmd);}
@@ -19007,104 +19106,6 @@ var getTZOffset = exports.getTZOffset = function getTZOffset(conn, callback) {
   }
   var uidsTried = 0;
   conn.openBox('INBOX', true, gotInbox);
-};
-
-}); // end define
-;
-/**
- * Make our TCPSocket implementation look like node's net library.
- *
- * We make sure to support:
- *
- * Attributes:
- * - encrypted (false, this is not the tls byproduct)
- * - destroyed
- *
- * Methods:
- * - setKeepAlive(Boolean)
- * - write(Buffer)
- * - end
- *
- * Events:
- * - "connect"
- * - "close"
- * - "end"
- * - "data"
- * - "error"
- **/
-define('net',['require','exports','module','util','events'],function(require, exports, module) {
-
-var util = require('util'),
-    EventEmitter = require('events').EventEmitter;
-
-function NetSocket(port, host, crypto) {
-  this._host = host;
-  this._port = port;
-  this._actualSock = navigator.mozTCPSocket.open(
-    host, port, { useSSL: crypto, binaryType: 'arraybuffer' });
-  EventEmitter.call(this);
-
-  this._actualSock.onopen = this._onconnect.bind(this);
-  this._actualSock.onerror = this._onerror.bind(this);
-  this._actualSock.ondata = this._ondata.bind(this);
-  this._actualSock.onclose = this._onclose.bind(this);
-
-  this.destroyed = false;
-}
-exports.NetSocket = NetSocket;
-util.inherits(NetSocket, EventEmitter);
-NetSocket.prototype.setTimeout = function() {
-};
-NetSocket.prototype.setKeepAlive = function(shouldKeepAlive) {
-};
-NetSocket.prototype.write = function(buffer) {
-  this._actualSock.send(buffer);
-};
-NetSocket.prototype.end = function() {
-  this._actualSock.close();
-  this.destroyed = true;
-};
-
-NetSocket.prototype._onconnect = function(event) {
-  this.emit('connect', event.data);
-};
-NetSocket.prototype._onerror = function(event) {
-  this.emit('error', event.data);
-};
-NetSocket.prototype._ondata = function(event) {
-  var buffer = Buffer(event.data);
-  this.emit('data', buffer);
-};
-NetSocket.prototype._onclose = function(event) {
-  this.emit('close', event.data);
-  this.emit('end', event.data);
-};
-
-
-exports.connect = function(port, host) {
-  return new NetSocket(port, host, false);
-};
-
-}); // end define
-;
-/**
- *
- **/
-
-define('tls',
-  [
-    'net',
-    'exports'
-  ],
-  function(
-    $net,
-    exports
-  ) {
-
-exports.connect = function(port, host, wuh, onconnect) {
-  var socky = new $net.NetSocket(port, host, true);
-  socky.on('connect', onconnect);
-  return socky;
 };
 
 }); // end define
