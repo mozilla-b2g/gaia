@@ -38,7 +38,12 @@ const Homescreen = (function() {
       GridManager.ensurePanning();
     });
 
-    GridManager.init('.apps', '.dockWrapper', function gm_init() {
+    var tapThreshold = Configurator.getSection('tap_threshold');
+    if (typeof(tapThreshold) === 'undefined') {
+      tapThreshold = 10;
+    }
+
+    GridManager.init('.apps', '.dockWrapper', tapThreshold, function gm_init() {
       PaginationBar.show();
       if (document.location.hash === '#root') {
         // Switch to the first page only if the user has not already

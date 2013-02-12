@@ -145,6 +145,9 @@ let content = {
     enabled: true
   },
 
+  // It defines the threshold in pixels to consider a gesture like a tap event
+  tap_threshold: 10,
+
   // This specifies whether we optimize homescreen panning by trying to
   // predict where the user's finger will be in the future.
   prediction: {
