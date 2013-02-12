@@ -88,7 +88,6 @@ const GridManager = (function() {
         next.MozTransition = '';
         next.MozTransform = 'translateX(' + windowWidth + 'px)';
 
-        var translate = 'translateX($px)';
         var startX = startEvent.pageX;
         var forward = deltaX > 0;
 
@@ -96,42 +95,42 @@ const GridManager = (function() {
         if (index === 0) {
           refresh = function(e) {
             if (deltaX <= 0) {
-              next.MozTransform = translate.replace('$', windowWidth + deltaX);
-              current.MozTransform = translate.replace('$', deltaX);
+              next.MozTransform = 'translateX(' + (windowWidth + deltaX) + 'px)';
+              current.MozTransform = 'translateX(' + deltaX + 'px)';
             }
           };
         } else if (index === pages.length - 1) {
           refresh = function(e) {
             if (deltaX >= 0) {
               previous.MozTransform =
-                translate.replace('$', -windowWidth + deltaX);
-              current.MozTransform = translate.replace('$', deltaX);
+                'translateX(' + (-windowWidth + deltaX) + 'px)';
+              current.MozTransform = 'translateX(' + deltaX + 'px)';
             }
           };
         } else {
           refresh = function(e) {
             if (deltaX >= 0) {
               previous.MozTransform =
-                translate.replace('$', -windowWidth + deltaX);
+                'translateX(' + (-windowWidth + deltaX) + 'px)';
 
               // If we change direction make sure there isn't any part
               // of the page on the other side that stays visible.
               if (!forward) {
                 forward = true;
-                next.MozTransform = translate.replace('$', windowWidth);
+                next.MozTransform = 'translateX(' + windowWidth + 'px)';
               }
             } else {
-              next.MozTransform = translate.replace('$', windowWidth + deltaX);
+              next.MozTransform = 'translateX(' + (windowWidth + deltaX) + 'px)';
 
               // If we change direction make sure there isn't any part
               // of the page on the other side that stays visible.
               if (forward) {
                 forward = false;
-                previous.MozTransform = translate.replace('$', -windowWidth);
+                previous.MozTransform = 'translateX(' + (-windowWidth) + 'px)';
               }
             }
 
-            current.MozTransform = translate.replace('$', deltaX);
+            current.MozTransform = 'translateX(' + deltaX + 'px)';
           };
         }
 
