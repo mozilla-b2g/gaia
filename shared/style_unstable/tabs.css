@@ -176,6 +176,14 @@
   color: #000;
 }
 
+[role="tablist"][data-type="filter"] > [role="tab"]:first-child:target {
+  border-left: none;
+}
+
+[role="tablist"][data-type="filter"] > [role="tab"]:last-child:target {
+  border-right: none;
+}
+
 [role="tablist"][data-type="filter"] > [role="tab"]:target > a {
   color: #000;
 }
