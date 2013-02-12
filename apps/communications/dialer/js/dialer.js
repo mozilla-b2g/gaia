@@ -116,6 +116,12 @@ var CallHandler = (function callHandler() {
 
   /* === Incoming and STK calls === */
   function newCall() {
+    // Move to foreground
+    navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+      var app = evt.target.result;
+      app.launch('communications');
+    };
+
     // We need to query mozTelephony a first time here
     // see bug 823958
     var telephony = navigator.mozTelephony;
