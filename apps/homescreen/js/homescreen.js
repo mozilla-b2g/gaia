@@ -29,11 +29,13 @@ const Homescreen = (function() {
       if (document.location.hash != '#root')
         return;
 
+      // this happens when the user presses the 'home' button
       if (Homescreen.isInEditMode()) {
         exitFromEditMode();
       } else {
         GridManager.goToPage(landingPage);
       }
+      GridManager.ensurePanning();
     });
 
     GridManager.init('.apps', '.dockWrapper', function gm_init() {
@@ -50,9 +52,8 @@ const Homescreen = (function() {
 
   function exitFromEditMode() {
     Homescreen.setMode('normal');
-    GridManager.markDirtyState();
     ConfirmDialog.hide();
-    GridManager.goToPage(GridManager.pageHelper.getCurrentPageNumber());
+    GridManager.exitFromEditMode();
   }
 
   document.addEventListener('mozvisibilitychange', function mozVisChange() {

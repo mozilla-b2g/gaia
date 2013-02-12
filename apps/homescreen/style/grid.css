@@ -134,8 +134,15 @@ li.active > div > img {
   animation: rotate 2.25s linear infinite;
 }
 
+/* the panels are panning */
 body[data-transitioning] .loading:after {
   animation-name: none;
+}
+
+/* the icon is being dragged */
+.draggable .loading:after {
+  animation-name: none;
+  background: none;
 }
 
 .loading img {
