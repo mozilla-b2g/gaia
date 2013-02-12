@@ -71,6 +71,16 @@
         return;
       }
 
+      // If the alarm is in the past, fake it was launched
+      if (when.getTime() < Date.now()) {
+        debug('Faking a past reset alarm');
+        _onAlarm({ data: { type:'nextReset' } });
+        if (callback) {
+          setTimeout(callback);
+        }
+        return;
+      }
+
       // If when is provided, request an alarm an set the new values
       var alarms = navigator.mozAlarms;
       var request = alarms.add(when, 'ignoreTimezone', {type: 'nextReset' });
@@ -184,6 +194,50 @@
       update[notified] = true;
       ConfigManager.setOption(update, callback);
     };
+  }
+
+  // When receiving an alarm, differenciate by type and act
+  function _onAlarm(alarm) {
+    clearTimeout(closing);
+    switch (alarm.data.type) {
+      case 'balanceTimeout':
+        ConfigManager.requestSettings(function _onSettings(settings) {
+          settings.errors['BALANCE_TIMEOUT'] = true;
+          ConfigManager.setOption(
+            { 'errors': settings.errors, 'waitingForBalance': null },
+            function _onBalanceTimeout() {
+              debug('Timeout for balance');
+              debug('Trying to synchronize!');
+              localStorage['sync'] = 'errors#' + Math.random();
+              closeIfProceeds();
+            }
+          );
+        });
+        break;
+
+      case 'topupTimeout':
+        ConfigManager.requestSettings(function _onSettings(settings) {
+          settings.errors['TOPUP_TIMEOUT'] = true;
+          ConfigManager.setOption(
+            { 'errors': settings.errors, 'waitingForTopUp': null },
+            function _onBalanceTimeout() {
+              debug('Timeout for topup');
+              debug('Trying to synchronize!');
+              localStorage['sync'] = 'errors#' + Math.random();
+              closeIfProceeds();
+            }
+          );
+        });
+        break;
+
+      case 'nextReset':
+        ConfigManager.requestSettings(function _onSettings(settings) {
+          resetAll();
+          updateNextReset(settings.trackingPeriod, settings.resetTime);
+          closeIfProceeds();
+        });
+        break;
+    }
   }
 
   function checkDataUsageNotification(settings, usage, callback) {
@@ -347,49 +401,8 @@
         });
       });
 
-      // When receiving an alarm, differenciate by type and act
-      navigator.mozSetMessageHandler('alarm', function _onAlarm(alarm) {
-        clearTimeout(closing);
-        switch (alarm.data.type) {
-          case 'balanceTimeout':
-            ConfigManager.requestSettings(function _onSettings(settings) {
-              settings.errors['BALANCE_TIMEOUT'] = true;
-              ConfigManager.setOption(
-                { 'errors': settings.errors, 'waitingForBalance': null },
-                function _onBalanceTimeout() {
-                  debug('Timeout for balance');
-                  debug('Trying to synchronize!');
-                  localStorage['sync'] = 'errors#' + Math.random();
-                  closeIfProceeds();
-                }
-              );
-            });
-            break;
 
-          case 'topupTimeout':
-            ConfigManager.requestSettings(function _onSettings(settings) {
-              settings.errors['TOPUP_TIMEOUT'] = true;
-              ConfigManager.setOption(
-                { 'errors': settings.errors, 'waitingForTopUp': null },
-                function _onBalanceTimeout() {
-                  debug('Timeout for topup');
-                  debug('Trying to synchronize!');
-                  localStorage['sync'] = 'errors#' + Math.random();
-                  closeIfProceeds();
-                }
-              );
-            });
-            break;
-
-          case 'nextReset':
-            ConfigManager.requestSettings(function _onSettings(settings) {
-              resetAll();
-              updateNextReset(settings.trackingPeriod, settings.resetTime);
-              closeIfProceeds();
-            });
-            break;
-        }
-      });
+      navigator.mozSetMessageHandler('alarm', _onAlarm);
 
       // Count a new SMS
       navigator.mozSetMessageHandler('sms-sent', function _onSent(sms) {
