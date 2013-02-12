@@ -81,21 +81,16 @@ Icon.prototype = {
 
     // Image
     var img = this.img = new Image();
-    icon.appendChild(img);
+    img.setAttribute('role', 'presentation');
+    img.width = 64;
+    img.height = 64;
     img.style.visibility = 'hidden';
-    if (this.downloading) {
-      img.src = descriptor.icon;
-      img.style.visibility = 'visible';
+    if (descriptor.renderedIcon) {
+      this.displayRenderedIcon();
     } else {
-      img.setAttribute('role', 'presentation');
-      img.width = 64;
-      img.height = 64;
-      if (descriptor.renderedIcon) {
-        this.displayRenderedIcon();
-      } else {
-        this.fetchImageData();
-      }
+      this.fetchImageData();
     }
+    icon.appendChild(img);
 
     // Label
 
@@ -206,6 +201,7 @@ Icon.prototype = {
     }
 
     img.onload = function icon_loadSuccess() {
+      img.onload = img.onerror = null;
       if (blob)
         window.URL.revokeObjectURL(img.src);
       self.renderImage(img);
@@ -216,8 +212,10 @@ Icon.prototype = {
         window.URL.revokeObjectURL(img.src);
       img.src = getDefaultIcon(self.app);
       img.onload = function icon_errorIconLoadSucess() {
+        img.onload = null;
         self.renderImage(img);
       };
+      img.onerror = null;
     };
   },
 

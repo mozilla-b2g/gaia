@@ -3,28 +3,30 @@
 requireApp('homescreen/test/unit/mock_app.js');
 requireApp('homescreen/test/unit/mock_xmlhttprequest.js');
 requireApp('homescreen/test/unit/mock_grid_manager.js');
-requireApp('homescreen/test/unit/mocks_helper.js');
 
 requireApp('homescreen/js/page.js');
 
-var mocksForHomescreenPageTest = [
+var mocksHelperForPage = new MocksHelper([
   'XMLHttpRequest',
   'GridManager'
-];
-
-mocksForHomescreenPageTest.forEach(function(mockName) {
-  if (! window[mockName]) {
-    window[mockName] = null;
-  }
-});
+]);
+mocksHelperForPage.init();
 
 suite('page.js >', function() {
-  var mocksHelper;
 
+  var mocksHelper = mocksHelperForPage;
   var containerNode;
 
+  function createImageBlob() {
+    var data = [ "some stuff" ];
+    var properties = {
+      type : "image/png"
+    };
+
+    return new Blob(data, properties);
+  }
+
   suiteSetup(function() {
-    mocksHelper = new MocksHelper(mocksForHomescreenPageTest);
     mocksHelper.suiteSetup();
   });
 
@@ -54,30 +56,62 @@ suite('page.js >', function() {
   });
 
   suite('Icon >', function() {
-    var iconsContainer;
+    var iconsContainer, icon;
+
+    function renderIcon(done) {
+      function onImageLoad(e) {
+        e.target.removeEventListener('load', onImageLoad);
+        e.target.removeEventListener('error', onImageLoad);
+        done();
+      }
+
+      icon.render(iconsContainer);
+
+      // icon.img is instanciated in icon.render
+      var img = icon.img;
+      if (img.src && img.complete) {
+        done();
+      } else {
+        // if this never happens, then we have a problem anyway
+        img.addEventListener('load', onImageLoad);
+        img.addEventListener('error', onImageLoad);
+      }
+    }
+
+    function dragSuite() {
+      test('onDragStart should work', function() {
+        icon.onDragStart(icon.getTop(), icon.getLeft());
+      });
+    }
+
+    function assertIconIsRendered() {
+      test('icon should be rendered', function() {
+        assert.equal(iconsContainer.querySelectorAll('li').length, 1);
+        assert.ok(iconsContainer.querySelector('img').src);
+      });
+    }
 
     setup(function() {
       iconsContainer = document.createElement('ol');
     });
 
     suite('installed app >', function() {
-      var icon, descriptor;
 
       suite('no icon >', function() {
-        setup(function() {
+        setup(function(done) {
           var app = new MockApp();
-          descriptor = {
+          var descriptor = {
             manifestURL: app.manifestURL,
             name: app.name
           };
 
+          console.log('no icon suite');
           icon = new Icon(descriptor, app);
-          icon.render(iconsContainer);
+          renderIcon(done);
         });
 
-        test('icon should be rendered', function() {
-          assert.equal(iconsContainer.querySelectorAll('li').length, 1);
-        });
+        assertIconIsRendered();
+        dragSuite();
       });
 
       suite('data url icon >', function() {
@@ -118,23 +152,21 @@ suite('page.js >', function() {
         '/jGDQ97mKRpp8BpUPS4uihmmxH/kkBhigD/nigQZwl9O/wdwGdg8uCmX4wAAAA' +
         'BJRU5ErkJggg==';
 
-        setup(function() {
+        setup(function(done) {
           var app = new MockApp();
-          descriptor = {
+          var descriptor = {
             manifestURL: app.manifestURL,
             name: app.name,
             icon: defaultIconAsDataUri
           };
 
           icon = new Icon(descriptor, app);
-          icon.render(iconsContainer);
+          renderIcon(done);
+          MockXMLHttpRequest.mSendReadyState({ response: createImageBlob() });
         });
 
-        test('icon should be rendered', function() {
-          // note: this doesn't test if the icon is actually displayed
-          // but merely that we don't fail somewhere
-          assert.equal(iconsContainer.querySelectorAll('li').length, 1);
-        });
+        assertIconIsRendered();
+        dragSuite();
 
         test('should not use XHR to get the icon', function() {
           assert.isUndefined(MockXMLHttpRequest.mLastOpenedUrl);
@@ -146,7 +178,7 @@ suite('page.js >', function() {
 
         setup(function() {
           var app = new MockApp();
-          descriptor = {
+          var descriptor = {
             manifestURL: app.manifestURL,
             name: app.name,
             icon: anIconAsHttpUrl
@@ -156,15 +188,13 @@ suite('page.js >', function() {
         });
 
         suite('XHR works fine >', function() {
-          setup(function() {
-            icon.render(iconsContainer);
+          setup(function(done) {
+            renderIcon(done);
+            MockXMLHttpRequest.mSendReadyState({ response: createImageBlob() });
           });
 
-          test('icon should be rendered', function() {
-            // note: this doesn't test if the icon is actually displayed
-            // but merely that we don't fail somewhere
-            assert.equal(iconsContainer.querySelectorAll('li').length, 1);
-          });
+          assertIconIsRendered();
+          dragSuite();
 
           test('should load the icon with XHR', function() {
             assert.equal(MockXMLHttpRequest.mLastOpenedUrl, anIconAsHttpUrl);
@@ -173,15 +203,16 @@ suite('page.js >', function() {
 
 
         suite('XHR throws an exception >', function() {
-          setup(function() {
+          setup(function(done) {
+            // in this case, the code is using an Image to fetch a png, and this
+            // sometimes is slow even if the server is local
+            this.timeout(5000);
             MockXMLHttpRequest.mThrowAtNextSend();
-            icon.render(iconsContainer);
+            renderIcon(done);
           });
-          test('icon should still be rendered', function() {
-            // note: this doesn't test if the icon is actually displayed
-            // but merely that we don't fail somewhere
-            assert.equal(iconsContainer.querySelectorAll('li').length, 1);
-          });
+
+          assertIconIsRendered();
+          dragSuite();
         });
       });
 
@@ -190,7 +221,7 @@ suite('page.js >', function() {
 
         setup(function() {
           var app = new MockApp();
-          descriptor = {
+          var descriptor = {
             manifestURL: app.manifestURL,
             name: app.name,
             icon: anIconAsHttpUrl,
@@ -201,15 +232,13 @@ suite('page.js >', function() {
         });
 
         suite('XHR works fine >', function() {
-          setup(function() {
-            icon.render(iconsContainer);
+          setup(function(done) {
+            renderIcon(done);
+            MockXMLHttpRequest.mSendReadyState({ response: createImageBlob() });
           });
 
-          test('icon should be rendered', function() {
-            // note: this doesn't test if the icon is actually displayed
-            // but merely that we don't fail somewhere
-            assert.equal(iconsContainer.querySelectorAll('li').length, 1);
-          });
+          assertIconIsRendered();
+          dragSuite();
 
           test('should load the icon with XHR', function() {
             assert.equal(MockXMLHttpRequest.mLastOpenedUrl, anIconAsHttpUrl);
@@ -218,15 +247,15 @@ suite('page.js >', function() {
 
 
         suite('XHR throws an exception >', function() {
-          setup(function() {
+          setup(function(done) {
+            // in this case, the code is using an Image to fetch a png, and this
+            // sometimes is slow even if the server is local
+            this.timeout(5000);
             MockXMLHttpRequest.mThrowAtNextSend();
-            icon.render(iconsContainer);
+            renderIcon(done);
           });
-          test('icon should still be rendered', function() {
-            // note: this doesn't test if the icon is actually displayed
-            // but merely that we don't fail somewhere
-            assert.equal(iconsContainer.querySelectorAll('li').length, 1);
-          });
+          assertIconIsRendered();
+          dragSuite();
         });
       });
 
@@ -234,9 +263,7 @@ suite('page.js >', function() {
     });
 
     suite('downloading app >', function() {
-      var icon;
-
-      setup(function() {
+      setup(function(done) {
         var app = new MockApp({
           downloading: true,
           installState: 'pending',
@@ -249,12 +276,12 @@ suite('page.js >', function() {
         };
 
         icon = new Icon(descriptor, app);
-        icon.render(iconsContainer);
+        renderIcon(done);
       });
 
-      test('icon should be rendered', function() {
-        assert.ok(iconsContainer.querySelector('li'));
-      });
+      assertIconIsRendered();
+      dragSuite();
+
     });
 
 

@@ -1,6 +1,6 @@
 'use strict';
 
-const GridManager = (function() {
+var GridManager = (function() {
   var MAX_ICONS_PER_PAGE = 4 * 4;
   var PREFERRED_ICON_SIZE = 60;
   var SAVE_STATE_TIMEOUT = 100;
@@ -24,8 +24,6 @@ const GridManager = (function() {
 
   var saveStateTimeout = null;
 
-  var appMgr = navigator.mozApps.mgmt;
-
   // Limits for changing pages during dragging
   var limits = {
     left: 0,
@@ -41,8 +39,8 @@ const GridManager = (function() {
   var touchend = isTouch ? 'touchend' : 'mouseup';
 
   var getX = (function getXWrapper() {
-    return isTouch ? function(e) { return e.touches[0].pageX } :
-                     function(e) { return e.pageX };
+    return isTouch ? function(e) { return e.touches[0].pageX; } :
+                     function(e) { return e.pageX; };
   })();
 
   function addActive(target) {
@@ -50,6 +48,7 @@ const GridManager = (function() {
       target.classList.add('active');
       removeActive = function _removeActive() {
         target.classList.remove('active');
+        removeActive = function() {};
       };
     } else {
       removeActive = function() {};
@@ -97,6 +96,7 @@ const GridManager = (function() {
         var forward = deltaX < 0;
 
         var refresh;
+
         if (currentPage === 0) {
           var next = pages[currentPage + 1].container.style;
           refresh = function(e) {
@@ -286,6 +286,25 @@ const GridManager = (function() {
   function releaseEvents() {
     window.removeEventListener(touchmove, handleEvent);
     window.removeEventListener(touchend, handleEvent);
+  }
+
+  function exitFromEditMode() {
+    markDirtyState();
+    goToPage(currentPage);
+  }
+
+  function ensurePanning() {
+    container.addEventListener(touchstart, handleEvent, true);
+  }
+
+  function markDirtyState() {
+    if (saveStateTimeout != null) {
+      window.clearTimeout(saveStateTimeout);
+    }
+    saveStateTimeout = window.setTimeout(function saveStateTrigger() {
+      saveStateTimeout = null;
+      pageHelper.saveAll();
+    }, SAVE_STATE_TIMEOUT);
   }
 
   function togglePagesVisibility(start, end) {
@@ -669,7 +688,7 @@ const GridManager = (function() {
 
     container = document.querySelector(selector);
     container.addEventListener('contextmenu', handleEvent);
-    container.addEventListener(touchstart, handleEvent, true);
+    ensurePanning();
 
     limits.left = container.offsetWidth * 0.05;
     limits.right = container.offsetWidth * 0.95;
@@ -696,6 +715,8 @@ const GridManager = (function() {
    * state with the applications known to the system.
    */
   function initApps(apps) {
+    var appMgr = navigator.mozApps.mgmt;
+
     appMgr.oninstall = function oninstall(event) {
      GridManager.install(event.application);
     };
@@ -731,7 +752,7 @@ const GridManager = (function() {
         for (var entryPoint in iconsForApp) {
           var icon = iconsForApp[entryPoint];
           icon.remove();
-          GridManager.markDirtyState();
+          markDirtyState();
         }
       }
 
@@ -848,7 +869,7 @@ const GridManager = (function() {
       pageHelper.addPage([icon]);
     }
 
-    GridManager.markDirtyState();
+    markDirtyState();
   }
 
   /*
@@ -952,6 +973,7 @@ const GridManager = (function() {
      *
      */
     init: function gm_init(gridSelector, dockSelector, callback) {
+      pages = [];
       initUI(gridSelector);
 
       // Initialize the grid from the state saved in IndexedDB.
@@ -987,7 +1009,7 @@ const GridManager = (function() {
       delete document.body.dataset.dragging;
       dragging = false;
       delete document.body.dataset.transitioning;
-      container.addEventListener(touchstart, handleEvent, true);
+      ensurePanning();
       ensurePagesOverflow();
       removeEmptyPages();
     },
@@ -1037,18 +1059,10 @@ const GridManager = (function() {
         DockManager.afterRemovingApp();
 
       removeEmptyPages();
-      this.markDirtyState();
+      markDirtyState();
     },
 
-    markDirtyState: function gm_markDirtyState() {
-      if (saveStateTimeout != null) {
-        window.clearTimeout(saveStateTimeout);
-      }
-      saveStateTimeout = window.setTimeout(function saveStateTrigger() {
-        saveStateTimeout = null;
-        pageHelper.saveAll();
-      }, SAVE_STATE_TIMEOUT);
-    },
+    markDirtyState: markDirtyState,
 
     getIcon: getIcon,
 
@@ -1076,6 +1090,10 @@ const GridManager = (function() {
       return landingPage;
     },
 
-    showRestartDownloadDialog: showRestartDownloadDialog
+    showRestartDownloadDialog: showRestartDownloadDialog,
+
+    exitFromEditMode: exitFromEditMode,
+
+    ensurePanning: ensurePanning
   };
 })();
