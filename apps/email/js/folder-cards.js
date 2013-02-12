@@ -235,16 +235,6 @@ FolderPickerCard.prototype = {
     this.domNode.getElementsByClassName('fld-folders-header-account-label')[0]
       .textContent = str;
 
-    // Update header button icon status with title name.
-    var icon = this.accountButton.firstElementChild;
-    if (isAccount) {
-      icon.classList.remove('icon-user');
-      icon.classList.add('icon-back');
-    } else {
-      icon.classList.remove('icon-back');
-      icon.classList.add('icon-user');
-    }
-
     // Update account problem status
     if (this.curAccount.problems.length)
       this.toolbarAccountProblemNode.classList.remove('collapsed');
