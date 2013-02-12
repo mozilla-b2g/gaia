@@ -12,8 +12,7 @@ const DockManager = (function() {
   var duration = 300;
 
   var initialOffsetLeft, initialOffsetRight, numApps, cellWidth;
-  var isPanning = false, startEvent, currentX, deltaX;
-  var tapThreshold = Page.prototype.tapThreshold;
+  var isPanning = false, startEvent, currentX, deltaX, tapThreshold;
 
   var isTouch = 'ontouchstart' in window;
   var touchstart = isTouch ? 'touchstart' : 'mousedown';
@@ -205,7 +204,8 @@ const DockManager = (function() {
      * @param {Dock} page
      *               The dock page object.
      */
-    init: function dm_init(containerEl, page) {
+    init: function dm_init(containerEl, page, pTapThreshold) {
+      tapThreshold = pTapThreshold;
       container = containerEl;
       container.addEventListener(touchstart, handleEvent);
       dock = this.page = page;

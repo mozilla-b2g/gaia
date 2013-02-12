@@ -145,6 +145,9 @@ let content = {
     enabled: true
   },
 
+  // It defines the threshold in pixels to consider a gesture like a tap event
+  tap_threshold: 10,
+
   grid: customize.homescreens.map(
     function map_homescreens(applist) {
       var output = [];
