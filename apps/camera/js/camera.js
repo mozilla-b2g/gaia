@@ -285,7 +285,7 @@ var Camera = {
     }
 
     this._shutterSound = new Audio('./resources/sounds/shutter.ogg');
-    this._shutterSound.mozAudioChannelType = 'publicnotification';
+    this._shutterSound.mozAudioChannelType = 'notification';
 
     if ('mozSettings' in navigator) {
       var req = navigator.mozSettings.createLock().get(this._shutterKey);
