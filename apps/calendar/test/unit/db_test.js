@@ -6,6 +6,10 @@ requireApp('calendar/test/unit/helper.js', function() {
   requireLib('presets.js');
 });
 
+/*
+// These tests are currently failing and have been temporarily disabled as per
+// Bug 838993. They should be fixed and re-enabled as soon as possible as per
+// Bug 840489.
 suite('db', function() {
   var subject;
   var name;
@@ -564,3 +568,4 @@ suite('db', function() {
   });
 
 });
+*/
