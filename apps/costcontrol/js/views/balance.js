@@ -392,7 +392,7 @@ var BalanceTab = (function() {
     'no_coverage': { priority: 2, string: 'no-coverage-error-message' },
     'topup_timeout': { priority: 3, string: 'top-up-timed-out' },
     'balance_error': { priority: 4, string: 'balance-error-message' },
-    'non_free_in_roaming': { priority: 4, string: 'on-roaming-message' },
+    'non_free_in_roaming': { priority: 4, string: 'on-roaming-message' }
   };
   var currentError = '';
 
