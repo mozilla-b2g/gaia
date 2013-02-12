@@ -38,17 +38,17 @@ var Curtain = (function() {
     var total = 0;
 
     progressElement.setAttribute('value', 0);
-    messages['progress'].textContent = _('progressFB3' + from, {
-      current: counter,
-      total: total
-    });
 
-    this.update = function() {
-      progressElement.setAttribute('value', (++counter * 100) / total);
-      messages['progress'].textContent = _('progressFB3' + from, {
+    function showMessage() {
+      messages['progress'].textContent = _('progressFB', {
         current: counter,
         total: total
       });
+    }
+
+    this.update = function() {
+      progressElement.setAttribute('value', (++counter * 100) / total);
+      showMessage();
     };
 
     this.setFrom = function(pfrom) {
@@ -58,6 +58,7 @@ var Curtain = (function() {
 
     this.setTotal = function(ptotal) {
       total = ptotal;
+      showMessage();
     }
   }
 

@@ -291,8 +291,8 @@ const DragDropManager = (function() {
     window.removeEventListener(touchmove, onMove);
     window.removeEventListener(touchend, onEnd);
     stop(function dg_stop() {
-      GridManager.onDragStop();
       DockManager.onDragStop();
+      GridManager.onDragStop();
     });
   }
 

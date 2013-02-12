@@ -206,7 +206,8 @@ var SimManager = {
     // Delay for showing feedback to the user after importing
     var DELAY_FEEDBACK = 300;
     UIManager.navBar.setAttribute('aria-disabled', 'true');
-    var progress = utils.overlay.show(_('simContacts-importing'), true);
+    var progress = utils.overlay.show(_('simContacts-reading'),
+                                      'activityBar');
 
     var importButton = UIManager.simImportButton;
     importButton.setAttribute('disabled', 'disabled');
@@ -215,6 +216,8 @@ var SimManager = {
     var importedContacts = 0;
 
     importer.onread = function sim_import_read(n) {
+      progress.setClass('progressBar');
+      progress.setHeaderMsg(_('simContacts-importing'))
       progress.setTotal(n);
     };
 

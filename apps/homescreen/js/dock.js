@@ -12,8 +12,7 @@ const DockManager = (function() {
   var duration = 300;
 
   var initialOffsetLeft, initialOffsetRight, numApps, cellWidth;
-  var isPanning = false, startEvent, currentX, deltaX;
-  var tapThreshold = Page.prototype.tapThreshold;
+  var isPanning = false, startEvent, currentX, deltaX, tapThreshold;
 
   var isTouch = 'ontouchstart' in window;
   var touchstart = isTouch ? 'touchstart' : 'mousedown';
@@ -25,14 +24,29 @@ const DockManager = (function() {
                      function(e) { return e.pageX };
   })();
 
+  function addActive(target) {
+    if ('isIcon' in target.dataset) {
+      target.classList.add('active');
+      removeActive = function _removeActive() {
+        target.classList.remove('active');
+      }
+    } else {
+      removeActive = function() {};
+    }
+  }
+
+  var removeActive = function() {};
+
   function handleEvent(evt) {
     switch (evt.type) {
       case touchstart:
+        evt.stopPropagation();
         initialOffsetLeft = dock.getLeft();
         initialOffsetRight = dock.getRight();
         numApps = dock.getNumIcons();
         startEvent = isTouch ? evt.touches[0] : evt;
         attachEvents();
+        addActive(evt.target);
         break;
 
       case touchmove:
@@ -84,6 +98,8 @@ const DockManager = (function() {
           onTouchEnd(deltaX);
         }
 
+        removeActive();
+
         break;
 
       case 'contextmenu':
@@ -96,6 +112,7 @@ const DockManager = (function() {
             GridManager.landingPage) {
 
           Homescreen.setMode('edit');
+          removeActive();
 
           if ('isIcon' in evt.target.dataset) {
             DragDropManager.start(evt, {
@@ -187,7 +204,8 @@ const DockManager = (function() {
      * @param {Dock} page
      *               The dock page object.
      */
-    init: function dm_init(containerEl, page) {
+    init: function dm_init(containerEl, page, pTapThreshold) {
+      tapThreshold = pTapThreshold;
       container = containerEl;
       container.addEventListener(touchstart, handleEvent);
       dock = this.page = page;

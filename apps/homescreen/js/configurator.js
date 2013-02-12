@@ -35,6 +35,7 @@ const Configurator = (function() {
         }
       }
     } catch (e) {
+      conf = {};
       console.error('Failed parsing homescreen configuration file: ' + e);
       startHomescreenByDefault();
     }
