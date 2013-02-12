@@ -4,24 +4,25 @@ var utils = this.utils || {};
 (function() {
   utils.overlay = {};
 
-  var progressBar = document.querySelector('#progressbar'),
+  var overlay = document.querySelector('#loading-overlay'),
+      statusContainer = overlay.querySelector('p[role="status"]'),
+      progressActivity = document.querySelector('#progress-activity'),
       progressTitle = document.querySelector('#progress-title'),
-      spinnerProgress = document.querySelector('#spinner-progress'),
-      loading = document.querySelector('#loading-overlay'),
       progressElement = document.querySelector('#progress-element'),
       progressMsg = document.querySelector('#progress-msg');
 
-  utils.overlay.show = function showOverlay(message, isProgress) {
-    function ProgressBar() {
+  utils.overlay.show = function showOverlay(message, progressClass, textId) {
+    // Constructor for the progress element
+    function ProgressBar(pMsgId,pClass) {
       var counter = 0;
       var total = 0;
+      var progressTextId = pMsgId || 'genericProgress';
+      var clazz = pClass;
 
       progressElement.setAttribute('value', 0);
 
-      showMessage();
-
       function showMessage() {
-        progressMsg.textContent = _('progressSIMImport', {
+        progressMsg.textContent = _(progressTextId, {
           current: counter,
           total: total
         });
@@ -35,29 +36,65 @@ var utils = this.utils || {};
       this.setTotal = function(ptotal) {
         total = ptotal;
       };
-    }
+
+      this.setClass = function(clazzName) {
+        setClass(clazzName);
+        clazz = clazzName;
+        // To refresh the message according to the new clazzName
+        if(clazzName === 'activityBar' || clazzName === 'spinner') {
+          progressMsg.textContent = null;
+        }
+      }
+
+      this.setHeaderMsg = function(headerMsg) {
+        progressTitle.textContent = headerMsg;
+      }
+    } // ProgressBar
 
     var out;
-    var text = message || _('loadingContacts');
 
-    loading.classList.add('show-overlay');
+    overlay.classList.add('show-overlay');
+    progressActivity.classList.remove('hide');
+    progressTitle.textContent = message;
 
-    if (isProgress) {
-      progressBar.classList.remove('hide');
-      progressTitle.textContent = message;
-      out = new ProgressBar();
-    }
-    else {
-      spinnerProgress.classList.remove('hide');
-      loading.querySelector('.loading-header').textContent = text;
-    }
+    progressMsg.textContent = null;
+
+    // In the case of an spinner this object will not be really used
+    out = new ProgressBar(textId, progressClass);
+
+    setClass(progressClass);
 
     return out;
   };
 
+  function setAsProgress() {
+    statusContainer.classList.remove('loading-icon');
+    progressElement.setAttribute('max','100');
+    progressElement.setAttribute('value','0');
+  }
+
+  function setClass(clazzName) {
+    switch(clazzName) {
+      case 'spinner':
+        progressElement.classList.remove('pack-activity');
+        statusContainer.classList.add('loading-icon');
+        progressElement.removeAttribute('max');
+        progressElement.removeAttribute('value');
+      break;
+      case 'activityBar':
+      case 'progressActivity':
+        progressElement.classList.add('pack-activity');
+        setAsProgress();
+      break;
+      case 'progressBar':
+        progressElement.classList.remove('pack-activity');
+         setAsProgress();
+      break;
+    }
+  }
+
   utils.overlay.hide = function hideOverlay() {
-    loading.classList.remove('show-overlay');
-    progressBar.classList.add('hide');
-    spinnerProgress.classList.add('hide');
+    overlay.classList.remove('show-overlay');
+    progressActivity.classList.add('hide');
   };
 })();
