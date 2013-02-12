@@ -210,9 +210,14 @@ var Settings = (function() {
   // Update data usage view on settings
   function updateDataUsage(datausage, lastDataReset) {
     var mobileUsage = document.querySelector('#mobile-data-usage > span');
-    var timestamp = document.querySelector('#mobile-data-usage + .meta');
     var data = roundData(datausage.mobile.total);
     mobileUsage.innerHTML = formatData(data);
+
+    var wifiUsage = document.querySelector('#wifi-data-usage > span');
+    data = roundData(datausage.wifi.total);
+    wifiUsage.innerHTML = formatData(data);
+
+    var timestamp = document.querySelector('#wifi-data-usage + .meta');
     timestamp.innerHTML = formatTimeHTML(lastDataReset, datausage.timestamp);
   }
 
