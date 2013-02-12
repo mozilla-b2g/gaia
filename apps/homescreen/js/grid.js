@@ -420,6 +420,8 @@ const GridManager = (function() {
   }
 
   function removeEmptyPages() {
+    var oldCurrentPage = currentPage;
+
     pages.forEach(function checkIsEmpty(page, index) {
       // ignore the landing page
       if (index < numberOfSpecialPages) {
@@ -432,6 +434,10 @@ const GridManager = (function() {
           currentPage -= 1;
       }
     });
+
+    // If the current page index changes we have to go to that page
+    if (oldCurrentPage > currentPage)
+      goToPage(currentPage);
   }
 
   /*
