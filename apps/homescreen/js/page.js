@@ -91,21 +91,16 @@ Icon.prototype = {
 
     // Image
     var img = this.img = new Image();
-    icon.appendChild(img);
-    img.style.visibility = 'hidden';
-    if (this.downloading) {
-      img.src = descriptor.icon;
-      img.style.visibility = 'visible';
+    img.setAttribute('role', 'presentation');
+    img.width = MAX_ICON_SIZE+4*SCALE_RATIO;
+    img.height = MAX_ICON_SIZE+4*SCALE_RATIO;
+    if (descriptor.renderedIcon) {
+      this.displayRenderedIcon();
     } else {
-      img.setAttribute('role', 'presentation');
-      img.width = MAX_ICON_SIZE+4*SCALE_RATIO;
-      img.height = MAX_ICON_SIZE+4*SCALE_RATIO;
-      if (descriptor.renderedIcon) {
-        this.displayRenderedIcon();
-      } else {
-        this.fetchImageData();
-      }
+      img.style.visibility = 'hidden';
+      this.fetchImageData();
     }
+    icon.appendChild(img);
 
     // Label
 
@@ -228,6 +223,7 @@ Icon.prototype = {
       img.onload = function icon_errorIconLoadSucess() {
         self.renderImage(img);
       };
+      img.onerror = null;
     };
   },
 
