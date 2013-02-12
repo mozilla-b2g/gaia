@@ -322,7 +322,10 @@ function optimize_compile(webapp, file) {
       let newFile = new FileUtils.File(newPath);
       optimize_embedl10nResources(win.document, dictionary);
 
-      if (JS_AGGREGATION_BLACKLIST.indexOf(webapp.sourceDirectoryName) === -1) {
+      var shouldAggregate = (PRODUCTION === "1" &&
+        !DEBUG &&
+        JS_AGGREGATION_BLACKLIST.indexOf(webapp.sourceDirectoryName) === -1);
+      if (shouldAggregate) {
         optimize_aggregateJsResources(win.document, webapp, newFile);
         dump(
           '[optimize] aggregating javascript for : "' +
