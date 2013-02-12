@@ -15,7 +15,7 @@
     "settings":{ "access": "readonly" },
     "camera":{},
     "geolocation":{},
-    "audio-channel-publicnotification":{}
+    "audio-channel-notification":{}
   },
   "activities": {
     "record": {
