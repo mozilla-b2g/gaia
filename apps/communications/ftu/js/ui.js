@@ -147,7 +147,7 @@ var UIManager = {
             this.newsletterInput.checkValidity() &&
             this.newsletterInput.value.length > 0
           ) {
-            utils.overlay.show(_('email-loading'));
+            utils.overlay.show(_('email-loading'), 'spinner');
             Basket.send(this.newsletterInput.value, basketCallback.bind(this));
           } else {
             this.invalidEmailErrorDialog.classList.add('visible');
