@@ -13,14 +13,14 @@
     "webapps-manage":{},
     "mobileconnection":{},
     "bluetooth":{},
-    "telephony":{},
+    "contacts":{ "access": "readwrite" },
     "voicemail":{},
-    "device-storage:pictures":{ "access": "readwrite" },
+    "device-storage:music":{ "access": "readcreate" },
+    "device-storage:pictures":{ "access": "readcreate" },
     "settings":{ "access": "readwrite" },
     "storage":{},
     "camera":{},
     "geolocation":{},
-    "wifi-manage":{},
     "desktop-notification":{},
     "idle":{},
     "network-events":{},
@@ -34,3 +34,4 @@
   },
   "default_locale": "en-US"
 }
+
