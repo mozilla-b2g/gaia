@@ -885,7 +885,7 @@ var ThreadUI = {
     var segments = smsInfo.segments;
     var availableChars = smsInfo.charsAvailableInLastSegment;
     var counter = '';
-    if (segments > 1) {
+    if (segments > 1 || availableChars <= 10) {
       counter = availableChars + '/' + segments;
     }
     this.sendButton.dataset.counter = counter;
