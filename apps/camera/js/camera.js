@@ -732,6 +732,7 @@ var Camera = {
   },
 
   takePictureSuccess: function camera_takePictureSuccess(blob) {
+    this._config.position = null;
     this._manuallyFocused = false;
     this.hideFocusRing();
     this.restartPreview();
@@ -905,7 +906,7 @@ var Camera = {
   takePicture: function camera_takePicture() {
     this._config.rotation = this._phoneOrientation;
     this._config.pictureSize = this._pictureSize;
-    if (this._position) {
+    if (this._position && !this._pendingPick) {
       this._config.position = this._position;
     }
     this._cameraObj
