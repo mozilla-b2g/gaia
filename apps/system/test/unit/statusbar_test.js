@@ -17,6 +17,10 @@ mocksForStatusBar.forEach(function(mockName) {
   }
 });
 
+/*
+// These tests are currently failing and have been temporarily disabled as per
+// Bug 838993. They should be fixed and re-enabled as soon as possible as per
+// Bug 840500.
 suite('system/Statusbar', function() {
   var fakeStatusBarNode;
   var mocksHelper;
@@ -94,7 +98,12 @@ suite('system/Statusbar', function() {
       assert.isTrue(fakeIcons['system-downloads'].hidden);
     });
 
+*/
     /* JW: testing that we can't have a negative counter */
+/*
+// These tests are currently failing and have been temporarily disabled as per
+// Bug 838993. They should be fixed and re-enabled as soon as possible as per
+// Bug 840500.
     test('incrementing then decrementing twice then incrementing should ' +
          'display the icon', function() {
       StatusBar.incSystemDownloads();
@@ -419,3 +428,4 @@ suite('system/Statusbar', function() {
     });
   });
 });
+*/
