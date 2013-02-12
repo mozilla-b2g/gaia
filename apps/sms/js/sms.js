@@ -608,6 +608,7 @@ var ThreadListUI = {
 
     // Retrieving params from thread
     var bodyText = (thread.body || '').split('\n')[0];
+    var bodyHTML = Utils.escapeHTML(bodyText);
     var formattedDate = Utils.getFormattedHour(timestamp);
     // Create HTML Structure
     var structureHTML = '<label class="danger">' +
@@ -623,7 +624,7 @@ var ThreadListUI = {
                           '</aside>' +
                           '<p class="name">' + num + '</p>' +
                           '<p><time>' + formattedDate +
-                          '</time>' + bodyText + '</p>' +
+                          '</time>' + bodyHTML + '</p>' +
                         '</a>';
 
     // Update HTML
