@@ -2,8 +2,6 @@
 
 var TelephonyHelper = (function() {
 
-  var telephony = navigator.mozTelephony;
-
   var call = function(number, oncall, onconnected, ondisconnected, onerror) {
     var settings = window.navigator.mozSettings, req;
     if (settings) {
@@ -30,8 +28,7 @@ var TelephonyHelper = (function() {
   };
 
   var startDial = function(number, oncall, connected, disconnected, onerror) {
-    var sanitizedNumber = number.replace(/-/g, '');
-
+    var telephony = navigator.mozTelephony;
     if (telephony) {
       var conn = window.navigator.mozMobileConnection;
       var call;
