@@ -90,8 +90,17 @@ section[role="region"] > header:first-child + * {
 }
 
 .description {
-  padding: 1rem 3rem;
-  font-size: 1.4rem;
+  padding: 1rem 2rem 1rem 3rem;
+  font-size: 1.7rem;
+  line-height: 23px;
+  white-space: normal;
+  -moz-hyphens: auto;
+}
+
+.description p {
+  padding: 0 0 1rem;
+  font-size: 1.9rem;
+  text-overflow: none;
   white-space: normal;
 }
 
