@@ -400,16 +400,16 @@ var ThreadListUI = {
       var contact = contacts[0];
 
       // Update contact phone number
-      var contactName = contact.name;
+      var contactName = contact.name[0];
       if (contacts.length > 1) {
         // If there are more than one contact with same phone number
         var others = contacts.length - 1;
-        nameContainer.innerHTML = _('others', {
+        nameContainer.textContent = _('others', {
           name: contactName,
           n: others
         });
       }else {
-        nameContainer.innerHTML = contactName;
+        nameContainer.textContent = contactName;
       }
       // Do we have to update photo?
       if (contact.photo && contact.photo[0]) {
@@ -979,9 +979,9 @@ var ThreadUI = {
        */
       if (contacts.length > 1) {
         self.title.dataset.isContact = true;
-        var contactName = contacts[0].name;
+        var contactName = contacts[0].name[0];
         var numOthers = contacts.length - 1;
-        self.title.innerHTML = _('others', {
+        self.title.textContent = _('others', {
           name: contactName,
           n: numOthers
         });
@@ -995,9 +995,9 @@ var ThreadUI = {
           } else {
             delete self.title.dataset.isContact;
           }
-          self.title.innerHTML = details.title || number;
+          self.title.textContent = details.title || number;
           if (details.carrier) {
-            carrierTag.innerHTML = details.carrier;
+            carrierTag.textContent = details.carrier;
             carrierTag.classList.remove('hide');
           } else {
             carrierTag.classList.add('hide');
@@ -1432,7 +1432,7 @@ var ThreadUI = {
       Utils.getPhoneDetails(tels[i].value,
                             contact,
                             function gotDetails(details) {
-        var name = (contact.name || details.title).toString();
+        var name = Utils.escapeHTML((contact.name[0] || details.title));
         //TODO ask UX if we should use type+carrier or just number
         var number = tels[i].value.toString();
         var input = self.contactInput.value;
@@ -1734,7 +1734,7 @@ if (!window.location.hash.length) {
       function gotContact(contact) {
         var sender;
         if (contact.length && contact[0].name) {
-          sender = contact[0].name;
+          sender = Utils.escapeHTML(contact[0].name[0]);
         } else {
           sender = message.sender;
         }
