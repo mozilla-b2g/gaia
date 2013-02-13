@@ -241,7 +241,7 @@ ul li select {
 }
 
 /* half-width select boxes */
-ul li span select {
+ul li span:not(.button) select {
   display: inline-block;
   position: absolute;
   top: 1.5rem;
@@ -257,41 +257,18 @@ ul li p + select {
 }
 
 /******************************************************************************
- * Fake select boxes
+ * Select boxes
  */
-.fake-select {
-  position: relative;
-  display: block;
-  padding: 1.1rem 3rem;
-  margin: 0;
-  height: 3.8rem;
-}
 
-.fake-select.small {
-  display: inline-block;
-  vertical-align: top;
-}
-
-.fake-select > button {
-  display: block;
-  top: 0;
-  left: 0;
-  width: 100%;
-}
-
-.fake-select > select {
-  position: absolute;
-  top: 0;
-  left: 3rem;
-  width: calc(100% - 6rem);
-  height: 3.8rem;
-  border: none;
-  background: red;
-  opacity: 0;
+.button > select {
+  border: 0;
+  background: 0;
+  text-align: left;
+  width: 150% !important;
 }
 
 /* */
-section[role="region"] > ul > li > p + .fake-select {
+section[role="region"] > ul > li > p #preferredNetworkType {
   padding-top: 0;
   margin-top: -0.8rem;
 }
