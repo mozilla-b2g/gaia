@@ -939,9 +939,9 @@ MessageReaderCard.prototype = {
       { // Confirm
         id: 'msg-delete-ok',
         handler: function() {
-          Cards.removeCardAndSuccessors(this.domNode, 'animate');
           var op = this.header.deleteMessage();
           Toaster.logMutation(op, true);
+          Cards.removeCardAndSuccessors(this.domNode, 'animate');
         }.bind(this)
       },
       { // Cancel
@@ -964,9 +964,9 @@ MessageReaderCard.prototype = {
   onMove: function() {
     //TODO: Please verify move functionality after api landed.
     Cards.folderSelector(function(folder) {
-      Cards.removeCardAndSuccessors(this.domNode, 'animate');
       var op = this.header.moveMessage(folder);
       Toaster.logMutation(op, true);
+      Cards.removeCardAndSuccessors(this.domNode, 'animate');
     }.bind(this));
   },
 
