@@ -64,7 +64,7 @@ var CostControlApp = (function() {
   function setupApp() {
     // View managers for dialogs and settings
     tabmanager = new ViewManager(
-      ['balance-tab', 'telephony-tab', 'datausage-tab']
+      ['balance-tab', 'telephony-tab', { id:'datausage-tab', tab:'right' }]
     );
     settingsVManager = new ViewManager();
 
