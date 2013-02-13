@@ -201,6 +201,10 @@
     <link rel="stylesheet" type="text/css" href="style/crash_reporter/crash_reporter.css">
     <script defer src="js/crash_reporter.js"></script>
 
+    <!-- Browser class -->
+    <link rel="stylesheet" type="text/css" href="style/browser_frame/browser_frame.css">
+    <script defer src="js/browser_frame.js"></script>
+
     <!-- Captive Portal Login -->
     <script defer src="js/captive_portal.js"></script>
 
@@ -209,6 +213,10 @@
     <!-- homescreen from being displayed must come before this script. -->
     <script defer src="js/window.js"></script>
     <script defer src="js/window_manager.js"></script>
+
+    <!-- Entry Sheet -->
+    <link rel="stylesheet" type="text/css" href="style/entry_sheet/entry_sheet.css">
+    <script defer src="js/entry_sheet.js"></script>
 
     <!-- Remote Debugger -->
     <script defer src="js/remote_debugger.js"></script>
@@ -722,7 +730,7 @@
       </form>
 
       <form id="updates-download-dialog" data-type="confirm" role="dialog"
-            data-z-index-level="updates-download-dialog" data-nowifi="false" 
+            data-z-index-level="updates-download-dialog" data-nowifi="false"
             data-data-connection-inline-warning="false">
         <section>
           <h1>
@@ -732,7 +740,7 @@
           </ul>
         </section>
         <p id="updates-data-connection-warning" data-l10n-id="downloadDataConnectionWarning">
-          Updates are downloaded via data connection when Wi-Fi is not available. Additional data charges may apply.    
+          Updates are downloaded via data connection when Wi-Fi is not available. Additional data charges may apply.
         </p>
         <p id="updates-offline-warning" data-l10n-id="downloadOfflineWarning">
           Connection unavailable. Connect to a network to download updates.
@@ -764,7 +772,7 @@
 
       <div id="lockscreen" class="uninit" data-panel="main" data-z-index-level="lockscreen">
         <div id="lockscreen-container">
-          <div id="lockscreen-panel-main" class="lockscreen-panel">
+          <div id="lockscreen-panel-main" class="lockscreen-panel" data-wallpaper>
             <div id="lockscreen-header">
               <div id="lockscreen-connstate" hidden><span></span><span></span></div>
               <div id="lockscreen-mute" hidden></div>
@@ -792,7 +800,7 @@
             </div>
           </div>
 
-          <div id="lockscreen-panel-passcode" class="lockscreen-panel">
+          <div id="lockscreen-panel-passcode" class="lockscreen-panel" data-wallpaper>
             <h2 id="lockscreen-passcode-status" data-l10n-id="enter-security-code">Enter Security&nbsp;Code</h2>
             <p id="lockscreen-passcode-code"><span></span><span></span><span></span><span></span></p>
             <div id="lockscreen-passcode-pad">

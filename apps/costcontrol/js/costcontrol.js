@@ -29,11 +29,13 @@ var CostControl = (function() {
     function setupCostControl() {
       costcontrol = {
         request: request,
+        isBalanceRequestSMS: isBalanceRequestSMS,
         getApplicationMode: getApplicationMode,
         getDataUsageWarning: function _getDataUsageWarning() {
           return 0.8;
         }
       };
+
       debug('Cost Control ready!');
       onready(costcontrol);
     }
@@ -75,6 +77,12 @@ var CostControl = (function() {
     return settings.plantype.toUpperCase();
   }
 
+  // Check if a SMS matches the form of a balance request
+  function isBalanceRequestSMS(sms, configuration) {
+    return sms.body === configuration.balance.text &&
+           sms.receiver === configuration.balance.destination;
+  }
+
   // Perform a request. They must be specified via a request object with:
   // type: datausage, balance, topup or telephony
   // data: in case of topup, the code for topup
@@ -100,7 +108,9 @@ var CostControl = (function() {
             result.status = 'error';
             result.details = issues;
             result.data = settings.lastBalance;
-            callback(result);
+            if (callback) {
+              callback(result);
+            }
             return;
           }
 
@@ -109,7 +119,9 @@ var CostControl = (function() {
             result.status = 'error';
             result.details = costIssues;
             result.data = settings.lastBalance;
-            callback(result);
+            if (callback) {
+              callback(result);
+            }
             return;
           }
 
@@ -120,7 +132,9 @@ var CostControl = (function() {
           if (isWaiting && !timeout && !force) {
             result.status = 'in_progress';
             result.data = settings.lastBalance;
-            callback(result);
+            if (callback) {
+              callback(result);
+            }
             return;
           }
 
@@ -135,7 +149,9 @@ var CostControl = (function() {
             result.status = 'error';
             result.details = issues;
             result.data = settings.lastDataUsage;
-            callback(result);
+            if (callback) {
+              callback(result);
+            }
             return;
           }
 
@@ -144,7 +160,9 @@ var CostControl = (function() {
             result.status = 'error';
             result.details = costIssues;
             result.data = settings.lastBalance;
-            callback(result);
+            if (callback) {
+              callback(result);
+            }
             return;
           }
 
@@ -155,7 +173,9 @@ var CostControl = (function() {
           if (isWaiting && !timeout && !force) {
             result.status = 'in_progress';
             result.data = settings.lastDataUsage;
-            callback(result);
+            if (callback) {
+              callback(result);
+            }
             return;
           }
 
@@ -173,15 +193,28 @@ var CostControl = (function() {
           // Can not fail: only dispatch
           result.data = settings.lastTelephonyActivity;
           result.status = 'success';
-          callback(result);
+          if (callback) {
+            callback(result);
+          }
           break;
       }
       return;
     });
   }
 
+  var airplaneMode = false;
+  SettingsListener.observe('ril.radio.disabled', false,
+    function _onValue(value) {
+      airplaneMode = value;
+    }
+  );
+
   // Check service status and return the most representative issue if there is
   function getServiceIssues(settings) {
+    if (airplaneMode) {
+      return 'airplane_mode';
+    }
+
     if (!connection || !connection.voice || !connection.data) {
       return 'no_service';
     }
@@ -247,7 +280,9 @@ var CostControl = (function() {
           },
           function _onSet() {
             result.status = 'success';
-            callback(result);
+            if (callback) {
+              callback(result);
+            }
           }
         );
       };
@@ -256,7 +291,9 @@ var CostControl = (function() {
         debug('Failed to set timeout for balance request!');
         result.status = 'error';
         result.details = 'timout_fail';
-        callback(result);
+        if (callback) {
+          callback(result);
+        }
       };
     };
 
@@ -264,7 +301,9 @@ var CostControl = (function() {
       debug('Request SMS failed! But returning stored balance.');
       result.status = 'error';
       result.details = 'request_fail';
-      callback(result);
+      if (callback) {
+        callback(result);
+      }
     };
 
     debug('Balance out of date. Requesting fresh data...');
@@ -301,7 +340,9 @@ var CostControl = (function() {
           },
           function _onSet() {
             result.status = 'success';
-            callback(result);
+            if (callback) {
+              callback(result);
+            }
           }
         );
       };
@@ -310,7 +351,9 @@ var CostControl = (function() {
         debug('Failed to set timeout for TopUp request!');
         result.status = 'error';
         result.details = 'timeout_fail';
-        callback(result);
+        if (callback) {
+          callback(result);
+        }
       };
     };
 
@@ -318,7 +361,9 @@ var CostControl = (function() {
       debug('TopUp SMS failed!');
       result.status = 'error';
       result.details = 'request_fail';
-      callback(result);
+      if (callback) {
+        callback(result);
+      }
     };
   }
 
@@ -395,7 +440,9 @@ var CostControl = (function() {
           result.status = 'success';
           result.data = lastDataUsage;
           debug('Returning up to date statistics.');
-          callback(result);
+          if (callback) {
+            callback(result);
+          }
         };
       };
 

@@ -21,6 +21,7 @@ manifest.appcache
 /apps/*/test/unit/_proxy.html
 /apps/*/shared
 /apps/settings/resources/support.json
+/apps/settings/resources/icc.json
 /test_apps/*/test/unit/_sandbox.html
 /test_apps/*/test/unit/_proxy.html
 /showcase_apps/*/test/unit/_sandbox.html
@@ -39,5 +40,7 @@ manifest.appcache
 /local.mk
 
 /tools/xpcwindow/vendor/
+
+/locales/*
 
 /outoftree_apps/

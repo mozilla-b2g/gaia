@@ -7,63 +7,90 @@
  * Imports contacts stored in the SIM card and saves them into
  * navigator.mozContacts. Three steps => three callback as arguments:
  *   - onread: SIM card has been read properly;
- *   - onimport: contacts have been saved into navigator.mozContacts;
+ *   - onimport: A Contact has been imported
+ *   - onfinish: contacts have been saved into navigator.mozContacts;
  *   - onerror: SIM card us empty or could not be read.
  */
 
-function importSIMContacts(onread, onimport, onerror) {
-  if (!window.navigator.mozContacts)
-    return;
+function SimContactsImporter() {
+  var pointer = 0;
+  var CHUNK_SIZE = 5;
+  var numResponses = 0;
+  var self = this;
+  var _ = navigator.mozL10n.get;
 
-  // request contacts with getSimContacts() -- valid types are:
-  //   'ADN': Abbreviated Dialing Numbers
-  //   'FDN': Fixed Dialing Numbers
-  var request = navigator.mozContacts.getSimContacts('ADN');
-
-  request.onsuccess = function onsuccess() {
-    var simContacts = request.result; // array of mozContact elements
-    var nContacts = simContacts.length;
-
-    // early way out if no contacts have been found
-    if (nContacts === 0) {
-      if (onimport) {
-        onimport(0);
-      }
-      return;
+  function continueCb() {
+    numResponses++;
+    pointer++;
+    if (typeof self.onimported === 'function') {
+      window.setTimeout(self.onimported, 0);
     }
-
-    // if we're here, all SIM contacts have been read
-    if (onread) {
-      onread();
+    if (pointer < self.items.length && numResponses === CHUNK_SIZE) {
+      numResponses = 0;
+      importSlice(pointer);
     }
-
-    // count saved contacts, trigger 'onimport' when done
-    var nStored = 0;
-    var count = function count() {
-      nStored++;
-      if (onimport && nStored >= nContacts) {
-        onimport(nContacts);
+    else if (pointer >= self.items.length) {
+      if (typeof self.onfinish === 'function') {
+        self.onfinish();
       }
+    }
+  }
+
+  function startMigration() {
+    if (Array.isArray(self.items) && self.items.length > 0) {
+      importSlice(0);
+    }
+    else {
+      if (typeof self.onfinish === 'function') {
+        self.onfinish();
+      }
+    }
+  }
+
+  this.start = function() {
+    // request contacts with getSimContacts() -- valid types are:
+    //   'ADN': Abbreviated Dialing Numbers
+    //   'FDN': Fixed Dialing Numbers
+    var request = navigator.mozContacts.getSimContacts('ADN');
+
+    request.onsuccess = function onsuccess() {
+      self.items = request.result; // array of mozContact elements
+      if (typeof self.onread === 'function') {
+        // This way the total number can be known by the caller
+        self.onread(self.items.length);
+      }
+      startMigration();
     };
 
-    /**
-     * store mozContact elements -- each returned mozContact has two properties:
-     *   .name : [ string ]
-     *   .tel  : [{ number: string, type: string }]
-     * The 'name' property is only related to the mozContact element itself --
-     * let's use it as the default 'givenName' value.
-     */
-    for (var i = 0; i < nContacts; i++) {
-      simContacts[i].givenName = simContacts[i].name;
-      for (var j = 0; j < simContacts[i].tel.length; j++) {
-        simContacts[i].tel[j].type = navigator.mozL10n.get('mobile');
+    request.onerror = function error() {
+      if (typeof self.onerror === 'function') {
+        self.onerror(request.error);
       }
-      var req = window.navigator.mozContacts.save(simContacts[i]);
-      req.onsuccess = count;
-      req.onerror = count;
-    }
+    };
   };
 
-  request.onerror = onerror;
+  /**
+   * store mozContact elements -- each returned mozContact has two properties:
+   *   .name : [ string ]
+   *   .tel  : [{ number: string, type: string }]
+   * The 'name' property is only related to the mozContact element itself --
+   * let's use it as the default 'givenName' value.
+   */
+  function importSlice(from) {
+    for (var i = from; i < from + CHUNK_SIZE && i < self.items.length; i++) {
+      var item = self.items[i];
+      item.givenName = item.name;
+      for (var j = 0; j < item.tel.length; j++) {
+        item.tel[j].type = _('mobile');
+      }
+      var req = window.navigator.mozContacts.save(item);
+      req.onsuccess = function saveSuccess() {
+        continueCb();
+      };
+      req.onerror = function saveError() {
+        console.error('SIM Import: Error importing ', item.id);
+        continueCb();
+      };
+    }
+  } // importSlice
 }
-

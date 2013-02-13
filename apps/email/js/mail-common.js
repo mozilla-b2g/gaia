@@ -402,7 +402,7 @@ var Cards = {
     if (!placement) {
       cardIndex = this._cardStack.length;
       insertBuddy = null;
-      domNode.classList.add(cardIndex === 0 ? 'before': 'after');
+      domNode.classList.add(cardIndex === 0 ? 'before' : 'after');
     }
     else if (placement === 'left') {
       cardIndex = this.activeCardIndex++;
@@ -536,74 +536,6 @@ var Cards = {
         anchorIn.removeChild(cleanupDivs[i]);
       }
     };
-  },
-
-  /**
-   * Create a popup associated with a given node.  We mask out the part of the
-   * screen that is not the node, helping make it obvious what the menu is
-   * related to.  We currently do not try to show an arrow thing, although it
-   * would be friendly of us if we did.
-   *
-   * https://wiki.mozilla.org/Gaia/Design/Patterns#Dialogues:_Popups
-   */
-  popupMenuForNode: function(menuTree, domNode, legalClickTargets, callback) {
-    var self = this,
-        bounds = domNode.getBoundingClientRect();
-
-    var popupInfo = this._popupActive = {
-      popupNode: menuTree,
-      maskNodeCleanup: this._createMaskForNode(domNode, bounds),
-      close: function(result) {
-        self._popupActive = false;
-        self._rootNode.removeChild(popupInfo.popupNode);
-        popupInfo.maskNodeCleanup();
-        callback(result);
-      }
-    };
-
-    var uiWidth = this._containerNode.offsetWidth,
-        uiHeight = this._containerNode.offsetHeight;
-
-    popupInfo.popupNode.classList.add('popup');
-    this._rootNode.appendChild(popupInfo.popupNode);
-    // now we need to position the popup...
-    var menuWidth = popupInfo.popupNode.offsetWidth,
-        menuHeight = popupInfo.popupNode.offsetHeight,
-        nodeCenter = bounds.top + (bounds.bottom - bounds.top) / 2,
-        menuTop, menuLeft;
-
-    const MARGIN = 4;
-
-    // - Menu goes below item
-    if (nodeCenter < uiHeight / 2) {
-      menuTop = bounds.bottom + MARGIN;
-      if (menuTop + menuHeight >= uiHeight)
-        menuTop = uiHeight - menuHeight - MARGIN;
-    }
-    // - Menu goes above item
-    else {
-      menuTop = bounds.top - menuHeight - MARGIN;
-
-      if (menuTop < MARGIN)
-        menuTop = MARGIN;
-    }
-
-    menuLeft = (uiWidth - menuWidth) / 2;
-
-    popupInfo.popupNode.style.top = menuTop + 'px';
-    popupInfo.popupNode.style.left = menuLeft + 'px';
-
-    popupInfo.popupNode.addEventListener('click', function(event) {
-      var node = event.target;
-      while (node !== popupInfo.popupNode) {
-        for (var i = 0; i < legalClickTargets.length; i++) {
-          if (node.classList.contains(legalClickTargets[i])) {
-            popupInfo.close(node);
-            return;
-          }
-        }
-      }
-    }, false);
   },
 
   /**
@@ -819,12 +751,6 @@ var Cards = {
 
     // Hide toaster while active card index changed:
     Toaster.hide();
-    // Popup toaster that pended for previous card view.
-    var pendingToaster = Toaster.pendingStack.slice(-1)[0];
-    if (pendingToaster && showMethod == 'immediate') {
-      pendingToaster();
-      Toaster.pendingStack.pop();
-    }
 
     this.activeCardIndex = cardIndex;
     if (cardInst)
@@ -842,7 +768,7 @@ var Cards = {
         this._eatingEventsUntilNextCard = false;
       if (this._animatingDeadDomNodes.length) {
         // Use a setTimeout to give the animation some space to settle.
-        setTimeout(function () {
+        setTimeout(function() {
           this._animatingDeadDomNodes.forEach(function(domNode) {
             if (domNode.parentNode)
               domNode.parentNode.removeChild(domNode);
@@ -857,6 +783,13 @@ var Cards = {
       if (endNode.classList.contains('disabled-anim-vertical')) {
         removeClass(endNode, 'disabled-anim-vertical');
         addClass(endNode, 'anim-vertical');
+      }
+
+      // Popup toaster that pended for previous card view.
+      var pendingToaster = Toaster.pendingStack.slice(-1)[0];
+      if (pendingToaster) {
+        pendingToaster();
+        Toaster.pendingStack.pop();
       }
     }
   },
@@ -1060,6 +993,35 @@ var Toaster = {
   }
 };
 
+/**
+ * Confirm dialog helper function. Display the dialog by providing dialog body
+ * element and button id/handler function.
+ *
+ */
+var ConfirmDialog = {
+  dialog: null,
+  show: function(dialog, confirm, cancel) {
+    this.dialog = dialog;
+    var formSubmit = function(evt) {
+      this.hide();
+      switch (evt.explicitOriginalTarget.id) {
+        case confirm.id:
+          confirm.handler();
+          break;
+        case cancel.id:
+          if (cancel.handler)
+            cancel.handler();
+          break;
+      }
+      return false;
+    };
+    dialog.addEventListener('submit', formSubmit.bind(this));
+    document.body.appendChild(dialog);
+  },
+  hide: function() {
+    document.body.removeChild(this.dialog);
+  }
+};
 ////////////////////////////////////////////////////////////////////////////////
 // Attachment Formatting Helpers
 
@@ -1120,55 +1082,42 @@ function prettyDate(time) {
  *   }
  */
 function FormNavigation(options) {
-  this.initialize(options);
+  function extend(destination, source) {
+    for (var property in source)
+      destination[property] = source[property];
+    return destination;
+  }
+
+  if (!options.formElem) {
+    throw new Error('The form element should be defined.');
+  }
+
+  var self = this;
+  this.options = extend({
+    formElem: null,
+    checkFormValidity: function checkFormValidity() {
+      return self.options.formElem.checkValidity();
+    },
+    onLast: function() {}
+  }, options);
+
+  this.options.formElem.addEventListener('keypress',
+    this.onKeyPress.bind(this));
 }
 
 FormNavigation.prototype = {
-  initialize: function formNav_init(options) {
-    this.options = this.extend({
-      formElem: null,
-      checkFormValidity: function checkFormValidity() {
-        return true;
-      },
-      onLast: function() {}
-    }, options);
-
-    if (!this.options.formElem) {
-      throw new Error('The form element should be defined.');
-    }
-
-    this.options.formElem.addEventListener('keypress',
-      this.onKeyPress.bind(this));
-  },
-
-  /**
-   * Focus the first input
-   */
-  focus: function formNav_focus() {
-    var inputElems = this.options.formElem.getElementsByTagName('input');
-    for (var i = 0; i < inputElems.length; i++) {
-      var input = inputElems[i];
-      if (input.type === 'hidden' || input.type === 'button') {
-        continue;
-      }
-      input.focus();
-      return;
-    }
-  },
-
   onKeyPress: function formNav_onKeyPress(event) {
     if (event.keyCode === 13) {
-      // Focus the next input
-      var nextInput = this.getNextInput(event);
-      if (nextInput) {
-        nextInput.focus();
-      } else if (this.options.checkFormValidity()) {
+      // If the user hit enter, focus the next form element, or, if the current
+      // element is the last one and the form is valid, submit the form.
+      var nextInput = this.focusNextInput(event);
+      if (!nextInput && this.options.checkFormValidity()) {
         this.options.onLast();
       }
     }
   },
 
-  getNextInput: function formNav_getNextInput(event) {
+  focusNextInput: function formNav_focusNextInput(event) {
     var currentInput = event.target;
     var inputElems = this.options.formElem.getElementsByTagName('input');
     var currentInputFound = false;
@@ -1186,16 +1135,16 @@ FormNavigation.prototype = {
         continue;
       }
 
+      input.focus();
+      if (document.activeElement !== input) {
+        // We couldn't focus the element we wanted.  Try with the next one.
+        continue;
+      }
       return input;
     }
 
+    // If we couldn't find anything to focus, just blur the initial element.
+    currentInput.blur();
     return null;
-  },
-
-  extend: function formNav_extend(destination, source) {
-    for (var property in source)
-      destination[property] = source[property];
-    return destination;
   }
 };
-

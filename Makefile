@@ -180,7 +180,7 @@ TEST_DIRS ?= $(CURDIR)/tests
 
 # Generate profile/
 
-profile: multilocale applications-data preferences app-makefiles test-agent-config offline extensions install-xulrunner-sdk profile/settings.json
+profile: multilocale applications-data preferences app-makefiles test-agent-config offline contacts extensions install-xulrunner-sdk profile/settings.json
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)profile"
 
 LANG=POSIX # Avoiding sort order differences between OSes
@@ -261,6 +261,13 @@ l10n-clean: install-xulrunner-sdk
 offline-cache: webapp-manifests install-xulrunner-sdk
 	@echo "Populate external apps appcache"
 	@$(call run-js-command, offline-cache)
+	@echo "Done"
+
+# Create contacts DB
+contacts: install-xulrunner-sdk
+	@echo "Generate contacts database"
+	@rm -rf profile/indexedDB
+	@$(call run-js-command, contacts)
 	@echo "Done"
 
 # Create webapps
@@ -348,6 +355,10 @@ EXTENDED_PREF_FILES = \
   custom-prefs.js \
   payment-prefs.js \
   ua-override-prefs.js \
+
+ifeq ($(DOGFOOD),1)
+EXTENDED_PREF_FILES += dogfood-prefs.js
+endif
 
 # Generate profile/prefs.js
 preferences: install-xulrunner-sdk
@@ -654,8 +665,13 @@ ifeq ($(NOFTU), 1)
 SETTINGS_ARG=--noftu
 endif
 
+# We want the console to be disabled for device builds using the user variant.
+ifneq ($(TARGET_BUILD_VARIANT),user)
+SETTINGS_ARG += --console
+endif
+
 profile/settings.json: build/settings.py build/wallpaper.jpg
-	python build/settings.py $(SETTINGS_ARG) --console --locale $(GAIA_DEFAULT_LOCALE) --homescreen $(SCHEME)homescreen.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --ftu $(SCHEME)communications.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --wallpaper build/wallpaper.jpg --override build/custom-settings.json --output $@
+	python build/settings.py $(SETTINGS_ARG) --locale $(GAIA_DEFAULT_LOCALE) --homescreen $(SCHEME)homescreen.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --ftu $(SCHEME)communications.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --wallpaper build/wallpaper.jpg --override build/custom-settings.json --output $@
 
 # push profile/settings.json to the phone
 install-settings-defaults: profile/settings.json

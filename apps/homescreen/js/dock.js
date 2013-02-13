@@ -25,14 +25,29 @@ const DockManager = (function() {
                      function(e) { return e.pageX };
   })();
 
+  function addActive(target) {
+    if ('isIcon' in target.dataset) {
+      target.classList.add('active');
+      removeActive = function _removeActive() {
+        target.classList.remove('active');
+      }
+    } else {
+      removeActive = function() {};
+    }
+  }
+
+  var removeActive = function() {};
+
   function handleEvent(evt) {
     switch (evt.type) {
       case touchstart:
+        evt.stopPropagation();
         initialOffsetLeft = dock.getLeft();
         initialOffsetRight = dock.getRight();
         numApps = dock.getNumIcons();
         startEvent = isTouch ? evt.touches[0] : evt;
         attachEvents();
+        addActive(evt.target);
         break;
 
       case touchmove:
@@ -84,6 +99,8 @@ const DockManager = (function() {
           onTouchEnd(deltaX);
         }
 
+        removeActive();
+
         break;
 
       case 'contextmenu':
@@ -92,8 +109,11 @@ const DockManager = (function() {
           return;
         }
 
-        if (GridManager.pageHelper.getCurrentPageNumber() > 1) {
+        if (GridManager.pageHelper.getCurrentPageNumber() >
+            GridManager.landingPage) {
+
           Homescreen.setMode('edit');
+          removeActive();
 
           if ('isIcon' in evt.target.dataset) {
             DragDropManager.start(evt, {

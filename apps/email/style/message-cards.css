@@ -33,13 +33,13 @@
   text-align: center;
 }
 
-.msg-search-text-tease {
+input.msg-search-text-tease {
   width: 90%;
   height: calc(100% - 1rem - 2px);
-  padding: 0;
   border: 1px solid;
   border-radius: 3px;
   margin: 0.5rem 0;
+  display: inline-block;
 }
 
 .msg-no-subject {
@@ -229,7 +229,7 @@
 .msg-peep-bubble * {
   pointer-events: none;
 }
-.msg-peep-name {
+.msg-peep-content {
 }
 .msg-peep-address {
   font-style: italic;
@@ -447,15 +447,19 @@
 }
 
 /* PROGRESS LABEL BUILDING BLOCKS EXTENSION */
-.msg-messages-sync-container > p[role="status"],
+.msg-messages-sync-container > p,
 .msg-list-empty {
   width: 80%;
   padding: 2rem 10%;
   text-align: center;
+  font: 500 1.3rem/1em "MozTT", Sans-serif;
 }
 .msg-list-empty {
   position: absolute;
   top: 40%;
+}
+.msg-messages-syncing > span {
+  margin: 0 1rem;
 }
 .msg-messages-sync-more {
   margin: 3rem 0;
@@ -463,54 +467,10 @@
   border-bottom: 1px solid lightgray;
 }
 .msg-messages-sync-more > span {
-  margin: 0 !important;
-}
-/* FILTERS BUILDING BLOCKS COPIED AND PASTED */
-
-/* ----------------------------------
- * FILTERS
- * ---------------------------------- */
-
-ul[role="tablist"].filter {
-  background: #c7c7c7;
-  display: inline-block;
-  width: 100%;
-  list-style: none;
-  padding: 0;
   margin: 0;
-  position: relative;
 }
 
-ul[role="tablist"].filter:before {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 100%;
-  height: 0.2rem;
-  background: url(images/ui/shadow.png) repeat-x left bottom;
-}
-
-ul[role="tablist"].filter li {
-  float: left;
-  text-align: center;
-  -moz-box-sizing: border-box;
-  font: bold 1.4rem/1em "MozTT", Sans-serif;
-  color: #737272;
-  border-bottom: solid 1px #999;
-}
-
-ul[role="tablist"].filter li a {
-  display: block;
-  padding: 1.3rem 0.5rem;
-  text-decoration: none;
-  color: #737272;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* Selected state */
+/* Filters selected state */
 ul[role="tablist"].filter li[aria-selected="true"] {
   background: #fff;
   border: solid 1px #999;
@@ -520,34 +480,4 @@ ul[role="tablist"].filter li[aria-selected="true"] {
 
 ul[role="tablist"].filter li[aria-selected="true"] a {
   color: #000;
-}
-
-/* Bottom position */
-ul[role="tablist"].bottom.filter:before {
-  bottom: 100%;
-  top: auto;
-  background-image: url(images/ui/shadow-revert.png);
-}
-
-ul[role="tablist"].bottom.filter li {
-  border-bottom: none;
-  border-top: solid 1px #999;
-}
-
-
-/* Items calcs */
-ul[role="tablist"][data-items="2"].filter li {
-  width: -moz-calc(100% / 2);
-}
-
-ul[role="tablist"][data-items="3"].filter li {
-  width: -moz-calc(100% / 3);
-}
-
-ul[role="tablist"][data-items="4"].filter li {
-  width: -moz-calc(100% / 4);
-}
-
-ul[role="tablist"][data-items="5"].filter li {
-  width: -moz-calc(100% / 5);
 }

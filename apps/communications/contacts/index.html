@@ -53,6 +53,7 @@
     <script defer type="text/javascript" src="/contacts/js/utilities/event_listeners.js"></script>
     <script defer type="text/javascript" src="/contacts/js/utilities/import_sim_contacts.js"></script>
     <script defer type="text/javascript" src="/contacts/js/utilities/status.js"></script>
+    <script defer type="text/javascript" src="/contacts/js/utilities/overlay.js"></script>
 
     <script defer type="text/javascript" src="/contacts/js/utilities/image_loader.js"></script>
 
@@ -477,9 +478,9 @@
       <!-- Settings section -->
       <section data-theme="organic" id="view-settings" role="region" class="skin-organic view view-bottom">
         <header>
-          <button id="settings-close" class="negative">
-            <span class="icon icon-close"data-l10n-id="exit">Exit</span>
-          </button>
+          <menu type="toolbar" id="settings-form-actions">
+            <button id="settings-close" role="menuitem" data-l10n-id="done">Done</button>
+          </menu>
           <h1 data-l10n-id="settings">Settings</h1>
         </header>
 
@@ -536,7 +537,7 @@
       </section>
 
       <section id="loading-overlay" role="region" class="view">
-        <article class="loading-container">
+        <article id="spinner-progress" class="loading-container hide">
           <header class="loading-header" data-l10n-id="loadingContacts">
             Loading contacts…
           </header>
@@ -544,7 +545,18 @@
             <progress></progress>
           </p>
         </article>
-      </section>
+        <section id="progressbar" role="region" class="hide">
+          <form role="dialog" data-type="confirm">
+            <section>
+              <h1 id="progress-title"></h1>
+              <p role="status">
+                <span id="progress-msg"></span>
+                <progress id="progress-element" value="0" max="100"></progress>
+              </p>
+            </section>
+          </form>
+        </section>
+      </section>   <!-- Loading overlay -->
 
     <section id="statusMsg" role="status">
       <p></p>

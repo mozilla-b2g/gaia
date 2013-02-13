@@ -129,8 +129,8 @@ const DragDropManager = (function() {
           GridManager.goToNextPage(onNavigationEnd);
           transitioning = true;
         }
-      } else if (pageHelper.getCurrentPageNumber() !== 2 &&
-          dirCtrl.limitPrev(currentX)) {
+      } else if (pageHelper.getCurrentPageNumber() > GridManager.landingPage + 1
+                 && dirCtrl.limitPrev(currentX)) {
         isDisabledDrop = true;
 
         pageHelper.getPrevious().appendIconVisible(draggableIcon);
@@ -291,8 +291,8 @@ const DragDropManager = (function() {
     window.removeEventListener(touchmove, onMove);
     window.removeEventListener(touchend, onEnd);
     stop(function dg_stop() {
-      GridManager.onDragStop();
       DockManager.onDragStop();
+      GridManager.onDragStop();
     });
   }
 

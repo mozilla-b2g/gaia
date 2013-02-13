@@ -7,6 +7,8 @@ var QuickSettings = {
   // Indicate setting status of geolocation.enabled
   geolocationEnabled: false,
   WIFI_STATUSCHANGE_TIMEOUT: 2000,
+  // ID of elements to create references
+  ELEMENTS: ['wifi', 'data', 'bluetooth', 'airplane-mode', 'full-app'],
 
   init: function qs_init() {
     var settings = window.navigator.mozSettings;
@@ -142,6 +144,9 @@ var QuickSettings = {
             SettingsListener.getSettingsLock().set({
               'wifi.enabled': !enabled
             });
+            SettingsListener.getSettingsLock().set({
+              'wifi.connect_via_settings': !enabled
+            });
             if (!enabled)
               this.toggleAutoConfigWifi = true;
             break;
@@ -223,16 +228,13 @@ var QuickSettings = {
   },
 
   getAllElements: function qs_getAllElements() {
-    // ID of elements to create references
-    var elements = ['wifi', 'data', 'bluetooth', 'airplane-mode', 'full-app'];
-
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {
         return p1.toUpperCase();
       });
     };
 
-    elements.forEach(function createElementRef(name) {
+    this.ELEMENTS.forEach(function createElementRef(name) {
       this[toCamelCase(name)] =
         document.getElementById('quick-settings-' + name);
     }, this);
@@ -265,6 +267,9 @@ var QuickSettings = {
     var status = wifiManager.connection.status;
 
     if (status == 'disconnected') {
+      SettingsListener.getSettingsLock().set({
+        'wifi.connect_via_settings': false
+      });
       var activity = new MozActivity({
         name: 'configure',
         data: {
@@ -272,8 +277,19 @@ var QuickSettings = {
           section: 'wifi'
         }
       });
+    } else if (status == 'connectingfailed') {
+      SettingsListener.getSettingsLock().set({
+        'wifi.connect_via_settings': false
+      });
     }
   }
 };
 
-QuickSettings.init();
+if (navigator.mozL10n &&
+    (navigator.mozL10n.readyState == 'complete' ||
+      navigator.mozL10n.readyState == 'interactive')) {
+  QuickSettings.init();
+} else {
+  window.addEventListener('localized', QuickSettings.init.bind(QuickSettings));
+}
+

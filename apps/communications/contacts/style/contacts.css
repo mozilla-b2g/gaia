@@ -67,11 +67,12 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
 
 #contact-detail-inner {
   padding-bottom: 1rem;
+  padding-top: 1.4rem;
 }
 
 .view-contact-profile .view-body-inner {
   position: relative;
-  padding: 0 2rem;
+  padding: 0 1.5rem;
   background: #f5f5f5;
   overflow: hidden;
   width: 100%;
@@ -86,10 +87,6 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
 
 .view-contact-profile .view-body-inner hr {
   margin-top: 0;
-}
-
-.view-contact-profile .view-body-inner h1 {
-  padding-top: 1.4rem;
 }
 
 .view-contact-profile .view-body-inner.no-photo {
@@ -110,6 +107,7 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
   font-weight: 600;
   border-bottom: solid 1px #dbd9d9;
   margin-bottom: 1rem;
+  padding-bottom: 0.55rem;
   word-wrap: break-word;
   overflow: hidden;
   white-space: nowrap;
@@ -172,6 +170,14 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
 
 .view-edit-contact form li section + button:after {
   display: none;
+}
+
+#contact-detail-inner h1 {
+  padding-left: 0.5rem;
+}
+
+#contact-detail-inner h2 {
+  margin-left: 0.5rem;
 }
 
 .view-edit-contact .fillflow-row-action {
