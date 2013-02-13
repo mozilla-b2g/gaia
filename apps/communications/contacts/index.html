@@ -5,91 +5,47 @@
     <title> Contacts </title>
 
     <!-- Building Blocks -->
-    <link href="/shared/style_unstable/progress_activity.css" rel="stylesheet">
-    <link href="/shared/style/status.css" rel="stylesheet">
     <link href="/shared/style/headers.css" rel="stylesheet">
     <link href="/shared/style/input_areas.css" rel="stylesheet">
-    <link href="/shared/style/switches.css" rel="stylesheet">
-    <link href="/shared/style/buttons.css" rel="stylesheet">
-    <link href="/shared/style/confirm.css" rel="stylesheet">
     <link href="/shared/style_unstable/lists.css" rel="stylesheet">
     <link href="/shared/style_unstable/scrolling.css" rel="stylesheet">
+    <link href="/shared/style/buttons.css" rel="stylesheet">
 
     <link href="/contacts/style/app.css" rel="stylesheet">
     <link href="/contacts/style/contacts.css" rel="stylesheet">
     <link href="/contacts/style/overlay.css" rel="stylesheet">
     <link href="/contacts/style/search.css" rel="stylesheet">
-    <link href="/contacts/style/fixed_header.css" rel="stylesheet">
-    <link href="/facebook/style/curtain_frame.css" rel="stylesheet">
-    <link href="/contacts/style/status.css" rel="stylesheet">
 
-    <link href="/contacts/style/fb_extensions.css" rel="stylesheet">
+    <script defer src="/contacts/js/activities.js"></script>
 
-    <script src="/contacts/js/activities.js"></script>
-
-    <!-- Confirm dialogs BB library -->
-    <script defer type="text/javascript" src="/contacts/js/confirm_dialog.js">
-    </script>
-
-    <!-- Loading FB indexedDB related stuff -->
-    <script src="/contacts/js/fb/fb_data.js"></script>
-    <script src="/contacts/js/utilities/config.js"></script>
+    <!-- For initializing FB integration -->
+    <script defer src="/contacts/js/fb/fb_init.js"></script>
+    <script defer type="text/javascript" src="/contacts/js/utilities/event_listeners.js"></script>
+    <script defer type="text/javascript" src="/contacts/js/navigation.js"></script>
+    <script defer type="text/javascript" src="/contacts/js/contacts_list.js"></script>
+    <script defer type="text/javascript" src="/contacts/js/contacts.js"></script>
+    <script defer type="text/javascript" src="/contacts/js/utilities/image_loader.js"></script>
 
     <!-- for perf-measurement related utilities -->
     <script defer src='/shared/js/performance_helper.js'></script>
-
-    <!-- For initializing FB integration -->
-    <script src="/contacts/js/fb/fb_init.js"></script>
 
     <link rel="resource" type="application/l10n" href="/contacts/locales/locales.ini"/>
     <link rel="resource" type="application/l10n" href="/shared/locales/date.ini"/>
     <script type="text/javascript" src="/shared/js/l10n.js"></script>
     <script type="text/javascript" src="/shared/js/l10n_date.js"></script>
+    <script defer type="text/javascript" src="/contacts/js/fb_loader.js"></script>
     <script defer type="text/javascript" src="/shared/js/mouse_event_shim.js"></script>
 
     <script defer type="text/javascript" src="/shared/js/async_storage.js"></script>
-    <script defer type="text/javascript" src="/contacts/js/contacts_settings.js"></script>
 
-    <script defer type="text/javascript" src="/contacts/js/utilities/normalizer.js"></script>
-    <script defer type="text/javascript" src="/contacts/js/utilities/responsive.js"></script>
-    <script defer type="text/javascript" src="/contacts/js/utilities/templates.js"></script>
-    <script defer type="text/javascript" src="/contacts/js/utilities/event_listeners.js"></script>
-    <script defer type="text/javascript" src="/contacts/js/utilities/import_sim_contacts.js"></script>
-    <script defer type="text/javascript" src="/contacts/js/utilities/status.js"></script>
-    <script defer type="text/javascript" src="/contacts/js/utilities/overlay.js"></script>
-
-    <script defer type="text/javascript" src="/contacts/js/utilities/image_loader.js"></script>
-
-    <script defer type="text/javascript" src="/dialer/js/telephony_helper.js"></script>
-    <script defer type="text/javascript" src="/contacts/js/navigation.js"></script>
-    <script defer type="text/javascript" src="/contacts/js/contacts_list.js"></script>
+    <!-- Loading FB indexedDB related stuff -->
+    <script defer src="/contacts/js/utilities/config.js"></script>
     <script defer type="text/javascript" src="/contacts/js/search.js"></script>
-    <script defer type="text/javascript" src="/contacts/js/contacts_details.js"></script>
-    <script defer type="text/javascript" src="/contacts/js/contacts_form.js"></script>
-    <script defer type="text/javascript" src="/contacts/js/contacts_shortcuts.js"></script>
-    <script defer type="text/javascript" src="/contacts/js/contacts.js"></script>
-    <script defer type="text/javascript" src="/contacts/js/sms_integration.js"></script>
     <script defer type="text/javascript" src="/contacts/js/fixed_header.js"></script>
 
-    <!-- Needed to deal with FB Contacts -->
-    <script defer type="text/javascript" src="/contacts/oauth2/js/parameters.js"></script>
-    <script defer src="/contacts/js/fb/fb_utils.js"></script>
-    <script defer src="/contacts/js/fb/fb_query.js"></script>
-    <script defer src="/contacts/js/fb_extensions.js"></script>
-
-    <script defer src="/contacts/js/fb/fb_contact_utils.js"></script>
-    <script defer src="/contacts/js/fb/fb_contact.js"></script>
-    <script defer src="/contacts/js/fb/fb_link.js"></script>
-    <script defer src="/contacts/js/fb/fb_messaging.js"></script>
-    <script defer type="text/javascript" src="/contacts/js/value_selector.js"></script>
   </head>
 
   <body role="application" class="hide app-contacts">
-
-    <!-- iframes for FB integration -->
-    <iframe id="fb-curtain" src="/facebook/curtain.html"></iframe>
-    <iframe id="fb-oauth" hidden src="/facebook/fb_oauth.html"></iframe>
-    <iframe id="fb-extensions"></iframe>
 
       <!-- Contacts List Section -->
       <section id='view-contacts-list' role="region" data-state="active" class="view view-noscroll view-contacts-list">

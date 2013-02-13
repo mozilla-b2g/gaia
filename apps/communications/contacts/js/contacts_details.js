@@ -134,12 +134,12 @@ contacts.Details = (function() {
 
       req.onsuccess = function do_reload() {
         doReloadContactDetails(req.result);
-      }
+      };
 
       req.onerror = function() {
         window.console.error('FB: Error while loading FB contact data');
         doReloadContactDetails(contactData);
-      }
+      };
     } else {
       doReloadContactDetails(contactData);
     }
@@ -321,7 +321,7 @@ contacts.Details = (function() {
     Contacts.extFb.initEventHandlers(social, contact, linked);
 
     listContainer.appendChild(social);
-  }
+  };
 
   var checkOnline = function(social) {
     var socialTemplate = social || currentSocial;
@@ -334,7 +334,7 @@ contacts.Details = (function() {
         disableButtons(socialTemplate, ['#link_button']);
       }
     }
-  }
+  };
 
   function disableButtons(tree, buttonIds) {
     buttonIds.forEach(function enable(id) {
@@ -391,7 +391,7 @@ contacts.Details = (function() {
   var onCallOrPickClicked = function onCallOrPickClicked(evt) {
     var tel = evt.target.dataset['tel'];
     Contacts.callOrPick(tel);
-  }
+  };
 
   var renderEmails = function cd_renderEmails(contact) {
     if (!contact.email) {
@@ -422,7 +422,7 @@ contacts.Details = (function() {
     var email = evt.target.dataset['email'];
     Contacts.sendEmailOrPick(email);
     return false;
-  }
+  };
 
   var renderAddresses = function cd_renderAddresses(contact) {
     if (!contact.adr) {
@@ -506,7 +506,7 @@ contacts.Details = (function() {
     for (var i = 0; i < elements.length; i++) {
       elements[i].classList.add('remark');
     }
-  }
+  };
 
   return {
     'init': init,
