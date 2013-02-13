@@ -6,7 +6,7 @@ if (typeof fb.init === 'undefined') {
     fb.isEnabled = false;
 
     fb.init = function(callback) {
-      var req = utilities.config.load('/contacts/config.json');
+      var req = utils.config.load('/contacts/config.json');
 
       req.onload = function(configData) {
         if (configData.facebookEnabled === true) {
