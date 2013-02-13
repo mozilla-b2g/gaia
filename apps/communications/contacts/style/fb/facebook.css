@@ -171,8 +171,6 @@ abbr, acronym {
 /* JUMPER */
 
 nav[data-type="scrollbar"] {
-  height: calc(100% - 6.6rem - 6.5rem);
-  background: transparent !important;
   z-index:100;
 }
 
