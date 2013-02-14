@@ -930,10 +930,6 @@ button::-moz-focus-inner {
   display: none;
 }
 
-.invisible {
-  visibility: hidden;
-}
-
 li:last-child {
   padding-bottom: 4rem;
 }
