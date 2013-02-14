@@ -47,6 +47,9 @@ navigator.mozL10n.DateTimeFormat = function(locales, options) {
         case '%B':
           value = _('month-' + d.getMonth() + '-long');
           break;
+        case '%Eb':
+          value = _('month-' + d.getMonth() + '-genitive');
+          break;
 
         // like %H, but in 12-hour format and without any leading zero
         case '%I':
