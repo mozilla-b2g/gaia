@@ -424,6 +424,14 @@ section[role="region"].new > header:first-child form {
   Styles for Edit mode in Messages Container
 */
 
+.edit-messages #select-all-messages{
+  display: none;
+}
+
+.edit-messages #deselect-all-messages{
+  width: 100%;
+}
+
 .edit #messages-container[data-type="list"] li {
   border-color: #e7e7e7;
 }

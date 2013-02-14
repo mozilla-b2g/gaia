@@ -195,6 +195,11 @@ var MessageManager = {
         }
         break;
       case '#edit':
+        if (e.oldURL.indexOf('#num=') !== -1) {
+          mainWrapper.classList.add('edit-messages');
+        } else {
+          mainWrapper.classList.remove('edit-messages');
+        }
         ThreadListUI.cleanForm();
         ThreadUI.cleanForm();
         mainWrapper.classList.toggle('edit');
