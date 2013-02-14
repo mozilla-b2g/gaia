@@ -50,12 +50,12 @@ function iconDescriptor(directory, app_name, entry_point) {
   let manifestURL = gaiaManifestURL(app_name);
 
   // For external/3rd party apps that don't use the Gaia domain, we have an
-  // 'origin' file that specifies the URL.
+  // 'metadata.json' file that specifies the URL.
   let dir = getFile(GAIA_DIR, directory, app_name);
   let originFile = dir.clone();
-  originFile.append("origin");
+  originFile.append("metadata.json");
   if (originFile.exists()) {
-    origin = getFileContent(originFile).replace(/^\s+|\s+$/, '');
+    origin = getJSON(originFile).origin.replace(/^\s+|\s+$/, '');
     if (origin.slice(-1) == "/") {
       manifestURL = origin + "manifest.webapp";
     } else {
