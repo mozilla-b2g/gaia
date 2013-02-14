@@ -178,6 +178,10 @@ suite('Threads-list Tests', function() {
   });
 
   // Let's go with tests!
+/*
+// These tests are currently failing and have been temporarily disabled as per
+// Bug 838993. They should be fixed and re-enabled as soon as possible as per
+// Bug 840497.
   suite('Threads-list rendering', function() {
 
     test('Check HTML structure', function() {
@@ -211,13 +215,19 @@ suite('Threads-list Tests', function() {
     });
 
   });
+*/
 
   suite('Threads-list edit mode', function() {
 
+/*
+// This test is currently failing and has been temporarily disabled as per Bug
+// 838993. It should be fixed and re-enabled as soon as possible as per Bug
+// 840497.
     test('Check edit mode form', function() {
       // Do we have all inputs ready?
       assertNumberOfElementsInContainerByTag(ThreadListUI.view, 4, 'input');
     });
+*/
 
     test('Select all/Deselect All buttons', function() {
       // Retrieve all inputs

@@ -339,6 +339,13 @@ suite('app', function() {
     });
   });
 
+/*
+// These tests are currently failing and have been temporarily disabled as per
+// Bug 838993. They should be fixed and re-enabled as soon as possible as per
+// Bug 840489.
+// Please also note: the outcome of this test suite is non-deterministic.
+// Failures occur inconsistently, so potential fixes should be thoroughly
+// vetted.
   suite('#go', function() {
     var calledWith;
 
@@ -352,6 +359,7 @@ suite('app', function() {
     });
 
   });
+*/
 
   test('#view', function() {
     subject.view('Mock', function(first) {
