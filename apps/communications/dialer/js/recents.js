@@ -701,6 +701,8 @@ var Recents = {
         content += self.createRecentEntry(recents[i], highlight);
       }
 
+      var emptyList = '<li class="log-item" style="height: 3rem;"></li>';
+      content += emptyList;
       self.recentsContainer.innerHTML = content;
 
       FixedHeader.refresh();
