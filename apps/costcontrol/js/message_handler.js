@@ -81,6 +81,35 @@
   }
   window.setNextReset = setNextReset;
 
+  function getTopUpTimeout(callback) {
+    ConfigManager.requestSettings(function _onSettings(settings) {
+      var request = navigator.mozAlarms.getAll();
+      request.onsuccess = function (e) {
+        var alarms = e.target.result;
+        var length = alarms.length;
+        if (!length) {
+          callback(null);
+          return;
+        }
+
+        var refId = settings.waitingForTopUp;
+        var index = 0, alarm, found = false;
+        while (index < length && !found) {
+          alarm = alarms[index];
+          found = (alarm.id === refId);
+          index++;
+        }
+        if (found) {
+          debug('TopUp timeout found:', alarm.date);
+          callback(alarm.date);
+        } else {
+          callback(null);
+        }
+      };
+    });
+  }
+  window.getTopUpTimeout = getTopUpTimeout;
+
   // Update the nextResetAlarm and nextReset values and request for
   // synchronization.
   function updateResetAttributes(alarmId, date, callback) {
