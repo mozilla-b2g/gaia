@@ -18,18 +18,32 @@ var Settings = {
         settings : null;
   },
 
-  init: function settings_init() {
+  // Early initialization of parts of the application that don't
+  // depend on the DOM being loaded.
+  preInit: function settings_preInit() {
     var settings = this.mozSettings;
     if (!settings || !navigator.mozSetMessageHandler)
       return;
 
-    // register web activity handler
-    navigator.mozSetMessageHandler('activity', this.webActivityHandler);
+    // Make a request for settings to warm the cache, since we need it
+    // very soon in startup after the DOM is available.
+    this.getSettings(null);
 
     // update corresponding setting when it changes
     settings.onsettingchange = function settingChanged(event) {
       var key = event.settingName;
       var value = event.settingValue;
+
+      // Always update the cache if it's present, even if the DOM
+      // isn't loaded yet.
+      if (this._settingsCache && this._settingsCache.result) {
+        this._settingsCache.result[key] = value;
+      }
+
+      // DOM isn't ready so there's nothing to update.
+      if (!this._initialized) {
+        return;
+      }
 
       // update <span> values when the corresponding setting is changed
       var rule = '[data-name="' + key + '"]:not([data-ignore])';
@@ -74,6 +88,15 @@ var Settings = {
           break;
       }
     };
+  },
+
+  _initialized: false,
+
+  init: function settings_init() {
+    this._initialized = true;
+
+    // register web activity handler
+    navigator.mozSetMessageHandler('activity', this.webActivityHandler);
 
     // preset all inputs that have a `name' attribute
     this.presetPanel();
@@ -135,15 +158,47 @@ var Settings = {
     }
   },
 
-  presetPanel: function settings_presetPanel(panel) {
+  // Cache of all current settings values.  There's some large stuff
+  // in here, but not much useful can be done with the settings app
+  // without these, so we keep this around most of the time.
+  _settingsCache: null,
+
+  // There can be race conditions in which we need settings values,
+  // but haven't filled the cache yet.  This array tracks those
+  // listeners.
+  _pendingSettingsCallbacks: [ ],
+
+  // Invoke |callback| with a request object for a successful fetch of
+  // settings values, when those values are ready.
+  getSettings: function(callback) {
     var settings = this.mozSettings;
     if (!settings)
       return;
 
-    // preset all inputs that have a `name' attribute
-    var lock = settings.createLock();
-    var request = lock.get('*');
-    request.onsuccess = function(e) {
+    if (this._settingsCache && this._settingsCache.result && callback) {
+      // Fast-path that we hope to always hit: our settings cache is
+      // already available, so invoke the callback now.
+      callback(this._settingsCache);
+      return;
+    }
+
+    if (!this._settingsCache) {
+      var lock = settings.createLock();
+      this._settingsCache = lock.get('*');
+      this._settingsCache.onsuccess = function(e) {
+        var cbk;
+        while ((cbk = Settings._pendingSettingsCallbacks.pop())) {
+          cbk(Settings._settingsCache);
+        }
+      };
+    }
+    if (callback) {
+      this._pendingSettingsCallbacks.push(callback);
+    }
+  },
+
+  presetPanel: function settings_presetPanel(panel) {
+    this.getSettings(function(request) {
       panel = panel || document;
 
       // preset all checkboxes
@@ -257,7 +312,7 @@ var Settings = {
           }
         }
       }
-    };
+    });
   },
 
   webActivityHandler: function settings_handleActivity(activityRequest) {
@@ -552,10 +607,6 @@ window.addEventListener('load', function loadSettings() {
         newPanel.classList.remove('peek');
         newPanel.classList.remove('forward');
 
-        setTimeout(function setInit() {
-          document.body.classList.remove('uninit');
-        });
-
         // Bug 818056 - When multiple visible panels are present,
         // they are not painted correctly. This appears to fix the issue.
         // Only do this after the first load
@@ -608,12 +659,11 @@ window.addEventListener('load', function loadSettings() {
   // startup
   window.addEventListener('hashchange', showPanel);
   switch (window.location.hash) {
+    case '#root':
+      // Nothing to do here; default startup case.
+      break;
     case '':
       document.location.hash = 'root';
-      break;
-    case '#root':
-      document.getElementById('root').className = 'current';
-      showPanel();
       break;
     default:
       document.getElementById('root').className = 'previous';
@@ -658,3 +708,6 @@ window.addEventListener('localized', function showLanguages() {
   Settings.updateLanguagePanel();
 });
 
+// Do initialization work that doesn't depend on the DOM, as early as
+// possible in startup.
+Settings.preInit();
