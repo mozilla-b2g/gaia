@@ -39,5 +39,12 @@
   "orientation": "portrait-primary",
   "messages": [
      { "alarm": "/index.html" }
-  ]
+  ],
+  "activities": {
+    "view": {
+      "filters": {
+        "type": "time"
+      }
+    }
+  }
 }
