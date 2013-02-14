@@ -53,6 +53,12 @@ function setNextReset(when, callback) {
                  setNextReset(when, callback);
 }
 
+function getTopUpTimeout(callback) {
+  var proxy = document.getElementById('message-handler');
+  return proxy ? proxy.contentWindow.getTopUpTimeout(callback) :
+                 window.getTopUpTimeout(callback);
+}
+
 // Next automatic reset date based on user preferences
 function updateNextReset(trackingPeriod, value, callback) {
   if (trackingPeriod === 'never') {
