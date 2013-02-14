@@ -115,6 +115,7 @@ var MessageManager = {
   onVisibilityChange: function mm_onVisibilityChange(e) {
     ThreadListUI.updateContactsInfo();
     ThreadUI.updateHeaderData();
+    Utils.updateTimeHeaders();
   },
 
   slide: function mm_slide(callback) {
