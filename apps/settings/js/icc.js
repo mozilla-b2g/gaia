@@ -297,6 +297,9 @@
           hasConfirmed: confirmed,
           resultCode: icc.STK_RESULT_OK
         });
+        if (options.callMessage) {
+          alert(options.callMessage);
+        }
         break;
 
       case icc.STK_CMD_LAUNCH_BROWSER:
