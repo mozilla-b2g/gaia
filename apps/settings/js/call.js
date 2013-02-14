@@ -160,11 +160,13 @@ var Calls = (function(window, document, undefined) {
   }
 
   function updateCallForwardingEntryWithOption(cfOptions) {
-    if (cfOptions)
+    if (cfOptions) {
       updateCallForwardingEntryCore(cfOptions);
-    else
+      enableTapOnEntry(true);
+    } else {
       displayInfoForAll(_('callForwardingQueryError'));
-    enableTapOnEntry(true);
+      enableTapOnEntry(false);
+    }
   }
 
   var updateCFEntryLock = false;
@@ -252,8 +254,10 @@ var Calls = (function(window, document, undefined) {
     // Init call forwarding option
     displayInfoForAll(_('callForwardingRequesting'));
     getCallForwardingOption(function call_gotCFOption(options) {
-      if (typeof options === 'undefined')
+      if (!options) {
+        updateCallForwardingEntryWithOption(options);
         return;
+      }
 
       // wait for all DB settings completed
       var asyncOpChecker = {
