@@ -1243,10 +1243,6 @@ var WindowManager = (function() {
     // Open the frame, first, store the reference
     openFrame = frame;
 
-    // set the frame to visible state
-    if ('setVisible' in iframe)
-      iframe.setVisible(true);
-
     setFrameBackground(openFrame, function gotBackground() {
       // Start the transition when this async/sync callback is called.
       openFrame.classList.add('active');
