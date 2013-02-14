@@ -107,6 +107,9 @@ window.addEventListener('localized', function showBody() {
 });
 
 function init() {
+  // We only need clicks and move event coordinates
+  MouseEventShim.trackMouseMoves = false;
+
   // Clicking on the select button goes to thumbnail select mode
   $('thumbnails-select-button').onclick =
     setView.bind(null, thumbnailSelectView);
