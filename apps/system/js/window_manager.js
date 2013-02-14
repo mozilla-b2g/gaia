@@ -829,7 +829,8 @@ var WindowManager = (function() {
     if (!isRunning(homescreen)) {
       var app = Applications.getByManifestURL(homescreenManifestURL);
       appendFrame(null, homescreen, homescreenURL,
-                  app.manifest.name, app.manifest, app.manifestURL);
+                  app.manifest.name, app.manifest, app.manifestURL,
+                  /* expectingSystemMessage */ false);
       runningApps[homescreen].iframe.dataset.start = Date.now();
       setAppSize(homescreen);
       if (displayedApp != homescreen && 'setVsibile' in runningApps[homescreen].iframe)
@@ -1167,7 +1168,15 @@ var WindowManager = (function() {
     return frame;
   }
 
-  function appendFrame(origFrame, origin, url, name, manifest, manifestURL) {
+  function maybeSetFrameIsCritical(iframe, origin) {
+    if (origin.startsWith("app://communications.gaiamobile.org/dialer") ||
+        origin.startsWith("app://clock.gaiamobile.org")) {
+      iframe.setAttribute('mozapptype', 'critical');
+    }
+  }
+
+  function appendFrame(origFrame, origin, url, name, manifest, manifestURL,
+                       expectingSystemMessage) {
     // Create the <iframe mozbrowser mozapp> that hosts the app
     var frame =
         createFrame(origFrame, origin, url, name, manifest, manifestURL);
@@ -1189,6 +1198,12 @@ var WindowManager = (function() {
     if (origin === homescreen) {
       iframe.setAttribute('mozapptype', 'homescreen');
     }
+
+    if (expectingSystemMessage) {
+      iframe.setAttribute('expecting-system-message',
+                          'expecting-system-message');
+    }
+    maybeSetFrameIsCritical(iframe, origin);
 
     // Add the iframe to the document
     windows.appendChild(frame);
@@ -1225,6 +1240,10 @@ var WindowManager = (function() {
     var iframe = frame.firstChild;
     frame.classList.add('inlineActivity');
     iframe.dataset.frameType = 'inline-activity';
+
+    iframe.setAttribute('expecting-system-message',
+                        'expecting-system-message');
+    maybeSetFrameIsCritical(iframe, origin);
 
     // Give a name to the frame for differentiating between main frame and
     // inline frame. With the name we can get frames of the same app using the
@@ -1440,7 +1459,8 @@ var WindowManager = (function() {
           // XXX: We could ended opening URls not for the app frame
           // in the app frame. But we don't care.
           var app = appendFrame(null, origin, e.detail.url,
-                      name, manifest, app.manifestURL);
+                      name, manifest, app.manifestURL,
+                      /* expectingSystemMessage */ true);
 
           // set the size of the iframe
           // so Cards View will get a correct screenshot of the frame
@@ -1813,7 +1833,7 @@ var WindowManager = (function() {
 
       var app = appendFrame(iframe, origin, url, title, {
         'name': title
-      }, null);
+      }, null, /* expectingSystemMessage */ false);
 
       // Set the window name in order to reuse this app if we try to open
       // a new window with same name
