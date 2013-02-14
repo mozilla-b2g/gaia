@@ -365,9 +365,6 @@ window.addEventListener('load', function startup(evt) {
 
   KeypadManager.init();
   NavbarManager.init();
-
-  LazyLoader.load(['/contacts/js/fb/fb_data.js',
-                   '/contacts/js/fb/fb_contact_utils.js']);
 });
 
 // Listening to the keyboard being shown
