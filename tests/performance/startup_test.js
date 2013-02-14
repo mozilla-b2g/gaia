@@ -1,14 +1,31 @@
 'use strict';
 
+require('/tests/js/app_integration.js');
+require('/tests/js/integration_helper.js');
 require('/tests/js/performance_helper.js');
-require('apps/communications/contacts/test/integration/app.js');
 
-suite('Contacts', function() {
+function GenericIntegration(device) {
+  AppIntegration.apply(this, arguments);
+}
+
+var foo = window.mozTestInfo.appPath.split('/');
+var manifestPath = foo[0];
+var entryPoint = foo[1];
+
+GenericIntegration.prototype = {
+  __proto__: AppIntegration.prototype,
+  appName: window.mozTestInfo.appPath,
+  manifestURL: 'app://' + manifestPath + '.gaiamobile.org/manifest.webapp',
+  entryPoint: entryPoint
+};
+
+
+suite(window.mozTestInfo.appPath, function() {
   var device;
   var app;
 
   MarionetteHelper.start(function(client) {
-    app = new ContactsIntegration(client);
+    app = new GenericIntegration(client);
     device = app.device;
   });
 
@@ -21,8 +38,9 @@ suite('Contacts', function() {
     yield PerformanceHelper.unregisterLoadTimeListener(device);
   });
 
-  test('average startup time', function() {
+  test('startup time', function() {
     this.timeout(100000);
+    yield device.setScriptTimeout(150000);
 
     for (var i = 0; i < PerformanceHelper.kRuns; i++) {
       yield IntegrationHelper.delay(device, PerformanceHelper.kSpawnInterval);
