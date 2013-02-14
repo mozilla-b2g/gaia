@@ -806,6 +806,11 @@ var ThreadUI = {
     return this.sendForm = document.getElementById('new-sms-form');
   },
 
+  get iconEdit() {
+    delete this.iconEdit;
+    return this.iconEdit = document.getElementById('icon-edit');
+  },
+
   init: function thui_init() {
     this.sendButton.addEventListener('click', this.sendMessage.bind(this));
 
@@ -1116,10 +1121,14 @@ var ThreadUI = {
     this.messageIndex = 0;
     // reset stopRendering boolean
     this._stopRenderingNextStep = false;
+    // Disable edit until rendering the whole list
+    this.iconEdit.classList.add('disabled');
   },
   // Method for stopping the rendering when clicking back
   stopRendering: function thui_stopRendering() {
     this._stopRenderingNextStep = true;
+    // Disable edit for getting disabled in next rendering
+    this.iconEdit.classList.add('disabled');
   },
   // Method for rendering the first chunk at the beginning
   showFirstChunk: function thui_showFirstChunk() {
@@ -1140,6 +1149,7 @@ var ThreadUI = {
       if (self.messageIndex < self.CHUNK_SIZE) {
         self.showFirstChunk();
       }
+      self.iconEdit.classList.remove('disabled');
       // Update STATUS of messages if needed
       filter.read = false;
       setTimeout(function updatingStatus() {
