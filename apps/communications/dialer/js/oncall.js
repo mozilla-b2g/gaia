@@ -392,13 +392,16 @@ var OnCallHandler = (function onCallHandler() {
 
   /* === Call Screen === */
   function toggleScreen() {
+    console.log("********** In toggleScreen...");
     displayed = !displayed;
     animating = true;
 
     var callScreen = CallScreen.screen;
+    console.log("********** callScreen: " + callScreen);
     callScreen.classList.toggle('displayed');
 
     callScreen.addEventListener('transitionend', function trWait() {
+      console.log("********** In call screen transitionend handler...");
       callScreen.removeEventListener('transitionend', trWait);
 
       animating = false;
@@ -620,6 +623,7 @@ var OnCallHandler = (function onCallHandler() {
 })();
 
 window.addEventListener('load', function callSetup(evt) {
+  console.log("********** In on load handler...");
   window.removeEventListener('load', callSetup);
 
   OnCallHandler.setup();
