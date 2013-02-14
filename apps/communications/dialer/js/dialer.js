@@ -240,10 +240,13 @@ var CallHandler = (function callHandler() {
     var protocol = document.location.protocol;
     var urlBase = protocol + '//' + host + '/dialer/oncall.html';
 
+    var highPriorityWakeLock = navigator.requestWakeLock('high-priority');
     var openWindow = function dialer_openCallScreen(state) {
       callScreenWindow = window.open(urlBase + '#' + state,
                   'call_screen', 'attention');
+
       callScreenWindow.onload = function onload() {
+        highPriorityWakeLock.unlock();
         callScreenWindowLoaded = true;
         if (openCallback) {
           openCallback();
