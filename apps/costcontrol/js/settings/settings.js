@@ -231,7 +231,7 @@ var Settings = (function() {
       return;
     }
 
-    var timestamp = document.querySelector('#mobile-data-usage + .meta');
+    var timestamp = document.querySelector('#wifi-data-usage + .meta');
     balance.innerHTML = _('currency', {
       value: lastBalance.balance,
       currency: lastBalance.currency
