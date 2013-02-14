@@ -52,11 +52,15 @@ function iconDescriptor(directory, app_name, entry_point) {
   // For external/3rd party apps that don't use the Gaia domain, we have an
   // 'metadata.json' file that specifies the URL.
   let dir = getFile(GAIA_DIR, directory, app_name);
-  let originFile = dir.clone();
-  originFile.append("metadata.json");
-  if (originFile.exists()) {
-    origin = getJSON(originFile).origin.replace(/^\s+|\s+$/, '');
-    if (origin.slice(-1) == "/") {
+  let metadataFile = dir.clone();
+  metadataFile.append("metadata.json");
+  if (metadataFile.exists()) {
+    let metadata = getJSON(metadataFile);
+    origin = metadata.origin.replace(/^\s+|\s+$/, '');
+    manifestURL = metadata.manifestURL;
+    if (manifestURL) {
+      manifestURL = manifestURL.replace(/^\s+|\s+$/, '');
+    } else if (origin.slice(-1) == "/") {
       manifestURL = origin + "manifest.webapp";
     } else {
       manifestURL = origin + "/manifest.webapp";
@@ -65,7 +69,15 @@ function iconDescriptor(directory, app_name, entry_point) {
 
   let manifestFile = dir.clone();
   manifestFile.append("manifest.webapp");
-  let manifest = getJSON(manifestFile);
+  let manifest;
+  try {
+    manifest = getJSON(manifestFile);
+  } catch (e) {
+    manifestFile = dir.clone();
+    manifestFile.append("update.webapp");
+    dump('Looking for packaged app: ' + manifestFile.path + '\n');
+    manifest = getJSON(manifestFile);
+  }
 
   if (entry_point &&
       manifest.entry_points &&
