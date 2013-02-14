@@ -100,8 +100,8 @@ var Settings = (function() {
     var mode;
     var dialog = document.getElementById('reset-confirmation-dialog');
 
-    var resetTelephony = document.getElementById('reset-telephony');
-    resetTelephony.addEventListener('click', function _onTelephonyReset() {
+    var resetTelephonyButton = document.getElementById('reset-telephony');
+    resetTelephonyButton.addEventListener('click', function _onTelephonyReset() {
       mode = 'telephony';
       vmanager.changeViewTo(dialog.id);
     });
@@ -122,8 +122,9 @@ var Settings = (function() {
       }
 
       // Reset telephony counters
-      else if (mode === 'telephony')
+      else if (mode === 'telephony') {
         resetTelephony();
+      }
 
       updateUI();
       vmanager.closeCurrentView();
