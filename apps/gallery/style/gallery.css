@@ -123,6 +123,11 @@ section {
   margin: 0;
   overflow-y: scroll;
   overflow-x: hidden;
+  /*
+   * the body background is black, but remind the UA of that here to
+   * keep the thumbnail view opaque if possible.
+   */
+  background-color: black;
 }
 
 /* thumbnails in regular thumbnail list view */
@@ -161,7 +166,6 @@ section {
   -moz-user-select: none;
   /* thumbnail images will be displayed with background-image */
   /* these properties scale and position the images correctly */
-  background-size: cover;        /* allow some cropping */
   background-position: center;   /* keep the cropping at the edges */
   background-repeat: no-repeat;
   /*
