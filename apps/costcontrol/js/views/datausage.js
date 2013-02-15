@@ -418,12 +418,10 @@ var DataUsageTab = (function() {
       // Rest of labels are aligned with the middle
       var rounded = smartRound(value, 0);
       var v = rounded[0];
-      var u = rounded[1][0];
+      var u = rounded[1];
       var label = v;
-      if (lastUnit !== u) {
-        label = formatData([v, u]);
-      }
 
+      label = formatData([v, u]);
       lastUnit = u;
       ctx.textBaseline = 'middle';
       ctx.fillStyle = (value === model.limits.value) && model.limits.enabled ?
