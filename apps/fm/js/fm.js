@@ -725,6 +725,7 @@ function init() {
       // when the headset is plugged.
       window._previousFMRadioState = true;
       updateAntennaUI();
+      favoritesList.init();
     }
     updatePowerUI();
   });
