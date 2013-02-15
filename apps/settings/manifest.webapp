@@ -22,6 +22,7 @@
     "time":{},
     "desktop-notification":{},
     "power":{},
+    "idle":{},
     "telephony":{}
   },
   "activities": {

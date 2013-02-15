@@ -22,7 +22,8 @@ var Calls = (function(window, document, undefined) {
     CALL_FORWARD_ACTION_ERASURE: 4
   };
 
-  var _voiceServiceClassMask = gMobileConnection.ICC_SERVICE_CLASS_VOICE;
+  var mobileConnection = getMobileConnection();
+  var _voiceServiceClassMask = mobileConnection.ICC_SERVICE_CLASS_VOICE;
 
   function setToSettingsDB(settingKey, value, callback) {
     var done = function done() {
@@ -107,28 +108,28 @@ var Calls = (function(window, document, undefined) {
     };
 
     // Queries rules for unconditional call forwarding.
-    var unconditional = gMobileConnection.getCallForwardingOption(
+    var unconditional = mobileConnection.getCallForwardingOption(
       _cfReason.CALL_FORWARD_REASON_UNCONDITIONAL);
 
     unconditional.onsuccess = function() {
       var unconditionalRules = unconditional.result;
 
       // Queries rules for call forwarding when device busy.
-      var mobileBusy = gMobileConnection.getCallForwardingOption(
+      var mobileBusy = mobileConnection.getCallForwardingOption(
         _cfReason.CALL_FORWARD_REASON_MOBILE_BUSY);
 
       mobileBusy.onsuccess = function() {
         var mobileBusyRules = mobileBusy.result;
 
         // Queries rules for call forwarding when device does not reply.
-        var noReply = gMobileConnection.getCallForwardingOption(
+        var noReply = mobileConnection.getCallForwardingOption(
           _cfReason.CALL_FORWARD_REASON_NO_REPLY);
 
         noReply.onsuccess = function() {
           var noReplyRules = noReply.result;
 
           // Queries rules for call forwarding when device is not reachable.
-          var notReachable = gMobileConnection.getCallForwardingOption(
+          var notReachable = mobileConnection.getCallForwardingOption(
             _cfReason.CALL_FORWARD_REASON_NOT_REACHABLE);
 
           notReachable.onsuccess = function() {
@@ -226,14 +227,14 @@ var Calls = (function(window, document, undefined) {
             break;
         }
         mozMobileCFInfo['serviceClass'] =
-          gMobileConnection.ICC_SERVICE_CLASS_VOICE;
+          mobileConnection.ICC_SERVICE_CLASS_VOICE;
         // TODO: Check number.
         mozMobileCFInfo['number'] = textInput.value;
         mozMobileCFInfo['timeSecond'] =
           mozMobileCFInfo['reason'] !=
             _cfReason.CALL_FORWARD_REASON_NO_REPLY ? 0 : 20;
 
-        var req = gMobileConnection.setCallForwardingOption(mozMobileCFInfo);
+        var req = mobileConnection.setCallForwardingOption(mozMobileCFInfo);
         req.onsuccess = function() {
           updateCallForwardingEntry();
         };
