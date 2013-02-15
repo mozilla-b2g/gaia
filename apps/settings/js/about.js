@@ -80,7 +80,7 @@ var About = {
   },
 
   loadHardwareInfo: function about_loadHardwareInfo() {
-    if (!gMobileConnection)
+    if (!window.gMobileConnection)
       return;
 
     var info = gMobileConnection.iccInfo;
