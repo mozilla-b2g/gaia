@@ -60,7 +60,7 @@ body[data-path^='/settings'] #time-views {
 
 #settings .calendars label > span {
   display: block;
-  overflow: hidden;
+  overflow: visible;
   white-space: nowrap;
   text-overflow: ellipsis;
   width: -moz-calc(100% - 20px);
