@@ -80,14 +80,15 @@ var About = {
   },
 
   loadHardwareInfo: function about_loadHardwareInfo() {
-    if (!window.gMobileConnection)
+    var mobileConnection = getMobileConnection();
+    if (!mobileConnection)
       return;
 
-    var info = gMobileConnection.iccInfo;
+    var info = mobileConnection.iccInfo;
     document.getElementById('deviceInfo-iccid').textContent = info.iccid;
     document.getElementById('deviceInfo-msisdn').textContent = info.msisdn;
 
-    var req = gMobileConnection.sendMMI('*#06#');
+    var req = mobileConnection.sendMMI('*#06#');
     req.onsuccess = function getIMEI() {
       document.getElementById('deviceInfo-imei').textContent = req.result;
     };
