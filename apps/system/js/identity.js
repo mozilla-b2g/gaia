@@ -43,6 +43,9 @@ var Identity = (function() {
           var frame = document.createElement('iframe');
           frame.setAttribute('mozbrowser', 'true');
           frame.setAttribute('remote', true);
+          // As a hack, run this frame with 'homescreen' priority.  See bug
+          // 841820 for details.
+          frame.setAttribute('mozapptype', 'homescreen');
           frame.classList.add('screen');
           frame.src = e.detail.showUI ? kIdentityScreen : kIdentityFrame;
           frame.addEventListener('mozbrowserloadstart',
