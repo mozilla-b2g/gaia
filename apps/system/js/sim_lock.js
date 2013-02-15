@@ -98,6 +98,9 @@ var SimLock = {
   },
 
   onClose: function sl_onClose(reason) {
+     // Bug834205_OK button status after lockscreen
+     SimPinDialog.resetOKbtn();
+
     // Display the app only when PIN code is valid and when we click
     // on `X` button
     if (this._lastOrigin && (reason == 'success' || reason == 'skip'))
