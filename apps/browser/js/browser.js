@@ -1588,10 +1588,14 @@ var Browser = {
         return;
       }
 
+      var liCss = window.getComputedStyle(this.tab);
+      var leftPad = parseInt(liCss.paddingLeft,10);
+      var rightPad = parseInt(liCss.paddingRight,10);
+      
       this.tab.classList.add('active');
       this.tab.style.MozTransition = '';
       this.tab.style.position = 'absolute';
-      this.tab.style.width = e.target.parentNode.clientWidth + 'px';
+      this.tab.style.width = e.target.parentNode.clientWidth - (leftPad + rightPad) + 'px';
     },
 
     pan: function tabSwipe_pan(e) {
