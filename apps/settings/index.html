@@ -258,7 +258,7 @@
       <ul>
         <li>
           <a data-l10n-id="macAddress"> MAC address
-            <span data-name="deviceinfo.mac"></span>
+            <span><small data-name="deviceinfo.mac"></small></span>
           </a>
         </li>
       </ul>
@@ -919,11 +919,11 @@
       <ul>
         <li>
           <p data-l10n-id="ssid-name">SSID Network Name</p>
-          <input type="text" data-setting="tethering.wifi.ssid" />
+          <input type="text" data-setting="tethering.wifi.ssid" maxlength="15" />
         </li>
         <li class="password-item">
           <p data-l10n-id="wifi-password">Password</p>
-          <input type="text" data-setting="tethering.wifi.security.password" />
+          <input type="text" data-setting="tethering.wifi.security.password" maxlength="15" />
         </li>
         <li>
           <p data-l10n-id="wifi-security">Security</p>
@@ -964,12 +964,12 @@
         </li>
         <li>
           <a data-l10n-id="wifi-name">Name
-            <span data-name="tethering.wifi.ssid"></span>
+          	<span><small data-name="tethering.wifi.ssid"></small></span>
           </a>
         </li>
         <li class="password-item" hidden>
           <a data-l10n-id="wifi-password">Password
-            <span data-name="tethering.wifi.security.password"></span>
+            <span><small data-name="tethering.wifi.security.password"></small></span>
           </a>
         </li>
         <li>
