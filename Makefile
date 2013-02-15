@@ -28,6 +28,7 @@ GAIA_DOMAIN?=gaiamobile.org
 
 DEBUG?=0
 PRODUCTION?=0
+GAIA_OPTIMIZE?=0
 DOGFOOD?=0
 
 LOCAL_DOMAINS?=1
@@ -62,9 +63,11 @@ GAIA_APP_SRCDIRS=apps showcase_apps
 else ifeq ($(MAKECMDGOALS), dogfood)
 DOGFOOD=1
 PRODUCTION=1
+GAIA_OPTIMIZE=1
 B2G_SYSTEM_APPS=1
 else ifeq ($(MAKECMDGOALS), production)
 PRODUCTION=1
+GAIA_OPTIMIZE=1
 B2G_SYSTEM_APPS=1
 endif
 
@@ -349,6 +352,7 @@ define run-js-command
 	const LOCALES_FILE = "$(LOCALES_FILE)";                                     \
 	const BUILD_APP_NAME = "$(BUILD_APP_NAME)";                                 \
 	const PRODUCTION = "$(PRODUCTION)";                                         \
+	const GAIA_OPTIMIZE = "$(GAIA_OPTIMIZE)";                                   \
 	const DOGFOOD = "$(DOGFOOD)";                                               \
 	const OFFICIAL = "$(MOZILLA_OFFICIAL)";                                     \
 	const GAIA_DEFAULT_LOCALE = "$(GAIA_DEFAULT_LOCALE)";                       \
