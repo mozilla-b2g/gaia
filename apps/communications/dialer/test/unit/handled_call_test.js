@@ -210,6 +210,10 @@ suite('dialer/handled_call', function() {
       assert.isTrue(MockCallScreen.mSetCallerContactImageCalled);
     });
 
+    test('primary contact info', function() {
+      assert.isTrue(MockUtils.mCalledGetPhoneNumberPrimaryInfo);
+    });
+
     test('additional contact info', function() {
       assert.isTrue(MockUtils.mCalledGetPhoneNumberAdditionalInfo);
     });
