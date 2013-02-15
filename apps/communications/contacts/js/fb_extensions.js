@@ -9,6 +9,7 @@ if (typeof Contacts.extFb === 'undefined') {
 
     var extensionFrame = document.querySelector('#fb-extensions');
     var oauthFrame = document.querySelector('#fb-oauth');
+    oauthFrame.src = '/facebook/fb_oauth.html';
     var currentURI, access_token;
     var canClose = true;
     var closeRequested = false;
@@ -181,7 +182,6 @@ if (typeof Contacts.extFb === 'undefined') {
         req.onsuccess = function success() {
           close();
 
-          contacts.List.refresh(contactId);
           if (originalFbContact && !fb.isFbLinked(originalFbContact)) {
             contacts.List.remove(originalFbContact.id);
           }
@@ -227,10 +227,8 @@ if (typeof Contacts.extFb === 'undefined') {
 
       freq.onsuccess = function() {
         Contacts.updateContactDetail(cid);
-        contacts.List.refresh(cid);
         if (freq.result) {
           Contacts.updateContactDetail(cid);
-          contacts.List.refresh(freq.result);
         }
       };
 
@@ -290,8 +288,6 @@ if (typeof Contacts.extFb === 'undefined') {
         break;
 
         case 'fb_updated':
-          contacts.List.load();
-
           Contacts.navigation.home(function fb_finished() {
             extensionFrame.contentWindow.postMessage({
               type: 'contacts_loaded',
@@ -308,7 +304,6 @@ if (typeof Contacts.extFb === 'undefined') {
           }
           // Check whether there has been changes or not
           if(data.data > 0) {
-            contacts.List.load();
             notifySettings();
           }
         break;

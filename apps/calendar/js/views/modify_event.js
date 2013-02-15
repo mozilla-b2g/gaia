@@ -50,6 +50,7 @@ Calendar.ns('Views').ModifyEvent = (function() {
       this.saveButton.addEventListener('click', this.save);
       this.deleteButton.addEventListener('click', this.deleteRecord);
       this.cancelButton.addEventListener('click', this.cancel);
+      this.form.addEventListener('click', this.focusHandler);
       this.form.addEventListener('submit', this.save);
 
       var allday = this.getField('allday');
@@ -327,6 +328,16 @@ Calendar.ns('Views').ModifyEvent = (function() {
      */
     cancel: function() {
       window.back();
+    },
+
+    /**
+     * Enlarges focus areas for .button controls
+     */
+    focusHandler: function(e) {
+      var input = e.target.querySelector('input');
+      if (input && e.target.classList.contains('button')) {
+        input.focus();
+      }
     },
 
     /**

@@ -19,7 +19,7 @@ ul li {
 }
 
 ul li.active,
-ul li:active {
+ul li a:active {
   background-color: #b2f2ff;
   color: #222;
 }

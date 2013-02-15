@@ -32,6 +32,7 @@ var MessageManager = {
       window.location.hash = '#num=' + num;
     } else {
       ThreadUI.appendMessage(message);
+      ThreadUI.scrollViewToBottom();
     }
     MessageManager.getThreads(ThreadListUI.renderThreads);
   },
@@ -72,6 +73,7 @@ var MessageManager = {
         MessageManager.getThreads(ThreadListUI.renderThreads);
       });
       ThreadUI.appendMessage(message);
+      ThreadUI.scrollViewToBottom();
       Utils.updateTimeHeaders();
     } else {
       var threadMockup = this.createThreadMockup(message);
@@ -113,6 +115,7 @@ var MessageManager = {
   onVisibilityChange: function mm_onVisibilityChange(e) {
     ThreadListUI.updateContactsInfo();
     ThreadUI.updateHeaderData();
+    Utils.updateTimeHeaders();
   },
 
   slide: function mm_slide(callback) {
@@ -165,11 +168,16 @@ var MessageManager = {
         editButton.parentNode.appendChild(editButton);
         MessageManager.currentNum = null;
         if (mainWrapper.classList.contains('edit')) {
+          mainWrapper.classList.remove('edit');
           if (ThreadListUI.editDone) {
             ThreadListUI.editDone = false;
-            this.getThreads(ThreadListUI.renderThreads);
+            // TODO Address this re-render in
+            // https://bugzilla.mozilla.org/show_bug.cgi?id=825604
+            this.getThreads(ThreadListUI.renderThreads,
+              function threadListUpdated() {
+              WaitingScreen.hide();
+            });
           }
-          mainWrapper.classList.remove('edit');
         } else if (threadMessages.classList.contains('new')) {
           MessageManager.slide(function() {
             threadMessages.classList.remove('new');
@@ -200,7 +208,7 @@ var MessageManager = {
           if (mainWrapper.classList.contains('edit')) {
             mainWrapper.classList.remove('edit');
           } else if (threadMessages.classList.contains('new')) {
-            this.getMessages(ThreadUI.renderMessages, filter, false);
+            ThreadUI.renderMessages(filter);
             threadMessages.classList.remove('new');
             ThreadUI.updateHeaderData();
           } else {
@@ -216,7 +224,7 @@ var MessageManager = {
             // Update Header
             ThreadUI.updateHeaderData(function headerReady() {
               MessageManager.slide(function slided() {
-                self.getMessages(ThreadUI.renderMessages, filter, false);
+                ThreadUI.renderMessages(filter);
               });
             });
           }
@@ -250,28 +258,36 @@ var MessageManager = {
       console.log(msg);
     };
   },
-
-  // Retrieve messages from DB and execute callback
-  getMessages: function mm_getMessages(callback, filter, invert, callbackArgs) {
-    var request = navigator.mozSms.getMessages(filter, !invert);
+  getMessages: function mm_getMgs(options) {
+    var stepCB = options.stepCB, // CB which manage every message
+        filter = options.filter, // mozMessageFilter
+        invert = options.invert, // invert selection
+        endCB = options.endCB,   // CB when all messages retrieved
+        endCBArgs = options.endCBArgs; //Args for endCB
     var self = this;
-    var messages = [];
+    var request = navigator.mozSms.getMessages(filter, !invert);
     request.onsuccess = function onsuccess() {
       var cursor = request.result;
       if (cursor.message) {
-        messages.push(cursor.message);
-        cursor.continue();
+        var shouldContinue = true;
+        if (stepCB) {
+          shouldContinue = stepCB(cursor.message);
+        }
+        // if stepCB returns false the iteration stops
+        if (shouldContinue !== false) { // if this is undefined this is fine
+          cursor.continue();
+        }
       } else {
-        callback(messages, callbackArgs);
+        if (endCB) {
+          endCB(endCBArgs);
+        }
       }
     };
-
     request.onerror = function onerror() {
       var msg = 'Reading the database. Error: ' + request.errorCode;
       console.log(msg);
     };
   },
-
   send: function mm_send(number, text, callback, errorHandler) {
     var req = navigator.mozSms.send(number, text);
     req.onsuccess = function onsuccess(e) {
@@ -400,16 +416,16 @@ var ThreadListUI = {
       var contact = contacts[0];
 
       // Update contact phone number
-      var contactName = contact.name;
+      var contactName = contact.name[0];
       if (contacts.length > 1) {
         // If there are more than one contact with same phone number
         var others = contacts.length - 1;
-        nameContainer.innerHTML = _('others', {
+        nameContainer.textContent = _('others', {
           name: contactName,
           n: others
         });
       }else {
-        nameContainer.innerHTML = contactName;
+        nameContainer.textContent = contactName;
       }
       // Do we have to update photo?
       if (contact.photo && contact.photo[0]) {
@@ -506,23 +522,24 @@ var ThreadListUI = {
 
       var filter = new MozSmsFilter();
       filter.numbers = nums;
-
-      MessageManager.getMessages(function gotMessages(messages) {
-        var delNumList = messages.map(function(message) {
-          return message.id;
-        });
-
-        MessageManager.deleteMessages(delNumList,
-                                      function() {
-          MessageManager.getThreads(function recoverThreads(threads) {
-            ThreadListUI.renderThreads(threads);
-            WaitingScreen.hide();
-            ThreadListUI.editDone = true;
-            window.location.hash = '#thread-list';
+      var messagesToDeleteIDs = [];
+      var options = {
+        stepCB: function getMessageToDelete(message) {
+          messagesToDeleteIDs.push(message.id);
+        },
+        filter: filter,
+        invert: true,
+        endCB: function deleteMessages() {
+          MessageManager.deleteMessages(messagesToDeleteIDs,
+            function smsDeleted() {
+            MessageManager.getThreads(function recoverThreads(threads) {
+              ThreadListUI.editDone = true;
+              window.location.hash = '#thread-list';
+            });
           });
-        });
-      }, filter);
-
+        }
+      };
+      MessageManager.getMessages(options);
     }
   },
 
@@ -591,6 +608,7 @@ var ThreadListUI = {
 
     // Retrieving params from thread
     var bodyText = (thread.body || '').split('\n')[0];
+    var bodyHTML = Utils.escapeHTML(bodyText);
     var formattedDate = Utils.getFormattedHour(timestamp);
     // Create HTML Structure
     var structureHTML = '<label class="danger">' +
@@ -606,7 +624,7 @@ var ThreadListUI = {
                           '</aside>' +
                           '<p class="name">' + num + '</p>' +
                           '<p><time>' + formattedDate +
-                          '</time>' + bodyText + '</p>' +
+                          '</time>' + bodyHTML + '</p>' +
                         '</a>';
 
     // Update HTML
@@ -703,6 +721,9 @@ var ThreadListUI = {
 };
 
 var ThreadUI = {
+  // Time buffer for the 'last-messages' set. In this case 10 min
+  LAST_MESSSAGES_BUFFERING_TIME: 10 * 60 * 1000,
+  CHUNK_SIZE: 10,
   get view() {
     delete this.view;
     return this.view = document.getElementById('messages-container');
@@ -828,10 +849,38 @@ var ThreadUI = {
     this.sendForm.addEventListener('submit', this);
 
     Utils.startTimeHeaderScheduler();
+    // We add the infinite scroll effect for increasing performance
+    this.view.addEventListener('scroll', this.manageScroll.bind(this));
   },
-
+  // We define an edge for showing the following chunk of elements
+  manageScroll: function thui_manageScroll(oEvent) {
+    // kEdge will be the limit (in pixels) for showing the next chunk
+    var kEdge = 30;
+    var currentScroll = this.view.scrollTop;
+    if (currentScroll < kEdge) {
+      var previous = this.view.scrollHeight;
+      this.showChunkOfMessages(this.CHUNK_SIZE);
+      // We update the scroll to the previous position
+      // taking into account the previous offset to top
+      // and the current height due to we have added a new
+      // chunk of visible messages
+      this.view.scrollTop =
+        (this.view.scrollHeight - previous) + currentScroll;
+    }
+  },
+  setInputMaxHeight: function thui_setInputMaxHeight() {
+    // Method for initializing the maximum height
+    var fontSize = Utils.getFontSize();
+    var viewHeight = this.view.offsetHeight / fontSize;
+    var inputHeight = this.input.offsetHeight / fontSize;
+    var barHeight =
+      document.getElementById('new-sms-form').offsetHeight / fontSize;
+    var adjustment = barHeight - inputHeight;
+    this.input.style.maxHeight = (viewHeight - adjustment) + 'rem';
+  },
   onBackAction: function thui_onBackAction() {
     var goBack = function() {
+      ThreadUI.stopRendering();
       if (ThreadUI.input.value.length == 0) {
         window.location.hash = '#thread-list';
         return;
@@ -892,62 +941,138 @@ var ThreadUI = {
   },
 
   updateInputHeight: function thui_updateInputHeight() {
-    var input = this.input;
-    var inputCss = window.getComputedStyle(input, null);
+    // First of all we retrieve all CSS info which we need
+    var inputCss = window.getComputedStyle(this.input, null);
     var inputMaxHeight = parseInt(inputCss.getPropertyValue('max-height'), 10);
-    //Constant difference of height beteween button and growing input
-    var deviationHeight = 30;
-    if (input.scrollHeight > inputMaxHeight) {
+    var fontSize = Utils.getFontSize();
+    var verticalPadding =
+      (parseInt(inputCss.getPropertyValue('padding-top'), 10) +
+      parseInt(inputCss.getPropertyValue('padding-bottom'), 10)) /
+      fontSize;
+    var buttonHeight = 30;
+
+    // Retrieve elements useful in growing method
+    var bottomBar = document.getElementById('new-sms-form');
+
+    // Updating the height if scroll is bigger that height
+    // This is when we have reached the header (UX requirement)
+    if (this.input.scrollHeight > inputMaxHeight) {
+      // Height of the input is the maximum
+      this.input.style.height = inputMaxHeight / fontSize + 'rem';
+      // Update the bottom bar height taking into account the padding
+      bottomBar.style.height =
+        inputMaxHeight / fontSize + verticalPadding + 'rem';
+      // We update the position of the button taking into account the
+      // new height
+      this.sendButton.style.marginTop =
+        (this.input.offsetHeight - buttonHeight) / fontSize + 'rem';
       return;
     }
 
-    input.style.height = null;
+    // In a regular scenario, we need to grow the input step by step
+    this.input.style.height = null;
     // If the scroll height is smaller than original offset height, we keep
     // offset height to keep original height, otherwise we use scroll height
     // with additional margin for preventing scroll bar.
-    input.style.height = input.offsetHeight > input.scrollHeight ?
-      input.offsetHeight / Utils.getFontSize() + 'rem' :
-      input.scrollHeight / Utils.getFontSize() + 'rem';
+    this.input.style.height =
+      this.input.offsetHeight > this.input.scrollHeight ?
+      this.input.offsetHeight / fontSize + 'rem' :
+      this.input.scrollHeight / fontSize + verticalPadding + 'rem';
 
-    var newHeight = input.getBoundingClientRect().height;
+    // We retrieve current height of the input
+    var newHeight = this.input.getBoundingClientRect().height;
 
-    // Add 0.7 rem that are equal to the message box vertical padding
-    var bottomToolbarHeight = (newHeight / Utils.getFontSize() + 0.7) + 'rem';
-    var sendButtonTranslate = (input.offsetHeight - deviationHeight) /
-      Utils.getFontSize() + 'rem';
-    var bottomToolbar =
-        document.querySelector('#new-sms-form');
+    // We calculate the height of the bottonBar which contains the input
+    var bottomBarHeight = (newHeight / fontSize + verticalPadding) + 'rem';
+    bottomBar.style.height = bottomBarHeight;
 
-    bottomToolbar.style.height = bottomToolbarHeight;
-    ThreadUI.sendButton.style.marginTop = sendButtonTranslate;
-    this.view.style.bottom = bottomToolbarHeight;
+    // We move the button to the right position
+    var buttonOffset = (this.input.offsetHeight - buttonHeight) /
+      fontSize + 'rem';
+    this.sendButton.style.marginTop = buttonOffset;
+
+    // Last adjustment to view taking into account the new height of the bar
+    this.view.style.bottom = bottomBarHeight;
     this.scrollViewToBottom();
   },
   // Adds a new grouping header if necessary (today, tomorrow, ...)
-  createTimeHeader: function thui_createTimeHeader(time, hourOnly, fragment) {
+  getMessageContainer:
+    function thui_getMessageContainer(messageTimestamp, hidden) {
+    var normalizedTimestamp = Utils.getDayDate(messageTimestamp);
+    var referenceTime = Date.now();
+    var messageContainer;
+    // If timestamp belongs to [referenceTime, referenceTime - TimeBuffer]
+    var isLastMessagesBlock =
+    (messageTimestamp >= (referenceTime - this.LAST_MESSSAGES_BUFFERING_TIME));
+    // Is there any container with our requirements?
+    if (isLastMessagesBlock) {
+      messageContainer = document.getElementById('last-messages');
+    } else {
+      messageContainer = document.getElementById('mc_' + normalizedTimestamp);
+    }
+
+    if (messageContainer) {
+      return messageContainer;
+    }
+    // If there is no messageContainer we have to create it
     // Create DOM Element for header
-    var headerDOM = document.createElement('header');
+    var header = document.createElement('header');
     // Append 'time-update' state
-    headerDOM.dataset.timeUpdate = true;
-    headerDOM.dataset.time = time;
+    header.dataset.timeUpdate = true;
+    header.dataset.time = messageTimestamp;
+    if (hidden) {
+      header.classList.add('hidden');
+    }
     // Add text
     var content;
-    if (!hourOnly) {
-      content = Utils.getHeaderDate(time) + ' ' +
-                Utils.getFormattedHour(time);
+    if (!isLastMessagesBlock) {
+      content = Utils.getHeaderDate(messageTimestamp) + ' ' +
+                Utils.getFormattedHour(messageTimestamp);
     } else {
-      content = Utils.getFormattedHour(time);
-      headerDOM.dataset.hourOnly = 'true';
+      content = Utils.getFormattedHour(messageTimestamp);
+      header.dataset.hourOnly = 'true';
     }
-    headerDOM.innerHTML = content;
-    // Append to DOM
-    fragment.appendChild(headerDOM);
-
+    header.innerHTML = content;
     // Create list element for ul
-    var messagesContainerDOM = document.createElement('ul');
-
-    // Append to DOM
-    fragment.appendChild(messagesContainerDOM);
+    messageContainer = document.createElement('ul');
+    if (!isLastMessagesBlock) {
+      messageContainer.id = 'mc_' + normalizedTimestamp;
+    } else {
+      messageContainer.id = 'last-messages';
+    }
+    messageContainer.dataset.timestamp = normalizedTimestamp;
+    // Where do I have to append the Container?
+    // If is the first block or is the 'last-messages' one should be the
+    // most recent one.
+    if (isLastMessagesBlock || !ThreadUI.view.firstElementChild) {
+      ThreadUI.view.appendChild(header);
+      ThreadUI.view.appendChild(messageContainer);
+      return messageContainer;
+    }
+    // In other case we have to look for the right place for appending
+    // the message
+    var messageContainers = ThreadUI.view.getElementsByTagName('ul');
+    var insertBeforeContainer;
+    for (var i = 0, l = messageContainers.length; i < l; i++) {
+      if (normalizedTimestamp < messageContainers[i].dataset.timestamp) {
+        insertBeforeContainer = messageContainers[i];
+        break;
+      }
+    }
+    // If is undefined we try witn the 'last-messages' block
+    if (!insertBeforeContainer) {
+      insertBeforeContainer = document.getElementById('last-messages');
+    }
+    // Finally we append the container & header in the right position
+    if (insertBeforeContainer) {
+      ThreadUI.view.insertBefore(messageContainer,
+        insertBeforeContainer.previousSibling);
+      ThreadUI.view.insertBefore(header, messageContainer);
+    } else {
+      ThreadUI.view.appendChild(header);
+      ThreadUI.view.appendChild(messageContainer);
+    }
+    return messageContainer;
   },
   // Method for updating the header with the info retrieved from Contacts API
   updateHeaderData: function thui_updateHeaderData(callback) {
@@ -978,9 +1103,9 @@ var ThreadUI = {
        */
       if (contacts.length > 1) {
         self.title.dataset.isContact = true;
-        var contactName = contacts[0].name;
+        var contactName = contacts[0].name[0];
         var numOthers = contacts.length - 1;
-        self.title.innerHTML = _('others', {
+        self.title.textContent = _('others', {
           name: contactName,
           n: numOthers
         });
@@ -994,9 +1119,9 @@ var ThreadUI = {
           } else {
             delete self.title.dataset.isContact;
           }
-          self.title.innerHTML = details.title || number;
+          self.title.textContent = details.title || number;
           if (details.carrier) {
-            carrierTag.innerHTML = details.carrier;
+            carrierTag.textContent = details.carrier;
             carrierTag.classList.remove('hide');
           } else {
             carrierTag.classList.add('hide');
@@ -1010,117 +1135,145 @@ var ThreadUI = {
     });
   },
 
-  renderMessages: function thui_renderMessages(messages, callback) {
+  initializeRendering: function thui_initializeRendering(messages, callback) {
     // Clean fields
-    ThreadUI.cleanFields();
-    // Reset vars for 'Deleting'
-    ThreadUI.delNumList = [];
-    ThreadUI.checkInputs();
+    this.cleanFields();
+    this.checkInputs();
     // Clean list of messages
-    ThreadUI.view.innerHTML = '';
+    this.view.innerHTML = '';
     // Update header index
-    ThreadUI.dayHeaderIndex = 0;
-    ThreadUI.timeHeaderIndex = 0;
+    this.dayHeaderIndex = 0;
+    this.timeHeaderIndex = 0;
     // Init readMessages array
-    ThreadUI.readMessages = [];
-    // We append messages in a fast way
-    ThreadUI.appendMessages(messages);
-    // Update read messages if necessary
-    if (ThreadUI.readMessages.length > 0) {
-      MessageManager.markMessagesRead(ThreadUI.readMessages, 'true',
-        function() {
-        MessageManager.getThreads(ThreadListUI.renderThreads);
-      });
-    }
+    this.readMessages = [];
+    // Initialize infinite scroll params
+    this.messageIndex = 0;
+    // reset stopRendering boolean
+    this._stopRenderingNextStep = false;
+  },
+  // Method for stopping the rendering when clicking back
+  stopRendering: function thui_stopRendering() {
+    this._stopRenderingNextStep = true;
+  },
+  // Method for rendering the first chunk at the beginning
+  showFirstChunk: function thui_showFirstChunk() {
+    // Show chunk of messages
+    ThreadUI.showChunkOfMessages(this.CHUNK_SIZE);
     // Boot update of headers
     Utils.updateTimeHeaders();
-    // Callback when every message is appended
-    if (callback) {
-      setTimeout(function() {
-        callback();
+    // Go to Bottom
+    ThreadUI.scrollViewToBottom();
+  },
+  // Method for rendering the list of messages using infinite scroll
+  renderMessages: function thui_renderMessages(filter) {
+    // We initialize all params before rendering
+    this.initializeRendering();
+    // We call getMessages with callbacks
+    var self = this;
+    var onMessagesRendered = function messagesRendered() {
+      if (self.messageIndex < self.CHUNK_SIZE) {
+        self.showFirstChunk();
+      }
+      // Update STATUS of messages if needed
+      filter.read = false;
+      setTimeout(function updatingStatus() {
+        var messagesUnreadIDs = [];
+        var changeStatusOptions = {
+          stepCB: function addUnreadMessage(message) {
+            messagesUnreadIDs.push(message.id);
+          },
+          filter: filter,
+          invert: true,
+          endCB: function handleUnread() {
+            MessageManager.markMessagesRead(messagesUnreadIDs, true);
+          }
+        };
+        MessageManager.getMessages(changeStatusOptions);
       });
+    };
+    var renderingOptions = {
+      stepCB: function renderMessage(message) {
+        if (self._stopRenderingNextStep) {
+          // stop the iteration
+          return false;
+        }
+        self.appendMessage(message,/*hidden*/ true);
+        self.messageIndex++;
+        if (self.messageIndex === self.CHUNK_SIZE) {
+          self.showFirstChunk();
+        }
+      },
+      filter: filter,
+      invert: false,
+      endCB: onMessagesRendered
+    };
+    MessageManager.getMessages(renderingOptions);
+  },
+
+  appendMessage: function thui_appendMessage(message, hidden) {
+    // Retrieve all data from message
+    var id = message.id;
+    var bodyText = message.body;
+    var bodyHTML = Utils.escapeHTML(bodyText);
+    var timestamp = message.timestamp.getTime();
+    var messageClass = message.delivery;
+
+    var messageDOM = document.createElement('li');
+    messageDOM.classList.add('bubble');
+    messageDOM.dataset.timestamp = timestamp;
+
+    if (hidden) {
+      messageDOM.classList.add('hidden');
     }
-  },
+    messageDOM.id = 'message-' + id;
+    var inputValue = id;
+    var asideHTML = '';
+    // Do we have to add some error/sending icon?
+    switch (message.delivery) {
+      case 'error':
+        asideHTML = '<aside class="pack-end"></aside>';
+        ThreadUI.addResendHandler(message, messageDOM);
+        break;
+      case 'sending':
+        asideHTML = '<aside class="pack-end">' +
+                    '<progress></progress></aside>';
+        break;
+    }
 
-  appendMessage: function thui_appendMessage(message) {
-    this.appendMessages([message]);
-  },
-
-  appendMessages: function thui_appendMessages(messages) {
-    var fragment = document.createDocumentFragment();
-    var lastChild = fragment.lastChild;
-    for (var i = messages.length - 1; i >= 0; i--) {
-      var message = messages[i];
-      if (!message.read) {
-        ThreadUI.readMessages.push(message.id);
-      }
-      // Retrieve all data from message
-      var id = message.id;
-      var bodyText = message.body;
-      var bodyHTML = Utils.escapeHTML(bodyText);
-
-      var messageClass = message.delivery;
-
-      var messageDOM = document.createElement('li');
-      messageDOM.classList.add('bubble');
-      messageDOM.id = 'message-' + id;
-
-      var inputValue = id;
-
-      var asideHTML = '';
-      // Do we have to add some error/sending icon?
-      switch (message.delivery) {
-        case 'error':
-          asideHTML = '<aside class="pack-end"></aside>';
-          ThreadUI.addResendHandler(message, messageDOM);
+    // Create HTML content
+    var messageHTML = '<label class="danger">' +
+                      '<input type="checkbox" value="' + inputValue + '">' +
+                      '<span></span>' +
+                      '</label>' +
+                    '<a class="' + messageClass + '">';
+    messageHTML += asideHTML;
+    messageHTML += '<p>' + bodyHTML + '</p></a>';
+    messageDOM.innerHTML = messageHTML;
+    // Add to the right position
+    var messageContainer = ThreadUI.getMessageContainer(timestamp, hidden);
+    if (!messageContainer.firstElementChild) {
+      messageContainer.appendChild(messageDOM);
+    } else {
+      var messages = messageContainer.children;
+      var appended = false;
+      for (var i = 0, l = messages.length; i < l; i++) {
+        if (timestamp < messages[i].dataset.timestamp) {
+          messageContainer.insertBefore(messageDOM, messages[i]);
+          appended = true;
           break;
-        case 'sending':
-          asideHTML = '<aside class="pack-end">' +
-                      '<progress></progress></aside>';
-          break;
-      }
-
-      // Create HTML content
-      var messageHTML = '<label class="danger">' +
-                        '<input type="checkbox" value="' + inputValue + '">' +
-                        '<span></span>' +
-                        '</label>' +
-                      '<a class="' + messageClass + '">';
-      messageHTML += asideHTML;
-      messageHTML += '<p>' + bodyHTML + '</p></a>';
-
-      // Add structure to DOM element
-      messageDOM.innerHTML = messageHTML;
-
-      //Check if we need a new header
-      var timestamp = message.timestamp.getTime();
-      var tmpDayIndex = Utils.getDayDate(timestamp);
-      var tmpHourIndex = timestamp;
-
-      if (tmpDayIndex > ThreadUI.dayHeaderIndex) { // Different day
-        ThreadUI.createTimeHeader(timestamp, false, fragment);
-        ThreadUI.dayHeaderIndex = tmpDayIndex;
-        ThreadUI.timeHeaderIndex = tmpHourIndex;
-        lastChild = fragment.lastChild;
-      } else { // Same day
-        if (tmpHourIndex > ThreadUI.timeHeaderIndex + 10 * 60 * 1000) { // 10min
-          ThreadUI.createTimeHeader(timestamp, true, fragment);
-          ThreadUI.timeHeaderIndex = tmpHourIndex;
-          lastChild = fragment.lastChild;
-        } else if (!lastChild) {
-          // Appending 1 message only so no ul in the fragment
-          lastChild = fragment;
         }
       }
-      // Append element
-      lastChild.appendChild(messageDOM);
+      if (!appended) {
+        messageContainer.appendChild(messageDOM);
+      }
     }
+  },
 
-    (fragment === lastChild) ? ThreadUI.view.lastChild.appendChild(fragment) :
-                               ThreadUI.view.appendChild(fragment);
-
-    // Scroll to bottom
-    ThreadUI.scrollViewToBottom();
+  showChunkOfMessages: function thui_showChunkOfMessages(number) {
+    var hiddenElements = ThreadUI.view.getElementsByClassName('hidden');
+    for (var i = hiddenElements.length - 1; i >= 0; i--) {
+      hiddenElements[i].classList.remove('hidden');
+    }
   },
 
   addResendHandler: function thui_addResendHandler(message, messageDOM) {
@@ -1431,7 +1584,7 @@ var ThreadUI = {
       Utils.getPhoneDetails(tels[i].value,
                             contact,
                             function gotDetails(details) {
-        var name = (contact.name || details.title).toString();
+        var name = Utils.escapeHTML((contact.name[0] || details.title));
         //TODO ask UX if we should use type+carrier or just number
         var number = tels[i].value.toString();
         var input = self.contactInput.value;
@@ -1586,6 +1739,7 @@ var WaitingScreen = {
 };
 
 window.addEventListener('resize', function resize() {
+  ThreadUI.setInputMaxHeight();
   // Scroll to bottom
   ThreadUI.scrollViewToBottom();
 });
@@ -1733,7 +1887,7 @@ if (!window.location.hash.length) {
       function gotContact(contact) {
         var sender;
         if (contact.length && contact[0].name) {
-          sender = contact[0].name;
+          sender = Utils.escapeHTML(contact[0].name[0]);
         } else {
           sender = message.sender;
         }

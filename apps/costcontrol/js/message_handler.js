@@ -10,6 +10,7 @@
   // Redirect global objects to parent versions to avoid conflicts
   if (!inStandAloneMode()) {
     ConfigManager = window.parent.ConfigManager;
+    CostControl = window.parent.CostControl;
   }
 
   // XXX: This case implies that message handler triggered by system
@@ -70,6 +71,16 @@
         return;
       }
 
+      // If the alarm is in the past, fake it was launched
+      if (when.getTime() < Date.now()) {
+        debug('Faking a past reset alarm');
+        _onAlarm({ data: { type:'nextReset' } });
+        if (callback) {
+          setTimeout(callback);
+        }
+        return;
+      }
+
       // If when is provided, request an alarm an set the new values
       var alarms = navigator.mozAlarms;
       var request = alarms.add(when, 'ignoreTimezone', {type: 'nextReset' });
@@ -80,6 +91,35 @@
     });
   }
   window.setNextReset = setNextReset;
+
+  function getTopUpTimeout(callback) {
+    ConfigManager.requestSettings(function _onSettings(settings) {
+      var request = navigator.mozAlarms.getAll();
+      request.onsuccess = function (e) {
+        var alarms = e.target.result;
+        var length = alarms.length;
+        if (!length) {
+          callback(null);
+          return;
+        }
+
+        var refId = settings.waitingForTopUp;
+        var index = 0, alarm, found = false;
+        while (index < length && !found) {
+          alarm = alarms[index];
+          found = (alarm.id === refId);
+          index++;
+        }
+        if (found) {
+          debug('TopUp timeout found:', alarm.date);
+          callback(alarm.date);
+        } else {
+          callback(null);
+        }
+      };
+    });
+  }
+  window.getTopUpTimeout = getTopUpTimeout;
 
   // Update the nextResetAlarm and nextReset values and request for
   // synchronization.
@@ -116,8 +156,9 @@
                               _('topup-incorrectcode-message2'), iconURL,
                               goToTopUpCode);
 
-      if (callback)
+      if (callback) {
         callback();
+      }
     };
   }
 
@@ -184,171 +225,220 @@
     };
   }
 
-  // Register in standalone or for application
-  if (inStandAloneMode() || inApplicationMode()) {
-    debug('Installing handlers');
-
-    // When receiving an SMS, recognize and parse
-    window.navigator.mozSetMessageHandler('sms-received', function _onSMS(sms) {
-      clearTimeout(closing);
-      ConfigManager.requestAll(function _onInfo(configuration, settings) {
-        // Non expected SMS
-        if (configuration.balance.senders.indexOf(sms.sender) === -1 &&
-            configuration.topup.senders.indexOf(sms.sender) === -1) {
-          closeIfProceeds();
-          return;
-        }
-
-        // Parse the message
-        debug('Parsing received SMS');
-        var isBalance, isConfirmation, isError;
-        isBalance = isConfirmation = isError = false;
-
-        debug('Trying to recognize balance SMS');
-        var description = new RegExp(configuration.balance.regexp);
-        var balanceData = sms.body.match(description);
-        isBalance = !!balanceData;
-        if (!isBalance || balanceData.length < 2) {
-          console.warn('Impossible to parse balance message.');
-
-          debug('Trying to recognize TopUp confirmation SMS');
-          description = new RegExp(configuration.topup.confirmation_regexp);
-          isConfirmation = !!sms.body.match(description);
-          if (!isConfirmation) {
-            console.warn('Impossible to parse TopUp confirmation message.');
-
-            debug('Trying to recognize TopUp error SMS');
-            description = new RegExp(configuration.topup.incorrect_code_regexp);
-            isError = !!sms.body.match(description);
-            if (!isError) {
-              console.warn('Impossible to parse TopUp confirmation message.');
-            }
-          }
-
-        }
-
-        if (!isBalance && !isConfirmation && !isError) {
-          return;
-        }
-
-        // TODO: Remove the SMS
-
-        if (isBalance) {
-          // Compose new balance
-          var integer = balanceData[1];
-          var decimal = balanceData[2] || '0';
-          var newBalance = {
-            balance: parseFloat(integer + '.' + decimal),
-            currency: configuration.credit.currency,
-            timestamp: new Date()
-          };
-
-          // Remove the timeout
-          navigator.mozAlarms.remove(settings.waitingForBalance);
-          debug('Balance timeout:', settings.waitingForBalance, 'removed');
-
-          // Store new balance and sync
+  // When receiving an alarm, differenciate by type and act
+  function _onAlarm(alarm) {
+    clearTimeout(closing);
+    switch (alarm.data.type) {
+      case 'balanceTimeout':
+        ConfigManager.requestSettings(function _onSettings(settings) {
+          settings.errors['BALANCE_TIMEOUT'] = true;
           ConfigManager.setOption(
-            { 'lastBalance': newBalance, 'waitingForBalance': null },
-            function _onSet() {
-              debug('Balance up to date and stored');
+            { 'errors': settings.errors, 'waitingForBalance': null },
+            function _onBalanceTimeout() {
+              debug('Timeout for balance');
               debug('Trying to synchronize!');
-              localStorage['sync'] = 'lastBalance#' + Math.random();
-              sendBalanceThresholdNotification(newBalance, settings,
-                                               closeIfProceeds);
-            }
-          );
-        } else if (isConfirmation) {
-          // Store SUCCESS for TopIp and sync
-          navigator.mozAlarms.remove(settings.waitingForTopUp);
-          debug('TopUp timeout:', settings.waitingForTopUp, 'removed');
-          ConfigManager.setOption(
-            {
-              'waitingForTopUp': null,
-              'lowLimitNotified': false,
-              'zeroBalanceNotified': false
-            },
-            function _onSet() {
-              debug('TopUp confirmed!');
-              debug('Trying to synchronize!');
-              localStorage['sync'] = 'waitingForTopUp#' + Math.random();
+              localStorage['sync'] = 'errors#' + Math.random();
               closeIfProceeds();
             }
           );
-        } else if (isError) {
-          // Store ERROR for TopUp and sync
-          settings.errors['INCORRECT_TOPUP_CODE'] = true;
-          navigator.mozAlarms.remove(settings.waitingForTopUp);
-          debug('TopUp timeout: ', settings.waitingForTopUp, 'removed');
+        });
+        break;
+
+      case 'topupTimeout':
+        ConfigManager.requestSettings(function _onSettings(settings) {
+          settings.errors['TOPUP_TIMEOUT'] = true;
           ConfigManager.setOption(
-            {
-              'errors': settings.errors,
-              'waitingForTopUp': null,
-              'lowLimitNotified': false,
-              'zeroBalanceNotified': false
-            },
-            function _onSet() {
-              debug('Balance up to date and stored');
+            { 'errors': settings.errors, 'waitingForTopUp': null },
+            function _onBalanceTimeout() {
+              debug('Timeout for topup');
               debug('Trying to synchronize!');
               localStorage['sync'] = 'errors#' + Math.random();
-              sendIncorrectTopUpNotification(closeIfProceeds);
+              closeIfProceeds();
             }
           );
-        }
-      });
-    });
+        });
+        break;
 
-    // Whan receiving an alarm, differenciate by type and act
-    window.navigator.mozSetMessageHandler('alarm', function _onAlarm(alarm) {
-      clearTimeout(closing);
-      switch (alarm.data.type) {
-        case 'balanceTimeout':
-          ConfigManager.requestSettings(function _onSettings(settings) {
-            settings.errors['BALANCE_TIMEOUT'] = true;
-            ConfigManager.setOption(
-              { 'errors': settings.errors, 'waitingForBalance': null },
-              function _onBalanceTimeout() {
-                debug('Timeout for balance');
-                debug('Trying to synchronize!');
-                localStorage['sync'] = 'errors#' + Math.random();
-                closeIfProceeds();
-              }
-            );
-          });
-          break;
+      case 'nextReset':
+        ConfigManager.requestSettings(function _onSettings(settings) {
+          resetAll();
+          updateNextReset(settings.trackingPeriod, settings.resetTime);
+          closeIfProceeds();
+        });
+        break;
+    }
+  }
 
-        case 'topupTimeout':
-          ConfigManager.requestSettings(function _onSettings(settings) {
-            settings.errors['TOPUP_TIMEOUT'] = true;
-            ConfigManager.setOption(
-              { 'errors': settings.errors, 'waitingForTopUp': null },
-              function _onBalanceTimeout() {
-                debug('Timeout for topup');
-                debug('Trying to synchronize!');
-                localStorage['sync'] = 'errors#' + Math.random();
-                closeIfProceeds();
-              }
-            );
-          });
-          break;
+  function checkDataUsageNotification(settings, usage, callback) {
+    // XXX: Hack hiding the message class in the icon URL
+    // Should use the tag element of the notification once the final spec
+    // lands:
+    // See: https://bugzilla.mozilla.org/show_bug.cgi?id=782211
+    navigator.mozApps.getSelf().onsuccess = function _onAppReady(evt) {
+      var app = evt.target.result;
+      var iconURL = NotificationHelper.getIconURI(app);
+      iconURL += '?dataUsage';
 
-        case 'nextReset':
-          ConfigManager.requestSettings(function _onSettings(settings) {
-            resetAll();
-            updateNextReset(settings.trackingPeriod, settings.resetTime);
-            closeIfProceeds();
-          });
-          break;
+      var goToDataUsage;
+      if (!inStandAloneMode()) {
+        goToDataUsage = function _goToDataUsage() {
+          app.launch();
+          window.parent.CostControlApp.showDataUsageTab();
+        };
       }
-    });
 
-    // Count a new SMS
-    window.navigator.mozSetMessageHandler('sms-sent', function _onSMSSent(sms) {
-      clearTimeout(closing);
-      debug('SMS sent!');
+      var limit = getDataLimit(settings);
+      if (settings.dataLimit) {
+        if (usage >= limit && !settings.dataUsageNotified) {
+          var limitText = formatData(smartRound(limit));
+          var title = _('data-limit-notification-title', { limit: limitText });
+          var message = _('data-limit-notification-text');
+          NotificationHelper.send(title, message, iconURL, goToDataUsage);
+          ConfigManager.setOption({ 'dataUsageNotified': true }, callback);
+          return true;
 
-      ConfigManager.requestAll(function _onInfo(configuration, settings) {
-        CostControl.getInstance(function _onInstance(costcontrol) {
+        } else if (usage < limit && settings.dataUsageNotified) {
+          ConfigManager.setOption({ 'dataUsageNotified': false }, callback);
+          return false;
+        }
+      }
+
+      if (callback) {
+        callback();
+      }
+      return false;
+    };
+  }
+  window.checkDataUsageNotification = checkDataUsageNotification;
+
+  // Register in standalone or for application
+  var costcontrol;
+  CostControl.getInstance(function _onCostControl(ccontrol) {
+    costcontrol = ccontrol;
+
+    if (inStandAloneMode() || inApplicationMode()) {
+      debug('Installing handlers');
+
+      // When receiving an SMS, recognize and parse
+      navigator.mozSetMessageHandler('sms-received', function _onSMS(sms) {
+        clearTimeout(closing);
+        ConfigManager.requestAll(function _onInfo(configuration, settings) {
+          // Non expected SMS
+          if (configuration.balance.senders.indexOf(sms.sender) === -1 &&
+              configuration.topup.senders.indexOf(sms.sender) === -1) {
+            closeIfProceeds();
+            return;
+          }
+
+          // Parse the message
+          debug('Parsing received SMS');
+          var isBalance, isConfirmation, isError;
+          isBalance = isConfirmation = isError = false;
+
+          debug('Trying to recognize balance SMS');
+          var description = new RegExp(configuration.balance.regexp);
+          var balanceData = sms.body.match(description);
+          isBalance = !!balanceData;
+          if (!isBalance || balanceData.length < 2) {
+            console.warn('Impossible to parse balance message.');
+
+            debug('Trying to recognize TopUp confirmation SMS');
+            description = new RegExp(configuration.topup.confirmation_regexp);
+            isConfirmation = !!sms.body.match(description);
+            if (!isConfirmation) {
+              console.warn('Impossible to parse TopUp confirmation message.');
+
+              debug('Trying to recognize TopUp error SMS');
+              description =
+                new RegExp(configuration.topup.incorrect_code_regexp);
+              isError = !!sms.body.match(description);
+              if (!isError) {
+                console.warn('Impossible to parse TopUp confirmation message.');
+              }
+            }
+
+          }
+
+          if (!isBalance && !isConfirmation && !isError) {
+            return;
+          }
+
+          // TODO: Remove the SMS
+
+          if (isBalance) {
+            // Compose new balance
+            var integer = balanceData[1];
+            var decimal = balanceData[2] || '0';
+            var newBalance = {
+              balance: parseFloat(integer + '.' + decimal),
+              currency: configuration.credit.currency,
+              timestamp: new Date()
+            };
+
+            // Remove the timeout
+            navigator.mozAlarms.remove(settings.waitingForBalance);
+            debug('Balance timeout:', settings.waitingForBalance, 'removed');
+
+            // Store new balance and sync
+            ConfigManager.setOption(
+              { 'lastBalance': newBalance, 'waitingForBalance': null },
+              function _onSet() {
+                debug('Balance up to date and stored');
+                debug('Trying to synchronize!');
+                localStorage['sync'] = 'lastBalance#' + Math.random();
+                sendBalanceThresholdNotification(newBalance, settings,
+                                                 closeIfProceeds);
+              }
+            );
+          } else if (isConfirmation) {
+            // Store SUCCESS for TopIp and sync
+            navigator.mozAlarms.remove(settings.waitingForTopUp);
+            debug('TopUp timeout:', settings.waitingForTopUp, 'removed');
+            ConfigManager.setOption(
+              {
+                'waitingForTopUp': null,
+                'lowLimitNotified': false,
+                'zeroBalanceNotified': false
+              },
+              function _onSet() {
+                debug('TopUp confirmed!');
+                debug('Trying to synchronize!');
+                localStorage['sync'] = 'waitingForTopUp#' + Math.random();
+                closeIfProceeds();
+              }
+            );
+          } else if (isError) {
+            // Store ERROR for TopUp and sync
+            settings.errors['INCORRECT_TOPUP_CODE'] = true;
+            navigator.mozAlarms.remove(settings.waitingForTopUp);
+            debug('TopUp timeout: ', settings.waitingForTopUp, 'removed');
+            ConfigManager.setOption(
+              {
+                'errors': settings.errors,
+                'waitingForTopUp': null,
+                'lowLimitNotified': false,
+                'zeroBalanceNotified': false
+              },
+              function _onSet() {
+                debug('Balance up to date and stored');
+                debug('Trying to synchronize!');
+                localStorage['sync'] = 'errors#' + Math.random();
+                sendIncorrectTopUpNotification(closeIfProceeds);
+              }
+            );
+          }
+        });
+      });
+
+
+      navigator.mozSetMessageHandler('alarm', _onAlarm);
+
+      // Count a new SMS
+      navigator.mozSetMessageHandler('sms-sent', function _onSent(sms) {
+        clearTimeout(closing);
+        debug('SMS sent!');
+
+        ConfigManager.requestAll(function _onInfo(configuration, settings) {
           var mode = costcontrol.getApplicationMode(settings);
           if (mode === 'PREPAID' &&
               !costcontrol.isBalanceRequestSMS(sms, configuration)) {
@@ -368,19 +458,17 @@
           });
         });
       });
-    });
 
-    // When a call ends
-    window.navigator.mozSetMessageHandler('telephony-call-ended',
-      function _onCall(tcall) {
-        clearTimeout(closing);
-        if (tcall.direction !== 'outgoing') {
-          return;
-        }
-        debug('Outgoing call finished!');
+      // When a call ends
+      navigator.mozSetMessageHandler('telephony-call-ended',
+        function _onCall(tcall) {
+          clearTimeout(closing);
+          if (tcall.direction !== 'outgoing') {
+            return;
+          }
+          debug('Outgoing call finished!');
 
-        ConfigManager.requestSettings(function _onSettings(settings) {
-          CostControl.getInstance(function _onInstance(costcontrol) {
+          ConfigManager.requestSettings(function _onSettings(settings) {
             var mode = costcontrol.getApplicationMode(settings);
             if (mode === 'PREPAID') {
               costcontrol.request({ type: 'balance' });
@@ -395,13 +483,14 @@
               closeIfProceeds();
             });
           });
-        });
-      }
-    );
+        }
+      );
 
-  }
+    }
 
-  // Notify message handler is ready
-  var readyEvent = new CustomEvent('messagehandlerready');
-  window.parent.dispatchEvent(readyEvent);
+    // Notify message handler is ready
+    var readyEvent = new CustomEvent('messagehandlerready');
+    window.parent.dispatchEvent(readyEvent);
+  });
+
 }());

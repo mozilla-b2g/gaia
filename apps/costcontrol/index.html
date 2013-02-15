@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta http-equiv="pragma" content="no-cache">
-  <title>Cost Control</title>
+  <title data-l10n-id="usage">Usage</title>
 
   <!-- Building blocks Temporal -->
   <link rel="stylesheet" type="text/css" href="style/bb/filters/style.css">
@@ -79,7 +79,7 @@
     </ul>
 
     <!-- BALANCE TAB -->
-    <section role="region" id="balance-tab" class="view" data-viewport="behind">
+    <section role="region" id="balance-tab" class="view" data-viewport="left">
 
       <section class="content">
 
@@ -129,7 +129,7 @@
     </section>
 
     <!-- TELEPHONY TAB -->
-    <section role="region" id="telephony-tab" class="view" data-viewport="behind">
+    <section role="region" id="telephony-tab" class="view" data-viewport="left">
       <section class="settings">
         <ul>
           <li>
@@ -210,7 +210,7 @@
     </section>
 
     <!-- DATA USAGE TAB -->
-    <section id="datausage-tab" role="region" class="view" data-viewport="behind">
+    <section id="datausage-tab" role="region" class="view" data-viewport="right">
       <div class="view-scroll">
         <section class="content">
           <section id="graphic-area" class="graph">
@@ -316,7 +316,10 @@
                 <button data-l10n-id="reset" id="reset-data-usage">Reset</button>
               </div>
               <p id="mobile-data-usage">
-                <span></span>
+                <span class="usage"></span> <span data-l10n-id="3g-usage">3G usage</span>
+              </p>
+              <p id="wifi-data-usage">
+                <span class="usage"></span> <span data-l10n-id="wifi-usage">Wi-Fi usage</span>
               </p>
               <p class="meta"></p>
             </li>

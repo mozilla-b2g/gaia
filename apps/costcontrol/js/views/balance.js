@@ -13,7 +13,7 @@ var BalanceTab = (function() {
   'use strict';
 
   var view, updateButton;
-  var topUpUSSD, topUp, topUpDialog, topUpCodeInput, sendCode;
+  var topUpUSSD, topUp, topUpDialog, topUpCodeInput, sendCode, countdownSpan;
   var costcontrol, tabmanager, vmanager, initialized;
 
   function setupTab(tmgr, vmgr) {
@@ -34,6 +34,7 @@ var BalanceTab = (function() {
       topUpUSSD = document.getElementById('balance-tab-topup-ussd-button');
       topUp = document.getElementById('balance-tab-topup-button');
       topUpCodeInput = document.getElementById('topup-code-input');
+      countdownSpan = document.getElementById('top-up-countdown');
 
       window.addEventListener('localized', localize);
 
@@ -97,6 +98,8 @@ var BalanceTab = (function() {
   function updateWhenVisible() {
     if (!document.mozHidden && initialized) {
       updateUI();
+    } else {
+      clearInterval(topUpCountdown);
     }
   }
 
@@ -151,8 +154,9 @@ var BalanceTab = (function() {
   // On tapping Top Up with code
   function topUpWithCode(lastWasError) {
     vmanager.changeViewTo('topup-dialog');
-    if (lastWasError)
+    if (lastWasError) {
       setTopUpMode('incorrect_code');
+    }
 
     topUpCodeInput.focus();
   }
@@ -228,7 +232,7 @@ var BalanceTab = (function() {
   function updateUI(force) {
     ConfigManager.requestSettings(function _onSettings(settings) {
 
-      // TODO: restore the clock
+      resetTopUpCountdown();
       updateBalance(settings.lastBalance,
                     settings.lowLimit && settings.lowLimitThreshold);
 
@@ -346,12 +350,40 @@ var BalanceTab = (function() {
     var countdownArea = document.getElementById('cost-control-topup-countdown');
     isShown = (mode === 'in_progress');
     countdownArea.setAttribute('aria-hidden', !isShown);
-    // TODO: Set the clock
+    if (isShown) {
+      resetTopUpCountdown();
+    }
 
     // Messages in error message area
     if (mode === 'topup_timeout') {
       setError(mode);
     }
+  }
+
+  var topUpCountdown, countdown;
+  function resetTopUpCountdown() {
+    getTopUpTimeout(function (timeout) {
+      if (!timeout) {
+        return;
+      }
+      countdown = Math.floor((timeout.getTime() - Date.now())/1000);
+      if (countdown < 0) {
+        return;
+      }
+      clearInterval(topUpCountdown);
+      topUpCountdown = setInterval(function _updateCountdown() {
+        var minutes = Math.floor(countdown / 60);
+        var seconds = (countdown % 60).toFixed(0);
+        var padding = '';
+        if (seconds < 10) {
+          padding = '0';
+        }
+        countdownSpan.textContent = (minutes + ' : ' + padding + seconds);
+        if (countdown > 0) {
+          countdown -= 1;
+        }
+      }, 1000);
+    })
   }
 
   var ERRORS = {
@@ -360,7 +392,7 @@ var BalanceTab = (function() {
     'no_coverage': { priority: 2, string: 'no-coverage-error-message' },
     'topup_timeout': { priority: 3, string: 'top-up-timed-out' },
     'balance_error': { priority: 4, string: 'balance-error-message' },
-    'non_free_in_roaming': { priority: 4, string: 'on-roaming-message' },
+    'non_free_in_roaming': { priority: 4, string: 'on-roaming-message' }
   };
   var currentError = '';
 

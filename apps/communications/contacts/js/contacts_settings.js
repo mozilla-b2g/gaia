@@ -76,7 +76,7 @@ contacts.Settings = (function() {
         fbGetTotals(false);
       });
 
-      document.addEventListener('fb_token_ready', function onFbCTokenReady(evt) {
+      document.addEventListener('fb_token_ready', function onTokenReady(evt) {
         // We just received an event saying we imported the contacts
         fb.utils.getImportChecked(checkFbImported);
       });
@@ -288,12 +288,10 @@ contacts.Settings = (function() {
           window.asyncStorage.removeItem(fb.utils.LAST_UPDATED_KEY);
           window.asyncStorage.removeItem(fb.utils.CACHE_FRIENDS_KEY);
 
-          contacts.List.load();
           resetWait(wakeLock);
         };
 
         logoutReq.onerror = function(e) {
-          contacts.List.load();
           resetWait(wakeLock);
           window.console.error('Contacts: Error while FB logout: ',
                               e.target.error);
@@ -349,9 +347,6 @@ contacts.Settings = (function() {
 
     importer.onfinish = function import_finish() {
       window.setTimeout(function onfinish_import() {
-        if (totalContactsToImport > 0) {
-          contacts.List.load();
-        }
         resetWait(wakeLock);
         Contacts.navigation.home();
         Contacts.showStatus(_('simContacts-imported3',
