@@ -56,6 +56,9 @@ var AirplaneMode = {
   },
 
   init: function apm_init() {
+    var mobileConnection = getMobileConnection();
+    var wifiManager = getWifiManager();
+
     var settings = Settings.mozSettings;
     if (!settings)
       return;
@@ -120,7 +123,7 @@ var AirplaneMode = {
 
       if (value) {
 
-        if (window.gMobileConnection) {
+        if (mobileConnection) {
           restoreMobileData = mobileDataEnabled;
           if (mobileDataEnabled)
             self._ops++;
@@ -134,7 +137,7 @@ var AirplaneMode = {
         }
 
         // Wifi.
-        if (window.gWifiManager) {
+        if (wifiManager) {
           restoreWifi = wifiEnabled;
           if (wifiEnabled)
             self._ops++;
@@ -147,7 +150,7 @@ var AirplaneMode = {
 
       } else {
         // Don't count mobile data if it's already on
-        if (window.gMobileConnection && !mobileDataEnabled && restoreMobileData)
+        if (mobileConnection && !mobileDataEnabled && restoreMobileData)
           self._ops++;
 
         // Don't count Bluetooth if it's already on
@@ -155,7 +158,7 @@ var AirplaneMode = {
           self._ops++;
 
         // Don't count Wifi if it's already on
-        if (window.gWifiManager && !gWifiManager.enabled && restoreWifi)
+        if (wifiManager && !wifiManager.enabled && restoreWifi)
           self._ops++;
 
         // Don't count Geolocation if it's already on
@@ -170,4 +173,14 @@ var AirplaneMode = {
   }
 };
 
-AirplaneMode.init();
+// starting when we get a chance
+navigator.mozL10n.ready(function loadWhenIdle() {
+  var idleObserver = {
+    time: 5,
+    onidle: function() {
+      AirplaneMode.init();
+      navigator.removeIdleObserver(idleObserver);
+    }
+  };
+  navigator.addIdleObserver(idleObserver);
+});

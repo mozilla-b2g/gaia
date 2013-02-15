@@ -130,9 +130,14 @@ var Settings = {
     // activate all scripts
     var scripts = panel.querySelectorAll('script');
     for (var i = 0; i < scripts.length; i++) {
+      var src = scripts[i].getAttribute('src')
+      if (document.head.querySelector('script[src="' + src + '"]')) {
+        continue;
+      }
+
       var script = document.createElement('script');
       script.type = 'application/javascript';
-      script.src = scripts[i].getAttribute('src');
+      script.src = src;
       document.head.appendChild(script);
     }
 
