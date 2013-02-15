@@ -32,7 +32,7 @@ const GridManager = (function() {
   };
 
   var startEvent, isPanning = false, deltaX, removePanHandler,
-      noop = function() {};
+      dummy = function() {};
 
   var isTouch = 'ontouchstart' in window;
   var touchstart = isTouch ? 'touchstart' : 'mousedown';
@@ -44,96 +44,18 @@ const GridManager = (function() {
                      function(e) { return e.pageX };
   })();
 
-
-  // This will be a function that returns an actual or predicted deltaX
-  // from a mouse or touch event
-  var getDeltaX;
-
-  function initPanningPrediction() {
-    // Get our configuration data from build/applications-data.js
-    var prediction = Configurator.getSection('prediction') ||
-      { enabled: false };
-
-    // Assume that if we're using mouse events we're on a desktop that
-    // is fast enough that we don't need to do this prediction.
-    if (!isTouch || !prediction.enabled) {
-      getDeltaX = function getDeltaX(evt) {
-        return getX(evt) - startEvent.pageX;
-      };
-      return;
-    }
-
-    // Predictions are based on the change between events, so we need to
-    // remember some things from the previous invocation
-    var lastMoveEvent, lastPredicted, lastAdjustment;
-
-    getDeltaX = function getDeltaX(evt) {
-      var x0, t0, x1, t1, dx, velocity, adjustment, predicted, deltaP;
-
-      if (!lastMoveEvent || lastMoveEvent.timeStamp < touchStartTimestamp) {
-        // If this is the first move of this series, use the start event
-        x0 = startEvent.pageX;
-        t0 = touchStartTimestamp;
-        lastPredicted = lastAdjustment = 0;
-      }
-      else {
-        x0 = getX(lastMoveEvent);
-        t0 = lastMoveEvent.timeStamp;
-      }
-
-      x1 = getX(evt);
-      t1 = evt.timeStamp;
-
-      dx = x1 - x0;
-      velocity = dx / (t1 - t0); // velocity in px/ms
-
-      // Guess how much extra motion we will have by the time the redraw happens
-      // Shift right 0 to convert to int by truncation.
-      adjustment = (velocity * prediction.lookahead) >> 0;
-
-      // Don't return the actual dx value but the value where we think we'll be
-      predicted = lastPredicted + dx + adjustment - lastAdjustment;
-
-      // Make sure we don't return a prediction greater than the screen width
-      if (predicted >= windowWidth) {
-        predicted = windowWidth - 1;
-      }
-      else if (predicted <= -windowWidth) {
-        predicted = -windowWidth + 1;
-      }
-
-      // If the change in the prediction has a different sign than the
-      // change in the user's finger position, then the previous prediction
-      // was too large, so we'll repeat that prediction and give the user's
-      // finger a chance to catch up with where we've already panned to.
-      // If we don't do this, the panning changes direction and looks bad.
-      deltaP = predicted - lastPredicted;
-      if ((deltaP > 0 && dx < 0) || (deltaP < 0 && dx > 0)) {
-        predicted = lastPredicted;
-      }
-
-      // Remember these for next time.
-      lastMoveEvent = evt;
-      lastPredicted = predicted;
-      lastAdjustment = adjustment;
-
-      return predicted;
-    }
-  }
-
   function addActive(target) {
     if ('isIcon' in target.dataset) {
       target.classList.add('active');
       removeActive = function _removeActive() {
         target.classList.remove('active');
-        removeActive = noop;
       }
     } else {
-      removeActive = noop;
+      removeActive = function() {};
     }
   }
 
-  var removeActive = noop;
+  var removeActive = function() {};
 
   function handleEvent(evt) {
     switch (evt.type) {
@@ -144,7 +66,7 @@ const GridManager = (function() {
         startEvent = isTouch ? evt.touches[0] : evt;
         deltaX = 0;
         attachEvents();
-        removePanHandler = noop;
+        removePanHandler = dummy;
         isPanning = false;
         addActive(evt.target);
         break;
@@ -152,7 +74,7 @@ const GridManager = (function() {
       case touchmove:
         // Start panning immediately but only disable
         // the tap when we've moved far enough.
-        deltaX = getDeltaX(evt);
+        deltaX = getX(evt) - startEvent.pageX;
         if (deltaX === 0)
           return;
 
@@ -163,9 +85,6 @@ const GridManager = (function() {
         // direction of the inputs. The code here is carefully written
         // to avoid as much as possible allocations while panning.
         window.removeEventListener(touchmove, handleEvent);
-
-        // Since we're panning, the icon we're over shouldn't be active
-        removeActive();
 
         // Before panning pages that are directly next to the current
         // target are set visible.
@@ -237,7 +156,7 @@ const GridManager = (function() {
         // Generate a function accordingly to the current page position.
         if (Homescreen.isInEditMode() || currentPage > 2) {
           var pan = function(e) {
-            deltaX = getDeltaX(e);
+            deltaX = getX(e) - startX;
             if (!isPanning && Math.abs(deltaX) >= tapThreshold) {
               isPanning = true;
             }
@@ -245,7 +164,7 @@ const GridManager = (function() {
           };
         } else {
           var pan = function(e) {
-            deltaX = getDeltaX(e);
+            deltaX = getX(e) - startX;
             if (!isPanning && Math.abs(deltaX) >= tapThreshold) {
               isPanning = true;
             }
@@ -267,6 +186,7 @@ const GridManager = (function() {
 
           window.mozRequestAnimationFrame(function panTouchEnd() {
             onTouchEnd(deltaX, e);
+            removeActive();
           });
         };
 
@@ -738,8 +658,6 @@ const GridManager = (function() {
       var page = new Page(pageElement, null);
       pages.push(page);
     }
-
-    initPanningPrediction();
   }
 
   /*
