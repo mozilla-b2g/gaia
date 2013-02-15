@@ -28,6 +28,21 @@ var MockUtils = {
     this.mCalledHeaderDate = false;
     this.mCalledGetDayDate = false;
     this.mCalledGetPhoneNumberAdditionalInfo = false;
+  },
+
+  getPhoneNumberPrimaryInfo: function ut_getPhoneNumberPrimaryInfo(matchingTel,
+    contact) {
+    if (contact) {
+      if (contact.name && String(contact.name) !== '') {
+        return contact.name;
+      } else if (contact.org && String(contact.org) !== '') {
+        return  contact.org;
+      }
+    }
+    if (matchingTel) {
+      return matchingTel.value;
+    }
+    return null;
   }
 };
 
