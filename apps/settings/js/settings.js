@@ -127,10 +127,29 @@ var Settings = {
     // activate all scripts
     var scripts = panel.querySelectorAll('script');
     for (var i = 0; i < scripts.length; i++) {
+      var src = scripts[i].getAttribute('src')
+      if (document.head.querySelector('script[src="' + src + '"]')) {
+        continue;
+      }
+
       var script = document.createElement('script');
       script.type = 'application/javascript';
-      script.src = scripts[i].getAttribute('src');
+      script.src = src;
       document.head.appendChild(script);
+    }
+
+    // activate all stylesheets
+    var stylesheets = panel.querySelectorAll('link');
+    for (var i = 0; i < stylesheets.length; i++) {
+      var href = stylesheets[i].getAttribute('href');
+      if (document.head.querySelector('link[href="' + href + '"]'))
+        continue;
+
+      var stylesheet = document.createElement('link');
+      stylesheet.type = 'text/css';
+      stylesheet.rel = 'stylesheet';
+      stylesheet.href = href;
+      document.head.appendChild(stylesheet);
     }
 
     // activate all links
