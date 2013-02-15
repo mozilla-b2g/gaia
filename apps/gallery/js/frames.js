@@ -30,7 +30,7 @@ $('fullscreen-delete-button').onclick = deleteSingleItem;
 
 // Clicking the Edit button while viewing a photo switches to edit mode
 $('fullscreen-edit-button').onclick = function() {
-  loadScript('js/ImageEditor.js', function() {
+  loader.load('js/ImageEditor.js', function() {
     editPhotoIfCardNotFull(currentFileIndex);
   });
 };
