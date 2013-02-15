@@ -396,13 +396,12 @@ var Cards = {
 
     if (!cardDef && lazyCards[typePrefix]) {
       var args = Array.slice(arguments);
-      var resources = lazyCards[typePrefix];
-      resources.push(function() {
+      var callback = function() {
         this.pushCard.apply(this, args);
-      }.bind(this));
+      };
 
       this.eatEventsUntilNextCard();
-      App.loader.load.apply(App.loader, resources);
+      App.loader.load(lazyCards[typePrefix], callback.bind(this));
       return;
     } else if (!cardDef)
       throw new Error('No such card def type: ' + type);
@@ -496,7 +495,7 @@ var Cards = {
   folderSelector: function(callback) {
     var self = this;
 
-    App.loader.load('style/value_selector.css', 'js/value_selector.js', function() {
+    App.loader.load(['style/value_selector.css', 'js/value_selector.js'], function() {
       // XXX: Unified folders will require us to make sure we get the folder list
       //      for the account the message originates from.
       if (!self.folderPrompt) {

@@ -6,6 +6,7 @@
     <title>Dialer</title>
 
     <!-- Localization -->
+    <script defer type="text/javascript" src="/shared/js/lazy_loader.js"></script>
     <script defer type="application/javascript" src="/dialer/js/lazy_l10n.js"></script>
     <link rel="resource" type="application/l10n" href="/dialer/locales/locales.ini">
     <link rel="resource" type="application/l10n" href="/shared/locales/date.ini">
@@ -49,8 +50,10 @@
     <script defer type="application/javascript" src="/dialer/js/keypad.js"></script>
     <script defer type="application/javascript" src="/dialer/js/ussd.js"></script>
     <script defer type="application/javascript" src="/dialer/js/dialer.js"></script>
+    <!-- Lazy load these:
     <script defer type="application/javascript" src="/contacts/js/fb/fb_data.js"></script>
     <script defer type="application/javascript" src="/contacts/js/fb/fb_contact_utils.js"></script>
+    -->
   </head>
   <body role="application">
     <section id="views" role="tablist" data-items="3" class="bottom">
