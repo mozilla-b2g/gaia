@@ -464,22 +464,13 @@ Calendar.App = (function(window) {
         file = config.name.replace(/([A-Z])/g, '_$1')
           .replace(/^_/, '').toLowerCase();
 
-        if (config.type == 'Style') {
-          script = document.createElement('link');
-          script.type = 'text/css';
-          script.rel = 'stylesheet';
-          script.href = self.cssBase + file + '.css';
-          head.appendChild(script);
-          return cb();
-        }
+        var path;
+        if (config.type === 'Style')
+          path = self.cssBase + file + '.css';
+        else
+          path = self.jsBase + config.type.toLowerCase() + '/' + file + '.js';
 
-        script = document.createElement('script');
-        script.type = 'text/javascript';
-        script.src = self.jsBase + config.type.toLowerCase() +
-          '/' + file + '.js';
-
-        if (cb) script.onload = cb;
-        head.appendChild(script);
+        LazyLoader.load(path, cb);
       };
 
       /**

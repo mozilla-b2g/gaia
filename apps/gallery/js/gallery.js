@@ -92,6 +92,8 @@ var videostorage;
 
 var visibilityMonitor;
 
+var loader = LazyLoader;
+
 // The localized event is the main entry point for the app.
 // We don't do anything until we receive it.
 window.addEventListener('localized', function showBody() {
@@ -198,7 +200,7 @@ function initDB(include_videos) {
       return;
     }
 
-    loadScript('js/metadata_scripts.js', function() {
+    loader.load('js/metadata_scripts.js', function() {
       loaded = true;
       metadataParser(file, onsuccess, onerror);
     });
@@ -632,8 +634,10 @@ function startPick(activityRequest) {
   else {
     pickWidth = pickHeight = 0;
   }
-  loadScript('js/ImageEditor.js'); // We need this for cropping the photo
-  setView(pickView);
+  // We need this for cropping the photo
+  loader.load('js/ImageEditor.js', function() {
+    setView(pickView);
+  });
 }
 
 function cropPickedImage(fileinfo) {
@@ -710,7 +714,7 @@ function thumbnailClickHandler(evt) {
     return;
 
   if (currentView === thumbnailListView || currentView === fullscreenView) {
-    loadScript('js/frame_scripts.js', function() {
+    loader.load('js/frame_scripts.js', function() {
       showFile(parseInt(target.dataset.index));
     });
   }
@@ -934,29 +938,3 @@ function showOverlay(id) {
 // make it opaque to touch events. Without this, it does not prevent
 // the user from interacting with the UI.
 $('overlay').addEventListener('click', function dummyHandler() {});
-
-var loadedScripts = {};
-
-function loadScript(url, callback) {
-  var script = loadedScripts[url];
-  if (script === true) { // It has already been loaded
-    callback();
-    return;
-  }
-
-  // If the script has started loading but isn't complete yet,
-  // just register the callback as an additional onload handler for it
-  if (script instanceof HTMLScriptElement) {
-    script.addEventListener('load', callback);
-    return;
-  }
-
-  script = document.createElement('script');
-  loadedScripts[url] = script;
-  script.src = url;
-  document.head.appendChild(script);
-  script.addEventListener('load', function() {
-    loadedScripts[url] = true;
-    callback();
-  });
-}
