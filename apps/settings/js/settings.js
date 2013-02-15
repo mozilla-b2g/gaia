@@ -22,7 +22,7 @@ var Settings = {
   // depend on the DOM being loaded.
   preInit: function settings_preInit() {
     var settings = this.mozSettings;
-    if (!settings || !navigator.mozSetMessageHandler)
+    if (!settings)
       return;
 
     // Make a request for settings to warm the cache, since we need it
@@ -94,6 +94,10 @@ var Settings = {
 
   init: function settings_init() {
     this._initialized = true;
+
+    if (!this.mozSettings || !navigator.mozSetMessageHandler) {
+      return;
+    }
 
     // register web activity handler
     navigator.mozSetMessageHandler('activity', this.webActivityHandler);
