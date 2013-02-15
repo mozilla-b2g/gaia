@@ -134,6 +134,11 @@ form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
   width: 0;
 }
 
+.edit #thread-list-container[data-type="list"] > ul:last-child {
+  border-color: transparent;
+  margin-bottom: 7rem;
+}
+
 /* Lists: edit mode */
 .edit [data-type="list"] li > label {
   opacity: 1;
