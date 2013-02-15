@@ -81,6 +81,13 @@
       }
     );
 
+    // Update data usage on network activity
+    window.addEventListener('hashchange', function _onHashChange() {
+      if (window.location.hash.split('#')[1] === 'update') {
+        updateUI(true); // update only data usage
+      }
+    });
+
     // Open application with the proper view
     views.balance.addEventListener('click',
       function _openCCBalance() {
@@ -157,7 +164,8 @@
     fte.querySelector('p:last-child').innerHTML = _(simKey + '-meta');
   }
 
-  function updateUI() {
+  var hashMark = 0;
+  function updateUI(updateOnlyDataUsage) {
     ConfigManager.requestAll(function _onInfo(configuration, settings) {
       var mode = costcontrol.getApplicationMode(settings);
       debug('Widget UI mode:', mode);
@@ -197,7 +205,7 @@
       // Content for data statistics
       var requestObj = { type: 'datausage' };
       costcontrol.request(requestObj, function _onDataStatistics(result) {
-        debug(JSON.stringify(result));
+        debug(result);
         var stats = result.data;
         var data = roundData(stats.mobile.total);
         if (isLimited) {
@@ -225,8 +233,8 @@
           if (limitTresspased) {
             views.limitedDataUsage.classList.add('reached-limit');
 
-          //  80% of the limit reached
-          } else if (current >= limit * 0.8) {
+          //  Warning percentage of the limit reached
+          } else if (current >= limit * costcontrol.getDataUsageWarning()) {
             views.limitedDataUsage.classList.add('nearby-limit');
           }
 
@@ -253,10 +261,18 @@
           views.dataUsage.querySelector('.meta').innerHTML =
             formatTimeHTML(stats.timestamp);
         }
+        checkDataUsageNotification(settings, stats.mobile.total,
+          // inform driver in system we are finished to update the widget
+          function _done() {
+            debug('Data usage notification checked!');
+            hashMark = 1 - hashMark; // toogle between 0 and 1
+            window.location.hash = '#updateDone#' + hashMark;
+          }
+        );
       });
 
       // Content for balance or telephony
-      if (!isDataUsageOnly) {
+      if (!isDataUsageOnly && !updateOnlyDataUsage) {
         if (mode === 'PREPAID') {
           updateBalance(settings.lastBalance,
                         settings.lowLimit && settings.lowLimitThreshold);
