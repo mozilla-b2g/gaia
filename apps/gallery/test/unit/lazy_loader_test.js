@@ -79,6 +79,25 @@ suite('lazy loader', function() {
     }
   });
 
+  test('append non existent script', function(done) {
+    var req = utils.script.load('js/js/non_existent_file.js');
+
+    req.onsuccess = function() {
+      assert.fail('success callback not invoked', 'success callback invoked');
+      done();
+    }
+
+    req.onerror = function(e) {
+      assert.equal(e.target.resourceInError,'non_existent_file.js');
+      done();
+    }
+
+    req.onresourceloaded = function() {
+       assert.fail('resource loaded callback not invoked',
+                   'resource loaded callback invoked');
+    }
+  });
+
   test('append the same css script', function(done) {
     var numStyles = countSytles();
     var req = utils.script.load('support/styles.css');

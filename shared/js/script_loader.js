@@ -10,8 +10,99 @@ var utils = this.utils || {};
     return fileIdSplit[fileIdSplit.length - 1];
   }
 
-  // order can be one of 'sequential', 'concurrent'
-  utils.script.Loader = function(psources, porder) {
+  var resourcesLoaded = {};
+
+  /**
+   *  Loads a set of resources if they have not been previously loaded
+   *
+   *  @param psources: List of resources to be loaded
+   *  @param order: oneOf {'sequential','concurrent'}
+   *
+   *  How to use it?
+   *
+   *  var req = utils.script.load('myscript.js');
+   *
+   *  req.onsuccess
+   *  req.onerror
+   *  req.onresourceloaded
+   *
+   */
+  utils.script.load = function(psources, order) {
+    var outReq = new Request();
+    var sourcesArray = Array.isArray(psources) ? psources : [psources];
+
+    window.setTimeout(function do_load() {
+      var toBeLoaded = getToBeLoaded(sourcesArray, outReq);
+      if(toBeLoaded.length > 0) {
+        var loader = new Loader(toBeLoaded, order);
+        loader.onfinish = function() {
+          outReq.done();
+        }
+        loader.onerror = function(e) {
+          outReq.failed(getFileId(e));
+        }
+        loader.onresourceloaded = function(resourceSrc) {
+          window.console.log('!!!Resource Loaded!!!', resourceSrc);
+          var fileId = getFileId(resourceSrc);
+          resourcesLoaded[fileId] = true;
+          outReq.resourceLoaded(fileId);
+        }
+        loader.start();
+      }
+      else {
+        outReq.done();
+      }
+    }, 0);
+
+    return outReq;
+  }
+
+  function getToBeLoaded(requestedSources, outReq) {
+    var realToBeLoaded = [];
+
+    requestedSources.forEach(function(aSource) {
+      var fileId = getFileId(aSource);
+      if(resourcesLoaded[fileId] !== true) {
+        realToBeLoaded.push(aSource);
+      }
+      else {
+        // Immediately fire onresourceloaded on all ready loaded
+        if(typeof outReq.onresourceloaded === 'function') {
+          outReq.resourceLoaded(fileId);
+        }
+      }
+    });
+
+    window.console.log('!!!!', realToBeLoaded.length, '!!!!');
+
+    return realToBeLoaded;
+  }
+
+  utils.script.isLoaded = function(resourceSrc) {
+    return resourcesLoaded[resourceSrc] === true;
+  }
+
+
+  /**
+   *  Loader object for loading a set of scripts / stylesheets
+   *
+   *  @param psources A source file or an array of them
+   *  @param porder oneOf {'sequential','concurrent'}
+   *
+   *  To use it:
+   *
+   *  var loader = new Loader(sources);
+   *
+   *  loader.onresourceloaded = function(resourceSrc) {
+   *  }
+   *
+   *  loader.onfinish = function() {
+   *  }
+   *
+   *  loader.onerror = function(resourceSrc)
+   *
+   */
+  var Loader = function(psources, porder) {
     var numLoaded = 0;
     var self = this;
     var nextToBeLoaded = 0;
@@ -119,63 +210,6 @@ var utils = this.utils || {};
   }
 
 
-  var resourcesLoaded = {};
-
-  utils.script.load = function(psources, order) {
-    var outReq = new Request();
-    var sourcesArray = Array.isArray(psources) ? psources : [psources];
-
-    window.setTimeout(function do_load() {
-      var toBeLoaded = getToBeLoaded(sourcesArray, outReq);
-      if(toBeLoaded.length > 0) {
-        var loader = new utils.script.Loader(toBeLoaded, order);
-        loader.onfinish = function() {
-          outReq.done();
-        }
-        loader.onerror = function(e) {
-          outReq.failed(getFiledId(e.target.src || e.target.href));
-        }
-        loader.onresourceloaded = function(resourceSrc) {
-          window.console.log('!!!Resource Loaded!!!', resourceSrc);
-          var fileId = getFileId(resourceSrc);
-          resourcesLoaded[fileId] = true;
-          outReq.resourceLoaded(fileId);
-        }
-        loader.start();
-      }
-      else {
-        outReq.done();
-      }
-    }, 0);
-
-    return outReq;
-  }
-
-  function getToBeLoaded(requestedSources, outReq) {
-    var realToBeLoaded = [];
-
-    requestedSources.forEach(function(aSource) {
-      var fileId = getFileId(aSource);
-      if(resourcesLoaded[fileId] !== true) {
-        realToBeLoaded.push(aSource);
-      }
-      else {
-        // Immediately fire onresourceloaded on all ready loaded
-        if(typeof outReq.onresourceloaded === 'function') {
-          outReq.resourceLoaded(fileId);
-        }
-      }
-    });
-
-    window.console.log('!!!!', realToBeLoaded.length, '!!!!');
-
-    return realToBeLoaded;
-  }
-
-  utils.script.isLoaded = function(resourceSrc) {
-    return resourcesLoaded[resourceSrc] === true;
-  }
-
   /**
   *   Request auxiliary object to support asynchronous calls
   *
@@ -204,7 +238,7 @@ var utils = this.utils || {};
     }
 
     this.failed = function(error) {
-      this.error = error;
+      this.resourceInError = error;
       if (typeof this.onerror === 'function') {
         var ev = {};
         ev.target = this;
