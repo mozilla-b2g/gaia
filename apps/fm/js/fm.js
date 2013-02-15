@@ -711,6 +711,7 @@ function init() {
       mozFMRadio.disable();
     }
   };
+
   historyList.init(function hl_ready() {
     if (mozFMRadio.antennaAvailable) {
       // Enable FM immediately
@@ -725,6 +726,7 @@ function init() {
       // when the headset is plugged.
       window._previousFMRadioState = true;
       updateAntennaUI();
+      favoritesList.init();
     }
     updatePowerUI();
   });
