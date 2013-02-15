@@ -151,6 +151,16 @@ var ThreadUI = {
         (this.view.scrollHeight - previous) + currentScroll;
     }
   },
+  setInputMaxHeight: function thui_setInputMaxHeight() {
+    // Method for initializing the maximum height
+    var fontSize = Utils.getFontSize();
+    var viewHeight = this.view.offsetHeight / fontSize;
+    var inputHeight = this.input.offsetHeight / fontSize;
+    var barHeight =
+      document.getElementById('new-sms-form').offsetHeight / fontSize;
+    var adjustment = barHeight - inputHeight;
+    this.input.style.maxHeight = (viewHeight - adjustment) + 'rem';
+  },
   onBackAction: function thui_onBackAction() {
     var goBack = function() {
       ThreadUI.stopRendering();
@@ -214,35 +224,58 @@ var ThreadUI = {
   },
 
   updateInputHeight: function thui_updateInputHeight() {
-    var input = this.input;
-    var inputCss = window.getComputedStyle(input, null);
+    // First of all we retrieve all CSS info which we need
+    var inputCss = window.getComputedStyle(this.input, null);
     var inputMaxHeight = parseInt(inputCss.getPropertyValue('max-height'), 10);
-    //Constant difference of height beteween button and growing input
-    var deviationHeight = 30;
-    if (input.scrollHeight > inputMaxHeight) {
+    var fontSize = Utils.getFontSize();
+    var verticalPadding =
+      (parseInt(inputCss.getPropertyValue('padding-top'), 10) +
+      parseInt(inputCss.getPropertyValue('padding-bottom'), 10)) /
+      fontSize;
+    var buttonHeight = 30;
+
+    // Retrieve elements useful in growing method
+    var bottomBar = document.getElementById('new-sms-form');
+
+    // Updating the height if scroll is bigger that height
+    // This is when we have reached the header (UX requirement)
+    if (this.input.scrollHeight > inputMaxHeight) {
+      // Height of the input is the maximum
+      this.input.style.height = inputMaxHeight / fontSize + 'rem';
+      // Update the bottom bar height taking into account the padding
+      bottomBar.style.height =
+        inputMaxHeight / fontSize + verticalPadding + 'rem';
+      // We update the position of the button taking into account the
+      // new height
+      this.sendButton.style.marginTop =
+        (this.input.offsetHeight - buttonHeight) / fontSize + 'rem';
       return;
     }
 
-    input.style.height = null;
+    // In a regular scenario, we need to grow the input step by step
+    this.input.style.height = null;
     // If the scroll height is smaller than original offset height, we keep
     // offset height to keep original height, otherwise we use scroll height
     // with additional margin for preventing scroll bar.
-    input.style.height = input.offsetHeight > input.scrollHeight ?
-      input.offsetHeight / Utils.getFontSize() + 'rem' :
-      input.scrollHeight / Utils.getFontSize() + 'rem';
+    this.input.style.height =
+      this.input.offsetHeight > this.input.scrollHeight ?
+      this.input.offsetHeight / fontSize + 'rem' :
+      this.input.scrollHeight / fontSize + verticalPadding + 'rem';
 
-    var newHeight = input.getBoundingClientRect().height;
+    // We retrieve current height of the input
+    var newHeight = this.input.getBoundingClientRect().height;
 
-    // Add 0.7 rem that are equal to the message box vertical padding
-    var bottomToolbarHeight = (newHeight / Utils.getFontSize() + 0.7) + 'rem';
-    var sendButtonTranslate = (input.offsetHeight - deviationHeight) /
-      Utils.getFontSize() + 'rem';
-    var bottomToolbar =
-        document.querySelector('#new-sms-form');
+    // We calculate the height of the bottonBar which contains the input
+    var bottomBarHeight = (newHeight / fontSize + verticalPadding) + 'rem';
+    bottomBar.style.height = bottomBarHeight;
 
-    bottomToolbar.style.height = bottomToolbarHeight;
-    ThreadUI.sendButton.style.marginTop = sendButtonTranslate;
-    this.view.style.bottom = bottomToolbarHeight;
+    // We move the button to the right position
+    var buttonOffset = (this.input.offsetHeight - buttonHeight) /
+      fontSize + 'rem';
+    this.sendButton.style.marginTop = buttonOffset;
+
+    // Last adjustment to view taking into account the new height of the bar
+    this.view.style.bottom = bottomBarHeight;
     this.scrollViewToBottom();
   },
   // Adds a new grouping header if necessary (today, tomorrow, ...)
@@ -975,6 +1008,7 @@ var ThreadUI = {
 };
 
 window.addEventListener('resize', function resize() {
+  ThreadUI.setInputMaxHeight();
   // Scroll to bottom
   ThreadUI.scrollViewToBottom();
 });
