@@ -136,6 +136,20 @@ var Settings = {
       document.head.appendChild(script);
     }
 
+    // activate all stylesheets
+    var stylesheets = panel.querySelectorAll('link');
+    for (var i = 0; i < stylesheets.length; i++) {
+      var href = stylesheets[i].getAttribute('href');
+      if (document.head.querySelector('link[href="' + href + '"]'))
+        continue;
+
+      var stylesheet = document.createElement('link');
+      stylesheet.type = 'text/css';
+      stylesheet.rel = 'stylesheet';
+      stylesheet.href = href;
+      document.head.appendChild(stylesheet);
+    }
+
     // activate all links
     var self = this;
     var rule = 'a[href^="http"], a[href^="tel"], [data-href]';
