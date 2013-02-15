@@ -1,4 +1,17 @@
 (function(window) {
+  window.mozTestInfo = {appPath: window.xpcArgv[2]};
+  const excludedApps = [
+    'bluetooth', 'communications/facebook', 'keyboard', 'wallpaper', // no generic way to test yet
+    'communications', // not an app
+    'homescreen', // we can't "launch" it
+    'system', // reboots the phone
+    'system/camera', // copy of the camera app
+  ];
+  if (excludedApps.indexOf(window.mozTestInfo.appPath) !== -1) {
+    console.log("'" + window.mozTestInfo.appPath + "' is an excluded app, skipping tests.");
+    return;
+  }
+
   window.parent = window;
   window.location.host = 'localhost';
   window.Date = Date;
@@ -8,14 +21,14 @@
 
   window.require = function(url, cb) {
 
-    if (url.lastIndexOf('apps/', 0) === 0) {
-      // required for loading of test files
-      url = '../../' + url;
-    } else if (url.lastIndexOf('/common', 0) === 0) {
+    if (url.lastIndexOf('/common', 0) === 0) {
       // required so we can load the unit test helper.js
       url = '../../test_apps/test-agent' + url;
-    } else if (url.lastIndexOf('/', 0) === 0) {
-      url = '../..' + url;
+    } else if (url.lastIndexOf('apps/', 0) === 0 ||
+               url.lastIndexOf('tests/', 0) === 0 ||
+               url.lastIndexOf('/', 0) === 0) {
+      // required for loading of test files
+      url = '../../' + url;
     }
 
     url = path.resolve(url);
@@ -128,7 +141,7 @@
       timeout: 20000
     });
 
-    window.xpcArgv.slice(2).forEach(function(test) {
+    window.xpcArgv.slice(3).forEach(function(test) {
       require(test);
     });
 
