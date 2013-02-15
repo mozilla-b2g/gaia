@@ -32,7 +32,8 @@ var AppStorage = (function AppStorage() {
   function handleEvent(evt) {
     debug('event handler: ' + evt.type + ' - ' + evt.reason);
     if (_callback)
-      _callback();
+	getSpaceInfo(_callback);	// Bug834204_fix update issue
+     // _callback();
   }
 
   function getSpaceInfo(callback) {
