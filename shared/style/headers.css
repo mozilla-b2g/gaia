@@ -222,7 +222,7 @@ section[role="region"] > header:first-child > a {
   left: 0;
   width: 5rem;
   height: 5rem;
-  background: url(headers/images/ui/separator-large.png) no-repeat 2rem center;
+  background: url(headers/images/ui/separator-large.png) no-repeat 2.5rem center;
   overflow: hidden;
 }
 
@@ -249,7 +249,7 @@ section[role="region"] > header:first-child > a .icon:after {
   left: 0;
   top: 0;
   z-index: -1;
-  width: 2rem;
+  width: 2.5rem;
   height: 4.9rem;
   background: #9d3d26 url(headers/images/ui/negative.png) repeat-x 0 0;
 }
