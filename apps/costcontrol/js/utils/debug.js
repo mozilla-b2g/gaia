@@ -1,4 +1,4 @@
-var DEBUGGING = false;
+var DEBUGGING = true;
 
 var debug = (function() {
   var SEQ_ID = 0;
