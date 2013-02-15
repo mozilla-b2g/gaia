@@ -799,6 +799,12 @@ MessageListCard.prototype = {
   onDeleteMessages: function() {
     // TODO: Batch delete back-end mail api is not ready for IMAP now.
     //       Please verify this function under IMAP when api completed.
+    /*START Mozilla Bug ID:: 828877 not showing alert of deletion when there are no messages selected*/
+    if(this.selectedMessages.length === 0)
+    {
+      return;
+    }
+    /*END Mozilla Bug ID:: 828877*/  
     var dialog = msgNodes['delete-confirm'].cloneNode(true);
     var content = dialog.getElementsByTagName('p')[0];
     content.textContent = mozL10n.get('message-multiedit-delete-confirm',
