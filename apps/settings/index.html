@@ -8,19 +8,11 @@
     <!-- Common style -->
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/switches.css"/>
-    <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
-    <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css"/>
-    <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
-    <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css"/>
 
     <!-- Specific style -->
     <link rel="stylesheet" type="text/css" href="style/lists.css"/>
     <link rel="stylesheet" type="text/css" href="style/icons.css"/>
     <link rel="stylesheet" type="text/css" href="style/settings.css"/>
-    <link rel="stylesheet" type="text/css" href="style/simcard.css"/>
-    <link rel="stylesheet" type="text/css" href="style/phone_lock.css"/>
-    <link rel="stylesheet" type="text/css" href="style/apps.css"/>
-    <link rel="stylesheet" type="text/css" href="style/updates.css"/>
 
     <!-- Shared resources
     <link rel="resource" type="application/json" href="shared/resources/tz.json"/>
@@ -37,28 +29,28 @@
     <link rel="resource" type="application/l10n" href="shared/locales/permissions.ini"/>
     <link rel="resource" type="application/l10n" href="shared/locales/tz.ini"/>
     <link rel="resource" type="application/l10n" href="locales/locales.ini"/>
-    <script type="application/javascript" src="shared/js/l10n.js"></script>
-    <script type="application/javascript" src="shared/js/l10n_date.js"></script>
+    <script defer src="shared/js/l10n.js"></script>
+    <script defer src="shared/js/l10n_date.js"></script>
 
     <!-- shared helper library -->
-    <script type="application/javascript" defer src="shared/js/mouse_event_shim.js"></script>
-    <script type="application/javascript" defer src="shared/js/manifest_helper.js"></script>
-    <script type="application/javascript" defer src="shared/js/async_storage.js"></script>
+    <script defer src="shared/js/mouse_event_shim.js"></script>
+    <script defer src="shared/js/manifest_helper.js"></script>
+    <script defer src="shared/js/async_storage.js"></script>
 
     <!-- Specific code -->
-    <script type="application/javascript" defer src="js/utils.js"></script>
-    <script type="application/javascript" defer src="js/settings.js"></script>
-    <script type="application/javascript" defer src="js/airplane_mode.js"></script>
+    <script defer src="js/utils.js"></script>
+    <script defer src="js/settings.js"></script>
+    <script defer src="js/airplane_mode.js"></script>
 
     <!-- Required to update the status of the root panel -->
-    <script type="application/javascript" defer src="js/battery.js"></script>
-    <script type="application/javascript" defer src="js/app_storage.js"></script>
-    <script type="application/javascript" defer src="js/media_storage.js"></script>
-    <script type="application/javascript" defer src="shared/js/mobile_operator.js"></script>
-    <script type="application/javascript" defer src="js/connectivity.js"></script>
-    <script type="application/javascript" defer src="js/security_privacy.js"></script>
-    <script defer type="application/javascript" src="shared/js/settings_listener.js"></script>
-    <script type="application/javascript" defer src="js/icc_menu.js"></script>
+    <script defer src="js/battery.js"></script>
+    <script defer src="js/app_storage.js"></script>
+    <script defer src="js/media_storage.js"></script>
+    <script defer src="shared/js/mobile_operator.js"></script>
+    <script defer src="js/connectivity.js"></script>
+    <script defer src="js/security_privacy.js"></script>
+    <script defer src="shared/js/settings_listener.js"></script>
+    <script defer src="js/icc_menu.js"></script>
 
     <!-- all non-#root panels will lazy-load their own scripts -->
   </head>
@@ -155,6 +147,7 @@
           <input type="password" data-ignore name="password" maxlength="63" x-inputmode="verbatim" />
         </li>
       </ul>
+      <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css"/>
       -->
     </section>
 
@@ -200,6 +193,8 @@
           <input type="password" data-ignore name="password" maxlength="63" />
         </li>
       </ul>
+      <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
+      <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css"/>
       -->
     </section>
 
@@ -244,6 +239,7 @@
           <input type="text" />
         </li>
       </ul>
+      <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css"/>
       -->
     </section>
 
@@ -286,6 +282,8 @@
           <button data-l10n-id="cancel" type="reset">Cancel</button>
         </menu>
       </form>
+      <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
+      <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css"/>
       -->
     </section>
 
@@ -347,7 +345,8 @@
         </li>
       </ul>
 
-      <script type="application/javascript" src="js/wifi.js"></script>
+      <script src="js/wifi.js"></script>
+      <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
       -->
     </section>
 
@@ -376,6 +375,7 @@
           <a data-l10n-id="callForwardingForward">Forward</a>
         </li>
       </ul>
+      <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css"/>
       -->
     </section>
 
@@ -404,6 +404,7 @@
           <a data-l10n-id="callForwardingForward">Forward</a>
         </li>
       </ul>
+      <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css"/>
       -->
     </section>
 
@@ -432,6 +433,7 @@
           <a data-l10n-id="callForwardingForward">Forward</a>
         </li>
       </ul>
+      <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css"/>
       -->
     </section>
 
@@ -460,6 +462,7 @@
           <a data-l10n-id="callForwardingForward">Forward</a>
         </li>
       </ul>
+      <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css"/>
       -->
     </section>
 
@@ -526,7 +529,9 @@
         </menu>
       </form>
 
-      <script type="application/javascript" src="js/call.js"></script>
+      <script src="js/call.js"></script>
+      <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
+      <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
       -->
     </section>
 
@@ -576,6 +581,7 @@
           </label>
         </li>
       </ul>
+      <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
       -->
     </section>
 
@@ -625,6 +631,7 @@
           <input type="text" data-setting="ril.data.httpProxyPort" />
         </li>
       </ul>
+      <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css"/>
       -->
     </section>
 
@@ -686,6 +693,7 @@
           <input type="text" data-setting="ril.mms.mmsc" />
         </li>
       </ul>
+      <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css"/>
       -->
     </section>
 
@@ -735,6 +743,7 @@
           <input type="text" data-setting="ril.supl.httpProxyPort" />
         </li>
       </ul>
+      <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css"/>
       -->
     </section>
 
@@ -758,6 +767,8 @@
           <button type="submit" class="recommend" data-l10n-id="turnOn">Turn ON</button>
         </menu>
       </form>
+      <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
+      <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
       -->
     </section>
 
@@ -854,7 +865,8 @@
         </li>
       </ul>
 
-      <script type="application/javascript" defer src="js/carrier.js"></script>
+      <script defer src="js/carrier.js"></script>
+      <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
       -->
     </section>
 
@@ -924,7 +936,9 @@
         </menu>
       </form>
 
-      <script type="application/javascript" src="js/bluetooth.js"></script>
+      <script src="js/bluetooth.js"></script>
+      <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
+      <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css"/>
       -->
     </section>
 
@@ -960,6 +974,8 @@
           </p>
         </li>
       </ul>
+      <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
+      <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css"/>
       -->
     </section>
 
@@ -1024,7 +1040,8 @@
         </li>
       </ul>
 
-      <script type="application/javascript" src="js/hotspot.js"></script>
+      <script src="js/hotspot.js"></script>
+      <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
       -->
     </section>
 
@@ -1141,7 +1158,8 @@
         </li>
       </ul>
 
-      <script type="application/javascript" src="js/sound.js"></script>
+      <script src="js/sound.js"></script>
+      <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
       -->
     </section>
 
@@ -1192,7 +1210,8 @@
         </li>
       </ul>
 
-      <script type="application/javascript" src="js/wallpaper.js"></script>
+      <script src="js/wallpaper.js"></script>
+      <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
       -->
     </section>
 
@@ -1286,8 +1305,10 @@
         </li>
       </ul>
 
-      <script type="application/javascript" src="shared/js/tz_select.js"></script>
-      <script type="application/javascript" src="js/date_time.js"></script>
+      <script src="shared/js/tz_select.js"></script>
+      <script src="js/date_time.js"></script>
+      <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
+      <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css"/>
       -->
     </section>
 
@@ -1333,6 +1354,7 @@
         <dd id="region-date">Friday, September 28 2012</dd>
         <dd id="region-time">06:54 PM</dd>
       </dl>
+      <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
       -->
     </section>
 
@@ -1479,6 +1501,9 @@
           </div>
         </div>
       </div>
+      <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
+      <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css"/>
+      <link rel="stylesheet" type="text/css" href="style/phone_lock.css"/>
       -->
     </section>
 
@@ -1526,7 +1551,8 @@
         </li>
       </ul>
 
-      <script type="application/javascript" src="js/phone_lock.js"></script>
+      <script src="js/phone_lock.js"></script>
+      <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
       -->
     </section>
 
@@ -1584,7 +1610,9 @@
         </div>
       </div>
 
-      <script type="application/javascript" src="js/simcard_dialog.js"></script>
+      <script src="js/simcard_dialog.js"></script>
+      <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css"/>
+     <link rel="stylesheet" type="text/css" href="style/simcard.css"/>
       -->
     </section>
 
@@ -1626,8 +1654,9 @@
         </li>
       </ul>
 
-      <script type="application/javascript" src="js/simcard_lock.js"></script>
-      <script type="application/javascript" src="js/simcard_dialog.js"></script>
+      <script src="js/simcard_lock.js"></script>
+      <script src="js/simcard_dialog.js"></script>
+      <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
       -->
     </section>
 
@@ -1659,6 +1688,7 @@
         <h2 data-l10n-id="uninstallApp">Uninstall App</h2>
       </header>
       <button id="uninstall-app" data-l10n-id="uninstallApp" class="danger">Uninstall App</button>
+      <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
       -->
     </section>
 
@@ -1697,8 +1727,11 @@
         </menu>
       </form>
 
-      <script type="application/javascript" src="js/hiddenapps.js"></script>
-      <script type="application/javascript" src="js/apps.js"></script>
+      <script src="js/hiddenapps.js"></script>
+      <script src="js/apps.js"></script>
+      <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
+      <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
+      <link rel="stylesheet" type="text/css" href="style/apps.css"/>
       -->
     </section>
 
@@ -1844,6 +1877,7 @@
           <a data-l10n-id="simplifiedChinese">Simplified Chinese</a>
         </li>
       </ul>
+      <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
       -->
     </section>
 
@@ -1923,7 +1957,8 @@
         </li>
       </ul>
 
-      <script type="application/javascript" src="js/factory_reset.js"></script>
+      <script src="js/factory_reset.js"></script>
+      <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
       -->
     </section>
 
@@ -2150,7 +2185,9 @@
         </li>
       </ul>
 
-      <script type="application/javascript" src="js/about.js"></script>
+      <script src="js/about.js"></script>
+      <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
+      <link rel="stylesheet" type="text/css" href="style/updates.css"/>
       -->
     </section>
 
@@ -2199,6 +2236,7 @@
           services back on manually.
         </li>
       </ul>
+      <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
       -->
     </section>
 
@@ -2413,6 +2451,7 @@
           <a data-l10n-id="askToSendReport">Ask me when a crash occurs</a>
         </li>
       </ul>
+      <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
       -->
     </section>
 
@@ -2448,7 +2487,8 @@
           </label>
         </li>
       </ul>
-      <script type="application/javascript" src="js/support.js"></script>
+      <script src="js/support.js"></script>
+      <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
       -->
     </section>
 
@@ -2485,8 +2525,10 @@
         </menu>
       </form>
 
-      <script type="application/javascript" src="/shared/js/notification_helper.js"></script>
-      <script type="application/javascript" src="js/icc.js"></script>
+      <script src="/shared/js/notification_helper.js"></script>
+      <script src="js/icc.js"></script>
+      <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
+      <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
       -->
     </section>
 
