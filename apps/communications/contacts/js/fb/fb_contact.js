@@ -324,7 +324,8 @@ fb.Contact = function(deviceContact, cid) {
         if (localValue) {
           var trimedLocal = localValue.trim();
           if (trimedLocal === fbValue ||
-             (field === 'tel' && extraFbItems.indexOf(trimedLocal) !== -1)) {
+             (field === 'tel' && Array.isArray(extraFbItems) &&
+              extraFbItems.indexOf(trimedLocal) !== -1)) {
             out.push(trimedLocal);
             out.push(fbValue);
           }
