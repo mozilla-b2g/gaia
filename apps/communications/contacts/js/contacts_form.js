@@ -164,7 +164,7 @@ contacts.Form = (function() {
     currentContactId.value = contact.id;
     givenName.value = contact.givenName || '';
     familyName.value = contact.familyName || '';
-    company.value = contact.org || '';
+    company.value = contact.org && contact.org.length > 0 ? contact.org[0] : '';
 
     if (nonEditableValues[company.value]) {
       var nodeClass = company.parentNode.classList;
