@@ -61,10 +61,10 @@ function tzSelect(regionSelector, citySelector, onchange) {
         });
       }
       fillSelectElement(regionSelector, options);
-      fillCities();
+      fillCities(true);
     }
 
-    function fillCities() {
+    function fillCities(initial) {
       gRegion = regionSelector.value;
       var list = gTZ[gRegion];
       var options = [];
@@ -76,7 +76,10 @@ function tzSelect(regionSelector, citySelector, onchange) {
         });
       }
       fillSelectElement(citySelector, options);
-      setTimezone();
+
+      if (!initial) {
+        setTimezone();
+      }
     }
 
     function setTimezone() {
