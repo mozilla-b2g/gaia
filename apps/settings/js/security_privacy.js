@@ -46,6 +46,14 @@ var Security = {
   }
 };
 
-// startup
-navigator.mozL10n.ready(Security.init);
-
+// starting when we get a chance
+navigator.mozL10n.ready(function loadWhenIdle() {
+  var idleObserver = {
+    time: 5,
+    onidle: function() {
+      Security.init();
+      navigator.removeIdleObserver(idleObserver);
+    }
+  };
+  navigator.addIdleObserver(idleObserver);
+});

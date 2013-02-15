@@ -14,8 +14,12 @@ mocksForAbout.forEach(function(mockName) {
   }
 });
 
+if (!window.getMobileConnection) {
+  window.getMobileConnection = null;
+}
+
 suite('about >', function() {
-  var realL10n, realNavigatorSettings;
+  var realL10n, realNavigatorSettings, realGetMobileConnection;
   var updateStatusNode, systemStatus, generalInfo;
   var mocksHelper;
 
@@ -23,6 +27,10 @@ suite('about >', function() {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
 
+    realGetMobileConnection = window.getMobileConnection;
+    window.getMobileConnection = function() {
+      return null;
+    };
     realNavigatorSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
 
@@ -36,6 +44,8 @@ suite('about >', function() {
 
     navigator.mozSettings = realNavigatorSettings;
     realNavigatorSettings = null;
+    window.getMobileConnection = realGetMobileConnection;
+    realGetMobileConnection = null;
     mocksHelper.suiteTeardown();
   });
 
