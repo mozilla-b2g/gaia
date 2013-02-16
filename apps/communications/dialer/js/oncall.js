@@ -210,7 +210,18 @@ var OnCallHandler = (function onCallHandler() {
   }
 
   /* === Handled calls === */
+  var highPriorityWakeLock = null;
   function onCallsChanged() {
+    // Acquire or release the high-priority wake lock, as necessary.  This
+    // (mostly) prevents this process from being killed while we're on a call.
+    if (!highPriorityWakeLock && telephony.calls.length > 0) {
+      highPriorityWakeLock = navigator.requestWakeLock('high-priority');
+    }
+    if (highPriorityWakeLock && telephony.calls.length == 0) {
+      highPriorityWakeLock.unlock();
+      highPriorityWakeLock = null;
+    }
+
     // Adding any new calls to handledCalls
     telephony.calls.forEach(function callIterator(call) {
       var alreadyAdded = handledCalls.some(function hcIterator(hc) {
