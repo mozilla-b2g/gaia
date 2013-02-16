@@ -30,14 +30,15 @@ var ActivityHandler = {
           return;
 
         this._currentActivity = activity;
-        document.location.hash = 'view-contact-form';
+        var hash = 'view-contact-form';
         if (this._currentActivity.source.data.params) {
           var param, params = [];
           for (var i in this._currentActivity.source.data.params) {
             param = this._currentActivity.source.data.params[i];
             params.push(i + '=' + param);
           }
-          document.location.hash += '?' + params.join('&');
+          hash += '?' + params.join('&');
+          document.location.hash = hash;
         }
         break;
       case 'pick':

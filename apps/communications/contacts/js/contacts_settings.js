@@ -76,7 +76,7 @@ contacts.Settings = (function() {
         fbGetTotals(false);
       });
 
-      document.addEventListener('fb_token_ready', function onFbCTokenReady(evt) {
+      document.addEventListener('fb_token_ready', function onTokenReady(evt) {
         // We just received an event saying we imported the contacts
         fb.utils.getImportChecked(checkFbImported);
       });

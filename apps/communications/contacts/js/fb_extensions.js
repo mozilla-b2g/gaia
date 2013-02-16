@@ -9,6 +9,7 @@ if (typeof Contacts.extFb === 'undefined') {
 
     var extensionFrame = document.querySelector('#fb-extensions');
     var oauthFrame = document.querySelector('#fb-oauth');
+    oauthFrame.src = '/facebook/fb_oauth.html';
     var currentURI, access_token;
     var canClose = true;
     var closeRequested = false;

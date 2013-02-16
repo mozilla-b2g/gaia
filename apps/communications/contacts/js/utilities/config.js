@@ -1,8 +1,8 @@
-var utilities = window.utilities || {};
+var utils = window.utils || {};
 
-if (typeof utilities.config === 'undefined') {
+if (typeof utils.config === 'undefined') {
   (function() {
-    var config = utilities.config = {};
+    var config = utils.config = {};
 
     config.load = function(resource) {
 
