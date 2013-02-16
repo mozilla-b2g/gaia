@@ -277,19 +277,9 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
 
     var id3revision = header.readUnsignedByte();
     var id3flags = header.readUnsignedByte();
-    var needs_unsynchronization = ((id3flags & 0x80) !== 0);
+    var tag_unsynchronized = ((id3flags & 0x80) !== 0);
     var has_extended_header = ((id3flags & 0x40) !== 0);
     var length = header.readID3Uint28BE();
-
-    // XXX
-    // For now, we just punt if unsynchronization is required.
-    // That's what the old metadata parser did, too.
-    // I don't think it is very common in mp3 files today.
-    if (needs_unsynchronization) {
-      console.warn('mp3 file uses unsynchronization. Can\'t read metadata');
-      metadataCallback(metadata);
-      return;
-    }
 
     // Get the entire ID3 data block and pass it to parseID3()
     // May be async, or sync, depending on whether we read enough
@@ -297,6 +287,13 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
     header.getMore(header.index, length, parseID3);
 
     function parseID3(id3) {
+      // In id3v2.3, the "unsynchronized" flag in the tag header applies to
+      // the whole tag (excluding the tag header). In id3v2.4, the flag is just
+      // an indicator that we should expect to see the "unsynchronized" flag
+      // set on all the frames.
+      if (tag_unsynchronized && id3version === 3)
+        id3 = deunsync(id3, length);
+
       // skip the extended header, if there is one
       if (has_extended_header) {
         if (id3version === 4) {
@@ -315,7 +312,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
 
       // Now we have a series of frames, each of which is one ID3 tag
       while (id3.index < id3.byteLength) {
-        var tagid, tagsize, tagflags;
+        var tagid, tagsize, tagflags, this_unsynchronized = false;
 
         // If there is a null byte here, then we've found padding
         // and we're done
@@ -337,6 +334,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
           tagid = id3.readASCIIText(4);
           tagsize = id3.readID3Uint28BE();
           tagflags = id3.readUnsignedShort();
+          this_unsynchronized = ((tagflags & 0x02) !== 0);
           break;
         }
 
@@ -349,9 +347,9 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
           continue;
         }
 
-        // Skip compressed, encrypted, grouped, or synchronized tags that
+        // Skip compressed, encrypted, or grouped tags that
         // we can't decode
-        if ((tagflags & 0xFF) !== 0) {
+        if ((tagflags & 0xFD) !== 0) {
           console.warn('Skipping', tagid, 'tag with flags', tagflags);
           id3.index = nexttag;
           continue;
@@ -359,9 +357,17 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
 
         // Wrap it in try so we don't crash the whole thing on one bad tag
         try {
-          // Now get the tag value
-          var tagvalue = null;
+          var tagblob, tagvalue;
 
+          if (this_unsynchronized) {
+            tagblob = deunsync(id3, tagsize);
+            tagsize = tagblob.sliceLength;
+          }
+          else {
+            tagblob = id3;
+          }
+
+          // Now get the tag value
           switch (tagid) {
           case 'TIT2':
           case 'TT2':
@@ -369,15 +375,15 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
           case 'TP1':
           case 'TALB':
           case 'TAL':
-            tagvalue = readText(id3, tagsize);
+            tagvalue = readText(tagblob, tagsize);
             break;
           case 'TRCK':
           case 'TRK':
-            tagvalue = parseInt(readText(id3, tagsize), 10);
+            tagvalue = parseInt(readText(tagblob, tagsize), 10);
             break;
           case 'APIC':
           case 'PIC':
-            tagvalue = readPic(id3, tagsize, tagid);
+            tagvalue = readPic(tagblob, tagsize, tagid);
             break;
           }
 
@@ -393,6 +399,23 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
       }
 
       handleCoverArt(metadata);
+    }
+
+    function deunsync(view, tagsize) {
+      // To de-unsychronize a frame, we need to convert all instances of
+      // |0xff 00| to |0xff|.
+      var data = new Uint8Array(tagsize), was0xff = false, dataIndex = 0;
+      for (var i = 0; i < tagsize; i++) {
+        var b = view.readUnsignedByte();
+        if (was0xff && b === 0x00)
+          continue;
+        was0xff = b === 0xff;
+        data[dataIndex++] = b;
+      }
+
+      // Manually create a new BlobView with the de-unsynchronized data.
+      return new view.constructor(blob, 0, dataIndex, data.buffer, 0, dataIndex,
+                                  view.littleEndian);
     }
 
     function readPic(view, size, id) {
