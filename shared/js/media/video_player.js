@@ -1,8 +1,22 @@
 'use strict';
 
+//
 // Create a <video> element and  <div> containing a video player UI and
 // add them to the specified container. The UI requires a GestureDetector
 // to be running for the container or one of its ancestors.
+//
+// Some devices have only a single hardware video decoder and can only
+// have one video tag playing anywhere at once. So this class is careful
+// to only load content into a <video> element when the user really wants
+// to play it. At other times it displays a poster image for the video.
+// Initially, it displays the poster image. Pressing play starts the video.
+// Pausing pauses the video but does not revert to the poster. Finishing the
+// video reverts to the initial state with the poster image displayed.
+// If we get a visiblitychange event saying that we've been hidden, we
+// remember the playback position, pause the video take a temporary
+// screenshot and display it, and unload the video. If shown again
+// and if the user clicks play again, we resume the video where we left off.
+//
 function VideoPlayer(container) {
   if (typeof container === 'string')
     container = document.getElementById(container);
@@ -16,6 +30,7 @@ function VideoPlayer(container) {
   }
 
   // This copies the controls structure of the Video app
+  var poster = newelt(container, 'img', 'videoPoster');
   var player = newelt(container, 'video', 'videoPlayer');
   var controls = newelt(container, 'div', 'videoPlayerControls');
   var playbutton = newelt(controls, 'button', 'videoPlayerPlayButton');
@@ -29,10 +44,12 @@ function VideoPlayer(container) {
   var playHead = newelt(progress, 'div', 'videoPlayerPlayHead');
   var durationText = newelt(slider, 'span', 'videoPlayerDurationText');
 
+  this.poster = poster;
   this.player = player;
   this.controls = controls;
 
   player.preload = 'metadata';
+  player.mozAudioChannelType = 'content';
 
   var self = this;
   var controlsHidden = false;
@@ -40,21 +57,87 @@ function VideoPlayer(container) {
   var pausedBeforeDragging = false;
   var screenLock; // keep the screen on when playing
   var endedTimer;
+  var videourl;   // the url of the video to play
+  var posterurl;  // the url of the poster image to display
   var rotation;   // Do we have to rotate the video? Set by load()
 
-  this.load = function(url, rotate) {
+  // These are the raw (unrotated) size of the poster image, which
+  // must have the same size as the video.
+  var videowidth, videoheight;
+
+  var playbackTime;
+  var capturedFrame;
+
+  this.load = function(video, posterimage, width, height, rotate) {
+    this.reset();
+    videourl = video;
+    posterurl = posterimage;
     rotation = rotate || 0;
-    player.mozAudioChannelType = 'content';
-    player.src = url;
+    videowidth = width;
+    videoheight = height;
+    this.init();
+    setPlayerSize();
   };
+
+  this.reset = function() {
+    hidePlayer();
+    hidePoster();
+  }
+
+  this.init = function() {
+    playbackTime = 0;
+    hidePlayer();
+    showPoster();
+    this.pause();
+  }
+
+  function hidePlayer() {
+    player.style.display = 'none';
+    player.removeAttribute('src');
+    player.load();
+    self.playerShowing = false;
+  }
+
+  function showPlayer() {
+    player.style.display = 'block';
+    player.src = videourl;
+    self.playerShowing = true;
+
+    // The only place we call showPlayer() is from the play() function.
+    // If play() has to show the player, call it again when we're ready to play.
+    player.oncanplay = function() {
+      player.oncanplay = null;
+      if (playbackTime !== 0) {
+        player.currentTime = playbackTime;
+      }
+      self.play();
+    }
+  }
+
+  function hidePoster() {
+    poster.style.display = 'none';
+    poster.removeAttribute('src');
+    if (capturedFrame) {
+      URL.revokeObjectURL(capturedFrame);
+      capturedFrame = null;
+    }
+  }
+
+  function showPoster() {
+    poster.style.display = 'block';
+    if (capturedFrame)
+      poster.src = capturedFrame;
+    else
+      poster.src = posterurl;
+  }
 
   // Call this when the container size changes
   this.setPlayerSize = setPlayerSize;
 
-  // Set up everything for the initial paused state
   this.pause = function pause() {
     // Pause video playback
-    player.pause();
+    if (self.playerShowing)
+      player.pause();
 
     // Hide the pause button and slider
     footer.classList.add('hidden');
@@ -75,12 +158,14 @@ function VideoPlayer(container) {
 
   // Set up the playing state
   this.play = function play() {
-    // If we're at the end of the video, restart at the beginning.
-    // This seems to happen automatically when an 'ended' event was fired.
-    // But some media types don't generate the ended event and don't
-    // automatically go back to the start.
-    if (player.currentTime >= player.duration - 0.5)
-      player.currentTime = 0;
+    if (!this.playerShowing) {
+      // If we're displaying the poster image, we have to switch
+      // to the player first. When the player is ready it wil call this
+      // function again.
+      hidePoster();
+      showPlayer();
+      return;
+    }
 
     // Start playing the video
     player.play();
@@ -102,8 +187,8 @@ function VideoPlayer(container) {
 
   // Hook up the play button
   playbutton.addEventListener('tap', function(e) {
-    // If we're paused, go to the play state
-    if (player.paused) {
+    // If we're not showing the player or are paused, go to the play state
+    if (!self.playerShowing || player.paused) {
       self.play();
     }
     e.stopPropagation();
@@ -124,10 +209,9 @@ function VideoPlayer(container) {
     }
   });
 
-  // Set the video size and duration when we get metadata
+  // Set the video duration when we get metadata
   player.onloadedmetadata = function() {
     durationText.textContent = formatTime(player.duration);
-    setPlayerSize();
     // start off in the paused state
     self.pause();
   };
@@ -150,6 +234,7 @@ function VideoPlayer(container) {
       endedTimer = null;
     }
     self.pause();
+    self.init();
   };
 
   // Update the slider and elapsed time as the video plays
@@ -189,6 +274,46 @@ function VideoPlayer(container) {
     }
   }
 
+  // Pause and unload the video if we're hidden so that other apps
+  // can use the video decoder hardware.
+  window.addEventListener('mozvisibilitychange', visibilityChanged);
+
+  function visibilityChanged() {
+    if (document.mozHidden) {
+      // If we're just showing the poster image when we're hidden
+      // then we don't have to do anything special
+      if (!self.playerShowing)
+        return;
+
+      self.pause();
+
+      // If we're not at the beginning of the video, capture a
+      // temporary poster image to display when we come back
+      if (player.currentTime !== 0) {
+        playbackTime = player.currentTime;
+        captureCurrentFrame(function(blob) {
+          capturedFrame = URL.createObjectURL(blob);
+          hidePlayer();
+          showPoster();
+        });
+      }
+      else {
+        // Even if we don't capture a frame, hide the video
+        hidePlayer();
+        showPoster();
+      }
+    }
+  }
+
+  function captureCurrentFrame(callback) {
+    var canvas = document.createElement('canvas');
+    canvas.width = videowidth;
+    canvas.height = videoheight;
+    var context = canvas.getContext('2d');
+    context.drawImage(player, 0, 0);
+    canvas.toBlob(callback);
+  }
+
   // Make the video fit the container
   function setPlayerSize() {
     var containerWidth = container.clientWidth;
@@ -196,20 +321,20 @@ function VideoPlayer(container) {
 
     // Don't do anything if we don't know our size.
     // This could happen if we get a resize event before our metadata loads
-    if (!player.videoWidth || !player.videoHeight)
+    if (!videowidth || !videoheight)
       return;
 
     var width, height; // The size the video will appear, after rotation
     switch (rotation) {
     case 0:
     case 180:
-      width = player.videoWidth;
-      height = player.videoHeight;
+      width = videowidth;
+      height = videoheight;
       break;
     case 90:
     case 270:
-      width = player.videoHeight;
-      height = player.videoWidth;
+      width = videoheight;
+      height = videowidth;
     }
 
     var xscale = containerWidth / width;
@@ -248,6 +373,7 @@ function VideoPlayer(container) {
 
     transform += ' scale(' + scale + ')';
 
+    poster.style.transform = transform;
     player.style.transform = transform;
   }
 
@@ -303,11 +429,11 @@ function VideoPlayer(container) {
 }
 
 VideoPlayer.prototype.hide = function() {
-  this.player.style.display = 'none';
+  // Call reset() to hide the poster and player
   this.controls.style.display = 'none';
 };
 
 VideoPlayer.prototype.show = function() {
-  this.player.style.display = 'block';
+  // Call init() to show the poster
   this.controls.style.display = 'block';
 };
