@@ -40,7 +40,9 @@ function MediaFrame(container, includeVideo) {
   }
   this.displayingVideo = false;
   this.displayingImage = false;
-  this.blob = null;
+  this.imageblob = null;
+  this.videoblob = null;
+  this.posterblob = null;
   this.url = null;
 }
 
@@ -50,7 +52,7 @@ MediaFrame.prototype.displayImage = function displayImage(blob, width, height,
   this.clear();  // Reset everything
 
   // Remember what we're displaying
-  this.blob = blob;
+  this.imageblob = blob;
   this.fullsizeWidth = width;
   this.fullsizeHeight = height;
   this.preview = preview;
@@ -190,7 +192,7 @@ MediaFrame.prototype._displayImage = function _displayImage(blob, width, height,
 MediaFrame.prototype._switchToFullSizeImage = function _switchToFull(cb) {
   if (this.displayingImage && this.displayingPreview) {
     this.displayingPreview = false;
-    this._displayImage(this.blob, this.fullsizeWidth, this.fullsizeHeight,
+    this._displayImage(this.imageblob, this.fullsizeWidth, this.fullsizeHeight,
                        true, cb);
   }
 };
@@ -198,15 +200,16 @@ MediaFrame.prototype._switchToFullSizeImage = function _switchToFull(cb) {
 MediaFrame.prototype._switchToPreviewImage = function _switchToPreview() {
   if (this.displayingImage && !this.displayingPreview) {
     this.displayingPreview = true;
-    this._displayImage(this.blob.slice(this.preview.start,
-                                       this.preview.end,
-                                       'image/jpeg'),
+    this._displayImage(this.imageblob.slice(this.preview.start,
+                                            this.preview.end,
+                                            'image/jpeg'),
                        this.preview.width,
                        this.preview.height);
   }
 };
 
-MediaFrame.prototype.displayVideo = function displayVideo(blob, width, height,
+MediaFrame.prototype.displayVideo = function displayVideo(videoblob, posterblob,
+                                                          width, height,
                                                           rotation)
 {
   if (!this.video)
@@ -217,19 +220,21 @@ MediaFrame.prototype.displayVideo = function displayVideo(blob, width, height,
   // Keep track of what kind of content we have
   this.displayingVideo = true;
 
-  // Show the video player and hide the image
-  this.video.show();
+  // Remember the blobs
+  this.videoblob = videoblob;
+  this.posterblob = posterblob;
 
-  // Remember the blob
-  this.blob = blob;
+  // Get new URLs for the blobs
+  this.videourl = URL.createObjectURL(videoblob);
+  this.posterurl = URL.createObjectURL(posterblob);
 
-  // Get a new URL for this blob
-  this.url = URL.createObjectURL(blob);
-
-  // Display it in the video element.
+  // Display them in the video element.
   // The VideoPlayer class takes care of positioning itself, so we
   // don't have to do anything here with computeFit() or setPosition()
-  this.video.load(this.url, rotation || 0);
+  this.video.load(this.videourl, this.posterurl, width, height, rotation || 0);
+
+  // Show the player controls
+  this.video.show();
 };
 
 // Reset the frame state, release any urls and and hide everything
@@ -239,7 +244,9 @@ MediaFrame.prototype.clear = function clear() {
   this.displayingPreview = false;
   this.displayingVideo = false;
   this.itemWidth = this.itemHeight = null;
-  this.blob = null;
+  this.imageblob = null;
+  this.videoblob = null;
+  this.posterblob = null;
   this.fullsizeWidth = this.fullsizeHeight = null;
   this.preview = null;
   this.fit = null;
@@ -254,14 +261,12 @@ MediaFrame.prototype.clear = function clear() {
 
   // Hide the video player
   if (this.video) {
+    this.video.reset();
     this.video.hide();
-
-    // If the video player has its src set, clear it and release resources
-    // We do this in a roundabout way to avoid getting a warning in the console
-    if (this.video.player.src) {
-      this.video.player.removeAttribute('src');
-      this.video.player.load();
-    }
+    if (this.videourl)
+      URL.revokeObjectURL(this.videourl);
+    if (this.posterurl)
+      URL.revokeObjectURL(this.posterurl);
   }
 };
 
