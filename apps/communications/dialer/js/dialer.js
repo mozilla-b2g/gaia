@@ -116,9 +116,11 @@ var CallHandler = (function callHandler() {
 
   /* === Incoming and STK calls === */
   function newCall() {
+    console.log("********** In new call...");
     // We need to query mozTelephony a first time here
     // see bug 823958
     var telephony = navigator.mozTelephony;
+    console.log("********** telephony: " + telephony);
 
     openCallScreen();
   }
@@ -233,30 +235,40 @@ var CallHandler = (function callHandler() {
 
   /* === Attention Screen === */
   function openCallScreen(openCallback) {
+    console.log("********** In openCallScreen...");
+    console.log("********** callScreenWindow: " + callScreenWindow);
     if (callScreenWindow)
       return;
 
     var host = document.location.host;
     var protocol = document.location.protocol;
     var urlBase = protocol + '//' + host + '/dialer/oncall.html';
+    console.log("********** urlBase: " + urlBase);
 
     var openWindow = function dialer_openCallScreen(state) {
+      console.log("********** In openWindow...");
       callScreenWindow = window.open(urlBase + '#' + state,
                   'call_screen', 'attention');
+      console.log("********** callScreenWindow: " + callScreenWindow);
       callScreenWindow.onload = function onload() {
+        console.log("********** In callScreenWindow.onload...");
         callScreenWindowLoaded = true;
+        console.log("********** openCallback: " + openCallback);
         if (openCallback) {
           openCallback();
         }
       };
 
       var telephony = navigator.mozTelephony;
+      console.log("********** telephony: " + telephony);
       telephony.oncallschanged = function (evt) {
+        console.log("********** In telephony.oncallschanged...");
         if (callScreenWindowLoaded && telephony.calls.length === 0) {
           // Calls might be ended before callscreen is comletedly loaded,
           // so that callscreen will miss call-related events. We send a
           // message to notify callscreen of exiting when we got notified
           // there are no calls.
+          console.log("********** Sending 'exitCallScreen' command to call screen...");
           sendCommandToCallScreen('*', 'exitCallScreen');
         }
       };
@@ -264,29 +276,38 @@ var CallHandler = (function callHandler() {
 
     // if screenState was initialized, use this value directly to openWindow()
     // else if mozSettings doesn't exist, use default value 'unlocked'
+    console.log("********** screenState: " + screenState);
+    console.log("********** telephony: " + navigator.mozSettings);
     if (screenState || !navigator.mozSettings) {
       screenState = screenState || 'unlocked';
+      console.log("********** Opening call window...");
       openWindow(screenState);
       return;
     }
 
+    console.log("********** Getting lockscreen.locked value from mozSettings...");
     var req = navigator.mozSettings.createLock().get('lockscreen.locked');
     req.onsuccess = function dialer_onsuccess() {
+      console.log("********** req.result['lockscreen.locked']: " + req.result['lockscreen.locked']);
       if (req.result['lockscreen.locked']) {
         screenState = 'locked';
       } else {
         screenState = 'unlocked';
       }
+      console.log("********** Opening call window with screenState: " + screenState);
       openWindow(screenState);
     };
     req.onerror = function dialer_onerror() {
+      console.log("Error when getting lockscreen.locked value from mozSettings!")
       // fallback to default value 'unlocked'
       screenState = 'unlocked';
+      console.log("********** Opening call window with screenState: " + screenState);
       openWindow(screenState);
     };
   }
 
   function handleCallScreenClosing() {
+    console.log("********** In handleCallScreenClosing...");
     callScreenWindow = null;
     callScreenWindowLoaded = false;
   }
