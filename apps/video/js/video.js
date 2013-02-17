@@ -48,6 +48,9 @@ var dragging = false;
 var fullscreenTimer;
 var fullscreenCallback;
 
+// Videos recorded by our own camera have filenames of this form
+var FROMCAMERA = /^DCIM\/\d{3}MZLLA\/VID_\d{4}\.3gp$/;
+
 function init() {
 
   videodb = new MediaDB('videos', metaDataParser);
@@ -162,6 +165,17 @@ dom.thumbnails.addEventListener('contextmenu', function(evt) {
 function deleteFile(file) {
   var msg = navigator.mozL10n.get('confirm-delete');
   if (confirm(msg + ' ' + file)) {
+    if (FROMCAMERA.test(file)) {
+      // If we're deleting a video file recorded by our camera,
+      // we also need to delete the poster image associated with
+      // that video.
+      var postername = file.replace('.3gp', '.jpg');
+      navigator.getDeviceStorage('pictures').delete(postername);
+    }
+
+    // Whether or not there was a poster file to delete, delete the
+    // actual video file. This will cause the MediaDB to send a 'deleted'
+    // event, and the handler for that event will call videoDeleted() below.
     videodb.deleteFile(file);
   }
 }
@@ -196,7 +210,26 @@ function updateDialog() {
   }
 }
 
-function metaDataParser(videofile, callback, metadataError) {
+function metaDataParser(videofile, callback, metadataError, delayed) {
+  // XXX
+  // When the camera records a video, it saves the video file and then
+  // uses a <video> tag to create a poster image for that video.
+  // But if the Video app is running, we get an event from device storage
+  // and start parsing the metadata when the video file is created. So now
+  // the Camera app and the Video app are both trying to use the video
+  // decoding hardware at the same time. The camera app really has to
+  // succeed. We should modify this app to wait for and use the poster image
+  // the way that the Gallery app does. For now, however, we avoid the problem
+  // by just waiting to give the Camera app time to save the poster image.
+  // In the worst case, we could fail to parse the metadata here. But that
+  // is better than having the camera fail to record the video correctly.
+  //
+  if (!delayed && FROMCAMERA.test(videofile.name)) {
+    setTimeout(function() {
+      metaDataParser(videofile, callback, metadataError, true);
+    }, 2000);
+    return;
+  }
 
   var previewPlayer = document.createElement('video');
   var completed = false;
@@ -219,6 +252,8 @@ function metaDataParser(videofile, callback, metadataError) {
     if (!completed) {
       metadataError(metadata.title);
     }
+    previewPlayer.removeAttribute('src');
+    previewPlayer.load();
   };
   previewPlayer.onloadedmetadata = function() {
 
@@ -326,8 +361,8 @@ function setPosterImage(dom, poster) {
   if (dom.dataset.uri) {
     URL.revokeObjectURL(dom.dataset.uri);
   }
-  dom.dataset.uri = URL.createObjectURL(poster)
-  dom.style.backgroundImage = 'url('+dom.dataset.uri+')';
+  dom.dataset.uri = URL.createObjectURL(poster);
+  dom.style.backgroundImage = 'url(' + dom.dataset.uri + ')';
 }
 
 function showOverlay(id) {
@@ -496,7 +531,7 @@ function showPlayer(data, autoPlay) {
     playerShowing = true;
     setPlayerSize();
 
-    if ('name' in currentVideo && /^DCIM/.test(currentVideo.name)) {
+    if ('name' in currentVideo && FROMCAMERA.test(currentVideo.name)) {
       dom.deleteVideoButton.classList.remove('hidden');
     }
 
@@ -533,6 +568,14 @@ function hidePlayer() {
     dom.thumbnails.classList.remove('hidden');
     playerShowing = false;
     updateDialog();
+
+    // Unload the video. This releases the video decoding hardware
+    // so other apps can use it. Note that any time the video app is hidden
+    // (by switching to another app) we leave fullscreen mode, and this
+    // code gets triggered, so if the video app is not visible it should
+    // not be holding on to the video hardware
+    dom.player.removeAttribute('src');
+    dom.player.load();
   }
 
   if (!('metadata' in currentVideo)) {
@@ -886,12 +929,42 @@ document.addEventListener('mozfullscreenchange', function() {
 
  // Pause on visibility change
 document.addEventListener('mozvisibilitychange', function visibilityChange() {
-  if (document.mozHidden && playing) {
-    pause();
-  } else if (!document.mozHidden && document.mozFullScreenElement) {
-    setControlsVisibility(true);
+  if (document.mozHidden) {
+    if (playing)
+      pause();
+
+    if (playerShowing)
+      releaseVideo();
+  }
+  else {
+    if (document.mozFullScreenElement)
+      setControlsVisibility(true);
+
+    if (playerShowing)
+      restoreVideo();
   }
 });
+
+// This app uses deprecated-hwvideo permission to access video decoding hardware
+// But Camera and Gallery also need to use that hardware, and those three apps
+// may only have one video playing at a time among them. So we need to be
+// careful to relinquish the hardware when we are not visible.
+
+var restoreTime;
+
+// Call this when the app is hidden
+function releaseVideo() {
+  restoreTime = dom.player.currentTime;
+  dom.player.removeAttribute('src');
+  dom.player.load();
+}
+
+// Call this when the app becomes visible again
+function restoreVideo() {
+  setVideoUrl(dom.player, currentVideo, function() {
+    dom.player.currentTime = restoreTime;
+  });
+}
 
 // show|hide controls over the player
 dom.videoControls.addEventListener('mousedown', playerMousedown);
