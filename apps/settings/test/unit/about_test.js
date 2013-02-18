@@ -1,18 +1,41 @@
+'use strict';
+
 requireApp('settings/test/unit/mock_l10n.js');
 requireApp('settings/test/unit/mock_navigator_settings.js');
-requireApp('settings/js/settings.js');
+requireApp('settings/test/unit/mock_settings.js');
+requireApp('settings/test/unit/mocks_helper.js');
 requireApp('settings/js/about.js');
 
-suite('settings >', function() {
-  var realL10n, realNavigatorSettings;
+var mocksForAbout = [ 'Settings' ];
+
+mocksForAbout.forEach(function(mockName) {
+  if (! window[mockName]) {
+    window[mockName] = null;
+  }
+});
+
+if (!window.getMobileConnection) {
+  window.getMobileConnection = null;
+}
+
+suite('about >', function() {
+  var realL10n, realNavigatorSettings, realGetMobileConnection;
   var updateStatusNode, systemStatus, generalInfo;
+  var mocksHelper;
 
   suiteSetup(function() {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
 
+    realGetMobileConnection = window.getMobileConnection;
+    window.getMobileConnection = function() {
+      return null;
+    };
     realNavigatorSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
+
+    mocksHelper = new MocksHelper(mocksForAbout);
+    mocksHelper.suiteSetup();
   });
 
   suiteTeardown(function() {
@@ -21,9 +44,14 @@ suite('settings >', function() {
 
     navigator.mozSettings = realNavigatorSettings;
     realNavigatorSettings = null;
+    window.getMobileConnection = realGetMobileConnection;
+    realGetMobileConnection = null;
+    mocksHelper.suiteTeardown();
   });
 
   setup(function() {
+    mocksHelper.setup();
+
     var updateNodes =
       '<section id="root" role="region"></section>' +
       '<ul>' +
@@ -37,6 +65,16 @@ suite('settings >', function() {
             'Checking for update...</p>' +
           '<p class="system-update-status description"></p>' +
         '</li>' +
+        '<li>' +
+          '<label>' +
+            '<button id="ftuLauncher" data-l10n-id="launch-ftu">' +
+            'Launch FTU</button>' +
+          '</label>' +
+        '</li>' +
+        '<li>' +
+          '<small id="gaia-commit-hash"></small>' +
+          '<a id="gaia-commit-date"></a>' +
+        '</li>' +
       '</ul>';
 
     document.body.insertAdjacentHTML('beforeend', updateNodes);
@@ -45,11 +83,11 @@ suite('settings >', function() {
     systemStatus = updateStatusNode.querySelector('.system-update-status');
     generalInfo = updateStatusNode.querySelector('.general-information');
 
-    Settings.init();
-
+    About.init();
   });
 
   teardown(function() {
+    mocksHelper.teardown();
     MockNavigatorSettings.mTeardown();
   });
 

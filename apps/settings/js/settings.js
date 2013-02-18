@@ -22,7 +22,7 @@ var Settings = {
   // depend on the DOM being loaded.
   preInit: function settings_preInit() {
     var settings = this.mozSettings;
-    if (!settings || !navigator.mozSetMessageHandler)
+    if (!settings)
       return;
 
     // Make a request for settings to warm the cache, since we need it
@@ -95,6 +95,10 @@ var Settings = {
   init: function settings_init() {
     this._initialized = true;
 
+    if (!this.mozSettings || !navigator.mozSetMessageHandler) {
+      return;
+    }
+
     // register web activity handler
     navigator.mozSetMessageHandler('activity', this.webActivityHandler);
 
@@ -114,19 +118,35 @@ var Settings = {
       }
     }
 
-    // preset all inputs in the panel
-    this.presetPanel(panel);
-
     // translate content
     navigator.mozL10n.translate(panel);
 
     // activate all scripts
     var scripts = panel.querySelectorAll('script');
     for (var i = 0; i < scripts.length; i++) {
+      var src = scripts[i].getAttribute('src')
+      if (document.head.querySelector('script[src="' + src + '"]')) {
+        continue;
+      }
+
       var script = document.createElement('script');
       script.type = 'application/javascript';
-      script.src = scripts[i].getAttribute('src');
+      script.src = src;
       document.head.appendChild(script);
+    }
+
+    // activate all stylesheets
+    var stylesheets = panel.querySelectorAll('link');
+    for (var i = 0; i < stylesheets.length; i++) {
+      var href = stylesheets[i].getAttribute('href');
+      if (document.head.querySelector('link[href="' + href + '"]'))
+        continue;
+
+      var stylesheet = document.createElement('link');
+      stylesheet.type = 'text/css';
+      stylesheet.rel = 'stylesheet';
+      stylesheet.href = href;
+      document.head.appendChild(stylesheet);
     }
 
     // activate all links
@@ -563,6 +583,9 @@ window.addEventListener('load', function loadSettings() {
         Battery.update();
         break;
     }
+
+    // preset all inputs in the panel
+    Settings.presetPanel(panel);
   }
 
   // panel navigation

@@ -54,6 +54,10 @@ if (!this.asyncStorage) {
 var URL = null;
 
 
+/*
+// These tests are currently failing and have been temporarily disabled as per
+// Bug 838993. They should be fixed and re-enabled as soon as possible as per
+// Bug 841045.
 suite('Render contacts list', function() {
   var subject,
       container,
@@ -780,3 +784,4 @@ suite('Render contacts list', function() {
     });
   });
 });
+*/

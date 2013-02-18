@@ -1,6 +1,7 @@
 requireApp('calendar/test/unit/helper.js', function() {
   requireSupport('mock_view.js');
 
+  require('/shared/js/lazy_loader.js');
   requireLib('router.js');
   requireLib('app.js');
 });

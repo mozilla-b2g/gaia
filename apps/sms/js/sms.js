@@ -672,9 +672,9 @@ var ThreadListUI = {
     }
 
     // Where have I to place the new thread?
-    var threads = ThreadListUI.view.getElementsByTagName('li');
+    var threads = threadsContainer.getElementsByTagName('li');
     var threadFound = false;
-    for (var i = 0; i < threads.length; i++) {
+    for (var i = 0, l = threads.length; i < l; i++) {
       if (timestamp > threads[i].dataset.time) {
         threadFound = true;
         threadsContainer.insertBefore(threadDOM, threads[i]);

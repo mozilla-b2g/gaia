@@ -1,6 +1,6 @@
 'use strict';
 
-require('/tests/js/performance_helper.js');
+require('/tests/performance/performance_helper.js');
 require('apps/communications/contacts/test/integration/app.js');
 
 suite('Contacts', function() {
