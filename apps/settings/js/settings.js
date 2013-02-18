@@ -118,9 +118,6 @@ var Settings = {
       }
     }
 
-    // preset all inputs in the panel
-    this.presetPanel(panel);
-
     // translate content
     navigator.mozL10n.translate(panel);
 
@@ -586,6 +583,9 @@ window.addEventListener('load', function loadSettings() {
         Battery.update();
         break;
     }
+
+    // preset all inputs in the panel
+    Settings.presetPanel(panel);
   }
 
   // panel navigation
