@@ -128,6 +128,14 @@ body[role="application"] section[role="region"] > header button {
   list-style: none;
 }
 
+.fake-select select {
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+}
+
 li button.icon-reload:before {
   background-image: url(images/app/icons/reload.png);
 }
@@ -202,6 +210,7 @@ section.content .error-messages {
   line-height: 1.2em;
   padding: 1.2rem 1.5rem 1.2rem 3rem;
   position: relative;
+  overflow: hidden;
 }
 
 .settings li[aria-disabled="true"]:after {
@@ -248,7 +257,8 @@ section.content .error-messages {
   margin-left: -8px;
 }
 
-.settings li > .end button {
+.settings li > .end button,
+.settings li > .end .button {
   display: inline-block;
   vertical-align: middle;
   width: 10.0rem;
