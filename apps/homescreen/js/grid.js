@@ -75,10 +75,11 @@ const GridManager = (function() {
         if (evt.preventPanning === true) {
           return;
         }
-        
+
         // Start panning immediately but only disable
         // the tap when we've moved far enough.
-        deltaX = getX(evt) - startEvent.pageX;
+        var currentX = getX(evt);
+        deltaX = currentX - startEvent.pageX;
         if (deltaX === 0)
           return;
 
@@ -116,6 +117,8 @@ const GridManager = (function() {
             if (deltaX <= 0) {
               next.MozTransform = 'translateX(' + (windowWidth + deltaX) + 'px)';
               current.MozTransform = 'translateX(' + deltaX + 'px)';
+            } else {
+              startX = currentX;
             }
           };
         } else if (index === pages.length - 1) {
@@ -124,6 +127,8 @@ const GridManager = (function() {
               previous.MozTransform =
                 'translateX(' + (-windowWidth + deltaX) + 'px)';
               current.MozTransform = 'translateX(' + deltaX + 'px)';
+            } else {
+              startX = currentX;
             }
           };
         } else {
@@ -159,7 +164,8 @@ const GridManager = (function() {
         // Generate a function accordingly to the current page position.
         if (Homescreen.isInEditMode() || currentPage > 2) {
           var pan = function(e) {
-            deltaX = getX(e) - startX;
+            currentX = getX(e);
+            deltaX = currentX - startX;
             if (!isPanning && Math.abs(deltaX) >= tapThreshold) {
               isPanning = true;
             }
@@ -167,7 +173,8 @@ const GridManager = (function() {
           };
         } else {
           var pan = function(e) {
-            deltaX = getX(e) - startX;
+            currentX = getX(e);
+            deltaX = currentX - startX;
             if (!isPanning && Math.abs(deltaX) >= tapThreshold) {
               isPanning = true;
             }
@@ -356,10 +363,6 @@ const GridManager = (function() {
     }
     
     togglePagesVisibility(start, end);
-
-    // Force a reflow otherwise the newPage appears immediately because it is
-    // still considered display: none;
-    newPage.container.getBoundingClientRect();
 
     previousPage.container.dispatchEvent(new CustomEvent('gridpagehidestart'));
     newPage.container.dispatchEvent(new CustomEvent('gridpageshowstart'));
