@@ -54,3 +54,15 @@
 .highlight {
   background-color: #D3D3D3;
 }
+
+/*
+  Style for contact options menu
+*/
+
+#add-contact-action-menu {
+  display: none;
+}
+
+#add-contact-action-menu.visible {
+  display: inline;
+}

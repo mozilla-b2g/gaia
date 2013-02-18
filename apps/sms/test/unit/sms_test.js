@@ -329,4 +329,44 @@ suite('Threads-list Tests', function() {
       assert.isTrue(ThreadUI.sendButton.disabled);
     });
   });
+ 
+  suite('Phone Links in SMS', function() {
+    var Message = {
+        id: "123",
+        body: "Hello there",
+    };
+
+    //test
+    test('#numberWithDash', function() {
+        var messageBody = "Hello there, here are numbers with dashes 408-746-9721, 4087469721, 7469721";
+      var id = "12345";
+      Message.id = id;
+      Message.body = messageBody;
+      var messageDOM = ThreadUI.buildMessageDOM(Message, false);
+      var anchors = messageDOM.querySelectorAll('a.phone-link');
+      assert.equal(anchors.length, 3, '3 Contact handlers are attached for 3 phone numbers in DOM');
+      assert.equal(anchors[0].getAttribute("val"), "408-746-9721", "First number is 408-746-9721");
+      assert.equal(anchors[1].getAttribute("val"), "4087469721", "Second number is 4087469721");
+      assert.equal(anchors[2].getAttribute("val"), "7469721", "Third number is 7469721");
+    });
+
+    test('#complexTest with 7 digit numbers, ip addressess, decimals', function() {
+      var messageBody = "995-382-7369 futures to a 4458901 slight 789-7890 rebound +1-556-667-7789 on Wall Street 9953827369 on Wednesday, +12343454567 with 55.55.55 futures +919810137553 for the S&P 500 up 0.34 percent, Dow Jones futures up 0.12 percent 100 futures up 0.51 percent at 0921 GMT.";
+      var id = "12346";
+      Message.id = id;
+      Message.body = messageBody;
+      var messageDOM = ThreadUI.buildMessageDOM(Message, false);
+      var anchors = messageDOM.querySelectorAll('a.phone-link');
+      assert.equal(anchors.length, 7, '7 Contact handlers are attached for 7 phone numbers in DOM');
+      assert.equal(anchors[0].getAttribute("val"), "995-382-7369", "First number is 995-382-7369");
+      assert.equal(anchors[1].getAttribute("val"), "4458901", "Second number is 4458901");
+      assert.equal(anchors[2].getAttribute("val"), "789-7890", "Third number is 789-7890");
+      assert.equal(anchors[3].getAttribute("val"), "+1-556-667-7789", "Fourth number is +1-556-667-7789");
+      assert.equal(anchors[4].getAttribute("val"), "9953827369", "Fourth number is 9953827369");
+      assert.equal(anchors[5].getAttribute("val"), "+12343454567", "Fifth number is +12343454567");
+      assert.equal(anchors[6].getAttribute("val"), "+919810137553", "Sixth number is +919810137553");
+    });
+  });
+
 });
+

@@ -106,6 +106,14 @@
       },
       "href": "/dialer/index.html#keyboard-view",
       "disposition": "window"
+    },
+    "update": {
+      "filters": {
+        "type": "webcontacts/contact"
+      },
+      "disposition": "window",
+      "href": "/contacts/index.html?update",
+      "returnValue": true
     }
   },
   "messages": [

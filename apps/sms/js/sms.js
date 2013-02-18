@@ -848,6 +848,9 @@ var ThreadUI = {
     this.telForm.addEventListener('submit', this);
     this.sendForm.addEventListener('submit', this);
 
+    // initialize listeners for contact dialog
+    ContactDialog.init();
+
     Utils.startTimeHeaderScheduler();
     // We add the infinite scroll effect for increasing performance
     this.view.addEventListener('scroll', this.manageScroll.bind(this));
@@ -1210,23 +1213,23 @@ var ThreadUI = {
     MessageManager.getMessages(renderingOptions);
   },
 
-  appendMessage: function thui_appendMessage(message, hidden) {
-    // Retrieve all data from message
+  buildMessageDOM: function thui_buildMessageDOM(message, hidden) {
     var id = message.id;
     var bodyText = message.body;
     var bodyHTML = Utils.escapeHTML(bodyText);
-    var timestamp = message.timestamp.getTime();
     var messageClass = message.delivery;
 
     var messageDOM = document.createElement('li');
     messageDOM.classList.add('bubble');
-    messageDOM.dataset.timestamp = timestamp;
 
     if (hidden) {
       messageDOM.classList.add('hidden');
     }
+
     messageDOM.id = 'message-' + id;
+
     var inputValue = id;
+
     var asideHTML = '';
     // Do we have to add some error/sending icon?
     switch (message.delivery) {
@@ -1245,10 +1248,48 @@ var ThreadUI = {
                       '<input type="checkbox" value="' + inputValue + '">' +
                       '<span></span>' +
                       '</label>' +
-                    '<a class="' + messageClass + '">';
+                      '<a class="' + messageClass + '">';
     messageHTML += asideHTML;
-    messageHTML += '<p>' + bodyHTML + '</p></a>';
+    messageHTML += '<p> ' + bodyHTML + '</p></a>';
+
     messageDOM.innerHTML = messageHTML;
+    return this.searchAndLinkPhoneData(messageDOM);
+  },
+
+  /*
+   * this method searches for phone numbers in the message and associates event handlers
+   * so that contactDialog is shown.
+   */
+  searchAndLinkPhoneData: function thui_searchAndLinkPhoneData(messageDOM) {
+    var pattern = /(\+?1?[-.]?\(?([0-9]{3})\)?[-.]?)?([0-9]{3})[-.]?([0-9]{4})([0-9]{1,4})?/mg;
+    var bodytext = messageDOM.innerHTML;
+    var result = bodytext.replace(pattern, function(phone) {
+      var linkText = '<a class="phone-link" val="' + phone + '">' + phone + '</a>';
+      return linkText;
+    });
+
+    messageDOM.innerHTML = result;
+    this.addContactLinkHandlers(messageDOM);
+    return messageDOM;
+  },
+
+  addContactLinkHandlers: function thui_addContactLinkHandlers(messageDOM) {
+      var anchors = messageDOM.querySelectorAll('a.phone-link');
+      for (var i = 0; i < anchors.length; i++) {
+        var phonetxt = anchors[i].getAttribute("val");
+        anchors[i].onclick = function(i,phonetxt) {
+          return function(e){
+            ContactDialog.showContactDialog(phonetxt);
+          };
+        }(i,phonetxt);
+      }
+  },
+
+  appendMessage: function thui_appendMessage(message, hidden) {
+    // build messageDOM adding the links 
+    var messageDOM = this.buildMessageDOM(message, hidden);
+    var timestamp = message.timestamp.getTime();
+    messageDOM.dataset.timestamp = timestamp;
     // Add to the right position
     var messageContainer = ThreadUI.getMessageContainer(timestamp, hidden);
     if (!messageContainer.firstElementChild) {
