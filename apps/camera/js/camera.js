@@ -732,6 +732,7 @@ var Camera = {
   },
 
   takePictureSuccess: function camera_takePictureSuccess(blob) {
+    this._config.position = null;
     this._manuallyFocused = false;
     this.hideFocusRing();
     this.restartPreview();
@@ -905,7 +906,10 @@ var Camera = {
   takePicture: function camera_takePicture() {
     this._config.rotation = this._phoneOrientation;
     this._config.pictureSize = this._pictureSize;
-    if (this._position) {
+    // We do not attach our current position to the exif of photos
+    // that are taken via an activity as that leaks position information
+    // to other apps without permission
+    if (this._position && !this._pendingPick) {
       this._config.position = this._position;
     }
     this._cameraObj
