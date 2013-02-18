@@ -63,11 +63,6 @@ form.bottom[role="search"] {
 }
 
 /* Override Building Block [Edit mode] styles */
-form[role="dialog"][data-type="edit"] header,
-form[role="dialog"][data-type="edit"] > menu {
-  transition: all 0.4s ease;
-}
-
 form[role="dialog"][data-type="edit"] header {
   transform: translateY(-110%);
 }
@@ -135,11 +130,15 @@ form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
 }
 
 /* Lists: edit mode */
+[data-type="list"] li > label {
+  opacity: 0;
+  pointer-events: none;
+  left: 1rem;
+}
+
 .edit [data-type="list"] li > label {
   opacity: 1;
   pointer-events: auto;
-  transform: translateX(5rem);
-  transition: all 0.3s ease;
 }
 
 .edit [data-type="list"] li > a > aside.icon-unread {
@@ -148,7 +147,6 @@ form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
 
 .edit [data-type="list"] li > a > p {
   transform: translateX(3.5rem);
-  transition: all 0.3s ease;
 }
 
 .edit #thread-list-container[data-type="list"] aside.pack-end {
@@ -157,7 +155,6 @@ form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
 
 .edit #thread-list-container[data-type="list"] aside.pack-end img {
   transform: translateX(7.5rem);
-  transition: all 0.3s ease;
 }
 
 .edit #thread-list-container[data-type="list"] aside.pack-end img[src=""] {

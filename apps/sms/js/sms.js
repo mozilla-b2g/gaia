@@ -722,7 +722,7 @@ var ThreadListUI = {
 
 var ThreadUI = {
   // Time buffer for the 'last-messages' set. In this case 10 min
-  LAST_MESSSAGES_BUFFERING_TIME: 10 * 60 * 1000,
+  LAST_MESSAGES_BUFFERING_TIME: 10 * 60 * 1000,
   CHUNK_SIZE: 10,
   get view() {
     delete this.view;
@@ -1003,7 +1003,7 @@ var ThreadUI = {
     var messageContainer;
     // If timestamp belongs to [referenceTime, referenceTime - TimeBuffer]
     var isLastMessagesBlock =
-    (messageTimestamp >= (referenceTime - this.LAST_MESSSAGES_BUFFERING_TIME));
+    (messageTimestamp >= (referenceTime - this.LAST_MESSAGES_BUFFERING_TIME));
     // Is there any container with our requirements?
     if (isLastMessagesBlock) {
       messageContainer = document.getElementById('last-messages');
