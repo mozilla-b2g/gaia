@@ -107,9 +107,6 @@ var Recents = {
   },
 
   load: function re_load(callback) {
-	  
-	  console.log("load()");
-	  
     if (this._loaded) {
       if (callback) {
         callback();
@@ -172,9 +169,6 @@ var Recents = {
   },
 
   init: function re_init() {
-	  
-	  console.log("init()");
-	  
     var self = this;
     if (this.recentsFilterContainer) {
       this.recentsFilterContainer.addEventListener('click',
@@ -248,7 +242,6 @@ var Recents = {
 
   // Refresh can be called on an unloaded Recents
   refresh: function re_refresh() {
-	  console.log("refresh()");
     this.load(function loaded() {
       RecentsDBManager.init(function() {
         RecentsDBManager.get(function(recents) {
@@ -262,7 +255,6 @@ var Recents = {
   },
 
   recentsHeaderAction: function re_recentsIconEditAction(event) {
-	  console.log("recentsHeaderAction()");
     if (event) {
       switch (event.target ? event.target.id : event) {
         case 'edit-button': // Entering edit mode
@@ -281,7 +273,6 @@ var Recents = {
   },
 
   filter: function re_filter(event) {
-	  console.log("filter()");
     // do nothing if selected tab is same that current
     if (event.target.parentNode.classList.contains('selected')) {
       return;
@@ -365,7 +356,6 @@ var Recents = {
   },
 
   limitVisibleEntries: function re_limitVisibleEntries(limit) {
-	  console.log("limitVisibleEntries()");
     var visibleCalls = this.recentsContainer.
       querySelectorAll('.log-item:not(.hide)');
     var end = visibleCalls.length;
@@ -383,7 +373,6 @@ var Recents = {
   },
 
   selectAllEntries: function re_selectAllEntries() {
-	  console.log("selectAllEntries()");
     var itemSelector = '.log-item input';
     var items = document.querySelectorAll(itemSelector);
     var count = items.length;
@@ -400,7 +389,6 @@ var Recents = {
   },
 
   deselectSelectedEntries: function re_deselectSelectedEntries() {
-	  console.log("deselectSelectedEntries()");
     var itemSelector = '.log-item input';
     var items = document.querySelectorAll(itemSelector);
     var length = items.length;
@@ -415,7 +403,6 @@ var Recents = {
   },
 
   executeDeletion: function re_executeDeletion() {
-	  console.log("executeDeletion()");
     var self = this;
     ConfirmDialog.show(
       null,
@@ -435,7 +422,6 @@ var Recents = {
   },
 
   deleteSelectedRecents: function re_deleteSelectedRecents() {
-	  console.log("deleteSelectedRecents()");
     var selectedEntries = this.getSelectedEntries(),
         selectedLength = selectedEntries.length,
         entriesInGroup, entriesInGroupLength;
@@ -462,7 +448,6 @@ var Recents = {
 
   getSameTypeCallsOnSameDay: function re_getSameTypeCallsOnSameDay(
     day, phoneNumber, phoneNumberType, callType, startingWith) {
-	  console.log("getSameTypeCallsOnSameDay()");
     var groupSelector = '[data-num^="' + phoneNumber +
       '"]' + (phoneNumberType ? ('[data-phone-type="' +
       phoneNumberType + '"]') : '') +
@@ -473,7 +458,6 @@ var Recents = {
   getMostRecentCallWithSameTypeOnSameDay:
     function getMostRecentCallWithSameTypeOnSameDay(
       day, phoneNumber, phoneNumberType, callType, startingWith) {
-	  console.log("getMostRecentCallWithSameTypeOnSameDay()");
     var groupSelector = '[data-num^="' + phoneNumber +
       '"]' + (phoneNumberType ? ('[data-phone-type="' +
       phoneNumberType + '"]') : '') +
@@ -483,7 +467,6 @@ var Recents = {
   },
 
   getEntriesInGroup: function re_getEntriesInGroup(logItem) {
-	  console.log("getEntriesInGroup()");
     var entriesInGroup = new Array(),
     groupItemLogs, groupItemLogsAux,
       callType = logItem.dataset.type,
@@ -518,13 +501,11 @@ var Recents = {
   },
 
   mouseDown: function re_mouseDown(event) {
-	  console.log("mouseDown()");
     this._mouseDownX = event.screenX;
     this._mouseDownY = event.screenY;
   },
 
   mouseUp: function re_mouseUp(event) {
-	  console.log("mouseUp()");
     if (Math.abs(this._mouseDownX - event.screenX) > 10 ||
       Math.abs(this._mouseDownY - event.screenY) > 10) {
       this._ignoreClickEvent = true;
@@ -534,7 +515,6 @@ var Recents = {
   },
 
   click: function re_click(event) {
-	  console.log("click()");
     if (this._ignoreClickEvent) {
       return;
     }
@@ -579,12 +559,10 @@ var Recents = {
   },
 
   formSubmit: function formSubmit(event) {
-	  console.log("formSubmit()");
     return false;
   },
 
   createNewContact: function re_createNewContact() {
-	  console.log("createNewContact()");
     var src = '/contacts/index.html';
     src += '#view-contact-form?tel=' + this.newPhoneNumber;
     var timestamp = new Date().getTime();
@@ -594,7 +572,6 @@ var Recents = {
   },
 
   addToExistingContact: function re_addToExistingContact() {
-	  console.log("addToExistingContact()");
     var src = '/contacts/index.html';
     src += '#add-parameters?tel=' + this.newPhoneNumber;
     var timestamp = new Date().getTime();
@@ -604,7 +581,6 @@ var Recents = {
   },
 
   call: function re_call() {
-	  console.log("call()");
     if (this.newPhoneNumber) {
       this.updateLatestVisit();
       CallHandler.call(this.newPhoneNumber);
@@ -613,12 +589,10 @@ var Recents = {
   },
 
   cancelActionMenu: function re_cancelActionMenu() {
-	  console.log("cancelActionMenu()");
     this.addContactActionMenu.classList.remove('visible');
   },
 
   viewOrCreate: function re_viewOrCreate(contactId, phoneNumber) {
-	  console.log("viewOrCreate()");
     var contactsIframe = document.getElementById('iframe-contacts');
     var src = '/contacts/index.html';
     if (contactId) {
@@ -634,14 +608,12 @@ var Recents = {
   },
 
   getSelectedEntries: function re_getSelectedGroups() {
-	  console.log("getSelectedEntries()");
     var itemSelector = '.log-item:not(.hide) input:checked';
     var items = document.querySelectorAll(itemSelector);
     return items;
   },
 
   createRecentEntry: function re_createRecentEntry(recent, highlight) {
-	  console.log("createRecentEntry()");
     var classes = 'icon ';
     if (recent.type.indexOf('dialing') != -1) {
       classes += 'icon-outgoing';
@@ -686,7 +658,6 @@ var Recents = {
   },
 
   render: function re_render(recents) {
-	  console.log("render() : " + recents.length);
     if (!this.recentsContainer)
       return;
 
@@ -727,12 +698,9 @@ var Recents = {
         var highlight = (value < recents[i].date) ? 'highlighted' : '';
         content += self.createRecentEntry(recents[i], highlight);
       }
-      
-      var emptyList = '<li style="height: 3rem;"></li>';
-      content += emptyList;
-      
+
       self.recentsContainer.innerHTML = content;
-      
+
       FixedHeader.refresh();
 
       self.updateContactDetails();
@@ -757,7 +725,6 @@ var Recents = {
   },
 
   updateContactDetails: function re_updateContactDetails() {
-	  console.log("updateContactDetails()");
     // If we're not loaded yet, nothing to update
     if (!this._loaded) {
       return;
@@ -775,7 +742,6 @@ var Recents = {
 
   contactCallBack: function re_contactCallBack(logItem, contact, matchingTel,
     contactsWithSameNumber) {
-	  console.log("contactCallBack()");
     var contactPhoto = logItem.querySelector('.call-log-contact-photo');
     var primaryInfoMainNode = logItem.querySelector('.primary-info-main'),
         manyContactsNode = logItem.querySelector('.many-contacts'),
@@ -818,7 +784,6 @@ var Recents = {
   },
 
   groupCallsInCallLog: function re_groupCallsInCallLog() {
-	  console.log("groupCallsInCallLog()");
     // The grouping of the calls is per day, per contact, per contact
     //  phone number type (Home, Work, Mobile, etc.) and per type of call
     //  (outgoing, incoming, missed).
@@ -883,7 +848,6 @@ var Recents = {
   },
 
   groupCalls: function re_groupCalls(olderCallEl, newerCallEl, count, inc) {
-	  console.log("groupCalls()");
     olderCallEl.classList.add('hide');
     olderCallEl.classList.add('collapsed');
     count += inc;
@@ -893,12 +857,10 @@ var Recents = {
   },
 
   updateLatestVisit: function re_updateLatestVisit() {
-	  console.log("updateLatestVisit()");
     window.asyncStorage.setItem('latestCallLogVisit', Date.now());
   },
 
   updateHighlighted: function re_updateHighlighted() {
-	  console.log("updateHighlighted()");
     // No need to update if we're not loaded yet
     if (!this._loaded)
       return;
@@ -912,7 +874,6 @@ var Recents = {
   },
 
   fitPrimaryInfoToSpace: function re_fitPrimaryInfoToSpace(logItemNode) {
-	  console.log("fitPrimaryInfoToSpace() : " + logItemNode);
     var logItemNodes;
     if (logItemNode) {
       logItemNodes = [];
