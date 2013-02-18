@@ -71,14 +71,13 @@ var CallHandler = (function callHandler() {
   window.navigator.mozSetMessageHandler('notification', handleNotification);
 
   function handleNotificationRequest(number) {
-    Contacts.findByNumber(number, function lookup(contact) {
+    Contacts.findByNumber(number, function lookup(contact, matchingTel) {
       LazyL10n.get(function localized(_) {
         var title = _('missedCall');
-        var sender = (number && number.length) ? number : _('unknown');
 
-        if (contact && contact.name) {
-          sender = contact.name;
-        }
+        var sender = (contact == null) ? number :
+          (Utils.getPhoneNumberPrimaryInfo(matchingTel, contact) ||
+            _('unknown'));
 
         var body = _('from', {sender: sender});
 
