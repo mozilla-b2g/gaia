@@ -111,9 +111,9 @@
       "filters": {
         "type": "webcontacts/contact"
       },
-      "disposition": "window",
+      "disposition": "inline",
       "href": "/contacts/index.html?update",
-      "returnValue": true
+      "returnValue": false
     }
   },
   "messages": [
