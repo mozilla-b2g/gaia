@@ -1257,14 +1257,15 @@ var ThreadUI = {
   },
 
   /*
-   * this method searches for phone numbers in the message and associates event handlers
-   * so that contactDialog is shown.
+   * this method searches for phone numbers in the message
+   * and associates event handlers so that contactDialog is shown.
    */
   searchAndLinkPhoneData: function thui_searchAndLinkPhoneData(messageDOM) {
     var pattern = /(\+?1?[-.]?\(?([0-9]{3})\)?[-.]?)?([0-9]{3})[-.]?([0-9]{4})([0-9]{1,4})?/mg;
     var bodytext = messageDOM.innerHTML;
     var result = bodytext.replace(pattern, function(phone) {
-      var linkText = '<a class="phone-link" val="' + phone + '">' + phone + '</a>';
+      var linkText = '<a class="phone-link" val="' +
+                      phone + '">' + phone + '</a>';
       return linkText;
     });
 
@@ -1276,17 +1277,17 @@ var ThreadUI = {
   addContactLinkHandlers: function thui_addContactLinkHandlers(messageDOM) {
       var anchors = messageDOM.querySelectorAll('a.phone-link');
       for (var i = 0; i < anchors.length; i++) {
-        var phonetxt = anchors[i].getAttribute("val");
-        anchors[i].onclick = function(i,phonetxt) {
-          return function(e){
+        var phonetxt = anchors[i].getAttribute('val');
+        anchors[i].onclick = function(i, phonetxt) {
+          return function(e) {
             ContactDialog.showContactDialog(phonetxt);
           };
-        }(i,phonetxt);
+        }(i, phonetxt);
       }
   },
 
   appendMessage: function thui_appendMessage(message, hidden) {
-    // build messageDOM adding the links 
+    // build messageDOM adding the links
     var messageDOM = this.buildMessageDOM(message, hidden);
     var timestamp = message.timestamp.getTime();
     messageDOM.dataset.timestamp = timestamp;
