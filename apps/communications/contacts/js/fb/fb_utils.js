@@ -2,9 +2,9 @@
 
 var fb = window.fb || {};
 
-if (!fb.utils) {
+
   (function(document) {
-    var Utils = fb.utils = {};
+    var Utils = fb.utils || {};
 
     var TIMEOUT_QUERY = fb.operationsTimeout;
     var FRIEND_COUNT_QUERY = 'select friend_count from user where uid=me()';
@@ -448,5 +448,3 @@ if (!fb.utils) {
     } // FbContactsCleaner
 
   })(document);
-
-}

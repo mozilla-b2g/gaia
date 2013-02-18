@@ -696,7 +696,10 @@ var Contacts = (function() {
       '/contacts/js/utilities/import_sim_contacts.js',
       '/contacts/js/utilities/normalizer.js',
       '/contacts/js/utilities/status.js',
-      '/contacts/js/utilities/overlay.js',
+      '/contacts/js/utilities/overlay.js'
+    ];
+
+    var styles = [
       '/shared/style_unstable/progress_activity.css',
       '/shared/style/status.css',
       '/shared/style/switches.css',
@@ -711,6 +714,9 @@ var Contacts = (function() {
       window.console.log('!!! Scripts loaded !!!');
       var event = new CustomEvent('asyncScriptsLoaded');
       window.dispatchEvent(event);
+    });
+
+    LazyLoader.load(styles, function() {
     });
   };
 
