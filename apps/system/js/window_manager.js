@@ -975,6 +975,10 @@ var WindowManager = (function() {
     // Discard any existing activity
     stopInlineActivity(true);
 
+    // Cancel fullscreen
+    if (document.mozFullScreen)
+      document.mozCancelFullScreen();
+
     // Before starting a new transition, let's make sure current transitions
     // are stopped and the state classes are cleaned up.
     // visibility status should also be reset.
