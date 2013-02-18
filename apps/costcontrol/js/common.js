@@ -160,7 +160,7 @@ function resetData() {
       if (data[0].txBytes) {
         currentWifiUsage += data[0].txBytes;
       }
-      ConfigManager.setOption({ wifiFixing: currentWifiUsage });
+      asyncStorage.setItem('wifiFixing', currentWifiUsage);
     };
 
   });
