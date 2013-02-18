@@ -38,6 +38,7 @@ contacts.List = (function() {
     FixedHeader.init('#groups-container', '#fixed-container', selector);
 
     imgLoader = new ImageLoader('#groups-container', 'li');
+    imgLoader.setResolver(fb.resolver);
 
     contacts.Search.init(conctactsListView, favoriteGroup, function(e) {
       onClickHandler(e);
@@ -74,7 +75,7 @@ contacts.List = (function() {
     }
 
     initOrder(function onInitOrder() {
-      getContactsByGroup(onError, contacts);  
+      getContactsByGroup(onError, contacts);
     });
   };
 
@@ -91,6 +92,19 @@ contacts.List = (function() {
         callback();
       }
     }
+  }
+
+  function getFbUid(devContact) {
+    var out;
+
+    if (Array.isArray(devContact.category)) {
+      var idx = devContact.category.indexOf('facebook');
+      if (idx !== -1) {
+        out = devContact.category[idx + 2];
+      }
+    }
+
+    return out;
   }
 
 
@@ -112,10 +126,6 @@ contacts.List = (function() {
   };
 
   var renderContact = function renderContact(contact, fbContacts) {
-    if (fbContacts && fb.isFbContact(contact)) {
-      var fbContact = new fb.Contact(contact);
-      contact = fbContact.merge(fbContacts[fbContact.uid]);
-    }
     var orderedString = getStringToBeOrdered(contact);
     contact = refillContactData(contact);
     contact.givenName = contact.givenName || '';
@@ -124,6 +134,12 @@ contacts.List = (function() {
     var contactContainer = document.createElement('li');
     contactContainer.className = 'contact-item';
     contactContainer.dataset.uuid = utils.text.escapeHTML(contact.id, true);
+
+    var fbUid = getFbUid(contact);
+    if(fbUid) {
+      contactContainer.dataset.fbUid =fbUid;
+    }
+
     var timestampDate = contact.updated || contact.published || new Date();
     contactContainer.dataset.updated = timestampDate.getTime();
     var link = document.createElement('a');
@@ -291,6 +307,9 @@ contacts.List = (function() {
         FixedHeader.refresh();
         imgLoader.reload();
         lazyLoadImages();
+        if(fb.isEnabled) {
+          Contacts.loadFacebook();
+        }
         loaded = true;
         return;
       }
@@ -302,7 +321,10 @@ contacts.List = (function() {
       }
 
       window.setTimeout(function() {
-        imgLoader.reload();
+        if(index === 0) {
+          imgLoader.reload();
+        }
+
         renderChunks(index + 1);
       }, 0);
     }
@@ -315,12 +337,8 @@ contacts.List = (function() {
   };
 
   var lazyLoadImages = function lazyLoadImages() {
-    if (fb.isEnabled) {
-      lazyLoadFacebookData();
-      return;
-    }
-
     if (!contactsPhoto || !Array.isArray(contactsPhoto)) {
+      window.console.log('No Contacts Photo');
       return;
     }
 
@@ -332,31 +350,6 @@ contacts.List = (function() {
     contactsPhoto = [];
     imgLoader.reload();
   }
-
-  var lazyLoadFacebookData = function lazyLoadFacebookData() {
-    Contacts.loadFacebook(function() {
-      
-      var fbReq = fb.contacts.getAll();
-      fbReq.onsuccess = function() {
-        for (var i = 0; i < contactsPhoto.length; i++) {
-          var contact = contactsPhoto[i].contact;
-          var link = contactsPhoto[i].link;
-          if (fb.isFbContact(contact)) {
-            var fbContact = new fb.Contact(contact);
-            contact = fbContact.merge(fbReq.result[fbContact.uid]);
-            link.querySelector('p').innerHTML = getHighlightedName(contact);
-            renderOrg(contact, link);
-          }
-          renderPhoto(contact, link);
-        }
-        contactsPhoto = [];
-        imgLoader.reload();
-      };
-      fbReq.onerror = function() {
-        console.log('Error getting fb');
-      };
-    });
-  };
 
   var renderPhoto = function renderPhoto(contact, link) {
     if (!contact.photo || !contact.photo.length) {
@@ -652,7 +645,7 @@ contacts.List = (function() {
         if (fb.isFbContact(contact)) {
           var fbContact = new fb.Contact(contact);
           enrichedContact = fbContact.merge(fbData);
-        }        
+        }
         addToList(contact, enrichedContact);
         if(callback) {
           callback(id);

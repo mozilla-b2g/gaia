@@ -696,10 +696,7 @@ var Contacts = (function() {
       '/contacts/js/utilities/import_sim_contacts.js',
       '/contacts/js/utilities/normalizer.js',
       '/contacts/js/utilities/status.js',
-      '/contacts/js/utilities/overlay.js'
-    ];
-
-    var styles = [
+      '/contacts/js/utilities/overlay.js',
       '/shared/style_unstable/progress_activity.css',
       '/shared/style/status.css',
       '/shared/style/switches.css',
@@ -710,39 +707,16 @@ var Contacts = (function() {
       '/contacts/style/fb_extensions.css'
     ];
 
-    var fragment = document.createDocumentFragment();
-
-    var onScriptLoaded = function onScriptLoaded() {
-      scriptsLoaded++;
-      if (scriptsLoaded === scripts.length) {
-        var event = new CustomEvent('asyncScriptsLoaded');
-        window.dispatchEvent(event);
-      }
-    };
-
-    for (var i = 0; i < styles.length; i++) {
-      var style = styles[i];
-      var elem = document.createElement('link');
-      elem.setAttribute('rel', 'stylesheet');
-      elem.href = style;
-      fragment.appendChild(elem);
-    }
-
-    for (var i = 0; i < scripts.length; i++) {
-      var script = scripts[i];
-      var elem = document.createElement('script');
-      elem.setAttribute('type', 'text/javascript');
-      elem.src = script;
-      elem.addEventListener('load', onScriptLoaded);
-      fragment.appendChild(elem);
-    }
-
-    document.head.appendChild(fragment);
+    LazyLoader.load(scripts, function() {
+      window.console.log('!!! Scripts loaded !!!');
+      var event = new CustomEvent('asyncScriptsLoaded');
+      window.dispatchEvent(event);
+    });
   };
 
   var pendingChanges = {};
 
-  // This function is called when we finish a oncontactchange operation to 
+  // This function is called when we finish a oncontactchange operation to
   // remove the op of the pending changes and check if we need to apply more
   // changes request over the same id.
   var checkPendingChanges = function checkPendingChanges(id) {
