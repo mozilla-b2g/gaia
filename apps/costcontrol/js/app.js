@@ -25,15 +25,14 @@ var CostControlApp = (function() {
     if (cardState === 'absent') {
 
       debug('There is no SIM');
-      console.log('elo!');
       showSimErrorDialog('no-sim2');
 
-    } else if ( // SIM is locked
+    // SIM is locked
+    } else if (
       cardState === 'pinRequired' ||
       cardState === 'pukRequired'
     ) {
 
-      console.log('elo 2!', typeof _);
       showSimErrorDialog('sim2-locked');
 
     } else if (cardState !== 'ready') {
@@ -48,8 +47,6 @@ var CostControlApp = (function() {
   }
 
   function showSimErrorDialog(status) {
-    console.log('jazdaa!');
-    try {
       var dialog = document.getElementById('no-sim-info-dialog');
       var header = dialog.getElementsByTagName('h3')[0];
       var msg = dialog.getElementsByTagName('p')[0];
@@ -61,9 +58,6 @@ var CostControlApp = (function() {
         window.close();
       });
       vmanager.changeViewTo('no-sim-info-dialog');
-    } catch (e) {
-      console.log('zjebane!', e);
-    }
   }
 
   function startApp() {
