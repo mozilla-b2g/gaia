@@ -136,6 +136,15 @@ suite('system/Updatable', function() {
       mockApp.downloadAvailable = true;
       subject = new AppUpdatable(mockApp);
     });
+
+    test('should apply update if downloaded', function() {
+      mockApp.readyToApplyDownload = true;
+      subject = new AppUpdatable(mockApp);
+      // We cannot test for this._mgmt methods because it's created in
+      // a constructor, so we check if the window is killed because
+      // WindowManager.kill() is also called in applyUpdate() method
+      assert.equal(MockWindowManager.mLastKilledOrigin, subject.app.origin);
+    });
   });
 
   suite('infos', function() {

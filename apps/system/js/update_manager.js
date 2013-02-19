@@ -73,6 +73,8 @@ var UpdateManager = {
     window.addEventListener('mozChromeEvent', this);
     window.addEventListener('applicationinstall', this);
     window.addEventListener('applicationuninstall', this);
+    window.addEventListener('online', this);
+    window.addEventListener('offline', this);
 
     SettingsListener.observe('gaia.system.checkForUpdates', false,
                              this.checkForUpdates.bind(this));
@@ -81,6 +83,7 @@ var UpdateManager = {
     // a warning on the download dialog
     window.addEventListener('wifi-statuschange', this);
     this.updateWifiStatus();
+    this.updateOnlineStatus();
 
     this._conn = window.navigator.mozMobileConnection;
     if (this._conn) {
@@ -343,15 +346,12 @@ var UpdateManager = {
 
   displayNotificationAndToaster: function um_displayNotificationAndToaster() {
     if (this.updatesQueue.length && !this._downloading) {
-      this.container.classList.add('displayed');
+      this.displayNotificationIfHidden();
       this.toaster.classList.add('displayed');
-
       var self = this;
       setTimeout(function waitToHide() {
         self.toaster.classList.remove('displayed');
       }, this.TOASTER_TIMEOUT);
-
-      NotificationScreen.incExternalNotifications();
     }
   },
 
@@ -362,9 +362,7 @@ var UpdateManager = {
 
     this.updatesQueue.splice(removeIndex, 1);
     if (this.updatesQueue.length === 0) {
-      this.container.classList.remove('displayed');
-
-      NotificationScreen.decExternalNotifications();
+      this.hideNotificationIfDisplayed();
     }
 
     this.render();
@@ -390,7 +388,7 @@ var UpdateManager = {
       StatusBar.incSystemDownloads();
       this._wifiLock = navigator.requestWakeLock('wifi');
 
-      this.container.classList.add('displayed');
+      this.displayNotificationIfHidden();
       this.render();
     }
   },
@@ -420,6 +418,20 @@ var UpdateManager = {
       }
 
       this.render();
+    }
+  },
+
+  hideNotificationIfDisplayed: function() {
+    if (this.container.classList.contains('displayed')) {
+      this.container.classList.remove('displayed');
+      NotificationScreen.decExternalNotifications();
+    }
+  },
+
+  displayNotificationIfHidden: function() {
+    if (!this.container.classList.contains('displayed')) {
+      this.container.classList.add('displayed');
+      NotificationScreen.incExternalNotifications();
     }
   },
 
@@ -463,6 +475,12 @@ var UpdateManager = {
       case 'datachange':
         this.updateEdgeStatus();
         break;
+      case 'offline':
+        this.updateOnlineStatus();
+        break;
+      case 'online':
+        this.updateOnlineStatus();
+        break;
       case 'wifi-statuschange':
         this.updateWifiStatus();
         break;
@@ -477,6 +495,17 @@ var UpdateManager = {
       this.systemUpdatable.size = detail.size;
       this.systemUpdatable.rememberKnownUpdate();
       this.addToUpdatesQueue(this.systemUpdatable);
+    }
+  },
+
+  updateOnlineStatus: function su_updateOnlineStatus() {
+    var online = (navigator && 'onLine' in navigator) ? navigator.onLine : true;
+    this.downloadDialog.dataset.online = online;
+
+    if (online) {
+      this.laterButton.classList.remove('full');
+    } else {
+      this.laterButton.classList.add('full');
     }
   },
 

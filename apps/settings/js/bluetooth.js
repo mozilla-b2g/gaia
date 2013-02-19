@@ -716,10 +716,12 @@ onLocalized(function bluetoothSettings() {
     // enable UI toggle
     gBluetoothCheckBox.disabled = false;
     initialDefaultAdapter();
+    dispatchEvent(new CustomEvent('bluetooth-adapter-added'));
   };
   bluetooth.ondisabled = function bt_onDisabled() {
     gBluetoothCheckBox.disabled = false;  // enable UI toggle
     defaultAdapter = null;  // clear defaultAdapter
+    dispatchEvent(new CustomEvent('bluetooth-disabled'));    
   };
 });
 
