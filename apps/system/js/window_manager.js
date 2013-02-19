@@ -96,6 +96,10 @@ var WindowManager = (function() {
   // The origin of the currently displayed app, or null if there isn't one
   var displayedApp = null;
 
+  // true if the current visible app is playing. This variable is used
+  // for let this app be visible when the device is locked.
+  var currentAppPlayingAudio = false;
+
   // Function to hide init starting logo
   function handleInitlogo(callback) {
     var initlogo = document.getElementById('initlogo');
@@ -1534,7 +1538,8 @@ var WindowManager = (function() {
     'attentionscreenshow',
     'attentionscreenhide',
     'status-active',
-    'status-inactive'
+    'status-inactive',
+    'mozChromeEvent'
   ];
 
   function overlayEventHandler(evt) {
@@ -1553,7 +1558,9 @@ var WindowManager = (function() {
         }
         break;
       case 'lock':
-        setVisibilityForCurrentApp(false);
+        // if the app is playing this should not set to hidden
+        if (!currentAppPlayingAudio)
+          setVisibilityForCurrentApp(false);
         break;
 
       /*
@@ -1578,6 +1585,11 @@ var WindowManager = (function() {
             var app = runningApps[displayedApp];
             if (app)
               app.iframe.blur();
+        }
+        break;
+      case 'mozChromeEvent':
+        if (evt.detail.type == 'visible-audio-channel-changed') {
+          currentAppPlayingAudio = (evt.detail.channel !== 'none');
         }
         break;
     }
