@@ -710,39 +710,19 @@ var Contacts = (function() {
       '/contacts/style/fb_extensions.css'
     ];
 
-    var fragment = document.createDocumentFragment();
+    LazyLoader.load(scripts, function() {
+      window.console.log('!!! Scripts loaded !!!');
+      var event = new CustomEvent('asyncScriptsLoaded');
+      window.dispatchEvent(event);
+    });
 
-    var onScriptLoaded = function onScriptLoaded() {
-      scriptsLoaded++;
-      if (scriptsLoaded === scripts.length) {
-        var event = new CustomEvent('asyncScriptsLoaded');
-        window.dispatchEvent(event);
-      }
-    };
-
-    for (var i = 0; i < styles.length; i++) {
-      var style = styles[i];
-      var elem = document.createElement('link');
-      elem.setAttribute('rel', 'stylesheet');
-      elem.href = style;
-      fragment.appendChild(elem);
-    }
-
-    for (var i = 0; i < scripts.length; i++) {
-      var script = scripts[i];
-      var elem = document.createElement('script');
-      elem.setAttribute('type', 'text/javascript');
-      elem.src = script;
-      elem.addEventListener('load', onScriptLoaded);
-      fragment.appendChild(elem);
-    }
-
-    document.head.appendChild(fragment);
+    LazyLoader.load(styles, function() {
+    });
   };
 
   var pendingChanges = {};
 
-  // This function is called when we finish a oncontactchange operation to 
+  // This function is called when we finish a oncontactchange operation to
   // remove the op of the pending changes and check if we need to apply more
   // changes request over the same id.
   var checkPendingChanges = function checkPendingChanges(id) {
