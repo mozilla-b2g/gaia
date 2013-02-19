@@ -8,7 +8,7 @@
 
 var kFontStep = 4;
 
-// Frequencies comming from http://en.wikipedia.org/wiki/Telephone_keypad
+// Frequencies coming from http://en.wikipedia.org/wiki/Telephone_keypad
 var gTonesFrequencies = {
   '1': [697, 1209], '2': [697, 1336], '3': [697, 1477],
   '4': [770, 1209], '5': [770, 1336], '6': [770, 1477],
@@ -16,10 +16,20 @@ var gTonesFrequencies = {
   '*': [941, 1209], '0': [941, 1336], '#': [941, 1477]
 };
 
-var keypadSoundIsEnabled = true;
-SettingsListener.observe('phone.ring.keypad', true, function(value) {
-  keypadSoundIsEnabled = !!value;
-});
+var keypadSoundIsEnabled = false;
+function observeKeypadSound() {
+  SettingsListener.observe('phone.ring.keypad', true, function(value) {
+    keypadSoundIsEnabled = !!value;
+  });
+}
+
+if (window.SettingsListener)
+  observeKeypadSound()
+else
+  window.addEventListener('load', function onLoad() {
+    window.removeEventListener('load', onLoad);
+    loader.load('/shared/js/settings_listener.js', observeKeypadSound);
+  });
 
 var TonePlayer = {
   _frequencies: null, // from gTonesFrequencies
