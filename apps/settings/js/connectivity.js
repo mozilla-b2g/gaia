@@ -61,7 +61,10 @@ var Connectivity = (function(window, document, undefined) {
     kCardState = {
       'pinRequired' : _('simCardLockedMsg'),
       'pukRequired' : _('simCardLockedMsg'),
-      'absent' : _('noSimCard')
+      'networkLocked' : _('simLockedPhone'),
+      'unknown' : _('unknownSimCardState'),
+      'absent' : _('noSimCard'),
+      'null' : _('simCardNotReady')
     };
     mobileConnection.addEventListener('datachange', updateCarrier);
     updateCarrier();
@@ -183,7 +186,9 @@ var Connectivity = (function(window, document, undefined) {
       return setCarrierStatus({});
 
     // ensure the SIM card is present and unlocked
-    var cardState = kCardState[mobileConnection.cardState];
+    var cardState = kCardState[mobileConnection.cardState ?
+                               mobileConnection.cardState :
+                               'null'];
     if (cardState)
       return setCarrierStatus({ error: cardState });
 
