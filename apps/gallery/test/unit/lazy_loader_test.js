@@ -5,7 +5,7 @@
  */
 require('/shared/js/lazy_loader.js');
 
-mocha.setup({globals: ['jsCount']});
+mocha.setup({globals: ['jsCount','totalResult']});
 
 suite('lazy loader', function() {
 
@@ -92,19 +92,26 @@ suite('lazy loader', function() {
     });
   });
 
-  test('existing dom nodes trigger callback', function(done) {
-    var numStyles = countSytles();
+  test('Loaded callback is invoked correctly if node already exists on the DOM',
+       function(done) {
+    var responses = 0;
+    LazyLoader.load(['support/long_load.js'], function() {
+      assert.equal(window.totalResult, 10000);
+      responses++;
+      if(responses === 2) {
+        done();
+      }
+    });
 
-    // Manually reset LazyLoader._loaded
-    LazyLoader._loaded = {};
+    LazyLoader.load(['support/long_load.js'], function() {
+      assert.equal(window.totalResult, 10000);
 
-    LazyLoader.load(['support/styles.css', 'support/inc.js'], function() {
-      assert.equal(window.jsCount, 1);
-      assert.equal(countSytles(), numStyles);
-      done();
+      responses++;
+      if(responses === 2) {
+        done();
+      }
     });
   });
-
 
   test('appending multiple nodes works', function(done) {
     var numStyles = countStyles();

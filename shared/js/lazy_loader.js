@@ -63,9 +63,8 @@ var LazyLoader = (function() {
 
       for (var i = 0; i < files.length; i++) {
         var file = files[i];
-        var selector = 'script[src="' + file + '"], link[href="' + file + '"]';
 
-        if (this._loaded[file] || document.querySelector(selector)) {
+        if (this._loaded[file]) {
           perFileCallback(file);
         } else if (this._isLoading[file]) {
           this._isLoading[file].addEventListener(
