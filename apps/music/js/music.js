@@ -462,6 +462,7 @@ var TilesView = {
     this.dataSource.push(result);
 
     var tile = document.createElement('div');
+    tile.className = 'tile';
 
     var container = document.createElement('div');
     container.className = 'tile-container';
@@ -475,11 +476,6 @@ var TilesView = {
     artistName.textContent = result.metadata.artist || unknownArtist;
     albumName.textContent = result.metadata.album || unknownAlbum;
     titleBar.appendChild(artistName);
-
-    var img = document.createElement('img');
-    img.className = 'tile-image';
-
-    displayAlbumArt(img, result);
 
     // There are 6 tiles in one group
     // and the first tile is the main-tile
@@ -502,12 +498,35 @@ var TilesView = {
       tile.classList.add('float-right');
     }
 
-    tile.classList.add('default-album-' + this.index % 10);
+    var NUM_INITIALLY_VISIBLE_TILES = 8;
+    var INITIALLY_HIDDEN_TILE_WAIT_TIME_MS = 1000;
+
+    var placeholderBackgroundClass = 'default-album-' + this.index % 10;
+    var setTileBackgroundClosure = function(url) {
+      if (url) {
+        tile.style.backgroundImage = 'url(' + url + ')';
+      } else {
+        tile.classList.add(placeholderBackgroundClass);
+      }
+    };
+
+    if (this.index <= NUM_INITIALLY_VISIBLE_TILES) {
+      // Load this tile's background now, because it's visible.
+      getThumbnailURL(result, setTileBackgroundClosure);
+    } else {
+      // Defer loading hidden tiles until the visible ones are done.
+      setTimeout(function() {
+          getThumbnailURL(result, setTileBackgroundClosure);
+        },
+        INITIALLY_HIDDEN_TILE_WAIT_TIME_MS);
+    }
 
     container.dataset.index = this.index;
 
-    container.appendChild(img);
-    container.appendChild(titleBar);
+    // The tile info(album/artist) shows only when the cover does not exist
+    if (!result.metadata.picture)
+      container.appendChild(titleBar);
+
     tile.appendChild(container);
     this.view.appendChild(tile);
 
