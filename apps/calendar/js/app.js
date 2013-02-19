@@ -453,6 +453,9 @@ Calendar.App = (function(window) {
         var newEl = document.createElement('div');
         newEl.innerHTML = node.childNodes[0].nodeValue;
 
+        // translate content
+        navigator.mozL10n.translate(newEl);
+
         var parent = node.parentNode;
         var lastEl = node.nextElementSibling;
         var child;
