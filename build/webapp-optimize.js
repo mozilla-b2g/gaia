@@ -33,8 +33,6 @@ l10nDictionary.locales[GAIA_DEFAULT_LOCALE] = {};
  * whitelist by app name for javascript asset aggregation.
  */
 const JS_AGGREGATION_BLACKLIST = [
-  // https://bugzilla.mozilla.org/show_bug.cgi?id=839454
-  'communications',
   // https://bugzilla.mozilla.org/show_bug.cgi?id=839574
   'system'
 ];
