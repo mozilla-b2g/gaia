@@ -33,8 +33,12 @@ var EmailTemplate = {
       this._cached[prefix] = {};
 
     if (!this._cached[prefix][name]) {
+      console.log('LOADING: ' + '.' + prefix + '-' + name)
       var holder = document.getElementById('templ-' + prefix);
-      this._cached[prefix][name] = holder.querySelector('.' + prefix + '-' + name);
+      var node = holder.querySelector('.' + prefix + '-' + name);
+      node.innerHTML = node.childNodes[0].nodeValue;
+      navigator.mozL10n.translate(node);
+      this._cached[prefix][name] = node;
     }
     return this._cached[prefix][name];
   }
