@@ -48,7 +48,11 @@ suite('captive portal > ', function() {
     navigator.mozSettings = MockNavigatorSettings;
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
-    realActivity = window.MozActivity;
+    try {
+      realActivity = window.MozActivity;
+    } catch (e) {
+      console.log('Access MozActivity failed, passed realActivity assignment');
+    }
     window.MozActivity = MockMozActivity;
 
     fakeScreenNode = document.createElement('div');
@@ -60,7 +64,11 @@ suite('captive portal > ', function() {
 		mocksHelper.suiteTeardown();
 		navigator.mozWifiManager = realWifiManager;
 		window.SettingsListener = realSettingsListener;
-		window.MozActivity = realActivity;
+    try {
+      window.MozActivity = realActivity;
+    } catch (e) {
+      console.log('Access MozActivity failed, passed MozActivity assignment');
+    }
 		navigator.mozL10n = realL10n;
 		navigator.mozSettings = realSettings;
 		document.body.appendChild(fakeScreenNode);
