@@ -1,4 +1,5 @@
 requireApp('calendar/test/unit/helper.js', function() {
+  require('/shared/js/lazy_loader.js');
   requireSupport('fake_page.js');
   requireSupport('mock_view.js');
 
@@ -393,7 +394,9 @@ suite('app', function() {
 
     assert.equal(route.length, 5);
     assert.equal(route[0], '/foo');
-    assert.equal(route[4], subject.router._lastState, 'should add lastState fn');
+    assert.equal(route[4], subject.router._lastState,
+      'should add lastState fn'
+    );
   });
 
   suite('#route', function() {
@@ -410,7 +413,9 @@ suite('app', function() {
       assert.instanceOf(route[1], Function, 'should add setPath');
       assert.instanceOf(route[2], Function, 'should add loadAllViews');
       assert.instanceOf(route[3], Function, 'should add handleView');
-      assert.equal(route[4], subject.router._lastState, 'should add lastState fn');
+      assert.equal(route[4], subject.router._lastState,
+        'should add lastState fn'
+      );
     });
 
     test('twoRoutes', function() {
@@ -424,8 +429,68 @@ suite('app', function() {
       assert.instanceOf(route[1], Function, 'should add setPath');
       assert.instanceOf(route[2], Function, 'should add loadAllViews');
       assert.instanceOf(route[3], Function, 'should add handleView');
-      assert.equal(route[4], subject.router._lastState, 'should add lastState fn');
+      assert.equal(route[4], subject.router._lastState,
+        'should add lastState fn'
+      );
     });
   });
 
+  suite('Delayed DOM Loading', function() {
+
+    var container;
+
+    suiteSetup(function() {
+      container = document.createElement('div');
+      container.innerHTML = '<div class="delay"><!-- ' +
+          '<div class="lazynode first">i love</div>' +
+          '<div class="lazynode second">bacon</div>' +
+        ' --></div>';
+      document.body.appendChild(container);
+    });
+
+    suiteTeardown(function() {
+      container.parentNode.removeChild(container);
+    });
+
+    test('make sure lazy nodes load', function() {
+      assert.equal(
+        document.querySelectorAll('.delay').length,
+        1,
+        'we have a single delayed container'
+      );
+
+      assert.equal(
+        document.querySelectorAll('.lazynode').length,
+        0,
+        'we do not have delayed nodes yet'
+      );
+
+      // Load the delayed nodes
+      subject.loadDOM();
+
+      assert.equal(
+        document.querySelectorAll('.delay').length,
+        0,
+        'delayed containers are removed'
+      );
+
+      assert.equal(
+        document.querySelectorAll('.lazynode').length,
+        2,
+        'delayed nodes are loaded'
+      );
+
+      assert.equal(
+        document.querySelector('.lazynode').parentNode,
+        container,
+        'the node is inserted into the correct parent'
+      );
+
+      var nextEl = document.querySelector('.first').nextElementSibling;
+      assert.ok(
+        nextEl.classList.contains('second'),
+        'node order is preserved'
+      );
+    });
+  });
 });
