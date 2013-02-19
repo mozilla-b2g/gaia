@@ -242,6 +242,7 @@ var Recents = {
 
   // Refresh can be called on an unloaded Recents
   refresh: function re_refresh() {
+    this.itemSelectedList = document.querySelectorAll('.log-item input');
     this.load(function loaded() {
       RecentsDBManager.init(function() {
         RecentsDBManager.get(function(recents) {
@@ -702,6 +703,12 @@ var Recents = {
       }
 
       self.recentsContainer.innerHTML = content;
+      if(self.itemSelectedList) {
+        var items = document.querySelectorAll('.log-item input');
+        for (var i = 0; i < self.itemSelectedList.length; i++) {
+          items[i].checked = self.itemSelectedList[i].checked;
+        }
+      }
 
       FixedHeader.refresh();
 
