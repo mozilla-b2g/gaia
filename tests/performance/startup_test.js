@@ -8,9 +8,7 @@ function GenericIntegration(device) {
   AppIntegration.apply(this, arguments);
 }
 
-var foo = window.mozTestInfo.appPath.split('/');
-var manifestPath = foo[0];
-var entryPoint = foo[1];
+var [manifestPath, entryPoint] = window.mozTestInfo.appPath.split('/');
 
 GenericIntegration.prototype = {
   __proto__: AppIntegration.prototype,

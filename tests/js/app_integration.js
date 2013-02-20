@@ -82,7 +82,7 @@ var AppIntegration = (function() {
       return JSON.parse(fs.readFileSync(testvars));
     }
 
-    console.error('"' + testvars + '" does not exist.');
+    console.error('ERROR: "' + testvars + '" does not exist.');
     return {};
   }
 
