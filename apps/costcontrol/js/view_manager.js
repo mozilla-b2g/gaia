@@ -46,7 +46,12 @@ var ViewManager = (function () {
     var previousViewId, currentViewId;
     previousViewId = currentViewId = this._currentView ?
                                      this._currentView.id : null;
-
+    
+    var view = document.getElementById(viewId);
+    
+    // lazy load HTML of the panel
+    this.loadPanel(view);
+                                     
     // Tabs are treated in a different way than overlay views
     var isTab = this._isTab(viewId);
     if (isTab) {
@@ -63,9 +68,8 @@ var ViewManager = (function () {
       }
 
       // Showing the new one
-      var enteringTab = document.getElementById(viewId);
-      enteringTab.dataset.viewport = '';
-      document.getElementById(enteringTab.id + '-filter')
+      view.dataset.viewport = '';
+      document.getElementById(view.id + '-filter')
         .setAttribute('aria-selected', 'true');
 
       this._currentTab = viewId;
@@ -73,7 +77,6 @@ var ViewManager = (function () {
     // Overlay view
     } else {
       this.closeCurrentView();
-      var view = document.getElementById(viewId);
       var previousViewId = this._currentView ? this._currentView.id : '';
       this._currentView = {
         id: viewId,
@@ -89,6 +92,57 @@ var ViewManager = (function () {
     }
   };
 
+  ViewManager.prototype.loadPanel = function _loadPanel(panel) {
+    if (!panel || panel.hidden === false) return;
+
+    // apply the HTML markup stored in the first comment node
+    for (var i = 0; i < panel.childNodes.length; i++) {
+      if (panel.childNodes[i].nodeType == document.COMMENT_NODE) {
+        panel.innerHTML = panel.childNodes[i].nodeValue;
+        break;
+      }
+    }
+
+    //activate all styles
+    var styles = panel.querySelectorAll('link');
+    for (var i = 0; i < styles.length; i++) {
+      var styleHref = styles[i].href;
+      if (!document.getElementById(styleHref)) {
+        var style = document.createElement('link');
+        style.href = style.id = styleHref;
+        style.rel = 'stylesheet';
+        style.type = 'text/css';
+        style.media = 'all';
+        document.head.appendChild(style);
+      }
+    }
+
+    // translate content
+    navigator.mozL10n.translate(panel);
+
+    // activate all scripts
+    var scripts = panel.querySelectorAll('script');
+    for (var i = 0; i < scripts.length; i++) {
+      var src = scripts[i].getAttribute('src');
+      if (!document.getElementById(src)) {
+        var script = document.createElement('script');
+        script.type = 'application/javascript';
+        script.src = script.id = src;
+        document.head.appendChild(script);
+      }
+    }
+
+    //add listeners
+    var closeButtons = panel.querySelectorAll('.close-dialog');
+    [].forEach.call(closeButtons, function(closeButton) {
+      closeButton.addEventListener('click', function() {
+        window.parent.location.hash = '#';
+      });
+    });
+
+    panel.hidden = false;
+  };
+  
   // Close the current view returning to the previous one
   ViewManager.prototype.closeCurrentView = function _closeCurrentView() {
     if (!this._currentView) {
