@@ -5,7 +5,7 @@
 
 function tzSelect(regionSelector, citySelector, onchange) {
   var TIMEZONE_FILE = '/shared/resources/tz.json';
-
+  var currentTZ;
 
   /**
    * Activate a timezone selector UI
@@ -126,15 +126,11 @@ function tzSelect(regionSelector, citySelector, onchange) {
 
       // initialize the timezone selector with the initial TZ setting
       newTZSelector(function updateTZ(tz) {
+        currentTZ = tz;
         var req = settings.createLock().set({ 'time.timezone': tz.id });
         if (onchange) {
           req.onsuccess = function updateTZ_callback() {
-            // Wait until the timezone is actually set
-            // before calling the callback.
-            window.addEventListener('moztimechange', function timeChanged() {
-              window.removeEventListener('moztimechange', timeChanged);
-              onchange(tz);
-            });
+            onchange(currentTZ);
           }
         }
       }, lastMozSettingValue);
@@ -152,6 +148,9 @@ function tzSelect(regionSelector, citySelector, onchange) {
   /**
    * Startup -- make sure webL10n is ready before using tzSelect()
    */
+  window.addEventListener('moztimechange', function timeChanged() {
+    onchange(currentTZ);
+  });
 
   newTZObserver();
 }
