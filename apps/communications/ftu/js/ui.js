@@ -340,7 +340,6 @@ var UIManager = {
   },
 
   setTimeZone: function ui_stz(timezone) {
-    console.log('# UI - SET TIME ZONE called');
     var utc = 'UTC' + timezone.utcOffset;
     document.getElementById('time_zone_overlay').className =
       utc.replace(/[+:]/g, '');
