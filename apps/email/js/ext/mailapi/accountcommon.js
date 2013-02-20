@@ -218,6 +218,10 @@ CompositeAccount.prototype = {
     return this._receivePiece.getFolderStorageForFolderId(folderId);
   },
 
+  getFolderMetaForFolderId: function(folderId) {
+    return this._receivePiece.getFolderMetaForFolderId(folderId);
+  },
+
   runOp: function(op, mode, callback) {
     return this._receivePiece.runOp(op, mode, callback);
   },

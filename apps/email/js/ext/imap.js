@@ -552,7 +552,7 @@ ImapConnection.prototype.connect = function(loginCb) {
               name = path.pop();
               for (var i=0,len=path.length; i<len; i++) {
                 if (!curChildren[path[i]])
-                  curChildren[path[i]] = {};
+                  curChildren[path[i]] = { delim: box.delim };
                 if (!curChildren[path[i]].children)
                   curChildren[path[i]].children = {};
                 parent = curChildren[path[i]];
