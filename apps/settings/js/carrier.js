@@ -207,11 +207,11 @@ var Carrier = (function newCarrier(window, document, undefined) {
           var onSubmit = function() {
             window.asyncStorage.setItem(warningDialogEnabledKey, false);
             explanationItem.hidden = false;
+            setState(true);
           };
 
           var onReset = function() {
             window.asyncStorage.setItem(warningDialogEnabledKey, true);
-            setState(false);
           };
 
           // register an observer to monitor setting changes
@@ -220,6 +220,7 @@ var Carrier = (function newCarrier(window, document, undefined) {
               var enabled = event.settingValue;
               if (warningEnabled) {
                 if (enabled) {
+                  setState(false);
                   openDialog(dialogID, onSubmit, onReset);
                 }
               } else {
