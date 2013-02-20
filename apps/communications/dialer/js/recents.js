@@ -117,55 +117,34 @@ var Recents = {
     this._loaded = true;
 
     // Time to load the external css/js
-    var stylesheets = [
+    var scripts = [
       '/dialer/style/commslog.css',
       '/dialer/style/fixed_header.css',
       '/shared/style/headers.css',
       '/shared/style/switches.css',
       '/shared/style/edit_mode.css',
-      '/shared/style/action_menu.css'
-    ];
-    stylesheets.forEach(function cssIterator(url) {
-      var link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.href = url;
-      document.head.appendChild(link);
-    });
+      '/shared/style/action_menu.css',
+      '/shared/style_unstable/lists.css',
 
-    var scripts = [
       '/dialer/js/fixed_header.js',
       '/dialer/js/utils.js',
-      '/dialer/js/recents_db.js',
+      '/dialer/js/recents_db.js'
     ];
 
-    var scriptLoadCount = 0;
-    var scriptLoaded = (function() {
-      scriptLoadCount++;
+    loader.load(scripts, function() {
+      var headerSelector = '#recents-container header';
+      FixedHeader.init('#recents-container',
+                       '#fixed-container', headerSelector);
 
-      // All the scripts are now loaded
-      if (scriptLoadCount === scripts.length) {
-        var headerSelector = '#recents-container header';
-        FixedHeader.init('#recents-container',
-                         '#fixed-container', headerSelector);
+      this.init();
+      this.recentsView.classList.remove('hidden');
+      this.addContactActionMenu.hidden = false;
+      this.recentsEditMenu.hidden = false;
 
-
-        this.init();
-        this.recentsView.classList.remove('hidden');
-        this.addContactActionMenu.hidden = false;
-        this.recentsEditMenu.hidden = false;
-
-        if (callback) {
-          callback();
-        }
+      if (callback) {
+        callback();
       }
-    }).bind(this);
-
-    scripts.forEach(function scriptIterator(url) {
-      var script = document.createElement('script');
-      script.src = url;
-      script.onload = scriptLoaded;
-      document.head.appendChild(script);
-    });
+    }.bind(this));
   },
 
   init: function re_init() {
@@ -757,7 +736,7 @@ var Recents = {
       if (primaryInfo) {
         primaryInfoMainNode.textContent = primaryInfo;
       } else {
-        LazyL10n.get(function (_) {
+        LazyL10n.get(function gotL10n(_) {
           primaryInfoMainNode.textContent = _('unknown');
         });
       }
@@ -915,3 +894,9 @@ var Recents = {
   }
 };
 
+// Keep the call history up to date
+document.addEventListener('mozvisibilitychange', function visibility(e) {
+  if (!document.mozHidden) {
+    Recents.refresh();
+  }
+});
