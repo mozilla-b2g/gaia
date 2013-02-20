@@ -1,7 +1,7 @@
 #helper-header {
     position: absolute;
     left: 0;
-    top: 39px;
+    top: 3.9rem;
     right: 0;
 }
 .empty-query:not(.keyboard-visible) #helper-header {
@@ -11,22 +11,21 @@
 #search-title {
     position: absolute;
     top: 0;
-    left: 6px;
-    right: 6px;
+    left: 0.6rem;
+    right: 0.6rem;
     color: #fff;
     z-index: 50;
-    height: 38px;
-    line-height: 38px;
-    font-size: 16px;
+    height: 3.8rem;
+    line-height: 3.8rem;
+    font-size: 1.6rem;
     font-weight: 600;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 1), 0 1px 1px #000;
+    text-shadow: 0 0.1rem 0.3rem rgba(0, 0, 0, 1), 0 0.1rem 0.1rem #000;
     cursor: pointer;
     overflow: hidden;
     visibility: visible;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    -ms-text-overflow: ellipsis;
 }
     #search-title b {
         font-weight: inherit;
@@ -36,7 +35,7 @@
 }
     #search-title .query {
         position: relative;
-        margin-left: 5px;
+        margin-left: 0.5rem;
         color: #b4dae7;
         text-transform: lowercase;
     }
@@ -44,41 +43,38 @@
             color: #b4dae7;
             font-style: normal;
             font-weight: normal;
-            margin-left: 5px;
+            margin-left: 0.5rem;
         }
         #search-title.notype .type {
             display: none;
         }
     #search-title.notype {
-        padding-right: 26px;
+        padding-right: 2.6rem;
     }
 
 #helper-rapper {
     position: absolute;
     background: #fff;
-    top: 4px;
-    left: 6px;
-    right: 6px;
-    height: 28px;
-    line-height: 25px;
+    top: 0.4rem;
+    left: 0.6rem;
+    right: 0.6rem;
+    height: 2.8rem;
+    line-height: 2.2rem;
     color: #000;
-    font-size: 15px;
-    overflow: hidden;
-    border-radius: 2px;
-    border: 1px solid #1f1f1f;
+    font-size: 1.5rem;
+    border-radius: 0.2rem;
+    border: 0.1rem solid #1f1f1f;
     z-index: 55;
-    -moz-transform-origin: 50% 50%;
+    overflow: hidden;
     transform-origin: 50% 50%;
 }
 
 #helper-rapper.animate:not(.anim-disabled) {
-    -moz-transition: all .3s ease;
     transition: all .3s ease;
 }
 #helper-rapper.close {
-    -moz-transform: scale(0, 0);
     transform: scale(0, 0);
-    right: 12px;
+    right: 1.2rem;
     display: none;
 }
     #helper-rapper.close ul {
@@ -87,28 +83,25 @@
     
     #helper-tip {
         position: absolute;
-        left: 22px;
-        bottom: 1px;
+        left: 2.2rem;
+        bottom: 0.1rem;
         overflow: visible;
         z-index: 300;
         display: none;
-        -moz-transform: scale(.7, 1);
         transform: scale(.7, 1);
-        -moz-transition: all .2s ease;
         transition: all .2s ease;
     }
     #helper-tip b {
         position: absolute;
         top: 0;
         left: 0;
-        height: 13px;
-        width: 13px;
+        height: 1.3rem;
+        width: 1.3rem;
         background: #fff;
-        border-left: 1px solid #000;
-        border-top: 1px solid #000;
-        -moz-transform: rotate(45deg);
+        border-left: 0.1rem solid #000;
+        border-top: 0.1rem solid #000;
         transform: rotate(45deg);
-        box-shadow: -4px -4px 4px -2px rgba(0, 0, 0, .4);
+        box-shadow: -0.4rem -0.4rem 0.4rem -0.2rem rgba(0, 0, 0, .4);
     }
     
     
@@ -124,41 +117,44 @@
     50% { background: #ffe57f; }
     100% { background: #fff; }
 }
-    
+
 #helper {
-    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 130%;
+    margin-bottom: -23%; /* gets rid of the scrollbar */
+    overflow: hidden;
 }
 #helper.empty {
 }
 #helper.animate {
-    -moz-transition: -moz-transform .4s ease;
     transition: transform .4s ease;
 }
     #helper ul {
         position: absolute;
-        top: -3px !important;
-        width: 2000px;
+        top: 0;
+        left: 0;
         height: 100%;
-        padding-bottom: 3px;
-        padding-top: 3px;
         overflow: hidden;
+        background-size: 5rem;
         text-transform: lowercase;
+        white-space: nowrap;
+        -moz-box-sizing: border-box;
     }
     #helper ul.start {
-        -moz-transform: translate(320px, 0) !important;
-        transform: translate(320px, 0) !important;
+        transform: translate(32rem, 0) !important;
     }
     #helper-rapper:not(.anim-disabled) #helper ul.anim {
-        -moz-transition: all .4s linear !important;
         transition: all .4s linear !important;
     }
         #helper ul li {
             position: relative;
             display: inline-block;
-            vertical-align: top;
-            padding: 0 10px 6px 10px;
+            height: 100%;
+            padding: 0.2rem 1rem 0.4rem;
             cursor: pointer;
-            white-space: nowrap;
         }
         #helper ul li b {
             font-weight: 600;
@@ -166,12 +162,12 @@
         #helper ul li:after {
             content: "";
             position: absolute;
-            top: 12px;
-            left: -3px;
-            width: 4px;
-            height: 4px;
+            top: 1.1rem;
+            left: -0.3rem;
+            width: 0.4rem;
+            height: 0.4rem;
             background: #000;
-            border-radius: 2px;
+            border-radius: 0.2rem;
         }
         #helper ul li:first-child {
             font-weight: 600;
@@ -194,7 +190,7 @@
             color: #888;
             font-style: italic;
             font-weight: normal;
-            padding-right: 0;
+            padding-right: 0.2rem;
             cursor: default;
             text-transform: none;
         }
@@ -211,7 +207,7 @@
             color: #f00;
         }
         #helper ul li.label + li {
-            padding-left: 5px;
+            padding-left: 0.5rem;
         }
         #helper ul li.label + li:after {
             display: none;
