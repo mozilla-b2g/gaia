@@ -69,8 +69,6 @@ var PopupManager = {
 
     this.container.appendChild(popup);
 
-    this.screen.classList.add('popup');
-
     popup.addEventListener('mozbrowsererror', this);
     popup.addEventListener('mozbrowserloadend', this);
     popup.addEventListener('mozbrowserloadstart', this);
@@ -144,6 +142,10 @@ var PopupManager = {
 
       case 'mozbrowserlocationchange':
         evt.target.dataset.url = evt.detail;
+
+        if (WindowManager.getDisplayedApp() !== evt.target.dataset.frameOrigin)
+          return;
+
         this.show();
         break;
 
