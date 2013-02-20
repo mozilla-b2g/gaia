@@ -72,7 +72,7 @@ FolderPickerCard.prototype = {
         self = this;
     addedItems.forEach(function(account) {
       var accountNode = account.element =
-        fldNodes['account-item'].cloneNode(true);
+        App.Template.get('fld', 'account-item').cloneNode(true);
       accountNode.account = account;
       self.updateAccountDom(account, true);
       accountsContainer.insertBefore(accountNode, insertBuddy);
@@ -196,7 +196,8 @@ FolderPickerCard.prototype = {
                         null : foldersContainer.children[index],
         self = this;
     addedItems.forEach(function(folder) {
-      var folderNode = folder.element = fldNodes['folder-item'].cloneNode(true);
+      var folderNode = folder.element = App.Template.get('fld', 'folder-item').cloneNode(true);
+
       folderNode.folder = folder;
       self.updateFolderDom(folder, true);
       foldersContainer.insertBefore(folderNode, insertBuddy);
