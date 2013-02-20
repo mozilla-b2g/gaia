@@ -37,7 +37,6 @@
         position: relative;
         margin-left: 0.5rem;
         color: #b4dae7;
-        text-transform: lowercase;
     }
         #search-title .type {
             color: #b4dae7;
@@ -139,7 +138,6 @@
         height: 100%;
         overflow: hidden;
         background-size: 5rem;
-        text-transform: lowercase;
         white-space: nowrap;
         -moz-box-sizing: border-box;
     }

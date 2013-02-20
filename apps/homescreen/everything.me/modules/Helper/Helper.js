@@ -525,7 +525,7 @@ Evme.Helper = new function Evme_Helper() {
         }
         
         var val = elClicked.dataset.suggestion,
-            valToSend = (val || "").replace(/[\[\]]/g, "").toLowerCase(),
+            valToSend = (val || "").replace(/[\[\]]/g, ""),
             index = elClicked.dataset.index,
             source = elClicked.dataset.source, 
             type = elClicked.dataset.type;
