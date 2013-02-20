@@ -43,6 +43,7 @@ var ConfigManager = (function() {
     'lowLimitThreshold': false,
     'lowLimitNotified': false,
     'zeroBalanceNotified': false,
+    'dataUsageNotified': false,
     'nextReset': null,
     'plantype': 'prepaid',
     'resetTime': 1,
@@ -84,7 +85,9 @@ var ConfigManager = (function() {
 
   // Let's serialize dates
   // XXX: To avoid random error:
-  // "DataCloneError: The object could not be cloned." {file: "app://costcontrol.gaiamobile.org/shared/js/async_storage.js" line: 90}]
+  // "DataCloneError: The object could not be cloned."
+  // {file:
+  // "app://costcontrol.gaiamobile.org/shared/js/async_storage.js" line: 90}]
   Date.prototype.toJSON = function() {
     return {'__date__': this.toISOString()};
   };

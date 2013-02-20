@@ -28,6 +28,7 @@ GAIA_DOMAIN?=gaiamobile.org
 
 DEBUG?=0
 PRODUCTION?=0
+GAIA_OPTIMIZE?=0
 DOGFOOD?=0
 
 LOCAL_DOMAINS?=1
@@ -61,9 +62,11 @@ GAIA_APP_SRCDIRS=apps showcase_apps
 else ifeq ($(MAKECMDGOALS), dogfood)
 DOGFOOD=1
 PRODUCTION=1
+GAIA_OPTIMIZE=1
 B2G_SYSTEM_APPS=1
 else ifeq ($(MAKECMDGOALS), production)
 PRODUCTION=1
+GAIA_OPTIMIZE=1
 B2G_SYSTEM_APPS=1
 endif
 
@@ -379,6 +382,7 @@ define run-js-command
 	const LOCALES_FILE = "$(LOCALES_FILE)";                                     \
 	const BUILD_APP_NAME = "$(BUILD_APP_NAME)";                                 \
 	const PRODUCTION = "$(PRODUCTION)";                                         \
+	const GAIA_OPTIMIZE = "$(GAIA_OPTIMIZE)";                                   \
 	const DOGFOOD = "$(DOGFOOD)";                                               \
 	const OFFICIAL = "$(MOZILLA_OFFICIAL)";                                     \
 	const GAIA_DEFAULT_LOCALE = "$(GAIA_DEFAULT_LOCALE)";                       \
@@ -436,29 +440,32 @@ INJECTED_GAIA = "$(MOZ_TESTS)/browser/gaia"
 
 TEST_PATH=gaia/tests/${TEST_FILE}
 
-ifeq ($(TESTS),)
-	ifneq ($(APP),)
-		TESTS=$(shell find apps/$(APP)/test/integration/ -name "*_test.js" -type f )
+ifndef APPS
+	ifdef APP
+		APPS=$(APP)
 	else
-		TESTS=$(shell find apps -name "*_test.js" -type f | grep integration)
+		APPS=$(shell find apps -type d -name 'test' | sed -e 's|^apps/||' -e 's|/test$$||' )
 	endif
-endif
-
-ifneq ($(APP),)
-	TESTS_PERF=$(shell find apps/$(APP)/test/performance/ -name "*_test.js" -type f )
-else
-	TESTS_PERF=$(shell find apps -name "*_test.js" -type f | grep performance)
 endif
 
 .PHONY: test-integration
 test-integration:
 	adb forward tcp:2828 tcp:2828
-	@./tests/js/bin/runner $(TESTS)
+	for app in ${APPS}; \
+	do \
+		FILES_INTEGRATION=`test -d apps/$$app/test/integration && find apps/$$app/test/integration -name "*_test.js" -type f`; \
+		./tests/js/bin/runner $$app $${FILES_INTEGRATION}; \
+	done;
 
 .PHONY: test-perf
 test-perf:
 	adb forward tcp:2828 tcp:2828
-	REPORTER=JSONMozPerf ./tests/js/bin/runner $(TESTS_PERF)
+	SHARED_PERF=`find tests/performance -name "*_test.js" -type f`; \
+	for app in ${APPS}; \
+	do \
+		FILES_PERF=`test -d apps/$$app/test/performance && find apps/$$app/test/performance -name "*_test.js" -type f`; \
+		REPORTER=JSONMozPerf ./tests/js/bin/runner $$app $${SHARED_PERF} $${FILES_PERF}; \
+	done;
 
 .PHONY: tests
 tests: webapp-manifests offline

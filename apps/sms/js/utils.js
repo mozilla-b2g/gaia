@@ -105,7 +105,7 @@ var Utils = {
   getPhoneDetails: function ut_getPhoneDetails(number, contact, callback) {
     var details = {};
     if (contact) { // we have a contact
-      var name = contact.name,
+      var name = contact.name[0],
           phone = contact.tel[0],
           carrierToShow = phone.carrier;
 

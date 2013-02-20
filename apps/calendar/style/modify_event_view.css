@@ -2,6 +2,14 @@
   margin: 1rem 1rem 0 1rem;
 }
 
+#modify-event-view .button {
+  margin-bottom: 0;
+}
+
+#modify-event-view .button input {
+  width: 100%;
+}
+
 #modify-event-view form ol li {
   margin: 0rem;
 }
@@ -29,8 +37,10 @@
 }
 
 #modify-event-view li.allday {
-  padding: 1rem;
+  padding: 0 1rem;
   position: relative;
+  font-size: 1.4rem;
+  line-height: 3rem;
 }
 
 #modify-event-view li.allday > label {
@@ -57,6 +67,15 @@
 
 #modify-event-view.create .current-calendar {
   display: none;
+}
+
+#modify-event-view .calendar-id,
+#modify-event-view .current-calendar {
+  clear: both;
+}
+
+#modify-event-view .calendar-id select {
+  font-size: 1.4rem;
 }
 
 #modify-event-view.readonly menu,

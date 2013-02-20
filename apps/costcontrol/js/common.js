@@ -22,6 +22,13 @@ function checkSIMChange(callback) {
   });
 }
 
+function checkDataUsageNotification(settings, usage, callback) {
+  var proxy = document.getElementById('message-handler').contentWindow;
+  var f = proxy ? proxy.checkDataUsageNotification :
+                  window.checkDataUsageNotification;
+  return f(settings, usage, callback);
+}
+
 // Waits for DOMContentLoaded and messagehandlerready, then call the callback
 function waitForDOMAndMessageHandler(window, callback) {
   var remainingSteps = 2;
@@ -50,7 +57,13 @@ function addAlarmTimeout(type, delay) {
 function setNextReset(when, callback) {
   var proxy = document.getElementById('message-handler');
   return proxy ? proxy.contentWindow.setNextReset(when, callback) :
-                 setNextReset(when, callback);
+                 window.setNextReset(when, callback);
+}
+
+function getTopUpTimeout(callback) {
+  var proxy = document.getElementById('message-handler');
+  return proxy ? proxy.contentWindow.getTopUpTimeout(callback) :
+                 window.getTopUpTimeout(callback);
 }
 
 // Next automatic reset date based on user preferences

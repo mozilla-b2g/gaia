@@ -288,16 +288,18 @@
 
       case icc.STK_CMD_SET_UP_CALL:
         debug(' STK:Setup Phone Call. Number: ' + options.address);
-        var msg = '';
+        var confirmed = true;
         if (options.confirmMessage) {
-          msg += options.confirmMessage;
+          confirmed = confirm(options.confirmMessage);
         }
-        var confirmed = confirm(msg + ' ' + options.address);
         iccLastCommandProcessed = true;
         responseSTKCommand({
           hasConfirmed: confirmed,
           resultCode: icc.STK_RESULT_OK
         });
+        if (options.callMessage) {
+          alert(options.callMessage);
+        }
         break;
 
       case icc.STK_CMD_LAUNCH_BROWSER:

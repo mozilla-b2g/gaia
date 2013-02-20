@@ -164,7 +164,7 @@ contacts.Form = (function() {
     currentContactId.value = contact.id;
     givenName.value = contact.givenName || '';
     familyName.value = contact.familyName || '';
-    company.value = contact.org || '';
+    company.value = contact.org && contact.org.length > 0 ? contact.org[0] : '';
 
     if (nonEditableValues[company.value]) {
       var nodeClass = company.parentNode.classList;
@@ -315,12 +315,10 @@ contacts.Form = (function() {
 
   var deleteContact = function deleteContact(contact) {
     var deleteSuccess = function deleteSuccess() {
-      contacts.List.remove(contact.id);
       if (contacts.Search.isInSearchMode()) {
         contacts.Search.invalidateCache();
         contacts.Search.removeContact(contact.id);
       }
-      Contacts.setCurrent({});
       Contacts.navigation.home();
     };
     var request;
@@ -438,31 +436,10 @@ contacts.Form = (function() {
 
     request.onsuccess = function onsuccess() {
       // Reloading contact, as it only allows to be updated once
-      var cList = contacts.List;
-      cList.getContactById(contact.id, function onSuccess(savedContact,
-                                        enrichedContact) {
-        var nextCurrent = enrichedContact || savedContact;
-
-        Contacts.setCurrent(savedContact);
-        myContact.id = savedContact.id;
-
-        myContact.photo = nextCurrent.photo;
-        myContact.org = nextCurrent.org;
-        myContact.category = nextCurrent.category;
-
-        cList.refresh(myContact);
-        if (ActivityHandler.currentlyHandling) {
-          ActivityHandler.postNewSuccess(savedContact);
-        } else {
-          contacts.Details.render(savedContact, TAG_OPTIONS);
-        }
-        Contacts.cancel();
-      }, function onError() {
-        console.error('Error reloading contact');
-        if (ActivityHandler.currentlyHandling) {
-          ActivityHandler.postCancel();
-        }
-      });
+      if (ActivityHandler.currentlyHandling) {
+        ActivityHandler.postNewSuccess(contact);
+      }
+      Contacts.cancel();
     };
 
     request.onerror = function onerror() {

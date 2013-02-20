@@ -1,5 +1,5 @@
-/* styles for the video element itself */
-.videoPlayer {
+/* styles for the video player and poster image */
+.videoPoster, .videoPlayer {
   position: absolute;
   left: 0; /* we position it with a transform */
   top:0;

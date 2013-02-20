@@ -32,6 +32,7 @@ var MockMozMobileConnection = {
   ICC_SERVICE_CLASS_DATA_ASYNC: (1 << 5),
   ICC_SERVICE_CLASS_PACKET: (1 << 6),
   ICC_SERVICE_CLASS_PAD: (1 << 7),
+  ICC_SERVICE_CLASS_MAX: (1 << 7),
 
   addEventListener: function mmmc_addEventListener(event_name, listener) {
   },

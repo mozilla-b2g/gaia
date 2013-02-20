@@ -1,4 +1,3 @@
-
 /*
  * Settings is in charge of setup the setting section. It uses an AutoSettings
  * object to automatically bind markup with local settings.
@@ -6,6 +5,25 @@
  * Settings have three drawing areas with views for current values of balance,
  * data usage and telephony.
  */
+ 
+ // Import global objects from parent window
+ var ConfigManager = window.parent.ConfigManager;
+ var CostControl = window.parent.CostControl;
+
+ // Import global functions from parent window
+ var updateNextReset = window.parent.updateNextReset;
+ var formatTimeHTML = window.parent.formatTimeHTML;
+ var formatData = window.parent.formatData;
+ var roundData = window.parent.roundData;
+ var resetData = window.parent.resetData;
+ var resetTelephony = window.parent.resetTelephony;
+ var localizeWeekdaySelector = window.parent.localizeWeekdaySelector;
+ var computeTelephonyMinutes = window.parent.computeTelephonyMinutes;
+ var _ = window.parent._;
+
+ // Import debug
+ var DEBUGGING = window.parent.DEBUGGING;
+ var debug = window.parent.debug;
 
 var Settings = (function() {
 
@@ -14,6 +32,7 @@ var Settings = (function() {
   var costcontrol, vmanager, autosettings, initialized;
   var plantypeSelector, phoneActivityTitle, phoneActivitySettings;
   var balanceTitle, balanceSettings, reportsTitle;
+
   function configureUI() {
     CostControl.getInstance(function _onCostControl(instance) {
       costcontrol = instance;
@@ -65,6 +84,13 @@ var Settings = (function() {
         true
       );
 
+      // Close button needs to acquire a reference to the settings view
+      // manager to close itself.
+      var close = document.getElementById('close-settings');
+      close.addEventListener('click', function() {
+        closeSettings();
+      });
+
       function _updateNextReset(value, old, key, settings) {
         updateNextReset(settings.trackingPeriod, settings.resetTime);
       }
@@ -75,6 +101,10 @@ var Settings = (function() {
 
       updateUI();
     });
+  }
+
+  function closeSettings() {
+    window.parent.location.hash = '#';
   }
 
   // Loads extra HTML useful for debugging
@@ -89,7 +119,7 @@ var Settings = (function() {
       src.innerHTML = xhr.responseText;
       var reference = document.getElementById('plantype-settings');
       var parent = reference.parentNode;
-      [].forEach.call(src.childNodes, function (node) {
+      [].forEach.call(src.childNodes, function(node) {
         reference = parent.insertBefore(node, reference.nextSibling);
       });
     }
@@ -100,11 +130,13 @@ var Settings = (function() {
     var mode;
     var dialog = document.getElementById('reset-confirmation-dialog');
 
-    var resetTelephony = document.getElementById('reset-telephony');
-    resetTelephony.addEventListener('click', function _onTelephonyReset() {
-      mode = 'telephony';
-      vmanager.changeViewTo(dialog.id);
-    });
+    var resetTelephonyButton = document.getElementById('reset-telephony');
+    resetTelephonyButton.addEventListener('click',
+      function _onTelephonyReset() {
+        mode = 'telephony';
+        vmanager.changeViewTo(dialog.id);
+      }
+    );
 
     var resetDataUsage = document.getElementById('reset-data-usage');
     resetDataUsage.addEventListener('click', function _onTelephonyReset() {
@@ -122,15 +154,15 @@ var Settings = (function() {
       }
 
       // Reset telephony counters
-      else if (mode === 'telephony')
+      else if (mode === 'telephony') {
         resetTelephony();
+      }
 
       updateUI();
       vmanager.closeCurrentView();
     });
 
-    // Cancel reset
-    var cancel = dialog.querySelector('.close-dialog');
+    var cancel = dialog.querySelector('.close-reset-dialog');
     cancel.addEventListener('click', function _onCancelReset() {
       vmanager.closeCurrentView();
     });
@@ -146,14 +178,14 @@ var Settings = (function() {
 
   // Check settings and enable / disable done button
   function checkSettings() {
-    var closeSettings = document.getElementById('close-settings');
+    var closeSettingsButton = document.getElementById('close-settings');
     var lowLimit = document.getElementById('low-limit');
     var lowLimitInput = document.getElementById('low-limit-input');
     var lowLimitError = currentMode === 'PREPAID' && lowLimit.checked &&
                         lowLimitInput.value.trim() === '';
 
     lowLimitInput.classList[lowLimitError ? 'add' : 'remove']('error');
-    closeSettings.disabled = lowLimitError;
+    closeSettingsButton.disabled = lowLimitError;
   }
 
   window.addEventListener('localized', function _onLocalize() {
@@ -186,7 +218,9 @@ var Settings = (function() {
       }
 
       // Views
-      var requestObj = { type: 'datausage' };
+      var requestObj = {
+        type: 'datausage'
+      };
       costcontrol.request(requestObj, function _onDataStats(result) {
         var stats = result.data;
         updateDataUsage(stats, settings.lastDataReset);
@@ -209,9 +243,14 @@ var Settings = (function() {
   // Update data usage view on settings
   function updateDataUsage(datausage, lastDataReset) {
     var mobileUsage = document.querySelector('#mobile-data-usage > span');
-    var timestamp = document.querySelector('#mobile-data-usage + .meta');
     var data = roundData(datausage.mobile.total);
     mobileUsage.innerHTML = formatData(data);
+
+    var wifiUsage = document.querySelector('#wifi-data-usage > span');
+    data = roundData(datausage.wifi.total);
+    wifiUsage.innerHTML = formatData(data);
+
+    var timestamp = document.querySelector('#wifi-data-usage + .meta');
     timestamp.innerHTML = formatTimeHTML(lastDataReset, datausage.timestamp);
   }
 
@@ -226,7 +265,7 @@ var Settings = (function() {
       return;
     }
 
-    var timestamp = document.querySelector('#mobile-data-usage + .meta');
+    var timestamp = document.querySelector('#wifi-data-usage + .meta');
     balance.innerHTML = _('currency', {
       value: lastBalance.balance,
       currency: lastBalance.currency
@@ -247,8 +286,10 @@ var Settings = (function() {
       unit: 'SMS'
     });
     var timestamp = document.getElementById('telephony-timestamp');
-    timestamp.innerHTML = formatTimeHTML(lastTelephonyReset,
-                                         activity.timestamp);
+    timestamp.innerHTML = formatTimeHTML(
+      lastTelephonyReset,
+      activity.timestamp
+    );
   }
 
   return {
@@ -257,3 +298,5 @@ var Settings = (function() {
   };
 
 }());
+
+Settings.initialize();

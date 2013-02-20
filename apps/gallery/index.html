@@ -10,23 +10,17 @@
     <!-- Localization -->
     <link rel="resource" type="application/l10n" href="locales/locales.ini" />
     <!-- Shared code -->
-    <script type="text/javascript" src="shared/js/l10n.js"></script>
-    <script type="text/javascript" defer src="shared/js/gesture_detector.js"></script>
-    <script type="text/javascript" defer src="shared/js/mouse_event_shim.js"></script>
-    <script type="text/javascript" defer src="shared/js/mediadb.js"></script>
-    <script type="text/javascript" defer src="shared/js/blobview.js"></script>
-    <script type="text/javascript" defer src="shared/js/media/jpeg_metadata_parser.js"></script>
-    <script type="text/javascript" defer src="shared/js/media/get_video_rotation.js"></script>
-    <script type="text/javascript" defer src="shared/js/media/video_player.js"></script>
-    <script type="text/javascript" defer src="shared/js/media/media_frame.js"></script>
-    <script type="text/javascript" defer src="shared/js/visibility_monitor.js"></script>
+    <script defer src="shared/js/l10n.js"></script>
+    <script defer src="shared/js/mouse_event_shim.js"></script>
+    <script defer src="shared/js/mediadb.js"></script>
+    <script defer src="shared/js/lazy_loader.js"></script>
+    <script defer src="shared/js/visibility_monitor.js"></script>
+
     <!-- Specific code -->
-    <script type="text/javascript" defer src="js/MetadataParser.js"></script>
-    <script type="text/javascript" defer src="js/ImageEditor.js"></script>
-    <script type="text/javascript" defer src="js/gallery.js"></script>
+    <script defer src="js/gallery.js"></script>
   </head>
 
-  <body class="hidden" role="application">
+  <body role="application">
     <section role="region" id="thumbnail-list-view" class="hidden">
       <footer id="thumbnails-bottom">
         <a id="thumbnails-camera-button" class="button"></a>
@@ -178,9 +172,6 @@
       </div>
     </div>
 
-    <!-- display this at startup while we create thumbnails -->
-    <div id="spinner-overlay"><div id="spinner"></div></div>
-
     <!-- Some SVG filters we use -->
     <svg id="filters" width="0" height="0">
       <filter id="filter-bw">
@@ -212,51 +203,5 @@
                                0    0     0     1    0"/>
       </filter>
     </svg>
-
-    <!-- A WebGL vertex shader program. Required by js/ImageEditor.js -->
-    <script id="edit-vertex-shader" type="x-glsl/vertex-shader">
-      attribute vec2 src_pixel;   // pixel position in the image  
-      attribute vec2 dest_pixel;  // pixel position on the canvas
-      uniform vec2 canvas_size;   // size of destination canvas in pixels
-      uniform vec2 image_size;    // size of source image in pixels
-      varying vec2 src_position;  // pass image position to the fragment shader
-
-      void main() {
-        gl_Position = vec4(((dest_pixel/canvas_size)*2.0 - 1.0) * vec2(1, -1),
-                           0, 1);
-        src_position = src_pixel / image_size;
-      }
-    </script>
-
-    <!-- A WebGL fragment shader program. Required by js/ImageEditor.js -->
-    <script id="edit-fragment-shader" type="x-glsl/fragment-shader">
-      precision mediump float;
-      uniform sampler2D image;
-      uniform float border_width;
-      uniform vec4 border_color;
-      uniform vec2 dest_size;     // size of the destination rectangle 
-      uniform vec2 dest_origin;   // upper-left corner of destination rectangle
-      uniform vec4 gamma;
-      uniform mat4 matrix;
-      varying vec2 src_position;  // from the vertex shader
-
-      void main() {
-        // Use border color if we're over the border 
-        if (gl_FragCoord.x < dest_origin.x + border_width || 
-            gl_FragCoord.y < dest_origin.y + border_width ||
-            gl_FragCoord.x > dest_origin.x + dest_size.x - border_width ||
-            gl_FragCoord.y > dest_origin.y + dest_size.y - border_width)
-        {
-          gl_FragColor = border_color;
-          return;
-        }
-  
-        // Otherwise take the image clor, apply gamma correction and 
-        // the color manipulation matrix.
-        vec4 color = texture2D(image, src_position);
-        gl_FragColor = pow(color, gamma) * matrix;
-      }
-    </script>
   </body>
 </html>
-

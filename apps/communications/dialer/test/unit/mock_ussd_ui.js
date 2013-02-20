@@ -44,6 +44,10 @@ var MockUssdUI = {
     UssdManager.handleEvent(evt);
   },
 
+  close: function muui_close() {
+    this.ready = false;
+  },
+
   teardown: function mmui_mTeardown() {
     this._messageReceived = null;
   }

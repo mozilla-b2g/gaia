@@ -65,14 +65,6 @@ section[role="region"].current.peek {
   transform: translateX(-99.9%);
 }
 
-/* Without this hack, we get a white screen at launch on gecko21 */
-.uninit section[role="region"],
-.uninit section[role="region"].peek,
-.uninit section[role="region"].current {
-  transition: none;
-  transform: none;
-}
-
 /**
  * Headers should not scroll with the rest of the page, except for #root.
  */

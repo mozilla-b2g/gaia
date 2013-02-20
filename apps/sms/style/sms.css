@@ -327,6 +327,14 @@ section[role="region"].new > header:first-child form {
   height: auto;
 }
 
+#messages-container[data-type="list"] li.hidden {
+  display: none;
+}
+
+#messages-container[data-type="list"] header.hidden {
+  display: none;
+}
+
 #messages-container[data-type="list"] li.bubble:first-child {
   padding: 0 0 0.5rem 0;
 }
@@ -346,7 +354,7 @@ section[role="region"].new > header:first-child form {
   font-size: -moz-calc(8.5 * 0.226rem);
   line-height: 2.2rem;
   -moz-box-sizing: border-box;
-  max-width: 22rem;
+  max-width: 20.5rem;
   padding: 1rem;
   position: relative;
   text-align: left;
@@ -497,6 +505,7 @@ form.bottom[role="search"].new-sms-form {
   padding: 0.4rem 0.2rem 0.2rem 0.6rem;
   line-height: -moz-calc(8 * 0.226rem) !important;
   font-size: -moz-calc(8 * 0.226rem);
+  max-height: none;
 }
 
 #send-message-container {

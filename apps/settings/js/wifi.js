@@ -11,6 +11,7 @@ navigator.mozL10n.ready(function wifiSettings() {
   if (!settings)
     return;
 
+  var gWifiManager = getWifiManager();
   var gWifi = document.querySelector('#wifi');
   var gWifiCheckBox = document.querySelector('#wifi-enabled input');
   var gWifiInfoBlock = document.querySelector('#wifi-desc');
