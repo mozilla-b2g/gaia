@@ -736,7 +736,7 @@ var Recents = {
       if (primaryInfo) {
         primaryInfoMainNode.textContent = primaryInfo;
       } else {
-        LazyL10n.get(function (_) {
+        LazyL10n.get(function gotL10n(_) {
           primaryInfoMainNode.textContent = _('unknown');
         });
       }

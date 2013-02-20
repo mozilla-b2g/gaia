@@ -116,7 +116,8 @@ var CallHandler = (function callHandler() {
       case 'back':
         var contactsIframe = document.getElementById('iframe-contacts');
         // disable the function of receiving the messages posted from the iframe
-        contactsIframe.contentWindow.history.pushState(null, null, '/contacts/index.html');
+        contactsIframe.contentWindow.history.pushState(null, null,
+          '/contacts/index.html');
         window.location.hash = '#recents-view';
         break;
     }
@@ -268,7 +269,7 @@ var CallHandler = (function callHandler() {
       };
 
       var telephony = navigator.mozTelephony;
-      telephony.oncallschanged = function (evt) {
+      telephony.oncallschanged = function dialer_oncallschanged(evt) {
         if (callScreenWindowLoaded && telephony.calls.length === 0) {
           // Calls might be ended before callscreen is comletedly loaded,
           // so that callscreen will miss call-related events. We send a
@@ -314,7 +315,7 @@ var CallHandler = (function callHandler() {
                  '/dialer/js/ussd.js'], function() {
       window.navigator.mozSetMessageHandler('ussd-received',
           UssdManager.openUI.bind(UssdManager));
-    })
+    });
   }
 
   return {
@@ -406,7 +407,7 @@ window.addEventListener('load', function startup(evt) {
   KeypadManager.init();
   NavbarManager.init();
 
-  setTimeout(function() {
+  setTimeout(function nextTick() {
     // Lazy load DOM nodes
     // This code is basically the same as the calendar loader
     // Unit tests can be found in the calendar app
@@ -428,7 +429,7 @@ window.addEventListener('load', function startup(evt) {
                  '/contacts/js/fb/fb_contact_utils.js',
                  '/shared/style/confirm.css',
                  '/contacts/js/confirm_dialog.js']);
-  }, 0);
+  });
 });
 
 // Listening to the keyboard being shown
