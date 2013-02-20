@@ -1241,10 +1241,14 @@ function movePress(target, coords, touchId) {
   // Update highlight: remove from older
   IMERender.unHighlightKey(oldTarget);
 
+  var mozKeyboard = navigator.mozKeyboard;
+  var hasKeyboardAPI = mozKeyboard && mozKeyboard.setSelectionRange;
+  var isLongSwipe = swiping.startMovePos && Math.abs(swiping.startMovePos.x -
+    coords.pageX) > swiping.keyWidth;
+
   // If swipe is happening and it is longer than the length of a single key
-  if (!isShowingAlternativesMenu && (swiping.happening ||
-    (swiping.startMovePos &&
-      Math.abs(swiping.startMovePos.x - coords.pageX) > swiping.keyWidth))) {
+  if (hasKeyboardAPI && !isShowingAlternativesMenu &&
+    (swiping.happening || isLongSwipe)) {
 
     var direction = coords.pageX > swiping.lastMouseX ? 1 : -1;
 
@@ -1253,17 +1257,16 @@ function movePress(target, coords, touchId) {
     }
     swiping.lastMouseX = coords.pageX;
 
-    var kb = navigator.mozKeyboard;
     // Using `mozKeyboard.selectionEnd` doesn't work for us because it appears
     // to act in an async fashion, so if we use it to calculate the next
     // position when the user rapidly swipes, it will give outdated values and
     // the cursor won't move as it should. We use `projectedPos` as the
     // truth to know where the cursor 'should' be.
-    swiping.projectedPos = swiping.projectedPos || kb.selectionEnd;
+    swiping.projectedPos = swiping.projectedPos || mozKeyboard.selectionEnd;
     if (swiping.mouseTravel > swiping.stepDistance) {
       var times = Math.floor(swiping.mouseTravel / swiping.stepDistance);
       swiping.projectedPos = swiping.projectedPos + (direction * times);
-      kb.setSelectionRange(swiping.projectedPos, swiping.projectedPos);
+      mozKeyboard.setSelectionRange(swiping.projectedPos, swiping.projectedPos);
       swiping.mouseTravel = 0;
     }
 
@@ -1298,12 +1301,8 @@ function movePress(target, coords, touchId) {
 
   // Hide of alternatives menu if the touch moved out of it
   if (target.parentNode !== IMERender.menu &&
-<<<<<<< HEAD
-    isShowingAlternativesMenu && !inMenuLockedArea(coords))
-=======
       isShowingAlternativesMenu &&
       !inMenuLockedArea(menuLockedArea, coords))
->>>>>>> Bug 796600 - make the keyboard layout menu scrollable
     hideAlternatives();
 
   // Hide keyboard layout menu if the touch moved out of its locked area
@@ -1341,6 +1340,12 @@ function endPress(target, coords, touchId) {
 
   hideAlternatives();
   hideKeyboardLayoutMenu();
+
+  if (swiping.happening === true) {
+    swiping.happening = false;
+    swiping.lastMouseX = -1;
+    return;
+  }
 
   if (swiping.happening === true) {
     swiping.happening = false;
@@ -1432,17 +1437,10 @@ function endPress(target, coords, touchId) {
         'keyboard.current': target.dataset.keyboard
       });
 
-<<<<<<< HEAD
-        // If the user is releasing the switch keyboard key while
-        // showing the alternatives, do nothing.
-      } else if (isShowingAlternativesMenu) {
-        break;
-=======
       // If the user is releasing the switch keyboard key while
       // showing the alternatives, do nothing.
     } else if (isShowingKeyboardLayoutMenu) {
       break;
->>>>>>> Bug 796600 - make the keyboard layout menu scrollable
 
       // Cycle between languages (keyboard) and update the setting
     } else {
