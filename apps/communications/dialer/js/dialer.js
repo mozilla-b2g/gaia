@@ -7,12 +7,20 @@ var CallHandler = (function callHandler() {
 
   /* === Settings === */
   var screenState = null;
-  SettingsListener.observe('lockscreen.locked', null, function(value) {
-    if (value) {
-      screenState = 'locked';
-    } else {
-      screenState = 'unlocked';
-    }
+
+  // Add the listener onload
+  window.addEventListener('load', function getSettingsListener() {
+    window.removeEventListener('load', getSettingsListener);
+
+    loader.load('/shared/js/settings_listener.js', function() {
+      SettingsListener.observe('lockscreen.locked', null, function(value) {
+        if (value) {
+          screenState = 'locked';
+        } else {
+          screenState = 'unlocked';
+        }
+      });
+    });
   });
 
   /* === WebActivity === */
@@ -107,7 +115,8 @@ var CallHandler = (function callHandler() {
       case 'back':
         var contactsIframe = document.getElementById('iframe-contacts');
         // disable the function of receiving the messages posted from the iframe
-        contactsIframe.contentWindow.history.pushState(null, null, '/contacts/index.html');
+        contactsIframe.contentWindow.history.pushState(null, null,
+          '/contacts/index.html');
         window.location.hash = '#recents-view';
         break;
     }
@@ -189,9 +198,13 @@ var CallHandler = (function callHandler() {
       handleCallScreenClosing();
     } else if (data.type && data.type === 'notification') {
       // We're being asked to send a missed call notification
-      handleNotificationRequest(data.number);
+      NavbarManager.ensureResources(function() {
+        handleNotificationRequest(data.number);
+      });
     } else if (data.type && data.type === 'recent') {
-      handleRecentAddRequest(data.entry);
+      NavbarManager.ensureResources(function() {
+        handleRecentAddRequest(data.entry);
+      });
     } else if (data.type && data.type === 'contactsiframe') {
       handleContactsIframeRequest(data.message);
     }
@@ -227,7 +240,9 @@ var CallHandler = (function callHandler() {
       }
     };
 
-    TelephonyHelper.call(number, oncall, connected, disconnected, error);
+    loader.load('/dialer/js/telephony_helper.js', function() {
+      TelephonyHelper.call(number, oncall, connected, disconnected, error);
+    });
   }
 
   /* === Attention Screen === */
@@ -257,7 +272,7 @@ var CallHandler = (function callHandler() {
       };
 
       var telephony = navigator.mozTelephony;
-      telephony.oncallschanged = function (evt) {
+      telephony.oncallschanged = function dialer_oncallschanged(evt) {
         if (callScreenWindowLoaded && telephony.calls.length === 0) {
           // Calls might be ended before callscreen is comletedly loaded,
           // so that callscreen will miss call-related events. We send a
@@ -298,10 +313,16 @@ var CallHandler = (function callHandler() {
   }
 
   /* === USSD === */
-  window.navigator.mozSetMessageHandler('ussd-received',
-                                        UssdManager.openUI.bind(UssdManager));
+  function init() {
+    loader.load(['/shared/js/mobile_operator.js',
+                 '/dialer/js/ussd.js'], function() {
+      window.navigator.mozSetMessageHandler('ussd-received',
+          UssdManager.openUI.bind(UssdManager));
+    });
+  }
 
   return {
+    init: init,
     call: call
   };
 })();
@@ -316,6 +337,17 @@ var NavbarManager = {
       // https://github.com/jcarpenter/Gaia-UI-Building-Blocks/blob/master/inprogress/tabs.html
       self.update();
     });
+  },
+
+  /**
+   * Ensures resources are loaded
+   */
+  ensureResources: function(cb) {
+    loader.load(['/shared/js/async_storage.js',
+                 '/shared/js/notification_helper.js',
+                 '/shared/js/simple_phone_matcher.js',
+                 '/dialer/js/contacts.js',
+                 '/dialer/js/recents.js'], cb);
   },
 
   update: function nm_update() {
@@ -343,10 +375,12 @@ var NavbarManager = {
     switch (destination) {
       case '#recents-view':
         checkContactsTab();
-        Recents.updateContactDetails();
-        recent.classList.add('toolbar-option-selected');
-        Recents.load();
-        Recents.updateLatestVisit();
+        this.ensureResources(function() {
+          Recents.updateContactDetails();
+          recent.classList.add('toolbar-option-selected');
+          Recents.load();
+          Recents.updateLatestVisit();
+        });
         break;
       case '#contacts-view':
         var frame = document.getElementById('iframe-contacts');
@@ -355,12 +389,16 @@ var NavbarManager = {
         }
 
         contacts.classList.add('toolbar-option-selected');
-        Recents.updateHighlighted();
+        this.ensureResources(function() {
+          Recents.updateHighlighted();
+        });
         break;
       case '#keyboard-view':
         checkContactsTab();
         keypad.classList.add('toolbar-option-selected');
-        Recents.updateHighlighted();
+        this.ensureResources(function() {
+          Recents.updateHighlighted();
+        });
         break;
     }
   }
@@ -372,8 +410,29 @@ window.addEventListener('load', function startup(evt) {
   KeypadManager.init();
   NavbarManager.init();
 
-  loader.load(['/contacts/js/fb/fb_data.js',
-               '/contacts/js/fb/fb_contact_utils.js']);
+  setTimeout(function nextTick() {
+    // Lazy load DOM nodes
+    // This code is basically the same as the calendar loader
+    // Unit tests can be found in the calendar app
+    var delayed = document.getElementById('delay');
+    delayed.innerHTML = delayed.childNodes[0].nodeValue;
+
+    var parent = delayed.parentNode;
+    var child;
+    while (child = delayed.children[0]) {
+      parent.insertBefore(child, delayed);
+    }
+
+    parent.removeChild(delayed);
+
+    CallHandler.init();
+
+    // Load delayed scripts
+    loader.load(['/contacts/js/fb/fb_data.js',
+                 '/contacts/js/fb/fb_contact_utils.js',
+                 '/shared/style/confirm.css',
+                 '/contacts/js/confirm_dialog.js']);
+  });
 });
 
 // Listening to the keyboard being shown
@@ -385,10 +444,3 @@ window.onresize = function(e) {
     document.body.classList.remove('with-keyboard');
   }
 };
-
-// Keeping the call history up to date
-document.addEventListener('mozvisibilitychange', function visibility(e) {
-  if (!document.mozHidden) {
-    Recents.refresh();
-  }
-});

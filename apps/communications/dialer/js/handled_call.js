@@ -120,7 +120,7 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
       if (primaryInfo) {
         node.textContent = primaryInfo;
       } else {
-        LazyL10n.get(function (_) {
+        LazyL10n.get(function gotL10n(_) {
           node.textContent = _('unknown');
         });
       }

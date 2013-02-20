@@ -6,53 +6,42 @@
     <title>Dialer</title>
 
     <!-- Localization -->
-    <script defer type="text/javascript" src="/shared/js/lazy_loader.js"></script>
-    <script defer type="application/javascript" src="/dialer/js/lazy_l10n.js"></script>
+    <script defer src="/shared/js/lazy_loader.js"></script>
+    <script defer src="/dialer/js/lazy_l10n.js"></script>
     <link rel="resource" type="application/l10n" href="/dialer/locales/locales.ini">
     <link rel="resource" type="application/l10n" href="/shared/locales/date.ini">
-    <!-- Making sure the shared resources will be copy into the zip
-    <script type="application/javascript" src="/shared/js/l10n.js"></script>
-    <script type="application/javascript" src="/shared/js/l10n_date.js"></script>
-    -->
 
-    <!-- Call log resources -->
-    <script defer type="application/javascript" src="/dialer/js/recents.js"></script>
-    <!-- Making sure the shared resources will be copy into the zip
-    <link rel="stylesheet" type="text/css" href="/shared/style/headers.css">
-    <link rel="stylesheet" type="text/css" href="/shared/style/switches.css">
-    <link rel="stylesheet" type="text/css" href="/shared/style/edit_mode.css">
-    <link rel="stylesheet" type="text/css" href="/shared/style/action_menu.css">
-    -->
-
-    <!-- App CSS -->
+    <!-- CSS -->
     <link rel="stylesheet" type="text/css" href="/dialer/style/dialer.css">
     <link rel="stylesheet" type="text/css" href="/dialer/style/keypad.css">
-
-    <!-- Stable BB -->
     <link rel="stylesheet" type="text/css" href="/shared/style_unstable/tabs.css">
+
+    <!-- JS -->
+    <script defer src="/shared/js/mouse_event_shim.js"></script>
+    <script defer src="/dialer/js/keypad.js"></script>
+    <script defer src="/dialer/js/dialer.js"></script>
+
+    <!-- Lazy load all the things:
+    <link rel="stylesheet" type="text/css" href="/shared/style/action_menu.css">
     <link rel="stylesheet" type="text/css" href="/shared/style/confirm.css">
-
-    <!-- Unstable BB -->
+    <link rel="stylesheet" type="text/css" href="/shared/style/edit_mode.css">
+    <link rel="stylesheet" type="text/css" href="/shared/style/headers.css">
+    <link rel="stylesheet" type="text/css" href="/shared/style/switches.css">
     <link rel="stylesheet" type="text/css" href="/shared/style_unstable/lists.css">
-
-    <!-- Shared js -->
-    <script defer type="text/javascript" src="/shared/js/async_storage.js"></script>
-    <script defer type="application/javascript" src="/shared/js/settings_listener.js"></script>
-    <script defer type="application/javascript" src="/shared/js/notification_helper.js"></script>
-    <script defer type="application/javascript" src="/shared/js/mobile_operator.js"></script>
-    <script defer type="application/javascript" src="/shared/js/mouse_event_shim.js"></script>
-
-    <!-- App js -->
-    <script defer type="application/javascript" src="/dialer/js/telephony_helper.js"></script>
-    <script defer type="application/javascript" src="/contacts/js/confirm_dialog.js"></script>
-    <script defer type="application/javascript" src="/shared/js/simple_phone_matcher.js"></script>
-    <script defer type="application/javascript" src="/dialer/js/contacts.js"></script>
-    <script defer type="application/javascript" src="/dialer/js/keypad.js"></script>
-    <script defer type="application/javascript" src="/dialer/js/ussd.js"></script>
-    <script defer type="application/javascript" src="/dialer/js/dialer.js"></script>
-    <!-- Lazy load these:
-    <script defer type="application/javascript" src="/contacts/js/fb/fb_data.js"></script>
-    <script defer type="application/javascript" src="/contacts/js/fb/fb_contact_utils.js"></script>
+    <script defer src="/shared/js/async_storage.js"></script>
+    <script defer src="/shared/js/l10n.js"></script>
+    <script defer src="/shared/js/l10n_date.js"></script>
+    <script defer src="/shared/js/mobile_operator.js"></script>
+    <script defer src="/shared/js/notification_helper.js"></script>
+    <script defer src="/shared/js/simple_phone_matcher.js"></script>
+    <script defer src="/shared/js/settings_listener.js"></script>
+    <script defer src="/contacts/js/confirm_dialog.js"></script>
+    <script defer src="/contacts/js/fb/fb_data.js"></script>
+    <script defer src="/contacts/js/fb/fb_contact_utils.js"></script>
+    <script defer src="/dialer/js/contacts.js"></script>
+    <script defer src="/dialer/js/recents.js"></script>
+    <script defer src="/dialer/js/telephony_helper.js"></script>
+    <script defer src="/dialer/js/ussd.js"></script>
     -->
   </head>
   <body role="application">
@@ -162,6 +151,7 @@
       </article>
     </section>
 
+    <div id="delay"><!--
     <form id="edit-mode" role="dialog" data-type="edit" hidden>
       <section>
         <header id="edit-mode-header">
@@ -200,6 +190,6 @@
         <button>Action 2</button>
       </menu>
     </form>
-
+    --></div>
   </body>
 </html>

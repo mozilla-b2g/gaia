@@ -22,7 +22,8 @@ var TelephonyHelper = (function() {
             return;
           }
 
-          startDial(sanitizedNumber, oncall, onconnected, ondisconnected, onerror);
+          startDial(sanitizedNumber, oncall, onconnected, ondisconnected,
+            onerror);
         } else {
           handleFlightMode();
         }
@@ -32,7 +33,7 @@ var TelephonyHelper = (function() {
     }
   };
 
-  var startDial = function(sanitizedNumber, oncall, connected, disconnected, onerror) {
+  function startDial(sanitizedNumber, oncall, connected, disconnected, error) {
     var telephony = navigator.mozTelephony;
     if (telephony) {
       var conn = window.navigator.mozMobileConnection;
@@ -54,18 +55,19 @@ var TelephonyHelper = (function() {
         call.onerror = function errorCB(evt) {
           handleError(evt);
 
-          if (onerror) {
-            onerror();
+          if (error) {
+            error();
           }
         };
       }
     }
-  };
+  }
 
   var isValid = function t_isValid(sanitizedNumber) {
     if (sanitizedNumber) {
       var matches = sanitizedNumber.match(/[0-9#+*]{1,50}/);
-      if (matches.length === 1 && matches[0].length === sanitizedNumber.length) {
+      if (matches.length === 1 &&
+          matches[0].length === sanitizedNumber.length) {
         return true;
       }
     }
