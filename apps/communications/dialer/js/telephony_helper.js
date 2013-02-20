@@ -22,8 +22,8 @@ var TelephonyHelper = (function() {
             return;
           }
 
-          startDial(sanitizedNumber,
-                    oncall, onconnected, ondisconnected, onerror);
+          startDial(sanitizedNumber, oncall, onconnected, ondisconnected,
+            onerror);
         } else {
           handleFlightMode();
         }
@@ -33,8 +33,12 @@ var TelephonyHelper = (function() {
     }
   };
 
+<<<<<<< HEAD
   var startDial = function(sanitizedNumber, oncall,
                            connected, disconnected, onerror) {
+=======
+  function startDial(sanitizedNumber, oncall, connected, disconnected, error) {
+>>>>>>> d961f0f... Merge pull request #8197 from KevinGrandon/bug_836365_dialer_performance
     var telephony = navigator.mozTelephony;
     if (telephony) {
       var conn = window.navigator.mozMobileConnection;
@@ -56,13 +60,13 @@ var TelephonyHelper = (function() {
         call.onerror = function errorCB(evt) {
           handleError(evt);
 
-          if (onerror) {
-            onerror();
+          if (error) {
+            error();
           }
         };
       }
     }
-  };
+  }
 
   var isValid = function t_isValid(sanitizedNumber) {
     if (sanitizedNumber) {
