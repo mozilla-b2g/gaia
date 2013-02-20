@@ -210,6 +210,7 @@ suite('Render contact', function() {
     }
 
     test('It is not a Facebook Contact', function() {
+      window.fb.setIsEnabled(true);
       window.fb.setIsFbContact(false);
       subject.render(null, TAG_OPTIONS);
       assert.include(container.innerHTML, 'social-template');
