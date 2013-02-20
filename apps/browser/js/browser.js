@@ -1364,11 +1364,26 @@ var Browser = {
       }
     }
 
-    if (tab.dom.setVisible)
-      tab.dom.setVisible(visible);
-
+    this.setVisibleWrapper(tab, visible);
     tab.dom.style.display = visible ? 'block' : 'none';
     tab.dom.style.top = '0px';
+  },
+
+  // dom.setVisible is loaded asynchronously from BrowserElementChildPreload
+  // and may require a yield before we call it, we want to make sure to
+  // clear any previous call
+  setVisibleWrapper: function(tab, visible) {
+    if (tab.setVisibleTimeout) {
+      clearTimeout(tab.setVisibleTimeout);
+    }
+    if (tab.dom.setVisible) {
+      tab.dom.setVisible(visible);
+      return;
+    }
+    tab.setVisibleTimeout = setTimeout(function() {
+      if (tab.dom.setVisible)
+        tab.dom.setVisible(visible);
+    });
   },
 
   bindBrowserEvents: function browser_bindBrowserEvents(iframe, tab) {
@@ -1415,8 +1430,9 @@ var Browser = {
       };
     }
 
+    // Default newly created frames to the background
+    this.setVisibleWrapper(tab, false);
     this.bindBrowserEvents(iframe, tab);
-
     this.tabs[tab.id] = tab;
     this.frames.appendChild(iframe);
     return tab.id;
@@ -1908,7 +1924,8 @@ var Browser = {
     switch (activity.source.data.type) {
       case 'url':
         var url = this.getUrlFromInput(activity.source.data.url);
-        this.hideCurrentTab();
+        if (this.currentTab)
+          this.hideCurrentTab();
         this.selectTab(this.createTab(url));
         this.showPageScreen();
         break;
