@@ -3,7 +3,10 @@
 
 'use strict';
 
-function tzSelect(regionSelector, citySelector, onchange, resetTimezoneOnStartup) {
+function tzSelect(regionSelector,
+                  citySelector,
+                  onchange,
+                  resetTimezoneOnStartup) {
   var TIMEZONE_FILE = '/shared/resources/tz.json';
 
 
@@ -61,10 +64,10 @@ function tzSelect(regionSelector, citySelector, onchange, resetTimezoneOnStartup
         });
       }
       fillSelectElement(regionSelector, options);
-      fillCities();
+      fillCities(true);
     }
 
-    function fillCities() {
+    function fillCities(initial) {
       gRegion = regionSelector.value;
       var list = gTZ[gRegion];
       var options = [];
@@ -76,9 +79,13 @@ function tzSelect(regionSelector, citySelector, onchange, resetTimezoneOnStartup
         });
       }
       fillSelectElement(citySelector, options);
-      if (resetTimezoneOnStartup) {
-        setTimezone();
+
+      if(!resetTimezoneOnStartup) {
+        if (initial) {
+          return;
+        }
       }
+      setTimezone();
     }
 
     function setTimezone() {
