@@ -12,12 +12,12 @@
       <Description>
        <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id>
        <em:minVersion>6.0</em:minVersion>
-       <em:maxVersion>21.0.*</em:maxVersion>
+       <em:maxVersion>22.0.*</em:maxVersion>
      </Description>
       <Description>
        <em:id>{3c2e2abc-06d4-11e1-ac3b-374f68613e61}</em:id>
        <em:minVersion>6.0</em:minVersion>
-       <em:maxVersion>21.0.*</em:maxVersion>
+       <em:maxVersion>22.0.*</em:maxVersion>
      </Description>
     </em:targetApplication>
     <em:unpack>true</em:unpack>
