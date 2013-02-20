@@ -33,6 +33,9 @@ MockFb.Contact = function(devContact, mozCid) {
   var cid = mozCid;
   var contactData;
 
+  if (devContact)
+    setFacebookUid(FB_ID);
+
   function markAsFb(deviceContact) {
     if (!deviceContact.category) {
       deviceContact.category = [];
