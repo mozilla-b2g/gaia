@@ -742,7 +742,7 @@ var Contacts = (function() {
 
   var pendingChanges = {};
 
-  // This function is called when we finish a oncontactchange operation to 
+  // This function is called when we finish a oncontactchange operation to
   // remove the op of the pending changes and check if we need to apply more
   // changes request over the same id.
   var checkPendingChanges = function checkPendingChanges(id) {
@@ -788,7 +788,8 @@ var Contacts = (function() {
           currentContact.id == event.contactID) {
           contactsList.getContactById(event.contactID, function success(contact, enrichedContact) {
             currentContact = enrichedContact || contact;
-            contactsDetails.render(currentContact);
+            contactsDetails.render(currentContact, false,
+                                   enrichedContact ? true : false);
             contactsList.refresh(currentContact, checkPendingChanges, event.reason);
           });
         } else {

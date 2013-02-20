@@ -178,7 +178,6 @@ Evme.Brain = new function Evme_Brain() {
 
             Evme.Utils.setKeyboardVisibility(false);
             self.setEmptyClass();
-            Evme.Apps.refreshScroll();
 
             var searchbarValue = Evme.Searchbar.getValue();
             if (searchbarValue === "") {
@@ -692,17 +691,25 @@ Evme.Brain = new function Evme_Brain() {
                 appGridPosition = data.app.getPositionOnGrid(),
                 appBounds = elApp.getBoundingClientRect(),
 
-                elAppsList = elApp.parentNode.parentNode,
+                elAppsList = elApp.parentNode,
                 appsListBounds = elAppsList.getBoundingClientRect(),
+                elAppsListParent = elAppsList.parentNode,
+                appsListParentBounds = elAppsListParent.getBoundingClientRect();
 
-                oldPos = {
-                    "top": elApp.offsetTop,
-                    "left": elApp.offsetLeft
-                },
-                newPos = {
-                    "top": (appsListBounds.height - appBounds.height)/2 - ((data.isFolder? elAppsList.dataset.scrollOffset*1 : Evme.Apps.getScrollPosition()) || 0),
-                    "left": (appsListBounds.width - appBounds.width)/2
-                };
+            var oldPos = {
+                "top": elApp.offsetTop,
+                "left": elApp.offsetLeft
+            };
+
+            // First calculate the horizontal center of the viewport
+            // Then add the scroll offset (different in smartfolder / search results)
+            var newPosTop = (appsListParentBounds.height - appBounds.height)/2 +
+                ((data.isFolder? elAppsListParent.dataset.scrollOffset*1 : Evme.Apps.getScrollPosition()) || 0);
+                
+            var newPos = {
+                "top": newPosTop,
+                "left": (appsListBounds.width - appBounds.width)/2
+            };
 
             // update analytics data
             loadingAppAnalyticsData.rowIndex = appGridPosition.row;
@@ -1109,7 +1116,6 @@ Evme.Brain = new function Evme_Brain() {
         // item remove
         this.remove = function remove(data) {
             Evme.Shortcuts.remove(data.shortcut);
-            Evme.Shortcuts.refreshScroll();
             Evme.DoATAPI.Shortcuts.remove(data.data);
         };
     };
@@ -1365,9 +1371,6 @@ Evme.Brain = new function Evme_Brain() {
                     textKey = bHasInstalled? 'apps-has-installed' : 'apps';
                     
                 Evme.ConnectionMessage.show(elTo, textKey, { 'query': query });
-                window.setTimeout(folder?
-                                    folder.refreshScroll :
-                                    Evme.Apps.refreshScroll, 0);
             }
         };
         

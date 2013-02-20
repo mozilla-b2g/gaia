@@ -9,9 +9,9 @@ Evme.Apps = new function Evme_Apps() {
         fadeBy = 0, showingFullScreen = false,
         timeoutAppsToDrawLater = null,
         
+        SCROLL_BOTTOM_THRESHOLD = 5,
         APP_HEIGHT = "FROM CONFIG",
         DEFAULT_SCREEN_WIDTH = "FROM CONFIG",
-        SCROLL_TO_BOTTOM = "CALCULATED",
         MAX_SCROLL_FADE = 200,
         FULLSCREEN_THRESHOLD = 0.8,
         MAX_APPS_CLASSES = 150,
@@ -55,12 +55,11 @@ Evme.Apps = new function Evme_Apps() {
         } 
        
         scroll = new Scroll(el, {
-            "hScroll": false,
-            "checkDOMChanges": false,
-            "onScrollStart": scrollStart,
-            "onScrollMove": scrollMove,
-            "onTouchEnd": scrollEnd
-        }, hasFixedPositioning);
+            "onTouchStart": touchStart,
+            "onTouchMove": touchMove,
+            "onTouchEnd": touchEnd,
+            "onScrollMove": scrollMove
+        });
         
         self.calcAppsPositions();
         
@@ -132,12 +131,6 @@ Evme.Apps = new function Evme_Apps() {
         self.scrollToStart();
         
         return true;
-    };
-    
-    this.refreshScroll = function refreshScroll() {
-        SCROLL_TO_BOTTOM = el.offsetHeight - elList.offsetHeight;
-        
-        scroll.refresh();
     };
     
     this.scrollToStart = function scrollToStart() {
@@ -237,8 +230,6 @@ Evme.Apps = new function Evme_Apps() {
             elStyle = Evme.$create('style', {'type': "text/css"}, rules);
         
         Evme.Utils.getContainer().appendChild(elStyle);
-        
-        self.refreshScroll();
     };
     
     this.hasSpaceForMoreButton = function hasSpaceForMoreButton(height){
@@ -282,7 +273,7 @@ Evme.Apps = new function Evme_Apps() {
         return 0;
     }
     
-    function scrollStart(e) {
+    function touchStart(e) {
         shouldFadeBG = (scroll.y === 0 && numberOfApps > 0);
         fadeBy = 0;
         reportedScrollMove = false;
@@ -290,11 +281,15 @@ Evme.Apps = new function Evme_Apps() {
     
     function scrollMove(e) {
         var y = scroll.y;
-        
-        if (!reportedScrollMove && y == SCROLL_TO_BOTTOM) {
+        if (!reportedScrollMove && scroll.maxY - y <= SCROLL_BOTTOM_THRESHOLD) {
             reportedScrollMove = true;
             cbScrolledToEnd();
-        } else if (shouldFadeBG) {
+        }
+    }
+    
+    function touchMove(e) {
+        var y = scroll.y;
+        if (shouldFadeBG) {
             var _fadeBy = scroll.distY/MAX_SCROLL_FADE;
             
             if (_fadeBy < fadeBy) {
@@ -309,7 +304,7 @@ Evme.Apps = new function Evme_Apps() {
         }
     }
     
-    function scrollEnd(data) {
+    function touchEnd(data) {
         if (shouldFadeBG && scroll.distY >= FULLSCREEN_THRESHOLD*MAX_SCROLL_FADE) {
             showingFullScreen = true;
             cbScrolledToTop();
@@ -338,8 +333,6 @@ Evme.Apps = new function Evme_Apps() {
             "elList": elList,
             "onDone": function onDone(appsList) {
                 self.setAppsClasses();
-                
-                self.refreshScroll();
                 
                 for (var i=0; i<appsList.length; i++) {
                     appsArray[appsList[i].getId()] = appsList[i];
