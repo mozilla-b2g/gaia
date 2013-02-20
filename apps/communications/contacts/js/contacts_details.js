@@ -118,7 +118,7 @@ contacts.Details = (function() {
     });
   };
 
-  var render = function cd_render(currentContact, tags) {
+  var render = function cd_render(currentContact, tags, isEnrichedContact) {
     contactData = currentContact || contactData;
 
     TAG_OPTIONS = tags || TAG_OPTIONS;
@@ -128,7 +128,7 @@ contacts.Details = (function() {
     // Initially enabled and only disabled if necessary
     editContactButton.removeAttribute('disabled');
 
-    if (isFbContact) {
+    if (!isEnrichedContact && isFbContact) {
       var fbContact = new fb.Contact(contactData);
       var req = fbContact.getData();
 
