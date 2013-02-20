@@ -1,7 +1,7 @@
 'use strict';
 
 function MockContact() {
-	return [{
-		name: 'Josh'
-	}];
-};
+  return [{
+    name: ['Josh']
+  }];
+}
