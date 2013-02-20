@@ -833,24 +833,24 @@ MailUniverse.prototype = {
     }
   },
 
-  __notifyAddedFolder: function(accountId, folderMeta) {
+  __notifyAddedFolder: function(account, folderMeta) {
     for (var iBridge = 0; iBridge < this._bridges.length; iBridge++) {
       var bridge = this._bridges[iBridge];
-      bridge.notifyFolderAdded(accountId, folderMeta);
+      bridge.notifyFolderAdded(account, folderMeta);
     }
   },
 
-  __notifyModifiedFolder: function(accountId, folderMeta) {
+  __notifyModifiedFolder: function(account, folderMeta) {
     for (var iBridge = 0; iBridge < this._bridges.length; iBridge++) {
       var bridge = this._bridges[iBridge];
-      bridge.notifyFolderModified(accountId, folderMeta);
+      bridge.notifyFolderModified(account, folderMeta);
     }
   },
 
-  __notifyRemovedFolder: function(accountId, folderMeta) {
+  __notifyRemovedFolder: function(account, folderMeta) {
     for (var iBridge = 0; iBridge < this._bridges.length; iBridge++) {
       var bridge = this._bridges[iBridge];
-      bridge.notifyFolderRemoved(accountId, folderMeta);
+      bridge.notifyFolderRemoved(account, folderMeta);
     }
   },
 
@@ -1023,7 +1023,7 @@ MailUniverse.prototype = {
         case 'defer':
           if (++op.tryCount < $syncbase.MAX_OP_TRY_COUNT) {
             this._LOG.opDeferred(op.type, op.longtermId);
-            this._deferOp(op);
+            this._deferOp(account, op);
             removeFromServerQueue = true;
             break;
           }
@@ -1148,7 +1148,7 @@ MailUniverse.prototype = {
             // deferring if we are now trying to undo the thing.
             if (op.serverStatus === 'doing' && op.lifecycle === 'do') {
               this._LOG.opDeferred(op.type, op.longtermId);
-              this._deferOp(op);
+              this._deferOp(account, op);
             }
             // remove the op from the queue, but don't mark it completed
             completeOp = false;
@@ -1202,7 +1202,7 @@ MailUniverse.prototype = {
             // this is the same thing as defer.
             case 'bailed':
               this._LOG.opDeferred(op.type, op.longtermId);
-              this._deferOp(op);
+              this._deferOp(account, op);
               completeOp = false;
               break;
           }

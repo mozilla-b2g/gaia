@@ -112,7 +112,7 @@ function ActiveSyncAccount(universe, accountDef, folderInfos, dbConn,
   if (!inboxFolder) {
     // XXX localized Inbox string (bug 805834)
     this._addedFolder(null, '0', 'Inbox',
-                      $ascp.FolderHierarchy.Enums.Type.DefaultInbox);
+                      $ascp.FolderHierarchy.Enums.Type.DefaultInbox, true);
   }
 }
 exports.ActiveSyncAccount = ActiveSyncAccount;
@@ -297,26 +297,31 @@ ActiveSyncAccount.prototype = {
    * discover a new folder.
    *
    * @param {string} serverId A GUID representing the new folder
-   * @param {string} parentId A GUID representing the parent folder, or '0' if
-   *   this is a root-level folder
+   * @param {string} parentServerId A GUID representing the parent folder, or
+   *  '0' if this is a root-level folder
    * @param {string} displayName The display name for the new folder
    * @param {string} typeNum A numeric value representing the new folder's type,
    *   corresponding to the mapping in _folderTypes above
+   * @param {boolean} suppressNotification (optional) if true, don't notify any
+   *   listeners of this addition
    * @return {object} the folderMeta if we added the folder, true if we don't
    *   care about this kind of folder, or null if we need to wait until later
    *   (e.g. if we haven't added the folder's parent yet)
    */
-  _addedFolder: function asa__addedFolder(serverId, parentId, displayName,
-                                          typeNum) {
+  _addedFolder: function asa__addedFolder(serverId, parentServerId, displayName,
+                                          typeNum, suppressNotification) {
     if (!(typeNum in this._folderTypes))
       return true; // Not a folder type we care about.
 
     const folderType = $ascp.FolderHierarchy.Enums.Type;
 
     let path = displayName;
+    let parentFolderId = null;
     let depth = 0;
-    if (parentId !== '0') {
-      let parentFolderId = this._serverIdToFolderId[parentId];
+    if (parentServerId !== '0') {
+      parentFolderId = this._serverIdToFolderId[parentServerId];
+      // We haven't learned about the parent folder. Just return, and wait until
+      // we do.
       if (parentFolderId === undefined)
         return null;
       let parent = this._folderInfos[parentFolderId];
@@ -328,7 +333,11 @@ ActiveSyncAccount.prototype = {
     if (typeNum === folderType.DefaultInbox) {
       let existingInboxMeta = this.getFirstFolderWithType('inbox');
       if (existingInboxMeta) {
-        // update everything about the folder meta
+        // Update the server ID to folder ID mapping.
+        delete this._serverIdToFolderId[existingInboxMeta.serverId];
+        this._serverIdToFolderId[serverId] = existingInboxMeta.id;
+
+        // Update everything about the folder meta.
         existingInboxMeta.serverId = serverId;
         existingInboxMeta.name = displayName;
         existingInboxMeta.path = path;
@@ -343,8 +352,9 @@ ActiveSyncAccount.prototype = {
         id: folderId,
         serverId: serverId,
         name: displayName,
-        path: path,
         type: this._folderTypes[typeNum],
+        path: path,
+        parentId: parentFolderId,
         depth: depth,
         lastSyncedAt: 0,
         syncKey: '0',
@@ -373,7 +383,8 @@ ActiveSyncAccount.prototype = {
     });
     this.folders.splice(idx, 0, folderMeta);
 
-    this.universe.__notifyAddedFolder(this.id, folderMeta);
+    if (!suppressNotification)
+      this.universe.__notifyAddedFolder(this, folderMeta);
 
     return folderMeta;
   },
@@ -383,8 +394,10 @@ ActiveSyncAccount.prototype = {
    * find out a folder has been removed.
    *
    * @param {string} serverId A GUID representing the deleted folder
+   * @param {boolean} suppressNotification (optional) if true, don't notify any
+   *   listeners of this addition
    */
-  _deletedFolder: function asa__deletedFolder(serverId) {
+  _deletedFolder: function asa__deletedFolder(serverId, suppressNotification) {
     let folderId = this._serverIdToFolderId[serverId],
         folderInfo = this._folderInfos[folderId],
         folderMeta = folderInfo.$meta;
@@ -401,7 +414,8 @@ ActiveSyncAccount.prototype = {
       this._deadFolderIds = [];
     this._deadFolderIds.push(folderId);
 
-    this.universe.__notifyRemovedFolder(this.id, folderMeta);
+    if (!suppressNotification)
+      this.universe.__notifyRemovedFolder(this, folderMeta);
   },
 
   /**
@@ -686,6 +700,12 @@ ActiveSyncAccount.prototype = {
   getFolderStorageForServerId: function asa_getFolderStorageForServerId(
                                serverId) {
     return this._folderStorages[this._serverIdToFolderId[serverId]];
+  },
+
+  getFolderMetaForFolderId: function(folderId) {
+    if (this._folderInfos.hasOwnProperty(folderId))
+      return this._folderInfos[folderId].$meta;
+    return null;
   },
 
   ensureEssentialFolders: function(callback) {

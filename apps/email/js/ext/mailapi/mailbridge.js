@@ -52,10 +52,14 @@ const FOLDER_TYPE_TO_SORT_PRIORITY = {
  * locale database and failure to fallback to unicode code points for
  * comparison purposes.
  */
-function makeFolderSortString(acctId, folder) {
-  // '!' is before alphanum, so is a good separator for variable length id's
-  return acctId + '!' + FOLDER_TYPE_TO_SORT_PRIORITY[folder.type] + '!' +
-    folder.path.toLocaleLowerCase();
+function makeFolderSortString(account, folder) {
+  if (!folder)
+    return account.id;
+
+  var parentFolder = account.getFolderMetaForFolderId(folder.parentId);
+  return makeFolderSortString(account, parentFolder) + '!' +
+         FOLDER_TYPE_TO_SORT_PRIORITY[folder.type] + '!' +
+         folder.name.toLocaleLowerCase();
 }
 
 function strcmp(a, b) {
@@ -162,6 +166,7 @@ MailBridge.prototype = {
         self.__sendMessage({
             type: 'tryToCreateAccountResults',
             handle: msg.handle,
+            account: account ? account.toBridgeWire() : null,
             error: error,
             errorDetails: errorDetails,
           });
@@ -268,7 +273,7 @@ MailBridge.prototype = {
     // -- notify folder slices
     accountWireRep = account.toBridgeFolder();
     slices = this._slicesByType['folders'];
-    var startMarker = makeFolderSortString(account.id, accountWireRep),
+    var startMarker = makeFolderSortString(account, accountWireRep),
         idxStart;
     for (i = 0; i < slices.length; i++) {
       proxy = slices[i];
@@ -282,7 +287,7 @@ MailBridge.prototype = {
       markersSplice = [startMarker];
       for (var iFolder = 0; iFolder < account.folders.length; iFolder++) {
         var folder = account.folders[iFolder],
-            folderMarker = makeFolderSortString(account.id, folder),
+            folderMarker = makeFolderSortString(account, folder),
             idxFolder = bsearchForInsert(markersSplice, folderMarker, strcmp);
         wireSplice.splice(idxFolder, 0, folder);
         markersSplice.splice(idxFolder, 0, folderMarker);
@@ -350,8 +355,9 @@ MailBridge.prototype = {
     proxy.sendSplice(0, 0, wireReps, true, false);
   },
 
-  notifyFolderAdded: function(accountId, folderMeta) {
-    var newMarker = makeFolderSortString(accountId, folderMeta);
+  notifyFolderAdded: function(account, folderMeta) {
+    var newMarker = makeFolderSortString(account, folderMeta);
+
     var slices = this._slicesByType['folders'];
     for (var i = 0; i < slices.length; i++) {
       var proxy = slices[i];
@@ -361,8 +367,8 @@ MailBridge.prototype = {
     }
   },
 
-  notifyFolderModified: function(accountId, folderMeta) {
-    var marker = makeFolderSortString(accountId, folderMeta);
+  notifyFolderModified: function(account, folderMeta) {
+    var marker = makeFolderSortString(account, folderMeta);
 
     var slices = this._slicesByType['folders'];
     for (var i = 0; i < slices.length; i++) {
@@ -375,8 +381,8 @@ MailBridge.prototype = {
     }
   },
 
-  notifyFolderRemoved: function(accountId, folderMeta) {
-    var marker = makeFolderSortString(accountId, folderMeta);
+  notifyFolderRemoved: function(account, folderMeta) {
+    var marker = makeFolderSortString(account, folderMeta);
 
     var slices = this._slicesByType['folders'];
     for (var i = 0; i < slices.length; i++) {
@@ -403,7 +409,7 @@ MailBridge.prototype = {
     function pushAccountFolders(acct) {
       for (var iFolder = 0; iFolder < acct.folders.length; iFolder++) {
         var folder = acct.folders[iFolder];
-        var newMarker = makeFolderSortString(acct.id, folder);
+        var newMarker = makeFolderSortString(acct, folder);
         var idx = bsearchForInsert(markers, newMarker, strcmp);
         wireReps.splice(idx, 0, folder);
         markers.splice(idx, 0, newMarker);
@@ -424,7 +430,7 @@ MailBridge.prototype = {
 
       for (var iAcct = 0; iAcct < accounts.length; iAcct++) {
         var acct = accounts[iAcct], acctBridgeRep = acct.toBridgeFolder(),
-            acctMarker = makeFolderSortString(acct.id, acctBridgeRep),
+            acctMarker = makeFolderSortString(acct, acctBridgeRep),
             idxAcct = bsearchForInsert(markers, acctMarker, strcmp);
 
         wireReps.splice(idxAcct, 0, acctBridgeRep);

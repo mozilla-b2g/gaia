@@ -841,13 +841,14 @@ ImapJobDriver.prototype = {
   },
 
   do_createFolder: function(op, callback) {
-    var path, delim;
+    var path, delim, parentFolderId = null;
     if (op.parentFolderId) {
       if (!this.account._folderInfos.hasOwnProperty(op.parentFolderId))
         throw new Error("No such folder: " + op.parentFolderId);
-      var parentFolder = this._folderInfos[op.parentFolderId];
-      delim = parentFolder.path;
-      path = parentFolder.path + delim;
+      var parentFolder = this.account._folderInfos[op.parentFolderId];
+      delim = parentFolder.$meta.delim;
+      path = parentFolder.$meta.path + delim;
+      parentFolderId = parentFolder.$meta.id;
     }
     else {
       path = '';
@@ -903,8 +904,8 @@ ImapJobDriver.prototype = {
           }
           else {
             var type = self.account._determineFolderType(box, boxPath);
-            folderMeta = self.account._learnAboutFolder(boxName, boxPath, type,
-                                                        box.delim, pathDepth);
+            folderMeta = self.account._learnAboutFolder(
+              boxName, boxPath, parentFolderId, type, box.delim, pathDepth);
           }
         }
       }
