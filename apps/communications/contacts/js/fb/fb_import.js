@@ -46,7 +46,7 @@ if (typeof fb.importer === 'undefined') {
     var FRIENDS_QUERY = [
       'SELECT uid, name, first_name, last_name, pic_big, current_location, ' ,
       'middle_name, birthday_date, email, profile_update_time, ' ,
-      ' work, education, phones, hometown_location' ,
+      ' work, phones, hometown_location' ,
       ' FROM user' ,
       ' WHERE uid ',
       'IN (SELECT uid1 FROM friend WHERE uid2=me())' ,
