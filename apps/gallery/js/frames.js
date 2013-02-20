@@ -105,7 +105,7 @@ function deleteSingleItem() {
 
 // In fullscreen mode, the share button shares the current item
 function shareSingleItem() {
-  share([currentFrame.blob]);
+  share([currentFrame.imageblob || currentFrame.videoblob]);
 }
 
 // In order to distinguish single taps from double taps, we have to
