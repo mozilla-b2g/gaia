@@ -193,7 +193,7 @@ function ImapAccount(universe, compositeAccount, accountId, credentials,
   var inboxFolder = this.getFirstFolderWithType('inbox');
   if (!inboxFolder) {
     // XXX localized inbox string (bug 805834)
-    this._learnAboutFolder('INBOX', 'INBOX', 'inbox', '/', 0);
+    this._learnAboutFolder('INBOX', 'INBOX', null, 'inbox', '/', 0, true);
   }
 }
 exports.ImapAccount = ImapAccount;
@@ -210,14 +210,16 @@ ImapAccount.prototype = {
   /**
    * Make a given folder known to us, creating state tracking instances, etc.
    */
-  _learnAboutFolder: function(name, path, type, delim, depth) {
+  _learnAboutFolder: function(name, path, parentId, type, delim, depth,
+                              suppressNotification) {
     var folderId = this.id + '/' + $a64.encodeInt(this.meta.nextFolderNum++);
     var folderInfo = this._folderInfos[folderId] = {
       $meta: {
         id: folderId,
         name: name,
-        path: path,
         type: type,
+        path: path,
+        parentId: parentId,
         delim: delim,
         depth: depth,
         lastSyncedAt: 0
@@ -240,11 +242,12 @@ ImapAccount.prototype = {
     var idx = bsearchForInsert(this.folders, folderMeta, cmpFolderPubPath);
     this.folders.splice(idx, 0, folderMeta);
 
-    this.universe.__notifyAddedFolder(this.id, folderMeta);
+    if (!suppressNotification)
+      this.universe.__notifyAddedFolder(this, folderMeta);
     return folderMeta;
   },
 
-  _forgetFolder: function(folderId) {
+  _forgetFolder: function(folderId, suppressNotification) {
     var folderInfo = this._folderInfos[folderId],
         folderMeta = folderInfo.$meta;
     delete this._folderInfos[folderId];
@@ -257,7 +260,8 @@ ImapAccount.prototype = {
     this._deadFolderIds.push(folderId);
     folderStorage.youAreDeadCleanupAfterYourself();
 
-    this.universe.__notifyRemovedFolder(this.id, folderMeta);
+    if (!suppressNotification)
+      this.universe.__notifyRemovedFolder(this, folderMeta);
   },
 
   /**
@@ -358,6 +362,12 @@ ImapAccount.prototype = {
     if (this._folderStorages.hasOwnProperty(folderId))
       return this._folderStorages[folderId];
     throw new Error('No folder with id: ' + folderId);
+  },
+
+  getFolderMetaForFolderId: function(folderId) {
+    if (this._folderInfos.hasOwnProperty(folderId))
+      return this._folderInfos[folderId].$meta;
+    return null;
   },
 
   /**
@@ -776,7 +786,7 @@ ImapAccount.prototype = {
 
       // heuristic based type assignment based on the name
       if (!type) {
-        switch (path.toUpperCase()) {
+        switch (box.displayName.toUpperCase()) {
           case 'DRAFT':
           case 'DRAFTS':
             type = 'drafts';
@@ -825,10 +835,11 @@ ImapAccount.prototype = {
     }
 
     // - walk the boxes
-    function walkBoxes(boxLevel, pathSoFar, pathDepth) {
+    function walkBoxes(boxLevel, pathSoFar, pathDepth, parentId) {
       for (var boxName in boxLevel) {
         var box = boxLevel[boxName], meta,
-            path = pathSoFar ? (pathSoFar + boxName) : boxName;
+            path = pathSoFar ? (pathSoFar + boxName) : boxName,
+            folderId;
 
         // - normalize jerk-moves
         var type = self._determineFolderType(box, path);
@@ -850,16 +861,16 @@ ImapAccount.prototype = {
         }
         // - new to us!
         else {
-          self._learnAboutFolder(box.displayName, path, type, box.delim,
-                                 pathDepth);
+          meta = self._learnAboutFolder(box.displayName, path, parentId, type,
+                                        box.delim, pathDepth);
         }
 
         if (box.children)
           walkBoxes(box.children, pathSoFar + boxName + box.delim,
-                    pathDepth + 1);
+                    pathDepth + 1, meta.id);
       }
     }
-    walkBoxes(boxesRoot, '', 0);
+    walkBoxes(boxesRoot, '', 0, null);
 
     // - detect deleted folders
     // track dead folder id's so we can issue a
