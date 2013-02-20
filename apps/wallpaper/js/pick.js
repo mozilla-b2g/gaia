@@ -1,4 +1,5 @@
 var Wallpaper = {
+  wallpapersUrl: '/resources/320x480/list.json',
 
   init: function wallpaper_init() {
     var self = this;
@@ -13,6 +14,28 @@ var Wallpaper = {
 
     this.cancelButton = document.getElementById('cancel');
     this.wallpapers = document.getElementById('wallpapers');
+    this.generateWallpaperList();
+  },
+
+  generateWallpaperList: function wallpaper_generateWallpaperList(cb) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', this.wallpapersUrl, true);
+    xhr.responseType = 'json';
+    xhr.send(null);
+
+    var self = this;
+    xhr.onload = function successGenerateWallpaperList() {
+      self.wallpapers.innerHTML = '';
+      xhr.response.forEach(function(wallpaper) {
+        var div = document.createElement('div');
+        div.classList.add('wallpaper');
+        div.style.backgroundImage = 'url(resources/320x480/' + wallpaper + ')';
+        self.wallpapers.appendChild(div);
+      });
+      if (cb) {
+        cb();
+      }
+    };
   },
 
   startPick: function wallpaper_startPick(request) {
