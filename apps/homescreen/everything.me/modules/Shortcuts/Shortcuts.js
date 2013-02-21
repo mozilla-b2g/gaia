@@ -14,6 +14,10 @@ Evme.Shortcuts = new function Evme_Shortcuts() {
         
         scroll = new Scroll(Evme.$("#shortcuts-list", el));
         
+        if (navigator.mozSettings) {
+          navigator.mozSettings.addObserver('language.current', onLanguageChange);
+        }
+        
         Evme.EventHandler.trigger(NAME, "init");
     };
     
@@ -197,6 +201,12 @@ Evme.Shortcuts = new function Evme_Shortcuts() {
         return enabled;
     };
     
+    function onLanguageChange() {
+      for (var i=0, shortcut; shortcut=shortcuts[i++];) {
+        shortcut.refreshImage();
+      }
+    }
+    
     function setShortcutsDesign() {
         if (setDesign) return;
         
@@ -232,7 +242,7 @@ Evme.Shortcuts = new function Evme_Shortcuts() {
 Evme.Shortcut = function Evme_Shortcut() {
     var NAME = "Shortcut", self = this,
         cfg = null, id = '',
-        el = null, elThumb = null,  index = -1, experienceId = '', query = '', image = '', imageLoadingRetry = 0,
+        el = null, elThumb = null, index = -1, experienceId = '', query = '',
         timeoutHold = null, removed = false,
         posStart = [0, 0], timeStart = 0, fingerMoved = true,
         
@@ -254,13 +264,6 @@ Evme.Shortcut = function Evme_Shortcut() {
                             '<span class="thumb"></span>' +
                             '<span class="remove"></span>'
                         );
-                        
-        var elName = Evme.$create('b', null, query);
-        if (experienceId) {
-            var l10nkey = 'id-' + Evme.Utils.shortcutIdToKey(experienceId);
-            elName.setAttribute('data-l10n-id', Evme.Utils.l10nKey(NAME, l10nkey));
-        }
-        el.appendChild(elName);
                         
         elThumb = Evme.$(".thumb", el)[0];
         
@@ -290,9 +293,14 @@ Evme.Shortcut = function Evme_Shortcut() {
     
     this.setImage = function setImage(shortcutIcons) {
         if (elThumb && shortcutIcons && shortcutIcons.length > 0) {
-            var elIconGroup = Evme.IconGroup.get(shortcutIcons);
+            var elIconGroup = Evme.IconGroup.get(shortcutIcons, self.getName());
+            elThumb.innerHTML = '';
             elThumb.appendChild(elIconGroup);
         }
+    };
+    
+    this.refreshImage = function refreshImage() {
+        cfg.appIds && self.setImage(cfg.appIds);
     };
     
     this.remove = function remove(e, isFromOutside) {
@@ -302,6 +310,21 @@ Evme.Shortcut = function Evme_Shortcut() {
         
         removed = true;
         Evme.$remove(el);
+    };
+    
+    this.getName = function getName() {
+        var name = query;
+        
+        if (experienceId) {
+            var l10nkey = 'id-' + Evme.Utils.shortcutIdToKey(experienceId),
+                translatedExperience = Evme.Utils.l10n(NAME, l10nkey);
+            
+            if (translatedExperience) {
+              name = translatedExperience;
+            }
+        }
+        
+        return name;
     };
     
     this.getData = function getData() { return cfg; };
