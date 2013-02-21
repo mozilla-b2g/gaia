@@ -29,6 +29,11 @@ var Settings = {
     // very soon in startup after the DOM is available.
     this.getSettings(null);
 
+    var key = 'screen.automatic-brightness';
+    var cset = {};
+    cset[key] = false;
+    settings.createLock().set(cset);
+
     // update corresponding setting when it changes
     settings.onsettingchange = (function settingChanged(event) {
       var key = event.settingName;
@@ -561,6 +566,11 @@ window.addEventListener('load', function loadSettings() {
         req.onsuccess = function brightness_onsuccess() {
           manualBrightness.hidden = req.result[autoBrightnessSetting];
         };
+
+	var auto = document.getElementById('brightness-auto');
+	auto.hidden = true;
+	manualBrightness.hidden = false;
+
         break;
       case 'sound':               // <input type="range">
         bug344618_polyfill();     // XXX to be removed when bug344618 is fixed
