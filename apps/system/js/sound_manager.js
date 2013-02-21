@@ -134,12 +134,12 @@
     }
   }
 
-  function getVolume(currentVolume, delta, channel){
+  function getVolume(currentVolume, delta, channel) {
     var volume = currentVolume;
     if (channel == 'notification') {
       if (volume == 0 && !vibrationEnabled) {
         // This is for voluming up from Silent to Vibrate.
-        // Let's take -1 as the silent state and 
+        // Let's take -1 as the silent state and
         // 0 as the vibrate state for easier calculation here.
         volume = -1;
       }
@@ -156,7 +156,7 @@
       var volume = currentVolume;
       if (volume == 0 && !vibrationEnabled) {
         // This is for voluming up from Silent to Vibrate.
-        // Let's take -1 as the silent state and 
+        // Let's take -1 as the silent state and
         // 0 as the vibrate state for easier calculation here.
         volume = -1;
       }
