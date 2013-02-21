@@ -157,7 +157,7 @@ const GridManager = (function() {
         window.mozRequestAnimationFrame(refresh);
 
         // Generate a function accordingly to the current page position.
-        if (Homescreen.isInEditMode() || currentPage > 2) {
+        if (currentPage > nextLandingPage || Homescreen.isInEditMode()) {
           var pan = function(e) {
             deltaX = getX(e) - startX;
             if (!isPanning && Math.abs(deltaX) >= tapThreshold) {
@@ -166,14 +166,41 @@ const GridManager = (function() {
             window.mozRequestAnimationFrame(refresh);
           };
         } else {
+          var setOpacityToOverlay = dummy;
+          if (index === prevLandingPage) {
+            setOpacityToOverlay = function() {
+              if (forward)
+                return;
+
+              var opacity = opacityOnAppGridPageMax -
+                    (Math.abs(deltaX) / windowWidth) * opacityOnAppGridPageMax;
+              overlayStyle.opacity = Math.round(opacity * 10 ) / 10;
+            }
+          } else if (index === landingPage) {
+            setOpacityToOverlay = function() {
+              var opacity = (Math.abs(deltaX) / windowWidth) *
+                            opacityOnAppGridPageMax;
+              overlayStyle.opacity = Math.round(opacity * 10 ) / 10;
+            }
+          } else {
+            setOpacityToOverlay = function() {
+              if (!forward)
+                return;
+
+              var opacity = opacityOnAppGridPageMax -
+                    (Math.abs(deltaX) / windowWidth) * opacityOnAppGridPageMax;
+              overlayStyle.opacity = Math.round(opacity * 10 ) / 10;
+            }
+          }
+
           var pan = function(e) {
             deltaX = getX(e) - startX;
             if (!isPanning && Math.abs(deltaX) >= tapThreshold) {
               isPanning = true;
             }
-            window.mozRequestAnimationFrame(refresh);
             window.mozRequestAnimationFrame(function() {
-              setOverlayPanning(index, deltaX, forward);
+              refresh();
+              setOpacityToOverlay();
             });
           };
         }
@@ -225,21 +252,9 @@ const GridManager = (function() {
     }
   }
 
-  function setOverlayPanning(index, deltaX, forward) {
-    if (index === landingPage && landingPage > 0) {
-      overlayStyle.opacity = (Math.abs(deltaX) / windowWidth) *
-                              opacityOnAppGridPageMax;
-    } else if (index === prevLandingPage && !forward ||
-               index === nextLandingPage && forward) {
-      overlayStyle.opacity = opacityOnAppGridPageMax -
-                     (Math.abs(deltaX) / windowWidth) * opacityOnAppGridPageMax;
-    }
-  }
-
   function applyEffectOverlay(index) {
     overlayStyle.MozTransition = overlayTransition;
-    overlayStyle.opacity = index === landingPage ?
-                           prevLandingPage : opacityOnAppGridPageMax;
+    overlayStyle.opacity = index === landingPage ? 0 : opacityOnAppGridPageMax;
   }
 
   function onTouchEnd(deltaX, evt) {
@@ -250,7 +265,7 @@ const GridManager = (function() {
       var forward = dirCtrl.goesForward(deltaX);
       if (forward && currentPage < pages.length - 1) {
         page = page + 1;
-      } else if (!forward &&
+      } else if (!forward && page > 0 &&
                  (page === landingPage || page >= nextLandingPage + 1 ||
                     (page === nextLandingPage && !Homescreen.isInEditMode()))) {
         page = page - 1;
