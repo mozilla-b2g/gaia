@@ -21,10 +21,13 @@ Evme.Utils = new function Evme_Utils() {
             "GET_APP_NAME": "get-app-name"
         };
     
+    
+    this.devicePixelRatio =  window.innerWidth / 320;
+
     this.isKeyboardVisible = false;
 
     this.EMPTY_IMAGE = "../../images/empty.gif";
-    
+
     this.ICONS_FORMATS = {
         "Small": 10,
         "Large": 20
@@ -193,6 +196,80 @@ Evme.Utils = new function Evme_Utils() {
             callback(canvas.toDataURL());
         };
         img.src = imageSrc;
+    };
+    
+    this.writeTextToCanvas = function writeTextToCanvas(options) {
+      var context = options.context,
+          text = options.text.split(' '),
+          offset = options.offset || 0,
+          lineWidth = 0,
+          currentLine = 0,
+          textToDraw = [],
+
+          WIDTH = context.canvas.width,
+          FONT_SIZE = 12 * self.devicePixelRatio;
+
+      if (!context || !text) {
+        return false;
+      }
+
+      context.textAlign = 'center';
+      context.textBaseline = 'top';
+      context.fillStyle = 'rgba(255,255,255,1)';
+      context.shadowOffsetX = 1;
+      context.shadowOffsetY = 1;
+      context.shadowBlur = 3;
+      context.shadowColor = 'rgba(0, 0, 0, 0.6)';
+      context.font = 'bold ' + FONT_SIZE + 'px MozTT';
+
+      for (var i=0,word; word=text[i++];) {
+        var size = context.measureText(word).width,
+            draw = false,
+            pushed = false;
+
+        if (lineWidth + size > WIDTH) {
+          draw = true;
+          if (textToDraw.length === 0) {
+            textToDraw.push(word);
+            pushed = true;
+          }
+        }
+
+        if (draw) {
+          drawText(textToDraw, WIDTH/2, offset + currentLine*FONT_SIZE);
+          currentLine++;
+          textToDraw = [];
+          lineWidth = 0;
+        }
+
+        if (!pushed) {
+          textToDraw.push(word);
+          lineWidth += size;
+        }
+      }
+
+      if (textToDraw.length > 0) {
+        drawText(textToDraw, WIDTH/2, offset + currentLine*FONT_SIZE);
+      }
+      
+      function drawText(text, x, y) {
+        var isSingleWord = text.length === 1,
+            text = text.join(' '),
+            size = context.measureText(text).width;
+        
+        if (isSingleWord && size > WIDTH) {
+          while (size > WIDTH) {
+            text = text.substring(0, text.length-1);
+            size = context.measureText(text + '...').width;
+          }
+          
+          text += '...';
+        }
+        
+        context.fillText(text, x, y);
+      }
+
+      return true;
     };
     
     this.isNewUser = function isNewUser() {

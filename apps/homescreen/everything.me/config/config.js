@@ -63,25 +63,25 @@ Evme.__config = {
     "maxHistoryEntries": "10",
     "iconsGroupSettings": [
         {
-            "x": 14,
+            "x": 28,
             "y": 13,
-            "rotate": 9,
             "size": 33,
+            "darken": 0.5,
             "shadowOffset": 2,
             "shadowBlur": 1,
             "shadowOpacity": 0.2
         },
         {
-            "x": 8,
+            "x": 22,
             "y": 7,
-            "rotate": -15,
             "size": 33,
+            "darken": 0.3,
             "shadowOffset": 2,
             "shadowBlur": 2,
             "shadowOpacity": 0.2
         },
         {
-            "x": -6,
+            "x": 8,
             "y": 3,
             "size": 38,
             "shadowOffset": 4,
