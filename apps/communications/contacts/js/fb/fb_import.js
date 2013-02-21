@@ -127,10 +127,10 @@ if (typeof fb.importer === 'undefined') {
         Importer.getFriends(acc_tk);
       }
       else {
-        fb.oauth.getAccessToken(function(new_acc_tk) {
+        oauth2.getAccessToken(function(new_acc_tk) {
           access_token = new_acc_tk;
           Importer.getFriends(new_acc_tk);
-        }, 'friends');
+        }, 'friends', 'facebook');
       }
     };
 
