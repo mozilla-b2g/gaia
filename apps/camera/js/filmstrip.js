@@ -26,8 +26,6 @@ var Filmstrip = (function() {
   var cameraButton = document.getElementById('camera-button');
   var shareButton = document.getElementById('share-button');
   var deleteButton = document.getElementById('delete-button');
-  var filmstripGalleryButton =
-    document.getElementById('filmstrip-gallery-button');
 
   // Offscreen elements for generating thumbnails with
   var offscreenImage = new Image();
@@ -37,7 +35,6 @@ var Filmstrip = (function() {
   cameraButton.onclick = returnToCameraMode;
   deleteButton.onclick = deleteCurrentItem;
   shareButton.onclick = shareCurrentItem;
-  filmstripGalleryButton.onclick = Camera.galleryBtnPressed;
   mediaFrame.addEventListener('dbltap', handleDoubleTap);
   mediaFrame.addEventListener('transform', handleTransform);
   mediaFrame.addEventListener('pan', handlePan);
@@ -53,10 +50,9 @@ var Filmstrip = (function() {
   // Start off with it positioned correctly.
   setOrientation(Camera._phoneOrientation);
 
-  // If we're running in secure mode, we never want the user to see the
-  // gallery button or the share button.
-  filmstrip.removeChild(filmstripGalleryButton);
-  shareButton.parentNode.removeChild(shareButton);
+  // In secure mode, we never want the user to see the share button.
+  if (Camera._secureMode)
+    shareButton.parentNode.removeChild(shareButton);
 
   function isShown() {
     return !filmstrip.classList.contains('hidden');
@@ -100,9 +96,6 @@ var Filmstrip = (function() {
     // with no timeout and be sure that the viewfinder video is paused.
     show();
     Camera.viewfinder.pause();
-    // If there is a preview shown, we want the gallery button in
-    // the filmstrip
-    filmstripGalleryButton.classList.remove('hidden');
   };
 
   function previewItem(index) {
@@ -137,8 +130,6 @@ var Filmstrip = (function() {
   function returnToCameraMode() {
     Camera.viewfinder.play();        // Restart the viewfinder
     show(Camera.FILMSTRIP_DURATION); // Fade the filmstrip after a delay
-    // hide the gallery button in the filmstrip
-    filmstripGalleryButton.classList.add('hidden');
     preview.classList.add('offscreen');
     frame.clear();
     if (items.length > 0)
