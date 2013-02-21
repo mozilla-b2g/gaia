@@ -92,7 +92,9 @@ var CardsView = (function() {
     stringHTML = stringHTML.replace(/\s\s/g, ' &nbsp;');
 
     if (escapeQuotes)
-      return stringHTML.replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
+      // The //" is to help dumb editors understand that there's not a
+      // open string at EOL.
+      return stringHTML.replace(/"/g, '&quot;').replace(/'/g, '&#x27;'); //"
     return stringHTML;
   }
 
@@ -289,7 +291,7 @@ var CardsView = (function() {
     }
 
     var origin = this.dataset.origin;
-    alignCard(currentDisplayed, function cardAligned() {
+    alignCurrentCard(function cardAligned() {
       WindowManager.launch(origin);
     });
   }
@@ -389,29 +391,43 @@ var CardsView = (function() {
   //scrolling cards
   var initialCardViewPosition;
   var initialTouchPosition = {};
-  var threshold = window.innerWidth / 4;
+  // If the pointer down event starts outside of a card, then there's
+  // no ambiguity between tap/pan, so we don't need a transition
+  // threshold.
+  //
+  // If pointerdown is on a card, then gecko's click detection will
+  // resolve the tap/pan ambiguitiy.  So favor responsiveness of
+  // switching the card.  It doesn't make sense for users to start
+  // swiping because they want to stay on the same card.
+  var threshold = 1;
   // Distance after which dragged card starts moving
   var moveCardThreshold = window.innerHeight / 6;
-  var removeCardThreshold = window.innerHeight / 4;
+  // Arbitrarily chosen to be 4x larger than the gecko18 drag
+  // threshold.  This constant should be a truemm/mozmm value, but
+  // it's hard for us to evaluate that here.
+  var removeCardThreshold = 100;
 
-  function alignCard(number, callback) {
+  function alignCurrentCard(callback) {
+    var number = currentDisplayed;
     if (!cardsList.children[number])
       return;
 
+    var target = cardsList.children[number];
     var scrollLeft = cardsView.scrollLeft;
-    var targetScrollLeft = cardsList.children[number].offsetLeft;
+    var targetScrollLeft = target.offsetLeft;
 
     if (Math.abs(scrollLeft - targetScrollLeft) < 4) {
-      cardsView.scrollLeft = cardsList.children[number].offsetLeft;
+      cardsView.scrollLeft = target.offsetLeft;
       if (callback)
         callback();
       return;
     }
 
     cardsView.scrollLeft = scrollLeft + (targetScrollLeft - scrollLeft) / 2;
+    target.transform = '';
 
     window.mozRequestAnimationFrame(function newFrameCallback() {
-      alignCard(number, callback);
+      alignCurrentCard(callback);
     });
   }
 
@@ -419,6 +435,7 @@ var CardsView = (function() {
     evt.stopPropagation();
     evt.target.setCapture(true);
     cardsView.addEventListener('mousemove', CardsView);
+    cardsView.addEventListener('mouseup', CardsView);
     cardsView.addEventListener('swipe', CardsView);
 
     initialCardViewPosition = cardsView.scrollLeft;
@@ -483,11 +500,11 @@ var CardsView = (function() {
               currentDisplayed <= cardsList.children.length) {
             currentDisplayed++;
             sortingDirection = 'right';
-            alignCard(currentDisplayed);
+            alignCurrentCard();
           } else if (differenceX < 0 && currentDisplayed > 0) {
             currentDisplayed--;
             sortingDirection = 'left';
-            alignCard(currentDisplayed);
+            alignCurrentCard();
           }
         }
       }
@@ -498,31 +515,42 @@ var CardsView = (function() {
     evt.stopPropagation();
     var element = evt.target;
     var eventDetail = evt.detail;
-    var direction = eventDetail.direction;
 
     document.releaseCapture();
     cardsView.removeEventListener('mousemove', CardsView);
+    cardsView.removeEventListener('mouseup', CardsView);
     cardsView.removeEventListener('swipe', CardsView);
 
-    var touchPosition = {
-        x: eventDetail.end.pageX,
-        y: eventDetail.end.pageY
-    };
+    var eventDetailEnd = eventDetail.end;
+    var dx, dy, direction;
+
+    if (eventDetailEnd) {
+      dx = eventDetail.dx;
+      dy = eventDetail.dy;
+      direction = eventDetail.direction;
+    } else {
+      var touchPosition = {
+        x: evt.touches ? evt.touches[0].pageX : evt.pageX,
+        y: evt.touches ? evt.touches[0].pageY : evt.pageY
+      };
+      dx = touchPosition.x - initialTouchPosition.x;
+      dy = touchPosition.y - initialTouchPosition.y;
+      direction = dx > 0 ? 'right' : 'left';
+    }
 
     if (SNAPPING_SCROLLING && !draggingCardUp && reorderedCard === null) {
-      if (Math.abs(eventDetail.dx) > threshold) {
-        if (
-            direction === 'left' &&
-            currentDisplayed < cardsList.children.length - 1
-        ) {
+      if (Math.abs(dx) > threshold) {
+        direction = dx > 0 ? 'right' : 'left';
+        if (direction === 'left' &&
+            currentDisplayed < cardsList.children.length - 1) {
           currentDisplayed++;
-          alignCard(currentDisplayed);
+          alignCurrentCard();
         } else if (direction === 'right' && currentDisplayed > 0) {
           currentDisplayed--;
-          alignCard(currentDisplayed);
+          alignCurrentCard();
         }
       } else {
-        alignCard(currentDisplayed);
+        alignCurrentCard();
       }
     }
 
@@ -531,12 +559,12 @@ var CardsView = (function() {
     if (
       element.classList.contains('card') &&
       MANUAL_CLOSING &&
+      draggingCardUp &&
       reorderedCard === null
     ) {
-
       draggingCardUp = false;
       // Prevent user from closing the app with a attention screen
-      if (-eventDetail.dy > removeCardThreshold &&
+      if (-dy > removeCardThreshold &&
         attentionScreenApps.indexOf(element.dataset.origin) == -1
       ) {
 
@@ -561,9 +589,12 @@ var CardsView = (function() {
 
         closeApp(element);
 
+        --currentDisplayed;
+        alignCurrentCard();
         return;
       } else {
         element.style.MozTransform = '';
+        alignCurrentCard();
       }
     }
 
@@ -588,7 +619,7 @@ var CardsView = (function() {
       reorderedCard.dataset['edit'] = 'false';
       reorderedCard = null;
 
-      alignCard(currentDisplayed);
+      alignCurrentCard();
 
       // remove the app origin from ordering array
       userSortedApps.splice(
@@ -630,6 +661,7 @@ var CardsView = (function() {
         onMoveEvent(evt);
         break;
 
+      case 'mouseup':
       case 'swipe':
         onEndEvent(evt);
         break;
