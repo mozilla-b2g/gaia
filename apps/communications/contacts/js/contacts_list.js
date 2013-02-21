@@ -22,6 +22,14 @@ contacts.List = (function() {
       searchLoaded = false,
       imagesLoaded = false;
 
+  // Key on the async Storage
+  var ORDER_KEY = 'order.lastname';
+
+  // Possible values for the configuration field 'defaultContactsOrder'
+  // config.json file (see bug 841693)
+  var ORDER_BY_FAMILY_NAME = 'familyName';
+  var ORDER_BY_GIVEN_NAME = 'givenName';
+
   var init = function load(element) {
     _ = navigator.mozL10n.get;
 
@@ -81,21 +89,46 @@ contacts.List = (function() {
     });
   };
 
+
   var initOrder = function initOrder(callback) {
     if (orderByLastName === null) {
-      asyncStorage.getItem('order.lastname', (function orderValue(value) {
-        orderByLastName = value || false;
-        if (callback) {
-          callback()
+      asyncStorage.getItem(ORDER_KEY, function valueReady(value) {
+        if(typeof value !== 'boolean') {
+        // This code only will be executed first time contacts app is opened
+          var req = utils.config.load('/contacts/config.json');
+          req.onload = function configReady(configData) {
+            orderByLastName = (configData.defaultContactsOrder ===
+                    ORDER_BY_FAMILY_NAME ? true : false);
+            if(callback) {
+              callback();
+            }
+            // The default value got in config is stored
+            asyncStorage.setItem(ORDER_KEY, orderByLastName);
+          }
+          req.onerror = function configError() {
+            window.console.error('Error while reading configuration file');
+            orderByLastName = false;
+            if(callback) {
+              callback();
+            }
+            // The default value got in config is stored
+            asyncStorage.setItem(ORDER_KEY, orderByLastName);
+          }
         }
-      }).bind(this));
-    } else {
+        else {
+          orderByLastName = value;
+          if (callback) {
+            callback();
+          }
+        }
+      });
+    }
+    else {
       if (callback) {
         callback();
       }
     }
   }
-
 
   var renderGroupHeader = function renderGroupHeader(group, letter) {
     var letteredSection = document.createElement('section');
@@ -529,7 +562,7 @@ contacts.List = (function() {
 
   var getAllContacts = function cl_getAllContacts(errorCb, successCb) {
     initOrder(function onInitOrder() {
-      var sortBy = orderByLastName ? 'familyName' : 'givenName';
+      var sortBy = orderByLastName;
       var options = {
         sortBy: sortBy,
         sortOrder: 'ascending'
