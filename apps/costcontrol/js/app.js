@@ -19,19 +19,24 @@ var CostControlApp = (function() {
   function onReady() {
     vmanager = new ViewManager();
     var mobileConnection = window.navigator.mozMobileConnection;
+    var cardState = mobileConnection.cardState;
 
     // SIM is absent
-    if (mobileConnection.cardState === 'absent') {
-      debug('There is no SIM');
-      document.getElementById('no-sim-info-dialog')
-        .addEventListener('click', function _close() {
-        window.close();
-      });
-      vmanager.changeViewTo('no-sim-info-dialog');
+    if (cardState === 'absent') {
 
-    // SIM is not ready
-    } else if (mobileConnection.cardState !== 'ready') {
-      debug('SIM not ready:', mobileConnection.cardState);
+      debug('There is no SIM');
+      showSimErrorDialog('no-sim2');
+
+    // SIM is locked
+    } else if (
+      cardState === 'pinRequired' ||
+      cardState === 'pukRequired'
+    ) {
+
+      showSimErrorDialog('sim2-locked');
+
+    } else if (cardState !== 'ready') {
+      debug('SIM not ready:', cardState);
       mobileConnection.oniccinfochange = onReady;
 
     // SIM is ready
@@ -39,6 +44,20 @@ var CostControlApp = (function() {
       mobileConnection.oniccinfochange = undefined;
       startApp();
     }
+  }
+
+  function showSimErrorDialog(status) {
+      var dialog = document.getElementById('no-sim-info-dialog');
+      var header = dialog.getElementsByTagName('h3')[0];
+      var msg = dialog.getElementsByTagName('p')[0];
+
+      header.innerHTML = _('widget-' + status + '-heading');
+      msg.innerHTML = _('widget-' + status + '-meta');
+
+      dialog.addEventListener('click', function _close() {
+        window.close();
+      });
+      vmanager.changeViewTo('no-sim-info-dialog');
   }
 
   function startApp() {
@@ -64,7 +83,7 @@ var CostControlApp = (function() {
   function setupApp() {
     // View managers for dialogs and settings
     tabmanager = new ViewManager(
-      ['balance-tab', 'telephony-tab', { id:'datausage-tab', tab:'right' }]
+      ['balance-tab', 'telephony-tab', { id: 'datausage-tab', tab: 'right' }]
     );
     settingsVManager = new ViewManager();
 
