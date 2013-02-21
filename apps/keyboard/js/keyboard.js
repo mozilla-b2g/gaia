@@ -186,6 +186,7 @@ var menuTimeout = 0;
 const keyboardGroups = {
   'english': ['en'],
   'dvorak': ['en-Dvorak'],
+  'indic' : ['bn'],
   'spanish' : ['es'],
   'portuguese' : ['pt_BR'],
   'otherlatins': ['cz', 'fr', 'de', 'nb', 'sk', 'tr', 'es', 'pt_BR'],
