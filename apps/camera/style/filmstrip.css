@@ -164,15 +164,6 @@ a.button.hidden {
  background-image: url(images/delete.png);
 }
 
-#filmstrip-gallery-button {
- position: absolute;
- right: 0;
- top: 0;
- width: 50px;
- height: 50px;
- background-image: url(images/grid.png);
-}
-
 /*
  * Make the button icons rotate with the phone
  */
