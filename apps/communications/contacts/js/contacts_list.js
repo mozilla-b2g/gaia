@@ -562,7 +562,7 @@ contacts.List = (function() {
 
   var getAllContacts = function cl_getAllContacts(errorCb, successCb) {
     initOrder(function onInitOrder() {
-      var sortBy = orderByLastName;
+      var sortBy = (orderByLastName === true ? 'familyName' : 'givenName');
       var options = {
         sortBy: sortBy,
         sortOrder: 'ascending'
