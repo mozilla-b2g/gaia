@@ -148,7 +148,9 @@ var ThreadUI = {
     this.sentAudio.mozAudioChannelType = 'notification';
     this.sentAudioEnabled = false;
 
-    if ('mozSettings' in navigator) {
+    // navigator.mozSettings will always be defined, but in some environments,
+    // it may be set to `null`.
+    if (navigator.mozSettings !== null) {
       var req = navigator.mozSettings.createLock().get(this.sentAudioKey);
       req.onsuccess = (function onsuccess() {
         this.sentAudioEnabled = req.result[this.sentAudioKey];
