@@ -1260,10 +1260,13 @@ var ThreadUI = {
    * this method searches for phone numbers in the message
    * and associates event handlers so that contactDialog is shown.
    */
-  searchAndLinkPhoneData: function thui_searchAndLinkPhoneData(messageDOM, bodytext) {
-    var pattern = /(\+?1?[-.]?\(?([0-9]{3})\)?[-.]?)?([0-9]{3})[-.]?([0-9]{4})([0-9]{1,4})?/mg;
-    
-    var result = bodytext.replace(pattern, function(phone) {
+  searchAndLinkPhoneData:
+  function thui_searchAndLinkPhoneData(messageDOM, bodytext) {
+    var regPhone = new RegExp(['(\\+?1?[-.]?\\(?([0-9]{3})\\)?[-.]?)?',
+                               '([0-9]{3})[-.]?([0-9]{4})',
+                               '([0-9]{1,4})?'].join(''), 'mg');
+
+    var result = bodytext.replace(regPhone, function(phone) {
       var linkText = '<a class="phone-link" val="' +
                       phone + '">' + phone + '</a>';
       return linkText;
@@ -1272,7 +1275,6 @@ var ThreadUI = {
     //check for messageDOM paragraph element to assign linked phone number text
     var pElement = messageDOM.querySelector('p');
     pElement.innerHTML = result;
-    
     this.addContactLinkHandlers(messageDOM);
     return messageDOM;
   },
