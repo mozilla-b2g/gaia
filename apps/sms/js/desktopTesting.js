@@ -6,7 +6,7 @@
 if (!navigator.mozSms) {
 
   // We made up a fake database on
-  var messagesHack = [], threadsHack = [];
+  var messagesHack = [], threadsHack = [], messageId = 0;
   (function() {
     var messages = [
       {
@@ -14,7 +14,6 @@ if (!navigator.mozSms) {
         receiver: '1977',
         body: 'Alo, how are you today, my friend? :)',
         delivery: 'sent',
-        id: 52,
         read: true,
         timestamp: new Date(Date.now())
       },
@@ -23,7 +22,6 @@ if (!navigator.mozSms) {
         receiver: '1977',
         body: 'arr :)',
         delivery: 'sent',
-        id: 511,
         read: true,
         timestamp: new Date(Date.now() - 8400000000)
       },
@@ -32,7 +30,6 @@ if (!navigator.mozSms) {
         receiver: '436797',
         body: 'Sending :)',
         delivery: 'sending',
-        id: 51,
         timestamp: new Date(Date.now() - 172800000)
       },
       {
@@ -40,7 +37,6 @@ if (!navigator.mozSms) {
         receiver: '197743697',
         body: 'Nothing :)',
         delivery: 'sent',
-        id: 48,
         timestamp: new Date(Date.now() - 652800000)
       },
       {
@@ -49,7 +45,6 @@ if (!navigator.mozSms) {
         body: 'Error message:)',
         delivery: 'sending',
         error: true,
-        id: 47,
         timestamp: new Date(Date.now() - 822800000)
       },
       {
@@ -57,7 +52,6 @@ if (!navigator.mozSms) {
         receiver: '197746797',
         body: 'Nothing :)',
         delivery: 'sent',
-        id: 46,
         timestamp: new Date(Date.now() - 1002800000)
       },
       {
@@ -65,24 +59,25 @@ if (!navigator.mozSms) {
         receiver: '197746797',
         body: 'Nothing :)',
         delivery: 'error',
-        id: 460,
         timestamp: new Date(Date.now() - 1002800000)
       },
       {
         sender: '197746797',
         body: 'Recibido!',
         delivery: 'received',
-        id: 40,
         timestamp: new Date(Date.now() - 50000000)
       }
     ];
+    messages.forEach(function(message) {
+      message.id = messageId++;
+    });
 
     for (var i = 0; i < 150; i++) {
       messages.push({
         sender: '14886783487',
         body: 'Hello world!',
         delivery: 'received',
-        id: 39 - i,
+        id: messageId++,
         timestamp: new Date(Date.now() - 60000000)
       });
     }
@@ -181,60 +176,75 @@ if (!navigator.mozSms) {
     threadsHack.sort(function(a, b) {
       return a.timestamp - b.timestamp;
     });
-    callback(threadsHack, extraArg);
+
+    if (typeof callback === "function") {
+      callback(threadsHack, extraArg);
+    }
   };
 
-  MessageManager.send = function(number, text, callback) {
-    var message = {
-      sender: null,
-      receiver: number,
-      delivery: 'sent',
-      body: text,
-      id: messagesHack.length,
-      timestamp: new Date()
+  MessageManager.send = function(number, text, success, failure) {
+    var sent = {
+      type: 'sent',
+      message: {
+        sender: null,
+        receiver: number,
+        delivery: 'sending',
+        body: text,
+        id: messageId++,
+        timestamp: new Date()
+      }
     };
 
     var simulateFail = /fail/i.test(text);
 
-    window.setTimeout(function sent() {
+    MessageManager.onMessageSending(sent);
+    window.setTimeout(function() {
       if (simulateFail) {
         // simulate failure
-        callback(null);
+        MessageManager.onMessageFailed(sent);
+        if (typeof failure === "function") {
+          failure(number);
+        }
         return;
       }
 
       // simulate success
-      callback(message);
+      sent.message.delivery = 'sent';
+      MessageManager.onMessageSent(sent);
 
-      // the SMS DB is written after the callback
+      if (typeof success === "function") {
+        success(sent.message);
+      }
+
       window.setTimeout(function writeDB() {
-        messagesHack.unshift(message);
+        messagesHack.unshift(sent.message);
       }, 90 * Math.random());
-    }, 3000 * Math.random());
+
+    // Wait between [1000, 2000] milliseconds to simulate network latency.
+    }, 1000 + 1000 * Math.random());
 
     if (simulateFail)
       return;
 
     window.setTimeout(function hiBack() {
-      var message = {
-        sender: number,
-        receiver: null,
-        delivery: 'received',
-        body: 'Hi back! ' + text,
-        id: messagesHack.length,
-        timestamp: new Date()
+      var received = {
+        type: 'received',
+        message: {
+          sender: number,
+          receiver: null,
+          delivery: 'received',
+          body: 'Hi back! ' + text,
+          id: messageId++,
+          timestamp: new Date()
+        }
       };
 
-      var evt = {
-        type: 'received',
-        message: message
-      };
-      MessageManager.handleEvent.call(MessageManager, evt);
-      // the SMS DB is written after the callback
       window.setTimeout(function writeDB() {
-        messagesHack.unshift(message);
+        MessageManager.onMessageReceived(received);
+        messagesHack.unshift(received.message);
       }, 90 * Math.random());
 
-    }, 5000 + 3000 * Math.random());
+    // Wait between [1000, 2000] milliseconds to simulate peer response delay.
+    }, 2000 + 1000 * Math.random());
   };
 }
