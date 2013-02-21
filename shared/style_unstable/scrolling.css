@@ -31,6 +31,7 @@ nav[data-type="scrollbar"] ol {
   border-radius: 4rem;
   opacity: 0.6;
   list-style: none;
+  margin-top: 0.5rem;
 }
 
 nav[data-type="scrollbar"] li {
