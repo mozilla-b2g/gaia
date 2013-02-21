@@ -1250,26 +1250,29 @@ var ThreadUI = {
                       '</label>' +
                       '<a class="' + messageClass + '">';
     messageHTML += asideHTML;
-    messageHTML += '<p> ' + bodyHTML + '</p></a>';
+    messageHTML += '<p></p></a>';
 
     messageDOM.innerHTML = messageHTML;
-    return this.searchAndLinkPhoneData(messageDOM);
+    return this.searchAndLinkPhoneData(messageDOM, bodyHTML);
   },
 
   /*
    * this method searches for phone numbers in the message
    * and associates event handlers so that contactDialog is shown.
    */
-  searchAndLinkPhoneData: function thui_searchAndLinkPhoneData(messageDOM) {
+  searchAndLinkPhoneData: function thui_searchAndLinkPhoneData(messageDOM, bodytext) {
     var pattern = /(\+?1?[-.]?\(?([0-9]{3})\)?[-.]?)?([0-9]{3})[-.]?([0-9]{4})([0-9]{1,4})?/mg;
-    var bodytext = messageDOM.innerHTML;
+    
     var result = bodytext.replace(pattern, function(phone) {
       var linkText = '<a class="phone-link" val="' +
                       phone + '">' + phone + '</a>';
       return linkText;
     });
 
-    messageDOM.innerHTML = result;
+    //check for messageDOM paragraph element to assign linked phone number text
+    var pElement = messageDOM.querySelector('p');
+    pElement.innerHTML = result;
+    
     this.addContactLinkHandlers(messageDOM);
     return messageDOM;
   },
