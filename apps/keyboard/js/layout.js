@@ -1008,8 +1008,7 @@ const Keyboards = {
       ]
     ]
   },
-    bn: {
-    type: 'keyboard', //no intelligent input support, yet!
+    bn: {            //no intelligent input support, yet!
     width: 11,
     label: 'Bangla', // Probhat keyboard layout by The Ekushey Project
     menuLabel: 'বাংলা',
