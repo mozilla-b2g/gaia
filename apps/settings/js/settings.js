@@ -124,7 +124,7 @@ var Settings = {
     // activate all scripts
     var scripts = panel.querySelectorAll('script');
     for (var i = 0; i < scripts.length; i++) {
-      var src = scripts[i].getAttribute('src')
+      var src = scripts[i].getAttribute('src');
       if (document.head.querySelector('script[src="' + src + '"]')) {
         continue;
       }
@@ -186,7 +186,7 @@ var Settings = {
   // There can be race conditions in which we need settings values,
   // but haven't filled the cache yet.  This array tracks those
   // listeners.
-  _pendingSettingsCallbacks: [ ],
+  _pendingSettingsCallbacks: [],
 
   // Invoke |callback| with a request object for a successful fetch of
   // settings values, when those values are ready.

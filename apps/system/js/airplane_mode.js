@@ -36,15 +36,32 @@ var AirplaneMode = {
       window.navigator.mozMobileConnection.data;
     var fmRadio = window.navigator.mozFMRadio;
 
+    var self = this;
+
     var restoreMobileData = false;
+    SettingsListener.observe('ril.data.suspended', false, function(value) {
+      restoreMobileData = value;
+    });
+
     var restoreBluetooth = false;
+    SettingsListener.observe('bluetooth.suspended', false, function(value) {
+      restoreBluetooth = value;
+    });
+
     var restoreWifi = false;
+    SettingsListener.observe('wifi.suspended', false, function(value) {
+      restoreWifi = value;
+    });
+
     var restoreGeolocation = false;
+    SettingsListener.observe('geolocation.suspended', false, function(value) {
+      restoreGeolocation = value;
+    });
+
     // Note that we don't restore Wifi tethering when leaving airplane mode
     // because Wifi tethering can't be switched on before data connection is
     // established.
 
-    var self = this;
     SettingsListener.observe('ril.radio.disabled', false, function(value) {
       if (value) {
         // Entering airplane mode.
@@ -55,7 +72,9 @@ var AirplaneMode = {
         // platform ril disconnects mobile data when
         // 'ril.radio.disabled' is true.
         if (mobileData) {
-          restoreMobileData = mobileDataEnabled;
+          SettingsListener.getSettingsLock().set({
+            'ril.data.suspended': mobileDataEnabled
+          });
           if (mobileDataEnabled) {
             SettingsListener.getSettingsLock().set({
               'ril.data.enabled': false
@@ -65,7 +84,9 @@ var AirplaneMode = {
 
         // Turn off Bluetooth.
         if (bluetooth) {
-          restoreBluetooth = bluetoothEnabled;
+          SettingsListener.getSettingsLock().set({
+            'bluetooth.suspended': bluetoothEnabled
+          });
           if (bluetoothEnabled) {
             SettingsListener.getSettingsLock().set({
               'bluetooth.enabled': false
@@ -75,7 +96,9 @@ var AirplaneMode = {
 
         // Turn off Wifi.
         if (wifiManager) {
-          restoreWifi = wifiEnabled;
+          SettingsListener.getSettingsLock().set({
+            'wifi.suspended': wifiEnabled
+          });
           if (wifiEnabled) {
             SettingsListener.getSettingsLock().set({
               'wifi.enabled': false
@@ -89,7 +112,9 @@ var AirplaneMode = {
         }
 
         // Turn off Geolocation.
-        restoreGeolocation = geolocationEnabled;
+        SettingsListener.getSettingsLock().set({
+          'geolocation.suspended': geolocationEnabled
+        });
         if (geolocationEnabled) {
           SettingsListener.getSettingsLock().set({
             'geolocation.enabled': false
@@ -97,11 +122,13 @@ var AirplaneMode = {
         }
 
         // Turn off FM Radio.
-        if (fmRadio && fmRadio.enabled)
+        if (fmRadio && fmRadio.enabled) {
           fmRadio.disable();
-
+        }
       } else {
+        // Leaving airplane mode.
         self.enabled = false;
+
         // Don't attempt to turn on mobile data if it's already on
         if (mobileData && !mobileDataEnabled && restoreMobileData) {
           SettingsListener.getSettingsLock().set({
