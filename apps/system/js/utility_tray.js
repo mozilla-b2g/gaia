@@ -142,6 +142,10 @@ var UtilityTray = {
       evt.initCustomEvent('utilitytrayshow', true, true, null);
       window.dispatchEvent(evt);
     }
+
+    if (WindowManager.stopInlineActivity) {
+      WindowManager.stopInlineActivity(true);
+    }
   }
 };
 
