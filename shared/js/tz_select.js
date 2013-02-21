@@ -3,7 +3,10 @@
 
 'use strict';
 
-function tzSelect(regionSelector, citySelector, onchange) {
+function tzSelect(regionSelector,
+                  citySelector,
+                  onchange,
+                  resetTimezoneOnStartup) {
   var TIMEZONE_FILE = '/shared/resources/tz.json';
 
 
@@ -77,9 +80,12 @@ function tzSelect(regionSelector, citySelector, onchange) {
       }
       fillSelectElement(citySelector, options);
 
-      if (!initial) {
-        setTimezone();
+      if(!resetTimezoneOnStartup) {
+        if (initial) {
+          return;
+        }
       }
+      setTimezone();
     }
 
     function setTimezone() {
