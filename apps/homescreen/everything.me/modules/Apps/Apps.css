@@ -161,26 +161,3 @@ body:not(.istouch) .evme-apps ul li:nth-child(5n+1) {
 #evmeContainer.loading-app .evme-apps ul {
     min-height: 100%;
 }
-
-.apps-group {
-    position: relative;
-    width: 64px;
-    height: 64px;
-}
-.apps-group span {
-    position: absolute;
-    background-position: 50% 50%;
-    background-repeat: no-repeat;
-    background-size: contain;
-    -moz-transition: all .4s ease;
-    transition: all .4s ease;
-}
-.apps-group span:nth-child(1) {
-    box-shadow: 0 2px 1px 0 rgba(0, 0, 0, .4);
-}
-.apps-group span:nth-child(2) {
-    box-shadow: 0 2px 2px 0 rgba(0, 0, 0, .5);
-}
-.apps-group span:nth-child(3) {
-    box-shadow: 0 2px 2px 0 rgba(0, 0, 0, .6);
-}

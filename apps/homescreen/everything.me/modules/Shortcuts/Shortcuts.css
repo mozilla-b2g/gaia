@@ -56,7 +56,6 @@
         width: 25%;
         height: 80px;
         text-align: center;
-        cursor: pointer;
     }
         #evmeContainer .shortcut .remove {
             position: absolute;
@@ -95,17 +94,9 @@
         #evmeContainer .shortcut .thumb {
             display: block;
             position: relative;
-            width: 44px;
-            height: 44px;
-            margin: 0 auto;
+            height: 4.8rem;
             z-index: 10;
-            border-radius: 32px;
             -moz-transform-origin: 50% 50%;
-        }
-        #evmeContainer .shortcut.add .thumb * span,
-        #evmeContainer .shortcut .thumb * span {
-            transition: none !important;
-            transform: none !important;
         }
         #evmeContainer .shortcut.add .thumb:before {
             content: "";
@@ -121,8 +112,7 @@
         #evmeContainer .shortcut b {
             position: relative;
             display: block;
-            font-size: 12px;
-            margin-top: 12px;
+            font-size: 1.2rem;
             z-index: 50;
             color: #fff;
             font-weight: 600;

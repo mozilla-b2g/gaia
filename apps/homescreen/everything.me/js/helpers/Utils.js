@@ -173,7 +173,7 @@ Evme.Utils = new function Evme_Utils() {
 
           WIDTH = context.canvas.width,
           FONT_SIZE = self.APPS_FONT_SIZE,
-          LINE_HEIGHT = FONT_SIZE + 1 * self.devicePixelRatio;
+          LINE_HEIGHT = (FONT_SIZE + 1) * self.devicePixelRatio;
 
       if (!context || !text) {
         return false;
