@@ -360,6 +360,7 @@ var Contacts = (function() {
     var options = TAG_OPTIONS[tagList];
     fillTagOptions(options, tagList, target);
     navigation.go('view-select-tag', 'right-left');
+    window.navigator.mozKeyboard.removeFocus();
   };
 
   var fillTagOptions = function fillTagOptions(options, tagList, update) {
@@ -427,10 +428,10 @@ var Contacts = (function() {
   * tag selected or use the predefined ones
   */
   var doneTag = function doneTag() {
-    if (selectedTag) {
-      contactTag.textContent = selectedTag.textContent;
-    } else if (customTag.value.length > 0) {
+    if (customTag.value.length > 0) {
       contactTag.textContent = customTag.value;
+    } else if (selectedTag) {
+      contactTag.textContent = selectedTag.textContent;
     }
     contactTag = null;
     Contacts.goBack();
