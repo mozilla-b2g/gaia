@@ -73,6 +73,10 @@ const GridManager = (function() {
         break;
 
       case touchmove:
+        if (evt.preventPanning === true) {
+          return;
+        }
+        
         // Start panning immediately but only disable
         // the tap when we've moved far enough.
         deltaX = getX(evt) - startEvent.pageX;
@@ -242,9 +246,11 @@ const GridManager = (function() {
 
   function onTouchEnd(deltaX, evt) {
     var page = currentPage;
-    /* Bigger than panning threshold or fast gesture */
+    // If movement over 25% of the screen size or
+    // fast movement over threshold for tapping, then swipe
     if (Math.abs(deltaX) > panningThreshold ||
-        touchEndTimestamp - touchStartTimestamp < kPageTransitionDuration) {
+        (Math.abs(deltaX) > tapThreshold &&
+        touchEndTimestamp - touchStartTimestamp < kPageTransitionDuration)) {
       var forward = dirCtrl.goesForward(deltaX);
       if (forward && currentPage < pages.length - 1) {
         page = page + 1;
@@ -356,9 +362,9 @@ const GridManager = (function() {
       }
 
       return;
-    } else {
-      togglePagesVisibility(start, end);
     }
+
+    togglePagesVisibility(start, end);
 
     // Force a reflow otherwise the newPage appears immediately because it is
     // still considered display: none;
