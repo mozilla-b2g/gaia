@@ -1,0 +1,11 @@
+/*
+  Add contact action menu
+ */
+
+#add-contact-action-menu {
+  display: none;
+}
+
+#add-contact-action-menu.visible {
+  display: inline;
+}

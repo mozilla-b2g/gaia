@@ -305,7 +305,6 @@ var Contacts = (function() {
   };
 
   var selectList = function selectList(phoneNumber) {
-    var addButton = document.getElementById('add-contact-button');
     addButton.classList.add('hide');
     contactsList.clearClickHandlers();
     contactsList.handleClick(function addToContactHandler(id) {
