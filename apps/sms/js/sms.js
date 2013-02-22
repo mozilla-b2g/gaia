@@ -465,17 +465,17 @@ var ThreadListUI = {
     var allInputs =
             ThreadListUI.view.querySelectorAll('input[type="checkbox"]');
     if (selected == allInputs.length) {
-      ThreadListUI.selectAllButton.classList.add('disabled');
+      ThreadListUI.selectAllButton.disabled = true;
     } else {
-      ThreadListUI.selectAllButton.classList.remove('disabled');
+      ThreadListUI.selectAllButton.disabled = false;
     }
     if (selected > 0) {
-      ThreadListUI.deselectAllButton.classList.remove('disabled');
-      ThreadListUI.deleteButton.classList.remove('disabled');
+      ThreadListUI.deselectAllButton.disabled = false;
+      ThreadListUI.deleteButton.disabled = false;
       this.pageHeader.innerHTML = _('selected', {n: selected});
     } else {
-      ThreadListUI.deselectAllButton.classList.add('disabled');
-      ThreadListUI.deleteButton.classList.add('disabled');
+      ThreadListUI.deselectAllButton.disabled = true;
+      ThreadListUI.deleteButton.disabled = true;
       this.pageHeader.innerHTML = _('editMode');
     }
   },
@@ -1422,17 +1422,17 @@ var ThreadUI = {
     var allInputs = this.view.querySelectorAll('input[type="checkbox"]');
 
     if (selected.length == allInputs.length) {
-      ThreadUI.selectAllButton.classList.add('disabled');
+      ThreadUI.selectAllButton.disabled = true;
     } else {
-      ThreadUI.selectAllButton.classList.remove('disabled');
+      ThreadUI.selectAllButton.disabled = false;
     }
     if (selected.length > 0) {
-      ThreadUI.deselectAllButton.classList.remove('disabled');
-      ThreadUI.deleteButton.classList.remove('disabled');
+      ThreadUI.deselectAllButton.disabled = false;
+      ThreadUI.deleteButton.disabled = false;
       this.pageHeader.innerHTML = _('selected', {n: selected.length});
     } else {
-      ThreadUI.deselectAllButton.classList.add('disabled');
-      ThreadUI.deleteButton.classList.add('disabled');
+      ThreadUI.deselectAllButton.disabled = true;
+      ThreadUI.deleteButton.disabled = true;
       this.pageHeader.innerHTML = _('editMode');
     }
   },
