@@ -21,6 +21,19 @@ const PR_EXCL = 0x80;
  * @param {nsIFile}      file      file xpcom to add.
  */
 function addToZip(zip, pathInZip, file) {
+
+  // Check @2x files
+  if ( HIDPI != '*' && file.path.search('@2x') == -1 ) {
+    var path2x = file.path.split('.')[0]+'@2x.'+file.path.split('.')[1];
+    var file2x = new FileUtils.File(path2x);
+    // @2x one will come later
+    if ( file2x.exists() ) {
+      return;
+    }
+  } else if ( file.path.search('@2x') != -1 ) {
+     var pathInZip = pathInZip.split('@2x')[0]+pathInZip.split('@2x')[1];
+  }
+
   if (isSubjectToBranding(file.path)) {
     file.append((OFFICIAL == 1) ? 'official' : 'unofficial');
   }
@@ -289,6 +302,17 @@ Gaia.webapps.forEach(function(webapp) {
       throw new Error('Using inexistent shared resource: ' + path +
                       ' from: ' + webapp.domain + '\n');
       return;
+    }
+
+    // Forces the file to pass as @2x
+    if ( HIDPI != '*' && file.path.search('@2x') == -1 ) {
+      var path2x = file.path.split('.')[0]+'@2x.'+file.path.split('.')[1];
+      var file2x = new FileUtils.File(path2x);
+      // Adds the suffix
+      if ( file2x.exists() ) {
+        var path = path.split('.')[0]+'@2x.'+path.split('.')[1];
+        var file = file2x;
+      }
     }
     addToZip(zip, '/shared/resources/' + path, file);
 
