@@ -138,8 +138,11 @@ var ThreadUI = {
 
     // We add the infinite scroll effect for increasing performance
     this.view.addEventListener('scroll', this.manageScroll.bind(this));
+  },
+  initSentAudio: function() {
+    if (this.sentAudio)
+      return;
 
-    // Sent sound init
     this.sentAudioKey = 'message.sent-sound.enabled';
     this.sentAudio = new Audio('/sounds/sent.ogg');
     this.sentAudio.mozAudioChannelType = 'notification';
@@ -208,6 +211,7 @@ var ThreadUI = {
   },
 
   enableSend: function thui_enableSend() {
+    this.initSentAudio();
     if (this.input.value.length > 0) {
       this.updateCounter();
     }
