@@ -41,23 +41,6 @@ var ActivityHandler = {
           document.location.hash = hash;
         }
         break;
-      case 'update':
-        if (this._launchedAsInlineActivity)
-          return;
-
-        this._currentActivity = activity;
-        var hash = 'add-parameters';
-
-        if (this._currentActivity.source.data.params) {
-          var param, params = [];
-          for (var i in this._currentActivity.source.data.params) {
-            param = this._currentActivity.source.data.params[i];
-            params.push(i + '=' + param);
-          }
-          hash += '?' + params.join('&');
-          document.location.hash = hash;
-        }
-        break;
       case 'pick':
         if (!this._launchedAsInlineActivity)
           return;
