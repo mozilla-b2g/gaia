@@ -8,7 +8,7 @@ var contacts = window.contacts || {};
 **/
 contacts.Settings = (function() {
 
-  var orderItem,
+  var orderCheckBox,
       orderByLastName,
       simImportLink,
       fbImportOption,
@@ -44,12 +44,13 @@ contacts.Settings = (function() {
   var updateOrderingUI = function updateOrderingUI() {
     var value = newOrderByLastName === null ? orderByLastName :
       newOrderByLastName;
-    orderItem.checked = value;
+    orderCheckBox.checked = value;
   };
 
   // Initialises variables and listener for the UI
   var initContainers = function initContainers() {
-    orderItem = document.getElementById('settingsOrder');
+    var orderItem = document.getElementById('settingsOrder');
+    orderCheckBox = orderItem.querySelector('[name="order.lastname"]');
     orderItem.addEventListener('click', onOrderingChange.bind(this));
 
     simImportLink = document.querySelector('[data-l10n-id="importSim"]');
@@ -318,11 +319,9 @@ contacts.Settings = (function() {
 
   // Listens for any change in the ordering preferences
   var onOrderingChange = function onOrderingChange(evt) {
-    var checkBox = evt.target.querySelector('[name="order.lastname"]');
-    checkBox.checked = !checkBox.checked;
-    newOrderByLastName = checkBox.checked;
-    asyncStorage.setItem(ORDER_KEY, newOrderByLastName);
+    newOrderByLastName = !orderCheckBox.checked;
     updateOrderingUI();
+    asyncStorage.setItem(ORDER_KEY, newOrderByLastName);
   };
 
   // Import contacts from SIM card and updates ui

@@ -4,7 +4,7 @@ var RecentsDBManager = {
   _dbName: 'dialerRecents',
   _dbStore: 'dialerRecents',
   _dbVersion: 1,
-  prepolulated : false,
+  prepolulated: false,
   init: function rdbm_init(callback) {
     try {
       var indexedDB = window.indexedDB || window.webkitIndexedDB ||
@@ -20,7 +20,7 @@ var RecentsDBManager = {
       this.request.onsuccess = function(event) {
         //Store DB object in RecentsDBManager
         self.db = event.target.result;
-        if(!navigator.mozTelephony && !self.prepopulated){
+        if (!navigator.mozTelephony && !self.prepopulated) {
           self.prepopulateDB();
           self.prepopulated = true;
         }
@@ -109,12 +109,12 @@ var RecentsDBManager = {
         if (callback && callback instanceof Function) {
           callback();
         }
-      }
+      };
 
       delRequest.onerror = function de_onsuccess(e) {
         console.log('recents_db delete item failure: ',
             e.message, delRequest.errorCode);
-      }
+      };
     });
   },
   deleteList: function rdbm_deleteList(list, callback) {

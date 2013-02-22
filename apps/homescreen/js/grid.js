@@ -72,6 +72,10 @@ const GridManager = (function() {
         break;
 
       case touchmove:
+        if (evt.preventPanning === true) {
+          return;
+        }
+        
         // Start panning immediately but only disable
         // the tap when we've moved far enough.
         deltaX = getX(evt) - startEvent.pageX;
@@ -327,36 +331,31 @@ const GridManager = (function() {
     updatePaginationBar();
 
     if (previousPage === newPage) {
-      var borderingPagesToBeTranslated = false;
+      if (newPage.container.getBoundingClientRect().left !== 0) {
+        // Pages are translated in X
+        if (index > 0) {
+          pages[index - 1].moveByWithEffect(-windowWidth, duration);
+        }
 
-      if (index > 0 && pages[index - 1].container.style.display === 'block') {
-        // Previous one displayed
-        pages[index - 1].moveByWithEffect(-windowWidth, duration);
-        borderingPagesToBeTranslated = true;
-      }
+        newPage.moveByWithEffect(0, duration);
 
-      newPage.moveByWithEffect(0, duration);
+        if (index < pages.length - 1) {
+          pages[index + 1].moveByWithEffect(windowWidth, duration);
+        }
 
-      if (index < pages.length - 1 &&
-          pages[index + 1].container.style.display === 'block') {
-        // Next one displayed
-        pages[index + 1].moveByWithEffect(windowWidth, duration);
-        borderingPagesToBeTranslated = true;
-      }
-
-      if (borderingPagesToBeTranslated) {
         container.addEventListener('transitionend', function transitionEnd(e) {
           container.removeEventListener('transitionend', transitionEnd);
           goToPageCallback();
         });
       } else {
+        // Swipe from rigth to left on the last page on the grid
         goToPageCallback();
       }
 
       return;
-    } else {
-      togglePagesVisibility(start, end);
     }
+    
+    togglePagesVisibility(start, end);
 
     // Force a reflow otherwise the newPage appears immediately because it is
     // still considered display: none;

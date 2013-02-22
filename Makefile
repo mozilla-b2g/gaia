@@ -459,13 +459,21 @@ test-integration:
 
 .PHONY: test-perf
 test-perf:
+	# All echo calls help create a JSON array
 	adb forward tcp:2828 tcp:2828
 	SHARED_PERF=`find tests/performance -name "*_test.js" -type f`; \
+	echo '['; \
 	for app in ${APPS}; \
 	do \
+		if [ -z "$${FIRST_LOOP_ITERATION}" ]; then \
+			FIRST_LOOP_ITERATION=done; \
+		else \
+			echo ','; \
+		fi; \
 		FILES_PERF=`test -d apps/$$app/test/performance && find apps/$$app/test/performance -name "*_test.js" -type f`; \
 		REPORTER=JSONMozPerf ./tests/js/bin/runner $$app $${SHARED_PERF} $${FILES_PERF}; \
-	done;
+	done; \
+	echo ']';
 
 .PHONY: tests
 tests: webapp-manifests offline
@@ -651,7 +659,7 @@ update-offline-manifests:
 # target to update the gaia files and reboot b2g
 TARGET_FOLDER = webapps/$(BUILD_APP_NAME).$(GAIA_DOMAIN)
 APP_NAME = $(shell cat apps/${BUILD_APP_NAME}/manifest.webapp | grep name | head -1 | cut -d '"' -f 4)
-APP_PID = $(shell adb shell b2g-ps | grep '${APP_NAME}' | tr -s '${APP_NAME}' ' ' | tr -s ' ' ' ' | cut -f 3 -d' ')
+APP_PID = $(shell adb shell b2g-ps | grep '^${APP_NAME}' | sed 's/^${APP_NAME}\s*//' | awk '{ print $$2 }')
 install-gaia: profile
 	$(ADB) start-server
 	@echo 'Stopping b2g'

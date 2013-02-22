@@ -68,6 +68,7 @@ settings = {
  "lockscreen.locked": True,
  "lockscreen.unlock-sound.enabled": False,
  "mail.sent-sound.enabled": True,
+ "message.sent-sound.enabled": True,
  "operatorvariant.mcc": 0,
  "operatorvariant.mnc": 0,
  "ril.iccInfo.mbdn":"",
