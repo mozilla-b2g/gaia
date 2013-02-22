@@ -629,6 +629,15 @@ MessageListCard.prototype = {
     var dateNode = msgNode.getElementsByClassName('msg-header-date')[0];
     if (firstTime) {
       // author
+  	ContactDataManager.getContactData(message.author.address,
+		function updateContactName(contacts)
+		{
+			if (!contacts ||  contacts.length < 1)
+	        	   return;
+	    
+			if (contacts[0])
+	      		   message.author.name = contacts[0].name;
+	  });
       msgNode.getElementsByClassName('msg-header-author')[0]
         .textContent = message.author.name || message.author.address;
       // date
