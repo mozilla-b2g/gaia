@@ -23,11 +23,8 @@ var CostControlApp = (function() {
     // SIM is absent
     if (mobileConnection.cardState === 'absent') {
       debug('There is no SIM');
-      document.getElementById('no-sim-info-dialog')
-        .addEventListener('click', function _close() {
-        window.close();
-      });
-      vmanager.changeViewTo('no-sim-info-dialog');
+      alert(_('widget-no-sim2-heading') + '\n' + _('widget-no-sim2-meta'));
+      window.close();
 
     // SIM is not ready
     } else if (mobileConnection.cardState !== 'ready') {
