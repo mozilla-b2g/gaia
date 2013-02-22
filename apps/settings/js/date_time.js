@@ -145,8 +145,21 @@ navigator.mozL10n.ready(function SettingsDateAndTime() {
   updateDate();
   updateClock();
 
+  // need to provide an onchange callback to tzSelect, so that
+  // when we change region, both region/city will be updated
+  function tzOnchange() {
+    var selectList = [gTimezoneRegion, gTimezoneCity];
+    selectList.forEach(function initLabel(select) {
+      var button = select.previousElementSibling;
+      var index = select.selectedIndex;
+      if (index >= 0) {
+        button.textContent = select.options[index].textContent;
+      }
+    });
+  }
+
   // monitor time.timezone changes, see /shared/js/tz_select.js
-  tzSelect(gTimezoneRegion, gTimezoneCity);
+  tzSelect(gTimezoneRegion, gTimezoneCity, tzOnchange, tzOnchange);
 
   gDatePicker.addEventListener('input', function datePickerChange() {
     setTime('date');
