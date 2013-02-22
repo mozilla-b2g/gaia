@@ -41,6 +41,7 @@
   padding: 1rem;
   height: 100%;
   line-height: 1.3em;
+  overflow-y: auto;
 }
 
 #modify-event-view li.allday,
