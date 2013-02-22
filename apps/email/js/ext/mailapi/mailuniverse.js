@@ -358,6 +358,8 @@ function MailUniverse(callAfterBigBang, testOptions) {
     }
 
     var accountInfo, i;
+    var doneCount = 0;
+    var accountCount = accountInfos.length;
     if (configObj) {
       self.config = configObj;
       setupLogging();
@@ -367,9 +369,23 @@ function MailUniverse(callAfterBigBang, testOptions) {
 
       self._LOG.configLoaded(self.config, accountInfos);
 
-      for (i = 0; i < accountInfos.length; i++) {
-        accountInfo = accountInfos[i];
-        self._loadAccount(accountInfo.def, accountInfo.folderInfo);
+      function done() {
+        doneCount += 1;
+        if (doneCount === accountCount) {
+          self._initFromConfig();
+          callAfterBigBang();
+        }
+      }
+
+      if (accountCount) {
+        for (i = 0; i < accountCount; i++) {
+          accountInfo = accountInfos[i];
+          self._loadAccount(accountInfo.def, accountInfo.folderInfo,
+                            null, done);
+        }
+        // return since _loadAccount needs to finish before completing
+        // the flow in done().
+        return;
       }
     }
     else {
@@ -703,60 +719,62 @@ MailUniverse.prototype = {
 
   /**
    * Instantiate an account from the persisted representation.
+   * Asynchronous. Calls callback with the account object.
    */
   _loadAccount: function mu__loadAccount(accountDef, folderInfo,
-                                         receiveProtoConn) {
-    var constructor = $acctcommon.accountTypeToClass(accountDef.type);
-    if (!constructor) {
-      this._LOG.badAccountType(accountDef.type);
-      return null;
-    }
-    var account = new constructor(this, accountDef, folderInfo, this._db,
-                                  receiveProtoConn, this._LOG);
-
-    this.accounts.push(account);
-    this._accountsById[account.id] = account;
-    this._opsByAccount[account.id] = {
-      active: false,
-      local: [],
-      server: [],
-      deferred: []
-    };
-    this._opCompletionListenersByAccount[account.id] = null;
-
-    for (var iIdent = 0; iIdent < accountDef.identities.length; iIdent++) {
-      var identity = accountDef.identities[iIdent];
-      this.identities.push(identity);
-      this._identitiesById[identity.id] = identity;
-    }
-
-    this.__notifyAddedAccount(account);
-
-    // - issue a (non-persisted) syncFolderList if needed
-    var timeSinceLastFolderSync = Date.now() - account.meta.lastFolderSyncAt;
-    if (timeSinceLastFolderSync >= $syncbase.SYNC_FOLDER_LIST_EVERY_MS)
-      this.syncFolderList(account);
-
-    // - check for mutations that still need to be processed
-    // This will take care of deferred mutations too because they are still
-    // maintained in this list.
-    for (var i = 0; i < account.mutations.length; i++) {
-      var op = account.mutations[i];
-      if (op.lifecycle !== 'done' && op.lifecycle !== 'undone') {
-        // For localStatus, we currently expect it to be consistent with the
-        // state of the folder's database.  We expect this to be true going
-        // forward and as we make changes because when we save the account's
-        // operation status, we should also be saving the folder changes at the
-        // same time.
-        //
-        // The same cannot be said for serverStatus, so we need to check.  See
-        // comments about operations elsewhere (currently in imap/jobs.js).
-        op.serverStatus = 'check';
-        this._queueAccountOp(account, op);
+                                         receiveProtoConn, callback) {
+    $acctcommon.accountTypeToClass(accountDef.type, function (constructor) {
+      if (!constructor) {
+        this._LOG.badAccountType(accountDef.type);
+        return null;
       }
-    }
+      var account = new constructor(this, accountDef, folderInfo, this._db,
+                                    receiveProtoConn, this._LOG);
 
-    return account;
+      this.accounts.push(account);
+      this._accountsById[account.id] = account;
+      this._opsByAccount[account.id] = {
+        active: false,
+        local: [],
+        server: [],
+        deferred: []
+      };
+      this._opCompletionListenersByAccount[account.id] = null;
+
+      for (var iIdent = 0; iIdent < accountDef.identities.length; iIdent++) {
+        var identity = accountDef.identities[iIdent];
+        this.identities.push(identity);
+        this._identitiesById[identity.id] = identity;
+      }
+
+      this.__notifyAddedAccount(account);
+
+      // - issue a (non-persisted) syncFolderList if needed
+      var timeSinceLastFolderSync = Date.now() - account.meta.lastFolderSyncAt;
+      if (timeSinceLastFolderSync >= $syncbase.SYNC_FOLDER_LIST_EVERY_MS)
+        this.syncFolderList(account);
+
+      // - check for mutations that still need to be processed
+      // This will take care of deferred mutations too because they are still
+      // maintained in this list.
+      for (var i = 0; i < account.mutations.length; i++) {
+        var op = account.mutations[i];
+        if (op.lifecycle !== 'done' && op.lifecycle !== 'undone') {
+          // For localStatus, we currently expect it to be consistent with the
+          // state of the folder's database.  We expect this to be true going
+          // forward and as we make changes because when we save the account's
+          // operation status, we should also be saving the folder changes at the
+          // same time.
+          //
+          // The same cannot be said for serverStatus, so we need to check.  See
+          // comments about operations elsewhere (currently in imap/jobs.js).
+          op.serverStatus = 'check';
+          this._queueAccountOp(account, op);
+        }
+      }
+
+      callback(account);
+    }.bind(this));
   },
 
   /**
