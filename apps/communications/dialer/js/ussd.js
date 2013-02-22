@@ -215,8 +215,9 @@ var UssdManager = {
   },
 
   closeUI: function um_closeUI(keepSessionAlive) {
-    if (!keepSessionAlive)
+    if (!keepSessionAlive) {
       this._conn.cancelMMI();
+    }
     this._popup.close();
     this._popup = null;
     this._closedOnVisibilityChange = false;
@@ -255,6 +256,7 @@ var UssdManager = {
             this.send(evt.data.message);
             break;
           case 'close':
+          case 'cancel':
             this.closeUI();
             break;
         }
