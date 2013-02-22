@@ -1,6 +1,6 @@
 'use strict';
 
-var _ = navigator.mozL10n.get;
+var _;
 var TAG_OPTIONS;
 
 var Contacts = (function() {
@@ -168,16 +168,26 @@ var Contacts = (function() {
   };
 
   var onLocalized = function onLocalized() {
-    document.body.classList.remove('hide');
+    init();
+
     addAsyncScripts();
-    initLanguages();
-    initContainers();
-    initContactsList();
     window.addEventListener('asyncScriptsLoaded', function onAsyncLoad() {
       window.removeEventListener('asyncScriptsLoaded', onAsyncLoad);
       contactsList.initAlphaScroll();
       checkUrl();
     });
+  };
+
+  var onDOMContentLoaded = function onDOMContentLoaded() {
+    getFirstContacts();
+  };
+
+  var init = function init() {
+    _ = navigator.mozL10n.get;
+    document.body.classList.remove('hide');
+    initLanguages();
+    initContainers();
+    initContactsList();
     initEventListeners();
     window.addEventListener('hashchange', checkUrl);
   };
@@ -396,15 +406,16 @@ var Contacts = (function() {
     if (!selectedLink && update.textContent) {
       customTag.value = update.textContent;
     }
-    customTag.onclick = function(event) {
-      if (selectedTag) {
-        // Remove any mark if we had selected other option
-        selectedTag.removeAttribute('class');
-      }
-      selectedTag = null;
-    };
 
     selectTag(selectedLink);
+  };
+
+  var onCustomTagSelected = function onCustomTagSelected() {
+    if (selectedTag) {
+      // Remove any mark if we had selected other option
+      selectedTag.removeAttribute('class');
+    }
+    selectedTag = null;
   };
 
   var selectTag = function selectTag(link, tagList) {
@@ -657,7 +668,15 @@ var Contacts = (function() {
       '#contact-form button[data-field-type]': newField,
       '#settings-close': hideSettings,
       '#toggle-favorite': toggleFavorite,
-      'button[type="reset"]': stopPropagation
+      'button[type="reset"]': stopPropagation,
+      // Bug 832861: Click event can't be synthesized correctly on customTag by
+      // mouse_event_shim due to Gecko bug.  Use ontouchend here.
+      '#custom-tag': [
+        {
+          event: 'touchend',
+          handler: onCustomTagSelected
+        }
+      ]
     });
   };
 
@@ -681,8 +700,6 @@ var Contacts = (function() {
       loadList(contacts);
     });
   };
-
-  getFirstContacts();
 
   var addAsyncScripts = function addAsyncScripts() {
     var scripts = [
@@ -750,7 +767,7 @@ var Contacts = (function() {
   var checkPendingChanges = function checkPendingChanges(id) {
     var changes = pendingChanges[id];
 
-    if(!changes) {
+    if (!changes) {
       return;
     }
 
@@ -759,7 +776,7 @@ var Contacts = (function() {
     if (pendingChanges[id].length >= 1) {
       performOnContactChange(pendingChanges[id][0]);
     }
-  }
+  };
 
   navigator.mozContacts.oncontactchange = function oncontactchange(event) {
     if (typeof pendingChanges[event.contactID] !== 'undefined') {
@@ -774,13 +791,14 @@ var Contacts = (function() {
       }];
     }
 
-    // If there is already a pending request, don't do anything, just wait to finish it in order
-    if(pendingChanges[event.contactID].length > 1) {
+    // If there is already a pending request, don't do anything,
+    // just wait to finish it in order
+    if (pendingChanges[event.contactID].length > 1) {
       return;
     }
 
     performOnContactChange(event);
-  }
+  };
 
   var performOnContactChange = function performOnContactChange(event) {
     var currView = navigation.currentView();
@@ -790,23 +808,25 @@ var Contacts = (function() {
           currentContact.id == event.contactID) {
           contactsList.getContactById(event.contactID,
             function success(contact, enrichedContact) {
-            currentContact = contact;
-            var mergedContact = enrichedContact || contact;
-            contactsDetails.render(mergedContact, false,
+            currentContact = enrichedContact || contact;
+            contactsDetails.render(currentContact, false,
                                    enrichedContact ? true : false);
-            contactsList.refresh(mergedContact, checkPendingChanges,
-                                 event.reason);
+            contactsList.refresh(currentContact, checkPendingChanges,
+              event.reason);
           });
         } else {
-          contactsList.refresh(event.contactID, checkPendingChanges, event.reason);
+          contactsList.refresh(event.contactID, checkPendingChanges,
+            event.reason);
         }
         break;
       case 'create':
-        contactsList.refresh(event.contactID, checkPendingChanges, event.reason);
+        contactsList.refresh(event.contactID, checkPendingChanges,
+          event.reason);
         break;
       case 'remove':
-        if (currentContact != null && currentContact.id == event.contactID
-          && (currView == 'view-contact-details' || currView == 'view-contact-form')) {
+        if (currentContact != null && currentContact.id == event.contactID &&
+          (currView == 'view-contact-details' ||
+          currView == 'view-contact-form')) {
           navigation.home();
         }
         contactsList.remove(event.contactID, event.reason);
@@ -814,7 +834,7 @@ var Contacts = (function() {
         checkPendingChanges(event.contactID);
         break;
     }
-  }
+  };
 
   return {
     'doneTag': doneTag,
@@ -833,6 +853,8 @@ var Contacts = (function() {
     'setCurrent': setCurrent,
     'getTags': TAG_OPTIONS,
     'onLocalized': onLocalized,
+    'onDOMContentLoaded': onDOMContentLoaded,
+    'init': init,
     'showOverlay': showOverlay,
     'hideOverlay': hideOverlay,
     'showContactDetail': contactListClickHandler,
@@ -843,6 +865,10 @@ var Contacts = (function() {
     'loadFacebook': loadFacebook
   };
 })();
+
+window.addEventListener('DOMContentLoaded', function onDOMContentLoaded() {
+  Contacts.onDOMContentLoaded();
+});
 
 window.addEventListener('localized', function initContacts(evt) {
   window.removeEventListener('localized', initContacts);
