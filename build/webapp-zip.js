@@ -118,6 +118,21 @@ function copyBuildingBlock(zip, blockName, dirName) {
     });
 }
 
+function customizeFiles(zip, src, dest) {
+  // Add customize file to the zip
+  let files = ls(getFile(Gaia.customizeFolder, src));
+  files.forEach(function(file) {
+    let filename = dest + file.leafName;
+    if (zip.hasEntry(filename)) {
+      zip.removeEntry(filename, false);
+    }
+    zip.addEntryFile(filename,
+                    Ci.nsIZipWriter.COMPRESSION_DEFAULT,
+                    file,
+                    false);
+  });
+}
+
 let webappsTargetDir = Cc['@mozilla.org/file/local;1']
                          .createInstance(Ci.nsILocalFile);
 webappsTargetDir.initWithPath(PROFILE_DIR);
@@ -160,6 +175,11 @@ Gaia.webapps.forEach(function(webapp) {
       if (file.leafName !== 'shared' && file.leafName !== 'test')
         addToZip(zip, '/' + file.leafName, file);
     });
+
+  if (webapp.sourceDirectoryName === 'wallpaper' && Gaia.customizeFolder &&
+    getFile(Gaia.customizeFolder, 'wallpapers').exists()) {
+    customizeFiles(zip, 'wallpapers', 'resources/320x480/');
+  }
 
   // Put shared files, but copy only files actually used by the webapp.
   // We search for shared file usage by parsing webapp source code.
@@ -271,6 +291,11 @@ Gaia.webapps.forEach(function(webapp) {
       return;
     }
     addToZip(zip, '/shared/resources/' + path, file);
+
+    if (path === 'media/ringtones/' && Gaia.customizeFolder &&
+      getFile(Gaia.customizeFolder, 'ringtones').exists()) {
+      customizeFiles(zip, 'ringtones', 'shared/resources/media/ringtones/');
+    }
   });
 
   used.styles.forEach(function(name) {
