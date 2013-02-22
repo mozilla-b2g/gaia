@@ -16,6 +16,11 @@ var UssdUI = {
     return this.closeNode = document.getElementById('close');
   },
 
+  get cancelNode() {
+    delete this.cancelNode;
+    return this.cancelNode = document.getElementById('cancel');
+  },
+
   get sendNode() {
     delete this.sendNode;
     return this.sendNode = document.getElementById('send');
@@ -52,6 +57,7 @@ var UssdUI = {
       this._ = _;
       this.updateHeader(window.name);
       this.closeNode.addEventListener('click', this.closeWindow.bind(this));
+      this.cancelNode.addEventListener('click', this.cancel.bind(this));
       this.sendNode.addEventListener('click', this.reply.bind(this));
       this.responseTextResetNode.addEventListener('click',
         this.resetResponse.bind(this));
@@ -66,6 +72,16 @@ var UssdUI = {
     window.opener.postMessage({
       type: 'close'
     }, this._origin);
+
+    window.close();
+  },
+
+  cancel: function uui_cancel() {
+    window.opener.postMessage({
+      type: 'cancel'
+    }, this._origin);
+
+    this.hideLoading();
 
     window.close();
   },

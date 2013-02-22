@@ -6,239 +6,45 @@ define('mailapi/accountcommon',
   [
     'rdcommon/log',
     './a64',
-    './allback',
-    './imap/probe',
-    './smtp/probe',
-    'activesync/protocol',
-    './accountmixins',
-    './imap/account',
-    './smtp/account',
-    './fake/account',
-    './activesync/account',
+    'require',
     'module',
     'exports'
   ],
   function(
     $log,
     $a64,
-    $allback,
-    $imapprobe,
-    $smtpprobe,
-    $asproto,
-    $acctmixins,
-    $imapacct,
-    $smtpacct,
-    $fakeacct,
-    $asacct,
+    require,
     $module,
     exports
   ) {
-const allbackMaker = $allback.allbackMaker;
-
-const PIECE_ACCOUNT_TYPE_TO_CLASS = {
-  'imap': $imapacct.ImapAccount,
-  'smtp': $smtpacct.SmtpAccount,
-  //'gmail-imap': GmailAccount,
-};
-
 
 // The number of milliseconds to wait for various (non-ActiveSync) XHRs to
 // complete during the autoconfiguration process. This value is intentionally
 // fairly large so that we don't abort an XHR just because the network is
 // spotty.
-const AUTOCONFIG_TIMEOUT_MS = 30 * 1000;
+var AUTOCONFIG_TIMEOUT_MS = 30 * 1000;
 
-/**
- * Composite account type to expose account piece types with individual
- * implementations (ex: imap, smtp) together as a single account.  This is
- * intended to be a very thin layer that shields consuming code from the
- * fact that IMAP and SMTP are not actually bundled tightly together.
- */
-function CompositeAccount(universe, accountDef, folderInfo, dbConn,
-                          receiveProtoConn,
-                          _LOG) {
-  this.universe = universe;
-  this.id = accountDef.id;
-  this.accountDef = accountDef;
-
-  // Currently we don't persist the disabled state of an account because it's
-  // easier for the UI to be edge-triggered right now and ensure that the
-  // triggering occurs once each session.
-  this._enabled = true;
-  this.problems = [];
-
-  // XXX for now we are stealing the universe's logger
-  this._LOG = _LOG;
-
-  this.identities = accountDef.identities;
-
-  if (!PIECE_ACCOUNT_TYPE_TO_CLASS.hasOwnProperty(accountDef.receiveType)) {
-    this._LOG.badAccountType(accountDef.receiveType);
-  }
-  if (!PIECE_ACCOUNT_TYPE_TO_CLASS.hasOwnProperty(accountDef.sendType)) {
-    this._LOG.badAccountType(accountDef.sendType);
-  }
-
-  this._receivePiece =
-    new PIECE_ACCOUNT_TYPE_TO_CLASS[accountDef.receiveType](
-      universe, this,
-      accountDef.id, accountDef.credentials, accountDef.receiveConnInfo,
-      folderInfo, dbConn, this._LOG, receiveProtoConn);
-  this._sendPiece =
-    new PIECE_ACCOUNT_TYPE_TO_CLASS[accountDef.sendType](
-      universe, this,
-      accountDef.id, accountDef.credentials,
-      accountDef.sendConnInfo, dbConn, this._LOG);
-
-  // expose public lists that are always manipulated in place.
-  this.folders = this._receivePiece.folders;
-  this.meta = this._receivePiece.meta;
-  this.mutations = this._receivePiece.mutations;
-  this.tzOffset = accountDef.tzOffset;
-}
-exports.CompositeAccount = CompositeAccount;
-CompositeAccount.prototype = {
-  toString: function() {
-    return '[CompositeAccount: ' + this.id + ']';
-  },
-  toBridgeWire: function() {
-    return {
-      id: this.accountDef.id,
-      name: this.accountDef.name,
-      type: this.accountDef.type,
-
-      enabled: this.enabled,
-      problems: this.problems,
-
-      syncRange: this.accountDef.syncRange,
-
-      identities: this.identities,
-
-      credentials: {
-        username: this.accountDef.credentials.username,
-        // no need to send the password to the UI.
-      },
-
-      servers: [
-        {
-          type: this.accountDef.receiveType,
-          connInfo: this.accountDef.receiveConnInfo,
-          activeConns: this._receivePiece.numActiveConns,
-        },
-        {
-          type: this.accountDef.sendType,
-          connInfo: this.accountDef.sendConnInfo,
-          activeConns: this._sendPiece.numActiveConns,
-        }
-      ],
-    };
-  },
-  toBridgeFolder: function() {
-    return {
-      id: this.accountDef.id,
-      name: this.accountDef.name,
-      path: this.accountDef.name,
-      type: 'account',
-    };
-  },
-
-  get enabled() {
-    return this._enabled;
-  },
-  set enabled(val) {
-    this._enabled = this._receivePiece.enabled = val;
-  },
-
-  saveAccountState: function(reuseTrans) {
-    return this._receivePiece.saveAccountState(reuseTrans);
-  },
-
-  /**
-   * Check that the account is healthy in that we can login at all.
-   */
-  checkAccount: function(callback) {
-    // Since we use the same credential for both cases, we can just have the
-    // IMAP account attempt to establish a connection and forget about SMTP.
-    this._receivePiece.checkAccount(callback);
-  },
-
-  /**
-   * Shutdown the account; see `MailUniverse.shutdown` for semantics.
-   */
-  shutdown: function() {
-    this._sendPiece.shutdown();
-    this._receivePiece.shutdown();
-  },
-
-  deleteFolder: function(folderId, callback) {
-    return this._receivePiece.deleteFolder(folderId, callback);
-  },
-
-  sliceFolderMessages: function(folderId, bridgeProxy) {
-    return this._receivePiece.sliceFolderMessages(folderId, bridgeProxy);
-  },
-
-  searchFolderMessages: function(folderId, bridgeHandle, phrase, whatToSearch) {
-    return this._receivePiece.searchFolderMessages(
-      folderId, bridgeHandle, phrase, whatToSearch);
-  },
-
-  syncFolderList: function(callback) {
-    return this._receivePiece.syncFolderList(callback);
-  },
-
-  sendMessage: function(composer, callback) {
-    return this._sendPiece.sendMessage(
-      composer,
-      function(err, errDetails) {
-        // We need to append the message to the sent folder if we think we sent
-        // the message okay and this is not gmail.  gmail automatically crams
-        // the message in the sent folder for us, so if we do it, we're just
-        // going to create duplicates.
-        if (!err && !this._receivePiece.isGmail) {
-          composer.withMessageBuffer({ includeBcc: true }, function(buffer) {
-            var message = {
-              messageText: buffer,
-              // do not specify date; let the server use its own timestamping
-              // since we want the approximate value of 'now' anyways.
-              flags: ['Seen'],
-            };
-
-            var sentFolder = this.getFirstFolderWithType('sent');
-            if (sentFolder)
-              this.universe.appendMessages(sentFolder.id,
-                                           [message]);
-          }.bind(this));
-        }
-        callback(err, errDetails, null);
-      }.bind(this));
-  },
-
-  getFolderStorageForFolderId: function(folderId) {
-    return this._receivePiece.getFolderStorageForFolderId(folderId);
-  },
-
-  runOp: function(op, mode, callback) {
-    return this._receivePiece.runOp(op, mode, callback);
-  },
-
-  ensureEssentialFolders: function(callback) {
-    return this._receivePiece.ensureEssentialFolders(callback);
-  },
-
-  getFirstFolderWithType: $acctmixins.getFirstFolderWithType,
+var Configurators = {
+  'imap+smtp': './composite/configurator',
+  'fake': './fake/configurator',
+  'activesync': './activesync/configurator'
 };
 
-const COMPOSITE_ACCOUNT_TYPE_TO_CLASS = {
-  'imap+smtp': CompositeAccount,
-  'fake': $fakeacct.FakeAccount,
-  'activesync': $asacct.ActiveSyncAccount,
-};
+function accountTypeToClass(type, callback) {
+  var configuratorId = Configurators[type] || null;
 
-function accountTypeToClass(type) {
-  if (!COMPOSITE_ACCOUNT_TYPE_TO_CLASS.hasOwnProperty(type))
-    return null;
-  return COMPOSITE_ACCOUNT_TYPE_TO_CLASS[type];
+  if (typeof configuratorId === 'string') {
+    //A dynamically loaded account.
+    require([configuratorId], function(mod) {
+      callback(mod.account.Account);
+    });
+  } else {
+    // Preserve next turn semantics that happen with
+    // the require call.
+    setTimeout(function () {
+      callback(null);
+    }, 4);
+  }
 }
 exports.accountTypeToClass = accountTypeToClass;
 
@@ -322,385 +128,7 @@ function recreateIdentities(universe, accountId, oldIdentities) {
   }
   return identities;
 }
-
-var Configurators = {};
-Configurators['imap+smtp'] = {
-  tryToCreateAccount: function cfg_is_ttca(universe, userDetails, domainInfo,
-                                           callback, _LOG) {
-    var credentials, imapConnInfo, smtpConnInfo;
-    if (domainInfo) {
-      credentials = {
-        username: domainInfo.incoming.username,
-        password: userDetails.password,
-      };
-      imapConnInfo = {
-        hostname: domainInfo.incoming.hostname,
-        port: domainInfo.incoming.port,
-        crypto: domainInfo.incoming.socketType === 'SSL',
-      };
-      smtpConnInfo = {
-        hostname: domainInfo.outgoing.hostname,
-        port: domainInfo.outgoing.port,
-        crypto: domainInfo.outgoing.socketType === 'SSL',
-      };
-    }
-
-    var self = this;
-    var callbacks = allbackMaker(
-      ['imap', 'smtp'],
-      function probesDone(results) {
-        // -- both good?
-        if (results.imap[0] === null && results.smtp[0] === null) {
-          var account = self._defineImapAccount(
-            universe,
-            userDetails, credentials,
-            imapConnInfo, smtpConnInfo, results.imap[1],
-            results.imap[2]);
-          callback(null, account, null);
-        }
-        // -- either/both bad
-        else {
-          // clean up the imap connection if it was okay but smtp failed
-          if (results.imap[0] === null) {
-            results.imap[1].die();
-            // Failure was caused by SMTP, but who knows why
-            callback(results.smtp[0], null, results.smtp[1]);
-          } else {
-            callback(results.imap[0], null, results.imap[2]);
-          }
-          return;
-        }
-      });
-
-    var imapProber = new $imapprobe.ImapProber(credentials, imapConnInfo,
-                                               _LOG);
-    imapProber.onresult = callbacks.imap;
-
-    var smtpProber = new $smtpprobe.SmtpProber(credentials, smtpConnInfo,
-                                               _LOG);
-    smtpProber.onresult = callbacks.smtp;
-  },
-
-  recreateAccount: function cfg_is_ra(universe, oldVersion, oldAccountInfo,
-                                      callback) {
-    var oldAccountDef = oldAccountInfo.def;
-
-    var credentials = {
-      username: oldAccountDef.credentials.username,
-      password: oldAccountDef.credentials.password,
-    };
-    var accountId = $a64.encodeInt(universe.config.nextAccountNum++);
-    var accountDef = {
-      id: accountId,
-      name: oldAccountDef.name,
-
-      type: 'imap+smtp',
-      receiveType: 'imap',
-      sendType: 'smtp',
-
-      syncRange: oldAccountDef.syncRange,
-
-      credentials: credentials,
-      receiveConnInfo: {
-        hostname: oldAccountDef.receiveConnInfo.hostname,
-        port: oldAccountDef.receiveConnInfo.port,
-        crypto: oldAccountDef.receiveConnInfo.crypto,
-      },
-      sendConnInfo: {
-        hostname: oldAccountDef.sendConnInfo.hostname,
-        port: oldAccountDef.sendConnInfo.port,
-        crypto: oldAccountDef.sendConnInfo.crypto,
-      },
-
-      identities: recreateIdentities(universe, accountId,
-                                     oldAccountDef.identities),
-      // this default timezone here maintains things; but people are going to
-      // need to create new accounts at some point...
-      tzOffset: oldAccountInfo.tzOffset !== undefined ?
-                  oldAccountInfo.tzOffset : -7 * 60 * 60 * 1000,
-    };
-
-    var account = this._loadAccount(universe, accountDef,
-                                    oldAccountInfo.folderInfo);
-    callback(null, account, null);
-  },
-
-  /**
-   * Define an account now that we have verified the credentials are good and
-   * the server meets our minimal functionality standards.  We are also
-   * provided with the protocol connection that was used to perform the check
-   * so we can immediately put it to work.
-   */
-  _defineImapAccount: function cfg_is__defineImapAccount(
-                        universe,
-                        userDetails, credentials, imapConnInfo, smtpConnInfo,
-                        imapProtoConn, tzOffset) {
-    var accountId = $a64.encodeInt(universe.config.nextAccountNum++);
-    var accountDef = {
-      id: accountId,
-      name: userDetails.accountName || userDetails.emailAddress,
-
-      type: 'imap+smtp',
-      receiveType: 'imap',
-      sendType: 'smtp',
-
-      syncRange: 'auto',
-
-      credentials: credentials,
-      receiveConnInfo: imapConnInfo,
-      sendConnInfo: smtpConnInfo,
-
-      identities: [
-        {
-          id: accountId + '/' +
-                $a64.encodeInt(universe.config.nextIdentityNum++),
-          name: userDetails.displayName,
-          address: userDetails.emailAddress,
-          replyTo: null,
-          signature: null
-        },
-      ],
-      tzOffset: tzOffset,
-    };
-
-    return this._loadAccount(universe, accountDef, null, imapProtoConn);
-  },
-
-  /**
-   * Save the account def and folder info for our new (or recreated) account and
-   * then load it.
-   */
-  _loadAccount: function cfg_is__loadAccount(universe, accountDef,
-                                             oldFolderInfo, imapProtoConn) {
-    // XXX: Just reload the old folders when applicable instead of syncing the
-    // folder list again, which is slow.
-    var folderInfo = {
-      $meta: {
-        nextFolderNum: 0,
-        nextMutationNum: 0,
-        lastFolderSyncAt: 0,
-        capability: (oldFolderInfo && oldFolderInfo.$meta.capability) ||
-                    imapProtoConn.capabilities,
-        rootDelim: (oldFolderInfo && oldFolderInfo.$meta.rootDelim) ||
-                   imapProtoConn.delim,
-      },
-      $mutations: [],
-      $mutationState: {},
-    };
-    universe.saveAccountDef(accountDef, folderInfo);
-    return universe._loadAccount(accountDef, folderInfo, imapProtoConn);
-  },
-};
-Configurators['fake'] = {
-  tryToCreateAccount: function cfg_fake_ttca(universe, userDetails, domainInfo,
-                                             callback, _LOG) {
-    var credentials = {
-      username: userDetails.emailAddress,
-      password: userDetails.password,
-    };
-    var accountId = $a64.encodeInt(universe.config.nextAccountNum++);
-    var accountDef = {
-      id: accountId,
-      name: userDetails.accountName || userDetails.emailAddress,
-
-      type: 'fake',
-      syncRange: 'auto',
-
-      credentials: credentials,
-      connInfo: {
-        hostname: 'magic.example.com',
-        port: 1337,
-        crypto: true,
-      },
-
-      identities: [
-        {
-          id: accountId + '/' +
-                $a64.encodeInt(universe.config.nextIdentityNum++),
-          name: userDetails.displayName,
-          address: userDetails.emailAddress,
-          replyTo: null,
-          signature: null
-        },
-      ]
-    };
-
-    var account = this._loadAccount(universe, accountDef);
-    callback(null, account, null);
-  },
-
-  recreateAccount: function cfg_fake_ra(universe, oldVersion, oldAccountInfo,
-                                        callback) {
-    var oldAccountDef = oldAccountInfo.def;
-    var credentials = {
-      username: oldAccountDef.credentials.username,
-      password: oldAccountDef.credentials.password,
-    };
-    var accountId = $a64.encodeInt(universe.config.nextAccountNum++);
-    var accountDef = {
-      id: accountId,
-      name: oldAccountDef.name,
-
-      type: 'fake',
-      syncRange: oldAccountDef.syncRange,
-
-      credentials: credentials,
-      connInfo: {
-        hostname: 'magic.example.com',
-        port: 1337,
-        crypto: true,
-      },
-
-      identities: recreateIdentities(universe, accountId,
-                                     oldAccountDef.identities)
-    };
-
-    var account = this._loadAccount(universe, accountDef);
-    callback(null, account, null);
-  },
-
-  /**
-   * Save the account def and folder info for our new (or recreated) account and
-   * then load it.
-   */
-  _loadAccount: function cfg_fake__loadAccount(universe, accountDef) {
-    var folderInfo = {
-      $meta: {
-        nextMutationNum: 0,
-        lastFolderSyncAt: 0,
-      },
-      $mutations: [],
-      $mutationState: {},
-    };
-    universe.saveAccountDef(accountDef, folderInfo);
-    return universe._loadAccount(accountDef, folderInfo, null);
-  },
-};
-Configurators['activesync'] = {
-  tryToCreateAccount: function cfg_as_ttca(universe, userDetails, domainInfo,
-                                           callback, _LOG) {
-    var credentials = {
-      username: domainInfo.incoming.username,
-      password: userDetails.password,
-    };
-
-    var self = this;
-    var conn = new $asproto.Connection();
-    conn.open(domainInfo.incoming.server, credentials.username,
-              credentials.password);
-    conn.timeout = $asacct.DEFAULT_TIMEOUT_MS;
-
-    conn.connect(function(error, options) {
-      if (error) {
-        // This error is basically an indication of whether we were able to
-        // call getOptions or not.  If the XHR request completed, we get an
-        // HttpError.  If we timed out or an XHR error occurred, we get a
-        // general Error.
-        var failureType,
-            failureDetails = { server: domainInfo.incoming.server };
-
-        if (error instanceof $asproto.HttpError) {
-          if (error.status === 401) {
-            failureType = 'bad-user-or-pass';
-          }
-          else if (error.status === 403) {
-            failureType = 'not-authorized';
-          }
-          // Treat any other errors where we talked to the server as a problem
-          // with the server.
-          else {
-            failureType = 'server-problem';
-            failureDetails.status = error.status;
-          }
-        }
-        else {
-          // We didn't talk to the server, so let's call it an unresponsive
-          // server.
-          failureType = 'unresponsive-server';
-        }
-        callback(failureType, null, failureDetails);
-        return;
-      }
-
-      var accountId = $a64.encodeInt(universe.config.nextAccountNum++);
-      var accountDef = {
-        id: accountId,
-        name: userDetails.accountName || userDetails.emailAddress,
-
-        type: 'activesync',
-        syncRange: 'auto',
-
-        credentials: credentials,
-        connInfo: {
-          server: domainInfo.incoming.server
-        },
-
-        identities: [
-          {
-            id: accountId + '/' +
-                $a64.encodeInt(universe.config.nextIdentityNum++),
-            name: userDetails.displayName || domainInfo.displayName,
-            address: userDetails.emailAddress,
-            replyTo: null,
-            signature: null
-          },
-        ]
-      };
-
-      var account = self._loadAccount(universe, accountDef, conn);
-      callback(null, account, null);
-    });
-  },
-
-  recreateAccount: function cfg_as_ra(universe, oldVersion, oldAccountInfo,
-                                      callback) {
-    var oldAccountDef = oldAccountInfo.def;
-    var credentials = {
-      username: oldAccountDef.credentials.username,
-      password: oldAccountDef.credentials.password,
-    };
-    var accountId = $a64.encodeInt(universe.config.nextAccountNum++);
-    var accountDef = {
-      id: accountId,
-      name: oldAccountDef.name,
-
-      type: 'activesync',
-      syncRange: oldAccountDef.syncRange,
-
-      credentials: credentials,
-      connInfo: {
-        server: oldAccountDef.connInfo.server
-      },
-
-      identities: recreateIdentities(universe, accountId,
-                                     oldAccountDef.identities)
-    };
-
-    var account = this._loadAccount(universe, accountDef, null);
-    callback(null, account, null);
-  },
-
-  /**
-   * Save the account def and folder info for our new (or recreated) account and
-   * then load it.
-   */
-  _loadAccount: function cfg_as__loadAccount(universe, accountDef, protoConn) {
-    // XXX: Just reload the old folders when applicable instead of syncing the
-    // folder list again, which is slow.
-    var folderInfo = {
-      $meta: {
-        nextFolderNum: 0,
-        nextMutationNum: 0,
-        lastFolderSyncAt: 0,
-        syncKey: '0',
-      },
-      $mutations: [],
-      $mutationState: {},
-    };
-    universe.saveAccountDef(accountDef, folderInfo);
-    return universe._loadAccount(accountDef, folderInfo, protoConn);
-  },
-};
+exports.recreateIdentities = recreateIdentities;
 
 /**
  * The Autoconfigurator tries to automatically determine account settings, in
@@ -905,33 +333,38 @@ Autoconfigurator.prototype = {
    */
   _getConfigFromAutodiscover: function getConfigFromAutodiscover(userDetails,
                                                                  callback) {
-    $asproto.autodiscover(userDetails.emailAddress, userDetails.password,
-                          this.timeout, function(error, config) {
-      if (error) {
-        var failureType = 'no-config-info',
-            failureDetails = {};
 
-        if (error instanceof $asproto.HttpError) {
-          if (error.status === 401)
-            failureType = 'bad-user-or-pass';
-          else if (error.status === 403)
-            failureType = 'not-authorized';
-          else
-            failureDetails.status = error.status;
+    var self = this;
+    require([Configurators.activesync], function (configurator) {
+      var protocol = configurator.protocol;
+      protocol.autodiscover(userDetails.emailAddress, userDetails.password,
+                            self.timeout, function(error, config) {
+        if (error) {
+          var failureType = 'no-config-info',
+              failureDetails = {};
+
+          if (error instanceof protocol.HttpError) {
+            if (error.status === 401)
+              failureType = 'bad-user-or-pass';
+            else if (error.status === 403)
+              failureType = 'not-authorized';
+            else
+              failureDetails.status = error.status;
+          }
+          callback(failureType, null, failureDetails);
+          return;
         }
-        callback(failureType, null, failureDetails);
-        return;
-      }
 
-      let autoconfig = {
-        type: 'activesync',
-        displayName: config.user.name,
-        incoming: {
-          server: config.mobileSyncServer.url,
-          username: config.user.email
-        },
-      };
-      callback(null, autoconfig, null);
+        let autoconfig = {
+          type: 'activesync',
+          displayName: config.user.name,
+          incoming: {
+            server: config.mobileSyncServer.url,
+            username: config.user.email
+          },
+        };
+        callback(null, autoconfig, null);
+      });
     });
   },
 
@@ -1070,7 +503,7 @@ Autoconfigurator.prototype = {
     let domain = emailDomainPart.toLowerCase();
     console.log('Attempting to get autoconfiguration for', domain);
 
-    const placeholderFields = {
+    var placeholderFields = {
       incoming: ['username', 'hostname', 'server'],
       outgoing: ['username', 'hostname'],
     };
@@ -1155,9 +588,10 @@ Autoconfigurator.prototype = {
       if (error)
         return callback(error, null, errorDetails);
 
-      var configurator = Configurators[config.type];
-      configurator.tryToCreateAccount(universe, userDetails, config,
+      require([Configurators[config.type]], function (mod) {
+        mod.configurator.tryToCreateAccount(universe, userDetails, config,
                                       callback, self._LOG);
+      });
     });
   },
 };
@@ -1172,16 +606,19 @@ Autoconfigurator.prototype = {
  *        account
  */
 function recreateAccount(universe, oldVersion, accountInfo, callback) {
-  var configurator = Configurators[accountInfo.def.type];
-  configurator.recreateAccount(universe, oldVersion, accountInfo, callback);
+  require([Configurators[accountInfo.def.type]], function (mod) {
+    mod.configurator.recreateAccount(universe, oldVersion,
+                                     accountInfo, callback);
+  });
 }
 exports.recreateAccount = recreateAccount;
 
 function tryToManuallyCreateAccount(universe, userDetails, domainInfo, callback,
                                     _LOG) {
-  var configurator = Configurators[domainInfo.type];
-  configurator.tryToCreateAccount(universe, userDetails, domainInfo, callback,
-                                  _LOG);
+  require([Configurators[domainInfo.type]], function (mod) {
+    mod.configurator.tryToCreateAccount(universe, userDetails, domainInfo,
+                                        callback, _LOG);
+  });
 }
 exports.tryToManuallyCreateAccount = tryToManuallyCreateAccount;
 

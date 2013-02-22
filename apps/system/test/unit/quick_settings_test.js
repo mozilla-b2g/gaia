@@ -43,7 +43,12 @@ suite('quick settings > ', function() {
     navigator.mozL10n = MockL10n;
     realMozMobileConnection = navigator.mozMobileConnection;
     navigator.mozMobileConnection = MockNavigatorMozMobileConnection;
-    realActivity = window.MozActivity;
+    try {
+      realActivity = window.MozActivity;
+    }
+    catch (e) {
+      console.log('Access MozActivity failed, passed realActivity assignment');
+    }
     window.MozActivity = MockMozActivity;
 	});
 
@@ -54,7 +59,9 @@ suite('quick settings > ', function() {
 		navigator.MozMobileConnection = realMozMobileConnection;
 		navigator.mozL10n = realL10n;
 		navigator.mozSettings = realSettings;
-		window.MozActivity = realActivity;
+    if (typeof(realActivity) !== 'undefined') {
+		  window.MozActivity = realActivity;
+    }
 	});
 
 	setup(function() {

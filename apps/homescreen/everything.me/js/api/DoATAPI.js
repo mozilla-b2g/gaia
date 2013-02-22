@@ -77,15 +77,17 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         manualCredentials = Evme.Storage.get(STORAGE_KEY_CREDS);
         
         // make sure our client info cookie is always updated according to phone ettings
-        navigator.mozSettings.addObserver('language.current', function onLanguageChange(e) {
-            self.setClientInfoLocale(e.settingValue);
-        });
-        navigator.mozSettings.addObserver('time.timezone', function onTimeZoneChange(e) {
-            self.setClientInfoTimeZone();
-        });
-        navigator.mozSettings.addObserver('keyboard.current', function onKeyboardLayoutChange(e) {
-            self.setKeyboardLanguage(e.settingValue);
-        });
+        if (navigator.mozSettings) {
+            navigator.mozSettings.addObserver('language.current', function onLanguageChange(e) {
+                self.setClientInfoLocale(e.settingValue);
+            });
+            navigator.mozSettings.addObserver('time.timezone', function onTimeZoneChange(e) {
+                self.setClientInfoTimeZone();
+            });
+            navigator.mozSettings.addObserver('keyboard.current', function onKeyboardLayoutChange(e) {
+                self.setKeyboardLanguage(e.settingValue);
+            });
+        }
         setClientInfoCookie();
         
         self.Session.init();

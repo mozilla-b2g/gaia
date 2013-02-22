@@ -15,8 +15,8 @@
 
 .menu-item::before {
   position: absolute;
-  top: calc((6.2rem - 30px) / 2);
-  left: calc((5.5rem - 30px) / 2);
+  top: calc((6.2rem - 32px) / 2);
+  left: calc((5.5rem - 28px) / 2);
   width: 30px;
   height: 30px;
 

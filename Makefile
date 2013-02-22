@@ -29,6 +29,7 @@ GAIA_DOMAIN?=gaiamobile.org
 DEBUG?=0
 PRODUCTION?=0
 GAIA_OPTIMIZE?=0
+HIDPI?=*
 DOGFOOD?=0
 
 LOCAL_DOMAINS?=1
@@ -383,11 +384,13 @@ define run-js-command
 	const BUILD_APP_NAME = "$(BUILD_APP_NAME)";                                 \
 	const PRODUCTION = "$(PRODUCTION)";                                         \
 	const GAIA_OPTIMIZE = "$(GAIA_OPTIMIZE)";                                   \
+	const HIDPI = "$(HIDPI)";                                     \
 	const DOGFOOD = "$(DOGFOOD)";                                               \
 	const OFFICIAL = "$(MOZILLA_OFFICIAL)";                                     \
 	const GAIA_DEFAULT_LOCALE = "$(GAIA_DEFAULT_LOCALE)";                       \
 	const GAIA_INLINE_LOCALES = "$(GAIA_INLINE_LOCALES)";                       \
 	const GAIA_ENGINE = "xpcshell";                                             \
+	const CUSTOMIZE = "$(realpath $(CUSTOMIZE))";      													\
 	';                                                                          \
 	$(XULRUNNERSDK) $(XPCSHELLSDK) -e "$$JS_CONSTS" -f build/utils.js "build/$(strip $1).js"
 endef
@@ -459,13 +462,21 @@ test-integration:
 
 .PHONY: test-perf
 test-perf:
+	# All echo calls help create a JSON array
 	adb forward tcp:2828 tcp:2828
 	SHARED_PERF=`find tests/performance -name "*_test.js" -type f`; \
+	echo '['; \
 	for app in ${APPS}; \
 	do \
+		if [ -z "$${FIRST_LOOP_ITERATION}" ]; then \
+			FIRST_LOOP_ITERATION=done; \
+		else \
+			echo ','; \
+		fi; \
 		FILES_PERF=`test -d apps/$$app/test/performance && find apps/$$app/test/performance -name "*_test.js" -type f`; \
 		REPORTER=JSONMozPerf ./tests/js/bin/runner $$app $${SHARED_PERF} $${FILES_PERF}; \
-	done;
+	done; \
+	echo ']';
 
 .PHONY: tests
 tests: webapp-manifests offline
@@ -651,7 +662,7 @@ update-offline-manifests:
 # target to update the gaia files and reboot b2g
 TARGET_FOLDER = webapps/$(BUILD_APP_NAME).$(GAIA_DOMAIN)
 APP_NAME = $(shell cat apps/${BUILD_APP_NAME}/manifest.webapp | grep name | head -1 | cut -d '"' -f 4)
-APP_PID = $(shell adb shell b2g-ps | grep '${APP_NAME}' | tr -s '${APP_NAME}' ' ' | tr -s ' ' ' ' | cut -f 3 -d' ')
+APP_PID = $(shell adb shell b2g-ps | grep '^${APP_NAME}' | sed 's/^${APP_NAME}\s*//' | awk '{ print $$2 }')
 install-gaia: profile
 	$(ADB) start-server
 	@echo 'Stopping b2g'
@@ -730,8 +741,14 @@ ifneq ($(TARGET_BUILD_VARIANT),user)
 SETTINGS_ARG += --console
 endif
 
-profile/settings.json: build/settings.py build/wallpaper.jpg
+profile/settings.json:
+ifneq ($(HIDPI),*)
+	python build/settings.py --hidpi build/wallpaper@2x.jpg
+	python build/settings.py $(SETTINGS_ARG) --locale $(GAIA_DEFAULT_LOCALE) --hidpi --homescreen $(SCHEME)homescreen.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --ftu $(SCHEME)communications.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --wallpaper build/wallpaper@2x.jpg --override build/custom-settings.json --output $@
+else
+	python build/settings.py build/wallpaper.jpg
 	python build/settings.py $(SETTINGS_ARG) --locale $(GAIA_DEFAULT_LOCALE) --homescreen $(SCHEME)homescreen.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --ftu $(SCHEME)communications.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --wallpaper build/wallpaper.jpg --override build/custom-settings.json --output $@
+endif
 
 # push profile/settings.json to the phone
 install-settings-defaults: profile/settings.json
@@ -739,7 +756,6 @@ install-settings-defaults: profile/settings.json
 	$(ADB) remount
 	$(ADB) push profile/settings.json /system/b2g/defaults/settings.json
 	$(ADB) shell start b2g
-
 
 # clean out build products
 clean:

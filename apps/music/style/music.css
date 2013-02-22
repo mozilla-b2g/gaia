@@ -364,6 +364,12 @@ body.player-mode #title-player {
   background: transparent;
 }
 
+.tile {
+  background-position: center;
+  background-size: cover;
+  /* We set a background URL here when the thumbnail loads */
+}
+
 .main-tile {
   width: 318px;
   height: 318px;
@@ -391,12 +397,10 @@ body.player-mode #title-player {
   height: 100%;
   opacity: 1;
   background-color: rgba(0 ,0, 0, 0);
-  transition: opacity 166ms ease-in-out,
-              background-color 166ms ease-in-out;
+  transition: background-color 166ms ease-in-out;
 }
 
 .tile-container:active {
-  opacity: 0.3;
   background-color: rgba(0 ,0, 0, 0.5);
 }
 
@@ -439,11 +443,6 @@ body.player-mode #title-player {
   padding: 0.15rem 0.5rem;
   width: calc(100% - 1rem);
   color: rgba(255, 255, 255, 0.8);
-}
-
-.tile-image {
-  position: absolute;
-  pointer-events: none;
 }
 
 .float-left {

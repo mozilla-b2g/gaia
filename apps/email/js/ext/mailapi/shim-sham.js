@@ -2,15 +2,7 @@
  * Do the required global namespace clobbering for our node binding friends.
  **/
 
-define('mailapi/shim-sham',
-  [
-    'buffer',
-  ],
-  function(
-    $buffer
-  ) {
-
-window.Buffer = $buffer.Buffer;
+(function () {
 
 var timeouts = [];
 var messageName = "zero-timeout-message";
@@ -47,5 +39,18 @@ window.process = {
       window.setZeroTimeout(cb);
   }
 };
+
+}());
+
+define('mailapi/shim-sham',
+  [
+    'buffer',
+  ],
+  function(
+    $buffer
+  ) {
+
+window.Buffer = $buffer.Buffer;
+
 
 }); // end define
