@@ -79,7 +79,7 @@
 
     var list = '';
     for (var sound in sounds) {
-      var text = navigator.mozL10n.get(sound.replace('.', '_'));
+      var text = navigator.mozL10n.get(sound.replace('.', '_')) || sound;
       list +=
         '<li>' +
         '  <label>' +
