@@ -17,7 +17,20 @@ function handleOpenActivity(request) {
   if (request.source.data.show_delete_button) {
     toolbar.style.display = 'block';
   }
-
+  
+  var storage = navigator.getDeviceStorage('pictures');
+  storage.addEventListener('change', handleDeviceStorageChange);
+  
+  var availreq = storage.available();
+  availreq.onsuccess = function(e) {
+    switch (e.target.result) {
+      case 'unavailable':
+      	showAlert();
+      }
+  };
+  availreq.onerror = function(e) {
+    showAlert();
+  };
   // display the image
   frame.displayImage(blob);
 
@@ -40,6 +53,19 @@ function handleOpenActivity(request) {
       request = null;
     }
   }
+
+  function showAlert() {
+    window.alert("SD Card removed");
+  }
+  
+  function handleDeviceStorageChange(e) {
+    switch (e.reason) {
+      case 'unavailable':
+        showAlert();
+        break;
+    }
+  }
+
 
   function handleBackButton() {
     done();
