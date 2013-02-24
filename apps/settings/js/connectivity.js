@@ -148,9 +148,16 @@ var Connectivity = (function(window, document, undefined) {
   var dataDesc = document.getElementById('data-desc');
 
   function updateCarrier() {
-    var data = gMobileConnection.data ? gMobileConnection.data.network : null;
-    var voice = gMobileConnection.voice ? gMobileConnection.voice.network : null;
-    var icc = gMobileConnection.iccInfo ? gMobileConnection.iccInfo : null;
+    if (!_initialized) {
+      init();
+      return; // init will call updateCarrier()
+    }
+
+    var mobileConnection = getMobileConnection();
+
+    var data = mobileConnection.data ? mobileConnection.data.network : null;
+    var voice = mobileConnection.voice ? mobileConnection.voice.network : null;
+    var icc = mobileConnection.iccInfo ? mobileConnection.iccInfo : null;
     var name = data ? (data.shortName || data.longName) : '';
     var netmnc = data ? data.mnc : '00';
     var netmcc = data ? data.mcc : '000';
@@ -170,13 +177,6 @@ var Connectivity = (function(window, document, undefined) {
     document.getElementById('msisdn-desc').textContent = msisdn;
     document.getElementById('netid-desc').textContent = netmcc + "" + netmnc;
     document.getElementById('simid-desc').textContent = simmcc + "" + simmnc;
-
-    if (!_initialized) {
-      init();
-      return; // init will call updateCarrier()
-    }
-
-    var mobileConnection = getMobileConnection();
 
     var setCarrierStatus = function(msg) {
       var operator = msg.operator || '';
