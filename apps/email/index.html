@@ -395,6 +395,9 @@
           <h1 class="sup-account-header-label"
               data-l10n-id="setup-account-header3">NeW AccounT</h1>
         </header>
+        <header>
+          <h2 data-l10n-id="setup-info-header">Your login information</h2>
+        </header>
         <div class="scrollregion-below-header">
           <div class="sup-error-region collapsed">
             <div class="sup-error-message"></div>
@@ -422,11 +425,17 @@
                      required />
               <button type="reset"></button>
             </p>
+            <p class="sup-form-info-message" data-l10n-id="setup-info-message">
+              Touch "next" to continue, or, if you know all of your server's details, you can manually set up the account:
+            </p>
+            <ul>
+              <li>
+                <a href="#" role="button" class="sup-manual-config-btn" data-l10n-id="setup-manual-config2">
+                  ManuaL SetuP
+                </a>
+             </li>
+            </ul>
           </form>
-          <a href="#" class="sup-manual-config-btn sup-form-link"
-                  data-l10n-id="setup-manual-config2">
-            ManuaL SetuP
-          </a>
         </div>
       </section>
       <!-- I am setting up your account, please wait or read errors! -->
@@ -1039,7 +1048,7 @@
           <h1 data-l10n-id="compose-sending-message">Sending messagE</h1>
           <p style="text-align: center">
             <progress></progress>
-          </p>   
+          </p>
         </section>
       </form>
     </div>
