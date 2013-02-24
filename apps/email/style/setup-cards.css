@@ -1,7 +1,3 @@
-section[role="region"].skin-organic {
-  background: url("images/pattern.png") repeat left top #ffffff;
-}
-
 /* Make it so that invalid input areas only show up as red when they're focused.
    This keeps the redness to a minimum in the setup cards. */
 
@@ -21,7 +17,19 @@ input:focus:invalid {
 
 
 .sup-form {
-  margin: 1rem 2rem;
+  margin: 1.5rem;
+}
+
+.sup-form ul {
+  height: auto;
+  padding: 0;
+  margin: 0;
+}
+
+.sup-form li {
+  height: auto !important;
+  margin: 0 !important;
+  border: none !important;
 }
 
 .sup-manual-prompt {
@@ -43,11 +51,17 @@ input:focus:invalid {
   width: calc(100% - 6rem);
 }
 
-.sup-form-link {
-  color: black;
+.sup-form-info-message {
+  margin-top: 1.5rem;
+  padding: 1.3rem 1.5rem 0.5rem;
   font-size: 1.4rem;
-  line-height: 3.8rem;
-  margin: 1.5rem 3rem;
+  font-weight: lighter;
+  line-height: 1.7rem;
+  border-top: 0.1rem solid #bdbdbb;
+}
+
+.sup-manual-config-btn[role="button"] {
+  text-align: center;
 }
 
 .sup-error-region {
