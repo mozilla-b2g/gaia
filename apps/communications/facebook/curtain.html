@@ -21,7 +21,7 @@
   </head>
 
   <body role="application">
-    <section id="curtain" role="region">
+    <section id="curtain">
       <form role="dialog" data-type="confirm">
 
         <!-- Progress activity card -->
@@ -29,25 +29,25 @@
           <h1 id="progressTitle"></h1>
           <p role="status">
             <span id="progressMsg"></span>
-            <progress id="progressElement" value="0" max="100"></progress>
+            <progress id="progressElement" class="pack-activity" value="0" max="100"></progress>
           </p>
         </section>
 
         <!-- Message card -->
         <section id="message">
           <h1 id="messageMsg"></h1>
-          <p data-l10n-id="message2">This may take a couple of minutes</p>
           <p role="status">
-            <progress class="small"></progress>
+            <span></span>
+            <progress class="pack-activity" max="100" value="0"></progress>
           </p>
         </section>
 
         <!-- Waiting card -->
         <section id="wait">
           <h1 id="waitMsg" data-l10n-id="wait1">Please wait</h1>
-          <p data-l10n-id="wait2">This may take a couple of minutes</p>
           <p role="status">
-            <progress class="small"></progress>
+            <span></span>
+            <progress class="pack-activity" max="100" value="0"></progress>
           </p>
         </section>
 

@@ -23,11 +23,8 @@ var CostControlApp = (function() {
     // SIM is absent
     if (mobileConnection.cardState === 'absent') {
       debug('There is no SIM');
-      document.getElementById('no-sim-info-dialog')
-        .addEventListener('click', function _close() {
-        window.close();
-      });
-      vmanager.changeViewTo('no-sim-info-dialog');
+      alert(_('widget-no-sim2-heading') + '\n' + _('widget-no-sim2-meta'));
+      window.close();
 
     // SIM is not ready
     } else if (mobileConnection.cardState !== 'ready') {
@@ -64,7 +61,7 @@ var CostControlApp = (function() {
   function setupApp() {
     // View managers for dialogs and settings
     tabmanager = new ViewManager(
-      ['balance-tab', 'telephony-tab', 'datausage-tab']
+      ['balance-tab', 'telephony-tab', { id:'datausage-tab', tab:'right' }]
     );
     settingsVManager = new ViewManager();
 
@@ -146,6 +143,9 @@ var CostControlApp = (function() {
       case 'zeroBalance':
         tabmanager.changeViewTo('balance-tab');
         break;
+      case 'dataUsage':
+        tabmanager.changeViewTo('datausage-tab');
+        break;
     }
   }
 
@@ -199,8 +199,11 @@ var CostControlApp = (function() {
   }
 
   return {
-    showBalanceTab: function _showBalanceTab () {
+    showBalanceTab: function _showBalanceTab() {
       tabmanager.changeViewTo('balance-tab');
+    },
+    showDataUsageTab: function _showDataUsageTab() {
+      tabmanager.changeViewTo('datausage-tab');
     }
   };
 

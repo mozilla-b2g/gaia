@@ -454,11 +454,25 @@ suite('system/AppInstallManager >', function() {
   suite('duringInstall >', function() {
     var mockApp, mockAppName;
 
-    function dispatchEvent() {
-      var e = new CustomEvent('applicationinstall', {
-        detail: { application: mockApp }
+    function dispatchEvent(name, app) {
+      app = app || mockApp;
+
+      var e = new CustomEvent(name, {
+        detail: { application: app }
       });
       window.dispatchEvent(e);
+    }
+
+    var dispatchInstallEvent = dispatchEvent.bind(null, 'applicationinstall');
+
+    function dispatchUninstallEvent() {
+      var evtName = 'applicationuninstall';
+      var partialApp = {
+        manifestURL: mockApp.manifestURL,
+        origin: mockApp.origin
+      };
+
+      dispatchEvent(evtName, partialApp);
     }
 
     suite('hosted app without cache >', function() {
@@ -476,7 +490,7 @@ suite('system/AppInstallManager >', function() {
           installState: 'installed'
         });
         MockSystemBanner.mTeardown();
-        dispatchEvent();
+        dispatchInstallEvent();
       });
 
       test('should not show the icon', function() {
@@ -637,7 +651,7 @@ suite('system/AppInstallManager >', function() {
           installState: 'pending'
         });
         MockSystemBanner.mTeardown();
-        dispatchEvent();
+        dispatchInstallEvent();
       });
 
       function downloadEventsSuite(afterError) {
@@ -694,6 +708,11 @@ suite('system/AppInstallManager >', function() {
               assert.equal('wifi', MockNavigatorWakeLock.mLastWakeLock.topic);
               assert.isTrue(MockNavigatorWakeLock.mLastWakeLock.released);
             });
+
+            test('should display a confirmation', function() {
+              assert.equal(MockSystemBanner.mMessage,
+              'app-install-success{"appName":"' + mockAppName + '"}');
+            });
           });
 
           test('on downloadsuccess > should remove only its progress handler',
@@ -706,13 +725,6 @@ suite('system/AppInstallManager >', function() {
             mockApp.mTriggerDownloadSuccess();
             mockApp.mTriggerDownloadProgress(10);
             assert.isTrue(onprogressCalled);
-          });
-
-          test('on downloadsuccess > should display a confirmation',
-          function() {
-            mockApp.mTriggerDownloadSuccess();
-            assert.equal(MockSystemBanner.mMessage,
-            'app-install-success{"appName":"' + mockAppName + '"}');
           });
 
           suite('on indeterminate progress >', function() {
@@ -738,6 +750,23 @@ suite('system/AppInstallManager >', function() {
               assert.equal(progressNode.position, -1);
               assert.equal(progressNode.textContent,
                 'downloadingAppProgressNoMax{"progress":"10.00 bytes"}');
+            });
+          });
+
+          suite('on uninstall >', function() {
+            setup(function() {
+              dispatchUninstallEvent();
+            });
+
+            test('should remove the notif', function() {
+              var method = 'decExternalNotifications';
+              assert.equal(fakeNotif.childElementCount, 0);
+              assert.ok(MockNotificationScreen.wasMethodCalled[method]);
+            });
+
+            test('should release the wifi wake lock', function() {
+              assert.equal('wifi', MockNavigatorWakeLock.mLastWakeLock.topic);
+              assert.isTrue(MockNavigatorWakeLock.mLastWakeLock.released);
             });
           });
 
@@ -767,7 +796,7 @@ suite('system/AppInstallManager >', function() {
           installState: 'pending'
         });
 
-        dispatchEvent();
+        dispatchInstallEvent();
       });
 
 
@@ -836,6 +865,10 @@ suite('system/AppInstallManager >', function() {
               assert.isTrue(MockNavigatorWakeLock.mLastWakeLock.released);
             });
 
+            test('should display a confirmation', function() {
+              assert.equal(MockSystemBanner.mMessage,
+              'app-install-success{"appName":"' + mockAppName + '"}');
+            });
           });
 
           test('on downloadsuccess > ' +
@@ -844,13 +877,6 @@ suite('system/AppInstallManager >', function() {
             MockNavigatorWakeLock.mThrowAtNextUnlock();
             mockApp.mTriggerDownloadSuccess();
             assert.ok(true);
-          });
-
-          test('on downloadsuccess > should display a confirmation',
-          function() {
-            mockApp.mTriggerDownloadSuccess();
-            assert.equal(MockSystemBanner.mMessage,
-            'app-install-success{"appName":"' + mockAppName + '"}');
           });
 
           test('on indeterminate progress > ' +
@@ -879,6 +905,23 @@ suite('system/AppInstallManager >', function() {
               assert.equal(progressNode.textContent,
                 'downloadingAppProgress{"progress":"10.00 bytes",' +
                 '"max":"5.00 MB"}');
+            });
+          });
+
+          suite('on uninstall >', function() {
+            setup(function() {
+              dispatchUninstallEvent();
+            });
+
+            test('should remove the notif', function() {
+              var method = 'decExternalNotifications';
+              assert.equal(fakeNotif.childElementCount, 0);
+              assert.ok(MockNotificationScreen.wasMethodCalled[method]);
+            });
+
+            test('should release the wifi wake lock', function() {
+              assert.equal('wifi', MockNavigatorWakeLock.mLastWakeLock.topic);
+              assert.isTrue(MockNavigatorWakeLock.mLastWakeLock.released);
             });
           });
 
@@ -913,7 +956,7 @@ suite('system/AppInstallManager >', function() {
       setup(function() {
         mockApp = new MockApp({ installState: 'pending' });
         MockApplications.mRegisterMockApp(mockApp);
-        dispatchEvent();
+        dispatchInstallEvent();
         mockApp.mTriggerDownloadProgress(10);
       });
 

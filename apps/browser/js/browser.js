@@ -302,15 +302,11 @@ var Browser = {
           this.setUrlButtonMode(this.REFRESH);
         }
 
-        // We capture screenshots for everything when loading is
-        // completed, but set background tabs inactive
+        // Capture screenshot for tab thumbnail
         if (tab.dom.getScreenshot) {
           tab.dom.getScreenshot(this.MAX_THUMBNAIL_WIDTH,
             this.MAX_THUMBNAIL_HEIGHT).onsuccess = (function(e) {
             tab.screenshot = e.target.result;
-            if (!isCurrentTab) {
-              this.setTabVisibility(tab, false);
-            }
             if (this.currentScreen === this.TABS_SCREEN) {
               this.showTabScreen();
             }
@@ -566,7 +562,8 @@ var Browser = {
 
     // No protocol, could be a search term
     if (this.isNotURL(input)) {
-      return 'http://' + this.DEFAULT_SEARCH_PROVIDER_URL + '/search?q=' + input;
+      return 'http://' + this.DEFAULT_SEARCH_PROVIDER_URL +
+        '/search?q=' + input;
     }
 
     // No scheme, prepend basic protocol and return
@@ -1141,18 +1138,26 @@ var Browser = {
       }
     }
 
-    // We put loading tabs off screen as we want to screenshot
-    // them when loaded
-    if (tab.loading && !visible) {
-      tab.dom.style.top = '-999px';
-      return;
-    }
-
-    if (tab.dom.setVisible)
-      tab.dom.setVisible(visible);
-
+    this.setVisibleWrapper(tab, visible);
     tab.dom.style.display = visible ? 'block' : 'none';
     tab.dom.style.top = '0px';
+  },
+
+  // dom.setVisible is loaded asynchronously from BrowserElementChildPreload
+  // and may require a yield before we call it, we want to make sure to
+  // clear any previous call
+  setVisibleWrapper: function(tab, visible) {
+    if (tab.setVisibleTimeout) {
+      clearTimeout(tab.setVisibleTimeout);
+    }
+    if (tab.dom.setVisible) {
+      tab.dom.setVisible(visible);
+      return;
+    }
+    tab.setVisibleTimeout = setTimeout(function() {
+      if (tab.dom.setVisible)
+        tab.dom.setVisible(visible);
+    });
   },
 
   bindBrowserEvents: function browser_bindBrowserEvents(iframe, tab) {
@@ -1199,8 +1204,9 @@ var Browser = {
       };
     }
 
+    // Default newly created frames to the background
+    this.setVisibleWrapper(tab, false);
     this.bindBrowserEvents(iframe, tab);
-
     this.tabs[tab.id] = tab;
     this.frames.appendChild(iframe);
     return tab.id;
@@ -1590,8 +1596,6 @@ var Browser = {
 
       this.tab.classList.add('active');
       this.tab.style.MozTransition = '';
-      this.tab.style.position = 'absolute';
-      this.tab.style.width = e.target.parentNode.clientWidth + 'px';
     },
 
     pan: function tabSwipe_pan(e) {
@@ -1689,6 +1693,8 @@ var Browser = {
     switch (activity.source.data.type) {
       case 'url':
         var url = this.getUrlFromInput(activity.source.data.url);
+        if (this.currentTab)
+          this.hideCurrentTab();
         this.selectTab(this.createTab(url));
         this.showPageScreen();
         break;

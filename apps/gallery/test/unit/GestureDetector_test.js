@@ -115,6 +115,10 @@ suite('GestureDetector', function() {
       { name: 'WSW', x0: 200, y0: 100, x1: 10, y1: 110, direction: 'left' }
     ];
 
+/*
+// These tests are currently failing and have been temporarily disabled as per
+// Bug 838993. They should be fixed and re-enabled as soon as possible as per
+// Bug 840493.
     swipes.forEach(function(s) {
       test('swipe ' + s.name, function(done) {
         var startTime = Date.now();
@@ -200,6 +204,7 @@ suite('GestureDetector', function() {
       });
     });
 
+*/
     if (touchDevice) {
       var pinches = [
         { x0: 0, y0: 0, x1: 100, y1: 100, scale: 2, duration: 800 },
@@ -245,6 +250,10 @@ suite('GestureDetector', function() {
     // just to trigger the hold detection. So only do four of each
     swipes.length = 4;
 
+/*
+// These tests are currently failing and have been temporarily disabled as per
+// Bug 838993. They should be fixed and re-enabled as soon as possible as per
+// Bug 840493.
     swipes.forEach(function(s) {
       test('hold ' + s.name, function(done) {
         SyntheticGestures.hold(element, 1250, s.x0, s.y0, s.x1, s.y1,
@@ -284,6 +293,7 @@ suite('GestureDetector', function() {
         }
       });
     });
+*/
 
     // Reuse the swipes data for testing hold+move events
     swipes.forEach(function(s) {

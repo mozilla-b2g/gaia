@@ -114,6 +114,7 @@ input[type="image"] {
   height: 65px;
   -moz-user-select: none;
   padding: 10px;
+  position: relative;
 }
 
 #tabs-list li {
@@ -123,6 +124,7 @@ input[type="image"] {
   font-family: 'MozTT', sans-serif;
   overflow: hidden;
   position: relative;
+  width: 100%;
 }
 
 #tabs-list li a.active {
@@ -159,7 +161,7 @@ input[type="image"] {
   font-family: 'MozTT', sans-serif;
   border: 0px;
   position: absolute;
-  right: 0px;
+  right: 5px;
   height: 100%;
   width: 50px;
   top: 0;

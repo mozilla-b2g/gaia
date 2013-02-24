@@ -132,11 +132,6 @@ h2.block-title {
   display: none;
 }
 
-.link #main {
-  top: 7.7rem;
-  height: calc(100% - 7.7rem);
-}
-
 .link #mainContent {
   padding: 0 3.3rem 0 2.5rem; /* 2.5+0.8 for offset scrollbar */
 }
@@ -176,8 +171,6 @@ abbr, acronym {
 /* JUMPER */
 
 nav[data-type="scrollbar"] {
-  height: calc(100% - 6.6rem - 6.5rem);
-  background: transparent !important;
   z-index:100;
 }
 
@@ -204,16 +197,4 @@ li[data-uuid]{
 
 li[data-uuid]:last-child {
   border-bottom: none !important;
-}
-
-#statusMsg {
-  position: fixed;
-  -moz-transition: -moz-transform .5s ease;
-  -moz-transform: translateY(8rem);
-  pointer-events: none;
-}
-
-#statusMsg.visible {
-  -moz-transform: translateY(0);
-  z-index: 1001;
 }

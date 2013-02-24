@@ -8,6 +8,7 @@
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "permissions": {
+    "device-storage:pictures":{ "access": "readwrite" },
     "device-storage:videos":{ "access": "readwrite" },
     "settings":{ "access": "readonly" },
     "deprecated-hwvideo":{},

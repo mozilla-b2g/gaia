@@ -8,8 +8,7 @@ const GridManager = (function() {
   var container;
 
   var windowWidth = window.innerWidth;
-  var panningThreshold = window.innerWidth / 4;
-  var tapThreshold = Page.prototype.tapThreshold;
+  var panningThreshold = window.innerWidth / 4, tapThreshold;
 
   var dragging = false;
 
@@ -45,18 +44,38 @@ const GridManager = (function() {
                      function(e) { return e.pageX };
   })();
 
+  function addActive(target) {
+    if ('isIcon' in target.dataset) {
+      target.classList.add('active');
+      removeActive = function _removeActive() {
+        target.classList.remove('active');
+      }
+    } else {
+      removeActive = function() {};
+    }
+  }
+
+  var removeActive = function() {};
+
   function handleEvent(evt) {
     switch (evt.type) {
       case touchstart:
+        if (currentPage || numberOfSpecialPages === 1)
+          evt.stopPropagation();
         touchStartTimestamp = evt.timeStamp;
         startEvent = isTouch ? evt.touches[0] : evt;
         deltaX = 0;
         attachEvents();
         removePanHandler = dummy;
         isPanning = false;
+        addActive(evt.target);
         break;
 
       case touchmove:
+        if (evt.preventPanning === true) {
+          return;
+        }
+
         // Start panning immediately but only disable
         // the tap when we've moved far enough.
         deltaX = getX(evt) - startEvent.pageX;
@@ -88,7 +107,6 @@ const GridManager = (function() {
         next.MozTransition = '';
         next.MozTransform = 'translateX(' + windowWidth + 'px)';
 
-        var translate = 'translateX($px)';
         var startX = startEvent.pageX;
         var forward = deltaX > 0;
 
@@ -96,42 +114,42 @@ const GridManager = (function() {
         if (index === 0) {
           refresh = function(e) {
             if (deltaX <= 0) {
-              next.MozTransform = translate.replace('$', windowWidth + deltaX);
-              current.MozTransform = translate.replace('$', deltaX);
+              next.MozTransform = 'translateX(' + (windowWidth + deltaX) + 'px)';
+              current.MozTransform = 'translateX(' + deltaX + 'px)';
             }
           };
         } else if (index === pages.length - 1) {
           refresh = function(e) {
             if (deltaX >= 0) {
               previous.MozTransform =
-                translate.replace('$', -windowWidth + deltaX);
-              current.MozTransform = translate.replace('$', deltaX);
+                'translateX(' + (-windowWidth + deltaX) + 'px)';
+              current.MozTransform = 'translateX(' + deltaX + 'px)';
             }
           };
         } else {
           refresh = function(e) {
             if (deltaX >= 0) {
               previous.MozTransform =
-                translate.replace('$', -windowWidth + deltaX);
+                'translateX(' + (-windowWidth + deltaX) + 'px)';
 
               // If we change direction make sure there isn't any part
               // of the page on the other side that stays visible.
               if (!forward) {
                 forward = true;
-                next.MozTransform = translate.replace('$', windowWidth);
+                next.MozTransform = 'translateX(' + windowWidth + 'px)';
               }
             } else {
-              next.MozTransform = translate.replace('$', windowWidth + deltaX);
+              next.MozTransform = 'translateX(' + (windowWidth + deltaX) + 'px)';
 
               // If we change direction make sure there isn't any part
               // of the page on the other side that stays visible.
               if (forward) {
                 forward = false;
-                previous.MozTransform = translate.replace('$', -windowWidth);
+                previous.MozTransform = 'translateX(' + (-windowWidth) + 'px)';
               }
             }
 
-            current.MozTransform = translate.replace('$', deltaX);
+            current.MozTransform = 'translateX(' + deltaX + 'px)';
           };
         }
 
@@ -171,6 +189,7 @@ const GridManager = (function() {
 
           window.mozRequestAnimationFrame(function panTouchEnd() {
             onTouchEnd(deltaX, e);
+            removeActive();
           });
         };
 
@@ -182,6 +201,7 @@ const GridManager = (function() {
       case touchend:
         releaseEvents();
         pageHelper.getCurrent().tap(evt.target);
+        removeActive();
         break;
 
       case 'contextmenu':
@@ -194,6 +214,7 @@ const GridManager = (function() {
           evt.stopImmediatePropagation();
           removePanHandler();
           Homescreen.setMode('edit');
+          removeActive();
           DragDropManager.start(evt, {
             'x': startEvent.pageX,
             'y': startEvent.pageY
@@ -223,9 +244,11 @@ const GridManager = (function() {
 
   function onTouchEnd(deltaX, evt) {
     var page = currentPage;
-    /* Bigger than panning threshold or fast gesture */
+    // If movement over 25% of the screen size or
+    // fast movement over threshold for tapping, then swipe
     if (Math.abs(deltaX) > panningThreshold ||
-        touchEndTimestamp - touchStartTimestamp < kPageTransitionDuration) {
+        (Math.abs(deltaX) > tapThreshold &&
+        touchEndTimestamp - touchStartTimestamp < kPageTransitionDuration)) {
       var forward = dirCtrl.goesForward(deltaX);
       if (forward && currentPage < pages.length - 1) {
         page = page + 1;
@@ -310,36 +333,31 @@ const GridManager = (function() {
     updatePaginationBar();
 
     if (previousPage === newPage) {
-      var borderingPagesToBeTranslated = false;
+      if (newPage.container.getBoundingClientRect().left !== 0) {
+        // Pages are translated in X
+        if (index > 0) {
+          pages[index - 1].moveByWithEffect(-windowWidth, duration);
+        }
 
-      if (index > 0 && pages[index - 1].container.style.display === 'block') {
-        // Previous one displayed
-        pages[index - 1].moveByWithEffect(-windowWidth, duration);
-        borderingPagesToBeTranslated = true;
-      }
+        newPage.moveByWithEffect(0, duration);
 
-      newPage.moveByWithEffect(0, duration);
+        if (index < pages.length - 1) {
+          pages[index + 1].moveByWithEffect(windowWidth, duration);
+        }
 
-      if (index < pages.length - 1 &&
-          pages[index + 1].container.style.display === 'block') {
-        // Next one displayed
-        pages[index + 1].moveByWithEffect(windowWidth, duration);
-        borderingPagesToBeTranslated = true;
-      }
-
-      if (borderingPagesToBeTranslated) {
         container.addEventListener('transitionend', function transitionEnd(e) {
           container.removeEventListener('transitionend', transitionEnd);
           goToPageCallback();
         });
       } else {
+        // Swipe from rigth to left on the last page on the grid
         goToPageCallback();
       }
 
       return;
-    } else {
-      togglePagesVisibility(start, end);
     }
+
+    togglePagesVisibility(start, end);
 
     // Force a reflow otherwise the newPage appears immediately because it is
     // still considered display: none;
@@ -421,6 +439,8 @@ const GridManager = (function() {
   }
 
   function removeEmptyPages() {
+    var oldCurrentPage = currentPage;
+
     pages.forEach(function checkIsEmpty(page, index) {
       // ignore the landing page
       if (index < numberOfSpecialPages) {
@@ -433,6 +453,10 @@ const GridManager = (function() {
           currentPage -= 1;
       }
     });
+
+    // If the current page index changes we have to go to that page
+    if (oldCurrentPage > currentPage)
+      goToPage(currentPage);
   }
 
   /*
@@ -896,9 +920,10 @@ const GridManager = (function() {
      *                 Specifies the HTML container element for the pages.
      *
      */
-    init: function gm_init(gridSelector, dockSelector, callback) {
+    init: function gm_init(gridSelector, dockSelector, pTapThreshold, callback) {
       initUI(gridSelector);
 
+      tapThreshold = pTapThreshold;
       // Initialize the grid from the state saved in IndexedDB.
       HomeState.init(function eachPage(pageState) {
         // First 'page' is the dock.
@@ -906,7 +931,7 @@ const GridManager = (function() {
           var dockContainer = document.querySelector(dockSelector);
           var dock = new Dock(dockContainer,
             convertDescriptorsToIcons(pageState));
-          DockManager.init(dockContainer, dock);
+          DockManager.init(dockContainer, dock, tapThreshold);
           return;
         }
         pageHelper.addPage(convertDescriptorsToIcons(pageState));
@@ -916,7 +941,7 @@ const GridManager = (function() {
       }, function onError(error) {
         var dockContainer = document.querySelector(dockSelector);
         var dock = new Dock(dockContainer, []);
-        DockManager.init(dockContainer, dock);
+        DockManager.init(dockContainer, dock, tapThreshold);
         initApps();
         callback();
       });

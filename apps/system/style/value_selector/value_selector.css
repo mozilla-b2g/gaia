@@ -4,6 +4,13 @@
   top: 20px;
   left: 0;
   position: absolute;
+  transition: opacity 0.5s;
+  display: block;
+}
+
+#value-selector[hidden] {
+  opacity: 0;
+  pointer-events: none;
 }
 
 #screen.active-statusbar #value-selector {

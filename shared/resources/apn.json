@@ -96,13 +96,13 @@
     {"carrier":"WEB La Poste Mobile","proxy":"192.168.21.3","port":"8080","apn":"wapdebitel","type":["default","supl"]},
     {"carrier":"MMS La Poste Mobile","mmsc":"http://mmsdebitel","mmsproxy":"10.143.156.3","mmsport":"8080","apn":"mmsdebitel","type":["mms"]}
   ],
-  "20": [
-    {"carrier":"Bouygues Telecom","apn":"mmsbouygtel.com","mmsc":"http://mms.bouyguestelecom.fr/mms/wapenc","mmsproxy":"62.201.129.226","mmsport":"8080","type":["default","supl","mms"]},
-    {"voicemail":"660","type":["operatorvariant"]}
-  ],
   "15": [
     {"carrier":"Free","apn":"free","type":["default","supl"]},
     {"carrier":"Free MMS","mmsc":"http://mms.free.fr","apn":"mmsfree","type":["mms"]}
+  ],
+  "20": [
+    {"carrier":"Bouygues Telecom","apn":"mmsbouygtel.com","mmsc":"http://mms.bouyguestelecom.fr/mms/wapenc","mmsproxy":"62.201.129.226","mmsport":"8080","type":["default","supl","mms"]},
+    {"voicemail":"660","type":["operatorvariant"]}
   ]
 },
 "214": {
@@ -434,10 +434,6 @@
     {"voicemail":"*133#","type":["operatorvariant"]},
     {"carrier":"Telia SE WAP","apn":"online.telia.se","proxy":"10.254.254.254","port":"8080","type":["default","supl"]}
   ],
-  "17": [
-    {"carrier":"Halebop Internet","apn":"halebop.telia.se","type":["default","supl"]},
-    {"carrier":"Halebop MMS","apn":"mms.telia.se","user":"mms","password":"telia","mmsc":"http://mmss","mmsproxy":"193.209.134.132","mmsport":"9201","type":["mms"]}
-  ],
   "2": [
     {"carrier":"3","apn":"data.tre.se","mmsc":"http://mms.tre.se","mmsproxy":"mmsproxy.tre.se","mmsport":"8799","type":["default","supl","mms"]}
   ],
@@ -466,6 +462,10 @@
   "10": [
     {"carrier":"Spring data","apn":"data.springmobil.se","type":["default","supl"]},
     {"carrier":"Spring MMS","apn":"mms.springmobil.se","mmsc":"http://mms.springmobil.se","mmsproxy":"213.88.184.37","mmsport":"8080","type":["mms"]}
+  ],
+  "17": [
+    {"carrier":"Halebop Internet","apn":"halebop.telia.se","type":["default","supl"]},
+    {"carrier":"Halebop MMS","apn":"mms.telia.se","user":"mms","password":"telia","mmsc":"http://mmss","mmsproxy":"193.209.134.132","mmsport":"9201","type":["mms"]}
   ]
 },
 "242": {
@@ -580,13 +580,13 @@
     {"carrier":"Megafon Internet","apn":"internet","user":"gdata","password":"gdata","type":["default","supl"]},
     {"carrier":"Megafon MMS","apn":"mms","user":"mms","password":"mms","mmsc":"http://mmsc:8002","mmsproxy":"10.10.10.10","mmsport":"8080","type":["mms"]}
   ],
-  "99": [
-    {"carrier":"Beeline Internet","apn":"internet.beeline.ru","user":"beeline","password":"beeline","type":["default","supl"]},
-    {"carrier":"Beeline MMS","apn":"mms.beeline.ru","user":"beeline","password":"beeline","mmsc":"http://mms/","mmsproxy":"192.168.94.23","mmsport":"8080","type":["mms"]}
-  ],
   "20": [
     {"carrier":"TELE2 Internet","apn":"internet.tele2.ru","type":["default","supl"]},
     {"carrier":"TELE2 MMS","apn":"mms.tele2.ru","mmsc":"http://mmsc.tele2.ru","mmsproxy":"193.12.40.65","mmsport":"8080","type":["mms"]}
+  ],
+  "99": [
+    {"carrier":"Beeline Internet","apn":"internet.beeline.ru","user":"beeline","password":"beeline","type":["default","supl"]},
+    {"carrier":"Beeline MMS","apn":"mms.beeline.ru","user":"beeline","password":"beeline","mmsc":"http://mms/","mmsproxy":"192.168.94.23","mmsport":"8080","type":["mms"]}
   ]
 },
 "255": {
@@ -644,7 +644,8 @@
 },
 "262": {
   "1": [
-    {"carrier":"T-Mobile Internet","apn":"internet.t-mobile","user":"t-mobile","password":"tm","mmsc":"http://mms.t-mobile.de/servlets/mms","mmsproxy":"172.28.23.131","mmsport":"8008","type":["default","supl","mms"]}
+    {"carrier":"T-Mobile Internet","apn":"internet.t-mobile","user":"t-mobile","password":"tm","mmsc":"http://mms.t-mobile.de/servlets/mms","mmsproxy":"172.28.23.131","mmsport":"8008","type":["default","supl","mms"]},
+    {"voicemail":"3311","type":["operatorvariant"]}
   ],
   "2": [
     {"carrier":"Vodafone DE-MMS","apn":"event.vodafone.de","mmsc":"http://139.7.24.1/servlets/mms","mmsproxy":"139.7.29.17","mmsport":"80","type":["mms"]},
@@ -814,13 +815,13 @@
     {"carrier":"TELUS","apn":"sp.telus.com","mmsc":"http://aliasredirect.net/proxy/mmsc","mmsproxy":"74.49.0.18","mmsport":"80","type":["default","supl","mms"]},
     {"carrier":"Koodo","apn":"sp.koodo.com","proxy":"74.49.0.18","port":"80","mmsc":"http://aliasredirect.net/proxy/koodo/mmsc","mmsproxy":"74.49.0.18","mmsport":"80","type":["default","supl","mms"]}
   ],
-  "320": [
-    {"carrier":"MOWAP","apn":"wap.davewireless.com","proxy":"10.100.3.4","port":"8080","type":["default","supl"]},
-    {"carrier":"MOMMS","apn":"mms.davewireless.com","mmsc":"http://mms.mobilicity.net","mmsproxy":"10.100.3.4","mmsport":"8080","type":["mms"]}
-  ],
   "270": [
     {"carrier":"MMS","apn":"mms.mobi.eastlink.ca","mmsc":"http://mmss.mobi.eastlink.ca","mmsproxy":"10.232.12.49","mmsport":"8080","type":["mms"]},
     {"carrier":"Internet","apn":"wisp.mobi.eastlink.ca","type":["default","supl"]}
+  ],
+  "320": [
+    {"carrier":"MOWAP","apn":"wap.davewireless.com","proxy":"10.100.3.4","port":"8080","type":["default","supl"]},
+    {"carrier":"MOMMS","apn":"mms.davewireless.com","mmsc":"http://mms.mobilicity.net","mmsproxy":"10.100.3.4","mmsport":"8080","type":["mms"]}
   ],
   "370": [
     {"carrier":"Fido Internet","apn":"fido-core-appl1.apn","mmsc":"http://mms.fido.ca","mmsproxy":"205.151.11.13","mmsport":"80","type":["default","supl","mms"]},
@@ -997,15 +998,15 @@
   ]
 },
 "334": {
-  "20": [
-    {"carrier":"Internet","apn":"internet.itelcel.com","user":"webgprs","password":"webgprs2002","authtype":"1","type":["default","supl","dun"]},
-    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
-    {"carrier":"Mensajes Multimedia","apn":"mms.itelcel.com","user":"mmsgprs","password":"mmsgprs2003","mmsc":"http://mms.itelcel.com/servlets/mms","mmsproxy":"148.233.151.240","mmsport":"8080","authtype":"1","type":["mms"]}
-  ],
   "3": [
     {"carrier":"movistar Internet","apn":"internet.movistar.mx","user":"movistar","password":"movistar","authtype":"1","type":["default","supl","dun"]},
     {"voicemail":"*86","enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"movistar MMS","apn":"mms.movistar.mx","user":"movistar","password":"movistar","mmsc":"http://mms.movistar.mx","mmsproxy":"10.2.20.1","mmsport":"80","authtype":"1","type":["mms"]}
+  ],
+  "20": [
+    {"carrier":"Internet","apn":"internet.itelcel.com","user":"webgprs","password":"webgprs2002","authtype":"1","type":["default","supl","dun"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
+    {"carrier":"Mensajes Multimedia","apn":"mms.itelcel.com","user":"mmsgprs","password":"mmsgprs2003","mmsc":"http://mms.itelcel.com/servlets/mms","mmsproxy":"148.233.151.240","mmsport":"8080","authtype":"1","type":["mms"]}
   ],
   "30": [
     {"carrier":"movistar Internet","apn":"internet.movistar.mx","user":"movistar","password":"movistar","authtype":"1","type":["default","supl","dun"]},
@@ -1019,13 +1020,13 @@
   ]
 },
 "338": {
-  "50": [
-    {"carrier":"INTERNET Digicel","apn":"web.digiceljamaica.com","authtype":"1","type":["default","supl","dun"]},
-    {"carrier":"MMS Digicel","apn":"wap","user":"","password":"","mmsproxy":"172.16.7.12","mmsport":"8080","mmsc":"http://mms.digicelgroup.com","authtype":"1","type":["mms"]}
-  ],
   "18": [
     {"carrier":"Lime Internet Postpaid","apn":"internet","user":"","password":"","authtype":"1","type":["default","supl","dun"]},
     {"carrier":"Lime Postpaid MMS","apn":"multimedia","user":"","password":"","mmsproxy":"10.20.5.34","mmsport":"8799","mmsc":"http://mmsc","authtype":"1","type":["mms"]}
+  ],
+  "50": [
+    {"carrier":"INTERNET Digicel","apn":"web.digiceljamaica.com","authtype":"1","type":["default","supl","dun"]},
+    {"carrier":"MMS Digicel","apn":"wap","user":"","password":"","mmsproxy":"172.16.7.12","mmsport":"8080","mmsc":"http://mms.digicelgroup.com","authtype":"1","type":["mms"]}
   ],
   "70": [
     {"carrier":"Claro Web","apn":"internet.ideasclaro.com.jm","user":"","password":"","authtype":"1","type":["default","supl","dun"]},
@@ -1151,6 +1152,10 @@
     {"carrier":"Bmobile internet","apn":"internet","user":"","password":"","authtype":"1","type":["default","supl","dun"]},
     {"carrier":"Bmobile mms","apn":"mms","user":"","password":"","mmsproxy":"192.168.210.104","mmsport":"8080","mmsc":"http://192.168.210.104/mmrelay.app","authtype":"1","type":["mms"]}
   ],
+  "13": [
+    {"carrier":"INTERNET Trinidad","apn":"web.digiceltt.com","user":"","password":"","authtype":"1","type":["default","supl","dun"]},
+    {"carrier":"MMS Trinidad","apn":"wap.digiceltt.com","user":"wap","password":"wap","mmsproxy":"172.20.6.12","mmsport":"8080","mmsc":"http://mmc.digiceltt.com/servlets/mms","authtype":"1","type":["mms"]}
+  ],
   "120": [
     {"carrier":"Bmobile internet","apn":"internet","user":"","password":"","authtype":"1","type":["default","supl","dun"]},
     {"carrier":"Bmobile mms","apn":"mms","user":"","password":"","mmsproxy":"192.168.210.104","mmsport":"8080","mmsc":"http://192.168.210.104/mmrelay.app","authtype":"1","type":["mms"]}
@@ -1190,10 +1195,6 @@
   "129": [
     {"carrier":"Bmobile internet","apn":"internet","user":"","password":"","authtype":"1","type":["default","supl","dun"]},
     {"carrier":"Bmobile mms","apn":"mms","user":"","password":"","mmsproxy":"192.168.210.104","mmsport":"8080","mmsc":"http://192.168.210.104/mmrelay.app","authtype":"1","type":["mms"]}
-  ],
-  "13": [
-    {"carrier":"INTERNET Trinidad","apn":"web.digiceltt.com","user":"","password":"","authtype":"1","type":["default","supl","dun"]},
-    {"carrier":"MMS Trinidad","apn":"wap.digiceltt.com","user":"wap","password":"wap","mmsproxy":"172.20.6.12","mmsport":"8080","mmsc":"http://mmc.digiceltt.com/servlets/mms","authtype":"1","type":["mms"]}
   ],
   "130": [
     {"carrier":"INTERNET Trinidad","apn":"web.digiceltt.com","user":"","password":"","authtype":"1","type":["default","supl","dun"]},
@@ -2896,11 +2897,6 @@
     {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"Mms","apn":"apn02.cwpanama.com.pa","user":"","password":"","mmsproxy":"172.25.3.5","mmsport":"8080","mmsc":"http://mms.zonamovil.com.pa","authtype":"1","type":["mms"]}
   ],
-  "20": [
-    {"carrier":"movistar INTERNET","apn":"internet.movistar.pa","user":"movistarpa","password":"movistarpa","authtype":"1","type":["default","supl","dun"]},
-    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
-    {"carrier":"movistar MMS","apn":"mms.movistar.pa","user":"movistarpamms","password":"movistarpa","mmsproxy":"10.12.21.1","mmsport":"80","mmsc":"http://mms.movistar.pa","authtype":"1","type":["mms"]}
-  ],
   "3": [
     {"carrier":"WEB Claro","apn":"web.claro.com.pa","user":"CLAROWEB","password":"CLAROWEB","authtype":"1","type":["default","supl","dun"]},
     {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
@@ -2910,6 +2906,11 @@
     {"carrier":"INTERNET Panama","apn":"web.digicelpanama.com","user":"","password":"","authtype":"1","type":["default","supl","dun"]},
     {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"MMS Panama","apn":"wap.digicelpanama.com","user":"","password":"","mmsproxy":"172.27.99.99","mmsport":"8080","mmsc":"http://mmc.digicelpanama.com/servlets/mms","authtype":"1","type":["mms"]}
+  ],
+  "20": [
+    {"carrier":"movistar INTERNET","apn":"internet.movistar.pa","user":"movistarpa","password":"movistarpa","authtype":"1","type":["default","supl","dun"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
+    {"carrier":"movistar MMS","apn":"mms.movistar.pa","user":"movistarpamms","password":"movistarpa","mmsproxy":"10.12.21.1","mmsport":"80","mmsc":"http://mms.movistar.pa","authtype":"1","type":["mms"]}
   ]
 },
 "716": {
@@ -2935,15 +2936,15 @@
     {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"MMS GPRS AR","apn":"mms.ctimovil.com.ar","user":"ctimms","password":"ctimms999","mmsproxy":"170.51.255.240","mmsport":"8080","mmsc":"http://mms.ctimovil.com.ar","authtype":"1","type":["mms"]}
   ],
-  "310": [
-    {"carrier":"Claro AR","apn":"igprs.claro.com.ar","user":"ctigprs","password":"ctigprs999","authtype":"1","type":["default","supl","dun"]},
-    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
-    {"carrier":"MMS GPRS AR","apn":"mms.ctimovil.com.ar","user":"ctimms","password":"ctimms999","mmsproxy":"170.51.255.240","mmsport":"8080","mmsc":"http://mms.ctimovil.com.ar","authtype":"1","type":["mms"]}
-  ],
   "34": [
     {"carrier":"Personal Datos","apn":"datos.personal.com","user":"gprs","password":"adgj","authtype":"1","type":["default","supl","dun"]},
     {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"Personal MMS","apn":"mms","user":"mms","password":"mms","mmsproxy":"172.25.7.31","mmsport":"8080","mmsc":"http://mms.personal.com","authtype":"1","type":["mms"]}
+  ],
+  "310": [
+    {"carrier":"Claro AR","apn":"igprs.claro.com.ar","user":"ctigprs","password":"ctigprs999","authtype":"1","type":["default","supl","dun"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
+    {"carrier":"MMS GPRS AR","apn":"mms.ctimovil.com.ar","user":"ctimms","password":"ctimms999","mmsproxy":"170.51.255.240","mmsport":"8080","mmsc":"http://mms.ctimovil.com.ar","authtype":"1","type":["mms"]}
   ],
   "341": [
     {"carrier":"Personal Datos","apn":"datos.personal.com","user":"gprs","password":"adgj","authtype":"1","type":["default","supl","dun"]},
@@ -3021,13 +3022,6 @@
     {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"MMS Entel","apn":"mms.entelpcs.cl","user":"entelpcs","password":"entelpcs","mmsproxy":"10.99.0.10","mmsport":"8080","mmsc":"http://mmsc.entelpcs.cl","authtype":"1","type":["mms"]}
   ],
-  "10": [
-    {"carrier":"Internet Movil","apn":"bam.entelpcs.cl","user":"entelpcs","password":"entelpcs","authtype":"1","type":["default","supl","dun"]},
-    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
-    {"carrier":"MMS Entel","apn":"mms.entelpcs.cl","user":"entelpcs","password":"entelpcs","mmsproxy":"10.99.0.10","mmsport":"8080","mmsc":"http://mmsc.entelpcs.cl","authtype":"1","type":["mms"]},
-    {"carrier":"Internet Movil","apn":"bam.entelpcs.cl","user":"entelpcs","password":"entelpcs","authtype":"1","type":["default","supl","dun"]},
-    {"carrier":"MMS Entel PCS","apn":"mms.entelpcs.cl","user":"entelpcs","password":"entelpcs","mmsc":"http://mmsc.entelpcs.cl","mmsproxy":"10.99.0.10","mmsport":"8080","authtype":"1","type":["mms"]}
-  ],
   "2": [
     {"carrier":"NEM","apn":"wap.tmovil.cl","proxy":"172.17.8.11","port":"8080","user":"wap","password":"wap","authtype":"1","type":["default","supl","dun"]},
     {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
@@ -3048,6 +3042,13 @@
     {"carrier":"Wap","apn":"wap.vtr.com","proxy":"192.168.94.210","port":"9028","user":"","password":"","authtype":"0","type":["default","supl","dun"]},
     {"carrier":"Bam","apn":"bam.vtr.com","user":"vtr","password":"vtr","authtype":"2","type":["default","supl","dun"]},
     {"carrier":"MMS","apn":"mms.vtr.com","user":"mms","password":"","mmsc":"http://192.168.94.162:19090/was","mmsproxy":"192.168.94.210","mmsport":"9028","authtype":"0","type":["mms"]}
+  ],
+  "10": [
+    {"carrier":"Internet Movil","apn":"bam.entelpcs.cl","user":"entelpcs","password":"entelpcs","authtype":"1","type":["default","supl","dun"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
+    {"carrier":"MMS Entel","apn":"mms.entelpcs.cl","user":"entelpcs","password":"entelpcs","mmsproxy":"10.99.0.10","mmsport":"8080","mmsc":"http://mmsc.entelpcs.cl","authtype":"1","type":["mms"]},
+    {"carrier":"Internet Movil","apn":"bam.entelpcs.cl","user":"entelpcs","password":"entelpcs","authtype":"1","type":["default","supl","dun"]},
+    {"carrier":"MMS Entel PCS","apn":"mms.entelpcs.cl","user":"entelpcs","password":"entelpcs","mmsc":"http://mmsc.entelpcs.cl","mmsproxy":"10.99.0.10","mmsport":"8080","authtype":"1","type":["mms"]}
   ]
 },
 "732": {
@@ -3125,15 +3126,15 @@
     {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"MMS Claro","apn":"mms.porta.com.ec","user":"portamms","password":"portamms2003","mmsproxy":"216.250.208.94","mmsport":"8799","mmsc":"http://iesmms.porta.com.ec","authtype":"1","type":["mms"]}
   ],
-  "10": [
-    {"carrier":"Claro Internet","apn":"internet.porta.com.ec","user":"","password":"","authtype":"1","type":["default","supl","dun"]},
-    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
-    {"carrier":"MMS Claro","apn":"mms.porta.com.ec","user":"portamms","password":"portamms2003","mmsproxy":"216.250.208.94","mmsport":"8799","mmsc":"http://iesmms.porta.com.ec","authtype":"1","type":["mms"]}
-  ],
   "2": [
     {"carrier":"ALEGRO 3G","apn":"internet3gsp.alegro.net.ec","user":"","password":"","authtype":"1","type":["default","supl","dun"]},
     {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
     {"carrier":"MMS Alegro","apn":"mms.alegro.net.ec","user":"","password":"","mmsproxy":"10.4.85.3","mmsport":"8080","mmsc":"http://mms.alegro.net.ec/mms/","authtype":"1","type":["mms"]}
+  ],
+  "10": [
+    {"carrier":"Claro Internet","apn":"internet.porta.com.ec","user":"","password":"","authtype":"1","type":["default","supl","dun"]},
+    {"enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
+    {"carrier":"MMS Claro","apn":"mms.porta.com.ec","user":"portamms","password":"portamms2003","mmsproxy":"216.250.208.94","mmsport":"8799","mmsc":"http://iesmms.porta.com.ec","authtype":"1","type":["mms"]}
   ]
 },
 "744": {

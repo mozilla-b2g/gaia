@@ -42,14 +42,11 @@ if (typeof fb.importer === 'undefined') {
     // Indicates whether some friends have been imported or not
     var friendsImported;
 
-    var STATUS_TIME = 2000;
-    var statusMsg = document.querySelector('#statusMsg');
-
     // Query that retrieves the information about friends
     var FRIENDS_QUERY = [
       'SELECT uid, name, first_name, last_name, pic_big, current_location, ' ,
       'middle_name, birthday_date, email, profile_update_time, ' ,
-      ' work, education, phones, hometown_location' ,
+      ' work, phones, hometown_location' ,
       ' FROM user' ,
       ' WHERE uid ',
       'IN (SELECT uid1 FROM friend WHERE uid2=me())' ,
@@ -206,17 +203,6 @@ if (typeof fb.importer === 'undefined') {
       parent.postMessage({
         type: 'ready', data: ''
       }, fb.CONTACTS_APP_ORIGIN);
-    }
-
-    function showStatus(text) {
-      statusMsg.querySelector('p').textContent = text;
-      statusMsg.classList.add('visible');
-      statusMsg.addEventListener('transitionend', function tend() {
-        statusMsg.removeEventListener('transitionend', tend);
-        setTimeout(function hide() {
-          statusMsg.classList.remove('visible');
-        }, STATUS_TIME);
-      });
     }
 
     /**

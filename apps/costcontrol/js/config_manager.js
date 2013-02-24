@@ -43,6 +43,7 @@ var ConfigManager = (function() {
     'lowLimitThreshold': false,
     'lowLimitNotified': false,
     'zeroBalanceNotified': false,
+    'dataUsageNotified': false,
     'nextReset': null,
     'plantype': 'prepaid',
     'resetTime': 1,

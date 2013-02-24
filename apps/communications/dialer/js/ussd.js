@@ -3,7 +3,8 @@
 var UssdManager = {
 
   _: null,
-  _conn: window.navigator.mozMobileConnection,
+  _conn: null,
+  ready: false,
   _popup: null,
   _origin: null,
   _operator: null,
@@ -18,13 +19,15 @@ var UssdManager = {
   _pendingRequest: null,
 
   init: function um_init() {
+    this._conn = window.navigator.mozMobileConnection;
+
     if (this._conn.voice) {
       this._conn.addEventListener('voicechange', this);
       this._operator = MobileOperator.userFacingInfo(this._conn).operator;
-
     }
-    this._origin = document.location.protocol + '//' +
-      document.location.host;
+
+    this._origin = document.location.protocol + '//' + document.location.host;
+
     if (this._conn) {
       // We cancel any active session if one exists to avoid sending any new
       // USSD message within an invalid session.
@@ -32,9 +35,15 @@ var UssdManager = {
       this._conn.addEventListener('ussdreceived', this);
       window.addEventListener('message', this);
     }
+
+    this.ready = true;
   },
 
   send: function um_send(message) {
+    if (!this.ready) {
+      this.init();
+    }
+
     if (this._conn) {
       var request = this._pendingRequest = this._conn.sendMMI(message);
       request.onsuccess = this.notifySuccess.bind(this);
@@ -46,7 +55,6 @@ var UssdManager = {
   },
 
   notifySuccess: function um_notifySuccess(evt) {
-
     // Helper function to compose an informative message about a successful
     // request to query the call forwarding status.
     var processCf = (function processCf(result) {
@@ -135,6 +143,10 @@ var UssdManager = {
   },
 
   openUI: function um_openUI(ussd) {
+    if (!this.ready) {
+      this.init();
+    }
+
     if (this._popup) {
       return;
     }
@@ -215,8 +227,9 @@ var UssdManager = {
   },
 
   closeUI: function um_closeUI(keepSessionAlive) {
-    if (!keepSessionAlive)
+    if (!keepSessionAlive) {
       this._conn.cancelMMI();
+    }
     this._popup.close();
     this._popup = null;
     this._closedOnVisibilityChange = false;
@@ -255,6 +268,7 @@ var UssdManager = {
             this.send(evt.data.message);
             break;
           case 'close':
+          case 'cancel':
             this.closeUI();
             break;
         }
@@ -279,5 +293,3 @@ window.addEventListener('mozvisibilitychange',
     }
   }
 );
-
-UssdManager.init();

@@ -18,18 +18,32 @@ var Settings = {
         settings : null;
   },
 
-  init: function settings_init() {
+  // Early initialization of parts of the application that don't
+  // depend on the DOM being loaded.
+  preInit: function settings_preInit() {
     var settings = this.mozSettings;
-    if (!settings || !navigator.mozSetMessageHandler)
+    if (!settings)
       return;
 
-    // register web activity handler
-    navigator.mozSetMessageHandler('activity', this.webActivityHandler);
+    // Make a request for settings to warm the cache, since we need it
+    // very soon in startup after the DOM is available.
+    this.getSettings(null);
 
     // update corresponding setting when it changes
-    settings.onsettingchange = function settingChanged(event) {
+    settings.onsettingchange = (function settingChanged(event) {
       var key = event.settingName;
       var value = event.settingValue;
+
+      // Always update the cache if it's present, even if the DOM
+      // isn't loaded yet.
+      if (this._settingsCache) {
+        this._settingsCache[key] = value;
+      }
+
+      // DOM isn't ready so there's nothing to update.
+      if (!this._initialized) {
+        return;
+      }
 
       // update <span> values when the corresponding setting is changed
       var rule = '[data-name="' + key + '"]:not([data-ignore])';
@@ -73,7 +87,20 @@ var Settings = {
           }
           break;
       }
-    };
+    }).bind(this);
+  },
+
+  _initialized: false,
+
+  init: function settings_init() {
+    this._initialized = true;
+
+    if (!this.mozSettings || !navigator.mozSetMessageHandler) {
+      return;
+    }
+
+    // register web activity handler
+    navigator.mozSetMessageHandler('activity', this.webActivityHandler);
 
     // preset all inputs that have a `name' attribute
     this.presetPanel();
@@ -91,19 +118,35 @@ var Settings = {
       }
     }
 
-    // preset all inputs in the panel
-    this.presetPanel(panel);
-
     // translate content
     navigator.mozL10n.translate(panel);
 
     // activate all scripts
     var scripts = panel.querySelectorAll('script');
     for (var i = 0; i < scripts.length; i++) {
+      var src = scripts[i].getAttribute('src')
+      if (document.head.querySelector('script[src="' + src + '"]')) {
+        continue;
+      }
+
       var script = document.createElement('script');
       script.type = 'application/javascript';
-      script.src = scripts[i].getAttribute('src');
+      script.src = src;
       document.head.appendChild(script);
+    }
+
+    // activate all stylesheets
+    var stylesheets = panel.querySelectorAll('link');
+    for (var i = 0; i < stylesheets.length; i++) {
+      var href = stylesheets[i].getAttribute('href');
+      if (document.head.querySelector('link[href="' + href + '"]'))
+        continue;
+
+      var stylesheet = document.createElement('link');
+      stylesheet.type = 'text/css';
+      stylesheet.rel = 'stylesheet';
+      stylesheet.href = href;
+      document.head.appendChild(stylesheet);
     }
 
     // activate all links
@@ -135,15 +178,53 @@ var Settings = {
     }
   },
 
-  presetPanel: function settings_presetPanel(panel) {
+  // Cache of all current settings values.  There's some large stuff
+  // in here, but not much useful can be done with the settings app
+  // without these, so we keep this around most of the time.
+  _settingsCache: null,
+
+  // There can be race conditions in which we need settings values,
+  // but haven't filled the cache yet.  This array tracks those
+  // listeners.
+  _pendingSettingsCallbacks: [ ],
+
+  // Invoke |callback| with a request object for a successful fetch of
+  // settings values, when those values are ready.
+  getSettings: function(callback) {
     var settings = this.mozSettings;
     if (!settings)
       return;
 
-    // preset all inputs that have a `name' attribute
-    var lock = settings.createLock();
-    var request = lock.get('*');
-    request.onsuccess = function(e) {
+    if (this._settingsCache && callback) {
+      // Fast-path that we hope to always hit: our settings cache is
+      // already available, so invoke the callback now.
+      callback(this._settingsCache);
+      return;
+    }
+
+    if (!this._settingsCache) {
+      var lock = settings.createLock();
+      var request = lock.get('*');
+      request.onsuccess = function(e) {
+        var result = request.result;
+        var cachedResult = {};
+        for (var attr in result) {
+          cachedResult[attr] = result[attr];
+        }
+        Settings._settingsCache = cachedResult;
+        var cbk;
+        while ((cbk = Settings._pendingSettingsCallbacks.pop())) {
+          cbk(result);
+        }
+      };
+    }
+    if (callback) {
+      this._pendingSettingsCallbacks.push(callback);
+    }
+  },
+
+  presetPanel: function settings_presetPanel(panel) {
+    this.getSettings(function(result) {
       panel = panel || document;
 
       // preset all checkboxes
@@ -151,8 +232,8 @@ var Settings = {
       var checkboxes = panel.querySelectorAll(rule);
       for (var i = 0; i < checkboxes.length; i++) {
         var key = checkboxes[i].name;
-        if (key && request.result[key] != undefined) {
-          checkboxes[i].checked = !!request.result[key];
+        if (key && result[key] != undefined) {
+          checkboxes[i].checked = !!result[key];
         }
       }
 
@@ -161,8 +242,8 @@ var Settings = {
       var radios = panel.querySelectorAll(rule);
       for (i = 0; i < radios.length; i++) {
         var key = radios[i].name;
-        if (key && request.result[key] != undefined) {
-          radios[i].checked = (request.result[key] === radios[i].value);
+        if (key && result[key] != undefined) {
+          radios[i].checked = (result[key] === radios[i].value);
         }
       }
 
@@ -171,8 +252,8 @@ var Settings = {
       var texts = panel.querySelectorAll(rule);
       for (i = 0; i < texts.length; i++) {
         var key = texts[i].name;
-        if (key && request.result[key] != undefined) {
-          texts[i].value = request.result[key];
+        if (key && result[key] != undefined) {
+          texts[i].value = result[key];
         }
       }
 
@@ -181,8 +262,8 @@ var Settings = {
       var ranges = panel.querySelectorAll(rule);
       for (i = 0; i < ranges.length; i++) {
         var key = ranges[i].name;
-        if (key && request.result[key] != undefined) {
-          ranges[i].value = parseFloat(request.result[key]);
+        if (key && result[key] != undefined) {
+          ranges[i].value = parseFloat(result[key]);
           ranges[i].refresh(); // XXX to be removed when bug344618 lands
         }
       }
@@ -209,8 +290,8 @@ var Settings = {
       for (var i = 0, count = selects.length; i < count; i++) {
         var select = selects[i];
         var key = select.name;
-        if (key && request.result[key] != undefined) {
-          var value = request.result[key];
+        if (key && result[key] != undefined) {
+          var value = result[key];
           var option = 'option[value="' + value + '"]';
           var selectOption = select.querySelector(option);
           if (selectOption) {
@@ -226,26 +307,26 @@ var Settings = {
       for (i = 0; i < spanFields.length; i++) {
         var key = spanFields[i].dataset.name;
 
-        if (key && request.result[key] != undefined) {
+        if (key && result[key] != undefined) {
           // check whether this setting comes from a select option
           // (it may be in a different panel, so query the whole document)
           rule = '[data-setting="' + key + '"] ' +
-            '[value="' + request.result[key] + '"]';
+            '[value="' + result[key] + '"]';
           var option = document.querySelector(rule);
           if (option) {
             spanFields[i].dataset.l10nId = option.dataset.l10nId;
             spanFields[i].textContent = option.textContent;
           } else {
-            spanFields[i].textContent = request.result[key];
+            spanFields[i].textContent = result[key];
           }
-        } else { // request.result[key] is undefined
+        } else { // result[key] is undefined
           switch (key) {
             //XXX bug 816899 will also provide 'deviceinfo.software' from Gecko
             //  which is {os name + os version}
             case 'deviceinfo.software':
               var _ = navigator.mozL10n.get;
               var text = _('brandShortName') + ' ' +
-                request.result['deviceinfo.os'];
+                result['deviceinfo.os'];
               spanFields[i].textContent = text;
               break;
 
@@ -257,7 +338,7 @@ var Settings = {
           }
         }
       }
-    };
+    });
   },
 
   webActivityHandler: function settings_handleActivity(activityRequest) {
@@ -404,11 +485,6 @@ var Settings = {
     openDialog(dialogID, submit);
   },
 
-  getUserGuide: function settings_getUserGuide(callback) {
-    var url = 'http://support.mozilla.org/products/firefox-os';
-    callback(url);
-  },
-
   getSupportedLanguages: function settings_getLanguages(callback) {
     var LANGUAGES = 'shared/resources/languages.json';
 
@@ -503,12 +579,6 @@ window.addEventListener('load', function loadSettings() {
         });
         Settings.updateLanguagePanel();
         break;
-      case 'help':                // handle specific link
-        Settings.getUserGuide(function userGuideCallback(url) {
-          document.querySelector('[data-l10n-id="user-guide"]').onclick =
-            function openUserGuide() { openLink(url) };
-        });
-        break;
       case 'mediaStorage':        // full media storage status + panel startup
         MediaStorage.initUI();
         break;
@@ -519,6 +589,12 @@ window.addEventListener('load', function loadSettings() {
         Battery.update();
         break;
     }
+
+    // preset all inputs in the panel and subpanels.
+    for (var i = 0; i < subPanels.length; i++) {
+      Settings.presetPanel(subPanels[i]);
+    }
+    Settings.presetPanel(panel);
   }
 
   // panel navigation
@@ -562,10 +638,6 @@ window.addEventListener('load', function loadSettings() {
         oldPanel.classList.remove('forward');
         newPanel.classList.remove('peek');
         newPanel.classList.remove('forward');
-
-        setTimeout(function setInit() {
-          document.body.classList.remove('uninit');
-        });
 
         // Bug 818056 - When multiple visible panels are present,
         // they are not painted correctly. This appears to fix the issue.
@@ -619,12 +691,11 @@ window.addEventListener('load', function loadSettings() {
   // startup
   window.addEventListener('hashchange', showPanel);
   switch (window.location.hash) {
+    case '#root':
+      // Nothing to do here; default startup case.
+      break;
     case '':
       document.location.hash = 'root';
-      break;
-    case '#root':
-      document.getElementById('root').className = 'current';
-      showPanel();
       break;
     default:
       document.getElementById('root').className = 'previous';
@@ -669,3 +740,6 @@ window.addEventListener('localized', function showLanguages() {
   Settings.updateLanguagePanel();
 });
 
+// Do initialization work that doesn't depend on the DOM, as early as
+// possible in startup.
+Settings.preInit();

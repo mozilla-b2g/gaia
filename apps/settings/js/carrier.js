@@ -12,6 +12,7 @@ var Carrier = (function newCarrier(window, document, undefined) {
    * (mcc,mnc) for every usage filter
    */
 
+  var mobileConnection = getMobileConnection();
   var gCompatibleAPN = null;
 
   // query <apn> elements matching the mcc/mnc arguments
@@ -48,8 +49,8 @@ var Carrier = (function newCarrier(window, document, undefined) {
     xhr.onreadystatechange = function() {
       if (xhr.readyState == 4 && (xhr.status == 200 || xhr.status === 0)) {
         var apn = xhr.response;
-        var mcc = gMobileConnection.iccInfo.mcc;
-        var mnc = gMobileConnection.iccInfo.mnc;
+        var mcc = mobileConnection.iccInfo.mcc;
+        var mnc = mobileConnection.iccInfo.mnc;
         // get a list of matching APNs
         gCompatibleAPN = apn[mcc] ? (apn[mcc][mnc] || []) : [];
         callback(filter(gCompatibleAPN), usage);
@@ -207,11 +208,11 @@ var Carrier = (function newCarrier(window, document, undefined) {
           var onSubmit = function() {
             window.asyncStorage.setItem(warningDialogEnabledKey, false);
             explanationItem.hidden = false;
+            setState(true);
           };
 
           var onReset = function() {
             window.asyncStorage.setItem(warningDialogEnabledKey, true);
-            setState(false);
           };
 
           // register an observer to monitor setting changes
@@ -220,6 +221,7 @@ var Carrier = (function newCarrier(window, document, undefined) {
               var enabled = event.settingValue;
               if (warningEnabled) {
                 if (enabled) {
+                  setState(false);
                   openDialog(dialogID, onSubmit, onReset);
                 }
               } else {
@@ -277,7 +279,7 @@ var Carrier = (function newCarrier(window, document, undefined) {
   // XXX for some reason, networkSelectionMode is (almost?) always null
   // so we're assuming the auto-selection is ON by default.
   function updateSelectionMode() {
-    var mode = gMobileConnection.networkSelectionMode;
+    var mode = mobileConnection.networkSelectionMode;
     opAutoSelectState.textContent = mode || '';
     opAutoSelectInput.checked = !mode || (mode == 'automatic');
   }
@@ -332,7 +334,7 @@ var Carrier = (function newCarrier(window, document, undefined) {
 
     // select operator
     function selectOperator(network, messageElement) {
-      var req = gMobileConnection.selectNetwork(network);
+      var req = mobileConnection.selectNetwork(network);
       messageElement.textContent = _('operator-status-connecting');
       req.onsuccess = function onsuccess() {
         messageElement.textContent = _('operator-status-connected');
@@ -345,7 +347,7 @@ var Carrier = (function newCarrier(window, document, undefined) {
     // scan available operators
     function scan() {
       list.dataset.state = 'on'; // "Searching..."
-      var req = gMobileConnection.getNetworks();
+      var req = mobileConnection.getNetworks();
 
       req.onsuccess = function onsuccess() {
         clear();
@@ -377,7 +379,7 @@ var Carrier = (function newCarrier(window, document, undefined) {
     if (opAutoSelectInput.checked) {
       gOperatorNetworkList.state = 'off';
       gOperatorNetworkList.clear();
-      gMobileConnection.selectNetworkAutomatically();
+      mobileConnection.selectNetworkAutomatically();
     } else {
       gOperatorNetworkList.scan();
     }

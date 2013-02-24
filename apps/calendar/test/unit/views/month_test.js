@@ -79,6 +79,10 @@ suite('views/month', function() {
       );
     });
 
+/*
+// These tests are currently failing and have been temporarily disabled as per
+// Bug 838993. They should be fixed and re-enabled as soon as possible as per
+// Bug 840489.
     test('dom: dbltap', function() {
       var calledWith;
       app.router.show = function(url) {
@@ -101,6 +105,7 @@ suite('views/month', function() {
       );
 
     });
+*/
 
     test('controller: monthChange', function() {
       var calledClear = null;

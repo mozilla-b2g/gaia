@@ -26,6 +26,11 @@
  * that are within this many pixels of being onscreen are considered
  * onscreen.
  *
+ * The scrolldelta parameter is also a number of pixels.  The user
+ * must scroll this distance before any visibility recomputation is
+ * done by this code.  This parameter can be used to "batch" up work
+ * into larger chunks.
+ *
  * By specifing proper onscreen and offscreen functions you can use this
  * class to (for example) remove the background-image style of elements
  * that are not visible, allowing gecko to free up image memory.
@@ -68,7 +73,8 @@
  */
 'use strict';
 
-function monitorChildVisibility(container, scrollmargin,
+function monitorChildVisibility(container,
+                                scrollmargin, scrolldelta,
                                 onscreenCallback, offscreenCallback)
 {
   // The onscreen region is represented by these two elements
@@ -79,6 +85,10 @@ function monitorChildVisibility(container, scrollmargin,
 
   // The timer used by deferCallbacks()
   var pendingCallbacks = null;
+
+  // The scrolltop on |container| our scroll handler saw before we
+  // last recomputed visibility.
+  var lastScrollTop = -1;
 
   // Update the onscreen region whenever we scroll
   container.addEventListener('scroll', scrollHandler);
@@ -240,13 +250,31 @@ function monitorChildVisibility(container, scrollmargin,
       return;
     }
 
-    // Adjust the first and last onscreen element
+    // Adjust the first and last onscreen element if we've panned
+    // beyond the scrolldelta margin.
+    var scrollTop = container.scrollTop;
+    if (Math.abs(scrollTop - lastScrollTop) < scrolldelta) {
+      return;
+    }
+
+    lastScrollTop = scrollTop;
+
     adjustBounds();
 
-    // We may get a lot of scroll events in quick succession, so
-    // don't call the callbacks synchronously. Instead defer so that
-    // we can handle any other queued scroll events.
-    deferCallbacks();
+    if (scrolldelta > 1) {
+      // Assume that clients are using the scrolldelta to batch work,
+      // and that they want finer control over scheduling.  Recompute
+      // visibility immediately.
+      callCallbacks();
+    } else {
+      // Assume that clients are relying on us to throttle work while
+      // the user is busy.
+      //
+      // We may get a lot of scroll events in quick succession, so
+      // don't call the callbacks synchronously. Instead defer so that
+      // we can handle any other queued scroll events.
+      deferCallbacks();
+    }
   }
 
   // Return true if node a is before node b and false otherwise

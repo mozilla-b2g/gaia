@@ -115,7 +115,11 @@ var Launcher = (function() {
     }
   }
 
-  window.addEventListener('mozbrowserlocationchange', onLocationChange);
+  window.addEventListener('mozbrowserlocationchange', function() {
+    if ('wrapper' in currentAppFrame().dataset) {
+      onLocationChange();
+    }
+  });
 
   var bookmarkButton = document.getElementById('bookmark-button');
   function onDisplayedApplicationChange() {

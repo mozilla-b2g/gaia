@@ -8,79 +8,24 @@ var MailAPI = null;
 var App = {
   initialized: false,
 
-  loader: {
-    _loaded: {},
+  loader: LazyLoader,
 
-    js: function(file, cb) {
-      var script = document.createElement('script');
-      script.type = 'text/javascript';
-      script.src = file;
-      if (cb) script.onload = cb;
-      document.querySelector('head').appendChild(script);
-    },
+  /**
+   * Preloads all remaining resources
+   */
+  preloadAll: function(cb) {
+    cb = cb || function() {};
 
-    style: function(file, cb) {
-      var script = document.createElement('link');
-      script.type = 'text/css';
-      script.rel = 'stylesheet';
-      script.href = file;
-      document.querySelector('head').appendChild(script);
-      cb();
-    },
-
-    /**
-     * Loads all resources passed to it
-     * Calls the callback when all resources are loaded
-     * The DOM injection is handled by one of the methods in this object.
-     * This is determined by the first resource segment, E.g., js/, style/...
-     */
-    load: function() {
-      var self = this;
-      var ops = arguments.length-1;
-      var callback = arguments[arguments.length-1];
-
-      function loadedCallback(resource) {
-        return function() {
-          self._loaded[resource] = true;
-          ops--;
-          done();
-        }
-      }
-
-      for (var i = 0; i < arguments.length-1;  i++) {
-        var resource = arguments[i];
-        if (!this._loaded[resource]) {
-          this[resource.split('/')[0]](resource, loadedCallback(resource));
-        } else {
-          ops--;
-          done();
-        }
-      }
-
-      function done() {
-        if (ops > 0)
-          return;
-        callback();
-      }
-    },
-
-    /**
-     * Preloads all remaining resources
-     */
-    preloadAll: function(cb) {
-      cb = cb || function() {};
-
-      App.loader.load(
-        'style/value_selector.css',
-        'style/compose-cards.css',
-        'style/setup-cards.css',
-        'js/value_selector.js',
-        'js/iframe-shims.js',
-        'js/setup-cards.js',
-        'js/compose-cards.js',
-        cb
-      );
-    }
+    App.loader.load(
+      ['style/value_selector.css',
+      'style/compose-cards.css',
+      'style/setup-cards.css',
+      'js/value_selector.js',
+      'js/iframe-shims.js',
+      'js/setup-cards.js',
+      'js/compose-cards.js'],
+      cb
+    );
   },
 
   /**
@@ -89,47 +34,49 @@ var App = {
   _init: function() {
     // If our password is bad, we need to pop up a card to ask for the updated
     // password.
-    MailAPI.onbadlogin = function(account, problem) {
-      switch (problem) {
-        case 'bad-user-or-pass':
-          Cards.pushCard('setup-fix-password', 'default', 'animate',
-                         { account: account, restoreCard: Cards.activeCardIndex },
-                         'right');
-          break;
-        case 'imap-disabled':
-          Cards.pushCard('setup-fix-gmail-imap', 'default', 'animate',
-                         { account: account, restoreCard: Cards.activeCardIndex },
-                         'right');
-          break;
-        case 'needs-app-pass':
-          Cards.pushCard('setup-fix-gmail-twofactor', 'default', 'animate',
-                         { account: account, restoreCard: Cards.activeCardIndex },
-                         'right');
-          break;
-      }
-    };
+    if (!MailAPI._fake) {
+      MailAPI.onbadlogin = function(account, problem) {
+        switch (problem) {
+          case 'bad-user-or-pass':
+            Cards.pushCard('setup-fix-password', 'default', 'animate',
+                      { account: account, restoreCard: Cards.activeCardIndex },
+                      'right');
+            break;
+          case 'imap-disabled':
+            Cards.pushCard('setup-fix-gmail-imap', 'default', 'animate',
+                      { account: account, restoreCard: Cards.activeCardIndex },
+                      'right');
+            break;
+          case 'needs-app-pass':
+            Cards.pushCard('setup-fix-gmail-twofactor', 'default', 'animate',
+                      { account: account, restoreCard: Cards.activeCardIndex },
+                      'right');
+            break;
+        }
+      };
 
-    MailAPI.useLocalizedStrings({
-      wrote: mozL10n.get('reply-quoting-wrote'),
-      originalMessage: mozL10n.get('forward-original-message'),
-      forwardHeaderLabels: {
-        subject: mozL10n.get('forward-header-subject'),
-        date: mozL10n.get('forward-header-date'),
-        from: mozL10n.get('forward-header-from'),
-        replyTo: mozL10n.get('forward-header-reply-to'),
-        to: mozL10n.get('forward-header-to'),
-        cc: mozL10n.get('forward-header-cc')
-      },
-      folderNames: {
-        inbox: mozL10n.get('folder-inbox'),
-        sent: mozL10n.get('folder-sent'),
-        drafts: mozL10n.get('folder-drafts'),
-        trash: mozL10n.get('folder-trash'),
-        queue: mozL10n.get('folder-queue'),
-        junk: mozL10n.get('folder-junk'),
-        archives: mozL10n.get('folder-archives')
-      }
-    });
+      MailAPI.useLocalizedStrings({
+        wrote: mozL10n.get('reply-quoting-wrote'),
+        originalMessage: mozL10n.get('forward-original-message'),
+        forwardHeaderLabels: {
+          subject: mozL10n.get('forward-header-subject'),
+          date: mozL10n.get('forward-header-date'),
+          from: mozL10n.get('forward-header-from'),
+          replyTo: mozL10n.get('forward-header-reply-to'),
+          to: mozL10n.get('forward-header-to'),
+          cc: mozL10n.get('forward-header-cc')
+        },
+        folderNames: {
+          inbox: mozL10n.get('folder-inbox'),
+          sent: mozL10n.get('folder-sent'),
+          drafts: mozL10n.get('folder-drafts'),
+          trash: mozL10n.get('folder-trash'),
+          queue: mozL10n.get('folder-queue'),
+          junk: mozL10n.get('folder-junk'),
+          archives: mozL10n.get('folder-archives')
+        }
+      });
+    }
     this.initialized = true;
   },
 
@@ -137,7 +84,7 @@ var App = {
    * Show the best inbox we have (unified if >1 account, just the inbox if 1) or
    * start the setup process if we have no accounts.
    */
-  showMessageViewOrSetup: function(showLatest) {
+  showMessageViewOrSetup: function(showLatest, isUpgradeCheck) {
     // Get the list of accounts including the unified account (if it exists)
     var acctsSlice = MailAPI.viewAccounts(false);
     acctsSlice.oncomplete = function() {
@@ -156,7 +103,12 @@ var App = {
             dieOnFatalError('We have an account without an inbox!',
                 foldersSlice.items);
 
-          Cards.assertNoCards();
+          if (isUpgradeCheck) {
+            // Clear out old cards, start fresh
+            Cards.removeCardAndSuccessors(null, 'none');
+          } else {
+            Cards.assertNoCards();
+          }
 
           // Push the navigation cards
           Cards.pushCard(
@@ -180,7 +132,7 @@ var App = {
         };
       }
       // - no accounts, show the setup page!
-      else {
+      else if (!isUpgradeCheck) {
         acctsSlice.die();
         if (activityCallback) {
           var result = activityCallback();
@@ -196,10 +148,12 @@ var App = {
           });
       }
 
-      // Preload all resources after 2s
-      setTimeout(function preloadTimeout() {
-        App.loader.preloadAll();
-      }, 2000);
+      if (!isUpgradeCheck) {
+        // Preload all resources after 2s
+        setTimeout(function preloadTimeout() {
+          App.preloadAll();
+        }, 4000);
+      }
     };
   }
 };
@@ -249,13 +203,30 @@ var queryURI = function _queryURI(uri) {
 function hookStartup() {
   var gotLocalized = (mozL10n.readyState === 'interactive') ||
                      (mozL10n.readystate === 'complete'),
-      gotMailAPI = false;
+      gotMailAPI = false,
+      inited = false;
   function doInit() {
     try {
-      populateTemplateNodes();
-      Cards._init();
-      App._init();
-      App.showMessageViewOrSetup();
+      if (inited) {
+        App._init();
+
+        if (!MailAPI._fake) {
+          // Real MailAPI set up now. We could have guessed wrong
+          // for the fast path, particularly if this is an email
+          // app upgrade, where they set up an account, but our
+          // fast path for no account setup was not in place then.
+          // In those cases, if we have accounts, need to switch
+          // to showing accounts. This should only happen once on
+          // app upgrade.
+          App.showMessageViewOrSetup(null, true);
+        }
+      } else {
+        inited = true;
+        populateTemplateNodes();
+        Cards._init();
+        App._init();
+        App.showMessageViewOrSetup();
+      }
     }
     catch (ex) {
       console.error('Problem initializing', ex, '\n', ex.stack);
@@ -278,6 +249,14 @@ function hookStartup() {
     if (gotLocalized)
       doInit();
   }, false);
+
+  if (window.tempMailAPI) {
+    console.log('got MailAPI from window!');
+    MailAPI = window.tempMailAPI;
+    gotMailAPI = true;
+    if (gotLocalized)
+      doInit();
+  }
 }
 hookStartup();
 

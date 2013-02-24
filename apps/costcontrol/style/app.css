@@ -55,7 +55,8 @@ input.error {
 .view {
   top: 9.1rem;
   background: url(images/app/ui/pattern.png) repeat left top;
-  -moz-transition: -moz-transform 0.3s ease;
+  transform: translate(0, 0);
+  transition: transform 0.3s ease;
 }
 
 .view.standalone {
@@ -82,23 +83,23 @@ input.error {
 }
 
 .view[data-viewport="bottom"] {
-  -moz-transform: translateY(100%);
+  transform: translateY(100%);
 }
 
 .view[data-viewport="top"] {
-  -moz-transform: translateY(-100%);
+  transform: translateY(-100%);
 }
 
 .view[data-viewport="left"] {
-  -moz-transform: translateX(-100%);
+  transform: translateX(-100%);
 }
 
 .view[data-viewport="right"] {
-  -moz-transform: translateX(100%);
+  transform: translateX(100%);
 }
 
 .view[data-viewport="inside"] {
-  -moz-transform: scale(0.3);
+  transform: scale(0.3);
   opacity: 0;
   pointer-events: none;
 }
@@ -125,6 +126,14 @@ body[role="application"] section[role="region"] > header button {
 /* BB BUTTONS ICONS */
 .buttons-list {
   list-style: none;
+}
+
+.fake-select select {
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
 }
 
 li button.icon-reload:before {
@@ -201,6 +210,7 @@ section.content .error-messages {
   line-height: 1.2em;
   padding: 1.2rem 1.5rem 1.2rem 3rem;
   position: relative;
+  overflow: hidden;
 }
 
 .settings li[aria-disabled="true"]:after {
@@ -247,7 +257,8 @@ section.content .error-messages {
   margin-left: -8px;
 }
 
-.settings li > .end button {
+.settings li > .end button,
+.settings li > .end .button {
   display: inline-block;
   vertical-align: middle;
   width: 10.0rem;

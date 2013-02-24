@@ -65,14 +65,6 @@ section[role="region"].current.peek {
   transform: translateX(-99.9%);
 }
 
-/* Without this hack, we get a white screen at launch on gecko21 */
-.uninit section[role="region"],
-.uninit section[role="region"].peek,
-.uninit section[role="region"].current {
-  transition: none;
-  transform: none;
-}
-
 /**
  * Headers should not scroll with the rest of the page, except for #root.
  */
@@ -183,7 +175,7 @@ section li.password > p {
 /******************************************************************************
 * Media Storage settings
 */
- 
+
 #mediaStorage #space-stackedbar {
   border: solid 0px green;
   display: inline-block;
@@ -478,6 +470,10 @@ html[dir="rtl"] #call-support-numbers {
   left: 2rem;
 }
 
+#help[data-has-support-info] .no-support-info,
+#help:not([data-has-support-info]) .support-info {
+  display: none;
+}
 
 /******************************************************************************
  * Right-To-Left layout

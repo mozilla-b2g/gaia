@@ -28,6 +28,8 @@ GAIA_DOMAIN?=gaiamobile.org
 
 DEBUG?=0
 PRODUCTION?=0
+GAIA_OPTIMIZE?=0
+HIDPI?=*
 DOGFOOD?=0
 
 LOCAL_DOMAINS?=1
@@ -66,9 +68,11 @@ GAIA_APP_SRCDIRS=apps showcase_apps
 else ifeq ($(MAKECMDGOALS), dogfood)
 DOGFOOD=1
 PRODUCTION=1
+GAIA_OPTIMIZE=1
 B2G_SYSTEM_APPS=1
 else ifeq ($(MAKECMDGOALS), production)
 PRODUCTION=1
+GAIA_OPTIMIZE=1
 B2G_SYSTEM_APPS=1
 endif
 
@@ -278,6 +282,46 @@ contacts: install-xulrunner-sdk
 # Create webapps
 offline: webapp-manifests webapp-optimize webapp-zip optimize-clean
 
+# Create a light reference workload
+.PHONY: reference-workload-light
+reference-workload-light:
+	@echo "Populate Databases - Light Workload"
+	$(ADB) shell stop b2g
+	$(ADB) push  test_media/reference-workload/contactsDb-200.sqlite /data/local/indexedDB/chrome/3406066227csotncta.sqlite
+	$(ADB) push  test_media/reference-workload/smsDb-200.sqlite /data/local/indexedDB/chrome/226660312ssm.sqlite
+	$(ADB) shell start b2g
+	@echo "Done"
+
+# Create a medium reference workload
+.PHONY: reference-workload-medium
+reference-workload-medium:
+	@echo "Populate Databases - Medium Workload"
+	$(ADB) shell stop b2g
+	$(ADB) push  test_media/reference-workload/contactsDb-500.sqlite /data/local/indexedDB/chrome/3406066227csotncta.sqlite
+	$(ADB) push  test_media/reference-workload/smsDb-500.sqlite /data/local/indexedDB/chrome/226660312ssm.sqlite
+	$(ADB) shell start b2g
+	@echo "Done"
+
+# Create a heavy reference workload
+.PHONY: reference-workload-heavy
+reference-workload-heavy:
+	@echo "Populate Databases - Heavy Workload"
+	$(ADB) shell stop b2g
+	$(ADB) push  test_media/reference-workload/contactsDb-1000.sqlite /data/local/indexedDB/chrome/3406066227csotncta.sqlite
+	$(ADB) push  test_media/reference-workload/smsDb-1000.sqlite /data/local/indexedDB/chrome/226660312ssm.sqlite
+	$(ADB) shell start b2g
+	@echo "Done"
+
+# Create an extra heavy reference workload
+.PHONY: reference-workload-x-heavy
+reference-workload-x-heavy:
+	@echo "Populate Databases - Extra Heavy Workload"
+	$(ADB) shell stop b2g
+	$(ADB) push  test_media/reference-workload/contactsDb-2000.sqlite /data/local/indexedDB/chrome/3406066227csotncta.sqlite
+	$(ADB) push  test_media/reference-workload/smsDb-2000.sqlite /data/local/indexedDB/chrome/226660312ssm.sqlite
+	$(ADB) shell start b2g
+	@echo "Done"
+
 
 # The install-xulrunner target arranges to get xulrunner downloaded and sets up
 # some commands for invoking it. But it is platform dependent
@@ -344,11 +388,14 @@ define run-js-command
 	const LOCALES_FILE = "$(LOCALES_FILE)";                                     \
 	const BUILD_APP_NAME = "$(BUILD_APP_NAME)";                                 \
 	const PRODUCTION = "$(PRODUCTION)";                                         \
+	const GAIA_OPTIMIZE = "$(GAIA_OPTIMIZE)";                                   \
+	const HIDPI = "$(HIDPI)";                                     \
 	const DOGFOOD = "$(DOGFOOD)";                                               \
 	const OFFICIAL = "$(MOZILLA_OFFICIAL)";                                     \
 	const GAIA_DEFAULT_LOCALE = "$(GAIA_DEFAULT_LOCALE)";                       \
 	const GAIA_INLINE_LOCALES = "$(GAIA_INLINE_LOCALES)";                       \
 	const GAIA_ENGINE = "xpcshell";                                             \
+	const CUSTOMIZE = "$(realpath $(CUSTOMIZE))";      													\
 	';                                                                          \
 	$(XULRUNNERSDK) $(XPCSHELLSDK) -e "$$JS_CONSTS" -f build/utils.js "build/$(strip $1).js"
 endef
@@ -401,16 +448,40 @@ INJECTED_GAIA = "$(MOZ_TESTS)/browser/gaia"
 
 TEST_PATH=gaia/tests/${TEST_FILE}
 
-ifeq ($(TESTS),)
-	ifneq ($(APP),)
-		TESTS=$(shell find apps/$(APP)/test/integration/ -name "*_test.js" -type f )
+ifndef APPS
+	ifdef APP
+		APPS=$(APP)
 	else
-		TESTS=$(shell find apps -name "*_test.js" -type f | grep integration)
+		APPS=$(shell find apps -type d -name 'test' | sed -e 's|^apps/||' -e 's|/test$$||' )
 	endif
 endif
+
 .PHONY: test-integration
 test-integration:
-	@./tests/js/bin/runner $(TESTS)
+	adb forward tcp:2828 tcp:2828
+	for app in ${APPS}; \
+	do \
+		FILES_INTEGRATION=`test -d apps/$$app/test/integration && find apps/$$app/test/integration -name "*_test.js" -type f`; \
+		./tests/js/bin/runner $$app $${FILES_INTEGRATION}; \
+	done;
+
+.PHONY: test-perf
+test-perf:
+	# All echo calls help create a JSON array
+	adb forward tcp:2828 tcp:2828
+	SHARED_PERF=`find tests/performance -name "*_test.js" -type f`; \
+	echo '['; \
+	for app in ${APPS}; \
+	do \
+		if [ -z "$${FIRST_LOOP_ITERATION}" ]; then \
+			FIRST_LOOP_ITERATION=done; \
+		else \
+			echo ','; \
+		fi; \
+		FILES_PERF=`test -d apps/$$app/test/performance && find apps/$$app/test/performance -name "*_test.js" -type f`; \
+		REPORTER=JSONMozPerf ./tests/js/bin/runner $$app $${SHARED_PERF} $${FILES_PERF}; \
+	done; \
+	echo ']';
 
 .PHONY: tests
 tests: webapp-manifests offline
@@ -596,7 +667,7 @@ update-offline-manifests:
 # target to update the gaia files and reboot b2g
 TARGET_FOLDER = webapps/$(BUILD_APP_NAME).$(GAIA_DOMAIN)
 APP_NAME = $(shell cat apps/${BUILD_APP_NAME}/manifest.webapp | grep name | head -1 | cut -d '"' -f 4)
-APP_PID = $(shell adb shell b2g-ps | grep '${APP_NAME}' | tr -s '${APP_NAME}' ' ' | tr -s ' ' ' ' | cut -f 3 -d' ')
+APP_PID = $(shell adb shell b2g-ps | grep '^${APP_NAME}' | sed 's/^${APP_NAME}\s*//' | awk '{ print $$2 }')
 install-gaia: profile
 	$(ADB) start-server
 	@echo 'Stopping b2g'
@@ -675,8 +746,14 @@ ifneq ($(TARGET_BUILD_VARIANT),user)
 SETTINGS_ARG += --console
 endif
 
-profile/settings.json: build/settings.py build/wallpaper.jpg
+profile/settings.json:
+ifneq ($(HIDPI),*)
+	python build/settings.py --hidpi build/wallpaper@2x.jpg
+	python build/settings.py $(SETTINGS_ARG) --locale $(GAIA_DEFAULT_LOCALE) --hidpi --homescreen $(SCHEME)homescreen.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --ftu $(SCHEME)communications.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --wallpaper build/wallpaper@2x.jpg --override build/custom-settings.json --output $@
+else
+	python build/settings.py build/wallpaper.jpg
 	python build/settings.py $(SETTINGS_ARG) --locale $(GAIA_DEFAULT_LOCALE) --homescreen $(SCHEME)homescreen.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --ftu $(SCHEME)communications.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --wallpaper build/wallpaper.jpg --override build/custom-settings.json --output $@
+endif
 
 # push profile/settings.json to the phone
 install-settings-defaults: profile/settings.json

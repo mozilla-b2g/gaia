@@ -3,7 +3,7 @@
 
 'use strict';
 
-function tzSelect(regionSelector, citySelector, onchange) {
+function tzSelect(regionSelector, citySelector, onchange, onload) {
   var TIMEZONE_FILE = '/shared/resources/tz.json';
 
 
@@ -15,6 +15,7 @@ function tzSelect(regionSelector, citySelector, onchange) {
     var gRegion = currentID.replace(/\/.*/, '');
     var gCity = currentID.replace(/.*?\//, '');
     var gTZ = null;
+    var loaded = false;
 
     function loadTZ(callback) {
       var xhr = new XMLHttpRequest();
@@ -76,21 +77,33 @@ function tzSelect(regionSelector, citySelector, onchange) {
         });
       }
       fillSelectElement(citySelector, options);
-      setTimezone();
+
+      if (loaded) {
+        setTimezone();
+      } else {
+        if (onload) {
+          onload(getTZInfo());
+        }
+        loaded = true;
+      }
     }
 
     function setTimezone() {
+      onchangeTZ(getTZInfo());
+    }
+
+    function getTZInfo() {
       var res = gTZ[gRegion][citySelector.value];
       gCity = res.city;
       var offset = res.offset.split(',');
-      onchangeTZ({
+      return {
         id: res.id || gRegion + '/' + res.city,
         region: getSelectedText(regionSelector),
         city: getSelectedText(citySelector),
         cc: res.cc,
         utcOffset: offset[0],
         dstOffset: offset[1]
-      });
+      };
     }
 
     regionSelector.onchange = fillCities;
@@ -132,7 +145,7 @@ function tzSelect(regionSelector, citySelector, onchange) {
               window.removeEventListener('moztimechange', timeChanged);
               onchange(tz);
             });
-          }
+          };
         }
       }, lastMozSettingValue);
 

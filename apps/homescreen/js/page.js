@@ -512,11 +512,6 @@ function Page(container, icons) {
 Page.prototype = {
 
   /*
-   * It defines the threshold in pixels to consider a gesture like a tap event
-   */
-  tapThreshold: 10,
-
-  /*
    * Renders a page for a list of apps
    *
    * @param{Array} icons
@@ -640,12 +635,12 @@ Page.prototype = {
    */
   tap: function pg_tap(elem) {
     if (Homescreen.isInEditMode()) {
-      if (elem.className === 'options') {
+      if (elem.classList.contains('options')) {
         var icon = GridManager.getIcon(elem.parentNode.dataset);
         if (icon.app)
           Homescreen.showAppDialog(icon.app);
       }
-    } else if (elem.className === 'icon') {
+    } else if ('isIcon' in elem.dataset) {
       var icon = GridManager.getIcon(elem.dataset);
       if (!icon.app)
         return;

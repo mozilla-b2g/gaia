@@ -7,7 +7,7 @@
 //
 // This file depends on JPEGMetadataParser.js and blobview.js
 //
-var metadataParsers = (function() {
+var metadataParser = (function() {
   // If we generate our own thumbnails, aim for this size
   var THUMBNAIL_WIDTH = 120;
   var THUMBNAIL_HEIGHT = 120;
@@ -18,9 +18,8 @@ var metadataParsers = (function() {
   // Don't try to open images with more pixels than this
   var MAX_IMAGE_PIXEL_SIZE = 5 * 1024 * 1024; // 5 megapixels
 
-  // <img> and <video> elements for loading images and videos
+  // An <img> element for loading images
   var offscreenImage = new Image();
-  var offscreenVideo = document.createElement('video');
 
   // Create a thumbnail size canvas, copy the <img> or <video> into it
   // cropping the edges as needed to make it fit, and then extract the
@@ -32,8 +31,8 @@ var metadataParsers = (function() {
     var context = canvas.getContext('2d');
     canvas.width = THUMBNAIL_WIDTH;
     canvas.height = THUMBNAIL_HEIGHT;
-    var eltwidth = video ? elt.videoWidth : elt.width;
-    var eltheight = video ? elt.videoHeight : elt.height;
+    var eltwidth = elt.width;
+    var eltheight = elt.height;
     var scalex = canvas.width / eltwidth;
     var scaley = canvas.height / eltheight;
 
@@ -106,17 +105,19 @@ var metadataParsers = (function() {
       context.fill();
     }
 
-    canvas.toBlob(function(blob) {
-      // This setTimeout is here in the hopes that it gives gecko a bit
-      // of time to release the memory that holds the decoded image before
-      // we start creating the next thumbnail.
-      setTimeout(function() {
-        callback(blob);
-      });
-    }, 'image/jpeg');
+    canvas.toBlob(callback, 'image/jpeg');
   }
 
-  function imageMetadataParser(file, metadataCallback, metadataError) {
+  var VIDEOFILE = /DCIM\/\d{3}MZLLA\/VID_\d{4}\.jpg/;
+
+  function metadataParser(file, metadataCallback, metadataError) {
+    // If the file is a poster image for a video file, then we've want
+    // video metadata, not image metadata
+    if (VIDEOFILE.test(file.name)) {
+      videoMetadataParser(file, metadataCallback, metadataError);
+      return;
+    }
+
     if (file.type !== 'image/jpeg') {
       // For any kind of image other than JPEG, we just have to get
       // our metadata with an <img> tag
@@ -221,83 +222,84 @@ var metadataParsers = (function() {
                                    function(thumbnail) {
                                      metadata.thumbnail = thumbnail;
                                      offscreenImage.removeAttribute('src');
-                                     callback(metadata);
+                                     // if the image was small, call the
+                                     // callback synchronously
+                                     if (metadata.width * metadata.height <
+                                         250000) {
+                                       callback(metadata);
+                                     }
+                                     else {
+                                       // We just decoded a big image and
+                                       // gecko needs time to release the
+                                       // memory. See Bug 792139, e.g.
+                                       // So wait before calling the callback.
+                                       // Sadly this is just idle time and
+                                       // makes scaning images without
+                                       // previews extra slow. But the
+                                       // alternative is crashing with an OOM.
+                                       // I've tested this with 250 1200x1600
+                                       // images. A delay of 200ms crashes.
+                                       // A delay of 300ms works. Rounding up
+                                       // to 400 to allow variablity between
+                                       // devices.
+                                       setTimeout(function() {
+                                         callback(metadata);
+                                       }, 400);
+                                     }
                                    });
       }
     }
   }
 
   function videoMetadataParser(file, metadataCallback, errorCallback) {
-    try {
-      if (file.type && !offscreenVideo.canPlayType(file.type)) {
-        errorCallback("can't play video file type: " + file.type);
-        return;
-      }
+    var metadata = {};
+    var videofilename = file.name.replace('.jpg', '.3gp');
+    metadata.video = videofilename;
 
-      var url = URL.createObjectURL(file);
-
-      offscreenVideo.preload = 'metadata';
-      offscreenVideo.style.width = THUMBNAIL_WIDTH + 'px';
-      offscreenVideo.style.height = THUMBNAIL_HEIGHT + 'px';
-      offscreenVideo.src = url;
-
-      offscreenVideo.onerror = function() {
-        URL.revokeObjectURL(url);
-        offscreenVideo.onerror = null;
-        offscreenVideo.src = null;
-        errorCallback('not a video file');
-      }
-
-      offscreenVideo.onloadedmetadata = function() {
-        var metadata = {};
-        metadata.video = true;
-        metadata.duration = offscreenVideo.duration;
-        metadata.width = offscreenVideo.videoWidth;
-        metadata.height = offscreenVideo.videoHeight;
-        metadata.rotation = 0;
-
-        // If this is a .3gp video file, look for its rotation matrix and
-        // then create the thumbnail. Otherwise set rotation to 0 and
-        // create the thumbnail.
-        // getVideoRotation is defined in shared/js/media/get_video_rotation.js
-        if (file.name.substring(file.name.lastIndexOf('.') + 1) === '3gp') {
-          getVideoRotation(file, function(rotation) {
-            if (typeof rotation === 'number')
-              metadata.rotation = rotation;
-            else if (typeof rotation === 'string')
-              console.warn('Video rotation:', rotation);
-            createThumbnail();
-          });
-        }
-        else {
-          createThumbnail();
-        }
-
-        function createThumbnail() {
-          offscreenVideo.currentTime = 1; // read 1 second into video
-          offscreenVideo.onseeked = function onseeked() {
-            createThumbnailFromElement(offscreenVideo, true, metadata.rotation,
-                                       function(thumbnail) {
-                                         URL.revokeObjectURL(url);
-                                         offscreenVideo.onerror = null;
-                                         offscreenVideo.onseeked = null;
-                                         offscreenVideo.removeAttribute('src');
-                                         offscreenVideo.load();
-                                         metadata.thumbnail = thumbnail;
-                                         metadataCallback(metadata);
-                                       });
-          };
-        }
-      };
+    var getreq = videostorage.get(videofilename);
+    getreq.onerror = function() {
+      errorCallback('cannot get video file: ' + videofilename);
     }
-    catch (e) {
-      console.error('Exception in videoMetadataParser', e, e.stack);
-      errorCallback('Exception in videoMetadataParser');
+    getreq.onsuccess = function() {
+      var videofile = getreq.result;
+      getVideoRotation(videofile, function(rotation) {
+        if (typeof rotation === 'number') {
+          metadata.rotation = rotation;
+          getVideoThumbnailAndSize();
+        }
+        else if (typeof rotation === 'string') {
+          errorCallback('Video rotation:', rotation);
+        }
+      });
+    }
+
+    function getVideoThumbnailAndSize() {
+      var url = URL.createObjectURL(file);
+      offscreenImage.src = url;
+
+      offscreenImage.onerror = function() {
+        URL.revokeObjectURL(url);
+        offscreenImage.removeAttribute('src');
+        errorCallback('getVideoThumanailAndSize: Image failed to load');
+      };
+
+      offscreenImage.onload = function() {
+        URL.revokeObjectURL(url);
+
+        // We store the unrotated size of the poster image, which we
+        // require to have the same size and rotation as the video
+        metadata.width = offscreenImage.width;
+        metadata.height = offscreenImage.height;
+
+        createThumbnailFromElement(offscreenImage, true, metadata.rotation,
+                                   function(thumbnail) {
+                                     metadata.thumbnail = thumbnail;
+                                     offscreenImage.removeAttribute('src');
+                                     metadataCallback(metadata);
+                                   });
+      };
     }
   }
 
-  return {
-    imageMetadataParser: imageMetadataParser,
-    videoMetadataParser: videoMetadataParser
-  };
+  return metadataParser;
 }());

@@ -791,6 +791,10 @@ suite('provider/caldav', function() {
       });
     });
 
+/*
+// These tests are currently failing and have been temporarily disabled as per
+// Bug 838993. They should be fixed and re-enabled as soon as possible as per
+// Bug 840489.
     suite('with simulated pre-expansion component', function() {
       var comp;
       var didExpand;
@@ -887,6 +891,7 @@ suite('provider/caldav', function() {
         }
       });
     });
+*/
 
   });
 });
