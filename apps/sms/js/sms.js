@@ -730,6 +730,7 @@ var ThreadUI = {
   // Time buffer for the 'last-messages' set. In this case 10 min
   LAST_MESSSAGES_BUFFERING_TIME: 10 * 60 * 1000,
   CHUNK_SIZE: 10,
+
   get view() {
     delete this.view;
     return this.view = document.getElementById('messages-container');
@@ -1287,16 +1288,14 @@ var ThreadUI = {
 
   /*
    * this method searches for phone numbers in the message
-   * and associates event handlers so that contactDialog is shown.
+   * and associates anchor links so that contactDialog is shown.
    */
+
   searchAndLinkPhoneData:
   function thui_searchAndLinkPhoneData(messageDOM, bodytext) {
-    var regPhone = new RegExp(['(\\+?1?[-.]?\\(?([0-9]{3})\\)?[-.]?)?',
-                               '([0-9]{3})[-.]?([0-9]{4})',
-                               '([0-9]{1,4})?'].join(''), 'mg');
-
-    var result = bodytext.replace(regPhone, function(phone) {
-      var linkText = '<a class="phone-link" val="' +
+    var phoneRegex = /(\+?1?[-.]?\(?([0-9]{3})\)?[-.]?)?([0-9]{3})[-.]?([0-9]{4})([0-9]{1,4})?/mg;
+    var result = bodytext.replace(phoneRegex, function(phone) {
+      var linkText = '<a data-action="phone-link" data-phonenumber="' +
                       phone + '">' + phone + '</a>';
       return linkText;
     });
@@ -1304,20 +1303,7 @@ var ThreadUI = {
     //check for messageDOM paragraph element to assign linked phone number text
     var pElement = messageDOM.querySelector('p');
     pElement.innerHTML = result;
-    this.addContactLinkHandlers(messageDOM);
     return messageDOM;
-  },
-
-  addContactLinkHandlers: function thui_addContactLinkHandlers(messageDOM) {
-      var anchors = messageDOM.querySelectorAll('a.phone-link');
-      for (var i = 0; i < anchors.length; i++) {
-        var phonetxt = anchors[i].getAttribute('val');
-        anchors[i].onclick = function(i, phonetxt) {
-          return function(e) {
-            ContactDialog.showContactDialog(phonetxt);
-          };
-        }(i, phonetxt);
-      }
   },
 
   appendMessage: function thui_appendMessage(message, hidden) {
@@ -1487,6 +1473,10 @@ var ThreadUI = {
   handleEvent: function thui_handleEvent(evt) {
     switch (evt.type) {
       case 'click':
+        var eventAction = evt.target.dataset.action;
+        if (eventAction && eventAction === 'phone-link') {
+          ContactDialog.showContactDialog(evt.target.dataset.phonenumber);
+        }
         if (window.location.hash != '#edit') {
           return;
         }
