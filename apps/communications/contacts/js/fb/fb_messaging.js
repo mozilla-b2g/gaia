@@ -5,7 +5,7 @@ if (typeof fb.msg === 'undefined') {
     var Msg = fb.msg = {};
     var to;
     var message;
-    var params = fb.oauthflow.params;
+    var params = oauthflow.params.facebook;
     var appId = params['applicationId'];
     var redirectURI = params['redirectMsg'];
 
@@ -15,7 +15,7 @@ if (typeof fb.msg === 'undefined') {
     Msg.wallPost = function(uid, msg) {
       to = uid || to;
       message = msg || message;
-      fb.oauth.getAccessToken(doWallPost, 'wallPost');
+      oauth2.getAccessToken(doWallPost, 'wallPost', 'facebook');
     }
 
     Msg.sendPrivate = function(uid, msg) {

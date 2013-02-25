@@ -465,10 +465,10 @@ if (!fb.link) {
                                   "li:not([data-uuid='#uid#'])");
 
       if (!acc_tk) {
-        fb.oauth.getAccessToken(function proposal_new_token(new_acc_tk) {
+        oauth2.getAccessToken(function proposal_new_token(new_acc_tk) {
           access_token = new_acc_tk;
           link.getProposal(contactId, new_acc_tk);
-        }, 'proposal');
+        }, 'proposal', 'facebook');
       }
       else {
         link.getProposal(contactId, acc_tk);

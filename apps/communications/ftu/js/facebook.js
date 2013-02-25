@@ -56,7 +56,9 @@ var FacebookIntegration = {
   handleEvent: function fb_he(event) {
     switch (event.type) {
       case 'click':
-        FbLauncher.start();
+        if (event.target === this.fbImportButton) {
+          FbLauncher.start('facebook');
+        }
         break;
       case 'fb_imported':
         this.toggleToImportedState();
@@ -69,11 +71,11 @@ var FacebookIntegration = {
     var fbOption = this.fbImportButton;
     var noNetMsg = this.noNetworkMsg;
 
-    if(nextState === 'disabled') {
-      fbOption.setAttribute('disabled','disabled');
+    if (nextState === 'disabled') {
+      fbOption.setAttribute('disabled', 'disabled');
       noNetMsg.classList.remove('hidden');
     }
-    else if(nextState === 'enabled') {
+    else if (nextState === 'enabled') {
       fbOption.removeAttribute('disabled');
       noNetMsg.classList.add('hidden');
     }

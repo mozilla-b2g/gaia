@@ -2,13 +2,9 @@
 
 var fb = window.fb || {};
 
-fb.ACC_T = 'access_token';
-
-if (typeof fb.oauth === 'undefined') {
+if (typeof window.oauth2 === 'undefined') {
   (function(document) {
-
-    var fboauth = fb.oauth = {};
-
+    var oauth2 = window.oauth2 = {};
     // <callback> is invoked when an access token is ready
     // and the hash state matches <state>
     var accessTokenCbData;
@@ -19,8 +15,17 @@ if (typeof fb.oauth === 'undefined') {
      *  Clears credential data stored locally
      *
      */
-    function clearStorage() {
-      window.asyncStorage.removeItem(STORAGE_KEY);
+    function clearStorage(service) {
+      window.asyncStorage.removeItem(getKey(service));
+    }
+
+    function getKey(service) {
+      var key = STORAGE_KEY;
+      if (service !== 'facebook') {
+        key = STORAGE_KEY + '_' + service;
+      }
+
+      return key;
     }
 
 
@@ -30,16 +35,18 @@ if (typeof fb.oauth === 'undefined') {
      *
      *
      */
-    fboauth.getAccessToken = function(ready, state) {
+    oauth2.getAccessToken = function(ready, state, service) {
       accessTokenCbData = {
         callback: ready,
-        state: state
+        state: state,
+        service: service
       };
 
       // Enables simple access to test tokens for hacking up the app
       // This code will need to be deleted once we have a final product
       fb.testToken = fb.testToken || parent.fb.testToken;
-      if (typeof fb.testToken === 'string' && fb.testToken.trim().length > 0) {
+      if (service === 'facebook' && typeof fb.testToken === 'string' &&
+          fb.testToken.trim().length > 0) {
         window.console.warn('Facebook. A test token will be used!');
         tokenDataReady({
           data: {
@@ -51,10 +58,10 @@ if (typeof fb.oauth === 'undefined') {
         return;
       }
 
-      asyncStorage.getItem(STORAGE_KEY,
+      asyncStorage.getItem(getKey(service),
                            function getAccessToken(tokenData) {
         if (!tokenData || !tokenData.access_token) {
-          startOAuth(state);
+          startOAuth(state, service);
           return;
         }
 
@@ -63,7 +70,7 @@ if (typeof fb.oauth === 'undefined') {
         var token_ts = tokenData.token_ts;
 
         if (expires !== 0 && Date.now() - token_ts >= expires) {
-          startOAuth(state);
+          startOAuth(state, service);
           return;
         }
 
@@ -71,17 +78,17 @@ if (typeof fb.oauth === 'undefined') {
           ready(access_token);
         }
       });
-    }
+    };
 
     /**
      *  Starts a OAuth 2.0 flow to obtain the user information
      *
      */
-    function startOAuth(state) {
-      clearStorage();
+    function startOAuth(state, service) {
+      clearStorage(service);
 
       // This page will be in charge of handling authorization
-      fb.oauthflow.start(state);
+      oauthflow.start(state, service);
     }
 
     function tokenDataReady(e) {
@@ -104,7 +111,7 @@ if (typeof fb.oauth === 'undefined') {
 
         var end = parameters.expires_in;
 
-        window.asyncStorage.setItem(STORAGE_KEY, {
+        window.asyncStorage.setItem(getKey(accessTokenCbData.service), {
           access_token: access_token,
           expires: end * 1000,
           token_ts: Date.now()
@@ -112,7 +119,7 @@ if (typeof fb.oauth === 'undefined') {
               parent.postMessage({
                 type: 'token_stored',
                 data: ''
-              },fb.oauthflow.params.contactsAppOrigin);
+              },oauthflow.params[accessTokenCbData.service].appOrigin);
         });
       },0);
     } // tokenReady
