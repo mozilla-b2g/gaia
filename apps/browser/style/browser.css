@@ -279,14 +279,13 @@ input[type="image"] {
 #url-bar {
   display: -moz-box;
   -moz-box-orient: horizontal;
-  padding: 0;
   margin: 10px;
   border: solid 1px;
   border-color: #c1c5ce;
   border-radius: 5px;
   height: 34px;
   margin: 8px 0px 8px 5px;
-  padding: 0 0 0 10px;
+  padding-left: 0.5rem;
   background-color: #fff;
   font-weight: 600;
   width: calc(100% - 15px);
@@ -305,7 +304,7 @@ input[type="image"] {
   display: block;
   width: 24px;
   height: 34px;
-  margin-right: 5px;
+  margin-right: 0.3rem;
   text-indent: -1000em;
   background-repeat: no-repeat;
   background-position: center center;
@@ -329,6 +328,7 @@ input[type="image"] {
   height: 34px;
   -moz-box-flex: 1;
   margin: 0;
+  padding: 0;
   border: none;
   background-color: transparent;
   background: none;
@@ -620,19 +620,19 @@ li[role="tab"] {
 }
 
 li[role="tab"] a {
-  display: block;
   float: left;
-  height: 36px;
+  max-width: calc(33% - 3.9rem);
+  height: 3.6rem;
+  margin-left: -3rem;
+  padding: 0 3rem;
   text-decoration: none;
   color: #000;
-  line-height: 36px;
+  font-size: 1.3rem;
+  line-height: 3.6rem;
+  letter-spacing: -0.02rem;
   text-align: center;
-  padding: 0 30px;
-  font-size: 1.4rem;
-  outline: none;
-  margin-left: -30px;
   text-overflow: ellipsis;
-  max-width: calc(33% - 39px);
+  outline: none;
   overflow: hidden;
 }
 
@@ -970,7 +970,7 @@ li[role="listitem"] small {
  }
 
 /* This is a dirty hack to hide the bottom toolbar while
- * the keyboard is active, than device-height - 40px 
+ * the keyboard is active, than device-height - 40px
  * (for status bar/mini attention screen),
  * then the keyboard is likely activated
  */

@@ -142,37 +142,93 @@
  */
 
 /* signal levels */
-#wifi-availableNetworks > li {
+#wifi-availableNetworks > li > a {
   background-repeat: no-repeat;
   background-position: right 3rem top 50%;
-  padding-right: 3rem;
 }
 
-.wifi-signal0 {
-  background-image: -moz-image-rect(url(images/wifi_sprite.png), 0, 32, 32, 0);
+/* free - no connected */
+.wifi-signal0 > a {
+  background-image: -moz-image-rect(url(icons/wifi.png), 0, 32, 32, 0);
 }
 
-.wifi-signal1 {
-  background-image: -moz-image-rect(url(images/wifi_sprite.png), 0, 64, 32, 32);
+.wifi-signal1 > a {
+  background-image: -moz-image-rect(url(icons/wifi.png), 0, 64, 32, 32);
 }
 
-.wifi-signal2 {
-  background-image: -moz-image-rect(url(images/wifi_sprite.png), 0, 96, 32, 64);
+.wifi-signal2 > a {
+  background-image: -moz-image-rect(url(icons/wifi.png), 0, 96, 32, 64);
 }
 
-.wifi-signal3 {
-  background-image: -moz-image-rect(url(images/wifi_sprite.png), 0, 128, 32, 96);
+.wifi-signal3 > a {
+  background-image: -moz-image-rect(url(icons/wifi.png), 0, 128, 32, 96);
 }
 
-.wifi-signal4 {
-  background-image: -moz-image-rect(url(images/wifi_sprite.png), 0, 160, 32, 128);
+.wifi-signal4 > a {
+  background-image: -moz-image-rect(url(icons/wifi.png), 0, 160, 32, 128);
 }
 
-/* secured networks */
-.wifi-secure {
-  background-repeat: no-repeat;
-  background-position: right 1.8rem top 50%;
-  background-image: url(images/wifi_lock.png);
+/* secure - no connected */
+.wifi-signal0 > .wifi-secure {
+  background-image: -moz-image-rect(url(icons/wifi.png), 32, 32, 64, 0);
+}
+
+.wifi-signal1 > .wifi-secure {
+  background-image: -moz-image-rect(url(icons/wifi.png), 32, 64, 64, 32);
+}
+
+.wifi-signal2 > .wifi-secure {
+  background-image: -moz-image-rect(url(icons/wifi.png), 32, 96, 64, 64);
+}
+
+.wifi-signal3 > .wifi-secure {
+  background-image: -moz-image-rect(url(icons/wifi.png), 32, 128, 64, 96);
+}
+
+.wifi-signal4 > .wifi-secure {
+  background-image: -moz-image-rect(url(icons/wifi.png), 32, 160, 64, 128);
+}
+
+/* free - connected */
+.wifi-signal0.connected > a {
+  background-image: -moz-image-rect(url(icons/wifi.png), 64, 32, 96, 0);
+}
+
+.wifi-signal1.connected > a {
+  background-image: -moz-image-rect(url(icons/wifi.png), 64, 64, 96, 32);
+}
+
+.wifi-signal2.connected > a {
+  background-image: -moz-image-rect(url(icons/wifi.png), 64, 96, 96, 64);
+}
+
+.wifi-signal3.connected > a {
+  background-image: -moz-image-rect(url(icons/wifi.png), 64, 128, 96, 96);
+}
+
+.wifi-signal4.connected > a {
+  background-image: -moz-image-rect(url(icons/wifi.png), 64, 160, 96, 128);
+}
+
+/* secure - connected */
+.wifi-signal0.connected > .wifi-secure {
+  background-image: -moz-image-rect(url(icons/wifi.png), 96, 32, 128, 0);
+}
+
+.wifi-signal1.connected > .wifi-secure {
+  background-image: -moz-image-rect(url(icons/wifi.png), 96, 64, 128, 32);
+}
+
+.wifi-signal2.connected > .wifi-secure {
+  background-image: -moz-image-rect(url(icons/wifi.png), 96, 96, 128, 64);
+}
+
+.wifi-signal3.connected > .wifi-secure {
+  background-image: -moz-image-rect(url(icons/wifi.png), 96, 128, 128, 96);
+}
+
+.wifi-signal4.connected > .wifi-secure {
+  background-image: -moz-image-rect(url(icons/wifi.png), 96, 160, 128, 128);
 }
 
 /******************************************************************************

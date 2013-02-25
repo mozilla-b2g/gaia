@@ -812,24 +812,22 @@
         <h2 data-l10n-id="dataConnectivity"> Data Connectivity </h2>
       </header>
       <ul>
-        <li>
+        <li class="hint">
           <label>
             <input type="checkbox" data-type="switch" name="ril.data.enabled"/>
             <span></span>
           </label>
           <small id="dataConnection-desc"></small>
           <a data-l10n-id="dataConnection">Data Connection</a>
+          <p id="dataConnection-expl" class="explanation" data-l10n-id="dataConnection-warning-message" hidden></p>
         </li>
-        <li id="dataConnection-expl" class="explanation" data-l10n-id="dataConnection-warning-message" hidden>
-        </li>
-        <li>
+        <li class="hint">
           <label>
             <input type="checkbox" data-type="switch" name="ril.data.roaming_enabled"/>
             <span></span>
           </label>
           <a data-l10n-id="dataRoaming">Data Roaming</a>
-        </li>
-        <li id="dataRoaming-expl" class="explanation" data-l10n-id="dataRoaming-warning-message" hidden>
+          <p id="dataRoaming-expl" class="explanation" data-l10n-id="dataRoaming-warning-message" hidden></p>
         </li>
       </ul>
 
@@ -878,12 +876,15 @@
       </header>
 
       <ul>
-        <li id="bluetooth-status">
+        <li id="bluetooth-status" class="hint">
           <label>
             <input type="checkbox" data-type="switch" />
             <span></span>
           </label>
           <a data-l10n-id="bluetooth">Bluetooth</a>
+          <p data-l10n-id="bluetooth-enable-msg" id="bluetooth-enable-msg" class="explanation">
+            Turn Bluetooth on to view devices in the area.
+          </p>
         </li>
         <li hidden id="device-visible">
           <label>
@@ -899,10 +900,6 @@
           </label>
         </li>
       </ul>
-
-      <div data-l10n-id="bluetooth-enable-msg" id="bluetooth-enable-msg" class="explanation">
-        Turn Bluetooth on to view devices in the area.
-      </div>
 
       <header id="bluetooth-paired-title">
         <h2 data-l10n-id="bluetooth-paired-devices">Paired Devices</h2>
@@ -1492,14 +1489,14 @@
         <div class="passcode-container" id="passcode-container">
           <div class="passcode-error" data-l10n-id="incorrect-passcode" data-type="incorrect">Incorrect passcode!</div>
           <div class="passcode-error" data-l10n-id="passcode-doesnt-match" data-type="mismatch">Passcode doesn't match. Try again!</div>
-          <span data-l10n-id="passcode">Passcode</span>
+          <p data-l10n-id="passcode">Passcode</p>
           <div class="passcode" id="passcode-pseudo-input">
             <span class="passcode-digit"></span>
             <span class="passcode-digit"></span>
             <span class="passcode-digit"></span>
             <span class="passcode-digit"></span>
           </div>
-          <span data-l10n-id="confirm-passcode" data-mode="new,create">Confirm Passcode</span>
+          <p data-l10n-id="confirm-passcode" data-mode="new,create">Confirm Passcode</p>
           <div class="passcode" data-mode="new,create" id="passcode-pseudo-confirm-input">
             <span class="passcode-digit"></span>
             <span class="passcode-digit"></span>
@@ -2261,7 +2258,7 @@
       </header>
       <ul>
         <li>
-          <meter id="apps-space-bar" min="0" value="0" max="100"></meter>
+          <progress id="apps-space-bar" min="0" value="0" max="100"></progress>
         </li>
 
         <li>

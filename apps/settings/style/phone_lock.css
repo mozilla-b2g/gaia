@@ -24,9 +24,17 @@
 
 #phoneLock-passcode div.passcode-error {
   display: none;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: calc(100% - 6rem);
   color: red;
-  font-size: 1.7rem;
-  padding-left: 2rem;
+  font-size: 1.9rem;
+  padding: 1rem 3rem;
+  background: url(images/document_bg.png);
+  z-index: 10;
 }
 
 #phoneLock-passcode[data-passcode-status="error"][data-mode="confirm"] div.passcode-error[data-type="incorrect"],
@@ -39,16 +47,19 @@
   display: block;
 }
 
+#phoneLock-passcode[data-passcode-status="error"] menu[data-mode="new"] {
+  display: none;
+}
+
 #passcode-change div.passcode-overlay {
   position: relative;
 }
 
-#phoneLock-passcode .passcode-container > span {
-  width: 100%;
-  color: #000;
+#phoneLock-passcode .passcode-container > p {
   -moz-box-sizing: border-box;
   font-size: 1.9rem;
-  padding: 0 2rem;
+  margin: 0;
+  padding: 1rem 3rem;
 }
 
 #phoneLock-passcode [data-mode] {
@@ -87,20 +98,20 @@
 }
 
 .passcode {
-  height: 6rem;
-  width: 100%;
+  width: calc(100% - 2rem);
+  margin: 0 auto  1rem;
+  overflow: hidden;
 }
 
 .passcode-digit {
   -moz-box-sizing: border-box;
-  display: block;
   float: left;
   width: calc(25% - 1rem);
-  margin: 1.5rem 0.5rem;
+  margin: 0 0.5rem;
   height: 4rem;
   text-align: center;
-  box-shadow: 0 0 0.8rem #999 inset;
   background-color: #fff;
+  border: 0.1rem solid #ccc;
   border-radius: 0.5rem;
   position: relative;
 }
