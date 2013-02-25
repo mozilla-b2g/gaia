@@ -54,10 +54,6 @@ var CardsView = (function() {
   var gd = new GestureDetector(cardsView);
   gd.startDetecting();
 
-  // A list of all the URLs we've created via URL.createObjectURL which we
-  // haven't yet revoked.
-  var screenshotObjectURLs = [];
-
   /*
    * Returns an icon URI
    *
@@ -261,6 +257,14 @@ var CardsView = (function() {
       }
 
       cardsList.appendChild(card);
+
+      // If we have a cached screenshot, use that first
+      // We then 'res-in' the correctly sized version
+      var cachedLayer = WindowManager.screenshots[origin];
+      if (cachedLayer) {
+        card.style.backgroundImage = 'url(' + cachedLayer + ')';
+      }
+
       // rect is the final size (considering CSS transform) of the card.
       var rect = card.getBoundingClientRect();
 
@@ -270,8 +274,19 @@ var CardsView = (function() {
         function gotScreenshot(screenshot) {
           if (screenshot.target.result) {
             var objectURL = URL.createObjectURL(screenshot.target.result);
-            screenshotObjectURLs.push(objectURL);
-            card.style.backgroundImage = 'url(' + objectURL + ')';
+
+            // Overwrite the cached image to prevent flickering
+            card.style.backgroundImage = 'url(' + objectURL + '), url(' + cachedLayer + ')';
+
+            // setTimeout is needed to ensure that the image is fully drawn
+            // before we remove it. Otherwise the rendering is not smooth.
+            // See: https://bugzilla.mozilla.org/show_bug.cgi?id=844245
+            setTimeout(function() {
+
+              // Override the cached image
+              URL.revokeObjectURL(cachedLayer);
+              WindowManager.screenshots[origin] = objectURL;
+            }, 200);
           }
         };
 
@@ -361,12 +376,6 @@ var CardsView = (function() {
     // Make the cardsView overlay inactive
     cardsView.classList.remove('active');
     cardsViewShown = false;
-
-    // Release our screenshot blobs.
-    screenshotObjectURLs.forEach(function(url) {
-      URL.revokeObjectURL(url);
-    });
-    screenshotObjectURLs = [];
 
     // And remove all the cards from the document after the transition
     function removeCards() {
