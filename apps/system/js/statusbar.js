@@ -166,6 +166,17 @@ var StatusBar = {
     // Listen to 'moztimechange'
     window.addEventListener('moztimechange', this);
 
+    // Listen to 'appwillclose', 'appopen', 'home', 'holdhome', 'unlock'
+    // to determine the visible state of statusbar
+    window.addEventListener('home', this);
+    window.addEventListener('holdhome', this);
+    window.addEventListener('appwillclose', this);
+    window.addEventListener('appopen', this);
+    window.addEventListener('unlock', this);
+
+    // Listen to 'mozfullscreenchange' to see if we should hide statusbar
+    window.addEventListener('mozfullscreenchange', this);
+
     this.systemDownloadsCount = 0;
 
     // Create the objects used to animate the statusbar-network-activity and
@@ -250,7 +261,30 @@ var StatusBar = {
       case 'moznetworkdownload':
         this.update.networkActivity.call(this);
         break;
+
+      case 'appopen':
+      case 'mozfullscreenchange':
+      case 'unlock':
+        if (this.screen.classList.contains('fullscreen-app') ||
+            document.mozFullScreen) {
+          this.hide();
+        }
+        break;
+
+      case 'appwillclose':
+      case 'home':
+      case 'holdhome':
+        this.show();
+        break;
     }
+  },
+
+  show: function sb_show() {
+    this.element.classList.remove('hidden');
+  },
+
+  hide: function sb_hide() {
+    this.element.classList.add('hidden');
   },
 
   setActive: function sb_setActive(active) {
@@ -281,6 +315,10 @@ var StatusBar = {
 
       window.addEventListener('moznetworkupload', this);
       window.addEventListener('moznetworkdownload', this);
+
+      if (LockScreen.locked) {
+        this.show();
+      }
     } else {
       clearTimeout(this._clockTimer);
 
