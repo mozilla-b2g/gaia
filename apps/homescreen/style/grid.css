@@ -12,6 +12,11 @@
   text-align: center;
   margin: 0 auto;
   display: none;
+	/*
+   * We use this rule to make gecko think that they're visible so they are
+   * painted.
+   */
+	border-bottom: 0.01px solid rgba(0,0,0,0.01);
 }
 
 /* Here users can view the clock while grid is loading -> better experience */
