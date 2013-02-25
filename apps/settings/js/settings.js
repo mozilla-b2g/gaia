@@ -590,7 +590,10 @@ window.addEventListener('load', function loadSettings() {
         break;
     }
 
-    // preset all inputs in the panel
+    // preset all inputs in the panel and subpanels.
+    for (var i = 0; i < subPanels.length; i++) {
+      Settings.presetPanel(subPanels[i]);
+    }
     Settings.presetPanel(panel);
   }
 

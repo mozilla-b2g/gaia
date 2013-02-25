@@ -23,7 +23,8 @@
     "desktop-notification":{},
     "power":{},
     "idle":{},
-    "telephony":{}
+    "telephony":{},
+    "audio-channel-notification":{}
   },
   "activities": {
     "configure": {

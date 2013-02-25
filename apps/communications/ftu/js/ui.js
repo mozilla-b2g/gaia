@@ -192,7 +192,7 @@ var UIManager = {
     // Initialize the timezone selector, see /shared/js/tz_select.js
     var tzRegion = document.getElementById('tz-region');
     var tzCity = document.getElementById('tz-city');
-    tzSelect(tzRegion, tzCity, this.setTimeZone);
+    tzSelect(tzRegion, tzCity, this.setTimeZone, this.setTimeZone);
   },
 
   fakeInputValues: function ui_fakeInputValues(event) {

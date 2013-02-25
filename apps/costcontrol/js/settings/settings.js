@@ -167,7 +167,7 @@ var Settings = (function() {
   function updateUI() {
     ConfigManager.requestAll(function _onInfo(configuration, settings) {
       // L10n
-      localizeWeekdaySelector(document.getElementById('selectdialog-weekday'));
+      localizeWeekdaySelector(document.getElementById('select-weekday'));
 
       // Layout
       var mode = costcontrol.getApplicationMode(settings);

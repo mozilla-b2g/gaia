@@ -18,6 +18,10 @@ require('/tests/js/integration_helper.js');
       var registerListener =
         'var w = global.wrappedJSObject;' +
         'w.loadTimes = [];' +
+        'if (w.onapplicationloaded) {' +
+        /* We've been here before, let's clean ! */
+        '  w.removeEventListener("apploadtime", w.onapplicationloaded);' +
+        '}' +
         'w.onapplicationloaded = function(e) {' +
         '  w.loadTimes.push(e.detail.time);' +
         '};' +
