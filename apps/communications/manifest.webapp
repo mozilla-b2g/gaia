@@ -108,6 +108,14 @@
       "href": "/contacts/index.html?update",
       "returnValue": true
     },
+    "open": {
+      "filters": {
+        "type": "webcontacts/contact"
+      },
+      "disposition": "window",
+      "href": "/contacts/index.html?open",
+      "returnValue": false
+    },
     "dial": {
       "filters": {
         "type": "webtelephony/number"

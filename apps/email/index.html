@@ -28,6 +28,7 @@
   <script type="text/javascript" defer src="shared/js/l10n_date.js"></script>
   <script type="text/javascript" defer src="shared/js/gesture_detector.js"></script>
   <!-- Specific code -->
+  <script type="text/javascript" defer src="js/contacts.js"></script>
   <script type="text/javascript" defer src="js/input_areas.js"></script>
   <script type="text/javascript" defer src="js/console-hook.js"></script>
   <script type="text/javascript" defer src="js/mail-common.js"></script>
@@ -960,21 +961,23 @@
       </li>
 
       <!-- Hide for V1: Hide open contact app option in context menu -->
-      <!--
-      <ul class="msg-contact-menu menu">
-        <li class="msg-contact-menu-view menu-item collapsed"
-            data-l10n-id="message-contact-menu-view">View contacT</li>
-        <li class="msg-contact-menu-reply menu-item"
-            data-l10n-id="message-contact-menu-reply">ReplY</li>
-      </ul> -->
       <form class="msg-contact-menu" role="dialog" data-type="action">
         <header></header>
         <menu>
-          <button class="msg-contact-menu-view collapsed" data-l10n-id="message-contact-menu-view">
+          <button class="msg-contact-menu-new" data-l10n-id="message-contact-menu-new">
+            New messagE
+          </button>
+          <button class="msg-contact-menu-reply" data-l10n-id="message-contact-menu-reply">
+            ReplY
+          </button>
+          <button class='msg-contact-menu-view' data-l10n-id="message-contact-menu-view">
             View contacT
           </button>
-          <button class="msg-contact-menu-reply" data-l10n-id="message-contact-menu-reply">
-            ReplY
+          <button class='msg-contact-menu-create-contact' data-l10n-id="message-contact-menu-create">
+            Create as new contacT
+          </button>
+          <button class='msg-contact-menu-add-to-existing-contact' data-l10n-id="message-contact-menu-add-existing">
+            Add to existing contacT
           </button>
           <button class="msg-contact-menu-cancel" data-l10n-id="message-multiedit-cancel">
             CanceL

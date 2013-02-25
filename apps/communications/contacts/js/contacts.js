@@ -220,60 +220,70 @@ var Contacts = (function() {
   };
 
   var dataPickHandler = function dataPickHandler() {
-    var type, dataSet, noDataStr, selectDataStr;
     var theContact = currentFbContact || currentContact;
-    // Add the new pick type here:
-    switch (ActivityHandler.activityDataType) {
-      case 'webcontacts/contact':
-        type = 'number';
-        dataSet = theContact.tel;
-        noDataStr = _('no_phones');
-        selectDataStr = _('select_mobile');
-        break;
-      case 'webcontacts/email':
-        type = 'email';
-        dataSet = theContact.email;
-        noDataStr = _('no_email');
-        selectDataStr = _('select_email');
-        break;
-    }
 
-    var hasData = dataSet && dataSet.length;
-    var numOfData = hasData ? dataSet.length : 0;
+    if (ActivityHandler.activityName === 'edit') {
+      var params = ActivityHandler.activityParams;
+      if (params) {
+        document.location.hash = '#view-contact-form?extras=' +
+        encodeURIComponent(JSON.stringify(params)) + '&id=' + theContact.id;
+      }
+    } else {
+      var type, dataSet, noDataStr, selectDataStr;
 
-    var result = {};
-    result.name = theContact.name;
-    switch (numOfData) {
-      case 0:
-        // If no required type of data
-        var dismiss = {
-          title: _('ok'),
-          callback: ConfirmDialog.hide
-        };
-        ConfirmDialog.show(null, noDataStr, dismiss);
-        break;
-      case 1:
-        // if one required type of data
-        var data = dataSet[0].value;
-        result[type] = data;
-        ActivityHandler.postPickSuccess(result);
-        break;
-      default:
-        // if more than one required type of data
-        var prompt1 = new ValueSelector();
-        for (var i = 0; i < dataSet.length; i++) {
-          var data = dataSet[i].value,
-              carrier = dataSet[i].carrier || '';
-          prompt1.addToList(data + ' ' + carrier, data);
-        }
+      // Add the new pick type here:
+      switch (ActivityHandler.activityDataType) {
+        case 'webcontacts/contact':
+          type = 'number';
+          dataSet = theContact.tel;
+          noDataStr = _('no_phones');
+          selectDataStr = _('select_mobile');
+          break;
+        case 'webcontacts/email':
+          type = 'email';
+          dataSet = theContact.email;
+          noDataStr = _('no_email');
+          selectDataStr = _('select_email');
+          break;
+      }
 
-        prompt1.onchange = function onchange(itemData) {
-          prompt1.hide();
-          result[type] = itemData;
+      var hasData = dataSet && dataSet.length;
+      var numOfData = hasData ? dataSet.length : 0;
+
+      var result = {};
+      result.name = theContact.name;
+      switch (numOfData) {
+        case 0:
+          // If no required type of data
+          var dismiss = {
+            title: _('ok'),
+            callback: ConfirmDialog.hide
+          };
+          ConfirmDialog.show(null, noDataStr, dismiss);
+          break;
+        case 1:
+          // if one required type of data
+          var data = dataSet[0].value;
+          result[type] = data;
           ActivityHandler.postPickSuccess(result);
-        };
-        prompt1.show();
-    } // switch
+          break;
+        default:
+          // if more than one required type of data
+          var prompt1 = new ValueSelector();
+          for (var i = 0; i < dataSet.length; i++) {
+            var data = dataSet[i].value,
+                carrier = dataSet[i].carrier || '';
+            prompt1.addToList(data + ' ' + carrier, data);
+          }
+
+          prompt1.onchange = function onchange(itemData) {
+            prompt1.hide();
+            result[type] = itemData;
+            ActivityHandler.postPickSuccess(result);
+          };
+          prompt1.show();
+      } // switch
+    }
   };
 
   var contactListClickHandler = function originalHandler(id) {

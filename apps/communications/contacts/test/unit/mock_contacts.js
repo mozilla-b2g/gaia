@@ -37,5 +37,7 @@ var MockContactsApp = {
   },
   loadFacebook: function(cb) {
     cb();
+  },
+  checkCancelableActivity: function() {
   }
 };

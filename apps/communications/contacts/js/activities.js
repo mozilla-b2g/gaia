@@ -27,7 +27,8 @@ var ActivityHandler = {
     if (this._launchedAsInlineActivity)
       return;
 
-    this._currentActivity = activity;
+    if(action !== 'view-contact-details')
+      this._currentActivity = activity;
     var hash = action;
     var param, params = [];
     if (activity.source && activity.source.data && activity.source.data.params) {
@@ -40,16 +41,28 @@ var ActivityHandler = {
     }
     document.location.hash = hash;
   },
+
+  get activityParams() {
+    if (!this._currentActivity) {
+      return null;
+    }
+
+    return this._currentActivity.source.data.params;
+  },
+
   handle: function ah_handle(activity) {
     switch (activity.source.name) {
       case 'new':
         this.launch_activity(activity, 'view-contact-form');
         break;
-
       case 'update':
         this.launch_activity(activity, 'add-parameters');
         break;
+      case 'open':
+        this.launch_activity(activity, 'view-contact-details');
+        break;
       case 'pick':
+      case 'edit':
         if (!this._launchedAsInlineActivity)
           return;
 
@@ -61,6 +74,11 @@ var ActivityHandler = {
   },
 
   postNewSuccess: function ah_postNewSuccess(contact) {
+    this._currentActivity.postResult({contact: contact});
+    this._currentActivity = null;
+  },
+
+  postEditSuccess: function ah_editNewSuccess(contact) {
     this._currentActivity.postResult({contact: contact});
     this._currentActivity = null;
   },

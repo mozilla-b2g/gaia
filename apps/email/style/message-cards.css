@@ -483,3 +483,13 @@ ul[role="tablist"].filter li[aria-selected="true"] {
 ul[role="tablist"].filter li[aria-selected="true"] a {
   color: #000;
 }
+
+/* contact menu */
+body > .msg-contact-menu button {
+  display: none;
+}
+
+body > .msg-contact-menu button:last-child,
+body > .msg-contact-menu button[data-show="true"] {
+  display: block;
+}
