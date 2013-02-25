@@ -55,7 +55,7 @@ Evme.Utils = new function Evme_Utils() {
         ms < 10 && (ms = '00' + ms) ||
         ms < 100 && (ms = '0' + ms);
         
-        dump("[" + [h, m, s, ms].join(':') + " EVME]: " + message);
+        console.log("[%s EVME]: %s", [h, m, s, ms].join(':'), message);
     };
     
     this.l10n = function l10n(module, key, args) {
