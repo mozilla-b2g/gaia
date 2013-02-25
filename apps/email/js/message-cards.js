@@ -1023,11 +1023,27 @@ MessageReaderCard.prototype = {
       switch (evt.explicitOriginalTarget.className) {
         // All of these mutations are immediately reflected, easily observed
         // and easily undone, so we don't show them as toaster actions.
-        case 'msg-contact-menu-view':
+        case 'msg-contact-menu-create-contact':
           try {
             //TODO: Provide correct params for contact activiy handler.
             var activity = new MozActivity({
               name: 'new',
+              data: {
+                type: 'webcontacts/contact',
+                params: {
+                  'email': email
+                }
+              }
+            });
+          } catch (e) {
+            console.log('WebActivities unavailable? : ' + e);
+          }
+          break;
+        case 'msg-contact-menu-add-to-existing-contact':
+          try {
+            //TODO: Provide correct params for contact activiy handler.
+            var activity = new MozActivity({
+              name: 'edit',
               data: {
                 type: 'webcontacts/contact',
                 params: {
