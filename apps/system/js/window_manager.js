@@ -1227,8 +1227,8 @@ var WindowManager = (function() {
   }
 
   function maybeSetFrameIsCritical(iframe, origin) {
-    if (origin.startsWith("app://communications.gaiamobile.org/dialer") ||
-        origin.startsWith("app://clock.gaiamobile.org")) {
+    if (origin.startsWith('app://communications.gaiamobile.org/dialer') ||
+        origin.startsWith('app://clock.gaiamobile.org')) {
       iframe.setAttribute('mozapptype', 'critical');
     }
   }
@@ -1293,6 +1293,17 @@ var WindowManager = (function() {
   }
 
   function startInlineActivity(origin, url, name, manifest, manifestURL) {
+    // If the same inline activity frame is existed and showing,
+    // we reuse its iframe.
+    if (inlineActivityFrames.length) {
+      var showingInlineActivityFrame =
+        inlineActivityFrames[inlineActivityFrames.length - 1].firstChild;
+
+      if (showingInlineActivityFrame.dataset.frameURL == url) {
+        return;
+      }
+    }
+
     // Create the <iframe mozbrowser mozapp> that hosts the app
     var frame = createFrame(null, origin, url, name, manifest, manifestURL);
     var iframe = frame.firstChild;
@@ -1497,7 +1508,6 @@ var WindowManager = (function() {
             e.detail.target.disposition == 'inline') {
           // Inline activities behaves more like a dialog,
           // let's deal them here.
-
           startInlineActivity(origin, e.detail.url,
                               name, manifest, app.manifestURL);
 
