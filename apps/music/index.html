@@ -13,12 +13,10 @@
     <script defer src="shared/js/l10n.js"></script>
     <script defer src="shared/js/mouse_event_shim.js"></script>
     <script defer src="shared/js/mediadb.js"></script>
-    <script defer src="shared/js/blobview.js"></script>
+    <script defer src="shared/js/lazy_loader.js"></script>
     <script defer src="shared/js/async_storage.js"></script>
     <!-- Specific code -->
-    <script defer src="js/metadata.js"></script>
     <script defer src="js/utils.js"></script>
-    <script defer src="js/Player.js"></script>
     <script defer src="js/music.js"></script>
   </head>
 
@@ -33,9 +31,9 @@
       </header>
     </section>
     <div id="views">
-      <div id="views-tiles" class="view"></div>
-      <div id="views-list" class="view"></div>
-      <div id="views-sublist" class="view">
+      <div id="views-tiles" class="view hidden"></div>
+      <div id="views-list" class="view hidden"></div>
+      <div id="views-sublist" class="view hidden">
         <div id="views-sublist-header">
           <div id="views-sublist-header-default">
             <img id="views-sublist-header-image" />
@@ -48,7 +46,7 @@
         </div>
         <div id="views-sublist-anchor"></div>
       </div>
-      <div id="views-player" class="view">
+      <div id="views-player" class="view hidden">
         <div id="player-cover">
           <img id="player-cover-image" />
           <div id="player-cover-caption">
