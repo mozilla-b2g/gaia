@@ -195,7 +195,8 @@ const keyboardGroups = {
   'pinyin': ['zh-Hans-Pinyin'],
   'arabic': ['ar'],
   'greek': ['el'],
-  'japanese': ['jp-kanji']
+  'japanese': ['jp-kanji'],
+  'thai': ['th']
 };
 
 // This is the default keyboard if none is selected in settings
