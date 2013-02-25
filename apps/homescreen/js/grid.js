@@ -80,7 +80,8 @@ const GridManager = (function() {
         // Start panning immediately but only disable
         // the tap when we've moved far enough.
         var startX = startEvent.pageX;
-        deltaX = getX(evt) - startX;
+        var currentX = getX(evt);
+        deltaX = currentX - startX;
         if (deltaX === 0)
           return;
 
@@ -102,6 +103,8 @@ const GridManager = (function() {
             if (deltaX <= 0) {
               next.MozTransform = 'translateX(' + (windowWidth + deltaX) + 'px)';
               current.MozTransform = 'translateX(' + deltaX + 'px)';
+            } else {
+              startX = currentX;
             }
           };
         } else if (currentPage === pages.length - 1) {
@@ -111,6 +114,8 @@ const GridManager = (function() {
               previous.MozTransform =
                 'translateX(' + (-windowWidth + deltaX) + 'px)';
               current.MozTransform = 'translateX(' + deltaX + 'px)';
+            } else {
+              startX = currentX;
             }
           };
         } else {
@@ -148,7 +153,8 @@ const GridManager = (function() {
         // Generate a function accordingly to the current page position.
         if (currentPage > nextLandingPage || Homescreen.isInEditMode()) {
           var pan = function(e) {
-            deltaX = getX(e) - startX;
+            currentX = getX(e);
+            deltaX = currentX - startX;
             if (!isPanning && Math.abs(deltaX) >= tapThreshold) {
               isPanning = true;
             }
@@ -183,7 +189,8 @@ const GridManager = (function() {
           }
 
           var pan = function(e) {
-            deltaX = getX(e) - startX;
+            currentX = getX(e);
+            deltaX = currentX - startX;
             if (!isPanning && Math.abs(deltaX) >= tapThreshold) {
               isPanning = true;
             }
