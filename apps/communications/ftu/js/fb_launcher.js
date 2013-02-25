@@ -4,20 +4,27 @@ var FbLauncher = (function(document) {
     var extensionFrame = document.querySelector('#fb-extensions');
     var oauthFrame = document.querySelector('#fb-oauth');
 
-    var currentURI = '/contacts/fb_import.html?ftu=1',
-        access_token;
+    var URIs = {
+      facebook: '/contacts/fb_import.html?ftu=1',
+      live: '/contacts/live_import.html'
+    }
+
+    var access_token, currentURI;
 
 
     function open() {
       extensionFrame.className = 'opening';
     }
 
-    function load() {
+    function load(targetService) {
+      currentURI = URIs[targetService];
+
       window.addEventListener('message', messageHandler);
       oauthFrame.contentWindow.postMessage({
         type: 'start',
         data: {
-          from: 'friends'
+          from: 'friends',
+          service: targetService
         }
       }, fb.CONTACTS_APP_ORIGIN);
     }
