@@ -66,6 +66,9 @@ var WindowManager = (function() {
   var inlineActivityFrames = [];
   var activityCallerOrigin = '';
 
+  // Keep a list of cached screenshot URLs for the card view
+  var screenshots = {};
+
   // Some document elements we use
   var windows = document.getElementById('windows');
   var screenElement = document.getElementById('screen');
@@ -384,7 +387,7 @@ var WindowManager = (function() {
         openCallback = null;
 
         setOpenFrame(null);
-      }
+      };
 
       // If this is a cold launch let's wait for the app to load first
       var iframe = openFrame.firstChild;
@@ -484,7 +487,7 @@ var WindowManager = (function() {
       // element so that doesn't work either.)
       //
       // The "real" fix for this defect is tracked in bug 842102.
-      setTimeout(function () { iframe.setVisible(false); }, 50);
+      setTimeout(function _setVisible() { iframe.setVisible(false); }, 50);
     }
 
     screenElement.classList.remove('fullscreen-app');
@@ -639,7 +642,7 @@ var WindowManager = (function() {
       }
 
       callback(req.result.screenshot, true);
-    }
+    };
     req.onerror = function(evt) {
       console.warn('Window Manager: get screenshot from database failed.');
       callback();
@@ -684,6 +687,10 @@ var WindowManager = (function() {
         return;
 
       var iframe = frame.firstChild;
+
+      var objectURL = URL.createObjectURL(screenshot);
+      screenshots[iframe.dataset.frameOrigin] = objectURL;
+
       putAppScreenshotToDatabase(iframe.src || iframe.dataset.frameOrigin,
                                  screenshot);
     });
@@ -909,7 +916,7 @@ var WindowManager = (function() {
 
         callback(app);
       }
-    }
+    };
   }
 
   function skipFTU() {
@@ -1351,6 +1358,12 @@ var WindowManager = (function() {
 
     delete runningApps[origin];
     numRunningApps--;
+
+    // Clear the cached screen
+    if (screenshots[origin]) {
+      URL.revokeObjectURL(screenshots[origin]);
+      delete screenshots[origin];
+    }
   }
 
   function removeInlineFrame(frame) {
@@ -2077,7 +2090,8 @@ var WindowManager = (function() {
     hideCurrentApp: hideCurrentApp,
     restoreCurrentApp: restoreCurrentApp,
     retrieveHomescreen: retrieveHomescreen,
-    retrieveFTU: retrieveFTU
+    retrieveFTU: retrieveFTU,
+    screenshots: screenshots
   };
 }());
 
