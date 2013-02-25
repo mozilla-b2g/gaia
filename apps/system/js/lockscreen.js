@@ -899,14 +899,16 @@ var LockScreen = {
 
       // Bug 829075 : We need a <canvas> in the DOM to prevent banding on
       // Otoro-like devices
+      var viewportWidth = window.innerWidth;
+      var viewportHeight = window.innerHeight;
       var canvas = document.createElement('canvas');
       canvas.classList.add('lockscreen-wallpaper');
-      canvas.width = images[0].width;
-      canvas.height = images[0].height;
+      canvas.width = viewportWidth;
+      canvas.height = viewportHeight;
 
       var ctx = canvas.getContext('2d');
-      ctx.drawImage(images[0], 0, 0);
-      ctx.drawImage(images[1], 0, 0);
+      ctx.drawImage(images[0], 0, 0, viewportWidth, viewportHeight);
+      ctx.drawImage(images[1], 0, 0, viewportWidth, viewportHeight);
 
       var panels_selector = '.lockscreen-panel[data-wallpaper]';
       var panels = document.querySelectorAll(panels_selector);
