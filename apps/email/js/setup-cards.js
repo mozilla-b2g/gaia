@@ -10,7 +10,7 @@
  * sufficient.  If an error code does not exist in this map, it gets mapped
  * to the "unknown" value's l10n string id.
  */
-const SETUP_ERROR_L10N_ID_MAP = {
+var SETUP_ERROR_L10N_ID_MAP = {
   'offline': 'setup-error-offline',
   'bad-user-or-pass': 'setup-error-bad-user-or-pass2',
   'not-authorized': 'setup-error-not-authorized',
