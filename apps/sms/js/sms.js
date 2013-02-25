@@ -439,14 +439,16 @@ var ThreadListUI = {
   handleEvent: function thlui_handleEvent(evt) {
     switch (evt.type) {
       case 'click':
-        if (evt.target.type == 'checkbox') {
+        // Duck type determination; if the click event occurred on
+        // a target with a |type| property, then assume it could've
+        // been a checkbox and proceed w/ validation condition
+        if (evt.target.type && evt.target.type === 'checkbox') {
           ThreadListUI.clickInput(evt.target);
           ThreadListUI.checkInputs();
         }
         break;
       case 'submit':
         evt.preventDefault();
-        return false;
         break;
     }
   },
@@ -856,6 +858,9 @@ var ThreadUI = {
 
     Utils.startTimeHeaderScheduler();
 
+    // Initialized here, but used in ThreadUI.cleanFields
+    this.previousHash = null;
+
     // We add the infinite scroll effect for increasing performance
     this.view.addEventListener('scroll', this.manageScroll.bind(this));
   },
@@ -1235,6 +1240,7 @@ var ThreadUI = {
         if (self.messageIndex === self.CHUNK_SIZE) {
           self.showFirstChunk();
         }
+        return true;
       },
       filter: filter,
       invert: false,
@@ -1455,7 +1461,6 @@ var ThreadUI = {
         break;
       case 'submit':
         evt.preventDefault();
-        return false;
         break;
     }
   },
@@ -1469,8 +1474,9 @@ var ThreadUI = {
       self.contactInput.value = '';
       self.updateInputHeight();
     };
-    if (window.location.hash == this.previousHash ||
-          this.previousHash == '#new') {
+
+    if (this.previousHash === window.location.hash ||
+        this.previousHash === '#new') {
       if (forceClean) {
         clean();
       }
@@ -1961,4 +1967,3 @@ if (!window.location.hash.length) {
     }
   );
 }
-
