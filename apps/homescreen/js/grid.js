@@ -79,7 +79,8 @@ const GridManager = (function() {
         
         // Start panning immediately but only disable
         // the tap when we've moved far enough.
-        deltaX = getX(evt) - startEvent.pageX;
+        var startX = startEvent.pageX;
+        deltaX = getX(evt) - startX;
         if (deltaX === 0)
           return;
 
@@ -91,67 +92,53 @@ const GridManager = (function() {
         // to avoid as much as possible allocations while panning.
         window.removeEventListener(touchmove, handleEvent);
 
-        // Before panning pages that are directly next to the current
-        // target are set visible.
-        togglePagesVisibility(currentPage - 1, currentPage + 1);
-
-        var index = currentPage;
-        var previous = index ? pages[index - 1].container.style : {};
-        previous.MozTransition = '';
-        previous.MozTransform = 'translateX(' + (-windowWidth) + 'px)';
-
-        var current = pages[index].container.style;
-        current.MozTransition = '';
-
-        var next =
-          index < pages.length - 1 ? pages[index + 1].container.style : {};
-        next.MozTransition = '';
-        next.MozTransform = 'translateX(' + windowWidth + 'px)';
-
-        var translate = 'translateX($px)';
-        var startX = startEvent.pageX;
-        var forward = deltaX > 0;
+        var current = pages[currentPage].container.style;
+        var forward = deltaX < 0;
 
         var refresh;
-        if (index === 0) {
+        if (currentPage === 0) {
+          var next = pages[currentPage + 1].container.style;
           refresh = function(e) {
             if (deltaX <= 0) {
-              next.MozTransform = translate.replace('$', windowWidth + deltaX);
-              current.MozTransform = translate.replace('$', deltaX);
+              next.MozTransform = 'translateX(' + (windowWidth + deltaX) + 'px)';
+              current.MozTransform = 'translateX(' + deltaX + 'px)';
             }
           };
-        } else if (index === pages.length - 1) {
+        } else if (currentPage === pages.length - 1) {
+          var previous = pages[currentPage - 1].container.style;
           refresh = function(e) {
             if (deltaX >= 0) {
               previous.MozTransform =
-                translate.replace('$', -windowWidth + deltaX);
-              current.MozTransform = translate.replace('$', deltaX);
+                'translateX(' + (-windowWidth + deltaX) + 'px)';
+              current.MozTransform = 'translateX(' + deltaX + 'px)';
             }
           };
         } else {
+          var previous = pages[currentPage - 1].container.style;
+          var next = pages[currentPage + 1].container.style;
           refresh = function(e) {
             if (deltaX >= 0) {
               previous.MozTransform =
-                translate.replace('$', -windowWidth + deltaX);
-
-              // If we change direction make sure there isn't any part
-              // of the page on the other side that stays visible.
-              if (!forward) {
-                forward = true;
-                next.MozTransform = translate.replace('$', windowWidth);
-              }
-            } else {
-              next.MozTransform = translate.replace('$', windowWidth + deltaX);
+                'translateX(' + (-windowWidth + deltaX) + 'px)';
 
               // If we change direction make sure there isn't any part
               // of the page on the other side that stays visible.
               if (forward) {
                 forward = false;
-                previous.MozTransform = translate.replace('$', -windowWidth);
+                next.MozTransform = 'translateX(' + windowWidth + 'px)';
+              }
+            } else {
+              next.MozTransform = 'translateX(' + (windowWidth + deltaX) + 'px)';
+
+              // If we change direction make sure there isn't any part
+              // of the page on the other side that stays visible.
+              if (!forward) {
+                forward = true;
+                previous.MozTransform = 'translateX(-' + windowWidth + 'px)';
               }
             }
 
-            current.MozTransform = translate.replace('$', deltaX);
+            current.MozTransform = 'translateX(' + deltaX + 'px)';
           };
         }
 
@@ -169,16 +156,16 @@ const GridManager = (function() {
           };
         } else {
           var setOpacityToOverlay = dummy;
-          if (index === prevLandingPage) {
+          if (currentPage === prevLandingPage) {
             setOpacityToOverlay = function() {
-              if (forward)
+              if (!forward)
                 return;
 
               var opacity = opacityOnAppGridPageMax -
                     (Math.abs(deltaX) / windowWidth) * opacityOnAppGridPageMax;
               overlayStyle.opacity = Math.round(opacity * 10 ) / 10;
             }
-          } else if (index === landingPage) {
+          } else if (currentPage === landingPage) {
             setOpacityToOverlay = function() {
               var opacity = (Math.abs(deltaX) / windowWidth) *
                             opacityOnAppGridPageMax;
@@ -186,7 +173,7 @@ const GridManager = (function() {
             }
           } else {
             setOpacityToOverlay = function() {
-              if (!forward)
+              if (forward)
                 return;
 
               var opacity = opacityOnAppGridPageMax -
@@ -207,7 +194,7 @@ const GridManager = (function() {
           };
         }
 
-        var container = pages[index].container;
+        var container = pages[currentPage].container;
         container.addEventListener(touchmove, pan, true);
 
         removePanHandler = function removePanHandler(e) {
@@ -303,6 +290,42 @@ const GridManager = (function() {
     }
   }
 
+  function goToPageCallback(index, fromPage, toPage, dispatchEvents, callback) {
+    delete document.body.dataset.transitioning;
+
+    if (dispatchEvents) {
+      fromPage.container.dispatchEvent(new CustomEvent('gridpagehideend'));
+      toPage.container.dispatchEvent(new CustomEvent('gridpageshowend'));
+    }
+
+    overlayStyle.MozTransition = '';
+
+    // We are going to prepare pages that are next to current page
+    // for panning.
+
+    if (index) {
+      var previous = pages[index - 1].container.style;
+      previous.MozTransition = '';
+      previous.MozTransform = 'translateX(-' + windowWidth + 'px)';
+    }
+
+    if (index < pages.length - 1) {
+      var next = pages[index + 1].container.style;
+      next.MozTransition = '';
+      next.MozTransform = 'translateX(' + windowWidth + 'px)';
+    }
+
+    var current = toPage.container.style;
+    current.MozTransition = '';
+    current.MozTransform = 'translateX(0)';
+
+    togglePagesVisibility(index - 1, index + 1);
+
+    if (callback) {
+      setTimeout(callback, 0);
+    }
+  }
+
   var touchStartTimestamp = 0;
   var touchEndTimestamp = 0;
   var lastGoingPageTimestamp = 0;
@@ -317,20 +340,6 @@ const GridManager = (function() {
     lastGoingPageTimestamp += delay;
     var duration = delay < kPageTransitionDuration ?
                    delay : kPageTransitionDuration;
-
-    var goToPageCallback = function(dispatchEvents) {
-      delete document.body.dataset.transitioning;
-      if (callback) {
-        callback();
-      }
-
-      if (dispatchEvents) {
-        previousPage.container.dispatchEvent(new CustomEvent('gridpagehideend'));
-        newPage.container.dispatchEvent(new CustomEvent('gridpageshowend'));
-      }
-      overlayStyle.MozTransition = '';
-      togglePagesVisibility(index, index);
-    };
 
     var previousPage = pages[currentPage];
     var newPage = pages[index];
@@ -370,20 +379,17 @@ const GridManager = (function() {
       if (borderingPagesToBeTranslated) {
         container.addEventListener('transitionend', function transitionEnd(e) {
           container.removeEventListener('transitionend', transitionEnd);
-          goToPageCallback();
+          goToPageCallback(index, previousPage, newPage, false, callback);
         });
       } else {
-        goToPageCallback();
+        // Swipe from rigth to left on the last page on the grid
+        goToPageCallback(index, previousPage, newPage, false, callback);
       }
 
       return;
     }
 
     togglePagesVisibility(start, end);
-
-    // Force a reflow otherwise the newPage appears immediately because it is
-    // still considered display: none;
-    newPage.container.getBoundingClientRect();
 
     previousPage.container.dispatchEvent(new CustomEvent('gridpagehidestart'));
     newPage.container.dispatchEvent(new CustomEvent('gridpageshowstart'));
@@ -392,7 +398,7 @@ const GridManager = (function() {
 
     container.addEventListener('transitionend', function transitionEnd(e) {
       container.removeEventListener('transitionend', transitionEnd);
-      goToPageCallback(true);
+      goToPageCallback(index, previousPage, newPage, true, callback);
     });
   }
 
