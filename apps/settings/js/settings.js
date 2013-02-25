@@ -183,6 +183,12 @@ var Settings = {
   // without these, so we keep this around most of the time.
   _settingsCache: null,
 
+  // True when a request has already been made to fill the settings
+  // cache.  When this is true, no further get("*") requests should be
+  // made; instead, pending callbacks should be added to
+  // _pendingSettingsCallbacks.
+  _settingsCacheRequestSent: false,
+
   // There can be race conditions in which we need settings values,
   // but haven't filled the cache yet.  This array tracks those
   // listeners.
@@ -202,7 +208,8 @@ var Settings = {
       return;
     }
 
-    if (!this._settingsCache) {
+    if (!this._settingsCacheRequestSent && !this._settingsCache) {
+      this._settingsCacheRequestSent = true;
       var lock = settings.createLock();
       var request = lock.get('*');
       request.onsuccess = function(e) {
