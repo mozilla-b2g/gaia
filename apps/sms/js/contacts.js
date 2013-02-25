@@ -26,7 +26,7 @@ var ContactDataManager = {
     };
 
     req.onerror = function onerror() {
-      var msg = 'Contact finding error. Error: ' + req.errorCode;
+      var msg = 'Contact finding error. Error: ' + req.error.name;
       console.log(msg);
       callback(null);
     };
@@ -50,7 +50,7 @@ var ContactDataManager = {
     };
 
     req.onerror = function onerror() {
-      var msg = 'Contact finding error. Error: ' + req.errorCode;
+      var msg = 'Contact finding error. Error: ' + req.error.name;
       console.log(msg);
       callback(null);
     };
