@@ -3,6 +3,7 @@
 var MockUpdateManager = {
   addToUpdatesQueue: function mum_addtoUpdateQueue(updatable) {
     this.mLastUpdatesAdd = updatable;
+    this.mUpdates.push(updatable);
   },
   addToUpdatableApps: function mum_addToUpdatableApps(updatable) {
     this.mLastUpdatableAdd = updatable;
@@ -10,15 +11,24 @@ var MockUpdateManager = {
 
   removeFromUpdatesQueue: function mum_removeFromUpdateQueue(updatable) {
     this.mLastUpdatesRemoval = updatable;
+    var index = this.mUpdates.indexOf(updatable);
+    if (index >= 0) {
+      this.mUpdates.splice(index, 1);
+    }
   },
 
   addToDownloadsQueue: function mum_addtoActiveDownloads(updatable) {
     this.mLastDownloadsAdd = updatable;
+    this.mDownloads.push(updatable);
   },
   removeFromDownloadsQueue:
     function mum_removeFromActiveDownloads(updatable) {
 
     this.mLastDownloadsRemoval = updatable;
+    var index = this.mDownloads.indexOf(updatable);
+    if (index >= 0) {
+      this.mDownloads.splice(index, 1);
+    }
   },
 
   downloadProgressed: function mum_downloadProgressed(bytes) {
@@ -38,6 +48,8 @@ var MockUpdateManager = {
   },
 
   mErrorBannerRequested: false,
+  mUpdates: [],
+  mDownloads: [],
   mLastUpdatesAdd: null,
   mLastUpdatableAdd: null,
   mLastUpdatesRemoval: null,
@@ -56,5 +68,7 @@ var MockUpdateManager = {
     this.mProgressCalledWith = null;
     this.mCheckForUpdatesCalledWith = null;
     this.mStartedUncompressingCalled = false;
+    this.mUpdates = [];
+    this.mDownloads = [];
   }
 };
