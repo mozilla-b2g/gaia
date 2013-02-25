@@ -14,35 +14,33 @@ var BalanceTab = (function() {
 
   var view, updateButton;
   var topUpUSSD, topUp, topUpDialog, topUpCodeInput, sendCode, countdownSpan;
-  var costcontrol, tabmanager, vmanager, initialized;
+  var costcontrol, initialized;
 
-  function setupTab(tmgr, vmgr) {
+  function setupTab() {
     if (initialized) {
       return;
     }
 
     CostControl.getInstance(function _onCostControl(instance) {
       costcontrol = instance;
-      tabmanager = tmgr;
-      vmanager = vmgr;
+
+      // we need to load topUpDialog to get elements from inside
+      // it should be a separate function run on startup of the module
+      // after HTML is generated
+      topUpDialog = document.getElementById('topup-dialog');
+      var vm = new ViewManager(); // XXX: used to eagerly load top up dialog
+      vm.loadPanel(topUpDialog);
 
       // HTML entities
       view = document.getElementById('balance-tab');
       updateButton = document.getElementById('balance-tab-update-button');
       sendCode = document.getElementById('topup-send-button');
-      topUpDialog = document.getElementById('topup-dialog');
       topUpUSSD = document.getElementById('balance-tab-topup-ussd-button');
       topUp = document.getElementById('balance-tab-topup-button');
       topUpCodeInput = document.getElementById('topup-code-input');
       countdownSpan = document.getElementById('top-up-countdown');
 
       window.addEventListener('localized', localize);
-
-      // Configure showing tab
-      var tabButton = document.getElementById('balance-tab-filter');
-      tabButton.addEventListener('click', function _showTab() {
-        tabmanager.changeViewTo('balance-tab');
-      });
 
       // Configure updates
       document.addEventListener('mozvisibilitychange', updateWhenVisible);
@@ -153,7 +151,7 @@ var BalanceTab = (function() {
 
   // On tapping Top Up with code
   function topUpWithCode(lastWasError) {
-    vmanager.changeViewTo('topup-dialog');
+    window.location.hash = '##topup-dialog';
     if (lastWasError) {
       setTopUpMode('incorrect_code');
     }
@@ -180,16 +178,23 @@ var BalanceTab = (function() {
       var status = result.status;
       if (status === 'success' || status === 'in_progress') {
         setTopUpMode('in_progress');
-        setTimeout(function _hideDialog() {
-          if (vmanager.isCurrentView(topUpDialog.id)) {
-            vmanager.closeCurrentView();
-          }
-        }, DIALOG_TIMEOUT);
+        setTimeout(closeTopUp, DIALOG_TIMEOUT);
 
       } else if (status === 'error') {
         setTopUpMode(result.details);
       }
     });
+  }
+
+  function closeTopUp() {
+    // Remove from hash
+    if (isTopUpShown()) {
+      window.location.hash = '#';
+    }
+  }
+
+  function isTopUpShown() {
+    return window.location.hash.split('#')[2] === topUpDialog.id;
   }
 
   // On confirmation SMS for top up received
@@ -421,3 +426,5 @@ var BalanceTab = (function() {
     finalize: finalize
   };
 }());
+
+BalanceTab.initialize();
