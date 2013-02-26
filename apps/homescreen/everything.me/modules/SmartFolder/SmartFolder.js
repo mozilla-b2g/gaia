@@ -12,11 +12,9 @@ Evme.SmartFolder = function Evme_SartFolder(_options) {
         CLASS_WHEN_VISIBLE = 'visible',
         CLASS_WHEN_IMAGE_FULLSCREEN = 'full-image',
         CLASS_WHEN_ANIMATING = 'animate',
-        CLASS_WHEN_MAX_HEIGHT = 'maxheight',
         SCROLL_TO_SHOW_IMAGE = 80,
         TRANSITION_DURATION = 400,
         LOAD_MORE_SCROLL_THRESHOLD = -30,
-        MAX_HEIGHT = 520,
         MAX_SCROLL_FADE = 200,
         FULLSCREEN_THRESHOLD = 0.8;
         
@@ -30,7 +28,6 @@ Evme.SmartFolder = function Evme_SartFolder(_options) {
         options.experienceId && self.setExperience(options.experienceId);
         options.image && self.setImage(options.image);
         options.elParent && self.appendTo(options.elParent);
-        (typeof options.maxHeight === "number") && (MAX_HEIGHT = options.maxHeight);
         
         optionsOnScrollEnd = options.onScrollEnd;
         
@@ -142,11 +139,6 @@ Evme.SmartFolder = function Evme_SartFolder(_options) {
     this.appendTo = function appendTo(elParent) {
         elParent.appendChild(el);
         elParent.appendChild(elScreen);
-        
-        if (el.offsetHeight > MAX_HEIGHT) {
-            el.classList.add(CLASS_WHEN_MAX_HEIGHT);
-            el.style.cssText += 'height: ' + MAX_HEIGHT + 'px; margin-top: ' + (-MAX_HEIGHT/2) + 'px;';
-        }
         
         return self;
     };

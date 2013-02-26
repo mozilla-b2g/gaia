@@ -2,15 +2,15 @@
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 260px;
-    margin: 0 0 0 -150px;
+    width: 26rem;
+    margin: 0 0 0 -15rem;
     background: rgba(0, 0, 0, .85);
-    padding: 20px;
-    border-radius: 10px;
+    padding: 2rem;
+    border-radius: 1rem;
     color: #fff;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, .3);
+    text-shadow: 0 0.1rem 0.3rem rgba(0, 0, 0, .3);
     text-align: center;
-    font-size: 18px;
+    font-size: 1.8rem;
     z-index: 600;
     opacity: 0;
     pointer-events: none;
@@ -24,14 +24,14 @@
 
 #evmeContainer .tip.stuckToSearchbar {
     margin-top: 0 !important;
-    top: 86px;
+    top: 8.6rem;
 }
 #evmeContainer .tip.seeThrough {
     background: rgba(0, 0, 0, .7);
 }
 
 #evmeContainer .tip .buttons {
-    margin-top: 10px;
+    margin-top: 1rem;
 }
     #evmeContainer .tip .buttons > div {
         display: inline-block;
@@ -39,26 +39,26 @@
     }
         #evmeContainer .tip .buttons > div b {
             display: block;
-            padding: 6px 0;
+            padding: 0.6rem 0;
             color: #617075;
-            text-shadow: 0 1px 0 rgba(255, 255, 255, .5);
-            font-size: 13px;
+            text-shadow: 0 0.1rem 0 rgba(255, 255, 255, .5);
+            font-size: 1.3rem;
             font-weight: 600;
-            border: 1px solid #82bccf;
+            border: 0.1rem solid #82bccf;
             background: #def;
             background: -moz-linear-gradient(center top, #cfe7ef 0, #bfdee9 50%, #b3dae7 50%, #8fc7da 100%);
-            box-shadow: 0 1px 0 0 rgba(255, 255, 255, .2) inset, 0 -1px 0 0 rgba(0, 0, 0, .05) inset;
-            border-radius: 4px;
+            box-shadow: 0 0.1rem 0 0 rgba(255, 255, 255, .2) inset, 0 -0.1rem 0 0 rgba(0, 0, 0, .05) inset;
+            border-radius: 0.4rem;
             cursor: pointer;
             -moz-user-select: none;
         }
 
 
     #evmeContainer .tip .buttons > div:first-child b {
-        margin-right: 4px;
+        margin-right: 0.4rem;
     }
     #evmeContainer .tip .buttons > div:last-child b {
-        margin-left: 4px;
+        margin-left: 0.4rem;
     }
     #evmeContainer .tip .buttons > div:first-child:last-child b {
         margin-left: 0;
@@ -83,11 +83,11 @@
     text-align: center;
     font-weight: 600;
     font-size: 100%;
-    margin-top: 10px;
+    margin-top: 1rem;
 }
 #evmeContainer .tip.styled h3:first-child {
     margin-top: 0;
 }
 #evmeContainer .tip.styled p {
-    padding: 10px 0;
+    padding: 1rem 0;
 }
