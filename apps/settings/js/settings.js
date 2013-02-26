@@ -544,6 +544,27 @@ window.addEventListener('load', function loadSettings() {
   Settings.init();
   handleDataConnectivity();
 
+  setTimeout(function() {
+    var scripts = [
+      'js/utils.js',
+      'shared/js/mouse_event_shim.js',
+      'js/airplane_mode.js',
+      'js/battery.js',
+      'js/app_storage.js',
+      'js/media_storage.js',
+      'shared/js/mobile_operator.js',
+      'js/connectivity.js',
+      'js/security_privacy.js',
+      'shared/js/settings_listener.js',
+      'js/icc_menu.js'
+    ];
+    scripts.forEach(function attachScripts(src) {
+      var script = document.createElement('script');
+      script.src = src;
+      document.head.appendChild(script);
+    });
+  });
+
   // panel lazy-loading
   function lazyLoad(panel) {
     if (panel.children.length) // already initialized
