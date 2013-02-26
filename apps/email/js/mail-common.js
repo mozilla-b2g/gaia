@@ -78,10 +78,10 @@ function batchRemoveClass(domNode, searchClass, classToRemove) {
   }
 }
 
-const MATCHED_TEXT_CLASS = 'highlight';
+var MATCHED_TEXT_CLASS = 'highlight';
 
 function appendMatchItemTo(matchItem, node) {
-  const text = matchItem.text;
+  var text = matchItem.text;
   var idx = 0;
   for (var iRun = 0; iRun <= matchItem.matchRuns.length; iRun++) {
     var run;
@@ -392,7 +392,7 @@ var Cards = {
    */
   pushCard: function(type, mode, showMethod, args, placement) {
     var cardDef = this._cardDefs[type];
-    var typePrefix = type.split('-')[0]; 
+    var typePrefix = type.split('-')[0];
 
     if (!cardDef && lazyCards[typePrefix]) {
       var args = Array.slice(arguments);
