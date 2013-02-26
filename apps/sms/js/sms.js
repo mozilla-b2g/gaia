@@ -1250,7 +1250,6 @@ var ThreadUI = {
   buildMessageDOM: function thui_buildMessageDOM(message, hidden) {
     var id = message.id;
     var bodyText = message.body;
-    var bodyHTML = Utils.escapeHTML(bodyText);
     var messageClass = message.delivery;
 
     var messageDOM = document.createElement('li');
@@ -1287,7 +1286,26 @@ var ThreadUI = {
     messageHTML += '<p></p></a>';
 
     messageDOM.innerHTML = messageHTML;
-    return this.searchAndLinkPhoneData(messageDOM, bodyHTML);
+
+    return this.searchAndLinkMessageData(messageDOM, bodyText);
+  },
+
+  /* This method matches for strings having email, phone numbers and URL
+  * and make them clickable
+  */
+
+  searchAndLinkMessageData:
+   function thui_searchAndLinkClickableData(messageDOM, messageText) {
+    var bodyHTML = messageText;
+
+    bodyHTML = this.searchAndLinkPhoneData(messageDOM, bodyHTML);
+    bodyHTML = this.searchAndLinkEmail(messageDOM, bodyHTML);
+    bodyHTML = this.searchAndLinkUrl(messageDOM, bodyHTML);
+
+    //check for messageDOM paragraph element to assign linked message html
+    var pElement = messageDOM.querySelector('p');
+    pElement.innerHTML = bodyHTML;
+    return messageDOM;
   },
 
   /*
@@ -1304,10 +1322,53 @@ var ThreadUI = {
       return linkText;
     });
 
-    //check for messageDOM paragraph element to assign linked phone number text
-    var pElement = messageDOM.querySelector('p');
-    pElement.innerHTML = result;
-    return messageDOM;
+    return result;
+  },
+
+   /*
+   * this method searches for email addresses in the message
+   * and make email addresses clickable
+   */
+
+  searchAndLinkEmail:
+  function thui_searchAndLinkEmailData(messageDOM, bodytext) {
+    var emailRegex = /\S+@\S+\.\S+/mg;
+    var result = bodytext.replace(emailRegex, function(email) {
+      var linkText = '<a href="mailto:' + email +
+                      '" data-action="email-link">' + email + '</a>';
+      return linkText;
+    });
+
+    return result;
+  },
+
+  /*
+   * this method searches for URL in the message
+   * and make url strings clickable
+   */
+
+  searchAndLinkUrl:
+  function thui_searchAndLinkUrlData(messageDOM, bodytext) {
+    var urlRegex = /(?:(^|[\s]+))[-\w:%\+.~#?&//=]{2,256}\.[a-z]{2,4}(\/[-\w:%\+.~#?&//=]*)?/mgi;
+    var result = bodytext.replace(urlRegex, function(url) {
+      var linkText = '';
+
+      //Trim url for any whitespaces at the beginning and end of the URL
+      var trimURL = url.trim();
+
+      //check if url has http in beginning,if not append
+      //http:// at beginning of the url value
+      var httpFlag = url.match(/\bhttps?:\/\//gi);
+      if (!httpFlag)
+        linkText = '<a href="http://' + trimURL + '" data-action="url-link" >' +
+                    url + '</a>';
+      else
+        linkText = '<a href=' + trimURL + ' data-action="url-link" >' +
+                    url + '</a>';
+        return linkText;
+    });
+
+    return result;
   },
 
   appendMessage: function thui_appendMessage(message, hidden) {
