@@ -392,47 +392,47 @@ footer {
   transition: transform 100ms linear;
 }
 
+#fullscreen-view header {
+  opacity: 0.75;
+  transform: translate(0, 0);
+  transition: transform 100ms linear;
+}
+
 #fullscreen-view.toolbarhidden #fullscreen-toolbar {
   transform: translate(0, 40px);
 }
-
-#fullscreen-back-button {
-  position: absolute;
-  width: 20%;
-  height: 100%;
-  left: 0;
-  background-image: url('images/iconaction_camera_gridview_30x30.png');
+#fullscreen-view.toolbarhidden header {
+  transform: translate(0, -5rem);
 }
 
 #fullscreen-camera-button {
   position: absolute;
-  width: 20%;
+  width: 25%;
   height: 100%;
-  left: 20%;
   background-image: url('images/iconaction_camera_30x30.png');
 }
 
 #fullscreen-edit-button {
   position: absolute;
-  width: 20%;
+  width: 25%;
   height: 100%;
-  left: 40%;
+  left: 25%;
   background-image: url('images/iconaction_camera_editphoto_30x30.png');
 }
 
 #fullscreen-share-button {
   position: absolute;
-  width: 20%;
+  width: 25%;
   height: 100%;
-  left: 60%;
+  left: 50%;
   background-image: url('images/iconaction_share_30x30.png');
 }
 
 #fullscreen-delete-button {
   position: absolute;
-  width: 20%;
+  width: 25%;
   height: 100%;
-  left: 80%;
+  left: 75%;
   background-image: url('images/iconaction_delete_30x30.png');
 }
 
