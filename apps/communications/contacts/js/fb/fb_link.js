@@ -26,7 +26,7 @@ if (!fb.link) {
 
     // Base query to search for contacts
     var SEARCH_QUERY = ['SELECT uid, name, email from user ',
-    ' WHERE uid IN (SELECT uid1 FROM friend WHERE uid2=me() ORDER BY rank) ',
+    ' WHERE uid IN (SELECT uid1 FROM friend WHERE uid2=me()) ',
     ' AND (', null, ')', ' ORDER BY name'
     ];
 
