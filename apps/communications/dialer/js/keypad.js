@@ -576,6 +576,10 @@ var KeypadManager = {
     }
   },
 
+  sanitizePhoneNumber: function(number) {
+    return number.replace(/\s+/g, '');
+  },
+
   updateAddContactStatus: function kh_updateAddContactStatus() {
     if (this._phoneNumber.length === 0)
       this.callBarAddContact.classList.add('disabled');
@@ -585,6 +589,7 @@ var KeypadManager = {
 
   updatePhoneNumber: function kh_updatePhoneNumber(number, ellipsisSide,
     maxFontSize) {
+    number = this.sanitizePhoneNumber(number);
     this._phoneNumber = number;
     this._updatePhoneNumberView(ellipsisSide, maxFontSize);
   },

@@ -1,6 +1,10 @@
 requireApp('communications/dialer/js/utils.js');
 requireApp('communications/dialer/test/unit/mock_contacts.js');
 
+if (!this.SettingsListener) {
+  this.SettingsListener = null;
+}
+
 suite('dialer/utils', function() {
   var realPhoneMatcher;
 
