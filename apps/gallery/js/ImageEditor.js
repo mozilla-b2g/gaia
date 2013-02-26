@@ -17,7 +17,7 @@ $('edit-crop-button').onclick = setEditTool.bind(null, 'crop');
 $('edit-effect-button').onclick = setEditTool.bind(null, 'effect');
 $('edit-border-button').onclick = setEditTool.bind(null, 'border');
 $('edit-crop-none').onclick = undoCropHandler;
-$('edit-cancel-button').onclick = exitEditMode;
+$('edit-cancel-button').onclick = function() { exitEditMode(false); };
 $('edit-save-button').onclick = saveEditedImage;
 editOptionButtons.forEach(function(b) { b.onclick = editOptionsHandler; });
 
@@ -283,7 +283,7 @@ function exitEditMode(saved) {
     setView(thumbnailListView);
   }
   else
-    setView(fullscreenView);
+    showFile(currentFileIndex);
 }
 
 // When the user clicks the save button, we produce a full-size version
