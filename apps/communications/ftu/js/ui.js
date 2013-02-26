@@ -172,6 +172,9 @@ var UIManager = {
         }.bind(this));
 
     this.skipTutorialButton.addEventListener('click', function() {
+      if (!WifiManager.isConnected) {
+        WifiManager.disable();
+      }
       WifiManager.finish();
       window.close();
     });
