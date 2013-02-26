@@ -415,6 +415,8 @@ var GestureDetector = (function() {
       // pan actually started at a point along the path between the
       // first touch and this current touch.
       d.start = d.last = between(d.start, coordinates(e, t));
+      
+      d.emitEvent('panstart', d.start);
 
       // If we transition into this state with a touchmove event,
       // then process it with that handler. If we don't do this then
@@ -795,6 +797,8 @@ var GestureDetector = (function() {
       // starting point to a point between the start point and this
       // current point
       d.start = d.last = between(d.start, mouseCoordinates(e));
+      
+      d.emitEvent('panstart', d.start);
 
       // If we transition into this state with a mousemove event,
       // then process it with that handler. If we don't do this then
