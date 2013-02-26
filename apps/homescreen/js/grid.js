@@ -4,6 +4,16 @@ const GridManager = (function() {
   var MAX_ICONS_PER_PAGE = 4 * 4;
   var PREFERRED_ICON_SIZE = 60;
   var SAVE_STATE_TIMEOUT = 100;
+  var BASE_WIDTH = 320;
+  var BASE_HEIGHT = 480;
+  var DEVICE_HEIGHT = window.innerHeight;
+  var SCALE_RATIO = window.innerWidth / BASE_WIDTH;
+  var AVAILABLE_SPACE = DEVICE_HEIGHT - (BASE_HEIGHT * SCALE_RATIO);
+
+// Check if there is space for another row of icons
+  if (AVAILABLE_SPACE > BASE_HEIGHT / 5) {
+    var MAX_ICONS_PER_PAGE = 4 * 5;
+  }
 
   var container;
 
