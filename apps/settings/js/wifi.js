@@ -233,7 +233,7 @@ navigator.mozL10n.ready(function wifiSettings() {
     var keys = network.capabilities;
     if (keys && keys.length) {
       small.textContent = _('securedBy', { capabilities: keys.join(', ') });
-      ssid.className = 'wifi-secure';
+      ssid.classList.add('wifi-secure');
     } else {
       small.textContent = _('securityOpen');
       small.dataset.l10nId = 'securityOpen';
@@ -337,7 +337,7 @@ navigator.mozL10n.ready(function wifiSettings() {
 
             // signal is between 0 and 100, level should be between 0 and 4
             var level = Math.min(Math.floor(network.relSignalStrength / 20), 4);
-            listItem.className = 'wifi-signal' + level;
+            listItem.querySelector('a').classList.add('wifi-signal' + level);
 
             // put connected network on top of list
             if (isConnected(network)) {
