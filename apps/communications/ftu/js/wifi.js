@@ -2,6 +2,7 @@
 
 var WifiManager = {
   init: function wn_init() {
+    this.isConnected = false;
     if ('mozWifiManager' in window.navigator) {
       this.api = window.navigator.mozWifiManager;
       this.changeStatus();
@@ -86,6 +87,10 @@ var WifiManager = {
   enable: function wn_enable(lock) {
     lock.set({'wifi.enabled': true});
   },
+  disable: function wn_disable() {
+    var lock = window.navigator.mozSettings.createLock();
+    lock.set({'wifi.enabled': false});
+  },
   enableDebugging: function wn_enableDebugging(lock) {
     // For bug 819947: turn on wifi debugging output to help track down a bug
     // in wifi. We turn on wifi output only while the FTU app is active.
@@ -134,6 +139,7 @@ var WifiManager = {
     network.keyManagement = key;
     this.gCurrentNetwork = network;
     this.api.associate(network);
+    this.isConnected = true;
   },
   changeStatus: function wn_cs(callback) {
     /**
