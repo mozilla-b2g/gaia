@@ -592,11 +592,16 @@ var PlayerView = {
         if (target.dataset.rating) {
           this.showInfo();
 
+          var tempRating = parseInt(target.dataset.rating);
           var songData = this.dataSource[this.currentIndex];
-          songData.metadata.rated = parseInt(target.dataset.rating);
+
+          if (tempRating == 1 && songData.metadata.rated == 1) {
+            tempRating = 0;
+          }
+          songData.metadata.rated = tempRating;
 
           musicdb.updateMetadata(songData.name, songData.metadata,
-            this.setRatings.bind(this, parseInt(target.dataset.rating)));
+            this.setRatings.bind(this, tempRating));
         }
 
         break;
