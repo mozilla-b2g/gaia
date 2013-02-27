@@ -33,7 +33,7 @@ var SpinDatePicker = (function SpinDatePicker() {
 
   function getMonthText() {
     var monthText = [];
-    var date = new Date(0);
+    var date = new Date(1970, 0, 1);
     var dateTimeFormat = navigator.mozL10n.DateTimeFormat();
 
     for (var i = 0; i < 12; i++) {
@@ -46,7 +46,7 @@ var SpinDatePicker = (function SpinDatePicker() {
 
   function getDateText(days) {
     var dateText = [];
-    var date = new Date(0);
+    var date = new Date(1970, 0, 1);
     var dateTimeFormat = navigator.mozL10n.DateTimeFormat();
 
     for (var i = 1; i <= days; i++) {
