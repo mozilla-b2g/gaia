@@ -171,9 +171,9 @@ var StatusBar = {
     // Create the objects used to animate the statusbar-network-activity and
     // statusbar-system-downloads canvas elements
     this.networkActivityAnimation = new AnimatedIcon(this.icons.networkActivity,
-      'style/statusbar/images/network-activity-flat.png', 6, 200);
+      '/style/statusbar/images/network-activity-flat.png', 6, 200);
     this.systemDownloadsAnimation = new AnimatedIcon(this.icons.systemDownloads,
-      'style/statusbar/images/system-downloads-flat.png', 8, 130);
+      '/style/statusbar/images/system-downloads-flat.png', 8, 130);
 
     this.setActive(true);
   },
