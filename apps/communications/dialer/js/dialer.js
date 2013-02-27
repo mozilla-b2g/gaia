@@ -246,6 +246,10 @@ var CallHandler = (function callHandler() {
   }
 
   /* === Attention Screen === */
+  // Each window gets a unique name to prevent a possible race condition
+  // where we want to open a new call screen while the previous one is
+  // animating out of the screen.
+  var callScreenId = 0;
   function openCallScreen(openCallback) {
     if (callScreenWindow)
       return;
@@ -257,7 +261,7 @@ var CallHandler = (function callHandler() {
     var highPriorityWakeLock = navigator.requestWakeLock('high-priority');
     var openWindow = function dialer_openCallScreen(state) {
       callScreenWindow = window.open(urlBase + '#' + state,
-                  'call_screen', 'attention');
+                  ('call_screen' + callScreenId++), 'attention');
 
       callScreenWindow.onload = function onload() {
         highPriorityWakeLock.unlock();
