@@ -96,3 +96,7 @@
 #modify-event-view.update .save .save-text {
   display: none;
 }
+
+#modify-event-view .save[aria-disabled="true"] {
+  pointer-events: none;
+}
