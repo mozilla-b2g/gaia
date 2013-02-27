@@ -174,12 +174,25 @@ var DeviceStorageHelper = (function DeviceStorageHelper() {
           
       });
     }
+  }
 
+  function getFreeSpace(callback) {
+    var deviceStorage = navigator.getDeviceStorage('sdcard');
+
+    if (!deviceStorage) {
+      console.error('Cannot get free space size in sdcard');
+      return;
+    }
+    deviceStorage.freeSpace().onsuccess = function(e) {
+      var freeSpace = e.target.result;
+      callback(freeSpace);
+    };
   }
 
   return {
     getStat: getStat,
-    getStats: getStats
+    getStats: getStats,
+    getFreeSpace: getFreeSpace
   };
 
 })();
