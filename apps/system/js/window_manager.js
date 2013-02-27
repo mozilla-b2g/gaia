@@ -58,10 +58,6 @@ var WindowManager = (function() {
   var homescreen = null;
   var homescreenURL = '';
   var homescreenManifestURL = '';
-  var ftu = null;
-  var ftuManifestURL = '';
-  var ftuURL = '';
-  var isRunningFirstRunApp = false;
   // keep the reference of inline activity frame here
   var inlineActivityFrames = [];
   var activityCallerOrigin = '';
@@ -102,6 +98,9 @@ var WindowManager = (function() {
   // Function to hide init starting logo
   function handleInitlogo(callback) {
     var initlogo = document.getElementById('initlogo');
+    if (!initlogo)
+      return;
+
     initlogo.classList.add('hide');
     initlogo.addEventListener('transitionend', function delInitlogo() {
       initlogo.removeEventListener('transitionend', delInitlogo);
@@ -313,6 +312,11 @@ var WindowManager = (function() {
     });
   }
 
+  window.addEventListener('ftuskip', function skipFTU() {
+    handleInitlogo();
+    setDisplayedApp(homescreen);
+  });
+
   windows.addEventListener('transitionend', function frameTransitionend(evt) {
     var prop = evt.propertyName;
     var frame = evt.target;
@@ -429,7 +433,7 @@ var WindowManager = (function() {
     // Give the focus to the frame
     iframe.focus();
 
-    if (!TrustedUIManager.isVisible() && !isRunningFirstRunApp) {
+    if (!TrustedUIManager.isVisible() && !FtuLauncher.isFtuRunning()) {
       // Set homescreen visibility to false
       toggleHomescreen(false);
     }
@@ -453,18 +457,6 @@ var WindowManager = (function() {
   // Executes when app closing transition finishes.
   function windowClosed(frame) {
     var iframe = frame.firstChild;
-
-    // If the FTU is closing, make sure we save this state
-    if (iframe.src == ftuURL) {
-      isRunningFirstRunApp = false;
-      document.getElementById('screen').classList.remove('ftu');
-      window.asyncStorage.setItem('ftu.enabled', false);
-      // Done with FTU, letting everyone know
-      var evt = document.createEvent('CustomEvent');
-      evt.initCustomEvent('ftudone',
-        /* canBubble */ true, /* cancelable */ false, {});
-      window.dispatchEvent(evt);
-    }
 
     frame.classList.remove('active');
     windows.classList.remove('active');
@@ -919,46 +911,6 @@ var WindowManager = (function() {
     };
   }
 
-  function skipFTU() {
-    document.getElementById('screen').classList.remove('ftuStarting');
-    handleInitlogo();
-    setDisplayedApp(homescreen);
-  }
-
-  // Check if the FTU was executed or not, if not, get a
-  // reference to the app and launch it.
-  function retrieveFTU() {
-    window.asyncStorage.getItem('ftu.enabled', function getItem(launchFTU) {
-      document.getElementById('screen').classList.add('ftuStarting');
-      if (launchFTU === false) {
-        skipFTU();
-        return;
-      }
-      var lock = navigator.mozSettings.createLock();
-      var req = lock.get('ftu.manifestURL');
-      req.onsuccess = function() {
-        ftuManifestURL = this.result['ftu.manifestURL'];
-        if (!ftuManifestURL) {
-          dump('FTU manifest cannot be found skipping.\n');
-          skipFTU();
-          return;
-        }
-        ftu = Applications.getByManifestURL(ftuManifestURL);
-        if (!ftu) {
-          dump('Opps, bogus FTU manifest.\n');
-          skipFTU();
-          return;
-        }
-        ftuURL = ftu.origin + ftu.manifest.entry_points['ftu'].launch_path;
-        ftu.launch('ftu');
-      };
-      req.onerror = function() {
-        dump('Couldn\'t get the ftu manifestURL.\n');
-        skipFTU();
-      };
-    });
-  }
-
   // Hide current app
   function hideCurrentApp(callback) {
     if (displayedApp == null || displayedApp == homescreen)
@@ -1009,14 +961,11 @@ var WindowManager = (function() {
   // Switch to a different app
   function setDisplayedApp(origin, callback) {
     var currentApp = displayedApp, newApp = origin || homescreen;
-    var isFirstRunApplication = !currentApp && (origin == ftuURL);
 
     var homescreenFrame = null;
-    if (!isFirstRunApplication) {
-      // Returns the frame reference of the home screen app.
-      // Restarts the homescreen app if it was killed in the background.
-      homescreenFrame = ensureHomescreen();
-    }
+    // Returns the frame reference of the home screen app.
+    // Restarts the homescreen app if it was killed in the background.
+    homescreenFrame = ensureHomescreen();
 
     // Cancel transitions waiting to be started.
     transitionOpenCallback = null;
@@ -1037,7 +986,7 @@ var WindowManager = (function() {
     if (closeFrame && 'setVisible' in closeFrame.firstChild)
       closeFrame.firstChild.setVisible(false);
 
-    if (!isFirstRunApplication && newApp == homescreen && !AttentionScreen.isFullyVisible()) {
+    if (newApp == homescreen && !AttentionScreen.isFullyVisible()) {
       toggleHomescreen(true);
     }
 
@@ -1107,14 +1056,9 @@ var WindowManager = (function() {
       }
     }
     // Case 2: null --> app
-    else if (isFirstRunApplication) {
-      isRunningFirstRunApp = true;
+    else if (FtuLauncher.isFtuRunning() && newApp !== homescreen) {
       openWindow(newApp, function windowOpened() {
-        handleInitlogo(function() {
-          var mainScreen = document.getElementById('screen');
-          mainScreen.classList.add('ftu');
-          mainScreen.classList.remove('ftuStarting');
-        });
+        handleInitlogo();
       });
     }
     // Case 3: null->homescreen || homescreen->app
@@ -1280,11 +1224,6 @@ var WindowManager = (function() {
 
     if (requireFullscreen(origin)) {
       frame.classList.add('fullscreen-app');
-    }
-    if (origin === ftuURL) {
-      // Add a way to identify ftu app
-      // (Used by SimLock)
-      frame.classList.add('ftu');
     }
 
     numRunningApps++;
@@ -2023,11 +1962,7 @@ var WindowManager = (function() {
     }
 
     if (displayedApp !== homescreen || inTransition) {
-      if (displayedApp != ftuURL) {
-        setDisplayedApp(homescreen);
-      } else {
-        e.preventDefault();
-      }
+      setDisplayedApp(homescreen);
     } else {
       stopInlineActivity(true);
       ensureHomescreen(true);
@@ -2071,9 +2006,6 @@ var WindowManager = (function() {
 
   // Return the object that holds the public API
   return {
-    isFtuRunning: function() {
-      return isRunningFirstRunApp;
-    },
     launch: launch,
     kill: kill,
     reload: reload,
@@ -2090,7 +2022,6 @@ var WindowManager = (function() {
     hideCurrentApp: hideCurrentApp,
     restoreCurrentApp: restoreCurrentApp,
     retrieveHomescreen: retrieveHomescreen,
-    retrieveFTU: retrieveFTU,
     screenshots: screenshots
   };
 }());
