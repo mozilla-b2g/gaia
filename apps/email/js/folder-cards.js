@@ -2,7 +2,7 @@
  * Card definitions/logic for the folder navigation / picker for move targets.
  **/
 
-const FOLDER_DEPTH_CLASSES = [
+var FOLDER_DEPTH_CLASSES = [
     'fld-folder-depth0',
     'fld-folder-depth1',
     'fld-folder-depth2',

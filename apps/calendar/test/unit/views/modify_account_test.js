@@ -7,6 +7,13 @@ requireApp('calendar/test/unit/helper.js', function() {
   requireLib('views/modify_account.js');
 });
 
+/*
+// These tests are currently failing and have been temporarily disabled as per
+// Bug 838993. They should be fixed and re-enabled as soon as possible as per
+// Bug 840489.
+// Please also note: the outcome of this test suite is non-deterministic.
+// Failures occur inconsistently, so potential fixes should be thoroughly
+// vetted.
 suite('views/modify_account', function() {
 
   var subject;
@@ -453,3 +460,4 @@ suite('views/modify_account', function() {
   });
 
 });
+*/

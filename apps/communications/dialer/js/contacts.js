@@ -70,6 +70,12 @@ var _FbDataSearcher = function(variants) {
 var Contacts = {
 
   findByNumber: function findByNumber(number, callback) {
+    loader.load(['/contacts/js/fb/fb_data.js',
+                 '/contacts/js/fb/fb_contact_utils.js'],
+                  this._findByNumber.bind(this, number, callback));
+  },
+
+  _findByNumber: function _findByNumber(number, callback) {
     var options;
     var variants;
 

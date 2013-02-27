@@ -6,39 +6,19 @@ requireApp('communications/dialer/test/unit/mock_mozMobileConnection.js');
 const TINY_TIMEOUT = 5;
 
 suite('dialer/ussd', function() {
-  var realL10n = navigator.mozL10n;
-  navigator.mozL10n = (function() {
-    var keys = {};
+  var keys = {};
 
-    function reset() {
-      keys = {};
-    }
-
-    function get(key, params) {
+  suiteSetup(function() {
+    UssdManager._conn = MockMozMobileConnection;
+    UssdManager._popup = MockUssdUI;
+    UssdManager._ = function get(key, params) {
       keys[key] = params;
       return key;
     }
-
-    function getKeys() {
-      return keys;
-    }
-
-    return {
-      get: get,
-      reset: reset,
-      keys: getKeys
-    };
-  })();
-
-  suiteSetup(function() {
-    navigator.mozL10n.reset();
-    UssdManager._conn = MockMozMobileConnection;
-    UssdManager.init();
-    UssdManager._popup = MockUssdUI;
+    UssdManager.ready = true;
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n = realL10n;
     UssdManager._popup = null;
   });
 
@@ -174,7 +154,7 @@ suite('dialer/ussd', function() {
     });
   });
 
-  suite('Cancel ussd via UI', function() {
+  suite('Close USSD window via UI', function() {
     setup(function() {
       UssdManager._popup.closeWindow();
     });
@@ -185,6 +165,17 @@ suite('dialer/ussd', function() {
 
   });
 
+  suite('Cancel USSD being sent via UI', function() {
+    setup(function() {
+      UssdManager._popup = MockUssdUI;
+      UssdManager._popup.cancel();
+    });
+
+    test('Check USSD UI closed', function() {
+      assert.isNull(UssdManager._popup);
+    });
+  });
+
   suite('Call forwarding request via MMI. Active voice', function() {
     setup(function() {
       UssdManager._popup = MockUssdUI;
@@ -193,7 +184,6 @@ suite('dialer/ussd', function() {
     test('Check call forwarding rules', function(done) {
       UssdManager.send(MMI_CF_MSG_ACTIVE_VOICE);
       setTimeout(function() {
-        var keys = navigator.mozL10n.keys();
         assert.equal(keys['cf-voice'].voice, EXPECTED_PHONE);
         assert.equal(keys['cf-data'].data, 'cf-inactive');
         assert.equal(keys['cf-fax'].fax, 'cf-inactive');
@@ -215,7 +205,6 @@ suite('dialer/ussd', function() {
     test('Check call forwarding rules', function(done) {
       UssdManager.send(MMI_CF_MSG_ACTIVE_DATA);
       setTimeout(function() {
-        var keys = navigator.mozL10n.keys();
         assert.equal(keys['cf-data'].data, EXPECTED_PHONE);
         assert.equal(keys['cf-voice'].voice, 'cf-inactive');
         assert.equal(keys['cf-fax'].fax, 'cf-inactive');
@@ -237,7 +226,6 @@ suite('dialer/ussd', function() {
     test('Check call forwarding rules', function(done) {
       UssdManager.send(MMI_CF_MSG_ACTIVE_DATA_SYNC);
       setTimeout(function() {
-        var keys = navigator.mozL10n.keys();
         assert.equal(keys['cf-sync'].sync, EXPECTED_PHONE);
         assert.equal(keys['cf-data'].data, 'cf-inactive');
         assert.equal(keys['cf-voice'].voice, 'cf-inactive');
@@ -259,7 +247,6 @@ suite('dialer/ussd', function() {
     test('Check call forwarding rules', function(done) {
       UssdManager.send(MMI_CF_MSG_ACTIVE_DATA_ASYNC);
       setTimeout(function() {
-        var keys = navigator.mozL10n.keys();
         assert.equal(keys['cf-async'].async, EXPECTED_PHONE);
         assert.equal(keys['cf-sync'].sync, 'cf-inactive');
         assert.equal(keys['cf-data'].data, 'cf-inactive');
@@ -281,7 +268,6 @@ suite('dialer/ussd', function() {
     test('Check call forwarding rules', function(done) {
       UssdManager.send(MMI_CF_MSG_ACTIVE_PACKET);
       setTimeout(function() {
-        var keys = navigator.mozL10n.keys();
         assert.equal(keys['cf-packet'].packet, EXPECTED_PHONE);
         assert.equal(keys['cf-async'].async, 'cf-inactive');
         assert.equal(keys['cf-sync'].sync, 'cf-inactive');
@@ -303,7 +289,6 @@ suite('dialer/ussd', function() {
     test('Check call forwarding rules', function(done) {
       UssdManager.send(MMI_CF_MSG_ACTIVE_PAD);
       setTimeout(function() {
-        var keys = navigator.mozL10n.keys();
         assert.equal(keys['cf-pad'].pad, EXPECTED_PHONE);
         assert.equal(keys['cf-packet'].packet, 'cf-inactive');
         assert.equal(keys['cf-async'].async, 'cf-inactive');
@@ -325,7 +310,6 @@ suite('dialer/ussd', function() {
     test('Check call forwarding rules', function(done) {
       UssdManager.send(MMI_CF_MSG_ALL_INACTIVE);
       setTimeout(function() {
-        var keys = navigator.mozL10n.keys();
         assert.equal(keys['cf-voice'].voice, 'cf-inactive');
         assert.equal(keys['cf-data'].data, 'cf-inactive');
         assert.equal(keys['cf-fax'].fax, 'cf-inactive');
@@ -347,7 +331,6 @@ suite('dialer/ussd', function() {
     test('Check call forwarding rules', function(done) {
       UssdManager.send(MMI_CF_MSG_TWO_RULES);
       setTimeout(function() {
-        var keys = navigator.mozL10n.keys();
         assert.equal(keys['cf-voice'].voice, EXPECTED_PHONE);
         assert.equal(keys['cf-data'].data, EXPECTED_PHONE);
         assert.equal(keys['cf-fax'].fax, 'cf-inactive');
@@ -368,7 +351,7 @@ suite('dialer/ussd', function() {
     });
 
     test('Check call forwarding rules', function() {
-      assert.equal(UssdManager._popup._messageReceived, 'cf-error');
+      assert.equal(UssdManager._popup._messageReceived, null);
     });
   });
 });

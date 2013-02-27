@@ -8,18 +8,17 @@
  *
  */
 
-var fb = window.fb || {};
-
-if (typeof fb.oauthflow === 'undefined') {
+if (typeof window.oauthflow === 'undefined') {
   (function(document) {
     'use strict';
 
-    var OAuthFlow = fb.oauthflow = {};
+    var OAuthFlow = window.oauthflow = {};
 
     var OAUTH_REDIRECT = 'redirectURI';
-    var FB_ENDPOINT = 'loginPage';
+    var ENDPOINT = 'loginPage';
     var APP_ID = 'applicationId';
-    var CONTACTS_APP_ORIGIN = 'contactsAppOrigin';
+    var APP_ORIGIN = 'appOrigin';
+    var SCOPE = 'scope';
 
     // The access token
     var accessToken;
@@ -32,32 +31,31 @@ if (typeof fb.oauthflow === 'undefined') {
      *  Initialization function it tries to find an access token
      *
      */
-    OAuthFlow.init = function() {
+    OAuthFlow.init = function(service) {
       var hash = document.location.hash.substring(1);
+      var parameters = {};
 
-      if (hash.indexOf('access_token') !== -1) {
+      var dataStart = hash.indexOf('access_token');
+      if (dataStart !== -1) {
         var elements = hash.split('&');
-
-        var parameters = {};
 
         elements.forEach(function(p) {
           var values = p.split('=');
-
           parameters[values[0]] = values[1];
         });
 
         window.opener.postMessage(parameters,
-                                  fb.oauthflow.params[CONTACTS_APP_ORIGIN]);
+                                  oauthflow.params[service][APP_ORIGIN]);
 
         // Finally the window is closed
         window.close();
       }
-    } // init
+    }; // init
 
 
-    OAuthFlow.start = function(state) {
-      getAccessToken(state);
-    }
+    OAuthFlow.start = function(state, service) {
+      getAccessToken(state, service);
+    };
 
 
     /**
@@ -66,24 +64,20 @@ if (typeof fb.oauthflow === 'undefined') {
      *
      *
      */
-    function getAccessToken(state) {
-      startOAuth(state);
+    function getAccessToken(state, service) {
+      startOAuth(state, service);
     }
 
     /**
      *  Starts a OAuth 2.0 flow to obtain the user information
      *
      */
-    function startOAuth(state) {
-      var params = fb.oauthflow.params;
+    function startOAuth(state, service) {
+      var params = oauthflow.params[service];
 
-      var redirect_uri = encodeURIComponent(params[OAUTH_REDIRECT] +
-                                            '#state=' + state);
+      var redirect_uri = encodeURIComponent(params[OAUTH_REDIRECT]);
 
-      var scope = ['friends_about_me,friends_birthday,email,' ,
-                    'friends_education_history, friends_work_history,' ,
-                    'friends_status,friends_relationships,publish_stream'
-      ].join('');
+      var scope = params[SCOPE].join(',');
       var scopeParam = encodeURIComponent(scope);
 
       var queryParams = ['client_id=' + params[APP_ID],
@@ -94,7 +88,7 @@ if (typeof fb.oauthflow === 'undefined') {
       ]; // Query params
 
     var query = queryParams.join('&');
-    var url = params[FB_ENDPOINT] + query;
+    var url = params[ENDPOINT] + query;
 
     window.open(url);
   }

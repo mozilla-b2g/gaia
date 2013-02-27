@@ -505,6 +505,7 @@ form.bottom[role="search"].new-sms-form {
   padding: 0.4rem 0.2rem 0.2rem 0.6rem;
   line-height: -moz-calc(8 * 0.226rem) !important;
   font-size: -moz-calc(8 * 0.226rem);
+  max-height: none;
 }
 
 #send-message-container {

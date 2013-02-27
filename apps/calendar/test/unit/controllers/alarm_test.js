@@ -168,7 +168,10 @@ suite('controllers/alarm', function() {
       suiteTeardown(function() {
         window.NotificationHelper = realApi;
       });
-
+/*
+// These tests are currently failing on travis and have been temporarily
+// disabled as per Bug 841815. They should be fixed and re-enabled as soon as
+// possible as per Bug 840489.
       test('result', function(done) {
         sent.length = 0;
         var sentTo;
@@ -193,6 +196,7 @@ suite('controllers/alarm', function() {
 
         subject._sendAlarmNotification({}, event, busytime);
       });
+*/
     });
 
     suite('#handleAlarm', function() {

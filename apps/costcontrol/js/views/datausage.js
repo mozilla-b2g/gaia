@@ -20,8 +20,8 @@ var DataUsageTab = (function() {
   var wifiItem, mobileItem;
   var dateFormat, dateFormatter;
 
-  var tabmanager, costcontrol, initialized, model;
-  function setupTab(tmgr) {
+  var costcontrol, initialized, model;
+  function setupTab() {
     if (initialized) {
       return;
     }
@@ -31,7 +31,6 @@ var DataUsageTab = (function() {
 
     CostControl.getInstance(function _onCostControl(instance) {
       costcontrol = instance;
-      tabmanager = tmgr;
 
       // HTML entities
       graphicArea = document.getElementById('graphic-area');
@@ -46,12 +45,6 @@ var DataUsageTab = (function() {
       mobileToggle = document.getElementById('mobileCheck');
 
       window.addEventListener('localized', localize);
-
-      // Configure showing tab
-      var dataUsageTab = document.getElementById('datausage-tab-filter');
-      dataUsageTab.addEventListener('click', function _showTab() {
-        tabmanager.changeViewTo('datausage-tab');
-      });
 
       // Update and chart visibility
       document.addEventListener('mozvisibilitychange', updateWhenVisible);
@@ -427,10 +420,8 @@ var DataUsageTab = (function() {
       var v = rounded[0];
       var u = rounded[1];
       var label = v;
-      if (lastUnit !== u) {
-        label = formatData([v, u]);
-      }
 
+      label = formatData([v, u]);
       lastUnit = u;
       ctx.textBaseline = 'middle';
       ctx.fillStyle = (value === model.limits.value) && model.limits.enabled ?
@@ -670,3 +661,5 @@ var DataUsageTab = (function() {
     finalize: finalize
   };
 }());
+
+DataUsageTab.initialize();

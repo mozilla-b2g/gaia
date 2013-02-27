@@ -2,7 +2,7 @@
     position: absolute;
     top: 81px;
     left: 0;
-    right: 0;
+    right: -20px;
     bottom: 0;
     z-index: 50;
     overflow: hidden;
@@ -17,7 +17,8 @@
 
 #evmeContainer .evme-apps ul {
     position: absolute;
-    width: 100%;
+    left: 0;
+    right: 20px;
     min-height: 100%;
     padding-bottom: 10px;
 }
@@ -33,7 +34,6 @@
     cursor: pointer;
     display: inline-block;
     vertical-align: top;
-    -moz-transition: -moz-transform .2s linear;
     transition: transform .2s linear;
 }
 
@@ -49,10 +49,9 @@
 #evmeContainer .evme-apps:not(.has-installed) .has-installed-visible {
     display: none;
 }
-#evmeContainer .evme-apps ul li.new {
-    -moz-transition: none;
-    transition: none;
-}
+    #evmeContainer .evme-apps ul li canvas {
+        transition: transform .2s linear;
+    }
 #evmeContainer .evme-apps ul #button-more {
     position: absolute;
     top: auto;
@@ -74,92 +73,10 @@
 #evmeContainer .evme-apps ul li:nth-child(4n+1) {
     clear: both;
 }
-#evmeContainer .evme-apps ul li .c {
-    position: relative;
-    display: block;
-    padding: 44px 2px 0 2px;
-}
-#evmeContainer .evme-apps ul li .thumb, #evmeContainer .app-icon {
-    position: absolute;
-    top: 0;
-    left: 50%;
-    z-index: 5;
-    display: block;
-    width: 44px;
-    height: 44px;
-    margin-left: -22px;
-    background-position: 50% 50%;
-    background-repeat: no-repeat;
-    background-size: contain;
-    border-radius: 23px;
-    box-shadow: 0 2px 2px 0 rgba(0, 0, 0, .8);
-    -moz-transition: -moz-transform .2s linear;
-    transition: transform .2s linear;
-}
-#evmeContainer .evme-apps ul li.new:not(.installed) .thumb {
-    -moz-transform: scale(0);
+#evmeContainer .evme-apps ul li.new:not(.installed) canvas {
     transform: scale(0);
 }
-#evmeContainer .evme-apps ul li.installed .c {
-    padding-top: 50px;
-}
-#evmeContainer .evme-apps ul li.installed .thumb {
-    border-radius: 0;
-    width: 58px;
-    height: 58px;
-    margin-left: -29px;
-    margin-top: -3px;
-    box-shadow: none;
-}
-#evmeContainer .evme-apps ul li .thumb.noicon {
-    background: transparent;
-}
-#evmeContainer .evme-apps ul li .thumb.noicon:after {
-}
-#evmeContainer .evme-apps ul li b {
-    display: inline-block;
-    line-height: 100%;
-    max-height: 35px;
-    max-width: 95%;
-    margin-top: 2px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    padding: 2px;
-    color: #fff;
-    font-size: -moz-calc(5.75 * 0.226rem);
-    font-weight: 500;
-    text-shadow: 1px 1px 3px rgba(0, 0, 0, .6);
-}
-#evmeContainer .evme-apps ul li.installed b {
-    line-height: 90%;
-}
-#evmeContainer .evme-apps ul li b em {
-    font-style: normal;
-}
 
-#evmeContainer .evme-apps ul li .close {
-    position: absolute;
-    top: -4px;
-    left: 50%;
-    margin-left: -30px;
-    border: 2px solid #fff;
-    box-shadow: 0 0 2px 0 #000;
-    width: 18px;
-    height: 18px;
-    line-height: 16px;
-    background: #000;
-    color: #fff;
-    cursor: pointer;
-    text-align: center;
-    border-radius: 18px;
-    font-weight: 600;
-    font-size: 14px;
-    z-index: 0;
-    opacity: 0;
-    display: none;
-    -moz-transition: opacity .2s linear;
-    transition: opacity .2s linear;
-}
 #evmeContainer .evme-apps ul li#more-apps {
     position: absolute;
     left: 0;
@@ -175,7 +92,6 @@
     z-index: 50;
     cursor: default;
     box-shadow: 0 -1px 0 0 rgba(255, 255, 255, .6), 0 -2px 0 0 rgba(0, 0, 0, .5);
-    -moz-transition: none;
     transition: none;
 }
 #evmeContainer .evme-apps ul.connection-error #more-apps {
@@ -234,7 +150,6 @@ body:not(.istouch) .evme-apps ul li:nth-child(5n+1) {
     opacity: 1;
     overflow: visible;
     margin-top: 0 !important;
-    -moz-transition: -moz-transform .2s linear;
     transition: transform .2s linear;
 }
 #evmeContainer.loading-app .evme-apps ul li.inplace .doat-loading {
@@ -246,27 +161,4 @@ body:not(.istouch) .evme-apps ul li:nth-child(5n+1) {
 
 #evmeContainer.loading-app .evme-apps ul {
     min-height: 100%;
-}
-
-.apps-group {
-    position: relative;
-    width: 64px;
-    height: 64px;
-}
-.apps-group span {
-    position: absolute;
-    background-position: 50% 50%;
-    background-repeat: no-repeat;
-    background-size: contain;
-    -moz-transition: all .4s ease;
-    transition: all .4s ease;
-}
-.apps-group span:nth-child(1) {
-    box-shadow: 0 2px 1px 0 rgba(0, 0, 0, .4);
-}
-.apps-group span:nth-child(2) {
-    box-shadow: 0 2px 2px 0 rgba(0, 0, 0, .5);
-}
-.apps-group span:nth-child(3) {
-    box-shadow: 0 2px 2px 0 rgba(0, 0, 0, .6);
 }

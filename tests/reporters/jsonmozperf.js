@@ -40,7 +40,8 @@ function JSONMozPerfReporter(runner) {
         title: test.title + ' ' + title,
         fullTitle: test.fullTitle() + ' ' + title,
         duration: test.duration,
-        mozPerfDuration: global.mozPerfDurations[title]
+        mozPerfDurations: global.mozPerfDurations[title],
+        mozPerfDurationsAverage: average(global.mozPerfDurations[title])
       });
     }
   });
@@ -51,6 +52,7 @@ function JSONMozPerfReporter(runner) {
 
   var self = this;
   runner.on('end', function() {
+    self.stats.application = window.mozTestInfo.appPath;
     var obj = {
       stats: self.stats,
       failures: failures.map(cleanErr),
@@ -81,5 +83,14 @@ function cleanErr(test) {
     expected: expected
   }
 };
+
+function average(arr) {
+  var sum = arr.reduce(function(i, j) {
+    return i + j;
+  });
+
+  return sum / arr.length;
+};
+
 global.Mocha.reporters.JSONMozPerf = JSONMozPerfReporter;
 })(this);

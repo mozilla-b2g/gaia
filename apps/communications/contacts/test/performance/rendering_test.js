@@ -1,6 +1,6 @@
 'use strict';
 
-require('/tests/js/performance_helper.js');
+require('/tests/performance/performance_helper.js');
 require('apps/communications/contacts/test/integration/app.js');
 
 suite('Contacts', function() {
@@ -17,7 +17,7 @@ suite('Contacts', function() {
   });
 
   test('average rendering time', function() {
-    this.timeout(100000);
+    this.timeout(150000);
 
     var firstPaints = [];
     var lastPaints = [];

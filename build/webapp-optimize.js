@@ -3,7 +3,6 @@ function debug(str) {
   //dump(' -*- webapp-optimize.js: ' + str + '\n');
 }
 
-
 /**
  * Expose a global `win' object and load `l10n.js' in it --
  * note: the `?reload' trick ensures we don't load a cached `l10njs' library.
@@ -34,8 +33,6 @@ l10nDictionary.locales[GAIA_DEFAULT_LOCALE] = {};
  * whitelist by app name for javascript asset aggregation.
  */
 const JS_AGGREGATION_BLACKLIST = [
-  // https://bugzilla.mozilla.org/show_bug.cgi?id=839454
-  'communications',
   // https://bugzilla.mozilla.org/show_bug.cgi?id=839574
   'system'
 ];
@@ -326,10 +323,8 @@ function optimize_compile(webapp, file) {
       let newFile = new FileUtils.File(newPath);
       optimize_embedl10nResources(win.document, dictionary);
 
-      var shouldAggregate = (PRODUCTION === "1" &&
-        !DEBUG &&
-        JS_AGGREGATION_BLACKLIST.indexOf(webapp.sourceDirectoryName) === -1);
-      if (shouldAggregate) {
+      if (GAIA_OPTIMIZE == 1 &&
+          JS_AGGREGATION_BLACKLIST.indexOf(webapp.sourceDirectoryName) === -1) {
         optimize_aggregateJsResources(win.document, webapp, newFile);
         dump(
           '[optimize] aggregating javascript for : "' +

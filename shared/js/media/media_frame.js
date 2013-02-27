@@ -40,7 +40,9 @@ function MediaFrame(container, includeVideo) {
   }
   this.displayingVideo = false;
   this.displayingImage = false;
-  this.blob = null;
+  this.imageblob = null;
+  this.videoblob = null;
+  this.posterblob = null;
   this.url = null;
 }
 
@@ -50,7 +52,7 @@ MediaFrame.prototype.displayImage = function displayImage(blob, width, height,
   this.clear();  // Reset everything
 
   // Remember what we're displaying
-  this.blob = blob;
+  this.imageblob = blob;
   this.fullsizeWidth = width;
   this.fullsizeHeight = height;
   this.preview = preview;
@@ -75,18 +77,8 @@ MediaFrame.prototype.displayImage = function displayImage(blob, width, height,
   }
 };
 
-// A utility function we use to display the full-size image or the
-// preview The last two arguments are optimizations used by
-// switchToFullSizeImage() to make the transition from preview to
-// fullscreen smooth. If waitForPaint is true, then this function will
-// keep the old image on the screen until the new image is painted
-// over it so we (hopefully) don't end up with a blank screen or
-// flash.  And if callback is specified, it will call the callback
-// when thew new images is visible on the screen.  If either of those
-// arguments are specified, the width and height must be specified.
-MediaFrame.prototype._displayImage = function _displayImage(blob, width, height,
-                                                            waitForPaint,
-                                                            callback)
+// A utility function we use to display the full-size image or the preview.
+MediaFrame.prototype._displayImage = function _displayImage(blob, width, height)
 {
   var self = this;
   var oldImage;
@@ -103,31 +95,12 @@ MediaFrame.prototype._displayImage = function _displayImage(blob, width, height,
     this.image.src = this.url;
     this.image.addEventListener('load', function onload() {
       this.removeEventListener('load', onload);
-      self.itemWidth = this.naturalWidth;
-      self.itemHeight = this.naturalHeight;
+      self.itemWidth = this.width = this.naturalWidth;
+      self.itemHeight = this.height = this.naturalHeight;
       self.computeFit();
       self.setPosition();
     });
     return;
-  }
-
-  // Otherwise, we have a width and height, and we may also have to handle
-  // the waitForPaint and callback arguments
-
-  // If waitForPaint is set, then keep the old image around and displayed
-  // until the new image is loaded.
-  if (waitForPaint) {
-    // Remember the old image
-    oldImage = this.image;
-
-    // Create a new element to load the new image into.
-    // Insert it into the frame, but don't remove the old image yet
-    this.image = document.createElement('img');
-    this.container.appendChild(this.image);
-
-    // Change the old image slightly to give the user some immediate
-    // feedback that something is happening
-    oldImage.classList.add('swapping');
   }
 
   // Start loading the new image
@@ -137,76 +110,72 @@ MediaFrame.prototype._displayImage = function _displayImage(blob, width, height,
   this.itemHeight = height;
   this.computeFit();
   this.setPosition();
-
-  // If waitForPaint is set, or if there is a callback, then we need to
-  // run some code when the new image has loaded and been painted.
-  if (waitForPaint || callback) {
-    whenLoadedAndVisible(this.image, 1000, function() {
-      if (waitForPaint) {
-        // Remove the old image now that the new one is visible
-        self.container.removeChild(oldImage);
-        oldImage.src = null;
-      }
-
-      if (callback) {
-        // Let the caller know that the new image is ready, but
-        // wait for an animation frame before doing it. The point of
-        // using mozRequestAnimationFrame here is that it gives the
-        // removeChild() call above a chance to take effect.
-        mozRequestAnimationFrame(function() {
-          callback();
-        });
-      }
-    });
-  }
-
-  // Wait until the load event on the image fires, and then wait for a
-  // MozAfterPaint event after that, and then, finally, invoke the
-  // callback.  Don't wait more than the timeout, though: we need to
-  // ensure that we always call the callback even if the image does not
-  // load or if we don't get a MozAfterPaint event.
-  function whenLoadedAndVisible(image, timeout, callback) {
-    var called = false;
-    var timer = setTimeout(function()
-                           {
-                             called = true;
-                             callback();
-                           },
-                           timeout || 1000);
-
-    image.addEventListener('load', function onload() {
-      image.removeEventListener('load', onload);
-      window.addEventListener('MozAfterPaint', function onpaint() {
-        window.removeEventListener('MozAfterPaint', onpaint);
-        clearTimeout(timer);
-        if (!called) {
-          callback();
-        }
-      });
-    });
-  }
 };
 
-MediaFrame.prototype._switchToFullSizeImage = function _switchToFull(cb) {
-  if (this.displayingImage && this.displayingPreview) {
-    this.displayingPreview = false;
-    this._displayImage(this.blob, this.fullsizeWidth, this.fullsizeHeight,
-                       true, cb);
+MediaFrame.prototype._switchToFullSizeImage = function _switchToFull() {
+  if (!this.displayingImage || !this.displayingPreview)
+    return;
+
+  var self = this;
+  this.displayingPreview = false;
+
+  var oldurl = this.url;
+  var oldimage = this.oldimage = this.image;
+  var newimage = this.image = document.createElement('img');
+  newimage.src = this.url = URL.createObjectURL(this.imageblob);
+
+  // Add the new image to the container before the current preview image
+  // Because it comes first it will be obscured the the preview
+  this.container.insertBefore(newimage, oldimage);
+
+  // Resize the preview image to be the same size as the full image.
+  // It will be pixelated, but it will be ready right away.
+  this.itemWidth = this.oldimage.width = this.fullsizeWidth;
+  this.itemHeight = this.oldimage.height = this.fullsizeHeight;
+  this.computeFit();
+  this.setPosition();
+
+  // Query the position of the two images in order to flush the changes
+  // made by setPosition() above. This prevents us from accidentally
+  // animating those changes when the user double taps to zoom.
+  if (this.oldimage) {
+    var temp = this.oldimage.clientLeft;
+    temp = this.image.clientLeft;
   }
+
+  // When the new image is loaded we can begin to remove the preview image
+  newimage.addEventListener('load', function imageLoaded() {
+    newimage.removeEventListener('load', imageLoaded);
+
+    // It takes quite a while for gecko to decode a 1200x1600 image once
+    // it is loaded, so we wait a second here before removing the preview.
+    // XXX: This is a hack. There really ought to be an event we can listen for
+    // to know when the image is ready to display onscreen. See Bug 844245.
+    setTimeout(function() {
+      mozRequestAnimationFrame(function() {
+        self.container.removeChild(oldimage);
+        self.oldimage = null;
+        oldimage.src = null;
+        if (oldurl)
+          URL.revokeObjectURL(oldurl);
+      });
+    }, 1000);
+  });
 };
 
 MediaFrame.prototype._switchToPreviewImage = function _switchToPreview() {
-  if (this.displayingImage && !this.displayingPreview) {
+  if (this.displayingImage && this.preview && !this.displayingPreview) {
     this.displayingPreview = true;
-    this._displayImage(this.blob.slice(this.preview.start,
-                                       this.preview.end,
-                                       'image/jpeg'),
+    this._displayImage(this.imageblob.slice(this.preview.start,
+                                            this.preview.end,
+                                            'image/jpeg'),
                        this.preview.width,
                        this.preview.height);
   }
 };
 
-MediaFrame.prototype.displayVideo = function displayVideo(blob, width, height,
+MediaFrame.prototype.displayVideo = function displayVideo(videoblob, posterblob,
+                                                          width, height,
                                                           rotation)
 {
   if (!this.video)
@@ -217,19 +186,21 @@ MediaFrame.prototype.displayVideo = function displayVideo(blob, width, height,
   // Keep track of what kind of content we have
   this.displayingVideo = true;
 
-  // Show the video player and hide the image
-  this.video.show();
+  // Remember the blobs
+  this.videoblob = videoblob;
+  this.posterblob = posterblob;
 
-  // Remember the blob
-  this.blob = blob;
+  // Get new URLs for the blobs
+  this.videourl = URL.createObjectURL(videoblob);
+  this.posterurl = URL.createObjectURL(posterblob);
 
-  // Get a new URL for this blob
-  this.url = URL.createObjectURL(blob);
-
-  // Display it in the video element.
+  // Display them in the video element.
   // The VideoPlayer class takes care of positioning itself, so we
   // don't have to do anything here with computeFit() or setPosition()
-  this.video.load(this.url, rotation || 0);
+  this.video.load(this.videourl, this.posterurl, width, height, rotation || 0);
+
+  // Show the player controls
+  this.video.show();
 };
 
 // Reset the frame state, release any urls and and hide everything
@@ -239,7 +210,9 @@ MediaFrame.prototype.clear = function clear() {
   this.displayingPreview = false;
   this.displayingVideo = false;
   this.itemWidth = this.itemHeight = null;
-  this.blob = null;
+  this.imageblob = null;
+  this.videoblob = null;
+  this.posterblob = null;
   this.fullsizeWidth = this.fullsizeHeight = null;
   this.preview = null;
   this.fit = null;
@@ -254,14 +227,12 @@ MediaFrame.prototype.clear = function clear() {
 
   // Hide the video player
   if (this.video) {
+    this.video.reset();
     this.video.hide();
-
-    // If the video player has its src set, clear it and release resources
-    // We do this in a roundabout way to avoid getting a warning in the console
-    if (this.video.player.src) {
-      this.video.player.removeAttribute('src');
-      this.video.player.load();
-    }
+    if (this.videourl)
+      URL.revokeObjectURL(this.videourl);
+    if (this.posterurl)
+      URL.revokeObjectURL(this.posterurl);
   }
 };
 
@@ -272,9 +243,13 @@ MediaFrame.prototype.setPosition = function setPosition() {
   if (!this.fit || !this.displayingImage)
     return;
 
-  this.image.style.transform =
+  var transform =
     'translate(' + this.fit.left + 'px,' + this.fit.top + 'px) ' +
     'scale(' + this.fit.scale + ')';
+
+  this.image.style.transform = transform;
+  if (this.oldimage)
+    this.oldimage.style.transform = transform;
 };
 
 MediaFrame.prototype.computeFit = function computeFit() {
@@ -384,24 +359,8 @@ MediaFrame.prototype.zoom = function zoom(scale, centerX, centerY, time) {
     return;
 
   // If we were displaying the preview, switch to the full-size image
-  if (this.displayingPreview) {
-    // If we want to to animate the zoom, then switch images, wait
-    // for the new one to load, and call this function again to process
-    // the zoom and animation.  But if we're not animating, then just
-    // switch images and continue.
-    if (time) { // if animating
-      var self = this;
-      this._switchToFullSizeImage(function() {
-        self.zoom(scale, centerX, centerY, time);
-      });
-      return;
-    }
-    else {
-      this.switching = true;
-      var self = this;
-      this._switchToFullSizeImage(function() { self.switching = false; });
-    }
-  }
+  if (this.displayingPreview)
+    this._switchToFullSizeImage();
 
   // Never zoom in farther than the native resolution of the image
   if (this.fit.scale * scale > 1) {
@@ -463,14 +422,14 @@ MediaFrame.prototype.zoom = function zoom(scale, centerX, centerY, time) {
     }
   }
 
-  if (this.switching)
-    return;
-
   // If a time was specified, set up a transition so that the
   // call to setPosition() below is animated
   if (time) {
     // If a time was specfied, animate the transformation
-    this.image.style.transition = 'transform ' + time + 'ms ease';
+    var transition = 'transform ' + time + 'ms ease';
+    this.image.style.transition = transition;
+    if (this.oldimage)
+      this.oldimage.style.transition = transition;
     var self = this;
     this.image.addEventListener('transitionend', function done(e) {
       self.image.removeEventListener('transitionend', done);

@@ -30,7 +30,7 @@ $('fullscreen-delete-button').onclick = deleteSingleItem;
 
 // Clicking the Edit button while viewing a photo switches to edit mode
 $('fullscreen-edit-button').onclick = function() {
-  loadScript('js/ImageEditor.js', function() {
+  loader.load('js/ImageEditor.js', function() {
     editPhotoIfCardNotFull(currentFileIndex);
   });
 };
@@ -105,7 +105,7 @@ function deleteSingleItem() {
 
 // In fullscreen mode, the share button shares the current item
 function shareSingleItem() {
-  share([currentFrame.blob]);
+  share([currentFrame.imageblob || currentFrame.videoblob]);
 }
 
 // In order to distinguish single taps from double taps, we have to
@@ -293,22 +293,25 @@ function setupFrameContent(n, frame) {
   // Remember what file we're going to display
   frame.filename = fileinfo.name;
 
-  if (fileinfo.metadata.video) {
-    videodb.getFile(fileinfo.name, function(file) {
-      frame.displayVideo(file,
-                         fileinfo.metadata.width,
-                         fileinfo.metadata.height,
-                         fileinfo.metadata.rotation || 0);
-    });
-  }
-  else {
-    photodb.getFile(fileinfo.name, function(file) {
-      frame.displayImage(file,
+  photodb.getFile(fileinfo.name, function(imagefile) {
+    if (fileinfo.metadata.video) {
+      // If this is a video, then the file we just got is the poster image
+      // and we still have to fetch the actual video
+      getVideoFile(fileinfo.metadata.video, function(videofile) {
+        frame.displayVideo(videofile, imagefile,
+                           fileinfo.metadata.width,
+                           fileinfo.metadata.height,
+                           fileinfo.metadata.rotation || 0);
+      });
+    }
+    else {
+      // Otherwise, just display the image
+      frame.displayImage(imagefile,
                          fileinfo.metadata.width,
                          fileinfo.metadata.height,
                          fileinfo.metadata.preview);
-    });
-  }
+    }
+  });
 }
 
 var FRAME_BORDER_WIDTH = 3;
@@ -356,9 +359,10 @@ function nextFile(time) {
   if (currentFileIndex === files.length - 1)
     return;
 
-  // Don't pan a playing video!
-  if (currentFrame.displayingVideo && !currentFrame.video.player.paused)
-    currentFrame.video.pause();
+  // If the current frame is using a <video> element instead of just
+  // displaying a poster image, reset it back to just the image
+  if (currentFrame.displayingVideo && currentFrame.video.playerShowing)
+    currentFrame.video.init();
 
   // Set a flag to ignore pan and zoom gestures during the transition.
   transitioning = true;
@@ -405,9 +409,10 @@ function previousFile(time) {
   if (currentFileIndex === 0)
     return;
 
-  // Don't pan a playing video!
-  if (currentFrame.displayingVideo && !currentFrame.video.player.paused)
-    currentFrame.video.pause();
+  // If the current frame is using a <video> element instead of just
+  // displaying a poster image, reset it back to just the image.
+  if (currentFrame.displayingVideo && currentFrame.video.playerShowing)
+    currentFrame.video.init();
 
   // Set a flag to ignore pan and zoom gestures during the transition.
   transitioning = true;

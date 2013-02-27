@@ -82,11 +82,17 @@ var editedPhotoIndex;
 var selectedFileNames = [];
 var selectedFileNamesToBlobs = {};
 
-// The MediaDB objects that manage the filesystem and the database of metadata
-// See init()
-var photodb, videodb;
+// The MediaDB object that manages the filesystem and the database of metadata
+var photodb;
+
+// We manage videos through their poster images, which are photos and so get
+// listed in the photodb above. But when we need to access the actual video
+// file, we have to get that from a device storage object for videos.
+var videostorage;
 
 var visibilityMonitor;
+
+var loader = LazyLoader;
 
 // The localized event is the main entry point for the app.
 // We don't do anything until we receive it.
@@ -178,7 +184,7 @@ function init() {
 // Initialize MediaDB objects for photos and videos, and set up their
 // event handlers.
 function initDB(include_videos) {
-  photodb = new MediaDB('pictures', imageMetadataParser, {
+  photodb = new MediaDB('pictures', metadataParserWrapper, {
     mimeTypes: ['image/jpeg', 'image/png'],
     version: 2,
     autoscan: false,     // We're going to call scan() explicitly
@@ -187,40 +193,19 @@ function initDB(include_videos) {
   });
 
   if (include_videos) {
-    // For videos, this app is only interested in files under DCIM/.
-    videodb = new MediaDB('videos', videoMetadataParser, {
-      directory: 'DCIM/',
-      autoscan: false,     // We're going to call scan() explicitly
-      batchHoldTime: 150,  // Batch files during scanning
-      batchSize: PAGE_SIZE // Max batch size: one screenful
-    });
-  }
-  else {
-    videodb = null;
+    videostorage = navigator.getDeviceStorage('videos');
   }
 
   var loaded = false;
-  function imageMetadataParser(file, onsuccess, onerror) {
+  function metadataParserWrapper(file, onsuccess, onerror) {
     if (loaded) {
-      metadataParsers.imageMetadataParser(file, onsuccess, onerror);
+      metadataParser(file, onsuccess, onerror);
       return;
     }
 
-    loadScript('js/metadata_scripts.js', function() {
+    loader.load('js/metadata_scripts.js', function() {
       loaded = true;
-      metadataParsers.imageMetadataParser(file, onsuccess, onerror);
-    });
-  }
-
-  function videoMetadataParser(file, onsuccess, onerror) {
-    if (loaded) {
-      metadataParsers.videoMetadataParser(file, onsuccess, onerror);
-      return;
-    }
-
-    loadScript('js/metadata_scripts.js', function() {
-      loaded = true;
-      metadataParsers.videoMetadataParser(file, onsuccess, onerror);
+      metadataParser(file, onsuccess, onerror);
     });
   }
 
@@ -242,46 +227,19 @@ function initDB(include_videos) {
     if (currentOverlay === 'nocard' || currentOverlay === 'pluggedin')
       showOverlay(null);
 
-    // If we're including videos also, be sure that they are ready
-    if (include_videos) {
-      if (videodb.state === MediaDB.READY)
-        initThumbnails();
-    }
-    else {
-      initThumbnails();
-    }
+    initThumbnails(include_videos);
   };
 
-  if (include_videos) {
-    videodb.onready = function() {
-      // If the photodb is also ready, create thumbnails.
-      // Depending on the order of the ready events, either this code
-      // or the code above will fire and set up the thumbnails
-      if (photodb.state === MediaDB.READY)
-        initThumbnails();
-    };
-  }
-
-  // When the mediadbs are scanning, let the user know. We count scan starts
-  // and ends so we correctly display the throbber while either db is scanning.
-  var scanning = 0;
-
   photodb.onscanstart = function onscanstart() {
-    scanning++;
-    if (scanning == 1) {
-      // Show the scanning indicator
-      $('progress').classList.remove('hidden');
-      $('throbber').classList.add('throb');
-    }
+    // Show the scanning indicator
+    $('progress').classList.remove('hidden');
+    $('throbber').classList.add('throb');
   };
 
   photodb.onscanend = function onscanend() {
-    scanning--;
-    if (scanning == 0) {
-      // Hide the scanning indicator
-      $('progress').classList.add('hidden');
-      $('throbber').classList.remove('throb');
-    }
+    // Hide the scanning indicator
+    $('progress').classList.add('hidden');
+    $('throbber').classList.remove('throb');
   };
 
   // One or more files was created (or was just discovered by a scan)
@@ -293,12 +251,17 @@ function initDB(include_videos) {
   photodb.ondeleted = function(event) {
     event.detail.forEach(fileDeleted);
   };
+}
 
-  if (include_videos) {
-    videodb.onscanstart = photodb.onscanstart;
-    videodb.onscanend = photodb.onscanend;
-    videodb.oncreated = photodb.oncreated;
-    videodb.ondeleted = photodb.ondeleted;
+// Pass the filename of the poster image and get the video file back
+function getVideoFile(filename, callback) {
+  // We get videos directly through the video device storage
+  var req = videostorage.get(filename);
+  req.onsuccess = function() {
+    callback(req.result);
+  };
+  req.onerror = function() {
+    console.error('Failed to get video file', filename);
   }
 }
 
@@ -313,7 +276,7 @@ function compareFilesByDate(a, b) {
 }
 
 //
-// Enumerate existing entries in the photo and video databases in reverse
+// Enumerate existing entries in the media database in reverse
 // chronological order (most recent first) and display thumbnails for them all.
 // After the thumbnails are displayed, scan for new files.
 //
@@ -321,7 +284,7 @@ function compareFilesByDate(a, b) {
 // when the sdcard becomes available again after a USB mass storage
 // session or an sdcard replacement.
 //
-function initThumbnails() {
+function initThumbnails(include_videos) {
   // If we've already been called once, then we've already got thumbnails
   // displayed. There is no need to re-enumerate them, so we just go
   // straight to scanning for new files
@@ -368,63 +331,29 @@ function initThumbnails() {
   // from most recent to least recent.
 
   // Temporary arrays to hold enumerated files
-  var photos = [], videos = [], interleaved = [];
+  var batch = [];
   var batchsize = PAGE_SIZE;
 
   photodb.enumerate('date', null, 'prev', function(fileinfo) {
-    photos.push(fileinfo);
-    merge();
+    if (fileinfo) {
+      // For a pick activity, don't display videos
+      if (!include_videos && fileinfo.metadata.video)
+        return;
+
+      batch.push(fileinfo);
+      if (batch.length >= batchsize) {
+        flush();
+        batchsize *= 2;
+      }
+    }
+    else {
+      done();
+    }
   });
 
-  if (videodb) {
-    videodb.enumerate('date', null, 'prev', function(fileinfo) {
-      videos.push(fileinfo);
-      merge();
-    });
-  }
-  else {
-    videos.push(null); // This means we're done enumerating videos
-  }
-
-  // Create thumbnails for as many of the files in the photos and videos arrays
-  // as we can. This is the tricky bit of the algorithm for ensuring that
-  // they are sorted by date
-  function merge() {
-    // If we don't have at least one of each, we don't know what the newest is
-    while (photos.length > 0 && videos.length > 0) {
-      if (photos[0] === null && videos[0] === null) {
-        // Both enumerations are done
-        done();
-        break;
-      }
-
-      // If we've finished enumerating photos, then videos[0] is next
-      if (photos[0] === null) {
-        batch(videos.shift());
-      }
-      else if (videos[0] === null) {
-        batch(photos.shift());
-      }
-      else if (videos[0].date > photos[0].date) {
-        batch(videos.shift());
-      }
-      else {
-        batch(photos.shift());
-      }
-    }
-  }
-
-  function batch(fileinfo) {
-    interleaved.push(fileinfo);
-    if (interleaved.length >= batchsize) {
-      flush();
-      batchsize *= 2;
-    }
-  }
-
   function flush() {
-    interleaved.forEach(thumb);
-    interleaved.length = 0;
+    batch.forEach(thumb);
+    batch.length = 0;
   }
 
   function thumb(fileinfo) {
@@ -440,14 +369,8 @@ function initThumbnails() {
     }
     // Now that we've enumerated all the photos and videos we already know
     // about go start looking for new photos and videos.
-    scan();
+    photodb.scan();
   }
-}
-
-function scan() {
-  photodb.scan();
-  if (videodb)
-    videodb.scan();
 }
 
 function fileDeleted(filename) {
@@ -510,10 +433,13 @@ function deleteFile(n) {
   // deletes the file in device storage. This will generate an change
   // event which will call imageDeleted()
   var fileinfo = files[n];
-  if (fileinfo.metadata.video)
-    videodb.deleteFile(fileinfo.name);
-  else
-    photodb.deleteFile(files[n].name);
+  photodb.deleteFile(files[n].name);
+
+  // If it is a video, however, we can't just delete the poster image, but
+  // must also delete the video file.
+  if (fileinfo.metadata.video) {
+    videostorage.delete(fileinfo.metadata.video);
+  }
 }
 
 function fileCreated(fileinfo) {
@@ -733,8 +659,10 @@ function startPick(activityRequest) {
   else {
     pickWidth = pickHeight = 0;
   }
-  loadScript('js/ImageEditor.js'); // We need this for cropping the photo
-  setView(pickView);
+  // We need this for cropping the photo
+  loader.load('js/ImageEditor.js', function() {
+    setView(pickView);    
+  });
 }
 
 function cropPickedImage(fileinfo) {
@@ -811,7 +739,7 @@ function thumbnailClickHandler(evt) {
     return;
 
   if (currentView === thumbnailListView || currentView === fullscreenView) {
-    loadScript('js/frame_scripts.js', function() {
+    loader.load('js/frame_scripts.js', function() {
       showFile(parseInt(target.dataset.index));
     });
   }
@@ -847,10 +775,17 @@ function updateSelection(thumbnail) {
 
   if (selected) {
     selectedFileNames.push(filename);
-    var db = files[index].metadata.video ? videodb : photodb;
-    db.getFile(filename, function(file) {
-      selectedFileNamesToBlobs[filename] = file;
-    });
+    if (files[index].metadata.video) {
+      getVideoFile(files[index].metadata.video, function(file) {
+        selectedFileNamesToBlobs[filename] = file;
+      });
+    }
+    else {
+      // We get photos through the photo db
+      photodb.getFile(filename, function(file) {
+        selectedFileNamesToBlobs[filename] = file;
+      });
+    }
   }
   else {
     delete selectedFileNamesToBlobs[filename];
@@ -1028,29 +963,3 @@ function showOverlay(id) {
 // make it opaque to touch events. Without this, it does not prevent
 // the user from interacting with the UI.
 $('overlay').addEventListener('click', function dummyHandler() {});
-
-var loadedScripts = {};
-
-function loadScript(url, callback) {
-  var script = loadedScripts[url];
-  if (script === true) { // It has already been loaded
-    callback();
-    return;
-  }
-
-  // If the script has started loading but isn't complete yet,
-  // just register the callback as an additional onload handler for it
-  if (script instanceof HTMLScriptElement) {
-    script.addEventListener('load', callback);
-    return;
-  }
-
-  script = document.createElement('script');
-  loadedScripts[url] = script;
-  script.src = url;
-  document.head.appendChild(script);
-  script.addEventListener('load', function() {
-    loadedScripts[url] = true;
-    callback();
-  });
-}

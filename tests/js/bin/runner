@@ -9,7 +9,15 @@ XPCSHELL=`which xpcshell`
 if [ ! -x "$XPCSHELL" ]
 then
   PATH=$GAIA_DIR/xulrunner-sdk/bin/:$PATH;
-  echo "xpcshell is not found adding xulrunner-sdk using $GAIA_DIR/xulrunner-sdk/bin/xpcshell."
+  if [ -n "${VERBOSE}" ]
+  then
+    echo "xpcshell is not found adding xulrunner-sdk using $GAIA_DIR/xulrunner-sdk/bin/xpcshell."
+  fi
 fi
 
-$XPCWINDOW $DIR/../xpc.js $@
+if [ -z "${VERBOSE}" ]
+then
+  $XPCWINDOW $DIR/../xpc.js $@ | grep -v -e '^TCPSocket: ' -e '^ERROR: '
+else
+  $XPCWINDOW $DIR/../xpc.js $@
+fi

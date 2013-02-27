@@ -35,7 +35,8 @@ if (typeof Contacts.extFb === 'undefined') {
       oauthFrame.contentWindow.postMessage({
         type: 'start',
         data: {
-          from: from
+          from: from,
+          service: 'facebook'
         }
       }, fb.CONTACTS_APP_ORIGIN);
       currentURI = uri;
