@@ -407,7 +407,7 @@ var BluetoothTransfer = {
     getreq.onerror = function() {
       var msg = 'failed to get file:' +
                 filePath + getreq.error.name +
-                a.error.name;
+                getreq.error.name;
       self.debug(msg);
     };
 
