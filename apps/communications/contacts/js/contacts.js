@@ -90,12 +90,13 @@ var Contacts = (function() {
         break;
 
       case 'add-parameters':
-        navigation.home();
-        if ('tel' in params) {
-          selectList(params['tel']);
-        }
+        initForm(function onInitForm() {
+          navigation.home();
+          if ('tel' in params) {
+            selectList(params['tel']);
+          }
+        });
         return;
-
     }
 
   };
