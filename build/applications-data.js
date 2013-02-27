@@ -145,6 +145,13 @@ let content = {
     enabled: true
   },
 
+  // This specifies whether we optimize homescreen panning by trying to
+  // predict where the user's finger will be in the future.
+  prediction: {
+    enabled: true,
+    lookahead: 16  // 60fps = 16ms per frame
+  },
+
   grid: customize.homescreens.map(
     function map_homescreens(applist) {
       var output = [];
