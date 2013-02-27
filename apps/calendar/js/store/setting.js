@@ -21,36 +21,53 @@ Calendar.ns('Store').Setting = (function() {
       }
     },
 
-    /**
-     * Frequency to sync the calendar.
-     * Accepted values:
-     *
-     *  null (never)
-     *  numeric (in minutes)
-     *
-     * @return {Null|Numeric} number of minutes.
-     */
-    get syncFrequency() {
-      var name = 'syncFrequency';
-      if (name in this.cached) {
-        return this.cached[name].value;
-      } else {
-        return this.defaults[name];
-      }
+    /** disable caching */
+    _addToCache: function() {},
+    _removeFromCache: function() {},
+
+    _parseId: function(id) {
+      return id;
     },
 
     /**
-     * Current sync alarm, if any.
+     * This method also will use the internal cache to ensure
+     * callers are in a consistent state and don't require round
+     * trips to the database. When the value does not exist defaults
+     * are used where possible...
      *
-     * @return {Null|Object} sync alarm.
+     *
+     *    settings.getValue('syncFrequency', function(err, value) {
+     *      // ...
+     *    });
+     *
+     *
+     * @param {String} key name of setting.
+     * @param {Function} callback usual [err, value] does not include metadata.
      */
-    get syncAlarm() {
-      var name = 'syncAlarm';
-      if (name in this.cached) {
-        return this.cached[name].value;
-      } else {
-        return this.defaults[name];
+    getValue: function(key, callback) {
+      var self = this;
+
+      if (key in this.cached) {
+        Calendar.nextTick(function handleCached() {
+          callback(null, self.cached[key].value);
+        });
+
+        // we have cached value exit...
+        return;
       }
+
+      this.get(key, function handleStored(err, value) {
+        if (err) {
+          return callback(err);
+        }
+
+        if (value === undefined && self.defaults[key]) {
+          value = { value: self.defaults[key] };
+        }
+
+        self.cached[key] = value;
+        callback(null, value.value);
+      });
     },
 
     /**
@@ -91,7 +108,7 @@ Calendar.ns('Store').Setting = (function() {
       var cached = this.cached[key];
       var record;
 
-      if (cached) {
+      if (cached && cached._id) {
         cached.value = value;
         cached.updatedAt = new Date();
         record = cached;

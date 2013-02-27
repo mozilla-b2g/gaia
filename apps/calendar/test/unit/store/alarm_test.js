@@ -1,9 +1,7 @@
-requireApp('calendar/test/unit/helper.js', function() {
-  requireLib('calc.js');
-  requireLib('db.js');
-  requireLib('store/abstract.js');
-  requireLib('store/alarm.js');
-});
+requireLib('calc.js');
+requireLib('db.js');
+requireLib('store/abstract.js');
+requireLib('store/alarm.js');
 
 suite('store/alarm', function() {
 
