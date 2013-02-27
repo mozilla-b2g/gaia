@@ -215,6 +215,10 @@ var ThreadListUI = {
         if (threads.length === 0) {
           // Refresh fixed header logic
           FixedHeader.refresh();
+          // Add fake div for avoiding li coverd by toolbar
+          var fakeDiv = document.createElement('div');
+          fakeDiv.classList.add('fake-div');
+          ThreadListUI.view.appendChild(fakeDiv);
 
           if (callback) {
             callback();

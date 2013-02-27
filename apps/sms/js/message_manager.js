@@ -202,6 +202,10 @@ var MessageManager = {
         ThreadUI.cleanForm();
         mainWrapper.classList.toggle('edit');
         break;
+      case '#settings':
+        SettingsUI.init();
+        SettingsUI.show();
+        break;
       default:
         var num = this.getNumFromHash();
         if (num) {
