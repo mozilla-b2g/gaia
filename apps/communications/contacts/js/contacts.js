@@ -645,6 +645,16 @@ var Contacts = (function() {
     evt.preventDefault();
   };
 
+  var enterSearchMode = function enterSearchMode(evt) {
+    contacts.List.initSearch(function onInit() {
+      contacts.Search.enterSearchMode(evt);
+    });
+  };
+
+  var exitSearchMode = function exitSearchMode(evt) {
+    contacts.Search.exitSearchMode(evt);
+  };
+
   var initEventListeners = function initEventListener() {
     // Definition of elements and handlers
     utils.listeners.add({
@@ -655,11 +665,11 @@ var Contacts = (function() {
       '#settings-button': showSettings, // Settings related
       '#settings-cancel': handleBack,
       '#settings-done': doneTag,
-      '#cancel-search': contacts.Search.exitSearchMode, // Search related
+      '#cancel-search': exitSearchMode, // Search related
       '#search-start': [
         {
           event: 'click',
-          handler: contacts.Search.enterSearchMode
+          handler: enterSearchMode
         }
       ],
       '#details-back': handleDetailsBack, // Details
@@ -714,7 +724,8 @@ var Contacts = (function() {
       '/contacts/js/utilities/import_sim_contacts.js',
       '/contacts/js/utilities/normalizer.js',
       '/contacts/js/utilities/status.js',
-      '/contacts/js/utilities/overlay.js'
+      '/contacts/js/utilities/overlay.js',
+      '/contacts/js/search.js'
     ];
 
     var styles = [
