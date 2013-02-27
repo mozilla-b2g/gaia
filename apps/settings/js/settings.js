@@ -50,7 +50,8 @@ var Settings = {
       var spanField = document.querySelector(rule);
       if (spanField) {
         // check whether this setting comes from a select option
-        rule = '[data-setting="' + key + '"] [value="' + value + '"]';
+        rule = '[data-setting="' + key + '"] [value="' +
+          value.replace(/\"/g, '\\"') + '"]';
         var option = document.querySelector(rule);
         if (option) {
           spanField.dataset.l10nId = option.dataset.l10nId;
