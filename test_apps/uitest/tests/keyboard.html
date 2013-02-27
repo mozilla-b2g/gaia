@@ -7,6 +7,9 @@
       body, textarea, input, [contenteditable] {
         font-size: 1.5em;
       }
+      .hidden {
+        display: none;
+      }
     </style>
   </head>
   <body>
@@ -27,7 +30,11 @@
       <li>Input type=datetime-local: <input type="datetime-local"/></li>
 
       <li>Textarea: <textarea></textarea></li>
-      <li>Contenteditable: <p contenteditable="true">Edit me!</p></li>
+      <li>Contenteditable: 
+        <p contenteditable="true">Edit me, <b>please</b>!<br />Second line
+          <span class="hidden">Hidden text</span>
+        </p>
+      </li>
     </ul>
   </body>
 </html>
