@@ -4,6 +4,7 @@
 'use strict';
 
 // Import of all code needed
+require('/shared/js/contact_dialog.js');
 requireApp('sms/js/contacts.js');
 requireApp('sms/js/fixed_header.js');
 requireApp('sms/js/search_utils.js');
