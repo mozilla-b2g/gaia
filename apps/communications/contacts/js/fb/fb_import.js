@@ -86,7 +86,7 @@ if (typeof fb.importer === 'undefined') {
 
       utils.alphaScroll.init(params);
       contacts.Search.init(document.getElementById('content'), null,
-                           onSearchResultCb);
+                           onSearchResultCb, true);
     };
 
     UI.end = function(event) {

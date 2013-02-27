@@ -32,9 +32,10 @@ contacts.Search = (function() {
       HARD_LIMIT = 25,
       emptySearch = true,
       remainingPending = true,
-      imgLoader;
+      imgLoader,
+      searchEnabled = false;
 
-  var init = function load(_conctactsListView, _groupFavorites, _clickHandler) {
+  var init = function load(_conctactsListView, _groupFavorites, _clickHandler, defaultEnabled) {
     conctactsListView = _conctactsListView;
 
     searchView = document.getElementById('search-view');
@@ -68,6 +69,9 @@ contacts.Search = (function() {
     });
 
     imgLoader = new ImageLoader('#groups-list-search', 'li');
+
+    if (defaultEnabled)
+      searchEnabled = true;
   }
 
   //Search mode instructions
@@ -230,7 +234,6 @@ contacts.Search = (function() {
       for (var c = from; c < end && c < contacts.length; c++) {
         var contact = contacts[c].node || contacts[c];
         var contactText = contacts[c].text || getSearchText(contacts[c]);
-
         if (!pattern.test(contactText)) {
           if (contact.dataset.uuid in currentSet) {
             searchList.removeChild(currentSet[contact.dataset.uuid]);
@@ -288,10 +291,20 @@ contacts.Search = (function() {
     }
   }
 
+  var enableSearch = function enableSearch() {
+    if (searchEnabled) {
+      return;
+    }
+    searchEnabled = true;
+    invalidateCache();
+    search();
+  };
+
   var search = function performSearch(searchDoneCb) {
     prevTextToSearch = currentTextToSearch;
 
     currentTextToSearch = utils.text.normalize(searchBox.value.trim());
+    currentTextToSearch = utils.text.escapeRegExp(currentTextToSearch);
     var thisSearchText = new String(currentTextToSearch);
 
     if (thisSearchText.length === 0) {
@@ -300,6 +313,10 @@ contacts.Search = (function() {
     }
     else {
       showProgress();
+      if (!searchEnabled) {
+        resetState();
+        return;
+      }
       emptySearch = false;
       // The remaining results have not been added yet
       remainingPending = true;
@@ -367,6 +384,7 @@ contacts.Search = (function() {
     searchableNodes = null;
     contactNodes = null;
     currentSet = {};
+    searchTextCache = {};
   }
 
   var removeContact = function s_removeContact(id) {
@@ -396,6 +414,7 @@ contacts.Search = (function() {
     'search': search,
     'enterSearchMode': enterSearchMode,
     'exitSearchMode': exitSearchMode,
-    'isInSearchMode': isInSearchMode
+    'isInSearchMode': isInSearchMode,
+    'enableSearch': enableSearch
   };
 })();
