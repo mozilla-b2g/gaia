@@ -546,7 +546,9 @@ navigator.mozL10n.ready(function bluetoothSettings() {
       };
       connectingAddress = device.address;
       var item = pairList.index[connectingAddress][1];
-      item.querySelector('small').textContent = _('device-status-connecting');
+      item.querySelector('small').textContent = (device.connected) ?
+        _('device-status-connected') :
+        _('device-status-connecting');
     }
 
     function showDeviceConnected(deviceAddress, connected) {
