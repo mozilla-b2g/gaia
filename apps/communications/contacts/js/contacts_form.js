@@ -436,8 +436,12 @@ contacts.Form = (function() {
 
     request.onsuccess = function onsuccess() {
       // Reloading contact, as it only allows to be updated once
-      if (ActivityHandler.currentlyHandling) {
-        ActivityHandler.postNewSuccess(contact);
+      var currentActivity = ActivityHandler.currentlyHandling;
+      if (currentActivity) {
+        if (currentActivity.activityName === 'new')
+          ActivityHandler.postNewSuccess(contact);
+        else if (currentActivity.activityName === 'edit')
+          ActivityHandler.postEditSuccess(contact);
       }
       Contacts.cancel();
     };

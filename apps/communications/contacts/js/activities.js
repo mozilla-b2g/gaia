@@ -23,6 +23,14 @@ var ActivityHandler = {
     return this._currentActivity.source.data.type;
   },
 
+  get activityParams() {
+    if (!this._currentActivity) {
+      return null;
+    }
+
+    return this._currentActivity.source.data.params;
+  },
+
   handle: function ah_handle(activity) {
     switch (activity.source.name) {
       case 'new':
@@ -42,6 +50,7 @@ var ActivityHandler = {
         }
         break;
       case 'pick':
+      case 'edit':
         if (!this._launchedAsInlineActivity)
           return;
 
@@ -53,6 +62,11 @@ var ActivityHandler = {
   },
 
   postNewSuccess: function ah_postNewSuccess(contact) {
+    this._currentActivity.postResult({contact: contact});
+    this._currentActivity = null;
+  },
+
+  postEditSuccess: function ah_editNewSuccess(contact) {
     this._currentActivity.postResult({contact: contact});
     this._currentActivity = null;
   },
