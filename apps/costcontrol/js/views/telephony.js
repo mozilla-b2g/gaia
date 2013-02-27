@@ -9,16 +9,15 @@
 
 var TelephonyTab = (function() {
   'use strict';
-  var costcontrol, tabmanager, initialized = false;
+  var costcontrol, initialized = false;
   var view, smscount, calltime, time, resetDate;
-  function setupTab(tmgr) {
+  function setupTab() {
     if (initialized) {
       return;
     }
 
     CostControl.getInstance(function _onCostControl(instance) {
       costcontrol = instance;
-      tabmanager = tmgr;
 
       // HTML entities
       view = document.getElementById('telephony-tab');
@@ -28,12 +27,6 @@ var TelephonyTab = (function() {
       resetDate = document.getElementById('reset-date');
 
       window.addEventListener('localized', localize);
-
-      // Configure showing tab
-      var tabButton = document.getElementById('telephony-tab-filter');
-      tabButton.addEventListener('click', function _showTab() {
-        tabmanager.changeViewTo('telephony-tab');
-      });
 
       // Configure updates
       document.addEventListener('mozvisibilitychange', updateWhenVisible, true);
@@ -119,3 +112,5 @@ var TelephonyTab = (function() {
     finalize: finalize
   };
 }());
+
+TelephonyTab.initialize();

@@ -124,7 +124,7 @@ var Settings = {
     // activate all scripts
     var scripts = panel.querySelectorAll('script');
     for (var i = 0; i < scripts.length; i++) {
-      var src = scripts[i].getAttribute('src')
+      var src = scripts[i].getAttribute('src');
       if (document.head.querySelector('script[src="' + src + '"]')) {
         continue;
       }
@@ -183,10 +183,20 @@ var Settings = {
   // without these, so we keep this around most of the time.
   _settingsCache: null,
 
+  get settingsCache() {
+    return this._settingsCache;
+  },
+
+  // True when a request has already been made to fill the settings
+  // cache.  When this is true, no further get("*") requests should be
+  // made; instead, pending callbacks should be added to
+  // _pendingSettingsCallbacks.
+  _settingsCacheRequestSent: false,
+
   // There can be race conditions in which we need settings values,
   // but haven't filled the cache yet.  This array tracks those
   // listeners.
-  _pendingSettingsCallbacks: [ ],
+  _pendingSettingsCallbacks: [],
 
   // Invoke |callback| with a request object for a successful fetch of
   // settings values, when those values are ready.
@@ -202,7 +212,8 @@ var Settings = {
       return;
     }
 
-    if (!this._settingsCache) {
+    if (!this._settingsCacheRequestSent && !this._settingsCache) {
+      this._settingsCacheRequestSent = true;
       var lock = settings.createLock();
       var request = lock.get('*');
       request.onsuccess = function(e) {
@@ -236,6 +247,16 @@ var Settings = {
           checkboxes[i].checked = !!result[key];
         }
       }
+
+      // remove initial class so the swich animation will apply
+      // on these toggles if user interact with it.
+      setTimeout(function() {
+        for (var i = 0; i < checkboxes.length; i++) {
+          if (checkboxes[i].classList.contains('initial')) {
+            checkboxes[i].classList.remove('initial');
+          }
+        }
+      }, 0);
 
       // preset all radio buttons
       rule = 'input[type="radio"]:not([data-ignore])';
@@ -531,6 +552,26 @@ window.addEventListener('load', function loadSettings() {
   Settings.init();
   handleDataConnectivity();
 
+  setTimeout(function() {
+    var scripts = [
+      'js/utils.js',
+      'shared/js/mouse_event_shim.js',
+      'js/airplane_mode.js',
+      'js/battery.js',
+      'js/app_storage.js',
+      'js/media_storage.js',
+      'shared/js/mobile_operator.js',
+      'js/connectivity.js',
+      'js/security_privacy.js',
+      'js/icc_menu.js'
+    ];
+    scripts.forEach(function attachScripts(src) {
+      var script = document.createElement('script');
+      script.src = src;
+      document.head.appendChild(script);
+    });
+  });
+
   // panel lazy-loading
   function lazyLoad(panel) {
     if (panel.children.length) // already initialized
@@ -666,7 +707,7 @@ window.addEventListener('load', function loadSettings() {
 
       if (disabled) {
         item.classList.add('carrier-disabled');
-        link.onclick = function() { return false; }
+        link.onclick = function() { return false; };
       } else {
         item.classList.remove('carrier-disabled');
         link.onclick = null;
@@ -743,3 +784,5 @@ window.addEventListener('localized', function showLanguages() {
 // Do initialization work that doesn't depend on the DOM, as early as
 // possible in startup.
 Settings.preInit();
+
+MouseEventShim.trackMouseMoves = false;

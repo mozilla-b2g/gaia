@@ -65,7 +65,7 @@
   {"cc":"BR", "offset":"-03:00,-03:00", "city":"Araguaina"},
   {"cc":"AR", "offset":"-03:00,-03:00", "city":"Argentina/Buenos_Aires"},
   {"cc":"AR", "offset":"-03:00,-03:00", "city":"Argentina/Catamarca"},
-  {"cc":"AR", "offset":"-03:00,-03:00", "city":"Argentina/ComodRivadavia", "id":"America/Argentina/Catamarca"},
+  {"cc":"AR", "offset":"-03:00,-03:00", "city":"Argentina/Comodoro_Rivadavia", "id":"America/Argentina/Catamarca"},
   {"cc":"AR", "offset":"-03:00,-03:00", "city":"Argentina/Cordoba"},
   {"cc":"AR", "offset":"-03:00,-03:00", "city":"Argentina/Jujuy"},
   {"cc":"AR", "offset":"-03:00,-03:00", "city":"Argentina/La_Rioja"},

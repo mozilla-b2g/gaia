@@ -9,7 +9,7 @@
  * us for the non-newsletter case.  We could also internally load the CSS file
  * and splice it in rather than hardcoding it.
  */
-const DEFAULT_STYLE_TAG =
+var DEFAULT_STYLE_TAG =
   '<style type="text/css">\n' +
   // ## blockquote
   // blockquote per html5: before: 1em, after: 1em, start: 40px, end: 40px
