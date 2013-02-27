@@ -72,7 +72,7 @@
 
   const WS = /^\s+$/;                    // all whitespace characters
   const UC = /^[A-ZÀ-ÖØ-Þ]+$/;           // all uppercase latin characters
-  const LETTER = /^[a-zA-ZÀ-ÖØ-öø-ÿ]+$/; // all latin letters
+  const LETTER = /^[a-zA-ZÀ-ÖØ-öø-ÿ]|-+$/; // all latin letters
 
   const DOUBLE_SPACE_TIME = 700; // ms between spaces to convert to ". "
 
