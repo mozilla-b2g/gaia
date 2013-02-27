@@ -266,6 +266,10 @@ body.player-mode #title-player {
   overflow: hidden;
 }
 
+#views-player.open-mode {
+  left: 0%;
+}
+
 #views-sublist-header,
 #views-sublist-anchor {
   position: relative;
