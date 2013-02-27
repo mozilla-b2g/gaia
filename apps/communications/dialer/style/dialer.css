@@ -16,6 +16,10 @@ a:hover, a:active, a:focus {
   outline: 0;
 }
 
+button::-moz-focus-inner {
+  border: 0;
+}
+
 .hide {
   display: none !important;
 }
