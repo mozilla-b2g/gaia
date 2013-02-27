@@ -7,11 +7,11 @@
  * Try and keep at least this many display heights worth of undisplayed
  * messages.
  */
-const SCROLL_MIN_BUFFER_SCREENS = 2;
+var SCROLL_MIN_BUFFER_SCREENS = 2;
 /**
  * Keep around at most this many display heights worth of undisplayed messages.
  */
-const SCROLL_MAX_RETENTION_SCREENS = 7;
+var SCROLL_MAX_RETENTION_SCREENS = 7;
 
 /**
  * Format the message subject appropriately.  This means ensuring that if the
@@ -858,7 +858,7 @@ Cards.defineCard({
   constructor: MessageListCard
 });
 
-const CONTENT_TYPES_TO_CLASS_NAMES = [
+var CONTENT_TYPES_TO_CLASS_NAMES = [
     null,
     'msg-body-content',
     'msg-body-signature',
@@ -869,7 +869,7 @@ const CONTENT_TYPES_TO_CLASS_NAMES = [
     'msg-body-product',
     'msg-body-ads'
   ];
-const CONTENT_QUOTE_CLASS_NAMES = [
+var CONTENT_QUOTE_CLASS_NAMES = [
     'msg-body-q1',
     'msg-body-q2',
     'msg-body-q3',
@@ -880,7 +880,7 @@ const CONTENT_QUOTE_CLASS_NAMES = [
     'msg-body-q8',
     'msg-body-q9'
   ];
-const MAX_QUOTE_CLASS_NAME = 'msg-body-qmax';
+var MAX_QUOTE_CLASS_NAME = 'msg-body-qmax';
 
 function MessageReaderCard(domNode, mode, args) {
   this.domNode = domNode;

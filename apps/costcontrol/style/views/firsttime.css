@@ -158,6 +158,10 @@ body[role="application"] [role="dialog"] {
   padding-right: 0;
 }
 
+#firsttime-view .settings li label.end {
+  margin-right: 0.5rem;
+}
+
 #firsttime-view .settings li > .end {
   right: 0;
 }
