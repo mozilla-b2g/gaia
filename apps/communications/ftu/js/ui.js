@@ -141,20 +141,23 @@ var UIManager = {
       this.newsletterSuccessScreen.classList.add('visible');
     };
 
+    // Newsletter input email address checker
+    this.newsletterInput.addEventListener('keyup', function validate() {
+      var self = this;
+      var input = self.newsletterInput;
+      var button = self.newsletterButton;
+      var disabled = !(input.validity.valid && input.value.length > 0);
+      button.disabled = disabled;
+    }.bind(this));
+
+    this.newsletterButton.setAttribute('disabled', 'disabled');
     this.newsletterButton.addEventListener('click', function() {
-        if (WifiManager.isConnected || DataMobile.isDataAvailable) {
-          if (
-            this.newsletterInput.checkValidity() &&
-            this.newsletterInput.value.length > 0
-          ) {
-            utils.overlay.show(_('email-loading'), 'spinner');
-            Basket.send(this.newsletterInput.value, basketCallback.bind(this));
-          } else {
-            this.invalidEmailErrorDialog.classList.add('visible');
-          }
-        } else {
-          this.offlineNewsletterErrorDialog.classList.add('visible');
-        }
+      if (WifiManager.isConnected() || DataMobile.isDataAvailable) {
+        utils.overlay.show(_('email-loading'), 'spinner');
+        Basket.send(this.newsletterInput.value, basketCallback.bind(this));
+      } else {
+        this.offlineNewsletterErrorDialog.classList.add('visible');
+      }
     }.bind(this));
 
     this.offlineNewsletterErrorDialog
