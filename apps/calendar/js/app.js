@@ -170,7 +170,8 @@ Calendar.App = (function(window) {
         ],
         ModifyEvent: [
           {type: 'Style', name: 'ModifyEventView'},
-          {type: 'Utils', name: 'InputParser'}
+          {type: 'Utils', name: 'InputParser'},
+          {type: 'Views', name: 'EventBase'}
         ],
         Month: [
           {type: 'Templates', name: 'Month'},
@@ -189,6 +190,11 @@ Calendar.App = (function(window) {
         ],
         TimeParent: [
           {type: 'Utils', name: 'OrderedMap'}
+        ],
+        ViewEvent: [
+          {type: 'Style', name: 'EventView'},
+          {type: 'Utils', name: 'InputParser'},
+          {type: 'Views', name: 'EventBase'}
         ],
         Week: [
           {type: 'Style', name: 'WeekView'},
@@ -328,10 +334,11 @@ Calendar.App = (function(window) {
       this.modifier('/settings/', 'Settings', { clear: false });
       this.modifier('/advanced-settings/', 'AdvancedSettings');
 
-      this.state('/alarm-display/:id', 'ModifyEvent', { path: false });
+      this.state('/alarm-display/:id', 'ViewEvent', { path: false });
 
-      this.state('/add/', 'ModifyEvent');
-      this.state('/event/:id', 'ModifyEvent');
+      this.state('/event/add/', 'ModifyEvent');
+      this.state('/event/edit/:id', 'ModifyEvent');
+      this.state('/event/show/:id', 'ViewEvent');
 
       this.modifier('/select-preset/', 'CreateAccount');
       this.modifier('/create-account/:preset', 'ModifyAccount');
