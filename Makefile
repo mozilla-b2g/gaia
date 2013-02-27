@@ -672,7 +672,11 @@ purge:
 
 # Build the settings.json file from settings.py
 ifeq ($(NOFTU), 1)
-SETTINGS_ARG=--noftu
+SETTINGS_ARG += --noftu
+endif
+
+ifeq ($(REMOTE_DEBUGGER), 1)
+SETTINGS_ARG += --enable-debugger
 endif
 
 # We want the console to be disabled for device builds using the user variant.
