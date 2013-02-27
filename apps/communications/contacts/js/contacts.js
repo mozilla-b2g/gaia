@@ -90,12 +90,13 @@ var Contacts = (function() {
         break;
 
       case 'add-parameters':
-        navigation.home();
-        if ('tel' in params) {
-          selectList(params['tel']);
-        }
+        initForm(function onInitForm() {
+          navigation.home();
+          if ('tel' in params) {
+            selectList(params['tel']);
+          }
+        });
         return;
-
     }
 
   };
@@ -279,14 +280,14 @@ var Contacts = (function() {
       contactsList.getContactById(id, function findCb(contact, fbContact) {
         currentContact = contact;
         currentFbContact = fbContact;
-
-        if (!ActivityHandler.currentlyHandling) {
-          contactsDetails.render(currentContact, TAG_OPTIONS);
-          navigation.go('view-contact-details', 'right-left');
+        if (ActivityHandler.currentlyHandling) {
+          if (ActivityHandler.activityName == 'pick') {
+            dataPickHandler();
+          }
           return;
         }
-
-        dataPickHandler();
+        contactsDetails.render(currentContact, TAG_OPTIONS);
+        navigation.go('view-contact-details', 'right-left');
       });
     });
   };
@@ -307,7 +308,6 @@ var Contacts = (function() {
     var addButton = document.getElementById('add-contact-button');
     addButton.classList.add('hide');
     contactsList.clearClickHandlers();
-    contactsList.load();
     contactsList.handleClick(function addToContactHandler(id) {
       var data = {
         'tel': [{
