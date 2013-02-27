@@ -40,6 +40,9 @@ var Utils = {
     }, 50000, this);
   },
   escapeHTML: function ut_escapeHTML(str, escapeQuotes) {
+    if (typeof(str) !== 'string') {
+      return '';
+    }
     var stringHTML = str;
     stringHTML = stringHTML.replace(/\</g, '&#60;');
     stringHTML = stringHTML.replace(/(\r\n|\n|\r)/gm, '<br/>');
