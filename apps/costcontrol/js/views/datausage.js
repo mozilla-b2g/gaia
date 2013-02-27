@@ -420,8 +420,10 @@ var DataUsageTab = (function() {
       var v = rounded[0];
       var u = rounded[1];
       var label = v;
+      if (lastUnit !== u) {
+        label = formatData([v, u]);
+      }
 
-      label = formatData([v, u]);
       lastUnit = u;
       ctx.textBaseline = 'middle';
       ctx.fillStyle = (value === model.limits.value) && model.limits.enabled ?
