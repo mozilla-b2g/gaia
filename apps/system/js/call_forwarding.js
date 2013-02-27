@@ -29,6 +29,40 @@
     return;
   }
 
+  // Initialize the icon based on the card state and whether
+  // it is in airplane mode
+  var _cfIconStateInitialized = false;
+  function initCallForwardingIconState() {
+    var cardState = mobileconnection.cardState;
+    if (_cfIconStateInitialized || cardState !== 'ready')
+      return;
+
+    if (!mobileconnection.iccInfo)
+      return;
+
+    var iccid = mobileconnection.iccInfo.iccid;
+    if (!iccid)
+      return;
+
+    asyncStorage.getItem('ril.cf.enabled.' + iccid, function(value) {
+      if (value === null)
+        value = false;
+      settings.createLock().set({'ril.cf.enabled': value});
+      _cfIconStateInitialized = true;
+    });
+  }
+
+  settings.createLock().set({'ril.cf.enabled': false});
+
+  initCallForwardingIconState();
+  mobileconnection.addEventListener('cardstatechange', function() {
+    initCallForwardingIconState();
+  });
+  mobileconnection.addEventListener('iccinfochange', function() {
+    initCallForwardingIconState();
+  });
+
+  // Update the icon based on the settings
   mobileconnection.addEventListener('cfstatechange', function(event) {
     if (event &&
         event.reason == _cfReason.CALL_FORWARD_REASON_UNCONDITIONAL) {
@@ -39,6 +73,8 @@
         enabled = true;
       }
       settings.createLock().set({'ril.cf.enabled': enabled});
+      asyncStorage.setItem('ril.cf.enabled.' + mobileconnection.iccInfo.iccid,
+        enabled);
     }
   });
 
