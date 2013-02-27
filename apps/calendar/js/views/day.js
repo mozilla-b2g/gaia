@@ -25,7 +25,7 @@ Calendar.ns('Views').Day = (function() {
       var delegateParent = this.delegateParent || this.frameContainer;
       this.delegate(
         delegateParent, 'click', '[data-id]', function(e, target) {
-          Calendar.App.router.show('/event/' + target.dataset.id + '/');
+          Calendar.App.router.show('/event/show/' + target.dataset.id + '/');
         }
       );
     },

@@ -173,6 +173,8 @@
   l10nLink('/locales/locales.ini');
   l10nLink('/shared/locales/date.ini');
 
+  require('/shared/js/lazy_loader.js');
+
   requireApp('calendar/shared/js/l10n.js');
   requireApp('calendar/shared/js/l10n_date.js');
 
