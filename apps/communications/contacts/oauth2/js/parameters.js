@@ -24,15 +24,13 @@ oauthflow.params = {
     appOrigin:
       'app://communications.gaiamobile.org',
     redirectURI:
-      'http://intense-tundra-4122.herokuapp.com/fbowd/oauth2_new/flow_live.html',
+      'https://serene-cove-3587.herokuapp.com/liveowd/oauth2_new/flow_live.html',
     loginPage:
       'https://login.live.com/oauth20_authorize.srf?',
     applicationId:
-      '00000000400EC871',
+      '00000000480EABC6',
     scope:
       ['wl.basic', 'wl.contacts_emails', 'wl.contacts_phone_numbers',
-       'wl.contacts_birthday', 'wl.contacts_postal_addresses'],
-    redirectLogout:
-      'http://intense-tundra-4122.herokuapp.com/fbowd/logout.json'
+       'wl.contacts_birthday', 'wl.contacts_postal_addresses']
   }
 };
