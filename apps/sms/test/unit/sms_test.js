@@ -386,14 +386,14 @@ suite('SMS App Unit-Test', function() {
       Message.id = id;
       Message.body = messageBody;
       var messageDOM = ThreadUI.buildMessageDOM(Message, false);
-      var anchors = messageDOM.querySelectorAll('a.phone-link');
+      var anchors = messageDOM.querySelectorAll('[data-phonenumber]');
       assert.equal(anchors.length, 3,
         '3 Contact handlers are attached for 3 phone numbers in DOM');
-      assert.equal(anchors[0].getAttribute('val'),
+      assert.equal(anchors[0].dataset.phonenumber,
         '408-746-9721', 'First number is 408-746-9721');
-      assert.equal(anchors[1].getAttribute('val'),
+      assert.equal(anchors[1].dataset.phonenumber,
         '4087469721', 'Second number is 4087469721');
-      assert.equal(anchors[2].getAttribute('val'),
+      assert.equal(anchors[2].dataset.phonenumber,
         '7469721', 'Third number is 7469721');
     });
 
@@ -407,22 +407,22 @@ suite('SMS App Unit-Test', function() {
       Message.id = id;
       Message.body = messageBody;
       var messageDOM = ThreadUI.buildMessageDOM(Message, false);
-      var anchors = messageDOM.querySelectorAll('a.phone-link');
+      var anchors = messageDOM.querySelectorAll('[data-phonenumber]');
       assert.equal(anchors.length, 7,
         '7 Contact handlers are attached for 7 phone numbers in DOM');
-      assert.equal(anchors[0].getAttribute('val'),
+      assert.equal(anchors[0].dataset.phonenumber,
         '995-382-7369', 'First number is 995-382-7369');
-      assert.equal(anchors[1].getAttribute('val'),
+      assert.equal(anchors[1].dataset.phonenumber,
         '4458901', 'Second number is 4458901');
-      assert.equal(anchors[2].getAttribute('val'),
+      assert.equal(anchors[2].dataset.phonenumber,
         '789-7890', 'Third number is 789-7890');
-      assert.equal(anchors[3].getAttribute('val'),
+      assert.equal(anchors[3].dataset.phonenumber,
         '+1-556-667-7789', 'Fourth number is +1-556-667-7789');
-      assert.equal(anchors[4].getAttribute('val'),
+      assert.equal(anchors[4].dataset.phonenumber,
         '9953827369', 'Fourth number is 9953827369');
-      assert.equal(anchors[5].getAttribute('val'),
+      assert.equal(anchors[5].dataset.phonenumber,
         '+12343454567', 'Fifth number is +12343454567');
-      assert.equal(anchors[6].getAttribute('val'),
+      assert.equal(anchors[6].dataset.phonenumber,
         '+919810137553', 'Sixth number is +919810137553');
     });
   });
