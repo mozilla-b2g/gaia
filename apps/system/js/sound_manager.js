@@ -379,7 +379,7 @@
           return 'notification';
       default:
         return homescreenVisible || LockScreen.locked ||
-          WindowManager.isFtuRunning() ? 'notification' : 'content';
+          FtuLauncher.isFtuRunning() ? 'notification' : 'content';
     }
   }
 

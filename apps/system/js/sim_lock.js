@@ -65,7 +65,8 @@ var SimLock = {
           return;
 
         // Ignore first time usage app which already ask for SIM code
-        if (evt.target.classList.contains('ftu'))
+        // XXX: We should have a better way to detect this app is FTU or not.
+        if (evt.target.dataset.frameOrigin == FtuLauncher.getFtuOrigin())
           return;
 
         // Ignore apps that don't require a mobile connection
