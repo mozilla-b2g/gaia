@@ -14,6 +14,13 @@
     __proto__: _super,
 
     /**
+     * Keeps the count of calendar accounts added
+     * used to enable/disable the sync operation of
+     * external calendars
+     */
+    _accountCount: 0,
+
+    /**
      * Local update is a flag
      * used to indicate that the incoming
      * update was made by this view and
@@ -135,7 +142,11 @@
       var el = document.getElementById(htmlId);
       if (el) {
         el.parentNode.removeChild(el);
+        this._accountCount = this._accountCount - 1;
       }
+
+      if (this._accountCount <= 1)
+        document.body.classList.add(this.app.syncDisabledClass);
     },
 
     render: function() {
@@ -143,12 +154,18 @@
       var store = this.app.store('Calendar');
       var key;
       var html = '';
+      var lCalCount = 0;
 
       for (key in store.cached) {
         html += template.item.render(
           store.cached[key]
         );
+        lCalCount ++;
       }
+      this._accountCount = lCalCount;
+
+      if (this._accountCount <= 1)
+        document.body.classList.add(this.app.syncDisabledClass);
 
       list.innerHTML = html;
     },

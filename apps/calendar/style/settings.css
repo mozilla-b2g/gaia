@@ -112,6 +112,10 @@ body[data-path^='/settings'] #time-views {
   display: none;
 }
 
+.sync-disabled #settings .sync {
+  display: none;
+}
+
 #settings .settings {
   width: 5.5rem;
   height: 4rem;

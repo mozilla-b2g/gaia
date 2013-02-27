@@ -131,6 +131,7 @@ Calendar.App = (function(window) {
     _mozTimeRefreshTimeout: 3000,
 
     pendingClass: 'pending-operation',
+    syncDisabledClass: 'sync-disabled',
 
     // Dependency map for loading
     cssBase: '/style/',
@@ -221,6 +222,7 @@ Calendar.App = (function(window) {
 
       var self = this;
       this._pendingManger.oncomplete = function onpending() {
+        document.body.classList.remove(self.syncDisabledClass);
         document.body.classList.remove(self.pendingClass);
       };
 
