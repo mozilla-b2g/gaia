@@ -23,12 +23,12 @@ var ActivityHandler = {
     return this._currentActivity.source.data.type;
   },
 
-  launch_activity: function ah_launch(action) {
+  launch_activity: function ah_launch(activity, action) {
     if (this._launchedAsInlineActivity)
       return;
 
     this._currentActivity = activity;
-    var hash = action
+    var hash = action;
     if (this._currentActivity.source.data.params) {
       var param, params = [];
       for (var i in this._currentActivity.source.data.params) {
@@ -42,11 +42,11 @@ var ActivityHandler = {
   handle: function ah_handle(activity) {
     switch (activity.source.name) {
       case 'new':
-        this.launch_activity('view-contact-form');
+        this.launch_activity(activity, 'view-contact-form');
         break;
 
       case 'update':
-        this.launch_activity('add-parameters');
+        this.launch_activity(activity, 'add-parameters');
         break;
       case 'pick':
         if (!this._launchedAsInlineActivity)
