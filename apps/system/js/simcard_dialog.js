@@ -29,6 +29,8 @@ var SimPinDialog = {
   lockType: 'pin',
   action: 'unlock',
 
+  visibleOKbtn: true,	       // Bug834205_OK button status after lockscreen
+
   // Now we don't have a number-password type for input field
   // mimic one by binding one number input and one text input
   getNumberPasswordInputField: function spl_wrapNumberInput(name) {
@@ -59,6 +61,10 @@ var SimPinDialog = {
         self.dialogDone.disabled = false;
       else
         self.dialogDone.disabled = true;
+
+       // Bug834205_OK button status after lockscreen
+       self.visibleOKbtn = self.dialogDone.disabled;
+	   
     });
 
     function encryption(str) {
@@ -284,6 +290,11 @@ var SimPinDialog = {
     this.confirmPinInput.value = '';
   },
 
+   // Bug834205_OK button status after lockscreen
+  resetOKbtn: function spl_resetOKbtn(){
+    this.visibleOKbtn = this.dialogDone.disabled = true;
+  },
+
   onclose: null,
   /**
    * Show the SIM pin dialog
@@ -297,7 +308,14 @@ var SimPinDialog = {
     var _ = navigator.mozL10n.get;
 
     this.systemDialog.show();
-    this.dialogDone.disabled = true;
+	
+    // Bug834205_OK button status after lockscreen
+    // this.dialogDone.disabled = true;
+    if(this.visibleOKbtn != this.dialogDone.disabled)
+    {
+	this.dialogDone.disabled = this.visibleOKbtn;
+    }
+
     this.action = action;
     this.lockType = 'pin';
     switch (action) {
@@ -348,6 +366,12 @@ var SimPinDialog = {
     this.nckInput = this.getNumberPasswordInputField('nckpin');
     this.newPinInput = this.getNumberPasswordInputField('newSimpin');
     this.confirmPinInput = this.getNumberPasswordInputField('confirmNewSimpin');
+
+    // Bug834205_OK button status after lockscreen
+    this.visibleOKbtn = this.dialogDone.disabled = true;
+    window.addEventListener('screenchange', function(){
+        this.visibleOKbtn = this.dialogDone.disabled;
+    }); 
   }
 };
 

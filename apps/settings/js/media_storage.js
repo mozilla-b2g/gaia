@@ -140,7 +140,7 @@ var MediaStorage = {
     idList.forEach(function clearSpace(id) {
       var element = document.getElementById(id);
       if (element) {
-        element.firstElementChild.textContent = _('size-not-available');
+        element.firstChild.textContent = _('size-not-available');	// Bug_832944_refresh error when remove SD card
       }
     });
   },

@@ -94,7 +94,14 @@ navigator.mozL10n.ready(function bluetoothSettings() {
       var req = defaultAdapter.setName(nameEntered);
       req.onsuccess = function bt_renameSuccess() {
         myName = visibleName.textContent = defaultAdapter.name;
+        shortVisibleName(visibleName.textContent); 	// Change to short name if device name is more than 15 letters
       }
+    };
+
+   // Change to short name if device name is more than 15 letters
+    function shortVisibleName(longName){
+   	if(longName.length > 15)
+		visibleName.textContent = longName.slice(0,15) + "...";
     };
 
     // immediatly UI update, DOM element manipulation.
@@ -131,6 +138,7 @@ navigator.mozL10n.ready(function bluetoothSettings() {
       // we can't get device name immediately, wait a while
       setTimeout(function() {
         myName = visibleName.textContent = defaultAdapter.name;
+        shortVisibleName(visibleName.textContent);		// Change to short name if device name is more than 15 letters
         renameButton.disabled = false;
       }, 1000);
     }
