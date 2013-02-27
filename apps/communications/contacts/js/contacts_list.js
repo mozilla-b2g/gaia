@@ -50,11 +50,23 @@ contacts.List = (function() {
 
     imgLoader = new ImageLoader('#groups-container', 'li');
 
+    initOrder();
+  };
+
+  var initSearch = function initSearch(callback) {
+    if (!loaded) {
+      window.addEventListener('listRendered', function onRendered() {
+        window.removeEventListener('listRendered', onRendered);
+        lazyLoadSearch();
+      });
+    } else if (!searchLoaded) {
+      lazyLoadSearch();
+    }
     contacts.Search.init(conctactsListView, favoriteGroup, function(e) {
       onClickHandler(e);
     });
-
-    initOrder();
+    if (callback)
+      callback();
   };
 
   var initAlphaScroll = function initAlphaScroll() {
@@ -154,6 +166,7 @@ contacts.List = (function() {
     var orderedString = getStringToBeOrdered(contact);
 
     addSearchOptions(name, contact);
+    addOrderOptions(name, contact);
 
     // Label the contact concerning social networks
     if (contact.category) {
@@ -317,6 +330,7 @@ contacts.List = (function() {
 
         }
         window.setTimeout(onListRendered);
+        dispatchCustomEvent('listRendered');
         return;
       }
 
@@ -345,8 +359,8 @@ contacts.List = (function() {
         contactsCache = {};
       }
     });
+    lazyLoadOrder();
     FixedHeader.refresh();
-    lazyLoadSearch();
     lazyLoadImages();
     loaded = true;
   };
@@ -357,17 +371,30 @@ contacts.List = (function() {
     for (var id in contactsCache) {
       var current = contactsCache[id];
       var contact = current.contact;
-      var name = current.container.children[0];
+      var name = current.container.querySelector('p');
       addSearchOptions(name, contact);
     }
     searchLoaded = true;
-    dispatchFinishLazyLoading();
+    contacts.Search.enableSearch();
+    dispatchCustomEvent('finishLazyLoading');
+  };
+
+  var lazyLoadOrder = function lazyLoadOrder() {
+    for (var id in contactsCache) {
+      var current = contactsCache[id];
+      var contact = current.contact;
+      var name = current.container.querySelector('p');
+      addOrderOptions(name, contact);
+    }
+  };
+
+  var addOrderOptions = function addOrderOptions(name, contact) {
+    var orderedString = getStringToBeOrdered(contact);
+    name.dataset['order'] = orderedString;
   };
 
   var addSearchOptions = function addSearchOptions(name, contact) {
     name.dataset['search'] = getSearchString(contact);
-    var orderedString = getStringToBeOrdered(contact);
-    name.dataset['order'] = orderedString;
   };
 
   var isFavorite = function isFavorite(contact) {
@@ -399,7 +426,7 @@ contacts.List = (function() {
     contactsPhoto = [];
     imgLoader.reload();
     imagesLoaded = true;
-    dispatchFinishLazyLoading();
+    dispatchCustomEvent('finishLazyLoading');
   }
 
   var lazyLoadFacebookData = function lazyLoadFacebookData() {
@@ -437,7 +464,7 @@ contacts.List = (function() {
           showGroup('favorites', true);
         imgLoader.reload();
         imagesLoaded = true;
-        dispatchFinishLazyLoading();
+        dispatchCustomEvent('finishLazyLoading');
       };
       fbReq.onerror = function() {
         console.log('Error getting fb');
@@ -445,8 +472,8 @@ contacts.List = (function() {
     });
   };
 
-  var dispatchFinishLazyLoading = function dispatchFinishLazyLoading() {
-    var event = new CustomEvent('finishLazyLoading');
+  var dispatchCustomEvent = function dispatchCustomEvent(eventName) {
+    var event = new CustomEvent(eventName);
     window.dispatchEvent(event);
   }
 
@@ -810,6 +837,7 @@ contacts.List = (function() {
     'getAllContacts': getAllContacts,
     'handleClick': handleClick,
     'initAlphaScroll': initAlphaScroll,
+    'initSearch': initSearch,
     'remove': remove,
     'loaded': loaded,
     'clearClickHandlers': clearClickHandlers,
