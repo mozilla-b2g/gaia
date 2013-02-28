@@ -1,3 +1,8 @@
+#modify-event-view {
+  height: 100%;
+  overflow-y: scroll;
+}
+
 #modify-event-view form {
   margin: 1rem 1rem 0 1rem;
 }
