@@ -52,8 +52,7 @@ var TelephonyHelper = (function() {
         return;
       } else if (emergencyOnly) {
         call = telephony.dialEmergency(sanitizedNumber);
-      }
-      else {
+      } else {
         call = telephony.dial(sanitizedNumber);
       }
 

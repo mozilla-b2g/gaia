@@ -31,11 +31,21 @@ var Security = {
       return;
 
     var simSecurityDesc = document.getElementById('simCardLock-desc');
-    if (mobileConnection.cardState === 'absent') {
-      simSecurityDesc.textContent = _('noSimCard');
-      simSecurityDesc.dataset.l10nId = 'noSimCard';
-      return;
+    switch (mobileConnection.cardState) {
+      case null:
+        simSecurityDesc.textContent = _('simCardNotReady');
+        simSecurityDesc.dataset.l10nId = 'simCardNotReady';
+        return;
+      case 'unknown':
+        simSecurityDesc.textContent = _('unknownSimCardState');
+        simSecurityDesc.dataset.l10nId = 'unknownSimCardState';
+        return;
+      case 'absent':
+        simSecurityDesc.textContent = _('noSimCard');
+        simSecurityDesc.dataset.l10nId = 'noSimCard';
+        return;
     }
+
     // with SIM card, query its status
     var req = mobileConnection.getCardLock('pin');
     req.onsuccess = function spl_checkSuccess() {
