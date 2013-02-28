@@ -1,6 +1,4 @@
-requireApp('calendar/test/unit/helper.js', function() {
-  requireLib('utils/ordered_map.js');
-});
+requireLib('utils/ordered_map.js');
 
 suite('ordered_map', function() {
 

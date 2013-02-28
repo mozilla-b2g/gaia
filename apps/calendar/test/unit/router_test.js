@@ -1,8 +1,6 @@
-requireApp('calendar/test/unit/helper.js', function() {
-  requireSupport('fake_page.js');
-  requireSupport('mock_view.js');
-  requireLib('router.js');
-});
+requireSupport('fake_page.js');
+requireSupport('mock_view.js');
+requireLib('router.js');
 
 suite('router', function() {
 

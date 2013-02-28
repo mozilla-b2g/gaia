@@ -1,9 +1,4 @@
-requireApp('calendar/test/unit/helper.js', function() {
-  requireLib('models/calendar.js');
-  requireLib('views/calendar_colors.js');
-});
-
-suite('views/calendar_colors', function() {
+suiteGroup('Views.CalendarColors', function() {
 
   var subject;
   var model;

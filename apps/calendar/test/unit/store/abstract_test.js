@@ -1,10 +1,8 @@
-requireApp('calendar/test/unit/helper.js', function() {
-  requireLib('responder.js');
-  requireLib('db.js');
-  requireLib('store/abstract.js');
-  requireLib('models/account.js');
-  requireApp('calendar/test/unit/helper.js');
-});
+requireLib('responder.js');
+requireLib('db.js');
+requireLib('store/abstract.js');
+requireLib('models/account.js');
+requireApp('calendar/test/unit/helper.js');
 
 suite('store/abstract', function() {
 
