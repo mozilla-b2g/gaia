@@ -40,10 +40,17 @@ var TelephonyHelper = (function() {
       var call;
       var cardState = conn.cardState;
 
-      if (cardState === 'pinRequired' || cardState === 'pukRequired') {
+      // Note: no need to check for cardState null. While airplane mode is on
+      // cardState is null and we handle that situation in handleFlightMode()
+      // function.
+      if (cardState === 'unknown') {
+        error();
+      } else if (cardState === 'absent' ||
+                 cardState === 'pinRequired' ||
+                 cardState === 'pukRequired' ||
+                 cardState === 'networkLocked' ) {
         call = telephony.dialEmergency(sanitizedNumber);
-      }
-      else {
+      } else {
         call = telephony.dial(sanitizedNumber);
       }
 
