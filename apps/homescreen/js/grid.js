@@ -4,6 +4,16 @@ const GridManager = (function() {
   var MAX_ICONS_PER_PAGE = 4 * 4;
   var PREFERRED_ICON_SIZE = 60;
   var SAVE_STATE_TIMEOUT = 100;
+  var BASE_WIDTH = 320;
+  var BASE_HEIGHT = 480;
+  var DEVICE_HEIGHT = window.innerHeight;
+  var SCALE_RATIO = window.innerWidth / BASE_WIDTH;
+  var AVAILABLE_SPACE = DEVICE_HEIGHT - (BASE_HEIGHT * SCALE_RATIO);
+
+// Check if there is space for another row of icons
+  if (AVAILABLE_SPACE > BASE_HEIGHT / 5) {
+    var MAX_ICONS_PER_PAGE = 4 * 5;
+  }
 
   var container;
 
@@ -31,8 +41,8 @@ const GridManager = (function() {
     right: 0
   };
 
-  var startEvent, isPanning = false, deltaX, removePanHandler,
-      dummy = function() {};
+  var startEvent, isPanning = false, startX, currentX, deltaX, removePanHandler,
+      noop = function() {};
 
   var isTouch = 'ontouchstart' in window;
   var touchstart = isTouch ? 'touchstart' : 'mousedown';
@@ -44,18 +54,105 @@ const GridManager = (function() {
                      function(e) { return e.pageX };
   })();
 
+
+  // This will be a function that returns an actual or predicted deltaX
+  // from a mouse or touch event
+  var getDeltaX;
+
+  function initPanningPrediction() {
+    // Get our configuration data from build/applications-data.js
+    var configuration = Configurator.getSection('prediction') ||
+      { enabled: false };
+
+    // Assume that if we're using mouse events we're on a desktop that
+    // is fast enough that we don't need to do this prediction.
+    if (!isTouch || !configuration.enabled) {
+      getDeltaX = function getDeltaX(evt) {
+        return currentX - startX;
+      };
+      return;
+    }
+
+    // Predictions are based on the change between events, so we need to
+    // remember some things from the previous invocation
+    var lookahead, lastPrediction, x0, t0, x1, t1 = 0;
+
+    getDeltaX = function getDeltaX(evt) {
+      var dx, dt, velocity, adjustment, prediction, deltaP;
+
+      if (t1 < touchStartTimestamp) {
+        // If this is the first move of this series, use the start event
+        x0 = startX;
+        t0 = touchStartTimestamp;
+        lastPrediction = null;
+        // Start each new touch with the configured lookahead value
+        lookahead = configuration.lookahead;
+      } else {
+        x0 = x1;
+        t0 = t1;
+      }
+
+      // If we've overshot too many times, don't predict anything
+      if (lookahead === 0) {
+        return currentX - startX;
+      }
+
+      x1 = currentX;
+      t1 = evt.timeStamp;
+
+      dx = x1 - x0;
+      dt = t1 - t0;
+      velocity = dx / dt; // px/ms
+
+      // Guess how much extra motion we will have by the time the redraw happens
+      adjustment = velocity * lookahead;
+
+      // predict deltaX based on that extra motion
+      prediction = Math.round(x1 + adjustment - startX);
+
+      // Make sure we don't return a prediction greater than the screen width
+      if (prediction >= windowWidth) {
+        prediction = windowWidth - 1;
+      }
+      else if (prediction <= -windowWidth) {
+        prediction = -windowWidth + 1;
+      }
+
+      // If the change in the prediction has a different sign than the
+      // change in the user's finger position, then we overshot: the
+      // previous prediction was too large. So temporarily reduce the
+      // lookahead so we don't overshoot as easily next time. Also,
+      // return the last prediction to give the user's finger a chance
+      // to catch up with where we've already panned to. If we don't
+      // do this, the panning changes direction and looks jittery.
+      if (lastPrediction !== null) {
+        deltaP = prediction - lastPrediction;
+        if ((deltaP > 0 && dx < 0) || (deltaP < 0 && dx > 0)) {
+          lookahead = lookahead >> 1;  // avoid future overshoots for this pan
+          startX += deltaP;            // adjust for overshoot
+          prediction = lastPrediction; // alter our prediction
+        }
+      }
+
+      // Remember this for next time.
+      lastPrediction = prediction;
+      return prediction;
+    }
+  }
+
   function addActive(target) {
     if ('isIcon' in target.dataset) {
       target.classList.add('active');
       removeActive = function _removeActive() {
         target.classList.remove('active');
+        removeActive = noop;
       }
     } else {
-      removeActive = function() {};
+      removeActive = noop;
     }
   }
 
-  var removeActive = function() {};
+  var removeActive = noop;
 
   function handleEvent(evt) {
     switch (evt.type) {
@@ -66,7 +163,7 @@ const GridManager = (function() {
         startEvent = isTouch ? evt.touches[0] : evt;
         deltaX = 0;
         attachEvents();
-        removePanHandler = dummy;
+        removePanHandler = noop;
         isPanning = false;
         addActive(evt.target);
         break;
@@ -78,9 +175,10 @@ const GridManager = (function() {
 
         // Start panning immediately but only disable
         // the tap when we've moved far enough.
-        var startX = startEvent.pageX;
-        var currentX = getX(evt);
-        deltaX = currentX - startX;
+        startX = startEvent.pageX;
+        currentX = getX(evt);
+        deltaX = getDeltaX(evt);
+
         if (deltaX === 0)
           return;
 
@@ -95,12 +193,16 @@ const GridManager = (function() {
         var current = pages[currentPage].container.style;
         var forward = deltaX < 0;
 
+        // Since we're panning, the icon we're over shouldn't be active
+        removeActive();
+
         var refresh;
         if (currentPage === 0) {
           var next = pages[currentPage + 1].container.style;
           refresh = function(e) {
             if (deltaX <= 0) {
-              next.MozTransform = 'translateX(' + (windowWidth + deltaX) + 'px)';
+              next.MozTransform =
+                'translateX(' + (windowWidth + deltaX) + 'px)';
               current.MozTransform = 'translateX(' + deltaX + 'px)';
             } else {
               startX = currentX;
@@ -132,7 +234,8 @@ const GridManager = (function() {
                 next.MozTransform = 'translateX(' + windowWidth + 'px)';
               }
             } else {
-              next.MozTransform = 'translateX(' + (windowWidth + deltaX) + 'px)';
+              next.MozTransform =
+                'translateX(' + (windowWidth + deltaX) + 'px)';
 
               // If we change direction make sure there isn't any part
               // of the page on the other side that stays visible.
@@ -153,14 +256,15 @@ const GridManager = (function() {
         if (currentPage > nextLandingPage || Homescreen.isInEditMode()) {
           var pan = function(e) {
             currentX = getX(e);
-            deltaX = currentX - startX;
+            deltaX = getDeltaX(e);
+
             if (!isPanning && Math.abs(deltaX) >= tapThreshold) {
               isPanning = true;
             }
             window.mozRequestAnimationFrame(refresh);
           };
         } else {
-          var setOpacityToOverlay = dummy;
+          var setOpacityToOverlay = noop;
           if (currentPage === prevLandingPage) {
             setOpacityToOverlay = function() {
               if (!forward)
@@ -168,13 +272,13 @@ const GridManager = (function() {
 
               var opacity = opacityOnAppGridPageMax -
                     (Math.abs(deltaX) / windowWidth) * opacityOnAppGridPageMax;
-              overlayStyle.opacity = Math.round(opacity * 10 ) / 10;
+              overlayStyle.opacity = Math.round(opacity * 10) / 10;
             }
           } else if (currentPage === landingPage) {
             setOpacityToOverlay = function() {
               var opacity = (Math.abs(deltaX) / windowWidth) *
                             opacityOnAppGridPageMax;
-              overlayStyle.opacity = Math.round(opacity * 10 ) / 10;
+              overlayStyle.opacity = Math.round(opacity * 10) / 10;
             }
           } else {
             setOpacityToOverlay = function() {
@@ -183,13 +287,14 @@ const GridManager = (function() {
 
               var opacity = opacityOnAppGridPageMax -
                     (Math.abs(deltaX) / windowWidth) * opacityOnAppGridPageMax;
-              overlayStyle.opacity = Math.round(opacity * 10 ) / 10;
+              overlayStyle.opacity = Math.round(opacity * 10) / 10;
             }
           }
 
           var pan = function(e) {
             currentX = getX(e);
-            deltaX = currentX - startX;
+            deltaX = getDeltaX(e);
+
             if (!isPanning && Math.abs(deltaX) >= tapThreshold) {
               isPanning = true;
             }
@@ -211,7 +316,6 @@ const GridManager = (function() {
 
           window.mozRequestAnimationFrame(function panTouchEnd() {
             onTouchEnd(deltaX, e);
-            removeActive();
           });
         };
 
@@ -686,6 +790,8 @@ const GridManager = (function() {
       var page = new Page(pageElement, null);
       pages.push(page);
     }
+
+    initPanningPrediction();
   }
 
   /*
@@ -948,7 +1054,8 @@ const GridManager = (function() {
      *                 Specifies the HTML container element for the pages.
      *
      */
-    init: function gm_init(gridSelector, dockSelector, pTapThreshold, callback) {
+    init: function gm_init(gridSelector, dockSelector, pTapThreshold, callback)
+    {
       initUI(gridSelector);
 
       tapThreshold = pTapThreshold;
