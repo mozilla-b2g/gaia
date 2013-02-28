@@ -7,6 +7,7 @@ var ThreadUI = {
   // Time buffer for the 'last-messages' set. In this case 10 min
   LAST_MESSSAGES_BUFFERING_TIME: 10 * 60 * 1000,
   CHUNK_SIZE: 10,
+  PHONE_REGEX: /(\+?1?[-.]?\(?([0-9]{3})\)?[-.]?)?([0-9]{3})[-.]?([0-9]{4})([0-9]{1,4})?/mg,
 
   get view() {
     delete this.view;
@@ -567,7 +568,7 @@ var ThreadUI = {
 
     messageDOM.innerHTML = messageHTML;
 
-    if(message.delivery === 'error')
+    if (message.delivery === 'error')
      ThreadUI.addResendHandler(message, messageDOM);
 
     return this.searchAndLinkPhoneData(messageDOM, bodyText);
@@ -580,8 +581,7 @@ var ThreadUI = {
 
   searchAndLinkPhoneData:
   function thui_searchAndLinkPhoneData(messageDOM, bodytext) {
-    var phoneRegex = /(\+?1?[-.]?\(?([0-9]{3})\)?[-.]?)?([0-9]{3})[-.]?([0-9]{4})([0-9]{1,4})?/mg;
-    var result = bodytext.replace(phoneRegex, function(phone) {
+     var result = bodytext.replace(this.PHONE_REGEX, function(phone) {
       var linkText = '<a data-action="phone-link" data-phonenumber="' +
                       phone + '">' + phone + '</a>';
       return linkText;
