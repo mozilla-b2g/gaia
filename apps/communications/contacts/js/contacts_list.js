@@ -150,7 +150,6 @@ contacts.List = (function() {
   var renderFullContact = function renderFullContact(contact, fbContacts) {
     var contactContainer = renderContact(contact);
     var name = contactContainer.children[0];
-    var meta = contactContainer.children[1];
     var orderedString = getStringToBeOrdered(contact);
 
     addSearchOptions(name, contact);
@@ -161,8 +160,11 @@ contacts.List = (function() {
       if (marks.length > 0) {
         if (!contact.org || contact.org.length === 0 ||
           contact.org[0].length === 0) {
-          marks[0].classList.add('notorg');
-        }
+            addOrgMarkup(contactContainer);
+            contactContainer.appendChild(meta);
+            marks[0].classList.add('notorg');
+          }
+        var meta = contactContainer.children[1];
         var metaFragment = document.createDocumentFragment();
         marks.forEach(function(mark) {
           metaFragment.appendChild(mark);
@@ -177,7 +179,6 @@ contacts.List = (function() {
       renderPhoto(contact, contactContainer);
     }
 
-    renderOrg(contact, contactContainer);
     return contactContainer;
   }
 
@@ -194,13 +195,13 @@ contacts.List = (function() {
     // contactInner is a link with 3 p elements:
     // name, socaial marks and org
     var contactInner = '<p>' + getHighlightedName(contact);
-    contactInner += '</p><p><span class="org"></span></p>';
+    contactInner += '</p>';
     contactContainer.innerHTML = contactInner;
     contactsCache[contact.id] = {
       contact: contact,
       container: contactContainer
     }
-    renderOrg(contact, contactContainer);
+    renderOrg(contact, contactContainer, true);
 
     // Facebook data, favorites and images will be lazy loaded
     if (contact.category || contact.photo) {
@@ -412,16 +413,22 @@ contacts.List = (function() {
           var current = contactsCache[id];
           var contact = current.contact;
           var link = current.container;
-          var meta = link.children[1];
           var favs = false;
           if (isFavorite(contact)) {
             favs = true;
             addToFavoriteList(link.cloneNode(true));
           }
           if (fb.isFbContact(contact)) {
+            var meta;
+            var elements = link.querySelectorAll('p');
+            if (elements.length == 1) {
+              meta = addOrgMarkup(link);
+            } else {
+              meta = elements[1];
+            }
             var fbContact = new fb.Contact(contact);
             contact = fbContact.merge(fbReq.result[fbContact.uid]);
-            link.querySelector('p').innerHTML = getHighlightedName(contact);
+            elements[0].innerHTML = getHighlightedName(contact);
             var mark = markAsFb(createSocialMark());
             var org = meta.querySelector('span.org');
             meta.insertBefore(mark, org);
@@ -484,15 +491,22 @@ contacts.List = (function() {
     return;
   };
 
-  var renderOrg = function renderOrg(contact, link) {
+  var renderOrg = function renderOrg(contact, link, add) {
     if (!contact.org || !contact.org.length ||
         contact.org[0] === '' || contact.org[0] === contact.givenName) {
       return;
     }
-    var meta = link.lastElementChild;
+    var meta = add ? addOrgMarkup(link) : link.lastElementChild;
     var org = meta.querySelector('span.org');
     org.textContent = contact.org[0];
   };
+
+  var addOrgMarkup = function addOrgMarkup(link) {
+    var meta = document.createElement('p');
+    meta.innerHTML = '<span class="org"></span>';
+    link.appendChild(meta);
+    return meta;
+  }
 
   var toggleNoContactsScreen = function cl_toggleNoContacs(show) {
     if (show && !ActivityHandler.currentlyHandling) {
