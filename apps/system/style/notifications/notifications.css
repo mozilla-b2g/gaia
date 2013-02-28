@@ -77,22 +77,25 @@ html, body {
   line-height: 30px;
 }
 
-#notification-bar button {
+#notification-clear {
   float: right;
   margin-right: 15px;
   width: 30%;
   height: 30px;
+  line-height:30px;
   padding: 0;
   border: 0;
   background: none;
   text-align: right;
+  text-decoration: none;
   font-size: 1.4rem;
   font-weight: 500;
+  outline: none;
+  color:#666;
 }
 
-/* remove ugly dotted outline when focus */
-#notification-bar button::-moz-focus-inner {
-  border: 0;
+#notification-clear:active { 
+  color:#1b3f46;
 }
 
 #notifications-container {
