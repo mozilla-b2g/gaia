@@ -1,9 +1,7 @@
-requireApp('calendar/test/unit/helper.js', function() {
-  requireLib('calc.js');
-  requireLib('timespan.js');
-  requireLib('interval_tree.js');
-  requireLib('utils/overlap.js');
-});
+requireLib('calc.js');
+requireLib('timespan.js');
+requireLib('interval_tree.js');
+requireLib('utils/overlap.js');
 
 suite('overlap', function() {
 

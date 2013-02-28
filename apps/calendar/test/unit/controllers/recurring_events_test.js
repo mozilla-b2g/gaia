@@ -1,10 +1,9 @@
-requireApp('calendar/test/unit/helper.js', function() {
-  requireLib('controllers/recurring_events.js');
-  requireLib('provider/caldav.js');
-  requireLib('models/account.js');
-});
+requireLib('models/account.js');
+requireLib('provider/abstract.js');
+requireLib('provider/local.js');
+requireLib('provider/caldav.js');
 
-suite('controllers/recurring_event', function() {
+suiteGroup('Controllers.RecurringEvents', function() {
 
   var subject;
   var app;

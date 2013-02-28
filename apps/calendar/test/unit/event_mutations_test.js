@@ -1,7 +1,5 @@
-requireApp('calendar/test/unit/helper.js', function() {
-  requireLib('timespan.js');
-  requireLib('event_mutations.js');
-});
+requireLib('timespan.js');
+requireLib('event_mutations.js');
 
 suite('event_mutations', function() {
   var subject;

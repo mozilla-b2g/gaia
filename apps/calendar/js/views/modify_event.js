@@ -87,7 +87,7 @@ Calendar.ns('Views').ModifyEvent = (function() {
         cal = list[i];
         option = document.createElement('option');
         option.value = cal._id;
-        option.text = cal.name;
+        option.text = cal.remote.name;
         element.add(option);
       }
     },
@@ -113,7 +113,7 @@ Calendar.ns('Views').ModifyEvent = (function() {
       }
 
       if (option) {
-        option.text = calendar.name;
+        option.text = calendar.remote.name;
       }
     },
 
@@ -134,7 +134,7 @@ Calendar.ns('Views').ModifyEvent = (function() {
       var element = this.getField('calendarId');
 
       option = document.createElement('option');
-      option.text = calendar.name;
+      option.text = calendar.remote.name;
       option.value = id;
       element.add(option);
     },
@@ -497,7 +497,7 @@ Calendar.ns('Views').ModifyEvent = (function() {
       // calendar display
       var currentCalendar = this.getField('currentCalendar');
 
-      currentCalendar.value = calendar.name;
+      currentCalendar.value = calendar.remote.name;
       currentCalendar.readOnly = true;
     },
 

@@ -1,17 +1,13 @@
-requireApp('calendar/test/unit/helper.js', function() {
-  requireApp('calendar/test/unit/provider/mock_stream.js');
-  requireApp('calendar/test/unit/service/helper.js');
-  requireLib('ext/ical.js');
-  requireLib('ext/caldav.js');
-  requireLib('service/caldav.js');
-  requireLib('store/ical_component.js');
-  requireLib('provider/caldav_pull_events.js');
-  requireLib('service/ical_recur_expansion.js');
-  requireLib('models/account.js');
-  requireLib('models/calendar.js');
-});
+requireApp('calendar/test/unit/provider/mock_stream.js');
+requireApp('calendar/test/unit/service/helper.js');
+requireLib('ext/ical.js');
+requireLib('ext/caldav.js');
+requireLib('service/caldav.js');
+requireLib('service/ical_recur_expansion.js');
+requireLib('models/account.js');
+requireLib('models/calendar.js');
 
-suite('provider/caldav_pull_events', function() {
+suiteGroup('Provider.CaldavPullEvents', function() {
 
   var fixtures;
   var ical;

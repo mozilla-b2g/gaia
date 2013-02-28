@@ -48,11 +48,10 @@
      * @param {Function} callback node style.
      */
     load: function(callback) {
-      var pending = 3;
+      var pending = 2;
       var self = this;
 
       var accountStore = this.getStore('Account');
-      var settingStore = this.getStore('Setting');
       var calendarStore = this.getStore('Calendar');
 
       function next() {
@@ -80,13 +79,6 @@
       // fatal.
       function loadRecords() {
         accountStore.load(function(err) {
-          if (err) {
-            throw err;
-          }
-          next();
-        });
-
-        settingStore.load(function(err) {
           if (err) {
             throw err;
           }
