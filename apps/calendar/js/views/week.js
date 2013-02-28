@@ -39,8 +39,6 @@ Calendar.ns('Views').Week = (function() {
 
   Frame.prototype = {
 
-    swipeThreshold: window.innerWidth / 5,
-
     /**
      * Calls a method on all children.
      */
