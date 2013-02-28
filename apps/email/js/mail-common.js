@@ -466,8 +466,6 @@ var Cards = {
         return i;
       }
     }
-    throw new Error('Unable to find card with type: ' + type + ' mode: ' +
-                    mode);
   },
 
   _findCardUsingImpl: function(impl) {
@@ -476,16 +474,29 @@ var Cards = {
       if (cardInst.cardImpl === impl)
         return i;
     }
-    throw new Error('Unable to find card using impl:', impl);
   },
 
-  _findCard: function(query) {
+  _findCard: function(query, skipFail) {
+    var result;
     if (Array.isArray(query))
-      return this._findCardUsingTypeAndMode(query[0], query[1]);
+      result = this._findCardUsingTypeAndMode(query[0], query[1], skipFail);
     else if (typeof(query) === 'number') // index number
-      return query;
+      result = query;
     else
-      return this._findCardUsingImpl(query);
+      result = this._findCardUsingImpl(query);
+
+    if (result > -1)
+      return result;
+    else if (!skipFail)
+      throw new Error('Unable to find card with query:', query);
+    else
+      // Returning undefined explicitly so that index comparisons, like
+      // the one in hasCard, are correct.
+      return undefined;
+  },
+
+  hasCard: function (query) {
+    return this._findCard(query, true) > -1;
   },
 
   findCardObject: function(query) {
@@ -669,6 +680,13 @@ var Cards = {
           break;
       }
     }
+  },
+
+  /**
+   * Shortcut for removing all the cards
+   */
+  removeAllCards: function () {
+    return this.removeCardAndSuccessors(null, 'none');
   },
 
   _showCard: function(cardIndex, showMethod, navDirection) {
