@@ -305,7 +305,7 @@ var AppInstallManager = {
       // now we get NaN if there is no progress information but let's
       // handle the null and undefined cases as well
       message = _('downloadingAppProgressIndeterminate');
-      progressNode.value = undefined; // switch to indeterminate state
+      progressNode.removeAttribute('value'); // switch to indeterminate state
     } else if (appInfo.hasMax) {
       message = _('downloadingAppProgress',
         {
