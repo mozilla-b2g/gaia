@@ -1,13 +1,11 @@
-requireApp('calendar/test/unit/helper.js', function() {
-  requireLib('timespan.js');
-  requireLib('interval_tree.js');
-  requireLib('responder.js');
-  requireLib('calc.js');
-  requireLib('store/event.js');
+requireLib('timespan.js');
+requireLib('interval_tree.js');
+requireLib('responder.js');
+requireLib('calc.js');
+requireLib('store/event.js');
 
-  requireApp('models/account.js');
-  requireApp('models/calendar.js');
-});
+requireApp('models/account.js');
+requireApp('models/calendar.js');
 
 suite('store/event', function() {
   var subject;

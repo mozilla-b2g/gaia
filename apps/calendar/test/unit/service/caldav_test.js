@@ -1,11 +1,9 @@
-requireApp('calendar/test/unit/helper.js', function() {
-  requireApp('calendar/test/unit/service/helper.js');
-  requireLib('ext/ical.js');
-  requireLib('ext/caldav.js');
-  requireLib('ext/uuid.js');
-  requireLib('service/ical_recur_expansion.js');
-  requireLib('service/caldav.js');
-});
+requireApp('calendar/test/unit/service/helper.js');
+requireLib('ext/ical.js');
+requireLib('ext/caldav.js');
+requireLib('ext/uuid.js');
+requireLib('service/ical_recur_expansion.js');
+requireLib('service/caldav.js');
 
 suite('service/caldav', function() {
 

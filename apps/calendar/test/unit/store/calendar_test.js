@@ -1,16 +1,14 @@
-requireApp('calendar/test/unit/helper.js', function() {
-  requireLib('responder.js');
-  requireLib('db.js');
+requireLib('responder.js');
+requireLib('db.js');
 
-  requireLib('provider/local.js');
-  requireLib('provider/caldav.js');
+requireLib('provider/local.js');
+requireLib('provider/caldav.js');
 
-  requireLib('models/calendar.js');
-  requireLib('models/account.js');
+requireLib('models/calendar.js');
+requireLib('models/account.js');
 
-  requireLib('store/abstract.js');
-  requireLib('store/calendar.js');
-});
+requireLib('store/abstract.js');
+requireLib('store/calendar.js');
 
 suite('store/calendar', function() {
 

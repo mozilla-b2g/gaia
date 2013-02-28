@@ -1,8 +1,6 @@
-requireApp('calendar/test/unit/helper.js', function() {
-  requireLib('db.js');
-  requireLib('store/abstract.js');
-  requireLib('store/ical_component.js');
-});
+requireLib('db.js');
+requireLib('store/abstract.js');
+requireLib('store/ical_component.js');
 
 suite('store/ical_component', function() {
 

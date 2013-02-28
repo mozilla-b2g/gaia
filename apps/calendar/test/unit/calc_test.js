@@ -1,7 +1,5 @@
-requireApp('calendar/test/unit/helper.js', function() {
-  requireLib('timespan.js');
-  requireLib('calc.js');
-});
+requireLib('timespan.js');
+requireLib('calc.js');
 
 //Worth noting that these tests will fail
 //in horrible ways outside of US timezone.

@@ -1,8 +1,4 @@
-requireApp('calendar/test/unit/helper.js', function() {
-  requireLib('views/errors.js');
-});
-
-suite('views/errors', function() {
+suiteGroup('Views.Errors', function() {
   var subject, app, errorName;
 
   setup(function() {

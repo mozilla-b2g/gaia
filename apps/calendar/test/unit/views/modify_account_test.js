@@ -1,20 +1,7 @@
-requireApp('calendar/test/unit/helper.js', function() {
-  requireLib('templates/account.js');
-  requireLib('presets.js');
-  requireLib('provider/local.js');
-  requireLib('models/account.js');
-  requireLib('utils/account_creation.js');
-  requireLib('views/modify_account.js');
-});
+requireLib('provider/abstract.js');
+requireLib('provider/local.js');
 
-/*
-// These tests are currently failing and have been temporarily disabled as per
-// Bug 838993. They should be fixed and re-enabled as soon as possible as per
-// Bug 840489.
-// Please also note: the outcome of this test suite is non-deterministic.
-// Failures occur inconsistently, so potential fixes should be thoroughly
-// vetted.
-suite('views/modify_account', function() {
+uiteGroup('Views.ModifyAccount', function() {
 
   var subject;
   var account;

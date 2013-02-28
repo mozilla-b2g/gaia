@@ -1,13 +1,6 @@
-requireApp('calendar/test/unit/helper.js', function() {
-  requireLib('timespan.js');
-  requireLib('utils/ordered_map.js');
-  requireLib('templates/day.js');
-  requireLib('views/day_based.js');
-  requireLib('views/day_child.js');
-  requireLib('views/months_day.js');
-});
+requireLib('timespan.js');
 
-suite('views/months_day', function() {
+suiteGroup('Views.MonthsDay', function() {
   var subject,
       app,
       controller,
