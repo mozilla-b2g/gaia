@@ -1,9 +1,4 @@
-requireApp('calendar/test/unit/helper.js', function() {
-  requireLib('template.js');
-  requireLib('templates/account.js');
-});
-
-suite('templates/account', function() {
+suiteGroup('Templates.Account', function() {
   var subject;
 
   suiteSetup(function() {

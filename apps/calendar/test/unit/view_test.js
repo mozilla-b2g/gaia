@@ -1,6 +1,4 @@
-requireApp('calendar/test/unit/helper.js', function() {
-  requireLib('view.js');
-});
+requireLib('view.js');
 
 suite('view', function() {
 

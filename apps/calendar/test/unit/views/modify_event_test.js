@@ -1,14 +1,8 @@
-requireApp('calendar/test/unit/helper.js', function() {
-  requireLib('utils/input_parser.js');
-  requireLib('views/event_base.js');
-  requireLib('views/modify_event.js');
-  requireLib('models/account.js');
-  requireLib('models/calendar.js');
-  requireLib('models/event.js');
-});
-requireApp('calendar/test/unit/support/event_helper.js');
+requireLib('provider/abstract.js');
+requireSupport('event_helper.js');
+requireLib('template.js');
 
-suite('views/modify_event', function() {
+suiteGroup('Views.ModifyEvent', function() {
 
   var subject;
   var controller;
@@ -276,7 +270,7 @@ suite('views/modify_event', function() {
         startTime: InputParser.exportTime(remote.startDate),
         endDate: InputParser.exportDate(remote.endDate),
         endTime: InputParser.exportTime(remote.endDate),
-        currentCalendar: calendar.name
+        currentCalendar: calendar.remote.name
       };
 
       var key;
@@ -293,6 +287,7 @@ suite('views/modify_event', function() {
       if (subject.provider.canCreateEvent) {
         expected.calendarId = event.calendarId;
       }
+
 
       for (key in expected) {
         if (expected.hasOwnProperty(key)) {
@@ -760,7 +755,7 @@ suite('views/modify_event', function() {
       for (id in list) {
         option = element.querySelector('[value="' + id + '"]');
         assert.ok(option, 'option for id: ' + id);
-        assert.equal(option.textContent, list[id].name);
+        assert.equal(option.textContent, list[id].remote.name);
       }
     });
 
@@ -791,7 +786,7 @@ suite('views/modify_event', function() {
       assert.length(element.children, 3, 'added one');
 
       var option = element.querySelector('[value="' + newCal._id + '"]');
-      assert.equal(option.textContent, newCal.name);
+      assert.equal(option.textContent, newCal.remote.name);
       assert.ok(option, 'added calendar');
     });
 
