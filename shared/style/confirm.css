@@ -10,7 +10,7 @@ form[role="dialog"][data-type="confirm"] {
   background-size: auto auto, 100% 100%;
   /* We can't use shortand with background size because is not implemented yet:
   https://bugzilla.mozilla.org/show_bug.cgi?id=570326; */
-  overflow: hidden;
+  overflow: visible;
   position: absolute;
   z-index: 100;
   top: 0;
