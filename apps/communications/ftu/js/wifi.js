@@ -18,7 +18,13 @@ var WifiManager = {
     }
   },
 
-  isConnectedTo: function wn_isConnectedTo(network) {
+  isConnected: function wm_isConnected() {
+    if (!this.api)
+      return false;
+    return this.api.connection.status === 'connected';
+  },
+
+  isConnectedTo: function wm_isConnectedTo(network) {
     /**
      * XXX the API should expose a 'connected' property on 'network',
      * and 'gWifiManager.connection.network' should be comparable to 'network'.
