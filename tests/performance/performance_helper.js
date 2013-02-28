@@ -18,6 +18,10 @@ require('/tests/js/integration_helper.js');
       var registerListener =
         'var w = global.wrappedJSObject;' +
         'w.loadTimes = [];' +
+        'if (w.onapplicationloaded) {' +
+        /* We've been here before, let's clean ! */
+        '  w.removeEventListener("apploadtime", w.onapplicationloaded);' +
+        '}' +
         'w.onapplicationloaded = function(e) {' +
         '  w.loadTimes.push(e.detail.time);' +
         '};' +
@@ -39,13 +43,6 @@ require('/tests/js/integration_helper.js');
       return device.executeScript(getResults);
     },
 
-    average: function(arr) {
-      var sum = arr.reduce(function(i, j) {
-        return i + j;
-      });
-
-      return sum / arr.length;
-    },
 
     reportDuration: function(values, title) {
       title = title || '';
@@ -56,8 +53,7 @@ require('/tests/js/integration_helper.js');
       if (title in global.mozPerfDurations) {
         throw new Error('reportDuration was called twice with the same title');
       }
-      var value = this.average(values);
-      global.mozPerfDurations[title] = value;
+      global.mozPerfDurations[title] = values;
     }
   };
 

@@ -32,6 +32,10 @@ var ContactsTest = {
     delete this.newActivityButton;
     return this.newActivityButton = document.getElementById('activities-new');
   },
+  get updateExistingActivityButton() {
+    delete this.updateExistingActivityButton;
+    return this.updateExistingActivityButton = document.getElementById('activities-update');
+  },
 
   get newWithDataActivityButton() {
     delete this.newWithDataActivityButton;
@@ -54,6 +58,8 @@ var ContactsTest = {
                                             this.pickActivity.bind(this));
     this.newActivityButton.addEventListener('click',
                                             this.newActivity.bind(this));
+    this.updateExistingActivityButton.addEventListener('click',
+                                            this.updateExistingActivity.bind(this));
 
     this.newWithDataActivityButton.addEventListener('click',
                                         this.newWithDataActivity.bind(this));
@@ -69,6 +75,8 @@ var ContactsTest = {
     this.getButton.removeEventListener('click', this.getContacts.bind(this));
     this.newActivityButton.removeEventListener('click',
                                             this.newActivity.bind(this));
+    this.updateExistingActivityButton.removeEventListener('click',
+                                            this.updateExistingActivity.bind(this));
   },
 
   clearContacts: function ct_clearContacts() {
@@ -145,6 +153,31 @@ var ContactsTest = {
       var contact = this.result.contact;
       document.getElementById('activities-result').innerHTML =
                             'New contact' + ' create with id: ' + contact.id;
+      self.setContactId(contact.id);
+    };
+
+    activity.onerror = function() {
+      document.getElementById('activities-result').innerHTML =
+                                                          'Activity canceled';
+    };
+
+  },
+  updateExistingActivity: function ct_updateExistingActivity() {
+    var activity = new MozActivity({
+        name: 'update',
+        data: {
+          type: 'webcontacts/contact',
+          params: {
+            'tel': '4087469720'
+          }
+        }
+      });
+
+    var self = this;
+    activity.onsuccess = function() {
+      var contact = this.result.contact;
+      document.getElementById('activities-result').innerHTML =
+                            'updated contact' + ' update with id: ' + contact.id;
       self.setContactId(contact.id);
     };
 

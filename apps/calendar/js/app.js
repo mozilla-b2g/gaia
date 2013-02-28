@@ -170,7 +170,8 @@ Calendar.App = (function(window) {
         ],
         ModifyEvent: [
           {type: 'Style', name: 'ModifyEventView'},
-          {type: 'Utils', name: 'InputParser'}
+          {type: 'Utils', name: 'InputParser'},
+          {type: 'Views', name: 'EventBase'}
         ],
         Month: [
           {type: 'Templates', name: 'Month'},
@@ -189,6 +190,11 @@ Calendar.App = (function(window) {
         ],
         TimeParent: [
           {type: 'Utils', name: 'OrderedMap'}
+        ],
+        ViewEvent: [
+          {type: 'Style', name: 'EventView'},
+          {type: 'Utils', name: 'InputParser'},
+          {type: 'Views', name: 'EventBase'}
         ],
         Week: [
           {type: 'Style', name: 'WeekView'},
@@ -328,10 +334,11 @@ Calendar.App = (function(window) {
       this.modifier('/settings/', 'Settings', { clear: false });
       this.modifier('/advanced-settings/', 'AdvancedSettings');
 
-      this.state('/alarm-display/:id', 'ModifyEvent', { path: false });
+      this.state('/alarm-display/:id', 'ViewEvent', { path: false });
 
-      this.state('/add/', 'ModifyEvent');
-      this.state('/event/:id', 'ModifyEvent');
+      this.state('/event/add/', 'ModifyEvent');
+      this.state('/event/edit/:id', 'ModifyEvent');
+      this.state('/event/show/:id', 'ViewEvent');
 
       this.modifier('/select-preset/', 'CreateAccount');
       this.modifier('/create-account/:preset', 'ModifyAccount');
@@ -395,10 +402,10 @@ Calendar.App = (function(window) {
         colors.render();
       });
 
-      this.view('Errors');
-
       document.body.classList.remove('loading');
       this._routes();
+
+      setTimeout(this.loadDOM.bind(this), 0);
     },
 
     /**
@@ -440,6 +447,33 @@ Calendar.App = (function(window) {
       this.db.load(function() {
         next();
       });
+    },
+
+    /**
+     * Loads delayed DOM nodes specified by div.delay
+     * Each .delay node has a single comment with markup
+     * This gets us to the initial render ~400ms faster
+     */
+    loadDOM: function() {
+      var delayedNodes = document.querySelectorAll('.delay');
+      for (var i = 0, node; node = delayedNodes[i]; i++) {
+        var newEl = document.createElement('div');
+        newEl.innerHTML = node.childNodes[0].nodeValue;
+
+        // translate content
+        navigator.mozL10n.translate(newEl);
+
+        var parent = node.parentNode;
+        var lastEl = node.nextElementSibling;
+        var child;
+        while (child = newEl.children[0]) {
+          parent.insertBefore(child, lastEl);
+        }
+
+        parent.removeChild(node);
+      }
+
+      this.view('Errors');
     },
 
     /**

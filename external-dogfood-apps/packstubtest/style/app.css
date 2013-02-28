@@ -1,0 +1,37 @@
+body {
+  height: 100%;
+  background: darkgrey;
+  text-shadow: 5px 5px 5px dimgrey;
+}
+
+img {
+  display: block;
+  margin: 0 auto;
+  border: 1px solid dimgrey;
+  border-radius: 5px;
+  box-shadow: 5px 5px 5px dimgrey;
+}
+
+#main {
+  border: 1px solid dimgrey;
+  border-radius: 5px;
+  box-shadow: 5px 5px 5px dimgrey;
+  background: lightgrey;
+  padding: 40px 0;
+}
+
+#notifications {
+  display: none;
+}
+
+#checking p.center img {
+  display: inline;
+}
+
+.center {
+  text-align: center;
+}
+
+.red {
+  color: red;
+}

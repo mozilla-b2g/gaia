@@ -1,7 +1,7 @@
 'use strict';
 
 (function(document) {
-  var allowedOrigin = fb.oauthflow.params.contactsAppOrigin;
+  var allowedOrigin = oauthflow.params.facebook.appOrigin;
 
   function cancelCb() {
     Curtain.hide();

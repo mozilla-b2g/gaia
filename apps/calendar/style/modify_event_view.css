@@ -34,6 +34,7 @@
 #modify-event-view li.notes textarea {
   padding: 1rem;
   height: 100%;
+  line-height: 1.3em;
 }
 
 #modify-event-view li.allday {
@@ -95,4 +96,8 @@
 }
 #modify-event-view.update .save .save-text {
   display: none;
+}
+
+#modify-event-view .save[aria-disabled="true"] {
+  pointer-events: none;
 }

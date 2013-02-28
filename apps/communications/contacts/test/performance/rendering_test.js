@@ -17,7 +17,7 @@ suite('Contacts', function() {
   });
 
   test('average rendering time', function() {
-    this.timeout(100000);
+    this.timeout(150000);
 
     var firstPaints = [];
     var lastPaints = [];

@@ -93,6 +93,9 @@ function audioPreview(element, type) {
   var source = audio.src;
   var playing = !audio.paused;
 
+  // Both ringer and notification are using notification channel
+  audio.mozAudioChannelType = 'notification';
+
   var url = '/shared/resources/media/' + type + '/' +
             element.querySelector('input').value;
   audio.src = url;
@@ -171,12 +174,25 @@ var DeviceStorageHelper = (function DeviceStorageHelper() {
           
       });
     }
+  }
 
+  function getFreeSpace(callback) {
+    var deviceStorage = navigator.getDeviceStorage('sdcard');
+
+    if (!deviceStorage) {
+      console.error('Cannot get free space size in sdcard');
+      return;
+    }
+    deviceStorage.freeSpace().onsuccess = function(e) {
+      var freeSpace = e.target.result;
+      callback(freeSpace);
+    };
   }
 
   return {
     getStat: getStat,
-    getStats: getStats
+    getStats: getStats,
+    getFreeSpace: getFreeSpace
   };
 
 })();

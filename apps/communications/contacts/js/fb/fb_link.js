@@ -26,7 +26,7 @@ if (!fb.link) {
 
     // Base query to search for contacts
     var SEARCH_QUERY = ['SELECT uid, name, email from user ',
-    ' WHERE uid IN (SELECT uid1 FROM friend WHERE uid2=me() ORDER BY rank) ',
+    ' WHERE uid IN (SELECT uid1 FROM friend WHERE uid2=me()) ',
     ' AND (', null, ')', ' ORDER BY name'
     ];
 
@@ -465,10 +465,10 @@ if (!fb.link) {
                                   "li:not([data-uuid='#uid#'])");
 
       if (!acc_tk) {
-        fb.oauth.getAccessToken(function proposal_new_token(new_acc_tk) {
+        oauth2.getAccessToken(function proposal_new_token(new_acc_tk) {
           access_token = new_acc_tk;
           link.getProposal(contactId, new_acc_tk);
-        }, 'proposal');
+        }, 'proposal', 'facebook');
       }
       else {
         link.getProposal(contactId, acc_tk);

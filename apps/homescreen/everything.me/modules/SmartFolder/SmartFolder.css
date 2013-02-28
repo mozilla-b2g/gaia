@@ -43,16 +43,16 @@
     #evmeContainer .smart-folder .title {
         position: relative;
         z-index: 50;
-        height: 55px;
-        line-height: 55px;
-        padding: 0 10px 0 32px;
-        font-size: 17px;
+        height: 5.5rem;
+        line-height: 5.5rem;
+        padding: 0 1rem 0 3.2rem;
+        font-size: 1.7rem;
         font-weight: normal;
         overflow: hidden;
         white-space: nowrap;
         text-overflow: ellipsis;
-        text-shadow: 0 1px 3px rgba(0, 0, 0, .6);
-        border-bottom: 1px solid rgba(255, 255, 255, .8);
+        text-shadow: 0 0.1rem 0.3rem rgba(0, 0, 0, .6);
+        border-bottom: 0.1rem solid rgba(255, 255, 255, .8);
         -moz-box-sizing: border-box;
     }
         #evmeContainer .smart-folder .title span {
@@ -61,18 +61,18 @@
         }
         #evmeContainer .smart-folder .title em {
             position: absolute;
-            left: 40px;
-            bottom: -5px;
+            left: 4rem;
+            bottom: -0.5rem;
             width: 0;
             height: 0;
-            border: 5px solid rgba(255, 255, 255, .8);
+            border: 0.5rem solid rgba(255, 255, 255, .8);
             -moz-transform: rotate(45deg);
             transform: rotate(45deg);
         }
     
     #evmeContainer .smart-folder .image {
         position: absolute;
-        top: 55px;
+        top: 5.5rem;
         left: 0;
         right: 0;
         bottom: 0;
@@ -94,33 +94,35 @@
         position: absolute;
         top: 0;
         left: 0;
-        width: 25px;
-        height: 54px;
+        width: 2.5rem;
+        height: 5.4rem;
         cursor: pointer;
         z-index: 100;
     }
         #evmeContainer .smart-folder > .close:after {
             content: "";
             position: absolute;
-            top: 4px;
-            bottom: 4px;
-            right: -1px;
-            width: 1px;
+            top: 0.4rem;
+            bottom: 0.4rem;
+            right: -0.1rem;
+            width: 0.1rem;
             background: rgba(0, 0, 0, .3);
-            border-right: 1px solid rgba(255, 255, 255, .3);
+            border-right: 0.1rem solid rgba(255, 255, 255, .3);
         }
     #evmeContainer .smart-folder .evme-apps {
         position: absolute;
-        top: 55px;
-        left: 5px;
-        right: 5px;
+        top: 5.5rem;
+        left: 0.5rem;
         bottom: 0;
         z-index: 50;
         width: auto;
         height: auto;
     }
+        #evmeContainer .smart-folder .evme-apps ul {
+            right: 2.5rem;
+        }
         #evmeContainer .smart-folder .evme-apps ul.has-more:not(.connection-error) {
-            padding-bottom: 45px;
+            padding-bottom: 4.5rem;
         }
         #evmeContainer .smart-folder .evme-apps li {
             width: 25%;
@@ -140,17 +142,17 @@
         right: 0;
     }
     #evmeContainer .smart-folder .has-installed .connection-message {
-        transform: translateY(35px);
+        transform: translateY(3.5rem);
     }   
     #evmeContainer .smart-folder .loading-more .connection-message {
         position: static;
         top: auto;
         left: auto;
         right: auto;
-        margin-top: 10px;
-        padding-top: 10px;
-        padding-bottom: 10px;
-        box-shadow: 0 -1px 0 0 rgba(255, 255, 255, .4), 0 -2px 0 0 rgba(0, 0, 0, .4);
+        margin-top: 1rem;
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+        box-shadow: 0 -0.1rem 0 0 rgba(255, 255, 255, .4), 0 -0.2rem 0 0 rgba(0, 0, 0, .4);
         transform: translateY(0);
     }
     
@@ -164,20 +166,20 @@
 
 #evmeContainer .smart-folder .evme-apps .loadmore {
     position: absolute;
-    bottom: 5px;
+    bottom: 0.5rem;
     left: 0;
     right: 0;
     text-align: center;
     width: 100%;
-    height: 40px;
-    line-height: 40px;
+    height: 4rem;
+    line-height: 4rem;
     color: #fff;
-    font-size: 15px;
+    font-size: 1.5rem;
     font-weight: bold;
-    margin: 10px 0 0 0;
+    margin: 1rem 0 0 0;
     z-index: 50;
     cursor: default;
-    box-shadow: 0 -1px 0 0 rgba(255, 255, 255, .4), 0 -2px 0 0 rgba(0, 0, 0, .4);
+    box-shadow: 0 -0.1rem 0 0 rgba(255, 255, 255, .4), 0 -0.2rem 0 0 rgba(0, 0, 0, .4);
     -moz-transition: none;
     transition: none;
     display: none;
@@ -186,11 +188,11 @@
     display: block;
 }
 #evmeContainer .smart-folder .loading-more .loadmore progress {
-    transform: translate(0, -5px);
+    transform: translate(0, -0.5rem);
 }
 #evmeContainer .smart-folder .loading-more .loadmore b.label {
     display: inline-block;
-    transform: translate(4px, 0);
+    transform: translate(0.4rem, 0);
 }
     
 #evmeContainer .smart-folder.full-image {

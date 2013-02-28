@@ -46,7 +46,7 @@ if (typeof fb.importer === 'undefined') {
     var FRIENDS_QUERY = [
       'SELECT uid, name, first_name, last_name, pic_big, current_location, ' ,
       'middle_name, birthday_date, email, profile_update_time, ' ,
-      ' work, education, phones, hometown_location' ,
+      ' work, phones, hometown_location' ,
       ' FROM user' ,
       ' WHERE uid ',
       'IN (SELECT uid1 FROM friend WHERE uid2=me())' ,
@@ -82,7 +82,7 @@ if (typeof fb.importer === 'undefined') {
 
       utils.alphaScroll.init(params);
       contacts.Search.init(document.getElementById('content'), null,
-                           onSearchResultCb);
+                           onSearchResultCb, true);
     };
 
     UI.end = function(event) {
@@ -127,10 +127,10 @@ if (typeof fb.importer === 'undefined') {
         Importer.getFriends(acc_tk);
       }
       else {
-        fb.oauth.getAccessToken(function(new_acc_tk) {
+        oauth2.getAccessToken(function(new_acc_tk) {
           access_token = new_acc_tk;
           Importer.getFriends(new_acc_tk);
-        }, 'friends');
+        }, 'friends', 'facebook');
       }
     };
 

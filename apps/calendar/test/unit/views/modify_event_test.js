@@ -1,10 +1,12 @@
 requireApp('calendar/test/unit/helper.js', function() {
   requireLib('utils/input_parser.js');
+  requireLib('views/event_base.js');
   requireLib('views/modify_event.js');
   requireLib('models/account.js');
   requireLib('models/calendar.js');
   requireLib('models/event.js');
 });
+requireApp('calendar/test/unit/support/event_helper.js');
 
 suite('views/modify_event', function() {
 
@@ -28,17 +30,17 @@ suite('views/modify_event', function() {
     return subject.element.classList.contains(value);
   }
 
-  function getField(name) {
-    return subject.getField(name);
+  function getEl(name) {
+    return subject.getEl(name);
   }
 
   function setFieldValue(name, value) {
-    var field = getField(name);
+    var field = getEl(name);
     return field.value = value;
   }
 
   function fieldValue(name) {
-    var field = getField(name);
+    var field = getEl(name);
     return field.value;
   }
 
@@ -48,20 +50,6 @@ suite('views/modify_event', function() {
     });
 
     return template.render({ value: html });
-  }
-
-  function setProviderCaps(override) {
-    var values = {};
-    var primaryValues =
-      Calendar.Provider.Abstract.prototype.calendarCapabilities.call(provider);
-
-    [primaryValues, override].forEach(function(caps) {
-      for (var key in caps) {
-        values[key] = caps[key];
-      }
-    });
-
-    provider.caps = values;
   }
 
   var triggerEvent;
@@ -99,6 +87,10 @@ suite('views/modify_event', function() {
     var div = document.createElement('div');
     div.id = 'test';
     div.innerHTML = [
+      '<div id="event-view">',
+        '<button class="edit">edit</button>',
+        '<button class="cancel">cancel</button>',
+      '</div>',
       '<div id="modify-event-view">',
         '<button class="save">save</button>',
         '<button class="cancel">cancel</button>',
@@ -130,7 +122,7 @@ suite('views/modify_event', function() {
     calendarStore = app.store('Calendar');
     provider = app.provider('Test');
 
-    setProviderCaps();
+    eventHelper.setProviderCaps(provider);
 
     fmt = navigator.mozL10n.DateTimeFormat();
 
@@ -167,9 +159,10 @@ suite('views/modify_event', function() {
 
   test('initialization', function() {
     assert.instanceOf(subject, Calendar.View);
+    assert.instanceOf(subject, Calendar.Views.EventBase);
     assert.equal(subject._changeToken, 0);
 
-    assert.ok(subject._fields, 'has fields');
+    assert.ok(subject._els, 'has fields');
   });
 
   test('.status', function() {
@@ -185,12 +178,17 @@ suite('views/modify_event', function() {
     assert.equal(subject.form.tagName.toLowerCase(), 'form');
   });
 
-  test('.saveButton', function() {
-    assert.ok(subject.saveButton);
+  test('.primaryButton', function() {
+    assert.ok(subject.primaryButton);
   });
 
   test('.deleteButton', function() {
     assert.ok(subject.deleteButton);
+  });
+
+  test('.fieldRoot', function() {
+    assert.ok(subject.fieldRoot);
+    assert.equal(subject.fieldRoot, subject.form);
   });
 
   suite('#_loadModel', function() {
@@ -247,16 +245,16 @@ suite('views/modify_event', function() {
     });
   });
 
-  test('#_getField', function() {
+  test('#_getEl', function() {
     var expected = subject.form.querySelector('[name="title"]');
     assert.ok(expected);
     assert.equal(expected.tagName.toLowerCase(), 'input');
 
-    var result = subject.getField('title');
+    var result = subject.getEl('title');
 
     assert.equal(result, expected);
-    assert.equal(result, subject.getField('title'));
-    assert.equal(subject._fields.title, expected);
+    assert.equal(result, subject.getEl('title'));
+    assert.equal(subject._els.title, expected);
   });
 
   suite('#_displayModel', function() {
@@ -268,7 +266,7 @@ suite('views/modify_event', function() {
 
     function updatesValues(overrides) {
       // just to verify we actually clear fields...
-      getField('title').value = 'foo';
+      getEl('title').value = 'foo';
       event.remote.description = '<span>foo</span>';
 
       var expected = {
@@ -306,13 +304,13 @@ suite('views/modify_event', function() {
         }
       }
 
-      var curCal = getField('currentCalendar');
+      var curCal = getEl('currentCalendar');
       assert.isTrue(curCal.readOnly, 'current calendar readonly');
 
       var expected = escapeHTML(event.remote.description);
 
       assert.equal(
-        getField('description').innerHTML,
+        getEl('description').innerHTML,
         expected
       );
     }
@@ -321,13 +319,13 @@ suite('views/modify_event', function() {
       updatesValues();
 
       assert.isFalse(list.contains(subject.READONLY));
-      assert.ok(!getField('title').readOnly, 'does not mark as readOnly');
+      assert.ok(!getEl('title').readOnly, 'does not mark as readOnly');
     });
 
     test('provider cannot edit', function() {
       remote.startDate = new Date(2012, 0, 1, 10);
 
-      setProviderCaps({
+      eventHelper.setProviderCaps(provider, {
         canUpdateEvent: false,
         canCreateEvent: false
       });
@@ -337,10 +335,10 @@ suite('views/modify_event', function() {
       assert.isTrue(list.contains(subject.READONLY), 'is readonly');
       assert.isFalse(list.contains(subject.ALLDAY), 'is allday');
 
-      var allday = subject.getField('allday');
+      var allday = subject.getEl('allday');
       assert.isFalse(allday.checked, 'is allday');
 
-      assert.ok(getField('title').readOnly, 'marks readonly');
+      assert.ok(getEl('title').readOnly, 'marks readonly');
     });
 
     test('use busytime instance when isRecurring', function() {
@@ -378,7 +376,7 @@ suite('views/modify_event', function() {
         endDate: '2012-01-01'
       });
 
-      var allday = subject.getField('allday');
+      var allday = subject.getEl('allday');
       assert.isTrue(allday.checked, 'checks all day');
 
       assert.ok(list.contains(subject.ALLDAY));
@@ -403,7 +401,7 @@ suite('views/modify_event', function() {
     var list = subject.element.classList;
     subject._markReadonly(true);
 
-    var title = getField('title');
+    var title = getEl('title');
     title.value = 'foo';
 
     list.add(subject.ALLDAY);
@@ -417,7 +415,7 @@ suite('views/modify_event', function() {
     subject.busytime = 'foo';
 
 
-    var allday = subject.getField('allday');
+    var allday = subject.getEl('allday');
     allday.checked = true;
 
     subject.reset();
@@ -479,6 +477,14 @@ suite('views/modify_event', function() {
         endDate: subject.event.endDate
       });
     });
+
+    test('/add returnTo', function() {
+      subject.app.router.last = {
+          path : '/event/add/'
+      };
+      subject.dispatch({ params: {} });
+      assert.equal(subject.returnTo(), subject.DEFAULT_VIEW);
+    });
   });
 
   suite('#formData', function() {
@@ -489,7 +495,7 @@ suite('views/modify_event', function() {
     });
 
     test('when allday', function() {
-      var allday = getField('allday');
+      var allday = getEl('allday');
       allday.checked = true;
 
       setFieldValue('startDate', '2012-01-01');
@@ -560,17 +566,11 @@ suite('views/modify_event', function() {
 
   suite('#deleteRecord', function() {
     var calledWith;
-    var redirectTo;
     var provider;
 
     setup(function() {
-      redirectTo = null;
       calledWith = null;
       provider = app.provider(account.providerType);
-
-      app.go = function(place) {
-        redirectTo = place;
-      };
 
       provider.deleteEvent = function() {
         calledWith = arguments;
@@ -589,12 +589,17 @@ suite('views/modify_event', function() {
       assert.ok(!calledWith);
     });
 
-    test('with valid provider', function() {
+    test('with valid provider', function(done) {
+
+      app.go = function(place) {
+        assert.notEqual(place, '/foo', 'redirect is changed to event url');
+        done();
+      };
+
       subject.deleteRecord();
       assert.equal(calledWith[0], subject.event.data, 'delete event');
       var cb = calledWith[calledWith.length - 1];
       cb();
-      assert.equal(redirectTo, '/foo', 'redirect');
     });
   });
 
@@ -628,7 +633,7 @@ suite('views/modify_event', function() {
           return errors;
         };
 
-        subject.save();
+        subject.primary();
 
         assert.ok(!calledWith, 'does not save');
         assert.deepEqual(displayedErrors[0], errors, 'shows errors');
@@ -654,7 +659,7 @@ suite('views/modify_event', function() {
         setFieldValue('startDate', '2012-1-2');
         setFieldValue('title', 'myfoo');
 
-        subject.save();
+        subject.primary();
 
         var data = subject.formData();
         assert.hasProperties(subject.event, data, 'updated model');
@@ -665,7 +670,7 @@ suite('views/modify_event', function() {
         cb();
 
         assert.isFalse(list.contains(subject.PROGRESS));
-        assert.equal(redirectTo, '/foo');
+        assert.notEqual(redirectTo, '/foo');
 
         assert.deepEqual(
           app.timeController.position,
@@ -699,7 +704,7 @@ suite('views/modify_event', function() {
         setFieldValue('endDate', '2012-1-3');
         setFieldValue('title', 'myfoo');
 
-        subject.save();
+        subject.primary();
 
         var data = subject.formData();
         assert.hasProperties(subject.event, data, 'updated model');
@@ -743,7 +748,7 @@ suite('views/modify_event', function() {
       list.two = Factory('calendar', { _id: 'two', accountId: 'one' });
 
       subject.onfirstseen();
-      element = getField('calendarId');
+      element = getEl('calendarId');
     });
 
     test('calendarId select element (#_buildCalendarIds)', function() {
@@ -771,7 +776,7 @@ suite('views/modify_event', function() {
       calendars.emit('add', calendar._id, calendar);
       assert.length(element.children, 3, 'added one');
 
-      setProviderCaps({
+      eventHelper.setProviderCaps(provider, {
         canCreateEvent: false
       });
 
@@ -801,11 +806,6 @@ suite('views/modify_event', function() {
 
   suite('#returnTo', function() {
     test('without returnTo', function() {
-      assert.equal(subject.returnTo(), subject.DEFAULT_VIEW);
-    });
-
-    test('/add set', function() {
-      subject._returnTo = '/add/';
       assert.equal(subject.returnTo(), subject.DEFAULT_VIEW);
     });
 
@@ -875,7 +875,7 @@ suite('views/modify_event', function() {
         subject.onfirstseen();
         subject.useModel(busytime, event);
         list = subject.element.classList;
-        allday = subject.getField('allday');
+        allday = subject.getEl('allday');
       });
 
       test('initial', function() {
@@ -912,7 +912,6 @@ suite('views/modify_event', function() {
 
     test('submit form', function() {
       var calledWith;
-
       subject.onfirstseen();
       subject.dispatch({ params: {} });
 
@@ -946,7 +945,7 @@ suite('views/modify_event', function() {
         calledWith = arguments;
       };
 
-      triggerEvent(subject.saveButton, 'click');
+      triggerEvent(subject.primaryButton, 'click');
       assert.ok(calledWith);
     });
   });

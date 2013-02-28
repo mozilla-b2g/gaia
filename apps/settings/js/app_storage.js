@@ -35,6 +35,8 @@ var AppStorage = (function AppStorage() {
       _callback();
   }
 
+  //XXX we really don't need this callback because nobody invoke this method
+  //with a callback function.
   function getSpaceInfo(callback) {
     var callbackFunc = callback ? callback : _callback;
     DeviceStorageHelper.getStat('apps', callbackFunc);

@@ -66,6 +66,9 @@ var WindowManager = (function() {
   var inlineActivityFrames = [];
   var activityCallerOrigin = '';
 
+  // Keep a list of cached screenshot URLs for the card view
+  var screenshots = {};
+
   // Some document elements we use
   var windows = document.getElementById('windows');
   var screenElement = document.getElementById('screen');
@@ -377,12 +380,25 @@ var WindowManager = (function() {
     }
 
     if (classList.contains('opening')) {
-      windowOpened(frame);
+      var onWindowReady = function() {
+        windowOpened(frame);
 
-      setTimeout(openCallback);
-      openCallback = null;
+        setTimeout(openCallback);
+        openCallback = null;
 
-      setOpenFrame(null);
+        setOpenFrame(null);
+      };
+
+      // If this is a cold launch let's wait for the app to load first
+      var iframe = openFrame.firstChild;
+      if ('unpainted' in iframe.dataset) {
+        iframe.addEventListener('mozbrowserloadend', function on(e) {
+          iframe.removeEventListener('mozbrowserloadend', on);
+          onWindowReady();
+        });
+      } else {
+        onWindowReady();
+      }
     } else if (classList.contains('closing')) {
       windowClosed(frame);
 
@@ -454,36 +470,66 @@ var WindowManager = (function() {
     windows.classList.remove('active');
 
     // set the closed frame visibility to false
-    if ('setVisible' in iframe)
-      iframe.setVisible(false);
+    if ('setVisible' in iframe) {
+      // When we setVisible(false) the app frame, it throws out its
+      // layer tree, which results in it not being renderable by the
+      // compositor.  If that happens before we repaint our tree
+      // without the white app background, then we can see a flicker
+      // of white due to the race condition.
+      //
+      // What we /really/ want to do here is install an AfterPaint
+      // listener for the system app frame and then setVisible(false)
+      // the app from the next notification.  But AfterPaint isn't
+      // available to content, so we use a hack here.
+      //
+      // (The mozbrowser nextpaint event would equivalently fix this,
+      // but the system app can't get a reference to its outer frame
+      // element so that doesn't work either.)
+      //
+      // The "real" fix for this defect is tracked in bug 842102.
+      setTimeout(function _setVisible() { iframe.setVisible(false); }, 50);
+    }
 
     screenElement.classList.remove('fullscreen-app');
   }
 
-  // The following things needs to happen when firstpaint happens.
-  // We centralize all that here but not all of them applies.
+  // Save the screenshot
+  // Remove the background only until we actually got the screenshot,
+  // because the getScreenshot() call will be pushed back by
+  // painting/loading in the child process; when we got the screenshot,
+  // that means the app is mostly loaded.
+  // (as opposed to plain white firstpaint)
+  function saveScreenShotAndReplace(frame) {
+    saveAppScreenshot(frame, function screenshotTaken() {
+      // Remove the default background
+      frame.classList.remove('default-background');
+
+      // Remove the screenshot from frame
+      clearFrameBackground(frame);
+    });
+  }
+
   windows.addEventListener('mozbrowserfirstpaint', function firstpaint(evt) {
     var iframe = evt.target;
     var frame = iframe.parentNode;
 
     // remove the unpainted flag
     delete iframe.dataset.unpainted;
+  });
 
-    setTimeout(function firstpainted() {
-      // Save the screenshot
-      // Remove the background only until we actually got the screenshot,
-      // because the getScreenshot() call will be pushed back by
-      // painting/loading in the child process; when we got the screenshot,
-      // that means the app is mostly loaded.
-      // (as opposed to plain white firstpaint)
-      saveAppScreenshot(frame, function screenshotTaken() {
-        // Remove the default background
-        frame.classList.remove('default-background');
+  // We're saving the screenshot once the iframe is loaded _and_ painted
+  windows.addEventListener('mozbrowserloadend', function loadend(evt) {
+    var iframe = evt.target;
+    var frame = iframe.parentNode;
 
-        // Remove the screenshot from frame
-        clearFrameBackground(frame);
+    if (iframe.dataset.unpainted) {
+      iframe.addEventListener('mozbrowserfirstpaint', function painted() {
+        iframe.removeEventListener('mozbrowserfirstpaint', painted);
+        saveScreenShotAndReplace(frame);
       });
-    });
+    } else {
+      saveScreenShotAndReplace(frame);
+    }
   });
 
   // setFrameBackground() will attach the screenshot background to
@@ -596,7 +642,7 @@ var WindowManager = (function() {
       }
 
       callback(req.result.screenshot, true);
-    }
+    };
     req.onerror = function(evt) {
       console.warn('Window Manager: get screenshot from database failed.');
       callback();
@@ -641,6 +687,10 @@ var WindowManager = (function() {
         return;
 
       var iframe = frame.firstChild;
+
+      var objectURL = URL.createObjectURL(screenshot);
+      screenshots[iframe.dataset.frameOrigin] = objectURL;
+
       putAppScreenshotToDatabase(iframe.src || iframe.dataset.frameOrigin,
                                  screenshot);
     });
@@ -866,7 +916,7 @@ var WindowManager = (function() {
 
         callback(app);
       }
-    }
+    };
   }
 
   function skipFTU() {
@@ -975,6 +1025,10 @@ var WindowManager = (function() {
     // Discard any existing activity
     stopInlineActivity(true);
 
+    // Cancel fullscreen
+    if (document.mozFullScreen)
+      document.mozCancelFullScreen();
+
     // Before starting a new transition, let's make sure current transitions
     // are stopped and the state classes are cleaned up.
     // visibility status should also be reset.
@@ -1013,7 +1067,11 @@ var WindowManager = (function() {
       //
       // if the app is not cold booting (is in memory) we will listen
       // to appopen event, which is fired when the transition to the
-      // app window is complete.
+      // app window is complete
+      //
+      // we listen to the event on the capturing phase in order to ignore
+      // any system-level work done once the app is launched, we're only timing
+      // the app here
       //
       // [w] - warm boot (app is in memory, just transition to it)
       // [c] - cold boot (app has to be booted, we show it's document load
@@ -1027,7 +1085,7 @@ var WindowManager = (function() {
       }
 
       app.frame.addEventListener(type, function apploaded(e) {
-        e.target.removeEventListener(e.type, apploaded);
+        e.target.removeEventListener(e.type, apploaded, true);
 
         var evt = document.createEvent('CustomEvent');
         evt.initCustomEvent('apploadtime', true, false, {
@@ -1035,7 +1093,7 @@ var WindowManager = (function() {
           type: (e.type == 'appopen') ? 'w' : 'c'
         });
         iframe.dispatchEvent(evt);
-      });
+      }, true);
     }
 
     // Case 1: the app is already displayed
@@ -1169,8 +1227,8 @@ var WindowManager = (function() {
   }
 
   function maybeSetFrameIsCritical(iframe, origin) {
-    if (origin.startsWith("app://communications.gaiamobile.org/dialer") ||
-        origin.startsWith("app://clock.gaiamobile.org")) {
+    if (origin.startsWith('app://communications.gaiamobile.org/dialer') ||
+        origin.startsWith('app://clock.gaiamobile.org')) {
       iframe.setAttribute('mozapptype', 'critical');
     }
   }
@@ -1235,6 +1293,17 @@ var WindowManager = (function() {
   }
 
   function startInlineActivity(origin, url, name, manifest, manifestURL) {
+    // If the same inline activity frame is existed and showing,
+    // we reuse its iframe.
+    if (inlineActivityFrames.length) {
+      var showingInlineActivityFrame =
+        inlineActivityFrames[inlineActivityFrames.length - 1].firstChild;
+
+      if (showingInlineActivityFrame.dataset.frameURL == url) {
+        return;
+      }
+    }
+
     // Create the <iframe mozbrowser mozapp> that hosts the app
     var frame = createFrame(null, origin, url, name, manifest, manifestURL);
     var iframe = frame.firstChild;
@@ -1300,6 +1369,12 @@ var WindowManager = (function() {
 
     delete runningApps[origin];
     numRunningApps--;
+
+    // Clear the cached screen
+    if (screenshots[origin]) {
+      URL.revokeObjectURL(screenshots[origin]);
+      delete screenshots[origin];
+    }
   }
 
   function removeInlineFrame(frame) {
@@ -1433,7 +1508,6 @@ var WindowManager = (function() {
             e.detail.target.disposition == 'inline') {
           // Inline activities behaves more like a dialog,
           // let's deal them here.
-
           startInlineActivity(origin, e.detail.url,
                               name, manifest, app.manifestURL);
 
@@ -2026,7 +2100,8 @@ var WindowManager = (function() {
     hideCurrentApp: hideCurrentApp,
     restoreCurrentApp: restoreCurrentApp,
     retrieveHomescreen: retrieveHomescreen,
-    retrieveFTU: retrieveFTU
+    retrieveFTU: retrieveFTU,
+    screenshots: screenshots
   };
 }());
 

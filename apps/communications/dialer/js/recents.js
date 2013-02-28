@@ -70,40 +70,10 @@ var Recents = {
       getElementById('iframe-contacts');
   },
 
-  get addContactActionMenu() {
-    delete this.addContactActionMenu;
-    return this.addContactActionMenu = document.
-      getElementById('add-contact-action-menu');
-  },
-
   get recentsEditMenu() {
     delete this.recentsEditMenu;
     return this.recentsEditMenu = document.
       getElementById('edit-mode');
-  },
-
-  get callMenuItem() {
-    delete this.callMenuItem;
-    return this.callMenuItem = document.
-      getElementById('call-menuitem');
-  },
-
-  get createNewContactMenuItem() {
-    delete this.createNewContactMenuItem;
-    return this.createNewContactMenuItem = document.
-      getElementById('create-new-contact-menuitem');
-  },
-
-  get addToExistingContactMenuItem() {
-    delete this.addToExistingContactMenuItem;
-    return this.addToExistingContactMenuItem = document.
-      getElementById('add-to-existing-contact-menuitem');
-  },
-
-  get cancelActionMenuItem() {
-    delete this.cancelActionMenuItem;
-    return this.cancelActionMenuItem = document.
-      getElementById('cancel-action-menu');
   },
 
   load: function re_load(callback) {
@@ -117,55 +87,33 @@ var Recents = {
     this._loaded = true;
 
     // Time to load the external css/js
-    var stylesheets = [
+    var scripts = [
       '/dialer/style/commslog.css',
       '/dialer/style/fixed_header.css',
       '/shared/style/headers.css',
       '/shared/style/switches.css',
       '/shared/style/edit_mode.css',
-      '/shared/style/action_menu.css'
-    ];
-    stylesheets.forEach(function cssIterator(url) {
-      var link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.href = url;
-      document.head.appendChild(link);
-    });
+      '/shared/style_unstable/lists.css',
 
-    var scripts = [
+      '/dialer/js/phone_action_menu.js',
       '/dialer/js/fixed_header.js',
       '/dialer/js/utils.js',
-      '/dialer/js/recents_db.js',
+      '/dialer/js/recents_db.js'
     ];
 
-    var scriptLoadCount = 0;
-    var scriptLoaded = (function() {
-      scriptLoadCount++;
+    loader.load(scripts, function() {
+      var headerSelector = '#recents-container header';
+      FixedHeader.init('#recents-container',
+                       '#fixed-container', headerSelector);
 
-      // All the scripts are now loaded
-      if (scriptLoadCount === scripts.length) {
-        var headerSelector = '#recents-container header';
-        FixedHeader.init('#recents-container',
-                         '#fixed-container', headerSelector);
+      this.init();
+      this.recentsView.classList.remove('hidden');
+      this.recentsEditMenu.hidden = false;
 
-
-        this.init();
-        this.recentsView.classList.remove('hidden');
-        this.addContactActionMenu.hidden = false;
-        this.recentsEditMenu.hidden = false;
-
-        if (callback) {
-          callback();
-        }
+      if (callback) {
+        callback();
       }
-    }).bind(this);
-
-    scripts.forEach(function scriptIterator(url) {
-      var script = document.createElement('script');
-      script.src = url;
-      script.onload = scriptLoaded;
-      document.head.appendChild(script);
-    });
+    }.bind(this));
   },
 
   init: function re_init() {
@@ -206,26 +154,6 @@ var Recents = {
         this.mouseUp.bind(this));
       this.recentsContainer.addEventListener('click',
         this.click.bind(this));
-    }
-    if (this.callMenuItem) {
-      this.callMenuItem.addEventListener('click',
-        this.call.bind(this));
-    }
-    if (this.addContactActionMenu) {
-      this.addContactActionMenu.addEventListener('submit',
-        this.formSubmit.bind(this));
-    }
-    if (this.createNewContactMenuItem) {
-      this.createNewContactMenuItem.addEventListener('click',
-        this.createNewContact.bind(this));
-    }
-    if (this.addToExistingContactMenuItem) {
-      this.addToExistingContactMenuItem.addEventListener('click',
-        this.addToExistingContact.bind(this));
-    }
-    if (this.cancelActionMenuItem) {
-      this.cancelActionMenuItem.addEventListener('click',
-        this.cancelActionMenu.bind(this));
     }
 
     // Setting up the SimplePhoneMatcher
@@ -529,7 +457,7 @@ var Recents = {
       if (target.classList.contains('isContact')) {
         contactId = target.dataset.contactId;
       }
-      Recents.viewOrCreate(contactId, phoneNumber);
+      PhoneNumberActionMenu.show(contactId, phoneNumber);
     } else {
       //Edit mode
       if (target.classList.contains('call-log-contact-photo')) {
@@ -555,57 +483,6 @@ var Recents = {
           this.selectAllThreads.removeAttribute('disabled');
         }
       }
-    }
-  },
-
-  formSubmit: function formSubmit(event) {
-    return false;
-  },
-
-  createNewContact: function re_createNewContact() {
-    var src = '/contacts/index.html';
-    src += '#view-contact-form?tel=' + this.newPhoneNumber;
-    var timestamp = new Date().getTime();
-    this.iframeContacts.src = src + '&timestamp=' + timestamp;
-    window.location.hash = '#contacts-view';
-    this.addContactActionMenu.classList.remove('visible');
-  },
-
-  addToExistingContact: function re_addToExistingContact() {
-    var src = '/contacts/index.html';
-    src += '#add-parameters?tel=' + this.newPhoneNumber;
-    var timestamp = new Date().getTime();
-    this.iframeContacts.src = src + '&timestamp=' + timestamp;
-    window.location.hash = '#contacts-view';
-    this.addContactActionMenu.classList.remove('visible');
-  },
-
-  call: function re_call() {
-    if (this.newPhoneNumber) {
-      this.updateLatestVisit();
-      CallHandler.call(this.newPhoneNumber);
-    }
-    this.addContactActionMenu.classList.remove('visible');
-  },
-
-  cancelActionMenu: function re_cancelActionMenu() {
-    this.addContactActionMenu.classList.remove('visible');
-  },
-
-  viewOrCreate: function re_viewOrCreate(contactId, phoneNumber) {
-    var contactsIframe = document.getElementById('iframe-contacts');
-    var src = '/contacts/index.html';
-    if (contactId) {
-      src += '#view-contact-details?id=' + contactId;
-      src += '&tel=' + phoneNumber;
-      // enable the function of receiving the messages posted from the iframe
-      src += '&back_to_previous_tab=1';
-      var timestamp = new Date().getTime();
-      contactsIframe.src = src + '&timestamp=' + timestamp;
-      window.location.hash = '#contacts-view';
-    } else {
-      this.newPhoneNumber = phoneNumber;
-      this.addContactActionMenu.classList.add('visible');
     }
   },
 
@@ -757,7 +634,7 @@ var Recents = {
       if (primaryInfo) {
         primaryInfoMainNode.textContent = primaryInfo;
       } else {
-        LazyL10n.get(function (_) {
+        LazyL10n.get(function gotL10n(_) {
           primaryInfoMainNode.textContent = _('unknown');
         });
       }
@@ -915,3 +792,9 @@ var Recents = {
   }
 };
 
+// Keep the call history up to date
+document.addEventListener('mozvisibilitychange', function visibility(e) {
+  if (!document.mozHidden) {
+    Recents.refresh();
+  }
+});

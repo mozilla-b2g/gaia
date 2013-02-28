@@ -67,9 +67,11 @@ var PopupManager = {
     // this seems needed, or an override to origin in close()
     this._currentOrigin = origin;
 
-    this.container.appendChild(popup);
+    if (WindowManager.getDisplayedApp() == origin) {
+      this.screen.classList.add('popup');
+    }
 
-    this.screen.classList.add('popup');
+    this.container.appendChild(popup);
 
     popup.addEventListener('mozbrowsererror', this);
     popup.addEventListener('mozbrowserloadend', this);
@@ -144,7 +146,11 @@ var PopupManager = {
 
       case 'mozbrowserlocationchange':
         evt.target.dataset.url = evt.detail;
-        this.show();
+
+        if (WindowManager.getDisplayedApp() !== evt.target.dataset.frameOrigin)
+          return;
+
+        this.title.textContent = this.getTitleFromUrl(popup.dataset.url);
         break;
 
       case 'mozbrowsererror':

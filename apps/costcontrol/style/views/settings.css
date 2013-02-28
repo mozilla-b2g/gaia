@@ -11,10 +11,6 @@
   top: 0;
 }
 
-#settings-view .choose-plan {
-  padding: 1rem 1.3rem;
-}
-
 #settings-view .buttons-list button {
   margin: 0;
 }
@@ -29,4 +25,8 @@
 #wifi-data-usage span.usage {
   font-size: 1.7rem;
   font-weight: bold;
+}
+
+#close-settings {
+  width: 8.5rem;
 }

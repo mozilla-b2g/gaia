@@ -1,4 +1,4 @@
-# Gaia
+# Gaia [![Build Status](https://travis-ci.org/mozilla-b2g/gaia.png)](https://travis-ci.org/mozilla-b2g/gaia)
 
 Gaia is Mozilla's Phone UX for the Boot to Gecko (B2G) project.
 
@@ -23,6 +23,20 @@ and talk to us on IRC:
 See INSTALL file in B2G repository for instructions on building and running B2G. To try out Gaia on desktop, see
 
   https://wiki.mozilla.org/Gaia/Hacking
+
+# Installing on different devices resolution
+### Currently supported screens
+  * **qHD**: ~540×960, device pixel ratio = 1.6875
+  * **WVGA**: ~480×800, device pixel ratio = 1.5
+
+### How to:
+You need to set `HIDPI=1` when using any `make` command
+
+### Examples
+`HIDPI=1 make reset-gaia`
+`HIDPI=1 make install-gaia`
+`HIDPI=1 BUILD_APP_NAME=contacts make install-gaia`
+
 
 ## Tests
 

@@ -68,6 +68,7 @@ settings = {
  "lockscreen.locked": True,
  "lockscreen.unlock-sound.enabled": False,
  "mail.sent-sound.enabled": True,
+ "message.sent-sound.enabled": True,
  "operatorvariant.mcc": 0,
  "operatorvariant.mnc": 0,
  "ril.iccInfo.mbdn":"",
@@ -152,6 +153,7 @@ def main():
     parser.add_option("-v", "--verbose", help="increase output verbosity", action="store_true")
     parser.add_option(      "--noftu", help="bypass the ftu app", action="store_true")
     parser.add_option(      "--locale", help="specify the default locale to use")
+    parser.add_option(      "--hidpi", help="specify if the target device has hidpi screen")
     parser.add_option(      "--enable-debugger", help="enable remote debugger (and ADB for VARIANT=user builds)", action="store_true")
     (options, args) = parser.parse_args(sys.argv[1:])
 
@@ -175,7 +177,10 @@ def main():
     if options.wallpaper:
         wallpaper_filename = options.wallpaper
     else:
-        wallpaper_filename = "build/wallpaper.jpg"
+        if options.hidpi:
+            wallpaper_filename = "build/wallpaper@2x.jpg"
+        else:
+            wallpaper_filename = "build/wallpaper.jpg"
 
     enable_debugger = (options.enable_debugger == True)
 
