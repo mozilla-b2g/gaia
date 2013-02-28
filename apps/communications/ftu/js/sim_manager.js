@@ -43,17 +43,14 @@ var SimManager = {
   available: function sm_available() {
     if (!this.mobConn)
       return false;
-    // Card should either be "ready" (connected to network) or "null" (card in
-    // phone but cannot connect to network for some reason).
-    // See https://bugzilla.mozilla.org/show_bug.cgi?id=822522
-    return (this.mobConn.cardState === 'ready' ||
-            this.mobConn.cardState === null);
+    return (this.mobConn.cardState === 'ready');
   },
 
  /**
   * Possible values:
   *   null,
   *   'absent',
+  *   'unknown',
   *   'pinRequired',
   *   'pukRequired',
   *   'networkLocked',
