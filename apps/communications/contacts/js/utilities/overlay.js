@@ -53,7 +53,9 @@ var utils = this.utils || {};
 
     var out;
 
-    overlay.classList.add('show-overlay');
+    overlay.classList.remove('hide');
+    overlay.classList.remove('fadeOut');
+    overlay.classList.add('fadeIn');
     progressActivity.classList.remove('hide');
     progressTitle.textContent = message;
 
@@ -94,7 +96,12 @@ var utils = this.utils || {};
   }
 
   utils.overlay.hide = function hideOverlay() {
-    overlay.classList.remove('show-overlay');
-    progressActivity.classList.add('hide');
+    overlay.classList.remove('fadeIn');
+    overlay.classList.add('fadeOut');
+    overlay.addEventListener('animationend', function onFadeOut(ev) {
+      overlay.removeEventListener('animationend', onFadeOut);
+      progressActivity.classList.add('hide');
+      overlay.classList.add('hide');
+    });
   };
 })();
