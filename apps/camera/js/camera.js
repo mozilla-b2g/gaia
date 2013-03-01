@@ -93,6 +93,7 @@ var DCFApi = (function() {
 
 })();
 
+var screenLock;
 var Camera = {
   _cameras: null,
   _camera: 0,
@@ -246,12 +247,6 @@ var Camera = {
       this.galleryButton.classList.remove('hidden');
       this.switchButton.classList.remove('hidden');
       this.enableButtons();
-    }
-
-    // Dont let the phone go to sleep while the camera is
-    // active, user must manually close it
-    if (navigator.requestWakeLock) {
-      navigator.requestWakeLock('screen');
     }
 
     this.setToggleCameraStyle();
@@ -424,6 +419,9 @@ var Camera = {
       handleError('error-recording');
     };
     var onsuccess = (function onsuccess() {
+	  // camera app should not be locked during video recording - start
+      screenLock = navigator.requestWakeLock('screen');
+      // camera app should not be locked during video recording - end
       document.body.classList.add('capturing');
       captureButton.removeAttribute('disabled');
       this._recording = true;
@@ -505,6 +503,12 @@ var Camera = {
     window.clearInterval(this._videoTimer);
     this.enableButtons();
     document.body.classList.remove('capturing');
+	// camera app should locked as per screen out time in idle scenario - start
+	if (screenLock) {
+	  screenLock.unlock();
+	  screenLock = null;
+	}
+	// camera app should locked as per screen out time in idle scenario - end
 
     // XXX
     // I need some way to know when the camera is done writing this file
