@@ -1,13 +1,4 @@
-requireApp('calendar/test/unit/helper.js', function() {
-  requireLib('utils/input_parser.js');
-  requireLib('views/event_base.js');
-  requireLib('views/view_event.js');
-  requireLib('models/account.js');
-  requireLib('models/calendar.js');
-  requireLib('models/event.js');
-});
-
-suite('views/event_base', function() {
+suiteGroup('Views.EventBase', function() {
 
   var subject;
   var app;
