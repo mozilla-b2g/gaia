@@ -5,7 +5,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  transition: opacity 0.5s ease, visibility 0.5s ease;
+  transition: opacity 0.5s ease, visibility 0.5s step-end;
   opacity: 0;
   -moz-user-select: none;
   overflow: hidden;
@@ -15,6 +15,10 @@
 #cards-view.active {
   visibility: inherit;
   opacity: 1;
+}
+
+#cards-view.no-transition {
+  transition: none;
 }
 
 #cards-view ul {

@@ -462,7 +462,8 @@ var WindowManager = (function() {
     var evt = document.createEvent('CustomEvent');
     evt.initCustomEvent('appopen', true, false, {
       manifestURL: manifestURL,
-      origin: displayedApp
+      origin: displayedApp,
+      isHomescreen: (manifestURL === homescreenManifestURL)
     });
     frame.dispatchEvent(evt);
   }

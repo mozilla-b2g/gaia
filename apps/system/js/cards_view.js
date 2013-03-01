@@ -393,6 +393,9 @@ var CardsView = (function() {
     window.removeEventListener('lock', CardsView);
     window.removeEventListener('tap', CardsView);
 
+    if (removeImmediately) {
+      cardsView.classList.add('no-transition');
+    }
     // Make the cardsView overlay inactive
     cardsView.classList.remove('active');
     cardsViewShown = false;
@@ -407,6 +410,7 @@ var CardsView = (function() {
     }
     if (removeImmediately) {
       removeCards();
+      cardsView.classList.remove('no-transition');
     } else {
       cardsView.addEventListener('transitionend', removeCards);
     }
@@ -849,8 +853,10 @@ var CardsView = (function() {
         showCardSwitcher();
         break;
 
-      case 'appwillopen':
-        hideCardSwitcher();
+      case 'appopen':
+        if (!evt.detail.isHomescreen) {
+          hideCardSwitcher(/* immediately */ true);
+        }
         break;
     }
   }
@@ -869,4 +875,4 @@ window.addEventListener('attentionscreenshow', CardsView);
 window.addEventListener('attentionscreenhide', CardsView);
 window.addEventListener('holdhome', CardsView);
 window.addEventListener('home', CardsView);
-window.addEventListener('appwillopen', CardsView);
+window.addEventListener('appopen', CardsView);
