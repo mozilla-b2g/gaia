@@ -219,6 +219,7 @@ Icon.prototype = {
       if (blob)
         window.URL.revokeObjectURL(img.src);
       self.renderImage(img);
+      self.isDefaultIcon = false;
     };
 
     img.onerror = function icon_loadError() {
@@ -227,6 +228,7 @@ Icon.prototype = {
       img.src = getDefaultIcon(self.app);
       img.onload = function icon_errorIconLoadSucess() {
         self.renderImage(img);
+        self.isDefaultIcon = true;
       };
     };
   },
@@ -420,8 +422,10 @@ Icon.prototype = {
     // For some reason, cloning and moving a node re-triggers the blob
     // URI to be validated. So we assign a new blob URI to the image
     // and don't revoke it until we're finished with the animation.
-    var skipRevoke = true;
-    this.displayRenderedIcon(this.img, skipRevoke);
+    if (!this.downloading && !this.isDefaultIcon) {
+      var skipRevoke = true;
+      this.displayRenderedIcon(this.img, skipRevoke);
+    }
 
     var icon = this.icon.cloneNode();
     var img = icon.querySelector('img');
