@@ -10,5 +10,6 @@
   "developer": {
     "url": "http://mozilla.org",
     "name": "Mozilla"
-  }
+  },
+  "orientation": ["portrait-primary"]
 }
