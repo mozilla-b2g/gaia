@@ -44,25 +44,50 @@ var CostControlApp = (function() {
 
   var costcontrol, initialized = false;
   function onReady() {
-    setupCardHandler();
     var mobileConnection = window.navigator.mozMobileConnection;
+    var cardState = checkCardState();
 
-    // SIM is absent
-    if (mobileConnection.cardState === 'absent') {
-      debug('There is no SIM');
-      alert(_('widget-no-sim2-heading') + '\n' + _('widget-no-sim2-meta'));
-      window.close();
-
-    // SIM is not ready
-    } else if (mobileConnection.cardState !== 'ready') {
-      debug('SIM not ready:', mobileConnection.cardState);
-      mobileConnection.oniccinfochange = onReady;
+    // SIM not ready
+    if (cardState !== 'ready') {
+      debug('SIM not ready:', cardState);
+      mobileConnection.oncardstatechange = onReady;
 
     // SIM is ready
     } else {
-      mobileConnection.oniccinfochange = undefined;
+      mobileConnection.oncardstatechange = undefined;
       startApp();
     }
+  }
+
+  // Check the card status. Return 'ready' if all OK or take actions for
+  // special situations such as 'pin/puk locked' or 'absent'.
+  function checkCardState() {
+    var mobileConnection = window.navigator.mozMobileConnection;
+    var state, cardState;
+    state = cardState = mobileConnection.cardState;
+
+    // SIM is absent
+    if (cardState === 'absent') {
+      debug('There is no SIM');
+      showSimErrorDialog('no-sim2');
+
+    // SIM is locked
+    } else if (
+      cardState === 'pinRequired' ||
+      cardState === 'pukRequired'
+    ) {
+      showSimErrorDialog('sim-locked');
+      state = 'locked';
+    }
+
+    return state;
+  }
+
+  function showSimErrorDialog(status) {
+    var header = _('widget-' + status + '-heading');
+    var msg = _('widget-' + status + '-meta');
+    alert(header + '\n' + msg);
+    window.close();
   }
 
   // XXX: See the module documentation for details about URL schema
@@ -73,6 +98,7 @@ var CostControlApp = (function() {
     tabmanager = new ViewManager(
       ['balance-tab', 'telephony-tab', { id: 'datausage-tab', tab: 'right' }]
     );
+    settingsVManager = new ViewManager();
 
     // View handler
     window.addEventListener('hashchange', function _onHashChange(evt) {
@@ -143,13 +169,9 @@ var CostControlApp = (function() {
   });
 
   function setupApp() {
-    // View managers for dialogs and settings
-    tabmanager = new ViewManager(
-      ['balance-tab', 'telephony-tab', { id: 'datausage-tab', tab: 'right' }]
-    );
-    settingsVManager = new ViewManager();
+    setupCardHandler();
 
-    // Configure settings
+    // Configure settings buttons
     var settingsButtons = document.querySelectorAll('.settings-button');
     Array.prototype.forEach.call(settingsButtons,
       function _eachSettingsButton(button) {
@@ -194,6 +216,15 @@ var CostControlApp = (function() {
           debug('Notification type:', type);
           handleNotification(type);
         };
+      }
+    );
+
+    // Check card state when visible
+    document.addEventListener('mozvisibilitychange',
+      function _onVisibilityChange(evt) {
+        if (!document.mozHidden && initialized) {
+          checkCardState();
+        }
       }
     );
 
