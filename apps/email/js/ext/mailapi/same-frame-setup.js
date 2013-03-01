@@ -1468,7 +1468,7 @@ MessageComposition.prototype = {
 };
 
 
-const LEGAL_CONFIG_KEYS = ['syncCheckIntervalEnum'];
+var LEGAL_CONFIG_KEYS = ['syncCheckIntervalEnum'];
 
 /**
  * Error reporting helper; we will probably eventually want different behaviours
@@ -4702,7 +4702,7 @@ define('mailapi/util',
  * and messages with higher UIDs (newer-ish) before those with lower UIDs
  * (when the date is the same.)
  */
-const cmpHeaderYoungToOld = exports.cmpHeaderYoungToOld =
+var cmpHeaderYoungToOld = exports.cmpHeaderYoungToOld =
     function cmpHeaderYoungToOld(a, b) {
   var delta = b.date - a.date;
   if (delta)
@@ -4721,7 +4721,7 @@ const cmpHeaderYoungToOld = exports.cmpHeaderYoungToOld =
  *   range [0, arr.length].
  * }
  */
-const bsearchForInsert = exports.bsearchForInsert =
+var bsearchForInsert = exports.bsearchForInsert =
     function bsearchForInsert(list, seekVal, cmpfunc) {
   if (!list.length)
     return 0;
@@ -4863,90 +4863,90 @@ define('mailapi/quotechew',
 /**
  * Actual content of the message written by the user.
  */
-const CT_AUTHORED_CONTENT = 0x1;
+var CT_AUTHORED_CONTENT = 0x1;
 /**
  * Niceties like greetings/thanking someone/etc.  These are things that we want to
  * show when displaying the message, but that arguably are of lower importance and
  * might want to be elided for snippet purposes, etc.
  */
-const CT_AUTHORED_NICETIES = 0x11;
+var CT_AUTHORED_NICETIES = 0x11;
 /**
  * The signature of the message author; might contain useful information in it.
  */
-const CT_SIGNATURE = 0x2;
+var CT_SIGNATURE = 0x2;
 
 /**
  * The line that says "Blah wrote:" that precedes a quote.  It's not part of the
  * user content, but it's also not part of the quote.
  */
-const CT_LEADIN_TO_QUOTE = 0x3;
+var CT_LEADIN_TO_QUOTE = 0x3;
 
-const CT_QUOTED_TYPE = 0x4;
+var CT_QUOTED_TYPE = 0x4;
 
 /**
  * A quoted reply; eligible for collapsing.  Depth of quoting will also be
  * encoded in the actual integer value.
  */
-const CT_QUOTED_REPLY = 0x14;
+var CT_QUOTED_REPLY = 0x14;
 /**
  * A quoted forwarded message; we would guess that the user has not previously seen
  * the message and the quote wants to be displayed.
  */
-const CT_QUOTED_FORWARD = 0x24;
+var CT_QUOTED_FORWARD = 0x24;
 /**
  * Quoted content that has not been pruned.  Aspirational!
  */
-const CT_QUOTED_IN_ENTIRETY = 0x40;
+var CT_QUOTED_IN_ENTIRETY = 0x40;
 /**
  * The quote has been subjected to some level of manual intervention. Aspirational!
  */
-const CT_QUOTED_GARDENED = 0x80;
+var CT_QUOTED_GARDENED = 0x80;
 
-const CT_QUOTE_DEPTH_MASK = 0xff00;
+var CT_QUOTE_DEPTH_MASK = 0xff00;
 
 /**
  * Legal-ish boilerplate about how it's only for the recipient, etc. etc.
  * Generally going to be long and boring.
  */
-const CT_BOILERPLATE_DISCLAIMER = 0x5;
+var CT_BOILERPLATE_DISCLAIMER = 0x5;
 /**
  * Boilerplate about the message coming from a mailing list, info about the
  * mailing list.
  */
-const CT_BOILERPLATE_LIST_INFO = 0x6;
+var CT_BOILERPLATE_LIST_INFO = 0x6;
 /**
  * Product branding boilerplate that may or may not indicate that the composing
  * device was a mobile device (which is useful).
  */
-const CT_BOILERPLATE_PRODUCT = 0x7;
+var CT_BOILERPLATE_PRODUCT = 0x7;
 /**
  * Advertising automatically inserted by the mailing list or free e-mailing service,
  * etc.  This is assumed to be boring.
  */
-const CT_BOILERPLATE_ADS = 0x8;
+var CT_BOILERPLATE_ADS = 0x8;
 
-const CHARCODE_GT = ('>').charCodeAt(0),
-      CHARCODE_SPACE = (' ').charCodeAt(0),
-      CHARCODE_NBSP = ('\xa0').charCodeAt(0),
-      CHARCODE_NEWLINE = ('\n').charCodeAt(0);
+var CHARCODE_GT = ('>').charCodeAt(0),
+    CHARCODE_SPACE = (' ').charCodeAt(0),
+    CHARCODE_NBSP = ('\xa0').charCodeAt(0),
+    CHARCODE_NEWLINE = ('\n').charCodeAt(0);
 
-const RE_ORIG_MESAGE_DELIM = /^-{5} Original Message -{5}$/;
+var RE_ORIG_MESAGE_DELIM = /^-{5} Original Message -{5}$/;
 
-const RE_ALL_WS = /^\s+$/;
+var RE_ALL_WS = /^\s+$/;
 
-const RE_SECTION_DELIM = /^[_-]{6,}$/;
+var RE_SECTION_DELIM = /^[_-]{6,}$/;
 
-const RE_LIST_BOILER = /mailing list$/;
+var RE_LIST_BOILER = /mailing list$/;
 
-const RE_WROTE_LINE = /wrote/;
+var RE_WROTE_LINE = /wrote/;
 
-const RE_SIGNATURE_LINE = /^-- $/;
+var RE_SIGNATURE_LINE = /^-- $/;
 
 /**
  * The maximum number of lines that can be in a boilerplate chunk.  We expect
  * disclaimer boilerplate to be what drives this.
  */
-const MAX_BOILERPLATE_LINES = 20;
+var MAX_BOILERPLATE_LINES = 20;
 
 /**
  * Catch various common well-known product branding lines:
@@ -4957,9 +4957,9 @@ const MAX_BOILERPLATE_LINES = 20;
  *     that match the prefix.
  * - "Sent from Mobile"
  */
-const RE_PRODUCT_BOILER = /^(?:Sent from (?:Mobile|my .+))$/;
+var RE_PRODUCT_BOILER = /^(?:Sent from (?:Mobile|my .+))$/;
 
-const RE_LEGAL_BOILER_START = /^(?:This message|Este mensaje)/;
+var RE_LEGAL_BOILER_START = /^(?:This message|Este mensaje)/;
 
 function indexOfDefault(string, search, startIndex, defVal) {
   var idx = string.indexOf(search, startIndex);
@@ -4968,7 +4968,7 @@ function indexOfDefault(string, search, startIndex, defVal) {
   return idx;
 }
 
-const NEWLINE = '\n', RE_NEWLINE = /\n/g;
+var NEWLINE = '\n', RE_NEWLINE = /\n/g;
 
 function countNewlinesInRegion(string, startIndex, endIndex) {
   var idx = startIndex - 1, count = 0;
@@ -5367,9 +5367,9 @@ exports.quoteProcessTextBody = function quoteProcessTextBody(fullBodyText) {
  * whitespace boundary.  If it would take more characters than this, we just
  * do a hard truncation and hope things work out visually.
  */
-const MAX_WORD_SHRINK = 8;
+var MAX_WORD_SHRINK = 8;
 
-const RE_NORMALIZE_WHITESPACE = /\s+/g;
+var RE_NORMALIZE_WHITESPACE = /\s+/g;
 
 /**
  * Derive the snippet for a message from its processed body representation.  We
@@ -5409,25 +5409,25 @@ exports.generateSnippet = function generateSnippet(rep, desiredLength) {
  * We accept depth levels up to 5 mainly because a quick perusal of mozilla lists
  * shows cases where 5 levels of nesting were used to provide useful context.
  */
-const MAX_QUOTE_REPEAT_DEPTH = 5;
+var MAX_QUOTE_REPEAT_DEPTH = 5;
 // we include a few more than we need for forwarded text regeneration
-const replyQuotePrefixStrings = [
+var replyQuotePrefixStrings = [
   '> ', '>> ', '>>> ', '>>>> ', '>>>>> ', '>>>>>> ', '>>>>>>> ', '>>>>>>>> ',
   '>>>>>>>>> ',
 ];
-const replyQuotePrefixStringsNoSpace = [
+var replyQuotePrefixStringsNoSpace = [
   '>', '>>', '>>>', '>>>>', '>>>>>', '>>>>>>', '>>>>>>>', '>>>>>>>>',
   '>>>>>>>>>',
 ];
-const replyQuoteNewlineReplaceStrings = [
+var replyQuoteNewlineReplaceStrings = [
   '\n> ', '\n>> ', '\n>>> ', '\n>>>> ', '\n>>>>> ', '\n>>>>>> ', '\n>>>>>>> ',
   '\n>>>>>>>> ',
 ];
-const replyQuoteNewlineReplaceStringsNoSpace = [
+var replyQuoteNewlineReplaceStringsNoSpace = [
   '\n>', '\n>>', '\n>>>', '\n>>>>', '\n>>>>>', '\n>>>>>>', '\n>>>>>>>',
   '\n>>>>>>>>',
 ];
-const replyPrefix = '> ', replyNewlineReplace = '\n> ';
+var replyPrefix = '> ', replyNewlineReplace = '\n> ';
 
 function expandQuotedPrefix(s, depth) {
   if (s.charCodeAt(0) === CHARCODE_NEWLINE)
@@ -6188,13 +6188,13 @@ var LEGAL_STYLES = [
  *
  * ignore-case is not required; the value is checked against the lower-cased tag.
  */
-const RE_NODE_NEEDS_TRANSFORM = /^(?:a|area|img)$/;
+var RE_NODE_NEEDS_TRANSFORM = /^(?:a|area|img)$/;
 
-const RE_CID_URL = /^cid:/i;
-const RE_HTTP_URL = /^http(?:s)?/i;
-const RE_MAILTO_URL = /^mailto:/i;
+var RE_CID_URL = /^cid:/i;
+var RE_HTTP_URL = /^http(?:s)?/i;
+var RE_MAILTO_URL = /^mailto:/i;
 
-const RE_IMG_TAG = /^img$/;
+var RE_IMG_TAG = /^img$/;
 
 /**
  * Transforms src tags, ensure that links are http and transform them too so
@@ -6271,9 +6271,9 @@ exports.sanitizeAndNormalizeHtml = function sanitizeAndNormalize(htmlString) {
   return sanitizedNode;
 };
 
-const ELEMENT_NODE = 1, TEXT_NODE = 3;
+var ELEMENT_NODE = 1, TEXT_NODE = 3;
 
-const RE_NORMALIZE_WHITESPACE = /\s+/g;
+var RE_NORMALIZE_WHITESPACE = /\s+/g;
 
 /**
  * Derive snippet text from the already-sanitized HTML representation.
@@ -6381,7 +6381,7 @@ exports.wrapTextIntoSafeHTMLString = function(text, wrapTag,
   return wrapNode.outerHTML;
 };
 
-const RE_QUOTE_CHAR = /"/g;
+var RE_QUOTE_CHAR = /"/g;
 
 /**
  * Make an HTML attribute value safe.
@@ -6420,7 +6420,7 @@ define('mailapi/mailchew',
     $htmlchew
   ) {
 
-const RE_RE = /^[Rr][Ee]: /;
+var RE_RE = /^[Rr][Ee]: /;
 
 /**
  * Generate the reply subject for a message given the prior subject.  This is
@@ -6629,9 +6629,9 @@ exports.generateForwardMessage = function generateForwardMessage(
   };
 };
 
-const HTML_WRAP_TOP =
+var HTML_WRAP_TOP =
   '<html><body><body bgcolor="#FFFFFF" text="#000000">';
-const HTML_WRAP_BOTTOM =
+var HTML_WRAP_BOTTOM =
   '</body></html>';
 
 /**
@@ -8330,7 +8330,6 @@ module.exports = function(address){
     });
 };
 });
-
 define('crypto',['require','exports','module'],function(require, exports, module) {
 
 exports.createHash = function(algorithm) {
@@ -8956,7 +8955,6 @@ function hasUTFChars(str){
     return !!rforeign.test(str);
 }
 });
-
 define('http',['require','exports','module'],function(require, exports, module) {
 });
 
@@ -9039,7 +9037,6 @@ function openUrlStream(url, options){
     return stream; 
 }
 });
-
 define('fs',['require','exports','module'],function(require, exports, module) {
 });
 
@@ -10285,7 +10282,6 @@ MailComposer.prototype._getMimeType = function(filename){
     return extension && mimelib.contentTypes[extension] || defaultMime;
 };
 });
-
 define('mailcomposer',['./mailcomposer/lib/mailcomposer'], function (main) {
     return main;
 });
@@ -10502,14 +10498,14 @@ define('mailapi/mailbridge',
     $module,
     exports
   ) {
-const bsearchForInsert = $imaputil.bsearchForInsert,
-      bsearchMaybeExists = $imaputil.bsearchMaybeExists;
+var bsearchForInsert = $imaputil.bsearchForInsert,
+    bsearchMaybeExists = $imaputil.bsearchMaybeExists;
 
 function toBridgeWireOn(x) {
   return x.toBridgeWire();
 }
 
-const FOLDER_TYPE_TO_SORT_PRIORITY = {
+var FOLDER_TYPE_TO_SORT_PRIORITY = {
   account: 'a',
   inbox: 'c',
   starred: 'e',
@@ -11529,7 +11525,7 @@ define('mailapi/a64',
  * JS coders) ordering which makes it tractable to eyeball an encoded value and
  * not be completely confused/misled.
  */
-const ORDERED_ARBITRARY_BASE64_CHARS = [
+var ORDERED_ARBITRARY_BASE64_CHARS = [
   '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
   'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J',
   'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
@@ -11542,7 +11538,7 @@ const ORDERED_ARBITRARY_BASE64_CHARS = [
  * Zero padding to get us up to the maximum encoding length of a 64-bit value in
  * our encoding (11) or for decimal re-conversion (16).
  */
-const ZERO_PADDING = '0000000000000000';
+var ZERO_PADDING = '0000000000000000';
 
 /**
  * Encode a JS int in our base64 encoding.
@@ -11568,7 +11564,7 @@ exports.encodeInt = encodeInt;
  * 10^14 >> 14 so that its 'lowest' binary 1 ends up in the one's place.  It
  * is encoded in 33 bits itself.
  */
-const E10_14_RSH_14 = Math.pow(10, 14) / Math.pow(2, 14),
+var E10_14_RSH_14 = Math.pow(10, 14) / Math.pow(2, 14),
       P2_14 = Math.pow(2, 14),
       P2_22 = Math.pow(2, 22),
       P2_32 = Math.pow(2, 32),
@@ -11771,14 +11767,14 @@ define('mailapi/date',
  *
  * !BEFORE(a, b) === SINCE(a, b)
  */
-const BEFORE = exports.BEFORE =
+var BEFORE = exports.BEFORE =
       function BEFORE(testDate, comparisonDate) {
   // testDate is numerically less than comparisonDate, so it is chronologically
   // before it.
   return testDate < comparisonDate;
 };
 
-const ON_OR_BEFORE = exports.ON_OR_BEFORE =
+var ON_OR_BEFORE = exports.ON_OR_BEFORE =
       function ON_OR_BEFORE(testDate, comparisonDate) {
   return testDate <= comparisonDate;
 };
@@ -11789,19 +11785,19 @@ const ON_OR_BEFORE = exports.ON_OR_BEFORE =
  *
  * !SINCE(a, b) === BEFORE(a, b)
  */
-const SINCE = exports.SINCE =
+var SINCE = exports.SINCE =
       function SINCE(testDate, comparisonDate) {
   // testDate is numerically greater-than-or-equal-to comparisonDate, so it
   // chronologically after/since it.
   return testDate >= comparisonDate;
 };
 
-const STRICTLY_AFTER = exports.STRICTLY_AFTER =
+var STRICTLY_AFTER = exports.STRICTLY_AFTER =
       function STRICTLY_AFTER(testDate, comparisonDate) {
   return testDate > comparisonDate;
 };
 
-const IN_BS_DATE_RANGE = exports.IN_BS_DATE_RANGE =
+var IN_BS_DATE_RANGE = exports.IN_BS_DATE_RANGE =
       function IN_BS_DATE_RANGE(testDate, startTS, endTS) {
   return testDate >= startTS && testDate < endTS;
 };
@@ -11809,8 +11805,8 @@ const IN_BS_DATE_RANGE = exports.IN_BS_DATE_RANGE =
 //function DATE_RANGES_OVERLAP(A_startTS, A_endTS, B_startTS, B_endTS) {
 //}
 
-const HOUR_MILLIS = exports.HOUR_MILLIS = 60 * 60 * 1000;
-const DAY_MILLIS = exports.DAY_MILLIS = 24 * 60 * 60 * 1000;
+var HOUR_MILLIS = exports.HOUR_MILLIS = 60 * 60 * 1000;
+var DAY_MILLIS = exports.DAY_MILLIS = 24 * 60 * 60 * 1000;
 
 /**
  * Testing override that when present replaces use of Date.now().
@@ -11835,11 +11831,11 @@ exports.TEST_LetsDoTheTimewarpAgain = function(fakeNow) {
   FUTURE_TIME_WARPED_NOW = quantizeDate(fakeNow + DAY_MILLIS);
 };
 
-const NOW = exports.NOW =
+var NOW = exports.NOW =
       function NOW() {
   return TIME_WARPED_NOW || Date.now();
 };
-const FUTURE = exports.FUTURE =
+var FUTURE = exports.FUTURE =
       function FUTURE() {
   return FUTURE_TIME_WARPED_NOW || null;
 };
@@ -11849,7 +11845,7 @@ const FUTURE = exports.FUTURE =
  * that day.  This results in rounding up; if it's noon right now and you
  * ask for 2 days ago, you really get 2.5 days worth of time.
  */
-const makeDaysAgo = exports.makeDaysAgo =
+var makeDaysAgo = exports.makeDaysAgo =
       function makeDaysAgo(numDays) {
   var //now = quantizeDate(TIME_WARPED_NOW || Date.now()),
       //past = now - numDays * DAY_MILLIS;
@@ -11857,14 +11853,14 @@ const makeDaysAgo = exports.makeDaysAgo =
                (numDays + 1) * DAY_MILLIS;
   return past;
 };
-const makeDaysBefore = exports.makeDaysBefore =
+var makeDaysBefore = exports.makeDaysBefore =
       function makeDaysBefore(date, numDaysBefore) {
   return quantizeDate(date) - numDaysBefore * DAY_MILLIS;
 };
 /**
  * Quantize a date to midnight on that day.
  */
-const quantizeDate = exports.quantizeDate =
+var quantizeDate = exports.quantizeDate =
       function quantizeDate(date) {
   if (typeof(date) === 'number')
     date = new Date(date);
@@ -12143,7 +12139,7 @@ exports.CHECK_INTERVALS_ENUMS_TO_MS = {
  */
 exports.DEFAULT_CHECK_INTERVAL_ENUM = 'manual';
 
-const DAY_MILLIS = 24 * 60 * 60 * 1000;
+var DAY_MILLIS = 24 * 60 * 60 * 1000;
 
 /**
  * Map the ActiveSync-limited list of sync ranges to milliseconds.  Do NOT
@@ -12260,7 +12256,7 @@ else {
  * Bumping to 17 because we changed the folder representation to store
  * hierarchy.
  */
-const CUR_VERSION = exports.CUR_VERSION = 17;
+var CUR_VERSION = exports.CUR_VERSION = 17;
 
 /**
  * What is the lowest database version that we are capable of performing a
@@ -12270,17 +12266,17 @@ const CUR_VERSION = exports.CUR_VERSION = 17;
  * Note that this type of upgrade can still be EXTREMELY DANGEROUS because it
  * may blow away user actions that haven't hit a server yet.
  */
-const FRIENDLY_LAZY_DB_UPGRADE_VERSION = 5;
+var FRIENDLY_LAZY_DB_UPGRADE_VERSION = 5;
 
 /**
  * The configuration table contains configuration data that should persist
  * despite implementation changes. Global configuration data, and account login
  * info.  Things that would be annoying for us to have to re-type.
  */
-const TBL_CONFIG = 'config',
-      CONFIG_KEY_ROOT = 'config',
-      // key: accountDef:`AccountId`
-      CONFIG_KEYPREFIX_ACCOUNT_DEF = 'accountDef:';
+var TBL_CONFIG = 'config',
+    CONFIG_KEY_ROOT = 'config',
+    // key: accountDef:`AccountId`
+    CONFIG_KEYPREFIX_ACCOUNT_DEF = 'accountDef:';
 
 /**
  * The folder-info table stores meta-data about the known folders for each
@@ -12296,7 +12292,7 @@ const TBL_CONFIG = 'config',
  *
  * key: `AccountId`
  */
-const TBL_FOLDER_INFO = 'folderInfo';
+var TBL_FOLDER_INFO = 'folderInfo';
 
 /**
  * Stores time-clustered information about messages in folders.  Message bodies
@@ -12314,7 +12310,7 @@ const TBL_FOLDER_INFO = 'folderInfo';
  * globally unique identifier (ex: gmail's X-GM-MSGID values).  The values are
  * the info on the message; see `ImapFolderStorage` for details.
  */
-const TBL_HEADER_BLOCKS = 'headerBlocks';
+var TBL_HEADER_BLOCKS = 'headerBlocks';
 /**
  * Stores time-clustered information about message bodies.  Body details include
  * the list of attachments, as well as the body payloads and the embedded inline
@@ -12330,7 +12326,7 @@ const TBL_HEADER_BLOCKS = 'headerBlocks';
  * globally unique identifier (ex: gmail's X-GM-MSGID values).  The values are
  * the info on the message; see `ImapFolderStorage` for details.
  */
-const TBL_BODY_BLOCKS = 'bodyBlocks';
+var TBL_BODY_BLOCKS = 'bodyBlocks';
 
 /**
  * DB helper methods for Gecko's IndexedDB implementation.  We are assuming
@@ -12768,19 +12764,19 @@ define('mailapi/cronsync',
 /**
  * Sanity demands we do not check more frequently than once a minute.
  */
-const MINIMUM_SYNC_INTERVAL_MS = 60 * 1000;
+var MINIMUM_SYNC_INTERVAL_MS = 60 * 1000;
 
 /**
  * How long should we let a synchronization run before we give up on it and
  * potentially try and kill it (if we can)?
  */
-const MAX_SYNC_DURATION_MS = 3 * 60 * 1000;
+var MAX_SYNC_DURATION_MS = 3 * 60 * 1000;
 
 /**
  * Caps the number of notifications we generate per account.  It would be
  * sitcom funny to let this grow without bound, but would end badly in reality.
  */
-const MAX_MESSAGES_TO_REPORT_PER_ACCOUNT = 5;
+var MAX_MESSAGES_TO_REPORT_PER_ACCOUNT = 5;
 
 /**
  * Implements the interface of `MailSlice` as presented to `FolderStorage`, but
@@ -13272,8 +13268,9 @@ var autoconfigByDomain = exports._autoconfigByDomain = {
  * @return the new identities
  */
 function recreateIdentities(universe, accountId, oldIdentities) {
-  let identities = [];
-  for (let [,oldIdentity] in Iterator(oldIdentities)) {
+  var identities = [];
+  for (var iter in Iterator(oldIdentities)) {
+    var oldIdentity = iter[1];
     identities.push({
       id: accountId + '/' + $a64.encodeInt(universe.config.nextIdentityNum++),
       name: oldIdentity.name,
@@ -13387,7 +13384,7 @@ Autoconfigurator.prototype = {
    *        info, formatted as JSON
    */
   _getXmlConfig: function getXmlConfig(url, callback) {
-    let xhr = new XMLHttpRequest({mozSystem: true});
+    var xhr = new XMLHttpRequest({mozSystem: true});
     xhr.open('GET', url, true);
     xhr.timeout = this.timeout;
 
@@ -13402,31 +13399,35 @@ Autoconfigurator.prototype = {
       // issue), trying to use responseXML results in a SecurityError when
       // running XPath queries. So let's just do an end-run around the
       // "security".
-      let doc = new DOMParser().parseFromString(xhr.responseText, 'text/xml');
+      var doc = new DOMParser().parseFromString(xhr.responseText, 'text/xml');
       function getNode(xpath, rel) {
         return doc.evaluate(xpath, rel || doc, null,
                             XPathResult.FIRST_ORDERED_NODE_TYPE, null)
                   .singleNodeValue;
       }
 
-      let provider = getNode('/clientConfig/emailProvider');
+      var provider = getNode('/clientConfig/emailProvider');
       // Get the first incomingServer we can use (we assume first == best).
-      let incoming = getNode('incomingServer[@type="imap"] | ' +
+      var incoming = getNode('incomingServer[@type="imap"] | ' +
                              'incomingServer[@type="activesync"]', provider);
-      let outgoing = getNode('outgoingServer[@type="smtp"]', provider);
+      var outgoing = getNode('outgoingServer[@type="smtp"]', provider);
 
       if (incoming) {
-        let config = { type: null, incoming: {}, outgoing: {} };
-        for (let [,child] in Iterator(incoming.children))
+        var config = { type: null, incoming: {}, outgoing: {} };
+        for (var iter in Iterator(incoming.children)) {
+          var child = iter[1];
           config.incoming[child.tagName] = child.textContent;
+        }
 
         if (incoming.getAttribute('type') === 'activesync') {
           config.type = 'activesync';
         }
         else if (outgoing) {
           config.type = 'imap+smtp';
-          for (let [,child] in Iterator(outgoing.children))
+          for (var iter in Iterator(outgoing.children)) {
+            var child = iter[1];
             config.outgoing[child.tagName] = child.textContent;
+          }
 
           // We do not support unencrypted connections outside of unit tests.
           if (config.incoming.socketType !== 'SSL' ||
@@ -13511,7 +13512,7 @@ Autoconfigurator.prototype = {
           return;
         }
 
-        let autoconfig = {
+        var autoconfig = {
           type: 'activesync',
           displayName: config.user.name,
           incoming: {
@@ -13536,10 +13537,10 @@ Autoconfigurator.prototype = {
    */
   _getConfigFromDomain: function getConfigFromDomain(userDetails, domain,
                                                      callback) {
-    let suffix = '/mail/config-v1.1.xml?emailaddress=' +
+    var suffix = '/mail/config-v1.1.xml?emailaddress=' +
                  encodeURIComponent(userDetails.emailAddress);
-    let url = 'http://autoconfig.' + domain + suffix;
-    let self = this;
+    var url = 'http://autoconfig.' + domain + suffix;
+    var self = this;
 
     this._getXmlConfig(url, function(error, config, errorDetails) {
       if (self._isSuccessOrFatal(error)) {
@@ -13548,7 +13549,7 @@ Autoconfigurator.prototype = {
       }
 
       // See <http://tools.ietf.org/html/draft-nottingham-site-meta-04>.
-      let url = 'http://' + domain + '/.well-known/autoconfig' + suffix;
+      var url = 'http://' + domain + '/.well-known/autoconfig' + suffix;
       self._getXmlConfig(url, function(error, config, errorDetails) {
         if (self._isSuccessOrFatal(error)) {
           callback(error, config, errorDetails);
@@ -13582,7 +13583,7 @@ Autoconfigurator.prototype = {
    *        domain
    */
   _getMX: function getMX(domain, callback) {
-    let xhr = new XMLHttpRequest({mozSystem: true});
+    var xhr = new XMLHttpRequest({mozSystem: true});
     xhr.open('GET', 'https://live.mozillamessaging.com/dns/mx/' +
              encodeURIComponent(domain), true);
     xhr.timeout = this.timeout;
@@ -13613,7 +13614,7 @@ Autoconfigurator.prototype = {
    *        info, formatted as JSON
    */
   _getConfigFromMX: function getConfigFromMX(domain, callback) {
-    let self = this;
+    var self = this;
     this._getMX(domain, function(error, mxDomain, errorDetails) {
       if (error)
         return callback(error, null, errorDetails);
@@ -13655,8 +13656,9 @@ Autoconfigurator.prototype = {
    *        info, formatted as JSON
    */
   getConfig: function getConfig(userDetails, callback) {
-    let [emailLocalPart, emailDomainPart] = userDetails.emailAddress.split('@');
-    let domain = emailDomainPart.toLowerCase();
+    var details = userDetails.emailAddress.split('@');
+    var emailLocalPart = details[0], emailDomainPart = details[1];
+    var domain = emailDomainPart.toLowerCase();
     console.log('Attempting to get autoconfiguration for', domain);
 
     var placeholderFields = {
@@ -13676,12 +13678,14 @@ Autoconfigurator.prototype = {
 
       // Fill any placeholder strings in the configuration object we retrieved.
       if (config) {
-        for (let [serverType, fields] in Iterator(placeholderFields)) {
+        for (var iter in Iterator(placeholderFields)) {
+          var serverType = iter[0], fields = iter[1];
           if (!config.hasOwnProperty(serverType))
             continue;
 
-          let server = config[serverType];
-          for (let [,field] in Iterator(fields)) {
+          var server = config[serverType];
+          for (var iter2 in Iterator(fields)) {
+            var field = iter2[1];
             if (server.hasOwnProperty(field))
               server[field] = fillPlaceholder(server[field]);
           }
@@ -13697,7 +13701,7 @@ Autoconfigurator.prototype = {
       return;
     }
 
-    let self = this;
+    var self = this;
     console.log('  Looking in local file store');
     this._getConfigFromLocalFile(domain, function(error, config, errorDetails) {
       if (self._isSuccessOrFatal(error)) {
@@ -13739,7 +13743,7 @@ Autoconfigurator.prototype = {
    *        info, formatted as JSON
    */
   tryToCreateAccount: function(universe, userDetails, callback) {
-    let self = this;
+    var self = this;
     this.getConfig(userDetails, function(error, config, errorDetails) {
       if (error)
         return callback(error, null, errorDetails);
@@ -13817,13 +13821,13 @@ define('mailapi/mailuniverse',
  *
  * This limit obviously is not used to discard operations not yet performed!
  */
-const MAX_MUTATIONS_FOR_UNDO = 10;
+var MAX_MUTATIONS_FOR_UNDO = 10;
 
 /**
  * When debug logging is enabled, how many second's worth of samples should
  * we keep?
  */
-const MAX_LOG_BACKLOG = 30;
+var MAX_LOG_BACKLOG = 30;
 
 /**
  * The MailUniverse is the keeper of the database, the root logging instance,
@@ -17427,7 +17431,7 @@ exports.chewHeaderAndBodyStructure = function chewStructure(msg) {
   };
 };
 
-const DESIRED_SNIPPET_LENGTH = 100;
+var DESIRED_SNIPPET_LENGTH = 100;
 
 /**
  * Call once the body parts requested by `chewHeaderAndBodyStructure` have been
@@ -17548,18 +17552,18 @@ define('mailapi/imap/folder',
     $module,
     exports
   ) {
-const allbackMaker = $allback.allbackMaker,
-      bsearchForInsert = $util.bsearchForInsert,
-      bsearchMaybeExists = $util.bsearchMaybeExists,
-      cmpHeaderYoungToOld = $util.cmpHeaderYoungToOld,
-      DAY_MILLIS = $date.DAY_MILLIS,
-      NOW = $date.NOW,
-      FUTURE = $date.FUTURE,
-      BEFORE = $date.BEFORE,
-      ON_OR_BEFORE = $date.ON_OR_BEFORE,
-      SINCE = $date.SINCE,
-      makeDaysBefore = $date.makeDaysBefore,
-      quantizeDate = $date.quantizeDate;
+var allbackMaker = $allback.allbackMaker,
+    bsearchForInsert = $util.bsearchForInsert,
+    bsearchMaybeExists = $util.bsearchMaybeExists,
+    cmpHeaderYoungToOld = $util.cmpHeaderYoungToOld,
+    DAY_MILLIS = $date.DAY_MILLIS,
+    NOW = $date.NOW,
+    FUTURE = $date.FUTURE,
+    BEFORE = $date.BEFORE,
+    ON_OR_BEFORE = $date.ON_OR_BEFORE,
+    SINCE = $date.SINCE,
+    makeDaysBefore = $date.makeDaysBefore,
+    quantizeDate = $date.quantizeDate;
 
 /**
  * Compact an array in-place with nulls so that the nulls are removed.  This
@@ -17589,7 +17593,7 @@ function compactArray(arr) {
  * us with an upper bound on the messages in the folder since we are blinding
  * ourselves to deleted messages.
  */
-const BASELINE_SEARCH_OPTIONS = ['!DELETED'];
+var BASELINE_SEARCH_OPTIONS = ['!DELETED'];
 
 /**
  * Fetch parameters to get the headers / bodystructure; exists to reuse the
@@ -17606,7 +17610,7 @@ const BASELINE_SEARCH_OPTIONS = ['!DELETED'];
  * right now either, but that's a lesser issue.  We probably don't want to trust
  * that data, however, if we don't want to trust normal ENVELOPE.
  */
-const INITIAL_FETCH_PARAMS = {
+var INITIAL_FETCH_PARAMS = {
   request: {
     headers: ['FROM', 'TO', 'CC', 'BCC', 'SUBJECT', 'REPLY-TO', 'MESSAGE-ID',
               'REFERENCES'],
@@ -17619,7 +17623,7 @@ const INITIAL_FETCH_PARAMS = {
  * Fetch parameters to just get the flags, which is no parameters because
  * imap.js always fetches them right now.
  */
-const FLAG_FETCH_PARAMS = {
+var FLAG_FETCH_PARAMS = {
   request: {
     struct: false,
     headers: false,
@@ -17974,11 +17978,11 @@ console.log("backoff! had", serverUIDs.length, "from", curDaysDelta,
 console.log("_commonSync", 'newUIDs', newUIDs.length, 'knownUIDs',
             knownUIDs.length, 'knownHeaders', knownHeaders.length);
     // See the `ImapFolderConn` block comment for rationale.
-    const KNOWN_HEADERS_AGGR_COST = 20,
-          KNOWN_HEADERS_PER_COST = 1,
-          NEW_HEADERS_AGGR_COST = 20,
-          NEW_HEADERS_PER_COST = 5,
-          NEW_BODIES_PER_COST = 30;
+    var KNOWN_HEADERS_AGGR_COST = 20,
+        KNOWN_HEADERS_PER_COST = 1,
+        NEW_HEADERS_AGGR_COST = 20,
+        NEW_HEADERS_PER_COST = 5,
+        NEW_BODIES_PER_COST = 30;
     var progressCost =
           (knownUIDs.length ? KNOWN_HEADERS_AGGR_COST : 0) +
           KNOWN_HEADERS_PER_COST * knownUIDs.length +
@@ -18220,6 +18224,7 @@ console.warn('  FLAGS: "' + header.flags.toString() + '" VS "' +
 
   downloadMessageAttachments: function(uid, partInfos, callback, progress) {
     var conn = this._conn;
+    var self = this;
     var mparser = new $mailparser.MailParser();
 
     // I actually implemented a usable shim for the checksum purposes, but we
@@ -18936,22 +18941,22 @@ define('mailapi/mailslice',
     $module,
     exports
   ) {
-const bsearchForInsert = $util.bsearchForInsert,
-      bsearchMaybeExists = $util.bsearchMaybeExists,
-      cmpHeaderYoungToOld = $util.cmpHeaderYoungToOld,
-      allbackMaker = $allback.allbackMaker,
-      BEFORE = $date.BEFORE,
-      ON_OR_BEFORE = $date.ON_OR_BEFORE,
-      SINCE = $date.SINCE,
-      STRICTLY_AFTER = $date.STRICTLY_AFTER,
-      IN_BS_DATE_RANGE = $date.IN_BS_DATE_RANGE,
-      HOUR_MILLIS = $date.HOUR_MILLIS,
-      DAY_MILLIS = $date.DAY_MILLIS,
-      NOW = $date.NOW,
-      FUTURE = $date.FUTURE,
-      makeDaysAgo = $date.makeDaysAgo,
-      makeDaysBefore = $date.makeDaysBefore,
-      quantizeDate = $date.quantizeDate;
+var bsearchForInsert = $util.bsearchForInsert,
+    bsearchMaybeExists = $util.bsearchMaybeExists,
+    cmpHeaderYoungToOld = $util.cmpHeaderYoungToOld,
+    allbackMaker = $allback.allbackMaker,
+    BEFORE = $date.BEFORE,
+    ON_OR_BEFORE = $date.ON_OR_BEFORE,
+    SINCE = $date.SINCE,
+    STRICTLY_AFTER = $date.STRICTLY_AFTER,
+    IN_BS_DATE_RANGE = $date.IN_BS_DATE_RANGE,
+    HOUR_MILLIS = $date.HOUR_MILLIS,
+    DAY_MILLIS = $date.DAY_MILLIS,
+    NOW = $date.NOW,
+    FUTURE = $date.FUTURE,
+    makeDaysAgo = $date.makeDaysAgo,
+    makeDaysBefore = $date.makeDaysBefore,
+    quantizeDate = $date.quantizeDate;
 
 // What do we think the post-snappy compression overhead of the structured clone
 // persistence rep will be for various things?  These are total guesses right
@@ -18959,10 +18964,10 @@ const bsearchForInsert = $util.bsearchForInsert,
 // cases and we just hope it will compress a bit.  For the attributes we are
 // including the attribute name as well as any fixed-overhead for its payload,
 // especially numbers which may or may not be zig-zag encoded/etc.
-const OBJ_OVERHEAD_EST = 2, STR_ATTR_OVERHEAD_EST = 5,
-      NUM_ATTR_OVERHEAD_EST = 10, LIST_ATTR_OVERHEAD_EST = 4,
-      NULL_ATTR_OVERHEAD_EST = 2, LIST_OVERHEAD_EST = 4,
-      NUM_OVERHEAD_EST = 8, STR_OVERHEAD_EST = 4;
+var OBJ_OVERHEAD_EST = 2, STR_ATTR_OVERHEAD_EST = 5,
+    NUM_ATTR_OVERHEAD_EST = 10, LIST_ATTR_OVERHEAD_EST = 4,
+    NULL_ATTR_OVERHEAD_EST = 2, LIST_OVERHEAD_EST = 4,
+    NUM_OVERHEAD_EST = 8, STR_OVERHEAD_EST = 4;
 
 /**
  * Intersects two objects each defining tupled ranges of the type
@@ -18970,7 +18975,7 @@ const OBJ_OVERHEAD_EST = 2, STR_ATTR_OVERHEAD_EST = 5,
  * This is exported for unit testing purposes and because no state is closed
  * over.
  */
-const tupleRangeIntersectsTupleRange = exports.tupleRangeIntersectsTupleRange =
+var tupleRangeIntersectsTupleRange = exports.tupleRangeIntersectsTupleRange =
     function tupleRangeIntersectsTupleRange(a, b) {
   if (BEFORE(a.endTS, b.startTS) ||
       STRICTLY_AFTER(a.startTS, b.endTS))
@@ -18985,7 +18990,7 @@ const tupleRangeIntersectsTupleRange = exports.tupleRangeIntersectsTupleRange =
  * What is the maximum number of bytes a block should store before we split
  * it?
  */
-const MAX_BLOCK_SIZE = 96 * 1024,
+var MAX_BLOCK_SIZE = 96 * 1024,
 /**
  * How many bytes should we target for the small part when splitting 1:2?
  */
@@ -22711,7 +22716,7 @@ RecipientFilter.prototype = {
   needsBody: true,
 
   testMessage: function(header, body, match) {
-    const phrase = this.phrase, stopAfter = this.stopAfter;
+    var phrase = this.phrase, stopAfter = this.stopAfter;
     var matches = [];
     function checkRecipList(list) {
       var ret;
@@ -22816,16 +22821,16 @@ exports.SubjectFilter = SubjectFilter;
 SubjectFilter.prototype = {
   needsBody: false,
   testMessage: function(header, body, match) {
-    const subject = header.subject;
+    var subject = header.subject;
     // Empty subjects can't match *anything*; no empty regexes allowed, etc.
     if (!subject)
       return false;
-    const phrase = this.phrase,
-          slen = subject.length,
-          stopAfter = this.stopAfter,
-          contextBefore = this.contextBefore, contextAfter = this.contextAfter,
-          matches = [];
-    var idx = 0;
+    var phrase = this.phrase,
+        slen = subject.length,
+        stopAfter = this.stopAfter,
+        contextBefore = this.contextBefore, contextAfter = this.contextAfter,
+        matches = [],
+        idx = 0;
 
     while (idx < slen && matches.length < stopAfter) {
       var ret = matchRegexpOrString(phrase, subject, idx);
@@ -22849,9 +22854,9 @@ SubjectFilter.prototype = {
 };
 
 // stable value from quotechew.js; full export regime not currently required.
-const CT_AUTHORED_CONTENT = 0x1;
+var CT_AUTHORED_CONTENT = 0x1;
 // HTML DOM constants
-const ELEMENT_NODE = 1, TEXT_NODE = 3;
+var ELEMENT_NODE = 1, TEXT_NODE = 3;
 
 /**
  * Searches the body of the message, it can ignore quoted stuff or not.
@@ -22874,12 +22879,12 @@ exports.BodyFilter = BodyFilter;
 BodyFilter.prototype = {
   needsBody: true,
   testMessage: function(header, body, match) {
-    const phrase = this.phrase,
-          stopAfter = this.stopAfter,
-          contextBefore = this.contextBefore, contextAfter = this.contextAfter,
-          matches = [],
-          matchQuotes = this.matchQuotes;
-    var idx;
+    var phrase = this.phrase,
+        stopAfter = this.stopAfter,
+        contextBefore = this.contextBefore, contextAfter = this.contextAfter,
+        matches = [],
+        matchQuotes = this.matchQuotes,
+        idx;
 
     for (var iBodyRep = 0; iBodyRep < body.bodyReps.length; iBodyRep += 2) {
       var bodyType = body.bodyReps[iBodyRep],
@@ -23013,7 +23018,7 @@ MessageFilterer.prototype = {
     //console.log('sf: testMessage(', header.suid, header.author.address,
     //            header.subject, 'body?', !!body, ')');
     var matched = false, matchObj = {};
-    const filters = this.filters;
+    var filters = this.filters;
     try {
       for (var i = 0; i < filters.length; i++) {
         var filter = filters[i];
@@ -23032,8 +23037,8 @@ MessageFilterer.prototype = {
   },
 };
 
-const CONTEXT_CHARS_BEFORE = 16;
-const CONTEXT_CHARS_AFTER = 40;
+var CONTEXT_CHARS_BEFORE = 16;
+var CONTEXT_CHARS_AFTER = 40;
 
 /**
  *
@@ -23352,7 +23357,7 @@ exports.local_undo_modtags = function(op, callback) {
 exports.local_do_move = function(op, doneCallback, targetFolderId) {
   // create a scratch field to store the guid's for check purposes
   op.guids = {};
-  const nukeServerIds = !this.resilientServerIds;
+  var nukeServerIds = !this.resilientServerIds;
 
   var stateDelta = this._stateDelta, addWait = 0, self = this;
   if (!stateDelta.moveMap)
@@ -23874,7 +23879,7 @@ exports.runOp = function runOp(op, mode, callback) {
  * if no such folder exists.
  */
 exports.getFirstFolderWithType = function(type) {
-  const folders = this.folders;
+  var folders = this.folders;
   for (var iFolder = 0; iFolder < folders.length; iFolder++) {
     if (folders[iFolder].type === type)
       return folders[iFolder];
