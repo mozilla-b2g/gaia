@@ -184,8 +184,12 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
   position: relative;
 }
 
+.view-edit-contact fieldset {
+  border-radius: 0.3rem 0.3rem 0 0;
+}
+
 .view-edit-contact form li section + button {
-  margin-top: -0.7rem;
+  margin-top: -0.6rem;
   border-radius: 0 0 0.4rem 0.4rem;
 }
 
@@ -213,6 +217,10 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
 
 .view-edit-contact .fillflow-row-action:active {
   background: none;
+}
+
+.view-edit-contact .setbox-item input {
+  border-radius: 0.3rem 0.3rem 0 0;
 }
 
 /* FB info (non-editable) */
@@ -247,14 +255,6 @@ form p textarea + button[type="reset"].hide {
   display: block!important;
   opacity: 0;
   pointer-events: none;
-}
-
-fieldset legend.action {
-  padding-right: 1.8rem;
-}
-
-fieldset legend.action:after {
-  right: 1rem;
 }
 
 /* Favorites handling */

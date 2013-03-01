@@ -147,11 +147,6 @@ textarea {
   height: 4.6rem;
 }
 
-input[type="text"], textarea {
-  font: 1.3rem/4rem MozTT, Sans-serif;
-  font-weight: 600;
-}
-
 input[type="text"]:focus, textarea:focus {
   border-color: #7a7a7a;
 }
@@ -438,8 +433,8 @@ span[role="button"].icon-delete {
 
 span[role="button"].icon-addimage {
   background-image: url(/contacts/style/gphx/bitmap/default/forms/add.png);
-  width: 2.8rem;
-  height: 2.8rem;
+  width: 3rem;
+  height: 2.9rem;
 }
 
 li button.icon-call:before {
@@ -580,13 +575,14 @@ span[role="button"].icon-arrow.icon-arrow-right {
 
 /* MEDIA: specific ratio used in forms; */
 .fillflow-media {
-  border: solid 1px #c8c8c8;
   margin: 0 0.5rem 0.5rem 0;
   width: 8.8rem;
   height: 8.3rem;
   position: relative;
-  background-color: #fff;
   z-index: 0;
+  border: 0.1rem solid rgb(204, 204, 204);
+  border-radius: 0.3rem 0.3rem 0.3rem 0.3rem;
+  background: #fff url("/contacts/style/gphx/bitmap/default/forms/shadow.png") repeat-x;
 }
 .fillflow-media p {
   position: absolute;
@@ -599,11 +595,11 @@ span[role="button"].icon-arrow.icon-arrow-right {
 
 .fillflow-media p em {
   display: block;
-  color: #777;
+  color: #858585;
   font-size: 1.3rem;
-  font-weight: bold;
+  font-weight: normal;
   font-style: normal;
-  margin-top: 1rem;
+  margin-top: 0.5rem;
 }
 
 .fillflow-media .edit-photo {
