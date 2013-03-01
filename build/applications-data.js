@@ -96,6 +96,17 @@ function iconDescriptor(directory, app_name, entry_point) {
   };
 }
 
+function getCustomize(name) {
+  var content;
+  if (Gaia.customizeFolder) {
+    let customize = getFile(Gaia.customizeFolder, name + '.json');
+    if (customize.exists()) {
+      content = getJSON(customize);
+    }
+  }
+  return content;
+}
+
 // zeroth grid page is the dock
 let customize = {"homescreens": [
   [
@@ -123,9 +134,9 @@ if (DOGFOOD == 1) {
   customize.homescreens[0].push(["dogfood_apps", "feedback"]);
 }
 
-let init = getFile(GAIA_DIR, 'customize.json');
-if (init.exists()) {
-  customize = getJSON(init);
+let homescreens = getCustomize('homescreens');
+if (homescreens) {
+  customize = homescreens;
 }
 
 let content = {
@@ -147,7 +158,7 @@ let content = {
   )
 };
 
-init = getFile(GAIA_DIR, GAIA_CORE_APP_SRCDIR, 'homescreen', 'js', 'init.json');
+let init = getFile(GAIA_DIR, GAIA_CORE_APP_SRCDIR, 'homescreen', 'js', 'init.json');
 writeContent(init, JSON.stringify(content));
 
 // Apps that should never appear in settings > app permissions
@@ -197,11 +208,22 @@ content = {
   default_low_limit_threshold: 3
 };
 
+let costcontrol = getCustomize('costcontrol');
+if (costcontrol) {
+  content = costcontrol;
+}
+
 writeContent(init, JSON.stringify(content));
 
 // SMS
 init = getFile(GAIA_DIR, 'apps', 'sms', 'js', 'blacklist.json');
 content = ["1515", "7000"];
+
+let blacklist = getCustomize('sms-blacklist');
+if (blacklist) {
+  content = blacklist;
+}
+
 writeContent(init, JSON.stringify(content));
 
 // Browser
@@ -225,6 +247,11 @@ content = {
   ]
 }
 
+let browser = getCustomize('browser');
+if (browser) {
+  content = browser;
+}
+
 writeContent(init, JSON.stringify(content));
 
 // Support
@@ -245,6 +272,12 @@ content = {
     }
   ]
 }
+
+let support = getCustomize('support');
+if (support) {
+  content = support;
+}
+
 writeContent(init, JSON.stringify(content));
 
 // ICC / STK
@@ -252,4 +285,10 @@ init = getFile(GAIA_DIR, 'apps', 'settings', 'resources', 'icc.json');
 content = {
   "defaultURL": "http://www.mozilla.org/en-US/firefoxos/"
 }
+
+let icc = getCustomize('icc');
+if (icc) {
+  content = icc;
+}
+
 writeContent(init, JSON.stringify(content));
