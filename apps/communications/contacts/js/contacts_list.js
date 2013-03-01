@@ -319,6 +319,10 @@ contacts.List = (function() {
 
     // Performance testing
     function renderChunks(index) {
+      if (index === 0) {
+        PerformanceTestingHelper.dispatch('contacts-first-chunk');
+      }
+
       if (numberOfChunks === index) {
         // Last round. Rendering remaining
         var remaining = length % CHUNK_SIZE;
@@ -364,6 +368,7 @@ contacts.List = (function() {
     FixedHeader.refresh();
     lazyLoadImages();
     loaded = true;
+    PerformanceTestingHelper.dispatch('contacts-last-chunk');
   };
 
   // Method that fills non-visible datasets
