@@ -768,11 +768,13 @@ function padLeft(num, length) {
 
 function formatDuration(duration) {
   var minutes = Math.floor(duration / 60);
-  var seconds = Math.round(duration % 60);
+  var seconds = Math.floor(duration % 60);
   if (minutes < 60) {
     return padLeft(minutes, 2) + ':' + padLeft(seconds, 2);
   }
-  return '';
+  var hours = Math.floor(minutes / 60);
+  minutes = Math.floor(minutes % 60);
+  return hours + ':' + padLeft(minutes, 2) + ':' + padLeft(seconds, 2);
 }
 
 function textTruncate(el) {
