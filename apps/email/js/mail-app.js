@@ -3,7 +3,7 @@
  * startup and eventually notifications.
  **/
 
-var MailAPI = null;
+// MailAPI is a global, set up by main-frame-setup.
 
 var App = {
   initialized: false,
@@ -34,50 +34,49 @@ var App = {
   _init: function() {
     // If our password is bad, we need to pop up a card to ask for the updated
     // password.
-    if (!MailAPI._fake) {
-      MailAPI.onbadlogin = function(account, problem) {
-        switch (problem) {
-          case 'bad-user-or-pass':
-            Cards.pushCard('setup-fix-password', 'default', 'animate',
-                      { account: account, restoreCard: Cards.activeCardIndex },
-                      'right');
-            break;
-          case 'imap-disabled':
-            Cards.pushCard('setup-fix-gmail-imap', 'default', 'animate',
-                      { account: account, restoreCard: Cards.activeCardIndex },
-                      'right');
-            break;
-          case 'needs-app-pass':
-            Cards.pushCard('setup-fix-gmail-twofactor', 'default', 'animate',
-                      { account: account, restoreCard: Cards.activeCardIndex },
-                      'right');
-            break;
-        }
-      };
+    MailAPI.onbadlogin = function(account, problem) {
+      switch (problem) {
+        case 'bad-user-or-pass':
+          Cards.pushCard('setup-fix-password', 'default', 'animate',
+                    { account: account, restoreCard: Cards.activeCardIndex },
+                    'right');
+          break;
+        case 'imap-disabled':
+          Cards.pushCard('setup-fix-gmail-imap', 'default', 'animate',
+                    { account: account, restoreCard: Cards.activeCardIndex },
+                    'right');
+          break;
+        case 'needs-app-pass':
+          Cards.pushCard('setup-fix-gmail-twofactor', 'default', 'animate',
+                    { account: account, restoreCard: Cards.activeCardIndex },
+                    'right');
+          break;
+      }
+    };
 
-      MailAPI.useLocalizedStrings({
-        wrote: mozL10n.get('reply-quoting-wrote'),
-        originalMessage: mozL10n.get('forward-original-message'),
-        forwardHeaderLabels: {
-          subject: mozL10n.get('forward-header-subject'),
-          date: mozL10n.get('forward-header-date'),
-          from: mozL10n.get('forward-header-from'),
-          replyTo: mozL10n.get('forward-header-reply-to'),
-          to: mozL10n.get('forward-header-to'),
-          cc: mozL10n.get('forward-header-cc')
-        },
-        folderNames: {
-          inbox: mozL10n.get('folder-inbox'),
-          sent: mozL10n.get('folder-sent'),
-          drafts: mozL10n.get('folder-drafts'),
-          trash: mozL10n.get('folder-trash'),
-          queue: mozL10n.get('folder-queue'),
-          junk: mozL10n.get('folder-junk'),
-          archives: mozL10n.get('folder-archives'),
-          localdrafts: mozL10n.get('folder-localdrafts')
-        }
-      });
-    }
+    MailAPI.useLocalizedStrings({
+      wrote: mozL10n.get('reply-quoting-wrote'),
+      originalMessage: mozL10n.get('forward-original-message'),
+      forwardHeaderLabels: {
+        subject: mozL10n.get('forward-header-subject'),
+        date: mozL10n.get('forward-header-date'),
+        from: mozL10n.get('forward-header-from'),
+        replyTo: mozL10n.get('forward-header-reply-to'),
+        to: mozL10n.get('forward-header-to'),
+        cc: mozL10n.get('forward-header-cc')
+      },
+      folderNames: {
+        inbox: mozL10n.get('folder-inbox'),
+        sent: mozL10n.get('folder-sent'),
+        drafts: mozL10n.get('folder-drafts'),
+        trash: mozL10n.get('folder-trash'),
+        queue: mozL10n.get('folder-queue'),
+        junk: mozL10n.get('folder-junk'),
+        archives: mozL10n.get('folder-archives'),
+        localdrafts: mozL10n.get('folder-localdrafts')
+      }
+    });
+
     this.initialized = true;
   },
 
@@ -90,16 +89,18 @@ var App = {
     var acctsSlice = MailAPI.viewAccounts(false);
     acctsSlice.oncomplete = function() {
       // - we have accounts, show the message view!
-      if (acctsSlice.items.length && !MailAPI._fake) {
+      if (acctsSlice.items.length) {
         // For now, just use the first one; we do attempt to put unified first
         // so this should generally do the right thing.
         // XXX: Because we don't have unified account now, we should switch to
         //       the latest account which user just added.
         var account = showLatest ? acctsSlice.items.slice(-1)[0] :
                                    acctsSlice.items[0];
+
         var foldersSlice = MailAPI.viewFolders('account', account);
         foldersSlice.oncomplete = function() {
           var inboxFolder = foldersSlice.getFirstFolderWithType('inbox');
+
           if (!inboxFolder)
             dieOnFatalError('We have an account without an inbox!',
                 foldersSlice.items);
@@ -146,39 +147,8 @@ var App = {
             activityCallback = null;
           }
         };
-      } else if (MailAPI._fake && MailAPI.hasAccounts) {
-        // Insert a fake card while loading finishes.
-        Cards.assertNoCards();
-        Cards.pushCard(
-          'message-list', 'nonsearch', 'immediate',
-          { folder: null }
-        );
-      }
-      // - no accounts, show the setup page!
-      else if (!Cards.hasCard(['setup-account-info', 'default'])) {
-        acctsSlice.die();
-        if (activityCallback) {
-          // Clear out activity callback, but do it
-          // before calling activityCallback, in
-          // case that code then needs to set a delayed
-          // activityCallback for later.
-          var activityCb = activityCallback;
-          activityCallback = null;
-          var result = activityCb();
-          if (!result)
-            return;
-        }
-
-        // Could have bad state from an incorrect _fake fast path.
-        // Mostly likely when the email app is updated from one that
-        // did not have the fast path cookies set up.
-        Cards.removeAllCards();
-
-        Cards.pushCard(
-          'setup-account-info', 'default', 'immediate',
-          {
-            allowBack: false
-          });
+      } else {
+        injectStartCard(acctsSlice);
       }
 
       if (MailAPI._fake) {
@@ -188,8 +158,58 @@ var App = {
         }, 4000);
       }
     };
+
+    acctsSlice.oncachereset = function() {
+      // Edge case cache error occurred, reset the UI.
+      acctsSlice.die();
+      App.showMessageViewOrSetup();
+    };
+
+    // Insert a starting card, based on best guess from cache
+    injectStartCard();
   }
 };
+
+function injectStartCard(acctsSlice) {
+  if (MailAPI._fake && MailAPI.hasAccounts) {
+    // Insert a fake card while loading finishes.
+    Cards.assertNoCards();
+    Cards.pushCard(
+      'message-list', 'nonsearch', 'immediate',
+      { folder: null }
+    );
+  } else {
+    if (acctsSlice)
+      acctsSlice.die();
+
+    // - no accounts, show the setup page!
+    if (!Cards.hasCard(['setup-account-info', 'default'])) {
+
+      if (activityCallback) {
+        // Clear out activity callback, but do it
+        // before calling activityCallback, in
+        // case that code then needs to set a delayed
+        // activityCallback for later.
+        var activityCb = activityCallback;
+        activityCallback = null;
+        var result = activityCb();
+        if (!result)
+          return;
+      }
+
+      // Could have bad state from an incorrect _fake fast path.
+      // Mostly likely when the email app is updated from one that
+      // did not have the fast path cookies set up.
+      Cards.removeAllCards();
+
+      Cards.pushCard(
+        'setup-account-info', 'default', 'immediate',
+        {
+          allowBack: false
+        });
+    }
+  }
+}
 
 var queryURI = function _queryURI(uri) {
   function addressesToArray(addresses) {
@@ -235,27 +255,14 @@ var queryURI = function _queryURI(uri) {
 
 function hookStartup() {
   var gotLocalized = (mozL10n.readyState === 'interactive') ||
-                     (mozL10n.readystate === 'complete'),
-      gotMailAPI = false,
-      inited = false;
+                     (mozL10n.readyState === 'complete');
+
   function doInit() {
     try {
-      if (inited) {
-        if (!MailAPI._fake) {
-          // Real MailAPI set up now. We could have guessed wrong
-          // for the fast path, particularly if this is an email
-          // app upgrade, where they set up an account, but our
-          // fast path for no account setup was not in place then.
-          App._init();
-          App.showMessageViewOrSetup();
-        }
-      } else {
-        inited = true;
-        populateTemplateNodes();
-        Cards._init();
-        App._init();
-        App.showMessageViewOrSetup();
-      }
+      populateTemplateNodes();
+      Cards._init();
+      App._init();
+      App.showMessageViewOrSetup();
     }
     catch (ex) {
       console.error('Problem initializing', ex, '\n', ex.stack);
@@ -267,24 +274,10 @@ function hookStartup() {
       console.log('got localized!');
       gotLocalized = true;
       window.removeEventListener('localized', localized);
-      if (gotMailAPI)
-        doInit();
+      doInit();
     });
-  }
-  window.addEventListener('mailapi', function(event) {
-    console.log('got MailAPI!');
-    MailAPI = event.mailAPI;
-    gotMailAPI = true;
-    if (gotLocalized)
-      doInit();
-  }, false);
-
-  if (window.tempMailAPI) {
-    console.log('got MailAPI from window!');
-    MailAPI = window.tempMailAPI;
-    gotMailAPI = true;
-    if (gotLocalized)
-      doInit();
+  } else {
+    doInit();
   }
 }
 hookStartup();
