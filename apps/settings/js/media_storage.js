@@ -136,11 +136,11 @@ var MediaStorage = {
 
     // clear the space info when it is disabled
     var idList = [
-      'music-space', 'pictures-space', 'videos-space', 'media-free-space'];
+      '#music-space .size', '#pictures-space .size', '#videos-space .size', '#media-free-space .size'];
     idList.forEach(function clearSpace(id) {
-      var element = document.getElementById(id);
+      var element = document.querySelector(id);
       if (element) {
-        element.firstElementChild.textContent = _('size-not-available');
+        element.textContent = _('size-not-available');
       }
     });
   },
