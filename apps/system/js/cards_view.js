@@ -306,9 +306,7 @@ var CardsView = (function() {
     }
 
     var origin = this.dataset.origin;
-    alignCurrentCard(function cardAligned() {
-      WindowManager.launch(origin);
-    });
+    WindowManager.launch(origin);
   }
 
   function closeApp(element, removeImmediately) {
@@ -317,12 +315,13 @@ var CardsView = (function() {
 
     // Fix for non selectable cards when we remove the last card
     // Described in https://bugzilla.mozilla.org/show_bug.cgi?id=825293
-    if (cardsList.children.length === currentDisplayed) {
+    var cardsLength = cardsList.children.length;
+    if (cardsLength === currentDisplayed) {
       currentDisplayed--;
     }
 
     // If there are no cards left, then dismiss the task switcher.
-    if (!cardsList.children.length)
+    if (!cardsLength)
       hideCardSwitcher(removeImmediately);
   }
 
@@ -416,19 +415,22 @@ var CardsView = (function() {
   // it's hard for us to evaluate that here.
   var removeCardThreshold = 100;
 
-  function alignCurrentCard(callback) {
+  function alignCurrentCard() {
     var number = currentDisplayed;
-    if (!cardsList.children[number])
+    if (!cardsList.children[number]) {
       return;
+    }
 
     var target = cardsList.children[number];
     var scrollLeft = cardsView.scrollLeft;
     var targetScrollLeft = target.offsetLeft;
 
-    if (Math.abs(scrollLeft - targetScrollLeft) < 4) {
-      cardsView.scrollLeft = target.offsetLeft;
-      if (callback)
-        callback();
+    var scrollDiff = scrollLeft - targetScrollLeft;
+    if (Math.abs(scrollDiff) < 4) {
+      if (scrollDiff) {
+        // don't assign if this is already the same value
+        cardsView.scrollLeft = targetScrollLeft;
+      }
       return;
     }
 
@@ -436,7 +438,7 @@ var CardsView = (function() {
     target.transform = '';
 
     window.mozRequestAnimationFrame(function newFrameCallback() {
-      alignCurrentCard(callback);
+      alignCurrentCard();
     });
   }
 
@@ -597,8 +599,6 @@ var CardsView = (function() {
         cardsList.removeChild(element);
 
         closeApp(element);
-
-        --currentDisplayed;
         alignCurrentCard();
         return;
       } else {
