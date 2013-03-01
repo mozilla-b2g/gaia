@@ -187,7 +187,27 @@ var App = {
         }, 4000);
       }
     };
-  }
+  },
+
+  /* Check whether the account already configured or not
+  */
+  checkAccountExist : function(accid,callback) {
+    // Get the list of accounts including the unified account (if it exists)
+    var accountsSlice = MailAPI.viewAccounts(false);
+    accountsSlice.oncomplete = function() {
+      // - we have accounts, show the message view!
+    var result = false;
+      if (accountsSlice.items.length) {
+        for (var i=0;i<accountsSlice.items.length;i++) {
+          if (accid === accountsSlice.items[i].username) {
+            result = true;
+            break;
+          }
+        }
+      }
+    callback(result);
+    };
+  }  
 };
 
 var queryURI = function _queryURI(uri) {
