@@ -42,6 +42,7 @@ var ConfirmDialog = (function() {
       screen.classList.add('fadeOut');
       screen.addEventListener('animationend', function cd_fadeOut(ev) {
         screen.removeEventListener('animationend', cd_fadeOut);
+        screen.classList.add('no-opacity');
         screen.classList.add('hide');
       });
     },
@@ -106,6 +107,10 @@ var ConfirmDialog = (function() {
       screen.classList.remove('hide');
       screen.classList.remove('fadeOut');
       screen.classList.add('fadeIn');
+      screen.addEventListener('animationend', function cd_fadeIn(ev) {
+        screen.removeEventListener('animationend', cd_fadeIn);
+        screen.classList.remove('no-opacity');
+      });
     }
   };
 }());
