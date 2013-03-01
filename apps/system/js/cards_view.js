@@ -270,25 +270,27 @@ var CardsView = (function() {
 
       // And then switch it with screenshots when one will be ready
       // (instead of -moz-element backgrounds)
-      frameForScreenshot.getScreenshot(rect.width, rect.height).onsuccess =
-        function gotScreenshot(screenshot) {
-          if (screenshot.target.result) {
-            var objectURL = URL.createObjectURL(screenshot.target.result);
+      if (typeof frameForScreenshot.getScreenshot === 'function') {
+        frameForScreenshot.getScreenshot(rect.width, rect.height).onsuccess =
+          function gotScreenshot(screenshot) {
+            if (screenshot.target.result) {
+              var objectURL = URL.createObjectURL(screenshot.target.result);
 
-            // Overwrite the cached image to prevent flickering
-            card.style.backgroundImage = 'url(' + objectURL + '), url(' + cachedLayer + ')';
+              // Overwrite the cached image to prevent flickering
+              card.style.backgroundImage = 'url(' + objectURL + '), url(' + cachedLayer + ')';
 
-            // setTimeout is needed to ensure that the image is fully drawn
-            // before we remove it. Otherwise the rendering is not smooth.
-            // See: https://bugzilla.mozilla.org/show_bug.cgi?id=844245
-            setTimeout(function() {
+              // setTimeout is needed to ensure that the image is fully drawn
+              // before we remove it. Otherwise the rendering is not smooth.
+              // See: https://bugzilla.mozilla.org/show_bug.cgi?id=844245
+              setTimeout(function() {
 
-              // Override the cached image
-              URL.revokeObjectURL(cachedLayer);
-              WindowManager.screenshots[origin] = objectURL;
-            }, 200);
-          }
-        };
+                // Override the cached image
+                URL.revokeObjectURL(cachedLayer);
+                WindowManager.screenshots[origin] = objectURL;
+              }, 200);
+            }
+          };
+      }
 
       // Set up event handling
       // A click elsewhere in the card switches to that task
@@ -372,6 +374,9 @@ var CardsView = (function() {
     // events to handle
     window.removeEventListener('lock', CardsView);
 
+    if (removeImmediately) {
+      cardsView.classList.add('no-transition');
+    }
     // Make the cardsView overlay inactive
     cardsView.classList.remove('active');
     cardsViewShown = false;
@@ -387,6 +392,7 @@ var CardsView = (function() {
     }
     if (removeImmediately) {
       removeCards();
+      cardsView.classList.remove('no-transition');
     } else {
       cardsView.addEventListener('transitionend', removeCards);
     }
@@ -426,11 +432,12 @@ var CardsView = (function() {
     var targetScrollLeft = target.offsetLeft;
 
     var scrollDiff = scrollLeft - targetScrollLeft;
+    if (!scrollDiff) {
+      return;
+    }
+
     if (Math.abs(scrollDiff) < 4) {
-      if (scrollDiff) {
-        // don't assign if this is already the same value
-        cardsView.scrollLeft = targetScrollLeft;
-      }
+      cardsView.scrollLeft = targetScrollLeft;
       return;
     }
 
@@ -705,8 +712,10 @@ var CardsView = (function() {
         showCardSwitcher();
         break;
 
-      case 'appwillopen':
-        hideCardSwitcher();
+      case 'appopen':
+        if (!evt.detail.isHomescreen) {
+          hideCardSwitcher(/* immediately */ true);
+        }
         break;
     }
   }
@@ -725,5 +734,5 @@ window.addEventListener('attentionscreenshow', CardsView);
 window.addEventListener('attentionscreenhide', CardsView);
 window.addEventListener('holdhome', CardsView);
 window.addEventListener('home', CardsView);
-window.addEventListener('appwillopen', CardsView);
+window.addEventListener('appopen', CardsView);
 
