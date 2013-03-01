@@ -157,8 +157,13 @@ var App = {
       else if (!Cards.hasCard(['setup-account-info', 'default'])) {
         acctsSlice.die();
         if (activityCallback) {
-          var result = activityCallback();
+          // Clear out activity callback, but do it
+          // before calling activityCallback, in
+          // case that code then needs to set a delayed
+          // activityCallback for later.
+          var activityCb = activityCallback;
           activityCallback = null;
+          var result = activityCb();
           if (!result)
             return;
         }
@@ -322,6 +327,7 @@ if ('mozSetMessageHandler' in window.navigator) {
           window.close();
           return false;
         }
+        activityCallback = sendMail;
         return true;
       }
       var composer = MailAPI.beginMessageComposition(
@@ -354,7 +360,7 @@ if ('mozSetMessageHandler' in window.navigator) {
         });
     };
 
-    if (App.initialized) {
+    if (MailAPI && !MailAPI._fake) {
       console.log('activity', activityName, 'triggering compose now');
       sendMail();
     } else {
