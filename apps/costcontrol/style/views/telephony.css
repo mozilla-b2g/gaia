@@ -14,7 +14,6 @@
 
 #reset-date,
 #telephony-tab .settings li dd sub {
-  text-transform: uppercase;
   font-size: 1.4rem;
   vertical-align: baseline;
 }
