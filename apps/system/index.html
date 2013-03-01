@@ -41,6 +41,8 @@
     <!-- applications.js must not be deferred
          in order to catch webapps-registry-ready mozChromeEvent -->
     <script src="js/applications.js"></script>
+    <!-- Not deferring this to show startup logo/animation as soon as possible. -->
+    <script src="js/init_logo_handler.js"></script>
     <script defer src="js/screen_manager.js"></script>
     <script defer src="js/background_service.js"></script>
     <script defer src="js/mouse2touch.js"></script>
@@ -231,8 +233,9 @@
     <link rel="stylesheet" href="shared/style/responsive.css">
 
     <style>
-      /* initlogo style is here to prevent flashing */
-      #initlogo {
+      /* initlogos style is here to prevent flashing */
+
+      #os-logo {
         position: absolute;
         overflow: hidden;
         width: 100%;
@@ -240,11 +243,41 @@
         background: #000 url('shared/resources/branding/initlogo.png') no-repeat center / cover;
         z-index: 65536;
         opacity: 1;
-        transition: opacity 1s ease 3s;
+        transition: opacity 1s ease 2s;
         pointer-events: none;
       }
 
-      #initlogo.hide {
+      #carrier-logo {
+        position: absolute;
+        overflow: hidden;
+        width: 100%;
+        height: 100%;
+        background: #000;
+      }
+
+      #carrier-logo > img {
+        width: 100%;
+        height: 100%;
+        position: absolute;        
+        opacity: 1;
+        transition: opacity 1s ease 2s;
+      }
+
+      #carrier-logo > video {
+        width: 100%;
+        height: 100%;
+        position: absolute;        
+        opacity: 1;
+        transition: opacity 1s ease;
+      }
+
+      #carrier-logo.transparent {
+        background: transparent;
+      }
+
+      #carrier-logo > img.hide,
+      #carrier-logo > video.hide,
+      #os-logo.hide {
         opacity: 0;
       }
     </style>
@@ -253,7 +286,9 @@
 
   <body role="application">
     <div id="screen" class="locked">
-      <div id="initlogo" data-z-index-level="initlogo"></div>
+      <div id="os-logo" data-z-index-level="initlogo">
+        <div id="carrier-logo"></div>
+      </div>
 
       <div id="statusbar" data-z-index-level="statusbar">
         <!-- Carrier & date label -->
