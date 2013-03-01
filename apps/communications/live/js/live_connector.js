@@ -81,8 +81,8 @@ if (!window.LiveConnector) {
         var out = source;
 
         out.uid = source.user_id;
-        out.givenName = source.first_name || '';
-        out.familyName = source.last_name || '';
+        out.givenName = [source.first_name || ''];
+        out.familyName = [source.last_name || ''];
         out.email1 = source.emails.account;
 
         return out;
