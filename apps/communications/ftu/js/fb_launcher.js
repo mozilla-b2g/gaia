@@ -6,8 +6,8 @@ var FbLauncher = (function(document) {
 
     var URIs = {
       facebook: '/contacts/fb_import.html?ftu=1',
-      live: '/contacts/live_import.html'
-    }
+      live: '/contacts/import.html?ftu=1&service=live'
+    };
 
     var access_token, currentURI;
 
@@ -45,12 +45,13 @@ var FbLauncher = (function(document) {
       extensionFrame.className = 'closing';
       window.removeEventListener('message', messageHandler);
 
-       // Notify observers that a change from FB could have happened
-      var event = new CustomEvent('fb_imported', {
-        'detail' : true
-      });
-
-      document.dispatchEvent(event);
+      if (currentURI === URIs.facebook) {
+        // Notify observers that a change from FB could have happened
+        var event = new CustomEvent('fb_imported', {
+          'detail' : true
+        });
+        document.dispatchEvent(event);
+      }
     }
 
 
