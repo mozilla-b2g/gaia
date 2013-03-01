@@ -6,6 +6,7 @@
  * in an SMS message
  */
 var ContactDialog = {
+  _l10n: navigator.mozL10n,
 
   get addContactActionMenu() {
     delete this.addContactActionMenu;
@@ -52,27 +53,28 @@ var ContactDialog = {
     dialogForm.classList.add('hidden');
 
     var header = document.createElement('header');
-    header.setAttribute('data-l10n-id', 'addNewNumber');
-    this.headerText = document.createTextNode('Add New Number');
+    this.headerText = document.createTextNode('');
     header.appendChild(this.headerText);
 
     var menu = document.createElement('menu');
     var button1 = document.createElement('button');
     button1.id = 'call-menuitem';
     button1.setAttribute('data-l10n-id', 'call');
-    var button1Text = document.createTextNode('Call');
+    var button1Text = document.createTextNode(this._l10n.get('call'));
     button1.appendChild(button1Text);
 
     var button2 = document.createElement('button');
     button2.id = 'create-new-contact-menuitem';
     button2.setAttribute('data-l10n-id', 'createNewContact');
-    var button2Text = document.createTextNode('Create New Contact');
+    var button2Text = document.createTextNode(
+      this._l10n.get('createNewContact'));
     button2.appendChild(button2Text);
 
     var button3 = document.createElement('button');
     button3.id = 'add-to-existing-contact-menuitem';
     button3.setAttribute('data-l10n-id', 'addToExistingContact');
-    var button3Text = document.createTextNode('Add to Existing Contact');
+    var button3Text = document.createTextNode(
+      this._l10n.get('addToExistingContact'));
     button3.appendChild(button3Text);
 
     var button4 = document.createElement('button');
