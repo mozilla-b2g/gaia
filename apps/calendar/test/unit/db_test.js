@@ -4,24 +4,23 @@ requireLib('models/account.js');
 requireLib('models/calendar.js');
 requireLib('presets.js');
 
-// These tests are currently failing and have been temporarily disabled as per
-// Bug 838993. They should be fixed and re-enabled as soon as possible as per
-// Bug 840489.
 suite('db', function() {
-  return;
   var subject;
   var name;
+  var app;
+
+  var dbName = 'calendar-db-test-db';
 
   suiteSetup(function(done) {
 
     // load the required sub-objects..
-    var app = testSupport.calendar.app();
+    app = testSupport.calendar.app();
     app.loadObject('Provider.Local', done);
   });
 
   suiteSetup(function(done) {
     this.timeout(10000);
-    var db = testSupport.calendar.db();
+    var db = new Calendar.Db(dbName);
     db.deleteDatabase(function(err, success) {
       assert.ok(!err, 'should not have an error when deleting db');
       assert.ok(success, 'should be able to delete the db');
@@ -34,7 +33,7 @@ suite('db', function() {
   });
 
   setup(function() {
-    subject = testSupport.calendar.db();
+    subject = new Calendar.Db(dbName);
   });
 
   test('#getStore', function() {
@@ -96,41 +95,6 @@ suite('db', function() {
 
   });
 
-  test('#load', function(done) {
-    var loaded = {
-      account: false,
-      calendar: false
-    };
-
-    var account = subject.getStore('Account');
-    var calendar = subject.getStore('Calendar');
-
-    account.load = function(callback) {
-      callback(null, {});
-      loaded.account = true;
-    };
-
-    calendar.load = function(callback) {
-      callback(null, {});
-      loaded.calendar = true;
-    };
-
-    assert.ok(!subject.isOpen);
-
-    subject.load(function(err) {
-      if (err) {
-        done(err);
-        return;
-      }
-      assert.ok(subject.isOpen);
-      done(function() {
-        assert.ok(loaded.account, 'should load account');
-        assert.ok(loaded.calendar, 'should load calendar');
-        subject.close();
-      });
-    });
-  });
-
   suite('#open', function() {
     suite('on version change', function() {
 
@@ -142,28 +106,41 @@ suite('db', function() {
         var accountStore;
         var calendarStore;
 
+        var storeLoads = {};
+
+        teardown(function() {
+          storeLoads = {};
+          subject.close();
+        });
+
         setup(function(done) {
           accountStore = subject.getStore('Account');
           calendarStore = subject.getStore('Calendar');
-          subject.open(function() {
-            subject.load(function() {
-              setTimeout(function() {
-                done();
-              }, 0);
+          subject.load(function() {
+            Calendar.nextTick(function() {
+              done();
             });
           });
         });
 
-        teardown(function() {
-          subject.close();
+        ['Calendar', 'Account'].forEach(function(storeName) {
+          setup(function(done) {
+            var store = subject.getStore(storeName);
+            var humanName = storeName.toLowerCase() + 's';
+
+            store.all(function(err, all) {
+              storeLoads[humanName] = all;
+              done();
+            });
+          });
         });
 
         test('default account', function() {
-          var list = Object.keys(accountStore.cached);
+          var list = Object.keys(storeLoads.accounts);
 
           assert.length(list, 1);
 
-          var item = accountStore.cached[list[0]];
+          var item = storeLoads.accounts[list[0]];
 
           assert.ok(item);
           assert.equal(item.providerType, 'Local', 'provider');
@@ -171,17 +148,17 @@ suite('db', function() {
         });
 
         test('default calendar', function() {
-          var list = Object.keys(calendarStore.cached);
+          var list = Object.keys(storeLoads.calendars);
           assert.length(list, 1);
 
-          var item = calendarStore.cached[list[0]];
+          var item = storeLoads.calendars[list[0]];
 
           assert.ok(item);
           assert.equal(item.remote.name, 'Offline calendar');
 
-          var acc = calendarStore.accountFor(item);
-          assert.ok(acc, 'has account');
-          assert.equal(acc.providerType, 'Local');
+          var account = storeLoads.accounts[item.accountId];
+          assert.ok(account, 'has account');
+          assert.equal(account.providerType, 'Local');
         });
 
       });
@@ -247,329 +224,6 @@ suite('db', function() {
         });
       });
 
-    });
-  });
-
-  suite('#_upgradeAccountUrls', function() {
-    // commented out for now as its not used in production
-    return;
-
-    var original;
-
-    function stageData(done) {
-      var trans = subject.transaction('accounts', 'readwrite');
-      var accountStore = trans.objectStore('accounts');
-
-      // not using factory for a reason we may never change
-      // this test but the factory will change at some point
-      // we are trying to emulate old data so it should not
-      // be updated along with the factory.
-      original = {
-        custom: {
-          _id: 'custom',
-          preset: 'caldav',
-          url: '/caldavfoo'
-        },
-        yahoo: {
-          _id: 'yahoo',
-          preset: 'yahoo',
-          url: '/foo'
-        }
-      };
-
-      accountStore.put(original.yahoo);
-      accountStore.put(original.custom);
-
-      trans.onerror = function(event) {
-        done(event.target.error.name);
-      };
-
-      trans.oncomplete = function() {
-        done();
-      };
-    }
-
-    // first setup is to ensure no database exists
-    // and set its version to # 9
-    setup(function(done) {
-      this.timeout(12000);
-      subject.deleteDatabase(function(err) {
-        if (err) {
-          done(err);
-          return;
-        }
-        subject.open(11, function() {
-          stageData(function() {
-            subject.close();
-            subject.open(12, done);
-          });
-        });
-      });
-    });
-
-    teardown(function() {
-      subject.close();
-    });
-
-    test('convert url to entrypoint/calendarHome', function(done) {
-      var accounts;
-
-      var trans = subject.transaction('accounts', 'readwrite');
-      var store = trans.objectStore('accounts');
-
-      store.mozGetAll().onsuccess = function(e) {
-        var all = e.target.result;
-        var accounts = {};
-
-        all.forEach(function(item) {
-          var id = item._id;
-          accounts[item._id] = item;
-
-          assert.ok(!item.url, 'should remove url for ' + id);
-          assert.ok(item.entrypoint, 'should have entrypoint for ' + id);
-          assert.ok(item.calendarHome, 'should have calendar home for ' + id);
-
-          assert.equal(
-            item.calendarHome,
-            original[id].url,
-            'should set calendar home for: ' + id
-          );
-        });
-
-        assert.equal(
-          accounts.yahoo.entrypoint,
-          Calendar.Presets.yahoo.options.entrypoint,
-          'should set entrypoint for known providers'
-        );
-
-        assert.equal(
-          accounts.custom.entrypoint,
-          original.custom.url,
-          'should keep url as entrypoint when ungrade is unavailable'
-        );
-
-        done();
-      };
-    });
-  });
-
-  suite('#_upgradeMoveICALComponents', function() {
-    // commented out for now as its not used in production
-    return;
-
-    var icalEvents = [];
-    var normalEvents = [];
-
-    function stageData(done) {
-      var trans = subject.transaction('events', 'readwrite');
-      var eventStore = trans.objectStore('events');
-
-
-      trans.oncomplete = function() {
-        done();
-      };
-
-      // stage some data to verify we don't
-      // mutate records without icalComponent.
-      for (var i = 0; i < 5; i++) {
-        var normalEvent = Factory('event', { _id: i });
-        eventStore.add(normalEvent);
-        normalEvents.push(normalEvent);
-      }
-
-      // stage the icalComponent events
-      for (var i = 10; i < 20; i++) {
-        var icalEvent = Factory('event', {
-          _id: i,
-          remote: {
-            icalComponent: { nth: i }
-          }
-        });
-
-        eventStore.add(icalEvent);
-        icalEvents.push(icalEvent);
-      }
-    }
-
-    // first setup is to ensure no database exists
-    // and set its version to # 9
-    setup(function(done) {
-      this.timeout(12000);
-
-      icalEvents.length = 0;
-      normalEvents.length = 0;
-
-      subject.deleteDatabase(function(err) {
-        if (err) {
-          done(err);
-          return;
-        }
-        subject.open(9, function() {
-          stageData(function() {
-            subject.close();
-            subject.open(10, done);
-          });
-        });
-      });
-    });
-
-    teardown(function() {
-      subject.close();
-    });
-
-    test('verify icalComponent was moved to new store', function(done) {
-      var trans = subject.transaction(
-        ['events', 'icalComponents']
-      );
-
-      trans.oncomplete = function() {
-        done(function() {
-          // verify all the events icalComponets are moved over;
-          icalEvents.forEach(function(item) {
-            assert.ok(
-              componentsById[item._id],
-              'component exists # ' + item._id
-            );
-
-            assert.deepEqual(
-              componentsById[item._id].data,
-              item.remote.icalComponent
-            );
-
-            assert.ok(
-              !eventsById[item._id].remote.icalComponent,
-              'removes component'
-            );
-          });
-        });
-      };
-
-      var eventsStore = trans.objectStore('events');
-      var componentsStore = trans.objectStore('icalComponents');
-
-      var eventsById = {};
-      var componentsById = {};
-
-      function map(field, data, target) {
-        for (var i in data) {
-          target[data[i][field]] = data[i];
-        }
-      }
-
-      eventsStore.mozGetAll().onsuccess = function(e) {
-        map('_id', e.target.result, eventsById);
-      };
-
-      componentsStore.mozGetAll().onsuccess = function(e) {
-        map('eventId', e.target.result, componentsById);
-      };
-
-    });
-  });
-
-  suite('#_resetCaldavEventData', function() {
-    // commented out for now as its not used in production
-    return;
-
-    var localAccount;
-    var caldavAccount;
-    var caldavCalendar;
-    var localCalendar;
-
-    var syncCalled = false;
-
-    function stageData(done) {
-      var trans = subject.transaction(
-        [
-          'accounts', 'calendars', 'events',
-          'alarms', 'icalComponents'
-        ],
-        'readwrite'
-      );
-
-      trans.oncomplete = function() {
-        done();
-      };
-
-      localAccount = Factory('account', {
-        _id: 1,
-        providerType: 'Local'
-      });
-
-      caldavAccount = Factory('account', {
-        _id: 2,
-        providerType: 'Caldav'
-      });
-
-      var accountStore = trans.objectStore('accounts');
-
-      accountStore.add(localAccount);
-      accountStore.add(caldavAccount);
-
-      var calendarStore = trans.objectStore('calendars');
-
-      caldavCalendar = Factory('calendar', {
-        remote: { name: 'remove me' },
-        accountId: caldavAccount._id
-      });
-
-      localCalendar = Factory('calendar', {
-        accountId: localAccount._id
-      });
-
-      calendarStore.add(caldavCalendar);
-      calendarStore.add(localCalendar);
-    }
-
-    // first setup is to ensure no database exists
-    // and set its version to # 9
-    setup(function(done) {
-      this.timeout(12000);
-
-      Calendar.App.syncController = {
-        all: function() {
-          syncCalled = true;
-        }
-      };
-
-      subject.deleteDatabase(function(err) {
-        if (err) {
-          done(err);
-          return;
-        }
-        subject.open(10, function() {
-          stageData(function() {
-            subject.close();
-            subject.open(11, function() {
-              subject.emit('loaded');
-              done();
-            });
-          });
-        });
-      });
-    });
-
-    teardown(function() {
-      subject.close();
-    });
-
-    test('verify icalComponent was moved to new store', function(done) {
-      var trans = subject.transaction('calendars');
-      var store = trans.objectStore('calendars');
-
-      assert.ok(syncCalled, 'calls resync');
-
-      store.mozGetAll().onsuccess = function(event) {
-        var result = event.target.result;
-        assert.length(result, 1);
-
-        assert.deepEqual(
-          result[0],
-          localCalendar
-        );
-
-        done();
-      };
     });
   });
 
