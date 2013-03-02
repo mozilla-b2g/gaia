@@ -182,10 +182,11 @@ li.align-center {
   text-align: center;
 }
 
-.mail-select {
+.sup-manual-account-type {
+  width: 100%;
   vertical-align: middle;
   height: 3.8rem;
-  background: none repeat scroll 0% 0% rgb(231, 231, 231);
+  background: rgb(231, 231, 231);
   border: 0.1rem solid rgb(182, 182, 182);
   border-radius: 0.3rem 0.3rem 0.3rem 0.3rem;
   font-size: 1.4rem;
