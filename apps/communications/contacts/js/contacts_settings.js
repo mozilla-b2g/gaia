@@ -100,14 +100,12 @@ contacts.Settings = (function() {
       return;
     }
 
-    // Card should either be "ready" (connected to network) or "null" (card in
-    // phone but cannot connect to network for some reason).
     enableSIMImport(conn.cardState);
   };
 
   // Disables/Enables the actions over the sim import functionality
   var enableSIMImport = function enableSIMImport(cardState) {
-    var enable = (cardState === 'ready' || cardState === null);
+    var enable = (cardState === 'ready');
     var importSim = document.getElementById('settingsSIM').firstElementChild;
     if (enable) {
       importSim.removeAttribute('disabled');

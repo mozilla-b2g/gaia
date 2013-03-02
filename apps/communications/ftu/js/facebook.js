@@ -25,6 +25,11 @@ var FacebookIntegration = {
     return this.fbImportButton = document.getElementById('fb-import-button');
   },
 
+  get liveImportButton() {
+    delete this.liveImportButton;
+    return this.liveImportButton = document.getElementById('live-import-button');
+  },
+
   get noNetworkMsg() {
     delete this.noNetworkMsg;
     return this.noNetworkMsg = document.getElementById('no-network');
@@ -50,13 +55,19 @@ var FacebookIntegration = {
 
   init: function fb_init() {
     this.fbImportButton.addEventListener('click', this);
+    this.liveImportButton.addEventListener('click', this);
     document.addEventListener('fb_imported', this);
   },
 
   handleEvent: function fb_he(event) {
     switch (event.type) {
       case 'click':
-        FbLauncher.start();
+        if (event.target === this.fbImportButton) {
+          FbLauncher.start('facebook');
+        }
+        else if (event.target === this.liveImportButton) {
+          FbLauncher.start('live');
+        }
         break;
       case 'fb_imported':
         this.toggleToImportedState();
@@ -69,11 +80,11 @@ var FacebookIntegration = {
     var fbOption = this.fbImportButton;
     var noNetMsg = this.noNetworkMsg;
 
-    if(nextState === 'disabled') {
-      fbOption.setAttribute('disabled','disabled');
+    if (nextState === 'disabled') {
+      fbOption.setAttribute('disabled', 'disabled');
       noNetMsg.classList.remove('hidden');
     }
-    else if(nextState === 'enabled') {
+    else if (nextState === 'enabled') {
       fbOption.removeAttribute('disabled');
       noNetMsg.classList.add('hidden');
     }

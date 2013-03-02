@@ -516,9 +516,14 @@ var LockScreen = {
 
   unlock: function ls_unlock(instant) {
     var currentApp = WindowManager.getDisplayedApp();
-    WindowManager.setOrientationForApp(currentApp);
 
-    var currentFrame = WindowManager.getAppFrame(currentApp).firstChild;
+    var currentFrame = null;
+
+    if (currentApp) {
+      currentFrame = WindowManager.getAppFrame(currentApp).firstChild;
+      WindowManager.setOrientationForApp(currentApp);
+    }
+
     var wasAlreadyUnlocked = !this.locked;
     this.locked = false;
     this.setElasticEnabled(false);
@@ -527,7 +532,10 @@ var LockScreen = {
     var repaintTimeout = 0;
     var nextPaint = (function() {
       clearTimeout(repaintTimeout);
-      currentFrame.removeNextPaintListener(nextPaint);
+
+      if (currentFrame)
+        currentFrame.removeNextPaintListener(nextPaint);
+
 
       if (instant) {
         this.overlay.classList.add('no-transition');
@@ -555,7 +563,10 @@ var LockScreen = {
     }).bind(this);
 
     this.dispatchEvent('will-unlock');
-    currentFrame.addNextPaintListener(nextPaint);
+
+    if (currentFrame)
+      currentFrame.addNextPaintListener(nextPaint);
+
     repaintTimeout = setTimeout(function ensureUnlock() {
       nextPaint();
     }, 400);
@@ -802,6 +813,10 @@ var LockScreen = {
       updateConnstateLine1('emergencyCallsOnly');
 
       switch (conn.cardState) {
+        case 'unknown':
+          updateConnstateLine2('emergencyCallsOnly-unknownSIMState');
+          break;
+
         case 'absent':
           updateConnstateLine2('emergencyCallsOnly-noSIM');
           break;
@@ -899,14 +914,16 @@ var LockScreen = {
 
       // Bug 829075 : We need a <canvas> in the DOM to prevent banding on
       // Otoro-like devices
+      var viewportWidth = window.innerWidth;
+      var viewportHeight = window.innerHeight;
       var canvas = document.createElement('canvas');
       canvas.classList.add('lockscreen-wallpaper');
-      canvas.width = images[0].width;
-      canvas.height = images[0].height;
+      canvas.width = viewportWidth;
+      canvas.height = viewportHeight;
 
       var ctx = canvas.getContext('2d');
-      ctx.drawImage(images[0], 0, 0);
-      ctx.drawImage(images[1], 0, 0);
+      ctx.drawImage(images[0], 0, 0, viewportWidth, viewportHeight);
+      ctx.drawImage(images[1], 0, 0, viewportWidth, viewportHeight);
 
       var panels_selector = '.lockscreen-panel[data-wallpaper]';
       var panels = document.querySelectorAll(panels_selector);

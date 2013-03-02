@@ -1,3 +1,3 @@
 'use strict';
 
-fb.oauthflow.init();
+oauthflow.init('facebook');

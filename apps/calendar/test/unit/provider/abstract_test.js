@@ -1,8 +1,4 @@
-requireApp('calendar/test/unit/helper.js', function() {
-  requireLib('provider/abstract.js');
-});
-
-suite('provider/abstract', function() {
+suiteGroup('provider/abstract', function() {
 
   var subject;
   var app;

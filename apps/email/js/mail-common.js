@@ -78,10 +78,10 @@ function batchRemoveClass(domNode, searchClass, classToRemove) {
   }
 }
 
-const MATCHED_TEXT_CLASS = 'highlight';
+var MATCHED_TEXT_CLASS = 'highlight';
 
 function appendMatchItemTo(matchItem, node) {
-  const text = matchItem.text;
+  var text = matchItem.text;
   var idx = 0;
   for (var iRun = 0; iRun <= matchItem.matchRuns.length; iRun++) {
     var run;
@@ -392,7 +392,7 @@ var Cards = {
    */
   pushCard: function(type, mode, showMethod, args, placement) {
     var cardDef = this._cardDefs[type];
-    var typePrefix = type.split('-')[0]; 
+    var typePrefix = type.split('-')[0];
 
     if (!cardDef && lazyCards[typePrefix]) {
       var args = Array.slice(arguments);
@@ -440,6 +440,12 @@ var Cards = {
     }
     this._cardStack.splice(cardIndex, 0, cardInst);
     this._cardsNode.insertBefore(domNode, insertBuddy);
+
+    // If the card has any <button type="reset"> buttons,
+    // make them clear the field they're next to and not the entire form.
+    // See input_areas.js and shared/style/input_areas.css.
+    hookupInputAreaResetButtons(domNode);
+
     if ('postInsert' in cardImpl)
       cardImpl.postInsert();
 
@@ -460,8 +466,6 @@ var Cards = {
         return i;
       }
     }
-    throw new Error('Unable to find card with type: ' + type + ' mode: ' +
-                    mode);
   },
 
   _findCardUsingImpl: function(impl) {
@@ -470,16 +474,29 @@ var Cards = {
       if (cardInst.cardImpl === impl)
         return i;
     }
-    throw new Error('Unable to find card using impl:', impl);
   },
 
-  _findCard: function(query) {
+  _findCard: function(query, skipFail) {
+    var result;
     if (Array.isArray(query))
-      return this._findCardUsingTypeAndMode(query[0], query[1]);
+      result = this._findCardUsingTypeAndMode(query[0], query[1], skipFail);
     else if (typeof(query) === 'number') // index number
-      return query;
+      result = query;
     else
-      return this._findCardUsingImpl(query);
+      result = this._findCardUsingImpl(query);
+
+    if (result > -1)
+      return result;
+    else if (!skipFail)
+      throw new Error('Unable to find card with query:', query);
+    else
+      // Returning undefined explicitly so that index comparisons, like
+      // the one in hasCard, are correct.
+      return undefined;
+  },
+
+  hasCard: function (query) {
+    return this._findCard(query, true) > -1;
   },
 
   findCardObject: function(query) {
@@ -663,6 +680,13 @@ var Cards = {
           break;
       }
     }
+  },
+
+  /**
+   * Shortcut for removing all the cards
+   */
+  removeAllCards: function () {
+    return this.removeCardAndSuccessors(null, 'none');
   },
 
   _showCard: function(cardIndex, showMethod, navDirection) {

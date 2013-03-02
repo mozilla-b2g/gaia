@@ -4,20 +4,27 @@ var FbLauncher = (function(document) {
     var extensionFrame = document.querySelector('#fb-extensions');
     var oauthFrame = document.querySelector('#fb-oauth');
 
-    var currentURI = '/contacts/fb_import.html?ftu=1',
-        access_token;
+    var URIs = {
+      facebook: '/contacts/fb_import.html?ftu=1',
+      live: '/contacts/import.html?ftu=1&service=live'
+    };
+
+    var access_token, currentURI;
 
 
     function open() {
       extensionFrame.className = 'opening';
     }
 
-    function load() {
+    function load(targetService) {
+      currentURI = URIs[targetService];
+
       window.addEventListener('message', messageHandler);
       oauthFrame.contentWindow.postMessage({
         type: 'start',
         data: {
-          from: 'friends'
+          from: 'friends',
+          service: targetService
         }
       }, fb.CONTACTS_APP_ORIGIN);
     }
@@ -38,12 +45,13 @@ var FbLauncher = (function(document) {
       extensionFrame.className = 'closing';
       window.removeEventListener('message', messageHandler);
 
-       // Notify observers that a change from FB could have happened
-      var event = new CustomEvent('fb_imported', {
-        'detail' : true
-      });
-
-      document.dispatchEvent(event);
+      if (currentURI === URIs.facebook) {
+        // Notify observers that a change from FB could have happened
+        var event = new CustomEvent('fb_imported', {
+          'detail' : true
+        });
+        document.dispatchEvent(event);
+      }
     }
 
 

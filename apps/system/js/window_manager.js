@@ -66,6 +66,9 @@ var WindowManager = (function() {
   var inlineActivityFrames = [];
   var activityCallerOrigin = '';
 
+  // Keep a list of cached screenshot URLs for the card view
+  var screenshots = {};
+
   // Some document elements we use
   var windows = document.getElementById('windows');
   var screenElement = document.getElementById('screen');
@@ -95,19 +98,6 @@ var WindowManager = (function() {
 
   // The origin of the currently displayed app, or null if there isn't one
   var displayedApp = null;
-
-  // Function to hide init starting logo
-  function handleInitlogo(callback) {
-    var initlogo = document.getElementById('initlogo');
-    initlogo.classList.add('hide');
-    initlogo.addEventListener('transitionend', function delInitlogo() {
-      initlogo.removeEventListener('transitionend', delInitlogo);
-      initlogo.parentNode.removeChild(initlogo);
-      if (callback) {
-        callback();
-      }
-    });
-  };
 
   // Public function. Return the origin of the currently displayed app
   // or null if there is none.
@@ -384,7 +374,7 @@ var WindowManager = (function() {
         openCallback = null;
 
         setOpenFrame(null);
-      }
+      };
 
       // If this is a cold launch let's wait for the app to load first
       var iframe = openFrame.firstChild;
@@ -484,7 +474,7 @@ var WindowManager = (function() {
       // element so that doesn't work either.)
       //
       // The "real" fix for this defect is tracked in bug 842102.
-      setTimeout(function () { iframe.setVisible(false); }, 50);
+      setTimeout(function _setVisible() { iframe.setVisible(false); }, 50);
     }
 
     screenElement.classList.remove('fullscreen-app');
@@ -639,7 +629,7 @@ var WindowManager = (function() {
       }
 
       callback(req.result.screenshot, true);
-    }
+    };
     req.onerror = function(evt) {
       console.warn('Window Manager: get screenshot from database failed.');
       callback();
@@ -684,6 +674,10 @@ var WindowManager = (function() {
         return;
 
       var iframe = frame.firstChild;
+
+      var objectURL = URL.createObjectURL(screenshot);
+      screenshots[iframe.dataset.frameOrigin] = objectURL;
+
       putAppScreenshotToDatabase(iframe.src || iframe.dataset.frameOrigin,
                                  screenshot);
     });
@@ -876,7 +870,8 @@ var WindowManager = (function() {
                   /* expectingSystemMessage */ false);
       runningApps[homescreen].iframe.dataset.start = Date.now();
       setAppSize(homescreen);
-      if (displayedApp != homescreen && 'setVsibile' in runningApps[homescreen].iframe)
+      if (displayedApp != homescreen &&
+        'setVsibile' in runningApps[homescreen].iframe)
         runningApps[homescreen].iframe.setVisible(false);
     } else if (reset) {
       runningApps[homescreen].iframe.src = homescreenURL;
@@ -909,12 +904,12 @@ var WindowManager = (function() {
 
         callback(app);
       }
-    }
+    };
   }
 
   function skipFTU() {
     document.getElementById('screen').classList.remove('ftuStarting');
-    handleInitlogo();
+    InitLogoHandler.animate();
     setDisplayedApp(homescreen);
   }
 
@@ -1030,7 +1025,8 @@ var WindowManager = (function() {
     if (closeFrame && 'setVisible' in closeFrame.firstChild)
       closeFrame.firstChild.setVisible(false);
 
-    if (!isFirstRunApplication && newApp == homescreen && !AttentionScreen.isFullyVisible()) {
+    if (!isFirstRunApplication && newApp == homescreen &&
+      !AttentionScreen.isFullyVisible()) {
       toggleHomescreen(true);
     }
 
@@ -1103,7 +1099,7 @@ var WindowManager = (function() {
     else if (isFirstRunApplication) {
       isRunningFirstRunApp = true;
       openWindow(newApp, function windowOpened() {
-        handleInitlogo(function() {
+        InitLogoHandler.animate(function() {
           var mainScreen = document.getElementById('screen');
           mainScreen.classList.add('ftu');
           mainScreen.classList.remove('ftuStarting');
@@ -1220,8 +1216,8 @@ var WindowManager = (function() {
   }
 
   function maybeSetFrameIsCritical(iframe, origin) {
-    if (origin.startsWith("app://communications.gaiamobile.org/dialer") ||
-        origin.startsWith("app://clock.gaiamobile.org")) {
+    if (origin.startsWith('app://communications.gaiamobile.org/dialer') ||
+        origin.startsWith('app://clock.gaiamobile.org')) {
       iframe.setAttribute('mozapptype', 'critical');
     }
   }
@@ -1286,6 +1282,17 @@ var WindowManager = (function() {
   }
 
   function startInlineActivity(origin, url, name, manifest, manifestURL) {
+    // If the same inline activity frame is existed and showing,
+    // we reuse its iframe.
+    if (inlineActivityFrames.length) {
+      var showingInlineActivityFrame =
+        inlineActivityFrames[inlineActivityFrames.length - 1].firstChild;
+
+      if (showingInlineActivityFrame.dataset.frameURL == url) {
+        return;
+      }
+    }
+
     // Create the <iframe mozbrowser mozapp> that hosts the app
     var frame = createFrame(null, origin, url, name, manifest, manifestURL);
     var iframe = frame.firstChild;
@@ -1351,6 +1358,12 @@ var WindowManager = (function() {
 
     delete runningApps[origin];
     numRunningApps--;
+
+    // Clear the cached screen
+    if (screenshots[origin]) {
+      URL.revokeObjectURL(screenshots[origin]);
+      delete screenshots[origin];
+    }
   }
 
   function removeInlineFrame(frame) {
@@ -1484,7 +1497,6 @@ var WindowManager = (function() {
             e.detail.target.disposition == 'inline') {
           // Inline activities behaves more like a dialog,
           // let's deal them here.
-
           startInlineActivity(origin, e.detail.url,
                               name, manifest, app.manifestURL);
 
@@ -1642,7 +1654,8 @@ var WindowManager = (function() {
     if (!inlineActivityFrames.length)
       return;
 
-    var topFrame = inlineActivityFrames[inlineActivityFrames.length - 1].firstChild;
+    var topFrame = inlineActivityFrames[inlineActivityFrames.length - 1]
+      .firstChild;
     if ('setVisible' in topFrame) {
       topFrame.setVisible(visible);
     }
@@ -2077,7 +2090,8 @@ var WindowManager = (function() {
     hideCurrentApp: hideCurrentApp,
     restoreCurrentApp: restoreCurrentApp,
     retrieveHomescreen: retrieveHomescreen,
-    retrieveFTU: retrieveFTU
+    retrieveFTU: retrieveFTU,
+    screenshots: screenshots
   };
 }());
 

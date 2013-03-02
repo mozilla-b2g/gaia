@@ -107,9 +107,11 @@
     },
 
     render: function() {
-      var store = this.app.store('Account');
-      var items = store.cached;
+      var accounts = this.app.store('Account');
+      var items = accounts.cached;
       var list = this.accountList;
+
+      // update accounts
 
       var key;
       var result = '';
@@ -122,7 +124,20 @@
         }
       }
       list.innerHTML = result;
+
+      var settings = this.app.store('Setting');
+
+      // update settings
+
+      // we only have on setting right now this will change
+      // and we should have a sane abstraction over multiple
+      // types of settings...
+      var syncFrequency = this.syncFrequency;
+      settings.getValue('syncFrequency', function(err, value) {
+        syncFrequency.value = String(value);
+      });
     }
+
   };
 
   AdvancedSettings.prototype.onfirstseen = AdvancedSettings.prototype.render;

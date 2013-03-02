@@ -189,6 +189,12 @@ Gaia.webapps.forEach(function(webapp) {
         addToZip(zip, '/' + file.leafName, file);
     });
 
+  if (webapp.sourceDirectoryName === 'system' && Gaia.customizeFolder) {
+    if(getFile(Gaia.customizeFolder, 'power').exists()) {
+      customizeFiles(zip, 'power', 'resources/power/');
+    }
+  }
+
   if (webapp.sourceDirectoryName === 'wallpaper' && Gaia.customizeFolder &&
     getFile(Gaia.customizeFolder, 'wallpapers').exists()) {
     customizeFiles(zip, 'wallpapers', 'resources/320x480/');

@@ -1,0 +1,28 @@
+#event-view > section {
+  overflow-y: scroll;
+  height: calc(100% - 5rem);
+}
+
+#event-view .edit[aria-disabled="true"] {
+  pointer-events: none;
+}
+
+#event-view ul {
+  padding: 0;
+  list-style-type: none;
+  font-size: 1.6rem;
+  line-height: 3.4rem;
+}
+
+#event-view li {
+  position: relative;
+  padding: 0 1.8rem;
+  margin-bottom: 0.4rem;
+}
+
+#event-view .start-date,
+#event-view .description {
+  border-top: 1px solid #ccc;
+  margin-top: 0.8rem;
+  padding-top: 0.8rem;
+}

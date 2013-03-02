@@ -1,10 +1,7 @@
-requireApp('calendar/test/unit/helper.js', function() {
-  requireLib('models/calendar.js');
-  requireLib('models/account.js');
-  requireLib('controllers/sync.js');
-});
+requireLib('models/calendar.js');
+requireLib('models/account.js');
 
-suite('controllers/sync', function() {
+suiteGroup('Controllers.Sync', function() {
 
   var account;
   var calendar;
@@ -60,6 +57,10 @@ suite('controllers/sync', function() {
   test('sync all, no accounts', function(done) {
     subject.once('syncComplete', done);
     subject.all();
+  });
+
+  test('sync all, no accounts with callback', function(done) {
+    subject.all(done);
   });
 
   suite('#all', function() {

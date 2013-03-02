@@ -50,11 +50,23 @@ contacts.List = (function() {
 
     imgLoader = new ImageLoader('#groups-container', 'li');
 
+    initOrder();
+  };
+
+  var initSearch = function initSearch(callback) {
+    if (!loaded) {
+      window.addEventListener('listRendered', function onRendered() {
+        window.removeEventListener('listRendered', onRendered);
+        lazyLoadSearch();
+      });
+    } else if (!searchLoaded) {
+      lazyLoadSearch();
+    }
     contacts.Search.init(conctactsListView, favoriteGroup, function(e) {
       onClickHandler(e);
     });
-
-    initOrder();
+    if (callback)
+      callback();
   };
 
   var initAlphaScroll = function initAlphaScroll() {
@@ -150,10 +162,10 @@ contacts.List = (function() {
   var renderFullContact = function renderFullContact(contact, fbContacts) {
     var contactContainer = renderContact(contact);
     var name = contactContainer.children[0];
-    var meta = contactContainer.children[1];
     var orderedString = getStringToBeOrdered(contact);
 
     addSearchOptions(name, contact);
+    addOrderOptions(name, contact);
 
     // Label the contact concerning social networks
     if (contact.category) {
@@ -161,8 +173,11 @@ contacts.List = (function() {
       if (marks.length > 0) {
         if (!contact.org || contact.org.length === 0 ||
           contact.org[0].length === 0) {
-          marks[0].classList.add('notorg');
-        }
+            addOrgMarkup(contactContainer);
+            contactContainer.appendChild(meta);
+            marks[0].classList.add('notorg');
+          }
+        var meta = contactContainer.children[1];
         var metaFragment = document.createDocumentFragment();
         marks.forEach(function(mark) {
           metaFragment.appendChild(mark);
@@ -177,7 +192,6 @@ contacts.List = (function() {
       renderPhoto(contact, contactContainer);
     }
 
-    renderOrg(contact, contactContainer);
     return contactContainer;
   }
 
@@ -194,13 +208,13 @@ contacts.List = (function() {
     // contactInner is a link with 3 p elements:
     // name, socaial marks and org
     var contactInner = '<p>' + getHighlightedName(contact);
-    contactInner += '</p><p><span class="org"></span></p>';
+    contactInner += '</p>';
     contactContainer.innerHTML = contactInner;
     contactsCache[contact.id] = {
       contact: contact,
       container: contactContainer
     }
-    renderOrg(contact, contactContainer);
+    renderOrg(contact, contactContainer, true);
 
     // Facebook data, favorites and images will be lazy loaded
     if (contact.category || contact.photo) {
@@ -305,6 +319,10 @@ contacts.List = (function() {
 
     // Performance testing
     function renderChunks(index) {
+      if (index === 0) {
+        PerformanceTestingHelper.dispatch('contacts-first-chunk');
+      }
+
       if (numberOfChunks === index) {
         // Last round. Rendering remaining
         var remaining = length % CHUNK_SIZE;
@@ -317,6 +335,7 @@ contacts.List = (function() {
 
         }
         window.setTimeout(onListRendered);
+        dispatchCustomEvent('listRendered');
         return;
       }
 
@@ -345,10 +364,11 @@ contacts.List = (function() {
         contactsCache = {};
       }
     });
+    lazyLoadOrder();
     FixedHeader.refresh();
-    lazyLoadSearch();
     lazyLoadImages();
     loaded = true;
+    PerformanceTestingHelper.dispatch('contacts-last-chunk');
   };
 
   // Method that fills non-visible datasets
@@ -357,17 +377,30 @@ contacts.List = (function() {
     for (var id in contactsCache) {
       var current = contactsCache[id];
       var contact = current.contact;
-      var name = current.container.children[0];
+      var name = current.container.querySelector('p');
       addSearchOptions(name, contact);
     }
     searchLoaded = true;
-    dispatchFinishLazyLoading();
+    contacts.Search.enableSearch();
+    dispatchCustomEvent('finishLazyLoading');
+  };
+
+  var lazyLoadOrder = function lazyLoadOrder() {
+    for (var id in contactsCache) {
+      var current = contactsCache[id];
+      var contact = current.contact;
+      var name = current.container.querySelector('p');
+      addOrderOptions(name, contact);
+    }
+  };
+
+  var addOrderOptions = function addOrderOptions(name, contact) {
+    var orderedString = getStringToBeOrdered(contact);
+    name.dataset['order'] = orderedString;
   };
 
   var addSearchOptions = function addSearchOptions(name, contact) {
     name.dataset['search'] = getSearchString(contact);
-    var orderedString = getStringToBeOrdered(contact);
-    name.dataset['order'] = orderedString;
   };
 
   var isFavorite = function isFavorite(contact) {
@@ -399,7 +432,7 @@ contacts.List = (function() {
     contactsPhoto = [];
     imgLoader.reload();
     imagesLoaded = true;
-    dispatchFinishLazyLoading();
+    dispatchCustomEvent('finishLazyLoading');
   }
 
   var lazyLoadFacebookData = function lazyLoadFacebookData() {
@@ -411,16 +444,22 @@ contacts.List = (function() {
           var current = contactsCache[id];
           var contact = current.contact;
           var link = current.container;
-          var meta = link.children[1];
           var favs = false;
           if (isFavorite(contact)) {
             favs = true;
             addToFavoriteList(link.cloneNode(true));
           }
           if (fb.isFbContact(contact)) {
+            var meta;
+            var elements = link.querySelectorAll('p');
+            if (elements.length == 1) {
+              meta = addOrgMarkup(link);
+            } else {
+              meta = elements[1];
+            }
             var fbContact = new fb.Contact(contact);
             contact = fbContact.merge(fbReq.result[fbContact.uid]);
-            link.querySelector('p').innerHTML = getHighlightedName(contact);
+            elements[0].innerHTML = getHighlightedName(contact);
             var mark = markAsFb(createSocialMark());
             var org = meta.querySelector('span.org');
             meta.insertBefore(mark, org);
@@ -437,7 +476,7 @@ contacts.List = (function() {
           showGroup('favorites', true);
         imgLoader.reload();
         imagesLoaded = true;
-        dispatchFinishLazyLoading();
+        dispatchCustomEvent('finishLazyLoading');
       };
       fbReq.onerror = function() {
         console.log('Error getting fb');
@@ -445,8 +484,8 @@ contacts.List = (function() {
     });
   };
 
-  var dispatchFinishLazyLoading = function dispatchFinishLazyLoading() {
-    var event = new CustomEvent('finishLazyLoading');
+  var dispatchCustomEvent = function dispatchCustomEvent(eventName) {
+    var event = new CustomEvent(eventName);
     window.dispatchEvent(event);
   }
 
@@ -483,15 +522,22 @@ contacts.List = (function() {
     return;
   };
 
-  var renderOrg = function renderOrg(contact, link) {
+  var renderOrg = function renderOrg(contact, link, add) {
     if (!contact.org || !contact.org.length ||
         contact.org[0] === '' || contact.org[0] === contact.givenName) {
       return;
     }
-    var meta = link.lastElementChild;
+    var meta = add ? addOrgMarkup(link) : link.lastElementChild;
     var org = meta.querySelector('span.org');
     org.textContent = contact.org[0];
   };
+
+  var addOrgMarkup = function addOrgMarkup(link) {
+    var meta = document.createElement('p');
+    meta.innerHTML = '<span class="org"></span>';
+    link.appendChild(meta);
+    return meta;
+  }
 
   var toggleNoContactsScreen = function cl_toggleNoContacs(show) {
     if (show && !ActivityHandler.currentlyHandling) {
@@ -810,6 +856,7 @@ contacts.List = (function() {
     'getAllContacts': getAllContacts,
     'handleClick': handleClick,
     'initAlphaScroll': initAlphaScroll,
+    'initSearch': initSearch,
     'remove': remove,
     'loaded': loaded,
     'clearClickHandlers': clearClickHandlers,

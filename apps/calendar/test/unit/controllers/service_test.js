@@ -1,9 +1,4 @@
-requireApp('calendar/test/unit/helper.js', function() {
-  requireLib('worker/manager.js');
-  requireLib('controllers/service.js');
-});
-
-suite('controllers/service', function() {
+suiteGroup('Controllers.Service', function() {
 
   var account;
   var calendar;

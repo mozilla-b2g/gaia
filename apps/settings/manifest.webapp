@@ -13,6 +13,7 @@
     "device-storage:pictures":{ "access": "readonly" },
     "device-storage:music":{ "access": "readonly" },
     "device-storage:videos":{ "access": "readonly" },
+    "device-storage:sdcard":{ "access": "readonly" },
     "device-storage:apps":{ "access": "readonly" },
     "webapps-manage":{},
     "permissions":{},
@@ -23,7 +24,8 @@
     "desktop-notification":{},
     "power":{},
     "idle":{},
-    "telephony":{}
+    "telephony":{},
+    "audio-channel-notification":{}
   },
   "activities": {
     "configure": {
