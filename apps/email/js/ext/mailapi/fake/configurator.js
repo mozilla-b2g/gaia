@@ -204,7 +204,7 @@ MessageGenerator.prototype = {
                   SUBJECT_SUFFIXES.length;
     return SUBJECT_ADJECTIVES[iAdjective] + " " +
            SUBJECT_NOUNS[iNoun] + " " +
-           SUBJECT_SUFFIXES[iSuffix];
+           SUBJECT_SUFFIXES[iSuffix] + " #" + aSubjectNumber;
   },
 
   /**
@@ -313,11 +313,6 @@ MessageGenerator.prototype = {
    *     contents of the headers object.  This should only be used to construct
    *     illegal header values; general usage should use another explicit
    *     mechanism.
-   * @param [aArgs.junk] Should this message be flagged as junk for the benefit
-   *     of the messageInjection helper so that it can know to flag the message
-   *     as junk?  We have no concept of marking a message as definitely not
-   *     junk at this point.
-   * @param [aArgs.read] Should this message be marked as already read?
    * @returns a SyntheticMessage fashioned just to your liking.
    */
   makeMessage: function makeMessage(aArgs) {
@@ -330,7 +325,7 @@ MessageGenerator.prototype = {
               '@mozgaia',
       author: null,
       date: null,
-      flags: [],
+      flags: aArgs.flags || [],
       hasAttachments: false,
       subject: null,
       snippet: null,
@@ -369,7 +364,7 @@ MessageGenerator.prototype = {
     if (aArgs.age) {
       var age = aArgs.age;
       // start from 'now'
-      var ts = this._clock || Date.now();
+      var ts = this._clock.valueOf() || Date.now();
       if (age.seconds)
         ts -= age.seconds * 1000;
       if (age.minutes)
@@ -469,7 +464,8 @@ MessageGenerator.prototype = {
         bodyInfo: bodyInfo,
         // XXX mailcomposer is tacking newlines onto the end of the message that
         // we don't want.  Ideally we want to fix mailcomposer...
-        messageText: data.trimRight()
+        messageText: data.trimRight(),
+        flags: headerInfo.flags
       };
     }
   },
@@ -478,8 +474,8 @@ MessageGenerator.prototype = {
     count: 10,
   },
   MAKE_MESSAGES_PROPAGATE: ['attachments', 'body',
-                            'cc', 'from', 'to', 'inReplyTo',
-                            'subject', 'clobberHeaders', 'junk', 'read'],
+                            'cc', 'flags', 'from', 'to', 'inReplyTo',
+                            'subject', 'clobberHeaders'],
   /**
    * Given a set definition, produce a list of synthetic messages.
    *

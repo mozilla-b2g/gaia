@@ -1076,7 +1076,8 @@ ImapConnection.prototype.append = function(data, options, cb) {
   if ('flags' in options) {
     if (!Array.isArray(options.flags))
       options.flags = Array(options.flags);
-    cmd += " (\\"+options.flags.join(' \\')+")";
+    if (options.flags.length)
+      cmd += " (\\"+options.flags.join(' \\')+")";
   }
   if ('date' in options) {
     if (!(options.date instanceof Date))
@@ -1110,7 +1111,8 @@ ImapConnection.prototype.multiappend = function(messages, cb) {
     if ('flags' in options) {
       if (!Array.isArray(options.flags))
         options.flags = Array(options.flags);
-      cmd += " (\\"+options.flags.join(' \\')+")";
+      if (options.flags.length)
+        cmd += " (\\"+options.flags.join(' \\')+")";
     }
     if ('date' in options) {
       if (!(options.date instanceof Date))
@@ -4284,7 +4286,7 @@ ImapAccount.prototype = {
     var storage = this._folderStorages[folderId],
         slice = new $mailslice.MailSlice(bridgeHandle, storage, this._LOG);
 
-    storage.sliceOpenFromNow(slice);
+    storage.sliceOpenMostRecent(slice);
   },
 
   searchFolderMessages: function(folderId, bridgeHandle, phrase, whatToSearch) {
