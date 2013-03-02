@@ -214,15 +214,15 @@ var ThreadUI = {
 
   enableSend: function thui_enableSend() {
     this.initSentAudio();
-    if (this.input.value.length > 0) {
-      this.updateCounter();
-    }
+
     if (window.location.hash == '#new' && this.contactInput.value.length == 0) {
       this.sendButton.disabled = true;
       return;
     }
-
-    this.sendButton.disabled = !(this.input.value.length > 0);
+    if (this.input.value.length > 0)
+      this.updateCounter();
+    else
+      this.sendButton.disabled = !(this.input.value.length > 0);
   },
 
   scrollViewToBottom: function thui_scrollViewToBottom() {
