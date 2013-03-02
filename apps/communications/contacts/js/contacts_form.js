@@ -320,8 +320,8 @@ contacts.Form = (function() {
         contacts.Search.invalidateCache();
         contacts.Search.removeContact(contact.id);
       }
-      document.getElementById('view-contact-details').style.transitionDuration="0s";
- 	  document.getElementById('view-contact-form').style.transitionDuration="0s";
+      document.getElementById('view-contact-details').style.transitionDuration = '0s';
+ 	   document.getElementById('view-contact-form').style.transitionDuration = '0s';
       Contacts.setCurrent({});
       Contacts.navigation.home();
     };

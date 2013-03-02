@@ -31,7 +31,7 @@ function navigationStack(currentView) {
     });
     
     document.getElementById('view-contact-details').style.transitionDuration=null;
- 	document.getElementById('view-contact-form').style.transitionDuration=null;
+    document.getElementById('view-contact-form').style.transitionDuration=null;
     var next = document.getElementById(nextView);
     next.classList.remove(transitions[transition] || transition);
     stack.push({ view: nextView, transition: transition});
