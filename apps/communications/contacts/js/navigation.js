@@ -29,7 +29,6 @@ function navigationStack(currentView) {
     stack = stack.filter(function (item) {
       return item.view != nextView;
     });
-    
     document.getElementById('view-contact-details').style.transitionDuration=null;
     document.getElementById('view-contact-form').style.transitionDuration=null;
     var next = document.getElementById(nextView);
