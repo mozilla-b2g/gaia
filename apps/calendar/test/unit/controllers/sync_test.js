@@ -59,6 +59,10 @@ suiteGroup('Controllers.Sync', function() {
     subject.all();
   });
 
+  test('sync all, no accounts with callback', function(done) {
+    subject.all(done);
+  });
+
   suite('#all', function() {
     var list = [];
 
