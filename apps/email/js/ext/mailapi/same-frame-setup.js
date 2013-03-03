@@ -23805,6 +23805,11 @@ exports.local_do_move = function(op, doneCallback, targetFolderId) {
     op.messages, false,
     function perFolder(ignoredConn, sourceStorage, headers, namers,
                        perFolderDone) {
+      // -- open the target folder for processing
+      function targetOpened_nowProcess(ignoredConn, _targetStorage) {
+        targetStorage = _targetStorage;
+        processNext();
+      }
       // -- get the body for the next header (or be done)
       function processNext() {
         if (iNextHeader >= headers.length) {
@@ -23825,7 +23830,7 @@ exports.local_do_move = function(op, doneCallback, targetFolderId) {
         if (header.srvid)
           stateDelta.serverIdMap[header.suid] = header.srvid;
 
-        if (sourceStorage.folderId === targetFolderId) {
+        if (sourceStorage === targetStorage) {
           if (op.type === 'move') {
             // A move from a folder to itself is a no-op.
             processNext();
@@ -23838,17 +23843,11 @@ exports.local_do_move = function(op, doneCallback, targetFolderId) {
         }
         else {
           sourceStorage.deleteMessageHeaderAndBody(
-            header, deleted_nowOpenTarget);
+            header, deleted_nowAdd);
         }
       }
-      // -- open the target folder
-      function deleted_nowOpenTarget() {
-        self._accessFolderForMutation(targetFolderId, false,
-                                      targetOpened_nowAdd, null,
-                                      'local move target');
-      }
       // -- add the header/body to the target folder
-      function targetOpened_nowAdd(ignoredConn, targetStorage) {
+      function deleted_nowAdd() {
         var sourceSuid = header.suid;
 
         // - update id fields
@@ -23868,8 +23867,20 @@ exports.local_do_move = function(op, doneCallback, targetFolderId) {
           return;
         processNext();
       }
-      var iNextHeader = 0, header = null, body = null, addWait = 0;
-      processNext();
+      var iNextHeader = 0, targetStorage = null, header = null, body = null,
+          addWait = 0;
+
+      // If the source folder and the target folder are the same, don't try
+      // to access the target folder!
+      if (sourceStorage.folderId === targetFolderId) {
+        targetStorage = sourceStorage;
+        processNext();
+      }
+      else {
+        self._accessFolderForMutation(targetFolderId, false,
+                                      targetOpened_nowProcess, null,
+                                      'local move target');
+      }
     },
     function() {
       doneCallback(null, null, true);
@@ -24219,6 +24230,10 @@ exports._partitionAndAccessFoldersSequentially = function(
     }
   };
   var gotHeaders = function gotHeaders(headers) {
+    // Sort the headers in ascending-by-date order so that slices hear about
+    // changes from oldest to newest. That way, they won't get upset about being
+    // asked to expand into the past.
+    headers.sort(function(a, b) { return a.date > b.date; });
     try {
       callInFolder(folderConn, storage, headers, folderMessageNamers,
                    openNextFolder);
