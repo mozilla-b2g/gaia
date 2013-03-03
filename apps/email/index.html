@@ -254,27 +254,29 @@
         </section>
         <div class="scrollregion-below-header scrollregion-horizontal-too">
           <div class="msg-envelope-bar">
-            <div class="msg-envelope-date"></div>
-            <div class="msg-envelope-from-line msg-envelope-line">
+            <div class="msg-envelope-from-line">
               <span class="msg-envelope-key"
                      data-l10n-id="envelope-from">FroM</span>
             </div>
             <!-- the details starts out collapsed, but can be toggled -->
             <div class="msg-envelope-details">
-              <div class="msg-envelope-to-line msg-envelope-line">
+              <div class="msg-envelope-to-line">
                 <span class="msg-envelope-key"
                        data-l10n-id="envelope-to">tO</span>
               </div>
-              <div class="msg-envelope-cc-line msg-envelope-line">
+              <div class="msg-envelope-cc-line">
                 <span class="msg-envelope-key"
                        data-l10n-id="envelope-cc">cC</span>
               </div>
-              <div class="msg-envelope-bcc-line msg-envelope-line">
+              <div class="msg-envelope-bcc-line">
                 <span class="msg-envelope-key"
                        data-l10n-id="envelope-bcc">BcC</span>
               </div>
             </div>
-            <h3 class="msg-envelope-subject"></h3>
+            <div class="msg-envelope-subject-container">
+              <h3 class="msg-envelope-subject"></h3>
+              <span class="msg-envelope-date"></span>
+            </div>
           </div>
           <ul class="msg-attachments-container">
           </ul>
