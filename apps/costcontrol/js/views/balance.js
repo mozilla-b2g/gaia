@@ -116,7 +116,7 @@ var BalanceTab = (function() {
   // On balance update received
   function onBalance(balance, old, key, settings) {
     debug('Balance received:', balance);
-    setBalanceMode('default');
+    setBalanceMode();
     updateBalance(balance, settings.lowLimit && settings.lowLimitThreshold);
     debug('Balance updated!');
   }
@@ -202,11 +202,10 @@ var BalanceTab = (function() {
     if (isWaiting !== null) {
       return;
     }
-
     debug('TopUp confirmed!');
     setTopUpMode('default');
     topUpCodeInput.value = '';
-    updateButton.click(); // TODO: Check if free before
+    updateUI();
   }
 
   // On top up timeout or incorrect code
@@ -250,6 +249,8 @@ var BalanceTab = (function() {
         setBalanceMode(status === 'error' ? 'warning' : 'updating');
         if (status === 'error') {
           setError(result.details);
+        } else {
+          setError();
         }
         updateBalance(balance,
                       settings.lowLimit && settings.lowLimitThreshold);
@@ -315,10 +316,6 @@ var BalanceTab = (function() {
 
     if (mode === 'updating') {
       view.classList.add('updating');
-    }
-
-    if (mode === 'default') {
-      setError(); // remove errors
     }
   }
 
