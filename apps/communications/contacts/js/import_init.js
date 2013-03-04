@@ -27,7 +27,11 @@
       });
     },
     'facebook': null,    // To be implemented
-    'gmail': null        // To be implemented
+    'gmail': function gmailLoader(cb) {
+      LazyLoader.load('/gmail/js/gmail_connector.js', function onLoad() {
+        cb(GmailConnector);
+      });
+    }
   };
 
   function getServiceConnector(cb) {

@@ -31,6 +31,11 @@ var FacebookIntegration = {
       document.getElementById('live-import-button');
   },
 
+  get gmailImportButton() {
+    delete this.gmailImportButton;
+    return this.gmailImportButton = document.getElementById('gmail-import-button');
+  },
+
   get noNetworkMsg() {
     delete this.noNetworkMsg;
     return this.noNetworkMsg = document.getElementById('no-network');
@@ -57,6 +62,7 @@ var FacebookIntegration = {
   init: function fb_init() {
     this.fbImportButton.addEventListener('click', this);
     this.liveImportButton.addEventListener('click', this);
+    this.gmailImportButton.addEventListener('click', this);
     document.addEventListener('fb_imported', this);
   },
 
@@ -68,6 +74,9 @@ var FacebookIntegration = {
         }
         else if (event.target === this.liveImportButton) {
           FbLauncher.start('live');
+        }
+        else if (event.target === this.gmailImportButton) {
+          FbLauncher.start('gmail');
         }
         break;
       case 'fb_imported':
