@@ -27,6 +27,7 @@ manifest.appcache
 /showcase_apps/*/test/unit/_sandbox.html
 /showcase_apps/*/test/unit/_proxy.html
 
+/linter/customrules.pyc
 /profile/
 /profile.tar.gz
 /.xulrunner-url
