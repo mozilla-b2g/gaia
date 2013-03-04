@@ -634,11 +634,19 @@ var Browser = {
 
   removeBookmark: function browser_removeBookmark(e) {
     e.preventDefault();
-    if (!this.currentTab.url)
+    if (this.currentTab.url || this.bookmark_href) {
+      var bk = this.bookmark_href ? this.bookmark_href : this.currentTab.url;
+      Places.removeBookmark(bk,
+          this.refreshBookmarkButton.bind(this));
+      this.hideBookmarkMenu();
+      if (this.bookmark_href) {
+          this.bookmark_href = '';
+          //refresh page to reflect the change
+          this.showBookmarksTab();
+      }
+    } else {
       return;
-    Places.removeBookmark(this.currentTab.url,
-      this.refreshBookmarkButton.bind(this));
-    this.hideBookmarkMenu();
+    }
   },
 
   showBookmarkMenu: function browser_showBookmarkMenu() {
@@ -663,31 +671,41 @@ var Browser = {
   },
 
   refreshBookmarkButton: function browser_refreshBookmarkButton() {
-    if (!this.currentTab.url)
+    if (this.currentTab.url || this.bookmark_href) {
+
+      var bk = this.bookmark_href ? this.bookmark_href : this.currentTab.url;
+      Places.getBookmark(bk, (function(bookmark) {
+        if (bookmark) {
+          this.bookmarkButton.classList.add('bookmarked');
+        } else {
+          this.bookmarkButton.classList.remove('bookmarked');
+        }
+      }).bind(this));
+
+    } else {
       return;
-    Places.getBookmark(this.currentTab.url, (function(bookmark) {
-      if (bookmark) {
-        this.bookmarkButton.classList.add('bookmarked');
-      } else {
-        this.bookmarkButton.classList.remove('bookmarked');
-      }
-    }).bind(this));
+    }
   },
 
   showBookmarkEntrySheet: function browser_showBookmarkEntrySheet() {
-    if (!this.currentTab.url)
+    if (this.currentTab.url || this.bookmark_href) {
+
+      this.hideBookmarkMenu();
+      this.bookmarkEntrySheet.classList.remove('hidden');
+
+      var bk = this.bookmark_href ? this.bookmark_href : this.currentTab.url;
+      Places.getBookmark(bk, (function(bookmark) {
+        if (!bookmark) {
+          this.hideBookmarkEntrySheet();
+          return;
+        }
+        this.bookmarkTitle.value = bookmark.title;
+        this.bookmarkUrl.value = bookmark.uri;
+        this.bookmarkPreviousUrl.value = bookmark.uri;
+      }).bind(this));
+    } else {
       return;
-    this.hideBookmarkMenu();
-    this.bookmarkEntrySheet.classList.remove('hidden');
-    Places.getBookmark(this.currentTab.url, (function(bookmark) {
-      if (!bookmark) {
-        this.hideBookmarkEntrySheet();
-        return;
-      }
-      this.bookmarkTitle.value = bookmark.title;
-      this.bookmarkUrl.value = bookmark.uri;
-      this.bookmarkPreviousUrl.value = bookmark.uri;
-    }).bind(this));
+    }
   },
 
   hideBookmarkEntrySheet: function browser_hideBookmarkEntrySheet() {
@@ -706,6 +724,11 @@ var Browser = {
       Places.updateBookmark(url, title);
     } else {
       Places.updateBookmark(url, title);
+    }
+    if (this.bookmark_href) {
+        this.bookmark_href = '';
+        //refresh page to reflect the change
+        this.showBookmarksTab();
     }
     this.hideBookmarkEntrySheet();
   },
@@ -919,7 +942,7 @@ var Browser = {
   },
 
   drawAwesomescreenListItem: function browser_drawAwesomescreenListItem(list,
-    data, filter) {
+    data, filter, current_tab) {
     var entry = document.createElement('li');
     var link = document.createElement('a');
     var title = document.createElement('h5');
@@ -940,6 +963,27 @@ var Browser = {
     link.appendChild(url);
     entry.appendChild(link);
     list.appendChild(entry);
+
+    // enable longpress manipulation in bookmark tab
+    if (current_tab === 'bookmark') {
+      var that = this;
+
+      link.addEventListener('contextmenu', function() {
+          that.bookmarkMenu.classList.remove('hidden');
+          Places.getBookmark(link.href, (function(bookmark) {
+            if (bookmark) {
+              //save selected uri for contextmenu
+              that.bookmark_href = link.href;
+
+              that.bookmarkMenuAdd.parentNode.classList.add('hidden');
+              that.bookmarkMenuRemove.parentNode.classList.remove('hidden');
+              that.bookmarkMenuEdit.parentNode.classList.remove('hidden');
+              that.bookmarkMenuAddHome.parentNode.classList.add('hidden');
+            }
+           }).bind(that));
+      });
+
+    }
 
     if (!data.iconUri) {
       link.style.backgroundImage = 'url(' + this.DEFAULT_FAVICON + ')';
@@ -1003,7 +1047,7 @@ var Browser = {
     list.setAttribute('role', 'listbox');
     this.bookmarks.appendChild(list);
     bookmarks.forEach(function browser_processBookmark(data) {
-      this.drawAwesomescreenListItem(list, data);
+      this.drawAwesomescreenListItem(list, data, null, 'bookmark');
     }, this);
   },
 
