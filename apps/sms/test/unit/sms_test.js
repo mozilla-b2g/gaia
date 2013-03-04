@@ -371,4 +371,50 @@ suite('SMS App Unit-Test', function() {
       ThreadUI.view.innerHTML = '';
     });
   });
+
+suite('EmailAddress Links in SMS', function() {
+    var Message = {
+        id: '1234',
+        body: 'Hello n Welcome'
+    };
+
+    //test
+    test('#Test EmailAddress in message', function() {
+        var messageBody = 'Email abc@gmail.com or myself@my.com,rs@1 ' +
+                      'from yahoo.com';
+      var id = '123456';
+      Message.id = id;
+      Message.body = messageBody;
+      var messageDOM = ThreadUI.buildMessageDOM(Message, false);
+      var anchors = messageDOM.querySelectorAll('[data-email]');
+      assert.equal(anchors.length, 2,
+        '2 Email Addresses are tappable in message');
+      assert.equal(anchors[0].dataset.email,
+        'abc@gmail.com', 'First email is abc@gmail.com');
+      assert.equal(anchors[1].dataset.email,
+        'myself@my.com', 'Second email is myself@my.com');
+    });
+
+    test('#Test with phone numbers, url and email in a message', function() {
+      var messageBody = 'Send a text to 729725 (PAYPAL).' +
+      ' money@paypal.com hi-there@mail.com,sup.port@efg.com and 35622.00' +
+      ' the cs@yahoo.co.in email. www.yahoo.com,payapal.com are urls.' +
+      ' You can even enter 995-345-5678 6787897890.';
+      var id = '123457';
+      Message.id = id;
+      Message.body = messageBody;
+      var messageDOM = ThreadUI.buildMessageDOM(Message, false);
+      var anchors = messageDOM.querySelectorAll('[data-email]');
+      assert.equal(anchors.length, 4,
+        '4 links are attached for  email in DOM');
+      assert.equal(anchors[0].dataset.email,
+        'money@paypal.com', 'First email is money@paypal.com');
+      assert.equal(anchors[1].dataset.email,
+        'hi-there@mail.com', 'Second email is hi-there@mail.com');
+      assert.equal(anchors[2].dataset.email,
+        'sup.port@efg.com', 'Third email is sup.port@efg.com');
+      assert.equal(anchors[3].dataset.email,
+        'cs@yahoo.co.in', 'Fourth email is cs@yahoo.co.in');
+    });
+  });
 });
