@@ -41,8 +41,10 @@
     <!-- applications.js must not be deferred
          in order to catch webapps-registry-ready mozChromeEvent -->
     <script src="js/applications.js"></script>
-    <!-- Not deferring this to show startup logo/animation as soon as possible. -->
+    <!-- Not deferring the following to show startup logo/animation as soon as possible. -->
+    <script src="js/logo_loader.js"></script>
     <script src="js/init_logo_handler.js"></script>
+
     <script defer src="js/screen_manager.js"></script>
     <script defer src="js/background_service.js"></script>
     <script defer src="js/mouse2touch.js"></script>
@@ -255,7 +257,8 @@
         background: #000;
       }
 
-      #carrier-logo > img {
+      #carrier-logo > img,
+      #poweroff-splash > img {
         width: 100%;
         height: 100%;
         position: absolute;        
@@ -263,7 +266,8 @@
         transition: opacity 1s ease 2s;
       }
 
-      #carrier-logo > video {
+      #carrier-logo > video,
+      #poweroff-splash > video {
         width: 100%;
         height: 100%;
         position: absolute;        
@@ -277,7 +281,9 @@
 
       #carrier-logo > img.hide,
       #carrier-logo > video.hide,
-      #os-logo.hide {
+      #os-logo.hide,
+      #poweroff-splash > img.hide,
+      #poweroff-splash > video.hide {
         opacity: 0;
       }
     </style>
