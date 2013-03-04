@@ -260,11 +260,15 @@ Evme.Shortcut = function Evme_Shortcut() {
             return null;
         }
         
-        el = Evme.$create('li', {'class': "shortcut", 'query': query},
+        el = Evme.$create('li', {
+                            'class': 'shortcut',
+                            'data-query': self.getName(),
+                            'data-experienceId': experienceId
+                          },
                             '<span class="thumb"></span>' +
                             '<span class="remove"></span>'
                         );
-                        
+            
         elThumb = Evme.$(".thumb", el)[0];
         
         self.setImage(cfg.appIds);
