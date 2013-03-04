@@ -7,6 +7,8 @@ var ThreadUI = {
   // Time buffer for the 'last-messages' set. In this case 10 min
   LAST_MESSSAGES_BUFFERING_TIME: 10 * 60 * 1000,
   CHUNK_SIZE: 10,
+  EMAIL_REGEX: /([\w\.-]+)@([\w\.-]+)\.([a-z\.]{2,6})/mgi,
+
   get view() {
     delete this.view;
     return this.view = document.getElementById('messages-container');
@@ -528,7 +530,6 @@ var ThreadUI = {
     // Retrieve all data from message
     var id = message.id;
     var bodyText = message.body;
-    var bodyHTML = Utils.escapeHTML(bodyText);
     var timestamp = message.timestamp.getTime();
     var messageClass = message.delivery;
 
@@ -561,8 +562,11 @@ var ThreadUI = {
                       '</label>' +
                     '<a class="' + messageClass + '">';
     messageHTML += asideHTML;
-    messageHTML += '<p>' + bodyHTML + '</p></a>';
+    messageHTML += '<p></p></a>';
     messageDOM.innerHTML = messageHTML;
+
+    this.searchAndLinkClickableData(messageDOM, bodyText);
+
     // Add to the right position
     var messageContainer = ThreadUI.getMessageContainer(timestamp, hidden);
     if (!messageContainer.firstElementChild) {
@@ -581,6 +585,34 @@ var ThreadUI = {
         messageContainer.appendChild(messageDOM);
       }
     }
+  },
+
+  /* This method matches for strings having email,
+  * to do: phone numbers and to do: URL and make them clickable
+  */
+
+  searchAndLinkClickableData:
+   function thui_searchAndLinkClickableData(messageDOM, messageText) {
+    var bodyHTML = messageText;
+
+    //search and link email addresses in the message
+    bodyHTML = this.searchAndLinkEmail(messageDOM, bodyHTML);
+    //check for messageDOM paragraph element to assign linked message html
+    var pElement = messageDOM.querySelector('p');
+    pElement.innerHTML = bodyHTML;
+
+    return messageDOM;
+  },
+
+  searchAndLinkEmail:
+  function thui_searchAndLinkEmailData(messageDOM, bodytext) {
+    var result = bodytext.replace(this.EMAIL_REGEX, function(email) {
+      var linkText = '<a href="mailto:' + email + '" data-email="' +
+                      email + '" data-action="email-link">' + email + '</a>';
+      return linkText;
+    });
+
+    return result;
   },
 
   showChunkOfMessages: function thui_showChunkOfMessages(number) {
