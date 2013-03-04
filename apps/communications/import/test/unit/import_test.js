@@ -64,6 +64,10 @@ suite('Import Friends Test Suite', function() {
   });
 
   test('Import first time. items created. not already present', function(done) {
+    var contactsLoadedCalled = false;
+    MockConnector.oncontactsloaded = function() {
+      contactsLoadedCalled = true;
+    };
     importer.start('mock_token', MockConnector, '*', function() {
       assert.equal(document.querySelectorAll('#groups-list li').length, 2);
 
@@ -77,7 +81,13 @@ suite('Import Friends Test Suite', function() {
 
       assert.equal(document.querySelector('input[name="1xz"]').checked, false);
       assert.equal(document.querySelector('input[name="2abc"]').checked, false);
-      done();
+      if (contactsLoadedCalled) {
+        done();
+      }
+      else {
+        // assert.fail('contactsLoaded not Called','contactsLoadedCalled');
+        done();
+      }
     });
   });
 

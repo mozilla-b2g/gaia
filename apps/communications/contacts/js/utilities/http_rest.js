@@ -30,7 +30,8 @@ if (!window.Rest) {
         var responseProperty = responseType === 'xml' ?
           'responseXML' : 'response';
 
-        xhr.timeout = options.operationsTimeout || DEFAULT_TIMEOUT;
+        xhr.timeout = options.operationsTimeout ||
+                            parent.config.operationsTimeout || DEFAULT_TIMEOUT;
 
         if (options.requestHeaders) {
           for (var header in options.requestHeaders) {
