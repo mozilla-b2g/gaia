@@ -585,6 +585,7 @@ var ThreadUI = {
         messageContainer.appendChild(messageDOM);
       }
     }
+    return messageDOM;
   },
 
   /* This method matches for strings having email,

@@ -385,7 +385,9 @@ suite('EmailAddress Links in SMS', function() {
       var id = '123456';
       Message.id = id;
       Message.body = messageBody;
-      var messageDOM = ThreadUI.buildMessageDOM(Message, false);
+      Message.timestamp = new Date();
+
+      var messageDOM = ThreadUI.appendMessage(Message, false);
       var anchors = messageDOM.querySelectorAll('[data-email]');
       assert.equal(anchors.length, 2,
         '2 Email Addresses are tappable in message');
@@ -403,7 +405,8 @@ suite('EmailAddress Links in SMS', function() {
       var id = '123457';
       Message.id = id;
       Message.body = messageBody;
-      var messageDOM = ThreadUI.buildMessageDOM(Message, false);
+      Message.timestamp = new Date();
+      var messageDOM = ThreadUI.appendMessage(Message, false);
       var anchors = messageDOM.querySelectorAll('[data-email]');
       assert.equal(anchors.length, 4,
         '4 links are attached for  email in DOM');
