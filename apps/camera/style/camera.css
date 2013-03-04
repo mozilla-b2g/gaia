@@ -291,6 +291,7 @@ html, body {
 
 #toggle-flash {
   left: 20px;
+  top: 40px;
 }
 
 #toggle-camera[data-mode=back]:after {
