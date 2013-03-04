@@ -3,9 +3,8 @@
 // evangelism are included.
 pref("general.useragent.override.facebook.com", "\(Mobile#(Android; Mobile"); // bug 827635
 pref("general.useragent.override.youtube.com", "\(Mobile#(Android; Mobile"); // bug 827636
-pref("general.useragent.override.yelp.com", "\(Mobile#(Android; Mobile"); // bug 799884 
-pref("general.useragent.override.dailymotion.com", "\(Mobile#(Android; Mobile"); // bug 827638
-pref("general.useragent.override.accounts.google.com", "\(Mobile#(Android; Mobile"); // bug 805164 
+pref("general.useragent.override.yelp.com", "\(Mobile#(Android; Mobile"); // bug 799884
+pref("general.useragent.override.accounts.google.com", "\(Mobile#(Android; Mobile"); // bug 805164
 pref("general.useragent.override.maps.google.com", "\(Mobile#(Android; Mobile"); // bug 802981
 pref("general.useragent.override.uol.com.br", "Mozilla/5.0 (Linux; Android 4.0.4; Galaxy Nexus Build/IMM76B) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.133 Mobile Safari/535.19"); // bug 826330
 pref("general.useragent.override.live.com", "Mozilla/5.0 (Linux; Android 4.0.4; Galaxy Nexus Build/IMM76B) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.133 Mobile Safari/535.19"); // bug 826332

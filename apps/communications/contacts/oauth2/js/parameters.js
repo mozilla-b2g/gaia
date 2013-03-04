@@ -13,7 +13,7 @@ oauthflow.params = {
       '323630664378726',
     scope:
       ['friends_about_me', 'friends_birthday', 'friends_hometown',
-       'friends_location', 'friends_work_history'],
+       'friends_location', 'friends_work_history', 'read_stream'],
     redirectMsg:
     'http://intense-tundra-4122.herokuapp.com/fbowd/oauth2_new/dialogs_end.html',
     redirectLogout:
