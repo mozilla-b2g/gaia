@@ -751,7 +751,8 @@ Evme.App = function Evme_App(__cfg, __index, __isMore, parent) {
         
         el = Evme.$create('li', {
           'class': 'new',
-          'id': 'app_' + cfg.id
+          'id': 'app_' + cfg.id,
+          'data-name': cfg.name
         }, '<canvas></canvas>');
         
         self.update();
@@ -797,6 +798,8 @@ Evme.App = function Evme_App(__cfg, __index, __isMore, parent) {
         }
         
         if (el) {
+            el.setAttribute('data-name', cfg.name);
+            
             function draw() {
               drawIconIntoCanvas(function onIconLoaded() {
                   window.setTimeout(function() {
