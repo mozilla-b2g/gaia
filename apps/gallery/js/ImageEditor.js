@@ -16,6 +16,7 @@ $('edit-exposure-button').onclick = setEditTool.bind(null, 'exposure');
 $('edit-crop-button').onclick = setEditTool.bind(null, 'crop');
 $('edit-effect-button').onclick = setEditTool.bind(null, 'effect');
 $('edit-border-button').onclick = setEditTool.bind(null, 'border');
+$('edit-rotate-button').onclick = setEditTool.bind(null, 'rotate');
 $('edit-crop-none').onclick = undoCropHandler;
 $('edit-cancel-button').onclick = exitEditMode;
 $('edit-save-button').onclick = saveEditedImage;
@@ -105,6 +106,10 @@ function editOptionsHandler() {
     imageEditor.setCropAspectRatio(3, 2);
   else if (this === $('edit-crop-aspect-square'))
     imageEditor.setCropAspectRatio(1, 1);
+  else if (this === $('edit-rotate-counter'))
+    imageEditor.rotate(270);
+  else if (this === $('edit-rotate-clock'))
+    imageEditor.rotate(90);
   else if (this.dataset.effect) {
     editSettings.matrix = ImageProcessor[this.dataset.effect + '_matrix'];
     imageEditor.edit();
@@ -248,6 +253,9 @@ function setEditTool(tool) {
     $('edit-border-button').classList.add('selected');
     $('edit-border-options').classList.remove('hidden');
     break;
+  case 'rotate':
+    $('edit-rotate-button').classList.add('selected');
+    $('edit-rotate-options').classList.remove('hidden');
   }
 }
 
@@ -1016,8 +1024,43 @@ function ImageProcessor(canvas) {
   this.gammaAddress = gl.getUniformLocation(program, 'gamma');
   this.borderWidthAddress = gl.getUniformLocation(program, 'border_width');
   this.borderColorAddress = gl.getUniformLocation(program, 'border_color');
-
 }
+
+// Rotate the current image
+ImageEditor.prototype.rotate = function(angle) {
+  var self = this;
+
+  // I'll do this using a new canvas element,
+  // then swapping the original image src.
+  // this works surprisingly good
+  var cnvs = document.createElement('canvas');
+  cnvs.width = this.original.height;
+  cnvs.height = this.original.width;
+  var ctx = cnvs.getContext('2d');
+
+  var TO_RADIANS = Math.PI/180;
+  function drawRotatedImage(image, x, y, angle) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(angle * TO_RADIANS);
+    ctx.drawImage(image, -(image.width/2), -(image.height/2));
+    ctx.restore();
+  }
+  drawRotatedImage(this.original, cnvs.width / 2, cnvs.height / 2, angle);
+
+  // so now we have le image here...
+  cnvs.toBlob(function(blob) {
+    // revoke the old object url
+    URL.revokeObjectURL(editedPhotoURL);
+    self.original.src = editedPhotoURL = URL.createObjectURL(blob);
+
+    // now update the other effects because the URL has expired
+    var backgroundImage = 'url(' + editedPhotoURL + ')';
+    editBgImageButtons.forEach(function(b) {
+      b.style.backgroundImage = backgroundImage;
+    });
+  });
+};
 
 // Destroy all the stuff we allocated
 ImageProcessor.prototype.destroy = function() {
