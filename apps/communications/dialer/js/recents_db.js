@@ -4,7 +4,7 @@ var RecentsDBManager = {
   _dbName: 'dialerRecents',
   _dbStore: 'dialerRecents',
   _dbVersion: 1,
-  prepolulated: false,
+  prepolulate: false,
   init: function rdbm_init(callback) {
     try {
       var indexedDB = window.indexedDB || window.webkitIndexedDB ||
@@ -20,9 +20,8 @@ var RecentsDBManager = {
       this.request.onsuccess = function(event) {
         //Store DB object in RecentsDBManager
         self.db = event.target.result;
-        if (!navigator.mozTelephony && !self.prepopulated) {
+        if (self.prepolulate) {
           self.prepopulateDB();
-          self.prepopulated = true;
         }
         if (callback) {
           //Callback if needed
@@ -78,22 +77,23 @@ var RecentsDBManager = {
    });
   },
   // Method for prepopulating the recents DB for Dev-team
+  // Set self.prepopulate to true in order to call it.
   prepopulateDB: function rdbm_prepopulateDB(callback) {
     var recent;
-    for (var i = 0; i < 5; i++) {
+    for (var i = 0; i < 500; i++) {
       recent = {
         date: (Date.now() - i * 86400000),
         type: 'incoming',
         number: '123123123'
       };
-      this.add(recent);
+      RecentsDBManager.add(recent);
     }
     recent = {
       date: (Date.now() - 86400000),
       type: 'dialing',
       number: '321321321'
     };
-    this.add(recent);
+    RecentsDBManager.add(recent);
     if (callback) {
       callback();
     }
@@ -150,24 +150,36 @@ var RecentsDBManager = {
     });
   },
   // Method for retrieving all recents from DB
-  get: function rdbm_get(callback) {
-    var objectStore = this.db.transaction(RecentsDBManager._dbStore).
+  get: function rdbm_get(callback, dateFilter) {
+    this._checkDBReady.call(this, function() {
+      var objectStore = this.db.transaction(RecentsDBManager._dbStore).
                         objectStore(RecentsDBManager._dbStore);
-    var recents = [];
-    var cursor = objectStore.openCursor(null, 'prev');
-    cursor.onsuccess = function(event) {
-      var item = event.target.result;
-      if (item) {
-        recents.push(item.value);
-        item.continue();
-      } else {
-        callback(recents);
+      var recents = [];
+      // Number 0 is smaller than any timestamp and empty string is larger
+      // than all numeric values.
+      var startDate = 0, endDate = '';
+      if (dateFilter && dateFilter.startDate) {
+        startDate = dateFilter.startDate;
       }
-    };
+      if (dateFilter && dateFilter.endDate) {
+        endDate = dateFilter.endDate;
+      }
+      var range = IDBKeyRange.bound(startDate, endDate);
+      var cursor = objectStore.openCursor(range, 'prev');
+      cursor.onsuccess = function(event) {
+        var item = event.target.result;
+        if (item) {
+          recents.push(item.value);
+          item.continue();
+        } else {
+          callback(recents);
+        }
+      };
 
-    cursor.onerror = function(e) {
-      console.log('recents_db get failure: ', e.message);
-    };
+      cursor.onerror = function(e) {
+        console.log('recents_db get failure: ', e.message);
+      };
+    });
   },
 
   getLast: function rdbm_getLast(callback) {
