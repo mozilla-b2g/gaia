@@ -67,7 +67,8 @@ var Wallpaper = {
       canvas.toBlob(function(blob) {
         self.pickActivity.postResult({
           type: 'image/png',
-          blob: blob
+          blob: blob,
+          name: src
         }, 'image/png');
 
         self.endPick();
