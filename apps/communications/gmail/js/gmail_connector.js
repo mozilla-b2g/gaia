@@ -20,6 +20,9 @@ var GmailConnector = (function GmailConnector() {
   // Will be used as a cache for the thumbnail url for each contact
   var photoUrls = {};
 
+  // In some cases we will need the access token, cache a copy
+  var accessToken = null;
+
   // We have a xml response from Google, all the entries in an array,
   // no matter if they are xml entries.
   // Despite of being a node, inject a 'uid' as this will be necessary
@@ -60,6 +63,8 @@ var GmailConnector = (function GmailConnector() {
   // Gets a list of all contacts giving a valid access token
   var listAllContacts = function listAllContacts(access_token,
     callbacks) {
+    // Copy the access_token
+    accessToken = access_token;
     photoUrls = {};
     var listingCallbacks = {
       success: function onSuccess(response) {
@@ -120,7 +125,8 @@ var GmailConnector = (function GmailConnector() {
       'uid': '-1',
       'givenName': '',
       'familyName': '',
-      'email1': ''
+      'email1': '',
+      'contactPictureUri': ''
     };
 
     output.uid = contact.uid;
@@ -135,6 +141,11 @@ var GmailConnector = (function GmailConnector() {
 
     if (contact.email && contact.email.length > 0) {
       output.email1 = contact.email[0].value;
+    }
+
+    var photoUrl = buildContactPhotoURL(contact, accessToken);
+    if (photoUrl) {
+      output.contactPictureUri = photoUrl;
     }
 
     return output;
@@ -152,6 +163,8 @@ var GmailConnector = (function GmailConnector() {
     // This field will be needed for indexing within the
     // import process, not for the api
     output.uid = getUid(googleContact);
+
+    output.name = getValueForNode(googleContact, 'title');
 
     // Store the photo url, not in the contact itself
     var photoUrl = googleContact.querySelector('link[type="image/*"]');
@@ -293,20 +306,28 @@ var GmailConnector = (function GmailConnector() {
 
   var downloadContactPicture = function downloadContactPicture(googleContact,
     access_token, callbacks) {
-    var url = photoUrls[googleContact.uid];
+    var url = buildContactPhotoURL(googleContact, access_token);
     return Rest.get(url, callbacks, {
-      'requestHeaders': buildRequestHeaders(access_token),
       'responseType': 'blob'
     });
   };
 
-  var startSync = function startSync() {
-    throw new Error('Sync not implemented on gmail connector');
+  // Build the url of the photo with the access token
+  var buildContactPhotoURL = function contactPhotoURL(contact, access_token) {
+    if (photoUrls && photoUrls[contact.uid]) {
+      return photoUrls[contact.uid] + '?access_token=' + access_token;
+    }
+
+    return null;
   };
 
-  var getServiceName = function getServiceName() {
-    return 'gmail';
+  var startSync = function startSync() {
+    //We don't sync Google contacts (yet)
   };
+
+  var getServiceName = (function getServiceName() {
+    return 'gmail';
+  })();
 
   return {
     'listAllContacts': listAllContacts,
