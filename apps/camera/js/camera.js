@@ -183,7 +183,7 @@ var Camera = {
   RECORD_SPACE_PADDING: 1024 * 1024 * 1,
 
   // Maximum image resolution for still photos taken with camera
-  MAX_IMAGE_RES: 1600 * 1200, // Just under 2 megapixels
+  MAX_IMAGE_RES: 2560 * 1920, // Nexus S allows for 5Mp, use them.
 
   get overlayTitle() {
     return document.getElementById('overlay-title');
