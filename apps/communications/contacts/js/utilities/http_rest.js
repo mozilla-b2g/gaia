@@ -25,15 +25,24 @@ if (!window.Rest) {
         var outReq = new RestRequest(xhr);
 
         xhr.open('GET', uri, true);
-        xhr.responseType = options.responseType || 'json';
+        var responseType = options.responseType || 'json';
+        xhr.responseType = responseType;
+        var responseProperty = responseType === 'xml' ?
+          'responseXML' : 'response';
 
         xhr.timeout = options.operationsTimeout || DEFAULT_TIMEOUT;
+
+        if (options.requestHeaders) {
+          for(var header in options.requestHeaders) {
+            xhr.setRequestHeader(header, options.requestHeaders[header]);
+          }
+        }
 
         xhr.onload = function(e) {
           if (xhr.status === 200 || xhr.status === 400 || xhr.status === 0) {
             if (callback && typeof callback.success === 'function')
               self.setTimeout(function() {
-                callback.success(xhr.response);
+                callback.success(xhr[responseProperty]);
               },0);
           }
           else {

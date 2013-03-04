@@ -1,7 +1,9 @@
 (function(window) {
   window.mozTestInfo = {appPath: window.xpcArgv[2]};
   const excludedApps = [
-    'bluetooth', 'communications/facebook', 'keyboard', 'wallpaper', // no generic way to test yet
+    'bluetooth', 'keyboard', 'wallpaper', // no generic way to test yet
+    'communications/facebook', 'communications/gmail', // part of other apps
+    'communications/import', 'communications/live', // part of other apps
     'communications', // not an app
     'homescreen', // we can't "launch" it
     'system', // reboots the phone

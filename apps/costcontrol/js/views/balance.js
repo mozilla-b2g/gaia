@@ -116,7 +116,7 @@ var BalanceTab = (function() {
   // On balance update received
   function onBalance(balance, old, key, settings) {
     debug('Balance received:', balance);
-    setBalanceMode('default');
+    setBalanceMode();
     updateBalance(balance, settings.lowLimit && settings.lowLimitThreshold);
     debug('Balance updated!');
   }
@@ -202,11 +202,10 @@ var BalanceTab = (function() {
     if (isWaiting !== null) {
       return;
     }
-
     debug('TopUp confirmed!');
     setTopUpMode('default');
     topUpCodeInput.value = '';
-    updateButton.click(); // TODO: Check if free before
+    updateUI();
   }
 
   // On top up timeout or incorrect code
@@ -250,6 +249,8 @@ var BalanceTab = (function() {
         setBalanceMode(status === 'error' ? 'warning' : 'updating');
         if (status === 'error') {
           setError(result.details);
+        } else {
+          setError();
         }
         updateBalance(balance,
                       settings.lowLimit && settings.lowLimitThreshold);
@@ -315,10 +316,6 @@ var BalanceTab = (function() {
 
     if (mode === 'updating') {
       view.classList.add('updating');
-    }
-
-    if (mode === 'default') {
-      setError(); // remove errors
     }
   }
 
@@ -392,12 +389,12 @@ var BalanceTab = (function() {
   }
 
   var ERRORS = {
-    'airplane_mode': { priority: 1, string: 'airplane-mode-error-message' },
-    'no_service': { priority: 2, string: 'no-coverage-error-message' },
+    'airplane_mode': { priority: 1, string: 'airplane-mode-error-message2' },
+    'no_service': { priority: 2, string: 'no-coverage-error-message2' },
     'no_coverage': { priority: 2, string: 'no-coverage-error-message' },
-    'topup_timeout': { priority: 3, string: 'top-up-timed-out' },
-    'balance_error': { priority: 4, string: 'balance-error-message' },
-    'non_free_in_roaming': { priority: 4, string: 'on-roaming-message' }
+    'topup_timeout': { priority: 3, string: 'top-up-timed-out2' },
+    'balance_error': { priority: 4, string: 'balance-error-message2' },
+    'non_free_in_roaming': { priority: 4, string: 'on-roaming-message2' }
   };
   var currentError = '';
 
