@@ -171,17 +171,19 @@ contacts.List = (function() {
     if (contact.category) {
       var marks = buildSocialMarks(contact.category);
       if (marks.length > 0) {
+        var meta;
         if (!contact.org || contact.org.length === 0 ||
           contact.org[0].length === 0) {
             addOrgMarkup(contactContainer);
+            meta = contactContainer.children[1];
             contactContainer.appendChild(meta);
             marks[0].classList.add('notorg');
-          }
-        var meta = contactContainer.children[1];
+        }
         var metaFragment = document.createDocumentFragment();
         marks.forEach(function(mark) {
           metaFragment.appendChild(mark);
         });
+        meta = contactContainer.children[1];
         var org = meta.querySelector('span');
         meta.insertBefore(metaFragment, org);
       }
