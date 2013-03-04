@@ -8,9 +8,6 @@ var imageEditor;
 var editOptionButtons =
   Array.slice($('edit-options').querySelectorAll('a.radio.button'), 0);
 
-var editBgImageButtons =
-  Array.slice($('edit-options').querySelectorAll('a.bgimage.button'), 0);
-
 // Edit mode event handlers
 $('edit-exposure-button').onclick = setEditTool.bind(null, 'exposure');
 $('edit-crop-button').onclick = setEditTool.bind(null, 'crop');
@@ -69,12 +66,6 @@ function editPhoto(n) {
 
     // Set the exposure slider to its default value
     exposureSlider.setExposure(0);
-
-    // Set the background for all of the image buttons
-    var backgroundImage = 'url(' + editedPhotoURL + ')';
-    editBgImageButtons.forEach(function(b) {
-      b.style.backgroundImage = backgroundImage;
-    });
   });
 
   // Display the edit screen
@@ -85,6 +76,33 @@ function editPhoto(n) {
   $('edit-crop-aspect-free').classList.add('selected');
   $('edit-effect-none').classList.add('selected');
   $('edit-border-none').classList.add('selected');
+}
+
+/**
+ * Load image previews for a given container
+ */
+function loadPreviewImages(container) {
+  var allButtons = [].slice.call(container.querySelectorAll('a.bgimage.button'));
+
+  // first of all we're going to load the image we're editing into an image
+  var img = new Image();
+  // when this image has been loaded in memory, we're drawing this image
+  // on the canvas element
+  img.onload = function() {
+    // in every button element there is a canvas
+    allButtons.forEach(function(b) {
+      var cnv = b.querySelector('canvas');
+
+      // calculate the y-position for the image (preserve ratio)
+      var zoomFactor = img.width / b.offsetWidth;
+      var ypos = ((img.height / zoomFactor) - b.offsetHeight) * -0.5 | 0;
+
+      // we draw our picture on le canvas...
+      var ctx = cnv.getContext('2d');
+      ctx.drawImage(img, 0, ypos, b.offsetWidth, (img.height / zoomFactor) | 0);
+    });
+  };
+  img.src = editedPhotoURL;
 }
 
 // Crop, Effect and border buttons call this
@@ -243,10 +261,12 @@ function setEditTool(tool) {
   case 'effect':
     $('edit-effect-button').classList.add('selected');
     $('edit-effect-options').classList.remove('hidden');
+    loadPreviewImages($('edit-effect-options'));
     break;
   case 'border':
     $('edit-border-button').classList.add('selected');
     $('edit-border-options').classList.remove('hidden');
+    loadPreviewImages($('edit-border-options'));
     break;
   }
 }
@@ -1054,6 +1074,7 @@ ImageProcessor.prototype.draw = function(image,
   // Set the color transformation
   gl.uniformMatrix4fv(this.matrixAddress, false,
                       options.matrix || ImageProcessor.IDENTITY_MATRIX);
+
 
   // Set border size and color
   if (options.borderWidth)
