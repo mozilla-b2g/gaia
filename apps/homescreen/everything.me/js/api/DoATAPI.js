@@ -806,6 +806,8 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         // the following params WILL NOT BE ADDED TO THE CACHE KEY
         params["apiKey"] = apiKey;
         params["v"] = appVersion;
+        params["native"] = true;
+
         if (manualCredentials) {
             params["credentials"] = manualCredentials;
         }
