@@ -24,6 +24,13 @@ function FolderPickerCard(domNode, mode, args) {
   this.mostRecentSyncTimestamp = 0;
 
   this.acctsSlice = args.acctsSlice;
+  this.acctsSlice.onsplice = this.onAccountsSplice.bind(this);
+  this.acctsSlice.onchange = this.onAccountsChange.bind(this);
+
+  this.accountsContainer =
+    domNode.getElementsByClassName('fld-accounts-container')[0];
+  bindContainerHandler(this.accountsContainer, 'click',
+                       this.onClickAccount.bind(this));
 
   this.foldersContainer =
     domNode.getElementsByClassName('fld-folders-container')[0];
@@ -32,7 +39,7 @@ function FolderPickerCard(domNode, mode, args) {
 
   this.accountButton = domNode.getElementsByClassName('fld-accounts-btn')[0];
   this.accountButton
-    .addEventListener('click', this.onShowAccounts.bind(this), false);
+    .addEventListener('click', this.onShowHideAccounts.bind(this), false);
   domNode.getElementsByClassName('fld-nav-settings-btn')[0]
     .addEventListener('click', this.onShowSettings.bind(this), false);
 
@@ -44,12 +51,65 @@ function FolderPickerCard(domNode, mode, args) {
   // - DOM!
   this.updateSelfDom();
   // since the slice is already populated, generate a fake notification
+  this.onAccountsSplice(0, 0, this.acctsSlice.items, true, false);
   this.onFoldersSplice(0, 0, this.foldersSlice.items, true, false);
 }
 FolderPickerCard.prototype = {
-  onShowSettings: function() {
-    Cards.pushCard(
-      'settings-main', 'default', 'animate', {}, 'left');
+  onAccountsSplice: function(index, howMany, addedItems,
+                             requested, moreExpected) {
+    var accountsContainer = this.accountsContainer;
+
+    var account;
+    if (howMany) {
+      for (var i = index + howMany - 1; i >= index; i--) {
+        account = this.acctsSlice.items[i];
+        accountsContainer.removeChild(account.element);
+      }
+    }
+
+    var insertBuddy = (index >= accountsContainer.childElementCount) ?
+                        null : accountsContainer.children[index],
+        self = this;
+    addedItems.forEach(function(account) {
+      var accountNode = account.element =
+        fldNodes['account-item'].cloneNode(true);
+      accountNode.account = account;
+      self.updateAccountDom(account, true);
+      accountsContainer.insertBefore(accountNode, insertBuddy);
+    });
+  },
+
+  onAccountsChange: function(account) {
+    this.updateAccountDom(account, false);
+    // If the currently selected account changed, we need to update the problems
+    // indicator on the toolbar.
+    if (account === this.curAccount)
+      this.updateSelfDom();
+  },
+
+  updateAccountDom: function(account, firstTime) {
+    var accountNode = account.element;
+
+    if (firstTime) {
+      accountNode.getElementsByClassName('fld-account-name')[0]
+        .textContent = account.name;
+    }
+
+    if (account === this.curAccount) {
+      accountNode.classList.add('fld-account-selected');
+    }
+    else {
+      accountNode.classList.remove('fld-account-selected');
+    }
+
+    var problemNode =
+          accountNode.getElementsByClassName('fld-account-problem')[0];
+    if (account.problems.length)
+      problemNode.classList.remove('collapsed');
+    else
+      problemNode.classList.add('collapsed');
+
+    // XXX unread count stuff once it exists
   },
 
   /**
@@ -57,17 +117,17 @@ FolderPickerCard.prototype = {
    * then trigger a select of the inbox for that account because otherwise
    * things get permutationally complex.
    */
-  updateAccount: function(account) {
-    var oldAccount = this.curAccount;
+  onClickAccount: function(accountNode, event) {
+    var oldAccount = this.curAccount,
+        account = this.curAccount = accountNode.account;
 
     this.mostRecentSyncTimestamp = 0;
 
+    this.updateSelfDom();
     if (oldAccount !== account) {
-      this.curAccount = account;
-
-      // update header
-      this.domNode.getElementsByClassName('fld-folders-header-account-label')[0]
-        .textContent = account.name;
+      // change selection status
+      this.updateAccountDom(oldAccount);
+      this.updateAccountDom(account);
 
       // kill the old slice and its related DOM
       this.foldersSlice.die();
@@ -89,17 +149,22 @@ FolderPickerCard.prototype = {
       // the selection to be reflected in the DOM from the get-go.
       this.curFolder = null;
     }
+
+    this.accountsContainer.classList.remove('show');
+    this.foldersContainer.classList.add('show');
   },
-  onShowAccounts: function() {
-    // Add account picker before this folder list.
+
+  onShowHideAccounts: function() {
+    this.accountsContainer.classList.toggle('show');
+    this.foldersContainer.classList.toggle('show');
+    var isAccount = this.accountsContainer.classList.contains('show');
+    // Update header title
+    this.updateSelfDom(isAccount);
+  },
+
+  onShowSettings: function() {
     Cards.pushCard(
-      'account-picker', 'navigation', 'animate',
-      {
-        acctsSlice: this.acctsSlice,
-        curAccount: this.curAccount
-      },
-      // Place to left of message list
-      'left');
+      'settings-main', 'default', 'animate', {}, 'left');
   },
 
   onFoldersSplice: function(index, howMany, addedItems,
@@ -210,6 +275,7 @@ FolderPickerCard.prototype = {
     this.updateFolderDom(folder);
 
     this._showFolder(folder);
+    this.accountsContainer.classList.remove('show');
     Cards.moveToCard(['message-list', 'nonsearch']);
   },
 
@@ -240,127 +306,5 @@ Cards.defineCard({
     }
   },
   constructor: FolderPickerCard
-});
-
-/**
- * Account picker card
- */
-function AccountPickerCard(domNode, mode, args) {
-  this.domNode = domNode;
-
-  this.curAccount = args.curAccount;
-  this.acctsSlice = args.acctsSlice;
-  this.acctsSlice.onsplice = this.onAccountsSplice.bind(this);
-  this.acctsSlice.onchange = this.onAccountsChange.bind(this);
-
-  this.accountsContainer =
-    domNode.getElementsByClassName('acct-list-container')[0];
-  bindContainerHandler(this.accountsContainer, 'click',
-                       this.onClickAccount.bind(this));
-
-  domNode.getElementsByClassName('fld-accounts-btn')[0]
-    .addEventListener('click', this.onHideAccounts.bind(this), false);
-
-  domNode.getElementsByClassName('fld-nav-settings-btn')[0]
-    .addEventListener('click', this.onShowSettings.bind(this), false);
-
-  // since the slice is already populated, generate a fake notification
-  this.onAccountsSplice(0, 0, this.acctsSlice.items, true, false);
-}
-
-AccountPickerCard.prototype = {
-  die: function() {
-    // Since this card is destroyed when hidden,
-    // detach listeners from the acctSlice.
-    if (this.acctsSlice) {
-      this.acctsSlice.onsplice = null;
-      this.acctsSlice.onchange = null;
-    }
-  },
-
-  onShowSettings: function() {
-    Cards.pushCard(
-      'settings-main', 'default', 'animate', {}, 'left');
-  },
-
-  onAccountsSplice: function(index, howMany, addedItems,
-                             requested, moreExpected) {
-    var accountsContainer = this.accountsContainer;
-
-    var account;
-    if (howMany) {
-      for (var i = index + howMany - 1; i >= index; i--) {
-        account = this.acctsSlice.items[i];
-        accountsContainer.removeChild(account.element);
-      }
-    }
-
-    var insertBuddy = (index >= accountsContainer.childElementCount) ?
-                        null : accountsContainer.children[index],
-        self = this;
-    addedItems.forEach(function(account) {
-      var accountNode = account.element =
-        fldNodes['account-item'].cloneNode(true);
-      accountNode.account = account;
-      self.updateAccountDom(account, true);
-      accountsContainer.insertBefore(accountNode, insertBuddy);
-    });
-  },
-
-  onHideAccounts: function() {
-    Cards.removeCardAndSuccessors(this.domNode, 'animate', 1,
-                                  ['folder-picker', 'navigation']);
-  },
-
-  onAccountsChange: function(account) {
-    this.updateAccountDom(account, false);
-  },
-
-  updateAccountDom: function(account, firstTime) {
-    var accountNode = account.element;
-
-    if (firstTime) {
-      accountNode.getElementsByClassName('fld-account-name')[0]
-        .textContent = account.name;
-    }
-
-    if (account === this.curAccount) {
-      accountNode.classList.add('fld-account-selected');
-    }
-    else {
-      accountNode.classList.remove('fld-account-selected');
-    }
-  },
-
-  /**
-   * Clicking a different account changes the list of folders displayed.  We
-   * then trigger a select of the inbox for that account because otherwise
-   * things get permutationally complex.
-   */
-  onClickAccount: function(accountNode, event) {
-    var oldAccount = this.curAccount,
-        account = this.curAccount = accountNode.account;
-
-    if (oldAccount !== account) {
-      var folderCard = Cards.findCardObject(['folder-picker', 'navigation']);
-      folderCard.cardImpl.updateAccount(account);
-    }
-
-    this.onHideAccounts();
-  }
-};
-
-Cards.defineCard({
-  name: 'account-picker',
-  modes: {
-    // Navigation mode acts like a tray
-    navigation: {
-      tray: true
-    },
-    movetarget: {
-      tray: false
-    }
-  },
-  constructor: AccountPickerCard
 });
 

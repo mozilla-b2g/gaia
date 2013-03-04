@@ -10,13 +10,13 @@ var SimPinDialog = {
 
   pinArea: document.getElementById('pinArea'),
   pukArea: document.getElementById('pukArea'),
-  xckArea: document.getElementById('xckArea'),
+  nckArea: document.getElementById('nckArea'),
   newPinArea: document.getElementById('newPinArea'),
   confirmPinArea: document.getElementById('confirmPinArea'),
 
   pinInput: null,
   pukInput: null,
-  xckInput: null,
+  nckInput: null,
   newPinInput: null,
   confirmPinInput: null,
 
@@ -28,14 +28,6 @@ var SimPinDialog = {
 
   lockType: 'pin',
   action: 'unlock',
-
-  lockTypeMap: {
-    'pinRequired': 'pin',
-    'pukRequired': 'puk',
-    'networkLocked': 'nck',
-    'corporateLocked': 'cck',
-    'serviceProviderLocked': 'spck'
-  },
 
   // Now we don't have a number-password type for input field
   // mimic one by binding one number input and one text input
@@ -99,16 +91,15 @@ var SimPinDialog = {
     var _ = navigator.mozL10n.get;
 
     var cardState = this.mobileConnection.cardState;
-    var lockType = this.lockTypeMap[cardState];
-    switch (lockType) {
-      case 'pin':
-        this.lockType = lockType;
+    switch (cardState) {
+      case 'pinRequired':
+        this.lockType = 'pin';
         this.errorMsg.hidden = true;
         this.inputFieldControl(true, false, false, false);
         this.pinInput.focus();
         break;
-      case 'puk':
-        this.lockType = lockType;
+      case 'pukRequired':
+        this.lockType = 'puk';
         this.errorMsgHeader.textContent = _('simCardLockedMsg') || '';
         this.errorMsgHeader.dataset.l10nId = 'simCardLockedMsg';
         this.errorMsgBody.textContent = _('enterPukMsg') || '';
@@ -117,17 +108,11 @@ var SimPinDialog = {
         this.inputFieldControl(false, true, false, true);
         this.pukInput.focus();
         break;
-      case 'nck':
-      case 'cck':
-      case 'spck':
-        this.lockType = lockType;
+      case 'networkLocked':
+        this.lockType = 'nck';
         this.errorMsg.hidden = true;
         this.inputFieldControl(false, false, true, false);
-        var desc = this.xckArea.querySelector('div[name="xckDesc"]');
-        var l10nId = lockType + 'Code';
-        desc.textContent = _(l10nId);
-        desc.dataset.l10nId = l10nId;
-        this.xckInput.focus();
+        this.nckInput.focus();
         break;
       default:
         this.skip();
@@ -149,7 +134,7 @@ var SimPinDialog = {
     } else if (evt.lockType === 'puk') {
       this.pukInput.focus();
     } else {
-      this.xckInput.focus();
+      this.nckInput.focus();
     }
   },
 
@@ -203,12 +188,12 @@ var SimPinDialog = {
     this.clear();
   },
 
-  unlockXck: function spl_unlockXck() {
-    var xck = this.xckInput.value;
-    if (xck === '')
+  unlockNck: function spl_unlockNck() {
+    var nck = this.nckInput.value;
+    if (nck === '')
       return;
 
-    var options = {lockType: this.lockType, pin: xck };
+    var options = {lockType: 'nck', pin: nck };
     this.unlockCardLock(options);
     this.clear();
   },
@@ -254,10 +239,10 @@ var SimPinDialog = {
     var req = this.mobileConnection.setCardLock(options);
     req.onsuccess = this.close.bind(this, 'success');
   },
-  inputFieldControl: function spl_inputField(isPin, isPuk, isXck, isNewPin) {
+  inputFieldControl: function spl_inputField(isPin, isPuk, isNck, isNewPin) {
     this.pinArea.hidden = !isPin;
     this.pukArea.hidden = !isPuk;
-    this.xckArea.hidden = !isXck;
+    this.nckArea.hidden = !isNck;
     this.newPinArea.hidden = !isNewPin;
     this.confirmPinArea.hidden = !isNewPin;
   },
@@ -270,7 +255,7 @@ var SimPinDialog = {
         else if (this.lockType === 'puk') {
           this.unlockPuk();
         } else {
-          this.unlockXck();
+          this.unlockNck();
         }
         break;
       case 'enable':
@@ -295,8 +280,6 @@ var SimPinDialog = {
     this.pinInput.blur();
     this.pukInput.value = '';
     this.pukInput.blur();
-    this.xckInput.value = '';
-    this.xckInput.blur();
     this.newPinInput.value = '';
     this.confirmPinInput.value = '';
   },
@@ -362,7 +345,7 @@ var SimPinDialog = {
     this.dialogClose.onclick = this.skip.bind(this);
     this.pinInput = this.getNumberPasswordInputField('simpin');
     this.pukInput = this.getNumberPasswordInputField('simpuk');
-    this.xckInput = this.getNumberPasswordInputField('xckpin');
+    this.nckInput = this.getNumberPasswordInputField('nckpin');
     this.newPinInput = this.getNumberPasswordInputField('newSimpin');
     this.confirmPinInput = this.getNumberPasswordInputField('confirmNewSimpin');
   }

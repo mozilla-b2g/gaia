@@ -75,15 +75,9 @@ var CallHandler = (function callHandler() {
       LazyL10n.get(function localized(_) {
         var title = _('missedCall');
 
-        var sender;
-        if (!number) {
-          sender = _('unknown');
-        } else if (contact) {
-          sender = Utils.getPhoneNumberPrimaryInfo(matchingTel, contact) ||
-              _('unknown');
-        } else {
-          sender = number;
-        }
+        var sender = (contact == null) ? number :
+          (Utils.getPhoneNumberPrimaryInfo(matchingTel, contact) ||
+            _('unknown'));
 
         var body = _('from', {sender: sender});
 
@@ -105,15 +99,12 @@ var CallHandler = (function callHandler() {
 
   /* === Recents support === */
   function handleRecentAddRequest(entry) {
-    RecentsDBManager.init(function() {
-      RecentsDBManager.add(entry, function() {
-        if (Recents.loaded) {
-          if (window.location.hash === '#recents-view') {
-            Recents.refresh();
-          } else {
-            Recents.renderNeeded = true;
-          }
-        }
+    Recents.load(function recentsLoaded() {
+      RecentsDBManager.init(function() {
+        RecentsDBManager.add(entry, function() {
+          RecentsDBManager.close();
+          Recents.refresh();
+        });
       });
     });
   }
@@ -347,28 +338,16 @@ var NavbarManager = {
       self.update();
     });
   },
-  resourcesLoaded: false,
-  /*
+
+  /**
    * Ensures resources are loaded
    */
   ensureResources: function(cb) {
-    if (this.resourcesLoaded) {
-      if (cb && typeof cb === 'function') {
-        cb();
-      }
-      return;
-    }
-    var self = this;
     loader.load(['/shared/js/async_storage.js',
                  '/shared/js/notification_helper.js',
                  '/shared/js/simple_phone_matcher.js',
                  '/dialer/js/contacts.js',
-                 '/dialer/js/recents.js'], function rs_loaded() {
-                    self.resourcesLoaded = true;
-                    if (cb && typeof cb === 'function') {
-                      cb();
-                    }
-                  });
+                 '/dialer/js/recents.js'], cb);
   },
 
   update: function nm_update() {
@@ -385,8 +364,6 @@ var NavbarManager = {
     // contacts activites. Postponed to v2
     var checkContactsTab = function() {
       var contactsIframe = document.getElementById('iframe-contacts');
-      if (!contactsIframe)
-        return;
 
       var index = contactsIframe.src.indexOf('#add-parameters');
       if (index != -1) {
@@ -399,29 +376,16 @@ var NavbarManager = {
       case '#recents-view':
         checkContactsTab();
         this.ensureResources(function() {
+          Recents.updateContactDetails();
           recent.classList.add('toolbar-option-selected');
-          if (!Recents.loaded) {
-            Recents.load();
-            return;
-          }
-          if (Recents.renderNeeded) {
-            Recents.refresh();
-            Recents.renderNeeded = false;
-          }
+          Recents.load();
           Recents.updateLatestVisit();
         });
         break;
       case '#contacts-view':
         var frame = document.getElementById('iframe-contacts');
-        if (!frame) {
-          var view = document.getElementById('iframe-contacts-container');
-          frame = document.createElement('iframe');
+        if (!frame.src) {
           frame.src = '/contacts/index.html';
-          frame.id = 'iframe-contacts';
-          frame.setAttribute('frameBorder', 'no');
-          frame.classList.add('grid-wrapper');
-
-          view.appendChild(frame);
         }
 
         contacts.classList.add('toolbar-option-selected');

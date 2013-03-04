@@ -5,7 +5,6 @@
   color: #888888;
   display: table-cell;
   width: -moz-min-content;
-  white-space: nowrap;
   text-align: left;
   line-height: 2.3rem;
   margin: 0 0.5rem;
@@ -20,8 +19,7 @@
   width: -moz-available;
 }
 
-.cmp-bubble-container,
-.cmp-attachments-size {
+.cmp-bubble-container {
   width: calc(100% - 3.5rem);
   float: left;
   padding-top: 0.2rem;
@@ -48,7 +46,6 @@ input.cmp-addr-text {
   margin-top: 2px;
   float: left;
   width: 0.5rem;
-  max-width: 100%;
 }
 
 input.cmp-subject-text {
@@ -59,8 +56,7 @@ input.cmp-subject-text {
   margin: 0.3rem 0;
 }
 
-.cmp-contact-add,
-.cmp-file-add {
+.cmp-contact-add {
   background: url("images/add-contact.png") no-repeat scroll center transparent;
   width: 2rem;
   height: 2rem;
@@ -118,7 +114,6 @@ input.cmp-subject-text {
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: calc(100% - 12.5rem);
-  white-space: nowrap;
 }
 .cmp-attachment-filesize {
   color: gray;

@@ -16,20 +16,9 @@ function Icon(descriptor, app) {
   this.updateAppStatus(app);
 }
 
-
-// Support rendering icons for different screens
-var BASE_WIDTH = 320;
-var SCALE_RATIO = window.innerWidth / BASE_WIDTH;
-var MIN_ICON_SIZE = 52 * SCALE_RATIO;
-var MAX_ICON_SIZE = 60 * SCALE_RATIO;
-
-var DRAGGING_TRANSITION = '-moz-transform .3s';
-
 Icon.prototype = {
-
-  MAX_ICON_SIZE: MAX_ICON_SIZE,
-
-  MIN_ICON_SIZE: MIN_ICON_SIZE,
+  MIN_ICON_SIZE: 52,
+  MAX_ICON_SIZE: 60,
 
   DEFAULT_BOOKMARK_ICON_URL: window.location.protocol + '//' +
                     window.location.host + '/style/images/default_favicon.png',
@@ -68,7 +57,6 @@ Icon.prototype = {
      *   <span class="options"></span>
      * </li>
      */
-
     var container = this.container = document.createElement('li');
     container.className = 'icon';
     if (this.descriptor.hidden) {
@@ -93,16 +81,21 @@ Icon.prototype = {
 
     // Image
     var img = this.img = new Image();
-    img.setAttribute('role', 'presentation');
-    img.width = MAX_ICON_SIZE + 4 * SCALE_RATIO;
-    img.height = MAX_ICON_SIZE + 4 * SCALE_RATIO;
-    img.style.visibility = 'hidden';
-    if (descriptor.renderedIcon) {
-      this.displayRenderedIcon();
-    } else {
-      this.fetchImageData();
-    }
     icon.appendChild(img);
+    img.style.visibility = 'hidden';
+    if (this.downloading) {
+      img.src = descriptor.icon;
+      img.style.visibility = 'visible';
+    } else {
+      img.setAttribute('role', 'presentation');
+      img.width = 64;
+      img.height = 64;
+      if (descriptor.renderedIcon) {
+        this.displayRenderedIcon();
+      } else {
+        this.fetchImageData();
+      }
+    }
 
     // Label
 
@@ -213,7 +206,6 @@ Icon.prototype = {
     }
 
     img.onload = function icon_loadSuccess() {
-      img.onload = img.onerror = null;
       if (blob)
         window.URL.revokeObjectURL(img.src);
       self.renderImage(img);
@@ -224,18 +216,16 @@ Icon.prototype = {
         window.URL.revokeObjectURL(img.src);
       img.src = getDefaultIcon(self.app);
       img.onload = function icon_errorIconLoadSucess() {
-        img.onload = null;
         self.renderImage(img);
       };
-      img.onerror = null;
     };
   },
 
   renderImageForBookMark: function icon_renderImageForBookmark(img) {
     var self = this;
     var canvas = document.createElement('canvas');
-    canvas.width = MAX_ICON_SIZE + 4 * SCALE_RATIO;
-    canvas.height = MAX_ICON_SIZE + 4 * SCALE_RATIO;
+    canvas.width = 64;
+    canvas.height = 64;
     var ctx = canvas.getContext('2d');
 
     // Draw the background
@@ -245,14 +235,12 @@ Icon.prototype = {
       ctx.shadowColor = 'rgba(0,0,0,0.8)';
       ctx.shadowBlur = 2;
       ctx.shadowOffsetY = 2;
-      ctx.drawImage(background, 2 * SCALE_RATIO,
-                    2 * SCALE_RATIO, MAX_ICON_SIZE, MAX_ICON_SIZE);
+      ctx.drawImage(background, 2, 2);
       // Disable smoothing on icon resize
       ctx.shadowBlur = 0;
       ctx.shadowOffsetY = 0;
       ctx.mozImageSmoothingEnabled = false;
-      ctx.drawImage(img, 16 * SCALE_RATIO, 16 * SCALE_RATIO,
-                    32 * SCALE_RATIO, 32 * SCALE_RATIO);
+      ctx.drawImage(img, 16, 16, 32, 32);
       canvas.toBlob(self.renderBlob.bind(self));
     };
   },
@@ -264,8 +252,8 @@ Icon.prototype = {
     }
 
     var canvas = document.createElement('canvas');
-    canvas.width = MAX_ICON_SIZE + 4 * SCALE_RATIO;
-    canvas.height = MAX_ICON_SIZE + 4 * SCALE_RATIO;
+    canvas.width = 64;
+    canvas.height = 64;
 
     var ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -275,12 +263,12 @@ Icon.prototype = {
 
     // Deal with very small or very large icons
     img.width =
-        Math.min(MAX_ICON_SIZE, Math.max(img.width, MAX_ICON_SIZE));
+        Math.min(this.MAX_ICON_SIZE, Math.max(img.width, this.MIN_ICON_SIZE));
     img.height =
-        Math.min(MAX_ICON_SIZE, Math.max(img.height, MAX_ICON_SIZE));
+        Math.min(this.MAX_ICON_SIZE, Math.max(img.height, this.MIN_ICON_SIZE));
 
-    var width = Math.min(img.width, canvas.width - 4 * SCALE_RATIO);
-    var height = Math.min(img.width, canvas.height - 4 * SCALE_RATIO);
+    var width = Math.min(img.width, canvas.width - 4);
+    var height = Math.min(img.width, canvas.height - 4);
     ctx.drawImage(img,
                   (canvas.width - width) / 2,
                   (canvas.height - height) / 2,
@@ -456,6 +444,18 @@ Icon.prototype = {
   },
 
   /*
+   * This method is invoked when the draggable elem is moving
+   *
+   * @param{int} x-coordinate
+   *
+   * @param{int} y-coordinate
+   */
+  onDragMove: function icon_onDragMove(x, y) {
+    this.draggableElem.style.MozTransform =
+      'translate(' + (x - this.initX) + 'px,' + (y - this.initY) + 'px)';
+  },
+
+  /*
    * This method is invoked when the drag gesture finishes
    */
   onDragStop: function icon_onDragStop(callback) {
@@ -507,7 +507,6 @@ function Page(container, icons) {
   this.container = this.movableContainer = container;
   if (icons)
     this.render(icons);
-  this.iconsWhileDragging = [];
 }
 
 Page.prototype = {
@@ -550,13 +549,14 @@ Page.prototype = {
     style.MozTransition = '';
   },
 
+
   ready: true,
 
   setReady: function pg_setReady(value) {
-    if (value) {
-      this.container.dispatchEvent(new CustomEvent('onpageready'));
-    }
     this.ready = value;
+    if (value && this.onReArranged) {
+      this.onReArranged();
+    }
   },
 
   /*
@@ -569,94 +569,62 @@ Page.prototype = {
    *               The target icon that is replaced by the origin icon.
    */
   drop: function pg_drop(originIcon, targetIcon) {
-    if (!this.ready || originIcon === targetIcon) {
+    if (originIcon === targetIcon) {
       return;
     }
 
     this.setReady(false);
 
-    var iconList = this.olist.children;
-    if (originIcon && targetIcon && iconList.length > 1) {
-      if (this.iconsWhileDragging.length === 0)
-        this.iconsWhileDragging = Array.prototype.slice.call(iconList, 0,
-                                                             iconList.length);
-
-      this.animate(this.iconsWhileDragging, originIcon.container,
+    if (originIcon && targetIcon && this.olist.children.length > 1) {
+      this.animate(this.olist.children, originIcon.container,
                    targetIcon.container);
     } else {
       setTimeout(this.setReady.bind(this, true));
     }
   },
 
-  animate: function pg_animate(children, draggableNode, targetNode) {
-    var draggableIndex = children.indexOf(draggableNode);
-    var targetIndex = children.indexOf(targetNode);
-    var upward = draggableIndex < targetIndex;
-    this.draggableNode = draggableNode;
-    this.beforeNode = upward ? targetNode.nextSibling : targetNode;
-    this.placeIcon(draggableNode, draggableIndex, targetIndex);
+  animate: function pg_anim(children, originNode, targetNode) {
+    var beforeNode = targetNode;
+    var initialIndex = children.indexOf(originNode);
+    var endIndex = children.indexOf(targetNode);
+
+    var upward = initialIndex < endIndex;
+    if (upward) {
+      beforeNode = targetNode.nextSibling;
+      initialIndex++;
+    } else {
+      // this exchanges initialIndex and endIndex
+      initialIndex = initialIndex + endIndex;
+      endIndex = initialIndex - endIndex;
+      initialIndex = initialIndex - endIndex;
+      endIndex--;
+    }
+
+    // keep the elements that we animate because "children" is a live NodeList
+    var slice = Array.prototype.slice;
+    var animatedChildren = slice.call(children, initialIndex, endIndex + 1);
 
     var self = this;
-    targetNode.addEventListener('transitionend', function onTransitionEnd() {
-      targetNode.removeEventListener('transitionend', onTransitionEnd);
-      children.splice(draggableIndex, 1);
-      children.splice(targetIndex, 0, draggableNode);
-      setTimeout(self.setReady.bind(self, true));
-    });
+    this.setAnimation(animatedChildren, initialIndex, upward);
 
-    if (upward) {
-      for (var i = draggableIndex + 1; i <= targetIndex; i++)
-        this.placeIcon(children[i], i, i - 1, DRAGGING_TRANSITION);
-    } else {
-      for (var i = targetIndex; i < draggableIndex; i++)
-        this.placeIcon(children[i], i, i + 1, DRAGGING_TRANSITION);
-    }
-  },
-
-  doDragLeave: function pg_doReArrange(reflow) {
-    this.iconsWhileDragging.forEach(function reset(node) {
-      node.style.MozTransform = node.style.MozTransition = '';
-      delete node.dataset.posX;
-      delete node.dataset.posY;
-    });
-
-    this.iconsWhileDragging = [];
-
-    if (reflow)
-      this.olist.insertBefore(this.draggableNode, this.beforeNode);
-  },
-
-  onDragLeave: function pg_onDragLeave(reflow) {
-    if (this.iconsWhileDragging.length === 0)
-      return;
-
-    if (!this.ready) {
-      var self = this;
-
-      self.container.addEventListener('onpageready', function onPageReady() {
-        self.doDragLeave(reflow);
-        self.container.removeEventListener('onpageready', onPageReady);
+    var lastNode = animatedChildren[animatedChildren.length - 1];
+    lastNode.addEventListener('animationend', function animationEnd(e) {
+      animatedChildren.forEach(function(iconContainer) {
+        iconContainer.style.MozAnimationName = '';
       });
-
-      return;
-    }
-
-    this.doDragLeave(reflow);
+      self.olist.insertBefore(originNode, beforeNode);
+      var lastNode = e.target;
+      lastNode.removeEventListener('animationend', animationEnd);
+      self.setReady(true);
+    });
   },
 
-  placeIcon: function pg_placeIcon(node, from, to, transition) {
-    if (!node)
-      return;
-
-    var x = node.dataset.posX = parseInt(node.dataset.posX || 0) +
-                      ((Math.floor(to % 4) - Math.floor(from % 4)) * 100);
-    var y = node.dataset.posY = parseInt(node.dataset.posY || 0) +
-                      ((Math.floor(to / 4) - Math.floor(from / 4)) * 100);
-
-    window.mozRequestAnimationFrame(function() {
-      node.style.MozTransform = 'translate(' + x + '%, ' + y + '%)';
-      if (transition)
-        node.style.MozTransition = transition;
+  setAnimation: function pg_setAnimation(elts, init, upward) {
+    elts.forEach(function(elt, i) {
+      i += init;
+      elt.style.MozAnimationName = upward ?
+        (i % 4 === 0 ? 'jumpPrevRow' : 'jumpPrevCell') :
+        (i % 4 === 3 ? 'jumpNextRow' : 'jumpNextCell');
     });
   },
 
@@ -729,9 +697,6 @@ Page.prototype = {
    */
   getLastIcon: function pg_getLastIcon() {
     var lastIcon = this.olist.lastChild;
-    if (this.iconsWhileDragging.length > 0)
-      lastIcon = this.iconsWhileDragging[this.iconsWhileDragging.length - 1];
-
     if (!lastIcon)
       return null;
     return GridManager.getIcon(lastIcon.dataset);
@@ -742,9 +707,6 @@ Page.prototype = {
    */
   getFirstIcon: function pg_getFirstIcon() {
     var firstIcon = this.olist.firstChild;
-    if (this.iconsWhileDragging.length > 0)
-      firstIcon = this.iconsWhileDragging[0];
-
     if (!firstIcon)
       return null;
     return GridManager.getIcon(firstIcon.dataset);
@@ -771,7 +733,7 @@ Page.prototype = {
    * the icon that was at the last place and will be hidden will eventually flow
    * to the next page. This is done in GridManager's ensurePagesOverflow
    *
-   * @param {Object} icon the icon to be added.
+   * @param{Object} icon the icon to be added.
    */
   appendIconVisible: function pg_appendIconVisible(icon) {
     if (this.getNumIcons() >= GridManager.pageHelper.maxIconsPerPage) {
@@ -860,6 +822,14 @@ dockProto.moveByWithDuration = function dk_moveByWithDuration(scrollX,
   style.MozTransition = '-moz-transform ' + duration + 'ms ease';
 };
 
+
+dockProto.setAnimation = function dk_setAnimation(elts, init, upward) {
+  var animation = upward ? 'jumpPrevCell' : 'jumpNextCell';
+  elts.forEach(function(elt) {
+    elt.style.MozAnimationName = animation;
+  });
+};
+
 dockProto.getLeft = function dk_getLeft() {
   return this.olist.getBoundingClientRect().left;
 };
@@ -872,17 +842,11 @@ dockProto.getWidth = function dk_getWidth() {
   return this.olist.clientWidth;
 };
 
-dockProto.placeIcon = function pg_placeIcon(node, from, to, transition) {
-  if (!node)
-    return;
-
-  var x = node.dataset.posX = parseInt(node.dataset.posX || 0) + (to - from) *
-                              100;
-
-  node.style.MozTransform = 'translateX(' + x + '%)';
-  if (transition)
-    node.style.MozTransition = transition;
+dockProto.getChildren = function dk_getChildren() {
+  return this.olist.children;
 };
+
+HTMLCollection.prototype.indexOf = Array.prototype.indexOf;
 
 const TextOverflowDetective = (function() {
 

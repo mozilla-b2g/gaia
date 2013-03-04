@@ -1,4 +1,8 @@
-suiteGroup('Views.Errors', function() {
+requireApp('calendar/test/unit/helper.js', function() {
+  requireLib('views/errors.js');
+});
+
+suite('views/errors', function() {
   var subject, app, errorName;
 
   setup(function() {
@@ -9,7 +13,7 @@ suiteGroup('Views.Errors', function() {
 
     subject.showErrors = function(list) {
       errorName = list[0].name;
-    };
+    }
   });
 
   test('offline event', function() {

@@ -105,9 +105,6 @@ var AttentionScreen = {
     // alternatively, if the newly appended frame is the visible frame
     // and we are in the status bar mode, expend to full screen mode.
     if (!this.isVisible()) {
-      // Attention screen now only support portrait mode.
-      screen.mozLockOrientation('portrait-primary');
-
       this.attentionScreen.classList.add('displayed');
       this.mainScreen.classList.add('attention');
       this.dispatchEvent('attentionscreenshow', {
@@ -186,11 +183,6 @@ var AttentionScreen = {
         { origin: this.attentionScreen.lastElementChild.dataset.frameOrigin });
     }
 
-    // Restore the orientation of current displayed app
-    var currentApp = WindowManager.getDisplayedApp();
-    if (currentApp)
-      WindowManager.setOrientationForApp(currentApp);
-
     this.attentionScreen.classList.remove('displayed');
     this.mainScreen.classList.remove('attention');
     this.dispatchEvent('attentionscreenhide', { origin: origin });
@@ -198,9 +190,6 @@ var AttentionScreen = {
 
   // expend the attention screen overlay to full screen
   show: function as_show() {
-    // Attention screen now only support portrait mode.
-    screen.mozLockOrientation('portrait-primary');
-
     // leaving "status-mode".
     this.attentionScreen.classList.remove('status-mode');
     // there shouldn't be a transition from "status-mode" to "active-statusbar"
@@ -224,12 +213,6 @@ var AttentionScreen = {
   hide: function as_hide() {
     if (!this.isFullyVisible())
       return;
-
-    // Restore the orientation of current displayed app
-    var currentApp = WindowManager.getDisplayedApp();
-
-    if (currentApp)
-      WindowManager.setOrientationForApp(currentApp);
 
     // entering "active-statusbar" mode,
     // with a transform: translateY() slide up transition.

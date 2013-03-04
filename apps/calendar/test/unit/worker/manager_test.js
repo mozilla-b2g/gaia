@@ -1,4 +1,6 @@
-requireLib('worker/manager.js');
+requireApp('calendar/test/unit/helper.js', function() {
+  requireLib('worker/manager.js');
+});
 
 /**
  * This test should over the basics of

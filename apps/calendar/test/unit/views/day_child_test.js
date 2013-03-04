@@ -1,12 +1,12 @@
-/*
-requireLib('utils/ordered_map.js');
-requireLib('templates/day.js');
-requireLib('views/day_based.js');
-requireLib('views/day_child.js');
-*/
-requireLib('timespan.js');
+requireApp('calendar/test/unit/helper.js', function() {
+  requireLib('timespan.js');
+  requireLib('utils/ordered_map.js');
+  requireLib('templates/day.js');
+  requireLib('views/day_based.js');
+  requireLib('views/day_child.js');
+});
 
-suiteGroup('Views.DayChild', function() {
+suite('views/day_child', function() {
   var subject;
   var app;
   var db;
@@ -72,25 +72,9 @@ suiteGroup('Views.DayChild', function() {
     var result = subject._renderEvent(busytime, event);
     assert.ok(result);
 
-    assert.include(result, 'has-alarms');
     assert.include(result, 'UX');
     assert.include(result, 'Paris');
     assert.include(result, '>zoo<');
     assert.include(result, '>barr<');
-  });
-
-  test('#_renderEvent without alarms', function() {
-    var event = Factory('event', {
-      remote: {
-        alarms: []
-      }
-    });
-
-    var busytime = Factory('busytime');
-
-    var result = subject._renderEvent(busytime, event);
-    assert.ok(result);
-
-    assert.ok(result.indexOf('has-alarms') === -1);
   });
 });

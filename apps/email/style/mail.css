@@ -12,7 +12,6 @@ html {
   height: 100%;
   font-size: 10px;
   font-family: 'MozTT', sans-serif;
-  overflow: hidden;
 }
 
 @media screen and (min-width: 480px) {
@@ -26,7 +25,7 @@ body {
   height: 100%;
   margin: 0;
   padding: 0;
-  background-color: white;
+  background-color: black;
 }
 
 #cardContainer,
@@ -36,6 +35,7 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
+  overflow: hidden;
 }
 
 .card {
@@ -43,6 +43,7 @@ body {
   top: 0;
   width: 100%;
   height: 100%;
+  overflow: hidden;
   background-color: white;
   -moz-transition-property: transform;
   -moz-transition-duration: 0.3s;
@@ -90,20 +91,12 @@ body {
 }
 
 
-.card.center.card-folder-picker,
-.card.center.card-account-picker,
-.card.card-account-picker {
+.card.center.card-folder-picker {
   width: calc(100% - 4.3em);
 }
 
 .card.center.card-folder-picker + .card.after {
   transform: translateX(calc(100% - 4.3em));
-}
-
-/* Override animation for card list, should appear
- * to just be under the message list */
-.card.before.card-folder-picker {
-  transform: translateX(0);
 }
 
 .form-card {

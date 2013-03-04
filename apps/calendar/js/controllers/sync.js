@@ -44,32 +44,22 @@ Calendar.ns('Controllers').Sync = (function() {
      *    controller.once('syncComplete', cb);
      *
      */
-    all: function(callback) {
-      if (callback) {
-        this.once('syncComplete', callback);
-      }
-
+    all: function() {
       if (this.app.offline()) {
         this.emit('offline');
-        this.emit('syncComplete');
         return;
       }
 
       var account = this.app.store('Account');
 
-      account.all(function(err, list) {
+      for (var key in account.cached) {
+        this.account(account.cached[key]);
+      }
 
-        for (var key in list) {
-          this.account(list[key]);
-        }
-
-        // If we have nothing to sync
-        if (!this.pending) {
-          this.emit('syncComplete');
-        }
-
-      }.bind(this));
-   },
+      // If we have nothing to sync
+      if (!this.pending)
+        this.emit('syncComplete');
+    },
 
     /**
      * Initiates a sync for a single calendar.
@@ -106,8 +96,13 @@ Calendar.ns('Controllers').Sync = (function() {
 
       this._incrementPending();
       accountStore.sync(account, function(err) {
+        // find all calendars
+        var calendars = calendarStore.remotesByAccount(
+          account._id
+        );
 
         var pending = 0;
+
         function next() {
           if (!(--pending)) {
             self._resolvePending();
@@ -117,22 +112,10 @@ Calendar.ns('Controllers').Sync = (function() {
           }
         }
 
-        function fetchCalendars(err, calendars) {
-          if (err) {
-            return callback(err);
-          }
-
-          for (var key in calendars) {
-            pending++;
-            self.calendar(account, calendars[key], next);
-          }
+        for (var key in calendars) {
+          pending++;
+          self.calendar(account, calendars[key], next);
         }
-
-        // find all calendars
-        var calendars = calendarStore.remotesByAccount(
-          account._id,
-          fetchCalendars
-        );
       });
     }
   };

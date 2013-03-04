@@ -16,19 +16,18 @@ var EverythingME = {
                                                                       'visible';
 
       EverythingME.displayed = true;
-      footerStyle.MozTransform = "translateY(100%)";
+      footerStyle.MozTransform = "translateY(75px)";
 
       page.addEventListener('gridpageshowend', function onpageshowafterload() {
         if (EverythingME.displayed) return;
 
         EverythingME.displayed = true;
-        footerStyle.MozTransform = "translateY(100%)";
+        footerStyle.MozTransform = "translateY(75px)";
         EvmeFacade.onShow();
       });
 
       EverythingME.load(function success() {
-        if (EverythingME.displayed)
-          EvmeFacade.onShow();
+        EvmeFacade.onShow();
         var loadingOverlay = document.querySelector('#loading-overlay');
         loadingOverlay.style.opacity = 0;
         setTimeout(function starting() {

@@ -1,4 +1,3 @@
-
 /* Copyright 2012 Mozilla Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,9 +23,9 @@
 }(this, function() {
   'use strict';
 
-  var exports = {};
+  let exports = {};
 
-  var Tokens = {
+  const Tokens = {
     SWITCH_PAGE: 0x00,
     END:         0x01,
     ENTITY:      0x02,
@@ -97,8 +96,8 @@
     this.strings = [];
     this.offsets = {};
 
-    var start = 0;
-    for (var i = 0; i < data.length; i++) {
+    let start = 0;
+    for (let i = 0; i < data.length; i++) {
       if (data[i] === 0) {
         this.offsets[start] = this.strings.length;
         this.strings.push(decoder.decode( data.subarray(start, i) ));
@@ -115,8 +114,8 @@
         if (offset < 0)
           throw new ParseError('offset must be >= 0');
 
-        var curr = 0;
-        for (var i = 0; i < this.strings.length; i++) {
+        let curr = 0;
+        for (let i = 0; i < this.strings.length; i++) {
           // Add 1 to the current string's length here because we stripped a
           // null-terminator earlier.
           if (offset < curr + this.strings[i].length + 1)
@@ -133,24 +132,20 @@
     codepages.__tagnames__ = {};
     codepages.__attrdata__ = {};
 
-    for (var iter in Iterator(codepages)) {
-      var name = iter[0], page = iter[1];
+    for (let [name, page] in Iterator(codepages)) {
       if (name.match(/^__/))
         continue;
 
       if (page.Tags) {
-        var v = Iterator(page.Tags).next();
-        codepages.__nsnames__[v[1] >> 8] = name;
+        let [,v] = Iterator(page.Tags).next();
+        codepages.__nsnames__[v >> 8] = name;
 
-        for (var iter2 in Iterator(page.Tags)) {
-          var tag = iter2[0], value = iter2[1];
+        for (let [tag, value] in Iterator(page.Tags))
           codepages.__tagnames__[value] = tag;
-        }
       }
 
       if (page.Attrs) {
-        for (var iter3 in Iterator(page.Attrs)) {
-          var attr = iter3[0], data = iter3[1];
+        for (let [attr, data] in Iterator(page.Attrs)) {
           if (!('name' in data))
             data.name = attr;
           codepages.__attrdata__[data.value] = data;
@@ -161,7 +156,7 @@
   }
   exports.CompileCodepages = CompileCodepages;
 
-  var mib2str = {
+  const mib2str = {
       3: 'US-ASCII',
       4: 'ISO-8859-1',
       5: 'ISO-8859-2',
@@ -178,10 +173,9 @@
 
   // TODO: Really, we should build our own map here with synonyms for the
   // various encodings, but this is a step in the right direction.
-  var str2mib = {};
-  for (var iter in Iterator(mib2str)) {
-    str2mib[iter[1]] = iter[0];
-  }
+  const str2mib = {};
+  for (let [k, v] in Iterator(mib2str))
+    str2mib[v] = k;
 
   function Element(ownerDocument, type, tag) {
     this.ownerDocument = ownerDocument;
@@ -189,13 +183,10 @@
     this._attrs = {};
 
     if (typeof tag === 'string') {
-      var pieces = tag.split(':');
-      if (pieces.length === 1) {
+      let pieces = tag.split(':');
+      if (pieces.length === 1)
         this.localTagName = pieces[0];
-      } else {
-        this.namespaceName = pieces[0];
-        this.localTagName = pieces[1];
-      }
+      else        [this.namespaceName, this.localTagName] = pieces;
     }
     else {
       this.tag = tag;
@@ -214,20 +205,17 @@
   exports.Element = Element;
   Element.prototype = {
     get tagName() {
-      var ns = this.namespaceName;
+      let ns = this.namespaceName;
       ns = ns ? ns + ':' : '';
       return ns + this.localTagName;
     },
 
-    getAttributes: function() {
-      var attributes = [];
-      for (var iter in Iterator(this._attrs)) {
-        var name = iter[0], pieces = iter[1];
-        var data = name.split(':');
-        attributes.push({ name: name, namespace: data[0], localName: data[1],
-                          value: this._getAttribute(pieces) });
+    get attributes() {
+      for (let [name, pieces] in Iterator(this._attrs)) {
+        let [namespace, localName] = name.split(':');
+        yield { name: name, namespace: namespace, localName: localName,
+                value: this._getAttribute(pieces) };
       }
-      return attributes;
     },
 
     getAttribute: function(attr) {
@@ -240,11 +228,10 @@
     },
 
     _getAttribute: function(pieces) {
-      var strValue = '';
-      var array = [];
+      let strValue = '';
+      let array = [];
 
-      for (var iter in Iterator(pieces)) {
-        var hunk = iter[1];
+      for (let [,hunk] in Iterator(pieces)) {
         if (hunk instanceof Extension) {
           if (strValue) {
             array.push(strValue);
@@ -273,13 +260,13 @@
         return this._attrs[attr] = [];
       }
       else {
-        var namespace = attr >> 8;
-        var localAttr = attr & 0xff;
+        let namespace = attr >> 8;
+        let localAttr = attr & 0xff;
 
-        var localName = this.ownerDocument._codepages.__attrdata__[localAttr]
+        let localName = this.ownerDocument._codepages.__attrdata__[localAttr]
                             .name;
-        var nsName = this.ownerDocument._codepages.__nsnames__[namespace];
-        var name = nsName + ':' + localName;
+        let nsName = this.ownerDocument._codepages.__nsnames__[namespace];
+        let name = nsName + ':' + localName;
 
         if (name in this._attrs)
           throw new ParseError('attribute '+name+' is repeated');
@@ -367,8 +354,8 @@
     },
 
     _get_mb_uint32: function() {
-      var b;
-      var result = 0;
+      let b;
+      let result = 0;
       do {
         b = this._get_uint8();
         result = result*128 + (b & 0x7f);
@@ -377,33 +364,27 @@
     },
 
     _get_slice: function(length) {
-      var start = this._index;
+      let start = this._index;
       this._index += length;
       return this._data.subarray(start, this._index);
     },
 
     _get_c_string: function() {
-      var start = this._index;
+      let start = this._index;
       while (this._get_uint8());
       return this._data.subarray(start, this._index - 1);
     },
 
     rewind: function() {
-      // Although in theory we could cache this.document since we no longer use
-      // iterators, there is clearly some kind of rep exposure that goes awry
-      // for us, so I'm having us re-do our work.  This does not matter in the
-      // normal use-case, just for debugging and just for our test server, which
-      // both rely on rewind().
-
       this._index = 0;
 
-      var v = this._get_uint8();
+      let v = this._get_uint8();
       this.version = ((v & 0xf0) + 1).toString() + '.' + (v & 0x0f).toString();
       this.pid = this._get_mb_uint32();
       this.charset = mib2str[this._get_mb_uint32()] || 'unknown';
       this._decoder = TextDecoder(this.charset);
 
-      var tbl_len = this._get_mb_uint32();
+      let tbl_len = this._get_mb_uint32();
       this.strings = new StringTable(this._get_slice(tbl_len), this._decoder);
 
       this.document = this._getDocument();
@@ -443,21 +424,20 @@
     // zero         = u_int8                // containing the value zero (0).
     _getDocument: function() {
       // Parser states
-      var States = {
+      const States = {
         BODY: 0,
         ATTRIBUTES: 1,
         ATTRIBUTE_PI: 2,
       };
 
-      var state = States.BODY;
-      var currentNode;
-      var currentAttr;
-      var codepage = 0;
-      var depth = 0;
-      var foundRoot = false;
-      var doc = [];
+      let state = States.BODY;
+      let currentNode;
+      let currentAttr;
+      let codepage = 0;
+      let depth = 0;
+      let foundRoot = false;
 
-      var appendString = (function(s) {
+      let appendString = (function(s) {
         if (state === States.BODY) {
           if (!currentNode)
             currentNode = new Text(this, s);
@@ -472,25 +452,25 @@
       }).bind(this);
 
       try { while (true) {
-        var tok = this._get_uint8();
+        let tok = this._get_uint8();
 
         if (tok === Tokens.SWITCH_PAGE) {
           codepage = this._get_uint8();
           if (!(codepage in this._codepages.__nsnames__))
-            throw new ParseError('unknown codepage '+codepage);
+            throw new ParseError('unknown codepage '+codepage)
         }
         else if (tok === Tokens.END) {
           if (state === States.BODY && depth-- > 0) {
             if (currentNode) {
-              doc.push(currentNode);
+              yield currentNode;
               currentNode = null;
             }
-            doc.push(new EndTag(this));
+            yield new EndTag(this);
           }
           else if (state === States.ATTRIBUTES || state === States.ATTRIBUTE_PI) {
             state = States.BODY;
 
-            doc.push(currentNode);
+            yield currentNode;
             currentNode = null;
             currentAttr = null;
           }
@@ -501,7 +481,7 @@
         else if (tok === Tokens.ENTITY) {
           if (state === States.BODY && depth === 0)
             throw new ParseError('unexpected ENTITY token');
-          var e = this._get_mb_uint32();
+          let e = this._get_mb_uint32();
           appendString('&#'+e+';');
         }
         else if (tok === Tokens.STR_I) {
@@ -515,32 +495,32 @@
           state = States.ATTRIBUTE_PI;
 
           if (currentNode)
-            doc.push(currentNode);
+            yield currentNode;
           currentNode = new ProcessingInstruction(this);
         }
         else if (tok === Tokens.STR_T) {
           if (state === States.BODY && depth === 0)
             throw new ParseError('unexpected STR_T token');
-          var r = this._get_mb_uint32();
+          let r = this._get_mb_uint32();
           appendString(this.strings.get(r));
         }
         else if (tok === Tokens.OPAQUE) {
           if (state !== States.BODY)
             throw new ParseError('unexpected OPAQUE token');
-          var len = this._get_mb_uint32();
-          var data = this._get_slice(len);
+          let len = this._get_mb_uint32();
+          let data = this._get_slice(len);
 
           if (currentNode) {
-            doc.push(currentNode);
+            yield currentNode;
             currentNode = null;
           }
-          doc.push(new Opaque(this, data));
+          yield new Opaque(this, data);
         }
         else if (((tok & 0x40) || (tok & 0x80)) && (tok & 0x3f) < 3) {
-          var hi = tok & 0xc0;
-          var lo = tok & 0x3f;
-          var subtype;
-          var value;
+          let hi = tok & 0xc0;
+          let lo = tok & 0x3f;
+          let subtype;
+          let value;
 
           if (hi === Tokens.EXT_I_0) {
             subtype = 'string';
@@ -555,13 +535,13 @@
             value = null;
           }
 
-          var ext = new Extension(this, subtype, lo, value);
+          let ext = new Extension(this, subtype, lo, value);
           if (state === States.BODY) {
             if (currentNode) {
-              doc.push(currentNode);
+              yield currentNode;
               currentNode = null;
             }
-            doc.push(ext);
+            yield ext;
           }
           else { // if (state === States.ATTRIBUTES || state === States.ATTRIBUTE_PI)
             currentAttr.push(ext);
@@ -574,14 +554,14 @@
             foundRoot = true;
           }
 
-          var tag = (codepage << 8) + (tok & 0x3f);
+          let tag = (codepage << 8) + (tok & 0x3f);
           if ((tok & 0x3f) === Tokens.LITERAL) {
-            var r = this._get_mb_uint32();
+            let r = this._get_mb_uint32();
             tag = this.strings.get(r);
           }
 
           if (currentNode)
-            doc.push(currentNode);
+            yield currentNode;
           currentNode = new Element(this, (tok & 0x40) ? 'STAG' : 'TAG', tag);
           if (tok & 0x40)
             depth++;
@@ -592,15 +572,15 @@
           else {
             state = States.BODY;
 
-            doc.push(currentNode);
+            yield currentNode;
             currentNode = null;
           }
         }
         else { // if (state === States.ATTRIBUTES || state === States.ATTRIBUTE_PI)
-          var attr = (codepage << 8) + tok;
+          let attr = (codepage << 8) + tok;
           if (!(tok & 0x80)) {
             if (tok === Tokens.LITERAL) {
-              var r = this._get_mb_uint32();
+              let r = this._get_mb_uint32();
               attr = this.strings.get(r);
             }
             if (state === States.ATTRIBUTE_PI) {
@@ -620,18 +600,17 @@
         if (!(e instanceof StopIteration))
           throw e;
       }
-      return doc;
     },
 
     dump: function(indentation, header) {
-      var result = '';
+      let result = '';
 
       if (indentation === undefined)
         indentation = 2;
-      var indent = function(level) {
+      let indent = function(level) {
         return new Array(level*indentation + 1).join(' ');
       };
-      var tagstack = [];
+      let tagstack = [];
 
       if (header) {
         result += 'Version: ' + this.version + '\n';
@@ -641,17 +620,12 @@
                   this.strings.strings.join('"\n  "') + '"\n\n';
       }
 
-      var newline = false;
-      var doc = this.document;
-      var doclen = doc.length;
-      for (var iNode = 0; iNode < doclen; iNode++) {
-        var node = doc[iNode];
+      let newline = false;
+      for (let node in this.document) {
         if (node.type === 'TAG' || node.type === 'STAG') {
           result += indent(tagstack.length) + '<' + node.tagName;
 
-          var attributes = node.getAttributes();
-          for (var i = 0; i < attributes.length; i++) {
-            var attr = attributes[i];
+          for (let attr in node.attributes) {
             result += ' ' + attr.name + '="' + attr.value + '"';
           }
 
@@ -663,7 +637,7 @@
             result += '/>\n';
         }
         else if (node.type === 'ETAG') {
-          var tag = tagstack.pop();
+          let tag = tagstack.pop();
           result += indent(tagstack.length) + '</' + tag + '>\n';
         }
         else if (node.type === 'TEXT') {
@@ -694,29 +668,27 @@
     this._codepage = 0;
     this._tagStack = [];
 
-    var infos = version.split('.').map(function(x) {
+    let [major, minor] = version.split('.').map(function(x) {
       return parseInt(x);
     });
-    var major = infos[0], minor = infos[1];
-    var v = ((major - 1) << 4) + minor;
+    let v = ((major - 1) << 4) + minor;
 
-    var charsetNum = charset;
+    let charsetNum = charset;
     if (typeof charset === 'string') {
       charsetNum = str2mib[charset];
       if (charsetNum === undefined)
         throw new Error('unknown charset '+charset);
     }
-    var encoder = this._encoder = TextEncoder(charset);
+    let encoder = this._encoder = TextEncoder(charset);
 
     this._write(v);
     this._write(pid);
     this._write(charsetNum);
     if (strings) {
-      var bytes = strings.map(function(s) { return encoder.encode(s); });
-      var len = bytes.reduce(function(x, y) { return x + y.length + 1; }, 0);
+      let bytes = strings.map(function(s) { return encoder.encode(s); });
+      let len = bytes.reduce(function(x, y) { return x + y.length + 1; }, 0);
       this._write_mb_uint32(len);
-      for (var iter in Iterator(bytes)) {
-        var b = iter[1];
+      for (let [,b] in Iterator(bytes)) {
         this._write_bytes(b);
         this._write(0x00);
       }
@@ -744,7 +716,7 @@
   };
 
   Writer.Extension = function(subtype, index, data) {
-    var validTypes = {
+    const validTypes = {
       'string':  { value:     Tokens.EXT_I_0,
                    validator: function(data) {
                      return typeof data === 'string';
@@ -759,7 +731,7 @@
                    } },
     };
 
-    var info = validTypes[subtype];
+    let info = validTypes[subtype];
     if (!info)
       throw new Error('Invalid WBXML Extension type');
     if (!info.validator(data))
@@ -783,9 +755,9 @@
       // Expand the buffer by a factor of two if we ran out of space.
       if (this._pos === this._buffer.length - 1) {
         this._rawbuf = new ArrayBuffer(this._rawbuf.byteLength * 2);
-        var buffer = new Uint8Array(this._rawbuf);
+        let buffer = new Uint8Array(this._rawbuf);
 
-        for (var i = 0; i < this._buffer.length; i++)
+        for (let i = 0; i < this._buffer.length; i++)
           buffer[i] = this._buffer[i];
 
         this._buffer = buffer;
@@ -795,19 +767,19 @@
     },
 
     _write_mb_uint32: function(value) {
-      var bytes = [];
+      let bytes = [];
       bytes.push(value % 0x80);
       while (value >= 0x80) {
         value >>= 7;
         bytes.push(0x80 + (value % 0x80));
       }
 
-      for (var i = bytes.length - 1; i >= 0; i--)
+      for (let i = bytes.length - 1; i >= 0; i--)
         this._write(bytes[i]);
     },
 
     _write_bytes: function(bytes) {
-      for (var i = 0; i < bytes.length; i++)
+      for (let i = 0; i < bytes.length; i++)
         this._write(bytes[i]);
     },
 
@@ -827,7 +799,7 @@
       if (tag === undefined)
         throw new Error('unknown tag');
 
-      var flags = 0x00;
+      let flags = 0x00;
       if (stag)
         flags += 0x40;
       if (attrs.length)
@@ -843,10 +815,8 @@
       }
 
       if (attrs.length) {
-        for (var iter in Iterator(attrs)) {
-          var attr = iter[1];
+        for (let [,attr] in Iterator(attrs))
           this._writeAttr(attr);
-        }
         this._write(Tokens.END);
       }
     },
@@ -870,10 +840,8 @@
 
     _writeText: function(value, inAttr) {
       if (Array.isArray(value)) {
-        for (var iter in Iterator(value)) {
-          var piece = iter[1];
+        for (let [,piece] in Iterator(value))
           this._writeText(piece, inAttr);
-        }
       }
       else if (value instanceof Writer.StringTableRef) {
         this._write(Tokens.STR_T);
@@ -910,14 +878,14 @@
     },
 
     tag: function(tag) {
-      var tail = arguments.length > 1 ? arguments[arguments.length - 1] : null;
+      let tail = arguments.length > 1 ? arguments[arguments.length - 1] : null;
       if (tail === null || tail instanceof Writer.Attribute) {
-        var rest = Array.prototype.slice.call(arguments, 1);
+        let rest = Array.prototype.slice.call(arguments, 1);
         this._writeTag(tag, false, rest);
         return this;
       }
       else {
-        var head = Array.prototype.slice.call(arguments, 0, -1);
+        let head = Array.prototype.slice.call(arguments, 0, -1);
         return this.stag.apply(this, head)
                      .text(tail)
                    .etag();
@@ -925,7 +893,7 @@
     },
 
     stag: function(tag) {
-      var rest = Array.prototype.slice.call(arguments, 1);
+      let rest = Array.prototype.slice.call(arguments, 1);
       this._writeTag(tag, true, rest);
       this._tagStack.push(tag);
       return this;
@@ -934,7 +902,7 @@
     etag: function(tag) {
       if (this._tagStack.length === 0)
         throw new Error('Spurious etag() call!');
-      var expectedTag = this._tagStack.pop();
+      let expectedTag = this._tagStack.pop();
       if (tag !== undefined && tag !== expectedTag)
         throw new Error('Closed the wrong tag');
 
@@ -965,7 +933,7 @@
         this._write_str(data);
       }
       else {
-        for (var i = 0; i < data.length; i++)
+        for (let i = 0; i < data.length; i++)
           this._write(data[i]);
       }
       return this;
@@ -998,18 +966,14 @@
     },
 
     run: function(reader) {
-      var fullPath = [];
-      var recPath = [];
-      var recording = 0;
+      let fullPath = [];
+      let recPath = [];
+      let recording = 0;
 
-      var doc = reader.document;
-      var doclen = doc.length;
-      for (var iNode = 0; iNode < doclen; iNode++) {
-        var node = doc[iNode];
+      for (let node in reader.document) {
         if (node.type === 'TAG') {
           fullPath.push(node.tag);
-          for (var iter in Iterator(this.listeners)) {
-            var listener = iter[1];
+          for (let [,listener] in Iterator(this.listeners)) {
             if (this._pathMatches(fullPath, listener.path)) {
               node.children = [];
               try {
@@ -1027,16 +991,14 @@
         else if (node.type === 'STAG') {
           fullPath.push(node.tag);
 
-          for (var iter in Iterator(this.listeners)) {
-            var listener = iter[1];
+          for (let [,listener] in Iterator(this.listeners)) {
             if (this._pathMatches(fullPath, listener.path)) {
               recording++;
             }
           }
         }
         else if (node.type === 'ETAG') {
-          for (var iter in Iterator(this.listeners)) {
-            var listener = iter[1];
+          for (let [,listener] in Iterator(this.listeners)) {
             if (this._pathMatches(fullPath, listener.path)) {
               recording--;
               try {
@@ -1100,7 +1062,7 @@
 }(this, function(WBXML) {
   'use strict';
 
-  var codepages = {
+  let codepages = {
     Common: {
       Enums: {
         Status: {
@@ -2299,8 +2261,8 @@
   exports.HttpError = HttpError;
 
   function nsResolver(prefix) {
-    var baseUrl = 'http://schemas.microsoft.com/exchange/autodiscover/';
-    var ns = {
+    const baseUrl = 'http://schemas.microsoft.com/exchange/autodiscover/';
+    const ns = {
       rq: baseUrl + 'mobilesync/requestschema/2006',
       ad: baseUrl + 'responseschema/2006',
       ms: baseUrl + 'mobilesync/responseschema/2006',
@@ -2308,11 +2270,9 @@
     return ns[prefix] || null;
   }
 
-  function Version(str) {
-    var details = str.split('.').map(function(x) {
+  function Version(str) {    [this.major, this.minor] = str.split('.').map(function(x) {
       return parseInt(x);
     });
-    this.major = details[0], this.minor = details[1];
   }
   exports.Version = Version;
   Version.prototype = {
@@ -2355,7 +2315,7 @@
    * @param password the user's password
    */
   function setAuthHeader(xhr, username, password) {
-    var authorization = 'Basic ' + btoa(username + ':' + password);
+    let authorization = 'Basic ' + btoa(username + ':' + password);
     xhr.setRequestHeader('Authorization', authorization);
   }
 
@@ -2374,15 +2334,14 @@
   function autodiscover(aEmailAddress, aPassword, aTimeout, aCallback,
                         aNoRedirect) {
     if (!aCallback) aCallback = nullCallback;
-    var domain = aEmailAddress.substring(aEmailAddress.indexOf('@') + 1);
+    let domain = aEmailAddress.substring(aEmailAddress.indexOf('@') + 1);
 
     // The first time we try autodiscovery, we should try to recover from
-    // AutodiscoverDomainErrors and HttpErrors. The second time, *all* errors
-    // should be reported to the callback.
+    // AutodiscoverDomainErrors. The second time, *all* errors should be
+    // reported to the callback.
     do_autodiscover(domain, aEmailAddress, aPassword, aTimeout, aNoRedirect,
                     function(aError, aConfig) {
-      if (aError instanceof AutodiscoverDomainError ||
-          aError instanceof HttpError)
+      if (aError instanceof AutodiscoverDomainError)
         do_autodiscover('autodiscover.' + domain, aEmailAddress, aPassword,
                         aTimeout, aNoRedirect, aCallback);
       else
@@ -2406,7 +2365,7 @@
    */
   function do_autodiscover(aHost, aEmailAddress, aPassword, aTimeout,
                            aNoRedirect, aCallback) {
-    var xhr = new XMLHttpRequest({mozSystem: true, mozAnon: true});
+    let xhr = new XMLHttpRequest({mozSystem: true, mozAnon: true});
     xhr.open('POST', 'https://' + aHost + '/autodiscover/autodiscover.xml',
              true);
     setAuthHeader(xhr, aEmailAddress, aPassword);
@@ -2421,7 +2380,7 @@
       if (xhr.status < 200 || xhr.status >= 300)
         return aCallback(new HttpError(xhr.statusText, xhr.status));
 
-      var doc = new DOMParser().parseFromString(xhr.responseText, 'text/xml');
+      let doc = new DOMParser().parseFromString(xhr.responseText, 'text/xml');
 
       function getNode(xpath, rel) {
         return doc.evaluate(xpath, rel, nsResolver,
@@ -2441,30 +2400,30 @@
         return aCallback(new AutodiscoverDomainError(
           'Error parsing autodiscover response'));
 
-      var responseNode = getNode('/ad:Autodiscover/ms:Response', doc);
+      let responseNode = getNode('/ad:Autodiscover/ms:Response', doc);
       if (!responseNode)
         return aCallback(new AutodiscoverDomainError(
           'Missing Autodiscover Response node'));
 
-      var error = getNode('ms:Error', responseNode) ||
+      let error = getNode('ms:Error', responseNode) ||
                   getNode('ms:Action/ms:Error', responseNode);
       if (error)
         return aCallback(new AutodiscoverError(
           getString('ms:Message/text()', error)));
 
-      var redirect = getNode('ms:Action/ms:Redirect', responseNode);
+      let redirect = getNode('ms:Action/ms:Redirect', responseNode);
       if (redirect) {
         if (aNoRedirect)
           return aCallback(new AutodiscoverError(
             'Multiple redirects occurred during autodiscovery'));
 
-        var redirectedEmail = getString('text()', redirect);
+        let redirectedEmail = getString('text()', redirect);
         return autodiscover(redirectedEmail, aPassword, aTimeout, aCallback,
                             true);
       }
 
-      var user = getNode('ms:User', responseNode);
-      var config = {
+      let user = getNode('ms:User', responseNode);
+      let config = {
         culture: getString('ms:Culture/text()', responseNode),
         user: {
           name:  getString('ms:DisplayName/text()',  user),
@@ -2473,8 +2432,8 @@
         servers: [],
       };
 
-      var servers = getNodes('ms:Action/ms:Settings/ms:Server', responseNode);
-      var server;
+      let servers = getNodes('ms:Action/ms:Settings/ms:Server', responseNode);
+      let server;
       while ((server = servers.iterateNext())) {
         config.servers.push({
           type:       getString('ms:Type/text()',       server),
@@ -2485,8 +2444,7 @@
       }
 
       // Try to find a MobileSync server from Autodiscovery.
-      for (var iter in Iterator(config.servers)) {
-        var server = iter[1];
+      for (let [,server] in Iterator(config.servers)) {
         if (server.type === 'MobileSync') {
           config.mobileSyncServer = server;
           break;
@@ -2506,7 +2464,7 @@
 
     // TODO: use something like
     // http://ejohn.org/blog/javascript-micro-templating/ here?
-    var postdata =
+    let postdata =
     '<?xml version="1.0" encoding="utf-8"?>\n' +
     '<Autodiscover xmlns="' + nsResolver('rq') + '">\n' +
     '  <Request>\n' +
@@ -2561,10 +2519,8 @@
       if (aError)
         this.disconnect();
 
-      for (var iter in Iterator(this._connectionCallbacks)) {
-        var callback = iter[1];
+      for (let [,callback] in Iterator(this._connectionCallbacks))
         callback.apply(callback, arguments);
-      }
       this._connectionCallbacks = [];
     },
 
@@ -2658,8 +2614,8 @@
      *        WBXML response
      */
     provision: function(aCallback) {
-      var pv = ASCP.Provision.Tags;
-      var w = new WBXML.Writer('1.3', 1, 'UTF-8');
+      const pv = ASCP.Provision.Tags;
+      let w = new WBXML.Writer('1.3', 1, 'UTF-8');
       w.stag(pv.Provision)
         .etag();
       this.postCommand(w, aCallback);
@@ -2674,8 +2630,8 @@
     getOptions: function(aCallback) {
       if (!aCallback) aCallback = nullCallback;
 
-      var conn = this;
-      var xhr = new XMLHttpRequest({mozSystem: true, mozAnon: true});
+      let conn = this;
+      let xhr = new XMLHttpRequest({mozSystem: true, mozAnon: true});
       xhr.open('OPTIONS', this.baseUrl, true);
       setAuthHeader(xhr, this._username, this._password);
       xhr.timeout = this.timeout;
@@ -2692,7 +2648,7 @@
           return;
         }
 
-        var result = {
+        let result = {
           versions: xhr.getResponseHeader('MS-ASProtocolVersions').split(','),
           commands: xhr.getResponseHeader('MS-ASProtocolCommands').split(','),
         };
@@ -2701,7 +2657,7 @@
       };
 
       xhr.ontimeout = xhr.onerror = function() {
-        var error = new Error('Error getting OPTIONS URL');
+        let error = new Error('Error getting OPTIONS URL');
         console.error(error);
         aCallback(error);
       };
@@ -2757,15 +2713,15 @@
      */
     postCommand: function(aCommand, aCallback, aExtraParams, aExtraHeaders,
                           aProgressCallback) {
-      var contentType = 'application/vnd.ms-sync.wbxml';
+      const contentType = 'application/vnd.ms-sync.wbxml';
 
       if (typeof aCommand === 'string' || typeof aCommand === 'number') {
         this.postData(aCommand, contentType, null, aCallback, aExtraParams,
                       aExtraHeaders);
       }
       else {
-        var r = new WBXML.Reader(aCommand, ASCP);
-        var commandName = r.document[0].localTagName;
+        let r = new WBXML.Reader(aCommand, ASCP);
+        let commandName = r.document.next().localTagName;
         this.postData(commandName, contentType, aCommand.buffer, aCallback,
                       aExtraParams, aExtraHeaders, aProgressCallback);
       }
@@ -2797,7 +2753,7 @@
         aCommand = ASCP.__tagnames__[aCommand];
 
       if (!this.supportsCommand(aCommand)) {
-        var error = new Error("This server doesn't support the command " +
+        let error = new Error("This server doesn't support the command " +
                               aCommand);
         console.error(error);
         aCallback(error);
@@ -2805,27 +2761,26 @@
       }
 
       // Build the URL parameters.
-      var params = [
+      let params = [
         ['Cmd', aCommand],
         ['User', this._email],
         ['DeviceId', this._deviceId],
         ['DeviceType', this._deviceType]
       ];
       if (aExtraParams) {
-        for (var iter in Iterator(params)) {
-          var param = iter[1];
+        for (let [,param] in Iterator(params)) {
           if (param[0] in aExtraParams)
             throw new TypeError('reserved URL parameter found');
         }
-        for (var kv in Iterator(aExtraParams))
+        for (let kv in Iterator(aExtraParams))
           params.push(kv);
       }
-      var paramsStr = params.map(function(i) {
+      let paramsStr = params.map(function(i) {
         return encodeURIComponent(i[0]) + '=' + encodeURIComponent(i[1]);
       }).join('&');
 
       // Now it's time to make our request!
-      var xhr = new XMLHttpRequest({mozSystem: true, mozAnon: true});
+      let xhr = new XMLHttpRequest({mozSystem: true, mozAnon: true});
       xhr.open('POST', this.baseUrl + '?' + paramsStr, true);
       setAuthHeader(xhr, this._username, this._password);
       xhr.setRequestHeader('MS-ASProtocolVersion', this.currentVersion);
@@ -2833,10 +2788,8 @@
 
       // Add extra headers if we have any.
       if (aExtraHeaders) {
-        for (var iter in Iterator(aExtraHeaders)) {
-          var key = iter[0], key = iter[1];
+        for (let [key, value] in Iterator(aExtraHeaders))
           xhr.setRequestHeader(key, value);
-        }
       }
 
       xhr.timeout = this.timeout;
@@ -2849,8 +2802,8 @@
           aProgressCallback(event.loaded, event.total);
       };
 
-      var conn = this;
-      var parentArgs = arguments;
+      let conn = this;
+      let parentArgs = arguments;
       xhr.onload = function() {
         // This status code is a proprietary Microsoft extension used to
         // indicate a redirect, not to be confused with the draft-standard
@@ -2869,14 +2822,14 @@
           return;
         }
 
-        var response = null;
+        let response = null;
         if (xhr.response.byteLength > 0)
           response = new WBXML.Reader(new Uint8Array(xhr.response), ASCP);
         aCallback(null, response);
       };
 
       xhr.ontimeout = xhr.onerror = function() {
-        var error = new Error('Error getting command URL');
+        let error = new Error('Error getting command URL');
         console.error(error);
         aCallback(error);
       };
@@ -2920,16 +2873,16 @@ define('mailapi/activesync/folder',
   ) {
 'use strict';
 
-var DESIRED_SNIPPET_LENGTH = 100;
+const DESIRED_SNIPPET_LENGTH = 100;
 
 /**
  * This is minimum number of messages we'd like to get for a folder for a given
  * sync range. It's not exact, since we estimate from the number of messages in
  * the past two weeks, but it's close enough.
  */
-var DESIRED_MESSAGE_COUNT = 50;
+const DESIRED_MESSAGE_COUNT = 50;
 
-var FILTER_TYPE = $ascp.AirSync.Enums.FilterType;
+const FILTER_TYPE = $ascp.AirSync.Enums.FilterType;
 
 /**
  * Map our built-in sync range values to their corresponding ActiveSync
@@ -2938,7 +2891,7 @@ var FILTER_TYPE = $ascp.AirSync.Enums.FilterType;
  *
  * Also see SYNC_RANGE_ENUMS_TO_MS in `syncbase.js`.
  */
-var SYNC_RANGE_TO_FILTER_TYPE = {
+const SYNC_RANGE_TO_FILTER_TYPE = {
   'auto': null,
     '1d': FILTER_TYPE.OneDayBack,
     '3d': FILTER_TYPE.ThreeDaysBack,
@@ -2951,7 +2904,7 @@ var SYNC_RANGE_TO_FILTER_TYPE = {
 /**
  * This mapping is purely for logging purposes.
  */
-var FILTER_TYPE_TO_STRING = {
+const FILTER_TYPE_TO_STRING = {
   0: 'all messages',
   1: 'one day',
   2: 'three days',
@@ -2991,9 +2944,9 @@ ActiveSyncFolderConn.prototype = {
    * elsewhere (see _inferFilterType()).
    */
   get filterType() {
-    var syncRange = this._account.accountDef.syncRange;
+    let syncRange = this._account.accountDef.syncRange;
     if (SYNC_RANGE_TO_FILTER_TYPE.hasOwnProperty(syncRange)) {
-      var accountFilterType = SYNC_RANGE_TO_FILTER_TYPE[syncRange];
+      let accountFilterType = SYNC_RANGE_TO_FILTER_TYPE[syncRange];
       if (accountFilterType)
         return accountFilterType;
       else
@@ -3014,11 +2967,11 @@ ActiveSyncFolderConn.prototype = {
    * @param {function} callback A callback to be run when the operation finishes
    */
   _getSyncKey: function asfc__getSyncKey(filterType, callback) {
-    var folderConn = this;
-    var account = this._account;
-    var as = $ascp.AirSync.Tags;
+    let folderConn = this;
+    let account = this._account;
+    const as = $ascp.AirSync.Tags;
 
-    var w = new $wbxml.Writer('1.3', 1, 'UTF-8');
+    let w = new $wbxml.Writer('1.3', 1, 'UTF-8');
     w.stag(as.Sync)
        .stag(as.Collections)
          .stag(as.Collection)
@@ -3046,7 +2999,7 @@ ActiveSyncFolderConn.prototype = {
       // response.
       folderConn.syncKey = '0';
 
-      var e = new $wbxml.EventParser();
+      let e = new $wbxml.EventParser();
       e.addEventListener([as.Sync, as.Collections, as.Collection, as.SyncKey],
                          function(node) {
         folderConn.syncKey = node.children[0].textContent;
@@ -3076,10 +3029,10 @@ ActiveSyncFolderConn.prototype = {
    * @param {function} callback A callback to be run when the operation finishes
    */
   _getItemEstimate: function asfc__getItemEstimate(filterType, callback) {
-    var ie = $ascp.ItemEstimate.Tags;
-    var as = $ascp.AirSync.Tags;
+    const ie = $ascp.ItemEstimate.Tags;
+    const as = $ascp.AirSync.Tags;
 
-    var w = new $wbxml.Writer('1.3', 1, 'UTF-8');
+    let w = new $wbxml.Writer('1.3', 1, 'UTF-8');
     w.stag(ie.GetItemEstimate)
        .stag(ie.Collections)
          .stag(ie.Collection)
@@ -3099,10 +3052,10 @@ ActiveSyncFolderConn.prototype = {
         return;
       }
 
-      var e = new $wbxml.EventParser();
-      var base = [ie.GetItemEstimate, ie.Response];
+      let e = new $wbxml.EventParser();
+      const base = [ie.GetItemEstimate, ie.Response];
 
-      var status, estimate;
+      let status, estimate;
       e.addEventListener(base.concat(ie.Status), function(node) {
         status = node.children[0].textContent;
       });
@@ -3139,10 +3092,10 @@ ActiveSyncFolderConn.prototype = {
    *  picked
    */
   _inferFilterType: function asfc__inferFilterType(callback) {
-    var folderConn = this;
-    var Type = $ascp.AirSync.Enums.FilterType;
+    let folderConn = this;
+    const Type = $ascp.AirSync.Enums.FilterType;
 
-    var getEstimate = function(filterType, onSuccess) {
+    let getEstimate = function(filterType, onSuccess) {
       folderConn._getSyncKey(filterType, function(error) {
         if (error) {
           callback('unknown');
@@ -3161,8 +3114,8 @@ ActiveSyncFolderConn.prototype = {
     };
 
     getEstimate(Type.TwoWeeksBack, function(estimate) {
-      var messagesPerDay = estimate / 14; // Two weeks. Twoooo weeeeeeks.
-      var filterType;
+      let messagesPerDay = estimate / 14; // Two weeks. Twoooo weeeeeeks.
+      let filterType;
 
       if (estimate < 0)
         filterType = Type.ThreeDaysBack;
@@ -3178,7 +3131,7 @@ ActiveSyncFolderConn.prototype = {
         filterType = Type.OneMonthBack;
       else {
         getEstimate(Type.NoFilter, function(estimate) {
-          var filterType;
+          let filterType;
           if (estimate > DESIRED_MESSAGE_COUNT) {
             filterType = Type.OneMonthBack;
             // Reset the sync key since we're changing filter types. This avoids
@@ -3217,7 +3170,7 @@ ActiveSyncFolderConn.prototype = {
    */
   _enumerateFolderChanges: function asfc__enumerateFolderChanges(callback,
                                                                  progress) {
-    var folderConn = this, storage = this._storage;
+    let folderConn = this, storage = this._storage;
 
     if (!this._account.conn.connected) {
       this._account.conn.connect(function(error) {
@@ -3252,12 +3205,12 @@ ActiveSyncFolderConn.prototype = {
       return;
     }
 
-    var as = $ascp.AirSync.Tags;
-    var asEnum = $ascp.AirSync.Enums;
-    var asb = $ascp.AirSyncBase.Tags;
-    var asbEnum = $ascp.AirSyncBase.Enums;
+    const as = $ascp.AirSync.Tags;
+    const asEnum = $ascp.AirSync.Enums;
+    const asb = $ascp.AirSyncBase.Tags;
+    const asbEnum = $ascp.AirSyncBase.Enums;
 
-    var w;
+    let w;
 
     // If the last sync was ours and we got an empty response back, we can send
     // an empty request to repeat our request. This saves a little bandwidth.
@@ -3299,11 +3252,11 @@ ActiveSyncFolderConn.prototype = {
     }
 
     this._account.conn.postCommand(w, function(aError, aResponse) {
-      var added   = [];
-      var changed = [];
-      var deleted = [];
-      var status;
-      var moreAvailable = false;
+      let added   = [];
+      let changed = [];
+      let deleted = [];
+      let status;
+      let moreAvailable = false;
 
       folderConn._account._syncsInProgress--;
 
@@ -3324,8 +3277,8 @@ ActiveSyncFolderConn.prototype = {
       }
 
       folderConn._account._lastSyncResponseWasEmpty = false;
-      var e = new $wbxml.EventParser();
-      var base = [as.Sync, as.Collections, as.Collection];
+      let e = new $wbxml.EventParser();
+      const base = [as.Sync, as.Collections, as.Collection];
 
       e.addEventListener(base.concat(as.SyncKey), function(node) {
         folderConn.syncKey = node.children[0].textContent;
@@ -3341,10 +3294,9 @@ ActiveSyncFolderConn.prototype = {
 
       e.addEventListener(base.concat(as.Commands, [[as.Add, as.Change]]),
                          function(node) {
-        var id, guid, msg;
+        let id, guid, msg;
 
-        for (var iter in Iterator(node.children)) {
-          var child = iter[1];
+        for (let [,child] in Iterator(node.children)) {
           switch (child.tag) {
           case as.ServerId:
             guid = child.children[0].textContent;
@@ -3370,16 +3322,15 @@ ActiveSyncFolderConn.prototype = {
         msg.header.srvid = guid;
         // XXX need to get the message's message-id header value!
 
-        var collection = node.tag === as.Add ? added : changed;
+        let collection = node.tag === as.Add ? added : changed;
         collection.push(msg);
       });
 
       e.addEventListener(base.concat(as.Commands, [[as.Delete, as.SoftDelete]]),
                          function(node) {
-        var guid;
+        let guid;
 
-        for (var iter in Iterator(node.children)) {
-          var child = iter[1];
+        for (let [,child] in Iterator(node.children)) {
           switch (child.tag) {
           case as.ServerId:
             guid = child.children[0].textContent;
@@ -3437,11 +3388,11 @@ ActiveSyncFolderConn.prototype = {
    * @return {object} An object containing the header and body for the message
    */
   _parseMessage: function asfc__parseMessage(node, isAdded) {
-    var em = $ascp.Email.Tags;
-    var asb = $ascp.AirSyncBase.Tags;
-    var asbEnum = $ascp.AirSyncBase.Enums;
+    const em = $ascp.Email.Tags;
+    const asb = $ascp.AirSyncBase.Tags;
+    const asbEnum = $ascp.AirSyncBase.Enums;
 
-    var header, body, flagHeader;
+    let header, body, flagHeader;
 
     if (isAdded) {
       header = {
@@ -3480,22 +3431,20 @@ ActiveSyncFolderConn.prototype = {
         flags: [],
         mergeInto: function(o) {
           // Merge flags
-          for (var iter in Iterator(this.flags)) {
-            var flagstate = iter[1];
+          for (let [,flagstate] in Iterator(this.flags)) {
             if (flagstate[1]) {
               o.flags.push(flagstate[0]);
             }
             else {
-              var index = o.flags.indexOf(flagstate[0]);
+              let index = o.flags.indexOf(flagstate[0]);
               if (index !== -1)
                 o.flags.splice(index, 1);
             }
           }
 
           // Merge everything else
-          var skip = ['mergeInto', 'suid', 'srvid', 'guid', 'id', 'flags'];
-          for (var iter in Iterator(this)) {
-            var key = iter[0], value = iter[1];
+          const skip = ['mergeInto', 'suid', 'srvid', 'guid', 'id', 'flags'];
+          for (let [key, value] in Iterator(this)) {
             if (skip.indexOf(key) !== -1)
               continue;
 
@@ -3506,8 +3455,7 @@ ActiveSyncFolderConn.prototype = {
 
       body = {
         mergeInto: function(o) {
-          for (var iter in Iterator(this)) {
-            var key = iter[0], value = iter[1];
+          for (let [key, value] in Iterator(this)) {
             if (key === 'mergeInto') continue;
             o[key] = value;
           }
@@ -3519,11 +3467,10 @@ ActiveSyncFolderConn.prototype = {
       }
     }
 
-    var bodyType, bodyText;
+    let bodyType, bodyText;
 
-    for (var iter in Iterator(node.children)) {
-      var child = iter[1];
-      var childText = child.children.length ? child.children[0].textContent :
+    for (let [,child] in Iterator(node.children)) {
+      let childText = child.children.length ? child.children[0].textContent :
                                               null;
 
       switch (child.tag) {
@@ -3549,15 +3496,13 @@ ActiveSyncFolderConn.prototype = {
         flagHeader('\\Seen', childText === '1');
         break;
       case em.Flag:
-        for (var iter2 in Iterator(child.children)) {
-          var grandchild = iter2[1];
+        for (let [,grandchild] in Iterator(child.children)) {
           if (grandchild.tag === em.Status)
             flagHeader('\\Flagged', grandchild.children[0].textContent !== '0');
         }
         break;
       case asb.Body: // ActiveSync 12.0+
-        for (var iter2 in Iterator(child.children)) {
-          var grandchild = iter2[1];
+        for (let [,grandchild] in Iterator(child.children)) {
           switch (grandchild.tag) {
           case asb.Type:
             bodyType = grandchild.children[0].textContent;
@@ -3574,13 +3519,12 @@ ActiveSyncFolderConn.prototype = {
         break;
       case asb.Attachments: // ActiveSync 12.0+
       case em.Attachments:  // pre-ActiveSync 12.0
-        for (var iter2 in Iterator(child.children)) {
-          var attachmentNode = iter2[1];
+        for (let [,attachmentNode] in Iterator(child.children)) {
           if (attachmentNode.tag !== asb.Attachment &&
               attachmentNode.tag !== em.Attachment)
             continue;
 
-          var attachment = {
+          let attachment = {
             name: null,
             contentId: null,
             type: null,
@@ -3590,11 +3534,10 @@ ActiveSyncFolderConn.prototype = {
             file: null,
           };
 
-          var isInline = false;
-          for (var iter3 in Iterator(attachmentNode.children)) {
-            var attachData = iter3[1];
-            var dot, ext;
-            var attachDataText = attachData.children.length ?
+          let isInline = false;
+          for (let [,attachData] in Iterator(attachmentNode.children)) {
+            let dot, ext;
+            let attachDataText = attachData.children.length ?
                                  attachData.children[0].textContent : null;
 
             switch (attachData.tag) {
@@ -3642,13 +3585,13 @@ ActiveSyncFolderConn.prototype = {
 
     // Process the body as needed.
     if (bodyType === asbEnum.Type.PlainText) {
-      var bodyRep = $quotechew.quoteProcessTextBody(bodyText);
+      let bodyRep = $quotechew.quoteProcessTextBody(bodyText);
       header.snippet = $quotechew.generateSnippet(bodyRep,
                                                   DESIRED_SNIPPET_LENGTH);
       body.bodyReps = ['plain', bodyRep];
     }
     else if (bodyType === asbEnum.Type.HTML) {
-      var htmlNode = $htmlchew.sanitizeAndNormalizeHtml(bodyText);
+      let htmlNode = $htmlchew.sanitizeAndNormalizeHtml(bodyText);
       header.snippet = $htmlchew.generateSnippet(htmlNode,
                                                  DESIRED_SNIPPET_LENGTH);
       body.bodyReps = ['html', htmlNode.innerHTML];
@@ -3657,23 +3600,24 @@ ActiveSyncFolderConn.prototype = {
     return { header: header, body: body };
   },
 
-  sync: function asfc_sync(accuracyStamp, doneCallback, progressCallback) {
-    var folderConn = this,
+  syncDateRange: function asfc_syncDateRange(startTS, endTS, accuracyStamp,
+                                             doneCallback, progressCallback) {
+    let folderConn = this,
         addedMessages = 0,
         changedMessages = 0,
         deletedMessages = 0;
 
-    this._LOG.sync_begin(null, null, null);
+    this._LOG.syncDateRange_begin(null, null, null, startTS, endTS);
     this._enumerateFolderChanges(function (error, added, changed, deleted,
                                            moreAvailable) {
-      var storage = folderConn._storage;
+      let storage = folderConn._storage;
 
       if (error === 'badkey') {
         folderConn._account._recreateFolder(storage.folderId, function(s) {
           // If we got a bad sync key, we'll end up creating a new connection,
           // so just clear out the old storage to make this connection unusable.
           folderConn._storage = null;
-          folderConn._LOG.sync_end(null, null, null);
+          folderConn._LOG.syncDateRange_end(null, null, null, startTS, endTS);
         });
         return;
       }
@@ -3682,8 +3626,7 @@ ActiveSyncFolderConn.prototype = {
         return;
       }
 
-      for (var iter in Iterator(added)) {
-        var message = iter[1];
+      for (let [,message] in Iterator(added)) {
         // If we already have this message, it's probably because we moved it as
         // part of a local op, so let's assume that the data we already have is
         // ok. XXX: We might want to verify this, to be safe.
@@ -3695,8 +3638,7 @@ ActiveSyncFolderConn.prototype = {
         addedMessages++;
       }
 
-      for (var iter in Iterator(changed)) {
-        var message = iter[1];
+      for (let [,message] in Iterator(changed)) {
         // If we don't know about this message, just bail out.
         if (!storage.hasMessageWithServerId(message.header.srvid))
           continue;
@@ -3710,8 +3652,7 @@ ActiveSyncFolderConn.prototype = {
         // XXX: update bodies
       }
 
-      for (var iter in Iterator(deleted)) {
-        var messageGuid = iter[1];
+      for (let [,messageGuid] in Iterator(deleted)) {
         // If we don't know about this message, it's probably because we already
         // deleted it.
         if (!storage.hasMessageWithServerId(messageGuid))
@@ -3722,15 +3663,14 @@ ActiveSyncFolderConn.prototype = {
       }
 
       if (!moreAvailable) {
-        var messagesSeen = addedMessages + changedMessages + deletedMessages;
+        let messagesSeen = addedMessages + changedMessages + deletedMessages;
 
         // Note: For the second argument here, we report the number of messages
         // we saw that *changed*. This differs from IMAP, which reports the
         // number of messages it *saw*.
-        folderConn._LOG.sync_end(addedMessages, changedMessages,
-                                 deletedMessages);
-        storage.markSyncRange($sync.OLDEST_SYNC_DATE, accuracyStamp, 'XXX',
-                              accuracyStamp);
+        folderConn._LOG.syncDateRange_end(addedMessages, changedMessages,
+                                          deletedMessages, startTS, endTS);
+        storage.markSyncRange(startTS, endTS, 'XXX', accuracyStamp);
         doneCallback(null, null, messagesSeen);
       }
     },
@@ -3738,7 +3678,7 @@ ActiveSyncFolderConn.prototype = {
   },
 
   performMutation: function(invokeWithWriter, callWhenDone) {
-    var folderConn = this;
+    let folderConn = this;
     if (!this._account.conn.connected) {
       this._account.conn.connect(function(error) {
         if (error) {
@@ -3750,9 +3690,9 @@ ActiveSyncFolderConn.prototype = {
       return;
     }
 
-    var as = $ascp.AirSync.Tags;
+    const as = $ascp.AirSync.Tags;
 
-    var w = new $wbxml.Writer('1.3', 1, 'UTF-8');
+    let w = new $wbxml.Writer('1.3', 1, 'UTF-8');
     w.stag(as.Sync)
        .stag(as.Collections)
          .stag(as.Collection);
@@ -3792,10 +3732,10 @@ ActiveSyncFolderConn.prototype = {
         return;
       }
 
-      var e = new $wbxml.EventParser();
-      var syncKey, status;
+      let e = new $wbxml.EventParser();
+      let syncKey, status;
 
-      var base = [as.Sync, as.Collections, as.Collection];
+      const base = [as.Sync, as.Collections, as.Collection];
       e.addEventListener(base.concat(as.SyncKey), function(node) {
         syncKey = node.children[0].textContent;
       });
@@ -3828,7 +3768,7 @@ ActiveSyncFolderConn.prototype = {
   // XXX: take advantage of multipart responses here.
   // See http://msdn.microsoft.com/en-us/library/ee159875%28v=exchg.80%29.aspx
   downloadMessageAttachments: function(uid, partInfos, callback, progress) {
-    var folderConn = this;
+    let folderConn = this;
     if (!this._account.conn.connected) {
       this._account.conn.connect(function(error) {
         if (error) {
@@ -3841,14 +3781,13 @@ ActiveSyncFolderConn.prototype = {
       return;
     }
 
-    var io = $ascp.ItemOperations.Tags;
-    var ioStatus = $ascp.ItemOperations.Enums.Status;
-    var asb = $ascp.AirSyncBase.Tags;
+    const io = $ascp.ItemOperations.Tags;
+    const ioStatus = $ascp.ItemOperations.Enums.Status;
+    const asb = $ascp.AirSyncBase.Tags;
 
-    var w = new $wbxml.Writer('1.3', 1, 'UTF-8');
+    let w = new $wbxml.Writer('1.3', 1, 'UTF-8');
     w.stag(io.ItemOperations);
-    for (var iter in Iterator(partInfos)) {
-      var part = iter[1];
+    for (let [,part] in Iterator(partInfos)) {
       w.stag(io.Fetch)
          .tag(io.Store, 'Mailbox')
          .tag(asb.FileReference, part.part)
@@ -3863,19 +3802,18 @@ ActiveSyncFolderConn.prototype = {
         return;
       }
 
-      var globalStatus;
-      var attachments = {};
+      let globalStatus;
+      let attachments = {};
 
-      var e = new $wbxml.EventParser();
+      let e = new $wbxml.EventParser();
       e.addEventListener([io.ItemOperations, io.Status], function(node) {
         globalStatus = node.children[0].textContent;
       });
       e.addEventListener([io.ItemOperations, io.Response, io.Fetch],
                          function(node) {
-        var part = null, attachment = {};
+        let part = null, attachment = {};
 
-        for (var iter in Iterator(node.children)) {
-          var child = iter[1];
+        for (let [,child] in Iterator(node.children)) {
           switch (child.tag) {
           case io.Status:
             attachment.status = child.children[0].textContent;
@@ -3886,9 +3824,8 @@ ActiveSyncFolderConn.prototype = {
           case io.Properties:
             var contentType = null, data = null;
 
-            for (var iter2 in Iterator(child.children)) {
-              var grandchild = iter2[1];
-              var textContent = grandchild.children[0].textContent;
+            for (let [,grandchild] in Iterator(child.children)) {
+              let textContent = grandchild.children[0].textContent;
 
               switch (grandchild.tag) {
               case asb.ContentType:
@@ -3911,10 +3848,9 @@ ActiveSyncFolderConn.prototype = {
       });
       e.run(aResult);
 
-      var error = globalStatus !== ioStatus.Success ? 'unknown' : null;
-      var bodies = [];
-      for (var iter in Iterator(partInfos)) {
-        var part = iter[1];
+      let error = globalStatus !== ioStatus.Success ? 'unknown' : null;
+      let bodies = [];
+      for (let [,part] in Iterator(partInfos)) {
         if (attachments.hasOwnProperty(part.part) &&
             attachments[part.part].status === ioStatus.Success) {
           bodies.push(attachments[part.part].data);
@@ -3954,25 +3890,30 @@ ActiveSyncFolderSyncer.prototype = {
     return false;
   },
 
-  initialSync: function(slice, initialDays, syncCallback,
-                        doneCallback, progressCallback) {
+  syncDateRange: function(startTS, endTS, syncCallback, doneCallback,
+                          progressCallback) {
     syncCallback('sync', false, true);
-    this.folderConn.sync(
-      $date.NOW(),
-      this.onSyncCompleted.bind(this, doneCallback, true),
+    this.folderConn.syncDateRange(
+      startTS, endTS, $date.NOW(),
+      this.onSyncCompleted.bind(this, doneCallback),
       progressCallback);
   },
 
-  refreshSync: function(slice, dir, startTS, endTS, origStartTS,
-                        doneCallback, progressCallback) {
-    this.folderConn.sync(
-      $date.NOW(),
-      this.onSyncCompleted.bind(this, doneCallback, false),
-      progressCallback);
+  syncAdjustedDateRange: function(startTS, endTS, syncCallback, doneCallback,
+                                  progressCallback) {
+    // ActiveSync doesn't adjust date ranges. Just do a normal sync.
+    this.syncDateRange(startTS, endTS, syncCallback, doneCallback,
+                       progressCallback);
+  },
+
+  refreshSync: function(startTS, endTS, useBisectLimit, doneCallback,
+                        progressCallback) {
+    this.folderConn.syncDateRange(startTS, endTS, $date.NOW(),
+                                  doneCallback, progressCallback);
   },
 
   // Returns false if no sync is necessary.
-  growSync: function(slice, growthDirection, anchorTS, syncStepDays,
+  growSync: function(endTS, batchHeaders, userRequestsGrowth, syncCallback,
                      doneCallback, progressCallback) {
     // ActiveSync is different, and trying to sync more doesn't work with it.
     // Just assume we've got all we need.
@@ -3986,38 +3927,32 @@ ActiveSyncFolderSyncer.prototype = {
    * either trigger another sync if we still want more data, or close out the
    * current sync.
    */
-  onSyncCompleted: function ifs_onSyncCompleted(doneCallback, initialSync,
-                                                err, bisectInfo, messagesSeen) {
-    var storage = this.folderStorage;
-    console.log("Sync Completed!", messagesSeen, "messages synced");
-
-    // Expand the accuracy range to cover everybody.
-    if (!err)
-      storage.markSyncedToDawnOfTime();
-    // Always save state, although as an optimization, we could avoid saving state
-    // if we were sure that our state with the server did not advance.
-    this._account.__checkpointSyncCompleted();
-
+  onSyncCompleted: function ifs_onSyncCompleted(doneCallback, err, bisectInfo,
+                                                messagesSeen) {
     if (err) {
       doneCallback(err);
       return;
     }
 
-    if (initialSync) {
-      storage._curSyncSlice.ignoreHeaders = false;
-      storage._curSyncSlice.waitingOnData = 'db';
+    let storage = this.folderStorage;
 
-      storage.getMessagesInImapDateRange(
-        0, null, $sync.INITIAL_FILL_SIZE, $sync.INITIAL_FILL_SIZE,
-        // Don't trigger a refresh; we just synced.  Accordingly, releaseMutex can
-        // be null.
-        storage.onFetchDBHeaders.bind(storage, storage._curSyncSlice, false,
-                                      doneCallback, null)
-      );
-    }
-    else {
-      doneCallback(err);
-    }
+    console.log("Sync Completed!", messagesSeen, "messages synced");
+
+    // Expand the accuracy range to cover everybody.
+    storage.markSyncedEntireFolder();
+
+    storage._curSyncSlice.ignoreHeaders = false;
+    storage._curSyncSlice.waitingOnData = 'db';
+
+    storage.getMessagesInImapDateRange(
+      0, $date.FUTURE(), $sync.INITIAL_FILL_SIZE, $sync.INITIAL_FILL_SIZE,
+      // Don't trigger a refresh; we just synced.
+      storage.onFetchDBHeaders.bind(storage, storage._curSyncSlice, false,
+                                    doneCallback, null)
+    );
+
+    storage._curSyncSlice = null;
+    this._account.__checkpointSyncCompleted();
   },
 
   allConsumersDead: function() {
@@ -4037,8 +3972,9 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
       inferFilterType: { filterType: false },
     },
     asyncJobs: {
-      sync: {
-        newMessages: true, changedMessages: true, deletedMessages: true,
+      syncDateRange: {
+        newMessages: true, existingMessages: true, deletedMessages: true,
+        start: false, end: false,
       },
     },
   },
@@ -4050,7 +3986,7 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
 });
 
 }); // end define
-;
+
 define('mailapi/activesync/jobs',
   [
     'wbxml',
@@ -4141,7 +4077,7 @@ ActiveSyncJobDriver.prototype = {
 
   do_modtags: function(op, jobDoneCallback, undo) {
     // Note: this method is derived from the IMAP implementation.
-    var addTags = undo ? op.removeTags : op.addTags,
+    let addTags = undo ? op.removeTags : op.addTags,
         removeTags = undo ? op.addTags : op.removeTags;
 
     function getMark(tag) {
@@ -4152,13 +4088,13 @@ ActiveSyncJobDriver.prototype = {
       return undefined;
     }
 
-    var markRead = getMark('\\Seen');
-    var markFlagged = getMark('\\Flagged');
+    let markRead = getMark('\\Seen');
+    let markFlagged = getMark('\\Flagged');
 
-    var as = $ascp.AirSync.Tags;
-    var em = $ascp.Email.Tags;
+    const as = $ascp.AirSync.Tags;
+    const em = $ascp.Email.Tags;
 
-    var aggrErr = null;
+    let aggrErr = null;
 
     this._partitionAndAccessFoldersSequentially(
       op.messages, true,
@@ -4186,7 +4122,7 @@ ActiveSyncJobDriver.prototype = {
 
         folderConn.performMutation(
           function withWriter(w) {
-            for (var i = 0; i < serverIds.length; i++) {
+            for (let i = 0; i < serverIds.length; i++) {
               w.stag(as.Change)
                  .tag(as.ServerId, serverIds[i])
                  .stag(as.ApplicationData);
@@ -4248,10 +4184,10 @@ ActiveSyncJobDriver.prototype = {
      * disappear and then show up again. XXX we are not currently enforcing this
      * yet.
      */
-    var aggrErr = null, account = this.account,
+    let aggrErr = null, account = this.account,
         targetFolderStorage = this.account.getFolderStorageForFolderId(
                                 op.targetFolder);
-    var mo = $ascp.Move.Tags;
+    const mo = $ascp.Move.Tags;
 
     this._partitionAndAccessFoldersSequentially(
       op.messages, true,
@@ -4274,9 +4210,9 @@ ActiveSyncJobDriver.prototype = {
           return;
         }
 
-        var w = new $wbxml.Writer('1.3', 1, 'UTF-8');
+        let w = new $wbxml.Writer('1.3', 1, 'UTF-8');
         w.stag(mo.MoveItems);
-        for (var i = 0; i < serverIds.length; i++) {
+        for (let i = 0; i < serverIds.length; i++) {
           w.stag(mo.Move)
              .tag(mo.SrcMsgId, serverIds[i])
              .tag(mo.SrcFldId, storage.folderMeta.serverId)
@@ -4318,9 +4254,9 @@ ActiveSyncJobDriver.prototype = {
   local_do_delete: $jobmixins.local_do_delete,
 
   do_delete: function(op, jobDoneCallback) {
-    var aggrErr = null;
-    var as = $ascp.AirSync.Tags;
-    var em = $ascp.Email.Tags;
+    let aggrErr = null;
+    const as = $ascp.AirSync.Tags;
+    const em = $ascp.Email.Tags;
 
     this._partitionAndAccessFoldersSequentially(
       op.messages, true,
@@ -4336,7 +4272,7 @@ ActiveSyncJobDriver.prototype = {
 
         folderConn.performMutation(
           function withWriter(w) {
-            for (var i = 0; i < serverIds.length; i++) {
+            for (let i = 0; i < serverIds.length; i++) {
               w.stag(as.Delete)
                  .tag(as.ServerId, serverIds[i])
                .etag(as.Delete);
@@ -4484,7 +4420,7 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
 });
 
 }); // end define
-;
+
 /**
  * Implements the ActiveSync protocol for Hotmail and Exchange.
  **/
@@ -4524,9 +4460,9 @@ define('mailapi/activesync/account',
   ) {
 'use strict';
 
-var bsearchForInsert = $util.bsearchForInsert;
+const bsearchForInsert = $util.bsearchForInsert;
 
-var DEFAULT_TIMEOUT_MS = exports.DEFAULT_TIMEOUT_MS = 30 * 1000;
+const DEFAULT_TIMEOUT_MS = exports.DEFAULT_TIMEOUT_MS = 30 * 1000;
 
 function ActiveSyncAccount(universe, accountDef, folderInfos, dbConn,
                            receiveProtoConn, _parentLog) {
@@ -4651,18 +4587,17 @@ ActiveSyncAccount.prototype = {
 
   saveAccountState: function asa_saveAccountState(reuseTrans, callback,
                                                   reason) {
-    var account = this;
-    var perFolderStuff = [];
-    for (var iter in Iterator(this.folders)) {
-      var folder = iter[1];
-      var folderStuff = this._folderStorages[folder.id]
+    let account = this;
+    let perFolderStuff = [];
+    for (let [,folder] in Iterator(this.folders)) {
+      let folderStuff = this._folderStorages[folder.id]
                            .generatePersistenceInfo();
       if (folderStuff)
         perFolderStuff.push(folderStuff);
     }
 
     this._LOG.saveAccountState(reason);
-    var trans = this._db.saveAccountFolderStates(
+    let trans = this._db.saveAccountFolderStates(
       this.id, this._folderInfos, perFolderStuff, this._deadFolderIds,
       function stateSaved() {
         if (callback)
@@ -4686,10 +4621,10 @@ ActiveSyncAccount.prototype = {
 
   sliceFolderMessages: function asa_sliceFolderMessages(folderId,
                                                         bridgeHandle) {
-    var storage = this._folderStorages[folderId],
+    let storage = this._folderStorages[folderId],
         slice = new $mailslice.MailSlice(bridgeHandle, storage, this._LOG);
 
-    storage.sliceOpenMostRecent(slice);
+    storage.sliceOpenFromNow(slice);
   },
 
   searchFolderMessages: function(folderId, bridgeHandle, phrase, whatToSearch) {
@@ -4702,10 +4637,10 @@ ActiveSyncAccount.prototype = {
   syncFolderList: function asa_syncFolderList(callback) {
     // We can assume that we already have a connection here, since jobs.js
     // ensures it.
-    var account = this;
+    let account = this;
 
-    var fh = $ascp.FolderHierarchy.Tags;
-    var w = new $wbxml.Writer('1.3', 1, 'UTF-8');
+    const fh = $ascp.FolderHierarchy.Tags;
+    let w = new $wbxml.Writer('1.3', 1, 'UTF-8');
     w.stag(fh.FolderSync)
        .tag(fh.SyncKey, this.meta.syncKey)
      .etag();
@@ -4715,8 +4650,8 @@ ActiveSyncAccount.prototype = {
         callback(aError);
         return;
       }
-      var e = new $wbxml.EventParser();
-      var deferredAddedFolders = [];
+      let e = new $wbxml.EventParser();
+      let deferredAddedFolders = [];
 
       e.addEventListener([fh.FolderSync, fh.SyncKey], function(node) {
         account.meta.syncKey = node.children[0].textContent;
@@ -4724,11 +4659,9 @@ ActiveSyncAccount.prototype = {
 
       e.addEventListener([fh.FolderSync, fh.Changes, [fh.Add, fh.Delete]],
                          function(node) {
-        var folder = {};
-        for (var iter in Iterator(node.children)) {
-          var child = iter[1];
+        let folder = {};
+        for (let [,child] in Iterator(node.children))
           folder[child.localTagName] = child.children[0].textContent;
-        }
 
         if (node.tag === fh.Add) {
           if (!account._addedFolder(folder.ServerId, folder.ParentId,
@@ -4754,9 +4687,8 @@ ActiveSyncAccount.prototype = {
       // folders before their parents). Keep trying to add folders until we're
       // done.
       while (deferredAddedFolders.length) {
-        var moreDeferredAddedFolders = [];
-        for (var iter in Iterator(deferredAddedFolders)) {
-          var folder = iter[1];
+        let moreDeferredAddedFolders = [];
+        for (let [,folder] in Iterator(deferredAddedFolders)) {
           if (!account._addedFolder(folder.ServerId, folder.ParentId,
                                     folder.DisplayName, folder.Type))
             moreDeferredAddedFolders.push(folder);
@@ -4804,25 +4736,25 @@ ActiveSyncAccount.prototype = {
     if (!(typeNum in this._folderTypes))
       return true; // Not a folder type we care about.
 
-    var folderType = $ascp.FolderHierarchy.Enums.Type;
+    const folderType = $ascp.FolderHierarchy.Enums.Type;
 
-    var path = displayName;
-    var parentFolderId = null;
-    var depth = 0;
+    let path = displayName;
+    let parentFolderId = null;
+    let depth = 0;
     if (parentServerId !== '0') {
       parentFolderId = this._serverIdToFolderId[parentServerId];
       // We haven't learned about the parent folder. Just return, and wait until
       // we do.
       if (parentFolderId === undefined)
         return null;
-      var parent = this._folderInfos[parentFolderId];
+      let parent = this._folderInfos[parentFolderId];
       path = parent.$meta.path + '/' + path;
       depth = parent.$meta.depth + 1;
     }
 
     // Handle sentinel Inbox.
     if (typeNum === folderType.DefaultInbox) {
-      var existingInboxMeta = this.getFirstFolderWithType('inbox');
+      let existingInboxMeta = this.getFirstFolderWithType('inbox');
       if (existingInboxMeta) {
         // Update the server ID to folder ID mapping.
         delete this._serverIdToFolderId[existingInboxMeta.serverId];
@@ -4837,8 +4769,8 @@ ActiveSyncAccount.prototype = {
       }
     }
 
-    var folderId = this.id + '/' + $a64.encodeInt(this.meta.nextFolderNum++);
-    var folderInfo = this._folderInfos[folderId] = {
+    let folderId = this.id + '/' + $a64.encodeInt(this.meta.nextFolderNum++);
+    let folderInfo = this._folderInfos[folderId] = {
       $meta: {
         id: folderId,
         serverId: serverId,
@@ -4868,8 +4800,8 @@ ActiveSyncAccount.prototype = {
                                    $asfolder.ActiveSyncFolderSyncer, this._LOG);
     this._serverIdToFolderId[serverId] = folderId;
 
-    var folderMeta = folderInfo.$meta;
-    var idx = bsearchForInsert(this.folders, folderMeta, function(a, b) {
+    let folderMeta = folderInfo.$meta;
+    let idx = bsearchForInsert(this.folders, folderMeta, function(a, b) {
       return a.path.localeCompare(b.path);
     });
     this.folders.splice(idx, 0, folderMeta);
@@ -4889,7 +4821,7 @@ ActiveSyncAccount.prototype = {
    *   listeners of this addition
    */
   _deletedFolder: function asa__deletedFolder(serverId, suppressNotification) {
-    var folderId = this._serverIdToFolderId[serverId],
+    let folderId = this._serverIdToFolderId[serverId],
         folderInfo = this._folderInfos[folderId],
         folderMeta = folderInfo.$meta;
 
@@ -4919,7 +4851,7 @@ ActiveSyncAccount.prototype = {
    */
   _recreateFolder: function asa__recreateFolder(folderId, callback) {
     this._LOG.recreateFolder(folderId);
-    var folderInfo = this._folderInfos[folderId];
+    let folderInfo = this._folderInfos[folderId];
     folderInfo.$impl = {
       nextId: 0,
       nextHeaderBlock: 0,
@@ -4934,17 +4866,16 @@ ActiveSyncAccount.prototype = {
       this._deadFolderIds = [];
     this._deadFolderIds.push(folderId);
 
-    var self = this;
+    let self = this;
     this.saveAccountState(null, function() {
-      var newStorage =
+      let newStorage =
         new $mailslice.FolderStorage(self, folderId, folderInfo, self._db,
                                      $asfolder.ActiveSyncFolderSyncer,
                                      self._LOG);
-      for (var iter in Iterator(self._folderStorages[folderId]._slices)) {
-        var slice = iter[1];
+      for (let [,slice] in Iterator(self._folderStorages[folderId]._slices)) {
         slice._storage = newStorage;
-        slice.reset();
-        newStorage.sliceOpenMostRecent(slice);
+        slice._resetHeadersBecauseOfRefreshExplosion(true);
+        newStorage.sliceOpenFromNow(slice);
       }
       self._folderStorages[folderId]._slices = [];
       self._folderStorages[folderId] = newStorage;
@@ -4991,7 +4922,7 @@ ActiveSyncAccount.prototype = {
    */
   createFolder: function asa_createFolder(parentFolderId, folderName,
                                           containOnlyOtherFolders, callback) {
-    var account = this;
+    let account = this;
     if (!this.conn.connected) {
       this.conn.connect(function(error) {
         if (error) {
@@ -5004,14 +4935,14 @@ ActiveSyncAccount.prototype = {
       return;
     }
 
-    var parentFolderServerId = parentFolderId ?
+    let parentFolderServerId = parentFolderId ?
       this._folderInfos[parentFolderId] : '0';
 
-    var fh = $ascp.FolderHierarchy.Tags;
-    var fhStatus = $ascp.FolderHierarchy.Enums.Status;
-    var folderType = $ascp.FolderHierarchy.Enums.Type.Mail;
+    const fh = $ascp.FolderHierarchy.Tags;
+    const fhStatus = $ascp.FolderHierarchy.Enums.Status;
+    const folderType = $ascp.FolderHierarchy.Enums.Type.Mail;
 
-    var w = new $wbxml.Writer('1.3', 1, 'UTF-8');
+    let w = new $wbxml.Writer('1.3', 1, 'UTF-8');
     w.stag(fh.FolderCreate)
        .tag(fh.SyncKey, this.meta.syncKey)
        .tag(fh.ParentId, parentFolderServerId)
@@ -5020,8 +4951,8 @@ ActiveSyncAccount.prototype = {
      .etag();
 
     this.conn.postCommand(w, function(aError, aResponse) {
-      var e = new $wbxml.EventParser();
-      var status, serverId;
+      let e = new $wbxml.EventParser();
+      let status, serverId;
 
       e.addEventListener([fh.FolderCreate, fh.Status], function(node) {
         status = node.children[0].textContent;
@@ -5044,7 +4975,7 @@ ActiveSyncAccount.prototype = {
       }
 
       if (status === fhStatus.Success) {
-        var folderMeta = account._addedFolder(serverId, parentFolderServerId,
+        let folderMeta = account._addedFolder(serverId, parentFolderServerId,
                                               folderName, folderType);
         callback(null, folderMeta);
       }
@@ -5064,7 +4995,7 @@ ActiveSyncAccount.prototype = {
    * Callback is like the createFolder one, why not.
    */
   deleteFolder: function asa_deleteFolder(folderId, callback) {
-    var account = this;
+    let account = this;
     if (!this.conn.connected) {
       this.conn.connect(function(error) {
         if (error) {
@@ -5076,21 +5007,21 @@ ActiveSyncAccount.prototype = {
       return;
     }
 
-    var folderMeta = this._folderInfos[folderId].$meta;
+    let folderMeta = this._folderInfos[folderId].$meta;
 
-    var fh = $ascp.FolderHierarchy.Tags;
-    var fhStatus = $ascp.FolderHierarchy.Enums.Status;
-    var folderType = $ascp.FolderHierarchy.Enums.Type.Mail;
+    const fh = $ascp.FolderHierarchy.Tags;
+    const fhStatus = $ascp.FolderHierarchy.Enums.Status;
+    const folderType = $ascp.FolderHierarchy.Enums.Type.Mail;
 
-    var w = new $wbxml.Writer('1.3', 1, 'UTF-8');
+    let w = new $wbxml.Writer('1.3', 1, 'UTF-8');
     w.stag(fh.FolderDelete)
        .tag(fh.SyncKey, this.meta.syncKey)
        .tag(fh.ServerId, folderMeta.serverId)
      .etag();
 
     this.conn.postCommand(w, function(aError, aResponse) {
-      var e = new $wbxml.EventParser();
-      var status;
+      let e = new $wbxml.EventParser();
+      let status;
 
       e.addEventListener([fh.FolderDelete, fh.Status], function(node) {
         status = node.children[0].textContent;
@@ -5121,7 +5052,7 @@ ActiveSyncAccount.prototype = {
   },
 
   sendMessage: function asa_sendMessage(composer, callback) {
-    var account = this;
+    let account = this;
     if (!this.conn.connected) {
       this.conn.connect(function(error) {
         if (error) {
@@ -5139,8 +5070,8 @@ ActiveSyncAccount.prototype = {
       // ActiveSync 14.0 has a completely different API for sending email. Make
       // sure we format things the right way.
       if (this.conn.currentVersion.gte('14.0')) {
-        var cm = $ascp.ComposeMail.Tags;
-        var w = new $wbxml.Writer('1.3', 1, 'UTF-8');
+        const cm = $ascp.ComposeMail.Tags;
+        let w = new $wbxml.Writer('1.3', 1, 'UTF-8');
         w.stag(cm.SendMail)
            .tag(cm.ClientId, Date.now().toString()+'@mozgaia')
            .tag(cm.SaveInSentItems)
@@ -5238,7 +5169,7 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
 });
 
 }); // end define
-;
+
 /**
  * Configurator for activesync
  **/
@@ -5392,4 +5323,4 @@ exports.configurator = {
   },
 };
 
-}); // end define;
+}); // end define

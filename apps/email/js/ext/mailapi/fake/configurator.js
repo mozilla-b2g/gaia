@@ -1,4 +1,3 @@
-
 /**
  * Implements a fake account type for UI testing/playing only.
  **/
@@ -22,7 +21,7 @@ define('mailapi/fake/account',
  *  reversible names.  To keep things easily reversible, if you add names, make
  *  sure they have no spaces in them!
  */
-var FIRST_NAMES = [
+const FIRST_NAMES = [
   "Andy", "Bob", "Chris", "David", "Emily", "Felix",
   "Gillian", "Helen", "Idina", "Johnny", "Kate", "Lilia",
   "Martin", "Neil", "Olof", "Pete", "Quinn", "Rasmus",
@@ -35,7 +34,7 @@ var FIRST_NAMES = [
  *  reversible names.  To keep things easily reversible, if you add names, make
  *  sure they have no spaces in them!
  */
-var LAST_NAMES = [
+const LAST_NAMES = [
   "Anway", "Bell", "Clarke", "Davol", "Ekberg", "Flowers",
   "Gilbert", "Hook", "Ivarsson", "Jones", "Kurtz", "Lowe",
   "Morris", "Nagel", "Orzabal", "Price", "Quinn", "Rolinski",
@@ -49,7 +48,7 @@ var LAST_NAMES = [
  *  make sure they have no spaces in them!  Also, make sure your additions
  *  don't break the secret Monty Python reference!
  */
-var SUBJECT_ADJECTIVES = [
+const SUBJECT_ADJECTIVES = [
   "Big", "Small", "Huge", "Tiny",
   "Red", "Green", "Blue", "My",
   "Happy", "Sad", "Grumpy", "Angry",
@@ -62,7 +61,7 @@ var SUBJECT_ADJECTIVES = [
  *  make sure they have no spaces in them!  Also, make sure your additions
  *  don't break the secret Monty Python reference!
  */
-var SUBJECT_NOUNS = [
+const SUBJECT_NOUNS = [
   "Meeting", "Party", "Shindig", "Wedding",
   "Document", "Report", "Spreadsheet", "Hovercraft",
   "Aardvark", "Giraffe", "Llama", "Velociraptor",
@@ -74,7 +73,7 @@ var SUBJECT_NOUNS = [
  *  by MessageGenerator.  These can (clearly) have spaces in them.  Make sure
  *  your additions don't break the secret Monty Python reference!
  */
-var SUBJECT_SUFFIXES = [
+const SUBJECT_SUFFIXES = [
   "Today", "Tomorrow", "Yesterday", "In a Fortnight",
   "Needs Attention", "Very Important", "Highest Priority", "Full Of Eels",
   "In The Lobby", "On Your Desk", "In Your Car", "Hiding Behind The Door",
@@ -205,7 +204,7 @@ MessageGenerator.prototype = {
                   SUBJECT_SUFFIXES.length;
     return SUBJECT_ADJECTIVES[iAdjective] + " " +
            SUBJECT_NOUNS[iNoun] + " " +
-           SUBJECT_SUFFIXES[iSuffix] + " #" + aSubjectNumber;
+           SUBJECT_SUFFIXES[iSuffix];
   },
 
   /**
@@ -314,6 +313,11 @@ MessageGenerator.prototype = {
    *     contents of the headers object.  This should only be used to construct
    *     illegal header values; general usage should use another explicit
    *     mechanism.
+   * @param [aArgs.junk] Should this message be flagged as junk for the benefit
+   *     of the messageInjection helper so that it can know to flag the message
+   *     as junk?  We have no concept of marking a message as definitely not
+   *     junk at this point.
+   * @param [aArgs.read] Should this message be marked as already read?
    * @returns a SyntheticMessage fashioned just to your liking.
    */
   makeMessage: function makeMessage(aArgs) {
@@ -326,7 +330,7 @@ MessageGenerator.prototype = {
               '@mozgaia',
       author: null,
       date: null,
-      flags: aArgs.flags || [],
+      flags: [],
       hasAttachments: false,
       subject: null,
       snippet: null,
@@ -365,7 +369,7 @@ MessageGenerator.prototype = {
     if (aArgs.age) {
       var age = aArgs.age;
       // start from 'now'
-      var ts = this._clock.valueOf() || Date.now();
+      var ts = this._clock || Date.now();
       if (age.seconds)
         ts -= age.seconds * 1000;
       if (age.minutes)
@@ -465,8 +469,7 @@ MessageGenerator.prototype = {
         bodyInfo: bodyInfo,
         // XXX mailcomposer is tacking newlines onto the end of the message that
         // we don't want.  Ideally we want to fix mailcomposer...
-        messageText: data.trimRight(),
-        flags: headerInfo.flags
+        messageText: data.trimRight()
       };
     }
   },
@@ -475,8 +478,8 @@ MessageGenerator.prototype = {
     count: 10,
   },
   MAKE_MESSAGES_PROPAGATE: ['attachments', 'body',
-                            'cc', 'flags', 'from', 'to', 'inReplyTo',
-                            'subject', 'clobberHeaders'],
+                            'cc', 'from', 'to', 'inReplyTo',
+                            'subject', 'clobberHeaders', 'junk', 'read'],
   /**
    * Given a set definition, produce a list of synthetic messages.
    *
@@ -612,7 +615,7 @@ function FakeAccount(universe, accountDef, folderInfo, receiveProtoConn, _LOG) {
     address: ourIdentity.address,
   };
 
-  var HOURS_MS = 60 * 60 * 1000;
+  const HOURS_MS = 60 * 60 * 1000;
   var inboxFolder = {
     id: this.id + '/0',
     name: 'Inbox',
@@ -776,7 +779,7 @@ FakeFolderStorage.prototype = {
 };
 
 }); // end define
-;
+
 /**
  * Configurator for fake
  **/
@@ -887,4 +890,4 @@ exports.configurator = {
 };
 
 }); // end define
-;
+

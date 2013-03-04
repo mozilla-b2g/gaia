@@ -15,32 +15,35 @@ define('q', ['prim'], function (prim) {
   };
 });
 
-(function () {
-  // Send fake API object to allow UI to finish bootstrapping, and finish
-  // back-end loading when viewAccounts is called.
-  var evtObject = document.createEvent('Event');
-  evtObject.initEvent('mailapi', false, false);
-  // Create global property too, in case app comes
-  // up after the event has fired.
-  window.tempMailAPI = evtObject.mailAPI = {
-    _fake: true,
-    hasAccounts: (document.cookie || '')
-                    .indexOf('mailHasAccounts') !== -1,
-    useLocalizedStrings: function () {},
-    viewAccounts: function () {
-      var acctSlice = {
-          items: [],
-          die: function () {}
-      };
+// Trigger module resolution for backend to start.
+// If no accounts, load a fake shim that allows
+// bootstrapping to "Enter account" screen faster.
+if ((document.cookie || '').indexOf('mailHasAccounts') !== -1) {
+  require(['mailapi/same-frame-setup']);
+} else {
+  (function () {
+    var evtObject = document.createEvent('Event');
+    evtObject.initEvent('mailapi', false, false);
+    // Create global property too, in case app comes
+    // up after the event has fired.
+    window.tempMailAPI = evtObject.mailAPI = {
+      _fake: true,
+      useLocalizedStrings: function () {},
+      viewAccounts: function () {
+        var acctSlice = {
+            items: [],
+            die: function () {}
+        };
 
-      setTimeout(function () {
-          if (acctSlice.oncomplete) {
-              acctSlice.oncomplete();
-          }
-          require(['mailapi/same-frame-setup']);
-      }, 0);
-      return acctSlice;
-    }
-  };
-  window.dispatchEvent(evtObject);
-}());
+        setTimeout(function () {
+            if (acctSlice.oncomplete) {
+                acctSlice.oncomplete();
+            }
+            require(['mailapi/same-frame-setup']);
+        }, 0);
+        return acctSlice;
+      }
+    };
+    window.dispatchEvent(evtObject);
+  }());
+}

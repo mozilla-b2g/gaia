@@ -1,13 +1,17 @@
-requireApp('calendar/test/unit/provider/mock_stream.js');
-requireApp('calendar/test/unit/service/helper.js');
-requireLib('ext/ical.js');
-requireLib('ext/caldav.js');
-requireLib('service/caldav.js');
-requireLib('service/ical_recur_expansion.js');
-requireLib('models/account.js');
-requireLib('models/calendar.js');
+requireApp('calendar/test/unit/helper.js', function() {
+  requireApp('calendar/test/unit/provider/mock_stream.js');
+  requireApp('calendar/test/unit/service/helper.js');
+  requireLib('ext/ical.js');
+  requireLib('ext/caldav.js');
+  requireLib('service/caldav.js');
+  requireLib('store/ical_component.js');
+  requireLib('provider/caldav_pull_events.js');
+  requireLib('service/ical_recur_expansion.js');
+  requireLib('models/account.js');
+  requireLib('models/calendar.js');
+});
 
-suiteGroup('Provider.CaldavPullEvents', function() {
+suite('provider/caldav_pull_events', function() {
 
   var fixtures;
   var ical;
@@ -511,7 +515,7 @@ suiteGroup('Provider.CaldavPullEvents', function() {
       assert.ok(!subject.busytimeQueue[0].alarms, 'removes alarms');
 
       assert.deepEqual(
-        subject.alarmQueue.length, alarms.length,
+        subject.alarmQueue, alarms,
         'moves moves to alarm queue'
       );
 

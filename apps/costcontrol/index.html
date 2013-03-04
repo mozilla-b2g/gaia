@@ -140,7 +140,7 @@ the overlays) and we should distinguish between TABS and OVERLAY VIEWS -->
     <!-- TELEPHONY TAB -->
     <section role="region" id="telephony-tab" class="view" data-viewport="left" hidden>
       <!--
-      <section>
+      <section class="settings">
         <ul>
           <li>
             <p id="telephony-time">
@@ -233,7 +233,7 @@ the overlays) and we should distinguish between TABS and OVERLAY VIEWS -->
         <section class="content">
           <section id="graphic-area" class="graph">
             <canvas id="background-layer"></canvas>
-            <canvas id="wifi-layer" aria-hidden="true"></canvas>
+            <canvas id="wifi-layer"></canvas>
             <canvas id="mobile-layer"></canvas>
             <canvas id="axis-layer"></canvas>
             <canvas id="today-layer"></canvas>
@@ -251,18 +251,18 @@ the overlays) and we should distinguish between TABS and OVERLAY VIEWS -->
               </label>
               <p>
                 <strong class="overview" id="mobileOverview"></strong>
-                <span data-l10n-id="3g-usage">3G</span>
+                3G
               </p>
             </li>
-            <li id="wifiItem" aria-disabled="true">
+            <li id="wifiItem">
               <label>
-                <input type="checkbox" id="wifiCheck">
+                <input type="checkbox" checked="checked" id="wifiCheck">
                 <span>
                 </span>
               </label>
               <p>
                 <strong class="overview" id="wifiOverview"></strong>
-                <span data-l10n-id="wifi-usage">Wi-Fi</span>
+                Wi-Fi 
               </p>
             </li>
           </ul>

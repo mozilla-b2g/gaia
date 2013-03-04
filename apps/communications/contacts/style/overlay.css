@@ -2,8 +2,14 @@
   Loading screen while loading contacts
 */
 
-#loading-overlay.hide {
+#loading-overlay {
   display: none;
+  z-index: 200;
+}
+
+#loading-overlay.show-overlay {
+  display: block;
+  visibility: visible !important;
 }
 
 .loading-icon {
@@ -16,8 +22,4 @@
 
 #progressbar {
   visibility: visible !important;
-}
-
-.no-opacity {
-  opacity: 0;
 }

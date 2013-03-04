@@ -3,16 +3,12 @@
 
 // Return a time string in format Today|Yesterday|<WeekDay>, hh:mm
 // if timestamp is a valid date. If not, it returns Never.
-function formatTime(timestamp, format) {
+function formatTime(timestamp) {
   if (!timestamp) {
     return _('never');
   }
 
   var dateFormatter = new navigator.mozL10n.DateTimeFormat();
-  if (format) {
-    return dateFormatter.localeFormat(timestamp, format);
-  }
-
   var time = dateFormatter.localeFormat(timestamp, _('shortTimeFormat'));
   var date = dateFormatter.localeFormat(timestamp, '%a');
   var dateDay = parseInt(dateFormatter.localeFormat(timestamp, '%u'), 10);
@@ -70,9 +66,6 @@ function roundData(value, positions) {
 }
 
 function getPositions(value) {
-  if (parseInt(value) === value) {
-    return 0;
-  }
   if (value < 10) {
     return 2;
   }

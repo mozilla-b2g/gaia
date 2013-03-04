@@ -566,12 +566,12 @@ Calendar.ns('Controllers').Time = (function() {
       }
 
       var getEvent = true;
-      var getAlarms = false;
+      var getAlarm = false;
 
       busytimes = (Array.isArray(busytimes)) ? busytimes : [busytimes];
 
-      if (options && ('alarms' in options)) {
-        getAlarms = options.alarms;
+      if (options && ('alarm' in options)) {
+        getAlarm = options.alarm;
       }
 
       if (options && ('event' in options)) {
@@ -582,17 +582,16 @@ Calendar.ns('Controllers').Time = (function() {
       var alarmStore = this.app.store('Alarm');
       var list = [];
 
-      // this is a readonly transaction so we can add busytimes
-      // here even though we may not use it later...
-      var stores = ['busytimes'];
+      var stores = [];
 
-      if (getAlarms)
+      if (getAlarm)
         stores.push('alarms');
 
       if (getEvent)
         stores.push('events');
 
       var trans = eventStore.db.transaction(stores);
+      var self = this;
 
       trans.addEventListener('error', cb);
 
@@ -606,30 +605,28 @@ Calendar.ns('Controllers').Time = (function() {
         }
       }
 
-      var self = this;
+      // using forEach for scoping
+      // XXX: this is a hot code path needs some optimization.
+      busytimes.forEach(function(busytime, idx) {
+        if (typeof(busytime) === 'string') {
+          busytime = this._collection.byId[busytime];
+        }
 
-      /**
-       * Fetch records for a given busytime.
-       *
-       * @param {Object} busytime object.
-       * @param {Numeric} idx where to put item in array.
-       */
-      function fetchRecords(busytime, idx) {
         var result = { busytime: busytime };
         list[idx] = result;
 
-        if (getAlarms) {
+        if (getAlarm) {
           pending++;
           // its possible for more then one alarm to be present
           // for a given busytime. We are not supporting that right
           // now but in the future we may need to modify this to
           // return an array of alarms.
-          alarmStore.findAllByBusytimeId(busytime._id, trans,
+          alarmStore.findByBusytimeId(busytime._id, trans,
                                       function(err, alarm) {
 
             // unlike events we probably never want to cache alarms.
             if (alarm) {
-              result.alarms = alarm;
+              result.alarm = alarm;
             }
             next();
           });
@@ -638,8 +635,8 @@ Calendar.ns('Controllers').Time = (function() {
         if (getEvent) {
           var eventId = busytime.eventId;
 
-          if (eventId in self._eventsCache) {
-            result.event = self._eventsCache[eventId];
+          if (eventId in this._eventsCache) {
+            result.event = this._eventsCache[eventId];
           } else {
             pending++;
             eventStore.get(eventId, trans, function(err, event) {
@@ -651,56 +648,6 @@ Calendar.ns('Controllers').Time = (function() {
             });
           }
         }
-      }
-
-      function fetchBusytime(id, idx, err, record) {
-        if (!record || err) {
-          console.log('Error finding busytime', id, err);
-          return next();
-        }
-
-        // cache the busytime when it is not found...
-        // Even if the busytime is _way_ out of range later
-        // we still will clean it up when we get far enough
-        // out of its starting time...
-        self.cacheBusytime(record);
-
-        fetchRecords(record, idx);
-
-        // next will decrement the pending counter and return
-        // if there are no more pending items... We must call
-        // this here to avoid race conditions in the case where
-        // all but one busytime is uncached (which is common).
-        next();
-      }
-
-      // using forEach for scoping
-      // XXX: this is a hot code path needs some optimization.
-      busytimes.forEach(function(busytime, idx) {
-        if (typeof(busytime) === 'string') {
-
-          var record = this._collection.byId[busytime];
-
-          if (!record) {
-            console.log('Cannot find busytime by id: ', busytime);
-
-            // why pending++ ? we must add a pending item to our
-            // counter otherwise the loop may close and return prior
-            // to the busytime being fetched... later we decrement the
-            // counter in fetchBusytime.
-            pending++;
-            return this.busytime.get(
-              busytime,
-              trans,
-              fetchBusytime.bind(this, busytime, idx)
-            );
-          }
-
-          busytime = this._collection.byId[busytime];
-        }
-
-        fetchRecords(busytime, idx);
-
       }, this);
 
       // this handles the case where there

@@ -216,7 +216,6 @@ var SleepMenu = {
 
   startPowerOff: function sm_startPowerOff(reboot) {
     var power = navigator.mozPower;
-    var self = this;
     if (!power)
       return;
 
@@ -224,86 +223,53 @@ var SleepMenu = {
     if (document.getElementById('poweroff-splash'))
       return;
 
-
     // Show shutdown animation before actually performing shutdown.
     //  * step1: fade-in poweroff-splash.
-    //  * step2: - As default, the 3-rings animation is performed on the screen.
-    //           - Manufacturer can customize the animation using mp4/png file
-    //             to replace the default.
+    //  * step2: The 3-rings animation is performed on the screen.
     var div = document.createElement('div');
     div.dataset.zIndexLevel = 'poweroff-splash';
     div.id = 'poweroff-splash';
 
+    // The overall animation ends when the inner span of the bottom ring
+    // is animated, so we store it for detecting.
+    var inner;
 
-    var logoLoader = new LogoLoader(CustomLogoPath.poweroff);
+    for (var i = 1; i <= 3; i++) {
+      var outer = document.createElement('span');
+      outer.className = 'poweroff-ring';
+      outer.id = 'poweroff-ring-' + i;
+      div.appendChild(outer);
 
-    logoLoader.onload = function customizedAnimation(elem) {
-      // Perform customized animation.
-      div.appendChild(elem);
-      div.className = 'step1';
+      inner = document.createElement('span');
+      outer.appendChild(inner);
+    }
 
-      if (elem.tagName == 'VIDEO' && !elem.ended) {
-        elem.onended = function() {
-          elem.classList.add('hide');
-        };
-      } else {
-        div.addEventListener('animationend', function() {
-          elem.classList.add('hide');
-        });
-      }
+    div.className = 'step1';
 
-      elem.addEventListener('transitionend', function() {
-        self._actualPowerOff(reboot);
+    var nextAnimation = function nextAnimation(e) {
+      // Switch to next class
+      if (e.target == div)
+        div.className = 'step2';
+
+      if (e.target != inner)
+        return;
+
+      // Actual poweroff/reboot
+      setTimeout(function powerOffAnimated() {
+        if (reboot) {
+          power.reboot();
+        } else {
+          power.powerOff();
+        }
       });
-      document.getElementById('screen').appendChild(div);
+
+      // Paint screen to black before reboot/poweroff
+      ScreenManager.turnScreenOff(true);
     };
 
-    logoLoader.onnotfound = function defaultAnimation() {
-      // - Perform OS default animation.
+    div.addEventListener('animationend', nextAnimation);
 
-      // The overall animation ends when the inner span of the bottom ring
-      // is animated, so we store it for detecting.
-      var inner;
-
-      for (var i = 1; i <= 3; i++) {
-        var outer = document.createElement('span');
-        outer.className = 'poweroff-ring';
-        outer.id = 'poweroff-ring-' + i;
-        div.appendChild(outer);
-
-        inner = document.createElement('span');
-        outer.appendChild(inner);
-      }
-
-      div.className = 'step1';
-      var nextAnimation = function nextAnimation(e) {
-        // Switch to next class
-        if (e.target == div)
-          div.className = 'step2';
-
-        if (e.target != inner)
-          return;
-
-        self._actualPowerOff(reboot);
-      };
-      div.addEventListener('animationend', nextAnimation);
-
-      document.getElementById('screen').appendChild(div);
-    };
-  },
-
-  _actualPowerOff: function sm_actualPowerOff(isReboot) {
-    var power = navigator.mozPower;
-
-    setTimeout(function() {
-      if (isReboot) {
-        power.reboot();
-      } else {
-        power.powerOff();
-      }
-    });
-    // Paint screen to black before reboot/poweroff
-    ScreenManager.turnScreenOff(true);
+    document.getElementById('screen').appendChild(div);
   }
 };
 

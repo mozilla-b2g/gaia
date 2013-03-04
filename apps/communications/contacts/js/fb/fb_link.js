@@ -518,15 +518,16 @@ if (!fb.link) {
         }
         else {
           state = 'linking';
-          var callbacks = { };
+          var importReq = fb.importer.importFriend(friendUidToLink,
+                                                   access_token);
 
-          callbacks.success = function(data) {
+          importReq.onsuccess = function() {
             Curtain.hide(function() {
-              notifyParent(data);
+              notifyParent(importReq.result);
             });
           };
 
-          callbacks.error = function(e) {
+          importReq.onerror = function(e) {
             var error = e.target.error;
             window.console.error('FB: Error while importing friend data ',
                                  JSON.stringify(error));
@@ -540,12 +541,9 @@ if (!fb.link) {
             Curtain.show('error', 'linking');
           };
 
-          callbacks.timeout = function() {
+          importReq.ontimeout = function() {
             link.baseHandler('timeout');
           };
-
-          FacebookConnector.importContact(friendUidToLink, access_token,
-                                          callbacks);
         }
       };
 

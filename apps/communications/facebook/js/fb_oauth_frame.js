@@ -30,7 +30,7 @@ if (typeof window.oauthFrame === 'undefined') {
           data: access_token
         }, oauthParams[service].appOrigin);
       }, from, service);
-    };
+    }
 
     window.addEventListener('message', function messageHandler(e) {
       var data = e.data;

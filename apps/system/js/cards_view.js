@@ -246,8 +246,7 @@ var CardsView = (function() {
         header.setAttribute('role', 'region');
         header.classList.add('skin-organic');
         header.innerHTML = '<header><button><span class="icon icon-close">';
-        header.innerHTML +=
-          '</span></button><h1>' + escapeHTML(popupFrame.name, true);
+        header.innerHTML += '</span></button><h1>' + escapeHTML(popupFrame.name, true);
         header.innerHTML += '</h1></header>';
         card.appendChild(header);
         card.classList.add('trustedui');
@@ -271,28 +270,25 @@ var CardsView = (function() {
 
       // And then switch it with screenshots when one will be ready
       // (instead of -moz-element backgrounds)
-      if (typeof frameForScreenshot.getScreenshot === 'function') {
-        frameForScreenshot.getScreenshot(rect.width, rect.height).onsuccess =
-          function gotScreenshot(screenshot) {
-            if (screenshot.target.result) {
-              var objectURL = URL.createObjectURL(screenshot.target.result);
+      frameForScreenshot.getScreenshot(rect.width, rect.height).onsuccess =
+        function gotScreenshot(screenshot) {
+          if (screenshot.target.result) {
+            var objectURL = URL.createObjectURL(screenshot.target.result);
 
-              // Overwrite the cached image to prevent flickering
-              card.style.backgroundImage =
-                'url(' + objectURL + '), url(' + cachedLayer + ')';
+            // Overwrite the cached image to prevent flickering
+            card.style.backgroundImage = 'url(' + objectURL + '), url(' + cachedLayer + ')';
 
-              // setTimeout is needed to ensure that the image is fully drawn
-              // before we remove it. Otherwise the rendering is not smooth.
-              // See: https://bugzilla.mozilla.org/show_bug.cgi?id=844245
-              setTimeout(function() {
+            // setTimeout is needed to ensure that the image is fully drawn
+            // before we remove it. Otherwise the rendering is not smooth.
+            // See: https://bugzilla.mozilla.org/show_bug.cgi?id=844245
+            setTimeout(function() {
 
-                // Override the cached image
-                URL.revokeObjectURL(cachedLayer);
-                WindowManager.screenshots[origin] = objectURL;
-              }, 200);
-            }
-          };
-      }
+              // Override the cached image
+              URL.revokeObjectURL(cachedLayer);
+              WindowManager.screenshots[origin] = objectURL;
+            }, 200);
+          }
+        };
 
       // Set up event handling
       // A click elsewhere in the card switches to that task
@@ -310,7 +306,9 @@ var CardsView = (function() {
     }
 
     var origin = this.dataset.origin;
-    WindowManager.launch(origin);
+    alignCurrentCard(function cardAligned() {
+      WindowManager.launch(origin);
+    });
   }
 
   function closeApp(element, removeImmediately) {
@@ -319,13 +317,12 @@ var CardsView = (function() {
 
     // Fix for non selectable cards when we remove the last card
     // Described in https://bugzilla.mozilla.org/show_bug.cgi?id=825293
-    var cardsLength = cardsList.children.length;
-    if (cardsLength === currentDisplayed) {
+    if (cardsList.children.length === currentDisplayed) {
       currentDisplayed--;
     }
 
     // If there are no cards left, then dismiss the task switcher.
-    if (!cardsLength)
+    if (!cardsList.children.length)
       hideCardSwitcher(removeImmediately);
   }
 
@@ -376,9 +373,6 @@ var CardsView = (function() {
     // events to handle
     window.removeEventListener('lock', CardsView);
 
-    if (removeImmediately) {
-      cardsView.classList.add('no-transition');
-    }
     // Make the cardsView overlay inactive
     cardsView.classList.remove('active');
     cardsViewShown = false;
@@ -394,7 +388,6 @@ var CardsView = (function() {
     }
     if (removeImmediately) {
       removeCards();
-      cardsView.classList.remove('no-transition');
     } else {
       cardsView.addEventListener('transitionend', removeCards);
     }
@@ -423,23 +416,19 @@ var CardsView = (function() {
   // it's hard for us to evaluate that here.
   var removeCardThreshold = 100;
 
-  function alignCurrentCard() {
+  function alignCurrentCard(callback) {
     var number = currentDisplayed;
-    if (!cardsList.children[number]) {
+    if (!cardsList.children[number])
       return;
-    }
 
     var target = cardsList.children[number];
     var scrollLeft = cardsView.scrollLeft;
     var targetScrollLeft = target.offsetLeft;
 
-    var scrollDiff = scrollLeft - targetScrollLeft;
-    if (!scrollDiff) {
-      return;
-    }
-
-    if (Math.abs(scrollDiff) < 4) {
-      cardsView.scrollLeft = targetScrollLeft;
+    if (Math.abs(scrollLeft - targetScrollLeft) < 4) {
+      cardsView.scrollLeft = target.offsetLeft;
+      if (callback)
+        callback();
       return;
     }
 
@@ -447,7 +436,7 @@ var CardsView = (function() {
     target.transform = '';
 
     window.mozRequestAnimationFrame(function newFrameCallback() {
-      alignCurrentCard();
+      alignCurrentCard(callback);
     });
   }
 
@@ -608,6 +597,8 @@ var CardsView = (function() {
         cardsList.removeChild(element);
 
         closeApp(element);
+
+        --currentDisplayed;
         alignCurrentCard();
         return;
       } else {
@@ -714,10 +705,8 @@ var CardsView = (function() {
         showCardSwitcher();
         break;
 
-      case 'appopen':
-        if (!evt.detail.isHomescreen) {
-          hideCardSwitcher(/* immediately */ true);
-        }
+      case 'appwillopen':
+        hideCardSwitcher();
         break;
     }
   }
@@ -736,5 +725,5 @@ window.addEventListener('attentionscreenshow', CardsView);
 window.addEventListener('attentionscreenhide', CardsView);
 window.addEventListener('holdhome', CardsView);
 window.addEventListener('home', CardsView);
-window.addEventListener('appopen', CardsView);
+window.addEventListener('appwillopen', CardsView);
 

@@ -6,7 +6,6 @@ var ValuePicker = (function() {
     this.element = e;
     this._valueDisplayedText = unitStyle.valueDisplayedText;
     this._unitClassName = unitStyle.className;
-    this._top = 0;
     this._lower = 0;
     this._upper = unitStyle.valueDisplayedText.length - 1;
     this._range = unitStyle.valueDisplayedText.length;
@@ -34,11 +33,13 @@ var ValuePicker = (function() {
       tunedIndex = Math.floor(tunedIndex);
     }
 
-    if (tunedIndex < this._lower)
+    if (tunedIndex < this._lower) {
       tunedIndex = this._lower;
+    }
 
-    if (tunedIndex > this._upper)
+    if (tunedIndex > this._upper) {
       tunedIndex = this._upper;
+    }
 
     if (this._currentIndex != tunedIndex) {
       this._currentIndex = tunedIndex;
@@ -58,32 +59,6 @@ var ValuePicker = (function() {
       }
       this.updateUI(newIndex);
     }
-  };
-
-  VP.prototype.setRange = function(lower, upper) {
-    if (lower !== null) {
-      this._lower = lower;
-    } else {
-      this._lower = 0;
-    }
-
-    if (upper !== null) {
-      this._upper = upper;
-    } else {
-      this._upper = unitStyle.valueDisplayedText.length - 1;
-    }
-
-    var unitElement = this.element.firstElementChild;
-    var index = 0;
-    while (unitElement) {
-      unitElement.dataset.disabled =
-        (index < this._lower || index > this._upper);
-      unitElement = unitElement.nextElementSibling;
-      index++;
-    }
-
-    this._range = this._upper - this._lower + 1;
-    this.setSelectedIndex(this._currentIndex);
   };
 
   //
@@ -123,8 +98,8 @@ var ValuePicker = (function() {
 
   VP.prototype.updateUI = function(index, ignorePicker) {
     if (true !== ignorePicker) {
-      this._top = -index * this._space;
-      this.element.style.transform = 'translateY(' + this._top + 'px)';
+      this.element.style.top =
+            (this._lower - index) * this._space + 'px';
     }
   };
 
@@ -138,11 +113,10 @@ var ValuePicker = (function() {
   };
 
   VP.prototype.uninit = function() {
-    this._top = 0;
     this.element.removeEventListener('mousedown', this.mousedonwHandler, false);
     this.element.removeEventListener('mouseup', this.mouseupHandler, false);
     this.element.removeEventListener('mousemove', this.mousemoveHandler, false);
-    this.element.style.transform = 'translateY(0px)';
+    this.element.style.top = '0px';
     this.onselectedindexchange = null;
     empty(this.element);
   };
@@ -150,8 +124,9 @@ var ValuePicker = (function() {
   VP.prototype.onselectedindexchange = function(index) {};
 
   function cloneEvent(evt) {
-    if ('touches' in evt)
+    if ('touches' in evt) {
       evt = evt.touches[0];
+    }
     return { x: evt.pageX, y: evt.pageY, timestamp: evt.timeStamp };
   }
 
@@ -200,14 +175,15 @@ var ValuePicker = (function() {
     calcSpeed();
 
     // move selected index
-    this._top = this._top + getMovingSpace();
-    this.element.style.transform = 'translateY(' + this._top + 'px)';
+    this.element.style.top = parseFloat(this.element.style.top) +
+                              getMovingSpace() + 'px';
 
     tunedIndex = calcTargetIndex(this._space);
     var roundedIndex = Math.round(tunedIndex * 10) / 10;
 
-    if (roundedIndex != this._currentIndex)
+    if (roundedIndex != this._currentIndex) {
       this.setSelectedIndex(toFixed(roundedIndex), true);
+    }
 
     startEvent = currentEvent;
   }

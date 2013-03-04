@@ -50,17 +50,11 @@ var Settings = {
       var spanField = document.querySelector(rule);
       if (spanField) {
         // check whether this setting comes from a select option
-        var options = document.querySelector('select[data-setting="' +
-          key + '"]');
-        if (options) {
-          // iterate option matching
-          var max = options.length;
-          for (var i = 0; i < max; i++) {
-            if (options[i] && options[i].value === value) {
-              spanField.dataset.l10nId = options[i].dataset.l10nId;
-              spanField.textContent = options[i].textContent;
-            }
-          }
+        rule = '[data-setting="' + key + '"] [value="' + value + '"]';
+        var option = document.querySelector(rule);
+        if (option) {
+          spanField.dataset.l10nId = option.dataset.l10nId;
+          spanField.textContent = option.textContent;
         } else {
           spanField.textContent = value;
         }

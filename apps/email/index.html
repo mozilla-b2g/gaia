@@ -24,22 +24,22 @@
   <link rel="resource" type="application/l10n" href="locales/locales.ini">
   <link rel="resource" type="application/l10n" href="shared/locales/date.ini">
   <!-- Shared code -->
-  <script type="text/javascript" defer src="shared/js/l10n.js"></script>
-  <script type="text/javascript" defer src="shared/js/l10n_date.js"></script>
-  <script type="text/javascript" defer src="shared/js/gesture_detector.js"></script>
+  <script type="text/javascript" src="shared/js/l10n.js"></script>
+  <script type="text/javascript" src="shared/js/l10n_date.js"></script>
+  <script type="text/javascript" src="shared/js/gesture_detector.js"></script>
   <!-- Specific code -->
-  <script type="text/javascript" defer src="js/input_areas.js"></script>
-  <script type="text/javascript" defer src="js/console-hook.js"></script>
-  <script type="text/javascript" defer src="js/mail-common.js"></script>
-  <script type="text/javascript" defer src="js/message-cards.js"></script>
-  <script type="text/javascript" defer src="js/folder-cards.js"></script>
+  <script type="text/javascript" src="js/input_areas.js"></script>
+  <script type="text/javascript" src="js/console-hook.js"></script>
+  <script type="text/javascript" src="js/mail-common.js"></script>
+  <script type="text/javascript" src="js/message-cards.js"></script>
+  <script type="text/javascript" src="js/folder-cards.js"></script>
   <!-- This one is an optimized vendor library containing our mail backend. -->
   <!-- START BACKEND INJECT - do not modify -->
-  <script type="application/javascript;version=1.8" defer src="js/ext/alameda.js"></script>
-  <script type="application/javascript;version=1.8" defer src="js/ext/end.js"></script>
+  <script type="application/javascript;version=1.8" src="js/ext/alameda.js"></script>
+  <script type="application/javascript;version=1.8" src="js/ext/end.js"></script>
   <!-- END BACKEND INJECT -->
-  <script type="text/javascript" defer src="/shared/js/lazy_loader.js"></script>
-  <script type="text/javascript" defer src="js/mail-app.js"></script>
+  <script type="text/javascript" src="/shared/js/lazy_loader.js"></script>
+  <script type="text/javascript" src="js/mail-app.js"></script>
   <!-- Lazy Loaded Resources. See: App.loader.load()
   <link rel="stylesheet" type="text/css" href="style/value_selector.css>
   <link rel="stylesheet" type="text/css" href="style/compose-cards.css">
@@ -77,6 +77,17 @@
        into them. -->
   <div id="templates" class="collapsed">
     <div id="templ-card">
+      <div class="card-account-picker card">
+        <div class="fld-accounts-header top-header">
+          <h2 class="fld-accounts-header-label header-label"
+              data-l10n-id="accounts-header">AccountS</h2>
+        </div>
+        <div class="scrollregion-below-header">
+          <div class="fld-accounts-container">
+          </div>
+        </div>
+      </div>
+
       <!-- Shows folders for navigation or move targeting.
            The navigation mode is less than full-width so we can see the
            messages display to its right.  -->
@@ -89,8 +100,10 @@
             <h1 class="fld-folders-header-account-label"></h1>
           </header>
         </section>
-        <div class="scrollregion-below-header folder-scroller-region">
-          <div class="fld-folders-container">
+        <div class="scrollregion-below-header folder-scoller-region">
+          <div class="fld-accounts-container">
+          </div>
+          <div class="fld-folders-container show">
           </div>
           <div class="bottom-toolbar-spacer"></div>
         </div>
@@ -106,30 +119,8 @@
           <span class="fld-nav-account-problem icon collapsed">!</span>
         </div>
       </div>
-      <!-- Shows accounts, to the left of folder list.
-           The navigation mode is less than full-width so we can see the
-           messages display to its right.  -->
-      <div class="card-account-picker card anim-overlay">
-        <section class="acct-picker-header skin-organic" role="region">
-          <header>
-            <a href="#" class="fld-accounts-btn">
-              <span class="icon icon-back"></span>
-            </a>
-            <h1 class="acct-picker-header-label"
-                data-l10n-id="settings-account-section"></h1>
-          </header>
-        </section>
-        <div class="scrollregion-below-header acct-scroller-region">
-          <div class="acct-list-container">
-          </div>
-          <div class="bottom-toolbar-spacer"></div>
-        </div>
-        <div class="fld-nav-toolbar bottom-toolbar">
-          <button class="fld-nav-settings-btn bottom-btn"></button>
-        </div>
-      </div>
       <!-- Lists the messages in a folder -->
-      <div class="card-message-list card" data-tray-target>
+      <div class="card-message-list card">
         <!-- Non-search header -->
         <section class="msg-list-header msg-nonsearch-only" role="region">
           <header>
@@ -291,7 +282,7 @@
           <div class="bottom-toolbar-spacer"></div>
         </div>
         <!-- Tells us about remote/not downloaded images, asks to show -->
-        <div class="msg-reader-load-infobar collapsed">
+        <div class="msg-reader-load-infobar">
         </div>
         <div class="msg-reader-action-toolbar bottom-toolbar">
           <button class="msg-delete-btn bottom-btn"></button>
@@ -351,23 +342,14 @@
                 <div class="cmp-bcc-add cmp-contact-add"></div>
               </div>
             </div>
-            <div class="cmp-envelope-line cmp-combo">
-              <span class="cmp-attachment-label cmp-addr-label"
-                     data-l10n-id="compose-attachments[zero]">AttachmentS:</span>
-              <div class="cmp-attachment-container cmp-addr-container">
-                <div class="cmp-attachments-size">
-                </div>
-                <div class="cmp-attachment-add cmp-file-add"></div>
-              </div>
-            </div>
-            <ul class="cmp-attachments-container">
-            </ul>
             <div class="cmp-envelope-line cmp-subject">
               <span class="cmp-subject-label"
                      data-l10n-id="compose-subject">SubjecT:</span>
               <input class="cmp-subject-text" type="text" />
             </div>
           </div>
+          <ul class="cmp-attachments-container">
+          </ul>
           <textarea class="cmp-body-text" rows="1"></textarea>
           <div class="cmp-body-html">
           </div>
@@ -903,7 +885,7 @@
       </section>
 
       <!-- Developer debug page; for those in the know -->
-      <section class="card-settings-debug card skin-organic" role="region">
+      <section class="card-settings-debug card">
         <header>
           <a href="#" class="tng-close-btn">
             <span class="icon icon-close"></span>
@@ -1009,16 +991,6 @@
           <button id="msg-delete-ok" class="danger" data-l10n-id="message-edit-menu-delete">OK</button>
         </menu>
       </form>
-      <form role="dialog" class="msg-browse-confirm" data-type="confirm">
-        <section>
-          <h1 data-l10n-id="confirm-dialog-title">Confirmation</h1>
-          <p></p>
-        </section>
-        <menu>
-          <button id="msg-browse-cancel" data-l10n-id="message-multiedit-cancel">CanceL</button>
-          <button id="msg-browse-ok" class="recommend" data-l10n-id="dialog-button-ok">OK</button>
-        </menu>
-      </form>
     </div>
     <!-- Widget nodes for the compose cards; styles use the cmp prefix -->
     <div id="templ-cmp">
@@ -1068,7 +1040,7 @@
           <h1 data-l10n-id="compose-sending-message">Sending messagE</h1>
           <p style="text-align: center">
             <progress></progress>
-          </p>
+          </p>   
         </section>
       </form>
     </div>

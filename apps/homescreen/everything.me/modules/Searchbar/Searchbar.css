@@ -99,6 +99,7 @@
         font-size: 0;
         background-position: -38px -78px;
         -moz-user-select: none;
+        overflow: hidden;
         display: none;
     }
     #evmeContainer .clear-visible #button-clear {

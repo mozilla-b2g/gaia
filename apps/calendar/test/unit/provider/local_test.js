@@ -1,15 +1,12 @@
-/*
-requireLib('ext/uuid.js');
-requireLib('event_mutations.js');
-requireLib('provider/abstract.js');
-requireLib('provider/local.js');
-*/
+requireApp('calendar/test/unit/helper.js', function() {
+  requireLib('ext/uuid.js');
+  requireLib('timespan.js');
+  requireLib('event_mutations.js');
+  requireLib('provider/abstract.js');
+  requireLib('provider/local.js');
+});
 
-requireLib('timespan.js');
-
-var uuid;
-
-suiteGroup('Provider.Local', function() {
+suite('provider/local', function() {
 
   var subject;
   var app;

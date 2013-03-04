@@ -1,17 +1,15 @@
-requireLib('timespan.js');
-requireLib('interval_tree.js');
-requireLib('responder.js');
-requireLib('calc.js');
-requireLib('store/event.js');
+requireApp('calendar/test/unit/helper.js', function() {
+  requireLib('timespan.js');
+  requireLib('interval_tree.js');
+  requireLib('responder.js');
+  requireLib('calc.js');
+  requireLib('store/event.js');
+
+  requireApp('models/account.js');
+  requireApp('models/calendar.js');
+});
 
 suite('store/event', function() {
-
-  testSupport.calendar.loadObjects(
-    'Models.Account',
-    'Model.Calendar',
-    'Provider.Local'
-  );
-
   var subject;
   var db;
   var app;
@@ -40,20 +38,16 @@ suite('store/event', function() {
     });
   });
 
-  testSupport.calendar.accountEnvironment();
-
   teardown(function(done) {
     testSupport.calendar.clearStore(
       subject.db,
-      [
-        'accounts', 'calendars', 'events',
-        'busytimes', 'icalComponents'
-      ],
-      function() {
-        db.close();
-        done();
-      }
+      ['events', 'busytimes', 'icalComponents'],
+      done
     );
+  });
+
+  teardown(function() {
+    db.close();
   });
 
   test('initialization', function() {
@@ -61,6 +55,7 @@ suite('store/event', function() {
     assert.equal(subject._store, 'events');
     assert.equal(subject.db, db);
   });
+
 
   test('#_createModel', function() {
     var input = Factory.build('event');
@@ -93,34 +88,30 @@ suite('store/event', function() {
     var account;
     var calendar;
 
-    setup(function(done) {
-      event = Factory('event', {
-        calendarId: this.calendar._id
-      });
+    setup(function() {
+      calStore = db.getStore('Calendar');
+      accStore = db.getStore('Account');
 
-      subject.persist(event, done);
+      account = { _id: 'foo', providerType: 'Abstract' };
+      calendar = { _id: 'foo', accountId: 'foo' };
+      event = { calendarId: 'foo' };
+
+      calStore.cached.foo = calendar;
+      accStore.cached.foo = account;
     });
 
-    test('#ownersOf', function(done) {
-      subject.ownersOf(event, function(err, owners) {
-        done(function() {
-          assert.instanceOf(owners.calendar, Calendar.Models.Calendar);
-          assert.instanceOf(owners.account, Calendar.Models.Account);
-
-          assert.equal(owners.calendar._id, this.calendar._id, 'calendar id');
-          assert.equal(owners.account._id, this.account._id, 'account id');
-        }.bind(this));
-      }.bind(this));
+    test('#calendarFor', function() {
+      assert.equal(
+        subject.calendarFor(event),
+        calendar
+      );
     });
 
-    test('#providerFor', function(done) {
-      subject.providerFor(event, function(err, provider) {
-        assert.equal(
-          provider,
-          Calendar.App.provider('Mock')
-        );
-        done();
-      });
+    test('#providerFor', function() {
+      assert.equal(
+        subject.providerFor(event),
+        Calendar.App.provider('Abstract')
+      );
     });
 
   });

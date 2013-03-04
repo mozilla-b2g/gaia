@@ -61,32 +61,24 @@ Calendar.ns('Utils').AccountCreation = (function() {
             return;
           }
 
-          function syncCalendars(err, calendars) {
-            if (err) {
-              console.log('Error fetch calendar list in account creation');
-              return callback(err);
-            }
-
-            self.emit('calendarSync');
-
-            // note we don't wait for any of this to complete
-            // we just begin the sync and let the event handlers
-            // on the sync controller do the work.
-            for (var key in calendars) {
-              self.app.syncController.calendar(
-                result,
-                calendars[key]
-              );
-            }
-
-            callback(null, result);
-          }
+          self.emit('calendarSync');
 
           // begin sync of calendars
           var calendars = calendarStore.remotesByAccount(
-            result._id,
-            syncCalendars
+            result._id
           );
+
+          // note we don't wait for any of this to complete
+          // we just begin the sync and let the event handlers
+          // on the sync controller do the work.
+          for (var key in calendars) {
+            self.app.syncController.calendar(
+              result,
+              calendars[key]
+            );
+          }
+
+          callback(null, result);
         });
       });
     }

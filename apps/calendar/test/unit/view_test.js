@@ -1,4 +1,6 @@
-requireLib('view.js');
+requireApp('calendar/test/unit/helper.js', function() {
+  requireLib('view.js');
+});
 
 suite('view', function() {
 
@@ -14,14 +16,13 @@ suite('view', function() {
     ].join('');
 
     document.body.appendChild(el);
-
-    subject = new Calendar.View();
-
-    subject.selectors = {
-      element: '#view',
+    subject.selectors: {
       errors: 'section[role="status"] .errors',
       status: 'section[role="status"]'
     };
+
+
+    subject = new Calendar.View('#view');
   });
 
   teardown(function() {
@@ -196,7 +197,7 @@ suite('view', function() {
     assert.include(errors, 'foo');
 
     assert.ok(list.contains(subject.activeClass));
-    testSupport.calendar.triggerEvent(subject.status, 'animationend');
+    triggerEvent(subject.status, 'animationend');
     assert.ok(!list.contains(subject.activeClass));
   });
 

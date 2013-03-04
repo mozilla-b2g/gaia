@@ -1,7 +1,11 @@
-require('/shared/js/gesture_detector.js');
-requireLib('timespan.js');
+requireApp('calendar/test/unit/helper.js', function() {
+  require('/shared/js/gesture_detector.js');
+  requireLib('timespan.js');
+  requireLib('utils/ordered_map.js');
+  requireLib('views/time_parent.js');
+});
 
-suiteGroup('Views.TimeParent', function() {
+suite('views/time_parent', function() {
 
   var testEl;
   var viewDate = new Date(2012, 1, 15);

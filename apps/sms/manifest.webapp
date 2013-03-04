@@ -43,8 +43,7 @@
   "activities": {
     "new": {
       "filters": {
-        "type": "websms/sms",
-        "number": { "regexp":"/^[\\w\\s+#*().-]{0,50}$/" }
+        "type": "websms/sms"
        },
       "disposition": "window"
     }

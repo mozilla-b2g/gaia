@@ -1,11 +1,14 @@
-requireSupport('fake_page.js');
-requireSupport('mock_view.js');
+requireApp('calendar/test/unit/helper.js', function() {
+  require('/shared/js/lazy_loader.js');
+  requireSupport('fake_page.js');
+  requireSupport('mock_view.js');
 
-requireLib('provider/abstract.js');
-requireLib('worker/manager.js');
-requireLib('controllers/service.js');
-requireLib('router.js');
-requireLib('app.js');
+  requireLib('provider/abstract.js');
+  requireLib('worker/manager.js');
+  requireLib('controllers/service.js');
+  requireLib('router.js');
+  requireLib('app.js');
+});
 
 suite('app', function() {
 

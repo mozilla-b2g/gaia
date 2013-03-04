@@ -14,6 +14,6 @@ WHITELIST = \
 VPATH = $(DICTIONARY_PATH)
 
 %.dict: %_wordlist.xml xml2dict.py
-	python3 xml2dict.py -o $@ $<
+	python xml2dict.py -o $@ $<
 
 all: $(WHITELIST)

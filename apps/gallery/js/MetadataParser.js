@@ -248,7 +248,7 @@ var metadataParser = (function() {
                                      }
                                    });
       }
-    };
+    }
   }
 
   function videoMetadataParser(file, metadataCallback, errorCallback) {
@@ -259,7 +259,7 @@ var metadataParser = (function() {
     var getreq = videostorage.get(videofilename);
     getreq.onerror = function() {
       errorCallback('cannot get video file: ' + videofilename);
-    };
+    }
     getreq.onsuccess = function() {
       var videofile = getreq.result;
       getVideoRotation(videofile, function(rotation) {
@@ -271,7 +271,7 @@ var metadataParser = (function() {
           errorCallback('Video rotation:', rotation);
         }
       });
-    };
+    }
 
     function getVideoThumbnailAndSize() {
       var url = URL.createObjectURL(file);

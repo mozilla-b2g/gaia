@@ -1,6 +1,12 @@
 requireCommon('test/synthetic_gestures.js');
 
-suiteGroup('Views.TimeHeader', function() {
+requireApp('calendar/test/unit/helper.js', function() {
+  requireLib('models/calendar.js');
+  requireLib('templates/calendar.js');
+  requireLib('views/time_header.js');
+});
+
+suite('views/time_header', function() {
 
   var subject;
   var app;

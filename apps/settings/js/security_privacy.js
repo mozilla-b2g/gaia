@@ -32,18 +32,10 @@ var Security = {
 
     var simSecurityDesc = document.getElementById('simCardLock-desc');
 
-    switch (mobileConnection.cardState) {
-      case null:
-        simSecurityDesc.textContent = _('simCardNotReady');
-        return;
-      case 'unknown':
-        simSecurityDesc.textContent = _('unknownSimCardState');
-        return;
-      case 'absent':
-        simSecurityDesc.textContent = _('noSimCard');
-        return;
+    if (mobileConnection.cardState === 'absent') {
+      simSecurityDesc.textContent = _('noSimCard');
+      return;
     }
-
     // with SIM card, query its status
     var req = mobileConnection.getCardLock('pin');
     req.onsuccess = function spl_checkSuccess() {

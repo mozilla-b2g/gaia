@@ -175,7 +175,7 @@ var AppIntegration = (function() {
       // generators in .task
       var app = Object.create(this);
       app.defaultCallback = next;
-      app.device = Object.create(this.device);
+      app.device = Object.create(app.device);
       app.device.defaultCallback = next;
 
       var instance = generator.call(context, app, next, callback);
@@ -227,6 +227,8 @@ var AppIntegration = (function() {
 
       this.task(function(app, next, done) {
         var device = app.device;
+
+        yield device.setScriptTimeout(15000);
 
         yield IntegrationHelper.importScript(
           device,
@@ -580,34 +582,8 @@ var AppIntegration = (function() {
         }
       }
       return toUpdate;
-    },
-
-    observePerfEvents: function(stopEventName, callback) {
-      var self = this;
-
-      this.task(function (app, next, done) {
-        yield IntegrationHelper.importScript(
-          app.device,
-          'tests/performance/performance_helper_atom.js',
-          next
-        );
-
-        var helperObject = 'window.wrappedJSObject.PerformanceHelperAtom';
-        yield app.device.executeAsyncScript(
-          helperObject + '.register();'
-        );
-
-        var results = yield app.device.executeAsyncScript(
-          helperObject + '.waitForEvent("' + stopEventName + '");'
-        );
-
-        yield app.device.executeAsyncScript(
-          helperObject + '.unregister();'
-        );
-
-        done(null, results);
-      }, callback);
     }
+
   };
 
   return AppIntegration;

@@ -43,8 +43,7 @@
   function notify(titleid, body, bodyid) {
     var title = navigator.mozL10n.get(titleid) || titleid;
     body = body || navigator.mozL10n.get(bodyid);
-    navigator.mozNotification.createNotification(
-      title, body, '../camera/style/icons/60/Camera.png').show();
+    navigator.mozNotification.createNotification(title, body).show();
   }
 
   // Get a DeviceStorage object and pass it to the callback.
@@ -74,10 +73,10 @@
           notify('screenshotFailed', freereq.error && freereq.error.name);
         };
       }
-    };
+    }
     availreq.onerror = function() {
       notify('screenshotFailed', availreq.error && availreq.error.name);
-    };
+    }
   }
 
   // Handle the event we get from chrome with the screenshot
@@ -85,10 +84,8 @@
     try {
       if (e.detail.type === 'take-screenshot-success') {
         getDeviceStorage(function(storage) {
-          var d = new Date();
-          d = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
           var filename = 'screenshots/' +
-            d.toISOString().slice(0, -5).replace(/[:T]/g, '-') +
+            new Date().toISOString().slice(0, -5).replace(/[:T]/g, '-') +
             '.png';
 
           var saveRequest = storage.addNamed(e.detail.file, filename);

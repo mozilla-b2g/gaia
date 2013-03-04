@@ -92,9 +92,6 @@ var ThreadUI = {
 
   init: function thui_init() {
     this.sendButton.addEventListener('click', this.sendMessage.bind(this));
-    // Allow for stubbing in environments that do not implement the
-    // `navigator.mozSms` API
-    this._mozSms = navigator.mozSms || window.MockNavigatormozSms;
 
     // Prevent sendbutton to hide the keyboard:
     this.sendButton.addEventListener('mousedown',
@@ -242,7 +239,7 @@ var ThreadUI = {
     var kMaxConcatenatedMessages = 10;
 
     // Use backend api for precise sms segmetation information.
-    var smsInfo = this._mozSms.getSegmentInfoForText(value);
+    var smsInfo = navigator.mozSms.getSegmentInfoForText(value);
     var segments = smsInfo.segments;
     var availableChars = smsInfo.charsAvailableInLastSegment;
     var counter = '';
@@ -527,14 +524,17 @@ var ThreadUI = {
     MessageManager.getMessages(renderingOptions);
   },
 
-  buildMessageDOM: function thui_buildMessageDOM(message, hidden) {
+  appendMessage: function thui_appendMessage(message, hidden) {
     // Retrieve all data from message
     var id = message.id;
     var bodyText = message.body;
+    var bodyHTML = Utils.escapeHTML(bodyText);
+    var timestamp = message.timestamp.getTime();
     var messageClass = message.delivery;
 
     var messageDOM = document.createElement('li');
     messageDOM.classList.add('bubble');
+    messageDOM.dataset.timestamp = timestamp;
 
     if (hidden) {
       messageDOM.classList.add('hidden');
@@ -546,12 +546,14 @@ var ThreadUI = {
     switch (message.delivery) {
       case 'error':
         asideHTML = '<aside class="pack-end"></aside>';
+        ThreadUI.addResendHandler(message, messageDOM);
         break;
       case 'sending':
         asideHTML = '<aside class="pack-end">' +
                     '<progress></progress></aside>';
         break;
     }
+
     // Create HTML content
     var messageHTML = '<label class="danger">' +
                       '<input type="checkbox" value="' + inputValue + '">' +
@@ -559,28 +561,8 @@ var ThreadUI = {
                       '</label>' +
                     '<a class="' + messageClass + '">';
     messageHTML += asideHTML;
-    messageHTML += '<p></p></a>';
+    messageHTML += '<p>' + bodyHTML + '</p></a>';
     messageDOM.innerHTML = messageHTML;
-    if (message.delivery === 'error')
-      ThreadUI.addResendHandler(message, messageDOM);
-
-    var bodyHTML = LinkHelper.searchAndLinkClickableData(bodyText);
-    // check for messageDOM paragraph element to assign linked message html
-    // For now keeping the containing anchor markup as this
-    // structure is part of building blocks.
-    // http://buildingfirefoxos.com/building-blocks/lists/
-    // Todo: Open bug to fix contaning anchor to div to avoid
-    // below extra innerHTML call
-    var pElement = messageDOM.querySelector('p');
-    pElement.innerHTML = bodyHTML;
-    return messageDOM;
-  },
-
-  appendMessage: function thui_appendMessage(message, hidden) {
-    // build messageDOM adding the links
-    var messageDOM = this.buildMessageDOM(message, hidden);
-    var timestamp = message.timestamp.getTime();
-    messageDOM.dataset.timestamp = timestamp;
     // Add to the right position
     var messageContainer = ThreadUI.getMessageContainer(timestamp, hidden);
     if (!messageContainer.firstElementChild) {
@@ -609,8 +591,7 @@ var ThreadUI = {
   },
 
   addResendHandler: function thui_addResendHandler(message, messageDOM) {
-    var aElement = messageDOM.querySelector('aside');
-    aElement.addEventListener('click', function resend(e) {
+    messageDOM.addEventListener('click', function resend(e) {
       var hash = window.location.hash;
       if (hash != '#edit') {
         var resendConfirmStr = _('resend-confirmation');
@@ -745,11 +726,8 @@ var ThreadUI = {
     switch (evt.type) {
       case 'click':
         if (window.location.hash != '#edit') {
-           //Handle events on links in a message
-           LinkActionHandler.handleEvent(evt);
           return;
         }
-
         var inputs = evt.target.parentNode.getElementsByTagName('input');
         if (inputs && inputs.length > 0) {
           ThreadUI.chooseMessage(inputs[0]);

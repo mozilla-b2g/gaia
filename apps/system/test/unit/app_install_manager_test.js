@@ -780,69 +780,6 @@ suite('system/AppInstallManager >', function() {
       downloadEventsSuite(/*afterError*/ false);
     });
 
-    suite('reinstalled packaged app >', function() {
-      setup(function() {
-        mockAppName = 'Fake packaged app';
-        mockApp = new MockApp({
-          manifest: {
-            name: mockAppName,
-            developer: {
-              name: 'Fake dev',
-              url: 'http://fakesoftware.com'
-            }
-          },
-          updateManifest: {
-            name: mockAppName,
-            size: 5245678,
-            developer: {
-              name: 'Fake dev',
-              url: 'http://fakesoftware.com'
-            }
-          },
-          installState: 'pending'
-        });
-
-        dispatchInstallEvent();
-      });
-
-      suite('on first progress >', function() {
-        var newprogress = 5;
-
-        setup(function() {
-          // resetting this mock because we want to test only the
-          // following call
-          MockNotificationScreen.mTeardown();
-          mockApp.mTriggerDownloadProgress(newprogress);
-        });
-
-        test('should add a notification', function() {
-          var method = 'incExternalNotifications';
-          assert.equal(fakeNotif.childElementCount, 1);
-          assert.ok(MockNotificationScreen.wasMethodCalled[method]);
-        });
-
-        test('notification should have a message', function() {
-          var expectedText = 'downloadingAppMessage{"appName":"' +
-            mockAppName + '"}';
-        assert.equal(fakeNotif.querySelector('.message').textContent,
-          expectedText);
-        });
-
-        test('notification progress should have a max and a value',
-        function() {
-          assert.equal(fakeNotif.querySelector('progress').max,
-            mockApp.updateManifest.size);
-          assert.equal(fakeNotif.querySelector('progress').value,
-            newprogress);
-        });
-
-        test('notification progress should not be indeterminate',
-        function() {
-          assert.notEqual(fakeNotif.querySelector('progress').position, -1);
-        });
-      });
-    });
-
     suite('packaged app >', function() {
       setup(function() {
         mockAppName = 'Fake packaged app';

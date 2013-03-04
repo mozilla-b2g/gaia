@@ -37,16 +37,15 @@ textarea:invalid {
   color: #b90000;
 }
 
-input::-moz-placeholder,
+input[type="text"]::-moz-placeholder,
+input[type="password"]::-moz-placeholder,
+input[type="email"]::-moz-placeholder,
+input[type="tel"]::-moz-placeholder,
+input[type="search"]::-moz-placeholder,
+input[type="url"]::-moz-placeholder,
+input[type="number"]::-moz-placeholder,
 textarea::-moz-placeholder {
-  color: #858585;
-  opacity: 1;
-}
-
-input:-moz-placeholder,
-textarea:-moz-placeholder {
-  color: #858585;
-  opacity: 1;
+  color: #666;
 }
 
 form p {
@@ -71,13 +70,7 @@ form p textarea + button[type="reset"] {
   font-size: 0;
   opacity: 0;
   pointer-events: none;
-  background: url(input_areas/images/icons/clear.png) no-repeat 50% 50% / 1.7rem auto;
-}
-
-/* To avoid colission with BB butons */
-li input + button[type="reset"]:after,
-li textarea + button[type="reset"]:after {
-  background: none;
+  background: url(input_areas/images/icons/clear.png) no-repeat 50% 50%;
 }
 
 form p input + button[type="reset"],
@@ -135,7 +128,7 @@ fieldset legend {
 }
 
 fieldset legend.action {
-  background: url(input_areas/images/icons/arrow.png) no-repeat 100% 100% / 1.2rem;
+  background: url(input_areas/images/icons/arrow.png) no-repeat 100% 100%;
 }
 
 fieldset legend:active {
@@ -177,7 +170,7 @@ fieldset section p:last-child {
 form[role="search"] {
   position: relative;
   height: 3.7rem;
-  background: #e8e8e8 url(input_areas/images/ui/background.png) repeat-x left bottom / 100%;
+  background: #e8e8e8 url(input_areas/images/ui/background.png) repeat-x;
 }
 
 section[role="region"] > header:first-child + form[role="search"] {
@@ -245,11 +238,7 @@ form[role="search"] button[type="submit"] {
   font: 500 1.8rem/3.2rem "MozTT", Sans-serif;
   background: url(input_areas/images/ui/separator.png) no-repeat 0 50%,
               url(input_areas/images/ui/active.png) repeat-x 0 100%;
-  background-size: auto 100%;
   border-radius: 0;
-  width: auto;
-  border-radius: 0;
-  margin: 0;
 }
 
 form[role="search"] button[type="submit"] + p > textarea {

@@ -116,7 +116,7 @@ var BalanceTab = (function() {
   // On balance update received
   function onBalance(balance, old, key, settings) {
     debug('Balance received:', balance);
-    setBalanceMode();
+    setBalanceMode('default');
     updateBalance(balance, settings.lowLimit && settings.lowLimitThreshold);
     debug('Balance updated!');
   }
@@ -202,10 +202,11 @@ var BalanceTab = (function() {
     if (isWaiting !== null) {
       return;
     }
+
     debug('TopUp confirmed!');
     setTopUpMode('default');
     topUpCodeInput.value = '';
-    updateUI();
+    updateButton.click(); // TODO: Check if free before
   }
 
   // On top up timeout or incorrect code
@@ -249,8 +250,6 @@ var BalanceTab = (function() {
         setBalanceMode(status === 'error' ? 'warning' : 'updating');
         if (status === 'error') {
           setError(result.details);
-        } else {
-          setError();
         }
         updateBalance(balance,
                       settings.lowLimit && settings.lowLimitThreshold);
@@ -317,6 +316,10 @@ var BalanceTab = (function() {
     if (mode === 'updating') {
       view.classList.add('updating');
     }
+
+    if (mode === 'default') {
+      setError(); // remove errors
+    }
   }
 
   // Control info messages in the top up dialog as well as the top up countdown
@@ -364,11 +367,11 @@ var BalanceTab = (function() {
 
   var topUpCountdown, countdown;
   function resetTopUpCountdown() {
-    getTopUpTimeout(function(timeout) {
+    getTopUpTimeout(function (timeout) {
       if (!timeout) {
         return;
       }
-      countdown = Math.floor((timeout.getTime() - Date.now()) / 1000);
+      countdown = Math.floor((timeout.getTime() - Date.now())/1000);
       if (countdown < 0) {
         return;
       }
@@ -385,7 +388,7 @@ var BalanceTab = (function() {
           countdown -= 1;
         }
       }, 1000);
-    });
+    })
   }
 
   var ERRORS = {

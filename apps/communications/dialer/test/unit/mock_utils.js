@@ -44,7 +44,7 @@ var MockUtils = {
       if (contact.name && String(contact.name) !== '') {
         return contact.name;
       } else if (contact.org && String(contact.org) !== '') {
-        return contact.org;
+        return  contact.org;
       }
     }
     if (matchingTel) {

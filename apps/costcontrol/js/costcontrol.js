@@ -389,11 +389,6 @@ var CostControl = (function() {
                          new Date(settings.nextReset.getTime() - DAY) :
                          tomorrow);
 
-    if (start > end) {
-      console.error('Start date is higher than end date. This must not ' +
-                    'happen. Maybe the clock has changed');
-      end = new Date(start.getTime() + DAY);
-    }
 
     asyncStorage.getItem('dataUsageTags', function _onTags(tags) {
       asyncStorage.getItem('wifiFixing', function _onFixing(wifiFixing) {
@@ -401,7 +396,7 @@ var CostControl = (function() {
         // Request Wi-Fi
         var wifiRequest = statistics.getNetworkStats({
           start: start,
-          end: end,
+          end: today,
           connectionType: 'wifi'
         });
 
@@ -410,7 +405,7 @@ var CostControl = (function() {
           // Request Mobile
           var mobileRequest = statistics.getNetworkStats({
             start: start,
-            end: end,
+            end: today,
             connectionType: 'mobile'
           });
 
@@ -424,7 +419,7 @@ var CostControl = (function() {
             var wifiData = adaptData(wifiRequest.result, [fakeTag]);
             var mobileData = adaptData(mobileRequest.result, tags);
             var lastDataUsage = {
-              timestamp: new Date(),
+              timestamp: new Date() ,
               start: start,
               end: end,
               today: today,
@@ -461,11 +456,6 @@ var CostControl = (function() {
     var output = [];
     var totalData, accum = 0;
     for (var i = 0, item; item = data[i]; i++) {
-      if (item.txBytes === undefined) {
-        output.push({ date: item.date });
-        continue;
-      }
-
       totalData = 0;
       if (item.rxBytes) {
         totalData += item.rxBytes;

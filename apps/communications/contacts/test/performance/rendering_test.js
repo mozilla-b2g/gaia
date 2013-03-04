@@ -3,7 +3,7 @@
 require('/tests/performance/performance_helper.js');
 require('apps/communications/contacts/test/integration/app.js');
 
-suite(window.mozTestInfo.appPath + ' >', function() {
+suite('Contacts', function() {
   var device;
   var app;
 
@@ -13,40 +13,29 @@ suite(window.mozTestInfo.appPath + ' >', function() {
   });
 
   setup(function() {
-    // it affects the first run otherwise
-    yield IntegrationHelper.unlock(device);
+    yield IntegrationHelper.unlock(device); // it affects the first run otherwise
   });
 
-  test('rendering time >', function() {
-    this.timeout(500000);
-    yield device.setScriptTimeout(50000);
+  test('average rendering time', function() {
+    this.timeout(150000);
 
-    var lastEvent = 'contacts-last-chunk';
-    var eventTitles = {
-      'contacts-first-chunk': 'first chunk',
-      'contacts-last-chunk': 'last chunk',
-      'contacts-list-init-finished': 'init finished'
-    };
+    var firstPaints = [];
+    var lastPaints = [];
 
-    var performanceHelper = new PerformanceHelper({
-      app: app,
-      eventTitles: eventTitles,
-      lastEvent: lastEvent
-    });
-
-    yield performanceHelper.repeatWithDelay(function(app, next) {
+    for (var i = 0; i < PerformanceHelper.kRuns; i++) {
+      yield IntegrationHelper.delay(device, PerformanceHelper.kSpawnInterval);
 
       var waitForBody = false;
       yield app.launch(waitForBody);
 
-      var runResults = yield performanceHelper.observe(next);
+      var results = yield app.observeRendering();
+      firstPaints.push(results.first - results.start);
+      lastPaints.push(results.last - results.start);
 
-      performanceHelper.reportRunDurations(runResults);
       yield app.close();
-    });
+    }
 
-    performanceHelper.finish();
-
+    PerformanceHelper.reportDuration(firstPaints, 'first chunk');
+    PerformanceHelper.reportDuration(lastPaints, 'last chunk');
   });
 });
-

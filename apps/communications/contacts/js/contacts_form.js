@@ -135,16 +135,9 @@ contacts.Form = (function() {
         checkDisableButton();
       }
     });
-
-    thumbAction.addEventListener('mousedown', function click(event) {
-      // Removing current photo
-      if (event.target.tagName == 'BUTTON')
-        saveButton.removeAttribute('disabled');
-    });
   };
 
-  var render = function cf_render(contact, callback, pFbContactData,
-                                  fromUpdateActivity) {
+  var render = function cf_render(contact, callback, pFbContactData) {
     var fbContactData = pFbContactData || [];
 
     nonEditableValues = fbContactData[1] || {};
@@ -153,19 +146,17 @@ contacts.Form = (function() {
 
     resetForm();
     (renderedContact && renderedContact.id) ?
-       showEdit(renderedContact, fromUpdateActivity) : showAdd(renderedContact);
+                        showEdit(renderedContact) : showAdd(renderedContact);
     if (callback) {
       callback();
     }
   };
 
-  var showEdit = function showEdit(contact, fromUpdateActivity) {
+  var showEdit = function showEdit(contact) {
     if (!contact || !contact.id) {
       return;
     }
     formView.classList.add('skin-organic');
-    if (!fromUpdateActivity)
-      saveButton.setAttribute('disabled', 'disabled');
     saveButton.textContent = _('update');
     currentContact = contact;
     deleteContactButton.parentNode.classList.remove('hide');
@@ -355,23 +346,6 @@ contacts.Form = (function() {
     return photo;
   };
 
-  var CATEGORY_WHITE_LIST = ['gmail', 'live'];
-  function updateCategoryForImported(contact) {
-    if (Array.isArray(contact.category)) {
-      var total = CATEGORY_WHITE_LIST.length;
-      var idx = -1;
-      for (var i = 0; i < total; i++) {
-        var idx = contact.category.indexOf(CATEGORY_WHITE_LIST[i]);
-        if (idx !== -1) {
-          break;
-        }
-      }
-      if (idx !== -1) {
-        contact.category[idx] = contact.category[idx] + '/updated';
-      }
-    }
-  }
-
   var saveContact = function saveContact() {
     currentContact = currentContact || {};
     currentContact = deviceContact || currentContact;
@@ -458,7 +432,6 @@ contacts.Form = (function() {
       contact.init(myContact);
     }
 
-    updateCategoryForImported(contact);
     var request = navigator.mozContacts.save(contact);
 
     request.onsuccess = function onsuccess() {
@@ -689,7 +662,7 @@ contacts.Form = (function() {
 
     activity.onsuccess = function success() {
       addRemoveIconToPhoto();
-      saveButton.removeAttribute('disabled');
+
       // XXX
       // this.result.blob is valid now, but it won't stay valid
       // (see https://bugzilla.mozilla.org/show_bug.cgi?id=806503)

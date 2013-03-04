@@ -237,14 +237,12 @@ function createAndInsertIframeForContent(htmlStr, scrollContainer,
   viewport.style.width = (scrollWidth * scale) + 'px';
   viewport.style.height = (scrollHeight * scale) + 'px';
 
-  // setting iframe.style.height is not sticky, so be heavy-handed.
-  // Also, do not set overflow: hidden since we are already clipped by our
-  // viewport or our containing card and Gecko slows down a lot because of the
-  // extra clipping.
+  // setting iframe.style.height is not sticky, so be heavy-handed:
   iframe.setAttribute(
     'style',
     'padding: 0; border-width: 0; margin: 0; ' +
     'transform-origin: top left; ' +
+    'overflow: hidden; ' +
     'pointer-events: none;');
   iframe.style.width = scrollWidth + 'px';
 
@@ -253,10 +251,7 @@ function createAndInsertIframeForContent(htmlStr, scrollContainer,
       iframe.style.height = '';
       scrollHeight = iframeBody.scrollHeight;
     }
-    if (scale !== 1)
-      iframe.style.transform = 'scale(' + scale + ')';
-    else
-      iframe.style.transform = '';
+    iframe.style.transform = 'scale(' + scale + ')';
     iframe.style.height =
       ((scrollHeight * Math.max(1, scale)) + scrollPad) + 'px';
     viewport.style.width = (scrollWidth * scale) + 'px';
@@ -396,8 +391,7 @@ function bindSanitizedClickHandler(target, clickHandler, topNode) {
     function clicked(event) {
       if (iframe) {
         var dx, dy;
-        var transform = iframe.style.transform || 'scale(1)';
-        var scale = transform.match(/(\d|\.)+/g)[0];
+        var scale = iframe.style.transform.match(/(\d|\.)+/g)[0];
         dx = event.detail.clientX + root.scrollLeft;
         dy = event.detail.clientY + root.scrollTop - titleHeight - headerHeight;
         node = iframeDoc.elementFromPoint(dx / scale, dy / scale);

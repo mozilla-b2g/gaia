@@ -215,8 +215,8 @@ var About = {
         } else {
           alert(navigator.mozL10n.get('no-ftu'));
         }
-      };
-    };
+      }
+    }
   }
 };
 

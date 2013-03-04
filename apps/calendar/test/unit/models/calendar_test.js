@@ -1,4 +1,8 @@
-suiteGroup('Models.Calendar', function() {
+requireApp('calendar/test/unit/helper.js', function() {
+  requireLib('models/calendar.js');
+});
+
+suite('models/calendar', function() {
 
   var subject;
   var remoteCalendar;

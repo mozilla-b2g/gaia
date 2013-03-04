@@ -2,53 +2,6 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 'use strict';
 
-// Following formats are supported by DeviceStorage
-// Ref: http://dxr.mozilla.org/mozilla-central/toolkit/content/
-// devicestorage.properties
-// # Extensions we recognize for DeviceStorage storage areas
-// pictures=*.jpe; *.jpg; *.jpeg; *.gif; *.png; *.bmp;
-// music=*.mp3; *.ogg; *.m4a; *.m4b; *.m4p; *.m4r; *.3gp; *.mp4; *.aac; *.m3u;
-//       *.pls; *.opus;
-// videos=*.mp4; *.mpeg; *.mpg; *.ogv; *.ogx; *.webm; *.3gp; *.ogg;
-
-var FileFormats = {       // Reference link:
-  // Image section
-  jpe: 'image/jpeg',      // http://en.wikipedia.org/wiki/JPEG
-  jpg: 'image/jpeg',      // http://en.wikipedia.org/wiki/JPEG
-  jpeg: 'image/jpeg',     // http://en.wikipedia.org/wiki/JPEG
-  gif: 'image/gif',       // http://en.wikipedia.org/wiki/Internet_media_type
-  png: 'image/png',       // http://en.wikipedia.org/wiki/Internet_media_type
-  bmp: 'image/bmp',       // http://en.wikipedia.org/wiki/BMP_file_format
-
-  // Music section
-  mp3: 'audio/mpeg',      // http://en.wikipedia.org/wiki/Internet_media_type
-  m4a: 'audio/x-m4a',     // http://www.mediawiki.org/wiki/
-  m4b: 'audio/x-m4b',     // Mobile_browser_testing/iPhone
-  m4p: 'audio/x-m4p',     // Same as above link
-  m4r: 'video/mp4',       // http://en.wikipedia.org/wiki/MPEG-4_Part_14
-
-  // XXX: https://bugzilla.mozilla.org/show_bug.cgi?id=850544
-  // We need to identify audio or video type by metadata parser for these format
-  // Before we support metadata parser, let these file format to be video type.
-  // ogg: 'audio/ogg',    // http://en.wikipedia.org/wiki/Ogg
-  // 3gp: 'audio/3gpp',   // http://en.wikipedia.org/wiki/Advanced_Audio_Coding
-  // mp4: 'audio/mp4',    // http://en.wikipedia.org/wiki/Internet_media_type
-  aac: 'audio/aac',       // http://en.wikipedia.org/wiki/Advanced_Audio_Coding
-  m3u: 'audio/x-mpegurl', // http://en.wikipedia.org/wiki/M3U
-  pls: 'audio/x-scpls',   // http://en.wikipedia.org/wiki/PLS_%28file_format%29
-  opus: 'audio/ogg',      // http://de.wikipedia.org/wiki/Opus_%28Audioformat%29
-
-  // Video section
-  mp4: 'video/mp4',       // http://en.wikipedia.org/wiki/MPEG-4_Part_14
-  mpeg: 'video/mpeg',     // http://wiki.whatwg.org/wiki/Video_type_parameters
-  mpg: 'video/mpeg',      // http://wiki.whatwg.org/wiki/Video_type_parameters
-  ogv: 'video/ogg',       // http://en.wikipedia.org/wiki/Ogg
-  ogx: 'video/ogg',       // http://en.wikipedia.org/wiki/Ogg
-  webm: 'video/webm',     // http://wiki.whatwg.org/wiki/Video_type_parameters
-  '3gp': 'video/3gpp',    // http://wiki.whatwg.org/wiki/Video_type_parameters
-  ogg: 'audio/ogg'        // http://en.wikipedia.org/wiki/Ogg (belong to audio)
-};
-
 var BluetoothTransfer = {
   bannerContainer: null,
   pairList: {
@@ -156,7 +109,6 @@ var BluetoothTransfer = {
     // Prompt appears when a transfer request from a paired device is received.
     var _ = navigator.mozL10n.get;
 
-    var address = evt.address;
     var fileSize = evt.fileLength;
     var self = this;
     var icon = 'style/bluetooth_transfer/images/icon_bluetooth.png';
@@ -165,17 +117,13 @@ var BluetoothTransfer = {
     this.checkStorageSpace(fileSize,
       function checkStorageSpaceComplete(isStorageAvailable, errorMessage) {
         if (isStorageAvailable) {
-          self.getPairedDevice(function getPairedDeviceComplete() {
-            var deviceName = self.getDeviceName(address);
-            NotificationHelper.send(_('notification-fileTransfer-title',
-                                    { deviceName: deviceName }),
-                                    _('notification-fileTransfer-description'),
-                                    icon,
-                                    function() {
-                                      UtilityTray.hide();
-                                      self.showReceivePrompt(evt);
-                                    });
-          });
+          NotificationHelper.send(_('notification-fileTransfer-title'),
+                                  _('notification-fileTransfer-description'),
+                                  icon,
+                                  function() {
+                                    UtilityTray.hide();
+                                    self.showReceivePrompt(evt);
+                                  });
         } else {
           self.showStorageUnavaliablePrompt(errorMessage);
         }
@@ -483,7 +431,40 @@ var BluetoothTransfer = {
           }
         } else {
           // Parse Filename Extension to find out MIMETYPE
-          self.getMimetype(fileNameExtension);
+          // Following formats are supported by Gallery and Music APPs
+          var imageFormatList = ['jpg', 'jpeg', 'png'];
+          var audioFormatList = ['mp3', 'ogg', 'aac', 'mp4', 'm4a'];
+          var imageFormatIndex = imageFormatList.indexOf(fileNameExtension);
+          switch (imageFormatIndex) {
+            case 0:
+            case 1:
+              // The file type of format *.jpg, *.jpeg should be "image/jpeg"
+              fileType = 'image/jpeg';
+              break;
+            case 2:
+              // The file type of format *.png should be "image/png"
+              fileType = 'image/png';
+              break;
+          }
+
+          var audioFormatIndex = audioFormatList.indexOf(fileNameExtension);
+          switch (audioFormatIndex) {
+            case 0:
+              // The file type of format *.mp3 should be "audio/mpeg"
+              fileType = 'audio/mpeg';
+              break;
+            case 1:
+              // The file type of format *.ogg should be "audio/ogg"
+              fileType = 'audio/ogg';
+              break;
+            case 2:
+            case 3:
+            case 4:
+              // The file type of format *.acc, *.mp4, *.m4a
+              // should be "audio/mp4"
+              fileType = 'audio/mp4';
+              break;
+          }
         }
       }
 
@@ -511,10 +492,6 @@ var BluetoothTransfer = {
         self.debug(msg);
       };
     };
-  },
-
-  getMimetype: function bt_getMimetype(fileNameExtension) {
-    return FileFormats[fileNameExtension];
   },
 
   showUnknownMediaPrompt: function bt_showUnknownMediaPrompt(fileName) {

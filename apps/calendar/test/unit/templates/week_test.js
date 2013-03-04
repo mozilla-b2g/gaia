@@ -1,4 +1,9 @@
-suiteGroup('Templates.Week', function() {
+requireApp('calendar/test/unit/helper.js', function() {
+  requireLib('template.js');
+  requireLib('templates/week.js');
+});
+
+suite('templates/week', function() {
   var subject;
 
   suiteSetup(function() {

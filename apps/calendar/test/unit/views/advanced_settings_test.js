@@ -1,13 +1,17 @@
-requireLib('models/account.js');
-requireLib('presets.js');
-requireLib('store/setting.js');
+requireApp('calendar/test/unit/helper.js', function() {
+  requireLib('models/account.js');
+  requireLib('templates/account.js');
+  requireLib('presets.js');
+  requireLib('views/advanced_settings.js');
+  requireLib('provider/caldav.js');
+});
 
-suiteGroup('Views.AdvancedSettings', function() {
+suite('views/advanced_settings', function() {
 
   var subject;
   var template;
   var app;
-  var accountStore;
+  var store;
   var fixtures;
   var settings;
   var tries;
@@ -15,15 +19,6 @@ suiteGroup('Views.AdvancedSettings', function() {
 
   suiteSetup(function() {
     triggerEvent = testSupport.calendar.triggerEvent;
-  });
-
-  [
-    'Provider.Caldav',
-    'Provider.Local'
-  ].forEach(function(klass) {
-    suiteSetup(function(done) {
-      Calendar.App.loadObject(klass, done);
-    });
   });
 
   suiteSetup(function() {
@@ -57,8 +52,7 @@ suiteGroup('Views.AdvancedSettings', function() {
     el.parentNode.removeChild(el);
   });
 
-  var db;
-  setup(function(done) {
+  setup(function() {
     var div = document.createElement('div');
     div.id = 'test';
     div.innerHTML = [
@@ -70,52 +64,20 @@ suiteGroup('Views.AdvancedSettings', function() {
         '<option value="15">15</option>',
         '<option value="30">30</option>',
         '<option selected value="60">60</option>',
-      '</select>',
-      '<div id="default-event-alarm"></div>',
-      '<div id="default-allday-alarm"></div>'
+      '</select>'
     ].join('');
 
     document.body.appendChild(div);
 
     app = testSupport.calendar.app();
-    db = app.db;
 
     template = Calendar.Templates.Account;
     subject = new Calendar.Views.AdvancedSettings({
       app: app
     });
 
-    accountStore = app.store('Account');
+    store = app.store('Account');
     settings = app.store('Setting');
-
-    app.db.open(done);
-  });
-
-  setup(function(done) {
-    var trans = db.transaction('accounts', 'readwrite');
-
-    for (var key in fixtures) {
-      accountStore.persist(fixtures[key], trans);
-    }
-
-    trans.oncomplete = function() {
-      done();
-    };
-
-    trans.onerror = function(e) {
-      done(e);
-    };
-  });
-
-  teardown(function(done) {
-    testSupport.calendar.clearStore(
-      app.db,
-      ['accounts'],
-      function() {
-        app.db.close();
-        done();
-      }
-    );
   });
 
   test('#accountList', function() {
@@ -141,7 +103,7 @@ suiteGroup('Views.AdvancedSettings', function() {
     setup(function() {
       children = subject.accountList.children;
       object = fixtures.a;
-      accountStore.emit('add', object._id, object);
+      store.emit('add', object._id, object);
     });
 
     test('#add', function() {
@@ -154,7 +116,7 @@ suiteGroup('Views.AdvancedSettings', function() {
     });
 
     test('add - Local provider', function() {
-      accountStore.emit('add', 'foo', Factory('account', {
+      store.emit('add', 'foo', Factory('account', {
         providerType: 'Local'
       }));
 
@@ -162,17 +124,17 @@ suiteGroup('Views.AdvancedSettings', function() {
     });
 
     test('remove - missing id', function() {
-      accountStore.emit('remove', 'foo');
+      store.emit('remove', 'foo');
     });
 
     test('remove', function() {
       // add a new one first
-      accountStore.emit('add', fixtures.b._id, fixtures.b);
+      store.emit('add', fixtures.b._id, fixtures.b);
 
       assert.equal(children.length, 2);
 
       // remove the old one
-      accountStore.emit('remove', object._id);
+      store.emit('remove', object._id);
 
       assert.equal(children.length, 1);
 
@@ -185,11 +147,13 @@ suiteGroup('Views.AdvancedSettings', function() {
   });
 
   suite('#handleSettingUiChange', function() {
+    var store;
     var calledWith;
 
     setup(function() {
       calledWith = 'notcalled';
-      settings.set = function(name, value) {
+      store = app.store('Setting');
+      store.set = function(name, value) {
         if (name === 'syncFrequency') {
           calledWith = value;
         }
@@ -240,32 +204,15 @@ suiteGroup('Views.AdvancedSettings', function() {
   });
 
   suite('#render', function() {
+    var result;
     var list;
-    var expectedSyncFreq = 30;
 
-    var expectedEventAlarm = -300;
-    var expectedAllDayAlarm = 32400;
-
-    setup(function(done) {
-      var pending = 3;
-
-      settings.set('syncFrequency', expectedSyncFreq, next);
-      settings.set('standardAlarmDefault', expectedEventAlarm, next);
-      settings.set('alldayAlarmDefault', expectedAllDayAlarm, next);
-
-      function next() {
-        if (!(--pending)) {
-          done();
-        }
-      }
-    });
-
-    setup(function(done) {
+    setup(function() {
+      var store = app.store('Account');
       list = subject.accountList;
-      accountStore._cached = fixtures;
-
+      store._cached = fixtures;
       subject.render();
-      subject.onrender = done;
+      result = subject.element.innerHTML;
     });
 
     test('number of items', function() {
@@ -279,42 +226,9 @@ suiteGroup('Views.AdvancedSettings', function() {
       assert.equal(item.outerHTML, expected, name);
     }
 
-    test('accounts', function() {
+    test('result', function() {
       checkItem(0, 'a');
       checkItem(1, 'b');
-    });
-
-    test('syncFrequency', function() {
-      var element = subject.syncFrequency;
-      assert.ok(
-        element.value == expectedSyncFreq,
-        'set to stored value'
-      );
-    });
-
-    test('alarm select populated', function() {
-      assert.equal(
-        subject.standardAlarmLabel.querySelectorAll('select').length,
-        1
-      );
-      assert.equal(
-        subject.alldayAlarmLabel.querySelectorAll('select').length,
-        1
-      );
-    });
-
-    test('alarms set to stored value', function() {
-      var element = subject.standardAlarm;
-      assert.equal(
-        element.value, expectedEventAlarm,
-        'event alarm set to stored value'
-      );
-
-      var element = subject.alldayAlarm;
-      assert.equal(
-        element.value, expectedAllDayAlarm,
-        'event alarm set to stored value'
-      );
     });
   });
 

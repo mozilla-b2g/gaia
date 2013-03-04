@@ -978,11 +978,7 @@
         });
       };
 
-      iframeWindow.addEventListener('DOMContentLoaded',
-                                    function contentLoaded() {
-
-        iframeWindow.removeEventListener('DOMContentLoaded', contentLoaded);
-
+      iframeWindow.addEventListener('DOMContentLoaded', function() {
         self.ready = true;
         self.emit('ready', this);
         callback.call(this);
@@ -1516,6 +1512,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         self.stats.testAgentEnvId = MochaReporter.testAgentEnvId;
       }
 
+      console.log(self.stats);
       MochaReporter.send(JSON.stringify(['end', self.stats]));
     });
   }
@@ -2819,16 +2816,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     reporter: 'HTML',
 
     /**
-     * location of test helper(s).
-     *
+     * location of test helper.
      * Will be loaded before any of your tests.
-     * May pass more then one via an array.
-     *
-     * Each helper is loaded completely before
-     * requiring any other helpers allowing multiple
-     * files to be requested prior to executing tests.
-     *
-     * @type {String|Array}
      */
     testHelperUrl: './test/helper.js',
 
@@ -2869,29 +2858,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       return result;
     },
 
-    _loadTestHelpers: function(box, callback) {
-      var helpers = this.testHelperUrl;
-      if (typeof(helpers) === 'string') {
-        helpers = [helpers];
-      }
-
-      var current = 0;
-      var max = helpers.length;
-
-      function next() {
-        if (current < max) {
-          box.require(helpers[current], function() {
-            current++;
-            next();
-          });
-        } else {
-          callback();
-        }
-      }
-
-      next();
-    },
-
     _testRunner: function _testRunner(worker, tests, done) {
       var box = worker.sandbox.getWindow(),
           self = this;
@@ -2917,7 +2883,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         });
       });
 
-      self._loadTestHelpers(box, function() {
+      box.require(this.testHelperUrl, function(){
         tests.forEach(function(test) {
           box.require(test);
         });
@@ -3179,4 +3145,3 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   };
 
 }(this));
-

@@ -9,7 +9,8 @@ function log(str) {
 let uuidGen = Cc["@mozilla.org/uuid-generator;1"]
                 .getService(Ci.nsIUUIDGenerator);
 
-const CONTACTS_FILE = 'contacts.json'
+const CONTACTS_FOLDER = 'data'
+const CONTACTS_FILE = 'contacts-default.json'
 
 let global = this;
 
@@ -83,9 +84,8 @@ function initContact(contact) {
 }
 
 let finish = true;
-if (Gaia.distributionDir &&
-  getFile(Gaia.distributionDir, CONTACTS_FILE).exists()) {
-  let contactsFile = getFile(Gaia.distributionDir, CONTACTS_FILE);
+let contactsFile = getFile(GAIA_DIR, CONTACTS_FOLDER, CONTACTS_FILE);
+if (contactsFile.exists()) {
   try {
     let contacts = getJSON(contactsFile);
     log(contacts.length + ' contacts to import');

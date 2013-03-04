@@ -132,6 +132,79 @@ Calendar.App = (function(window) {
 
     pendingClass: 'pending-operation',
 
+    // Dependency map for loading
+    cssBase: '/style/',
+    jsBase: '/js/',
+    dependencies: {
+      Store: {},
+      Style: {},
+      Templates: {},
+      Utils: {},
+      Controllers: {
+        RecurringEvents: []
+      },
+
+      Views: {
+        AdvancedSettings: [
+          {type: 'Templates', name: 'Account'}
+        ],
+        CreateAccount: [
+         {type: 'Templates', name: 'Account'}
+        ],
+        ModifyAccount: [
+          {type: 'Utils', name: 'AccountCreation'},
+          {type: 'Style', name: 'ModifyAccountView'}
+        ],
+        Day: [
+          {type: 'Views', name: 'DayChild'},
+          {type: 'Views', name: 'TimeParent'}
+        ],
+        DayBased: [
+          {type: 'Utils', name: 'OrderedMap'}
+        ],
+        DayChild: [
+          {type: 'Templates', name: 'Day'},
+          {type: 'Utils', name: 'OrderedMap'},
+          {type: 'Utils', name: 'Overlap'},
+          {type: 'Views', name: 'DayBased'}
+        ],
+        ModifyEvent: [
+          {type: 'Style', name: 'ModifyEventView'},
+          {type: 'Utils', name: 'InputParser'}
+        ],
+        Month: [
+          {type: 'Templates', name: 'Month'},
+          {type: 'Views', name: 'MonthChild'},
+          {type: 'Views', name: 'TimeParent'}
+        ],
+        MonthChild: [
+          {type: 'Templates', name: 'Month'}
+        ],
+        MonthsDay: [
+          {type: 'Views', name: 'DayChild'}
+        ],
+        Settings: [
+          {type: 'Style', name: 'Settings'},
+          {type: 'Templates', name: 'Calendar'}
+        ],
+        TimeParent: [
+          {type: 'Utils', name: 'OrderedMap'}
+        ],
+        Week: [
+          {type: 'Style', name: 'WeekView'},
+          {type: 'Templates', name: 'Week'},
+          {type: 'Views', name: 'Day'},
+          {type: 'Views', name: 'WeekChild'}
+        ],
+        WeekChild: [
+          {type: 'Templates', name: 'Week'},
+          {type: 'Utils', name: 'OrderedMap'},
+          {type: 'Views', name: 'DayBased'}
+        ],
+        Errors: []
+      }
+    },
+
     /**
      * Entry point for application
      * must be called at least once before
@@ -206,48 +279,6 @@ Calendar.App = (function(window) {
       return this._pendingManger.isPending();
     },
 
-    loadObject: function initializeLoadObject(name, callback) {
-
-      function loadObject(name, callback) {
-        this._loader.load('group', name, callback);
-      }
-
-      if (!this._pendingObjets) {
-        this._pendingObjets = [[name, callback]];
-      } else {
-        this._pendingObjets.push([name, callback]);
-        return;
-      }
-
-      // Loading NotAnd and the load config is not really needed
-      // for the initial load so we lazily load them the first time we
-      // need to load a file...
-
-      var pending = 2;
-      var self = this;
-
-      function next() {
-        if (!--pending) {
-          // initialize loader
-          NotAmd.nextTick = Calendar.nextTick;
-          self._loader = NotAmd(Calendar.LoadConfig);
-          self.loadObject = loadObject;
-
-          // begin processing existing requests
-          self._pendingObjets.forEach(function(pair) {
-            // ['ObjectName', function() { ... }]
-            loadObject.call(self, pair[0], pair[1]);
-          });
-
-        }
-
-        delete this._pendingObjets;
-      }
-
-      this.loadScript('/js/ext/notamd.js', next);
-      this.loadScript('/js/load_config.js', next);
-    },
-
     /**
      * Internally restarts the application.
      */
@@ -297,11 +328,10 @@ Calendar.App = (function(window) {
       this.modifier('/settings/', 'Settings', { clear: false });
       this.modifier('/advanced-settings/', 'AdvancedSettings');
 
-      this.state('/alarm-display/:id', 'ViewEvent', { path: false });
+      this.state('/alarm-display/:id', 'ModifyEvent', { path: false });
 
-      this.state('/event/add/', 'ModifyEvent');
-      this.state('/event/edit/:id', 'ModifyEvent');
-      this.state('/event/show/:id', 'ViewEvent');
+      this.state('/add/', 'ModifyEvent');
+      this.state('/event/:id', 'ModifyEvent');
 
       this.modifier('/select-preset/', 'CreateAccount');
       this.modifier('/create-account/:preset', 'ModifyAccount');
@@ -345,8 +375,20 @@ Calendar.App = (function(window) {
 
       this.timeController.move(new Date());
 
+      // lazy load recurring event expander so as not to impact initial load.
+      this.loadResource('Controllers', 'RecurringEvents', function() {
+        self.recurringEventsController =
+          new Calendar.Controllers.RecurringEvents(self);
+
+        self.observePendingObject(
+          self.recurringEventsController
+        );
+
+        self.recurringEventsController.observe();
+      });
+
       this.view('TimeHeader', function(header) {
-        header.render();
+          header.render();
       });
 
       this.view('CalendarColors', function(colors) {
@@ -357,18 +399,6 @@ Calendar.App = (function(window) {
       this._routes();
 
       setTimeout(this.loadDOM.bind(this), 0);
-
-       //lazy load recurring event expander so as not to impact initial load.
-      this.loadObject('Controllers.RecurringEvents', function() {
-        self.recurringEventsController =
-          new Calendar.Controllers.RecurringEvents(self);
-
-        self.observePendingObject(
-          self.recurringEventsController
-        );
-
-        self.recurringEventsController.observe();
-      });
     },
 
     /**
@@ -413,28 +443,6 @@ Calendar.App = (function(window) {
     },
 
     /**
-     * Why is this random function here???
-     * To load the lazy loader... then this is used there.
-     */
-    loadScript: function(source, cb) {
-      var el = document.createElement('script');
-      el.src = source;
-      el.type = 'text/javascript';
-      el.async = false;
-      el.defer = true;
-
-      el.onerror = function scriptError(err) {
-        cb(new Error('could not load script "' + source + '"'));
-      };
-
-      el.onload = function scriptLoad() {
-        cb();
-      };
-
-      document.head.appendChild(el);
-    },
-
-    /**
      * Loads delayed DOM nodes specified by div.delay
      * Each .delay node has a single comment with markup
      * This gets us to the initial render ~400ms faster
@@ -462,6 +470,74 @@ Calendar.App = (function(window) {
     },
 
     /**
+     * Loads a resource and all of it's dependencies
+     * @param {String} type of resource to load (folder name).
+     * @param {String} name view name.
+     * @param {Function} callback after all resources are loaded.
+     */
+    loadResource: function(type, name, cb) {
+
+      var file, script, classes = [];
+
+      var head = document.getElementsByTagName('head')[0];
+
+      var self = this;
+
+      /**
+       * Appends a script to the dom
+       */
+      var appendScript = function(config, cb) {
+        // lowercase_and_underscore the view to get the filename
+        file = config.name.replace(/([A-Z])/g, '_$1')
+          .replace(/^_/, '').toLowerCase();
+
+        var path;
+        if (config.type === 'Style')
+          path = self.cssBase + file + '.css';
+        else
+          path = self.jsBase + config.type.toLowerCase() + '/' + file + '.js';
+
+        LazyLoader.load(path, cb);
+      };
+
+      /**
+       * Process a dependency node
+       * Ensures all sub-dependencies are processed
+       */
+      function processScripts(node, cb) {
+
+        // If there are no dependencies, or we already have this resource
+        // loaded, bail out
+        if (!App.dependencies[node.type] || (Calendar[node.type] &&
+              Calendar[node.type][node.name])) {
+            return cb();
+        }
+
+        var dependencies = App.dependencies[node.type][node.name];
+        var numDependencies = dependencies ? dependencies.length : 0;
+        var counter = 0;
+
+        if (numDependencies > 0) {
+          !function processRemaining() {
+            var toProcess = dependencies.shift();
+            processScripts(toProcess, function() {
+              counter++;
+              if (counter >= numDependencies) {
+                appendScript(node, cb);
+              } else {
+                processRemaining();
+              }
+            });
+          }();
+
+        } else {
+          appendScript(node, cb);
+        }
+      }
+      processScripts({type: type, name: name}, cb);
+    },
+
+    /**
      * Initializes a provider.
      */
     provider: function(name) {
@@ -472,12 +548,6 @@ Calendar.App = (function(window) {
       }
 
       return this._providers[name];
-    },
-
-    _initView: function(name) {
-      this._views[name] = new Calendar.Views[name]({
-        app: this
-      });
     },
 
     /**
@@ -503,32 +573,21 @@ Calendar.App = (function(window) {
      * @param {Function} view loaded callback.
      */
     view: function(name, cb) {
-      var self = this;
-
       if (!(name in this._views)) {
-
-        if (name in Calendar.Views) {
-          this._initView(name);
-
-          if (cb) {
-            cb.call(self, self._views[name]);
-          }
-        } else {
-          this.loadObject('Views.' + name, function() {
-            self._initView(name);
-
-            if (cb) {
-              cb.call(self, self._views[name]);
-            }
+        this.loadResource('Views', name, function() {
+          this._views[name] = new Calendar.Views[name]({
+            app: this
           });
-        }
+          if (cb) {
+            cb.call(this, this._views[name]);
+          }
+        }.bind(this));
 
       } else if (cb) {
-        Calendar.nextTick(function() {
-          cb.call(self, self._views[name]);
-        });
+          cb.call(this, this._views[name]);
       }
     },
+
 
     /**
      * Pure convenience function for

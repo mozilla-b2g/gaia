@@ -1,5 +1,4 @@
-Calendar.ns('Models').Account = (function() {
-
+(function(window) {
   function Account(options) {
     var key;
 
@@ -117,7 +116,6 @@ Calendar.ns('Models').Account = (function() {
 
   };
 
-
-  return Account;
+  Calendar.ns('Models').Account = Account;
 
 }(this));

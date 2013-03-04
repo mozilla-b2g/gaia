@@ -188,28 +188,6 @@ Calendar.ns('Service').Caldav = (function() {
     },
 
     /**
-     * Formats an alarm trigger
-     * Returns the relative time for that trigger
-     *
-     * @param {ICAL.Property} trigger property.
-     * @param {ICAL.Date} start date.
-     */
-    _formatTrigger: function(trigger, startDate) {
-      var alarmTrigger;
-      if (trigger.type == 'duration') {
-        alarmTrigger = trigger.getFirstValue().toSeconds();
-      } else {
-        // Type is date-time
-        alarmTrigger = trigger
-          .getFirstValue()
-          .subtractDate(startDate)
-          .toSeconds();
-      }
-
-      return alarmTrigger;
-    },
-
-    /**
      * Formats an already parsed ICAL.Event instance.
      * Expects event to already contain exceptions, etc..
      *
@@ -219,7 +197,6 @@ Calendar.ns('Service').Caldav = (function() {
      * @param {ICAL.Event} event ical event.
      */
     _formatEvent: function(etag, url, ical, event) {
-      var self = this;
       var exceptions = null;
       var key;
 
@@ -245,29 +222,7 @@ Calendar.ns('Service').Caldav = (function() {
         rid = this.formatICALTime(rid);
       }
 
-      var resultAlarms = [];
-      var alarms = event.component.getAllSubcomponents('valarm');
-      alarms.forEach(function(instance) {
-        var action = instance.getFirstPropertyValue('action');
-        if (action && action === 'DISPLAY') {
-          var triggers = instance.getAllProperties('trigger');
-          var i = 0;
-          var len = triggers.length;
-
-          for (; i < len; i++) {
-
-            var trigger = triggers[i];
-
-            resultAlarms.push({
-              action: action,
-              trigger: self._formatTrigger(trigger, event.startDate)
-            });
-          }
-        }
-      });
-
       var result = {
-        alarms: resultAlarms,
         syncToken: etag,
         url: url,
         id: event.uid,
@@ -300,17 +255,21 @@ Calendar.ns('Service').Caldav = (function() {
 
       alarms.forEach(function(instance) {
         var action = instance.getFirstPropertyValue('action');
-        if (action && action === 'DISPLAY') {
-          // lets just assume we might have multiple triggers
-          var triggers = instance.getAllProperties('trigger');
-          var i = 0;
-          var len = triggers.length;
+        if (action) {
+          if (action === 'DISPLAY') {
+            // lets just assume we might have multiple triggers
+            var triggers = instance.getAllProperties('trigger');
+            var i = 0;
+            var len = triggers.length;
 
-          for (; i < len; i++) {
-            result.push({
-              action: action,
-              trigger: self._formatTrigger(triggers[i], event.startDate)
-            });
+            for (; i < len; i++) {
+              var time = start.clone();
+              time.addDuration(triggers[i].getFirstValue());
+
+              result.push({
+                startDate: self.formatICALTime(time)
+              });
+            }
           }
         }
       });
@@ -351,19 +310,13 @@ Calendar.ns('Service').Caldav = (function() {
 
       utc += offset;
 
-      var result = {
+      return {
         tzid: zone.tzid,
         // from seconds to ms
         offset: offset,
         // from seconds to ms
         utc: utc
       };
-
-      if (time.isDate) {
-        result.isDate = true;
-      }
-
-      return result;
     },
 
     /**
@@ -394,10 +347,6 @@ Calendar.ns('Service').Caldav = (function() {
         result = new ICAL.Time();
         result.fromUnixTime((utc - offset) / 1000);
         result.zone = ICAL.Timezone.utcTimezone;
-      }
-
-      if (time.isDate) {
-        result.isDate = true;
       }
 
       return result;
@@ -804,49 +753,6 @@ Calendar.ns('Service').Caldav = (function() {
       });
     },
 
-    addAlarms: function(component, alarms, account) {
-      alarms = alarms || [];
-
-      for (var i = 0, alarm; alarm = alarms[i]; i++) {
-
-        var valarm = new ICAL.Component('valarm');
-
-        // valarm details
-        valarm.addPropertyWithValue('action', alarm.action);
-        valarm.addPropertyWithValue('description', 'This is an event reminder');
-        var trigger = valarm.addPropertyWithValue('trigger',
-          ICAL.Duration.fromSeconds(
-            alarm.trigger
-          )
-        );
-        trigger.setParameter('relative', 'START');
-        component.addSubcomponent(valarm);
-
-        // Check if we need to mirror the VALARM onto email
-        if (this.mirrorAlarms(account)) {
-          var valarm = new ICAL.Component('valarm');
-          valarm.addPropertyWithValue('action', 'EMAIL');
-          valarm.addPropertyWithValue('description',
-            'This is an event reminder');
-          valarm.addPropertyWithValue('ATTENDEE', account.user);
-          var trigger = valarm.addPropertyWithValue('trigger',
-            ICAL.Duration.fromSeconds(
-              alarm.trigger
-            )
-          );
-          trigger.setParameter('relative', 'START');
-          component.addSubcomponent(valarm);
-        }
-      }
-    },
-
-    /**
-     * Yahoo needs us to mirror all alarms as EMAIL alarms
-     */
-    mirrorAlarms: function(account) {
-      return account && account.domain === 'https://caldav.calendar.yahoo.com';
-    },
-
     createEvent: function(account, calendar, event, callback) {
       var connection = new Caldav.Connection(account);
       var vcalendar = new ICAL.Component('vcalendar');
@@ -866,9 +772,6 @@ Calendar.ns('Service').Caldav = (function() {
       // time fields
       icalEvent.startDate = this.formatInputTime(event.start);
       icalEvent.endDate = this.formatInputTime(event.end);
-
-      // alarms
-      this.addAlarms(icalEvent.component, event.alarms, account);
 
       vcalendar.addSubcomponent(icalEvent.component);
 
@@ -950,19 +853,6 @@ Calendar.ns('Service').Caldav = (function() {
         target.endDate = self.formatInputTime(
           event.end
         );
-
-        // alarms
-        // We generally want to remove all 'DISPLAY' alarms
-        // UNLESS we are dealing with a YAHOO account
-        // Then we overwrite all alarms
-        var alarms = target.component.getAllSubcomponents('valarm');
-        alarms.forEach(function(alarm) {
-          var action = alarm.getFirstPropertyValue('action');
-          if (action === 'DISPLAY' || self.mirrorAlarms(account)) {
-            target.component.removeSubcomponent(alarm);
-          }
-        });
-        self.addAlarms(target.component, event.alarms, account);
 
         var vcal = target.component.parent.toString();
         event.icalComponent = vcal;

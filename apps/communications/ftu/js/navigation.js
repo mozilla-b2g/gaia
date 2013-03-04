@@ -153,6 +153,7 @@ var Navigation = {
     switch (actualHash) {
       case '#languages':
         UIManager.mainTitle.innerHTML = _('language');
+        // Hide refresh button in case we end up here coming back from wifi
         break;
       case '#data_3g':
         UIManager.mainTitle.innerHTML = _('3g');
@@ -160,14 +161,14 @@ var Navigation = {
           getStatus(UIManager.updateDataConnectionStatus.bind(UIManager));
         break;
       case '#wifi':
-        UIManager.mainTitle.innerHTML = _('selectNetwork');
+        UIManager.mainTitle.innerHTML = _('wifi');
         UIManager.activationScreen.classList.remove('no-options');
         if (UIManager.navBar.classList.contains('secondary-menu')) {
           UIManager.navBar.classList.remove('secondary-menu');
           return;
         }
         // Avoid refresh when connecting
-        WifiManager.scan(WifiUI.renderNetworks);
+        WifiManager.scan(UIManager.renderNetworks);
         break;
       case '#date_and_time':
         UIManager.mainTitle.innerHTML = _('dateAndTime');
@@ -181,7 +182,7 @@ var Navigation = {
         var fbState;
         if (!WifiManager.api) {
           // Desktop
-          ImportIntegration.checkImport('enabled');
+          FacebookIntegration.checkFbImport('enabled');
           return;
         }
         if (WifiManager.api.connection.status === 'connected' ||
@@ -190,7 +191,7 @@ var Navigation = {
         } else {
           fbState = 'disabled';
         }
-        ImportIntegration.checkImport(fbState);
+        FacebookIntegration.checkFbImport(fbState);
         break;
       case '#welcome_browser':
         UIManager.mainTitle.innerHTML = _('browserPrivacyChoices');
@@ -244,12 +245,6 @@ var Navigation = {
 
   manageStep: function n_manageStep() {
     var self = this;
-    // Retrieve future location
-    var futureLocation = steps[self.currentStep];
-    // There is some locations which need a 'loading'
-    if (futureLocation.hash === '#wifi') {
-      utils.overlay.show(_('scanningNetworks'), 'spinner');
-    }
     // Navigation bar management
     if (steps[this.currentStep].onlyForward) {
       UIManager.navBar.classList.add('forward-only');
@@ -267,10 +262,10 @@ var Navigation = {
       nextButton.textContent = _('navbar-next');
     }
     nextButton.appendChild(innerNode);
-    // Change hash to the right location
-    window.location.hash = futureLocation.hash;
+
+    window.location.hash = steps[self.currentStep].hash;
     // SIM card management
-    if (futureLocation.requireSIM) {
+    if (steps[this.currentStep].requireSIM) {
       SimManager.handleCardState(function check_cardState(response) {
         self.skipped = false;
         if (!response) {

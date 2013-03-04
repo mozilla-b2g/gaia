@@ -70,7 +70,7 @@ SetupAccountInfoCard.prototype = {
     // to do initial card pushing.  This would happen if the app was started
     // without any accounts.
     if (Cards._cardStack.length === 1) {
-      Cards.removeAllCards();
+      Cards.removeCardAndSuccessors(null, 'none');
       App.showMessageViewOrSetup();
     }
     // Otherwise we were triggered from the settings UI and we can just pop
@@ -372,7 +372,7 @@ SetupProgressCard.prototype = {
 
   onCreationSuccess: function() {
     // nuke the current card stack, replace them with the done card.
-    Cards.removeAllCards();
+    Cards.removeCardAndSuccessors(null, 'none');
     Cards.pushCard(
       'setup-done', 'default', 'immediate',
       {});
@@ -400,7 +400,7 @@ function SetupDoneCard(domNode, mode, args) {
 SetupDoneCard.prototype = {
   onAddAnother: function() {
     // Nuke all cards
-    Cards.removeAllCards();
+    Cards.removeCardAndSuccessors(null, 'none');
     // Show the first setup card again.
     Cards.pushCard(
       'setup-account-info', 'default', 'immediate',
@@ -410,7 +410,7 @@ SetupDoneCard.prototype = {
   },
   onShowMail: function() {
     // Nuke this card
-    Cards.removeAllCards();
+    Cards.removeCardAndSuccessors(null, 'none');
     // Trigger the startup logic again; this should show the inbox this time.
     App.showMessageViewOrSetup(true);
   },
@@ -537,7 +537,8 @@ console.log('  CONFIG CURRENTLY:', JSON.stringify(MailAPI.config));//HACK
 }
 SettingsMainCard.prototype = {
   onClose: function() {
-    Cards.removeCardAndSuccessors(this.domNode, 'animate', 1, 1);
+    Cards.removeCardAndSuccessors(this.domNode, 'animate', 1,
+                                  ['folder-picker', 'navigation']);
   },
 
   onAccountsSplice: function(index, howMany, addedItems,
@@ -721,7 +722,7 @@ SettingsAccountCard.prototype = {
         id: 'account-delete-ok',
         handler: function() {
           account.deleteAccount();
-          Cards.removeAllCards();
+          Cards.removeCardAndSuccessors(null, 'none');
           App.showMessageViewOrSetup();
         }
       },

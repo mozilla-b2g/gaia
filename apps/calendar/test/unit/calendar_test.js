@@ -6,22 +6,10 @@ suite('calendar', function() {
     subject = Calendar;
   });
 
-  suite('#ns', function() {
-    test('create', function() {
-      var ns = Calendar.ns('Provider.Calendar');
-      assert.equal(Calendar.Provider.Calendar, ns);
-    });
-
-    test('check', function() {
-      var ns = Calendar.ns('App');
-      assert.isTrue(Calendar.ns('App', true), 'has app');
-      assert.isFalse(
-        Calendar.ns('Store.FoobarX', true),
-        'does not have missing'
-      );
-    });
+  test('#ns', function() {
+    var ns = Calendar.ns('Provider.Calendar');
+    assert.equal(Calendar.Provider.Calendar, ns);
   });
-
 
   test('#compare', function() {
     assert.equal(subject.compare(0, 1), -1);

@@ -1,5 +1,7 @@
-requireLib('interval_tree.js');
-requireLib('timespan.js');
+requireApp('calendar/test/unit/helper.js', function() {
+  requireLib('interval_tree.js');
+  requireLib('timespan.js');
+});
 
 suite('interval_tree', function() {
 

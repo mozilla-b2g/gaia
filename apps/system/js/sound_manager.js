@@ -5,27 +5,23 @@
 
 (function() {
   window.addEventListener('volumeup', function() {
-    if (ScreenManager.screenEnabled || currentChannel !== 'none') {
-      if (onBTEarphoneConnected() && onCall()) {
-        changeVolume(1, 'bt_sco');
-      } else {
-        changeVolume(1);
-      }
+    if (onBTEarphoneConnected() && onCall()) {
+      changeVolume(1, 'bt_sco');
+    } else {
+      changeVolume(1);
     }
   });
   window.addEventListener('volumedown', function() {
-    if (ScreenManager.screenEnabled || currentChannel !== 'none') {
-      if (onBTEarphoneConnected() && onCall()) {
-        changeVolume(-1, 'bt_sco');
-      } else {
-        changeVolume(-1);
-      }
+    if (onBTEarphoneConnected() && onCall()) {
+      changeVolume(-1, 'bt_sco');
+    } else {
+      changeVolume(-1);
     }
   });
 
   // Store the current active channel;
   // change with 'audio-channel-changed' mozChromeEvent
-  var currentChannel = 'none';
+  var currentChannel = 'notification';
 
   var vibrationEnabled = true;
 
@@ -204,12 +200,9 @@
     var steps =
       Array.prototype.slice.call(notification.querySelectorAll('div'), 0);
 
-    var maxVolumeStep = (channel == 'telephony' || channel == 'bt_sco') ?
-      volume + 1 : volume;
-
     for (var i = 0; i < steps.length; i++) {
       var step = steps[i];
-      if (i < maxVolumeStep) {
+      if (i < volume) {
         step.classList.add('active');
       } else {
         step.classList.remove('active');

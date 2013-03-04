@@ -376,7 +376,7 @@ var OnCallHandler = (function onCallHandler() {
 
   function handleCallWaiting(call) {
     LazyL10n.get(function localized(_) {
-      var number = call.number || _('unknown');
+      var number = (call.number.length ? call.number : _('unknown'));
       Contacts.findByNumber(number, function lookupContact(contact) {
         if (contact && contact.name) {
           CallScreen.incomingNumber.textContent = contact.name;

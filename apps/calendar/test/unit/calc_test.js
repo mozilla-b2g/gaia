@@ -1,5 +1,7 @@
-requireLib('timespan.js');
-requireLib('calc.js');
+requireApp('calendar/test/unit/helper.js', function() {
+  requireLib('timespan.js');
+  requireLib('calc.js');
+});
 
 //Worth noting that these tests will fail
 //in horrible ways outside of US timezone.
@@ -36,44 +38,6 @@ suite('calendar/calc', function() {
     var date = new Date();
     return (date.getTimezoneOffset() * (60 * 1000));
   }
-
-  suite('#isOnlyDate', function() {
-    function verify(date, message, isTrue=true) {
-      test(message + ' ' + date.toString() + ' === ' + isTrue, function() {
-        assert.equal(
-          subject.isOnlyDate(date),
-          isTrue,
-          message
-        );
-      });
-    }
-
-    verify(new Date(2012, 1), 'month');
-
-    verify(
-      new Date(2012, 1, 1),
-      'YYYY:DD:MM'
-    );
-
-    verify(
-      new Date(2012, 1, 1, 1),
-      'hour',
-      false
-    );
-
-    verify(
-      new Date(2012, 1, 1, 0, 1),
-      'minute',
-      false
-    );
-
-    verify(
-      new Date(2012, 1, 1, 0, 0, 1),
-      'second',
-      false
-    );
-
-  });
 
   suite('#formatHour', function() {
     var realDateFormat;
@@ -282,46 +246,12 @@ suite('calendar/calc', function() {
 
   suite('#dateToTransport', function() {
 
-    test('ICAL date', function() {
-      var date = new Date(2012, 0, 1, 11);
-      var utc = Date.UTC(
-        date.getFullYear(),
-        date.getMonth(),
-        date.getDate(),
-        date.getHours(),
-        date.getMinutes(),
-        date.getSeconds(),
-        date.getMilliseconds()
-      );
-
-      var expected = {
-        tzid: subject.FLOATING,
-        utc: utc,
-        offset: 0,
-        isDate: true
-      };
-
-      assert.deepEqual(
-        subject.dateToTransport(date, null, true),
-        expected
-      );
-    });
-
     test('floating tz', function() {
       var date = new Date(2012, 0, 1, 11, 1, 7);
-      var utc = Date.UTC(
-        date.getFullYear(),
-        date.getMonth(),
-        date.getDate(),
-        date.getHours(),
-        date.getMinutes(),
-        date.getSeconds(),
-        date.getMilliseconds()
-      );
 
       var expected = {
         tzid: subject.FLOATING,
-        utc: utc,
+        utc: date.valueOf(),
         offset: 0
       };
 
@@ -344,17 +274,6 @@ suite('calendar/calc', function() {
       assert.deepEqual(
         subject.dateToTransport(date),
         expected
-      );
-    });
-  });
-
-  suite('#getUTC', function() {
-    test('utc - conversion', function() {
-      var date = new Date(2012, 9, 1, 7, 11);
-
-      assert.notEqual(
-        date,
-        subject.getUTC(date)
       );
     });
   });
@@ -387,11 +306,10 @@ suite('calendar/calc', function() {
     });
 
     test('floating', function() {
+      var utc = new Date(Date.UTC(2012, 0, 8, 9, 10));
       var expected = new Date(2012, 0, 8, 9, 10);
 
-      var data = subject.dateToTransport(
-        expected, subject.FLOATING
-      );
+      var data = subject.dateToTransport(utc, subject.FLOATING);
 
       assert.deepEqual(
         subject.dateFromTransport(data),

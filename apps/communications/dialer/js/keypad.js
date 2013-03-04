@@ -349,11 +349,32 @@ var KeypadManager = {
     var number = this._phoneNumber;
     if (!number)
       return;
-    LazyLoader.load(['/dialer/js/phone_action_menu.js'],
-      function hk_showPhoneNumberActionMenu() {
-        PhoneNumberActionMenu.show(null, number,
-          ['new-contact', 'add-to-existent']);
-    });
+
+    try {
+      var activity = new MozActivity({
+        name: 'new',
+        data: {
+          type: 'webcontacts/contact',
+          params: {
+            'tel': number
+          }
+        }
+      });
+      // If we created the contact let's invalidated the contacts
+      // tab within the dialer.
+      activity.onsuccess = function contactCreated() {
+        var contactsIframe = document.getElementById('iframe-contacts');
+        var src = contactsIframe.src;
+        // Only perform this refresh if we DID open the contacts tab
+        if (src && src.length > 0) {
+          var timestamp = new Date().getTime();
+          contactsIframe.contentWindow.location.search =
+            '?timestamp=' + timestamp;
+        }
+      };
+    } catch (e) {
+      console.log('WebActivities unavailable? : ' + e);
+    }
   },
 
   callbarBackAction: function hk_callbarBackAction(event) {

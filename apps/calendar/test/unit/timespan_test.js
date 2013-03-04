@@ -1,4 +1,6 @@
-requireLib('timespan.js');
+requireApp('calendar/test/unit/helper.js', function() {
+  requireLib('timespan.js');
+});
 
 suite('timespan', function() {
 

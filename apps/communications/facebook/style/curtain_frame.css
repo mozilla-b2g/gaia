@@ -7,11 +7,14 @@
   border: 0;
   margin: 0;
   padding: 0;
+  -moz-transition: opacity .3s ease;
   opacity: 0;
   pointer-events: none;
 }
 
 #fb-curtain.visible {
-  pointer-events: auto;
+  opacity: 1;
   z-index: 1001;
+  -moz-transition-duration: 0s;
+  pointer-events: auto;
 }

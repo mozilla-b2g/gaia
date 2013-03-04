@@ -8,7 +8,7 @@ var AppManager = {
     this.isLocalized = true;
     SimManager.init();
     WifiManager.init();
-    ImportIntegration.init();
+    FacebookIntegration.init();
     TimeManager.init();
     UIManager.init();
     Navigation.init();
@@ -51,3 +51,4 @@ navigator.mozL10n.ready(function showBody() {
     UIManager.mainTitle.innerHTML = _('language');
   }
 });
+

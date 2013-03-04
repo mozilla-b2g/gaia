@@ -56,7 +56,7 @@ MockFb.contacts = function() {
 
   return {
     'getAll': getAll
-  };
+  }
 
 }();
 
@@ -153,11 +153,11 @@ MockFb.Contact = function(devContact, mozCid) {
 
       }
     };
-  };
+  }
 
   this.setData = function(data) {
     contactData = data;
-  };
+  }
 
   this.save = function() {
     return {
@@ -169,7 +169,7 @@ MockFb.Contact = function(devContact, mozCid) {
 
       }
     };
-  };
+  }
 
   this.merge = function(deviceContact) {
     deviceContact.id = '567';
@@ -194,8 +194,8 @@ MockFb.Contact = function(devContact, mozCid) {
           '+346578888888': true,
           'test@test.com': true,
           'Palencia': true,
-          'Castilla y Le√≥n': true,
-          'Espa√±a': true
+          'Castilla y León': true,
+          'España': true
         };
 
         callback.call(this);
@@ -204,11 +204,11 @@ MockFb.Contact = function(devContact, mozCid) {
 
       }
     };
-  };
+  }
 
   this.promoteToLinked = function promoteToLinked() {
 
-  };
+  }
 
   Object.defineProperty(this, 'uid', {
     get: getFacebookUid,
@@ -232,15 +232,15 @@ MockFb.isEnabled = function() {
 };
 
 MockFb.getWorksAt = function(fbData) {
-  return 'Telef√≥nica';
+  return 'Telefónica';
 };
 
 MockFb.getAddress = function(fbData) {
   var out = {};
   out.type = ['home'];
   out.locality = 'Palencia';
-  out.region = 'Castilla y Le√≥n';
-  out.countryName = 'Espa√±a';
+  out.region = 'Castilla y León';
+  out.countryName = 'España';
 
   return out;
 };

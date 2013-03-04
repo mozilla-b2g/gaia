@@ -12,8 +12,6 @@ var MockTrustedUIManager = {
     this.mOpened = false;
   },
 
-  hasTrustedUI: function() {},
-
   mOpened: false,
   mName: null,
   mFrame: null,

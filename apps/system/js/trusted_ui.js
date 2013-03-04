@@ -93,9 +93,8 @@ var TrustedUIManager = {
     }
   },
 
-  close: function trui_close(chromeEventId, callback, origin) {
-    var stackSize = origin ? this._dialogStacks[origin].length :
-                             this.currentStack.length;
+  close: function trui_close(chromeEventId, callback) {
+    var stackSize = this.currentStack.length;
 
     this._restoreOrientation();
 
@@ -103,25 +102,21 @@ var TrustedUIManager = {
       callback();
 
     if (stackSize === 0) {
-      // Nothing to close.  what are you doing?
+      // nothing to close.  what are you doing?
       return;
     } else if (stackSize === 1) {
-      // Only one dialog, so transition back to main app.
+      // only one dialog, so transition back to main app
       var self = this;
       var container = this.popupContainer;
       if (!CardsView.cardSwitcherIsShown()) {
-        if (!origin) {
-          WindowManager.restoreCurrentApp();
-        }
+        WindowManager.restoreCurrentApp();
         container.addEventListener('transitionend', function wait(event) {
           this.removeEventListener('transitionend', wait);
-          self._closeDialog(chromeEventId, origin);
+          self._closeDialog(chromeEventId);
         });
       } else {
-        if (!origin) {
-          WindowManager.restoreCurrentApp(this._lastDisplayedApp);
-        }
-        this._closeDialog(chromeEventId, origin);
+        WindowManager.restoreCurrentApp(this._lastDisplayedApp);
+        this._closeDialog(chromeEventId);
       }
 
       // The css transition caused by the removal of the trustedui
@@ -131,7 +126,7 @@ var TrustedUIManager = {
 
       window.focus();
     } else {
-      this._closeDialog(chromeEventId, origin);
+      this._closeDialog(chromeEventId);
     }
   },
 
@@ -149,13 +144,8 @@ var TrustedUIManager = {
     window.dispatchEvent(event);
   },
 
-  _getTopDialog: function trui_getTopDialog(origin) {
-    // Get the topmost dialog for the _lastDisplayedApp, the given origin
-    // or null.
-    if (origin) {
-      var stack = this._dialogStacks[origin];
-      return stack[stack.length - 1];
-    }
+  _getTopDialog: function trui_getTopDialog() {
+    // get the topmost dialog for the _lastDisplayedApp or null
     return this.currentStack[this.currentStack.length - 1];
   },
 
@@ -207,23 +197,21 @@ var TrustedUIManager = {
   /**
    * close the dialog identified by the chromeEventId
    */
-  _closeDialog: function trui_closeDialog(chromeEventId, origin) {
-    var stack = origin ? this._dialogStacks[origin] :
-                         this.currentStack;
-    if (stack.length === 0)
+  _closeDialog: function trui_closeDialog(chromeEventId) {
+    if (this.currentStack.length === 0)
       return;
 
     var found = false;
-    for (var i = 0; i < stack.length; i++) {
-      if (stack[i].chromeEventId === chromeEventId) {
-        var dialog = stack.splice(i, 1)[0];
+    for (var i = 0; i < this.currentStack.length; i++) {
+      if (this.currentStack[i].chromeEventId === chromeEventId) {
+        var dialog = this.currentStack.splice(i, 1)[0];
         this.container.removeChild(dialog.frame);
         found = true;
         break;
       }
     }
 
-    if (found && stack.length) {
+    if (found && this.currentStack.length) {
       this._makeDialogVisible(this._getTopDialog());
     }
   },
@@ -251,9 +239,8 @@ var TrustedUIManager = {
    */
   _destroyDialog: function trui_destroyDialog(origin) {
     var stack = this.currentStack;
-    if (origin) {
+    if (origin)
       stack = this._dialogStacks[origin];
-    }
 
     if (stack.length === 0)
       return;
@@ -261,13 +248,13 @@ var TrustedUIManager = {
     // If the user closed a trusty UI dialog, they probably meant
     // to close every dialog.
     for (var i = 0, toClose = stack.length; i < toClose; i++) {
-      var dialog = this._getTopDialog(origin);
+      var dialog = this._getTopDialog();
 
       // First, send a chrome event saying we've been canceled
       this._dispatchCloseEvent(dialog.chromeEventId);
 
       // Now close and fire the cancel callback, if it exists
-      this.close(dialog.chromeEventId, dialog.onCancelCB, origin);
+      this.close(dialog.chromeEventId, dialog.onCancelCB);
     }
     this.hide();
     this.popupContainer.classList.remove('closing');

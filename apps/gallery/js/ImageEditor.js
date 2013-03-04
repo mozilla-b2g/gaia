@@ -17,7 +17,7 @@ $('edit-crop-button').onclick = setEditTool.bind(null, 'crop');
 $('edit-effect-button').onclick = setEditTool.bind(null, 'effect');
 $('edit-border-button').onclick = setEditTool.bind(null, 'border');
 $('edit-crop-none').onclick = undoCropHandler;
-$('edit-cancel-button').onclick = function() { exitEditMode(false); };
+$('edit-cancel-button').onclick = exitEditMode;
 $('edit-save-button').onclick = saveEditedImage;
 editOptionButtons.forEach(function(b) { b.onclick = editOptionsHandler; });
 
@@ -238,9 +238,7 @@ function setEditTool(tool) {
   case 'crop':
     $('edit-crop-button').classList.add('selected');
     $('edit-crop-options').classList.remove('hidden');
-    imageEditor.edit(function() {
-      imageEditor.showCropOverlay();
-    });
+    imageEditor.showCropOverlay();
     break;
   case 'effect':
     $('edit-effect-button').classList.add('selected');
@@ -285,7 +283,7 @@ function exitEditMode(saved) {
     setView(thumbnailListView);
   }
   else
-    showFile(currentFileIndex);
+    setView(fullscreenView);
 }
 
 // When the user clicks the save button, we produce a full-size version
@@ -341,34 +339,6 @@ function saveEditedImage() {
   });
 }
 
-
- function createThumbnailFromSource(fullSizeImage, sourceRectangle,
-                                    containerWidth, containerHeight, callback) {
-    // Create a thumbnail image
-    var canvas = document.createElement('canvas');
-    var context = canvas.getContext('2d');
-
-    // infer the thumbnailHeight such that the aspect ratio stays the same
-    var scalex = containerWidth / sourceRectangle.w;
-    var scaley = containerHeight / sourceRectangle.h;
-    var scale = Math.min(Math.min(scalex, scaley), 1);
-
-    var thumbnailWidth = Math.floor(sourceRectangle.w * scale);
-    var thumbnailHeight = Math.floor(sourceRectangle.h * scale);
-
-    canvas.width = thumbnailWidth;
-    canvas.height = thumbnailHeight;
-
-    // Draw that region of the image into the canvas, scaling it down
-    context.drawImage(fullSizeImage, sourceRectangle.x, sourceRectangle.y,
-                      sourceRectangle.w, sourceRectangle.h, 0, 0,
-                      thumbnailWidth, thumbnailHeight);
-
-    canvas.toBlob(callback, 'image/jpeg');
-  }
-
-
-
 /*
  * ImageEditor.js: simple image editing and previews in a <canvas> element.
  *
@@ -411,8 +381,20 @@ function ImageEditor(imageURL, container, edits, ready) {
   // Start loading the image into a full-size offscreen image
   this.original = new Image();
   this.original.src = imageURL;
-  this.preview = new Image();
-  this.preview.src = null;
+  var self = this;
+
+  // When the image loads display it
+  this.original.onload = function() {
+    // Initialize the crop region to the full size of the original image
+    self.resetCropRegion();
+
+    // Display an edited preview of it
+    self.edit();
+
+    // If the constructor had a ready callback argument, call it now
+    if (ready)
+      ready();
+  }
 
   // The canvas that displays the preview
   this.previewCanvas = document.createElement('canvas');
@@ -421,48 +403,10 @@ function ImageEditor(imageURL, container, edits, ready) {
   this.previewCanvas.width = this.previewCanvas.clientWidth;
   this.previewCanvas.height = this.previewCanvas.clientHeight;
   this.processor = new ImageProcessor(this.previewCanvas);
-
-  // When the image loads display it
-  var self = this;
-  this.original.onload = function() {
-    // Initialize the crop region to the full size of the original image
-    self.resetCropRegion();
-    self.resetPreview();
-
-    // Display an edited preview of it
-    self.edit(function() {
-      if (ready)
-        ready();
-    });
-
-    // If the constructor had a ready callback argument, call it now
-  };
 }
-
-ImageEditor.prototype.generateNewPreview = function(callback) {
-  var self = this;
-  createThumbnailFromSource(this.original, this.source,
-                            this.previewCanvas.width, this.previewCanvas.height,
-    function(thumbnail) {
-      self.preview.src = URL.createObjectURL(thumbnail);
-      self.preview.onload = function() {
-        callback();
-      };
-    }
-  );
-};
-
-ImageEditor.prototype.resetPreview = function() {
-  if (this.preview.src) {
-    URL.revokeObjectURL(this.preview.src);
-    this.preview.removeAttribute('src');
-  }
-};
 
 ImageEditor.prototype.destroy = function() {
   this.processor.destroy();
-  this.resetPreview();
-  this.preview = null;
   this.original.src = '';
   this.original = null;
   this.container.removeChild(this.previewCanvas);
@@ -474,35 +418,29 @@ ImageEditor.prototype.destroy = function() {
 // displays the original image. Clients should call this function when the
 // desired edits change or when the size of the container changes (on
 // orientation change events, for example)
-ImageEditor.prototype.edit = function(callback) {
-  if (!this.preview.src) {
-    var self = this;
-    this.generateNewPreview(function() {self.finishEdit(callback);});
-  } else {
-    this.finishEdit(callback);
-  }
-};
-
-ImageEditor.prototype.finishEdit = function(callback) {
+ImageEditor.prototype.edit = function() {
   var canvas = this.previewCanvas;
   canvas.width = canvas.clientWidth;
   canvas.height = canvas.clientHeight;
 
-  var xOffset = Math.floor((canvas.width - this.preview.width) / 2);
-  var yOffset = Math.floor((canvas.height - this.preview.height) / 2);
+  // Source image dimensions
+  var source = this.source;
 
-  this.dest.x = xOffset;
-  this.dest.y = yOffset;
-  this.dest.w = this.preview.width;
-  this.dest.h = this.preview.height;
+  // Compute the destination rectangle in the preview canvas
+  var dest = this.dest;
+  var scalex = canvas.width / source.w;
+  var scaley = canvas.height / source.h;
+  var scale = Math.min(Math.min(scalex, scaley), 1);
 
-  this.processor.draw(this.preview,
-                      0, 0, this.preview.width, this.preview.height,
-                      this.dest.x, this.dest.y, this.dest.w, this.dest.h,
+  dest.w = Math.floor(source.w * scale);
+  dest.h = Math.floor(source.h * scale);
+  dest.x = Math.floor((canvas.width - dest.w) / 2);
+  dest.y = Math.floor((canvas.height - dest.h) / 2);
+
+  this.processor.draw(this.original,
+                      source.x, source.y, source.w, source.h,
+                      dest.x, dest.y, dest.w, dest.h,
                       this.edits);
-  if (callback) {
-    callback();
-  }
 };
 
 // Apply the edits offscreen and pass the full-size edited image as a blob
@@ -523,13 +461,11 @@ ImageEditor.prototype.getFullSizeBlob = function(type, callback) {
                  this.edits);
 
   // Now get the canvas contents as a file and pass to the callback
-  canvas.toBlob(function(blobData) {
-    callback(blobData);
+  callback(canvas.mozGetAsFile('', type));
 
-    // Deallocate stuff
-    processor.destroy();
-    canvas.width = 0;
-   }, type);
+  // Deallocate stuff
+  processor.destroy();
+  canvas.width = 0;
 };
 
 
@@ -576,7 +512,6 @@ ImageEditor.prototype.resetCropRegion = function resetCropRegion() {
   this.source.y = 0;
   this.source.w = this.original.width;
   this.source.h = this.original.height;
-
 };
 
 ImageEditor.prototype.drawCropControls = function(handle) {
@@ -911,24 +846,20 @@ ImageEditor.prototype.cropImage = function() {
   this.source.w = right - left;
   this.source.h = bottom - top;
 
-  this.resetPreview();
   // Adjust the image
-  this.edit(function() {
-    // Hide and reshow the crop overlay to reset it to match the new image size
-    this.hideCropOverlay();
-    this.showCropOverlay();
-  });
+  this.edit();
+
+  // Hide and reshow the crop overlay to reset it to match the new image size
+  this.hideCropOverlay();
+  this.showCropOverlay();
 };
 
 // Restore the image to its full original size
 ImageEditor.prototype.undoCrop = function() {
   this.resetCropRegion();
-  this.resetPreview();
-  this.edit(function() {
-    // Hide and reshow the crop overlay to reset it to match the new image size
-    this.hideCropOverlay();
-    this.showCropOverlay();
-  });
+  this.edit();
+  this.hideCropOverlay();
+  this.showCropOverlay();
 };
 
 // Pass no arguments for freeform 1,1 for square,

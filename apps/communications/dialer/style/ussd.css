@@ -51,6 +51,13 @@ html, body {
   Loading screen
 */
 
-#loading-overlay.hide {
-  display: none;
+body.loading #loading-overlay {
+  opacity: 1!important;
+  pointer-events: auto;
+}
+
+#loading-overlay {
+  opacity: 0;
+  transition: opacity 0.3s ease-out;
+  pointer-events: none;
 }

@@ -1,41 +1,44 @@
-requireLib('provider/abstract.js');
-requireLib('template.js');
+requireApp('calendar/test/unit/helper.js', function() {
+  requireLib('utils/input_parser.js');
+  requireLib('views/modify_event.js');
+  requireLib('models/account.js');
+  requireLib('models/calendar.js');
+  requireLib('models/event.js');
+});
 
-suiteGroup('Views.ModifyEvent', function() {
+suite('views/modify_event', function() {
 
   var subject;
   var controller;
   var app;
   var fmt;
 
+  var event;
+  var account;
+  var calendar;
+  var busytime;
   var provider;
 
+  var remote;
   var eventStore;
   var calendarStore;
   var accountStore;
-  var settingStore;
-
-  function clearMS(date) {
-    var newDate = new Date(date.valueOf());
-    newDate.setMilliseconds(0);
-    return newDate;
-  }
 
   function hasClass(value) {
     return subject.element.classList.contains(value);
   }
 
-  function getEl(name) {
-    return subject.getEl(name);
+  function getField(name) {
+    return subject.getField(name);
   }
 
   function setFieldValue(name, value) {
-    var field = getEl(name);
+    var field = getField(name);
     return field.value = value;
   }
 
   function fieldValue(name) {
-    var field = getEl(name);
+    var field = getField(name);
     return field.value;
   }
 
@@ -47,29 +50,55 @@ suiteGroup('Views.ModifyEvent', function() {
     return template.render({ value: html });
   }
 
+  function setProviderCaps(override) {
+    var values = {};
+    var primaryValues =
+      Calendar.Provider.Abstract.prototype.calendarCapabilities.call(provider);
+
+    [primaryValues, override].forEach(function(caps) {
+      for (var key in caps) {
+        values[key] = caps[key];
+      }
+    });
+
+    provider.caps = values;
+  }
+
   var triggerEvent;
-  var InputParser;
+  var TestProvider;
+
   suiteSetup(function() {
     triggerEvent = testSupport.calendar.triggerEvent;
-    InputParser = Calendar.Utils.InputParser;
+
+    TestProvider = function() {
+      Calendar.Provider.Abstract.apply(this, arguments);
+    };
+
+    TestProvider.prototype = {
+      __proto__: Calendar.Provider.Abstract.prototype,
+
+      calendarCapabilities: function() {
+        return this.caps;
+      }
+    };
   });
 
-  var realGo;
+  var InputParser;
+
+  suiteSetup(function() {
+    InputParser = Calendar.Utils.InputParser;
+  });
 
   teardown(function() {
     var el = document.getElementById('test');
     el.parentNode.removeChild(el);
-    Calendar.App.go = realGo;
+    delete app._providers.Test;
   });
 
-  setup(function(done) {
+  setup(function() {
     var div = document.createElement('div');
     div.id = 'test';
     div.innerHTML = [
-      '<div id="event-view">',
-        '<button class="edit">edit</button>',
-        '<button class="cancel">cancel</button>',
-      '</div>',
       '<div id="modify-event-view">',
         '<button class="save">save</button>',
         '<button class="cancel">cancel</button>',
@@ -88,76 +117,59 @@ suiteGroup('Views.ModifyEvent', function() {
           '<textarea name="description"></textarea>',
           '<input name="currentCalendar" />',
           '<select name="calendarId"></select>',
-          '<div class="alarms"></div>',
         '</form>',
       '</div>'
     ].join('');
 
     document.body.appendChild(div);
     app = testSupport.calendar.app();
-    realGo = app.go;
+    app._providers.Test = new TestProvider({ app: app });
 
     eventStore = app.store('Event');
     accountStore = app.store('Account');
     calendarStore = app.store('Calendar');
-    settingStore = app.store('Setting');
-    provider = app.provider('Mock');
+    provider = app.provider('Test');
+
+    setProviderCaps();
 
     fmt = navigator.mozL10n.DateTimeFormat();
 
+    // setup model fixtures
+    account = Factory('account', { _id: 'foo', providerType: 'Test' });
+    calendar = Factory('calendar', { _id: 'foo', accountId: 'foo' });
+
+    event = Factory('event', {
+      calendarId: 'foo',
+      remote: {
+        startDate: new Date(2012, 1, 1, 1),
+        endDate: new Date(2012, 1, 5, 1)
+      }
+    });
+
+    busytime = Factory('busytime', {
+      eventId: event._id,
+      startDate: new Date(2012, 1, 1, 1),
+      endDate: new Date(2012, 1, 5, 1)
+    });
+
+    // add account & calendar to cache
+    accountStore.cached.foo = account;
+    calendarStore.cached.foo = calendar;
+
+    remote = event.remote;
+
     controller = app.timeController;
 
-    app.db.open(done);
     subject = new Calendar.Views.ModifyEvent({
       app: app
     });
   });
 
-  testSupport.calendar.accountEnvironment();
-  testSupport.calendar.eventEnvironment(
-    // busytime
-    {
-      startDate: new Date(2012, 1, 1, 1),
-      endDate: new Date(2012, 1, 5, 1)
-    },
-    // event
-    {
-      startDate: new Date(2012, 1, 1, 1),
-      endDate: new Date(2012, 1, 5, 1)
-    }
-  );
-
-  teardown(function(done) {
-    testSupport.calendar.clearStore(
-      app.db,
-      ['accounts', 'calendars', 'events', 'busytimes', 'alarms'],
-      function() {
-        app.db.close();
-        done();
-      }
-    );
-  });
-
-  var remote;
-  var event;
-  var calendar;
-  var account;
-  var busytime;
-
-  setup(function() {
-    remote = this.event.remote;
-    event = this.event;
-    calendar = this.calendar;
-    account = this.account;
-    busytime = this.busytime;
-  });
-
   test('initialization', function() {
     assert.instanceOf(subject, Calendar.View);
-    assert.instanceOf(subject, Calendar.Views.EventBase);
     assert.equal(subject._changeToken, 0);
 
-    assert.ok(subject._els, 'has fields');
+    assert.ok(subject._fields, 'has fields');
   });
 
   test('.status', function() {
@@ -173,41 +185,90 @@ suiteGroup('Views.ModifyEvent', function() {
     assert.equal(subject.form.tagName.toLowerCase(), 'form');
   });
 
-  test('.primaryButton', function() {
-    assert.ok(subject.primaryButton);
+  test('.saveButton', function() {
+    assert.ok(subject.saveButton);
   });
 
   test('.deleteButton', function() {
     assert.ok(subject.deleteButton);
   });
 
-  test('.fieldRoot', function() {
-    assert.ok(subject.fieldRoot);
-    assert.equal(subject.fieldRoot, subject.form);
+  suite('#_loadModel', function() {
+    var calledUpdate;
+    var calledLoad;
+
+    setup(function() {
+      calledLoad = null;
+      calledUpdate = null;
+
+      controller.findAssociated = function() {
+        calledLoad = arguments;
+      };
+
+      subject._displayModel = function() {
+        calledUpdate = arguments;
+      };
+    });
+
+    test('when change token is same', function() {
+      var token = subject._changeToken;
+
+      subject._loadModel(1);
+      assert.deepEqual(calledLoad[0], 1);
+      // changes sync token
+      assert.equal(
+        subject._changeToken, token + 1, 'should increment token'
+      );
+
+      var cb = calledLoad[1];
+      cb(null, [{ event: event }]);
+
+      assert.instanceOf(subject.event, Calendar.Models.Event);
+      assert.equal(subject.event.data, event);
+      assert.ok(calledUpdate);
+    });
+
+    test('when change token is different', function() {
+      var token = subject._changeToken;
+      subject._loadModel(1);
+      assert.deepEqual(calledLoad[0], 1);
+      // changes sync token
+      assert.equal(
+        subject._changeToken, token + 1, 'should increment token'
+      );
+
+      subject._changeToken = 100;
+
+      var cb = calledLoad[1];
+      cb(null, [{event: ''}]);
+
+      assert.ok(!subject.event);
+      assert.ok(!calledUpdate, 'should not update form if token has changed');
+    });
   });
 
-  test('#getEl', function() {
+  test('#_getField', function() {
     var expected = subject.form.querySelector('[name="title"]');
     assert.ok(expected);
     assert.equal(expected.tagName.toLowerCase(), 'input');
 
-    var result = subject.getEl('title');
+    var result = subject.getField('title');
 
     assert.equal(result, expected);
-    assert.equal(result, subject.getEl('title'));
-    assert.equal(subject._els.title, expected);
+    assert.equal(result, subject.getField('title'));
+    assert.equal(subject._fields.title, expected);
   });
 
-  suite('#_updateUI', function() {
+  suite('#_displayModel', function() {
     var list;
 
     setup(function() {
       list = subject.element.classList;
     });
 
-    function updatesValues(overrides, callback) {
+    function updatesValues(overrides) {
       // just to verify we actually clear fields...
-      getEl('title').value = 'foo';
+      getField('title').value = 'foo';
       event.remote.description = '<span>foo</span>';
 
       var expected = {
@@ -217,7 +278,7 @@ suiteGroup('Views.ModifyEvent', function() {
         startTime: InputParser.exportTime(remote.startDate),
         endDate: InputParser.exportDate(remote.endDate),
         endTime: InputParser.exportTime(remote.endDate),
-        currentCalendar: calendar.remote.name
+        currentCalendar: calendar.name
       };
 
       var key;
@@ -228,76 +289,63 @@ suiteGroup('Views.ModifyEvent', function() {
         }
       }
 
-      function verify() {
-        if (subject.provider.canCreateEvent) {
-          expected.calendarId = this.event.calendarId;
-        }
+      subject.onfirstseen();
+      subject.useModel(busytime, event);
 
-        for (key in expected) {
-          if (expected.hasOwnProperty(key)) {
-            assert.equal(
-              fieldValue(key),
-              expected[key],
-              'should set "' + key + '"'
-            );
-          }
-        }
-
-        var curCal = getEl('currentCalendar');
-        assert.isTrue(curCal.readOnly, 'current calendar readonly');
-
-        var expected = escapeHTML(event.remote.description);
-
-        assert.equal(
-          getEl('description').innerHTML,
-          expected
-        );
-
-        callback();
+      if (subject.provider.canCreateEvent) {
+        expected.calendarId = event.calendarId;
       }
 
-      subject.onfirstseen();
-      subject.onafteronfirstseen = function() {
-        subject.useModel(busytime, event, verify);
-      };
+      for (key in expected) {
+        if (expected.hasOwnProperty(key)) {
+          assert.equal(
+            fieldValue(key),
+            expected[key],
+            'should set "' + key + '"'
+          );
+        }
+      }
+
+      var curCal = getField('currentCalendar');
+      assert.isTrue(curCal.readOnly, 'current calendar readonly');
+
+      var expected = escapeHTML(event.remote.description);
+
+      assert.equal(
+        getField('description').innerHTML,
+        expected
+      );
     }
 
-    test('provider can edit', function(done) {
-      updatesValues(null, function() {
-        done(function() {
-          assert.ok(!getEl('title').readOnly, 'does not mark as readOnly');
-        });
-      });
+    test('provider can edit', function() {
+      updatesValues();
+
+      assert.isFalse(list.contains(subject.READONLY));
+      assert.ok(!getField('title').readOnly, 'does not mark as readOnly');
     });
 
-
-    test('provider cannot edit', function(done) {
-
-      provider.stageEventCapabilities(event._id, null, {
-        canUpdate: false,
-        canCreate: false
-      });
-
+    test('provider cannot edit', function() {
       remote.startDate = new Date(2012, 0, 1, 10);
 
-      updatesValues(null, function() {
-        done(function() {
-          assert.isTrue(list.contains(subject.READONLY), 'is readonly');
-          assert.isFalse(list.contains(subject.ALLDAY), 'is allday');
-
-          var allday = subject.getEl('allday');
-          assert.isFalse(allday.checked, 'is allday');
-
-          assert.ok(getEl('title').readOnly, 'marks readonly');
-        });
+      setProviderCaps({
+        canUpdateEvent: false,
+        canCreateEvent: false
       });
 
+      updatesValues();
+
+      assert.isTrue(list.contains(subject.READONLY), 'is readonly');
+      assert.isFalse(list.contains(subject.ALLDAY), 'is allday');
+
+      var allday = subject.getField('allday');
+      assert.isFalse(allday.checked, 'is allday');
+
+      assert.ok(getField('title').readOnly, 'marks readonly');
     });
 
-
-    test('use busytime instance when isRecurring', function(done) {
+    test('use busytime instance when isRecurring', function() {
       var eventRecurring = Factory('event', {
-        calendarId: calendar._id,
+        calendarId: 'foo',
         remote: {
           isRecurring: true,
           startDate: new Date(2012, 1, 1, 1),
@@ -310,52 +358,30 @@ suiteGroup('Views.ModifyEvent', function() {
         endDate: new Date(2012, 10, 31, 1)
       });
 
-      subject.useModel(busytimeRecurring, eventRecurring, function() {
-        done(function() {
-          var expected = {
-            startDate: busytimeRecurring.startDate,
-            endDate: busytimeRecurring.endDate
-          };
-          assert.hasProperties(
-            subject.formData(),
-            expected
-          );
-        });
-      });
+      subject.useModel(busytimeRecurring, eventRecurring);
+
+      var expected = {
+        startDate: busytimeRecurring.startDate,
+        endDate: busytimeRecurring.endDate
+      };
+
+      assert.hasProperties(
+        subject.formData(),
+        expected
+      );
     });
 
-    test('when start & end times are 00:00:00', function(done) {
+    test('when start & end times are 00:00:00', function() {
       remote.startDate = new Date(2012, 0, 1);
       remote.endDate = new Date(2012, 0, 2);
-      updatesValues({ endDate: '2012-01-01' }, function() {
-        done(function() {
-          var allday = subject.getEl('allday');
-          assert.isTrue(allday.checked, 'checks all day');
-
-          assert.ok(list.contains(subject.ALLDAY));
-        });
+      updatesValues({
+        endDate: '2012-01-01'
       });
-    });
 
+      var allday = subject.getField('allday');
+      assert.isTrue(allday.checked, 'checks all day');
 
-    test('saved alarms are shown for all-day events', function(done) {
-      remote.startDate = new Date(2012, 0, 1);
-      remote.endDate = new Date(2012, 0, 2);
-      remote.alarms = [
-        {trigger: -300},
-        {trigger: 0}
-      ];
-
-      var updateTo = { alarms: remote.alarms, endDate: '2012-01-01' };
-      updatesValues(updateTo, function() {
-        done(function() {
-          var allday = subject.getEl('allday');
-          assert.isTrue(allday.checked, 'checks all day');
-
-          assert.ok(list.contains(subject.ALLDAY));
-          assert.equal(subject.event.alarms.length, 2);
-        });
-      });
+      assert.ok(list.contains(subject.ALLDAY));
     });
   });
 
@@ -377,7 +403,7 @@ suiteGroup('Views.ModifyEvent', function() {
     var list = subject.element.classList;
     subject._markReadonly(true);
 
-    var title = getEl('title');
+    var title = getField('title');
     title.value = 'foo';
 
     list.add(subject.ALLDAY);
@@ -391,7 +417,7 @@ suiteGroup('Views.ModifyEvent', function() {
     subject.busytime = 'foo';
 
 
-    var allday = subject.getEl('allday');
+    var allday = subject.getField('allday');
     allday.checked = true;
 
     subject.reset();
@@ -411,17 +437,59 @@ suiteGroup('Views.ModifyEvent', function() {
     assert.equal(title.value, '', 'clear inputs');
   });
 
+  suite('#dispatch', function() {
+    var classList;
+
+    setup(function() {
+      classList = subject.element.classList;
+    });
+
+    suite('update', function() {
+      var calledWith;
+
+      setup(function() {
+        subject._loadModel = function() {
+          calledWith = arguments;
+        };
+      });
+
+      test('existing model', function() {
+        subject.dispatch({
+          params: {
+            id: 1
+          }
+        });
+
+        assert.deepEqual(calledWith, [1]);
+        assert.isFalse(classList.contains(subject.CREATE), 'has create class');
+        assert.isTrue(classList.contains(subject.UPDATE), 'has update class');
+      });
+    });
+
+    test('create', function() {
+      subject.dispatch({ params: {} });
+      assert.isTrue(classList.contains(subject.CREATE), 'has create class');
+      assert.isFalse(classList.contains(subject.UPDATE), 'has update class');
+      assert.instanceOf(subject.event, Calendar.Models.Event);
+
+      var formData = subject.formData();
+
+      assert.hasProperties(formData, {
+        startDate: subject.event.startDate,
+        endDate: subject.event.endDate
+      });
+    });
+  });
+
   suite('#formData', function() {
 
-    setup(function(done) {
+    setup(function() {
+      subject.useModel(busytime, event);
       subject.onfirstseen();
-      subject.onafteronfirstseen = function() {
-        subject.useModel(busytime, event, done);
-      };
     });
 
     test('when allday', function() {
-      var allday = getEl('allday');
+      var allday = getField('allday');
       allday.checked = true;
 
       setFieldValue('startDate', '2012-01-01');
@@ -443,8 +511,8 @@ suiteGroup('Views.ModifyEvent', function() {
 
     test('without modifications', function() {
       var expected = {
-        startDate: clearMS(event.remote.startDate),
-        endDate: clearMS(event.remote.endDate),
+        startDate: event.remote.startDate,
+        endDate: event.remote.endDate,
         title: event.remote.title,
         description: event.remote.description,
         location: event.remote.location,
@@ -473,7 +541,7 @@ suiteGroup('Views.ModifyEvent', function() {
         title: 'foo',
         description: 'bar',
         location: 'zomg',
-        calendarId: this.calendar._id
+        calendarId: calendar._id
       };
 
       setFieldValue('startDate', startDate);
@@ -492,53 +560,53 @@ suiteGroup('Views.ModifyEvent', function() {
 
   suite('#deleteRecord', function() {
     var calledWith;
-    var realGo;
+    var redirectTo;
+    var provider;
 
-    setup(function(done) {
+    setup(function() {
+      redirectTo = null;
       calledWith = null;
+      provider = app.provider(account.providerType);
+
+      app.go = function(place) {
+        redirectTo = place;
+      };
+
       provider.deleteEvent = function() {
         calledWith = arguments;
       };
 
       // setup the delete
-      subject.useModel(this.busytime, this.event, function() {
-        // must come after dispatch
-        subject._returnTo = '/foo';
-        done();
-      });
+      subject.useModel(busytime, event);
+
+      // must come after dispatch
+      subject._returnTo = '/foo';
     });
 
     test('in create mode', function() {
-      provider.deleteEvent = function() {
-        throw new Error('should not trigger delete');
-      };
-
       subject.provider = null;
       subject.deleteRecord();
+      assert.ok(!calledWith);
     });
 
-    test('with valid provider', function(done) {
-      provider.deleteEvent = function(toDelete, callback) {
-        assert.equal(toDelete._id, event._id, 'deletes event');
-        callback();
-      };
-
-      app.go = function(place) {
-        assert.notEqual(place, '/foo', 'redirect is changed to event url');
-        done();
-      };
-
+    test('with valid provider', function() {
       subject.deleteRecord();
+      assert.equal(calledWith[0], subject.event.data, 'delete event');
+      var cb = calledWith[calledWith.length - 1];
+      cb();
+      assert.equal(redirectTo, '/foo', 'redirect');
     });
   });
 
   suite('#save', function() {
     var redirectTo;
+    var provider;
     var list;
     var calledWith;
 
     setup(function() {
       calledWith = null;
+      provider = eventStore.providerFor(event);
       list = subject.element.classList;
 
       app.go = function(place) {
@@ -546,115 +614,84 @@ suiteGroup('Views.ModifyEvent', function() {
       };
     });
 
-    function haltsOnError(providerMethod) {
-      test('does not save when validator errors occurs', function(done) {
-        provider[providerMethod] = function() {
-          done(new Error('should not persist record.'));
-        };
-
+    function haltsOnError() {
+      test('does not save when validator errors occurs', function() {
         var event = subject.event;
-        var errors = [new Error('epic fail')];
+        var errors = [];
         var displayedErrors;
 
-        subject.showErrors = function(givenErrs) {
-          done(function() {
-            assert.deepEqual(givenErrs, errors, 'shows errors');
-          });
+        subject.showErrors = function() {
+          displayedErrors = arguments;
         };
 
-        subject.event.validationErrors = function() {
+        event.validationErrors = function() {
           return errors;
         };
 
-        subject.primary();
+        subject.save();
 
+        assert.ok(!calledWith, 'does not save');
+        assert.deepEqual(displayedErrors[0], errors, 'shows errors');
       });
     }
 
     suite('update', function() {
-      setup(function(done) {
-        subject.onfirstseen();
-        subject.onafteronfirstseen = function() {
-          subject.useModel(busytime, event, function() {
-            subject._returnTo = '/foo';
-            done();
-          });
+      setup(function() {
+        provider.updateEvent = function() {
+          calledWith = arguments;
         };
+
+        subject.onfirstseen();
+        subject.useModel(busytime, event);
+
+        subject._returnTo = '/foo';
       });
 
-      haltsOnError('updateEvent');
+      haltsOnError();
 
-      test('with provider that can edit', function(done) {
-
-        provider.updateEvent = function(updated, callback) {
-          done(function() {
-            assert.equal(updated._id, event._id, 'updates correcet event');
-
-            var data = subject.formData();
-            data.alarms = [];
-            assert.hasProperties(subject.event, data, 'updated model');
-            assert.isTrue(list.contains(subject.PROGRESS));
-
-            callback();
-
-            assert.isFalse(list.contains(subject.PROGRESS));
-            assert.notEqual(redirectTo, '/foo');
-
-            assert.deepEqual(
-              app.timeController.position,
-              subject.event.startDate,
-              'moves time controller'
-            );
-          });
-        };
-
-        setFieldValue('calendarId', this.calendar._id);
+      test('with provider that can edit', function() {
+        setFieldValue('calendarId', calendar._id);
         setFieldValue('startDate', '2012-1-2');
         setFieldValue('title', 'myfoo');
 
-        subject.primary();
+        subject.save();
+
+        var data = subject.formData();
+        assert.hasProperties(subject.event, data, 'updated model');
+        assert.isTrue(list.contains(subject.PROGRESS));
+        assert.ok(calledWith);
+
+        var cb = calledWith[calledWith.length - 1];
+        cb();
+
+        assert.isFalse(list.contains(subject.PROGRESS));
+        assert.equal(redirectTo, '/foo');
+
+        assert.deepEqual(
+          app.timeController.position,
+          subject.event.startDate,
+          'moves time controller'
+        );
       });
     });
 
     suite('create', function() {
-      setup(function(done) {
+      setup(function() {
+        provider.createEvent = function() {
+          calledWith = arguments;
+        };
+
         // setup the save
         subject.onfirstseen();
-        subject.onafteronfirstseen = function() {
-          subject.dispatch({ params: {} });
-          subject.ondispatch = function() {
-            // must come after dispatch
-            subject._returnTo = '/foo';
-            done();
-          };
-        };
+        subject.dispatch({ params: {} });
+
+        // must come after dispatch
+        subject._returnTo = '/foo';
       });
 
-      haltsOnError('createEvent');
+      haltsOnError();
 
-      test('with provider that can create', function(done) {
-        provider.createEvent = function(event, callback) {
-          done(function() {
-            var data = subject.formData();
-
-            data.alarms = [];
-
-            assert.hasProperties(subject.event, data, 'updated model');
-            assert.isTrue(list.contains(subject.PROGRESS));
-
-            callback();
-
-            assert.isFalse(list.contains(subject.PROGRESS));
-            assert.equal(redirectTo, '/foo');
-
-            assert.deepEqual(
-              app.timeController.position,
-              subject.event.startDate,
-              'moves timeController'
-            );
-          });
-        };
-
+      test('with provider that can create', function() {
         assert.ok(!subject.provider, 'has no provider yet');
 
         setFieldValue('calendarId', calendar._id);
@@ -662,244 +699,103 @@ suiteGroup('Views.ModifyEvent', function() {
         setFieldValue('endDate', '2012-1-3');
         setFieldValue('title', 'myfoo');
 
-        subject.primary();
+        subject.save();
+
+        var data = subject.formData();
+        assert.hasProperties(subject.event, data, 'updated model');
+        assert.isTrue(list.contains(subject.PROGRESS));
+        assert.ok(calledWith);
+
+        var cb = calledWith[calledWith.length - 1];
+        cb();
+
+        assert.isFalse(list.contains(subject.PROGRESS));
+        assert.equal(redirectTo, '/foo');
+
+        assert.deepEqual(
+          app.timeController.position,
+          subject.event.startDate,
+          'moves timeController'
+        );
       });
+
     });
+
   });
 
   suite('calendar id handling', function() {
-    var accounts = testSupport.calendar.dbFixtures(
-      'account',
-      'Account', {
-        one: { _id: 55, providerType: 'Mock' }
-      }
-    );
-
-    var calendars = testSupport.calendar.dbFixtures(
-      'calendar',
-      'Calendar', {
-        one: { _id: 'one', accountId: 55 },
-        two: { _id: 'two', accountId: 55 }
-      }
-    );
-
+    var calendars;
+    var accounts;
+    var list;
     var element;
 
-    setup(function(done) {
-      calendars[calendar._id] = calendar;
+    setup(function() {
+      accounts = app.store('Account');
+      calendars = app.store('Calendar');
 
-      subject.onafteronfirstseen = done;
+      accounts.cached.one = {
+        providerType: 'Test'
+      };
+
+      list = calendars._cached = {};
+
+      list.one = Factory('calendar', { _id: 'one', accountId: 'one' });
+      list.two = Factory('calendar', { _id: 'two', accountId: 'one' });
+
       subject.onfirstseen();
-      element = getEl('calendarId');
+      element = getField('calendarId');
     });
 
-    test('calendarId select element', function() {
-      assert.length(element.children, 3, 'has two calendars');
+    test('calendarId select element (#_buildCalendarIds)', function() {
+      assert.length(element.children, 2, 'has two calendars');
 
       var id;
       var option;
 
-      for (id in calendars) {
+      for (id in list) {
         option = element.querySelector('[value="' + id + '"]');
         assert.ok(option, 'option for id: ' + id);
-
-        assert.equal(
-          option.textContent,
-          calendars[id].remote.name
-        );
+        assert.equal(option.textContent, list[id].name);
       }
     });
 
-    test('rename calendar (#_updateCalendarId)', function(done) {
-      subject.oncalendarupdate = function() {
-        done(function() {
-          var option = element.querySelector(
-            '[value="' + calendars.one._id + '"]'
-          );
+    test('rename calendar (#_updateCalendarId)', function() {
+      list.one.remote.name = 'fooobar';
+      calendars.emit('update', list.one._id, list.one);
 
-          assert.equal(option.textContent, 'fooobar');
-        });
-      };
-
-      calendars.one.remote.name = 'fooobar';
-      calendarStore.emit('update', calendars.one._id, calendars.one);
+      var option = element.querySelector('[value="' + list.one._id + '"]');
+      assert.equal(option.textContent, 'fooobar');
     });
 
-    test('change calendar permissions', function(done) {
-      var newCalendar = Factory('calendar', { accountId: account._id });
+    test('change calendar permissions', function() {
+      calendars.emit('add', calendar._id, calendar);
+      assert.length(element.children, 3, 'added one');
 
-      subject.onaddcalendar = function() {
-        provider.stageCalendarCapabilities(newCalendar._id, {
-          canCreateEvent: false
-        });
-
-        assert.length(element.children, 4, 'added one');
-        calendarStore.emit('update', newCalendar._id, newCalendar);
-      };
-
-      subject.onremovecalendar = function() {
-        assert.length(element.children, 3, 'added one');
-        done();
-      };
-
-      calendarStore.emit('add', newCalendar._id, newCalendar);
-    });
-
-    test('add calendar (#_addCalendarId)', function(done) {
-      var newCal = Factory('calendar', {
-        _id: 'three',
-        accountId: account._id
+      setProviderCaps({
+        canCreateEvent: false
       });
 
-      calendarStore.emit('add', newCal._id, newCal);
-
-      subject.onaddcalendar = function() {
-        done(function() {
-          assert.length(element.children, 4, 'added one');
-
-          var option = element.querySelector('[value="' + newCal._id + '"]');
-          assert.equal(option.textContent, newCal.remote.name);
-          assert.ok(option, 'added calendar');
-        });
-      };
+      calendars.emit('update', calendar._id, calendar);
+      assert.length(element.children, 2, 'added one');
     });
 
-    test('remove calendar (#_removeCalendarId)', function(done) {
-      subject.onremovecalendar = function() {
-        done(function() {
-          assert.length(element.children, 2, 'removed one');
+    test('add calendar (#_addCalendarId)', function() {
+      var newCal = Factory('calendar', { _id: 'three', accountId: 'one' });
+      calendars.emit('add', newCal._id, newCal);
 
-          var option =
-            element.querySelector('[value="' + calendars.two._id + '"]');
+      assert.length(element.children, 3, 'added one');
 
-          assert.ok(option, 'removed correct item');
-        });
-      };
-
-      calendarStore.emit('remove', calendars.one._id);
-    });
-  });
-
-  suite('alarm defaults', function() {
-
-    var defaultAllDayAlarm;
-    var defaultEventAlarm;
-
-    setup(function(done) {
-      var pending = 3;
-
-      // setup the save
-      subject.onfirstseen();
-      subject.onafteronfirstseen = function() {
-        subject.dispatch({ params: {} });
-        subject.ondispatch = function() {
-          // must come after dispatch
-          subject._returnTo = '/foo';
-          next();
-        };
-      };
-
-      settingStore.getValue('standardAlarmDefault', function(err, value) {
-        defaultEventAlarm = value;
-        next();
-      });
-
-      settingStore.getValue('alldayAlarmDefault', function(err, value) {
-        defaultAllDayAlarm = value;
-        next();
-      });
-
-      function next() {
-        if (!(--pending)) {
-          done();
-        }
-      }
+      var option = element.querySelector('[value="' + newCal._id + '"]');
+      assert.equal(option.textContent, newCal.name);
+      assert.ok(option, 'added calendar');
     });
 
-    test('with no alarms set', function(done) {
-      provider.createEvent = function(event, callback) {
-        done(function() {
-          var data = subject.formData();
+    test('remove calendar (#_removeCalendarId)', function() {
+      calendars.emit('remove', list.one._id);
+      assert.length(element.children, 1, 'removed one');
 
-          callback();
-
-          assert.deepEqual(
-            data.alarms,
-            subject.event.alarms,
-            'alarms'
-          );
-        });
-      };
-
-      subject.primary();
-    });
-
-    function testAlarmIsAdded(done, isAllDay, defaultAlarm) {
-      provider.createEvent = function(event, callback) {
-        done(function() {
-          var data = subject.formData();
-          callback();
-
-          assert.deepEqual(
-            data.alarms,
-            [
-              {action: 'DISPLAY', trigger: defaultAlarm},
-              {action: 'DISPLAY', trigger: 123}
-            ],
-            'alarms'
-          );
-        });
-      };
-
-      var allday = subject.getEl('allday');
-      allday.checked = isAllDay;
-      subject.event.isAllDay = isAllDay;
-      subject.updateAlarms(isAllDay, function() {
-        var allAlarms = subject.alarmList.querySelectorAll('select');
-        assert.equal(allAlarms.length, 2);
-
-        var secondSelect = allAlarms[1];
-        assert.ok(secondSelect);
-
-        var newOption = document.createElement('option');
-        newOption.value = '123';
-        secondSelect.appendChild(newOption);
-        secondSelect.value = '123';
-
-        subject.primary();
-      });
-    }
-
-    test('with all day defaults', function(done) {
-      testAlarmIsAdded(done, true, defaultAllDayAlarm);
-    });
-
-    test('with event defaults', function(done) {
-      testAlarmIsAdded(done, false, defaultEventAlarm);
-    });
-
-    test('populated with no existing alarms', function(done) {
-      subject.event.alarms = [];
-      subject.updateAlarms(true, function() {
-        var allAlarms = subject.alarmList.querySelectorAll('select');
-        assert.equal(allAlarms.length, 2);
-        assert.equal(allAlarms[0].value, defaultAllDayAlarm);
-        assert.equal(allAlarms[1].value, 'none');
-        done();
-      });
-    });
-
-    test('not populated with existing alarms', function(done) {
-      subject.event.alarms = [
-        {trigger: -300}
-      ];
-      subject.updateAlarms(true, function() {
-        var allAlarms = subject.alarmList.querySelectorAll('select');
-        assert.equal(allAlarms.length, 2);
-        assert.equal(allAlarms[0].value, -300);
-        assert.equal(allAlarms[1].value, 'none');
-        done();
-      });
+      var option = element.querySelector('[value="' + list.two._id + '"]');
+      assert.ok(option, 'removed correct item');
     });
   });
 
@@ -908,9 +804,59 @@ suiteGroup('Views.ModifyEvent', function() {
       assert.equal(subject.returnTo(), subject.DEFAULT_VIEW);
     });
 
+    test('/add set', function() {
+      subject._returnTo = '/add/';
+      assert.equal(subject.returnTo(), subject.DEFAULT_VIEW);
+    });
+
     test('with returnTo', function() {
       var path = subject._returnTo = '/foo';
       assert.equal(subject.returnTo(), path);
+    });
+  });
+
+  suite('#_createModel', function() {
+    var controller;
+    var date = new Date(2012, 0, 1);
+
+    test('time is less then now', function() {
+      var now = new Date();
+      var start = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+        now.getHours() + 1
+      );
+
+      var end = new Date(start.valueOf());
+      end.setHours(end.getHours() + 1);
+
+      var model = subject._createModel(date);
+
+      assert.hasProperties(
+        model,
+        { startDate: start, endDate: end }
+      );
+    });
+
+    test('time is greater then now', function() {
+      var now = new Date();
+      var start = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+        now.getHours() + 10
+      );
+
+      var end = new Date(start.valueOf());
+      end.setHours(end.getHours() + 1);
+
+      var model = subject._createModel(start);
+
+      assert.hasProperties(
+        model,
+        { startDate: start, endDate: end }
+      );
     });
   });
 
@@ -927,22 +873,20 @@ suiteGroup('Views.ModifyEvent', function() {
 
       setup(function() {
         subject.onfirstseen();
-        subject.useModel(this.busytime, this.event);
+        subject.useModel(busytime, event);
         list = subject.element.classList;
-        allday = subject.getEl('allday');
+        allday = subject.getField('allday');
       });
 
       test('initial', function() {
         check(true);
         assert.ok(list.contains(subject.ALLDAY), 'has allday');
-        assert.isTrue(subject.event.isAllDay, 'model is allday');
       });
 
       test('uncheck', function() {
         check(true);
         check(false);
         assert.ok(!list.contains(subject.ALLDAY), 'has allday');
-        assert.isFalse(subject.event.isAllDay, 'model is allday');
       });
 
       test('when start & end are same dates (all day)', function() {
@@ -966,32 +910,44 @@ suiteGroup('Views.ModifyEvent', function() {
       });
     });
 
-    test('submit form', function(done) {
+    test('submit form', function() {
+      var calledWith;
 
       subject.onfirstseen();
-      subject.onafteronfirstseen = function() {
-        subject.dispatch({ params: {} });
-      };
-
-      subject.ondispatch = function() {
-        setFieldValue('calendarId', calendar._id);
-        triggerEvent(subject.form, 'submit');
-      };
+      subject.dispatch({ params: {} });
 
       provider.createEvent = function() {
-        done();
+        calledWith = arguments;
       };
 
+      triggerEvent(subject.form, 'submit');
+      assert.ok(calledWith);
     });
 
     test('delete button click', function(done) {
-      subject.useModel(this.busytime, this.event, function() {
-        triggerEvent(subject.deleteButton, 'click');
-      });
+      var calledWith;
+      var provider = eventStore.providerFor(event);
+      subject.useModel(busytime, event);
 
       provider.deleteEvent = function() {
         done();
       };
+
+      triggerEvent(subject.deleteButton, 'click');
+    });
+
+    test('save button click', function() {
+      var calledWith;
+
+      subject.onfirstseen();
+      subject.dispatch({ params: {} });
+
+      provider.createEvent = function() {
+        calledWith = arguments;
+      };
+
+      triggerEvent(subject.saveButton, 'click');
+      assert.ok(calledWith);
     });
   });
 

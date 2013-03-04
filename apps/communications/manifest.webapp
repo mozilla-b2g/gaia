@@ -100,18 +100,9 @@
       "href": "/contacts/index.html?new",
       "returnValue": true
     },
-    "update": {
-      "filters": {
-        "type": "webcontacts/contact"
-      },
-      "disposition": "inline",
-      "href": "/contacts/index.html?update",
-      "returnValue": true
-    },
     "dial": {
       "filters": {
-        "type": "webtelephony/number",
-        "number": { "regexp":"/^[\\d\\s+#*().-]{0,50}$/" }
+        "type": "webtelephony/number"
       },
       "href": "/dialer/index.html#keyboard-view",
       "disposition": "window"

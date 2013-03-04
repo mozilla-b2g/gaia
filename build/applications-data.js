@@ -96,16 +96,6 @@ function iconDescriptor(directory, app_name, entry_point) {
   };
 }
 
-function getDistributionFileContent(name, defaultContent) {
-  if (Gaia.distributionDir) {
-    let distributionFile = getFile(Gaia.distributionDir, name + '.json');
-    if (distributionFile.exists()) {
-      return getFileContent(distributionFile);
-    }
-  }
-  return JSON.stringify(defaultContent);
-}
-
 // zeroth grid page is the dock
 let customize = {"homescreens": [
   [
@@ -133,7 +123,11 @@ if (DOGFOOD == 1) {
   customize.homescreens[0].push(["dogfood_apps", "feedback"]);
 }
 
-customize = JSON.parse(getDistributionFileContent('homescreens', customize));
+let init = getFile(GAIA_DIR, 'customize.json');
+if (init.exists()) {
+  customize = getJSON(init);
+}
+
 let content = {
   search_page: {
     provider: 'EverythingME',
@@ -142,25 +136,6 @@ let content = {
 
   // It defines the threshold in pixels to consider a gesture like a tap event
   tap_threshold: 10,
-
-  swipe: {
-    // It defines the threshold to consider a gesture like a swipe. Number
-    // in the range 0.0 to 1.0, both included, representing the screen width
-    threshold: 0.4,
-
-    // By default we define the virtual friction to .1 px/ms/ms
-    friction: 0.1,
-
-    // Page transition duration defined in ms (300 ms by default)
-    transition_duration: 300
-  },
-
-  // This specifies whether we optimize homescreen panning by trying to
-  // predict where the user's finger will be in the future.
-  prediction: {
-    enabled: true,
-    lookahead: 16  // 60fps = 16ms per frame
-  },
 
   grid: customize.homescreens.map(
     function map_homescreens(applist) {
@@ -175,7 +150,7 @@ let content = {
   )
 };
 
-let init = getFile(GAIA_DIR, GAIA_CORE_APP_SRCDIR, 'homescreen', 'js', 'init.json');
+init = getFile(GAIA_DIR, GAIA_CORE_APP_SRCDIR, 'homescreen', 'js', 'init.json');
 writeContent(init, JSON.stringify(content));
 
 // Apps that should never appear in settings > app permissions
@@ -225,13 +200,12 @@ content = {
   default_low_limit_threshold: 3
 };
 
-writeContent(init, getDistributionFileContent('costcontrol', content));
+writeContent(init, JSON.stringify(content));
 
 // SMS
 init = getFile(GAIA_DIR, 'apps', 'sms', 'js', 'blacklist.json');
 content = ["1515", "7000"];
-
-writeContent(init, getDistributionFileContent('sms-blacklist', content));
+writeContent(init, JSON.stringify(content));
 
 // Browser
 init = getFile(GAIA_DIR, 'apps', 'browser', 'js', 'init.json');
@@ -254,7 +228,7 @@ content = {
   ]
 }
 
-writeContent(init, getDistributionFileContent('browser', content));
+writeContent(init, JSON.stringify(content));
 
 // Support
 init = getFile(GAIA_DIR, 'apps', 'settings', 'resources', 'support.json');
@@ -274,13 +248,11 @@ content = {
     }
   ]
 }
-
-writeContent(init, getDistributionFileContent('support', content));
+writeContent(init, JSON.stringify(content));
 
 // ICC / STK
 init = getFile(GAIA_DIR, 'apps', 'settings', 'resources', 'icc.json');
 content = {
   "defaultURL": "http://www.mozilla.org/en-US/firefoxos/"
 }
-
-writeContent(init, getDistributionFileContent('icc', content));
+writeContent(init, JSON.stringify(content));

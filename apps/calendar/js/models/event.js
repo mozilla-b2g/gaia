@@ -28,29 +28,8 @@ Calendar.ns('Models').Event = (function() {
       );
     }
 
-    if (isNew) {
+    if (isNew)
       this.resetToDefaults();
-    }
-
-    var start = this.remote.startDate;
-    var end = this.remote.endDate;
-
-    // the typeof check is to see if we have already
-    // set the value in resetToDefaults (or prior)
-    if (
-        typeof(this._isAllDay) === 'undefined' &&
-        Calendar.Calc.isOnlyDate(start) &&
-        Calendar.Calc.isOnlyDate(end)
-    ) {
-      // mostly to handle the case before the time
-      // where we actually managed isAllDay as a setter.
-      this.isAllDay = true;
-    } else {
-      // not on prototype intentionally because
-      // we need to either need to resetToDefaults
-      // or check startDate/endDate in the constructor.
-      this.isAllDay = false;
-    }
   }
 
   Event.prototype = {
@@ -60,8 +39,6 @@ Calendar.ns('Models').Event = (function() {
      */
     resetToDefaults: function() {
       var now = new Date();
-
-      this.isAllDay = false;
 
       this.startDate = new Date(
         now.getFullYear(),
@@ -80,33 +57,6 @@ Calendar.ns('Models').Event = (function() {
       return this.data._id;
     },
 
-    _setDate: function(date, field) {
-      if (!(date instanceof Date)) {
-        throw new TypeError('must pass instance of Date');
-      }
-
-      var allDay = this.isAllDay;
-
-      if (allDay) {
-        // clone the existing date
-        date = new Date(date.valueOf());
-
-        // filter out the stuff we don't care about
-        date.setHours(0);
-        date.setMinutes(0);
-        date.setSeconds(0);
-        date.setMilliseconds(0);
-      }
-
-      this.remote[field] = Calendar.Calc.dateToTransport(
-        date,
-        null, // TODO allow setting tzid
-        allDay
-      );
-
-      this.remote[field + 'Date'] = date;
-    },
-
     /* start date */
 
     get startDate() {
@@ -114,7 +64,32 @@ Calendar.ns('Models').Event = (function() {
     },
 
     set startDate(value) {
-      this._setDate(value, 'start');
+      if (!(value instanceof Date)) {
+        throw new TypeError('must pass instance of Date');
+      }
+
+      var time = Calendar.Calc.dateToTransport(value);
+      this.remote.start = time;
+      this.remote.startDate = value;
+    },
+
+    /**
+     * Checks if date object only contains date information (not time).
+     *
+     * Exampe:
+     *
+     *    var time = new Date(2012, 0, 1, 1);
+     *    this._isOnlyDate(time); // false
+     *
+     *    var time = new Date(2012, 0, 1);
+     *    this._isOnlyDate(time); // true
+     *
+     * @return {Boolean} see above.
+     */
+    _isOnlyDate: function(date) {
+      return (!date.getHours() &&
+              !date.getMinutes() &&
+              !date.getSeconds());
     },
 
     /* end date */
@@ -124,24 +99,22 @@ Calendar.ns('Models').Event = (function() {
     },
 
     set endDate(value) {
-      this._setDate(value, 'end');
-    },
-
-    set isAllDay(value) {
-      this._isAllDay = value;
-
-      // send values through the their setter.
-      if (this.endDate) {
-        this.endDate = this.endDate;
+      if (!(value instanceof Date)) {
+        throw new TypeError('must pass instance of Date');
       }
 
-      if (this.startDate) {
-        this.startDate = this.startDate;
-      }
+      var time = Calendar.Calc.dateToTransport(value);
+
+      this.remote.end = time;
+      this.remote.endDate = value;
     },
 
     get isAllDay() {
-      return this._isAllDay;
+      var start = this.remote.startDate;
+      var end = this.remote.endDate;
+
+      return (this._isOnlyDate(start) &&
+              this._isOnlyDate(end));
     },
 
     /* associated records */
@@ -186,14 +159,6 @@ Calendar.ns('Models').Event = (function() {
 
     set location(value) {
       return this.remote.location = value;
-    },
-
-    get alarms() {
-      return this.remote.alarms || [];
-    },
-
-    set alarms(value) {
-      return this.remote.alarms = value;
     },
 
     /**

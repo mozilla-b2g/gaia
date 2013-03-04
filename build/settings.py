@@ -53,7 +53,6 @@ settings = {
  "keyboard.layouts.pinyin": False,
  "keyboard.layouts.greek": False,
  "keyboard.layouts.japanese": False,
- "keyboard.layouts.polish": False,
  "keyboard.layouts.portuguese": False,
  "keyboard.layouts.spanish": False,
  "keyboard.vibration": False,
@@ -207,14 +206,8 @@ def main():
     # Set the default locale
     if options.locale:
         settings["language.current"] = options.locale
-        keyboard_layouts_name = "shared/resources/keyboard_layouts.json"
-        keyboard_layouts = json.load(open(keyboard_layouts_name))
-        if options.locale in keyboard_layouts:
-            default_layout = keyboard_layouts[options.locale]
-            settings["keyboard.layouts.english"] = False
-            settings["keyboard.layouts.{0}".format(default_layout)] = True
 
-    settings["devtools.debugger.remote-enabled"] = enable_debugger
+    settings["devtools.debugger.remote-enabled"] = enable_debugger;
 
     # Grab wallpaper.jpg and convert it into a base64 string
     wallpaper_file = open(wallpaper_filename, "rb")
