@@ -307,6 +307,14 @@ var CostControlApp = (function() {
           }
         }
 
+        // Hide loading if proceeds
+        var loadingDialog = document.getElementById('loading-dialog');
+        if (loadingDialog.hidden !== true) {
+          loadingDialog.getElementsByTagName('progress')[0].hidden = true;
+          setTimeout(function _hideLoadingDialog() {
+            loadingDialog.hidden = true;
+          });
+        }
       }
     });
   }
