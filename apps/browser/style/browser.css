@@ -716,6 +716,7 @@ li[role="listitem"] h5 {
   font-weight: normal;
   margin: 0;
   overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
   pointer-events: none;
   font-size: 1.4rem;
@@ -725,6 +726,7 @@ li[role="listitem"] small {
   display: block;
   color: #666;
   overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
   pointer-events: none;
 }
