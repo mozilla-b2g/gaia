@@ -75,8 +75,8 @@ Evme.ShortcutsCustomize = new function Evme_ShortcutsCustomize() {
                 html += '<option ' +
                             'value="' + query.replace(/"/g, '&quot;') + '" ' +
                             'data-experience="' + experienceId + '"' +
-                        '>' + name + '</option>';
-                
+                        '>' + Evme.html(name) + '</option>';
+
                 shortcutsAdded[queryKey] = true;
             }
         }

@@ -151,7 +151,7 @@ Evme.SmartFolder = function Evme_SartFolder(_options) {
         if (queryById) {
             self.setQuery(queryById);
         } else if (query) {
-            Evme.$('span', elTitle)[0].innerHTML = query;
+            Evme.$('span', elTitle)[0].textContent = query;
         }
         
         return self;

@@ -593,3 +593,8 @@ Evme.$create = function Evme_$create(tagName, attributes, html) {
     
     return el;
 };
+
+Evme.htmlRegex = /</g;
+Evme.html = function Evme_html(html) {
+  return (html || '').replace(Evme.htmlRegex, '&lt;');
+};

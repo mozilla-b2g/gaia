@@ -723,10 +723,8 @@ Evme.Brain = new function Evme_Brain() {
 
             elPseudo.style.cssText += 'position: absolute; top: ' + oldPos.top + 'px; left: ' + oldPos.left + 'px; -moz-transform: translate3d(0,0,0);';
 
-            var appName = Evme.Utils.l10n('apps', 'loading-app');
-            
             Evme.$('b', elPseudo, function itemIteration(el) {
-                el.innerHTML = appName;
+                el.textContent = Evme.Utils.l10n('apps', 'loading-app');
             });
 
             elApp.parentNode.appendChild(elPseudo);
