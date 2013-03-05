@@ -132,34 +132,32 @@ var exposureSlider = (function() {
   var slider = document.getElementById('exposure-slider');
   var bar = document.getElementById('sliderbar');
   var thumb = document.getElementById('sliderthumb');
-
-  thumb.addEventListener('mousedown', sliderStartDrag);
+  
+  new GestureDetector(thumb).startDetecting();
+  thumb.addEventListener('panstart', sliderDragStart);
 
   var currentExposure;
-  var sliderStartPixel;
   var sliderStartExposure;
-
-  function sliderStartDrag(e) {
-    document.addEventListener('mousemove', sliderDrag, true);
-    document.addEventListener('mouseup', sliderEndDrag, true);
-    sliderStartPixel = e.clientX;
+  
+  function sliderDragStart() {
     sliderStartExposure = currentExposure;
-    e.preventDefault();
+    thumb.addEventListener('pan', sliderDrag);
+    thumb.addEventListener('swipe', sliderDragStop);
   }
 
   function sliderDrag(e) {
-    var delta = e.clientX - sliderStartPixel;
-    var exposureDelta = delta / (parseInt(bar.clientWidth) * .8) * 6;
+    var delta = e.detail.absolute.dx;
+    var exposureDelta = delta / (parseInt(bar.clientWidth, 10) * .8) * 6;
     var oldExposure = currentExposure;
     setExposure(sliderStartExposure + exposureDelta);
     if (currentExposure !== oldExposure)
       slider.dispatchEvent(new Event('change', {bubbles: true}));
     e.preventDefault();
   }
-
-  function sliderEndDrag(e) {
-    document.removeEventListener('mousemove', sliderDrag, true);
-    document.removeEventListener('mouseup', sliderEndDrag, true);
+  
+  function sliderDragStop(e) {
+    thumb.removeEventListener('pan', sliderDrag);
+    thumb.removeEventListener('swipe', sliderDragStop);
     e.preventDefault();
   }
 
@@ -494,8 +492,10 @@ ImageEditor.prototype.showCropOverlay = function showCropOverlay() {
   region.bottom = this.dest.h;
 
   this.drawCropControls();
+  
+  new GestureDetector(canvas, { holdEvents: true }).startDetecting();
 
-  canvas.addEventListener('mousedown', this.cropStart.bind(this));
+  canvas.addEventListener('panstart', this.cropStart.bind(this));
 };
 
 ImageEditor.prototype.hideCropOverlay = function hideCropOverlay() {
@@ -634,14 +634,14 @@ ImageEditor.prototype.drawCropControls = function(handle) {
   }
 };
 
-// Called on mousedown in the crop overlay canvas
-ImageEditor.prototype.cropStart = function(startEvent) {
+// Called on holdstart in the crop overlay canvas
+ImageEditor.prototype.cropStart = function(ev) {
   var self = this;
   var region = this.cropRegion;
   var dest = this.dest;
   var rect = this.previewCanvas.getBoundingClientRect();
-  var x0 = startEvent.clientX - rect.left - dest.x;
-  var y0 = startEvent.clientY - rect.top - dest.y;
+  var x0 = ev.detail.screenX - rect.left - dest.x;
+  var y0 = ev.detail.screenY - rect.top - dest.y;
   var left = region.left;
   var top = region.top;
   var right = region.right;
@@ -682,14 +682,14 @@ ImageEditor.prototype.cropStart = function(startEvent) {
     drag(); // pan
 
   function drag(handle) {
-    window.addEventListener('mousemove', move, true);
-    window.addEventListener('mouseup', up, true);
+    window.addEventListener('pan', move, true);
+    window.addEventListener('swipe', up, true);
 
     self.drawCropControls(handle); // highlight drag handle
 
     function move(e) {
-      var dx = e.clientX - startEvent.clientX;
-      var dy = e.clientY - startEvent.clientY;
+      var dx = e.detail.absolute.dx;
+      var dy = e.detail.absolute.dy;
 
       var newleft = region.left;
       var newright = region.right;
@@ -805,9 +805,11 @@ ImageEditor.prototype.cropStart = function(startEvent) {
     }
 
     function up(e) {
-      window.removeEventListener('mousemove', move, true);
-      window.removeEventListener('mouseup', up, true);
+      window.removeEventListener('pan', move, true);
+      window.removeEventListener('swipe', up, true);
       self.drawCropControls(); // erase drag handle highlight
+      
+      e.preventDefault();
     }
   }
 
