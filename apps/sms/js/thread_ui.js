@@ -526,16 +526,15 @@ var ThreadUI = {
     MessageManager.getMessages(renderingOptions);
   },
 
-  appendMessage: function thui_appendMessage(message, hidden) {
+
+  buildMessageDOM: function thui_buildMessageDOM(message, hidden) {
     // Retrieve all data from message
     var id = message.id;
     var bodyText = message.body;
-    var timestamp = message.timestamp.getTime();
     var messageClass = message.delivery;
 
     var messageDOM = document.createElement('li');
     messageDOM.classList.add('bubble');
-    messageDOM.dataset.timestamp = timestamp;
 
     if (hidden) {
       messageDOM.classList.add('hidden');
@@ -547,7 +546,6 @@ var ThreadUI = {
     switch (message.delivery) {
       case 'error':
         asideHTML = '<aside class="pack-end"></aside>';
-        ThreadUI.addResendHandler(message, messageDOM);
         break;
       case 'sending':
         asideHTML = '<aside class="pack-end">' +
@@ -565,27 +563,10 @@ var ThreadUI = {
     messageHTML += '<p></p></a>';
     messageDOM.innerHTML = messageHTML;
 
-    this.searchAndLinkClickableData(messageDOM, bodyText);
+    if (message.delivery === 'error')
+     ThreadUI.addResendHandler(message, messageDOM);
 
-    // Add to the right position
-    var messageContainer = ThreadUI.getMessageContainer(timestamp, hidden);
-    if (!messageContainer.firstElementChild) {
-      messageContainer.appendChild(messageDOM);
-    } else {
-      var messages = messageContainer.children;
-      var appended = false;
-      for (var i = 0, l = messages.length; i < l; i++) {
-        if (timestamp < messages[i].dataset.timestamp) {
-          messageContainer.insertBefore(messageDOM, messages[i]);
-          appended = true;
-          break;
-        }
-      }
-      if (!appended) {
-        messageContainer.appendChild(messageDOM);
-      }
-    }
-    return messageDOM;
+    return this.searchAndLinkClickableData(messageDOM, bodyText);
   },
 
   /* This method matches for strings having email,
@@ -616,6 +597,31 @@ var ThreadUI = {
     return result;
   },
 
+  appendMessage: function thui_appendMessage(message, hidden) {
+    // build messageDOM adding the links
+    var messageDOM = this.buildMessageDOM(message, hidden);
+    var timestamp = message.timestamp.getTime();
+    messageDOM.dataset.timestamp = timestamp;
+    // Add to the right position
+    var messageContainer = ThreadUI.getMessageContainer(timestamp, hidden);
+    if (!messageContainer.firstElementChild) {
+      messageContainer.appendChild(messageDOM);
+    } else {
+      var messages = messageContainer.children;
+      var appended = false;
+      for (var i = 0, l = messages.length; i < l; i++) {
+        if (timestamp < messages[i].dataset.timestamp) {
+          messageContainer.insertBefore(messageDOM, messages[i]);
+          appended = true;
+          break;
+        }
+      }
+      if (!appended) {
+        messageContainer.appendChild(messageDOM);
+      }
+    }
+  },
+
   showChunkOfMessages: function thui_showChunkOfMessages(number) {
     var hiddenElements = ThreadUI.view.getElementsByClassName('hidden');
     for (var i = hiddenElements.length - 1; i >= 0; i--) {
@@ -624,7 +630,8 @@ var ThreadUI = {
   },
 
   addResendHandler: function thui_addResendHandler(message, messageDOM) {
-    messageDOM.addEventListener('click', function resend(e) {
+    var aElement = messageDOM.querySelector('aside');
+    aElement.addEventListener('click', function resend(e) {
       var hash = window.location.hash;
       if (hash != '#edit') {
         var resendConfirmStr = _('resend-confirmation');
