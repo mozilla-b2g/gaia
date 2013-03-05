@@ -148,7 +148,8 @@ li.active > div > img {
   animation: rotate 2.25s linear infinite;
 }
 
-body[data-transitioning] .loading:after {
+body[data-transitioning] .loading:after,
+.draggable .loading:after {
   animation-name: none;
 }
 
