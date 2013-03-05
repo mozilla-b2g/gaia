@@ -64,8 +64,11 @@ nav[data-type="scrollbar"] li span:not([hidden]) {
 
 nav[data-type="scrollbar"] li .pack-icon-search {
   background-image: url(scrolling/images/icons/search.png);
+  margin-top: 0.5rem;
 }
 
 nav[data-type="scrollbar"] li .pack-icon-favorites {
   background-image: url(scrolling/images/icons/favorites.png);
+  margin-bottom: 0.25rem;
+  margin-top: 0.10rem;
 }
