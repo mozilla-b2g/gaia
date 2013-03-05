@@ -1162,8 +1162,21 @@ MessageReaderCard.prototype = {
   },
 
   onHyperlinkClick: function(event, linkNode, linkUrl, linkText) {
-    if (confirm(mozL10n.get('browse-to-url-prompt', { url: linkUrl })))
-      window.open(linkUrl, '_blank');
+    var dialog = msgNodes['browse-confirm'].cloneNode(true);
+    var content = dialog.getElementsByTagName('p')[0];
+    content.textContent = mozL10n.get('browse-to-url-prompt', { url: linkUrl });
+    ConfirmDialog.show(dialog,
+      { // Confirm
+        id: 'msg-browse-ok',
+        handler: function() {
+          window.open(linkUrl, '_blank');
+        }.bind(this)
+      },
+      { // Cancel
+        id: 'msg-browse-cancel',
+        handler: null
+      }
+    );
   },
 
   _populatePlaintextBodyNode: function(bodyNode, rep) {
