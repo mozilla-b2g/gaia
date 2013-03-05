@@ -729,7 +729,7 @@ var Contacts = (function() {
     ];
 
     var styles = [
-      '/shared/style_unstable/progress_activity.css',
+      '/shared/style/progress_activity.css',
       '/shared/style/status.css',
       '/shared/style/switches.css',
       '/shared/style/confirm.css',

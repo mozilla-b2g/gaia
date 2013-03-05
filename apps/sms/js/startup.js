@@ -21,7 +21,7 @@ var lazyLoadFiles = [
   'shared/style/input_areas.css',
   'shared/style/switches.css',
   'shared/style/confirm.css',
-  'shared/style_unstable/progress_activity.css',
+  'shared/style/progress_activity.css',
   'style/custom_dialog.css'
 ];
 

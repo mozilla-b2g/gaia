@@ -93,7 +93,7 @@ var Recents = {
       '/shared/style/headers.css',
       '/shared/style/switches.css',
       '/shared/style/edit_mode.css',
-      '/shared/style_unstable/lists.css',
+      '/shared/style/lists.css',
 
       '/dialer/js/phone_action_menu.js',
       '/dialer/js/fixed_header.js',
