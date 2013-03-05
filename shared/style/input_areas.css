@@ -37,15 +37,16 @@ textarea:invalid {
   color: #b90000;
 }
 
-input[type="text"]::-moz-placeholder,
-input[type="password"]::-moz-placeholder,
-input[type="email"]::-moz-placeholder,
-input[type="tel"]::-moz-placeholder,
-input[type="search"]::-moz-placeholder,
-input[type="url"]::-moz-placeholder,
-input[type="number"]::-moz-placeholder,
+input::-moz-placeholder,
 textarea::-moz-placeholder {
-  color: #666;
+  color: #858585;
+  opacity: 1;
+}
+
+input:-moz-placeholder,
+textarea:-moz-placeholder {
+  color: #858585;
+  opacity: 1;
 }
 
 form p {
@@ -71,6 +72,12 @@ form p textarea + button[type="reset"] {
   opacity: 0;
   pointer-events: none;
   background: url(input_areas/images/icons/clear.png) no-repeat 50% 50%;
+}
+
+/* To avoid colission with BB butons */
+li input + button[type="reset"]:after,
+li textarea + button[type="reset"]:after {
+  background: none;
 }
 
 form p input + button[type="reset"],

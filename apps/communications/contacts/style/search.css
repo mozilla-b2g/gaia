@@ -53,7 +53,7 @@ form.search button[type="submit"] {
   z-index: 1;
 }
 
-.facebook #search-view {
+.facebook #search-view, .import #search-view {
   z-index: 100;
 }
 
@@ -87,7 +87,8 @@ form.search button[type="submit"] {
 }
 
 /* facebook search */
-.facebook #search-view button[type="submit"] {
+.facebook #search-view button[type="submit"],
+.import #search-view button[type="submit"] {
   width: auto;
 }
 
@@ -111,6 +112,7 @@ form.search button[type="submit"] {
 }
 
 #search-list > li[data-uuid] > a *,
-.facebook #search-list > li[data-uuid] *:not(input) {
+.facebook #search-list > li[data-uuid] *:not(input),
+.import #search-list > li[data-uuid] *:not(input) {
   pointer-events: none;
 }

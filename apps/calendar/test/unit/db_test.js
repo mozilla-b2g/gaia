@@ -1,18 +1,23 @@
-requireApp('calendar/test/unit/helper.js', function() {
-  requireLib('ext/uuid.js');
-  requireLib('db.js');
-  requireLib('models/account.js');
-  requireLib('models/calendar.js');
-  requireLib('presets.js');
-});
+requireLib('ext/uuid.js');
+requireLib('db.js');
+requireLib('models/account.js');
+requireLib('models/calendar.js');
+requireLib('presets.js');
 
-/*
 // These tests are currently failing and have been temporarily disabled as per
 // Bug 838993. They should be fixed and re-enabled as soon as possible as per
 // Bug 840489.
 suite('db', function() {
+  return;
   var subject;
   var name;
+
+  suiteSetup(function(done) {
+
+    // load the required sub-objects..
+    var app = testSupport.calendar.app();
+    app.loadObject('Provider.Local', done);
+  });
 
   suiteSetup(function(done) {
     this.timeout(10000);
@@ -94,18 +99,11 @@ suite('db', function() {
   test('#load', function(done) {
     var loaded = {
       account: false,
-      calendar: false,
-      setting: false
+      calendar: false
     };
 
     var account = subject.getStore('Account');
     var calendar = subject.getStore('Calendar');
-    var setting = subject.getStore('Setting');
-
-    setting.load = function(callback) {
-      callback(null, {});
-      loaded.setting = true;
-    };
 
     account.load = function(callback) {
       callback(null, {});
@@ -128,7 +126,6 @@ suite('db', function() {
       done(function() {
         assert.ok(loaded.account, 'should load account');
         assert.ok(loaded.calendar, 'should load calendar');
-        assert.ok(loaded.setting), 'should load settings';
         subject.close();
       });
     });
@@ -254,6 +251,9 @@ suite('db', function() {
   });
 
   suite('#_upgradeAccountUrls', function() {
+    // commented out for now as its not used in production
+    return;
+
     var original;
 
     function stageData(done) {
@@ -354,6 +354,9 @@ suite('db', function() {
   });
 
   suite('#_upgradeMoveICALComponents', function() {
+    // commented out for now as its not used in production
+    return;
+
     var icalEvents = [];
     var normalEvents = [];
 
@@ -465,6 +468,9 @@ suite('db', function() {
   });
 
   suite('#_resetCaldavEventData', function() {
+    // commented out for now as its not used in production
+    return;
+
     var localAccount;
     var caldavAccount;
     var caldavCalendar;
@@ -568,4 +574,3 @@ suite('db', function() {
   });
 
 });
-*/

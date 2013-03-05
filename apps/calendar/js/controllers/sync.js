@@ -44,9 +44,14 @@ Calendar.ns('Controllers').Sync = (function() {
      *    controller.once('syncComplete', cb);
      *
      */
-    all: function() {
+    all: function(callback) {
+      if (callback) {
+        this.once('syncComplete', callback);
+      }
+
       if (this.app.offline()) {
         this.emit('offline');
+        this.emit('syncComplete');
         return;
       }
 
