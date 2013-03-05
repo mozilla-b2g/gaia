@@ -54,12 +54,12 @@ var Curtain = (function() {
     this.setFrom = function(pfrom) {
       from = capitalize(pfrom);
       progressTitle.textContent = _('progressFB3' + from + 'Title');
-    }
+    };
 
     this.setTotal = function(ptotal) {
       total = ptotal;
       showMessage();
-    }
+    };
   }
 
   return {

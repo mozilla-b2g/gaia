@@ -67,7 +67,7 @@ fbFriends.List = (function() {
                      '.fb-import-list header');
     if (typeof cb === 'function') {
       // We wait a delay depending on number of nodes (the curtain is displayed)
-      window.setTimeout(function () { cb(); }, contacts.length * 2);
+      window.setTimeout(function() { cb(); }, contacts.length * 2);
     }
   };
 

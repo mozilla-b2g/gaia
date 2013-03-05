@@ -71,7 +71,7 @@ if (typeof fb.oauth === 'undefined') {
           ready(access_token);
         }
       });
-    }
+    };
 
     /**
      *  Starts a OAuth 2.0 flow to obtain the user information

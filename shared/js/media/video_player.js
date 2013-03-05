@@ -82,14 +82,14 @@ function VideoPlayer(container) {
   this.reset = function() {
     hidePlayer();
     hidePoster();
-  }
+  };
 
   this.init = function() {
     playbackTime = 0;
     hidePlayer();
     showPoster();
     this.pause();
-  }
+  };
 
   function hidePlayer() {
     player.style.display = 'none';
@@ -111,7 +111,7 @@ function VideoPlayer(container) {
         player.currentTime = playbackTime;
       }
       self.play();
-    }
+    };
   }
 
   function hidePoster() {

@@ -42,7 +42,7 @@
     }
   }
 
-  var Mock= {
+  var Mock = {
     addEventListener: mnmt_addEventListener,
     removeEventListener: mnmt_removeEventListener,
     mTeardown: mnmt_init,

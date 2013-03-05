@@ -52,12 +52,12 @@ if (typeof fb.oauthflow === 'undefined') {
         // Finally the window is closed
         window.close();
       }
-    } // init
+    }; // init
 
 
     OAuthFlow.start = function(state) {
       getAccessToken(state);
-    }
+    };
 
 
     /**

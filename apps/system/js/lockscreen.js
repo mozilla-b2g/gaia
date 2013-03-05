@@ -525,7 +525,7 @@ var LockScreen = {
     this.mainScreen.focus();
 
     var repaintTimeout = 0;
-    var nextPaint= function() {
+    var nextPaint = function() {
       clearTimeout(repaintTimeout);
       currentFrame.removeNextPaintListener(nextPaint);
 
@@ -552,7 +552,7 @@ var LockScreen = {
           unlockAudio.play();
         }
       }
-    }.bind(this);
+    };.bind(this);
 
     this.dispatchEvent('will-unlock');
     currentFrame.addNextPaintListener(nextPaint);

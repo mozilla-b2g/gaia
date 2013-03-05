@@ -7,7 +7,7 @@ suite('logoLoader', function() {
   var video;
   var subject;
   var logoPath;
-  const invalidURL = 'INVALID_URL'
+  const invalidURL = 'INVALID_URL';
 
   setup(function() {
     image = MockPng;
@@ -19,7 +19,7 @@ suite('logoLoader', function() {
     subject.onload = function() {
       assert.equal(subject.element.tagName, 'IMG');
       done();
-    }
+    };
   });
 
   test('Find movie logo', function(done) {
@@ -27,7 +27,7 @@ suite('logoLoader', function() {
     subject.onload = function() {
       assert.equal(subject.element.tagName, 'VIDEO');
       done();
-    }
+    };
   });
 
   test('Logo not found', function(done) {
@@ -36,7 +36,7 @@ suite('logoLoader', function() {
       assert.isFalse(subject.found);
       assert.isTrue(subject.ready);
       done();
-    }
+    };
   });
 
   teardown(function() {

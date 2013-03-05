@@ -13,7 +13,7 @@ var utils = this.utils || {};
 
   utils.overlay.show = function showOverlay(message, progressClass, textId) {
     // Constructor for the progress element
-    function ProgressBar(pMsgId,pClass) {
+    function ProgressBar(pMsgId, pClass) {
       var counter = 0;
       var total = 0;
       var progressTextId = pMsgId || 'genericProgress';
@@ -41,14 +41,14 @@ var utils = this.utils || {};
         setClass(clazzName);
         clazz = clazzName;
         // To refresh the message according to the new clazzName
-        if(clazzName === 'activityBar' || clazzName === 'spinner') {
+        if (clazzName === 'activityBar' || clazzName === 'spinner') {
           progressMsg.textContent = null;
         }
-      }
+      };
 
       this.setHeaderMsg = function(headerMsg) {
         progressTitle.textContent = headerMsg;
-      }
+      };
     } // ProgressBar
 
     var out;
@@ -69,12 +69,12 @@ var utils = this.utils || {};
 
   function setAsProgress() {
     statusContainer.classList.remove('loading-icon');
-    progressElement.setAttribute('max','100');
-    progressElement.setAttribute('value','0');
+    progressElement.setAttribute('max', '100');
+    progressElement.setAttribute('value', '0');
   }
 
   function setClass(clazzName) {
-    switch(clazzName) {
+    switch (clazzName) {
       case 'spinner':
         progressElement.classList.remove('pack-activity');
         statusContainer.classList.add('loading-icon');

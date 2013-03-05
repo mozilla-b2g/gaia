@@ -135,7 +135,7 @@ var Recents = {
     var scripts = [
       '/dialer/js/fixed_header.js',
       '/dialer/js/utils.js',
-      '/dialer/js/recents_db.js',
+      '/dialer/js/recents_db.js'
     ];
 
     var scriptLoadCount = 0;
@@ -757,7 +757,7 @@ var Recents = {
       if (primaryInfo) {
         primaryInfoMainNode.textContent = primaryInfo;
       } else {
-        LazyL10n.get(function (_) {
+        LazyL10n.get(function(_) {
           primaryInfoMainNode.textContent = _('unknown');
         });
       }

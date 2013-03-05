@@ -149,9 +149,9 @@ var SimManager = {
     // Unlock SIM
     var options = {lockType: 'pin', pin: pin };
     var req = this.mobConn.unlockCardLock(options);
-    req.onsuccess = function sm_unlockSuccess() {
+    req.onsuccess = (function sm_unlockSuccess() {
       this.hideScreen();
-    }.bind(this);
+    }).bind(this);
   },
 
   clearFields: function sm_clearFields() {
@@ -199,9 +199,9 @@ var SimManager = {
     // Unlock SIM with PUK and new PIN
     var options = {lockType: 'puk', puk: pukCode, newPin: newpinCode };
     var req = this.mobConn.unlockCardLock(options);
-    req.onsuccess = function sm_unlockSuccess() {
+    req.onsuccess = (function sm_unlockSuccess() {
       this.hideScreen();
-    }.bind(this);
+    }).bind(this);
   },
 
   importContacts: function sm_importContacts() {
@@ -219,7 +219,7 @@ var SimManager = {
 
     importer.onread = function sim_import_read(n) {
       progress.setClass('progressBar');
-      progress.setHeaderMsg(_('simContacts-importing'))
+      progress.setHeaderMsg(_('simContacts-importing'));
       progress.setTotal(n);
     };
 

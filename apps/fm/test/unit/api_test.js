@@ -3,7 +3,7 @@ suite('FMRadio', function() {
   // WebFM api is unavailable on the B2G desktop.
   // If we add some options to skip tests on B2G desktop one day, delete me pls.
   if (!('mozFMRadio' in navigator) || !navigator.mozFMRadio) {
-    test('fm radio is disabled', function(){});
+    test('fm radio is disabled', function() {});
     return;
   }
 

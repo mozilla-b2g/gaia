@@ -240,7 +240,7 @@ var ValuePicker = (function() {
   };
 
   VP.prototype.resetUI = function() {
-    var actives = this.element.querySelectorAll(".active");
+    var actives = this.element.querySelectorAll('.active');
     for (var i = 0; i < actives.length; i++) {
       actives[i].classList.remove('active');
     }

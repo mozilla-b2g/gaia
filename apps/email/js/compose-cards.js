@@ -302,7 +302,7 @@ ComposeCard.prototype = {
       var email = target.querySelector('.cmp-peep-address').textContent;
       contents.getElementsByTagName('header')[0].textContent = email;
       document.body.appendChild(contents);
-      var formSubmit = function(evt) {
+      var formSubmit = (function(evt) {
         document.body.removeChild(contents);
         switch (evt.explicitOriginalTarget.className) {
           case 'cmp-contact-menu-delete':
@@ -312,7 +312,7 @@ ComposeCard.prototype = {
             break;
         }
         return false;
-      }.bind(this);
+      }).bind(this);
       contents.addEventListener('submit', formSubmit);
       return;
     }
@@ -351,7 +351,7 @@ ComposeCard.prototype = {
     // Since we will discard all the content while exit, there is no need to
     // save draft for now.
     //this.composer.saveDraftEndComposition();
-    var discardHandler = function() {
+    var discardHandler = (function() {
       if (this.activity) {
         // We need more testing here to make sure the behavior that back
         // to originated activity works perfectly without any crash or
@@ -364,7 +364,7 @@ ComposeCard.prototype = {
       } else {
         Cards.removeCardAndSuccessors(this.domNode, 'animate');
       }
-    }.bind(this);
+    }).bind(this);
     var self = this;
     var checkAddressEmpty = function() {
       var bubbles = self.domNode.querySelectorAll('.cmp-peep-bubble');
@@ -413,7 +413,7 @@ ComposeCard.prototype = {
             }
             activity = null;
           }
-        }
+        };
 
         domNode.removeChild(sendingTemplate);
         if (error) {
@@ -453,7 +453,7 @@ ComposeCard.prototype = {
           self.insertBubble(emt, this.result.name, this.result.email);
           self.sendButton.setAttribute('aria-disabled', 'false');
         }
-      }
+      };
     } catch (e) {
       console.log('WebActivities unavailable? : ' + e);
     }

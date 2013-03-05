@@ -275,7 +275,7 @@ function getVideoFile(filename, callback) {
   };
   req.onerror = function() {
     console.error('Failed to get video file', filename);
-  }
+  };
 }
 
 // This comparison function is used for sorting arrays and doing binary

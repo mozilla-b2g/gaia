@@ -119,7 +119,8 @@ if (!navigator.mozSms) {
     ];
   })();
 
-  var GetMessagesHack = function gmhack(stepCB, filter, invert, endCB, cllbckArgs) {
+  var GetMessagesHack = function gmhack(stepCB, filter, invert,
+                                        endCB, cllbckArgs) {
     function applyFilter(msgs) {
       if (!filter)
         return msgs;
@@ -148,7 +149,7 @@ if (!navigator.mozSms) {
       return b.timestamp - a.timestamp;
     });
     var msg = messagesHack.slice();
-    if (invert) 
+    if (invert)
       msg.reverse();
     var messagesToRender = applyFilter(msg);
     for (var i = 0, l = messagesToRender.length; i < l; i++) {
@@ -170,14 +171,14 @@ if (!navigator.mozSms) {
 
     GetMessagesHack(stepCB, filter, invert, endCB, endCBArgs);
   };
-  
+
 
   MessageManager.getThreads = function(callback, extraArg) {
     threadsHack.sort(function(a, b) {
       return a.timestamp - b.timestamp;
     });
 
-    if (typeof callback === "function") {
+    if (typeof callback === 'function') {
       callback(threadsHack, extraArg);
     }
   };
@@ -202,7 +203,7 @@ if (!navigator.mozSms) {
       if (simulateFail) {
         // simulate failure
         MessageManager.onMessageFailed(sent);
-        if (typeof failure === "function") {
+        if (typeof failure === 'function') {
           failure(number);
         }
         return;
@@ -212,7 +213,7 @@ if (!navigator.mozSms) {
       sent.message.delivery = 'sent';
       MessageManager.onMessageSent(sent);
 
-      if (typeof success === "function") {
+      if (typeof success === 'function') {
         success(sent.message);
       }
 

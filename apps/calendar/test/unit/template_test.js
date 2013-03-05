@@ -84,7 +84,8 @@ suite('calendar/template', function() {
     });
 
     test('when input is not an object', function() {
-      var tpl = new Template(function() { return 'foo ' + this.h('value') + '!'; });
+      var tpl = new Template(function() {
+          return 'foo ' + this.h('value') + '!'; });
       var result = tpl.render(1);
 
       assert.equal(result, 'foo 1!');
@@ -277,7 +278,8 @@ suite('calendar/template', function() {
         template: function() {
           tpl = tpl || new Template(function() {
             return '<div class="' + this.h('divClass') + '">' +
-              '<span class="' + this.h('spanClass') + '">' + this.h('content') + '</span>' +
+              '<span class="' + this.h('spanClass') + '">' +
+                this.h('content') + '</span>' +
             '</div>';
           });
           container.innerHTML = '';

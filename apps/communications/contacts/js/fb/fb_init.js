@@ -19,7 +19,7 @@ if (typeof fb.init === 'undefined') {
         fb.testToken = configData.testToken;
 
         callback();
-      }
+      };
 
       req.onerror = function(code) {
         window.console.error('Contacts: Error while checking if FB is enabled',
@@ -29,8 +29,8 @@ if (typeof fb.init === 'undefined') {
         // or not. That's because we would like to avoid to add extra conditions
         // throughout the code, thus keeping it as simple as possible
         initalizeDB(callback);
-      }
-    }
+      };
+    };
 
   })();
 }

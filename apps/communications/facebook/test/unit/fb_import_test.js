@@ -21,7 +21,7 @@ suite('Facebook Import', function() {
     // Forcing FTU as context
     subject.getContext = function() {
       return 'ftu';
-    }
+    };
 
     realFb = window.fb;
     window.fb = MockFb;
@@ -52,11 +52,11 @@ suite('Facebook Import', function() {
 
     subject.imgTimeoutHandler = function() {
       assert.ok(true, 'Timeout handler was invoked!');
-    }
+    };
 
     subject.errorHandler = function() {
       assert.error('Error while getting Fb data');
-    }
+    };
 
     subject.importAll(function() {
       assert.isTrue((fb.savedData.length === 1), 'Checking data importation');

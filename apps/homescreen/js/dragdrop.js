@@ -129,8 +129,9 @@ const DragDropManager = (function() {
           GridManager.goToNextPage(onNavigationEnd);
           transitioning = true;
         }
-      } else if (pageHelper.getCurrentPageNumber() > GridManager.landingPage + 1
-                 && dirCtrl.limitPrev(currentX)) {
+      } else if (
+          (pageHelper.getCurrentPageNumber() > GridManager.landingPage + 1) &&
+          dirCtrl.limitPrev(currentX)) {
         isDisabledDrop = true;
 
         pageHelper.getPrevious().appendIconVisible(draggableIcon);

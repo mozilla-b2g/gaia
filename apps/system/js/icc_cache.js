@@ -47,7 +47,7 @@
             icc.sendStkResponse(command, {
               resultCode: icc.STK_RESULT_OK
             });
-          }
+          };
         } else {
           // Unsolicited command? -> Open settings
           debug('CMD: ', command);
@@ -65,21 +65,22 @@
 
             function launchSettings() {
               debug('Locating settings . . .');
-              navigator.mozApps.mgmt.getAll().onsuccess = function gotApps(evt) {
-                var apps = evt.target.result;
-                apps.forEach(function appIterator(app) {
-                  if (app.origin != application)
-                    return;
+              navigator.mozApps.mgmt.getAll().onsuccess =
+                function gotApps(evt) {
+                  var apps = evt.target.result;
+                  apps.forEach(function appIterator(app) {
+                    if (app.origin != application)
+                      return;
 
-                  var reqIccData = window.navigator.mozSettings.createLock().set({
-                    'icc.data': JSON.stringify(command)
-                  });
-                  reqIccData.onsuccess = function icc_getIccData() {
-                    debug('Launching ', app.origin);
-                    app.launch();
-                  };
-                }, this);
-              };
+                    var reqIccData =
+                      window.navigator.mozSettings.createLock().set({
+                        'icc.data': JSON.stringify(command)});
+                    reqIccData.onsuccess = function icc_getIccData() {
+                      debug('Launching ', app.origin);
+                      app.launch();
+                    };
+                  }, this);
+                };
             }
             if (WindowManager.isFtuRunning()) {
               // Delay the stk command until FTU is done
@@ -93,5 +94,5 @@
           };
         }
       });
-  }
+  };
 })();

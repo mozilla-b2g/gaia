@@ -394,7 +394,7 @@ function ImageEditor(imageURL, container, edits, ready) {
     // If the constructor had a ready callback argument, call it now
     if (ready)
       ready();
-  }
+  };
 
   // The canvas that displays the preview
   this.previewCanvas = document.createElement('canvas');

@@ -170,7 +170,7 @@ function deleteFile(file) {
       // we also need to delete the poster image associated with
       // that video.
       var postername = file.replace('.3gp', '.jpg');
-      navigator.getDeviceStorage('pictures').delete(postername);
+      navigator.getDeviceStorage('pictures'). delete(postername);
     }
 
     // Whether or not there was a poster file to delete, delete the

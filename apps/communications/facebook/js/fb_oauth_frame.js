@@ -30,7 +30,7 @@ if (typeof fb.oauthFrame === 'undefined') {
           data: access_token
         }, contactsAppOrigin);
       }, from);
-    }
+    };
 
     window.addEventListener('message', function messageHandler(e) {
       var data = e.data;

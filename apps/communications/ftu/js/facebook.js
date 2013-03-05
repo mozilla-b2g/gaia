@@ -69,11 +69,11 @@ var FacebookIntegration = {
     var fbOption = this.fbImportButton;
     var noNetMsg = this.noNetworkMsg;
 
-    if(nextState === 'disabled') {
-      fbOption.setAttribute('disabled','disabled');
+    if (nextState === 'disabled') {
+      fbOption.setAttribute('disabled', 'disabled');
       noNetMsg.classList.remove('hidden');
     }
-    else if(nextState === 'enabled') {
+    else if (nextState === 'enabled') {
       fbOption.removeAttribute('disabled');
       noNetMsg.classList.add('hidden');
     }
