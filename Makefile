@@ -291,6 +291,9 @@ offline: webapp-manifests webapp-optimize webapp-zip optimize-clean
 reference-workload-light:
 	@echo "Populate Databases - Light Workload"
 	$(ADB) shell stop b2g
+	test_media/reference-workload/generateImages.sh 20
+	test_media/reference-workload/generateMusicFiles.sh 20
+	test_media/reference-workload/generateVideos.sh 5
 	$(ADB) push  test_media/reference-workload/contactsDb-200.sqlite /data/local/indexedDB/chrome/3406066227csotncta.sqlite
 	$(ADB) push  test_media/reference-workload/smsDb-200.sqlite /data/local/indexedDB/chrome/226660312ssm.sqlite
 	$(ADB) shell start b2g
@@ -301,6 +304,9 @@ reference-workload-light:
 reference-workload-medium:
 	@echo "Populate Databases - Medium Workload"
 	$(ADB) shell stop b2g
+	test_media/reference-workload/generateImages.sh 50
+	test_media/reference-workload/generateMusicFiles.sh 50
+	test_media/reference-workload/generateVideos.sh 10
 	$(ADB) push  test_media/reference-workload/contactsDb-500.sqlite /data/local/indexedDB/chrome/3406066227csotncta.sqlite
 	$(ADB) push  test_media/reference-workload/smsDb-500.sqlite /data/local/indexedDB/chrome/226660312ssm.sqlite
 	$(ADB) shell start b2g
@@ -311,6 +317,9 @@ reference-workload-medium:
 reference-workload-heavy:
 	@echo "Populate Databases - Heavy Workload"
 	$(ADB) shell stop b2g
+	test_media/reference-workload/generateImages.sh 100
+	test_media/reference-workload/generateMusicFiles.sh 100
+	test_media/reference-workload/generateVideos.sh 20
 	$(ADB) push  test_media/reference-workload/contactsDb-1000.sqlite /data/local/indexedDB/chrome/3406066227csotncta.sqlite
 	$(ADB) push  test_media/reference-workload/smsDb-1000.sqlite /data/local/indexedDB/chrome/226660312ssm.sqlite
 	$(ADB) shell start b2g
@@ -321,6 +330,9 @@ reference-workload-heavy:
 reference-workload-x-heavy:
 	@echo "Populate Databases - Extra Heavy Workload"
 	$(ADB) shell stop b2g
+	test_media/reference-workload/generateImages.sh 250
+	test_media/reference-workload/generateMusicFiles.sh 250
+	test_media/reference-workload/generateVideos.sh 50
 	$(ADB) push  test_media/reference-workload/contactsDb-2000.sqlite /data/local/indexedDB/chrome/3406066227csotncta.sqlite
 	$(ADB) push  test_media/reference-workload/smsDb-2000.sqlite /data/local/indexedDB/chrome/226660312ssm.sqlite
 	$(ADB) shell start b2g
