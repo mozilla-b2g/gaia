@@ -81,7 +81,8 @@ if (typeof fb.oauthflow === 'undefined') {
                                             '#state=' + state);
 
       var scope = ['friends_about_me,friends_birthday,' ,
-                    'friends_hometown,friends_location,friends_work_history'
+                    'friends_hometown,friends_location,friends_work_history,' ,
+                    'read_stream'
       ].join('');
       var scopeParam = encodeURIComponent(scope);
 
