@@ -991,6 +991,8 @@ var ThreadUI = {
         var number = this.result.number;
         if (number) {
           window.location.hash = '#num=' + number;
+          var messageInput = document.getElementById('message-to-send');
+          messageInput.focus();
         }
       };
     } catch (e) {
