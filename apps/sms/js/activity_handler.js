@@ -91,6 +91,12 @@ if (!window.location.hash.length) {
 
           // We have to remove the SMS due to it does not have to be shown.
           MessageManager.deleteMessage(message.id, function() {
+          MessageManager.getThreads(function recoverThreads(threads) {
+		  	ThreadListUI.renderThreads(threads);
+			WaitingScreen.hide();
+			ThreadListUI.editDone = true;
+			window.location.hash = '#thread-list';
+	    });
             // Once we remove the sms from DB we launch the notification
             NotificationHelper.send(message.sender, message.body,
                                       iconURL, showMessage);
