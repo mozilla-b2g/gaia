@@ -17,6 +17,10 @@
   opacity: 1;
 }
 
+#cards-view.no-transition {
+  transition: none;
+}
+
 #cards-view ul {
   list-style: none;
   margin: 0;

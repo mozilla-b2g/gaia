@@ -1,6 +1,6 @@
 Calendar.ns('Views').TimeParent = (function() {
 
-  var XSWIPE_OFFSET = 50;
+  var XSWIPE_OFFSET = window.innerWidth / 10;
 
   /**
    * Parent view for busytime-based views

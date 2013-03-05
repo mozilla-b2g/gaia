@@ -432,7 +432,8 @@ var WindowManager = (function() {
     var evt = document.createEvent('CustomEvent');
     evt.initCustomEvent('appopen', true, false, {
       manifestURL: manifestURL,
-      origin: displayedApp
+      origin: displayedApp,
+      isHomescreen: (manifestURL === homescreenManifestURL)
     });
     frame.dispatchEvent(evt);
   }
@@ -1931,14 +1932,22 @@ var WindowManager = (function() {
 
   // Stop running the app with the specified origin
   function kill(origin, callback) {
-    if (!isRunning(origin))
+    if (!isRunning(origin)) {
+      if (callback) {
+        setTimeout(callback);
+      }
       return;
+    }
 
     // As we can't immediatly remove runningApps entry,
     // we flag it as being killed in order to avoid trying to remove it twice.
     // (Check required because of bug 814583)
-    if (runningApps[origin].killed)
+    if (runningApps[origin].killed) {
+      if (callback) {
+        setTimeout(callback);
+      }
       return;
+    }
     runningApps[origin].killed = true;
 
     // If the app is the currently displayed app, switch to the homescreen
@@ -1961,13 +1970,17 @@ var WindowManager = (function() {
       } else {
         setDisplayedApp(homescreen, function() {
           removeFrame(origin);
-          if (callback)
+          if (callback) {
             setTimeout(callback);
+          }
         });
       }
 
     } else {
       removeFrame(origin);
+      if (callback) {
+        setTimeout(callback);
+      }
     }
 
     // Send a synthentic 'appterminated' event.

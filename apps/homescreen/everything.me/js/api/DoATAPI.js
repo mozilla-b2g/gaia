@@ -26,7 +26,8 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         // here we will save the actual params to pass
         savedParamsToPass = {},
         // which param to pass from normal requests to stats and logs
-        PARAM_TO_PASS_FROM_REQUEST_TO_STATS = "requestId",
+        PARAM_TO_PASS_BETWEEN_REQUESTS = "requestId",
+        PARAM_TO_PASS_BETWEEN_REQUESTS_NAME = "originatingRequestId",
         
         // client info- saved in cookie and sent to API
         currentClientInfo = {
@@ -472,7 +473,7 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
                 for (var i=0,e; e=events[i++];) {
                     var savedValue = savedParamsToPass[e.userEvent];
                     if (savedValue) {
-                        e[PARAM_TO_PASS_FROM_REQUEST_TO_STATS] = savedValue;
+                        e[PARAM_TO_PASS_BETWEEN_REQUESTS_NAME] = savedValue;
                     }
                 }
                 
@@ -485,7 +486,7 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
     // takes a method's response, and saves data according to paramsToPassBetweenRequests
     function saveParamFromRequest(method, response) {
         var events = paramsToPassBetweenRequests[method],
-            paramValue = response && response[PARAM_TO_PASS_FROM_REQUEST_TO_STATS];
+            paramValue = response && response[PARAM_TO_PASS_BETWEEN_REQUESTS];
             
         if (!paramValue || !events) {
             return;
@@ -806,6 +807,8 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         // the following params WILL NOT BE ADDED TO THE CACHE KEY
         params["apiKey"] = apiKey;
         params["v"] = appVersion;
+        params["native"] = true;
+
         if (manualCredentials) {
             params["credentials"] = manualCredentials;
         }

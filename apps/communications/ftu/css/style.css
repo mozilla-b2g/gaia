@@ -55,7 +55,7 @@ html, body {
   white-space: nowrap;
   margin: 0;
   padding: 1.5rem;
-  border-top: 1px solid #a6a6a6;
+  border-top: 0.1rem solid #a6a6a6;
   background: rgba(0,0,0,0.05);
   display: block;
   overflow: hidden;
@@ -284,11 +284,104 @@ html, body {
 }
 
 /*
-  Wifi
-*/
+ * Wifi
+ */
+
 #wifi [data-type="list"] li > p {
   pointer-events: none;
 }
+
+#wifi li {
+  padding: 0 1.5rem;
+}
+#wifi li.connected p {
+  color: #00AACC;
+}
+
+#wifi li:after {
+  content: "";
+  transition: opacity 0.2s ease;
+  background: #b1f1ff;
+  opacity: 0;
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+}
+
+#wifi li:active:after {
+  opacity: 0.6;
+}
+
+/*
+  No result container
+*/
+#networks {
+  top: 0;
+  bottom: 0;
+}
+
+#networks-list:first-child {
+  padding-top: 0;
+}
+
+#wifi #no-result-container {
+  position: absolute;
+  background: url('images/wifi_icon.png') no-repeat fixed center;
+  height: 100%;
+  width: 100%;
+}
+
+#wifi #no-result-message {
+  text-align: left;
+  line-height: 3rem;
+  position: relative;
+  top: 50%;
+  border-top: .1rem solid rgba(96,96,96,.5);
+  padding: 0;
+  width: 27rem;
+  margin: -3rem auto;
+  color: #606060;
+  font-weight: 300;
+  font-size: 2.26rem;
+}
+
+/*
+ * States of Wifi signal
+ */
+aside.wifi-icon {
+  background-repeat: no-repeat;
+  background-position: 0 center;
+  width: 3rem;
+}
+aside.wifi-signal       { background-image: url(images/wifi_disconnected_sprite.png);}
+aside.connected         { background-image: url(images/wifi_connected_sprite.png);}
+aside.secured           { background-image: url(images/wifi_disconnected_locked_sprite.png);}
+aside.secured.connected { background-image: url(images/wifi_connected_locked_sprite.png);}
+aside.level-0 { background-position:     0rem center;}
+aside.level-1 { background-position:  -3.2rem center;}
+aside.level-2 { background-position:  -6.4rem center;}
+aside.level-3 { background-position:  -9.6rem center;}
+aside.level-4 { background-position: -12.8rem center;}
+
+aside.secured.connecting { background-image: url(images/wifi_connected_locked_sprite.png);}
+aside.connecting {
+  background-image: url(images/wifi_connected_sprite.png);
+  animation-duration: 1s;
+  animation-iteration-count: infinite;
+  animation-timing-function: step-start;
+  animation-name: wifi-signal;
+}
+@keyframes wifi-signal {
+ 0%     { background-position:     0rem center; }
+ 25%    { background-position:  -3.2rem center; }
+ 50%    { background-position:  -6.4rem center; }
+ 75%    { background-position:  -9.6rem center; }
+ 100%   { background-position: -12.8rem center; }
+}
+
 
 /*
   Wifi configuration
@@ -594,28 +687,6 @@ html, body {
   opacity: 1;
 }
 
-
-#wifi li {
-  padding: 0 1.5rem;
-}
-
-#wifi li:after {
-  content: "";
-  transition: opacity 0.2s ease;
-  background: #b1f1ff;
-  opacity: 0;
-  position: absolute;
-  left: 0;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 0;
-}
-
-#wifi li:active:after {
-  opacity: 0.6;
-}
-
 /*
   About your rights
 */
@@ -912,31 +983,6 @@ i.hack-first-child {
   margin: 0;
   height: 100%;
 }
-
-/*
-  States of Wifi
-*/
-
-.wifi-signal0 {
-  background-image: -moz-image-rect(url(images/wifi_sprite.png), 0, 32, 32, 0) !important;
-}
-
-.wifi-signal1 {
-  background-image: -moz-image-rect(url(images/wifi_sprite.png), 0, 64, 32, 32) !important;
-}
-
-.wifi-signal2 {
-  background-image: -moz-image-rect(url(images/wifi_sprite.png), 0, 96, 32, 64) !important;
-}
-
-.wifi-signal3 {
-  background-image: -moz-image-rect(url(images/wifi_sprite.png), 0, 128, 32, 96) !important;
-}
-
-.wifi-signal4 {
-  background-image: -moz-image-rect(url(images/wifi_sprite.png), 0, 160, 32, 128) !important;
-}
-
 
 .icon {
   background-color: transparent !important;
