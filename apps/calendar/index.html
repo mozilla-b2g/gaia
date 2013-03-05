@@ -29,7 +29,6 @@
   <script defer src="/shared/js/desktop.js" charset="utf-8"></script>
   <script defer src="/shared/js/gesture_detector.js" charset="utf-8"></script>
   <script defer src="/shared/js/l10n_date.js" charset="utf-8"></script>
-  <script defer src="/shared/js/lazy_loader.js" charset="utf-8"></script>
   <script defer src="/shared/js/notification_helper.js" charset="utf-8"></script>
 
   <script defer src="/js/ext/page.js" charset="utf-8"></script>
@@ -141,7 +140,7 @@
     </button>
 
     <menu type="toolbar">
-      <a href="/add/">
+      <a href="/event/add/">
         <span data-l10n-id="new-event" class="icon icon-add" >
           Add Event
         </span>
@@ -362,6 +361,60 @@
   </form>
 </section>
 
+<section class="fullscreen-view" id="event-view" role="region">
+  <header>
+    <button class="cancel">
+      <span data-l10n-id="cancel" class="icon icon-back">Cancel</span>
+    </button>
+
+    <menu type="toolbar">
+      <button class="edit">
+        <span data-l10n-id="edit">Edit</span>
+      </button>
+    </menu>
+
+    <h1 data-l10n-id="add-event-header">
+      Event
+    </h1>
+  </header>
+
+  <section data-type="list">
+    <ul>
+      <li class="title">
+        <h1><span class="content"></span></h1>
+      </li>
+
+      <li class="location">
+        <span class="content"></span>
+      </li>
+
+      <li class="current-calendar">
+        <span class="content"></span>
+      </li>
+
+      <li class="start-date">
+        From: <span class="content"></span>
+        <span class="start-time">
+          <span class="content"></span>
+        </span>
+      </li>
+
+      <li class="end-date">
+        To: <span class="content"></span>
+        <span class="end-time">
+          <span class="content"></span>
+        </span>
+      </li>
+
+      <li class="description">
+        <strong>Notes</strong><br>
+        <span class="content"></span>
+      </li>
+
+    </ul>
+  </section>
+</section>
+
 <section class="fullscreen-view skin-organic" id="modify-account-view" role="region">
   <header>
     <button class="cancel">
@@ -429,3 +482,4 @@
 
 </body>
 </html>
+

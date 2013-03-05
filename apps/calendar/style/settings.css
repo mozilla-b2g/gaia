@@ -120,6 +120,9 @@ body[data-path^='/settings'] #time-views {
   display: block;
 }
 
+#settings .settings:active {
+  background-color: #008aaa;
+}
 
 #settings .calendars > li label {
   text-transform: none;

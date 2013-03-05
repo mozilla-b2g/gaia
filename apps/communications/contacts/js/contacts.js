@@ -90,12 +90,13 @@ var Contacts = (function() {
         break;
 
       case 'add-parameters':
-        navigation.home();
-        if ('tel' in params) {
-          selectList(params['tel']);
-        }
+        initForm(function onInitForm() {
+          navigation.home();
+          if ('tel' in params) {
+            selectList(params['tel']);
+          }
+        });
         return;
-
     }
 
   };
@@ -174,6 +175,7 @@ var Contacts = (function() {
       window.removeEventListener('asyncScriptsLoaded', onAsyncLoad);
       contactsList.initAlphaScroll();
       checkUrl();
+      PerformanceTestingHelper.dispatch('contacts-init-finished');
     });
   };
 
@@ -279,14 +281,14 @@ var Contacts = (function() {
       contactsList.getContactById(id, function findCb(contact, fbContact) {
         currentContact = contact;
         currentFbContact = fbContact;
-
-        if (!ActivityHandler.currentlyHandling) {
-          contactsDetails.render(currentContact, TAG_OPTIONS);
-          navigation.go('view-contact-details', 'right-left');
+        if (ActivityHandler.currentlyHandling) {
+          if (ActivityHandler.activityName == 'pick') {
+            dataPickHandler();
+          }
           return;
         }
-
-        dataPickHandler();
+        contactsDetails.render(currentContact, TAG_OPTIONS);
+        navigation.go('view-contact-details', 'right-left');
       });
     });
   };
@@ -304,10 +306,8 @@ var Contacts = (function() {
   };
 
   var selectList = function selectList(phoneNumber) {
-    var addButton = document.getElementById('add-contact-button');
     addButton.classList.add('hide');
     contactsList.clearClickHandlers();
-    contactsList.load();
     contactsList.handleClick(function addToContactHandler(id) {
       var data = {
         'tel': [{
@@ -645,6 +645,16 @@ var Contacts = (function() {
     evt.preventDefault();
   };
 
+  var enterSearchMode = function enterSearchMode(evt) {
+    contacts.List.initSearch(function onInit() {
+      contacts.Search.enterSearchMode(evt);
+    });
+  };
+
+  var exitSearchMode = function exitSearchMode(evt) {
+    contacts.Search.exitSearchMode(evt);
+  };
+
   var initEventListeners = function initEventListener() {
     // Definition of elements and handlers
     utils.listeners.add({
@@ -655,11 +665,11 @@ var Contacts = (function() {
       '#settings-button': showSettings, // Settings related
       '#settings-cancel': handleBack,
       '#settings-done': doneTag,
-      '#cancel-search': contacts.Search.exitSearchMode, // Search related
+      '#cancel-search': exitSearchMode, // Search related
       '#search-start': [
         {
           event: 'click',
-          handler: contacts.Search.enterSearchMode
+          handler: enterSearchMode
         }
       ],
       '#details-back': handleDetailsBack, // Details
@@ -714,7 +724,8 @@ var Contacts = (function() {
       '/contacts/js/utilities/import_sim_contacts.js',
       '/contacts/js/utilities/normalizer.js',
       '/contacts/js/utilities/status.js',
-      '/contacts/js/utilities/overlay.js'
+      '/contacts/js/utilities/overlay.js',
+      '/contacts/js/search.js'
     ];
 
     var styles = [
@@ -723,6 +734,8 @@ var Contacts = (function() {
       '/shared/style/switches.css',
       '/shared/style/confirm.css',
       '/contacts/style/fixed_header.css',
+      '/contacts/style/transitions.css',
+      '/contacts/style/animations.css',
       '/facebook/style/curtain_frame.css',
       '/contacts/style/status.css',
       '/contacts/style/fb_extensions.css'

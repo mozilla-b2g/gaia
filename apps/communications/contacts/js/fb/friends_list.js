@@ -3,9 +3,12 @@
 var fbFriends = window.fbFriends || {};
 
 fbFriends.List = (function() {
-  var groupsList = document.querySelector('#groups-list');
+  var groupsList;
 
   var load = function load(contacts, cb) {
+    if (!groupsList) {
+      groupsList = document.querySelector('#groups-list');
+    }
     // Hash containing each group
     var groups = {};
 
@@ -64,10 +67,10 @@ fbFriends.List = (function() {
     groupsList.appendChild(fragment);
 
     FixedHeader.init('#mainContent', '#fixed-container',
-                     '.fb-import-list header');
+                     '.import-list header, .fb-import-list header');
     if (typeof cb === 'function') {
       // We wait a delay depending on number of nodes (the curtain is displayed)
-      window.setTimeout(function () { cb(); }, contacts.length * 2);
+      window.setTimeout(function() { cb(); }, contacts.length * 2);
     }
   };
 

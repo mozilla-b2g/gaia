@@ -1,6 +1,5 @@
 (function(window) {
-
-  var oldRequire = require;
+  var oldRequire = window.require;
 
   require = function(path) {
     if (path === 'stream') {
@@ -113,6 +112,7 @@
     }
   };
 
+
   /* global exports */
 
   function requireLib() {
@@ -174,35 +174,49 @@
   l10nLink('/shared/locales/date.ini');
 
   requireApp('calendar/shared/js/l10n.js');
+  // setup localization....
+  requireApp('calendar/shared/js/l10n.js', function() {
+    // Massive hack to trick l10n to load... (TODO: upstream a fix to l10n.js)
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+
+    suiteSetup(function(done) {
+      var links = Array.slice(document.querySelectorAll('link'));
+
+      var state = navigator.mozL10n.readyState;
+      if (state !== 'complete' && state !== 'interactive') {
+        window.addEventListener('localized', function() {
+          done();
+        });
+      } else {
+        done();
+      }
+    });
+  });
+
   requireApp('calendar/shared/js/l10n_date.js');
 
   requireLib('calendar.js');
-  requireLib('calc.js');
-  requireLib('set.js');
-  requireLib('batch.js');
-  requireLib('template.js');
-  requireLib('interval_tree.js');
+  requireApp('calendar/test/unit/loader.js');
   requireLib('responder.js');
-  requireLib('utils/overlap.js');
-  requireLib('time_observer.js');
-  requireLib('provider/abstract.js');
-  requireLib('provider/local.js');
-  requireLib('store/abstract.js');
-  requireLib('store/account.js');
-  requireLib('store/busytime.js');
-  requireLib('store/calendar.js');
-  requireLib('store/event.js');
-  requireLib('store/ical_component.js');
-  requireLib('store/setting.js');
-  requireLib('store/alarm.js');
-  requireLib('event_mutations.js');
+  requireLib('calc.js');
   requireLib('view.js');
   requireLib('router.js');
-  requireLib('controllers/alarm.js');
-  requireLib('controllers/time.js');
-  requireLib('controllers/sync.js');
+  requireLib('interval_tree.js');
+  requireLib('time_observer.js');
+  requireLib('store/abstract.js');
+  requireLib('store/busytime.js');
+  requireLib('store/account.js');
+  requireLib('store/calendar.js');
+  requireLib('store/event.js');
+  requireLib('store/setting.js');
+  requireLib('store/ical_component.js');
   requireLib('worker/manager.js');
   requireLib('controllers/service.js');
+  requireLib('controllers/time.js');
+  requireLib('controllers/sync.js');
+  requireLib('controllers/alarm.js');
+  requireLib('store/setting.js');
+  requireLib('store/alarm.js');
   requireLib('db.js');
   requireLib('app.js');
 
@@ -212,6 +226,8 @@
   requireSupport('factory.js');
   requireSupport('factories/all.js');
 
+  // tell mocha its here..
+  window.uuid = null;
+  window.NotAmd = null;
+
 }(this));
-
-

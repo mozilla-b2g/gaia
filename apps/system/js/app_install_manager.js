@@ -245,7 +245,6 @@ var AppInstallManager = {
   addNotification: function ai_addNotification(app) {
     // should be unique (this is used already in applications.js)
     var manifestURL = app.manifestURL,
-        manifest = app.manifest || app.updateManifest,
         appInfo = this.appInfos[manifestURL];
 
     if (appInfo.installNotification) {
@@ -265,16 +264,16 @@ var AppInstallManager = {
 
     var _ = navigator.mozL10n.get;
 
+    var manifest = app.manifest || app.updateManifest;
     var message = _('downloadingAppMessage', {
       appName: new ManifestHelper(manifest).name
     });
 
     newNode.querySelector('.message').textContent = message;
 
-    var size = manifest.size,
-        progressNode = newNode.querySelector('progress');
-    if (size) {
-      progressNode.max = size;
+    var progressNode = newNode.querySelector('progress');
+    if (app.updateManifest) {
+      progressNode.max = app.updateManifest.size;
       appInfo.hasMax = true;
     }
 
@@ -305,7 +304,7 @@ var AppInstallManager = {
       // now we get NaN if there is no progress information but let's
       // handle the null and undefined cases as well
       message = _('downloadingAppProgressIndeterminate');
-      progressNode.value = undefined; // switch to indeterminate state
+      progressNode.removeAttribute('value'); // switch to indeterminate state
     } else if (appInfo.hasMax) {
       message = _('downloadingAppProgress',
         {

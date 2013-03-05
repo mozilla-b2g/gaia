@@ -521,9 +521,14 @@ var LockScreen = {
 
   unlock: function ls_unlock(instant) {
     var currentApp = WindowManager.getDisplayedApp();
-    WindowManager.setOrientationForApp(currentApp);
 
-    var currentFrame = WindowManager.getAppFrame(currentApp).firstChild;
+    var currentFrame = null;
+
+    if (currentApp) {
+      currentFrame = WindowManager.getAppFrame(currentApp).firstChild;
+      WindowManager.setOrientationForApp(currentApp);
+    }
+
     var wasAlreadyUnlocked = !this.locked;
     this.locked = false;
     this.setElasticEnabled(false);
@@ -532,7 +537,10 @@ var LockScreen = {
     var repaintTimeout = 0;
     var nextPaint = (function() {
       clearTimeout(repaintTimeout);
-      currentFrame.removeNextPaintListener(nextPaint);
+
+      if (currentFrame)
+        currentFrame.removeNextPaintListener(nextPaint);
+
 
       if (instant) {
         this.overlay.classList.add('no-transition');
@@ -560,7 +568,10 @@ var LockScreen = {
     }).bind(this);
 
     this.dispatchEvent('will-unlock');
-    currentFrame.addNextPaintListener(nextPaint);
+
+    if (currentFrame)
+      currentFrame.addNextPaintListener(nextPaint);
+
     repaintTimeout = setTimeout(function ensureUnlock() {
       nextPaint();
     }, 400);
@@ -807,6 +818,10 @@ var LockScreen = {
       updateConnstateLine1('emergencyCallsOnly');
 
       switch (conn.cardState) {
+        case 'unknown':
+          updateConnstateLine2('emergencyCallsOnly-unknownSIMState');
+          break;
+
         case 'absent':
           updateConnstateLine2('emergencyCallsOnly-noSIM');
           break;

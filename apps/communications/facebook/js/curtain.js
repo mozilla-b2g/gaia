@@ -26,6 +26,8 @@ var Curtain = (function() {
   function doShow(type) {
     form.dataset.state = type;
     curtainFrame.classList.add('visible');
+    curtainFrame.classList.remove('fadeOut');
+    curtainFrame.classList.add('fadeIn');
   }
 
   function capitalize(str) {
@@ -130,9 +132,11 @@ var Curtain = (function() {
       }
 
       delete form.dataset.state;
-      curtainFrame.classList.remove('visible');
-      curtainFrame.addEventListener('transitionend', function tend() {
-        curtainFrame.removeEventListener('transitionend', tend);
+      curtainFrame.classList.remove('fadeIn');
+      curtainFrame.classList.add('fadeOut');
+      curtainFrame.addEventListener('animationend', function cu_fadeOut(ev) {
+        curtainFrame.removeEventListener('animationend', cu_fadeOut);
+        curtainFrame.classList.remove('visible');
         if (typeof hiddenCB === 'function') {
           hiddenCB();
         }

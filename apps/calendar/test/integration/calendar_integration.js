@@ -1,3 +1,6 @@
+if (window && !window.addEventListener)
+  window.addEventListener = function() {};
+
 /* tools from calendar */
 require('/apps/calendar/js/calendar.js');
 require('/apps/calendar/js/calc.js');
