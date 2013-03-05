@@ -234,6 +234,7 @@ var clickEnabled;
 var vibrationEnabled;
 var enabledKeyboardGroups;
 var enabledKeyboardNames;
+var isSoundEnabled;
 
 // data URL for keyboard click sound
 const CLICK_SOUND = 'data:audio/x-wav;base64,' +
@@ -282,7 +283,8 @@ function getKeyboardSettings() {
     'language.current': 'en-US',
     'keyboard.wordsuggestion': true,
     'keyboard.vibration': false,
-    'keyboard.clicksound': false
+    'keyboard.clicksound': false,
+    'ring.enabled': true
   };
 
   // Add the keyboard group settings to our query, too.
@@ -297,9 +299,9 @@ function getKeyboardSettings() {
     suggestionsEnabled = values['keyboard.wordsuggestion'];
     vibrationEnabled = values['keyboard.vibration'];
     clickEnabled = values['keyboard.clicksound'];
+    isSoundEnabled = values['ring.enabled'];
 
-    if (clickEnabled)
-      clicker = new Audio(CLICK_SOUND);
+    handleKeyboardSound();
 
     // Copy the keyboard group settings too
     enabledKeyboardGroups = {};
@@ -337,12 +339,14 @@ function initKeyboard() {
     vibrationEnabled = e.settingValue;
   });
 
+  navigator.mozSettings.addObserver('ring.enabled', function(e) {
+    isSoundEnabled = e.settingValue;
+    handleKeyboardSound();
+  });
+
   navigator.mozSettings.addObserver('keyboard.clicksound', function(e) {
     clickEnabled = e.settingValue;
-    if (clickEnabled)
-      clicker = new Audio(CLICK_SOUND);
-    else
-      clicker = null;
+    handleKeyboardSound();
   });
 
   for (var group in keyboardGroups) {
@@ -354,7 +358,7 @@ function initKeyboard() {
         enabledKeyboardGroups[name] = e.settingValue;
         handleNewKeyboards();
       }
-    }
+    };
 
     navigator.mozSettings.addObserver(settingName,
                                       createLayoutCallback(settingName));
@@ -404,6 +408,14 @@ function initKeyboard() {
 
   // Handle resize events
   window.addEventListener('resize', onResize);
+}
+
+function handleKeyboardSound() {
+  if (clickEnabled && isSoundEnabled) {
+    clicker = new Audio(CLICK_SOUND);
+  } else {
+    clicker = null;
+  }
 }
 
 function setKeyboardName(name) {
@@ -949,7 +961,8 @@ function onTouchStart(evt) {
     var target = touch.target;
 
     // Add touchmove and touchend listeners directly to the target so that we
-    // will always hear these events, even if the target is removed from the DOM.
+    // will always hear these events, even if the target is removed from the
+    // DOM.
     // This can happen when the keyboard switches cases, as well as when we
     // show the alternate characters menu for a key.
     target.addEventListener('touchmove', onTouchMove);
@@ -1133,7 +1146,9 @@ function movePress(target, coords, touchId) {
   clearTimeout(menuTimeout);
 
   // Hide of alternatives menu if the touch moved out of it
-  if (target.parentNode !== IMERender.menu && isShowingAlternativesMenu && !inMenuLockedArea(coords))
+  if (target.parentNode !== IMERender.menu &&
+      isShowingAlternativesMenu &&
+      !inMenuLockedArea(coords))
     hideAlternatives();
 
   // Control showing alternatives menu
@@ -1203,7 +1218,7 @@ function endPress(target, coords, touchId) {
     compositeKey.split('').forEach(function sendEachKey(key) {
       window.navigator.mozKeyboard.sendKey(0, key.charCodeAt(0));
     });
-  }
+  };
 
   var compositeKey = target.dataset.compositekey;
   if (compositeKey) {
@@ -1509,7 +1524,7 @@ function triggerFeedback() {
     } catch (e) {}
   }
 
-  if (clickEnabled) {
+  if (clickEnabled && isSoundEnabled) {
     clicker.cloneNode(false).play();
   }
 }
