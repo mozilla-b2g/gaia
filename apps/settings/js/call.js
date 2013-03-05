@@ -244,6 +244,8 @@ var Calls = (function(window, document, undefined) {
     });
   }
 
+  // Call subpanel navigation control.
+  var oldHash = document.location.hash || '#root';
   function initCallForwarding() {
     var settings = window.navigator.mozSettings;
     if (!settings) {
@@ -304,6 +306,16 @@ var Calls = (function(window, document, undefined) {
             'ril.cf.' + settingKey + '.enabled', false);
         }
       });
+    });
+
+    window.addEventListener('hashchange', function() {
+      // If navigation is from #root to #call panels then update UI always.
+      if (document.location.hash === '#call' && !oldHash.startsWith('#call-cf-')) {
+        if (!updateCFEntryLock) {
+          updateCallForwardingEntry();
+        }
+      }
+      oldHash = document.location.hash;
     });
   }
 
