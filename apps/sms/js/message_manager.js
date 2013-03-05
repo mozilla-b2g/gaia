@@ -63,7 +63,9 @@ var MessageManager = {
 
   onMessageReceived: function mm_onMessageReceived(e) {
     var message = e.message;
-
+	if (message.messageClass === 'class-0') {
+	  return;
+	}
     var num;
     if (this.currentNum) {
       num = this.currentNum;
