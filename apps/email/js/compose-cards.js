@@ -260,6 +260,7 @@ ComposeCard.prototype = {
   onAddressInput: function(evt) {
     var node = evt.target;
     var container = evt.target.parentNode;
+
     if (this.isEmptyAddress()) {
       this.sendButton.setAttribute('aria-disabled', 'true');
       return;
@@ -304,8 +305,10 @@ ComposeCard.prototype = {
     if (!this.stringContainer) {
       this.stringContainer = document.createElement('div');
       this.domNode.appendChild(this.stringContainer);
+
+      var inputStyle = window.getComputedStyle(node);
+      this.stringContainer.style.fontSize = inputStyle.fontSize;
     }
-    this.stringContainer.style.fontSize = '1.5rem';
     this.stringContainer.style.display = 'inline-block';
     this.stringContainer.textContent = node.value;
     node.style.width = (this.stringContainer.clientWidth + 2) + 'px';
