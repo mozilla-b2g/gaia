@@ -427,7 +427,7 @@ suite('date picker', function() {
 
       subject.onvaluechange = function() {
         calledWith = arguments;
-      }
+      };
 
       subject.value = date = new Date(2012, 1, 1);
 
@@ -451,7 +451,7 @@ suite('date picker', function() {
       var calledWith;
       subject.onvaluechange = function() {
         calledWith = arguments;
-      }
+      };
 
       var target = subject.element.querySelector('[data-date="2012-1-1"]');
       triggerEvent(target, 'click');

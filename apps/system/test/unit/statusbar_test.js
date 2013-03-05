@@ -59,7 +59,8 @@ suite('system/Statusbar', function() {
 
     StatusBar.ELEMENTS.forEach(function testAddElement(elementName) {
       var elt;
-      if (elementName == 'system-downloads' || elementName == 'network-activity') {
+      if (elementName == 'system-downloads' ||
+          elementName == 'network-activity') {
         elt = document.createElement('canvas');
       } else {
         elt = document.createElement('div');
@@ -411,12 +412,12 @@ suite('system/Statusbar', function() {
         cell: {
           gsmLocationAreaCode: 71 // BA
         }
-      }
+      };
 
       MockNavigatorMozMobileConnection.iccInfo = {
         isDisplaySpnRequired: false,
         spn: 'Fake SPN'
-      }
+      };
     });
 
     test('Connection without region', function() {

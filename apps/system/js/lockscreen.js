@@ -507,7 +507,7 @@ var LockScreen = {
   },
 
   lockIfEnabled: function ls_lockIfEnabled(instant) {
-    if (FtuLauncher && FtuLauncher.isFtuRunning()) {      
+    if (FtuLauncher && FtuLauncher.isFtuRunning()) {
       this.unlock(instant);
       return;
     }

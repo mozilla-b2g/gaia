@@ -27,12 +27,14 @@ var FacebookIntegration = {
 
   get liveImportButton() {
     delete this.liveImportButton;
-    return this.liveImportButton = document.getElementById('live-import-button');
+    return this.liveImportButton =
+      document.getElementById('live-import-button');
   },
 
   get gmailImportButton() {
     delete this.gmailImportButton;
-    return this.gmailImportButton = document.getElementById('gmail-import-button');
+    return this.gmailImportButton =
+      document.getElementById('gmail-import-button');
   },
 
   get noNetworkMsg() {

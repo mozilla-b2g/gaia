@@ -364,11 +364,11 @@ var BalanceTab = (function() {
 
   var topUpCountdown, countdown;
   function resetTopUpCountdown() {
-    getTopUpTimeout(function (timeout) {
+    getTopUpTimeout(function(timeout) {
       if (!timeout) {
         return;
       }
-      countdown = Math.floor((timeout.getTime() - Date.now())/1000);
+      countdown = Math.floor((timeout.getTime() - Date.now()) / 1000);
       if (countdown < 0) {
         return;
       }
@@ -385,7 +385,7 @@ var BalanceTab = (function() {
           countdown -= 1;
         }
       }, 1000);
-    })
+    });
   }
 
   var ERRORS = {

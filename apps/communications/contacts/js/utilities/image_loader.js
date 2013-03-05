@@ -70,7 +70,7 @@ if (!window.ImageLoader) {
       tmp.onabort = tmp.onerror = function onerror() {
         item.dataset.visited = 'false';
         tmp = null;
-      }
+      };
     }
 
     /**

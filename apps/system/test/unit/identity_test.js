@@ -28,7 +28,7 @@ suite('identity', function() {
     navigator.mozL10n = MockL10n;
 
     realDispatchEvent = subject._dispatchEvent;
-    subject._dispatchEvent = function (obj) {
+    subject._dispatchEvent = function(obj) {
       lastDispatchedEvent = obj;
     };
   });

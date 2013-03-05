@@ -102,7 +102,7 @@
 
       db = new IMEngineDatabase();
       db.init(dbSettings);
-    }
+    };
 
     /* ==== helper functions ==== */
 
@@ -169,7 +169,7 @@
         debug('The last syllable is incomplete, add asterisk.');
         syllablesInBuffer[syllablesInBuffer.length - 1] += '*';
       }
-    }
+    };
 
     var typeOfSymbol = function ime_typeOfSymbol(code) {
 
@@ -622,7 +622,7 @@
     var layoutPage = LAYOUT_PAGE_DEFAULT;
     this.setLayoutPage = function ime_setLayoutPage(page) {
       layoutPage = page;
-    }
+    };
 
     var selectedText;
     var selectedSyllables = [];
@@ -1171,7 +1171,7 @@
           findSuggestionsInIDB();
         }
       );
-    },
+    };
 
     this.getTerms = function imedb_getTerms(syllables, callback) {
       if (!jsonData && !iDB) {
@@ -1298,7 +1298,7 @@
         }
         callback(terms[0]);
       });
-    }
+    };
 
     this.getSentences = function imedb_getSentences(syllables, callback) {
       var sentences = [];

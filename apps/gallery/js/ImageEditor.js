@@ -342,7 +342,7 @@ function saveEditedImage() {
 }
 
 
- function createThumbnailFromSource(fullSizeImage, sourceRectangle, 
+ function createThumbnailFromSource(fullSizeImage, sourceRectangle,
                                     containerWidth, containerHeight, callback) {
     // Create a thumbnail image
     var canvas = document.createElement('canvas');

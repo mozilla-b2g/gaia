@@ -74,7 +74,7 @@
       // If the alarm is in the past, fake it was launched
       if (when.getTime() < Date.now()) {
         debug('Faking a past reset alarm');
-        _onAlarm({ data: { type:'nextReset' } });
+        _onAlarm({ data: { type: 'nextReset' } });
         if (callback) {
           setTimeout(callback);
         }
@@ -95,7 +95,7 @@
   function getTopUpTimeout(callback) {
     ConfigManager.requestSettings(function _onSettings(settings) {
       var request = navigator.mozAlarms.getAll();
-      request.onsuccess = function (e) {
+      request.onsuccess = function(e) {
         var alarms = e.target.result;
         var length = alarms.length;
         if (!length) {

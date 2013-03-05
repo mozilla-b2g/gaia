@@ -495,7 +495,7 @@ var Cards = {
       return undefined;
   },
 
-  hasCard: function (query) {
+  hasCard: function(query) {
     return this._findCard(query, true) > -1;
   },
 
@@ -506,29 +506,33 @@ var Cards = {
   folderSelector: function(callback) {
     var self = this;
 
-    App.loader.load(['style/value_selector.css', 'js/value_selector.js'], function() {
-      // XXX: Unified folders will require us to make sure we get the folder list
-      //      for the account the message originates from.
-      if (!self.folderPrompt) {
-        var selectorTitle = mozL10n.get('messages-folder-select');
-        self.folderPrompt = new ValueSelector(selectorTitle);
-      }
+    App.loader.load(
+      ['style/value_selector.css', 'js/value_selector.js'],
+      function() {
+        // XXX: Unified folders will require us to make sure we get
+        //      the folder list for the account the message originates from.
+        if (!self.folderPrompt) {
+          var selectorTitle = mozL10n.get('messages-folder-select');
+          self.folderPrompt = new ValueSelector(selectorTitle);
+        }
 
-      var folderCardObj = Cards.findCardObject(['folder-picker', 'navigation']);
-      var folderImpl = folderCardObj.cardImpl;
-      var folders = folderImpl.foldersSlice.items;
-      for (var i = 0; i < folders.length; i++) {
-        var folder = folders[i];
-        self.folderPrompt.addToList(folder.name, folder.depth, function(folder) {
-          return function() {
-            self.folderPrompt.hide();
-            callback(folder);
-          }
-        }(folder));
+        var folderCardObj =
+          Cards.findCardObject(['folder-picker', 'navigation']);
+        var folderImpl = folderCardObj.cardImpl;
+        var folders = folderImpl.foldersSlice.items;
+        for (var i = 0; i < folders.length; i++) {
+          var folder = folders[i];
+          self.folderPrompt.addToList(folder.name, folder.depth,
+            function(folder) {
+              return function() {
+                self.folderPrompt.hide();
+                callback(folder);
+              }
+            }(folder));
 
-      }
-      self.folderPrompt.show();
-    });
+        }
+        self.folderPrompt.show();
+      });
   },
 
   moveToCard: function(query, showMethod) {
@@ -685,7 +689,7 @@ var Cards = {
   /**
    * Shortcut for removing all the cards
    */
-  removeAllCards: function () {
+  removeAllCards: function() {
     return this.removeCardAndSuccessors(null, 'none');
   },
 
@@ -935,15 +939,12 @@ var Toaster = {
   /**
    * Tell toaster listeners about a mutation we just made.
    *
-   * @args[
-   *   @param[undoableOp]
-   *   @param[pending #:optional Boolean]{
-   *     If true, indicates that we should wait to display this banner until we
-   *     transition to the next card.  This is appropriate for things like
-   *     deleting the message that is displayed on the current card (and which
-   *     will be imminently closed).
-   *   }
-   * ]
+   * @param {Object} undoableOp undoable operation.
+   * @param {Boolean} pending
+   *   If true, indicates that we should wait to display this banner until we
+   *   transition to the next card.  This is appropriate for things like
+   *   deleting the message that is displayed on the current card (and which
+   *   will be imminently closed).
    */
   logMutation: function(undoableOp, pending) {
     if (pending) {
