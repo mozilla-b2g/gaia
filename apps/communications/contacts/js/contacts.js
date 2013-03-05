@@ -793,11 +793,12 @@ var Contacts = (function() {
           currentContact.id == event.contactID) {
           contactsList.getContactById(event.contactID,
             function success(contact, enrichedContact) {
-            currentContact = enrichedContact || contact;
-            contactsDetails.render(currentContact, false,
+            currentContact = contact;
+            var mergedContact = enrichedContact || contact;
+            contactsDetails.render(mergedContact, false,
                                    enrichedContact ? true : false);
-            contactsList.refresh(currentContact, checkPendingChanges,
-              event.reason);
+            contactsList.refresh(mergedContact, checkPendingChanges,
+                                 event.reason);
           });
         } else {
           contactsList.refresh(event.contactID, checkPendingChanges,
