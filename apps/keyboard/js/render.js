@@ -29,7 +29,7 @@ const IMERender = (function() {
     getUpperCaseValue = uppercaseFunction;
     isSpecialKey = keyTest;
     this.ime = document.getElementById('keyboard');
-  }
+  };
 
   var setInputMethodName = function(name) {
     var candidatePanel = document.getElementById('keyboard-candidate-panel');
@@ -47,7 +47,7 @@ const IMERender = (function() {
     }
 
     inputMethodName = name;
-  }
+  };
 
   // Accepts three values: true / 'locked' / false
   //   Use 'locked' when caps are locked
@@ -71,7 +71,7 @@ const IMERender = (function() {
       capsLockKey.classList.remove('kbr-key-active');
       capsLockKey.classList.remove('kbr-key-hold');
     }
-  }
+  };
 
   // Draw the keyboard and its components. Meat is here.
   var draw = function kr_draw(layout, flags) {
@@ -171,7 +171,7 @@ const IMERender = (function() {
   var showIME = function hm_showIME() {
     delete this.ime.dataset.hidden;
     this.ime.classList.remove('hide');
-  }
+  };
 
   var hideIME = function km_hideIME() {
     this.ime.classList.add('hide');
@@ -187,7 +187,7 @@ const IMERender = (function() {
       var spanToReplace = key.querySelector('.visual-wrapper span');
       spanToReplace.textContent = alternativeKey;
     }
-  }
+  };
 
   // Unhighlight a key
   var unHighlightKey = function kr_unHighlightKey(key) {

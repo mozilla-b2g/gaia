@@ -304,7 +304,7 @@ if (typeof Contacts.extFb === 'undefined') {
             unload();
           }
           // Check whether there has been changes or not
-          if(data.data > 0) {
+          if (data.data > 0) {
             notifySettings();
           }
         break;

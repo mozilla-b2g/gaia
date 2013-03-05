@@ -1,5 +1,5 @@
 'use strict';
 
 var MockSleepMenu = {
-  startPowerOff: function(){}
+  startPowerOff: function() {}
 };

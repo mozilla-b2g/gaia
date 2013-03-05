@@ -181,7 +181,7 @@
           keyboard.sendCandidates(e.data.args);
           break;
         }
-      }
+      };
     }
 
     // Tell the worker what language we're using. They may cause it to

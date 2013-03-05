@@ -745,7 +745,7 @@
       clearTimeout(timeoutId);
       alertbox.classList.add('hidden');
       stkResGoBack();
-    }
+    };
 
     alertbox_btnclose.onclick = function() {
       clearTimeout(timeoutId);
@@ -833,7 +833,7 @@
         closeToneAlert();
         iccLastCommandProcessed = true;
         responseSTKCommand({ resultCode: icc.STK_RESULT_OK });
-      }
+      };
       alertbox_btnback.onclick = function() {
         closeToneAlert();
         stkResGoBack();

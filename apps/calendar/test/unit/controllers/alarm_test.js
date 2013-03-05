@@ -348,7 +348,8 @@ suite('controllers/alarm', function() {
 
       // Test setting sync to 30 minutes
       settingStore.set('syncFrequency', 30);
-      var difference = Math.round((currentAlarmTime - new Date()) / 1000 / 60); // Approximately how many minutes?
+      // Approximately how many minutes?
+      var difference = Math.round((currentAlarmTime - new Date()) / 1000 / 60);
       assert.equal(difference, 30);
       sendId(1);
       assert.equal(removed, null);
@@ -359,9 +360,11 @@ suite('controllers/alarm', function() {
       assert.equal(difference, 15);
       sendId(2);
       assert.equal(removed, 1);
-      var previousTime = currentAlarmTime - 15 * 60 * 1000; // Previous start time
+      // Previous start time
+      var previousTime = currentAlarmTime - 15 * 60 * 1000;
 
-      // Test setting sync to 30 minutes and confirm it uses the previous start time
+      // Test setting sync to 30 minutes and confirm it uses
+      // the previous start time
       settingStore.set('syncFrequency', 30);
       var nextTime = previousTime + 30 * 60 * 1000;
       assert.equal(nextTime, currentAlarmTime.getTime());

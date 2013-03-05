@@ -38,17 +38,20 @@ var App = {
       switch (problem) {
         case 'bad-user-or-pass':
           Cards.pushCard('setup-fix-password', 'default', 'animate',
-                         { account: account, restoreCard: Cards.activeCardIndex },
+                         { account: account,
+                           restoreCard: Cards.activeCardIndex },
                          'right');
           break;
         case 'imap-disabled':
           Cards.pushCard('setup-fix-gmail-imap', 'default', 'animate',
-                         { account: account, restoreCard: Cards.activeCardIndex },
+                         { account: account,
+                           restoreCard: Cards.activeCardIndex },
                          'right');
           break;
         case 'needs-app-pass':
           Cards.pushCard('setup-fix-gmail-twofactor', 'default', 'animate',
-                         { account: account, restoreCard: Cards.activeCardIndex },
+                         { account: account,
+                           restoreCard: Cards.activeCardIndex },
                          'right');
           break;
       }

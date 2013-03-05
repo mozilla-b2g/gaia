@@ -311,7 +311,8 @@ var Calls = (function(window, document, undefined) {
 
     window.addEventListener('hashchange', function() {
       // If navigation is from #root to #call panels then update UI always.
-      if (document.location.hash === '#call' && !oldHash.startsWith('#call-cf-')) {
+      if (document.location.hash === '#call' &&
+          !oldHash.startsWith('#call-cf-')) {
         if (!updateCFEntryLock) {
           updateCallForwardingEntry();
         }

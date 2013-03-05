@@ -44,7 +44,7 @@ suite('lazy loader', function() {
   test('append css script', function(done) {
     var numStyles = countSytles();
     LazyLoader.load('support/styles.css', function() {
-      assert.equal(countSytles(), (numStyles+1));
+      assert.equal(countSytles(), (numStyles + 1));
       done();
     });
   });

@@ -480,7 +480,7 @@ suite('views/modify_event', function() {
 
     test('/add returnTo', function() {
       subject.app.router.last = {
-          path : '/event/add/'
+          path: '/event/add/'
       };
       subject.dispatch({ params: {} });
       assert.equal(subject.returnTo(), subject.DEFAULT_VIEW);

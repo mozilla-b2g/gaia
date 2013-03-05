@@ -228,10 +228,10 @@ var KeypadManager = {
                                 .getPropertyValue('font-size');
     this.minFontSize = parseInt(parseInt(defaultFontSize) * 10 * 0.226);
     this.maxFontSize = this._onCall ?
-      parseInt(parseInt(defaultFontSize) * this._MAX_FONT_SIZE_ON_CALL
-        * 0.226) :
-      parseInt(parseInt(defaultFontSize) * this._MAX_FONT_SIZE_DIAL_PAD
-        * 0.226);
+      parseInt(parseInt(defaultFontSize) * this._MAX_FONT_SIZE_ON_CALL *
+        0.226) :
+      parseInt(parseInt(defaultFontSize) * this._MAX_FONT_SIZE_DIAL_PAD *
+        0.226);
 
     this.phoneNumberView.value = '';
     this._phoneNumber = '';
@@ -356,11 +356,11 @@ var KeypadManager = {
         var src = contactsIframe.src;
         // Only perform this refresh if we DID open the contacts tab
         if (src && src.length > 0) {
-          var timestamp = new Date().getTime();  
+          var timestamp = new Date().getTime();
           contactsIframe.contentWindow.location.search =
             '?timestamp=' + timestamp;
         }
-      }
+      };
     } catch (e) {
       console.log('WebActivities unavailable? : ' + e);
     }
@@ -411,7 +411,8 @@ var KeypadManager = {
         localizedSide = (side === 'begin' ? 'left' : 'right');
       }
       var computedStyle = window.getComputedStyle(view, null);
-      var currentFontSize = parseInt(computedStyle.getPropertyValue('font-size'));
+      var currentFontSize =
+        parseInt(computedStyle.getPropertyValue('font-size'));
       var viewWidth = view.getBoundingClientRect().width;
       fakeView.style.fontSize = currentFontSize + 'px';
       fakeView.innerHTML = view.value ? view.value : view.innerHTML;
@@ -420,9 +421,9 @@ var KeypadManager = {
 
       // Guess the possible position of the ellipsis in order to minimize
       // the following while loop iterations:
-      var counter = value.length -
-        (viewWidth *
-         (fakeView.textContent.length / fakeView.getBoundingClientRect().width));
+      var counter = value.length - (viewWidth *
+                                    fakeView.textContent.length /
+                                    fakeView.getBoundingClientRect().width);
 
       var newPhoneNumber;
       while (fakeView.getBoundingClientRect().width > viewWidth) {
@@ -611,7 +612,7 @@ var KeypadManager = {
       this.phoneNumberView.value = phoneNumber;
       this.moveCaretToEnd(this.phoneNumberView);
     }
-    
+
     this.formatPhoneNumber(ellipsisSide, maxFontSize);
   },
 

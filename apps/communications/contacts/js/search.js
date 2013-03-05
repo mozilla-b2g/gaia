@@ -35,7 +35,8 @@ contacts.Search = (function() {
       imgLoader,
       searchEnabled = false;
 
-  var init = function load(_conctactsListView, _groupFavorites, _clickHandler, defaultEnabled) {
+  var init = function load(_conctactsListView, _groupFavorites, _clickHandler,
+                           defaultEnabled) {
     conctactsListView = _conctactsListView;
 
     searchView = document.getElementById('search-view');
@@ -72,7 +73,7 @@ contacts.Search = (function() {
 
     if (defaultEnabled)
       searchEnabled = true;
-  }
+  };
 
   //Search mode instructions
   var exitSearchMode = function exitSearchMode(evt) {
@@ -108,7 +109,7 @@ contacts.Search = (function() {
     remainingPending = true;
   }
 
-  function addRemainingResults(nodes,from) {
+  function addRemainingResults(nodes, from) {
     if (remainingPending !== true) {
       return;
     }
@@ -244,8 +245,8 @@ contacts.Search = (function() {
             hideProgressResults();
           }
           // Only an initial page of elements is loaded in the search list
-          if (Object.keys(currentSet).length
-             < SEARCH_PAGE_SIZE && !(contact.dataset.uuid in currentSet)) {
+          if (Object.keys(currentSet).length <
+              SEARCH_PAGE_SIZE && !(contact.dataset.uuid in currentSet)) {
             var clonedNode = getClone(contact);
             currentSet[contact.dataset.uuid] = clonedNode;
             searchList.appendChild(clonedNode);
@@ -358,7 +359,7 @@ contacts.Search = (function() {
       contactNodes = list.querySelectorAll(CONTACTS_SELECTOR);
     }
     return contactNodes;
-  }
+  };
 
   var getContactsToSearch = function getContactsToSearch(newText, prevText) {
     var out;
@@ -373,11 +374,11 @@ contacts.Search = (function() {
     }
 
     return out;
-  }
+  };
 
   var isInSearchMode = function isInSearchMode() {
     return inSearchMode;
-  }
+  };
 
   var invalidateCache = function s_invalidate() {
     canReuseSearchables = false;
@@ -385,12 +386,12 @@ contacts.Search = (function() {
     contactNodes = null;
     currentSet = {};
     searchTextCache = {};
-  }
+  };
 
   var removeContact = function s_removeContact(id) {
     var contact = searchList.querySelector('li[data-uuid=\"' + id + '\"]');
     searchList.removeChild(contact);
-  }
+  };
 
   function showProgress() {
     searchNoResult.classList.add('hide');

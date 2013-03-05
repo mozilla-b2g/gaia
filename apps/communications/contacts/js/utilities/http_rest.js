@@ -33,7 +33,7 @@ if (!window.Rest) {
         xhr.timeout = options.operationsTimeout || DEFAULT_TIMEOUT;
 
         if (options.requestHeaders) {
-          for(var header in options.requestHeaders) {
+          for (var header in options.requestHeaders) {
             xhr.setRequestHeader(header, options.requestHeaders[header]);
           }
         }

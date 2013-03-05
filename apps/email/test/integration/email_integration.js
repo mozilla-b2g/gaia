@@ -109,7 +109,8 @@ EmailIntegration.prototype = {
           var val = yield app.device.executeScript(
             // XXX: This is fragile. It'd be nice if Cards had a
             // gimmeTopCardNow() method.
-            'return window.wrappedJSObject.Cards._cardStack.slice(-1)[0].cardDef.name;',
+            'return window.wrappedJSObject.' +
+              'Cards._cardStack.slice(-1)[0].cardDef.name;',
             function(err, result) {
               done(null, (result === cardname));
             });

@@ -55,8 +55,8 @@ if (!window.fb.contacts) {
       };
 
       function migrateSlice(from) {
-        for (var i = from; i < from + CHUNK_SIZE
-             && i < self.items.length; i++) {
+        for (var i = from; i < from + CHUNK_SIZE &&
+             i < self.items.length; i++) {
           var req = new fb.utils.Request();
           var item = self.items[i];
           doSave(item, req);
@@ -233,7 +233,7 @@ if (!window.fb.contacts) {
       return outRequest;
     };
 
-    function doSave(obj,outRequest) {
+    function doSave(obj, outRequest) {
       var transaction = database.transaction([STORE_NAME], 'readwrite');
 
       transaction.onerror = function(e) {
@@ -314,7 +314,7 @@ if (!window.fb.contacts) {
       return retRequest;
     };
 
-    function doRemove(uid,outRequest) {
+    function doRemove(uid, outRequest) {
       var transaction = database.transaction([STORE_NAME], 'readwrite');
       transaction.oncomplete = function(e) {
         outRequest.done(e.target.result);

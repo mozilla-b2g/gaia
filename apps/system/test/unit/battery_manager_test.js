@@ -52,7 +52,7 @@ suite('battery manager >', function() {
       '<div id="system-overlay" data-z-index-level="system-overlay">' +
         '<div id="battery">' +
           '<span class="icon-battery"></span>' +
-          '<span class="battery-notification" '+
+          '<span class="battery-notification" ' +
                  'data-l10n-id="battery-almost-empty">Battery almost empty' +
           '</span>' +
         '</div>' +

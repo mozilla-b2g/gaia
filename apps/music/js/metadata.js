@@ -814,7 +814,7 @@ function getThumbnailURL(fileinfo, callback) {
         // Return a default one instead
         console.warn('Album cover art failed to load', file.name);
         callback(null);
-      }
+      };
       offscreenImage.onload = function() {
         // We've loaded the image, now copy it to a canvas
         var canvas = document.createElement('canvas');

@@ -73,10 +73,10 @@
           notify('screenshotFailed', freereq.error && freereq.error.name);
         };
       }
-    }
+    };
     availreq.onerror = function() {
       notify('screenshotFailed', availreq.error && availreq.error.name);
-    }
+    };
   }
 
   // Handle the event we get from chrome with the screenshot
