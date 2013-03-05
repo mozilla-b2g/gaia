@@ -1012,6 +1012,61 @@ var Browser = {
     this.updateTabsCount();
   },
 
+  // Saves an image to device storage.
+  saveImage: function browser_saveImage(url) {
+    function displayMessage(message) {
+      console.log("Saving image: " + message);
+      var status = document.getElementById("save-image-status");
+      status.innerHTML = '<p>' + message + '</p>';
+      status.classList.add('visible');
+      window.setTimeout(function() {
+        status.classList.remove('visible');
+      }, 3000);
+    }
+
+    console.log("About to save image " + url);
+    var xhr = new XMLHttpRequest({mozSystem: true});
+    xhr.open('GET', url, true);
+    xhr.responseType = 'blob';
+    xhr.onload = function browser_imageDataListener() {
+      if (xhr.status !== 200 || !xhr.response) {
+        displayMessage('Error downloading image');
+        return;
+      }
+
+      // Save the blob to device storage.
+      // XXX : should we have any UI when saving successfully or when
+      // failing?
+
+      // Extract a filename from the URL, and to some sanitizing.
+      var name = url.split('/').reverse()[0].toLowerCase()
+                    .replace(/[^a-z0-9]/g, '_');
+
+      // If we have no file extension, use the content-type header to
+      // add one.
+      if (name.split('.').length == 1) {
+        var contentType = xhr.getResponseHeader("content-type");
+        name += "." + contentType.split('/')[1];
+      }
+      console.log("Saving as " + name);
+
+      var pictureStorage = navigator.getDeviceStorage('pictures');
+      var addreq = pictureStorage.addNamed(xhr.response, name);
+      addreq.onsuccess = function() {
+        displayMessage(_('image-saved'));
+      }
+      addreq.onerror = function() {
+        displayMessage(_('error-saving-image'));
+      }
+    }.bind(this);
+
+    // XXX : should we have any UI when failing here?
+    xhr.onerror = function getDefaultDataError() {
+      displayMessage(_('error-saving-image'));
+    };
+    xhr.send();
+  },
+
   // This generates callbacks for context menu targets that have
   // default actions attached
   generateSystemMenuItem: function browser_generateSystemMenuItem(item) {
@@ -1023,6 +1078,13 @@ var Browser = {
           self.openInNewTab(item.data);
         }
       };
+    } else if (item.nodeName === 'IMG') {
+      return {
+        label: _('save-image'),
+        callback: function() {
+          self.saveImage(item.data);
+        }
+      }
     }
     return false;
   },
