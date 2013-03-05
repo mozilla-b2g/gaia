@@ -32,5 +32,18 @@ oauthflow.params = {
     scope:
       ['wl.basic', 'wl.contacts_emails', 'wl.contacts_phone_numbers',
        'wl.contacts_birthday', 'wl.contacts_postal_addresses']
+  },
+
+  gmail: {
+    appOrigin:
+      'app://communications.gaiamobile.org',
+    redirectURI:
+      'https://serene-cove-3587.herokuapp.com/liveowd/oauth2_new/flow_live.html',
+    loginPage:
+      'https://accounts.google.com/o/oauth2/auth?',
+    applicationId:
+      '897176504708.apps.googleusercontent.com',
+    scope:
+      ['https://www.google.com/m8/feeds/'] 
   }
 };
