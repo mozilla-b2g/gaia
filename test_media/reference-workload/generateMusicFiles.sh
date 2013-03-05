@@ -6,7 +6,7 @@ if [ -z "$1" ]; then
   echo "Must provide number of iterations"
 fi
 
-if ! type mp3info > /dev/null 2>&1; then
+if ! type mid3v2 > /dev/null 2>&1; then
   echo "mid3v2 required to load music - install with |sudo apt-get install python-mutagen|"
   echo "No music loaded"
   exit
@@ -45,3 +45,5 @@ while [ ${COUNT} -lt $1 ]; do
   fi
 done
 
+# remove all the ID3 tags from the song (again)
+mid3v2 -D ${SCRIPT_DIR}/${SONG_NAME}
