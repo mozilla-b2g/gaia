@@ -16,10 +16,15 @@ requireApp('communications/contacts/js/importer_ui.js');
 var realContacts,
     realFixedHeader,
     realImageLoader,
-    realAlphaScroll;
+    realAlphaScroll,
+    realAsyncStorage;
 
 if (!this.FixedHeader) {
   this.FixedHeader = null;
+}
+
+if (!this.asyncStorage) {
+  this.asyncStorage = null;
 }
 
 if (!this.ImageLoader) {
@@ -52,6 +57,9 @@ suite('Import Friends Test Suite', function() {
 
     document.body.innerHTML = MockImportHtml;
 
+    realAsyncStorage = window.asyncStorage;
+    window.asyncStorage = MockAsyncStorage;
+
     importer.ui.init();
   });
 
@@ -59,12 +67,13 @@ suite('Import Friends Test Suite', function() {
     importer.start('mock_token', MockConnector, '*', function() {
       assert.equal(document.querySelectorAll('#groups-list li').length, 2);
 
+      // MockAsyncStorage is ordering by first name
       assert.isNotNull(document.
-                       querySelector('section#group-G li[data-uuid="1xz"]'));
+                       querySelector('section#group-P li[data-uuid="1xz"]'));
       assert.isNotNull(document.
-                       querySelector('section#group-G li[data-uuid="2abc"]'));
+                       querySelector('section#group-A li[data-uuid="2abc"]'));
 
-      assert.equal(document.querySelectorAll('section#group-A *').length, 0);
+      assert.equal(document.querySelectorAll('section#group-G *').length, 0);
 
       assert.equal(document.querySelector('input[name="1xz"]').checked, false);
       assert.equal(document.querySelector('input[name="2abc"]').checked, false);
@@ -77,6 +86,7 @@ suite('Import Friends Test Suite', function() {
     window.FixedHeader = realFixedHeader;
     window.ImageLoader = realImageLoader;
     window.contacts = realContacts;
+    window.asyncStorage = realAsyncStorage;
 
     document.body.innerHTML = '';
   });
