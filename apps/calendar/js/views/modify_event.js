@@ -296,7 +296,7 @@ Calendar.ns('Views').ModifyEvent = (function() {
      * Enlarges focus areas for .button controls
      */
     focusHandler: function(e) {
-      var input = e.target.querySelector('input');
+      var input = e.target.querySelector('input, select');
       if (input && e.target.classList.contains('button')) {
         input.focus();
       }
