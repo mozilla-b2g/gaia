@@ -1,5 +1,7 @@
 'use strict';
 
+var loader = LazyLoader;
+
 // Utility functions
 function padLeft(num, length) {
   var r = String(num);
@@ -234,8 +236,25 @@ var Camera = {
   // previewStream as fast as possible, once the previewStream is
   // active we do the rest of the initialisation.
   init: function() {
+    var self = this;
     this.setCaptureMode(this.CAMERA);
-    this.loadCameraPreview(this._camera, this.delayedInit.bind(this));
+    this.loadCameraPreview(this._camera, function() {
+      var files = [
+        'style/filmstrip.css',
+        'style/VideoPlayer.css',
+        '/shared/js/async_storage.js',
+        '/shared/js/blobview.js',
+        '/shared/js/media/jpeg_metadata_parser.js',
+        '/shared/js/media/get_video_rotation.js',
+        '/shared/js/media/video_player.js',
+        '/shared/js/media/media_frame.js',
+        '/shared/js/gesture_detector.js',
+        'js/filmstrip.js'
+      ];
+      loader.load(files, function() {
+        self.delayedInit();
+      });
+    });
   },
 
   delayedInit: function camera_delayedInit() {
@@ -305,6 +324,7 @@ var Camera = {
 
     this._pictureStorage
       .addEventListener('change', this.deviceStorageChangeHandler.bind(this));
+    this.checkStorageSpace();
 
     navigator.mozSetMessageHandler('activity', function(activity) {
       var name = activity.source.name;
@@ -320,6 +340,7 @@ var Camera = {
       Camera.enableButtons();
     });
 
+    this.previewEnabled();
     DCFApi.init();
   },
 
@@ -638,8 +659,6 @@ var Camera = {
       }
 
       this._previewActive = true;
-      this.checkStorageSpace();
-      setTimeout(this.initPositionUpdate.bind(this), this.PROMPT_DELAY);
     }
 
     function gotCamera(camera) {
@@ -700,8 +719,13 @@ var Camera = {
 
   startPreview: function camera_startPreview() {
     this.viewfinder.play();
-    this.loadCameraPreview(this._camera, this.enableButtons.bind(this));
+    this.loadCameraPreview(this._camera, this.previewEnabled.bind(this));
     this._previewActive = true;
+  },
+
+  previewEnabled: function() {
+    this.enableButtons();
+    setTimeout(this.initPositionUpdate.bind(this), this.PROMPT_DELAY);
   },
 
   stopPreview: function camera_stopPreview() {
