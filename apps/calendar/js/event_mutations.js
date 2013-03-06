@@ -43,6 +43,8 @@
  */
 Calendar.EventMutations = (function() {
 
+  var Calc = Calendar.Calc;
+
   function Create(options) {
     if (options) {
       for (var key in options) {
@@ -56,6 +58,7 @@ Calendar.EventMutations = (function() {
   Create.prototype = {
 
     commit: function(callback) {
+      var alarmStore = Calendar.App.store('Alarm');
       var eventStore = Calendar.App.store('Event');
       var busytimeStore = Calendar.App.store('Busytime');
       var componentStore = Calendar.App.store('IcalComponent');
@@ -75,7 +78,6 @@ Calendar.EventMutations = (function() {
         callback(e.target.error);
       };
 
-
       eventStore.persist(this.event, trans);
 
       if (!this.busytime) {
@@ -94,6 +96,35 @@ Calendar.EventMutations = (function() {
       controller.cacheBusytime(
         busytimeStore.initRecord(this.busytime)
       );
+
+      var alarms = this.event.remote.alarms;
+      if (alarms && alarms.length) {
+        var i = 0;
+        var len = alarms.length;
+
+        var alarmTrans = alarmStore.db.transaction(
+          ['alarms'],
+          'readwrite'
+        );
+
+        for (; i < len; i++) {
+
+          var alarm = {
+            startDate: {
+              offset: this.busytime.start.offset,
+              utc: this.busytime.start.utc + (alarms[i].trigger * 1000)
+            },
+            eventId: this.busytime.eventId,
+            busytimeId: this.busytime._id
+          };
+
+          if (Calc.dateFromTransport(alarm.startDate).valueOf() < Date.now()) {
+            continue;
+          }
+
+          alarmStore.persist(alarm, alarmTrans);
+        }
+      }
     }
 
   };

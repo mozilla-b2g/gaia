@@ -261,6 +261,20 @@ Calendar.Calc = (function() {
       );
     },
 
+    /**
+     * Converts a date to UTC
+     */
+    getUTC: function(date) {
+      return new Date(
+        date.getUTCFullYear(),
+        date.getUTCMonth(),
+        date.getUTCDate(),
+        date.getUTCHours(),
+        date.getUTCMinutes(),
+        date.getUTCSeconds(),
+        date.getUTCMilliseconds()
+      );
+    },
 
     /**
      * Converts transport time into a JS Date object.
@@ -280,15 +294,7 @@ Calendar.Calc = (function() {
       );
 
       if (zone && zone === Calc.FLOATING) {
-        return new Date(
-          date.getUTCFullYear(),
-          date.getUTCMonth(),
-          date.getUTCDate(),
-          date.getUTCHours(),
-          date.getUTCMinutes(),
-          date.getUTCSeconds(),
-          date.getUTCMilliseconds()
-        );
+        return this.getUTC(date);
       }
 
       return date;

@@ -43,11 +43,13 @@
   line-height: 1.3em;
 }
 
-#modify-event-view li.allday {
+#modify-event-view li.allday,
+#modify-event-view h3 {
   padding: 0 1rem;
   position: relative;
   font-size: 1.4rem;
   line-height: 3rem;
+  font-weight: normal;
 }
 
 #modify-event-view li.allday > label {
@@ -83,6 +85,10 @@
 
 #modify-event-view .calendar-id select {
   font-size: 1.4rem;
+}
+
+#modify-event-view .alarms .button {
+  margin: 0.25rem 0;
 }
 
 #modify-event-view.readonly menu,
