@@ -162,12 +162,9 @@ const DragDropManager = (function() {
    * {Object} This is the DOMElement which was tapped and hold
    */
   function onStart(elem) {
-    console.log('>>> dragdrop onstart');
     overlapElem = originElem = elem;
     draggableIcon = GridManager.getIcon(elem.dataset);
-    console.log('>>> got icon');
     draggableIcon.onDragStart(startEvent.x, startEvent.y);
-    console.log('>>> drag started');
     if (overlapingDock) {
       draggableIcon.addClassToDragElement('overDock');
     } else if (DockManager.isFull()) {

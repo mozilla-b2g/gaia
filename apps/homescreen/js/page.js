@@ -94,10 +94,10 @@ Icon.prototype = {
     img.setAttribute('role', 'presentation');
     img.width = MAX_ICON_SIZE+4*SCALE_RATIO;
     img.height = MAX_ICON_SIZE+4*SCALE_RATIO;
+    img.style.visibility = 'hidden';
     if (descriptor.renderedIcon) {
       this.displayRenderedIcon();
     } else {
-      img.style.visibility = 'hidden';
       this.fetchImageData();
     }
     icon.appendChild(img);
@@ -211,6 +211,7 @@ Icon.prototype = {
     }
 
     img.onload = function icon_loadSuccess() {
+      img.onload = img.onerror = null;
       if (blob)
         window.URL.revokeObjectURL(img.src);
       self.renderImage(img);
@@ -221,6 +222,7 @@ Icon.prototype = {
         window.URL.revokeObjectURL(img.src);
       img.src = getDefaultIcon(self.app);
       img.onload = function icon_errorIconLoadSucess() {
+        img.onload = null;
         self.renderImage(img);
       };
       img.onerror = null;
