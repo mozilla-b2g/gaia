@@ -14,6 +14,10 @@ html * {
   overflow: hidden;
 }
 
+.font-light {
+  font-weight: 300;
+}
+
 button::-moz-focus-inner {
   border: 0;
 }
@@ -50,9 +54,7 @@ button::-moz-focus-inner {
 }
 
 #keypad-callbar.hide,
-#keypad-hide-bar.hide,
-#callbar-answer.hide,
-#callbar-hang-up.hide {
+#keypad-hide-bar.hide {
   display: none;
 }
 
@@ -260,10 +262,6 @@ button[disabled] .icon-keypad-visibility {
   width: 50%;
 }
 
-#callbar-hang-up.full-space {
-  width: 100%;
-}
-
 #callbar-answer {
   height: 6.5rem;
   width: 50%;
@@ -284,10 +282,6 @@ button[disabled] .icon-keypad-visibility {
 
 #callbar-hang-up-action:active {
   background: #820000;
-}
-
-#callbar-hang-up.full-space > #callbar-hang-up-action {
-  margin: 1rem 1.5rem 1.5rem 1.5rem;
 }
 
 #callbar-hang-up-action > div {
@@ -643,8 +637,9 @@ button[disabled] .icon-keypad-visibility {
   width: 100%;
 }
 
-#call-screen[data-layout="dialing"] #callbar-hang-up-action {
-  margin: 1rem 1.5rem 1.5rem 1.5rem;
+#call-screen[data-layout="dialing"] #callbar-hang-up-action,
+#call-screen[data-layout="connected"] #callbar-hang-up-action {
+  margin: 1rem 1.5rem 1.5rem;
 }
 
 #call-screen[data-layout="incoming"] #co-advanced,
