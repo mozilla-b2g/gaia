@@ -50,7 +50,6 @@ pref("general.useragent.override.scribd.com", "\(Mobile#(Android; Mobile"); // b
 pref("general.useragent.override.elpais.com.co", "Mozilla/5.0 (Linux; Android 4.0.4; Galaxy Nexus Build/IMM76B) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.133 Mobile Safari/535.19"); // bug 827670
 pref("general.useragent.override.olx.com.co", "\(Mobile#(Android; Mobile"); // bug 827672
 pref("general.useragent.override.avianca.com", "\(Mobile#(Android; Mobile"); // bug 827674
-pref("general.useragent.override.dropbox.com", "\(Mobile#(Android; Mobile"); // bug 827676
 pref("general.useragent.override.marca.com", "\(Mobile#(Android; Mobile"); // bug 827678
 pref("general.useragent.override.wp.pl", "\(Mobile#(Android; Mobile"); // bug 828351
 pref("general.useragent.override.gazeta.pl", "\(Mobile#(Android; Mobile"); // bug 828354
