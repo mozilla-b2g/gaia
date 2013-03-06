@@ -149,7 +149,7 @@ var ApplicationsList = {
 
       self._sortApps();
       self.render();
-    }
+    };
   },
 
   render: function al_render() {
@@ -173,6 +173,9 @@ var ApplicationsList = {
 
         icon = document.createElement('img');
         icon.src = iconURL;
+      } else {
+        icon = document.createElement('img');
+        icon.src = '../style/images/default.png';
       }
 
       var item = document.createElement('li');
