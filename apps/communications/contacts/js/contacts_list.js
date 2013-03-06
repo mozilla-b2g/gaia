@@ -616,14 +616,13 @@ contacts.List = (function() {
   };
 
   var getAllContacts = function cl_getAllContacts(errorCb, successCb) {
-    initOrder(function onInitOrder() {      
+    initOrder(function onInitOrder() {
       var sortBy = (orderByLastName === true ? 'familyName' : 'givenName');
       var options = {
         sortBy: sortBy,
         sortOrder: 'ascending'
       };
 
-      
       var cursor = navigator.mozContacts.getAll(options);
       globalContacts = [];
       cursor.onsuccess = function onsuccess(evt) {
@@ -633,7 +632,7 @@ contacts.List = (function() {
           cursor.continue();
 
           // Start painting when we have a chunk
-          if (globalContacts.length == 10) {
+          if (globalContacts.length == 20) {
             dispatchCustomEvent('onContactsReceived');
           }
         } else {
@@ -641,7 +640,6 @@ contacts.List = (function() {
         }
       };
       cursor.onerror = errorCb;
-      
     });
   };
 
@@ -653,7 +651,7 @@ contacts.List = (function() {
     var contactsCache = {};
     var favorites = [];
     var length = contacts.length;
-    var CHUNK_SIZE = 10;
+    var CHUNK_SIZE = 20;
 
     counter['favorites'] = 0;
     var showNoContacs = length === 0;
@@ -681,14 +679,14 @@ contacts.List = (function() {
 
     // Performance testing
     function renderChunks(index) {
-      if (index == 0) {
-        PerformanceTestingHelper.dispatch('contacts-first-chunk');
-      }
+      PerformanceTestingHelper.dispatch('contacts-first-chunk-' + index);
       // If we know that we are not going to get more contacts
       // from the cursor, just increase the chunk to finish ASAP
+      /*
       if (contactsLoadFinished) {
         CHUNK_SIZE = 100;
       }
+      */
 
       var length = globalContacts.length;
       if (globalContacts.length / CHUNK_SIZE == index && contactsLoadFinished) {
