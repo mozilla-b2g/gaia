@@ -22,7 +22,7 @@ mocksHelperForGrid.init();
 
 suite('grid.js >', function() {
   var TAP_THRESHOLD = 10;
-  var PANNING_DELAY = 100;
+  var PANNING_DELAY = 200;
 
   var wrapperNode, containerNode;
   var realMozApps;

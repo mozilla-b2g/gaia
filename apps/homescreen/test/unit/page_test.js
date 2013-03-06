@@ -79,14 +79,8 @@ suite('page.js >', function() {
     }
 
     function dragSuite() {
-      suite('onDragStart >', function() {
-        setup(function() {
-          icon.onDragStart(icon.getTop(), icon.getLeft());
-        });
-
-        test('should work', function() {
-          assert.ok(true);
-        });
+      test('onDragStart should work', function() {
+        icon.onDragStart(icon.getTop(), icon.getLeft());
       });
     }
 
@@ -176,6 +170,9 @@ suite('page.js >', function() {
 
         suite('XHR throws an exception >', function() {
           setup(function(done) {
+            // in this case, the code is using an Image to fetch a png, and this
+            // sometimes is slow even if the server is local
+            this.timeout(5000);
             MockXMLHttpRequest.mThrowAtNextSend();
             renderIcon(done);
           });
@@ -217,6 +214,9 @@ suite('page.js >', function() {
 
         suite('XHR throws an exception >', function() {
           setup(function(done) {
+            // in this case, the code is using an Image to fetch a png, and this
+            // sometimes is slow even if the server is local
+            this.timeout(5000);
             MockXMLHttpRequest.mThrowAtNextSend();
             renderIcon(done);
           });
