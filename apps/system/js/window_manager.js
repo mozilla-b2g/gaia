@@ -99,6 +99,13 @@ var WindowManager = (function() {
   // The origin of the currently displayed app, or null if there isn't one
   var displayedApp = null;
 
+  // Track the audio activity.
+  var normalAudioChannelActive = false;
+
+  // When an app stops playing audio and the device is locked, we use a timer
+  // in order to restore its visibility.
+  var deviceLockedTimer = 0;
+
   // Public function. Return the origin of the currently displayed app
   // or null if there is none.
   function getDisplayedApp() {
@@ -1593,8 +1600,16 @@ var WindowManager = (function() {
     'attentionscreenshow',
     'attentionscreenhide',
     'status-active',
-    'status-inactive'
+    'status-inactive',
+    'mozChromeEvent'
   ];
+
+  function resetDeviceLockedTimer() {
+    if (deviceLockedTimer) {
+      clearTimeout(deviceLockedTimer);
+      deviceLockedTimer = 0;
+    }
+  }
 
   function overlayEventHandler(evt) {
     if (attentionScreenTimer)
@@ -1610,9 +1625,15 @@ var WindowManager = (function() {
         } else {
           setVisibilityForCurrentApp(true);
         }
+        resetDeviceLockedTimer();
         break;
       case 'lock':
-        setVisibilityForCurrentApp(false);
+        // If the audio is active, the app should not set non-visible
+        // otherwise it will be muted.
+        if (!normalAudioChannelActive) {
+          setVisibilityForCurrentApp(false);
+        }
+        resetDeviceLockedTimer();
         break;
 
       /*
@@ -1637,6 +1658,21 @@ var WindowManager = (function() {
             var app = runningApps[displayedApp];
             if (app)
               app.iframe.blur();
+        }
+        break;
+
+      case 'mozChromeEvent':
+        if (evt.detail.type == 'visible-audio-channel-changed') {
+          resetDeviceLockedTimer();
+
+          if (normalAudioChannelActive && evt.detail.channel !== 'normal' &&
+              LockScreen.locked) {
+            deviceLockedTimer = setTimeout(function setVisibility() {
+              setVisibilityForCurrentApp(false);
+            }, 3000);
+          }
+
+          normalAudioChannelActive = (evt.detail.channel === 'normal');
         }
         break;
     }
