@@ -2103,21 +2103,23 @@ function write (chunk) {
         var last = 0;
 
         if (useMozChunkedText) {
-          xhr.onprogress = function onChunkedProgress(event) {
-            this.ondata(xhr.responseText);
-          }.bind(this);
+          xhr.onprogress = (function onChunkedProgress(event) {
+            if (this.ondata) {
+              this.ondata(xhr.responseText);
+            }
+          }.bind(this));
         } else {
-          xhr.onprogress = function onProgress(event) {
+          xhr.onprogress = (function onProgress(event) {
             var chunk = xhr.responseText.substr(last, event.loaded);
             last = event.loaded;
             if (this.ondata) {
               this.ondata(chunk);
             }
-          }.bind(this);
+          }.bind(this));
         }
       }
 
-      xhr.onreadystatechange = function onReadyStateChange() {
+      xhr.onreadystatechange = (function onReadyStateChange() {
         var data;
         if (xhr.readyState === 4) {
           data = xhr.responseText;
@@ -2133,7 +2135,7 @@ function write (chunk) {
           this.waiting = false;
           callback(null, xhr);
         }
-      }.bind(this);
+      }.bind(this));
 
       this.waiting = true;
       xhr.send(this._seralize());
