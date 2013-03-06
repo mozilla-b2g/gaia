@@ -82,7 +82,7 @@ html, body {
   margin-right: 15px;
   width: 30%;
   height: 30px;
-  line-height:30px;
+  line-height: 30px;
   padding: 0;
   border: 0;
   background: none;
@@ -91,11 +91,11 @@ html, body {
   font-size: 1.4rem;
   font-weight: 500;
   outline: none;
-  color:#666;
+  color: #666;
 }
 
 #notification-clear:active { 
-  color:#1b3f46;
+  color: #1b3f46;
 }
 
 #notifications-container {
