@@ -1,3 +1,4 @@
+
 /* Copyright 2012 Mozilla Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -4049,7 +4050,7 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
 });
 
 }); // end define
-
+;
 define('mailapi/activesync/jobs',
   [
     'wbxml',
@@ -4483,7 +4484,7 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
 });
 
 }); // end define
-
+;
 /**
  * Implements the ActiveSync protocol for Hotmail and Exchange.
  **/
@@ -5237,7 +5238,7 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
 });
 
 }); // end define
-
+;
 /**
  * Configurator for activesync
  **/
@@ -5391,4 +5392,4 @@ exports.configurator = {
   },
 };
 
-}); // end define
+}); // end define;
