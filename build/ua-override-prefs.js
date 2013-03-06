@@ -1,7 +1,5 @@
-
 // Send these sites a custom user-agent. Bugs to remove each override after
 // evangelism are included.
-pref("general.useragent.override.facebook.com", "\(Mobile#(Android; Mobile"); // bug 827635
 pref("general.useragent.override.youtube.com", "\(Mobile#(Android; Mobile"); // bug 827636
 pref("general.useragent.override.yelp.com", "\(Mobile#(Android; Mobile"); // bug 799884
 pref("general.useragent.override.accounts.google.com", "\(Mobile#(Android; Mobile"); // bug 805164
