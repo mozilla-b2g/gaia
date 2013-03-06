@@ -100,7 +100,7 @@ section {
 
 #overlay-text {
   padding: 10px 5px 0 5px;
-  border-top: 1px solid #686868;	
+  border-top: 1px solid #686868;
   font-weight: 300;
   font-size: 2.5rem;
   color: #ebebeb;
@@ -110,7 +110,7 @@ section {
  * Thumbnails are implemented as <li> elements in a <ul> with background-image
  * set to display the image. We use background-size: cover to automatically
  * resize the image as needed.
- * The thumbnail list appears in regular browsing mode, in selection mode, 
+ * The thumbnail list appears in regular browsing mode, in selection mode,
  * and in pick mode.
  */
 
@@ -491,11 +491,11 @@ footer {
   position: absolute;
   top: 10px;
   left: 10px;
-  width: 300px;  /* I can't do right: 10px here. Bug? */
-  height: calc(100% - 20px)  /* can't just set bottom: 10px here */
+  width: calc(100% - 20px);
+  height: calc(100% - 20px);
 }
 
-#edit-crop-canvas { 
+#edit-crop-canvas {
   position: absolute;
   left: 0;
   right: 0;
@@ -533,7 +533,7 @@ footer {
   outline-offset: -3px;
 }
 
-#edit-crop-options a.button {
+#edit-crop-options a.button, #edit-rotate-options a.button {
   position: absolute;
   display: block;
   top: 0;
@@ -549,7 +549,7 @@ footer {
   background-position: center;
 }
 
-#edit-crop-options a.selected.radio.button {
+#edit-crop-options a.selected.radio.button, #edit-rotate-options a.selected.radio.button {
   outline: solid #00aacc 2px;
   outline-offset: -2px;
 }
@@ -661,11 +661,11 @@ a.filter-faded {
 
 #edit-border-none {
   left: calc(0% + 3px);
-  border: 2px solid white;  
+  border: 2px solid white;
 }
 #edit-border-thin-white {
   left: calc(20% + 3px);
-  border: 2px solid white;  
+  border: 2px solid white;
 }
 #edit-border-thick-white {
   left: calc(40% + 3px);
@@ -673,17 +673,17 @@ a.filter-faded {
 }
 #edit-border-thin-black {
   left: calc(60% + 3px);
-  border: 2px solid black;  
+  border: 2px solid black;
 }
 #edit-border-thick-black {
   left: calc(80% + 3px);
-  border: 4px solid black;  
+  border: 4px solid black;
 }
 
 /* all buttons in the toolbar share these styles */
 #edit-toolbar > .button {
   position: absolute;
-  width: 25%;
+  width: 20%;
   height: 100%;
   font-size: 1.4rem;
 }
@@ -698,15 +698,26 @@ a.filter-faded {
 }
 
 #edit-crop-button {
-  left: 25%;
+  left: 20%;
 }
 
 #edit-effect-button {
-  left: 50%
+  left: 40%
 }
 
 #edit-border-button {
-  left: 75%
+  left: 60%
+}
+
+#edit-rotate-button {
+  left: 80%;
+}
+
+#edit-rotate-counter {
+  left: 30%;
+}
+#edit-rotate-clock {
+  left: 50%;
 }
 
 /*
@@ -803,3 +814,4 @@ a.filter-faded {
 #slider3 {
   left: calc(10% + 6 * 80%/6);
 }
+.thumbnail {width:120px;height:120px}
