@@ -146,7 +146,6 @@ section[role="region"] > header:first-child menu[type="toolbar"] a:not([aria-dis
 section[role="region"] > header:first-child menu[type="toolbar"] button:not(:disabled):active  {
   background: #008aaa !important;
   transition: background 0.2s ease;
-  border-bottom: solid 0.1rem rgba(0, 0, 0, 0.2) !important;
 }
 
 /* Disabled state */
