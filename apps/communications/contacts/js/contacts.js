@@ -711,7 +711,7 @@ var Contacts = (function() {
   };
 
   var addAsyncScripts = function addAsyncScripts() {
-    var scripts = [
+    var lazyLoadFiles = [
       '/contacts/js/utilities/templates.js',
       '/contacts/js/contacts_shortcuts.js',
       '/contacts/js/utilities/responsive.js',
@@ -725,10 +725,7 @@ var Contacts = (function() {
       '/contacts/js/utilities/normalizer.js',
       '/contacts/js/utilities/status.js',
       '/contacts/js/utilities/overlay.js',
-      '/contacts/js/search.js'
-    ];
-
-    var styles = [
+      '/contacts/js/search.js',
       '/shared/style_unstable/progress_activity.css',
       '/shared/style/status.css',
       '/shared/style/switches.css',
@@ -741,34 +738,10 @@ var Contacts = (function() {
       '/contacts/style/fb_extensions.css'
     ];
 
-    var fragment = document.createDocumentFragment();
-
-    var onScriptLoaded = function onScriptLoaded() {
-      scriptsLoaded++;
-      if (scriptsLoaded === scripts.length) {
-        var event = new CustomEvent('asyncScriptsLoaded');
-        window.dispatchEvent(event);
-      }
-    };
-
-    for (var i = 0; i < styles.length; i++) {
-      var style = styles[i];
-      var elem = document.createElement('link');
-      elem.setAttribute('rel', 'stylesheet');
-      elem.href = style;
-      fragment.appendChild(elem);
-    }
-
-    for (var i = 0; i < scripts.length; i++) {
-      var script = scripts[i];
-      var elem = document.createElement('script');
-      elem.setAttribute('type', 'text/javascript');
-      elem.src = script;
-      elem.addEventListener('load', onScriptLoaded);
-      fragment.appendChild(elem);
-    }
-
-    document.head.appendChild(fragment);
+    LazyLoader.load(lazyLoadFiles, function() {
+      var event = new CustomEvent('asyncScriptsLoaded');
+      window.dispatchEvent(event);
+    });
   };
 
   var pendingChanges = {};
@@ -820,11 +793,12 @@ var Contacts = (function() {
           currentContact.id == event.contactID) {
           contactsList.getContactById(event.contactID,
             function success(contact, enrichedContact) {
-            currentContact = enrichedContact || contact;
-            contactsDetails.render(currentContact, false,
+            currentContact = contact;
+            var mergedContact = enrichedContact || contact;
+            contactsDetails.render(mergedContact, false,
                                    enrichedContact ? true : false);
-            contactsList.refresh(currentContact, checkPendingChanges,
-              event.reason);
+            contactsList.refresh(mergedContact, checkPendingChanges,
+                                 event.reason);
           });
         } else {
           contactsList.refresh(event.contactID, checkPendingChanges,
