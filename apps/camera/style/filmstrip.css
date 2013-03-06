@@ -13,10 +13,6 @@
   background: black;
 }
 
-#filmstrip.hidden {
-  transform: translateY(-50px);
-}
-
 img.thumbnail {
   position: relative;
   width: 46px;
@@ -60,10 +56,6 @@ img.thumbnail.previewed {  /* if the thumbnail is being previewed */
   transition: transform 0.5s linear;
   overflow: hidden;
   transform-origin: 0 0;
-}
-
-#preview.offscreen {
-  transform: translateY(-100%) scale(.125) translateX(50%);
 }
 
 #frame-container {
