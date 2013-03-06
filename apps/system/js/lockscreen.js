@@ -721,16 +721,21 @@ var LockScreen = {
       return;
     }
 
-    var overlay = this.overlay;
-    var self = this;
     panel = panel || 'main';
+    var overlay = this.overlay;
+    var currentPanel = overlay.dataset.panel;
+
+    if (currentPanel && currentPanel === panel) {
+      return;
+    }
+
+    var self = this;
 
     this._switchingPanel = true;
     this.loadPanel(panel, function panelLoaded() {
       self.unloadPanel(overlay.dataset.panel, panel,
         function panelUnloaded() {
-          if (overlay.dataset.panel !== panel)
-            self.dispatchEvent('lockpanelchange');
+          self.dispatchEvent('lockpanelchange');
 
           overlay.dataset.panel = panel;
           self._switchingPanel = false;
