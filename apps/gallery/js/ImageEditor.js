@@ -50,7 +50,8 @@ function editPhoto(n) {
     },
     gamma: 1,
     borderWidth: 0,
-    borderColor: [0, 0, 0, 0]
+    borderColor: [0, 0, 0, 0],
+    angle: 0
   };
 
   // Start looking up the image file
@@ -106,10 +107,14 @@ function editOptionsHandler() {
     imageEditor.setCropAspectRatio(3, 2);
   else if (this === $('edit-crop-aspect-square'))
     imageEditor.setCropAspectRatio(1, 1);
-  else if (this === $('edit-rotate-counter'))
-    imageEditor.rotate(270);
-  else if (this === $('edit-rotate-clock'))
-    imageEditor.rotate(90);
+  else if (this === $('edit-rotate-counter')) {
+    editSettings.angle = (360 + editSettings.angle - 90) % 360;
+    imageEditor.edit();
+  }
+  else if (this === $('edit-rotate-clock')) {
+    editSettings.angle = (editSettings.angle + 90) % 360;
+    imageEditor.edit();
+  }
   else if (this.dataset.effect) {
     editSettings.matrix = ImageProcessor[this.dataset.effect + '_matrix'];
     imageEditor.edit();
@@ -440,10 +445,10 @@ ImageEditor.prototype.edit = function() {
   var scaley = canvas.height / source.h;
   var scale = Math.min(Math.min(scalex, scaley), 1);
 
-  dest.w = Math.floor(source.w * scale);
-  dest.h = Math.floor(source.h * scale);
-  dest.x = Math.floor((canvas.width - dest.w) / 2);
-  dest.y = Math.floor((canvas.height - dest.h) / 2);
+  dest.w = canvas.width; //Math.floor(this.source.w * scale);
+  dest.h = canvas.height; //Math.floor(this.source.h * scale);
+  dest.x = 0; //Math.floor((canvas.width - dest.w) / 2);
+  dest.y = 0; //Math.floor((canvas.height - dest.h) / 2);
 
   this.processor.draw(this.original,
                       source.x, source.y, source.w, source.h,
@@ -1024,43 +1029,8 @@ function ImageProcessor(canvas) {
   this.gammaAddress = gl.getUniformLocation(program, 'gamma');
   this.borderWidthAddress = gl.getUniformLocation(program, 'border_width');
   this.borderColorAddress = gl.getUniformLocation(program, 'border_color');
+  this.rotMatrixAddress = gl.getUniformLocation(program, 'rotation_matrix');
 }
-
-// Rotate the current image
-ImageEditor.prototype.rotate = function(angle) {
-  var self = this;
-
-  // I'll do this using a new canvas element,
-  // then swapping the original image src.
-  // this works surprisingly good
-  var cnvs = document.createElement('canvas');
-  cnvs.width = this.original.height;
-  cnvs.height = this.original.width;
-  var ctx = cnvs.getContext('2d');
-
-  var TO_RADIANS = Math.PI/180;
-  function drawRotatedImage(image, x, y, angle) {
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.rotate(angle * TO_RADIANS);
-    ctx.drawImage(image, -(image.width/2), -(image.height/2));
-    ctx.restore();
-  }
-  drawRotatedImage(this.original, cnvs.width / 2, cnvs.height / 2, angle);
-
-  // so now we have le image here...
-  cnvs.toBlob(function(blob) {
-    // revoke the old object url
-    URL.revokeObjectURL(editedPhotoURL);
-    self.original.src = editedPhotoURL = URL.createObjectURL(blob);
-
-    // now update the other effects because the URL has expired
-    var backgroundImage = 'url(' + editedPhotoURL + ')';
-    editBgImageButtons.forEach(function(b) {
-      b.style.backgroundImage = backgroundImage;
-    });
-  });
-};
 
 // Destroy all the stuff we allocated
 ImageProcessor.prototype.destroy = function() {
@@ -1080,14 +1050,14 @@ ImageProcessor.prototype.draw = function(image,
 {
   var gl = this.context;
 
-  // Set the canvas size and image size
   gl.uniform2f(this.canvasSizeAddress, this.canvas.width, this.canvas.height);
   gl.uniform2f(this.imageSizeAddress, image.width, image.height);
+
+  // Set the canvas size and image size
   gl.uniform2f(this.destOriginAddress, dx, dy);
   gl.uniform2f(this.destSizeAddress, dw, dh);
 
   // Set the gamma correction
-  var gammaArray;
   if (options.gamma)
     gl.uniform4f(this.gammaAddress,
                  options.gamma, options.gamma, options.gamma, options.gamma);
@@ -1108,6 +1078,7 @@ ImageProcessor.prototype.draw = function(image,
 
   // Define the source rectangle
   makeRectangle(this.sourceRectangle, sx, sy, sw, sh);
+
   gl.enableVertexAttribArray(this.srcPixelAddress);
   gl.vertexAttribPointer(this.srcPixelAddress, 2, gl.FLOAT, false, 0, 0);
 
@@ -1119,8 +1090,13 @@ ImageProcessor.prototype.draw = function(image,
   gl.enableVertexAttribArray(this.destPixelAddress);
   gl.vertexAttribPointer(this.destPixelAddress, 2, gl.FLOAT, false, 0, 0);
 
+  // rotate!
+  var mat = getTransformationMatrix(options.tx || 0, options.ty || 0, options.angle * (2*Math.PI/360));
+  gl.uniformMatrix4fv(this.rotMatrixAddress, false, mat);
+
   // And draw it all
   gl.drawArrays(gl.TRIANGLES, 0, 6);
+
 
   // Define a rectangle as two triangles
   function makeRectangle(b, x, y, w, h) {
@@ -1132,14 +1108,31 @@ ImageProcessor.prototype.draw = function(image,
   }
 };
 
+function getTransformationMatrix(rx, ry, rz)
+{
+  // Pre-computes trigonometric values (mainly for better readability)
+  var cx = Math.cos(rx), sx = Math.sin(rx);
+  var cy = Math.cos(ry), sy = Math.sin(ry);
+  var cz = Math.cos(rz), sz = Math.sin(rz);
+
+  // Returns matrix
+  return new Float32Array([cy*cz, (sx*sy*cz-cx*sz), (sx*sz+cx*sy*cz), 0,
+                           cy*sz, (sx*sy*sz+cx*cz), (cx*sy*sz-sx*cz), 0,
+                           -sy,   sx*cy,            cx*cy,            0,
+                           0,     0,                0,                1]);
+}
+
+
 ImageProcessor.vertexShader =
   'attribute vec2 src_pixel;\n' +  // pixel position in the image
   'attribute vec2 dest_pixel;\n' + // pixel position on the canvas
   'uniform vec2 canvas_size;\n' +  // size of destination canvas in pixels
   'uniform vec2 image_size;\n' +   // size of source image in pixels
   'varying vec2 src_position;\n' + // pass image position to the fragment shader
+  'uniform mat4 rotation_matrix;\n' + // bla?
   'void main() {\n' +
-  '  gl_Position = vec4(((dest_pixel/canvas_size)*2.0-1.0)*vec2(1,-1),0,1);\n' +
+  '  gl_Position = rotation_matrix * vec4(((dest_pixel/canvas_size)*2.0-1.0)*vec2(1,-1),0,1);\n' +
+  //'  gl_Position = rotation_matrix * vec4(dest_pixel.x, dest_pixel.y, 0.0, 1.0);\n' +
   '  src_position = src_pixel / image_size;\n' +
   '}';
 
