@@ -4147,7 +4147,7 @@ ICAL.TimezoneService = (function() {
       if (this.count) {
         str += ";COUNT=" + this.count;
       }
-      if (this.interval != 1) {
+      if (this.interval > 1) {
         str += ";INTERVAL=" + this.interval;
       }
       for (var k in this.parts) {
@@ -4201,6 +4201,19 @@ ICAL.TimezoneService = (function() {
     return DOW_MAP[string];
   };
 
+  /**
+   * Convert a numeric day value into its ical representation (SU, MO, etc..)
+   *
+   * @param {Numeric} numeric value of given day.
+   * @return {String} day ical day.
+   */
+  ICAL.Recur.numericDayToIcalDay = function toIcalDay(num) {
+    //XXX: this is here so we can deal with possibly invalid number values.
+    //     Also, this allows consistent mapping between day numbers and day
+    //     names for external users.
+    return REVERSE_DOW_MAP[num];
+  };
+
   var VALID_DAY_NAMES = /^(SU|MO|TU|WE|TH|FR|SA)$/;
   var VALID_BYDAY_PART = /^([+-])?(5[0-3]|[1-4][0-9]|[1-9])?(SU|MO|TU|WE|TH|FR|SA)$/
   var ALLOWED_FREQ = ['SECONDLY', 'MINUTELY', 'HOURLY',
@@ -4226,6 +4239,11 @@ ICAL.TimezoneService = (function() {
 
     INTERVAL: function(value, dict) {
       dict.interval = ICAL.helpers.strictParseInt(value);
+      if (dict.interval < 1) {
+        // 0 or negative values are not allowed, some engines seem to generate
+        // it though. Assume 1 instead.
+        dict.interval = 1;
+      }
     },
 
     UNTIL: function(value, dict) {
@@ -4435,8 +4453,8 @@ ICAL.RecurIterator = (function() {
             this.last.day += dow;
           }
         } else {
-          var wkMap = icalrecur_iterator._wkdayMap[this.dtstart.dayOfWeek()];
-          parts.BYDAY = [wkMap];
+          var dayName = ICAL.Recur.numericDayToIcalDay(this.dtstart.dayOfWeek());
+          parts.BYDAY = [dayName];
         }
       }
 
@@ -5434,7 +5452,7 @@ ICAL.RecurIterator = (function() {
       return (this.check_contract_restriction("BYSECOND", this.last.second) &&
               this.check_contract_restriction("BYMINUTE", this.last.minute) &&
               this.check_contract_restriction("BYHOUR", this.last.hour) &&
-              this.check_contract_restriction("BYDAY", icalrecur_iterator._wkdayMap[dow]) &&
+              this.check_contract_restriction("BYDAY", ICAL.Recur.numericDayToIcalDay(dow)) &&
               this.check_contract_restriction("BYWEEKNO", weekNo) &&
               this.check_contract_restriction("BYMONTHDAY", this.last.day) &&
               this.check_contract_restriction("BYMONTH", this.last.month) &&
@@ -5477,8 +5495,6 @@ ICAL.RecurIterator = (function() {
     }
 
   };
-
-  icalrecur_iterator._wkdayMap = ["", "SU", "MO", "TU", "WE", "TH", "FR", "SA"];
 
   icalrecur_iterator._indexMap = {
     "BYSECOND": 0,
@@ -6228,7 +6244,7 @@ ICAL.Event = (function() {
     },
 
     set startDate(value) {
-      this._setProp('dtstart', value);
+      this._setTime('dtstart', value);
     },
 
     get endDate() {
@@ -6236,7 +6252,7 @@ ICAL.Event = (function() {
     },
 
     set endDate(value) {
-      this._setProp('dtend', value);
+      this._setTime('dtend', value);
     },
 
     get duration() {
@@ -6295,6 +6311,49 @@ ICAL.Event = (function() {
 
     set recurrenceId(value) {
       this._setProp('recurrence-id', value);
+    },
+
+    /**
+     * set/update a time property's value.
+     * This will also update the TZID of the property.
+     *
+     * TODO: this method handles the case where we are switching
+     * from a known timezone to an implied timezone (one without TZID).
+     * This does _not_ handle the case of moving between a known
+     *  (by TimezoneService) timezone to an unknown timezone...
+     *
+     * We will not add/remove/update the VTIMEZONE subcomponents
+     *  leading to invalid ICAL data...
+     */
+    _setTime: function(propName, time) {
+      var prop = this.component.getFirstProperty(propName);
+
+      if (!prop) {
+        prop = new ICAL.Property(propName);
+        this.component.addProperty(prop);
+      }
+
+      // type conversion
+      if (time.isDate && prop.type !== 'date') {
+        prop.resetType('date');
+      }
+
+      if (!time.isDate && prop.type !== 'date-time') {
+        prop.resetType('date-time');
+      }
+
+      // utc and local don't get a tzid
+      if (
+        time.zone === ICAL.Timezone.localTimezone ||
+        time.zone === ICAL.Timezone.utcTimezone
+      ) {
+        // remove the tzid
+        prop.removeParameter('tzid');
+      } else {
+        prop.setParameter('tzid', time.zone.tzid);
+      }
+
+      prop.setValue(time);
     },
 
     _setProp: function(name, value) {
