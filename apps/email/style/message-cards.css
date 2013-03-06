@@ -101,6 +101,15 @@ input.msg-search-text-tease {
   right: 0rem;
   width: 2.8rem;
   height: 100%;
+  overflow: hidden;
+}
+/* avatar width is 2.8rem, height is 8rem, aspect is 1:1, so centering is -2.6
+   rem on left. obviously, using background-image and background-size would be
+   easier, but we don't get an onload event which hurts createObjectURL until
+   we get autorevoke. */
+.msg-header-avatar {
+  height: 100%;
+  margin-left: -2.6rem;
 }
 
 .msg-header-author-and-date {
