@@ -6,10 +6,7 @@
 form[role="dialog"][data-type="confirm"] {
   background:
     url(confirm/images/ui/pattern.png) repeat left top,
-    url(confirm/images/ui/gradient.png) no-repeat left top;
-  background-size: auto auto, 100% 100%;
-  /* We can't use shortand with background size because is not implemented yet:
-  https://bugzilla.mozilla.org/show_bug.cgi?id=570326; */
+    url(confirm/images/ui/gradient.png) no-repeat left top / 100% 100%;
   overflow: hidden;
   position: absolute;
   z-index: 100;
@@ -30,9 +27,9 @@ form[role="dialog"][data-type="confirm"]:before {
   content: "";
   display: inline-block;
   vertical-align: middle;
-  width: 1px;
+  width: 0.1rem;
   height: 100%;
-  margin-left: -1px;
+  margin-left: -0.1rem;
 }
 
 form[role="dialog"][data-type="confirm"] > section {
@@ -88,7 +85,7 @@ form[role="dialog"][data-type="confirm"] menu button {
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
-  background: #fafafa url(buttons/images/ui/default.png) repeat-x left bottom;
+  background: #fafafa url(buttons/images/ui/default.png) repeat-x left bottom/ auto 100%;
   border: 0.1rem solid #a6a6a6;
   border-radius: 0.3rem;
   font: 500 1.6rem/3.8rem 'MozTT', Sans-serif;
@@ -104,7 +101,6 @@ form[role="dialog"][data-type="confirm"] menu button:active,
 form[role="dialog"][data-type="confirm"] menu button.recommend:active,
 a.recommend[role="button"]:active  {
   border-color: #008aaa;
-  background: #008aaa;
   color: #333;
 }
 
