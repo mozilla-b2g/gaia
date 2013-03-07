@@ -970,7 +970,7 @@ li[role="listitem"] small {
  }
 
 /* This is a dirty hack to hide the bottom toolbar while
- * the keyboard is active, than device-height - 40px 
+ * the keyboard is active, than device-height - 40px
  * (for status bar/mini attention screen),
  * then the keyboard is likely activated
  */
@@ -985,4 +985,12 @@ li[role="listitem"] small {
        (device-height: 640px) and (max-height: 590px) {
   .page-screen #toolbar-end { display: none; }
   .page-screen #frames { bottom: 0; }
+}
+
+#save-image-status {
+  display: none;
+}
+
+#save-image-status.visible {
+  display: block;
 }

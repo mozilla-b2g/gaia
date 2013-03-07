@@ -12,7 +12,8 @@
     "systemXHR":{},
     "settings":{ "access": "readonly" },
     "geolocation" : {},
-    "desktop-notification" : {}
+    "desktop-notification" : {},
+    "device-storage:pictures" : { "access": "readwrite" }
   },
   "locales": {
     "ar": {
