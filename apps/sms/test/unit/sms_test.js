@@ -9,7 +9,7 @@ requireApp('sms/js/contacts.js');
 requireApp('sms/js/fixed_header.js');
 requireApp('sms/js/search_utils.js');
 requireApp('sms/js/utils.js');
-requireApp('sms/test/unit/contact_mockup.js');
+requireApp('sms/test/unit/mock_contact.js');
 requireApp('sms/test/unit/utils_mockup.js');
 requireApp('sms/test/unit/messages_mockup.js');
 requireApp('sms/test/unit/sms_test_html_mockup.js');
@@ -168,7 +168,7 @@ suite('SMS App Unit-Test', function() {
     ContactDataManager.getContactData = function(number, callback) {
       // Get the contact
       if (number === '1977') {
-        callback(new MockContact());
+        callback(MockContact.list());
       }
     };
 
@@ -225,7 +225,7 @@ suite('SMS App Unit-Test', function() {
         var threadWithContact = document.getElementById('thread_1977');
         var contactName =
           threadWithContact.getElementsByClassName('name')[0].innerHTML;
-        assert.equal(contactName, 'Josh');
+        assert.equal(contactName, 'Pepito Grillo');
       });
     });
 
