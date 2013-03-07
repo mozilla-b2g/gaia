@@ -208,3 +208,7 @@ section.content .error-messages {
 #message-handler {
   visibility: hidden;
 }
+
+#loading-dialog p {
+  text-align: center;
+}

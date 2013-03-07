@@ -6,16 +6,17 @@
     <title data-l10n-id="usage">
       Usage
     </title>
-    
+
     <!-- Building blocks Temporal -->
     <link rel="stylesheet" type="text/css" href="style/bb/input-areas/style.css">
-    <link rel="stylesheet" type="text/css" href="style/bb/progress-activity/style.css">
 
     <!-- Building blocks -->
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/confirm.css">
     <link rel="stylesheet" type="text/css" href="shared/style/buttons.css">
     <link rel="stylesheet" type="text/css" href="shared/style/switches.css">
     <link rel="stylesheet" type="text/css" href="shared/style_unstable/lists.css">
+    <link rel="stylesheet" type="text/css" href="shared/style_unstable/progress_activity.css">
     <link rel="stylesheet" type="text/css" href="style/bb/filters/style.css">
 
     <!-- App and Views -->
@@ -44,8 +45,8 @@
 
   </head>
   <body role="application">
-    
     <section role="region" class="window skin-organic">
+
       <!-- XXX: The order of sections is important (tabs should be place above
 the overlays) and we should distinguish between TABS and OVERLAY VIEWS -->
       <header>
@@ -54,7 +55,16 @@ the overlays) and we should distinguish between TABS and OVERLAY VIEWS -->
         </menu>
         <h1 data-l10n-id="usage">Usage</h1>
       </header>
-      
+
+      <form id="loading-dialog" role="dialog" data-type="confirm">
+        <section>
+          <h1 data-l10n-id="loading">Loading...</h1>
+          <p>
+            <progress></progress>
+          </p>
+        </section>
+      </form>
+
       <!-- Bottom filters (Telephony / Cost Control and Data Usage) -->
       <ul id="tabs" role="tablist" class="filter" data-items="2" data-position="bottom">
         <li id="balance-tab-filter" aria-selected="true">
@@ -73,7 +83,7 @@ the overlays) and we should distinguish between TABS and OVERLAY VIEWS -->
           </a>
         </li>
       </ul>
-      
+
       <!-- BALANCE TAB -->
       <section role="region" id="balance-tab" class="view" data-viewport="left" hidden>
         <!--
@@ -272,7 +282,7 @@ the overlays) and we should distinguish between TABS and OVERLAY VIEWS -->
       <script type="text/javascript" defer src="js/views/datausage.js"></script>
       -->
     </section>
-  
+
     <!-- Settings view -->
     <section id="settings-view" class="view" data-viewport="bottom">
       <iframe id="settings-view-placeholder"></iframe>

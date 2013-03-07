@@ -103,11 +103,6 @@
       }
 
       // Navigation
-      var next = document.querySelectorAll('[data-navigation=next]');
-      [].forEach.call(next, function cc_eachNext(nextButton) {
-        nextButton.addEventListener('click', onNext);
-      });
-
       var prev = document.querySelectorAll('[data-navigation=back]');
       [].forEach.call(prev, function cc_eachPrev(prevButton) {
         prevButton.addEventListener('click', onBack);
@@ -116,6 +111,12 @@
       var finish = document.querySelectorAll('[data-navigation=finish]');
       [].forEach.call(finish, function cc_eachFinish(finishButton) {
         finishButton.addEventListener('click', onFinish);
+      });
+
+      var next = document.querySelectorAll('[data-navigation=next]');
+      [].forEach.call(next, function cc_eachNext(nextButton) {
+        nextButton.addEventListener('click', onNext);
+        nextButton.disabled = false;
       });
     });
   }
