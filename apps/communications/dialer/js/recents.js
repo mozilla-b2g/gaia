@@ -646,8 +646,8 @@ var Recents = {
       this.recentsContainer.innerHTML =
         '<div id="no-result-container">' +
         ' <div id="no-result-message">' +
-        ' <p data-l10n-id="no-logs-msg-1">no calls recorded</p>' +
-        ' <p data-l10n-id="no-logs-msg-2">start communicating now</p>' +
+        '   <p data-l10n-id="no-logs-msg-1">no calls recorded</p>' +
+        '   <p data-l10n-id="no-logs-msg-2">start communicating now</p>' +
         ' </div>' +
         '</div>';
       navigator.mozL10n.translate(this.recentsContainer);
