@@ -34,6 +34,9 @@
     }
   },
   "default_locale": "en-US",
+  "icons": {
+    "30": "/style/icons/HomeScreen.png"
+  },
   "orientation": "portrait-primary",
   "activities": {
     "save-bookmark": {
