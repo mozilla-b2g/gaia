@@ -352,9 +352,7 @@ var ScreenManager = {
     };
 
     if (instant) {
-      if (!WindowManager.isFtuRunning()) {
-        screenOff();
-      }
+      screenOff();
       return true;
     }
 
