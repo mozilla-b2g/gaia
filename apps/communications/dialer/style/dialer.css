@@ -8,6 +8,10 @@ html, body {
   font-size: 10px;
 }
 
+.font-light {
+  font-weight: 300;
+}
+
 a {
   outline: 0;
 }
