@@ -2,9 +2,14 @@
   "name": "HERE Maps",
   "description": "Get HERE and feel at home any place, no matter where you are. Know the places to go, get reviews and uncover new destinations with tips from locals and trusted guides. Discover places nearby in a snap.",
   "package_path": "/application.zip",
+  "launch_path": "/welcome.html",
   "developer": {
     "name": "Nokia",
     "url": "http://www.nokia.com"
+  },
+  "icons": {
+    "128": "/ffos_128.png",
+    "60": "/ffos_60.png"
   },
   "locales": {
     "en-US": {
