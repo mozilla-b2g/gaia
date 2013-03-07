@@ -858,28 +858,6 @@ var ThreadUI = {
     // We add the infinite scroll effect for increasing performance
     this.view.addEventListener('scroll', this.manageScroll.bind(this));
   },
-  initSentAudio: function() {
-    if (this.sentAudio)
-      return;
-
-    this.sentAudioKey = 'message.sent-sound.enabled';
-    this.sentAudio = new Audio('/sounds/sent.ogg');
-    this.sentAudio.mozAudioChannelType = 'notification';
-    this.sentAudioEnabled = false;
-
-    // navigator.mozSettings will always be defined, but in some environments,
-    // it may be set to `null`.
-    if (navigator.mozSettings !== null) {
-      var req = navigator.mozSettings.createLock().get(this.sentAudioKey);
-      req.onsuccess = (function onsuccess() {
-        this.sentAudioEnabled = req.result[this.sentAudioKey];
-      }).bind(this);
-
-      navigator.mozSettings.addObserver(this.sentAudioKey, (function(e) {
-        this.sentAudioEnabled = e.settingValue;
-      }).bind(this));
-    }
-  },
   // We define an edge for showing the following chunk of elements
   manageScroll: function thui_manageScroll(oEvent) {
     // kEdge will be the limit (in pixels) for showing the next chunk
@@ -922,7 +900,6 @@ var ThreadUI = {
   },
 
   enableSend: function thui_enableSend() {
-    this.initSentAudio();
     if (this.input.value.length > 0) {
       this.updateCounter();
     }
