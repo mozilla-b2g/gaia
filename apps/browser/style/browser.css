@@ -1005,3 +1005,10 @@ li[role="listitem"] small {
   .page-screen #toolbar-end { display: none; }
   .page-screen #frames { bottom: 0; }
 }
+
+#save-image-status {
+  display: none;
+}
+
+#save-image-status.visible {
+  display: block;
