@@ -984,3 +984,18 @@ li[role="listitem"] small {
   .page-screen #toolbar-end { display: none; }
   .page-screen #frames { bottom: 0; }
 }
+
+/* For the Twist , 960x540 */
+@media (device-height: 540px) and (max-height: 490px),
+       (device-height: 960px) and (max-height: 910px) {
+  .page-screen #toolbar-end { display: none; }
+  .page-screen #frames { bottom: 0; }
+}
+
+#save-image-status {
+  display: none;
+}
+
+#save-image-status.visible {
+  display: block;
+}
