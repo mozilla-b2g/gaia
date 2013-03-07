@@ -76,7 +76,7 @@
         <img id="crop-image"></img>
       </div>
     </section>
-    
+
     <section role="region" id="edit-view" class="hidden skin-organic">
       <header id="edit-header">
         <button id="edit-cancel-button"><span class="icon icon-close"></span></button>
@@ -110,7 +110,7 @@
           </div>
         </div>
 
-        <div id="edit-crop-options" class="edit-options-bar hidden"> 
+        <div id="edit-crop-options" class="edit-options-bar hidden">
           <a id="edit-crop-none" class="button"></a>
           <a id="edit-crop-aspect-free" class="selected radio button"></a>
           <a id="edit-crop-aspect-portrait" class="radio button"></a>
@@ -118,7 +118,7 @@
           <a id="edit-crop-aspect-square" class="radio button"></a>
         </div>
 
-        <div id="edit-effect-options" class="edit-options-bar hidden"> 
+        <div id="edit-effect-options" class="edit-options-bar hidden">
           <a id="edit-effect-none" class="selected radio button bgimage"
              data-effect="none"></a>
           <a id="edit-effect-bw" class="radio button filter-bw bgimage"
@@ -131,7 +131,7 @@
              data-effect="faded"></a>
         </div>
 
-        <div id="edit-border-options" class="edit-options-bar hidden"> 
+        <div id="edit-border-options" class="edit-options-bar hidden">
           <a id="edit-border-none" class="selected radio button bgimage"
              data-border-width="0"></a>
           <a id="edit-border-thin-white" class="radio button bgimage"
@@ -171,6 +171,16 @@
         <p id="overlay-text"><p>
       </div>
     </div>
+
+    <form id="confirm-dialog" role="dialog" data-type="confirm" class="hidden">
+      <section>
+        <p id="confirm-msg"></p>
+      </section>
+      <menu>
+        <button id="confirm-cancel"></button>
+        <button id="confirm-ok"></button>
+      </menu>
+    </form>
 
     <!-- Some SVG filters we use -->
     <svg id="filters" width="0" height="0">
