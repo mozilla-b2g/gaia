@@ -540,23 +540,6 @@ iframe.backgroundWindow {
   visibility: hidden;
 }
 
-/*
-  Styles for FTU starting
-*/
-
-#screen.ftu > [data-z-index-level="app"] > .appWindow.homescreen,
-#screen.ftu > [data-z-index-level="app"] > .appWindow.homescreen.active {
-  opacity: 0;
-}
-
-#screen.ftuStarting #lockscreen {
-  display: none;
-}
-
-#screen.ftuStarting #statusbar {
-  opacity: 0;
-}
-
 /* For app error */
 
 .appWindow > iframe {

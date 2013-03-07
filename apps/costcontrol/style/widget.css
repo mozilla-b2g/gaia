@@ -68,7 +68,8 @@ p.meta {
   background: url(images/widget/sim/nonauthed-sim.png);  
 }
 
-.widget-no-sim2 {
+.widget-no-sim2,
+.widget-sim-locked {
   background: url(images/widget/sim/no-sim.png);
 }
 
@@ -226,7 +227,6 @@ p.meta {
 .data .stats dt {
   font-weight: 400;
   color: rgba(255, 255, 255, 0.5);
-  text-transform: lowercase;
 }
 
 .data .stats dd {

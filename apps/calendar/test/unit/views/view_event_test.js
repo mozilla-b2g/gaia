@@ -1,14 +1,7 @@
-requireApp('calendar/test/unit/helper.js', function() {
-  requireLib('utils/input_parser.js');
-  requireLib('views/event_base.js');
-  requireLib('views/view_event.js');
-  requireLib('models/account.js');
-  requireLib('models/calendar.js');
-  requireLib('models/event.js');
-});
-requireApp('calendar/test/unit/support/event_helper.js');
+requireSupport('event_helper.js');
+requireLib('provider/abstract.js');
 
-suite('views/view_event', function() {
+suiteGroup('Views.ViewEvent', function() {
 
   var subject;
   var controller;
@@ -193,7 +186,7 @@ suite('views/view_event', function() {
         startTime: InputParser.exportTime(remote.startDate),
         endDate: InputParser.exportDate(remote.endDate),
         endTime: InputParser.exportTime(remote.endDate),
-        currentCalendar: calendar.name,
+        currentCalendar: calendar.remote.name,
         description: remote.description
       };
 

@@ -5,7 +5,7 @@
 
 window.addEventListener('load', function startup() {
   function safelyLaunchFTU() {
-    WindowManager.retrieveHomescreen(WindowManager.retrieveFTU);
+    WindowManager.retrieveHomescreen(FtuLauncher.retrieve.bind(FtuLauncher));
   }
 
   if (Applications.ready) {

@@ -135,6 +135,12 @@ contacts.Form = (function() {
         checkDisableButton();
       }
     });
+
+    thumbAction.addEventListener('mousedown', function click(event) {
+      // Removing current photo
+      if (event.target.tagName == 'BUTTON')
+        saveButton.removeAttribute('disabled');
+    });
   };
 
   var render = function cf_render(contact, callback, pFbContactData) {
@@ -157,6 +163,7 @@ contacts.Form = (function() {
       return;
     }
     formView.classList.add('skin-organic');
+    saveButton.setAttribute('disabled', 'disabled');
     saveButton.textContent = _('update');
     currentContact = contact;
     deleteContactButton.parentNode.classList.remove('hide');
@@ -662,7 +669,7 @@ contacts.Form = (function() {
 
     activity.onsuccess = function success() {
       addRemoveIconToPhoto();
-
+      saveButton.removeAttribute('disabled');
       // XXX
       // this.result.blob is valid now, but it won't stay valid
       // (see https://bugzilla.mozilla.org/show_bug.cgi?id=806503)

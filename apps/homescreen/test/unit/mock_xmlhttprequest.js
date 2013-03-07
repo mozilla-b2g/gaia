@@ -1,5 +1,10 @@
+'use strict';
+
 (function() {
+  var lastInstance;
+
   function MockXMLHttpRequest() {
+    lastInstance = this;
   }
 
   var throwAtNextSend = false,
@@ -14,6 +19,7 @@
     throwAtNextSend = false;
     objectToThrow = null;
     delete MockXMLHttpRequest.mLastOpenedUrl;
+    lastInstance = null;
   }
 
   function mxhr_send() {
@@ -27,13 +33,32 @@
     MockXMLHttpRequest.mLastOpenedUrl = url;
   }
 
+  function mxhr_mSendError() {
+    lastInstance && lastInstance.onerror && lastInstance.onerror();
+  }
+
+  function mxhr_mSendReadyState(states) {
+    if (lastInstance) {
+      lastInstance.readyState = XMLHttpRequest.DONE;
+      lastInstance.status = 200;
+      for (var key in states) {
+        lastInstance[key] = states[key];
+      }
+      lastInstance.onreadystatechange && lastInstance.onreadystatechange();
+    }
+  }
+
   MockXMLHttpRequest.prototype = {
     open: mxhr_open,
-    send: mxhr_send
+    send: mxhr_send,
+    DONE: XMLHttpRequest.prototype.DONE
   };
 
   MockXMLHttpRequest.mThrowAtNextSend = mxhr_mThrowAtNextSend;
   MockXMLHttpRequest.mTeardown = mxhr_mTeardown;
+  MockXMLHttpRequest.mSendError = mxhr_mSendError;
+  MockXMLHttpRequest.mSendReadyState = mxhr_mSendReadyState;
+  MockXMLHttpRequest.DONE = XMLHttpRequest.DONE;
 
 
   window.MockXMLHttpRequest = MockXMLHttpRequest;

@@ -799,6 +799,10 @@ MessageListCard.prototype = {
   onDeleteMessages: function() {
     // TODO: Batch delete back-end mail api is not ready for IMAP now.
     //       Please verify this function under IMAP when api completed.
+
+    if (this.selectedMessages.length === 0)
+      return;
+  
     var dialog = msgNodes['delete-confirm'].cloneNode(true);
     var content = dialog.getElementsByTagName('p')[0];
     content.textContent = mozL10n.get('message-multiedit-delete-confirm',
@@ -1158,8 +1162,21 @@ MessageReaderCard.prototype = {
   },
 
   onHyperlinkClick: function(event, linkNode, linkUrl, linkText) {
-    if (confirm(mozL10n.get('browse-to-url-prompt', { url: linkUrl })))
-      window.open(linkUrl, '_blank');
+    var dialog = msgNodes['browse-confirm'].cloneNode(true);
+    var content = dialog.getElementsByTagName('p')[0];
+    content.textContent = mozL10n.get('browse-to-url-prompt', { url: linkUrl });
+    ConfirmDialog.show(dialog,
+      { // Confirm
+        id: 'msg-browse-ok',
+        handler: function() {
+          window.open(linkUrl, '_blank');
+        }.bind(this)
+      },
+      { // Cancel
+        id: 'msg-browse-cancel',
+        handler: null
+      }
+    );
   },
 
   _populatePlaintextBodyNode: function(bodyNode, rep) {
