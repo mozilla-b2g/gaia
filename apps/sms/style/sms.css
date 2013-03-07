@@ -394,6 +394,10 @@ section[role="region"].new > header:first-child form {
   overflow: hidden;
 }
 
+#messages-container[data-type="list"] li.bubble .mms-bubble-content > img {
+  display: block;
+}
+
 /*
   Styles for Edit mode in Messages Container
 */
