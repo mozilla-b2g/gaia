@@ -135,7 +135,7 @@ var GridManager = (function() {
       // Remember this for next time.
       lastPrediction = prediction;
       return prediction;
-    }
+    };
   }
 
   function addActive(target) {
@@ -272,13 +272,13 @@ var GridManager = (function() {
               var opacity = opacityOnAppGridPageMax -
                     (Math.abs(deltaX) / windowWidth) * opacityOnAppGridPageMax;
               overlayStyle.opacity = Math.round(opacity * 10) / 10;
-            }
+            };
           } else if (currentPage === landingPage) {
             setOpacityToOverlay = function() {
               var opacity = (Math.abs(deltaX) / windowWidth) *
                             opacityOnAppGridPageMax;
               overlayStyle.opacity = Math.round(opacity * 10) / 10;
-            }
+            };
           } else {
             setOpacityToOverlay = function() {
               if (forward)
@@ -287,7 +287,7 @@ var GridManager = (function() {
               var opacity = opacityOnAppGridPageMax -
                     (Math.abs(deltaX) / windowWidth) * opacityOnAppGridPageMax;
               overlayStyle.opacity = Math.round(opacity * 10) / 10;
-            }
+            };
           }
 
           var pan = function(e) {

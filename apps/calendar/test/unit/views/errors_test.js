@@ -9,7 +9,7 @@ suiteGroup('Views.Errors', function() {
 
     subject.showErrors = function(list) {
       errorName = list[0].name;
-    }
+    };
   });
 
   test('offline event', function() {

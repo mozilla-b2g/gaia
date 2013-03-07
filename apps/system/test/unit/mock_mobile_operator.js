@@ -6,7 +6,7 @@ var MockMobileOperator = {
       'operator': this.mOperator,
       'carrier': this.mCarrier,
       'region': this.mRegion
-    }
+    };
   },
 
   mOperator: '',

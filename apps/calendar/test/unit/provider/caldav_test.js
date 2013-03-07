@@ -245,8 +245,8 @@ suiteGroup('Provider.Caldav', function() {
           done(function() {
             app.offline = realOffline;
             assert.equal(cbError.name, 'offline');
-          })
-        })
+          });
+        });
       });
     });
 
@@ -289,8 +289,8 @@ suiteGroup('Provider.Caldav', function() {
           done(function() {
             app.offline = realOffline;
             assert.equal(cbError.name, 'offline');
-          })
-        })
+          });
+        });
       });
     });
 
@@ -341,7 +341,7 @@ suiteGroup('Provider.Caldav', function() {
           done(function() {
             app.offline = realOffline;
             assert.equal(cbError.name, 'offline');
-          })
+          });
         });
       });
 
@@ -420,7 +420,7 @@ suiteGroup('Provider.Caldav', function() {
           done(function() {
             app.offline = realOffline;
             assert.equal(cbError.name, 'offline');
-          })
+          });
         });
       });
 
@@ -454,7 +454,7 @@ suiteGroup('Provider.Caldav', function() {
           done(function() {
             app.offline = realOffline;
             assert.equal(cbError.name, 'offline');
-          })
+          });
         });
       });
     });
@@ -581,8 +581,8 @@ suiteGroup('Provider.Caldav', function() {
           done(function() {
             app.offline = realOffline;
             assert.equal(cbError.name, 'offline');
-          })
-        })
+          });
+        });
       });
     });
 
@@ -607,8 +607,8 @@ suiteGroup('Provider.Caldav', function() {
           done(function() {
             app.offline = realOffline;
             assert.equal(cbError.name, 'offline');
-          })
-        })
+          });
+        });
       });
     });
 

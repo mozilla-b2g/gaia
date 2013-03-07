@@ -206,7 +206,7 @@ Calendar.App = (function(window) {
       return this._pendingManger.isPending();
     },
 
-    loadObject: function initializeLoadObject (name, callback) {
+    loadObject: function initializeLoadObject(name, callback) {
 
       function loadObject(name, callback) {
         this._loader.load('group', name, callback);

@@ -11,7 +11,7 @@
       unlock: function() {
         if (throwAtNextUnlock) {
           throwAtNextUnlock = false;
-          throw "NS_ERROR_DOM_INVALID_STATE_ERR";
+          throw 'NS_ERROR_DOM_INVALID_STATE_ERR';
         }
 
         this.released = true;

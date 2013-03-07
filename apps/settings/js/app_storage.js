@@ -32,7 +32,7 @@ var AppStorage = (function AppStorage() {
   function handleEvent(evt) {
     debug('event handler: ' + evt.type + ' - ' + evt.reason);
     if (_callback)
-      getSpaceInfo(_callback);	// Bug834204_fix update issue
+      getSpaceInfo(_callback);  // Bug834204_fix update issue
   }
 
   //XXX we really don't need this callback because nobody invoke this method

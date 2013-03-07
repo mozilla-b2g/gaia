@@ -31,7 +31,8 @@ var PermissionManager = (function() {
     }
     if (detail.fullscreenorigin != WindowManager.getDisplayedApp()) {
       // The message to be displayed on the approval UI.
-      var message = _('fullscreen-request', { 'origin': detail.fullscreenorigin });
+      var message =
+        _('fullscreen-request', { 'origin': detail.fullscreenorigin });
       fullscreenRequest = requestPermission(message,
                                             /* yesCallback */ null,
                                             /* noCallback */ function() {

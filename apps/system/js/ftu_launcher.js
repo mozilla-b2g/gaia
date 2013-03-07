@@ -39,7 +39,7 @@ var FtuLauncher = {
     // lockscreen is locked after FTU inited.
     window.addEventListener('lock', this);
 
-    // Monitor appopen event 
+    // Monitor appopen event
     // to unlock lockscreen if we are running FTU at first time
     window.addEventListener('appopen', this);
   },
@@ -115,7 +115,8 @@ var FtuLauncher = {
           self.skip();
           return;
         }
-        self._ftuURL = self._ftu.origin + self._ftu.manifest.entry_points['ftu'].launch_path;
+        self._ftuURL =
+          self._ftu.origin + self._ftu.manifest.entry_points['ftu'].launch_path;
         self._isRunningFirstTime = true;
         // Open FTU
         self._ftu.launch('ftu');

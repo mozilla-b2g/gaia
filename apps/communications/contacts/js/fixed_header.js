@@ -74,7 +74,7 @@ var FixedHeader = (function FixedHeader() {
     if (header) {
       fixedContainer.textContent = header.textContent;
     }
-  }
+  };
 
   return {
     'init': init,

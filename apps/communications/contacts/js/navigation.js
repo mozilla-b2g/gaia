@@ -26,7 +26,7 @@ function navigationStack(currentView) {
       return;
 
     // Remove items that match nextView from the stack to prevent duplicates.
-    stack = stack.filter(function (item) {
+    stack = stack.filter(function(item) {
       return item.view != nextView;
     });
 
