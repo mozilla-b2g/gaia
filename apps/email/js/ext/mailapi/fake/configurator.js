@@ -1,3 +1,4 @@
+
 /**
  * Implements a fake account type for UI testing/playing only.
  **/
@@ -775,7 +776,7 @@ FakeFolderStorage.prototype = {
 };
 
 }); // end define
-
+;
 /**
  * Configurator for fake
  **/
@@ -886,4 +887,4 @@ exports.configurator = {
 };
 
 }); // end define
-
+;

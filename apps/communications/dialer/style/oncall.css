@@ -86,8 +86,8 @@ button::-moz-focus-inner {
 }
 
 body.showKeypad #views {
-  transition: top 0.3s ease;
-  top: 0;
+  transition: transform 0.3s ease;
+  transform: translateY(-100%);
   z-index: 500;
 }
 

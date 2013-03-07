@@ -71,7 +71,7 @@ form p textarea + button[type="reset"] {
   font-size: 0;
   opacity: 0;
   pointer-events: none;
-  background: url(input_areas/images/icons/clear.png) no-repeat 50% 50%;
+  background: url(input_areas/images/icons/clear.png) no-repeat 50% 50% / 1.7rem auto;
 }
 
 /* To avoid colission with BB butons */
@@ -135,7 +135,7 @@ fieldset legend {
 }
 
 fieldset legend.action {
-  background: url(input_areas/images/icons/arrow.png) no-repeat 100% 100%;
+  background: url(input_areas/images/icons/arrow.png) no-repeat 100% 100% / 1.2rem;
 }
 
 fieldset legend:active {
@@ -177,7 +177,7 @@ fieldset section p:last-child {
 form[role="search"] {
   position: relative;
   height: 3.7rem;
-  background: #e8e8e8 url(input_areas/images/ui/background.png) repeat-x;
+  background: #e8e8e8 url(input_areas/images/ui/background.png) repeat-x left bottom / 100%;
 }
 
 section[role="region"] > header:first-child + form[role="search"] {
@@ -245,6 +245,7 @@ form[role="search"] button[type="submit"] {
   font: 500 1.8rem/3.2rem "MozTT", Sans-serif;
   background: url(input_areas/images/ui/separator.png) no-repeat 0 50%,
               url(input_areas/images/ui/active.png) repeat-x 0 100%;
+ background-size: auto 100%;
   border-radius: 0;
 }
 

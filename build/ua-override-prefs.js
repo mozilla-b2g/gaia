@@ -1,9 +1,6 @@
-
 // Send these sites a custom user-agent. Bugs to remove each override after
 // evangelism are included.
-pref("general.useragent.override.facebook.com", "\(Mobile#(Android; Mobile"); // bug 827635
 pref("general.useragent.override.youtube.com", "\(Mobile#(Android; Mobile"); // bug 827636
-pref("general.useragent.override.yelp.com", "\(Mobile#(Android; Mobile"); // bug 799884
 pref("general.useragent.override.accounts.google.com", "\(Mobile#(Android; Mobile"); // bug 805164
 pref("general.useragent.override.maps.google.com", "\(Mobile#(Android; Mobile"); // bug 802981
 pref("general.useragent.override.uol.com.br", "Mozilla/5.0 (Linux; Android 4.0.4; Galaxy Nexus Build/IMM76B) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.133 Mobile Safari/535.19"); // bug 826330
@@ -52,7 +49,6 @@ pref("general.useragent.override.scribd.com", "\(Mobile#(Android; Mobile"); // b
 pref("general.useragent.override.elpais.com.co", "Mozilla/5.0 (Linux; Android 4.0.4; Galaxy Nexus Build/IMM76B) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.133 Mobile Safari/535.19"); // bug 827670
 pref("general.useragent.override.olx.com.co", "\(Mobile#(Android; Mobile"); // bug 827672
 pref("general.useragent.override.avianca.com", "\(Mobile#(Android; Mobile"); // bug 827674
-pref("general.useragent.override.dropbox.com", "\(Mobile#(Android; Mobile"); // bug 827676
 pref("general.useragent.override.marca.com", "\(Mobile#(Android; Mobile"); // bug 827678
 pref("general.useragent.override.wp.pl", "\(Mobile#(Android; Mobile"); // bug 828351
 pref("general.useragent.override.gazeta.pl", "\(Mobile#(Android; Mobile"); // bug 828354

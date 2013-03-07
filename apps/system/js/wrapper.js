@@ -14,7 +14,8 @@ var Launcher = (function() {
 
 
   function currentAppIframe() {
-    return currentAppFrame().firstChild;
+    var frame = currentAppFrame();
+    return frame ? frame.firstChild : null;
   }
 
   var _ = navigator.mozL10n.get;
@@ -116,7 +117,8 @@ var Launcher = (function() {
   }
 
   window.addEventListener('mozbrowserlocationchange', function() {
-    if ('wrapper' in currentAppFrame().dataset) {
+    var frame = currentAppFrame();
+    if (frame && 'wrapper' in frame.dataset) {
       onLocationChange();
     }
   });

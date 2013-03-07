@@ -99,9 +99,21 @@ var ScreenManager = {
    */
   _cpuWakeLock: null,
 
+  /*
+   * Current state of the CPU Wake lock
+   */
+  _cpuState: null,
+
+  /*
+   * We track the audio status
+   */
+  _audioActive: false,
+  _audioCpuSleepTimerId: 0,
+
   init: function scm_init() {
     window.addEventListener('sleep', this);
     window.addEventListener('wake', this);
+    window.addEventListener('mozChromeEvent', this);
 
     this.screen = document.getElementById('screen');
 
@@ -121,8 +133,8 @@ var ScreenManager = {
             break;
 
           case 'cpu':
-            power.cpuSleepAllowed = (state != 'locked-foreground' &&
-                                     state != 'locked-background');
+            self._cpuState = state;
+            self.refreshCpuSleepAllowed();
             break;
         }
       });
@@ -260,6 +272,32 @@ var ScreenManager = {
         this._cpuWakeLock = navigator.requestWakeLock('cpu');
         window.addEventListener('userproximity', this);
         break;
+
+      case 'mozChromeEvent':
+        if (evt.detail.type == 'audio-channel-changed') {
+          var audioActive = (evt.detail.channel !== 'none');
+
+          if (this._audioCpuSleepTimerId) {
+            clearTimeout(this._audioCpuSleepTimerId);
+            this._audioCpuSleepTimerId = 0;
+          }
+
+          // If some audio channel is active we refresh the cpuSleepAllowed
+          // immediately, otherwise we just use a timer in order to prevert
+          // rapid stop/start.
+          if (audioActive) {
+            this._audioActive = true;
+            this.refreshCpuSleepAllowed();
+          } else {
+            var self = this;
+            this._audioCpuSleepTimerId = setTimeout(function cpuSleepTimer() {
+              self._audioActive = false;
+              self.refreshCpuSleepAllowed();
+              self._audioCpuSleepTimerId = 0;
+            }, 2000);
+          }
+        }
+        break;
     }
   },
 
@@ -314,9 +352,7 @@ var ScreenManager = {
     };
 
     if (instant) {
-      if (!WindowManager.isFtuRunning()) {
-        screenOff();
-      }
+      screenOff();
       return true;
     }
 
@@ -497,6 +533,13 @@ var ScreenManager = {
       { bubbles: true, cancelable: false,
         detail: { screenEnabled: this.screenEnabled } });
     window.dispatchEvent(evt);
+  },
+
+  refreshCpuSleepAllowed: function scm_refreshCpuSleepAllowed() {
+    var power = navigator.mozPower;
+    power.cpuSleepAllowed = (this._cpuState != 'locked-foreground' &&
+                             this._cpuState != 'locked-background' &&
+                             !this._audioActive);
   }
 };
 
