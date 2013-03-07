@@ -24,6 +24,10 @@ body, html {
   -moz-box-sizing: border-box;
 }
 
+#statusbar.hidden {
+  visibility: hidden;
+}
+
 #statusbar > * {
   pointer-events: none;
   float: right;
