@@ -3,7 +3,7 @@
 
 'use strict';
 
-(function(window){
+(function(window) {
 
   var _ = navigator.mozL10n.get;
 
@@ -28,16 +28,17 @@
 
     // pass in the target node, as well as the observer options
     observer.observe(target, config);
-  }
+  };
 
   window.AppError = function AppError(app) {
     var self = this;
     this.app = app;
-    this.app.frame.addEventListener('mozbrowsererror', function (evt) {
+    this.app.frame.addEventListener('mozbrowsererror', function(evt) {
       if (evt.detail.type != 'other')
         return;
 
-      console.warn('app of [' + self.app.origin + '] got a mozbrowsererror event.');
+      console.warn(
+        'app of [' + self.app.origin + '] got a mozbrowsererror event.');
 
       if (self.injected) {
         self.update();
@@ -54,38 +55,42 @@
 
   AppError.prototype.hide = function() {
     this.element.classList.remove('visible');
-  }
+  };
 
   AppError.prototype.show = function() {
     this.element.classList.add('visible');
-  }
+  };
 
   AppError.prototype.render = function() {
     this.app.frame.insertAdjacentHTML('beforeend', this.view());
-    this.closeButton = this.app.frame.querySelector('.' + AppError.className + ' .close');
-    this.reloadButton = this.app.frame.querySelector('.' + AppError.className + ' .reload');
-    this.titleElement = this.app.frame.querySelector('.' + AppError.className + ' .title');
-    this.messageElement = this.app.frame.querySelector('.' + AppError.className + ' .message');
+    this.closeButton =
+      this.app.frame.querySelector('.' + AppError.className + ' .close');
+    this.reloadButton =
+      this.app.frame.querySelector('.' + AppError.className + ' .reload');
+    this.titleElement =
+      this.app.frame.querySelector('.' + AppError.className + ' .title');
+    this.messageElement =
+      this.app.frame.querySelector('.' + AppError.className + ' .message');
     this.element = this.app.frame.querySelector('.' + AppError.className);
     var self = this;
     this.closeButton.onclick = function() {
       self.app.kill();
-    }
+    };
 
     this.reloadButton.onclick = function() {
       self.hide();
       self.app.reload();
-    }
-  }
+    };
+  };
 
   AppError.prototype.update = function() {
     this.titleElement.textContent = this.getTitle();
     this.messageElement.textContent = this.getMessage();
-  }
+  };
 
   AppError.prototype.id = function() {
     return AppError.className + '-' + this.app.frame.id;
-  }
+  };
 
   AppError.prototype.getTitle = function() {
     if (AirplaneMode.enabled) {
@@ -95,7 +100,7 @@
     } else {
       return _('error-title', { name: this.app.name });
     }
-  }
+  };
 
   AppError.prototype.getMessage = function() {
     if (AirplaneMode.enabled) {
@@ -105,22 +110,27 @@
     } else {
       return _('error-message', { name: this.app.name });
     }
-  }
+  };
 
   AppError.prototype.view = function() {
-    return '<div id="' + this.id() + '" class="' + AppError.className + ' visible" role="dialog">' +
+    return '<div id="' + this.id() + '" class="' +
+        AppError.className + ' visible" role="dialog">' +
       '<div class="modal-dialog-message-container inner">' +
-        '<h3 data-l10n-id="error-title" class="title">' + this.getTitle() + '</h3>' +
+        '<h3 data-l10n-id="error-title" class="title">' +
+          this.getTitle() + '</h3>' +
         '<p>' +
-         '<span data-l10n-id="error-message" class="message">' + this.getMessage() + '</span>' +
+         '<span data-l10n-id="error-message" class="message">' +
+            this.getMessage() + '</span>' +
         '</p>' +
       '</div>' +
       '<menu data-items="2">' +
-        '<button class="close" data-l10n-id="try-again">' + _('close') + '</button>' +
-        '<button class="reload" data-l10n-id="try-again">' + _('try-again') + '</button>' +
+        '<button class="close" data-l10n-id="try-again">' +
+          _('close') + '</button>' +
+        '<button class="reload" data-l10n-id="try-again">' +
+          _('try-again') + '</button>' +
       '</menu>' +
     '</div>';
-  }
+  };
 
   window.AppWindow = function AppWindow(configuration) {
     for (var key in configuration) {
@@ -128,8 +138,8 @@
     }
 
     // We keep the appError object here for the purpose that
-    // we may need to export the error state of AppWindow instance to the other module
-    // in the future.
+    // we may need to export the error state of AppWindow instance
+    // to the other module in the future.
     this.appError = new AppError(this);
     if (ENABLE_LOG)
       this.appLog = new AppLog(this);
@@ -139,14 +149,15 @@
 
   AppWindow.prototype.reload = function() {
     this.iframe.reload(true);
-  }
+  };
 
   AppWindow.prototype.kill = function() {
-    // XXX: A workaround because a AppWindow instance shouldn't reference Window Manager directly here.
-    // In the future we should make every app maintain and execute the events in itself.
-    // Like resize, setVisibility...
+    // XXX: A workaround because a AppWindow instance shouldn't reference
+    // Window Manager directly here.
+    // In the future we should make every app maintain and execute the events
+    // in itself like resize, setVisibility...
     // And Window Manager is in charge of cross app management.
     WindowManager.kill(this.origin);
-  }
+  };
 
 }(this));

@@ -47,7 +47,7 @@
             icc.sendStkResponse(command, {
               resultCode: icc.STK_RESULT_OK
             });
-          }
+          };
         } else {
           // Unsolicited command? -> Open settings
           debug('CMD: ', command);
@@ -76,11 +76,11 @@
                 reqIccData.onsuccess = function icc_getIccData() {
                   debug('Launching ', app.origin);
                   app.launch();
-                }
+                };
               }, this);
-            }
-          }
+            };
+          };
         }
       });
-  }
+  };
 })();

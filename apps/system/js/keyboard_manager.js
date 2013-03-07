@@ -56,7 +56,7 @@ var KeyboardManager = (function() {
           };
 
           dispatchEvent(new CustomEvent('keyboardchange', detail));
-        }
+        };
 
         if (container.classList.contains('hide')) {
           container.classList.remove('hide');

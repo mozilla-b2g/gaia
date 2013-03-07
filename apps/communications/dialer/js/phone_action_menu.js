@@ -1,4 +1,4 @@
-var PhoneNumberActionMenu = (function () {
+var PhoneNumberActionMenu = (function() {
 
   var _initiated, _newPhoneNumber, _addContactActionMenu, _callMenuItem,
     _createNewContactMenuItem, _addToExistingContactMenuItem,
@@ -35,7 +35,7 @@ var PhoneNumberActionMenu = (function () {
       var activity = new MozActivity(options);
       activity.onsuccess = function() {
         Recents.refresh();
-      }
+      };
     } catch (e) {
       console.error('Error while creating activity');
     }

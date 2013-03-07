@@ -46,8 +46,8 @@ const Homescreen = (function() {
     GridManager.init('.apps', '.dockWrapper', tapThreshold, function gm_init() {
       PaginationBar.show();
       if (document.location.hash === '#root') {
-        // Switch to the first page only if the user has not already start to pan
-        // while home is loading
+        // Switch to the first page only if the user has not already
+        // start to pan while home is loading
         GridManager.goToPage(landingPage);
       }
       DragDropManager.init();

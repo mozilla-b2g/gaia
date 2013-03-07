@@ -20,8 +20,8 @@ function Icon(descriptor, app) {
 // Support rendering icons for different screens
 var BASE_WIDTH = 320;
 var SCALE_RATIO = window.innerWidth / BASE_WIDTH;
-var MIN_ICON_SIZE = 52*SCALE_RATIO;
-var MAX_ICON_SIZE = 60*SCALE_RATIO;
+var MIN_ICON_SIZE = 52 * SCALE_RATIO;
+var MAX_ICON_SIZE = 60 * SCALE_RATIO;
 
 Icon.prototype = {
 
@@ -92,8 +92,8 @@ Icon.prototype = {
     // Image
     var img = this.img = new Image();
     img.setAttribute('role', 'presentation');
-    img.width = MAX_ICON_SIZE+4*SCALE_RATIO;
-    img.height = MAX_ICON_SIZE+4*SCALE_RATIO;
+    img.width = MAX_ICON_SIZE + 4 * SCALE_RATIO;
+    img.height = MAX_ICON_SIZE + 4 * SCALE_RATIO;
     img.style.visibility = 'hidden';
     if (descriptor.renderedIcon) {
       this.displayRenderedIcon();
@@ -232,8 +232,8 @@ Icon.prototype = {
   renderImageForBookMark: function icon_renderImageForBookmark(img) {
     var self = this;
     var canvas = document.createElement('canvas');
-    canvas.width = MAX_ICON_SIZE+4*SCALE_RATIO;
-    canvas.height = MAX_ICON_SIZE+4*SCALE_RATIO;
+    canvas.width = MAX_ICON_SIZE + 4 * SCALE_RATIO;
+    canvas.height = MAX_ICON_SIZE + 4 * SCALE_RATIO;
     var ctx = canvas.getContext('2d');
 
     // Draw the background
@@ -243,12 +243,14 @@ Icon.prototype = {
       ctx.shadowColor = 'rgba(0,0,0,0.8)';
       ctx.shadowBlur = 2;
       ctx.shadowOffsetY = 2;
-      ctx.drawImage(background,2*SCALE_RATIO,2*SCALE_RATIO, MAX_ICON_SIZE, MAX_ICON_SIZE);
+      ctx.drawImage(background, 2 * SCALE_RATIO,
+                    2 * SCALE_RATIO, MAX_ICON_SIZE, MAX_ICON_SIZE);
       // Disable smoothing on icon resize
       ctx.shadowBlur = 0;
       ctx.shadowOffsetY = 0;
       ctx.mozImageSmoothingEnabled = false;
-      ctx.drawImage(img,16*SCALE_RATIO,16*SCALE_RATIO,32*SCALE_RATIO,32*SCALE_RATIO);
+      ctx.drawImage(img, 16 * SCALE_RATIO, 16 * SCALE_RATIO,
+                    32 * SCALE_RATIO, 32 * SCALE_RATIO);
       canvas.toBlob(self.renderBlob.bind(self));
     };
   },
@@ -260,8 +262,8 @@ Icon.prototype = {
     }
 
     var canvas = document.createElement('canvas');
-    canvas.width = MAX_ICON_SIZE+4*SCALE_RATIO;
-    canvas.height = MAX_ICON_SIZE+4*SCALE_RATIO;
+    canvas.width = MAX_ICON_SIZE + 4 * SCALE_RATIO;
+    canvas.height = MAX_ICON_SIZE + 4 * SCALE_RATIO;
 
     var ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -275,8 +277,8 @@ Icon.prototype = {
     img.height =
         Math.min(MAX_ICON_SIZE, Math.max(img.height, MAX_ICON_SIZE));
 
-    var width = Math.min(img.width, canvas.width - 4*SCALE_RATIO);
-    var height = Math.min(img.width, canvas.height - 4*SCALE_RATIO);
+    var width = Math.min(img.width, canvas.width - 4 * SCALE_RATIO);
+    var height = Math.min(img.width, canvas.height - 4 * SCALE_RATIO);
     ctx.drawImage(img,
                   (canvas.width - width) / 2,
                   (canvas.height - height) / 2,
@@ -741,7 +743,7 @@ Page.prototype = {
    * the icon that was at the last place and will be hidden will eventually flow
    * to the next page. This is done in GridManager's ensurePagesOverflow
    *
-   * @param{Object} icon the icon to be added.
+   * @param {Object} icon the icon to be added.
    */
   appendIconVisible: function pg_appendIconVisible(icon) {
     if (this.getNumIcons() >= GridManager.pageHelper.maxIconsPerPage) {

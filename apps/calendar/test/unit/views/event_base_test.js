@@ -31,11 +31,12 @@ suiteGroup('Views.EventBase', function() {
     document.body.appendChild(div);
     app = testSupport.calendar.app();
 
-    Calendar.Views.EventBase.prototype.selectors = {
+    var selectors = {
       element: '#event-test',
       cancelButton: '#event-test .cancel',
       primaryButton: '#event-test .primary'
     };
+    Calendar.Views.EventBase.prototype.selectors = selectors;
 
     subject = new Calendar.Views.EventBase({
       app: app
@@ -72,7 +73,7 @@ suiteGroup('Views.EventBase', function() {
     subject._returnTo = '/foo';
     subject._updateUI = function() {
       assert.equal(subject._returnTo, '/foo');
-      assert.equal(subject._returnTop, '/foo');      
+      assert.equal(subject._returnTop, '/foo');
     };
     subject.dispatch({params: {}});
 

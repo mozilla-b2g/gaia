@@ -279,7 +279,7 @@ importScripts('/contacts/js/fb/fb_query.js',
             contactId: contact.contactId
           }
         });
-      }
+      };
     }
   }
 
@@ -306,7 +306,7 @@ importScripts('/contacts/js/fb/fb_query.js',
           contactId: uids[uid].contactId
         }
       });
-    }
+    };
   }
 
 
@@ -318,7 +318,7 @@ importScripts('/contacts/js/fb/fb_query.js',
 
     this.start = function() {
       retrieveImg(this.friends[next]);
-    }
+    };
 
     function imgRetrieved(blob) {
       if (typeof self.onimageready === 'function') {
@@ -339,6 +339,6 @@ importScripts('/contacts/js/fb/fb_query.js',
     function retrieveImg(uid) {
       fb.utils.getFriendPicture(uid, imgRetrieved, access_token);
     }
-  }
+  };
 
 })(self);

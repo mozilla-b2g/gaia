@@ -30,7 +30,7 @@ if (!window.LiveConnector) {
     }
 
     function sortContacts(contactsList) {
-      contactsList.sort(function(a,b) {
+      contactsList.sort(function(a, b) {
         var out = 0;
         if (a.last_name && b.last_name) {
           out = a.last_name.localeCompare(b.last_name);

@@ -447,4 +447,3 @@ uiteGroup('Views.ModifyAccount', function() {
   });
 
 });
-*/

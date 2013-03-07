@@ -15,14 +15,14 @@ var _ConsoleObject = function() {
       type: 'error',
       data: getString(arguments)
     });
-  }
+  };
 
   this.log = function() {
     self.postMessage({
       type: 'trace',
       data: getString(arguments)
     });
-  }
+  };
 };
 
 this.console = this.console || new _ConsoleObject();

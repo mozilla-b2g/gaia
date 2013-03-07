@@ -135,8 +135,8 @@ var MediaStorage = {
     var _ = navigator.mozL10n.get;
 
     // clear the space info when it is disabled
-    var idList = [
-      '#music-space .size', '#pictures-space .size', '#videos-space .size', '#media-free-space .size'];
+    var idList = ['#music-space .size', '#pictures-space .size',
+      '#videos-space .size', '#media-free-space .size'];
     idList.forEach(function clearSpace(id) {
       var element = document.querySelector(id);
       if (element) {

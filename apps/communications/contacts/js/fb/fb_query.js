@@ -18,7 +18,7 @@ fb.utils.runQuery = function(query, callback, access_token) {
           this.oncancel();
         }.bind(this), 0);
       }
-    }
+    };
   }
 
   var outReq = new QueryRequest();
@@ -41,7 +41,7 @@ fb.utils.runQuery = function(query, callback, access_token) {
   outReq.xhr = xhr;
   outReq.oncancel = function() {
     this.xhr.abort();
-  }
+  };
 
   xhr.open('GET', remote, true);
   xhr.responseType = 'json';
@@ -61,13 +61,13 @@ fb.utils.runQuery = function(query, callback, access_token) {
       if (callback && typeof callback.error === 'function')
         self.setTimeout(callback.error, 0);
     }
-  } // onload
+  }; // onload
 
   xhr.ontimeout = function(e) {
     self.console.error('FB: Timeout!!! while executing query', query);
     if (callback && typeof callback.timeout === 'function')
       self.setTimeout(callback.timeout, 0);
-  } // ontimeout
+  }; // ontimeout
 
   xhr.onerror = function(e) {
     self.console.error('FB: Error while executing query: ', query,
@@ -76,7 +76,7 @@ fb.utils.runQuery = function(query, callback, access_token) {
       self.setTimeout(function() {
         callback.error(e);
       },0);
-  } // onerror
+  }; // onerror
 
   xhr.send();
 
@@ -123,7 +123,7 @@ fb.utils.getFriendPicture = function(uid, callback, access_token) {
           callback(null);
         },0);
     }
-  } // onload
+  }; // onload
 
   xhr.ontimeout = function(e) {
     self.console.error('FB: Timeout!!! while retrieving img for uid: ', uid);
@@ -132,7 +132,7 @@ fb.utils.getFriendPicture = function(uid, callback, access_token) {
       self.setTimeout(function() {
         callback(null);
       },0);
-  } // ontimeout
+  }; // ontimeout
 
   xhr.onerror = function(e) {
     self.console.error('FB: Error while retrieving img for uid: ', uid,
@@ -143,7 +143,7 @@ fb.utils.getFriendPicture = function(uid, callback, access_token) {
         callback(null);
       },0);
     }
-  } // onerror
+  }; // onerror
 
   xhr.send();
 };

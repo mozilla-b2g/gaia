@@ -180,7 +180,7 @@ var Connectivity = (function(window, document, undefined) {
         dataNetwork.textContent = operator;
         dataConnection.textContent = data;
       }
-    }
+    };
 
     if (!mobileConnection)
       return setCarrierStatus({});
@@ -249,7 +249,7 @@ var Connectivity = (function(window, document, undefined) {
       setTimeout(function() {
         gDeviceList.onRequestPairing(message, method);
       }, 1500);
-    }
+    };
 
     // Bind message handler for incoming pairing requests
     navigator.mozSetMessageHandler('bluetooth-requestconfirmation',

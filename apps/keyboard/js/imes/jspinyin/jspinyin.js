@@ -5525,7 +5525,7 @@ DictTrie.prototype = {
       if (callback) {
         callback(isOk);
       }
-    }
+    };
     if (!file_name || end_id <= start_id) {
       doCallback();
       return;
@@ -8124,7 +8124,7 @@ UserDict.prototype = {
       if (callback) {
         callback(isOk);
       }
-    }
+    };
     this.dict_file_ = file_name;
     if (!file_name) {
       doCallback();
