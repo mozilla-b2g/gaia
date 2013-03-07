@@ -1000,7 +1000,7 @@ var Browser = {
   // Saves an image to device storage.
   saveImage: function browser_saveImage(url) {
     function displayMessage(message) {
-      var status = document.getElementById("save-image-status");
+      var status = document.getElementById('save-image-status');
       status.firstElementChild.textContent = message;
       status.classList.add('visible');
       window.setTimeout(function() {
@@ -1013,7 +1013,7 @@ var Browser = {
       var addreq = pictureStorage.addNamed(blob, name);
       addreq.onsuccess = function() {
         displayMessage(_('image-saved'));
-      }
+      };
       addreq.onerror = function() {
         // Prepend some always changing id and try to store again, but give up
         // after MAX_SAVING_RETRIES retries.
@@ -1024,7 +1024,7 @@ var Browser = {
         } else {
           displayMessage(_('error-saving-image'));
         }
-      }
+      };
     }
 
     var xhr = new XMLHttpRequest({mozSystem: true});
@@ -1044,12 +1044,12 @@ var Browser = {
       // If we have no file extension, use the content-type header to
       // add one.
       if (name.split('.').length == 1) {
-        var contentType = xhr.getResponseHeader("content-type");
-        name += "." + contentType.split('/')[1];
+        var contentType = xhr.getResponseHeader('content-type');
+        name += '.' + contentType.split('/')[1];
       }
 
       storeBlob(xhr.response, name, 0);
-    }
+    };
 
     xhr.onerror = function getDefaultDataError() {
       displayMessage(_('error-saving-image'));
@@ -1074,7 +1074,7 @@ var Browser = {
         callback: function() {
           self.saveImage(item.data);
         }
-      }
+      };
     }
     return false;
   },
