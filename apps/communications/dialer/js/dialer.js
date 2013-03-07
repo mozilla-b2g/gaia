@@ -99,12 +99,15 @@ var CallHandler = (function callHandler() {
 
   /* === Recents support === */
   function handleRecentAddRequest(entry) {
-    Recents.load(function recentsLoaded() {
-      RecentsDBManager.init(function() {
-        RecentsDBManager.add(entry, function() {
-          RecentsDBManager.close();
-          Recents.refresh();
-        });
+    RecentsDBManager.init(function() {
+      RecentsDBManager.add(entry, function() {
+        if (Recents.loaded) {
+          if (window.location.hash === '#recents-view') {
+            Recents.refresh();
+          } else {
+            Recents.renderNeeded = true;
+          }
+        }
       });
     });
   }
@@ -338,16 +341,28 @@ var NavbarManager = {
       self.update();
     });
   },
-
-  /**
+  resourcesLoaded: false,
+  /*
    * Ensures resources are loaded
    */
   ensureResources: function(cb) {
+    if (this.resourcesLoaded) {
+      if (cb && typeof cb === 'function') {
+        cb();
+      }
+      return;
+    }
+    var self = this;
     loader.load(['/shared/js/async_storage.js',
                  '/shared/js/notification_helper.js',
                  '/shared/js/simple_phone_matcher.js',
                  '/dialer/js/contacts.js',
-                 '/dialer/js/recents.js'], cb);
+                 '/dialer/js/recents.js'], function rs_loaded() {
+                    self.resourcesLoaded = true;
+                    if (cb && typeof cb === 'function') {
+                      cb();
+                    }
+                  });
   },
 
   update: function nm_update() {
@@ -378,9 +393,15 @@ var NavbarManager = {
       case '#recents-view':
         checkContactsTab();
         this.ensureResources(function() {
-          Recents.updateContactDetails();
           recent.classList.add('toolbar-option-selected');
-          Recents.load();
+          if (!Recents.loaded) {
+            Recents.load();
+            return;
+          }
+          if (Recents.renderNeeded) {
+            Recents.refresh();
+            Recents.renderNeeded = false;
+          }
           Recents.updateLatestVisit();
         });
         break;

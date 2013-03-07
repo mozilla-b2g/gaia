@@ -2,8 +2,8 @@
 
 var Recents = {
   _: null,
-  _loaded: false,
-
+  loaded: false,
+  _TIME_WINDOW: 604800000, // One week of window in calllog
   get headerEditModeText() {
     delete this.headerEditModeText;
     return this.headerEditModeText = document.
@@ -70,15 +70,28 @@ var Recents = {
       getElementById('edit-mode');
   },
 
+  createFilter: function re_createFilter(startDate, endDate) {
+    var dateFilter = {
+      'startDate': Date.now() - this._TIME_WINDOW
+    };
+    if (startDate) {
+      dateFilter.startDate = startDate;
+    }
+    if (endDate) {
+      dateFilter.endDate = endDate;
+    }
+    return dateFilter;
+  },
+
   load: function re_load(callback) {
-    if (this._loaded) {
+    if (this.loaded) {
       if (callback) {
         callback();
       }
       return;
     }
 
-    this._loaded = true;
+    this.loaded = true;
 
     // Time to load the external css/js
     var scripts = [
@@ -91,8 +104,7 @@ var Recents = {
 
       '/dialer/js/phone_action_menu.js',
       '/dialer/js/fixed_header.js',
-      '/dialer/js/utils.js',
-      '/dialer/js/recents_db.js'
+      '/dialer/js/utils.js'
     ];
 
     loader.load(scripts, function() {
@@ -162,17 +174,37 @@ var Recents = {
     });
   },
 
+  removeContactInfo: function re_removeContact(id) {
+    // Reused code from current one.
+    // Should be refactored for avoiding so many
+    // querySelectors
+    var selector = '[data-contact-id="' + id + '"]';
+    var toUpdate = this.recentsContainer.querySelectorAll(selector);
+    for (var i = toUpdate.length - 1; i >= 0; i--) {
+      var logItem = toUpdate[i];
+      logItem.dataset.contactId = '';
+      var contactPhoto = logItem.querySelector('.call-log-contact-photo');
+      var primaryInfoMainNode = logItem.querySelector('.primary-info-main'),
+        manyContactsNode = logItem.querySelector('.many-contacts'),
+        phoneNumberAdditionalInfoNode =
+          logItem.querySelector('.call-additional-info');
+      primaryInfoMainNode.textContent = logItem.dataset.num;
+      contactPhoto.src = '';
+      logItem.classList.remove('hasPhoto');
+      phoneNumberAdditionalInfoNode.textContent = '';
+    }
+  },
+
   // Refresh can be called on an unloaded Recents
   refresh: function re_refresh() {
-    this.load(function loaded() {
-      RecentsDBManager.init(function() {
-        RecentsDBManager.get(function(recents) {
-          // We need l10n to be loaded before rendering
-          LazyL10n.get(function localized() {
-            Recents.render(recents);
-          });
+    var self = this;
+    RecentsDBManager.init(function() {
+      RecentsDBManager.get(function(recents) {
+        // We need l10n to be loaded before rendering
+        LazyL10n.get(function localized() {
+          Recents.render(recents);
         });
-      });
+      }, self.createFilter());
     });
   },
 
@@ -386,7 +418,7 @@ var Recents = {
           ConfirmDialog.hide();
           self.render(recents);
           document.body.classList.remove('recents-edit');
-        });
+        }, self.createFilter());
     });
   },
 
@@ -599,7 +631,6 @@ var Recents = {
       FixedHeader.refresh();
 
       self.updateContactDetails();
-
       var event = new Object();
       self._allViewGroupingPending = true;
       self._missedViewGroupingPending = true;
@@ -621,7 +652,7 @@ var Recents = {
 
   updateContactDetails: function re_updateContactDetails() {
     // If we're not loaded yet, nothing to update
-    if (!this._loaded) {
+    if (!this.loaded) {
       return;
     }
 
@@ -764,7 +795,7 @@ var Recents = {
 
   updateHighlighted: function re_updateHighlighted() {
     // No need to update if we're not loaded yet
-    if (!this._loaded)
+    if (!this.loaded)
       return;
 
     var itemSelector = '.log-item.highlighted',
@@ -809,8 +840,17 @@ var Recents = {
 };
 
 // Keep the call history up to date
-document.addEventListener('mozvisibilitychange', function visibility(e) {
-  if (!document.mozHidden) {
-    Recents.refresh();
+navigator.mozContacts.oncontactchange = function oncontactchange(event) {
+  switch (event.reason) {
+    case 'create':
+    case 'update':
+      Recents.updateContactDetails();
+      break;
+
+    case 'remove':
+      // Avoiding refresh the whole list. We just remove
+      // contact info from entries with data-contact-id = id
+      Recents.removeContactInfo(event.contactID);
+      break;
   }
-});
+};

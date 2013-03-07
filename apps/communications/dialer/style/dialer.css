@@ -102,7 +102,7 @@ body.hidden *[data-l10n-id] {
 }
 
 #recents-view.hidden [role="tabpanel"] section {
-  visibility: hidden;
+  display:none;
 }
 
 .no-opacity {
