@@ -53,13 +53,11 @@ Calendar.ns('Utils').InputParser = (function() {
     exportTime: function(value) {
       var hour = value.getHours();
       var minute = value.getMinutes();
-      var second = value.getSeconds();
 
       var result = '';
 
       result += InputParser.padNumber(hour) + ':';
-      result += InputParser.padNumber(minute) + ':';
-      result += InputParser.padNumber(second);
+      result += InputParser.padNumber(minute);
 
       return result;
     },
