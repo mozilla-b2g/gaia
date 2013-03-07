@@ -179,6 +179,9 @@ if (typeof fb.importer === 'undefined') {
      *
      */
     function friendsAvailable() {
+      FixedHeader.init('#mainContent', '#fixed-container',
+                     '.import-list header, .fb-import-list header');
+
       imgLoader = new ImageLoader('#mainContent',
                                 ".block-item:not([data-uuid='#uid#'])");
 
@@ -402,7 +405,14 @@ if (typeof fb.importer === 'undefined') {
           myFriends.push(f);
         });
 
-        fbFriends.List.load(myFriends, friendsAvailable);
+        asyncStorage.getItem('order.lastname', function orderValue(lastName) {
+          var options = {
+            container: '#groups-list',
+            orderBy: lastName ? 'lastName' : 'firstName'
+          };
+
+          FriendListRenderer.render(myFriends, friendsAvailable, options);
+        });
       }
       else {
         window.console.error('FB: Error, while retrieving friends',
