@@ -78,7 +78,7 @@
 
 [role="dialog"] menu:not([type="toolbar"])[data-items="2"] button,
 [role="dialog"] menu:not([type="toolbar"])[data-items="2"] a[role="button"] {
-  width: -moz-calc((100% - 1rem) / 2);
+  width: calc((100% - 1rem) / 2);
 }
 
 
@@ -95,7 +95,7 @@
 
 [role="dialog"].inline p {
   border: 0;
-  padding: 1rem 1.5rem; 
+  padding: 1rem 1.5rem;
 }
 
 [role="dialog"].inline menu {

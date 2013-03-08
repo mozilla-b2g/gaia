@@ -10,27 +10,13 @@
 
 #authentication-dialog input,
 #modal-dialog input {
-  border-radius: 2px 2px 2px 2px;
-  height: 40px;
-  font-size: 20px;
+  border-radius: 0.2rem;
+  height: 4rem;
+  font-size: 2rem;
   width: 100%;
   color: white;
   background: none;
   -moz-box-sizing: border-box;
-}
-
-/* 480x800 phones */
-@media (orientation: portrait) and (width: 480px),
-       (orientation: landscape) and (width: 800px) {
-  #authentication-dialog input,
-  #modal-dialog input {
-    border-radius: 3px 3px 3px 3px;
-    height: 60px;
-    font-size: 30px;
-    width: 100%;
-    color: white;
-    -moz-box-sizing: border-box;
-  }
 }
 
 #screen.modal-dialog #modal-dialog,
@@ -51,8 +37,8 @@
 
 #modal-dialog-sad-face {
   float: left;
-  font-size: 72px;
-  margin-right: 2px;
+  font-size: 7.2rem;
+  margin-right: 0.2rem;
 }
 
 /* Confirm dialog */
@@ -68,7 +54,7 @@
   padding: 0 1.5rem 0 1.5rem;
   position: absolute;
   left: 0;
-  bottom: -moz-calc(3.8rem + 3rem);
+  bottom: 6.8rem;
 }
 
 #modal-dialog-select-one h3 {
@@ -102,11 +88,11 @@
   text-align: left;
   margin: 0;
   background: #4E4E4E padding-box;
-  border: solid 1px rgba(0, 0, 0, 0.25);
+  border: solid 0.1rem rgba(0, 0, 0, 0.25);
 }
 
 #modal-dialog-select-one ul > li > button:active {
   background-color: #006f86;
   color: #333;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.25);
+  text-shadow: 0 0.1rem 0 rgba(255, 255, 255, 0.25);
 }

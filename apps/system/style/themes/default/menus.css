@@ -41,7 +41,7 @@
 }
 
 [role="dialog"] menu.actions > ul > li:last-child {
-  border-top: solid 1px rgba(255, 255, 255, 0.1);
+  border-top: solid 0.1rem rgba(255, 255, 255, 0.1);
   background: #2d2d2d url(images/ui/pattern.png) repeat left top;
   margin-top: 1.5rem;
 }
@@ -54,14 +54,14 @@
   text-align: left;
   padding: 0 1rem;
   background: #4E4E4E padding-box;
-  border: solid 1px rgba(0, 0, 0, 0.25);
+  border: solid 0.1rem rgba(0, 0, 0, 0.25);
 }
 
 [role="dialog"] menu.actions > ul > li:not(:last-child) > button:active,
 [role="dialog"] menu.actions > ul > li:not(:last-child) > a[role="button"]:active {
   background-color: #006f86;
   color: #333;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.25);
+  text-shadow: 0 0.1rem 0 rgba(255, 255, 255, 0.25);
 }
 
 [role="dialog"] menu.actions > ul > li:last-child > button,
