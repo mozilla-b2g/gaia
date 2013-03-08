@@ -85,6 +85,9 @@ if (!window.LiveConnector) {
         out.familyName = [source.last_name || ''];
         out.email1 = source.emails.account;
 
+        out.contactPictureUri = [LIVE_ENDPOINT, out.uid,
+                                 PICTURE_RESOURCE, '?type=medium'].join('');
+
         return out;
       },
 
