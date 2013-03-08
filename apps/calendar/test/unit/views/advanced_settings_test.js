@@ -86,9 +86,34 @@ suiteGroup('Views.AdvancedSettings', function() {
     accountStore = app.store('Account');
     settings = app.store('Setting');
 
-    app.db.open(function() {
+    app.db.open(done);
+  });
+
+  setup(function(done) {
+    var trans = db.transaction('accounts', 'readwrite');
+
+    for (var key in fixtures) {
+      accountStore.persist(fixtures[key], trans);
+    }
+
+    trans.oncomplete = function() {
       done();
-    });
+    };
+
+    trans.onerror = function(e) {
+      done(e);
+    };
+  });
+
+  teardown(function(done) {
+    testSupport.calendar.clearStore(
+      app.db,
+      ['accounts'],
+      function() {
+        app.db.close();
+        done();
+      }
+    );
   });
 
   test('#accountList', function() {
@@ -213,23 +238,19 @@ suiteGroup('Views.AdvancedSettings', function() {
   });
 
   suite('#render', function() {
-    var result;
     var list;
-    var frequencyCall;
+    var expectedSyncFreq = 30;
 
-    setup(function() {
+    setup(function(done) {
+      settings.set('syncFrequency', expectedSyncFreq, done);
+    });
+
+    setup(function(done) {
       list = subject.accountList;
       accountStore._cached = fixtures;
 
-      var realGetValue = settings.getValue;
-      settings.getValue = function(key, callback) {
-        if (key === 'syncFrequency') {
-          frequencyCall = callback;
-        }
-      };
-
       subject.render();
-      result = subject.element.innerHTML;
+      subject.onrender = done;
     });
 
     test('number of items', function() {
@@ -243,20 +264,17 @@ suiteGroup('Views.AdvancedSettings', function() {
       assert.equal(item.outerHTML, expected, name);
     }
 
-    test('result', function() {
+    test('accounts', function() {
       checkItem(0, 'a');
       checkItem(1, 'b');
     });
 
-    test('syncFrequency value', function() {
-      var initialValue = 15;
+    test('syncFrequency', function() {
       var element = subject.syncFrequency;
-
-      assert.ok(element.value !== '15', 'intiail value is not 15');
-      assert.ok(frequencyCall, 'has requested frequency');
-
-      frequencyCall(null, initialValue);
-      assert.ok(element.value == initialValue, 'changes value after result');
+      assert.ok(
+        element.value == expectedSyncFreq,
+        'set to stored value'
+      );
     });
   });
 
