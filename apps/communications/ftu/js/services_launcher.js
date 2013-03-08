@@ -6,13 +6,12 @@ var ServicesLauncher = (function(document) {
     var extensionFrame = document.querySelector('#fb-extensions');
     var oauthFrame = document.querySelector('#fb-oauth');
 
-    var URIs = {
-      facebook: '/contacts/fb_import.html?ftu=1',
-      live: '/contacts/import.html?ftu=1&service=live',
-      gmail: '/contacts/import.html?ftu=1&service=gmail'
-    };
+    var BASE_IMPORT = '/contacts/import.html?ftu=1';
+    function getServiceURI(service) {
+      return BASE_IMPORT + '&service=' + service;
+    }
 
-    var access_token, currentURI;
+    var access_token, currentURI, currentService;
 
 
     function open() {
@@ -20,7 +19,8 @@ var ServicesLauncher = (function(document) {
     }
 
     function load(targetService) {
-      currentURI = URIs[targetService];
+      currentService = targetService;
+      currentURI = getServiceURI(targetService);
 
       window.addEventListener('message', messageHandler);
       oauthFrame.contentWindow.postMessage({
@@ -48,7 +48,7 @@ var ServicesLauncher = (function(document) {
       extensionFrame.className = 'closing';
       window.removeEventListener('message', messageHandler);
 
-      if (currentURI === URIs.facebook) {
+      if (currentService === 'facebook') {
         // Notify observers that a change from FB could have happened
         var event = new CustomEvent('fb_imported', {
           'detail' : true
