@@ -5,6 +5,7 @@ html, body {
 
 #update-manager-container {
   display: none;
+  overflow: hidden;
 }
 
 #update-manager-container.displayed {
@@ -14,12 +15,13 @@ html, body {
 #update-manager-container > .activity {
   display: none;
   float: left;
-  width: 32px;
-  height: 30px;
-  margin: 14px 10px;
+  width: 3.2rem;
+  height: 3rem;
+  margin: 1.4rem 1rem;
   background-image: url(images/loader.png);
   background-position: center center;
   background-repeat: no-repeat;
+  background-size: 3.1rem;
   animation: 0.9s fn-rotate infinite linear;
 }
 
@@ -40,14 +42,15 @@ html, body {
 #update-manager-container > .icon {
   float: left;
   display: block;
-  width: 24px;
-  height: 24px;
-  margin: 18px 10px;
+  width: 2.4rem;
+  height: 2.4rem;
+  margin: 1.8rem 1rem;
 }
 
 #update-manager-container > .icon,
 #update-manager-toaster > .icon {
   background-image: url('images/iconindicator_download_24x24.png');
+  background-size: 2.4rem;
 }
 
 #update-manager-container.downloading > .icon {
@@ -64,9 +67,9 @@ html, body {
 
 #update-manager-toaster > .message {
   position: absolute;
-  left: 50px;
-  top: 10px;
-  width: -moz-calc(100% - 55px);
+  left: 5rem;
+  top: 1rem;
+  width: calc(100% - 5.5rem);
   color: #52b8cc;
   font-size: 1.5rem;
   font-weight: 500;
@@ -74,8 +77,8 @@ html, body {
 }
 
 #update-manager-container > .message {
-  margin: 10px 0 0 50px;
-  width: -moz-calc(100% - 55px);
+  margin: 1rem 0 0 5rem;
+  width: calc(100% - 5.5rem);
   font-size: 1.5rem;
   font-weight: 500;
   line-height: 1.9rem;
@@ -100,18 +103,19 @@ html, body {
   top: 0;
   left: 0;
   width: 100%;
-  height: 50px;
+  height: 5rem;
   overflow: hidden;
   background-image: url('images/grey-noise-bg.png');
   background-repeat: repeat-x;
+  background-size: auto 100%;
   -moz-box-sizing: border-box;
-  border-bottom: 1px #2c2c2c solid;
-  -moz-transform: translateY(-50px);
-  -moz-transition: -moz-transform .3s ease-in-out;
+  border-bottom: 0.1rem #2c2c2c solid;
+  transform: translateY(-5rem);
+  transition: transform .3s ease-in-out;
 }
 
 #update-manager-toaster.displayed {
-  -moz-transform: translateY(0);
+  transform: translateY(0);
 }
 
 #updates-viaDataConnection-dialog,
@@ -148,7 +152,7 @@ html, body {
   height: auto;
   line-height: 3.5rem;
   overflow-y: scroll;
-  max-height: -moz-calc(100% - 3.8rem);
+  max-height: calc(100% - 3.8rem);
   color: #ebebeb;
   font-size: 2.5rem;
 }
@@ -162,7 +166,7 @@ html, body {
 #updates-download-dialog li {
   height: 5rem;
   margin: 0 1rem;
-  border-top: solid 1px rgba(255, 255, 255, 0.05);
+  border-top: solid 0.1rem rgba(255, 255, 255, 0.05);
 }
 
 #updates-download-dialog li:first-child {
@@ -233,8 +237,8 @@ html, body {
 #updates-download-dialog[data-nowifi="true"] section {
   /* Fixing at the top of the screen to properly make room for the warning */
   position: absolute;
-  top: 20px;
-  max-height: calc(100% - 15rem - 20px);
+  top: 2rem;
+  max-height: calc(100% - 15rem - 2rem);
 }
 
 #updates-download-dialog #updates-download-button[data-online="false"] {

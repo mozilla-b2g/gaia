@@ -10,27 +10,13 @@
 
 #authentication-dialog input,
 #modal-dialog input {
-  border-radius: 2px 2px 2px 2px;
-  height: 40px;
-  font-size: 20px;
+  border-radius: 0.2rem;
+  height: 4rem;
+  font-size: 2rem;
   width: 100%;
   color: white;
   background: none;
   -moz-box-sizing: border-box;
-}
-
-/* 480x800 phones */
-@media (orientation: portrait) and (width: 480px),
-       (orientation: landscape) and (width: 800px) {
-  #authentication-dialog input,
-  #modal-dialog input {
-    border-radius: 3px 3px 3px 3px;
-    height: 60px;
-    font-size: 30px;
-    width: 100%;
-    color: white;
-    -moz-box-sizing: border-box;
-  }
 }
 
 #screen.modal-dialog #modal-dialog,
@@ -51,8 +37,8 @@
 
 #modal-dialog-sad-face {
   float: left;
-  font-size: 72px;
-  margin-right: 2px;
+  font-size: 7.2rem;
+  margin-right: 0.2rem;
 }
 
 /* Confirm dialog */
