@@ -152,12 +152,15 @@ var FacebookConfiguration = function FacebookConfiguration() {
   };
 
   var req = utils.config.load('/contacts/config.json');
+  window.config = {};
+
   req.onload = function(configData) {
     if (configData.facebookEnabled === true) {
       enableFacebook();
     } else {
       disableFacebook();
     }
+    window.config.operationsTimeout = configData.operationsTimeout;
   };
   req.onerror = function(code) {
     disableFacebook();
