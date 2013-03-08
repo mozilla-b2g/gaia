@@ -178,6 +178,9 @@ let externalAppsDirs = ['external-apps'];
 if (DOGFOOD === '1') {
   externalAppsDirs.push('external-dogfood-apps');
 }
+if (DOGFOOD === '0' && PRODUCTION === '0') {
+  externalAppsDirs.push('test_external_apps');
+}
 
 const Gaia = {
   engine: GAIA_ENGINE,
