@@ -707,17 +707,17 @@ var ThreadUI = {
     var allInputs = this.view.querySelectorAll('input[type="checkbox"]');
 
     if (selected.length == allInputs.length) {
-      ThreadUI.selectAllButton.classList.add('disabled');
+      ThreadUI.selectAllButton.disabled = true;
     } else {
-      ThreadUI.selectAllButton.classList.remove('disabled');
+      ThreadUI.selectAllButton.disabled = false;
     }
     if (selected.length > 0) {
-      ThreadUI.deselectAllButton.classList.remove('disabled');
-      ThreadUI.deleteButton.classList.remove('disabled');
+      ThreadUI.deselectAllButton.disabled = false;
+      ThreadUI.deleteButton.disabled = false;
       this.pageHeader.innerHTML = _('selected', {n: selected.length});
     } else {
-      ThreadUI.deselectAllButton.classList.add('disabled');
-      ThreadUI.deleteButton.classList.add('disabled');
+      ThreadUI.deselectAllButton.disabled = true;
+      ThreadUI.deleteButton.disabled = true;
       this.pageHeader.innerHTML = _('editMode');
     }
   },

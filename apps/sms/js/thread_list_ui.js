@@ -117,17 +117,17 @@ var ThreadListUI = {
     var allInputs =
             ThreadListUI.view.querySelectorAll('input[type="checkbox"]');
     if (selected == allInputs.length) {
-      ThreadListUI.selectAllButton.classList.add('disabled');
+      ThreadListUI.selectAllButton.disabled = true;
     } else {
-      ThreadListUI.selectAllButton.classList.remove('disabled');
+      ThreadListUI.selectAllButton.disabled = false;
     }
     if (selected > 0) {
-      ThreadListUI.deselectAllButton.classList.remove('disabled');
-      ThreadListUI.deleteButton.classList.remove('disabled');
+      ThreadListUI.deselectAllButton.disabled = false;
+      ThreadListUI.deleteButton.disabled = false;
       this.pageHeader.innerHTML = _('selected', {n: selected});
     } else {
-      ThreadListUI.deselectAllButton.classList.add('disabled');
-      ThreadListUI.deleteButton.classList.add('disabled');
+      ThreadListUI.deselectAllButton.disabled = true;
+      ThreadListUI.deleteButton.disabled = true;
       this.pageHeader.innerHTML = _('editMode');
     }
   },
@@ -210,7 +210,7 @@ var ThreadListUI = {
                        '#threads-fixed-container',
                        'header');
       // Edit mode available
-      ThreadListUI.iconEdit.classList.remove('disabled');
+      ThreadListUI.iconEdit.disabLed = false;
       var appendThreads = function(threads, callback) {
         if (threads.length === 0) {
           // Refresh fixed header logic
@@ -246,7 +246,7 @@ var ThreadListUI = {
             ' </div>' +
             '</div>';
       ThreadListUI.view.innerHTML = noResultHTML;
-      ThreadListUI.iconEdit.classList.add('disabled');
+      ThreadListUI.iconEdit.disabLed = true;
       // Callback if exist
       if (threadsRenderedCallback) {
         setTimeout(function executeCB() {
