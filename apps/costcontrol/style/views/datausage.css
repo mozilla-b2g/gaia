@@ -15,7 +15,7 @@
 
 #datausage-tab .toggle-data li {
   padding-left: 3rem;
-  height: 4rem;
+  height: 3.8rem;
   border-bottom-color: #adadad;
 }
 
@@ -78,7 +78,7 @@
 /* GRAPHS */
 #datausage-tab section.graph {
   position: relative;
-  height: 30rem;
+  height: 28.5rem;
 }
 
 #datausage-tab section.graph canvas {
