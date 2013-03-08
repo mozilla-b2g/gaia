@@ -107,35 +107,35 @@
     },
 
     render: function() {
-      var accounts = this.app.store('Account');
-      var items = accounts.cached;
-      var list = this.accountList;
+      var self = this;
+      var pending = 2;
 
-      // update accounts
-
-      var key;
-      var result = '';
-
-      for (key in items) {
-        if (this._displayAccount(items[key])) {
-          result += template.account.render(
-            this._formatModel(items[key])
-          );
+      function next() {
+        if (!--pending && self.onrender) {
+          self.onrender();
         }
       }
-      list.innerHTML = result;
+
+      function renderSyncFrequency(err, value) {
+        self.syncFrequency.value = String(value);
+        next();
+      }
+
+      function renderAccounts(err, accounts) {
+        self.accountList.innerHTML = '';
+
+        for (var id in accounts) {
+          self._addAccount(id, accounts[id]);
+        }
+
+        next();
+      }
 
       var settings = this.app.store('Setting');
+      var accounts = this.app.store('Account');
 
-      // update settings
-
-      // we only have on setting right now this will change
-      // and we should have a sane abstraction over multiple
-      // types of settings...
-      var syncFrequency = this.syncFrequency;
-      settings.getValue('syncFrequency', function(err, value) {
-        syncFrequency.value = String(value);
-      });
+      settings.getValue('syncFrequency', renderSyncFrequency);
+      accounts.all(renderAccounts);
     }
 
   };

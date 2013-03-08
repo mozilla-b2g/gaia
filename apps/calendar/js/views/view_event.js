@@ -77,9 +77,11 @@ Calendar.ns('Views').ViewEvent = (function() {
 
       this.setContent('location', model.location);
 
-      var calendar = this.store.calendarFor(model);
-      if (calendar) {
-        this.setContent('current-calendar', calendar.remote.name);
+      if (this.originalCalendar) {
+        this.setContent(
+          'current-calendar',
+          this.originalCalendar.remote.name
+        );
       }
 
       var dateSrc = model;

@@ -30,10 +30,6 @@ suiteGroup('Provider.Caldav', function() {
     });
 
     calendar = Factory('calendar', {
-      _id: 'one',
-      accountId: 'one',
-      firstEventSyncDate: null,
-      lastEventSyncToken: null
     });
 
     account = Factory('account', { _id: 'one' });
@@ -42,20 +38,26 @@ suiteGroup('Provider.Caldav', function() {
     accountStore = app.store('Account');
     componentStore = app.store('IcalComponent');
 
-    accountStore.cached[account._id] = account;
-    calendarStore.cached[calendar._id] = calendar;
-
     eventStore = app.store('Event');
 
-    db.open(function() {
-      var trans = db.transaction(['calendars'], 'readwrite');
+    db.open(done);
+  });
 
-      calendarStore.persist(calendar, trans);
+  testSupport.calendar.accountEnvironment(
+    null,
+    {
+      _id: 'one',
+      accountId: 'one',
+      firstEventSyncDate: null,
+      lastEventSyncToken: null
+    }
+  );
 
-      trans.oncomplete = function() {
-        done();
-      };
-    });
+  var account;
+  var calendar;
+  setup(function() {
+    account = this.account;
+    calendar = this.calendar;
   });
 
   var ical;
@@ -70,7 +72,6 @@ suiteGroup('Provider.Caldav', function() {
   teardown(function(done) {
     testSupport.calendar.clearStore(
       db,
-      ['busytimes', 'icalComponents'],
       done
     );
   });
@@ -133,8 +134,10 @@ suiteGroup('Provider.Caldav', function() {
   });
 
   suite('#eventCapabilities', function() {
-    test('recurring', function() {
+
+    test('recurring', function(done) {
       var event = Factory('event', {
+        calendarId: this.calendar._id,
         remote: {
           isRecurring: true
         }
@@ -146,14 +149,17 @@ suiteGroup('Provider.Caldav', function() {
         canCreate: false
       };
 
-      var actual = subject.eventCapabilities(event);
-      assert.deepEqual(actual, expected);
+      var actual = subject.eventCapabilities(event, function(err, actual) {
+        done(function() {
+          assert.deepEqual(actual, expected);
+        });
+      });
     });
 
-    test('without calendar permissions', function() {
-      var calendar = Factory('calendar');
-      var event = Factory('event', { calendarId: calendar._id });
-      calendarStore.cached[calendar._id] = calendar;
+    test('without calendar permissions', function(done) {
+      var event = Factory('event', {
+        calendarId: this.calendar._id
+      });
 
       assert.isFalse(event.remote.isRecurring);
 
@@ -163,37 +169,35 @@ suiteGroup('Provider.Caldav', function() {
         canDelete: true
       };
 
-      var actual = subject.eventCapabilities(event);
-      assert.deepEqual(actual, expected);
+      var actual = subject.eventCapabilities(event, function(err, actual) {
+        done(function() {
+          assert.deepEqual(actual, expected);
+        });
+      });
     });
 
-    test('with calendar permissions', function() {
-      var calledWith = null;
-      var calendar = Factory('calendar');
-      var givenCaps = {
-        canUpdateEvent: true,
-        canDeleteEvent: true,
-        canCreateEvent: false
-      };
-
+    test('with calendar permissions', function(done) {
       subject.calendarCapabilities = function() {
-        calledWith = arguments;
-        return givenCaps;
+        return {
+          canCreateEvent: false,
+          canDeleteEvent: true,
+          canUpdateEvent: true
+        };
       };
 
-      var event = Factory('event', { calendarId: calendar._id });
-      calendarStore.cached[calendar._id] = calendar;
+      var event = Factory('event', {
+        calendarId: calendar._id
+      });
 
-      var caps = subject.eventCapabilities(event);
-      assert.deepEqual(
-        calledWith,
-        [calendar]
-      );
+      subject.eventCapabilities(event, function(err, caps) {
+        done(function() {
+          assert.deepEqual(caps, {
+            canCreate: false,
+            canUpdate: true,
+            canDelete: true
+          });
 
-      assert.deepEqual(caps, {
-        canCreate: givenCaps.canCreateEvent,
-        canUpdate: givenCaps.canUpdateEvent,
-        canDelete: givenCaps.canDeleteEvent
+        });
       });
     });
   });
@@ -420,10 +424,26 @@ suiteGroup('Provider.Caldav', function() {
           done(function() {
             assert.equal(calledWith[0], 'caldav');
             assert.equal(calledWith[1], 'deleteEvent');
-            assert.deepEqual(
-              calledWith.slice(2, 5),
-              [account, calendar.remote, event.remote]
+
+            var slice = calledWith.slice(2, 5);
+
+            assert.hasProperties(
+              slice[0], account,
+              'sends account'
             );
+
+            assert.hasProperties(
+              slice[1],
+              calendar.remote,
+              'sends calendar'
+            );
+
+            assert.deepEqual(
+              slice[2],
+              event.remote,
+              'sends event'
+            );
+
           });
         });
       });
@@ -770,11 +790,10 @@ suiteGroup('Provider.Caldav', function() {
       });
     });
 
-/*
-// These tests are currently failing and have been temporarily disabled as per
-// Bug 838993. They should be fixed and re-enabled as soon as possible as per
-// Bug 840489.
     suite('with simulated pre-expansion component', function() {
+      // this test still is a little too much for travis
+      // CI... we need to ensure it is more reliable soon.
+      return;
       var comp;
       var didExpand;
       var eventId;
@@ -851,7 +870,7 @@ suiteGroup('Provider.Caldav', function() {
             dates.push(time.startDate);
           });
 
-          dates.sort();
+          dates = dates.sort();
 
           assert.isTrue(
             dates[0].valueOf() > givenLastRecur.valueOf(),
@@ -870,7 +889,6 @@ suiteGroup('Provider.Caldav', function() {
         }
       });
     });
-*/
 
   });
 });
