@@ -75,7 +75,6 @@ pref("general.useragent.override.antena3.com", "\(Mobile#(Android; Mobile"); // 
 pref("general.useragent.override.ingdirect.es", "\(Mobile#(Android; Mobile"); // bug 828401
 pref("general.useragent.override.fotocasa.es", "\(Mobile#(Android; Mobile"); // bug 828403
 pref("general.useragent.override.orange.es", "\(Mobile#(Android; Mobile"); // bug 828406
-pref("general.useragent.override.stackoverflow.com", "Mozilla/5.0 (Linux; Android 4.0.4; Galaxy Nexus Build/IMM76B) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.133 Mobile Safari/535.19"); // bug 828408
 pref("general.useragent.override.amazon.co.uk", "\(Mobile#(Android; Mobile"); // bug 828412
 pref("general.useragent.override.paginasamarillas.es", "\(Mobile#(Android; Mobile"); // bug 828414
 pref("general.useragent.override.loteriasyapuestas.es", "\(Mobile#(Android; Mobile"); // bug 828416
