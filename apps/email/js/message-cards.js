@@ -631,6 +631,10 @@ MessageListCard.prototype = {
       // author
       msgNode.getElementsByClassName('msg-header-author')[0]
         .textContent = message.author.name || message.author.address;
+      // author pic if contact
+      if (message.author.hasPicture)
+        message.author.displayPictureInImageTag(
+          msgNode.getElementsByClassName('msg-header-avatar')[0]);
       // date
       dateNode.dataset.time = message.date.valueOf();
       dateNode.textContent = prettyDate(message.date);

@@ -644,6 +644,172 @@ function serializeMessageName(x) {
 }
 
 /**
+ * Caches contact lookups, both hits and misses.
+ */
+var ContactCache = {
+  /**
+   * Maps e-mail addresses to the mozContact rep for the object, or null if
+   * there was a miss.
+   */
+  _cache: {},
+  /** The number of entries in the cache. */
+  _cacheHitEntries: 0,
+  /** The number of stored misses in the cache. */
+  _cacheEmptyEntries: 0,
+  /**
+   * Maximum number of hit entries in the cache before we should clear the
+   * cache.
+   */
+  MAX_CACHE_HITS: 256,
+  /** Maximum number of empty entries to store in the cache before clearing. */
+  MAX_CACHE_EMPTY: 1024,
+  resolvePeeps: function(addressPairs) {
+    if (addressPairs === null)
+      return null;
+    var resolved = [];
+    for (var i = 0; i < addressPairs.length; i++) {
+      resolved.push(this.resolvePeep(addressPairs[i]));
+    }
+    return resolved;
+  },
+  resolvePeep: function(addressPair) {
+    var emailAddress = addressPair.address;
+    var entry = this._cache[emailAddress], contact;
+    // known miss; create miss peep
+    if (entry === null) {
+      return new MailPeep(addressPair.name || '', emailAddress, false, null);
+    }
+    // known contact; unpack contact info
+    else if (entry !== undefined) {
+      return new MailPeep(entry.name || addressPair.name || '', emailAddress,
+                          true,
+                          (entry.photo && entry.photo.length) ?
+                            entry.photo[0] : null);
+    }
+    // not yet looked-up; assume it's a miss and we'll fix-up if it's a hit
+    else {
+      var peep = new MailPeep(addressPair.name || '', emailAddress, false,
+                              null),
+          pendingLookups = this.pendingLookups;
+
+      var idxPendingLookup = pendingLookups.indexOf(emailAddress),
+          peepsToFixup;
+      if (idxPendingLookup !== -1) {
+        peepsToFixup = pendingLookups[idxPendingLookup + 1];
+        peepsToFixup.push(peep);
+        return peep;
+      }
+
+      var contactsAPI = navigator.mozContacts;
+      if (!contactsAPI)
+        return peep;
+
+      var req = contactsAPI.find({
+                  filterBy: ['email'],
+                  filterOp: 'contains',
+                  filterValue: emailAddress
+                });
+      pendingLookups.push(emailAddress);
+      pendingLookups.push(peepsToFixup = [peep]);
+      var handleResult = function handleResult() {
+        var idxPendingLookup = pendingLookups.indexOf(emailAddress), i;
+        if (req.result && req.result.length) {
+          var contact = req.result[0];
+
+          ContactCache._cache[emailAddress] = contact;
+          if (++ContactCache._cacheHitEntries > ContactCache.MAX_CACHE_HITS) {
+            ContactCache._cacheHitEntries = 0;
+            ContactCache._cacheEmptyEntries = 0;
+            ContactCache._cache = {};
+          }
+
+          for (i = 0; i < peepsToFixup.length; i++) {
+            var peep = peepsToFixup[i];
+            peep.isContact = true;
+            if (contact.name)
+              peep.name = contact.name;
+            if (contact.photo && contact.photo.length)
+              peep._thumbnailBlob = contact.photo[0];
+          }
+        }
+        else {
+          ContactCache._cache[emailAddress] = null;
+          if (++ContactCache._cacheEmptyEntries > ContactCache.MAX_CACHE_EMPTY) {
+            ContactCache._cacheHitEntries = 0;
+            ContactCache._cacheEmptyEntries = 0;
+            ContactCache._cache = {};
+          }
+        }
+        pendingLookups.splice(idxPendingLookup, 2);
+
+        if (!pendingLookups.length) {
+          for (i = 0; i < ContactCache.callbacks.length; i++) {
+            ContactCache.callbacks[i]();
+          }
+          ContactCache.callbacks.splice(0, ContactCache.callbacks.length);
+        }
+      };
+      req.onsuccess = handleResult;
+      req.onerror = handleResult;
+
+      return peep;
+    }
+  },
+  pendingLookups: [],
+  callbacks: [],
+};
+
+function revokeImageSrc() {
+  // see showBlobInImg below for the rationale for useWin.
+  var useWin = this.ownerDocument.defaultView || window;
+  useWin.URL.revokeObjectURL(this.src);
+}
+function showBlobInImg(imgNode, blob) {
+  // We need to look at the image node because object URLs are scoped per
+  // document, and for HTML e-mails, we use an iframe that lives in a different
+  // document than us.
+  //
+  // the "|| window" is for our shimmed testing environment and should not
+  // happen in production.
+  var useWin = imgNode.ownerDocument.defaultView || window;
+  imgNode.src = useWin.URL.createObjectURL(blob);
+  // We can revoke the URL after we are 100% sure the image has resolved the URL
+  // to get at the underlying blob.  Once autorevoke URLs are supported, we can
+  // stop doing this.
+  imgNode.addEventListener('load', revokeImageSrc);
+}
+
+function MailPeep(name, address, isContact, thumbnailBlob) {
+  this.isContact = isContact;
+  this.name = name;
+  this.address = address;
+  this._thumbnailBlob = thumbnailBlob;
+}
+MailPeep.prototype = {
+  toString: function() {
+    return '[MailPeep: ' + this.address + ']';
+  },
+  toJSON: function() {
+    return {
+      name: this.name,
+      address: this.address,
+    };
+  },
+
+  get hasPicture() {
+    return this._thumbnailBlob !== null;
+  },
+  /**
+   * Display the contact's thumbnail on the given image node, abstracting away
+   * the issue of Blob URL life-cycle management.
+   */
+  displayPictureInImageTag: function(imgNode) {
+    if (this._thumbnailBlob)
+      showBlobInImg(imgNode, this._thumbnailBlob);
+  },
+};
+
+/**
  * Email overview information for displaying the message in the list as planned
  * for the current UI.  Things that we don't need (ex: to/cc/bcc) for the list
  * end up on the body, currently.  They will probably migrate to the header in
@@ -658,7 +824,7 @@ function MailHeader(slice, wireRep) {
   this.id = wireRep.suid;
   this.guid = wireRep.guid;
 
-  this.author = wireRep.author;
+  this.author = ContactCache.resolvePeep(wireRep.author);
 
   this.date = new Date(wireRep.date);
   this.__update(wireRep);
@@ -843,9 +1009,9 @@ function MailBody(api, suid, wireRep) {
   this.id = suid;
   this._date = wireRep.date;
 
-  this.to = wireRep.to;
-  this.cc = wireRep.cc;
-  this.bcc = wireRep.bcc;
+  this.to = ContactCache.resolvePeeps(wireRep.to);
+  this.cc = ContactCache.resolvePeeps(wireRep.cc);
+  this.bcc = ContactCache.resolvePeeps(wireRep.bcc);
   this.replyTo = wireRep.replyTo;
   this.attachments = null;
   if (wireRep.attachments) {
@@ -857,7 +1023,6 @@ function MailBody(api, suid, wireRep) {
   }
   this._relatedParts = wireRep.relatedParts;
   this.bodyReps = wireRep.bodyReps;
-  this._cleanup = null;
 }
 MailBody.prototype = {
   toString: function() {
@@ -915,26 +1080,19 @@ MailBody.prototype = {
 
   /**
    * Synchronously trigger the display of embedded images.
+   *
+   * The loadCallback allows iframe resizing logic to fire once the size of the
+   * image is known since Gecko still doesn't have seamless iframes.
    */
   showEmbeddedImages: function(htmlNode, loadCallback) {
-    var i, cidToObjectUrl = {},
-        // the "|| window" is for our shimmed testing environment and should
-        // not happen in production.
-        useWin = htmlNode.ownerDocument.defaultView || window;
+    var i, cidToBlob = {};
     // - Generate object URLs for the attachments
     for (i = 0; i < this._relatedParts.length; i++) {
       var relPart = this._relatedParts[i];
       // Related parts should all be stored as Blobs-in-IndexedDB
-      if (relPart.file && !Array.isArray(relPart.file)) {
-        cidToObjectUrl[relPart.contentId] = useWin.URL.createObjectURL(
-          relPart.file);
-      }
+      if (relPart.file && !Array.isArray(relPart.file))
+        cidToBlob[relPart.contentId] = relPart.file;
     }
-    this._cleanup = function revokeURLs() {
-      for (var cid in cidToObjectUrl) {
-        useWin.URL.revokeObjectURL(cidToObjectUrl[cid]);
-      }
-    };
 
     // - Transform the links
     var nodes = htmlNode.querySelectorAll('.moz-embedded-image');
@@ -942,14 +1100,11 @@ MailBody.prototype = {
       var node = nodes[i],
           cid = node.getAttribute('cid-src');
 
-      if (!cidToObjectUrl.hasOwnProperty(cid))
+      if (!cidToBlob.hasOwnProperty(cid))
         continue;
-      // XXX according to an MDN tutorial we can use onload to destroy the
-      // URL once the image has been loaded.
-      if (loadCallback) {
+      showBlobInImg(node, cidToBlob[cid]);
+      if (loadCallback)
         node.addEventListener('load', loadCallback, false);
-      }
-      node.src = cidToObjectUrl[cid];
 
       node.removeAttribute('cid-src');
       node.classList.remove('moz-embedded-image');
@@ -990,14 +1145,9 @@ MailBody.prototype = {
     }
   },
   /**
-   * Call this method when you are done with a message body.  This is required
-   * so that any File/Blob URL's can be revoked.
+   * Call this method when you are done with a message body.
    */
   die: function() {
-    if (this._cleanup) {
-      this._cleanup();
-      this._cleanup = null;
-    }
   },
 };
 
@@ -1596,6 +1746,14 @@ function MailAPI() {
   this._slices = {};
   this._pendingRequests = {};
 
+  this._processingMessage = null;
+  /**
+   * List of received messages whose processing is being deferred because we
+   * still have a message that is actively being processed, as stored in
+   * `_processingMessage`.
+   */
+  this._deferredMessages = [];
+
   /**
    * @dict[
    *   @key[debugLogging]
@@ -1650,13 +1808,24 @@ MailAPI.prototype = {
    * Process a message received from the bridge.
    */
   __bridgeReceive: function ma___bridgeReceive(msg) {
+    if (this._processingMessage) {
+      this._deferredMessages.push(msg);
+    }
+    else {
+      this._processMessage(msg);
+    }
+  },
+
+  _processMessage: function ma__processMessage(msg) {
     var methodName = '_recv_' + msg.type;
     if (!(methodName in this)) {
       unexpectedBridgeDataError('Unsupported message type:', msg.type);
       return;
     }
     try {
-      this[methodName](msg);
+      var done = this[methodName](msg);
+      if (!done)
+        this._processingMessage = msg;
     }
     catch (ex) {
       internalError('Problem handling message type:', msg.type, ex,
@@ -1665,9 +1834,20 @@ MailAPI.prototype = {
     }
   },
 
+  _doneProcessingMessage: function(msg) {
+    if (this._processingMessage !== msg)
+      throw new Error('Mismatched message completion!');
+
+    this._processingMessage = null;
+    while (this._processingMessage === null && this._deferredMessages.length) {
+      this._processMessage(this._deferredMessages.shift());
+    }
+  },
+
   _recv_badLogin: function ma__recv_badLogin(msg) {
     if (this.onbadlogin)
       this.onbadlogin(new MailAccount(this, msg.account), msg.problem);
+    return true;
   },
 
   _recv_sliceSplice: function ma__recv_sliceSplice(msg) {
@@ -1675,10 +1855,29 @@ MailAPI.prototype = {
     if (!slice) {
       unexpectedBridgeDataError('Received message about a nonexistent slice:',
                                 msg.handle);
-      return;
+      return true;
     }
 
-    var addItems = msg.addItems, transformedItems = [], i, stopIndex;
+    var transformedItems = this._transform_sliceSplice(msg, slice);
+    // It's possible that a transformed representation is depending on an async
+    // call to mozContacts.  In this case, we don't want to surface the data to
+    // the UI until the contacts are fully resolved in order to avoid the UI
+    // flickering or just triggering reflows that could otherwise be avoided.
+    if (ContactCache.pendingLookups.length) {
+      ContactCache.callbacks.push(function contactsResolved() {
+        this._fire_sliceSplice(msg, slice, transformedItems);
+        this._doneProcessingMessage(msg);
+      }.bind(this));
+      return false;
+    }
+    else {
+      this._fire_sliceSplice(msg, slice, transformedItems);
+      return true;
+    }
+  },
+
+  _transform_sliceSplice: function ma__transform_sliceSplice(msg, slice) {
+    var addItems = msg.addItems, transformedItems = [], i;
     switch (slice._ns) {
       case 'accounts':
 
@@ -1734,6 +1933,13 @@ MailAPI.prototype = {
         console.error('Slice notification for unknown type:', slice._ns);
         break;
     }
+
+    return transformedItems;
+  },
+
+  _fire_sliceSplice: function ma__fire_sliceSplice(msg, slice,
+                                                   transformedItems) {
+    var i, stopIndex;
 
     // - generate namespace-specific notifications
     slice.atTop = msg.atTop;
@@ -1820,7 +2026,7 @@ MailAPI.prototype = {
     if (!slice) {
       unexpectedBridgeDataError('Received message about a nonexistent slice:',
                                 msg.handle);
-      return;
+      return true;
     }
 
     var updates = msg.updates;
@@ -1839,6 +2045,7 @@ MailAPI.prototype = {
       reportClientCodeError('onchange notification error', ex,
                             '\n', ex.stack);
     }
+    return true;
   },
 
   _recv_sliceDead: function(msg) {
@@ -1847,6 +2054,8 @@ MailAPI.prototype = {
     if (slice.ondead)
       slice.ondead(slice);
     slice.ondead = null;
+
+    return true;
   },
 
   _getBodyForMessage: function(header, callback) {
@@ -1868,12 +2077,14 @@ MailAPI.prototype = {
     var req = this._pendingRequests[msg.handle];
     if (!req) {
       unexpectedBridgeDataError('Bad handle for got body:', msg.handle);
-      return;
+      return true;
     }
     delete this._pendingRequests[msg.handle];
 
     var body = msg.bodyInfo ? new MailBody(this, req.suid, msg.bodyInfo) : null;
     req.callback.call(null, body);
+
+    return true;
   },
 
   _downloadAttachments: function(body, relPartIndices, attachmentIndices,
@@ -1901,7 +2112,7 @@ MailAPI.prototype = {
     var req = this._pendingRequests[msg.handle];
     if (!req) {
       unexpectedBridgeDataError('Bad handle for got body:', msg.handle);
-      return;
+      return true;
     }
     delete this._pendingRequests[msg.handle];
 
@@ -1920,6 +2131,7 @@ MailAPI.prototype = {
     }
     if (req.callback)
       req.callback.call(null, req.body);
+    return true;
   },
 
   /**
@@ -2042,13 +2254,14 @@ MailAPI.prototype = {
     var req = this._pendingRequests[msg.handle];
     if (!req) {
       unexpectedBridgeDataError('Bad handle for create account:', msg.handle);
-      return;
+      return true;
     }
     delete this._pendingRequests[msg.handle];
 
     // The account info here is currently for unit testing only; it's our wire
     // protocol instead of a full MailAccount.
     req.callback.call(null, msg.error, msg.errorDetails, msg.account);
+    return true;
   },
 
   _clearAccountProblems: function ma__clearAccountProblems(account) {
@@ -2335,13 +2548,14 @@ MailAPI.prototype = {
     var req = this._pendingRequests[msg.handle];
     if (!req) {
       unexpectedBridgeDataError('Bad handle for mutation:', msg.handle);
-      return;
+      return true;
     }
 
     req.undoableOp._tempHandle = null;
     req.undoableOp._longtermIds = msg.longtermIds;
     if (req.undoableOp._undoRequested)
       req.undoableOp.undo();
+    return true;
   },
 
   __undo: function undo(undoableOp) {
@@ -2463,7 +2677,7 @@ MailAPI.prototype = {
     var req = this._pendingRequests[msg.handle];
     if (!req) {
       unexpectedBridgeDataError('Bad handle for compose begun:', msg.handle);
-      return;
+      return true;
     }
 
     req.composer.senderIdentity = new MailSenderIdentity(this, msg.identity);
@@ -2480,6 +2694,7 @@ MailAPI.prototype = {
       req.callback = null;
       callback.call(null, req.composer);
     }
+    return true;
   },
 
   _composeDone: function(handle, command, state, callback) {
@@ -2512,7 +2727,7 @@ MailAPI.prototype = {
     var req = this._pendingRequests[msg.handle];
     if (!req) {
       unexpectedBridgeDataError('Bad handle for sent:', msg.handle);
-      return;
+      return true;
     }
     // Only delete the request if the send succeeded.
     if (!msg.err)
@@ -2521,6 +2736,7 @@ MailAPI.prototype = {
       req.callback.call(null, msg.err, msg.badAddresses, msg.sentDate);
       req.callback = null;
     }
+    return true;
   },
 
   //////////////////////////////////////////////////////////////////////////////
@@ -2596,6 +2812,7 @@ MailAPI.prototype = {
 
   _recv_config: function(msg) {
     this.config = msg.config;
+    return true;
   },
 
   //////////////////////////////////////////////////////////////////////////////
@@ -2623,6 +2840,7 @@ MailAPI.prototype = {
     var req = this._pendingRequests[msg.handle];
     delete this._pendingRequests[msg.handle];
     req.callback();
+    return true;
   },
 
   debugSupport: function(command, argument) {
@@ -3710,6 +3928,11 @@ function simplifyInsaneObjects(obj, dtype, curDepth) {
 var COMPARE_DEPTH = 6;
 function boundedCmpObjs(a, b, depthLeft) {
   var aAttrCount = 0, bAttrCount = 0, key, nextDepth = depthLeft - 1;
+
+  if ('toJSON' in a)
+    a = a.toJSON();
+  if ('toJSON' in b)
+    b = b.toJSON();
 
   for (key in a) {
     aAttrCount++;
