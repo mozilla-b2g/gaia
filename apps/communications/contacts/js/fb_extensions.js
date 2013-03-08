@@ -18,7 +18,10 @@ if (typeof Contacts.extFb === 'undefined') {
       canClose = true;
       contactId = cid;
       if (!linked) {
-        load('fb_link.html' + '?contactId=' + contactId, 'proposal');
+        asyncStorage.getItem('order.lastname', (function doLink(value) {
+          load('fb_link.html' + '?contactId=' + contactId +
+             '&orderByLastName=' + value, 'proposal');
+        }));
       } else {
         unlink(contactId);
       }
