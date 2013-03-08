@@ -34,9 +34,9 @@
 #cards-view .card {
   display: inline-block;
   width: 100%;
-  height: -moz-calc(100% - 20px);
+  height: calc(100% - 2rem);
   margin: 0;
-  margin-top: 20px;
+  margin-top: 2rem;
   margin-left: -25%;
   position: relative;
   background-size: contain;
@@ -114,6 +114,6 @@
   z-index: 99999;
   height: 2.6rem;
   width: 2.6rem;
-  background: url(close.png) no-repeat center center;
+  background: url(close.png) no-repeat center / 2.6rem;
   transform: scale(1.7);
 }
