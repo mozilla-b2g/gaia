@@ -12,7 +12,7 @@ suite('store/setting', function() {
   setup(function(done) {
     this.timeout(5000);
     app = testSupport.calendar.app();
-    db = testSupport.calendar.db();
+    db = app.db;
     subject = db.getStore('Setting');
 
     db.open(function(err) {

@@ -57,14 +57,19 @@ Calendar.ns('Controllers').Sync = (function() {
 
       var account = this.app.store('Account');
 
-      for (var key in account.cached) {
-        this.account(account.cached[key]);
-      }
+      account.all(function(err, list) {
 
-      // If we have nothing to sync
-      if (!this.pending)
-        this.emit('syncComplete');
-    },
+        for (var key in list) {
+          this.account(list[key]);
+        }
+
+        // If we have nothing to sync
+        if (!this.pending) {
+          this.emit('syncComplete');
+        }
+
+      }.bind(this));
+   },
 
     /**
      * Initiates a sync for a single calendar.
@@ -101,13 +106,8 @@ Calendar.ns('Controllers').Sync = (function() {
 
       this._incrementPending();
       accountStore.sync(account, function(err) {
-        // find all calendars
-        var calendars = calendarStore.remotesByAccount(
-          account._id
-        );
 
         var pending = 0;
-
         function next() {
           if (!(--pending)) {
             self._resolvePending();
@@ -117,10 +117,22 @@ Calendar.ns('Controllers').Sync = (function() {
           }
         }
 
-        for (var key in calendars) {
-          pending++;
-          self.calendar(account, calendars[key], next);
+        function fetchCalendars(err, calendars) {
+          if (err) {
+            return callback(err);
+          }
+
+          for (var key in calendars) {
+            pending++;
+            self.calendar(account, calendars[key], next);
+          }
         }
+
+        // find all calendars
+        var calendars = calendarStore.remotesByAccount(
+          account._id,
+          fetchCalendars
+        );
       });
     }
   };

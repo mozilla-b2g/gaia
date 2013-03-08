@@ -41,7 +41,10 @@ suite('event_mutations', function() {
        'alarms',
        'icalComponents'
       ],
-      done
+      function() {
+        db.close();
+        done();
+      }
     );
   });
 
