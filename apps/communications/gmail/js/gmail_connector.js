@@ -35,20 +35,6 @@ var GmailConnector = (function GmailConnector() {
       contacts.push(gContactToJson(entries[i]));
     }
 
-    contacts.sort(function sortGoogleContacts(a, b) {
-      var out = 0;
-      if (a.familyName && b.familyName &&
-        a.familyName.length > 0 && b.familyName.length > 0) {
-        out = a.familyName[0].localeCompare(b.familyName[0]);
-      } else if (b.familyName && b.familyName.length > 0) {
-        out = 1;
-      } else if (a.familyName && a.familyName.length > 0) {
-        out = -1;
-      }
-
-      return out;
-    });
-
     return contacts;
   };
 

@@ -29,38 +29,12 @@ if (!window.LiveConnector) {
     function LiveConnector() {
     }
 
-    function sortContacts(contactsList) {
-      contactsList.sort(function(a, b) {
-        var out = 0;
-        if (a.last_name && b.last_name) {
-          out = a.last_name.localeCompare(b.last_name);
-        }
-        else if (b.last_name) {
-          out = 1;
-        }
-        else if (a.last_name) {
-          out = -1;
-        }
-        return out;
-      });
-    }
-
     LiveConnector.prototype = {
       listAllContacts: function(access_token, callbacks) {
         var uriElements = [LIVE_ENDPOINT, CONTACTS_RESOURCE, '?',
                            'access_token', '=', access_token];
 
-        // Need to be sorted by the connector
-        var auxCbs = {
-          success: function(response) {
-            sortContacts(response.data);
-            callbacks.success(response);
-          },
-          error: callbacks.error,
-          timeout: callbacks.timeout
-        };
-
-        return Rest.get(uriElements.join(''), auxCbs);
+        return Rest.get(uriElements.join(''), callbacks);
       },
 
       listDeviceContacts: function(callbacks) {
