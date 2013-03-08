@@ -79,7 +79,8 @@ var Contacts = (function() {
                 if ('extras' in params) {
                   addExtrasToContact(params['extras']);
                 }
-                contactsForm.render(currentContact, goToForm);
+                contactsForm.render(currentContact, goToForm,
+                                    null, params['fromUpdateActivity']);
               }, function onError() {
                 console.log('Error retrieving contact to be edited');
                 contactsForm.render(null, goToForm);
@@ -93,7 +94,7 @@ var Contacts = (function() {
         initForm(function onInitForm() {
           navigation.home();
           if ('tel' in params) {
-            selectList(params['tel']);
+            selectList(params['tel'], true);
           }
         });
         return;
@@ -304,8 +305,7 @@ var Contacts = (function() {
     contactsList.handleClick(contactListClickHandler);
   };
 
-  var selectList = function selectList(phoneNumber) {
-    var addButton = document.getElementById('add-contact-button');
+  var selectList = function selectList(phoneNumber, fromUpdateActivity) {
     addButton.classList.add('hide');
     contactsList.clearClickHandlers();
     contactsList.handleClick(function addToContactHandler(id) {
@@ -317,8 +317,11 @@ var Contacts = (function() {
           }
         ]
       };
-      window.location.hash = '#view-contact-form?extras=' +
+      var hash = '#view-contact-form?extras=' +
         encodeURIComponent(JSON.stringify(data)) + '&id=' + id;
+      if (fromUpdateActivity)
+        hash += '&fromUpdateActivity=1';
+      window.location.hash = hash;
       contactsList.clearClickHandlers();
       contactsList.handleClick(contactListClickHandler);
       addButton.classList.remove('hide');
