@@ -56,7 +56,8 @@ input.error {
   top: 9.1rem;
   background: url(images/app/ui/pattern.png) repeat left top;
   transform: translate(0, 0);
-  transition: transform 0.3s ease;
+  transition: transform 0.5s ease,
+              opacity 0.2s ease;
 }
 
 .view.standalone {
@@ -80,6 +81,11 @@ input.error {
 /* VIEWPORTS */
 .view[data-viewport="behind"] {
   visibility: hidden;
+}
+
+.view[data-viewport="ethereal"] {
+  pointer-events: none;
+  opacity: 0;
 }
 
 .view[data-viewport="bottom"] {
