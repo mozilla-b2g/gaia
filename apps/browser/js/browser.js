@@ -42,7 +42,6 @@ var Browser = {
   FIRST_TAB: 'tab_0',
   MAX_SAVING_RETRIES: 100, // max number of retries when saving images with a
                            // new name.
-
   urlButtonMode: null,
   addressBarState: null,
 
@@ -64,116 +63,175 @@ var Browser = {
     this.urlInput.addEventListener('mouseup', this.urlMouseUp.bind(this));
     this.urlInput.addEventListener('keyup',
       this.handleUrlInputKeypress.bind(this));
-    this.tabPanels.addEventListener('click', this.followLink.bind(this));
-    this.results.addEventListener('click', this.followLink.bind(this));
     this.urlButton.addEventListener('click',
       this.handleUrlFormSubmit.bind(this));
     this.tabsBadge.addEventListener('click',
       this.handleTabsBadgeClicked.bind(this));
-    this.topSitesTab.addEventListener('click',
-      this.showTopSitesTab.bind(this));
-    this.bookmarksTab.addEventListener('click',
-      this.showBookmarksTab.bind(this));
-    this.historyTab.addEventListener('click', this.showHistoryTab.bind(this));
-    this.settingsButton.addEventListener('click',
-      this.showSettingsScreen.bind(this));
-    this.newTabButton.addEventListener('click', this.handleNewTab.bind(this));
-    this.settingsDoneButton.addEventListener('click',
-      this.showPageScreen.bind(this));
-    this.aboutBrowserButton.addEventListener('click',
-      this.showAboutPage.bind(this));
-    this.clearHistoryButton.addEventListener('click',
-      this.handleClearHistory.bind(this));
-    this.closeTab.addEventListener('click',
-      this.handleCloseTab.bind(this));
-    this.tryReloading.addEventListener('click',
-      this.handleTryReloading.bind(this));
-    this.bookmarkMenuAdd.addEventListener('click',
-      this.addBookmark.bind(this));
-    this.bookmarkMenuRemove.addEventListener('click',
-      this.removeBookmark.bind(this));
-    this.bookmarkMenuCancel.addEventListener('click',
-      this.hideBookmarkMenu.bind(this));
-    this.bookmarkMenuEdit.addEventListener('click',
-      this.showBookmarkEntrySheet.bind(this));
-    this.bookmarkMenuAddHome.addEventListener('click',
-      this.addLinkToHome.bind(this));
-    this.bookmarkEntrySheetCancel.addEventListener('click',
-      this.hideBookmarkEntrySheet.bind(this));
-    this.bookmarkEntrySheetDone.addEventListener('click',
-      this.saveBookmark.bind(this));
-    this.awesomescreenCancelButton.addEventListener('click',
-     this.handleAwesomescreenCancel.bind(this));
-    this.topSiteThumbnails.addEventListener('click',
-      this.followLink.bind(this));
-    this.clearPrivateDataButton.addEventListener('click',
-      this.clearPrivateData.bind(this));
-
-    this.tabsSwipeMngr.browser = this;
-    ['mousedown', 'pan', 'tap', 'swipe'].forEach(function(evt) {
-      this.tabsList.addEventListener(evt,
-        this.tabsSwipeMngr[evt].bind(this.tabsSwipeMngr));
-    }, this);
-
-    this.screenSwipeMngr.browser = this;
-    this.screenSwipeMngr.screen = this.mainScreen;
-    this.screenSwipeMngr.gestureDetector = new GestureDetector(this.mainScreen);
-
-    ['mousedown', 'pan', 'tap', 'swipe'].forEach(function(evt) {
-      this.mainScreen.addEventListener(evt,
-        this.screenSwipeMngr[evt].bind(this.screenSwipeMngr));
-    }, this);
-
-    document.addEventListener('mozvisibilitychange',
-      this.handleVisibilityChange.bind(this));
-
-
-    ModalDialog.init();
-    AuthenticationDialog.init(false);
 
     // Load homepage once Places is initialised
     // (currently homepage is blank)
     Places.init((function(firstRun) {
-      this.hasLoaded = true;
-      if (this.waitingActivities.length) {
-        this.waitingActivities.forEach(this.handleActivity, this);
-        return;
-      }
       this.selectTab(this.createTab());
-      this.showPageScreen();
-      this.showStartscreen();
       if (firstRun)
         this.populateDefaultData();
       this.addressBarState = this.VISIBLE;
     }).bind(this));
   },
 
+  toCamelCase: function toCamelCase(str) {
+    return str.replace(/\-(.)/g, function replacer(str, p1) {
+      return p1.toUpperCase();
+    });
+  },
+
   getAllElements: function browser_getAllElements() {
-    var toCamelCase = function toCamelCase(str) {
-      return str.replace(/\-(.)/g, function replacer(str, p1) {
-        return p1.toUpperCase();
-      });
-    };
+
 
     var elementIDs = [
-      'toolbar-start', 'url-bar', 'tab-headers', 'url-input', 'url-button',
-      'awesomescreen', 'top-sites', 'bookmarks', 'history', 'top-sites-tab',
-      'bookmarks-tab', 'history-tab', 'back-button', 'forward-button',
-      'bookmark-button', 'ssl-indicator', 'tabs-badge', 'throbber', 'frames',
-      'tabs-list', 'main-screen', 'settings-button', 'settings-done-button',
-      'about-browser-button', 'clear-history-button', 'crashscreen',
-      'close-tab', 'try-reloading', 'bookmark-menu', 'bookmark-menu-add',
-      'bookmark-menu-remove', 'bookmark-menu-cancel', 'bookmark-menu-edit',
-      'bookmark-entry-sheet', 'bookmark-entry-sheet-cancel',
-      'bookmark-entry-sheet-done', 'bookmark-title', 'bookmark-url',
-      'bookmark-previous-url', 'bookmark-menu-add-home', 'new-tab-button',
-      'awesomescreen-cancel-button', 'startscreen', 'top-site-thumbnails',
-      'no-top-sites', 'clear-private-data-button', 'results', 'tab-panels'];
+      'toolbar-start', 'url-bar', 'url-input', 'url-button', 'awesomescreen',
+      'back-button', 'forward-button', 'bookmark-button', 'ssl-indicator',
+      'tabs-badge', 'throbber', 'frames', 'main-screen', 'crashscreen',
+      'bookmark-menu', 'bookmark-entry-sheet', 'awesomescreen-cancel-button',
+      'startscreen', 'top-site-thumbnails', 'no-top-sites', 'tray'];
 
     // Loop and add element with camel style name to Modal Dialog attribute.
     elementIDs.forEach(function createElementRef(name) {
-      this[toCamelCase(name)] = document.getElementById(name);
+      this[this.toCamelCase(name)] = document.getElementById(name);
     }, this);
+  },
+
+  loadRemaining: function browser_loadRemaining() {
+    if (this.hasLoaded)
+      return;
+
+    console.log('----------loadink!');
+    var filesToLoad = [
+      // DOM Nodes with commented content to load
+      this.awesomescreen,
+      this.crashscreen,
+      this.tray,
+      this.bookmarkMenu,
+      this.bookmarkEntrySheet,
+      document.getElementById('settings'),
+      document.getElementById('modal-dialog-alert'),
+      document.getElementById('modal-dialog-prompt'),
+      document.getElementById('modal-dialog-confirm'),
+      document.getElementById('modal-dialog-custom-prompt'),
+      document.getElementById('http-authentication-dialog'),
+
+      // css files
+      'shared/style/headers.css',
+      'shared/style/buttons.css',
+      'shared/style/input_areas.css',
+      'shared/style/status.css',
+      'shared/style/confirm.css',
+      'style/action_menu.css',
+      'style/authentication_dialog.css',
+
+      // shared JS files
+      'shared/js/gesture_detector.js'
+    ];
+
+    var jsFiles = [
+      'js/date_helper.js',
+      'js/modal_dialog.js',
+      'js/authentication_dialog.js',
+      'js/browser_extensions.js'
+    ];
+
+    var domElements = [
+      'tab-headers', 'top-sites', 'bookmarks', 'history',
+      'top-sites-tab', 'bookmarks-tab', 'history-tab',
+      'tabs-list', 'settings-button', 'settings-done-button',
+      'about-browser-button', 'clear-history-button', 'close-tab',
+      'try-reloading', 'bookmark-menu-add', 'bookmark-menu-remove',
+      'bookmark-menu-cancel', 'bookmark-menu-edit',
+      'bookmark-entry-sheet-cancel', 'bookmark-entry-sheet-done',
+      'bookmark-title', 'bookmark-url', 'bookmark-previous-url',
+      'bookmark-menu-add-home', 'new-tab-button',
+      'clear-private-data-button', 'results', 'tab-panels'
+    ];
+
+    var loadBrowserFiles = function() {
+      LazyLoader.load(jsFiles, function() {
+        domElements.forEach(function createElementRef(name) {
+          this[this.toCamelCase(name)] = document.getElementById(name);
+        }, this);
+
+        this.initRemainingListeners();
+        this.hasLoaded = true;
+        if (this.waitingActivities.length) {
+          this.waitingActivities.forEach(this.handleActivity, this);
+        }
+      }.bind(this));
+    }
+
+    LazyLoader.load(filesToLoad, loadBrowserFiles.bind(this));
+  },
+
+  initRemainingListeners: function browser_initRemainingListeners() {
+    this.tabPanels.addEventListener('click', this.followLink.bind(this));
+    this.results.addEventListener('click', this.followLink.bind(this));
+     this.topSitesTab.addEventListener('click',
+       this.showTopSitesTab.bind(this));
+     this.bookmarksTab.addEventListener('click',
+       this.showBookmarksTab.bind(this));
+     this.historyTab.addEventListener('click', this.showHistoryTab.bind(this));
+     this.settingsButton.addEventListener('click',
+       this.showSettingsScreen.bind(this));
+     this.newTabButton.addEventListener('click', this.handleNewTab.bind(this));
+     this.settingsDoneButton.addEventListener('click',
+       this.showPageScreen.bind(this));
+     this.aboutBrowserButton.addEventListener('click',
+       this.showAboutPage.bind(this));
+     this.clearHistoryButton.addEventListener('click',
+       this.handleClearHistory.bind(this));
+     this.closeTab.addEventListener('click',
+       this.handleCloseTab.bind(this));
+     this.tryReloading.addEventListener('click',
+       this.handleTryReloading.bind(this));
+     this.bookmarkMenuAdd.addEventListener('click',
+       this.addBookmark.bind(this));
+     this.bookmarkMenuRemove.addEventListener('click',
+       this.removeBookmark.bind(this));
+     this.bookmarkMenuCancel.addEventListener('click',
+       this.hideBookmarkMenu.bind(this));
+     this.bookmarkMenuEdit.addEventListener('click',
+       this.showBookmarkEntrySheet.bind(this));
+     this.bookmarkMenuAddHome.addEventListener('click',
+       this.addLinkToHome.bind(this));
+     this.bookmarkEntrySheetCancel.addEventListener('click',
+       this.hideBookmarkEntrySheet.bind(this));
+     this.bookmarkEntrySheetDone.addEventListener('click',
+       this.saveBookmark.bind(this));
+     this.awesomescreenCancelButton.addEventListener('click',
+      this.handleAwesomescreenCancel.bind(this));
+     this.topSiteThumbnails.addEventListener('click',
+       this.followLink.bind(this));
+     this.clearPrivateDataButton.addEventListener('click',
+       this.clearPrivateData.bind(this));
+
+    this.tabsSwipeMngr.browser = this;
+     ['mousedown', 'pan', 'tap', 'swipe'].forEach(function(evt) {
+       this.tabsList.addEventListener(evt,
+         this.tabsSwipeMngr[evt].bind(this.tabsSwipeMngr));
+     }, this);
+
+     this.screenSwipeMngr.browser = this;
+     this.screenSwipeMngr.screen = this.mainScreen;
+     this.screenSwipeMngr.gestureDetector =
+       new GestureDetector(this.mainScreen);
+
+     ['mousedown', 'pan', 'tap', 'swipe'].forEach(function(evt) {
+       this.mainScreen.addEventListener(evt,
+         this.screenSwipeMngr[evt].bind(this.screenSwipeMngr));
+     }, this);
+
+     document.addEventListener('mozvisibilitychange',
+       this.handleVisibilityChange.bind(this));
+
+     ModalDialog.init();
+     AuthenticationDialog.init(false);
   },
 
   populateDefaultData: function browser_populateDefaultData() {
@@ -1340,7 +1398,10 @@ var Browser = {
   showStartscreen: function browser_showStartscreen() {
     this.startscreen.classList.remove('hidden');
     Places.getTopSites(this.MAX_TOP_SITES, null,
-      this.showTopSiteThumbnails.bind(this));
+      function(places) {
+        this.showTopSiteThumbnails(places);
+        this.loadRemaining();
+      }.bind(this));
   },
 
   _topSiteThumbnailObjectURLs: [],
@@ -1798,8 +1859,10 @@ window.addEventListener('load', function browserOnLoad(evt) {
 
 function actHandle(activity) {
   if (Browser.hasLoaded) {
+    console.log('--- loaded');
     Browser.handleActivity(activity);
   } else {
+    console.log('--- nie loaded');
     Browser.waitingActivities.push(activity);
   }
   activity.postResult({ status: 'accepted' });
