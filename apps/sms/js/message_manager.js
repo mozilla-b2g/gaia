@@ -9,11 +9,13 @@ var MessageManager = {
       return;
     }
     this.initialized = true;
-    mozSms.addEventListener('received',
-        this.onMessageReceived.bind(this));
-    mozSms.addEventListener('sending', this.onMessageSending);
-    mozSms.addEventListener('sent', this.onMessageSent);
-    mozSms.addEventListener('failed', this.onMessageFailed);
+    if (navigator.mozSms) {
+      navigator.mozSms.addEventListener('received',
+          this.onMessageReceived.bind(this));
+      navigator.mozSms.addEventListener('sending', this.onMessageSending);
+      navigator.mozSms.addEventListener('sent', this.onMessageSent);
+      navigator.mozSms.addEventListener('failed', this.onMessageFailed);
+    }
     window.addEventListener('hashchange', this.onHashChange.bind(this));
     document.addEventListener('mozvisibilitychange',
                               this.onVisibilityChange.bind(this));
@@ -246,7 +248,7 @@ var MessageManager = {
   },
 
   getThreads: function mm_getThreads(callback, extraArg) {
-    var request = mozSms.getThreadList();
+    var request = navigator.mozSms.getThreadList();
     request.onsuccess = function onsuccess(evt) {
       var threads = evt.target.result;
       if (callback) {
@@ -255,7 +257,7 @@ var MessageManager = {
     };
 
     request.onerror = function onerror() {
-      var msg = 'Reading the database. Error: ' + request.error.name;
+      var msg = 'Reading the database. Error: ' + request.errorCode;
       console.log(msg);
     };
   },
@@ -266,7 +268,7 @@ var MessageManager = {
         endCB = options.endCB,   // CB when all messages retrieved
         endCBArgs = options.endCBArgs; //Args for endCB
     var self = this;
-    var request = mozSms.getMessages(filter, !invert);
+    var request = navigator.mozSms.getMessages(filter, !invert);
     request.onsuccess = function onsuccess() {
       var cursor = request.result;
       if (cursor.message) {
@@ -285,12 +287,12 @@ var MessageManager = {
       }
     };
     request.onerror = function onerror() {
-      var msg = 'Reading the database. Error: ' + request.error.name;
+      var msg = 'Reading the database. Error: ' + request.errorCode;
       console.log(msg);
     };
   },
   send: function mm_send(number, text, callback, errorHandler) {
-    var req = mozSms.send(number, text);
+    var req = navigator.mozSms.send(number, text);
     req.onsuccess = function onsuccess(e) {
       callback && callback(req.result);
     };
@@ -301,13 +303,13 @@ var MessageManager = {
   },
 
   deleteMessage: function mm_deleteMessage(id, callback) {
-    var req = mozSms.delete(id);
+    var req = navigator.mozSms.delete(id);
     req.onsuccess = function onsuccess() {
       callback && callback(req.result);
     };
 
     req.onerror = function onerror() {
-      var msg = 'Deleting in the database. Error: ' + req.error.name;
+      var msg = 'Deleting in the database. Error: ' + req.errorCode;
       console.log(msg);
       callback && callback(null);
     };
@@ -337,7 +339,7 @@ var MessageManager = {
     // 'markMessageRead' until a previous call is completed. This way any
     // other potential call to the API, like the one for getting a message
     // list, could be done within the calls to mark the messages as read.
-    var req = mozSms.markMessageRead(list.pop(), value);
+    var req = navigator.mozSms.markMessageRead(list.pop(), value);
     req.onsuccess = (function onsuccess() {
       if (!list.length && callback) {
         callback(req.result);
