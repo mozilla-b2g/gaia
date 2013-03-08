@@ -22577,7 +22577,7 @@ FolderStorage.prototype = {
         self._dirty = true;
         self._dirtyHeaderBlocks[info.blockId] = block;
 
-        this._LOG.updateMessageHeader(header.date, header.id, header.srvid);
+        self._LOG.updateMessageHeader(header.date, header.id, header.srvid);
 
         if (partOfSync && self._curSyncSlice &&
             !self._curSyncSlice.ignoreHeaders)
