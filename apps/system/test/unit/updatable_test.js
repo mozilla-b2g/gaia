@@ -452,7 +452,8 @@ suite('system/Updatable', function() {
         });
 
         test('should reset SystemUpdatable.KNOWN_UPDATE_FLAG', function() {
-          assert.isUndefined(asyncStorage.mItems[SystemUpdatable.KNOWN_UPDATE_FLAG]);
+          assert.isUndefined(
+            asyncStorage.mItems[SystemUpdatable.KNOWN_UPDATE_FLAG]);
         });
 
         testSystemApplyPrompt();
@@ -469,7 +470,8 @@ suite('system/Updatable', function() {
         });
 
         test('should reset SystemUpdatable.KNOWN_UPDATE_FLAG', function() {
-          assert.isUndefined(asyncStorage.mItems[SystemUpdatable.KNOWN_UPDATE_FLAG]);
+          assert.isUndefined(
+            asyncStorage.mItems[SystemUpdatable.KNOWN_UPDATE_FLAG]);
         });
 
         testSystemApplyPrompt();
@@ -558,8 +560,10 @@ suite('system/Updatable', function() {
           test('shouldn\'t signal "started uncompressing"', function() {
             assert.isFalse(MockUpdateManager.mStartedUncompressingCalled);
           });
-          test('should not reset SystemUpdatable.KNOWN_UPDATE_FLAG', function() {
-            assert.isTrue(asyncStorage.mItems[SystemUpdatable.KNOWN_UPDATE_FLAG]);
+          test('should not reset SystemUpdatable.KNOWN_UPDATE_FLAG',
+              function() {
+            assert.isTrue(
+              asyncStorage.mItems[SystemUpdatable.KNOWN_UPDATE_FLAG]);
           });
         });
 
@@ -580,8 +584,10 @@ suite('system/Updatable', function() {
           test('should signal the UpdateManager', function() {
             assert.isTrue(MockUpdateManager.mStartedUncompressingCalled);
           });
-          test('should not reset SystemUpdatable.KNOWN_UPDATE_FLAG', function() {
-            assert.isTrue(asyncStorage.mItems[SystemUpdatable.KNOWN_UPDATE_FLAG]);
+          test('should not reset SystemUpdatable.KNOWN_UPDATE_FLAG',
+              function() {
+            assert.isTrue(
+              asyncStorage.mItems[SystemUpdatable.KNOWN_UPDATE_FLAG]);
           });
         });
 
@@ -589,12 +595,13 @@ suite('system/Updatable', function() {
           setup(function() {
             MockUpdateManager.mTeardown();
             subject = new SystemUpdatable(98734);
-            subject._dispatchEvent = function errorDuringDispatch(type, result) {
-              fakeDispatchEvent.call(subject, type, result);
-              subject.handleEvent(new MockChromeEvent({
-                type: 'update-error'
-              }));
-            };
+            subject._dispatchEvent =
+              function errorDuringDispatch(type, result) {
+                fakeDispatchEvent.call(subject, type, result);
+                subject.handleEvent(new MockChromeEvent({
+                  type: 'update-error'
+                }));
+              };
             subject.download();
             subject._dispatchEvent = fakeDispatchEvent;
           });

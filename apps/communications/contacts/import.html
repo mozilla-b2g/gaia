@@ -83,7 +83,7 @@
           </section>
           <section id="groups-list" class="unbordered import-list" data-type="list">
             <section id="group-#group#" data-template>
-              <header>#letter#</header>
+              <header>#group#</header>
               <ol id="contacts-list-#group#">
                 <li data-template data-uuid="#uid#" data-search="#search#" aria-disabled="false" class="block-item">
                   <label>
@@ -91,9 +91,10 @@
                     <span></span>
                   </label>
                   <aside class="pack-end">
-                    <img data-src="https://apis.live.net/v5.0/#uid#/picture?type=medium"></img>
+                    <img data-src="#contactPictureUri#"></img>
                   </aside>
-                  <p><strong>#givenName#</strong> #familyName#</p>
+                  <p data-order-by="firstName"><strong>#givenName#</strong> #familyName#</p>
+                  <p data-order-by="lastName">#givenName# <strong>#familyName#</strong></p>
                   <p>#email1#</p>
                 </li>
               </ol>

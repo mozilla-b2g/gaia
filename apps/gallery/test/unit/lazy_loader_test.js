@@ -5,7 +5,7 @@
  */
 require('/shared/js/lazy_loader.js');
 
-mocha.setup({globals: ['jsCount','totalResult']});
+mocha.setup({globals: ['jsCount', 'totalResult']});
 
 suite('lazy loader', function() {
 
@@ -44,7 +44,7 @@ suite('lazy loader', function() {
   test('append css script', function(done) {
     var numStyles = countSytles();
     LazyLoader.load('support/styles.css', function() {
-      assert.equal(countSytles(), (numStyles+1));
+      assert.equal(countSytles(), (numStyles + 1));
       done();
     });
   });
@@ -63,7 +63,7 @@ suite('lazy loader', function() {
     LazyLoader.load(['support/long_load.js'], function() {
       assert.equal(window.totalResult, 10000);
       responses++;
-      if(responses === 2) {
+      if (responses === 2) {
         done();
       }
     });
@@ -72,7 +72,7 @@ suite('lazy loader', function() {
       assert.equal(window.totalResult, 10000);
 
       responses++;
-      if(responses === 2) {
+      if (responses === 2) {
         done();
       }
     });

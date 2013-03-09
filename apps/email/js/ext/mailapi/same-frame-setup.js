@@ -11917,6 +11917,8 @@ var makeDaysAgo = exports.makeDaysAgo =
 };
 var makeDaysBefore = exports.makeDaysBefore =
       function makeDaysBefore(date, numDaysBefore) {
+  if (date === null)
+    return makeDaysAgo(numDaysBefore);
   return quantizeDate(date) - numDaysBefore * DAY_MILLIS;
 };
 /**
@@ -11924,6 +11926,8 @@ var makeDaysBefore = exports.makeDaysBefore =
  */
 var quantizeDate = exports.quantizeDate =
       function quantizeDate(date) {
+  if (date === null)
+    return null;
   if (typeof(date) === 'number')
     date = new Date(date);
   return date.setUTCHours(0, 0, 0, 0).valueOf();
@@ -17878,7 +17882,8 @@ console.log('SERVER UIDS', serverUIDs.length, useBisectLimit);
 console.log('BISECT CASE', serverUIDs.length, 'curDaysDelta', curDaysDelta);
           if (curDaysDelta > 1) {
             // mark the bisection abort...
-            self._LOG.syncDateRange_end(null, null, null, startTS, endTS);
+            self._LOG.syncDateRange_end(null, null, null, startTS, endTS,
+                                        null, null);
             var bisectInfo = {
               oldStartTS: startTS,
               oldEndTS: endTS,
@@ -17929,7 +17934,7 @@ console.log('BISECT CASE', serverUIDs.length, 'curDaysDelta', curDaysDelta);
           newUIDs, knownUIDs, headers,
           function(newCount, knownCount) {
             self._LOG.syncDateRange_end(newCount, knownCount, numDeleted,
-                                        startTS, endTS);
+                                        startTS, endTS, null, null);
             self._storage.markSyncRange(startTS, endTS, modseq,
                                         accuracyStamp);
             if (completed)
@@ -17959,14 +17964,15 @@ console.log('BISECT CASE', serverUIDs.length, 'curDaysDelta', curDaysDelta);
                 skewedStartTS, new Date(skewedStartTS).toUTCString(),
                 'End: ', skewedEndTS,
                 skewedEndTS ? new Date(skewedEndTS).toUTCString() : null);
-    this._LOG.syncDateRange_begin(null, null, null, startTS, endTS);
+    this._LOG.syncDateRange_begin(null, null, null, startTS, endTS,
+                                  skewedStartTS, skewedEndTS);
     this._timelySyncSearch(
       searchOptions, callbacks.search,
       function abortedSearch() {
         if (completed)
           return;
         completed = true;
-        this._LOG.syncDateRange_end(0, 0, 0, startTS, endTS);
+        this._LOG.syncDateRange_end(0, 0, 0, startTS, endTS, null, null);
         doneCallback('aborted');
       }.bind(this),
       progressCallback);
@@ -18631,11 +18637,15 @@ ImapFolderSyncer.prototype = {
 
       // - Interpolate better time bounds.
       // Assume a linear distribution of messages, but overestimated by
-      // a factor of two so we undershoot.
+      // a factor of two so we undershoot.  Also make sure that we subtract off
+      // at least 2 days at a time.  This is to ensure that in the case where
+      // endTS is null and we end up using makeDaysAgo that we actually shrink
+      // by at least 1 day (because of how rounding works for makeDaysAgo).
       var shrinkScale = $sync.BISECT_DATE_AT_N_MESSAGES /
                           (numHeaders * 2),
           dayStep = Math.max(1,
-                             Math.ceil(shrinkScale * curDaysDelta));
+                             Math.min(curDaysDelta - 2,
+                                      Math.ceil(shrinkScale * curDaysDelta)));
       this._curSyncDayStep = dayStep;
 
       if (this._curSyncDir === PASTWARDS) {
@@ -18851,7 +18861,7 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
     asyncJobs: {
       syncDateRange: {
         newMessages: true, existingMessages: true, deletedMessages: true,
-        start: false, end: false,
+        start: false, end: false, skewedStart: false, skewedEnd: false,
       },
     },
   },
@@ -22461,6 +22471,7 @@ FolderStorage.prototype = {
                                  this, header, callback));
       return;
     }
+    this._LOG.addMessageHeader(header.date, header.id, header.srvid);
 
     if (this._curSyncSlice && !this._curSyncSlice.ignoreHeaders)
       this._curSyncSlice.onHeaderAdded(header, true, true);
@@ -22565,6 +22576,8 @@ FolderStorage.prototype = {
       if (header) {
         self._dirty = true;
         self._dirtyHeaderBlocks[info.blockId] = block;
+
+        self._LOG.updateMessageHeader(header.date, header.id, header.srvid);
 
         if (partOfSync && self._curSyncSlice &&
             !self._curSyncSlice.ignoreHeaders)
@@ -22753,6 +22766,7 @@ FolderStorage.prototype = {
                                  this, header, bodyInfo, callback));
       return;
     }
+    this._LOG.addMessageBody(header.date, header.id, header.srvid);
 
     // crappy size estimates where we assume the world is ASCII and so a UTF-8
     // encoding will take exactly 1 byte per character.
@@ -22887,6 +22901,7 @@ FolderStorage.prototype = {
                                                        date, id);
     var bodyBlockInfo = posInfo[1],
         block = this._bodyBlocks[bodyBlockInfo.blockId];
+    this._LOG.updateMessageBody(date, id);
     block.bodies[id] = bodyInfo;
     this._dirty = true;
     this._dirtyBodyBlocks[bodyBlockInfo.blockId] = block;
@@ -22931,6 +22946,12 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
   FolderStorage: {
     type: $log.DATABASE,
     events: {
+      addMessageHeader: { date: false, id: false, srvid: false },
+      addMessageBody: { date: false, id: false, srvid: false },
+
+      updateMessageHeader: { date: false, id: false, srvid: false },
+      updateMessageBody: { date: false, id: false },
+
       // For now, logging date and uid is useful because the general logging
       // level will show us if we are trying to redundantly delete things.
       // Also, date and uid are opaque identifiers with very little entropy

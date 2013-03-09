@@ -143,7 +143,8 @@ contacts.Form = (function() {
     });
   };
 
-  var render = function cf_render(contact, callback, pFbContactData) {
+  var render = function cf_render(contact, callback, pFbContactData,
+                                  fromUpdateActivity) {
     var fbContactData = pFbContactData || [];
 
     nonEditableValues = fbContactData[1] || {};
@@ -152,18 +153,19 @@ contacts.Form = (function() {
 
     resetForm();
     (renderedContact && renderedContact.id) ?
-                        showEdit(renderedContact) : showAdd(renderedContact);
+       showEdit(renderedContact, fromUpdateActivity) : showAdd(renderedContact);
     if (callback) {
       callback();
     }
   };
 
-  var showEdit = function showEdit(contact) {
+  var showEdit = function showEdit(contact, fromUpdateActivity) {
     if (!contact || !contact.id) {
       return;
     }
     formView.classList.add('skin-organic');
-    saveButton.setAttribute('disabled', 'disabled');
+    if (!fromUpdateActivity)
+      saveButton.setAttribute('disabled', 'disabled');
     saveButton.textContent = _('update');
     currentContact = contact;
     deleteContactButton.parentNode.classList.remove('hide');

@@ -469,11 +469,12 @@ form.bottom[role="search"].new-sms-form {
 
 #send-message:before {
   content: attr(data-counter);
-  font-size: 1.2rem;
-  color: #606060;
+  color: #666;
+  font-weight: normal;
+  font-size: -moz-calc(8 * 0.226rem);
   position: absolute;
-  right: 1.5rem;
-  bottom: 2.4rem;
+  right: 1rem;
+  top: -0.2rem;
 }
 
 #message-to-send {

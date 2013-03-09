@@ -40,6 +40,8 @@ var Browser = {
   MAX_THUMBNAIL_WIDTH: 140,
   MAX_THUMBNAIL_HEIGHT: 100,
   FIRST_TAB: 'tab_0',
+  MAX_SAVING_RETRIES: 100, // max number of retries when saving images with a
+                           // new name.
 
   urlButtonMode: null,
   addressBarState: null,
@@ -995,6 +997,66 @@ var Browser = {
     this.updateTabsCount();
   },
 
+  // Saves an image to device storage.
+  saveImage: function browser_saveImage(url) {
+    function displayMessage(message) {
+      var status = document.getElementById('save-image-status');
+      status.firstElementChild.textContent = message;
+      status.classList.add('visible');
+      window.setTimeout(function() {
+        status.classList.remove('visible');
+      }, 3000);
+    }
+
+    function storeBlob(blob, name, retryCount) {
+      var pictureStorage = navigator.getDeviceStorage('pictures');
+      var addreq = pictureStorage.addNamed(blob, name);
+      addreq.onsuccess = function() {
+        displayMessage(_('image-saved'));
+      };
+      addreq.onerror = function() {
+        // Prepend some always changing id and try to store again, but give up
+        // after MAX_SAVING_RETRIES retries.
+        if (addreq.error.name === 'NoModificationAllowedError' &&
+            retryCount !== Browser.MAX_SAVING_RETRIES) {
+          name = Date.now() + '-' + name;
+          storeBlob(blob, name, retryCount + 1);
+        } else {
+          displayMessage(_('error-saving-image'));
+        }
+      };
+    }
+
+    var xhr = new XMLHttpRequest({mozSystem: true});
+    xhr.open('GET', url, true);
+    xhr.responseType = 'blob';
+    xhr.onload = function browser_imageDataListener() {
+      if (xhr.status !== 200 || !xhr.response) {
+        displayMessage(_('error-saving-image'));
+        return;
+      }
+
+      // Save the blob to device storage.
+      // Extract a filename from the URL, and to some sanitizing.
+      var name = url.split('/').reverse()[0].toLowerCase()
+                    .replace(/[^a-z0-9\.]/g, '_');
+
+      // If we have no file extension, use the content-type header to
+      // add one.
+      if (name.split('.').length == 1) {
+        var contentType = xhr.getResponseHeader('content-type');
+        name += '.' + contentType.split('/')[1];
+      }
+
+      storeBlob(xhr.response, name, 0);
+    };
+
+    xhr.onerror = function getDefaultDataError() {
+      displayMessage(_('error-saving-image'));
+    };
+    xhr.send();
+  },
+
   // This generates callbacks for context menu targets that have
   // default actions attached
   generateSystemMenuItem: function browser_generateSystemMenuItem(item) {
@@ -1004,6 +1066,13 @@ var Browser = {
         label: _('open-in-new-tab'),
         callback: function() {
           self.openInNewTab(item.data);
+        }
+      };
+    } else if (item.nodeName === 'IMG') {
+      return {
+        label: _('save-image'),
+        callback: function() {
+          self.saveImage(item.data);
         }
       };
     }

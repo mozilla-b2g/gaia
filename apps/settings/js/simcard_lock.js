@@ -16,9 +16,9 @@ var SimPinLock = {
 
     var cardState = this.mobileConnection.cardState;
     var cardStateMapping = {
-      'null':    'simCardNotReady',
+      'null': 'simCardNotReady',
       'unknown': 'unknownSimCardState',
-      'absent':  'noSimCard'
+      'absent': 'noSimCard'
     };
     var textContent = cardStateMapping[cardState ? cardState : 'null'];
     if (textContent) {

@@ -301,6 +301,7 @@ reference-workload-light:
 	test_media/reference-workload/generateVideos.sh 5
 	$(ADB) push  test_media/reference-workload/contactsDb-200.sqlite /data/local/indexedDB/chrome/3406066227csotncta.sqlite
 	$(ADB) push  test_media/reference-workload/smsDb-200.sqlite /data/local/indexedDB/chrome/226660312ssm.sqlite
+	$(ADB) push  test_media/reference-workload/dialerDb-50.sqlite /data/local/indexedDB/15+f+app+++communications.gaiamobile.org/2584670174dsitanleecreR.sqlite
 	$(ADB) shell start b2g
 	@echo "Done"
 
@@ -314,6 +315,7 @@ reference-workload-medium:
 	test_media/reference-workload/generateVideos.sh 10
 	$(ADB) push  test_media/reference-workload/contactsDb-500.sqlite /data/local/indexedDB/chrome/3406066227csotncta.sqlite
 	$(ADB) push  test_media/reference-workload/smsDb-500.sqlite /data/local/indexedDB/chrome/226660312ssm.sqlite
+	$(ADB) push  test_media/reference-workload/dialerDb-100.sqlite /data/local/indexedDB/15+f+app+++communications.gaiamobile.org/2584670174dsitanleecreR.sqlite
 	$(ADB) shell start b2g
 	@echo "Done"
 
@@ -327,6 +329,7 @@ reference-workload-heavy:
 	test_media/reference-workload/generateVideos.sh 20
 	$(ADB) push  test_media/reference-workload/contactsDb-1000.sqlite /data/local/indexedDB/chrome/3406066227csotncta.sqlite
 	$(ADB) push  test_media/reference-workload/smsDb-1000.sqlite /data/local/indexedDB/chrome/226660312ssm.sqlite
+	$(ADB) push  test_media/reference-workload/dialerDb-200.sqlite /data/local/indexedDB/15+f+app+++communications.gaiamobile.org/2584670174dsitanleecreR.sqlite
 	$(ADB) shell start b2g
 	@echo "Done"
 
@@ -340,6 +343,7 @@ reference-workload-x-heavy:
 	test_media/reference-workload/generateVideos.sh 50
 	$(ADB) push  test_media/reference-workload/contactsDb-2000.sqlite /data/local/indexedDB/chrome/3406066227csotncta.sqlite
 	$(ADB) push  test_media/reference-workload/smsDb-2000.sqlite /data/local/indexedDB/chrome/226660312ssm.sqlite
+	$(ADB) push  test_media/reference-workload/dialerDb-500.sqlite /data/local/indexedDB/15+f+app+++communications.gaiamobile.org/2584670174dsitanleecreR.sqlite
 	$(ADB) shell start b2g
 	@echo "Done"
 
@@ -619,8 +623,8 @@ lint:
 	@# cubevid
 	@# crystalskull
 	@# towerjelly
-	@gjslint --nojsdoc -r apps -e 'homescreen/everything.me,sms/js/ext,pdfjs/content,pdfjs/test,email/js/ext,music/js/ext,calendar/js/ext'
-	@gjslint --nojsdoc -r shared/js
+	@gjslint --nojsdoc -r apps -e 'homescreen/everything.me,sms/js/ext,pdfjs/content,pdfjs/test,email/js/ext,music/js/ext,calendar/js/ext' -x 'homescreen/js/hiddenapps.js,settings/js/hiddenapps.js'
+	@gjslint --nojsdoc -r shared/js -e 'phoneNumberJS'
 
 # Generate a text file containing the current changeset of Gaia
 # XXX I wonder if this should be a replace-in-file hack. This would let us

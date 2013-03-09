@@ -43,7 +43,7 @@ suite('MediaDB', function() {
     reader.readAsText(blob);
     reader.onload = function() {
       callback(JSON.parse(reader.result));
-    }
+    };
   }
 
   // Delete all files from a directory

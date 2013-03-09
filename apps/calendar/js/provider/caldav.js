@@ -83,27 +83,39 @@ Calendar.ns('Provider').Caldav = (function() {
 
     /**
      * Returns the capabilities of a single event.
+     *
+     * @param {Object} event local object.
+     * @param {Function} callback [err, caps].
      */
-    eventCapabilities: function(event) {
+    eventCapabilities: function(event, callback) {
       if (event.remote.isRecurring) {
         // XXX: for now recurring events cannot be edited
-        return {
-          canUpdate: false,
-          canDelete: false,
-          canCreate: false
-        };
+        Calendar.nextTick(function() {
+          callback(null, {
+            canUpdate: false,
+            canDelete: false,
+            canCreate: false
+          });
+        });
+
       } else {
         var calendarStore = this.app.store('Calendar');
-        var calendar = calendarStore.cached[event.calendarId];
-        var caps = this.calendarCapabilities(
-          calendar
-        );
 
-        return {
-          canCreate: caps.canCreateEvent,
-          canUpdate: caps.canUpdateEvent,
-          canDelete: caps.canDeleteEvent
-        };
+        calendarStore.get(event.calendarId, function(err, calendar) {
+          if (err) {
+            return callback(err);
+          }
+
+          var caps = this.calendarCapabilities(
+            calendar
+          );
+
+          callback(null, {
+            canCreate: caps.canCreateEvent,
+            canUpdate: caps.canUpdateEvent,
+            canDelete: caps.canDeleteEvent
+          });
+        }.bind(this));
       }
     },
 
@@ -400,35 +412,43 @@ Calendar.ns('Provider').Caldav = (function() {
 
     _expandComponents: function(calendarId, comps, options, callback) {
       var calStore = this.app.store('Calendar');
-      var calendar = calStore.cached[calendarId];
-      var account = calStore.accountFor(calendar);
 
-      var stream = this.service.stream(
-        'caldav',
-        'expandComponents',
-        comps,
-        options
-      );
-
-      var pull = new Calendar.Provider.CaldavPullEvents(
-        stream,
-        {
-          account: account,
-          calendar: calendar,
-          app: this.app,
-          stores: [
-            'busytimes', 'alarms', 'icalComponents'
-          ]
-        }
-      );
-
-      stream.request(function(err) {
+      calStore.ownersOf(calendarId, function(err, owners) {
         if (err) {
-          callback(err);
-          return;
+          return callback(err);
         }
-        callback(null, pull);
-      });
+
+        var calendar = owners.calendar;
+        var account = owners.account;
+
+        var stream = this.service.stream(
+          'caldav',
+          'expandComponents',
+          comps,
+          options
+        );
+
+        var pull = new Calendar.Provider.CaldavPullEvents(
+          stream,
+          {
+            account: account,
+            calendar: calendar,
+            app: this.app,
+            stores: [
+              'busytimes', 'alarms', 'icalComponents'
+            ]
+          }
+        );
+
+        stream.request(function(err) {
+          if (err) {
+            callback(err);
+            return;
+          }
+          callback(null, pull);
+        });
+
+      }.bind(this));
     },
 
     createEvent: function(event, busytime, callback) {
@@ -437,54 +457,63 @@ Calendar.ns('Provider').Caldav = (function() {
         busytime = null;
       }
 
-      var self = this;
-      var calendar = this.events.calendarFor(event);
-      var account = this.events.accountFor(event);
 
       if (this.bailWhenOffline(callback)) {
         return;
       }
 
-      this.service.request(
-        'caldav',
-        'createEvent',
-        account,
-        calendar.remote,
-        event.remote,
-        function handleCreate(err, remote) {
+      this.events.ownersOf(event, fetchOwners);
+
+      var self = this;
+      var calendar;
+      var account;
+      function fetchOwners(err, owners) {
+        calendar = owners.calendar;
+        account = owners.account;
+
+        self.service.request(
+          'caldav',
+          'createEvent',
+          account,
+          calendar.remote,
+          event.remote,
+          handleRequest
+        );
+      }
+
+      function handleRequest(err, remote) {
+        if (err) {
+          callback(err);
+          return;
+        }
+
+        var event = {
+          _id: calendar._id + '-' + remote.id,
+          calendarId: calendar._id
+        };
+
+        var component = {
+          eventId: event._id,
+          ical: remote.icalComponent
+        }
+
+        delete remote.icalComponent;
+        event.remote = remote;
+
+        var create = Calendar.EventMutations.create({
+          event: event,
+          icalComponent: component
+        });
+
+        create.commit(function(err) {
           if (err) {
             callback(err);
             return;
           }
 
-          var event = {
-            _id: calendar._id + '-' + remote.id,
-            calendarId: calendar._id
-          };
-
-          var component = {
-            eventId: event._id,
-            ical: remote.icalComponent
-          }
-
-          delete remote.icalComponent;
-          event.remote = remote;
-
-          var create = Calendar.EventMutations.create({
-            event: event,
-            icalComponent: component
-          });
-
-          create.commit(function(err) {
-            if (err) {
-              callback(err);
-              return;
-            }
-
-            callback(null, create.busytime, create.event);
-          });
-        }
-      );
+          callback(null, create.busytime, create.event);
+        });
+      }
     },
 
     updateEvent: function(event, busytime, callback) {
@@ -497,9 +526,41 @@ Calendar.ns('Provider').Caldav = (function() {
         return;
       }
 
-      var calendar = this.events.calendarFor(event);
-      var account = this.events.accountFor(event);
+      this.events.ownersOf(event, fetchOwners);
+
       var self = this;
+      var calendar;
+      var account;
+
+      function fetchOwners(err, owners) {
+        calendar = owners.calendar;
+        account = owners.account;
+
+        self.icalComponents.get(
+          event._id, fetchComponent
+        );
+      }
+
+      function fetchComponent(err, ical) {
+        if (err) {
+          callback(err);
+          return;
+        }
+
+        var details = {
+          event: event.remote,
+          icalComponent: ical.ical
+        };
+
+        self.service.request(
+          'caldav',
+          'updateEvent',
+          account,
+          calendar.remote,
+          details,
+          handleUpdate
+        );
+      }
 
       function handleUpdate(err, remote) {
         if (err) {
@@ -527,30 +588,7 @@ Calendar.ns('Provider').Caldav = (function() {
           }
           callback(null, update.busytime, update.event);
         });
-
       }
-
-      // get the raw ical component
-      this.icalComponents.get(event._id, function(err, ical) {
-        if (err) {
-          callback(err);
-          return;
-        }
-
-        var details = {
-          event: event.remote,
-          icalComponent: ical.ical
-        };
-
-        self.service.request(
-          'caldav',
-          'updateEvent',
-          account,
-          calendar.remote,
-          details,
-          handleUpdate
-        );
-      });
     },
 
     deleteEvent: function(event, busytime, callback) {
@@ -563,26 +601,33 @@ Calendar.ns('Provider').Caldav = (function() {
         return;
       }
 
-      var store = this.app.store('Event');
+      this.events.ownersOf(event, fetchOwners);
 
-      var calendar = store.calendarFor(event);
-      var account = store.accountFor(event);
+      var calendar;
+      var account;
       var self = this;
+      function fetchOwners(err, owners) {
+        calendar = owners.calendar;
+        account = owners.account;
 
-      this.service.request(
-        'caldav',
-        'deleteEvent',
-        account,
-        calendar.remote,
-        event.remote,
-        function handleDelete(err) {
-          if (err) {
-            callback(err);
-            return;
-          }
-          Local.deleteEvent.call(self, event, busytime, callback);
+        self.service.request(
+          'caldav',
+          'deleteEvent',
+          account,
+          calendar.remote,
+          event.remote,
+          handleRequest
+        );
+
+      }
+
+      function handleRequest(err) {
+        if (err) {
+          callback(err);
+          return;
         }
-      );
+        Local.deleteEvent.call(self, event, busytime, callback);
+      }
     },
 
     bailWhenOffline: function(callback) {

@@ -6,7 +6,7 @@ requireApp('settings/test/unit/mock_settings.js');
 requireApp('settings/test/unit/mocks_helper.js');
 requireApp('settings/js/about.js');
 
-var mocksForAbout = [ 'Settings' ];
+var mocksForAbout = ['Settings'];
 
 mocksForAbout.forEach(function(mockName) {
   if (! window[mockName]) {

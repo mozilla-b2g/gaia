@@ -374,12 +374,12 @@ fb.Contact = function(deviceContact, cid) {
       if (uid) {
         var fbreq = fb.contacts.get(uid);
 
-        fbreq.onsuccess = function() {
+        fbreq.onsuccess = (function() {
           var fbdata = fbreq.result;
           var out = this.merge(fbdata);
           outReq.done(out);
 
-        }.bind(this);
+        }).bind(this);
 
         fbreq.onerror = function() {
           outReq.failed(fbreq.error);
@@ -403,7 +403,7 @@ fb.Contact = function(deviceContact, cid) {
       if (uid) {
         var fbreq = fb.contacts.get(uid);
 
-        fbreq.onsuccess = function() {
+        fbreq.onsuccess = (function() {
           var fbdata = fbreq.result;
 
           var out1 = this.merge(fbdata);
@@ -454,7 +454,7 @@ fb.Contact = function(deviceContact, cid) {
 
           outReq.done([out1, out2]);
 
-        }.bind(this);
+        }).bind(this);
 
         fbreq.onerror = function() {
           outReq.failed(fbreq.error);

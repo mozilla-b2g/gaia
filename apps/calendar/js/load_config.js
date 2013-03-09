@@ -163,6 +163,7 @@ Calendar.LoadConfig = (function() {
 
         js: [
           'utils/input_parser',
+          'templates/alarm',
           'views/modify_event'
         ],
 
@@ -173,6 +174,7 @@ Calendar.LoadConfig = (function() {
         group: ['Views.EventBase'],
 
         js: [
+          'templates/alarm',
           'utils/input_parser',
           'views/view_event'
         ],
@@ -189,10 +191,10 @@ Calendar.LoadConfig = (function() {
       },
 
       'Views.ModifyAccount': {
+        group: ['Utils.AccountCreation'],
         js: [
           'view',
           'presets',
-          'utils/account_creation',
           'models/account',
           'views/modify_account'
         ],
@@ -244,7 +246,11 @@ Calendar.LoadConfig = (function() {
       },
 
       'Views.CreateAccount': {
-        group: ['Templates.Account'],
+        group: [
+          'Models.Account',
+          'Templates.Account',
+          'Presets'
+        ],
 
         js: [
           'views/create_account'
@@ -307,13 +313,25 @@ Calendar.LoadConfig = (function() {
         ]
       },
 
+      'Utils.AccountCreation': {
+        js: [
+          'utils/account_creation'
+        ]
+      },
 
       'Provider.Local': {
+        group: ['Provider.Abstract'],
+
         js: [
           'ext/uuid',
-          'provider/abstract',
           'provider/local',
           'event_mutations'
+        ]
+      },
+
+      'Provider.Abstract': {
+        js: [
+          'provider/abstract'
         ]
       },
 
@@ -322,7 +340,7 @@ Calendar.LoadConfig = (function() {
       },
 
       'Provider.Caldav': {
-        group: ['Provider.Local'],
+        group: ['Provider.Abstract', 'Provider.Local'],
         js: [
           'provider/abstract',
           'provider/caldav',
@@ -370,6 +388,10 @@ Calendar.LoadConfig = (function() {
         js: [
           'controllers/alarm'
         ]
+      },
+
+      'Presets': {
+        js: ['presets']
       }
     }
   };

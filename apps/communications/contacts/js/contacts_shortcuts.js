@@ -52,7 +52,7 @@ if (!utils.alphaScroll) {
         anchor: '#'
       });
       utils.templates.append(jumper, alphabet);
-    }
+    };
 
     function scrollStart(evt) {
       overlayStyle.MozTransitionDelay = RESET_TRANSITION;

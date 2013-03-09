@@ -204,4 +204,5 @@ suiteGroup('Models.Event', function() {
   remoteSetter('location');
   remoteSetter('description');
   remoteSetter('title');
+  remoteSetter('alarms');
  });

@@ -30,7 +30,7 @@ if (!window.LiveConnector) {
     }
 
     function sortContacts(contactsList) {
-      contactsList.sort(function(a,b) {
+      contactsList.sort(function(a, b) {
         var out = 0;
         if (a.last_name && b.last_name) {
           out = a.last_name.localeCompare(b.last_name);
@@ -84,6 +84,9 @@ if (!window.LiveConnector) {
         out.givenName = [source.first_name || ''];
         out.familyName = [source.last_name || ''];
         out.email1 = source.emails.account;
+
+        out.contactPictureUri = [LIVE_ENDPOINT, out.uid,
+                                 PICTURE_RESOURCE, '?type=medium'].join('');
 
         return out;
       },

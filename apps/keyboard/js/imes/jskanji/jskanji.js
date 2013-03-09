@@ -1607,7 +1607,7 @@
         if (callback) {
           callback(self._status);
         }
-      }
+      };
       // Check if we could initilize.
       if (this._status != DatabaseStorageBase.StatusCode.UNINITIALIZED) {
         doCallback();
@@ -1662,7 +1662,7 @@
         if (callback) {
           callback();
         }
-      }
+      };
 
       // Check if we could uninitilize the storage
       if (this._status == DatabaseStorageBase.StatusCode.UNINITIALIZED) {
@@ -1688,7 +1688,7 @@
         if (callback) {
           callback(homonymsArray);
         }
-      }
+      };
 
       // Check if the storage is ready.
       if (!this.isReady()) {
@@ -1700,7 +1700,7 @@
         // Query all terms
         homonymsArray = homonymsArray.concat(self._dataArray);
         doCallback();
-      }
+      };
 
       setTimeout(perform, 0);
     },
@@ -1712,7 +1712,7 @@
         if (callback) {
           callback(homonymsArray);
         }
-      }
+      };
 
       // Check if the storage is ready.
       if (!this.isReady()) {
@@ -1727,7 +1727,7 @@
           homonymsArray.push(self._dataArray[index]);
         }
         doCallback();
-      }
+      };
 
       setTimeout(perform, 0);
     },
@@ -1759,7 +1759,7 @@
            homonymsArray.push(self._dataArray[index]);
          }
          doCallback();
-       }
+       };
 
        setTimeout(perform, 0);
      },
@@ -2306,7 +2306,7 @@
         callback(result);
       });
 
-    },
+    };
     /* end getSuggestions */
 
     this.getTerms = function imedb_getTerms(kanaArr, callback) {

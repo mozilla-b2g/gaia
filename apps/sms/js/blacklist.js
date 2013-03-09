@@ -31,7 +31,7 @@ var BlackList = (function() {
           _blackList[item] = true;
         });
       }
-    }
+    };
   }
 
   // Return true if value is in the black list

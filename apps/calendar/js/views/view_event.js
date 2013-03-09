@@ -56,9 +56,10 @@ Calendar.ns('Views').ViewEvent = (function() {
      * Sets content for an element
      * Hides the element if there's no content to set
      */
-    setContent: function(element, content) {
+    setContent: function(element, content, method) {
+      method = method || 'textContent';
       var element = this.getEl(element);
-      element.querySelector('.content').textContent = content;
+      element.querySelector('.content')[method] = content;
 
       if (!content) {
         element.style.display = 'none';
@@ -77,9 +78,11 @@ Calendar.ns('Views').ViewEvent = (function() {
 
       this.setContent('location', model.location);
 
-      var calendar = this.store.calendarFor(model);
-      if (calendar) {
-        this.setContent('current-calendar', calendar.remote.name);
+      if (this.originalCalendar) {
+        this.setContent(
+          'current-calendar',
+          this.originalCalendar.remote.name
+        );
       }
 
       var dateSrc = model;
@@ -111,6 +114,24 @@ Calendar.ns('Views').ViewEvent = (function() {
       this.setContent('start-time', startTime);
 
       this.setContent('end-time', endTime);
+
+      // Handle alarm display
+      var alarmContent = '';
+
+      if (this.event.alarms && this.event.alarms.length) {
+
+        var alarmDescription = Calendar.Templates.Alarm.description;
+
+        for (var i = 0, alarm; alarm = this.event.alarms[i]; i++) {
+          alarmContent += '<div>' +
+            alarmDescription.render({
+              trigger: alarm.trigger
+            }) +
+          '</div>';
+        }
+      }
+
+      this.setContent('alarms', alarmContent, 'innerHTML');
 
       this.setContent('description', model.description);
     },

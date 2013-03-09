@@ -161,6 +161,14 @@ Calendar.ns('Models').Event = (function() {
       return this.remote.location = value;
     },
 
+    get alarms() {
+      return this.remote.alarms || [];
+    },
+
+    set alarms(value) {
+      return this.remote.alarms = value;
+    },
+
     /**
      * Validates the contents of the model.
      *

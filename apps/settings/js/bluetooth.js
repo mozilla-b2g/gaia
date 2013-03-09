@@ -94,7 +94,7 @@ navigator.mozL10n.ready(function bluetoothSettings() {
       var req = defaultAdapter.setName(nameEntered);
       req.onsuccess = function bt_renameSuccess() {
         myName = visibleName.textContent = defaultAdapter.name;
-      }
+      };
     };
 
     // immediatly UI update, DOM element manipulation.
@@ -253,7 +253,7 @@ navigator.mozL10n.ready(function bluetoothSettings() {
         };
         this.menu.onsubmit = function closeMenu() {
           return self.close();
-        }
+        };
         this.menu.hidden = false;
       },
 
@@ -447,8 +447,8 @@ navigator.mozL10n.ready(function bluetoothSettings() {
     }
 
     function showDevicePaired(paired, errorMessage) {
-      // If we don't know the pairing device address, 
-      // it means the pair request is handled by interface level. 
+      // If we don't know the pairing device address,
+      // it means the pair request is handled by interface level.
       // So we just need to update paired list.
       if (!pairingAddress) {
         getPairedDevice();

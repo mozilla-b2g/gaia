@@ -17,6 +17,8 @@
   ModifyAccount.prototype = {
     __proto__: Calendar.View.prototype,
 
+    _changeToken: 0,
+
     selectors: {
       element: '#modify-account-view',
       form: '#modify-account-view form',
@@ -161,16 +163,6 @@
       return model;
     },
 
-    /**
-     * @param {String} id account id.
-     */
-    _updateModel: function(id, callback) {
-      var store = this.app.store('Account');
-      var self = this;
-
-      return store.cached[id];
-    },
-
     render: function() {
       if (!this.model) {
         throw new Error('must provider model to ModifyAccount');
@@ -221,29 +213,38 @@
       if (this.model)
         this.destroy();
 
-      var provider;
-      var autoSubmit;
       var params = data.params;
+      var changeToken = ++this._changeToken;
+
+      this.completeUrl = '/settings/';
+
+      var self = this;
+      function displayModel(err, model) {
+        // race condition another dispatch has queued
+        // while we where waiting for an async event.
+        if (self._changeToken !== changeToken)
+          return;
+
+        if (err) {
+          console.log(
+            'Error displaying model in ModifyAccount',
+            data
+          );
+          return;
+        }
+
+        self.model = model;
+        self.render();
+
+        if (self.ondispatch) {
+          self.ondispatch();
+        }
+      }
 
       if (params.id) {
-        this.model = this._updateModel(params.id);
-        this.completeUrl = '/settings/';
+        this.app.store('Account').get(params.id, displayModel);
       } else if (params.preset) {
-        this.model = this._createModel(params.preset);
-        this.completeUrl = '/settings/';
-      }
-
-      if (this.model && this.model.providerType) {
-        provider = this.app.provider(this.model.providerType);
-        autoSubmit = !provider.useCredentials && !provider.useUrl;
-      }
-
-      // when provider requires no credentials
-      // auto submit form (which will also redirect)
-      if (provider && autoSubmit) {
-        this.save();
-      } else {
-        this.render();
+        displayModel(null, this._createModel(params.preset));
       }
     }
 
