@@ -1,4 +1,4 @@
-  Calendar.ns('Provider').Local = (function() {
+Calendar.ns('Provider').Local = (function() {
 
   const LOCAL_CALENDAR_ID = 'local-first';
 

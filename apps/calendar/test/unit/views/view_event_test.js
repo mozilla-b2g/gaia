@@ -1,4 +1,6 @@
 requireLib('provider/abstract.js');
+requireLib('template.js');
+requireLib('templates/alarm.js');
 
 suiteGroup('Views.ViewEvent', function() {
 
@@ -75,6 +77,9 @@ suiteGroup('Views.ViewEvent', function() {
             '<span class="end-time">',
               '<span class="content"></span>',
             '</span>',
+          '</div>',
+          '<div class="alarms">',
+            '<span class="content"></span>',
           '</div>',
           '<div class="description">',
             '<span class="content"></span>',
@@ -157,6 +162,20 @@ suiteGroup('Views.ViewEvent', function() {
   test('.fieldRoot', function() {
     assert.ok(subject.fieldRoot);
     assert.equal(subject.fieldRoot, subject.element);
+  });
+
+  test('#setContent', function() {
+    subject.setContent('title', '<b>text</b>');
+    assert.equal(
+      subject.getEl('title').querySelector('.content').innerHTML,
+      '&lt;b&gt;text&lt;/b&gt;'
+    );
+
+    subject.setContent('title', '<b>text</b>', 'innerHTML');
+    assert.equal(
+      subject.getEl('title').querySelector('.content').innerHTML,
+      '<b>text</b>'
+    );
   });
 
   test('#_getEl', function() {

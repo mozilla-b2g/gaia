@@ -191,7 +191,7 @@ suite('Controllers.Time', function() {
     });
 
     test('#cacheEvent', function(done) {
-      subject.findAssociated(busy, function(err, data) {
+      subject.findAssociated(busy, null, function(err, data) {
         var result = data[0];
         done(function() {
           assert.equal(result.event, event);
@@ -263,13 +263,13 @@ suite('Controllers.Time', function() {
     test('everything is cached', function(done) {
       subject.cacheEvent(event);
 
-      var opts = { alarm: true, event: true };
+      var opts = { alarms: true, event: true };
 
       subject.findAssociated(hasAlarm, opts, function(err, data) {
         done(function() {
           assert.ok(!err);
           assert.equal(data[0].event, event);
-          assert.deepEqual(data[0].alarm, alarm);
+          assert.equal(data[0].busytime._id, alarm.busytimeId);
         });
       });
     });
@@ -335,10 +335,11 @@ suite('Controllers.Time', function() {
 
     test('no event - with missing alarm', function(done) {
       var expected = {
-        busytime: noAlarm
+        busytime: noAlarm,
+        alarms: []
       };
 
-      var options = { event: false, alarm: true };
+      var options = { event: false, alarms: true };
 
       subject.findAssociated(noAlarm, options, function(err, result) {
         done(function() {
@@ -353,7 +354,7 @@ suite('Controllers.Time', function() {
       var req = [noAlarm, hasAlarm];
       var options = {
         event: true,
-        alarm: true
+        alarms: true
       };
 
       subject.findAssociated(req, options, function(err, data) {
@@ -369,13 +370,14 @@ suite('Controllers.Time', function() {
 
           var expectedNoAlarm = {
             event: event,
-            busytime: noAlarm
+            busytime: noAlarm,
+            alarms: []
           };
 
           var expectedAlarm = {
             event: event,
             busytime: hasAlarm,
-            alarm: alarm
+            alarms: [alarm]
           };
 
           assert.deepEqual(
@@ -385,10 +387,16 @@ suite('Controllers.Time', function() {
           );
 
           assert.deepEqual(
-            resultAlarm,
-            expectedAlarm,
-            'busytime with alarm'
+            resultAlarm.eventId,
+            expectedAlarm.eventId,
+            'busytime with alarm - eventId'
           );
+
+          assert.deepEqual(
+              resultAlarm.busytimeId,
+              expectedAlarm.busytimeId,
+              'busytime with alarm - busytimeId'
+            );
         });
       });
     });
