@@ -15,6 +15,7 @@ Calendar.ns('Views').ModifyEvent = (function() {
 
     selectors: {
       element: '#modify-event-view',
+      alarmList: '#modify-event-view .alarms',
       form: '#modify-event-view form',
       status: '#modify-event-view section[role="status"]',
       errors: '#modify-event-view .errors',
@@ -40,6 +41,8 @@ Calendar.ns('Views').ModifyEvent = (function() {
 
       var allday = this.getEl('allday');
       allday.addEventListener('change', this._toggleAllDay);
+
+      this.alarmList.addEventListener('change', this._changeAlarm.bind(this));
     },
 
     /**
@@ -55,6 +58,32 @@ Calendar.ns('Views').ModifyEvent = (function() {
         // disable case
         this.element.classList.remove(this.ALLDAY);
       }
+
+      this.updateAlarms(allday);
+    },
+
+    /**
+     * Called when any alarm is changed
+     */
+    _changeAlarm: function(e) {
+      var template = Calendar.Templates.Alarm;
+      if (e.target.value == 'none') {
+        var parent = e.target.parentNode;
+        parent.parentNode.removeChild(parent);
+        return;
+      }
+
+      // Append a new alarm select only if we don't have an empty one
+      var allAlarms = this.element.querySelectorAll('[name="alarm[]"]');
+      for (var i = 0, alarmEl; alarmEl = allAlarms[i]; i++) {
+        if (alarmEl.value == 'none') {
+          return;
+        }
+      }
+
+      var newAlarm = document.createElement('div');
+      newAlarm.innerHTML = template.picker.render([]);
+      this.alarmList.appendChild(newAlarm);
     },
 
     /**
@@ -187,6 +216,10 @@ Calendar.ns('Views').ModifyEvent = (function() {
       for (; i < len; i++) {
         fields[i].readOnly = boolean;
       }
+    },
+
+    get alarmList() {
+      return this._findElement('alarmList');
     },
 
     get form() {
@@ -410,6 +443,18 @@ Calendar.ns('Views').ModifyEvent = (function() {
         );
       }
 
+      var alarms = this.element.querySelectorAll('[name="alarm[]"]');
+      fields.alarms = [];
+      for (var i = 0, alarm; alarm = alarms[i]; i++) {
+        if (alarm.value == 'none') { continue; }
+
+        fields.alarms.push({
+          action: 'DISPLAY',
+          trigger: parseInt(alarm.value, 10)
+        });
+
+      }
+
       return fields;
     },
 
@@ -483,6 +528,29 @@ Calendar.ns('Views').ModifyEvent = (function() {
 
         currentCalendar.readOnly = true;
       }
+
+      this.updateAlarms(model.isAllDay);
+    },
+
+    /**
+     * Called on render or when toggling an all-day event
+     */
+    updateAlarms: function(isAllDay) {
+
+      var template = Calendar.Templates.Alarm;
+      var alarms = [];
+
+      if (this.event.alarms) {
+        for (var i = 0, alarm; alarm = this.event.alarms[i]; i++) {
+          alarm.layout = isAllDay ? 'allday' : 'standard';
+          alarms.push(alarm);
+        }
+      }
+
+      alarms.push({
+        layout: isAllDay ? 'allday' : 'standard'
+      });
+      this.alarmList.innerHTML = template.picker.renderEach(alarms).join('');
     },
 
     reset: function() {
@@ -504,6 +572,8 @@ Calendar.ns('Views').ModifyEvent = (function() {
       this.provider = null;
       this.event = null;
       this.busytime = null;
+
+      this.alarmList.innerHTML = '';
 
       this.form.reset();
     },

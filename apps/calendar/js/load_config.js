@@ -163,6 +163,7 @@ Calendar.LoadConfig = (function() {
 
         js: [
           'utils/input_parser',
+          'templates/alarm',
           'views/modify_event'
         ],
 
@@ -173,6 +174,7 @@ Calendar.LoadConfig = (function() {
         group: ['Views.EventBase'],
 
         js: [
+          'templates/alarm',
           'utils/input_parser',
           'views/view_event'
         ],

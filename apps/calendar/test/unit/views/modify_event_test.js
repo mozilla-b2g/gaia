@@ -87,6 +87,7 @@ suiteGroup('Views.ModifyEvent', function() {
           '<textarea name="description"></textarea>',
           '<input name="currentCalendar" />',
           '<select name="calendarId"></select>',
+          '<div class="alarms"></div>',
         '</form>',
       '</div>'
     ].join('');
