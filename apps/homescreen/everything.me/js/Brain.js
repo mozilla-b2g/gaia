@@ -712,8 +712,16 @@ Evme.Brain = new function Evme_Brain() {
 
             Evme.$remove("#loading-app");
 
-            var elPseudo = Evme.$create('li', {'class': "inplace", 'id': "loading-app"}, loadingApp.getCurrentHtml()),
-                useClass = !data.isFolder;
+            var elPseudo = Evme.$create('li', {'class': "inplace", 'id': "loading-app"}, '<canvas></canvas>'),
+                pseudoCanvas = Evme.$('canvas', elPseudo)[0],
+                useClass = !data.isFolder,
+                appCanvas = data.app.getIconCanvas(),
+                appIconData = appCanvas.getContext('2d').getImageData(0, 0, appCanvas.width, appCanvas.height);
+                
+            // copy the clicked app's canvas here
+            pseudoCanvas.width = appCanvas.width;
+            pseudoCanvas.height = appCanvas.height;
+            pseudoCanvas.getContext('2d').putImageData(appIconData, 0, 0);
 
             if (data.data.installed) {
                 elPseudo.classList.add("installed");

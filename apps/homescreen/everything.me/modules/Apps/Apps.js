@@ -22,6 +22,11 @@ Evme.Apps = new function Evme_Apps() {
         TIMEOUT_BEFORE_REPORTING_APP_HOLD = 800,
         ftr = {};
         
+    this.APPS_SHADOW_OFFSET = 2 * Evme.Utils.devicePixelRatio;
+    this.APPS_SHADOW_BLUR = 2 * Evme.Utils.devicePixelRatio;
+    this.APPS_TEXT_HEIGHT = Evme.Utils.APPS_FONT_SIZE * 3;
+    this.APPS_TEXT_WIDTH = 72 * Evme.Utils.devicePixelRatio;
+    this.APPS_TEXT_MARGIN = 6 * Evme.Utils.devicePixelRatio;
 
     this.init = function init(options) {
         !options && (options = {});
@@ -614,7 +619,6 @@ Evme.App = function Evme_App(__cfg, __index, __isMore, parent) {
         if (!cfg.icon && (!hadID || cfg.preferences.defaultIcon)){
             cfg.icon = Evme.Apps.getDefaultIcon();
         }
-        
     };
     
     this.isExternal = function isExternal() {
@@ -628,7 +632,11 @@ Evme.App = function Evme_App(__cfg, __index, __isMore, parent) {
 
         self.remove();
         
-        el = Evme.$create('li', {'class': "new", 'id': "app_" + cfg.id});
+        el = Evme.$create('li', {
+          'class': 'new',
+          'id': 'app_' + cfg.id
+        }, '<canvas></canvas>');
+        
         self.update();
         
         el.classList.add(cfg.installed ? 'installed' : 'cloud');
@@ -647,19 +655,6 @@ Evme.App = function Evme_App(__cfg, __index, __isMore, parent) {
         return el;
     };
 
-    this.getHtml = function getHtml() {
-        var icon = Evme.Utils.formatImageData(cfg.icon) || Evme.Apps.getDefaultIcon();
-
-        return  '<div class="c" href="' + cfg.appUrl + '">' +
-                    '<span class="thumb" style="background-image: url(\'' + icon + '\');"></span>' + 
-                    '<b>' + cfg.name + '</b>' +
-                '</div>';
-    };
-
-    this.getCurrentHtml = function getCurrentHTML() {
-        return el.innerHTML;
-    };
-    
     this.goTo = function goTo() {
         cbClick();
     };
@@ -683,15 +678,84 @@ Evme.App = function Evme_App(__cfg, __index, __isMore, parent) {
         if (_cfg) {
             self.init(_cfg);
         }
+        
         if (el) {
-            el.innerHTML = self.getHtml();
-
-            Evme.Utils.blobToDataURI(cfg.icon, function(result) {
-                var iconEl = el.querySelector(".thumb");
-                iconEl.style.backgroundImage = 'url(\''+result+'\')';
+            function draw() {
+              drawIconIntoCanvas(function onIconLoaded() {
+                  window.setTimeout(function() {
+                    el.classList.remove('new');
+                  }, 0);
+              });
+            }
+            
+            Evme.Utils.blobToDataURI(cfg.icon, function onDataReady(result) {
+              cfg.icon = result;
+              draw();
+            }, function onNotBlob() {
+              draw();
             });
         }
     };
+    
+    this.getIconCanvas = function getIconData() {
+      return Evme.$('canvas', el)[0];
+    };
+    
+    function drawIconIntoCanvas(callback) {
+      var SHADOW_OFFSET = Evme.Apps.APPS_SHADOW_OFFSET,
+          SHADOW_BLUR = Evme.Apps.APPS_SHADOW_BLUR,
+          TEXT_HEIGHT = Evme.Apps.APPS_TEXT_HEIGHT,
+          TEXT_WIDTH = Evme.Apps.APPS_TEXT_WIDTH,
+          TEXT_MARGIN = Evme.Apps.APPS_TEXT_MARGIN,
+          SIZE = (cfg.installed? 58 : 44) * Evme.Utils.devicePixelRatio,
+          FULL_SIZE = SIZE + SHADOW_OFFSET + SHADOW_BLUR,
+          canvas = Evme.$('canvas', el)[0],
+          context = canvas.getContext('2d'),
+          icon = Evme.Utils.formatImageData(cfg.icon) || Evme.Apps.getDefaultIcon(),
+          image = new Image();
+
+      canvas.width = TEXT_WIDTH;
+      canvas.height = FULL_SIZE + TEXT_MARGIN + TEXT_HEIGHT - 1;
+
+      Evme.Utils.writeTextToCanvas({
+        "text": cfg.name,
+        "context": context,
+        "offset": SIZE + TEXT_MARGIN
+      });
+
+      image.onload = function onAppIconLoad() {
+        var elImageCanvas = document.createElement('canvas'),
+            imageContext = elImageCanvas.getContext('2d'),
+            fixedImage = new Image();
+
+        elImageCanvas.width = elImageCanvas.height = FULL_SIZE;
+
+        imageContext.beginPath();
+        imageContext.arc(FULL_SIZE/2, FULL_SIZE/2, SIZE/2, 0, Math.PI*2, false);
+        imageContext.closePath();
+        imageContext.clip();
+
+        // first we draw the image resized and clipped (to be rounded)
+        imageContext.drawImage(this, (FULL_SIZE-SIZE)/2, (FULL_SIZE-SIZE)/2, SIZE, SIZE);
+
+        fixedImage.onload = function onImageLoad() {
+          // shadow
+          context.shadowOffsetX = 0;
+          context.shadowOffsetY = SHADOW_OFFSET;
+          context.shadowBlur = SHADOW_BLUR;
+          context.shadowColor = 'rgba(0, 0, 0, 0.6)';
+          context.drawImage(this, (TEXT_WIDTH-FULL_SIZE)/2, 0);
+
+          if (callback instanceof Function) {
+            callback(canvas);
+          }
+        };
+
+        fixedImage.src = elImageCanvas.toDataURL('image/png');
+      };
+
+      image.src = icon;
+    }
 
     this.getElement = function getElement() {
         return el;
@@ -767,25 +831,7 @@ Evme.App = function Evme_App(__cfg, __index, __isMore, parent) {
         cfg.icon = icon;
         
         if (bRedraw && el) {
-            var iconUrl = Evme.Utils.formatImageData(cfg.icon) || Evme.Apps.getDefaultIcon();
-            
-            Evme.$('.c', el, function onItem(el){
-                var elIcon = Evme.$create('span', {'class': 'thumb'});
-                elIcon.style.backgroundImage = 'url(' + iconUrl + ')';
-                
-                el.append(elIcon);
-            });
-            
-            window.setTimeout(function onTimeout() {
-                if (!el) {
-                    return;
-                }
-                
-                var elThumbs = Evme.$(".thumb", el);
-                if (elThumbs.length > 1) {
-                    Evme.$remove(elThumbs[0]);
-                }
-            }, 100);
+            drawIconIntoCanvas();
         }
     };
     

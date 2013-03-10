@@ -20,11 +20,15 @@ Evme.Utils = new function Evme_Utils() {
             "GET_APP_ICON": "get-app-icon",
             "GET_APP_NAME": "get-app-name"
         };
-    
+
+    this.devicePixelRatio = window.innerWidth / 320;
+
     this.isKeyboardVisible = false;
 
     this.EMPTY_IMAGE = "../../images/empty.gif";
-    
+
+    this.APPS_FONT_SIZE = 13 * self.devicePixelRatio;
+
     this.ICONS_FORMATS = {
         "Small": 10,
         "Large": 20
@@ -157,6 +161,82 @@ Evme.Utils = new function Evme_Utils() {
             callback(canvas.toDataURL());
         };
         img.src = imageSrc;
+    };
+    
+    this.writeTextToCanvas = function writeTextToCanvas(options) {
+      var context = options.context,
+          text = options.text.split(' '),
+          offset = options.offset || 0,
+          lineWidth = 0,
+          currentLine = 0,
+          textToDraw = [],
+
+          WIDTH = context.canvas.width,
+          FONT_SIZE = self.APPS_FONT_SIZE,
+          LINE_HEIGHT = FONT_SIZE + 1 * self.devicePixelRatio;
+
+      if (!context || !text) {
+        return false;
+      }
+
+      context.textAlign = 'center';
+      context.textBaseline = 'top';
+      context.fillStyle = 'rgba(255,255,255,1)';
+      context.shadowOffsetX = 1;
+      context.shadowOffsetY = 1;
+      context.shadowBlur = 3;
+      context.shadowColor = 'rgba(0, 0, 0, 0.6)';
+      context.font = 'bold ' + FONT_SIZE + 'px MozTT';
+
+      for (var i=0,word; word=text[i++];) {
+        // add 1 to the word with because of the space between words
+        var size = context.measureText(word).width + 1,
+            draw = false,
+            pushed = false;
+
+        if (lineWidth + size >= WIDTH) {
+          draw = true;
+          if (textToDraw.length === 0) {
+            textToDraw.push(word);
+            pushed = true;
+          }
+        }
+
+        if (draw) {
+          drawText(textToDraw, WIDTH/2, offset + currentLine*LINE_HEIGHT);
+          currentLine++;
+          textToDraw = [];
+          lineWidth = 0;
+        }
+
+        if (!pushed) {
+          textToDraw.push(word);
+          lineWidth += size;
+        }
+      }
+
+      if (textToDraw.length > 0) {
+        drawText(textToDraw, WIDTH/2, offset + currentLine*LINE_HEIGHT);
+      }
+      
+      function drawText(text, x, y) {
+        var isSingleWord = text.length === 1,
+            text = text.join(' '),
+            size = context.measureText(text).width;
+        
+        if (isSingleWord && size >= WIDTH) {
+          while (size >= WIDTH) {
+            text = text.substring(0, text.length-1);
+            size = context.measureText(text + '…').width;
+          }
+          
+          text += '…';
+        }
+        
+        context.fillText(text, x, y);
+      }
+
+      return true;
     };
     
     this.isNewUser = function isNewUser() {
@@ -358,24 +438,10 @@ Evme.Utils = new function Evme_Utils() {
                     }
                     elList.appendChild(docFrag);
                     
-                    window.setTimeout(function onTimeout(){
-                        Evme.$(".new", elList, function onItem(el) {
-                            el.classList.remove("new");
-                        });
-                    }, 10);
-
                     onDone && onDone(appsList);
                 }, TIMEOUT_BEFORE_DRAWING_REST_OF_APPS);
             } else {
                 onDone && onDone(appsList);
-            }
-
-            if (docFrag.childNodes.length > 0) {
-                window.setTimeout(function onTimeout(){
-                    Evme.$(".new", elList, function onItem(el) {
-                        el.classList.remove("new");
-                    });
-                }, 10);
             }
 
             return iconsResult;
