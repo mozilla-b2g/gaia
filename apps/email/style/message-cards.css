@@ -425,27 +425,23 @@ input.msg-search-text-tease {
   Empty message-list container
 */
 .msg-list-empty-container {
-  background-image: url('images/mail_watermark.png');
-  background-repeat:no-repeat;
-  background-position: 50% 40%;
-  height: 20rem;
-  width: 100%;
   position: absolute;
-  top: 10rem;
-  left: 0;
+  top: 9rem;
+  left: 1.5rem;
+  right: 1.5rem;
+  width: calc(100% - 3rem);
+  height: 20rem;
 }
 
-.msg-list-empty-message {
-  text-align: center;
-  line-height: 3rem;
+.msg-list-empty-message-text {
   position: relative;
-  top: 12rem;
-  border-top: .1rem solid rgba(96,96,96,.5);
-  width: 27rem;
-  margin: -7rem auto;
-  color: #606060;
-  font-weight: 300;
-  font-size: 2.26rem;
+  top: 2.8rem;
+  margin: 0 auto;
+  padding: 1rem 1.5rem;
+  color: #010101;
+  font-weight: lighter;
+  font-size: 2.4rem;
+  border-top: 0.1rem solid #bebebe;
 }
 
 /* PROGRESS LABEL BUILDING BLOCKS EXTENSION */
