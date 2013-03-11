@@ -17,6 +17,9 @@ var GmailConnector = (function GmailConnector() {
   };
   var GD_NAMESPACE = 'http://schemas.google.com/g/2005';
 
+  var CATEGORY = 'gmail';
+  var URN_IDENTIFIER = 'urn:service:gmail:uid:';
+
   // Will be used as a cache for the thumbnail url for each contact
   var photoUrls = {};
 
@@ -67,16 +70,33 @@ var GmailConnector = (function GmailConnector() {
        'responseType': 'xml'});
   };
 
+  // Return the list of contacts on the device imported using this connector
   var listDeviceContacts = function listDeviceContacts(callbacks) {
-    callbacks.success([]);
+    var filterOptions = {
+      filterValue: CATEGORY,
+      filterOp: 'contains',
+      filterBy: ['category']
+    };
+
+    var req = navigator.mozContacts.find(filterOptions);
+    req.onsuccess = function() {
+      callbacks.success(req.result);
+    };
+    req.onerror = function onError() {
+      callbacks.success([]);
+    };
   };
 
   var getImporter = function getImporter(contactsList, access_token) {
     return new window.ContactsImporter(contactsList, access_token, this);
   };
 
-  var getCleaner = function getCleaner(contactsList, access_token) {
-    return null;
+  var cleanContacts = function cleanContacts(contactsList, mode, cb) {
+    var cleaner = new window.ContactsCleaner(contactsList);
+    window.setTimeout(cleaner.start, 0);
+    if (cb) {
+      cb(cleaner);
+    }
   };
 
   var getValueForNode = function getValueForNode(doc, name, def) {
@@ -200,7 +220,17 @@ var GmailConnector = (function GmailConnector() {
       output.note = [content.textContent];
     }
 
+    output.category = [CATEGORY];
+    output.url = [{
+      type: ['source'],
+      value: getContactURI(output)
+    }];
+
     return output;
+  };
+
+  var getContactURI = function getContactURI(contact) {
+    return URN_IDENTIFIER + contact.uid;
   };
 
   // This will be a full url like:
@@ -286,8 +316,39 @@ var GmailConnector = (function GmailConnector() {
     return phones;
   };
 
+  // Given a contact from the mozcontact api, fetch the Google Contacts
+  // identifier
   var getContactUid = function getContactUid(deviceContact) {
-    return '-1';
+    var out = -1;
+
+    var url = deviceContact.url;
+    if (Array.isArray(url)) {
+      var targetUrls = url.filter(function(aUrl) {
+        return Array.isArray(aUrl.type) &&
+          aUrl.type.indexOf('source') !== -1 &&
+          aUrl.value;
+      });
+
+      if (targetUrls[0]) {
+        out = resolveURI(targetUrls[0].value);
+      }
+    }
+
+    return out;
+  };
+
+  // From a contact URL, that we expect to be a URI
+  // return the google contact id if we find it on
+  // the uri, -1 otherwise
+  var resolveURI = function resolveURI(uri) {
+    if (uri && uri.indexOf(URN_IDENTIFIER) == 0) {
+      var output = uri.substr(URN_IDENTIFIER.length);
+      if (output && output.length > 0) {
+        return output;
+      }
+    }
+
+    return -1;
   };
 
   var downloadContactPicture = function downloadContactPicture(googleContact,
@@ -319,7 +380,7 @@ var GmailConnector = (function GmailConnector() {
     'listAllContacts': listAllContacts,
     'listDeviceContacts': listDeviceContacts,
     'getImporter': getImporter,
-    'getCleaner': getCleaner,
+    'cleanContacts': cleanContacts,
     'adaptDataForShowing': adaptDataForShowing,
     'adaptDataForSaving': adaptDataForSaving,
     'getContactUid': getContactUid,
