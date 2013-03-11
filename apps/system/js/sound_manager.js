@@ -204,9 +204,12 @@
     var steps =
       Array.prototype.slice.call(notification.querySelectorAll('div'), 0);
 
+    var maxVolumeStep = (channel == 'telephony' || channel == 'bt_sco') ?
+      volume + 1 : volume;
+
     for (var i = 0; i < steps.length; i++) {
       var step = steps[i];
-      if (i < volume) {
+      if (i < maxVolumeStep) {
         step.classList.add('active');
       } else {
         step.classList.remove('active');
