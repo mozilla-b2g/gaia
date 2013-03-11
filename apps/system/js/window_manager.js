@@ -387,6 +387,8 @@ var WindowManager = (function() {
       // If this is a cold launch let's wait for the app to load first
       var iframe = openFrame.firstChild;
       if ('unpainted' in iframe.dataset) {
+        if ('wrapper' in frame.dataset)
+          wrapperFooter.classList.add('visible');
         iframe.addEventListener('mozbrowserloadend', function on(e) {
           iframe.removeEventListener('mozbrowserloadend', on);
           onWindowReady();
@@ -816,11 +818,6 @@ var WindowManager = (function() {
     evt.initCustomEvent('appwillclose', true, false, { origin: origin });
     closeFrame.dispatchEvent(evt);
 
-    if ('wrapper' in closeFrame.dataset) {
-      wrapperHeader.classList.remove('visible');
-      wrapperFooter.classList.remove('visible');
-    }
-
     transitionCloseCallback = function startClosingTransition() {
       // We have been canceled by another transition.
       if (!closeFrame || transitionCloseCallback != startClosingTransition)
@@ -832,6 +829,11 @@ var WindowManager = (function() {
       // Start the transition
       closeFrame.classList.add('closing');
       closeFrame.classList.remove('active');
+
+      if ('wrapper' in closeFrame.dataset) {
+        wrapperHeader.classList.remove('visible');
+        wrapperFooter.classList.remove('visible');
+      }
     };
 
     waitForNextPaint(homescreenFrame, transitionCloseCallback);
