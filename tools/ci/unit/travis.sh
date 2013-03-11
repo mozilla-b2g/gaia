@@ -1,7 +1,7 @@
 #!/bin/bash
 
 RETRY=10
-FIREFOX_URL=http://ftp.mozilla.org/pub/mozilla.org/firefox/releases/18.0.1/linux-i686/en-US/firefox-18.0.1.tar.bz2
+FIREFOX_URL=http://ftp.mozilla.org/pub/mozilla.org/firefox/releases/18.0.1/linux-x86_64/en-US/firefox-18.0.1.tar.bz2
 TESTAGENT_URL=http://test-agent.gaiamobile.org:8080/
 
 RED_COLOR=$(printf "\x1b[31;1m")
