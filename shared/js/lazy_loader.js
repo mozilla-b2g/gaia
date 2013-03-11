@@ -4,7 +4,9 @@
  * This contains a simple LazyLoader implementation
  * To use:
  *
- *   LazyLoader.load(['/path/to/file.js', '/path/to/file.css'], callback);
+ *   LazyLoader.load(
+ *    ['/path/to/file.js', '/path/to/file.css', 'domNode'], callback
+ *   );
  */
 
 var LazyLoader = (function() {
@@ -30,6 +32,16 @@ var LazyLoader = (function() {
       style.rel = 'stylesheet';
       style.href = file;
       document.head.appendChild(style);
+      callback();
+    },
+
+    _html: function(domNode, callback) {
+      for (var i = 0; i < domNode.childNodes.length; i++) {
+        if (domNode.childNodes[i].nodeType == document.COMMENT_NODE) {
+          domNode.innerHTML = domNode.childNodes[i].nodeValue;
+          break;
+        }
+      }
       callback();
     },
 
@@ -59,8 +71,16 @@ var LazyLoader = (function() {
           this._isLoading[file].addEventListener(
             'load', perFileCallback.bind(null, file));
         } else {
-          var method = file.match(/\.(.*?)$/)[1];
-          this['_' + method](file, perFileCallback.bind(null, file));
+          var method, idx;
+          if (typeof file === 'string') {
+            method = file.match(/\.(.*?)$/)[1];
+            idx = file;
+          } else {
+            method = 'html';
+            idx = file.id;
+          }
+
+          this['_' + method](file, perFileCallback.bind(null, idx));
         }
       }
     }
