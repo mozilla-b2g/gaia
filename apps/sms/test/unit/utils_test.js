@@ -193,7 +193,7 @@ suite('Utils', function() {
               assert.isTrue(resizedBlob.size < limit);
             }, limit);
           }
-        }
+        };
         req.send(null);
       }
       resizeTest('IMG_0554.jpg');
