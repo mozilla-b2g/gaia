@@ -810,6 +810,26 @@ suite('Render contacts list', function() {
         });
       }, 100);
     });
+
+    test('Search phone number', function(done) {
+      mockContacts = new MockContactsList();
+      var contactIndex = Math.floor(Math.random() * mockContacts.length);
+      var contact = mockContacts[contactIndex];
+
+      subject.load(mockContacts);
+
+      window.setTimeout(function() {
+        contacts.List.initSearch(function onInit() {
+          searchBox.value = contact.tel[0].value;
+          contacts.Search.search(function search_finished() {
+            assert.isTrue(noResults.classList.contains('hide'));
+            assertContactFound(contact);
+            contacts.Search.invalidateCache();
+            done();
+          });
+        });
+      }, 100);
+    });
   });
 
   suite('Contacts order', function() {
