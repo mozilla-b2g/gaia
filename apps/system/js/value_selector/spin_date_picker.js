@@ -16,14 +16,53 @@
 var SpinDatePicker = (function SpinDatePicker() {
   'use strict';
 
-  var FIRST_YEAR = 1900;
-  var LAST_YEAR = 2099;
+  var GLOBAL_MIN_YEAR = 1900;
+  var GLOBAL_MAX_YEAR = 2099;
+
+  var DateRange = (function DateRange(min, max) {
+    var _minYear = min.getFullYear();
+    var _maxYear = max.getFullYear();
+    var _minMonth = min.getMonth();
+    var _maxMonth = max.getMonth();
+    var _minDate = min.getDate();
+    var _maxDate = max.getDate();
+
+    return {
+      get min() {
+        return min;
+      },
+      get max() {
+        return max;
+      },
+      get minYear() {
+        return _minYear;
+      },
+      get maxYear() {
+        return _maxYear;
+      },
+      get minMonth() {
+        return _minMonth;
+      },
+      get maxMonth() {
+        return _maxMonth;
+      },
+      get minDate() {
+        return _minDate;
+      },
+      get maxDate() {
+        return _maxDate;
+      }
+    };
+  });
+
+  var _dateRange = new DateRange(new Date(GLOBAL_MIN_YEAR, 0, 1),
+    new Date(GLOBAL_MAX_YEAR, 11, 31));
 
   function getYearText() {
     var yearText = [];
     var dateTimeFormat = navigator.mozL10n.DateTimeFormat();
 
-    for (var i = FIRST_YEAR; i <= LAST_YEAR; i++) {
+    for (var i = GLOBAL_MIN_YEAR; i <= GLOBAL_MAX_YEAR; i++) {
       var date = new Date(i, 0, 1);
       yearText.push(dateTimeFormat.localeFormat(date, '%Y'));
     }
@@ -44,12 +83,12 @@ var SpinDatePicker = (function SpinDatePicker() {
     return monthText;
   }
 
-  function getDateText(days) {
+  function getDateText() {
     var dateText = [];
     var date = new Date(1970, 0, 1);
     var dateTimeFormat = navigator.mozL10n.DateTimeFormat();
 
-    for (var i = 1; i <= days; i++) {
+    for (var i = 1; i <= 31; i++) {
       date.setDate(i);
       dateText.push(dateTimeFormat.localeFormat(date, '%d'));
     }
@@ -109,17 +148,12 @@ var SpinDatePicker = (function SpinDatePicker() {
    *
    * @param {HTMLELement} element target of widget creation.
    */
-  function SpinDatePicker(element) {
+  function SpinDatePicker(element, minDate, maxDate) {
     this.element = element;
 
     this.yearPicker = null;
     this.monthPicker = null;
-    this.datePickers = {
-      '28': null,
-      '29': null,
-      '30': null,
-      '31': null
-    };
+    this.datePicker = null;
 
     //XXX: When the document is localized again
     //     we must also re-render the month because
@@ -133,62 +167,72 @@ var SpinDatePicker = (function SpinDatePicker() {
       element.querySelector('.value-picker-year');
     var monthPickerContainer =
       element.querySelector('.value-picker-month');
-    var tmpDatePickerContainers =
-      element.querySelectorAll('.value-picker-date');
-    var datePickerContainers = {
-      '28': tmpDatePickerContainers[0],
-      '29': tmpDatePickerContainers[1],
-      '30': tmpDatePickerContainers[2],
-      '31': tmpDatePickerContainers[3]
-    };
+    var datePickerContainer =
+      element.querySelector('.value-picker-date');
 
-    var updateCurrentValue = function spd_updateCurrentValue() {
-      var selectedYear = this.yearPicker.getSelectedIndex() + FIRST_YEAR;
+    var updateCurrentValue = (function spd_updateCurrentValue() {
+      var selectedYear = this.yearPicker.getSelectedIndex() + GLOBAL_MIN_YEAR;
       var selectedMonth = this.monthPicker.getSelectedIndex();
       var days = getDaysInMonth(selectedYear, selectedMonth);
-      var datePicker = this.datePickers[days];
-      var selectedDate = datePicker.getSelectedIndex() + 1;
+      var selectedDate = this.datePicker.getSelectedIndex() + 1;
 
       this._value = new Date(selectedYear, selectedMonth, selectedDate);
-    };
+    }).bind(this);
 
-    var updateDatePickerVisibility =
-    function spd_updateDatePickerVisibility() {
-      var days = getDaysInMonth(this.yearPicker.getSelectedIndex() +
-                 FIRST_YEAR, this.monthPicker.getSelectedIndex());
-      for (var i = 28; i <= 31; i++) {
-        datePickerContainers[i].hidden = true;
-        this.datePickers[i].setSelectedIndex(this._currentSelectedDateIndex);
+    var updatePickersRange =
+    (function spd_updatePickersRange() {
+      var selectedYear = this.yearPicker.getSelectedIndex() + GLOBAL_MIN_YEAR;
+      var selectedMonth = this.monthPicker.getSelectedIndex();
+
+      var minMonth = 0;
+      var maxMonth = 11;
+      var minDate = 1;
+      var maxDate = 31;
+
+      if (selectedYear === _dateRange.minYear) {
+        minMonth = _dateRange.minMonth;
+        if (selectedMonth === _dateRange.minMonth)
+          minDate = _dateRange.minDate;
       }
-      datePickerContainers[days].hidden = false;
-    };
+      if (selectedYear === _dateRange.maxYear) {
+        maxMonth = _dateRange.maxMonth;
+        if (selectedMonth === _dateRange.maxMonth)
+          maxDate = _dateRange.maxDate;
+      }
+
+      var days = getDaysInMonth(this.yearPicker.getSelectedIndex() +
+                 GLOBAL_MIN_YEAR, this.monthPicker.getSelectedIndex());
+      minDate = Math.min(minDate, days);
+      maxDate = Math.min(maxDate, days);
+
+      this.monthPicker.setRange(minMonth, maxMonth);
+      this.datePicker.setRange(minDate - 1, maxDate - 1);
+    }).bind(this);
 
     var onvaluechangeInternal =
-    function spd_onvaluechangeInternal(newDateValue) {
-      this.yearPicker.setSelectedIndex(newDateValue.getFullYear() - FIRST_YEAR);
+    (function spd_onvaluechangeInternal(newDateValue) {
+      this.yearPicker.setSelectedIndex(
+        newDateValue.getFullYear() - GLOBAL_MIN_YEAR);
       this.monthPicker.setSelectedIndex(newDateValue.getMonth());
-      for (var i = 28; i <= 31; i++) {
-        this.datePickers[i].setSelectedIndex(newDateValue.getDate() - 1);
-      }
-      updateDatePickerVisibility.apply(this);
+      this.datePicker.setSelectedIndex(newDateValue.getDate() - 1);
+      updatePickersRange.apply(this);
       updateCurrentValue.apply(this);
-    };
+    }).bind(this);
 
     var onSelectedYearChanged =
     function spd_onSelectedYearChanged(selectedYear) {
-      updateDatePickerVisibility.apply(this);
+      updatePickersRange.apply(this);
       updateCurrentValue.apply(this);
     };
 
     var onSelectedMonthChanged =
     function spd_onSelectedMonthChanged(selectedMonth) {
-      updateDatePickerVisibility.apply(this);
+      updatePickersRange.apply(this);
       updateCurrentValue.apply(this);
     };
 
     var onSelectedDateChanged =
     function spd_onSelectedDateChanged(selectedDate) {
-      this._currentSelectedDateIndex = selectedDate;
       updateCurrentValue.apply(this);
     };
 
@@ -216,21 +260,15 @@ var SpinDatePicker = (function SpinDatePicker() {
     this.monthPicker.onselectedindexchange = onSelectedMonthChanged.bind(this);
 
     // date value picker
-    for (var i = 28; i <= 31; i++) {
-      var datePickerContainer = datePickerContainers[i];
-      var dateUnitStyle = {
-        valueDisplayedText: getDateText(i),
-        className: unitClassName
-      };
-      var datePicker = this.datePickers[i];
-
-      if (datePicker)
-        datePicker.uninit();
-      datePickerContainer.hidden = false;
-      this.datePickers[i] = new ValuePicker(datePickerContainer, dateUnitStyle);
-      this.datePickers[i].onselectedindexchange =
-        onSelectedDateChanged.bind(this);
-    }
+    var dateUnitStyle = {
+      valueDisplayedText: getDateText(),
+      className: unitClassName
+    };
+    if (this.datePicker)
+      this.datePicker.uninit();
+    this.datePicker = new ValuePicker(datePickerContainer, dateUnitStyle);
+    this.datePicker.onselectedindexchange =
+      onSelectedDateChanged.bind(this);
 
     // set component order
     var dateComponentOrder = getDateComponentOrder();
@@ -243,10 +281,8 @@ var SpinDatePicker = (function SpinDatePicker() {
     // Prevent focus being taken away by us for time picker.
     // The event listener on outer box will not be triggered cause
     // there is a evt.stopPropagation() in value_picker.js
-    this.pickerElements = [monthPickerContainer, yearPickerContainer];
-    for (var i = 28; i <= 31; i++) {
-      this.pickerElements.push(datePickerContainers[i]);
-    }
+    this.pickerElements = [monthPickerContainer, yearPickerContainer,
+      datePickerContainer];
 
     this.pickerElements.forEach((function pickerElements_forEach(picker) {
       picker.addEventListener('mousedown', this);
@@ -314,17 +350,26 @@ var SpinDatePicker = (function SpinDatePicker() {
       }
     },
 
+    setRange: function vs_setRange(minDate, maxDate) {
+      if (!minDate)
+        minDate = new Date(GLOBAL_MIN_YEAR, 0, 1);
+      if (!maxDate)
+        maxDate = new Date(GLOBAL_MAX_YEAR, 11, 31);
+
+      _dateRange = new DateRange(minDate, maxDate);
+
+      // set date picker
+      this.yearPicker.setRange(minDate.getFullYear() - GLOBAL_MIN_YEAR,
+                               maxDate.getFullYear() - GLOBAL_MIN_YEAR);
+    },
+
     uninit: function() {
       if (this.yearPicker)
         this.yearPicker.uninit();
       if (this.monthPicker)
         this.monthPicker.uninit();
-      if (this.datePickers) {
-        for (var i = 28; i <= 31; i++) {
-          var datePicker = this.datePickers[i];
-          datePicker.uninit();
-        }
-      }
+      if (this.datePicker)
+        this.datePicker.uninit();
 
       this.pickerElements.forEach((function pickerElements_forEach(picker) {
         picker.removeEventListener('mousedown', this);

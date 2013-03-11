@@ -70,7 +70,7 @@
 
 div.animation-on {
   -moz-transition-duration: 0.5s;
-  -moz-transition-property: top, left;
+  -moz-transition-property: transform;
 }
 
 .picker-unit {
