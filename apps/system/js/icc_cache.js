@@ -65,13 +65,14 @@
 
             function launchSettings() {
               debug('Locating settings . . .');
-              navigator.mozApps.mgmt.getAll().onsuccess = function gotApps(evt) {
+              navigator.mozApps.mgmt.getAll().onsuccess =
+              function gotApps(evt) {
                 var apps = evt.target.result;
                 apps.forEach(function appIterator(app) {
                   if (app.origin != application)
                     return;
 
-                  var reqIccData = window.navigator.mozSettings.createLock().set({
+                  var reqIccData = navigator.mozSettings.createLock().set({
                     'icc.data': JSON.stringify(command)
                   });
                   reqIccData.onsuccess = function icc_getIccData() {

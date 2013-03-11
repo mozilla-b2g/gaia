@@ -240,7 +240,7 @@ contacts.List = (function() {
       for (var i = contact.tel.length - 1; i >= 0; i--) {
         var current = contact.tel[i];
         searchInfo.push(current.value);
-      };
+      }
     }
     var escapedValue = utils.text.escapeHTML(searchInfo.join(' '), true);
     return utils.text.normalize(escapedValue);
