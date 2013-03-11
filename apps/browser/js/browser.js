@@ -216,8 +216,15 @@ var Browser = {
   },
 
   handleCloseTab: function browser_handleCloseTab() {
-    if (Object.keys(this.tabs).length == 1)
+    if (Object.keys(this.tabs).length == 1) {
+      var tabId = this.currentTab.id;
+      this.selectTab(this.createTab());
+      this.hideCrashScreen();
+      this.deleteTab(tabId);
+      this.showStartscreen();
+      this.switchScreen(browser.PAGE_SCREEN);
       return;
+    }
     this.hideCrashScreen();
     this.deleteTab(this.currentTab.id);
     this.setTabVisibility(this.currentTab, true);
@@ -456,11 +463,6 @@ var Browser = {
   },
 
   showCrashScreen: function browser_showCrashScreen() {
-    if (Object.keys(this.tabs).length > 1) {
-      this.closeTab.removeAttribute('disabled');
-    } else {
-      this.closeTab.setAttribute('disabled', 'disabled');
-    }
     this.crashscreen.style.display = 'block';
   },
 
@@ -1341,6 +1343,7 @@ var Browser = {
     this.startscreen.classList.remove('hidden');
     Places.getTopSites(this.MAX_TOP_SITES, null,
       this.showTopSiteThumbnails.bind(this));
+    this.bookmarkButton.classList.remove('bookmarked');
   },
 
   _topSiteThumbnailObjectURLs: [],
@@ -1453,7 +1456,6 @@ var Browser = {
     this.hideCurrentTab();
     this.tabsBadge.innerHTML = '';
 
-    var multipleTabs = Object.keys(this.tabs).length > 1;
     var ul = document.createElement('ul');
 
     this.tabsList.innerHTML = '';
@@ -1465,7 +1467,7 @@ var Browser = {
     this._tabScreenObjectURLs = [];
 
     for (var tab in this.tabs) {
-      var li = this.generateTabLi(this.tabs[tab], multipleTabs);
+      var li = this.generateTabLi(this.tabs[tab]);
       ul.appendChild(li);
     }
 
@@ -1476,7 +1478,7 @@ var Browser = {
     this.inTransition = false;
   },
 
-  generateTabLi: function browser_generateTabLi(tab, multipleTabs) {
+  generateTabLi: function browser_generateTabLi(tab) {
     var title = tab.title || tab.url || _('new-tab');
     var a = document.createElement('a');
     var li = document.createElement('li');
@@ -1484,14 +1486,12 @@ var Browser = {
     var preview = document.createElement('div');
     var text = document.createTextNode(title);
 
-    if (multipleTabs) {
-      var close = document.createElement('button');
-      close.appendChild(document.createTextNode('✕'));
-      close.classList.add('close');
-      close.setAttribute('data-id', tab.id);
-      a.appendChild(close);
-    }
-
+    var close = document.createElement('button');
+    close.appendChild(document.createTextNode('✕'));
+    close.classList.add('close');
+    close.setAttribute('data-id', tab.id);
+    a.appendChild(close);
+    
     a.setAttribute('data-id', tab.id);
     preview.classList.add('preview');
 
@@ -1640,9 +1640,7 @@ var Browser = {
         return;
       }
 
-      // We cant delete the last tab
-      this.deleteable = Object.keys(this.browser.tabs).length > 1;
-      if (!this.deleteable || this.browser.inTransition) {
+      if (this.browser.inTransition) {
         return;
       }
 
@@ -1651,7 +1649,7 @@ var Browser = {
     },
 
     pan: function tabSwipe_pan(e) {
-      if (!this.deleteable || this.browser.inTransition) {
+      if (this.browser.inTransition) {
         return;
       }
       var movement = Math.min(this.containerWidth,
@@ -1679,7 +1677,7 @@ var Browser = {
     },
 
     swipe: function tabSwipe_swipe(e) {
-      if (!this.deleteable || this.browser.inTransition) {
+      if (this.browser.inTransition) {
         return;
       }
 
@@ -1718,16 +1716,15 @@ var Browser = {
         // Then animate the space dissapearing
         li.addEventListener('transitionend', function(e) {
           // Then delete everything
+	  if (Object.keys(self.browser.tabs).length === 1) {
+            browser.selectTab(browser.createTab());
+            browser.showStartscreen();
+            browser.switchScreen(browser.PAGE_SCREEN);
+          }
           browser.deleteTab(id);
           li.parentNode.removeChild(li);
 
-          if (Object.keys(self.browser.tabs).length === 1) {
-            var closeButtons = document.getElementsByClassName('close');
-            Array.forEach(closeButtons, function(el) {
-              el.parentNode.removeChild(el);
-            });
-          }
-
+	  browser.updateTabsCount();
         }, true);
         li.style.MozTransition = 'height ' + 100 + 'ms linear';
         li.style.height = '0px';
