@@ -59,6 +59,13 @@ Calendar.ns('Views').ModifyEvent = (function() {
         this.element.classList.remove(this.ALLDAY);
       }
 
+      // because of race conditions it is theoretically possible
+      // for the user to check/uncheck this value
+      // when we don't actually have a model loaded.
+      if (this.event) {
+        this.event.isAllDay = !!allday;
+      }
+
       this.updateAlarms(allday);
     },
 
