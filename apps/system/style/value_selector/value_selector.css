@@ -149,6 +149,10 @@ button.affirmative.active {
   height: 100%;
 }
 
+.value-picker > *[data-disabled="true"] {
+  visibility: hidden;
+}
+
 /* The following rules is to override the styles defined in building blocks of value selector */
 #value-selector li {
   height: auto;
