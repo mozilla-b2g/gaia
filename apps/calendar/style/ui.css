@@ -37,6 +37,10 @@ ol.link-list a {
   margin: 0 2rem 1rem;
 }
 
+ol.link-list li:last-child label {
+  border-bottom: 0;
+}
+
 ol.link-list a {
   background: transparent url('icons/ActionIcons_30x30_forward_nav.png') no-repeat right;
 }
@@ -120,6 +124,10 @@ ol.link-list a {
   }
 }
 
+#advanced-settings-view {
+  overflow-y: scroll;
+}
+
 #advanced-settings-view .settings-list label select {
   display: block;
   float: left;
@@ -139,10 +147,9 @@ ol.link-list a {
   padding-right: 2rem;
 }
 
-#advanced-settings-view .settings-list,
 #advanced-settings-view .account-list {
-  overflow-y: scroll;
   height: calc(50% - 2.5rem);
+  overflow-y: scroll;
 }
 
 #advanced-settings-view .settings-list label,

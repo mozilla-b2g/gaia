@@ -36,6 +36,8 @@
 
       var description;
       var trigger = this.arg('trigger');
+      var _ = navigator.mozL10n.get;
+
       if (trigger != 'none') {
         trigger = Math.abs(trigger);
       }
@@ -43,13 +45,13 @@
       function translate(unit, name) {
         var value = Math.round(trigger / unit);
         var key = 'alarm-' + name + (value > 1 ? 's' : '') + '-before';
-        return navigator.mozL10n.get(key, {value: value});
+        return _(key, {value: value});
       }
 
       if (trigger == 'none')
-        description = navigator.mozL10n.get('none');
+        description = _('none');
       else if (trigger == 0)
-        description = navigator.mozL10n.get('alarm-at-event-standard');
+        description = _('alarm-at-event-' + this.arg('layout'));
       else if (trigger < HOUR)
         description = translate(MINUTE, 'minute');
       else if (trigger < DAY)
@@ -68,7 +70,8 @@
       var foundSelected = false;
 
       var trigger = this.arg('trigger');
-      var options = layouts[this.arg('layout') || 'standard'];
+      var layout = this.arg('layout') || 'standard';
+      var options = layouts[layout];
 
       var i = 0;
       var iLen = options.length;
@@ -82,7 +85,8 @@
 
         content += '<option value="' + options[i] + '"' + selected + '>' +
           Calendar.Templates.Alarm.description.render({
-            trigger: options[i]
+            trigger: options[i],
+            layout: layout
           }) +
         '</option>';
       }
@@ -90,7 +94,8 @@
       if (!foundSelected && /^-?\d+$/.test(trigger)) {
         content += '<option value="' + trigger + '" selected>' +
           Calendar.Templates.Alarm.description.render({
-            trigger: trigger
+            trigger: trigger,
+            layout: layout
           }) +
         '</option>';
       }
