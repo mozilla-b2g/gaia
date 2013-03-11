@@ -170,6 +170,37 @@ var dtf = new navigator.mozL10n.DateTimeFormat();
       }
 
       callback(details);
+    },
+
+    getResizedImgBlob: function ut_getResizedImgBlob(blob, limit, callback) {
+      // Default image size limitation is set to 300KB for MMS user story
+      if (typeof limit === 'function') {
+        callback = limit;
+        limit = 300 * 1024;
+      }
+      if (blob.size < limit) {
+        callback(blob);
+      } else {
+        var img = document.createElement('img');
+        var url = URL.createObjectURL(blob);
+        img.src = url;
+        img.onload = function onBlobLoaded() {
+          var image_width = img.width;
+          var image_height = img.height;
+          var ratio = Math.sqrt(Math.ceil(blob.size / limit * 10) / 10);
+          var target_width = image_width / ratio;
+          var target_height = image_height / ratio;
+
+          var canvas = document.createElement('canvas');
+          canvas.width = target_width;
+          canvas.height = target_height;
+          var context = canvas.getContext('2d');
+
+          context.drawImage(img, 0, 0, target_width, target_height);
+          URL.revokeObjectURL(url);
+          canvas.toBlob(callback, blob.type);
+        };
+      }
     }
   };
 
