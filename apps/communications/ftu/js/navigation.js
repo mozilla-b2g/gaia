@@ -181,7 +181,7 @@ var Navigation = {
         var fbState;
         if (!WifiManager.api) {
           // Desktop
-          FacebookIntegration.checkFbImport('enabled');
+          ImportIntegration.checkImport('enabled');
           return;
         }
         if (WifiManager.api.connection.status === 'connected' ||
@@ -190,7 +190,7 @@ var Navigation = {
         } else {
           fbState = 'disabled';
         }
-        FacebookIntegration.checkFbImport(fbState);
+        ImportIntegration.checkImport(fbState);
         break;
       case '#welcome_browser':
         UIManager.mainTitle.innerHTML = _('browserPrivacyChoices');
