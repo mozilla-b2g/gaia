@@ -76,7 +76,7 @@ suite('Render contact', function() {
     window.Contacts = MockContactsApp;
     realFb = window.fb;
     window.fb = MockFb;
-    window.Contacts.extFb = MockExtFb;
+    window.Contacts.extServices = MockExtFb;
     dom = document.createElement('section');
     dom.id = 'view-contact-details';
     dom.innerHTML = MockDetailsDom;
