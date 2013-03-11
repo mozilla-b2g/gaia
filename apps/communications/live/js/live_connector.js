@@ -4,6 +4,8 @@ if (!window.LiveConnector) {
     var CONTACTS_RESOURCE = 'me/contacts';
     var PICTURE_RESOURCE = '/picture';
 
+    var LIVE_CATEGORY = 'live';
+
     var itemsTypeMap = {
       'personal': 'personal',
       'mobile': 'mobile',
@@ -25,6 +27,15 @@ if (!window.LiveConnector) {
       return out;
     }
 
+    function getURI(liveContact) {
+      return 'urn:uuid:' + liveContact.user_id;
+    }
+
+    function resolveURI(uri) {
+      var components = uri.split(':');
+      // The third element is the user id of the live contact
+      return components[2];
+    }
 
     function LiveConnector() {
     }
@@ -64,17 +75,29 @@ if (!window.LiveConnector) {
       },
 
       listDeviceContacts: function(callbacks) {
-        // Dummy implementation for the time being
-        callbacks.success([]);
+        var filterOptions = {
+          filterValue: LIVE_CATEGORY,
+          filterOp: 'contains',
+          filterBy: ['category']
+        };
+        var req = navigator.mozContacts.find(filterOptions);
+        req.onsuccess = function() {
+          callbacks.success(req.result);
+        };
+        req.onerror = function() {
+          callbacks.error(req.error);
+        };
       },
 
       getImporter: function(contactsList, access_token) {
         return new window.ContactsImporter(contactsList, access_token, this);
       },
 
-      getCleaner: function(contactsList, access_token) {
+      cleanContacts: function(contactsList, mode, cb) {
         // Just a placeholder for the moment
-        return null;
+        var cleaner = new window.ContactsCleaner(contactsList);
+        window.setTimeout(cleaner.start, 0);
+        cb(cleaner);
       },
 
       adaptDataForShowing: function(source) {
@@ -83,7 +106,7 @@ if (!window.LiveConnector) {
         out.uid = source.user_id;
         out.givenName = [source.first_name || ''];
         out.familyName = [source.last_name || ''];
-        out.email1 = source.emails.account;
+        out.email1 = source.emails.account || '';
 
         return out;
       },
@@ -95,7 +118,13 @@ if (!window.LiveConnector) {
           name: [liveContact.name || ''],
           tel: [],
           email: [],
-          adr: []
+          adr: [],
+          photo: liveContact.photo,
+          category: [LIVE_CATEGORY],
+          url: [{
+            type: ['source'],
+            value: getURI(liveContact)
+          }]
         };
 
         var byear = liveContact.birth_year;
@@ -150,7 +179,20 @@ if (!window.LiveConnector) {
       // on the device. That is needed by the generic importer, for live
       // a dummy implementation as we are currently not supporting updates
       getContactUid: function(deviceContact) {
-        return '-1';
+        var out = '-1';
+
+        var url = deviceContact.url;
+        if (Array.isArray(url)) {
+          var targetUrls = url.filter(function(aUrl) {
+            return Array.isArray(aUrl.type) &&
+                                aUrl.type.indexOf('source') !== -1;
+          });
+          if (targetUrls[0]) {
+            out = resolveURI(targetUrls[0].value);
+          }
+        }
+
+        return out;
       },
 
       get name() {
