@@ -269,6 +269,7 @@ Calendar.LoadConfig = (function() {
         group: ['Templates.Account'],
 
         js: [
+          'templates/alarm',
           'views/advanced_settings'
         ]
       },

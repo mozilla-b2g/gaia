@@ -14,7 +14,10 @@
     selectors: {
       element: '#advanced-settings-view',
       accountList: '#advanced-settings-view .account-list',
-      syncFrequency: '#setting-sync-frequency'
+      syncFrequency: '#setting-sync-frequency',
+
+      standardAlarmLabel: '#default-event-alarm',
+      alldayAlarmLabel: '#default-allday-alarm'
     },
 
     get accountList() {
@@ -23,6 +26,22 @@
 
     get syncFrequency() {
       return this._findElement('syncFrequency');
+    },
+
+    get standardAlarmLabel() {
+      return this._findElement('standardAlarmLabel');
+    },
+
+    get alldayAlarmLabel() {
+      return this._findElement('alldayAlarmLabel');
+    },
+
+    get standardAlarm() {
+      return this.standardAlarmLabel.querySelector('select');
+    },
+
+    get alldayAlarm() {
+      return this.alldayAlarmLabel.querySelector('select');
     },
 
     _formatModel: function(model) {
@@ -48,6 +67,9 @@
 
       setting.on('syncFrequencyChange', this);
       this.syncFrequency.addEventListener('change', this);
+
+      this.standardAlarmLabel.addEventListener('change', this);
+      this.alldayAlarmLabel.addEventListener('change', this);
     },
 
     handleSettingDbChange: function(type, value) {
@@ -65,6 +87,8 @@
         value = null;
 
       switch (type) {
+        case 'alldayAlarmDefault':
+        case 'standardAlarmDefault':
         case 'syncFrequency':
           if (!value === null) {
             value = parseInt(value);
@@ -108,7 +132,7 @@
 
     render: function() {
       var self = this;
-      var pending = 2;
+      var pending = 4;
 
       function next() {
         if (!--pending && self.onrender) {
@@ -131,10 +155,36 @@
         next();
       }
 
+      function renderAlarmDefault(type) {
+        return function(err, value) {
+
+          var element = type + 'AlarmLabel';
+          var existing = self[element].querySelector('select');
+
+          if (existing) {
+            existing.parentNode.removeChild(existing);
+          }
+
+          // Render the select box
+          var template = Calendar.Templates.Alarm;
+          var select = document.createElement('select');
+          select.name = type + 'AlarmDefault';
+          select.innerHTML = template.options.render({
+            layout: type,
+            trigger: value
+          });
+          self[element].appendChild(select);
+
+          next();
+        };
+      }
+
       var settings = this.app.store('Setting');
       var accounts = this.app.store('Account');
 
       settings.getValue('syncFrequency', renderSyncFrequency);
+      settings.getValue('standardAlarmDefault', renderAlarmDefault('standard'));
+      settings.getValue('alldayAlarmDefault', renderAlarmDefault('allday'));
       accounts.all(renderAccounts);
     }
 

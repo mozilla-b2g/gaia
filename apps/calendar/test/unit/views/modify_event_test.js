@@ -13,6 +13,7 @@ suiteGroup('Views.ModifyEvent', function() {
   var eventStore;
   var calendarStore;
   var accountStore;
+  var settingStore;
 
   function clearMS(date) {
     var newDate = new Date(date.valueOf());
@@ -99,6 +100,7 @@ suiteGroup('Views.ModifyEvent', function() {
     eventStore = app.store('Event');
     accountStore = app.store('Account');
     calendarStore = app.store('Calendar');
+    settingStore = app.store('Setting');
     provider = app.provider('Mock');
 
     fmt = navigator.mozL10n.DateTimeFormat();
@@ -569,6 +571,7 @@ suiteGroup('Views.ModifyEvent', function() {
             assert.equal(updated._id, event._id, 'updates correcet event');
 
             var data = subject.formData();
+            data.alarms = [];
             assert.hasProperties(subject.event, data, 'updated model');
             assert.isTrue(list.contains(subject.PROGRESS));
 
@@ -613,6 +616,9 @@ suiteGroup('Views.ModifyEvent', function() {
         provider.createEvent = function(event, callback) {
           done(function() {
             var data = subject.formData();
+
+            data.alarms = [];
+
             assert.hasProperties(subject.event, data, 'updated model');
             assert.isTrue(list.contains(subject.PROGRESS));
 
@@ -751,6 +757,100 @@ suiteGroup('Views.ModifyEvent', function() {
       };
 
       calendarStore.emit('remove', calendars.one._id);
+    });
+  });
+
+  suite('alarm defaults', function() {
+
+    var defaultAllDayAlarm;
+    var defaultEventAlarm;
+
+    setup(function(done) {
+      var pending = 3;
+
+      // setup the save
+      subject.onfirstseen();
+      subject.onafteronfirstseen = function() {
+        subject.dispatch({ params: {} });
+        subject.ondispatch = function() {
+          // must come after dispatch
+          subject._returnTo = '/foo';
+          next();
+        };
+      };
+
+      settingStore.getValue('standardAlarmDefault', function(err, value) {
+        defaultEventAlarm = value;
+        next();
+      });
+
+      settingStore.getValue('alldayAlarmDefault', function(err, value) {
+        defaultAllDayAlarm = value;
+        next();
+      });
+
+      function next() {
+        if (!(--pending)) {
+          done();
+        }
+      }
+    });
+
+    test('with no alarms set', function(done) {
+      provider.createEvent = function(event, callback) {
+        done(function() {
+          var data = subject.formData();
+
+          callback();
+
+          assert.deepEqual(
+            data.alarms,
+            subject.event.alarms,
+            'alarms'
+          );
+        });
+      };
+
+      subject.primary();
+    });
+
+    function testAlarmIsAdded(done, isAllDay, defaultAlarm) {
+      provider.createEvent = function(event, callback) {
+        done(function() {
+          var data = subject.formData();
+
+          callback();
+
+          assert.deepEqual(
+            data.alarms,
+            [
+              {action: 'DISPLAY', trigger: defaultAlarm},
+              {action: 'DISPLAY', trigger: 0}
+            ],
+            'alarms'
+          );
+        });
+      };
+
+      var allday = subject.getEl('allday');
+      allday.checked = isAllDay;
+      subject.event.isAllDay = isAllDay;
+      subject.updateAlarms(isAllDay, function() {
+        var secondSelect = subject.alarmList.querySelectorAll('select')[1];
+        assert.ok(secondSelect);
+
+        secondSelect.value = '0';
+
+        subject.primary();
+      });
+    }
+
+    test('with all day defaults', function(done) {
+      testAlarmIsAdded(done, true, defaultAllDayAlarm);
+    });
+
+    test('with event defaults', function(done) {
+      testAlarmIsAdded(done, false, defaultEventAlarm);
     });
   });
 
