@@ -94,6 +94,14 @@
       "href": "/contacts/index.html?pick",
       "returnValue": true
     },
+    "open": {
+      "filters": {
+        "type": "webcontacts/contact"
+      },
+      "disposition": "inline",
+      "href": "/contacts/index.html?open",
+      "returnValue": true
+    },
     "new": {
       "filters": {
         "type": "webcontacts/contact"
