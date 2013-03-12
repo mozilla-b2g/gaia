@@ -7,6 +7,8 @@ var ThreadUI = {
   // Time buffer for the 'last-messages' set. In this case 10 min
   LAST_MESSSAGES_BUFFERING_TIME: 10 * 60 * 1000,
   CHUNK_SIZE: 10,
+  PHONE_REGEX: /(\+?1?[-.]?\(?([0-9]{3})\)?[-.]?)?([0-9]{3})[-.]?([0-9]{4})([0-9]{1,4})?/mg,
+
   get view() {
     delete this.view;
     return this.view = document.getElementById('messages-container');
@@ -133,6 +135,9 @@ var ThreadUI = {
     this.editForm.addEventListener('submit', this);
     this.telForm.addEventListener('submit', this);
     this.sendForm.addEventListener('submit', this);
+
+    // initialize listeners for contact dialog
+    ContactDialog.init();
 
     Utils.startTimeHeaderScheduler();
 
@@ -527,29 +532,27 @@ var ThreadUI = {
     MessageManager.getMessages(renderingOptions);
   },
 
-  appendMessage: function thui_appendMessage(message, hidden) {
-    // Retrieve all data from message
+  buildMessageDOM: function thui_buildMessageDOM(message, hidden) {
     var id = message.id;
     var bodyText = message.body;
-    var bodyHTML = Utils.escapeHTML(bodyText);
-    var timestamp = message.timestamp.getTime();
     var messageClass = message.delivery;
 
     var messageDOM = document.createElement('li');
     messageDOM.classList.add('bubble');
-    messageDOM.dataset.timestamp = timestamp;
 
     if (hidden) {
       messageDOM.classList.add('hidden');
     }
+
     messageDOM.id = 'message-' + id;
+
     var inputValue = id;
+
     var asideHTML = '';
     // Do we have to add some error/sending icon?
     switch (message.delivery) {
       case 'error':
         asideHTML = '<aside class="pack-end"></aside>';
-        ThreadUI.addResendHandler(message, messageDOM);
         break;
       case 'sending':
         asideHTML = '<aside class="pack-end">' +
@@ -562,10 +565,41 @@ var ThreadUI = {
                       '<input type="checkbox" value="' + inputValue + '">' +
                       '<span></span>' +
                       '</label>' +
-                    '<a class="' + messageClass + '">';
+                      '<a class="' + messageClass + '">';
     messageHTML += asideHTML;
-    messageHTML += '<p>' + bodyHTML + '</p></a>';
+    messageHTML += '<p></p></a>';
+
     messageDOM.innerHTML = messageHTML;
+
+    if (message.delivery === 'error')
+     ThreadUI.addResendHandler(message, messageDOM);
+
+    return this.searchAndLinkPhoneData(messageDOM, bodyText);
+  },
+
+  /*
+   * this method searches for phone numbers in the message
+   * and associates anchor links so that contactDialog is shown.
+   */
+
+  searchAndLinkPhoneData:
+  function thui_searchAndLinkPhoneData(messageDOM, bodytext) {
+     var result = bodytext.replace(this.PHONE_REGEX, function(phone) {
+      var linkText = '<a data-action="phone-link" data-phonenumber="' +
+                      phone + '">' + phone + '</a>';
+      return linkText;
+    });
+    //check for messageDOM paragraph element to assign linked message html
+    var pElement = messageDOM.querySelector('p');
+    pElement.innerHTML = result;
+    return messageDOM;
+  },
+
+  appendMessage: function thui_appendMessage(message, hidden) {
+    // build messageDOM adding the links
+    var messageDOM = this.buildMessageDOM(message, hidden);
+    var timestamp = message.timestamp.getTime();
+    messageDOM.dataset.timestamp = timestamp;
     // Add to the right position
     var messageContainer = ThreadUI.getMessageContainer(timestamp, hidden);
     if (!messageContainer.firstElementChild) {
@@ -594,7 +628,8 @@ var ThreadUI = {
   },
 
   addResendHandler: function thui_addResendHandler(message, messageDOM) {
-    messageDOM.addEventListener('click', function resend(e) {
+    var aElement = messageDOM.querySelector('aside');
+    aElement.addEventListener('click', function resend(e) {
       var hash = window.location.hash;
       if (hash != '#edit') {
         var resendConfirmStr = _('resend-confirmation');
@@ -728,6 +763,10 @@ var ThreadUI = {
   handleEvent: function thui_handleEvent(evt) {
     switch (evt.type) {
       case 'click':
+        var eventAction = evt.target.dataset.action;
+        if (eventAction && eventAction === 'phone-link') {
+          ContactDialog.showContactDialog(evt.target.dataset.phonenumber);
+        }
         if (window.location.hash != '#edit') {
           return;
         }
