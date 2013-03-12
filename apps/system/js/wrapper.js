@@ -26,6 +26,9 @@ var Launcher = (function() {
   window.addEventListener('appopen', function onAppOpen(e) {
     if ('wrapper' in currentAppFrame().dataset) {
       window.addEventListener('mozbrowserlocationchange', onLocationChange);
+      
+      back.dataset.disabled = true;
+      
       onLocationChange();
       onDisplayedApplicationChange();
     }
