@@ -148,6 +148,18 @@ let content = {
   // It defines the threshold in pixels to consider a gesture like a tap event
   tap_threshold: 10,
 
+  swipe: {
+    // It defines the threshold to consider a gesture like a swipe. Number
+    // in the range 0.0 to 1.0, both included, representing the screen width
+    threshold: 0.4,
+
+    // By default we define the virtual friction to .1 px/ms/ms
+    friction: 0.1,
+
+    // Page transition duration defined in ms (300 ms by default)
+    transition_duration: 300
+  },
+
   // This specifies whether we optimize homescreen panning by trying to
   // predict where the user's finger will be in the future.
   prediction: {
