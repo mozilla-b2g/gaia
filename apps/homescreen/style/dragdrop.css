@@ -71,27 +71,3 @@ body[data-mode = 'edit'] ol > li[data-dragging] {
 body[data-dragging] ol > li {
 	opacity: 0.7;
 }
-
-body[data-mode = 'edit'] ol > li {
-  -moz-animation-duration: .3s;
-}
-
-@-moz-keyframes jumpNextCell {
-  0% { -moz-transform: translateX(0); }
-	100% { -moz-transform: translateX(100%); }
-}
-
-@-moz-keyframes jumpPrevCell {
-  0% { -moz-transform: translateX(0); }
-	100% { -moz-transform: translateX(-100%); }
-}
-
-@-moz-keyframes jumpNextRow {
-  0% { -moz-transform: translate(0,0) }
-	100% { -moz-transform: translate(-300%, 100%) }
-}
-
-@-moz-keyframes jumpPrevRow {
-  0% { -moz-transform: translate(0,0) }
-	100% { -moz-transform: translate(300%, -100%) }
-}
