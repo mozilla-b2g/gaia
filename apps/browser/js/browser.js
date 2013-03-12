@@ -164,7 +164,7 @@ var Browser = {
           this.waitingActivities.forEach(this.handleActivity, this);
         }
       }.bind(this));
-    }
+    };
 
     LazyLoader.load(filesToLoad, loadBrowserFiles.bind(this));
   },

@@ -119,7 +119,8 @@ suite('Gmail Connector', function() {
       assert.equal('source', result.url[0].type[0]);
       assert.equal('urn:service:gmail:uid:' +
         'http://www.google.com/m8/feeds/contacts/' +
-        'mepartoconmigo%40gmail.com/base/2fc27a388c2bd974', result.url[0].value);
+        'mepartoconmigo%40gmail.com/base/2fc27a388c2bd974',
+        result.url[0].value);
 
     });
   });
