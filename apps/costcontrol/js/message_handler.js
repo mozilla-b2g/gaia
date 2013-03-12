@@ -153,7 +153,7 @@
 
       iconURL += '?topUpError';
       NotificationHelper.send(_('topup-incorrectcode-title2'),
-                              _('topup-incorrectcode-message3'), iconURL,
+                              _('topup-incorrectcode-message2'), iconURL,
                               goToTopUpCode);
 
       if (callback) {
@@ -291,8 +291,8 @@
       if (settings.dataLimit) {
         if (usage >= limit && !settings.dataUsageNotified) {
           var limitText = formatData(smartRound(limit));
-          var title = _('data-limit-notification-title2', { limit: limitText });
-          var message = _('data-limit-notification-text2');
+          var title = _('data-limit-notification-title', { limit: limitText });
+          var message = _('data-limit-notification-text');
           NotificationHelper.send(title, message, iconURL, goToDataUsage);
           ConfigManager.setOption({ 'dataUsageNotified': true }, callback);
           return true;
