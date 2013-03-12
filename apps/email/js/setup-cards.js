@@ -21,7 +21,8 @@ var SETUP_ERROR_L10N_ID_MAP = {
   'unresponsive-server': 'setup-error-unresponsive-server',
   'server-problem': 'setup-error-server-problem',
   'no-config-info': 'setup-error-no-config-info',
-  'server-maintenance': 'setup-error-server-maintenance'
+  'server-maintenance': 'setup-error-server-maintenance',
+  'user-account-exists': 'setup-error-account-already-exists'
 };
 
 /**
@@ -338,20 +339,29 @@ function SetupProgressCard(domNode, mode, args) {
 
   var self = this;
   this.creationInProcess = true;
-  MailAPI.tryToCreateAccount(
-    {
-      displayName: args.displayName,
-      emailAddress: args.emailAddress,
-      password: args.password
-    },
-    args.domainInfo || null,
-    function(err, errDetails) {
+	
+	App.checkAccountExist(args.emailAddress, function callback(isAccountExist) {
+  	if (isAccountExist === true) {
       self.creationInProcess = false;
-      if (err)
-        self.onCreationError(err, errDetails);
-      else
-        self.onCreationSuccess();
-    });
+      self.onCreationError('user-account-exists','No Details');
+    }
+    else {
+      MailAPI.tryToCreateAccount(
+        {
+          displayName: args.displayName,
+		      emailAddress: args.emailAddress,
+		      password: args.password
+        },
+        args.domainInfo || null,
+        function(err, errDetails) {
+          self.creationInProcess = false;
+          if (err)
+            self.onCreationError(err, errDetails);
+          else
+            self.onCreationSuccess();
+        });
+    }
+  });
 }
 SetupProgressCard.prototype = {
   cancelCreation: function() {
