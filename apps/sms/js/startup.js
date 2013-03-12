@@ -20,12 +20,14 @@ var lazyLoadFiles = [
   'js/fixed_header.js',
   'js/activity_picker.js',
   'js/link_helper.js',
+  'js/action_menu.js',
   'js/link_action_handler.js',
   'shared/style/input_areas.css',
   'shared/style/switches.css',
   'shared/style/confirm.css',
   'shared/style_unstable/progress_activity.css',
-  'style/custom_dialog.css'
+  'style/custom_dialog.css',
+  'shared/style/action_menu.css'
 ];
 
 window.addEventListener('localized', function showBody() {
