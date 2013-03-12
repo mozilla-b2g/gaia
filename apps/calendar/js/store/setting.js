@@ -13,6 +13,8 @@ Calendar.ns('Store').Setting = (function() {
      * Default option values.
      */
     defaults: {
+      standardAlarmDefault: -300,
+      alldayAlarmDefault: 0,
       syncFrequency: 15,
       syncAlarm: {
         alarmId: null,
@@ -57,7 +59,7 @@ Calendar.ns('Store').Setting = (function() {
           return callback(err);
         }
 
-        if (value === undefined && self.defaults[key]) {
+        if (value === undefined && self.defaults[key] !== undefined) {
           value = { value: self.defaults[key] };
         }
 
