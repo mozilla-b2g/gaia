@@ -293,6 +293,36 @@ suiteGroup('Views.ViewEvent', function() {
         done
       );
     });
+
+    test('alarms are displayed', function(done) {
+
+      event.remote.alarms = [
+        {trigger: 0},
+        {trigger: -60}
+      ];
+
+      subject.onfirstseen();
+      subject.useModel(busytime, event, function() {
+
+        var alarmChildren = getEl('alarms').querySelector('.content').children;
+
+        assert.equal(
+          alarmChildren.length,
+          2
+        );
+
+        assert.equal(
+          alarmChildren[0].textContent,
+          navigator.mozL10n.get('alarm-at-event-standard')
+        );
+        assert.equal(
+          alarmChildren[1].textContent,
+          navigator.mozL10n.get('alarm-minute-before')
+        );
+
+        done();
+      });
+    });
   });
 
   suite('navigation', function() {
