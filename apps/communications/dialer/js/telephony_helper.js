@@ -37,6 +37,11 @@ var TelephonyHelper = (function() {
   function startDial(sanitizedNumber, oncall, connected, disconnected, error) {
     var telephony = navigator.mozTelephony;
     if (telephony) {
+      if (telephony.active) {
+        // Existing calls presents.
+        displayMessage('PreviousCallExist');
+        return;
+      }
       var conn = window.navigator.mozMobileConnection;
       var cardState = conn.cardState;
       var emergencyOnly = (cardState === 'absent' ||
@@ -114,6 +119,10 @@ var TelephonyHelper = (function() {
       case 'DeviceNotAccepted':
         dialogTitle = 'emergencyDialogTitle';
         dialogBody = 'emergencyDialogBodyDeviceNotAccepted';
+        break;
+      case 'PreviousCallExist':
+        dialogTitle = 'previousCallExistTitle';
+        dialogBody = 'previousCallExistMessage';
         break;
       default:
         console.error('Invalid message argument'); // Should never happen
