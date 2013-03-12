@@ -393,13 +393,19 @@ Calendar.ns('Service').Caldav = (function() {
 
       utc += offset;
 
-      return {
+      var result = {
         tzid: zone.tzid,
         // from seconds to ms
         offset: offset,
         // from seconds to ms
         utc: utc
       };
+
+      if (time.isDate) {
+        result.isDate = true;
+      }
+
+      return result;
     },
 
     /**
@@ -430,6 +436,10 @@ Calendar.ns('Service').Caldav = (function() {
         result = new ICAL.Time();
         result.fromUnixTime((utc - offset) / 1000);
         result.zone = ICAL.Timezone.utcTimezone;
+      }
+
+      if (time.isDate) {
+        result.isDate = true;
       }
 
       return result;

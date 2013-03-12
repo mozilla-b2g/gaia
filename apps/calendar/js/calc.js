@@ -133,6 +133,31 @@ Calendar.Calc = (function() {
     },
 
     /**
+     * Checks if date object only contains date information (not time).
+     *
+     * Example:
+     *
+     *    var time = new Date(2012, 0, 1, 1);
+     *    this._isOnlyDate(time); // false
+     *
+     *    var time = new Date(2012, 0, 1);
+     *    this._isOnlyDate(time); // true
+     *
+     * @param {Date} date to verify.
+     * @return {Boolean} see above.
+     */
+    isOnlyDate: function(date) {
+      if (
+        date.getHours() === 0 &&
+        date.getMinutes() === 0 &&
+        date.getSeconds() === 0
+      ) {
+        return true;
+      }
+      return false;
+    },
+
+    /**
      * Given a start and end date will
      * calculate which hours given
      * event occurs (in order from allday -> 23).
@@ -294,7 +319,7 @@ Calendar.Calc = (function() {
       );
 
       if (zone && zone === Calc.FLOATING) {
-        return this.getUTC(date);
+        return Calendar.Calc.getUTC(date);
       }
 
       return date;
@@ -313,35 +338,43 @@ Calendar.Calc = (function() {
      * regardless of the current tzid's offset.
      *
      * @param {Date} date js date object.
-     * @param {Date} [tzid] optional tzid.
+     * @param {String} [tzid] optional tzid.
+     * @param {Boolean} isDate true when is a "date" representation.
      */
-    dateToTransport: function(date, tzid) {
+    dateToTransport: function(date, tzid, isDate) {
       var result = Object.create(null);
       result.utc = utc;
 
-      if (tzid && tzid === Calc.FLOATING) {
-        result.utc = date.valueOf();
-        result.offset = 0;
-      } else {
-        var utc = Date.UTC(
-          date.getFullYear(),
-          date.getMonth(),
-          date.getDate(),
-          date.getHours(),
-          date.getMinutes(),
-          date.getSeconds(),
-          date.getMilliseconds()
-        );
+      if (isDate) {
+        result.isDate = isDate;
+      }
 
+      if (tzid) {
+        result.tzid = tzid;
+      }
+
+      var utc = Date.UTC(
+        date.getFullYear(),
+        date.getMonth(),
+        date.getDate(),
+        date.getHours(),
+        date.getMinutes(),
+        date.getSeconds(),
+        date.getMilliseconds()
+      );
+
+      // remember a "date" is always a floating
+      // point in time otherwise we don't use it...
+      if (isDate || tzid && tzid === Calc.FLOATING) {
+        result.utc = utc;
+        result.offset = 0;
+        result.tzid = Calendar.Calc.FLOATING;
+      } else {
         var localUtc = date.valueOf();
         var offset = utc - localUtc;
 
         result.utc = utc;
         result.offset = offset;
-      }
-
-      if (tzid) {
-        result.tzid = tzid;
       }
 
       return result;
