@@ -253,8 +253,10 @@ var OnCallHandler = (function onCallHandler() {
   }
 
   function addCall(call) {
-    // Once we already have 1 call, we only care about incomings
-    if (handledCalls.length && (call.state != 'incoming')) {
+    // Once we already have 1 call, we need to care about incoming
+    // calls and insert new dialing calls.
+    if (handledCalls.length &&
+      (call.state != 'incoming') && (call.state != 'dialing')) {
       return;
     }
 
@@ -285,7 +287,13 @@ var OnCallHandler = (function onCallHandler() {
 
     if (handledCalls.length > 1) {
       // New incoming call, signaling the user.
-      handleCallWaiting(call);
+      if (call.state === 'incoming') {
+        handleCallWaiting(call);
+
+      // User performed another outgoing call. show its status.
+      } else {
+        hc.show();
+      }
     } else {
       if (window.location.hash === '#locked' &&
           (call.state == 'incoming')) {
