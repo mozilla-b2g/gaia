@@ -7,6 +7,7 @@ DICTIONARY_PATH =../../../../../../dictionaries
 WHITELIST = \
  de.dict \
  en_us.dict \
+ pl.dict \
  pt_br.dict \
  fr.dict \
  es.dict
