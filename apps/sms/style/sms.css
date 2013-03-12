@@ -186,7 +186,7 @@ form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
   transform: translateX(0%);
 }
 
-#thread-list,#thread-messages {
+#thread-list,#thread-messages,#mms-settings {
   z-index: 10;
   background: white;
 }
@@ -508,6 +508,50 @@ form.bottom[role="search"].new-sms-form {
 #loading [role="status"] {
   text-align: center;
   height: 4rem;
+}
+
+/*
+  Settings panel and layout
+*/
+
+section[role="region"] > header .icon.icon-settings {
+    background-image: url("images/icons/settings.png");
+}
+
+#settings .panel {
+  top: 100%;
+  text-align: left;
+}
+#settings.show .panel {
+  transform: translateY(-100%);
+}
+#settings li {
+  min-height: 6rem;
+  border-bottom: 0.1rem solid #e6e6e3;
+  padding-left: 2rem;
+  position: relative;
+}
+#settings li * {
+  pointer-events: none;
+}
+#settings li:active {
+  background-color: #b2f2ff;
+  color: #222;
+}
+#settings li > span {
+  line-height: 3rem;
+  max-width: calc(100% - 8rem);
+}
+#settings li > span.content {
+  display: inline-block;
+  line-height: 3rem;
+  font-size: 1.4rem;
+  color: #505859;
+}
+#settings label {
+  top: calc((100% - 5rem) / 2);
+  right: 2rem;
+  position: absolute;
 }
 
 /*
