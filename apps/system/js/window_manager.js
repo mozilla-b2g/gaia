@@ -375,27 +375,12 @@ var WindowManager = (function() {
     }
 
     if (classList.contains('opening')) {
-      var onWindowReady = function() {
-        windowOpened(frame);
+      windowOpened(frame);
 
-        setTimeout(openCallback);
-        openCallback = null;
+      setTimeout(openCallback);
+      openCallback = null;
 
-        setOpenFrame(null);
-      };
-
-      // If this is a cold launch let's wait for the app to load first
-      var iframe = openFrame.firstChild;
-      if ('unpainted' in iframe.dataset) {
-        if ('wrapper' in frame.dataset)
-          wrapperFooter.classList.add('visible');
-        iframe.addEventListener('mozbrowserloadend', function on(e) {
-          iframe.removeEventListener('mozbrowserloadend', on);
-          onWindowReady();
-        });
-      } else {
-        onWindowReady();
-      }
+      setOpenFrame(null);
     } else if (classList.contains('closing')) {
       windowClosed(frame);
 
