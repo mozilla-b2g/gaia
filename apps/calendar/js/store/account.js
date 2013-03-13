@@ -9,9 +9,6 @@
 
     _store: 'accounts',
 
-    _parseId: Calendar.Store.Abstract.prototype.probablyParseInt,
-
-
     verifyAndPersist: function(model, callback) {
       var self = this;
       var provider = Calendar.App.provider(
@@ -53,16 +50,12 @@
 
     _removeDependents: function(id, trans) {
       var store = this.db.getStore('Calendar');
-      store.remotesByAccount(id, trans, function(err, related) {
-        if (err) {
-          console.log('Error removing deps for account: ', id);
-          return;
-        }
-        var key;
-        for (key in related) {
-          store.remove(related[key]._id, trans);
-        }
-      });
+      var related = store.remotesByAccount(id);
+      var key;
+
+      for (key in related) {
+        store.remove(related[key]._id, trans);
+      }
     },
 
     /**
@@ -78,28 +71,17 @@
 
       var self = this;
       var provider = Calendar.App.provider(account.providerType);
-      var calendarStore = this.db.getStore('Calendar');
+      var store = this.db.getStore('Calendar');
 
       var persist = [];
 
       // remotesByAccount return an object indexed by remote ids
-      var calendars;
+      var calendars = store.remotesByAccount(account._id);
 
       // these are remote ids not local ones
-      var originalIds;
+      var originalIds = Object.keys(calendars);
 
-      function fetchExistingCalendars(err, results) {
-        if (err) {
-          return callback(err);
-        }
-
-        calendars = results;
-        originalIds = Object.keys(calendars);
-
-        provider.findCalendars(account.toJSON(), persistCalendars);
-      }
-
-      function persistCalendars(err, remoteCals) {
+      provider.findCalendars(account.toJSON(), function(err, remoteCals) {
         var key;
 
         if (err) {
@@ -122,7 +104,7 @@
             } else {
               // create a new calendar
               persist.push(
-                calendarStore._createModel({
+                store._createModel({
                   remote: new Object(cal),
                   accountId: account._id
                 })
@@ -142,11 +124,11 @@
           );
 
           originalIds.forEach(function(id) {
-            calendarStore.remove(calendars[id]._id, trans);
+            store.remove(calendars[id]._id, trans);
           });
 
           persist.forEach(function(object) {
-            calendarStore.persist(object, trans);
+            store.persist(object, trans);
           });
 
           // event listeners must come at the end
@@ -163,12 +145,7 @@
           // invoke callback nothing to sync
           callback(null);
         }
-      }
-
-      calendarStore.remotesByAccount(
-        account._id,
-        fetchExistingCalendars
-      );
+      });
     },
 
     _createModel: function(obj, id) {
@@ -184,63 +161,23 @@
     },
 
     /**
-     * Returns a list of available presets filtered by
-     * the currently used presets in the database.
+     * Checks if provider type is used
+     * in any of the cached records.
      *
-     * Expected structure of the presetList is as follows:
-     *
-     *    {
-     *      'presetType': {
-     *        // most important field when true if the preset
-     *        // is available in the database that preset type
-     *        // will be excluded.
-     *        singleUse: true
-     *        providerType: 'X',
-     *        options: {}
-     *      }
-     *
-     *    }
-     *
-     * @param {Object} presetList see example ^^^.
-     * @param {Function} callback [err, ['presetKey', ...]].
+     * @param {String} type (like Local).
      */
-    availablePresets: function(presetList, callback) {
-      var results = [];
-      var singleUse = {};
-      var hasSingleUses = false;
+    presetActive: function(type) {
+      var key;
 
-      for (var preset in presetList) {
-        if (presetList[preset].singleUse) {
-          hasSingleUses = true;
-          singleUse[preset] = true;
-        } else {
-          results.push(preset);
+      for (key in this._cached) {
+        if (this._cached[key].preset === type) {
+          return true;
         }
       }
 
-      if (!hasSingleUses) {
-        return Calendar.nextTick(function() {
-          callback(null, results);
-        });
-      }
-
-      this.all(function(err, list) {
-        if (err) {
-          callback(err);
-          return;
-        }
-
-        for (var id in list) {
-          var preset = list[id].preset;
-          if (singleUse[preset]) {
-            delete singleUse[preset];
-          }
-        }
-
-        // add un-used presets to the list.
-        callback(null, results.concat(Object.keys(singleUse)));
-      });
+      return false;
     }
+
   };
 
   Calendar.ns('Store').Account = Account;

@@ -5,7 +5,7 @@ suiteGroup('Views.CalendarColors', function() {
   var app;
   var store;
 
-  setup(function(done) {
+  setup(function() {
     this.timeout(5000);
 
     app = testSupport.calendar.app();
@@ -16,19 +16,6 @@ suiteGroup('Views.CalendarColors', function() {
       _id: '1xx',
       localDisplayed: true
     });
-
-    app.db.open(done);
-  });
-
-  teardown(function(done) {
-    testSupport.calendar.clearStore(
-      app.db,
-      ['calendars'],
-      function() {
-        app.db.close();
-        done();
-      }
-    );
   });
 
   test('initialization', function() {
@@ -56,44 +43,23 @@ suiteGroup('Views.CalendarColors', function() {
 
   suite('#render', function() {
     var calledWith;
-    var first;
-    var second;
+    var first = {};
+    var second = {};
 
-    setup(function(done) {
-      first = Factory('calendar', { _id: 'first' });
-      second = Factory('calendar', { _id: 'second' });
-
-      var trans = app.db.transaction('calendars', 'readwrite');
-      trans.oncomplete = function() {
-        done();
-      };
-
-      trans.onerror = function(e) {
-        done(e);
-      };
-
-      store.persist(first, trans);
-      store.persist(second, trans);
-    });
-
-    setup(function(done) {
-      calledWith = {};
+    setup(function() {
+      calledWith = [];
       subject.updateRule = function(item) {
-        calledWith[item._id] = item;
+        calledWith.push(item);
       };
+
+      store.cached[0] = first;
+      store.cached[1] = second;
 
       subject.render();
-      subject.onrender = done;
     });
 
     test('calls update', function() {
-      assert.hasProperties(
-        first, calledWith.first, 'displays first'
-      );
-
-      assert.hasProperties(
-        second, calledWith.second, 'displays second'
-      );
+      assert.deepEqual(calledWith, [first, second]);
     });
 
   });

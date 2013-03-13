@@ -87,7 +87,7 @@ function init() {
     // stop and reset the player then back to tiles mode to avoid crash
     PlayerView.stop();
     changeMode(MODE_TILES);
-  };
+  }
 
   musicdb.onready = function() {
     // Hide the nocard or pluggedin overlay if it is displayed

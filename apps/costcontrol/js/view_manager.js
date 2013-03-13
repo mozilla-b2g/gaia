@@ -3,7 +3,7 @@
 
 'use strict';
 
-var ViewManager = (function() {
+var ViewManager = (function () {
 
   // The ViewManager is in charge of simply manage the different views of the
   // applications. ViewManager.changeViewTo() valid values are listed above
@@ -14,7 +14,7 @@ var ViewManager = (function() {
     this._tabs = {};
     tabs.forEach(function _registerTab(tabItem) {
       if (typeof tabItem !== 'object') {
-        tabItem = { id: tabItem };
+        tabItem = { id:tabItem };
       }
       this._tabs[tabItem.id] = tabItem.tab || 'left';
     }, this);
@@ -46,12 +46,12 @@ var ViewManager = (function() {
     var previousViewId, currentViewId;
     previousViewId = currentViewId = this._currentView ?
                                      this._currentView.id : null;
-
+    
     var view = document.getElementById(viewId);
-
+    
     // lazy load HTML of the panel
     this.loadPanel(view);
-
+                                     
     // Tabs are treated in a different way than overlay views
     var isTab = this._isTab(viewId);
     if (isTab) {
@@ -142,7 +142,7 @@ var ViewManager = (function() {
 
     panel.hidden = false;
   };
-
+  
   // Close the current view returning to the previous one
   ViewManager.prototype.closeCurrentView = function _closeCurrentView() {
     if (!this._currentView) {

@@ -114,109 +114,16 @@ require('/tests/js/integration_helper.js');
       }
     },
 
-    /**
-     * Runs a generator as a "task" .runs number
-     * of times with a delay between each task.
-     *
-     *    yield perf.repeatWithDelay(function(app, next) {
-     *      yield app.launch();
-     *      yield app.close();
-     *    });
-     *
-     */
-    repeatWithDelay: function(generator, callback) {
-      callback = callback || this.app.defaultCallback;
-
-      var pending = this.runs;
-
-      function nextTask(err) {
-        if (err) {
-          return callback(err);
-        }
-
-        if (!--pending) {
-          callback();
-        } else {
-          trigger();
-        }
-      }
-
-      var self = this;
-      function trigger() {
-        self.delay(function() {
-          self.task(generator, nextTask);
-        });
-      }
-
-      trigger();
+    delay: function() {
+      IntegrationHelper.delay(this.app.device, this.opts.spawnInterval);
     },
 
-    /**
-     * Almost identical to app.task but generators
-     * do not take a done parameter and will close when
-     * execution completes.
-     *
-     *
-     *    yield perf.task(function(app, next) {
-     *      yield app.something();
-     *    });
-     *
-     */
-    task: function(generator, callback) {
-      var app = this.app;
-      callback = (callback || app.defaultCallback);
-      var instance;
-
-      function singleTaskNext(err, value) {
-        if (err && !(err instanceof StopIteration)) {
-          try {
-            instance.throw(err);
-          } catch (e) {
-            callback(e, null);
-            instance.close();
-          }
-        } else {
-          try {
-            instance.send(value);
-          } catch (e) {
-            if (!(e instanceof StopIteration)) {
-              callback(e);
-            }
-            callback();
-          }
-        }
-      }
-
-      // ugly but awesome hack
-      // this is how we can switch
-      // generators in .task
-      var appInstance = Object.create(app);
-      appInstance.defaultCallback = singleTaskNext;
-      appInstance.device = Object.create(app.device);
-      appInstance.device.defaultCallback = singleTaskNext;
-
-      try {
-        var instance = generator.call(this, appInstance, singleTaskNext);
-        instance.next();
-      } catch (e) {
-        callback(e);
-      }
-    },
-
-    delay: function(callback) {
-      IntegrationHelper.delay(
-        this.app.device,
-        this.opts.spawnInterval,
-        callback
-      );
-    },
-
-    observe: function(callback) {
+    observe: function() {
       if (! this.opts.lastEvent) {
         var errMsg = 'the "lastEvent" property msut be configured.';
         throw new Error('PerformanceHelper: ' + errMsg);
       }
-      return this.app.observePerfEvents(this.opts.lastEvent, callback);
+      return this.app.observePerfEvents(this.opts.lastEvent);
     }
   };
 

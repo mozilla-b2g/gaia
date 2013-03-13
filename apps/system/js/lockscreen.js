@@ -507,11 +507,6 @@ var LockScreen = {
   },
 
   lockIfEnabled: function ls_lockIfEnabled(instant) {
-    if (FtuLauncher && FtuLauncher.isFtuRunning()) {
-      this.unlock(instant);
-      return;
-    }
-
     if (this.enabled) {
       this.lock(instant);
     } else {
@@ -721,21 +716,16 @@ var LockScreen = {
       return;
     }
 
-    panel = panel || 'main';
     var overlay = this.overlay;
-    var currentPanel = overlay.dataset.panel;
-
-    if (currentPanel && currentPanel === panel) {
-      return;
-    }
-
     var self = this;
+    panel = panel || 'main';
 
     this._switchingPanel = true;
     this.loadPanel(panel, function panelLoaded() {
       self.unloadPanel(overlay.dataset.panel, panel,
         function panelUnloaded() {
-          self.dispatchEvent('lockpanelchange');
+          if (overlay.dataset.panel !== panel)
+            self.dispatchEvent('lockpanelchange');
 
           overlay.dataset.panel = panel;
           self._switchingPanel = false;

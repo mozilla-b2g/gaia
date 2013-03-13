@@ -131,10 +131,7 @@ suite('system/NotificationScreen >', function() {
     test('remove lockscreen notifications at the same time', function() {
       NotificationScreen.addNotification({ id: 10000, title: '', message: '' });
       NotificationScreen.removeNotification(10000);
-      assert.equal(
-        null,
-        fakeLockScreenContainer.querySelector(
-          '[data-notification-i-d="10000"]'));
+      assert.equal(null, fakeLockScreenContainer.querySelector('[data-notification-i-d="10000"]'));
     });
   });
 

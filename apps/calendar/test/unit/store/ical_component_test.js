@@ -11,7 +11,7 @@ suite('store/ical_component', function() {
   setup(function(done) {
     this.timeout(5000);
     app = testSupport.calendar.app();
-    db = app.db;
+    db = testSupport.calendar.db();
     subject = db.getStore('IcalComponent');
 
     db.open(function(err) {

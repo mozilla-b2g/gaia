@@ -15,7 +15,6 @@ Calendar.ns('Views').ModifyEvent = (function() {
 
     selectors: {
       element: '#modify-event-view',
-      alarmList: '#modify-event-view .alarms',
       form: '#modify-event-view form',
       status: '#modify-event-view section[role="status"]',
       errors: '#modify-event-view .errors',
@@ -41,8 +40,6 @@ Calendar.ns('Views').ModifyEvent = (function() {
 
       var allday = this.getEl('allday');
       allday.addEventListener('change', this._toggleAllDay);
-
-      this.alarmList.addEventListener('change', this._changeAlarm.bind(this));
     },
 
     /**
@@ -58,6 +55,8 @@ Calendar.ns('Views').ModifyEvent = (function() {
         // disable case
         this.element.classList.remove(this.ALLDAY);
       }
+<<<<<<< HEAD
+=======
 
       // because of race conditions it is theoretically possible
       // for the user to check/uncheck this value
@@ -91,36 +90,28 @@ Calendar.ns('Views').ModifyEvent = (function() {
       var newAlarm = document.createElement('div');
       newAlarm.innerHTML = template.picker.render([]);
       this.alarmList.appendChild(newAlarm);
+>>>>>>> gaia_mozilla/master
     },
 
     /**
      * Build the initial list of calendar ids.
      */
-    onfirstseen: function() {
-      var calendarStore = this.app.store('Calendar');
-      calendarStore.all(function(err, calendars) {
-        if (err) {
-          console.log('Could not build list of calendars');
-          return;
-        }
+    _buildCalendarIds: function() {
+      var calendars = this.app.store('Calendar');
+      var list = calendars.findWithCapability('createEvent');
+      var element = this.getEl('calendarId');
+      var option;
+      var cal;
+      var len = list.length;
+      var i = 0;
 
-        var pending = 0;
-        var self = this;
-
-        function next() {
-          if (!--pending) {
-            if (self.onafteronfirstseen) {
-              self.onafteronfirstseen();
-            }
-          }
-        }
-
-        for (var id in calendars) {
-          pending++;
-          this._addCalendarId(id, calendars[id], next);
-        }
-
-      }.bind(this));
+      for (; i < len; i++) {
+        cal = list[i];
+        option = document.createElement('option');
+        option.value = cal._id;
+        option.text = cal.remote.name;
+        element.add(option);
+      }
     },
 
     /**
@@ -133,25 +124,19 @@ Calendar.ns('Views').ModifyEvent = (function() {
       var element = this.getEl('calendarId');
       var option = element.querySelector('[value="' + id + '"]');
       var store = this.app.store('Calendar');
+      var provider = store.providerFor(calendar);
+      var caps = provider.calendarCapabilities(
+        calendar
+      );
 
-      store.providerFor(calendar, function(err, provider) {
-        var caps = provider.calendarCapabilities(
-          calendar
-        );
+      if (!caps.canCreateEvent) {
+        this._removeCalendarId(id);
+        return;
+      }
 
-        if (!caps.canCreateEvent) {
-          this._removeCalendarId(id);
-          return;
-        }
-
-        if (option) {
-          option.text = calendar.remote.name;
-        }
-
-        if (this.oncalendarupdate) {
-          this.oncalendarupdate(calendar);
-        }
-      }.bind(this));
+      if (option) {
+        option.text = calendar.remote.name;
+      }
     },
 
     /**
@@ -160,36 +145,20 @@ Calendar.ns('Views').ModifyEvent = (function() {
      * @param {String} id calendar id.
      * @param {Calendar.Model.Calendar} calendar calendar to add.
      */
-    _addCalendarId: function(id, calendar, callback) {
+    _addCalendarId: function(id, calendar) {
       var store = this.app.store('Calendar');
-      store.providerFor(calendar, function(err, provider) {
-        var caps = provider.calendarCapabilities(
-          calendar
-        );
+      var provider = store.providerFor(calendar);
+      var caps = provider.calendarCapabilities(
+        calendar
+      );
 
-        if (!caps.canCreateEvent) {
-          if (callback) {
-            Calendar.nextTick(callback);
-          }
-          return;
-        }
+      var option;
+      var element = this.getEl('calendarId');
 
-        var option;
-        var element = this.getEl('calendarId');
-
-        option = document.createElement('option');
-        option.text = calendar.remote.name;
-        option.value = id;
-        element.add(option);
-
-        if (callback) {
-          Calendar.nextTick(callback);
-        }
-
-        if (this.onaddcalendar) {
-          this.onaddcalendar(calendar);
-        }
-      }.bind(this));
+      option = document.createElement('option');
+      option.text = calendar.remote.name;
+      option.value = id;
+      element.add(option);
     },
 
     /**
@@ -203,10 +172,6 @@ Calendar.ns('Views').ModifyEvent = (function() {
       var option = element.querySelector('[value="' + id + '"]');
       if (option) {
         option.parentNode.remove(option);
-      }
-
-      if (this.onremovecalendar) {
-        this.onremovecalendar(id);
       }
     },
 
@@ -225,10 +190,6 @@ Calendar.ns('Views').ModifyEvent = (function() {
       }
     },
 
-    get alarmList() {
-      return this._findElement('alarmList');
-    },
-
     get form() {
       return this._findElement('form');
     },
@@ -242,7 +203,7 @@ Calendar.ns('Views').ModifyEvent = (function() {
     },
 
     /**
-     * Ask the provider to persist an event:
+     * Ask the provider to an event:
      *
      *  1. update the model with form data
      *
@@ -274,42 +235,23 @@ Calendar.ns('Views').ModifyEvent = (function() {
       if (!data.calendarId)
         return;
 
-      var self = this;
-      var provider;
+      // now that the model has a calendar id we can find the model
+      var provider = this.store.providerFor(this.event);
+      var eventCaps = provider.eventCapabilities(this.event.data);
 
-      this.store.providerFor(this.event, fetchProvider);
-
-      function fetchProvider(err, result) {
-        provider = result;
-        provider.eventCapabilities(
-          self.event.data,
-          verifyCaps
-        );
-      }
-
-      function verifyCaps(err, caps) {
-        if (err) {
-          console.log('Error fetching capabilities for', self.event);
-          return;
-        }
-
-        // safe-guard but should not ever happen.
-        if (caps[capability]) {
-          persistEvent();
-        }
-      }
-
-      function persistEvent() {
-        var list = self.element.classList;
+      // safe-guard but should not ever happen.
+      if (eventCaps[capability]) {
+        var list = this.element.classList;
+        var self = this;
         var redirectTo;
 
         // mark view as 'in progress' so we can style
         // it via css during that time period
-        list.add(self.PROGRESS);
+        list.add(this.PROGRESS);
 
-        var moveDate = self.event.startDate;
+        var moveDate = this.event.startDate;
 
-        provider[method](self.event.data, function(err) {
+        provider[method](this.event.data, function(err) {
           list.remove(self.PROGRESS);
 
           if (err) {
@@ -343,10 +285,14 @@ Calendar.ns('Views').ModifyEvent = (function() {
       }
 
       if (this.provider) {
-
-        var self = this;
-        function handleDelete() {
-          self.provider.deleteEvent(self.event.data, function(err) {
+        var caps = this.provider.eventCapabilities(this.event.data);
+        // XXX: unlike the save we don't wait for the transaction
+        // to complete before moving on. Providers (should) take
+        // action to remove the event from the display instantly
+        // then queue a async action to actually remove the whole event.
+        if (caps.canDelete) {
+          var self = this;
+          this.provider.deleteEvent(this.event.data, function(err) {
             if (err) {
               self.showErrors(err);
               return;
@@ -361,17 +307,6 @@ Calendar.ns('Views').ModifyEvent = (function() {
             });
           });
         }
-
-        this.provider.eventCapabilities(this.event.data, function(err, caps) {
-          if (err) {
-            console.log('Error fetching event capabilities', this.event);
-            return;
-          }
-
-          if (caps.canDelete) {
-            handleDelete();
-          }
-        });
       }
     },
 
@@ -397,7 +332,7 @@ Calendar.ns('Views').ModifyEvent = (function() {
      * Enlarges focus areas for .button controls
      */
     focusHandler: function(e) {
-      var input = e.target.querySelector('input, select');
+      var input = e.target.querySelector('input');
       if (input && e.target.classList.contains('button')) {
         input.focus();
       }
@@ -448,18 +383,6 @@ Calendar.ns('Views').ModifyEvent = (function() {
         fields.endDate.setDate(
           fields.endDate.getDate() + 1
         );
-      }
-
-      var alarms = this.element.querySelectorAll('[name="alarm[]"]');
-      fields.alarms = [];
-      for (var i = 0, alarm; alarm = alarms[i]; i++) {
-        if (alarm.value == 'none') { continue; }
-
-        fields.alarms.push({
-          action: 'DISPLAY',
-          trigger: parseInt(alarm.value, 10)
-        });
-
       }
 
       return fields;
@@ -529,12 +452,13 @@ Calendar.ns('Views').ModifyEvent = (function() {
       // calendar display
       var currentCalendar = this.getEl('currentCalendar');
 
-      if (this.originalCalendar) {
-        currentCalendar.value =
-          this.originalCalendar.remote.name;
-
+      var calendar = this.store.calendarFor(model);
+      if (calendar) {
+        currentCalendar.value = calendar.remote.name;
         currentCalendar.readOnly = true;
       }
+<<<<<<< HEAD
+=======
 
       this.updateAlarms(model.isAllDay);
     },
@@ -582,6 +506,7 @@ Calendar.ns('Views').ModifyEvent = (function() {
           callback();
         }
       }
+>>>>>>> gaia_mozilla/master
     },
 
     reset: function() {
@@ -604,14 +529,16 @@ Calendar.ns('Views').ModifyEvent = (function() {
       this.event = null;
       this.busytime = null;
 
-      this.alarmList.innerHTML = '';
-
       this.form.reset();
     },
 
     oninactive: function() {
       Calendar.Views.EventBase.prototype.oninactive.apply(this, arguments);
       this.reset();
+    },
+
+    onfirstseen: function() {
+      this._buildCalendarIds();
     }
 
   };

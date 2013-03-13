@@ -56,7 +56,7 @@ MockFb.contacts = function() {
 
   return {
     'getAll': getAll
-  };
+  }
 
 }();
 
@@ -153,11 +153,11 @@ MockFb.Contact = function(devContact, mozCid) {
 
       }
     };
-  };
+  }
 
   this.setData = function(data) {
     contactData = data;
-  };
+  }
 
   this.save = function() {
     return {
@@ -169,7 +169,7 @@ MockFb.Contact = function(devContact, mozCid) {
 
       }
     };
-  };
+  }
 
   this.merge = function(deviceContact) {
     deviceContact.id = '567';
@@ -204,11 +204,11 @@ MockFb.Contact = function(devContact, mozCid) {
 
       }
     };
-  };
+  }
 
   this.promoteToLinked = function promoteToLinked() {
 
-  };
+  }
 
   Object.defineProperty(this, 'uid', {
     get: getFacebookUid,

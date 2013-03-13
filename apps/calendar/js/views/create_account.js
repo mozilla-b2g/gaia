@@ -11,10 +11,7 @@
   CreateAccount.prototype = {
     __proto__: Calendar.View.prototype,
 
-    _changeToken: 0,
-
     presets: Calendar.Presets,
-
 
     selectors: {
       element: '#create-account-view',
@@ -47,37 +44,24 @@
     },
 
     render: function() {
-      var presets = this.presets;
+      var list = this.presets;
       var store = this.app.store('Account');
-      var listElement = this.accounts;
-      var currentToken = ++this._changeToken;
+      var output;
 
-      listElement.innerHTML = '';
+      this.accounts.innerHTML = '';
 
-      function renderPreset(presetName) {
-        listElement.insertAdjacentHTML(
-          'beforeend',
-          template.provider.render({ name: presetName })
-        );
-      }
+      Object.keys(list).forEach(function(preset) {
+        var obj = list[preset];
 
-      store.availablePresets(presets, function(err, available) {
-        if (this._changeToken !== currentToken) {
-          // another render call takes priority over this one.
-          return;
+        if (obj.singleUse) {
+          if (store.presetActive(preset)) {
+            return;
+          }
         }
 
-        if (err) {
-          console.log('Error displaying presets', err);
-          return;
-        }
-
-        available.forEach(renderPreset);
-
-        if (this.onrender)
-          this.onrender();
-
-      }.bind(this));
+        output = template.provider.render({ name: preset });
+        this.accounts.insertAdjacentHTML('beforeend', output);
+      }, this);
     },
 
     cancel: function() {

@@ -226,15 +226,12 @@ suite('Render contacts list', function() {
 
     searchSection = document.createElement('section');
     searchSection.id = 'search-view';
-    searchSection.innerHTML =
-        '<form id="searchview-container" class="search" role="search">' +
-          '<button id="cancel-search" data-l10n-id="cancel" type="submit">' +
-            'Cancel</button>' +
+    searchSection.innerHTML = '<form id="searchview-container" class="search" role="search">' +
+          '<button id="cancel-search" data-l10n-id="cancel" type="submit">Cancel</button>' +
           '<p>' +
             '<label for="search-contact">' +
-              '<input type="search" name="search" class="textfield"' +
-                ' placeholder="Search" id="search-contact"' +
-                ' data-l10n-id="search-contact">' +
+              '<input type="search" name="search" class="textfield" placeholder="Search"' +
+                     'id="search-contact" data-l10n-id="search-contact">' +
               '<button type="reset">Clear</button>' +
             '</label>' +
           '</p>' +
@@ -243,11 +240,8 @@ suite('Render contacts list', function() {
     searchSection.innerHTML += '<ol id="search-list" data-type="list"></ol>';
     searchSection.innerHTML += '</section>';
     searchSection.innerHTML += '<section>';
-    searchSection.innerHTML +=
-      '<p id="no-result" class="hide" data-l10n-id="noResults">' +
-        'No contacts found</p>';
-    searchSection.innerHTML +=
-      '<p id="search-progress" class="hidden" role="status">';
+    searchSection.innerHTML += '<p id="no-result" class="hide" data-l10n-id="noResults">No contacts found</p>';
+    searchSection.innerHTML += '<p id="search-progress" class="hidden" role="status">';
     searchSection.innerHTML += '<progress class="small"></progress></p>';
     searchSection.innerHTML += '</section>';
 
@@ -279,7 +273,7 @@ suite('Render contacts list', function() {
       DateTimeFormat: function() {
         this.localeFormat = function(date, format) {
           return date;
-        };
+        }
       }
     };
 
@@ -465,8 +459,7 @@ suite('Render contacts list', function() {
       assertTotal(4, 4);
     });
 
-    test('rendering one with no name nor email nor company and favorite',
-        function() {
+    test('rendering one with no name nor email nor company and favorite', function() {
       var newContact = new MockContactAllFields();
       newContact.id = '4';
       newContact.familyName = null;
@@ -768,8 +761,7 @@ suite('Render contacts list', function() {
 
     });
 
-    test('Search  by name and surname with trailing whitespaces',
-        function(done) {
+    test('Search  by name and surname with trailing whitespaces', function(done) {
       mockContacts = new MockContactsList();
       var contactIndex = Math.floor(Math.random() * mockContacts.length);
       var contact = mockContacts[contactIndex];
@@ -804,34 +796,13 @@ suite('Render contacts list', function() {
       mockContacts = new MockContactsList();
       var contactIndex = Math.floor(Math.random() * mockContacts.length);
       var contact = mockContacts[contactIndex];
-      mockContacts[contactIndex].givenName[0] =
-        '(' + contact.givenName[0] + ')';
+      mockContacts[contactIndex].givenName[0] = '(' + contact.givenName[0] + ')';
 
       subject.load(mockContacts);
 
       window.setTimeout(function() {
         contacts.List.initSearch(function onInit() {
           searchBox.value = '(';
-          contacts.Search.search(function search_finished() {
-            assert.isTrue(noResults.classList.contains('hide'));
-            assertContactFound(contact);
-            contacts.Search.invalidateCache();
-            done();
-          });
-        });
-      }, 100);
-    });
-
-    test('Search phone number', function(done) {
-      mockContacts = new MockContactsList();
-      var contactIndex = Math.floor(Math.random() * mockContacts.length);
-      var contact = mockContacts[contactIndex];
-
-      subject.load(mockContacts);
-
-      window.setTimeout(function() {
-        contacts.List.initSearch(function onInit() {
-          searchBox.value = contact.tel[0].value;
           contacts.Search.search(function search_finished() {
             assert.isTrue(noResults.classList.contains('hide'));
             assertContactFound(contact);
@@ -858,16 +829,12 @@ suite('Render contacts list', function() {
           var printed = names[i];
           var mockContact = mockContacts[i];
           var expected = getStringToBeOrdered(mockContact, true);
-          assert.equal(printed.dataset['order'],
-            window.utils.text.escapeHTML(expected, true));
+          assert.equal(printed.dataset['order'], window.utils.text.escapeHTML(expected, true));
 
           // Check as well the correct highlight
           // familyName to be in bold
-          var highlight =
-            window.utils.text.escapeHTML(mockContact.givenName[0], true) +
-            ' <strong>' +
-              window.utils.text.escapeHTML(mockContact.familyName[0], true) +
-            '</strong>';
+          var highlight =  window.utils.text.escapeHTML(mockContact.givenName[0], true) + ' <strong>' +
+             window.utils.text.escapeHTML(mockContact.familyName[0], true) + '</strong>';
           assert.isTrue(printed.innerHTML.indexOf(highlight) == 0);
         }
         done();
@@ -878,20 +845,17 @@ suite('Render contacts list', function() {
       subject.load(mockContacts);
 
       window.setTimeout(function() {
-        // First one should be the last one from the list,
-        // with the current names
+        // First one should be the last one from the list, with the current names
         var name = document.querySelector('[data-order]');
         var mockContact = mockContacts[mockContacts.length - 1];
         var expected = getStringToBeOrdered(mockContact, false);
 
-        assert.equal(
-          name.dataset['order'], window.utils.text.escapeHTML(expected, true));
+        assert.equal(name.dataset['order'],  window.utils.text.escapeHTML(expected, true));
 
         // Check highlight
         // Given name to be in bold
         var highlight = '<strong>' +
-               window.utils.text.escapeHTML(mockContact.givenName[0], true) +
-             '</strong> ' +
+             window.utils.text.escapeHTML(mockContact.givenName[0], true) + '</strong> ' +
              window.utils.text.escapeHTML(mockContact.familyName[0], true);
         assert.equal(name.innerHTML.indexOf(highlight), 0);
 

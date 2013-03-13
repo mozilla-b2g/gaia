@@ -88,34 +88,9 @@ suiteGroup('Views.AdvancedSettings', function() {
     accountStore = app.store('Account');
     settings = app.store('Setting');
 
-    app.db.open(done);
-  });
-
-  setup(function(done) {
-    var trans = db.transaction('accounts', 'readwrite');
-
-    for (var key in fixtures) {
-      accountStore.persist(fixtures[key], trans);
-    }
-
-    trans.oncomplete = function() {
+    app.db.open(function() {
       done();
-    };
-
-    trans.onerror = function(e) {
-      done(e);
-    };
-  });
-
-  teardown(function(done) {
-    testSupport.calendar.clearStore(
-      app.db,
-      ['accounts'],
-      function() {
-        app.db.close();
-        done();
-      }
-    );
+    });
   });
 
   test('#accountList', function() {
@@ -240,7 +215,11 @@ suiteGroup('Views.AdvancedSettings', function() {
   });
 
   suite('#render', function() {
+    var result;
     var list;
+<<<<<<< HEAD
+    var frequencyCall;
+=======
     var expectedSyncFreq = 30;
 
     var expectedEventAlarm = -300;
@@ -259,13 +238,21 @@ suiteGroup('Views.AdvancedSettings', function() {
         }
       }
     });
+>>>>>>> gaia_mozilla/master
 
-    setup(function(done) {
+    setup(function() {
       list = subject.accountList;
       accountStore._cached = fixtures;
 
+      var realGetValue = settings.getValue;
+      settings.getValue = function(key, callback) {
+        if (key === 'syncFrequency') {
+          frequencyCall = callback;
+        }
+      };
+
       subject.render();
-      subject.onrender = done;
+      result = subject.element.innerHTML;
     });
 
     test('number of items', function() {
@@ -279,17 +266,20 @@ suiteGroup('Views.AdvancedSettings', function() {
       assert.equal(item.outerHTML, expected, name);
     }
 
-    test('accounts', function() {
+    test('result', function() {
       checkItem(0, 'a');
       checkItem(1, 'b');
     });
 
-    test('syncFrequency', function() {
+    test('syncFrequency value', function() {
+      var initialValue = 15;
       var element = subject.syncFrequency;
-      assert.ok(
-        element.value == expectedSyncFreq,
-        'set to stored value'
-      );
+
+      assert.ok(element.value !== '15', 'intiail value is not 15');
+      assert.ok(frequencyCall, 'has requested frequency');
+
+      frequencyCall(null, initialValue);
+      assert.ok(element.value == initialValue, 'changes value after result');
     });
 
     test('alarm select populated', function() {

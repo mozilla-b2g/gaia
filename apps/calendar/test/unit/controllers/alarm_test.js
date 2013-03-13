@@ -30,6 +30,7 @@ suiteGroup('Controllers.Alarm', function() {
   teardown(function(done) {
     testSupport.calendar.clearStore(
       db,
+      ['accounts', 'calendars', 'events', 'busytimes'],
       done
     );
   });

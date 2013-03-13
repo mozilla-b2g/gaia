@@ -70,9 +70,6 @@ function roundData(value, positions) {
 }
 
 function getPositions(value) {
-  if (parseInt(value) === value) {
-    return 0;
-  }
   if (value < 10) {
     return 2;
   }

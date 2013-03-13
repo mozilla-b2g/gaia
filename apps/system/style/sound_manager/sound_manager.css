@@ -40,8 +40,6 @@
   background-image: url('images/speaker_mute_icon.png');
 }
 
-#volume[data-channel="telephony"] span.mute-state,
-#volume[data-channel="bt_sco"] span.mute-state,
 #volume span.mute-state {
   background-image: url('images/speaker_regular_icon.png');
 }
@@ -59,6 +57,7 @@
   visibility: visible;
 }
 
+#volume[data-channel="bt_sco"] div:nth-child(n+4),
 #volume[data-channel="content"] div:nth-child(n+4),
 #volume[data-channel="alarm"] div:nth-child(n+4),
 #volume[data-channel="notification"] div:nth-child(n+4) {
@@ -67,14 +66,8 @@
   background-image: url('images/volume_center_disabled.png');
 }
 
-#volume[data-channel="bt_sco"] div:nth-child(n+4) {
-  width: 11px;
-  margin-left: 2px;
-  background-image: url('images/volume_center_disabled.png');
-}
-
 #volume[data-channel="telephony"] div:nth-child(n+4) {
-  width: 34px;
+  width: 42px;
   margin-left: 2px;
   background-image: url('images/volume_center_disabled.png');
 }
@@ -95,26 +88,23 @@
   background-image: url('images/volume_left_active.png');
 }
 
-#volume[data-channel="bt_sco"] div:nth-child(18),
+#volume[data-channel="bt_sco"] div:nth-child(17),
 #volume[data-channel="alarm"] div:nth-child(17),
 #volume[data-channel="notification"] div:nth-child(17),
 #volume[data-channel="content"] div:nth-child(17),
-#volume[data-channel="telephony"] div:nth-child(8) {
+#volume[data-channel="telephony"] div:nth-child(7) {
   background-image: url('images/volume_right_disabled.png');
 }
 
-#volume[data-channel="bt_sco"] div.active:nth-child(18),
+#volume[data-channel="bt_sco"] div.active:nth-child(17),
 #volume[data-channel="alarm"] div.active:nth-child(17),
 #volume[data-channel="notification"] div.active:nth-child(17),
 #volume[data-channel="content"] div.active:nth-child(17),
-#volume[data-channel="telephony"] div.active:nth-child(8) {
+#volume[data-channel="telephony"] div.active:nth-child(7) {
   background-image: url('images/volume_right_active.png');
 }
 
-#volume[data-channel="telephony"] div:nth-child(n+9),
-#volume[data-channel="notification"] div:nth-child(18),
-#volume[data-channel="alarm"] div:nth-child(18),
-#volume[data-channel="content"] div:nth-child(18) {
+#volume[data-channel="telephony"] div:nth-child(n+8) {
   display: none;
 }
 
@@ -127,22 +117,24 @@
 }
 
 #volume[data-channel="telephony"] > div:nth-child(n+3) {
-  width: 36px;
-  background-size: 36px 10px;
-}
-
-#volume[data-channel="telephony"] > div:nth-child(3) {
-  background-image: url('images/volume_left_active.png'); 
+  width: 42px;
+  background-size: 42px 10px;
 }
 
 @media (orientation: landscape) and (width: 480px) {
+  #volume[data-channel="bt_sco"] div:nth-child(n+4),
   #volume[data-channel="content"] div:nth-child(n+4),
   #volume[data-channel="alarm"] div:nth-child(n+4),
-  #volume[data-channel="notification"] div:nth-child(n+4) {
+  #volume[data-channel="notification"] div:nth-child(n+4),
+  #volume[data-channel="telephony"] div:nth-child(n+4) {
     width: 36px;
     margin-left: 2px;
     background-size: 36px 10px;
     background-image: url('images/VolumeOverlay_Landscape_SegmentOff.png');
+  }
+
+  #volume[data-channel="telephony"] div:nth-child(n+8) {
+    display: none;
   }
 
   #volume[data-channel="bt_sco"] div.active:nth-child(n+4),
@@ -161,36 +153,32 @@
     background-image: url('images/VolumeOverlay_Landscape_SegmentOn_left.png');
   }
 
-  #volume[data-channel="bt_sco"] div:nth-child(18),
+  #volume[data-channel="bt_sco"] div:nth-child(17),
   #volume[data-channel="content"] div:nth-child(17),
   #volume[data-channel="alarm"] div:nth-child(17),
   #volume[data-channel="notification"] div:nth-child(17),
-  #volume[data-channel="telephony"] div:nth-child(8) {
+  #volume[data-channel="telephony"] div:nth-child(7) {
     background-image: url('images/VolumeOverlay_Landscape_SegmentOff_right.png');
   }
 
-  #volume[data-channel="bt_sco"] div.active:nth-child(18),
+  #volume[data-channel="bt_sco"] div.active:nth-child(17),
   #volume[data-channel="content"] div.active:nth-child(17),
   #volume[data-channel="alarm"] div.active:nth-child(17),
   #volume[data-channel="notification"] div.active:nth-child(17),
-  #volume[data-channel="telephony"] div.active:nth-child(8) {
+  #volume[data-channel="telephony"] div.active:nth-child(7) {
     background-image: url('images/VolumeOverlay_Landscape_SegmentOn_right.png');
   }
 
   #volume[data-channel="notification"] > div:nth-child(n+3),
   #volume[data-channel="alarm"] > div:nth-child(n+3),
+  #volume[data-channel="bt_sco"] > div:nth-child(n+3),
   #volume[data-channel="content"] > div:nth-child(n+3) {
     width: 22px;
     background-size: 22px 10px;
   }
-  
-  #volume[data-channel="bt_sco"] div:nth-child(n+3) {
-    width: 20px;
-    background-size: 20px 10px;
-  }
 
   #volume[data-channel="telephony"] > div:nth-child(n+3) {
-    width: 59px;
-    background-size: 59px 10px;
+    width: 74px;
+    background-size: 74px 10px;
   }
 }

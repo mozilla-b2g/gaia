@@ -22,6 +22,10 @@ Calendar.ns('Store').IcalComponent = (function() {
       return 'update';
     },
 
+    _parseId: function(id) {
+      return id;
+    },
+
     /**
      * Finds all components which have recurrences
      * that are not expanded beyond the given date.

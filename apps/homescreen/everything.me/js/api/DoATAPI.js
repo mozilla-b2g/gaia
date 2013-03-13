@@ -1055,7 +1055,7 @@ Evme.Request = function Evme_Request() {
         requestRetry = null,
         timeoutBetweenRetries = 0,
         
-        httpRequest = null,
+        request = null,
         aborted = false,
         cacheKey = "",
         cacheTTL = 0,
@@ -1107,11 +1107,11 @@ Evme.Request = function Evme_Request() {
         
         params.stats = JSON.stringify(params.stats);
         
-        httpRequest = Evme.api[methodNamespace][methodName](params, apiCallback);
+        request = Evme.api[methodNamespace][methodName](params, apiCallback);
         
         requestTimeout = window.setTimeout(requestTimeoutCallback, maxRequestTime);
         
-        return httpRequest;
+        return request;
     };
     
     this.abort = function abort() {
@@ -1121,11 +1121,7 @@ Evme.Request = function Evme_Request() {
         
         aborted = true;
         clearTimeouts();
-        
-        if (httpRequest) {
-          httpRequest.onreadystatechange = null;
-          httpRequest.abort();
-        }
+        request && request.abort();
         
         cbAbort(methodNamespace, methodName, params, retryNumber);
     };
@@ -1169,7 +1165,7 @@ Evme.Request = function Evme_Request() {
             return;
         }
         
-        httpRequest.abort();
+        request.abort();
         
         var data = {
             "errorCode": -100,

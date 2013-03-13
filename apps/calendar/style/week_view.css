@@ -18,7 +18,7 @@
 }
 
 #week-view {
-  position: static;
+  position: relative;
 }
 
 #week-view .sidebar {
@@ -51,7 +51,7 @@
 }
 
 #week-view > .scroll {
-  height: calc(100% - 8.1rem);
+  height: calc(100% - 8rem);
   overflow-y: scroll;
 }
 

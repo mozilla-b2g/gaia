@@ -27,14 +27,12 @@ var FacebookIntegration = {
 
   get liveImportButton() {
     delete this.liveImportButton;
-    return this.liveImportButton =
-      document.getElementById('live-import-button');
+    return this.liveImportButton = document.getElementById('live-import-button');
   },
 
   get gmailImportButton() {
     delete this.gmailImportButton;
-    return this.gmailImportButton =
-      document.getElementById('gmail-import-button');
+    return this.gmailImportButton = document.getElementById('gmail-import-button');
   },
 
   get noNetworkMsg() {
@@ -152,15 +150,12 @@ var FacebookConfiguration = function FacebookConfiguration() {
   };
 
   var req = utils.config.load('/contacts/config.json');
-  window.config = {};
-
   req.onload = function(configData) {
     if (configData.facebookEnabled === true) {
       enableFacebook();
     } else {
       disableFacebook();
     }
-    window.config.operationsTimeout = configData.operationsTimeout;
   };
   req.onerror = function(code) {
     disableFacebook();

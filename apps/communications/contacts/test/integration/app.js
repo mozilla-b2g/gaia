@@ -61,10 +61,7 @@ ContactsIntegration.prototype = {
     }, callback);
   },
 
-  waitForElementsLengthEqual: function(element,
-                                       selector,
-                                       expectedNum,
-                                       callback) {
+  waitForElementsLengthEqual: function(element, selector, expectedNum, callback) {
     this.task(function(app, next, done) {
       var elements = yield element.findElements(selector);
 

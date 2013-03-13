@@ -14,8 +14,7 @@ var Launcher = (function() {
 
 
   function currentAppIframe() {
-    var frame = currentAppFrame();
-    return frame ? frame.firstChild : null;
+    return currentAppFrame().firstChild;
   }
 
   var _ = navigator.mozL10n.get;
@@ -99,14 +98,13 @@ var Launcher = (function() {
   });
 
   function onLocationChange() {
-    currentAppIframe().getCanGoForward().onsuccess =
-      function forwardSuccess(e) {
-        if (e.target.result === true) {
-          delete forward.dataset.disabled;
-        } else {
-          forward.dataset.disabled = true;
-        }
-      };
+    currentAppIframe().getCanGoForward().onsuccess = function forwardSuccess(e) {
+      if (e.target.result === true) {
+        delete forward.dataset.disabled;
+      } else {
+        forward.dataset.disabled = true;
+      }
+    }
 
     currentAppIframe().getCanGoBack().onsuccess = function backSuccess(e) {
       if (e.target.result === true) {
@@ -114,12 +112,11 @@ var Launcher = (function() {
       } else {
         back.dataset.disabled = true;
       }
-    };
+    }
   }
 
   window.addEventListener('mozbrowserlocationchange', function() {
-    var frame = currentAppFrame();
-    if (frame && 'wrapper' in frame.dataset) {
+    if ('wrapper' in currentAppFrame().dataset) {
       onLocationChange();
     }
   });
@@ -184,7 +181,7 @@ var Launcher = (function() {
           !currentAppIframe().dataset.searchURL) {
           bookmarkButton.dataset.disabled = true;
         }
-      };
+      }
     }
 
     var data = {

@@ -41,10 +41,8 @@
     <!-- applications.js must not be deferred
          in order to catch webapps-registry-ready mozChromeEvent -->
     <script src="js/applications.js"></script>
-    <!-- Not deferring the following to show startup logo/animation as soon as possible. -->
-    <script src="js/logo_loader.js"></script>
+    <!-- Not deferring this to show startup logo/animation as soon as possible. -->
     <script src="js/init_logo_handler.js"></script>
-
     <script defer src="js/screen_manager.js"></script>
     <script defer src="js/background_service.js"></script>
     <script defer src="js/mouse2touch.js"></script>
@@ -100,9 +98,6 @@
     <!-- Statusbar -->
     <link rel="stylesheet" type="text/css" href="style/statusbar/statusbar.css">
     <script defer src="js/statusbar.js"></script>
-
-    <!-- FTU launcher -->
-    <script defer src="js/ftu_launcher.js"></script>
 
     <!-- LockScreen -->
     <link rel="stylesheet" type="text/css" href="style/lockscreen/lockscreen.css">
@@ -260,8 +255,7 @@
         background: #000;
       }
 
-      #carrier-logo > img,
-      #poweroff-splash > img {
+      #carrier-logo > img {
         width: 100%;
         height: 100%;
         position: absolute;        
@@ -269,8 +263,7 @@
         transition: opacity 1s ease 2s;
       }
 
-      #carrier-logo > video,
-      #poweroff-splash > video {
+      #carrier-logo > video {
         width: 100%;
         height: 100%;
         position: absolute;        
@@ -284,9 +277,7 @@
 
       #carrier-logo > img.hide,
       #carrier-logo > video.hide,
-      #os-logo.hide,
-      #poweroff-splash > img.hide,
-      #poweroff-splash > video.hide {
+      #os-logo.hide {
         opacity: 0;
       }
     </style>
@@ -927,7 +918,6 @@
           <div class="active"></div>
           <div class="active"></div>
           <div class="active"></div>
-          <div></div>
           <div></div>
           <div></div>
           <div></div>

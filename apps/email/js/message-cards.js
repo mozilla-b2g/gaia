@@ -17,8 +17,8 @@ var SCROLL_MAX_RETENTION_SCREENS = 7;
  * Format the message subject appropriately.  This means ensuring that if the
  * subject is empty, we use a placeholder string instead.
  *
- * @param {DOMElement} subjectNode the DOM node for the message's subject.
- * @param {Object} message the message object.
+ * @param subjectNode the DOM node for the message's subject
+ * @param message the message object
  */
 function displaySubject(subjectNode, message) {
   var subject = message.subject && message.subject.trim();
@@ -802,7 +802,7 @@ MessageListCard.prototype = {
 
     if (this.selectedMessages.length === 0)
       return;
-
+  
     var dialog = msgNodes['delete-confirm'].cloneNode(true);
     var content = dialog.getElementsByTagName('p')[0];
     content.textContent = mozL10n.get('message-multiedit-delete-confirm',
@@ -1022,7 +1022,7 @@ MessageReaderCard.prototype = {
     var email = target.getAttribute('data-email');
     contents.getElementsByTagName('header')[0].textContent = email;
     document.body.appendChild(contents);
-    var formSubmit = (function(evt) {
+    var formSubmit = function(evt) {
       document.body.removeChild(contents);
       switch (evt.explicitOriginalTarget.className) {
         // All of these mutations are immediately reflected, easily observed
@@ -1052,7 +1052,7 @@ MessageReaderCard.prototype = {
           break;
       }
       return false;
-    }).bind(this);
+    }.bind(this);
     contents.addEventListener('submit', formSubmit);
   },
 
@@ -1162,21 +1162,8 @@ MessageReaderCard.prototype = {
   },
 
   onHyperlinkClick: function(event, linkNode, linkUrl, linkText) {
-    var dialog = msgNodes['browse-confirm'].cloneNode(true);
-    var content = dialog.getElementsByTagName('p')[0];
-    content.textContent = mozL10n.get('browse-to-url-prompt', { url: linkUrl });
-    ConfirmDialog.show(dialog,
-      { // Confirm
-        id: 'msg-browse-ok',
-        handler: function() {
-          window.open(linkUrl, '_blank');
-        }.bind(this)
-      },
-      { // Cancel
-        id: 'msg-browse-cancel',
-        handler: null
-      }
-    );
+    if (confirm(mozL10n.get('browse-to-url-prompt', { url: linkUrl })))
+      window.open(linkUrl, '_blank');
   },
 
   _populatePlaintextBodyNode: function(bodyNode, rep) {

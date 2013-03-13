@@ -13,7 +13,7 @@ suite('store/account', function() {
   setup(function(done) {
     this.timeout(5000);
     app = testSupport.calendar.app();
-    db = app.db;
+    db = testSupport.calendar.db();
     subject = db.getStore('Account');
 
     db.open(function(err) {
@@ -40,62 +40,11 @@ suite('store/account', function() {
     assert.deepEqual(subject._cached, {});
   });
 
-  suite('#availablePresets', function() {
-    var presetAccount;
-    var presets = {
-      'multiUse': {},
-      'singleUse': {
-        singleUse: true
-      }
-    };
+  test('#presetActive', function() {
+    subject._cached[1] = { preset: 'A' };
 
-    test('without single use', function(done) {
-      subject.availablePresets({ 'foo': {} }, function(err, available) {
-        if (err) {
-          done();
-        }
-
-        done(function() {
-          assert.deepEqual(available, ['foo']);
-        });
-      });
-    });
-
-    test('when single use is available', function(done) {
-      subject.availablePresets(presets, function(err, available) {
-        if (err) {
-          done(err);
-        }
-
-        done(function() {
-          assert.deepEqual(available, ['multiUse', 'singleUse']);
-        });
-      });
-    });
-
-    suite('when single use is used', function() {
-      setup(function(done) {
-        // stage account
-        presetAccount = Factory('account', {
-          preset: 'singleUse'
-        });
-
-        subject.persist(presetAccount, done);
-      });
-
-      test('exclusion of single use preset', function(done) {
-        subject.availablePresets(presets, function(err, available) {
-          if (err) {
-            return done(err);
-          }
-
-          done(function() {
-            assert.deepEqual(available, ['multiUse']);
-          });
-        });
-      });
-    });
-
+    assert.isTrue(subject.presetActive('A'));
+    assert.isFalse(subject.presetActive('B'));
   });
 
   suite('#verifyAndPersist', function() {
@@ -146,6 +95,7 @@ suite('store/account', function() {
           assert.equal(data.domain, result.domain);
           assert.equal(data.entrypoint, result.entrypoint);
           assert.equal(data.calendarHome, result.calendarHome);
+          assert.equal(subject.cached[id], data);
         });
       });
     });
@@ -158,6 +108,7 @@ suite('store/account', function() {
           assert.instanceOf(data, Calendar.Models.Account);
           assert.equal(data.domain, modelParams.domain);
           assert.equal(data.calendarHome, modelParams.calendarHome);
+          assert.equal(subject.cached[id], data);
         });
       });
     });
@@ -202,29 +153,30 @@ suite('store/account', function() {
       calStore.persist(calendars[2], done);
     });
 
-    suite('removal', function() {
-      var id;
-      setup(function(done) {
-        id = model._id;
-        subject.remove(id, done);
-      });
+    test('removal', function(done) {
+      var id = model._id;
+      var keys = Object.keys(calStore.cached);
+      // make sure records are still here
+      assert.equal(keys.length, 2);
 
-      test('removes account', function(done) {
-        subject.get(id, function(err, result) {
+      subject.remove(model._id, function() {
+        // wait for next tick so other callbacks fire
+        setTimeout(function() {
           done(function() {
-            assert.ok(!result, 'removes account');
-          });
-        });
-      });
+            assert.ok(!subject.cached[id]);
 
-      test('removes associated calendars', function(done) {
-        calStore.all(function(err, calendars) {
-          done(function() {
-            assert.ok(calendars.accountId != id, 'removes calendars');
+            var keys = Object.keys(calStore.cached);
+            var accountKeys = Object.keys(
+              calStore.remotesByAccount(id)
+            );
+
+            assert.equal(accountKeys.length, 0);
+            assert.equal(keys.length, 1);
           });
-        });
+        }, 0);
       });
     });
+
   });
 
   suite('#_createModel', function() {
@@ -254,12 +206,12 @@ suite('store/account', function() {
     var events;
     var account;
     var results;
-    var calendarStore;
+    var store;
     var cals;
     var remoteCalledWith;
 
     function watchEvent(eventName) {
-      calendarStore.on(eventName, function() {
+      store.on(eventName, function() {
         if (!(eventName in events)) {
           events[eventName] = [];
         }
@@ -268,10 +220,9 @@ suite('store/account', function() {
     }
 
     setup(function() {
-      calendarStore = subject.db.getStore('Calendar');
+      store = subject.db.getStore('Calendar');
       account = Factory.create('account', {
-        _id: 1,
-        providerType: 'Mock'
+        _id: 1
       });
 
       cals = {};
@@ -293,20 +244,20 @@ suite('store/account', function() {
     });
 
     setup(function(done) {
-      calendarStore.persist(cals.update, done);
+      store.persist(cals.update, done);
     });
 
     setup(function(done) {
-      calendarStore.persist(cals.remove, done);
+      store.persist(cals.remove, done);
     });
 
     setup(function(done) {
       // clear cache
-      calendarStore._remoteByAccount = Object.create(null);
-      calendarStore._cached = Object.create(null);
+      store._remoteByAccount = Object.create(null);
+      store._cached = Object.create(null);
 
       // reload from db
-      calendarStore.all(done);
+      store.load(done);
     });
 
     setup(function(done) {
@@ -329,35 +280,39 @@ suite('store/account', function() {
         name: 'new item'
       };
 
-      app.provider('Mock').stageFindCalendars(
-        account.user,
-        null,
-        remote
-      );
-
-      subject.sync(account, function(err) {
-        if (err) {
-          return done(err);
+      app._providers['Local'] = {
+        findCalendars: function(account, cb) {
+          remoteCalledWith = arguments;
+          setTimeout(function() {
+            cb(null, remote);
+          }, 0);
         }
+      };
+
+      subject.sync(account, function() {
         done();
       });
     });
 
-    var syncResults;
-
-    setup(function(done) {
-      calendarStore.remotesByAccount(account._id, function(err, list) {
-        done(function() {
-          syncResults = list;
-        });
-      });
-    });
-
     test('after sync', function() {
+      var byRemote = {};
+      var results = store.cached;
+
       assert.equal(
-        Object.keys(syncResults).length, 2,
+        Object.keys(results).length, 2,
         'should only have two records'
       );
+
+      assert.deepEqual(
+        remoteCalledWith[0], account.toJSON(),
+        'should send jsonified account'
+      );
+
+      // re-index all records by remote
+      Object.keys(results).forEach(function(key) {
+        var obj = results[key];
+        byRemote[obj.remote.id] = obj;
+      });
 
       // EVENTS
       assert.ok(events.remove[0][0]);
@@ -376,8 +331,8 @@ suite('store/account', function() {
         cals.add.remote.id
       );
 
-      var remoteUpdate = syncResults[cals.update.remote.id];
-      var remoteAdd = syncResults[cals.add.remote.id];
+      var remoteUpdate = byRemote[cals.update.remote.id];
+      var remoteAdd = byRemote[cals.add.remote.id];
 
       // update
       assert.instanceOf(

@@ -132,10 +132,15 @@ const DragDropManager = (function() {
           transitioning = true;
           GridManager.goToNextPage(onNavigationEnd);
         }
+<<<<<<< HEAD
+      } else if (pageHelper.getCurrentPageNumber() > GridManager.landingPage + 1
+                 && dirCtrl.limitPrev(currentX)) {
+=======
 
       } else if (
           (pageHelper.getCurrentPageNumber() > GridManager.landingPage + 1) &&
           dirCtrl.limitPrev(cx)) {
+>>>>>>> gaia_mozilla/master
         isDisabledDrop = true;
         sendDragLeaveEvent(curPageObj);
         pageHelper.getPrevious().appendIconVisible(draggableIcon);

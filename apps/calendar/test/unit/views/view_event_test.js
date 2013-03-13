@@ -1,6 +1,5 @@
+requireSupport('event_helper.js');
 requireLib('provider/abstract.js');
-requireLib('template.js');
-requireLib('templates/alarm.js');
 
 suiteGroup('Views.ViewEvent', function() {
 
@@ -33,24 +32,37 @@ suiteGroup('Views.ViewEvent', function() {
   }
 
   var triggerEvent;
-  var InputParser;
+  var TestProvider;
+
   suiteSetup(function() {
-    InputParser = Calendar.Utils.InputParser;
     triggerEvent = testSupport.calendar.triggerEvent;
+
+    TestProvider = function() {
+      Calendar.Provider.Abstract.apply(this, arguments);
+    };
+
+    TestProvider.prototype = {
+      __proto__: Calendar.Provider.Abstract.prototype,
+
+      calendarCapabilities: function() {
+        return this.caps;
+      }
+    };
   });
 
+  var InputParser;
 
-  var realGo;
+  suiteSetup(function() {
+    InputParser = Calendar.Utils.InputParser;
+  });
 
   teardown(function() {
-    Calendar.App.go = realGo;
     var el = document.getElementById('test');
     el.parentNode.removeChild(el);
     delete app._providers.Test;
   });
 
-  setup(function(done) {
-    realGo = Calendar.App.go;
+  setup(function() {
     var div = document.createElement('div');
     div.id = 'test';
     div.innerHTML = [
@@ -78,9 +90,6 @@ suiteGroup('Views.ViewEvent', function() {
               '<span class="content"></span>',
             '</span>',
           '</div>',
-          '<div class="alarms">',
-            '<span class="content"></span>',
-          '</div>',
           '<div class="description">',
             '<span class="content"></span>',
           '</div>',
@@ -89,58 +98,44 @@ suiteGroup('Views.ViewEvent', function() {
 
     document.body.appendChild(div);
     app = testSupport.calendar.app();
+    app._providers.Test = new TestProvider({ app: app });
 
     eventStore = app.store('Event');
     accountStore = app.store('Account');
     calendarStore = app.store('Calendar');
-    provider = app.provider('Mock');
+    provider = app.provider('Test');
+
+    eventHelper.setProviderCaps(provider);
+
+    // setup model fixtures
+    account = Factory('account', { _id: 'foo', providerType: 'Test' });
+    calendar = Factory('calendar', { _id: 'foo', accountId: 'foo' });
+
+    event = Factory('event', {
+      calendarId: 'foo',
+      remote: {
+        startDate: new Date(2012, 1, 1, 1),
+        endDate: new Date(2012, 1, 5, 1)
+      }
+    });
+
+    busytime = Factory('busytime', {
+      eventId: event._id,
+      startDate: new Date(2012, 1, 1, 1),
+      endDate: new Date(2012, 1, 5, 1)
+    });
+
+    // add account & calendar to cache
+    accountStore.cached.foo = account;
+    calendarStore.cached.foo = calendar;
+
+    remote = event.remote;
 
     controller = app.timeController;
 
     subject = new Calendar.Views.ViewEvent({
       app: app
     });
-
-    app.db.open(done);
-  });
-
-  teardown(function(done) {
-    testSupport.calendar.clearStore(
-      app.db,
-      ['accounts', 'calendars', 'events', 'busytimes', 'alarms'],
-      function() {
-        app.db.close();
-        done();
-      }
-    );
-  });
-
-  testSupport.calendar.accountEnvironment();
-  testSupport.calendar.eventEnvironment(
-    // busytime
-    {
-      startDate: new Date(2012, 1, 1, 1),
-      endDate: new Date(2012, 1, 5, 1)
-    },
-    // event
-    {
-      startDate: new Date(2012, 1, 1, 1),
-      endDate: new Date(2012, 1, 5, 1)
-    }
-  );
-
-  var remote;
-  var event;
-  var calendar;
-  var account;
-  var busytime;
-
-  setup(function() {
-    remote = this.event.remote;
-    event = this.event;
-    calendar = this.calendar;
-    account = this.account;
-    busytime = this.busytime;
   });
 
   test('initialization', function() {
@@ -164,20 +159,6 @@ suiteGroup('Views.ViewEvent', function() {
     assert.equal(subject.fieldRoot, subject.element);
   });
 
-  test('#setContent', function() {
-    subject.setContent('title', '<b>text</b>');
-    assert.equal(
-      subject.getEl('title').querySelector('.content').innerHTML,
-      '&lt;b&gt;text&lt;/b&gt;'
-    );
-
-    subject.setContent('title', '<b>text</b>', 'innerHTML');
-    assert.equal(
-      subject.getEl('title').querySelector('.content').innerHTML,
-      '<b>text</b>'
-    );
-  });
-
   test('#_getEl', function() {
     var expected = subject.fieldRoot.querySelector('.title');
     assert.ok(expected);
@@ -190,15 +171,14 @@ suiteGroup('Views.ViewEvent', function() {
     assert.equal(subject._els.title, expected);
   });
 
-  suite('#_updateUI', function() {
+  suite('#_displayModel', function() {
     var list;
 
     setup(function() {
       list = subject.element.classList;
     });
 
-    function updatesValues(overrides, isAllDay, done) {
-
+    function updatesValues(overrides, isAllDay) {
       var expected = {
         title: remote.title,
         location: remote.location,
@@ -223,75 +203,64 @@ suiteGroup('Views.ViewEvent', function() {
         }
       }
 
-      function verify() {
-        if (subject.provider.canCreateEvent) {
-          expected.calendarId = event.calendarId;
-        }
+      subject.onfirstseen();
+      subject.useModel(busytime, event);
 
-        for (key in expected) {
-
-          // To dash-delimited
-          function replaceCaps($1) { return '-' + $1.toLowerCase(); }
-          var fieldKey = key.replace(/([A-Z])/g, replaceCaps);
-
-          if (isAllDay && allDayHidden.indexOf(key) !== -1) {
-            assert.equal(
-                contentValue(fieldKey),
-                '',
-                'time element should be empty for all-day: "' + key + '"'
-              );
-            continue;
-          }
-
-          if (expected.hasOwnProperty(key)) {
-
-            assert.equal(
-              contentValue(fieldKey),
-              expected[key],
-              'should set "' + key + '"'
-            );
-          }
-        }
+      if (subject.provider.canCreateEvent) {
+        expected.calendarId = event.calendarId;
       }
 
-      subject.onfirstseen();
-      subject.useModel(busytime, event, function() {
-        done(verify);
-      });
+      for (key in expected) {
+
+        // To dash-delimited
+        function replaceCaps($1) { return '-' + $1.toLowerCase(); }
+        var fieldKey = key.replace(/([A-Z])/g, replaceCaps);
+
+        if (isAllDay && allDayHidden.indexOf(key) !== -1) {
+          assert.equal(
+              contentValue(fieldKey),
+              '',
+              'time element should be empty for all-day: "' + key + '"'
+            );
+          continue;
+        }
+
+        if (expected.hasOwnProperty(key)) {
+
+          assert.equal(
+            contentValue(fieldKey),
+            expected[key],
+            'should set "' + key + '"'
+          );
+        }
+      }
     }
 
-    test('event view fields', function(done) {
-      updatesValues(null, null, done);
+    test('event view fields', function() {
+      updatesValues();
     });
 
-    test('readonly', function(done) {
-      provider.stageCalendarCapabilities(calendar._id, {
+    test('readonly', function() {
+      eventHelper.setProviderCaps(provider, {
         canUpdateEvent: false,
         canCreateEvent: false
       });
-
-      updatesValues(null, null, done);
+      updatesValues();
     });
 
-    test('event description with html', function(done) {
+    test('event description with html', function() {
       event.remote.description = '<strong>hamburger</strong>';
-
-      updatesValues(
-        { description: '<strong>hamburger</strong>' },
-        null,
-        done
-      );
+      updatesValues({
+        description: '<strong>hamburger</strong>'
+      });
     });
 
-    test('when start & end times are 00:00:00', function(done) {
+    test('when start & end times are 00:00:00', function() {
       remote.startDate = new Date(2012, 0, 1);
       remote.endDate = new Date(2012, 0, 2);
-
-      updatesValues(
-        { endDate: '2012-01-01' },
-        true,
-        done
-      );
+      updatesValues({
+        endDate: '2012-01-01'
+      }, true);
     });
   });
 

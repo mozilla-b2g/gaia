@@ -15,6 +15,10 @@ Calendar.ns('Store').Busytime = (function() {
 
     _dependentStores: ['alarms', 'busytimes'],
 
+    _parseId: function(id) {
+      return id;
+    },
+
     _setupCache: function() {
       // reset time observers
       Calendar.TimeObserver.call(this);

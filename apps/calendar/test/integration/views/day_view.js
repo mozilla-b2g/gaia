@@ -52,7 +52,7 @@ DayView.prototype = {
    *    // dates =>
    *    // [ new Date(....), ... ]
    *
-   * @param {Function} [callback] optional callback.
+   * @param {Function} [callback] optional.
    */
   activeDates: function(callback) {
     this.app.task(function(app, next, done) {

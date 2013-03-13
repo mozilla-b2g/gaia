@@ -21,46 +21,36 @@
       continueCb();
     }
 
-    function contactSaveError(e) {
-      window.console.error('Error while importing contact: ', req.error.name);
-
-      if (typeof self.onerror === 'function') {
-        window.setTimeout(self.onerror.bind(null, req.error), 0);
-      }
-      continueCb();
-    }
-
-    function saveMozContact(deviceContact, successCb, errorCb) {
+    function saveMozContact(deviceContact) {
       var mzContact = new mozContact();
       mzContact.init(deviceContact);
 
       var req = navigator.mozContacts.save(deviceContact);
 
-      req.onsuccess = successCb;
-      req.onerror = errorCb;
+      req.onsuccess = contactSaved;
+      req.onerror = function() {
+        window.console.error('Error while importing contact: ',
+                             req.error.name);
+      };
     }
 
     function pictureReady(blobPicture) {
-      // Photo is assigned to the service contact as it is needed by the
-      // Fb Connector
-      if (blobPicture) {
-        this.photo = [blobPicture];
-      }
       var deviceContact = self.adapt(this);
+      deviceContact.photo = [blobPicture];
 
-      self.persist(deviceContact, contactSaved, contactSaveError);
+      self.persist(deviceContact);
     }
 
     function pictureError() {
       window.console.error('Error while getting picture for contact: ',
                            this.user_id);
-      self.persist(self.adapt(this), contactSaved, contactSaveError);
+      self.persist(self.adapt(this));
     }
 
     function pictureTimeout() {
       window.console.warn('Timeout while getting picture for contact: ',
                            this.user_id);
-      self.persist(self.adapt(this), contactSaved, contactSaveError);
+      self.persist(self.adapt(this));
     }
 
     this.start = function() {
@@ -68,8 +58,8 @@
     };
 
     // This method might be overritten
-    this.persist = function(contactData, successCb, errorCb) {
-      saveMozContact(contactData, successCb, errorCb);
+    this.persist = function(contactData) {
+      saveMozContact(contactData);
     };
 
     // This method might be overwritten
@@ -106,5 +96,5 @@
         }
       }
     }
-  };
+  }
 })();

@@ -169,9 +169,9 @@ var DeviceStorageHelper = (function DeviceStorageHelper() {
         results[type] = totalBytes;
         results['free'] = freeBytes;
         current--;
-        if (current == 0)
+        if(current == 0)
           callback(results);
-
+          
       });
     }
   }

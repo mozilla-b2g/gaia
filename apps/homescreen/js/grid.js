@@ -1,6 +1,6 @@
 'use strict';
 
-var GridManager = (function() {
+const GridManager = (function() {
   var MAX_ICONS_PER_PAGE = 4 * 4;
   var PREFERRED_ICON_SIZE = 60;
   var SAVE_STATE_TIMEOUT = 100;
@@ -31,6 +31,8 @@ var GridManager = (function() {
 
   var saveStateTimeout = null;
 
+  var appMgr = navigator.mozApps.mgmt;
+
   // Limits for changing pages during dragging
   var limits = {
     left: 0,
@@ -46,8 +48,8 @@ var GridManager = (function() {
   var touchend = isTouch ? 'touchend' : 'mouseup';
 
   var getX = (function getXWrapper() {
-    return isTouch ? function(e) { return e.touches[0].pageX; } :
-                     function(e) { return e.pageX; };
+    return isTouch ? function(e) { return e.touches[0].pageX } :
+                     function(e) { return e.pageX };
   })();
 
   var panningResolver;
@@ -132,6 +134,12 @@ var GridManager = (function() {
       };
     }
 
+<<<<<<< HEAD
+      // Remember this for next time.
+      lastPrediction = prediction;
+      return prediction;
+    }
+=======
     return {
       reset: function reset() {
         lastPrediction = null;
@@ -150,6 +158,7 @@ var GridManager = (function() {
         return velocity;
       }
     };
+>>>>>>> gaia_mozilla/master
   }
 
   function addActive(target) {
@@ -158,7 +167,7 @@ var GridManager = (function() {
       removeActive = function _removeActive() {
         target.classList.remove('active');
         removeActive = noop;
-      };
+      }
     } else {
       removeActive = noop;
     }
@@ -210,7 +219,6 @@ var GridManager = (function() {
         removeActive();
 
         var refresh;
-
         if (currentPage === 0) {
           var next = pages[currentPage + 1].container.style;
           refresh = function(e) {
@@ -287,13 +295,13 @@ var GridManager = (function() {
               var opacity = opacityOnAppGridPageMax -
                     (Math.abs(deltaX) / windowWidth) * opacityOnAppGridPageMax;
               overlayStyle.opacity = Math.round(opacity * 10) / 10;
-            };
+            }
           } else if (currentPage === landingPage) {
             setOpacityToOverlay = function() {
               var opacity = (Math.abs(deltaX) / windowWidth) *
                             opacityOnAppGridPageMax;
               overlayStyle.opacity = Math.round(opacity * 10) / 10;
-            };
+            }
           } else {
             setOpacityToOverlay = function() {
               if (forward)
@@ -302,7 +310,7 @@ var GridManager = (function() {
               var opacity = opacityOnAppGridPageMax -
                     (Math.abs(deltaX) / windowWidth) * opacityOnAppGridPageMax;
               overlayStyle.opacity = Math.round(opacity * 10) / 10;
-            };
+            }
           }
 
           var pan = function(e) {
@@ -402,25 +410,6 @@ var GridManager = (function() {
   function releaseEvents() {
     window.removeEventListener(touchmove, handleEvent);
     window.removeEventListener(touchend, handleEvent);
-  }
-
-  function exitFromEditMode() {
-    markDirtyState();
-    goToPage(currentPage);
-  }
-
-  function ensurePanning() {
-    container.addEventListener(touchstart, handleEvent, true);
-  }
-
-  function markDirtyState() {
-    if (saveStateTimeout != null) {
-      window.clearTimeout(saveStateTimeout);
-    }
-    saveStateTimeout = window.setTimeout(function saveStateTrigger() {
-      saveStateTimeout = null;
-      pageHelper.saveAll();
-    }, SAVE_STATE_TIMEOUT);
   }
 
   function togglePagesVisibility(start, end) {
@@ -804,7 +793,7 @@ var GridManager = (function() {
 
     container = document.querySelector(selector);
     container.addEventListener('contextmenu', handleEvent);
-    ensurePanning();
+    container.addEventListener(touchstart, handleEvent, true);
 
     limits.left = container.offsetWidth * 0.05;
     limits.right = container.offsetWidth * 0.95;
@@ -833,8 +822,6 @@ var GridManager = (function() {
    * state with the applications known to the system.
    */
   function initApps(apps) {
-    var appMgr = navigator.mozApps.mgmt;
-
     appMgr.oninstall = function oninstall(event) {
      GridManager.install(event.application);
     };
@@ -870,7 +857,7 @@ var GridManager = (function() {
         for (var entryPoint in iconsForApp) {
           var icon = iconsForApp[entryPoint];
           icon.remove();
-          markDirtyState();
+          GridManager.markDirtyState();
         }
       }
 
@@ -987,7 +974,7 @@ var GridManager = (function() {
       pageHelper.addPage([icon]);
     }
 
-    markDirtyState();
+    GridManager.markDirtyState();
   }
 
   /*
@@ -1132,11 +1119,28 @@ var GridManager = (function() {
      * @param {Function} Success callback
      *
      */
+<<<<<<< HEAD
+    init: function gm_init(gridSelector, dockSelector, pTapThreshold, callback)
+    {
+      initUI(gridSelector);
+
+      tapThreshold = pTapThreshold;
+      // Initialize the grid from the state saved in IndexedDB.
+      HomeState.init(function eachPage(pageState) {
+        // First 'page' is the dock.
+        if (pageState.index == 0) {
+          var dockContainer = document.querySelector(dockSelector);
+          var dock = new Dock(dockContainer,
+            convertDescriptorsToIcons(pageState));
+          DockManager.init(dockContainer, dock, tapThreshold);
+          return;
+=======
     init: function gm_init(options, callback) {
       // Populate defaults
       for (var key in defaults) {
         if (typeof options[key] === 'undefined') {
           options[key] = defaults[key];
+>>>>>>> gaia_mozilla/master
         }
       }
 
@@ -1153,7 +1157,7 @@ var GridManager = (function() {
       delete document.body.dataset.dragging;
       dragging = false;
       delete document.body.dataset.transitioning;
-      ensurePanning();
+      container.addEventListener(touchstart, handleEvent, true);
       ensurePagesOverflow();
       removeEmptyPages();
     },
@@ -1203,10 +1207,18 @@ var GridManager = (function() {
         DockManager.afterRemovingApp();
 
       removeEmptyPages();
-      markDirtyState();
+      this.markDirtyState();
     },
 
-    markDirtyState: markDirtyState,
+    markDirtyState: function gm_markDirtyState() {
+      if (saveStateTimeout != null) {
+        window.clearTimeout(saveStateTimeout);
+      }
+      saveStateTimeout = window.setTimeout(function saveStateTrigger() {
+        saveStateTimeout = null;
+        pageHelper.saveAll();
+      }, SAVE_STATE_TIMEOUT);
+    },
 
     getIcon: getIcon,
 
@@ -1234,10 +1246,6 @@ var GridManager = (function() {
       return landingPage;
     },
 
-    showRestartDownloadDialog: showRestartDownloadDialog,
-
-    exitFromEditMode: exitFromEditMode,
-
-    ensurePanning: ensurePanning
+    showRestartDownloadDialog: showRestartDownloadDialog
   };
 })();

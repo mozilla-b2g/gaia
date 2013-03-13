@@ -10,6 +10,7 @@ section[role="status"] {
   left: 0;
   right: 0;
   bottom: 0;
+  height: 1rem;
   min-height: 6.2rem;
   white-space: nowrap;
   font-family: "MozTT", Sans-serif;
@@ -30,7 +31,7 @@ section[role="status"] p {
 
 section[role="status"]:before {
   content: "";
-  height: 6.2rem;
+  height: 100%;
   display: inline-block;
   vertical-align: middle;
 }
