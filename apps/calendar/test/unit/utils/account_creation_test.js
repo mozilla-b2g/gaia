@@ -1,21 +1,43 @@
-requireApp('calendar/test/unit/helper.js', function() {
-  requireLib('utils/account_creation.js');
-  requireLib('models/account.js');
-});
-
-suite('utils/account_creation', function() {
+suiteGroup('Utils.AccountCreation', function() {
   var subject;
   var accountStore;
   var calendarStore;
   var app;
 
-  setup(function() {
+  var account;
+  var provider;
+
+  testSupport.calendar.loadObjects(
+    'Models.Account',
+    'Models.Calendar'
+  );
+
+  setup(function(done) {
     app = testSupport.calendar.app();
     accountStore = app.store('Account');
     calendarStore = app.store('Calendar');
 
     subject = new Calendar.Utils.AccountCreation(
       app
+    );
+
+    provider = app.provider('Mock');
+    account = Factory('account', {
+      user: 'special',
+      providerType: 'Mock'
+    });
+
+    app.db.open(done);
+  });
+
+  teardown(function(done) {
+    testSupport.calendar.clearStore(
+      app.db,
+      ['accounts', 'calendars'],
+      function() {
+        app.db.close();
+        done();
+      }
     );
   });
 
@@ -24,151 +46,140 @@ suite('utils/account_creation', function() {
     assert.instanceOf(subject, Calendar.Responder);
   });
 
-  suite('#send', function() {
-    var verifyCall;
-    var syncCall;
-    var calendarSyncCalls = [];
-    var events;
-    var model;
+  suite('#send - success', function() {
 
-    var calendars = {
-      one: {},
-      two: {}
-    };
-
-    var handler = {
-      handleEvent: function(event) {
-        var type = event.type;
-        var data = event.data;
-
-        if (type in events) {
-          throw new Error('event ' + type + ' fired twice');
-        }
-
-        events[type] = data;
-      }
-    };
+    // sync capture setup
+    var onAccountSync;
+    var calendarSyncs;
 
     setup(function() {
-      events = {};
-      syncCall = null;
-      verifyCall = null;
-      calendarSyncCalls.length = 0;
+      onAccountSync = null;
+      calendarSyncs = {};
 
-      model = new Calendar.Models.Account(
-        Factory('account')
-      );
-
-
-      subject.on('authorizeError', handler);
-      subject.on('authorize', handler);
-      subject.on('calendarSyncError', handler);
-      subject.on('calendarSync', handler);
-
-      accountStore.verifyAndPersist = function() {
-        verifyCall = arguments;
+      calendarStore.sync = function(givenAccount, calendar) {
+        assert.equal(givenAccount.user, account.user);
+        calendarSyncs[calendar.remote.id] = calendar.remote;
       };
 
-      accountStore.sync = function() {
-        syncCall = arguments;
-      };
-
-      calendarStore.remotesByAccount = function() {
-        return calendars;
-      };
-
-      calendarStore.sync = function() {
-        calendarSyncCalls.push(Array.slice(arguments));
+      var realSync = accountStore.sync;
+      accountStore.sync = function(model, callback) {
+        realSync.call(this, model, function() {
+          if (onAccountSync) {
+            onAccountSync(model, Array.slice(arguments));
+          }
+          callback.apply(this, arguments);
+        });
       };
     });
 
-    test('success', function(done) {
-      var savedAccount;
+    var calendars;
 
-      subject.send(model, function(err, result) {
-        assert.ok(!err, 'is a success');
+    var calendarSyncSent;
+    var callsAccountSync;
+    var authorizeSent;
 
-        assert.ok(verifyCall);
-        assert.ok(syncCall);
-        assert.equal(result, savedAccount);
+    setup(function() {
+      callsAccountSync = false;
+      authorizeSent = false;
+      calendarSyncSent = false;
 
-        done();
+      subject.on('calendarSync', function() {
+        calendarSyncSent = true;
       });
 
-      assert.equal(verifyCall[0], model, 'calls verify');
-      assert.ok(!syncCall, 'has not synced yet');
-
-      var savedAccount = model.toJSON();
-      savedAccount._id = 1;
-      verifyCall[1](null, savedAccount._id, savedAccount);
-
-      assert.deepEqual(
-        events.authorize,
-        [savedAccount]
-      );
-
-      assert.equal(syncCall[0], savedAccount, 'syncs with persisted model');
-
-      // TODO: we don't pass calendars should we?
-      syncCall[1]();
-
-      // verify each calendar was synced..
-      assert.length(calendarSyncCalls, 2);
-
-      assert.deepEqual(
-        calendarSyncCalls[0].slice(0, 2),
-        [savedAccount, calendars.one]
-      );
-
-      assert.deepEqual(
-        calendarSyncCalls[1].slice(0, 2),
-        [savedAccount, calendars.two]
-      );
-
-      assert.deepEqual(
-        events.calendarSync,
-        []
-      );
-    });
-
-    test('account failure', function(done) {
-      var accountErr = new Error();
-
-      subject.send(model, function(err) {
-        assert.equal(err, accountErr);
-        done();
+      subject.on('authorize', function() {
+        authorizeSent = true;
       });
 
-      assert.ok(verifyCall, 'calls verify');
-      verifyCall[1](accountErr);
+      onAccountSync = function() {
+        callsAccountSync = true;
+      };
 
-      assert.deepEqual(
-        events.authorizeError,
-        [accountErr]
-      );
+      calendars = {
+        one: Factory('remote.calendar', { id: 'one' }),
+        two: Factory('remote.calendar', { id: 'two' })
+      };
     });
 
-    test('calendar failure', function(done) {
-      var calendarErr = new Error();
-
-      subject.send(model, function(err) {
-        assert.deepEqual(
-          events.calendarSyncError,
-          [calendarErr]
+    suite('success', function() {
+      setup(function(done) {
+        provider.stageFindCalendars(
+          account.user,
+          null,
+          calendars
         );
 
-        assert.equal(err, calendarErr);
-        done();
+        subject.send(account, done);
       });
 
-      // send account
-      var account = model.toJSON();
-      account._id = 1;
-      verifyCall[1](null, account);
+      test('account persistence', function(done) {
+        accountStore.get(account._id, function(err, model) {
+          if (err) {
+            return done(err);
+          }
 
-      // on sync we send the error
-      syncCall[1](calendarErr);
+          done(function() {
+            assert.hasProperties(
+              model,
+              account
+            );
+          });
+        });
+      });
+
+      test('events and calendar sync', function() {
+        assert.isTrue(calendarSyncSent, 'calls calendar sync');
+        assert.isTrue(authorizeSent, 'authorizes account');
+        assert.isTrue(callsAccountSync, 'syncs account');
+        assert.deepEqual(calendarSyncs, calendars);
+      });
+
+    });
+
+    suite('failures', function() {
+
+      test('account failure', function(done) {
+        var accountErr = new Error();
+        var authorizeErrorSent = false;
+
+        subject.on('authorizeError', function() {
+          authorizeErrorSent = Array.slice(arguments);
+        });
+
+        provider.stageGetAccount(account.user, accountErr);
+
+        subject.send(account, function(err) {
+          done(function() {
+            assert.isFalse(authorizeSent, 'does not send authorize');
+            assert.isFalse(calendarSyncSent, 'does not send calendar sync');
+
+            assert.equal(err, accountErr);
+            assert.deepEqual(authorizeErrorSent, [accountErr]);
+          });
+        });
+      });
+
+      test('calendar failure', function(done) {
+        var calendarErr = new Error();
+        var calendarSyncError;
+
+        subject.on('calendarSyncError', function() {
+          calendarSyncError = Array.slice(arguments);
+        });
+
+        provider.stageFindCalendars(account.user, calendarErr);
+
+        subject.send(account, function(err) {
+          done(function() {
+            assert.equal(err, calendarErr, 'sends sync failure');
+            assert.isTrue(authorizeSent, 'can authorize');
+            assert.isFalse(calendarSyncSent, 'syncs calendars');
+            assert.deepEqual(calendarSyncError, [err]);
+          });
+        });
+      });
     });
 
   });
+
 });

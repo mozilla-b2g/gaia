@@ -1,8 +1,6 @@
-requireApp('calendar/test/unit/helper.js', function() {
-  requireLib('db.js');
-  requireLib('store/abstract.js');
-  requireLib('store/ical_component.js');
-});
+requireLib('db.js');
+requireLib('store/abstract.js');
+requireLib('store/ical_component.js');
 
 suite('store/ical_component', function() {
 
@@ -13,7 +11,7 @@ suite('store/ical_component', function() {
   setup(function(done) {
     this.timeout(5000);
     app = testSupport.calendar.app();
-    db = testSupport.calendar.db();
+    db = app.db;
     subject = db.getStore('IcalComponent');
 
     db.open(function(err) {

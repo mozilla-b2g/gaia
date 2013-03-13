@@ -16,18 +16,19 @@ var EverythingME = {
                                                                       'visible';
 
       EverythingME.displayed = true;
-      footerStyle.MozTransform = "translateY(75px)";
+      footerStyle.MozTransform = "translateY(100%)";
 
       page.addEventListener('gridpageshowend', function onpageshowafterload() {
         if (EverythingME.displayed) return;
 
         EverythingME.displayed = true;
-        footerStyle.MozTransform = "translateY(75px)";
+        footerStyle.MozTransform = "translateY(100%)";
         EvmeFacade.onShow();
       });
 
       EverythingME.load(function success() {
-        EvmeFacade.onShow();
+        if (EverythingME.displayed)
+          EvmeFacade.onShow();
         var loadingOverlay = document.querySelector('#loading-overlay');
         loadingOverlay.style.opacity = 0;
         setTimeout(function starting() {
@@ -75,6 +76,8 @@ var EverythingME = {
                     'js/Core.js',
                     'config/config.js',
                     'config/shortcuts.js',
+                    'js/developer/utils.1.3.js',
+                    'js/helpers/Utils.js',
                     'js/Brain.js',
                     'modules/Apps/Apps.js',
                     'modules/BackgroundImage/BackgroundImage.js',
@@ -90,13 +93,10 @@ var EverythingME = {
                     'modules/ConnectionMessage/ConnectionMessage.js',
                     'modules/SmartFolder/SmartFolder.js',
                     'js/helpers/Storage.js',
-                    'js/developer/utils.1.3.js',
                     'js/plugins/Scroll.js',
-                    'js/external/iscroll.js',
                     'js/external/uuid.js',
                     'js/api/apiv2.js',
                     'js/api/DoATAPI.js',
-                    'js/helpers/Utils.js',
                     'js/helpers/EventHandler.js',
                     'js/helpers/Idle.js',
                     'js/plugins/Analytics.js',

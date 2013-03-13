@@ -1,4 +1,4 @@
 'use strict';
 
-window.opener.postMessage('closed', fb.oauthflow.params['contactsAppOrigin']);
+window.opener.postMessage('closed', oauthflow.params.facebook['appOrigin']);
 window.close();

@@ -1,4 +1,6 @@
 'use strict';
+// Ignore leak, otherwise an error would occur when using MockMozActivity.
+mocha.setup({ignoreLeaks: true});
 
 requireApp('system/test/unit/mock_settings_listener.js');
 requireApp('system/test/unit/mock_l10n.js');
@@ -8,25 +10,23 @@ requireApp('system/test/unit/mock_mobile_operator.js');
 requireApp('system/test/unit/mocks_helper.js');
 
 requireApp('system/js/statusbar.js');
+requireApp('system/js/lockscreen.js');
 
 var mocksForStatusBar = ['SettingsListener', 'MobileOperator'];
 
 mocksForStatusBar.forEach(function(mockName) {
-  if (! window[mockName]) {
+  if (window[mockName]) {
     window[mockName] = null;
   }
 });
 
-/*
-// These tests are currently failing and have been temporarily disabled as per
-// Bug 838993. They should be fixed and re-enabled as soon as possible as per
-// Bug 840500.
+
 suite('system/Statusbar', function() {
   var fakeStatusBarNode;
   var mocksHelper;
 
   var realSettingsListener, realMozL10n, realMozMobileConnection,
-      realMozTelephony,
+      realMozTelephony, realMobileOperator,
       fakeIcons = [];
 
   suiteSetup(function() {
@@ -38,6 +38,8 @@ suite('system/Statusbar', function() {
     navigator.mozMobileConnection = MockNavigatorMozMobileConnection;
     realMozTelephony = navigator.mozTelephony;
     navigator.mozTelephony = MockNavigatorMozTelephony;
+    realMobileOperator = window.MobileOperator;
+    window.MobileOperator = MockMobileOperator;
   });
 
   suiteTeardown(function() {
@@ -46,6 +48,7 @@ suite('system/Statusbar', function() {
     navigator.mozMobileConnection = realMozMobileConnection;
     navigator.mozTelephony = realMozTelephony;
     window.SettingsListener = realSettingsListener;
+    window.MobileOperator = realMobileOperator;
   });
 
   setup(function() {
@@ -55,7 +58,13 @@ suite('system/Statusbar', function() {
     document.body.appendChild(fakeStatusBarNode);
 
     StatusBar.ELEMENTS.forEach(function testAddElement(elementName) {
-      var elt = document.createElement('div');
+      var elt;
+      if (elementName == 'system-downloads' ||
+          elementName == 'network-activity') {
+        elt = document.createElement('canvas');
+      } else {
+        elt = document.createElement('div');
+      }
       elt.id = 'statusbar-' + elementName;
       elt.hidden = true;
       fakeStatusBarNode.appendChild(elt);
@@ -98,9 +107,9 @@ suite('system/Statusbar', function() {
       assert.isTrue(fakeIcons['system-downloads'].hidden);
     });
 
-*/
+
     /* JW: testing that we can't have a negative counter */
-/*
+
 // These tests are currently failing and have been temporarily disabled as per
 // Bug 838993. They should be fixed and re-enabled as soon as possible as per
 // Bug 840500.
@@ -403,23 +412,23 @@ suite('system/Statusbar', function() {
         cell: {
           gsmLocationAreaCode: 71 // BA
         }
-      }
+      };
 
       MockNavigatorMozMobileConnection.iccInfo = {
         isDisplaySpnRequired: false,
         spn: 'Fake SPN'
-      }
+      };
     });
 
     test('Connection without region', function() {
-      MobileOperator.mOperator = 'Orange';
+      MockMobileOperator.mOperator = 'Orange';
       var evt = new CustomEvent('iccinfochange');
       StatusBar.handleEvent(evt);
       assert.include(fakeIcons.label.textContent, 'Orange');
     });
     test('Connection with region', function() {
-      MobileOperator.mOperator = 'Orange';
-      MobileOperator.mRegion = 'PR';
+      MockMobileOperator.mOperator = 'Orange';
+      MockMobileOperator.mRegion = 'PR';
       var evt = new CustomEvent('iccinfochange');
       StatusBar.handleEvent(evt);
       var label_content = fakeIcons.label.textContent;
@@ -428,4 +437,5 @@ suite('system/Statusbar', function() {
     });
   });
 });
-*/
+
+mocha.setup({ignoreLeaks: false});

@@ -1,6 +1,6 @@
 #week-view {
   overflow: hidden;
-  user-select: -moz-none;
+  -moz-user-select: none;
 }
 
 #week-view h1 {
@@ -18,7 +18,7 @@
 }
 
 #week-view {
-  position: relative;
+  position: static;
 }
 
 #week-view .sidebar {
@@ -46,12 +46,12 @@
   height: 6rem;
   text-align: right;
   border-left: 1px solid #CCC;
-  padding: 0.2rem
+  padding: 0.2rem;
   overflow: hidden;
 }
 
 #week-view > .scroll {
-  height: calc(100% - 8rem);
+  height: calc(100% - 8.1rem);
   overflow-y: scroll;
 }
 

@@ -20,6 +20,14 @@ Evme.Brain = new function Evme_Brain() {
         TIPS = {},
         ICON_SIZE = null,
 
+        TIMEOUT_BEFORE_REQUESTING_APPS_AGAIN = 500,
+        TIMEOUT_BEFORE_SHOWING_DEFAULT_IMAGE = 3000,
+        TIMEOUT_BEFORE_SHOWING_HELPER = 3000,
+        TIMEOUT_BEFORE_RENDERING_AC = 300,
+        TIMEOUT_BEFORE_RUNNING_APPS_SEARCH = 600,
+        TIMEOUT_BEFORE_RUNNING_IMAGE_SEARCH = 800,
+        TIMEOUT_BEFORE_AUTO_RENDERING_MORE_APPS = 200,
+
         L10N_SYSTEM_ALERT="alert",
 
         // whether to show shortcuts customize on startup or not
@@ -178,7 +186,6 @@ Evme.Brain = new function Evme_Brain() {
 
             Evme.Utils.setKeyboardVisibility(false);
             self.setEmptyClass();
-            Evme.Apps.refreshScroll();
 
             var searchbarValue = Evme.Searchbar.getValue();
             if (searchbarValue === "") {
@@ -692,17 +699,25 @@ Evme.Brain = new function Evme_Brain() {
                 appGridPosition = data.app.getPositionOnGrid(),
                 appBounds = elApp.getBoundingClientRect(),
 
-                elAppsList = elApp.parentNode.parentNode,
+                elAppsList = elApp.parentNode,
                 appsListBounds = elAppsList.getBoundingClientRect(),
+                elAppsListParent = elAppsList.parentNode,
+                appsListParentBounds = elAppsListParent.getBoundingClientRect();
 
-                oldPos = {
-                    "top": elApp.offsetTop,
-                    "left": elApp.offsetLeft
-                },
-                newPos = {
-                    "top": (appsListBounds.height - appBounds.height)/2 - ((data.isFolder? elAppsList.dataset.scrollOffset*1 : Evme.Apps.getScrollPosition()) || 0),
-                    "left": (appsListBounds.width - appBounds.width)/2
-                };
+            var oldPos = {
+                "top": elApp.offsetTop,
+                "left": elApp.offsetLeft
+            };
+
+            // First calculate the horizontal center of the viewport
+            // Then add the scroll offset (different in smartfolder / search results)
+            var newPosTop = (appsListParentBounds.height - appBounds.height)/2 +
+                ((data.isFolder? elAppsListParent.dataset.scrollOffset*1 : Evme.Apps.getScrollPosition()) || 0);
+                
+            var newPos = {
+                "top": newPosTop,
+                "left": (appsListBounds.width - appBounds.width)/2
+            };
 
             // update analytics data
             loadingAppAnalyticsData.rowIndex = appGridPosition.row;
@@ -712,8 +727,16 @@ Evme.Brain = new function Evme_Brain() {
 
             Evme.$remove("#loading-app");
 
-            var elPseudo = Evme.$create('li', {'class': "inplace", 'id': "loading-app"}, loadingApp.getCurrentHtml()),
-                useClass = !data.isFolder;
+            var elPseudo = Evme.$create('li', {'class': "inplace", 'id': "loading-app"}, '<canvas></canvas>'),
+                pseudoCanvas = Evme.$('canvas', elPseudo)[0],
+                useClass = !data.isFolder,
+                appCanvas = data.app.getIconCanvas(),
+                appIconData = appCanvas.getContext('2d').getImageData(0, 0, appCanvas.width, appCanvas.height);
+                
+            // copy the clicked app's canvas here
+            pseudoCanvas.width = appCanvas.width;
+            pseudoCanvas.height = appCanvas.height;
+            pseudoCanvas.getContext('2d').putImageData(appIconData, 0, 0);
 
             if (data.data.installed) {
                 elPseudo.classList.add("installed");
@@ -723,10 +746,8 @@ Evme.Brain = new function Evme_Brain() {
 
             elPseudo.style.cssText += 'position: absolute; top: ' + oldPos.top + 'px; left: ' + oldPos.left + 'px; -moz-transform: translate3d(0,0,0);';
 
-            var appName = Evme.Utils.l10n('apps', 'loading-app');
-            
             Evme.$('b', elPseudo, function itemIteration(el) {
-                el.innerHTML = appName;
+                el.textContent = Evme.Utils.l10n('apps', 'loading-app');
             });
 
             elApp.parentNode.appendChild(elPseudo);
@@ -797,7 +818,7 @@ Evme.Brain = new function Evme_Brain() {
                 elContainer.classList.remove("loading-app");
 
                 if (Evme.Storage.get(STORAGE_KEY_CLOSE_WHEN_RETURNING)) {
-                    Searcher.searchAgain();
+                    Searcher.searchAgain(null, Evme.Searchbar.getValue());
                 }
                 Evme.Storage.remove(STORAGE_KEY_CLOSE_WHEN_RETURNING);
 
@@ -1109,7 +1130,6 @@ Evme.Brain = new function Evme_Brain() {
         // item remove
         this.remove = function remove(data) {
             Evme.Shortcuts.remove(data.shortcut);
-            Evme.Shortcuts.refreshScroll();
             Evme.DoATAPI.Shortcuts.remove(data.data);
         };
     };
@@ -1365,9 +1385,6 @@ Evme.Brain = new function Evme_Brain() {
                     textKey = bHasInstalled? 'apps-has-installed' : 'apps';
                     
                 Evme.ConnectionMessage.show(elTo, textKey, { 'query': query });
-                window.setTimeout(folder?
-                                    folder.refreshScroll :
-                                    Evme.Apps.refreshScroll, 0);
             }
         };
         
@@ -1422,15 +1439,7 @@ Evme.Brain = new function Evme_Brain() {
             timeoutSearchImageWhileTyping = null,
             timeoutSearch = null,
             timeoutSearchWhileTyping = null,
-            timeoutAutocomplete = null,
-
-            TIMEOUT_BEFORE_REQUESTING_APPS_AGAIN = 500,
-            TIMEOUT_BEFORE_SHOWING_DEFAULT_IMAGE = 3000,
-            TIMEOUT_BEFORE_SHOWING_HELPER = 3000,
-            TIMEOUT_BEFORE_RENDERING_AC = 200,
-            TIMEOUT_BEFORE_RUNNING_APPS_SEARCH = 200,
-            TIMEOUT_BEFORE_RUNNING_IMAGE_SEARCH = 500,
-            TIMEOUT_BEFORE_AUTO_RENDERING_MORE_APPS = 200;
+            timeoutAutocomplete = null;
 
         function resetLastSearch(bKeepImageQuery) {
             lastSearch = {
@@ -1883,14 +1892,13 @@ Evme.Brain = new function Evme_Brain() {
             });
         };
 
-        this.searchAgain = function searchAgain(source) {
+        this.searchAgain = function searchAgain(source, query) {
             Searcher.cancelRequests();
 
-            var query = Evme.Searchbar.getValue();
-            var _query = lastSearch.query || query;
-            var _source = source || lastSearch.source;
-            var _type = lastSearch.type;
-            var _offset = lastSearch.offset;
+            var _query = query || lastSearch.query || Evme.Searchbar.getValue(),
+                _source = source || lastSearch.source,
+                _type = lastSearch.type,
+                _offset = lastSearch.offset;
 
             if (_query) {
                 resetLastSearch();

@@ -21,6 +21,19 @@ const PR_EXCL = 0x80;
  * @param {nsIFile}      file      file xpcom to add.
  */
 function addToZip(zip, pathInZip, file) {
+
+  // Check @2x files
+  if ( HIDPI != '*' && file.path.search('@2x') == -1 ) {
+    var path2x = file.path.split('.')[0]+'@2x.'+file.path.split('.')[1];
+    var file2x = new FileUtils.File(path2x);
+    // @2x one will come later
+    if ( file2x.exists() ) {
+      return;
+    }
+  } else if ( file.path.search('@2x') != -1 ) {
+     var pathInZip = pathInZip.split('@2x')[0]+pathInZip.split('@2x')[1];
+  }
+
   if (isSubjectToBranding(file.path)) {
     file.append((OFFICIAL == 1) ? 'official' : 'unofficial');
   }
@@ -118,6 +131,21 @@ function copyBuildingBlock(zip, blockName, dirName) {
     });
 }
 
+function customizeFiles(zip, src, dest) {
+  // Add customize file to the zip
+  let files = ls(getFile(Gaia.distributionDir, src));
+  files.forEach(function(file) {
+    let filename = dest + file.leafName;
+    if (zip.hasEntry(filename)) {
+      zip.removeEntry(filename, false);
+    }
+    zip.addEntryFile(filename,
+                    Ci.nsIZipWriter.COMPRESSION_DEFAULT,
+                    file,
+                    false);
+  });
+}
+
 let webappsTargetDir = Cc['@mozilla.org/file/local;1']
                          .createInstance(Ci.nsILocalFile);
 webappsTargetDir.initWithPath(PROFILE_DIR);
@@ -160,6 +188,17 @@ Gaia.webapps.forEach(function(webapp) {
       if (file.leafName !== 'shared' && file.leafName !== 'test')
         addToZip(zip, '/' + file.leafName, file);
     });
+
+  if (webapp.sourceDirectoryName === 'system' && Gaia.distributionDir) {
+    if(getFile(Gaia.distributionDir, 'power').exists()) {
+      customizeFiles(zip, 'power', 'resources/power/');
+    }
+  }
+
+  if (webapp.sourceDirectoryName === 'wallpaper' && Gaia.distributionDir &&
+    getFile(Gaia.distributionDir, 'wallpapers').exists()) {
+    customizeFiles(zip, 'wallpapers', 'resources/320x480/');
+  }
 
   // Put shared files, but copy only files actually used by the webapp.
   // We search for shared file usage by parsing webapp source code.
@@ -270,7 +309,23 @@ Gaia.webapps.forEach(function(webapp) {
                       ' from: ' + webapp.domain + '\n');
       return;
     }
+
+    // Forces the file to pass as @2x
+    if ( HIDPI != '*' && file.path.search('@2x') == -1 ) {
+      var path2x = file.path.split('.')[0]+'@2x.'+file.path.split('.')[1];
+      var file2x = new FileUtils.File(path2x);
+      // Adds the suffix
+      if ( file2x.exists() ) {
+        var path = path.split('.')[0]+'@2x.'+path.split('.')[1];
+        var file = file2x;
+      }
+    }
     addToZip(zip, '/shared/resources/' + path, file);
+
+    if (path === 'media/ringtones/' && Gaia.distributionDir &&
+      getFile(Gaia.distributionDir, 'ringtones').exists()) {
+      customizeFiles(zip, 'ringtones', 'shared/resources/media/ringtones/');
+    }
   });
 
   used.styles.forEach(function(name) {

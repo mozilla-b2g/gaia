@@ -5,6 +5,34 @@
  *
  * This module is only in charge of manage the different tabs but the specific
  * behaviour is delegated to each tab (in /js/views directory).
+ *
+ * It is important to explain how the URL schema works. Cost Control
+ * uses the concept of card to refer a tab or a view. There are two main layers:
+ * the tab layer and the overlay layer. The first one is used to display tabs,
+ * the second one is used to display settings or other overlaying dialogs.
+ *
+ * The URL schema is:
+ * #tab-id[#overlay-id]
+ *
+ * So changing the hash to:
+ * #balance-tab#settings-view
+ * makes Cost Control to change to the balance view and show the settings.
+ *
+ * We can close the overlay layer by setting only the balance layer:
+ * #datausage-tab
+ * this makes Cost Control to change to the datausage tab at the same time it
+ * closes the card in the overlay layer.
+ *
+ * If you want to preserve a layer but changing the other, use the empty string
+ * as the id of the layer you want to preserve.
+ * For intance, you want to only close the overlay layer but not affecting the
+ * tab layer:
+ * #
+ *
+ * Or you want to change tab layer but without affecting the overlay, use:
+ * #telephony-tab#
+ *
+ * Remember: you cannot close the tab layer!
  */
 
 var CostControlApp = (function() {
@@ -14,31 +42,111 @@ var CostControlApp = (function() {
   // XXX: This is the point of entry, check common.js for more info
   waitForDOMAndMessageHandler(window, onReady);
 
-  var vmanager;
   var costcontrol, initialized = false;
   function onReady() {
-    vmanager = new ViewManager();
     var mobileConnection = window.navigator.mozMobileConnection;
+    var cardState = checkCardState();
 
-    // SIM is absent
-    if (mobileConnection.cardState === 'absent') {
-      debug('There is no SIM');
-      document.getElementById('no-sim-info-dialog')
-        .addEventListener('click', function _close() {
-        window.close();
-      });
-      vmanager.changeViewTo('no-sim-info-dialog');
-
-    // SIM is not ready
-    } else if (mobileConnection.cardState !== 'ready') {
-      debug('SIM not ready:', mobileConnection.cardState);
-      mobileConnection.oniccinfochange = onReady;
+    // SIM not ready
+    if (cardState !== 'ready') {
+      debug('SIM not ready:', cardState);
+      mobileConnection.oncardstatechange = onReady;
 
     // SIM is ready
     } else {
-      mobileConnection.oniccinfochange = undefined;
+      mobileConnection.oncardstatechange = undefined;
       startApp();
     }
+  }
+
+  // Check the card status. Return 'ready' if all OK or take actions for
+  // special situations such as 'pin/puk locked' or 'absent'.
+  function checkCardState() {
+    var mobileConnection = window.navigator.mozMobileConnection;
+    var state, cardState;
+    state = cardState = mobileConnection.cardState;
+
+    // SIM is absent
+    if (cardState === 'absent') {
+      debug('There is no SIM');
+      showSimErrorDialog('no-sim2');
+
+    // SIM is locked
+    } else if (
+      cardState === 'pinRequired' ||
+      cardState === 'pukRequired'
+    ) {
+      showSimErrorDialog('sim-locked');
+      state = 'locked';
+    }
+
+    return state;
+  }
+
+  function showSimErrorDialog(status) {
+    var header = _('widget-' + status + '-heading');
+    var msg = _('widget-' + status + '-meta');
+    alert(header + '\n' + msg);
+    window.close();
+  }
+
+  // XXX: See the module documentation for details about URL schema
+  var vmanager, tabmanager, settingsVManager;
+  function setupCardHandler() {
+    // View managers for dialogs and settings
+    vmanager = new ViewManager();
+    tabmanager = new ViewManager(
+      ['balance-tab', 'telephony-tab', { id: 'datausage-tab', tab: 'right' }]
+    );
+    settingsVManager = new ViewManager();
+
+    // View handler
+    window.addEventListener('hashchange', function _onHashChange(evt) {
+
+      var parser = document.createElement('a');
+      parser.href = evt.oldURL;
+      var oldHash = parser.hash.split('#');
+      parser.href = evt.newURL;
+      var newHash = parser.hash.split('#');
+
+      if (newHash.length > 3) {
+        console.error('Cost Control bad URL schema');
+        return;
+      }
+
+      debug('URL schema before normalizing:', newHash);
+
+      var normalized = false;
+      if (newHash[1] === '' && oldHash[1]) {
+        newHash[1] = oldHash[1];
+        normalized = true;
+      }
+
+      if (newHash.length === 3 && newHash[2] === '') {
+        if (oldHash.length === 3) {
+          newHash[2] = oldHash[2];
+        } else {
+          newHash = newHash.slice(0, 2);
+        }
+        normalized = true;
+      }
+
+      if (normalized) {
+        debug('URL schema after normalization:', newHash);
+        window.location.hash = newHash.join('#');
+        return;
+      }
+
+      if (newHash[1]) {
+        tabmanager.changeViewTo(newHash[1]);
+      }
+
+      if (newHash.length < 3) {
+        vmanager.closeCurrentView();
+      } else {
+        vmanager.changeViewTo(newHash[2]);
+      }
+    });
   }
 
   function startApp() {
@@ -60,38 +168,18 @@ var CostControlApp = (function() {
     }
   });
 
-  var tabmanager, settingsVManager;
   function setupApp() {
-    // View managers for dialogs and settings
-    tabmanager = new ViewManager(
-      ['balance-tab', 'telephony-tab', { id:'datausage-tab', tab:'right' }]
-    );
-    settingsVManager = new ViewManager();
+    setupCardHandler();
 
-    // Configure settings
+    // Configure settings buttons
     var settingsButtons = document.querySelectorAll('.settings-button');
     Array.prototype.forEach.call(settingsButtons,
       function _eachSettingsButton(button) {
         button.addEventListener('click', function _showSettings() {
-          settingsVManager.changeViewTo('settings-view');
+          window.location.hash = '##settings-view';
         });
       }
     );
-
-    var close = document.getElementById('close-settings');
-    close.addEventListener('click', function _onClose() {
-      settingsVManager.closeCurrentView();
-    });
-
-    Settings.initialize();
-
-    // Configure dialogs
-    var closeButtons = document.querySelectorAll('.close-dialog');
-    [].forEach.call(closeButtons, function(closeButton) {
-      closeButton.addEventListener('click', function() {
-        vmanager.closeCurrentView();
-      });
-    });
 
     // Handle 'open activity' sent by the user via the widget
     navigator.mozSetMessageHandler('activity',
@@ -99,13 +187,13 @@ var CostControlApp = (function() {
         var name = activityRequest.source.name;
         switch (name) {
           case 'costcontrol/balance':
-            tabmanager.changeViewTo('balance-tab');
+            window.location.hash = '#balance-tab';
             break;
           case 'costcontrol/telephony':
-            tabmanager.changeViewTo('telephony-tab');
+            window.location.hash = '#telephony-tab';
             break;
           case 'costcontrol/data_usage':
-            tabmanager.changeViewTo('datausage-tab');
+            window.location.hash = '#datausage-tab';
             break;
         }
       }
@@ -131,10 +219,26 @@ var CostControlApp = (function() {
       }
     );
 
+    // Check card state when visible
+    document.addEventListener('mozvisibilitychange',
+      function _onVisibilityChange(evt) {
+        if (!document.mozHidden && initialized) {
+          checkCardState();
+        }
+      }
+    );
+
     updateUI();
     ConfigManager.observe('plantype', updateUI, true);
 
     initialized = true;
+
+    loadSettings();
+  }
+
+  // Load settings in background
+  function loadSettings() {
+    document.getElementById('settings-view-placeholder').src = 'settings.html';
   }
 
   function handleNotification(type) {
@@ -144,7 +248,7 @@ var CostControlApp = (function() {
         break;
       case 'lowBalance':
       case 'zeroBalance':
-        tabmanager.changeViewTo('balance-tab');
+        window.location.hash = '#balance-tab';
         break;
       case 'dataUsage':
         tabmanager.changeViewTo('datausage-tab');
@@ -162,14 +266,20 @@ var CostControlApp = (function() {
       if (mode !== currentMode) {
         currentMode = mode;
 
-        // Initialize on demand
-        DataUsageTab.initialize(tabmanager);
         if (mode === 'PREPAID') {
-          TelephonyTab.finalize();
-          BalanceTab.initialize(tabmanager, vmanager);
+          if (typeof TelephonyTab !== 'undefined') {
+            TelephonyTab.finalize();
+          }
+          if (typeof BalanceTab !== 'undefined') {
+            BalanceTab.initialize();
+          }
         } else if (mode === 'POSTPAID') {
-          BalanceTab.finalize();
-          TelephonyTab.initialize(tabmanager);
+          if (typeof BalanceTab !== 'undefined') {
+            BalanceTab.finalize();
+          }
+          if (typeof TelephonyTab !== 'undefined') {
+            TelephonyTab.initialize();
+          }
         }
 
         // Stand alone mode when data usage only
@@ -178,8 +288,8 @@ var CostControlApp = (function() {
           tabs.setAttribute('aria-hidden', true);
 
           var dataUsageTab = document.getElementById('datausage-tab');
-          vmanager.changeViewTo('datausage-tab');
           dataUsageTab.classList.add('standalone');
+          window.location.hash = '#datausage-tab';
 
         // Two tabs mode
         } else {
@@ -191,9 +301,9 @@ var CostControlApp = (function() {
 
           // If it was showing the left tab, force changing to the
           // proper left view
-          if (tabmanager.getCurrentTab() !== 'datausage-tab') {
-            tabmanager.changeViewTo(mode === 'PREPAID' ? 'balance-tab' :
-                                                         'telephony-tab');
+          if (!isDataUsageTabShown()) {
+            window.location.hash = (mode === 'PREPAID') ?
+                                   '#balance-tab#' : '#telephony-tab#';
           }
         }
 
@@ -201,13 +311,16 @@ var CostControlApp = (function() {
     });
   }
 
+  function isDataUsageTabShown() {
+    return window.location.hash.split('#')[1] === 'datausage-tab';
+  }
+
   return {
     showBalanceTab: function _showBalanceTab() {
-      tabmanager.changeViewTo('balance-tab');
+      window.location.hash = '#balance-tab';
     },
     showDataUsageTab: function _showDataUsageTab() {
-      tabmanager.changeViewTo('datausage-tab');
+      window.location.hash = '#datausage-tab';
     }
   };
-
 }());

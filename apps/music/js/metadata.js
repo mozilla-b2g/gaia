@@ -586,10 +586,11 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
     }
 
     function findChildAtom(data, atom) {
+      var start = data.index;
       var length = data.readUnsignedInt();
       data.advance(4);
 
-      while (data.index < length) {
+      while (data.index < start + length) {
         var size = data.readUnsignedInt();
         var type = data.readASCIIText(4);
         if (type === atom) {
@@ -813,7 +814,7 @@ function getThumbnailURL(fileinfo, callback) {
         // Return a default one instead
         console.warn('Album cover art failed to load', file.name);
         callback(null);
-      }
+      };
       offscreenImage.onload = function() {
         // We've loaded the image, now copy it to a canvas
         var canvas = document.createElement('canvas');

@@ -222,10 +222,33 @@ var metadataParser = (function() {
                                    function(thumbnail) {
                                      metadata.thumbnail = thumbnail;
                                      offscreenImage.removeAttribute('src');
-                                     callback(metadata);
+                                     // if the image was small, call the
+                                     // callback synchronously
+                                     if (metadata.width * metadata.height <
+                                         250000) {
+                                       callback(metadata);
+                                     }
+                                     else {
+                                       // We just decoded a big image and
+                                       // gecko needs time to release the
+                                       // memory. See Bug 792139, e.g.
+                                       // So wait before calling the callback.
+                                       // Sadly this is just idle time and
+                                       // makes scaning images without
+                                       // previews extra slow. But the
+                                       // alternative is crashing with an OOM.
+                                       // I've tested this with 250 1200x1600
+                                       // images. A delay of 200ms crashes.
+                                       // A delay of 300ms works. Rounding up
+                                       // to 400 to allow variablity between
+                                       // devices.
+                                       setTimeout(function() {
+                                         callback(metadata);
+                                       }, 400);
+                                     }
                                    });
       }
-    }
+    };
   }
 
   function videoMetadataParser(file, metadataCallback, errorCallback) {
@@ -236,7 +259,7 @@ var metadataParser = (function() {
     var getreq = videostorage.get(videofilename);
     getreq.onerror = function() {
       errorCallback('cannot get video file: ' + videofilename);
-    }
+    };
     getreq.onsuccess = function() {
       var videofile = getreq.result;
       getVideoRotation(videofile, function(rotation) {
@@ -248,7 +271,7 @@ var metadataParser = (function() {
           errorCallback('Video rotation:', rotation);
         }
       });
-    }
+    };
 
     function getVideoThumbnailAndSize() {
       var url = URL.createObjectURL(file);

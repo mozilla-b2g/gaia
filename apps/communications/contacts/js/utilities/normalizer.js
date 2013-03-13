@@ -10,42 +10,39 @@ if (!utils.text) {
     // an utf8 normalized form.
     // Platform bug: https://bugzilla.mozilla.org/show_bug.cgi?id=779068
     // Please remove when this bug is fixed.
+    var inChars = 'àáâãäçèéêëìíîïñòóôõöùúûüýÿÀÁÂÃÄÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝ',
+        outChars = 'aaaaaceeeeiiiinooooouuuuyyAAAAACEEEEIIIINOOOOOUUUUY',
+        regExp = new RegExp('[' + inChars + ']', 'g'),
+        match = {};
+
+    for (var i = 0; i < inChars.length; i++) {
+      match[inChars[i]] = outChars[i];
+    }
+
+    var replaceMethod = function replace(character) {
+      return match[character] || character;
+    };
 
     Text.normalize = function normalizeText(value) {
-      var map = [
-        ['[àáâãäå]', 'a'],
-        ['æ', 'ae'],
-        ['ç', 'c'],
-        ['[èéêë]', 'e'],
-        ['[ìíîï]', 'i'],
-        ['ñ', 'n'],
-        ['[òóôõö]', 'o'],
-        ['œ', 'oe'],
-        ['[ùúûü]', 'u'],
-        ['[ýÿ]', 'y']
-      ];
-
-      for (var i = 0; i < map.length; i++) {
-        value = value.replace(new RegExp(map[i][0], 'gi'), function(match) {
-          if (match.toUpperCase() === match) {
-            return map[i][1].toUpperCase();
-          } else {
-            return map[i][1];
-          }
-        });
-      }
-
-      return value;
+      return value.replace(regExp, replaceMethod);
     };
 
     // Taken from /apps/browser/js/browser.js
     Text.escapeHTML = function ut_escapeHTML(str, escapeQuotes) {
-      var span = document.createElement('span');
-      span.textContent = str;
-
+      if (Array.isArray(str)) {
+        return Text.escapeHTML(str.join(' '), escapeQuotes);
+      }
+      if (!str || typeof str != 'string')
+        return '';
+      var escaped = str.replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                       .replace(/>/g, '&gt;');
       if (escapeQuotes)
-        return span.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#x27;'); //"
-      return span.innerHTML;
-    }
+        return escaped.replace(/"/g, '&quot;').replace(/'/g, '&#x27;'); //"
+      return escaped;
+    };
+
+    Text.escapeRegExp = function escapeRegExp(str) {
+      return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&');
+    };
   })();
 }

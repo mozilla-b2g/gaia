@@ -1,12 +1,10 @@
-requireApp('calendar/test/unit/helper.js', function() {
-  requireLib('timespan.js');
-  requireLib('utils/overlap.js');
-  requireLib('utils/ordered_map.js');
-  requireLib('templates/day.js');
-  requireLib('views/day_based.js');
-});
+requireLib('timespan.js');
+requireLib('utils/overlap.js');
+requireLib('utils/ordered_map.js');
+requireLib('templates/day.js');
+requireLib('views/day_based.js');
 
-suite('views/day_based', function() {
+suiteGroup('Views.DayBased', function() {
 
   var OrderedMap;
 

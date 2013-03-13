@@ -8,7 +8,13 @@ var AutoSettings = (function() {
   var OPTION_CONFIGURERS = {
     'select': function _selectConfigurer(guiWidget) {
       var optionName = guiWidget.dataset.option;
+      var text, parent = guiWidget.parentElement;
+      if (parent.classList.contains('fake-select')) {
+        text = document.createTextNode('');
+        parent.insertBefore(text, parent.firstChild);
+      }
       guiWidget.addEventListener('change', function _onSelectChange() {
+        debug('Value:', guiWidget.value);
         settings.option(optionName, guiWidget.value);
       });
       settings.observe(optionName, function _onOptionChange(value) {
@@ -16,6 +22,10 @@ var AutoSettings = (function() {
           value = settings.defaultValue(optionName);
         }
         guiWidget.value = value;
+        if (text) {
+          var selected = guiWidget.options[guiWidget.selectedIndex];
+          text.data = selected.textContent;
+        }
       });
     },
     // Select is used to simulate custom combo boxes. It displays a selection

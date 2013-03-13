@@ -18,12 +18,6 @@ ul li {
   min-height: 6rem;
 }
 
-ul li.active,
-ul li a:active {
-  background-color: #b2f2ff;
-  color: #222;
-}
-
 ul li > a,
 ul li > span {
   display: block;
@@ -35,6 +29,13 @@ ul li > span {
   font-size: 1.9rem;
   line-height: 6rem;
   padding: 0 3rem;
+}
+
+ul li.active,
+ul li:not(.disabled) > small + a:active,
+ul li:not(.disabled) > a[href]:active {
+  background-color: #b2f2ff;
+  color: #222;
 }
 
 ul li.disabled > a {
@@ -75,7 +76,8 @@ ul li > label:not([for]) + small {
 }
 
 /* required for empty elements like Bluetooth */
-ul li > small:not(:empty) + a {
+ul li > small:not(:empty) + a,
+ul li > small:not(:empty) + span {
   line-height: 4.4rem;
 }
 
@@ -115,6 +117,10 @@ ul li > label:not([for]) ~ a {
   padding-right: 6rem;
 }
 
+ul li > label:not([for]):active ~ a {
+  background-color: #b2f2ff;
+  color: #222;
+}
 
 /******************************************************************************
  * Field inputs
@@ -295,7 +301,6 @@ section[role="region"] > ul > li > p + .fake-select {
   padding-top: 0;
   margin-top: -0.8rem;
 }
-
 
 
 /******************************************************************************

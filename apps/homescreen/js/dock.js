@@ -29,7 +29,7 @@ const DockManager = (function() {
       target.classList.add('active');
       removeActive = function _removeActive() {
         target.classList.remove('active');
-      }
+      };
     } else {
       removeActive = function() {};
     }
@@ -126,6 +126,8 @@ const DockManager = (function() {
   }
 
   function goNextSet() {
+    calculateDimentions(dock.getNumIcons());
+
     if (dock.getLeft() <= maxOffsetLeft) {
       return;
     }
@@ -134,6 +136,8 @@ const DockManager = (function() {
   }
 
   function goPreviousSet() {
+    calculateDimentions(dock.getNumIcons());
+
     if (dock.getLeft() >= 0) {
       return;
     }

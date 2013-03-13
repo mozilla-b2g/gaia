@@ -1,144 +1,167 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <meta charset="utf-8">
-  <meta http-equiv="pragma" content="no-cache">
-  <title data-l10n-id="usage">Usage</title>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="pragma" content="no-cache">
+    <title data-l10n-id="usage">
+      Usage
+    </title>
+    
+    <!-- Building blocks Temporal -->
+    <link rel="stylesheet" type="text/css" href="style/bb/input-areas/style.css">
+    <link rel="stylesheet" type="text/css" href="style/bb/progress-activity/style.css">
 
-  <!-- Building blocks Temporal -->
-  <link rel="stylesheet" type="text/css" href="style/bb/filters/style.css">
-  <link rel="stylesheet" type="text/css" href="style/bb/input-areas/style.css">
-  <link rel="stylesheet" type="text/css" href="style/bb/menus-dialogues/core.css">
-  <link rel="stylesheet" type="text/css" href="style/bb/menus-dialogues/prompt/style.css">
-  <link rel="stylesheet" type="text/css" href="style/bb/menus-dialogues/valueselector/style.css">
-  <link rel="stylesheet" type="text/css" href="style/bb/menus-dialogues/valueselector/date/style.css">
-  <link rel="stylesheet" type="text/css" href="style/bb/progress-activity/style.css">
+    <!-- Building blocks -->
+    <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/buttons.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/switches.css">
+    <link rel="stylesheet" type="text/css" href="shared/style_unstable/lists.css">
+    <link rel="stylesheet" type="text/css" href="style/bb/filters/style.css">
 
-  <!-- Building blocks -->
-  <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
-  <link rel="stylesheet" type="text/css" href="shared/style/buttons.css">
-  <link rel="stylesheet" type="text/css" href="shared/style/switches.css">
-  <link rel="stylesheet" type="text/css" href="shared/style_unstable/lists.css">
+    <!-- App and Views -->
+    <link rel="stylesheet" type="text/css" href="style/app.css">
+    <link rel="stylesheet" type="text/css" href="style/views/datausage.css">
 
-  <!-- App and Views -->
-  <link rel="stylesheet" type="text/css" href="style/app.css">
-  <link rel="stylesheet" type="text/css" href="style/views/balance.css">
-  <link rel="stylesheet" type="text/css" href="style/views/topup.css">
-  <link rel="stylesheet" type="text/css" href="style/views/telephony.css">
-  <link rel="stylesheet" type="text/css" href="style/views/datausage.css">
-  <link rel="stylesheet" type="text/css" href="style/views/settings.css">
-  <link rel="stylesheet" type="text/css" href="style/views/datalimits.css">
+    <!-- Localization -->
+    <link rel="resource" type="application/l10n" href="locales/locales.ini">
+    <link rel="resource" type="application/l10n" href="shared/locales/date.ini">
 
-  <!-- Localization -->
-  <link rel="resource" type="application/l10n" href="locales/locales.ini">
-  <link rel="resource" type="application/l10n" href="shared/locales/date.ini">
+    <script type="text/javascript" defer src="shared/js/l10n.js"></script>
+    <script type="text/javascript" defer src="shared/js/l10n_date.js"></script>
+    <script type="text/javascript" defer src="shared/js/async_storage.js"></script>
+    <script type="text/javascript" defer src="shared/js/settings_listener.js"></script>
 
-  <!-- Shared code -->
-  <script type="text/javascript" src="shared/js/l10n.js"></script>
-  <script type="text/javascript" src="shared/js/l10n_date.js"></script>
-  <script type="text/javascript" src="shared/js/async_storage.js"></script>
-  <script type="text/javascript" src="shared/js/settings_listener.js"></script>
+    <script type="text/javascript" defer src="js/utils/debug.js"></script>
+    <script type="text/javascript" defer src="js/utils/toolkit.js"></script>
+    <script type="text/javascript" defer src="js/utils/formatting.js"></script>
 
-  <!-- Specific code -->
-  <script type="text/javascript" src="js/utils/debug.js"></script>
-  <script type="text/javascript" src="js/utils/toolkit.js"></script>
-  <script type="text/javascript" src="js/utils/formatting.js"></script>
+    <script type="text/javascript" defer src="js/config_manager.js"></script>
+    <script type="text/javascript" defer src="js/mindgap.js"></script>
+    <script type="text/javascript" defer src="js/common.js"></script>
+    <script type="text/javascript" defer src="js/costcontrol.js"></script>
+    <script type="text/javascript" defer src="js/view_manager.js"></script>
+    <script type="text/javascript" defer src="js/app.js"></script>
 
-  <script type="text/javascript" defer src="js/config_manager.js"></script>
-  <script type="text/javascript" defer src="js/mindgap.js"></script>
-  <script type="text/javascript" defer src="js/common.js"></script>
-  <script type="text/javascript" defer src="js/costcontrol.js"></script>
-  <script type="text/javascript" defer src="js/view_manager.js"></script>
-  <script type="text/javascript" defer src="js/settings/autosettings.js"></script>
-  <script type="text/javascript" defer src="js/settings/limitdialog.js"></script>
-  <script type="text/javascript" defer src="js/settings/settings.js"></script>
-  <script type="text/javascript" defer src="js/views/balance.js"></script>
-  <script type="text/javascript" defer src="js/views/telephony.js"></script>
-  <script type="text/javascript" defer src="js/views/datausage.js"></script>
-  <script type="text/javascript" defer src="js/app.js"></script>
+  </head>
+  <body role="application">
+    
+    <section role="region" class="window skin-organic">
+      <!-- XXX: The order of sections is important (tabs should be place above
+the overlays) and we should distinguish between TABS and OVERLAY VIEWS -->
+      <header>
+        <menu type="toolbar">
+          <button class="settings-button"><span class="icon config">Configuration</span></button>
+        </menu>
+        <h1 data-l10n-id="usage">Usage</h1>
+      </header>
+      
+      <!-- Bottom filters (Telephony / Cost Control and Data Usage) -->
+      <ul id="tabs" role="tablist" class="filter" data-items="2" data-position="bottom">
+        <li id="balance-tab-filter" aria-selected="true">
+          <a role="tab" data-l10n-id="balance" href="#balance-tab">
+            Balance
+          </a>
+        </li>
+        <li id="telephony-tab-filter" aria-hidden="true">
+          <a role="tab" data-l10n-id="telephony" href="#telephony-tab">
+            Telephony
+          </a>
+        </li>
+        <li id="datausage-tab-filter">
+          <a role="tab" data-l10n-id="data-usage" href="#datausage-tab">
+            Data usage
+          </a>
+        </li>
+      </ul>
+      
+      <!-- BALANCE TAB -->
+      <section role="region" id="balance-tab" class="view" data-viewport="left" hidden>
+        <!--
+        <section class="content">
 
-</head>
+          <div id="cost-control-topup-countdown" class="countdown" aria-hidden="true">
+            <p>
+              <span id="top-up-countdown">
+                00:00
+              </span>
 
-<body role="application">
+              <span data-l10n-id="top-up-in-progress">
+                Top Up in progress
+              </span>
+            </p>
+          </div>
 
-  <section role="region" class="window skin-organic">
-    <!-- XXX: The order of sections is important (tabs should be place above
-    the overlays) and we should distinguish between TABS and OVERLAY VIEWS -->
-    <header>
-      <menu type="toolbar">
-        <button class="settings-button"><span class="icon config">Configuration</span></button>
-      </menu>
-      <h1 data-l10n-id="usage">Usage</h1>
-    </header>
+          <div id="cost-control-message-area" class="error-messages" aria-hidden="true">
+            <p id="error-message-placeholder">
+            </p>
+          </div>
 
-    <!-- Bottom filters (Telephony / Cost Control and Data Usage) -->
-    <ul id="tabs" role="tablist" class="filter" data-items="2" data-position="bottom">
-      <li id="balance-tab-filter" aria-selected="true"><a role="tab" data-l10n-id="balance" href="#">Balance</a></li>
-      <li id="telephony-tab-filter" aria-hidden="true"><a role="tab" data-l10n-id="telephony" href="#">Telephony</a></li>
-      <li id="datausage-tab-filter"><a role="tab" data-l10n-id="data-usage" href="#">Data usage</a></li>
-    </ul>
+          <div id="cost-control-info-area" class="overview">
+            <ul class="buttons-list end">
+              <li>
+                <button class="icon icon-reload" id="balance-tab-update-button" data-l10n-id="update-button">
+                  Update
+                </button>
+              </li>
+            </ul>
+            <div class="info">
+              <div id="cost-control-icon" class="icons">
+                <span class="warning">
+                </span>
+                <progress>
+                </progress>
+              </div>
+              <p id="balance-tab-credit">
+              </p>
+              <time id="balance-tab-time">
+              </time>
+            </div>
+          </div>
 
-    <!-- BALANCE TAB -->
-    <section role="region" id="balance-tab" class="view" data-viewport="left">
-
-      <section class="content">
-
-        <!-- Top up countdown -->
-        <div id="cost-control-topup-countdown" class="countdown" aria-hidden="true">
-          <p><span id="top-up-countdown">00:00</span> <span data-l10n-id="top-up-in-progress">Top Up in progress</span></p>
-        </div>
-
-        <!-- Error messages -->
-        <div id="cost-control-message-area" class="error-messages" aria-hidden="true">
-          <p id="error-message-placeholder"></p>
-        </div>
-
-        <!-- Show balance zone -->
-        <div id="cost-control-info-area" class="overview">
-          <ul class="buttons-list end">
+          <ul class="buttons-list">
             <li>
-              <button class="icon icon-reload" id="balance-tab-update-button" data-l10n-id="update-button">
-                Update
+              <button class="icon icon-topup" id="balance-tab-topup-ussd-button" data-l10n-id="topup-ussd-button">
+                Top-Up and pay
+              </button>
+            </li>
+            <li>
+              <button class="icon icon-topupcode" id="balance-tab-topup-button" data-l10n-id="topup-button">
+                Top-Up with code
               </button>
             </li>
           </ul>
-          <div class="info">
-            <div id="cost-control-icon" class="icons">
-                <span class="warning"></span>
-                <progress></progress>
-            </div>
-            <p id="balance-tab-credit"></p>
-            <time id="balance-tab-time"></time>
-          </div>
-        </div>
+          <script type="text/javascript" defer src="js/views/balance.js"></script>
 
-        <!-- Update and top up buttons -->
-        <ul class="buttons-list">
-          <li>
-            <button class="icon icon-topup" id="balance-tab-topup-ussd-button" data-l10n-id="topup-ussd-button">
-              Top-Up and pay
-            </button>
-          </li>
-          <li>
-            <button class="icon icon-topupcode" id="balance-tab-topup-button" data-l10n-id="topup-button">
-              Top-Up with code
-            </button>
-          </li>
-        </ul>
+          <link rel="stylesheet" type="text/css" href="style/views/balance.css">
+        </section>
+        -->
       </section>
-    </section>
-
+    
     <!-- TELEPHONY TAB -->
-    <section role="region" id="telephony-tab" class="view" data-viewport="left">
-      <section class="settings">
+    <section role="region" id="telephony-tab" class="view" data-viewport="left" hidden>
+      <!--
+      <section>
         <ul>
           <li>
-            <p id="telephony-time"></p>
+            <p id="telephony-time">
+            </p>
             <dl>
-              <dt data-l10n-id="call-made">Call made</dt>
-              <dd><span id="telephony-calltime">50</span></dd>
-              <dt data-l10n-id="sms-sent">SMS Sent</dt>
-              <dd><span id="telephony-smscount">30</span></dd>
+              <dt data-l10n-id="call-made">
+                Call made
+              </dt>
+              <dd>
+                <span id="telephony-calltime">
+                  50
+                </span>
+              </dd>
+              <dt data-l10n-id="sms-sent">
+                SMS Sent
+              </dt>
+              <dd>
+                <span id="telephony-smscount">
+                  30
+                </span>
+              </dd>
             </dl>
           </li>
           <li id="billing-cycle">
@@ -147,589 +170,117 @@
             <span class="meta" data-l10n-id="tracking-will-reset">Tracking will reset on this date</span>
           </li>
         </ul>
+        <script type="text/javascript" defer src="js/views/telephony.js"></script>
+        <link rel="stylesheet" type="text/css" href="style/bb/filters/style.css">
+        <link rel="stylesheet" type="text/css" href="style/views/telephony.css">
       </section>
+      -->
     </section>
-
+    
     <!-- The top up input -->
-    <section role="region" id="topup-dialog" class="view" data-viewport="bottom">
+    <section role="region" id="topup-dialog" class="view" data-viewport="bottom" hidden>
+      <!--
       <header>
         <menu type="toolbar">
-           <button id="topup-send-button" data-l10n-id="send">Send</button>
+          <button id="topup-send-button" data-l10n-id="send">
+            Send
+          </button>
         </menu>
-        <a class="close-dialog"><span id="topup-close-button" class="icon icon-close">close</span></a>
-        <h1 data-l10n-id="top-up">Top Up</h1>
+        <a class="close-dialog">
+          <span id="topup-close-button" class="icon icon-close">
+            close
+          </span>
+        </a>
+        <h1 data-l10n-id="top-up">
+          Top Up
+        </h1>
       </header>
       <section class="content">
         <div class="info">
-          <h2 data-l10n-id="enter-top-up-code">Enter the top up code</h2>
-          <p id="topup-code-explanation" data-l10n-id="top-up-code-explanation">Typically found in the scratch card or directly in your receipt</p>
-          <p id="topup-incorrect-code" aria-hidden="true" data-l10n-id="incorrect-code">Last entered code was incorrect. Please, try again.</p>
-          <p id="topup-error" aria-hidden="true" data-l10n-id="topup-error">Sorry, we couldn't top up at this moment.</p>
+          <h2 data-l10n-id="enter-top-up-code">
+            Enter the top up code
+          </h2>
+          <p id="topup-code-explanation" data-l10n-id="top-up-code-explanation">
+            Typically found in the scratch card or directly in your receipt
+          </p>
+          <p id="topup-incorrect-code" aria-hidden="true" data-l10n-id="incorrect-code">
+            Last entered code was incorrect. Please, try again.
+          </p>
+          <p id="topup-error" aria-hidden="true" data-l10n-id="topup-error">
+            Sorry, we couldn't top up at this moment.
+          </p>
           <section aria-hidden="true" class="loading" id="topup-in-progress">
-            <progress></progress>
-            <p data-l10n-id="wait-for-confirmation">You'll receive a confirmation message</p>
+            <progress>
+            </progress>
+            <p data-l10n-id="wait-for-confirmation">
+              You'll receive a confirmation message
+            </p>
           </section>
         </div>
       </section>
       <form>
         <input id="topup-code-input" type="number" />
       </form>
-    </section>
-
-    <!-- Dialog for no SIM -->
-    <section role="dialog" class="view" data-viewport="behind" id="no-sim-info-dialog">
-      <div class="center">
-        <h3 data-l10n-id="widget-no-sim2-heading">No SIM inserted</h3>
-        <p data-l10n-id="widget-no-sim2-meta">Insert a SIM to enable Cost Control.</p>
-      </div>
-      <menu data-items="1">
-        <button id="no-sim-dialog-ok" data-l10n-id="ok" class="recommend close-dialog">Ok</button>
-      </menu>
-    </section>
-
-    <!-- Dialog for service unavailable -->
-    <section role="dialog" class="view" data-viewport="bottom" id="application-error-info-dialog">
-      <div class="center">
-        <h3 data-l10n-id="application-error-title">Service unavailable</h3>
-        <p data-l10n-id="application-error-message">Contact your company representative.</p>
-      </div>
-      <menu data-items="1">
-        <button data-l10n-id="ok" class="recommend close-dialog">Ok</button>
-      </menu>
-    </section>
-
-    <!-- Dialog for application error -->
-    <section role="dialog" class="view" data-viewport="bottom" id="service-unavailable-info-dialog">
-      <div class="center">
-        <h3 data-l10n-id="service-unavailable-title">Service unavailable</h3>
-        <p data-l10n-id="service-unavailable-message">Neither update nor top-up is possible at the moment. Please try later.</p>
-      </div>
-      <menu data-items="1">
-        <button data-l10n-id="ok" class="recommend close-dialog">Ok</button>
-      </menu>
-    </section>
-
+      
+      <link rel="stylesheet" type="text/css" href="style/views/topup.css">
+      -->
+    </section>    
+    
     <!-- DATA USAGE TAB -->
-    <section id="datausage-tab" role="region" class="view" data-viewport="right">
+    <section id="datausage-tab" role="region" class="view" data-viewport="right" hidden>
+      <!-- 
       <div class="view-scroll">
         <section class="content">
           <section id="graphic-area" class="graph">
             <canvas id="background-layer"></canvas>
-            <canvas id="wifi-layer"></canvas>
+            <canvas id="wifi-layer" aria-hidden="true"></canvas>
             <canvas id="mobile-layer"></canvas>
             <canvas id="axis-layer"></canvas>
             <canvas id="today-layer"></canvas>
             <canvas id="warning-layer"></canvas>
             <canvas id="limits-layer"></canvas>
-            <img aria-hidden="true" alt="" src="./style/images/app/ui/datausage/pattern.png" id="graphic-pattern"></img>
+            <img aria-hidden="true" alt="" src="./style/images/app/ui/datausage/pattern.png" id="graphic-pattern" />
           </section>
 
           <ul class="toggle-data" data-type="list">
             <li id="mobileItem">
               <label>
                 <input type="checkbox" checked="checked" id="mobileCheck">
-                <span></span>
+                <span>
+                </span>
               </label>
-              <p><strong class="overview" id="mobileOverview">--</strong> 3G</p>
+              <p>
+                <strong class="overview" id="mobileOverview"></strong>
+                <span data-l10n-id="3g-usage">3G</span>
+              </p>
             </li>
-            <li id="wifiItem">
+            <li id="wifiItem" aria-disabled="true">
               <label>
-                <input type="checkbox" checked="checked" id="wifiCheck">
-                <span></span>
+                <input type="checkbox" id="wifiCheck">
+                <span>
+                </span>
               </label>
-              <p><strong class="overview" id="wifiOverview">--</strong> Wi-Fi </p>
+              <p>
+                <strong class="overview" id="wifiOverview"></strong>
+                <span data-l10n-id="wifi-usage">Wi-Fi</span>
+              </p>
             </li>
           </ul>
         </section>
 
       </div>
+      <script type="text/javascript" defer src="js/views/datausage.js"></script>
+      -->
     </section>
-
+  
     <!-- Settings view -->
     <section id="settings-view" class="view" data-viewport="bottom">
-      <section role="region" id="settings-view" class="view">
-        <header data-theme="organic">
-          <menu type="toolbar">
-             <button id="close-settings" data-l10n-id="done">done</button>
-          </menu>
-          <h1 data-l10n-id="settings">Settings</h1>
-        </header>
-
-        <!-- Plantype -->
-        <section class="view-scroll" role="region">
-          <ul id="plantype-settings" class="buttons-list choose-plan">
-           <li>
-            <button id="widget-plantype" class="settings-option icon icon-dialog" data-option="plantype" data-selectdialog="selectdialog-plantype">
-              <span class="tag">Prepaid</span>
-            </button>
-           </li>
-          </ul>
-
-          <!-- Phone activity -->
-          <header id="phone-activity-settings" aria-hidden="true">
-            <h2 data-l10n-id="phone-activity">Phone Activity</h2>
-          </header>
-          <ul class="settings" aria-hidden="true">
-            <li>
-              <div class="end buttons-list">
-                <button data-l10n-id="reset" id="reset-telephony">Reset</button>
-              </div>
-              <p>
-                <span id="calltime">50</span> <span id="smscount">30</span>
-              </p>
-              <p id="telephony-timestamp"></p>
-            </li>
-          </ul>
-
-          <!-- Balance alerts -->
-          <header id="balance-settings">
-            <h2 data-l10n-id="balance">Balance</h2>
-          </header>
-          <ul class="settings">
-            <li>
-                <p id="balance"></p>
-                <p class="meta"></p>
-            </li>
-            <li>
-              <label class="end">
-                <input class="settings-option" data-option="lowLimit" type="checkbox" data-type="switch" id="low-limit" />
-                <span></span>
-              </label>
-              <p data-l10n-id="low-balance-alert">Low Balance alert</p>
-            </li>
-            <li>
-              <label class="end" for="low-limit-input">
-                <span id="settings-low-limit-currency"></span>
-                <input class="settings-option" data-option="lowLimitThreshold" data-disable-on="lowLimit=false" id="low-limit-input" type="number" />
-              </label>
-              <p data-l10n-id="low-balance-explanation">Alert me when I am under</p>
-            </li>
-          </ul>
-
-          <!-- Data usage limits -->
-          <header id="data-usage-settings">
-            <h2 data-l10n-id="data-usage">Data Usage</h2>
-          </header>
-          <ul class="settings">
-            <li>
-              <div class="end buttons-list">
-                <button data-l10n-id="reset" id="reset-data-usage">Reset</button>
-              </div>
-              <p id="mobile-data-usage">
-                <span class="usage"></span> <span data-l10n-id="3g-usage">3G usage</span>
-              </p>
-              <p id="wifi-data-usage">
-                <span class="usage"></span> <span data-l10n-id="wifi-usage">Wi-Fi usage</span>
-              </p>
-              <p class="meta"></p>
-            </li>
-            <li>
-              <label class="end">
-                <input class="settings-option" data-option="dataLimit" type="checkbox" data-type="switch" />
-                <span></span>
-              </label>
-              <p data-l10n-id="data-limit-alert">Data Use Alert</p>
-            </li>
-            <li>
-              <div class="end buttons-list">
-                <button class="settings-option icon icon-dialog" data-widget-type="data-limit" data-disable-on="dataLimit=false">
-                  <span class="tag"></span>
-                </button>
-              </div>
-              <p data-l10n-id="data-limit-value">Alert me when used</p>
-            </li>
-          </ul>
-
-          <!-- Tracking period -->
-          <header id="phone-internet-settings" aria-hidden="true">
-            <h2 data-l10n-id="phone-and-internet-data-report">Phone and internet data report</h2>
-          </header>
-          <ul class="settings">
-            <li class="reset-entry">
-              <div class="end buttons-list">
-                <button class="settings-option icon icon-dialog" data-option="trackingPeriod" data-selectdialog="selectdialog-tracking-period">
-                  <span class="tag"></span>
-                </button>
-              </div>
-              <p data-l10n-id="reset-tracking">Reset tracking</p>
-            </li>
-            <li class="reset-entry">
-              <div class="end buttons-list">
-                <button class="settings-option icon icon-dialog" data-option="resetTime" data-selectdialog="selectdialog-weekday" data-hide-on="trackingPeriod!=weekly" data-disable-on="trackingPeriod!=weekly">
-                  <span class="tag"></span>
-                </button>
-              </div>
-              <p data-l10n-id="starting-on">Starting on</p>
-            </li>
-            <li class="reset-entry">
-              <div class="end buttons-list">
-                <button class="settings-option icon icon-dialog" data-option="resetTime" data-selectdialog="selectdialog-monthday" data-hide-on="trackingPeriod!=monthly" data-disable-on="trackingPeriod!=monthly">
-                  <span class="tag"></span>
-                </button>
-              </div>
-              <p data-l10n-id="starting-on">Starting on</p>
-            </li>
-          </ul>
-        </section>
-      </section>
-
-      <!-- Data usage limits -->
-      <section role="region" id="data-limit-dialog" class="view" data-viewport="bottom">
-        <header>
-          <menu type="toolbar">
-            <button id="data-usage-done-button" data-l10n-id="done" class="recommend">Done</button>
-          </menu>
-          <a class="cancel"><span id="data-usage-close-button" class="icon icon-close">close</span></a>
-          <h1 data-l10n-id="data-limit-header">Data Usage Limit</h1>
-        </header>
-        <section class="content">
-          <div class="info">
-            <h2 data-l10n-id="data-limit-dialog-title2">Enter a mobile data limit alert</h2>
-            <p data-l10n-id="data-limit-dialog-explanation2">
-              Connection speeds reduce after the limit is reached. Check with your data provider to set an appropriate alert level.
-            </p>
-          </div>
-        </section>
-        <form>
-          <ul class="buttons-list">
-            <li>
-              <button type="button" class="icon icon-dialog switch-unit-button">
-                <span class="tag"></span>
-              </button>
-            </li>
-          </ul>
-          <label for="data-limit-input">
-            <input id="data-limit-input" type="number" />
-          </label>
-        </form>
-      </section>
-
-      <!-- Plan setup dialog -->
-      <section role="dialog" class="view" data-viewport="bottom" id="selectdialog-plantype">
-        <div class="center">
-          <h3 data-l10n-id="plantype-setup-title">My phone and internet plan is</h3>
-          <ul role="listbox">
-            <li>
-              <label for="plantype-option-prepaid">
-                <input id="plantype-option-prepaid" type="radio" name="plantype-option" checked="checked" value="prepaid" />
-                <span data-l10n-id="prepaid">Prepaid</span>
-              </label>
-            </li>
-            <li>
-              <label for="plantype-option-postpaid">
-                <input id="plantype-option-postpaid" type="radio" name="plantype-option" value="postpaid" />
-                <span data-l10n-id="postpaid">Postpaid</span>
-              </label>
-            </li>
-          </ul>
-        </div>
-        <menu data-items="2">
-          <button data-l10n-id="cancel" class="cancel">Cancel</button>
-          <button data-l10n-id="ok" class="recommend">Ok</button>
-        </menu>
-      </section>
-
-      <!-- Tracking period -->
-      <section role="dialog" class="view" data-viewport="bottom" id="selectdialog-tracking-period">
-        <div class="center">
-          <h3 data-l10n-id="tracking-period-setup-title">Reset tracking</h3>
-          <ul role="listbox">
-            <li>
-              <label for="tracking-period-option-monthly">
-                <input type="radio" id="tracking-period-option-monthly" name="tracking-period-option" checked="checked" value="monthly" />
-                <span data-l10n-id="monthly">Monthly</span>
-              </label>
-            </li>
-            <li>
-              <label for="tracking-period-option-weekly">
-                <input type="radio" id="tracking-period-option-weekly" name="tracking-period-option" value="weekly" />
-                <span data-l10n-id="weekly">Weekly</span>
-              </label>
-            </li>
-            <li>
-              <label for="tracking-period-option-never">
-                <input type="radio" id="tracking-period-option-never" name="tracking-period-option" value="never" />
-                <span data-l10n-id="never">Never</span>
-              </label>
-            </li>
-          </ul>
-        </div>
-        <menu data-items="2">
-          <button data-l10n-id="cancel" class="cancel">Cancel</button>
-          <button data-l10n-id="set" class="recommend">Set</button>
-        </menu>
-      </section>
-
-      <!-- Weekday reset dialog -->
-      <section role="dialog" class="view" data-viewport="bottom" id="selectdialog-weekday">
-        <div class="center">
-          <h3 data-l10n-id="weekday-reset-setup-title">Select period start day</h3>
-          <ul role="listbox">
-            <li class="monday">
-              <label for="reset-weekday-option-monday">
-                <input type="radio" id="reset-weekday-option-monday" name="reset-weekday-option" checked="checked" value="1" />
-                <span data-l10n-id="monday">Monday</span>
-              </label>
-            </li>
-            <li>
-              <label for="reset-weekday-option-tuesday">
-                <input type="radio" id="reset-weekday-option-tuesday" name="reset-weekday-option" value="2" />
-                <span data-l10n-id="tuesday">Tuesday</span>
-              </label>
-            </li>
-            <li>
-              <label for="reset-weekday-option-wednesday">
-                <input type="radio" id="reset-weekday-option-wednesday" name="reset-weekday-option" value="3" />
-                <span data-l10n-id="wednesday">Wednesday</span>
-              </label>
-            </li>
-            <li>
-              <label for="reset-weekday-option-thursday">
-                <input type="radio" id="reset-weekday-option-thursday" name="reset-weekday-option" value="4" />
-                <span data-l10n-id="thursday">Thursday</span>
-              </label>
-            </li>
-            <li>
-              <label for="reset-weekday-option-friday">
-                <input type="radio" id="reset-weekday-option-friday" name="reset-weekday-option" value="5" />
-                <span data-l10n-id="friday">Friday</span>
-              </label>
-            </li>
-            <li>
-              <label for="reset-weekday-option-saturday">
-                 <input type="radio" id="reset-weekday-option-saturday" name="reset-weekday-option" value="6" />
-                <span data-l10n-id="saturday">Saturday</span>
-              </label>
-            </li>
-            <li class="sunday">
-              <label for="reset-weekday-option-sunday">
-                <input type="radio" id="reset-weekday-option-sunday" name="reset-weekday-option" value="0" />
-                <span data-l10n-id="sunday">Sunday</span>
-              </label>
-            </li>
-          </ul>
-        </div>
-        <menu data-items="2">
-          <button data-l10n-id="cancel" class="cancel">Cancel</button>
-          <button data-l10n-id="set-day" class="recommend">Set day</button>
-        </menu>
-      </section>
-
-      <!-- Month day reset -->
-      <section id="selectdialog-monthday" role="dialog" class="view" data-viewport="bottom">
-        <div class="center">
-          <h3 data-l10n-id="reset-monthday-setup-title">Select period start date</h3>
-          <ul role="listbox">
-            <li>
-              <label for="day-1">
-                <input type="radio" id="day-1" name="reset-monthday-option" checked="checked" value="1" />
-                <span>1</span>
-              </label>
-            </li>
-            <li>
-              <label for="day-2">
-                <input type="radio" id="day-2" name="reset-monthday-option" value="2" />
-                <span>2</span>
-              </label>
-            </li>
-            <li>
-              <label for="day-3">
-                <input type="radio" id="day-3" name="reset-monthday-option" value="3" />
-                <span>3</span>
-              </label>
-            </li>
-            <li>
-              <label for="day-4">
-                <input type="radio" id="day-4" name="reset-monthday-option" value="4" />
-                <span>4</span>
-              </label>
-            </li>
-            <li>
-              <label for="day-5">
-                <input type="radio" id="day-5" name="reset-monthday-option" value="5" />
-                <span>5</span>
-              </label>
-            </li>
-            <li>
-              <label for="day-6">
-                <input type="radio" id="day-6" name="reset-monthday-option" value="6" />
-                <span>6</span>
-              </label>
-            </li>
-            <li>
-              <label for="day-7">
-                <input type="radio" id="day-7" name="reset-monthday-option" value="7" />
-                <span>7</span>
-              </label>
-            </li>
-            <li>
-              <label for="day-8">
-                <input type="radio" id="day-8" name="reset-monthday-option" value="8" />
-                <span>8</span>
-              </label>
-            </li>
-            <li>
-              <label for="day-9">
-                <input type="radio" id="day-9" name="reset-monthday-option" value="9" />
-                <span>9</span>
-              </label>
-            </li>
-            <li>
-              <label for="day-10">
-                <input type="radio" id="day-10" name="reset-monthday-option" value="10" />
-                <span>10</span>
-              </label>
-            </li>
-            <li>
-              <label for="day-11">
-                <input type="radio" id="day-11" name="reset-monthday-option" value="11" />
-                <span>11</span>
-              </label>
-            </li>
-            <li>
-              <label for="day-12">
-                <input type="radio" id="day-12" name="reset-monthday-option" value="12" />
-                <span>12</span>
-              </label>
-            </li>
-            <li>
-              <label for="day-13">
-                <input type="radio" id="day-13" name="reset-monthday-option" value="13" />
-                <span>13</span>
-              </label>
-            </li>
-            <li>
-              <label for="day-14">
-                <input type="radio" id="day-14" name="reset-monthday-option" value="14" />
-                <span>14</span>
-              </label>
-            </li>
-            <li>
-              <label for="day-15">
-                <input type="radio" id="day-15" name="reset-monthday-option" value="15" />
-                <span>15</span>
-              </label>
-            </li>
-            <li>
-              <label for="day-16">
-                <input type="radio" id="day-16" name="reset-monthday-option" value="16" />
-                <span>16</span>
-              </label>
-            </li>
-            <li>
-              <label for="day-17">
-                <input type="radio" id="day-17" name="reset-monthday-option" value="17" />
-                <span>17</span>
-              </label>
-            </li>
-            <li>
-              <label for="day-18">
-                <input type="radio" id="day-18" name="reset-monthday-option" value="18" />
-                <span>18</span>
-              </label>
-            </li>
-            <li>
-              <label for="day-19">
-                <input type="radio" id="day-19" name="reset-monthday-option" value="19" />
-                <span>19</span>
-              </label>
-            </li>
-            <li>
-              <label for="day-20">
-                <input type="radio" id="day-20" name="reset-monthday-option" value="20" />
-                <span>20</span>
-              </label>
-            </li>
-            <li>
-              <label for="day-21">
-                <input type="radio" id="day-21" name="reset-monthday-option" value="21" />
-                <span>21</span>
-              </label>
-            </li>
-            <li>
-              <label for="day-22">
-                <input type="radio" id="day-22" name="reset-monthday-option" value="22" />
-                <span>22</span>
-              </label>
-            </li>
-            <li>
-              <label for="day-23">
-                <input type="radio" id="day-23" name="reset-monthday-option" value="23" />
-                <span>23</span>
-              </label>
-            </li>
-            <li>
-              <label for="day-24">
-                <input type="radio" id="day-24" name="reset-monthday-option" value="24" />
-                <span>24</span>
-              </label>
-            </li>
-            <li>
-              <label for="day-25">
-                <input type="radio" id="day-25" name="reset-monthday-option" value="25" />
-                <span>25</span>
-              </label>
-            </li>
-            <li>
-              <label for="day-26">
-                <input type="radio" id="day-26" name="reset-monthday-option" value="26" />
-                <span>26</span>
-              </label>
-            </li>
-            <li>
-              <label for="day-27">
-                <input type="radio" id="day-27" name="reset-monthday-option" value="27" />
-                <span>27</span>
-              </label>
-            </li>
-            <li>
-              <label for="day-28">
-                <input type="radio" id="day-28" name="reset-monthday-option" value="28" />
-                <span>28</span>
-              </label>
-            </li>
-            <li>
-              <label for="day-29">
-                <input type="radio" id="day-29" name="reset-monthday-option" value="29" />
-                <span>29</span>
-              </label>
-            </li>
-            <li>
-              <label for="day-30">
-                <input type="radio" id="day-30" name="reset-monthday-option" value="30" />
-                <span>30</span>
-              </label>
-            </li>
-            <li>
-              <label for="day-31">
-                <input type="radio" id="day-31" name="reset-monthday-option" value="31" />
-                <span>31</span>
-              </label>
-            </li>
-          </ul>
-        </div>
-        <menu data-items="2">
-          <button class="cancel" data-l10n-id="cancel">Cancel</button>
-          <button class="recommend" data-l10n-id="set-date">Set date</button>
-        </menu>
-      </section>
-
-      <!-- Reset confirmation -->
-      <section role="dialog" class="view" data-viewport="bottom" id="reset-confirmation-dialog">
-        <div class="center">
-          <h3 data-l10n-id="confirmation">Confirmation</h3>
-          <p data-l10n-id="reset-confirmation-warning">All current data will be deleted. Are you sure you want to reset?</p>
-        </div>
-        <menu data-items="2">
-          <button data-l10n-id="cancel" class="close-dialog">Cancel</button>
-          <button data-l10n-id="yes" class="danger">Yes</button>
-        </menu>
-      </section>
+      <iframe id="settings-view-placeholder"></iframe>
     </section>
-
+    
   </section>
-
-  <iframe id="message-handler" src="message_handler.html"></iframe>
+  <iframe id="message-handler" src="message_handler.html">
+  </iframe>
 </body>
 </html>
 

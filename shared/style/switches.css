@@ -30,11 +30,11 @@ label:not([for]) input + span {
 }
 
 label:not([for]) input[type="checkbox"] + span {
-  background: url(switches/images/check/default.png) no-repeat center top;
+  background: url(switches/images/check/default.png) no-repeat center top / 2.2rem auto;
 }
 
 label:not([for]) input[type="radio"] + span {
-  background: url(switches/images/radio/default.png) no-repeat center top;
+  background: url(switches/images/radio/default.png) no-repeat center top / 2.2rem auto;
 }
 
 label:not([for]) input:checked + span {
@@ -64,11 +64,11 @@ label input[type="checkbox"][data-type="switch"] + span {
   width: 5.4rem;
   height: 2.2rem;
   pointer-events: none;
-  border: solid 1px #c2c2c2;
+  border: solid 0.1rem #c2c2c2;
   border-radius: 5.4rem;
   overflow: hidden;
   background: url(switches/images/switch/handler.png) no-repeat -0.2rem center;
-  background-size: auto calc(100% + 2px);
+  background-size: auto calc(100% + 0.2rem);
   transition: background 0.18s ease;
 }
 
@@ -86,7 +86,7 @@ label input[data-type="switch"] + span:before {
 label input[data-type="switch"] + span:before {
   right: 100%;
   background: #00c3ea url(switches/images/switch/icon.png) no-repeat 0.5rem center;
-  background-size: auto calc(100% - 2px);
+  background-size: auto calc(100% - 0.2rem);
 }
 
 label input[data-type="switch"] + span:after {
@@ -125,3 +125,8 @@ label input[data-type="switch"]:checked + span:after {
   transform: translateX(0);
 }
 
+label input[type="checkbox"][data-type="switch"].uninit + span,
+label input[type="checkbox"][data-type="switch"].uninit + span:before,
+label input[type="checkbox"][data-type="switch"].uninit + span:after {
+  transition: none;
+}

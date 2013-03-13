@@ -121,7 +121,9 @@
   }
 
   window.addEventListener('localized', function _onLocalize() {
-    localizeWeekdaySelector(document.getElementById('selectdialog-weekday'));
+    localizeWeekdaySelector(document.getElementById('pre3-select-weekday'));
+    localizeWeekdaySelector(document.getElementById('post2-select-weekday'));
+    localizeWeekdaySelector(document.getElementById('non2-select-weekday'));
   });
 
   // TRACK SETUP

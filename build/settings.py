@@ -53,6 +53,7 @@ settings = {
  "keyboard.layouts.pinyin": False,
  "keyboard.layouts.greek": False,
  "keyboard.layouts.japanese": False,
+ "keyboard.layouts.polish": False,
  "keyboard.layouts.portuguese": False,
  "keyboard.layouts.spanish": False,
  "keyboard.vibration": False,
@@ -68,6 +69,7 @@ settings = {
  "lockscreen.locked": True,
  "lockscreen.unlock-sound.enabled": False,
  "mail.sent-sound.enabled": True,
+ "message.sent-sound.enabled": True,
  "operatorvariant.mcc": 0,
  "operatorvariant.mnc": 0,
  "ril.iccInfo.mbdn":"",
@@ -152,6 +154,7 @@ def main():
     parser.add_option("-v", "--verbose", help="increase output verbosity", action="store_true")
     parser.add_option(      "--noftu", help="bypass the ftu app", action="store_true")
     parser.add_option(      "--locale", help="specify the default locale to use")
+    parser.add_option(      "--hidpi", help="specify if the target device has hidpi screen")
     parser.add_option(      "--enable-debugger", help="enable remote debugger (and ADB for VARIANT=user builds)", action="store_true")
     (options, args) = parser.parse_args(sys.argv[1:])
 
@@ -175,7 +178,10 @@ def main():
     if options.wallpaper:
         wallpaper_filename = options.wallpaper
     else:
-        wallpaper_filename = "build/wallpaper.jpg"
+        if options.hidpi:
+            wallpaper_filename = "build/wallpaper@2x.jpg"
+        else:
+            wallpaper_filename = "build/wallpaper.jpg"
 
     enable_debugger = (options.enable_debugger == True)
 
@@ -201,8 +207,14 @@ def main():
     # Set the default locale
     if options.locale:
         settings["language.current"] = options.locale
+        keyboard_layouts_name = "shared/resources/keyboard_layouts.json"
+        keyboard_layouts = json.load(open(keyboard_layouts_name))
+        if options.locale in keyboard_layouts:
+            default_layout = keyboard_layouts[options.locale]
+            settings["keyboard.layouts.english"] = False
+            settings["keyboard.layouts.{0}".format(default_layout)] = True
 
-    settings["devtools.debugger.remote-enabled"] = enable_debugger;
+    settings["devtools.debugger.remote-enabled"] = enable_debugger
 
     # Grab wallpaper.jpg and convert it into a base64 string
     wallpaper_file = open(wallpaper_filename, "rb")

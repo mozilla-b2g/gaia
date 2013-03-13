@@ -25,6 +25,10 @@ input[type="image"] {
   pointer-events: none;
 }
 
+.tabs-screen #main-screen {
+  transform: translateX(calc(-100% + 5rem));
+}
+
 .tabs-screen #tabs-badge {
   display: none;
 }
@@ -50,8 +54,8 @@ input[type="image"] {
   position: absolute;
   right: 0;
   top: 0;
-  width: 50px;
-  height: 50px;
+  width: 5rem;
+  height: 5rem;
 }
 
 .awesome-screen #awesomescreen-cancel-button {
@@ -70,8 +74,8 @@ input[type="image"] {
   font-size: 1.7rem;
   -moz-transition: 0.2s ease-in-out;
   position: absolute;
-  left: 50px;
-  right: 0px;
+  left: 5rem;
+  right: 0;
   top: 0;
   bottom: 0;
   color: white;
@@ -79,28 +83,30 @@ input[type="image"] {
   background-image: url('./images/drawer-header-background.png');
   background-repeat: repeat-x;
   background-position: top;
+  background-size: auto 5rem;
 }
 
 #new-tab {
-  height: 30px;
-  margin: 18px;
+  height: 3rem;
+  margin: 1.8rem;
   border: 0;
   color: white;
   background: black;
   font-size: 1.7rem;
-  padding: 5px;
+  padding: 0.5rem;
   cursor: pointer;
 }
 
 #tabs-list {
-  border-top: 1px solid #333;
+  border-top: 0.1rem solid #333;
   overflow-y: auto;
   position:absolute;
-  top: 50px;
-  bottom: 0px;
+  top: 5rem;
+  bottom: 0;
   left: 0;
   right: 0;
   background-image: url('./images/tabs-list-background.png');
+  background-size: auto 100%;
 }
 
 #tabs-list ul {
@@ -111,18 +117,19 @@ input[type="image"] {
 
 #tabs-list li a {
   display: block;
-  height: 65px;
+  height: 6.5rem;
   -moz-user-select: none;
-  padding: 10px;
+  padding: 1rem;
 }
 
 #tabs-list li {
   margin: 0;
-  height: 85px;
-  border-bottom: 1px solid #54575c;
+  height: 8.5rem;
+  border-bottom: 0.1rem solid #54575c;
   font-family: 'MozTT', sans-serif;
   overflow: hidden;
   position: relative;
+  width: 100%;
 }
 
 #tabs-list li a.active {
@@ -131,22 +138,22 @@ input[type="image"] {
 
 #tabs-list .preview {
   display: block;
-  width: 90px;
-  height: 65px;
+  width: 9rem;
+  height: 6.5rem;
   background-color: rgba(255, 255, 255, 0.3);
   background-size: cover;
   float:left;
-  border-radius: 5px;
+  border-radius: 0.5rem;
   pointer-events: none;
-  margin-right: 10px;
+  margin-right: 1rem;
 }
 
 #tabs-list span {
   pointer-events: none;
   display: block;
-  height: 65px;
-  top: 0px;
-  margin: 0 50px 0 0;
+  height: 6.5rem;
+  top: 0;
+  margin: 0 5rem 0 0;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -157,16 +164,16 @@ input[type="image"] {
 
 #tabs-list .close {
   font-family: 'MozTT', sans-serif;
-  border: 0px;
+  border: 0;
   position: absolute;
-  right: 0px;
+  right: 0;
   height: 100%;
-  width: 50px;
+  width: 5rem;
   top: 0;
   background: transparent;
   font-size: 2.8rem;
   color: white;
-  padding-bottom: 7px;
+  padding-bottom: 0.7rem;
 }
 
 #main-screen {
@@ -176,7 +183,7 @@ input[type="image"] {
   font-family: 'MozTT', sans-serif;
   z-index: 50;
   position: relative;
-  left: 0px;
+  left: 0;
   overflow: hidden;
   /*
    * Make sure this frame starts out with an identity transform so that
@@ -185,29 +192,29 @@ input[type="image"] {
    * https://bugzilla.mozilla.org/show_bug.cgi?id=795657 will fix the
    * underlying problem.
    */
-  transform: translateY(0px);
+  transform: translateY(0);
   transition: transform 0.2s ease-in-out;
 }
 
 #main-screen.address-hidden {
-  transform: translateY(-50px);
+  transform: translateY(-5rem);
 }
 
 #main-screen.expanded {
-  height: calc(100% + 50px);
+  height: calc(100% + 5rem);
 }
 
 #tabs-badge {
   font-family: 'MozTT', sans-serif;
   position: absolute;
-  right: 0px;
+  right: 0;
   top: 0;
   font-size: 2.3rem;
   color: white;
   display: block;
-  width: 44px;
-  height: 50px;
-  line-height: 50px;
+  width: 4.4rem;
+  height: 5rem;
+  line-height: 5rem;
   text-align: center;
   cursor: pointer;
   -moz-user-select: none;
@@ -222,7 +229,7 @@ input[type="image"] {
 }
 
 #toolbar-start {
-  height: 50px;
+  height: 5rem;
   background-color: #f9f9fb;
   position: absolute;
   top: 0;
@@ -234,12 +241,12 @@ input[type="image"] {
   position: absolute;
   bottom: 0;
   width: 100%;
-  height: 3px;
+  height: 0.3rem;
   z-index: 99;
 }
 
 #throbber.loading {
-  background-image: url('images/progress.gif');
+  background: url('images/progress.gif') repeat-x left bottom / 100%;
 }
 
 #toolbar-end {
@@ -256,14 +263,16 @@ input[type="image"] {
   background-image: url('./images/tabs-badge-background.png');
   background-repeat: no-repeat;
   background-position: right;
-  padding-right: 65px;
+  background-size: auto 5rem;
+  padding-right: 6.5rem;
 }
 
 .tabs-screen #toolbar-start {
   background-image: url('./images/iconaction_back_50x50.png'), url('./images/tabs-badge-background.png');
   background-repeat: no-repeat, no-repeat;
   background-position: top right, right;
-  padding-right: 65px;
+  background-size: auto 5rem;
+  padding-right: 6.5rem;
 }
 
 .tabs-screen #frames {
@@ -278,32 +287,33 @@ input[type="image"] {
   display: -moz-box;
   -moz-box-orient: horizontal;
   padding: 0;
-  margin: 10px;
-  border: solid 1px;
+  margin: 1rem;
+  border: solid 0.1rem;
   border-color: #c1c5ce;
-  border-radius: 5px;
-  height: 34px;
-  margin: 8px 0px 8px 5px;
-  padding: 0 0 0 10px;
+  border-radius: 0.5rem;
+  height: 3.4rem;
+  margin: 0.8rem 0 0.8rem 0.5rem;
+  padding: 0 0 0 1rem;
   background-color: #fff;
   font-weight: 600;
-  width: calc(100% - 15px);
+  width: calc(100% - 1.5rem);
 }
 
 #url-button {
   background-position: center;
   display: block;
-  height: 32px;
-  width: 32px;
+  height: 3.2rem;
+  width: 3.2rem;
+  background-size: 3rem;
   float: right;
   background-repeat: no-repeat;
 }
 
 #ssl-indicator {
   display: block;
-  width: 24px;
-  height: 34px;
-  margin-right: 5px;
+  width: 2.4rem;
+  height: 3.4rem;
+  margin-right: 0.5rem;
   text-indent: -1000em;
   background-repeat: no-repeat;
   background-position: center center;
@@ -324,14 +334,15 @@ input[type="image"] {
 #url-input {
   font-family: 'MozTT', sans-serif;
   font-size: 1.7rem;
-  height: 34px;
+  height: 3.4rem;
   -moz-box-flex: 1;
   margin: 0;
   border: none;
   background-color: transparent;
   background: none;
   text-overflow: ellipsis;
-  width: -moz-calc(100% - 32px);
+  padding: 0 0;
+  width: calc(100% - 3.2rem);
 }
 
 #url-input:invalid {
@@ -339,7 +350,7 @@ input[type="image"] {
 }
 
 menu[type="toolbar"] {
-  height: 45px;
+  height: 4.5rem;
   margin: 0;
   padding: 0;
 }
@@ -349,13 +360,14 @@ menu[type="toolbar"] button {
   -moz-appearance: none;
   background-position: center;
   background-repeat: no-repeat;
+  background-size: 3rem auto;
   border: none;
   border-radius: 0;
   display: block;
   margin: 0;
   padding: 0;
-  width: 80px;
-  height: 45px;
+  width: 8rem;
+  height: 4.5rem;
   float: left;
 }
 
@@ -396,8 +408,8 @@ input::-moz-focus-inner {
 #frames {
   width: 100%;
   position: absolute;
-  top: 50px;
-  bottom: 45px;
+  top: 5rem;
+  bottom: 4.5rem;
   background: white;
 }
 
@@ -440,12 +452,12 @@ input::-moz-focus-inner {
 
 #startscreen h1 {
   font-size: 2.5rem;
-  margin: 10px 15px;
+  margin: 1rem 1.5rem;
 }
 
 #startscreen h2 {
   font-size: 1.4rem;
-  margin: 0 0 15px 15px;
+  margin: 0 0 1.5rem 1.5rem;
 }
 
 #startscreen.hidden {
@@ -453,7 +465,7 @@ input::-moz-focus-inner {
 }
 
 #start-screen-top-sites {
-  width: 290px;
+  width: 29rem;
   margin: 0 auto;
   overflow: hidden;
 }
@@ -468,18 +480,18 @@ input::-moz-focus-inner {
   text-align: center;
   float: left;
   position: relative;
-  border-bottom: 2px solid #CCC;
-  margin-bottom: 20px;
+  border-bottom: 0.2rem solid #CCC;
+  margin-bottom: 2rem;
 }
 
 #top-site-thumbnails li:nth-child(2n) {
-  margin-left: 10px;
+  margin-left: 1rem;
 }
 
 #top-site-thumbnails li a {
   display: block;
-  width: 140px;
-  height: 100px;
+  width: 14rem;
+  height: 10rem;
   background-color: rgba(255, 255, 255, 0.3);
   background-size: cover;
 }
@@ -487,16 +499,16 @@ input::-moz-focus-inner {
 #top-site-thumbnails li span {
   font-size: 1.4rem;
   display: block;
-  width: 134px;
-  height: 15px;
+  width: 13.4rem;
+  height: 1.5rem;
   text-align: center;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   background-color: rgba(255, 255, 255, 0.8);
   position: absolute;
-  bottom: 0px;
-  padding: 3px;
+  bottom: 0;
+  padding: 0.3rem;
   pointer-events: none;
 }
 
@@ -524,6 +536,7 @@ input::-moz-focus-inner {
 #crashscreen img {
   display: block;
   margin: 0 auto;
+  width: 5rem;
 }
 
 #crashscreen p {
@@ -535,7 +548,7 @@ input::-moz-focus-inner {
   position: absolute;
   bottom: 0;
   width: 100%;
-  height: 70px;
+  height: 7rem;
 }
 
 #crashscreen button {
@@ -592,15 +605,15 @@ a.recommend[role="button"]:active  {
 }
 
 #sad-face {
-  font-size: 72px;
-  line-height: 150px;
+  font-size: 7.2rem;
+  line-height: 15rem;
 }
 
 nav[data-role="tabs"] {
   display: block;
   background-color: #CCD6DF;
   width: 100%;
-  height: 36px;
+  height: 3.6rem;
 }
 
 #tab-panels {
@@ -620,17 +633,17 @@ li[role="tab"] {
 li[role="tab"] a {
   display: block;
   float: left;
-  height: 36px;
+  height: 3.6rem;
   text-decoration: none;
   color: #000;
-  line-height: 36px;
+  line-height: 3.6rem;
   text-align: center;
-  padding: 0 30px;
+  padding: 0 3rem;
   font-size: 1.4rem;
   outline: none;
-  margin-left: -30px;
+  margin-left: -3rem;
   text-overflow: ellipsis;
-  max-width: calc(33% - 39px);
+  max-width: calc(33% - 3.9rem);
   overflow: hidden;
 }
 
@@ -644,10 +657,11 @@ li[role="tab"] a.selected {
   background-position: left, right, center;
   background-repeat: no-repeat, no-repeat, repeat-x;
   background-origin: padding-box;
+  background-size: auto 3.6rem;
 }
 
 section[role="tabpanel"] {
-  padding-top: 5px;
+  padding-top: 0.5rem;
   clear: both;
   background-color: #f3f4f8;
   display: none;
@@ -658,7 +672,7 @@ section[role="tabpanel"].selected {
 }
 
 #results {
-  padding-top: 5px;
+  padding-top: 0.5rem;
   background-color: #f3f4f8;
   display: block;
   position: absolute;
@@ -675,9 +689,9 @@ section[role="tabpanel"].selected {
 
 #awesomescreen h3 {
   font-size: 1.4rem;
-  margin: 0 10px;
+  margin: 0 1rem;
   color: #FF5F19;
-  border-bottom: solid 1px #FF5F19;
+  border-bottom: solid 0.1rem #FF5F19;
   padding: 0;
 }
 
@@ -688,7 +702,7 @@ ul[role="listbox"] {
 
 li[role="listitem"] {
   list-style-type: none;
-  margin: 0 10px;
+  margin: 0 1rem;
 }
 
 li[role="listitem"]:last-child a {
@@ -697,14 +711,14 @@ li[role="listitem"]:last-child a {
 
 li[role="listitem"] a {
   display: block;
-  padding: 8px;
+  padding: 0.8rem;
   text-decoration: none;
   color: #000;
-  border-bottom: solid 1px #ccc;
-  padding-left: 32px;
+  border-bottom: solid 0.1rem #ccc;
+  padding-left: 3.2rem;
   background-repeat: no-repeat;
-  background-position: 8px 20px;
-  background-size: 16px;
+  background-position: 0.8rem 2rem;
+  background-size: 1.6rem;
   outline: none;
 }
 li[role="listitem"] a:hover, li[role="listitem"] a:active {
@@ -736,7 +750,7 @@ li[role="listitem"] small {
 
 .awesome-screen #toolbar-start {
   background-color: #ccd6df;
-  padding-right: 50px;
+  padding-right: 5rem;
   background-image: none;
   position: absolute;
   top: 0;
@@ -748,12 +762,12 @@ li[role="listitem"] small {
 }
 
 .awesome-screen #tabs-badge {
-  width: 50px;
+  width: 5rem;
   background-color: #ccd6df;
 }
 
 #history, #bookmarks, #top-sites {
-  height: calc(100% - 36px);
+  height: calc(100% - 3.6rem);
   overflow-y: auto;
   overflow-x: hidden;
 }
@@ -764,44 +778,44 @@ li[role="listitem"] small {
 
 #browser-menu {
   position: absolute;
-  right: 8px;
-  bottom: 72px;
+  right: 0.8rem;
+  bottom: 7.2rem;
   width: 50%;
   background-color: #f5f2f3;
-  border-radius: 8px;
+  border-radius: 0.8rem;
   z-index: 999;
   margin: 0;
   padding: 0;
-  box-shadow: 0 0 5px #333;
+  box-shadow: 0 0 0.5rem #333;
 }
 
 #browser-menu::before {
   content: '';
   display: block;
-  width: 16px;
-  height: 16px;
+  width: 1.6rem;
+  height: 1.6rem;
   position: absolute;
-  bottom: -8px;
-  right: 12px;
+  bottom: -0.8rem;
+  right: 1.2rem;
   -moz-transform: rotate(-45deg);
   background-color: #f5f2f3;
-  box-shadow: 0 0 4px #333;
+  box-shadow: 0 0 0.4rem #333;
 }
 
 #browser-menu::after {
   content: '';
   display: block;
-  width: 30px;
-  height: 16px;
+  width: 3rem;
+  height: 1.6rem;
   position: absolute;
   bottom: 0;
-  right: 7px;
+  right: 0.7rem;
   background-color: #f5f2f3;
 }
 
 #browser-menu li {
   padding: 0;
-  margin: 0 16px;
+  margin: 0 1.6rem;
   list-style-type: none;
 }
 
@@ -812,13 +826,13 @@ li[role="listitem"] small {
 
 #browser-menu li a {
   display: block;
-  font-size: 22px;
-  padding: 19px 19px 19px 44px;
-  border-bottom: solid 1px #d0cecf;
+  font-size: 2.2rem;
+  padding: 1.9rem 1.9rem 1.9rem 4.4rem;
+  border-bottom: solid 0.1rem #d0cecf;
   text-decoration: none;
   color: #4f5357;
   background-repeat: no-repeat;
-  background-position: 5px 20px;
+  background-position: 0.5rem 2rem;
   font-weight: 600;
 }
 
@@ -832,11 +846,11 @@ li[role="listitem"] small {
 
 #tray-toolbar {
   background: none;
-  height: 50px;
+  height: 5rem;
 }
 
 #tray-toolbar button {
-  width: 60px;
+  width: 6rem;
   background-repeat: no-repeat;
   background-position: center, left;
   border-radius: 0;
@@ -845,19 +859,20 @@ li[role="listitem"] small {
 #settings-button {
   background-image: url('images/iconaction_settings_30x30.png');
   float: right;
-  height: 50px;
+  height: 5rem;
 }
 
 #new-tab-button {
   background-image: url('images/iconaction_new_30x30.png'), url('images/header-divider.png');
+  background-size: auto 3rem, 0.2rem;
   float: right;
-  height: 50px;
+  height: 5rem;
 }
 
 #settings {
-  font-size: 1.7rem;
+  font-size: 1.6rem;
   position: absolute;
-  left: 0px;
+  left: 0;
   top: 0;
   background-color: #eeefea;
   width: 100%;
@@ -872,7 +887,7 @@ li[role="listitem"] small {
 }
 
 #settings li {
-  margin: 10px 30px;
+  margin: 1rem 3rem;
   list-style-type: none;
 }
 
@@ -885,12 +900,12 @@ li[role="listitem"] small {
 
 
 #settings li#enable-cookies {
-  margin-bottom: 20px;
+  margin-bottom: 2rem;
 }
 
 #enable-cookies input {
   position: relative;
-  top: -2px;
+  top: -0.2rem;
 }
 
 #settings [disabled="disabled"] {
@@ -968,7 +983,7 @@ li[role="listitem"] small {
  }
 
 /* This is a dirty hack to hide the bottom toolbar while
- * the keyboard is active, than device-height - 40px 
+ * the keyboard is active, than device-height - 40px
  * (for status bar/mini attention screen),
  * then the keyboard is likely activated
  */
@@ -983,4 +998,19 @@ li[role="listitem"] small {
        (device-height: 640px) and (max-height: 590px) {
   .page-screen #toolbar-end { display: none; }
   .page-screen #frames { bottom: 0; }
+}
+
+/* For the Twist , 960x540 */
+@media (device-height: 540px) and (max-height: 490px),
+       (device-height: 960px) and (max-height: 910px) {
+  .page-screen #toolbar-end { display: none; }
+  .page-screen #frames { bottom: 0; }
+}
+
+#save-image-status {
+  display: none;
+}
+
+#save-image-status.visible {
+  display: block;
 }

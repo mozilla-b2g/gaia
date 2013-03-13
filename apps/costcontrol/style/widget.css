@@ -68,7 +68,8 @@ p.meta {
   background: url(images/widget/sim/nonauthed-sim.png);  
 }
 
-.widget-no-sim2 {
+.widget-no-sim2,
+.widget-sim-locked {
   background: url(images/widget/sim/no-sim.png);
 }
 

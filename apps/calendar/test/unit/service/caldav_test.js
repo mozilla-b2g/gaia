@@ -1,11 +1,9 @@
-requireApp('calendar/test/unit/helper.js', function() {
-  requireApp('calendar/test/unit/service/helper.js');
-  requireLib('ext/ical.js');
-  requireLib('ext/caldav.js');
-  requireLib('ext/uuid.js');
-  requireLib('service/ical_recur_expansion.js');
-  requireLib('service/caldav.js');
-});
+requireApp('calendar/test/unit/service/helper.js');
+requireLib('ext/ical.js');
+requireLib('ext/caldav.js');
+requireLib('ext/uuid.js');
+requireLib('service/ical_recur_expansion.js');
+requireLib('service/caldav.js');
 
 suite('service/caldav', function() {
 
@@ -212,6 +210,7 @@ suite('service/caldav', function() {
 
       test('output', function() {
         var expected = {
+          alarms: [{ action: 'DISPLAY', trigger: -1800 }],
           syncToken: etag,
           url: url,
           id: event.uid,
@@ -804,6 +803,18 @@ suite('service/caldav', function() {
 
   suite('#formatICALTime', function() {
 
+    test('date', function() {
+      var time = new ICAL.Time({
+        year: 2012,
+        month: 1,
+        day: 15,
+        isDate: true
+      });
+
+      var out = subject.formatICALTime(time);
+      assert.isTrue(out.isDate, 'is date');
+    });
+
     test('floating time', function() {
       var time = new ICAL.Time({
         year: 2012,
@@ -828,6 +839,19 @@ suite('service/caldav', function() {
   });
 
   suite('#formatInputTime', function() {
+
+    test('isDate', function() {
+      var date = new Date(2012, 1, 1);
+      var transport = Calendar.Calc.dateToTransport(
+        date, null, true
+      );
+
+      var result = subject.formatInputTime(transport);
+      assert.isTrue(result.isDate, 'is date');
+
+      assert.deepEqual(result.toJSDate(), date);
+    });
+
     test('floating time', function() {
       var input = {
         offset: 0,
@@ -1190,6 +1214,62 @@ suite('service/caldav', function() {
       assert.instanceOf(req, Caldav.Request.Asset);
     });
 
+    suite('#addAlarms', function() {
+      test('standard', function(done) {
+        var ops = 2;
+
+        subject.addAlarms({
+          addSubcomponent: function(result) {
+            assert.instanceOf(result, ICAL.Component);
+            assert.instanceOf(
+              result.getFirstPropertyValue('trigger'),
+              ICAL.Duration
+            );
+            assert.equal(result.getFirstPropertyValue('action'), 'DISPLAY');
+
+            if (!(--ops)) {
+              done();
+            }
+          }
+        }, [
+          {action: 'DISPLAY', trigger: '60'},
+          {action: 'DISPLAY', trigger: '600'}
+        ]);
+      });
+
+      test('yahoo - mirrored email', function(done) {
+        var ops = 4;
+        var componentCount = {
+          DISPLAY: 0,
+          EMAIL: 0
+        };
+
+        subject.addAlarms({
+          addSubcomponent: function(result) {
+            assert.instanceOf(result, ICAL.Component);
+            assert.instanceOf(
+              result.getFirstPropertyValue('trigger'),
+              ICAL.Duration
+            );
+            componentCount[result.getFirstPropertyValue('action')]++;
+
+            if (!(--ops)) {
+              assert.equal(componentCount.DISPLAY, 2);
+              assert.equal(componentCount.EMAIL, 2);
+              done();
+            }
+          }
+        }, [
+          {action: 'DISPLAY', trigger: '60'},
+          {action: 'DISPLAY', trigger: '600'}
+        ],
+        {
+          user: 'bob',
+          domain: 'https://caldav.calendar.yahoo.com'
+        });
+      });
+    });
+
     suite('#createEvent', function(done) {
       var event;
       var start = new Date(2012, 1, 1);
@@ -1295,7 +1375,11 @@ suite('service/caldav', function() {
             description: 'new desc',
             location: 'new loc',
             start: Calendar.Calc.dateToTransport(start),
-            end: Calendar.Calc.dateToTransport(end)
+            end: Calendar.Calc.dateToTransport(end),
+            alarms: [
+              { action: 'DISPLAY', trigger: 5000 },
+              { action: 'DISPLAY', trigger: 30000 }
+            ]
           }
         });
 
@@ -1356,6 +1440,22 @@ suite('service/caldav', function() {
               );
 
               assert.equal(result.syncToken, 'Etag', 'etag');
+
+              var alarms = newEvent.component.getAllSubcomponents('valarm');
+              assert.equal(alarms.length, 3, 'email alarm intact');
+
+              // The 'DISPLAY' alarms should have a 35000 total
+              var total = 0;
+              alarms.forEach(function(alarm) {
+                var action = alarm.getFirstPropertyValue('action');
+                if (action === 'DISPLAY') {
+                  var duration = new ICAL.Duration(
+                    alarm.getFirstPropertyValue('trigger')
+                  );
+                  total += duration.toSeconds();
+                }
+              });
+              assert.equal(total, 35000, 'display alarms changed');
             });
           });
         });

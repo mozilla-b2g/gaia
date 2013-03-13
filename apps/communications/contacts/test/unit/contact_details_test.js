@@ -62,7 +62,7 @@ suite('Render contact', function() {
       DateTimeFormat: function() {
         this.localeFormat = function(date, format) {
           return date;
-        }
+        };
       }
     };
 
@@ -210,6 +210,7 @@ suite('Render contact', function() {
     }
 
     test('It is not a Facebook Contact', function() {
+      window.fb.setIsEnabled(true);
       window.fb.setIsFbContact(false);
       subject.render(null, TAG_OPTIONS);
       assert.include(container.innerHTML, 'social-template');
@@ -409,10 +410,14 @@ suite('Render contact', function() {
       subject.render(null, TAG_OPTIONS);
       assert.include(container.innerHTML, 'address-details-template-0');
       var address0 = mockContact.adr[0];
-      assert.include(container.innerHTML, utils.text.escapeHTML(address0.countryName, true));
-      assert.include(container.innerHTML, utils.text.escapeHTML(address0.locality, true));
-      assert.include(container.innerHTML, utils.text.escapeHTML(address0.postalCode, true));
-      assert.include(container.innerHTML, utils.text.escapeHTML(address0.streetAddress, true));
+      assert.include(container.innerHTML,
+                    utils.text.escapeHTML(address0.countryName, true));
+      assert.include(container.innerHTML,
+                    utils.text.escapeHTML(address0.locality, true));
+      assert.include(container.innerHTML,
+                    utils.text.escapeHTML(address0.postalCode, true));
+      assert.include(container.innerHTML,
+                    utils.text.escapeHTML(address0.streetAddress, true));
     });
 
     test('with no addresses', function() {
@@ -444,14 +449,22 @@ suite('Render contact', function() {
       assert.include(container.innerHTML, 'address-details-template-1');
       var address0 = contactMultAddress.adr[0];
       var address1 = contactMultAddress.adr[1];
-      assert.include(container.innerHTML, utils.text.escapeHTML(address0.countryName, true));
-      assert.include(container.innerHTML, utils.text.escapeHTML(address0.locality, true));
-      assert.include(container.innerHTML, utils.text.escapeHTML(address0.postalCode, true));
-      assert.include(container.innerHTML, utils.text.escapeHTML(address0.streetAddress, true));
-      assert.include(container.innerHTML, utils.text.escapeHTML(address1.countryName, true));
-      assert.include(container.innerHTML, utils.text.escapeHTML(address1.locality, true));
-      assert.include(container.innerHTML, utils.text.escapeHTML(address1.postalCode, true));
-      assert.include(container.innerHTML, utils.text.escapeHTML(address1.streetAddress, true));
+      assert.include(container.innerHTML,
+                    utils.text.escapeHTML(address0.countryName, true));
+      assert.include(container.innerHTML,
+                    utils.text.escapeHTML(address0.locality, true));
+      assert.include(container.innerHTML,
+                    utils.text.escapeHTML(address0.postalCode, true));
+      assert.include(container.innerHTML,
+                    utils.text.escapeHTML(address0.streetAddress, true));
+      assert.include(container.innerHTML,
+                    utils.text.escapeHTML(address1.countryName, true));
+      assert.include(container.innerHTML,
+                    utils.text.escapeHTML(address1.locality, true));
+      assert.include(container.innerHTML,
+                    utils.text.escapeHTML(address1.postalCode, true));
+      assert.include(container.innerHTML,
+                    utils.text.escapeHTML(address1.streetAddress, true));
       var toCheck = container.innerHTML;
       assert.equal(-1, toCheck.indexOf('address-details-template-2'));
     });
@@ -460,7 +473,8 @@ suite('Render contact', function() {
     test('with 1 note', function() {
       subject.render(null, TAG_OPTIONS);
       assert.include(container.innerHTML, 'note-details-template-0');
-      assert.include(container.innerHTML, utils.text.escapeHTML(mockContact.note[0], true));
+      assert.include(container.innerHTML,
+                    utils.text.escapeHTML(mockContact.note[0], true));
     });
 
     test('with no notes', function() {
@@ -490,8 +504,10 @@ suite('Render contact', function() {
       subject.render(null, TAG_OPTIONS);
       assert.include(container.innerHTML, 'note-details-template-0');
       assert.include(container.innerHTML, 'note-details-template-1');
-      assert.include(container.innerHTML, utils.text.escapeHTML(contactMultNote.note[0], true));
-      assert.include(container.innerHTML, utils.text.escapeHTML(contactMultNote.note[1], true));
+      assert.include(container.innerHTML,
+                    utils.text.escapeHTML(contactMultNote.note[0], true));
+      assert.include(container.innerHTML,
+                    utils.text.escapeHTML(contactMultNote.note[1], true));
       assert.equal(-1, container.innerHTML.indexOf('note-details-template-2'));
     });
   });

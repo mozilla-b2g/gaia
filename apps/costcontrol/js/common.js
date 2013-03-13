@@ -166,7 +166,7 @@ function resetData() {
       if (data[0].txBytes) {
         currentWifiUsage += data[0].txBytes;
       }
-      ConfigManager.setOption({ wifiFixing: currentWifiUsage });
+      asyncStorage.setItem('wifiFixing', currentWifiUsage);
     };
 
   });
@@ -211,8 +211,8 @@ function formatTimeHTML(timestampA, timestampB) {
   }
 
   // Interval
-  return '<time>' + formatTime(timestampA) + '</time> – ' +
-         '<time>' + formatTime(timestampB) + '</time>';
+  return '<time>' + formatTime(timestampA, _('short-date-format')) + '</time>' +
+         ' – <time>' + formatTime(timestampB) + '</time>';
 }
 
 function localizeWeekdaySelector(selector) {

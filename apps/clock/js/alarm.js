@@ -875,7 +875,7 @@ var AlarmEditView = {
       id: '', // for Alarm APP indexedDB id
       normalAlarmId: '', // for request AlarmAPI id (once, repeat)
       snoozeAlarmId: '', // for request AlarmAPI id (snooze)
-      label: 'Alarm',
+      label: '',
       hour: now.getHours(), // use current hour
       minute: now.getMinutes(), // use current minute
       enabled: true,

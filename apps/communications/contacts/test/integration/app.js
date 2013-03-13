@@ -61,38 +61,15 @@ ContactsIntegration.prototype = {
     }, callback);
   },
 
-  waitForElementsLengthEqual: function(element, selector, expectedNum, callback) {
+  waitForElementsLengthEqual: function(element,
+                                       selector,
+                                       expectedNum,
+                                       callback) {
     this.task(function(app, next, done) {
       var elements = yield element.findElements(selector);
 
       var isEqual = (elements.length === expectedNum);
       done(null, isEqual);
     }, callback);
-  },
-
-  observeRendering: function() {
-    var self = this;
-
-    this.task(function (app, next, done) {
-      yield IntegrationHelper.importScript(
-        app.device,
-        'apps/communications/contacts/test/atoms/contacts_rendering_performance.js',
-        next
-      );
-
-      yield app.device.executeAsyncScript(
-        'window.wrappedJSObject.ContactsRenderingPerformance.register();'
-      );
-
-      var results = yield app.device.executeAsyncScript(
-        'window.wrappedJSObject.ContactsRenderingPerformance.waitForResults();'
-      );
-
-      yield app.device.executeAsyncScript(
-        'window.wrappedJSObject.ContactsRenderingPerformance.unregister();'
-      );
-
-      done(null, results);
-    });
   }
 };

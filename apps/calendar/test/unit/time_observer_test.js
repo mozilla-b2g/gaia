@@ -1,7 +1,5 @@
-requireApp('calendar/test/unit/helper.js', function() {
-  requireLib('timespan.js');
-  requireLib('time_observer.js');
-});
+requireLib('timespan.js');
+requireLib('time_observer.js');
 
 suite('time_observer', function() {
 

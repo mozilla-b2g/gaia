@@ -452,7 +452,8 @@ suite('system/Updatable', function() {
         });
 
         test('should reset SystemUpdatable.KNOWN_UPDATE_FLAG', function() {
-          assert.isUndefined(asyncStorage.mItems[SystemUpdatable.KNOWN_UPDATE_FLAG]);
+          assert.isUndefined(
+            asyncStorage.mItems[SystemUpdatable.KNOWN_UPDATE_FLAG]);
         });
 
         testSystemApplyPrompt();
@@ -469,7 +470,8 @@ suite('system/Updatable', function() {
         });
 
         test('should reset SystemUpdatable.KNOWN_UPDATE_FLAG', function() {
-          assert.isUndefined(asyncStorage.mItems[SystemUpdatable.KNOWN_UPDATE_FLAG]);
+          assert.isUndefined(
+            asyncStorage.mItems[SystemUpdatable.KNOWN_UPDATE_FLAG]);
         });
 
         testSystemApplyPrompt();
@@ -558,8 +560,10 @@ suite('system/Updatable', function() {
           test('shouldn\'t signal "started uncompressing"', function() {
             assert.isFalse(MockUpdateManager.mStartedUncompressingCalled);
           });
-          test('should not reset SystemUpdatable.KNOWN_UPDATE_FLAG', function() {
-            assert.isTrue(asyncStorage.mItems[SystemUpdatable.KNOWN_UPDATE_FLAG]);
+          test('should not reset SystemUpdatable.KNOWN_UPDATE_FLAG',
+              function() {
+            assert.isTrue(
+              asyncStorage.mItems[SystemUpdatable.KNOWN_UPDATE_FLAG]);
           });
         });
 
@@ -580,14 +584,45 @@ suite('system/Updatable', function() {
           test('should signal the UpdateManager', function() {
             assert.isTrue(MockUpdateManager.mStartedUncompressingCalled);
           });
-          test('should not reset SystemUpdatable.KNOWN_UPDATE_FLAG', function() {
-            assert.isTrue(asyncStorage.mItems[SystemUpdatable.KNOWN_UPDATE_FLAG]);
+          test('should not reset SystemUpdatable.KNOWN_UPDATE_FLAG',
+              function() {
+            assert.isTrue(
+              asyncStorage.mItems[SystemUpdatable.KNOWN_UPDATE_FLAG]);
+          });
+        });
+
+        suite('when an error occurs', function() {
+          setup(function() {
+            MockUpdateManager.mTeardown();
+            subject = new SystemUpdatable(98734);
+            subject._dispatchEvent =
+              function errorDuringDispatch(type, result) {
+                fakeDispatchEvent.call(subject, type, result);
+                subject.handleEvent(new MockChromeEvent({
+                  type: 'update-error'
+                }));
+              };
+            subject.download();
+            subject._dispatchEvent = fakeDispatchEvent;
+          });
+
+          test('should request error banner', function() {
+            assert.isTrue(MockUpdateManager.mErrorBannerRequested);
+          });
+
+          test('should remove self from active downloads', function() {
+            assert.isNotNull(MockUpdateManager.mLastDownloadsRemoval);
+            assert.equal(subject, MockUpdateManager.mLastDownloadsRemoval);
+            assert.equal(MockUpdateManager.mDownloads.length, 0);
+          });
+
+          test('should remove the downloading flag', function() {
+            assert.isFalse(subject.downloading);
           });
         });
       });
     });
   });
-
 
   function testSystemApplyPrompt() {
     test('apply prompt shown', function() {
@@ -619,6 +654,7 @@ suite('system/Updatable', function() {
 
       assert.isNotNull(MockUpdateManager.mLastDownloadsRemoval);
       assert.equal(subject, MockUpdateManager.mLastDownloadsRemoval);
+      assert.equal(MockUpdateManager.mDownloads.length, 0);
     });
 
     test('apply prompt confirm callback', function() {

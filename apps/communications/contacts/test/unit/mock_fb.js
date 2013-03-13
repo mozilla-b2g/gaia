@@ -1,5 +1,7 @@
 'use strict';
 
+var FB_ID = 220439;
+
 var MockFb = {
   fbContact: false,
   fbLinked: false,
@@ -28,10 +30,43 @@ MockFb.setIsEnabled = function(isEnabled) {
   this.isEnabled = isEnabled;
 };
 
+MockFb.contacts = function() {
+  var getAll = function getAll() {
+    return {
+      set onsuccess(callback) {
+        // Fetch FB data, that is returning a contact info
+        this.result = {};
+        this.result[FB_ID] = new MockContactAllFields();
+        var deviceContact = this.result[FB_ID];
+        this.result[FB_ID].id = '567';
+        this.result[FB_ID].familyName = ['Taylor'];
+        this.result[FB_ID].givenName = ['Bret'];
+        this.result[FB_ID].name = [this.result[FB_ID].givenName + ' ' +
+                              this.result[FB_ID].familyName];
+        this.result[FB_ID].org[0] = 'FB';
+        this.result[FB_ID].adr[0] = MockFb.getAddress();
+
+        callback.call(this);
+      },
+      set onerror(callback) {
+
+      }
+    };
+  };
+
+  return {
+    'getAll': getAll
+  };
+
+}();
+
 MockFb.Contact = function(devContact, mozCid) {
   var deviceContact = devContact;
   var cid = mozCid;
   var contactData;
+
+  if (devContact)
+    setFacebookUid(FB_ID);
 
   function markAsFb(deviceContact) {
     if (!deviceContact.category) {
@@ -103,7 +138,7 @@ MockFb.Contact = function(devContact, mozCid) {
         // Fetch FB data, that is returning a contact info
         this.result = new MockContactAllFields();
         deviceContact = this.result;
-        setFacebookUid('220439');
+        setFacebookUid(FB_ID);
         this.result.id = '567';
         this.result.familyName = ['Taylor'];
         this.result.givenName = ['Bret'];
@@ -118,11 +153,11 @@ MockFb.Contact = function(devContact, mozCid) {
 
       }
     };
-  }
+  };
 
   this.setData = function(data) {
     contactData = data;
-  }
+  };
 
   this.save = function() {
     return {
@@ -134,7 +169,19 @@ MockFb.Contact = function(devContact, mozCid) {
 
       }
     };
-  }
+  };
+
+  this.merge = function(deviceContact) {
+    deviceContact.id = '567';
+    deviceContact.familyName = ['Taylor'];
+    deviceContact.givenName = ['Bret'];
+    deviceContact.name = [deviceContact.givenName + ' ' +
+                          deviceContact.familyName];
+    deviceContact.org[0] = 'FB';
+    deviceContact.adr[0] = MockFb.getAddress();
+
+    return deviceContact;
+  };
 
   this.getDataAndValues = function getDataAndValues() {
     return {
@@ -157,11 +204,11 @@ MockFb.Contact = function(devContact, mozCid) {
 
       }
     };
-  }
+  };
 
   this.promoteToLinked = function promoteToLinked() {
 
-  }
+  };
 
   Object.defineProperty(this, 'uid', {
     get: getFacebookUid,

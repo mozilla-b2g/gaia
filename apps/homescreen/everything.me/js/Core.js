@@ -45,15 +45,13 @@ window.Evme = new function Evme_Core() {
 
     this.onShow = function onShow() {
         document.body.classList.add('evme-displayed');
-
-        Evme.Shortcuts.refreshScroll();
-        Evme.Helper.refreshScroll();
     };
     this.onHide = function onHide() {
         document.body.classList.remove('evme-displayed');
 
         Evme.Brain.Shortcuts.doneEdit();
         Evme.Brain.SmartFolder.closeCurrent();
+        Evme.Shortcuts.scrollTo(0,0);
     };
 
     this.onHideStart = function onHideStart(source) {

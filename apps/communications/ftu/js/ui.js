@@ -192,7 +192,7 @@ var UIManager = {
     // Initialize the timezone selector, see /shared/js/tz_select.js
     var tzRegion = document.getElementById('tz-region');
     var tzCity = document.getElementById('tz-city');
-    tzSelect(tzRegion, tzCity, this.setTimeZone);
+    tzSelect(tzRegion, tzCity, this.setTimeZone, this.setTimeZone);
   },
 
   fakeInputValues: function ui_fakeInputValues(event) {
@@ -234,10 +234,10 @@ var UIManager = {
         break;
       // WIFI
       case 'wifi-refresh-button':
-        WifiManager.scan(UIManager.renderNetworks);
+        WifiManager.scan(WifiUI.renderNetworks);
         break;
       case 'wifi-join-button':
-        this.joinNetwork();
+        WifiUI.joinNetwork();
         break;
       // Date & Time
       case 'time-configuration':
@@ -252,8 +252,8 @@ var UIManager = {
         break;
       default:
         // wifi selection
-        if (event.target.parentNode.id == 'networks') {
-          this.chooseNetwork(event);
+        if (event.target.parentNode.id === 'networks-list') {
+          WifiUI.chooseNetwork(event);
         }
         break;
     }
@@ -276,27 +276,6 @@ var UIManager = {
 
   onOfflineDialogButtonClick: function ui_onOfflineDialogButtonClick(e) {
     this.offlineErrorDialog.classList.remove('visible');
-  },
-
-  joinNetwork: function ui_jn() {
-    var password = document.getElementById('wifi_password').value;
-    if (password == '') {
-      // TODO Check with UX if this error is needed
-      return;
-    }
-    var user = document.getElementById('wifi_user').value;
-    var ssid = document.getElementById('wifi_ssid').value;
-    if (WifiManager.isUserMandatory(ssid)) {
-      if (user == '') {
-        // TODO Check with UX if this error is needed
-        return;
-      }
-      WifiManager.connect(ssid, password, user);
-      window.history.back();
-    } else {
-      WifiManager.connect(ssid, password);
-      window.history.back();
-    }
   },
 
   setDate: function ui_sd() {
@@ -325,7 +304,7 @@ var UIManager = {
     var now = new Date();
     // Format: 2012-09-01
     var currentTime = document.getElementById('time-configuration').value;
-    if (currentTime.indexOf(':') == 1) {  // Format: 8:05 --> 08:05
+    if (currentTime.indexOf(':') === 1) {  // Format: 8:05 --> 08:05
       currentTime = '0' + currentTime;
     }
     var currentDate = now.toLocaleFormat('%Y-%m-%d');
@@ -353,132 +332,10 @@ var UIManager = {
     timeLabel.innerHTML = f.localeFormat(now, _('shortTimeFormat'));
   },
 
-  chooseNetwork: function ui_cn(event) {
-    // Retrieve SSID from dataset
-    var ssid = event.target.dataset.ssid;
-
-    // Do we need to type password?
-    if (!WifiManager.isPasswordMandatory(ssid)) {
-      WifiManager.connect(ssid);
-      return;
-    }
-
-    // Remove refresh option
-    UIManager.activationScreen.classList.add('no-options');
-    // Update title
-    UIManager.mainTitle.innerHTML = ssid;
-
-    // Update network
-    var selectedNetwork = WifiManager.getNetwork(ssid);
-    var ssidHeader = document.getElementById('wifi_ssid');
-    var userLabel = document.getElementById('label_wifi_user');
-    var userInput = document.getElementById('wifi_user');
-    var passwordInput = document.getElementById('wifi_password');
-    var showPassword = document.querySelector('input[name=show_password]');
-
-    // Show / Hide password
-    passwordInput.type = 'password';
-    passwordInput.value = '';
-    showPassword.checked = false;
-    showPassword.onchange = function() {
-      passwordInput.type = this.checked ? 'text' : 'password';
-    };
-
-    // Update form
-    passwordInput.value = '';
-    ssidHeader.value = ssid;
-
-    // Render form taking into account the type of network
-    UIManager.renderNetworkConfiguration(selectedNetwork, function() {
-      // Activate secondary menu
-      UIManager.navBar.classList.add('secondary-menu');
-      // Update changes in form
-      if (WifiManager.isUserMandatory(ssid)) {
-        userLabel.classList.remove('hidden');
-        userInput.classList.remove('hidden');
-      } else {
-        userLabel.classList.add('hidden');
-        userInput.classList.add('hidden');
-      }
-
-      // Change hash
-      window.location.hash = '#configure_network';
-    });
-  },
-
-  renderNetworks: function ui_rn(networks) {
-    var networksDOM = document.getElementById('networks');
-    networksDOM.innerHTML = '';
-    var networksShown = [];
-    networks.sort(function(a, b) {
-      return b.relSignalStrength - a.relSignalStrength;
-    });
-
-
-    // Add detected networks
-    for (var i = 0; i < networks.length; i++) {
-      // Retrieve the network
-      var network = networks[i];
-      // Check if is shown
-      if (networksShown.indexOf(network.ssid) == -1) {
-        // Create dom elements
-        var li = document.createElement('li');
-        var icon = document.createElement('aside');
-        var ssidp = document.createElement('p');
-        var small = document.createElement('p');
-        // Set Icon
-        icon.classList.add('pack-end');
-        icon.classList.add('icon');
-        var level = Math.min(Math.floor(network.relSignalStrength / 20), 4);
-        icon.classList.add('wifi-signal' + level);
-        // Set SSID
-        ssidp.textContent = network.ssid;
-        li.dataset.ssid = network.ssid;
-        // Show authentication method
-        var keys = network.capabilities;
-        if (WifiManager.isConnectedTo(network)) {
-          small.textContent = _('shortStatus-connected');
-        } else {
-          if (keys && keys.length) {
-            small.textContent = keys.join(', ');
-          } else {
-            small.textContent = _('securityOpen');
-          }
-        }
-        // Update list of shown netwoks
-        networksShown.push(network.ssid);
-        // Append the elements to li
-        li.setAttribute('id', network.ssid);
-        li.appendChild(icon);
-        li.appendChild(ssidp);
-        li.appendChild(small);
-        // Append to DOM
-        if (WifiManager.isConnectedTo(network)) {
-          networksDOM.insertBefore(li, networksDOM.firstChild);
-        } else {
-          networksDOM.appendChild(li);
-        }
-      }
-    }
-  },
-
-  renderNetworkConfiguration: function uim_rnc(ssid, callback) {
-    if (callback) {
-      callback();
-    }
-  },
-
-  updateNetworkStatus: function uim_uns(ssid, status) {
-    if (!document.getElementById(ssid))
-      return;
-
-    document.getElementById(ssid).
-      querySelector('p:last-child').innerHTML = _('shortStatus-' + status);
-  },
-
-  updateDataConnectionStatus: function uim_udcs(status) {
+  updateDataConnectionStatus: function ui_udcs(status) {
     this.dataConnectionSwitch.checked = status;
   }
+
 };
 
 function toCamelCase(str) {

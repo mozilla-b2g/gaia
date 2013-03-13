@@ -5,13 +5,17 @@
     <meta http-equiv="pragma" content="no-cache">
     <title>USSD</title>
     <!-- Localization -->
+    <script defer src="/shared/js/lazy_loader.js"></script>
     <script defer type="application/javascript" src="/dialer/js/lazy_l10n.js"></script>
     <link rel="resource" type="application/l10n" href="/dialer/locales/locales.ini">
     <!-- Building blocks -->
     <link rel="stylesheet" type="text/css" href="/shared/style/headers.css">
     <link rel="stylesheet" type="text/css" href="/shared/style/input_areas.css">
-    <link rel="stylesheet" type="text/css" href="/dialer/style/bb/progress_activity/style.css">
+    <link rel="stylesheet" type="text/css" href="/shared/style_unstable/progress_activity.css">
+    <link rel="stylesheet" type="text/css" href="/shared/style/confirm.css">
     <!-- Specific styles -->
+    <link rel="stylesheet" type="text/css" href="/contacts/style/transitions.css">
+    <link rel="stylesheet" type="text/css" href="/contacts/style/animations.css">
     <link rel="stylesheet" type="text/css" href="/dialer/style/ussd.css">
     <!-- Making sure the shared resources will be copy into the zip
     <script type="application/javascript" src="/shared/js/l10n.js"></script>
@@ -19,7 +23,7 @@
     <!-- Specific code -->
     <script type="application/javascript" src="/dialer/js/ussd_ui.js"></script>
   </head>
-  <body role="application" class="loading">
+  <body role="application">
     <article id="message-screen" role="region">
       <section role="region">
         <header>
@@ -41,15 +45,16 @@
         </p>
       </form>
     </article>
-    <article id="loading-overlay">
-      <section class="loading-container">
-        <header class="loading-header" data-l10n-id="sending">
-          Sending...
-        </header>
-        <div class="progress-container">
-          <progress class="small"></progress>
-        </div>
+    <form data-type="confirm" role="dialog" id="loading-overlay">
+      <section>
+        <h1 data-l10n-id="sending">Sending</h1>
+        <p role="status">
+          <progress class="pack-activity" value="0" max="100"></progress>
+        </p>
       </section>
-    </article>
+      <menu>
+        <button class="full" id="cancel">Cancel</button>
+      </menu>
+    </form>
   </body>
 </html>

@@ -14,7 +14,7 @@ suite('dialer/ussd', function() {
     UssdManager._ = function get(key, params) {
       keys[key] = params;
       return key;
-    }
+    };
     UssdManager.ready = true;
   });
 
@@ -154,7 +154,7 @@ suite('dialer/ussd', function() {
     });
   });
 
-  suite('Cancel ussd via UI', function() {
+  suite('Close USSD window via UI', function() {
     setup(function() {
       UssdManager._popup.closeWindow();
     });
@@ -163,6 +163,17 @@ suite('dialer/ussd', function() {
       assert.isNull(UssdManager._popup);
     });
 
+  });
+
+  suite('Cancel USSD being sent via UI', function() {
+    setup(function() {
+      UssdManager._popup = MockUssdUI;
+      UssdManager._popup.cancel();
+    });
+
+    test('Check USSD UI closed', function() {
+      assert.isNull(UssdManager._popup);
+    });
   });
 
   suite('Call forwarding request via MMI. Active voice', function() {

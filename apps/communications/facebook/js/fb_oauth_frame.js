@@ -1,12 +1,11 @@
 'use strict';
 
-var fb = window.fb || {};
-
-if (typeof fb.oauthFrame === 'undefined') {
+if (typeof window.oauthFrame === 'undefined') {
   (function() {
 
-    var oauthFrame = fb.oauthFrame = {};
-    var contactsAppOrigin = fb.oauthflow.params.contactsAppOrigin;
+    var targetService;
+    var oauthFrame = window.oauthFrame = {};
+    var oauthParams = oauthflow.params;
 
     function cancelCb() {
       Curtain.hide();
@@ -14,11 +13,12 @@ if (typeof fb.oauthFrame === 'undefined') {
       parent.postMessage({
         type: 'abort',
         data: ''
-      }, contactsAppOrigin);
+      }, oauthParams[targetService].appOrigin);
     }
 
-    oauthFrame.start = function(from) {
-      fb.oauth.getAccessToken(function tokenReady(access_token) {
+    oauthFrame.start = function(from, service) {
+      targetService = service;
+      oauth2.getAccessToken(function tokenReady(access_token) {
         Curtain.oncancel = cancelCb;
 
         if (!Curtain.visible) {
@@ -28,15 +28,15 @@ if (typeof fb.oauthFrame === 'undefined') {
         parent.postMessage({
           type: 'authenticated',
           data: access_token
-        }, contactsAppOrigin);
-      }, from);
-    }
+        }, oauthParams[service].appOrigin);
+      }, from, service);
+    };
 
     window.addEventListener('message', function messageHandler(e) {
       var data = e.data;
 
       if (data && data.type === 'start') {
-        oauthFrame.start(data.data.from);
+        oauthFrame.start(data.data.from, data.data.service);
       }
     });
   })();

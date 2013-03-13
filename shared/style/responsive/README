@@ -1,0 +1,3 @@
+This file is needed in order to track the directory.
+We need it to don't break build/application-zip.js, as it expects to find any filename.css and a directory with the same name.
+I.E: responsive.css, /shared/style/responsive/

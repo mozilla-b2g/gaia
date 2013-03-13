@@ -1,17 +1,18 @@
-requireApp('calendar/test/unit/helper.js', function() {
-  requireLib('responder.js');
-  requireLib('db.js');
-  requireLib('store/abstract.js');
-  requireLib('models/account.js');
-  requireApp('calendar/test/unit/helper.js');
-});
+requireLib('responder.js');
+requireLib('db.js');
+requireLib('store/abstract.js');
+requireLib('models/account.js');
+requireApp('calendar/test/unit/helper.js');
 
 suite('store/abstract', function() {
 
-  var subject, db;
+  var subject;
+  var db;
+  var app;
 
   setup(function(done) {
-    db = testSupport.calendar.db();
+    app = testSupport.calendar.app();
+    db = app.db;
     subject = new Calendar.Store.Abstract(db);
 
     // set _store to accounts so we can actually
@@ -314,13 +315,13 @@ suite('store/abstract', function() {
     });
   });
 
-  suite('#load', function() {
+  suite('#all', function() {
     var ids = [];
     var all;
     var result;
     var eventFired;
 
-    suiteSetup(function() {
+    setup(function() {
       ids.length = 0;
     });
 
@@ -337,53 +338,80 @@ suite('store/abstract', function() {
     add();
     add();
 
-    setup(function(done) {
-      eventFired = null;
-      subject.once('load', function(data) {
-        eventFired = data;
-      });
+    test('multiple all calls in parallel', function(done) {
+      var expected = 3;
+      var pending = expected;
+      var results = [];
 
-      // wipe out _cached beforehand
-      // so not to confuse add's caching
-      // with alls
-      subject._cached = {};
-      subject.load(function(err, data) {
+      function complete() {
+        assert.length(results, expected);
+
+        var idx = 1;
+
+        for (; idx < expected; idx++) {
+          for (var key in results[idx]) {
+            assert.equal(
+              results[0][key],
+              results[idx][key],
+              'objects are equal: ' + key
+            );
+          }
+        }
+      }
+
+      function next(err, list) {
         if (err) {
           return done(err);
         }
+
+        var obj = Object.create(null);
+
+        for (var key in list) {
+          obj[key] = list[key];
+        }
+
+        results.push(obj);
+
+        if (!--pending) {
+          done(complete);
+        }
+      }
+
+      // load in parallel
+      subject.all(next);
+      subject.all(next);
+      subject.all(next);
+    });
+
+    test('results', function(done) {
+      var result;
+
+      function verify() {
+        var keys = Object.keys(result);
+        var key;
+
+        assert.deepEqual(
+          keys.sort(),
+          ids.sort()
+        );
+
+        for (key in result) {
+          var obj = result[key];
+
+          assert.ok(subject._cached[key]);
+          assert.ok(obj._id);
+          assert.equal(obj.providerType, 'Local');
+        }
+      }
+
+      subject.all(function(err, data) {
+        if (err)
+          done(err);
+
         result = data;
-        // HACK - required
-        // so the state of this test
-        // actually is in the next tick.
-        setTimeout(function() {
-          done();
-        }, 0);
+        done(verify);
       });
     });
-
-    test('result', function() {
-      var keys = Object.keys(result);
-      var key;
-
-      assert.deepEqual(
-        keys.sort(),
-        ids.sort()
-      );
-
-      assert.equal(eventFired, subject._cached);
-
-      for (key in result) {
-        var obj = result[key];
-
-        assert.ok(subject._cached[key]);
-        assert.ok(obj._id);
-        assert.equal(obj.providerType, 'Local');
-      }
-    });
-  });
-
-  test('#cached', function() {
-    assert.equal(subject.cached, subject._cached);
   });
 
   suite('#_objectData', function() {

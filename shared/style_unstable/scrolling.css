@@ -56,7 +56,7 @@ nav[data-type="scrollbar"] li .pack-icon-favorites {
   height: 1.2rem;
   font-size: 0;
   vertical-align: middle;
-  background: transparent no-repeat center center;
+  background: transparent no-repeat center center / 100% auto;
 }
 nav[data-type="scrollbar"] li span:not([hidden]) {
   display: inline-block;

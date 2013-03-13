@@ -17,6 +17,7 @@
     <link href="/contacts/style/search.css" rel="stylesheet">
 
     <script defer src="/contacts/js/activities.js"></script>
+    <script defer src="/shared/js/lazy_loader.js"></script>
 
     <script defer type="text/javascript" src="/shared/js/async_storage.js"></script>
 
@@ -29,7 +30,7 @@
     <script defer type="text/javascript" src="/contacts/js/utilities/image_loader.js"></script>
 
     <!-- for perf-measurement related utilities -->
-    <script defer src='/shared/js/performance_helper.js'></script>
+    <script defer src='/shared/js/performance_testing_helper.js'></script>
 
     <link rel="resource" type="application/l10n" href="/contacts/locales/locales.ini"/>
     <link rel="resource" type="application/l10n" href="/shared/locales/date.ini"/>
@@ -40,7 +41,6 @@
 
     <!-- Loading FB indexedDB related stuff -->
     <script defer src="/contacts/js/utilities/config.js"></script>
-    <script defer type="text/javascript" src="/contacts/js/search.js"></script>
     <script defer type="text/javascript" src="/contacts/js/fixed_header.js"></script>
 
   </head>
@@ -488,14 +488,14 @@
                   Update imported friends
                 </button>
                 <p id="renew-pwd-msg" data-l10n-id="renewPwdMsg" class="fb-error"></p>
-                <p id="no-connection" data-l10n-id="noConnection"></p>
+                <p id="no-connection" data-l10n-id="noConnection11"></p>
               </li>
             </ul>
           </section>
         </article>
       </section>
 
-    <form data-type="confirm" id="loading-overlay" role="dialog">
+    <form data-type="confirm" id="loading-overlay" class="hide no-opacity" role="dialog">
       <section id="progress-activity" class="hide">
         <h1 id="progress-title"></h1>
         <p role="status">

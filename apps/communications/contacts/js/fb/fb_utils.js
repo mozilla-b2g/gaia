@@ -13,8 +13,8 @@ if (!fb.utils) {
     var LAST_UPDATED_KEY = Utils.LAST_UPDATED_KEY = 'lastUpdatedTime';
     Utils.ALARM_ID_KEY = 'nextAlarmId';
 
-    var REDIRECT_LOGOUT_URI = fb.oauthflow ?
-      fb.oauthflow.params['redirectLogout'] : '';
+    var REDIRECT_LOGOUT_URI = window.oauthflow ?
+      oauthflow.params.facebook['redirectLogout'] : '';
     var STORAGE_KEY = Utils.TOKEN_DATA_KEY = 'tokenData';
 
       // For controlling data synchronization
@@ -22,7 +22,7 @@ if (!fb.utils) {
       window.asyncStorage.setItem(LAST_UPDATED_KEY, {
         data: value
       }, cb);
-    }
+    };
 
     Utils.getLastUpdate = function(callback) {
       window.asyncStorage.getItem(LAST_UPDATED_KEY, function(obj) {
@@ -34,7 +34,7 @@ if (!fb.utils) {
           callback(out);
         }
       });
-    }
+    };
 
 
     Utils.getContactData = function(cid) {
@@ -53,11 +53,11 @@ if (!fb.utils) {
         else {
           outReq.done(null);
         }
-      }
+      };
 
       req.onerror = function(e) {
         outReq.failed(e.target.error);
-      }
+      };
 
       return outReq;
     };
@@ -120,11 +120,11 @@ if (!fb.utils) {
 
         req.onsuccess = function(e) {
           outReq.done(e.target.result);
-        }
+        };
 
         req.onerror = function(e) {
           outReq.failed(e.target.error);
-        }
+        };
       }, 0);
 
       return outReq;
@@ -140,11 +140,11 @@ if (!fb.utils) {
         req.onsuccess = function() {
           var result = req.result || [];
           outReq.done(Object.keys(result).length);
-        }
+        };
 
         req.onerror = function() {
           outReq.failed(req.error);
-        }
+        };
       }, 0);
 
       return outReq;
@@ -262,23 +262,23 @@ if (!fb.utils) {
             outReq.done(cleaner);
             // The cleaning activity should be starting immediately
             window.setTimeout(cleaner.start, 0);
-          }
+          };
 
           req.onerror = function() {
             window.console.error('FB Clean. Error retrieving FB Contacts');
             outReq.failed(req.error);
-          }
-        }
+          };
+        };
 
         ireq.onerror = function(e) {
           window.console.error('Error while clearing the FB Cache');
           outReq.failed(ireq.error);
-        }
+        };
 
       },0);
 
       return outReq;
-    }
+    };
 
     Utils.logout = function() {
       var outReq = new Utils.Request();
@@ -302,7 +302,7 @@ if (!fb.utils) {
               }
               e.stopImmediatePropagation();
               window.removeEventListener('message', m_listen);
-            }
+            };
 
             window.addEventListener('message', m_listen);
 
@@ -331,18 +331,18 @@ if (!fb.utils) {
                                      xhr.status);
                 outReq.failed(xhr.status.toString());
               }
-            }
+            };
 
             xhr.ontimeout = function(e) {
               window.console.error('FB: Timeout!!! while logging out');
               outReq.failed('Timeout');
-            }
+            };
 
             xhr.onerror = function(e) {
               window.console.error('FB: Error while logging out',
                                   JSON.stringify(e));
               outReq.failed(e.name);
-            }
+            };
 
             xhr.send();
           } // if
@@ -354,7 +354,7 @@ if (!fb.utils) {
 
       return outReq;
 
-    } // logout
+    }; // logout
 
 
     // FbContactsCleaner Object
@@ -377,7 +377,7 @@ if (!fb.utils) {
         else if (typeof self.onsuccess === 'function') {
                 window.setTimeout(self.onsuccess, 0);
         }
-      }
+      };
 
       function successHandler(e) {
         if (notifyClean || typeof self.oncleaned === 'function') {
@@ -427,7 +427,7 @@ if (!fb.utils) {
           req.onsuccess = successHandler;
           req.onerror = function(e) {
             errorHandler(contact.id, e.target.error);
-          }
+          };
         }
       }
 
@@ -445,7 +445,7 @@ if (!fb.utils) {
           }
         }
       } // function
-    } // FbContactsCleaner
+    }; // FbContactsCleaner
 
   })(document);
 

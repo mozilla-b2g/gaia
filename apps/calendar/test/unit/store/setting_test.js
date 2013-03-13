@@ -1,12 +1,9 @@
-requireApp('calendar/test/unit/helper.js', function() {
-  requireLib('db.js');
-  requireLib('models/account.js');
-  requireLib('models/calendar.js');
-  requireLib('store/abstract.js');
-  requireLib('store/setting.js');
-});
+requireLib('models/account.js');
+requireLib('models/calendar.js');
+requireLib('store/abstract.js');
+requireLib('store/setting.js');
 
-suite('store/account', function() {
+suite('store/setting', function() {
 
   var subject;
   var db;
@@ -15,7 +12,7 @@ suite('store/account', function() {
   setup(function(done) {
     this.timeout(5000);
     app = testSupport.calendar.app();
-    db = testSupport.calendar.db();
+    db = app.db;
     subject = db.getStore('Setting');
 
     db.open(function(err) {
@@ -61,11 +58,10 @@ suite('store/account', function() {
       subject.set(name, 'first', done);
     });
 
-    test('initial set', function(done) {
+    test('persistence', function(done) {
       get(name, function(record) {
         done(function() {
           assert.equal(record.value, 'first', 'has correct value');
-          assert.deepEqual(subject.cached[name], record, 'caches record');
           assert.instanceOf(record.createdAt, Date, 'updatedAt');
           assert.instanceOf(record.updatedAt, Date, 'createdAt');
           assert.deepEqual(
@@ -78,24 +74,43 @@ suite('store/account', function() {
     });
   });
 
-  suite('#syncFrequency', function() {
-
-    test('with persisted value', function(done) {
-      subject.set('syncFrequency', 27, function() {
+  suite('#getValue', function() {
+    test('with a default', function(done) {
+      subject.getValue('syncFrequency', function(err, value) {
         done(function() {
-          assert.equal(subject.syncFrequency, 27, 'post-persist');
+          assert.equal(value, subject.defaults.syncFrequency);
+          assert.ok(value);
         });
       });
-
-      // yes verifying it is updated instantly
-      assert.equal(subject.syncFrequency, 27, 'pre-persist');
     });
 
-    test('without persisted value', function() {
-      assert.equal(
-        subject.syncFrequency,
-        subject.defaults.syncFrequency
-      );
+    test('with a zero default', function(done) {
+      subject.defaults.someZeroDefault = 0;
+      subject.getValue('someZeroDefault', function(err, value) {
+        done(function() {
+          assert.equal(value, subject.defaults.someZeroDefault);
+          assert.equal(value, 0);
+        });
+      });
+    });
+
+    suite('with value', function() {
+
+      setup(function(done) {
+        subject.set('syncFrequency', 200, done);
+      });
+
+      test('after set', function(done) {
+        subject.getValue('syncFrequency', function(err, value) {
+          // test cached version
+          subject.getValue('syncFrequency', function(err, cachedValue) {
+            done(function() {
+              assert.equal(value, 200, 'returns correct value');
+              assert.equal(value, cachedValue, 'cached value is equal');
+            });
+          });
+        });
+      });
     });
   });
 

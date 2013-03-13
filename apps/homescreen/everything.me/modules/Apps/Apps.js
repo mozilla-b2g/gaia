@@ -9,9 +9,9 @@ Evme.Apps = new function Evme_Apps() {
         fadeBy = 0, showingFullScreen = false,
         timeoutAppsToDrawLater = null,
         
+        SCROLL_BOTTOM_THRESHOLD = 5,
         APP_HEIGHT = "FROM CONFIG",
         DEFAULT_SCREEN_WIDTH = "FROM CONFIG",
-        SCROLL_TO_BOTTOM = "CALCULATED",
         MAX_SCROLL_FADE = 200,
         FULLSCREEN_THRESHOLD = 0.8,
         MAX_APPS_CLASSES = 150,
@@ -22,6 +22,11 @@ Evme.Apps = new function Evme_Apps() {
         TIMEOUT_BEFORE_REPORTING_APP_HOLD = 800,
         ftr = {};
         
+    this.APPS_SHADOW_OFFSET = 2 * Evme.Utils.devicePixelRatio;
+    this.APPS_SHADOW_BLUR = 2 * Evme.Utils.devicePixelRatio;
+    this.APPS_TEXT_HEIGHT = Evme.Utils.APPS_FONT_SIZE * 3;
+    this.APPS_TEXT_WIDTH = 72 * Evme.Utils.devicePixelRatio;
+    this.APPS_TEXT_MARGIN = 6 * Evme.Utils.devicePixelRatio;
 
     this.init = function init(options) {
         !options && (options = {});
@@ -55,12 +60,11 @@ Evme.Apps = new function Evme_Apps() {
         } 
        
         scroll = new Scroll(el, {
-            "hScroll": false,
-            "checkDOMChanges": false,
-            "onScrollStart": scrollStart,
-            "onScrollMove": scrollMove,
-            "onTouchEnd": scrollEnd
-        }, hasFixedPositioning);
+            "onTouchStart": touchStart,
+            "onTouchMove": touchMove,
+            "onTouchEnd": touchEnd,
+            "onScrollMove": scrollMove
+        });
         
         self.calcAppsPositions();
         
@@ -132,12 +136,6 @@ Evme.Apps = new function Evme_Apps() {
         self.scrollToStart();
         
         return true;
-    };
-    
-    this.refreshScroll = function refreshScroll() {
-        SCROLL_TO_BOTTOM = el.offsetHeight - elList.offsetHeight;
-        
-        scroll.refresh();
     };
     
     this.scrollToStart = function scrollToStart() {
@@ -237,8 +235,6 @@ Evme.Apps = new function Evme_Apps() {
             elStyle = Evme.$create('style', {'type': "text/css"}, rules);
         
         Evme.Utils.getContainer().appendChild(elStyle);
-        
-        self.refreshScroll();
     };
     
     this.hasSpaceForMoreButton = function hasSpaceForMoreButton(height){
@@ -282,7 +278,7 @@ Evme.Apps = new function Evme_Apps() {
         return 0;
     }
     
-    function scrollStart(e) {
+    function touchStart(e) {
         shouldFadeBG = (scroll.y === 0 && numberOfApps > 0);
         fadeBy = 0;
         reportedScrollMove = false;
@@ -290,11 +286,15 @@ Evme.Apps = new function Evme_Apps() {
     
     function scrollMove(e) {
         var y = scroll.y;
-        
-        if (!reportedScrollMove && y == SCROLL_TO_BOTTOM) {
+        if (!reportedScrollMove && scroll.maxY - y <= SCROLL_BOTTOM_THRESHOLD) {
             reportedScrollMove = true;
             cbScrolledToEnd();
-        } else if (shouldFadeBG) {
+        }
+    }
+    
+    function touchMove(e) {
+        var y = scroll.y;
+        if (shouldFadeBG) {
             var _fadeBy = scroll.distY/MAX_SCROLL_FADE;
             
             if (_fadeBy < fadeBy) {
@@ -309,7 +309,7 @@ Evme.Apps = new function Evme_Apps() {
         }
     }
     
-    function scrollEnd(data) {
+    function touchEnd(data) {
         if (shouldFadeBG && scroll.distY >= FULLSCREEN_THRESHOLD*MAX_SCROLL_FADE) {
             showingFullScreen = true;
             cbScrolledToTop();
@@ -338,8 +338,6 @@ Evme.Apps = new function Evme_Apps() {
             "elList": elList,
             "onDone": function onDone(appsList) {
                 self.setAppsClasses();
-                
-                self.refreshScroll();
                 
                 for (var i=0; i<appsList.length; i++) {
                     appsArray[appsList[i].getId()] = appsList[i];
@@ -543,55 +541,179 @@ Evme.IconManager = new function Evme_IconManager() {
 };
 
 Evme.IconGroup = new function Evme_IconGroup() {
-    this.get = function get(ids, callback) {
-        var iconIcons = Evme.Utils.getIconGroup(),
-            needToLoad = iconIcons.length,
-            useShadows = true;
-            
-        var el = document.createElement("div");
-            el.className = "apps-group";
-        
-        var html = '';
-        for (var i=0; i<iconIcons.length; i++) {
-            var app = ids[ids.length-1-i],
-                icon = iconIcons[i],
-                y = icon.y,
-                x = icon.x,
-                size = icon.size;
-                
-            if (typeof app != "object") {
-                app = {
-                    "id": app,
-                };
-            }
-            
-            if (!app.icon) {
-                app.icon = Evme.IconManager.get(app.id);
-            }
-            
-            app.icon = Evme.Utils.formatImageData(app.icon);
-            
-            var missingIcon = '';
-            if (!app.icon) {
-                missingIcon = 'iconToGet="' + app.id + '"';
-            }
-            
-            html += '<span ' + missingIcon + ' style="' +
-                        ' top: ' + y + 'px;' +
-                        ' left: ' + x + 'px;' +
-                        ' border-radius: ' + size/2 + 'px;' +
-                        (app.icon? ' background-image: url(' + app.icon + ');' : '') +
-                        ' width: ' + size + 'px;' +
-                        ' height: ' + size + 'px;' +
-                        (icon.rotate ? ' ' + Evme.Utils.cssPrefix() + 'transform: rotate(' + icon.rotate + 'deg);' : '') +
-                        (((icon.shadowOffset || icon.shadowBlur) && useShadows)? ' box-shadow: ' + (icon.shadowOffsetX || "0") + 'px ' + (icon.shadowOffset || "0") + 'px ' + (icon.shadowBlur || "0") + 'px 0 rgba(0, 0, 0, ' + icon.shadowOpacity + ');' : '') +
-                        '"></span>';
-        }
-        
-        el.innerHTML = html;
-        
-        return el;
+  var ICON_HEIGHT = 42 * Evme.Utils.devicePixelRatio,
+      TEXT_HEIGHT = Evme.Utils.APPS_FONT_SIZE * 3,
+      TEXT_MARGIN = 9 * Evme.Utils.devicePixelRatio,
+      WIDTH = 72 * Evme.Utils.devicePixelRatio,
+      HEIGHT = ICON_HEIGHT + TEXT_MARGIN + TEXT_HEIGHT;
+  
+  this.get = function get(ids, query) {
+      var el = renderCanvas({
+        "apps": ids || [],
+        "icons": Evme.Utils.getIconGroup() || [],
+        "query": query
+      });
+
+      return el;
+  };
+
+  function renderCanvas(options) {
+      var apps = options.apps,
+          icons = options.icons,
+          query = options.query,
+          elCanvas = document.createElement('canvas'),
+          context = elCanvas.getContext('2d');
+
+      elCanvas.width = WIDTH;
+      elCanvas.height = HEIGHT;
+      context.imagesToLoad = icons.length;
+      context.imagesLoaded = [];
+
+      for (var i=0; i<icons.length; i++) {
+          var app = apps[apps.length-1-i];
+
+          if (typeof app !== "object") {
+              app = {
+                  "id": app,
+              };
+          }
+
+          app.icon = Evme.Utils.formatImageData(app.icon || Evme.IconManager.get(app.id));
+
+          loadIcon(app.icon, icons[i], context, i);   
+      }
+      
+      // add the app name
+      Evme.Utils.writeTextToCanvas({
+        "context": context,
+        "text": query,
+        "offset": ICON_HEIGHT + TEXT_MARGIN
+      });
+      
+      return elCanvas;
+  }
+
+  function loadIcon(iconSrc, icon, context, index) {
+    var image = new Image();
+
+    image.onload = function onImageLoad() {
+      var elImageCanvas = document.createElement('canvas'),
+          imageContext = elImageCanvas.getContext('2d'),
+          fixedImage = new Image();
+
+      elImageCanvas.width = elImageCanvas.height = icon.size;
+
+      imageContext.beginPath();
+      imageContext.arc(icon.size/2, icon.size/2, icon.size/2, 0, Math.PI*2, false);
+      imageContext.closePath();
+      imageContext.clip();
+
+      //first we draw the image resized and clipped (to be rounded)
+      imageContext.drawImage(this, 0, 0, icon.size, icon.size);
+
+      // dark overlay
+      if (icon.darken) {
+        imageContext.fillStyle = 'rgba(0, 0, 0, ' + icon.darken + ')';
+        imageContext.beginPath();
+        imageContext.arc(icon.size/2, icon.size/2, Math.ceil(icon.size/2), 0, Math.PI*2, false);
+        imageContext.fill();
+        imageContext.closePath();
+      }
+      
+      fixedImage.onload = function onImageLoad() {
+        onIconLoaded(context, this, icon, index);
+      };
+      
+      fixedImage.src = elImageCanvas.toDataURL('image/png');
     };
+
+    image.src = iconSrc;
+  }
+  
+  function onIconLoaded(context, image, icon, index) {
+    // once the image is ready to be drawn, we add it to an array
+    // so when all the images are loaded we can draw them in the right order
+    context.imagesLoaded.push({
+      "image": image,
+      "icon": icon,
+      "index": index
+    });
+    
+    if (context.imagesLoaded.length === context.imagesToLoad) {
+      // all the images were loaded- let's sort correctly before drawing
+      context.imagesLoaded.sort(function(a,b) {
+        return a.index > b.index? 1 : a.index < b.index? -1 : 0;
+      });
+
+      // finally we're ready to draw the icons!
+      for (var i=0,obj; obj = context.imagesLoaded[i++];) {
+        var image = obj.image,
+            icon = obj.icon;
+
+        // shadow
+        context.shadowOffsetX = icon.shadowOffset;
+        context.shadowOffsetY = icon.shadowOffset;
+        context.shadowBlur = icon.shadowBlur;
+        context.shadowColor = 'rgba(0, 0, 0, ' + icon.shadowOpacity + ')';
+
+        // rotation
+        context.save();
+        context.translate(icon.x, icon.y);
+        context.translate(icon.size/2, icon.size/2);
+        context.rotate((icon.rotate || 0) * Math.PI/180);
+        // draw the icon already!
+        context.drawImage(image, -icon.size/2, -icon.size/2);
+        context.restore();
+      }
+    }
+  }
+
+  // used previously- here just in case
+  // renderCanvas is used instead- better performance
+  function renderHTML(options) {
+    var apps = options.apps,
+        icons = options.icons,
+        html = '';
+
+    for (var i=0; i<icons.length; i++) {
+      var app = apps[apps.length-1-i],
+          icon = icons[i],
+          y = icon.y,
+          x = icon.x,
+          size = icon.size;
+
+      if (typeof app != "object") {
+        app = {
+          "id": app,
+        };
+      }
+
+      if (!app.icon) {
+        app.icon = Evme.IconManager.get(app.id);
+      }
+
+      app.icon = Evme.Utils.formatImageData(app.icon);
+
+      var missingIcon = '';
+      if (!app.icon) {
+        missingIcon = ' iconToGet="' + app.id + '"';
+      }
+
+      html += '<span' + missingIcon + ' style="' +
+                  'top: ' + y + 'px;' +
+                  ' left: ' + x + 'px;' +
+                  ' width: ' + size + 'px;' +
+                  ' height: ' + size + 'px;' +
+                  (icon.rotate? ' transform: rotate(' + icon.rotate + 'deg);' : '') +
+                  ((icon.shadowOffset || icon.shadowBlur)? ' box-shadow: ' + (icon.shadowOffsetX || "0") + 'px ' + (icon.shadowOffset || "0") + 'px ' + (icon.shadowBlur || "0") + 'px 0 rgba(0, 0, 0, ' + icon.shadowOpacity + ');' : '') +
+                  (app.icon? ' background-image: url(' + app.icon + ');' : '') +
+                  '">' +
+                  (icon.darken? '<em style="opacity: ' + icon.darken + ';">&nbsp;</em>' : '') +
+                '</span>';
+    }
+
+    return Evme.$create('div', {'class': 'apps-group'}, html);
+  }
 };
 
 Evme.App = function Evme_App(__cfg, __index, __isMore, parent) {
@@ -614,7 +736,6 @@ Evme.App = function Evme_App(__cfg, __index, __isMore, parent) {
         if (!cfg.icon && (!hadID || cfg.preferences.defaultIcon)){
             cfg.icon = Evme.Apps.getDefaultIcon();
         }
-        
     };
     
     this.isExternal = function isExternal() {
@@ -628,7 +749,12 @@ Evme.App = function Evme_App(__cfg, __index, __isMore, parent) {
 
         self.remove();
         
-        el = Evme.$create('li', {'class': "new", 'id': "app_" + cfg.id});
+        el = Evme.$create('li', {
+          'class': 'new',
+          'id': 'app_' + cfg.id,
+          'data-name': cfg.name
+        }, '<canvas></canvas>');
+        
         self.update();
         
         el.classList.add(cfg.installed ? 'installed' : 'cloud');
@@ -647,19 +773,6 @@ Evme.App = function Evme_App(__cfg, __index, __isMore, parent) {
         return el;
     };
 
-    this.getHtml = function getHtml() {
-        var icon = Evme.Utils.formatImageData(cfg.icon) || Evme.Apps.getDefaultIcon();
-
-        return  '<div class="c" href="' + cfg.appUrl + '">' +
-                    '<span class="thumb" style="background-image: url(\'' + icon + '\');"></span>' + 
-                    '<b>' + cfg.name + '</b>' +
-                '</div>';
-    };
-
-    this.getCurrentHtml = function getCurrentHTML() {
-        return el.innerHTML;
-    };
-    
     this.goTo = function goTo() {
         cbClick();
     };
@@ -683,15 +796,86 @@ Evme.App = function Evme_App(__cfg, __index, __isMore, parent) {
         if (_cfg) {
             self.init(_cfg);
         }
+        
         if (el) {
-            el.innerHTML = self.getHtml();
-
-            Evme.Utils.blobToDataURI(cfg.icon, function(result) {
-                var iconEl = el.querySelector(".thumb");
-                iconEl.style.backgroundImage = 'url(\''+result+'\')';
+            el.setAttribute('data-name', cfg.name);
+            
+            function draw() {
+              drawIconIntoCanvas(function onIconLoaded() {
+                  window.setTimeout(function() {
+                    el.classList.remove('new');
+                  }, 0);
+              });
+            }
+            
+            Evme.Utils.blobToDataURI(cfg.icon, function onDataReady(result) {
+              cfg.icon = result;
+              draw();
+            }, function onNotBlob() {
+              draw();
             });
         }
     };
+    
+    this.getIconCanvas = function getIconData() {
+      return Evme.$('canvas', el)[0];
+    };
+    
+    function drawIconIntoCanvas(callback) {
+      var SHADOW_OFFSET = Evme.Apps.APPS_SHADOW_OFFSET,
+          SHADOW_BLUR = Evme.Apps.APPS_SHADOW_BLUR,
+          TEXT_HEIGHT = Evme.Apps.APPS_TEXT_HEIGHT,
+          TEXT_WIDTH = Evme.Apps.APPS_TEXT_WIDTH,
+          TEXT_MARGIN = Evme.Apps.APPS_TEXT_MARGIN,
+          SIZE = (cfg.installed? 58 : 44) * Evme.Utils.devicePixelRatio,
+          FULL_SIZE = SIZE + SHADOW_OFFSET + SHADOW_BLUR,
+          canvas = Evme.$('canvas', el)[0],
+          context = canvas.getContext('2d'),
+          icon = Evme.Utils.formatImageData(cfg.icon) || Evme.Apps.getDefaultIcon(),
+          image = new Image();
+
+      canvas.width = TEXT_WIDTH;
+      canvas.height = FULL_SIZE + TEXT_MARGIN + TEXT_HEIGHT - 1;
+
+      Evme.Utils.writeTextToCanvas({
+        "text": cfg.name,
+        "context": context,
+        "offset": SIZE + TEXT_MARGIN
+      });
+
+      image.onload = function onAppIconLoad() {
+        var elImageCanvas = document.createElement('canvas'),
+            imageContext = elImageCanvas.getContext('2d'),
+            fixedImage = new Image();
+
+        elImageCanvas.width = elImageCanvas.height = FULL_SIZE;
+
+        imageContext.beginPath();
+        imageContext.arc(FULL_SIZE/2, FULL_SIZE/2, SIZE/2, 0, Math.PI*2, false);
+        imageContext.closePath();
+        imageContext.clip();
+
+        // first we draw the image resized and clipped (to be rounded)
+        imageContext.drawImage(this, (FULL_SIZE-SIZE)/2, (FULL_SIZE-SIZE)/2, SIZE, SIZE);
+
+        fixedImage.onload = function onImageLoad() {
+          // shadow
+          context.shadowOffsetX = 0;
+          context.shadowOffsetY = SHADOW_OFFSET;
+          context.shadowBlur = SHADOW_BLUR;
+          context.shadowColor = 'rgba(0, 0, 0, 0.6)';
+          context.drawImage(this, (TEXT_WIDTH-FULL_SIZE)/2, 0);
+
+          if (callback instanceof Function) {
+            callback(canvas);
+          }
+        };
+
+        fixedImage.src = elImageCanvas.toDataURL('image/png');
+      };
+
+      image.src = icon;
+    }
 
     this.getElement = function getElement() {
         return el;
@@ -767,25 +951,7 @@ Evme.App = function Evme_App(__cfg, __index, __isMore, parent) {
         cfg.icon = icon;
         
         if (bRedraw && el) {
-            var iconUrl = Evme.Utils.formatImageData(cfg.icon) || Evme.Apps.getDefaultIcon();
-            
-            Evme.$('.c', el, function onItem(el){
-                var elIcon = Evme.$create('span', {'class': 'thumb'});
-                elIcon.style.backgroundImage = 'url(' + iconUrl + ')';
-                
-                el.append(elIcon);
-            });
-            
-            window.setTimeout(function onTimeout() {
-                if (!el) {
-                    return;
-                }
-                
-                var elThumbs = Evme.$(".thumb", el);
-                if (elThumbs.length > 1) {
-                    Evme.$remove(elThumbs[0]);
-                }
-            }, 100);
+            drawIconIntoCanvas();
         }
     };
     

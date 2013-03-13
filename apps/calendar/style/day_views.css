@@ -64,7 +64,7 @@
   border-style: solid;
   border-left-width: 6px;
   height: 100%;
-  padding: 1rem;
+  padding: 0.8rem 1rem 2.2rem;
 }
 
 .day-events .hour .display-hour {

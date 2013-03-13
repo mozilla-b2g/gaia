@@ -41,6 +41,10 @@
     <!-- applications.js must not be deferred
          in order to catch webapps-registry-ready mozChromeEvent -->
     <script src="js/applications.js"></script>
+    <!-- Not deferring the following to show startup logo/animation as soon as possible. -->
+    <script src="js/logo_loader.js"></script>
+    <script src="js/init_logo_handler.js"></script>
+
     <script defer src="js/screen_manager.js"></script>
     <script defer src="js/background_service.js"></script>
     <script defer src="js/mouse2touch.js"></script>
@@ -96,6 +100,9 @@
     <!-- Statusbar -->
     <link rel="stylesheet" type="text/css" href="style/statusbar/statusbar.css">
     <script defer src="js/statusbar.js"></script>
+
+    <!-- FTU launcher -->
+    <script defer src="js/ftu_launcher.js"></script>
 
     <!-- LockScreen -->
     <link rel="stylesheet" type="text/css" href="style/lockscreen/lockscreen.css">
@@ -227,24 +234,59 @@
     <!-- z-indexes of all the overlays in the system -->
     <link rel="stylesheet" type="text/css" href="style/zindex.css">
 
+    <!-- Shared responsive -->
+    <link rel="stylesheet" href="shared/style/responsive.css">
+
     <style>
-      /* initlogo style is here to prevent flashing */
-      #initlogo {
+      /* initlogos style is here to prevent flashing */
+
+      #os-logo {
         position: absolute;
         overflow: hidden;
         width: 100%;
         height: 100%;
-
-        background: #000 url('shared/resources/branding/initlogo.png') bottom right no-repeat;
-
+        background: #000 url('shared/resources/branding/initlogo.png') no-repeat center / cover;
         z-index: 65536;
-
         opacity: 1;
-        transition: opacity 1s ease 3s;
+        transition: opacity 1s ease 2s;
         pointer-events: none;
       }
 
-      #initlogo.hide {
+      #carrier-logo {
+        position: absolute;
+        overflow: hidden;
+        width: 100%;
+        height: 100%;
+        background: #000;
+      }
+
+      #carrier-logo > img,
+      #poweroff-splash > img {
+        width: 100%;
+        height: 100%;
+        position: absolute;        
+        opacity: 1;
+        transition: opacity 1s ease 2s;
+      }
+
+      #carrier-logo > video,
+      #poweroff-splash > video {
+        width: 100%;
+        height: 100%;
+        position: absolute;        
+        opacity: 1;
+        transition: opacity 1s ease;
+      }
+
+      #carrier-logo.transparent {
+        background: transparent;
+      }
+
+      #carrier-logo > img.hide,
+      #carrier-logo > video.hide,
+      #os-logo.hide,
+      #poweroff-splash > img.hide,
+      #poweroff-splash > video.hide {
         opacity: 0;
       }
     </style>
@@ -253,7 +295,9 @@
 
   <body role="application">
     <div id="screen" class="locked">
-      <div id="initlogo" data-z-index-level="initlogo"></div>
+      <div id="os-logo" data-z-index-level="initlogo">
+        <div id="carrier-logo"></div>
+      </div>
 
       <div id="statusbar" data-z-index-level="statusbar">
         <!-- Carrier & date label -->
@@ -883,6 +927,7 @@
           <div class="active"></div>
           <div class="active"></div>
           <div class="active"></div>
+          <div></div>
           <div></div>
           <div></div>
           <div></div>

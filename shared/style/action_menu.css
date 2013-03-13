@@ -30,9 +30,9 @@ form[role="dialog"][data-type="object"]:before {
   content: '';
   display: inline-block;
   vertical-align: top;
-  width: 1px;
+  width: 0.1rem;
   height: 100%;
-  margin-left: -1px;
+  margin-left: -0.1rem;
 }
 
 form[role="dialog"][data-type="action"] > header:first-child,
@@ -105,7 +105,7 @@ form[role="dialog"][data-type="object"] > menu > button:last-child {
   text-shadow: 0.1rem 0.1rem 0 rgba(255,255,255,0.3);
   color: #333;
   font-weight: 500;
-  background: #fafafa url(buttons/images/ui/default.png) repeat-x left bottom;
+  background: #fafafa url(buttons/images/ui/default.png) repeat-x left bottom / auto 100%;
   border: solid 0.1rem #a6a6a6;
   margin: 2.5rem 1.5rem 1.5rem 1.5rem;
   text-align: center;

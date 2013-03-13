@@ -23,17 +23,17 @@ mocksForQuickSettings.forEach(function(mockName) {
 });
 
 suite('quick settings > ', function() {
-	var realWifiManager;
-	var realSettingsListener;
-	var realL10n;
-	var realSettings;
-	var realMozMobileConnection;
-	var realActivity;
-	var mocksHelper;
-	var fakeQuickSettingsNode;
+  var realWifiManager;
+  var realSettingsListener;
+  var realL10n;
+  var realSettings;
+  var realMozMobileConnection;
+  var realActivity;
+  var mocksHelper;
+  var fakeQuickSettingsNode;
 
-	suiteSetup(function() {
-		mocksHelper = new MocksHelper(mocksForQuickSettings);
+  suiteSetup(function() {
+    mocksHelper = new MocksHelper(mocksForQuickSettings);
     mocksHelper.suiteSetup();
     realWifiManager = navigator.mozWifiManager;
     navigator.mozWifiManager = MockWifiManager;
@@ -43,23 +43,30 @@ suite('quick settings > ', function() {
     navigator.mozL10n = MockL10n;
     realMozMobileConnection = navigator.mozMobileConnection;
     navigator.mozMobileConnection = MockNavigatorMozMobileConnection;
-    realActivity = window.MozActivity;
+    try {
+      realActivity = window.MozActivity;
+    }
+    catch (e) {
+      console.log('Access MozActivity failed, passed realActivity assignment');
+    }
     window.MozActivity = MockMozActivity;
-	});
+  });
 
-	suiteTeardown(function() {
-		mocksHelper.suiteTeardown();
-		navigator.mozWifiManager = realWifiManager;
-		window.SettingsListener = realSettingsListener;
-		navigator.MozMobileConnection = realMozMobileConnection;
-		navigator.mozL10n = realL10n;
-		navigator.mozSettings = realSettings;
-		window.MozActivity = realActivity;
-	});
+  suiteTeardown(function() {
+    mocksHelper.suiteTeardown();
+    navigator.mozWifiManager = realWifiManager;
+    window.SettingsListener = realSettingsListener;
+    navigator.MozMobileConnection = realMozMobileConnection;
+    navigator.mozL10n = realL10n;
+    navigator.mozSettings = realSettings;
+    if (typeof(realActivity) !== 'undefined') {
+      window.MozActivity = realActivity;
+    }
+  });
 
-	setup(function() {
-		mocksHelper.setup();
-		fakeQuickSettingsNode = document.createElement('div');
+  setup(function() {
+    mocksHelper.setup();
+    fakeQuickSettingsNode = document.createElement('div');
     fakeQuickSettingsNode.id = 'quick-settings';
     document.body.appendChild(fakeQuickSettingsNode);
 
@@ -68,64 +75,68 @@ suite('quick settings > ', function() {
       elt.id = 'quick-settings-' + elementName;
       fakeQuickSettingsNode.appendChild(elt);
     });
-		QuickSettings.init();
-	});
+    QuickSettings.init();
+  });
 
-	teardown(function() {
-		fakeQuickSettingsNode.parentNode.removeChild(fakeQuickSettingsNode);
-	});
+  teardown(function() {
+    fakeQuickSettingsNode.parentNode.removeChild(fakeQuickSettingsNode);
+  });
 
-	test('system/quick settings/enable wifi: Connected', function() {
-		MockWifiManager.connection.status = 'connected';
-		QuickSettings.handleEvent({
-			type: 'click',
-			target: QuickSettings.wifi,
-			preventDefault: function() {}
-		});
-		QuickSettings.handleEvent({
-			type: 'wifi-statuschange',
-			preventDefault: function() {}
-		});
-		assert.equal(MockNavigatorSettings.mSettings['wifi.connect_via_settings'], true);
-	});
+  test('system/quick settings/enable wifi: Connected', function() {
+    MockWifiManager.connection.status = 'connected';
+    QuickSettings.handleEvent({
+      type: 'click',
+      target: QuickSettings.wifi,
+      preventDefault: function() {}
+    });
+    QuickSettings.handleEvent({
+      type: 'wifi-statuschange',
+      preventDefault: function() {}
+    });
+    assert.equal(
+      MockNavigatorSettings.mSettings['wifi.connect_via_settings'], true);
+  });
 
-	test('system/quick settings/enable wifi: Connecting failed', function() {
-		MockWifiManager.connection.status = 'connectingfailed';
-		QuickSettings.handleEvent({
-			type: 'click',
-			target: QuickSettings.wifi,
-			preventDefault: function() {}
-		});
-		QuickSettings.handleEvent({
-			type: 'wifi-statuschange',
-			preventDefault: function() {}
-		});
-		assert.equal(MockNavigatorSettings.mSettings['wifi.connect_via_settings'], false);
-	});
+  test('system/quick settings/enable wifi: Connecting failed', function() {
+    MockWifiManager.connection.status = 'connectingfailed';
+    QuickSettings.handleEvent({
+      type: 'click',
+      target: QuickSettings.wifi,
+      preventDefault: function() {}
+    });
+    QuickSettings.handleEvent({
+      type: 'wifi-statuschange',
+      preventDefault: function() {}
+    });
+    assert.equal(
+      MockNavigatorSettings.mSettings['wifi.connect_via_settings'], false);
+  });
 
-	test('system/quick settings/enable wifi: Disconnected', function() {
-		MockWifiManager.connection.status = 'disconnected';
-		QuickSettings.handleEvent({
-			type: 'click',
-			target: QuickSettings.wifi,
-			preventDefault: function() {}
-		});
-		QuickSettings.handleEvent({
-			type: 'wifi-statuschange',
-			preventDefault: function() {}
-		});
-		assert.equal(MockNavigatorSettings.mSettings['wifi.connect_via_settings'], false);
-	});
+  test('system/quick settings/enable wifi: Disconnected', function() {
+    MockWifiManager.connection.status = 'disconnected';
+    QuickSettings.handleEvent({
+      type: 'click',
+      target: QuickSettings.wifi,
+      preventDefault: function() {}
+    });
+    QuickSettings.handleEvent({
+      type: 'wifi-statuschange',
+      preventDefault: function() {}
+    });
+    assert.equal(
+      MockNavigatorSettings.mSettings['wifi.connect_via_settings'], false);
+  });
 
-	test('system/quick settings/disable wifi', function() {
-		MockSettingsListener.mCallbacks['wifi.enabled'](true);
-		QuickSettings.handleEvent({
-			type: 'click',
-			target: QuickSettings.wifi,
-			preventDefault: function() {}
-		});
-		assert.equal(MockNavigatorSettings.mSettings['wifi.connect_via_settings'], false);
-	});
+  test('system/quick settings/disable wifi', function() {
+    MockSettingsListener.mCallbacks['wifi.enabled'](true);
+    QuickSettings.handleEvent({
+      type: 'click',
+      target: QuickSettings.wifi,
+      preventDefault: function() {}
+    });
+    assert.equal(
+      MockNavigatorSettings.mSettings['wifi.connect_via_settings'], false);
+  });
 });
 mocha.setup({ignoreLeaks: false});
 

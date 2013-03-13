@@ -1,0 +1,9 @@
+/* Prompts animation */
+.fadeIn {
+  animation: fadeIn 0.2s forwards;
+}
+
+.fadeOut {
+  animation: fadeOut 0.2s forwards;
+}
+/* Prompts animation end */

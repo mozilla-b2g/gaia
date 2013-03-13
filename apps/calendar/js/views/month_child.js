@@ -175,13 +175,13 @@
      *
      */
     _renderWeek: function _renderWeek(days) {
-      var output = [];
+      var output = '';
 
-      for (var i = 0; i < days.length; i++) {
-        output.push(this._renderDay(days[i]));
+      for (var i = 0, iLen = days.length; i < iLen; i++) {
+        output += this._renderDay(days[i]);
       }
 
-      return template.week.render(output.join(''));
+      return template.week.render(output);
     },
 
     /**

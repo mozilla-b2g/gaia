@@ -46,6 +46,14 @@
       "href": "view.html",
       "disposition": "inline",
       "returnValue": true
+    },
+    "open" : {
+      "filters": {
+        "type": ["video/webm", "video/mp4", "video/3gpp", "video/youtube"]
+      },
+      "href": "view.html",
+      "disposition": "inline",
+      "returnValue": true
     }
   }
 }

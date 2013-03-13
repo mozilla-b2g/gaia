@@ -56,7 +56,8 @@ input.error {
   top: 9.1rem;
   background: url(images/app/ui/pattern.png) repeat left top;
   transform: translate(0, 0);
-  transition: transform 0.3s ease;
+  transition: transform 0.5s ease,
+              opacity 0.2s ease;
 }
 
 .view.standalone {
@@ -82,6 +83,11 @@ input.error {
   visibility: hidden;
 }
 
+.view[data-viewport="ethereal"] {
+  pointer-events: none;
+  opacity: 0;
+}
+
 .view[data-viewport="bottom"] {
   transform: translateY(100%);
 }
@@ -104,6 +110,9 @@ input.error {
   pointer-events: none;
 }
 
+#settings-view.view {
+  top: 0;
+}
 
 /* BB FILTER */
 body[role="application"] ul.filter[role="tablist"][data-position=bottom] {
@@ -126,6 +135,14 @@ body[role="application"] section[role="region"] > header button {
 /* BB BUTTONS ICONS */
 .buttons-list {
   list-style: none;
+}
+
+.fake-select select {
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
 }
 
 li button.icon-reload:before {
@@ -192,97 +209,6 @@ section.content .error-messages {
   overflow: hidden;
   border-bottom: solid 1px #b20000;
   -moz-transition: all 0.2s ease;
-}
-
-
-/* SETTINGS LISTS */
-.settings li {
-  border-bottom: solid 1px #e0e0dd;
-  font-size: 1.6rem;
-  line-height: 1.2em;
-  padding: 1.2rem 1.5rem 1.2rem 3rem;
-  position: relative;
-}
-
-.settings li[aria-disabled="true"]:after {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #e6e6e6;
-  opacity: 0.7;
-}
-
-.settings li:last-child {
-  border-bottom: none;
-}
-
-.settings li time,
-.settings li .meta {
-  font-size: 1.4rem;
-  color: #505859;
-}
-
-.settings li sub {
-  vertical-align: baseline;
-  font-size: 1.2rem;
-}
-
-/* End elements */
-.settings li > .end {
-  position: absolute;
-  right: 1.5rem;
-  top: 50%;
-  height: 4.6rem;
-  margin-top: -2.3rem;
-}
-
-.settings li > .end:before {
-  content: "";
-  display: inline-block;
-  vertical-align: middle;
-  width: 1px;
-  height: 100%;
-  margin-left: -8px;
-}
-
-.settings li > .end button {
-  display: inline-block;
-  vertical-align: middle;
-  width: 10.0rem;
-  margin: 0;
-  padding-left: 0.5rem;
-  overflow: hidden;
-}
-
-.settings li > .end button .tag {
-  margin: 0;
-  float: none;
-  height: auto;
-  width: auto;
-}
-
-.settings li .toggle.end {
-  margin-top: -2.3rem;
-}
-
-.settings li label {
-  font-size: 1.4rem;
-  color: #505859;
-}
-
-.settings li .toggle input[type="checkbox"] {
-  pointer-events: none;
-}
-
-.settings li input[type="number"] {
-  width: 5.5rem;
-  height: 2.5rem;
-  line-height: 2.5rem;
-  display: inline-block;
-  text-align: right;
 }
 
 #message-handler {

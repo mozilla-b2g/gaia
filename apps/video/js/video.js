@@ -170,7 +170,7 @@ function deleteFile(file) {
       // we also need to delete the poster image associated with
       // that video.
       var postername = file.replace('.3gp', '.jpg');
-      navigator.getDeviceStorage('pictures').delete(postername);
+      navigator.getDeviceStorage('pictures'). delete(postername);
     }
 
     // Whether or not there was a poster file to delete, delete the
@@ -768,11 +768,13 @@ function padLeft(num, length) {
 
 function formatDuration(duration) {
   var minutes = Math.floor(duration / 60);
-  var seconds = Math.round(duration % 60);
+  var seconds = Math.floor(duration % 60);
   if (minutes < 60) {
     return padLeft(minutes, 2) + ':' + padLeft(seconds, 2);
   }
-  return '';
+  var hours = Math.floor(minutes / 60);
+  minutes = Math.floor(minutes % 60);
+  return hours + ':' + padLeft(minutes, 2) + ':' + padLeft(seconds, 2);
 }
 
 function textTruncate(el) {

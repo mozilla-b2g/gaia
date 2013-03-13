@@ -24,96 +24,22 @@
   <link rel="resource" type="application/l10n" href="locales/locales.ini">
   <link rel="resource" type="application/l10n" href="shared/locales/date.ini">
   <!-- Shared code -->
-  <script type="text/javascript" src="shared/js/l10n.js"></script>
-  <script type="text/javascript" src="shared/js/l10n_date.js"></script>
-  <script type="text/javascript" src="shared/js/gesture_detector.js"></script>
+  <script type="text/javascript" defer src="shared/js/l10n.js"></script>
+  <script type="text/javascript" defer src="shared/js/l10n_date.js"></script>
+  <script type="text/javascript" defer src="shared/js/gesture_detector.js"></script>
   <!-- Specific code -->
-  <script type="text/javascript" src="js/console-hook.js"></script>
-  <script type="text/javascript" src="js/mail-common.js"></script>
-  <script type="text/javascript" src="js/message-cards.js"></script>
-  <script type="text/javascript" src="js/folder-cards.js"></script>
+  <script type="text/javascript" defer src="js/input_areas.js"></script>
+  <script type="text/javascript" defer src="js/console-hook.js"></script>
+  <script type="text/javascript" defer src="js/mail-common.js"></script>
+  <script type="text/javascript" defer src="js/message-cards.js"></script>
+  <script type="text/javascript" defer src="js/folder-cards.js"></script>
   <!-- This one is an optimized vendor library containing our mail backend. -->
   <!-- START BACKEND INJECT - do not modify -->
-  <script type="application/javascript;version=1.8" src="js/ext/almond.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/event-queue.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/buffer.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/shim-sham.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/mailapi.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/q.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/microtime.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/rdcommon/extransform.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/rdcommon/log.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/util.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/quotechew.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/bleach.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/htmlchew.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/mailchew.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/events.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/util.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/stream.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/encoding.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/addressparser/index.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/addressparser.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mimelib/lib/mimelib.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mimelib/lib/content-types.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mimelib/lib/content-types-reversed.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mimelib/index.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mimelib.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailcomposer/lib/punycode.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/crypto.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailcomposer/lib/dkim.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/http.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/https.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/url.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailcomposer/lib/urlfetch.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/fs.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailcomposer/lib/mailcomposer.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailcomposer.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/composer.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/mailbridge.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/rdcommon/logreaper.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/a64.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/date.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/syncbase.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/maildb.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/allback.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/cronsync.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/net.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/tls.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailparser/datetime.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailparser/streams.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailparser/mailparser.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/imap.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/imap/probe.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/os.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/simplesmtp/lib/starttls.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/xoauth2.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/simplesmtp/lib/client.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/smtp/probe.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/wbxml.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/activesync/codepages.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/activesync/protocol.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/accountmixins.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/errbackoff.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/mailslice.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/searchfilter.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/imap/imapchew.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/imap/folder.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/jobmixins.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/imap/jobs.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/imap/account.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/smtp/account.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/fake/account.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/activesync/folder.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/activesync/jobs.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/activesync/account.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/accountcommon.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/mailuniverse.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/same-frame-setup.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/end.js"></script>
+  <script type="application/javascript;version=1.8" defer src="js/ext/alameda.js"></script>
+  <script type="application/javascript;version=1.8" defer src="js/ext/end.js"></script>
   <!-- END BACKEND INJECT -->
-  <script type="text/javascript" src="/shared/js/lazy_loader.js"></script>
-  <script type="text/javascript" src="js/mail-app.js"></script>
+  <script type="text/javascript" defer src="/shared/js/lazy_loader.js"></script>
+  <script type="text/javascript" defer src="js/mail-app.js"></script>
   <!-- Lazy Loaded Resources. See: App.loader.load()
   <link rel="stylesheet" type="text/css" href="style/value_selector.css>
   <link rel="stylesheet" type="text/css" href="style/compose-cards.css">
@@ -291,7 +217,7 @@
         <div class="msg-list-action-toolbar bottom-toolbar">
           <button class="msg-refresh-btn bottom-btn msg-nonsearch-only"></button>
           <button class="msg-search-btn bottom-btn msg-nonsearch-only"></button>
-          <button class="msg-edit-btn bottom-btn msg-nonsearch-only"></button>
+          <button class="msg-edit-btn bottom-btn"></button>
         </div>
         <!-- Toolbar for multi-edit state -->
         <div class="msg-listedit-action-toolbar bottom-edit-toolbar bottom-toolbar collapsed">
@@ -959,7 +885,7 @@
       </section>
 
       <!-- Developer debug page; for those in the know -->
-      <section class="card-settings-debug card">
+      <section class="card-settings-debug card skin-organic" role="region">
         <header>
           <a href="#" class="tng-close-btn">
             <span class="icon icon-close"></span>
@@ -1065,6 +991,16 @@
           <button id="msg-delete-ok" class="danger" data-l10n-id="message-edit-menu-delete">OK</button>
         </menu>
       </form>
+      <form role="dialog" class="msg-browse-confirm" data-type="confirm">
+        <section>
+          <h1 data-l10n-id="confirm-dialog-title">Confirmation</h1>
+          <p></p>
+        </section>
+        <menu>
+          <button id="msg-browse-cancel" data-l10n-id="message-multiedit-cancel">CanceL</button>
+          <button id="msg-browse-ok" class="recommend" data-l10n-id="dialog-button-ok">OK</button>
+        </menu>
+      </form>
     </div>
     <!-- Widget nodes for the compose cards; styles use the cmp prefix -->
     <div id="templ-cmp">
@@ -1114,7 +1050,7 @@
           <h1 data-l10n-id="compose-sending-message">Sending messagE</h1>
           <p style="text-align: center">
             <progress></progress>
-          </p>   
+          </p>
         </section>
       </form>
     </div>

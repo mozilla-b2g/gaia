@@ -5,7 +5,7 @@ if (typeof fb.msg === 'undefined') {
     var Msg = fb.msg = {};
     var to;
     var message;
-    var params = fb.oauthflow.params;
+    var params = oauthflow.params.facebook;
     var appId = params['applicationId'];
     var redirectURI = params['redirectMsg'];
 
@@ -15,12 +15,12 @@ if (typeof fb.msg === 'undefined') {
     Msg.wallPost = function(uid, msg) {
       to = uid || to;
       message = msg || message;
-      fb.oauth.getAccessToken(doWallPost, 'wallPost');
-    }
+      oauth2.getAccessToken(doWallPost, 'wallPost', 'facebook');
+    };
 
     Msg.sendPrivate = function(uid, msg) {
       // TODO: To be implemented (if we decide to craft our custom UI)
-    }
+    };
 
     // This code is for posting to user's wall. Only will be necessary if
     // we decide to craft our own UI for posting to the wall
@@ -51,12 +51,12 @@ if (typeof fb.msg === 'undefined') {
       req.onsuccess = function() {
         var fbContact = new fb.Contact(req.result);
         callback(fbContact.uid);
-      }
+      };
 
       req.onerror = function() {
         window.console.error('Contacts: Contact not found!');
         callback(null);
-      }
+      };
     }
 
     function openMsgDialog(dialogURI, uid) {
@@ -78,7 +78,7 @@ if (typeof fb.msg === 'undefined') {
           openMsgDialog(dialogURI, uid);
         }
       });
-    }
+    };
 
     // Use a Web view from Facebook for sending private messages
     // TODO: Check with Facebook why the send message dialog seems not to be
@@ -89,12 +89,12 @@ if (typeof fb.msg === 'undefined') {
            window.open('https://m.facebook.com/chat/messages.php?id=' + uid);
         }
       });
-    }
+    };
 
     UI.wallPosted = function(result) {
       UI.end();
       window.console.log(JSON.stringify(result));
-    }
+    };
 
   })(document);
 }

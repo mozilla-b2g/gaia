@@ -9,7 +9,7 @@
 (function() {
 
   // don't shim the phones
-  if (navigator.userAgent.indexOf('Mobile') !== -1)
+  if (navigator.mozAlarms && navigator.userAgent.indexOf('Mobile') !== -1)
     return;
 
   console.log('(Debug mode on) navigator.mozAlarm shim active');

@@ -15,8 +15,8 @@
 
 .menu-item::before {
   position: absolute;
-  top: calc((6.2rem - 30px) / 2);
-  left: calc((5.5rem - 30px) / 2);
+  top: calc((6.2rem - 32px) / 2);
+  left: calc((5.5rem - 28px) / 2);
   width: 30px;
   height: 30px;
 
@@ -142,10 +142,9 @@
  */
 
 /* signal levels */
-#wifi-availableNetworks > li {
+#wifi-availableNetworks > li > a {
   background-repeat: no-repeat;
   background-position: right 3rem top 50%;
-  padding-right: 3rem;
 }
 
 .wifi-signal0 {
@@ -169,9 +168,16 @@
 }
 
 /* secured networks */
-.wifi-secure {
+.wifi-secure:after {
+  content: '\00a0';
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background-repeat: no-repeat;
-  background-position: right 1.8rem top 50%;
+  background-position: right 4.8rem top 50%;
   background-image: url(images/wifi_lock.png);
 }
 

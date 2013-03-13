@@ -428,6 +428,7 @@ var OnCallHandler = (function onCallHandler() {
     }
 
     closing = true;
+    postToMainWindow('closing');
 
     if (Swiper) {
       Swiper.setElasticEnabled(false);
@@ -441,7 +442,6 @@ var OnCallHandler = (function onCallHandler() {
   }
 
   function closeWindow() {
-    postToMainWindow('closing');
     window.close();
   }
 

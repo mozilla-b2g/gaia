@@ -44,6 +44,16 @@ var MockUssdUI = {
     UssdManager.handleEvent(evt);
   },
 
+  cancel: function muui_cancel() {
+    var evt = {
+      type: 'message',
+      data: {
+        type: 'cancel'
+      }
+    };
+    UssdManager.handleEvent(evt);
+  },
+
   close: function muui_close() {
     this.ready = false;
   },

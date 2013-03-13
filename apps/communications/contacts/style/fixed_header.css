@@ -1,5 +1,5 @@
 .fixed-title,
-.fixed-title-fb {
+.fixed-title-import {
   position: absolute;
   top: 5rem;
   left: 2rem;
@@ -17,13 +17,16 @@
   pointer-events: none;
 }
 
-.fixed-title-fb {
+.fixed-title-import {
   position: fixed;
   left: 2.5rem;
   right: 2.5rem;
   z-index: 3;
   padding-left: 0;
-  border-bottom: 1px solid #4D77CF;
   background: #fff;
+}
+
+.facebook .fixed-title-import {
+  border-bottom: 1px solid #4D77CF;
   color: #4D77CF;
 }

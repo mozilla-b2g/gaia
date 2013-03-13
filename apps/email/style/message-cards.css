@@ -219,8 +219,8 @@ input.msg-search-text-tease {
 
 .msg-peep-bubble {
   display: inline-block;
-  background: -moz-linear-gradient(top, #FFFFFF, #DDDDDD);
-  border: 1px solid #CCCCCC;
+  background: #F2F2F2;
+  border: 0.5px solid #CCCCCC;
   border-radius: 1rem;
   margin: 1px 0;
   padding: 2px 0.8rem;
@@ -232,7 +232,6 @@ input.msg-search-text-tease {
 .msg-peep-content {
 }
 .msg-peep-address {
-  font-style: italic;
 }
 
 .msg-attachment-item {
@@ -261,6 +260,7 @@ input.msg-search-text-tease {
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: calc(100% - 12.5rem);
+  white-space: nowrap;
 }
 .msg-attachment-filesize {
   color: gray;

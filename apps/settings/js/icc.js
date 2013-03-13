@@ -85,9 +85,9 @@
       handleSTKCommand(event.command);
     });
     window.addEventListener('stkasynccommand',
-        function do_handleAsyncSTKCmd(event) {
-      handleSTKCommand(event.detail.command);
-    });
+      function do_handleAsyncSTKCmd(event) {
+        handleSTKCommand(event.detail.command);
+      });
 
     /**
      * Open STK main application
@@ -99,16 +99,18 @@
     // Load STK apps
     updateMenu();
 
+    // XXX https://bugzilla.mozilla.org/show_bug.cgi?id=844727
+    // We should use Settings.settingsCache first
+    var settings = Settings.mozSettings;
+    var lock = settings.createLock();
     // Update displayTextTimeout with settings parameter
-    var reqDisplayTimeout =
-      window.navigator.mozSettings.createLock().get('icc.displayTextTimeout');
+    var reqDisplayTimeout = lock.get('icc.displayTextTimeout');
     reqDisplayTimeout.onsuccess = function icc_getDisplayTimeout() {
       displayTextTimeout = reqDisplayTimeout.result['icc.displayTextTimeout'];
     };
 
     // Update inputTimeout with settings parameter
-    var reqInputTimeout =
-      window.navigator.mozSettings.createLock().get('icc.inputTextTimeout');
+    var reqInputTimeout = lock.get('icc.inputTextTimeout');
     reqInputTimeout.onsuccess = function icc_getInputTimeout() {
       inputTimeout = reqInputTimeout.result['icc.inputTextTimeout'];
     };
@@ -745,7 +747,7 @@
       clearTimeout(timeoutId);
       alertbox.classList.add('hidden');
       stkResGoBack();
-    }
+    };
 
     alertbox_btnclose.onclick = function() {
       clearTimeout(timeoutId);
@@ -810,17 +812,19 @@
 
     var timeout = 0;
     if (options.duration &&
-        options.duration.timeUnit &&
-        options.duration.timeInterval) {
+        options.duration.timeUnit != undefined &&
+        options.duration.timeInterval != undefined) {
       timeout = calculateDurationInMS(options.duration.timeUnit,
         options.duration.timeInterval);
-    } else if (options.timeUnit && options.timeInterval) {
+    } else if (options.timeUnit != undefined &&
+        options.timeInterval != undefined) {
       timeout = calculateDurationInMS(options.timUnit, options.timeInterval);
     }
     if (timeout) {
       debug('Tone stop in (ms): ', timeout);
       setTimeout(function() {
-        tonePlayer.pause();
+        closeToneAlert();
+        responseSTKCommand({ resultCode: icc.STK_RESULT_OK });
       }, timeout);
     }
 
@@ -833,7 +837,7 @@
         closeToneAlert();
         iccLastCommandProcessed = true;
         responseSTKCommand({ resultCode: icc.STK_RESULT_OK });
-      }
+      };
       alertbox_btnback.onclick = function() {
         closeToneAlert();
         stkResGoBack();

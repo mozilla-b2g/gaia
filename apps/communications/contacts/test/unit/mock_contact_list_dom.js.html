@@ -1,0 +1,56 @@
+var ContactListDom =
+'      <!-- Contacts List Section -->' +
+'      <section id="view-contacts-list" role="region" data-state="active" class="view view-noscroll view-contacts-list">' +
+'        <header>' +
+'          <a href="#" id="cancel_activity" class="hide">' +
+'            <span class="icon icon-close" data-l10n-id="exit">Exit</span>' +
+'          </a>' +
+'          <menu type="toolbar">' +
+'            <button role="menuitem" id="add-contact-button"><span class="icon icon-add" data-l10n-id="add">add</span></button>' +
+'            <button role="menuitem" id="settings-button"><span class="icon icon-settings" data-l10n-id="settings">settings</span></button>' +
+'          </menu>' +
+'          <h1 data-l10n-id="contacts">Contacts</h1>' +
+'        </header>' +
+
+'        <article class="view-body">' +
+'          <div id="no-contacts" class="hide">' +
+'            <div class="arrow small">' +
+'              <p class="small" data-l10n-id="create-new">Create a new contact</p>' +
+'            </div>' +
+'            <div class="arrow big">' +
+'              <p class="small" data-l10n-id="import-now">Import your contacts from your SIM card or from Facebook</p>' +
+'            </div>' +
+'            <div class="info">' +
+'              <p data-l10n-id="no-contacts">no contacts</p>' +
+'              <p data-l10n-id="start-adding">start adding them now </p>' +
+'            </div>' +
+'          </div>' +
+'          <nav data-type="scrollbar">' +
+'            <p></p>' +
+'            <ol>' +
+'              <li data-anchor="search-container" data-img="magnifier_icon_big.png">' +
+'                <a href="#"><span class="pack-icon-search">Search</span></a>' +
+'              </li>' +
+'              <li data-anchor="group-favorites" data-img="star_icon_big.png">' +
+'                <a href="#"><span class="pack-icon-favorites">Favorites</span></a>' +
+'              </li>' +
+'              <li data-template data-anchor="group-#anchor#" data-letter="#anchor#">' +
+'                <a href="#">#anchor#</a>' +
+'              </li>' +
+'            </ol>' +
+'          </nav>' +
+'          <div id="groups-container" class="view-body-inner">' +
+'            <form id="search-container" class="search" role="search">' +
+'              <p>' +
+'                <label for="search" id="search-start">' +
+'                  <input type="search" name="search" class="textfield" placeholder="Search" data-l10n-id="search-contact">' +
+'                </label>' +
+'              </p>' +
+'            </form>' +
+'            <section id="groups-list" data-type="list">' +
+'              <!-- Group template here -->' +
+'            </section>' +
+'          </div>' +
+'        </article>' +
+'        <div id="fixed-container" class="fixed-title"></div>' +
+'      </section>';

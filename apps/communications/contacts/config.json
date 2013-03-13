@@ -1,4 +1,5 @@
 {
+  "defaultContactsOrder": "givenName",
   "facebookEnabled": true,
   "operationsTimeout": 25000,
   "logLevel": "DEBUG",

@@ -1,9 +1,7 @@
-requireApp('calendar/test/unit/helper.js', function() {
-  requireLib('calc.js');
-  requireLib('db.js');
-  requireLib('store/abstract.js');
-  requireLib('store/alarm.js');
-});
+requireLib('calc.js');
+requireLib('db.js');
+requireLib('store/abstract.js');
+requireLib('store/alarm.js');
 
 suite('store/alarm', function() {
 
@@ -16,7 +14,7 @@ suite('store/alarm', function() {
   setup(function(done) {
     this.timeout(5000);
     app = testSupport.calendar.app();
-    db = testSupport.calendar.db();
+    db = app.db;
     controller = app.alarmController;
     subject = db.getStore('Alarm');
 
@@ -38,24 +36,38 @@ suite('store/alarm', function() {
     db.close();
   });
 
-  suite('#findByBusytimeId', function() {
+  suite('#findAllByBusytimeId', function() {
     suite('existing', function() {
-      var alarm;
+      var alarms;
       var busytimeId = 'xfoo';
+      var busytime = {
+        _id: busytimeId
+      };
 
       setup(function(done) {
-        alarm = Factory('alarm', {
-          busytimeId: busytimeId
-        });
+        alarms = [];
+        var trans = db.transaction('alarms', 'readwrite');
 
-        subject.persist(alarm, done);
+        for (var i = 0; i < 3; i++) {
+          var alarm = Factory('alarm', { busytimeId: busytimeId });
+          alarms.push(alarm);
+          subject.persist(alarm, trans);
+        }
+
+        trans.oncomplete = function() {
+          done();
+        };
+
+        trans.onerror = function(e) {
+          done(e.target.error);
+        };
       });
 
       test('result', function(done) {
-        subject.findByBusytimeId(busytimeId, function(err, result) {
+        subject.findAllByBusytimeId(busytime._id, function(err, result) {
           done(function() {
             assert.ok(!err);
-            assert.deepEqual(result, alarm);
+            assert.equal(result.length, alarms.length);
           });
         });
       });
@@ -70,7 +82,7 @@ suite('store/alarm', function() {
       Disabled in Bug 838993, to be enabled asap in Bug 840489
 
     test('missing', function(done) {
-      subject.findByBusytimeId('foo', function(err, result) {
+      subject.findAllByBusytimeId('foo', function(err, result) {
         try {
           assert.ok(!err);
           assert.ok(!result);

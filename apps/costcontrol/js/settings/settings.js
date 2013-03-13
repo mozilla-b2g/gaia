@@ -1,4 +1,3 @@
-
 /*
  * Settings is in charge of setup the setting section. It uses an AutoSettings
  * object to automatically bind markup with local settings.
@@ -7,6 +6,25 @@
  * data usage and telephony.
  */
 
+ // Import global objects from parent window
+ var ConfigManager = window.parent.ConfigManager;
+ var CostControl = window.parent.CostControl;
+
+ // Import global functions from parent window
+ var updateNextReset = window.parent.updateNextReset;
+ var formatTimeHTML = window.parent.formatTimeHTML;
+ var formatData = window.parent.formatData;
+ var roundData = window.parent.roundData;
+ var resetData = window.parent.resetData;
+ var resetTelephony = window.parent.resetTelephony;
+ var localizeWeekdaySelector = window.parent.localizeWeekdaySelector;
+ var computeTelephonyMinutes = window.parent.computeTelephonyMinutes;
+ var _ = window.parent._;
+
+ // Import debug
+ var DEBUGGING = window.parent.DEBUGGING;
+ var debug = window.parent.debug;
+
 var Settings = (function() {
 
   'use strict';
@@ -14,6 +32,7 @@ var Settings = (function() {
   var costcontrol, vmanager, autosettings, initialized;
   var plantypeSelector, phoneActivityTitle, phoneActivitySettings;
   var balanceTitle, balanceSettings, reportsTitle;
+
   function configureUI() {
     CostControl.getInstance(function _onCostControl(instance) {
       costcontrol = instance;
@@ -65,6 +84,13 @@ var Settings = (function() {
         true
       );
 
+      // Close button needs to acquire a reference to the settings view
+      // manager to close itself.
+      var close = document.getElementById('close-settings');
+      close.addEventListener('click', function() {
+        closeSettings();
+      });
+
       function _updateNextReset(value, old, key, settings) {
         updateNextReset(settings.trackingPeriod, settings.resetTime);
       }
@@ -75,6 +101,10 @@ var Settings = (function() {
 
       updateUI();
     });
+  }
+
+  function closeSettings() {
+    window.parent.location.hash = '#';
   }
 
   // Loads extra HTML useful for debugging
@@ -101,10 +131,12 @@ var Settings = (function() {
     var dialog = document.getElementById('reset-confirmation-dialog');
 
     var resetTelephonyButton = document.getElementById('reset-telephony');
-    resetTelephonyButton.addEventListener('click', function _onTelephonyReset() {
-      mode = 'telephony';
-      vmanager.changeViewTo(dialog.id);
-    });
+    resetTelephonyButton.addEventListener('click',
+      function _onTelephonyReset() {
+        mode = 'telephony';
+        vmanager.changeViewTo(dialog.id);
+      }
+    );
 
     var resetDataUsage = document.getElementById('reset-data-usage');
     resetDataUsage.addEventListener('click', function _onTelephonyReset() {
@@ -130,8 +162,7 @@ var Settings = (function() {
       vmanager.closeCurrentView();
     });
 
-    // Cancel reset
-    var cancel = dialog.querySelector('.close-dialog');
+    var cancel = dialog.querySelector('.close-reset-dialog');
     cancel.addEventListener('click', function _onCancelReset() {
       vmanager.closeCurrentView();
     });
@@ -147,14 +178,14 @@ var Settings = (function() {
 
   // Check settings and enable / disable done button
   function checkSettings() {
-    var closeSettings = document.getElementById('close-settings');
+    var closeSettingsButton = document.getElementById('close-settings');
     var lowLimit = document.getElementById('low-limit');
     var lowLimitInput = document.getElementById('low-limit-input');
     var lowLimitError = currentMode === 'PREPAID' && lowLimit.checked &&
                         lowLimitInput.value.trim() === '';
 
     lowLimitInput.classList[lowLimitError ? 'add' : 'remove']('error');
-    closeSettings.disabled = lowLimitError;
+    closeSettingsButton.disabled = lowLimitError;
   }
 
   window.addEventListener('localized', function _onLocalize() {
@@ -167,7 +198,7 @@ var Settings = (function() {
   function updateUI() {
     ConfigManager.requestAll(function _onInfo(configuration, settings) {
       // L10n
-      localizeWeekdaySelector(document.getElementById('selectdialog-weekday'));
+      localizeWeekdaySelector(document.getElementById('select-weekday'));
 
       // Layout
       var mode = costcontrol.getApplicationMode(settings);
@@ -187,7 +218,9 @@ var Settings = (function() {
       }
 
       // Views
-      var requestObj = { type: 'datausage' };
+      var requestObj = {
+        type: 'datausage'
+      };
       costcontrol.request(requestObj, function _onDataStats(result) {
         var stats = result.data;
         updateDataUsage(stats, settings.lastDataReset);
@@ -232,7 +265,7 @@ var Settings = (function() {
       return;
     }
 
-    var timestamp = document.querySelector('#wifi-data-usage + .meta');
+    var timestamp = document.querySelector('#balance + .meta');
     balance.innerHTML = _('currency', {
       value: lastBalance.balance,
       currency: lastBalance.currency
@@ -253,8 +286,10 @@ var Settings = (function() {
       unit: 'SMS'
     });
     var timestamp = document.getElementById('telephony-timestamp');
-    timestamp.innerHTML = formatTimeHTML(lastTelephonyReset,
-                                         activity.timestamp);
+    timestamp.innerHTML = formatTimeHTML(
+      lastTelephonyReset,
+      activity.timestamp
+    );
   }
 
   return {
@@ -263,3 +298,5 @@ var Settings = (function() {
   };
 
 }());
+
+Settings.initialize();

@@ -1,7 +1,6 @@
-requireApp('calendar/test/unit/helper.js', function() {
-  requireLib('timespan.js');
-  requireLib('event_mutations.js');
-});
+requireLib('timespan.js');
+requireLib('calc.js');
+requireLib('event_mutations.js');
 
 suite('event_mutations', function() {
   var subject;
@@ -43,7 +42,10 @@ suite('event_mutations', function() {
        'alarms',
        'icalComponents'
       ],
-      done
+      function() {
+        db.close();
+        done();
+      }
     );
   });
 
@@ -125,6 +127,26 @@ suite('event_mutations', function() {
       });
     });
 
+    test('alarms', function(done) {
+      var expectedBusytime = busytimeStore.factory(
+        event
+      );
+      var expectedAlarms = event.remote.alarms;
+      var busyId = expectedBusytime._id;
+
+      alarmStore.findAllByBusytimeId(busyId, function(err, values) {
+        done(function() {
+          assert.equal(values.length, expectedAlarms.length);
+          for (var i = 0, alarm; alarm = expectedAlarms[i]; i++) {
+            assert.equal(
+              event.remote.start.utc + alarm.trigger * 1000,
+              values[i].trigger.utc
+            );
+          }
+        });
+      });
+    });
+
     test('icalComponent', function(done) {
       componentStore.get(event._id, function(err, value) {
         done(function() {
@@ -162,6 +184,16 @@ suite('event_mutations', function() {
       event.remote.end = Calendar.Calc.dateToTransport(
         new Date(2012, 8, 8)
       );
+
+      var futureTrigger = Date.now() - event.remote.start.utc + 5000;
+
+      event.remote.alarms = [
+        {action: 'DISPLAY', trigger: 60},
+        {action: 'DISPLAY', trigger: 300},
+
+        // Create an alarm in the future
+        {action: 'DISPLAY', trigger: futureTrigger}
+      ];
 
       component.data = { changed: true };
 
@@ -213,6 +245,28 @@ suite('event_mutations', function() {
             start: event.remote.start,
             end: event.remote.end
           });
+        });
+      });
+    });
+
+    test('alarms', function(done) {
+      var expectedBusytime = busytimeStore.factory(
+        event
+      );
+
+      // We only expect alarms in the past to be persisted
+      var expectedAlarms = event.remote.alarms.slice(2);
+      var busyId = expectedBusytime._id;
+
+      alarmStore.findAllByBusytimeId(busyId, function(err, values) {
+        done(function() {
+          assert.equal(values.length, expectedAlarms.length);
+          for (var i = 0, alarm; alarm = expectedAlarms[i]; i++) {
+            assert.equal(
+              event.remote.start.utc + alarm.trigger * 1000,
+              values[i].trigger.utc
+            );
+          }
         });
       });
     });

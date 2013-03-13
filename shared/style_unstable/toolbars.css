@@ -32,7 +32,7 @@
   height: 4rem;
   border: none;
   font-size: 0;
-  background: transparent no-repeat 50% 50%;
+  background: transparent no-repeat 50% 50% / 3rem auto;
   padding: 0;
   border-radius: 0;
 }

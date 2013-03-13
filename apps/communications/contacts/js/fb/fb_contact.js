@@ -135,24 +135,22 @@ fb.Contact = function(deviceContact, cid) {
 
     contactObj.init(contactInfo);
 
-    var mozContactsReq = navigator.mozContacts.save(contactObj);
+    var fbReq = persistToFbCache(contactData);
 
-    mozContactsReq.onsuccess = function(e) {
-      var fbReq = persistToFbCache(contactData);
-
-      fbReq.onsuccess = function() {
+    fbReq.onsuccess = function() {
+      var mozContactsReq = navigator.mozContacts.save(contactObj);
+      mozContactsReq.onsuccess = function(e) {
         outReq.done(fbReq.result);
       };
-      fbReq.onerror = function() {
-        window.console.error('FB: Error while saving on indexedDB');
-        outReq.failed(fbReq.error);
-      };
-    }; // mozContactsReq.onsuccess
-
-    mozContactsReq.onerror = function(e) {
-      window.console.error('FB: Error while saving on mozContacts',
+      mozContactsReq.onerror = function(e) {
+        window.console.error('FB: Error while saving on mozContacts',
                                                         e.target.error);
-      outReq.failed(e.target.error);
+        outReq.failed(e.target.error);
+      }; // fbReq.onsuccess
+    };
+    fbReq.onerror = function() {
+      window.console.error('FB: Error while saving on indexedDB');
+      outReq.failed(fbReq.error);
     };
   }
 
@@ -236,36 +234,35 @@ fb.Contact = function(deviceContact, cid) {
     var outReq = new fb.utils.Request();
 
     window.setTimeout(function update_do() {
-      // First an update to the mozContacts DB could be needed
-      var updateMozContacts = false;
-
       if (!fb.isFbLinked(devContact)) {
         copyNames(contactData, devContact);
-        updateMozContacts = true;
       }
 
       // Check whether the photo has changed
       if (contactData.fbInfo.photo) {
         devContact.url = contactData.fbInfo.url;
-        updateMozContacts = true;
       }
 
-      if (updateMozContacts) {
+      var auxReq = new fb.utils.Request();
+      auxReq.onsuccess = function() {
         var mozContactsReq = navigator.mozContacts.save(devContact);
         mozContactsReq.onsuccess = function(e) {
-          auxDoUpdate(contactData, outReq);
+          outReq.done();
         };
 
         mozContactsReq.onerror = function(e) {
           window.console.error('FB: Error while saving mozContact: ',
-                               devContact.id, e.target.error);
+                             devContact.id, e.target.error);
           outReq.failed(e.target.error);
         };
-      }
-      else {
-        auxDoUpdate(contactData, outReq);
-      }
+      };  // auxReq.onsuccess
 
+      auxReq.onerror = function(e) {
+        outReq.failed(e.target.error);
+      };  // auxReq.onerror
+
+      // And now doing the update
+      auxDoUpdate(contactData, auxReq);
     },0);
 
     return outReq;
@@ -377,12 +374,12 @@ fb.Contact = function(deviceContact, cid) {
       if (uid) {
         var fbreq = fb.contacts.get(uid);
 
-        fbreq.onsuccess = function() {
+        fbreq.onsuccess = (function() {
           var fbdata = fbreq.result;
           var out = this.merge(fbdata);
           outReq.done(out);
 
-        }.bind(this);
+        }).bind(this);
 
         fbreq.onerror = function() {
           outReq.failed(fbreq.error);
@@ -406,7 +403,7 @@ fb.Contact = function(deviceContact, cid) {
       if (uid) {
         var fbreq = fb.contacts.get(uid);
 
-        fbreq.onsuccess = function() {
+        fbreq.onsuccess = (function() {
           var fbdata = fbreq.result;
 
           var out1 = this.merge(fbdata);
@@ -457,7 +454,7 @@ fb.Contact = function(deviceContact, cid) {
 
           outReq.done([out1, out2]);
 
-        }.bind(this);
+        }).bind(this);
 
         fbreq.onerror = function() {
           outReq.failed(fbreq.error);

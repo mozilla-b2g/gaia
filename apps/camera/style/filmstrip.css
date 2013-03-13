@@ -13,10 +13,6 @@
   background: black;
 }
 
-#filmstrip.hidden {
-  transform: translateY(-50px);
-}
-
 img.thumbnail {
   position: relative;
   width: 46px;
@@ -60,10 +56,6 @@ img.thumbnail.previewed {  /* if the thumbnail is being previewed */
   transition: transform 0.5s linear;
   overflow: hidden;
   transform-origin: 0 0;
-}
-
-#preview.offscreen {
-  transform: translateY(-100%) scale(.125) translateX(50%);
 }
 
 #frame-container {
@@ -162,15 +154,6 @@ a.button.hidden {
  width: 33%;
  height: 100%;
  background-image: url(images/delete.png);
-}
-
-#filmstrip-gallery-button {
- position: absolute;
- right: 0;
- top: 0;
- width: 50px;
- height: 50px;
- background-image: url(images/grid.png);
 }
 
 /*

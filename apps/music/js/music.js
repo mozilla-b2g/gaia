@@ -60,13 +60,19 @@ function init() {
   // Here we use the mediadb.js which gallery is using (in shared/js/)
   // to index our music contents with metadata parsed.
   // So the behaviors of musicdb are the same as the MediaDB in gallery
-  musicdb = new MediaDB('music', parseAudioMetadata, {
+  musicdb = new MediaDB('music', metadataParserWrapper, {
     indexes: ['metadata.album', 'metadata.artist', 'metadata.title',
               'metadata.rated', 'metadata.played', 'date'],
     batchSize: 1,
     autoscan: false, // We call scan() explicitly after listing music we know
     version: 2
   });
+
+  function metadataParserWrapper(file, onsuccess, onerror) {
+    LazyLoader.load('js/metadata_scripts.js', function() {
+      parseAudioMetadata(file, onsuccess, onerror);
+    });
+  }
 
   // This is called when DeviceStorage becomes unavailable because the
   // sd card is removed or because it is mounted for USB mass storage
@@ -81,7 +87,7 @@ function init() {
     // stop and reset the player then back to tiles mode to avoid crash
     PlayerView.stop();
     changeMode(MODE_TILES);
-  }
+  };
 
   musicdb.onready = function() {
     // Hide the nocard or pluggedin overlay if it is displayed
@@ -267,11 +273,19 @@ function showCurrentView(callback) {
                                        // to show or hide the 'empy' overlay
                                        songs.push(null);
                                        TilesView.clean();
-                                       songs.forEach(function(song) {
-                                         TilesView.update(song);
-                                       });
-                                       if (callback)
-                                         callback();
+
+                                       // We will need getThumbnailURL()
+                                       // to display thumbnails in TilesView
+                                       // it's possibly not loaded so load it
+                                       LazyLoader.load('js/metadata_scripts.js',
+                                         function() {
+                                           songs.forEach(function(song) {
+                                             TilesView.update(song);
+                                           });
+                                           if (callback)
+                                             callback();
+                                         }
+                                       );
                                     });
 
 }
@@ -284,8 +298,15 @@ var MODE_PLAYER = 4;
 var currentMode, fromMode;
 var playerTitle, sublistTitle;
 
-function changeMode(mode) {
+// Before Music app is launched
+// we use display: none to hide the four pages(TILES, LIST, SUBLIST and PLAYER)
+// so that Gecko will not try to apply CSS styles on those elements
+// which seems are actions that slows down the startup time
+// we will remove display: none on elements when we need to display them
+
+function changeMode(mode, callback) {
   var title;
+  var playerLoaded = (typeof PlayerView != 'undefined');
 
   switch (mode) {
     case MODE_TILES:
@@ -305,12 +326,25 @@ function changeMode(mode) {
       }
 
       sublistTitle = title;
+      document.getElementById('views-list').classList.remove('hidden');
       break;
     case MODE_SUBLIST:
       title = sublistTitle;
+      document.getElementById('views-sublist').classList.remove('hidden');
       break;
     case MODE_PLAYER:
       title = playerTitle;
+      document.getElementById('views-player').classList.remove('hidden');
+      // Here if Player is not loaded yet and we are going to play
+      // load Player.js then we can use the PlayerView object
+      if (!playerLoaded) {
+        LazyLoader.load('js/Player.js', function() {
+          PlayerView.init(true);
+
+          if (callback)
+            callback();
+        });
+      }
       break;
   }
 
@@ -350,6 +384,9 @@ function changeMode(mode) {
     document.getElementById('scan-progress').classList.add('hidden');
     displayingScanProgress = false;
   }
+
+  if (callback && playerLoaded)
+    callback();
 }
 
 // Title Bar
@@ -456,12 +493,15 @@ var TilesView = {
         showOverlay('empty');
       }
 
+      // Display the TilesView after when finished updating the UI
+      document.getElementById('views-tiles').classList.remove('hidden');
       return;
     }
 
     this.dataSource.push(result);
 
     var tile = document.createElement('div');
+    tile.className = 'tile';
 
     var container = document.createElement('div');
     container.className = 'tile-container';
@@ -475,11 +515,6 @@ var TilesView = {
     artistName.textContent = result.metadata.artist || unknownArtist;
     albumName.textContent = result.metadata.album || unknownAlbum;
     titleBar.appendChild(artistName);
-
-    var img = document.createElement('img');
-    img.className = 'tile-image';
-
-    displayAlbumArt(img, result);
 
     // There are 6 tiles in one group
     // and the first tile is the main-tile
@@ -502,12 +537,35 @@ var TilesView = {
       tile.classList.add('float-right');
     }
 
-    tile.classList.add('default-album-' + this.index % 10);
+    var NUM_INITIALLY_VISIBLE_TILES = 8;
+    var INITIALLY_HIDDEN_TILE_WAIT_TIME_MS = 1000;
+
+    var placeholderBackgroundClass = 'default-album-' + this.index % 10;
+    var setTileBackgroundClosure = function(url) {
+      if (url) {
+        tile.style.backgroundImage = 'url(' + url + ')';
+      } else {
+        tile.classList.add(placeholderBackgroundClass);
+      }
+    };
+
+    if (this.index <= NUM_INITIALLY_VISIBLE_TILES) {
+      // Load this tile's background now, because it's visible.
+      getThumbnailURL(result, setTileBackgroundClosure);
+    } else {
+      // Defer loading hidden tiles until the visible ones are done.
+      setTimeout(function() {
+          getThumbnailURL(result, setTileBackgroundClosure);
+        },
+        INITIALLY_HIDDEN_TILE_WAIT_TIME_MS);
+    }
 
     container.dataset.index = this.index;
 
-    container.appendChild(img);
-    container.appendChild(titleBar);
+    // The tile info(album/artist) shows only when the cover does not exist
+    if (!result.metadata.picture)
+      container.appendChild(titleBar);
+
     tile.appendChild(container);
     this.view.appendChild(tile);
 
@@ -541,27 +599,27 @@ var TilesView = {
       var range = IDBKeyRange.only(data.metadata.album);
       var direction = 'next';
 
-      PlayerView.clean();
+      changeMode(MODE_PLAYER, function() {
+        PlayerView.clean();
 
-      // When an user tap an album on the tilesView
-      // we have to get all the song data first
-      // because the shuffle option might be ON
-      // and we have create shuffled list and play in shuffle order
-      playerHandle = musicdb.enumerateAll(key, range, direction,
-        function tv_enumerateAll(dataArray) {
-          PlayerView.setSourceType(TYPE_LIST);
-          PlayerView.dataSource = dataArray;
+        // When an user tap an album on the tilesView
+        // we have to get all the song data first
+        // because the shuffle option might be ON
+        // and we have create shuffled list and play in shuffle order
+        playerHandle = musicdb.enumerateAll(key, range, direction,
+          function tv_enumerateAll(dataArray) {
+            PlayerView.setSourceType(TYPE_LIST);
+            PlayerView.dataSource = dataArray;
 
-          if (PlayerView.shuffleOption) {
-            PlayerView.setShuffle(true);
-            PlayerView.play(PlayerView.shuffledList[0], backgroundIndex);
-          } else {
-            PlayerView.play(0, backgroundIndex);
+            if (PlayerView.shuffleOption) {
+              PlayerView.setShuffle(true);
+              PlayerView.play(PlayerView.shuffledList[0], backgroundIndex);
+            } else {
+              PlayerView.play(0, backgroundIndex);
+            }
           }
-
-          changeMode(MODE_PLAYER);
-        }
-      );
+        );
+      });
 
       target.removeEventListener('transitionend', handler);
     }
@@ -745,12 +803,12 @@ var ListView = {
           // or change mode to subList view and list songs
           if (option === 'title') {
             musicdb.getAll(function lv_getAll(dataArray) {
-              PlayerView.setSourceType(TYPE_MIX);
-              PlayerView.dataSource = dataArray;
-              PlayerView.setShuffle(true);
-              PlayerView.play(PlayerView.shuffledList[0]);
-
-              changeMode(MODE_PLAYER);
+              changeMode(MODE_PLAYER, function() {
+                PlayerView.setSourceType(TYPE_MIX);
+                PlayerView.dataSource = dataArray;
+                PlayerView.setShuffle(true);
+                PlayerView.play(PlayerView.shuffledList[0]);
+              });
             });
           } else {
             SubListView.clean();
@@ -883,6 +941,9 @@ var SubListView = {
   handleEvent: function slv_handleEvent(evt) {
     var target = evt.target;
 
+    if (!target)
+      return;
+
     switch (evt.type) {
       case 'click':
         if (this.isContextmenu) {
@@ -890,44 +951,46 @@ var SubListView = {
           return;
         }
 
-        PlayerView.setSourceType(TYPE_LIST);
-        PlayerView.dataSource = this.dataSource;
-
         if (target === this.shuffleButton) {
-          PlayerView.setShuffle(true);
-          PlayerView.play(PlayerView.shuffledList[0], this.backgroundIndex);
-
-          changeMode(MODE_PLAYER);
+          changeMode(MODE_PLAYER, function() {
+            PlayerView.setSourceType(TYPE_LIST);
+            PlayerView.dataSource = this.dataSource;
+            PlayerView.setShuffle(true);
+            PlayerView.play(PlayerView.shuffledList[0], this.backgroundIndex);
+          }.bind(this));
           return;
         }
 
-        if (target === this.playAllButton) {
-          // Clicking the play all button is the same as clicking
-          // on the first item in the list.
-          target = this.view.querySelector('li > a[data-index="0"]');
-          // Unshuffle because play all button should play from the first song
-          PlayerView.setShuffle(false);
+        if (target.dataset.index || target === this.playAllButton) {
+          changeMode(MODE_PLAYER, function() {
+            PlayerView.setSourceType(TYPE_LIST);
+            PlayerView.dataSource = this.dataSource;
+
+            if (target === this.playAllButton) {
+              // Clicking the play all button is the same as clicking
+              // on the first item in the list.
+              target = this.view.querySelector('li > a[data-index="0"]');
+              // we have to unshuffle here
+              // because play all button should play from the first song
+              PlayerView.setShuffle(false);
+            }
+
+            var targetIndex = parseInt(target.dataset.index);
+
+            if (PlayerView.shuffleOption) {
+              // Shuffled list maybe not exist yet
+              // because shuffleOption might be set by callback of asyncStorage.
+              // We are unable to create one since
+              // there is no playing dataSource when an user first launch Music.
+              // Here we need to create a new shuffled list
+              // and start from the song which a user clicked.
+              PlayerView.shuffleList(targetIndex);
+              PlayerView.play(PlayerView.shuffledList[0], this.backgroundIndex);
+            } else {
+              PlayerView.play(targetIndex, this.backgroundIndex);
+            }
+          }.bind(this));
         }
-
-        if (target && target.dataset.index) {
-          var targetIndex = parseInt(target.dataset.index);
-
-          if (PlayerView.shuffleOption) {
-            // Shuffled list maybe not exist yet
-            // because shuffleOption might be set by callback of asyncStorage.
-            // We are unable to create one since
-            // there is no playing dataSource when an user first launch Music.
-            // Here we need to create a new shuffled list
-            // and start from the song which a user clicked.
-            PlayerView.shuffleList(targetIndex);
-            PlayerView.play(PlayerView.shuffledList[0], this.backgroundIndex);
-          } else {
-            PlayerView.play(targetIndex, this.backgroundIndex);
-          }
-
-          changeMode(MODE_PLAYER);
-        }
-
         break;
 
       case 'contextmenu':
@@ -1032,7 +1095,6 @@ window.addEventListener('DOMContentLoaded', function() {
   TilesView.init();
   ListView.init();
   SubListView.init();
-  PlayerView.init(true);
   TabBar.init();
 
   changeMode(MODE_TILES);

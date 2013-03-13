@@ -43,17 +43,14 @@ var SimManager = {
   available: function sm_available() {
     if (!this.mobConn)
       return false;
-    // Card should either be "ready" (connected to network) or "null" (card in
-    // phone but cannot connect to network for some reason).
-    // See https://bugzilla.mozilla.org/show_bug.cgi?id=822522
-    return (this.mobConn.cardState === 'ready' ||
-            this.mobConn.cardState === null);
+    return (this.mobConn.cardState === 'ready');
   },
 
  /**
   * Possible values:
   *   null,
   *   'absent',
+  *   'unknown',
   *   'pinRequired',
   *   'pukRequired',
   *   'networkLocked',
@@ -147,9 +144,9 @@ var SimManager = {
     // Unlock SIM
     var options = {lockType: 'pin', pin: pin };
     var req = this.mobConn.unlockCardLock(options);
-    req.onsuccess = function sm_unlockSuccess() {
+    req.onsuccess = (function sm_unlockSuccess() {
       this.hideScreen();
-    }.bind(this);
+    }).bind(this);
   },
 
   clearFields: function sm_clearFields() {
@@ -197,9 +194,9 @@ var SimManager = {
     // Unlock SIM with PUK and new PIN
     var options = {lockType: 'puk', puk: pukCode, newPin: newpinCode };
     var req = this.mobConn.unlockCardLock(options);
-    req.onsuccess = function sm_unlockSuccess() {
+    req.onsuccess = (function sm_unlockSuccess() {
       this.hideScreen();
-    }.bind(this);
+    }).bind(this);
   },
 
   importContacts: function sm_importContacts() {
@@ -217,7 +214,7 @@ var SimManager = {
 
     importer.onread = function sim_import_read(n) {
       progress.setClass('progressBar');
-      progress.setHeaderMsg(_('simContacts-importing'))
+      progress.setHeaderMsg(_('simContacts-importing'));
       progress.setTotal(n);
     };
 

@@ -7,6 +7,7 @@ input[type="email"],
 input[type="tel"],
 input[type="search"],
 input[type="url"],
+input[type="number"],
 textarea {
   -moz-box-sizing: border-box;
   display: block;
@@ -15,7 +16,7 @@ textarea {
   height: 4rem;
   resize: none;
   padding: 0 0.8rem;
-  font: 1.4rem/4rem "MozTT", Sans-serif;
+  font: 1.8rem/4rem "MozTT", Sans-serif;
   border: 0.1rem solid #ccc;
   border-radius: 0.3rem;
   box-shadow: none; /* override the box-shadow from the system (performance issue) */
@@ -36,14 +37,16 @@ textarea:invalid {
   color: #b90000;
 }
 
-input[type="text"]::-moz-placeholder,
-input[type="password"]::-moz-placeholder,
-input[type="email"]::-moz-placeholder,
-input[type="tel"]::-moz-placeholder,
-input[type="search"]::-moz-placeholder,
-input[type="url"]::-moz-placeholder,
+input::-moz-placeholder,
 textarea::-moz-placeholder {
-  color: #666;
+  color: #858585;
+  opacity: 1;
+}
+
+input:-moz-placeholder,
+textarea:-moz-placeholder {
+  color: #858585;
+  opacity: 1;
 }
 
 form p {
@@ -68,7 +71,13 @@ form p textarea + button[type="reset"] {
   font-size: 0;
   opacity: 0;
   pointer-events: none;
-  background: url(input_areas/images/icons/clear.png) no-repeat 50% 50%;
+  background: url(input_areas/images/icons/clear.png) no-repeat 50% 50% / 1.7rem auto;
+}
+
+/* To avoid colission with BB butons */
+li input + button[type="reset"]:after,
+li textarea + button[type="reset"]:after {
+  background: none;
 }
 
 form p input + button[type="reset"],
@@ -97,12 +106,13 @@ form p textarea:focus + button[type="reset"] {
 
 /* Fieldset */
 fieldset {
+  position: relative;
   overflow: hidden;
   margin: 0;
   padding: 0;
   border-radius: 0.3rem;
   border: 0.1rem solid rgba(0,0,0,.2);
-  font: 1.4rem/1em "MozTT", Sans-serif;
+  font: 1.8rem/1em "MozTT", Sans-serif;
   background: #fff url(input_areas/images/ui/shadow.png) repeat-x left top;
 }
 
@@ -112,11 +122,10 @@ fieldset  + fieldset {
 
 fieldset legend {
   -moz-box-sizing: border-box;
-  position: relative;
-  float: left;
+  position: absolute;
   width: 9.5rem;
-  height: 4rem;
-  padding: 0 0.5rem 0 1.8rem;
+  height: 100%;
+  padding: 0 0.5rem 0 1.5rem;
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
@@ -126,18 +135,12 @@ fieldset legend {
 }
 
 fieldset legend.action {
-  position: relative;
+  background: url(input_areas/images/icons/arrow.png) no-repeat 100% 100% / 1.2rem;
 }
 
-fieldset legend.action:after {
-  content: "";
-  position: absolute;
-  top: 1.8rem;
-  width: 0;
-  height: 0;
-  margin-left: 0.5rem;
-  border: 0.4rem solid transparent;
-  border-top-color: #333;
+fieldset legend:active {
+  background-color: #008caa;
+  text-shadow: 0.1rem 0.1rem 0 rgba(255,255,255,.3);
 }
 
 fieldset section input[type="text"],
@@ -145,12 +148,12 @@ fieldset section input[type="password"],
 fieldset section input[type="email"],
 fieldset section input[type="tel"],
 fieldset section input[type="search"],
+fieldset section input[type="number"],
 fieldset section textarea {
   height: 4rem;
   border: none;
   border-radius: 0;
   background: none;
-  font-weight: 600;
 }
 
 fieldset section {
@@ -158,6 +161,7 @@ fieldset section {
   border-left: 0.1rem solid #ddd;
   border-radius: 0 0.3rem 0.3rem 0;
   overflow: hidden;
+  margin-left: 9.5rem;
 }
 
 fieldset section p {
@@ -173,7 +177,7 @@ fieldset section p:last-child {
 form[role="search"] {
   position: relative;
   height: 3.7rem;
-  background: #e8e8e8 url(input_areas/images/ui/background.png) repeat-x;
+  background: #e8e8e8 url(input_areas/images/ui/background.png) repeat-x left bottom / 100%;
 }
 
 section[role="region"] > header:first-child + form[role="search"] {
@@ -220,6 +224,7 @@ form[role="search"] p input {
   height: 3rem;
   border: 0.1rem solid #ababab;
   background: #fff url(input_areas/images/ui/shadow-search.png) repeat-x left top;
+  font-size: 1.8rem;
 }
 
 form[role="search"] p button[type="reset"] {
@@ -234,18 +239,21 @@ form[role="search"] button[type="submit"] {
   float: right;
   min-width: 6rem;
   height: 3.7rem;
-  padding: 0 0.4rem;
+  padding: 0 1rem;
   border: none;
   color: #333;
-  font: 600 1.4rem/3.2rem "MozTT", Sans-serif;
+  font: 500 1.8rem/3.2rem "MozTT", Sans-serif;
   background: url(input_areas/images/ui/separator.png) no-repeat 0 50%,
               url(input_areas/images/ui/active.png) repeat-x 0 100%;
+ background-size: auto 100%;
+  border-radius: 0;
 }
 
 form[role="search"] button[type="submit"] + p > textarea {
   height: 3rem;
-  padding: 0.5rem 3rem 0.5rem 0.8rem;
+  padding: 0.4rem 0.2rem 0.2rem 0.6rem;
   line-height: 2rem;
+  font-size: 1.8rem;
 }
 
 form[role="search"] button[type="submit"] + p button {
@@ -297,7 +305,7 @@ html[dir="rtl"] fieldset legend.action:after {
 }
 
 html[dir="rtl"] fieldset legend {
-  padding: 0 1.8rem 0 0.5rem;
+  padding: 0 1.5rem 0 0.5rem;
 }
 
 html[dir="rtl"] form[role="search"] button[type="submit"] + p > textarea {

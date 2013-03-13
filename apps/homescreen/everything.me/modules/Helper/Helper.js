@@ -1,9 +1,8 @@
 Evme.Helper = new function Evme_Helper() {
     var NAME = "Helper", self = this,
         el = null, elWrapper = null, elTitle = null, elList = null, elTip = null,
-        _data = {}, defaultText = "", iscroll = null, currentDisplayedType = "", timeoutShowRefine = null,
+        _data = {}, defaultText = "", scroll = null, currentDisplayedType = "", timeoutShowRefine = null,
         queryForSuggestions = "", lastVisibleItem, clicked = false, titleVisible = false,
-        TOTAL_WIDTH_ADDITION = 20, MIN_WIDTH = 308, TYPE_ELEMENT_OFFSET = 86,
         
         bShouldAnimate = true, ftr = {};
            
@@ -24,22 +23,16 @@ Evme.Helper = new function Evme_Helper() {
         elWrapper = el.parentNode;
         elList = Evme.$("ul", el)[0];
 
-        elList.addEventListener("touchmove", function cancelPanning(e) {
-          e.stopPropagation();
-        });
         
         elList.addEventListener("click", elementClick, false);
         elTitle.addEventListener("click", titleClicked, false);
         
         self.reset();
 
-        // iscroll options
-        var iscrollOptions = {
+        scroll = new Scroll(el, {
             "vScroll": false,
-            "onBeforeScrollStart": function onBeforeScrollStart(e){ e.preventDefault(); e.stopPropagation(); }
-        };
-        
-        iscroll = new iScroll(el, iscrollOptions);
+            "hScroll": true
+        });
         
         // feature animation disable
         if (ftr.Animation === false){
@@ -276,7 +269,7 @@ Evme.Helper = new function Evme_Helper() {
         }
         elList.innerHTML = html;
         
-        window.setTimeout(self.refreshScroll, 0);
+        window.setTimeout(self.scrollToStart, 0);
         
         if (bShouldAnimate) {
             self.disableAnimation();
@@ -304,11 +297,8 @@ Evme.Helper = new function Evme_Helper() {
         }, 0);
     };
     
-    this.refreshScroll = function refreshScroll() {
-        MIN_WIDTH = el.offsetWidth;
-        setWidth();
-        iscroll.refresh();
-        iscroll.scrollTo(0,0);
+    this.scrollToStart = function refreshScroll() {
+        scroll.scrollTo(0,0);
     };
 
     this.setTitle = function setTitle(title, type) {
@@ -334,8 +324,8 @@ Evme.Helper = new function Evme_Helper() {
         }
         
         var html =  '<b ' + Evme.Utils.l10nAttr(NAME, 'title-prefix') + '></b>' +
-                    '<span class="query">' + title + '</span>' +
-                    '<em class="type">(' + (type || "") + ')</em>';
+                    '<span class="query">' + Evme.html(title) + '</span>' +
+                    '<em class="type">(' + Evme.html(type) + ')</em>';
         
         elTitle.innerHTML = html;
         
@@ -365,7 +355,7 @@ Evme.Helper = new function Evme_Helper() {
         elWrapper.classList.remove("close");
         elTitle.classList.add("close");
         window.setTimeout(self.disableCloseAnimation, 50);
-        self.refreshScroll();
+        self.scrollToStart();
         
         titleVisible = false;
     };
@@ -404,9 +394,13 @@ Evme.Helper = new function Evme_Helper() {
         });
         
         elLink.addEventListener("click", function onClick(e) {
+            callback(e);
+        });
+
+        // prevents input blur
+        elLink.addEventListener("mousedown", function onClick(e) {
             e.stopPropagation();
             e.preventDefault();
-            callback(e);
         });
         
         if (isBefore) {
@@ -415,7 +409,7 @@ Evme.Helper = new function Evme_Helper() {
             elList.appendChild(elLink);
         }
         
-        window.setTimeout(self.refreshScroll, 0);
+        window.setTimeout(self.scrollToStart, 0);
         
         return elLink;
     };
@@ -433,7 +427,7 @@ Evme.Helper = new function Evme_Helper() {
         
         elList.appendChild(el);
         
-        self.refreshScroll();
+        self.scrollToStart();
     };
     
     function animateSuggestions() {
@@ -559,28 +553,6 @@ Evme.Helper = new function Evme_Helper() {
     
     function isVisibleItem(index){
         return index <= lastVisibleItem;
-    }
-
-    function setWidth() {
-        elList.style.width = '5000px';
-        
-        var width = 0,
-            elListItems = Evme.$('li', elList);
-        
-        lastVisibleItem = 0;
-        for (var i=0,elItem=elListItems[i]; elItem; elItem=elListItems[++i]) {
-            if (width < MIN_WIDTH){
-                lastVisibleItem = i;
-            }
-            
-            if (!elItem.classList.contains("history")) {
-                width += elItem.offsetWidth;
-            }
-        }
-        
-        width = Math.max(width + TOTAL_WIDTH_ADDITION, MIN_WIDTH);
-        
-        elList.style.width = width + 'px';
     }
 
     function cbLoaded(inputQuery, parsedQuery, suggestions, spelling, types) {

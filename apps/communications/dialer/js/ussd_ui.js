@@ -16,6 +16,11 @@ var UssdUI = {
     return this.closeNode = document.getElementById('close');
   },
 
+  get cancelNode() {
+    delete this.cancelNode;
+    return this.cancelNode = document.getElementById('cancel');
+  },
+
   get sendNode() {
     delete this.sendNode;
     return this.sendNode = document.getElementById('send');
@@ -42,6 +47,11 @@ var UssdUI = {
     return this.messageScreen = document.getElementById('message-screen');
   },
 
+  get loadingOverlay() {
+    delete this.loadingOverlay;
+    return this.loadingOverlay = document.getElementById('loading-overlay');
+  },
+
   init: function uui_init() {
     if (window.location.hash != '#send') {
       this.hideLoading();
@@ -52,6 +62,7 @@ var UssdUI = {
       this._ = _;
       this.updateHeader(window.name);
       this.closeNode.addEventListener('click', this.closeWindow.bind(this));
+      this.cancelNode.addEventListener('click', this.cancel.bind(this));
       this.sendNode.addEventListener('click', this.reply.bind(this));
       this.responseTextResetNode.addEventListener('click',
         this.resetResponse.bind(this));
@@ -70,6 +81,16 @@ var UssdUI = {
     window.close();
   },
 
+  cancel: function uui_cancel() {
+    window.opener.postMessage({
+      type: 'cancel'
+    }, this._origin);
+
+    this.hideLoading();
+
+    window.close();
+  },
+
   showMessage: function uui_showMessage(message) {
     this.hideLoading();
     this.responseTextNode.removeAttribute('disabled');
@@ -77,13 +98,23 @@ var UssdUI = {
   },
 
   showLoading: function uui_showLoading() {
-    document.body.classList.add('loading');
+    this.loadingOverlay.classList.remove('hide');
+    this.loadingOverlay.classList.remove('fadeOut');
+    this.loadingOverlay.classList.add('fadeIn');
     this.responseTextNode.setAttribute('disabled', 'disabled');
     this.sendNode.setAttribute('disabled', 'disabled');
   },
 
   hideLoading: function uui_hideLoading() {
-    document.body.classList.remove('loading');
+    this.loadingOverlay.classList.remove('fadeIn');
+    this.loadingOverlay.classList.add('fadeOut');
+    var self = this;
+    this.loadingOverlay.addEventListener('animationend',
+      function uso_fadeOut(ev) {
+        self.loadingOverlay.removeEventListener('animationend', uso_fadeOut);
+        self.loadingOverlay.classList.add('hide');
+      }
+    );
   },
 
   showResponseForm: function uui_showForm() {

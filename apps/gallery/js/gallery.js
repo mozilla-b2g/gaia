@@ -165,10 +165,23 @@ function init() {
     case 'browse':
       // The 'browse' activity is the way we launch Gallery from Camera.
       // If this was a cold start, then the db needs to be initialized.
-      if (!photodb)
+      if (!photodb) {
         initDB(true);  // Initialize both the photo and video databases
-      // Always switch to the list of thumbnails.
-      setView(thumbnailListView);
+        setView(thumbnailListView);
+      }
+      else {
+        // If the gallery was already running we we arrived here via a
+        // browse activity, then the user is probably coming to us from the
+        // camera, and she probably wants to see the list of thumbnails.
+        // If we're currently displaying a single image, switch to the
+        // thumbnails. But if the user left the gallery in the middle of
+        // an edit or in the middle of making a selection, then returning
+        // to the thumbnail list would cause her to lose work, so in those
+        // cases we don't change anything and let the gallery resume where
+        // the user left it.  See Bug 846220.
+        if (currentView === fullscreenView)
+          setView(thumbnailListView);
+      }
       break;
     case 'pick':
       if (pendingPick) // I don't think this can really happen anymore
@@ -262,7 +275,7 @@ function getVideoFile(filename, callback) {
   };
   req.onerror = function() {
     console.error('Failed to get video file', filename);
-  }
+  };
 }
 
 // This comparison function is used for sorting arrays and doing binary
@@ -661,7 +674,7 @@ function startPick(activityRequest) {
   }
   // We need this for cropping the photo
   loader.load('js/ImageEditor.js', function() {
-    setView(pickView);    
+    setView(pickView);
   });
 }
 

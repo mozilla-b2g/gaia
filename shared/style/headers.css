@@ -56,7 +56,7 @@ section[role="region"] > header:first-child input[type="text"] {
   border: solid 0.1rem #9d4123;
   border-top-color: #a6501e;
   border-radius: 0.3rem;
-  background: #fff url(headers/images/ui/shadow.png) repeat-x 0 -0.1rem;
+  background: #fff url(headers/images/ui/shadow.png) repeat-x left -0.1rem;
   font: 1.5rem/3em "MozTT", Sans-serif;
   box-shadow: none;
 }
@@ -73,7 +73,7 @@ section[role="region"] > header:first-child form button[type="reset"] {
   margin: 0;
   display: none;
   border: none;
-  background: url(headers/images/icons/clear.png) no-repeat center center;
+  background: url(headers/images/icons/clear.png) no-repeat center center / 1.7rem auto;
 }
 
 section[role="region"] > header:first-child input[type="text"]:valid + button[type="reset"] {
@@ -106,7 +106,7 @@ section[role="region"] > header:first-child menu[type="toolbar"] button {
 
 section[role="region"] > header:first-child menu[type="toolbar"] a:last-child,
 section[role="region"] > header:first-child menu[type="toolbar"] button:last-child {
-  background: url(headers/images/ui/separator.png) no-repeat 0 50%;
+  background: url(headers/images/ui/separator.png) no-repeat left center / auto 3.4rem;
   margin-left: -0.2rem;
   z-index: 1;
 }
@@ -169,7 +169,7 @@ section[role="region"] > header:first-child .icon {
   width: 3rem;
   height: 4.9rem;
   margin: 0 -1rem;
-  background: transparent no-repeat center center;
+  background: transparent no-repeat center center / 3rem auto;
   font-size: 0;
   overflow: hidden;
 }
@@ -221,7 +221,7 @@ section[role="region"] > header:first-child > a {
   left: 0;
   width: 5rem;
   height: 5rem;
-  background: url(headers/images/ui/separator-large.png) no-repeat 2rem center;
+  background: url(headers/images/ui/separator-large.png) no-repeat 2rem center / auto 4.8rem;
   overflow: hidden;
 }
 
@@ -250,7 +250,7 @@ section[role="region"] > header:first-child > a .icon:after {
   z-index: -1;
   width: 2rem;
   height: 4.9rem;
-  background: #9d3d26 url(headers/images/ui/negative.png) repeat-x 0 0;
+  background: #9d3d26 url(headers/images/ui/negative.png) repeat-x left bottom / auto 100%;
 }
 
 section[role="region"] > header > a .icon.icon-menu,
@@ -279,17 +279,16 @@ section[role="region"] header h2 {
   font-weight: 400;
   font-size: 1.5rem;
   line-height: 1.8rem;
-  background: url(headers/images/ui/subheader.png) repeat 0 100%;
+  background: url(headers/images/ui/subheader.png) repeat 0 100% / auto 100%;
   border-bottom: solid 0.1rem #e6e6e6;
 }
 
 /* ----------------------------------
  * HEADERS: dark
  * ---------------------------------- */
-
 section[role="region"].skin-dark > header:first-child,
 .skin-dark section[role="region"] > header:first-child {
-  background: url(headers/images/ui/dark/header.png) repeat-x 0 0;
+  background-image: url(headers/images/ui/dark/header.png);
 }
 
 /* Navigation links (back, cancel, etc) */
@@ -297,7 +296,8 @@ section[role="region"].skin-dark > header:first-child > a .icon:after,
 .skin-dark section[role="region"] > header:first-child > a .icon:after,
 section[role="region"].skin-dark > header:first-child > button .icon:after,
 .skin-dark section[role="region"] > header:first-child > button .icon:after {
-  background: #26272c url(headers/images/ui/dark/negative.png) repeat-x 0 0;
+  background-image:  url(headers/images/ui/dark/negative.png);
+  background-color: #26272c;
 }
 
 section[role="region"].skin-dark > header:first-child menu[type="toolbar"] a:last-child,
@@ -309,7 +309,8 @@ section[role="region"].skin-dark > header:first-child menu[type="toolbar"] butto
 
 section[role="region"].skin-dark header h2,
 .skin-dark section[role="region"] header h2 {
-  background: #7f7f7f url(headers/images/ui/dark/subheader.png) repeat-x 0 100%;
+  background-image: url(headers/images/ui/dark/subheader.png);
+  background-color: #7f7f7f;
   color: #c5c5c5;
 }
 
@@ -319,7 +320,7 @@ section[role="region"].skin-dark header h2,
 
 section[role="region"].skin-organic > header:first-child,
 .skin-organic section[role="region"] > header:first-child {
-  background: url(headers/images/ui/organic/header.png) repeat-x 0 0,  url(headers/images/ui/organic/pattern.png) repeat 0 0;
+  background-image: url(headers/images/ui/organic/header.png),  url(headers/images/ui/organic/pattern.png);
 }
 
 section[role="region"].skin-organic > header:first-child:after,
@@ -332,7 +333,9 @@ section[role="region"].skin-organic > header:first-child > a .icon:after,
 .skin-organic section[role="region"] > header:first-child > a .icon:after,
 section[role="region"].skin-organic > header:first-child > button .icon:after,
 .skin-organic section[role="region"] > header > button .icon:after {
-  background: url(headers/images/ui/organic/negative.png) repeat-x 0 0;
+  background-image: url(headers/images/ui/organic/negative.png);
+  background-size: 3.4rem auto;
+  background-color: transparent;
 }
 
 section[role="region"].skin-organic > header:first-child menu[type="toolbar"] a:last-child,
@@ -344,7 +347,8 @@ section[role="region"].skin-organic > header:first-child menu[type="toolbar"] bu
 
 section[role="region"].skin-organic header h2,
 .skin-organic section[role="region"] header h2 {
-  background: #7f7f7f url(headers/images/ui/organic/subheader.png) repeat-x 0 100%;
+  background-image: url(headers/images/ui/organic/subheader.png);
+  background-color: #7f7f7f;
   color: #fff;
 }
 
