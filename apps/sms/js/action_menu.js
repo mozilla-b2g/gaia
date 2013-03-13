@@ -46,15 +46,12 @@ var OptionMenu = function(options) {
   this.actionMenu = document.createElement('form');
   this.actionMenu.dataset.type = 'action';
   this.actionMenu.setAttribute('role', 'dialog');
-  this.actionMenu.classList.add('hide');
-
   // We append title if needed
   if (options.title && options.title.length > 0) {
     var _header = document.createElement('header');
     _header.textContent = options.title;
     this.actionMenu.appendChild(_header);
   }
-
   // We append a menu with the list of options
   var _menu = document.createElement('menu');
 
@@ -88,15 +85,15 @@ var OptionMenu = function(options) {
   }.bind(this));
   // Appending the action menu to the form
   this.actionMenu.appendChild(_menu);
-  // At the end we append the element to body
-  document.body.appendChild(this.actionMenu);
 };
 
 // We prototype functions to show/hide the UI of action-menu
 OptionMenu.prototype.show = function() {
-  this.actionMenu.classList.remove('hide');
+  // We append the element to body
+  document.body.appendChild(this.actionMenu);
 };
 
 OptionMenu.prototype.hide = function() {
-  this.actionMenu.classList.add('hide');
+  // We remove the element to body
+  document.body.removeChild(this.actionMenu);
 };
