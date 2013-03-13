@@ -409,17 +409,13 @@ contacts.List = (function() {
   var lazyLoadFacebookData = function lazyLoadFacebookData() {
     Contacts.loadFacebook(function() {
       var fbReq = fb.contacts.getAll();
+      var favs = false;
       fbReq.onsuccess = function() {
         for (var i = 0; i < contactsPhoto.length; i++) {
           var id = contactsPhoto[i];
           var current = contactsCache[id];
           var contact = current.contact;
           var link = current.container;
-          var favs = false;
-          if (isFavorite(contact)) {
-            favs = true;
-            addToFavoriteList(link.cloneNode(true));
-          }
           if (fb.isFbContact(contact)) {
             var meta;
             var elements = link.querySelectorAll('p');
@@ -441,6 +437,10 @@ contacts.List = (function() {
             }
           }
           renderPhoto(contact, link);
+          if (isFavorite(contact)) {
+            favs = true;
+            addToFavoriteList(link.cloneNode(true));
+          }
         }
         contactsPhoto = [];
         if (favs)
