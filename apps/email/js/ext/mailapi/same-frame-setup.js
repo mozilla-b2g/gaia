@@ -11918,7 +11918,7 @@ var makeDaysAgo = exports.makeDaysAgo =
 var makeDaysBefore = exports.makeDaysBefore =
       function makeDaysBefore(date, numDaysBefore) {
   if (date === null)
-    return makeDaysAgo(numDaysBefore);
+    return makeDaysAgo(numDaysBefore - 1);
   return quantizeDate(date) - numDaysBefore * DAY_MILLIS;
 };
 /**
