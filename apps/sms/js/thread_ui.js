@@ -549,7 +549,6 @@ var ThreadUI = {
     switch (message.delivery) {
       case 'error':
         asideHTML = '<aside class="pack-end"></aside>';
-        ThreadUI.addResendHandler(message, messageDOM);
         break;
       case 'sending':
         asideHTML = '<aside class="pack-end">' +
@@ -566,6 +565,10 @@ var ThreadUI = {
     messageHTML += asideHTML;
     messageHTML += '<p>' + bodyHTML + '</p></a>';
     messageDOM.innerHTML = messageHTML;
+
+    if (message.delivery === 'error')
+      ThreadUI.addResendHandler(message, messageDOM);
+
     // Add to the right position
     var messageContainer = ThreadUI.getMessageContainer(timestamp, hidden);
     if (!messageContainer.firstElementChild) {
@@ -594,7 +597,8 @@ var ThreadUI = {
   },
 
   addResendHandler: function thui_addResendHandler(message, messageDOM) {
-    messageDOM.addEventListener('click', function resend(e) {
+    var aElement = messageDOM.querySelector('aside');
+    aElement.addEventListener('click', function resend(e) {
       var hash = window.location.hash;
       if (hash != '#edit') {
         var resendConfirmStr = _('resend-confirmation');
