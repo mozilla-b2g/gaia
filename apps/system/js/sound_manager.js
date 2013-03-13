@@ -5,7 +5,7 @@
 
 (function() {
   window.addEventListener('volumeup', function() {
-    if (ScreenManager.screenEnabled || currentChannel !== 'none' ) {
+    if (ScreenManager.screenEnabled || currentChannel !== 'none') {
       if (onBTEarphoneConnected() && onCall()) {
         changeVolume(1, 'bt_sco');
       } else {
@@ -14,7 +14,7 @@
     }
   });
   window.addEventListener('volumedown', function() {
-    if (ScreenManager.screenEnabled || currentChannel !== 'none' ) {
+    if (ScreenManager.screenEnabled || currentChannel !== 'none') {
       if (onBTEarphoneConnected() && onCall()) {
         changeVolume(-1, 'bt_sco');
       } else {
