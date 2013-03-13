@@ -64,12 +64,6 @@ var Recents = {
       getElementById('select-all-threads');
   },
 
-  get iframeContacts() {
-    delete this.iframeContacts;
-    return this.iframeContacts = document.
-      getElementById('iframe-contacts');
-  },
-
   get recentsEditMenu() {
     delete this.recentsEditMenu;
     return this.recentsEditMenu = document.

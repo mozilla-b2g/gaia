@@ -78,17 +78,21 @@ var PhoneNumberActionMenu = (function() {
       _addToExistingContactMenuItem.classList.remove('hide');
     }
     if (contactId) {
-      var contactsIframe = document.getElementById('iframe-contacts');
-      var src = '/contacts/index.html';
-      src += '#view-contact-details?id=' + contactId;
-      src += '&tel=' + phoneNumber;
-      // Enable the function of receiving the messages posted from the iframe.
-      src += '&back_to_previous_tab=1';
-      var timestamp = new Date().getTime();
-      contactsIframe.src = src + '&timestamp=' + timestamp;
       window.location.hash = '#contacts-view';
+
+      setTimeout(function nextTick() { /* we'll have the iframe by then */
+        var contactsIframe = document.getElementById('iframe-contacts');
+        var src = '/contacts/index.html';
+        src += '#view-contact-details?id=' + contactId;
+        src += '&tel=' + phoneNumber;
+        // Enable the function of receiving the messages posted from the iframe.
+        src += '&back_to_previous_tab=1';
+        var timestamp = new Date().getTime();
+        contactsIframe.src = src + '&timestamp=' + timestamp;
+      });
     } else {
       _newPhoneNumber = phoneNumber;
+      _addContactActionMenu.hidden = false;
       _addContactActionMenu.classList.add('visible');
     }
   };
@@ -98,7 +102,6 @@ var PhoneNumberActionMenu = (function() {
       return;
     }
     _addContactActionMenu = document.getElementById('add-contact-action-menu');
-    _addContactActionMenu.hidden = false;
     _addContactActionMenu.addEventListener('submit', _formSubmit);
     _callMenuItem = document.getElementById('call-menuitem');
     _callMenuItem.addEventListener('click', _call);
