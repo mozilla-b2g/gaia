@@ -648,13 +648,19 @@ aside.connecting {
 
 /* Extending icon types*/
 #import_contacts [data-type="list"] li button.icon-fb:before {
-  background-image: url('images/import_fb.png');
+  background-image: url('/contacts/style/images/f_logo.png');
 }
 
-/* Extending icon types*/
 #import_contacts [data-type="list"] li button.icon-sim:before {
-  background-image: url(/contacts/style/images/import_SIM.png);
-  background-size: 1.6rem;
+  background-image: url('/contacts/style/images/import_SIM.png');
+}
+
+#import_contacts [data-type="list"] li button.icon-wlive:before {
+  background-image: url('/contacts/style/images/hotmail_icon.png');
+}
+
+#import_contacts [data-type="list"] li button.icon-gmail:before {
+  background-image: url('/contacts/style/images/gmail_icon.png');
 }
 
 #import_contacts li button.icon {
@@ -665,6 +671,11 @@ aside.connecting {
 #import_contacts li button.icon:before {
   right: auto;
   left: 0.5rem;
+  background-size: 3rem;
+}
+
+#import_contacts li button[disabled="disabled"].icon:before {
+  opacity: 0.2;
 }
 
 #import_contacts article:first-child ul {
@@ -985,9 +996,12 @@ i.hack-first-child {
 }
 
 .icon {
-  background-color: transparent !important;
-  background-repeat: no-repeat !important;
-  background-position: center center !important;
+  background-repeat: no-repeat;
+  background-position: center center;
+}
+
+#time-form .icon {
+  background-color: transparent;
 }
 
 /*
