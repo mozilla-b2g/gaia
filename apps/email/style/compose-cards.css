@@ -114,6 +114,7 @@ input.cmp-subject-text {
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: calc(100% - 12.5rem);
+  white-space: nowrap;
 }
 .cmp-attachment-filesize {
   color: gray;
