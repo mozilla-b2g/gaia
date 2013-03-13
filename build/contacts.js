@@ -83,9 +83,9 @@ function initContact(contact) {
 }
 
 let finish = true;
-if (Gaia.customizeFolder &&
-  getFile(Gaia.customizeFolder, CONTACTS_FILE).exists()) {
-  let contactsFile = getFile(Gaia.customizeFolder, CONTACTS_FILE);
+if (Gaia.distributionDir &&
+  getFile(Gaia.distributionDir, CONTACTS_FILE).exists()) {
+  let contactsFile = getFile(Gaia.distributionDir, CONTACTS_FILE);
   try {
     let contacts = getJSON(contactsFile);
     log(contacts.length + ' contacts to import');
