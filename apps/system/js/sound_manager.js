@@ -5,17 +5,21 @@
 
 (function() {
   window.addEventListener('volumeup', function() {
-    if (onBTEarphoneConnected() && onCall()) {
-      changeVolume(1, 'bt_sco');
-    } else {
-      changeVolume(1);
+    if (ScreenManager.screenEnabled || currentChannel !== 'none' ) {
+      if (onBTEarphoneConnected() && onCall()) {
+        changeVolume(1, 'bt_sco');
+      } else {
+        changeVolume(1);
+      }
     }
   });
   window.addEventListener('volumedown', function() {
-    if (onBTEarphoneConnected() && onCall()) {
-      changeVolume(-1, 'bt_sco');
-    } else {
-      changeVolume(-1);
+    if (ScreenManager.screenEnabled || currentChannel !== 'none' ) {
+      if (onBTEarphoneConnected() && onCall()) {
+        changeVolume(-1, 'bt_sco');
+      } else {
+        changeVolume(-1);
+      }
     }
   });
 
