@@ -1,15 +1,9 @@
 'use strict';
 
-// FB constants
-var fb = window.fb || {};
-// fb.Category: contact category
-fb.CATEGORY = 'facebook';
-fb.CONTACTS_APP_ORIGIN = document.location.protocol +
-  '//' + document.location.host;
 
 var _ = navigator.mozL10n.get;
 
-var FacebookIntegration = {
+var ImportIntegration = {
   get fbExtensions() {
     delete this.fbExtensions;
     return this.fbExtensions = document.getElementById('fb-extensions');
@@ -70,13 +64,13 @@ var FacebookIntegration = {
     switch (event.type) {
       case 'click':
         if (event.target === this.fbImportButton) {
-          FbLauncher.start('facebook');
+          ServicesLauncher.start('facebook');
         }
         else if (event.target === this.liveImportButton) {
-          FbLauncher.start('live');
+          ServicesLauncher.start('live');
         }
         else if (event.target === this.gmailImportButton) {
-          FbLauncher.start('gmail');
+          ServicesLauncher.start('gmail');
         }
         break;
       case 'fb_imported':
@@ -86,16 +80,20 @@ var FacebookIntegration = {
     }
   },
 
-  checkFbImport: function fb_check(nextState) {
+  checkImport: function fb_check(nextState) {
     var fbOption = this.fbImportButton;
     var noNetMsg = this.noNetworkMsg;
 
     if (nextState === 'disabled') {
       fbOption.setAttribute('disabled', 'disabled');
+      this.gmailImportButton.setAttribute('disabled', 'disabled');
+      this.liveImportButton.setAttribute('disabled', 'disabled');
       noNetMsg.classList.remove('hidden');
     }
     else if (nextState === 'enabled') {
       fbOption.removeAttribute('disabled');
+      this.gmailImportButton.removeAttribute('disabled');
+      this.liveImportButton.removeAttribute('disabled');
       noNetMsg.classList.add('hidden');
     }
   },
@@ -143,11 +141,11 @@ var FacebookIntegration = {
 
 var FacebookConfiguration = function FacebookConfiguration() {
   var disableFacebook = function disableFacebook() {
-    FacebookIntegration.fbImport.classList.add('hidden');
+    ImportIntegration.fbImport.classList.add('hidden');
   };
 
   var enableFacebook = function enableFacebook() {
-    FacebookIntegration.fbImport.classList.remove('hidden');
+    ImportIntegration.fbImport.classList.remove('hidden');
   };
 
   var req = utils.config.load('/contacts/config.json');

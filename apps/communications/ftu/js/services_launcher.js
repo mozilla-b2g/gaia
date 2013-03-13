@@ -1,6 +1,8 @@
 'use strict';
 
-var FbLauncher = (function(document) {
+var FTU_APP_ORIGIN = 'app://communications.gaiamobile.org';
+
+var ServicesLauncher = (function(document) {
     var extensionFrame = document.querySelector('#fb-extensions');
     var oauthFrame = document.querySelector('#fb-oauth');
 
@@ -27,7 +29,7 @@ var FbLauncher = (function(document) {
           from: 'friends',
           service: targetService
         }
-      }, fb.CONTACTS_APP_ORIGIN);
+      }, FTU_APP_ORIGIN);
     }
 
     function unload() {
@@ -83,7 +85,7 @@ var FbLauncher = (function(document) {
           extensionFrame.contentWindow.postMessage({
             type: 'token',
             data: access_token
-          }, fb.CONTACTS_APP_ORIGIN);
+          }, FTU_APP_ORIGIN);
           break;
       }
     }
