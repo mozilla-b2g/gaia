@@ -21,7 +21,7 @@
 
   // Store the current active channel;
   // change with 'audio-channel-changed' mozChromeEvent
-  var currentChannel = 'notification';
+  var currentChannel = 'none';
 
   var vibrationEnabled = true;
 
