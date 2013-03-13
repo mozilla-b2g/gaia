@@ -120,7 +120,7 @@ function copyBuildingBlock(zip, blockName, dirName) {
 
 function customizeFiles(zip, src, dest) {
   // Add customize file to the zip
-  let files = ls(getFile(Gaia.customizeFolder, src));
+  let files = ls(getFile(Gaia.distributionDir, src));
   files.forEach(function(file) {
     let filename = dest + file.leafName;
     if (zip.hasEntry(filename)) {
@@ -176,14 +176,14 @@ Gaia.webapps.forEach(function(webapp) {
         addToZip(zip, '/' + file.leafName, file);
     });
 
-  if (webapp.sourceDirectoryName === 'system' && Gaia.customizeFolder) {
-    if(getFile(Gaia.customizeFolder, 'power').exists()) {
+  if (webapp.sourceDirectoryName === 'system' && Gaia.distributionDir) {
+    if(getFile(Gaia.distributionDir, 'power').exists()) {
       customizeFiles(zip, 'power', 'resources/power/');
     }
   }
 
-  if (webapp.sourceDirectoryName === 'wallpaper' && Gaia.customizeFolder &&
-    getFile(Gaia.customizeFolder, 'wallpapers').exists()) {
+  if (webapp.sourceDirectoryName === 'wallpaper' && Gaia.distributionDir &&
+    getFile(Gaia.distributionDir, 'wallpapers').exists()) {
     customizeFiles(zip, 'wallpapers', 'resources/320x480/');
   }
 
@@ -298,8 +298,8 @@ Gaia.webapps.forEach(function(webapp) {
     }
     addToZip(zip, '/shared/resources/' + path, file);
 
-    if (path === 'media/ringtones/' && Gaia.customizeFolder &&
-      getFile(Gaia.customizeFolder, 'ringtones').exists()) {
+    if (path === 'media/ringtones/' && Gaia.distributionDir &&
+      getFile(Gaia.distributionDir, 'ringtones').exists()) {
       customizeFiles(zip, 'ringtones', 'shared/resources/media/ringtones/');
     }
   });
