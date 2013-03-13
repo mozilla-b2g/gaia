@@ -55,7 +55,8 @@ function ComposeCard(domNode, mode, args) {
   var attachmentBtns =
     domNode.getElementsByClassName('cmp-attachment-container');
   for (var i = 0; i < attachmentBtns.length; i++) {
-    attachmentBtns[i].addEventListener('click', this.onAttachmentAdd.bind(this));
+    attachmentBtns[i].addEventListener('click',
+                                       this.onAttachmentAdd.bind(this));
   }
 
   // Add subject focus for larger hitbox
@@ -544,7 +545,7 @@ ComposeCard.prototype = {
           isAttachment: true
         }
       });
-      activity.onsuccess = function success() {
+      activity.onsuccess = (function success() {
         var name = activity.result.blob.name || activity.result.name;
 
         // It's possible that the name field is empty
@@ -559,7 +560,7 @@ ComposeCard.prototype = {
         });
 
         this.insertAttachments();
-      }.bind(this);
+      }).bind(this);
     } catch (e) {
       console.log('WebActivities unavailable? : ' + e);
     }
