@@ -803,6 +803,18 @@ suite('service/caldav', function() {
 
   suite('#formatICALTime', function() {
 
+    test('date', function() {
+      var time = new ICAL.Time({
+        year: 2012,
+        month: 1,
+        day: 15,
+        isDate: true
+      });
+
+      var out = subject.formatICALTime(time);
+      assert.isTrue(out.isDate, 'is date');
+    });
+
     test('floating time', function() {
       var time = new ICAL.Time({
         year: 2012,
@@ -827,6 +839,19 @@ suite('service/caldav', function() {
   });
 
   suite('#formatInputTime', function() {
+
+    test('isDate', function() {
+      var date = new Date(2012, 1, 1);
+      var transport = Calendar.Calc.dateToTransport(
+        date, null, true
+      );
+
+      var result = subject.formatInputTime(transport);
+      assert.isTrue(result.isDate, 'is date');
+
+      assert.deepEqual(result.toJSDate(), date);
+    });
+
     test('floating time', function() {
       var input = {
         offset: 0,

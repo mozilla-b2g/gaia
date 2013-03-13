@@ -15,19 +15,29 @@ function AnimatedIcon(element, path, frames, delay) {
   this.frame = 1;
   this.frames = frames;
   this.timerId = null;
+  this._started = false;
+  var image;
 
   // Load the image and paint the first frame
-  var image = new Image();
-  image.src = path;
-  image.onload = function() {
-    var w = image.width;
-    var h = image.height / frames;
-
-    context.drawImage(image, 0, 0, w, h, 0, 0, w, h);
-  };
+  function init() {
+    image = new Image();
+    image.src = path;
+    image.onload = function() {
+      var w = image.width;
+      var h = image.height / frames;
+      context.drawImage(image, 0, 0, w, h, 0, 0, w, h);
+    };
+  }
 
   this.start = function() {
     var self = this;
+    // XXX: If we draw canvas during device start up,
+    // it will face following issue.
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=849736
+    if (!self._started) {
+      self._started = true;
+      init();
+    }
 
     if (this.timerId == null) {
       this.timerId = setInterval(function() {

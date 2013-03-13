@@ -22,6 +22,7 @@ mocksHelperForGrid.init();
 
 suite('grid.js >', function() {
   var TAP_THRESHOLD = 10;
+  var SWIPE_THRESHOLD = 0.5;
   var PANNING_DELAY = 200;
 
   var wrapperNode, containerNode;
@@ -61,7 +62,16 @@ suite('grid.js >', function() {
 
     containerNode = document.getElementById('icongrid');
 
-    GridManager.init('.apps', '.dockWrapper', TAP_THRESHOLD, done);
+    var options = {
+      gridSelector: '.apps',
+      dockSelector: '.dockWrapper',
+      tapThreshold: TAP_THRESHOLD,
+      swipeThreshold: SWIPE_THRESHOLD,
+      swipeFriction: 0.1,
+      swipeTransitionDuration: 300
+    };
+
+    GridManager.init(options, done);
   });
 
   teardown(function() {

@@ -59,6 +59,13 @@ Calendar.ns('Views').ModifyEvent = (function() {
         this.element.classList.remove(this.ALLDAY);
       }
 
+      // because of race conditions it is theoretically possible
+      // for the user to check/uncheck this value
+      // when we don't actually have a model loaded.
+      if (this.event) {
+        this.event.isAllDay = !!allday;
+      }
+
       this.updateAlarms(allday);
     },
 
@@ -535,22 +542,46 @@ Calendar.ns('Views').ModifyEvent = (function() {
     /**
      * Called on render or when toggling an all-day event
      */
-    updateAlarms: function(isAllDay) {
+    updateAlarms: function(isAllDay, callback) {
 
       var template = Calendar.Templates.Alarm;
       var alarms = [];
 
+      // Used to make sure we don't duplicate alarms
+      var alarmMap = {};
+
       if (this.event.alarms) {
         for (var i = 0, alarm; alarm = this.event.alarms[i]; i++) {
+          alarmMap[alarm.trigger] = true;
           alarm.layout = isAllDay ? 'allday' : 'standard';
           alarms.push(alarm);
         }
       }
 
-      alarms.push({
-        layout: isAllDay ? 'allday' : 'standard'
-      });
-      this.alarmList.innerHTML = template.picker.renderEach(alarms).join('');
+      var settings = this.app.store('Setting');
+      var layout = isAllDay ? 'allday' : 'standard';
+      settings.getValue(layout + 'AlarmDefault', next.bind(this));
+
+      function next(err, value) {
+        if (!alarmMap[value]) {
+          alarms.push({
+            layout: layout,
+            trigger: value
+          });
+        }
+
+        if (value !== 'none') {
+          alarms.push({
+            layout: layout
+          });
+        }
+
+        this.alarmList.innerHTML = template.picker.renderEach(alarms).join('');
+
+        if (callback) {
+          callback();
+        }
+      }
     },
 
     reset: function() {
