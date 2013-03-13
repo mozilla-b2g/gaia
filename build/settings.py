@@ -205,7 +205,7 @@ def main():
         if options.locale in keyboard_layouts:
             default_layout = keyboard_layouts[options.locale]
             settings["keyboard.layouts.english"] = False
-            settings["keyboard.layouts.{}".format(default_layout)] = True
+            settings["keyboard.layouts.{0}".format(default_layout)] = True
 
     settings["devtools.debugger.remote-enabled"] = enable_debugger
 
