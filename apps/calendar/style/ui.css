@@ -124,10 +124,6 @@ ol.link-list a {
   }
 }
 
-#advanced-settings-view {
-  overflow-y: scroll;
-}
-
 #advanced-settings-view .settings-list label select {
   display: block;
   float: left;
@@ -148,7 +144,7 @@ ol.link-list a {
 }
 
 #advanced-settings-view .account-list {
-  height: calc(50% - 2.5rem);
+  height: calc(37% - 2.5rem);
   overflow-y: scroll;
 }
 
