@@ -364,6 +364,8 @@ var NavbarManager = {
     // contacts activites. Postponed to v2
     var checkContactsTab = function() {
       var contactsIframe = document.getElementById('iframe-contacts');
+      if (!contactsIframe)
+        return;
 
       var index = contactsIframe.src.indexOf('#add-parameters');
       if (index != -1) {
@@ -384,8 +386,15 @@ var NavbarManager = {
         break;
       case '#contacts-view':
         var frame = document.getElementById('iframe-contacts');
-        if (!frame.src) {
+        if (!frame) {
+          var view = document.getElementById('iframe-contacts-container');
+          frame = document.createElement('iframe');
           frame.src = '/contacts/index.html';
+          frame.id = 'iframe-contacts';
+          frame.setAttribute('frameBorder', 'no');
+          frame.classList.add('grid-wrapper');
+
+          view.appendChild(frame);
         }
 
         contacts.classList.add('toolbar-option-selected');
