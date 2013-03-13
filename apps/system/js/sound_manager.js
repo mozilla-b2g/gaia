@@ -5,23 +5,27 @@
 
 (function() {
   window.addEventListener('volumeup', function() {
-    if (onBTEarphoneConnected() && onCall()) {
-      changeVolume(1, 'bt_sco');
-    } else {
-      changeVolume(1);
+    if (ScreenManager.screenEnabled || currentChannel !== 'none' ) {
+      if (onBTEarphoneConnected() && onCall()) {
+        changeVolume(1, 'bt_sco');
+      } else {
+        changeVolume(1);
+      }
     }
   });
   window.addEventListener('volumedown', function() {
-    if (onBTEarphoneConnected() && onCall()) {
-      changeVolume(-1, 'bt_sco');
-    } else {
-      changeVolume(-1);
+    if (ScreenManager.screenEnabled || currentChannel !== 'none' ) {
+      if (onBTEarphoneConnected() && onCall()) {
+        changeVolume(-1, 'bt_sco');
+      } else {
+        changeVolume(-1);
+      }
     }
   });
 
   // Store the current active channel;
   // change with 'audio-channel-changed' mozChromeEvent
-  var currentChannel = 'notification';
+  var currentChannel = 'none';
 
   var vibrationEnabled = true;
 
