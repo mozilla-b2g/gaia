@@ -134,18 +134,45 @@
     }
   }
 
+  function getVolume(currentVolume, delta, channel) {
+    var volume = currentVolume;
+    if (channel == 'notification') {
+      if (volume == 0 && !vibrationEnabled) {
+        // This is for voluming up from Silent to Vibrate.
+        // Let's take -1 as the silent state and
+        // 0 as the vibrate state for easier calculation here.
+        volume = -1;
+      }
+      volume += delta;
+    } else {
+      volume += delta;
+    }
+    return volume;
+  }
+
   function getVolumeState(currentVolume, delta, channel) {
     if (channel == 'notification') {
-      if (currentVolume + delta <= 0) {
-        if (currentVolume == 0 && vibrationEnabled) {
-          vibrationEnabled = false;
-        } else if (currentVolume > 0 && !vibrationEnabled) {
-          vibrationEnabled = true;
-        }
-        return 'MUTE';
-      } else {
-        return 'OFF';
+      var state;
+      var volume = currentVolume;
+      if (volume == 0 && !vibrationEnabled) {
+        // This is for voluming up from Silent to Vibrate.
+        // Let's take -1 as the silent state and
+        // 0 as the vibrate state for easier calculation here.
+        volume = -1;
       }
+      volume += delta;
+
+      if (volume < 0) {
+        state = 'MUTE';
+        vibrationEnabled = false;
+      } else if (volume == 0) {
+        state = 'MUTE';
+        vibrationEnabled = true;
+      } else {
+        state = 'OFF';
+        vibrationEnabled = false;
+      }
+      return state;
     } else {
       if (currentVolume + delta <= 0) {
         return 'MUTE';
@@ -158,9 +185,9 @@
   function changeVolume(delta, channel) {
     channel = channel ? channel : getChannel();
 
+    var vibrationEnabledOld = vibrationEnabled;
+    var volume = getVolume(currentVolume[channel], delta, channel);
     muteState = getVolumeState(currentVolume[channel], delta, channel);
-
-    var volume = currentVolume[channel] + delta;
 
     currentVolume[channel] = volume =
       Math.max(0, Math.min(MAX_VOLUME[channel], volume));
@@ -173,28 +200,21 @@
     switch (muteState) {
       case 'OFF':
         classes.remove('mute');
-        if (vibrationEnabled) {
-          classes.add('vibration');
-        } else {
-          classes.remove('vibration');
-        }
         break;
       case 'MUTE':
         classes.add('mute');
-        if (channel == 'notification') {
-          if (vibrationEnabled) {
-            classes.add('vibration');
-            SettingsListener.getSettingsLock().set({
-                'vibration.enabled': true
-            });
-          } else {
-            classes.remove('vibration');
-            SettingsListener.getSettingsLock().set({
-                'vibration.enabled': false
-            });
-          }
-        }
         break;
+    }
+
+    if (vibrationEnabled)
+      classes.add('vibration');
+    else
+      classes.remove('vibration');
+
+    if (vibrationEnabledOld != vibrationEnabled) {
+      SettingsListener.getSettingsLock().set({
+          'vibration.enabled': vibrationEnabled
+      });
     }
 
     var steps =
