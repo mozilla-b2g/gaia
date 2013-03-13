@@ -18,11 +18,18 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
   var controlFadeTimeout = null;
   var dragging = false;
   var data = activity.source.data;
+  var blob = data.blob;
   var type = data.type;
   var url = data.url;
   var title = data.title || '';
 
   initUI();
+
+  // If blob exists, video should be launched by open activity
+  if (blob) {
+    title = blob.name || '';
+    url = URL.createObjectURL(blob);
+  }
 
   if (type !== 'video/youtube') {
     showPlayer(url, title);
@@ -205,6 +212,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
 
       play();
     };
+    dom.player.onloadeddata = function(evt) { URL.revokeObjectURL(url); };
   }
 
   function playerEnded() {
