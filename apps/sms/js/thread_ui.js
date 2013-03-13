@@ -92,9 +92,6 @@ var ThreadUI = {
 
   init: function thui_init() {
     this.sendButton.addEventListener('click', this.sendMessage.bind(this));
-    // Allow for stubbing in environments that do not implement the
-    // `navigator.mozSms` API
-    this._mozSms = navigator.mozSms || window.MockNavigatormozSms;
 
     // Prevent sendbutton to hide the keyboard:
     this.sendButton.addEventListener('mousedown',
@@ -242,7 +239,7 @@ var ThreadUI = {
     var kMaxConcatenatedMessages = 10;
 
     // Use backend api for precise sms segmetation information.
-    var smsInfo = this._mozSms.getSegmentInfoForText(value);
+    var smsInfo = navigator.mozSms.getSegmentInfoForText(value);
     var segments = smsInfo.segments;
     var availableChars = smsInfo.charsAvailableInLastSegment;
     var counter = '';

@@ -16,103 +16,11 @@
   /* testSupport */
 
   testSupport.calendar = {
-    _lastEnvId: 0,
-
-    accountEnvironment: function(accOverrides, calOverrides) {
-
-      // this requires a Calendar/Account model
-
-      testSupport.calendar.loadObjects(
-        'Models.Account',
-        'Models.Calendar'
-      );
-
-      setup(function(done) {
-        var id = ++testSupport.calendar._lastEnvId;
-
-        var trans = Calendar.App.db.transaction(
-          ['accounts', 'calendars'],
-          'readwrite'
-        );
-
-        trans.oncomplete = function() {
-          done();
-        };
-
-        trans.onerror = function(e) {
-          done(e.target.error);
-        };
-
-        accOverrides = accOverrides || {};
-        calOverrides = calOverrides || {};
-
-        accOverrides._id = id;
-        calOverrides.accountId = id;
-
-        accOverrides.providerType = accOverrides.providerType || 'Mock';
-
-        var account = Factory('account', accOverrides);
-        var calendar = Factory('calendar', calOverrides);
-
-        this.account = account;
-        this.calendar = calendar;
-
-        Calendar.App.store('Account').persist(account, trans);
-        Calendar.App.store('Calendar').persist(calendar, trans);
-      });
-    },
-
-    eventEnvironment: function(busytimeOverrides, eventOverrides) {
-      setup(function(done) {
-        eventOverrides = eventOverrides || {};
-        eventOverrides.calendarId = this.calendar._id;
-        eventOverrides._id = eventOverrides._id || 'one';
-
-        this.event = Factory('event', eventOverrides);
-
-        busytimeOverrides = busytimeOverrides || {};
-        busytimeOverrides.eventId = this.event._id;
-        busytimeOverrides.calendarId = this.calendar._id;
-
-        this.busytime = Factory('busytime', busytimeOverrides);
-
-        var app = Calendar.App;
-
-        var eventStore = app.store('Event');
-        var trans = app.db.transaction(
-          eventStore._dependentStores,
-          'readwrite'
-        );
-
-        trans.oncomplete = function() {
-          done();
-        };
-
-        trans.onerror = function(e) {
-          done(e.target.error);
-        };
-
-        eventStore.persist(this.event, trans);
-        app.store('Busytime').persist(this.busytime, trans);
-
-        app.timeController.cacheBusytime(this.busytime);
-      });
-    },
 
     triggerEvent: function(element, eventName) {
       var event = document.createEvent('HTMLEvents');
       event.initEvent(eventName, true, true);
       element.dispatchEvent(event);
-    },
-
-    loadObjects: function() {
-      var list = Array.slice(arguments);
-
-      list.forEach(function(item) {
-        setup(function(done) {
-          Calendar.App.loadObject(item, done);
-        });
-      });
     },
 
     loadSample: function(file, cb) {
@@ -130,6 +38,12 @@
       xhr.send(null);
     },
 
+    db: function(name) {
+      var db = new Calendar.Db('b2g-test-calendar');
+      this._lastDb = db;
+      return this._lastDb;
+    },
+
     clearStore: function(db, name, done) {
 
       if (typeof(name) === 'function') {
@@ -139,13 +53,6 @@
 
       var trans = db.transaction(name, 'readwrite');
 
-      name = [].concat(name);
-
-      name.forEach(function(storeName) {
-        var store = trans.objectStore(storeName);
-        var res = store.clear();
-      });
-
       trans.oncomplete = function() {
         done(null);
       };
@@ -154,6 +61,12 @@
         done(new Error('could not wipe accounts db'));
       };
 
+      name = [].concat(name);
+
+      name.forEach(function(storeName) {
+        var store = trans.objectStore(storeName);
+        var res = store.clear();
+      });
     },
 
     app: function() {
@@ -164,13 +77,8 @@
         });
       }
 
-      if (Calendar.App.db && Calendar.App.db.isOpen) {
-        Calendar.App.db.close();
-      }
-
-      var db = new Calendar.Db('b2g-test-calendar');
       Calendar.App.configure(
-        db,
+        this.db(),
         new Calendar.Router(Calendar.Test.FakePage)
       );
 
@@ -201,33 +109,6 @@
       }
 
       return results;
-    },
-
-    dbFixtures: function(factory, storeName, list) {
-      var object = Object.create(null);
-
-      setup(function(done) {
-        var db = Calendar.App.db;
-        var store = db.getStore(storeName);
-        var trans = db.transaction(store._dependentStores, 'readwrite');
-
-        for (var key in list) {
-          store.persist(
-            (object[key] = Factory(factory, list[key])),
-            trans
-          );
-        }
-
-        trans.onerror = function(e) {
-          done(e.target.error);
-        };
-
-        trans.oncomplete = function() {
-          done();
-        };
-      });
-
-      return object;
     }
   };
 
@@ -329,8 +210,6 @@
   requireLib('store/event.js');
   requireLib('store/setting.js');
   requireLib('store/ical_component.js');
-  requireLib('provider/abstract.js');
-  requireSupport('mock_provider.js');
   requireLib('worker/manager.js');
   requireLib('controllers/service.js');
   requireLib('controllers/time.js');

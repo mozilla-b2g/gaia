@@ -27,6 +27,10 @@ Calendar.ns('Store').Setting = (function() {
     _addToCache: function() {},
     _removeFromCache: function() {},
 
+    _parseId: function(id) {
+      return id;
+    },
+
     /**
      * This method also will use the internal cache to ensure
      * callers are in a consistent state and don't require round
@@ -45,9 +49,9 @@ Calendar.ns('Store').Setting = (function() {
     getValue: function(key, callback) {
       var self = this;
 
-      if (key in this._cached) {
+      if (key in this.cached) {
         Calendar.nextTick(function handleCached() {
-          callback(null, self._cached[key].value);
+          callback(null, self.cached[key].value);
         });
 
         // we have cached value exit...
@@ -63,7 +67,7 @@ Calendar.ns('Store').Setting = (function() {
           value = { value: self.defaults[key] };
         }
 
-        self._cached[key] = value;
+        self.cached[key] = value;
         callback(null, value.value);
       });
     },
@@ -103,7 +107,7 @@ Calendar.ns('Store').Setting = (function() {
         trans = null;
       }
 
-      var cached = this._cached[key];
+      var cached = this.cached[key];
       var record;
 
       if (cached && cached._id) {

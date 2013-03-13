@@ -382,8 +382,7 @@ var UpdateManager = {
     this.updatesQueue.push(updatable);
 
     if (this._notificationTimeout === null) {
-      this._notificationTimeout = setTimeout(
-        this.displayNotificationAndToaster.bind(this),
+      this._notificationTimeout = setTimeout(this.displayNotificationAndToaster.bind(this),
         this.NOTIFICATION_BUFFERING_TIMEOUT);
     }
     this.render();

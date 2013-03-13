@@ -15,12 +15,11 @@ var MockNotificationScreen = {
       this[methodName] = function mns_method() {
         this.methodCalled(methodName);
 
-        if (methodName == 'addNotification' ||
-            methodName == 'removeNotification') {
+        if (methodName == 'addNotification' || methodName == 'removeNotification') {
           return {
             addEventListener: function() {},
             removeEventListener: function() {}
-          };
+          }
         }
       };
     }, this);

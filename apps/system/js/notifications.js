@@ -244,7 +244,7 @@ var NotificationScreen = {
       this.toasterIcon.src = detail.icon;
       this.toasterIcon.hidden = false;
     } else {
-      this.toasterIcon.hidden = true;
+      this.toasterIcon.hidden = true
     }
 
     var time = document.createElement('span');
@@ -347,15 +347,13 @@ var NotificationScreen = {
   removeNotification: function ns_removeNotification(notificationID) {
     var notifSelector = '[data-notification-i-d="' + notificationID + '"]';
     var notificationNode = this.container.querySelector(notifSelector);
-    var lockScreenNotificationNode =
-      this.lockScreenContainer.querySelector(notifSelector);
+    var lockScreenNotificationNode = this.lockScreenContainer.querySelector(notifSelector);
 
     if (notificationNode)
       notificationNode.parentNode.removeChild(notificationNode);
-
+    
     if (lockScreenNotificationNode)
-      lockScreenNotificationNode.parentNode
-        .removeChild(lockScreenNotificationNode);
+      lockScreenNotificationNode.parentNode.removeChild(lockScreenNotificationNode);
     this.updateStatusBarIcon();
   },
 

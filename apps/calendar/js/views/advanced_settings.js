@@ -131,6 +131,11 @@
     },
 
     render: function() {
+<<<<<<< HEAD
+      var accounts = this.app.store('Account');
+      var items = accounts.cached;
+      var list = this.accountList;
+=======
       var self = this;
       var pending = 4;
 
@@ -139,21 +144,21 @@
           self.onrender();
         }
       }
+>>>>>>> gaia_mozilla/master
 
-      function renderSyncFrequency(err, value) {
-        self.syncFrequency.value = String(value);
-        next();
-      }
+      // update accounts
 
-      function renderAccounts(err, accounts) {
-        self.accountList.innerHTML = '';
+      var key;
+      var result = '';
 
-        for (var id in accounts) {
-          self._addAccount(id, accounts[id]);
+      for (key in items) {
+        if (this._displayAccount(items[key])) {
+          result += template.account.render(
+            this._formatModel(items[key])
+          );
         }
-
-        next();
       }
+      list.innerHTML = result;
 
       function renderAlarmDefault(type) {
         return function(err, value) {
@@ -180,12 +185,23 @@
       }
 
       var settings = this.app.store('Setting');
-      var accounts = this.app.store('Account');
 
+<<<<<<< HEAD
+      // update settings
+
+      // we only have on setting right now this will change
+      // and we should have a sane abstraction over multiple
+      // types of settings...
+      var syncFrequency = this.syncFrequency;
+      settings.getValue('syncFrequency', function(err, value) {
+        syncFrequency.value = String(value);
+      });
+=======
       settings.getValue('syncFrequency', renderSyncFrequency);
       settings.getValue('standardAlarmDefault', renderAlarmDefault('standard'));
       settings.getValue('alldayAlarmDefault', renderAlarmDefault('allday'));
       accounts.all(renderAccounts);
+>>>>>>> gaia_mozilla/master
     }
 
   };

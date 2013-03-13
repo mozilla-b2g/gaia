@@ -1,4 +1,3 @@
-
 /**
  * Look like node's Buffer implementation as far as our current callers require
  * using typed arrays.  Derived from the node.js implementation as copied out of
@@ -392,7 +391,7 @@ window.Buffer = $buffer.Buffer;
 
 
 }); // end define
-;
+
 /**
  *
  **/
@@ -2640,7 +2639,7 @@ MailAPI.prototype = {
 
 
 }); // end define
-;
+
 define('microtime',['require'],function (require) {
   return {
     now: function () {
@@ -2855,7 +2854,7 @@ exports.transformException = function transformException(e) {
 };
 
 }); // end define
-;
+
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -4541,12 +4540,11 @@ var ALL_KNOWN_FABS = [];
  * without a known consumer.
  */
 var GENERAL_LOG_DEFAULT = false;
-var UNDER_TEST_DEFAULT = false;
 
 exports.register = function register(mod, defs) {
   var fab = {
     _generalLog: GENERAL_LOG_DEFAULT,
-    _underTest: UNDER_TEST_DEFAULT,
+    _underTest: false,
     _actorCons: {},
     _rawDefs: {},
     _onDeath: null
@@ -4598,7 +4596,6 @@ exports.enableGeneralLogging = function() {
  *  shouldn't do that.
  */
 exports.DEBUG_markAllFabsUnderTest = function() {
-  UNDER_TEST_DEFAULT = BogusTester;
   for (var i = 0; i < ALL_KNOWN_FABS.length; i++) {
     var logfab = ALL_KNOWN_FABS[i];
 
@@ -4701,7 +4698,7 @@ var STATEDELTA = exports.STATEDELTA = 'statedelta';
 ////////////////////////////////////////////////////////////////////////////////
 
 }); // end define
-;
+
 /**
  *
  **/
@@ -4840,7 +4837,7 @@ exports.formatAddresses = function(nameAddrPairs) {
 };
 
 }); // end define
-;
+
 /**
  * Process text/plain message bodies for quoting / signatures.
  *
@@ -5576,7 +5573,7 @@ exports.generateForwardBodyText = function generateForwardBodyText(rep) {
 };
 
 }); // end define
-;
+
 // UMD boilerplate to work across node/AMD/naked browser:
 // https://github.com/umdjs/umd
 (function (root, factory) {
@@ -5830,7 +5827,7 @@ bleach.cleanNode = function(dirtyNode, opts) {
 return bleach;
 
 })); // close out UMD boilerplate
-;
+
 /**
  * Process text/html for message body purposes.  Specifically:
  *
@@ -6409,7 +6406,7 @@ exports.escapeAttrValue = function(s) {
 };
 
 }); // end define
-;
+
 /**
  * Message processing logic that deals with message representations at a higher
  * level than just text/plain processing (`quotechew.js`) or text/html
@@ -6664,7 +6661,7 @@ exports.mergeUserTextWithHTML = function mergeReplyTextWithHTML(text, html) {
 };
 
 }); // end define
-;
+
 define('events',['require','exports','module'],function (require, exports, module) {
 if (!process.EventEmitter) process.EventEmitter = function () {};
 
@@ -10494,7 +10491,7 @@ Composer.prototype = {
 };
 
 }); // end define
-;
+
 /**
  *
  **/
@@ -11361,7 +11358,7 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
 });
 
 }); // end define
-;
+
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -11531,7 +11528,7 @@ LogReaper.prototype = {
 };
 
 }); // end define
-;
+
 // asuth.
 
 /**
@@ -11720,7 +11717,7 @@ exports.decodeUI64 = function d(es) {
 //d(p('1171221845949812801'));
 
 }); // end define
-;
+
 define('mailapi/date',
   [
     'module',
@@ -11917,8 +11914,6 @@ var makeDaysAgo = exports.makeDaysAgo =
 };
 var makeDaysBefore = exports.makeDaysBefore =
       function makeDaysBefore(date, numDaysBefore) {
-  if (date === null)
-    return makeDaysAgo(numDaysBefore);
   return quantizeDate(date) - numDaysBefore * DAY_MILLIS;
 };
 /**
@@ -11926,8 +11921,6 @@ var makeDaysBefore = exports.makeDaysBefore =
  */
 var quantizeDate = exports.quantizeDate =
       function quantizeDate(date) {
-  if (date === null)
-    return null;
   if (typeof(date) === 'number')
     date = new Date(date);
   return date.setUTCHours(0, 0, 0, 0).valueOf();
@@ -11949,7 +11942,7 @@ var quantizeDateUp = exports.quantizeDateUp =
 
 
 }); // end define
-;
+
 define('mailapi/syncbase',
   [
     './date',
@@ -12250,7 +12243,7 @@ exports.TEST_adjustSyncValues = function TEST_adjustSyncValues(syncValues) {
 };
 
 }); // end define
-;
+
 /**
  *
  **/
@@ -12694,7 +12687,7 @@ MailDB.prototype = {
 };
 
 }); // end define
-;
+
 /**
  * Simple coordination logic that might be better handled by promises, although
  * we probably have the edge in comprehensibility for now.
@@ -12754,7 +12747,7 @@ exports.allbackMaker = function allbackMaker(names, allDoneCallback) {
 };
 
 }); // end define
-;
+
 /**
  * Drives periodic synchronization, covering the scheduling, deciding what
  * folders to sync, and generating notifications to relay to the UI.  More
@@ -13178,7 +13171,7 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
 });
 
 }); // end define
-;
+
 /**
  * Common code for creating and working with various account types.
  **/
@@ -13812,7 +13805,7 @@ function tryToManuallyCreateAccount(universe, userDetails, domainInfo, callback,
 exports.tryToManuallyCreateAccount = tryToManuallyCreateAccount;
 
 }); // end define
-;
+
 /**
  *
  **/
@@ -14279,22 +14272,10 @@ MailUniverse.prototype = {
   },
 
   dumpLogToDeviceStorage: function() {
+    console.log('Planning to dump log to device storage for "videos"');
     try {
-      // The situation is that we want to get the file onto disk using
-      // DeviceStorage.  If we use 'sdcard', we can write whatever we want
-      // without having to fake a MIME type and file extension.  However, the
-      // e-mail app currently doesn't actually need the 'sdcard' privilege, so
-      // we are sticking with our previously required trick of pretending we are
-      // writing a video.
-      //
-      // We used to pretend to create a '.rm' file, but that got removed from the
-      // file list, so now we have to pretend to be something more common.  The
-      // current list of legal choices is: devicestorage.properties in
-      // https://mxr.mozilla.org/mozilla-central/source/toolkit/content/
-      // and is: *.mp4; *.mpeg; *.mpg; *.ogv; *.ogx; *.webm; *.3gp; *.ogg
-      //
-      // We prefer pretending to be a video rather than a picture or music
-      // arbitrarily, but mainly because I don't use the video app ever.
+      // 'default' does not work, but pictures does.  Hopefully gallery is
+      // smart enough to stay away from my log files!
       var storage = navigator.getDeviceStorage('videos');
       // HACK HACK HACK: DeviceStorage does not care about our use-case at all
       // and brutally fails to write things that do not have a mime type (and
@@ -14305,10 +14286,10 @@ MailUniverse.prototype = {
                             type: 'video/lies',
                             endings: 'transparent'
                           });
-      var filename = 'gem-log-' + Date.now() + '.json.3gp';
+      var filename = 'gem-log-' + Date.now() + '.json.rm';
       var req = storage.addNamed(blob, filename);
       req.onsuccess = function() {
-        console.log('saved log to "videos" devicestorage:', filename);
+        console.log('saved log to', filename);
       };
       req.onerror = function() {
         console.error('failed to save log to', filename, 'err:',
@@ -15487,7 +15468,7 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
 });
 
 }); // end define
-;
+
 define('mailparser/datetime',['require','exports','module'],function (require, exports, module) {
 /* 
  * More info at: http://phpjs.org
@@ -17567,7 +17548,7 @@ exports.chewBodyParts = function chewBodyParts(rep, bodyPartContents,
 };
 
 }); // end define
-;
+
 define('mailapi/imap/folder',
   [
     'rdcommon/log',
@@ -17882,8 +17863,7 @@ console.log('SERVER UIDS', serverUIDs.length, useBisectLimit);
 console.log('BISECT CASE', serverUIDs.length, 'curDaysDelta', curDaysDelta);
           if (curDaysDelta > 1) {
             // mark the bisection abort...
-            self._LOG.syncDateRange_end(null, null, null, startTS, endTS,
-                                        null, null);
+            self._LOG.syncDateRange_end(null, null, null, startTS, endTS);
             var bisectInfo = {
               oldStartTS: startTS,
               oldEndTS: endTS,
@@ -17934,7 +17914,7 @@ console.log('BISECT CASE', serverUIDs.length, 'curDaysDelta', curDaysDelta);
           newUIDs, knownUIDs, headers,
           function(newCount, knownCount) {
             self._LOG.syncDateRange_end(newCount, knownCount, numDeleted,
-                                        startTS, endTS, null, null);
+                                        startTS, endTS);
             self._storage.markSyncRange(startTS, endTS, modseq,
                                         accuracyStamp);
             if (completed)
@@ -17964,15 +17944,14 @@ console.log('BISECT CASE', serverUIDs.length, 'curDaysDelta', curDaysDelta);
                 skewedStartTS, new Date(skewedStartTS).toUTCString(),
                 'End: ', skewedEndTS,
                 skewedEndTS ? new Date(skewedEndTS).toUTCString() : null);
-    this._LOG.syncDateRange_begin(null, null, null, startTS, endTS,
-                                  skewedStartTS, skewedEndTS);
+    this._LOG.syncDateRange_begin(null, null, null, startTS, endTS);
     this._timelySyncSearch(
       searchOptions, callbacks.search,
       function abortedSearch() {
         if (completed)
           return;
         completed = true;
-        this._LOG.syncDateRange_end(0, 0, 0, startTS, endTS, null, null);
+        this._LOG.syncDateRange_end(0, 0, 0, startTS, endTS);
         doneCallback('aborted');
       }.bind(this),
       progressCallback);
@@ -18637,15 +18616,11 @@ ImapFolderSyncer.prototype = {
 
       // - Interpolate better time bounds.
       // Assume a linear distribution of messages, but overestimated by
-      // a factor of two so we undershoot.  Also make sure that we subtract off
-      // at least 2 days at a time.  This is to ensure that in the case where
-      // endTS is null and we end up using makeDaysAgo that we actually shrink
-      // by at least 1 day (because of how rounding works for makeDaysAgo).
+      // a factor of two so we undershoot.
       var shrinkScale = $sync.BISECT_DATE_AT_N_MESSAGES /
                           (numHeaders * 2),
           dayStep = Math.max(1,
-                             Math.min(curDaysDelta - 2,
-                                      Math.ceil(shrinkScale * curDaysDelta)));
+                             Math.ceil(shrinkScale * curDaysDelta));
       this._curSyncDayStep = dayStep;
 
       if (this._curSyncDir === PASTWARDS) {
@@ -18861,7 +18836,7 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
     asyncJobs: {
       syncDateRange: {
         newMessages: true, existingMessages: true, deletedMessages: true,
-        start: false, end: false, skewedStart: false, skewedEnd: false,
+        start: false, end: false,
       },
     },
   },
@@ -18873,7 +18848,7 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
 }); // end LOGFAB
 
 }); // end define
-;
+
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
@@ -22471,7 +22446,6 @@ FolderStorage.prototype = {
                                  this, header, callback));
       return;
     }
-    this._LOG.addMessageHeader(header.date, header.id, header.srvid);
 
     if (this._curSyncSlice && !this._curSyncSlice.ignoreHeaders)
       this._curSyncSlice.onHeaderAdded(header, true, true);
@@ -22576,8 +22550,6 @@ FolderStorage.prototype = {
       if (header) {
         self._dirty = true;
         self._dirtyHeaderBlocks[info.blockId] = block;
-
-        self._LOG.updateMessageHeader(header.date, header.id, header.srvid);
 
         if (partOfSync && self._curSyncSlice &&
             !self._curSyncSlice.ignoreHeaders)
@@ -22766,7 +22738,6 @@ FolderStorage.prototype = {
                                  this, header, bodyInfo, callback));
       return;
     }
-    this._LOG.addMessageBody(header.date, header.id, header.srvid);
 
     // crappy size estimates where we assume the world is ASCII and so a UTF-8
     // encoding will take exactly 1 byte per character.
@@ -22901,7 +22872,6 @@ FolderStorage.prototype = {
                                                        date, id);
     var bodyBlockInfo = posInfo[1],
         block = this._bodyBlocks[bodyBlockInfo.blockId];
-    this._LOG.updateMessageBody(date, id);
     block.bodies[id] = bodyInfo;
     this._dirty = true;
     this._dirtyBodyBlocks[bodyBlockInfo.blockId] = block;
@@ -22946,12 +22916,6 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
   FolderStorage: {
     type: $log.DATABASE,
     events: {
-      addMessageHeader: { date: false, id: false, srvid: false },
-      addMessageBody: { date: false, id: false, srvid: false },
-
-      updateMessageHeader: { date: false, id: false, srvid: false },
-      updateMessageBody: { date: false, id: false },
-
       // For now, logging date and uid is useful because the general logging
       // level will show us if we are trying to redundantly delete things.
       // Also, date and uid are opaque identifiers with very little entropy
@@ -23001,7 +22965,7 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
 }); // end LOGFAB
 
 }); // end define
-;
+
 /**
  * Searchfilters provide for local searching by checking each message against
  * one or more tests.  This is similar to Thunderbird's non-global search
@@ -23753,7 +23717,7 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
 
 
 }); // end define
-;
+
 /**
  * Mix-ins for account job functionality where the code is reused.
  **/
@@ -24284,7 +24248,7 @@ exports._partitionAndAccessFoldersSequentially = function(
 
 
 }); // end define
-;
+
 /**
  *
  **/
@@ -24373,4 +24337,4 @@ exports.getFirstFolderWithType = function(type) {
 };
 
 }); // end define
-;
+

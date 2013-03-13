@@ -348,17 +348,6 @@ suite('calendar/calc', function() {
     });
   });
 
-  suite('#getUTC', function() {
-    test('utc - conversion', function() {
-      var date = new Date(2012, 9, 1, 7, 11);
-
-      assert.notEqual(
-        date,
-        subject.getUTC(date)
-      );
-    });
-  });
-
   suite('#dateFromTransport', function() {
 
     test('utc - DST', function() {

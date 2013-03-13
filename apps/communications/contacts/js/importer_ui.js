@@ -49,10 +49,6 @@ if (typeof window.importer === 'undefined') {
     // Indicates whether some friends have been imported or not
     var friendsImported;
 
-    // For synchronization
-    var syncOngoing = false;
-    var nextUpdateTime;
-
     var updateButton,
         selectAllButton,
         deSelectAllButton,
@@ -62,19 +58,6 @@ if (typeof window.importer === 'undefined') {
         scrollableElement;
 
     var imgLoader;
-
-    var tokenKey;
-
-    function getTokenKey() {
-      var key = 'tokenData';
-      var serviceName = serviceConnector.name;
-
-      if (serviceName !== 'facebook') {
-        key += ('_' + serviceName);
-      }
-
-      return key;
-    }
 
     UI.init = function() {
       var overlay = document.querySelector('nav[data-type="scrollbar"] p');
@@ -142,16 +125,11 @@ if (typeof window.importer === 'undefined') {
     Importer.start = function(acc_tk, connector, ptargetApp, startCb) {
       startCallback = startCb;
 
-      var serviceName = connector.name;
-
       // Setting UI title
       document.querySelector('#content h1').textContent =
-                                          _(serviceName + '-serviceName');
-      document.body.classList.add(serviceName);
-
+                                          _(connector.name + '-serviceName');
       serviceConnector = connector;
       targetApp = ptargetApp;
-      tokenKey = getTokenKey();
 
       setCurtainHandlers();
 
@@ -176,30 +154,10 @@ if (typeof window.importer === 'undefined') {
       contactsLoaded = true;
 
       if (friendsLoaded) {
+        // A synchronization will start asynchronously
+        window.setTimeout(serviceConnector.startSync, 0);
+
         markExisting(existingContacts);
-      }
-    }
-
-     // Callback executed when a synchronization has finished successfully
-    function syncSuccess(numChanged) {
-      window.console.log('Synchronization ended!!!');
-      syncOngoing = false;
-
-      serviceConnector.scheduleNextSync();
-      var msg = {
-        type: 'sync_finished',
-        data: numChanged || ''
-      };
-      parent.postMessage(msg, targetApp);
-    }
-
-    // Starts a synchronization
-    function startSync() {
-      if (existingContacts.length > 0 && !syncOngoing) {
-        syncOngoing = true;
-
-        serviceConnector.startSync(existingContacts, myFriendsByUid,
-                                   syncSuccess);
       }
     }
 
@@ -209,9 +167,6 @@ if (typeof window.importer === 'undefined') {
      *
      */
     function friendsAvailable() {
-      FixedHeader.init('#mainContent', '#fixed-container',
-                     '.import-list header, .fb-import-list header');
-
       imgLoader = new ImageLoader('#mainContent',
                                 ".block-item:not([data-uuid='#uid#'])");
 
@@ -333,10 +288,6 @@ if (typeof window.importer === 'undefined') {
     Importer.friendsReady = function(response) {
       if (typeof response.error === 'undefined') {
         var lmyFriends = response.data;
-        // Notifying the connector
-        if (typeof serviceConnector.oncontactsloaded === 'function') {
-          serviceConnector.oncontactsloaded(lmyFriends);
-        }
 
         myFriendsByUid = {};
         myFriends = [];
@@ -348,14 +299,7 @@ if (typeof window.importer === 'undefined') {
           selectableFriends[f.uid] = f;
         });
 
-        asyncStorage.getItem('order.lastname', function orderValue(lastName) {
-          var options = {
-            container: '#groups-list',
-            orderBy: lastName ? 'lastName' : 'firstName'
-          };
-
-          FriendListRenderer.render(myFriends, friendsAvailable, options);
-        });
+        fbFriends.List.load(myFriends, friendsAvailable);
       }
       else {
         window.console.error('Error, while retrieving friends',
@@ -367,7 +311,7 @@ if (typeof window.importer === 'undefined') {
         else {
           // There was a problem with the access token
           Curtain.hide();
-          window.asyncStorage.removeItem(tokenKey,
+          window.asyncStorage.removeItem(fb.utils.TOKEN_DATA_KEY,
             function token_removed() {
               Importer.start();
               parent.postMessage({
@@ -502,11 +446,9 @@ if (typeof window.importer === 'undefined') {
     }
 
     function cleanContacts(onsuccess, progress) {
-      window.console.log('On clean contacts');
-
       var contacts = [];
       var unSelectedKeys = Object.keys(unSelectedContacts);
-      // ContactsCleaner expects an Array object
+      // FbContactsCleaner expects an Array object
       unSelectedKeys.forEach(function iterator(uid) {
         var deviceContacts = unSelectedContacts[uid];
         for (var i = 0; i < deviceContacts.length; i++) {
@@ -520,17 +462,21 @@ if (typeof window.importer === 'undefined') {
         mode = 'clear';
       }
 
-      serviceConnector.cleanContacts(contacts, mode,
-          function gotCleaner(cleaner) {
-            if (cleaner) {
-              cleaner.oncleaned = progress.update;
-              cleaner.onsuccess = onsuccess;
-            }
-            else {
-              Importer.errorHandler();
-            }
+      getCleaner(mode, contacts, function got_cleaner(cleaner) {
+        if (cleaner) {
+          cleaner.oncleaned = progress.update;
+          cleaner.onsuccess = onsuccess;
+        }
+        else {
+          Importer.errorHandler();
+        }
       });
-    } // clean
+    }
+
+    function getCleaner(mode, contacts, cb) {
+      var out = serviceConnector.geCleaner(mode, contacts);
+      cb(out);
+    }
 
     function getTotalUnselected() {
       var total = 0;
@@ -556,15 +502,6 @@ if (typeof window.importer === 'undefined') {
         progress.setTotal(total);
 
         Importer.importAll(function on_all_imported() {
-          if (typeof serviceConnector.oncontactsimported === 'function') {
-            // Check whether we need to set the last update and schedule next
-            // sync. Only in that case otherwise that will be done by the sync
-            // process
-            serviceConnector.oncontactsimported(existingContacts,
-                                                friendsImported, function() {
-              friendsImported = true;
-            });
-          }
           if (unSelected > 0) {
             progress.setFrom('update');
             cleanContacts(function callback() {

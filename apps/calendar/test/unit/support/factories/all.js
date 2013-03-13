@@ -61,10 +61,7 @@
   Factory.define('remote.event', {
     properties: {
       location: 'location',
-      isRecurring: false,
-      alarms: [
-        {action: 'DISPLAY', trigger: 60000}
-      ]
+      isRecurring: false
       //XXX: raw data
     },
 

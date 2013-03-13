@@ -49,8 +49,7 @@ var Support = {
         return;
       }
 
-      document.getElementById('help')
-        .setAttribute('data-has-support-info', true);
+      document.getElementById('help').setAttribute('data-has-support-info', true);
 
       var link = document.getElementById('online-support-link');
       var text = document.getElementById('online-support-text');

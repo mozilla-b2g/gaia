@@ -86,17 +86,15 @@ var IntegrationHelper = (function() {
       });
     },
 
-    delay: function(device, timeout, givenCallback) {
-      givenCallback = givenCallback || device.defaultCallback;
-
+    delay: function(device, timeout) {
       var start = Date.now();
-      this.waitFor(function(callback) {
+      this.waitFor(function(callback){
         if (Date.now() - start >= timeout) {
           callback(null, true);
         } else {
           callback(null, null);
         }
-      }, null, givenCallback);
+      }, null, device.defaultCallback);
     },
 
     unlock: function(device) {

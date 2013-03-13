@@ -1,8 +1,7 @@
 'use strict';
 
 var ConfirmDialog = (function() {
-  var isAnimationPlaying = false;
-  var isShown = false;
+
   var doc = (parent.location === window.location) ?
       document : parent.document;
   var screen = doc.getElementById('confirmation-message');
@@ -13,7 +12,7 @@ var ConfirmDialog = (function() {
   var action2Node = screen.querySelector('button:nth-of-type(2)');
   var action2Callback;
 
-  var callBackAndPreventDefault = function callBackAndPreventDefault(ev) {
+  var callBackAndPreventDefault = function(ev) {
     if (ev.target === action1Node) {
       action1Callback();
       ev.preventDefault();
@@ -25,13 +24,10 @@ var ConfirmDialog = (function() {
     }
   };
 
-  var _hide = function _hide() {
+  return {
+    hide: function dialog_hide() {
       // Reset the 'confirmation-message' element and its children to their
       // initial values and hide it.
-      if (!isShown) {
-        return;
-      }
-
       titleNode.textContent = '';
       titleNode.className = '';
       messageNode.textContent = '';
@@ -44,104 +40,11 @@ var ConfirmDialog = (function() {
       action2Node.onclick = null;
       screen.classList.remove('fadeIn');
       screen.classList.add('fadeOut');
-      isAnimationPlaying = true;
       screen.addEventListener('animationend', function cd_fadeOut(ev) {
-        isAnimationPlaying = false;
         screen.removeEventListener('animationend', cd_fadeOut);
         screen.classList.add('no-opacity');
         screen.classList.add('hide');
-        isShown = false;
       });
-    };
-
-  /**
-    * Method that shows the dialog
-    * @param  {String} title the title of the dialog. null or empty for
-    *                        no title.
-    * @param  {String} msg message for the dialog.
-    * @param  {Object} action1 {title, isDanger, callback} object.
-    * @param  {Object} action2 {title, isDanger, callback} object.
-    */
-  var _show = function _show(title, msg, action1, action2) {
-    if (title) {
-      titleNode.textContent = title;
-    } else {
-      titleNode.classList.add('hide');
-    }
-    if (msg) {
-      messageNode.textContent = msg;
-    } else {
-      messageNode.classList.add('hide');
-    }
-    if (action1) {
-      if (action1.title) {
-        action1Node.textContent = action1.title;
-      }
-      if (action1.isDanger) {
-        action1Node.classList.add('danger');
-      }
-      if (action1.isRecommend) {
-        action1Node.classList.add('recommend');
-      }
-      if (action1.callback) {
-        action1Callback = action1.callback;
-        action1Node.onclick = callBackAndPreventDefault;
-      }
-      if (!action2) {
-        action2Node.classList.add('hide');
-        action1Node.classList.add('full');
-      }
-    }
-    if (action2) {
-      if (action2.title) {
-        action2Node.textContent = action2.title;
-      }
-      if (action2.isDanger) {
-        action2Node.classList.add('danger');
-      }
-      if (action2.isRecommend) {
-        action2Node.classList.add('recommend');
-      }
-      if (action2.callback) {
-        action2Callback = action2.callback;
-        action2Node.onclick = callBackAndPreventDefault;
-      }
-      if (!action1) {
-        action1Node.classList.add('hide');
-        action2Node.classList.add('full');
-      }
-    }
-    if (isShown) {
-      return;
-    }
-
-    screen.classList.remove('hide');
-    screen.classList.remove('fadeOut');
-    screen.classList.add('fadeIn');
-    isAnimationPlaying = true;
-    screen.addEventListener('animationend', function cd_fadeIn(ev) {
-      isAnimationPlaying = false;
-      screen.removeEventListener('animationend', cd_fadeIn);
-      screen.classList.remove('no-opacity');
-    });
-    isShown = true;
-  };
-
-  return {
-    hide: function dialog_hide() {
-      // Reset the 'confirmation-message' element and its children to their
-      // initial values and hide it.
-      if (!isAnimationPlaying) {
-        _hide();
-        return;
-      }
-
-      screen.addEventListener('animationend',
-        function cd_hideWhenFinished(ev) {
-          screen.removeEventListener('animationend', cd_hideWhenFinished);
-          _hide();
-        }
-      );
     },
 
     /**
@@ -153,17 +56,61 @@ var ConfirmDialog = (function() {
     * @param  {Object} action2 {title, isDanger, callback} object.
     */
     show: function dialog_show(title, msg, action1, action2) {
-      if (!isAnimationPlaying) {
-        _show(title, msg, action1, action2);
-        return;
+      if (title) {
+        titleNode.textContent = title;
+      } else {
+        titleNode.classList.add('hide');
       }
-
-      screen.addEventListener('animationend',
-        function cd_showWhenFinished(ev) {
-          screen.removeEventListener('animationend', cd_showWhenFinished);
-          _show(title, msg, action1, action2);
+      if (msg) {
+        messageNode.textContent = msg;
+      } else {
+        messageNode.classList.add('hide');
+      }
+      if (action1) {
+        if (action1.title) {
+          action1Node.textContent = action1.title;
         }
-      );
+        if (action1.isDanger) {
+          action1Node.classList.add('danger');
+        }
+        if (action1.isRecommend) {
+          action1Node.classList.add('recommend');
+        }
+        if (action1.callback) {
+          action1Callback = action1.callback;
+          action1Node.onclick = callBackAndPreventDefault;
+        }
+        if (!action2) {
+          action2Node.classList.add('hide');
+          action1Node.classList.add('full');
+        }
+      }
+      if (action2) {
+        if (action2.title) {
+          action2Node.textContent = action2.title;
+        }
+        if (action2.isDanger) {
+          action2Node.classList.add('danger');
+        }
+        if (action2.isRecommend) {
+          action2Node.classList.add('recommend');
+        }
+        if (action2.callback) {
+          action2Callback = action2.callback;
+          action2Node.onclick = callBackAndPreventDefault;
+        }
+        if (!action1) {
+          action1Node.classList.add('hide');
+          action2Node.classList.add('full');
+        }
+      }
+      screen.classList.remove('hide');
+      screen.classList.remove('fadeOut');
+      screen.classList.add('fadeIn');
+      screen.addEventListener('animationend', function cd_fadeIn(ev) {
+        screen.removeEventListener('animationend', cd_fadeIn);
+        screen.classList.remove('no-opacity');
+      });
     }
   };
 }());

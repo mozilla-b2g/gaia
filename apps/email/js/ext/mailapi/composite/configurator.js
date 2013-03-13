@@ -1,4 +1,3 @@
-
 /**
  * Make our TCPSocket implementation look like node's net library.
  *
@@ -74,7 +73,7 @@ exports.connect = function(port, host) {
 };
 
 }); // end define
-;
+
 /**
  *
  **/
@@ -97,7 +96,7 @@ exports.connect = function(port, host, wuh, onconnect) {
 };
 
 }); // end define
-;
+
 define('imap',['require','exports','module','util','rdcommon/log','net','tls','events','mailparser/mailparser'],function(require, exports, module) {
 var util = require('util'), $log = require('rdcommon/log'),
     net = require('net'), tls = require('tls'),
@@ -2560,7 +2559,7 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
 });
 
 }); // end define
-;
+
 /**
  * Validates connection information for an account and verifies the server on
  * the other end is something we are capable of sustaining an account with.
@@ -2872,7 +2871,7 @@ var getTZOffset = exports.getTZOffset = function getTZOffset(conn, callback) {
 };
 
 }); // end define
-;
+
 /**
  * Abstractions for dealing with the various mutation operations.
  *
@@ -3906,7 +3905,7 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
 });
 
 }); // end define
-;
+
 /**
  *
  **/
@@ -4896,7 +4895,7 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
 });
 
 }); // end define
-;
+
 /**
  *
  **/
@@ -4915,7 +4914,7 @@ exports.hostname = function() {
 exports.getHostname = exports.hostname;
 
 }); // end define
-;
+
 define('simplesmtp/lib/starttls',['require','exports','module','crypto','tls'],function (require, exports, module) {
 // SOURCE: https://gist.github.com/848444
 
@@ -6119,7 +6118,7 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
 });
 
 }); // end define
-;
+
 /**
  * Configurator for fake
  **/
@@ -6335,7 +6334,7 @@ CompositeAccount.prototype = {
   getFirstFolderWithType: $acctmixins.getFirstFolderWithType,
 };
 
-}); // end define;
+}); // end define
 /**
  * SMTP probe logic.
  **/
@@ -6439,7 +6438,7 @@ SmtpProber.prototype = {
 };
 
 }); // end define
-;
+
 /**
  * Configurator for imap+smtp
  **/
@@ -6643,4 +6642,4 @@ exports.configurator = {
 };
 
 }); // end define
-;
+

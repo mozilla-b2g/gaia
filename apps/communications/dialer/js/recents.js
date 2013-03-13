@@ -2,8 +2,8 @@
 
 var Recents = {
   _: null,
-  loaded: false,
-  _TIME_WINDOW: 604800000, // One week of window in calllog
+  _loaded: false,
+
   get headerEditModeText() {
     delete this.headerEditModeText;
     return this.headerEditModeText = document.
@@ -76,28 +76,15 @@ var Recents = {
       getElementById('edit-mode');
   },
 
-  createFilter: function re_createFilter(startDate, endDate) {
-    var dateFilter = {
-      'startDate': Date.now() - this._TIME_WINDOW
-    };
-    if (startDate) {
-      dateFilter.startDate = startDate;
-    }
-    if (endDate) {
-      dateFilter.endDate = endDate;
-    }
-    return dateFilter;
-  },
-
   load: function re_load(callback) {
-    if (this.loaded) {
+    if (this._loaded) {
       if (callback) {
         callback();
       }
       return;
     }
 
-    this.loaded = true;
+    this._loaded = true;
 
     // Time to load the external css/js
     var scripts = [
@@ -110,7 +97,8 @@ var Recents = {
 
       '/dialer/js/phone_action_menu.js',
       '/dialer/js/fixed_header.js',
-      '/dialer/js/utils.js'
+      '/dialer/js/utils.js',
+      '/dialer/js/recents_db.js'
     ];
 
     loader.load(scripts, function() {
@@ -180,37 +168,17 @@ var Recents = {
     });
   },
 
-  removeContactInfo: function re_removeContact(id) {
-    // Reused code from current one.
-    // Should be refactored for avoiding so many
-    // querySelectors
-    var selector = '[data-contact-id="' + id + '"]';
-    var toUpdate = this.recentsContainer.querySelectorAll(selector);
-    for (var i = toUpdate.length - 1; i >= 0; i--) {
-      var logItem = toUpdate[i];
-      logItem.dataset.contactId = '';
-      var contactPhoto = logItem.querySelector('.call-log-contact-photo');
-      var primaryInfoMainNode = logItem.querySelector('.primary-info-main'),
-        manyContactsNode = logItem.querySelector('.many-contacts'),
-        phoneNumberAdditionalInfoNode =
-          logItem.querySelector('.call-additional-info');
-      primaryInfoMainNode.textContent = logItem.dataset.num;
-      contactPhoto.src = '';
-      logItem.classList.remove('hasPhoto');
-      phoneNumberAdditionalInfoNode.textContent = '';
-    }
-  },
-
   // Refresh can be called on an unloaded Recents
   refresh: function re_refresh() {
-    var self = this;
-    RecentsDBManager.init(function() {
-      RecentsDBManager.get(function(recents) {
-        // We need l10n to be loaded before rendering
-        LazyL10n.get(function localized() {
-          Recents.render(recents);
+    this.load(function loaded() {
+      RecentsDBManager.init(function() {
+        RecentsDBManager.get(function(recents) {
+          // We need l10n to be loaded before rendering
+          LazyL10n.get(function localized() {
+            Recents.render(recents);
+          });
         });
-      }, self.createFilter());
+      });
     });
   },
 
@@ -402,7 +370,7 @@ var Recents = {
           ConfirmDialog.hide();
           self.render(recents);
           document.body.classList.remove('recents-edit');
-        }, self.createFilter());
+        });
     });
   },
 
@@ -576,8 +544,8 @@ var Recents = {
       this.recentsContainer.innerHTML =
         '<div id="no-result-container">' +
         ' <div id="no-result-message">' +
-        '   <p data-l10n-id="no-logs-msg-1">no calls recorded</p>' +
-        '   <p data-l10n-id="no-logs-msg-2">start communicating now</p>' +
+        ' <p data-l10n-id="no-logs-msg-1">no calls recorded</p>' +
+        ' <p data-l10n-id="no-logs-msg-2">start communicating now</p>' +
         ' </div>' +
         '</div>';
       navigator.mozL10n.translate(this.recentsContainer);
@@ -615,6 +583,7 @@ var Recents = {
       FixedHeader.refresh();
 
       self.updateContactDetails();
+
       var event = new Object();
       self._allViewGroupingPending = true;
       self._missedViewGroupingPending = true;
@@ -636,7 +605,7 @@ var Recents = {
 
   updateContactDetails: function re_updateContactDetails() {
     // If we're not loaded yet, nothing to update
-    if (!this.loaded) {
+    if (!this._loaded) {
       return;
     }
 
@@ -779,7 +748,7 @@ var Recents = {
 
   updateHighlighted: function re_updateHighlighted() {
     // No need to update if we're not loaded yet
-    if (!this.loaded)
+    if (!this._loaded)
       return;
 
     var itemSelector = '.log-item.highlighted',
@@ -824,17 +793,8 @@ var Recents = {
 };
 
 // Keep the call history up to date
-navigator.mozContacts.oncontactchange = function oncontactchange(event) {
-  switch (event.reason) {
-    case 'create':
-    case 'update':
-      Recents.updateContactDetails();
-      break;
-
-    case 'remove':
-      // Avoiding refresh the whole list. We just remove
-      // contact info from entries with data-contact-id = id
-      Recents.removeContactInfo(event.contactID);
-      break;
+document.addEventListener('mozvisibilitychange', function visibility(e) {
+  if (!document.mozHidden) {
+    Recents.refresh();
   }
-};
+});

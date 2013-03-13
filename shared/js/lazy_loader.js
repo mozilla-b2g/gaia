@@ -4,9 +4,7 @@
  * This contains a simple LazyLoader implementation
  * To use:
  *
- *   LazyLoader.load(
- *    ['/path/to/file.js', '/path/to/file.css', 'domNode'], callback
- *   );
+ *   LazyLoader.load(['/path/to/file.js', '/path/to/file.css'], callback);
  */
 
 var LazyLoader = (function() {
@@ -35,16 +33,6 @@ var LazyLoader = (function() {
       callback();
     },
 
-    _html: function(domNode, callback) {
-      for (var i = 0; i < domNode.childNodes.length; i++) {
-        if (domNode.childNodes[i].nodeType == document.COMMENT_NODE) {
-          domNode.innerHTML = domNode.childNodes[i].nodeValue;
-          break;
-        }
-      }
-      callback();
-    },
-
     load: function(files, callback) {
       if (!Array.isArray(files))
         files = [files];
@@ -70,16 +58,8 @@ var LazyLoader = (function() {
           this._isLoading[file].addEventListener(
             'load', perFileCallback.bind(null, file));
         } else {
-          var method, idx;
-          if (typeof file === 'string') {
-            method = file.match(/\.(.*?)$/)[1];
-            idx = file;
-          } else {
-            method = 'html';
-            idx = file.id;
-          }
-
-          this['_' + method](file, perFileCallback.bind(null, idx));
+          var method = file.match(/\.(.*?)$/)[1];
+          this['_' + method](file, perFileCallback.bind(null, file));
         }
       }
     }

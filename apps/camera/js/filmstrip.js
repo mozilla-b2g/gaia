@@ -187,7 +187,7 @@ var Filmstrip = (function() {
       storage.delete(filename).onerror = function(e) {
         console.warn('Failed to delete', filename,
                      'from DeviceStorage:', e.target.error);
-      };
+      }
     }
   }
 
@@ -209,7 +209,7 @@ var Filmstrip = (function() {
     });
     activity.onerror = function(e) {
       console.warn('Share activity error:', activity.error.name);
-    };
+    }
   }
 
   function handleDoubleTap(e) {
@@ -367,7 +367,7 @@ var Filmstrip = (function() {
           offscreenVideo.removeAttribute('src');
           offscreenVideo.load();
           console.warn('not a video file', filename);
-        };
+        }
 
         offscreenVideo.onloadedmetadata = function() {
           createThumbnailFromVideo(offscreenVideo, rotation, filename,

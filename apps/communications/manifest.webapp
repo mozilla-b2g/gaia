@@ -110,8 +110,7 @@
     },
     "dial": {
       "filters": {
-        "type": "webtelephony/number",
-        "number": { "regexp":"/^[\\d\\s+#*().-]{0,50}$/" }
+        "type": "webtelephony/number"
       },
       "href": "/dialer/index.html#keyboard-view",
       "disposition": "window"

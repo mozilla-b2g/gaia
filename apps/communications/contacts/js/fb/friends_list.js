@@ -1,47 +1,20 @@
 'use strict';
 
-var FriendListRenderer = (function() {
+var fbFriends = window.fbFriends || {};
 
-  // Order criteria
-  var orderCriteria = {
-    firstName: ['givenName', 'familyName', 'email1'],
-    lastName: ['familyName', 'givenName', 'email1']
-  };
+fbFriends.List = (function() {
+  var groupsList;
 
-  // Options by default
-  var defaults = {
-    container: '#groups-list',
-    orderBy: 'lastName'
-  };
-
-  var render = function render(contacts, cb, options) {
-    // Populate defaults
-    for (var key in defaults) {
-      if (typeof options[key] === 'undefined') {
-        options[key] = defaults[key];
-      }
+  var load = function load(contacts, cb) {
+    if (!groupsList) {
+      groupsList = document.querySelector('#groups-list');
     }
-
-    doRender(contacts, cb, options);
-  };
-
-  var doRender = function doRender(contacts, cb, options) {
-    var groupsList = document.querySelector(options.container);
-    var orderBy = options.orderBy;
-    var order = orderCriteria[orderBy];
-
-    // Sorting friend list
-    contacts.sort(function(a, b) {
-      return getStringToBeOrdered(a, order).localeCompare(
-                                                getStringToBeOrdered(b, order));
-    });
-
     // Hash containing each group
     var groups = {};
 
     contacts.forEach(function(contact) {
       // Contacts are ordered so it is pretty easy to group them
-      var groupName = getGroupName(contact, order);
+      var groupName = getGroupName(contact);
       if (!groups[groupName]) {
         groups[groupName] = [];
       }
@@ -49,89 +22,69 @@ var FriendListRenderer = (function() {
       groups[groupName].push(contact);
     });
 
+    var agroups = Object.keys(groups);
+
     var fragment = document.createDocumentFragment();
 
-    // We are going to delete the paragraph that paints the other order for the
-    // contact's name from template...
-    var notRenderedParagraph = groupsList.querySelector('[data-order-by="' +
-                   (orderBy === 'firstName' ? 'lastName' : 'firstName') + '"]');
-    notRenderedParagraph.parentNode.removeChild(notRenderedParagraph);
+    // For each group
+    agroups.forEach(function(group) {
+      // New element appended
+      var ele = utils.templates.append(groupsList, {
+        group: group,
+        letter: getGroupLetter(group)
+      }, fragment);
+      // This is the <ol> and <header> is children[0]
+      var list = ele.children[1];
 
-    // A..Z groups
-    for (var i = 65; i <= 90; i++) {
-      var group = String.fromCharCode(i);
-      renderGroup(fragment, groupsList, group, groups[group]);
-    }
+      // Array of friends
+      var friends = groups[group];
+      // For each friend in the group
+      friends.forEach(function(friend) {
+        var searchInfo = [];
+        var searchable = ['givenName', 'familyName'];
+        searchable.forEach(function(field) {
+          if (friend[field] && friend[field][0]) {
+            searchInfo.push(friend[field][0]);
+          }
+        });
 
-    // # group
-    renderGroup(fragment, groupsList, '#', groups['#']);
+        // Enabling searching by email
+        if (friend['email1']) {
+          searchInfo.push(friend['email1']);
+        }
+
+        friend.search = utils.text.normalize(searchInfo.join(' '));
+
+        // New friend appended
+        utils.templates.append(list, friend);
+      });
+
+      // Template is deleted from the list
+      list.removeChild(list.firstElementChild);
+    });
 
     groupsList.innerHTML = ''; // Deleting template
     groupsList.appendChild(fragment);
 
+    FixedHeader.init('#mainContent', '#fixed-container',
+                     '.import-list header, .fb-import-list header');
     if (typeof cb === 'function') {
       // We wait a delay depending on number of nodes (the curtain is displayed)
       window.setTimeout(function() { cb(); }, contacts.length * 2);
     }
   };
 
-  function renderGroup(fragment, groupsList, group, friends) {
-    if (!friends || friends.length === 0)
-      return;
+  function getStringToBeOrdered(contact) {
+    var ret = [];
 
-    // New element appended
-    var element = utils.templates.append(groupsList, {
-      group: group
-    }, fragment);
+    ret.push(contact.familyName ? contact.familyName[0] : '');
+    ret.push(contact.givenName ? contact.givenName[0] : '');
 
-    // This is the <ol> and <header> is children[0]
-    var list = element.children[1];
-
-    // For each friend in the group
-    friends.forEach(function(friend) {
-      if (!friend.search || friend.search.length === 0)
-        return;
-
-      friend.search = utils.text.normalize(friend.search);
-
-      // New friend appended
-      utils.templates.append(list, friend);
-    });
-
-    // Template is deleted from the list
-    list.removeChild(list.firstElementChild);
+    return ret.join('');
   }
 
-  function getStringToBeOrdered(contact, order) {
-    var ret = contact.search;
-
-    if (!ret) {
-      ret = [];
-
-      order.forEach(function(field) {
-        ret.push(getValue(contact, field));
-      });
-
-      ret = contact.search = ret.join('');
-    }
-
-    return ret;
-  }
-
-  function getValue(contact, field) {
-    var out = contact[field];
-
-    if (out) {
-      out = Array.isArray(out) ? out[0] : out;
-    } else {
-      out = '';
-    }
-
-    return out;
-  };
-
-  function getGroupName(contact, order) {
-    var ret = getStringToBeOrdered(contact, order);
+  function getGroupName(contact) {
+    var ret = getStringToBeOrdered(contact);
 
     ret = ret.charAt(0).toUpperCase();
     ret = ret.replace(/[ÁÀ]/ig, 'A');
@@ -142,12 +95,16 @@ var FriendListRenderer = (function() {
 
     var code = ret.charCodeAt(0);
     if (code < 65 || code > 90) {
-      ret = '#';
+      ret = 'und';
     }
     return ret;
   }
 
+  function getGroupLetter(group) {
+    return group === 'und' ? '#' : group;
+  }
+
   return {
-    'render': render
+    'load': load
   };
 })();

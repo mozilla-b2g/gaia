@@ -27,7 +27,7 @@ if (typeof Contacts.extFb === 'undefined') {
     extFb.importFB = function(evt) {
       closeRequested = false;
       canClose = false;
-      load('import.html?service=facebook', 'friends');
+      load('fb_import.html', 'friends');
     };
 
     function load(uri, from) {
@@ -288,7 +288,7 @@ if (typeof Contacts.extFb === 'undefined') {
           notifySettings();
         break;
 
-        case 'import_updated':
+        case 'fb_updated':
           Contacts.navigation.home(function fb_finished() {
             extensionFrame.contentWindow.postMessage({
               type: 'contacts_loaded',
@@ -304,7 +304,7 @@ if (typeof Contacts.extFb === 'undefined') {
             unload();
           }
           // Check whether there has been changes or not
-          if (data.data > 0) {
+          if(data.data > 0) {
             notifySettings();
           }
         break;

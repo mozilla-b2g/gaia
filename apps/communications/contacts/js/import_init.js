@@ -6,13 +6,7 @@
 
   function parseParams(paramsStr) {
     var out = {};
-    var paramsList;
-    if (paramsStr.indexOf('&') != -1) {
-      paramsList = paramsStr.split('&');
-    }
-    else {
-      paramsList = [paramsStr.substring(1)];
-    }
+    var paramsList = paramsStr.split('&');
     paramsList.forEach(function(param) {
       var paramsValues = param.split('=');
       out[paramsValues[0]] = paramsValues[1];
@@ -32,24 +26,10 @@
         cb(LiveConnector);
       });
     },
+    'facebook': null,    // To be implemented
     'gmail': function gmailLoader(cb) {
       LazyLoader.load('/gmail/js/gmail_connector.js', function onLoad() {
         cb(GmailConnector);
-      });
-    },
-    'facebook': function(cb) {
-      var files = [
-                   '/contacts/js/fb/fb_utils.js',
-                   '/contacts/js/fb/fb_contact_utils.js',
-                   '/contacts/js/fb/fb_data.js',
-                   '/contacts/js/fb/fb_query.js',
-                   '/contacts/js/fb/fb_contact.js',
-                   '/facebook/js/facebook_connector.js',
-                   '/facebook/js/fb_sync.js',
-                   '/contacts/style/fb/facebook.css'
-      ];
-      LazyLoader.load(files, function() {
-        cb(FacebookConnector);
       });
     }
   };
@@ -86,6 +66,11 @@
 
 
   function onLoad(access_token) {
+    // Getting the timeout config from the parent
+    if (parent.config) {
+      config.operationsTimeout = parent.config.operationsTimeout;
+    }
+
     utils.listeners.add({
       '#import-close': importer.ui.end,
       '#import-action': importer.ui.importAll,

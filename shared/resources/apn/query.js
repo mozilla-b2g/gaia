@@ -123,8 +123,7 @@ document.addEventListener('DOMContentLoaded', function onload() {
           var otherSettings = queryOperatorVariantDB(mcc, mnc);
           if (otherSettings) {
             if (DEBUG) {
-              console.log('Other operator settings: ' +
-                JSON.stringify(otherSettings));
+              console.log("Other operator settings: " + JSON.stringify(otherSettings));
             }
             if (!operatorVariantSettings.voicemail) {
               voicemail = otherSettings['voicemail'];
@@ -234,8 +233,7 @@ document.addEventListener('DOMContentLoaded', function onload() {
           gAndroidDB = loadXML(ANDROID_DB_FILE);
           // First merge the local DB
           var localAndroidDB = loadXML(LOCAL_ANDROID_DB_FILE);
-          var localApns =
-            localAndroidDB.documentElement.getElementsByTagName('apn');
+          var localApns = localAndroidDB.documentElement.getElementsByTagName("apn");
           for (var i = 0; i < localApns.length; ++i) {
             gAndroidDB.documentElement.appendChild(localApns[i]);
           }

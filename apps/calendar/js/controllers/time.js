@@ -566,12 +566,12 @@ Calendar.ns('Controllers').Time = (function() {
       }
 
       var getEvent = true;
-      var getAlarms = false;
+      var getAlarm = false;
 
       busytimes = (Array.isArray(busytimes)) ? busytimes : [busytimes];
 
-      if (options && ('alarms' in options)) {
-        getAlarms = options.alarms;
+      if (options && ('alarm' in options)) {
+        getAlarm = options.alarm;
       }
 
       if (options && ('event' in options)) {
@@ -584,7 +584,7 @@ Calendar.ns('Controllers').Time = (function() {
 
       var stores = [];
 
-      if (getAlarms)
+      if (getAlarm)
         stores.push('alarms');
 
       if (getEvent)
@@ -615,18 +615,18 @@ Calendar.ns('Controllers').Time = (function() {
         var result = { busytime: busytime };
         list[idx] = result;
 
-        if (getAlarms) {
+        if (getAlarm) {
           pending++;
           // its possible for more then one alarm to be present
           // for a given busytime. We are not supporting that right
           // now but in the future we may need to modify this to
           // return an array of alarms.
-          alarmStore.findAllByBusytimeId(busytime._id, trans,
+          alarmStore.findByBusytimeId(busytime._id, trans,
                                       function(err, alarm) {
 
             // unlike events we probably never want to cache alarms.
             if (alarm) {
-              result.alarms = alarm;
+              result.alarm = alarm;
             }
             next();
           });

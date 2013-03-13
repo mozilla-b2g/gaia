@@ -49,18 +49,6 @@ Calendar.ns('Controllers').RecurringEvents = (function() {
      */
     pending: false,
 
-    unobserve: function() {
-      this.app.timeController.removeEventListener(
-        'monthChange',
-        this
-      );
-
-      this.app.syncController.removeEventListener(
-        'syncComplete',
-        this
-      );
-    },
-
     observe: function() {
       var time = this.app.timeController;
 
@@ -196,6 +184,7 @@ Calendar.ns('Controllers').RecurringEvents = (function() {
     expand: function(expandTo, callback) {
       debug('expand', expandTo);
       // we need to look through all available accounts
+      var list = this.accounts.cached;
       var pending = 0;
 
       function next() {
@@ -204,30 +193,23 @@ Calendar.ns('Controllers').RecurringEvents = (function() {
         }
       }
 
-      this.accounts.all(function(err, list) {
-        if (err) {
-          return callback(err);
+      // add minimum padding...
+      var expandDate = new Date(expandTo.valueOf());
+      expandDate.setDate(expandDate.getDate() + this.paddingInDays);
+
+      for (var key in list) {
+        pending++;
+        var provider = this.app.provider(list[key].providerType);
+        if (provider && provider.canExpandRecurringEvents) {
+          this._expandProvider(expandDate, provider, next);
+        } else {
+          Calendar.nextTick(next);
         }
+      }
 
-        // add minimum padding...
-        var expandDate = new Date(expandTo.valueOf());
-        expandDate.setDate(expandDate.getDate() + this.paddingInDays);
-
-        for (var key in list) {
-          pending++;
-          var provider = this.app.provider(list[key].providerType);
-          if (provider && provider.canExpandRecurringEvents) {
-            this._expandProvider(expandDate, provider, next);
-          } else {
-            Calendar.nextTick(next);
-          }
-        }
-
-        // if there are no accounts we need to fire the callback.
-        if (!pending)
-          Calendar.nextTick(callback);
-
-      }.bind(this));
+      // if there are no accounts we need to fire the callback.
+      if (!pending)
+        Calendar.nextTick(callback);
     }
   };
 

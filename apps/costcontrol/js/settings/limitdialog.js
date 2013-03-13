@@ -101,8 +101,6 @@ function dataLimitConfigurer(guiWidget, settings, viewManager) {
   guiWidget.addEventListener('click', function ccld_onWidgetClick() {
     viewManager.changeViewTo(dialog.id);
     dataLimitInput.focus();
-    dataLimitInput.setSelectionRange(dataLimitInput.value.length,
-                                     dataLimitInput.value.length);
     oldUnitValue = settings.option('dataLimitUnit');
     switchUnitButton.querySelector('span.tag').textContent = oldUnitValue;
   });

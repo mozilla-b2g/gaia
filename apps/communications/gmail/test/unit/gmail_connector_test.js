@@ -109,6 +109,8 @@ suite('Gmail Connector', function() {
       assert.length(result.note, 1);
       assert.equal('This is a Note', result.note[0]);
 
+<<<<<<< HEAD
+=======
       assert.isNotNull(result.category);
       assert.length(result.category, 1);
       assert.equal('gmail', result.category[0]);
@@ -122,6 +124,7 @@ suite('Gmail Connector', function() {
         'mepartoconmigo%40gmail.com/base/2fc27a388c2bd974',
         result.url[0].value);
 
+>>>>>>> gaia_mozilla/master
     });
   });
 });

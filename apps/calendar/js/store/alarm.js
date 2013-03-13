@@ -194,11 +194,11 @@ Calendar.ns('Store').Alarm = (function() {
     /**
      * Finds single alarm by busytime id.
      *
-     * @param {Object} related busytime object.
+     * @param {String} busytimeId busytime id.
      * @param {IDBTransaction} [trans] optional transaction.
-     * @param {Function} callback node style [err, records].
+     * @param {Function} callback node style [err, record].
      */
-    findAllByBusytimeId: function(busytimeId, trans, callback) {
+    findByBusytimeId: function(busytimeId, trans, callback) {
       if (typeof(trans) === 'function') {
         callback = trans;
         trans = null;
@@ -210,9 +210,8 @@ Calendar.ns('Store').Alarm = (function() {
 
       var store = trans.objectStore(this._store);
       var index = store.index('busytimeId');
-      var key = IDBKeyRange.only(busytimeId);
 
-      index.mozGetAll(key).onsuccess = function(e) {
+      index.get(busytimeId).onsuccess = function(e) {
         callback(null, e.target.result);
       };
     },

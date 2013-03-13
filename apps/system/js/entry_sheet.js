@@ -13,17 +13,17 @@ var EntrySheet = (function invocation() {
 
   EntrySheet.prototype.setTitle = function(title) {
     this.titleElement.textContent = title;
-  };
+  }
 
   EntrySheet.prototype.open = function() {
     // Transtion won't happen if adding class directly
-    setTimeout(function() {
+    setTimeout(function(){
       this.element.classList.add('active');
     }.bind(this));
-  };
+  }
 
   EntrySheet.prototype.close = function() {
-    this.element.addEventListener('transitionend', function onTransitionend() {
+    this.element.addEventListener('transitionend', function onTransitionend(){
       this.element.removeEventListener('transitionend', onTransitionend);
       this.element.classList.remove('disappearing');
       this.element.classList.remove('active');
@@ -32,7 +32,7 @@ var EntrySheet = (function invocation() {
       this.container.removeChild(this.element);
     }.bind(this));
     this.element.classList.add('disappearing');
-  };
+  }
 
   // These are helper functions and variables used by the methods above
   // They're not part of the public API of the module, but they're hidden
@@ -43,11 +43,9 @@ var EntrySheet = (function invocation() {
     return '<div class="' + EntrySheet.className + '">' +
       '<section role="region" class="skin-organic header">' +
         '<header>' +
-          '<button class="close">' +
-              '<span class="icon icon-close">close</span>' +
-          '</button>' +
-          '<h1 class="title">' + '</h1>' +
-          '<div class="throbber"></div>' +
+          '<button class="close"><span class="icon icon-close">close</span></button>' +
+            '<h1 class="title">' + '</h1>' +
+            '<div class="throbber"></div>' +
         '</header>' +
       '</section>' +
       '<div class="content">' +
@@ -59,30 +57,23 @@ var EntrySheet = (function invocation() {
     this.container = container;
     this.title = title;
     this.container.insertAdjacentHTML('beforeend', view.apply(this));
-    this.closeButton =
-      this.container.querySelector('.' + EntrySheet.className + ' .close');
-    this.titleElement =
-      this.container.querySelector('.' + EntrySheet.className + ' .title');
-    this.throbberElement =
-      this.container.querySelector('.' + EntrySheet.className + ' .throbber');
-    this.content =
-      this.container.querySelector('.' + EntrySheet.className + ' .content');
+    this.closeButton = this.container.querySelector('.' + EntrySheet.className + ' .close');
+    this.titleElement = this.container.querySelector('.' + EntrySheet.className + ' .title');
+    this.throbberElement = this.container.querySelector('.' + EntrySheet.className + ' .throbber');
+    this.content = this.container.querySelector('.' + EntrySheet.className + ' .content');
     this.element = this.container.querySelector('.' + EntrySheet.className);
     this.element.dataset.zIndexLevel = 'dialog-overlay';
 
     var self = this;
     // XXX: We may make entry sheet to generate browser frame by itself,
     // hence we don't need to check the type here.
-    if (typeof(BrowserFrame) != 'undefined' &&
-        content instanceof BrowserFrame) {
-      content.element.addEventListener('mozbrowserloadstart',
-        function onLoadStart() {
-          self.throbberElement.dataset.loading = true;
-        });
-      content.element.addEventListener('mozbrowserloadend',
-        function onLoadEnd() {
-          delete self.throbberElement.dataset.loading;
-        });
+    if (typeof(BrowserFrame) != 'undefined' && content instanceof BrowserFrame) {
+      content.element.addEventListener('mozbrowserloadstart', function onLoadStart(){
+        self.throbberElement.dataset.loading = true;
+      });
+      content.element.addEventListener('mozbrowserloadend', function onLoadEnd(){
+        delete self.throbberElement.dataset.loading;
+      });
       this.content.appendChild(content.element);
     } else if (content && content.nodeType == 1) {
       // In case the content isn't a browserElement object but a DOM element.
@@ -93,7 +84,7 @@ var EntrySheet = (function invocation() {
     var self = this;
     this.closeButton.onclick = function() {
       self.close();
-    };
+    }
   }
 
   var nextId = 0;

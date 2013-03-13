@@ -3,6 +3,12 @@
 var RecentsDBManager = {
   _db: null,
   _dbName: 'dialerRecents',
+<<<<<<< HEAD
+  _dbStore: 'dialerRecents',
+  _dbVersion: 1,
+  prepolulated: false,
+  init: function rdbm_init(callback) {
+=======
   _dbRecentsStore: 'dialerRecents',
   _dbGroupsStore: 'dialerGroups',
   _dbVersion: 2,
@@ -24,6 +30,7 @@ var RecentsDBManager = {
       return;
     }
 
+>>>>>>> gaia_mozilla/master
     try {
       var indexedDB = window.indexedDB || window.webkitIndexedDB ||
                       window.mozIndexedDB || window.msIndexedDB;
@@ -31,6 +38,23 @@ var RecentsDBManager = {
         callback('NO_INDEXED_DB_AVAILABLE', null);
         return;
       }
+<<<<<<< HEAD
+      var self = this;
+      // Open DB
+      this.request = indexedDB.open(this._dbName, this._dbVersion);
+      //Once DB is opened
+      this.request.onsuccess = function(event) {
+        //Store DB object in RecentsDBManager
+        self.db = event.target.result;
+        if (!navigator.mozTelephony && !self.prepopulated) {
+          self.prepopulateDB();
+          self.prepopulated = true;
+        }
+        if (callback) {
+          //Callback if needed
+          callback();
+        }
+=======
 
       var request = indexedDB.open(this._dbName, this._dbVersion);
       request.onsuccess = (function(event) {
@@ -40,6 +64,7 @@ var RecentsDBManager = {
 
       request.onerror = function(event) {
         callback(event.target.errorCode, null);
+>>>>>>> gaia_mozilla/master
       };
 
       request.onblocked = function() {
@@ -316,6 +341,20 @@ var RecentsDBManager = {
           }
         };
       };
+<<<<<<< HEAD
+   });
+  },
+  // Method for prepopulating the recents DB for Dev-team
+  prepopulateDB: function rdbm_prepopulateDB(callback) {
+    var recent;
+    for (var i = 0; i < 5; i++) {
+      recent = {
+        date: (Date.now() - i * 86400000),
+        type: 'incoming',
+        number: '123123123'
+      };
+      this.add(recent);
+=======
     }).bind(this));
   },
   /**
@@ -391,6 +430,7 @@ var RecentsDBManager = {
     if (!indexedDB) {
       callback('NO_INDEXEDDB_AVAILABLE');
       return;
+>>>>>>> gaia_mozilla/master
     }
     indexedDB.deleteDatabase(this._dbName, this._dbVersion)
              .onsuccess = function() {
@@ -398,6 +438,13 @@ var RecentsDBManager = {
         callback();
       }
     };
+<<<<<<< HEAD
+    this.add(recent);
+    if (callback) {
+      callback();
+    }
+=======
+>>>>>>> gaia_mozilla/master
   },
   /**
    * Helper for getting a list of all the records stored in a given object
@@ -665,6 +712,62 @@ var RecentsDBManager = {
       }
     }
   },
+<<<<<<< HEAD
+  deleteAll: function rdbm_deleteAll(callback) {
+    var self = this;
+    this._checkDBReady(function() {
+      var txn = self.db.transaction(self._dbStore, 'readwrite');
+      var store = txn.objectStore(self._dbStore);
+
+      var delAllRequest = store.clear();
+      delAllRequest.onsuccess = function da_onsuccess() {
+        if (callback && callback instanceof Function) {
+          callback();
+        }
+      };
+
+      delAllRequest.onerror = function da_onerror(e) {
+        console.log('recents_db delete all failure: ',
+          e.message, delAllRequest.errorCode);
+      };
+    });
+  },
+  // Method for retrieving all recents from DB
+  get: function rdbm_get(callback) {
+    var objectStore = this.db.transaction(RecentsDBManager._dbStore).
+                        objectStore(RecentsDBManager._dbStore);
+    var recents = [];
+    var cursor = objectStore.openCursor(null, 'prev');
+    cursor.onsuccess = function(event) {
+      var item = event.target.result;
+      if (item) {
+        recents.push(item.value);
+        item.continue();
+      } else {
+        callback(recents);
+      }
+    };
+
+    cursor.onerror = function(e) {
+      console.log('recents_db get failure: ', e.message);
+    };
+  },
+
+  getLast: function rdbm_getLast(callback) {
+    var objectStore = this.db.transaction(RecentsDBManager._dbStore).
+                        objectStore(RecentsDBManager._dbStore);
+    var cursor = objectStore.openCursor(null, 'prev');
+    cursor.onsuccess = function(event) {
+      var item = event.target.result;
+      if (item) {
+        callback(item.value);
+      }
+    };
+
+    cursor.onerror = function(e) {
+      console.log('recents_db get failure: ', e.message);
+    };
+=======
   getLast: function DELETEMEPLEASE_getLast(callback) {
     this._newTxn('readonly', [this._dbRecentsStore],
                  function(error, txn, store) {
@@ -680,5 +783,6 @@ var RecentsDBManager = {
         console.log('recents_db get failure: ', e.message);
       };
     });
+>>>>>>> gaia_mozilla/master
   }
 };

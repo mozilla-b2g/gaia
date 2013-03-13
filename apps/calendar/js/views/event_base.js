@@ -110,63 +110,14 @@ Calendar.ns('Views').EventBase = (function() {
      *
      * @param {Object} busytime for view.
      * @param {Object} event for view.
-     * @param {Function} [callback] optional callback.
      */
-    useModel: function(busytime, event, callback) {
+    useModel: function(busytime, event) {
+      this.provider = this.store.providerFor(event);
       this.event = new Calendar.Models.Event(event);
+
       this.busytime = busytime;
-
-      var changeToken = ++this._changeToken;
-
-      var self = this;
-      var model = this.event;
-      var calendar;
-
-      this.store.ownersOf(event, fetchOwners);
-
-      function fetchOwners(err, owners) {
-        self.originalCalendar = owners.calendar;
-
-        self.provider = self.app.provider(
-          owners.account.providerType
-        );
-
-        self.provider.eventCapabilities(
-          self.event,
-          fetchEventCaps
-        );
-      }
-
-      function fetchEventCaps(err, caps) {
-        if (self._changeToken !== changeToken)
-          return;
-
-        if (err) {
-          console.log('Failed to fetch events capabilities', err);
-
-          if (callback) {
-            callback(err);
-          }
-
-          return;
-        }
-
-        if (!caps.canUpdate) {
-          self._markReadonly(true);
-          self.element.classList.add(self.READONLY);
-        }
-
-        // inheritance hook...
-        self._updateUI();
-
-        if (callback) {
-          callback();
-        }
-      }
+      this._displayModel();
     },
-
-    /** override me! **/
-    _updateUI: function() {},
 
     /**
      * Loads event and triggers form update.
@@ -177,25 +128,30 @@ Calendar.ns('Views').EventBase = (function() {
      *
      * @param {String} id busytime id.
      */
-    _loadModel: function(id, callback) {
+    _loadModel: function(id) {
       var self = this;
       var token = ++this._changeToken;
       var time = this.app.timeController;
 
       time.findAssociated(id, function(err, list) {
-        if (err) {
-          console.log('Error looking up records for id: ', id);
-        }
-
         var records = list[0];
         if (token === self._changeToken) {
-          self.useModel(
-            records.busytime,
-            records.event,
-            callback
-          );
+          self.useModel(records.busytime, records.event);
         }
       });
+    },
+
+    _displayModel: function() {
+      var model = this.event;
+      var calendar = this.store.calendarFor(model);
+      var caps = this.provider.eventCapabilities(model.data);
+
+      if (!caps.canUpdate) {
+        this._markReadonly(true);
+        this.element.classList.add(this.READONLY);
+      }
+
+      this._updateUI();
     },
 
     /**
@@ -269,31 +225,22 @@ Calendar.ns('Views').EventBase = (function() {
         this._returnTop = this._returnTo;
       }
 
-      var self = this;
-      function completeDispatch() {
-        if (self.ondispatch) {
-          self.ondispatch();
-        }
-      }
-
       if (id) {
+        this._loadModel(id);
         classList.add(this.UPDATE);
-
-        this._loadModel(id, completeDispatch);
       } else {
-        classList.add(this.CREATE);
-
         var controller = this.app.timeController;
+        classList.add(this.CREATE);
         this.event = this._createModel(controller.mostRecentDay);
         this._updateUI();
-
-        Calendar.nextTick(completeDispatch);
       }
 
       this.primaryButton.removeAttribute('aria-disabled');
     },
 
-    onfirstseen: function() {}
+    onfirstseen: function() {
+
+    }
 
   };
 

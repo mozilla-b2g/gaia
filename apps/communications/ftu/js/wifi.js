@@ -219,8 +219,7 @@ var WifiUI = {
       icon.classList.remove('connected');
 
       var security = networkSelected.dataset.security;
-      var securityLevelDOM =
-        networkSelected.querySelectorAll('p[data-security-level]')[0];
+      var securityLevelDOM = networkSelected.querySelectorAll('p[data-security-level]')[0];
       if (!security || security === '') {
         securityLevelDOM.textContent = _('securityOpen');
       } else {

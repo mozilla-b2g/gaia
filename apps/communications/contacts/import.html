@@ -30,7 +30,6 @@
     <script defer type="text/javascript" src="js/fixed_header.js"></script>
     <script defer type="text/javascript" src="js/utilities/http_rest.js"></script>
     <script defer type="text/javascript" src="js/contacts_importer.js"></script>
-    <script defer type="text/javascript" src="js/contacts_cleaner.js"></script>
     <script defer type="text/javascript" src="js/importer_ui.js"></script>
     <script defer type="text/javascript" src="js/import_init.js"></script>
 
@@ -84,7 +83,7 @@
           </section>
           <section id="groups-list" class="unbordered import-list" data-type="list">
             <section id="group-#group#" data-template>
-              <header>#group#</header>
+              <header>#letter#</header>
               <ol id="contacts-list-#group#">
                 <li data-template data-uuid="#uid#" data-search="#search#" aria-disabled="false" class="block-item">
                   <label>
@@ -92,10 +91,9 @@
                     <span></span>
                   </label>
                   <aside class="pack-end">
-                    <img data-src="#contactPictureUri#"></img>
+                    <img data-src="https://apis.live.net/v5.0/#uid#/picture?type=medium"></img>
                   </aside>
-                  <p data-order-by="firstName"><strong>#givenName#</strong> #familyName#</p>
-                  <p data-order-by="lastName">#givenName# <strong>#familyName#</strong></p>
+                  <p><strong>#givenName#</strong> #familyName#</p>
                   <p>#email1#</p>
                 </li>
               </ol>

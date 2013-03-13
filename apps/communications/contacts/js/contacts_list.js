@@ -105,27 +105,27 @@ contacts.List = (function() {
   var initOrder = function initOrder(callback) {
     if (orderByLastName === null) {
       asyncStorage.getItem(ORDER_KEY, function valueReady(value) {
-        if (typeof value !== 'boolean') {
+        if(typeof value !== 'boolean') {
         // This code only will be executed first time contacts app is opened
           var req = utils.config.load('/contacts/config.json');
           req.onload = function configReady(configData) {
             orderByLastName = (configData.defaultContactsOrder ===
                     ORDER_BY_FAMILY_NAME ? true : false);
-            if (callback) {
+            if(callback) {
               callback();
             }
             // The default value got in config is stored
             asyncStorage.setItem(ORDER_KEY, orderByLastName);
-          };
+          }
           req.onerror = function configError() {
             window.console.error('Error while reading configuration file');
             orderByLastName = false;
-            if (callback) {
+            if(callback) {
               callback();
             }
             // The default value got in config is stored
             asyncStorage.setItem(ORDER_KEY, orderByLastName);
-          };
+          }
         }
         else {
           orderByLastName = value;
@@ -140,7 +140,7 @@ contacts.List = (function() {
         callback();
       }
     }
-  };
+  }
 
   var renderGroupHeader = function renderGroupHeader(group, letter) {
     var letteredSection = document.createElement('section');
@@ -195,7 +195,7 @@ contacts.List = (function() {
     }
 
     return contactContainer;
-  };
+  }
 
   // This method returns the very essential information needed
   // for rendering the contacts list
@@ -215,7 +215,7 @@ contacts.List = (function() {
     contactsCache[contact.id] = {
       contact: contact,
       container: contactContainer
-    };
+    }
     renderOrg(contact, contactContainer, true);
 
     // Facebook data, favorites and images will be lazy loaded
@@ -236,15 +236,18 @@ contacts.List = (function() {
         }
       }
     });
+<<<<<<< HEAD
+=======
     if (contact.tel && contact.tel.length) {
       for (var i = contact.tel.length - 1; i >= 0; i--) {
         var current = contact.tel[i];
         searchInfo.push(current.value);
       }
     }
+>>>>>>> gaia_mozilla/master
     var escapedValue = utils.text.escapeHTML(searchInfo.join(' '), true);
     return utils.text.normalize(escapedValue);
-  };
+  }
 
   var getHighlightedName = function getHighlightedName(contact) {
     var givenName = '';
@@ -441,7 +444,7 @@ contacts.List = (function() {
     imgLoader.reload();
     imagesLoaded = true;
     dispatchCustomEvent('finishLazyLoading');
-  };
+  }
 
   var lazyLoadFacebookData = function lazyLoadFacebookData() {
     Contacts.loadFacebook(function() {
@@ -495,7 +498,7 @@ contacts.List = (function() {
   var dispatchCustomEvent = function dispatchCustomEvent(eventName) {
     var event = new CustomEvent(eventName);
     window.dispatchEvent(event);
-  };
+  }
 
   var renderPhoto = function renderPhoto(contact, link) {
     if (!contact.photo || !contact.photo.length) {
@@ -545,7 +548,7 @@ contacts.List = (function() {
     meta.innerHTML = '<span class="org"></span>';
     link.appendChild(meta);
     return meta;
-  };
+  }
 
   var toggleNoContactsScreen = function cl_toggleNoContacs(show) {
     if (show && !ActivityHandler.currentlyHandling) {
@@ -794,15 +797,14 @@ contacts.List = (function() {
           enrichedContact = fbContact.merge(fbData);
         }
         addToList(contact, enrichedContact);
-        if (callback) {
+        if(callback) {
           callback(id);
         }
       });
     } else {
       var contact = id;
       remove(contact.id);
-      // Add without looking for extras, just what we have as contact
-      addToList(contact);
+      addToList(contact); // Add without looking for extras, just what we have as contact
       if (callback) {
         callback(contact.id);
       }
@@ -850,7 +852,7 @@ contacts.List = (function() {
       renderGroupHeader(letter, letter);
     }
     renderGroupHeader('und', '#');
-  };
+  }
 
   var setOrderByLastName = function setOrderByLastName(value) {
     orderByLastName = value;
