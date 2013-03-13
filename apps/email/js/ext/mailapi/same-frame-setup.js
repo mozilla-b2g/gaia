@@ -14280,35 +14280,16 @@ MailUniverse.prototype = {
 
   dumpLogToDeviceStorage: function() {
     try {
-      // The situation is that we want to get the file onto disk using
-      // DeviceStorage.  If we use 'sdcard', we can write whatever we want
-      // without having to fake a MIME type and file extension.  However, the
-      // e-mail app currently doesn't actually need the 'sdcard' privilege, so
-      // we are sticking with our previously required trick of pretending we are
-      // writing a video.
-      //
-      // We used to pretend to create a '.rm' file, but that got removed from the
-      // file list, so now we have to pretend to be something more common.  The
-      // current list of legal choices is: devicestorage.properties in
-      // https://mxr.mozilla.org/mozilla-central/source/toolkit/content/
-      // and is: *.mp4; *.mpeg; *.mpg; *.ogv; *.ogx; *.webm; *.3gp; *.ogg
-      //
-      // We prefer pretending to be a video rather than a picture or music
-      // arbitrarily, but mainly because I don't use the video app ever.
-      var storage = navigator.getDeviceStorage('videos');
-      // HACK HACK HACK: DeviceStorage does not care about our use-case at all
-      // and brutally fails to write things that do not have a mime type (and
-      // apropriately named file), so we pretend to be a realmedia file because
-      // who would really have such a thing?
+      var storage = navigator.getDeviceStorage('sdcard');
       var blob = new Blob([JSON.stringify(this.createLogBacklogRep())],
                           {
-                            type: 'video/lies',
+                            type: 'application/json',
                             endings: 'transparent'
                           });
-      var filename = 'gem-log-' + Date.now() + '.json.3gp';
+      var filename = 'gem-log-' + Date.now() + '.json';
       var req = storage.addNamed(blob, filename);
       req.onsuccess = function() {
-        console.log('saved log to "videos" devicestorage:', filename);
+        console.log('saved log to "sdcard" devicestorage:', filename);
       };
       req.onerror = function() {
         console.error('failed to save log to', filename, 'err:',
@@ -23992,8 +23973,8 @@ exports.do_download = function(op, callback) {
       if (partInfo.file)
         continue;
       partsToDownload.push(partInfo);
-      // right now all attachments go in pictures
-      storePartsTo.push('pictures');
+      // right now all attachments go in sdcard
+      storePartsTo.push('sdcard');
     }
 
     folderConn.downloadMessageAttachments(uid, partsToDownload, gotParts);
