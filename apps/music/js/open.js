@@ -21,26 +21,33 @@ window.addEventListener('localized', function onlocalized() {
 });
 
 function handleOpenActivity(request) {
-  var fileName = request.source.data.filename;
+  var blob = request.source.data.blob;
+  var fileName = request.source.data.filename || blob.name;
   var backButton = document.getElementById('title-back');
 
-  // XXX Please see https://bugzilla.mozilla.org/show_bug.cgi?id=811615
-  // After the bluetooth app received an audio file
-  // it will pass the file to music player via web activity
-  // but we still got a blob which cannot be accepted by audio element
-  // so we use the received filename to get the file again from deviceStorage
-  var storage = navigator.getDeviceStorage('music');
-  var getRequest = storage.get(fileName);
+  // If fileName is not existed, the received object should be a blob
+  // so we can just play it without the workaround in the else case
+  if (!fileName) {
+    playBlob(blob);
+  } else {
+    // XXX Please see https://bugzilla.mozilla.org/show_bug.cgi?id=848723
+    // After the bluetooth app received an audio file
+    // it will pass the file to music player via web activity
+    // but we will got a file which cannot be parsed by the metadata parser
+    // so we use the received filename to get the file again from deviceStorage
+    var storage = navigator.getDeviceStorage('music');
+    var getRequest = storage.get(fileName);
 
-  getRequest.onsuccess = function() {
-    var file = getRequest.result;
+    getRequest.onsuccess = function() {
+      var file = getRequest.result;
 
-    playBlob(file);
-  };
-  getRequest.onerror = function() {
-    var errmsg = getRequest.error && getRequest.error.name;
-    console.error('Music.storage.get:', errmsg);
-  };
+      playBlob(file);
+    };
+    getRequest.onerror = function() {
+      var errmsg = getRequest.error && getRequest.error.name;
+      console.error('Music.storage.get:', errmsg);
+    };
+  }
 
   function playBlob(blob) {
     PlayerView.init();
