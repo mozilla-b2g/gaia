@@ -410,6 +410,7 @@ var BlobView = (function() {
   // real constructor, the contructor property of the prototype refers to it.
   return { get: BlobView.get };
 }());
+'use strict';
 
 // Parse the specified blob and pass an object of metadata to the
 // metadataCallback, or invoke the errorCallback with an error message.
@@ -997,10 +998,11 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
     }
 
     function findChildAtom(data, atom) {
+      var start = data.index;
       var length = data.readUnsignedInt();
       data.advance(4);
 
-      while (data.index < length) {
+      while (data.index < start + length) {
         var size = data.readUnsignedInt();
         var type = data.readASCIIText(4);
         if (type === atom) {
