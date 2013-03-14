@@ -481,6 +481,7 @@ function mapInputType(type) {
   case 'tel':
   case 'email':
   case 'text':
+  case 'pin':
     return type;
     break;
 
@@ -523,7 +524,8 @@ function modifyLayout(keyboardName) {
   }
 
   var altLayoutName;
-  if (currentInputType === 'number' || currentInputType === 'tel')
+  if (currentInputType === 'number' || currentInputType === 'tel' ||
+      currentInputType === 'pin')
     altLayoutName = currentInputType + 'Layout';
   else if (layoutPage === LAYOUT_PAGE_SYMBOLS_I)
     altLayoutName = 'alternateLayout';
@@ -825,9 +827,10 @@ function setMenuTimeout(target, coords, touchId) {
     if (isShowingAlternativesMenu || touchCount > 1)
       return;
 
-    // The telLayout and numberLayout do not show an alternative key
+    // The telLayout, numberLayout and pinLayout do not show an alternative key
     // menu, instead they send the alternative key and ignore the endPress.
-    if (currentInputType === 'number' || currentInputType === 'tel') {
+    if (currentInputType === 'number' || currentInputType === 'tel' ||
+        currentInputType === 'pin') {
 
       // Does the key have an altKey?
       var r = target.dataset.row, c = target.dataset.column;
@@ -1196,7 +1199,7 @@ function endPress(target, coords, touchId) {
 
   IMERender.unHighlightKey(target);
 
-  // The alternate keys of telLayout and numberLayout do not
+  // The alternate keys of telLayout, numberLayout and pinLayout do not
   // trigger keypress on key release.
   if (target.dataset.ignoreEndPress) {
     delete target.dataset.ignoreEndPress;
