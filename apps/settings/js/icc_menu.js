@@ -53,10 +53,10 @@
         debug('ICC async command (launcher)');
         executeICCCmd(JSON.parse(cmd));
       }
-    }
+    };
 
     SettingsListener.observe('icc.data', null, function(value) {
-      if(!value)
+      if (!value)
         return;
 
       debug('ICC async command while settings running: ', value);

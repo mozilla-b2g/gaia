@@ -246,7 +246,8 @@ var CardsView = (function() {
         header.setAttribute('role', 'region');
         header.classList.add('skin-organic');
         header.innerHTML = '<header><button><span class="icon icon-close">';
-        header.innerHTML += '</span></button><h1>' + escapeHTML(popupFrame.name, true);
+        header.innerHTML +=
+          '</span></button><h1>' + escapeHTML(popupFrame.name, true);
         header.innerHTML += '</h1></header>';
         card.appendChild(header);
         card.classList.add('trustedui');
@@ -276,7 +277,8 @@ var CardsView = (function() {
             var objectURL = URL.createObjectURL(screenshot.target.result);
 
             // Overwrite the cached image to prevent flickering
-            card.style.backgroundImage = 'url(' + objectURL + '), url(' + cachedLayer + ')';
+            card.style.backgroundImage =
+              'url(' + objectURL + '), url(' + cachedLayer + ')';
 
             // setTimeout is needed to ensure that the image is fully drawn
             // before we remove it. Otherwise the rendering is not smooth.

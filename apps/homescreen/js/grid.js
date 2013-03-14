@@ -50,7 +50,7 @@ const GridManager = (function() {
       target.classList.add('active');
       removeActive = function _removeActive() {
         target.classList.remove('active');
-      }
+      };
     } else {
       removeActive = function() {};
     }
@@ -101,7 +101,8 @@ const GridManager = (function() {
           var next = pages[currentPage + 1].container.style;
           refresh = function(e) {
             if (deltaX <= 0) {
-              next.MozTransform = 'translateX(' + (windowWidth + deltaX) + 'px)';
+              next.MozTransform =
+                'translateX(' + (windowWidth + deltaX) + 'px)';
               current.MozTransform = 'translateX(' + deltaX + 'px)';
             } else {
               startX = currentX;
@@ -133,7 +134,8 @@ const GridManager = (function() {
                 next.MozTransform = 'translateX(' + windowWidth + 'px)';
               }
             } else {
-              next.MozTransform = 'translateX(' + (windowWidth + deltaX) + 'px)';
+              next.MozTransform =
+                'translateX(' + (windowWidth + deltaX) + 'px)';
 
               // If we change direction make sure there isn't any part
               // of the page on the other side that stays visible.
@@ -169,14 +171,14 @@ const GridManager = (function() {
 
               var opacity = opacityOnAppGridPageMax -
                     (Math.abs(deltaX) / windowWidth) * opacityOnAppGridPageMax;
-              overlayStyle.opacity = Math.round(opacity * 10 ) / 10;
-            }
+              overlayStyle.opacity = Math.round(opacity * 10) / 10;
+            };
           } else if (currentPage === landingPage) {
             setOpacityToOverlay = function() {
               var opacity = (Math.abs(deltaX) / windowWidth) *
                             opacityOnAppGridPageMax;
-              overlayStyle.opacity = Math.round(opacity * 10 ) / 10;
-            }
+              overlayStyle.opacity = Math.round(opacity * 10) / 10;
+            };
           } else {
             setOpacityToOverlay = function() {
               if (forward)
@@ -184,8 +186,8 @@ const GridManager = (function() {
 
               var opacity = opacityOnAppGridPageMax -
                     (Math.abs(deltaX) / windowWidth) * opacityOnAppGridPageMax;
-              overlayStyle.opacity = Math.round(opacity * 10 ) / 10;
-            }
+              overlayStyle.opacity = Math.round(opacity * 10) / 10;
+            };
           }
 
           var pan = function(e) {

@@ -53,7 +53,7 @@ var BlobView = (function() {
                               0, length, littleEndian || false);
       }
       callback(result, reader.error);
-    }
+    };
   };
 
   BlobView.prototype = {

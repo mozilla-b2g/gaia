@@ -5,7 +5,7 @@
  * Settings have three drawing areas with views for current values of balance,
  * data usage and telephony.
  */
- 
+
  // Import global objects from parent window
  var ConfigManager = window.parent.ConfigManager;
  var CostControl = window.parent.CostControl;

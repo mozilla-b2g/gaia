@@ -738,7 +738,7 @@ Page.prototype = {
    * the icon that was at the last place and will be hidden will eventually flow
    * to the next page. This is done in GridManager's ensurePagesOverflow
    *
-   * @param{Object} icon the icon to be added.
+   * @param {Object} icon the icon to be added.
    */
   appendIconVisible: function pg_appendIconVisible(icon) {
     if (this.getNumIcons() >= GridManager.pageHelper.maxIconsPerPage) {

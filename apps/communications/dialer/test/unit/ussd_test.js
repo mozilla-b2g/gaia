@@ -14,7 +14,7 @@ suite('dialer/ussd', function() {
     UssdManager._ = function get(key, params) {
       keys[key] = params;
       return key;
-    }
+    };
     UssdManager.ready = true;
   });
 

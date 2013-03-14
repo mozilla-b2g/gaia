@@ -253,6 +253,6 @@ if (!utils.templates) {
       for (var c = 0; c < total; c++) {
         target.appendChild(templates.item(c));
       }
-    }
+    };
   }) ();
 } // window.templates

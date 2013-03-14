@@ -180,7 +180,7 @@ navigator.mozL10n.ready(function wifiSettings() {
       var pinInput = pinItem.querySelector('input');
       pinInput.oninput = function() {
         submitWpsButton.disabled = !isValidWpsPin(pinInput.value);
-      }
+      };
 
       function onWpsMethodChange() {
         var method =
@@ -466,7 +466,7 @@ navigator.mozL10n.ready(function wifiSettings() {
   // join hidden network
   document.getElementById('joinHidden').onclick = function joinHiddenNetwork() {
     toggleNetwork();
-  }
+  };
 
   function isConnected(network) {
     /**
@@ -611,7 +611,7 @@ navigator.mozL10n.ready(function wifiSettings() {
             ipAddress.textContent = info.ipAddress || '';
             speed.textContent =
                 _('linkSpeedMbs', { linkSpeed: info.linkSpeed });
-          }
+          };
           gWifiManager.connectionInfoUpdate = updateNetInfo;
           updateNetInfo();
 
@@ -635,7 +635,7 @@ navigator.mozL10n.ready(function wifiSettings() {
             network.capabilities = [key];
             dialog.dataset.security = key;
             checkPassword();
-          }
+          };
           security.onchange = onSecurityChange;
           onSecurityChange();
           break;

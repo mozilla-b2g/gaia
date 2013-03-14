@@ -6,29 +6,29 @@ suite('contacts - launch', function() {
   var helper = IntegrationHelper;
   var app;
   var newContact = {
-    "adr": [
+    'adr': [
       {
-        "countryName": "Brazil",
-        "locality": "Blumenau",
-        "postalCode": "89062-090",
-        "streetAddress": "Rua Lisete Fischer, 892"
+        'countryName': 'Brazil',
+        'locality': 'Blumenau',
+        'postalCode': '89062-090',
+        'streetAddress': 'Rua Lisete Fischer, 892'
       }
     ],
-    "email": [
+    'email': [
       {
-        "value": "LucasCastroAzevedo@teleworm.us"
+        'value': 'LucasCastroAzevedo@teleworm.us'
       }
     ],
-    "familyName": "Azevedo",
-    "givenName": "Lucas",
-    "org": "Omni Realty",
-    "tel": [
+    'familyName': 'Azevedo',
+    'givenName': 'Lucas',
+    'org': 'Omni Realty',
+    'tel': [
       {
-        "value": "(47) 5098-7516",
-        "carrier": "Telefonica"
+        'value': '(47) 5098-7516',
+        'carrier': 'Telefonica'
       }
     ],
-    "comment": ["test1"]
+    'comment': ['test1']
   };
 
   suiteTeardown(function() {
@@ -95,14 +95,15 @@ suite('contacts - launch', function() {
     var elements = yield detailsList.findElements('[data-phone]');
     assert.equal(elements.length, 1);
     var phone = yield detailsList.findElement('#call-or-pick-0');
-    var text = newContact.tel[0].value + " " + newContact.tel[0].carrier
+    var text = newContact.tel[0].value + ' ' + newContact.tel[0].carrier;
     var value = yield phone.text();
     assert.equal(value, text);
 
     // Asserting address
     elements = yield detailsList.findElements('[data-address]');
     assert.equal(elements.length, 1);
-    var address = yield detailsList.findElement('#address-details-template-0 b');
+    var address =
+      yield detailsList.findElement('#address-details-template-0 b');
     var text = newContact.adr[0].streetAddress;
     text += ' ' + newContact.adr[0].postalCode;
     text += ' ' + newContact.adr[0].locality;
@@ -152,7 +153,7 @@ suite('contacts - launch', function() {
       givenName: 'Test',
       tel: [
         {
-          value: "(47) 5098-7516-22"
+          value: '(47) 5098-7516-22'
         }
       ]
     };
@@ -174,7 +175,7 @@ suite('contacts - launch', function() {
     var elements = yield detailsList.findElements('[data-phone]');
     assert.equal(elements.length, 1);
     var phone = yield detailsList.findElement('#call-or-pick-0');
-    var text = updatedContact.tel[0].value + " " + newContact.tel[0].carrier
+    var text = updatedContact.tel[0].value + ' ' + newContact.tel[0].carrier;
     var value = yield phone.text();
     assert.equal(value, text);
 
@@ -219,7 +220,8 @@ suite('contacts - launch', function() {
     // var editButton = yield app.element('editButton');
     // var addNewEmailButton = yield app.element('addNewEmailButton');
     // var doneButton = yield app.element('doneButton');
-    // var deleteEmailButton = yield contactsForm.findElement('#add-email-0 > button span');
+    // var deleteEmailButton =
+    //   yield contactsForm.findElement('#add-email-0 > button span');
 
     // yield editButton.click();
     // yield app.waitUntilElement(contactsForm, 'displayed');
@@ -270,14 +272,17 @@ suite('contacts - launch', function() {
     var detailsList = yield app.element('detailsList');
 
     yield app.waitFor(function(expected) {
-      app.waitForElementsLengthEqual(detailsList, '[data-comment]', 2, expected);
+      app.waitForElementsLengthEqual(
+        detailsList, '[data-comment]', 2, expected);
     });
-    var commentField = yield detailsList.findElement('#note-details-template-0');
+    var commentField =
+      yield detailsList.findElement('#note-details-template-0');
     var text = newContact['comment'][0];
     var value = yield commentField.text();
     assert.equal(value, text);
 
-    var commentField = yield detailsList.findElement('#note-details-template-1');
+    var commentField =
+      yield detailsList.findElement('#note-details-template-1');
     var text = comment;
     var value = yield commentField.text();
     assert.equal(value, text);
@@ -333,7 +338,8 @@ suite('contacts - launch', function() {
     yield addressType.click();
     yield app.waitUntilElement(tagsView, 'displayed');
 
-    var workType = yield tagsView.findElement('#tags-list li:last-child button');
+    var workType =
+      yield tagsView.findElement('#tags-list li:last-child button');
     yield workType.click();
     // assert icon
     var classButton = yield workType.getAttribute('class');

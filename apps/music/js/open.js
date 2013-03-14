@@ -40,7 +40,7 @@ function handleOpenActivity(request) {
   getRequest.onerror = function() {
     var errmsg = getRequest.error && getRequest.error.name;
     console.error('Music.storage.get:', errmsg);
-  }
+  };
 
   function playBlob(blob) {
     PlayerView.init();

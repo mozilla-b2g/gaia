@@ -486,7 +486,8 @@ var Contacts = (function() {
     navigation.back();
     // post message to parent page included Contacts app.
     if (params['back_to_previous_tab'] === '1') {
-      window.parent.postMessage({ 'type': 'contactsiframe', 'message': 'back' }, '*');
+      window.parent.postMessage({
+          'type': 'contactsiframe', 'message': 'back' }, '*');
     }
   };
 
