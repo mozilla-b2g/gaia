@@ -6,21 +6,21 @@ html, body {
 #quick-settings {
   display: block;
   width: 100%;
-  height: 60px;
+  height: 6rem;
   padding: 0;
 
   background-image: url(images/background.png);
-  background-size: 100% 60px;
+  background-size: 100% 6rem;
 
-  border-top:1px black solid;
+  border-top:0.1rem black solid;
 }
 
 #quick-settings > a {
   display: block;
   float: left;
-  width: -moz-calc(20% - 2px);
-  height: 30px;
-  margin: 15px 0;
+  width: calc(20% - 0.2rem);
+  height: 3rem;
+  margin: 1.5rem 0;
   padding: 0;
   color: #fff;
   text-align: center;
@@ -28,30 +28,34 @@ html, body {
   outline: none;
   font-size: 1.4rem;
   line-height: 1.8rem;
+  background-color: transparent;
+  background-size: 3rem;
 }
 
 #quick-settings > .separator {
-  border-right: 1px black solid;
-  border-left: 1px gray solid;
-  margin: 15px 0;
-  height: 30px;
+  border-right: 0.1rem black solid;
+  border-left: 0.1rem gray solid;
+  margin: 1.5rem 0;
+  height: 3rem;
   float: left;
 }
 
 #quick-settings > a:first-child {
-  width: -moz-calc(20% - 1px);
+  width: calc(20% - 0.1rem);
   border-left: 0;
 }
 
 #quick-settings > a:last-child {
-  width: -moz-calc(20% - 1px);
+  width: calc(20% - 0.1rem);
   border-right: 0;
 }
+
 
 #quick-settings > a {
   background-position: center;
   background-repeat: no-repeat;
 }
+
 #quick-settings > *[data-initializing] {
   opacity: 0.5;
 }
