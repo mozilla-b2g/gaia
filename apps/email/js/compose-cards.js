@@ -51,6 +51,13 @@ function ComposeCard(domNode, mode, args) {
     containerList[i].addEventListener('click',
       this.onContainerClick.bind(this));
   }
+  // Add attachments area event listener
+  var attachmentBtns =
+    domNode.getElementsByClassName('cmp-attachment-container');
+  for (var i = 0; i < attachmentBtns.length; i++) {
+    attachmentBtns[i].addEventListener('click',
+                                       this.onAttachmentAdd.bind(this));
+  }
 
   // Add subject focus for larger hitbox
   var subjectContainer = domNode.querySelector('.cmp-subject');
@@ -59,30 +66,7 @@ function ComposeCard(domNode, mode, args) {
   });
 
   // Add attachments
-  var attachmentsContainer =
-    domNode.getElementsByClassName('cmp-attachments-container')[0];
-  if (this.composer.attachments && this.composer.attachments.length) {
-    var attTemplate = cmpNodes['attachment-item'],
-        filenameTemplate =
-          attTemplate.getElementsByClassName('cmp-attachment-filename')[0],
-        filesizeTemplate =
-          attTemplate.getElementsByClassName('cmp-attachment-filesize')[0];
-    for (var i = 0; i < this.composer.attachments.length; i++) {
-      var attachment = this.composer.attachments[i];
-      filenameTemplate.textContent = attachment.name;
-      filesizeTemplate.textContent = prettyFileSize(attachment.blob.size);
-      var attachmentNode = attTemplate.cloneNode(true);
-      attachmentsContainer.appendChild(attachmentNode);
-
-      attachmentNode.getElementsByClassName('cmp-attachment-remove')[0]
-        .addEventListener('click',
-                          this.onClickRemoveAttachment.bind(
-                            this, attachmentNode, attachment));
-    }
-  }
-  else {
-    attachmentsContainer.classList.add('collapsed');
-  }
+  this.insertAttachments();
 
   // Sent sound init
   this.sentAudioKey = 'mail.sent-sound.enabled';
@@ -359,9 +343,76 @@ ComposeCard.prototype = {
       this.textBodyNode.rows = neededRows;
   },
 
+  insertAttachments: function() {
+    var attachmentsContainer =
+      this.domNode.getElementsByClassName('cmp-attachments-container')[0];
+
+    if (this.composer.attachments && this.composer.attachments.length) {
+      // Clean the container before we insert the new attachments
+      attachmentsContainer.innerHTML = '';
+
+      var attTemplate = cmpNodes['attachment-item'],
+          filenameTemplate =
+            attTemplate.getElementsByClassName('cmp-attachment-filename')[0],
+          filesizeTemplate =
+            attTemplate.getElementsByClassName('cmp-attachment-filesize')[0];
+      for (var i = 0; i < this.composer.attachments.length; i++) {
+        var attachment = this.composer.attachments[i];
+        filenameTemplate.textContent = attachment.name;
+        filesizeTemplate.textContent = prettyFileSize(attachment.blob.size);
+        var attachmentNode = attTemplate.cloneNode(true);
+        attachmentsContainer.appendChild(attachmentNode);
+
+        attachmentNode.getElementsByClassName('cmp-attachment-remove')[0]
+          .addEventListener('click',
+                            this.onClickRemoveAttachment.bind(
+                              this, attachmentNode, attachment));
+      }
+
+      this.updateAttachmentsSize();
+
+      attachmentsContainer.classList.remove('collapsed');
+    }
+    else {
+      attachmentsContainer.classList.add('collapsed');
+    }
+  },
+
+  updateAttachmentsSize: function() {
+    var attachmentLabel =
+      this.domNode.getElementsByClassName('cmp-attachment-label')[0];
+    var attachmentsSize =
+      this.domNode.getElementsByClassName('cmp-attachments-size')[0];
+
+    attachmentLabel.textContent =
+      mozL10n.get('compose-attachments',
+                  { n: this.composer.attachments.length});
+
+    if (this.composer.attachments.length === 0) {
+      attachmentsSize.textContent = '';
+
+      // When there is no attachments, hide the container
+      // to keep the style of empty attachments
+      var attachmentsContainer =
+        this.domNode.getElementsByClassName('cmp-attachments-container')[0];
+
+      attachmentsContainer.classList.add('collapsed');
+    }
+    else {
+      var totalSize = 0;
+      for (var i = 0; i < this.composer.attachments.length; i++) {
+        totalSize += this.composer.attachments[i].blob.size;
+      }
+
+      attachmentsSize.textContent = prettyFileSize(totalSize);
+    }
+  },
+
   onClickRemoveAttachment: function(node, attachment) {
     node.parentNode.removeChild(node);
     this.composer.removeAttachment(attachment);
+
+    this.updateAttachmentsSize();
   },
 
   /**
@@ -478,6 +529,38 @@ ComposeCard.prototype = {
           self.sendButton.setAttribute('aria-disabled', 'false');
         }
       };
+    } catch (e) {
+      console.log('WebActivities unavailable? : ' + e);
+    }
+  },
+
+  onAttachmentAdd: function(event) {
+    event.stopPropagation();
+
+    try {
+      var activity = new MozActivity({
+        name: 'pick',
+        data: {
+          type: 'image/jpeg',
+          isAttachment: true
+        }
+      });
+      activity.onsuccess = (function success() {
+        var name = activity.result.blob.name || activity.result.name;
+
+        // It's possible that the name field is empty
+        // we should generate a default name for it, please see
+        // https://bugzilla.mozilla.org/show_bug.cgi?id=848855
+        if (name)
+          name = name.substring(name.lastIndexOf('/') + 1);
+
+        this.composer.addAttachment({
+          name: name,
+          blob: activity.result.blob
+        });
+
+        this.insertAttachments();
+      }).bind(this);
     } catch (e) {
       console.log('WebActivities unavailable? : ' + e);
     }
