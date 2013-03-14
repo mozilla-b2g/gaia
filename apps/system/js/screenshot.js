@@ -85,8 +85,10 @@
     try {
       if (e.detail.type === 'take-screenshot-success') {
         getDeviceStorage(function(storage) {
+          var d = new Date();
+          d = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
           var filename = 'screenshots/' +
-            new Date().toISOString().slice(0, -5).replace(/[:T]/g, '-') +
+            d.toISOString().slice(0, -5).replace(/[:T]/g, '-') +
             '.png';
 
           var saveRequest = storage.addNamed(e.detail.file, filename);
