@@ -2,23 +2,14 @@ html {
   font-size: 10px;
 }
 
-@media screen and (min-width: 480px) {
-  html {
-    font-size: 13.3px;
-  }
-}
-
 body {
   width: 100%;
   height: 100%;
-  margin: 0px;
-  padding: 0px;
-
+  margin: 0;
+  padding: 0;
   overflow: hidden;
-
   font-family: 'MozTT', sans-serif;
   color: #fff;
-  font-size: 12px;
 }
 
 #screen {
@@ -26,11 +17,10 @@ body {
   overflow: hidden;
   width: 100%;
   height: 100%;
-
   background-color: #000;
-  background-size: cover;
+  background-size: cover; /* Possible memory over-consumption with huge images, it should be removed for improving stability*/
   background-repeat: no-repeat;
-  background-position: 50% 50%;
+  background-position: 50% 2rem;
 }
 
 #screen.screenoff {
@@ -70,26 +60,26 @@ body {
   display: block;
   position: absolute;
   border-radius: 50%;
-  width: 60px;
-  height: 60px;
-  margin-left: -30px;
-  margin-top: -30px;
+  width: 6rem;
+  height: 6rem;
+  margin-left: -3rem;
+  margin-top: -3rem;
   left: 50%;
   opacity: 0;
 }
 
 #poweroff-ring-1 {
-  top: 120px;
+  top: 12rem;
   background-color: #e66600;
 }
 
 #poweroff-ring-2 {
-  top: 240px;
+  top: 24rem;
   background-color: #dc4e00;
 }
 
 #poweroff-ring-3 {
-  top: 360px;
+  top: 36rem;
   background-color: #d24500;
 }
 
@@ -101,10 +91,10 @@ body {
   left: 50%;
   margin: auto;
   background-color: black;
-  width: 40px;
-  height: 40px;
-  margin-top: -20px;
-  margin-left: -20px;
+  width: 4rem;
+  height: 4rem;
+  margin-top: -2rem;
+  margin-left: -2rem;
 }
 
 #poweroff-ring-2 > span {
@@ -209,12 +199,12 @@ body {
 
 #windows {
   position: absolute;
-  left: 0px;
+  left: 0rem;
   width: 100%;
   top: -100%;
   height: 0;
   max-height: 0;
-  border: 0px;
+  border: 0rem;
   overflow: hidden;
 }
 
@@ -231,7 +221,7 @@ body {
   padding: 0;
   overflow: hidden;
   left: 0;
-  top: 20px;
+  top: 2rem;
 
   /* Need to leave this in here to prevent flickering. */
   transform: scale(1);
@@ -247,7 +237,7 @@ body {
  * Gecko.  The performance issue should be fixed by
  * https://bugzilla.mozilla.org/show_bug.cgi?id=697645 or a related bug.
  *
-  border-radius: 8px;
+  border-radius: 0.8rem;
  */
 }
 
@@ -261,7 +251,7 @@ body {
 }
 
 #screen.active-statusbar #windows > .appWindow {
-  top: 40px;
+  top: 4rem;
 }
 
 #windows > .appWindow:not(.homescreen) {
@@ -371,12 +361,12 @@ body {
 #screen.attention > #windows > .appWindow.fullscreen-app,
 #screen.attention > #windowSprite,
 #screen.fullscreen-app.attention > #windowSprite {
-  height: calc(100% - 40px);
-  top: 40px;
+  height: calc(100% - 4rem);
+  top: 4rem;
 }
 
 #windowSprite.before-inline-activity {
-  transform: translateY(calc(100% - 1px));
+  transform: translateY(calc(100% - 0.1rem));
   opacity: 1;
   visibility: visible;
 }
@@ -463,17 +453,17 @@ iframe.backgroundWindow {
 
 #dialog-overlay {
   position: absolute;
-  top: 20px;
+  top: 2rem;
   left: 0;
   width: 100%;
-  height: calc(100% - 20px);
+  height: calc(100% - 2rem);
   visibility: hidden;
   pointer-events: none;
 }
 
 #screen.active-statusbar #dialog-overlay {
-  top: 40px;
-  height: calc(100% - 40px);
+  top: 4rem;
+  height: calc(100% - 4rem);
 }
 
 #screen:-moz-full-screen-ancestor #dialog-overlay,
