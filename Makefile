@@ -35,7 +35,6 @@ DOGFOOD?=0
 LOCAL_DOMAINS?=1
 
 ADB?=adb
-GAIA_DISTRIBUTION_DIR?=distribution/
 
 ifeq ($(DEBUG),1)
 SCHEME=http://
@@ -150,10 +149,10 @@ endif
 
 
 SETTINGS_PATH := build/custom-settings.json
-ifdef GAIA_DISTRIBUTION_DIR
-	DISTRIBUTION_SETTINGS := $(realpath $(GAIA_DISTRIBUTION_DIR))$(SEP)settings.json
-	ifneq ($(wildcard $(DISTRIBUTION_SETTINGS)),)
-		SETTINGS_PATH := $(DISTRIBUTION_SETTINGS)
+ifdef CUSTOMIZE
+	CUSTOMIZE_SETTINGS := $(realpath $(CUSTOMIZE))$(SEP)settings.json
+	ifneq ($(wildcard $(CUSTOMIZE_SETTINGS)),)
+		SETTINGS_PATH := $(CUSTOMIZE_SETTINGS)
 	endif
 endif
 
@@ -416,7 +415,7 @@ define run-js-command
 	const GAIA_DEFAULT_LOCALE = "$(GAIA_DEFAULT_LOCALE)";                       \
 	const GAIA_INLINE_LOCALES = "$(GAIA_INLINE_LOCALES)";                       \
 	const GAIA_ENGINE = "xpcshell";                                             \
-	const GAIA_DISTRIBUTION_DIR = "$(realpath $(GAIA_DISTRIBUTION_DIR))";      	\
+	const CUSTOMIZE = "$(realpath $(CUSTOMIZE))";      													\
 	';                                                                          \
 	$(XULRUNNERSDK) $(XPCSHELLSDK) -e "$$JS_CONSTS" -f build/utils.js "build/$(strip $1).js"
 endef
