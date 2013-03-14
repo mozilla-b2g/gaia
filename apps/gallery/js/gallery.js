@@ -661,10 +661,12 @@ var pickType;
 var pickWidth, pickHeight;
 var cropURL;
 var cropEditor;
+var isAttachment;
 
 function startPick(activityRequest) {
   pendingPick = activityRequest;
   pickType = activityRequest.source.data.type;
+  isAttachment = activityRequest.source.data.isAttachment;
   if (pendingPick.source.data.width && pendingPick.source.data.height) {
     pickWidth = pendingPick.source.data.width;
     pickHeight = pendingPick.source.data.height;
@@ -693,15 +695,21 @@ function cropPickedImage(fileinfo) {
   });
 }
 
-function finishPick() {
-  cropEditor.getCroppedRegionBlob(pickType, pickWidth, pickHeight,
-                                  function(blob) {
-                                    pendingPick.postResult({
-                                      type: pickType,
-                                      blob: blob
-                                    });
-                                    cleanupPick();
-                                  });
+function finishPick(fileinfo) {
+  if (fileinfo.name) {
+    photodb.getFile(fileinfo.name, endPick);
+  }
+  else {
+    cropEditor.getCroppedRegionBlob(pickType, pickWidth, pickHeight, endPick);
+  }
+
+  function endPick(blob) {
+    pendingPick.postResult({
+      type: pickType,
+      blob: blob
+    });
+    cleanupPick();
+  }
 }
 
 function cancelPick() {
@@ -759,8 +767,11 @@ function thumbnailClickHandler(evt) {
   else if (currentView === thumbnailSelectView) {
     updateSelection(target);
   }
-  else if (currentView === pickView) {
+  else if (currentView === pickView && !isAttachment) {
     cropPickedImage(files[parseInt(target.dataset.index)]);
+  }
+  else if (currentView === pickView && isAttachment) {
+    finishPick(files[parseInt(target.dataset.index)]);
   }
 }
 
