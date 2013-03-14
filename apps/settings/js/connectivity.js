@@ -94,11 +94,15 @@ var Connectivity = (function(window, document, undefined) {
       return; // init will call updateWifi()
     }
 
-    // network.connection.status has one of the following values:
-    // connecting, associated, connected, connectingfailed, disconnected.
-    wifiDesc.textContent = _('fullStatus-' +
-        wifiManager.connection.status,
-        wifiManager.connection.network);
+    if (wifiManager.enabled) {
+      // network.connection.status has one of the following values:
+      // connecting, associated, connected, connectingfailed, disconnected.
+      wifiDesc.textContent = _('fullStatus-' +
+          wifiManager.connection.status,
+          wifiManager.connection.network);
+    } else {
+      wifiDesc.textContent = _('disabled');
+    }
 
     // record the MAC address here because the "Device Information" panel
     // has to display it as well
