@@ -248,7 +248,7 @@ var Browser = {
     console.log('Populating default data.');
 
     var DEFAULT_BOOKMARK = '000000';
-    var iccSettings = { mcc: -1, mnc: -1 };
+    var iccSettings = { mcc: '-1', mnc: '-1' };
 
     // Read the mcc/mnc settings, then trigger callback.
     // pattern from system/js/operator_variant/operator_variant.js
@@ -259,10 +259,10 @@ var Browser = {
 
       var mccRequest = transaction.get(mccKey);
       mccRequest.onsuccess = function() {
-        iccSettings.mcc = parseInt(mccRequest.result[mccKey], 10) || 0;
+        iccSettings.mcc = mccRequest.result[mccKey] || '0';
         var mncRequest = transaction.get(mncKey);
         mncRequest.onsuccess = function() {
-          iccSettings.mnc = parseInt(mncRequest.result[mncKey], 10) || 0;
+          iccSettings.mnc = mncRequest.result[mncKey] || '0';
           callback(data);
         };
       };
@@ -278,10 +278,10 @@ var Browser = {
     }
 
     // pad leading zeros
-    function zfill(num, len) {
-      var n = num + '';
-      while (n.length < len) n = '0' + n;
-      return n;
+    function zfill(code, len) {
+      var c = code;
+      while (c.length < len) c = '0' + c;
+      return c;
     }
 
     /* Match best bookmark setting by
