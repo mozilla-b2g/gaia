@@ -26,6 +26,7 @@
   font-family: 'MozTT';
   font-weight: 300;
   overflow: hidden;
+  padding-bottom: 4.9rem;
 }
 
 #phone-number-view-container.keypad-visible {
@@ -337,7 +338,8 @@ article:not(:target) #keypad-delete {
 }
 
 #suggestion-bar {
-  padding: 0.2rem 0.2rem 0.2rem 0.5rem;
+  margin-top: -4.9rem;
+  padding: 0.2rem 0.2rem 0.2rem 0.2rem;
   width: 100%;
   border: 1px solid black;
   font-size: 1.8rem;
@@ -347,14 +349,19 @@ article:not(:target) #keypad-delete {
   -moz-box-sizing: border-box;
 }
 
+#suggestion-bar.hidden {
+  visibility: hidden;
+}
+
 #suggestion-bar:active {
   background-color: #B2F2FF;
 }
 
-#suggestion-bar > .name {
+#suggestion-bar > .name,
+#suggestion-bar.call-log > .tel-type {
+  display: block;
   color: black;
-  font-weight: 600;
-  display: inline;
+  font-weight: bold;
 }
 
 #suggestion-bar > .tel-type {
@@ -363,28 +370,31 @@ article:not(:target) #keypad-delete {
   color: gray;
 }
 
-#suggestion-bar.not-exist > .tel {
-  color: gray;
-  line-height: 4.3rem;
-  font-size: 2rem;
-  visibility: visible;
-}
-
-#suggestion-bar.not-exist > .tel > span {
-  display: inline-block;
-  max-width: 10.5rem;
-  vertical-align: top;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  overflow: hidden;
-  font-weight: bold;
+#suggestion-bar.contact > .tel-type:after {
+  content: '|';
+  padding: 0 0.5rem;
 }
 
 #suggestion-bar > .tel {
+  display: inline;
   color: black;
 }
-#suggestion-bar:not(.not-exist) > .tel > span {
+#suggestion-bar > .tel > span {
   color: #FF4E00;
+}
+
+#suggestion-bar > .match-count {
+  float: left;
+  width: 4.3rem;
+  height: 4.3rem;
+  padding: 0;
+  text-align: center;
+  line-height: 4.3rem;
+  margin-right: 0.5rem;
+  border-right: solid 1px #858585;
+  color: #858585;
+  font-weight: bold;
+  font-size: 2.2rem;
 }
 
 #suggestion-bar > .avatar {

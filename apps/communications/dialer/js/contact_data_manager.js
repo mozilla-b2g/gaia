@@ -27,7 +27,8 @@ var ContactDataManager = {
     var options = {
       filterBy: ['tel'],
       filterOp: 'contains',
-      filterValue: number
+      filterValue: number,
+      sortBy: 'familyName'
     };
 
     this._search(options, callback);

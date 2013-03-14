@@ -676,9 +676,7 @@ var KeypadManager = {
   suggestionHandler: function kh_suggestionHandler(event) {
     var typeTag = this.suggestionBar.querySelector('.tel-type');
     var telTag = this.suggestionBar.querySelector('.tel');
-    if (this.suggestionBar.className == 'not-exist') {
-      this.addContact();
-    } else if (this.suggestionBar.className == 'call-log' &&
+    if (this.suggestionBar.className == 'call-log' &&
       event.target.className == 'avatar') {
       this.updatePhoneNumber(telTag.textContent, 'begin', false);
       this.addContact();
@@ -694,7 +692,7 @@ var KeypadManager = {
     var self = this;
     LazyLoader.load(['/dialer/js/contact_data_manager.js',
     '/dialer/js/recents_db.js'], function() {
-      if (!self._phoneNumber) {
+      if (self._phoneNumber.length < 4) {
         self._clearSuggestionBar();
         return;
       }
@@ -728,7 +726,8 @@ var KeypadManager = {
           var markedNumber = self._markMatched(tel[i].value,
             self._phoneNumber);
 
-          self._setSuggestionText(markedNumber, tel[i].type, contact.name[0]);
+          self._setSuggestionText(
+            markedNumber, tel[i].type, contacts.length, contact.name[0]);
 
           // If the matched contact doesn't change, don't update photo
           // to prevent flashing.
@@ -738,6 +737,12 @@ var KeypadManager = {
           break;
         }
       }
+      // mozContact app automatically matches international number
+      // with local number prefixed by current country code.
+      // we're considering them different here.
+      if (i == tel.length)
+        onempty();
+
       self.suggestionBar.dataset.lastId = contact.id;
     });
   },
@@ -752,12 +757,9 @@ var KeypadManager = {
             var markedNumber = self._markMatched(recentMatch.number,
               self._phoneNumber);
             self._setSuggestionText(markedNumber, _('callLog'));
-          }
-          else {
-            //No match found.  Set to add contacts mode.
-            var addContactText = _('addToContacts', {
-              number: '<span>' + self._phoneNumber + '</span>'});
-            self._setSuggestionText(addContactText);
+          } else {
+            // No match found.  Turn off the suggestion bar.
+            self._clearSuggestionBar();
           }
         });
       });
@@ -768,28 +770,27 @@ var KeypadManager = {
   // only "tel":                  "Add to contact" mode.
   // "tel" and "type":            "Call log" mode.
   // "tel" and "type" and "name": "Contact" mode.
-  _setSuggestionText: function kh_setSuggestionText(tel, type, name) {
+  _setSuggestionText: function kh_setSuggestionText(tel, type, count, name) {
     var typeTag = this.suggestionBar.querySelector('.tel-type');
     var telTag = this.suggestionBar.querySelector('.tel');
     var nameTag = this.suggestionBar.querySelector('.name');
+    var countTag = this.suggestionBar.querySelector('.match-count');
     var avatarTag = this.suggestionBar.querySelector('.avatar');
 
-    if (tel && type && name) {
+    if (tel && type && count && name) {
       // Contact mode
       this.suggestionBar.className = 'contact';
     } else if (tel && type) {
-      // Call log mode 
+      // Call log mode
       this.suggestionBar.className = 'call-log';
-    } else if (tel) {
-      // Add to contact mode
-      this.suggestionBar.className = 'not-exist';
     } else {
       // Empty
-      this.suggestionBar.className = '';
+      this.suggestionBar.className = 'hidden';
     }
 
     nameTag.textContent = name ? name : null;
     typeTag.textContent = type ? type : null;
+    countTag.textContent = count ? count : null;
     telTag.innerHTML = tel ? tel : null;
   },
 

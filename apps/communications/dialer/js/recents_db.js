@@ -46,7 +46,7 @@ var RecentsDBManager = {
         callback('DB_REQUEST_BLOCKED', null);
       };
 
-      request.onupgradeneeded = (function(event) {
+      request.onupgradended = (function(event) {
         var db = event.target.result;
         var currentVersion = event.oldVersion;
         while (currentVersion != event.newVersion) {
@@ -690,7 +690,7 @@ var RecentsDBManager = {
     cursor.onsuccess = function(event) {
       var item = event.target.result;
       if (item) {
-        if(callback(item.value))
+        if (callback(item.value))
           item.continue();
       } else {
         callback();
