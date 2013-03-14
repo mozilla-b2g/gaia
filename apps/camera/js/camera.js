@@ -929,6 +929,7 @@ var Camera = {
   takePicture: function camera_takePicture() {
     this._config.rotation = this._phoneOrientation;
     this._config.pictureSize = this._pictureSize;
+    this._config.dateTime = Date.now() / 1000;
     // We do not attach our current position to the exif of photos
     // that are taken via an activity as that leaks position information
     // to other apps without permission
