@@ -483,7 +483,7 @@ var BluetoothTransfer = {
           }
         } else {
           // Parse Filename Extension to find out MIMETYPE
-          self.getMimetype(fileNameExtension);
+          fileType = self.getMimetype(fileNameExtension);
         }
       }
 
