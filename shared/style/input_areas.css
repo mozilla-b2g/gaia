@@ -245,7 +245,11 @@ form[role="search"] button[type="submit"] {
   font: 500 1.8rem/3.2rem "MozTT", Sans-serif;
   background: url(input_areas/images/ui/separator.png) no-repeat 0 50%,
               url(input_areas/images/ui/active.png) repeat-x 0 100%;
+  background-size: auto 100%;
   border-radius: 0;
+  width: auto;
+  border-radius: 0;
+  margin: 0;
 }
 
 form[role="search"] button[type="submit"] + p > textarea {

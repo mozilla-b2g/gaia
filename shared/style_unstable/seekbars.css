@@ -9,9 +9,9 @@ div[role="slider"] {
 div[role="slider"] > div {
   display: block;
   overflow: hidden;
-  padding: 1rem 0;
+  padding: 0;
   position: relative;
-  height: 1.5rem;
+  height: 100%;
 }
 
 div[role="slider"] progress {
@@ -19,21 +19,27 @@ div[role="slider"] progress {
   background: #000;
   border: none;
   height: 0.1rem;
+  display: block;
+  border-radius: 0;
+  margin-top: 1.9rem;
 }
 
 div[role="slider"] progress::-moz-progress-bar {
   background: #01c5ed;
   height: 0.6rem;
   margin-top: -0.3rem;
+  border-radius: 0;
 }
 
 div[role="slider"] > label {
   font-size: 1.5rem;
-  line-height: 3.5rem;
+  line-height: 3.8rem;
   font-family: "Open Sans", Sans-serif;
   color: #00aacb;
   float: right;
   padding: 0 0 0 1rem;
+  height: 3.5rem;
+  width: auto;
 }
 
 div[role="slider"] label:first-of-type {
@@ -65,6 +71,7 @@ div[role="slider"] button {
   border-radius: 3.2rem;
   border: solid 1px transparent;
   transition: border 0.15s ease;
+  padding: 0;
 }
 
 div[role="slider"] button:active {
