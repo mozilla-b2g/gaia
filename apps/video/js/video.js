@@ -45,9 +45,6 @@ var currentOverlay;
 
 var dragging = false;
 
-var fullscreenTimer;
-var fullscreenCallback;
-
 // Videos recorded by our own camera have filenames of this form
 var FROMCAMERA = /^DCIM\/\d{3}MZLLA\/VID_\d{4}\.3gp$/;
 
@@ -88,7 +85,7 @@ function init() {
   // event when the alert goes away.
   // See https://bugzilla.mozilla.org/show_bug.cgi?id=829214
   dom.deleteVideoButton.onclick = function() {
-    document.mozCancelFullScreen();
+    hidePlayer();
     deleteFile(currentVideo.name);
   };
 }
@@ -405,7 +402,7 @@ function playerMousedown(event) {
   if (event.target == dom.play) {
     setVideoPlaying(dom.player.paused);
   } else if (event.target == dom.close) {
-    document.mozCancelFullScreen();
+    hidePlayer();
   } else if (event.target == dom.sliderWrapper) {
     dragSlider(event);
   } else {
@@ -503,22 +500,19 @@ function showPlayer(data, autoPlay) {
 
   function doneSeeking() {
     dom.player.onseeked = null;
-    requestFullScreen(function() {
-      // Show the controls briefly then fade out
-      setControlsVisibility(true);
-      controlFadeTimeout = setTimeout(function() {
-        setControlsVisibility(false);
-      }, 250);
+    setControlsVisibility(true);
+    controlFadeTimeout = setTimeout(function() {
+      setControlsVisibility(false);
+    }, 250);
 
-      if (autoPlay) {
-        play();
-      }
+    if (autoPlay) {
+      play();
+    }
 
-      if ('metadata' in currentVideo) {
-        currentVideo.metadata.watched = true;
-        videodb.updateMetadata(currentVideo.name, currentVideo.metadata);
-      }
-    });
+    if ('metadata' in currentVideo) {
+      currentVideo.metadata.watched = true;
+      videodb.updateMetadata(currentVideo.name, currentVideo.metadata);
+    }
   }
 
   setVideoUrl(dom.player, currentVideo, function() {
@@ -571,7 +565,7 @@ function hidePlayer() {
 
     // Unload the video. This releases the video decoding hardware
     // so other apps can use it. Note that any time the video app is hidden
-    // (by switching to another app) we leave fullscreen mode, and this
+    // (by switching to another app) we leave player mode, and this
     // code gets triggered, so if the video app is not visible it should
     // not be holding on to the video hardware
     dom.player.removeAttribute('src');
@@ -622,7 +616,7 @@ function playerEnded() {
   }
 
   dom.player.currentTime = 0;
-  document.mozCancelFullScreen();
+  hidePlayer();
 }
 
 function play() {
@@ -885,48 +879,6 @@ function textTruncate(el) {
   text.el.dataset.visible = 'true';
 }
 
-
-// The mozRequestFullScreen can fail silently, so we keep asking
-// for full screen until we detect that it happens, We limit the
-// number of requests as this can be a permanent failure due to
-// https://bugzilla.mozilla.org/show_bug.cgi?id=812850
-var MAX_FULLSCREEN_REQUESTS = 5;
-function requestFullScreen(callback) {
-  fullscreenCallback = callback;
-  var requests = 0;
-  fullscreenTimer = setInterval(function() {
-    if (++requests > MAX_FULLSCREEN_REQUESTS) {
-      window.clearInterval(fullscreenTimer);
-      fullscreenTimer = null;
-      return;
-    }
-    dom.videoFrame.mozRequestFullScreen();
-  }, 500);
-}
-
-// When we exit fullscreen mode, stop playing the video.
-// This happens automatically when the user uses the back button (because
-// back is Escape, which is also the "leave fullscreen mode" command).
-// It also happens when the user uses the Home button to go to the
-// homescreen or another app.
-document.addEventListener('mozfullscreenchange', function() {
-  // We have exited fullscreen
-  if (document.mozFullScreenElement === null) {
-    hidePlayer();
-    return;
-  }
-
-  // We have entered fullscreen
-  if (fullscreenTimer) {
-    window.clearInterval(fullscreenTimer);
-    fullscreenTimer = null;
-  }
-  if (fullscreenCallback) {
-    fullscreenCallback();
-    fullscreenCallback = null;
-  }
-});
-
  // Pause on visibility change
 document.addEventListener('mozvisibilitychange', function visibilityChange() {
   if (document.mozHidden) {
@@ -937,11 +889,10 @@ document.addEventListener('mozvisibilitychange', function visibilityChange() {
       releaseVideo();
   }
   else {
-    if (document.mozFullScreenElement)
+    if (playerShowing) {
       setControlsVisibility(true);
-
-    if (playerShowing)
       restoreVideo();
+    }
   }
 });
 
@@ -970,7 +921,7 @@ function restoreVideo() {
 dom.videoControls.addEventListener('mousedown', playerMousedown);
 
 // Rescale when window size changes. This should get called when
-// orientation changes and when we go into fullscreen
+// orientation changes
 window.addEventListener('resize', function() {
   if (dom.player.readyState !== HAVE_NOTHING) {
     setPlayerSize();
