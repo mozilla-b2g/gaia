@@ -33,7 +33,12 @@ var TelephonyHelper = (function() {
     }
   };
 
+<<<<<<< HEAD
+  var startDial = function(sanitizedNumber, oncall,
+                           connected, disconnected, onerror) {
+=======
   function startDial(sanitizedNumber, oncall, connected, disconnected, error) {
+>>>>>>> d961f0f... Merge pull request #8197 from KevinGrandon/bug_836365_dialer_performance
     var telephony = navigator.mozTelephony;
     if (telephony) {
       var conn = window.navigator.mozMobileConnection;
