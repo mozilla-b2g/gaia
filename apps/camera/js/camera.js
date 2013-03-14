@@ -386,7 +386,7 @@ var Camera = {
     var newMode = (this.captureMode === this.CAMERA) ? this.VIDEO : this.CAMERA;
     this.disableButtons();
     this.setCaptureMode(newMode);
-
+    this.continueFlashMode();
     function gotPreviewStream(stream) {
       this.viewfinder.mozSrcObject = stream;
       this.viewfinder.play();
@@ -424,10 +424,38 @@ var Camera = {
 
   setFlashMode: function camera_setFlashMode() {
     var flashModeName = this._flashModes[this._currentFlashMode];
+    if (this.captureMode == this.CAMERA) {
+      if (flashModeName == 'torch') {
+        this._currentFlashMode = 0;
+        flashModeName = 'off';
+      }
+    }
+    if (this.captureMode == this.VIDEO) {
+      if (flashModeName != 'off') {
+        this._currentFlashMode = this._flashModes.length - 1;
+        flashModeName = 'torch';
+      }
+    }
     this.toggleFlashBtn.setAttribute('data-mode', flashModeName);
     this._cameraObj.flashMode = flashModeName;
   },
-
+  continueFlashMode: function camera_continueFlashMode() {
+    var flashModeName = this._cameraObj.flashMode;
+    if (this.captureMode == this.CAMERA) {
+      if (flashModeName == 'torch') {
+        this._currentFlashMode = this._flashModes.length - 2;
+        flashModeName = 'on';
+      }
+    }
+    if (this.captureMode == this.VIDEO) {
+      if (flashModeName != 'off') {
+        this._currentFlashMode = this._flashModes.length - 1;
+        flashModeName = 'torch';
+      }
+    }
+    this.toggleFlashBtn.setAttribute('data-mode', flashModeName);
+    this._cameraObj.flashMode = flashModeName;
+  },
   toggleRecording: function camera_toggleRecording() {
     if (this._recording) {
       this.stopRecording();

@@ -310,7 +310,7 @@ html, body {
   background-image: url(images/flash_auto.png);
 }
 #toggle-flash[data-mode=torch]:after {
-  background-image: url(images/flash_torch.png);
+  background-image: url(images/flash_on.png);
 }
 
 #filmstrip.hidden {
