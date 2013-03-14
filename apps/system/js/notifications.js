@@ -329,13 +329,15 @@ var NotificationScreen = {
   removeNotification: function ns_removeNotification(notificationID) {
     var notifSelector = '[data-notification-i-d="' + notificationID + '"]';
     var notificationNode = this.container.querySelector(notifSelector);
-    var lockScreenNotificationNode = this.lockScreenContainer.querySelector(notifSelector);
+    var lockScreenNotificationNode =
+      this.lockScreenContainer.querySelector(notifSelector);
 
     if (notificationNode)
       notificationNode.parentNode.removeChild(notificationNode);
-    
+
     if (lockScreenNotificationNode)
-      lockScreenNotificationNode.parentNode.removeChild(lockScreenNotificationNode);
+      lockScreenNotificationNode.parentNode
+        .removeChild(lockScreenNotificationNode);
     this.updateStatusBarIcon();
   },
 

@@ -30,7 +30,7 @@ const DockManager = (function() {
       target.classList.add('active');
       removeActive = function _removeActive() {
         target.classList.remove('active');
-      }
+      };
     } else {
       removeActive = function() {};
     }

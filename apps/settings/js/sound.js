@@ -35,14 +35,14 @@
       debug('success: get list for ' + type + '(' + url + ')');
 
       callback(xhr.response);
-    }
+    };
 
     xhr.onerror = function errorGetSoundsFor() {
       debug('error: get list for ' + type + '(' + url + ')');
 
       // Something wrong happens, let's return an empty list.
       callback({});
-    }
+    };
   }
 
   function getBase64For(type, name, callback) {
@@ -62,7 +62,7 @@
         binary += String.fromCharCode(xhr.responseText.charCodeAt(i) & 0xff);
       }
       callback(window.btoa(binary));
-    }
+    };
 
     xhr.onerror = function errorGetBase64For() {
       debug('error: get base64 for ' + type + '(' + name + ')');
@@ -71,7 +71,7 @@
       // exists. For now there is no feedback but I guess one should
       // be added one day.
       callback('');
-    }
+    };
   }
 
   function generateList(sounds, type) {
@@ -115,7 +115,7 @@
 
     request.onerror = function errorGetCurrentSound() {
       debug('error get current sound: ' + key);
-    }
+    };
   }
 
   function generateSoundsLists() {

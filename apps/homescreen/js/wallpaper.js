@@ -22,7 +22,7 @@ const Wallpaper = (function() {
         navigator.mozSettings.createLock().set({
           'wallpaper.image': reader.result
         });
-      }
+      };
     };
     a.onerror = function onWallpaperError() {
       console.warn('pick failed!');

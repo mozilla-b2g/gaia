@@ -107,7 +107,9 @@ var CallHandler = (function callHandler() {
       case 'back':
         var contactsIframe = document.getElementById('iframe-contacts');
         // disable the function of receiving the messages posted from the iframe
-        contactsIframe.contentWindow.history.pushState(null, null, '/contacts/index.html');
+        contactsIframe.contentWindow.history.pushState(null,
+                                                       null,
+                                                       '/contacts/index.html');
         window.location.hash = '#recents-view';
         break;
     }
@@ -257,7 +259,7 @@ var CallHandler = (function callHandler() {
       };
 
       var telephony = navigator.mozTelephony;
-      telephony.oncallschanged = function (evt) {
+      telephony.oncallschanged = function(evt) {
         if (callScreenWindowLoaded && telephony.calls.length === 0) {
           // Calls might be ended before callscreen is comletedly loaded,
           // so that callscreen will miss call-related events. We send a

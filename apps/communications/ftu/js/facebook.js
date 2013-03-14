@@ -27,7 +27,8 @@ var FacebookIntegration = {
 
   get liveImportButton() {
     delete this.liveImportButton;
-    return this.liveImportButton = document.getElementById('live-import-button');
+    return this.liveImportButton =
+      document.getElementById('live-import-button');
   },
 
   get noNetworkMsg() {

@@ -23,7 +23,7 @@
  * this makes Cost Control to change to the datausage tab at the same time it
  * closes the card in the overlay layer.
  *
- * If you want to preserve a layer but changing the other, use the empty string 
+ * If you want to preserve a layer but changing the other, use the empty string
  * as the id of the layer you want to preserve.
  * For intance, you want to only close the overlay layer but not affecting the
  * tab layer:
@@ -71,7 +71,7 @@ var CostControlApp = (function() {
     // View managers for dialogs and settings
     vmanager = new ViewManager();
     tabmanager = new ViewManager(
-      ['balance-tab', 'telephony-tab', { id:'datausage-tab', tab:'right' }]
+      ['balance-tab', 'telephony-tab', { id: 'datausage-tab', tab: 'right' }]
     );
 
     // View handler
@@ -145,7 +145,7 @@ var CostControlApp = (function() {
   function setupApp() {
     // View managers for dialogs and settings
     tabmanager = new ViewManager(
-      ['balance-tab', 'telephony-tab', { id:'datausage-tab', tab:'right' }]
+      ['balance-tab', 'telephony-tab', { id: 'datausage-tab', tab: 'right' }]
     );
     settingsVManager = new ViewManager();
 
@@ -201,7 +201,7 @@ var CostControlApp = (function() {
     ConfigManager.observe('plantype', updateUI, true);
 
     initialized = true;
-    
+
     loadSettings();
   }
 
@@ -209,7 +209,7 @@ var CostControlApp = (function() {
   function loadSettings() {
     document.getElementById('settings-view-placeholder').src = 'settings.html';
   }
-  
+
   function handleNotification(type) {
     switch (type) {
       case 'topUpError':

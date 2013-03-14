@@ -8,4 +8,4 @@ var MockOnCallHandler = {
   mTeardown: function() {
     this.mLastEntryAdded = null;
   }
-}
+};

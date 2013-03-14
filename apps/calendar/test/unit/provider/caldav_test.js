@@ -250,8 +250,8 @@ suite('provider/caldav', function() {
           done(function() {
             app.offline = realOffline;
             assert.equal(cbError.name, 'offline');
-          })
-        })
+          });
+        });
       });
     });
 
@@ -278,8 +278,8 @@ suite('provider/caldav', function() {
           done(function() {
             app.offline = realOffline;
             assert.equal(cbError.name, 'offline');
-          })
-        })
+          });
+        });
       });
     });
 
@@ -330,7 +330,7 @@ suite('provider/caldav', function() {
           done(function() {
             app.offline = realOffline;
             assert.equal(cbError.name, 'offline');
-          })
+          });
         });
       });
 
@@ -409,7 +409,7 @@ suite('provider/caldav', function() {
           done(function() {
             app.offline = realOffline;
             assert.equal(cbError.name, 'offline');
-          })
+          });
         });
       });
 
@@ -443,7 +443,7 @@ suite('provider/caldav', function() {
           done(function() {
             app.offline = realOffline;
             assert.equal(cbError.name, 'offline');
-          })
+          });
         });
       });
     });
@@ -570,8 +570,8 @@ suite('provider/caldav', function() {
           done(function() {
             app.offline = realOffline;
             assert.equal(cbError.name, 'offline');
-          })
-        })
+          });
+        });
       });
     });
 
@@ -596,8 +596,8 @@ suite('provider/caldav', function() {
           done(function() {
             app.offline = realOffline;
             assert.equal(cbError.name, 'offline');
-          })
-        })
+          });
+        });
       });
     });
 

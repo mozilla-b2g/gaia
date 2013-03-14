@@ -43,7 +43,7 @@ fb.sync = Sync;
         setNextAlarm(true, fb.syncPeriod);
       }
     }); // fb.init
-  } // Alarm.init
+  }; // Alarm.init
 
   function syncSuccess() {
     fb.sync.debug('Sync finished ok at ', new Date());
@@ -152,11 +152,11 @@ fb.sync = Sync;
       if (typeof callback === 'function') {
         callback();
       }
-    }
+    };
 
     req.onerror = function(e) {
       alarmSetErrorCb(false, e);
-    }
+    };
   }
 
   function ackAlarm(callback) {
@@ -195,11 +195,11 @@ fb.sync = Sync;
             };
             outReq.failed(errorParam);
           });
-        }
+        };
 
         req.onerror = function(e) {
           outReq.failed(e);
-        }
+        };
       });
     }, 0);
 
@@ -226,10 +226,10 @@ fb.sync = Sync;
         if (typeof callback === 'function') {
           callback();
         }
-      }
+      };
       req.onerror = function(e) {
         alarmSetErrorCb(notifyParent, e);
-      }
+      };
 
     }); // Get last update
   } // doSetNextAlarm
@@ -243,7 +243,7 @@ fb.sync = Sync;
       if (typeof params.callback === 'function') {
         params.callback();
       }
-    }
+    };
   }
 
   function closeApp() {
