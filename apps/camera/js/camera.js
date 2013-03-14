@@ -767,7 +767,8 @@ var Camera = {
           this._resizeBlobIfNeeded(blob, function(resized_blob) {
             this._pendingPick.postResult({
               type: 'image/jpeg',
-              blob: resized_blob
+              blob: resized_blob,
+              name: path + name
             });
             this._pendingPick = null;
           }.bind(this));
