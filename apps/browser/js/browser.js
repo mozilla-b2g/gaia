@@ -34,8 +34,12 @@ var Browser = {
   DEFAULT_FAVICON: 'style/images/favicon.png',
   ABOUT_PAGE_URL: document.location.protocol + '//' + document.location.host +
     '/about.html',
-  UPPER_SCROLL_THRESHOLD: 50, // hide address bar
-  LOWER_SCROLL_THRESHOLD: 5, // show address bar
+
+  // The upper threshold must be larger than the lower threshold by at least
+  // the size of the address bar. See Bug 837476. Note that these are measured
+  // in device pixels not CSS or viewport pixels.
+  UPPER_SCROLL_THRESHOLD: 70, // hide address bar
+  LOWER_SCROLL_THRESHOLD: 5,  // show address bar
   MAX_TOP_SITES: 4, // max number of top sites to display
   MAX_THUMBNAIL_WIDTH: 140,
   MAX_THUMBNAIL_HEIGHT: 100,
@@ -464,13 +468,19 @@ var Browser = {
   },
 
   handleScroll: function browser_handleScroll(evt) {
-    if (evt.detail.top < this.LOWER_SCROLL_THRESHOLD) {
+    // The scroll event reports the scroll position of the tab according
+    // to the current viewport. But our thresholds are in device pixels
+    // so we need to convert.
+    var devicePixelsPerCSSPixel = window.innerHeight / evt.detail.height;
+    var top = evt.detail.top * devicePixelsPerCSSPixel;
+
+    if (top < this.LOWER_SCROLL_THRESHOLD) {
       if (this.addressBarState === this.VISIBLE ||
           this.addressBarState === this.TRANSITIONING) {
         return;
       }
       this.showAddressBar();
-    } else if (evt.detail.top > this.UPPER_SCROLL_THRESHOLD) {
+    } else if (top > this.UPPER_SCROLL_THRESHOLD) {
       if (this.addressBarState === this.HIDDEN ||
           this.addressBarState === this.TRANSITIONING) {
         return;
