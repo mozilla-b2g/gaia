@@ -85,7 +85,7 @@ var FacebookConfiguration = function FacebookConfiguration() {
     FacebookIntegration.fbImport.classList.remove('hidden');
   };
 
-  var req = utilities.config.load('/contacts/config.json');
+  var req = utils.config.load('/contacts/config.json');
   req.onload = function(configData) {
     if (configData.facebookEnabled === true) {
       enableFacebook();
