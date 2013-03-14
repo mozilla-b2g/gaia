@@ -467,6 +467,26 @@ var Settings = {
                 case 'checkbox':
                   input.checked = request.result[key] || false;
                   break;
+                case 'select-one':
+                  var index = input.selectedIndex;
+                  if (input.options[index].value != request.result[key]) {
+                    for (var i = 0; i < input.options.length; i++) {
+                      if (input.options[i].value == request.result[key]) {
+                        input.options[i].selected = true;
+                        index = i;
+                        break;
+                      }
+                    }
+                  }
+                  var parent = input.parentElement;
+                  if (parent && parent.classList.contains('fake-select')) {
+                    var button = input.previousElementSibling;
+                    // link the button with the select element
+                    if (button && index >= 0) {
+                      button.textContent = input.options[index].textContent;
+                    }
+                  }
+                  break;
                 default:
                   input.value = request.result[key] || '';
                   break;
