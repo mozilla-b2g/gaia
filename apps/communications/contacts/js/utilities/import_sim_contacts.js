@@ -37,7 +37,7 @@ function SimContactsImporter() {
   }
 
   function startMigration() {
-    if (Array.isArray(self.items) && self.items.length > 0) {
+    if (self.items.length > 0) {
       importSlice(0);
     }
     else {
