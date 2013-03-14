@@ -560,6 +560,10 @@ var StatusBar = {
         // Geolocation is currently active, show the active icon.
         icon.hidden = false;
         return;
+      } else if (!this.recordingActive && !icon.hidden) {
+        // Recording is now stopped, hide the icon.
+        icon.hidden = true;
+        return;
       }
 
       // Geolocation is currently inactive.
