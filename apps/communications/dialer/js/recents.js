@@ -607,7 +607,7 @@ var Recents = {
     var self = this;
     window.asyncStorage.getItem('latestCallLogVisit', function getItem(value) {
       var content = '',
-        currentDay = '';
+          currentDay = '';
 
       for (var i = 0; i < recents.length; i++) {
         var day = Utils.getDayDate(recents[i].date);
@@ -778,6 +778,7 @@ var Recents = {
         }
       }
     }
+    PerformanceTestingHelper.dispatch('call-log-ready');
   },
 
   groupCalls: function re_groupCalls(olderCallEl, newerCallEl, count, inc) {
