@@ -28,8 +28,8 @@ if (typeof window.oauthFrame === 'undefined') {
         parent.postMessage({
           type: 'authenticated',
           data: access_token
-        }, oauthParams[service].appOrigin);
-      }, from, service);
+        }, contactsAppOrigin);
+      }, from);
     };
 
     window.addEventListener('message', function messageHandler(e) {
