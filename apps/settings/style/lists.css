@@ -130,7 +130,7 @@ ul li p {
   font-size: 1.9rem;
   font-weight: 400;
   margin: 0;
-  padding: 1rem 3rem;
+  padding: 1rem 3rem 1.2rem;
 }
 
 ul li p + label:not([for]) {

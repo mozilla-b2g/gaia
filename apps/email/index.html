@@ -254,27 +254,29 @@
         </section>
         <div class="scrollregion-below-header scrollregion-horizontal-too">
           <div class="msg-envelope-bar">
-            <div class="msg-envelope-date"></div>
-            <div class="msg-envelope-from-line msg-envelope-line">
+            <div class="msg-envelope-from-line">
               <span class="msg-envelope-key"
                      data-l10n-id="envelope-from">FroM</span>
             </div>
             <!-- the details starts out collapsed, but can be toggled -->
             <div class="msg-envelope-details">
-              <div class="msg-envelope-to-line msg-envelope-line">
+              <div class="msg-envelope-to-line">
                 <span class="msg-envelope-key"
                        data-l10n-id="envelope-to">tO</span>
               </div>
-              <div class="msg-envelope-cc-line msg-envelope-line">
+              <div class="msg-envelope-cc-line">
                 <span class="msg-envelope-key"
                        data-l10n-id="envelope-cc">cC</span>
               </div>
-              <div class="msg-envelope-bcc-line msg-envelope-line">
+              <div class="msg-envelope-bcc-line">
                 <span class="msg-envelope-key"
                        data-l10n-id="envelope-bcc">BcC</span>
               </div>
             </div>
-            <h3 class="msg-envelope-subject"></h3>
+            <div class="msg-envelope-subject-container">
+              <h3 class="msg-envelope-subject"></h3>
+              <span class="msg-envelope-date"></span>
+            </div>
           </div>
           <ul class="msg-attachments-container">
           </ul>
@@ -433,7 +435,7 @@
               <button type="reset"></button>
             </p>
           </form>
-          <a href="#" class="sup-manual-config-btn sup-form-link"
+          <a href="#" class="sup-manual-config-btn"
                   data-l10n-id="setup-manual-config2">
             ManuaL SetuP
           </a>
@@ -449,10 +451,10 @@
               data-l10n-id="setup-account-header3">NeW AccounT</h1>
         </header>
         <div class="sup-progress-region">
+          <progress class="sup-progress-spinner"></progress>
           <span class="sup-progress-label" data-l10n-id="setup-progress-wait">
             PleasE WaiT WhilE I SeT UP YouR AccounT
           </span>
-          <progress class="sup-progress-spinner"></progress>
         </div>
       </section>
       <!-- Account all setup, add another or read your mail? -->
