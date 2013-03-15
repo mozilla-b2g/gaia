@@ -48,6 +48,7 @@ input.cmp-addr-text {
   margin-top: 2px;
   float: left;
   width: 0.5rem;
+  max-width: 100%;
 }
 
 input.cmp-subject-text {
