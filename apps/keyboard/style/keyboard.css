@@ -56,7 +56,6 @@ button::-moz-focus-inner {
 /* Rows */
 .keyboard-row {
   width: 100%;
-  margin-bottom: 0.5rem;
   white-space: nowrap;
 }
 
@@ -69,11 +68,12 @@ button::-moz-focus-inner {
 .keyboard-key {
   -moz-box-sizing: border-box;
   padding: 0 0.1rem;
-  border: none;
   background: url(images/key-shadow.png) no-repeat center -1px;
   background-size: 100% 100%;
   min-width: 2.6rem;
   display: inline-block;
+  border: none;
+  border-bottom: 0.5rem solid transparent; /* enlarge click area */
 }
 
 /* Visible keys */
@@ -681,3 +681,4 @@ bubble above the key when you tap and hold. */
   visibility: visible;
   color: #555;
 }
+
