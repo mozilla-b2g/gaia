@@ -19,6 +19,8 @@ var Wifi = {
   kScanInterval: 20 * 1000,
 
   _scanTimer: null,
+  _alarmId: null,
+  _wifiState: 'NONE',
 
   init: function wf_init() {
     window.addEventListener('screenchange', this);
@@ -49,20 +51,26 @@ var Wifi = {
     var self = this;
     var wifiManager = window.navigator.mozWifiManager;
     // when wifi is really enabled, emit event to notify QuickSettings
-    wifiManager.onenabled = function onWifiEnabled() {
+    wifiManager.onenabled = (function onWifiEnabled() {
+      this._wifiState = 'NONE';
       var evt = document.createEvent('CustomEvent');
       evt.initCustomEvent('wifi-enabled',
         /* canBubble */ true, /* cancelable */ false, null);
       window.dispatchEvent(evt);
-    };
+    }).bind(this);
 
     // when wifi is really disabled, emit event to notify QuickSettings
-    wifiManager.ondisabled = function onWifiDisabled() {
+    wifiManager.ondisabled = (function onWifiDisabled() {
+      var prevState = this._wifiState;
+      this._wifiState = 'SLEEP';
+      if ('NEED_TO_AWAKE' == prevState) {
+        this.maybeToggleWifi();
+      }
       var evt = document.createEvent('CustomEvent');
       evt.initCustomEvent('wifi-disabled',
         /* canBubble */ true, /* cancelable */ false, null);
       window.dispatchEvent(evt);
-    };
+    }).bind(this);
 
     // when wifi status change, emit event to notify StatusBar/UpdateManager
     wifiManager.onstatuschange = function onWifiDisabled() {
@@ -73,7 +81,7 @@ var Wifi = {
     };
 
     // Track the wifi.enabled mozSettings value
-    SettingsListener.observe('wifi.enabled', true, function(value) {
+    SettingsListener.observe('wifi.enabled', true, (function(value) {
       if (!wifiManager && value) {
         self.wifiEnabled = false;
 
@@ -101,7 +109,7 @@ var Wifi = {
         if (wifiManager.connection.status == 'disconnected')
           wifiManager.getNetworks();
       });
-    });
+    }).bind(this));
 
     var power = navigator.mozPower;
     power.addWakeLockListener(function wifi_handleWakeLock(topic, state) {
@@ -179,6 +187,14 @@ var Wifi = {
       if (!this.wifiDisabledByWakelock)
         return;
 
+      if ('GOING_TO_SLEEP' == this._wifiState) {
+        this._wifiState = 'NEED_TO_AWAKE';
+        return;
+      }
+      if (!wifiManager.enabled) {
+        this._wifiState = 'AWAKE';
+      }
+
       var lock = SettingsListener.getSettingsLock();
       // turn wifi back on.
       lock.set({ 'wifi.enabled': true });
@@ -192,6 +208,7 @@ var Wifi = {
   // so we will turn it back on.
   sleep: function wifi_sleep() {
     var lock = SettingsListener.getSettingsLock();
+    this._wifiState = 'GOING_TO_SLEEP';
     // Actually turn off the wifi
     lock.set({ 'wifi.enabled': false });
 
@@ -215,7 +232,10 @@ var Wifi = {
       if (message.data !== 'wifi-off')
         return;
 
-      self.sleep();
+      if (self._alarmId) {
+        self._alarmId = null;
+        self.sleep();
+      }
     });
   }
 };
