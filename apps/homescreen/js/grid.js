@@ -1065,7 +1065,7 @@ var GridManager = (function() {
      *                 Specifies the HTML container element for the pages.
      *
      */
-    init: function gm_init(gridSelector, dockSelector, pTapThreshold, callback)
+    init: function gm_init(gridSelector, dockSelector, callback)
     {
       pages = [];
       initUI(gridSelector);

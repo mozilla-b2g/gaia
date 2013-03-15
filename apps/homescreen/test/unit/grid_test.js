@@ -21,7 +21,6 @@ var mocksHelperForGrid = new MocksHelper([
 mocksHelperForGrid.init();
 
 suite('grid.js >', function() {
-  var TAP_THRESHOLD = 10;
   var PANNING_DELAY = 200;
 
   var wrapperNode, containerNode;
@@ -61,7 +60,7 @@ suite('grid.js >', function() {
 
     containerNode = document.getElementById('icongrid');
 
-    GridManager.init('.apps', '.dockWrapper', TAP_THRESHOLD, done);
+    GridManager.init('.apps', '.dockWrapper', done);
   });
 
   teardown(function() {
