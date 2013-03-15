@@ -1,8 +1,11 @@
+body {
+  background-color: #edeee9;
+}
+
 #bookmark-entry-sheet {
   position: absolute;
   width: 100%;
   height: 100%;
-  background-color: #edeee9;
   z-index: 10001;
 }
 
