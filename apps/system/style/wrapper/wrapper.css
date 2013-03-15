@@ -14,8 +14,6 @@
 }
 
 #wrapper-activity-indicator.visible {
-  -moz-transition-delay: .5s; /* Delay opening a wrapper */
-  -moz-transition-property: visibility;
   visibility: visible;
 }
 
