@@ -250,10 +250,6 @@ function initDB(include_videos) {
   };
 
   photodb.onscanend = function onscanend() {
-    // if we're still having the scanning overlay there are no photo's
-    if (currentOverlay === 'scanning')
-      showOverlay('emptygallery');
-
     // Hide the scanning indicator
     $('progress').classList.add('hidden');
     $('throbber').classList.remove('throb');
@@ -382,7 +378,7 @@ function initThumbnails(include_videos) {
   function done() {
     flush();
     if (files.length === 0) { // If we didn't find anything
-      showOverlay('scanning');
+      showOverlay('emptygallery');
     }
     // Now that we've enumerated all the photos and videos we already know
     // about go start looking for new photos and videos.
@@ -463,7 +459,7 @@ function fileCreated(fileinfo) {
   var insertPosition;
 
   // If we were showing the 'no pictures' overlay, hide it
-  if (currentOverlay === 'emptygallery' || currentOverlay === 'scanning')
+  if (currentOverlay === 'emptygallery')
     showOverlay(null);
 
   // If this new image is newer than the first one, it goes first
@@ -968,7 +964,6 @@ var currentOverlay;  // The id of the current overlay or null if none.
 //   nocard: no sdcard is installed in the phone
 //   pluggedin: the sdcard is being used by USB mass storage
 //   emptygallery: no pictures found
-//   scanning: scanning the sdcard for photo's, but none found yet
 //
 // Localization is done using the specified id with "-title" and "-text"
 // suffixes.
@@ -976,35 +971,13 @@ var currentOverlay;  // The id of the current overlay or null if none.
 function showOverlay(id) {
   currentOverlay = id;
 
-  var title, text;
-
-  switch(currentOverlay) {
-    case null:
-      $('overlay').classList.add('hidden');
-      return;
-    case 'nocard':
-      title = navigator.mozL10n.get('nocard2-title');
-      text = navigator.mozL10n.get('nocard2-text');
-      break;
-    case 'pluggedin':
-      title = navigator.mozL10n.get('pluggedin2-title');
-      text = navigator.mozL10n.get('pluggedin2-text');
-      break;
-    case 'scanning':
-      title = navigator.mozL10n.get('scanning-title');
-      text = navigator.mozL10n.get('scanning-text');
-      break;
-    case 'emptygallery':
-      title = navigator.mozL10n.get('emptygallery2-title');
-      text = navigator.mozL10n.get('emptygallery2-text');
-      break;
-    default:
-      console.warn('Reference to undefined overlay', currentOverlay);
-      return;
+  if (id === null) {
+    $('overlay').classList.add('hidden');
+    return;
   }
 
-  $('overlay-title').textContent = title;
-  $('overlay-text').textContent = text;
+  $('overlay-title').textContent = navigator.mozL10n.get(id + '2-title');
+  $('overlay-text').textContent = navigator.mozL10n.get(id + '2-text');
   $('overlay').classList.remove('hidden');
 }
 
