@@ -288,6 +288,7 @@ navigator.mozL10n.ready(function wifiSettings() {
       // stop auto-scanning if wifi disabled or the app is hidden
       if (!gWifiManager.enabled || document.mozHidden) {
         scanning = false;
+        gScanPending = true;
         return;
       }
 
