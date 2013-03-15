@@ -244,7 +244,7 @@ suiteGroup('Views.AdvancedSettings', function() {
     var expectedSyncFreq = 30;
 
     var expectedEventAlarm = -300;
-    var expectedAllDayAlarm = 0;
+    var expectedAllDayAlarm = 32400;
 
     setup(function(done) {
       var pending = 3;
