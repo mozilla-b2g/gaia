@@ -208,14 +208,14 @@ var Predictions = function() {
     // that the exact match.
     while (node.active) {
       var nodeChar = String.fromCharCode(node.ch);
-      if (normalize(nodeChar) == prefix[0]) {
+      if (normalize(nodeChar) == normalize(prefix[0])) {
         do {
           findFuzzy(node.cPtr, result + nodeChar, prefix.substr(1));
           readNode(node.nPtr, node);
           if (!node.active)
             return;
           nodeChar = String.fromCharCode(node.ch);
-        } while (normalize(nodeChar) == prefix[0]);
+        } while (normalize(nodeChar) == normalize(prefix[0]));
         // If there are enough candidates, finish the search without
         // viewing the fuzzy matches that are worse than the exact match.
         if (_candidates.length >= _maxSuggestions)
