@@ -18,6 +18,8 @@ var lazyLoadFiles = [
   'js/utils.js',
   'js/search_utils.js',
   'js/fixed_header.js',
+  'js/link_helper.js',
+  'js/link_action_handler.js',
   'shared/style/input_areas.css',
   'shared/style/switches.css',
   'shared/style/confirm.css',
