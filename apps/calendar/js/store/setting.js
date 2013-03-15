@@ -14,7 +14,7 @@ Calendar.ns('Store').Setting = (function() {
      */
     defaults: {
       standardAlarmDefault: -300,
-      alldayAlarmDefault: 0,
+      alldayAlarmDefault: 32400,
       syncFrequency: 15,
       syncAlarm: {
         alarmId: null,

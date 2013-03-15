@@ -511,7 +511,7 @@ suiteGroup('Provider.CaldavPullEvents', function() {
       assert.ok(!subject.busytimeQueue[0].alarms, 'removes alarms');
 
       assert.deepEqual(
-        subject.alarmQueue, alarms,
+        subject.alarmQueue.length, alarms.length,
         'moves moves to alarm queue'
       );
 

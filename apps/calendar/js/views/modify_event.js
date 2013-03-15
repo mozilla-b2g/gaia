@@ -48,7 +48,7 @@ Calendar.ns('Views').ModifyEvent = (function() {
     /**
      * Fired when the allday checkbox changes.
      */
-    _toggleAllDay: function() {
+    _toggleAllDay: function(e) {
       var allday = this.getEl('allday').checked;
 
       if (allday) {
@@ -66,7 +66,11 @@ Calendar.ns('Views').ModifyEvent = (function() {
         this.event.isAllDay = !!allday;
       }
 
-      this.updateAlarms(allday);
+      // Reset alarms if we come from a user event
+      if (e) {
+        this.event.alarms = [];
+        this.updateAlarms(allday);
+      }
     },
 
     /**
@@ -89,7 +93,9 @@ Calendar.ns('Views').ModifyEvent = (function() {
       }
 
       var newAlarm = document.createElement('div');
-      newAlarm.innerHTML = template.picker.render([]);
+      newAlarm.innerHTML = template.picker.render({
+        layout: this.event.isAllDay ? 'allday' : 'standard'
+      });
       this.alarmList.appendChild(newAlarm);
     },
 
@@ -563,7 +569,7 @@ Calendar.ns('Views').ModifyEvent = (function() {
       settings.getValue(layout + 'AlarmDefault', next.bind(this));
 
       function next(err, value) {
-        if (!alarmMap[value]) {
+        if (!alarmMap[value] && !this.event.alarms.length) {
           alarms.push({
             layout: layout,
             trigger: value

@@ -4,6 +4,7 @@
   var HOUR = 3600;
   var DAY = 86400;
   var WEEK = 604800;
+  var MORNING = HOUR * 9;
 
   var layouts = {
     standard: [
@@ -18,11 +19,11 @@
     ],
     allday: [
       'none',
-      0,
-      0 - DAY,
-      0 - DAY * 2,
-      0 - WEEK,
-      0 - WEEK * 2
+      0 + MORNING,
+      0 - DAY + MORNING,
+      0 - DAY * 2 + MORNING,
+      0 - WEEK + MORNING,
+      0 - WEEK * 2 + MORNING
     ]
   };
 
@@ -38,25 +39,30 @@
       var trigger = this.arg('trigger');
       var _ = navigator.mozL10n.get;
 
-      if (trigger != 'none') {
-        trigger = Math.abs(trigger);
+      if (trigger == 'none') {
+        return _('none');
+      }
+
+      // Format the display text based on a zero-offset trigger
+      if (this.arg('layout') == 'allday') {
+        trigger -= MORNING;
       }
 
       function translate(unit, name) {
-        var value = Math.round(trigger / unit);
-        var key = 'alarm-' + name + (value > 1 ? 's' : '') + '-before';
+        var value = Math.abs(Math.round(trigger / unit));
+        var suffix = trigger > 0 ? 'after' : 'before';
+        var key = 'alarm-' + name + (value > 1 ? 's' : '') + '-' + suffix;
         return _(key, {value: value});
       }
 
-      if (trigger == 'none')
-        description = _('none');
-      else if (trigger == 0)
+      var absTrigger = Math.abs(trigger);
+      if (absTrigger == 0)
         description = _('alarm-at-event-' + this.arg('layout'));
-      else if (trigger < HOUR)
+      else if (absTrigger < HOUR)
         description = translate(MINUTE, 'minute');
-      else if (trigger < DAY)
+      else if (absTrigger < DAY)
         description = translate(HOUR, 'hour');
-      else if (trigger < WEEK)
+      else if (absTrigger < WEEK)
         description = translate(DAY, 'day');
       else
         description = translate(WEEK, 'week');

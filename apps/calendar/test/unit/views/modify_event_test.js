@@ -335,7 +335,27 @@ suiteGroup('Views.ModifyEvent', function() {
           assert.ok(list.contains(subject.ALLDAY));
         });
       });
+    });
 
+
+    test('saved alarms are shown for all-day events', function(done) {
+      remote.startDate = new Date(2012, 0, 1);
+      remote.endDate = new Date(2012, 0, 2);
+      remote.alarms = [
+        {trigger: -300},
+        {trigger: 0}
+      ];
+
+      var updateTo = { alarms: remote.alarms, endDate: '2012-01-01' };
+      updatesValues(updateTo, function() {
+        done(function() {
+          var allday = subject.getEl('allday');
+          assert.isTrue(allday.checked, 'checks all day');
+
+          assert.ok(list.contains(subject.ALLDAY));
+          assert.equal(subject.event.alarms.length, 2);
+        });
+      });
     });
   });
 
@@ -818,14 +838,13 @@ suiteGroup('Views.ModifyEvent', function() {
       provider.createEvent = function(event, callback) {
         done(function() {
           var data = subject.formData();
-
           callback();
 
           assert.deepEqual(
             data.alarms,
             [
               {action: 'DISPLAY', trigger: defaultAlarm},
-              {action: 'DISPLAY', trigger: 0}
+              {action: 'DISPLAY', trigger: 123}
             ],
             'alarms'
           );
@@ -836,10 +855,16 @@ suiteGroup('Views.ModifyEvent', function() {
       allday.checked = isAllDay;
       subject.event.isAllDay = isAllDay;
       subject.updateAlarms(isAllDay, function() {
-        var secondSelect = subject.alarmList.querySelectorAll('select')[1];
+        var allAlarms = subject.alarmList.querySelectorAll('select');
+        assert.equal(allAlarms.length, 2);
+
+        var secondSelect = allAlarms[1];
         assert.ok(secondSelect);
 
-        secondSelect.value = '0';
+        var newOption = document.createElement('option');
+        newOption.value = '123';
+        secondSelect.appendChild(newOption);
+        secondSelect.value = '123';
 
         subject.primary();
       });
@@ -851,6 +876,30 @@ suiteGroup('Views.ModifyEvent', function() {
 
     test('with event defaults', function(done) {
       testAlarmIsAdded(done, false, defaultEventAlarm);
+    });
+
+    test('populated with no existing alarms', function(done) {
+      subject.event.alarms = [];
+      subject.updateAlarms(true, function() {
+        var allAlarms = subject.alarmList.querySelectorAll('select');
+        assert.equal(allAlarms.length, 2);
+        assert.equal(allAlarms[0].value, defaultAllDayAlarm);
+        assert.equal(allAlarms[1].value, 'none');
+        done();
+      });
+    });
+
+    test('not populated with existing alarms', function(done) {
+      subject.event.alarms = [
+        {trigger: -300}
+      ];
+      subject.updateAlarms(true, function() {
+        var allAlarms = subject.alarmList.querySelectorAll('select');
+        assert.equal(allAlarms.length, 2);
+        assert.equal(allAlarms[0].value, -300);
+        assert.equal(allAlarms[1].value, 'none');
+        done();
+      });
     });
   });
 
