@@ -311,7 +311,7 @@
     // Copy the messages array
     var msgs = messagesDb.messages.slice();
     var idx = 0;
-    var len, cursor, continueCursor;
+    var len, continueCursor;
 
     if (filter) {
       if (filter.numbers) {
@@ -347,10 +347,9 @@
           request.onerror();
         }
       } else {
-        cursor = request.result = {};
-        cursor.message = msgs[idx];
+        request.result = msgs[idx];
         idx += 1;
-        cursor.continue = continueCursor;
+        request.continue = continueCursor;
         if (typeof request.onsuccess === 'function') {
           request.onsuccess.call(null);
         }
@@ -361,7 +360,7 @@
       setTimeout(returnMessage, simulation.delay());
     };
 
-    setTimeout(returnMessage, simulation.delay());
+    continueCursor();
 
     return request;
   };
