@@ -12,6 +12,8 @@ var GmailConnector = (function GmailConnector() {
   // force a huge number of contacts to not paginate :S
   var END_POINT =
     'https://www.google.com/m8/feeds/contacts/default/full/?max-results=10000';
+  var GROUPS_END_POINT =
+    'https://www.google.com/m8/feeds/groups/default/full/';
   var EXTRA_HEADERS = {
     'GData-Version': '3.0'
   };
@@ -55,6 +57,38 @@ var GmailConnector = (function GmailConnector() {
     // Copy the access_token
     accessToken = access_token;
     photoUrls = {};
+    getContactsGroup(access_token, callbacks);
+  };
+
+  var getContactsGroup = function getContactsGroup(access_token,
+    callbacks) {
+    var groupCallbacks = {
+      success: function onSuccess(response) {
+        // Locate the entry witch systemGroup id is 'Contacts'
+        var feed = response.querySelector('feed');
+        if (feed === null) {
+          callbacks.error();
+          return;
+        }
+
+        var sgc = feed.querySelector('systemGroup[id="Contacts"]');
+        if (sgc !== null) {
+           var id = sgc.parentNode.querySelector('id').textContent;
+           getContactsByGroup(id, access_token, callbacks);
+        } else {
+           callbacks.error();
+        }
+      },
+      error: callbacks.error,
+      timeout: callbacks.timeout
+    };
+
+    return performAPIRequest(GROUPS_END_POINT, groupCallbacks, access_token);
+  };
+
+  // Retrieve all the contacts for the specific groupId
+  var getContactsByGroup = function getContactsByGroup(groupId, access_token,
+    callbacks) {
     var listingCallbacks = {
       success: function onSuccess(response) {
         callbacks.success({
@@ -65,9 +99,18 @@ var GmailConnector = (function GmailConnector() {
       timeout: callbacks.timeout
     };
 
-    return Rest.get(END_POINT, listingCallbacks,
-      {'requestHeaders': buildRequestHeaders(access_token),
-       'responseType': 'xml'});
+    var groupUrl = END_POINT + '&group=' + groupId;
+    return performAPIRequest(groupUrl, listingCallbacks, access_token);
+  };
+
+  // Given a Google contacts api url add the authentication and
+  // extra headers to perform the correct request
+  var performAPIRequest = function performAPIRequest(url, callbacks,
+    access_token) {
+    return Rest.get(url, callbacks, {
+      'requestHeaders': buildRequestHeaders(access_token),
+      'responseType': 'xml'
+    });
   };
 
   // Return the list of contacts on the device imported using this connector
