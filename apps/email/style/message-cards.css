@@ -219,8 +219,8 @@ input.msg-search-text-tease {
 
 .msg-peep-bubble {
   display: inline-block;
-  background: -moz-linear-gradient(top, #FFFFFF, #DDDDDD);
-  border: 1px solid #CCCCCC;
+  background: #F2F2F2;
+  border: 0.5px solid #CCCCCC;
   border-radius: 1rem;
   margin: 1px 0;
   padding: 2px 0.8rem;
@@ -232,7 +232,6 @@ input.msg-search-text-tease {
 .msg-peep-content {
 }
 .msg-peep-address {
-  font-style: italic;
 }
 
 .msg-attachment-item {
@@ -261,6 +260,7 @@ input.msg-search-text-tease {
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: calc(100% - 12.5rem);
+  white-space: nowrap;
 }
 .msg-attachment-filesize {
   color: gray;
@@ -350,28 +350,31 @@ input.msg-search-text-tease {
   color: white;
   font-size: 1.2rem;
   left: 0;
-  bottom: 4.9rem;
+  bottom: 4.8rem;
   width: 100%;
   height: 2.2rem;
-  padding: 0.5rem;
-  background-color: rgba(16, 16, 16, 0.8);
+  line-height: 2.2rem;
+  padding: 0.8rem 1.6rem;
+  background-color: #424242;;
 }
 
 .msg-reply-all-btn {
 }
 
+/* We need to use !important on the buttons because shared/style/buttons.css definesa more specific
+   selector than ours for :active, so we can't just reorder the files to fix the problem. */
 .msg-refresh-btn {
-  background: url("images/icons/refresh.png") no-repeat scroll center transparent;
+  background: url("images/icons/refresh.png") no-repeat scroll center transparent !important;
 }
 
 .msg-search-btn {
-  background: url("images/icons/search.png") no-repeat scroll center transparent;
+  background: url("images/icons/search.png") no-repeat scroll center transparent !important;
   position: absolute;
   right: 0px;
 }
 
 .msg-edit-btn {
-  background: url("images/icons/edit-mode.png") no-repeat scroll center transparent;
+  background: url("images/icons/edit-mode.png") no-repeat scroll center transparent !important;
   position: absolute;
   left: calc((100% - 6rem)/2);
 }
@@ -381,23 +384,23 @@ input.msg-search-text-tease {
 }
 
 .msg-star-btn {
-  background: url("images/icons/star.png") no-repeat scroll center transparent;
+  background: url("images/icons/star.png") no-repeat scroll center transparent !important;
 }
 
 .msg-mark-read-btn {
-  background: url("images/icons/mark.png") no-repeat scroll center transparent;
+  background: url("images/icons/mark.png") no-repeat scroll center transparent !important;
 }
 
 .msg-delete-btn {
-  background: url("images/icons/delete.png") no-repeat scroll center transparent;
+  background: url("images/icons/delete.png") no-repeat scroll center transparent !important;
 }
 
 .msg-move-btn {
-  background: url("images/icons/move.png") no-repeat scroll center transparent;
+  background: url("images/icons/move.png") no-repeat scroll center transparent !important;
 }
 
 .msg-forward-btn {
-  background: url("images/icons/forward.png") no-repeat scroll center transparent;
+  background: url("images/icons/forward.png") no-repeat scroll center transparent !important;
 }
 
 /* Message list edit mode layout control */
