@@ -3,6 +3,7 @@
 var CallScreen = {
   _ticker: null,
   _screenLock: null,
+  _typedNumber: '',
 
   body: document.body,
   screen: document.getElementById('call-screen'),
@@ -646,3 +647,14 @@ window.addEventListener('load', function callSetup(evt) {
     };
   }
 });
+
+window.onresize = function(e) {
+  if (window.innerHeight <= 40) {
+    if ( CallScreen.body.classList.contains("showKeypad")) {
+      CallScreen._typedNumber = KeypadManager._phoneNumber;
+      KeypadManager.restorePhoneNumber('end', true);
+    }
+  } else if( CallScreen.body.classList.contains("showKeypad")) {
+    KeypadManager.updatePhoneNumber(CallScreen._typedNumber,'begin', true);
+  }
+};
