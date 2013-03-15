@@ -287,18 +287,16 @@ var MessageManager = {
         invert = options.invert, // invert selection
         endCB = options.endCB,   // CB when all messages retrieved
         endCBArgs = options.endCBArgs; //Args for endCB
-    var self = this;
-    var request = this._mozSms.getMessages(filter, !invert);
-    request.onsuccess = function onsuccess() {
-      var cursor = request.result;
-      if (cursor.message) {
+    var cursor = this._mozSms.getMessages(filter, !invert);
+    cursor.onsuccess = function onsuccess() {
+      if (!this.done) {
         var shouldContinue = true;
         if (stepCB) {
-          shouldContinue = stepCB(cursor.message);
+          shouldContinue = stepCB(this.result);
         }
         // if stepCB returns false the iteration stops
         if (shouldContinue !== false) { // if this is undefined this is fine
-          cursor.continue();
+          this.continue();
         }
       } else {
         if (endCB) {
@@ -306,8 +304,8 @@ var MessageManager = {
         }
       }
     };
-    request.onerror = function onerror() {
-      var msg = 'Reading the database. Error: ' + request.error.name;
+    cursor.onerror = function onerror() {
+      var msg = 'Reading the database. Error: ' + this.error.name;
       console.log(msg);
     };
   },
