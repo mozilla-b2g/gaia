@@ -545,7 +545,8 @@ var DataUsageTab = (function() {
     ctx.strokeStyle = '#8b9052';
     ctx.lineWidth = 2;
     ctx.moveTo(model.originX, model.originY);
-    var sum = 0; var x, y, slopeX;
+    var today = toMidnight(new Date());
+    var sum = 0; var x, y = model.originY;
     var lastX = model.originX, lastY = model.axis.Y.get(sum);
     for (var i = 0, len = samples.length; i < len; i++) {
 
@@ -553,30 +554,37 @@ var DataUsageTab = (function() {
       if (sample.value == undefined) {
         lastX = x = model.axis.X.get(sample.date);
         ctx.moveTo(x, y);
-        continue;
+
+      } else {
+        if (i === 0) {
+          lastX = model.axis.X.get(sample.date);
+        }
+
+        sum += sample.value;
+        x = model.axis.X.get(sample.date);
+        y = model.axis.Y.get(sum);
+
+        clipAndDrawSegment(ctx, model, lastX, lastY, x, y);
+
+        lastX = x;
+        lastY = y;
       }
 
-      if (i === 0) {
-        lastX = model.axis.X.get(sample.date);
+      if (today.getTime() === toMidnight(new Date(sample.date)).getTime() &&
+          x >= model.originX) {
+        drawTodayMark(ctx, x, y, '#8b9052');
       }
-
-      sum += sample.value;
-      x = model.axis.X.get(sample.date);
-      y = model.axis.Y.get(sum);
-
-      clipAndDrawSegment(ctx, model, lastX, lastY, x, y);
-
-      lastX = x;
-      lastY = y;
     }
+  }
 
-    // The circle
+  function drawTodayMark(ctx, x, y, color) {
+    ctx.save();
     var radius = 4;
-    ctx.fillStyle = '#8b9052';
-    var todayWifi = model.data.wifi.total;
+    ctx.fillStyle = color;
     ctx.beginPath();
-    ctx.arc(x, model.axis.Y.get(todayWifi), radius, 0, 2 * Math.PI);
+    ctx.arc(x, y, radius, 0, 2 * Math.PI);
     ctx.fill();
+    ctx.restore();
   }
 
   // Check if the segment of the graph is inside chart area. If so, draw it
@@ -619,43 +627,40 @@ var DataUsageTab = (function() {
     ctx.strokeStyle = '#762d4a';
     ctx.lineWidth = 2;
 
-    var sum = 0; var x, y, slopeX;
+    var today = toMidnight(new Date());
+    var sum = 0; var x, y = model.originY;
     var lastX = model.originX, lastY = model.axis.Y.get(sum);
     for (var i = 0, len = samples.length; i < len; i++) {
       var sample = samples[i];
       if (sample.value == undefined) {
         lastX = x = model.axis.X.get(sample.date);
         ctx.moveTo(x, y);
-        continue;
+
+      } else {
+        if (i === 0) {
+          lastX = model.axis.X.get(sample.date);
+        }
+
+        sum += sample.value;
+        x = model.axis.X.get(sample.date);
+        y = model.axis.Y.get(sum);
+
+        clipAndDrawSegment(ctx, model, lastX, lastY, x, y);
+
+        lastX = x;
+        lastY = y;
       }
 
-      if (i === 0) {
-        lastX = model.axis.X.get(sample.date);
+      if (today.getTime() === toMidnight(new Date(sample.date)).getTime() &&
+          x >= model.originX) {
+        drawTodayMark(ctx, x, y, '#762d4a');
       }
-
-      sum += sample.value;
-      x = model.axis.X.get(sample.date);
-      y = model.axis.Y.get(sum);
-
-      clipAndDrawSegment(ctx, model, lastX, lastY, x, y);
-
-      lastX = x;
-      lastY = y;
     }
 
     var pattern = ctx.createPattern(graphicPattern, 'repeat');
     ctx.globalCompositeOperation = 'source-atop';
     ctx.fillStyle = pattern;
     ctx.fillRect(0, 0, width, model.originY);
-
-    // The circle
-    var radius = 4;
-    ctx.globalCompositeOperation = 'source-over';
-    ctx.fillStyle = '#762d4a';
-    var todayMobile = model.data.mobile.total;
-    ctx.beginPath();
-    ctx.arc(x, model.axis.Y.get(todayMobile), radius, 0, 2 * Math.PI);
-    ctx.fill();
   }
 
   function drawWarningOverlay(model) {
