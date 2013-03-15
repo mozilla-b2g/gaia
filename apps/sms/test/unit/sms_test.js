@@ -5,6 +5,7 @@
 
 
 // Import of all code needed
+requireApp('sms/js/link_helper.js');
 requireApp('sms/js/contacts.js');
 requireApp('sms/js/fixed_header.js');
 requireApp('sms/js/search_utils.js');
@@ -369,6 +370,53 @@ suite('SMS App Unit-Test', function() {
 
     teardown(function() {
       ThreadUI.view.innerHTML = '';
+    });
+  });
+
+suite('URL Links in SMS', function() {
+    var Message = {
+        id: '987',
+        body: 'Hello URL'
+    };
+
+    //test
+    test('#Test URL in message', function() {
+        var messageBody = 'For more details visit' +
+        ' Yahoo.com, http://www.df.com' +
+        ' or visit faq mail.google.com/mail/help/intl/en/about.html';
+      var id = '123456';
+      Message.id = id;
+      Message.body = messageBody;
+      var messageDOM = ThreadUI.buildMessageDOM(Message, false);
+      var anchors = messageDOM.querySelectorAll('[data-url]');
+      assert.equal(anchors.length, 3,
+        '3 URLs are tappable in message');
+      assert.equal(anchors[0].dataset.url,
+        'http://Yahoo.com', 'First url is http://Yahoo.com');
+      assert.equal(anchors[1].dataset.url,
+        'http://www.df.com', 'Second url is http://www.df.com');
+      assert.equal(anchors[2].dataset.url,
+        'http://mail.google.com/mail/help/intl/en/about.html',
+         'Second url is http://mail.google.com/mail/help/intl/en/about.html');
+
+    });
+
+    test('#Test URL with phone, email in message', function() {
+        var messageBody = 'Email at cs@yahoo.com, For more details' +
+        ' visit http://www.mozilla.org/en-US/firefox/fx/, www.gmail.com' +
+        ' or call 897-890-8907';
+      var id = '123457';
+      Message.id = id;
+      Message.body = messageBody;
+      var messageDOM = ThreadUI.buildMessageDOM(Message, false);
+      var anchors = messageDOM.querySelectorAll('[data-url]');
+      assert.equal(anchors.length, 2,
+        '2 URLs are tappable in message');
+      assert.equal(anchors[0].dataset.url,
+        'http://www.mozilla.org/en-US/firefox/fx/',
+         'First url is http://www.mozilla.org/en-US/firefox/fx/');
+      assert.equal(anchors[1].dataset.url,
+        'http://www.gmail.com', 'Second url is http://www.gmail.com');
     });
   });
 });

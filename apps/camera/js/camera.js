@@ -772,7 +772,8 @@ var Camera = {
           this._resizeBlobIfNeeded(blob, function(resized_blob) {
             this._pendingPick.postResult({
               type: 'image/jpeg',
-              blob: resized_blob
+              blob: resized_blob,
+              name: path + name
             });
             this._pendingPick = null;
           }.bind(this));
@@ -935,6 +936,7 @@ var Camera = {
   takePicture: function camera_takePicture() {
     this._config.rotation = this._phoneOrientation;
     this._config.pictureSize = this._pictureSize;
+    this._config.dateTime = Date.now() / 1000;
     // We do not attach our current position to the exif of photos
     // that are taken via an activity as that leaks position information
     // to other apps without permission
