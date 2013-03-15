@@ -27,10 +27,7 @@ suite('event_mutations', function() {
     alarmStore = db.getStore('Alarm');
     componentStore = db.getStore('IcalComponent');
 
-    db.open(function(err) {
-      assert.ok(!err);
-      done();
-    });
+    db.open(done);
   });
 
   teardown(function(done) {
