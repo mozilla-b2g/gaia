@@ -18,9 +18,11 @@ var LazyL10n = {
     }
 
     // Add the l10n JS files to the DOM and wait for them to load.
-    loader.load(['/shared/js/l10n.js',
-                 '/shared/js/l10n_date.js']);
-    this._waitForLoad(callback);
+    loader.load(['/shared/js/l10n.js']);
+    this._waitForLoad(function(param) {
+      loader.load(['/shared/js/l10n_date.js']);
+      callback(param);
+    });
     this._inDOM = true;
   },
 
