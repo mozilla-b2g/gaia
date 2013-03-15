@@ -131,3 +131,4 @@ pref("general.useragent.override.txt2nite.com", "\(Mobile#(Android; Mobile"); //
 pref("general.useragent.override.slashgear.com", "\(Mobile#(Android; Mobile"); // bug 843181
 pref("general.useragent.override.thechive.com", "\(Mobile#(Android; Mobile"); // bug 843183
 pref("general.useragent.override.chevrolet.com", "\(Mobile#(Android; Mobile"); // bug 843186
+pref("general.useragent.override.deadline.com", "\(Mobile#(Android; Mobile"); // bug 848854
