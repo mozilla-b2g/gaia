@@ -669,7 +669,8 @@ purge:
 	done);
 	$(ADB) shell rm -r $(MSYS_FIX)/cache/*
 	$(ADB) shell rm -r $(MSYS_FIX)/data/b2g/*
-	$(ADB) shell rm -r $(MSYS_FIX)$(GAIA_INSTALL_PARENT)/webapps
+	$(ADB) shell rm -r $(MSYS_FIX)/data/local/webapps
+	$(ADB) shell rm -r $(MSYS_FIX)/system/b2g/webapps
 
 # Build the settings.json file from settings.py
 ifeq ($(NOFTU), 1)
