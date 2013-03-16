@@ -1,5 +1,3 @@
-/* The status bar disregard the rem rule because we have only 16px icons for now */
-
 body, html {
   font-family: MozTT, sans-serif;
   font-weight: 500;
@@ -15,23 +13,19 @@ body, html {
   position: absolute;
 
   width: 100%;
-  height: 20px;
+  height: 2rem;
   top: 0;
   left: 0;
   background-color: #000;
 
-  padding: 2px 0;
+  padding: 0.2rem 0;
   -moz-box-sizing: border-box;
-}
-
-#statusbar.hidden {
-  visibility: hidden;
 }
 
 #statusbar > * {
   pointer-events: none;
   float: right;
-  margin: 0 2px;
+  margin: 0 0.2rem;
 }
 
 #statusbar > .sb-start {
@@ -50,7 +44,7 @@ body, html {
 #statusbar > .sb-start-upper {
   visibility: hidden;
   position: absolute;
-  top: -20px;
+  top: -2rem;
   left: 0;
 
   -moz-transition: visibility 0.5s ease, -moz-transform 0.5s ease;
@@ -63,26 +57,26 @@ body, html {
 
 .utility-tray #statusbar > .sb-start-upper {
   visibility: visible;
-  -moz-transform: translateY(20px);
+  -moz-transform: translateY(2rem);
 }
 
 .utility-tray #statusbar > .sb-start {
   visibility: hidden;
-  -moz-transform: translateY(20px);
+  -moz-transform: translateY(2rem);
 }
 
 #statusbar-label {
   color: #919899;
   font-size: 1.49rem; /* 6.5pt */
   position: relative;
-  bottom: 1px;
+  bottom: 0.1rem;
 }
 
 #statusbar-time {
   color: #fff;
   font-size: 1.49rem; /* 6.5pt */
   position: relative;
-  bottom: 2px;
+  bottom: 0.2rem;
 }
 
 #statusbar-time span {
@@ -95,252 +89,256 @@ body, html {
 }
 
 .sb-icon {
-  width: 16px;
-  height: 16px;
-
+  width: 1.6rem;
+  height: 1.6rem;
   background: url('images/icons.png') no-repeat;
+  background-size: 31rem 9.6rem;
 }
 
 .sb-icon-battery {
-  width: 21px;
+  width: 2.1rem;
 }
 .sb-icon-battery:not([data-level]) {
-  background-position: -286px 0;
+  background-position: -28.6rem 0;
 }
 .sb-icon-battery[data-level="0"] {
   background-position: 0 0;
 }
 .sb-icon-battery[data-level="10"] {
-  background-position: -26px 0;
+  background-position: -2.6rem 0;
 }
 .sb-icon-battery[data-level="20"] {
-  background-position: -52px 0;
+  background-position: -5.2rem 0;
 }
 .sb-icon-battery[data-level="30"] {
-  background-position: -78px 0;
+  background-position: -7.8rem 0;
 }
 .sb-icon-battery[data-level="40"] {
-  background-position: -104px 0;
+  background-position: -10.4rem 0;
 }
 .sb-icon-battery[data-level="50"] {
-  background-position: -130px 0;
+  background-position: -13rem 0;
 }
 .sb-icon-battery[data-level="60"] {
-  background-position: -156px 0;
+  background-position: -15.6rem 0;
 }
 .sb-icon-battery[data-level="70"] {
-  background-position: -182px 0;
+  background-position: -18.2rem 0;
 }
 .sb-icon-battery[data-level="80"] {
-  background-position: -208px 0;
+  background-position: -20.8rem 0;
 }
 .sb-icon-battery[data-level="90"] {
-  background-position: -234px 0;
+  background-position: -23.4rem 0;
 }
 .sb-icon-battery[data-level="100"] {
-  background-position: -260px 0;
+  background-position: -26rem 0;
 }
 
 .sb-icon-battery:not([data-level])[data-charging="true"],
 .sb-icon-battery[data-level="0"][data-charging="true"] {
-  background-position: 0 -20px;
+  background-position: 0 -2rem;
 }
 .sb-icon-battery[data-level="10"][data-charging="true"] {
-  background-position: -26px -20px;
+  background-position: -2.6rem -2rem;
 }
 .sb-icon-battery[data-level="20"][data-charging="true"] {
-  background-position: -52px -20px;
+  background-position: -5.2rem -2rem;
 }
 .sb-icon-battery[data-level="30"][data-charging="true"] {
-  background-position: -78px -20px;
+  background-position: -7.8rem -2rem;
 }
 .sb-icon-battery[data-level="40"][data-charging="true"] {
-  background-position: -104px -20px;
+  background-position: -10.4rem -2rem;
 }
 .sb-icon-battery[data-level="50"][data-charging="true"] {
-  background-position: -130px -20px;
+  background-position: -13rem -2rem;
 }
 .sb-icon-battery[data-level="60"][data-charging="true"] {
-  background-position: -156px -20px;
+  background-position: -15.6rem -2rem;
 }
 .sb-icon-battery[data-level="70"][data-charging="true"] {
-  background-position: -182px -20px;
+  background-position: -18.2rem -2rem;
 }
 .sb-icon-battery[data-level="80"][data-charging="true"] {
-  background-position: -208px -20px;
+  background-position: -20.8rem -2rem;
 }
 .sb-icon-battery[data-level="90"][data-charging="true"] {
-  background-position: -234px -20px;
+  background-position: -23.4rem -2rem;
 }
 .sb-icon-battery[data-level="100"][data-charging="true"] {
-  background-position: -260px -20px;
+  background-position: -26rem -2rem;
 }
 
 .sb-icon-wifi[data-level="0"][data-connecting="true"] {
   background: url('images/wifi-connecting.gif') no-repeat;
   background-position: 0 0;
+  background-size: 1.6rem;
 }
 
 .sb-icon-wifi:not([data-level]),
 .sb-icon-wifi[data-level="0"] {
-  background-position: 0 -60px;
+  background-position: 0 -6rem;
 }
 .sb-icon-wifi[data-level="1"] {
-  background-position: -21px -60px;
+  background-position: -2.1rem -6rem;
 }
 .sb-icon-wifi[data-level="2"] {
-  background-position: -42px -60px;
+  background-position: -4.2rem -6rem;
 }
 .sb-icon-wifi[data-level="3"] {
-  background-position: -63px -60px;
+  background-position: -6.3rem -6rem;
 }
 .sb-icon-wifi[data-level="4"] {
-  background-position: -84px -60px;
+  background-position: -8.4rem -6rem;
 }
 
 .sb-icon-data[data-type="H+"] {
-  background-position: 0 -80px;
+  background-position: 0 -8rem;
 }
 
 .sb-icon-data[data-type="H"] {
-  background-position: -21px -80px;
+  background-position: -2.1rem -8rem;
 }
 
 .sb-icon-data[data-type="4G"] {
-  background-position: -42px -80px;
+  background-position: -4.2rem -8rem;
 }
 
 .sb-icon-data[data-type="3G"] {
-  background-position: -63px -80px;
+  background-position: -6.3rem -8rem;
 }
 
 .sb-icon-data[data-type="E"] {
-  background-position: -84px -80px;
+  background-position: -8.4rem -8rem;
 }
 
 .sb-icon-data[data-type="2G"] {
-  background-position: -105px -80px;
+  background-position: -10.5rem -8rem;
 }
 
 .sb-icon-data[data-type="circle"] {
-  background-position: -126px -80px;
+  background-position: -12.6rem -8rem;
 }
 
 .sb-icon-flight-mode {
-  background-position: 0 -40px;
+  background-position: 0 -4rem;
 }
 
 .sb-icon-signal[data-level="-1"][data-searching="true"] {
   background: url('images/signal-searching.gif') no-repeat;
   background-position: 0 0;
+  background-size: 1.6rem 1.6rem;
 }
 
 .sb-icon-signal[data-level="-1"] {
-  background-position: -21px -40px;
+  background-position: -2.1rem -4rem;
 }
 
 .sb-icon-signal[data-emergency="true"],
 .sb-icon-signal[data-level="0"] {
-  background-position: -42px -40px;
+  background-position: -4.2rem -4rem;
 }
 
 .sb-icon-signal[data-level="1"] {
-  background-position: -63px -40px;
+  background-position: -6.3rem -4rem;
 }
 
 .sb-icon-signal[data-level="2"] {
-  background-position: -84px -40px;
+  background-position: -8.4rem -4rem;
 }
 
 .sb-icon-signal[data-level="3"] {
-  background-position: -105px -40px;
+  background-position: -10.5rem -4rem;
 }
 
 .sb-icon-signal[data-level="4"] {
-  background-position: -126px -40px;
+  background-position: -12.6rem -4rem;
 }
 
 .sb-icon-signal[data-level="5"] {
-  background-position: -147px -40px;
+  background-position: -14.7rem -4rem;
 }
 
 .sb-icon-signal {
   /* default icon is the "no sim" icon */
-  background-position: -147px -80px;
+  background-position: -14.7rem -8rem;
   position: relative;
 }
 
 .sb-icon-signal[data-roaming="true"]::after {
   content: '';
   position: absolute;
-  width: 8px;
-  height: 5px;
+  width: 0.8rem;
+  height: 0.5rem;
   top: 0;
   left: 0;
   background: url('images/icons.png') no-repeat;
-  background-position: -168px -40px;
+  background-position: -16.8rem -4rem;
+  background-size: 31rem;
 }
 
 .sb-icon-network-activity {
   background: url('images/network-activity.gif') no-repeat;
   background-position: 0 0;
+  background-size: 1.6rem;
 }
 
 .sb-icon-headphones {
-  background-position: -189px -40px;
+  background-position: -18.9rem -4rem;
 }
 
 .sb-icon-geolocation {
-  background-position: -231px -40px;
+  background-position: -23.1rem -4rem;
 }
 
 .sb-icon-geolocation[data-active="true"] {
-  background-position: -210px -40px;
+  background-position: -21rem -4rem;
 }
 
 .sb-icon-recording {
-  background-position: -273px -40px;
+  background-position: -27.3rem -4rem;
 }
 
 .sb-icon-recording[data-active="true"] {
-  background-position: -252px -40px;
+  background-position: -25.2rem -4rem;
 }
 
 .sb-icon-alarm {
-  background-position: -294px -40px;
+  background-position: -29.4rem -4rem;
 }
 
 .sb-icon-tethering {
-  background-position: -126px -60px;
+  background-position: -12.6rem -6rem;
 }
 
 .sb-icon-tethering[data-active="true"] {
-  background-position: -105px -60px;
+  background-position: -10.5rem -6rem;
 }
 
 .sb-icon-bluetooth {
-  background-position: -252px -60px;
+  background-position: -25.2rem -6rem;
 }
 
 .sb-icon-bluetooth[data-active="true"] {
-  background-position: -231px -60px;
+  background-position: -23.1rem -6rem;
 }
 
 .sb-icon-mute {
-  background-position: -273px -60px;
+  background-position: -27.3rem -6rem;
 }
 
 .sb-icon-mute.vibration {
-  background-position: -210px -60px;
+  background-position: -21rem -6rem;
 }
 
 .sb-icon-usb {
-  background-position: -294px -60px;
+  background-position: -29.4rem -6rem;
 }
 
 .sb-icon-notification {
   background: #000;
-  width: 32px;
+  width: 3.2rem;
   position: relative;
 }
 
@@ -349,11 +347,11 @@ body, html {
   position: absolute;
   top: 0;
   left: 0;
-  width: 16px;
-  height: 16px;
-
+  width: 1.6rem;
+  height: 1.6rem;
   background: url('images/icons.png') no-repeat;
-  background-position: -189px -60px;
+  background-position: -18.9rem -6rem;
+  background-size: 31rem;
 }
 
 *[dir=rtl] .sb-icon-notification::before {
@@ -362,18 +360,18 @@ body, html {
 }
 
 .sb-icon-notification[data-unread="true"]::before {
-  background-position: -168px -60px;
+  background-position: -16.8rem -6rem;
 }
 
 .sb-icon-notification::after {
   content: attr(data-num);
   position: absolute;
   color: #666;
-  width: 16px;
-  height: 16px;
-  top: -2px;
+  width: 1.6rem;
+  height: 1.6rem;
+  top: -0.2rem;
   right: 0;
-  padding: 0 1px;
+  padding: 0 0.1rem;
   font-size: 1.49rem; /* 6.5pt */
 }
 
@@ -386,7 +384,7 @@ body, html {
 }
 
 .sb-icon-sms {
-  background-position: -147px -60px;
+  background-position: -14.7rem -6rem;
   position: relative;
 }
 
@@ -394,11 +392,11 @@ body, html {
   content: attr(data-num);
   position: absolute;
   color: #000;
-  top: 4px;
+  top: 0.4rem;
   left: 0;
   width: 100%;
   text-align: center;
-  font-size: 1.15rem; /*5pt  was 8px */
+  font-size: 1.15rem; /*5pt  was 0.8rem */
 }
 
 /* JW: should we show how many current download we have
@@ -407,10 +405,11 @@ body, html {
   /* JW: waiting for the correct icon; in the mean time I made this one */
   background: url('images/system-downloads.gif') no-repeat;
   background-position: 0 0;
+  background-size: 1.6rem 1.6rem;
 }
 
 .sb-icon-call-forwarding {
   /* Waiting for the correct icon. In the mean time we use this one. */
-  background: url('images/call-forwarding.png') no-repeat;
+  background: url('images/call-forwarding.png') no-repeat / 1.6rem;
   background-position: 0 0;
 }

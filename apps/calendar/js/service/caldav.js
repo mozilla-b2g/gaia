@@ -188,6 +188,28 @@ Calendar.ns('Service').Caldav = (function() {
     },
 
     /**
+     * Formats an alarm trigger
+     * Returns the relative time for that trigger
+     *
+     * @param {ICAL.Property} trigger property.
+     * @param {ICAL.Date} start date.
+     */
+    _formatTrigger: function(trigger, startDate) {
+      var alarmTrigger;
+      if (trigger.type == 'duration') {
+        alarmTrigger = trigger.getFirstValue().toSeconds();
+      } else {
+        // Type is date-time
+        alarmTrigger = trigger
+          .getFirstValue()
+          .subtractDate(startDate)
+          .toSeconds();
+      }
+
+      return alarmTrigger;
+    },
+
+    /**
      * Formats an already parsed ICAL.Event instance.
      * Expects event to already contain exceptions, etc..
      *
@@ -233,11 +255,12 @@ Calendar.ns('Service').Caldav = (function() {
           var len = triggers.length;
 
           for (; i < len; i++) {
-            var duration = new ICAL.Duration(triggers[i].getFirstValue());
+
+            var trigger = triggers[i];
 
             resultAlarms.push({
               action: action,
-              trigger: duration.toSeconds()
+              trigger: self._formatTrigger(trigger, event.startDate)
             });
           }
         }
@@ -284,11 +307,9 @@ Calendar.ns('Service').Caldav = (function() {
           var len = triggers.length;
 
           for (; i < len; i++) {
-            var time = start.clone();
-            time.addDuration(triggers[i].getFirstValue());
-
             result.push({
-              startDate: self.formatICALTime(time)
+              action: action,
+              trigger: self._formatTrigger(triggers[i], event.startDate)
             });
           }
         }
@@ -330,13 +351,19 @@ Calendar.ns('Service').Caldav = (function() {
 
       utc += offset;
 
-      return {
+      var result = {
         tzid: zone.tzid,
         // from seconds to ms
         offset: offset,
         // from seconds to ms
         utc: utc
       };
+
+      if (time.isDate) {
+        result.isDate = true;
+      }
+
+      return result;
     },
 
     /**
@@ -367,6 +394,10 @@ Calendar.ns('Service').Caldav = (function() {
         result = new ICAL.Time();
         result.fromUnixTime((utc - offset) / 1000);
         result.zone = ICAL.Timezone.utcTimezone;
+      }
+
+      if (time.isDate) {
+        result.isDate = true;
       }
 
       return result;

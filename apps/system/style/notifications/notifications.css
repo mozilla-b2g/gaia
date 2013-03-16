@@ -8,33 +8,32 @@ html, body {
   top: 0;
   left: 0;
   width: 100%;
-  height: 50px;
+  height: 5rem;
   overflow: hidden;
   background-image: url('images/grey-noise-bg.png');
   background-repeat: repeat-x;
+  background-size: auto 100%;
   -moz-box-sizing: border-box;
-  border-bottom: 1px #2c2c2c solid;
-  -moz-transform: translateY(-50px);
-  -moz-transition: -moz-transform .3s ease-in-out;
+  border-bottom: 0.1rem #2c2c2c solid;
+  transform: translateY(-5rem);
+  transition: transform .3s ease-in-out;
 }
 
 #toaster-icon {
   position: absolute;
-  width: 30px;
-  height: 30px;
-  top: 7px;
-  left: 10px;
+  width: 3rem;
+  height: 3rem;
+  top: 0.7rem;
+  left: 1rem;
   pointer-events: none;
 }
 
 #notification-toaster > div {
-  left: 50px;
-  width: -moz-calc(100% - 55px);
-  height: 19px;
+  left: 5rem;
+  width: calc(100% - 5.5rem);
+  height: 1.9rem;
   padding: 0;
-
   line-height: 1.9rem;
-
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -42,7 +41,7 @@ html, body {
 
 #toaster-title {
   position: absolute;
-  top: 3px;
+  top: 0.3rem;
   color: #52b8cc;
   font-size: 1.5rem;
   font-weight: 500;
@@ -50,7 +49,7 @@ html, body {
 
 #toaster-detail {
   position: absolute;
-  top: 22px;
+  top: 2.2rem;
   color: white;
   font-size: 1.4rem;
   font-weight: 400;
@@ -60,28 +59,28 @@ html, body {
 }
 
 #notification-toaster.displayed {
-  -moz-transform: translateY(0);
+  transform: translateY(0);
 }
 
 #notification-bar {
-  height: 30px;
+  height: 3rem;
   background-color: #52b6cc;
   color: #1b3f46;
 }
 
 #notification-bar span {
   display: inline-block;
-  margin-left: 15px;
+  margin-left: 1.5rem;
   font-size: 1.4rem;
   font-weight: 500;
-  line-height: 30px;
+  line-height: 3rem;
 }
 
 #notification-bar button {
   float: right;
-  margin-right: 15px;
+  margin-right: 1.5rem;
   width: 30%;
-  height: 30px;
+  height: 3rem;
   padding: 0;
   border: 0;
   background: none;
@@ -99,7 +98,7 @@ html, body {
   width: 100%;
 
   /* minus cost control, quick settings, bar and grippy */
-  height: -moz-calc(100% - 4.5rem - 60px - 30px - 20px);
+  height: calc(100% - 4.5rem - 6rem - 3rem - 2rem);
   overflow-y: scroll;
   overflow-x: hidden;
 }
@@ -107,15 +106,13 @@ html, body {
 
 .notification {
   position: relative;
-  height: 60px;
+  height: 6rem;
   font-size: 1.4rem;
   font-weight: 400;
   line-height: 1.9rem;
-
   background-color: rgba(0, 0, 0, 0.5);
-
-  border-top: 1px #404547 solid;
-  border-bottom: 1px black solid;
+  border-top: 0.1rem #404547 solid;
+  border-bottom: 0.1rem black solid;
 }
 
 .notification:first-child {
@@ -136,9 +133,9 @@ html, body {
 }
 
 .notification > div {
-  margin: 0 0 0 50px;
+  margin: 0 0 0 5rem;
   padding: 0;
-  width: -moz-calc(100% - 55px);
+  width: calc(100% - 5.5rem);
   color: #bfbfbf;
   font-size: 1.4rem;
   line-height: 1.9rem;
@@ -154,18 +151,18 @@ html, body {
   right: 0;
   top: -.2rem;
   color: #52B6CC;
-  margin: 13px 15px 0 0;
+  margin: 1.3rem 1.5rem 0 0;
   padding: 0;
   display: inline;
-  line-height: 16px;
+  line-height: 1.6rem;
 }
 
 .notification > img {
   float: left;
   display: block;
-  width: 24px;
-  height: 24px;
-  margin: 15px 10px;
+  width: 2.4rem;
+  height: 2.4rem;
+  margin: 1.5rem 1rem;
   pointer-events: none;
 }
 
@@ -177,7 +174,7 @@ html, body {
 
 .notification.disappearing ~ .notification {
   transition: transform 0.3s linear;
-  transform: translateY(-62px);
+  transform: translateY(-6.2rem);
 }
 
 #notifications-lockscreen-container {
@@ -185,14 +182,14 @@ html, body {
   top: 18rem;
   left: 0;
   width: 100%;
-  max-height: 186px;
+  max-height: 18.6rem;
   overflow-x: hidden;
   overflow-y: auto;
 
   background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.9),
                               rgba(0, 0, 0, 0.6) 78%,
                               rgba(0, 0, 0, 0));
-  background-size: 100% 186px;
+  background-size: 100% 18.6rem;
 }
 
 #notifications-lockscreen-container .notification {

@@ -8,6 +8,11 @@ suiteGroup('Models.Event', function() {
   var start = new Date(2012, 0, 1);
   var end = new Date(2012, 0, 1, 12);
 
+  var originalDates = {
+    start: start,
+    end: end
+  };
+
   setup(function() {
 
     rawEvent = Factory.create('event', {
@@ -28,6 +33,21 @@ suiteGroup('Models.Event', function() {
   suite('initialization', function() {
     test('from existing model', function() {
       assert.equal(subject.data, rawEvent);
+    });
+
+    test('from existing "allday" model', function() {
+      var data = Factory.build('event', {
+        remote: {
+          startDate: new Date(2012, 1, 1),
+          endDate: new Date(2012, 1, 2)
+        }
+      });
+
+      var subject = new Calendar.Models.Event(
+        data
+      );
+
+      assert.isTrue(subject.isAllDay, 'is all day');
     });
 
     test('from existing model without .startDate/.endDate', function() {
@@ -75,93 +95,99 @@ suiteGroup('Models.Event', function() {
     });
   }
 
-  suite('#endDate', function() {
-    test('initial value', function() {
-      assert.deepEqual(
-        end,
-        subject.endDate
-      );
-    });
+  // need a var for gjslint parse error?
+  var dateFields = ['start', 'end'];
+  dateFields.forEach(function(field) {
+    var remoteDateField = field + 'Date';
 
-    test('set value', function() {
-      var newEnd = new Date(2012, 0, 1, 2);
-      var end = Calendar.Calc.dateToTransport(newEnd);
+    suite('#' + remoteDateField, function() {
+      test('initial value', function() {
+        assert.deepEqual(
+          originalDates[field],
+          subject[remoteDateField]
+        );
+      });
 
-      subject.endDate = newEnd;
-      assert.deepEqual(
-        remote.endDate,
-        newEnd,
-        '.endDate'
-      );
+      test('set value', function() {
+        var date = new Date(2012, 0, 1, 2);
+        var transport =
+          Calendar.Calc.dateToTransport(date);
 
-      assert.deepEqual(
-        remote.end,
-        end,
-        '.end'
-      );
+        subject[remoteDateField] = date;
+        assert.deepEqual(
+          remote[remoteDateField],
+          date,
+          remoteDateField
+        );
+
+        assert.deepEqual(
+          remote[field],
+          transport,
+          field
+        );
+      });
+
+      test('prevents non-date values when isAllDay', function() {
+        subject.isAllDay = true;
+
+        var date = new Date(2012, 1, 1, 1, 5);
+        var expected = new Date(2012, 1, 1);
+        var transport = Calendar.Calc.dateToTransport(
+          expected, null, true
+        );
+
+        subject[remoteDateField] = date;
+
+        assert.deepEqual(
+          subject[remoteDateField],
+          expected,
+          'date'
+        );
+
+        assert.deepEqual(
+          subject.remote[field],
+          transport,
+          'trasport'
+        );
+      });
+
+      test('clears when is .allDay', function() {
+        subject.isAllDay = true;
+        assert.isTrue(
+          Calendar.Calc.isOnlyDate(subject[remoteDateField]),
+          'is only date'
+        );
+
+        assert.isTrue(
+          subject.remote[field].isDate,
+          'is date'
+        );
+      });
     });
   });
 
-  suite('#startDate', function() {
-    test('initial value', function() {
-      assert.deepEqual(
-        start,
-        subject.startDate
-      );
-    });
+  test('#isAllDay', function() {
+    subject.isAllDay = true;
 
-    test('set value', function() {
-      var newStart = new Date(2012, 0, 1, 2);
-      var start = Calendar.Calc.dateToTransport(newStart);
+    assert.isTrue(
+      Calendar.Calc.isOnlyDate(subject.startDate),
+      'removes time from start'
+    );
 
-      subject.startDate = newStart;
-      assert.deepEqual(
-        remote.startDate,
-        newStart,
-        '.startDate'
-      );
+    assert.isTrue(
+      Calendar.Calc.isOnlyDate(subject.endDate),
+      'removes time from end'
+    );
 
-      assert.deepEqual(
-        remote.start,
-        start,
-        '.start'
-      );
-    });
-  });
+    assert.isTrue(
+      subject.remote.start.isDate,
+      'sets start to date'
+    );
 
-  suite('#isAllDay', function() {
-    setup(function() {
-      subject.startDate = new Date(
-        2012, 0, 1, 1, 1
-      );
-
-      subject.endDate = new Date(
-        2012, 0, 1, 2, 2
-      );
-    });
-
-    test('start 00:00:00', function() {
-      subject.startDate.setMinutes(0);
-      subject.startDate.setHours(0);
-      assert.isFalse(subject.isAllDay);
-    });
-
-    test('end 00:00:00', function() {
-      subject.endDate.setMinutes(0);
-      subject.endDate.setHours(0);
-      assert.isFalse(subject.isAllDay);
-    });
-
-    test('both at 00:00:00', function() {
-      // reset end
-      subject.endDate.setHours(0);
-      subject.endDate.setMinutes(0);
-      // reset start
-      subject.startDate.setHours(0);
-      subject.startDate.setMinutes(0);
-
-      assert.isTrue(subject.isAllDay);
-    });
+    assert.isTrue(
+      subject.remote.end.isDate,
+      'sets end to date'
+    );
   });
 
   test('#calendarId', function() {
@@ -169,7 +195,6 @@ suiteGroup('Models.Event', function() {
     assert.equal(rawEvent.calendarId, 7);
     assert.equal(subject.calendarId, 7);
   });
-
 
   test('#_id', function() {
     rawEvent._id = 'foo';

@@ -15,19 +15,29 @@ function AnimatedIcon(element, path, frames, delay) {
   this.frame = 1;
   this.frames = frames;
   this.timerId = null;
+  this._started = false;
+  var image;
 
   // Load the image and paint the first frame
-  var image = new Image();
-  image.src = path;
-  image.onload = function() {
-    var w = image.width;
-    var h = image.height / frames;
-
-    context.drawImage(image, 0, 0, w, h, 0, 0, w, h);
-  };
+  function init() {
+    image = new Image();
+    image.src = path;
+    image.onload = function() {
+      var w = image.width;
+      var h = image.height / frames;
+      context.drawImage(image, 0, 0, w, h, 0, 0, w, h);
+    };
+  }
 
   this.start = function() {
     var self = this;
+    // XXX: If we draw canvas during device start up,
+    // it will face following issue.
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=849736
+    if (!self._started) {
+      self._started = true;
+      init();
+    }
 
     if (this.timerId == null) {
       this.timerId = setInterval(function() {
@@ -169,17 +179,6 @@ var StatusBar = {
     // Listen to 'moztimechange'
     window.addEventListener('moztimechange', this);
 
-    // Listen to 'appwillclose', 'appopen', 'home', 'holdhome', 'unlock'
-    // to determine the visible state of statusbar
-    window.addEventListener('home', this);
-    window.addEventListener('holdhome', this);
-    window.addEventListener('appwillclose', this);
-    window.addEventListener('appopen', this);
-    window.addEventListener('unlock', this);
-
-    // Listen to 'mozfullscreenchange' to see if we should hide statusbar
-    window.addEventListener('mozfullscreenchange', this);
-
     this.systemDownloadsCount = 0;
 
     // Create the objects used to animate the statusbar-network-activity and
@@ -264,30 +263,7 @@ var StatusBar = {
       case 'moznetworkdownload':
         this.update.networkActivity.call(this);
         break;
-
-      case 'appopen':
-      case 'mozfullscreenchange':
-      case 'unlock':
-        if (this.screen.classList.contains('fullscreen-app') ||
-            document.mozFullScreen) {
-          this.hide();
-        }
-        break;
-
-      case 'appwillclose':
-      case 'home':
-      case 'holdhome':
-        this.show();
-        break;
     }
-  },
-
-  show: function sb_show() {
-    this.element.classList.remove('hidden');
-  },
-
-  hide: function sb_hide() {
-    this.element.classList.add('hidden');
   },
 
   setActive: function sb_setActive(active) {
@@ -318,10 +294,6 @@ var StatusBar = {
 
       window.addEventListener('moznetworkupload', this);
       window.addEventListener('moznetworkdownload', this);
-
-      if (LockScreen.locked) {
-        this.show();
-      }
     } else {
       clearTimeout(this._clockTimer);
 

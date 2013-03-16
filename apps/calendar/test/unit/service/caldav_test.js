@@ -25,6 +25,7 @@ suite('service/caldav', function() {
     fixtures.load('minutely_recurring');
     fixtures.load('single_event');
     fixtures.load('recurring_event');
+    fixtures.load('recurring_exception');
     fixtures.onready = done;
   });
 
@@ -210,7 +211,12 @@ suite('service/caldav', function() {
 
       test('output', function() {
         var expected = {
-          alarms: [{ action: 'DISPLAY', trigger: -1800 }],
+          alarms: [
+            // From duration
+            { action: 'DISPLAY', trigger: -1800 },
+            // From absolute time
+            { action: 'DISPLAY', trigger: 22095000 }
+          ],
           syncToken: etag,
           url: url,
           id: event.uid,
@@ -293,7 +299,7 @@ suite('service/caldav', function() {
       parseFixture('recurringEvent');
 
 
-      test('alarms', function() {
+      test('relative alarms', function() {
         var iter = icalEvent.iterator();
         var i = 0;
         var len = 5;
@@ -305,20 +311,75 @@ suite('service/caldav', function() {
           );
 
           var alarm = subject._displayAlarms(detail);
-          assert.length(alarm, 1, 'has alarm');
+          assert.length(alarm, 1, 'has alarms');
 
           var start = detail.startDate.clone();
           start.adjust(0, 0, -5, 0);
 
-          assert.deepEqual(
-            alarm[0].startDate,
-            subject.formatICALTime(start)
+          assert.equal(
+            alarm[0].trigger,
+            start.subtractDate(detail.startDate).toSeconds()
           );
         }
       });
     });
 
-    suite('single display alarm', function() {
+    suite('recurring events /w exception', function() {
+      parseFixture('recurringException');
+
+      test('parse busytime start, not event start', function() {
+        var iter = icalEvent.iterator();
+        var i = 0;
+        var len = 5;
+
+        var numTested = 0;
+
+        for (; i < len; i++) {
+          var next = iter.next();
+          var detail = icalEvent.getOccurrenceDetails(
+            next
+          );
+
+          var allTriggers = [];
+
+          if (detail.startDate.toString() !==
+            detail.item.startDate.toString()) {
+
+            var alarms = detail.item.component.getAllSubcomponents('valarm');
+            alarms.forEach(function(instance) {
+              var action = instance.getFirstPropertyValue('action');
+              if (action && action === 'DISPLAY') {
+                var triggers = instance.getAllProperties('trigger');
+                var i = 0;
+                var len = triggers.length;
+
+                for (; i < len; i++) {
+
+                  var trigger = triggers[i];
+                  if (trigger.type == 'date-time') {
+                    numTested++;
+                  }
+
+                  allTriggers.push(trigger);
+                }
+              }
+            });
+          }
+          var alarms = subject._displayAlarms(detail);
+
+          allTriggers.forEach(function(trigger, i) {
+            assert.equal(
+              alarms[i].trigger,
+              subject._formatTrigger(trigger, detail.item.startDate)
+            );
+          });
+        }
+
+        assert.equal(numTested, 3);
+      });
+    });
+
+    suite('display alarms', function() {
       // 30 minutes prior
       parseFixture('singleEvent');
 
@@ -328,14 +389,14 @@ suite('service/caldav', function() {
         var details = icalEvent.getOccurrenceDetails(next);
 
         var alarms = subject._displayAlarms(details);
-        assert.length(alarms, 1);
+        assert.length(alarms, 2);
 
-        var date = icalEvent.startDate;
+        var date = icalEvent.startDate.clone();
         date.adjust(0, 0, -30, 0);
 
         assert.deepEqual(
-          alarms[0].startDate,
-          subject.formatICALTime(date)
+          alarms[0].trigger,
+          date.subtractDate(icalEvent.startDate).toSeconds()
         );
       });
     });
@@ -367,6 +428,46 @@ suite('service/caldav', function() {
         assert.equal(calledWith[0].domain, given.domain);
         assert.equal(calledWith[1], given.entrypoint);
       });
+    });
+  });
+
+  suite('#_formatTrigger', function(_formatTrigger) {
+
+    parseFixture('singleEvent');
+
+    test('duration type', function() {
+      var alarm = icalEvent.component.getAllSubcomponents('valarm')[0];
+      var trigger = alarm.getFirstProperty('trigger');
+
+      var start = icalEvent.startDate.clone();
+      start.adjust(0, 0, -30, 0);
+
+      var result = subject._formatTrigger(trigger, icalEvent.startDate);
+
+      assert.ok(typeof(result) === 'number');
+      assert.equal(trigger.type, 'duration');
+      assert.equal(
+        result,
+        start.subtractDate(icalEvent.startDate).toSeconds()
+      );
+    });
+
+    test('date-time type', function() {
+      var alarm = icalEvent.component.getAllSubcomponents('valarm')[2];
+      var trigger = alarm.getFirstProperty('trigger');
+
+      // Adjust our expected date to be the same as what's in single_event.ics
+      var start = icalEvent.startDate.clone();
+      start.adjust(255, 17, 30, 0);
+
+      var result = subject._formatTrigger(trigger, icalEvent.startDate);
+
+      assert.ok(typeof(result) === 'number');
+      assert.equal(trigger.type, 'date-time');
+      assert.equal(
+        result,
+        start.subtractDate(icalEvent.startDate).toSeconds()
+      );
     });
   });
 
@@ -803,6 +904,18 @@ suite('service/caldav', function() {
 
   suite('#formatICALTime', function() {
 
+    test('date', function() {
+      var time = new ICAL.Time({
+        year: 2012,
+        month: 1,
+        day: 15,
+        isDate: true
+      });
+
+      var out = subject.formatICALTime(time);
+      assert.isTrue(out.isDate, 'is date');
+    });
+
     test('floating time', function() {
       var time = new ICAL.Time({
         year: 2012,
@@ -827,6 +940,19 @@ suite('service/caldav', function() {
   });
 
   suite('#formatInputTime', function() {
+
+    test('isDate', function() {
+      var date = new Date(2012, 1, 1);
+      var transport = Calendar.Calc.dateToTransport(
+        date, null, true
+      );
+
+      var result = subject.formatInputTime(transport);
+      assert.isTrue(result.isDate, 'is date');
+
+      assert.deepEqual(result.toJSDate(), date);
+    });
+
     test('floating time', function() {
       var input = {
         offset: 0,

@@ -282,7 +282,7 @@
           <div class="bottom-toolbar-spacer"></div>
         </div>
         <!-- Tells us about remote/not downloaded images, asks to show -->
-        <div class="msg-reader-load-infobar">
+        <div class="msg-reader-load-infobar collapsed">
         </div>
         <div class="msg-reader-action-toolbar bottom-toolbar">
           <button class="msg-delete-btn bottom-btn"></button>
@@ -342,14 +342,23 @@
                 <div class="cmp-bcc-add cmp-contact-add"></div>
               </div>
             </div>
+            <div class="cmp-envelope-line cmp-combo">
+              <span class="cmp-attachment-label cmp-addr-label"
+                     data-l10n-id="compose-attachments[zero]">AttachmentS:</span>
+              <div class="cmp-attachment-container cmp-addr-container">
+                <div class="cmp-attachments-size">
+                </div>
+                <div class="cmp-attachment-add cmp-file-add"></div>
+              </div>
+            </div>
+            <ul class="cmp-attachments-container">
+            </ul>
             <div class="cmp-envelope-line cmp-subject">
               <span class="cmp-subject-label"
                      data-l10n-id="compose-subject">SubjecT:</span>
               <input class="cmp-subject-text" type="text" />
             </div>
           </div>
-          <ul class="cmp-attachments-container">
-          </ul>
           <textarea class="cmp-body-text" rows="1"></textarea>
           <div class="cmp-body-html">
           </div>

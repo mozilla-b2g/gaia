@@ -194,8 +194,8 @@ MockFb.Contact = function(devContact, mozCid) {
           '+346578888888': true,
           'test@test.com': true,
           'Palencia': true,
-          'Castilla y León': true,
-          'España': true
+          'Castilla y Le√≥n': true,
+          'Espa√±a': true
         };
 
         callback.call(this);
@@ -232,15 +232,15 @@ MockFb.isEnabled = function() {
 };
 
 MockFb.getWorksAt = function(fbData) {
-  return 'Telefónica';
+  return 'Telef√≥nica';
 };
 
 MockFb.getAddress = function(fbData) {
   var out = {};
   out.type = ['home'];
   out.locality = 'Palencia';
-  out.region = 'Castilla y León';
-  out.countryName = 'España';
+  out.region = 'Castilla y Le√≥n';
+  out.countryName = 'Espa√±a';
 
   return out;
 };

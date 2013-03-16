@@ -176,4 +176,27 @@ suite('Utils', function() {
       });
     });
   });
+
+  suite('Utils for MMS user story test', function() {
+    test('Image rescaling to 300kB', function() {
+      // Open test image for testing image resize ability
+      function resizeTest(name) {
+        var req = new XMLHttpRequest();
+        req.open('GET' , '/test/unit/media/' + name, true);
+        req.responseType = 'blob';
+
+        req.onreadystatechange = function() {
+          if (req.readyState === 4 && req.status === 200) {
+            var blob = req.response;
+            var limit = 300 * 1024;
+            Utils.getResizedImgBlob(blob, function(resizedBlob) {
+              assert.isTrue(resizedBlob.size < limit);
+            }, limit);
+          }
+        };
+        req.send(null);
+      }
+      resizeTest('IMG_0554.jpg');
+    });
+  });
 });

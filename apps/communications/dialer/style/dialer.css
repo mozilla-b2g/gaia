@@ -83,18 +83,22 @@ body.hidden *[data-l10n-id] {
   height: 100% !important;
 }
 
-.with-keyboard [role="tablist"] [role="tab"] > a{
+.with-keyboard [role="tablist"] [role="tab"] > a {
   display: none;
 }
 
 /* Making lazy loading look nice */
-#iframe-contacts,
+#contacts-view [role="tabpanel"],
 #recents-view.hidden [role="tabpanel"] {
   background-image: url(/shared/style/headers/images/ui/header.png),
                     url(/shared/style/headers/images/ui/shadow.png);
   background-repeat: repeat-x;
   background-position: 0 0, 0 5rem;
   background-size: 100% 5rem, 100% 0.3rem;
+}
+
+#iframe-contacts-container {
+  overflow: hidden;
 }
 
 #recents-view.hidden [role="tabpanel"] section {

@@ -99,6 +99,10 @@ function deleteSingleItem() {
     msg = navigator.mozL10n.get('delete-photo?');
   }
   if (confirm(msg)) {
+    // disable delete and share button to prevent operations while delete item
+    $('fullscreen-delete-button').classList.add('disabled');
+    $('fullscreen-share-button').classList.add('disabled');
+
     deleteFile(currentFileIndex);
   }
 }
@@ -350,6 +354,9 @@ function showFile(n) {
     $('fullscreen-edit-button').classList.add('disabled');
   else
     $('fullscreen-edit-button').classList.remove('disabled');
+  // Always bring delete and share button back after show file
+  $('fullscreen-delete-button').classList.remove('disabled');
+  $('fullscreen-share-button').classList.remove('disabled');
 }
 
 // Transition to the next file, animating it over the specified time (ms).

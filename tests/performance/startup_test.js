@@ -44,11 +44,10 @@ suite(window.mozTestInfo.appPath + ' >', function() {
     // Marionnette timeout for each command sent to the device
     yield device.setScriptTimeout(10000);
 
-    for (var i = 0; i < performanceHelper.runs; i++) {
-      yield performanceHelper.delay();
+    yield performanceHelper.repeatWithDelay(function(app, next) {
       yield app.launch();
       yield app.close();
-    }
+    });
 
     var results = yield PerformanceHelper.getLoadTimes(device);
 

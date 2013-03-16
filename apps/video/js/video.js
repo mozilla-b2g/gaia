@@ -31,7 +31,7 @@ var controlFadeTimeout = null;
 
 var videodb;
 var currentVideo;  // The data for the currently playing video
-var videoCount = 0;
+var videos = [];
 var firstScanEnded = false;
 
 var THUMBNAIL_WIDTH = 160;  // Just a guess at a size for now
@@ -45,14 +45,24 @@ var currentOverlay;
 
 var dragging = false;
 
-var fullscreenTimer;
-var fullscreenCallback;
-
 // Videos recorded by our own camera have filenames of this form
 var FROMCAMERA = /^DCIM\/\d{3}MZLLA\/VID_\d{4}\.3gp$/;
 
 function init() {
 
+  initDB();
+
+  // We can't do this in the mouse down handler below because
+  // calling confirm() from the mousedown generates a contextmenu
+  // event when the alert goes away.
+  // See https://bugzilla.mozilla.org/show_bug.cgi?id=829214
+  dom.deleteVideoButton.onclick = function() {
+    document.mozCancelFullScreen();
+    deleteFile(currentVideo.name);
+  };
+}
+
+function initDB() {
   videodb = new MediaDB('videos', metaDataParser);
 
   videodb.onunavailable = function(event) {
@@ -77,77 +87,88 @@ function init() {
   };
 
   videodb.oncreated = function(event) {
-    event.detail.forEach(videoAdded);
+    event.detail.forEach(videoCreated);
   };
   videodb.ondeleted = function(event) {
     event.detail.forEach(videoDeleted);
   };
+}
 
-  // We can't do this in the mouse down handler below because
-  // calling confirm() from the mousedown generates a contextmenu
-  // event when the alert goes away.
-  // See https://bugzilla.mozilla.org/show_bug.cgi?id=829214
-  dom.deleteVideoButton.onclick = function() {
-    document.mozCancelFullScreen();
-    deleteFile(currentVideo.name);
-  };
+// This comparison function is used for sorting arrays and doing binary
+// search on the resulting sorted arrays.
+function compareVideosByDate(a, b) {
+  return b.date - a.date;
+}
+
+// Assuming that array is sorted according to comparator, return the
+// array index at which element should be inserted to maintain sort order
+function binarysearch(array, element, comparator, from, to) {
+  if (comparator === undefined)
+    comparator = function(a, b) {
+      return a - b;
+    };
+
+  if (from === undefined)
+    return binarysearch(array, element, comparator, 0, array.length);
+
+  if (from === to)
+    return from;
+
+  var mid = Math.floor((from + to) / 2);
+
+  var result = comparator(element, array[mid]);
+  if (result < 0)
+    return binarysearch(array, element, comparator, from, mid);
+  else
+    return binarysearch(array, element, comparator, mid + 1, to);
 }
 
 function videoAdded(videodata) {
-  var poster;
-
   if (!videodata || !videodata.metadata.isVideo) {
     return;
   }
 
-  videoCount += 1;
+  videos.push(videodata);  // remember the file
 
-  var inner = document.createElement('div');
-  inner.className = 'inner';
-
-  if (videodata.metadata.poster) {
-    poster = document.createElement('div');
-    poster.className = 'img';
-    setPosterImage(poster, videodata.metadata.poster);
-  }
-
-  var details = document.createElement('div');
-  details.className = 'details';
-  if (isFinite(videodata.metadata.duration)) {
-    var d = Math.round(videodata.metadata.duration);
-    details.dataset.after = formatDuration(d);
-  }
-  details.textContent = videodata.metadata.title;
-
-  var thumbnail = document.createElement('li');
-  if (poster) {
-    inner.appendChild(poster);
-  }
-
-  if (!videodata.metadata.watched) {
-    var unread = document.createElement('div');
-    unread.classList.add('unwatched');
-    inner.appendChild(unread);
-  }
-
-  thumbnail.dataset.name = videodata.name;
-
-  thumbnail.addEventListener('click', function(e) {
-    // When the user presses and holds to delete a video, we get a
-    // contextmenu event, but still apparently get a click event after
-    // they lift their finger. This ctxTriggered flag prevents us from
-    // playing a video after a contextmenu event.
-    // See https://bugzilla.mozilla.org/show_bug.cgi?id=766813
-    if (!ctxTriggered) {
-      showPlayer(videodata, true);
-    } else {
-      ctxTriggered = false;
-    }
-  });
-  inner.appendChild(details);
-  thumbnail.appendChild(inner);
+  // create its thumbnail
+  var thumbnail = createThumbnailItem(videos.length - 1);
   dom.thumbnails.appendChild(thumbnail);
-  textTruncate(details);
+  var text = thumbnail.querySelector('.details');
+  textTruncate(text);
+}
+
+function videoCreated(videodata) {
+  if (!videodata || !videodata.metadata.isVideo) {
+    return;
+  }
+
+  var insertPosition;
+
+  // If this new video is newer than the first one, it goes first
+  // This is the most common case for bluetooth received video
+  if (videos.length === 0 || videodata.date > videos[0].date) {
+    insertPosition = 0;
+  }
+  else {
+    // Otherwise we have to search for the right insertion spot
+    insertPosition = binarysearch(videos, videodata, compareVideosByDate);
+  }
+
+  // Insert the video info into the array
+  videos.splice(insertPosition, 0, videodata);
+
+  // Create a thumbnail for this video and insert it at the right spot
+  var thumbnail = createThumbnailItem(insertPosition);
+  var thumbnailElts = dom.thumbnails.querySelectorAll('.thumbnail');
+  dom.thumbnails.insertBefore(thumbnail, thumbnailElts[insertPosition]);
+
+  var text = thumbnail.querySelector('.details');
+  textTruncate(text);
+
+  // increment the index of each of the thumbnails after the new one
+  for (var i = insertPosition; i < thumbnailElts.length; i++) {
+    thumbnailElts[i].dataset.index = i + 1;
+  }
 }
 
 dom.thumbnails.addEventListener('contextmenu', function(evt) {
@@ -181,23 +202,46 @@ function deleteFile(file) {
 }
 
 function videoDeleted(filename) {
-  videoCount--;
+  // Find the deleted video in our videos array
+  for (var n = 0; n < videos.length; n++) {
+    if (videos[n].name === filename)
+      break;
+  }
+
+  if (n >= videos.length)  // It was a video we didn't know about
+    return;
+
+  // Remove the video from the array
+  var deletedVideoData = videos.splice(n, 1)[0];
+
   dom.thumbnails.removeChild(getThumbnailDom(filename));
+
+  // Change the index associated with all the thumbnails after the deleted one
+  // This keeps the data-index attribute of each thumbnail element in sync
+  // with the files[] array.
+  var thumbnailElts = dom.thumbnails.querySelectorAll('.thumbnail');
+  for (var i = n + 1; i < thumbnailElts.length; i++) {
+    thumbnailElts[i].dataset.index = i - 1;
+  }
+
   updateDialog();
 }
 
 // Only called on startup to generate initial list of already
-// scanned media, once this is build videoDeleted/Added are used
+// scanned media, once this is build videoDeleted/Created are used
 // to keep it up to date
 function createThumbnailList() {
   if (dom.thumbnails.firstChild !== null) {
     dom.thumbnails.textContent = '';
   }
+  // Clean up the videos array
+  videos = [];
+
   videodb.enumerate('date', null, 'prev', videoAdded);
 }
 
 function updateDialog() {
-  if (videoCount !== 0 && (!storageState || playerShowing)) {
+  if (videos.length !== 0 && (!storageState || playerShowing)) {
     showOverlay(null);
     return;
   }
@@ -205,9 +249,65 @@ function updateDialog() {
     showOverlay('nocard');
   } else if (storageState === MediaDB.UNMOUNTED) {
     showOverlay('pluggedin');
-  } else if (firstScanEnded && videoCount === 0) {
+  } else if (firstScanEnded && videos.length === 0) {
     showOverlay('empty');
   }
+}
+
+//
+// Create a thumbnail item
+//
+function createThumbnailItem(videonum) {
+  var poster;
+  var videodata = videos[videonum];
+
+  var inner = document.createElement('div');
+  inner.className = 'inner';
+
+  if (videodata.metadata.poster) {
+    poster = document.createElement('div');
+    poster.className = 'img';
+    setPosterImage(poster, videodata.metadata.poster);
+  }
+
+  var details = document.createElement('div');
+  details.className = 'details';
+  if (isFinite(videodata.metadata.duration)) {
+    var d = Math.round(videodata.metadata.duration);
+    details.dataset.after = formatDuration(d);
+  }
+  details.textContent = videodata.metadata.title;
+
+  var thumbnail = document.createElement('li');
+  thumbnail.className = 'thumbnail';
+  if (poster) {
+    inner.appendChild(poster);
+  }
+
+  if (!videodata.metadata.watched) {
+    var unread = document.createElement('div');
+    unread.classList.add('unwatched');
+    inner.appendChild(unread);
+  }
+
+  thumbnail.dataset.name = videodata.name;
+  thumbnail.dataset.index = videonum;
+
+  thumbnail.addEventListener('click', function(e) {
+    // When the user presses and holds to delete a video, we get a
+    // contextmenu event, but still apparently get a click event after
+    // they lift their finger. This ctxTriggered flag prevents us from
+    // playing a video after a contextmenu event.
+    // See https://bugzilla.mozilla.org/show_bug.cgi?id=766813
+    if (!ctxTriggered) {
+      showPlayer(videodata, true);
+    } else {
+      ctxTriggered = false;
+    }
+  });
+  inner.appendChild(details);
+  thumbnail.appendChild(inner);
+  return thumbnail;
 }
 
 function metaDataParser(videofile, callback, metadataError, delayed) {
@@ -405,7 +505,7 @@ function playerMousedown(event) {
   if (event.target == dom.play) {
     setVideoPlaying(dom.player.paused);
   } else if (event.target == dom.close) {
-    document.mozCancelFullScreen();
+    hidePlayer();
   } else if (event.target == dom.sliderWrapper) {
     dragSlider(event);
   } else {
@@ -503,22 +603,19 @@ function showPlayer(data, autoPlay) {
 
   function doneSeeking() {
     dom.player.onseeked = null;
-    requestFullScreen(function() {
-      // Show the controls briefly then fade out
-      setControlsVisibility(true);
-      controlFadeTimeout = setTimeout(function() {
-        setControlsVisibility(false);
-      }, 250);
+    setControlsVisibility(true);
+    controlFadeTimeout = setTimeout(function() {
+      setControlsVisibility(false);
+    }, 250);
 
-      if (autoPlay) {
-        play();
-      }
+    if (autoPlay) {
+      play();
+    }
 
-      if ('metadata' in currentVideo) {
-        currentVideo.metadata.watched = true;
-        videodb.updateMetadata(currentVideo.name, currentVideo.metadata);
-      }
-    });
+    if ('metadata' in currentVideo) {
+      currentVideo.metadata.watched = true;
+      videodb.updateMetadata(currentVideo.name, currentVideo.metadata);
+    }
   }
 
   setVideoUrl(dom.player, currentVideo, function() {
@@ -571,7 +668,7 @@ function hidePlayer() {
 
     // Unload the video. This releases the video decoding hardware
     // so other apps can use it. Note that any time the video app is hidden
-    // (by switching to another app) we leave fullscreen mode, and this
+    // (by switching to another app) we leave player mode, and this
     // code gets triggered, so if the video app is not visible it should
     // not be holding on to the video hardware
     dom.player.removeAttribute('src');
@@ -622,7 +719,7 @@ function playerEnded() {
   }
 
   dom.player.currentTime = 0;
-  document.mozCancelFullScreen();
+  hidePlayer();
 }
 
 function play() {
@@ -887,48 +984,6 @@ function textTruncate(el) {
   text.el.dataset.visible = 'true';
 }
 
-
-// The mozRequestFullScreen can fail silently, so we keep asking
-// for full screen until we detect that it happens, We limit the
-// number of requests as this can be a permanent failure due to
-// https://bugzilla.mozilla.org/show_bug.cgi?id=812850
-var MAX_FULLSCREEN_REQUESTS = 5;
-function requestFullScreen(callback) {
-  fullscreenCallback = callback;
-  var requests = 0;
-  fullscreenTimer = setInterval(function() {
-    if (++requests > MAX_FULLSCREEN_REQUESTS) {
-      window.clearInterval(fullscreenTimer);
-      fullscreenTimer = null;
-      return;
-    }
-    dom.videoFrame.mozRequestFullScreen();
-  }, 500);
-}
-
-// When we exit fullscreen mode, stop playing the video.
-// This happens automatically when the user uses the back button (because
-// back is Escape, which is also the "leave fullscreen mode" command).
-// It also happens when the user uses the Home button to go to the
-// homescreen or another app.
-document.addEventListener('mozfullscreenchange', function() {
-  // We have exited fullscreen
-  if (document.mozFullScreenElement === null) {
-    hidePlayer();
-    return;
-  }
-
-  // We have entered fullscreen
-  if (fullscreenTimer) {
-    window.clearInterval(fullscreenTimer);
-    fullscreenTimer = null;
-  }
-  if (fullscreenCallback) {
-    fullscreenCallback();
-    fullscreenCallback = null;
-  }
-});
-
  // Pause on visibility change
 document.addEventListener('mozvisibilitychange', function visibilityChange() {
   if (document.mozHidden) {
@@ -939,11 +994,10 @@ document.addEventListener('mozvisibilitychange', function visibilityChange() {
       releaseVideo();
   }
   else {
-    if (document.mozFullScreenElement)
+    if (playerShowing) {
       setControlsVisibility(true);
-
-    if (playerShowing)
       restoreVideo();
+    }
   }
 });
 
@@ -972,7 +1026,7 @@ function restoreVideo() {
 dom.videoControls.addEventListener('mousedown', playerMousedown);
 
 // Rescale when window size changes. This should get called when
-// orientation changes and when we go into fullscreen
+// orientation changes
 window.addEventListener('resize', function() {
   if (dom.player.readyState !== HAVE_NOTHING) {
     setPlayerSize();

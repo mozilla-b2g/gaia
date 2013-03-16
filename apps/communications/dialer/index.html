@@ -23,7 +23,10 @@
     <script defer src="/dialer/js/keypad.js"></script>
     <script defer src="/dialer/js/dialer.js"></script>
     <script defer src="/dialer/js/recents_db.js"></script>
-    
+
+    <!-- for perf-measurement related utilities -->
+    <script defer src='/shared/js/performance_testing_helper.js'></script>
+
     <!-- Lazy load all the things:
     <link rel="stylesheet" type="text/css" href="/shared/style/action_menu.css">
     <link rel="stylesheet" type="text/css" href="/shared/style/confirm.css">
@@ -78,7 +81,8 @@
       </article>
       <article class="view" role="tab" id="contacts-view">
         <a id="option-contacts" href="#contacts-view" class="icon icon-contacts">contacts</a>
-        <iframe role="tabpanel" id="iframe-contacts" frameBorder="no" class="grid-wrapper"></iframe>
+        <div id="iframe-contacts-container" role="tabpanel">
+        </div>
       </article>
       <article id="keyboard-view" role="tab">
         <a id="option-keypad" href="#keyboard-view" class="icon icon-keypad">keypad</a>

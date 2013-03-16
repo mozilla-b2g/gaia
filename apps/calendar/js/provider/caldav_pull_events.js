@@ -174,9 +174,26 @@ Calendar.ns('Provider').CaldavPullEvents = (function() {
         if (alarms.length) {
           var i = 0;
           var len = alarms.length;
+          var now = Date.now();
 
           for (; i < len; i++) {
-            this.alarmQueue.push(alarms[i]);
+            var alarm = {
+              startDate: {},
+              eventId: item.eventId,
+              busytimeId: item._id
+            };
+
+            // Copy the start object
+            for (var j in item.start) {
+              alarm.startDate[j] = item.start[j];
+            }
+            alarm.startDate.utc += (alarms[i].trigger * 1000);
+
+            var alarmDate = Calc.dateFromTransport(item.end);
+            if (alarmDate.valueOf() < now) {
+              continue;
+            }
+            this.alarmQueue.push(alarm);
           }
         }
       }

@@ -582,7 +582,9 @@ Calendar.ns('Controllers').Time = (function() {
       var alarmStore = this.app.store('Alarm');
       var list = [];
 
-      var stores = [];
+      // this is a readonly transaction so we can add busytimes
+      // here even though we may not use it later...
+      var stores = ['busytimes'];
 
       if (getAlarms)
         stores.push('alarms');
@@ -591,7 +593,6 @@ Calendar.ns('Controllers').Time = (function() {
         stores.push('events');
 
       var trans = eventStore.db.transaction(stores);
-      var self = this;
 
       trans.addEventListener('error', cb);
 
@@ -605,13 +606,15 @@ Calendar.ns('Controllers').Time = (function() {
         }
       }
 
-      // using forEach for scoping
-      // XXX: this is a hot code path needs some optimization.
-      busytimes.forEach(function(busytime, idx) {
-        if (typeof(busytime) === 'string') {
-          busytime = this._collection.byId[busytime];
-        }
+      var self = this;
 
+      /**
+       * Fetch records for a given busytime.
+       *
+       * @param {Object} busytime object.
+       * @param {Numeric} idx where to put item in array.
+       */
+      function fetchRecords(busytime, idx) {
         var result = { busytime: busytime };
         list[idx] = result;
 
@@ -635,8 +638,8 @@ Calendar.ns('Controllers').Time = (function() {
         if (getEvent) {
           var eventId = busytime.eventId;
 
-          if (eventId in this._eventsCache) {
-            result.event = this._eventsCache[eventId];
+          if (eventId in self._eventsCache) {
+            result.event = self._eventsCache[eventId];
           } else {
             pending++;
             eventStore.get(eventId, trans, function(err, event) {
@@ -648,6 +651,56 @@ Calendar.ns('Controllers').Time = (function() {
             });
           }
         }
+      }
+
+      function fetchBusytime(id, idx, err, record) {
+        if (!record || err) {
+          console.log('Error finding busytime', id, err);
+          return next();
+        }
+
+        // cache the busytime when it is not found...
+        // Even if the busytime is _way_ out of range later
+        // we still will clean it up when we get far enough
+        // out of its starting time...
+        self.cacheBusytime(record);
+
+        fetchRecords(record, idx);
+
+        // next will decrement the pending counter and return
+        // if there are no more pending items... We must call
+        // this here to avoid race conditions in the case where
+        // all but one busytime is uncached (which is common).
+        next();
+      }
+
+      // using forEach for scoping
+      // XXX: this is a hot code path needs some optimization.
+      busytimes.forEach(function(busytime, idx) {
+        if (typeof(busytime) === 'string') {
+
+          var record = this._collection.byId[busytime];
+
+          if (!record) {
+            console.log('Cannot find busytime by id: ', busytime);
+
+            // why pending++ ? we must add a pending item to our
+            // counter otherwise the loop may close and return prior
+            // to the busytime being fetched... later we decrement the
+            // counter in fetchBusytime.
+            pending++;
+            return this.busytime.get(
+              busytime,
+              trans,
+              fetchBusytime.bind(this, busytime, idx)
+            );
+          }
+
+          busytime = this._collection.byId[busytime];
+        }
+
+        fetchRecords(busytime, idx);
+
       }, this);
 
       // this handles the case where there

@@ -375,25 +375,12 @@ var WindowManager = (function() {
     }
 
     if (classList.contains('opening')) {
-      var onWindowReady = function() {
-        windowOpened(frame);
+      windowOpened(frame);
 
-        setTimeout(openCallback);
-        openCallback = null;
+      setTimeout(openCallback);
+      openCallback = null;
 
-        setOpenFrame(null);
-      };
-
-      // If this is a cold launch let's wait for the app to load first
-      var iframe = openFrame.firstChild;
-      if ('unpainted' in iframe.dataset) {
-        iframe.addEventListener('mozbrowserloadend', function on(e) {
-          iframe.removeEventListener('mozbrowserloadend', on);
-          onWindowReady();
-        });
-      } else {
-        onWindowReady();
-      }
+      setOpenFrame(null);
     } else if (classList.contains('closing')) {
       windowClosed(frame);
 
@@ -816,11 +803,6 @@ var WindowManager = (function() {
     evt.initCustomEvent('appwillclose', true, false, { origin: origin });
     closeFrame.dispatchEvent(evt);
 
-    if ('wrapper' in closeFrame.dataset) {
-      wrapperHeader.classList.remove('visible');
-      wrapperFooter.classList.remove('visible');
-    }
-
     transitionCloseCallback = function startClosingTransition() {
       // We have been canceled by another transition.
       if (!closeFrame || transitionCloseCallback != startClosingTransition)
@@ -832,6 +814,11 @@ var WindowManager = (function() {
       // Start the transition
       closeFrame.classList.add('closing');
       closeFrame.classList.remove('active');
+
+      if ('wrapper' in closeFrame.dataset) {
+        wrapperHeader.classList.remove('visible');
+        wrapperFooter.classList.remove('visible');
+      }
     };
 
     waitForNextPaint(homescreenFrame, transitionCloseCallback);
@@ -1043,9 +1030,14 @@ var WindowManager = (function() {
       if (newApp == homescreen) {
         // relaunch homescreen
         openWindow(homescreen, callback);
-      } else if (callback) {
+      } else {
+        if (requireFullscreen(newApp)) {
+          screenElement.classList.add('fullscreen-app');
+        }
+
         // Just run the callback right away if it is not homescreen
-        callback();
+        if (callback)
+          callback();
       }
     }
     // Case 2: null --> app

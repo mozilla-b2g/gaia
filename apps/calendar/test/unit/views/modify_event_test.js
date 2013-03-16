@@ -13,6 +13,7 @@ suiteGroup('Views.ModifyEvent', function() {
   var eventStore;
   var calendarStore;
   var accountStore;
+  var settingStore;
 
   function clearMS(date) {
     var newDate = new Date(date.valueOf());
@@ -99,6 +100,7 @@ suiteGroup('Views.ModifyEvent', function() {
     eventStore = app.store('Event');
     accountStore = app.store('Account');
     calendarStore = app.store('Calendar');
+    settingStore = app.store('Setting');
     provider = app.provider('Mock');
 
     fmt = navigator.mozL10n.DateTimeFormat();
@@ -333,7 +335,27 @@ suiteGroup('Views.ModifyEvent', function() {
           assert.ok(list.contains(subject.ALLDAY));
         });
       });
+    });
 
+
+    test('saved alarms are shown for all-day events', function(done) {
+      remote.startDate = new Date(2012, 0, 1);
+      remote.endDate = new Date(2012, 0, 2);
+      remote.alarms = [
+        {trigger: -300},
+        {trigger: 0}
+      ];
+
+      var updateTo = { alarms: remote.alarms, endDate: '2012-01-01' };
+      updatesValues(updateTo, function() {
+        done(function() {
+          var allday = subject.getEl('allday');
+          assert.isTrue(allday.checked, 'checks all day');
+
+          assert.ok(list.contains(subject.ALLDAY));
+          assert.equal(subject.event.alarms.length, 2);
+        });
+      });
     });
   });
 
@@ -569,6 +591,7 @@ suiteGroup('Views.ModifyEvent', function() {
             assert.equal(updated._id, event._id, 'updates correcet event');
 
             var data = subject.formData();
+            data.alarms = [];
             assert.hasProperties(subject.event, data, 'updated model');
             assert.isTrue(list.contains(subject.PROGRESS));
 
@@ -613,6 +636,9 @@ suiteGroup('Views.ModifyEvent', function() {
         provider.createEvent = function(event, callback) {
           done(function() {
             var data = subject.formData();
+
+            data.alarms = [];
+
             assert.hasProperties(subject.event, data, 'updated model');
             assert.isTrue(list.contains(subject.PROGRESS));
 
@@ -754,6 +780,129 @@ suiteGroup('Views.ModifyEvent', function() {
     });
   });
 
+  suite('alarm defaults', function() {
+
+    var defaultAllDayAlarm;
+    var defaultEventAlarm;
+
+    setup(function(done) {
+      var pending = 3;
+
+      // setup the save
+      subject.onfirstseen();
+      subject.onafteronfirstseen = function() {
+        subject.dispatch({ params: {} });
+        subject.ondispatch = function() {
+          // must come after dispatch
+          subject._returnTo = '/foo';
+          next();
+        };
+      };
+
+      settingStore.getValue('standardAlarmDefault', function(err, value) {
+        defaultEventAlarm = value;
+        next();
+      });
+
+      settingStore.getValue('alldayAlarmDefault', function(err, value) {
+        defaultAllDayAlarm = value;
+        next();
+      });
+
+      function next() {
+        if (!(--pending)) {
+          done();
+        }
+      }
+    });
+
+    test('with no alarms set', function(done) {
+      provider.createEvent = function(event, callback) {
+        done(function() {
+          var data = subject.formData();
+
+          callback();
+
+          assert.deepEqual(
+            data.alarms,
+            subject.event.alarms,
+            'alarms'
+          );
+        });
+      };
+
+      subject.primary();
+    });
+
+    function testAlarmIsAdded(done, isAllDay, defaultAlarm) {
+      provider.createEvent = function(event, callback) {
+        done(function() {
+          var data = subject.formData();
+          callback();
+
+          assert.deepEqual(
+            data.alarms,
+            [
+              {action: 'DISPLAY', trigger: defaultAlarm},
+              {action: 'DISPLAY', trigger: 123}
+            ],
+            'alarms'
+          );
+        });
+      };
+
+      var allday = subject.getEl('allday');
+      allday.checked = isAllDay;
+      subject.event.isAllDay = isAllDay;
+      subject.updateAlarms(isAllDay, function() {
+        var allAlarms = subject.alarmList.querySelectorAll('select');
+        assert.equal(allAlarms.length, 2);
+
+        var secondSelect = allAlarms[1];
+        assert.ok(secondSelect);
+
+        var newOption = document.createElement('option');
+        newOption.value = '123';
+        secondSelect.appendChild(newOption);
+        secondSelect.value = '123';
+
+        subject.primary();
+      });
+    }
+
+    test('with all day defaults', function(done) {
+      testAlarmIsAdded(done, true, defaultAllDayAlarm);
+    });
+
+    test('with event defaults', function(done) {
+      testAlarmIsAdded(done, false, defaultEventAlarm);
+    });
+
+    test('populated with no existing alarms', function(done) {
+      subject.event.alarms = [];
+      subject.updateAlarms(true, function() {
+        var allAlarms = subject.alarmList.querySelectorAll('select');
+        assert.equal(allAlarms.length, 2);
+        assert.equal(allAlarms[0].value, defaultAllDayAlarm);
+        assert.equal(allAlarms[1].value, 'none');
+        done();
+      });
+    });
+
+    test('not populated with existing alarms', function(done) {
+      subject.event.alarms = [
+        {trigger: -300}
+      ];
+      subject.updateAlarms(true, function() {
+        var allAlarms = subject.alarmList.querySelectorAll('select');
+        assert.equal(allAlarms.length, 2);
+        assert.equal(allAlarms[0].value, -300);
+        assert.equal(allAlarms[1].value, 'none');
+        done();
+      });
+    });
+  });
+
   suite('#returnTo', function() {
     test('without returnTo', function() {
       assert.equal(subject.returnTo(), subject.DEFAULT_VIEW);
@@ -786,12 +935,14 @@ suiteGroup('Views.ModifyEvent', function() {
       test('initial', function() {
         check(true);
         assert.ok(list.contains(subject.ALLDAY), 'has allday');
+        assert.isTrue(subject.event.isAllDay, 'model is allday');
       });
 
       test('uncheck', function() {
         check(true);
         check(false);
         assert.ok(!list.contains(subject.ALLDAY), 'has allday');
+        assert.isFalse(subject.event.isAllDay, 'model is allday');
       });
 
       test('when start & end are same dates (all day)', function() {

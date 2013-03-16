@@ -101,6 +101,7 @@ Calendar.EventMutations = (function() {
       if (alarms && alarms.length) {
         var i = 0;
         var len = alarms.length;
+        var now = Date.now();
 
         var alarmTrans = alarmStore.db.transaction(
           ['alarms'],
@@ -118,7 +119,8 @@ Calendar.EventMutations = (function() {
             busytimeId: this.busytime._id
           };
 
-          if (Calc.dateFromTransport(alarm.startDate).valueOf() < Date.now()) {
+          var alarmDate = Calc.dateFromTransport(this.busytime.end).valueOf();
+          if (alarmDate < now) {
             continue;
           }
 

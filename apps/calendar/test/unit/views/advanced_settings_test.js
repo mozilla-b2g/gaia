@@ -70,7 +70,9 @@ suiteGroup('Views.AdvancedSettings', function() {
         '<option value="15">15</option>',
         '<option value="30">30</option>',
         '<option selected value="60">60</option>',
-      '</select>'
+      '</select>',
+      '<div id="default-event-alarm"></div>',
+      '<div id="default-allday-alarm"></div>'
     ].join('');
 
     document.body.appendChild(div);
@@ -241,8 +243,21 @@ suiteGroup('Views.AdvancedSettings', function() {
     var list;
     var expectedSyncFreq = 30;
 
+    var expectedEventAlarm = -300;
+    var expectedAllDayAlarm = 32400;
+
     setup(function(done) {
-      settings.set('syncFrequency', expectedSyncFreq, done);
+      var pending = 3;
+
+      settings.set('syncFrequency', expectedSyncFreq, next);
+      settings.set('standardAlarmDefault', expectedEventAlarm, next);
+      settings.set('alldayAlarmDefault', expectedAllDayAlarm, next);
+
+      function next() {
+        if (!(--pending)) {
+          done();
+        }
+      }
     });
 
     setup(function(done) {
@@ -274,6 +289,31 @@ suiteGroup('Views.AdvancedSettings', function() {
       assert.ok(
         element.value == expectedSyncFreq,
         'set to stored value'
+      );
+    });
+
+    test('alarm select populated', function() {
+      assert.equal(
+        subject.standardAlarmLabel.querySelectorAll('select').length,
+        1
+      );
+      assert.equal(
+        subject.alldayAlarmLabel.querySelectorAll('select').length,
+        1
+      );
+    });
+
+    test('alarms set to stored value', function() {
+      var element = subject.standardAlarm;
+      assert.equal(
+        element.value, expectedEventAlarm,
+        'event alarm set to stored value'
+      );
+
+      var element = subject.alldayAlarm;
+      assert.equal(
+        element.value, expectedAllDayAlarm,
+        'event alarm set to stored value'
       );
     });
   });

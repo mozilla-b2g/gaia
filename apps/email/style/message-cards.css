@@ -11,6 +11,12 @@
   /* force the card to be tall enough so we can scroll the search bit out of the
      way by default*/
   min-height: calc(100% + 4.8rem); /* 2.4rem is the search bar */
+  /* Give it a z-index of 0 so that all its contents are forced into a single stacking
+     context. This simplifies display list construction because our many positioned
+     descendants can be clipped as a single group instead of independently.
+     XXX we can take this out when Gecko bug 841192 is fixed. */
+  position: relative;
+  z-index: 0;
 }
 
 /* Have enough scroll space to have the search bit pull out. */
@@ -53,7 +59,6 @@ input.msg-search-text-tease {
   display: block;
   position: relative;
   height: 8rem;
-  overflow: hidden;
   border-bottom: 1px solid lightgray;
   vertical-align: 0%;
 }
@@ -260,6 +265,7 @@ input.msg-search-text-tease {
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: calc(100% - 12.5rem);
+  white-space: nowrap;
 }
 .msg-attachment-filesize {
   color: gray;

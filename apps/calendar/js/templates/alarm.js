@@ -4,6 +4,7 @@
   var HOUR = 3600;
   var DAY = 86400;
   var WEEK = 604800;
+  var MORNING = HOUR * 9;
 
   var layouts = {
     standard: [
@@ -18,11 +19,11 @@
     ],
     allday: [
       'none',
-      0,
-      0 - DAY,
-      0 - DAY * 2,
-      0 - WEEK,
-      0 - WEEK * 2
+      0 + MORNING,
+      0 - DAY + MORNING,
+      0 - DAY * 2 + MORNING,
+      0 - WEEK + MORNING,
+      0 - WEEK * 2 + MORNING
     ]
   };
 
@@ -36,25 +37,32 @@
 
       var description;
       var trigger = this.arg('trigger');
-      if (trigger != 'none') {
-        trigger = Math.abs(trigger);
+      var _ = navigator.mozL10n.get;
+
+      if (trigger == 'none') {
+        return _('none');
+      }
+
+      // Format the display text based on a zero-offset trigger
+      if (this.arg('layout') == 'allday') {
+        trigger -= MORNING;
       }
 
       function translate(unit, name) {
-        var value = Math.round(trigger / unit);
-        var key = 'alarm-' + name + (value > 1 ? 's' : '') + '-before';
-        return navigator.mozL10n.get(key, {value: value});
+        var value = Math.abs(Math.round(trigger / unit));
+        var suffix = trigger > 0 ? 'after' : 'before';
+        var key = 'alarm-' + name + (value > 1 ? 's' : '') + '-' + suffix;
+        return _(key, {value: value});
       }
 
-      if (trigger == 'none')
-        description = navigator.mozL10n.get('none');
-      else if (trigger == 0)
-        description = navigator.mozL10n.get('alarm-at-event-standard');
-      else if (trigger < HOUR)
+      var absTrigger = Math.abs(trigger);
+      if (absTrigger == 0)
+        description = _('alarm-at-event-' + this.arg('layout'));
+      else if (absTrigger < HOUR)
         description = translate(MINUTE, 'minute');
-      else if (trigger < DAY)
+      else if (absTrigger < DAY)
         description = translate(HOUR, 'hour');
-      else if (trigger < WEEK)
+      else if (absTrigger < WEEK)
         description = translate(DAY, 'day');
       else
         description = translate(WEEK, 'week');
@@ -68,7 +76,8 @@
       var foundSelected = false;
 
       var trigger = this.arg('trigger');
-      var options = layouts[this.arg('layout') || 'standard'];
+      var layout = this.arg('layout') || 'standard';
+      var options = layouts[layout];
 
       var i = 0;
       var iLen = options.length;
@@ -82,7 +91,8 @@
 
         content += '<option value="' + options[i] + '"' + selected + '>' +
           Calendar.Templates.Alarm.description.render({
-            trigger: options[i]
+            trigger: options[i],
+            layout: layout
           }) +
         '</option>';
       }
@@ -90,7 +100,8 @@
       if (!foundSelected && /^-?\d+$/.test(trigger)) {
         content += '<option value="' + trigger + '" selected>' +
           Calendar.Templates.Alarm.description.render({
-            trigger: trigger
+            trigger: trigger,
+            layout: layout
           }) +
         '</option>';
       }

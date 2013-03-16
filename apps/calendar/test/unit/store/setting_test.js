@@ -79,6 +79,17 @@ suite('store/setting', function() {
       subject.getValue('syncFrequency', function(err, value) {
         done(function() {
           assert.equal(value, subject.defaults.syncFrequency);
+          assert.ok(value);
+        });
+      });
+    });
+
+    test('with a zero default', function(done) {
+      subject.defaults.someZeroDefault = 0;
+      subject.getValue('someZeroDefault', function(err, value) {
+        done(function() {
+          assert.equal(value, subject.defaults.someZeroDefault);
+          assert.equal(value, 0);
         });
       });
     });

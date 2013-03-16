@@ -175,7 +175,7 @@ var AppIntegration = (function() {
       // generators in .task
       var app = Object.create(this);
       app.defaultCallback = next;
-      app.device = Object.create(app.device);
+      app.device = Object.create(this.device);
       app.device.defaultCallback = next;
 
       var instance = generator.call(context, app, next, callback);
@@ -582,7 +582,7 @@ var AppIntegration = (function() {
       return toUpdate;
     },
 
-    observePerfEvents: function(stopEventName) {
+    observePerfEvents: function(stopEventName, callback) {
       var self = this;
 
       this.task(function (app, next, done) {
@@ -606,7 +606,7 @@ var AppIntegration = (function() {
         );
 
         done(null, results);
-      });
+      }, callback);
     }
   };
 

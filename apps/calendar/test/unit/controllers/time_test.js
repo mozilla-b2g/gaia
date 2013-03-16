@@ -290,7 +290,24 @@ suite('Controllers.Time', function() {
       });
     });
 
-    test('when given a busytime id', function(done) {
+    test('when given a busytime id (not cached)', function(done) {
+      var expected = {
+        busytime: hasAlarm,
+        event: event
+      };
+
+      subject.findAssociated(hasAlarm._id, function(err, data) {
+        done(function() {
+          assert.length(data, 1, 'has data');
+          var item = data[0];
+
+          assert.equal(item.busytime._id, hasAlarm._id, 'has alarm');
+          assert.equal(item.event._id, event._id, 'has event');
+        });
+      });
+    });
+
+    test('when given a busytime id (cached)', function(done) {
       var expected = {
         busytime: hasAlarm,
         event: event
