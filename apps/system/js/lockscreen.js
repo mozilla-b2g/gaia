@@ -807,10 +807,6 @@ var LockScreen = {
       updateConnstateLine1('emergencyCallsOnly');
 
       switch (conn.cardState) {
-        case 'unknown':
-          updateConnstateLine2('emergencyCallsOnly-unknownSIMState');
-          break;
-
         case 'absent':
           updateConnstateLine2('emergencyCallsOnly-noSIM');
           break;

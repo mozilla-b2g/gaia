@@ -73,10 +73,9 @@ var SimLock = {
       return false;
 
     switch (conn.cardState) {
-      // do nothing in either absent, unknown or null card states
+      // do nothing in absent and null card states
       case null:
       case 'absent':
-      case 'unknown':
         break;
       case 'pukRequired':
       case 'pinRequired':
