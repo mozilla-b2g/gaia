@@ -55,9 +55,6 @@ var Wallpaper = {
             'wallpaper.image': reader.result
           });
         };
-
-        self.preview.src = a.result.url;
-        settings.createLock().set({'wallpaper.image': a.result.url});
       };
       a.onerror = function onPickError() {
         console.warn('pick failed!');
