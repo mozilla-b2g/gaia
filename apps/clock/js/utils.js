@@ -131,6 +131,13 @@ function getSelectedValue(selectElement) {
 
 var ValuePicker = (function() {
 
+  var currentEvent;      // Use current and last mouse event
+  var lastEvent;         // to calculate velocity of dragging.
+  var startEvent;        // To record start of dragging.
+  var currentSpeed;
+  var currentindex = 0;
+  var startTop = 0;
+
   //
   // Constructor
   //
@@ -158,40 +165,35 @@ var ValuePicker = (function() {
     return displayedText;
   };
 
-  VP.prototype.setSelectedIndex = function(tunedIndex, ignorePicker) {
-    if ((tunedIndex % 1) > 0.5) {
-      tunedIndex = Math.floor(tunedIndex) + 1;
-    } else {
-      tunedIndex = Math.floor(tunedIndex);
-    }
+  VP.prototype.setSelectedIndex = function(index) {
+    this.updateCurrentIndex(index);
+    this.alignIndexToUI();
+  };
 
-    if (tunedIndex < this._lower) {
-      tunedIndex = this._lower;
-    }
-
-    if (tunedIndex > this._upper) {
-      tunedIndex = this._upper;
-    }
-
-    this._currentIndex = tunedIndex;
-    this.updateUI(tunedIndex, ignorePicker);
-
-    return tunedIndex;
+  VP.prototype.updateCurrentIndex = function(index) {
+    index = Math.max(this._lower, index);
+    index = Math.min(this._upper, index);
+    this._currentIndex = index;
+    this.resetActiveState(index);
+    return index;
   };
 
   VP.prototype.setSelectedIndexByDisplayedText = function(displayedText) {
     var newIndex = this._valueDisplayedText.indexOf(displayedText);
-    if (newIndex != -1) {
-      this._currentIndex = newIndex;
-      this.updateUI(newIndex);
-    }
+    this.setSelectedIndex(newIndex);
   };
 
+  //
+  // Tuneable parameters
+  //
+  var SPEED_THRESHOLD = 0.5;
+  var OVER_SCROLL = 28; // in pixel. to simulate bounce effect.
   //
   // Internal methods
   //
   VP.prototype.init = function() {
     this.initUI();
+    this.alignIndexToUI();
     this.setSelectedIndex(0); // Default Index is zero
     this.mousedownHandler = vp_mousedown.bind(this);
     this.mousemoveHandler = vp_mousemove.bind(this);
@@ -201,8 +203,6 @@ var ValuePicker = (function() {
   };
 
   VP.prototype.initUI = function() {
-    var lower = this._lower;
-    var upper = this._upper;
     var unitCount = this._valueDisplayedText.length;
     for (var i = 0; i < unitCount; ++i) {
       this.addPickerUnit(i);
@@ -212,6 +212,20 @@ var ValuePicker = (function() {
     this._pickerUnitsHeight = this._pickerUnits[0].clientHeight;
     this._pickerHeight = this.element.clientHeight;
     this._space = this._pickerHeight / this._range;
+
+    // restrict the 'top' attribute of picker between topBouncingBound and
+    // bottomBouncingBound.
+    this._topBound = -((this._pickerUnits.length - 1) *
+                         this._pickerUnitsHeight);
+    this._bottomBound = 0;
+    this._topBouncingBound = this._topBound - OVER_SCROLL;
+    this._bottomBouncingBound = this._bottomBound + OVER_SCROLL;
+  };
+
+  VP.prototype.alignIndexToUI = function() {
+    // make sure the Picker aligns to correct position.
+    var pickerTop = -(this._pickerUnitsHeight * this._currentIndex);
+    this.element.style.top = pickerTop + 'px';
   };
 
   VP.prototype.addPickerUnit = function(index) {
@@ -222,12 +236,13 @@ var ValuePicker = (function() {
     this.element.appendChild(unit);
   };
 
-  VP.prototype.updateUI = function(index, ignorePicker) {
-    this.resetUI();
-    if (true !== ignorePicker) {
-      this.element.style.top =
-            (this._lower - index) * this._space + 'px';
+  VP.prototype.resetActiveState = function(index) {
+    // set current Index as Active
+    var actives = this.element.querySelectorAll('.active');
+    for (var i = 0; i < actives.length; i++) {
+      actives[i].classList.remove('active');
     }
+    this._pickerUnits[this._currentIndex].classList.add('active');
   };
 
   VP.prototype.addEventListeners = function() {
@@ -239,14 +254,6 @@ var ValuePicker = (function() {
     this.element.removeEventListener('mousemove', this.mousemoveHandler, false);
   };
 
-  VP.prototype.resetUI = function() {
-    var actives = this.element.querySelectorAll('.active');
-    for (var i = 0; i < actives.length; i++) {
-      actives[i].classList.remove('active');
-    }
-    this._pickerUnits[this._currentIndex].classList.add('active');
-  };
-
   function cloneEvent(evt) {
     if ('touches' in evt) {
       evt = evt.touches[0];
@@ -255,35 +262,15 @@ var ValuePicker = (function() {
              timestamp: MouseEventShim.getEventTimestamp(evt) };
   }
 
-  //
-  // Tuneable parameters
-  //
-  var SPEED_THRESHOLD = 0.1;
-  var currentEvent, startEvent, currentSpeed;
-  var tunedIndex = 0;
-
   function toFixed(value) {
     return parseFloat(value.toFixed(1));
   }
 
   function calcSpeed() {
-    var movingSpace = startEvent.y - currentEvent.y;
-    var deltaTime = currentEvent.timestamp - startEvent.timestamp;
+    var movingSpace = currentEvent.y - lastEvent.y;
+    var deltaTime = currentEvent.timestamp - lastEvent.timestamp;
     var speed = movingSpace / deltaTime;
     currentSpeed = parseFloat(speed.toFixed(2));
-  }
-
-  function calcTargetIndex(space) {
-    return tunedIndex - getMovingSpace() / space;
-  }
-
-  // If the user swap really slow, narrow down the moving space
-  // So the user can fine tune value.
-  function getMovingSpace() {
-    var movingSpace = currentEvent.y - startEvent.y;
-    var reValue = Math.abs(currentSpeed) > SPEED_THRESHOLD ?
-                                movingSpace : movingSpace / 4;
-    return reValue;
   }
 
   function vp_transitionend() {
@@ -294,22 +281,21 @@ var ValuePicker = (function() {
 
   function vp_mousemove(event) {
     event.stopPropagation();
+    lastEvent = currentEvent;
     currentEvent = cloneEvent(event);
-
     calcSpeed();
 
-    // move selected index
-    this.element.style.top = parseFloat(this.element.style.top) +
-                              getMovingSpace() + 'px';
-
-    tunedIndex = calcTargetIndex(this._space);
-    var roundedIndex = Math.round(tunedIndex * 10) / 10;
-
-    if (roundedIndex != this._currentIndex) {
-      this.setSelectedIndex(toFixed(roundedIndex), true);
-    }
-
-    startEvent = currentEvent;
+    // update 'top' of picker
+    var delta = currentEvent.y - startEvent.y;
+    var newTop = (parseFloat(startTop) + delta);
+    newTop = Math.min(this._bottomBouncingBound, newTop);
+    newTop = Math.max(newTop, this._topBouncingBound);
+    this.element.style.top = newTop + 'px';
+    // update Active state of selected unit, it does not care bouncing effect.
+    newTop = Math.min(this._bottomBound, newTop);
+    newTop = Math.max(newTop, this._topBound);
+    var index = Math.round(Math.abs(newTop / this._space));
+    this.updateCurrentIndex(index, true);
   }
 
   function vp_mouseup(event) {
@@ -322,10 +308,10 @@ var ValuePicker = (function() {
 
     // Add momentum if speed is higher than a given threshold.
     if (Math.abs(currentSpeed) > SPEED_THRESHOLD) {
-      var direction = currentSpeed > 0 ? 1 : -1;
-      tunedIndex += Math.min(Math.abs(currentSpeed) * 5, 5) * direction;
+      var offset = -(Math.round(currentSpeed * 5));
+      this.updateCurrentIndex(offset + this.getSelectedIndex());
     }
-    tunedIndex = this.setSelectedIndex(toFixed(tunedIndex));
+    this.alignIndexToUI();
     currentSpeed = 0;
   }
 
@@ -337,8 +323,8 @@ var ValuePicker = (function() {
     // Stop animation
     this.element.classList.remove('animation-on');
 
-    startEvent = currentEvent = cloneEvent(event);
-    tunedIndex = this._currentIndex;
+    startTop = this.element.style.top;
+    lastEvent = startEvent = currentEvent = cloneEvent(event);
 
     this.removeEventListeners();
     this.element.addEventListener('mousemove', this.mousemoveHandler, false);
