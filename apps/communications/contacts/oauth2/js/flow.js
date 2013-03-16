@@ -53,8 +53,8 @@ if (typeof window.oauthflow === 'undefined') {
     }; // init
 
 
-    OAuthFlow.start = function(state) {
-      getAccessToken(state);
+    OAuthFlow.start = function(state, service) {
+      getAccessToken(state, service);
     };
 
 
