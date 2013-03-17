@@ -295,37 +295,20 @@ var Settings = {
         }
       }
 
-      // use a <button> instead of the <select> element
-      var fakeSelector = function(select) {
-        var parent = select.parentElement;
-        var button = select.previousElementSibling;
-        // link the button with the select element
-        var index = select.selectedIndex;
-        if (index >= 0) {
-          button.textContent = select.options[index].textContent;
-        }
-        if (parent.classList.contains('fake-select')) {
-          select.addEventListener('change', function() {
-            var newSelect = this.options[this.selectedIndex].textContent;
-            button.textContent = newSelect;
-          });
-        }
-      };
-
       // preset all select
       var selects = panel.querySelectorAll('select');
+
       for (var i = 0, count = selects.length; i < count; i++) {
         var select = selects[i];
         var key = select.name;
         if (key && result[key] != undefined) {
           var value = result[key];
           var option = 'option[value="' + value + '"]';
-          var selectOption = select.querySelector(option);
+          var selectOption = selects[i].querySelector(option);
           if (selectOption) {
             selectOption.selected = true;
           }
         }
-        fakeSelector(select);
       }
 
       // preset all span with data-name fields
@@ -648,43 +631,29 @@ window.addEventListener('load', function loadSettings() {
   var oldHash = window.location.hash || '#root';
   function showPanel() {
     var hash = window.location.hash;
-
     var oldPanel = document.querySelector(oldHash);
     var newPanel = document.querySelector(hash);
 
     // load panel (+ dependencies) if necessary -- this should be synchronous
     lazyLoad(newPanel);
 
-    // switch previous/current/forward classes
-    // FIXME: The '.peek' is here to avoid an ugly white
-    // flickering when transitioning (gecko 18)
-    // the forward class helps us 'peek' in the right direction
-    oldPanel.className = newPanel.className ? 'peek' : 'peek previous forward';
-    newPanel.className = newPanel.className ?
-                           'current peek' : 'peek current forward';
-    oldHash = hash;
+    // switch previous/current classes -- the timeout is required to make the
+    // transition smooth after lazy-loading a panel
+    setTimeout(function switchPanel() {
+      oldPanel.className = newPanel.className ? '' : 'previous';
+      oldHash = hash;
 
-    /**
-     * Most browsers now scroll content into view taking CSS transforms into
-     * account.  That's not what we want when moving between <section>s,
-     * because the being-moved-to section is offscreen when we navigate to its
-     * #hash.  The transitions assume the viewport is always at document 0,0.
-     * So add a hack here to make that assumption true again.
-     * https://bugzilla.mozilla.org/show_bug.cgi?id=803170
-     */
-    if ((window.scrollX !== 0) || (window.scrollY !== 0)) {
-      window.scrollTo(0, 0);
-    }
-
-    window.addEventListener('transitionend', function paintWait() {
-      window.removeEventListener('transitionend', paintWait);
-
-      // We need to wait for the next tick otherwise gecko gets confused
-      setTimeout(function nextTick() {
-        oldPanel.classList.remove('peek');
-        oldPanel.classList.remove('forward');
-        newPanel.classList.remove('peek');
-        newPanel.classList.remove('forward');
+      /**
+       * Most browsers now scroll content into view taking CSS transforms into
+       * account.  That's not what we want when moving between <section>s,
+       * because the being-moved-to section is offscreen when we navigate to its
+       * #hash.  The transitions assume the viewport is always at document 0,0.
+       * So add a hack here to make that assumption true again.
+       * https://bugzilla.mozilla.org/show_bug.cgi?id=803170
+       */
+      if ((window.scrollX !== 0) || (window.scrollY !== 0)) {
+        window.scrollTo(0, 0);
+      }
 
         // Bug 818056 - When multiple visible panels are present,
         // they are not painted correctly. This appears to fix the issue.
@@ -692,14 +661,13 @@ window.addEventListener('load', function loadSettings() {
         if (oldPanel.className === 'current')
           return;
 
-        oldPanel.addEventListener('transitionend', function onTransitionEnd() {
-          oldPanel.removeEventListener('transitionend', onTransitionEnd);
-          // Workaround for bug 825622, remove when fixed
-          if (newPanel.id == 'about-licensing') {
-            var iframe = document.getElementById('os-license');
-            iframe.src = iframe.dataset.src;
-          }
-        });
+      oldPanel.addEventListener('transitionend', function onTransitionEnd() {
+        oldPanel.removeEventListener('transitionend', onTransitionEnd);
+        // Workaround for bug 825622, remove when fixed
+        if (newPanel.id == 'about-licensing') {
+          var iframe = document.getElementById('os-license');
+          iframe.src = iframe.dataset.src;
+        }
       });
     });
   }

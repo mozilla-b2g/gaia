@@ -65,6 +65,7 @@ section[role="region"].current.peek {
   transform: translateX(-99.9%);
 }
 
+
 /**
  * Headers should not scroll with the rest of the page, except for #root.
  */
