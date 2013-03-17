@@ -14,13 +14,14 @@ suite('view', function() {
     ].join('');
 
     document.body.appendChild(el);
-    subject.selectors: {
+
+    subject = new Calendar.View();
+
+    subject.selectors = {
+      element: '#view',
       errors: 'section[role="status"] .errors',
       status: 'section[role="status"]'
     };
-
-
-    subject = new Calendar.View('#view');
   });
 
   teardown(function() {
@@ -195,7 +196,7 @@ suite('view', function() {
     assert.include(errors, 'foo');
 
     assert.ok(list.contains(subject.activeClass));
-    triggerEvent(subject.status, 'animationend');
+    testSupport.calendar.triggerEvent(subject.status, 'animationend');
     assert.ok(!list.contains(subject.activeClass));
   });
 
