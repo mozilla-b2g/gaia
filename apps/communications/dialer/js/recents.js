@@ -566,8 +566,11 @@ var Recents = {
     if (!this.recentsContainer)
       return;
 
+    var viewBody = document.querySelector('.view-body');
+
     if (recents.length == 0) {
-      this.recentsContainer.innerHTML =
+      viewBody.classList.add('empty-log');
+      viewBody.innerHTML =
         '<div id="no-result-container">' +
         ' <div id="no-result-message">' +
         '   <p data-l10n-id="no-logs-msg-1">no calls recorded</p>' +
@@ -575,11 +578,12 @@ var Recents = {
         ' </div>' +
         '</div>';
       navigator.mozL10n.translate(this.recentsContainer);
-      this.recentsIconEdit.parentNode.setAttribute('aria-disabled', 'true');
-      this.allFilter.classList.add('selected');
+      this.recentsFilterContainer.hidden = true;
       return;
     }
 
+    viewBody.classList.remove('empty-log');
+    this.recentsFilterContainer.hidden = false;
     this.recentsIconEdit.parentNode.removeAttribute('aria-disabled');
 
     var self = this;

@@ -72,13 +72,17 @@ ul[role="tablist"][data-type="filter"] > [role="tab"].selected > a {
 }
 
 .view-body {
-  background : white;
-  color: black;
-  height: -moz-calc(100% - 9.5rem);
-  -moz-transition: height .15s ease-in;
+  background : #fff;
+  color: #000;
+  height: calc(100% - 9.3rem);
+  transition: height .15s ease-in;
   position: absolute;
   overflow: hidden;
   width: 100%;
+}
+
+.empty-log {
+  height: calc(100% - 5rem);
 }
 
 .view-body-inner {
@@ -221,15 +225,18 @@ ul[role="tablist"][data-type="filter"] > [role="tab"].selected > a {
 */
 
 #no-result-container {
+  position: absolute;
   height: 100%;
-  background: url('images/ComLog_200x200_clock.png') fixed no-repeat center / 20rem;
+  width: 100%;
+  background: url('images/ComLog_200x160_clock.png') no-repeat 50% 10rem;
 }
 
 #no-result-message {
-  position: relative;
-  top: 11.5rem;
-  border-top: .1rem solid rgba(96,96,96,.5);
-  padding: 1rem 0.5rem;
+  position: absolute;
+  top: 15rem;
+  left: 1.5rem;
+  padding-top: 0.5rem;
+  border-top: 0.1rem solid rgba(96,96,96,.5);
 }
 
 #no-result-message > p {
@@ -239,4 +246,11 @@ ul[role="tablist"][data-type="filter"] > [role="tab"].selected > a {
   font-weight: 300;
   color: #606060;
   margin: 0;
+  padding: 0 1.5rem;
+  color: #606060;
+  line-height: 2.9rem;
+  font-weight: 300;
+  font-size: 2.3rem;
+  text-align: left;
+  font-family: 'MozTT', sans-serif;
 }

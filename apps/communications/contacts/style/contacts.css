@@ -470,45 +470,53 @@ section[role="region"] > header .icon.icon-settings
 /* No Contacts */
 
 #no-contacts {
-  background: url(/contacts/style/images/contact_big_icon.png) no-repeat center center #FFFFFF;
-  height: 100%;
+  background: #fff url('images/contact_big_icon.png') no-repeat 50% 10rem;
   position: absolute;
+  height: 100%;
   width: 100%;
   z-index: 11;
-  color: #000;
-  text-align: left;
 }
 
-#no-contacts .info {
-  border-top: 1px solid rgba(96, 96, 96, 0.5);
+#no-contacts > .info {
+  position: absolute;
+  top: 15rem;
+  left: 1.5rem;
+  padding-top: 0.5rem;
+  border-top: 0.1rem solid rgba(96,96,96,.5);
+}
+
+#no-contacts > .info > p {
+  margin: 0;
+  padding: 0 1.5rem;
   color: #606060;
-  font-size: 2rem;
-  font-weight: lighter;
-  margin: 15rem 4rem 0;
-}
-
-#no-contacts .info p {
-  margin-top: 1rem;
-}
-
-#no-contacts p.small {
-  font-size: 1.35rem;
-  font-weight: lighter;
-  margin: 1.5rem 10rem 0 4rem;
+  line-height: 2.9rem;
+  font-weight: 300;
+  font-size: 2.3rem;
+  text-align: left;
 }
 
 #no-contacts .arrow {
   position: absolute;
+  left: 3rem;
+  text-align: left;
 }
 
-#no-contacts .small.arrow {
-  background: url("/contacts/style/images/arrow_small.png") no-repeat scroll 93% 0.5rem transparent;
+#no-contacts .arrow > p {
+  color: #4d4d4d;
+  padding-top: 1.4rem;
+  font-size: 1.7rem;
+  font-weight: 400;
 }
 
-#no-contacts .big.arrow {
-  background: url("/contacts/style/images/arrow_big.png") no-repeat scroll 93% 0.5rem transparent;
-  height: 5rem;
-  padding-top: 3.5rem;
+#no-contacts .arrow.small {
+  right: 5rem;
+  background: url('images/arrow_small.png') no-repeat 93% 0.5rem;
+}
+
+#no-contacts .arrow.big {
+  right: 0.4rem;
+  padding: 4rem 8rem 0 0;
+  background: url('images/arrow_big.png') no-repeat 93% 0.5rem;
 }
 
 #statusMsg {
