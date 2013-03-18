@@ -147,12 +147,23 @@ SEP=\\
 MSYS_FIX=/
 endif
 
+ifndef GAIA_DISTRIBUTION_DIR
+  GAIA_DISTRIBUTION_DIR := $(CURDIR)$(SEP)distribution
+else
+	ifneq (,$(findstring MINGW32_,$(SYS)))
+		GAIA_DISTRIBUTION_DIR := $(join \
+			$(filter %:,$(subst :,: ,$GAIA_DISTRIBUTION_DIR)),\
+			$(realpath $(filter-out %:,$(subst :,: ,$GAIA_DISTRIBUTION_DIR))))
+	else
+		GAIA_DISTRIBUTION_DIR := $(realpath $(GAIA_DISTRIBUTION_DIR))
+	endif
+endif
 
 SETTINGS_PATH := build/custom-settings.json
-ifdef CUSTOMIZE
-	CUSTOMIZE_SETTINGS := $(realpath $(CUSTOMIZE))$(SEP)settings.json
-	ifneq ($(wildcard $(CUSTOMIZE_SETTINGS)),)
-		SETTINGS_PATH := $(CUSTOMIZE_SETTINGS)
+ifdef GAIA_DISTRIBUTION_DIR
+	DISTRIBUTION_SETTINGS := $(realpath $(GAIA_DISTRIBUTION_DIR))$(SEP)settings.json
+	ifneq ($(wildcard $(DISTRIBUTION_SETTINGS)),)
+		SETTINGS_PATH := $(DISTRIBUTION_SETTINGS)
 	endif
 endif
 
@@ -437,7 +448,7 @@ define run-js-command
 	const GAIA_DEFAULT_LOCALE = "$(GAIA_DEFAULT_LOCALE)";                       \
 	const GAIA_INLINE_LOCALES = "$(GAIA_INLINE_LOCALES)";                       \
 	const GAIA_ENGINE = "xpcshell";                                             \
-	const CUSTOMIZE = "$(realpath $(CUSTOMIZE))";      													\
+	const GAIA_DISTRIBUTION_DIR = "$(GAIA_DISTRIBUTION_DIR)";               	\
 	';                                                                          \
 	$(XULRUNNERSDK) $(XPCSHELLSDK) -e "$$JS_CONSTS" -f build/utils.js "build/$(strip $1).js"
 endef
@@ -777,7 +788,8 @@ purge:
 	done);
 	$(ADB) shell rm -r $(MSYS_FIX)/cache/*
 	$(ADB) shell rm -r $(MSYS_FIX)/data/b2g/*
-	$(ADB) shell rm -r $(MSYS_FIX)$(GAIA_INSTALL_PARENT)/webapps
+	$(ADB) shell rm -r $(MSYS_FIX)/data/local/webapps
+	$(ADB) shell rm -r $(MSYS_FIX)/system/b2g/webapps
 
 # Build the settings.json file from settings.py
 ifeq ($(NOFTU), 1)

@@ -42,7 +42,9 @@ var ValueSelector = {
           break;
 
         case 'date':
-          self.showDatePicker(currentValue);
+          var min = evt.detail.min;
+          var max = evt.detail.max;
+          self.showDatePicker(currentValue, min, max);
           break;
 
         case 'time':
@@ -354,14 +356,34 @@ var ValueSelector = {
     timePicker.minute.setSelectedIndex(time.minutes);
   },
 
-  showDatePicker: function vs_showDatePicker(currentValue) {
+  showDatePicker: function vs_showDatePicker(currentValue, min, max) {
     this._currentPickerType = 'date';
     this.show();
     this.showPanel('date');
 
+    var minDate = null;
+    var maxDate = null;
+
+    var str2Date = function vs_str2Date(str) {
+      if (!str)
+        return null;
+
+      var dcs = str.split('-');
+      var date = new Date(dcs[0], parseInt(dcs[1]) - 1, dcs[2]);
+
+      if (isNaN(date.getTime()))
+        date = null;
+
+      return date;
+    };
+
+    minDate = str2Date(min);
+    maxDate = str2Date(max);
+
     if (!this._datePicker) {
       this._datePicker = new SpinDatePicker(this._containers['date']);
     }
+    this._datePicker.setRange(minDate, maxDate);
 
     // Show current date as default value
     var date = new Date();

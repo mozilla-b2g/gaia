@@ -4,7 +4,7 @@ var ServiceSupport = (function() {
 
   function request(file, cb) {
     var xhr = new XMLHttpRequest();
-    xhr.open('GET', '/test/unit/' + file, true);
+    xhr.open('GET', '/test/unit/' + file + '?' + Date.now(), true);
     xhr.onreadystatechange = function() {
       if (xhr.readyState === 4) {
         if (xhr.status !== 200) {

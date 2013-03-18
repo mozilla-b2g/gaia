@@ -124,19 +124,15 @@ Gaia.externalWebapps.forEach(function (webapp) {
     }
     appPackage.copyTo(webappTargetDir, 'application.zip');
     updateManifest.copyTo(webappTargetDir, 'update.webapp');
-    removable = ("removable" in webapp.metaData) ? !!webapp.metaData.removable
-                                                 : true;
+    removable = true;
     origin = webapp.metaData.origin;
     installOrigin = webapp.metaData.installOrigin;
     manifestURL = webapp.metaData.manifestURL;
   } else {
     webapp.manifestFile.copyTo(webappTargetDir, 'manifest.webapp');
     origin = webapp.metaData.origin;
-    installOrigin = webapp.metaData.installOrigin || webapp.metaData.origin;
-    manifestURL = webapp.metaData.manifestURL ||
-                  (webapp.metaData.origin + 'manifest.webapp');
-    removable = ("removable" in webapp.metaData) ? !!webapp.metaData.removable
-                                                 : true;
+    installOrigin = webapp.metaData.origin;
+    manifestURL = webapp.metaData.origin + 'manifest.webapp';
 
     // This is an hosted app. Check if there is an offline cache.
     let srcCacheFolder = webapp.sourceDirectoryFile.clone();

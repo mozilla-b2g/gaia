@@ -27,10 +27,7 @@ suite('event_mutations', function() {
     alarmStore = db.getStore('Alarm');
     componentStore = db.getStore('IcalComponent');
 
-    db.open(function(err) {
-      assert.ok(!err);
-      done();
-    });
+    db.open(done);
   });
 
   teardown(function(done) {
@@ -87,6 +84,16 @@ suite('event_mutations', function() {
         eventId: event._id
       });
 
+      // Set the event to start and end in the past
+      event.remote.start = Calendar.Calc.dateToTransport(
+        new Date(Date.now() - 2 * 60 * 60 * 1000)
+      );
+
+      // Ending one hour in the future
+      event.remote.end = Calendar.Calc.dateToTransport(
+        new Date(Date.now() - 1 * 60 * 60 * 1000)
+      );
+
       var mutation = subject.create({
         event: event,
         icalComponent: component
@@ -131,18 +138,13 @@ suite('event_mutations', function() {
       var expectedBusytime = busytimeStore.factory(
         event
       );
-      var expectedAlarms = event.remote.alarms;
+
+      var expectedAlarms = [];
       var busyId = expectedBusytime._id;
 
       alarmStore.findAllByBusytimeId(busyId, function(err, values) {
         done(function() {
           assert.equal(values.length, expectedAlarms.length);
-          for (var i = 0, alarm; alarm = expectedAlarms[i]; i++) {
-            assert.equal(
-              event.remote.start.utc + alarm.trigger * 1000,
-              values[i].trigger.utc
-            );
-          }
         });
       });
     });
@@ -177,12 +179,15 @@ suite('event_mutations', function() {
 
     setup(function(done) {
       event.remote.foo = true;
+
+      // Starting one hour in the past
       event.remote.start = Calendar.Calc.dateToTransport(
-        new Date(2012, 7, 7)
+        new Date(Date.now() - 1 * 60 * 60 * 1000)
       );
 
+      // Ending one hour in the future
       event.remote.end = Calendar.Calc.dateToTransport(
-        new Date(2012, 8, 8)
+        new Date(Date.now() + 1 * 60 * 60 * 1000)
       );
 
       var futureTrigger = Date.now() - event.remote.start.utc + 5000;
@@ -254,8 +259,7 @@ suite('event_mutations', function() {
         event
       );
 
-      // We only expect alarms in the past to be persisted
-      var expectedAlarms = event.remote.alarms.slice(2);
+      var expectedAlarms = event.remote.alarms;
       var busyId = expectedBusytime._id;
 
       alarmStore.findAllByBusytimeId(busyId, function(err, values) {
