@@ -459,10 +459,20 @@ var Recents = {
 
   getSameTypeCallsOnSameDay: function re_getSameTypeCallsOnSameDay(
     day, phoneNumber, phoneNumberType, callType, startingWith) {
-    var groupSelector = '[data-num^="' + phoneNumber +
-      '"]' + (phoneNumberType ? ('[data-phone-type="' +
-      phoneNumberType + '"]') : '') +
-      '[data-type' + (startingWith ? '^' : '') + '="' + callType + '"]';
+    var groupSelector;
+    if (phoneNumber) {
+      groupSelector = '[data-num^="' + phoneNumber + '"]';
+    } else {
+      groupSelector = '[data-num="' + phoneNumber + '"]';
+    }
+    if (phoneNumberType) {
+      groupSelector += '[data-phone-type="' + phoneNumberType + '"]';
+    }
+    groupSelector += '[data-type';
+    if (startingWith) {
+      groupSelector += '^';
+    } 
+    groupSelector += '="' + callType + '"]';
     return day.querySelectorAll(groupSelector);
   },
 
