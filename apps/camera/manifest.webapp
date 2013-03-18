@@ -20,7 +20,7 @@
   "activities": {
     "record": {
       "filters": {
-        "type": "photos"
+        "type": ["photos", "videos"]
        },
       "disposition": "window"
     },

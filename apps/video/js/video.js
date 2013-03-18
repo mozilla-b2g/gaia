@@ -2,8 +2,15 @@
 
 var dom = {};
 
-var ids = ['player', 'thumbnails', 'overlay', 'overlay-title',
-           'overlay-text', 'videoControls', 'videoFrame', 'videoBar',
+var ids = ['thumbnail-list-view',
+           'thumbnails', 'thumbnails-video-button', 'thumbnails-select-button',
+           'thumbnail-select-view',
+           'thumbnails-delete-button', 'thumbnails-share-button',
+           'thumbnails-cancel-button', 'thumbnails-number-selected',
+           'fullscreen-view',
+           'thumbnails-single-delete-button', 'thumbnails-single-share-button',
+           'player', 'overlay', 'overlay-title',
+           'overlay-text', 'videoControls', 'videoBar',
            'close', 'play', 'playHead', 'timeSlider', 'elapsedTime',
            'video-title', 'duration-text', 'elapsed-text', 'bufferedTime',
            'slider-wrapper', 'throbber', 'delete-video-button'];
@@ -12,6 +19,8 @@ ids.forEach(function createElementRef(name) {
   dom[toCamelCase(name)] = document.getElementById(name);
 });
 
+var currentView = dom.thumbnailListView;
+
 dom.player.mozAudioChannelType = 'content';
 
 var playing = false;
@@ -19,7 +28,6 @@ var playing = false;
 // if this is true then the video tag is showing
 // if false, then the gallery is showing
 var playerShowing = false;
-var ctxTriggered = false; // Workaround for bug 766813
 
 // keep the screen on when playing
 var screenLock;
@@ -28,6 +36,12 @@ var endedTimer;
 // same thing for the controls
 var controlShowing = false;
 var controlFadeTimeout = null;
+
+// In thumbnailSelectView, we allow the user to select thumbnails.
+// These variables hold the names of the selected files, and map those
+// names to the corresponding File objects
+var selectedFileNames = [];
+var selectedFileNamesToBlobs = {};
 
 var videodb;
 var currentVideo;  // The data for the currently playing video
@@ -52,14 +66,24 @@ function init() {
 
   initDB();
 
-  // We can't do this in the mouse down handler below because
-  // calling confirm() from the mousedown generates a contextmenu
-  // event when the alert goes away.
-  // See https://bugzilla.mozilla.org/show_bug.cgi?id=829214
-  dom.deleteVideoButton.onclick = function() {
+  // binding options button
+  dom.thumbnailsVideoButton.addEventListener('click', launchCameraApp);
+  dom.thumbnailsSelectButton.addEventListener('click', showSelectView);
+  dom.thumbnailsDeleteButton.addEventListener('click', deleteSelectedItems);
+  dom.thumbnailsShareButton.addEventListener('click', shareSelectedItems);
+  dom.thumbnailsSingleDeleteButton.addEventListener('click', function() {
     document.mozCancelFullScreen();
-    deleteFile(currentVideo.name);
-  };
+    deleteSingleFile(currentVideo.name);
+  });
+
+  dom.thumbnailsSingleShareButton.addEventListener('click', function() {
+    document.mozCancelFullScreen();
+    videodb.getFile(currentVideo.name, function(blob) {
+      share([blob]);
+    });
+  });
+
+  dom.thumbnailsCancelButton.addEventListener('click', hideSelectView);
 }
 
 function initDB() {
@@ -171,19 +195,132 @@ function videoCreated(videodata) {
   }
 }
 
-dom.thumbnails.addEventListener('contextmenu', function(evt) {
-  var node = evt.target;
-  while (node) {
-    if (node.dataset.name) {
-      ctxTriggered = true;
-      deleteFile(node.dataset.name);
-      return;
-    }
-    node = node.parentNode;
-  }
-});
+function showSelectView() {
+  dom.thumbnailListView.classList.add('hidden');
+  dom.fullscreenView.classList.add('hidden');
+  dom.thumbnailSelectView.classList.remove('hidden');
+  currentView = dom.thumbnailSelectView;
 
-function deleteFile(file) {
+  // styling for select view
+  dom.thumbnails.classList.add('select');
+
+  clearSelection();
+}
+
+function hideSelectView() {
+  clearSelection();
+
+  dom.fullscreenView.classList.add('hidden');
+  dom.thumbnailSelectView.classList.add('hidden');
+  dom.thumbnailListView.classList.remove('hidden');
+
+  dom.thumbnails.classList.remove('select');
+
+  currentView = dom.thumbnailListView;
+}
+
+function clearSelection() {
+  // Clear the selection, if there is one
+  Array.forEach(thumbnails.querySelectorAll('.selected.thumbnail'),
+                  function(elt) { elt.classList.remove('selected'); });
+  selectedFileNames = [];
+  selectedFileNamesToBlobs = {};
+  dom.thumbnailsDeleteButton.classList.add('disabled');
+  dom.thumbnailsShareButton.classList.add('disabled');
+  dom.thumbnailsNumberSelected.textContent =
+    navigator.mozL10n.get('number-selected2', { n: 0 });
+}
+
+// When we enter thumbnail selection mode, or when the selection changes
+// we call this function to update the message the top of the screen and to
+// enable or disable the Delete and Share buttons
+function updateSelection(thumbnail) {
+  // First, update the visual appearance of the element
+  thumbnail.classList.toggle('selected');
+
+  // Now update the list of selected filenames and filename->blob map
+  // based on whether we selected or deselected the thumbnail
+  var selected = thumbnail.classList.contains('selected');
+  var index = parseInt(thumbnail.dataset.index);
+  var filename = videos[index].name;
+  if (selected) {
+    selectedFileNames.push(filename);
+    videodb.getFile(filename, function(blob) {
+      selectedFileNamesToBlobs[filename] = blob;
+    });
+  }
+  else {
+    delete selectedFileNamesToBlobs[filename];
+    var i = selectedFileNames.indexOf(filename);
+    if (i !== -1)
+      selectedFileNames.splice(i, 1);
+  }
+
+  // Now update the UI based on the number of selected thumbnails
+  var numSelected = selectedFileNames.length;
+  dom.thumbnailsNumberSelected.textContent =
+    navigator.mozL10n.get('number-selected2', { n: numSelected });
+
+  if (numSelected === 0) {
+    dom.thumbnailsDeleteButton.classList.add('disabled');
+    dom.thumbnailsShareButton.classList.add('disabled');
+  }
+  else {
+    dom.thumbnailsDeleteButton.classList.remove('disabled');
+    dom.thumbnailsShareButton.classList.remove('disabled');
+  }
+}
+
+function launchCameraApp() {
+  var a = new MozActivity({
+    name: 'record',
+    data: {
+      type: 'videos'
+    }
+  });
+}
+
+function deleteSelectedItems() {
+  var selected = thumbnails.querySelectorAll('.selected.thumbnail');
+  if (selected.length === 0)
+    return;
+
+  var msg = navigator.mozL10n.get('delete-n-items?', {n: selected.length});
+  if (confirm(msg)) {
+    // XXX
+    // deleteFile is O(n), so this loop is O(n*n). If used with really large
+    // selections, it might have noticably bad performance.  If so, we
+    // can write a more efficient deleteFiles() function.
+    for (var i = 0; i < selected.length; i++) {
+      selected[i].classList.toggle('selected');
+      deleteFile(parseInt(selected[i].dataset.index));
+    }
+    clearSelection();
+  }
+}
+
+function deleteFile(n) {
+  if (n < 0 || n >= videos.length)
+    return;
+  // Delete the file from the MediaDB. This removes the db entry and
+  // deletes the file in device storage. This will generate an change
+  // event which will call imageDeleted()
+  var fileinfo = videos[n].name;
+
+  if (FROMCAMERA.test(fileinfo)) {
+      // If we're deleting a video file recorded by our camera,
+      // we also need to delete the poster image associated with
+      // that video.
+      var postername = fileinfo.replace('.3gp', '.jpg');
+      navigator.getDeviceStorage('pictures'). delete(postername);
+  }
+    // Whether or not there was a poster file to delete, delete the
+    // actual video file. This will cause the MediaDB to send a 'deleted'
+    // event, and the handler for that event will call videoDeleted() below.
+    videodb.deleteFile(fileinfo);
+}
+
+function deleteSingleFile(file) {
   var msg = navigator.mozL10n.get('confirm-delete');
   if (confirm(msg + ' ' + file)) {
     if (FROMCAMERA.test(file)) {
@@ -199,6 +336,71 @@ function deleteFile(file) {
     // event, and the handler for that event will call videoDeleted() below.
     videodb.deleteFile(file);
   }
+}
+
+// Clicking on the share button in select mode shares all selected images
+function shareSelectedItems() {
+  var blobs = selectedFileNames.map(function(name) {
+    return selectedFileNamesToBlobs[name];
+  });
+  share(blobs);
+}
+
+// function from gallery/js/gallery.js
+function share(blobs) {
+  if (blobs.length === 0)
+    return;
+
+  var names = [], types = [], fullpaths = [];
+
+  // Get the file name (minus path) and type of each blob
+  blobs.forEach(function(blob) {
+    // Discard the path, we just want the base name
+    var name = blob.name;
+    // We try to fix Bug 814323 by using
+    // current workaround of bluetooth transfer
+    // so we will pass both filenames and fullpaths
+    // The fullpaths can be removed after Bug 811615 is fixed
+    fullpaths.push(name);
+    name = name.substring(name.lastIndexOf('/') + 1);
+    names.push(name);
+
+    // And we just want the first component of the type "image" or "video"
+    var type = blob.type;
+    if (type)
+      type = type.substring(0, type.indexOf('/'));
+    types.push(type);
+  });
+
+  // If there is just one type, or if all types are the same, then use
+  // that type plus '/*'. Otherwise, use 'multipart/mixed'
+  // If all the blobs are image we use 'image/*'. If all are videos
+  // we use 'video/*'. Otherwise, 'multipart/mixed'.
+  var type;
+  if (types.length === 1 || types.every(function(t) { return t === types[0]; }))
+    type = types[0] + '/*';
+  else
+    type = 'multipart/mixed';
+
+  var a = new MozActivity({
+    name: 'share',
+    data: {
+      type: type,
+      number: blobs.length,
+      blobs: blobs,
+      filenames: names,
+      filepaths: fullpaths
+    }
+  });
+
+  a.onerror = function(e) {
+    if (a.error.name === 'NO_PROVIDER') {
+      var msg = navigator.mozL10n.get('share-noprovider');
+      alert(msg);
+    } else {
+      console.warn('share activity error:', a.error.name);
+    }
+  };
 }
 
 function videoDeleted(filename) {
@@ -293,21 +495,22 @@ function createThumbnailItem(videonum) {
   thumbnail.dataset.name = videodata.name;
   thumbnail.dataset.index = videonum;
 
-  thumbnail.addEventListener('click', function(e) {
-    // When the user presses and holds to delete a video, we get a
-    // contextmenu event, but still apparently get a click event after
-    // they lift their finger. This ctxTriggered flag prevents us from
-    // playing a video after a contextmenu event.
-    // See https://bugzilla.mozilla.org/show_bug.cgi?id=766813
-    if (!ctxTriggered) {
-      showPlayer(videodata, true);
-    } else {
-      ctxTriggered = false;
-    }
-  });
+  thumbnail.addEventListener('click', thumbnailClickHandler);
   inner.appendChild(details);
   thumbnail.appendChild(inner);
   return thumbnail;
+}
+
+function thumbnailClickHandler() {
+  if (!this.classList.contains('thumbnail'))
+    return;
+  if (currentView === dom.thumbnailListView ||
+      currentView === dom.fullscreenView) {
+    showPlayer(parseInt(this.dataset.index), true);
+  }
+  else if (currentView === dom.thumbnailSelectView) {
+    updateSelection(this);
+  }
 }
 
 function metaDataParser(videofile, callback, metadataError, delayed) {
@@ -478,7 +681,7 @@ function showOverlay(id) {
   dom.overlay.classList.remove('hidden');
 }
 
-function setControlsVisibility(visible) {
+function showVideoControls(visible) {
   dom.videoControls.classList[visible ? 'remove' : 'add']('hidden');
   controlShowing = visible;
 }
@@ -499,7 +702,7 @@ function playerMousedown(event) {
     controlFadeTimeout = null;
   }
   if (!controlShowing) {
-    setControlsVisibility(true);
+    showVideoControls(true);
     return;
   }
   if (event.target == dom.play) {
@@ -509,7 +712,7 @@ function playerMousedown(event) {
   } else if (event.target == dom.sliderWrapper) {
     dragSlider(event);
   } else {
-    setControlsVisibility(false);
+    showVideoControls(false);
   }
 }
 
@@ -592,10 +795,14 @@ function setVideoUrl(player, video, callback) {
 }
 
 // show video player
-function showPlayer(data, autoPlay) {
-  currentVideo = data;
+function showPlayer(videonum, autoPlay) {
+  currentVideo = videos[videonum];
 
   dom.thumbnails.classList.add('hidden');
+  dom.thumbnailListView.classList.add('hidden');
+  dom.thumbnailSelectView.classList.add('hidden');
+  dom.fullscreenView.classList.remove('hidden');
+  currentView = dom.fullscreenView;
 
   // switch to the video player view
   updateDialog();
@@ -603,9 +810,9 @@ function showPlayer(data, autoPlay) {
 
   function doneSeeking() {
     dom.player.onseeked = null;
-    setControlsVisibility(true);
+    showVideoControls(true);
     controlFadeTimeout = setTimeout(function() {
-      setControlsVisibility(false);
+      showVideoControls(false);
     }, 250);
 
     if (autoPlay) {
@@ -623,14 +830,9 @@ function showPlayer(data, autoPlay) {
     dom.durationText.textContent = formatDuration(dom.player.duration);
     timeUpdated();
 
-    dom.videoFrame.classList.remove('hidden');
     dom.play.classList.remove('paused');
     playerShowing = true;
     setPlayerSize();
-
-    if ('name' in currentVideo && FROMCAMERA.test(currentVideo.name)) {
-      dom.deleteVideoButton.classList.remove('hidden');
-    }
 
     if ('metadata' in currentVideo) {
       if (currentVideo.metadata.currentTime === dom.player.duration) {
@@ -656,12 +858,15 @@ function hidePlayer() {
     return;
 
   dom.player.pause();
-  dom.deleteVideoButton.classList.add('hidden');
 
   function completeHidingPlayer() {
     // switch to the video gallery view
-    dom.videoFrame.classList.add('hidden');
-    dom.videoBar.classList.remove('paused');
+    dom.fullscreenView.classList.add('hidden');
+    dom.thumbnailSelectView.classList.add('hidden');
+    dom.thumbnailListView.classList.remove('hidden');
+    currentView === dom.thumbnailListView;
+
+    dom.play.classList.remove('paused');
     dom.thumbnails.classList.remove('hidden');
     playerShowing = false;
     updateDialog();
@@ -995,7 +1200,7 @@ document.addEventListener('mozvisibilitychange', function visibilityChange() {
   }
   else {
     if (playerShowing) {
-      setControlsVisibility(true);
+      showVideoControls(true);
       restoreVideo();
     }
   }
