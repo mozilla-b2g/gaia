@@ -1,3 +1,6 @@
+html {
+  font: 10px/2em "MozTT", Sans-serif;
+}
 #pair-view div {
   font-size: 1.7rem;
 }
@@ -22,20 +25,6 @@
 
 #pair-view .pair-method input {
   font-size: 1.9rem;
-}
-
-#pair-view menu {
-  padding: 0.7rem;
-  position: relative;
-}
-
-#pair-view menu button {
-  height: 2.8rem;
-  line-height: 2.8rem;
-}
-
-#pair-view {
-  padding-bottom: 4.2rem;
 }
 
 #device-info {

@@ -154,39 +154,44 @@
   content: "";
   width: 3.1rem;
   height: 3rem;
-  background: url(images/wifi_sprite.png) no-repeat 3rem 3rem / 16rem;
+  background: url(images/wifi_sprite.png) no-repeat 3.2rem 0rem / 16rem;
   position: absolute;
   right: 3rem;
   top: 50%;
   margin-top: -2rem;
 }
 
-/* secured networks */
-#wifi-availableNetworks .wifi-secure:before {
-  background-image: url(images/wifi_lock.png);
-}
-
-#wifi-availableNetworks .wifi-signal0:before {
+#wifi-availableNetworks a.wifi-signal0:before {
   background-position: 0rem 0rem;
 }
 
-#wifi-availableNetworks .wifi-signal1:before {
+#wifi-availableNetworks a.wifi-signal1:before {
   background-position: -3.2rem 0rem;
 }
 
-#wifi-availableNetworks .wifi-signal2:before {
+#wifi-availableNetworks a.wifi-signal2:before {
   background-position: -6.4rem 0rem;
 }
 
-#wifi-availableNetworks .wifi-signal3:before {
+#wifi-availableNetworks a.wifi-signal3:before {
   background-position: -9.6rem 0rem;
 }
 
-#wifi-availableNetworks .wifi-signal4:before {
+#wifi-availableNetworks a.wifi-signal4:before {
   background-position: -12.8rem 0rem;
 }
 
-
+/* secured networks */
+.wifi-secure:after {
+  content: '';
+  display: block;
+  position: absolute;
+  width: 5.6rem;
+  height: 5.6rem;
+  right: 4rem;
+  top: 0;
+  background: url(images/wifi_lock.png) no-repeat 0rem 0rem / 5.6rem;
+}
 /******************************************************************************
  * Call Settings icons
  */
