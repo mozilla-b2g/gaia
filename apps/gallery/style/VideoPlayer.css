@@ -9,28 +9,28 @@
 /* video player controls */
 .videoPlayerControls {
   position: absolute;
-  left: 0px;
-  right: 0px;
-  top: 0px;
-  bottom: 0px;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
   margin: 0;
   padding: 0;
 }
 
 .videoPlayerPlayButton {
   position: absolute;
-  width: 106px;
-  height: 106px;
-  left: calc(50% - 53px);
-  top: calc(50% - 53px);
-  background: url("images/video_play_button.png") center no-repeat,
-              url("images/video_play_normal.png") center no-repeat;
+  width: 10.6rem;
+  height: 10.6rem;
+  left: calc(50% - 5.3rem);
+  top: calc(50% - 5.3rem);
+  background: url("images/video_play_button.png") no-repeat center center / 10.6rem,
+              url("images/video_play_normal.png") no-repeat center center / 10.6rem;
   border-width: 0;
 }
 
 .videoPlayerPlayButton:active {
-  background: url("images/video_play_button.png") center no-repeat,
-              url("images/video_play_focus.png") center no-repeat
+  background: url("images/video_play_button.png") no-repeat center center / 10.6rem,
+              url("images/video_play_focus.png") no-repeat center center / 10.6rem;
 }
 
 .videoPlayerPlayButton.hidden {
@@ -39,10 +39,10 @@
 
 .videoPlayerFooter {
   position: absolute;
-  left: 0px;
-  right: 0px;
-  bottom: 0px;
-  height: 50px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 5rem;
   margin: 0;
   padding: 0;
   background-color: rgba(0, 0, 0, 0.3);
@@ -60,21 +60,21 @@
 
 .videoPlayerPauseButton {
   position: absolute;
-  width: 100px;
-  height: 100px;
+  width: 10rem;
+  height: 10rem;
   padding: 0;
   margin: 0;
-  background: url("images/video_pause_button.png") center no-repeat,
+  background: url("images/video_pause_button.png") no-repeat center center / 9.6rem,
               rgba(0,0,0,.5);
-  border-radius: 53px;
-  border: solid #ccc 3px;
-  top: -25px;
-  left: 10px;
+  border-radius: 5.3rem;
+  border: solid #ccc 0.3rem;
+  top: -2.5rem;
+  left: 1rem;
 }
 
 .videoPlayerPauseButton:active {
-  background: url("images/video_pause_button.png") center no-repeat,
-              url("images/video_play_focus.png") center no-repeat
+  background: url("images/video_pause_button.png") no-repeat center center / 9.6rem,
+              url("images/video_play_focus.png") no-repeat center center / 10.6rem;
 }
 
 button::-moz-focus-inner {
@@ -85,36 +85,36 @@ button::-moz-focus-inner {
 /* time slider */
 .videoPlayerSlider {
   position: absolute;
-  left: 110px;
-  top: 0px;
-  right: 0px;
+  left: 11rem;
+  top: 0;
+  right: 0;
   height: 100%;
 }
 
 .videoPlayerSlider > span {
   display: block;
-  width: 45px;
+  width: 4.5rem;
   position: absolute;
   color: white;
   height: 100%;
-  line-height: 50px;
+  line-height: 5rem;
   text-align: center;
-  font-size: 15px;
+  font-size: 1.5rem;
 }
 
 .videoPlayerElapsedText {
-  left: 10px;
+  left: 1rem;
 }
 
 .videoPlayerDurationText {
-  right: 10px;
+  right: 1rem;
 }
 
 .videoPlayerProgress {
   position: absolute;
-  top: 0px;
-  left: 70px;
-  right: 70px;
+  top: 0;
+  left: 7rem;
+  right: 7rem;
   height: 100%;
 }
 
@@ -124,11 +124,11 @@ button::-moz-focus-inner {
 }
 
 .videoPlayerElapsedBar, .videoPlayerBackgroundBar {
-  height: 4px;
+  height: 0.4rem;
   width: 0%;
   top: 50%;
-  margin-top: -2px;
-  border-radius: 6px;
+  margin-top: -0.2rem;
+  border-radius: 0.6rem;
 }
 
 .videoPlayerElapsedBar {
@@ -142,11 +142,11 @@ button::-moz-focus-inner {
 
 .videoPlayerPlayHead {
   display: block;
-  height: 20px;
-  width: 25px;
-  border-radius: 25px;
+  height: 2rem;
+  width: 2.5rem;
+  border-radius: 2.5rem;
   background-color: white;
   top: 50%;
-  margin: -10px 0 0 -12px;
+  margin: -1rem 0 0 -1.2rem;
 }
 
