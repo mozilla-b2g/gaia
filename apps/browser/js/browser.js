@@ -304,11 +304,15 @@ var Browser = {
           this.setUrlButtonMode(this.REFRESH);
         }
 
-        // Capture screenshot for tab thumbnail
+        // We capture screenshots for everything when loading is
+        // completed, but set background tabs inactive
         if (tab.dom.getScreenshot) {
           tab.dom.getScreenshot(this.MAX_THUMBNAIL_WIDTH,
             this.MAX_THUMBNAIL_HEIGHT).onsuccess = (function(e) {
             tab.screenshot = e.target.result;
+            if (!isCurrentTab) {
+              this.setTabVisibility(tab, false);
+            }
             if (this.currentScreen === this.TABS_SCREEN) {
               this.showTabScreen();
             }
@@ -564,8 +568,7 @@ var Browser = {
 
     // No protocol, could be a search term
     if (this.isNotURL(input)) {
-      return 'http://' + this.DEFAULT_SEARCH_PROVIDER_URL +
-        '/search?q=' + input;
+      return 'http://' + this.DEFAULT_SEARCH_PROVIDER_URL + '/search?q=' + input;
     }
 
     // No scheme, prepend basic protocol and return
@@ -1207,6 +1210,13 @@ var Browser = {
       }
     }
 
+    // We put loading tabs off screen as we want to screenshot
+    // them when loaded
+    if (tab.loading && !visible) {
+      tab.dom.style.top = '-999px';
+      return;
+    }
+
     if (tab.dom.setVisible)
       tab.dom.setVisible(visible);
 
@@ -1748,7 +1758,6 @@ var Browser = {
     switch (activity.source.data.type) {
       case 'url':
         var url = this.getUrlFromInput(activity.source.data.url);
-        this.hideCurrentTab();
         this.selectTab(this.createTab(url));
         this.showPageScreen();
         break;
