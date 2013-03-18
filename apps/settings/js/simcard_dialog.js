@@ -74,10 +74,15 @@ var SimPinDialog = {
       inputField.focus();
     }
 
+    function blur() {
+      inputField.blur();
+    }
+
     return {
       get value() { return valueEntered; },
       set value(value) { setValue(value) },
-      focus: setFocus
+      focus: setFocus,
+      blur: blur
     };
   },
 
@@ -254,7 +259,9 @@ var SimPinDialog = {
   clear: function spl_clear() {
     this.errorMsg.hidden = true;
     this.pinInput.value = '';
+    this.pinInput.blur();
     this.pukInput.value = '';
+    this.pukInput.blur();
     this.newPinInput.value = '';
     this.confirmPinInput.value = '';
   },
@@ -295,11 +302,6 @@ var SimPinDialog = {
 
     this.origin = origin;
     document.location.hash = '#simpin-dialog';
-
-    if (action === 'unlock' && this.lockType === 'puk')
-      this.pukInput.focus();
-    else
-      this.pinInput.focus();
 
   },
 
