@@ -444,10 +444,10 @@ var Recents = {
   getMostRecentCallWithSameTypeOnSameDay:
     function getMostRecentCallWithSameTypeOnSameDay(
       day, phoneNumber, phoneNumberType, callType, startingWith) {
-    var groupSelector = '[data-num^="' + phoneNumber +
-      '"]' + (phoneNumberType ? ('[data-phone-type="' +
-      phoneNumberType + '"]') : '') +
-      '[data-type' + (startingWith ? '^' : '') + '="' + callType +
+    var groupSelector = (phoneNumber ? ('[data-num^="' + phoneNumber + '"]') :
+      ('[data-num="' + phoneNumber + '"]')) +
+      (phoneNumberType ? ('[data-phone-type="' + phoneNumberType + '"]') :
+      '') + '[data-type' + (startingWith ? '^' : '') + '="' + callType +
       '"][data-count]:not(.hide)';
     return day.querySelector(groupSelector);
   },
@@ -562,10 +562,10 @@ var Recents = {
       }
     }
     var entry =
-      '<li class="log-item ' + highlight +
-      '  " data-num="' + recent.number +
-      '  " data-date="' + recent.date +
-      '  " data-type="' + recent.type + '">' +
+      '<li class="log-item ' + highlight + '"' + 
+      '  data-num="' + recent.number + '"' +
+      '  data-date="' + recent.date + '"' +
+      '  data-type="' + recent.type + '">' +
       '  <label class="call-log-selection danger">' +
       '    <input type="checkbox" />' +
       '    <span></span>' +

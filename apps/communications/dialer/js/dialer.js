@@ -77,9 +77,15 @@ var CallHandler = (function callHandler() {
       LazyL10n.get(function localized(_) {
         var title = _('missedCall');
 
-        var sender = (contact == null) ? number :
-          (Utils.getPhoneNumberPrimaryInfo(matchingTel, contact) ||
-            _('unknown'));
+        var sender;
+        if (!number) {
+          sender = _('unknown');
+        } else if (contact) {
+          sender = Utils.getPhoneNumberPrimaryInfo(matchingTel, contact) ||
+              _('unknown');
+        } else {
+          sender = number;
+        }
 
         var body = _('from', {sender: sender});
 
