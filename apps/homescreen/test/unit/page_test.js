@@ -18,9 +18,9 @@ suite('page.js >', function() {
   var containerNode;
 
   function createImageBlob() {
-    var data = [ "some stuff" ];
+    var data = ['some stuff'];
     var properties = {
-      type : "image/png"
+      type: 'image/png'
     };
 
     return new Blob(data, properties);

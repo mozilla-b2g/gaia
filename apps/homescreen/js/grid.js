@@ -125,7 +125,7 @@ var GridManager = (function() {
       // Remember this for next time.
       lastPrediction = prediction;
       return prediction;
-    }
+    };
   }
 
   function addActive(target) {

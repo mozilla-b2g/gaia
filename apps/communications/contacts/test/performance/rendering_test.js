@@ -13,7 +13,7 @@ suite(window.mozTestInfo.appPath + ' >', function() {
   });
 
   setup(function() {
-    yield IntegrationHelper.unlock(device); // it affects the first run otherwise
+    yield IntegrationHelper.unlock(device); //it affects the first run otherwise
   });
 
   test('rendering time >', function() {

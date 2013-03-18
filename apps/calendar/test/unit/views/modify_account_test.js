@@ -427,5 +427,3 @@ suiteGroup('Views.ModifyAccount', function() {
   });
 
 });
-
-*/

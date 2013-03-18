@@ -33,7 +33,8 @@ var FacebookIntegration = {
 
   get gmailImportButton() {
     delete this.gmailImportButton;
-    return this.gmailImportButton = document.getElementById('gmail-import-button');
+    return this.gmailImportButton =
+        document.getElementById('gmail-import-button');
   },
 
   get noNetworkMsg() {
