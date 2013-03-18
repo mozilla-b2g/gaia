@@ -32,7 +32,8 @@
     event: function() {
       var calendarId = this.h('calendarId');
       return '<section class="event calendar-id-' + calendarId + ' ' +
-             'calendar-display" data-id="' + this.h('busytimeId') + '">' +
+        this.h('classes') + ' calendar-display" ' +
+        'data-id="' + this.h('busytimeId') + '">' +
           '<div class="container calendar-id-' + calendarId +
               ' calendar-color">' +
             '<h5>' + this.h('title') + '</h5>' +
