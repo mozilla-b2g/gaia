@@ -568,7 +568,10 @@ var Browser = {
 
     // No protocol, could be a search term
     if (this.isNotURL(input)) {
-      return 'http://' + this.DEFAULT_SEARCH_PROVIDER_URL + '/search?q=' + input;
+      return 'http://' +
+             this.DEFAULT_SEARCH_PROVIDER_URL +
+             '/search?q=' +
+             input;
     }
 
     // No scheme, prepend basic protocol and return
