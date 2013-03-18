@@ -414,7 +414,7 @@ var Recents = {
     groupSelector += '[data-type';
     if (startingWith) {
       groupSelector += '^';
-    } 
+    }
     groupSelector += '="' + callType + '"]';
     return day.querySelectorAll(groupSelector);
   },
@@ -540,7 +540,7 @@ var Recents = {
       }
     }
     var entry =
-      '<li class="log-item ' + highlight + '"' + 
+      '<li class="log-item ' + highlight + '"' +
       '  data-num="' + recent.number + '"' +
       '  data-date="' + recent.date + '"' +
       '  data-type="' + recent.type + '">' +
