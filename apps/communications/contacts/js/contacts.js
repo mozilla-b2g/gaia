@@ -308,7 +308,11 @@ var Contacts = (function() {
           return;
         }
         contactsDetails.render(currentContact, TAG_OPTIONS);
-        navigation.go('view-contact-details', 'right-left');
+        if (contacts.Search.isInSearchMode()) {
+          navigation.go('view-contact-details', 'go-deeper-search');
+        } else {
+          navigation.go('view-contact-details', 'go-deeper');
+        }
       });
     });
   };
@@ -716,7 +720,6 @@ var Contacts = (function() {
       '/shared/style/switches.css',
       '/shared/style/confirm.css',
       '/contacts/style/fixed_header.css',
-      '/contacts/style/transitions.css',
       '/contacts/style/animations.css',
       '/facebook/style/curtain_frame.css',
       '/contacts/style/status.css',

@@ -187,7 +187,6 @@ menu, nav, section, video, audio, canvas, progress, meter, time {
   width: 100%;
   height: 100%;
   transform: translate(0, 0);
-  transition: transform 0.5s ease;
 }
 
 .view:not(.view-noscroll) {
@@ -309,6 +308,17 @@ form p + p {
 .view-body {
   position: relative;
   height: calc(100% - 5rem);
+}
+
+#view-screenshot.contact-list > header:first-child:after {
+  background-image: none;
+}
+
+#view-screenshot.contact-list > #view-screenshot-body {
+  position: relative;
+  height: calc(100% - 5rem);
+  background: -moz-element(#view-contacts-list);
+  background-position: 0 -5rem;
 }
 
 .view-body-inner {

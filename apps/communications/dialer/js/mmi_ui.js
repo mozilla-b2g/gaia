@@ -94,15 +94,15 @@ var MmiUI = {
 
   showLoading: function mui_showLoading() {
     this.loadingOverlay.classList.remove('hide');
-    this.loadingOverlay.classList.remove('fadeOut');
-    this.loadingOverlay.classList.add('fadeIn');
+    this.loadingOverlay.classList.remove('fade-out');
+    this.loadingOverlay.classList.add('fade-in');
     this.responseTextNode.setAttribute('disabled', 'disabled');
     this.sendNode.setAttribute('disabled', 'disabled');
   },
 
   hideLoading: function mui_hideLoading() {
-    this.loadingOverlay.classList.remove('fadeIn');
-    this.loadingOverlay.classList.add('fadeOut');
+    this.loadingOverlay.classList.remove('fade-in');
+    this.loadingOverlay.classList.add('fade-out');
     var self = this;
     this.loadingOverlay.addEventListener('animationend',
       function uso_fadeOut(ev) {
