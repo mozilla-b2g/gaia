@@ -52,6 +52,7 @@ var NotificationScreen = {
   silent: false,
   alerts: true,
   vibrates: true,
+  vibrationEnabled: true,
 
   init: function ns_init() {
     window.addEventListener('mozChromeEvent', this);
@@ -317,7 +318,8 @@ var NotificationScreen = {
       }, 2000);
     }
 
-    if (this.vibrates) {
+    var vibrate = !this.silent ? this.vibrates : this.vibrates && this.vibrationEnabled;
+    if (vibrate) {
       if (document.mozHidden) {
         window.addEventListener('mozvisibilitychange', function waitOn() {
           window.removeEventListener('mozvisibilitychange', waitOn);
@@ -414,4 +416,8 @@ SettingsListener.observe('ring.enabled', true, function(value) {
 
 SettingsListener.observe('alert-vibration.enabled', true, function(value) {
   NotificationScreen.vibrates = value;
+});
+
+SettingsListener.observe('vibration.enabled', true, function(value) {
+  NotificationScreen.vibrationEnabled = value;
 });
