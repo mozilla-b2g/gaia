@@ -334,6 +334,7 @@ var Carrier = (function newCarrier(window, document, undefined) {
 
     // select operator
     function selectOperator(network, messageElement) {
+      var _ = window.navigator.mozL10n.get;
       var req = mobileConnection.selectNetwork(network);
       messageElement.textContent = _('operator-status-connecting');
       req.onsuccess = function onsuccess() {
