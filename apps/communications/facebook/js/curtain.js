@@ -14,7 +14,9 @@ var Curtain = (function() {
   var cpuWakeLock;
   var messages = [];
 
-  var cancelButton, retryButton, progressElement, form, progressTitle;
+  var cancelButtonCallback, retryButtonCallback, progressElement;
+  var form, progressTitle;
+  var initialized = false;
 
   if (isCurtainReady) {
     init();
@@ -26,10 +28,23 @@ var Curtain = (function() {
   }
 
   function init() {
-    cancelButton = doc.querySelector('#cancel');
-    retryButton = doc.querySelector('#retry');
+    var cancelButton = doc.getElementById('cancel');
+    cancelButton.addEventListener('click', function on_cancel(e) {
+      if (typeof cancelButtonCallback === 'function') {
+        cancelButtonCallback();
+        return false;
+      }
+    });
 
-    progressElement = doc.querySelector('#progressElement');
+    var retryButton = doc.getElementById('retry');
+    retryButton.addEventListener('click', function on_retry(e) {
+      if (typeof retryButtonCallback === 'function') {
+        retryButtonCallback();
+        return false;
+      }
+    });
+
+    progressElement = doc.getElementById('progressElement');
 
     form = doc.querySelector('form');
 
@@ -39,6 +54,8 @@ var Curtain = (function() {
     });
 
     progressTitle = doc.getElementById('progressTitle');
+
+    initialized = true;
   }
 
   function doShow(type) {
@@ -57,7 +74,13 @@ var Curtain = (function() {
     var counter = 0;
     var total = 0;
 
-    progressElement.setAttribute('value', 0);
+    if (progressElement) {
+      progressElement.setAttribute('value', 0);
+    }
+
+    // in the following functions, we're quite sure that the progress element
+    // will be bound because the user can't start an import if the facebook
+    // frame is not loaded.
 
     function showMessage() {
       messages['progress'].textContent = _('progressFB', {
@@ -169,13 +192,7 @@ var Curtain = (function() {
      *
      */
     set oncancel(cancelCb) {
-      if (typeof cancelCb === 'function') {
-        cancelButton.onclick = function on_cancel(e) {
-          delete cancelButton.onclick;
-          cancelCb();
-          return false;
-        };
-      }
+      cancelButtonCallback = cancelCb;
     },
 
     /**
@@ -186,13 +203,7 @@ var Curtain = (function() {
      *
      */
     set onretry(retryCb) {
-      if (typeof retryCb === 'function') {
-        retryButton.onclick = function on_retry(e) {
-          delete retryButton.onclick;
-          retryCb();
-          return false;
-        };
-      }
+      retryButtonCallback = retryCb;
     },
 
     /**
