@@ -953,47 +953,6 @@ var WindowManager = (function() {
     });
   }
 
-  // Hide current app
-  function hideCurrentApp(callback) {
-    if (displayedApp == null || displayedApp == homescreen)
-      return;
-
-    toggleHomescreen(true);
-    var frame = getAppFrame(displayedApp);
-    frame.classList.add('back');
-    frame.classList.remove('restored');
-    if (callback) {
-      frame.addEventListener('transitionend', function execCallback() {
-        frame.style.visibility = 'hidden';
-        frame.removeEventListener('transitionend', execCallback);
-        callback();
-      });
-    }
-  }
-
-  // If app parameter is passed,
-  // it means there's a specific app needs to be restored
-  // instead of current app
-  function restoreCurrentApp(app) {
-    if (app) {
-      // Restore app visibility immediately but don't open it.
-      var frame = getAppFrame(app);
-      frame.style.visibility = 'visible';
-      frame.classList.remove('back');
-    } else {
-      app = displayedApp;
-      toggleHomescreen(false);
-      var frame = getAppFrame(app);
-      frame.style.visibility = 'visible';
-      frame.classList.remove('back');
-      frame.classList.add('restored');
-      frame.addEventListener('transitionend', function removeRestored() {
-        frame.removeEventListener('transitionend', removeRestored);
-        frame.classList.remove('restored');
-      });
-    }
-  }
-
   function toggleHomescreen(visible) {
     var homescreenFrame = ensureHomescreen();
     if (homescreenFrame && 'setVisible' in homescreenFrame.firstChild)
@@ -2130,8 +2089,7 @@ var WindowManager = (function() {
     getCurrentDisplayedApp: function() {
       return runningApps[displayedApp];
     },
-    hideCurrentApp: hideCurrentApp,
-    restoreCurrentApp: restoreCurrentApp,
+    toggleHomescreen: toggleHomescreen,
     retrieveHomescreen: retrieveHomescreen,
     retrieveFTU: retrieveFTU,
     screenshots: screenshots
