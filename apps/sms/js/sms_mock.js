@@ -12,6 +12,7 @@
     id: 0,
     messages: [
       {
+        threadId: 1,
         sender: null,
         receiver: '1977',
         body: 'Alo, how are you today, my friend? :)',
@@ -20,6 +21,7 @@
         timestamp: new Date(Date.now())
       },
       {
+        threadId: 1,
         sender: null,
         receiver: '1977',
         body: 'arr :)',
@@ -28,6 +30,7 @@
         timestamp: new Date(Date.now() - 8400000000)
       },
       {
+        threadId: 2,
         sender: null,
         receiver: '436797',
         body: 'Sending :)',
@@ -35,6 +38,7 @@
         timestamp: new Date(Date.now() - 172800000)
       },
       {
+        threadId: 3,
         sender: null,
         receiver: '197743697',
         body: 'Nothing :)',
@@ -42,6 +46,7 @@
         timestamp: new Date(Date.now() - 652800000)
       },
       {
+        threadId: 4,
         sender: null,
         receiver: '197746797',
         body: 'Error message:)',
@@ -50,6 +55,7 @@
         timestamp: new Date(Date.now() - 822800000)
       },
       {
+        threadId: 4,
         sender: null,
         receiver: '197746797',
         body: 'Nothing :)',
@@ -57,6 +63,7 @@
         timestamp: new Date(Date.now() - 1002800000)
       },
       {
+        threadId: 4,
         sender: null,
         receiver: '197746797',
         body: 'Nothing :)',
@@ -64,6 +71,7 @@
         timestamp: new Date(Date.now() - 1002800000)
       },
       {
+        threadId: 4,
         sender: '197746797',
         body: 'Recibido!',
         delivery: 'received',
@@ -72,30 +80,35 @@
     ],
     threads: [
       {
+        id: 1,
         senderOrReceiver: '1977',
         body: 'Alo, how are you today, my friend? :)',
         timestamp: new Date(Date.now()),
         unreadCount: 0
       },
       {
+        id: 2,
         senderOrReceiver: '436797',
         body: 'Sending :)',
         timestamp: new Date(Date.now() - 172800000),
         unreadCount: 0
       },
       {
+        id: 3,
         senderOrReceiver: '197743697',
         body: 'Nothing :)',
         timestamp: new Date(Date.now() - 652800000),
         unreadCount: 0
       },
       {
+        id: 4,
         senderOrReceiver: '197746797',
         body: 'Recibido!',
         timestamp: new Date(Date.now() - 50000000),
         unreadCount: 0
       },
       {
+        id: 5,
         senderOrReceiver: '14886783487',
         body: 'Hello world!',
         timestamp: new Date(Date.now() - 60000000),
@@ -112,6 +125,7 @@
   // Procedurally generate a large amount of messages for a single thread
   for (var i = 0; i < 150; i++) {
     messagesDb.messages.push({
+      threadId: 5,
       sender: '14886783487',
       body: 'Hello world!',
       delivery: 'received',
@@ -169,6 +183,7 @@
   };
 
   MockNavigatormozSms.send = function(number, text, success, error) {
+    var threadId = MessageManager.currentThread;
     var sendId = messagesDb.id++;
     var request = {
       error: null
@@ -176,6 +191,7 @@
     var sendInfo = {
       type: 'sent',
       message: {
+        threadId: threadId,
         sender: null,
         receiver: number,
         delivery: 'sending',
@@ -220,6 +236,7 @@
       var receivedInfo = {
         type: 'received',
         message: {
+          threadId: threadId,
           sender: number,
           receiver: null,
           delivery: 'received',

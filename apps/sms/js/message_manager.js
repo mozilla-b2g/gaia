@@ -32,6 +32,10 @@ var MessageManager = {
     var message = e.message;
     var num = message.receiver;
     if (window.location.hash == '#new') {
+      // We update the currentThread
+      if (!MessageManager.currentThread) {
+        MessageManager.currentThread = message.threadId;
+      }
       // If we are in 'new' we go to the right thread
       // 'num' has been internationalized by Gecko
       window.location.hash = '#num=' + num;
@@ -56,6 +60,7 @@ var MessageManager = {
     // thread without requesting Gecko, so we increase the performance and we
     // reduce Gecko requests.
     return {
+        id: message.threadId,
         senderOrReceiver: message.sender,
         body: message.body,
         timestamp: message.timestamp,
@@ -66,14 +71,11 @@ var MessageManager = {
   onMessageReceived: function mm_onMessageReceived(e) {
     var message = e.message;
 
-    var num;
-    if (this.currentNum) {
-      num = this.currentNum;
-    }
-
-    var sender = message.sender;
-    if (num && num === sender) {
-      //Append message and mark as unread
+    var currentThread = this.currentThread;
+    var threadId = message.threadId;
+    
+    if (currentThread && currentThread === threadId) {
+      // Append message and mark as unread
       this.markMessagesRead([message.id], true, function() {
         MessageManager.getThreads(ThreadListUI.renderThreads);
       });
@@ -120,8 +122,10 @@ var MessageManager = {
   onVisibilityChange: function mm_onVisibilityChange(e) {
     LinkActionHandler.resetActivityInProgress();
     ThreadListUI.updateContactsInfo();
-    ThreadUI.updateHeaderData();
     Utils.updateTimeHeaders();
+    if (window.location.hash.substr(0, 5) === '#num=') {
+      ThreadUI.updateHeaderData();
+    }
   },
 
   slide: function mm_slide(callback) {
@@ -164,7 +168,7 @@ var MessageManager = {
         contactButton.parentNode.appendChild(contactButton);
         document.getElementById('messages-container').innerHTML = '';
         ThreadUI.cleanFields();
-        MessageManager.currentNum = null;
+        MessageManager.currentThread = null;
         threadMessages.classList.add('new');
         MessageManager.slide(function() {
           receiverInput.focus();
@@ -174,7 +178,7 @@ var MessageManager = {
         //Keep the  visible button the :last-child
         var editButton = document.getElementById('icon-edit');
         editButton.parentNode.appendChild(editButton);
-        MessageManager.currentNum = null;
+        MessageManager.currentThread = null;
         if (mainWrapper.classList.contains('edit')) {
           mainWrapper.classList.remove('edit');
           if (ThreadListUI.editDone) {
@@ -211,14 +215,13 @@ var MessageManager = {
         var num = this.getNumFromHash();
         if (num) {
           var filter = this.createFilter(num);
-          var input = document.getElementById('messages-input');
-          MessageManager.currentNum = num;
+
           if (mainWrapper.classList.contains('edit')) {
             mainWrapper.classList.remove('edit');
           } else if (threadMessages.classList.contains('new')) {
+            ThreadUI.updateHeaderData();
             ThreadUI.renderMessages(filter);
             threadMessages.classList.remove('new');
-            ThreadUI.updateHeaderData();
           } else {
             // As soon as we click in the thread, we visually mark it
             // as read.
@@ -227,7 +230,9 @@ var MessageManager = {
               threadRead.getElementsByTagName('a')[0].classList
                     .remove('unread');
             }
-
+            // Update the currentThread
+            MessageManager.currentThread = threadRead.dataset.threadId;
+            
             var self = this;
             // Update Header
             ThreadUI.updateHeaderData(function headerReady() {
