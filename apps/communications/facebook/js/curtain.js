@@ -6,22 +6,57 @@ var Curtain = (function() {
 
   var curtainFrame = parent.document.querySelector('#fb-curtain');
   var doc = curtainFrame.contentDocument;
-  var cancelButton = doc.querySelector('#cancel');
-  var retryButton = doc.querySelector('#retry');
 
-  var progressElement = doc.querySelector('#progressElement');
-
-  var form = doc.querySelector('form');
-
-  var messages = [];
-  var elements = ['error', 'timeout', 'wait', 'message', 'progress'];
-  elements.forEach(function createElementRef(name) {
-    messages[name] = doc.getElementById(name + 'Msg');
-  });
-
-  var progressTitle = doc.getElementById('progressTitle');
+  var curtainReadyState = curtainFrame.readyState;
+  var isCurtainReady = (curtainReadyState === 'interactive' ||
+    curtainReadyState === 'complete');
 
   var cpuWakeLock;
+  var messages = [];
+
+  var cancelButtonCallback, retryButtonCallback, progressElement;
+  var form, progressTitle;
+  var initialized = false;
+
+  if (isCurtainReady) {
+    init();
+  } else {
+    doc.addEventListener('DOMContentLoaded', function onReady() {
+      this.removeEventListener('DOMContentLoaded', onReady);
+      init();
+    });
+  }
+
+  function init() {
+    var cancelButton = doc.getElementById('cancel');
+    cancelButton.addEventListener('click', function on_cancel(e) {
+      if (typeof cancelButtonCallback === 'function') {
+        cancelButtonCallback();
+        return false;
+      }
+    });
+
+    var retryButton = doc.getElementById('retry');
+    retryButton.addEventListener('click', function on_retry(e) {
+      if (typeof retryButtonCallback === 'function') {
+        retryButtonCallback();
+        return false;
+      }
+    });
+
+    progressElement = doc.getElementById('progressElement');
+
+    form = doc.querySelector('form');
+
+    var elements = ['error', 'timeout', 'wait', 'message', 'progress'];
+    elements.forEach(function createElementRef(name) {
+      messages[name] = doc.getElementById(name + 'Msg');
+    });
+
+    progressTitle = doc.getElementById('progressTitle');
+
+    initialized = true;
+  }
 
   function doShow(type) {
     form.dataset.state = type;
@@ -39,7 +74,13 @@ var Curtain = (function() {
     var counter = 0;
     var total = 0;
 
-    progressElement.setAttribute('value', 0);
+    if (progressElement) {
+      progressElement.setAttribute('value', 0);
+    }
+
+    // in the following functions, we're quite sure that the progress element
+    // will be bound because the user can't start an import if the facebook
+    // frame is not loaded.
 
     function showMessage() {
       messages['progress'].textContent = _('progressFB', {
@@ -151,13 +192,7 @@ var Curtain = (function() {
      *
      */
     set oncancel(cancelCb) {
-      if (typeof cancelCb === 'function') {
-        cancelButton.onclick = function on_cancel(e) {
-          delete cancelButton.onclick;
-          cancelCb();
-          return false;
-        };
-      }
+      cancelButtonCallback = cancelCb;
     },
 
     /**
@@ -168,13 +203,7 @@ var Curtain = (function() {
      *
      */
     set onretry(retryCb) {
-      if (typeof retryCb === 'function') {
-        retryButton.onclick = function on_retry(e) {
-          delete retryButton.onclick;
-          retryCb();
-          return false;
-        };
-      }
+      retryButtonCallback = retryCb;
     },
 
     /**
