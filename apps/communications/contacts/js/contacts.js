@@ -4,6 +4,7 @@ var _;
 var TAG_OPTIONS;
 var COMMS_APP_ORIGIN = document.location.protocol + '//' +
   document.location.host;
+var asyncScriptsLoaded;
 
 var Contacts = (function() {
   var navigation = new navigationStack('view-contacts-list');
@@ -197,7 +198,10 @@ var Contacts = (function() {
       window.removeEventListener('asyncScriptsLoaded', onAsyncLoad);
       contactsList.initAlphaScroll();
       checkUrl();
+
       PerformanceTestingHelper.dispatch('init-finished');
+
+      asyncScriptsLoaded = true;
     });
   };
 
@@ -738,17 +742,16 @@ var Contacts = (function() {
     contacts.Details.onLineChanged();
   };
 
-
   var cardStateChanged = function() {
     contacts.Settings.cardStateChanged();
   };
-
 
   var getFirstContacts = function c_getFirstContacts() {
     var onerror = function() {
       console.error('Error getting first contacts');
     };
     contactsList = contactsList || contacts.List;
+
     contactsList.getAllContacts(onerror, function(contacts) {
       loadList(contacts);
     });
@@ -784,13 +787,12 @@ var Contacts = (function() {
     ];
 
     LazyLoader.load(lazyLoadFiles, function() {
-      var event = new CustomEvent('asyncScriptsLoaded');
-      window.dispatchEvent(event);
       var handling = ActivityHandler.currentlyHandling;
       if (!handling || ActivityHandler.activityName === 'pick') {
         initContactsList();
         checkUrl();
       }
+      window.dispatchEvent(new CustomEvent('asyncScriptsLoaded'));
     });
   };
 

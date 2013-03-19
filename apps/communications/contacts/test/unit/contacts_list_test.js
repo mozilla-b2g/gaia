@@ -269,6 +269,8 @@ suite('Render contacts list', function() {
     containerC = container.querySelector('#contacts-list-C');
     groupD = container.querySelector('#group-D');
     containerD = container.querySelector('#contacts-list-D');
+
+    window.asyncScriptsLoaded = true;
   }
 
   suiteSetup(function() {

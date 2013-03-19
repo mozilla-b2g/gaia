@@ -17,7 +17,6 @@ contacts.List = (function() {
       contactsPhoto = [],
       photoTemplate,
       headers = {},
-      updating = {},
       contactsCache = {},
       searchLoaded = false,
       imagesLoaded = false;
@@ -180,7 +179,6 @@ contacts.List = (function() {
   var renderFullContact = function renderFullContact(contact, fbContacts) {
     var contactContainer = renderContact(contact);
     var name = contactContainer.children[0];
-    var orderedString = getStringToBeOrdered(contact);
 
     addSearchOptions(name, contact);
     addOrderOptions(name, contact);
@@ -322,9 +320,19 @@ contacts.List = (function() {
   }
 
   var buildContacts = function buildContacts(contacts, fbContacts) {
+    // we need the async scripts to be here at this moment
+    // to f.e. access the utils.text features
+    if (!asyncScriptsLoaded) {
+      // delay loading if they're not there yet
+      window.addEventListener('asyncScriptsLoaded', function listener() {
+        window.removeEventListener('asyncScriptsLoaded', listener);
+
+        buildContacts(contacts, fbContacts);
+      });
+      return;
+    }
+
     var counter = {};
-    var contactsCache = {};
-    var favorites = [];
     var length = contacts.length;
     var CHUNK_SIZE = 20;
 
@@ -337,7 +345,7 @@ contacts.List = (function() {
       var group = getGroupName(contact);
 
       var list = headers[group];
-      counter[group] = counter[group] + 1 || 1;
+      counter[group] = (counter[group] || 0) + 1;
       list.appendChild(renderedContact);
 
       if (counter[group] === 1) {
