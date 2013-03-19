@@ -7,8 +7,7 @@
   width: -moz-min-content;
   white-space: nowrap;
   text-align: left;
-  line-height: 2.3rem;
-  margin: 0 0.5rem;
+  line-height: 3rem;
 }
 
 .cmp-addr-label::after, .cmp-subject-label::after {
@@ -22,9 +21,8 @@
 
 .cmp-bubble-container,
 .cmp-attachments-size {
-  width: calc(100% - 3.5rem);
+  width: calc(100% - 3rem);
   float: left;
-  padding-top: 0.2rem;
 }
 
 .cmp-peep-bubble {
@@ -40,18 +38,19 @@ input.cmp-addr-text, input.cmp-subject-text {
   border: 0 !important;
   background: none;
   padding: 0;
-  height: auto;
+  height: 3rem;
   margin-left: 0.5rem;
+  font-size: 1.5rem;
 }
 
-input.cmp-addr-text {
-  margin-top: 2px;
+input.cmp-addr-text, input.cmp-dot-text {
   float: left;
   width: 0.5rem;
   max-width: 100%;
 }
 
 input.cmp-subject-text {
+  display: table-cell;
   text-overflow: ellipsis;
 }
 
@@ -61,21 +60,29 @@ input.cmp-subject-text {
 
 .cmp-contact-add,
 .cmp-file-add {
+  position: relative;
+  left: 0.5rem;
   background: url("images/add-contact.png") no-repeat scroll center transparent;
-  width: 2rem;
-  height: 2rem;
-  padding: 0.5rem;
+  width: 1.8rem;
+  height: 1.8rem;
+  border: 0.6rem solid transparent;
+  border-radius: 50%;
+  transition: border 200ms ease;
   display: inline-block;
   vertical-align: middle;
+}
+
+.cmp-contact-add:active {
+  border: 0.6rem solid #52B6CC;
 }
 
 .cmp-envelope-line {
   display: table;
   table-layout: fixed;
-  width: calc(100% - 4rem);
-  border-top: 1px solid transparent;
+  width: calc(100% - 3rem);
+  height: 3rem;
   border-bottom: 1px solid lightgray;
-  margin: 0 2rem;
+  margin: 0 1.5rem;
   padding: 0.4rem 0;
   font-size: 1.5rem;
 }
@@ -84,7 +91,7 @@ input.cmp-subject-text {
   -moz-box-sizing: border-box;
   width: calc(100% - 4rem);
   min-height: 10rem;
-  margin: 1.5rem 2rem;
+  margin: 1.5rem 1.5rem;
   display: block;
   overflow: hidden;
   padding: 0rem;
