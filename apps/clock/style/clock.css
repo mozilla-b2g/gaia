@@ -4,16 +4,11 @@ html, body {
   overflow: hidden;
   margin: 0;
   color: white;
-}
-
-@media all and (min-resolution: 200dpi) {
-  html, body {
-    font-size: 2mozmm;
-  }
+  font-size: 10px;
 }
 
 #views {
-  background: #101111;
+  background-color: #101111;
   position: fixed;
   top: 0;
   left: 0;
@@ -57,7 +52,7 @@ html, body {
 #digital-clock-background.visible {
   height: 22.1rem; /* 48%; */
   display: block;
-  background: url(images/digital_bk.png) no-repeat;
+  background: url(images/digital_bk.png) repeat-x left bottom / auto 100%;
 }
 
 #digital-clock {
@@ -93,6 +88,7 @@ html, body {
 
 #clock-hour24-state.alarm-set-indicator::after {
   background: url("images/alarm_indicator.png") no-repeat;
+  background-size: 1.8rem;
   position: absolute;
   height: 1.8rem;
   width: 1.8rem;
@@ -102,7 +98,7 @@ html, body {
 }
 
 #clock-day-date {
-  font: lighter normal 21px 'MozTT', sans-serif;
+  font: lighter normal 2.1rem 'MozTT', sans-serif;
   margin: 2.6rem 0 0 1.5rem;
   line-height: 1.7rem;
   position: absolute;
@@ -119,12 +115,14 @@ html, body {
 #analog-clock-container {
   position: relative;
   background-repeat: no-repeat;
+  background-size: 100%;
   margin: 8.8rem auto 0;
 }
 
 /*270x270*/
 #analog-clock-container.marks1 {
   background-image: url(images/analog_clock_marks1.png);
+  background-size: 27rem;
   width: 27rem; height: 27rem;
 }
 #analog-clock-container.marks1 svg {
@@ -170,11 +168,13 @@ html, body {
   fill: #CFE2E6;
   stroke-width: 0rem;
 }
+
 #secondhand, #secondhandCentralPoint { /* narrow blue second hand */
   fill: #597980;
 }
+
 #minutehandCentralPoint { /* dark-gray central point*/
-  stroke-width: 0rem; 
+  stroke-width: 0rem;
 }
 
 /* banner*/
@@ -197,41 +197,3 @@ body.hidden *[data-l10n-id] {
   visibility: hidden;
 }
 
-/* 320x480 phones */
-@media screen and (width: 320px) {
-  html {
-    font-size: 10px;
-  }
-}
-
-/* 480x800 phones */
-@media screen and (width: 480px) {
-  html {
-    font-size: 10px;
-  }
-  #analog-clock-svg-body.alarm1 {
-    transform: matrix(1.13,0,0,1.13,0,7);
-  }
-  #analog-clock-svg-body.alarm2 {
-    transform: matrix(0.96,0,0,0.96,0,-1);
-  }
-  #analog-clock-svg-body.alarm3 {
-    transform: matrix(0.74,0,0,0.74,0,-11.5);
-  }
-  #analog-clock-svg-body.alarm4 {
-    transform: matrix(0.52,0,0,0.52,0,-21.5);
-  }
-  #analog-clock-background-cache1 {
-    background-image: url(images/analog_clock_background1@2x.png);
-  }
-  #analog-clock-background-cache2 {
-    background-image: url(images/analog_clock_background2@2x.png);
-  }
-  #analog-clock-background-cache3 {
-    background-image: url(images/analog_clock_background3@2x.png);
-  }
-  #analog-clock-background-cache4 {
-    background-image: url(images/analog_clock_background4@2xpng);
-  }
-  #clock-view {  }
-}
