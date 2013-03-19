@@ -66,7 +66,8 @@ var FriendListRenderer = (function() {
     // # group
     renderGroup(fragment, groupsList, '#', groups['#']);
 
-    groupsList.innerHTML = ''; // Deleting template
+    // Deleting template
+    utils.dom.removeChildNodes(groupsList);
     groupsList.appendChild(fragment);
 
     if (typeof cb === 'function') {
