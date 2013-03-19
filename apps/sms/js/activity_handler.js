@@ -125,8 +125,7 @@ if (!window.location.hash.length) {
           showThreadFromSystemMessage(number);
         };
 
-        ContactDataManager.getContactData(message.sender,
-        function gotContact(contact) {
+        Contacts.findByString(message.sender, function gotContact(contact) {
           var sender;
           if (contact.length && contact[0].name) {
             sender = Utils.escapeHTML(contact[0].name[0]);
