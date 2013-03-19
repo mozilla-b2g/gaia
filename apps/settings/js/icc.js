@@ -483,6 +483,20 @@
         debug('No STK available - hide & exit');
         document.getElementById('icc-mainheader').hidden = true;
         document.getElementById('icc-mainentry').hidden = true;
+        if (alertbox.classList.contains('hidden')) {
+          debug('STK without menu, closing STK section');
+          stkResGoBack();
+        } else {
+          debug('STK alert box is open, so we wait to close STK');
+          window.addEventListener('stkdisplaytextclosed',
+            function do_stkDisplayTextClosed(event) {
+              debug('STK alert box closed and STK without menu, ' +
+                'closing STK section');
+              stkResGoBack();
+              window.removeEventListener('stkdisplaytextclosed',
+                this,false);
+            });
+        }
         return;
       }
 
@@ -723,13 +737,21 @@
     return (inputLen >= minLen) && (inputLen <= maxLen);
   }
 
+  function hideDisplayText() {
+    alertbox.classList.add('hidden');
+    setTimeout(function() {
+      var event = new CustomEvent('stkdisplaytextclosed', {});
+      window.dispatchEvent(event);
+    });
+  }
+
   /**
    * Display text to the user
    */
   function displayText(command, cb) {
     var options = command.options;
     var timeoutId = setTimeout(function() {
-      alertbox.classList.add('hidden');
+      hideDisplayText();
       if (cb) {
         cb(false);
       }
@@ -737,7 +759,7 @@
 
     alertbox_btn.onclick = function() {
       clearTimeout(timeoutId);
-      alertbox.classList.add('hidden');
+      hideDisplayText();
       if (cb) {
         cb(true);
       }
@@ -745,13 +767,13 @@
 
     alertbox_btnback.onclick = function() {
       clearTimeout(timeoutId);
-      alertbox.classList.add('hidden');
+      hideDisplayText();
       stkResGoBack();
     };
 
     alertbox_btnclose.onclick = function() {
       clearTimeout(timeoutId);
-      alertbox.classList.add('hidden');
+      hideDisplayText();
       stkResTerminate();
     };
 
@@ -765,7 +787,7 @@
   function playTone(options) {
     function closeToneAlert() {
       tonePlayer.pause();
-      alertbox.classList.add('hidden');
+      hideDisplayText();
     }
 
     debug('playTone: ', options);
