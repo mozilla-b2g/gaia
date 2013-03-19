@@ -19,17 +19,7 @@
 #listmenu menu button.icon,
 #listmenu menu a[role="button"].icon {
   background-repeat: no-repeat;
-  background-position: 10px center;
-  padding-left: 45px;
-  background-size: 30px 30px;
-}
-
-/* 320x480 phones */
-@media (orientation: portrait) and (width: 320px),
-       (orientation: landscape) and (width: 480px) {
-  #listmenu menu button.icon,
-  #listmenu menu a[role="button"].icon {
-    background-position: 5px center;
-    padding-left: 40px;
-  }
+  background-position: 0.5rem center;
+  padding-left: 4rem;
+  background-size: 3rem;
 }

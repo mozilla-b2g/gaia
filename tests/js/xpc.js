@@ -151,6 +151,7 @@
       timeout: 20000
     });
 
+    window.mozTestInfo.runs = env.get('RUNS') || 5;
     window.xpcArgv.slice(3).forEach(function(test) {
       require(test);
     });

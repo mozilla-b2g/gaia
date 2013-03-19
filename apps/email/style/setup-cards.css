@@ -21,7 +21,7 @@ input:focus:invalid {
 
 
 .sup-form {
-  margin: 1rem 2rem;
+  margin: 1.5rem;
 }
 
 .sup-manual-prompt {
@@ -43,10 +43,11 @@ input:focus:invalid {
   width: calc(100% - 6rem);
 }
 
-.sup-form-link {
+.sup-manual-config-btn {
+  display: inline-block;
   color: black;
   font-size: 1.4rem;
-  line-height: 3.8rem;
+  line-height: 1.2rem;
   margin: 1.5rem 3rem;
 }
 
@@ -73,20 +74,26 @@ input:focus:invalid {
 
 
 .sup-progress-region {
-  padding: 0 5%;
-  position: absolute;
-  top: 40%;
-  width: 90%;
-  text-align: center;
+  width: calc(100% - 3rem);
+  margin: 16rem auto 0;
+  padding-top: 1.2rem;
+  vertical-align: middle;
+  border-top: 0.1rem solid #bdbdbb;
 }
-.sup-progress-spinner {
-  display: block !important;
-  margin: 2rem auto;
-}
+
 .sup-progress-label {
-  margin-bottom: 0.5rem;
-  font-weight: 600;
-  font-size: 1.5rem;
+  display: inline-block;
+  width: calc(100% - 8rem);
+  vertical-align: middle;
+  font-weight: lighter;
+  font-size: 2.4rem;
+  line-height: 3rem;
+  letter-spacing: 0.024rem;
+  word-spacing: 0.1rem;
+}
+
+.sup-progress-spinner {
+  margin: 0 0.5rem 0 1.5rem !important;
 }
 
 .sup-account-done-label {
@@ -175,10 +182,11 @@ li.align-center {
   text-align: center;
 }
 
-.mail-select {
+.sup-manual-account-type {
+  width: 100%;
   vertical-align: middle;
   height: 3.8rem;
-  background: none repeat scroll 0% 0% rgb(231, 231, 231);
+  background: rgb(231, 231, 231);
   border: 0.1rem solid rgb(182, 182, 182);
   border-radius: 0.3rem 0.3rem 0.3rem 0.3rem;
   font-size: 1.4rem;

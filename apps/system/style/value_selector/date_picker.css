@@ -13,11 +13,11 @@
 /* specific component code for date picker */
 #date-picker {
   height: 87.5%;
-  width: calc(100% + 5px);
+  width: calc(100% + 0.5rem);
   padding: 0;
   font-size: 2.2rem;
   line-height: 1em;
-  margin-left: -5px;
+  margin-left: -0.5rem;
   display: inline-block;
   vertical-align: middle;
   white-space: normal;
@@ -53,7 +53,7 @@
   font-size: 2.2rem;
   line-height: 1em;
   text-align: center;
-  margin: 1.5rem 0px 2rem;
+  margin: 1.5rem 0 2rem;
 }
 
 #date-picker-controls button.next {
@@ -97,15 +97,15 @@
   text-transform: uppercase;
   background: #333;
   padding: 0.5rem 0.2rem;
-  border-top: solid 1px #000;
+  border-top: solid 0.1rem #000;
 }
 
 #date-picker-container {
-  border-bottom: 1px solid #000;
+  border-bottom: 0.1rem solid #000;
 }
 
 #date-picker-container li {
-  border: solid 1px #000;
+  border: solid 0.1rem #000;
   border-bottom: none;
   line-height: 4.5rem;
   height: 4.5rem;
@@ -126,7 +126,7 @@
   font-weight: 200;
   text-align: center;
   transition: background 0.2s ease;
-  border: solid 1px #555;
+  border: solid 0.1rem #555;
   border-left: none;
   border-bottom: none;
 }
@@ -136,7 +136,7 @@
 }
 
 #date-picker-container li.present {
-  background: url(images/ui/pattern-current.png) repeat left top;
+  background: url(images/ui/pattern-current.png) repeat left top / 0.5rem;
 }
 
 #date-picker-container span.selected  {

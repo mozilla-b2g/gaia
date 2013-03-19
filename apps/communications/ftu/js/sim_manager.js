@@ -1,6 +1,10 @@
 'use strict';
 
 var SimManager = {
+  // XXX: For handling the intermediate 'networkLocked' after unlock
+  //      the SIM card.
+  _unlocked: false,
+
   init: function sm_init() {
     this.mobConn = window.navigator.mozMobileConnection;
     if (!this.mobConn)
@@ -54,6 +58,8 @@ var SimManager = {
   *   'pinRequired',
   *   'pukRequired',
   *   'networkLocked',
+  *   'corporateLocked',
+  *   'serviceProviderLocked',
   *   'ready'.
   */
   handleCardState: function sm_handleCardState(callback) {
@@ -65,6 +71,11 @@ var SimManager = {
         break;
       case 'pukRequired':
         this.showPukScreen();
+        break;
+      case 'networkLocked':
+      case 'corporateLocked':
+      case 'serviceProviderLocked':
+        this.showXckScreen();
         break;
       default:
         if (this.accessCallback) {
@@ -89,25 +100,64 @@ var SimManager = {
   },
 
   showPinScreen: function sm_showScreen() {
+    if (this._unlocked)
+      return;
+
     UIManager.activationScreen.classList.remove('show');
     UIManager.unlockSimScreen.classList.add('show');
     UIManager.pincodeScreen.classList.add('show');
+    UIManager.xckcodeScreen.classList.remove('show');
     UIManager.fakePinInput.focus();
   },
 
   showPukScreen: function sm_showPukScreen() {
+    if (this._unlocked)
+      return;
+
     UIManager.unlockSimScreen.classList.add('show');
     UIManager.activationScreen.classList.remove('show');
     UIManager.pincodeScreen.classList.remove('show');
     UIManager.pukcodeScreen.classList.add('show');
+    UIManager.xckcodeScreen.classList.remove('show');
     UIManager.unlockSimHeader.innerHTML = _('pukcode');
     UIManager.fakePukInput.focus();
+  },
+
+  showXckScreen: function sm_showXckScreen() {
+    if (this._unlocked)
+      return;
+
+    UIManager.unlockSimScreen.classList.add('show');
+    UIManager.activationScreen.classList.remove('show');
+    UIManager.pincodeScreen.classList.remove('show');
+    UIManager.pukcodeScreen.classList.remove('show');
+    UIManager.xckcodeScreen.classList.add('show');
+
+    switch (this.mobConn.cardState) {
+      case 'networkLocked':
+        UIManager.unlockSimHeader.innerHTML = _('nckcode');
+        UIManager.xckLabel.textContent = _('type_nck');
+        UIManager.xckLabel.dataset.l10nId = 'type_nck';
+        break;
+      case 'corporateLocked':
+        UIManager.unlockSimHeader.innerHTML = _('cckcode');
+        UIManager.xckLabel.textContent = _('type_cck');
+        UIManager.xckLabel.dataset.l10nId = 'type_cck';
+        break;
+      case 'serviceProviderLocked':
+        UIManager.unlockSimHeader.innerHTML = _('spckcode');
+        UIManager.xckLabel.textContent = _('type_spck');
+        UIManager.xckLabel.dataset.l10nId = 'type_spck';
+        break;
+    }
+    UIManager.fakeXckInput.focus();
   },
 
   hideScreen: function sm_hideScreen() {
     UIManager.unlockSimScreen.classList.remove('show');
     UIManager.pincodeScreen.classList.remove('show');
     UIManager.pukcodeScreen.classList.remove('show');
+    UIManager.xckcodeScreen.classList.remove('show');
     UIManager.activationScreen.classList.add('show');
   },
 
@@ -119,12 +169,19 @@ var SimManager = {
   },
 
   unlock: function sm_unlock() {
+    this._unlocked = false;
+
     switch (this.mobConn.cardState) {
       case 'pinRequired':
         this.unlockPin();
         break;
       case 'pukRequired':
         this.unlockPuk();
+        break;
+      case 'networkLocked':
+      case 'corporateLocked':
+      case 'serviceProviderLocked':
+        this.unlockXck();
         break;
     }
   },
@@ -145,6 +202,7 @@ var SimManager = {
     var options = {lockType: 'pin', pin: pin };
     var req = this.mobConn.unlockCardLock(options);
     req.onsuccess = (function sm_unlockSuccess() {
+      this._unlocked = true;
       this.hideScreen();
     }).bind(this);
   },
@@ -195,6 +253,40 @@ var SimManager = {
     var options = {lockType: 'puk', puk: pukCode, newPin: newpinCode };
     var req = this.mobConn.unlockCardLock(options);
     req.onsuccess = (function sm_unlockSuccess() {
+      this._unlocked = true;
+      this.hideScreen();
+    }).bind(this);
+  },
+
+  unlockXck: function sm_unlockXck() {
+    var xck = UIManager.xckInput.value;
+    var lockType;
+    switch (this.mobConn.cardState) {
+      case 'networkLocked':
+        lockType = 'nck';
+        break;
+      case 'corporateLocked':
+        lockType = 'cck';
+        break;
+      case 'serviceProviderLocked':
+        lockType = 'spck';
+        break;
+    }
+    if (xck.length < 8 || xck.length > 16) {
+      UIManager.xckInput.classList.add('onerror');
+      UIManager.xckError.classList.remove('hidden');
+      UIManager.xckError.innerHTML = _(lockType + 'Validation');
+      return;
+    } else {
+      UIManager.pinInput.classList.remove('onerror');
+      UIManager.pinError.classList.add('hidden');
+    }
+
+    // Unlock SIM
+    var options = {lockType: lockType, pin: xck };
+    var req = this.mobConn.unlockCardLock(options);
+    req.onsuccess = (function sm_unlockSuccess() {
+      this._unlocked = true;
       this.hideScreen();
     }).bind(this);
   },
