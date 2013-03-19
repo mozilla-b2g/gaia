@@ -37,6 +37,12 @@ var UIManager = {
     'confirm-newpin-input',
     'fake-confirm-newpin-input',
     'confirm-newpin-error',
+    // XCK Screen
+    'xckcode-screen',
+    'xck-label',
+    'xck-input',
+    'fake-xck-input',
+    'xck-error',
     // Import contacts
     'sim-import-button',
     'no-sim',
@@ -90,6 +96,8 @@ var UIManager = {
                                           this.fakeInputValues.bind(this));
     this.fakeConfirmNewpinInput.addEventListener('keypress',
                                               this.fakeInputValues.bind(this));
+    this.fakeXckInput.addEventListener('keypress',
+                                       this.fakeInputValues.bind(this));
 
     this.simImportButton.addEventListener('click', this);
     this.skipPinButton.addEventListener('click', this);
