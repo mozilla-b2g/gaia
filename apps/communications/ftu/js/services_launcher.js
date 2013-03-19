@@ -1,6 +1,7 @@
 'use strict';
 
-var FTU_APP_ORIGIN = 'app://communications.gaiamobile.org';
+var FTU_APP_ORIGIN = document.location.protocol + '//' +
+    document.location.host;
 
 var ServicesLauncher = (function(document) {
     var extensionFrame = document.querySelector('#fb-extensions');
@@ -61,6 +62,9 @@ var ServicesLauncher = (function(document) {
     // This function can also be executed when other messages arrive
     // That's why we cannot call notifySettings outside the switch block
     function messageHandler(e) {
+      if (e.origin !== FTU_APP_ORIGIN) {
+        return;
+      }
       var data = e.data;
 
       switch (data.type) {
