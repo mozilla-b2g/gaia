@@ -537,8 +537,7 @@ console.log('  CONFIG CURRENTLY:', JSON.stringify(MailAPI.config));//HACK
 }
 SettingsMainCard.prototype = {
   onClose: function() {
-    Cards.removeCardAndSuccessors(this.domNode, 'animate', 1,
-                                  ['folder-picker', 'navigation']);
+    Cards.removeCardAndSuccessors(this.domNode, 'animate', 1, 1);
   },
 
   onAccountsSplice: function(index, howMany, addedItems,
