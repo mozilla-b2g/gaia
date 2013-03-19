@@ -60,8 +60,8 @@ var Wallpaper = {
     img.onload = function() {
       var canvas = document.createElement('canvas');
       var context = canvas.getContext('2d');
-      canvas.width = img.width;
-      canvas.height = img.height;
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
       context.drawImage(img, 0, 0);
 
       canvas.toBlob(function(blob) {
