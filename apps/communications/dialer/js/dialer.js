@@ -54,7 +54,12 @@ var CallHandler = (function callHandler() {
 
     activity.postResult({ status: 'accepted' });
   }
-  window.navigator.mozSetMessageHandler('activity', handleActivity);
+  // Shield against errors in Nightly for testing
+  if (window.navigator.mozSetMessageHandler &&
+      typeof window.navigator.mozSetMessageHandler === 'function') {
+    window.navigator.mozSetMessageHandler('activity', handleActivity);
+  }
+
 
   /* === Notifications support === */
   function handleNotification(evt) {
@@ -68,7 +73,10 @@ var CallHandler = (function callHandler() {
       window.location.hash = '#recents-view';
     };
   }
-  window.navigator.mozSetMessageHandler('notification', handleNotification);
+  if (window.navigator.mozSetMessageHandler &&
+      typeof window.navigator.mozSetMessageHandler === 'function') {
+    window.navigator.mozSetMessageHandler('notification', handleNotification);
+  }
 
   function handleNotificationRequest(number) {
     Contacts.findByNumber(number, function lookup(contact, matchingTel) {
@@ -139,7 +147,10 @@ var CallHandler = (function callHandler() {
 
     openCallScreen();
   }
-  window.navigator.mozSetMessageHandler('telephony-new-call', newCall);
+  if (window.navigator.mozSetMessageHandler &&
+      typeof window.navigator.mozSetMessageHandler === 'function') {
+    window.navigator.mozSetMessageHandler('telephony-new-call', newCall);
+  }
 
   /* === Bluetooth Support === */
   function btCommandHandler(message) {
@@ -163,16 +174,22 @@ var CallHandler = (function callHandler() {
     // Other commands needs to be handled from the call screen
     sendCommandToCallScreen('BT', command);
   }
-  window.navigator.mozSetMessageHandler('bluetooth-dialer-command',
+  if (window.navigator.mozSetMessageHandler &&
+      typeof window.navigator.mozSetMessageHandler === 'function') {
+
+    window.navigator.mozSetMessageHandler('bluetooth-dialer-command',
                                          btCommandHandler);
+  }
 
   /* === Headset Support === */
   function headsetCommandHandler(message) {
     sendCommandToCallScreen('HS', message);
   }
-  window.navigator.mozSetMessageHandler('headset-button',
+  if (window.navigator.mozSetMessageHandler &&
+      typeof window.navigator.mozSetMessageHandler === 'function') {
+    window.navigator.mozSetMessageHandler('headset-button',
                                         headsetCommandHandler);
-
+  }
   /*
     Send commands to the callScreen via post message.
     @type: Handler to be used in the CallHandler. Currently managing to
@@ -325,8 +342,11 @@ var CallHandler = (function callHandler() {
   function init() {
     loader.load(['/shared/js/mobile_operator.js',
                  '/dialer/js/ussd.js'], function() {
-      window.navigator.mozSetMessageHandler('ussd-received',
-          UssdManager.openUI.bind(UssdManager));
+      if (window.navigator.mozSetMessageHandler &&
+        typeof window.navigator.mozSetMessageHandler === 'function') {
+          window.navigator.mozSetMessageHandler('ussd-received',
+              UssdManager.openUI.bind(UssdManager));
+      }
     });
   }
 
@@ -346,6 +366,7 @@ var NavbarManager = {
       // https://github.com/jcarpenter/Gaia-UI-Building-Blocks/blob/master/inprogress/tabs.html
       self.update();
     });
+    window.location.hash = '#keyboard-view';
   },
   resourcesLoaded: false,
   /*
@@ -447,27 +468,20 @@ window.addEventListener('load', function startup(evt) {
   NavbarManager.init();
 
   setTimeout(function nextTick() {
-    // Lazy load DOM nodes
-    // This code is basically the same as the calendar loader
-    // Unit tests can be found in the calendar app
-    var delayed = document.getElementById('delay');
-    delayed.innerHTML = delayed.childNodes[0].nodeValue;
+    // Lazy load HTML Content
+    var lazyElements = ['edit-mode',
+                        'add-contact-action-menu',
+                        'confirmation-message'];
 
-    var parent = delayed.parentNode;
-    var child;
-    while (child = delayed.children[0]) {
-      parent.insertBefore(child, delayed);
-    }
-
-    parent.removeChild(delayed);
-
-    CallHandler.init();
-
-    // Load delayed scripts
-    loader.load(['/contacts/js/fb/fb_data.js',
-                 '/contacts/js/fb/fb_contact_utils.js',
-                 '/shared/style/confirm.css',
-                 '/contacts/js/confirm_dialog.js']);
+    lazyElements.forEach(function(lazyPanelID) {
+      var elementToLoad = document.getElementById(lazyPanelID);
+      for (var i = 0, l = elementToLoad.childNodes.length; i < l; i++) {
+        if (elementToLoad.childNodes[i].nodeType === document.COMMENT_NODE) {
+          elementToLoad.innerHTML = elementToLoad.childNodes[i].nodeValue;
+          break;
+        }
+      }
+    });
   });
 });
 
