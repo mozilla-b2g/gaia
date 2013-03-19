@@ -491,7 +491,7 @@ footer {
   position: absolute;
   top: 10px;
   left: 10px;
-  width: 300px;  /* I can't do right: 10px here. Bug? */
+  width: calc(100% - 20px);  /* I can't do right: 10px here. Bug? */
   height: calc(100% - 20px)  /* can't just set bottom: 10px here */
 }
 
