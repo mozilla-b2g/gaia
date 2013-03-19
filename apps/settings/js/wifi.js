@@ -350,6 +350,8 @@ navigator.mozL10n.ready(function wifiSettings() {
         // display the "Search Again" button
         list.dataset.state = 'ready';
 
+        PerformanceTestingHelper.dispatch('settings-panel-wifi-ready');
+
         // auto-rescan if requested
         if (autoscan) {
           window.setTimeout(scan, scanRate);
@@ -361,6 +363,9 @@ navigator.mozL10n.ready(function wifiSettings() {
       req.onerror = function onScanError(error) {
         // always try again.
         scanning = false;
+
+        PerformanceTestingHelper.dispatch('settings-panel-wifi-ready');
+
         window.setTimeout(scan, scanRate);
       };
     }
