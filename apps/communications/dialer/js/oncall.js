@@ -141,6 +141,7 @@ var CallScreen = {
 };
 
 var OnCallHandler = (function onCallHandler() {
+  var COMMS_APP_ORIGIN = 'app://communications.gaiamobile.org';
   // Changing this will probably require markup changes
   var CALLS_LIMIT = 2;
 
@@ -204,9 +205,7 @@ var OnCallHandler = (function onCallHandler() {
   }
 
   function postToMainWindow(data) {
-    var origin = document.location.protocol + '//' +
-      document.location.host;
-    window.opener.postMessage(data, origin);
+    window.opener.postMessage(data, COMMS_APP_ORIGIN);
   }
 
   /* === Handled calls === */
@@ -455,6 +454,9 @@ var OnCallHandler = (function onCallHandler() {
 
   /* Handle commands send to the callscreen via postmessage */
   function handleCommand(evt) {
+    if (evt.origin !== COMMS_APP_ORIGIN) {
+      return;
+    }
     var message = evt.data;
     if (!message) {
       return;
