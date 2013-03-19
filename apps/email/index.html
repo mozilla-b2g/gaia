@@ -77,17 +77,6 @@
        into them. -->
   <div id="templates" class="collapsed">
     <div id="templ-card">
-      <div class="card-account-picker card">
-        <div class="fld-accounts-header top-header">
-          <h2 class="fld-accounts-header-label header-label"
-              data-l10n-id="accounts-header">AccountS</h2>
-        </div>
-        <div class="scrollregion-below-header">
-          <div class="fld-accounts-container">
-          </div>
-        </div>
-      </div>
-
       <!-- Shows folders for navigation or move targeting.
            The navigation mode is less than full-width so we can see the
            messages display to its right.  -->
@@ -100,10 +89,8 @@
             <h1 class="fld-folders-header-account-label"></h1>
           </header>
         </section>
-        <div class="scrollregion-below-header folder-scoller-region">
-          <div class="fld-accounts-container">
-          </div>
-          <div class="fld-folders-container show">
+        <div class="scrollregion-below-header folder-scroller-region">
+          <div class="fld-folders-container">
           </div>
           <div class="bottom-toolbar-spacer"></div>
         </div>
@@ -119,8 +106,30 @@
           <span class="fld-nav-account-problem icon collapsed">!</span>
         </div>
       </div>
+      <!-- Shows accounts, to the left of folder list.
+           The navigation mode is less than full-width so we can see the
+           messages display to its right.  -->
+      <div class="card-account-picker card anim-overlay">
+        <section class="acct-picker-header skin-organic" role="region">
+          <header>
+            <a href="#" class="fld-accounts-btn">
+              <span class="icon icon-back"></span>
+            </a>
+            <h1 class="acct-picker-header-label"
+                data-l10n-id="settings-account-section"></h1>
+          </header>
+        </section>
+        <div class="scrollregion-below-header acct-scroller-region">
+          <div class="acct-list-container">
+          </div>
+          <div class="bottom-toolbar-spacer"></div>
+        </div>
+        <div class="fld-nav-toolbar bottom-toolbar">
+          <button class="fld-nav-settings-btn bottom-btn"></button>
+        </div>
+      </div>
       <!-- Lists the messages in a folder -->
-      <div class="card-message-list card">
+      <div class="card-message-list card" data-tray-target>
         <!-- Non-search header -->
         <section class="msg-list-header msg-nonsearch-only" role="region">
           <header>
