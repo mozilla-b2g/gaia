@@ -13,7 +13,7 @@
   top: 0;
   left: 0;
   width: 100%;
-  height: 45px;
+  height: 4.5rem;
   font-size: 1.5rem;
   font-weight: 500;
 }
@@ -21,20 +21,19 @@
 .icon-battery {
   display: block;
   float: left;
-
-  width: 42px;
-  height: 18px;
+  width: 4.2rem;
+  height: 1.8rem;
   margin: 0 1.3rem;
-
   background-image: url('images/battery_empty_small.png');
   background-position: center center;
   background-repeat: no-repeat;
+  background-size: 4.2rem;
 }
 
 #battery span {
   vertical-align: middle;
-  height: 45px;
-  line-height: 45px;
+  height: 4.5rem;
+  line-height: 4.5rem;
 }
 
 .battery-notification {
