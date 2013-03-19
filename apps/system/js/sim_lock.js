@@ -39,7 +39,8 @@ var SimLock = {
           return;
 
         // Ignore first time usage app which already ask for SIM code
-        if (evt.target.classList.contains('ftu'))
+        // XXX: We should have a better way to detect this app is FTU or not.
+        if (evt.target.dataset.frameOrigin == FtuLauncher.getFtuOrigin())
           return;
 
         if (!('telephony' in app.manifest.permissions ||
@@ -72,10 +73,15 @@ var SimLock = {
     if (LockScreen.locked)
       return false;
 
+    // FTU has its specific SIM PIN UI
+    if (FtuLauncher.isFtuRunning())
+      return false;
+
     switch (conn.cardState) {
-      // do nothing in absent and null card states
+      // do nothing in either absent, unknown or null card states
       case null:
       case 'absent':
+      case 'unknown':
         break;
       case 'pukRequired':
       case 'pinRequired':

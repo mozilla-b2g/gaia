@@ -147,12 +147,23 @@ SEP=\\
 MSYS_FIX=/
 endif
 
+ifndef GAIA_DISTRIBUTION_DIR
+  GAIA_DISTRIBUTION_DIR := $(CURDIR)$(SEP)distribution
+else
+	ifneq (,$(findstring MINGW32_,$(SYS)))
+		GAIA_DISTRIBUTION_DIR := $(join \
+			$(filter %:,$(subst :,: ,$GAIA_DISTRIBUTION_DIR)),\
+			$(realpath $(filter-out %:,$(subst :,: ,$GAIA_DISTRIBUTION_DIR))))
+	else
+		GAIA_DISTRIBUTION_DIR := $(realpath $(GAIA_DISTRIBUTION_DIR))
+	endif
+endif
 
 SETTINGS_PATH := build/custom-settings.json
-ifdef CUSTOMIZE
-	CUSTOMIZE_SETTINGS := $(realpath $(CUSTOMIZE))$(SEP)settings.json
-	ifneq ($(wildcard $(CUSTOMIZE_SETTINGS)),)
-		SETTINGS_PATH := $(CUSTOMIZE_SETTINGS)
+ifdef GAIA_DISTRIBUTION_DIR
+	DISTRIBUTION_SETTINGS := $(realpath $(GAIA_DISTRIBUTION_DIR))$(SEP)settings.json
+	ifneq ($(wildcard $(DISTRIBUTION_SETTINGS)),)
+		SETTINGS_PATH := $(DISTRIBUTION_SETTINGS)
 	endif
 endif
 
@@ -286,13 +297,27 @@ contacts: install-xulrunner-sdk
 # Create webapps
 offline: webapp-manifests webapp-optimize webapp-zip optimize-clean
 
+DIALER_SEARCH_STRING=/data/local/indexedDB/*communications.*
+DIALER_HISTORY_DIR=$(shell adb shell 'echo -n $(DIALER_SEARCH_STRING)')
+ifeq ($(DIALER_HISTORY_DIR),$(DIALER_SEARCH_STRING))
+	DIALER_HISTORY_DIR=
+endif
+
 # Create a light reference workload
 .PHONY: reference-workload-light
 reference-workload-light:
 	@echo "Populate Databases - Light Workload"
 	$(ADB) shell stop b2g
+	test_media/reference-workload/generateImages.sh 20
+	test_media/reference-workload/generateMusicFiles.sh 20
+	test_media/reference-workload/generateVideos.sh 5
 	$(ADB) push  test_media/reference-workload/contactsDb-200.sqlite /data/local/indexedDB/chrome/3406066227csotncta.sqlite
 	$(ADB) push  test_media/reference-workload/smsDb-200.sqlite /data/local/indexedDB/chrome/226660312ssm.sqlite
+ifneq ($(DIALER_HISTORY_DIR),)
+	$(ADB) push  test_media/reference-workload/dialerDb-50.sqlite $(DIALER_HISTORY_DIR)/2584670174dsitanleecreR.sqlite
+else
+	@echo "Skipped dialer history - no communications DB directory found..."
+endif
 	$(ADB) shell start b2g
 	@echo "Done"
 
@@ -301,8 +326,16 @@ reference-workload-light:
 reference-workload-medium:
 	@echo "Populate Databases - Medium Workload"
 	$(ADB) shell stop b2g
+	test_media/reference-workload/generateImages.sh 50
+	test_media/reference-workload/generateMusicFiles.sh 50
+	test_media/reference-workload/generateVideos.sh 10
 	$(ADB) push  test_media/reference-workload/contactsDb-500.sqlite /data/local/indexedDB/chrome/3406066227csotncta.sqlite
 	$(ADB) push  test_media/reference-workload/smsDb-500.sqlite /data/local/indexedDB/chrome/226660312ssm.sqlite
+ifneq ($(DIALER_HISTORY_DIR),)
+	$(ADB) push  test_media/reference-workload/dialerDb-100.sqlite $(DIALER_HISTORY_DIR)/2584670174dsitanleecreR.sqlite
+else
+	@echo "Skipped dialer history - no communications DB directory found..."
+endif
 	$(ADB) shell start b2g
 	@echo "Done"
 
@@ -311,8 +344,16 @@ reference-workload-medium:
 reference-workload-heavy:
 	@echo "Populate Databases - Heavy Workload"
 	$(ADB) shell stop b2g
+	test_media/reference-workload/generateImages.sh 100
+	test_media/reference-workload/generateMusicFiles.sh 100
+	test_media/reference-workload/generateVideos.sh 20
 	$(ADB) push  test_media/reference-workload/contactsDb-1000.sqlite /data/local/indexedDB/chrome/3406066227csotncta.sqlite
 	$(ADB) push  test_media/reference-workload/smsDb-1000.sqlite /data/local/indexedDB/chrome/226660312ssm.sqlite
+ifneq ($(DIALER_HISTORY_DIR),)
+	$(ADB) push  test_media/reference-workload/dialerDb-200.sqlite $(DIALER_HISTORY_DIR)/2584670174dsitanleecreR.sqlite
+else
+	@echo "Skipped dialer history - no communications DB directory found..."
+endif
 	$(ADB) shell start b2g
 	@echo "Done"
 
@@ -321,8 +362,16 @@ reference-workload-heavy:
 reference-workload-x-heavy:
 	@echo "Populate Databases - Extra Heavy Workload"
 	$(ADB) shell stop b2g
+	test_media/reference-workload/generateImages.sh 250
+	test_media/reference-workload/generateMusicFiles.sh 250
+	test_media/reference-workload/generateVideos.sh 50
 	$(ADB) push  test_media/reference-workload/contactsDb-2000.sqlite /data/local/indexedDB/chrome/3406066227csotncta.sqlite
 	$(ADB) push  test_media/reference-workload/smsDb-2000.sqlite /data/local/indexedDB/chrome/226660312ssm.sqlite
+ifneq ($(DIALER_HISTORY_DIR),)
+	$(ADB) push  test_media/reference-workload/dialerDb-500.sqlite $(DIALER_HISTORY_DIR)/2584670174dsitanleecreR.sqlite
+else
+	@echo "Skipped dialer history - no communications DB directory found..."
+endif
 	$(ADB) shell start b2g
 	@echo "Done"
 
@@ -399,7 +448,7 @@ define run-js-command
 	const GAIA_DEFAULT_LOCALE = "$(GAIA_DEFAULT_LOCALE)";                       \
 	const GAIA_INLINE_LOCALES = "$(GAIA_INLINE_LOCALES)";                       \
 	const GAIA_ENGINE = "xpcshell";                                             \
-	const CUSTOMIZE = "$(realpath $(CUSTOMIZE))";      													\
+	const GAIA_DISTRIBUTION_DIR = "$(GAIA_DISTRIBUTION_DIR)";               	\
 	';                                                                          \
 	$(XULRUNNERSDK) $(XPCSHELLSDK) -e "$$JS_CONSTS" -f build/utils.js "build/$(strip $1).js"
 endef
@@ -409,6 +458,7 @@ endef
 # conflict, the result is undefined.
 EXTENDED_PREF_FILES = \
   custom-prefs.js \
+  gps-prefs.js \
   payment-prefs.js \
   ua-override-prefs.js \
 
@@ -456,7 +506,7 @@ ifndef APPS
 	ifdef APP
 		APPS=$(APP)
 	else
-		APPS=$(shell find apps -type d -name 'test' | sed -e 's|^apps/||' -e 's|/test$$||' )
+		APPS=template $(shell find apps -type d -name 'test' | sed -e 's|^apps/||' -e 's|/test$$||' )
 	endif
 endif
 
@@ -602,8 +652,8 @@ lint:
 	@# cubevid
 	@# crystalskull
 	@# towerjelly
-	@gjslint --nojsdoc -r apps -e 'homescreen/everything.me,sms/js/ext,pdfjs/content,pdfjs/test,email/js/ext,music/js/ext,calendar/js/ext'
-	@gjslint --nojsdoc -r shared/js
+	@gjslint --nojsdoc -r apps -e 'homescreen/everything.me,sms/js/ext,pdfjs/content,pdfjs/test,email/js/ext,music/js/ext,calendar/js/ext' -x 'homescreen/js/hiddenapps.js,settings/js/hiddenapps.js'
+	@gjslint --nojsdoc -r shared/js -e 'phoneNumberJS'
 
 # Generate a text file containing the current changeset of Gaia
 # XXX I wonder if this should be a replace-in-file hack. This would let us
@@ -738,7 +788,8 @@ purge:
 	done);
 	$(ADB) shell rm -r $(MSYS_FIX)/cache/*
 	$(ADB) shell rm -r $(MSYS_FIX)/data/b2g/*
-	$(ADB) shell rm -r $(MSYS_FIX)$(GAIA_INSTALL_PARENT)/webapps
+	$(ADB) shell rm -r $(MSYS_FIX)/data/local/webapps
+	$(ADB) shell rm -r $(MSYS_FIX)/system/b2g/webapps
 
 # Build the settings.json file from settings.py
 ifeq ($(NOFTU), 1)

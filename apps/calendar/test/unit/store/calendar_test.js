@@ -1,50 +1,46 @@
-requireApp('calendar/test/unit/helper.js', function() {
-  requireLib('responder.js');
-  requireLib('db.js');
+requireLib('responder.js');
+requireLib('db.js');
 
-  requireLib('provider/local.js');
-  requireLib('provider/caldav.js');
+requireLib('models/calendar.js');
+requireLib('models/account.js');
 
-  requireLib('models/calendar.js');
-  requireLib('models/account.js');
-
-  requireLib('store/abstract.js');
-  requireLib('store/calendar.js');
-});
+requireLib('store/abstract.js');
+requireLib('store/calendar.js');
 
 suite('store/calendar', function() {
+
 
   var subject;
   var db;
   var model;
-  var account;
   var app;
 
   setup(function(done) {
     this.timeout(5000);
 
-    db = testSupport.calendar.db();
     app = testSupport.calendar.app();
+    db = app.db;
 
     var accountStore = db.getStore('Account');
 
     subject = db.getStore('Calendar');
 
-    account = accountStore.cached.acc1 = {
-      _id: 'acc1',
-      providerType: 'Local'
-    };
-
-    model = {
+    model = Factory('calendar', {
       _id: 1,
       remote: { id: 'uuid' },
       accountId: 'acc1'
-    };
+    });
 
     db.open(function(err) {
       done();
     });
   });
+
+  testSupport.calendar.accountEnvironment();
+  testSupport.calendar.loadObjects(
+    'Provider.Local',
+    'Provider.Caldav'
+  );
 
   teardown(function(done) {
     testSupport.calendar.clearStore(
@@ -62,8 +58,6 @@ suite('store/calendar', function() {
     assert.instanceOf(subject, Calendar.Store.Abstract);
     assert.equal(subject._store, 'calendars');
     assert.equal(subject.db, db);
-
-    assert.ok(subject._remoteByAccount);
   });
 
   suite('cache handling', function() {
@@ -73,16 +67,11 @@ suite('store/calendar', function() {
 
     test('#_addToCache', function() {
       assert.equal(subject._cached[1], model);
-      assert.equal(
-        subject._remoteByAccount['acc1']['uuid'],
-        model
-      );
     });
 
     test('#_removeFromCache', function() {
       subject._removeFromCache(1);
       assert.ok(!subject._cached[1]);
-      assert.ok(!subject._remoteByAccount['acc1']['uuid']);
     });
 
   });
@@ -120,15 +109,64 @@ suite('store/calendar', function() {
     });
   });
 
-  test('#remotesByAccount', function() {
-    subject._addToCache(model);
+  suite('#remotesByAccount', function() {
+    var expected;
+    var models = testSupport.calendar.dbFixtures('calendar', 'Calendar', {
+      one: { accountId: 1, remote: { id: 'one' } },
+      two: { accountId: 1, remote: { id: 'two' } },
+      three: { accountId: 2, remote: { id: 'three' } }
+    });
 
-    var result = subject.remotesByAccount(
-      model.accountId
-    );
+    setup(function(done) {
+      subject.persist(model, done);
+    });
 
-    assert.deepEqual(result, {
-      'uuid': model
+    function verify(accountId, done) {
+      subject.remotesByAccount(accountId, function(err, list) {
+        if (err) {
+          done(err);
+        }
+
+        done(function() {
+          var expectedIds = Object.keys(expected).sort();
+          assert.deepEqual(
+            Object.keys(list).sort(),
+            expectedIds,
+            'has same keys'
+          );
+
+          expectedIds.forEach(function(id) {
+            assert.hasProperties(
+              expected[id],
+              list[id],
+              id
+            );
+          });
+        });
+      });
+    }
+
+    test('one calendar', function(done) {
+      expected = {
+        three: models.three
+      };
+
+      verify(2, done);
+    });
+
+    test('no calendars', function(done) {
+      expected = {};
+
+      verify(3, done);
+    });
+
+    test('multiple calendars', function(done) {
+      expected = {
+        one: models.one,
+        two: models.two
+      };
+
+      verify(1, done);
     });
   });
 
@@ -220,66 +258,30 @@ suite('store/calendar', function() {
     });
   });
 
-  test('#providerFor', function() {
-    account.providerType = 'Local';
-    assert.equal(
-      subject.providerFor(model),
-      app.provider('Local')
-    );
+  suite('#ownersOf', function() {
+
+    test('given an id', function(done) {
+      var id = this.calendar._id;
+      subject.ownersOf(id, function(err, owners) {
+        done(function() {
+          assert.instanceOf(owners.calendar, Calendar.Models.Calendar);
+          assert.instanceOf(owners.account, Calendar.Models.Account);
+
+          assert.equal(owners.calendar._id, this.calendar._id, 'calendar id');
+          assert.equal(owners.account._id, this.account._id, 'account id');
+        }.bind(this));
+      }.bind(this));
+    });
+
   });
 
-  suite('#findWithCapability', function() {
-    var abstractAccount;
-    var localAccount;
 
-    var localCal;
-    var absCal;
-
-    setup(function(done) {
-      var trans = subject.db.transaction(
-        ['accounts', 'calendars'],
-        'readwrite'
-      );
-
-      trans.addEventListener('complete', function() {
-        done();
-      });
-
-      abstractAccount = Factory('account', {
-        _id: 'abstract',
-        providerType: 'Abstract'
-      });
-
-      localAccount = Factory('account', {
-        _id: 'local',
-        providerType: 'Local'
-      });
-
-      localCal = Factory('calendar', {
-        accountId: localAccount._id
-      });
-
-      absCal = Factory('calendar', {
-        accountId: abstractAccount._id
-      });
-
-      var account = db.getStore('Account');
-
-      account.persist(abstractAccount, trans);
-      account.persist(localAccount, trans);
-      subject.persist(localCal, trans);
-      subject.persist(absCal, trans);
-    });
-
-    var caps = ['createEvent', 'deleteEvent', 'updateEvent'];
-
-    caps.forEach(function(name) {
-      test('find: ' + name, function() {
-        var result = subject.findWithCapability(name);
-        assert.equal(result[0], localCal);
+  test('#providerFor', function(done) {
+    subject.providerFor(this.calendar, function(err, provider) {
+      done(function() {
+        assert.equal(provider, app.provider('Mock'));
       });
     });
-
   });
 
 });

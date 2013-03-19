@@ -85,9 +85,9 @@
       handleSTKCommand(event.command);
     });
     window.addEventListener('stkasynccommand',
-        function do_handleAsyncSTKCmd(event) {
-      handleSTKCommand(event.detail.command);
-    });
+      function do_handleAsyncSTKCmd(event) {
+        handleSTKCommand(event.detail.command);
+      });
 
     /**
      * Open STK main application
@@ -812,17 +812,19 @@
 
     var timeout = 0;
     if (options.duration &&
-        options.duration.timeUnit &&
-        options.duration.timeInterval) {
+        options.duration.timeUnit != undefined &&
+        options.duration.timeInterval != undefined) {
       timeout = calculateDurationInMS(options.duration.timeUnit,
         options.duration.timeInterval);
-    } else if (options.timeUnit && options.timeInterval) {
+    } else if (options.timeUnit != undefined &&
+        options.timeInterval != undefined) {
       timeout = calculateDurationInMS(options.timUnit, options.timeInterval);
     }
     if (timeout) {
       debug('Tone stop in (ms): ', timeout);
       setTimeout(function() {
-        tonePlayer.pause();
+        closeToneAlert();
+        responseSTKCommand({ resultCode: icc.STK_RESULT_OK });
       }, timeout);
     }
 

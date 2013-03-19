@@ -42,7 +42,8 @@ suite('email - launch', function() {
     if (!testvars.launch_name ||
         !testvars.launch_email ||
         !testvars.launch_password) {
-      console.log('SKIPPING - "launch_name", "launch_email", and "launch_password" not provided in Email testvars');
+      console.log('SKIPPING - "launch_name", "launch_email", ' +
+                  'and "launch_password" not provided in Email testvars');
       return;
     }
 

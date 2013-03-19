@@ -22,7 +22,6 @@
 
     <!-- App and Views -->
     <link rel="stylesheet" type="text/css" href="style/app.css">
-    <link rel="stylesheet" type="text/css" href="style/views/datausage.css">
     <link rel="stylesheet" type="text/css" href="style/views/settings.css">
     <link rel="stylesheet" type="text/css" href="style/views/datalimits.css">
 
@@ -86,7 +85,7 @@
                 <p class="meta"></p>
             </li>
             <li>
-              <label class="end">
+              <label class="end switch">
                 <input class="settings-option" data-option="lowLimit" type="checkbox" data-type="switch" id="low-limit" />
                 <span></span>
               </label>
@@ -119,7 +118,7 @@
               <p class="meta"></p>
             </li>
             <li>
-              <label class="end">
+              <label class="end switch">
                 <input class="settings-option" data-option="dataLimit" type="checkbox" data-type="switch" />
                 <span></span>
               </label>
@@ -244,7 +243,7 @@
       </section>
 
       <!-- Reset confirmation -->
-      <section role="dialog" class="view" data-viewport="bottom" id="reset-confirmation-dialog">
+      <section role="dialog" class="view" data-viewport="ethereal" id="reset-confirmation-dialog">
         <div class="center">
           <h3 data-l10n-id="confirmation">Confirmation</h3>
           <p data-l10n-id="reset-confirmation-warning">All current data will be deleted. Are you sure you want to reset?</p>

@@ -12,11 +12,11 @@
   text-align: center;
   margin: 0 auto;
   display: none;
-	/*
+    /*
    * We use this rule to make gecko think that they're visible so they are
    * painted.
    */
-	border-bottom: 0.01px solid rgba(0,0,0,0.01);
+  border-bottom: 0.01px solid rgba(0,0,0,0.01);
 }
 
 /* Here users can view the clock while grid is loading -> better experience */
@@ -45,6 +45,18 @@
 .apps ol > li:nth-child(17) {
   display: none;
 }
+
+/* Adds 1 row of icons */
+@media all and (min-device-width: 480px) and (min-device-height: 960px ) {
+  .apps ol > li:nth-child(17) {
+    display: inline-block;
+  }
+/* Maximum 20 icons for page */
+  .apps ol > li:nth-child(21) {
+    display: none;
+  }
+}
+
 
 /* Option to delete apps */
 .apps ol > li span.options {
@@ -91,8 +103,8 @@ li.active > div > img {
 
 /* text label */
 .apps ol > li > div > span > span {
-  font-size: -moz-calc(5.75 * 0.226rem);
-  text-shadow: 1px 1px 3px rgba(0,0,0,0.6);
+  font-size: 1.2rem; /* was 5pt */
+  text-shadow: 0.1rem 0.1rem 0.3rem rgba(0,0,0,0.6);
 }
 
 /* These classes detect text overflow from JS code */
@@ -118,30 +130,40 @@ li.active > div > img {
   margin: 0 auto;
   font-family: 'MozTT', sans-serif;
   font-weight: 500;
-  letter-spacing:-0.25px;
+  letter-spacing: -0.025rem;
 }
 
 /* Alternative icons when an app is being installed */
 .loading:after {
-  margin: 8px;
+  margin: 0.8rem;
   content: "";
   position: absolute;
-  left: 0px;
-  top: 0px;
+  left: 0;
+  top: 0;
   z-index: 30000;
   width: 6rem;
   height: 6rem;
   background: url('/style/images/loading_spinner.png');
+  background-size: 6rem;
   animation: rotate 2.25s linear infinite;
 }
 
+/* the panels are panning */
 body[data-transitioning] .loading:after {
   animation-name: none;
+}
+
+/* the icon is being dragged */
+.draggable .loading:after {
+  animation-name: none;
+  background: none;
 }
 
 .loading img {
   margin-top: 0.4rem;
   margin-left: -0.4rem;
+  width: 6rem;
+  height: 6rem;
 }
 
 @keyframes rotate {

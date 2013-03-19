@@ -13,7 +13,8 @@
         displayHour = this.h('displayHour');
       }
 
-      return '<section class="hour hour-' + hour+ ' ' + this.h('classes') + ' calendar-display">' +
+      return '<section class="hour hour-' + hour + ' ' +
+              this.h('classes') + ' calendar-display">' +
           '<h4>' +
             '<span ' + l10n + 'class="display-hour ' + hour + '">' +
               displayHour +
@@ -31,8 +32,10 @@
     event: function() {
       var calendarId = this.h('calendarId');
       return '<section class="event calendar-id-' + calendarId + ' ' +
-             'calendar-display" data-id="' + this.h('busytimeId') + '">' +
-          '<div class="container calendar-id-' + calendarId + ' calendar-color">' +
+        this.h('classes') + ' calendar-display" ' +
+        'data-id="' + this.h('busytimeId') + '">' +
+          '<div class="container calendar-id-' + calendarId +
+              ' calendar-color">' +
             '<h5>' + this.h('title') + '</h5>' +
             '<span class="details">' +
               '<span class="location">' +

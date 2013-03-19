@@ -17,14 +17,16 @@ GenericIntegration.prototype = {
   entryPoint: entryPoint
 };
 
-
 suite(window.mozTestInfo.appPath + ' >', function() {
   var device;
   var app;
 
+  var performanceHelper;
+
   MarionetteHelper.start(function(client) {
     app = new GenericIntegration(client);
     device = app.device;
+    performanceHelper = new PerformanceHelper({ app: app });
   });
 
   setup(function() {
@@ -42,14 +44,14 @@ suite(window.mozTestInfo.appPath + ' >', function() {
     // Marionnette timeout for each command sent to the device
     yield device.setScriptTimeout(10000);
 
-    for (var i = 0; i < PerformanceHelper.kRuns; i++) {
-      yield IntegrationHelper.delay(device, PerformanceHelper.kSpawnInterval);
+    yield performanceHelper.repeatWithDelay(function(app, next) {
       yield app.launch();
       yield app.close();
-    }
+    });
 
     var results = yield PerformanceHelper.getLoadTimes(device);
 
     PerformanceHelper.reportDuration(results);
   });
 });
+

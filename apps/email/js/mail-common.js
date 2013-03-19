@@ -325,6 +325,29 @@ var Cards = {
         (event.clientX >
          this._containerNode.offsetWidth - this.TRAY_GUTTER_WIDTH)) {
       event.stopPropagation();
+
+      // Look for a card with a data-tray-target attribute
+      var targetIndex = -1;
+      this._cardStack.some(function(card, i) {
+        if (card.domNode.hasAttribute('data-tray-target')) {
+          targetIndex = i;
+          return true;
+        }
+      });
+
+      // Choose a default of one card ahead
+      if (targetIndex === -1)
+        targetIndex = this.activeCardIndex + 1;
+
+      var indexDiff = targetIndex - (this.activeCardIndex + 1);
+      if (indexDiff > 0) {
+        this._afterTransitionAction = (function() {
+          this.removeCardAndSuccessors(this._cardStack[0].domNode,
+                                       'none', indexDiff);
+          this.moveToCard(targetIndex, 'animate', 'forward');
+        }.bind(this));
+      }
+
       this.moveToCard(this.activeCardIndex + 1, 'animate', 'forward');
     }
   },
@@ -466,8 +489,6 @@ var Cards = {
         return i;
       }
     }
-    throw new Error('Unable to find card with type: ' + type + ' mode: ' +
-                    mode);
   },
 
   _findCardUsingImpl: function(impl) {
@@ -476,16 +497,29 @@ var Cards = {
       if (cardInst.cardImpl === impl)
         return i;
     }
-    throw new Error('Unable to find card using impl:', impl);
   },
 
-  _findCard: function(query) {
+  _findCard: function(query, skipFail) {
+    var result;
     if (Array.isArray(query))
-      return this._findCardUsingTypeAndMode(query[0], query[1]);
+      result = this._findCardUsingTypeAndMode(query[0], query[1], skipFail);
     else if (typeof(query) === 'number') // index number
-      return query;
+      result = query;
     else
-      return this._findCardUsingImpl(query);
+      result = this._findCardUsingImpl(query);
+
+    if (result > -1)
+      return result;
+    else if (!skipFail)
+      throw new Error('Unable to find card with query:', query);
+    else
+      // Returning undefined explicitly so that index comparisons, like
+      // the one in hasCard, are correct.
+      return undefined;
+  },
+
+  hasCard: function(query) {
+    return this._findCard(query, true) > -1;
   },
 
   findCardObject: function(query) {
@@ -495,29 +529,33 @@ var Cards = {
   folderSelector: function(callback) {
     var self = this;
 
-    App.loader.load(['style/value_selector.css', 'js/value_selector.js'], function() {
-      // XXX: Unified folders will require us to make sure we get the folder list
-      //      for the account the message originates from.
-      if (!self.folderPrompt) {
-        var selectorTitle = mozL10n.get('messages-folder-select');
-        self.folderPrompt = new ValueSelector(selectorTitle);
-      }
+    App.loader.load(
+      ['style/value_selector.css', 'js/value_selector.js'],
+      function() {
+        // XXX: Unified folders will require us to make sure we get
+        //      the folder list for the account the message originates from.
+        if (!self.folderPrompt) {
+          var selectorTitle = mozL10n.get('messages-folder-select');
+          self.folderPrompt = new ValueSelector(selectorTitle);
+        }
 
-      var folderCardObj = Cards.findCardObject(['folder-picker', 'navigation']);
-      var folderImpl = folderCardObj.cardImpl;
-      var folders = folderImpl.foldersSlice.items;
-      for (var i = 0; i < folders.length; i++) {
-        var folder = folders[i];
-        self.folderPrompt.addToList(folder.name, folder.depth, function(folder) {
-          return function() {
-            self.folderPrompt.hide();
-            callback(folder);
-          }
-        }(folder));
+        var folderCardObj =
+          Cards.findCardObject(['folder-picker', 'navigation']);
+        var folderImpl = folderCardObj.cardImpl;
+        var folders = folderImpl.foldersSlice.items;
+        for (var i = 0; i < folders.length; i++) {
+          var folder = folders[i];
+          self.folderPrompt.addToList(folder.name, folder.depth,
+            function(folder) {
+              return function() {
+                self.folderPrompt.hide();
+                callback(folder);
+              }
+            }(folder));
 
-      }
-      self.folderPrompt.show();
-    });
+        }
+        self.folderPrompt.show();
+      });
   },
 
   moveToCard: function(query, showMethod) {
@@ -671,6 +709,13 @@ var Cards = {
     }
   },
 
+  /**
+   * Shortcut for removing all the cards
+   */
+  removeAllCards: function() {
+    return this.removeCardAndSuccessors(null, 'none');
+  },
+
   _showCard: function(cardIndex, showMethod, navDirection) {
     // Do not do anything if this is a show card for the current card.
     if (cardIndex === this.activeCardIndex) {
@@ -708,7 +753,7 @@ var Cards = {
       // anim-overlays are the transitions to new layers in the stack. If
       // starting a new one, it is forward movement and needs a new zIndex.
       // Otherwise, going back to
-      this._zIndex += 100;
+      this._zIndex += 10;
     }
 
     // If going back and the beginning node was an overlay, do not animate
@@ -724,7 +769,7 @@ var Cards = {
         }
       } else {
         endNode = null;
-        this._zIndex -= 100;
+        this._zIndex -= 10;
       }
     }
 
@@ -822,6 +867,13 @@ var Cards = {
         pendingToaster();
         Toaster.pendingStack.pop();
       }
+
+      // If any action to to at the end of transition trigger now.
+      if (this._afterTransitionAction) {
+        var afterTransitionAction = this._afterTransitionAction;
+        this._afterTransitionAction = null;
+        afterTransitionAction();
+      }
     }
   },
 
@@ -917,15 +969,12 @@ var Toaster = {
   /**
    * Tell toaster listeners about a mutation we just made.
    *
-   * @args[
-   *   @param[undoableOp]
-   *   @param[pending #:optional Boolean]{
-   *     If true, indicates that we should wait to display this banner until we
-   *     transition to the next card.  This is appropriate for things like
-   *     deleting the message that is displayed on the current card (and which
-   *     will be imminently closed).
-   *   }
-   * ]
+   * @param {Object} undoableOp undoable operation.
+   * @param {Boolean} pending
+   *   If true, indicates that we should wait to display this banner until we
+   *   transition to the next card.  This is appropriate for things like
+   *   deleting the message that is displayed on the current card (and which
+   *   will be imminently closed).
    */
   logMutation: function(undoableOp, pending) {
     if (pending) {

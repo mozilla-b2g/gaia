@@ -5,9 +5,10 @@ requireApp('system/js/entry_sheet.js');
 requireApp('system/js/browser.js');
 
 suite('entry sheet class > ', function() {
-	test('Simple entry sheet instance creation..', function() {
-		var entrySheet = new EntrySheet(document.body, 'unit test', document.createElement('div'));
-		assert.ok(entrySheet.hasOwnProperty('element'));
-	});
+  test('Simple entry sheet instance creation..', function() {
+    var entrySheet =
+      new EntrySheet(document.body, 'unit test', document.createElement('div'));
+    assert.ok(entrySheet.hasOwnProperty('element'));
+  });
 });
 

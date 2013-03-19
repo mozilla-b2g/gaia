@@ -113,7 +113,8 @@ suite('lockscreen', function() {
       LockScreen.updateBackground(green_png);
 
       setTimeout(waitSecondUpdate, 10, function then2() {
-        assert.equal(fakeLockscreenPanel.getElementsByTagName('canvas').length, 1);
+        assert.equal(
+          fakeLockscreenPanel.getElementsByTagName('canvas').length, 1);
         done();
       });
     });

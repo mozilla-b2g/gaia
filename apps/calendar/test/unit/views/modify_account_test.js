@@ -1,20 +1,7 @@
-requireApp('calendar/test/unit/helper.js', function() {
-  requireLib('templates/account.js');
-  requireLib('presets.js');
-  requireLib('provider/local.js');
-  requireLib('models/account.js');
-  requireLib('utils/account_creation.js');
-  requireLib('views/modify_account.js');
-});
+requireLib('provider/abstract.js');
+requireLib('provider/local.js');
 
-/*
-// These tests are currently failing and have been temporarily disabled as per
-// Bug 838993. They should be fixed and re-enabled as soon as possible as per
-// Bug 840489.
-// Please also note: the outcome of this test suite is non-deterministic.
-// Failures occur inconsistently, so potential fixes should be thoroughly
-// vetted.
-suite('views/modify_account', function() {
+suiteGroup('Views.ModifyAccount', function() {
 
   var subject;
   var account;
@@ -43,6 +30,7 @@ suite('views/modify_account', function() {
     el.parentNode.removeChild(el);
   });
 
+  // template
   setup(function() {
     var div = document.createElement('div');
     div.id = 'test';
@@ -64,15 +52,34 @@ suite('views/modify_account', function() {
     ].join('');
 
     document.body.appendChild(div);
+  });
 
+  // db
+  setup(function(done) {
     app = testSupport.calendar.app();
 
-    account = Factory('account');
+    account = Factory('account', { _id: 1 });
 
+    // assumes account is in a "modify" state
     subject = new Calendar.Views.ModifyAccount({
       app: app,
       model: account
     });
+
+    app.db.open(function() {
+      app.store('Account').persist(account, done);
+    });
+  });
+
+  teardown(function(done) {
+    testSupport.calendar.clearStore(
+      app.db,
+      ['accounts'],
+      function() {
+        app.db.close();
+        done();
+      }
+    );
   });
 
   suite('initialization', function() {
@@ -268,16 +275,6 @@ suite('views/modify_account', function() {
     );
   });
 
-  test('#_updateModel', function() {
-    var model = new Calendar.Models.Account();
-    var store = app.store('Account');
-    store._cached['1'] = model;
-
-    var data = subject._updateModel('1');
-
-    assert.equal(model, data);
-  });
-
   test('#updateForm', function() {
     account.user = 'james';
     //we never display the password.
@@ -307,64 +304,32 @@ suite('views/modify_account', function() {
   });
 
   suite('#dispatch', function() {
-    var rendered;
-    var model;
 
-    setup(function() {
-      rendered = false;
-      model = {};
-      subject.render = function() {
-        rendered = true;
-      };
-    });
+    test('new', function(done) {
+      subject.ondispatch = function() {
+        done(function() {
+          assert.instanceOf(
+            subject.model,
+            Calendar.Models.Account,
+            'creates model'
+          );
 
-    suite('provider no creds', function() {
-      var calledSave;
-      var model;
+          assert.hasProperties(
+            subject.model,
+            Calendar.Presets.local.options,
+            'uses preset options'
+          );
 
-      setup(function() {
-        calledSave = false;
-
-        subject.save = function() {
-          calledSave = true;
-        };
-
-        model = new Calendar.Models.Account({
-          providerType: 'Local'
+          assert.equal(subject.completeUrl, '/settings/');
         });
-
-
-        subject._createModel = function() {
-          return model;
-        };
-      });
-
-      test('result', function() {
-        subject.dispatch({ params: { preset: 'local'} });
-        assert.isTrue(calledSave);
-      });
-
-    });
-
-    test('new', function() {
-      var calledWith;
-      subject._createModel = function() {
-        calledWith = arguments;
-        return model;
       };
 
       subject.dispatch({
         params: { preset: 'local' }
       });
-
-      assert.equal(subject.completeUrl, '/settings/');
-      assert.equal(calledWith[0], 'local');
-      assert.equal(subject.model, model);
-      assert.ok(rendered);
     });
 
-    test('existing', function() {
-      var calledWith;
+    test('existing', function(done) {
       var destroyed;
 
       subject.model = {};
@@ -372,22 +337,24 @@ suite('views/modify_account', function() {
         destroyed = true;
       };
 
-      subject._updateModel = function() {
-        calledWith = arguments;
-        return model;
+      subject.ondispatch = function() {
+        done(function() {
+          assert.ok(destroyed, 'should destroy previous state');
+          assert.equal(subject.completeUrl, '/settings/');
+
+          assert.hasProperties(
+            account,
+            subject.model,
+            'loads account'
+          );
+        });
       };
 
       subject.dispatch({
-        params: { id: '1' }
+        // send as string to emulate real conditions
+        params: { id: String(account._id) }
       });
-
-      assert.ok(destroyed, 'should destroy previous state');
-      assert.equal(subject.completeUrl, '/settings/');
-      assert.equal(calledWith[0], '1');
-      assert.equal(subject.model, model);
-      assert.ok(rendered);
     });
-
   });
 
   suite('#render', function() {
@@ -460,4 +427,3 @@ suite('views/modify_account', function() {
   });
 
 });
-*/

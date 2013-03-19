@@ -1,5 +1,11 @@
 #modify-event-view form {
+  overflow-Y: auto;
+  height: -moz-calc(100% - 5rem);
+}
+
+#modify-event-view form ol {
   margin: 1rem 1rem 0 1rem;
+  overflow: hidden;
 }
 
 #modify-event-view .button {
@@ -37,11 +43,13 @@
   line-height: 1.3em;
 }
 
-#modify-event-view li.allday {
+#modify-event-view li.allday,
+#modify-event-view h3 {
   padding: 0 1rem;
   position: relative;
   font-size: 1.4rem;
   line-height: 3rem;
+  font-weight: normal;
 }
 
 #modify-event-view li.allday > label {
@@ -79,6 +87,10 @@
   font-size: 1.4rem;
 }
 
+#modify-event-view .alarms .button {
+  margin: 0.25rem 0;
+}
+
 #modify-event-view.readonly menu,
 #modify-event-view.create .delete-record,
 #modify-event-view.readonly .delete-record {
@@ -96,4 +108,8 @@
 }
 #modify-event-view.update .save .save-text {
   display: none;
+}
+
+#modify-event-view .save[aria-disabled="true"] {
+  pointer-events: none;
 }

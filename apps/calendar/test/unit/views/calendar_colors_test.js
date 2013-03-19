@@ -1,16 +1,11 @@
-requireApp('calendar/test/unit/helper.js', function() {
-  requireLib('models/calendar.js');
-  requireLib('views/calendar_colors.js');
-});
-
-suite('views/calendar_colors', function() {
+suiteGroup('Views.CalendarColors', function() {
 
   var subject;
   var model;
   var app;
   var store;
 
-  setup(function() {
+  setup(function(done) {
     this.timeout(5000);
 
     app = testSupport.calendar.app();
@@ -21,6 +16,19 @@ suite('views/calendar_colors', function() {
       _id: '1xx',
       localDisplayed: true
     });
+
+    app.db.open(done);
+  });
+
+  teardown(function(done) {
+    testSupport.calendar.clearStore(
+      app.db,
+      ['calendars'],
+      function() {
+        app.db.close();
+        done();
+      }
+    );
   });
 
   test('initialization', function() {
@@ -48,23 +56,44 @@ suite('views/calendar_colors', function() {
 
   suite('#render', function() {
     var calledWith;
-    var first = {};
-    var second = {};
+    var first;
+    var second;
 
-    setup(function() {
-      calledWith = [];
-      subject.updateRule = function(item) {
-        calledWith.push(item);
+    setup(function(done) {
+      first = Factory('calendar', { _id: 'first' });
+      second = Factory('calendar', { _id: 'second' });
+
+      var trans = app.db.transaction('calendars', 'readwrite');
+      trans.oncomplete = function() {
+        done();
       };
 
-      store.cached[0] = first;
-      store.cached[1] = second;
+      trans.onerror = function(e) {
+        done(e);
+      };
+
+      store.persist(first, trans);
+      store.persist(second, trans);
+    });
+
+    setup(function(done) {
+      calledWith = {};
+      subject.updateRule = function(item) {
+        calledWith[item._id] = item;
+      };
 
       subject.render();
+      subject.onrender = done;
     });
 
     test('calls update', function() {
-      assert.deepEqual(calledWith, [first, second]);
+      assert.hasProperties(
+        first, calledWith.first, 'displays first'
+      );
+
+      assert.hasProperties(
+        second, calledWith.second, 'displays second'
+      );
     });
 
   });

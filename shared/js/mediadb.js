@@ -387,7 +387,7 @@ var MediaDB = (function() {
     if (!this.metadataParser) {
       this.metadataParser = function(file, callback) {
         setTimeout(function() { callback({}); }, 0);
-      }
+      };
     }
 
     // Open the database
@@ -429,7 +429,7 @@ var MediaDB = (function() {
         // the index name is also the keypath
         filestore.createIndex(indexName, indexName);
       });
-    }
+    };
 
     // This is called when we've got the database open and ready.
     openRequest.onsuccess = function(e) {
@@ -439,7 +439,7 @@ var MediaDB = (function() {
       media.db.onerror = function(event) {
         console.error('MediaDB: ',
                       event.target.error && event.target.error.name);
-      }
+      };
 
       // Query the db to find the modification time of the newest file
       var cursorRequest =
@@ -592,7 +592,7 @@ var MediaDB = (function() {
           errback(errmsg);
         else
           console.error('MediaDB.getFile:', errmsg);
-      }
+      };
     },
 
     // Delete the named file from device storage.
@@ -674,9 +674,9 @@ var MediaDB = (function() {
         if (callback) {
           write.onsuccess = function() {
             callback();
-          }
+          };
         }
-      }
+      };
     },
 
     // Count the number of records in the database and pass that number to the
@@ -879,7 +879,7 @@ var MediaDB = (function() {
       var freereq = this.storage.freeSpace();
       freereq.onsuccess = function() {
         callback(freereq.result);
-      }
+      };
     }
   };
 
@@ -1046,7 +1046,7 @@ var MediaDB = (function() {
           // We're done enumerating device storage, so get all files from db
           getDBFiles();
         }
-      }
+      };
 
       cursor.onerror = function() {
         // We can't scan if we can't read device storage.

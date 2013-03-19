@@ -23,6 +23,6 @@ if (typeof utils.squareImage === 'undefined') {
       }
 
       URL.revokeObjectURL(url);
-    }
+    };
   }; // utils.squareImage
 } // if

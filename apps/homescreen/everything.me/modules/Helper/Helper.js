@@ -324,8 +324,8 @@ Evme.Helper = new function Evme_Helper() {
         }
         
         var html =  '<b ' + Evme.Utils.l10nAttr(NAME, 'title-prefix') + '></b>' +
-                    '<span class="query">' + title + '</span>' +
-                    '<em class="type">(' + (type || "") + ')</em>';
+                    '<span class="query">' + Evme.html(title) + '</span>' +
+                    '<em class="type">(' + Evme.html(type) + ')</em>';
         
         elTitle.innerHTML = html;
         

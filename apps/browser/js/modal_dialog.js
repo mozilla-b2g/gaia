@@ -45,7 +45,6 @@ var ModalDialog = {
     // Get all elements initially.
     this.getAllElements();
     var elements = this.elements;
-
     for (var id in elements) {
       if (elements[id].tagName.toLowerCase() == 'button') {
         elements[id].addEventListener('click', this);
@@ -114,6 +113,7 @@ var ModalDialog = {
         elements.prompt.hidden = false;
         elements.promptInput.value = evt.detail.initialValue;
         elements.promptMessage.innerHTML = message;
+        elements.promptInput.focus();
         break;
 
       case 'custom-prompt':

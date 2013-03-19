@@ -1065,6 +1065,20 @@
     },
 
     /**
+     * single taps element.
+     *
+     * @method singleTap
+     * @param {Function} callback boolean result.
+     * @return {Object} self.
+     */
+    singleTap: function singleTap(callback) {
+      var cmd = {
+        type: 'singleTap'
+      };
+      return this._sendCommand(cmd, 'ok', callback);
+    },
+
+    /**
      * Gets text of element
      *
      * @method text

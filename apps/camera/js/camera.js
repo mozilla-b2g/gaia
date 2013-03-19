@@ -1,5 +1,7 @@
 'use strict';
 
+var loader = LazyLoader;
+
 // Utility functions
 function padLeft(num, length) {
   var r = String(num);
@@ -234,8 +236,25 @@ var Camera = {
   // previewStream as fast as possible, once the previewStream is
   // active we do the rest of the initialisation.
   init: function() {
+    var self = this;
     this.setCaptureMode(this.CAMERA);
-    this.loadCameraPreview(this._camera, this.delayedInit.bind(this));
+    this.loadCameraPreview(this._camera, function() {
+      var files = [
+        'style/filmstrip.css',
+        'style/VideoPlayer.css',
+        '/shared/js/async_storage.js',
+        '/shared/js/blobview.js',
+        '/shared/js/media/jpeg_metadata_parser.js',
+        '/shared/js/media/get_video_rotation.js',
+        '/shared/js/media/video_player.js',
+        '/shared/js/media/media_frame.js',
+        '/shared/js/gesture_detector.js',
+        'js/filmstrip.js'
+      ];
+      loader.load(files, function() {
+        self.delayedInit();
+      });
+    });
   },
 
   delayedInit: function camera_delayedInit() {
@@ -305,6 +324,7 @@ var Camera = {
 
     this._pictureStorage
       .addEventListener('change', this.deviceStorageChangeHandler.bind(this));
+    this.checkStorageSpace();
 
     navigator.mozSetMessageHandler('activity', function(activity) {
       var name = activity.source.name;
@@ -320,6 +340,7 @@ var Camera = {
       Camera.enableButtons();
     });
 
+    this.previewEnabled();
     DCFApi.init();
   },
 
@@ -463,7 +484,9 @@ var Camera = {
                                      onsuccess, onerror);
     }).bind(this);
 
-    DCFApi.createDCFFilename(this._videoStorage, 'video', (function(path, name) {
+    DCFApi.createDCFFilename(this._videoStorage,
+                             'video',
+                             (function(path, name) {
       this._videoPath = path + name;
 
       // The CameraControl API will not automatically create directories
@@ -638,8 +661,6 @@ var Camera = {
       }
 
       this._previewActive = true;
-      this.checkStorageSpace();
-      setTimeout(this.initPositionUpdate.bind(this), this.PROMPT_DELAY);
     }
 
     function gotCamera(camera) {
@@ -657,7 +678,8 @@ var Camera = {
       }).bind(this);
       camera.onRecorderStateChange = this.recordingStateChanged.bind(this);
       if (this.captureMode === this.CAMERA) {
-        camera.getPreviewStream(this._previewConfig, gotPreviewScreen.bind(this));
+        camera.getPreviewStream(this._previewConfig,
+                                gotPreviewScreen.bind(this));
       } else {
         this._previewConfigVideo.rotation = this._phoneOrientation;
         this._cameraObj.getPreviewStreamVideoMode(this._previewConfigVideo,
@@ -700,8 +722,13 @@ var Camera = {
 
   startPreview: function camera_startPreview() {
     this.viewfinder.play();
-    this.loadCameraPreview(this._camera, this.enableButtons.bind(this));
+    this.loadCameraPreview(this._camera, this.previewEnabled.bind(this));
     this._previewActive = true;
+  },
+
+  previewEnabled: function() {
+    this.enableButtons();
+    setTimeout(this.initPositionUpdate.bind(this), this.PROMPT_DELAY);
   },
 
   stopPreview: function camera_stopPreview() {
@@ -736,14 +763,17 @@ var Camera = {
     this._manuallyFocused = false;
     this.hideFocusRing();
     this.restartPreview();
-    DCFApi.createDCFFilename(this._pictureStorage, 'image', (function(path, name) {
+    DCFApi.createDCFFilename(this._pictureStorage,
+                             'image',
+                             (function(path, name) {
       var addreq = this._pictureStorage.addNamed(blob, path + name);
       addreq.onsuccess = (function() {
         if (this._pendingPick) {
           this._resizeBlobIfNeeded(blob, function(resized_blob) {
             this._pendingPick.postResult({
               type: 'image/jpeg',
-              blob: resized_blob
+              blob: resized_blob,
+              name: path + name
             });
             this._pendingPick = null;
           }.bind(this));
@@ -906,6 +936,7 @@ var Camera = {
   takePicture: function camera_takePicture() {
     this._config.rotation = this._phoneOrientation;
     this._config.pictureSize = this._pictureSize;
+    this._config.dateTime = Date.now() / 1000;
     // We do not attach our current position to the exif of photos
     // that are taken via an activity as that leaks position information
     // to other apps without permission

@@ -1,6 +1,4 @@
-requireApp('calendar/test/unit/helper.js', function() {
-  requireLib('utils/input_parser.js');
-});
+requireLib('utils/input_parser.js');
 
 suite('input_parser', function() {
   var subject;

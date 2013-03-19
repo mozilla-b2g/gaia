@@ -47,6 +47,11 @@ var UssdUI = {
     return this.messageScreen = document.getElementById('message-screen');
   },
 
+  get loadingOverlay() {
+    delete this.loadingOverlay;
+    return this.loadingOverlay = document.getElementById('loading-overlay');
+  },
+
   init: function uui_init() {
     if (window.location.hash != '#send') {
       this.hideLoading();
@@ -93,13 +98,23 @@ var UssdUI = {
   },
 
   showLoading: function uui_showLoading() {
-    document.body.classList.add('loading');
+    this.loadingOverlay.classList.remove('hide');
+    this.loadingOverlay.classList.remove('fadeOut');
+    this.loadingOverlay.classList.add('fadeIn');
     this.responseTextNode.setAttribute('disabled', 'disabled');
     this.sendNode.setAttribute('disabled', 'disabled');
   },
 
   hideLoading: function uui_hideLoading() {
-    document.body.classList.remove('loading');
+    this.loadingOverlay.classList.remove('fadeIn');
+    this.loadingOverlay.classList.add('fadeOut');
+    var self = this;
+    this.loadingOverlay.addEventListener('animationend',
+      function uso_fadeOut(ev) {
+        self.loadingOverlay.removeEventListener('animationend', uso_fadeOut);
+        self.loadingOverlay.classList.add('hide');
+      }
+    );
   },
 
   showResponseForm: function uui_showForm() {

@@ -40,7 +40,8 @@ var Browser = {
   MAX_THUMBNAIL_WIDTH: 140,
   MAX_THUMBNAIL_HEIGHT: 100,
   FIRST_TAB: 'tab_0',
-
+  MAX_SAVING_RETRIES: 100, // max number of retries when saving images with a
+                           // new name.
   urlButtonMode: null,
   addressBarState: null,
 
@@ -53,8 +54,6 @@ var Browser = {
     this.getAllElements();
 
     // Add event listeners
-    window.addEventListener('resize', this.handleWindowResize.bind(this));
-
     this.backButton.addEventListener('click', this.goBack.bind(this));
     this.forwardButton.addEventListener('click', this.goForward.bind(this));
     this.bookmarkButton.addEventListener('click',
@@ -64,117 +63,175 @@ var Browser = {
     this.urlInput.addEventListener('mouseup', this.urlMouseUp.bind(this));
     this.urlInput.addEventListener('keyup',
       this.handleUrlInputKeypress.bind(this));
-    this.tabPanels.addEventListener('click', this.followLink.bind(this));
-    this.results.addEventListener('click', this.followLink.bind(this));
     this.urlButton.addEventListener('click',
       this.handleUrlFormSubmit.bind(this));
     this.tabsBadge.addEventListener('click',
       this.handleTabsBadgeClicked.bind(this));
-    this.topSitesTab.addEventListener('click',
-      this.showTopSitesTab.bind(this));
-    this.bookmarksTab.addEventListener('click',
-      this.showBookmarksTab.bind(this));
-    this.historyTab.addEventListener('click', this.showHistoryTab.bind(this));
-    this.settingsButton.addEventListener('click',
-      this.showSettingsScreen.bind(this));
-    this.newTabButton.addEventListener('click', this.handleNewTab.bind(this));
-    this.settingsDoneButton.addEventListener('click',
-      this.showPageScreen.bind(this));
-    this.aboutBrowserButton.addEventListener('click',
-      this.showAboutPage.bind(this));
-    this.clearHistoryButton.addEventListener('click',
-      this.handleClearHistory.bind(this));
-    this.closeTab.addEventListener('click',
-      this.handleCloseTab.bind(this));
-    this.tryReloading.addEventListener('click',
-      this.handleTryReloading.bind(this));
-    this.bookmarkMenuAdd.addEventListener('click',
-      this.addBookmark.bind(this));
-    this.bookmarkMenuRemove.addEventListener('click',
-      this.removeBookmark.bind(this));
-    this.bookmarkMenuCancel.addEventListener('click',
-      this.hideBookmarkMenu.bind(this));
-    this.bookmarkMenuEdit.addEventListener('click',
-      this.showBookmarkEntrySheet.bind(this));
-    this.bookmarkMenuAddHome.addEventListener('click',
-      this.addLinkToHome.bind(this));
-    this.bookmarkEntrySheetCancel.addEventListener('click',
-      this.hideBookmarkEntrySheet.bind(this));
-    this.bookmarkEntrySheetDone.addEventListener('click',
-      this.saveBookmark.bind(this));
-    this.awesomescreenCancelButton.addEventListener('click',
-     this.handleAwesomescreenCancel.bind(this));
-    this.topSiteThumbnails.addEventListener('click',
-      this.followLink.bind(this));
-    this.clearPrivateDataButton.addEventListener('click',
-      this.clearPrivateData.bind(this));
-
-    this.tabsSwipeMngr.browser = this;
-    ['mousedown', 'pan', 'tap', 'swipe'].forEach(function(evt) {
-      this.tabsList.addEventListener(evt,
-        this.tabsSwipeMngr[evt].bind(this.tabsSwipeMngr));
-    }, this);
-
-    this.screenSwipeMngr.browser = this;
-    this.screenSwipeMngr.screen = this.mainScreen;
-    this.screenSwipeMngr.gestureDetector = new GestureDetector(this.mainScreen);
-
-    ['mousedown', 'pan', 'tap', 'swipe'].forEach(function(evt) {
-      this.mainScreen.addEventListener(evt,
-        this.screenSwipeMngr[evt].bind(this.screenSwipeMngr));
-    }, this);
-
-    document.addEventListener('mozvisibilitychange',
-      this.handleVisibilityChange.bind(this));
-
-    this.handleWindowResize();
-
-    ModalDialog.init();
-    AuthenticationDialog.init(false);
 
     // Load homepage once Places is initialised
     // (currently homepage is blank)
     Places.init((function(firstRun) {
-      this.hasLoaded = true;
-      if (this.waitingActivities.length) {
-        this.waitingActivities.forEach(this.handleActivity, this);
-        return;
-      }
       this.selectTab(this.createTab());
-      this.showPageScreen();
-      this.showStartscreen();
       if (firstRun)
         this.populateDefaultData();
       this.addressBarState = this.VISIBLE;
     }).bind(this));
   },
 
+  toCamelCase: function toCamelCase(str) {
+    return str.replace(/\-(.)/g, function replacer(str, p1) {
+      return p1.toUpperCase();
+    });
+  },
+
   getAllElements: function browser_getAllElements() {
-    var toCamelCase = function toCamelCase(str) {
-      return str.replace(/\-(.)/g, function replacer(str, p1) {
-        return p1.toUpperCase();
-      });
-    };
+
 
     var elementIDs = [
-      'toolbar-start', 'url-bar', 'tab-headers', 'url-input', 'url-button',
-      'awesomescreen', 'top-sites', 'bookmarks', 'history', 'top-sites-tab',
-      'bookmarks-tab', 'history-tab', 'back-button', 'forward-button',
-      'bookmark-button', 'ssl-indicator', 'tabs-badge', 'throbber', 'frames',
-      'tabs-list', 'main-screen', 'settings-button', 'settings-done-button',
-      'about-browser-button', 'clear-history-button', 'crashscreen',
-      'close-tab', 'try-reloading', 'bookmark-menu', 'bookmark-menu-add',
-      'bookmark-menu-remove', 'bookmark-menu-cancel', 'bookmark-menu-edit',
-      'bookmark-entry-sheet', 'bookmark-entry-sheet-cancel',
-      'bookmark-entry-sheet-done', 'bookmark-title', 'bookmark-url',
-      'bookmark-previous-url', 'bookmark-menu-add-home', 'new-tab-button',
-      'awesomescreen-cancel-button', 'startscreen', 'top-site-thumbnails',
-      'no-top-sites', 'clear-private-data-button', 'results', 'tab-panels'];
+      'toolbar-start', 'url-bar', 'url-input', 'url-button', 'awesomescreen',
+      'back-button', 'forward-button', 'bookmark-button', 'ssl-indicator',
+      'tabs-badge', 'throbber', 'frames', 'main-screen', 'crashscreen',
+      'bookmark-menu', 'bookmark-entry-sheet', 'awesomescreen-cancel-button',
+      'startscreen', 'top-site-thumbnails', 'no-top-sites', 'tray'];
 
     // Loop and add element with camel style name to Modal Dialog attribute.
     elementIDs.forEach(function createElementRef(name) {
-      this[toCamelCase(name)] = document.getElementById(name);
+      this[this.toCamelCase(name)] = document.getElementById(name);
     }, this);
+  },
+
+  loadRemaining: function browser_loadRemaining() {
+    if (this.hasLoaded)
+      return;
+
+    console.log('----------loadink!');
+    var filesToLoad = [
+      // DOM Nodes with commented content to load
+      this.awesomescreen,
+      this.crashscreen,
+      this.tray,
+      this.bookmarkMenu,
+      this.bookmarkEntrySheet,
+      document.getElementById('settings'),
+      document.getElementById('modal-dialog-alert'),
+      document.getElementById('modal-dialog-prompt'),
+      document.getElementById('modal-dialog-confirm'),
+      document.getElementById('modal-dialog-custom-prompt'),
+      document.getElementById('http-authentication-dialog'),
+
+      // css files
+      'shared/style/headers.css',
+      'shared/style/buttons.css',
+      'shared/style/input_areas.css',
+      'shared/style/status.css',
+      'shared/style/confirm.css',
+      'style/action_menu.css',
+      'style/authentication_dialog.css',
+
+      // shared JS files
+      'shared/js/gesture_detector.js'
+    ];
+
+    var jsFiles = [
+      'js/date_helper.js',
+      'js/modal_dialog.js',
+      'js/authentication_dialog.js',
+      'js/browser_extensions.js'
+    ];
+
+    var domElements = [
+      'tab-headers', 'top-sites', 'bookmarks', 'history',
+      'top-sites-tab', 'bookmarks-tab', 'history-tab',
+      'tabs-list', 'settings-button', 'settings-done-button',
+      'about-browser-button', 'clear-history-button', 'close-tab',
+      'try-reloading', 'bookmark-menu-add', 'bookmark-menu-remove',
+      'bookmark-menu-cancel', 'bookmark-menu-edit',
+      'bookmark-entry-sheet-cancel', 'bookmark-entry-sheet-done',
+      'bookmark-title', 'bookmark-url', 'bookmark-previous-url',
+      'bookmark-menu-add-home', 'new-tab-button',
+      'clear-private-data-button', 'results', 'tab-panels'
+    ];
+
+    var loadBrowserFiles = function() {
+      LazyLoader.load(jsFiles, function() {
+        domElements.forEach(function createElementRef(name) {
+          this[this.toCamelCase(name)] = document.getElementById(name);
+        }, this);
+
+        this.initRemainingListeners();
+        this.hasLoaded = true;
+        if (this.waitingActivities.length) {
+          this.waitingActivities.forEach(this.handleActivity, this);
+        }
+      }.bind(this));
+    };
+
+    LazyLoader.load(filesToLoad, loadBrowserFiles.bind(this));
+  },
+
+  initRemainingListeners: function browser_initRemainingListeners() {
+    this.tabPanels.addEventListener('click', this.followLink.bind(this));
+    this.results.addEventListener('click', this.followLink.bind(this));
+     this.topSitesTab.addEventListener('click',
+       this.showTopSitesTab.bind(this));
+     this.bookmarksTab.addEventListener('click',
+       this.showBookmarksTab.bind(this));
+     this.historyTab.addEventListener('click', this.showHistoryTab.bind(this));
+     this.settingsButton.addEventListener('click',
+       this.showSettingsScreen.bind(this));
+     this.newTabButton.addEventListener('click', this.handleNewTab.bind(this));
+     this.settingsDoneButton.addEventListener('click',
+       this.showPageScreen.bind(this));
+     this.aboutBrowserButton.addEventListener('click',
+       this.showAboutPage.bind(this));
+     this.clearHistoryButton.addEventListener('click',
+       this.handleClearHistory.bind(this));
+     this.closeTab.addEventListener('click',
+       this.handleCloseTab.bind(this));
+     this.tryReloading.addEventListener('click',
+       this.handleTryReloading.bind(this));
+     this.bookmarkMenuAdd.addEventListener('click',
+       this.addBookmark.bind(this));
+     this.bookmarkMenuRemove.addEventListener('click',
+       this.removeBookmark.bind(this));
+     this.bookmarkMenuCancel.addEventListener('click',
+       this.hideBookmarkMenu.bind(this));
+     this.bookmarkMenuEdit.addEventListener('click',
+       this.showBookmarkEntrySheet.bind(this));
+     this.bookmarkMenuAddHome.addEventListener('click',
+       this.addLinkToHome.bind(this));
+     this.bookmarkEntrySheetCancel.addEventListener('click',
+       this.hideBookmarkEntrySheet.bind(this));
+     this.bookmarkEntrySheetDone.addEventListener('click',
+       this.saveBookmark.bind(this));
+     this.awesomescreenCancelButton.addEventListener('click',
+      this.handleAwesomescreenCancel.bind(this));
+     this.topSiteThumbnails.addEventListener('click',
+       this.followLink.bind(this));
+     this.clearPrivateDataButton.addEventListener('click',
+       this.clearPrivateData.bind(this));
+
+    this.tabsSwipeMngr.browser = this;
+     ['mousedown', 'pan', 'tap', 'swipe'].forEach(function(evt) {
+       this.tabsList.addEventListener(evt,
+         this.tabsSwipeMngr[evt].bind(this.tabsSwipeMngr));
+     }, this);
+
+     this.screenSwipeMngr.browser = this;
+     this.screenSwipeMngr.screen = this.mainScreen;
+     this.screenSwipeMngr.gestureDetector =
+       new GestureDetector(this.mainScreen);
+
+     ['mousedown', 'pan', 'tap', 'swipe'].forEach(function(evt) {
+       this.mainScreen.addEventListener(evt,
+         this.screenSwipeMngr[evt].bind(this.screenSwipeMngr));
+     }, this);
+
+     document.addEventListener('mozvisibilitychange',
+       this.handleVisibilityChange.bind(this));
+
+     ModalDialog.init();
+     AuthenticationDialog.init(false);
   },
 
   populateDefaultData: function browser_populateDefaultData() {
@@ -223,20 +280,6 @@ var Browser = {
     this.deleteTab(this.currentTab.id);
     this.setTabVisibility(this.currentTab, true);
     this.updateTabsCount();
-  },
-
-  // We want to ensure the current page preview on the tabs screen is in
-  // a consistently sized gutter on the left
-  handleWindowResize: function browser_handleWindowResize() {
-    var leftPos = 'translate(' + -(window.innerWidth - 50) + 'px)';
-    if (!this.gutterPosRule) {
-      var css = '.tabs-screen #main-screen { transform: ' + leftPos + '; }';
-      var insertId = this.styleSheet.cssRules.length - 1;
-      this.gutterPosRule = this.styleSheet.insertRule(css, insertId);
-    } else {
-      var rule = this.styleSheet.cssRules[this.gutterPosRule];
-      rule.style.transform = leftPos;
-    }
   },
 
   // Tabs badge is the button at the top right, used to show the number of tabs
@@ -634,28 +677,65 @@ var Browser = {
 
   removeBookmark: function browser_removeBookmark(e) {
     e.preventDefault();
-    if (!this.currentTab.url)
+    if (!this.bookmarkMenuRemove.dataset.url)
       return;
-    Places.removeBookmark(this.currentTab.url,
+
+    Places.removeBookmark(this.bookmarkMenuRemove.dataset.url,
       this.refreshBookmarkButton.bind(this));
     this.hideBookmarkMenu();
+    // refresh bookmark tab
+    this.showBookmarksTab();
   },
 
+  // responsible to show the specific action menu
+  showActionMenu: function browser_showActionMenu(url, from) {
+      if (!url)
+        return;
+      this.bookmarkMenu.classList.remove('hidden');
+      Places.getBookmark(url, (function(bookmark) {
+        if (bookmark) {
+          if (from && from === 'bookmarksTab') { //show actions in bookmark tab
+
+            this.bookmarkMenuAdd.parentNode.classList.add('hidden');
+            //append url to button's dataset
+            this.bookmarkMenuRemove.dataset.url = url;
+            this.bookmarkMenuRemove.parentNode.classList.remove('hidden');
+            //XXX not implement yet: edit bookmark in bookmarktab #838041
+            this.bookmarkMenuEdit.parentNode.classList.add('hidden');
+            //XXX not implement yet: link to home in bookmarktab #850999
+            this.bookmarkMenuAddHome.parentNode.classList.add('hidden');
+
+          } else { //show actions in browser page
+
+            this.bookmarkMenuAdd.parentNode.classList.add('hidden');
+            this.bookmarkMenuRemove.dataset.url = url;
+            this.bookmarkMenuRemove.parentNode.classList.remove('hidden');
+            this.bookmarkMenuEdit.dataset.url = url;
+            this.bookmarkMenuEdit.parentNode.classList.remove('hidden');
+            //XXX not implement yet: link to home in bookmarktab #850999
+            this.bookmarkMenuAddHome.parentNode.classList.remove('hidden');
+
+          }
+        } else { //show actions in browser page
+
+          this.bookmarkMenuAdd.parentNode.classList.remove('hidden');
+          this.bookmarkMenuRemove.parentNode.classList.add('hidden');
+          this.bookmarkMenuEdit.parentNode.classList.add('hidden');
+          //XXX not implement yet: link to home in bookmarktab #850999
+          this.bookmarkMenuAddHome.parentNode.classList.remove('hidden');
+
+        }
+      }).bind(this));
+  },
+
+  // Adaptor to show menu while press bookmark star
   showBookmarkMenu: function browser_showBookmarkMenu() {
-    if (!this.currentTab.url)
-      return;
-    this.bookmarkMenu.classList.remove('hidden');
-    Places.getBookmark(this.currentTab.url, (function(bookmark) {
-      if (bookmark) {
-        this.bookmarkMenuAdd.parentNode.classList.add('hidden');
-        this.bookmarkMenuRemove.parentNode.classList.remove('hidden');
-        this.bookmarkMenuEdit.parentNode.classList.remove('hidden');
-      } else {
-        this.bookmarkMenuAdd.parentNode.classList.remove('hidden');
-        this.bookmarkMenuRemove.parentNode.classList.add('hidden');
-        this.bookmarkMenuEdit.parentNode.classList.add('hidden');
-      }
-    }).bind(this));
+    this.showActionMenu(this.currentTab.url);
+  },
+
+  // Adaptor to show menu while longpress in bookmark tab
+  showBookmarkTabContextMenu: function browser_showBookmarkTabContextMenu(url) {
+    this.showActionMenu(url, 'bookmarksTab');
   },
 
   hideBookmarkMenu: function browser_hideBookmarkMenu() {
@@ -919,7 +999,7 @@ var Browser = {
   },
 
   drawAwesomescreenListItem: function browser_drawAwesomescreenListItem(list,
-    data, filter) {
+    data, filter, current_tab) {
     var entry = document.createElement('li');
     var link = document.createElement('a');
     var title = document.createElement('h5');
@@ -940,6 +1020,14 @@ var Browser = {
     link.appendChild(url);
     entry.appendChild(link);
     list.appendChild(entry);
+
+    // enable longpress manipulation in bookmark tab
+    if (current_tab === 'bookmark') {
+      var that = this;
+      link.addEventListener('contextmenu', function() {
+        that.showBookmarkTabContextMenu(link.href);
+      });
+    }
 
     if (!data.iconUri) {
       link.style.backgroundImage = 'url(' + this.DEFAULT_FAVICON + ')';
@@ -1003,13 +1091,73 @@ var Browser = {
     list.setAttribute('role', 'listbox');
     this.bookmarks.appendChild(list);
     bookmarks.forEach(function browser_processBookmark(data) {
-      this.drawAwesomescreenListItem(list, data);
+      this.drawAwesomescreenListItem(list, data, null, 'bookmark');
     }, this);
   },
 
   openInNewTab: function browser_openInNewTab(url) {
     this.createTab(url);
     this.updateTabsCount();
+  },
+
+  // Saves an image to device storage.
+  saveImage: function browser_saveImage(url) {
+    function displayMessage(message) {
+      var status = document.getElementById('save-image-status');
+      status.firstElementChild.textContent = message;
+      status.classList.add('visible');
+      window.setTimeout(function() {
+        status.classList.remove('visible');
+      }, 3000);
+    }
+
+    function storeBlob(blob, name, retryCount) {
+      var pictureStorage = navigator.getDeviceStorage('pictures');
+      var addreq = pictureStorage.addNamed(blob, name);
+      addreq.onsuccess = function() {
+        displayMessage(_('image-saved'));
+      };
+      addreq.onerror = function() {
+        // Prepend some always changing id and try to store again, but give up
+        // after MAX_SAVING_RETRIES retries.
+        if (addreq.error.name === 'NoModificationAllowedError' &&
+            retryCount !== Browser.MAX_SAVING_RETRIES) {
+          name = Date.now() + '-' + name;
+          storeBlob(blob, name, retryCount + 1);
+        } else {
+          displayMessage(_('error-saving-image'));
+        }
+      };
+    }
+
+    var xhr = new XMLHttpRequest({mozSystem: true});
+    xhr.open('GET', url, true);
+    xhr.responseType = 'blob';
+    xhr.onload = function browser_imageDataListener() {
+      if (xhr.status !== 200 || !xhr.response) {
+        displayMessage(_('error-saving-image'));
+        return;
+      }
+
+      // Save the blob to device storage.
+      // Extract a filename from the URL, and to some sanitizing.
+      var name = url.split('/').reverse()[0].toLowerCase()
+                    .replace(/[^a-z0-9\.]/g, '_');
+
+      // If we have no file extension, use the content-type header to
+      // add one.
+      if (name.split('.').length == 1) {
+        var contentType = xhr.getResponseHeader('content-type');
+        name += '.' + contentType.split('/')[1];
+      }
+
+      storeBlob(xhr.response, name, 0);
+    };
+
+    xhr.onerror = function getDefaultDataError() {
+      displayMessage(_('error-saving-image'));
+    };
+    xhr.send();
   },
 
   // This generates callbacks for context menu targets that have
@@ -1021,6 +1169,13 @@ var Browser = {
         label: _('open-in-new-tab'),
         callback: function() {
           self.openInNewTab(item.data);
+        }
+      };
+    } else if (item.nodeName === 'IMG') {
+      return {
+        label: _('save-image'),
+        callback: function() {
+          self.saveImage(item.data);
         }
       };
     }
@@ -1288,7 +1443,10 @@ var Browser = {
   showStartscreen: function browser_showStartscreen() {
     this.startscreen.classList.remove('hidden');
     Places.getTopSites(this.MAX_TOP_SITES, null,
-      this.showTopSiteThumbnails.bind(this));
+      function(places) {
+        this.showTopSiteThumbnails(places);
+        this.loadRemaining();
+      }.bind(this));
   },
 
   _topSiteThumbnailObjectURLs: [],
@@ -1746,8 +1904,10 @@ window.addEventListener('load', function browserOnLoad(evt) {
 
 function actHandle(activity) {
   if (Browser.hasLoaded) {
+    console.log('--- loaded');
     Browser.handleActivity(activity);
   } else {
+    console.log('--- nie loaded');
     Browser.waitingActivities.push(activity);
   }
   activity.postResult({ status: 'accepted' });

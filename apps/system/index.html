@@ -41,6 +41,10 @@
     <!-- applications.js must not be deferred
          in order to catch webapps-registry-ready mozChromeEvent -->
     <script src="js/applications.js"></script>
+    <!-- Not deferring the following to show startup logo/animation as soon as possible. -->
+    <script src="js/logo_loader.js"></script>
+    <script src="js/init_logo_handler.js"></script>
+
     <script defer src="js/screen_manager.js"></script>
     <script defer src="js/background_service.js"></script>
     <script defer src="js/mouse2touch.js"></script>
@@ -96,6 +100,9 @@
     <!-- Statusbar -->
     <link rel="stylesheet" type="text/css" href="style/statusbar/statusbar.css">
     <script defer src="js/statusbar.js"></script>
+
+    <!-- FTU launcher -->
+    <script defer src="js/ftu_launcher.js"></script>
 
     <!-- LockScreen -->
     <link rel="stylesheet" type="text/css" href="style/lockscreen/lockscreen.css">
@@ -231,8 +238,9 @@
     <link rel="stylesheet" href="shared/style/responsive.css">
 
     <style>
-      /* initlogo style is here to prevent flashing */
-      #initlogo {
+      /* initlogos style is here to prevent flashing */
+
+      #os-logo {
         position: absolute;
         overflow: hidden;
         width: 100%;
@@ -240,11 +248,45 @@
         background: #000 url('shared/resources/branding/initlogo.png') no-repeat center / cover;
         z-index: 65536;
         opacity: 1;
-        transition: opacity 1s ease 3s;
+        transition: opacity 1s ease 2s;
         pointer-events: none;
       }
 
-      #initlogo.hide {
+      #carrier-logo {
+        position: absolute;
+        overflow: hidden;
+        width: 100%;
+        height: 100%;
+        background: #000;
+      }
+
+      #carrier-logo > img,
+      #poweroff-splash > img {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        opacity: 1;
+        transition: opacity 1s ease 2s;
+      }
+
+      #carrier-logo > video,
+      #poweroff-splash > video {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        opacity: 1;
+        transition: opacity 1s ease;
+      }
+
+      #carrier-logo.transparent {
+        background: transparent;
+      }
+
+      #carrier-logo > img.hide,
+      #carrier-logo > video.hide,
+      #os-logo.hide,
+      #poweroff-splash > img.hide,
+      #poweroff-splash > video.hide {
         opacity: 0;
       }
     </style>
@@ -253,7 +295,9 @@
 
   <body role="application">
     <div id="screen" class="locked">
-      <div id="initlogo" data-z-index-level="initlogo"></div>
+      <div id="os-logo" data-z-index-level="initlogo">
+        <div id="carrier-logo"></div>
+      </div>
 
       <div id="statusbar" data-z-index-level="statusbar">
         <!-- Carrier & date label -->
@@ -392,12 +436,12 @@
                   <input name="simpukVis" type="text" size="8" maxlength="8" />
                 </div>
               </div>
-              <!-- sim nck input field -->
-              <div id="nckArea" hidden>
-                <div data-l10n-id="nckCode">NCK Code</div>
+              <!-- sim nck/cck/spck input field -->
+              <div id="xckArea" hidden>
+                <div name="xckDesc" data-l10n-id="nckCode">NCK Code</div>
                 <div class="input-wrapper">
-                  <input name="nckpin" type="number" size="16" maxlength="16" />
-                  <input name="nckpinVis" type="text" size="16" maxlength="16" />
+                  <input name="xckpin" type="number" size="16" maxlength="16" />
+                  <input name="xckpinVis" type="text" size="16" maxlength="16" />
                 </div>
               </div>
               <!-- new sim pin input field -->
@@ -597,10 +641,10 @@
                     <div id="value-indicator-hover-time">:</div>
                     <div id="value-indicator-hover"></div>
                   </div>
-                  <div id="value-picker-hours" class="animation-on"></div>
-                  <div id="value-picker-minutes" class="animation-on"></div>
+                  <div id="value-picker-hours" class="value-picker animation-on"></div>
+                  <div id="value-picker-minutes" class="value-picker animation-on"></div>
                   <div id="right-picker-separator"></div>
-                  <div id="value-picker-hour24-state" class="animation-on"></div>
+                  <div id="value-picker-hour24-state" class="value-picker animation-on"></div>
                   <div id="picker-bar-gradient"></div>
                 </div>
               </div>
@@ -627,16 +671,13 @@
                     <div class="value-indicator-hover"></div>
                   </div>
                   <div class="value-picker-date-wrapper">
-                    <div class="value-picker-date animation-on"></div>
-                    <div class="value-picker-date animation-on"></div>
-                    <div class="value-picker-date animation-on"></div>
-                    <div class="value-picker-date animation-on"></div>
+                    <div class="value-picker value-picker-date animation-on"></div>
                   </div>
                   <div class="value-picker-month-wrapper">
-                    <div class="value-picker-month" class="animation-on"></div>
+                    <div class="value-picker value-picker-month" class="animation-on"></div>
                   </div>
                   <div class="value-picker-year-wrapper">
-                    <div class="value-picker-year" class="animation-on"></div>
+                    <div class="value-picker value-picker-year" class="animation-on"></div>
                   </div>
                   <div class="picker-bar-gradient"></div>
                 </div>
@@ -878,22 +919,25 @@
         <div id="volume" class="vibration">
           <span class="vibration"></span>
           <span class="mute-state"></span>
-          <div class="active"></div>
-          <div class="active"></div>
-          <div class="active"></div>
-          <div class="active"></div>
-          <div class="active"></div>
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
           <span class="volume"></span>
+          <section>
+            <div class="active"></div>
+            <div class="active"></div>
+            <div class="active"></div>
+            <div class="active"></div>
+            <div class="active"></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+          </section>
         </div>
       </div>
 

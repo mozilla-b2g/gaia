@@ -28,7 +28,7 @@ suite('identity', function() {
     navigator.mozL10n = MockL10n;
 
     realDispatchEvent = subject._dispatchEvent;
-    subject._dispatchEvent = function (obj) {
+    subject._dispatchEvent = function(obj) {
       lastDispatchedEvent = obj;
     };
   });
@@ -49,7 +49,7 @@ suite('identity', function() {
   suite('open popup', function() {
     setup(function() {
       var event = new MockChromeEvent({
-        type: 'open-id-dialog',
+        type: 'id-dialog-open',
         id: 'test-open-event-id',
         showUI: true
       });
@@ -76,7 +76,7 @@ suite('identity', function() {
   suite('close popup', function() {
     setup(function() {
       var event = new MockChromeEvent({
-        type: 'received-id-assertion',
+        type: 'id-dialog-done',
         id: 'test-close-event-id',
         showUI: true
       });

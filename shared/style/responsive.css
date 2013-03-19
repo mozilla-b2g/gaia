@@ -18,18 +18,18 @@
   62.5% * 1.5 (dppx) = ~94% (93.75%)
 */
 /*Portrait*/
-@media all and (min-device-width: 480px) and (max-device-aspect-ratio: 1/1) {
+@media all and (min-device-width: 480px) and (max-device-width: 540px) and (max-device-aspect-ratio: 1/1) {
   html { font-size: 94%!important; }
 }
 
 /*Landscape*/
-@media all and (min-device-width: 800px) and (min-device-aspect-ratio: 1/1) {
+@media all and (min-device-width: 800px) and (max-device-width: 960px) and (min-device-aspect-ratio: 1/1) {
   html { font-size: 94%!important; }
 }
 
 
 /*
-  QHD => DVGA
+  QHD => HD
   --
   Supported devices:
     * Geeksphone Peak: 540×960
@@ -41,12 +41,12 @@
 */
 
 /*Portrait*/
-@media all and (min-device-width: 540px) and (max-device-aspect-ratio: 1/1) {
+@media all and (min-device-width: 540px) and (max-device-width: 720px) and (max-device-aspect-ratio: 1/1) {
   html { font-size: 105%!important; }
 }
 
 /*Landscape*/
-@media all and (min-device-width: 960px) and (min-device-aspect-ratio: 1/1) {
+@media all and (min-device-width: 960px) and (max-device-width: 1280px) and (min-device-aspect-ratio: 1/1) {
   html { font-size: 105%!important; }
 }
 

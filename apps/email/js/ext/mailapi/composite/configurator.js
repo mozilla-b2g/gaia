@@ -1,3 +1,4 @@
+
 /**
  * Make our TCPSocket implementation look like node's net library.
  *
@@ -73,7 +74,7 @@ exports.connect = function(port, host) {
 };
 
 }); // end define
-
+;
 /**
  *
  **/
@@ -96,7 +97,7 @@ exports.connect = function(port, host, wuh, onconnect) {
 };
 
 }); // end define
-
+;
 define('imap',['require','exports','module','util','rdcommon/log','net','tls','events','mailparser/mailparser'],function(require, exports, module) {
 var util = require('util'), $log = require('rdcommon/log'),
     net = require('net'), tls = require('tls'),
@@ -1076,7 +1077,8 @@ ImapConnection.prototype.append = function(data, options, cb) {
   if ('flags' in options) {
     if (!Array.isArray(options.flags))
       options.flags = Array(options.flags);
-    cmd += " (\\"+options.flags.join(' \\')+")";
+    if (options.flags.length)
+      cmd += " (\\"+options.flags.join(' \\')+")";
   }
   if ('date' in options) {
     if (!(options.date instanceof Date))
@@ -1110,7 +1112,8 @@ ImapConnection.prototype.multiappend = function(messages, cb) {
     if ('flags' in options) {
       if (!Array.isArray(options.flags))
         options.flags = Array(options.flags);
-      cmd += " (\\"+options.flags.join(' \\')+")";
+      if (options.flags.length)
+        cmd += " (\\"+options.flags.join(' \\')+")";
     }
     if ('date' in options) {
       if (!(options.date instanceof Date))
@@ -2557,7 +2560,7 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
 });
 
 }); // end define
-
+;
 /**
  * Validates connection information for an account and verifies the server on
  * the other end is something we are capable of sustaining an account with.
@@ -2775,7 +2778,7 @@ var normalizeError = exports.normalizeError = function normalizeError(err) {
  *
  * XXX DST issue, maybe vary this.
  */
-const DEFAULT_TZ_OFFSET = -7 * 60 * 60 * 1000;
+var DEFAULT_TZ_OFFSET = -7 * 60 * 60 * 1000;
 
 var extractTZFromHeaders = exports._extractTZFromHeaders =
     function extractTZFromHeaders(allHeaders) {
@@ -2869,7 +2872,7 @@ var getTZOffset = exports.getTZOffset = function getTZOffset(conn, callback) {
 };
 
 }); // end define
-
+;
 /**
  * Abstractions for dealing with the various mutation operations.
  *
@@ -2952,34 +2955,34 @@ define('mailapi/imap/jobs',
 /**
  * The evidence suggests the job has not yet been performed.
  */
-const CHECKED_NOTYET = 'checked-notyet';
+var CHECKED_NOTYET = 'checked-notyet';
 /**
  * The operation is idempotent and atomic, just perform the operation again.
  * No checking performed.
  */
-const UNCHECKED_IDEMPOTENT = 'idempotent';
+var UNCHECKED_IDEMPOTENT = 'idempotent';
 /**
  * The evidence suggests that the job has already happened.
  */
-const CHECKED_HAPPENED = 'happened';
+var CHECKED_HAPPENED = 'happened';
 /**
  * The job is no longer relevant because some other sequence of events
  * have mooted it.  For example, we can't change tags on a deleted message
  * or move a message between two folders if it's in neither folder.
  */
-const CHECKED_MOOT = 'moot';
+var CHECKED_MOOT = 'moot';
 /**
  * A transient error (from the checker's perspective) made it impossible to
  * check.
  */
-const UNCHECKED_BAILED = 'bailed';
+var UNCHECKED_BAILED = 'bailed';
 /**
  * The job has not yet been performed, and the evidence is that the job was
  * not marked finished because our database commits are coherent.  This is
  * appropriate for retrieval of information, like the downloading of
  * attachments.
  */
-const UNCHECKED_COHERENT_NOTYET = 'coherent-notyet';
+var UNCHECKED_COHERENT_NOTYET = 'coherent-notyet';
 
 /**
  * @typedef[MutationState @dict[
@@ -3118,7 +3121,7 @@ ImapJobDriver.prototype = {
    */
   _acquireConnWithoutFolder: function(label, callback, deathback) {
     this._LOG.acquireConnWithoutFolder_begin(label);
-    const self = this;
+    var self = this;
     this.account.__folderDemandsConnection(
       null, label,
       function(conn) {
@@ -3903,7 +3906,7 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
 });
 
 }); // end define
-
+;
 /**
  *
  **/
@@ -3941,8 +3944,8 @@ define('mailapi/imap/account',
     $module,
     exports
   ) {
-const bsearchForInsert = $util.bsearchForInsert;
-const allbackMaker = $allback.allbackMaker;
+var bsearchForInsert = $util.bsearchForInsert;
+var allbackMaker = $allback.allbackMaker;
 
 function cmpFolderPubPath(a, b) {
   return a.path.localeCompare(b.path);
@@ -4284,7 +4287,7 @@ ImapAccount.prototype = {
     var storage = this._folderStorages[folderId],
         slice = new $mailslice.MailSlice(bridgeHandle, storage, this._LOG);
 
-    storage.sliceOpenFromNow(slice);
+    storage.sliceOpenMostRecent(slice);
   },
 
   searchFolderMessages: function(folderId, bridgeHandle, phrase, whatToSearch) {
@@ -4733,7 +4736,7 @@ ImapAccount.prototype = {
     }
 
     // - build a map of known existing folders
-    const folderPubsByPath = {};
+    var folderPubsByPath = {};
     var folderPub;
     for (var iFolder = 0; iFolder < this.folders.length; iFolder++) {
       folderPub = this.folders[iFolder];
@@ -4893,7 +4896,7 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
 });
 
 }); // end define
-
+;
 /**
  *
  **/
@@ -4912,7 +4915,7 @@ exports.hostname = function() {
 exports.getHostname = exports.hostname;
 
 }); // end define
-
+;
 define('simplesmtp/lib/starttls',['require','exports','module','crypto','tls'],function (require, exports, module) {
 // SOURCE: https://gist.github.com/848444
 
@@ -6116,7 +6119,7 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
 });
 
 }); // end define
-
+;
 /**
  * Configurator for fake
  **/
@@ -6332,7 +6335,7 @@ CompositeAccount.prototype = {
   getFirstFolderWithType: $acctmixins.getFirstFolderWithType,
 };
 
-}); // end define
+}); // end define;
 /**
  * SMTP probe logic.
  **/
@@ -6436,7 +6439,7 @@ SmtpProber.prototype = {
 };
 
 }); // end define
-
+;
 /**
  * Configurator for imap+smtp
  **/
@@ -6640,4 +6643,4 @@ exports.configurator = {
 };
 
 }); // end define
-
+;

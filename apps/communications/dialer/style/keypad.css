@@ -104,7 +104,7 @@ article:not(:target) #keypad-delete {
 
 .keypad-key em {
   margin-left: 0.3rem;
-  font-weight: 300;
+  font-weight: normal;
   font-size: 1.5rem;
   color: #96AAB4;
   font-style: normal;
@@ -163,7 +163,7 @@ article:not(:target) #keypad-delete {
   width: 3rem;
   background-size: 3rem 3rem;
   background-position: center;
-  margin: auto;
+  margin: auto 1.5rem;
   pointer-events: none;
 }
 
@@ -174,7 +174,7 @@ article:not(:target) #keypad-delete {
   width: 3rem;
   background-size: 3rem 3rem;
   background-position: center;
-  margin: auto;
+  margin: auto 1.5rem;
   pointer-events: none;
 }
 

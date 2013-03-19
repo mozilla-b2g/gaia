@@ -32,9 +32,11 @@ contacts.Search = (function() {
       HARD_LIMIT = 25,
       emptySearch = true,
       remainingPending = true,
-      imgLoader;
+      imgLoader,
+      searchEnabled = false;
 
-  var init = function load(_conctactsListView, _groupFavorites, _clickHandler) {
+  var init = function load(_conctactsListView, _groupFavorites, _clickHandler,
+                           defaultEnabled) {
     conctactsListView = _conctactsListView;
 
     searchView = document.getElementById('search-view');
@@ -68,7 +70,10 @@ contacts.Search = (function() {
     });
 
     imgLoader = new ImageLoader('#groups-list-search', 'li');
-  }
+
+    if (defaultEnabled)
+      searchEnabled = true;
+  };
 
   //Search mode instructions
   var exitSearchMode = function exitSearchMode(evt) {
@@ -104,7 +109,7 @@ contacts.Search = (function() {
     remainingPending = true;
   }
 
-  function addRemainingResults(nodes,from) {
+  function addRemainingResults(nodes, from) {
     if (remainingPending !== true) {
       return;
     }
@@ -230,7 +235,6 @@ contacts.Search = (function() {
       for (var c = from; c < end && c < contacts.length; c++) {
         var contact = contacts[c].node || contacts[c];
         var contactText = contacts[c].text || getSearchText(contacts[c]);
-
         if (!pattern.test(contactText)) {
           if (contact.dataset.uuid in currentSet) {
             searchList.removeChild(currentSet[contact.dataset.uuid]);
@@ -241,8 +245,8 @@ contacts.Search = (function() {
             hideProgressResults();
           }
           // Only an initial page of elements is loaded in the search list
-          if (Object.keys(currentSet).length
-             < SEARCH_PAGE_SIZE && !(contact.dataset.uuid in currentSet)) {
+          if (Object.keys(currentSet).length <
+              SEARCH_PAGE_SIZE && !(contact.dataset.uuid in currentSet)) {
             var clonedNode = getClone(contact);
             currentSet[contact.dataset.uuid] = clonedNode;
             searchList.appendChild(clonedNode);
@@ -288,10 +292,20 @@ contacts.Search = (function() {
     }
   }
 
+  var enableSearch = function enableSearch() {
+    if (searchEnabled) {
+      return;
+    }
+    searchEnabled = true;
+    invalidateCache();
+    search();
+  };
+
   var search = function performSearch(searchDoneCb) {
     prevTextToSearch = currentTextToSearch;
 
     currentTextToSearch = utils.text.normalize(searchBox.value.trim());
+    currentTextToSearch = utils.text.escapeRegExp(currentTextToSearch);
     var thisSearchText = new String(currentTextToSearch);
 
     if (thisSearchText.length === 0) {
@@ -300,6 +314,10 @@ contacts.Search = (function() {
     }
     else {
       showProgress();
+      if (!searchEnabled) {
+        resetState();
+        return;
+      }
       emptySearch = false;
       // The remaining results have not been added yet
       remainingPending = true;
@@ -341,7 +359,7 @@ contacts.Search = (function() {
       contactNodes = list.querySelectorAll(CONTACTS_SELECTOR);
     }
     return contactNodes;
-  }
+  };
 
   var getContactsToSearch = function getContactsToSearch(newText, prevText) {
     var out;
@@ -356,23 +374,24 @@ contacts.Search = (function() {
     }
 
     return out;
-  }
+  };
 
   var isInSearchMode = function isInSearchMode() {
     return inSearchMode;
-  }
+  };
 
   var invalidateCache = function s_invalidate() {
     canReuseSearchables = false;
     searchableNodes = null;
     contactNodes = null;
     currentSet = {};
-  }
+    searchTextCache = {};
+  };
 
   var removeContact = function s_removeContact(id) {
     var contact = searchList.querySelector('li[data-uuid=\"' + id + '\"]');
     searchList.removeChild(contact);
-  }
+  };
 
   function showProgress() {
     searchNoResult.classList.add('hide');
@@ -396,6 +415,7 @@ contacts.Search = (function() {
     'search': search,
     'enterSearchMode': enterSearchMode,
     'exitSearchMode': exitSearchMode,
-    'isInSearchMode': isInSearchMode
+    'isInSearchMode': isInSearchMode,
+    'enableSearch': enableSearch
   };
 })();

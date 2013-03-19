@@ -39,7 +39,7 @@ html, body {
 #gallery-button span,
 #cancel-pick span
 {
-  -moz-transition: 0.2s ease-in-out;
+  -moz-transition: -moz-transform 0.2s ease-in-out;
   pointer-events: none;
   background-position: center center;
   background-repeat: no-repeat;
@@ -239,7 +239,7 @@ html, body {
 
 #overlay-text {
   padding: 10px 5px 0 5px;
-  border-top: 1px solid #686868;	
+  border-top: 1px solid #686868;
   font-weight: 300;
   font-size: 2.5rem;
   color: #ebebeb;
@@ -311,4 +311,12 @@ html, body {
 }
 #toggle-flash[data-mode=torch]:after {
   background-image: url(images/flash_torch.png);
+}
+
+#filmstrip.hidden {
+  transform: translateY(-50px);
+}
+
+#preview.offscreen {
+  transform: translateY(-100%) scale(.125) translateX(50%);
 }

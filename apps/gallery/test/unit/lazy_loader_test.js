@@ -5,12 +5,24 @@
  */
 require('/shared/js/lazy_loader.js');
 
-mocha.setup({globals: ['jsCount','totalResult']});
+mocha.setup({globals: ['jsCount', 'totalResult']});
 
 suite('lazy loader', function() {
 
-  function countSytles() {
+  function countStyles() {
     return document.querySelectorAll('link').length;
+  }
+
+  function addNodeToLazyLoad() {
+    document.body.innerHTML = [
+    "<div id='parent'>",
+      '<!-- ',
+        "<div id='lazyload-me'>",
+          'content',
+        '</div>',
+      '-->',
+    '</div>'
+    ].join('');
   }
 
   suiteSetup(function() {
@@ -42,17 +54,40 @@ suite('lazy loader', function() {
   });
 
   test('append css script', function(done) {
-    var numStyles = countSytles();
+    var numStyles = countStyles();
     LazyLoader.load('support/styles.css', function() {
-      assert.equal(countSytles(), (numStyles+1));
+      assert.equal(countStyles(), (numStyles + 1));
+      done();
+    });
+  });
+
+  test('lazyload HTML node', function(done) {
+    addNodeToLazyLoad();
+    var parent = document.getElementById('parent');
+    LazyLoader.load(parent, function() {
+      assert.equal(
+        document.getElementById('lazyload-me').toString(),
+        '[object HTMLDivElement]'
+      );
+      done();
+    });
+  });
+
+  test('lazyload the same HTML node', function(done) {
+    var parent = document.getElementById('parent');
+    var child = document.getElementById('lazyload-me');
+
+    child.innerHTML = 'New Content';
+    LazyLoader.load(parent, function() {
+      assert.equal(child.innerHTML, 'New Content');
       done();
     });
   });
 
   test('append the same css script', function(done) {
-    var numStyles = countSytles();
+    var numStyles = countStyles();
     LazyLoader.load('support/styles.css', function() {
-      assert.equal(countSytles(), numStyles);
+      assert.equal(countStyles(), numStyles);
       done();
     });
   });
@@ -63,7 +98,7 @@ suite('lazy loader', function() {
     LazyLoader.load(['support/long_load.js'], function() {
       assert.equal(window.totalResult, 10000);
       responses++;
-      if(responses === 2) {
+      if (responses === 2) {
         done();
       }
     });
@@ -72,14 +107,14 @@ suite('lazy loader', function() {
       assert.equal(window.totalResult, 10000);
 
       responses++;
-      if(responses === 2) {
+      if (responses === 2) {
         done();
       }
     });
   });
 
   test('appending multiple nodes works', function(done) {
-    var numStyles = countSytles();
+    var numStyles = countStyles();
 
     // Manually reset LazyLoader._loaded
     LazyLoader._loaded = {};
@@ -89,10 +124,20 @@ suite('lazy loader', function() {
     style.parentNode.removeChild(style);
     var script = document.querySelector('script[src="support/inc.js"]');
     script.parentNode.removeChild(script);
+    addNodeToLazyLoad();
+    var parent = document.getElementById('parent');
 
-    LazyLoader.load(['support/styles.css', 'support/inc.js'], function() {
+    LazyLoader.load([
+        'support/styles.css',
+        'support/inc.js',
+        parent
+      ], function() {
       assert.equal(window.jsCount, 2);
-      assert.equal(countSytles(), numStyles);
+      assert.equal(countStyles(), numStyles);
+      assert.equal(
+        document.getElementById('lazyload-me').toString(),
+        '[object HTMLDivElement]'
+      );
       done();
     });
   });

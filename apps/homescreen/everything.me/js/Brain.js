@@ -20,6 +20,14 @@ Evme.Brain = new function Evme_Brain() {
         TIPS = {},
         ICON_SIZE = null,
 
+        TIMEOUT_BEFORE_REQUESTING_APPS_AGAIN = 500,
+        TIMEOUT_BEFORE_SHOWING_DEFAULT_IMAGE = 3000,
+        TIMEOUT_BEFORE_SHOWING_HELPER = 3000,
+        TIMEOUT_BEFORE_RENDERING_AC = 300,
+        TIMEOUT_BEFORE_RUNNING_APPS_SEARCH = 600,
+        TIMEOUT_BEFORE_RUNNING_IMAGE_SEARCH = 800,
+        TIMEOUT_BEFORE_AUTO_RENDERING_MORE_APPS = 200,
+
         L10N_SYSTEM_ALERT="alert",
 
         // whether to show shortcuts customize on startup or not
@@ -738,10 +746,8 @@ Evme.Brain = new function Evme_Brain() {
 
             elPseudo.style.cssText += 'position: absolute; top: ' + oldPos.top + 'px; left: ' + oldPos.left + 'px; -moz-transform: translate3d(0,0,0);';
 
-            var appName = Evme.Utils.l10n('apps', 'loading-app');
-            
             Evme.$('b', elPseudo, function itemIteration(el) {
-                el.innerHTML = appName;
+                el.textContent = Evme.Utils.l10n('apps', 'loading-app');
             });
 
             elApp.parentNode.appendChild(elPseudo);
@@ -812,7 +818,7 @@ Evme.Brain = new function Evme_Brain() {
                 elContainer.classList.remove("loading-app");
 
                 if (Evme.Storage.get(STORAGE_KEY_CLOSE_WHEN_RETURNING)) {
-                    Searcher.searchAgain();
+                    Searcher.searchAgain(null, Evme.Searchbar.getValue());
                 }
                 Evme.Storage.remove(STORAGE_KEY_CLOSE_WHEN_RETURNING);
 
@@ -1433,15 +1439,7 @@ Evme.Brain = new function Evme_Brain() {
             timeoutSearchImageWhileTyping = null,
             timeoutSearch = null,
             timeoutSearchWhileTyping = null,
-            timeoutAutocomplete = null,
-
-            TIMEOUT_BEFORE_REQUESTING_APPS_AGAIN = 500,
-            TIMEOUT_BEFORE_SHOWING_DEFAULT_IMAGE = 3000,
-            TIMEOUT_BEFORE_SHOWING_HELPER = 3000,
-            TIMEOUT_BEFORE_RENDERING_AC = 200,
-            TIMEOUT_BEFORE_RUNNING_APPS_SEARCH = 200,
-            TIMEOUT_BEFORE_RUNNING_IMAGE_SEARCH = 500,
-            TIMEOUT_BEFORE_AUTO_RENDERING_MORE_APPS = 200;
+            timeoutAutocomplete = null;
 
         function resetLastSearch(bKeepImageQuery) {
             lastSearch = {
@@ -1894,14 +1892,13 @@ Evme.Brain = new function Evme_Brain() {
             });
         };
 
-        this.searchAgain = function searchAgain(source) {
+        this.searchAgain = function searchAgain(source, query) {
             Searcher.cancelRequests();
 
-            var query = Evme.Searchbar.getValue();
-            var _query = lastSearch.query || query;
-            var _source = source || lastSearch.source;
-            var _type = lastSearch.type;
-            var _offset = lastSearch.offset;
+            var _query = query || lastSearch.query || Evme.Searchbar.getValue(),
+                _source = source || lastSearch.source,
+                _type = lastSearch.type,
+                _offset = lastSearch.offset;
 
             if (_query) {
                 resetLastSearch();
