@@ -325,6 +325,29 @@ var Cards = {
         (event.clientX >
          this._containerNode.offsetWidth - this.TRAY_GUTTER_WIDTH)) {
       event.stopPropagation();
+
+      // Look for a card with a data-tray-target attribute
+      var targetIndex = -1;
+      this._cardStack.some(function(card, i) {
+        if (card.domNode.hasAttribute('data-tray-target')) {
+          targetIndex = i;
+          return true;
+        }
+      });
+
+      // Choose a default of one card ahead
+      if (targetIndex === -1)
+        targetIndex = this.activeCardIndex + 1;
+
+      var indexDiff = targetIndex - (this.activeCardIndex + 1);
+      if (indexDiff > 0) {
+        this._afterTransitionAction = (function() {
+          this.removeCardAndSuccessors(this._cardStack[0].domNode,
+                                       'none', indexDiff);
+          this.moveToCard(targetIndex, 'animate', 'forward');
+        }.bind(this));
+      }
+
       this.moveToCard(this.activeCardIndex + 1, 'animate', 'forward');
     }
   },
@@ -730,7 +753,7 @@ var Cards = {
       // anim-overlays are the transitions to new layers in the stack. If
       // starting a new one, it is forward movement and needs a new zIndex.
       // Otherwise, going back to
-      this._zIndex += 100;
+      this._zIndex += 10;
     }
 
     // If going back and the beginning node was an overlay, do not animate
@@ -746,7 +769,7 @@ var Cards = {
         }
       } else {
         endNode = null;
-        this._zIndex -= 100;
+        this._zIndex -= 10;
       }
     }
 
@@ -843,6 +866,13 @@ var Cards = {
       if (pendingToaster) {
         pendingToaster();
         Toaster.pendingStack.pop();
+      }
+
+      // If any action to to at the end of transition trigger now.
+      if (this._afterTransitionAction) {
+        var afterTransitionAction = this._afterTransitionAction;
+        this._afterTransitionAction = null;
+        afterTransitionAction();
       }
     }
   },

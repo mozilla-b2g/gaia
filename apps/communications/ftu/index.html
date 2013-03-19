@@ -107,6 +107,15 @@
           <div id="confirm-newpin-error" class="hidden error"></div>
         </section>
       </section>
+
+      <section id="xckcode-screen" role="region">
+        <label id="xck-label" data-l10n-id="type_nck">Type your NCK code</label>
+        <section class="input-wrapper">
+          <input id="xck-input" name="simxck" type="password" size="16" maxlength="16" />
+          <input id="fake-xck-input" class="fake-input" name="fake-simxck" type="number" size="16" maxlength="16" />
+          <div id="xck-error" class="hidden error"></div>
+        </section>
+      </section>
     </article>
 
     <nav role="navigation">
@@ -215,7 +224,7 @@
                 Change
               </button>
               <p id="date-configuration-label"></p>
-              <input id="date-configuration" class="invisible" type="date"></input>
+              <input id="date-configuration" class="invisible" type="date" min="1970-1-1" max="2037-12-31"></input>
             </li>
             <li>
               <button class="change icon icon-dialog" data-l10n-id="change" type="button">

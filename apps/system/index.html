@@ -436,12 +436,12 @@
                   <input name="simpukVis" type="text" size="8" maxlength="8" />
                 </div>
               </div>
-              <!-- sim nck input field -->
-              <div id="nckArea" hidden>
-                <div data-l10n-id="nckCode">NCK Code</div>
+              <!-- sim nck/cck/spck input field -->
+              <div id="xckArea" hidden>
+                <div name="xckDesc" data-l10n-id="nckCode">NCK Code</div>
                 <div class="input-wrapper">
-                  <input name="nckpin" type="number" size="16" maxlength="16" />
-                  <input name="nckpinVis" type="text" size="16" maxlength="16" />
+                  <input name="xckpin" type="number" size="16" maxlength="16" />
+                  <input name="xckpinVis" type="text" size="16" maxlength="16" />
                 </div>
               </div>
               <!-- new sim pin input field -->
@@ -641,10 +641,10 @@
                     <div id="value-indicator-hover-time">:</div>
                     <div id="value-indicator-hover"></div>
                   </div>
-                  <div id="value-picker-hours" class="animation-on"></div>
-                  <div id="value-picker-minutes" class="animation-on"></div>
+                  <div id="value-picker-hours" class="value-picker animation-on"></div>
+                  <div id="value-picker-minutes" class="value-picker animation-on"></div>
                   <div id="right-picker-separator"></div>
-                  <div id="value-picker-hour24-state" class="animation-on"></div>
+                  <div id="value-picker-hour24-state" class="value-picker animation-on"></div>
                   <div id="picker-bar-gradient"></div>
                 </div>
               </div>
@@ -671,16 +671,13 @@
                     <div class="value-indicator-hover"></div>
                   </div>
                   <div class="value-picker-date-wrapper">
-                    <div class="value-picker-date animation-on"></div>
-                    <div class="value-picker-date animation-on"></div>
-                    <div class="value-picker-date animation-on"></div>
-                    <div class="value-picker-date animation-on"></div>
+                    <div class="value-picker value-picker-date animation-on"></div>
                   </div>
                   <div class="value-picker-month-wrapper">
-                    <div class="value-picker-month" class="animation-on"></div>
+                    <div class="value-picker value-picker-month" class="animation-on"></div>
                   </div>
                   <div class="value-picker-year-wrapper">
-                    <div class="value-picker-year" class="animation-on"></div>
+                    <div class="value-picker value-picker-year" class="animation-on"></div>
                   </div>
                   <div class="picker-bar-gradient"></div>
                 </div>
