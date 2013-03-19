@@ -58,24 +58,6 @@ var TrustedUIManager = {
     this.closeButton.addEventListener('click', this);
   },
 
-  hideTrustedApp: function trui_hideTrustedApp() {
-    var self = this;
-    this.popupContainer.classList.add('closing');
-    this.popupContainer.addEventListener('transitionend', function hide() {
-      this.removeEventListener('transitionend', hide);
-      self.hide();
-    });
-  },
-
-  reopenTrustedApp: function trui_reopenTrustedApp() {
-    this._hideAllFrames();
-    var dialog = this._getTopDialog();
-    this._makeDialogVisible(dialog);
-    this.popupContainer.classList.add('closing');
-    this.show();
-    this.popupContainer.classList.remove('closing');
-  },
-
   open: function trui_open(name, frame, chromeEventId, onCancelCB) {
     screen.mozLockOrientation('portrait');
     this._hideAllFrames();
@@ -86,7 +68,7 @@ var TrustedUIManager = {
       // first time, spin back to home screen first
       this.popupContainer.classList.add('up');
       this.popupContainer.classList.remove('closing');
-      WindowManager.hideCurrentApp(function openTrustedUI() {
+      this._hideCallerApp(this._lastDisplayedApp, function openTrustedUI() {
         this.popupContainer.classList.remove('up');
         this._pushNewDialog(name, frame, chromeEventId, onCancelCB);
       }.bind(this));
@@ -111,7 +93,7 @@ var TrustedUIManager = {
       var container = this.popupContainer;
       if (!CardsView.cardSwitcherIsShown()) {
         if (!origin) {
-          WindowManager.restoreCurrentApp();
+          this._restoreCallerApp(this._lastDisplayedApp);
         }
         container.addEventListener('transitionend', function wait(event) {
           this.removeEventListener('transitionend', wait);
@@ -119,7 +101,7 @@ var TrustedUIManager = {
         });
       } else {
         if (!origin) {
-          WindowManager.restoreCurrentApp(this._lastDisplayedApp);
+          this._restoreCallerApp(this._lastDisplayedApp);
         }
         this._closeDialog(chromeEventId, origin);
       }
@@ -127,11 +109,68 @@ var TrustedUIManager = {
       // The css transition caused by the removal of the trustedui
       // class by the hide() method will trigger a 'transitionend'
       // event ultimately to be fired.
-      this.hide();
+      this._hide();
 
       window.focus();
     } else {
       this._closeDialog(chromeEventId, origin);
+    }
+  },
+
+  isVisible: function trui_show() {
+    return this.screen.classList.contains('trustedui');
+  },
+
+  _hideTrustedApp: function trui_hideTrustedApp() {
+    var self = this;
+    this.popupContainer.classList.add('closing');
+    this.popupContainer.addEventListener('transitionend', function hide() {
+      this.removeEventListener('transitionend', hide);
+      self._hide();
+    });
+  },
+
+  _reopenTrustedApp: function trui_reopenTrustedApp() {
+    this._hideAllFrames();
+    var dialog = this._getTopDialog();
+    this._makeDialogVisible(dialog);
+    this.popupContainer.classList.add('closing');
+    this._show();
+    this.popupContainer.classList.remove('closing');
+  },
+
+  _hideCallerApp: function trui_hideCallerApp(origin, callback) {
+    var app = WindowManager.getRunningApps()[origin];
+    if (app == null || app.isHomescreen) {
+      return;
+    }
+
+    WindowManager.toggleHomescreen(true);
+    var frame = app.frame;
+    frame.classList.add('back');
+    frame.classList.remove('restored');
+    if (callback) {
+      frame.addEventListener('transitionend', function execCallback() {
+        frame.style.visibility = 'hidden';
+        frame.removeEventListener('transitionend', execCallback);
+        callback();
+      });
+    }
+  },
+
+  _restoreCallerApp: function trui_restoreCallerApp(origin) {
+    var frame = WindowManager.getAppFrame(origin);
+    frame.style.visibility = 'visible';
+    frame.classList.remove('back');
+    if (!WindowManager.getCurrentDisplayedApp().isHomescreen) {
+      WindowManager.toggleHomescreen(false);
+    }
+    if (WindowManager.getDisplayedApp() == origin) {
+      frame.classList.add('restored');
+      frame.addEventListener('transitionend', function removeRestored() {
+        frame.removeEventListener('transitionend', removeRestored);
+        frame.classList.remove('restored');
+      });
     }
   },
 
@@ -185,7 +224,7 @@ var TrustedUIManager = {
   _makeDialogVisible: function trui_makeDialogVisible(dialog) {
     // make sure the trusty ui is visible
     this.popupContainer.classList.remove('closing');
-    this.show();
+    this._show();
 
     // ensure the frame is visible and the dialog title is correct.
     dialog.frame.classList.add('selected');
@@ -228,19 +267,15 @@ var TrustedUIManager = {
     }
   },
 
-  hide: function trui_hide() {
+  _hide: function trui_hide() {
     this.screen.classList.remove('trustedui');
   },
 
-  show: function trui_show() {
+  _show: function trui_show() {
     this.screen.classList.add('trustedui');
   },
 
-  isVisible: function trui_show() {
-    return this.screen.classList.contains('trustedui');
-  },
-
-  setHeight: function trui_setHeight(height) {
+  _setHeight: function trui_setHeight(height) {
     this.overlay.style.height = height + 'px';
   },
 
@@ -269,7 +304,7 @@ var TrustedUIManager = {
       // Now close and fire the cancel callback, if it exists
       this.close(dialog.chromeEventId, dialog.onCancelCB, origin);
     }
-    this.hide();
+    this._hide();
     this.popupContainer.classList.remove('closing');
   },
 
@@ -287,7 +322,7 @@ var TrustedUIManager = {
         if (!this.isVisible())
           return;
 
-        this.hideTrustedApp();
+        this._hideTrustedApp();
         break;
       case 'click':
         // Close-button clicked
@@ -299,7 +334,7 @@ var TrustedUIManager = {
       case 'appwillopen':
         // Hiding trustedUI when coming from Activity
         if (this.isVisible())
-          this.hideTrustedApp();
+          this._hideTrustedApp();
 
         // Ignore homescreen
         if (evt.target.classList.contains('homescreen'))
@@ -309,8 +344,8 @@ var TrustedUIManager = {
           // Reopening an app with trustedUI
           this.popupContainer.classList.remove('up');
           this._makeDialogVisible(this._getTopDialog());
-          WindowManager.hideCurrentApp();
-          this.reopenTrustedApp();
+          this._hideCallerApp(this._lastDisplayedApp);
+          this._reopenTrustedApp();
         }
         break;
       case 'appopen':
@@ -323,14 +358,14 @@ var TrustedUIManager = {
           return;
         var dialog = this._getTopDialog();
         this._makeDialogHidden(dialog);
-        this.hide();
+        this._hide();
         break;
       case 'keyboardchange':
-        this.setHeight(window.innerHeight -
+        this._setHeight(window.innerHeight -
           StatusBar.height - evt.detail.height);
         break;
       case 'keyboardhide':
-        this.setHeight(window.innerHeight - StatusBar.height);
+        this._setHeight(window.innerHeight - StatusBar.height);
         break;
       case 'mozbrowserloadstart':
         this.throbber.classList.add('loading');
