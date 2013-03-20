@@ -44,6 +44,12 @@ function MediaFrame(container, includeVideo) {
   this.videoblob = null;
   this.posterblob = null;
   this.url = null;
+
+  var self = this;
+  this.image.onerror = function(e) {
+    if (self.onerror)
+      self.onerror(e);
+  };
 }
 
 MediaFrame.prototype.displayImage = function displayImage(blob, width, height,
@@ -81,7 +87,6 @@ MediaFrame.prototype.displayImage = function displayImage(blob, width, height,
 MediaFrame.prototype._displayImage = function _displayImage(blob, width, height)
 {
   var self = this;
-  var oldImage;
 
   // Create a URL for the blob (or preview blob)
   if (this.url)
