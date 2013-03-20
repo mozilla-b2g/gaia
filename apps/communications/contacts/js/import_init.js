@@ -116,9 +116,6 @@
   });
 
   window.addEventListener('message', function getAccessToken(e) {
-    if (e.origin !== allowedOrigin) {
-      return;
-    }
     window.removeEventListener('message', getAccessToken);
     if (e.data.type === 'token') {
       tokenReady(e.data.data);

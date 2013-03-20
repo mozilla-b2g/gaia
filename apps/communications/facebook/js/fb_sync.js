@@ -302,7 +302,7 @@ if (!fb.sync) {
                 access_token: access_token,
                 operationsTimeout: fb.operationsTimeout
               }
-            }, fb.CONTACTS_APP_ORIGIN);
+            });
           });
         });
       };
@@ -450,7 +450,7 @@ if (!fb.sync) {
                 uids: toBeUpdated,
                 operationsTimeout: fb.operationsTimeout
               }
-            }, fb.CONTACTS_APP_ORIGIN);
+            });
           });
         }
         else {

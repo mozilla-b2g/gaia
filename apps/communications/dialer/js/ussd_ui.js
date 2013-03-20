@@ -2,9 +2,8 @@
 
 var UssdUI = {
 
-  COMMS_APP_ORIGIN: document.location.protocol + '//' +
-    document.location.host,
   _: null,
+  _origin: null,
   _conn: null,
 
   get headerTitleNode() {
@@ -69,13 +68,15 @@ var UssdUI = {
         this.resetResponse.bind(this));
       this.responseTextNode.addEventListener('input',
         this.responseUpdated.bind(this));
+      this._origin = document.location.protocol + '//' +
+        document.location.host;
     }).bind(this));
   },
 
   closeWindow: function uui_closeWindow() {
     window.opener.postMessage({
       type: 'close'
-    }, this.COMMS_APP_ORIGIN);
+    }, this._origin);
 
     window.close();
   },
@@ -83,7 +84,7 @@ var UssdUI = {
   cancel: function uui_cancel() {
     window.opener.postMessage({
       type: 'cancel'
-    }, this.COMMS_APP_ORIGIN);
+    }, this._origin);
 
     this.hideLoading();
 
@@ -140,7 +141,7 @@ var UssdUI = {
     window.opener.postMessage({
       type: 'reply',
       message: response
-    }, this.COMMS_APP_ORIGIN);
+    }, this._origin);
     this.resetResponse();
   },
 
@@ -152,10 +153,8 @@ var UssdUI = {
   },
 
   handleEvent: function ph_handleEvent(evt) {
-    if (evt.type !== 'message' || evt.origin !== this.COMMS_APP_ORIGIN ||
-      !evt.data) {
+    if (evt.type !== 'message' || !evt.data)
       return;
-    }
 
     switch (evt.data.type) {
       case 'success':
