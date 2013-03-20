@@ -81,7 +81,7 @@ if (typeof window.oauth2 === 'undefined') {
     };
 
     function getLocation(href) {
-      var l = document.createElement("a");
+      var l = document.createElement('a');
       l.href = href;
       return l;
     };
@@ -104,7 +104,7 @@ if (typeof window.oauth2 === 'undefined') {
       }
       var location = getLocation(oauthflow.params[accessTokenCbData.service].
         redirectURI);
-      var allowedOrigin = location.protocol + "//" + location.host;
+      var allowedOrigin = location.protocol + '//' + location.host;
       if (e.origin !== allowedOrigin) {
         return;
       }
