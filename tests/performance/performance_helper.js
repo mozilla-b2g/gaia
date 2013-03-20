@@ -27,7 +27,7 @@ require('/tests/js/integration_helper.js');
       // we add 1s to this value to give a little more time to the background
       // task to finish the preloading
       spawnInterval: 6000,
-      runs: 5
+      runs: window.mozTestInfo.runs
     };
 
     // overwrite values from the user
