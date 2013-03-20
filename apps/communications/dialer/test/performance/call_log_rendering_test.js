@@ -23,13 +23,9 @@ suite(window.mozTestInfo.appPath + '>', function() {
     yield device.setScriptTimeout(50000);
 
     var lastEvent = 'call-log-ready';
-    var eventTitles = {
-      'call-log-ready': 'Dialer/callLog ready'
-    };
 
     var performanceHelper = new PerformanceHelper({
       app: app,
-      eventTitles: eventTitles,
       lastEvent: lastEvent
     });
 
