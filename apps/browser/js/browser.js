@@ -1029,17 +1029,22 @@ var Browser = {
       });
     }
 
+    var underlay = ',url(./style/images/favicon-underlay.png)';
+
     if (!data.iconUri) {
-      link.style.backgroundImage = 'url(' + this.DEFAULT_FAVICON + ')';
+      link.style.backgroundImage = 'url(' + this.DEFAULT_FAVICON + ')' +
+        underlay;
       return;
     }
 
     Places.db.getIcon(data.iconUri, (function(icon) {
       if (icon && icon.failed != true && icon.data) {
         var imgUrl = window.URL.createObjectURL(icon.data);
-        link.style.backgroundImage = 'url(' + imgUrl + ')';
+        link.style.backgroundImage = 'url(' + imgUrl + ')' +
+          underlay;
       } else {
-        link.style.backgroundImage = 'url(' + this.DEFAULT_FAVICON + ')';
+        link.style.backgroundImage = 'url(' + this.DEFAULT_FAVICON + ')' +
+          underlay;
       }
     }).bind(this));
   },
