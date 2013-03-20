@@ -1,8 +1,8 @@
 'use strict';
 
 var TelephonyHelper = (function() {
-
-  var call = function(number, oncall, onconnected, ondisconnected, onerror) {
+  var call = function t_call(number, oncall, onconnected,
+                             ondisconnected, onerror) {
     var sanitizedNumber = number.replace(/(\s|-|\.|\(|\))/g, '');
     if (!isValid(sanitizedNumber)) {
       handleInvalidNumber();
