@@ -81,17 +81,24 @@ var CallHandler = (function callHandler() {
       LazyL10n.get(function localized(_) {
         var title = _('missedCall');
 
-        var sender;
+        var body;
         if (!number) {
-          sender = _('unknown');
+          body = _('from-withheld-number');
         } else if (contact) {
-          sender = Utils.getPhoneNumberPrimaryInfo(matchingTel, contact) ||
-              _('unknown');
+          var primaryInfo = Utils.getPhoneNumberPrimaryInfo(matchingTel,
+            contact);
+          if (primaryInfo) {
+            if (primaryInfo !== matchingTel.value) {
+              body = _('from-contact', {contact: primaryInfo});
+            } else {
+              body = _('from-number', {number: primaryInfo});
+            }
+          } else {
+            body = _('from-withheld-number');
+          }
         } else {
-          sender = number;
+          body = _('from-number', {number: number});
         }
-
-        var body = _('from', {sender: sender});
 
         navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
           var app = evt.target.result;
