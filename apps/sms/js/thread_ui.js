@@ -405,7 +405,7 @@ var ThreadUI = {
     // Add data to contact activity interaction
     this.title.dataset.phoneNumber = number;
 
-    ContactDataManager.getContactData(number, function gotContact(contacts) {
+    Contacts.findByString(number, function gotContact(contacts) {
       var carrierTag = document.getElementById('contact-carrier');
       /** If we have more than one contact sharing the same phone number
        *  we show the name of the first contact and how many other contacts
@@ -986,7 +986,7 @@ var ThreadUI = {
     }
     var contactsContainer = document.createElement('ul');
 
-    ContactDataManager.searchContactData(string, function gotContact(contacts) {
+    Contacts.findByString(string, function gotContact(contacts) {
       self.view.innerHTML = '';
       if (!contacts || contacts.length == 0) {
 

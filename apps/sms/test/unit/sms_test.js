@@ -24,6 +24,8 @@ requireApp('sms/js/startup.js');
 
 
 suite('SMS App Unit-Test', function() {
+  var findByString;
+
   // Mockuping l10n
   navigator.mozL10n = {
     get: function get(key) {
@@ -143,6 +145,8 @@ suite('SMS App Unit-Test', function() {
 
   // Previous setup
   suiteSetup(function() {
+    findByString = Contacts.findByString;
+
     // We mockup the method for retrieving the threads
     MessageManager.getThreads = function(callback, extraArg) {
       var threadsMockup = new MockThreadList();
@@ -166,9 +170,9 @@ suite('SMS App Unit-Test', function() {
 
     // We mockup the method for retrieving the info
     // of a contact given a number
-    ContactDataManager.getContactData = function(number, callback) {
+    Contacts.findByString = function(tel, callback) {
       // Get the contact
-      if (number === '1977') {
+      if (tel === '1977') {
         callback(MockContact.list());
       }
     };
@@ -183,6 +187,11 @@ suite('SMS App Unit-Test', function() {
     window.addEventListener('hashchange',
       MessageManager.onHashChange.bind(MessageManager));
   });
+
+  suiteTeardown(function() {
+    Contacts.findByString = findByString;
+  });
+
 
   // Let's go with tests!
 

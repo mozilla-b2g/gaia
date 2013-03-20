@@ -56,12 +56,9 @@ var ThreadListUI = {
   updateThreadWithContact:
     function thlui_updateThreadWithContact(number, thread) {
 
-    ContactDataManager.getContactData(number,
-      function gotContact(contacts) {
+    Contacts.findByString(number, function gotContact(contacts) {
       var nameContainer = thread.getElementsByClassName('name')[0];
       var photo = thread.getElementsByTagName('img')[0];
-      // !contacts matches null results from errors
-      // !contacts.length matches empty arrays from unmatches filters
       if (!contacts || ! Array.isArray(contacts) || contacts.length < 1) {
         // if no contacts, we show the number
         nameContainer.textContent = number;
