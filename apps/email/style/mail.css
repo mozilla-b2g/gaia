@@ -15,12 +15,6 @@ html {
   overflow: hidden;
 }
 
-@media screen and (min-width: 480px) {
-  html {
-    font-size: 14px;
-  }
-}
-
 body {
   width: 100%;
   height: 100%;
@@ -105,7 +99,7 @@ body {
 }
 
 .top-header {
-  background: -moz-linear-gradient(to top, #ffffff 0, #a3a3a3 5px, #992f21 5px, #992f21 6px, #bb492d 6px, #cc6523 100%);
+  background: -moz-linear-gradient(to top, #ffffff 0, #a3a3a3 0.5rem, #992f21 0.5rem, #992f21 0.6rem, #bb492d 0.6rem, #cc6523 100%);
   background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%,  #cc6523), color-stop(100%, #bb492d));
   height: 5.2rem;
   width: 100%;
@@ -116,7 +110,7 @@ body {
 .top-header.top-edit-header {
   background: url("images/ui/dark_header.png") repeat-x scroll left top transparent;
   background-size: auto 5.2rem;
-  /*background: -moz-linear-gradient(to top, #ffffff 0, #a3a3a3 5px, #888888 5px, #999999 6px, #bbbbbb 6px, #cccccc 100%);
+  /*background: -moz-linear-gradient(to top, #ffffff 0, #a3a3a3 0.5rem, #888888 0.5rem, #999999 0.6rem, #bbbbbb 0.6rem, #cccccc 100%);
   background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%,  #cccccc), color-stop(100%, #bbbbbb));*/
 }
 
@@ -130,7 +124,7 @@ body {
 
 .header-btn, .header-left-btn, .header-right-btn {
   position: absolute;
-  top: 0px;
+  top: 0
   height: 5.2rem;
   width: 3.2rem;
   border: none;
@@ -139,14 +133,14 @@ body {
 }
 
 .header-left-btn {
-  left: 0px;
+  left: 0;
   background: url("images/ui/separator-large.png") no-repeat scroll 3rem center transparent;
   background-size: auto 100%;
 }
 
 .header-right-btn {
-  right: 0px;
-  background: url("images/ui/separator.png") no-repeat scroll 0px center transparent;
+  right: 0;
+  background: url("images/ui/separator.png") no-repeat scroll 0 center transparent;
   width: 5rem;
 }
 
@@ -157,9 +151,9 @@ body {
 .scrollregion-below-header {
   overflow-y: auto;
   overflow-x: hidden;
-  height: -moz-calc(100% - 5.8rem + 5px);
-  height: -webkit-calc(100% - 5.8rem + 5px);
-  height: calc(100% - 5.8rem + 5px);
+  height: -moz-calc(100% - 5.8rem + 0.5rem);
+  height: -webkit-calc(100% - 5.8rem + 0.5rem);
+  height: calc(100% - 5.8rem + 0.5rem);
 }
 .scrollregion-below-header.scrollregion-horizontal-too {
   overflow-x: auto !important;
@@ -207,15 +201,15 @@ body {
 .menu {
   width: 26rem;
   padding: 0.8rem;
-  border: 1px solid black;
-  border-radius: 6px;
+  border: 0.1rem solid black;
+  border-radius: 0.6rem;
   background-color: white;
 }
 
 .menu-item {
-  padding: 4px;
+  padding: 0.4rem;
   font-size: 160%;
-  border-bottom: 1px solid gray;
+  border-bottom: 0.1rem solid gray;
   display: block;
 }
 
