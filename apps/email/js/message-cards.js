@@ -7,11 +7,11 @@
  * Try and keep at least this many display heights worth of undisplayed
  * messages.
  */
-const SCROLL_MIN_BUFFER_SCREENS = 2;
+var SCROLL_MIN_BUFFER_SCREENS = 2;
 /**
  * Keep around at most this many display heights worth of undisplayed messages.
  */
-const SCROLL_MAX_RETENTION_SCREENS = 7;
+var SCROLL_MAX_RETENTION_SCREENS = 7;
 
 /**
  * Format the message subject appropriately.  This means ensuring that if the
@@ -799,6 +799,10 @@ MessageListCard.prototype = {
   onDeleteMessages: function() {
     // TODO: Batch delete back-end mail api is not ready for IMAP now.
     //       Please verify this function under IMAP when api completed.
+
+    if (this.selectedMessages.length === 0)
+      return;
+
     var dialog = msgNodes['delete-confirm'].cloneNode(true);
     var content = dialog.getElementsByTagName('p')[0];
     content.textContent = mozL10n.get('message-multiedit-delete-confirm',
@@ -858,7 +862,7 @@ Cards.defineCard({
   constructor: MessageListCard
 });
 
-const CONTENT_TYPES_TO_CLASS_NAMES = [
+var CONTENT_TYPES_TO_CLASS_NAMES = [
     null,
     'msg-body-content',
     'msg-body-signature',
@@ -869,7 +873,7 @@ const CONTENT_TYPES_TO_CLASS_NAMES = [
     'msg-body-product',
     'msg-body-ads'
   ];
-const CONTENT_QUOTE_CLASS_NAMES = [
+var CONTENT_QUOTE_CLASS_NAMES = [
     'msg-body-q1',
     'msg-body-q2',
     'msg-body-q3',
@@ -880,7 +884,7 @@ const CONTENT_QUOTE_CLASS_NAMES = [
     'msg-body-q8',
     'msg-body-q9'
   ];
-const MAX_QUOTE_CLASS_NAME = 'msg-body-qmax';
+var MAX_QUOTE_CLASS_NAME = 'msg-body-qmax';
 
 function MessageReaderCard(domNode, mode, args) {
   this.domNode = domNode;
@@ -931,8 +935,12 @@ MessageReaderCard.prototype = {
   postInsert: function() {
     // iframes need to be linked into the DOM tree before their contentDocument
     // can be instantiated.
+    this.buildHeaderDom(this.domNode);
+
     App.loader.load('js/iframe-shims.js', function() {
-      this.buildBodyDom(this.domNode);
+      setTimeout(function() {
+        this.buildBodyDom(this.domNode);
+      }.bind(this));
     }.bind(this));
   },
 
@@ -1109,57 +1117,65 @@ MessageReaderCard.prototype = {
   },
 
   onDownloadAttachmentClick: function(node, attachment) {
-    var blobs = this.attachmentBlobs;
     node.setAttribute('state', 'downloading');
     attachment.download(function downloaded() {
       if (!attachment._file)
         return;
-      this.getAttachmentBlob(attachment, function callback(blob) {
-        var storageType = attachment._file[0];
-        var filename = attachment._file[1];
-        blobs[storageType + '/' + filename] = blob;
-        node.setAttribute('state', 'downloaded');
-      });
-    }.bind(this));
+
+      node.setAttribute('state', 'downloaded');
+    });
   },
 
   onViewAttachmentClick: function(node, attachment) {
     console.log('trying to open', attachment._file, 'type:',
                 attachment.mimetype);
-    var blobs = this.attachmentBlobs;
     if (!attachment._file)
       return;
 
-    try {
-      // Now that we have the file, use an activity to open it
-      var storageType = attachment._file[0];
-      var filename = attachment._file[1];
-      var blob = blobs[storageType + '/' + filename];
-      if (!blob) {
-        throw new Error('Blob does not exist');
-      }
-      var activity = new MozActivity({
-        name: 'open',
-        data: {
-          type: attachment.mimetype,
-          blob: blob
+    if (attachment.isDownloaded) {
+      this.getAttachmentBlob(attachment, function(blob) {
+        try {
+          // Now that we have the file, use an activity to open it
+          if (!blob) {
+            throw new Error('Blob does not exist');
+          }
+          var activity = new MozActivity({
+            name: 'open',
+            data: {
+              type: attachment.mimetype,
+              blob: blob
+            }
+          });
+          activity.onerror = function() {
+            console.warn('Problem with "open" activity', activity.error.name);
+          };
+          activity.onsuccess = function() {
+            console.log('"open" activity allegedly succeeded');
+          };
+        }
+        catch (ex) {
+          console.warn('Problem creating "open" activity:', ex, '\n', ex.stack);
         }
       });
-      activity.onerror = function() {
-        console.warn('Problem with "open" activity', activity.error.name);
-      };
-      activity.onsuccess = function() {
-        console.log('"open" activity allegedly succeeded');
-      };
-    }
-    catch (ex) {
-      console.warn('Problem creating "open" activity:', ex, '\n', ex.stack);
     }
   },
 
   onHyperlinkClick: function(event, linkNode, linkUrl, linkText) {
-    if (confirm(mozL10n.get('browse-to-url-prompt', { url: linkUrl })))
-      window.open(linkUrl, '_blank');
+    var dialog = msgNodes['browse-confirm'].cloneNode(true);
+    var content = dialog.getElementsByTagName('p')[0];
+    content.textContent = mozL10n.get('browse-to-url-prompt', { url: linkUrl });
+    ConfirmDialog.show(dialog,
+      { // Confirm
+        id: 'msg-browse-ok',
+        handler: function() {
+          window.open(linkUrl, '_blank');
+        }.bind(this)
+      },
+      { // Cancel
+        id: 'msg-browse-cancel',
+        handler: null
+      }
+    );
   },
 
   _populatePlaintextBodyNode: function(bodyNode, rep) {
@@ -1189,10 +1205,9 @@ MessageReaderCard.prototype = {
     }
   },
 
-  buildBodyDom: function(domNode) {
+  buildHeaderDom: function(domNode) {
     var header = this.header, body = this.body;
 
-    // -- Header
     function addHeaderEmails(lineClass, peeps) {
       var lineNode = domNode.getElementsByClassName(lineClass)[0];
 
@@ -1247,8 +1262,11 @@ MessageReaderCard.prototype = {
 
     displaySubject(domNode.getElementsByClassName('msg-envelope-subject')[0],
                    header);
+  },
 
-    // -- Bodies
+  buildBodyDom: function(domNode) {
+    var body = this.body;
+
     var rootBodyNode = domNode.getElementsByClassName('msg-body-container')[0],
         reps = body.bodyReps,
         hasExternalImages = false,
@@ -1308,7 +1326,6 @@ MessageReaderCard.prototype = {
     var attachmentsContainer =
       domNode.getElementsByClassName('msg-attachments-container')[0];
     if (body.attachments && body.attachments.length) {
-      this.attachmentBlobs = {};
       var attTemplate = msgNodes['attachment-item'],
           filenameTemplate =
             attTemplate.getElementsByClassName('msg-attachment-filename')[0],
@@ -1318,7 +1335,8 @@ MessageReaderCard.prototype = {
         var attachment = body.attachments[iAttach], state;
         if (attachment.isDownloaded)
           state = 'downloaded';
-        else if (/^image\//.test(attachment.mimetype))
+        else if (/^image\//.test(attachment.mimetype) ||
+                 /^audio\//.test(attachment.mimetype))
           state = 'downloadable';
         else
           state = 'nodownload';
@@ -1337,13 +1355,6 @@ MessageReaderCard.prototype = {
           .addEventListener('click',
                             this.onViewAttachmentClick.bind(
                               this, attachmentNode, attachment));
-        if (attachment.isDownloaded) {
-          this.getAttachmentBlob(attachment, function callback(blob) {
-            var storageType = attachment._file[0];
-            var filename = attachment._file[1];
-            this.attachmentBlobs[storageType + '/' + filename] = blob;
-          }.bind(this));
-        }
       }
     }
     else {

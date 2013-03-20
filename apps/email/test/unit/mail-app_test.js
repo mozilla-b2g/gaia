@@ -1,3 +1,4 @@
+require('/shared/js/lazy_loader.js');
 requireApp('email/js/mail-app.js');
 
 suite('email/mail-app', function() {

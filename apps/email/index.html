@@ -19,102 +19,27 @@
   <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css">
   <!-- Unstable building blocks -->
   <link rel="stylesheet" type="text/css" href="shared/style_unstable/progress_activity.css"/>
-  <link rel="stylesheet" type="text/css" href="shared/style_unstable/tabs.css"/>  
+  <link rel="stylesheet" type="text/css" href="shared/style_unstable/tabs.css"/>
   <!-- Localization -->
   <link rel="resource" type="application/l10n" href="locales/locales.ini">
   <link rel="resource" type="application/l10n" href="shared/locales/date.ini">
   <!-- Shared code -->
-  <script type="text/javascript" src="shared/js/l10n.js"></script>
-  <script type="text/javascript" src="shared/js/l10n_date.js"></script>
-  <script type="text/javascript" src="shared/js/gesture_detector.js"></script>
+  <script type="text/javascript" defer src="shared/js/l10n.js"></script>
+  <script type="text/javascript" defer src="shared/js/l10n_date.js"></script>
+  <script type="text/javascript" defer src="shared/js/gesture_detector.js"></script>
   <!-- Specific code -->
-  <script type="text/javascript" src="js/input_areas.js"></script>
-  <script type="text/javascript" src="js/console-hook.js"></script>
-  <script type="text/javascript" src="js/mail-common.js"></script>
-  <script type="text/javascript" src="js/message-cards.js"></script>
-  <script type="text/javascript" src="js/folder-cards.js"></script>
+  <script type="text/javascript" defer src="js/input_areas.js"></script>
+  <script type="text/javascript" defer src="js/console-hook.js"></script>
+  <script type="text/javascript" defer src="js/mail-common.js"></script>
+  <script type="text/javascript" defer src="js/message-cards.js"></script>
+  <script type="text/javascript" defer src="js/folder-cards.js"></script>
   <!-- This one is an optimized vendor library containing our mail backend. -->
   <!-- START BACKEND INJECT - do not modify -->
-  <script type="application/javascript;version=1.8" src="js/ext/almond.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/event-queue.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/buffer.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/shim-sham.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/mailapi.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/q.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/microtime.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/rdcommon/extransform.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/rdcommon/log.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/util.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/quotechew.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/bleach.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/htmlchew.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/mailchew.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/events.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/util.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/stream.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/encoding.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/addressparser/index.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/addressparser.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mimelib/lib/mimelib.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mimelib/lib/content-types.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mimelib/lib/content-types-reversed.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mimelib/index.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mimelib.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailcomposer/lib/punycode.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/crypto.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailcomposer/lib/dkim.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/http.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/https.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/url.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailcomposer/lib/urlfetch.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/fs.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailcomposer/lib/mailcomposer.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailcomposer.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/composer.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/mailbridge.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/rdcommon/logreaper.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/a64.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/date.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/syncbase.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/maildb.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/allback.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/cronsync.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/net.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/tls.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailparser/datetime.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailparser/streams.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailparser/mailparser.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/imap.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/imap/probe.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/os.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/simplesmtp/lib/starttls.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/xoauth2.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/simplesmtp/lib/client.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/smtp/probe.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/wbxml.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/activesync/codepages.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/activesync/protocol.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/accountmixins.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/errbackoff.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/mailslice.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/searchfilter.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/imap/imapchew.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/imap/folder.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/jobmixins.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/imap/jobs.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/imap/account.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/smtp/account.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/fake/account.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/activesync/folder.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/activesync/jobs.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/activesync/account.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/accountcommon.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/mailuniverse.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/mailapi/same-frame-setup.js"></script>
-  <script type="application/javascript;version=1.8" src="js/ext/end.js"></script>
+  <script type="application/javascript;version=1.8" defer src="js/ext/alameda.js"></script>
+  <script type="application/javascript;version=1.8" defer src="js/ext/end.js"></script>
   <!-- END BACKEND INJECT -->
-  <script type="text/javascript" src="/shared/js/lazy_loader.js"></script>
-  <script type="text/javascript" src="js/mail-app.js"></script>
+  <script type="text/javascript" defer src="/shared/js/lazy_loader.js"></script>
+  <script type="text/javascript" defer src="js/mail-app.js"></script>
   <!-- Lazy Loaded Resources. See: App.loader.load()
   <link rel="stylesheet" type="text/css" href="style/value_selector.css>
   <link rel="stylesheet" type="text/css" href="style/compose-cards.css">
@@ -152,17 +77,6 @@
        into them. -->
   <div id="templates" class="collapsed">
     <div id="templ-card">
-      <div class="card-account-picker card">
-        <div class="fld-accounts-header top-header">
-          <h2 class="fld-accounts-header-label header-label"
-              data-l10n-id="accounts-header">AccountS</h2>
-        </div>
-        <div class="scrollregion-below-header">
-          <div class="fld-accounts-container">
-          </div>
-        </div>
-      </div>
-
       <!-- Shows folders for navigation or move targeting.
            The navigation mode is less than full-width so we can see the
            messages display to its right.  -->
@@ -175,10 +89,8 @@
             <h1 class="fld-folders-header-account-label"></h1>
           </header>
         </section>
-        <div class="scrollregion-below-header folder-scoller-region">
-          <div class="fld-accounts-container">
-          </div>
-          <div class="fld-folders-container show">
+        <div class="scrollregion-below-header folder-scroller-region">
+          <div class="fld-folders-container">
           </div>
           <div class="bottom-toolbar-spacer"></div>
         </div>
@@ -194,8 +106,30 @@
           <span class="fld-nav-account-problem icon collapsed">!</span>
         </div>
       </div>
+      <!-- Shows accounts, to the left of folder list.
+           The navigation mode is less than full-width so we can see the
+           messages display to its right.  -->
+      <div class="card-account-picker card anim-overlay">
+        <section class="acct-picker-header skin-organic" role="region">
+          <header>
+            <a href="#" class="fld-accounts-btn">
+              <span class="icon icon-back"></span>
+            </a>
+            <h1 class="acct-picker-header-label"
+                data-l10n-id="settings-account-section"></h1>
+          </header>
+        </section>
+        <div class="scrollregion-below-header acct-scroller-region">
+          <div class="acct-list-container">
+          </div>
+          <div class="bottom-toolbar-spacer"></div>
+        </div>
+        <div class="fld-nav-toolbar bottom-toolbar">
+          <button class="fld-nav-settings-btn bottom-btn"></button>
+        </div>
+      </div>
       <!-- Lists the messages in a folder -->
-      <div class="card-message-list card">
+      <div class="card-message-list card" data-tray-target>
         <!-- Non-search header -->
         <section class="msg-list-header msg-nonsearch-only" role="region">
           <header>
@@ -292,7 +226,7 @@
         <div class="msg-list-action-toolbar bottom-toolbar">
           <button class="msg-refresh-btn bottom-btn msg-nonsearch-only"></button>
           <button class="msg-search-btn bottom-btn msg-nonsearch-only"></button>
-          <button class="msg-edit-btn bottom-btn msg-nonsearch-only"></button>
+          <button class="msg-edit-btn bottom-btn"></button>
         </div>
         <!-- Toolbar for multi-edit state -->
         <div class="msg-listedit-action-toolbar bottom-edit-toolbar bottom-toolbar collapsed">
@@ -329,27 +263,29 @@
         </section>
         <div class="scrollregion-below-header scrollregion-horizontal-too">
           <div class="msg-envelope-bar">
-            <div class="msg-envelope-date"></div>
-            <div class="msg-envelope-from-line msg-envelope-line">
+            <div class="msg-envelope-from-line">
               <span class="msg-envelope-key"
                      data-l10n-id="envelope-from">FroM</span>
             </div>
             <!-- the details starts out collapsed, but can be toggled -->
             <div class="msg-envelope-details">
-              <div class="msg-envelope-to-line msg-envelope-line">
+              <div class="msg-envelope-to-line">
                 <span class="msg-envelope-key"
                        data-l10n-id="envelope-to">tO</span>
               </div>
-              <div class="msg-envelope-cc-line msg-envelope-line">
+              <div class="msg-envelope-cc-line">
                 <span class="msg-envelope-key"
                        data-l10n-id="envelope-cc">cC</span>
               </div>
-              <div class="msg-envelope-bcc-line msg-envelope-line">
+              <div class="msg-envelope-bcc-line">
                 <span class="msg-envelope-key"
                        data-l10n-id="envelope-bcc">BcC</span>
               </div>
             </div>
-            <h3 class="msg-envelope-subject"></h3>
+            <div class="msg-envelope-subject-container">
+              <h3 class="msg-envelope-subject"></h3>
+              <span class="msg-envelope-date"></span>
+            </div>
           </div>
           <ul class="msg-attachments-container">
           </ul>
@@ -357,7 +293,7 @@
           <div class="bottom-toolbar-spacer"></div>
         </div>
         <!-- Tells us about remote/not downloaded images, asks to show -->
-        <div class="msg-reader-load-infobar">
+        <div class="msg-reader-load-infobar collapsed">
         </div>
         <div class="msg-reader-action-toolbar bottom-toolbar">
           <button class="msg-delete-btn bottom-btn"></button>
@@ -417,14 +353,23 @@
                 <div class="cmp-bcc-add cmp-contact-add"></div>
               </div>
             </div>
+            <div class="cmp-envelope-line cmp-combo">
+              <span class="cmp-attachment-label cmp-addr-label"
+                     data-l10n-id="compose-attachments[zero]">AttachmentS:</span>
+              <div class="cmp-attachment-container cmp-addr-container">
+                <div class="cmp-attachments-size">
+                </div>
+                <div class="cmp-attachment-add cmp-file-add"></div>
+              </div>
+            </div>
+            <ul class="cmp-attachments-container">
+            </ul>
             <div class="cmp-envelope-line cmp-subject">
               <span class="cmp-subject-label"
                      data-l10n-id="compose-subject">SubjecT:</span>
               <input class="cmp-subject-text" type="text" />
             </div>
           </div>
-          <ul class="cmp-attachments-container">
-          </ul>
           <textarea class="cmp-body-text" rows="1"></textarea>
           <div class="cmp-body-html">
           </div>
@@ -499,7 +444,7 @@
               <button type="reset"></button>
             </p>
           </form>
-          <a href="#" class="sup-manual-config-btn sup-form-link"
+          <a href="#" class="sup-manual-config-btn"
                   data-l10n-id="setup-manual-config2">
             ManuaL SetuP
           </a>
@@ -515,10 +460,10 @@
               data-l10n-id="setup-account-header3">NeW AccounT</h1>
         </header>
         <div class="sup-progress-region">
+          <progress class="sup-progress-spinner"></progress>
           <span class="sup-progress-label" data-l10n-id="setup-progress-wait">
             PleasE WaiT WhilE I SeT UP YouR AccounT
           </span>
-          <progress class="sup-progress-spinner"></progress>
         </div>
       </section>
       <!-- Account all setup, add another or read your mail? -->
@@ -584,10 +529,12 @@
               </p>
             </div>
 
+            <header>
+              <h2 data-l10n-id="setup-manual-account-type">AccounT TypE</h2>
+            </header>
             <div class="sup-form sup-form-item">
-              <span data-l10n-id="setup-manual-account-type">AccounT TypE</span>
               <!-- These don't need L10N as they are protocol names. -->
-              <select class="mail-select sup-manual-account-type end">
+              <select class="sup-manual-account-type">
                 <option value="imap+smtp">IMAP+SMTP</option>
                 <option value="activesync">ActiveSync</option>
               </select>
@@ -960,7 +907,7 @@
       </section>
 
       <!-- Developer debug page; for those in the know -->
-      <section class="card-settings-debug card">
+      <section class="card-settings-debug card skin-organic" role="region">
         <header>
           <a href="#" class="tng-close-btn">
             <span class="icon icon-close"></span>
@@ -1066,6 +1013,16 @@
           <button id="msg-delete-ok" class="danger" data-l10n-id="message-edit-menu-delete">OK</button>
         </menu>
       </form>
+      <form role="dialog" class="msg-browse-confirm" data-type="confirm">
+        <section>
+          <h1 data-l10n-id="confirm-dialog-title">Confirmation</h1>
+          <p></p>
+        </section>
+        <menu>
+          <button id="msg-browse-cancel" data-l10n-id="message-multiedit-cancel">CanceL</button>
+          <button id="msg-browse-ok" class="recommend" data-l10n-id="dialog-button-ok">OK</button>
+        </menu>
+      </form>
     </div>
     <!-- Widget nodes for the compose cards; styles use the cmp prefix -->
     <div id="templ-cmp">
@@ -1115,7 +1072,7 @@
           <h1 data-l10n-id="compose-sending-message">Sending messagE</h1>
           <p style="text-align: center">
             <progress></progress>
-          </p>   
+          </p>
         </section>
       </form>
     </div>
