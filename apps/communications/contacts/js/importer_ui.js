@@ -219,6 +219,9 @@ if (typeof window.importer === 'undefined') {
 
       if (contactsLoaded) {
         window.addEventListener('message', function importOnViewPort(e) {
+          if (e.origin !== targetApp) {
+            return;
+          }
           var data = e.data;
           if (data && data.type === 'dom_transition_end') {
             window.removeEventListener('message', importOnViewPort);
@@ -489,6 +492,9 @@ if (typeof window.importer === 'undefined') {
         }, targetApp);
 
         window.addEventListener('message', function finished(e) {
+          if (e.origin !== targetApp) {
+            return;
+          }
           if (e.data.type === 'contacts_loaded') {
             // When the list of contacts is loaded and it's the current view
             Curtain.hide(function onhide() {
