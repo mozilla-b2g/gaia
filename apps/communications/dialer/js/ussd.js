@@ -2,12 +2,11 @@
 
 var UssdManager = {
 
-  COMMS_APP_ORIGIN: document.location.protocol + '//' +
-    document.location.host,
   _: null,
   _conn: null,
   ready: false,
   _popup: null,
+  _origin: null,
   _operator: null,
   _pendingNotification: null,
   _lastMessage: null,
@@ -26,6 +25,8 @@ var UssdManager = {
       this._conn.addEventListener('voicechange', this);
       this._operator = MobileOperator.userFacingInfo(this._conn).operator;
     }
+
+    this._origin = document.location.protocol + '//' + document.location.host;
 
     if (this._conn) {
       // We cancel any active session if one exists to avoid sending any new
@@ -130,7 +131,7 @@ var UssdManager = {
       result: msg
     };
 
-    this.postMessage(message, this.COMMS_APP_ORIGIN);
+    this.postMessage(message);
   },
 
   notifyError: function um_notifyError(evt) {
@@ -138,7 +139,7 @@ var UssdManager = {
       type: 'error',
       error: evt.target.error.name
     };
-    this.postMessage(message, this.COMMS_APP_ORIGIN);
+    this.postMessage(message);
   },
 
   openUI: function um_openUI(ussd) {
@@ -182,7 +183,7 @@ var UssdManager = {
         message: ussd.message,
         sessionEnded: ussd.sessionEnded
       };
-      this.postMessage(message, this.COMMS_APP_ORIGIN);
+      this.postMessage(message);
     }).bind(this));
   },
 
@@ -198,13 +199,13 @@ var UssdManager = {
 
   notifyPending: function um_notifyPending() {
     if (this._pendingNotification) {
-      this.postMessage(this._pendingNotification, this.COMMS_APP_ORIGIN);
+      this.postMessage(this._pendingNotification);
     }
   },
 
   notifyLast: function um_notifyLast() {
     if (this._lastMessage) {
-      this.postMessage(this._lastMessage, this.COMMS_APP_ORIGIN);
+      this.postMessage(this._lastMessage);
     }
   },
 
@@ -213,9 +214,9 @@ var UssdManager = {
     return (number.charAt(number.length - 1) === '#');
   },
 
-  postMessage: function um_postMessage(message, origin) {
+  postMessage: function um_postMessage(message) {
     if (this._popup && this._popup.ready) {
-      this._popup.postMessage(message, origin);
+      this._popup.postMessage(message, this._origin);
       this._pendingNotification = null;
       if (message.type !== 'voicechange') {
         this._lastMessage = message;
@@ -262,9 +263,6 @@ var UssdManager = {
         };
         break;
       case 'message':
-        if (evt.origin !== this.COMMS_APP_ORIGIN) {
-          return;
-        }
         switch (evt.data.type) {
           case 'reply':
             this.send(evt.data.message);
@@ -278,7 +276,7 @@ var UssdManager = {
     }
 
     if (message) {
-      this.postMessage(message, this.COMMS_APP_ORIGIN);
+      this.postMessage(message);
     }
   }
 };

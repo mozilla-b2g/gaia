@@ -6,7 +6,7 @@ var MockUssdUI = {
   _messageReceived: null,
   _sessionEnded: null,
 
-  postMessage: function muui_postMessage(message, origin) {
+  postMessage: function muui_postMessage(message) {
     switch (message.type) {
       case 'ussdreceived':
         this._messageReceived = message.message;
