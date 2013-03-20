@@ -1,14 +1,30 @@
 'use strict';
 
+require('/tests/js/app_integration.js');
+require('/tests/js/integration_helper.js');
 require('/tests/performance/performance_helper.js');
-require('apps/communications/contacts/test/integration/app.js');
+
+const whitelistedApps = ['communications/contacts'];
+
+function GenericIntegration(device) {
+  AppIntegration.apply(this, arguments);
+}
+
+var [manifestPath, entryPoint] = window.mozTestInfo.appPath.split('/');
+
+GenericIntegration.prototype = {
+  __proto__: AppIntegration.prototype,
+  appName: window.mozTestInfo.appPath,
+  manifestURL: 'app://' + manifestPath + '.gaiamobile.org/manifest.webapp',
+  entryPoint: entryPoint
+};
 
 suite(window.mozTestInfo.appPath + ' >', function() {
   var device;
   var app;
 
   MarionetteHelper.start(function(client) {
-    app = new ContactsIntegration(client);
+    app = new GenericIntegration(client);
     device = app.device;
   });
 
@@ -16,20 +32,19 @@ suite(window.mozTestInfo.appPath + ' >', function() {
     yield IntegrationHelper.unlock(device); // it affects the first run otherwise
   });
 
-  test('rendering time >', function() {
+  if (whitelistedApps.indexOf(window.mozTestInfo.appPath) === -1) {
+    return;
+  }
+
+  test('', function() {
+
     this.timeout(500000);
     yield device.setScriptTimeout(50000);
 
-    var lastEvent = 'contacts-last-chunk';
-    var eventTitles = {
-      'contacts-first-chunk': 'first chunk',
-      'contacts-last-chunk': 'last chunk',
-      'contacts-list-init-finished': 'init finished'
-    };
+    var lastEvent = 'startup-path-done';
 
     var performanceHelper = new PerformanceHelper({
       app: app,
-      eventTitles: eventTitles,
       lastEvent: lastEvent
     });
 
@@ -47,5 +62,6 @@ suite(window.mozTestInfo.appPath + ' >', function() {
     performanceHelper.finish();
 
   });
+
 });
 

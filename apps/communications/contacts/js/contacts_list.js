@@ -346,7 +346,7 @@ contacts.List = (function() {
     // Performance testing
     function renderChunks(index) {
       if (index === 0) {
-        PerformanceTestingHelper.dispatch('contacts-first-chunk');
+        PerformanceTestingHelper.dispatch('above-the-fold-ready');
       }
 
       if (numberOfChunks === index) {

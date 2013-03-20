@@ -197,7 +197,7 @@ var Contacts = (function() {
       window.removeEventListener('asyncScriptsLoaded', onAsyncLoad);
       contactsList.initAlphaScroll();
       checkUrl();
-      PerformanceTestingHelper.dispatch('contacts-init-finished');
+      PerformanceTestingHelper.dispatch('init-finished');
     });
   };
 
