@@ -189,11 +189,6 @@ ol.link-list a {
   height: 100%
 }
 
-body[role="application"] section[role="region"] > header h1 {
-  margin-left: 0 !important;
-}
-
-
 
 /* sub: day rows */
 
