@@ -23,11 +23,11 @@
     <script defer src="/shared/js/mouse_event_shim.js"></script>
     <script defer src="/dialer/js/keypad.js"></script>
     <script defer src="/dialer/js/dialer.js"></script>
-    <script defer src="/dialer/js/recents_db.js"></script>
+    <script defer src="/dialer/js/calllog_db.js"></script>
 
     <!-- for perf-measurement related utilities -->
     <script defer src='/shared/js/performance_testing_helper.js'></script>
-
+ 
     <!-- Lazy load all the things:
     <link rel="stylesheet" type="text/css" href="/shared/style/action_menu.css">
     <link rel="stylesheet" type="text/css" href="/shared/style/confirm.css">
@@ -58,28 +58,28 @@
   </head>
   <body role="application">
     <section id="views" role="tablist" data-items="3" class="bottom">
-      <article class="view hidden" role="tab" id="recents-view">
-        <a id="option-recents" href="#recents-view" class="icon icon-recents">recents</a>
+      <article class="view hidden" role="tab" id="calllog-view">
+        <a id="option-recents" href="#calllog-view" class="icon icon-recents">recents</a>
         <div role="tabpanel">
           <section role="region">
             <header class="view-header regular-header">
               <menu type="toolbar">
-                <a id="recents-icon-edit">
-                  <span id="edit-button" class="recents-icon icon icon-edit"></span>
+                <a id="calllog-icon-edit" class="disabled">
+                  <span id="calllog-edit-button" class="recents-icon icon icon-edit "></span>
                 </a>
               </menu>
               <h1 data-l10n-id="callLog"></h1>
             </header>
-            <nav id="recents-filter-container" class="recents-filter-container">
+            <nav id="calllog-filter" class="recents-filter-container">
 
               <ul role="tablist" data-type="filter" data-items="2">
-                <li id="allFilter" role="tab"><a data-action="all" data-l10n-id="all"></a></li>
-                <li id="missedFilter" role="tab"><a data-action="missed" data-l10n-id="missed"></a></li>
+                <li id="all-filter" role="tab" class="selected"><a data-action="all" data-l10n-id="all"></a></li>
+                <li id="missed-filter" role="tab"><a data-action="missed" data-l10n-id="missed"></a></li>
               </ul>
             </nav>
             <div class="view-body">
               <div id="fixed-container" class="fixed-title"></div>
-              <article id="recents-container" class="view-body-inner" data-type="list">
+              <article id="calllog-container" class="view-body-inner" data-type="list">
               </article>
             </div>
           </section>
@@ -164,11 +164,12 @@
       </article>
     </section>
 
-    <div id="delay"><!--
+    
     <form id="edit-mode" role="dialog" data-type="edit" hidden>
+      <!--
       <section>
         <header id="edit-mode-header">
-          <button id="recents-icon-close">
+          <button id="calllog-icon-close">
             <span id="cancel-button" class="icon icon-close">close</span>
           </button>
           <menu type="toolbar">
@@ -181,19 +182,23 @@
         <button id="deselect-all-threads" class="edit-button" disabled="disabled" data-l10n-id="deselectAll">Deselect all</button>
         <button id="select-all-threads" class="edit-button" data-l10n-id="selectAll">Select all</button>
       </menu>
+      -->
     </form>
 
     <form id="add-contact-action-menu" role="dialog" data-type="action" hidden>
-      <header data-l10n-id="addNewNumber"> Add New Number </header>
+      <!--
+      <header data-l10n-id="addNewNumber"> Add New Number </header>
       <menu>
         <button id="call-menuitem" data-l10n-id="call"> Call </button>
         <button id="create-new-contact-menuitem" data-l10n-id="createNewContact"> Create New Contact </button>
         <button id="add-to-existing-contact-menuitem" data-l10n-id="addToExistingContact"> Add to Existing Contact </button>
         <button id="cancel-action-menu" data-l10n-id="cancel">  Cancel  </button>
       </menu>
+      -->
     </form>
 
     <form id="confirmation-message" class="hide no-opacity" role="dialog" data-type="confirm">
+      <!--
       <section>
         <h1>Confirmation title</h1>
         <p>Confirmation message</p>
@@ -202,7 +207,9 @@
         <button>Action 1</button>
         <button>Action 2</button>
       </menu>
+      -->
     </form>
+
 
     <article id="mmi-screen" role="region" hidden>
       <section role="region">
@@ -237,6 +244,5 @@
         <button class="full" id="cancel">Cancel</button>
       </menu>
     </form>
-    --></div>
   </body>
 </html>

@@ -163,7 +163,7 @@ HandledCall.prototype.remove = function hc_remove() {
 };
 
 HandledCall.prototype.connected = function hc_connected() {
-  this.recentsEntry.type += '-connected';
+  this.recentsEntry.status = 'connected';
 
   if (!this.node)
     return;
@@ -178,11 +178,6 @@ HandledCall.prototype.connected = function hc_connected() {
 };
 
 HandledCall.prototype.disconnected = function hc_disconnected() {
-  if (this.recentsEntry &&
-     (this.recentsEntry.type.indexOf('-connected') == -1)) {
-    this.recentsEntry.type += '-refused';
-  }
-
   if (this.recentsEntry) {
     OnCallHandler.addRecentEntry(this.recentsEntry);
   }

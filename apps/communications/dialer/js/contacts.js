@@ -134,6 +134,10 @@ var Contacts = {
         });
       });
 
+      var ids = request.result.map(function getTels(contact) {
+        return contact.id;
+      });
+
       // Finding the best match
       var matchResult = SimplePhoneMatcher.bestMatch(variants, matches);
 
@@ -149,15 +153,15 @@ var Contacts = {
         var req = fb.contacts.get(fb.getFriendUid(contact));
         req.onsuccess = function() {
           callback(fb.mergeContact(contact, req.result), matchingTel,
-            contactsWithSameNumber);
+            contactsWithSameNumber, ids);
         };
         req.onerror = function() {
           window.console.error('Error while getting FB Data');
-          callback(contact, matchingTel, contactsWithSameNumber);
+          callback(contact, matchingTel, contactsWithSameNumber, ids);
         };
       }
       else {
-        callback(contact, matchingTel, contactsWithSameNumber);
+        callback(contact, matchingTel, contactsWithSameNumber, ids);
       }
     };
     request.onerror = function findError() {

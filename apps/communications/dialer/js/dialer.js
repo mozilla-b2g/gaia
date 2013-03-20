@@ -107,7 +107,7 @@ var CallHandler = (function callHandler() {
 
           var clickCB = function() {
             app.launch('dialer');
-            window.location.hash = '#recents-view';
+            window.location.hash = '#calllog-view';
           };
 
           NotificationHelper.send(title, body, iconURL, clickCB);
@@ -118,17 +118,10 @@ var CallHandler = (function callHandler() {
 
   /* === Recents support === */
   function handleRecentAddRequest(entry) {
-    RecentsDBManager.init(function() {
-      RecentsDBManager.add(entry, function() {
-        if (Recents.loaded) {
-          if (window.location.hash === '#recents-view') {
-            Recents.refresh();
-          } else {
-            Recents.renderNeeded = true;
-          }
-        }
-      });
+    CallLogDBManager.add(entry, function(logGroup) {
+      CallLog.appendLogGroup(logGroup, true, true);
     });
+    
   }
 
   /* === Handle messages recevied from iframe === */
@@ -139,7 +132,7 @@ var CallHandler = (function callHandler() {
         // disable the function of receiving the messages posted from the iframe
         contactsIframe.contentWindow.history.pushState(null, null,
           '/contacts/index.html');
-        window.location.hash = '#recents-view';
+        window.location.hash = '#calllog-view';
         break;
     }
   }
@@ -403,7 +396,8 @@ var NavbarManager = {
                  '/shared/js/notification_helper.js',
                  '/shared/js/simple_phone_matcher.js',
                  '/dialer/js/contacts.js',
-                 '/dialer/js/recents.js'], function rs_loaded() {
+                 '/dialer/js/calllog.js',
+                 '/dialer/style/commslog.css'], function rs_loaded() {
                     self.resourcesLoaded = true;
                     if (cb && typeof cb === 'function') {
                       cb();
@@ -436,19 +430,11 @@ var NavbarManager = {
 
     var destination = window.location.hash;
     switch (destination) {
-      case '#recents-view':
+      case '#calllog-view':
         checkContactsTab();
         this.ensureResources(function() {
           recent.classList.add('toolbar-option-selected');
-          if (!Recents.loaded) {
-            Recents.load();
-            return;
-          }
-          if (Recents.renderNeeded) {
-            Recents.refresh();
-            Recents.renderNeeded = false;
-          }
-          Recents.updateLatestVisit();
+          CallLog.init();
         });
         break;
       case '#contacts-view':
@@ -465,16 +451,12 @@ var NavbarManager = {
         }
 
         contacts.classList.add('toolbar-option-selected');
-        this.ensureResources(function() {
-          Recents.updateHighlighted();
-        });
+        
         break;
       case '#keyboard-view':
         checkContactsTab();
         keypad.classList.add('toolbar-option-selected');
-        this.ensureResources(function() {
-          Recents.updateHighlighted();
-        });
+        
         break;
     }
   }
@@ -487,31 +469,35 @@ window.addEventListener('load', function startup(evt) {
   NavbarManager.init();
 
   setTimeout(function nextTick() {
-    // Lazy load DOM nodes
-    // This code is basically the same as the calendar loader
-    // Unit tests can be found in the calendar app
-    var delayed = document.getElementById('delay');
-    delayed.innerHTML = delayed.childNodes[0].nodeValue;
-
-    // Translate content.
-    LazyL10n.get(function localized() {
-      navigator.mozL10n.translate(delayed);
-      var parent = delayed.parentNode;
-      var child;
-      while (child = delayed.children[0]) {
-        parent.insertBefore(child, delayed);
+    // XXX: Use lazy_loader when functions will be 
+    // shielded against no callback
+    var lazyPanels = ['add-contact-action-menu',
+                      'confirmation-message',
+                      'edit-mode'];
+    lazyPanels.forEach(function(id) {
+      var domNode = document.getElementById(id);
+      for (var i = 0; i < domNode.childNodes.length; i++) {
+        if (domNode.childNodes[i].nodeType === document.COMMENT_NODE) {
+          domNode.innerHTML = domNode.childNodes[i].nodeValue;
+          break;
+        }
       }
-      parent.removeChild(delayed);
     });
+    
 
     CallHandler.initMMI();
 
-    // Load delayed scripts
-    loader.load(['/contacts/js/fb/fb_data.js',
-                 '/contacts/js/fb/fb_contact_utils.js',
-                 '/shared/style/confirm.css',
-                 '/contacts/js/confirm_dialog.js',
-                 '/dialer/js/newsletter_manager.js']);
+    // We load l10n in order to get preloaded when clicking other option.
+    LazyL10n.get(function loadLazyFilesSet() {
+      // Load delayed scripts
+      loader.load(['/contacts/js/fb/fb_data.js',
+                   '/contacts/js/fb/fb_contact_utils.js',
+                   '/shared/style/confirm.css',
+                   '/contacts/js/confirm_dialog.js',
+                   '/dialer/js/newsletter_manager.js',
+                   '/shared/style/edit_mode.css',
+                   '/shared/style/headers.css']);
+    });
   });
 });
 

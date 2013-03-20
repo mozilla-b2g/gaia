@@ -1,6 +1,6 @@
 'use strict';
 
-var RecentsDBManager = {
+var CallLogDBManager = {
   _db: null,
   _dbName: 'dialerRecents',
   _dbRecentsStore: 'dialerRecents',
@@ -56,6 +56,9 @@ var RecentsDBManager = {
               break;
             case 1:
               this._upgradeSchemaVersion2(db, event.target.transaction);
+              break;
+            case 2:
+              // this._upgradeSchemaVersion3(db, event.target.transaction);
               break;
             default:
               event.target.transaction.abort();
@@ -176,7 +179,7 @@ var RecentsDBManager = {
       }
 
       var record = cursor.value;
-      var id = this._generateGroupKey(record.number, record.date);
+      var id = this._generateGroupKey(record);
 
       if (id in groups) {
         var group = groups[id];
@@ -201,10 +204,11 @@ var RecentsDBManager = {
       cursor.continue();
     }).bind(this);
   },
-  _generateGroupKey: function rdbm_generateGroupKey(number, timestamp) {
-    var date = new Date(timestamp);
-    return number.toString() + date.getDay().toString() +
-           date.getMonth().toString() + date.getFullYear().toString();
+  _generateGroupKey: function rdbm_generateGroupKey(log) {
+    var date = new Date(log.date);
+    return log.number + date.getDay() +
+           date.getMonth() + date.getFullYear() +
+           log.type + ((log.status && log.type === 'incoming') ? log.status : '');
   },
   /**
    * Stores a new call in the database.
@@ -235,7 +239,7 @@ var RecentsDBManager = {
       var recentsStore = stores[0];
       var groupsStore = stores[1];
 
-      var groupId = this._generateGroupKey(recentCall.number, recentCall.date);
+      var groupId = this._generateGroupKey(recentCall);
 
       // For adding a call to the database we first create or update its
       // corresponding group and then we store the actual call adding the id
@@ -247,15 +251,7 @@ var RecentsDBManager = {
           if (group.date <= recentCall.date) {
             group.date = recentCall.date;
           }
-          // 'retryCount' is incremented when we store a call of the same type
-          // and resetted to 1 otherwise. 'type' always store the type of the
-          // last call that belongs to the group.
-          if (group.type === recentCall.type) {
-            group.retryCount++;
-          } else {
-            group.type = recentCall.type;
-            group.retryCount = 1;
-          }
+          group.retryCount++;
           event.target.source.put(group);
         } else {
           group = {
@@ -264,6 +260,7 @@ var RecentsDBManager = {
             contact: recentCall.contact,
             date: recentCall.date,
             type: recentCall.type,
+            status: recentCall.status,
             retryCount: 1
           };
           event.target.source.add(group);

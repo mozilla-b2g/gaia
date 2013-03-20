@@ -8,6 +8,7 @@ section[role="region"] > header:first-child button[aria-disabled="true"] .icon {
   pointer-events: none;
 }
 
+
 /* Overriding BB styles for edit mode */
 form[role="dialog"][data-type="edit"] header .icon {
   pointer-events: auto;
@@ -253,4 +254,24 @@ ul[role="tablist"][data-type="filter"] > [role="tab"].selected > a {
   font-weight: 300;
   color: #606060;
   margin: 0;
+}
+
+#edit-mode {
+  display: block;
+}
+
+.filter .log-item:not(.missed-call) {
+  display: none;
+}
+
+.filter .groupFiltered {
+  display: none;
+}
+
+.disabled {
+  pointer-events: none !important;
+}
+
+.disabled *{
+  pointer-events: none !important;
 }
