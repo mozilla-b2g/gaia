@@ -188,13 +188,14 @@
   )
 }
 
-.weekday .event[data-overlaps="1"] { padding: 3px; }
-.weekday .event[data-overlaps="2"] { padding: 6px; }
-.weekday .event[data-overlaps="3"] { padding: 9px; }
-.weekday .event[data-overlaps="4"] { padding: 12px; }
-.weekday .event[data-overlaps="5"] { padding: 15px; }
-.weekday .event[data-overlaps="6"] { padding: 18px; }
-.weekday .event[data-overlaps="7"] { padding: 21px; }
-.weekday .event[data-overlaps="8"] { padding: 24px; }
-.weekday .event[data-overlaps="9"] { padding: 27px; }
-.weekday .event[data-overlaps="10"] { padding: 30px; }
+/* overlap */
+.weekday .event[data-overlaps="1"] { padding: 0.3rem; }
+.weekday .event[data-overlaps="2"] { padding: 0.6rem; }
+.weekday .event[data-overlaps="3"] { padding: 0.9rem; }
+.weekday .event[data-overlaps="4"] { padding: 1.2rem; }
+.weekday .event[data-overlaps="5"] { padding: 1.5rem; }
+.weekday .event[data-overlaps="6"] { padding: 1.8rem; }
+.weekday .event[data-overlaps="7"] { padding: 2.1rem; }
+.weekday .event[data-overlaps="8"] { padding: 2.4rem; }
+.weekday .event[data-overlaps="9"] { padding: 2.7rem; }
+.weekday .event[data-overlaps="10"] { padding: 3rem; }
