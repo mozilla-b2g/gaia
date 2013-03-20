@@ -9,16 +9,16 @@
 }
 
 /*
- * spinner animation styles copied from 
- * shared/style_unstable/progress_activity.css 
+ * spinner animation styles copied from
+ * shared/style_unstable/progress_activity.css
  */
 #spinner {
   position: absolute;
-  top: calc(50% - 15px);
-  left: calc(50% - 15px);
-  width: 29px;
-  height: 29px;
-  background: url(images/spinner.png) no-repeat center center;
+  top: calc(50% - 1.5rem);
+  left: calc(50% - 1.5rem);
+  width: 2.9rem;
+  height: 2.9rem;
+  background: url(images/spinner.png) no-repeat center center / 100%;
   animation: 0.9s spinner-animation infinite steps(30);
   border: none;
 }
