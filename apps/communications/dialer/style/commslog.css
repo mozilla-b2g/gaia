@@ -126,6 +126,12 @@ ul[role="tablist"][data-type="filter"] > [role="tab"].selected > a {
   width: 5rem;
 }
 
+.icon-incoming,
+.icon-outgoing,
+.icon-missed {
+  background-size: 3rem;
+}
+
 [data-type="list"] aside.icon.icon-incoming {
   background-image: url('images/CallLog_30x30_incoming.png');
 }
@@ -229,8 +235,8 @@ ul[role="tablist"][data-type="filter"] > [role="tab"].selected > a {
 */
 
 #no-result-container {
-  height: 100%;
   background: url('images/ComLog_200x200_clock.png') fixed no-repeat center / 20rem;
+  height: 100%;
 }
 
 #no-result-message {
