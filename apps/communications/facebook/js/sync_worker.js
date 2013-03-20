@@ -83,7 +83,7 @@ importScripts('/contacts/js/fb/fb_query.js',
     wutils.postMessage({
       type: type,
       data: e
-    });
+    }, fb.CONTACTS_APP_ORIGIN);
   }
 
   function buildQueries(ts, uids, forcedUids) {
@@ -119,6 +119,9 @@ importScripts('/contacts/js/fb/fb_query.js',
   }
 
   function processMessage(e) {
+    if (e.origin !== fb.CONTACTS_APP_ORIGIN) {
+      return;
+    }
     var message = e.data;
 
     if (message.type === 'start') {
@@ -175,7 +178,7 @@ importScripts('/contacts/js/fb/fb_query.js',
           totalToChange: updateList.length + removeList.length,
           queryTimestamp: qts
         }
-      });
+      }, fb.CONTACTS_APP_ORIGIN);
 
       syncUpdatedFriends(updateList);
       syncRemovedFriends(removeList);
@@ -199,7 +202,7 @@ importScripts('/contacts/js/fb/fb_query.js',
             uid: aremoved.target_id,
             contactId: removedRef.contactId
           }
-        });
+        }, fb.CONTACTS_APP_ORIGIN);
       }
 
     }); // forEach
@@ -233,7 +236,7 @@ importScripts('/contacts/js/fb/fb_query.js',
             updatedFbData: afriend,
             contactId: friendInfo.contactId
           }
-        });
+        }, fb.CONTACTS_APP_ORIGIN);
       }
     });
 
@@ -278,7 +281,7 @@ importScripts('/contacts/js/fb/fb_query.js',
             updatedFbData: friendData,
             contactId: contact.contactId
           }
-        });
+        }, fb.CONTACTS_APP_ORIGIN);
       };
     }
   }
@@ -305,7 +308,7 @@ importScripts('/contacts/js/fb/fb_query.js',
           photo: blob,
           contactId: uids[uid].contactId
         }
-      });
+      }, fb.CONTACTS_APP_ORIGIN);
     };
   }
 
