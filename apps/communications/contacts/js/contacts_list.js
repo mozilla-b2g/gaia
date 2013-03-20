@@ -419,7 +419,7 @@ contacts.List = (function() {
           if (fb.isFbContact(contact)) {
             var meta;
             var elements = link.querySelectorAll('p');
-            if (elements.length == 1) {
+            if (elements.length === 1) {
               meta = addOrgMarkup(link);
             } else {
               meta = elements[1];
@@ -796,6 +796,7 @@ contacts.List = (function() {
 
   // Reset the content of the list to 0
   var resetDom = function resetDom() {
+    contactsPhoto = [];
     groupsList.innerHTML = '';
     loaded = false;
 
