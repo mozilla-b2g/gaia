@@ -298,7 +298,8 @@ contacts: install-xulrunner-sdk
 offline: webapp-manifests webapp-optimize webapp-zip optimize-clean
 
 DIALER_SEARCH_STRING=/data/local/indexedDB/*communications.*
-DIALER_HISTORY_DIR=$(shell adb shell 'echo -n $(DIALER_SEARCH_STRING)')
+# Disabled on suspicion of causing intermittent build failures - bug 852299
+# DIALER_HISTORY_DIR=$(shell adb shell 'echo -n $(DIALER_SEARCH_STRING)')
 ifeq ($(DIALER_HISTORY_DIR),$(DIALER_SEARCH_STRING))
 	DIALER_HISTORY_DIR=
 endif
