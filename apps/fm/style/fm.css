@@ -63,7 +63,7 @@ a:active {
   border-radius: 50%;
   display: inline-block;
   margin-top: 3rem;
-  box-shadow: 0 -1px 1px #111;
+  box-shadow: 0 -.1rem .1rem #111;
 }
 
 #bookmark-button {
@@ -100,7 +100,7 @@ a:active {
 }
 
 #bookmark-button {
-  background: url("images/toggle-fav-star-off.png") no-repeat scroll center center transparent;
+  background: url("images/toggle-fav-star-off.png") no-repeat center center / 4rem;
 }
 
 #bookmark-button:focus {
@@ -109,11 +109,11 @@ a:active {
 
 #bookmark-button:active,
 #bookmark-button[data-bookmarked="true"]:active {
-  background: url("images/toggle-fav-star-pressed.png") no-repeat scroll center center #00ABCD;
+  background: #00ABCD url("images/toggle-fav-star-pressed.png") no-repeat center center / 4rem;
 }
 
 #bookmark-button[data-bookmarked="true"] {
-  background: url("images/toggle-fav-star-on.png") no-repeat scroll center center transparent;
+  background: url("images/toggle-fav-star-on.png") no-repeat center center / 4rem;
 }
 /*****  end  *****/
 
@@ -125,9 +125,9 @@ a:active {
   height: 9rem;
   overflow: hidden;
   background: #4C5055;
-  border-top: 1px solid #3A3D41;
+  border-top: .1rem solid #3A3D41;
   color: #FFF;
-  box-shadow: 0 3px 4px #111;
+  box-shadow: 0 .3rem .4rem #111;
 }
 
 #dialer-container {
@@ -143,7 +143,7 @@ a:active {
   margin: 0.6rem 0 0 -0.8rem;
   position: absolute;
   z-index: 1;
-  background: url(images/selector.png) no-repeat center center transparent;
+  background: url(images/selector.png) no-repeat center center / 1.6rem;
   top: 0;
 }
 
@@ -162,7 +162,7 @@ div.animation-on > div {
 }
 
 #frequency-dialer .dialer-unit-mark-box {
-  background: url(images/dial-notches.png) no-repeat 0 3.4rem;
+  background: url(images/dial-notches.png) no-repeat 0 3.4rem / 32rem;
   overflow: hidden;
   height: 5.5rem;
 }
@@ -171,7 +171,7 @@ div.animation-on > div {
   text-align: left;
   height: 7.5rem;
   position: absolute;
-  width: 320px;
+  width: 32rem;
 }
 
 /* The beginning and end of the dial are masked to hide notches that
@@ -183,7 +183,7 @@ are out of range. */
   height: 5.5rem;
   position: absolute;
 }
-/* The mask at the end should be jogged left by .3rem (3px), since the
+/* The mask at the end should be jogged left by 0.3rem, since the
 mask is intended to cover everything except the first notch. */
 .dialer-unit-mark-mask-end {
   margin-left: .3rem;
@@ -215,7 +215,7 @@ div#fav-list-container > div {
   height: 4.4rem;
   margin: 0 2rem 0.2rem 2rem;
   clear: both;
-  border-top: 1px solid #3D4045;
+  border-top: .1rem solid #3D4045;
 }
 
 div#fav-list-container > div:active {
@@ -227,7 +227,7 @@ div#fav-list-container > div:first-child {
 }
 
 div#fav-list-container > div:last-child {
-  border-top: 1px solid #3D4045;
+  border-top: .1rem solid #3D4045;
 }
 
 div#fav-list-container div.fav-list-remove-button {
@@ -236,11 +236,11 @@ div#fav-list-container div.fav-list-remove-button {
   margin-left: 2rem;
   float: right;
   cursor: pointer;
-  background: url("images/fav-star.png") no-repeat scroll center center transparent;
+  background: url("images/fav-star.png") no-repeat center center / 1.4rem;
 }
 
 div#fav-list-container div.selected div.fav-list-remove-button {
-  background: url("images/fav-star-selected.png") no-repeat scroll center center transparent;
+  background: url("images/fav-star-selected.png") no-repeat center center / 1.4rem;
 }
 
 div#fav-list-container div.fav-list-frequency {
@@ -254,15 +254,15 @@ div#fav-list-container div.fav-list-frequency::after {
   content: "MHz";
   font-size: 1.5rem;
   position: absolute;
-  padding: 6px 2px 0 10px;
+  padding: .6rem .2rem 0 1rem;
 }
 /***** end *****/
 
 /***** styles for status bars *****/
 #action-bar {
   bottom: 0;
-  border-top: 0.1rem solid #3A3E46;
-  box-shadow: 0 0 2px #111;
+  border-top: .1rem solid #3A3E46;
+  box-shadow: 0 0 .2rem #111;
   height: 9rem;
   overflow: hidden;
 }
@@ -296,13 +296,13 @@ div#fav-list-container div.fav-list-frequency::after {
   font-size: 2.5rem;
   border-radius: 50%;
   text-align: center;
-  box-shadow: 0 1px 1px #A8A8A8 inset, 0 2px 0 #1e2226;
+  box-shadow: 0 .1rem .1rem #A8A8A8 inset, 0 .2rem 0 #1e2226;
 }
 
 #action-bar a:active {
   color: #FFF;
   background-color: #00ABCD;
-  box-shadow: 0 1px 1px #3F6978 inset, 0 2px 0 #1e2226;
+  box-shadow: 0 .1rem .1rem #3F6978 inset, 0 .2rem 0 #1e2226;
 }
 
 #power-switch {
@@ -310,6 +310,7 @@ div#fav-list-container div.fav-list-frequency::after {
   background-repeat: no-repeat, no-repeat;
   background-color: transparent;
   background-position: center center, 0 0;
+  background-size: 7.2rem;
 }
 
 #power-switch:active {
@@ -332,6 +333,7 @@ a#frequency-op-seekdown {
   background-repeat: no-repeat, no-repeat;
   background-color: transparent;
   background-position: center center;
+  background-size: 5.6rem;
 }
 
 a#frequency-op-seekdown:active {
@@ -346,6 +348,7 @@ a#frequency-op-seekup {
   background-repeat: no-repeat, no-repeat;
   background-color: transparent;
   background-position: center center;
+  background-size: 5.6rem;
 }
 
 a#frequency-op-seekup:active {
@@ -367,11 +370,11 @@ a#frequency-op-seekup:active {
 
 #antenna-warning > div:first-child {
   height: 60%;
-  background: url(images/headset.png) no-repeat center center transparent;
+  background: url(images/headset.png) no-repeat center center / 18.4rem;
 }
 
 #antenna-warning-header {
-  padding: 10px 30px 10px 30px;
+  padding: 1rem 3rem 1rem 3rem;
   font-weight: normal;
   font-size: 1.9rem;
   color: #fff;
@@ -381,9 +384,9 @@ a#frequency-op-seekup:active {
 #antenna-warning-body {
   font-weight: 300;
   font-size: 2.5rem;
-  padding: 5px;
-  margin: 0 25px;
-  border-top: 1px solid #686868;
+  padding: .5rem;
+  margin: 0 2.5rem;
+  border-top: .1rem solid #686868;
 }
 /******* end *******/
 
