@@ -1,9 +1,9 @@
 /* OVERVIEW */
 #balance-tab .overview {
   font-size: 1.6rem;
-  line-height: 1em;
-  border-bottom: solid 1px #b7b7b7;
-  box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.8);
+  line-height: 1.6rem;
+  border-bottom: solid 0.1rem #b7b7b7;
+  box-shadow: 0 0.1rem 0 0 rgba(255, 255, 255, 0.8);
   margin-bottom: 1rem;
   padding: 1.5rem 0 1.5rem;
   overflow: hidden;
@@ -90,7 +90,7 @@
 
 #balance-tab.low-credit #balance-tab-topup-button,
 #balance-tab.low-credit #balance-tab-topup-ussd-button {
-  box-shadow: 0 0 6px 0px rgba(41, 158, 230, 0.5);
+  box-shadow: 0 0 0.6rem 0 rgba(41, 158, 230, 0.5);
   border-color: #82C0E7;
 }
 #balance-tab.low-credit #balance-tab-topup-button:after {
