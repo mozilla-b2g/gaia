@@ -433,6 +433,7 @@ span[role="button"].icon-delete {
 
 span[role="button"].icon-addimage {
   background-image: url(/contacts/style/gphx/bitmap/default/forms/add.png);
+  background-size: 3rem;
   width: 3rem;
   height: 2.9rem;
 }
@@ -475,7 +476,8 @@ li button.icon-fb-profile:before {
 }
 
 li button.icon-add:before {
-  background: url(/contacts/style/gphx/bitmap/default/buttons/plus_sign.png) no-repeat center center;
+  background-image: url(/contacts/style/gphx/bitmap/default/buttons/plus_sign.png);
+  background-size: 2.8rem;
 }
 
 
