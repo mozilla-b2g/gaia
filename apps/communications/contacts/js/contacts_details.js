@@ -35,6 +35,9 @@ contacts.Details = (function() {
     '#msg_button'
   ];
 
+  var SCALE_RATIO = parseInt(window.getComputedStyle(
+    document.documentElement, null).getPropertyValue('font-size')) / 10;
+
   var init = function cd_init(currentDom) {
     _ = navigator.mozL10n.get;
     dom = currentDom || document;
@@ -84,10 +87,12 @@ contacts.Details = (function() {
       contactDetails.classList.add('up');
       cover.classList.add('up');
 
+      var max_margin = Math.round(150 * SCALE_RATIO);
+
       var onMouseMove = function onMouseMove(event) {
         var event = event.changedTouches[0];
         var newMargin = event.clientY - startPosition;
-        if (newMargin > 0 && newMargin < 150) {
+        if (newMargin > 0 && newMargin < max_margin) {
           contactDetails.classList.remove('up');
           cover.classList.remove('up');
           var calc = 'calc(' + initMargin + 'rem + ' + newMargin + 'px)';
@@ -476,7 +481,8 @@ contacts.Details = (function() {
     }
     if (contact.photo && contact.photo.length > 0) {
       contactDetails.classList.add('up');
-      var clientHeight = contactDetails.clientHeight - (initMargin * 10);
+      var clientHeight = contactDetails.clientHeight -
+          (initMargin * 10 * SCALE_RATIO);
       if (detailsInner.offsetHeight < clientHeight) {
         cover.style.overflow = 'hidden';
       } else {

@@ -49,7 +49,8 @@
     <link rel="stylesheet" href="style/import.css">
     <link rel="stylesheet" href="style/fb/facebook.css">
     <link rel="stylesheet" href="style/status.css">
-
+    <!-- multi-resolution support -->
+    <link rel="stylesheet" href="/shared/style/responsive.css">
   </head>
 
   <body role="application">
@@ -69,7 +70,7 @@
             <li data-template data-uuid="#uid#">
                 <a href="#">
                   <aside class="pack-end">
-                    <img data-src="https://graph.facebook.com/#uid#/picture?type=square">
+                    <img data-src="https://graph.facebook.com/#uid#/picture?width=#picwidth#&amp;height=#picheight#">
                   </aside>
                   <p>#name#</p>
                   <p>#email#</p>

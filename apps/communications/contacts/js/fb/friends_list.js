@@ -93,6 +93,18 @@ var FriendListRenderer = (function() {
       if (!friend.search || friend.search.length === 0)
         return;
 
+      // Scale ratio for different devices
+      var SCALE_RATIO = parseInt(window.getComputedStyle(
+        document.documentElement, null).getPropertyValue('font-size')) / 10;
+
+      // FB import profile picture size
+      var picwidth = 120 * SCALE_RATIO;
+      var picheight = 120 * SCALE_RATIO;
+
+      // Set the picture size
+      friend.picwidth = picwidth;
+      friend.picheight = picheight;
+
       friend.search = utils.text.normalize(friend.search);
 
       // New friend appended
