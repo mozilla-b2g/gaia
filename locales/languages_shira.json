@@ -1,14 +1,9 @@
 {
   "cs"        : "Čeština",
   "de"        : "Deutsch",
-  "el"        : "Ελληνικά",
   "en-US"     : "English (US)",
   "hr"        : "Hrvatski",
   "hu"        : "Magyar",
-  "nl"        : "Nederlands",
   "pl"        : "Polski",
-  "ro"        : "Română",
-  "ru"        : "Русский",
-  "sk"        : "Slovenčina",
-  "tr"        : "Türkçe"
+  "ro"        : "Română"
 }
