@@ -8,7 +8,8 @@ if (!fb.link) {
     var link = fb.link = {};
     var UI = link.ui = {};
 
-    link.CID_PARAM = 'contactid';
+    link.CID_PARAM = 'contactId';
+    link.ORDER_BY_PARAM = 'orderByLastName';
 
     // Contact id that the user wants to be linked to
     var contactid;
@@ -27,7 +28,7 @@ if (!fb.link) {
     // Base query to search for contacts
     var SEARCH_QUERY = ['SELECT uid, name, email from user ',
     ' WHERE uid IN (SELECT uid1 FROM friend WHERE uid2=me()) ',
-    ' AND (', null, ')', ' ORDER BY name'
+    ' AND (', null, ')', ' ORDER BY '
     ];
 
     // Conditions
@@ -37,7 +38,7 @@ if (!fb.link) {
     var ALL_QUERY = ['SELECT uid, name, last_name, first_name,',
       ' middle_name, email from user ',
       ' WHERE uid IN (SELECT uid1 FROM friend WHERE uid2=me()) ',
-      ' ORDER BY name'
+      ' ORDER BY '
     ];
 
     var SEARCH_ACCENTS_FIELDS = {
@@ -455,9 +456,16 @@ if (!fb.link) {
       };
     }
 
-    link.start = function(contactId, acc_tk) {
+    function addOrderByToQueries(orderByLastName) {
+      var orderBy = orderByLastName === 'true' ? 'last_name' : 'first_name';
+      SEARCH_QUERY.push(orderBy);
+      ALL_QUERY.push(orderBy);
+    }
+
+    link.start = function(contactId, acc_tk, orderByLastName) {
       access_token = acc_tk;
       contactid = contactId;
+      addOrderByToQueries(orderByLastName);
 
       setCurtainHandlers();
       clearList();

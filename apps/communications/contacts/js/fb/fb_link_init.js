@@ -1,7 +1,14 @@
 'use strict';
 
 (function(document) {
-  var cid = window.location.search.substring(fb.link.CID_PARAM.length + 2);
+  var href = window.location.href;
+  var hashes = href.slice(href.indexOf('?') + 1).split('&');
+
+  var vars = {};
+  for (var i = 0; i < hashes.length; i++) {
+    var hash = hashes[i].split('=');
+    vars[hash[0]] = hash[1];
+  }
 
   // Getting the timeout config from the parent
   if (parent.fb) {
@@ -20,7 +27,8 @@
   fb.contacts.init(function fb_init() {
     window.addEventListener('message', function getAccessToken(e) {
       window.removeEventListener('message', getAccessToken);
-       fb.link.start(cid, e.data.data);
+       fb.link.start(vars[fb.link.CID_PARAM], e.data.data,
+                     vars[fb.link.ORDER_BY_PARAM]);
     });
 
     parent.postMessage({
