@@ -40,7 +40,7 @@ body[data-path^='/create-account'] #time-views,
 body[data-path^='/settings'] #time-views {
   position: relative;
   transform: translateX(80%);
-  box-shadow: 1px 1px 5px 5px #222;
+  box-shadow: 0.1rem 0.1rem 0.5rem 0.5rem #222;
   transition: transform 0.5s ease-in-out;
 }
 
@@ -63,7 +63,7 @@ body[data-path^='/settings'] #time-views {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  width: -moz-calc(100% - 20px);
+  width: -moz-calc(100% - 2rem);
   height: 100%;
 }
 
@@ -76,7 +76,7 @@ body[data-path^='/settings'] #time-views {
 #settings .calendars label {
   display: block;
   padding: 1.6rem;
-  border-bottom: 1px solid #7E8C91;
+  border-bottom: 0.1rem solid #7E8C91;
   -moz-user-select: none;
   user-select: none;
   width: 100%;
@@ -102,9 +102,9 @@ body[data-path^='/settings'] #time-views {
 
 #settings > menu {
   position: absolute;
-  bottom: 0px;
-  height: 40px;
-  padding: 5px 0px;
+  bottom: 0;
+  height: 4rem;
+  padding: 0.5rem 0;
   background-color: rgba(0, 0, 0, 0.3);
 }
 
@@ -115,7 +115,7 @@ body[data-path^='/settings'] #time-views {
 #settings .settings {
   width: 5.5rem;
   height: 4rem;
-  background: transparent url('/style/icons/ActionIcons_30x30_settings.png') no-repeat center;
+  background: transparent url('/style/icons/ActionIcons_30x30_settings.png') no-repeat center / 3rem;
   font-size: 0;
   display: block;
 }
@@ -134,15 +134,15 @@ body[data-path^='/settings'] #time-views {
 }
 
 #settings .calendars input[type="checkbox"]:checked + span {
-  width: 14px;
-  height: 14px;
-  background: transparent url('/style/icons/checkmark.png') no-repeat;
+  width: 1.4rem;
+  height: 1.4rem;
+  background: transparent url('/style/icons/checkmark.png') no-repeat 0 0 / 1.4rem;
 }
 
 #settings .calendars input[type="checkbox"]+span {
   display: inline-block;
-  width: 14px;
-  height: 14px;
+  width: 1.4rem;
+  height: 1.4rem;
   float: right;
   position: static;
   background: transparent;
