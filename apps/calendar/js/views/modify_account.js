@@ -26,6 +26,7 @@
       saveButton: '#modify-account-view .save',
       deleteButton: '#modify-account-view .delete-confirm',
       cancelDeleteButton: '#modify-account-view .delete-cancel',
+      cancelButton: '.during-progress .cancel',
       backButton: '#modify-account-view .cancel',
       status: '#modify-account-view section[role="status"]',
       errors: '#modify-account-view .errors'
@@ -39,6 +40,10 @@
 
     get cancelDeleteButton() {
       return this._findElement('cancelDeleteButton');
+    },
+
+    get cancelButton() {
+      return this._findElement('cancelButton');
     },
 
     get backButton() {
@@ -172,6 +177,7 @@
 
       this.saveButton.addEventListener('click', this.save);
       this.backButton.addEventListener('click', this.cancel);
+      this.cancelButton.addEventListener('click', this.cancel);
 
       if (this.model._id) {
         this.type = 'update';
@@ -205,8 +211,8 @@
       this.deleteButton.removeEventListener('click', this.deleteRecord);
       this.cancelDeleteButton.removeEventListener('click',
                                                   this.cancel);
-      this.backButton.removeEventListener('click',
-                                                this.cancel);
+      this.backButton.removeEventListener('click', this.cancel);
+      this.cancelButton.removeEventListener('click', this.cancel);
     },
 
     dispatch: function(data) {

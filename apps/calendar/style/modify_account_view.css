@@ -23,9 +23,8 @@
   text-align: center;
 }
 
-#modify-account-view.in-progress button,
-#modify-account-view.in-progress form {
-  display: none;
+#modify-account-view.in-progress .during-progress button {
+  width: 100%;
 }
 
 #remove-account-dialog {
