@@ -22,6 +22,7 @@
   background-image: url("images/hangup_icon.png");
   background-position: center;
   background-repeat: no-repeat;
+  background-size: 4.1rem;
   margin-left: 4.2rem;
   margin-right: auto;
   transition: opacity 0.5s ease;
@@ -39,13 +40,13 @@
 }
 .swiper-icon-left {
   left: 0;
-  border-top: 1px solid #F80000;
+  border-top: 0.1rem solid #F80000;
 }
 .swiper-icon-right > div {
-  border: 2px solid #82C82D;
+  border: 0.2rem solid #82C82D;
 }
 .swiper-icon-left > div {
-  border: 2px solid #F80000;
+  border: 0.2rem solid #F80000;
 }
 
 .swiper-icon {
@@ -80,6 +81,7 @@
   background-image: url("images/pickup_icon.png");
   background-position: center;
   background-repeat: no-repeat;
+  background-size: 3.2rem;
   margin-right: 4.2rem;
   margin-left: auto;
   transition: opacity 0.5s ease;
@@ -97,7 +99,7 @@
 }
 .swiper-icon-right {
   right: 0;
-  border-top: 1px solid #83C72B;
+  border-top: 0.1rem solid #83C72B;
 }
 
 /* swiper-area-handle */
@@ -107,7 +109,8 @@
   background-image: url('images/handle.png');
   background-repeat: no-repeat;
   background-position: center;
-  border-top: 1px solid transparent;
+  background-size: 2rem;
+  border-top: 0.1rem solid transparent;
   top: 0;
   height: 0.9rem;
   width: 100%;
