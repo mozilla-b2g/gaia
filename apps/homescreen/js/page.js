@@ -864,8 +864,17 @@ dockProto.getLeft = function dk_getLeft() {
   return this.olist.getBoundingClientRect().left;
 };
 
+/**
+ * Returns the right position of the last icon in the dock
+ */
 dockProto.getRight = function dk_getRight() {
-  return this.getLeft() + this.getWidth();
+  var children = this.olist.children;
+  var lastChild = children[children.length - 1];
+  if (!lastChild) {
+    return 0;
+  }
+
+  return lastChild.getBoundingClientRect().right;
 };
 
 dockProto.getWidth = function dk_getWidth() {
