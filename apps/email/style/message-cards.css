@@ -82,19 +82,19 @@ input.msg-search-text-tease {
 .msg-header-details-section {
   display: block;
   position: absolute;
-  top: 0px;
+  top: 0;
   left: 2.8rem;
   /* 100% - (unread-section) - (icons-section) */
-  width: -moz-calc(100% - 2.8rem - 3rem);
+  width: calc(100% - 2.8rem - 3rem);
   height: 100%;
   font-size: 1.6rem;
-  line-height: 2.0rem;
+  line-height: 2rem;
   padding: 1rem 0;
 }
 .msg-header-icons-section {
   display: block;
   position: absolute;
-  top: 0px;
+  top: 0;
   right: 2.8rem; /* The width of the avatar-section. */
   width: 2rem;
   height: 100%;
@@ -103,8 +103,8 @@ input.msg-search-text-tease {
 .msg-header-avatar-section {
   display: block;
   position: absolute;
-  top: 0px;
-  right: 0rem;
+  top: 0;
+  right: 0;
   width: 2.8rem;
   height: 100%;
 }
@@ -161,7 +161,7 @@ input.msg-search-text-tease {
   font-size: 150%;
 }
 .msg-header-star-starred {
-  background: url("images/icons/message-list-star.png") no-repeat 50% 50%;
+  background: url("images/icons/message-list-star.png") no-repeat center / 2rem;
   position: absolute;
   right: -2rem;
   width: 2rem;
@@ -172,7 +172,7 @@ input.msg-search-text-tease {
   display: block;
 }
 .msg-header-attachments-yes {
-  background: url("images/icons/message-list-attachment.png") no-repeat 50% 50%;
+  background: url("images/icons/message-list-attachment.png") no-repeat center / 2 rem;
   position: absolute;
   right: -2rem;
   width: 2rem;
@@ -270,7 +270,7 @@ input.msg-search-text-tease {
   display: inline-block;
 }
 .msg-attachment-icon {
-  background: url("images/icons/message-list-attachment.png") no-repeat scroll center transparent;
+  background: url("images/icons/message-list-attachment.png") no-repeat center / 2rem;
   display: inline-block;
   width: 2rem;
   height: 2rem;
@@ -309,7 +309,7 @@ input.msg-search-text-tease {
   width: 4.5rem;
   margin-bottom: 0;
   position: absolute;
-  right: 0rem;
+  right: 0;
 }
 
 .moz-external-link {
@@ -319,52 +319,52 @@ input.msg-search-text-tease {
 
 .msg-body-content {
   color: black;
-  margin: 4px 0px;
+  margin: 0.4rem 0;
   word-wrap: break-word;
 }
 .msg-body-signature {
   color: blue;
-  margin: 4px 0px;
+  margin: 0.4rem 0;
 }
 .msg-body-leadin {
   color: gray;
-  margin: 4px 0px;
+  margin: 0.4rem 0;
 }
 .msg-body-q1, .msg-body-q2, .msg-body-q3, .msg-body-q4,
 .msg-body-q5, .msg-body-q6, .msg-body-q7, .msg-body-q8, .msg-body-q9 {
-  padding: 2px;
-  margin: 4px 0px;
+  padding: 0.2rem;
+  margin: 0.4rem 0;
 }
 .msg-body-q1 {
-  border-left: 1px solid gray;
+  border-left: 0.1rem solid gray;
 }
 .msg-body-q2 {
-  border-left: 2px solid gray;
+  border-left: 0.2rem solid gray;
 }
 .msg-body-q3 {
-  border-left: 3px solid gray;
+  border-left: 0.3rem solid gray;
 }
 .msg-body-q4 {
-  border-left: 4px solid gray;
+  border-left: 0.4rem solid gray;
 }
 .msg-body-q5 {
-  border-left: 5px solid gray;
+  border-left: 0.5rem solid gray;
 }
 .msg-body-q6 {
-  border-left: 6px solid gray;
+  border-left: 0.6rem solid gray;
 }
 .msg-body-q7 {
-  border-left: 7px solid gray;
+  border-left: 0.7rem solid gray;
 }
 .msg-body-q8 {
-  border-left: 8px solid gray;
+  border-left: 0.8rem solid gray;
 }
 .msg-body-q9 {
-  border-left: 9px solid gray;
+  border-left: 0.9rem solid gray;
 }
 .msg-body-disclaimer, .msg-body-list, .msg-body-product, .msg-body-ads {
   color: gray;
-  margin: 4px 0px;
+  margin: 0.4rem 0;
 }
 
 .msg-reader-load-infobar {
@@ -386,17 +386,17 @@ input.msg-search-text-tease {
 /* We need to use !important on the buttons because shared/style/buttons.css definesa more specific
    selector than ours for :active, so we can't just reorder the files to fix the problem. */
 .msg-refresh-btn {
-  background: url("images/icons/refresh.png") no-repeat scroll center transparent !important;
+  background-image: url("images/icons/refresh.png") !important;
 }
 
 .msg-search-btn {
-  background: url("images/icons/search.png") no-repeat scroll center transparent !important;
+  background-image: url("images/icons/search.png") !important;
   position: absolute;
-  right: 0px;
+  right: 0;
 }
 
 .msg-edit-btn {
-  background: url("images/icons/edit-mode.png") no-repeat scroll center transparent !important;
+  background-image: url("images/icons/edit-mode.png") !important;
   position: absolute;
   left: calc((100% - 6rem)/2);
 }
@@ -406,23 +406,23 @@ input.msg-search-text-tease {
 }
 
 .msg-star-btn {
-  background: url("images/icons/star.png") no-repeat scroll center transparent !important;
+  background: url("images/icons/star.png") no-repeat scroll transparent center center / 3rem !important;
 }
 
 .msg-mark-read-btn {
-  background: url("images/icons/mark.png") no-repeat scroll center transparent !important;
+  background: url("images/icons/mark.png") no-repeat scroll transparent center center / 3rem !important;
 }
 
 .msg-delete-btn {
-  background: url("images/icons/delete.png") no-repeat scroll center transparent !important;
+  background: url("images/icons/delete.png") no-repeat scroll transparent center center / 3rem !important;
 }
 
 .msg-move-btn {
-  background: url("images/icons/move.png") no-repeat scroll center transparent !important;
+  background: url("images/icons/move.png") no-repeat scroll transparent center center / 3rem !important;
 }
 
 .msg-forward-btn {
-  background: url("images/icons/forward.png") no-repeat scroll center transparent !important;
+  background: url("images/icons/forward.png") no-repeat scroll transparent center center / 3rem !important;
 }
 
 /* Message list edit mode layout control */
@@ -520,7 +520,7 @@ input.msg-search-text-tease {
 /* Filters selected state */
 ul[role="tablist"].filter li[aria-selected="true"] {
   background: #fff;
-  border: solid 1px #999;
+  border: solid 0.1rem #999;
   border-top: none;
   color: #000;
 }

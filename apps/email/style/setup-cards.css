@@ -207,7 +207,7 @@ li.align-center {
   font-weight: 600;
   padding: 0.9rem 1rem;
   color: rgb(51, 51, 51);
-  text-shadow: 0.1rem 0.1rem 0px rgba(255, 255, 255, 0.3);
+  text-shadow: 0.1rem 0.1rem 0 rgba(255, 255, 255, 0.3);
   text-decoration: none;
   outline: medium none;
 }
