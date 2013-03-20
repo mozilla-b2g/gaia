@@ -531,8 +531,6 @@ var LockScreen = {
 
     var wasAlreadyUnlocked = !this.locked;
     this.locked = false;
-    this.setElasticEnabled(false);
-    this.mainScreen.focus();
 
     var repaintTimeout = 0;
     var nextPaint = (function() {
@@ -567,14 +565,16 @@ var LockScreen = {
       }
     }).bind(this);
 
-    this.dispatchEvent('will-unlock');
-
     if (currentFrame)
       currentFrame.addNextPaintListener(nextPaint);
 
     repaintTimeout = setTimeout(function ensureUnlock() {
       nextPaint();
-    }, 400);
+    }, 200);
+
+    this.setElasticEnabled(false);
+    this.mainScreen.focus();
+    this.dispatchEvent('will-unlock');
   },
 
   lock: function ls_lock(instant) {
