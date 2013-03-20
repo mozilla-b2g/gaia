@@ -67,6 +67,10 @@ if (typeof fb.importer === 'undefined') {
     var scrollableElement = document.querySelector('#mainContent');
     var imgLoader;
 
+    // More than this number will not trigger sync when clicking
+    // on "Update Facebook Friends"
+    var HARD_LIMIT_SYNC = 300;
+
     UI.init = function() {
       var overlay;
 
@@ -164,7 +168,9 @@ if (typeof fb.importer === 'undefined') {
     }
 
     function startSync() {
-      if (existingFbContacts.length > 0 && !syncOngoing) {
+      var totalExisting = existingFbContacts.length;
+      if (totalExisting > 0 && totalExisting < HARD_LIMIT_SYNC &&
+          !syncOngoing) {
         syncOngoing = true;
 
         var callbacks = {
@@ -394,13 +400,16 @@ if (typeof fb.importer === 'undefined') {
         myFriendsByUid = {};
         myFriends = [];
 
-        lmyFriends.forEach(function(f) {
-          fillData(f);
+        var totalMyFriends = lmyFriends.length;
+        for (var i = 0; i < totalMyFriends; i++) {
+          var aFriend = lmyFriends[i];
+          aFriend._idxFriendsArray = i;
+          fillData(aFriend);
 
-          myFriendsByUid[f.uid] = f;
-          selectableFriends[f.uid] = f;
-          myFriends.push(f);
-        });
+          myFriendsByUid[aFriend.uid] = aFriend;
+          selectableFriends[aFriend.uid] = aFriend;
+          myFriends.push(aFriend);
+        }
 
         fbFriends.List.load(myFriends, friendsAvailable);
       }
@@ -760,51 +769,127 @@ if (typeof fb.importer === 'undefined') {
       var mcontacts = pcontacts;
       // The uids of the selected contacts
       var kcontacts = Object.keys(mcontacts);
+      var total = kcontacts.length;
 
-      var chunkSize = 10;
-      var pointer = 0;
+      var CHUNK_SIZE = 5;
       var mprogress = progress;
       var self = this;
+      var next = 0;
+      var numResponses = 0;
+      var fbContacts = [];
 
-      /**
-       *  Imports a slice
-       *
-       */
-      function importSlice() {
-        var cgroup = kcontacts.slice(pointer, pointer + chunkSize);
-          persistContactGroup(cgroup, function() {
-            pointer += chunkSize; this.pending -= chunkSize;
-            this.onsuccess();
-          }.bind(this));
-      } // importSlice
+      // Release objects for improving memory management
+      function releaseObjs(cfdata) {
+        // Once a Friend has been persisted the data is no longer needed
+        if (cfdata) {
+          mcontacts[cfdata.uid] = null;
+          myFriendsByUid[cfdata.uid] = null;
+          selectableFriends[cfdata.uid] = null;
+          myFriends[cfdata._idxFriendsArray] = null;
 
-      /**
-       *  This method allows to continue the process
-       *
-       */
-      this.continue = function() {
-        if (this.pending > 0) {
-          if (this.pending < chunkSize) {
-            var cgroup = kcontacts.slice(pointer, pointer + this.pending);
-            persistContactGroup(cgroup, function() {
-                  this.pending = 0;
-                  this.onsuccess(); }.bind(this));
-            }
-          else {
-            (importSlice.bind(this))();
+          if (cfdata.fbInfo && Array.isArray(cfdata.fbInfo.photo)) {
+            cfdata.fbInfo.photo = null;
           }
         }
+      }
+
+      // Preallocating FB Contacts avoiding multiple instantiations
+      for (var j = 0; j < CHUNK_SIZE; j++) {
+        fbContacts[j] = new fb.Contact();
+      }
+
+      this.start = function() {
+        importContacts(next);
       };
 
-      /**
-       *  Starts a new import process
-       *
-       */
-      this.start = function() {
-        pointer = 0;
-        this.pending = kcontacts.length;
-        (importSlice.bind(this))();
-      };
+      function importContacts(from) {
+        for (var i = from; i < from + CHUNK_SIZE && i < total; i++) {
+          var facebookData = mcontacts[kcontacts[i]];
+          var fbContactObj = fbContacts[i % CHUNK_SIZE];
+          fb.utils.getFriendPicture(facebookData.uid, function save_f_info
+                                    (cfdata, fbContact, photo) {
+            // When photo is ready this code will be executed
+            var worksAt = fb.getWorksAt(cfdata);
+            var address = fb.getAddress(cfdata);
+
+            var birthDate = null;
+            if (cfdata.birthday_date && cfdata.birthday_date.length > 0) {
+              birthDate = fb.getBirthDate(cfdata.birthday_date);
+            }
+
+            var fbInfo = {
+                            bday: birthDate,
+                            org: [worksAt]
+            };
+
+            if (address) {
+              fbInfo.adr = [address];
+            }
+
+            // This is the short telephone number to enable indexing
+            if (cfdata.shortTelephone) {
+              fbInfo.shortTelephone = cfdata.shortTelephone;
+              delete cfdata.shortTelephone;
+            }
+
+            // Check whether we were able to get the photo or not
+            fbInfo.url = [];
+
+            if (photo) {
+              fbInfo.photo = [photo];
+              if (cfdata.pic_big) {
+                // The URL is stored for synchronization purposes
+                fb.setFriendPictureUrl(fbInfo, cfdata.pic_big);
+              }
+            }
+            else if (typeof self.onPhotoTimeout === 'function') {
+              self.onPhotoTimeout(cfdata.uid);
+            }
+
+            // Facebook info is set and then contact is saved
+            cfdata.fbInfo = fbInfo;
+            fbContact.setData(cfdata);
+
+            var request = fbContact.save();
+
+            request.onsuccess = function() {
+              updateProgress();
+
+              releaseObjs(cfdata);
+              cfdata = null;
+
+              continueCb();
+            }; // onsuccess
+
+            request.onerror = function() {
+              updateProgress();
+
+              window.console.error('FB: Contact Add error: ', request.error,
+                                                              cfdata.uid);
+              releaseObjs(cfdata);
+              cfdata = null;
+
+              continueCb();
+            };
+          }.bind(null, facebookData, fbContactObj), access_token);
+          // getContactPhoto
+        }
+      }
+
+      function continueCb() {
+        next++;
+        numResponses++;
+        if (next < total && numResponses === CHUNK_SIZE) {
+          numResponses = 0;
+          importContacts(next);
+        }
+        else if (next >= total) {
+          // End has been reached
+          if (typeof self.onsuccess === 'function') {
+            window.setTimeout(self.onsuccess, 0);
+          }
+        }
+      }
 
       function updateProgress() {
         if (mprogress) {
@@ -812,97 +897,7 @@ if (typeof fb.importer === 'undefined') {
         }
       }
 
-    /**
-     *  Persists a group of contacts
-     *
-     */
-    function persistContactGroup(cgroup, doneCB) {
-      var numResponses = 0;
-      var totalContacts = cgroup.length;
-
-      cgroup.forEach(function(f) {
-        var contact;
-        if (navigator.mozContacts) {
-          contact = new mozContact();
-        }
-
-        var cfdata = mcontacts[f];
-
-        fb.utils.getFriendPicture(cfdata.uid, function save_friend_info(photo) {
-          // When photo is ready this code will be executed
-
-          var worksAt = fb.getWorksAt(cfdata);
-          var address = fb.getAddress(cfdata);
-
-          var birthDate = null;
-          if (cfdata.birthday_date && cfdata.birthday_date.length > 0) {
-            birthDate = fb.getBirthDate(cfdata.birthday_date);
-          }
-
-          var fbInfo = {
-                          bday: birthDate,
-                          org: [worksAt]
-          };
-
-          if (address) {
-            fbInfo.adr = [address];
-          }
-
-          // This is the short telephone number to enable indexing
-          if (cfdata.shortTelephone) {
-            fbInfo.shortTelephone = cfdata.shortTelephone;
-            delete cfdata.shortTelephone;
-          }
-
-          // Check whether we were able to get the photo or not
-          fbInfo.url = [];
-
-          if (photo) {
-            fbInfo.photo = [photo];
-            if (cfdata.pic_big) {
-              // The URL is stored for synchronization purposes
-              fb.setFriendPictureUrl(fbInfo, cfdata.pic_big);
-            }
-          }
-          else if (typeof self.onPhotoTimeout === 'function') {
-            self.onPhotoTimeout(cfdata.uid);
-          }
-
-          // Facebook info is set and then contact is saved
-          cfdata.fbInfo = fbInfo;
-          var fbContact = new fb.Contact();
-          fbContact.setData(cfdata);
-
-          var request = fbContact.save();
-
-          request.onsuccess = function() {
-            numResponses++;
-            updateProgress();
-
-            if (numResponses === totalContacts) {
-              if (typeof doneCB === 'function') {
-                doneCB();
-              }
-            }
-          }; /// onsuccess
-
-          request.onerror = function() {
-            numResponses++;
-            updateProgress();
-
-            window.console.error('FB: Contact Add error: ', request.error,
-                                                            cfdata.uid);
-
-            if (numResponses === totalContacts) {
-              if (typeof doneCB === 'function') {
-                doneCB();
-              }
-            }
-          };
-        }, access_token);  // getContactPhoto
-      }); //forEach
-    } // persistContactGroup
-  }; //contactsImporter
+    }; //contactsImporter
 
     Importer.getContext = function() {
       var out = 'contacts';
@@ -919,19 +914,23 @@ if (typeof fb.importer === 'undefined') {
      *
      */
     Importer.importAll = function(importedCB, progress) {
-      var numFriends = Object.keys(selectedContacts).length;
       var cImporter = new ContactsImporter(selectedContacts, progress);
+      var cpuLock, screenLock;
 
       cImporter.onsuccess = function() {
-        if (cImporter.pending > 0) {
-          window.setTimeout(function() {
-            cImporter.continue();
-          },0);
-        } else {
-          window.setTimeout(importedCB, 0);
+        window.setTimeout(importedCB, 0);
+        if (cpuLock) {
+          cpuLock.unlock();
+        }
+        if (screenLock) {
+          screenLock.unlock();
         }
       };
 
+      cpuLock = navigator.requestWakeLock('cpu');
+      screenLock = navigator.requestWakeLock('screen');
+      // Release the DOM these objects will no longer be needed
+      document.querySelector('#groups-list').innerHTML = '';
       cImporter.start();
     };
 
