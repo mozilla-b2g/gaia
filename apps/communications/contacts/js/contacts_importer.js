@@ -22,7 +22,8 @@
     }
 
     function contactSaveError(e) {
-      window.console.error('Error while importing contact: ', req.error.name);
+      window.console.error('Error while importing contact: ',
+                           e.target.error.name);
 
       if (typeof self.onerror === 'function') {
         window.setTimeout(self.onerror.bind(null, req.error), 0);

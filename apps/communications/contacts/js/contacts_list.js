@@ -30,6 +30,8 @@ contacts.List = (function() {
   var ORDER_BY_FAMILY_NAME = 'familyName';
   var ORDER_BY_GIVEN_NAME = 'givenName';
 
+  var NOP_FUNCTION = function() {};
+
   var init = function load(element) {
     _ = navigator.mozL10n.get;
 
@@ -101,6 +103,18 @@ contacts.List = (function() {
     });
   };
 
+  function getFbUid(devContact) {
+    var out;
+
+    if (Array.isArray(devContact.category)) {
+      var idx = devContact.category.indexOf('facebook');
+      if (idx !== -1) {
+        out = devContact.category[idx + 2];
+      }
+    }
+
+    return out;
+  }
 
   var initOrder = function initOrder(callback) {
     if (orderByLastName === null) {
@@ -208,6 +222,10 @@ contacts.List = (function() {
     contact = refillContactData(contact);
     var contactContainer = document.createElement('li');
     contactContainer.dataset.uuid = contact.id;
+    var fbUid = getFbUid(contact);
+    if (fbUid) {
+      contactContainer.dataset.fbUid = fbUid;
+    }
     contactContainer.className = 'contact-item';
     var timestampDate = contact.updated || contact.published || new Date();
     contactContainer.dataset.updated = timestampDate.getTime();
@@ -385,8 +403,13 @@ contacts.List = (function() {
     lazyLoadOrder();
     FixedHeader.refresh();
     lazyLoadImages();
-    loaded = true;
+
     PerformanceTestingHelper.dispatch('startup-path-done');
+
+    if (fb.isEnabled) {
+      Contacts.loadFacebook(NOP_FUNCTION);
+    }
+    loaded = true;
   };
 
   // Method that fills non-visible datasets
@@ -426,10 +449,6 @@ contacts.List = (function() {
   };
 
   var lazyLoadImages = function lazyLoadImages() {
-    if (fb.isEnabled) {
-      lazyLoadFacebookData();
-      return;
-    }
     if (!contactsPhoto || !Array.isArray(contactsPhoto)) {
       return;
     }
@@ -448,58 +467,13 @@ contacts.List = (function() {
     if (favs)
       showGroup('favorites', true);
     contactsPhoto = [];
-    imgLoader.reload();
+    LazyLoader.load(['/contacts/js/fb_resolver.js'], function() {
+      imgLoader.setResolver(fb.resolver);
+      imgLoader.reload();
+    });
+
     imagesLoaded = true;
     dispatchCustomEvent('finishLazyLoading');
-  };
-
-  var lazyLoadFacebookData = function lazyLoadFacebookData() {
-    Contacts.loadFacebook(function() {
-      var fbReq = fb.contacts.getAll();
-      var favs = false;
-      fbReq.onsuccess = function() {
-        for (var i = 0; i < contactsPhoto.length; i++) {
-          var id = contactsPhoto[i];
-          var current = contactsCache[id];
-          var contact = current.contact;
-          var link = current.container;
-          if (fb.isFbContact(contact)) {
-            var meta;
-            var elements = link.querySelectorAll('p');
-            if (elements.length === 1) {
-              meta = addOrgMarkup(link);
-            } else {
-              meta = elements[1];
-            }
-            var fbContact = new fb.Contact(contact);
-            contact = fbContact.merge(fbReq.result[fbContact.uid]);
-            getHighlightedName(contact, elements[0]);
-            var mark = markAsFb(createSocialMark());
-            var org = meta.querySelector('span.org');
-            meta.insertBefore(mark, org);
-            if (!contact.org || !contact.org.length) {
-              mark.classList.add('notorg');
-            } else {
-              renderOrg(contact, link);
-            }
-          }
-          renderPhoto(contact, link);
-          if (isFavorite(contact)) {
-            favs = true;
-            addToFavoriteList(link.cloneNode(true));
-          }
-        }
-        contactsPhoto = [];
-        if (favs)
-          showGroup('favorites', true);
-        imgLoader.reload();
-        imagesLoaded = true;
-        dispatchCustomEvent('finishLazyLoading');
-      };
-      fbReq.onerror = function() {
-        console.log('Error getting fb');
-      };
-    });
   };
 
   var dispatchCustomEvent = function dispatchCustomEvent(eventName) {
@@ -549,6 +523,25 @@ contacts.List = (function() {
     var org = meta.querySelector('span.org');
     org.textContent = contact.org[0];
   };
+
+  function renderFbData(contact, link) {
+    var meta;
+    var elements = link.getElementsByTagName('p');
+    if (elements.length == 1) {
+      meta = addOrgMarkup(link);
+    } else {
+      meta = elements[1];
+    }
+    var mark = markAsFb(createSocialMark());
+    var org = meta.querySelector('span.org');
+    meta.insertBefore(mark, org);
+    if (!contact.org || !contact.org.length) {
+      mark.classList.add('notorg');
+    } else {
+      renderOrg(contact, link);
+    }
+  }
+
 
   var addOrgMarkup = function addOrgMarkup(link) {
     var meta = document.createElement('p');
@@ -738,6 +731,9 @@ contacts.List = (function() {
       list.appendChild(newLi);
     }
 
+    // Mark as loaded to avoid data duplication by the resolver
+    newLi.dataset.status = 'loaded';
+
     return list.children.length;
   };
 
@@ -901,6 +897,9 @@ contacts.List = (function() {
     'remove': remove,
     'loaded': loaded,
     'clearClickHandlers': clearClickHandlers,
-    'setOrderByLastName': setOrderByLastName
+    'setOrderByLastName': setOrderByLastName,
+    'renderPhoto': renderPhoto,
+    'renderFbData': renderFbData,
+    'getHighlightedName': getHighlightedName
   };
 })();
