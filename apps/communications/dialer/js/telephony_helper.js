@@ -1,7 +1,6 @@
 'use strict';
 
 var TelephonyHelper = (function() {
-
   var call = function t_call(number, oncall, onconnected,
                              ondisconnected, onerror) {
     var sanitizedNumber = number.replace(/(\s|-|\.|\(|\))/g, '');
@@ -80,6 +79,8 @@ var TelephonyHelper = (function() {
             error();
           }
         };
+      } else {
+        displayMessage('UnableToCall');
       }
     }
   }
@@ -114,6 +115,10 @@ var TelephonyHelper = (function() {
       case 'DeviceNotAccepted':
         dialogTitle = 'emergencyDialogTitle';
         dialogBody = 'emergencyDialogBodyDeviceNotAccepted';
+        break;
+      case 'UnableToCall':
+        dialogTitle = 'unableToCallTitle';
+        dialogBody = 'unableToCallMessage';
         break;
       default:
         console.error('Invalid message argument'); // Should never happen
