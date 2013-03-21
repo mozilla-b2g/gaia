@@ -61,23 +61,24 @@ GAIA_DOMAIN=thisdomaindoesnotexist.org
 GAIA_APP_SRCDIRS=apps showcase_apps
 else ifeq ($(MAKECMDGOALS), dogfood)
 DOGFOOD=1
-PRODUCTION=1
-GAIA_OPTIMIZE=1
-B2G_SYSTEM_APPS=1
 else ifeq ($(MAKECMDGOALS), production)
 PRODUCTION=1
-GAIA_OPTIMIZE=1
-B2G_SYSTEM_APPS=1
+endif
+
+ifeq ($(DOGFOOD), 1)
+PRODUCTION=1
 endif
 
 # PRODUCTION is also set for user and userdebug B2G builds
 ifeq ($(PRODUCTION), 1)
+GAIA_OPTIMIZE=1
+B2G_SYSTEM_APPS=1
 GAIA_APP_SRCDIRS=apps
 ADB_REMOUNT=1
 endif
 
-ifeq ($(MAKECMDGOALS), dogfood)
-GAIA_APP_SRCDIRS=apps dogfood_apps
+ifeq ($(DOGFOOD), 1)
+GAIA_APP_SRCDIRS+=dogfood_apps
 endif
 
 ifeq ($(B2G_SYSTEM_APPS), 1)
