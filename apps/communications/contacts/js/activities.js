@@ -30,7 +30,7 @@ var ActivityHandler = {
     this._currentActivity = activity;
     var hash = action;
     var param, params = [];
-    if (activity.source.name == 'update' && activity.source &&
+    if (activity.source &&
         activity.source.data && activity.source.data.params) {
       var originalParams = activity.source.data.params;
       for (var i in originalParams) {
