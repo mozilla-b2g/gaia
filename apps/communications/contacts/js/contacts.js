@@ -2,6 +2,8 @@
 
 var _;
 var TAG_OPTIONS;
+var COMMS_APP_ORIGIN = document.location.protocol + '//' +
+  document.location.host;
 
 var Contacts = (function() {
   var navigation = new navigationStack('view-contacts-list');
@@ -524,8 +526,8 @@ var Contacts = (function() {
       navigation.back();
       // post message to parent page included Contacts app.
       if (params['back_to_previous_tab'] === '1') {
-        window.parent.postMessage({
-            'type': 'contactsiframe', 'message': 'back' }, '*');
+        var message = { 'type': 'contactsiframe', 'message': 'back' };
+        window.parent.postMessage(message, COMMS_APP_ORIGIN);
       }
     }
   };
