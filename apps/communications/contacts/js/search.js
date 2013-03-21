@@ -303,6 +303,7 @@ contacts.Search = (function() {
   var search = function performSearch(searchDoneCb) {
     prevTextToSearch = currentTextToSearch;
 
+    // TODO: searchbox can be undefined
     currentTextToSearch = utils.text.normalize(searchBox.value.trim());
     currentTextToSearch = utils.text.escapeRegExp(currentTextToSearch);
     var thisSearchText = new String(currentTextToSearch);

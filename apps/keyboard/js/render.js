@@ -22,7 +22,7 @@ const IMERender = (function() {
 
   var inputMethodName; // used as a CSS class on the candidatePanel
 
-  // Initiaze the render. It needs some business logic to determine:
+  // Initialize the render. It needs some business logic to determine:
   //   1- The uppercase for a key object
   //   2- When a key is a special key
   var init = function kr_init(uppercaseFunction, keyTest) {
@@ -82,7 +82,6 @@ const IMERender = (function() {
     // and use it for multipling changeScale deppending on the value of pixel
     // density used in media queries
 
-    var content = '';
     layoutWidth = layout.width || 10;
     var totalWidth = document.getElementById('keyboard').clientWidth;
     var placeHolderWidth = totalWidth / layoutWidth;
@@ -92,6 +91,7 @@ const IMERender = (function() {
 
     var first = true;
 
+    var content = document.createDocumentFragment();
     layout.keys.forEach((function buildKeyboardRow(row, nrow) {
 
       var firstRow = '';
@@ -100,7 +100,8 @@ const IMERender = (function() {
         first = false;
       }
 
-      content += '<div class="keyboard-row' + firstRow + '">';
+      var kbRow = document.createElement('div');
+      kbRow.className = 'keyboard-row' + firstRow;
       row.forEach((function buildKeyboardColumns(key, ncolumn) {
 
         var keyChar = key.value;
@@ -140,19 +141,29 @@ const IMERender = (function() {
           dataset.push({'key': 'compositekey', 'value': key.compositeKey});
         }
 
-        content += buildKey(keyChar, className, keyWidth + 'px',
-                            dataset, key.altNote);
+        kbRow.appendChild(buildKey(keyChar, className, keyWidth + 'px',
+                            dataset, key.altNote));
 
       }));
-      content += '</div>';
+      content.appendChild(kbRow);
     }));
 
-    // Append empty accent char menu and key highlight into content HTML
-    content += '<span id="keyboard-accent-char-menu-out">' +
-               '<span id="keyboard-accent-char-menu"></span></span>';
-    content += '<span id="keyboard-key-highlight"></span>';
+    // Append empty accent char menu and key highlight into content
+    var accentMenuContainer = document.createElement('span');
+    accentMenuContainer.setAttribute('id', 'keyboard-accent-char-menu-out');
+    var accentMenu = document.createElement('span');
+    accentMenu.setAttribute('id', 'keyboard-accent-char-menu');
+    var highlight = document.createElement('span');
+    highlight.setAttribute('id', 'keyboard-key-highlight');
 
-    this.ime.innerHTML = content;
+    accentMenuContainer.appendChild(accentMenu);
+
+    utils.dom.removeChildNodes(this.ime);
+
+    content.appendChild(accentMenuContainer);
+    content.appendChild(highlight);
+
+    this.ime.appendChild(content);
     this.menu = document.getElementById('keyboard-accent-char-menu');
 
     // Builds candidate panel
@@ -218,13 +229,14 @@ const IMERender = (function() {
         return;
       }
 
-      pendingSymbolPanel.innerHTML = "<span class='" +
-                                     HIGHLIGHT_COLOR_TABLE[highlightState] +
-                                     "'>" +
-                                     symbols.slice(
-                                       highlightStart, highlightEnd) +
-                                     '</span>' +
-                                     symbols.substr(highlightEnd);
+      var span = document.createElement('span');
+      span.className = HIGHLIGHT_COLOR_TABLE[highlightState];
+      span.textContent = symbols.slice(highlightStart, highlightEnd);
+
+      utils.dom.removeChildNodes(pendingSymbolPanel);
+      pendingSymbolPanel.appendChild(span);
+      pendingSymbolPanel.appendChild(
+          document.createTextNode(symbols.substr(highlightEnd)));
     }
   };
 
@@ -239,8 +251,7 @@ const IMERender = (function() {
 
 
     if (candidatePanel) {
-      candidatePanel.innerHTML = '';
-
+      utils.dom.removeChildNodes(candidatePanel);
       candidatePanel.scrollTop = candidatePanel.scrollLeft = 0;
 
       // If there were too many candidate
@@ -295,14 +306,11 @@ const IMERender = (function() {
 
       alreadyAdded[kbr] = true;
     }
-    menu.innerHTML = content;
+    utils.dom.removeChildNodes(menu).appendChild(content);
 
     // Replace with the container
-    _altContainer = document.createElement('div');
+    _altContainer = key.cloneNode(true);
     _altContainer.style.display = 'inline-block';
-    _altContainer.style.width = key.style.width;
-    _altContainer.innerHTML = key.innerHTML;
-    _altContainer.className = key.className;
     _menuKey = key;
     key.parentNode.replaceChild(_altContainer, key);
 
@@ -314,7 +322,7 @@ const IMERender = (function() {
 
   // Show char alternatives.
   var showAlternativesCharMenu = function(key, altChars) {
-    var content = '';
+    var content = document.createDocumentFragment();
 
     var left = (window.innerWidth / 2 > key.offsetLeft);
 
@@ -330,8 +338,7 @@ const IMERender = (function() {
     // How wide (in characters) is the key that we're displaying
     // these alternatives for?
     var keycharwidth = key.dataset.compositeKey ?
-      key.dataset.compositeKey.length :
-      1;
+      key.dataset.compositeKey.length : 1;
 
     // Build a key for each alternative
     altChars.forEach(function(alt) {
@@ -348,16 +355,14 @@ const IMERender = (function() {
       if (altChars.length === 1)
         width = Math.max(width, key.offsetWidth);
 
-      content += buildKey(alt, '', width + 'px', dataset);
+      content.appendChild(buildKey(alt, '', width + 'px', dataset));
     });
-    this.menu.innerHTML = content;
+    utils.dom.removeChildNodes(this.menu);
+    this.menu.appendChild(content);
 
     // Replace with the container
-    _altContainer = document.createElement('div');
+    _altContainer = key.cloneNode(true);
     _altContainer.style.display = 'inline-block';
-    _altContainer.style.width = key.style.width;
-    _altContainer.innerHTML = key.innerHTML;
-    _altContainer.className = key.className;
     _altContainer.classList.add('kbr-menu-on');
     _menuKey = key;
     key.parentNode.replaceChild(_altContainer, key);
@@ -391,9 +396,9 @@ const IMERender = (function() {
   // Hide the alternative menu
   var hideAlternativesCharMenu = function km_hideAlternativesCharMenu() {
     this.menu = document.getElementById('keyboard-accent-char-menu');
-    this.menu.innerHTML = '';
-    this.menu.className = '';
     this.menu.style.display = 'none';
+    this.menu.className = '';
+    utils.dom.removeChildNodes(this.menu);
 
     if (_altContainer)
       _altContainer.parentNode.replaceChild(_menuKey, _altContainer);
@@ -483,7 +488,7 @@ const IMERender = (function() {
 
   var candidatePanelToggleButtonCode = function() {
     var toggleButton = document.createElement('span');
-    toggleButton.innerHTML = '⇪';
+    toggleButton.textContent = '⇪';
     toggleButton.id = 'keyboard-candidate-panel-toggle-button';
     if (inputMethodName)
       toggleButton.classList.add(inputMethodName);
@@ -492,21 +497,34 @@ const IMERender = (function() {
   };
 
   var buildKey = function buildKey(label, className, width, dataset, altNote) {
-
-    var altNoteHTML = '';
+    var altNoteNode;
     if (altNote) {
-      altNoteHTML = '<div class="alt-note">' + altNote + '</div>';
+      altNoteNode = document.createElement('div');
+      altNoteNode.textContent = altNote;
     }
 
-
-    var content = '<button class="keyboard-key ' + className + '"';
+    var contentNode = document.createElement('button');
+    contentNode.className = 'keyboard-key ' + className;
+    contentNode.setAttribute('style', 'width: ' + width + ';');
     dataset.forEach(function(data) {
-      content += ' data-' + data.key + '="' + data.value + '" ';
+      contentNode.dataset[data.key] = data.value;
     });
-    content += ' style="width: ' + width + '"';
-    content += '><span class="visual-wrapper"><span>' +
-               label + '</span>' + altNoteHTML + '</span></button>';
-    return content;
+
+    var vWrapperNode = document.createElement('span');
+    vWrapperNode.className = 'visual-wrapper';
+
+    var labelNode = document.createElement('span');
+    // Using innerHTML here because some labels (so far only the &nbsp; in the
+    // space key) can be HTML entities.
+    labelNode.innerHTML = label;
+
+    vWrapperNode.appendChild(labelNode);
+    if (altNoteNode) {
+      vWrapperNode.appendChild(altNoteNode);
+    }
+    contentNode.appendChild(vWrapperNode);
+
+    return contentNode;
   };
 
   var getWidth = function getWidth() {
