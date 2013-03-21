@@ -6,22 +6,36 @@ var Curtain = (function() {
 
   var curtainFrame = parent.document.querySelector('#fb-curtain');
   var doc = curtainFrame.contentDocument;
-  var cancelButton = doc.querySelector('#cancel');
-  var retryButton = doc.querySelector('#retry');
 
-  var progressElement = doc.querySelector('#progressElement');
-
-  var form = doc.querySelector('form');
-
+  var cpuWakeLock, cancelButton, retryButton, progressElement, form,
+      progressTitle;
   var messages = [];
   var elements = ['error', 'timeout', 'wait', 'message', 'progress'];
-  elements.forEach(function createElementRef(name) {
-    messages[name] = doc.getElementById(name + 'Msg');
-  });
 
-  var progressTitle = doc.getElementById('progressTitle');
+  if (doc.readyState === 'complete') {
+    init();
+  } else {
+    // The curtain could not be loaded at this moment
+    curtainFrame.addEventListener('load', function loaded() {
+      curtainFrame.removeEventListener('load', loaded);
+      init();
+    });
+  }
 
-  var cpuWakeLock;
+  function init() {
+    cancelButton = doc.querySelector('#cancel');
+    retryButton = doc.querySelector('#retry');
+
+    progressElement = doc.querySelector('#progressElement');
+
+    form = doc.querySelector('form');
+
+    elements.forEach(function createElementRef(name) {
+      messages[name] = doc.getElementById(name + 'Msg');
+    });
+
+    progressTitle = doc.getElementById('progressTitle');
+  }
 
   function doShow(type) {
     form.dataset.state = type;
