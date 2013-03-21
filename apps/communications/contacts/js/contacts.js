@@ -95,8 +95,8 @@ var Contacts = (function() {
       case 'add-parameters':
         initForm(function onInitForm() {
           navigation.home();
-          if ('tel' in params) {
-            selectList(params['tel'], true);
+          if (ActivityHandler.currentlyHandling) {
+            selectList(params, true);
           }
         });
         return;
@@ -308,18 +308,27 @@ var Contacts = (function() {
     contactsList.handleClick(contactListClickHandler);
   };
 
-  var selectList = function selectList(phoneNumber, fromUpdateActivity) {
+  var selectList = function selectList(params, fromUpdateActivity) {
     addButton.classList.add('hide');
     contactsList.clearClickHandlers();
     contactsList.handleClick(function addToContactHandler(id) {
-      var data = {
-        'tel': [{
-            'value': phoneNumber,
-            'carrier': null,
-            'type': TAG_OPTIONS['phone-type'][0].value
-          }
-        ]
-      };
+      var data = {};
+      if (params.hasOwnProperty('tel')) {
+        var phoneNumber = params['tel'];
+        data['tel'] = [{
+          'value': phoneNumber,
+          'carrier': null,
+          'type': TAG_OPTIONS['phone-type'][0].value
+        }];
+      }
+      if (params.hasOwnProperty('email')) {
+        var email = params['email'];
+        data['email'] = [{
+          'value': email,
+          'type': TAG_OPTIONS['email-type'][0].value
+        }];
+      }
+
       var hash = '#view-contact-form?extras=' +
         encodeURIComponent(JSON.stringify(data)) + '&id=' + id;
       if (fromUpdateActivity)
