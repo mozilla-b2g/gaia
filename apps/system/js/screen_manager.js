@@ -295,7 +295,6 @@ var ScreenManager = {
       window.removeEventListener('devicelight', self);
 
       self.screenEnabled = false;
-      navigator.mozPower.screenEnabled = false;
       self._inTransition = false;
       self.screen.classList.add('screenoff');
       setTimeout(function realScreenOff() {

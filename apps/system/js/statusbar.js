@@ -300,6 +300,8 @@ var StatusBar = {
 
       window.removeEventListener('moznetworkupload', this);
       window.removeEventListener('moznetworkdownload', this);
+      
+      this.update.notification.call(this);
     }
   },
 
@@ -608,6 +610,11 @@ var StatusBar = {
     callForwarding: function sb_updateCallForwarding() {
       var icon = this.icons.callForwarding;
       icon.hidden = !this.settingValues['ril.cf.enabled'];
+    },
+    
+    notification: function sb_updateNotification() {
+      if (!ScreenManager.screenEnabled)
+        this.icons.notification.hidden = true;
     }
   },
 
