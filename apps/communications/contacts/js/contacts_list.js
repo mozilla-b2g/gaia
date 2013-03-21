@@ -548,11 +548,32 @@ contacts.List = (function() {
   };
 
   var toggleNoContactsScreen = function cl_toggleNoContacs(show) {
+    if (show && ActivityHandler.currentlyHandling) {
+      var actName = ActivityHandler.activityName;
+      if (actName == 'pick' || actName == 'update') {
+        showNoContactsAlert();
+        return;
+      }
+    }
     if (show && !ActivityHandler.currentlyHandling) {
       noContacts.classList.remove('hide');
       return;
     }
     noContacts.classList.add('hide');
+  };
+
+  var showNoContactsAlert = function showNoContactsAlert() {
+    var msg = _('noContactsActivity');
+    var noObject = {
+      title: _('ok'),
+      isDanger: false,
+      callback: function onNoClicked() {
+        ConfirmDialog.hide();
+        ActivityHandler.postCancel();
+      }
+    };
+
+    ConfirmDialog.show(null, msg, noObject);
   };
 
   function addToFavoriteList(favorite) {
