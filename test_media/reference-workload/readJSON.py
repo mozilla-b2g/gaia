@@ -15,7 +15,19 @@ keyString = sys.argv[2]
 keys = keyString.split('/')
 
 result = data
+matchedKey = ""
 for key in keys:
-  result = result[key]
+  if key.endswith("*"):
+    matchKey =  key.rstrip("*")
+    for eachKey, eachValue in data.items():
+      if eachKey.startswith(matchKey):
+        result = result[eachKey]
+        matchedKey = eachKey
+        break
+  else:
+    result = result[key]
 
-print result
+if matchedKey == "":
+  print result
+else:
+  print matchedKey + "/" + str(result)
