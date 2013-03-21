@@ -252,6 +252,9 @@ if (typeof Contacts.extFb === 'undefined') {
     // This function can also be executed when other messages arrive
     // That's why we cannot call notifySettings outside the switch block
     function messageHandler(e) {
+      if (e.origin !== fb.CONTACTS_APP_ORIGIN) {
+        return;
+      }
       var data = e.data;
 
       switch (data.type) {
