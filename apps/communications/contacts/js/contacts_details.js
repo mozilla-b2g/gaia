@@ -156,7 +156,7 @@ contacts.Details = (function() {
     contactDetails.classList.remove('no-photo');
     contactDetails.classList.remove('fb-contact');
     contactDetails.classList.remove('up');
-    listContainer.innerHTML = '';
+    utils.dom.removeChildNodes(listContainer);
 
     renderFavorite(contact);
     renderOrg(contact);

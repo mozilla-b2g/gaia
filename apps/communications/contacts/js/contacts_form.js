@@ -169,7 +169,7 @@ contacts.Form = (function() {
     saveButton.textContent = _('update');
     currentContact = contact;
     deleteContactButton.parentNode.classList.remove('hide');
-    formTitle.innerHTML = _('editContact');
+    formTitle.textContent = _('editContact');
     currentContactId.value = contact.id;
     givenName.value = contact.givenName || '';
     familyName.value = contact.familyName || '';
@@ -228,7 +228,7 @@ contacts.Form = (function() {
     saveButton.setAttribute('disabled', 'disabled');
     saveButton.textContent = _('done');
     deleteContactButton.parentNode.classList.add('hide');
-    formTitle.innerHTML = _('addContact');
+    formTitle.textContent = _('addContact');
 
     params = params || {};
 
@@ -590,10 +590,9 @@ contacts.Form = (function() {
     var emails = dom.querySelector('#contacts-form-emails');
     var addresses = dom.querySelector('#contacts-form-addresses');
     var notes = dom.querySelector('#contacts-form-notes');
-    phones.innerHTML = '';
-    emails.innerHTML = '';
-    addresses.innerHTML = '';
-    notes.innerHTML = '';
+
+    [phones, emails, addresses, notes].forEach(utils.dom.removeChildNodes);
+
     counters = {
       'tel': 0,
       'email': 0,

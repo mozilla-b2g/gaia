@@ -192,11 +192,15 @@ contacts.Settings = (function() {
       var position = totalsMsgContent.indexOf('(');
       if (position != -1) {
         msgPart1 = totalsMsgContent.substring(0, position - 1);
-        msgPart2 = '<span>' + totalsMsgContent.substring(position) + '</span>';
+        msgPart2 = totalsMsgContent.substring(position);
       }
     }
-
-    fbTotalsMsg.innerHTML = msgPart1 + (msgPart2 || '');
+    fbTotalsMsg.appendChild(document.createTextNode(msgPart1));
+    if (msgPart2) {
+      var span = document.createElement('span');
+      span.textContent = msgPart2;
+      fbTotalsMsg.appendChild(span);
+    }
   };
 
   var onFbImport = function onFbImportClick(evt) {
