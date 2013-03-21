@@ -2,11 +2,12 @@
 
 var MockUssdUI = {
 
+  COMMS_APP_ORIGIN: 'http://communications.gaiamobile.org:8080',
   ready: true,
   _messageReceived: null,
   _sessionEnded: null,
 
-  postMessage: function muui_postMessage(message) {
+  postMessage: function muui_postMessage(message, origin) {
     switch (message.type) {
       case 'ussdreceived':
         this._messageReceived = message.message;
@@ -29,7 +30,8 @@ var MockUssdUI = {
       data: {
         type: 'reply',
         message: message
-      }
+      },
+      origin: this.COMMS_APP_ORIGIN
     };
     UssdManager.handleEvent(evt);
   },
@@ -39,7 +41,8 @@ var MockUssdUI = {
       type: 'message',
       data: {
         type: 'close'
-      }
+      },
+      origin: this.COMMS_APP_ORIGIN
     };
     UssdManager.handleEvent(evt);
   },
@@ -49,7 +52,8 @@ var MockUssdUI = {
       type: 'message',
       data: {
         type: 'cancel'
-      }
+      },
+      origin: this.COMMS_APP_ORIGIN
     };
     UssdManager.handleEvent(evt);
   },
