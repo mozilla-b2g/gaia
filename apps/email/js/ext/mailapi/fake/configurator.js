@@ -732,6 +732,11 @@ FakeAccount.prototype = {
     throw new Error('XXX not implemented');
   },
 
+  getFolderMetaForFolderId: function(folderId) {
+    // Just always return null
+    return null;
+  },
+
   sliceFolderMessages: function fa_sliceFolderMessages(folderId, bridgeHandle) {
     return this._folderStorages[folderId]._sliceFolderMessages(bridgeHandle);
   },
