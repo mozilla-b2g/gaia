@@ -779,7 +779,6 @@ contacts.List = (function() {
 
   // Perform contact refresh by id
   var refresh = function refresh(id, callback, op) {
-    remove(id);
     if (typeof(id) == 'string') {
       getContactById(id, function(contact, fbData) {
         var enrichedContact = null;
@@ -787,6 +786,7 @@ contacts.List = (function() {
           var fbContact = new fb.Contact(contact);
           enrichedContact = fbContact.merge(fbData);
         }
+        remove(id);
         addToList(contact, enrichedContact);
         if(callback) {
           callback(id);
