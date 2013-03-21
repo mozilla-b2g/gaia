@@ -1,6 +1,9 @@
 'use strict';
 
 var FbLauncher = (function(document) {
+  var FTU_APP_ORIGIN = document.location.protocol + '//' +
+    document.location.host;
+
     var extensionFrame = document.querySelector('#fb-extensions');
     var oauthFrame = document.querySelector('#fb-oauth');
 
@@ -50,6 +53,9 @@ var FbLauncher = (function(document) {
     // This function can also be executed when other messages arrive
     // That's why we cannot call notifySettings outside the switch block
     function messageHandler(e) {
+      if (e.origin !== FTU_APP_ORIGIN) {
+        return;
+      }
       var data = e.data;
 
       switch (data.type) {

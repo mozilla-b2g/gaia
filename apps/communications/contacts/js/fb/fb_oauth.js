@@ -73,6 +73,12 @@ if (typeof fb.oauth === 'undefined') {
       });
     }
 
+    function getLocation(href) {
+      var l = document.createElement('a');
+      l.href = href;
+      return l;
+    };
+
     /**
      *  Starts a OAuth 2.0 flow to obtain the user information
      *
@@ -87,6 +93,12 @@ if (typeof fb.oauth === 'undefined') {
     function tokenDataReady(e) {
       var parameters = e.data;
       if (!parameters || !parameters.access_token) {
+        return;
+      }
+      var location = getLocation(oauthflow.params[accessTokenCbData.service].
+        redirectURI);
+      var allowedOrigin = location.protocol + '//' + location.host;
+      if (e.origin !== allowedOrigin) {
         return;
       }
 
@@ -112,7 +124,7 @@ if (typeof fb.oauth === 'undefined') {
               parent.postMessage({
                 type: 'token_stored',
                 data: ''
-              },fb.oauthflow.params.contactsAppOrigin);
+              }, fb.oauthflow.params.contactsAppOrigin);
         });
       },0);
     } // tokenReady

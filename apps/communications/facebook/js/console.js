@@ -14,15 +14,15 @@ var _ConsoleObject = function() {
     self.postMessage({
       type: 'error',
       data: getString(arguments)
-    });
-  }
+    }, fb.CONTACTS_APP_ORIGIN);
+  };
 
   this.log = function() {
     self.postMessage({
       type: 'trace',
       data: getString(arguments)
-    });
-  }
+    }, fb.CONTACTS_APP_ORIGIN);
+  };
 };
 
 this.console = this.console || new _ConsoleObject();

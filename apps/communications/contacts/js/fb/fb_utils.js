@@ -296,6 +296,9 @@ if (!fb.utils) {
             var logoutUrl = logoutService + logoutParams;
 
             var m_listen = function(e) {
+              if (e.origin !== fb.CONTACTS_APP_ORIGIN) {
+                return;
+              }
               if (e.data === 'closed') {
                 window.asyncStorage.removeItem(STORAGE_KEY);
                 outReq.done();

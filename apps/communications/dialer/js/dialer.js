@@ -1,6 +1,8 @@
 'use strict';
 
 var CallHandler = (function callHandler() {
+  var COMMS_APP_ORIGIN = document.location.protocol + '//' +
+    document.location.host;
   var callScreenWindow = null;
   var callScreenWindowLoaded = false;
   var currentActivity = null;
@@ -181,20 +183,22 @@ var CallHandler = (function callHandler() {
       return;
     }
 
-    var origin = document.location.protocol + '//' +
-        document.location.host;
     var message = {
       type: type,
       command: command
     };
 
-    callScreenWindow.postMessage(message, origin);
+    callScreenWindow.postMessage(message, COMMS_APP_ORIGIN);
   }
 
   // Receiving messages from the callscreen via post message
   //   - when the call screen is closing
   //   - when we need to send a missed call notification
   function handleMessage(evt) {
+    if (evt.origin !== COMMS_APP_ORIGIN) {
+      return;
+    }
+
     var data = evt.data;
 
     if (data === 'closing') {
