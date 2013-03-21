@@ -531,7 +531,7 @@ var ThreadUI = {
   buildMessageDOM: function thui_buildMessageDOM(message, hidden) {
     // Retrieve all data from message
     var id = message.id;
-    var bodyText = message.body;
+    var bodyText = Utils.escapeHTML(message.body);
     var messageClass = message.delivery;
 
     var messageDOM = document.createElement('li');
