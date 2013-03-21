@@ -85,7 +85,8 @@ Calendar.ns('Controllers').Alarm = (function() {
 
       // TODO: verify this is all we need to handle.
       var type = (begins > now) ?
-        'alarm-starting-notice' : 'alarm-started-notice';
+        'alarm-start-notice' :
+        'alarm-started-notice';
 
       var title = navigator.mozL10n.get(type, {
         title: event.title,
