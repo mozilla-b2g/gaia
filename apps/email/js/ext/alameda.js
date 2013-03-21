@@ -104,9 +104,9 @@ var requirejs, require, define;
         var waitingId,
             waiting = [];
 
-        function check(p) {
+        function check(p, v) {
             if (hasProp(p, 'e') || hasProp(p, 'v')) {
-                throw new Error('nope');
+                throw new Error('already resolved, discarding: ' + v);
             }
             return true;
         }
@@ -174,14 +174,14 @@ var requirejs, require, define;
                 },
 
                 resolve: function (v) {
-                    if (check(p)) {
+                    if (check(p, v)) {
                         p.v = v;
                         notify(ok, v);
                     }
                     return p;
                 },
                 reject: function (e) {
-                    if (check(p)) {
+                    if (check(p, e)) {
                         p.e = e;
                         notify(fail, e);
                     }
@@ -288,7 +288,8 @@ var requirejs, require, define;
             loadCount = 0,
             startTime = (new Date()).getTime(),
             errCount = 0,
-            trackedErrors = {};
+            trackedErrors = {},
+            urlFetched = {};
 
         /**
          * Trims the . and .. from an array of path segments.
@@ -783,16 +784,29 @@ var requirejs, require, define;
 
         load = typeof importScripts === 'function' ?
                 function (map) {
+                    var url = map.url;
+                    if (urlFetched[url]) {
+                        return;
+                    }
+                    urlFetched[url] = true;
+
                     //Ask for the deferred so loading is triggered.
                     //Do this before loading, since loading is sync.
                     getDefer(map.id);
-                    importScripts(map.url);
+                    importScripts(url);
                     takeQueue(map.id);
                 } :
                 function (map) {
-                    var id = map.id,
-                        url = map.url,
-                        script = document.createElement('script');
+                    var script,
+                        id = map.id,
+                        url = map.url;
+
+                    if (urlFetched[url]) {
+                        return;
+                    }
+                    urlFetched[url] = true;
+
+                    script = document.createElement('script');
                     script.setAttribute('data-requiremodule', id);
                     script.type = config.scriptType || 'text/javascript';
                     script.charset = 'utf-8';
