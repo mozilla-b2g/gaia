@@ -407,7 +407,7 @@ if (!fb.link) {
       }
       var template = friendsList.querySelector('[data-template]');
 
-      friendsList.innerHTML = '';
+      utils.dom.removeChildNodes(friendsList);
       friendsList.appendChild(template);
     }
 

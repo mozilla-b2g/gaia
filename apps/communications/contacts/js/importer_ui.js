@@ -633,7 +633,7 @@ if (typeof window.importer === 'undefined') {
     function clearList() {
       var template = contactList.querySelector('[data-template]');
 
-      contactList.innerHTML = '';
+      utils.dom.removeChildNodes(contactList);
       contactList.appendChild(template);
     }
 

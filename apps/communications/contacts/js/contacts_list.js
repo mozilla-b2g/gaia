@@ -1,4 +1,4 @@
-﻿'use strict';
+'use strict';
 
 var contacts = window.contacts || {};
 contacts.List = (function() {
@@ -147,8 +147,12 @@ contacts.List = (function() {
     var title = document.createElement('header');
     title.id = 'group-' + group;
     title.className = 'hide';
-    title.innerHTML = '<abbr title="Contacts listed ' + group + '">';
-    title.innerHTML += letter + '</abbr>';
+
+    var letterAbbr = document.createElement('abbr');
+    letterAbbr.setAttribute('title', 'Contacts listed ' + group);
+    letterAbbr.textContent = letter;
+    title.appendChild(letterAbbr);
+
     var contactsContainer = document.createElement('ol');
     contactsContainer.id = 'contacts-list-' + group;
     contactsContainer.dataset.group = group;
@@ -209,9 +213,7 @@ contacts.List = (function() {
     contactContainer.dataset.updated = timestampDate.getTime();
     // contactInner is a link with 3 p elements:
     // name, socaial marks and org
-    var contactInner = '<p>' + getHighlightedName(contact);
-    contactInner += '</p>';
-    contactContainer.innerHTML = contactInner;
+    contactContainer.appendChild(getHighlightedName(contact));
     contactsCache[contact.id] = {
       contact: contact,
       container: contactContainer
@@ -246,20 +248,28 @@ contacts.List = (function() {
     return utils.text.normalize(escapedValue);
   };
 
-  var getHighlightedName = function getHighlightedName(contact) {
-    var givenName = '';
-    var familyName = '';
-    if (contact.givenName && contact.givenName.length)
-      givenName = utils.text.escapeHTML(contact.givenName[0]);
-    if (contact.familyName && contact.familyName.length)
-      familyName = utils.text.escapeHTML(contact.familyName[0]);
+  function getHighlightedName(contact, ele) {
+    if (!ele) {
+      ele = document.createElement('p');
+    }
+    var givenName = (contact.givenName && contact.givenName[0]) || '';
+    var familyName = (contact.familyName && contact.familyName[0]) || '';
+
+    function createStrongTag(content) {
+      var fs = document.createElement('strong');
+      fs.textContent = content;
+      return fs;
+    }
 
     if (orderByLastName) {
-      return givenName + ' <strong>' + familyName + '</strong>';
+      ele.appendChild(document.createTextNode(givenName + ' '));
+      ele.appendChild(createStrongTag(familyName));
     } else {
-      return '<strong>' + givenName + '</strong> ' + familyName;
+      ele.appendChild(createStrongTag(givenName));
+      ele.appendChild(document.createTextNode(' ' + familyName));
     }
-  };
+    return ele;
+  }
 
   function buildSocialMarks(category) {
     var marks = [];
@@ -463,7 +473,7 @@ contacts.List = (function() {
             }
             var fbContact = new fb.Contact(contact);
             contact = fbContact.merge(fbReq.result[fbContact.uid]);
-            elements[0].innerHTML = getHighlightedName(contact);
+            getHighlightedName(contact, elements[0]);
             var mark = markAsFb(createSocialMark());
             var org = meta.querySelector('span.org');
             meta.insertBefore(mark, org);
@@ -835,7 +845,7 @@ contacts.List = (function() {
   // Reset the content of the list to 0
   var resetDom = function resetDom() {
     contactsPhoto = [];
-    groupsList.innerHTML = '';
+    utils.dom.removeChildNodes(groupsList);
     loaded = false;
 
     initHeaders();
