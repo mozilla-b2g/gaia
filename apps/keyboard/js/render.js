@@ -153,19 +153,19 @@ const IMERender = (function() {
     }));
 
     // Append empty accent char menu and key highlight into content
-    var kbAccentCharMenuOut = document.createElement('span');
-    kbAccentCharMenuOut.setAttribute('id', 'keyboard-accent-char-menu-out');
-    var kbAccentCharMenu = document.createElement('span');
-    kbAccentCharMenu.setAttribute('id', 'keyboard-accent-char-menu');
-    var kbKeyHighlight = document.createElement('span');
-    kbKeyHighlight.setAttribute('id', 'keyboard-key-highlight');
+    var accentMenuContainer = document.createElement('span');
+    accentMenuContainer.setAttribute('id', 'keyboard-accent-char-menu-out');
+    var accentMenu = document.createElement('span');
+    accentMenu.setAttribute('id', 'keyboard-accent-char-menu');
+    var highlight = document.createElement('span');
+    highlight.setAttribute('id', 'keyboard-key-highlight');
 
-    kbAccentCharMenuOut.appendChild(kbAccentCharMenu);
+    accentMenuContainer.appendChild(accentMenu);
 
     emptyElement(this.ime);
 
-    content.appendChild(kbAccentCharMenuOut);
-    content.appendChild(kbKeyHighlight);
+    content.appendChild(accentMenuContainer);
+    content.appendChild(highlight);
 
     this.ime.appendChild(content);
     this.menu = document.getElementById('keyboard-accent-char-menu');
@@ -233,7 +233,7 @@ const IMERender = (function() {
         return;
       }
 
-      var span = document.createElement("span");
+      var span = document.createElement('span');
       span.className = HIGHLIGHT_COLOR_TABLE[highlightState];
       span.textContent = symbols.slice(highlightStart, highlightEnd);
 
@@ -342,8 +342,7 @@ const IMERender = (function() {
     // How wide (in characters) is the key that we're displaying
     // these alternatives for?
     var keycharwidth = key.dataset.compositeKey ?
-      key.dataset.compositeKey.length :
-      1;
+      key.dataset.compositeKey.length : 1;
 
     // Build a key for each alternative
     altChars.forEach(function(alt) {
@@ -362,6 +361,7 @@ const IMERender = (function() {
 
       content.appendChild(buildKey(alt, '', width + 'px', dataset));
     });
+    emptyElement(this.menu);
     this.menu.appendChild(content);
 
     // Replace with the container
@@ -504,24 +504,29 @@ const IMERender = (function() {
   };
 
   var buildKey = function buildKey(label, className, width, dataset, altNote) {
-    var altNoteNode = document.createElement("div");
-    altNoteNode.textContent = altNote;
+    var altNoteNode;
+    if (altNote) {
+      altNoteNode = document.createElement('div');
+      altNoteNode.textContent = altNote;
+    }
 
-    var contentNode = document.createElement("button");
+    var contentNode = document.createElement('button');
     contentNode.className = 'keyboard-key ' + className;
     contentNode.setAttribute('style', 'width: ' + width + ';');
     dataset.forEach(function(data) {
-        contentNode.setAttribute('data-' + data.key, data.value);
+        contentNode.dataset[data.key] = data.value;
     });
 
-    var vWrapperNode = document.createElement("span");
+    var vWrapperNode = document.createElement('span');
     vWrapperNode.className = 'visual-wrapper';
 
-    var labelNode = document.createElement("span");
+    var labelNode = document.createElement('span');
     labelNode.textContent = label;
 
     vWrapperNode.appendChild(labelNode);
-    vWrapperNode.appendChild(altNoteNode);
+    if (altNoteNode) {
+      vWrapperNode.appendChild(altNoteNode);
+    }
     contentNode.appendChild(vWrapperNode);
 
     return contentNode;
@@ -585,4 +590,3 @@ const IMERender = (function() {
     'getKeyHeight': getKeyHeight
   };
 })();
-
