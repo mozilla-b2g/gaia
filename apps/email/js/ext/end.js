@@ -1,7 +1,27 @@
 // set location of dynamically loaded layers.
 require.config({
   paths: {
-    mailapi: 'js/ext/mailapi'
+    mailapi: 'js/ext/mailapi',
+    mimelib: 'js/ext/mimelib',
+
+    // mailcomposer is in the mailapi/composer layer.
+    mailcomposer: 'js/ext/mailapi/composer',
+
+    // Point activesync protocol modules to their layer
+    'wbxml': 'js/ext/mailapi/activesync/protocollayer',
+    'activesync/codepages': 'js/ext/mailapi/activesync/protocollayer',
+    'activesync/protocol': 'js/ext/mailapi/activesync/protocollayer',
+
+    // Point chew methods to the chew layer
+    'mailapi/htmlchew': 'js/ext/mailapi/chewlayer',
+    'mailapi/quotechew': 'js/ext/mailapi/chewlayer',
+    'mailapi/imap/imapchew': 'js/ext/mailapi/chewlayer',
+
+    // The imap probe layer also contains the imap module
+    'imap': 'js/ext/mailapi/imap/probe',
+
+    // The smtp probe layer also contains the simpleclient
+    'simplesmtp/lib/client': 'js/ext/mailapi/smtp/probe'
   },
   scriptType: 'application/javascript;version=1.8',
   definePrim: 'prim'
