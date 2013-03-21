@@ -511,7 +511,6 @@ var KeypadManager = {
           }
 
           self._longPress = true;
-          self.updateAddContactStatus();
           self._updatePhoneNumberView('begin', false);
         }, 400, this);
       }
@@ -526,7 +525,6 @@ var KeypadManager = {
 
       if (key == 'delete') {
         this._phoneNumber = this._phoneNumber.slice(0, -1);
-        this.updateAddContactStatus();
       } else if (this.phoneNumberViewContainer.classList.
           contains('keypad-visible')) {
         if (!this._isKeypadClicked) {
@@ -539,7 +537,6 @@ var KeypadManager = {
         }
       } else {
         this._phoneNumber += key;
-        this.updateAddContactStatus();
       }
       this._updatePhoneNumberView('begin', false);
     } else if (event.type == 'mouseup' || event.type == 'mouseleave') {
@@ -573,13 +570,6 @@ var KeypadManager = {
     return number.replace(/\s+/g, '');
   },
 
-  updateAddContactStatus: function kh_updateAddContactStatus() {
-    if (this._phoneNumber.length === 0)
-      this.callBarAddContact.classList.add('disabled');
-    else
-      this.callBarAddContact.classList.remove('disabled');
-  },
-
   updatePhoneNumber: function kh_updatePhoneNumber(number, ellipsisSide,
     maxFontSize) {
     number = this.sanitizePhoneNumber(number);
@@ -591,9 +581,17 @@ var KeypadManager = {
     maxFontSize) {
     var phoneNumber = this._phoneNumber;
 
-    // If there are digits in the phone number, show the delete button.
+    // If there are digits in the phone number, show the delete button
+    // and enable the add contact button
     if (!this._onCall) {
-      var visibility = (phoneNumber.length > 0) ? 'visible' : 'hidden';
+      var visibility;
+      if (phoneNumber.length > 0) {
+        visibility = 'visible';
+        this.callBarAddContact.classList.remove('disabled');
+      } else {
+        visibility = 'hidden';
+        this.callBarAddContact.classList.add('disabled');
+      }
       this.deleteButton.style.visibility = visibility;
     }
 
