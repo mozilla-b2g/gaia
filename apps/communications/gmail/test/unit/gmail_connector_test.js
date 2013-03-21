@@ -4,6 +4,7 @@ requireApp('communications/gmail/js/gmail_connector.js');
 requireApp('communications/gmail/test/unit/mock_contact1.js');
 requireApp('communications/gmail/test/unit/mock_listing.js');
 requireApp('communications/gmail/test/unit/mock_rest.js');
+requireApp('communications/gmail/test/unit/mock_groups.js');
 
 if (!this.Rest) {
   this.Rest = null;
@@ -12,7 +13,11 @@ if (!this.Rest) {
 suite('Gmail Connector', function() {
 
   var subject,
-      listing;
+      listing,
+      END_POINT = 'https://www.google.com/m8/feeds/contacts/' +
+        'default/full/?max-results=10000',
+      GROUP_ID = 'https://www.google.com/m8/feeds/groups/' +
+        'mepartoconmigo%40gmail.com/base/6';
 
   suiteSetup(function() {
     subject = GmailConnector;
@@ -42,9 +47,13 @@ suite('Gmail Connector', function() {
         }
       };
 
-      window.Rest.configure({
-        'value': MockGoogleListing
-      });
+      var contactsListUrl = END_POINT + '&group=' + GROUP_ID;
+      var restConfigure = {
+        'type': 'success',
+        'https://www.google.com/m8/feeds/groups/default/full/': MockGoogleGroups
+      };
+      restConfigure[contactsListUrl] = MockGoogleListing;
+      window.Rest.configure(restConfigure);
 
       subject.listAllContacts('123456789', callbacks);
     });
