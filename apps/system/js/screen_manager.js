@@ -249,6 +249,9 @@ var ScreenManager = {
         // notification.
         if (this._cpuWakeLock) {
           this.turnScreenOn();
+          // In case of user making an extra call, the attention screen
+          // may be hidden at top so we need to confirm it's shown again.
+          AttentionScreen.show();
 
           break;
         }
