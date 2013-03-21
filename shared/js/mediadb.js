@@ -629,7 +629,7 @@ var MediaDB = (function() {
         var request = media.storage.addNamed(file, media.directory + filename);
         request.onerror = function() {
           console.error('MediaDB: Failed to store', filename,
-                        'in DeviceStorage:', storeRequest.error);
+                        'in DeviceStorage:', request.error);
         };
       }
     },
