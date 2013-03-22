@@ -86,35 +86,35 @@
     threads: [
       {
         id: 1,
-        senderOrReceiver: '1977',
+        participants: ['1977'],
         body: 'Alo, how are you today, my friend? :)',
         timestamp: new Date(Date.now()),
         unreadCount: 0
       },
       {
         id: 2,
-        senderOrReceiver: '436797',
+        participants: ['436797'],
         body: 'Sending :)',
         timestamp: new Date(Date.now() - 172800000),
         unreadCount: 0
       },
       {
         id: 3,
-        senderOrReceiver: '197743697',
+        participants: ['197743697'],
         body: 'Nothing :)',
         timestamp: new Date(Date.now() - 652800000),
         unreadCount: 0
       },
       {
         id: 4,
-        senderOrReceiver: '197746797',
+        participants: ['197746797'],
         body: 'Recibido!',
         timestamp: new Date(Date.now() - 50000000),
         unreadCount: 0
       },
       {
         id: 5,
-        senderOrReceiver: '14886783487',
+        participants: ['14886783487'],
         body: 'Hello world!',
         timestamp: new Date(Date.now() - 60000000),
         unreadCount: 2
@@ -256,39 +256,47 @@
     return request;
   };
 
-  // getThreadList
+  // getThreads
   // Parameters: none
   // Returns: request object
   //  - error: Error information, if any (null otherwise)
   //  - onerror: Function that may be set by the suer. If set, will be invoked
   //    in the event of a failure
-  MockNavigatormozSms.getThreadList = function() {
+  MockNavigatormozSms.getThreads = function() {
     var request = {
       error: null
     };
-    var result;
+    var threads = messagesDb.threads.slice();
+    var idx = 0;
+    var len, continueCursor;
 
-    setTimeout(function() {
-      var result;
+    len = threads.length;
+
+    var returnThread = function() {
 
       if (simulation.failState()) {
         request.error = {
-          name: 'mock getThreadList error'
+          name: 'mock getThreads error'
         };
+
         if (typeof request.onerror === 'function') {
           request.onerror();
         }
       } else {
-        result = {
-          target: {
-            result: messagesDb.threads.slice()
-          }
-        };
+        request.result = threads[idx];
+        idx += 1;
+        request.continue = continueCursor;
         if (typeof request.onsuccess === 'function') {
-          request.onsuccess.call(null, result);
+          request.onsuccess.call(null);
         }
       }
-    }, simulation.delay());
+
+    };
+    continueCursor = function() {
+      setTimeout(returnThread, simulation.delay());
+    };
+
+    continueCursor();
 
     return request;
   };
