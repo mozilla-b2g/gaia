@@ -12,6 +12,26 @@ require.config({
     'activesync/codepages': 'js/ext/mailapi/activesync/protocollayer',
     'activesync/protocol': 'js/ext/mailapi/activesync/protocollayer',
 
+    // activesync/codepages is split across two layers. If
+    // activesync/protocol loads first (for autoconfig work on account setup),
+    // then indicate the parts of codepages that are in activesync/configurator
+    'activesync/codepages/FolderHierarchy':
+                                      'js/ext/mailapi/activesync/configurator',
+    'activesync/codepages/ComposeMail':
+                                      'js/ext/mailapi/activesync/configurator',
+    'activesync/codepages/AirSync':
+                                      'js/ext/mailapi/activesync/configurator',
+    'activesync/codepages/AirSyncBase':
+                                      'js/ext/mailapi/activesync/configurator',
+    'activesync/codepages/ItemEstimate':
+                                      'js/ext/mailapi/activesync/configurator',
+    'activesync/codepages/Email':
+                                      'js/ext/mailapi/activesync/configurator',
+    'activesync/codepages/ItemOperations':
+                                      'js/ext/mailapi/activesync/configurator',
+    'activesync/codepages/Move':
+                                      'js/ext/mailapi/activesync/configurator',
+
     // Point chew methods to the chew layer
     'mailapi/htmlchew': 'js/ext/mailapi/chewlayer',
     'mailapi/quotechew': 'js/ext/mailapi/chewlayer',
