@@ -6,7 +6,6 @@
   padding: 0;
   width: 100%;
   height: 0.3rem;
-  background-image: url('../shared/progress.gif');
 
   pointer-events: none;
   visibility: hidden;
@@ -14,6 +13,7 @@
 
 #wrapper-activity-indicator.visible {
   visibility: visible;
+  background-image: url('../shared/progress.gif');
 }
 
 #wrapper-footer {
