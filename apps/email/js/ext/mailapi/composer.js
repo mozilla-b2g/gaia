@@ -330,7 +330,6 @@ module.exports = function(address){
     });
 };
 });
-
 define('mailcomposer/lib/dkim',['require','exports','module','crypto','mimelib','./punycode'],function (require, exports, module) {
 var crypto = require('crypto'),
     mimelib = require('mimelib'),
@@ -550,7 +549,6 @@ function hasUTFChars(str){
     return !!rforeign.test(str);
 }
 });
-
 define('http',['require','exports','module'],function(require, exports, module) {
 });
 
@@ -633,7 +631,6 @@ function openUrlStream(url, options){
     return stream; 
 }
 });
-
 define('fs',['require','exports','module'],function(require, exports, module) {
 });
 
@@ -1879,7 +1876,6 @@ MailComposer.prototype._getMimeType = function(filename){
     return extension && mimelib.contentTypes[extension] || defaultMime;
 };
 });
-
 define('mailcomposer',['./mailcomposer/lib/mailcomposer'], function (main) {
     return main;
 });
@@ -3893,11 +3889,21 @@ Composer.prototype = {
    * Request that a body be produced as a single buffer with the given options.
    * Multiple calls to this method can be made and they may overlap.
    *
+   * XXX: Currently, the callback is invoked with a String instead of an
+   * ArrayBuffer/node-like Buffer; consumers that do not use TextEncoder to
+   * produce a utf-8 encoding probably need to and we might want to change this
+   * here.
+   *
    * @args[
    *   @param[opts @dict[
    *     @key[includeBcc Boolean]{
    *       Should we include the BCC data in the headers?
    *     }
+   *   ]]
+   *   @param[callback @func[
+   *     @args[
+   *       @param[messageBuffer String]
+   *     ]
    *   ]]
    * ]
    */
