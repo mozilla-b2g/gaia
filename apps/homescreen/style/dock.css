@@ -1,6 +1,6 @@
 #footer {
+  min-height: 7.5rem;
   width: 100%;
-  height: 7.5rem;
   position: fixed;
   bottom: 0;
   z-index: 10000;
@@ -10,11 +10,12 @@
 }
 
 #footer .dockWrapper {
-  width: -moz-calc(7 * 8rem);
+  width: 175%;
   height: 100%;
 }
 
 #footer ol {
+  width: 100%;
   height: 100%;
   padding: 0;
   margin: 0;
@@ -25,8 +26,9 @@
 #footer li {
   height: 100%;
   position: relative;
-  width: 8rem;
-  display: inline-block;
+  /* 100% width / 7 icons = ~14.25% */
+  width: 14.25%;
+  float: left;
   text-align: center;
 }
 
