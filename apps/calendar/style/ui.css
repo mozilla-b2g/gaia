@@ -85,6 +85,9 @@ ol.link-list a {
 
 #time-views > #month-view {
   height: calc(65% - 5rem);
+  box-shadow: 0px 5px 5px 0px rgba(1, 1, 1, 0.2);
+  position: relative;
+  z-index: 20;
 }
 
 #time-views > #months-day-view {
@@ -254,8 +257,7 @@ body[data-path^="/month/"] section.month.previous {
 
 section.month {
   z-index: 200;
-  top: 4.9rem;
-  height: calc(65% - 5rem);
+  height: 100%;
   position: absolute;
   color: #484848;
   width: 100%;
@@ -431,18 +433,6 @@ Indicators are in units of 12
 .rtl .busy-indicator .busy-11 { right: 83.3%; }
 .rtl .busy-indicator .busy-12 { right: 91.63%; }
 
-/* sub: months day view */
-
-#months-day-view  h1 {
-  letter-spacing: 0.05rem;
-  font-size: 1.15rem;
-  padding: 1.2rem 1.2rem 0.7rem;
-  text-transform: uppercase;
-  color: #F93700;
-  border-bottom: 1px solid #F93700;
-  box-shadow: 0px 4px 5px -1px #888 inset;
-}
-
 /** sub: view selector **/
 
 #view-selector menu {
@@ -458,11 +448,15 @@ Indicators are in units of 12
   line-height: 2.1rem;
   overflow: hidden;
   box-shadow: 0px 0 0.5px 0.5px #6F7070;
+  /* Needed so the top border displays above events */
+  position: relative;
+  z-index: 20;
 }
 
 #view-selector a {
   text-decoration: none;
   color: #444;
+  outline: 0;
 }
 
 .rtl #view-selector li {

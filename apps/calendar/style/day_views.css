@@ -126,7 +126,7 @@
 /* months day view */
 
 #months-day-view .day-events {
-  height: -moz-calc(100% - 3rem);
+  height: 100%;
   overflow-x: hidden;
   overflow-y: auto;
 }
@@ -155,7 +155,7 @@
 #day-view .day-events {
   overflow-y: scroll;
   overflow-x: hidden;
-  height: 80%;
+  height: calc(100% - 6rem);
 }
 
 #day-view .day-events.allday {

@@ -18,7 +18,6 @@ suiteGroup('Views.MonthsDay', function() {
     div.id = 'test';
     div.innerHTML = [
       '<div id="months-day-view">',
-        '<div class="day-title"></div>',
         '<div class="day-events"></div>',
       '</div>'
     ].join(' ');
@@ -85,44 +84,6 @@ suiteGroup('Views.MonthsDay', function() {
       assert.include(html, date.toLocaleFormat('%A'));
     });
 */
-  });
-
-/*
-// This test is currently failing and has been temporarily disabled as per
-// Bug 838993. It should be fixed and re-enabled as soon as possible as per
-// Bug 840489.
-// This test appears to make incorrect assumptions about localization details
-// (it does not fail on systems configured for US English).
-  test('#_updateHeader', function() {
-    var date = new Date(2012, 4, 11);
-    var el = subject.header;
-    subject.date = date;
-    subject._updateHeader();
-
-    var format = '%A %e %B %Y';
-    var expected = date.toLocaleFormat(
-      format
-    );
-
-    assert.equal(
-      el.dataset.date,
-      date.toString(),
-      'sets element\'s date'
-    );
-
-    assert.equal(
-      el.dataset.l10nDateFormat,
-      'agenda-date-format',
-      'sets element\'s l10nDateFormat'
-    );
-
-    assert.ok(el.innerHTML, 'has contents');
-    assert.include(el.innerHTML, expected);
-  });
-*/
-
-  test('#header', function() {
-    assert.ok(subject.header);
   });
 
 /*
