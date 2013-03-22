@@ -23,7 +23,45 @@ var Calls = (function(window, document, undefined) {
   };
 
   var mobileConnection = getMobileConnection();
+  var settings = window.navigator.mozSettings;
   var _voiceServiceClassMask = mobileConnection.ICC_SERVICE_CLASS_VOICE;
+
+  function MozMobileCFInfo(key, enabled, number) {
+    var mozMobileCFInfo = {};
+
+    mozMobileCFInfo['action'] = enabled ?
+      _cfAction.CALL_FORWARD_ACTION_REGISTRATION :
+      _cfAction.CALL_FORWARD_ACTION_DISABLE;
+
+    switch (key) {
+      case 'unconditional':
+        mozMobileCFInfo['reason'] =
+          _cfReason.CALL_FORWARD_REASON_UNCONDITIONAL;
+        break;
+      case 'mobilebusy':
+        mozMobileCFInfo['reason'] =
+          _cfReason.CALL_FORWARD_REASON_MOBILE_BUSY;
+        break;
+      case 'noreply':
+        mozMobileCFInfo['reason'] =
+          _cfReason.CALL_FORWARD_REASON_NO_REPLY;
+        break;
+      case 'notreachable':
+        mozMobileCFInfo['reason'] =
+          _cfReason.CALL_FORWARD_REASON_NOT_REACHABLE;
+        break;
+    }
+
+    mozMobileCFInfo['serviceClass'] =
+      mobileConnection.ICC_SERVICE_CLASS_VOICE;
+    // TODO: Check number.
+    mozMobileCFInfo['number'] = number;
+    mozMobileCFInfo['timeSecond'] =
+      mozMobileCFInfo['reason'] !=
+        _cfReason.CALL_FORWARD_REASON_NO_REPLY ? 0 : 20;
+
+    return mozMobileCFInfo;
+  };
 
   function setToSettingsDB(settingKey, value, callback) {
     var done = function done() {
@@ -31,7 +69,6 @@ var Calls = (function(window, document, undefined) {
         callback();
     };
 
-    var settings = window.navigator.mozSettings;
     var getLock = settings.createLock();
     var request = getLock.get(settingKey);
     request.onsuccess = function getFromDBSuccess() {
@@ -43,8 +80,7 @@ var Calls = (function(window, document, undefined) {
         var setRequest = setLock.set(cset);
         setRequest.onsuccess = done;
         setRequest.onerror = done;
-      }
-      else
+      } else
         done();
     };
     request.onerror = done;
@@ -84,10 +120,12 @@ var Calls = (function(window, document, undefined) {
                       'li-cfnrep-desc',
                       'li-cfnrea-desc'];
     elementIds.forEach(function(id) {
-      if (enable)
-        document.getElementById(id).classList.remove('disabled');
-      else
-        document.getElementById(id).classList.add('disabled');
+      var item = document.getElementById(id);
+      if (enable) {
+        item.classList.remove('disabled');
+      } else {
+        item.classList.add('disabled');
+      }
     });
   };
 
@@ -176,8 +214,7 @@ var Calls = (function(window, document, undefined) {
     if (updateCFEntryLock) {
       requestUpdateCFEntryDuringLock = true;
       return;
-    }
-    else
+    } else
       updateCFEntryLock = true;
 
     displayInfoForAll(_('callForwardingRequesting'));
@@ -193,132 +230,209 @@ var Calls = (function(window, document, undefined) {
     });
   }
 
-  function initCallForwardingObservers() {
-    var settings = window.navigator.mozSettings;
-    var settingKeys = ['unconditional',
-                       'mobilebusy',
-                       'noreply',
-                       'notreachable'];
-    settingKeys.forEach(function(key) {
-      settings.addObserver('ril.cf.' + key + '.enabled', function(event) {
-        var selector = 'input[data-setting="ril.cf.' + key + '.number"]';
-        var textInput = document.querySelector(selector);
-        var mozMobileCFInfo = {};
-
-        mozMobileCFInfo['action'] = event.settingValue ?
-          _cfAction.CALL_FORWARD_ACTION_REGISTRATION :
-          _cfAction.CALL_FORWARD_ACTION_DISABLE;
-        switch (key) {
-          case 'unconditional':
-            mozMobileCFInfo['reason'] =
-              _cfReason.CALL_FORWARD_REASON_UNCONDITIONAL;
-            break;
-          case 'mobilebusy':
-            mozMobileCFInfo['reason'] =
-              _cfReason.CALL_FORWARD_REASON_MOBILE_BUSY;
-            break;
-          case 'noreply':
-            mozMobileCFInfo['reason'] =
-              _cfReason.CALL_FORWARD_REASON_NO_REPLY;
-            break;
-          case 'notreachable':
-            mozMobileCFInfo['reason'] =
-              _cfReason.CALL_FORWARD_REASON_NOT_REACHABLE;
-            break;
+  var updateCFItemsLock = false;
+  var requestUpdateCFItemsDuringLock = false;
+  function updateCallForwardingItemsWithCardState(cardState) {
+    if (cardState === 'ready' && mobileConnection.iccInfo &&
+        mobileConnection.iccInfo.iccid) {
+      var checkLock = function() {
+        if (updateCFItemsLock) {
+          requestUpdateCFItemsDuringLock = true;
+          return true;
+        } else {
+          updateCFItemsLock = true;
+          return false;
         }
-        mozMobileCFInfo['serviceClass'] =
-          mobileConnection.ICC_SERVICE_CLASS_VOICE;
-        // TODO: Check number.
-        mozMobileCFInfo['number'] = textInput.value;
-        mozMobileCFInfo['timeSecond'] =
-          mozMobileCFInfo['reason'] !=
-            _cfReason.CALL_FORWARD_REASON_NO_REPLY ? 0 : 20;
+      };
 
-        var req = mobileConnection.setCallForwardingOption(mozMobileCFInfo);
-        req.onsuccess = function() {
-          updateCallForwardingEntry();
+      var releaseLock = function() {
+        updateCFItemsLock = false;
+        if (requestUpdateCFItemsDuringLock) {
+          requestUpdateCFItemsDuringLock = false;
+          updateCallForwardingItemsWithCardState(mobileConnection.cardState);
+        }
+      };
+
+      if (checkLock())
+        return;
+
+      // Init call forwarding option
+      displayInfoForAll(_('callForwardingRequesting'));
+      getCallForwardingOption(function call_gotCFOption(options) {
+        if (!options) {
+          updateCallForwardingEntryWithOption(options);
+          releaseLock();
+          return;
+        }
+
+        // wait for all DB settings completed
+        var asyncOpChecker = {
+          taskCount: 0,
+          runTask: function(func) {
+            this.taskCount++;
+            var newArgs = [];
+            for (var i = 1; i < arguments.length; i++)
+              newArgs.push(arguments[i]);
+            newArgs.push(this.complete.bind(this));
+            func.apply(window, newArgs);
+          },
+          complete: function() {
+            this.taskCount--;
+            if (this.taskCount == 0)
+              this.finish();
+          },
+          finish: function() {
+            var _cfObserversInitialized = false;
+            var initCallForwardingObservers = function call_initCFObservers() {
+              if (_cfObserversInitialized)
+                return;
+
+              var settingKeys = ['unconditional',
+                                 'mobilebusy',
+                                 'noreply',
+                                 'notreachable'];
+              settingKeys.forEach(function(key) {
+                settings.addObserver('ril.cf.' + key + '.enabled',
+                  function(event) {
+                    var selector = 'input[data-setting="ril.cf.' +
+                      key + '.number"]';
+                    var textInput = document.querySelector(selector);
+                    var mozMobileCFInfo = new MozMobileCFInfo(key,
+                      event.settingValue, textInput.value);
+
+                    var req = mobileConnection.
+                      setCallForwardingOption(mozMobileCFInfo);
+                    req.onsuccess = function() {
+                      updateCallForwardingEntry();
+                    };
+                    req.onerror = function() {
+                      updateCallForwardingEntry();
+                    };
+                  });
+              });
+
+              _cfObserversInitialized = true;
+            };
+
+            setTimeout(function() {
+              updateCallForwardingEntryWithOption(options);
+              initCallForwardingObservers();
+              releaseLock();
+            }, 1000);
+          }
         };
-        req.onerror = function() {
-          updateCallForwardingEntry();
-        };
+
+        // Ensure the settings being set to the setting DB
+        Object.keys(options).forEach(function call_forEachCFOption(settingKey) {
+          var rules = options[settingKey];
+          var hasValidRule = false;
+          var number = '';
+          for (var i = 0; i < rules.length; i++) {
+            if (rules[i].active &&
+              ((_voiceServiceClassMask & rules[i].serviceClass) != 0)) {
+              number = rules[i].number;
+              asyncOpChecker.runTask(setToSettingsDB,
+                'ril.cf.' + settingKey + '.number', rules[i].number);
+              asyncOpChecker.runTask(setToSettingsDB,
+                'ril.cf.' + settingKey + '.enabled', true);
+              hasValidRule = true;
+              break;
+            }
+          }
+
+          if (!hasValidRule) {
+            asyncOpChecker.runTask(setToSettingsDB,
+              'ril.cf.' + settingKey + '.number', '');
+            asyncOpChecker.runTask(setToSettingsDB,
+              'ril.cf.' + settingKey + '.enabled', false);
+          }
+
+          // Initialize the call forwarding settings.
+          var mozMobileCFInfo =
+            new MozMobileCFInfo(settingKey, hasValidRule, number);
+          asyncOpChecker.runTask(function(callback) {
+            var req = mobileConnection.setCallForwardingOption(mozMobileCFInfo);
+            req.onsuccess = callback;
+            req.onerror = callback;
+          });
+        });
       });
-    });
+    } else
+      enableTapOnEntry(false);
   }
 
   // Call subpanel navigation control.
   var oldHash = document.location.hash || '#root';
   function initCallForwarding() {
-    var settings = window.navigator.mozSettings;
-    if (!settings) {
+    if (!settings || !mobileConnection) {
       displayInfoForAll(_('callForwardingQueryError'));
       return;
     }
 
-    // Init call forwarding option
-    displayInfoForAll(_('callForwardingRequesting'));
-    getCallForwardingOption(function call_gotCFOption(options) {
-      if (!options) {
-        updateCallForwardingEntryWithOption(options);
-        return;
+    // Initialize the menu items with the SIM card state.
+    // Update menu items state when the SIM card state changed
+    updateCallForwardingItemsWithCardState(mobileConnection.cardState);
+    mobileConnection.addEventListener('cardstatechange', function() {
+      if (mobileConnection.cardState === 'ready') {
+        setTimeout(function() {
+          // XXX: wait five seconds or it leads to call forwarding query error.
+          updateCallForwardingItemsWithCardState(mobileConnection.cardState);
+        }, 5000);
+      } else {
+        updateCallForwardingItemsWithCardState(mobileConnection.cardState);
       }
-
-      // wait for all DB settings completed
-      var asyncOpChecker = {
-        taskCount: 0,
-        runTask: function(func) {
-          this.taskCount++;
-          var newArgs = [];
-          for (var i = 1; i < arguments.length; i++)
-            newArgs.push(arguments[i]);
-          newArgs.push(this.complete.bind(this));
-          func.apply(window, newArgs);
-        },
-        complete: function() {
-          this.taskCount--;
-          if (this.taskCount == 0)
-            this.finish();
-        },
-        finish: function() {
-          updateCallForwardingEntryWithOption(options);
-          setTimeout(initCallForwardingObservers, 500);
-        }
-      };
-
-      // Ensure the settings being set to the setting DB
-      Object.keys(options).forEach(function call_forEachCFOption(settingKey) {
-        var rules = options[settingKey];
-        var hasValidRule = false;
-        for (var i = 0; i < rules.length; i++) {
-          if (rules[i].active &&
-            ((_voiceServiceClassMask & rules[i].serviceClass) != 0)) {
-            asyncOpChecker.runTask(setToSettingsDB,
-              'ril.cf.' + settingKey + '.number', rules[i].number);
-            asyncOpChecker.runTask(setToSettingsDB,
-              'ril.cf.' + settingKey + '.enabled', true);
-            hasValidRule = true;
-            break;
-          }
-        }
-
-        if (!hasValidRule) {
-          asyncOpChecker.runTask(setToSettingsDB,
-            'ril.cf.' + settingKey + '.number', '');
-          asyncOpChecker.runTask(setToSettingsDB,
-            'ril.cf.' + settingKey + '.enabled', false);
-        }
-      });
     });
 
     window.addEventListener('hashchange', function() {
       // If navigation is from #root to #call panels then update UI always.
       if (document.location.hash === '#call' &&
           !oldHash.startsWith('#call-cf-')) {
-        if (!updateCFEntryLock) {
-          updateCallForwardingEntry();
-        }
+        updateCallForwardingEntry();
       }
       oldHash = document.location.hash;
     });
+  }
+
+  function updateCallWaitingItemWithCardState(cardState) {
+    var input =
+      document.querySelector('#menuItem-callWaiting .checkbox-label input');
+    var menuItem = document.getElementById('menuItem-callWaiting');
+    var cardStateDesc = document.getElementById('cw-cardState-desc');
+
+    var msg = '';
+    var inputDisabled = true;
+    var itemsDisabled = true;
+
+    switch (cardState) {
+      case 'ready':
+        inputDisabled = false;
+        itemsDisabled = false;
+        break;
+      case 'absent':
+        msg = _('noSimCard');
+        break;
+      case 'pinRequired':
+      case 'pukRequired':
+        msg = _('simCardLockedMsg');
+        break;
+      case 'networkLocked':
+        msg = _('simLockedPhone');
+        break;
+      case null:
+        msg = _('simCardNotReady');
+        break;
+      case 'unknown':
+      default:
+        msg = _('unknownSimCardState');
+        break;
+    }
+
+    if (itemsDisabled)
+      menuItem.classList.add('disabled');
+    else
+      menuItem.classList.remove('disabled');
+    input.disabled = inputDisabled;
+    cardStateDesc.textContent = msg;
   }
 
   function updateCallWaitingItemState(callWaitingEnabled) {
@@ -337,8 +451,19 @@ var Calls = (function(window, document, undefined) {
   }
 
   function initCallWaiting() {
-    var settings = window.navigator.mozSettings;
-    if (!settings) {
+    var alertLabel =
+      document.querySelector('#menuItem-callWaiting .alert-label');
+    var alertPanel = document.querySelector('#call .cw-alert');
+    var alertLabel =
+      document.querySelector('#menuItem-callWaiting .alert-label');
+    var confirmInput =
+      alertPanel.querySelector('.cw-alert-checkbox-label input');
+    var setBtn = alertPanel.querySelector('.cw-alert-set');
+    var cancelBtn = alertPanel.querySelector('.cw-alert-cancel');
+    var menuItem = document.getElementById('menuItem-callWaiting');
+
+    if (!settings || !mobileConnection) {
+      menuItem.classList.add('disabled');
       return;
     }
 
@@ -350,7 +475,7 @@ var Calls = (function(window, document, undefined) {
     });
 
     settings.addObserver('ril.callwaiting.enabled',
-      function call_callWaitingChanged(event) {
+      function cs_callWaitingChanged(event) {
         updateCallWaitingItemState(event.settingValue);
     });
 
@@ -360,20 +485,20 @@ var Calls = (function(window, document, undefined) {
         getCWEnabled.result['ril.callwaiting.enabled']);
     };
 
-    // Initialize the alert panel
-    var alertLabel =
-      document.querySelector('#menuItem-callWaiting .alert-label');
-    var alertPanel = document.querySelector('#call .cw-alert');
-    var alertLabel =
-      document.querySelector('#menuItem-callWaiting .alert-label');
-    var confirmInput =
-      alertPanel.querySelector('.cw-alert-checkbox-label input');
-    var setBtn = alertPanel.querySelector('.cw-alert-set');
-    var cancelBtn = alertPanel.querySelector('.cw-alert-cancel');
+    // Initialize the menu item with the SIM card state.
+    // Update the menu item state when the SIM card state changed
+    updateCallWaitingItemWithCardState(mobileConnection.cardState);
+    mobileConnection.addEventListener('cardstatechange',
+      function cs_cardStateChange() {
+        updateCallWaitingItemWithCardState(mobileConnection.cardState);
+    });
 
+    // Initialize the alert panel
     alertLabel.addEventListener('click', function cs_alertLabelClicked(event) {
-      confirmInput.checked = false;
-      alertPanel.hidden = false;
+      if (!menuItem.classList.contains('disabled')) {
+        confirmInput.checked = false;
+        alertPanel.hidden = false;
+      }
     });
 
     setBtn.addEventListener('click', function cs_alertSetClicked(event) {
