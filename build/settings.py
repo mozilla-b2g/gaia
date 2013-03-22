@@ -99,6 +99,7 @@ settings = {
  "ril.mms.passwd": "",
  "ril.mms.user": "",
  "ril.mms.retrieval_mode": "automatic",
+ "dom.mms.operatorSizeLimitation": 0,
  "ril.radio.preferredNetworkType": "",
  "ril.radio.disabled": False,
  "ril.supl.apn": "",
