@@ -926,14 +926,37 @@ var LockScreen = {
       // Otoro-like devices
       var viewportWidth = window.innerWidth;
       var viewportHeight = window.innerHeight;
+      var viewportRatio = viewportWidth / viewportHeight;
       var canvas = document.createElement('canvas');
       canvas.classList.add('lockscreen-wallpaper');
       canvas.width = viewportWidth;
       canvas.height = viewportHeight;
 
       var ctx = canvas.getContext('2d');
-      ctx.drawImage(images[0], 0, 0, viewportWidth, viewportHeight);
-      ctx.drawImage(images[1], 0, 0, viewportWidth, viewportHeight);
+
+      var image = images[0];
+      var mask = images[1];
+
+      var ratio = image.width / image.height;
+      var scale = 1;
+      var sWidth, sHeight, sx, sy;
+
+      if (ratio < viewportRatio) {
+        scale = viewportWidth / image.width;
+        sWidth = image.width;
+        sHeight = viewportHeight / scale | 0;
+      } else {
+        scale = viewportHeight / image.height;
+        sWidth = viewportWidth / scale | 0;
+        sHeight = image.height;
+      }
+
+      sx = (image.width - sWidth) * 0.5;
+      sy = (image.height - sHeight) * 0.5;
+
+      ctx.drawImage(image, sx, sy, sWidth, sHeight,
+        0, 0, viewportWidth, viewportHeight);
+      ctx.drawImage(mask, 0, 0, viewportWidth, viewportHeight);
 
       var panels_selector = '.lockscreen-panel[data-wallpaper]';
       var panels = document.querySelectorAll(panels_selector);
