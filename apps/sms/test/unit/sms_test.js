@@ -10,6 +10,7 @@ require('/shared/js/l10n_date.js');
 requireApp('sms/test/unit/mock_contact.js');
 requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/test/unit/mock_navigatormoz_sms.js');
+requireApp('sms/test/unit/mock_settings.js');
 
 requireApp('sms/js/link_helper.js');
 requireApp('sms/js/contacts.js');
@@ -49,6 +50,8 @@ suite('SMS App Unit-Test', function() {
   var realMozMobileMessage;
   var boundOnHashChange;
   var getContactDetails;
+  var nativeMozMobileMessage = navigator.mozMobileMessage;
+  var nativeSettings = navigator.mozSettings;
 
   suiteSetup(function() {
     navigator.mozL10n = MockL10n;
@@ -873,6 +876,33 @@ suite('SMS App Unit-Test', function() {
         window.location.hash = '';
         done();
       }, 30);
+    });
+  });
+  suite('Fetch mms messaage size limitation', function() {
+    suiteSetup(function() {
+      navigator.mozMobileMessage = {
+        addEventListener: function() {}
+      };
+    });
+
+    suiteTeardown(function() {
+      navigator.mozMobileMessage = nativeMozMobileMessage;
+      navigator.mozSettings = nativeSettings;
+    });
+
+    test('Query size limitation without settings', function(done) {
+      MessageManager.getMmsSizeLimitation(function callback(size) {
+        assert.equal(size, null);
+        done();
+      });
+    });
+
+    test('Query size limitation with settings exist(300KB)', function(done) {
+      navigator.mozSettings = MockSettings;
+      MessageManager.getMmsSizeLimitation(function callback(size) {
+        assert.equal(size, 300 * 1024);
+        done();
+      });
     });
   });
 });

@@ -7,6 +7,7 @@ var MessageManager = {
   currentNum: null,
   currentThread: null,
   activityBody: null, // Used when getting a sms:?body=... activity.
+  mmsSizeLimitation: 0, // default mms message size limitation is unlimited.
   init: function mm_init(callback) {
     if (this.initialized) {
       return;
@@ -27,9 +28,15 @@ var MessageManager = {
                               this.onVisibilityChange.bind(this));
 
     // Callback if needed
-    if (callback && typeof callback === 'function') {
+    if (typeof callback === 'function') {
       callback();
     }
+    // Fetch mmsSizeLimitation
+    this.getMmsSizeLimitation(function(size) {
+      if (size && isNaN(size)) {
+        this.mmsSizeLimitation = size;
+      }
+    }.bind(this));
   },
 
   onMessageSending: function mm_onMessageSending(e) {
@@ -385,5 +392,31 @@ var MessageManager = {
         callback(null);
       }
     };
+  },
+
+  // Set MMS size limitation:
+  // If operator does not specify MMS message size, we leave the decision to
+  // MessageManager and return nothing if we can't get size limitation from db.
+  getMmsSizeLimitation: function mm_getMmsSizeLimitation(callback) {
+    var key = 'dom.mms.operatorSizeLimitation';
+    var settings = navigator.mozSettings;
+    if (typeof callback !== 'function')
+      return;
+
+    if (!settings) {
+      callback();
+      return;
+    }
+
+    var req = settings.createLock().get(key);
+    req.onsuccess = function mm_getSizeSuccess() {
+      var size = req.result[key];
+      if (!size || isNaN(size)) {
+        callback();
+      } else {
+        callback(size * 1024);
+      }
+    };
+    req.onerror = callback;
   }
 };
