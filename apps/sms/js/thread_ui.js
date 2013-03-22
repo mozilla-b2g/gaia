@@ -130,6 +130,7 @@ var ThreadUI = {
     this.title.addEventListener('click', this.activateContact.bind(this));
     this.clearButton.addEventListener('click', this.clearContact.bind(this));
     this.view.addEventListener('click', this);
+    this.view.addEventListener('contextmenu', this);
     this.editForm.addEventListener('submit', this);
     this.telForm.addEventListener('submit', this);
     this.sendForm.addEventListener('submit', this);
@@ -746,7 +747,7 @@ var ThreadUI = {
       case 'click':
         if (window.location.hash != '#edit') {
            //Handle events on links in a message
-           LinkActionHandler.handleEvent(evt);
+           LinkActionHandler.handleTapEvent(evt);
           return;
         }
 
@@ -755,6 +756,9 @@ var ThreadUI = {
           ThreadUI.chooseMessage(inputs[0]);
           ThreadUI.checkInputs();
         }
+        break;
+      case 'contextmenu':
+        LinkActionHandler.handleLongPressEvent(evt);
         break;
       case 'submit':
         evt.preventDefault();
