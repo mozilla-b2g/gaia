@@ -2,5 +2,6 @@
   "origin": "app://m.here.com",
   "installOrigin": "https://marketplace.firefox.com",
   "manifestURL": "https://marketplace.firefox.com/app/7eccfd71-2765-458d-983f-078580b46a11/manifest.webapp",
-  "type": "web"
+  "type": "web",
+  "removable": false
 }
