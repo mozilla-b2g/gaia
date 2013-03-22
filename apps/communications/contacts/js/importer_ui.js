@@ -372,7 +372,7 @@ if (typeof window.importer === 'undefined') {
       else {
         window.console.error('Error, while retrieving friends',
                                                     response.error.message);
-        if (!tokenExpired(error)) {
+        if (!tokenExpired(response.error)) {
           setCurtainHandlersErrorFriends();
           Curtain.show('error', 'friends');
         }
@@ -381,7 +381,10 @@ if (typeof window.importer === 'undefined') {
           Curtain.hide();
           window.asyncStorage.removeItem(tokenKey,
             function token_removed() {
-              Importer.start();
+              oauth2.getAccessToken(function(new_acc_tk) {
+                access_token = new_acc_tk;
+                Importer.getFriends(new_acc_tk);
+              }, 'friends', serviceConnector.name);
               parent.postMessage({
                 type: 'token_error',
                 data: ''
