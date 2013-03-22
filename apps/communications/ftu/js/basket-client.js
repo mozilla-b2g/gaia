@@ -8,8 +8,9 @@ var Basket = {
   newsletterId: 'firefox-os',
   callback: null,
   xhr: null,
+  itemId: 'newsletter_email',
 
-  responseHandler: function() {
+  responseHandler: function b_responseHandler() {
     if (this.xhr.readyState === 4) {
       if (this.xhr.status === 200) {
         if (typeof this.callback === 'function') {
@@ -17,7 +18,11 @@ var Basket = {
         }
       } else {
         if (typeof this.callback === 'function') {
-          this.callback(JSON.parse(this.xhr.responseText));
+          if (this.xhr.responseText) {
+            this.callback(JSON.parse(this.xhr.responseText));
+          } else {
+            this.callback('Unknown error');
+          }
         }
       }
     }
@@ -32,12 +37,21 @@ var Basket = {
    *                            is result of operation or null
    *                            in the error case.
    */
-  send: function(email, callback) {
+  send: function b_send(email, callback) {
     this.callback = callback;
     this.xhr = new XMLHttpRequest({mozSystem: true});
     this.xhr.onreadystatechange = this.responseHandler.bind(this);
     this.xhr.open('POST', this.basketUrl, true);
     this.xhr.send('email=' + email + '&newsletters=' + this.newsletterId);
+  },
+
+  store: function b_store(email, callback) {
+    var self = this;
+    window.asyncStorage.setItem(this.itemId, email, function stored() {
+      if (callback)
+        callback();
+    });
   }
+
 };
 
