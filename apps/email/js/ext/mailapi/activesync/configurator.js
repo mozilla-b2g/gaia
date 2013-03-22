@@ -3082,15 +3082,30 @@ ActiveSyncFolderConn.prototype = {
     var w = new $wbxml.Writer('1.3', 1, 'UTF-8');
     w.stag(ie.GetItemEstimate)
        .stag(ie.Collections)
-         .stag(ie.Collection)
-           .tag(as.SyncKey, this.syncKey)
+         .stag(ie.Collection);
+
+    if (this._account.conn.currentVersion.gte('14.0')) {
+          w.tag(as.SyncKey, this.syncKey)
            .tag(ie.CollectionId, this.serverId)
            .stag(as.Options)
              .tag(as.FilterType, filterType)
-           .etag()
-         .etag()
-       .etag()
-     .etag();
+           .etag();
+    }
+    else if (this._account.conn.currentVersion.gte('12.0')) {
+          w.tag(ie.CollectionId, this.serverId)
+           .tag(as.FilterType, filterType)
+           .tag(as.SyncKey, this.syncKey);
+    }
+    else {
+          w.tag(ie.Class, 'Email')
+           .tag(ie.CollectionId, this.serverId)
+           .tag(as.SyncKey, this.syncKey)
+           .tag(as.FilterType, filterType);
+    }
+
+        w.etag(ie.Collection)
+       .etag(ie.Collections)
+     .etag(ie.GetItemEstimate);
 
     this._account.conn.postCommand(w, function(aError, aResponse) {
       if (aError) {
