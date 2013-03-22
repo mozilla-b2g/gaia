@@ -10,6 +10,10 @@ var LinkHelper = {
     '\\.[a-z]{2,6}(?:\\/[-\\w:%\\+.~#?&//=]*)?'].
     join(''), 'mgi'),
 
+   _phoneRegex: new RegExp(['(\\+?1?[-.]?\\(?([0-9]{3})\\)?',
+    '[-.]?)?([0-9]{3})[-.]?([0-9]{4})([0-9]{1,4})?'].
+    join(''), 'mg'),
+
   searchAndLinkUrl:
   function lh_searchAndLinkUrl(urltext) {
     var result = urltext.replace(this._urlRegex,
@@ -32,10 +36,22 @@ var LinkHelper = {
     return result;
   },
 
-  //Invokes resepective functions to change URL
-  // (to do: phone and email) strings and make them active links
+  searchAndLinkPhone:
+  function lh_searchAndLinkPhone(phonetext) {
+     var result = phonetext.replace(this._phoneRegex, function(phone) {
+       var linkText = '<a href="#" data-action="phone-link" ' +
+                      'data-phonenumber="' + phone + '">' + phone + '</a>';
+       return linkText;
+     });
+
+    return result;
+  },
+
+  //Invokes resepective functions to change URL, Phone
+  // (to do: email) strings and make them active links
   searchAndLinkClickableData:
    function lh_searchAndLinkClickableData(inputText) {
+    inputText = this.searchAndLinkPhone(inputText);
     return this.searchAndLinkUrl(inputText);
   }
 };
