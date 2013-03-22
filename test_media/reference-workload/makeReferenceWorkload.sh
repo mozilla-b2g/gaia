@@ -54,8 +54,12 @@ esac
 echo "Populate Databases - $1 Workload"
 
 adb pull /data/local/webapps/webapps.json $SCRIPT_DIR/webapps.json
-DIALER_ID=$(python $SCRIPT_DIR/readJSON.py $SCRIPT_DIR/webapps.json "communications.gaiamobile.org/localId")
-DIALER_DIR="$DIALER_ID+f+app+++communications.gaiamobile.org"
+DIALER_INFO=$(python $SCRIPT_DIR/readJSON.py $SCRIPT_DIR/webapps.json "communications.*/localId")
+
+IFS='/' read -a DIALER_PARTS <<< "$DIALER_INFO"
+DIALER_DOMAIN=${DIALER_PARTS[0]}
+DIALER_ID=${DIALER_PARTS[1]}
+DIALER_DIR="$DIALER_ID+f+app+++communications.$DIALER_DOMAIN"
 rm $SCRIPT_DIR/webapps.json
 
 adb shell stop b2g
