@@ -279,9 +279,23 @@ var OnCallHandler = (function onCallHandler() {
     var hc = new HandledCall(call, node);
     handledCalls.push(hc);
 
-    // This is the initial incoming call, need to ring !
-    if (call.state === 'incoming' && handledCalls.length === 1) {
-      handleFirstIncoming(call);
+    if (call.state === 'incoming') {
+      call.addEventListener('statechange', function callStateChange() {
+        call.removeEventListener('statechange', callStateChange);
+        // The call wasn't picked up
+        if (call.state == 'disconnected') {
+          var callInfo = {
+            type: 'notification',
+            number: call.number
+          };
+          postToMainWindow(callInfo);
+        }
+      });
+
+      // This is the initial incoming call, need to ring !
+      if (handledCalls.length === 1) {
+        handleFirstIncoming(call);
+      }
     }
 
     if (handledCalls.length > 1) {
@@ -368,15 +382,6 @@ var OnCallHandler = (function onCallHandler() {
       if (screenLock) {
         screenLock.unlock();
         screenLock = null;
-      }
-
-      // The call wasn't picked up
-      if (call.state == 'disconnected') {
-        var callInfo = {
-          type: 'notification',
-          number: call.number
-        };
-        postToMainWindow(callInfo);
       }
     });
   }
