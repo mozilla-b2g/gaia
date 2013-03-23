@@ -141,6 +141,7 @@ var CallScreen = {
 };
 
 var OnCallHandler = (function onCallHandler() {
+  var COMMS_APP_ORIGIN = 'app://communications.gaiamobile.org';
   // Changing this will probably require markup changes
   var CALLS_LIMIT = 2;
 
@@ -204,9 +205,7 @@ var OnCallHandler = (function onCallHandler() {
   }
 
   function postToMainWindow(data) {
-    var origin = document.location.protocol + '//' +
-      document.location.host;
-    window.opener.postMessage(data, origin);
+    window.opener.postMessage(data, COMMS_APP_ORIGIN);
   }
 
   /* === Handled calls === */
@@ -253,8 +252,10 @@ var OnCallHandler = (function onCallHandler() {
   }
 
   function addCall(call) {
-    // Once we already have 1 call, we only care about incomings
-    if (handledCalls.length && (call.state != 'incoming')) {
+    // Once we already have 1 call, we need to care about incoming
+    // calls and insert new dialing calls.
+    if (handledCalls.length &&
+      (call.state != 'incoming') && (call.state != 'dialing')) {
       return;
     }
 
@@ -278,14 +279,34 @@ var OnCallHandler = (function onCallHandler() {
     var hc = new HandledCall(call, node);
     handledCalls.push(hc);
 
-    // This is the initial incoming call, need to ring !
-    if (call.state === 'incoming' && handledCalls.length === 1) {
-      handleFirstIncoming(call);
+    if (call.state === 'incoming') {
+      call.addEventListener('statechange', function callStateChange() {
+        call.removeEventListener('statechange', callStateChange);
+        // The call wasn't picked up
+        if (call.state == 'disconnected') {
+          var callInfo = {
+            type: 'notification',
+            number: call.number
+          };
+          postToMainWindow(callInfo);
+        }
+      });
+
+      // This is the initial incoming call, need to ring !
+      if (handledCalls.length === 1) {
+        handleFirstIncoming(call);
+      }
     }
 
     if (handledCalls.length > 1) {
       // New incoming call, signaling the user.
-      handleCallWaiting(call);
+      if (call.state === 'incoming') {
+        handleCallWaiting(call);
+
+      // User performed another outgoing call. show its status.
+      } else {
+        hc.show();
+      }
     } else {
       if (window.location.hash === '#locked' &&
           (call.state == 'incoming')) {
@@ -361,15 +382,6 @@ var OnCallHandler = (function onCallHandler() {
       if (screenLock) {
         screenLock.unlock();
         screenLock = null;
-      }
-
-      // The call wasn't picked up
-      if (call.state == 'disconnected') {
-        var callInfo = {
-          type: 'notification',
-          number: call.number
-        };
-        postToMainWindow(callInfo);
       }
     });
   }
@@ -447,6 +459,9 @@ var OnCallHandler = (function onCallHandler() {
 
   /* Handle commands send to the callscreen via postmessage */
   function handleCommand(evt) {
+    if (evt.origin !== COMMS_APP_ORIGIN) {
+      return;
+    }
     var message = evt.data;
     if (!message) {
       return;

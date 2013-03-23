@@ -259,9 +259,20 @@ var Recents = {
         var selectedCallsLength = selectedCalls.length;
         if (selectedCallsLength == 0) {
           this.headerEditModeText.textContent = this._('edit');
+          this.recentsIconDelete.classList.add('disabled');
+          this.deselectAllThreads.setAttribute('disabled', 'disabled');
+          this.selectAllThreads.textContent = this._('selectAll');
+          this.selectAllThreads.removeAttribute('disabled');
         } else {
           this.headerEditModeText.textContent = this._('edit-selected',
                                                   {n: selectedCallsLength});
+          this.recentsIconDelete.classList.remove('disabled');
+          this.deselectAllThreads.removeAttribute('disabled');
+          if (visibleCalls.length === selectedCallsLength) {
+            this.selectAllThreads.setAttribute('disabled', 'disabled');
+          } else {
+            this.selectAllThreads.removeAttribute('disabled');
+          }
         }
       }
       if (this._allViewGroupingPending) {
@@ -293,9 +304,20 @@ var Recents = {
           var selectedCallsLength = selectedCalls.length;
           if (selectedCallsLength == 0) {
             this.headerEditModeText.textContent = this._('edit');
+            this.recentsIconDelete.classList.add('disabled');
+            this.deselectAllThreads.setAttribute('disabled', 'disabled');
+            this.selectAllThreads.textContent = this._('selectAll');
+            this.selectAllThreads.removeAttribute('disabled');
           } else {
             this.headerEditModeText.textContent = this._('edit-selected',
                                                     {n: selectedCallsLength});
+            this.recentsIconDelete.classList.remove('disabled');
+            this.deselectAllThreads.removeAttribute('disabled');
+            if (visibleCalls.length === selectedCallsLength) {
+              this.selectAllThreads.setAttribute('disabled', 'disabled');
+            } else {
+              this.selectAllThreads.removeAttribute('disabled');
+            }
           }
         }
       }

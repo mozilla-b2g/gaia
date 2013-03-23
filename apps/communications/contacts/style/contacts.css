@@ -368,6 +368,7 @@ section[role="region"] > header .icon.icon-settings
 
 #view-settings .view-body-inner {
   padding: 0;
+  background: #e6e7e2;
 }
 
 /* Order switch */
@@ -378,11 +379,11 @@ section[role="region"] > header .icon.icon-settings
 /* Cutom FB item */
 #view-settings [data-type="list"] .fb-item {
   height: auto;
-  min-height: 6rem;
+  border-bottom: none;
 }
 
 #view-settings [data-type="list"] .fb-item p {
-  padding-left: 3.3rem;
+  padding-left: 4.3rem;
 }
 
 #view-settings [data-type="list"] .fb-item p span {
@@ -391,7 +392,7 @@ section[role="region"] > header .icon.icon-settings
 }
 
 #view-settings [data-type="list"] .fb-item p:first-of-type {
-  background: url(/contacts/style/fb/profile_icon.png) no-repeat left calc(50% + 0.5rem);
+  background: url(/contacts/style/images/f_logo.png) no-repeat 0.5rem calc(50% + 0.5rem);
 }
 
 #view-settings [data-type="list"] .fb-item aside {
@@ -417,7 +418,10 @@ section[role="region"] > header .icon.icon-settings
   opacity: 0.3;
 }
 
-
+#fb-update-option {
+  height: auto;
+  margin: 1rem 0;
+}
 
 /* Extending BB lists components*/
 #view-settings [data-type="list"] li aside {
@@ -430,10 +434,6 @@ section[role="region"] > header .icon.icon-settings
 }
 
 /* Extending BB buttons Icons at left side*/
-#view-settings [data-type="list"] li button {
-  margin: 1rem 0;
-}
-
 #view-settings [data-type="list"] li button.icon {
   padding: 0 1rem 0 4rem;
 }
@@ -443,10 +443,24 @@ section[role="region"] > header .icon.icon-settings
   left: 0.5rem;
 }
 
+#view-settings [data-type="list"] li button.icon[disabled="disabled"]:before {
+  opacity: 0.2;
+}
+
 /* Extending icon types*/
+#view-settings [data-type="list"] li button.icon:before {
+  background-size: 3rem;
+}
 #view-settings [data-type="list"] li button.icon-sim:before {
   background-image: url(/contacts/style/images/import_SIM.png);
-  background-size: 1.6rem;
+}
+
+#view-settings [data-type="list"] li button.icon-gmail:before {
+  background-image: url(/contacts/style/images/gmail_icon.png);
+}
+
+#view-settings [data-type="list"] li button.icon-live:before {
+  background-image: url(/contacts/style/images/hotmail_icon.png);
 }
 
 
@@ -538,11 +552,24 @@ section[role="region"] > header .icon.icon-settings
   color: #5B5B5B;
   font-size: 1.5rem;
   line-height: 2rem;
-  margin: -0.2rem 0 0.6rem;
+  margin: -0.5rem 0 1.5rem 0;
   padding: 0;
   white-space: normal;
 }
 
 #settingsSIM {
   height: auto;
+}
+
+#importSources {
+  margin-top: 1rem;
+}
+
+#importSources > li {
+  border-bottom: none;
+}
+
+
+#importSources > li.importService {
+  height: 5rem;
 }

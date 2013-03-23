@@ -24,6 +24,8 @@ requireApp('sms/js/startup.js');
 
 
 suite('SMS App Unit-Test', function() {
+  var findByString;
+
   // Mockuping l10n
   navigator.mozL10n = {
     get: function get(key) {
@@ -143,6 +145,8 @@ suite('SMS App Unit-Test', function() {
 
   // Previous setup
   suiteSetup(function() {
+    findByString = Contacts.findByString;
+
     // We mockup the method for retrieving the threads
     MessageManager.getThreads = function(callback, extraArg) {
       var threadsMockup = new MockThreadList();
@@ -166,9 +170,9 @@ suite('SMS App Unit-Test', function() {
 
     // We mockup the method for retrieving the info
     // of a contact given a number
-    ContactDataManager.getContactData = function(number, callback) {
+    Contacts.findByString = function(tel, callback) {
       // Get the contact
-      if (number === '1977') {
+      if (tel === '1977') {
         callback(MockContact.list());
       }
     };
@@ -183,6 +187,11 @@ suite('SMS App Unit-Test', function() {
     window.addEventListener('hashchange',
       MessageManager.onHashChange.bind(MessageManager));
   });
+
+  suiteTeardown(function() {
+    Contacts.findByString = findByString;
+  });
+
 
   // Let's go with tests!
 
@@ -417,6 +426,60 @@ suite('URL Links in SMS', function() {
          'First url is http://www.mozilla.org/en-US/firefox/fx/');
       assert.equal(anchors[1].dataset.url,
         'http://www.gmail.com', 'Second url is http://www.gmail.com');
+    });
+  });
+suite('Phone Links in SMS', function() {
+    var Message = {
+        id: '123',
+        body: 'Hello there'
+    };
+
+    //test
+    test('#numberWithDash', function() {
+        var messageBody = 'Hello there, here are numbers with ' +
+                      'dashes 408-746-9721, 4087469721, 7469721';
+      var id = '12345';
+      Message.id = id;
+      Message.body = messageBody;
+      var messageDOM = ThreadUI.buildMessageDOM(Message, false);
+      var anchors = messageDOM.querySelectorAll('[data-phonenumber]');
+      assert.equal(anchors.length, 3,
+        '3 Contact handlers are attached for 3 phone numbers in DOM');
+      assert.equal(anchors[0].dataset.phonenumber,
+        '408-746-9721', 'First number is 408-746-9721');
+      assert.equal(anchors[1].dataset.phonenumber,
+        '4087469721', 'Second number is 4087469721');
+      assert.equal(anchors[2].dataset.phonenumber,
+        '7469721', 'Third number is 7469721');
+    });
+
+    test('#complexTest with 7 digit numbers, ip, decimals', function() {
+      var messageBody = '995-382-7369 futures to a 4458901 slight' +
+          ' 789-7890 rebound +1-556-667-7789 on Wall Street 9953827369' +
+          ' on Wednesday, +12343454567 with 55.55.55 futures +919810137553' +
+          ' for the S&P 500 up 0.34 percent, Dow Jones futures up 0.12' +
+          ' percent100 futures up 0.51 percent at 0921 GMT.';
+      var id = '12346';
+      Message.id = id;
+      Message.body = messageBody;
+      var messageDOM = ThreadUI.buildMessageDOM(Message, false);
+      var anchors = messageDOM.querySelectorAll('[data-phonenumber]');
+      assert.equal(anchors.length, 7,
+        '7 Contact handlers are attached for 7 phone numbers in DOM');
+      assert.equal(anchors[0].dataset.phonenumber,
+        '995-382-7369', 'First number is 995-382-7369');
+      assert.equal(anchors[1].dataset.phonenumber,
+        '4458901', 'Second number is 4458901');
+      assert.equal(anchors[2].dataset.phonenumber,
+        '789-7890', 'Third number is 789-7890');
+      assert.equal(anchors[3].dataset.phonenumber,
+        '+1-556-667-7789', 'Fourth number is +1-556-667-7789');
+      assert.equal(anchors[4].dataset.phonenumber,
+        '9953827369', 'Fourth number is 9953827369');
+      assert.equal(anchors[5].dataset.phonenumber,
+        '+12343454567', 'Fifth number is +12343454567');
+      assert.equal(anchors[6].dataset.phonenumber,
+        '+919810137553', 'Sixth number is +919810137553');
     });
   });
 });

@@ -55,8 +55,7 @@ var ThreadListUI = {
   updateThreadWithContact:
     function thlui_updateThreadWithContact(number, thread) {
 
-    ContactDataManager.getContactData(number,
-      function gotContact(contacts) {
+    Contacts.findByString(number, function gotContact(contacts) {
       if (!contacts || ! Array.isArray(contacts) || contacts.length < 1) {
         return;
       }

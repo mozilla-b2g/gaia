@@ -100,12 +100,6 @@ body {
   transform: translateX(calc(100% - 4.3em));
 }
 
-/* Override animation for card list, should appear
- * to just be under the message list */
-.card.before.card-folder-picker {
-  transform: translateX(0);
-}
-
 .form-card {
   overflow: auto;
 }

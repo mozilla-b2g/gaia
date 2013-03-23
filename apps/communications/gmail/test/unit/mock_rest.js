@@ -8,32 +8,30 @@ var MockRest = (function MockRest() {
 
   var config = {
     // Values are success, error, timeout (the possible callbacks)
-    'type': 'success',
-    // Whatever you want to return on the 'type' callback
-    'value': {}
+    'type': 'success'
+    // Follow with a series of 'urls' and the values returned
   };
 
   var configure = function configure(conf) {
-    if (conf.type) {
-      config.type = conf.type;
-    }
-
-    if (conf.value) {
-      config.value = conf.value;
-    }
+    config = conf;
   };
 
   var get = function get(url, callbacks, options) {
+    if (!config[url]) {
+      callbacks.error('No matching for url ' + url);
+      return;
+    }
+
     switch (config.type) {
       case 'success':
-        callbacks.success(config.value);
+        callbacks.success(config[url]);
       break;
       case 'error':
-        callbacks.error(config.value);
+        callbacks.error(config[url]);
       break;
       case 'timeout':
       default:
-        callbacks.timeout(config.value);
+        callbacks.timeout(config[url]);
       break;
     }
   };

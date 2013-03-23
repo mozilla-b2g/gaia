@@ -130,6 +130,7 @@ var ThreadUI = {
     this.title.addEventListener('click', this.activateContact.bind(this));
     this.clearButton.addEventListener('click', this.clearContact.bind(this));
     this.view.addEventListener('click', this);
+    this.view.addEventListener('contextmenu', this);
     this.editForm.addEventListener('submit', this);
     this.telForm.addEventListener('submit', this);
     this.sendForm.addEventListener('submit', this);
@@ -407,7 +408,7 @@ var ThreadUI = {
     // Add data to contact activity interaction
     this.title.dataset.phoneNumber = number;
 
-    ContactDataManager.getContactData(number, function gotContact(contacts) {
+    Contacts.findByString(number, function gotContact(contacts) {
       var carrierTag = document.getElementById('contact-carrier');
       /** If we have more than one contact sharing the same phone number
        *  we show the name of the first contact and how many other contacts
@@ -746,7 +747,7 @@ var ThreadUI = {
       case 'click':
         if (window.location.hash != '#edit') {
            //Handle events on links in a message
-           LinkActionHandler.handleEvent(evt);
+           LinkActionHandler.handleTapEvent(evt);
           return;
         }
 
@@ -755,6 +756,9 @@ var ThreadUI = {
           ThreadUI.chooseMessage(inputs[0]);
           ThreadUI.checkInputs();
         }
+        break;
+      case 'contextmenu':
+        LinkActionHandler.handleLongPressEvent(evt);
         break;
       case 'submit':
         evt.preventDefault();
@@ -982,7 +986,7 @@ var ThreadUI = {
     }
     var contactsContainer = document.createElement('ul');
 
-    ContactDataManager.searchContactData(string, function gotContact(contacts) {
+    Contacts.findByString(string, function gotContact(contacts) {
       self.view.innerHTML = '';
       if (!contacts || contacts.length == 0) {
 

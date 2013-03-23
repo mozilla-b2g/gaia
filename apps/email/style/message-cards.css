@@ -29,9 +29,6 @@
   height: 8rem;
 }
 
-.msg-messages-sync-container {
-}
-
 .msg-search-tease-bar {
   height: 4.8rem;
   background-color: #eee;
@@ -173,40 +170,38 @@ input.msg-search-text-tease {
 
 
 .msg-envelope-bar {
-  border-bottom: 1px solid gray;
-  font-size: 1.5rem;
+  padding-top: 0.7rem;
   width: 100%;
+  font-size: 1.4rem;
+  color: #848484;
 }
 
 .msg-envelope-date {
-  font-size: 1rem;
-  text-align: right;
+  font-size: 1.3rem;
+  color: #8f8f8f;
 }
-.msg-envelope-line {
-  display: block;
-  margin: 0.8rem;
-}
-.msg-envelope-key {
 
+.msg-envelope-from-line,
+.msg-envelope-details {
+  padding: 0 1.5rem 0.8rem;
 }
 
 .msg-envelope-key::after {
   content: ":";
 }
 
-.msg-envelope-from-line {
-  margin-top: 0;
-}
-.msg-envelope-to-line {
-}
-.msg-envelope-cc-line {
-}
-.msg-envelope-bcc-line {
+
+.msg-envelope-subject-container {
+  padding: 0.5rem 1.3rem;
+  border-top: 0.1rem solid #bdbdbb;
+  border-bottom: 0.1rem solid #bdbdbb;
 }
 
 .msg-envelope-subject {
+  color: #000;
+  margin: 0;
+  font-size: 1.8rem;
   font-weight: bold;
-  margin: 0.8rem;
 }
 
 .msg-body-container {
@@ -214,22 +209,27 @@ input.msg-search-text-tease {
   white-space: pre-wrap;
   font-size: 1.9rem;
   line-height: 2.6rem;
+  margin: 1rem 1.5rem;
 }
 
 .msg-attachments-container {
-  padding: 0 1rem;
+  padding: 0 1.5rem;
   font-size: 1.2rem;
   line-height: 4rem;
 }
 
 .msg-peep-bubble {
+  color: #2c2c2c;
   display: inline-block;
-  background: #F2F2F2;
-  border: 0.5px solid #CCCCCC;
+  background: #f2f2f2;
+  border: 0.1rem solid #ddd;
   border-radius: 1rem;
-  margin: 1px 0;
-  padding: 2px 0.8rem;
-  font-size: 80%;
+  margin: 0.1rem 0;
+  padding: 0.2rem 0.8rem;
+  font-weight: 500;
+  font-size: 1.3rem;
+  font-family: "MozTT", Sans-serif;
+  box-shadow: 0 0.1rem 0.1rem #fff inset;
 }
 .msg-peep-bubble * {
   pointer-events: none;
@@ -455,27 +455,53 @@ input.msg-search-text-tease {
 }
 
 /* PROGRESS LABEL BUILDING BLOCKS EXTENSION */
+.msg-messages-sync-container {
+  margin-bottom: 2rem;
+}
+
+
 .msg-messages-sync-container > p,
 .msg-list-empty {
-  width: 80%;
-  padding: 2rem 10%;
-  text-align: center;
-  font: 500 1.3rem/1em "MozTT", Sans-serif;
+  height: 8rem;
+  padding: 0;
+  margin: 0;
+  font-weight: 500;
+  font-size: 1.5rem;
+  font-family: "MozTT", Sans-serif;
+  line-height: 8rem;
 }
 .msg-list-empty {
   position: absolute;
   top: 40%;
 }
-.msg-messages-syncing > span {
-  margin: 0 1rem;
-}
+
+.msg-messages-syncing,
 .msg-messages-sync-more {
-  margin: 3rem 0;
-  border-top: 1px solid lightgray;
-  border-bottom: 1px solid lightgray;
+  border-bottom: 0.1rem solid #bebebe;
+}
+
+.msg-messages-syncing > span {
+  display: inline-block;
+  vertical-align: middle;
+  line-height: normal;
+}
+
+.msg-messages-syncing > progress {
+  line-height: normal;
+  margin: 0 0.5rem 0 3rem !important;
+}
+
+.msg-messages-sync-more {
+  height: 8rem;
+  padding: 0;
+  margin: 0;
+  font-weight: 500;
+  font-size: 1.5rem;
+  font-family: "MozTT", Sans-serif;
+  line-height: 8rem;
 }
 .msg-messages-sync-more > span {
-  margin: 0;
+  margin: 0 3rem;
 }
 
 /* Filters selected state */

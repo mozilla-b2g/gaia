@@ -80,6 +80,12 @@ if (typeof window.oauth2 === 'undefined') {
       });
     };
 
+    function getLocation(href) {
+      var l = document.createElement('a');
+      l.href = href;
+      return l;
+    };
+
     /**
      *  Starts a OAuth 2.0 flow to obtain the user information
      *
@@ -94,6 +100,12 @@ if (typeof window.oauth2 === 'undefined') {
     function tokenDataReady(e) {
       var parameters = e.data;
       if (!parameters || !parameters.access_token) {
+        return;
+      }
+      var location = getLocation(oauthflow.params[accessTokenCbData.service].
+        redirectURI);
+      var allowedOrigin = location.protocol + '//' + location.host;
+      if (e.origin !== allowedOrigin) {
         return;
       }
 
@@ -119,7 +131,7 @@ if (typeof window.oauth2 === 'undefined') {
               parent.postMessage({
                 type: 'token_stored',
                 data: ''
-              },oauthflow.params[accessTokenCbData.service].appOrigin);
+              }, oauthflow.params[accessTokenCbData.service].appOrigin);
         });
       },0);
     } // tokenReady

@@ -283,7 +283,7 @@ const DragDropManager = (function() {
       clearTimeout(overlapingTimeout);
       if (classList.contains('page')) {
         var lastIcon = page.getLastIcon();
-        if (y > lastIcon.getTop() && draggableIcon !== lastIcon) {
+        if (lastIcon && y > lastIcon.getTop() && draggableIcon !== lastIcon) {
           overlapingTimeout = setTimeout(function() {
             page.drop(draggableIcon, lastIcon);
           }, REARRANGE_DELAY);

@@ -219,6 +219,9 @@ if (typeof window.importer === 'undefined') {
 
       if (contactsLoaded) {
         window.addEventListener('message', function importOnViewPort(e) {
+          if (e.origin !== targetApp) {
+            return;
+          }
           var data = e.data;
           if (data && data.type === 'dom_transition_end') {
             window.removeEventListener('message', importOnViewPort);
@@ -360,7 +363,7 @@ if (typeof window.importer === 'undefined') {
       else {
         window.console.error('Error, while retrieving friends',
                                                     response.error.message);
-        if (!tokenExpired(error)) {
+        if (!tokenExpired(response.error)) {
           setCurtainHandlersErrorFriends();
           Curtain.show('error', 'friends');
         }
@@ -369,7 +372,10 @@ if (typeof window.importer === 'undefined') {
           Curtain.hide();
           window.asyncStorage.removeItem(tokenKey,
             function token_removed() {
-              Importer.start();
+              oauth2.getAccessToken(function(new_acc_tk) {
+                access_token = new_acc_tk;
+                Importer.getFriends(new_acc_tk);
+              }, 'friends', serviceConnector.name);
               parent.postMessage({
                 type: 'token_error',
                 data: ''
@@ -489,6 +495,9 @@ if (typeof window.importer === 'undefined') {
         }, targetApp);
 
         window.addEventListener('message', function finished(e) {
+          if (e.origin !== targetApp) {
+            return;
+          }
           if (e.data.type === 'contacts_loaded') {
             // When the list of contacts is loaded and it's the current view
             Curtain.hide(function onhide() {
@@ -627,7 +636,7 @@ if (typeof window.importer === 'undefined') {
     function clearList() {
       var template = contactList.querySelector('[data-template]');
 
-      contactList.innerHTML = '';
+      utils.dom.removeChildNodes(contactList);
       contactList.appendChild(template);
     }
 

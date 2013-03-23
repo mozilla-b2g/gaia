@@ -32,7 +32,7 @@
     },
     "open": {
       "filters": {
-        "type": ["image/jpeg", "image/png", "image/gif"]
+        "type": ["image/jpeg", "image/png", "image/gif", "image/bmp"]
        },
       "disposition": "inline",
       "returnValue": true,

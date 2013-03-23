@@ -67,23 +67,24 @@ GAIA_DOMAIN=thisdomaindoesnotexist.org
 GAIA_APP_SRCDIRS=apps showcase_apps
 else ifeq ($(MAKECMDGOALS), dogfood)
 DOGFOOD=1
-PRODUCTION=1
-GAIA_OPTIMIZE=1
-B2G_SYSTEM_APPS=1
 else ifeq ($(MAKECMDGOALS), production)
 PRODUCTION=1
-GAIA_OPTIMIZE=1
-B2G_SYSTEM_APPS=1
+endif
+
+ifeq ($(DOGFOOD), 1)
+PRODUCTION=1
 endif
 
 # PRODUCTION is also set for user and userdebug B2G builds
 ifeq ($(PRODUCTION), 1)
+GAIA_OPTIMIZE=1
+B2G_SYSTEM_APPS=1
 GAIA_APP_SRCDIRS=apps
 ADB_REMOUNT=1
 endif
 
-ifeq ($(MAKECMDGOALS), dogfood)
-GAIA_APP_SRCDIRS=apps dogfood_apps
+ifeq ($(DOGFOOD), 1)
+GAIA_APP_SRCDIRS+=dogfood_apps
 endif
 
 ifeq ($(B2G_SYSTEM_APPS), 1)
@@ -302,83 +303,25 @@ contacts: install-xulrunner-sdk
 # Create webapps
 offline: webapp-manifests webapp-optimize webapp-zip optimize-clean
 
-DIALER_SEARCH_STRING=/data/local/indexedDB/*communications.*
-DIALER_HISTORY_DIR=$(shell adb shell 'echo -n $(DIALER_SEARCH_STRING)')
-ifeq ($(DIALER_HISTORY_DIR),$(DIALER_SEARCH_STRING))
-	DIALER_HISTORY_DIR=
-endif
-
 # Create a light reference workload
 .PHONY: reference-workload-light
 reference-workload-light:
-	@echo "Populate Databases - Light Workload"
-	$(ADB) shell stop b2g
-	test_media/reference-workload/generateImages.sh 20
-	test_media/reference-workload/generateMusicFiles.sh 20
-	test_media/reference-workload/generateVideos.sh 5
-	$(ADB) push  test_media/reference-workload/contactsDb-200.sqlite /data/local/indexedDB/chrome/3406066227csotncta.sqlite
-	$(ADB) push  test_media/reference-workload/smsDb-200.sqlite /data/local/indexedDB/chrome/226660312ssm.sqlite
-ifneq ($(DIALER_HISTORY_DIR),)
-	$(ADB) push  test_media/reference-workload/dialerDb-50.sqlite $(DIALER_HISTORY_DIR)/2584670174dsitanleecreR.sqlite
-else
-	@echo "Skipped dialer history - no communications DB directory found..."
-endif
-	$(ADB) shell start b2g
-	@echo "Done"
+	test_media/reference-workload/makeReferenceWorkload.sh light
 
 # Create a medium reference workload
 .PHONY: reference-workload-medium
 reference-workload-medium:
-	@echo "Populate Databases - Medium Workload"
-	$(ADB) shell stop b2g
-	test_media/reference-workload/generateImages.sh 50
-	test_media/reference-workload/generateMusicFiles.sh 50
-	test_media/reference-workload/generateVideos.sh 10
-	$(ADB) push  test_media/reference-workload/contactsDb-500.sqlite /data/local/indexedDB/chrome/3406066227csotncta.sqlite
-	$(ADB) push  test_media/reference-workload/smsDb-500.sqlite /data/local/indexedDB/chrome/226660312ssm.sqlite
-ifneq ($(DIALER_HISTORY_DIR),)
-	$(ADB) push  test_media/reference-workload/dialerDb-100.sqlite $(DIALER_HISTORY_DIR)/2584670174dsitanleecreR.sqlite
-else
-	@echo "Skipped dialer history - no communications DB directory found..."
-endif
-	$(ADB) shell start b2g
-	@echo "Done"
+	test_media/reference-workload/makeReferenceWorkload.sh medium
 
 # Create a heavy reference workload
 .PHONY: reference-workload-heavy
 reference-workload-heavy:
-	@echo "Populate Databases - Heavy Workload"
-	$(ADB) shell stop b2g
-	test_media/reference-workload/generateImages.sh 100
-	test_media/reference-workload/generateMusicFiles.sh 100
-	test_media/reference-workload/generateVideos.sh 20
-	$(ADB) push  test_media/reference-workload/contactsDb-1000.sqlite /data/local/indexedDB/chrome/3406066227csotncta.sqlite
-	$(ADB) push  test_media/reference-workload/smsDb-1000.sqlite /data/local/indexedDB/chrome/226660312ssm.sqlite
-ifneq ($(DIALER_HISTORY_DIR),)
-	$(ADB) push  test_media/reference-workload/dialerDb-200.sqlite $(DIALER_HISTORY_DIR)/2584670174dsitanleecreR.sqlite
-else
-	@echo "Skipped dialer history - no communications DB directory found..."
-endif
-	$(ADB) shell start b2g
-	@echo "Done"
+	test_media/reference-workload/makeReferenceWorkload.sh heavy
 
 # Create an extra heavy reference workload
 .PHONY: reference-workload-x-heavy
 reference-workload-x-heavy:
-	@echo "Populate Databases - Extra Heavy Workload"
-	$(ADB) shell stop b2g
-	test_media/reference-workload/generateImages.sh 250
-	test_media/reference-workload/generateMusicFiles.sh 250
-	test_media/reference-workload/generateVideos.sh 50
-	$(ADB) push  test_media/reference-workload/contactsDb-2000.sqlite /data/local/indexedDB/chrome/3406066227csotncta.sqlite
-	$(ADB) push  test_media/reference-workload/smsDb-2000.sqlite /data/local/indexedDB/chrome/226660312ssm.sqlite
-ifneq ($(DIALER_HISTORY_DIR),)
-	$(ADB) push  test_media/reference-workload/dialerDb-500.sqlite $(DIALER_HISTORY_DIR)/2584670174dsitanleecreR.sqlite
-else
-	@echo "Skipped dialer history - no communications DB directory found..."
-endif
-	$(ADB) shell start b2g
-	@echo "Done"
+	test_media/reference-workload/makeReferenceWorkload.sh x-heavy
 
 
 # The install-xulrunner target arranges to get xulrunner downloaded and sets up

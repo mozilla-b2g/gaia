@@ -36,6 +36,9 @@ if (typeof window.oauthFrame === 'undefined') {
       var data = e.data;
 
       if (data && data.type === 'start') {
+        if (e.origin !== oauthParams[data.data.service].appOrigin) {
+          return;
+        }
         oauthFrame.start(data.data.from, data.data.service);
       }
     });

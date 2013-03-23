@@ -156,7 +156,7 @@ contacts.Details = (function() {
     contactDetails.classList.remove('no-photo');
     contactDetails.classList.remove('fb-contact');
     contactDetails.classList.remove('up');
-    listContainer.innerHTML = '';
+    utils.dom.removeChildNodes(listContainer);
 
     renderFavorite(contact);
     renderOrg(contact);
@@ -309,7 +309,7 @@ contacts.Details = (function() {
       linkButton.classList.add('hide');
     }
 
-    Contacts.extFb.initEventHandlers(social, contact, linked);
+    Contacts.extServices.initEventHandlers(social, contact, linked);
 
     listContainer.appendChild(social);
   };
