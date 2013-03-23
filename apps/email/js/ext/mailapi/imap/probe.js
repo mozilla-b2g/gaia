@@ -2824,7 +2824,7 @@ ImapConnection.prototype.append = function(data, options, cb) {
     if (err || step++ === 2)
       return cb(err);
     if (typeof(data) === 'string') {
-      self._state.conn.send(Buffer(data + CRLF));
+      self._state.conn.write(Buffer(data + CRLF));
     }
     else {
       self._state.conn.write(data);
