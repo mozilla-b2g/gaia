@@ -553,7 +553,7 @@ window.addEventListener('load', function loadSettings() {
   window.addEventListener('change', Settings);
 
   Settings.init();
-  handleDataConnectivity();
+  handleRadioAndCardState();
 
   setTimeout(function() {
     var scripts = [
@@ -701,10 +701,10 @@ window.addEventListener('load', function loadSettings() {
     });
   }
 
-  function handleDataConnectivity() {
-    function updateDataConnectivity(disabled) {
-      var item = document.querySelector('#data-connectivity');
-      var link = document.querySelector('#menuItem-cellularAndData');
+  function handleRadioAndCardState() {
+    function updateDataSubpanelItem(disabled) {
+      var item = document.getElementById('data-connectivity');
+      var link = document.getElementById('menuItem-cellularAndData');
       if (!item || !link)
         return;
 
@@ -717,6 +717,21 @@ window.addEventListener('load', function loadSettings() {
       }
     }
 
+    function updateCallSubpanelItem(disabled) {
+      var item = document.getElementById('call-settings');
+      var link = document.getElementById('menuItem-callSettings');
+      if (!item || !link)
+        return;
+
+      if (disabled) {
+        item.classList.add('call-settings-disabled');
+        link.onclick = function() { return false; };
+      } else {
+        item.classList.remove('call-settings-disabled');
+        link.onclick = null;
+      }
+    }
+
     var key = 'ril.radio.disabled';
 
     var settings = Settings.mozSettings;
@@ -725,10 +740,13 @@ window.addEventListener('load', function loadSettings() {
 
     var req = settings.createLock().get(key);
     req.onsuccess = function() {
-      updateDataConnectivity(req.result[key]);
+      var value = req.result[key];
+      updateDataSubpanelItem(value);
+      updateCallSubpanelItem(value);
     };
     settings.addObserver(key, function(evt) {
-      updateDataConnectivity(evt.settingValue);
+      updateDataSubpanelItem(evt.settingValue);
+      updateCallSubpanelItem(evt.settingValue);
     });
   }
 
