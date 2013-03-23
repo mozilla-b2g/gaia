@@ -1110,13 +1110,13 @@ var WindowManager = (function() {
     // run out of process. All other apps will be run OOP.
     //
     var outOfProcessBlackList = [
-      'Browser'
+      'app://browser.gaiamobile.org/manifest.webapp'
       // Requires nested content processes (bug 761935).  This is not
       // on the schedule for v1.
     ];
 
     if (!isOutOfProcessDisabled &&
-        outOfProcessBlackList.indexOf(name) === -1) {
+        outOfProcessBlackList.indexOf(manifestURL) === -1) {
       // FIXME: content shouldn't control this directly
       iframe.setAttribute('remote', 'true');
     }
