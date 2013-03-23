@@ -68,6 +68,8 @@ var Connectivity = (function(window, document, undefined) {
     };
     mobileConnection.addEventListener('datachange', updateCarrier);
     updateCarrier();
+    mobileConnection.addEventListener('cardstatechange', updateCallSettings);
+    updateCallSettings();
 
     // these listeners are replaced when bluetooth.js is loaded
     gBluetooth.onadapteradded = function() {
@@ -206,6 +208,29 @@ var Connectivity = (function(window, document, undefined) {
       operator: operator,
       data: dataType
     });
+  }
+
+  /**
+   * Call Settings
+   */
+
+  var callDesc = document.getElementById('call-desc');
+  callDesc.style.fontStyle = 'italic';
+
+  function updateCallSettings() {
+    if (!_initialized) {
+      init();
+      return; // init will call updateCallSettings()
+    }
+
+    var mobileConnection = getMobileConnection();
+
+    if (!mobileConnection)
+      return;
+
+    // update the current SIM card state
+    var cardState = mobileConnection.cardState;
+    callDesc.textContent = kCardState[cardState] || '';
   }
 
   /**
