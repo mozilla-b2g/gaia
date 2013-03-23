@@ -14,6 +14,23 @@ var SCROLL_MIN_BUFFER_SCREENS = 2;
 var SCROLL_MAX_RETENTION_SCREENS = 7;
 
 /**
+ * Time to wait between scroll events. Initially 150 & 325 where tried but
+ * because we wait between snippet requests 50 feels about right...
+ */
+var SCROLL_DELAY = 50;
+
+/**
+ * Minimum number of items there must be in the message slice
+ * for us to attempt to limit the selection of snippets to fetch.
+ */
+var MINIMUM_ITEMS_FOR_SCROLL_CALC = 10;
+
+/**
+ * Maximum amount of time between issuing snippet requests.
+ */
+var MAXIMUM_MS_BETWEEN_SNIPPET_REQUEST = 6000;
+
+/**
  * Format the message subject appropriately.  This means ensuring that if the
  * subject is empty, we use a placeholder string instead.
  *
@@ -158,6 +175,9 @@ function MessageListCard(domNode, mode, args) {
     this.searchInput.addEventListener(
       'input', this.onSearchTextChange.bind(this), false);
   }
+
+  // convenience wrapper for context.
+  this._onScroll = this._onScroll.bind(this);
 
   this.editMode = false;
   this.selectedMessages = null;
@@ -485,7 +505,16 @@ MessageListCard.prototype = {
     // Consider requesting more data or discarding data based on scrolling that
     // has happened since we issued the request.  (While requests were pending,
     // onScroll ignored scroll events.)
-    this.onScroll(null);
+    this._onScroll(null);
+  },
+
+  onScroll: function(evt) {
+    if (this._pendingScrollEvent) {
+      return;
+    }
+
+    this._pendingScrollEvent = true;
+    this._scrollTimer = setTimeout(this._onScroll, SCROLL_DELAY, evt);
   },
 
   /**
@@ -497,11 +526,20 @@ MessageListCard.prototype = {
    * to us.  (It does, however, open the door to foolishness where we request
    * data and then immediately discard some of it.)
    */
-  onScroll: function(event) {
+  _onScroll: function(event) {
+    if (this._pendingScrollEvent) {
+      this._pendingScrollEvent = false;
+    }
+
+
     // Defer processing until any pending requests have completed;
     // `onSliceRequestComplete` will call us.
     if (!this.messagesSlice || this.messagesSlice.pendingRequestCount)
       return;
+
+    if (!this._hasSnippetRequest()) {
+      this._requestSnippets();
+    }
 
     var curScrollTop = this.scrollContainer.scrollTop,
         viewHeight = this.scrollContainer.clientHeight;
@@ -549,6 +587,96 @@ MessageListCard.prototype = {
         shrinkHighIncl !== this.messagesSlice.items.length - 1) {
       this.messagesSlice.requestShrinkage(shrinkLowIncl, shrinkHighIncl);
     }
+
+  },
+
+  _hasSnippetRequest: function() {
+    var max = MAXIMUM_MS_BETWEEN_SNIPPET_REQUEST;
+    var now = Date.now();
+
+    // if we before the maximum time to wait between requests...
+    var beforeTimeout =
+      (this._lastSnippetRequest + max) > now;
+
+    // there is an important case where the backend may be slow OR have some
+    // fatal error which would prevent us from ever requesting an new set of
+    // snippets because we wait until the last batch finishes... To prevent that
+    // from ever happening we maintain the request start time and if more then
+    // MAXIMUM_MS_BETWEEN_SNIPPET_REQUEST passes we issue a new request.
+    if (
+      this._snippetRequestPending &&
+      beforeTimeout
+    ) {
+      return true;
+    }
+
+    return false;
+  },
+
+  _pendingSnippetRequest: function() {
+    this._snippetRequestPending = true;
+    this._lastSnippetRequest = Date.now();
+  },
+
+  _clearSnippetRequest: function() {
+    this._snippetRequestPending = false;
+  },
+
+  _requestSnippets: function() {
+    var items = this.messagesSlice.items;
+    var len = items.length;
+
+    if (!len)
+      return;
+
+    var clearSnippets = this._clearSnippetRequest.bind(this);
+
+    if (len < MINIMUM_ITEMS_FOR_SCROLL_CALC) {
+      this._pendingSnippetRequest();
+      this.messagesSlice.maybeRequestSnippets(0, 9, clearSnippets);
+      return;
+    }
+
+    // get the scrollable offset
+    if (!this._scrollContainerOffset) {
+      this._scrollContainerRect =
+        this.scrollContainer.getBoundingClientRect();
+    }
+
+    var constOffset = this._scrollContainerRect.top;
+
+    // determine where we are in the list;
+    var topOffset = (
+      items[0].element.getBoundingClientRect().top - constOffset
+    );
+
+    // the distance between items. It is expected to remain fairly constant
+    // throughout the list so we only need to calculate it once.
+
+    var distance = this._distanceBetweenMessages;
+    if (!distance) {
+      this._distanceBetweenMessages = distance = Math.abs(
+        topOffset -
+        (items[1].element.getBoundingClientRect().top - constOffset)
+      );
+    }
+
+    // starting offset to begin fetching snippets
+    var startOffset = Math.floor(Math.abs(topOffset / distance));
+
+    this._snippetsPerScrollTick = (
+      this._snippetsPerScrollTick ||
+      Math.ceil(this._scrollContainerRect.height / distance)
+    );
+
+
+    this._pendingSnippetRequest();
+    this.messagesSlice.maybeRequestSnippets(
+      startOffset,
+      startOffset + this._snippetsPerScrollTick,
+      clearSnippets
+    );
+
   },
 
   onMessagesSplice: function(index, howMany, addedItems,
@@ -637,15 +765,15 @@ MessageListCard.prototype = {
       // subject
       displaySubject(msgNode.getElementsByClassName('msg-header-subject')[0],
                      message);
-      // snippet
-      msgNode.getElementsByClassName('msg-header-snippet')[0]
-        .textContent = message.snippet;
-
       // attachments
       if (message.hasAttachments)
         msgNode.getElementsByClassName('msg-header-attachments')[0]
           .classList.add('msg-header-attachments-yes');
     }
+
+    // snippet
+    msgNode.getElementsByClassName('msg-header-snippet')[0]
+      .textContent = message.snippet;
 
     // unread (we use very specific classes directly on the nodes rather than
     // child selectors for hypothetical speed)
@@ -743,17 +871,11 @@ MessageListCard.prototype = {
       return;
     }
 
-    // For now, let's do the async load before we trigger the card to try and
-    // avoid reflows during animation or visual popping.
-    Cards.eatEventsUntilNextCard();
-    header.getBody(function gotBody(body) {
-      Cards.pushCard(
-        'message-reader', 'default', 'animate',
-        {
-          header: header,
-          body: body
-        });
-    });
+    Cards.pushCard(
+      'message-reader', 'default', 'animate',
+      {
+        header: header
+      });
   },
 
   onHoldMessage: function(messageNode, event) {
@@ -889,7 +1011,6 @@ var MAX_QUOTE_CLASS_NAME = 'msg-body-qmax';
 function MessageReaderCard(domNode, mode, args) {
   this.domNode = domNode;
   this.header = args.header;
-  this.body = args.body;
   // The body elements for the (potentially multiple) iframes we created to hold
   // HTML email content.
   this.htmlBodyNodes = [];
@@ -930,18 +1051,50 @@ function MessageReaderCard(domNode, mode, args) {
   if (this.header.isStarred)
     domNode.getElementsByClassName('msg-star-btn')[0].classList
            .add('msg-btn-active');
+
+
+  // event handler for body change events...
+  this.handleBodyChange = this.handleBodyChange.bind(this);
+
 }
 MessageReaderCard.prototype = {
+
   postInsert: function() {
     // iframes need to be linked into the DOM tree before their contentDocument
     // can be instantiated.
     this.buildHeaderDom(this.domNode);
 
-    App.loader.load('js/iframe-shims.js', function() {
-      setTimeout(function() {
-        this.buildBodyDom(this.domNode);
-      }.bind(this));
-    }.bind(this));
+    var self = this;
+    this.header.getBody({ downloadBodyReps: true }, function(body) {
+      self.body = body;
+
+      // always attach the change listener.
+      body.onchange = self.handleBodyChange;
+
+      // if the body reps are downloaded show the message immediately.
+      if (body.bodyRepsDownloaded) {
+        return App.loader.load(
+          'js/iframe-shims.js',
+          self.buildBodyDom.bind(self)
+        );
+      }
+
+      // XXX trigger spinner
+      //
+    });
+  },
+
+  handleBodyChange: function(evt) {
+    switch (evt.changeType) {
+      case 'bodyReps':
+        if (this.body.bodyRepsDownloaded) {
+          App.loader.load(
+            'js/iframe-shims.js',
+            this.buildBodyDom.bind(this)
+          );
+        }
+        break;
+    }
   },
 
   onBack: function(event) {
@@ -1252,9 +1405,9 @@ MessageReaderCard.prototype = {
     }
 
     addHeaderEmails('msg-envelope-from-line', [header.author]);
-    addHeaderEmails('msg-envelope-to-line', body.to);
-    addHeaderEmails('msg-envelope-cc-line', body.cc);
-    addHeaderEmails('msg-envelope-bcc-line', body.bcc);
+    addHeaderEmails('msg-envelope-to-line', header.to);
+    addHeaderEmails('msg-envelope-cc-line', header.cc);
+    addHeaderEmails('msg-envelope-bcc-line', header.bcc);
 
     var dateNode = domNode.getElementsByClassName('msg-envelope-date')[0];
     dateNode.dataset.time = header.date.valueOf();
@@ -1264,8 +1417,9 @@ MessageReaderCard.prototype = {
                    header);
   },
 
-  buildBodyDom: function(domNode) {
+  buildBodyDom: function() {
     var body = this.body;
+    var domNode = this.domNode;
 
     var rootBodyNode = domNode.getElementsByClassName('msg-body-container')[0],
         reps = body.bodyReps,
@@ -1276,24 +1430,34 @@ MessageReaderCard.prototype = {
     bindSanitizedClickHandler(rootBodyNode, this.onHyperlinkClick.bind(this),
                               rootBodyNode);
 
-    for (var iRep = 0; iRep < reps.length; iRep += 2) {
-      var repType = reps[iRep], rep = reps[iRep + 1];
-      if (repType === 'plain') {
-        this._populatePlaintextBodyNode(rootBodyNode, rep);
+    for (var iRep = 0; iRep < reps.length; iRep++) {
+      var rep = reps[iRep];
+
+      if (rep.type === 'plain') {
+        this._populatePlaintextBodyNode(rootBodyNode, rep.content);
       }
-      else if (repType === 'html') {
+      else if (rep.type === 'html') {
         var iframeShim = createAndInsertIframeForContent(
-          rep, this.scrollContainer, rootBodyNode, null,
+          rep.content, this.scrollContainer, rootBodyNode, null,
           'interactive', this.onHyperlinkClick.bind(this));
         var iframe = iframeShim.iframe;
         var bodyNode = iframe.contentDocument.body;
         this.iframeResizeHandler = iframeShim.resizeHandler;
         MailAPI.utils.linkifyHTML(iframe.contentDocument);
         this.htmlBodyNodes.push(bodyNode);
+
         if (body.checkForExternalImages(bodyNode))
           hasExternalImages = true;
         if (showEmbeddedImages)
           body.showEmbeddedImages(bodyNode);
+      }
+
+      if (iRep === 0) {
+        // remove progress bar
+        var progressNode = rootBodyNode.querySelector('progress');
+        if (progressNode) {
+          progressNode.parentNode.removeChild(progressNode);
+        }
       }
     }
 
@@ -1363,6 +1527,10 @@ MessageReaderCard.prototype = {
   },
 
   die: function() {
+    if (this.body) {
+      this.body.die();
+      this.body = null;
+    }
     this.domNode = null;
   }
 };

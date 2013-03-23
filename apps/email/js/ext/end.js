@@ -7,6 +7,8 @@ require.config({
     // mailcomposer is in the mailapi/composer layer.
     mailcomposer: 'js/ext/mailapi/composer',
 
+    'mailparser/mailparser': 'js/ext/mailparser/mailparser',
+
     // Point activesync protocol modules to their layer
     'wbxml': 'js/ext/mailapi/activesync/protocollayer',
     'activesync/codepages': 'js/ext/mailapi/activesync/protocollayer',
@@ -36,6 +38,12 @@ require.config({
     'mailapi/htmlchew': 'js/ext/mailapi/chewlayer',
     'mailapi/quotechew': 'js/ext/mailapi/chewlayer',
     'mailapi/imap/imapchew': 'js/ext/mailapi/chewlayer',
+
+    // Imap body fetching / parsing / sync
+    'mailapi/imap/protocol/sync': 'js/ext/mailapi/imap/protocollayer',
+    'mailapi/imap/protocol/textparser': 'js/ext/mailapi/imap/protocollayer',
+    'mailapi/imap/protocol/snippetparser': 'js/ext/mailapi/imap/protocollayer',
+    'mailapi/imap/protocol/bodyfetcher': 'js/ext/mailapi/imap/protocollayer',
 
     // The imap probe layer also contains the imap module
     'imap': 'js/ext/mailapi/imap/probe',
@@ -84,3 +92,4 @@ define('q', ['prim'], function (prim) {
   };
   window.dispatchEvent(evtObject);
 }());
+
