@@ -2467,7 +2467,7 @@ ImapJobDriver.prototype = {
             walkBoxes(box.children, boxPath + box.delim, pathDepth + 1);
           }
           else {
-            var type = self.account._determineFolderType(box, boxPath);
+            var type = self.account._determineFolderType(box, boxPath, rawConn);
             folderMeta = self.account._learnAboutFolder(
               boxName, boxPath, parentFolderId, type, box.delim, pathDepth);
           }
@@ -3319,7 +3319,7 @@ ImapAccount.prototype = {
   _syncFolderList: function(conn, callback) {
     conn.getBoxes(this._syncFolderComputeDeltas.bind(this, conn, callback));
   },
-  _determineFolderType: function(box, path) {
+  _determineFolderType: function(box, path, conn) {
     var type = null;
     // NoSelect trumps everything.
     if (box.attribs.indexOf('NOSELECT') !== -1) {
@@ -3386,31 +3386,36 @@ ImapAccount.prototype = {
 
       // heuristic based type assignment based on the name
       if (!type) {
-        switch (box.displayName.toUpperCase()) {
-          case 'DRAFT':
-          case 'DRAFTS':
-            type = 'drafts';
-            break;
-          case 'INBOX':
-            type = 'inbox';
-            break;
-          // Yahoo provides "Bulk Mail" for yahoo.fr.
-          case 'BULK MAIL':
-          case 'JUNK':
-          case 'SPAM':
-            type = 'junk';
-            break;
-          case 'SENT':
-            type = 'sent';
-            break;
-          case 'TRASH':
-            type = 'trash';
-            break;
-          // This currently only exists for consistency with Thunderbird, but
-          // may become useful in the future when we need an outbox.
-          case 'UNSENT MESSAGES':
-            type = 'queue';
-            break;
+        // ensure that we treat folders at the root, see bug 854128
+        var prefix = conn.namespaces["personal"][0]["prefix"];
+        var isAtNamespaceRoot = path == (prefix + box.displayName);
+        if (path.length == 0 || isAtNamespaceRoot) {
+          switch (box.displayName.toUpperCase()) {
+            case 'DRAFT':
+            case 'DRAFTS':
+              type = 'drafts';
+              break;
+            case 'INBOX':
+              type = 'inbox';
+              break;
+            // Yahoo provides "Bulk Mail" for yahoo.fr.
+            case 'BULK MAIL':
+            case 'JUNK':
+            case 'SPAM':
+              type = 'junk';
+              break;
+            case 'SENT':
+              type = 'sent';
+              break;
+            case 'TRASH':
+              type = 'trash';
+              break;
+            // This currently only exists for consistency with Thunderbird, but
+            // may become useful in the future when we need an outbox.
+            case 'UNSENT MESSAGES':
+              type = 'queue';
+              break;
+          }
         }
       }
 
@@ -3442,7 +3447,7 @@ ImapAccount.prototype = {
             folderId;
 
         // - normalize jerk-moves
-        var type = self._determineFolderType(box, path);
+        var type = self._determineFolderType(box, path, conn);
         // gmail finds it amusing to give us the localized name/path of its
         // inbox, but still expects us to ask for it as INBOX.
         if (type === 'inbox')
