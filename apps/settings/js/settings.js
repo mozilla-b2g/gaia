@@ -159,7 +159,9 @@ var Settings = {
           if (input.value == value)
             return;
           input.value = value;
-          input.refresh(); // XXX to be removed when bug344618 lands
+          if (input.refresh) {
+            input.refresh(); // XXX to be removed when bug344618 lands
+          }
           break;
         case 'select':
           for (var i = 0; i < input.options.length; i++) {
