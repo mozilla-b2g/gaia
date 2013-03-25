@@ -44,7 +44,6 @@ if (typeof Contacts.extServices === 'undefined') {
     }
 
     function load(uri, from, serviceName) {
-      window.addEventListener('message', messageHandler);
       oauthFrame.contentWindow.postMessage({
         type: 'start',
         data: {
@@ -56,8 +55,7 @@ if (typeof Contacts.extServices === 'undefined') {
     }
 
     function unload() {
-      window.removeEventListener('message', messageHandler);
-      extensionFrame.src = null;
+      extensionFrame.src = currentURI = null;
     }
 
     function close(message) {
@@ -265,9 +263,10 @@ if (typeof Contacts.extServices === 'undefined') {
     // This function can also be executed when other messages arrive
     // That's why we cannot call notifySettings outside the switch block
     function messageHandler(e) {
-      if (e.origin !== fb.CONTACTS_APP_ORIGIN) {
+      if (!currentURI || e.origin !== fb.CONTACTS_APP_ORIGIN) {
         return;
       }
+
       var data = e.data;
 
       switch (data.type) {
@@ -341,6 +340,8 @@ if (typeof Contacts.extServices === 'undefined') {
         break;
       }
     }
+
+    window.addEventListener('message', messageHandler);
 
   })(document);
 }
